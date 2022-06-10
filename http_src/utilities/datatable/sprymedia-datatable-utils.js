@@ -4,6 +4,41 @@
  */
 'use strict';
 
+
+const DataTableHandlers = function() {
+    let handlersIdDict = {};
+    return {
+	addHandler: function(h) {
+	    let handlers = handlersIdDict[h.handlerId];
+	    if (handlers == null) {
+		handlers = [];
+		handlersIdDict[h.handlerId] = handlers;
+	    }
+	    handlers.push(() => {
+		h.onClick();
+	    });
+	    return `window['_DataTableButtonsOnClick']('${h.handlerId}', '${handlers.length}')`;
+	},
+	getHandler: function(handlerId, rowId) {
+	    let handlers = handlersIdDict[handlerId];
+	    if (handlers == null) { return null; }
+	    return handlers[rowId];
+	},
+	deleteHandlersById: function(handlerId) {
+	    handlersIdDict[handlerId] = null;
+	},
+    }
+}();
+    
+let DataTableButtonClickHandlers = {};
+
+window["_DataTableButtonsOnClick"] = function(handlerId, rowId) {
+    let onClick = DataTableHandlers.getHandler(handlerId, rowId);
+    if (onClick != null) {
+	onClick();
+    }
+}
+
 export class DataTableFiltersMenu {
 
     /**
@@ -226,64 +261,6 @@ export class DataTableFiltersMenu {
 
 }
 
-export class DataTableRangeFiltersMenu extends DataTableFiltersMenu {
-
-    constructor(params) {
-
-        super(params);
-
-        const self = this;
-        this.selectedMin = Number.MIN_VALUE;
-        this.selectedMax = Number.MAX_VALUE;
-
-        $.fn.dataTable.ext.search.push(
-            function (settings, data, dataIndex) {
-
-                const min = self.selectedMin || Number.MIN_VALUE;
-                const max = self.selectedMax || Number.MAX_VALUE;
-
-                const currentValue = parseFloat(data[params.columnIndex]) || 0;
-
-                return ((isNaN(min) && isNaN(max)) ||
-                    (isNaN(min) && currentValue <= max) ||
-                    (min <= currentValue && isNaN(max)) ||
-                    (min <= currentValue && currentValue <= max));
-            }
-        );
-
-        this.tableAPI.draw();
-        params.rawFilters = params.filters.map((filter) => {
-
-            filter.regex = '';
-            filter.min = filter.min || Number.MIN_VALUE;
-            filter.max = filter.max || Number.MAX_VALUE;
-            filter.countable = false;
-
-            filter.callback = () => {
-                self.selectedMax = filter.max;
-                self.selectedMin = filter.min;
-                self.tableAPI.draw();
-            };
-
-            return filter;
-        });
-
-    }
-
-    _generateAllFilter() {
-        const all = super._generateAllFilter();
-        const oldCallback = all.callback;
-        all.callback = () => {
-            oldCallback();
-            this.selectedMin = Number.MIN_VALUE;
-            this.selectedMax = Number.MAX_VALUE;
-            this.tableAPI.draw();
-        }
-        return all;
-    }
-
-}
-
 export class DataTableUtils {
 
     /**
@@ -325,6 +302,7 @@ export class DataTableUtils {
         }
     }
 
+
     /**
      * Example of action:
      * {
@@ -343,11 +321,16 @@ export class DataTableUtils {
         const dropdownButton = '<button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-align-justify"></i></button>'
 
         actions.forEach((action) => {
-
+	    let handler = "";
+	    if (action.handler) {
+		let fOnClick = DataTableHandlers.addHandler(action.handler);
+		handler = `onclick="${fOnClick}"`;
+	    }
             let button = (`
             <li>
                 <a
                     ${(action.href || action.modal) ? `href='${action.href || action.modal}'` : ``}
+                    ${handler}
                     ${(action.onclick) ? `onclick='${action.onclick}'` : ``}
                     ${action.modal ? "data-bs-toggle='modal'" : ``}
                     class='dropdown-item ${action.class ? action.class : ``}'
@@ -358,13 +341,16 @@ export class DataTableUtils {
                 </a>
             </li>
             `);
-
             buttons.push(button);
         });
 
         const list = `<ul class="dropdown-menu">${buttons.join('')}</ul>`
 
         return (`<div class='dropdown'>${dropdownButton}${list}</div>`);
+    }
+
+    static deleteButtonHandlers(handlerId) {
+	DataTableHandlers.deleteHandlersById(handlerId);
     }
 
     static setAjaxConfig(config, url, dataSrc = '', method = "get", params = {}) {
@@ -489,8 +475,6 @@ export class DataTableUtils {
         if (tableAPI === undefined) {
             throw 'The $table is undefined!';
         }
-
-        debugger;
 
         const tableID = tableAPI.table().node().id;
 
@@ -833,7 +817,7 @@ export class DataTableRenders {
         return msg;
     }
 
-   static applyCellStyle(cell, cellData, rowData, rowIndex, colIndex) {
+    static applyCellStyle(cell, cellData, rowData, rowIndex, colIndex) {
       if (cellData.highlight) {
          $(cell).css("border-left", "5px solid "+cellData.highlight);
       }
