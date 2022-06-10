@@ -570,11 +570,18 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
       host = interface.getHostMinInfo(flow[cli_or_srv .. ".ip"], flow[cli_or_srv .. ".vlan"])
    end
 
-  local host_name = host["name"]
 
-  if isEmptyString(host_name) then
-      host_name = host["ip"]
+  local host_name
+
+  if(host ~= nil) then
+     host_name = host["name"]
+
+     if isEmptyString(host_name) then
+        host_name = host["ip"]
+     end
   end
+
+  if(host_name == nil) then host_name = "" end
 
   host_name = host_name .. format_utils.formatFullAddressCategory(host)
 
