@@ -32,6 +32,7 @@ onMounted(() => {
     let config = DataTableUtils.getStdDatatableConfig(props.table_buttons);
     config = DataTableUtils.extendConfig(config, {
         serverSide: false,
+	destroy: true,
         searching: props.enable_search,
 	order: [[0, "asc"]],
         pagingType: 'full_numbers',
@@ -52,6 +53,8 @@ onMounted(() => {
     table = $(table_id.value).DataTable(config);
 });
 
+//onUpdated(() => { console.log("Updated"); });
+
 const reload = () => {
     if (table == null) { return; }
     table.ajax.url(props.data_url).load();
@@ -61,10 +64,18 @@ const delete_button_handlers = (handlerId) => {
     DataTableUtils.deleteButtonHandlers(handlerId);
 };
 
-defineExpose({ reload, delete_button_handlers });
+let is_destroyed = false;
 
+const destroy_table = () => {
+    table.clear();
+    table.destroy(true);
+    is_destroyed = true;
+}
+
+defineExpose({ reload, delete_button_handlers, destroy_table });
 
 onBeforeUnmount(() => {
+    if (is_destroyed == true) { return; }
     table.destroy(true);
 });
 

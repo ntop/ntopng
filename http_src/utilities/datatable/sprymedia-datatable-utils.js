@@ -17,7 +17,7 @@ const DataTableHandlers = function() {
 	    handlers.push(() => {
 		h.onClick();
 	    });
-	    return `window['_DataTableButtonsOnClick']('${h.handlerId}', '${handlers.length}')`;
+	    return `window['_DataTableButtonsOnClick']('${h.handlerId}', '${handlers.length - 1}')`;
 	},
 	getHandler: function(handlerId, rowId) {
 	    let handlers = handlersIdDict[handlerId];
@@ -320,7 +320,7 @@ export class DataTableUtils {
         const buttons = [];
         const dropdownButton = '<button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-align-justify"></i></button>'
 
-        actions.forEach((action) => {
+        actions.forEach((action, i) => {
 	    let handler = "";
 	    if (action.handler) {
 		let fOnClick = DataTableHandlers.addHandler(action.handler);
