@@ -1080,8 +1080,8 @@ else
         end
       end
 
-      if(flow.riskInfo ~= nil) then
-	      riskInfo = json.decode({flow.riskInfo}, 1, nil)
+      if not isEmptyString(flow.riskInfo) then
+         riskInfo = json.decode(flow.riskInfo, 1, nil)
       end
 
       if (riskInfo ~= nil) then
@@ -1335,11 +1335,11 @@ else
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
 	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2>")
-   local proto = "http"
-   if(starts(flow["proto.ndpi"], "TLS")) then
+         local proto = "http"
+         if(starts(flow["proto.ndpi"], "TLS")) then
 	    proto = "https"
 	 end
-   print(format_external_link(page_utils.safe_html(flow["host_server_name"]), page_utils.safe_html(flow["host_server_name"]), false, proto))
+         print(format_external_link(page_utils.safe_html(flow["host_server_name"]), page_utils.safe_html(flow["host_server_name"]), false, proto))
 	 if not isEmptyString(flow["protos.http.server_name"]) then
 	    printAddCustomHostRule(flow["protos.http.server_name"])
 	 end
