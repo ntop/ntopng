@@ -862,6 +862,14 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->out_fragments = value->int_num;
     break;
 
+  case SRC_PROC_PID:
+    flow->src_process_info.pid = value->int_num;
+    break;
+
+  case SRC_FATHER_PROC_PID:
+    flow->src_process_info.father_pid = value->int_num;
+    break;
+
   case SRC_PROC_NAME:
     if(value->string && value->string[0]) {
       flow->setParsedProcessInfo();
@@ -869,12 +877,40 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
 
-  case SRC_PROC_PID:
-    flow->src_process_info.pid = value->int_num;
+  case SRC_FATHER_PROC_NAME:
+    if(value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->src_process_info.father_process_name = strdup(value->string);
+    }
     break;
 
   case SRC_PROC_CMDLINE:
-    //TODO   
+    if(value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->src_process_info.cmd_line = strdup(value->string);
+    }
+    break;
+
+  case SRC_PROC_UID:
+    flow->src_process_info.uid = value->int_num;
+    break;
+
+  case SRC_FATHER_PROC_UID:
+    flow->src_process_info.father_uid = value->int_num;
+    break;
+
+  case SRC_PROC_USER_NAME:
+    if(value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->src_process_info.uid_name = strdup(value->string);
+    }
+    break;
+
+  case SRC_FATHER_PROC_USER_NAME:
+    if(value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->src_process_info.father_uid_name = strdup(value->string);
+    }
     break;
 
   case SRC_PROC_CONTAINER_ID:
@@ -895,14 +931,46 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->dst_process_info.pid = value->int_num;
     break;
 
+  case DST_FATHER_PROC_NAME:
+    if(value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->dst_process_info.father_process_name = strdup(value->string);
+    }
+    break;
+
   case DST_PROC_CMDLINE:
-    //TODO   
+    if(value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->dst_process_info.cmd_line = strdup(value->string);
+    }
+    break;
+
+  case DST_PROC_UID:
+    flow->dst_process_info.uid = value->int_num;
+    break;
+
+  case DST_FATHER_PROC_UID:
+    flow->dst_process_info.father_uid = value->int_num;
+    break;
+
+  case DST_PROC_USER_NAME:
+    if(value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->dst_process_info.uid_name = strdup(value->string);
+    }
+    break;
+
+  case DST_FATHER_PROC_USER_NAME:
+    if(value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->dst_process_info.father_uid_name = strdup(value->string);
+    }
     break;
 
   case DST_PROC_CONTAINER_ID:
     if(value->string && value->string[0]) {
       flow->setParsedContainerInfo();
-      flow->src_container_info.id = strdup(value->string);
+      flow->dst_container_info.id = strdup(value->string);
     }
     break;
 

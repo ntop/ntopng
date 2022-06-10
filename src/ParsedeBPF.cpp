@@ -57,10 +57,12 @@ ParsedeBPF::ParsedeBPF(const ParsedeBPF &pe) {
   process_info_set = pe.process_info_set;
 
   if(src_process_info.process_name)        src_process_info.process_name = strdup(src_process_info.process_name);
+  if(src_process_info.cmd_line)            src_process_info.cmd_line = strdup(src_process_info.cmd_line);
   if(src_process_info.uid_name)            src_process_info.uid_name = strdup(src_process_info.uid_name);
   if(src_process_info.father_process_name) src_process_info.father_process_name = strdup(src_process_info.father_process_name);
   if(src_process_info.father_uid_name)     src_process_info.father_uid_name = strdup(src_process_info.father_uid_name);
   if(dst_process_info.process_name)        dst_process_info.process_name = strdup(dst_process_info.process_name);
+  if(dst_process_info.cmd_line)            dst_process_info.cmd_line = strdup(dst_process_info.cmd_line);
   if(dst_process_info.uid_name)            dst_process_info.uid_name = strdup(dst_process_info.uid_name);
   if(dst_process_info.father_process_name) dst_process_info.father_process_name = strdup(dst_process_info.father_process_name);
   if(dst_process_info.father_uid_name)     dst_process_info.father_uid_name = strdup(dst_process_info.father_uid_name);
@@ -96,11 +98,13 @@ ParsedeBPF::~ParsedeBPF() {
   if(ifname) free(ifname);
 
   if(src_process_info.process_name)        free(src_process_info.process_name);
+  if(src_process_info.cmd_line)            free(src_process_info.cmd_line);
   if(src_process_info.uid_name)            free(src_process_info.uid_name);
   if(src_process_info.father_process_name) free(src_process_info.father_process_name);
   if(src_process_info.father_uid_name)     free(src_process_info.father_uid_name);
 
   if(dst_process_info.process_name)        free(dst_process_info.process_name);
+  if(dst_process_info.cmd_line)            free(dst_process_info.cmd_line);
   if(dst_process_info.uid_name)            free(dst_process_info.uid_name);
   if(dst_process_info.father_process_name) free(dst_process_info.father_process_name);
   if(dst_process_info.father_uid_name)     free(dst_process_info.father_uid_name);
@@ -173,7 +177,8 @@ void ParsedeBPF::print() {
 
 void ParsedeBPF::getProcessInfoJSONObject(const ProcessInfo *proc, json_object *proc_object) const {
   json_object_object_add(proc_object, "PID", json_object_new_int64(proc->pid));
-  json_object_object_add(proc_object, "NAME", json_object_new_string(proc->process_name));
+  json_object_object_add(proc_object, "NAME", json_object_new_string(proc->process_name ? proc->process_name : ""));
+  json_object_object_add(proc_object, "CMDLINE", json_object_new_string(proc->cmd_line ? proc->cmd_line : ""));
   json_object_object_add(proc_object, "UID", json_object_new_int64(proc->uid));
   json_object_object_add(proc_object, "GID", json_object_new_int64(proc->gid));
   json_object_object_add(proc_object, "ACTUAL_MEMORY", json_object_new_int64(proc->actual_memory));
@@ -182,7 +187,7 @@ void ParsedeBPF::getProcessInfoJSONObject(const ProcessInfo *proc, json_object *
 
   if(proc->father_pid > 0) {
     json_object_object_add(proc_object, "FATHER_PID", json_object_new_int64(proc->father_pid));
-    json_object_object_add(proc_object, "FATHER_NAME", json_object_new_string(proc->father_process_name));
+    json_object_object_add(proc_object, "FATHER_NAME", json_object_new_string(proc->father_process_name ? proc->father_process_name : ""));
     json_object_object_add(proc_object, "FATHER_UID", json_object_new_int64(proc->father_uid));
     json_object_object_add(proc_object, "FATHER_GID", json_object_new_int64(proc->father_gid));
     json_object_object_add(proc_object, "FATHER_USER_NAME", json_object_new_string(proc->father_uid_name ? proc->father_uid_name : ""));
@@ -276,7 +281,8 @@ void ParsedeBPF::getJSONObject(json_object *my_object) const {
 
 void ParsedeBPF::processInfoLua(lua_State *vm, const ProcessInfo *proc) const {
   lua_push_uint64_table_entry(vm, "pid", proc->pid);
-  lua_push_str_table_entry(vm, "name", proc->process_name);
+  lua_push_str_table_entry(vm, "name", proc->process_name ? proc->process_name : "");
+  lua_push_str_table_entry(vm, "cmdline", proc->cmd_line ? proc->cmd_line : "");
   lua_push_uint64_table_entry(vm, "uid", proc->uid);
   lua_push_uint64_table_entry(vm, "gid", proc->gid);
   lua_push_uint64_table_entry(vm, "actual_memory", proc->actual_memory);
@@ -287,7 +293,7 @@ void ParsedeBPF::processInfoLua(lua_State *vm, const ProcessInfo *proc) const {
     lua_push_uint64_table_entry(vm, "father_pid", proc->father_pid);
     lua_push_uint64_table_entry(vm, "father_uid", proc->father_uid);
     lua_push_uint64_table_entry(vm, "father_gid", proc->father_gid);
-    lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
+    lua_push_str_table_entry(vm, "father_name", proc->father_process_name ? proc->father_process_name : "");
     lua_push_str_table_entry(vm, "father_user_name", proc->father_uid_name ? proc->father_uid_name : "");
   }
 }
