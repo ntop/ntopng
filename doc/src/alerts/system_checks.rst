@@ -1,5 +1,5 @@
-System Checks
-#############
+System Behavioural Checks
+#########################
 
 System checks are designed to spot ntopng problems and thus make sure the application is healthy.
 

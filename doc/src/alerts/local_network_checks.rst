@@ -1,5 +1,5 @@
-Local Network Checks
-####################
+Local Networks Behavioural Checks
+#################################
 
 These checks are performed o local networks (see -m command line option).
 

@@ -1,5 +1,5 @@
-Host Checks
-###########
+Host Behavioural Checks
+#######################
 
 Host checks are performed on active hosts.
 

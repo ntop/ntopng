@@ -1,5 +1,5 @@
-Interface Checks
-################
+Interface Behavioural Checks
+############################
 
 These checks are performed per network interface monitored by ntopng.
 

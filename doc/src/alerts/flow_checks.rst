@@ -1,5 +1,5 @@
-Flow Checks
-###########
+Flow Behavioural Checks
+#######################
 
 Flow checks are performed on live flows.
 
