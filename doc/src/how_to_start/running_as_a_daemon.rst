@@ -1,13 +1,17 @@
 Running ntopng as a Daemon
 ==========================
-Ntopng can be run in daemon mode on Unix systems and optionally be run automatically on system startup. Daemon execution and status are controlled using the script :code:`/etc/init.d/ntopng`. The script is installed automatically on Unix systems as it is part of any standard ntopng installation procedure. Newer systems that support systemd use :code:`systemctl` to control daemon execution an status.
+
+Ntopng can be run in daemon mode on Unix systems and optionally be run automatically on system startup. Daemon execution and status are controlled with systemd using the :code:`systemctl` script.
+The systemd script is installed automatically on Unix systems as it is part of any standard ntopng installation procedure.
 
 Daemon Configuration File
 -------------------------
+
 Ntopng configuration file is required when running it as a daemon. The configuration file has to be named :code:`ntopng.conf` and must be placed under :code:`/etc/ntopng/`. The interested reader can find above and example of a configuration file. A default configuration file is created by default when installing ntopng from any binary package.
 
 Automatic Daemon Startup on Boot
 --------------------------------
+
 In order to launch ntopng daemon automatically on system startup, an empty file ntopng.start must be created in the same directory of the configuration files. Therefore, the directory will contain both the configuration and the startup files 
 
 .. code:: bash
@@ -28,46 +32,22 @@ The existence of the :code:`ntopng.start` file is no longer required on systems 
 
 Daemon Control
 --------------
-ntopng daemon is controlled with the script :code:`/etc/init.d/ntopng`. The script accepts different options. Calling the script without options yields the following brief help
 
-.. code:: bash
-
-   /etc/init.d/ntopng
-   Usage: /etc/init.d/ntopng {start|force-start|stop|restart|status}
-
-On Unix systems that support systemd, the demon can only be controlled with :code:`systemctl`. All the standard options are accepted. The options and the usage of the daemon control script are discussed below.
+On Unix systems the ntopng daemon can be controlled with systemd using the :code:`systemctl` tool. All the standard options are accepted. The options and the usage of the daemon control script are discussed below.
 
 start
 ^^^^^
+
 This option is used to start the ntopng daemon
-
-.. code:: bash
-
-   /etc/init.d/ntopng start
-   * Starting ntopng
-   .done.
-
-On Unix systems with systemd the daemon is started as
 
 .. code:: bash
 
    systemctl start ntopng
 
-force-start
-^^^^^^^^^^^
-Equivalent to start. Not available on Unix systems with systemd.
-
 stop
 ^^^^
+
 This option is used to stop an ntopng daemon instance. For example 
-
-.. code:: bash
-
-   /etc/init.d/ntopng stop
-   * Stopping ntopng
-   .done.
-
-To stop the daemon on a Unix system with systemd use
 
 .. code:: bash
 
@@ -75,16 +55,8 @@ To stop the daemon on a Unix system with systemd use
 
 restart
 ^^^^^^^
-This option causes the restart of a daemon associated to a given interface, e.g., 
 
-.. code:: bash
-
-   /etc/init.d/ntopng restart
-   * Stopping ntopng
-   * Starting ntopng
-   .done.
-
-To restart the daemon on a Unix system type
+This option causes the restart of the ntopng instance.
 
 .. code:: bash
 
@@ -92,14 +64,8 @@ To restart the daemon on a Unix system type
 
 status
 ^^^^^^
-This options prints the status of a daemon associated to a given interface, e.g., 
 
-.. code:: bash
-
-   /etc/init.d/ntopng status
-   ntopng running as 5623
-
-To print the status of the ntopng daemon on a Unix system with systemd type
+This options prints the status of the ntopng daemon.
 
 .. code:: bash
 
