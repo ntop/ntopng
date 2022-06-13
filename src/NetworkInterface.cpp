@@ -395,7 +395,8 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
     ndpi_load_protocols_file(ndpi_s, ntop->getCustomnDPIProtos());
 
   memset(d_port, 0, sizeof(d_port));
-  ndpi_set_proto_defaults(ndpi_s, 0, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
+  ndpi_set_proto_defaults(ndpi_s, 0, 0,
+			  NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
 			  (char*)"Operating System",
 			  NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
 
