@@ -335,7 +335,9 @@ void NetworkInterface::init() {
   sub_interfaces = NULL;
 #endif
 #endif
+#ifdef NTOPNG_PRO
   dhcp_last_sec_pkts = 0, last_sec_epoch = 0;
+#endif
 
   dhcp_ranges = dhcp_ranges_shadow = NULL;
 
