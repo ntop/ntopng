@@ -1,0 +1,27 @@
+name: Build
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Ubuntu Prerequisites
+        run: |
+          sudo apt-get update || true
+          sudo apt-get install build-essential
+          sudo apt-get install libglib2.0 libxml2-dev libpcap-dev librrd-dev redis-server libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libzmq3-dev git libjson-c-dev
+      - name: Build nDPI
+        run: |
+          git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ..
+      - name: Configure
+        run: |
+          ./autogen.sh
+          ./configure
+      - name: Build
+        run: make
+
