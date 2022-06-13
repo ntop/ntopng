@@ -33,7 +33,9 @@ print("<tr><th>") print(i18n("about.copyright")) print("</th><td colspan=2>"..in
 
 print("<tr><th>"..i18n("about.version").."</th><td colspan=2>"..getNtopngRelease(info, true).."</td></tr>\n")
 if info["pro.systemid"] then
-   print("<tr><th>"..i18n("about.system_id").."</th><td colspan=2>"..info["pro.systemid"].." <A HREF=\"".. ntop.getHttpPrefix() .. "/lua/license.lua\"><i class=\"fas fa-cog\"></i></A></td></tr>\n")
+   print("<tr><th>"..i18n("about.system_id").."</th><td colspan=2>")
+   print("<span><button data-to-copy='".. info["pro.systemid"] .."' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button>")
+   print(info["pro.systemid"].." <A HREF=\"".. ntop.getHttpPrefix() .. "/lua/license.lua\"><i class=\"fas fa-cog\"></i></A></td></tr>\n")
 end
 
 print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
