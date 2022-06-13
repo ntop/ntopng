@@ -207,24 +207,50 @@ end
 
 -- ##############################################
 
---@brief Removes all exclusions for a given entity
-local function _enable_all_alerts_by_host(host_ip, vlan_id)
+--@brief Removes all exclusions for a given host (or all host/flow alerts if no host is specified)
+local function _enable_all_alerts_by_type(subject_type, host_ip, vlan_id)
   local ret = false
-  
+  local host_key = nil
+
+  -- Adding vlan_id to the host
+  if host_ip then
+    host_key = host_ip
+    if vlan_id and tonumber(vlan_id) ~= 0 then
+      host_key = format_ip_vlan(host_ip, vlan_id)
+    end
+  end
+
   local locked = _lock()
 
   if locked then
-    local exclusions
-    
-    if(host_ip == nil) then
-      exclusions = {}	 
-    else
-      local host = format_ip_vlan(host_ip, vlan_id)
-      exclusions = _get_configured_alert_exclusions()	 
-      exclusions[host] = nil
+    local exclusions = _get_configured_alert_exclusions()
+    local new_exclusions = {}
+
+    for subject_key, v in pairs(exclusions) do
+
+      if not v.type then
+        v.type = "host"
+      end
+
+      -- Enabling for a specific host
+      if subject_type == "host" and host_key ~= nil then
+        if exclusions[host_key] then
+          -- nothing to do (do not add this host to the new configuration)
+        else
+          new_exclusions[subject_key] = v
+        end
+
+      -- Enabling all by type
+      else
+        if v.type == subject_type then
+          -- nothing to do (do not add this to the new configuration)
+        else
+          new_exclusions[subject_key] = v
+        end
+      end
     end
 
-    _set_configured_alert_exclusions(exclusions)
+    _set_configured_alert_exclusions(new_exclusions)
 
     ret = true
     _unlock()
@@ -362,8 +388,16 @@ end
 --@brief Enables all flow alerts possibly disabled
 --@param host If a valid ip address is specified, then all alerts will be enabled only for `host`, otherwise all alerts will be enabled
 --@return True, if enabled with success, false otherwise
-function alert_exclusions.enable_all_flow_alerts_by_host(host_ip, vlan_id)
-   return _enable_all_alerts_by_host(host_ip, vlan_id)
+function alert_exclusions.enable_all_alerts_by_host(host_ip, vlan_id)
+   return _enable_all_alerts_by_type("host", host_ip, vlan_id)
+end
+
+function alert_exclusions.enable_all_alerts_by_domain()
+   return _enable_all_alerts_by_type("domain")
+end
+
+function alert_exclusions.enable_all_alerts_by_certificate()
+   return _enable_all_alerts_by_type("certificate")
 end
 
 -- ##############################################
@@ -387,15 +421,6 @@ end
 --@return True, if alert is enabled with success, false otherwise
 function alert_exclusions.enable_host_alert_by_host(host_ip, vlan_id, alert_key)
    return _toggle_alert_exclusion_by_host(false --[[ host --]], host_ip, vlan_id, alert_key, false --[[ enable --]])
-end
-
--- ##############################################
-
---@brief Enables all host alerts possibly disabled
---@param host If a valid ip address is specified, then all alerts will be enabled only for `host`, otherwise all alerts will be enabled
---@return True, if enabled with success, false otherwise
-function alert_exclusions.enable_all_host_alerts_by_host(host_ip, vlan_id)
-   return _enable_all_alerts_by_host(host_ip, vlan_id)
 end
 
 -- ##############################################
