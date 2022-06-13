@@ -565,6 +565,7 @@ local lang = {
     ["telegram"] = "Help and News",
     ["telemetry_data_opt_out_msg"] = "Contribute to the project by sending encrypted, <a href=\"%{tel_url}\">anonymous telemetry data</a> to <a href=\"%{ntop_org}\">ntop.org</a>.",
     ["too_many_exports"] = "Restart %{product} removing <code>-F</code> option or use a faster storage.",
+    ["timezone"] = "Local Timezone",
     ["upgrade_to_professional"] = "Upgrade to Pro/Enterprise version",
     ["uptime"] = "Uptime",
     ["version"] = "Version",

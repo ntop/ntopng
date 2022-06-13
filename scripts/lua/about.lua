@@ -38,6 +38,7 @@ end
 
 print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
 print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td colspan=2>".. info["product"] .." "..info["command_line"].."</td></tr>\n")
+print("<tr><th nowrap>"..i18n("about.timezone").."</th><td colspan=2>".. info.zoneinfo.."</td></tr>\n")
 --print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")
 
 ndpi_ver = info["version.ndpi"]
