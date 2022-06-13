@@ -2645,6 +2645,16 @@ void Flow::formatECSObserver(json_object *my_object) {
 
 /* *************************************** */
 
+void Flow::formatECSEvent(json_object *my_object) {
+  json_object *event_object;
+  if((event_object = json_object_new_object()) != NULL) {
+    json_object_object_add(event_object, "risk_score", json_object_new_int(getScore()));
+    json_object_object_add(my_object, "event", event_object);
+  }
+}
+
+/* *************************************** */
+
 void Flow::formatECSInterface(json_object *my_object) {
   json_object *interface_object;
   if((interface_object = json_object_new_object()) != NULL) {
@@ -2731,8 +2741,7 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
     json_object_object_add(network_object, Utils::jsonLabel(LAST_SWITCHED, "last_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int((u_int32_t)get_partial_last_seen()));
 
     json_object_object_add(my_object, "community_id", json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
-    json_object_object_add(my_object, "flow_score", json_object_new_int(getScore()));
-
+    
   #ifdef NTOPNG_PRO
   #ifndef HAVE_NEDGE
     // Traffic profile information, if any
@@ -2866,6 +2875,7 @@ void Flow::formatECSFlow(json_object *my_object) {
   formatECSNetwork(my_object, cli_ip);
   formatECSInterface(my_object);
   formatECSObserver(my_object);
+  formatECSEvent(my_object);
   formatECSAppProto(my_object);
   formatECSExtraInfo(my_object);
 

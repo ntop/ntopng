@@ -409,6 +409,7 @@ class Flow : public GenericHashEntry {
   void formatECSInterface(json_object *my_object);
   void formatECSNetwork(json_object *my_object, const IpAddress *addr);
   void formatECSHost(json_object *my_object, bool is_client, const IpAddress *addr, Host *host);
+  void formatECSEvent(json_object *my_object);
   void formatECSFlow(json_object *my_object);
   void formatSyslogFlow(json_object *my_object);
   void formatGenericFlow(json_object *my_object);
