@@ -11,7 +11,6 @@ local script
 -- #################################################################
 
 local function check_interface_drops(params)
-  local alert_consts = require "alert_consts"
   local info = params.entity_info
   local stats = info.stats_since_reset
   local threshold = tonumber(params.check_config.threshold)
