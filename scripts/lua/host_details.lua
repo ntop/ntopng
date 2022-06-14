@@ -403,7 +403,9 @@ else
 	 label = i18n("host_details.snmp"),
       },
       {
-	 hidden = only_historical or not host["systemhost"] or not interface.hasEBPF(),
+	 hidden = only_historical
+                  -- or not host["systemhost"]
+                  or not interface.hasEBPF(),
 	 active = page == "processes",
 	 page_name = "processes",
 	 label = i18n("user_info.processes"),

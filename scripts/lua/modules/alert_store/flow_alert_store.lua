@@ -507,7 +507,7 @@ function flow_alert_store:format_record(value, no_html)
    local alert_json = json.decode(value.json)
   
    local flow_related_info = addExtraFlowInfo(alert_json, value)
-    
+ 
    if not no_html and alert_json then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
       if active_flow and active_flow["seen.first"] < tonumber(value["tstamp_end"]) then
@@ -560,14 +560,14 @@ function flow_alert_store:format_record(value, no_html)
    end
    local proto = string.lower(interface.getnDPIProtoName(tonumber(value["l7_master_proto"])))
    
-   local info = format_external_link(value["info"], value["info"], no_html, proto)
    record[RNAME.INFO.name] = {
-     descr = info
+     value = value["info"],
+     descr = format_external_link(value["info"], value["info"], no_html, proto),
    }
 
    record[RNAME.FLOW_RELATED_INFO.name] = {
-    descr = flow_related_info
-  }
+     descr = flow_related_info,
+   }
 
    record[RNAME.ALERT_NAME.name] = alert_name
 

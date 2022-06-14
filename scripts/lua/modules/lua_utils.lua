@@ -4771,7 +4771,7 @@ end
 
 -- ##############################################
 
-function addHTTPInfoToAlertDescr(msg, alert_json)
+function addHTTPInfoToAlertDescr(msg, alert_json, url_only)
    if ((alert_json) 
       and (table.len(alert_json["proto"] or {}) > 0) 
       and (table.len(alert_json["proto"]["http"]) > 0)) then
@@ -4908,9 +4908,20 @@ end
 
 -- ##############################################
 
+function getExtraFlowInfoURL()
+  if alert_json then
+    if alert_json["proto"] and alert_json["proto"]["http"] and not isEmptyString(alert_json["proto"]["http"]["last_url"]) then
+      return alert_json["proto"]["http"]["last_url"]
+    elseif alert_json["proto"] and alert_json["proto"]["dns"] and not isEmptyString(alert_json["proto"]["dns"]["last_query"]) then
+      return alert_json["proto"]["dns"]["last_query"]
+    elseif alert_json["proto"] and alert_json["proto"]["tls"] and not isEmptyString(alert_json["proto"]["tls"]["client_requested_server_name"]) then
+      return alert_json["proto"]["tls"]["client_requested_server_name"]
+    end
+  end
+  return nil
+end
 
-
--- #####################
+-- ##############################################
 
 local iec104_typeids = {
    M_SP_NA_1=0x01,
