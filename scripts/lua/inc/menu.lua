@@ -310,11 +310,13 @@ else
 	 section = page_utils.menu_sections.collection,
 	 hidden = ((ifs.type ~= "zmq" and ifs.type ~= "custom") or not ntop.isEnterpriseM()) or is_system_interface,
 	 entries = {
+            --[[
 	    {
 	       entry = page_utils.menu_entries.event_exporters,
 	       hidden = not ifs.has_seen_ebpf_events,
 	       url = '/lua/pro/enterprise/event_exporters.lua',
 	    },
+            --]]
 	    {
 	       entry = page_utils.menu_entries.sflow_exporters,
 	       hidden = table.len(interface.getSFlowDevices() or {}) == 0,
