@@ -14,10 +14,10 @@ local ebpf_utils = {}
 function ebpf_utils.draw_processes_graph(host_info)
    print[[
 
-<div align="center" id="chart"></div>
+<div align="center" id="process-chart"></div>
 
 <script>
-  ebpfUtils.draw_processes_graph(']] print(ntop.getHttpPrefix()) print[[',']] print("chart") print[[',']] print(hostinfo2hostkey(host_info)) print[[');
+  ebpfUtils.draw_processes_graph(']] print(ntop.getHttpPrefix()) print[[',']] print("process-chart") print[[',']] print(hostinfo2hostkey(host_info)) print[[');
 </script>
 ]]
 end
