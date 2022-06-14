@@ -23,7 +23,9 @@
 
 #ifndef HAVE_NEDGE
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
+
+/* Note: Apple broke the openlog support in Sierra and later */
 
 /* **************************************** */
 

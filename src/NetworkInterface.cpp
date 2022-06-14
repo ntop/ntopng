@@ -8469,7 +8469,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 #ifndef HAVE_NEDGE
     else if(ntop->getPrefs()->do_dump_flows_on_es())
       db = new (std::nothrow) ElasticSearch(this);
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
     else if(ntop->getPrefs()->do_dump_flows_on_syslog())
       db = new (std::nothrow) SyslogDump(this);
 #endif

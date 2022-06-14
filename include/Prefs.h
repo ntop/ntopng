@@ -141,7 +141,7 @@ class Prefs {
   bool json_labels_string_format;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd, *es_host;
   char *mysql_host, *mysql_dbname, *mysql_user, *mysql_pw;
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
   int flows_syslog_facility;
 #endif
   int mysql_port;
@@ -342,7 +342,7 @@ class Prefs {
   inline char* get_mysql_tablename()    { return((char*)"flows");        };
   inline char* get_mysql_user()         { return(mysql_user);            };
   inline char* get_mysql_pw()           { return(mysql_pw);              };
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
   inline int get_flows_syslog_facility() { return(flows_syslog_facility); };
 #endif
   inline char* get_ls_host()            { return(ls_host);               };

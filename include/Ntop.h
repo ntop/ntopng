@@ -67,7 +67,7 @@ class Ntop {
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   ZMQPublisher *zmqPublisher;
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
   SyslogDump *syslog; /**< Pointer of Logstash. */
 #endif
   ExportInterface *export_interface;

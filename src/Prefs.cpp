@@ -165,9 +165,9 @@ Prefs::Prefs(Ntop *_ntop) {
   mysql_host = mysql_dbname = mysql_user = mysql_pw = NULL;
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
   clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
-  #ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
   flows_syslog_facility = CONST_DEFAULT_DUMP_SYSLOG_FACILITY;
-  #endif
+#endif
   ls_host = NULL;
   ls_port = NULL;
   ls_proto = NULL;
@@ -398,7 +398,7 @@ void usage() {
 	 "                                    |   ElasticSearch version 6. <mapping type> values whill therefore be\n"
 	 "                                    |   ignored when using versions greater than or equal to 6.\n"
 	 "                                    |\n"
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
 	 "                                    | syslog        Dump in syslog\n"
 	 "                                    |   Format:\n"
 	 "                                    |   syslog[;<facility-text>]\n"
@@ -1532,7 +1532,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "-F mysql/-F clickhouse is not available (missing MySQL support)");
 #endif
     }
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
     else if(!strncmp(optarg, "syslog", strlen("syslog"))) {
       char *flows_syslog_facility_text;
 
