@@ -682,7 +682,7 @@ end
 --@param values The comma-separated list of values and operators
 --@param value_type The value type (e.g. 'number')
 --@return True if set is successful, false otherwise
-function alert_store:add_filter_condition_list(field, values, values_type)
+function alert_store:add_filter_condition_list(field, values, values_type, value_to_use)
    if not values or isEmptyString(values) then
       return false
    end
@@ -702,6 +702,10 @@ function alert_store:add_filter_condition_list(field, values, values_type)
 
       if values_type == 'number' then
          value = tonumber(value)
+      end
+
+      if value_to_use then
+        value = value_to_use
       end
 
       if value then

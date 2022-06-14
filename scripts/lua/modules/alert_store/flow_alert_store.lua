@@ -28,6 +28,29 @@ local flow_alert_store = classes.class(alert_store)
 
 -- ##############################################
 
+function flow_alert_store:format_traffic_direction(traffic_direction)
+  if traffic_direction then
+    local list = split(traffic_direction, ',')
+    local value = self:strip_filter_operator(list[1])
+
+    if value == "0" then
+      self:add_filter_condition_list("cli_location", traffic_direction, "string", "0") 
+      self:add_filter_condition_list("srv_location", traffic_direction, "string", "0") 
+    elseif value == "1" then
+      self:add_filter_condition_list("cli_location", traffic_direction, "string", "1") 
+      self:add_filter_condition_list("srv_location", traffic_direction, "string", "1") 
+    elseif value == "2" then
+      self:add_filter_condition_list("cli_location", traffic_direction, "string", "0") 
+      self:add_filter_condition_list("srv_location", traffic_direction, "string", "1") 
+    elseif value == "3" then
+      self:add_filter_condition_list("cli_location", traffic_direction, "string", "1") 
+      self:add_filter_condition_list("srv_location", traffic_direction, "string", "0") 
+    end
+  end
+end
+
+-- ##############################################
+
 function flow_alert_store:init(args)
    local table_name = "flow_alerts"
 
@@ -387,6 +410,8 @@ function flow_alert_store:_add_additional_request_filters()
    local error_code = _GET["l7_error_id"]
    local confidence = _GET["confidence"]
    
+   self:format_traffic_direction(_GET["traffic_direction"])
+   
    -- Filter out flows with no alert
    self:add_filter_condition_list('alert_id', "0"..tag_utils.SEPARATOR.."neq", 'number')
 
@@ -441,6 +466,7 @@ function flow_alert_store:_get_additional_available_filters()
 
       l7_error_id     = tag_utils.defined_tags.l7_error_id,
       confidence      = tag_utils.defined_tags.confidence,
+      traffic_direction = tag_utils.defined_tags.traffic_direction
   }
 
    return filters
