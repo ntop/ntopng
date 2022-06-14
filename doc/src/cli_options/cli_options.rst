@@ -289,18 +289,16 @@ Some of the most important parameters are briefly discussed here.
 
 :code:`[--offline]`
 
-   In case Ntopng is placed in a protected environment.The firewall may cause a slower performance of the dashboard.It's possible to improve it's performance by adding --offline option and stopping from contacing any external services. However,Ntopng needs to perform periodically some active traffic to operate . For this reason,knowing the list of IP/hosts there is a necessity to allow to connect to these resources:
+   In case ntopng is placed in a protected environment (e.g. with a firewall limiting Internet connectivity) this can affect the ntopng performance and user experience. ntopng automatically tries to detect if there is limited connectivity, switching to *offline* mode. It is also possible to force the *offline* mode in ntopng by adding the :code:`--offline` option. This mode will stop ntopng from contacing any external services. The list of IP/hosts contacted by ntopng when not offline includes:
 
-      google.com 
+      github.com (for the connectivity check - this can be configured from Settings -> Preferences -> Misc)
 
-      packages.ntop.org.
+      packages.ntop.org
 
       blog.ntop.org 
 
-      downloads blacklists (menu Settings -> Category Lists)
+      blacklists (those can be configured from Settings -> Category Lists)
 
-
-   In order to update and make it work properly ,without slowing down the dashboard. 
 
 .. warning::
    Unlike its predecessor, ntopng is not itself a Netflow collector. It can act as Netflow collector combined with nProbe. To perform this connection start nProbe with the :code:`--zmq` parameter and point ntopng interface parameter to the nProbe ZMQ endpoint. Using this configuration give the admin the possibility to use ntopng as collector GUI to display data either from nProbe captured traffic and Netflow enabled devices as displayed in the following picture.
