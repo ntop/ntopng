@@ -251,8 +251,8 @@ Since DHCP responses are usually directed to a specific host, this setting is
 most effective when the interface monitors mirrored traffic.
 
 
-Mirror Traffic
---------------
+Mirrored Traffic
+----------------
 
 The Alert notifies the user to enable mirroring when the system detects RX only.
 The toast is going to show only if the user has RX-only traffic (TX traffic is 0 and RX is greater then 0).
