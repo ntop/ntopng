@@ -248,8 +248,12 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     flow->setFlowApplLatency(zflow->tcp.applLatencyMsec);
 
   /* Update process and container info */
-  if(zflow->hasParsedeBPF()) {
-    flow->setParsedeBPFInfo(zflow);
+  if(zflow->hasParsedeBPF()) {    
+    bool swap_direction = ((ntohs(zflow->src_port) == flow->get_cli_port())
+			   && (ntohs(zflow->dst_port) == flow->get_srv_port())) ? false : true;
+
+    flow->setParsedeBPFInfo(zflow, swap_direction);
+    
     /* Now refresh the flow last seen so it will stay active as long as we keep receiving updates */
     flow->updateSeen();
   }

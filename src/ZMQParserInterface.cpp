@@ -874,6 +874,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     if(value->string && value->string[0]) {
       flow->setParsedProcessInfo();
       flow->src_process_info.process_name = strdup(value->string);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SRC] %s (%u)", flow->src_process_info.process_name, ntohs(flow->src_port)); */
     }
     break;
 
@@ -924,6 +925,9 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     if(value->string && value->string[0]) {
       flow->setParsedProcessInfo();
       flow->dst_process_info.process_name = strdup(value->string);
+
+
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DST] %s (%u)", flow->dst_process_info.process_name, ntohs(flow->dst_port)); */
     }
     break;
 
@@ -1370,10 +1374,13 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
     if(flow->hasParsedeBPF()) {
       /* Direction already reliable when the event is an accept or a connect.
          Heuristic is only used in the other cases. */
+#if 0
+      /* Disabled as Flow::setParsedeBPFInfo() now suports directions */
       if(flow->event_type != ebpf_event_type_tcp_accept
 	 && flow->event_type != ebpf_event_type_tcp_connect
 	 && ntohs(flow->src_port) < ntohs(flow->dst_port))
 	flow->swap();
+#endif
     } else if(/* ntohs(flow->src_port) < 1024 && Relaxes this condition to also include non-well-known ports (e.g., MySQL 3306) */
 	      ntohs(flow->src_port) < ntohs(flow->dst_port)
 	      // && flow->in_pkts && flow->out_pkts /* Flows can be mono-directional, so can't use this condition */

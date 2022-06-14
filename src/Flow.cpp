@@ -5195,7 +5195,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
 /* ***************************************************** */
 
-void Flow::setParsedeBPFInfo(const ParsedeBPF * const _ebpf) {
+void Flow::setParsedeBPFInfo(const ParsedeBPF * const _ebpf, bool swap_directions) {
   ParsedeBPF *cur = NULL;
   bool update_ok = true;
 
@@ -5206,7 +5206,7 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const _ebpf) {
     iface->setSeenEBPFEvents();
 
   if(!ebpf)
-    cur = ebpf = new (std::nothrow) ParsedeBPF(*_ebpf);
+    cur = ebpf = new (std::nothrow) ParsedeBPF(*_ebpf, swap_directions);
   else
     update_ok = ebpf->update(_ebpf);
 

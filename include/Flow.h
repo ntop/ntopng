@@ -839,7 +839,7 @@ class Flow : public GenericHashEntry {
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
   void housekeep(time_t t);
-  void setParsedeBPFInfo(const ParsedeBPF * const _ebpf);
+  void setParsedeBPFInfo(const ParsedeBPF * const _ebpf, bool swap_directions);
   inline const ContainerInfo* getClientContainerInfo() const {
     return ebpf && ebpf->container_info_set ? &ebpf->src_container_info : NULL;
   }

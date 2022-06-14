@@ -37,7 +37,7 @@ class ParsedeBPF {
   bool process_info_set, container_info_set, tcp_info_set;
 
   ParsedeBPF();
-  ParsedeBPF(const ParsedeBPF &pe);
+  ParsedeBPF(const ParsedeBPF &pe, bool swap_directions);
   virtual ~ParsedeBPF();
 
   inline void swap() { server_info = !server_info; };	

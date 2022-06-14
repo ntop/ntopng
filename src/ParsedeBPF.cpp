@@ -41,15 +41,25 @@ ParsedeBPF::ParsedeBPF() {
 
 /* *************************************** */
 
-ParsedeBPF::ParsedeBPF(const ParsedeBPF &pe) {
+ParsedeBPF::ParsedeBPF(const ParsedeBPF &pe, bool swap_directions) {
   ifname = NULL;
-  memcpy(&src_process_info, &pe.src_process_info, sizeof(src_process_info));
-  memcpy(&dst_process_info, &pe.dst_process_info, sizeof(dst_process_info));
-  memcpy(&src_container_info, &pe.src_container_info, sizeof(src_container_info));
-  memcpy(&dst_container_info, &pe.dst_container_info, sizeof(dst_container_info));
-  memcpy(&src_tcp_info, &pe.src_tcp_info, sizeof(src_tcp_info));
-  memcpy(&dst_tcp_info, &pe.dst_tcp_info, sizeof(dst_tcp_info));
 
+  if(!swap_directions) {
+    memcpy(&src_process_info, &pe.src_process_info, sizeof(src_process_info));
+    memcpy(&dst_process_info, &pe.dst_process_info, sizeof(dst_process_info));
+    memcpy(&src_container_info, &pe.src_container_info, sizeof(src_container_info));
+    memcpy(&dst_container_info, &pe.dst_container_info, sizeof(dst_container_info));
+    memcpy(&src_tcp_info, &pe.src_tcp_info, sizeof(src_tcp_info));
+    memcpy(&dst_tcp_info, &pe.dst_tcp_info, sizeof(dst_tcp_info));
+  } else {
+    memcpy(&src_process_info, &pe.dst_process_info, sizeof(src_process_info));
+    memcpy(&dst_process_info, &pe.src_process_info, sizeof(dst_process_info));
+    memcpy(&src_container_info, &pe.dst_container_info, sizeof(src_container_info));
+    memcpy(&dst_container_info, &pe.src_container_info, sizeof(dst_container_info));
+    memcpy(&src_tcp_info, &pe.dst_tcp_info, sizeof(src_tcp_info));
+    memcpy(&dst_tcp_info, &pe.src_tcp_info, sizeof(dst_tcp_info));
+  }
+  
   event_type = pe.event_type;
 
   if(pe.ifname) ifname = strdup(pe.ifname);

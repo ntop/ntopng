@@ -2769,7 +2769,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
            dequeued->container_info_set ||
            dequeued->tcp_info_set) {
           /* Flow from ZMQParserInterface (nProbe Agent) */
-	  flow->setParsedeBPFInfo(dequeued);
+	  flow->setParsedeBPFInfo(dequeued, false /* TODO */);
         }
       }
 
