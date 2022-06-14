@@ -63,7 +63,7 @@ const REGEXES = {
 	https: "^https?://.+$",
 	token: "^[0-9a-f]{32}",
     score: "^[0-9]{1,5}",
-    telegram_channel: "^[0-9]{1,15}"
+    telegram_channel: "^[0-9\-]{1,15}"
 };
 
 class NtopUtils {
