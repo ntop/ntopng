@@ -408,7 +408,10 @@ local menu_subpages = {
        description = i18n("prefs.mgmt_acl_description", {product=info.product}),
     },
     }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  hidden=false, entries={
-    toggle_send_telemetry_data = {
+    connectivity_check_url = {
+      title       = i18n("prefs.connectivity_check_url_title"),
+      description = i18n("prefs.connectivity_check_url_description"),
+    }, toggle_send_telemetry_data = {
       title       = i18n("prefs.toggle_send_telemetry_data_title"),
       description = i18n("prefs.toggle_send_telemetry_data_description", { product = info.product}),
     }, toggle_thpt_content = {

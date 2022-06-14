@@ -496,6 +496,15 @@ function printMisc()
   print('<form method="post">')
   print('<table class="table">')
 
+  print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.connectivity_check")..'</th></tr></thead>')
+
+  prefsInputFieldPrefs(subpage_active.entries["connectivity_check_url"].title,
+		       subpage_active.entries["connectivity_check_url"].description,
+		       "ntopng.prefs.",
+		       "connectivity_check_url",
+		       "",
+		       false, true, nil, nil, {attributes={spellcheck="false"}, pattern=getURLPattern(), required=false})
+
   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.report")..'</th></tr></thead>')
 
   local t_labels = {i18n("bytes"), i18n("packets")}

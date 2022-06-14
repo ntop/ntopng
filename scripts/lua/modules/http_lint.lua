@@ -1388,6 +1388,7 @@ local known_parameters = {
    ["admin_group"]             = validateUnquoted,
    ["radius_admin_group"]      = validateUnquoted,
    ["ts_post_data_url"]        = validateUnquoted,             -- URL for influxdb
+   ["connectivity_check_url"]  = validateUnquoted,             -- URL for connectivity check
 
    ["teams_url"]               = { webhookCleanup, validateUnquoted },
    ["webhook_url"]             = { webhookCleanup, validateUnquoted },
