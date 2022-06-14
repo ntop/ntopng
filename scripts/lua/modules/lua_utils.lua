@@ -4908,6 +4908,15 @@ end
 
 -- ##############################################
 
+function getExtraFlowInfoTLSIssuerDN(alert_json)
+  if alert_json and alert_json["proto"] and alert_json["proto"]["tls"] and not isEmptyString(alert_json["proto"]["tls"]["issuerDN"]) then
+    return alert_json["proto"]["tls"]["issuerDN"]
+  end
+  return nil
+end
+
+-- ##############################################
+
 function getExtraFlowInfoURL()
   if alert_json then
     if alert_json["proto"] and alert_json["proto"]["http"] and not isEmptyString(alert_json["proto"]["http"]["last_url"]) then

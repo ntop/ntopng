@@ -507,7 +507,8 @@ function flow_alert_store:format_record(value, no_html)
    local alert_json = json.decode(value.json)
   
    local flow_related_info = addExtraFlowInfo(alert_json, value)
- 
+   local flow_tls_issuerdn = getExtraFlowInfoTLSIssuerDN(alert_json)
+
    if not no_html and alert_json then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
       if active_flow and active_flow["seen.first"] < tonumber(value["tstamp_end"]) then
@@ -563,6 +564,7 @@ function flow_alert_store:format_record(value, no_html)
    record[RNAME.INFO.name] = {
      value = value["info"],
      descr = format_external_link(value["info"], value["info"], no_html, proto),
+     issuerdn = flow_tls_issuerdn,
    }
 
    record[RNAME.FLOW_RELATED_INFO.name] = {
