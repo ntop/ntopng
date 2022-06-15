@@ -148,7 +148,6 @@ let pattern_empty = ".+";
 const exclude = () => {
     let page = props.page;
     let type = get_type();
-    console.log(type);
     let params = {
     	delete_alerts: disable_alerts.value,
 	type,	
