@@ -401,7 +401,11 @@ local function displayProc(proc, label)
    print(label)
 
    print("<tr><th width=30%>"..i18n("flow_details.user_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/username_details.lua?uid=" .. proc.uid .. "&username=".. proc.user_name .."&".. hostinfo2url(flow,"cli").."\">".. proc.user_name .."</A></td></tr>\n")
-   print("<tr><th width=30%>"..i18n("flow_details.process_pid_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/process_details.lua?pid=".. proc.pid .."&pid_name=".. proc.name .. "&" .. hostinfo2url(flow,"srv").. "\">".. proc.name .. " [pid: "..proc.pid.."]</A>")
+   local pkg_name = proc.pkg_name
+   if isEmptyString(pkg_name) then
+      pkg_name = '-'
+   end
+   print("<tr><th width=30%>"..i18n("flow_details.process_pid_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/process_details.lua?pid=".. proc.pid .."&pid_name=".. proc.name .. "&" .. hostinfo2url(flow,"srv").. "\">".. proc.name .. " " .. i18n("flow_details.process_pid") .. ": "..proc.pid.. " " .. i18n("flow_details.process_package") .. ": "..pkg_name .. " </A>")
    if proc.father_pid then
       print(" "..i18n("flow_details.son_of_father_process",{url=ntop.getHttpPrefix().."/lua/process_details.lua?pid="..proc.father_pid .. "&pid_name=".. proc.father_name .. "&" .. hostinfo2url(flow,"srv"), proc_father_pid = proc.father_pid, proc_father_name = proc.father_name}).."</td></tr>\n")
    end

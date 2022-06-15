@@ -2400,6 +2400,8 @@ local lang = {
     ["payload_type"] = "Payload Type",
     ["potentially_dangerous_protocol"] = "Potentially Dangerous Protocol",
     ["process_information_report_warning"] = "Process information report is limited unless you use ntopng with <A HREF='%{url}'>nProbe</A> and the sprobe script",
+    ["process_package"] = "Package",
+    ["process_pid"] = "PID",
     ["process_pid_name"] = "Process PID/Name",
     ["profile_name"] = "Profile Name",
     ["pseudo_mos"] = "(Pseudo) MOS",
