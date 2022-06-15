@@ -649,8 +649,8 @@ void Flow::processExtraDissectedInformation() {
       if(protos.http.last_url) {
 	u_int16_t risk = ndpi_validate_url(protos.http.last_url);
 
-	if(risk != NDPI_NO_RISK)
-	  addRisk(risk);
+	if((risk != NDPI_NO_RISK) && (risk < NDPI_MAX_RISK))
+ 	  addRisk(2 << (risk-1));
       }
 
       break;
