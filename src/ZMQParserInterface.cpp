@@ -912,11 +912,19 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
 
+  case SRC_PROC_PKG_NAME:
+    if(value->string && value->string[0])
+      flow->src_process_info.pkg_name = strdup(value->string);
+    break;
+
+  case SRC_FATHER_PROC_PKG_NAME:
+    if(value->string && value->string[0])
+      flow->src_process_info.father_pkg_name = strdup(value->string);
+    break;
+
   case SRC_PROC_CMDLINE:
-    if(value->string && value->string[0]) {
-      flow->setParsedProcessInfo();
+    if(value->string && value->string[0])
       flow->src_process_info.cmd_line = strdup(value->string);
-    }
     break;
 
   case SRC_PROC_UID:
@@ -928,17 +936,13 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     break;
 
   case SRC_PROC_USER_NAME:
-    if(value->string && value->string[0]) {
-      flow->setParsedProcessInfo();
+    if(value->string && value->string[0])
       flow->src_process_info.uid_name = strdup(value->string);
-    }
     break;
 
   case SRC_FATHER_PROC_USER_NAME:
-    if(value->string && value->string[0]) {
-      flow->setParsedProcessInfo();
+    if(value->string && value->string[0])
       flow->src_process_info.father_uid_name = strdup(value->string);
-    }
     break;
 
   case SRC_PROC_CONTAINER_ID:
@@ -948,18 +952,20 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
 
+  case DST_PROC_PID:
+    flow->dst_process_info.pid = value->int_num;
+    break;
+
+  case DST_FATHER_PROC_PID:
+    flow->dst_process_info.father_pid = value->int_num;
+    break;
+
   case DST_PROC_NAME:
     if(value->string && value->string[0]) {
       flow->setParsedProcessInfo();
       flow->dst_process_info.process_name = strdup(value->string);
-
-
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DST] %s (%u)", flow->dst_process_info.process_name, ntohs(flow->dst_port)); */
     }
-    break;
-
-  case DST_PROC_PID:
-    flow->dst_process_info.pid = value->int_num;
     break;
 
   case DST_FATHER_PROC_NAME:
@@ -969,11 +975,19 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
 
+  case DST_PROC_PKG_NAME:
+    if(value->string && value->string[0])
+      flow->dst_process_info.pkg_name = strdup(value->string);
+    break;
+
+  case DST_FATHER_PROC_PKG_NAME:
+    if(value->string && value->string[0])
+      flow->dst_process_info.father_pkg_name = strdup(value->string);
+    break;
+
   case DST_PROC_CMDLINE:
-    if(value->string && value->string[0]) {
-      flow->setParsedProcessInfo();
+    if(value->string && value->string[0])
       flow->dst_process_info.cmd_line = strdup(value->string);
-    }
     break;
 
   case DST_PROC_UID:
@@ -985,17 +999,13 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     break;
 
   case DST_PROC_USER_NAME:
-    if(value->string && value->string[0]) {
-      flow->setParsedProcessInfo();
+    if(value->string && value->string[0])
       flow->dst_process_info.uid_name = strdup(value->string);
-    }
     break;
 
   case DST_FATHER_PROC_USER_NAME:
-    if(value->string && value->string[0]) {
-      flow->setParsedProcessInfo();
+    if(value->string && value->string[0])
       flow->dst_process_info.father_uid_name = strdup(value->string);
-    }
     break;
 
   case DST_PROC_CONTAINER_ID:
