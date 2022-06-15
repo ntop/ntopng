@@ -31,7 +31,7 @@
   <option disabled>{{ i18n('interfaces') }}</option>
 
     {% for round = 1, 2 do -- First round: only physical interfaces, second round: only virtual interfaces %}
-      {% for k, v in pairsByValues(ifnames, asc) do %}
+      {% for k, v in pairsByValues(ifHdescr, asc) do %}
         {% if round == 1 and ifCustom[k] then %}
           {% -- Nothing to do, this round is for physical, non-disaggregated interfaces ... %}
         {% elseif round == 2 and not ifCustom[k] then %}
