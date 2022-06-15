@@ -153,7 +153,7 @@ const $deleteFilteredAlerts = $('#dt-delete-modal form').modalHandler({
 
       $('#dt-delete-modal #end-epoch-delete').val(endEpoch);
       $('#dt-delete-modal #begin-epoch-delete').val(beginEpoch);
-
+      
       for (const tag of sortedTags) {
         const { id, operator, value } = tag;
         const label = i18n_ext.tags[id]
@@ -174,79 +174,79 @@ $(`#dt-btn-delete`).on('click', function (e) {
     $deleteFilteredAlerts.invokeModalInit();
 });
 
-$table.on('click', `a[href='#alerts_filter_dialog']`, function (e) {
-    const alert = $table.row($(this).parent().parent().parent().parent()).data();
-    $disableAlert.invokeModalInit(alert);
-});
+// $table.on('click', `a[href='#alerts_filter_dialog']`, function (e) {
+//     const alert = $table.row($(this).parent().parent().parent().parent()).data();
+//     $disableAlert.invokeModalInit(alert);
+// });
 
-const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
-    method: 'post',
-    csrf: pageCsrf,
-    endpoint: `${http_prefix}/lua/pro/rest/v2/add/alert/exclusion.lua`,
-    beforeSumbit: function (alert) {
-        let data = {
-            subdir: FAMILY,
-            script_key: alert.script_key,
-            delete_alerts: $(`#delete_alerts_switch`).is(":checked"),
-            alert_addr: $(`[name='alert_addr']:checked`).val(),
-        };
+// const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
+//     method: 'post',
+//     csrf: pageCsrf,
+//     endpoint: `${http_prefix}/lua/pro/rest/v2/add/alert/exclusion.lua`,
+//     beforeSumbit: function (alert) {
+//         let data = {
+//             subdir: FAMILY,
+//             script_key: alert.script_key,
+//             delete_alerts: $(`#delete_alerts_switch`).is(":checked"),
+//             alert_addr: $(`[name='alert_addr']:checked`).val(),
+//         };
 
-        if(FAMILY === "flow")
-            data["flow_alert_key"] = alert.alert_id.value;
-        else if(FAMILY === "host")
-            data["host_alert_key"] = alert.alert_id.value;
+//         if(FAMILY === "flow")
+//             data["flow_alert_key"] = alert.alert_id.value;
+//         else if(FAMILY === "host")
+//             data["host_alert_key"] = alert.alert_id.value;
 
-        return data;
-    },
-    onModalInit: function (alert) {
-        const $type = $(`<span>${alert.alert_id.label}</span>`);
-        $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
+//         return data;
+//     },
+//     onModalInit: function (alert) {
+//         const $type = $(`<span>${alert.alert_id.label}</span>`);
+//         $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
 
-        if (FAMILY === "host") {
-            const label = (alert.ip.label) ? `${alert.ip.label} (${alert.ip.value})` : alert.ip.value; 
-            $(`#srv_addr`).text(label);
-            $(`#srv_radio`).val(alert.ip.value);
-            $(`#cli_radio`).parent().hide();
-        }
-        else if (FAMILY === "flow") {
-            let cliValue = alert.flow.cli_ip.value
-            let srvValue = alert.flow.srv_ip.value
+//         if (FAMILY === "host") {
+//             const label = (alert.ip.label) ? `${alert.ip.label} (${alert.ip.value})` : alert.ip.value; 
+//             $(`#srv_addr`).text(label);
+//             $(`#srv_radio`).val(alert.ip.value);
+//             $(`#cli_radio`).parent().hide();
+//         }
+//         else if (FAMILY === "flow") {
+//             let cliValue = alert.flow.cli_ip.value
+//             let srvValue = alert.flow.srv_ip.value
+	    	
+//             if((alert.flow.vlan != undefined) && (alert.flow.vlan.value != 0)) {
+//               cliValue = cliValue + '@' + alert.flow.vlan.value
+//               srvValue = srvValue + '@' + alert.flow.vlan.value
+//             }
 
-            if((alert.flow.vlan != undefined) && (alert.flow.vlan.value != 0)) {
-              cliValue = cliValue + '@' + alert.flow.vlan.value
-              srvValue = srvValue + '@' + alert.flow.vlan.value
-            }
-
-            const cliLabel = (alert.flow.cli_ip.label) ? `${alert.flow.cli_ip.label} (${cliValue})` : cliValue;
-            const srvLabel = (alert.flow.srv_ip.label) ? `${alert.flow.srv_ip.label} (${srvValue})` : srvValue;
+//             const cliLabel = (alert.flow.cli_ip.label) ? `${alert.flow.cli_ip.label} (${cliValue})` : cliValue;
+//             const srvLabel = (alert.flow.srv_ip.label) ? `${alert.flow.srv_ip.label} (${srvValue})` : srvValue;
            
-            $(`#cli_addr`).text(cliLabel);
-            $(`#cli_radio`).val(cliValue);
-            $(`#srv_addr`).text(srvLabel);
-            $(`#srv_radio`).val(srvValue);
-        }
-        else {
-            $(`.alert_entity_val`).text("Unexpected alert family")
-        }
+//             $(`#cli_addr`).text(cliLabel);
+//             $(`#cli_radio`).val(cliValue);
+//             $(`#srv_addr`).text(srvLabel);
+//             $(`#srv_radio`).val(srvValue);
+//         }
+//         else {
+//             $(`.alert_entity_val`).text("Unexpected alert family")
+//         }
 
-    },
-    onSubmitSuccess: function (response, dataSent) {
-        if (response.rc < 0) {
-            $('#alerts_filter_dialog .invalid-feedback').html(i18n_ext.rest[response.rc_str] || response.rc_str).show();
-        }
-        else {
+//     },
+//     onSubmitSuccess: function (response, dataSent) {
+//         if (response.rc < 0) {
+//             $('#alerts_filter_dialog .invalid-feedback').html(i18n_ext.rest[response.rc_str] || response.rc_str).show();
+//         }
+//         else {
 
-            if (dataSent.delete_alerts) {
-                location.reload();
-            }
-            else {
-		ntopng_status_manager.update_subscribers();
-            }
-        }
+//             if (dataSent.delete_alerts) {
+//                 //location.reload();
+//             }
+//             else {
+// 		ntopng_status_manager.update_subscribers();
+//             }
+//         }
 
-        return (response.rc == 0);
-    }
-});
+//         return (response.rc == 0);
+//     }
+// });
 
 $table.on('click', `a[href='#acknowledge_alert_dialog']`, function (e) {
     const alert = $table.row($(this).parent().parent().parent().parent()).data();

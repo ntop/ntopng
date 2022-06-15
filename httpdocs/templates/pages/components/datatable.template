@@ -67,11 +67,17 @@
 
           <div class="col-12 mb-2" id="chart-vue">
             <div class="card h-100 overflow-hidden">
-	    <chart id="chart_0" :base_url_request="chart_base_url_request">
-	    </chart>
+              <chart id="chart_0" :base_url_request="chart_base_url_request">
+	      </chart>	      
+	      <modal-alerts-filter
+	        :alert="current_alert"
+		:page="page"
+		@exclude="add_exclude"
+		ref="modal_alerts_filter">
+	      </modal-alerts-filter>
             </div>
           </div>
-      {% end  %}
+      {% end  %}          
 
           <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'>
             <thead>
@@ -343,7 +349,13 @@
 
         /* Actions Column */
         {% if show_actions then %}
-        columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
+        columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (rowData, type, dataRow) => {
+            let handlerDisableAlerts = {
+	      handlerId: "diableAlerts",
+	      onClick: () => {
+		CHART_APP.show_modal_alerts_filter(rowData);
+	      },
+	    };
             const buttons = [
                 {% if actions.show_info then %}
                 {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info'},
@@ -375,7 +387,7 @@
 
                 {% if actions.show_disable then %}
                 /* Bell button to disable alerts is only supported for hosts and flows */
-                {icon: 'fa-bell-slash', title: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog'},
+                {icon: 'fa-bell-slash', handler: handlerDisableAlerts, title: "{{ i18n('disable') }}"},
                 {% end %}
 
                 {% if actions.show_settings then %}
@@ -445,9 +457,10 @@
 
   function start_chart() {
     let is_alert_stats_url = window.location.toString().match(/alert_stats.lua/) != null;
+    let page;
     let chart_data_url = `${base_path}/lua/pro/rest/v2/get/db/ts.lua`;
     if (is_alert_stats_url) {
-      let page = ntopng_url_manager.get_url_entry("page");
+      page = ntopng_url_manager.get_url_entry("page");
       if (page == null) { page = "all"; }
       chart_data_url = `${base_path}/lua/rest/v2/get/${page}/alert/ts.lua`;
     }
@@ -456,6 +469,7 @@
     	components: {
    	      // 'chart': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/chart.vue`, ntopng_vue_loader.loadOptions) ),
    	      'chart': ntopVue.Chart,
+	      'modal-alerts-filter': ntopVue.ModalAlertsFilter,
 	  },
 	  /**
 	   * First method called when the component is created.
@@ -465,10 +479,30 @@
 	  data() {
 	      return {
 		  chart_base_url_request: chart_data_url,
+		  page: page,
+		  current_alert: null,
 		  i18n: (t) => { return i18n(t); },
 	      };
 	  },
 	  methods: {
+	    show_modal_alerts_filter: function(alert) {
+	      this.current_alert = alert;
+	      this.$refs["modal_alerts_filter"].show();
+	    },
+	    add_exclude: async function(params) {
+	      params.csrf = pageCsrf;
+	      let url = `${http_prefix}/lua/pro/rest/v2/add/alert/exclusion.lua`;
+	      try {
+	        let headers = {
+		  'Content-Type': 'application/json'
+		};
+		await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+		let url_params = ntopng_url_manager.get_url_params();
+		reloadTable($table, url_params);
+              } catch(err) {
+	        console.error(err);
+              }
+	    }
 	  },
       }; 
       const chart_vue = ntopVue.Vue.createApp(chart_vue_options);
