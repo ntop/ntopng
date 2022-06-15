@@ -2740,8 +2740,16 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
     json_object_object_add(network_object, Utils::jsonLabel(FIRST_SWITCHED, "first_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int((u_int32_t)get_partial_first_seen()));
     json_object_object_add(network_object, Utils::jsonLabel(LAST_SWITCHED, "last_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int((u_int32_t)get_partial_last_seen()));
 
+    json_object *category_object;
+    if((category_object = json_object_new_object()) != NULL) {
+      json_object_object_add(category_object, Utils::jsonLabel(L7_CATEGORY, "name", jsonbuf, sizeof(jsonbuf)), json_object_new_string(get_protocol_category_name()));
+      json_object_object_add(category_object, Utils::jsonLabel(L7_CATEGORY_ID, "id", jsonbuf, sizeof(jsonbuf)), json_object_new_int((u_int32_t)get_protocol_category()));
+      json_object_object_add(network_object, "category", category_object);
+    }
+
     json_object_object_add(my_object, "community_id", json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
     
+
   #ifdef NTOPNG_PRO
   #ifndef HAVE_NEDGE
     // Traffic profile information, if any
