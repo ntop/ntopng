@@ -160,6 +160,10 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK]
       /* NDPI_HTTP_CRAWLER_BOT */      
     { { flow_alert_ndpi_http_crawler_bot, alert_category_network }, "ndpi_http_crawler_bot" },
 
+#ifdef TODO
+      /* NDPI_ANONYMOUS_SUBSCRIBER */      
+    { { flow_alert_ndpi_anonymous_subscriber, alert_category_security }, "ndpi_anonymous_subscriber" },
+#endif
 };
 
 /* **************************************************** */
