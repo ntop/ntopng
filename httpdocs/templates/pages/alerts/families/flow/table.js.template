@@ -9,9 +9,7 @@
         let confidence = ""
         if (proto.confidence !== undefined) {
           const title = proto.confidence;
-          let label = (proto.confidence).slice(0,4);
-          if(label !== title) label = label + "..";
-          (title == "DPI") ? confidence = `<span class="badge bg-success" title="${title}">${label}</span>` : confidence = `<span class="badge bg-warning" title="${title}">${label}</span>` 
+          (title == "DPI") ? confidence = `<span class="badge bg-success" title="${title}">${title}</span>` : confidence = `<span class="badge bg-warning" title="${title}">${title}</span>` 
         }
 	return DataTableRenders.filterize('l7proto', proto.value, proto.label) + " " + `${confidence}`;
     }},
