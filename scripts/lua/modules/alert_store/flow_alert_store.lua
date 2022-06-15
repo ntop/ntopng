@@ -589,6 +589,7 @@ function flow_alert_store:format_record(value, no_html)
    
    record[RNAME.INFO.name] = {
      value = value["info"],
+     --value = getExtraFlowInfoURL(alert_json),
      descr = format_external_link(value["info"], value["info"], no_html, proto),
      issuerdn = flow_tls_issuerdn,
    }

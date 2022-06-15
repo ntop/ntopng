@@ -4917,7 +4917,7 @@ end
 
 -- ##############################################
 
-function getExtraFlowInfoURL()
+function getExtraFlowInfoURL(alert_json)
   if alert_json then
     if alert_json["proto"] and alert_json["proto"]["http"] and not isEmptyString(alert_json["proto"]["http"]["last_url"]) then
       return alert_json["proto"]["http"]["last_url"]
