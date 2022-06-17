@@ -225,7 +225,7 @@ print([[
     <div class='w-100 text-end'>
       <button class='btn btn-primary' id='btn-generate_token'>]].. i18n("login.generate_token") ..[[</button>
     </div>
-]].. i18n("login.generate_token_help") ..[[
+<div><small>]].. i18n("login.generate_token_help") ..[[.  </small></div>
   </div>
 ]])
 

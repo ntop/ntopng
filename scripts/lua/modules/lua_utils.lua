@@ -276,7 +276,8 @@ local http_status_code_map = {
 -- ##############################################
 
 function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers, status_code)
-   info = ntop.getInfo(false)
+   local info = ntop.getInfo(false)
+
    local tzname = info.tzname or ''
    local cookie_attr = ntop.getCookieAttributes()
    local lines = {
@@ -290,6 +291,19 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
       'Last-Modified: '..os.date("!%a, %m %B %Y %X %Z"),
    }
 
+   local uri = _SERVER.URI
+
+   if(starts(uri, "/lua/rest/")) then
+      -- 
+      -- Only for REST calls handle CORS (Cross-Origin Resource Sharing)
+      --
+      -- https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
+      -- https://web.dev/cross-origin-resource-sharing/
+      --
+      lines[#lines + 1] = 'Access-Control-Allow-Origin: *'
+      lines[#lines + 1] = 'Access-Control-Allow-Methods: GET, POST, HEAD'
+   end
+   
    if(_SESSION ~= nil) then
       local key = "session_"..info.http_port.."_"..info.https_port
       lines[#lines + 1] = 'Set-Cookie: '..key..'='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; ' .. cookie_attr
@@ -347,7 +361,6 @@ function sendHTTPContentTypeHeader(content_type, content_disposition, charset, e
 
   sendHTTPHeader(mime, content_disposition, extra_headers, status_code)
 end
-
 
 -- ##############################################
 
