@@ -304,15 +304,15 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
 
     if(json_object_object_get_ex(o, "timeout", &w)) {
       if(json_object_object_get_ex(w, "lifetime", &z)) {
-	zrs.remote_lifetime_timeout = (u_int32_t)json_object_get_int64(z);
+        zrs.remote_lifetime_timeout = (u_int32_t)json_object_get_int64(z);
 
-	if(zrs.remote_lifetime_timeout > max_timeout)
-	  zrs.remote_lifetime_timeout = max_timeout;
+        if(zrs.remote_lifetime_timeout > max_timeout)
+          zrs.remote_lifetime_timeout = max_timeout;
       }
 
       if(json_object_object_get_ex(w, "idle", &z)) {
 	zrs.remote_idle_timeout = (u_int32_t)json_object_get_int64(z);
-
+  zrs.remote_idle_timeout *= 2; /* Double the idle timeout for NetFlow */
 	if(zrs.remote_idle_timeout > max_timeout)
 	  zrs.remote_idle_timeout = max_timeout;
       }
