@@ -6100,86 +6100,99 @@ void Flow::getJSONRiskInfo(ndpi_serializer *serializer) {
 /* ***************************************************** */
 
 void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
-   /* Check JSON info != NULL to not override info */
-   if(serializer) {
-      u_int16_t l7proto = getLowerProtocol();
+  /* Check JSON info != NULL to not override info */
 
-      ndpi_serialize_start_of_block(serializer, "proto"); /* proto block */
+  if(serializer == NULL)
+    return;
+
+  u_int16_t l7proto = getLowerProtocol();
+
+  ndpi_serialize_start_of_block(serializer, "proto"); /* proto block */
   
-      /* Adding protocol info; switch the lower application protocol */
-      switch(l7proto) {
-         case NDPI_PROTOCOL_DNS:
-            ndpi_serialize_start_of_block(serializer, "dns");
-            getDNSInfo(serializer);
-            ndpi_serialize_end_of_block(serializer);
-            break;
+  /* Adding protocol info; switch the lower application protocol */
+  switch(l7proto) {
+    case NDPI_PROTOCOL_DNS:
+      ndpi_serialize_start_of_block(serializer, "dns");
+      getDNSInfo(serializer);
+      ndpi_serialize_end_of_block(serializer);
+    break;
       
-         case NDPI_PROTOCOL_HTTP:
-         case NDPI_PROTOCOL_HTTP_PROXY:
-            ndpi_serialize_start_of_block(serializer, "http");
-            getHTTPInfo(serializer);
-            ndpi_serialize_end_of_block(serializer);
-            break;
+    case NDPI_PROTOCOL_HTTP:
+    case NDPI_PROTOCOL_HTTP_PROXY:
+      ndpi_serialize_start_of_block(serializer, "http");
+      getHTTPInfo(serializer);
+      ndpi_serialize_end_of_block(serializer);
+    break;
       
-         case NDPI_PROTOCOL_TLS:
-         case NDPI_PROTOCOL_MAIL_IMAPS:
-         case NDPI_PROTOCOL_MAIL_SMTPS:
-         case NDPI_PROTOCOL_MAIL_POPS:
-         case NDPI_PROTOCOL_QUIC:
-            ndpi_serialize_start_of_block(serializer, "tls");
-            getTLSInfo(serializer);
-            ndpi_serialize_end_of_block(serializer);
-            break; 
+    case NDPI_PROTOCOL_TLS:
+    case NDPI_PROTOCOL_MAIL_IMAPS:
+    case NDPI_PROTOCOL_MAIL_SMTPS:
+    case NDPI_PROTOCOL_MAIL_POPS:
+    case NDPI_PROTOCOL_QUIC:
+      ndpi_serialize_start_of_block(serializer, "tls");
+      getTLSInfo(serializer);
+      ndpi_serialize_end_of_block(serializer);
+    break; 
 
-         case NDPI_PROTOCOL_IP_ICMP:
-         case NDPI_PROTOCOL_IP_ICMPV6:
-            ndpi_serialize_start_of_block(serializer, "icmp");
-            getICMPInfo(serializer);
-            ndpi_serialize_end_of_block(serializer);
-            break;
+    case NDPI_PROTOCOL_IP_ICMP:
+    case NDPI_PROTOCOL_IP_ICMPV6:
+      ndpi_serialize_start_of_block(serializer, "icmp");
+      getICMPInfo(serializer);
+      ndpi_serialize_end_of_block(serializer);
+    break;
 
-         case NDPI_PROTOCOL_MDNS:
-            ndpi_serialize_start_of_block(serializer, "mdns");
-            getMDNSInfo(serializer);
-            ndpi_serialize_end_of_block(serializer);
-            break;
+    case NDPI_PROTOCOL_MDNS:
+      ndpi_serialize_start_of_block(serializer, "mdns");
+      getMDNSInfo(serializer);
+      ndpi_serialize_end_of_block(serializer);
+    break;
          
-         case NDPI_PROTOCOL_NETBIOS:
-            ndpi_serialize_start_of_block(serializer, "netbios");
-            getNetBiosInfo(serializer);
-            ndpi_serialize_end_of_block(serializer);
-            break;
+    case NDPI_PROTOCOL_NETBIOS:
+      ndpi_serialize_start_of_block(serializer, "netbios");
+      getNetBiosInfo(serializer);
+      ndpi_serialize_end_of_block(serializer);
+    break;
          
-         case NDPI_PROTOCOL_SSH:
-            ndpi_serialize_start_of_block(serializer, "ssh");
-            getSSHInfo(serializer);
-            ndpi_serialize_end_of_block(serializer);
-            break;
-      }
+    case NDPI_PROTOCOL_SSH:
+      ndpi_serialize_start_of_block(serializer, "ssh");
+      getSSHInfo(serializer);
+      ndpi_serialize_end_of_block(serializer);
+    break;
+  }
 
-      if(getErrorCode() != 0)
-         ndpi_serialize_string_uint32(serializer, "l7_error_code", getErrorCode());
+  if(getErrorCode() != 0)
+    ndpi_serialize_string_uint32(serializer, "l7_error_code", getErrorCode());
 
-      if(getConfidence() != NDPI_CONFIDENCE_UNKNOWN) {
-        switch(getConfidence()) {
-        case NDPI_CONFIDENCE_MATCH_BY_PORT:
-        case NDPI_CONFIDENCE_MATCH_BY_IP:
-          ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_guessed);
-          break;
+  if(getConfidence() != NDPI_CONFIDENCE_UNKNOWN) {
+    switch(getConfidence()) {
+      case NDPI_CONFIDENCE_MATCH_BY_PORT:
+      case NDPI_CONFIDENCE_MATCH_BY_IP:
+        ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_guessed);
+      break;
 
-        case NDPI_CONFIDENCE_DPI_CACHE:
-        case NDPI_CONFIDENCE_DPI:
-          ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_dpi);
-          break;
+      case NDPI_CONFIDENCE_DPI_CACHE:
+      case NDPI_CONFIDENCE_DPI:
+        ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_dpi);
+      break;
 
-        default:
-          break;
-        }
-      }
-         
+      default:
+      break;
+    }
+  }
 
-      ndpi_serialize_end_of_block(serializer); /* proto block */
-   }
+  ndpi_serialize_end_of_block(serializer); /* proto block */
+
+  if (ebpf && ebpf->process_info_set) {
+    ndpi_serialize_start_of_block(serializer, "process");
+
+    if (ebpf->src_process_info.process_name)
+      ndpi_serialize_string_string(serializer, "src_process_name", ebpf->src_process_info.process_name);
+
+    if (ebpf->dst_process_info.process_name)
+      ndpi_serialize_string_string(serializer, "dst_process_name", ebpf->dst_process_info.process_name);
+
+    ndpi_serialize_end_of_block(serializer); /* process block */
+  }
 }
 
 /* ***************************************************** */
