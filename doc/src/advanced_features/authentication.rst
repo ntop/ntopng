@@ -245,6 +245,13 @@ The token can be used to authenticate by setting `Token` as authorization method
 
    Authorization: Token 39ca319a42...
 
+You can also use this from curl as follows:
+
+.. code:: text
+
+   curl -v http://localhost:3000/lua/locale.lua -H 'Authorization: Token 39ca319a42...'
+
+
 Please check the API documentation for further information about token_ usage.
 
 
