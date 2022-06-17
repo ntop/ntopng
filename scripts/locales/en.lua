@@ -4120,6 +4120,7 @@ local lang = {
     ["device_label"] = "Device Label",
     ["enter_credentials"] = "Please enter your credentials for accessing this network.",
     ["generate_token"] = "Generate Token",
+    ["generate_token_help"] = "More info about <A target='_blank' href='https://www.ntop.org/guides/ntopng/advanced_features/authentication.html?highlight=token#token-based-authentication'>token-based authentication</A> <i class='fas fa-external-link-alt'></i>  in ntopng API calls.",
     ["informative_captive_join"] = "Access the Internet",
     ["informative_captive_portal_tos"] = "I have read and agreeed the <a target='_blank' href='%{url}'>terms of service</a>.",
     ["internet_redirecting"] = "We're redirecting you to the Internet...",
