@@ -473,11 +473,14 @@ static int getAuthorizedUser(struct mg_connection *conn,
       
     if((ntop->getRedis()->hashGet(NTOPNG_API_TOKEN_PREFIX, auth_string.c_str(), username, username_len) < 0)
        || (username[0] == '\0')) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Unknown authorization token %s",
-				   auth_string.c_str());
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Unknown authorization token %s", auth_string.c_str());
       return(0);
-    } else
+    } else {
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HTTP] User %s authorized using token", username);
+      ntop->getUserGroupLocal(username, group);
+      group[NTOP_GROUP_MAXLEN-1] = '\0';
       return(1);    
+    }
   }
 
   Utils::make_session_key(session_key, sizeof(session_key));
