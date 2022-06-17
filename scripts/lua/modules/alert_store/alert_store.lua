@@ -677,6 +677,13 @@ end
 
 -- ##############################################
 
+function alert_store:format_query_json_value(nested_field)
+  local field_to_search = self:get_column_name('json', false)
+  return string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, nested_field)
+end
+
+-- ##############################################
+
 --@brief Add list of conditions to the 'where' filters
 --@param field The field name (e.g. 'alert_id')
 --@param values The comma-separated list of values and operators

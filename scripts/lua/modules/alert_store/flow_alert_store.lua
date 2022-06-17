@@ -434,8 +434,8 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('cli_network', cli_network, 'number')
    self:add_filter_condition_list('srv_network', srv_network, 'number')
 
-   self:add_filter_condition_list(format_query_json_value('alert', 'proto.l7_error_code'), error_code, 'string')
-   self:add_filter_condition_list(format_query_json_value('alert', 'proto.confidence'), confidence, 'string')
+   self:add_filter_condition_list(self:format_query_json_value('proto.l7_error_code'), error_code, 'string')
+   self:add_filter_condition_list(self:format_query_json_value('proto.confidence'), confidence, 'string')
 
 end
 

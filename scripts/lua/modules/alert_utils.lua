@@ -108,7 +108,7 @@ end
 
 --@brief Deletes all stored alerts matching an host and an IP
 -- @return nil
-function alert_utils.deleteHostAlertsMatching(host_ip, vlan_id, alert_id)
+function alert_utils.deleteHostAlertsMatchingHost(host_ip, vlan_id, alert_id)
   local host_alert_store = require("host_alert_store").new()
 
   if not isEmptyString(host_ip) then

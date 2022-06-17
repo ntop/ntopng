@@ -948,7 +948,7 @@ local flow_columns = {
    ['IS_SRV_ATTACKER'] =      { tag = "is_srv_attacker" },
    ['IS_SRV_VICTIM'] =        { tag = "is_srv_victim" },
    ['IS_SRV_BLACKLISTED'] =   { tag = "is_srv_blacklisted" },
-   ['ALERT_JSON'] =           { tag = "alert_json" },
+   ['ALERT_JSON'] =           { tag = "json" },
 
    -- Alert data
    ['ALERT_STATUS'] =         { tag = "alert_status" },
