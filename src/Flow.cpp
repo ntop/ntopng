@@ -1365,6 +1365,7 @@ bool Flow::dump(time_t t, bool last_dump_before_free) {
     }
   }
 
+  /* Add protocol information in the JSON field (if not already set by alerts) */
   setProtocolJSONInfo();
 
   getInterface()->dumpFlow(get_last_seen(), this);
@@ -6072,7 +6073,8 @@ void Flow::setProtocolJSONInfo() {
          return ;
       }
 
-      /* Serialize alert JSON */
+      /* Serialize alert JSON
+       * Note: this is called by setPredominantAlertInfo in case of alerts */
       getProtocolJSONInfo(json_serializer);
 
       if(json_serializer)
@@ -6194,7 +6196,8 @@ void Flow::setPredominantAlertInfo(FlowAlert *alert) {
   predominant_alert_info.is_srv_attacker = alert->isSrvAttacker();
   predominant_alert_info.is_srv_victim = alert->isSrvVictim();
 
-  /* Serialize alert JSON */
+  /* Serialize alert JSON
+   * Note: this will also add protocol information by calling flow->getProtocolJSONInfo */
   alert_json_serializer = alert->getSerializedAlert();
 
   if(alert_json_serializer)

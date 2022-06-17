@@ -64,6 +64,7 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
   ndpi_serialize_end_of_block(serializer);
 
   flow->getProtocolJSONInfo(serializer);
+
   /* This call adds check-specific information to the serializer */
   getAlertJSON(serializer);
 
