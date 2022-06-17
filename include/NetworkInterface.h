@@ -283,7 +283,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   PROFILING_DECLARE(32);
 
-  void init();
+  void init(const char *interface_name);
   void deleteDataStructures();
 
   NetworkInterface* getDynInterface(u_int64_t criteria, bool parser_interface);

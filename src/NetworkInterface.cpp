@@ -39,7 +39,7 @@ static bool help_printed = false;
 
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {
-  init();
+  init(NULL);
 }
 
 /* **************************************************** */
@@ -49,28 +49,6 @@ NetworkInterface::NetworkInterface(const char *name,
   char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-
-  init();
-
-  customIftype = custom_interface_type;
-  influxdb_ts_exporter = rrd_ts_exporter = NULL;
-  flow_checks_executor = prev_flow_checks_executor = NULL;
-  host_checks_executor = prev_host_checks_executor = NULL;
-  flows_dump_json = true; /* JSON dump enabled by default, possibly disabled in NetworkInterface::startFlowDumping */
-  flows_dump_json_use_labels = false; /* Dump of JSON labels disabled by default, possibly enabled in NetworkInterface::startFlowDumping */
-  memset(ifMac, 0, sizeof(ifMac));
-
-#ifdef WIN32
-  if(name == NULL) name = "1"; /* First available interface */
-#endif
-
-  scalingFactor = 1;
-  if(strcmp(name, "-") == 0) name = "stdin";
-  if(strcmp(name, "-") == 0) name = "stdin";
-
-  id = Utils::ifname2id(name);
-
-  purge_idle_flows_hosts = true;
 
   if(name == NULL) {
     if(!help_printed)
@@ -104,7 +82,28 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
-  ifname = strdup(name);
+  init(name);
+
+  customIftype = custom_interface_type;
+  influxdb_ts_exporter = rrd_ts_exporter = NULL;
+  flow_checks_executor = prev_flow_checks_executor = NULL;
+  host_checks_executor = prev_host_checks_executor = NULL;
+  flows_dump_json = true; /* JSON dump enabled by default, possibly disabled in NetworkInterface::startFlowDumping */
+  flows_dump_json_use_labels = false; /* Dump of JSON labels disabled by default, possibly enabled in NetworkInterface::startFlowDumping */
+  memset(ifMac, 0, sizeof(ifMac));
+
+#ifdef WIN32
+  if(name == NULL) name = "1"; /* First available interface */
+#endif
+
+  scalingFactor = 1;
+  if(strcmp(name, "-") == 0) name = "stdin";
+  if(strcmp(name, "-") == 0) name = "stdin";
+
+  id = Utils::ifname2id(name);
+
+  purge_idle_flows_hosts = true;
+
   if(custom_interface_type)
     ifDescription = strdup(name);
   else
@@ -235,8 +234,9 @@ NetworkInterface::NetworkInterface(const char *name,
 
 /* **************************************************** */
 
-void NetworkInterface::init() {
-  ifname = NULL, bridge_lan_interface_id = bridge_wan_interface_id = 0;
+void NetworkInterface::init(const char *interface_name) {
+  ifname = interface_name ? strdup(interface_name) : NULL;
+  bridge_lan_interface_id = bridge_wan_interface_id = 0;
   inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
     has_seen_dhcp_addresses = false,
@@ -407,6 +407,11 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
   // load custom protocols
   loadProtocolsAssociations(ndpi_s);
 
+#ifdef NTOPNG_PRO
+  if(ifname && strcmp(ifname, SYSTEM_INTERFACE_NAME))
+    ntop->getAlertExclusions()->loadnDPIExclusions(ndpi_s);
+#endif
+  
   return(ndpi_s);
 }
 
