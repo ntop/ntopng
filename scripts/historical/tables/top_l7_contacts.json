@@ -37,6 +37,9 @@
 				"name" : "DST_LABEL"
 			},
 			{
+				"name" : "PROTOCOL"
+			},
+			{
 				"name" : "L7_PROTO"
 			},
 			{
@@ -102,6 +105,9 @@
 				"name" : "DST_LABEL"
 			},
 			{
+				"name" : "PROTOCOL"
+			},
+			{
 				"name" : "L7_PROTO"
 			},
 			{
@@ -112,7 +118,7 @@
 	"sortby" : {
 		"items" : [
 			{
-				"name" : "bytes",
+				"name" : "count",
 				"order" : "DESC"
 			}
 		]
