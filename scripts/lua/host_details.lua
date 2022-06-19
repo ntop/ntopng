@@ -657,7 +657,7 @@ else
       print("<tr>")
       print("<td>")
       print("<div class='d-flex align-items-center'>")
-      print("<span id='score_as_client'>".. (host["score.as_client"] or 0) .."</span> <span class='ms-1' id='client_score_trend'></span>")
+      print("<span id='score_as_client'>".. formatValue(host["score.as_client"] or 0) .."</span> <span class='ms-1' id='client_score_trend'></span>")
       if c then
          scoreBreakdown(c)
       end
@@ -666,7 +666,7 @@ else
 
       print("<td>")
       print("<div class='d-flex align-items-center'>")
-      print("<span id='score_as_server'>".. (host["score.as_server"] or 0).."</span><span class='ms-1' id='server_score_trend'></span>")
+      print("<span id='score_as_server'>".. formatValue(host["score.as_server"] or 0).."</span><span class='ms-1' id='server_score_trend'></span>")
       if s then
          scoreBreakdown(s)
       end
