@@ -487,6 +487,8 @@ typedef enum {
   flow_alert_ndpi_suspicious_entropy              = 73,
   flow_alert_iec_invalid_command_transition       = 74,
   flow_alert_connection_failed                    = 75,
+  flow_alert_ndpi_anonymous_subscriber            = 76,
+  flow_alert_unidirectional_traffic               = 77,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

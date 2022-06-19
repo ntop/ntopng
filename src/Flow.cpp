@@ -1439,7 +1439,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 				       bool first_partial, const struct timeval *tv) const {
   update_pools_stats(iface, cli_host, srv_host, tv, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
 		     partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
-
+  
   if(cli_host && srv_host) {
     bool cli_and_srv_in_same_subnet = false;
     bool cli_and_srv_in_same_country = false;
@@ -3762,6 +3762,12 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
     ip_stats_d2s.pktFrag += is_fragment;
     if(cli_host) cli_host->incRecvStats(1, pkt_len);
     if(srv_host) srv_host->incSentStats(1, pkt_len);
+
+    /*
+      Need to reset this bit as nDPI might "forget" to do it in case of 
+      protocol detection with onl one packet
+    */
+    ndpi_flow_risk_bitmap &= ~(1UL << NDPI_UNIDIRECTIONAL_TRAFFIC); /* Clear bit */
   }
 
   if(payload_len > 0) {
