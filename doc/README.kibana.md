@@ -1,7 +1,8 @@
 # Visualize ntopng data in Kibana
 
 ntopng currently has the ability to export both Flows and Alerts to Elasticsearch, in 
-this way users can create their own dashboards using Kibana and ELK (Elasticsearch).
+this way users can create their own dashboards using Kibana and ELK (Elasticsearch) to have
+their personalized data visualization.
 In order to do this users have to export Flows to Elasticsearch and add a recipient to
 export Alerts instead and have all the information they are interested in available.<br />
 **_NOTE:_** Exporting Alerts to ELK needs at least a Pro License.
