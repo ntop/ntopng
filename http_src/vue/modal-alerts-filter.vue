@@ -170,7 +170,7 @@ const exclude = () => {
     } else if (type == "domain") {
 	params.alert_domain = domain.value;
     } else if (type == "certificate") {
-	params.alert_certificate = tls_certificate;
+	params.alert_certificate = tls_certificate.value;
     }
     close();
     emit('exclude', params);
