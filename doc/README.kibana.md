@@ -3,8 +3,8 @@
 ntopng currently has the ability to export both Flows and Alerts to Elasticsearch, in 
 this way users can create their own dashboards using Kibana and ELK (Elasticsearch).
 In order to do this users have to export Flows to Elasticsearch and add a recipient to
-export Alerts instead and have all the information they are interested in available 
--- exporting Alerts to ELK needs at least a Pro License -- 
+export Alerts instead and have all the information they are interested in available.<br />
+**_NOTE:_** Exporting Alerts to ELK needs at least a Pro License.
 
 ## Exporting Flows to ELK
 
@@ -22,7 +22,7 @@ Example:
 ## Exporting Alerts to ELK
 
 To export alerts instead, users need to configure an ELK Endpoint and then an ELK Recipient.
-For more info follow the [documentation](https://www.ntop.org/guides/ntopng/alerts/available_recipients.html)
+For more info follow the [documentation](https://www.ntop.org/guides/ntopng/alerts/available_recipients.html)<br />
 **_NOTE:_**  A Pro License at least is needed to export Alerts to ELK.
 
 ## Adding ntopng data from Kibana GUI
