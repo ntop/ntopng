@@ -124,8 +124,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 #endif
   time_t disabled_alerts_tstamp;
 
+#ifndef HAVE_NEDGE
   ListeningPorts *listening_ports, *listening_ports_shadow;
-
+#endif
+  
   void initialize(Mac *_mac, VLANid _vlan_id, u_int16_t observation_point_id);
   void inlineSetOS(OSType _os);
   bool statsResetRequested();
@@ -529,13 +531,15 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline AlertExclusionsInfo* getAlertExclusions() { return(&alert_exclusions); }
 #endif
 
+#ifndef HAVE_NEDGE
   inline void setListeningPorts(ListeningPorts &lp) { 
     if (listening_ports_shadow) { delete listening_ports_shadow; listening_ports_shadow = NULL; }
     listening_ports_shadow = listening_ports;
     listening_ports = new ListeningPorts(lp); 
   }
   inline ListeningPorts* getListeningPorts() { return(listening_ports); }
-
+#endif
+  
   /* Enqueues an alert to all available host recipients. */
   bool enqueueAlertToRecipients(HostAlert *alert, bool released);
   void alert2JSON(HostAlert *alert, bool released, ndpi_serializer *serializer);

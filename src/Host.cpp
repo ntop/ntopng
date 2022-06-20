@@ -87,9 +87,11 @@ Host::~Host() {
   if(stats)                       delete stats;
   if(stats_shadow)                delete stats_shadow;
 
+#ifndef HAVE_NEDGE
   if(listening_ports)             delete listening_ports;
   if(listening_ports_shadow)      delete listening_ports_shadow;
-
+#endif
+  
   /*
     Pool counters are updated both in and outside the datapath.
     So decPoolNumHosts must stay in the destructor to preserve counters
@@ -203,7 +205,9 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
 
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
+#ifndef HAVE_NEDGE
   listening_ports = listening_ports_shadow = NULL;
+#endif
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
   os = NULL, os_type = os_unknown;
@@ -741,7 +745,8 @@ void Host::lua_blacklisted_flows(lua_State* vm) const {
 }
 
 /* ***************************************************** */
- 
+
+#ifndef HAVE_NEDGE
 void Host::lua_get_listening_ports(lua_State *vm) {
   if (listening_ports == NULL)
     return;
@@ -754,6 +759,7 @@ void Host::lua_get_listening_ports(lua_State *vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
+#endif
 
 /* ***************************************************** */
 

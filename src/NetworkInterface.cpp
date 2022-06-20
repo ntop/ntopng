@@ -1411,8 +1411,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
   u_int16_t l4_len = 0, fragment_offset = 0;
+#ifndef HAVE_NEDGE
 #ifdef IMPLEMENT_SMART_FRAGMENTS
   u_int16_t fragment_extra_overhead = 0;
+#endif
 #endif
   u_int8_t tos;
 
@@ -1619,9 +1621,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       payload = &l4[sizeof(struct ndpi_udphdr)];
       trusted_payload_len = trusted_l4_packet_len - sizeof(struct ndpi_udphdr);
 
+#ifndef HAVE_NEDGE
 #ifdef IMPLEMENT_SMART_FRAGMENTS
       if(is_fragment)
 	fragment_extra_overhead = ntohs(udph->len) - l4_len + sizeof(struct ndpi_iphdr);
+#endif
 #endif
     } else {
       /* Packet too short: this is a faked packet */
