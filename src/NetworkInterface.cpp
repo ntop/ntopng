@@ -408,8 +408,11 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
   loadProtocolsAssociations(ndpi_s);
 
 #ifdef NTOPNG_PRO
-  if(ifname && strcmp(ifname, SYSTEM_INTERFACE_NAME))
-    ntop->getAlertExclusions()->loadnDPIExclusions(ndpi_s);
+  if(ifname && strcmp(ifname, SYSTEM_INTERFACE_NAME)) {
+    AlertExclusions *excl = ntop->getAlertExclusions();
+    if (excl)
+      excl->loadnDPIExclusions(ndpi_s);
+  }
 #endif
   
   return(ndpi_s);
