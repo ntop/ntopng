@@ -327,7 +327,6 @@ void NetworkInterface::init(const char *interface_name) {
   statsManager = NULL, alertStore = NULL, ifSpeed = 0;
   host_pools = NULL;
   bcast_domains = NULL;
-  checkIdle();
   ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
