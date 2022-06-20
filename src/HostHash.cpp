@@ -43,7 +43,7 @@ Host* HostHash::get(VLANid vlanId, IpAddress *key, bool is_inline_call, u_int16_
 
     head = (Host*)table[hash];
     
-    while(head != NULL) {      
+    while(head != NULL) { 
       if((!head->idle())
 	 && (head->get_vlan_id() == vlanId)
 	 && (head->get_observation_point_id() == observation_point_id)

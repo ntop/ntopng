@@ -2269,33 +2269,38 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char * payload, int paylo
   if(o != NULL) {
     json_object *z;
     ListeningPorts pinfo;
-    
+   
+    /* Parse port information */ 
     if(json_object_object_get_ex(o, "listening-ports", &z)) {
       enum json_type o_type = json_object_get_type(z);
-
-      if(o_type == json_type_object)
+      if(o_type == json_type_object) {
 	pinfo.parsePorts(z);      
-    }
 
-    if(json_object_object_get_ex(o, "ip-addresses", &z)) {
-      enum json_type o_type = json_object_get_type(z);
+        /* Parse list of IP addresses */
+        if(json_object_object_get_ex(o, "ip-addresses", &z)) {
+          enum json_type o_type = json_object_get_type(z);
+          if(o_type == json_type_array) {
+            for(u_int i = 0; i < (u_int)json_object_array_length(z); i++) {
+              Host *h = NULL;
+	      json_object *host = json_object_array_get_idx(z, i);
+              const char *ip_addr = json_object_get_string(host);
 
-      if(o_type == json_type_array) {
-	for(u_int i = 0; i < (u_int)json_object_array_length(z); i++) {
-	  /* Dead code */
-#if 0
-	  json_object *host = json_object_array_get_idx(z, i);
-	  const char *ip_addr = json_object_to_json_string(host);
+	      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Received listening ports for %s", ip_addr);
+              //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
 
-	  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "=>> %s", ip_addr);
-	  /* TODO: set ports info */
-#endif
-	}
+              /* Assign list of ports to the host */
+              h = getHost((char *) ip_addr, 0 /* TODO vlan_id */, 0 /* observationPointId */, true /* inline */);
+              if (h) {
+                h->setListeningPorts(pinfo);
+              }
+	    }
+          }
+        }
       }
-    } /* listening-ports */
+    }
     
     json_object_put(o); /* Free memory */
-  }   
+  }
 
   return(0);
 }

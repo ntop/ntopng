@@ -4107,14 +4107,20 @@ void NetworkInterface::checkPointHostTalker(lua_State* vm, char *host_ip, VLANid
 Host* NetworkInterface::findHostByIP(AddressTree *allowed_hosts,
 				     char *host_ip, VLANid vlan_id,
 				     u_int16_t observationPointId) {
-  if(host_ip != NULL) {
-    Host *h = getHost(host_ip, vlan_id, observationPointId, false /* Not an inline call */);
+  Host *h = NULL;
 
-    if(h && h->match(allowed_hosts))
-      return(h);
-  }
+  if (host_ip == NULL)
+    return NULL;
 
-  return(NULL);
+  h = getHost(host_ip, vlan_id, observationPointId, false /* Not an inline call */);
+
+  if (h == NULL)
+    return NULL;
+
+  if (allowed_hosts && !h->match(allowed_hosts))
+    return NULL;
+
+  return h;
 }
 
 /* **************************************************** */

@@ -124,6 +124,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 #endif
   time_t disabled_alerts_tstamp;
 
+  ListeningPorts *listening_ports, *listening_ports_shadow;
+
   void initialize(Mac *_mac, VLANid _vlan_id, u_int16_t observation_point_id);
   void inlineSetOS(OSType _os);
   bool statsResetRequested();
@@ -351,6 +353,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void lua_get_fingerprints(lua_State *vm);
   void lua_get_geoloc(lua_State *vm);
   void lua_blacklisted_flows(lua_State* vm) const;
+  void lua_get_listening_ports(lua_State *vm);
 
   void resolveHostName();
   char *get_host_label(char * const buf, ssize_t buf_size);
@@ -525,6 +528,13 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   /* Alert Exclusions */
   inline AlertExclusionsInfo* getAlertExclusions() { return(&alert_exclusions); }
 #endif
+
+  inline void setListeningPorts(ListeningPorts &lp) { 
+    if (listening_ports_shadow) { delete listening_ports_shadow; listening_ports_shadow = NULL; }
+    listening_ports_shadow = listening_ports;
+    listening_ports = new ListeningPorts(lp); 
+  }
+  inline ListeningPorts* getListeningPorts() { return(listening_ports); }
 
   /* Enqueues an alert to all available host recipients. */
   bool enqueueAlertToRecipients(HostAlert *alert, bool released);

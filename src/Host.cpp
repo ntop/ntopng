@@ -84,8 +84,11 @@ Host::~Host() {
   if(icmp_flood.attacker_counter) delete icmp_flood.attacker_counter;
   if(icmp_flood.victim_counter)   delete icmp_flood.victim_counter;
 
-  if(stats)                     delete stats;
-  if(stats_shadow)              delete stats_shadow;
+  if(stats)                       delete stats;
+  if(stats_shadow)                delete stats_shadow;
+
+  if(listening_ports)             delete listening_ports;
+  if(listening_ports_shadow)      delete listening_ports_shadow;
 
   /*
     Pool counters are updated both in and outside the datapath.
@@ -200,6 +203,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
 
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
+  listening_ports = listening_ports_shadow = NULL;
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
   os = NULL, os_type = os_unknown;
@@ -737,6 +741,21 @@ void Host::lua_blacklisted_flows(lua_State* vm) const {
 }
 
 /* ***************************************************** */
+ 
+void Host::lua_get_listening_ports(lua_State *vm) {
+  if (listening_ports == NULL)
+    return;
+
+  lua_newtable(vm);
+
+  listening_ports->lua(vm);
+
+  lua_pushstring(vm, "listening_ports");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* ***************************************************** */
 
 void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool host_details, bool verbose,
@@ -828,6 +847,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
     lua_get_flow_flood(vm);
     lua_get_services(vm);
+
+    lua_get_listening_ports(vm);
   }
 
   lua_get_time(vm);

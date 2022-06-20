@@ -40,11 +40,11 @@ void ListeningPorts::parsePortInfo(json_object *z, std::map <u_int16_t, Listenin
       
       if(port != 0) {
 	if(json_object_object_get_ex(e, "pkg", &p))  
-	  pinfo.package = json_object_to_json_string(e);
+	  pinfo.setPackage(json_object_get_string(p));
 	
 	if(json_object_object_get_ex(e, "proc", &p))  
-	  pinfo.process = json_object_to_json_string(e);
-	
+	  pinfo.setProcess(json_object_get_string(p));
+
 	(*info)[port] = pinfo;
       }
     }
@@ -72,5 +72,47 @@ void ListeningPorts::parsePorts(json_object *z) {
       parsePortInfo(p, &udp6);
   }
 }
+
+/* ************************************************ */
+
+void ListeningPorts::luaProtocolInfo(lua_State *vm, std::map <u_int16_t, ListeningPortInfo> &info, const char *label) {
+  std::map <u_int16_t, ListeningPortInfo>::const_iterator it;
+
+  lua_newtable(vm);
+
+  for (it = info.begin(); it != info.end(); it++) {
+    u_int16_t port = it->first;
+    const ListeningPortInfo *pinfo = &it->second;
+
+//ntop->getTrace()->traceEvent(TRACE_NORMAL, "Port %u", port);
+
+    lua_newtable(vm);
+    
+    lua_push_str_table_entry(vm, "process", pinfo->getProcess());
+    lua_push_str_table_entry(vm, "package", pinfo->getPackage());
+
+    lua_pushinteger(vm, port);
+
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+   
+  }
+
+  lua_pushstring(vm, label);
+
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+ 
+/* ************************************************ */
+
+void ListeningPorts::lua(lua_State *vm) {
+  luaProtocolInfo(vm, tcp4, "tcp4");
+  luaProtocolInfo(vm, tcp6, "tcp6");
+  luaProtocolInfo(vm, udp4, "udp4");
+  luaProtocolInfo(vm, udp6, "udp6");
+}
+
+/* ************************************************ */
 
 #endif
