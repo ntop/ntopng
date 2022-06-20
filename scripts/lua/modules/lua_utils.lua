@@ -4394,20 +4394,20 @@ function version2int(v)
 end
 
 function get_version_update_msg(info, latest_version)
+  if info then
+    local version_elems = split(info["version"], " ")
+    local new_version = version2int(latest_version)
+    local this_version = version2int(version_elems[1])
 
-  local version_elems = split(info["version"], " ")
-  local new_version = version2int(latest_version)
-  local this_version = version2int(version_elems[1])
+    if (new_version > this_version) then
+        return i18n("about.new_major_available", {
+          product = info["product"], version = latest_version,
+          url = "http://www.ntop.org/get-started/download/"
+        })
+    end
+  end
 
-  if (new_version > this_version) then
-      return i18n("about.new_major_available", {
-         product = info["product"], version = latest_version,
-         url = "http://www.ntop.org/get-started/download/"
-      })
-   end
-
-   return ""
-
+  return ""
 end
 
 --- Check if there is a new major release
