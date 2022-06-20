@@ -172,8 +172,8 @@ const exclude = () => {
     } else if (type == "certificate") {
 	params.alert_certificate = tls_certificate;
     }
-    emit('exclude', params);
     close();
+    emit('exclude', params);
 };
 
 const close = () => {

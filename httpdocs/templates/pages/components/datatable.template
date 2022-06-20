@@ -67,7 +67,9 @@
 
           <div class="col-12 mb-2" id="chart-vue">
             <div class="card h-100 overflow-hidden">
-              <chart id="chart_0" :base_url_request="chart_base_url_request">
+              <chart id="chart_0"
+	        :base_url_request="chart_base_url_request"
+		:register_on_status_change="true">
 	      </chart>	      
 	      <modal-alerts-filter
 	        :alert="current_alert"
@@ -498,7 +500,7 @@
 		};
 		await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
 		let url_params = ntopng_url_manager.get_url_params();
-		reloadTable($table, url_params);
+		setTimeout(() => reloadTable($table, url_params), 300);
               } catch(err) {
 	        console.error(err);
               }

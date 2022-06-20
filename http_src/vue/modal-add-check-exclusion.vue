@@ -92,7 +92,8 @@
             <b v-if="alert_exclusions_page == 'tls_certificate'">{{ _i18n("check_exclusion.tls_certificate") }}</b>
           </label>
           <div class="col-sm-6">
-            <input placeholder="" :pattern="pattern_text" required type="text" name="ip_address" class="form-control" v-model="input_text" />
+            <input v-if="alert_exclusions_page == 'domain_names'" placeholder="" :pattern="pattern_text" required type="text" name="ip_address" class="form-control" v-model="input_text" />
+            <input v-if="alert_exclusions_page == 'tls_certificate'" placeholder="CN=813845657003339838, O=Code42, OU=TEST, ST=MN, C=U" :pattern="pattern_text" required type="text" name="ip_address" class="form-control" v-model="input_text" />
           </div>
 	</div>
       </div>      

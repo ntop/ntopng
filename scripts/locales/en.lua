@@ -1220,7 +1220,7 @@ local lang = {
     ["network"] = "Network",
     ["none"] = "None",
     ["spacing_bar"] = "----------------------------------",
-    ["tls_certificate"] = "TLS Certificate",
+    ["tls_certificate"] = "TLS Certificate Issuer",
     ["validation"] = {
       ["abort_add_exclusion"] = "Abort Add Exclusion",
       ["abort_edit_exclusion"] = "Abort Edit Exclusion",
@@ -1944,7 +1944,7 @@ local lang = {
       ["hour"] = "Hourly",
       ["min"] = "Minute",
     },
-    ["tls_certificate"] = "TLS Certificate",
+    ["tls_certificate"] = "TLS Certificate Issuer",
   },
   ["endpoint_notifications"] = {
     ["actions"] = "Actions",
