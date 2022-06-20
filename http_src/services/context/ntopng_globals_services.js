@@ -27,7 +27,7 @@ export const ntopng_sync = function() {
 * Utility globals functions.
 */
 export const ntopng_utility = function() {
-
+    let global_http_headers = {};
   return {	
       /**
        * Deep copy of a object.
@@ -72,8 +72,23 @@ copy_object_keys: function(source_obj, dest_obj, recursive_object = false) {
     }
   }
 },
+set_http_globals_headers(headers) {
+    global_http_headers = headers;
+},
 http_request: async function(url, options, throw_exception, not_unwrap) {
     try {
+	if (options == null) {
+	    options = {};
+	}
+	if (options.headers == null) {
+	    options.headers = {};
+	}
+	if (options != null && options.headers != null && global_http_headers != null) {
+	    options.headers = {
+		...options.headers,
+		...global_http_headers,
+	    };
+	}
   let res = await fetch(url, options);
   if (res.ok == false) {
       console.error(`http_request ${url}\n ok == false`);
@@ -311,7 +326,17 @@ add_obj_to_url: function(url_params_obj) {
 },
   }
 }();
-  
+
+// export const ntopng_params_manager = function() {
+//     const new = function(params_in_url) {
+	
+//     }
+    
+//     return {
+
+//     }
+// }
+
 /**
 * Object that represents a list of prefedefined events that represent the status.
 */
