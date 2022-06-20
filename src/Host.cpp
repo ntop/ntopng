@@ -854,7 +854,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_get_flow_flood(vm);
     lua_get_services(vm);
 
+#ifndef HAVE_NEDGE
     lua_get_listening_ports(vm);
+#endif
   }
 
   lua_get_time(vm);
