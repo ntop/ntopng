@@ -1388,8 +1388,6 @@ else
       print("</tr>\n")
    end
 
-   flow["flow_verdict"] = 0
-
    if interface.isPacketInterface() and flow["flow_verdict"] then
       local flow_verdict_badge = addFlowVerdictBadge(flow["flow_verdict"], true)
       print("<tr><th width=30%>" .. i18n("details.flow_verdict") .. "</th><td colspan=2>" .. flow_verdict_badge .. "</td></tr>\n")
