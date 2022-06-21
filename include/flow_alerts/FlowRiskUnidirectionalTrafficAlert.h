@@ -19,12 +19,12 @@
  *
  */
 
-#ifndef _FR_UDP_UNIDIRECTIONAL_ALERT_H_
-#define _FR_UDP_UNIDIRECTIONAL_ALERT_H_
+#ifndef _FR_UNIDIRECTIONAL_TRAFFIC_ALERT_H_
+#define _FR_UNIDIRECTIONAL_TRAFFIC_ALERT_H_
 
 #include "ntop_includes.h"
 
-class FlowRiskUDPUnidirectionalAlert : public FlowRiskAlert {
+class FlowRiskUnidirectionalTrafficAlert : public FlowRiskAlert {
  private:
 
  public:
@@ -32,12 +32,12 @@ class FlowRiskUDPUnidirectionalAlert : public FlowRiskAlert {
   static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskUDPUnidirectionalAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
-  ~FlowRiskUDPUnidirectionalAlert() { };
+ FlowRiskUnidirectionalTrafficAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
+  ~FlowRiskUnidirectionalTrafficAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
   u_int8_t       getAlertScore() const { return getDefaultScore(); }
 };
 
-#endif /* _FR_UDP_UNIDIRECTIONAL_ALERT_H_ */
+#endif /* _FR_UNIDIRECTIONAL_TRAFFIC_ALERT_H_ */

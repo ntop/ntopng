@@ -67,7 +67,7 @@
 #include "flow_alerts/FlowRiskURLPossibleSQLInjectionAlert.h"
 #include "flow_alerts/FlowRiskURLPossibleXSSAlert.h"
 #include "flow_alerts/FlowRiskUnsafeProtocolAlert.h"
-#include "flow_alerts/FlowRiskUDPUnidirectionalAlert.h"
+#include "flow_alerts/FlowRiskUnidirectionalTrafficAlert.h"
 #include "flow_alerts/IECInvalidTransitionAlert.h"
 #include "flow_alerts/IECInvalidCommandTransitionAlert.h"
 #include "flow_alerts/IECUnexpectedTypeIdAlert.h"

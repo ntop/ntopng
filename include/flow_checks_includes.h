@@ -55,7 +55,7 @@
 #include "flow_checks/FlowRiskURLPossibleXSS.h"
 #include "flow_checks/FlowRiskURLPossibleRCEInjection.h"
 #include "flow_checks/FlowRiskURLPossibleSQLInjection.h"
-#include "flow_checks/FlowRiskUDPUnidirectional.h"
+#include "flow_checks/FlowRiskUnidirectionalTraffic.h"
 #include "flow_checks/IECUnexpectedTypeId.h"
 #include "flow_checks/IECInvalidTransition.h"
 #include "flow_checks/LowGoodputFlow.h"

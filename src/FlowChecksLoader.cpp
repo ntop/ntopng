@@ -93,7 +93,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new FlowRiskURLPossibleXSS()))                      registerCheck(fcb);
   if((fcb = new FlowRiskURLPossibleRCEInjection()))             registerCheck(fcb);
   if((fcb = new FlowRiskURLPossibleSQLInjection()))             registerCheck(fcb);
-  if((fcb = new FlowRiskUDPUnidirectional()))                   registerCheck(fcb);
+  if((fcb = new FlowRiskUnidirectionalTraffic()))               registerCheck(fcb);
   if((fcb = new IECUnexpectedTypeId()))                         registerCheck(fcb);
   if((fcb = new IECInvalidTransition()))                        registerCheck(fcb);
   if((fcb = new LowGoodputFlow()))                              registerCheck(fcb);

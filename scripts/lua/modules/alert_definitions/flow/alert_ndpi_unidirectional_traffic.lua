@@ -13,13 +13,13 @@ local alert = require "alert"
 
 -- ##############################################
 
-local alert_udp_unidirectional = classes.class(alert)
+local alert_unidirectional_traffic = classes.class(alert)
 
 -- ##############################################
 
-alert_udp_unidirectional.meta = {
-  alert_key = flow_alert_keys.flow_alert_ndpi_udp_unidirectional,
-  i18n_title = "flow_details.udp_unidirectional",
+alert_unidirectional_traffic.meta = {
+  alert_key = flow_alert_keys.flow_alert_ndpi_unidirectional_traffic,
+  i18n_title = "flow_details.unidirectional_traffic",
   icon = "fas fa-fw fa-info-circle",
 }
 
@@ -27,12 +27,12 @@ alert_udp_unidirectional.meta = {
 
 -- @brief Prepare an alert table used to generate the alert
 -- @return A table with the alert built
-function alert_udp_unidirectional:init()
+function alert_unidirectional_traffic:init()
    -- Call the parent constructor
    self.super:init()
 end
 
 -- #######################################################
 
-return alert_udp_unidirectional
+return alert_unidirectional_traffic
 

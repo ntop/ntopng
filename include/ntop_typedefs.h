@@ -437,7 +437,7 @@ typedef enum {
   flow_alert_tls_certificate_mismatch             = 23,
   flow_alert_tls_old_protocol_version             = 24,
   flow_alert_tls_unsafe_ciphers                   = 25,
-  flow_alert_ndpi_udp_unidirectional              = 26,
+  flow_alert_ndpi_unidirectional_traffic          = 26,
   flow_alert_web_mining_detected                  = 27,
   flow_alert_tls_certificate_selfsigned           = 28,
   flow_alert_binary_application_transfer          = 29, 

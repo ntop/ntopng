@@ -19,23 +19,23 @@
  *
  */
 
-#ifndef _FLOW_RISK_UDP_UNIDIRECTIONAL_H_
-#define _FLOW_RISK_UDP_UNIDIRECTIONAL_H_
+#ifndef _FLOW_RISK_UNIDIRECTIONAL_TRAFFIC__H_
+#define _FLOW_RISK_UNIDIRECTIONAL_TRAFFIC__H_
 
 #include "ntop_includes.h"
 
-class FlowRiskUDPUnidirectional : public FlowRisk {
+class FlowRiskUnidirectionalTraffic : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskUDPUnidirectionalAlert::getClassType(); }
+  FlowAlertType getAlertType() const { return FlowRiskUnidirectionalTrafficAlert::getClassType(); }
 
  public:
-  FlowRiskUDPUnidirectional() : FlowRisk() {};
-  ~FlowRiskUDPUnidirectional() {};
+  FlowRiskUnidirectionalTraffic() : FlowRisk() {};
+  ~FlowRiskUnidirectionalTraffic() {};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskUDPUnidirectionalAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) { return new FlowRiskUnidirectionalTrafficAlert(this, f); }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskUDPUnidirectionalAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskUDPUnidirectionalAlert::getClassRisk(); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskUnidirectionalTrafficAlert::getClassRisk())); }
+  ndpi_risk_enum handledRisk()       { return FlowRiskUnidirectionalTrafficAlert::getClassRisk(); }
 };
 
-#endif /* _FLOW_RISK_UDP_UNIDIRECTIONAL_H_ */
+#endif /* _FLOW_RISK_UNIDIRECTIONAL_TRAFFIC_H_ */
