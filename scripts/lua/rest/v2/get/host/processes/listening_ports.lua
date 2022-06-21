@@ -28,17 +28,16 @@ end
 local host = interface.getHostInfo(ip, vlan)
 
 for listening_type, data in pairs(host.listening_ports or {}) do
-  local process = {}
-  
   for port, process_info in pairs(data) do
+    local process = {}
     process["tcp_udp"] = listening_type
     process["port"] = port
     process["package"] = process_info["package"]
     process["process"] = process_info["process"]
-  end
 
-  if table.len(process) > 0 then
-    res[#res + 1] = process
+    if table.len(process) > 0 then
+      res[#res + 1] = process
+    end
   end
 end
 
