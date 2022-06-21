@@ -414,7 +414,7 @@ else
 	 hidden = have_nedge or only_historical or not host.listening_ports or table.len(host.listening_ports) == 0,
 	 active = page == "listening_ports",
 	 page_name = "listening_ports",
-	 label = i18n("listening_ports"),
+	 label = "<i class='fas fa-lg fa-headphones' title='"..i18n("listening_ports").."'></i>",
       },
       {
 	 hidden = only_historical,
