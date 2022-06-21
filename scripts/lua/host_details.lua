@@ -411,6 +411,12 @@ else
 	 label = i18n("user_info.processes"),
       },
       {
+	 hidden = have_nedge or only_historical or not host.listening_ports or table.len(host.listening_ports) == 0,
+	 active = page == "listening_ports",
+	 page_name = "listening_ports",
+	 label = i18n("listening_ports"),
+      },
+      {
 	 hidden = only_historical,
 	 active = page == "flows",
 	 page_name = "flows",
@@ -1225,9 +1231,19 @@ dc.renderAll();
 else
    print("<disv class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("peers_page.no_active_flows_message").."</div>")
 end
-   elseif((page == "traffic")) then
+elseif((page == "traffic")) then
     -- template render
     template.render("htmlPages/hostDetails/hosttraffic.html", {})
+
+elseif((page == "listening_ports")) then
+    template.render("htmlPages/hostDetails/listening-ports.template", {
+      processes_endpoint = "/lua/rest/v2/get/host/processes/listening_ports.lua",
+      host = host_ip,
+      vlan = host_vlan,
+      http_prefix = ntop.getHttpPrefix(),
+      csrf = ntop.getRandomCSRFValue(),
+    })
+
 elseif((page == "ICMP")) then
 
   print [[
