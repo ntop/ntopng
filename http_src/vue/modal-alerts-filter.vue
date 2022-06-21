@@ -38,7 +38,7 @@
       	  <label class="form-check-label whitespace">
       	    <span>{{_i18n("check_exclusion.domain")}}:</span>
       	  </label>
-      	<input type="text" :pattern="pattern_empty" :disabled="radio_selected != 'domain'" required v-model="domain" class="form-check-label custom-width">
+      	<input type="text" :pattern="pattern_domain" :disabled="radio_selected != 'domain'" required v-model="domain" class="form-check-label custom-width">
       </div>
       <div v-if="tls_certificate != null" class="form-check">
       	<input class="form-check-input" type="radio" value="certificate" v-model="radio_selected">
@@ -103,9 +103,10 @@ watch(() => props.alert, (current_value, old_value) => {
 
 const check_disable_apply = () => {
     if (radio_selected.value == "domain") {
-	return domain.value == null || domain.value == "";
+	let regex_domain = new RegExp(pattern_domain);
+	return domain.value == null || regex_domain.test(domain.value) == false;
     } else if (radio_selected.value == "certificate") {
-	let regex_certificate = new Regex(pattern_certificate);
+	let regex_certificate = new RegExp(pattern_certificate);
 	return tls_certificate.value == null || regex_certificate.test(tls_certificate.value) == false;
     }
     return false;
@@ -149,7 +150,7 @@ function get_type() {
     return "host";
 }
 
-let pattern_empty = ".+";
+let pattern_domain = NtopUtils.REGEXES.domain_name_not_strict;
 let pattern_certificate = NtopUtils.REGEXES.tls_certificate;
 
 const exclude = () => {

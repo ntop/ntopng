@@ -122,10 +122,8 @@ const netmask = ref("");
 const emit = defineEmits(['add'])
 //s.split(",").every((a) => {return /.+=.+/.test(a)})
 function get_data_pattern(value_type) {
-    input_required = true;
     if (value_type == "text") {
-	input_required = false;
-	return `.*`;
+	return NtopUtils.REGEXES.domain_name_not_strict;
     } else if (value_type == "ip") {
 	let r_ipv4 = NtopUtils.REGEXES.ipv4;
 	let r_ipv4_vlan = r_ipv4.replace("$", "@[0-9]{0,5}$");
@@ -146,7 +144,6 @@ const props = defineProps({
     flow_alert_types: Array,    
 });
 
-let input_required = false;
 let pattern_ip = get_data_pattern("ip");
 let pattern_text = get_data_pattern("text");
 let pattern_certificate = get_data_pattern("certificate");
