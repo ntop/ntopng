@@ -164,7 +164,7 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK]
     { { flow_alert_ndpi_anonymous_subscriber, alert_category_security }, "ndpi_anonymous_subscriber" },
       
       /* NDPI_UNIDIRECTIONAL_TRAFFIC */      
-  { { flow_alert_unidirectional_traffic, alert_category_network }, "ndpi_unidirectional_traffic" },
+  { { flow_alert_ndpi_udp_unidirectional, alert_category_network }, "ndpi_unidirectional_traffic" },
       
 };
 

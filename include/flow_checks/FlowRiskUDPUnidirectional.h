@@ -19,22 +19,23 @@
  *
  */
 
-#ifndef _UDP_UNIDIRECTIONAL_ALERT_H_
-#define _UDP_UNIDIRECTIONAL_ALERT_H_
+#ifndef _FLOW_RISK_UDP_UNIDIRECTIONAL_H_
+#define _FLOW_RISK_UDP_UNIDIRECTIONAL_H_
 
 #include "ntop_includes.h"
 
-class UDPUnidirectionalAlert : public FlowAlert {
+class FlowRiskUDPUnidirectional : public FlowRisk {
  private:
-  
+  FlowAlertType getAlertType() const { return FlowRiskUDPUnidirectionalAlert::getClassType(); }
+
  public:
-  static FlowAlertType getClassType() { return { flow_alert_udp_unidirectional, alert_category_network }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_NOTICE; };
+  FlowRiskUDPUnidirectional() : FlowRisk() {};
+  ~FlowRiskUDPUnidirectional() {};
 
- UDPUnidirectionalAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) {};
-  ~UDPUnidirectionalAlert() {};
+  FlowAlert *buildAlert(Flow *f) { return new FlowRiskUDPUnidirectionalAlert(this, f); }
 
-  FlowAlertType getAlertType() const { return getClassType(); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskUDPUnidirectionalAlert::getClassRisk())); }
+  ndpi_risk_enum handledRisk()       { return FlowRiskUDPUnidirectionalAlert::getClassRisk(); }
 };
 
-#endif /* _UDP_UNIDIRECTIONAL_ALERT_H_ */
+#endif /* _FLOW_RISK_UDP_UNIDIRECTIONAL_H_ */

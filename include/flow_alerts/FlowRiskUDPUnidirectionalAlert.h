@@ -19,26 +19,25 @@
  *
  */
 
-#ifndef _UDP_UNIDIRECTIONAL_H_
-#define _UDP_UNIDIRECTIONAL_H_
+#ifndef _FR_UDP_UNIDIRECTIONAL_ALERT_H_
+#define _FR_UDP_UNIDIRECTIONAL_ALERT_H_
 
 #include "ntop_includes.h"
 
-class UDPUnidirectional : public FlowCheck {
+class FlowRiskUDPUnidirectionalAlert : public FlowRiskAlert {
  private:
-  void checkFlow(Flow *f);
-  
+
  public:
-  UDPUnidirectional() : FlowCheck(ntopng_edition_community,
-				     false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-				     false /* has_protocol_detected */, true /* has_periodic_update */, true /* has_flow_end */) {};
-  ~UDPUnidirectional() {};
-  
-  void periodicUpdate(Flow *f);
-  void flowEnd(Flow *f);
-  FlowAlert *buildAlert(Flow *f);
-  
-  std::string getName()        const { return(std::string("udp_unidirectional")); }
+  static ndpi_risk_enum getClassRisk() { return NDPI_UNIDIRECTIONAL_TRAFFIC; }
+  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
+  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
+
+ FlowRiskUDPUnidirectionalAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
+  ~FlowRiskUDPUnidirectionalAlert() { };
+
+  FlowAlertType getAlertType() const { return getClassType(); }
+  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
+  u_int8_t       getAlertScore() const { return getDefaultScore(); }
 };
 
-#endif /* _UDP_UNIDIRECTIONAL_H_ */
+#endif /* _FR_UDP_UNIDIRECTIONAL_ALERT_H_ */

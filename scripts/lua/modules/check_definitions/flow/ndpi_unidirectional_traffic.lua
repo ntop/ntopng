@@ -18,7 +18,7 @@ local script = {
    category = checks.check_categories.network,
 
    -- This script is only for alerts generation
-   alert_id = flow_alert_keys.flow_alert_udp_unidirectional,
+   alert_id = flow_alert_keys.flow_alert_ndpi_udp_unidirectional,
 
    default_value = {
    },
