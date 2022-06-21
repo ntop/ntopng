@@ -521,6 +521,7 @@ function flow_alert_store:format_record(value, no_html)
    local record = self:format_json_record_common(value, alert_entities.flow.entity_id, no_html)
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true --[[ no_html --]], alert_entities.flow.entity_id)
+   local alert_risk = ntop.getFlowAlertRisk(tonumber(value.alert_id))
    local l4_protocol = l4_proto_to_string(value["proto"])
    local l7_protocol =  interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]), tonumber(value["l7_proto"]))
    local show_cli_port = (value["cli_port"] ~= '' and value["cli_port"] ~= '0')
@@ -533,7 +534,15 @@ function flow_alert_store:format_record(value, no_html)
    local alert_json = json.decode(value.json)
   
    local flow_related_info = addExtraFlowInfo(alert_json, value)
-   local flow_tls_issuerdn = getExtraFlowInfoTLSIssuerDN(alert_json)
+
+   -- TLS IssuerDN
+   local flow_tls_issuerdn = nil
+   if alert_risk and alert_risk > 0 and record.script_key == 'tls_certificate_selfsigned' then
+     flow_tls_issuerdn = alert_utils.get_flow_risk_info(alert_risk, alert_info)
+   end
+   if isEmptyString(flow_tls_issuerdn) then
+     flow_tls_issuerdn = getExtraFlowInfoTLSIssuerDN(alert_json)
+   end
 
    if not no_html and alert_json then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
