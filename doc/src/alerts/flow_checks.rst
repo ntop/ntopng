@@ -11,7 +11,7 @@ ____________________
 The system sends you an alert when a blacklisted host or domain is detected.
 
 A Domain Name System Blacklist is a list that allows Internet Service Providers to block potentially malicious traffic - a blacklist contains domains, email addresses and IP addresses.
-If one of them is blacklisted ,it might have bad reputation and be insecure.
+If one of them is blacklisted, it might have bad reputation and be insecure.
 
 In case of domain -it might be suspicious website
 In case of email- it might send spam
@@ -32,7 +32,7 @@ The goal of the check is to notify that one of above cases has been verified.
 Points out the unsafe application for you credentials.
 
 
-Instead of using HTTPS some applications transmit passwords over the unencrypted connections, making them vulnerable.In order to exploit this vulnerability, an attacker may spy on the victim's network traffic. This occurs when a client communicates with the server over an insecure connection such as public Wi-Fi, or an enterprise or home network that is shared with a compromised computer. To prevent this type of attack it's fundamental to use an encrypted communication transport-level (SSL or TLS) to protect all sensitive data passing between the client and the server.
+Instead of using HTTPS some applications transmit passwords over unencrypted connections, making them vulnerable. In order to exploit this vulnerability, an attacker may spy on the victim's network traffic. This occurs when a client communicates with the server over an insecure connection such as public Wi-Fi, or an enterprise or home network that is shared with a compromised computer. To prevent this type of attack it's fundamental to use an encrypted communication transport-level (SSL or TLS) to protect all sensitive data passing between the client and the server.
 
 The warning appears when the credentials have been inserted on the unsafe/encrypted channel.
 
@@ -59,11 +59,11 @@ The UDP protocol is effective and efficient with small responses. In the case of
 **Malformed packets**
 ~~~~~~~~~~~~~~~~~~~~~
 
-The alert is sent when it’s not possible dissect the contents of the packet.
+The alert is sent when it’s not possible to dissect the payload of a packet.
 
 Maliciously malformed packets take advantage of vulnerabilities in operating systems and applications by intentionally altering the content of data fields in network protocols. These vulnerabilities may include causing a system crash (a form of denial of service) or forcing the system to execute the arbitrary code.
 
-When malformed packets are seen by ntopng ,the system warns with alert.
+When malformed packets are seen by ntopng, the system warns with alert.
 
 
 *Category: Cybersecurity*
@@ -75,9 +75,9 @@ When malformed packets are seen by ntopng ,the system warns with alert.
 ~~~~~~~~~~~~~~~~~~
 
 
-It’s a notification of External alerts from other devices,for example,logs from a firewall.
+It’s a notification of External alerts from other devices, for example, logs from a firewall.
 
-For a more complete and detailed overview of the activity involved in inspection , the system can ingest alerts from any external source. 
+For a more complete and detailed overview of the activity involved in inspection, the system can ingest alerts from any external source. 
 
 External sources offer a deeper understanding and  more complete view of what’s going on your network or device.
 
@@ -146,7 +146,7 @@ The Alert is sent in order to raise the awareness on this type of URL and to pay
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-The system detects that the DNS which is not correctly resolved.
+The system detects that the DNS is not correctly resolved.
 
 
 Domain Name Server (DNS) hijacking, also named DNS redirection, is a type of DNS attack in which DNS queries are incorrectly resolved in order to redirect users to malicious sites.
@@ -210,8 +210,8 @@ The system sends an alert when detects a ICMP data exfiltration.
 Checks if all the apps are on the right port.
 
 
-In response to avoid attacks aimed at standard ports, some organizations have turned to using ‘non-standard’ ports for their services. A non-standard port is one that is used for a purpose not a  default assignment. Using port 8080 instead of port 80 for web traffic is one example.
-This is the strategy of ‘security through obscurity’ . While it may keep cybercriminals confused for a while, it’s not a long-term security solution. Also, it can make connecting to your web server more difficult for users because their browser is pre-configured to use port 80.
+In order to avoid attacks aimed at standard ports, some organizations have turned to using ‘non-standard’ ports for their services. A non-standard port is a port that is used for a purpose not a default assignment. Using port 8080 instead of port 80 for web traffic is one example.
+This is the strategy of ‘security through obscurity’. While it may keep cybercriminals confused for a while, it’s not a long-term security solution. Also, it can make connecting to your web server more difficult for users because their browser is pre-configured to use port 80.
 
 Sends a notification in case the system detects an application is on unusual port.
 
@@ -243,7 +243,7 @@ Notifies that SSH protocol is obsolete.
 
 Warns about an old version of TLS.
 
-Sensitive data always require robust protection. TLS protocols provide confidentiality, integrity, and often authenticity protections to information while in transit over a network. This can be achieved by providing a secured channel between a server and a client to communicate for a session. Over time, new TLS versions are developed, and some of the previous versions become outdated for vulnerabilities or technical reasons; and, therefore, should no longer be used to protect data.
+Sensitive data always requires robust protection. TLS protocols provide confidentiality, integrity, and often authenticity protections to information while in transit over a network. This can be achieved by providing a secured channel between a server and a client to communicate for a session. Over time, new TLS versions are developed, and some of the previous versions become outdated for vulnerabilities or technical reasons; and, therefore, should no longer be used to protect data.
 
 Alerts when a new version of TLS is needed.
 
@@ -259,7 +259,7 @@ Alerts when a new version of TLS is needed.
 Warns about a suspicious domain that could be used with the scope to make survive the malware.
 
 A domain generation algorithm DGA is a program that generates a list of domain names. DGA provide malware with new domains in order to evade security measures.
-Changing continously domain names help hackers to prevent their servers from being blacklisted The idea is to have an algorithm that produce random domain names that the malware can use and quickly switch between. Security software tools block and take down the malicious domain that malware uses but switching domains quickly enables cybercriminals to continue pursuing the attack without being detected.
+Continously changing domain names helps hackers to prevent their servers from being blacklisted. The idea is to have an algorithm that produces random domain names that the malware can use and quickly switch between them. Security software tools block and take down the malicious domains that malware uses but switching domains quickly enables cybercriminals to continue pursuing the attack without being detected.
 
 The goal is notify that the system has detected a malware.
 
@@ -291,7 +291,7 @@ Inspects if SNI is missed.
 
 Often a web server is responsible for multiple hostnames – or domain names. Each hostname has its own SSL certificate if the websites use HTTPS.
 The problem is, all these hostnames on one server are at the same IP address. This isn't a problem over HTTP, because as soon as a TCP connection is opened the client will indicate which website they're trying to reach in an HTTP request.
-But in HTTPS, a TLS handshake takes place first, before the HTTP conversation can begin (HTTPS still uses HTTP – it just encrypts the HTTP messages). Without SNI (Server Indication Name)then, there is no way for the client to indicate to the server which hostname they're talking to. As a result, the server may produce the SSL certificate for the wrong hostname. If the name on the SSL certificate does not match the name the client is trying to reach, the client browser returns an error and usually terminates the connection.
+But in HTTPS, a TLS handshake takes place first, before the HTTP conversation can begin (HTTPS still uses HTTP – it just encrypts the HTTP messages). Without SNI (Server Indication Name) then, there is no way for the client to indicate to the server which hostname they're talking to. As a result, the server may produce the SSL certificate for the wrong hostname. If the name on the SSL certificate does not match the name the client is trying to reach, the client browser returns an error and usually terminates the connection.
 
 Alert is sent to notify that TLS SNI is missing.
 
@@ -324,7 +324,7 @@ The system sends a notification when detects in and out going data flows.
 
 Check a TCP connection.
 
-In general, connection refused - errors are generated during a connect system call when an application attempts to connect using TCP to a server port which is not open.
+In general, connection refused - errors are generated during a system connection call when an application attempts to connect using TCP to a server port which is not open.
 
 Sends an alert in case the port is closed or other errors.
 
@@ -340,7 +340,7 @@ Checks for non printable characters.
 
 Researchers urge developers to secure code by disallowing non-ASCII characters. 
 They suggested developers to protect their code from attacks by proscribing the use of non-ASCII characters, which are rare and harmful in code since development teams typically favor English language-based
-For traslating it’s  suggested to substitute  non-ASCII characters with ASCII characters (e.g. ä → ae, ß → ss)
+For traslating it’s suggested to substitute non-ASCII characters with ASCII characters (e.g. ä → ae, ß → ss)
 
 Sends an alert in case of suspect non printable characters
 
@@ -388,7 +388,7 @@ Sends an alert when SQL might have occurred.
 
 The check verifies a possible XSS attack.
 
-Cross-site Scripting (XSS) is a client-side code attack .The attacker aims to execute malicious scripts in a web browser of the victim by including malicious code in a legitimate web page or web application. The actual attack occurs when the victim visits the web page or web application that executes the malicious code. The web page or web application becomes a way to deliver the malicious script to the user’s browser. Commonly used for Cross-site Scripting attacks are forums, message boards, and web pages that allow comments.
+Cross-site Scripting (XSS) is a client-side code attack. The attacker aims to execute malicious scripts in a web browser of the victim by including malicious code in a legitimate web page or web application. The actual attack occurs when the victim visits the web page or web application that executes the malicious code. The web page or web application becomes a way to deliver the malicious script to the user’s browser. Commonly used for Cross-site Scripting attacks are forums, message boards, and web pages that allow comments.
 
 The system sends an alert in case it has detected a possible XSS attack on the website.
 
@@ -420,7 +420,7 @@ The alert is sent when important data is transmitted without any encryption .
 
 Check controls for unclear content in HTTP (HyperText Transfer Protocol )
 
-Suspicious headers with special characters with not a readable content.A Clickjacking https://it.wikipedia.org/wiki/Clickjacking attack can be performed from the attacker by giving to the browser some instructions directly via HTTP header.
+Suspicious headers with special characters without a readable content. A Clickjacking https://it.wikipedia.org/wiki/Clickjacking attack can be performed from the attacker by giving the browser some instructions directly via HTTP header.
 
 The alert is sent when the system identifies an attempt to hide behind Mime type a malicious code.
 
@@ -435,7 +435,7 @@ The alert is sent when the system identifies an attempt to hide behind Mime type
 
 Check identifies that HTTP content isn't transmitted in TLS protocol.
 
-The main limitation of HTTP is that it is completely insecure. All traffic carried over HTTP is readable to the intruders. As the web carries more and more sensitive information due to ecommerce, online health records, social media,etc.more and more this places users’ sensitive data are at risk.
+The main limitation of HTTP is that it is completely insecure. All traffic carried over HTTP is readable to the intruders. As the web carries more and more sensitive information due to ecommerce, online health records, social media, etc. this places more and more users’ sensitive data are at risk.
 HTTPS uses the Transport Layer Security (TLS) protocol – to add security to HTTP. With SSL/TLS, HTTPS encrypts all traffic flowing between the client and the server.
 
 Alert is sent when HTTP traffic is not encrypted.
@@ -482,7 +482,7 @@ Alert is sent when Server message block is detected.
 
 Check verififes a Blacklisted Country.
 
-The check verifies whether blacklisted country has been contacted ,or viceversa, somebody from blacklisted country had tried to contact the host.
+The check verifies whether blacklisted country has been contacted, or viceversa, somebody from a blacklisted country had tried to contact the host.
 
 Often the country is blacklisted due to many cyberattacks that are launched from that geographical area.There are countries with most ransomware https://it.wikipedia.org/wiki/Ransomware attacks.
 
@@ -499,7 +499,7 @@ The alert appears when a blacklisted country is detected.
 
 Check for correct size of DNS packets.
 
-DNS packets over UDP should be limited to 512 bytes.This size guarantees the datagram won't be fragmented  because losing just one fragment leads to losing the entire datagram.When DNS packets overcome this threshold indicate a potential security risk or a misconfiguration.
+DNS packets over UDP should be limited to 512 bytes. This size guarantees the datagram won't be fragmented because losing just one fragment leads to losing the entire datagram. When DNS packets overcome this threshold indicate a potential security risk or a misconfiguration.
 
 The alert is sent in case the size overcomes 512 bytes.
 
@@ -514,7 +514,7 @@ The alert is sent in case the size overcomes 512 bytes.
 
 The Check is able to see a numeric IP Host.
 
-DNS keeps the record of all domain names and the associated IP addresses. When you type in a URL in your browser, DNS resolves the domain name into an IP address. In other words, DNS is a service that maps domain names to corresponding IP addresses.
+DNS keeps the record of all domain names and the associated IP addresses. When you type in a URL in your browser, the DNS resolves the domain name into an IP address. In other words, DNS is a service that maps domain names to corresponding IP addresses.
 
 Notifies in case of numeric IP Host.
 
@@ -545,7 +545,7 @@ Category: Cybersecurity*
 
 Check for not allowed DNS servers.
 
-DNS blocking is a filter method used to prevent Internet users visiting malicious websites. It works by comparing IP addresses against those assigned to websites known to be harmful or potentially threatning –  those websites where malware and ransomware can be caught – dns blocking is implemented in order to prevent devices connecting with them when a match is found.
+DNS blocking is a filter method used to prevent Internet users visiting malicious websites. It works by comparing IP addresses against those assigned to websites known to be harmful or potentially threatning – those websites where malware and ransomware can be caught – dns blocking is implemented in order to prevent devices connecting with them when a match is found.
 
 The Alert is sent when not allowed DNS server is detected.
 
@@ -608,7 +608,7 @@ Notifies when elephant flow is detected.
 
 Checks for an exploit.
 
-An exploit is a code that takes advantage of a software vulnerability or security flaw.Exploits allow an intruder to remotely access a network and gain elevated privileges, or move deeper into the network.
+An exploit is a code that takes advantage of a software vulnerability or security flaw. Exploits allow an intruder to remotely access a network and gain elevated privileges, or move deeper into the network.
 In some cases, an exploit can be used as part of a multi-component attack. Instead of using a malicious file, the exploit may instead drop another malware, which can include backdoor Trojans and spyware that can steal user information from the infected systems. 
 
 The system sends an alert when a possible exploit is detected.
@@ -686,7 +686,7 @@ The most common cause of Network Packet Loss are:
     • or network congestion
 
 
-The TCP retransmission means resending the packets over the network that have been lost or damaged previously.
+TCP retransmission means resending packets over the network that have been lost or previously damaged.
 
 The alert is sent when tcp retrasmission or packet loss are seen.
 
@@ -702,7 +702,7 @@ Checks for zero TCP window.
 
 When the receiver has a full buffer, the window size is reduced to zero. In this state, the window is shown to be 'Frozen' and the sender cannot send any more bytes until it receives a datagram from the receiver with a window size greater than zero.
 
-The alert is sent when zero TCP window is  detected.
+The alert is sent when zero TCP window is detected.
 
 Category: *Network*
 
@@ -716,7 +716,7 @@ Checks for numeric IP address
 
 When contacting the website using an IP address instead of it’s domain name (1.2.3.4 instead of www.bbc.com)
 
-(hppt/dsn troubles )
+(hppt/dsn troubles)
 
 
 The alert is sent when numeric IP is detected.
@@ -731,7 +731,7 @@ The alert is sent when numeric IP is detected.
 
 Checks for anomalies in active Flows.
 
-This is a machine learning check.Based on a specific algorithm that forecasts behavioural flow anomalies.The algorithm is able to predict the average of active flows in certain period of time ,lower or upper boundaries are not established but calculated by the algorithm.
+This is a machine learning check. Based on a specific algorithm that forecasts behavioural flow anomalies. The algorithm is able to predict the average of active flows in certain period of time, lower or upper boundaries are not established but calculated by the algorithm.
 
 Alert is sent when the anomaly in active flow is detected.
 
@@ -750,7 +750,7 @@ Checks for suspicious entropy.
 
 In case of files analysis whether they contain embedded files or scripts, and the entropy scores.
 
-The file entropy score, which measure the randomness of data and is used to find encrypted malware, and the entropy distribution also clearly show that a portion/size of the file is not what it should be. Further analysis proves that this file contains a new form of malware that passed undetected by existing security measures and was responsible for the infected systems.
+The file entropy score, which measure the randomness of data and is used to find encrypted malware, and the entropy distribution also clearly shows that a portion/size of the file is not what it should be. Further analysis proves that this file contains a new form of malware that passed undetected by existing security measures and was responsible for the infected systems.
 
 Alert is sent when suspicious entropy is seen.
 
@@ -778,7 +778,7 @@ An alert is sent when a flow lasts more than the configured duration.
 
 Checks for bugs in the flow pure logic.
  
-Purging is the process of freeing up space in the database or of deleting obsolete data that is not required by the system. The purge process can be based on the age of the data or the type of data.
+Purging is the process of freeing up space in the database or deleting obsolete data that is not required by the system. The purge process can be based on the age of the data or the type of data.
 Data purging is a mechanism that permanently deletes inactive or obsolete records from the database. 
 
 Sends the alert in case of bugs in the flow pure logic.
