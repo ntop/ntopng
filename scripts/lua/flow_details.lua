@@ -1224,19 +1224,19 @@ else
 
       if(flow.client_process ~= nil) then
 	 displayProc(flow.client_process,
-		     "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_process_information").."</th></tr>\n")
+		     "<tr><th colspan=3>"..i18n("flow_details.client_process_information").."</th></tr>\n")
       end
       if(flow.client_container ~= nil) then
 	 displayContainer(flow.client_container,
-			  "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_container_information").."</th></tr>\n")
+			  "<tr><th colspan=3>"..i18n("flow_details.client_container_information").."</th></tr>\n")
       end
       if(flow.server_process ~= nil) then
 	 displayProc(flow.server_process,
-                     "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_process_information").."</th></tr>\n")
+                     "<tr><th colspan=3>"..i18n("flow_details.server_process_information").."</th></tr>\n")
       end
       if(flow.server_container ~= nil) then
 	 displayContainer(flow.server_container,
-			  "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_container_information").."</th></tr>\n")
+			  "<tr><th colspan=3>"..i18n("flow_details.server_container_information").."</th></tr>\n")
       end
    end
 
@@ -1388,9 +1388,11 @@ else
       print("</tr>\n")
    end
 
-   if not interface.isPacketInterface() and flow["flow_verdict"] then
-      local flow_verdict = parseFlowVerdict(flow["flow_verdict"])
-      print("<tr><th width=30%>" .. i18n("details.flow_verdict") .. "</th><td colspan=2>" .. flow_verdict .. "</td></tr>\n")
+   flow["flow_verdict"] = 0
+
+   if interface.isPacketInterface() and flow["flow_verdict"] then
+      local flow_verdict_badge = addFlowVerdictBadge(flow["flow_verdict"], true)
+      print("<tr><th width=30%>" .. i18n("details.flow_verdict") .. "</th><td colspan=2>" .. flow_verdict_badge .. "</td></tr>\n")
    end
 
    if (flow["moreinfo.json"] ~= nil) then
@@ -1467,7 +1469,7 @@ else
       local num = 0
       for key,value in pairsByKeys(info) do
 	 if(num == 0) then
-	    print("<tr><th colspan=3 class=\"info\">"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")
+	    print("<tr><th colspan=3>"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")
 	 end
 
 	 if(value ~= "") then

@@ -34,12 +34,32 @@ local flow_verdict_icon = {
 
 -- #######################
 
-function parseFlowVerdict(flow_verdict)
-   if flow_verdict_mapping[flow_verdict] then
+function parseFlowVerdict(flow_verdict, minimal)
+  if flow_verdict_mapping[flow_verdict] then
+    if minimal then
+      return flow_verdict_mapping[flow_verdict] .. " " .. flow_verdict_icon[flow_verdict]
+    else
       return (flow_verdict .. " (" .. flow_verdict_mapping[flow_verdict] .. " " .. flow_verdict_icon[flow_verdict] .. ")")
-   end
+    end
+  end
 
-   return flow_verdict
+  return flow_verdict
+end
+
+-- #######################
+
+function addFlowVerdictBadge(flow_verdict, minimal)
+  local flow_verdict_class = "badge bg-secondary"
+
+  if tonumber(flow_verdict) == 1 then
+    flow_verdict_class = "badge bg-success"
+  elseif tonumber(flow_verdict) == 2 then
+    flow_verdict_class = "badge bg-danger"
+  end
+
+  local flow_verdict_formatted = parseFlowVerdict(flow["flow_verdict"], minimal)
+
+  return '<span class="' .. flow_verdict_class .. '">' .. flow_verdict_formatted .. '</span>'
 end
 
 -- #######################
