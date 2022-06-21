@@ -68,7 +68,7 @@ export function draw_processes_graph(http_prefix, graph_div_id, host) {
 	    .data(["proc2proc", "proc2host", "host2proc", "host2host"])
 	    .enter().append("marker")
 	    .attr("id", function(d) { return d; })
-	    .attr("viewBox", "0 -5 10 10")
+	    .attr("viewBox", "0 -5 20 20")
 	    .attr("refX", 15)
 	    .attr("refY", -1.5)
 	    .attr("markerWidth", arrow_size).attr("markerHeight", arrow_size)
@@ -87,7 +87,7 @@ export function draw_processes_graph(http_prefix, graph_div_id, host) {
 	    .data(force.nodes())
 	    .enter().append("circle")
 	    .attr("class", "ebpf_circle")
-	    .attr("r", 8) /* Radius */
+	    .attr("r", 15) /* Radius */
 	    .style("fill", function(d) { return color[d.type]; })
 	    .call(force.drag)
 	    .on("dblclick", function(d) {
@@ -100,7 +100,8 @@ export function draw_processes_graph(http_prefix, graph_div_id, host) {
 	    .enter().append("text")
 	    .attr("class", "ebpf_text")
 	    .attr("x", 12)
-	    .attr("y", ".31em")
+	    .attr("y", "0.5rem")
+      .style("font-size", "1rem")
 	    .text(function(d) {
 		if(d.pid >= 0) // Process
 		    return(d.name + " [pid: "+d.pid+"]");
