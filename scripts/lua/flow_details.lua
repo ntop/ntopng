@@ -404,10 +404,10 @@ local function displayProc(proc, label)
 
    print("<tr><th width=30%>"..i18n("flow_details.process_pid_name").."</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/process_details.lua?pid=".. proc.pid .."&pid_name=".. proc.name .. "&" .. hostinfo2url(flow,"srv").. "\">".. proc.name .. "</a> ")
    if proc.pid then
-     print(i18n("flow_details.process_pid") .. ": "..proc.pid)
+     print("["..i18n("flow_details.process_pid") .. ": "..proc.pid.."]")
    end
    if not isEmptyString(proc.pkg_name) then
-     print(" "..i18n("flow_details.process_package") .. ": " .. proc.pkg_name)
+     print("  ["..i18n("flow_details.process_package") .. ": " .. proc.pkg_name.."] ")
    end
 
    if not isEmptyString(proc.father_name) then
