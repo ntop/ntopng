@@ -10,7 +10,7 @@ ____________________
 
 Checks for ghost networks.
 
-There are many reasons why the ghost network may appear- starting from misconfiguration and ending with malicious users who put devices to the network beliving not to be discovered.
+There are many reasons why the ghost network may appear - starting from misconfiguration and ending with malicious users who put devices on the network believing not to be discovered.
 
 The alert is sent when the unknown network is discovered.
 
@@ -31,9 +31,9 @@ The alert is sent when the unknown network is discovered.
 
 Checks for dropped alerts.
 
-The alerts could be dropped when too many are queued /generated.
+The alerts could be dropped when too many are queued/generated.
 
-The alert is sent when the system dropps the alert.
+The alert is sent when the system drops the alert.
 
 *Category: Cybersecurity*
 
@@ -43,11 +43,11 @@ The alert is sent when the system dropps the alert.
 **No activity on interface**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Checks for activities on interface.
+Checks for activities on the interface.
 
-There could be no traffic because of misconfigurations or otherwise because of the mirror network link that has gone down.
+There could be no traffic because of misconfigurations or because of the mirror network link that has gone down.
 
-The alert is sent when no activity on interface is noticed.
+The alert is sent when no activity on the interface is noticed.
 
 *Category: Internals*
 
@@ -103,7 +103,7 @@ The alert is sent when the throughput exceeds threshhold.
 
 Checks for unexpected app behaviour.
 
-Unexpected behaviour in application could be the indicator of bugs in the code that cause an unusual attitude or incorrect functioning of an app.
+Unexpected behaviour in applications could be an indicator of bugs in the code that causes an unusual attitude or incorrect functioning of an app.
 
 Alert is sent when unusual app behaviour is detected.
 
@@ -132,7 +132,7 @@ The alert is sent when unexpected behaviour is seen in ASN.
 
 Checks for unexpected device.
 
-A random device with not allowed MAC address connected to the network.
+A random device without an allowed MAC address connected to the network.
 
 Alert is sent when a unexpected device connected.
 
