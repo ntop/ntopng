@@ -5166,7 +5166,9 @@ function format_dns_query_info(dns_info)
   if dns_info.last_query then
     local url = dns_info["last_query"] 
     url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
-    dns_info.last_query = i18n("external_link_url", { proto = 'https', url = url, url_name = dns_info["last_query"] })
+    if not string.find(url, '*') then
+      dns_info.last_query = i18n("external_link_url", { proto = 'https', url = url, url_name = dns_info["last_query"] })
+    end
   end
 
   return dns_info
@@ -5200,7 +5202,9 @@ function format_tls_info(tls_info)
   if tls_info.client_requested_server_name then
     local url = tls_info["client_requested_server_name"] 
     url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
-    tls_info["client_requested_server_name"] = i18n("external_link_url", { proto = 'https', url = url, url_name = url})
+    if not string.find(url, '*') then
+      tls_info["client_requested_server_name"] = i18n("external_link_url", { proto = 'https', url = url, url_name = url})
+    end
   end
 
   if tls_info["ja3.server_cipher"] then
@@ -5262,7 +5266,9 @@ function format_http_info(http_info)
       url = (http_info["server_name"] or "") .. http_info["last_url"]
     end
     url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
-    http_info["last_url"] = i18n("external_link_url", { proto = 'http', url = url, url_name = url})
+    if not string.find(url, '*') then
+      http_info["last_url"] = i18n("external_link_url", { proto = 'http', url = url, url_name = url})
+    end
   end
 
   if http_info["server_name"] then
@@ -5360,7 +5366,7 @@ function format_external_link(url, name, no_html, proto)
    proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
  
    if no_html == false then
-     if not isEmptyString(url) then
+     if not isEmptyString(url) and not string.find(url, '*') then
         url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
             external_field = i18n("external_link_url", { proto = proto, url = url, url_name = name})
      end
