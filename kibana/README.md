@@ -53,8 +53,8 @@ The dashboard provided for the ntopng-alerts was designed to give a fast overvie
 - The `Percentage Of Client-Server #Ports` represent the historical partition beetween the number of client and server ports
 - Lastly `Percentage Of Client-Server #Packets` is used to see the partition between the packets transmitted by the client and the server 
 
-![main_page](/assets/images/dash_main.png)
-![secondary_page](/assets/images/dash_secondary.png)
+![main_page](dash_main.png)
+![secondary_page](dash_secondary.png)
 ## Exporting An Existing Dashboard
 
 To export a dashboard created in Kibana in the top left of the Kibana GUI `Dropdown Menu -> Stack Management -> Saved Objects` select the desired dashboard to export from the square button on the left and click `Export` on the top right, a download will start.
