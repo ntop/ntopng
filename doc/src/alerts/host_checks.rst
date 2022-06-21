@@ -24,7 +24,7 @@ The alert is sent when number of different DNS servers contacted exceeds the thr
 
 Checks for Dangerous Hosts.
 
-If the score exceeds the threshold, the host could be consideres as dangerous.
+If the score exceeds the threshold, the host could be consideres dangerous.
 
 The alert is sent when a dangerous host is detected.
 
@@ -51,7 +51,7 @@ Anomalies score represents how abnormal the behavior of the host is, based on it
 
 Checks for NTP Server Contacts.
 
-The perpetrator exploits Network Time Protocol (NTP) servers to overwhelm a targeted server with UDP traffic. The attack is defined as an amplification  can easily generate a devastating high-volume DDoS attack.
+The perpetrator exploits Network Time Protocol (NTP) servers to overwhelm a targeted server with UDP traffic. The attack is defined as an amplification that can easily generate a devastating high-volume DDoS attack.
 
 The alert is sent when the number of different NTP servers contacted exceeds the threshold.
 
@@ -80,7 +80,7 @@ Checks for SYN Flood.
 
 SYN Flood Alert
 
-A SYN flood DDoS attack exploits a weakness in the TCP connection(the “three-way handshake”),a SYN request to initiate a TCP connection with a host must be answered by a SYN-ACK response from that host, and then confirmed by an ACK response from the requester. In a SYN flood scenario, the requester sends multiple SYN requests, but does not respond to the host’s SYN-ACK response, or sends the SYN requests from a spoofed IP address. The host system continues to wait for acknowledgement for each of the requests,resulting in denial of service.
+A SYN flood DDoS attack exploits a weakness in the TCP connection (the “three-way handshake”), a SYN request to initiate a TCP connection with a host must be answered by a SYN-ACK response from that host, and then confirmed by an ACK response from the requester. In a SYN flood scenario, the requester sends multiple SYN requests, but does not respond to the host’s SYN-ACK response, or sends the SYN requests from a spoofed IP address. The host system continues to wait for acknowledgement for each of the requests, resulting in denial of service.
 
 The alert is sent when the number of sent/received SYNs/sec exceeds the threshold.
 
@@ -93,8 +93,8 @@ The alert is sent when the number of sent/received SYNs/sec exceeds the threshol
 
 Checks for SYN Scan.
 
-Syn scan alert In SYN scanning, similar to port scanning, the threat actor attempts to set up a (TCP/IP) connection with a server at every possible port. This is done by sending a SYN (synchronization) packet, as if to initiate a three-way handshake, to every port on the server.
-If the server replies with an ACK (acknowledgement)response or SYN/ACK (synchronization acknowledged) packet from a particular port, it means the port is open. Then, the malicious actor sends an RST.
+Syn scan alert In SYN scanning, similar to port scanning, the threat actor attempts to set up a (TCP/IP) connection with a server on every possible port. This is done by sending a SYN (synchronization) packet, as if to initiate a three-way handshake, to every port on the server.
+If the server replies with an ACK (acknowledgement)response or SYN/ACK (synchronization acknowledged) packet from a particular port, it means that the port is open. Then, the malicious actor sends an RST.
 
 The alert is sent when the number of sent/received SYNs/min exceeds the threshold.
 
@@ -125,7 +125,7 @@ The alert is sent when the number of sent/received ICMP Flows/sec exceeds the th
 
 Checks for Packets.
 
-Detects and reports on packets based on behavior characteristics of the sender or characteristics of the packets.Foresees possible attack vectors by packet-per-second or percentage-increase-over-time thresholds.
+Detects and reports on packets based on behavior characteristics of the sender or characteristics of the packets. Foresees possible attack vectors by packet-per-second or percentage-increase-over-time thresholds.
 
 The alert is sent when the packet delta (sent + received) exceeds the threshold.
 
