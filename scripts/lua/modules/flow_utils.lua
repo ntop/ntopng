@@ -23,11 +23,13 @@ end
 -- #######################
 
 local flow_verdict_mapping = {
+   "Unknown", -- 0
    "Pass", -- 1
    "Drop", -- 2
 }
 
 local flow_verdict_icon = {
+   '',
    '<i class="fas fa-check"></i>',
    '<i class="fas fa-ban"></i>',
 }
@@ -35,11 +37,11 @@ local flow_verdict_icon = {
 -- #######################
 
 function parseFlowVerdict(flow_verdict, minimal)
-  if flow_verdict_mapping[flow_verdict] then
+  if flow_verdict_mapping[flow_verdict + 1] then
     if minimal then
-      return flow_verdict_mapping[flow_verdict] .. " " .. flow_verdict_icon[flow_verdict]
+      return flow_verdict_mapping[flow_verdict + 1] .. " " .. flow_verdict_icon[flow_verdict + 1]
     else
-      return (flow_verdict .. " (" .. flow_verdict_mapping[flow_verdict] .. " " .. flow_verdict_icon[flow_verdict] .. ")")
+      return (flow_verdict .. " (" .. flow_verdict_mapping[flow_verdict + 1] .. " " .. flow_verdict_icon[flow_verdict + 1] .. ")")
     end
   end
 
