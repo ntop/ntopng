@@ -1,3 +1,6 @@
+import NtopUtils from './ntop-utils'
+window.NtopUtils = NtopUtils
+
 import { datatableInitRefreshRows, datatableForEachRow, datatableIsEmpty, datatableRemoveEmptyRow, datatableAddEmptyRow, datatableGetNumDisplayedItems, datatableGetByForm, datatableUndoAddRow, datatableAddButtonCallback, datatableAddDeleteButtonCallback, datatableAddActionButtonCallback, datatableAddFilterButtonCallback, datatableAddLinkButtonCallback, datatableMakeSelectUnique, datatableIsLastPage, datatableGetColumn, datatableGetColumnIndex } from './datatable/bootstrap-datatable-utils'
 
 window.datatableInitRefreshRows = datatableInitRefreshRows

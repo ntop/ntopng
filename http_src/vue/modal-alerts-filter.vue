@@ -45,7 +45,7 @@
       	  <label class="form-check-label whitespace">
       	    <span>{{_i18n("check_exclusion.tls_certificate")}}:</span>
       	  </label>
-      	<input type="text" :disabled="radio_selected != 'certificate'" v-model="tls_certificate" :pattern="pattern_empty" required class="form-check-label custom-width">
+      	<input type="text" :disabled="radio_selected != 'certificate'" v-model="tls_certificate" :pattern="pattern_certificate" required class="form-check-label custom-width">
       </div>
     </div>
     
@@ -102,7 +102,13 @@ watch(() => props.alert, (current_value, old_value) => {
 // };
 
 const check_disable_apply = () => {
-    return domain.value == "" || tls_certificate.value == "";
+    if (radio_selected.value == "domain") {
+	return domain.value == null || domain.value == "";
+    } else if (radio_selected.value == "certificate") {
+	let regex_certificate = new Regex(pattern_certificate);
+	return tls_certificate.value == null || regex_certificate.test(tls_certificate.value) == false;
+    }
+    return false;
 }
 
 const alert_name = computed(() => props.alert?.alert_name);
@@ -144,6 +150,7 @@ function get_type() {
 }
 
 let pattern_empty = ".+";
+let pattern_certificate = NtopUtils.REGEXES.tls_certificate;
 
 const exclude = () => {
     let page = props.page;

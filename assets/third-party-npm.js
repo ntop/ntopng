@@ -70,13 +70,11 @@ import 'select2'
 /* regeneratorRuntime error, check https://github.com/babel/babel/issues/9849 */
 import regeneratorRuntime from "regenerator-runtime" 
 import ToastUtils from '../http_src/utilities/toast-utils'
-import NtopUtils from '../http_src/utilities/ntop-utils'
 import '../http_src/utilities/string-utils'
 
 /* Generic ntopng Utils */
 window.regeneratorRuntime = regeneratorRuntime
 window.ToastUtils = ToastUtils
-window.NtopUtils = NtopUtils
 
 import '../http_src/utilities/datatable/datatable-plugins/api-extension'
 import '../http_src/utilities/datatable/datatable-plugins/jquery-extension'

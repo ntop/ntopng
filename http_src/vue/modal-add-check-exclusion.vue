@@ -93,7 +93,7 @@
           </label>
           <div class="col-sm-6">
             <input v-if="alert_exclusions_page == 'domain_names'" placeholder="" :pattern="pattern_text" required type="text" name="ip_address" class="form-control" v-model="input_text" />
-            <input v-if="alert_exclusions_page == 'tls_certificate'" placeholder="CN=813845657003339838, O=Code42, OU=TEST, ST=MN, C=U" :pattern="pattern_text" required type="text" name="ip_address" class="form-control" v-model="input_text" />
+            <input v-if="alert_exclusions_page == 'tls_certificate'" placeholder="CN=813845657003339838, O=Code42, OU=TEST, ST=MN, C=U" :pattern="pattern_certificate" required type="text" name="ip_address" class="form-control" v-model="input_text" />
           </div>
 	</div>
       </div>      
@@ -120,7 +120,7 @@ const flow_selected = ref("");
 const netmask = ref("");
 
 const emit = defineEmits(['add'])
-
+//s.split(",").every((a) => {return /.+=.+/.test(a)})
 function get_data_pattern(value_type) {
     input_required = true;
     if (value_type == "text") {
@@ -134,6 +134,8 @@ function get_data_pattern(value_type) {
 	return `(${r_ipv4})|(${r_ipv4_vlan})|(${r_ipv6})|(${r_ipv6_vlan})`;
     } else if (value_type == "hostname") {
 	return `${NtopUtils.REGEXES.singleword}|[a-zA-Z0-9._\-]{3,250}@[0-9]{0,5}$`;
+    } else if (value_type == "certificate") {
+	return NtopUtils.REGEXES.tls_certificate;
     }
     return NtopUtils.REGEXES[value_type];
 }
@@ -147,25 +149,32 @@ const props = defineProps({
 let input_required = false;
 let pattern_ip = get_data_pattern("ip");
 let pattern_text = get_data_pattern("text");
+let pattern_certificate = get_data_pattern("certificate");
 
 const set_exclude_type = (type) => {
     exclude_type.value = type;
 }
 
 const check_disable_apply = () => {
-    let regex = new RegExp(pattern_ip);
+    let regex = null;
     let disable_apply = true;
-    if (props.alert_exclusions_page != 'hosts') {
-	disable_apply = (input_text.value == null || input_text.value == "") || (regex.test(input_text.value));
-	return disable_apply;
-    }
-    if (exclude_type.value == "ip") {
-	disable_apply = (input_ip.value == null || input_ip.value == "") || (regex.test(input_ip.value) == false) || (host_selected.value == "" && flow_selected.value == "");
-    } else {
-	disable_apply = (input_network.value == null || input_network.value == "")
-	    || (regex.test(input_network.value) == false)
-	    || (host_selected.value == "" && flow_selected.value == "")
-	    || (netmask.value == null || netmask.value == "" || parseInt(netmask.value) < 1 || parseInt(netmask.value) > 127);
+    if (props.alert_exclusions_page == 'hosts') {
+	regex = new RegExp(pattern_ip);
+	if (exclude_type.value == "ip") {
+	    disable_apply = (input_ip.value == null || input_ip.value == "") || (regex.test(input_ip.value) == false) || (host_selected.value == "" && flow_selected.value == "");
+	} else {
+	    disable_apply = (input_network.value == null || input_network.value == "")
+		|| (regex.test(input_network.value) == false)
+		|| (host_selected.value == "" && flow_selected.value == "")
+		|| (netmask.value == null || netmask.value == "" || parseInt(netmask.value) < 1 || parseInt(netmask.value) > 127);
+	}
+    } else if (props.alert_exclusions_page == 'domain_names') {
+	regex = new RegExp(pattern_text);
+	disable_apply = (input_text.value == null || input_text.value == "") || (regex.test(input_text.value) == false);
+	
+    } else if (props.alert_exclusions_page == 'tls_certificate') {
+	regex = new RegExp(pattern_certificate);
+	disable_apply = (input_text.value == null || input_text.value == "") || (regex.test(input_text.value) == false);
     }
     return disable_apply;
 };
