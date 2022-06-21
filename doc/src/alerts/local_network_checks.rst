@@ -1,7 +1,7 @@
 Local Networks Behavioural Checks
 #################################
 
-These checks are performed o local networks (see -m command line option).
+These checks are performed on local networks (see -m command line option).
 
 ____________________
 
@@ -12,7 +12,7 @@ Checks broadcast domains.
 
 The ARP traffic between two MACS addresses belonging to different broadcast domains is detected.
 
-The Alert is sent when broadcast domain is too large.
+The Alert is sent when the broadcast domain is too large.
 
 
 *Category: Network*
@@ -26,7 +26,7 @@ The Alert is sent when broadcast domain is too large.
 
 Checks for Egress Traffic Bytes exceed.
 
-Egress traffic is network traffic that begins inside of a network and passes through its routers to a destination somewhere outside. The system notifies In case the Egress Bytes delta exceeds the threshold.
+Egress traffic is network traffic that begins inside of a network and passes through its routers to an outside destination. The system notifies in case the Egress Bytes delta exceeds the threshold.
 
 The alert is sent when the egress traffic bytes exceeds.
 
@@ -41,7 +41,7 @@ The alert is sent when the egress traffic bytes exceeds.
 
 Checks for Flow Flood.
 
-In a computer network, flooding occurs when a router uses a nonadaptive routing algorithm.When a network is having more than a predefined number of flows over a minute.The system sends a notification when servers of the monitored flows exceeds the threshold.
+In a computer network, flooding occurs when a router uses a nonadaptive routing algorithm. When a network is having more than a predefined number of flows over a minute. The system sends a notification when servers of the monitored flows exceeds the threshold.
 
 The alert is sent in case of server flow flood.
 
@@ -56,7 +56,7 @@ The alert is sent in case of server flow flood.
 
 Checks for High Network Score.
 
-Depending on the number of hosts in a Network,if total Score exceeds the threshold per host configured the system detects it.
+Depending on the number of hosts in a Network, if total Score exceeds the threshold per host configured then the system detects it.
 
 The alert is sent when the high network score is detected.
 
@@ -71,7 +71,7 @@ The alert is sent when the high network score is detected.
 
 Checks for Ingress Traffic.
 
-Ingress traffic is a network traffic originated from external networks and destined for a node in the host network.When the Ingress Bytes delta exceeds the threshold the system detects the change.
+Ingress traffic is a network traffic originated from external networks and destined for a node in the host network. When the Ingress Bytes delta exceeds the threshold the system detects the change.
 
 The alert is sent when the ingress bytes exceed the threshold.
 
@@ -103,7 +103,7 @@ The alert is sent when a network discovery is detected.
 
 Checks for SYN Flood.
 
-A SYN Flood is a common form of DDoS attack  that can target any system connected to the Internet and providing TCP services like web server, email server, file transfer.A SYN flood is a type of TCP State-Exhaustion Attack  that attempts to consume the connection state tables present in many infrastructure components,such as load balancers, firewalls and IPS.
+A SYN Flood is a common form of DDoS attack that can target any system connected to the Internet and providing TCP services like web server, email server, file transfer. A SYN flood is a type of TCP State-Exhaustion Attack that attempts to consume the connection state tables present in many infrastructure components, such as load balancers, firewalls and IPS.
 
 The alert is sent when the number of received SYN exceeds the threshold.
 
