@@ -46,6 +46,16 @@ object_to_array: function(obj) {
     }
     return array;
 },
+      	from_utc_s_to_server_date: function(utc_seconds) {
+	    let utc = utc_seconds * 1000;
+	    let d_local = new Date(utc);
+	    let local_offset = d_local.getTimezoneOffset();
+	    let server_offset = moment.tz(utc, ntop_zoneinfo)._offset;
+	    let offset_minutes =  server_offset + local_offset;
+	    let offset_ms = offset_minutes * 1000 * 60;
+	    var d_server = new Date(utc + offset_ms);
+	    return d_server;
+	},
       from_utc_to_server_date_format: function(utc_ms, format) {
 	  if (format == null) { format = "DD/MMM/YYYY HH:mm"; }
 	  let m = moment.tz(utc_ms, ntop_zoneinfo);
