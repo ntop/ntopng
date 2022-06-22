@@ -76,7 +76,7 @@
           <div class="col-sm-4 pr-0">
             <input required style="width: calc(100% - 10px);" name="network" class="form-control d-inline" placeholder="172.16.0.0" :pattern="pattern_ip" v-model="input_network"/>
     	  </div>
-    	  <div class="col-sm-2 pl-0 pe-0">
+    	  <div class="col-sm-2 ps-4 pe-0">
     	    <span class="me-2">/</span>
     	    <input placeholder='24' required class="form-control d-inline w-75" min="1" max="127" type="number" name="cidr" v-model="netmask">
     	  </div>
