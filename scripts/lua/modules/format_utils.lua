@@ -218,7 +218,7 @@ function format_utils.formatEpoch(epoch, full_time)
   if epoch == 0 then
     return("")
   else
-   local t = epoch + getFrontendTzSeconds()
+   local t = epoch
    local key = ""
    local time = ""
 
@@ -227,14 +227,14 @@ function format_utils.formatEpoch(epoch, full_time)
    end
 
    if(key == "big_endian") then
-      -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
-      time = "!%Y/%m/%d"
+      -- do NOT specify the ! to indicate UTC time; the time must be in Local Server Time
+      time = "%Y/%m/%d"
    elseif( key == "middle_endian") then
-      -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
-      time = "!%m/%d/%Y"
+      -- do NOT specify the ! to indicate UTC time; the time must be in Local Server Time
+      time = "%m/%d/%Y"
    else
-      -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
-      time = "!%d/%m/%Y"
+      -- do NOT specify the ! to indicate UTC time; the time must be in Local Server Time
+      time = "%d/%m/%Y"
    end
    
    if(full_time == nil) or (full_time == true) then      
