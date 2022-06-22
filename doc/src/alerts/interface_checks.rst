@@ -155,4 +155,33 @@ Alert is triggered when unexpected behaviour comes from the specific network.
 *Not Enabled by Default*
 
 
+**DHCP Storm**
+~~~~~~~~~~~~~~
+
+Checks for DHCP flooding.
+
+DHCP storm occurs when DHCP router gets too many packets requests in a minute - by blocking totally the router functioning.
+
+The alert is triggered when DHCP storm is detected.
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+**DHCP Starvation**
+~~~~~~~~~~~~~~~~~~~
+
+Checks for DHCP starvation.
+
+
+DHCP starvation attacks and DHCP spoofing. In DHCP starvation attacks, an attacker floods the DHCP server with DHCP requests to use up all the available IP addresses.The “starved” DHCP server will not respond to new DHCP requests until a new address becomes available.
+
+
+Ntopng sends an alert in case DHCP starvation occurs.
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
 
