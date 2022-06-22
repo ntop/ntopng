@@ -789,6 +789,108 @@ Sends the alert in case of bugs in the flow pure logic.
 *Enabled by Default*
 
 
+**TLS Unsafe Ciphers**
+~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for secure TLS Cipher.
+
+TLS is encrypting the communication between web applications and servers. To secure the data transfer, TLS uses one or more cipher suites, which is a combination of authentication or encryption. Using an old or outdated cipher makes vulnerable to attack. With an insufficient cipher, the attacker may intercept or modify data.
+
+The Alert is sent when unsafe ciphers are seen.
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+**TLS Cert About To Expire**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for TLS validity.
+
+Ntopng tells when the TLS deadline is looming.
+
+The alert is sent in case TLS cert is nearly expired.
+
+*Category:Cybersecurity*
+
+*Enabled by Default
+
+
+
+**TLS Certificate Expired**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for TLS certification already expired.
+
+The alert is sent in case TLS cert is already expired.
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+**Obsolete SSH Client version or Cipher**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for Obsolete SSH client or chiper.
+
+The SSH protocol is a method for secure remote login from one computer to another. If the target is using deprecated SSH settings. A man-in-the-middle attacker may be able to exploit this vulnerability to record the communication to decrypt the session key and even the messages.
+
+The system sends an alert when it sees an obsolete SSH.
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+
+**Malicious JA3 Signature**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for malicious JA3 signature.
+
+JA3 is a method for creating SSL/TLS client fingerprints. JA3 signature is derived from the cipher. The cipher list is transmitted during the client/server hello negotiation.
+When the system identifies the match with blacklisted fingerprints it warns the client with an alert.
+
+The alert is sent in case malicious ja3 signature is found.
+
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+**Low goodput**
+~~~~~~~~~~~~~~~
+
+Checks for low goodput.
+
+Goodput is the rate at which useful data traverses a link. Assuming an uncongested path between endpoints.
+
+There could be various reasons for low goodput:
+
+- High Utilization 
+- Too many access points on the same channel 
+- Access point power too high
+- Broadcasting too many SSIDs 
+- A client issue
+- Client inactivity
+
+The alert is sent when low goodput is tracked.
+
+*Category:Network*
+
+*Enabled by Default*
+
+
+**Crawler/Bot**
+~~~~~~~~~~~~~~~
+
+Checks for crawlers.
+
+Spiderbot or crawler, is an Internet bot that browses the Web and that is typically operated by search engines for the purpose of Web indexing/web spidering.
+
+The alert is sent when a crawler on the webpage is detected.
+
+*Category:Network*
+
+*Enabled by Default*
 
 
 
