@@ -38,7 +38,7 @@ ____________________
 ~~~~~~~~~~~~~~~~~~~~~~
 Checks for a system alerts drops.
 
-Too many alerts are generated in a short period of time,this may cause the system dropping the alerts.
+Too many alerts are generated in a short period of time, this may cause the system dropping the alerts.
 
 The alert is sent when there is no room in the internal alerts queue and the alerts are dropped.
 
