@@ -809,7 +809,7 @@ Checks for TLS validity.
 
 Ntopng tells when the TLS deadline is looming.
 
-The alert is sent in case TLS cert is nearly expired.
+The alert is sent in case the TLS cert is nearly expired.
 
 *Category:Cybersecurity*
 
