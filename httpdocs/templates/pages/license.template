@@ -16,7 +16,7 @@
             <tr>
                 <th>SystemId</th>
                 <td>
-                    <a class="ntopng-external-link" href="{* license.systemIdHref *}" target="_blank">{{ info["pro.systemid"] }} <i class='fas fa-external-link-alt'></i></a>
+		    <a href="{* license.systemIdHref *}" target="_blank">{{ info["pro.systemid"] }} <i class='fas fa-external-link-alt'></i></a>
                     <br>
                     {% if not(info["pro.forced_community"]) then %}
                     <small>
@@ -34,6 +34,7 @@
                 <th>{{ i18n("about.licence") }}</th>
                 <td>
                     {% if license.is_admin then %}
+		      {% if ntop.isWindows() then %}
                         {% if (info["pro.use_redis_license"] or (info["pro.license_encoded"] == "")) then %}
                             <form class="form" method="post" id="license-form" onsubmit="return trimLicenceSpaces();">
                                 <div class="mb-3 w-100">
@@ -49,6 +50,9 @@
 			        <textarea readonly style="resize: none;" class="form-control w-50" rows="7">{{ info["pro.license_encoded"] }}</textarea>
                             {% end %}
                         {% end %}
+                    {% else %}
+		      {{ i18n("about.licence_save_path") }}
+                    {% end %}
                     {% end %}
                 </td>
             </tr>
