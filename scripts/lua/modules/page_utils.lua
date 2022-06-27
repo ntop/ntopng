@@ -342,15 +342,15 @@ function page_utils.print_header(title, addLoginJS)
     ]]
           
     if addLoginJS then
-      print[[<script type="text/javascript" src="]] print(http_prefix) print[[/dist/login.js?]] print(static_file_epoch) print[["></script>]]
+      print[[<script type="application/javascript" src="]] print(http_prefix) print[[/dist/login.js?]] print(static_file_epoch) print[["></script>]]
     end
 
     
     print[[
     <link href="]] print(http_prefix) print[[/dist/custom-theme.css?]] print(static_file_epoch) print[[" rel="stylesheet">
-    <script type="text/javascript" src="]] print(http_prefix) print("/lua/locale.lua?"..locale_when .. "&user_language=" ..language); print[["> </script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js?]] print(static_file_epoch) print[["></script>
+    <script type="application/javascript" src="]] print(http_prefix) print("/lua/locale.lua?"..locale_when .. "&user_language=" ..language); print[["> </script>
+    <script type="application/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
+    <script type="application/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js?]] print(static_file_epoch) print[["></script>
 <script> const ntop_zoneinfo = ]] print(zoneinfo) print[[;</script>
     </head>]]
   print([[
@@ -403,9 +403,9 @@ function page_utils.print_header_minimal(title, addLoginJS)
             margin-top: -5px;
             background:url(]] print(http_prefix) print[[/dist/images/flags.png) no-repeat
           }
-          <script type="text/javascript" src="]] print(http_prefix) print("/lua/locale.lua?"..locale_when .. "&user_language=" ..language); print[["> </script>
-          <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
-          <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js?]] print(static_file_epoch) print[["></script>
+          <script type="application/javascript" src="]] print(http_prefix) print("/lua/locale.lua?"..locale_when .. "&user_language=" ..language); print[["> </script>
+          <script type="application/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
+          <script type="application/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js?]] print(static_file_epoch) print[["></script>
           
       </head>
       <body>
