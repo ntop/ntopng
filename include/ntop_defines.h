@@ -751,6 +751,7 @@
 #define CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW 3
 #define CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW   64 /* Empty TCP */
 #define CONST_IS_TINY_FLOW_EXPORT_ENABLED          NTOPNG_PREFS_PREFIX".tiny_flows_export_enabled"
+#define CONST_DUMP_FREQUENCY                       NTOPNG_PREFS_PREFIX".dump_frequency"
 #define CONST_MAX_NUM_PACKETS_PER_TINY_FLOW        NTOPNG_PREFS_PREFIX".max_num_packets_per_tiny_flow"
 #define CONST_MAX_NUM_BYTES_PER_TINY_FLOW          NTOPNG_PREFS_PREFIX".max_num_bytes_per_tiny_flow"
 
@@ -1014,7 +1015,7 @@
 #define NTOP_ES8_TEMPLATE             "ntopng_template_elk8.json"
 #define ES_MAX_QUEUE_LEN              32768
 #define ES_BULK_BUFFER_SIZE           1*1024*1024
-#define ES_BULK_MAX_DELAY             5
+#define ES_BULK_MAX_DELAY             120 /* Dump frequency of ELK flows, in seconds */
 
 /* Logstash */
 #define LS_MAX_QUEUE_LEN              32768

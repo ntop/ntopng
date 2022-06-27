@@ -1885,6 +1885,7 @@ local known_parameters = {
    ["elephant_flow_remote_to_local_bytes"]         = validateNumber,
    ["elephant_flow_local_to_remote_bytes"]         = validateNumber,
    ["max_num_packets_per_tiny_flow"]               = validateNumber,
+   ["dump_frequency"]                              = validateNumber,
    ["max_num_bytes_per_tiny_flow"]                 = validateNumber,
    ["google_apis_browser_key"]                     = validateSingleWord,
    ["ldap_server_address"]                         = validateSingleWord,

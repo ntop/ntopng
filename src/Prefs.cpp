@@ -666,6 +666,8 @@ void Prefs::reloadPrefsFromRedis() {
 
     max_num_packets_per_tiny_flow = getDefaultPrefsValue(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),
+    dump_frequency = getDefaultPrefsValue(CONST_DUMP_FREQUENCY,
+							 ES_BULK_MAX_DELAY),
     max_num_bytes_per_tiny_flow   = getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
     max_extracted_pcap_bytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_BYTES,
@@ -2102,10 +2104,11 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
   lua_push_bool_table_entry(vm, "is_arp_matrix_generation_enabled", is_arp_matrix_generation_enabled());
   lua_push_bool_table_entry(vm, "is_users_login_enabled", enable_users_login);
-
+  
+  lua_push_uint64_table_entry(vm, "dump_frequency",   dump_frequency);
   lua_push_uint64_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
   lua_push_uint64_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
-
+  
   lua_push_uint64_table_entry(vm, "max_extracted_pcap_bytes", max_extracted_pcap_bytes);
 
   lua_push_uint64_table_entry(vm, "ewma_alpha_percent", ewma_alpha_percent);

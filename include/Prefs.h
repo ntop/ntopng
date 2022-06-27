@@ -85,7 +85,7 @@ class Prefs {
   u_int32_t max_num_secs_before_delete_alert, alert_page_refresh_rate;
   int32_t max_entity_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
-  u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
+  u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow, dump_frequency;
   u_int32_t max_extracted_pcap_bytes;
   u_int32_t max_ui_strlen;
   u_int8_t default_l7policy;
@@ -397,6 +397,7 @@ class Prefs {
 
   inline u_int8_t  getDefaultl7Policy()                  { return(default_l7policy);  }
 
+  inline u_int32_t get_dump_frequency()                      const { return(dump_frequency);                      };
   inline u_int32_t get_max_num_packets_per_tiny_flow()       const { return(max_num_packets_per_tiny_flow);       };
   inline u_int32_t get_max_num_bytes_per_tiny_flow()         const { return(max_num_bytes_per_tiny_flow);         };
 
