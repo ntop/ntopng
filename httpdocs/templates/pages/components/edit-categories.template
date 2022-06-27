@@ -25,7 +25,7 @@
 {% end %}
 
 <script type="text/javascript">
-  const url = '{* http_prefix *}/lua/rest/v2/get/category/category_list.lua'
+  const url = '{* http_prefix *}/lua/rest/v2/get/category/list.lua'
   const standardSortingColumn = 0 /* Category name column */
   const urlParams = {
     ifid: {* ifid *},
@@ -78,7 +78,7 @@
     const $editCategory = $('#edit-category-rules form').modalHandler({
       method: 'post',
       csrf: '{* csrf *}',
-      endpoint: '{* http_prefix *}/lua/rest/v2/edit/categories/category.lua',
+      endpoint: '{* http_prefix *}/lua/rest/v2/edit/category/category.lua',
       beforeSumbit: function (category) {
         let params = {}
         let unique_hosts = []
