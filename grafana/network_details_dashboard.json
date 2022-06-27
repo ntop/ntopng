@@ -1,0 +1,878 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Analyze the network status using ntopng as source of data and display them using Grafana",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 2,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "d6SBMx9nk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 7,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.4",
+      "targets": [
+        {
+          "alias": "Score",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "iface:score",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT mean(\"cli_score\") + mean(\"srv_score\") FROM \"iface:score\" WHERE $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "cli_score"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "srv_score"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "title": "Interface Score",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "d6SBMx9nk"
+      },
+      "description": "Interface traffic chart, both RX and TX",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 7,
+        "y": 0
+      },
+      "id": 4,
+      "interval": "1s",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "Traffic RX",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "iface:traffic_rxtx",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 1s) FROM \"iface:traffic_rxtx\" WHERE $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": false,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "1s"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ]
+        },
+        {
+          "alias": "Traffix TX",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "iface:traffic_rxtx",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "1s"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ]
+        }
+      ],
+      "title": "Interface Traffic",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "d6SBMx9nk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 5,
+        "x": 19,
+        "y": 0
+      },
+      "id": 12,
+      "options": {
+        "displayLabels": [
+          "name",
+          "value"
+        ],
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "values": [
+            "percent"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.5.4",
+      "targets": [
+        {
+          "alias": "Interface Inactivity",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "1s"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "iface:traffic",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT count(*) as num_inactive FROM (SELECT non_negative_derivative(mean(\"bytes\"), 10s) as Traffic FROM \"iface:traffic\" WHERE $timeFilter GROUP BY time(1s) fill(null)) where Traffic = 0",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "1s"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+        },
+        {
+          "alias": "Interface Activity",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "hide": false,
+          "query": "SELECT count(*) as num_active FROM (SELECT non_negative_derivative(mean(\"bytes\"), 10s) as Traffic FROM \"iface:traffic\" WHERE $timeFilter GROUP BY time(1s) fill(null)) where Traffic != 0",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "Interface Activity",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Umg-Hbrnk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false
+          },
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Host link",
+              "url": "http://localhost:4000/d/ENw-_srnk/host-details?orgId=1&var-host=${__data.fields.Host}﻿&to=﻿${__to}﻿&from=${__from}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 18,
+        "w": 7,
+        "x": 0,
+        "y": 5
+      },
+      "id": 6,
+      "options": {
+        "footer": {
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": true
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Traffic"
+          }
+        ]
+      },
+      "pluginVersion": "8.5.4",
+      "targets": [
+        {
+          "builderOptions": {
+            "database": "ntopng",
+            "fields": [
+              "IPV4_SRC_ADDR"
+            ],
+            "filters": [],
+            "groupBy": [
+              "IPV4_SRC_ADDR"
+            ],
+            "limit": 100,
+            "metrics": [],
+            "mode": "aggregate",
+            "orderBy": [],
+            "table": "flows"
+          },
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "Umg-Hbrnk"
+          },
+          "format": 1,
+          "meta": {
+            "builderOptions": {
+              "database": "ntopng",
+              "fields": [
+                "IPV4_SRC_ADDR"
+              ],
+              "filters": [],
+              "groupBy": [
+                "IPV4_SRC_ADDR"
+              ],
+              "limit": 100,
+              "metrics": [],
+              "mode": "aggregate",
+              "orderBy": [],
+              "table": "flows"
+            }
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT Host, Hostname, sum(Traffic) as Traffic FROM (\nSELECT IPv4NumToString(IPV4_DST_ADDR) as Host, DST_LABEL as Hostname, sum(TOTAL_BYTES) as Traffic FROM ntopng.flows WHERE (IPV4_DST_ADDR != 0) AND (FIRST_SEEN >= ${__from:date:seconds}) AND (LAST_SEEN <= ${__to:date:seconds}) GROUP BY Host, Hostname UNION ALL \nSELECT IPv4NumToString(IPV4_SRC_ADDR) as Host, SRC_LABEL as Hostname, sum(TOTAL_BYTES) as Traffic FROM ntopng.flows WHERE (IPV4_SRC_ADDR != 0) AND (FIRST_SEEN >= ${__from:date:seconds}) AND (LAST_SEEN <= ${__to:date:seconds}) GROUP BY Host, Hostname UNION ALL \nSELECT IPv6NumToString(IPV6_SRC_ADDR) as Host, SRC_LABEL as Hostname, sum(TOTAL_BYTES) as Traffic FROM ntopng.flows WHERE (IPV6_SRC_ADDR != IPv6StringToNum('::')) AND (FIRST_SEEN >= ${__from:date:seconds}) AND (LAST_SEEN <= ${__to:date:seconds}) GROUP BY Host, Hostname UNION ALL \nSELECT IPv6NumToString(IPV6_DST_ADDR) as Host, DST_LABEL as Hostname, sum(TOTAL_BYTES) as Traffic FROM ntopng.flows WHERE (IPV6_DST_ADDR != IPv6StringToNum('::')) AND (FIRST_SEEN >= ${__from:date:seconds}) AND (LAST_SEEN <= ${__to:date:seconds}) GROUP BY Host, Hostname\n) GROUP BY Host, Hostname ORDER BY Traffic DESC LIMIT 30",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Hosts",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "d6SBMx9nk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 7,
+        "y": 8
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "Active Hosts",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "1m"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "iface:hosts",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "num_hosts"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "title": "Active Hosts",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Umg-Hbrnk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": true,
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 5,
+        "x": 19,
+        "y": 8
+      },
+      "id": 14,
+      "options": {
+        "footer": {
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": true
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Flows"
+          }
+        ]
+      },
+      "pluginVersion": "8.5.4",
+      "targets": [
+        {
+          "builderOptions": {
+            "database": "ntopng",
+            "fields": [
+              "SRC_COUNTRY_CODE",
+              "DST_COUNTRY_CODE"
+            ],
+            "filters": [],
+            "limit": 100,
+            "mode": "list",
+            "orderBy": [],
+            "table": "flows"
+          },
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "Umg-Hbrnk"
+          },
+          "format": 1,
+          "meta": {
+            "builderOptions": {
+              "database": "ntopng",
+              "fields": [
+                "SRC_COUNTRY_CODE",
+                "DST_COUNTRY_CODE"
+              ],
+              "filters": [],
+              "limit": 100,
+              "mode": "list",
+              "orderBy": [],
+              "table": "flows"
+            }
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT Country, count(*) as Flows FROM (\nSELECT char(bitShiftRight(SRC_COUNTRY_CODE, 8), bitAnd(SRC_COUNTRY_CODE, 0xFF)) as Country FROM ntopng.flows WHERE (SRC_COUNTRY_CODE != 0) AND (FIRST_SEEN >= ${__from:date:seconds}) AND (LAST_SEEN <= ${__to:date:seconds}) UNION ALL \nSELECT char(bitShiftRight(DST_COUNTRY_CODE, 8), bitAnd(DST_COUNTRY_CODE, 0xFF)) as Country FROM ntopng.flows WHERE (DST_COUNTRY_CODE != 0) AND (FIRST_SEEN >= ${__from:date:seconds}) AND (LAST_SEEN <= ${__to:date:seconds}) \n) WHERE Country != '' GROUP BY Country",
+          "refId": "A"
+        }
+      ],
+      "title": "Countries Seen",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Umg-Hbrnk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": true,
+            "inspect": true
+          },
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Host Details",
+              "url": "http://localhost:4000/d/ENw-_srnk/host-details?orgId=1&var-host=${__data.fields.Host}﻿&to=﻿${__to}﻿&from=${__from}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 7,
+        "y": 15
+      },
+      "id": 8,
+      "options": {
+        "footer": {
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": true
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Score"
+          }
+        ]
+      },
+      "pluginVersion": "8.5.4",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "Umg-Hbrnk"
+          },
+          "format": 1,
+          "meta": {
+            "builderOptions": {
+              "fields": [],
+              "limit": 100,
+              "mode": "list"
+            }
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT Host, Hostname, Score, sum(Alerts) as Alerts FROM (\nSELECT IPv4NumToString(IPV4_DST_ADDR) as Host, DST_LABEL as Hostname, sum(SCORE) as Score, count(*) as Alerts FROM ntopng.flows WHERE (IPV4_DST_ADDR != 0) AND (FIRST_SEEN >= ${__from:date:seconds}) AND (LAST_SEEN <= ${__to:date:seconds}) GROUP BY Host, Hostname UNION ALL \nSELECT IPv4NumToString(IPV4_SRC_ADDR) as Host, SRC_LABEL as Hostname, sum(SCORE) as Score, count(*) as Alerts FROM ntopng.flows WHERE (IPV4_SRC_ADDR != 0) AND (FIRST_SEEN >= ${__from:date:seconds}) AND (LAST_SEEN <= ${__to:date:seconds}) GROUP BY Host, Hostname UNION ALL \nSELECT IPv6NumToString(IPV6_SRC_ADDR) as Host, SRC_LABEL as Hostname, sum(SCORE) as Score, count(*) as Alerts FROM ntopng.flows WHERE (IPV6_SRC_ADDR != IPv6StringToNum('::')) AND (FIRST_SEEN >= ${__from:date:seconds}) AND (LAST_SEEN <= ${__to:date:seconds}) GROUP BY Host, Hostname UNION ALL \nSELECT IPv6NumToString(IPV6_DST_ADDR) as Host, DST_LABEL as Hostname, sum(SCORE) as Score, count(*) as Alerts FROM ntopng.flows WHERE (IPV6_DST_ADDR != IPv6StringToNum('::')) AND (FIRST_SEEN >= ${__from:date:seconds}) AND (LAST_SEEN <= ${__to:date:seconds}) GROUP BY Host, Hostname\n) GROUP BY Host, Hostname, Score ORDER BY Score DESC LIMIT 30",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Alerted Hosts",
+      "type": "table"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": [
+    "ntopng",
+    "alerts",
+    "flows",
+    "score"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Network Status - ntopng",
+  "uid": "qfyEZb9nz",
+  "version": 23,
+  "weekStart": ""
+}
