@@ -504,8 +504,10 @@ else
 	 print(" @ " ..flow["proto.ndpi_cat_file"])
       end
       print(") ".. formatBreed(flow["proto.ndpi_breed"], flow["proto.is_encrypted"]))
-      print(" ["..i18n("ndpi_confidence")..": "..format_confidence_badge(flow.confidence).."]")
-   end
+      if (flow.confidence) and (not isEmptyString(flow.confidence)) then
+        print(" ["..i18n("ndpi_confidence")..": "..format_confidence_badge(flow.confidence).."]")
+      end
+    end
 
    if(flow["verdict.pass"] == false) then print("</strike>") end
    historicalProtoHostHref(ifid, flow["cli.ip"], flow["proto.l4"], flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.certificate"] or ''))
@@ -1388,7 +1390,7 @@ else
       print("</tr>\n")
    end
 
-   if not interface.isPacketInterface() and flow["flow_verdict"] then
+   if (not interface.isPacketInterface()) and (flow["flow_verdict"]) and (tonumber(flow["flow_verdict"]) ~= 0) then
       local flow_verdict_badge = addFlowVerdictBadge(flow["flow_verdict"], true)
       print("<tr><th width=30%>" .. i18n("details.flow_verdict") .. "</th><td colspan=2>" .. flow_verdict_badge .. "</td></tr>\n")
    end
