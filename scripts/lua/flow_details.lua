@@ -71,7 +71,7 @@ local function drawiecgraph(iec, total)
    print[[
       <div style="width:100%; height:30vh; " id="myiecflow"></div>
 
-  <script type="text/javascript">
+  <script type="application/javascript">
       var nodes = null;
       var edges = null;
       var network = null;
@@ -1480,77 +1480,100 @@ else
    print("</table>\n")
 end
 
-local disable_modal = "pages/modals/modal_alerts_filter_dialog.html"
-local alerts_filter_dialog = template.gen(
-   disable_modal, {
-      dialog = {
-	 id = "alerts_filter_dialog",
-	 title = i18n("show_alerts.filter_alert"),
-	 message	= i18n("show_alerts.confirm_filter_alert"),
-	 delete_message = i18n("show_alerts.confirm_delete_filtered_alerts"),
-	 delete_alerts = i18n("delete_disabled_alerts"),
-	 alert_filter = "default_filter",
-	 confirm = i18n("filter"),
-	 confirm_button = "btn-warning",
-	 custom_alert_class = "alert alert-danger",
-	 entity = page
-      }
-})
-
 local traffic_peity_width = "64"
+print [[
+<div id="vue-modals">
+  <modal-alerts-filter
+    :alert="current_alert"
+    :page="page"
+    @exclude="add_exclude"
+    ref="modal_alerts_filter">
+  </modal-alerts-filter>
+</div>
+]]
 
 print [[
-<div class="modals">
-]] print(alerts_filter_dialog) print[[
-</div>
 <script>
+  let VUE_MODALS;
+  const pageCsrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+  const cliLabel = "]]  if(flow ~= nil) then local n = flowinfo2hostname(flow,"cli"); if n ~= flow["cli.ip"] then print(string.format("%s", n)) else print(n) end end print[[";
+  const cliValue = "]]  if(flow ~= nil) then local n = flowinfo2hostname(flow,"cli"); if n ~= flow["cli.ip"] then print(string.format("%s", flow["cli.ip"])) else print(n) end end print[[";
+  const srvLabel =  "]] if(flow ~= nil) then local n = flowinfo2hostname(flow,"srv"); if n ~= flow["srv.ip"] then print(string.format("%s", n)) else print(n) end end print[[";
+  const srvValue =  "]] if(flow ~= nil) then local n = flowinfo2hostname(flow,"srv"); if n ~= flow["srv.ip"] then print(string.format("%s", flow["srv.ip"])) else print(n) end end print[[";
+
   const thptChart = $("#thpt-load-chart").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null })
 
         $(`a[href='#alerts_filter_dialog']`).click( function (e) {
             const alert_id = e.target.closest('a').attributes.alert_id.value;
             const alert_label = e.target.closest('a').attributes.alert_label.value;
-            const alert = {alert_id: alert_id, alert_label: alert_label};
-            $disableAlert.invokeModalInit(alert);
-            $('#alerts_filter_dialog').modal('show');
+            const alert = {
+              alert_id: { value: alert_id },
+              alert_name: alert_label,
+              flow: {
+                cli_ip: {
+                  value: cliValue,
+                  label: cliLabel,
+                },
+                srv_ip: {
+                  value: srvValue,
+                  label: srvLabel,
+                },
+                vlan: { value: null },
+              },
+              info: {
+                value: null, //domain
+                issuerdn: null, //tls_certificate
+              },
+            };
+            VUE_MODALS.show_modal_alerts_filter(alert);
         });
 
-        ]]
+  function start_modals_vue() {
+    let page = 'flow';
 
-        print [[
-        const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
-            method: 'post',
-            csrf: "]] print(ntop.getRandomCSRFValue()) print[[",
-            endpoint: `${http_prefix}/lua/rest/v2/add/alert/exclusion.lua`,
-            beforeSumbit: function (alert) {
-                const data = {
-                    alert_key: alert.alert_id,
-                    subdir: "flow",
-		    script_key: "",
-                    delete_alerts: $(`#delete_alerts_switch`).is(":checked"),
-		    alert_addr: $(`[name='alert_addr']:checked`).val(),
-                };
-
-                return data;
-            },
-            onModalInit: function (alert) {
-                const $type = $(`<span>${alert.alert_label}</span>`);
-                $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
-
-                const cliLabel = "]]  if(flow ~= nil) then local n = flowinfo2hostname(flow,"cli"); if n ~= flow["cli.ip"] then print(string.format("%s (%s)", n, flow["cli.ip"])) else print(n) end end print[[";
-                const srvLabel =  "]] if(flow ~= nil) then local n = flowinfo2hostname(flow,"srv"); if n ~= flow["srv.ip"] then print(string.format("%s (%s)", n, flow["srv.ip"])) else print(n) end end print[[";
-
-                $(`#cli_addr`).text(cliLabel);
-                $(`#cli_radio`).val("]] if(flow ~= nil) then print(flow["cli.ip"]) end print[[");
-                $(`#srv_addr`).text(srvLabel);
-                $(`#srv_radio`).val("]] if(flow ~= nil) then print(flow["srv.ip"]) end print[[");
-                $(`#srv_radio`).prop("checked", true),
-		$(`#all_radio`).parent().hide();
-            },
-            onSubmitSuccess: function (response, dataSent) {
-              $('a[alert_id=' +  dataSent.alert_key+']').hide();
-              return (response.rc == 0);
-            }
-        });
+    let vue_options = {
+    	components: {
+	      'modal-alerts-filter': ntopVue.ModalAlertsFilter,
+	  },
+	  /**
+	   * First method called when the component is created.
+	   */
+	  created() {},
+	  mounted() {},
+	  data() {
+	      return {
+		  page: page,
+		  current_alert: null,
+		  i18n: (t) => { return i18n(t); },
+	      };
+	  },
+	  methods: {
+	    show_modal_alerts_filter: function(alert) {
+	      this.current_alert = alert;
+	      this.$refs["modal_alerts_filter"].show();
+	    },
+	    add_exclude: async function(params) {
+	      params.csrf = pageCsrf;
+//{"delete_alerts":true,"type":"host","alert_addr": null,"flow_alert_key":"46","csrf":"bd493658564ff3ddcf7d08e9552358df"}
+	      let url = `${http_prefix}/lua/pro/rest/v2/add/alert/exclusion.lua`;
+	      try {
+	        let headers = {
+		  'Content-Type': 'application/json'
+		};
+		await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+                $('a[alert_id=' +  params.flow_alert_key+']').hide();
+              } catch(err) {
+	        console.error(err);
+              }
+	    }
+	  },
+      }; 
+      const vue = ntopVue.Vue.createApp(vue_options);
+      const vue_app = vue.mount("#vue-modals");
+      return vue_app;
+  }
+  VUE_MODALS = start_modals_vue();
 ]]
 
 if(flow ~= nil) then
