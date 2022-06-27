@@ -1,0 +1,2835 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "A Dashboard used to integrate ntopng data with Grafana, using the support of ClickHouse to store Historical Flows and InfluxDB to store timeseries",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 3,
+  "iteration": 1656317549406,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "Umg-Hbrnk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 12,
+      "options": {
+        "footer": {
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "FIRST_SEEN"
+          }
+        ]
+      },
+      "pluginVersion": "8.5.4",
+      "targets": [
+        {
+          "builderOptions": {
+            "database": "ntopng",
+            "fields": [
+              "IPv4NumToString(IPV4_SRC_ADDR) Client_IPv4",
+              "IPv4NumToString(IPV4_DST_ADDR) Server_IPv4",
+              "IPv6NumToString(IPV6_SRC_ADDR) Client_IPv6",
+              "IPv6NumToString(IPV6_DST_ADDR) Server_IPv6",
+              "SRC_LABEL as Cli_Hostname",
+              "DST_LABEL as Srv_Hostname",
+              "IP_SRC_PORT as Cli_Port",
+              "IP_DST_PORT as Srv_Port",
+              "VLAN_ID as Vlan",
+              "PROTOCOL as L4_Proto",
+              "L7_PROTO as App_Proto",
+              "L7_PROTO_MASTER as nDPI_Proto",
+              "L7_CATEGORY as Category",
+              "INFO as Info",
+              "SCORE as Score",
+              "PACKETS as Packets",
+              "TOTAL_BYTES as Bytes",
+              "FIRST_SEEN as First_Seen",
+              "LAST_SEEN as Last_seen",
+              "COMMUNITY_ID as Community_ID",
+              "ABS(Last_seen - First_Seen) as TIME_DELTA",
+              "(Bytes / (TIME_DELTA + 1)) * 8 as Throughput"
+            ],
+            "filters": [
+              {
+                "condition": "AND",
+                "filterType": "custom",
+                "key": "INTERFACE_ID",
+                "operator": "=",
+                "type": "string",
+                "value": [
+                  "3"
+                ]
+              },
+              {
+                "condition": "AND",
+                "filterType": "custom",
+                "key": "FIRST_SEEN",
+                "operator": ">=",
+                "type": "datetime",
+                "value": [
+                  "$__fromTime"
+                ]
+              },
+              {
+                "condition": "AND",
+                "filterType": "custom",
+                "key": "LAST_SEEN",
+                "operator": "<=",
+                "type": "datetime",
+                "value": [
+                  "$__toTime"
+                ]
+              },
+              {
+                "condition": "AND",
+                "filterType": "custom",
+                "key": "IPV4_SRC_ADDR",
+                "operator": "=",
+                "type": "UInt32",
+                "value": 1
+              }
+            ],
+            "limit": 100,
+            "mode": "list",
+            "table": "flows"
+          },
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "Umg-Hbrnk"
+          },
+          "format": 1,
+          "meta": {
+            "builderOptions": {
+              "database": "ntopng",
+              "fields": [
+                "IPv4NumToString(IPV4_SRC_ADDR) Client_IPv4",
+                "IPv4NumToString(IPV4_DST_ADDR) Server_IPv4",
+                "IPv6NumToString(IPV6_SRC_ADDR) Client_IPv6",
+                "IPv6NumToString(IPV6_DST_ADDR) Server_IPv6",
+                "SRC_LABEL as Cli_Hostname",
+                "DST_LABEL as Srv_Hostname",
+                "IP_SRC_PORT as Cli_Port",
+                "IP_DST_PORT as Srv_Port",
+                "VLAN_ID as Vlan",
+                "PROTOCOL as L4_Proto",
+                "L7_PROTO as App_Proto",
+                "L7_PROTO_MASTER as nDPI_Proto",
+                "L7_CATEGORY as Category",
+                "INFO as Info",
+                "SCORE as Score",
+                "PACKETS as Packets",
+                "TOTAL_BYTES as Bytes",
+                "FIRST_SEEN as First_Seen",
+                "LAST_SEEN as Last_seen",
+                "COMMUNITY_ID as Community_ID",
+                "ABS(Last_seen - First_Seen) as TIME_DELTA",
+                "(Bytes / (TIME_DELTA + 1)) * 8 as Throughput"
+              ],
+              "filters": [
+                {
+                  "condition": "AND",
+                  "filterType": "custom",
+                  "key": "INTERFACE_ID",
+                  "operator": "=",
+                  "type": "string",
+                  "value": [
+                    "3"
+                  ]
+                },
+                {
+                  "condition": "AND",
+                  "filterType": "custom",
+                  "key": "FIRST_SEEN",
+                  "operator": ">=",
+                  "type": "datetime",
+                  "value": [
+                    "$__fromTime"
+                  ]
+                },
+                {
+                  "condition": "AND",
+                  "filterType": "custom",
+                  "key": "LAST_SEEN",
+                  "operator": "<=",
+                  "type": "datetime",
+                  "value": [
+                    "$__toTime"
+                  ]
+                },
+                {
+                  "condition": "AND",
+                  "filterType": "custom",
+                  "key": "IPV4_SRC_ADDR",
+                  "operator": "=",
+                  "type": "UInt32",
+                  "value": 1
+                }
+              ],
+              "limit": 100,
+              "mode": "list",
+              "table": "flows"
+            }
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT IPv4NumToString(IPV4_SRC_ADDR) Client_IPv4, IPv4NumToString(IPV4_DST_ADDR) Server_IPv4, IPv6NumToString(IPV6_SRC_ADDR) Client_IPv6, IPv6NumToString(IPV6_DST_ADDR) Server_IPv6, SRC_LABEL as Cli_Hostname, DST_LABEL as Srv_Hostname, IP_SRC_PORT as Cli_Port, IP_DST_PORT as Srv_Port, VLAN_ID as Vlan, PROTOCOL as L4_Proto, L7_PROTO as App_Proto, L7_PROTO_MASTER as nDPI_Proto, L7_CATEGORY as Category, INFO as Info, SCORE as Score, PACKETS as Packets, TOTAL_BYTES as Bytes, FIRST_SEEN as First_Seen, LAST_SEEN as Last_seen, COMMUNITY_ID as Community_ID, ABS(Last_seen - First_Seen) as TIME_DELTA, (Bytes / (TIME_DELTA + 1)) * 8 as Throughput FROM ntopng.flows WHERE ( FIRST_SEEN >= $__fromTime ) AND ( LAST_SEEN <= $__toTime ) AND ( IPV4_SRC_ADDR = IPv4StringToNum('${host}') OR IPV4_DST_ADDR = IPv4StringToNum('${host}') OR IPV6_SRC_ADDR = IPv6StringToNum('${host}') OR IPV6_DST_ADDR = IPv6StringToNum('${host}') ) LIMIT 100",
+          "refId": "A"
+        }
+      ],
+      "title": "Host Flows",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "d6SBMx9nk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "binBps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 18,
+        "x": 0,
+        "y": 9
+      },
+      "id": 2,
+      "interval": "5m",
+      "options": {
+        "legend": {
+          "calcs": [
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "RX",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:traffic",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 10m) FROM \"host:traffic\" WHERE (\"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "host",
+              "operator": "=",
+              "value": "/^$host$/"
+            }
+          ]
+        },
+        {
+          "alias": "TX",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:traffic",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_sent\"), 10m) FROM \"host:traffic\" WHERE (\"host\" =  '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "host",
+              "operator": "=",
+              "value": "/^$host$/"
+            }
+          ]
+        }
+      ],
+      "title": "Host Traffic",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "d6SBMx9nk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 9
+      },
+      "id": 4,
+      "interval": "5m",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.5.4",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "5m"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "host:score",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT mean(\"score_as_cli\") + mean(\"score_as_srv\") FROM \"host:score\" WHERE (\"host\" = '${host}') AND $timeFilter GROUP BY time(5m) fill(0)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "score_as_cli"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "score_as_srv"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "host",
+              "operator": "=~",
+              "value": "/^$host$/"
+            }
+          ]
+        }
+      ],
+      "title": "Score",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "d6SBMx9nk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "binBps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 11,
+        "x": 0,
+        "y": 16
+      },
+      "id": 8,
+      "interval": "5min",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "Amazon",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "host:ndpi",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi\" WHERE (\"host\" = '${host}' AND \"protocol\" = 'Amazon') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "host",
+              "operator": "=~",
+              "value": "/^$host$/"
+            },
+            {
+              "condition": "AND",
+              "key": "protocol",
+              "operator": "=",
+              "value": "Amazon"
+            }
+          ]
+        },
+        {
+          "alias": "ICMP",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi\" WHERE (\"host\" = '${host}' AND \"protocol\" = 'ICMP') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "host",
+              "operator": "=~",
+              "value": "/^$host$/"
+            },
+            {
+              "condition": "AND",
+              "key": "protocol",
+              "operator": "=",
+              "value": "Amazon"
+            }
+          ]
+        },
+        {
+          "alias": "DNS",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi\" WHERE (\"host\" =  '${host}'  AND \"protocol\" = 'DNS') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "C",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "host",
+              "operator": "=~",
+              "value": "/^$host$/"
+            },
+            {
+              "condition": "AND",
+              "key": "protocol",
+              "operator": "=",
+              "value": "DNS"
+            }
+          ]
+        },
+        {
+          "alias": "Youtube",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi\" WHERE (\"host\" =  '${host}'  AND \"protocol\" = 'YouTube') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "D",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "host",
+              "operator": "=~",
+              "value": "/^$host$/"
+            },
+            {
+              "condition": "AND",
+              "key": "protocol",
+              "operator": "=",
+              "value": "YouTube"
+            }
+          ]
+        },
+        {
+          "alias": "HTTP",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi\" WHERE (\"host\" =  '${host}'  AND \"protocol\" = 'HTTP') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "E",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "host",
+              "operator": "=~",
+              "value": "/^$host$/"
+            },
+            {
+              "condition": "AND",
+              "key": "protocol",
+              "operator": "=",
+              "value": "HTTP"
+            }
+          ]
+        },
+        {
+          "alias": "Discord",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi\" WHERE (\"host\" =  '${host}'  AND \"protocol\" = 'Discord') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "F",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "host",
+              "operator": "=~",
+              "value": "/^$host$/"
+            },
+            {
+              "condition": "AND",
+              "key": "protocol",
+              "operator": "=",
+              "value": "HTTP"
+            }
+          ]
+        }
+      ],
+      "title": "Protocol Traffic",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "d6SBMx9nk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "binBps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 13,
+        "x": 11,
+        "y": 16
+      },
+      "id": 6,
+      "interval": "5m",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "Advertisement",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m), non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Advertisement' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Advertisement"
+            },
+            {
+              "condition": "AND",
+              "key": "host",
+              "operator": "=",
+              "value": "/^$host$/"
+            }
+          ]
+        },
+        {
+          "alias": "Chat",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Chat' AND \"host\" ='${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Chat"
+            }
+          ]
+        },
+        {
+          "alias": "Cloud",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Cloud' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "C",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Cloud"
+            }
+          ]
+        },
+        {
+          "alias": "Collaborative",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Collaborative' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "D",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Collaborative"
+            }
+          ]
+        },
+        {
+          "alias": "ConnCheck",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'ConnCheck' AND \"host\" ='${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "E",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "ConnCheck"
+            }
+          ]
+        },
+        {
+          "alias": "Database",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Database' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "F",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Database"
+            }
+          ]
+        },
+        {
+          "alias": "Download",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Download' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "G",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Download"
+            }
+          ]
+        },
+        {
+          "alias": "Email",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Email' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "H",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Email"
+            }
+          ]
+        },
+        {
+          "alias": "Media",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Media' AND \"host\" ='${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "I",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Media"
+            }
+          ]
+        },
+        {
+          "alias": "Network",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Network' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "J",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Network"
+            }
+          ]
+        },
+        {
+          "alias": "RemoteAccess",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'RemoteAccess' AND \"host\" ='${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "K",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "RemoteAccess"
+            }
+          ]
+        },
+        {
+          "alias": "SocialNetwork",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'SocialNetwork' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "L",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "SocialNetwork"
+            }
+          ]
+        },
+        {
+          "alias": "Straming",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Streaming' AND \"host\" ='${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "M",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Streaming"
+            }
+          ]
+        },
+        {
+          "alias": "System",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'System' AND \"host\" ='${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "N",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "System"
+            }
+          ]
+        },
+        {
+          "alias": "Unspecified",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Unspecified' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "O",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Unspecified"
+            }
+          ]
+        },
+        {
+          "alias": "VPN",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'VPN' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "P",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "VPN"
+            }
+          ]
+        },
+        {
+          "alias": "Video",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Video' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "Q",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Video"
+            }
+          ]
+        },
+        {
+          "alias": "VoIP",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'VoIP' AND \"host\" = '${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "R",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "VoIP"
+            }
+          ]
+        },
+        {
+          "alias": "Web",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:ndpi_categories",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT non_negative_derivative(mean(\"bytes_rcvd\"), 5m) + non_negative_derivative(mean(\"bytes_sent\"), 5m) FROM \"host:ndpi_categories\" WHERE (\"category\" = 'Web' AND \"host\" = '/^$host$/') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "S",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes_rcvd"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "bytes_sent"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "5m"
+                ],
+                "type": "non_negative_derivative"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "category",
+              "operator": "=",
+              "value": "Web"
+            }
+          ]
+        }
+      ],
+      "title": "Category Traffic",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "d6SBMx9nk"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 13,
+        "x": 11,
+        "y": 24
+      },
+      "id": 10,
+      "interval": "5m",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "as Client",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "host:active_flows",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT mean(\"flows_as_client\") FROM \"host:active_flows\" WHERE (\"host\" ='${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "flows_as_client"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "host",
+              "operator": "=",
+              "value": "/^$host$/"
+            }
+          ]
+        },
+        {
+          "alias": "as Server",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "d6SBMx9nk"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "0"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "host:active_flows",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT mean(\"flows_as_server\") FROM \"host:active_flows\" WHERE (\"host\" ='${host}') AND $timeFilter GROUP BY time($__interval) fill(0)",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "flows_as_server"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "host",
+              "operator": "=",
+              "value": "/^$host$/"
+            }
+          ]
+        }
+      ],
+      "title": "Active Flows",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": [
+    "host",
+    "network analysis",
+    "flows",
+    "traffic",
+    "ntopng"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "description": "Select host information for which you want to have more details",
+        "hide": 0,
+        "label": "Host ",
+        "name": "host",
+        "options": [
+          {
+            "selected": true,
+            "text": "",
+            "value": ""
+          }
+        ],
+        "query": "",
+        "skipUrlSync": false,
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Host Details",
+  "uid": "ENw-_srnk",
+  "version": 20,
+  "weekStart": ""
+}
