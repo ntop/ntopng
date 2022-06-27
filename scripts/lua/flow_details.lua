@@ -16,6 +16,7 @@ local alert_entities = require "alert_entities"
 local dscp_consts = require "dscp_consts"
 local tag_utils = require "tag_utils"
 local flow_risk_utils = require "flow_risk_utils"
+local flow_consts = require "flow_consts"
 require "flow_utils"
 require "voip_utils"
 local template = require "template_utils"
@@ -1407,10 +1408,15 @@ else
 	 key, value = flow_field_value_maps.map_field_value(ifid, key, value)
 
 	 local k = rtemplate[tonumber(key)]
+
+	 if(k == nil) then
+	    k = flow_consts.flow_fields_description[tostring(key)]
+	 end
+
 	 if(k ~= nil) then
 	    syminfo[k] = value
 	 else
-	    local nprobe_description =interface.getZMQFlowFieldDescr(key)
+	    local nprobe_description = interface.getZMQFlowFieldDescr(key)
 
 	    if not isEmptyString(nprobe_description) and nprobe_description ~= key then
 	       syminfo[nprobe_description] = value
@@ -1420,7 +1426,7 @@ else
 	 end
       end
       info = syminfo
-
+      
       -- get SIP rows
       if(ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
         local sip_table_rows = getSIPTableRows(info)
@@ -1466,7 +1472,7 @@ else
 	 end
       end
 
-      local num = 0
+      local num = 0      
       for key,value in pairsByKeys(info) do
 	 if(num == 0) then
 	    print("<tr><th colspan=3>"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")

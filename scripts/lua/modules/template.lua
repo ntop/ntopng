@@ -164,6 +164,8 @@ template = {
    ['OUT_DST_OSI_SAP'] = NTOP_BASE_ID+350,
    ['FLOW_VERDICT'] =  NTOP_BASE_ID+522,
    ['L7_RISK_SCORE'] = NTOP_BASE_ID+527,
+   ['L7_INFO'] = NTOP_BASE_ID+539,
+   
    -- SIP
    ['SIP_CALL_ID'] = NTOP_BASE_ID+130,
    ['SIP_CALLING_PARTY'] = NTOP_BASE_ID+131,
@@ -418,6 +420,12 @@ template = {
    ['POLICY_ACTION']  = NTOP_BASE_ID+551,
    ['DEVICE_NAME']    = NTOP_BASE_ID+552,
 }
+
+--
+-- NOTE
+-- Missing entries are sent by nProbe via
+-- ZMQParserInterface::parseTemplate(()
+---
 
 -- template id to name
 rtemplate = {}

@@ -186,6 +186,10 @@ ZMQParserInterface::~ZMQParserInterface() {
 
 /* **************************************************** */
 
+/*
+  These mappings are sent by nProbe via ZMQ at startup and collected via
+  ZMQParserInterface::parseTemplate()
+*/
 void ZMQParserInterface::addMapping(const char *sym, u_int32_t num, u_int32_t pen, const char *descr) {
   string label(sym);
   labels_map_t::iterator it;
@@ -195,7 +199,7 @@ void ZMQParserInterface::addMapping(const char *sym, u_int32_t num, u_int32_t pe
     labels_map.insert(make_pair(label, cur_pair));
   else
     it->second.first = pen, it->second.second = num;
-
+ 
   if(descr) {
     descriptions_map_t::iterator dit;
 
