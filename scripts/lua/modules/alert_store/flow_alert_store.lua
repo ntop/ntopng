@@ -888,6 +888,12 @@ end
 --@brief Edit specifica proto info, like converting 
 --       timestamp to date/time for TLS Certificate Validity
 local function editProtoDetails(proto_info)
+  for key, value in pairs(proto_info) do
+    if type(value) ~= "table" then
+      proto_info[key] = nil
+    end
+  end
+
   for proto, info in pairs(proto_info) do
     if proto == "tls" then
       info = format_tls_info(info)
