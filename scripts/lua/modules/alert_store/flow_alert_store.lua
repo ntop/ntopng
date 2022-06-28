@@ -768,11 +768,18 @@ function flow_alert_store:format_record(value, no_html)
    if value["is_srv_victim"]   == "1" then record["srv_role"] = { value = 'victim',   label = i18n("victim"),   tag_label = i18n("victim") } end
    if value["is_srv_attacker"] == "1" then record["srv_role"] = { value = 'attacker', label = i18n("attacker"), tag_label = i18n("attacker") } end
 
+   -- Check the two labels, otherwise an ICMP:ICMP label could be possible
+   local proto_label = l7_protocol
+
+   if l4_protocol ~= l7_protocol then
+    proto_label = l4_protocol..":"..l7_protocol
+   end
+
    record[RNAME.L7_PROTO.name] = {
       value = ternary(tonumber(value["l7_proto"]) ~= 0, value["l7_proto"], value["l7_master_proto"]),
       l4_label = l4_protocol,
       l7_label = l7_protocol,
-      label = l4_protocol..":"..l7_protocol,
+      label = proto_label,
       confidence = format_confidence_from_json(value)
    }
 
