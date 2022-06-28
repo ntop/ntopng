@@ -53,7 +53,7 @@ const REGEXES = {
   telegram_channel: "^[0-9\-]{1,15}",
     password: "^[\w\/$!\/()=?^*@_-]{5,31}$",
     tls_certificate: String.raw`^[^=,]+=[^=,]+(,\s[^=,]+=[^=,]+)*$`,
-    domain_name_not_strict: String.raw`([^\s]+\.[^\s]+)+`,
+    domain_name_not_strict: String.raw`^[a-zA-Z0-9\-_~]+((\.[a-zA-Z0-9\-_~]+)+)$`,
 };
 
 export default class NtopUtils {

@@ -35,36 +35,37 @@
       </template>
       <div v-if="domain != null" class="form-check">
       	<input class="form-check-input" type="radio" value="domain" v-model="radio_selected">
-      	  <label class="form-check-label whitespace">
-      	    <span>{{_i18n("check_exclusion.domain")}}:</span>
-      	  </label>
+      	<label class="form-check-label whitespace">
+      	  <span>{{_i18n("check_exclusion.domain")}}:</span>
+      	</label>
       	<input type="text" :pattern="pattern_domain" :disabled="radio_selected != 'domain'" required v-model="domain" class="form-check-label custom-width">
       </div>
       <div v-if="tls_certificate != null" class="form-check">
       	<input class="form-check-input" type="radio" value="certificate" v-model="radio_selected">
-      	  <label class="form-check-label whitespace">
-      	    <span>{{_i18n("check_exclusion.tls_certificate")}}:</span>
-      	  </label>
+      	<label class="form-check-label whitespace">
+      	  <span>{{_i18n("check_exclusion.tls_certificate")}}:</span>
+      	</label>
       	<input type="text" :disabled="radio_selected != 'certificate'" v-model="tls_certificate" :pattern="pattern_certificate" required class="form-check-label custom-width">
       </div>
     </div>
     
-    <div v-show="disable_alerts" class="message alert alert-danger">
-      {{ _i18n("show_alerts.confirm_delete_filtered_alerts") }}
-    </div>
-    <hr class="separator">
-    <div class="form-group mb-3 ">
-      <div class="custom-control custom-switch">
-	<input type="checkbox" class="custom-control-input whitespace"  v-model="disable_alerts">
-	
-	<label class="custom-control-label">{{_i18n("delete_disabled_alerts")}}</label>
+    <template v-if="radio_selected != 'domain' && radio_selected != 'certificate'">
+      <div v-show="disable_alerts" class="message alert alert-danger">
+	{{ _i18n("show_alerts.confirm_delete_filtered_alerts") }}
       </div>
-    </div>
+      <hr class="separator">
+      <div class="form-group mb-3 ">
+	<div class="custom-control custom-switch">
+	  <input type="checkbox" class="custom-control-input whitespace"  v-model="disable_alerts">
+	  
+	  <label class="custom-control-label">{{_i18n("delete_disabled_alerts")}}</label>
+	</div>
+      </div>
+    </template>
     <div  class="alert alert-warning border" role="alert">
       {{_i18n("show_alerts.confirm_filter_alert")}}
     </div>
-    
-  </template>
+  </template><!-- modal-body -->
   
   <template v-slot:footer>
     <button type="button" @click="exclude" :disabled="check_disable_apply()" class="btn btn-warning">{{_i18n("filter")}}</button>
@@ -119,6 +120,9 @@ const host_addr = computed(() => {
     if (props.page != "host" || props.alert == null) { return res; }
     let alert = props.alert;
     res.value = alert.ip.value;
+    if (alert.vlan != null && alert.vlan.value != null && alert.vlan.value != 0) {
+	res.value = res.value + '@' + alert.vlan.value;
+    }
     res.label = (alert.ip.label) ? `${alert.ip.label} (${alert.ip.value})` : alert.ip.value;
     return res;
 });
@@ -129,7 +133,7 @@ const flow_addr = computed(() => {
     let alert = props.alert;
     res.cli_value = alert.flow.cli_ip.value;
     res.srv_value = alert.flow.srv_ip.value;
-    if((alert.flow.vlan != null) && (alert.flow.vlan.value != 0)) {
+    if(alert.flow.vlan != null && alert.flow.vlan.value != null && alert.flow.vlan.value != 0) {
         res.cli_value = res.cli_value + '@' + alert.flow.vlan.value
         res.srv_value = res.srv_value + '@' + alert.flow.vlan.value
     }
@@ -176,8 +180,10 @@ const exclude = () => {
 	    params.host_alert_key = props.alert.alert_id.value;
 	}
     } else if (type == "domain") {
+	params.delete_alerts = false;
 	params.alert_domain = domain.value;
     } else if (type == "certificate") {
+	params.delete_alerts = false;
 	params.alert_certificate = tls_certificate.value;
     }
     close();
