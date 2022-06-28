@@ -4930,10 +4930,10 @@ end
 
 -- ##############################################
 
-function getExtraFlowInfoURL(alert_json)
+function getExtraFlowInfoDomain(alert_json)
   if alert_json then
-    if alert_json["proto"] and alert_json["proto"]["http"] and not isEmptyString(alert_json["proto"]["http"]["last_url"]) then
-      return alert_json["proto"]["http"]["last_url"]
+    if alert_json["proto"] and alert_json["proto"]["http"] and not isEmptyString(alert_json["proto"]["http"]["server_name"]) then
+      return alert_json["proto"]["http"]["server_name"]
     elseif alert_json["proto"] and alert_json["proto"]["dns"] and not isEmptyString(alert_json["proto"]["dns"]["last_query"]) then
       return alert_json["proto"]["dns"]["last_query"]
     elseif alert_json["proto"] and alert_json["proto"]["tls"] and not isEmptyString(alert_json["proto"]["tls"]["client_requested_server_name"]) then
@@ -4941,6 +4941,17 @@ function getExtraFlowInfoURL(alert_json)
     end
   end
   return nil
+end
+
+-- ##############################################
+
+function getExtraFlowInfoURL(alert_json)
+  if alert_json then
+    if alert_json["proto"] and alert_json["proto"]["http"] and not isEmptyString(alert_json["proto"]["http"]["last_url"]) then
+      return alert_json["proto"]["http"]["last_url"]
+    end
+  end
+  return getExtraFlowInfoDomain(alert_json)
 end
 
 -- ##############################################

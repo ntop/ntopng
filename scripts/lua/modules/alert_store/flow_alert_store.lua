@@ -601,8 +601,8 @@ function flow_alert_store:format_record(value, no_html)
    local proto = string.lower(interface.getnDPIProtoName(tonumber(value["l7_master_proto"])))
    
    record[RNAME.INFO.name] = {
-     value = value["info"],
-     --value = getExtraFlowInfoURL(alert_json),
+     -- value = value["info"], -- Note: this includes the full URL
+     value = getExtraFlowInfoDomain(alert_json), -- Note: this uses the server name, which is the domain only (without the URL)
      descr = format_external_link(value["info"], value["info"], no_html, proto),
      issuerdn = flow_tls_issuerdn,
    }
