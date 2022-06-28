@@ -19,6 +19,7 @@ local network_utils = require "network_utils"
 local json = require "dkjson"
 local pools = require "pools"
 local historical_flow_utils = require "historical_flow_utils"
+local flow_alert_keys = require "flow_alert_keys"
 
 local href_icon = "<i class='fas fa-laptop'></i>"
 
@@ -537,7 +538,10 @@ function flow_alert_store:format_record(value, no_html)
 
    -- TLS IssuerDN
    local flow_tls_issuerdn = nil
-   if alert_risk and alert_risk > 0 and record.script_key == 'tls_certificate_selfsigned' then
+   if alert_risk and alert_risk > 0 and 
+     --record.script_key == 'tls_certificate_selfsigned'
+     tonumber(value.alert_id) == flow_alert_keys.flow_alert_tls_certificate_selfsigned
+   then
      flow_tls_issuerdn = alert_utils.get_flow_risk_info(alert_risk, alert_info)
    end
    if isEmptyString(flow_tls_issuerdn) then

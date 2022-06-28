@@ -25,6 +25,7 @@ local protos_utils = require("protos_utils")
 local discover = require("discover_utils")
 local json = require ("dkjson")
 local page_utils = require("page_utils")
+local flow_alert_keys = require "flow_alert_keys"
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -1144,8 +1145,10 @@ else
                   print(string.format('&nbsp;<a href="%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-cog"></i></a>', alert_utils.getConfigsetURL(alert_id_to_flow_check[score_alert.alert_id], "flow")))
               end
 	 
-              -- For the predominant alert, add an anchor to the historical alert
-              if not ifstats.isViewed and score_alert.is_predominant then
+              -- Add an anchor to the historical alert
+              if not ifstats.isViewed 
+                 -- and score_alert.is_predominant 
+              then
                   -- Prepare bounds for the historical alert search.
                   local epoch_begin = flow["seen.first"]
                   -- As this is the page of active flows, it is meaningful to use the current time for the epoch end.
@@ -1500,16 +1503,59 @@ print [[
 </div>
 ]]
 
+local cliLabel = ''
+local cliValue = ''
+local srvLabel = ''
+local srvValue = ''
+local vlan = 0
+local infoDomain = ''
+local infoIssuerDN = ''
+
+if flow ~= nil then
+  cliLabel = flowinfo2hostname(flow, "cli"); 
+
+  if cliLabel ~= flow["cli.ip"] then
+    cliValue = flow["cli.ip"]
+  else
+    cliValue = cliLabel
+  end
+
+  srvLabel = flowinfo2hostname(flow,"srv"); 
+
+  if srvLabel ~= flow["srv.ip"] then
+    srvValue = flow["srv.ip"]
+  else
+    srvValue = srvLabel
+  end
+
+  if flow["vlan"] and flow["vlan"] > 0 then
+    vlan = flow["vlan"]
+  end
+
+  if flow["host_server_name"] then
+    infoDomain = flow["host_server_name"]
+  end
+
+  if flow["protos.tls.issuerDN"] ~= nil then
+    infoIssuerDN = flow["protos.tls.issuerDN"]
+  end
+end
+
 print [[
 <script>
   let VUE_MODALS;
   const pageCsrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-  const cliLabel = "]]  if(flow ~= nil) then local n = flowinfo2hostname(flow,"cli"); if n ~= flow["cli.ip"] then print(string.format("%s", n)) else print(n) end end print[[";
-  const cliValue = "]]  if(flow ~= nil) then local n = flowinfo2hostname(flow,"cli"); if n ~= flow["cli.ip"] then print(string.format("%s", flow["cli.ip"])) else print(n) end end print[[";
-  const srvLabel =  "]] if(flow ~= nil) then local n = flowinfo2hostname(flow,"srv"); if n ~= flow["srv.ip"] then print(string.format("%s", n)) else print(n) end end print[[";
-  const srvValue =  "]] if(flow ~= nil) then local n = flowinfo2hostname(flow,"srv"); if n ~= flow["srv.ip"] then print(string.format("%s", flow["srv.ip"])) else print(n) end end print[[";
+  const cliLabel = "]] print(cliLabel) print[[";
+  const cliValue = "]] print(cliValue) print[["; 
+  const srvLabel = "]] print(srvLabel) print[[";
+  const srvValue = "]] print(srvValue) print[[";
+  const vlan = ]] print(vlan) print[[;
+  const infoDomain = "]] print(infoDomain) print[[";
+  const infoIssuerDN = "]] print(infoIssuerDN) print[[";
+]]
 
+print [[
   const thptChart = $("#thpt-load-chart").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null })
 
         $(`a[href='#alerts_filter_dialog']`).click( function (e) {
@@ -1527,11 +1573,11 @@ print [[
                   value: srvValue,
                   label: srvLabel,
                 },
-                vlan: { value: null },
+                vlan: { value: vlan },
               },
               info: {
-                value: null, //domain
-                issuerdn: null, //tls_certificate
+                value: infoDomain,
+                issuerdn: infoIssuerDN,
               },
             };
             VUE_MODALS.show_modal_alerts_filter(alert);
