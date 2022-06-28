@@ -46,7 +46,6 @@
 {* template_utils.gen("pages/modals/recipients_endpoint/users.template", notifications) *}
 
 <script type="text/javascript">
-
     const CAN_CREATE_RECIPIENT = {{ notifications.can_create_recipient }};
     const endpointTypeFilters = {* json.encode(notifications.filters.endpoint_types) *};
     let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
@@ -195,6 +194,7 @@
             className: 'btn-link',
             attr: {
                 id: 'btn-add-recipient',
+                disabled: $("#endpoint-select").children().length == 0
             },
             enabled: CAN_CREATE_RECIPIENT,
             action: function (e, dt, node, config) {
