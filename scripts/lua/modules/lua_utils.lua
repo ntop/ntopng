@@ -3032,7 +3032,7 @@ end
 
 function getUsernameInputPattern()
   -- maximum len must be kept in sync with MAX_PASSWORD_LEN
-  return [[^(?=[a-zA-Z0-9._@!-?]{3,30}$)(?!.*[_.]{2})[^_.].*[^_.]$]]
+  return [[^[a-zA-Z0-9._@!-?]{3,30}$]]
 end
 
 function getPasswordInputPattern()

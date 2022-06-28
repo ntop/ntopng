@@ -260,7 +260,7 @@ end
 
 local function validateUsername(p)
    -- A username (e.g. used in ntopng authentication)
-   return(validateSingleWord(p) and (string.find(p, "%.") == nil))
+   return(validateSingleWord(p))
 end
 
 local function licenseCleanup(p)
