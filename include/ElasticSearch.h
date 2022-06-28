@@ -48,6 +48,13 @@ class ElasticSearch : public DB {
     
     return ver && strcmp(ver, "6") >= 0;
   };
+
+  inline bool atleast_version_8() {
+    const char * ver = get_es_version();
+    
+    return ver && strcmp(ver, "8") >= 0;
+  };
+
   void pushEStemplate();
   void indexESdata();
 

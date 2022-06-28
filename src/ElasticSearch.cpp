@@ -164,10 +164,16 @@ void ElasticSearch::indexESdata() {
 
       strftime(index_name, sizeof(index_name), ntop->getPrefs()->get_es_index(), tm_info);
 
-      snprintf(header, sizeof(header),
-	       "{\"index\": {\"_type\": \"%s\", \"_index\": \"%s\"}}",
-	       atleast_version_6() ? (char*)"_doc" /* types no longer supported in 6 */ : ntop->getPrefs()->get_es_type(),
-	       index_name);
+      /* type is no longer supported in version 8, so no type is needed */
+      if(atleast_version_8()) {
+        snprintf(header, sizeof(header), "{\"index\": {\"_index\": \"%s\"}}", index_name);
+      } else {
+        snprintf(header, sizeof(header),
+	        "{\"index\": {\"_type\": \"%s\", \"_index\": \"%s\"}}",
+	        atleast_version_6() ? (char*)"_doc" /* types no longer supported in 6 */ : ntop->getPrefs()->get_es_type(),
+	        index_name);
+      }
+      
       len = 0, num_flows = 0;
 
       listMutex.lock(__FILE__, __LINE__);
@@ -325,7 +331,7 @@ void ElasticSearch::pushEStemplate() {
       /* Post failure */
       sleep(1);
     } else {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "ntopng template successfully sent to ES");
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "ntopng template successfully sent to ES");
       break;
     }
 
