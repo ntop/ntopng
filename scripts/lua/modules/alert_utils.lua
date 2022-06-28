@@ -465,18 +465,17 @@ end
 
 -- #################################
 
+-- Return a risk info (raw text, do not return a formatted value)
 function alert_utils.get_flow_risk_info(alert_risk, alert_json)
-  local msg = ""
-
   if (alert_json) and (alert_json.alert_generation) and (alert_json.alert_generation.flow_risk_info) then
     local flow_risk_info = json.decode(alert_json.alert_generation.flow_risk_info)
 
     if (flow_risk_info) and (flow_risk_info[tostring(alert_risk)]) then
-      msg = string.format("%s[%s]", msg, flow_risk_info[tostring(alert_risk)])
+      return flow_risk_info[tostring(alert_risk)]
     end
   end
 
-  return msg
+  return ''
 end
 
 -- #################################
@@ -525,7 +524,10 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score)
    -- Add the link to the documentation
    if alert_risk > 0 then
       msg = string.format("%s %s", msg, flow_risk_utils.get_documentation_link(alert_risk))
-      msg = string.format("%s %s", msg, alert_utils.get_flow_risk_info(alert_risk, alert_json))
+      local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
+      if not isEmptyString(info_msg) then
+         msg = string.format("%s [%s]", msg, info_msg)
+      end
    end
 
    return msg or ""
@@ -1061,8 +1063,11 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
 
             local alert_risk = ntop.getFlowAlertRisk(alert_id)
             if alert_risk > 0 then
-                message = string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
-                message = string.format("%s %s", message, alert_utils.get_flow_risk_info(alert_risk, alert_json))
+              message = string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
+              local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
+              if not isEmptyString(info_msg) then
+                message = string.format("%s [%s]", message, info_msg)
+              end
             end
 
             if not other_alerts_by_score[alert_score] then
