@@ -4,51 +4,55 @@
   <template v-slot:title>{{ _i18n('current_filter') }}: <span v-html="alert_name"></span></template>
   <template v-slot:body>
     <div class="form-group mb-3 ">
-      <label>{{ _i18n('current_filter') }} "<b v-html="alert_name"></b>".<span class="alert_label">{{ _i18n('current_filter_for') }}:</span> </label>
-      <div class="form-check">
-      	<input class="form-check-input" type="radio" value="any" v-model="radio_selected">
-      	<label class="form-check-label">
-      	  <span> {{ _i18n('show_alerts.filter_disable_check') }} </span>
-      	</label>
-      </div>
-      <template v-if="page == 'host'">
+      <div>
+	<label>{{ _i18n('current_filter') }} "<b v-html="alert_name"></b>".<span class="alert_label">{{ _i18n('current_filter_for') }}:</span> </label>
 	<div class="form-check">
-      	  <input class="form-check-input" type="radio" value="host" v-model="radio_selected">
+      	  <input class="form-check-input" type="radio" value="any" v-model="radio_selected">
       	  <label class="form-check-label">
-      	    <span>{{ host_addr.label }}</span>
-      	  </label>
-	</div>	
-      </template>
-      <template v-if="page == 'flow'">
-	<div class="form-check">
-      	  <input class="form-check-input" type="radio" value="client_host" v-model="radio_selected">
-      	  <label class="form-check-label">
-      	    <span>{{ _i18n('client') }}: {{flow_addr.cli_label}}</span>
+      	    <span> {{ _i18n('show_alerts.filter_disable_check') }} </span>
       	  </label>
 	</div>
-	<div class="form-check">
-      	  <input class="form-check-input" type="radio" value="server_host" v-model="radio_selected">
-      	  <label class="form-check-label">
-      	    <span>{{ _i18n('server') }}: {{ flow_addr.srv_label }}</span>
-      	  </label>
-	</div>
-      </template>
-      <div v-if="domain != null" class="form-check">
-      	<input class="form-check-input" type="radio" value="domain" v-model="radio_selected">
-      	<label class="form-check-label whitespace">
-      	  <span>{{_i18n("check_exclusion.domain")}}:</span>
-      	</label>
-      	<input type="text" :pattern="pattern_domain" :disabled="radio_selected != 'domain'" required v-model="domain" class="form-check-label custom-width">
+	<template v-if="page == 'host'">
+	  <div class="form-check">
+      	    <input class="form-check-input" type="radio" value="host" v-model="radio_selected">
+      	    <label class="form-check-label">
+      	      <span>{{ host_addr.label }}</span>
+      	    </label>
+	  </div>	
+	</template>
+	<template v-if="page == 'flow'">
+	  <div class="form-check">
+      	    <input class="form-check-input" type="radio" value="client_host" v-model="radio_selected">
+      	    <label class="form-check-label">
+      	      <span>{{ _i18n('client') }}: {{flow_addr.cli_label}}</span>
+      	    </label>
+	  </div>
+	  <div class="form-check">
+      	    <input class="form-check-input" type="radio" value="server_host" v-model="radio_selected">
+      	    <label class="form-check-label">
+      	      <span>{{ _i18n('server') }}: {{ flow_addr.srv_label }}</span>
+      	    </label>
+	  </div>
+	</template>
       </div>
-      <div v-if="tls_certificate != null" class="form-check">
-      	<input class="form-check-input" type="radio" value="certificate" v-model="radio_selected">
-      	<label class="form-check-label whitespace">
-      	  <span>{{_i18n("check_exclusion.tls_certificate")}}:</span>
-      	</label>
-      	<input type="text" :disabled="radio_selected != 'certificate'" v-model="tls_certificate" :pattern="pattern_certificate" required class="form-check-label custom-width">
+      <div v-if="domain != null || tls_certificate != null" class="exclude-domain-certificate">
+	<label><span class="alert_label">{{ _i18n('check_exclusion.exclude_all_checks_for') }}:</span> </label>	
+	<div v-if="domain != null" class="form-check">
+      	  <input class="form-check-input" type="radio" value="domain" v-model="radio_selected">
+      	  <label class="form-check-label whitespace">
+      	    <span>{{_i18n("check_exclusion.domain")}}:</span>
+      	  </label>
+      	  <input type="text" :pattern="pattern_domain" :disabled="radio_selected != 'domain'" required v-model="domain" class="form-check-label custom-width">
+	</div>
+	<div v-if="tls_certificate != null" class="form-check">
+      	  <input class="form-check-input" type="radio" value="certificate" v-model="radio_selected">
+      	  <label class="form-check-label whitespace">
+      	    <span>{{_i18n("check_exclusion.tls_certificate")}}:</span>
+      	  </label>
+      	  <input type="text" :disabled="radio_selected != 'certificate'" v-model="tls_certificate" :pattern="pattern_certificate" required class="form-check-label custom-width">
+	</div>
       </div>
     </div>
-    
     <template v-if="radio_selected != 'domain' && radio_selected != 'certificate'">
       <div v-show="disable_alerts" class="message alert alert-danger">
 	{{ _i18n("show_alerts.confirm_delete_filtered_alerts") }}
@@ -214,5 +218,8 @@ const _i18n = (t) => i18n(t);
 }
 input:invalid {
   border-color: #ff0000;
-}  
+}
+.exclude-domain-certificate {
+  margin-top: 0.4rem;
+}
 </style>

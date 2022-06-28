@@ -1219,6 +1219,7 @@ local lang = {
     ["domain"] = "Domain",
     ["edit_exclusion"] = "Edit Check Exclusion",
     ["exclude_all_alerts"] = "All Alerts",
+    ["exclude_all_checks_for"] = "Exclude all checks for",
     ["flow"] = "Flow",
     ["flow_alert_type"] = "Flow Alerts",
     ["host"] = "Host",
