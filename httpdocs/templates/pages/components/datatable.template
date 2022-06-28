@@ -67,10 +67,11 @@
 
           <div class="col-12 mb-2" id="chart-vue">
             <div class="card h-100 overflow-hidden">
-              <chart id="chart_0"
+              <chart ref="chart"
+	        id="chart_0"
 	        :base_url_request="chart_base_url_request"
-		:register_on_status_change="true">
-	      </chart>	      
+		:register_on_status_change="false">
+	      </chart>
 	      <modal-alerts-filter
 	        :alert="current_alert"
 		:page="page"
@@ -290,21 +291,9 @@
       if ($table == null) {
 	  return;
       }
-      NtopUtils.showOverlays();
+      //NtopUtils.showOverlays();
       // reload the table
         $table.ajax.url(`{* datatable.datasource.name *}?` + url_params).load();
-
-	    {% if show_chart then %}
-/*
-        try {
-	  let widget = WidgetUtils.getWidgetByName("{{ chart.name }}");
-          widget.update(null);
-        }
-        catch(e) {
-            console.warn(e);
-        }
-*/
-	    {% end %}
 
         {% if show_cards then %}
         //updateCardStats();
@@ -490,6 +479,9 @@
 	    show_modal_alerts_filter: function(alert) {
 	      this.current_alert = alert;
 	      this.$refs["modal_alerts_filter"].show();
+	    },
+	    register_status: function() {
+	      this.$refs["chart"].register_status();
 	    },
 	    add_exclude: async function(params) {
 	      params.csrf = pageCsrf;
@@ -759,16 +751,6 @@
 	// // notifies to all the updated status
 	// ntopng_status_manager.add_value_to_status("filters", filters);
     }    
-    /*
-    ChartWidget.registerEventCallback("{{ chart.name }}", 'zoomed', async (chartContext, { xaxis, yaxis }) => {
-        // the timestamps are in milliseconds, convert them into seconds
-        const begin = moment(xaxis.min);
-        const end = moment(xaxis.max);
-
-	let new_epoch_status = { epoch_begin: Number.parseInt(begin.unix()), epoch_end: Number.parseInt(end.unix()) };
-	ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, new_epoch_status, "range-picker11");
-    });
-    */
     {% if show_cards then %}
     updateCardStats('overview');
     {% end %}
@@ -812,6 +794,7 @@
 
     // register to global event change status
     await ntopng_sync.on_ready("range_picker");
+    CHART_APP.register_status();
     updateDownloadButton();
     ntopng_status_manager.on_status_change("datatable", (new_status) => {
       let url_params = ntopng_url_manager.get_url_params();

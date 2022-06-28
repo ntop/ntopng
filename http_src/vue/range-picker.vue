@@ -241,7 +241,7 @@ export default {
 	}
 	this.modal_data = FILTERS_CONST;
 	
-	await modal_filters_mounted;
+	//await modal_filters_mounted;
 	ntopng_sync.ready(this.$props["id"]);
     },
     data() {

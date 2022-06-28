@@ -36,19 +36,23 @@ export default {
 	init: async function() {
 	    let url_request = this.get_url_request();
 	    if (this.register_on_status_change) {
-		ntopng_status_manager.on_status_change(this.id, (new_status) => {
-		    if (this.from_zoom == true) {
-			this.from_zoom = false;
-			//return;
-		    }
-		    let new_url_request = this.get_url_request();
-		    if (new_url_request == url_request) {
-			return;
-		    }
-		    this.update_chart(new_url_request);
-		}, false);
+		this.register_status();
 	    }
 	    await this.draw_chart(url_request);
+	},
+	register_status: function() {
+	    let url_request = this.get_url_request();
+	    ntopng_status_manager.on_status_change(this.id, (new_status) => {
+		if (this.from_zoom == true) {
+		    this.from_zoom = false;
+		    //return;
+		}
+		let new_url_request = this.get_url_request();
+		if (new_url_request == url_request) {
+		    return;
+		}
+		this.update_chart(new_url_request);
+	    }, false);
 	},
 	get_url_request: function() {
 	    let url_params = this.params_url_request;
