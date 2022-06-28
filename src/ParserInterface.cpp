@@ -420,12 +420,17 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   */
   if(zflow->l7_info && zflow->l7_info[0]) {
     if(flow->isDNS() && !zflow->dns_query)            zflow->dns_query = zflow->l7_info;
-    else if(flow->isHTTP() && !zflow->http_site)      zflow->http_site = zflow->l7_info;
-    else if(flow->isTLS() && !zflow->tls_server_name) zflow->tls_server_name = zflow->l7_info;
+    else if(flow->isHTTP() && !zflow->http_site) {
+      zflow->http_site = zflow->l7_info;
+      if(flow->get_cli_host()) flow->get_cli_host()->incrVisitedWebSite(zflow->http_site);
+    } else if(flow->isTLS() && !zflow->tls_server_name) {
+      zflow->tls_server_name = zflow->l7_info;
+      if(flow->get_cli_host()) flow->get_cli_host()->incrVisitedWebSite(zflow->tls_server_name);
+    } 
     else free(zflow->l7_info);
 
     zflow->l7_info = NULL;
-
+    
 #if 0
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s][%s][%s][%s]",
 				 zflow->dns_query ? zflow->dns_query : "",

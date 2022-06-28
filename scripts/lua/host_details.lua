@@ -9,7 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 local snmp_utils
 local snmp_location
 local host_sites_update
-local sites_granularities = nil
+local sites_granularities = {}
 local auth = require "auth"
 
 if(ntop.isPro()) then
