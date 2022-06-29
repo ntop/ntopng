@@ -197,7 +197,7 @@ ${label}
 	  }
       if (! item.no_results) {
         var form = $("#{{typeahead.base_id}}_query")
-          .val(item["{{typeahead.json_key}}"])
+          .val(item[item.type])
           .closest("form");
 
         if ({*typeahead.before_submit or "$.noop"*}(form, item) !== "false")
