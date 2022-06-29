@@ -4930,7 +4930,7 @@ end
 
 -- ##############################################
 
-function getExtraFlowInfoDomain(alert_json)
+function getExtraFlowInfoServerName(alert_json)
   if alert_json then
     if alert_json["proto"] and alert_json["proto"]["http"] and not isEmptyString(alert_json["proto"]["http"]["server_name"]) then
       return alert_json["proto"]["http"]["server_name"]
@@ -4951,7 +4951,24 @@ function getExtraFlowInfoURL(alert_json)
       return alert_json["proto"]["http"]["last_url"]
     end
   end
-  return getExtraFlowInfoDomain(alert_json)
+  return getExtraFlowInfoServerName(alert_json)
+end
+
+-- ##############################################
+
+function hostnameIsDomain(name)
+  if not isEmptyString(name) then
+    local parts = string.split(name, "%.")
+
+    if parts and #parts > 1 then
+      local last = parts[#parts]
+      if string.len(last) > 0 then
+        return true
+      end
+    end
+  end
+
+  return false
 end
 
 -- ##############################################

@@ -1532,7 +1532,7 @@ if flow ~= nil then
     vlan = flow["vlan"]
   end
 
-  if flow["host_server_name"] then
+  if flow["host_server_name"] and hostnameIsDomain(flow["host_server_name"]) then
     infoDomain = flow["host_server_name"]
   end
 
