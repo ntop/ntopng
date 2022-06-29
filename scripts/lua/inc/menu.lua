@@ -1149,7 +1149,7 @@ if secs_to_first_data > 5 then
 
   let interval = setInterval(() => {
     let offset = new Date() - startDateTime;
-    if (offset < 0) { clearInterval(interval); return; }
+    if (offset > msecs_to_first_data) { clearInterval(interval); return; }
     let dLocal = new Date(msecs_to_first_data - offset);
     $("#starting-up-msg > span").text(fGetDateTimeString(dLocal));
   }, 2000);
