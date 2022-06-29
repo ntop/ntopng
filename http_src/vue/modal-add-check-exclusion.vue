@@ -209,7 +209,7 @@ const add = () => {
     let alert_addr = input_ip.value;
     if (props.alert_exclusions_page == "hosts") {
 	if (exclude_type.value == "network") {
-	    alert_addr = `${alert_addr}/${netmask.value}`;
+	    alert_addr = `${input_network.value}/${netmask.value}`;
 	}
         if (input_vlan.value != null && input_vlan.value != 0) {
 	    alert_addr = `${alert_addr}@${input_vlan.value}`;
