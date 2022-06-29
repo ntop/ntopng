@@ -82,6 +82,15 @@
     	  </div>
 	</div>
       </div>
+
+      <div class="mb-3 row">
+        <label class="col-form-label col-sm-4" >
+          <b>{{ _i18n('vlan') }}</b>
+        </label>
+        <div class="col-sm-6">
+          <input placeholder="0" min="0" type="number" v-model="input_vlan" class="form-control"/>
+        </div>
+      </div>      
     </template> <!-- mdoal hosts -->
     
     <template v-if="alert_exclusions_page != 'hosts'"> <!-- modal domain_names-->
@@ -114,6 +123,7 @@ const modal_id = ref(null);
 const exclude_type = ref("ip");
 const input_ip = ref("");
 const input_network = ref("");
+const input_vlan = ref(0);
 const input_text = ref("");
 const host_selected = ref("");
 const flow_selected = ref("");
@@ -182,6 +192,7 @@ const show = () => {
     exclude_type.value = "ip";
     input_ip.value = "";
     input_network.value = "";
+    input_vlan.value = 0;
     host_selected.value = "";
     flow_selected.value = "";
     netmask.value = "";
@@ -200,6 +211,9 @@ const add = () => {
 	if (exclude_type.value == "network") {
 	    alert_addr = `${alert_addr}/${netmask.value}`;
 	}
+        if (input_vlan.value != null && input_vlan.value != 0) {
+	    alert_addr = `${alert_addr}@${input_vlan.value}`;
+        }
 	params = { alert_addr, host_alert_key: host_selected.value, flow_alert_key: flow_selected.value };
     } else if (props.alert_exclusions_page == "domain_names") {
 	params = { alert_domain: input_text.value };
