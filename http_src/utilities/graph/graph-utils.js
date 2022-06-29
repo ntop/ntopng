@@ -448,7 +448,19 @@ export function attachStackedChartCallback(chart, schema_name, chart_id, zoom_re
     "#E27B85"
   ];
 
-  var chart_colors_min = ["#7CC28F", "#FCD384", "#FD977B"];
+  var chart_colors_min = [
+    "#EE8434",
+    "#C95D63", 
+    "#AE8799", 
+    "#717EC3", 
+    "#496DDB", 
+    "#5A7ADE", 
+    "#6986E1", 
+    "#7791E4", 
+    "#839BE6",
+    "#8EA4E8"
+  ];
+  
   var split_directions_colors = ["#69B87F", "#FF7C00", "#FF4700"];
 
   /* This is used to show the "unreachable" label when the chart "show_unreachable"
