@@ -1138,10 +1138,23 @@ if secs_to_first_data > 5 then
 
 <script type="text/javascript">
   const msecs_to_first_data = ]] print(string.format("%u", secs_to_first_data * 1000)) print[[;
+  const fGetDateTimeString = (dLocal) => {
+    return `${dLocal.getUTCDate() - 1} ${i18n('metrics.days')}, ${dLocal.getUTCHours()}:${dLocal.getUTCMinutes()}:${dLocal.getUTCSeconds()}`;
+  };
   const hide_starting_up_msg = function() {
     $("#starting-up-msg").hide();
   };
   setTimeout(hide_starting_up_msg, msecs_to_first_data);
+  let startDateTime = new Date();
+
+  let interval = setInterval(() => {
+    let offset = new Date() - startDateTime;
+    if (offset < 0) { clearInterval(interval); return; }
+    let dLocal = new Date(msecs_to_first_data - offset);
+    $("#starting-up-msg > span").text(fGetDateTimeString(dLocal));
+  }, 2000);
+  
+  //setTimeout(() => clearInterval(interval), msecs_to_first_data);
 </script>
 ]]
 end

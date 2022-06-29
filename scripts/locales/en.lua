@@ -5570,7 +5570,7 @@ local lang = {
   },
   ["restart"] = {
     ["confirm"] = "Do you want to restart %{product} now?",
-    ["just_started"] = "Starting up. Traffic statistics will be first computed in %{when}  <a target='_blank' href='%{url}'><i class='fas fa-info-circle'></i></a>.",
+    ["just_started"] = "Starting up. Traffic statistics will be first computed in <span>%{when}</span>  <a target='_blank' href='%{url}'><i class='fas fa-info-circle'></i></a>.",
     ["restart"] = "Restart",
     ["restart_now"] = "Restart now",
     ["restart_product"] = "Restart %{product}",
