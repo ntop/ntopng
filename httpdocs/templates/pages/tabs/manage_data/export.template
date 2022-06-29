@@ -9,21 +9,25 @@
                     <label class="d-block">Select Export Type</label>
                     <div class="btn-group btn-group-toggle" data-bs-toggle="buttons" id="export_hosts_buttons"
                         name="export_hosts_buttons">
-                        <label class="btn btn-secondary active">
-                            <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off"
-                                data-bs-toggle="toggle" checked="checked">{{i18n("manage_data.all_hosts")}}
+			
+			<input type="radio" id="all_hosts" class="form-check-input" name="mode" value="all" autocomplete="off" data-bs-toggle="toggle" checked="checked">
+                        <label class="form-check-label ms-1 active">
+                                {{i18n("manage_data.all_hosts")}}
                         </label>
-                        <label class="btn btn-secondary">
-                            <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off"
-                                data-bs-toggle=" toggle">{{i18n("manage_data.local_hosts")}}
+			
+			<input type="radio" id="local_hosts" class="form-check-input ms-2" name="mode" value="local" autocomplete="off" data-bs-toggle=" toggle">
+                        <label class="form-check-label ms-1">
+			       {{i18n("manage_data.local_hosts")}}
                         </label>
-                        <label class="btn btn-secondary">
-                            <input type="radio" id="remote_hosts" name="mode" value="remote" autocomplete="off"
-                                data-bs-toggle=" toggle">{{i18n("manage_data.remote_hosts")}}
+			
+			<input type="radio" id="remote_hosts" class="form-check-input ms-2" name="mode" value="remote" autocomplete="off" data-bs-toggle=" toggle">
+                        <label class="form-check-label ms-1">
+			       {{i18n("manage_data.remote_hosts")}}
                         </label>
-                        <label class="btn btn-secondary">
-                            <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off"
-                                data-bs-toggle=" toggle">{{i18n("manage_data.single")}}
+			
+			<input type="radio" id="single_host" class="form-check-input ms-2" name="mode" value="filtered" autocomplete="off" data-bs-toggle=" toggle">
+                        <label class="form-check-label ms-1">
+			       {{i18n("manage_data.single")}}
                         </label>
                     </div>
                 </div>
