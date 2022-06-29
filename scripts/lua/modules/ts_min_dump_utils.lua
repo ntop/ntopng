@@ -357,7 +357,7 @@ end
 
 function ts_dump.iface_update_anomalies(when, ifstats, verbose)
    if not ifstats.isViewed then
-      ts_utils.append("iface:hosts_anomalies", {ifid=ifstats.id, num_local_hosts_anomalies=ifstats.anomalies.num_local_hosts_anomalies, num_remote_hosts_anomalies=ifstats.anomalies.num_remote_hosts_anomalies}, when)
+      ts_utils.append("iface:hosts_anomalies", {ifid=ifstats.id, num_loc_hosts_anom=ifstats.anomalies.num_local_hosts_anomalies, num_rem_hosts_anom=ifstats.anomalies.num_remote_hosts_anomalies}, when)
    end
 end
 
@@ -365,7 +365,7 @@ end
 
 function ts_dump.iface_update_map_stats(when, ifstats, verbose)
    if((ifstats.periodicity_map ~= nil) and (ifstats.service_map ~= nil)) then           
-      ts_utils.append("iface:behavioural_maps", {ifid=ifstats.id, periodicity_map_entries=ifstats.periodicity_map.num_entries, service_map_entries=ifstats.service_map.num_entries}, when)      
+      ts_utils.append("iface:behavioural_maps", {ifid=ifstats.id, period_map_entries=ifstats.periodicity_map.num_entries, svc_map_entries=ifstats.service_map.num_entries}, when)      
    end
 end
 

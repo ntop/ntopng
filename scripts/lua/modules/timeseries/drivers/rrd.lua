@@ -190,26 +190,11 @@ end
 
 -- This is necessary to keep the current RRD format
 local function map_rrd_column_to_metrics(schema, column_name)
-    -- crappy hack to avoid mapping errors
-    if(schema.name == "snmp_if:packets") then
-       if(column_name == "other") then       return(1)
-       elseif(column_name == "inner")  then  return(2)
-       elseif(column_name == "egress")  then return(3)
-       elseif(column_name == "ingress") then return(4)
-      end
-     end
-     
-   if (column_name == "num") or starts(column_name, "num_")
-      or (column_name == "drops") or starts(column_name, "tcp_")
-      or (column_name == "sent") or (column_name == "ingress")
-      or (column_name == "bytes") or (column_name == "packets")
-   then
-    return 1
-  elseif (column_name == "rcvd") or (column_name == "egress") then
-    return 2
-  elseif (column_name == "inner") then
-    return 3
-  end
+ for idx, metric in ipairs(schema._metrics) do
+   if(metric == column_name) then
+      return idx
+   end
+ end
 
   traceError(TRACE_ERROR, TRACE_CONSOLE, "unknown column name (" .. column_name .. ") in schema " .. schema.name)
   return nil
@@ -240,14 +225,8 @@ local function create_rrd(schema, path, timestamp)
     params[#params + 1] = timestamp - schema.options.insertion_step
   end
 
-  local metrics_map = map_metrics_to_rrd_columns(#schema._metrics)
-  if not metrics_map then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "unsupported number of metrics (" .. (#schema._metrics) .. ") in schema " .. schema.name)
-    return false
-  end
-
   for idx, metric in ipairs(schema._metrics) do
-    params[#params + 1] = "DS:" .. metrics_map[idx] .. ":" .. rrd_type .. ':' .. heartbeat .. ':U:U'
+    params[#params + 1] = "DS:" .. metric .. ":" .. rrd_type .. ':' .. heartbeat .. ':U:U'
   end
 
   for _, rra in ipairs(schema.retention) do

@@ -95,6 +95,18 @@ local function validateTagMetric(name)
     return(false)
   end
 
+  local slen = string.len(name)
+
+  -- https://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
+  -- ds-name is the name you will use to reference this particular data source from an RRD. A ds-name must be 1 to 19 characters long in the characters [a-zA-Z0-9_].
+  local maxlen = 19
+  
+  if(slen > maxlen) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Metric '".. name .."' exceeds the maximum lenght (".. slen .. " > "..maxlen ..")")
+    tprint(debug.traceback())
+    return(false)
+  end
+  
   return(true)
 end
 
@@ -166,9 +178,9 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
     tags[tag] = tags_and_metrics[tag]
   end
 
-
   for metric in pairs(self.metrics) do
     if tags_and_metrics[metric] == nil then
+    tprint(debug.traceback())
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing mandatory metric '" .. metric .. "' while using schema " .. self.name)
       return nil
     end

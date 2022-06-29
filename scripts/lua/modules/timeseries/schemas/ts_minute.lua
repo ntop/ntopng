@@ -342,15 +342,15 @@ schema:addMetric("dropped_flows")
 
 schema = ts_utils.newSchema("iface:hosts_anomalies", {step=60, is_critical_ts = true})
 schema:addTag("ifid")
-schema:addMetric("num_local_hosts_anomalies")
-schema:addMetric("num_remote_hosts_anomalies")
+schema:addMetric("num_loc_hosts_anom")
+schema:addMetric("num_rem_hosts_anom")
 
 -- ##############################################
 
 schema = ts_utils.newSchema("iface:behavioural_maps", {step=60, metrics_type=ts_utils.metrics.gauge})
 schema:addTag("ifid")
-schema:addMetric("periodicity_map_entries")
-schema:addMetric("service_map_entries")
+schema:addMetric("period_map_entries")
+schema:addMetric("svc_map_entries")
 
 -- ##############################################
 

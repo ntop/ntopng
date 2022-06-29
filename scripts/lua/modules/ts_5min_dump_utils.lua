@@ -59,8 +59,8 @@ function ts_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, 
       ts_utils.append("mac:arp_rqst_sent_rcvd_rpls",
 		      {
 			 ifid=ifstats.id, mac=devicename,
-			 request_packets_sent = device["arp_requests.sent"],
-			 reply_packets_rcvd = device["arp_replies.rcvd"]
+			 request_pkts_sent = device["arp_requests.sent"],
+			 reply_pkts_rcvd = device["arp_replies.rcvd"]
 		      }, when)
    end
 end
@@ -510,16 +510,16 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 
   -- Number of dns packets sent
   ts_utils.append("host:dns_qry_sent_rsp_rcvd", {ifid = ifstats.id, host = hostname,
-            queries_packets = host["dns"]["sent"]["num_queries"],
-            replies_ok_packets = host["dns"]["rcvd"]["num_replies_ok"],
-            replies_error_packets =host["dns"]["rcvd"]["num_replies_error"]},
+            queries_pkts = host["dns"]["sent"]["num_queries"],
+            replies_ok_pkts = host["dns"]["rcvd"]["num_replies_ok"],
+            replies_error_pkts =host["dns"]["rcvd"]["num_replies_error"]},
       when)
 
   -- Number of dns packets rcvd
   ts_utils.append("host:dns_qry_rcvd_rsp_sent", {ifid = ifstats.id, host = hostname,
-            queries_packets = host["dns"]["rcvd"]["num_queries"],
-            replies_ok_packets = host["dns"]["sent"]["num_replies_ok"],
-            replies_error_packets = host["dns"]["sent"]["num_replies_error"]},
+            queries_pkts = host["dns"]["rcvd"]["num_queries"],
+            replies_ok_pkts = host["dns"]["sent"]["num_replies_ok"],
+            replies_error_pkts = host["dns"]["sent"]["num_replies_error"]},
       when)
 
   if(host["icmp.echo_pkts_sent"] ~= nil) then
@@ -544,15 +544,15 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 
   -- Tcp RX Stats 
   ts_utils.append("host:tcp_rx_stats", {ifid = ifstats.id, host = hostname,
-            retransmission_packets = host["tcpPacketStats.rcvd"]["retransmissions"],
-            out_of_order_packets = host["tcpPacketStats.rcvd"]["out_of_order"],
+            retran_pkts = host["tcpPacketStats.rcvd"]["retransmissions"],
+            out_of_order_pkts = host["tcpPacketStats.rcvd"]["out_of_order"],
             lost_packets = host["tcpPacketStats.rcvd"]["lost"]},
       when)
   
   -- Tcp TX Stats
   ts_utils.append("host:tcp_tx_stats", {ifid = ifstats.id, host = hostname,
-            retransmission_packets = host["tcpPacketStats.sent"]["retransmissions"],
-            out_of_order_packets = host["tcpPacketStats.sent"]["out_of_order"],
+            retran_pkts = host["tcpPacketStats.sent"]["retransmissions"],
+            out_of_order_pkts = host["tcpPacketStats.sent"]["out_of_order"],
             lost_packets = host["tcpPacketStats.sent"]["lost"]},
       when)
   
@@ -701,7 +701,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   -- UDP breakdown
   ts_utils.append("host:udp_sent_unicast", {ifid=ifstats.id, host=hostname,
             bytes_sent_unicast=host["udpBytesSent.unicast"],
-            bytes_sent_non_unicast=host["udpBytesSent.non_unicast"]}, when)
+            bytes_sent_non_uni=host["udpBytesSent.non_unicast"]}, when)
 
   -- create custom rrds
   if ts_custom and ts_custom.host_update_stats then
