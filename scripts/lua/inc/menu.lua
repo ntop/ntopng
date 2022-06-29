@@ -1138,8 +1138,17 @@ if secs_to_first_data > 5 then
 
 <script type="text/javascript">
   const msecs_to_first_data = ]] print(string.format("%u", secs_to_first_data * 1000)) print[[;
+  const pad2 =(n) => {
+     return (n < 10 ? '0' : '') + n;
+  };
   const fGetDateTimeString = (dLocal) => {
-    return `${dLocal.getUTCDate() - 1} ${i18n('metrics.days')}, ${dLocal.getUTCHours()}:${dLocal.getUTCMinutes()}:${dLocal.getUTCSeconds()}`;
+    if (dLocal.getUTCDate() > 1) {
+      return `${dLocal.getUTCDate() - 1} ${i18n('metrics.days')}, ${pad2(dLocal.getUTCHours())}:${pad2(dLocal.getUTCMinutes())}:${pad2(dLocal.getUTCSeconds())}`;
+    }
+    if (dLocal.getUTCHours() > 0) {
+      return `${pad2(dLocal.getUTCHours())}:${pad2(dLocal.getUTCMinutes())}:${pad2(dLocal.getUTCSeconds())}`;
+    }
+    return `${pad2(dLocal.getUTCMinutes())}:${pad2(dLocal.getUTCSeconds())}`;
   };
   const hide_starting_up_msg = function() {
     $("#starting-up-msg").hide();
