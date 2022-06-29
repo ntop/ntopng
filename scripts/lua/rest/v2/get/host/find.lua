@@ -374,8 +374,8 @@ if not is_system_interface then
       local badges = {}
       local links = {}
 
-      local name = host_key
-      local ip = host_key
+      local ip = nil
+      local mac = nil
 
       local label = host_key
       if host_key ~= k then
@@ -383,25 +383,29 @@ if not is_system_interface then
       end
 
       if isMacAddress(host_key) then -- MAC
+         mac = host_key
          add_device_link(links)
          add_historical_flows_link(links, 'mac', host_key)
       elseif isIPv6(host_key) then -- IP
+         ip = host_key
          add_host_link(links)
          add_historical_flows_link(links, 'ip', host_key)
          add_badge(badges, 'IPv6')
       elseif k == host_key then -- IP
+         ip = host_key
          add_host_link(links)
          add_historical_flows_link(links, 'ip', host_key)
       else -- Name
+         ip = k
          add_host_link(links)
          add_historical_flows_link(links, 'name', host_key)
-         ip = k
       end
 
       hosts[k] = {
          label = label,
          name = host_key,
          ip = ip,
+         mac = mac,
          links = links,
          badges = badges,
       }
