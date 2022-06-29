@@ -190,6 +190,15 @@ end
 
 -- This is necessary to keep the current RRD format
 local function map_rrd_column_to_metrics(schema, column_name)
+    -- crappy hack to avoid mapping errors
+    if(schema.name == "snmp_if:packets") then
+       if(column_name == "other") then       return(1)
+       elseif(column_name == "inner")  then  return(2)
+       elseif(column_name == "egress")  then return(3)
+       elseif(column_name == "ingress") then return(4)
+      end
+     end
+     
    if (column_name == "num") or starts(column_name, "num_")
       or (column_name == "drops") or starts(column_name, "tcp_")
       or (column_name == "sent") or (column_name == "ingress")
@@ -530,7 +539,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
   local count = 0
   local series = {}
-  
+
   for name_key, serie in pairs(fdata) do
     local serie_idx = map_rrd_column_to_metrics(schema, name_key)
     local name = schema._metrics[serie_idx]
@@ -547,6 +556,7 @@ function driver:query(schema, tstart, tend, tags, options)
     -- Remove the last value: RRD seems to give an additional point
     serie[#serie] = nil
     count = count - 1
+
 
     series[serie_idx] = {label=name, data=serie}
 
