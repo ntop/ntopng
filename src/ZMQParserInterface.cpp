@@ -254,7 +254,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
   ZMQ_RemoteStats zrs;
-  const u_int32_t max_timeout = 600;
+  const u_int32_t max_timeout = 600, min_timeout = 60;
 
   memset(&zrs, 0, sizeof(zrs));
 
@@ -315,10 +315,12 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
       }
 
       if(json_object_object_get_ex(w, "idle", &z)) {
-	zrs.remote_idle_timeout = (u_int32_t)json_object_get_int64(z);
-  zrs.remote_idle_timeout *= 2; /* Double the idle timeout for NetFlow */
-	if(zrs.remote_idle_timeout > max_timeout)
-	  zrs.remote_idle_timeout = max_timeout;
+        zrs.remote_idle_timeout = (u_int32_t)json_object_get_int64(z);
+        zrs.remote_idle_timeout *= 2; /* Double the idle timeout for NetFlow */
+	      if(zrs.remote_idle_timeout > max_timeout)
+	        zrs.remote_idle_timeout = max_timeout;
+        if(zrs.remote_idle_timeout < min_timeout)
+          zrs.remote_idle_timeout = min_timeout;  
       }
 
       if(json_object_object_get_ex(w, "collected_lifetime", &z))
