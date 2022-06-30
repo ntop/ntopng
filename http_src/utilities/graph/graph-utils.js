@@ -437,6 +437,8 @@ export function attachStackedChartCallback(chart, schema_name, chart_id, zoom_re
   $chart.parent().css("position", "relative");
 
   var chart_colors_full = [
+    "#C6D9FD",
+    "#90EE90",
     "#69B87F",
     "#94CFA4",
     "#B3DEB6",
@@ -449,6 +451,8 @@ export function attachStackedChartCallback(chart, schema_name, chart_id, zoom_re
   ];
 
   var chart_colors_min = [
+    "#C6D9FD",
+    "#90EE90",
     "#EE8434",
     "#C95D63", 
     "#AE8799", 
@@ -461,7 +465,20 @@ export function attachStackedChartCallback(chart, schema_name, chart_id, zoom_re
     "#8EA4E8"
   ];
   
-  var split_directions_colors = ["#69B87F", "#FF7C00", "#FF4700"];
+  var split_directions_colors = [
+    "#C6D9FD",
+    "#90EE90",
+    "#EE8434",
+    "#C95D63", 
+    "#AE8799", 
+    "#717EC3", 
+    "#496DDB", 
+    "#5A7ADE", 
+    "#6986E1", 
+    "#7791E4", 
+    "#839BE6",
+    "#8EA4E8"
+  ];
 
   /* This is used to show the "unreachable" label when the chart "show_unreachable"
    * options is set. See the extra_lines computation below. */

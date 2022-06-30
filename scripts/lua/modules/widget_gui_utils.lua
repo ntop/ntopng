@@ -40,6 +40,8 @@ local function check_widget_existance(widgets, name)
 end
 
 local color_palette = { 
+    "#C6D9FD",
+    "#90EE90",
     "#EE8434",
     "#C95D63", 
     "#AE8799", 
