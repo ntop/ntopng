@@ -3335,6 +3335,14 @@ local lang = {
       ["rcvd"] = "rcvd",
       ["sent"] = "sent",
     },
+    ["metric_labels"] = {
+      ["alerted_flows"] = "Alerted Flows",
+      ["num_devices"] = "Num. Devices",
+      ["num_flows"] = "Num. Flows",
+      ["num_hosts"] = "Num. Hosts",
+      ["num_servers"] = "Num. Servers",
+      ["traffic"] = "Traffic",
+    }
   },
   ["hash_table"] = {
     ["AggregatedFlowHash"] = "Aggregated Flows",
