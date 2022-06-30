@@ -832,12 +832,14 @@ function ts_utils.getPossiblyChangedSchemas()
       "iface:traffic_tx_behavior_v2",
       "iface:engaged_alerts",
       "iface:local_hosts",
+      "iface:behavioural_maps",
 
       "subnet:score_anomalies",
       "subnet:traffic_tx_behavior_v2",
       "subnet:traffic_rx_behavior_v2",
       "subnet:traffic_anomalies",
       "subnet:score_behavior",
+      "subnet:intranet_traffic",
 
       "asn:score_anomalies",
       "asn:score_behavior",
@@ -858,6 +860,12 @@ function ts_utils.getPossiblyChangedSchemas()
       "host:cli_score_anomalies",
       "host:srv_score_anomalies",
       "host:ndpi_categories", --split in "bytes_sent" and "bytes_rcvd"
+      "host:tcp_rx_stats",
+      "host:udp_sent_unicast",
+      "host:dns_qry_rcvd_rsp_sent",
+      "host:dns_qry_sent_rsp_rcvd",
+      "host:tcp_tx_stats",
+      "iface:hosts_anomalies",
 
       -- Added missing ifid tag
       "influxdb:storage_size",
