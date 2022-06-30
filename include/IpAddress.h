@@ -29,6 +29,8 @@ struct ipAddress {
     loopbackIP:1, privateIP:1, multicastIP:1, broadcastIP:1,
     blacklistedIP:1;
 
+  u_int8_t dnsServer:1, dhcpServer:1, smtpServer:1, ntpServer:1,
+    unused:4;
   union {
     struct ndpi_in6_addr ipv6;
     u_int32_t ipv4; /* Host byte code */
@@ -81,6 +83,16 @@ class IpAddress {
   inline bool isNonEmptyUnicastAddress() const        { return(!isMulticastAddress() && !isBroadcastAddress() && !isEmpty()); };
   inline u_int8_t getVersion()           const        { return(addr.ipVersion); };
   inline void setVersion(u_int8_t version)            { addr.ipVersion = version; };
+  
+  inline  bool isDhcpServer()  const { return(addr.dhcpServer); }
+  inline  void setDhcpServer() { addr.dhcpServer = true; }
+  inline  bool isDnsServer()   const { return(addr.dnsServer);  }
+  inline  void setDnsServer()  { addr.dnsServer = true; }
+  inline  bool isSmtpServer()  const { return(addr.smtpServer); }
+  inline  void setSmtpServer() { addr.smtpServer = true; }
+  inline  bool isNtpServer()   const { return(addr.ntpServer);  }
+  inline  void setNtpServer()  { addr.ntpServer = true; }
+
   char* print(char *str, u_int str_len, u_int8_t bitmask = 0xFF) const;
   char* printMask(char *str, u_int str_len, bool isLocalIP);
   bool isLocalHost(int16_t *network_id) const;

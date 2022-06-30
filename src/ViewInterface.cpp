@@ -497,6 +497,21 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
       }
 
       f->hosts_periodic_stats_update(this, cli_host, srv_host, &partials, first_partial, tv);
+      
+      /* Setting up dhcp/ntp/dns/smtp server bits */
+      if(cli_host) {
+        if(cli_ip->isDhcpServer()) cli_host->setDhcpServer();
+        if(cli_ip->isNtpServer())  cli_host->setNtpServer();
+        if(cli_ip->isDnsServer())  cli_host->setDnsServer();
+        if(cli_ip->isSmtpServer()) cli_host->setSmtpServer(); 
+      }
+      
+      if(srv_host) {
+        if(srv_ip->isDhcpServer()) srv_host->setDhcpServer();
+        if(srv_ip->isNtpServer())  srv_host->setNtpServer();
+        if(srv_ip->isDnsServer())  srv_host->setDnsServer();
+        if(srv_ip->isSmtpServer()) srv_host->setSmtpServer(); 
+      }
 
       if(cli_host) {
 	if(first_partial) {

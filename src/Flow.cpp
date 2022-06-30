@@ -440,15 +440,19 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
 
     if(cli_port == htons(67)) {
       /* Server -> Client */
-
       if(cli_host && (!cli_host->isBroadcastHost())) {
 	cli_host->setDhcpServer();
+      } else if(cli_ip_addr && !cli_ip_addr->isBroadcastAddress()) {
+        cli_ip_addr->setDhcpServer();
       }
     } else {
-      if(srv_host && (!srv_host->isBroadcastHost()))
+      if(srv_host && (!srv_host->isBroadcastHost())) {
 	srv_host->setDhcpServer();
-    }
+    } else if(srv_ip_addr && !srv_ip_addr->isBroadcastAddress()) {
+        srv_ip_addr->setDhcpServer();
+      }
     break;
+    }
 
   case NDPI_PROTOCOL_NTP:
     real_srv_h = srv_h /* , real_cli_h = cli_h */;
@@ -463,6 +467,8 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
 
     if(real_srv_h) {
       real_srv_h->setNtpServer();
+    }  else if(srv_ip_addr) {
+      srv_ip_addr->setDhcpServer();
     }
     break;
 
@@ -470,6 +476,8 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
   case NDPI_PROTOCOL_MAIL_SMTP:
     if(srv_h) {
       srv_h->setSmtpServer();
+    } else if(srv_ip_addr) {
+      srv_ip_addr->setDhcpServer();
     }
     break;
 
@@ -480,6 +488,8 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
     */
     if(srv_h) {
       srv_h->setDnsServer();
+    } else if (srv_ip_addr) {
+      srv_ip_addr->setDnsServer();
     }
     break;
 
