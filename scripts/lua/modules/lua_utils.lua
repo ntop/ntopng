@@ -5482,6 +5482,22 @@ function format_confidence_from_json(record)
 
   return confidence
 end
+
+-- ##############################################
+
+function format_location_badge(location)
+  local loc = string.lower(location) or ""
+
+  if loc == "l" then
+    loc = i18n("details.label_short_local_host_badge")
+  elseif loc == "r" then
+    loc = i18n("details.label_short_remote_host_badge")
+  end
+
+  return loc
+end
+
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

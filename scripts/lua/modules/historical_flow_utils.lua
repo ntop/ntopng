@@ -1901,7 +1901,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
    end
 
    if add_hyperlinks and info.cli_location and not isEmptyString(info.cli_location.label) then
-      label = label .. " " .. info.cli_location.label
+      label = label .. " " .. format_location_badge(info.cli_location.label)
    end
 
    if info.cli_port and not isEmptyString(info.cli_port.label) then
@@ -1945,7 +1945,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
    end
 
    if add_hyperlinks and info.srv_location and not isEmptyString(info.srv_location.label) then
-      label = label .. " " .. info.srv_location.label
+      label = label .. " " .. format_location_badge(info.srv_location.label)
    end
 
    if info.srv_port and not isEmptyString(info.srv_port.label) then
