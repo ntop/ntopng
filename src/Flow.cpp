@@ -3499,6 +3499,23 @@ void Flow::housekeep(time_t t) {
 
     dumpCheck(t, true /* LAST dump before delete */);
 
+  #ifdef NTOPNG_PRO
+    if(cli_host && srv_host) {
+      u_int16_t cli_net_id = cli_host->get_local_network_id(), srv_net_id = srv_host->get_local_network_id();
+ 
+      if(cli_net_id != (u_int16_t) -1 &&
+         srv_net_id != (u_int16_t) -1 &&
+         cli_net_id != srv_net_id) {
+        NetworkStats *cli_network_stats = iface->getNetworkStats(cli_net_id), *srv_network_stats = iface->getNetworkStats(srv_net_id);
+        if(cli_network_stats) cli_network_stats->incTrafficBetweenNets(srv_net_id, get_bytes_cli2srv(), get_bytes_srv2cli());
+        if(srv_network_stats) srv_network_stats->incTrafficBetweenNets(cli_net_id, get_bytes_srv2cli(), get_bytes_cli2srv());
+      #ifdef DEBUG
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cli Network ID: %u | Srv Network ID: %u | Bytes: %lu | Num Loc Nets: %u", cli_net_id, srv_net_id, get_bytes(), ntop->getNumLocalNetworks());
+      #endif
+      }
+    }
+  #endif
+
     /*
       Score decrements MUST be performed here as this is the same thread of checks execution where
       scores are increased.

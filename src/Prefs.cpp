@@ -55,7 +55,7 @@ Prefs::Prefs(Ntop *_ntop) {
   emit_flow_alerts = emit_host_alerts = true;
   zmq_publish_events_url = NULL;
   enable_access_log = false, enable_sql_log = false;
-  enable_flow_device_port_rrd_creation = enable_observation_points_rrd_creation = false;
+  enable_flow_device_port_rrd_creation = enable_observation_points_rrd_creation = enable_intranet_traffic_rrd_creation = false;
   reproduce_at_original_speed = false;
   enable_top_talkers = false, enable_idle_local_hosts_cache = false;
   enable_active_local_hosts_cache = false,
@@ -655,6 +655,7 @@ void Prefs::reloadPrefsFromRedis() {
     alert_page_refresh_rate = getDefaultPrefsValue(CONST_ALERT_PAGE_REFRESH_RATE, ALERTS_PAGE_REFRESH_RATE),
 
     enable_observation_points_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_OBSERVATION_POINTS_RRD_CREATION, false),
+    enable_intranet_traffic_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_INTRANET_TRAFFIC_RRD_CREATION, false),
     enable_flow_device_port_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION, false),
     disable_alerts        = getDefaultBoolPrefsValue(CONST_ALERT_DISABLED_PREFS, false),
     enable_activities_debug = getDefaultBoolPrefsValue(CONST_ACTIVITIES_DEBUG_ENABLED, false),
@@ -2099,6 +2100,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "alert_page_refresh_rate", alert_page_refresh_rate);
 
   lua_push_bool_table_entry(vm, "is_observation_points_rrd_creation_enabled", enable_observation_points_rrd_creation);
+  lua_push_bool_table_entry(vm, "is_intranet_traffic_rrd_creation_enabled", enable_intranet_traffic_rrd_creation);
   lua_push_bool_table_entry(vm, "is_flow_device_port_rrd_creation_enabled", enable_flow_device_port_rrd_creation);
 
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);

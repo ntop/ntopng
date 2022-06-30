@@ -16,9 +16,10 @@ local tag_utils = require("tag_utils")
 local page_utils = require("page_utils")
 local auth = require "auth"
 
-local network        = _GET["network"]
+local network_id        = _GET["network"]
 local network_name   = _GET["network_cidr"]
 local page           = _GET["page"]
+local subnet2        = _GET["subnet_2"]
 
 local network_behavior_update_freq = 300 -- Seconds
 
@@ -26,9 +27,9 @@ local ifstats = interface.getStats()
 local ifId = ifstats.id
 
 if(not isEmptyString(network_name)) then
-  network = ntop.getNetworkIdByName(network_name)
+  network_id = ntop.getNetworkIdByName(network_name)
 else
-  network_name = ntop.getNetworkNameById(tonumber(network))
+  network_name = ntop.getNetworkNameById(tonumber(network_id))
 end
 
 local custom_name = getLocalNetworkAlias(network_name)
@@ -43,7 +44,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.networks)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-if(network == nil) then
+if(network_id == nil) then
    print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> ".. i18n("network_details.network_parameter_missing_message") .. "</div>")
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
@@ -52,7 +53,7 @@ end
 --[[
 Create Menu Bar with buttons
 --]]
-local nav_url = ntop.getHttpPrefix().."/lua/network_details.lua?network="..tonumber(network)
+local nav_url = ntop.getHttpPrefix().."/lua/network_details.lua?network="..tonumber(network_id)
 local title = i18n("network_details.network") .. ": "..network_name
 
 page_utils.print_navbar(title, nav_url,
@@ -76,7 +77,7 @@ page_utils.print_navbar(title, nav_url,
 			      label = "<i class='fas fa-file-alt report-icon'></i>",
 			   },
 			   {
-			      hidden = not network or not isAdministrator(),
+			      hidden = not network_id or not isAdministrator(),
 			      active = page == "config",
 			      page_name = "config",
 			      label = "<i class=\"fas fa-cog fa-lg\"></i>",
@@ -90,13 +91,14 @@ Selectively render information pages
 if page == "historical" then
     local schema = _GET["ts_schema"] or "subnet:traffic"
     local selected_epoch = _GET["epoch"] or ""
-    local url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifid='..ifId..'&network='..network..'&page=historical'
+    local url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifid='..ifId..'&network='..network_id..'&page=historical'
 
     local tags = {
       ifid = ifId,
       subnet = network_name,
+      subnet_2 = subnet2,
     }
-
+    local timeseries = {}
     local all_timeseries = {
       {schema="subnet:traffic",             label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
       {schema="subnet:broadcast_traffic",   label=i18n("broadcast_traffic")},
@@ -117,11 +119,32 @@ if page == "historical" then
         {schema="subnet:traffic_tx_behavior_v2", label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true, first_timeseries_only = true, time_elapsed = network_behavior_update_freq,value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"}, metrics_labels = {i18n("graphs.traffic_sent"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
       }
       all_timeseries = table.merge(all_timeseries, pro_timeseries)
+
+      network.select(tonumber(network_id))
+      local net_stats = network.getNetworkStats() or {}
+
+      local net_matrix_ts = {}
+
+      for second_subnet, _ in pairs(net_stats["intranet_traffic"]) do
+        local label_1 = getFullLocalNetworkName(network_name)
+        local label_2 = getFullLocalNetworkName(second_subnet)
+
+        net_matrix_ts[#net_matrix_ts + 1] = { 
+          schema="subnet:intranet_traffic",   
+          label= i18n("graphs.intranet_traffic", { net_1 = label_1, net_2 = label_2 }),
+          split_directions = true --[[ split RX and TX directions ]], 
+          extra_params = { 
+            subnet_2 = second_subnet,
+          }
+        }
+      end
+
+      all_timeseries = table.merge(all_timeseries, net_matrix_ts)
     end
 
-    graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-      timeseries = all_timeseries,
-    })
+    timeseries["timeseries"] = all_timeseries
+
+    graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, timeseries)
 elseif (page == "config") then
     if(not isAdministrator()) then
       return

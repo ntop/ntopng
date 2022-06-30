@@ -28,6 +28,7 @@ NetworkStats::NetworkStats(NetworkInterface *iface, u_int16_t _network_id) : Int
   network_id = _network_id;
   numHosts = 0;
   syn_recvd_last_min = synack_sent_last_min = 0;
+  network_matrix = (traffic *) calloc(ntop->getNumLocalNetworks(), sizeof(traffic));
 
 #ifdef NTOPNG_PRO
   nextMinPeriodicUpdate = 0;
@@ -74,6 +75,7 @@ bool NetworkStats::match(const AddressTree * const tree) const {
 
 NetworkStats::~NetworkStats() {
 #ifdef NTOPNG_PRO
+  if(network_matrix) free(network_matrix);
   if(score_behavior) delete(score_behavior);
   if(traffic_tx_behavior) delete(traffic_tx_behavior);
   if(traffic_rx_behavior) delete(traffic_rx_behavior);
@@ -103,6 +105,19 @@ void NetworkStats::lua(lua_State* vm, bool diff) {
   lua_settable(vm, -3);
 
 #ifdef NTOPNG_PRO
+  lua_newtable(vm);
+  for(u_int16_t i = 0; i < ntop->getNumLocalNetworks(); i++) {
+    lua_newtable(vm);
+    lua_push_uint64_table_entry(vm, "bytes_sent", network_matrix[i].bytes_sent);
+    lua_push_uint64_table_entry(vm, "bytes_rcvd", network_matrix[i].bytes_rcvd);
+    lua_pushstring(vm, ntop->getLocalNetworkName(i));
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+  lua_pushstring(vm, "intranet_traffic");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
   if(traffic_rx_behavior)
     traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior", diff ? NETWORK_BEHAVIOR_REFRESH : 0);
   if(traffic_tx_behavior)
@@ -200,6 +215,24 @@ void NetworkStats::updateStats(const struct timeval *tv)  {
 }
 
 #ifdef NTOPNG_PRO
+
+/* ***************************************** */
+
+void NetworkStats::incTrafficBetweenNets(u_int16_t net_id, u_int32_t bytes_sent, u_int32_t bytes_rcvd) { 
+  if(net_id < ntop->getNumLocalNetworks() && net_id != (u_int16_t) -1) {
+    network_matrix[net_id].bytes_sent += bytes_sent; 
+    network_matrix[net_id].bytes_rcvd += bytes_rcvd; 
+  }
+}
+
+/* ***************************************** */
+
+void NetworkStats::resetTrafficBetweenNets() { 
+  for(u_int16_t i = 0; i < ntop->getNumLocalNetworks(); i++) {
+    network_matrix[i].bytes_sent = 0; 
+    network_matrix[i].bytes_rcvd = 0;
+  }
+}
 
 /* ***************************************** */
 

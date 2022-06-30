@@ -1502,6 +1502,8 @@ local known_parameters = {
    ["ndpi_old_cat_id"]         = validateNumber,                -- An ndpi category id before change
    ["new_application"]         = validateSingleWord,            -- A new nDPI application protocol name
 
+   ["subnet_2"]                 = validateUnquoted,
+
 -- Wireless
    ["wifi_enabled"]            = validateBool,
    ["wifi_ssid"]               = validateSingleWord,
@@ -1826,6 +1828,7 @@ local known_parameters = {
    ["toggle_local_hosts_stats_rrd_creation"]       = validateBool,
    ["toggle_l2_devices_traffic_rrd_creation"]      = validateBool,
    ["toggle_observation_points_rrd_creation"]      = validateBool,
+   ["toggle_intranet_traffic_rrd_creation"]        = validateBool,
    ["toggle_system_probes_timeseries"]             = validateBool,
    ["toggle_flow_rrds"]                            = validateBool,
    ["toggle_pools_rrds"]                           = validateBool,

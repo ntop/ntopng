@@ -39,16 +39,16 @@ static int ntop_network_get_network_stats(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_select_local_network(lua_State* vm) {
-  u_int8_t local_network_id = (u_int8_t) -1;
+  u_int16_t local_network_id = (u_int16_t) -1;
   NetworkInterface *iface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TNIL)
-    local_network_id = (u_int8_t) -1;
+    local_network_id = (u_int16_t) -1;
   else {
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-    local_network_id = (u_int8_t) lua_tointeger(vm, 1);
+    local_network_id = (u_int16_t) lua_tointeger(vm, 1);
   }
 
   if(iface)
@@ -166,12 +166,25 @@ static int ntop_network_release_triggered_alert(lua_State* vm) {
   return(ntop_release_triggered_alert(vm, c->network, 1));
 }
 
+/* ****************************************** */
+
+static int ntop_network_reset_traffic_between_nets(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NetworkStats *ns = c ? c->network : NULL;
+
+  if(ns) ns->resetTrafficBetweenNets();
+
+  lua_pushnil(vm);
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
 /* **************************************************************** */
 
 static luaL_Reg _ntop_network_reg[] = {
 /* Public User Scripts API, documented at doc/src/api/lua_c/network_checks/network.lua */
   { "select",                   ntop_select_local_network            },
   { "getNetworkStats",          ntop_network_get_network_stats       },
+  { "resetTrafficBetweenNets",  ntop_network_reset_traffic_between_nets },
 
 /* END Public API */
 

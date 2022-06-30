@@ -72,7 +72,7 @@ class Prefs {
   u_int32_t housekeeping_frequency;
   bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache,
     enable_active_local_hosts_cache;
-  bool enable_flow_device_port_rrd_creation, enable_observation_points_rrd_creation;
+  bool enable_flow_device_port_rrd_creation, enable_observation_points_rrd_creation, enable_intranet_traffic_rrd_creation;
   bool enable_tiny_flows_export;
   bool enable_captive_portal, enable_informative_captive_portal, mac_based_captive_portal;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
@@ -381,6 +381,7 @@ class Prefs {
   inline bool is_tiny_flows_export_enabled()             { return(enable_tiny_flows_export);            };
   inline bool is_flow_device_port_rrd_creation_enabled() { return(enable_flow_device_port_rrd_creation);};
   inline bool is_observation_points_rrd_creation_enabled() { return(enable_observation_points_rrd_creation);};
+  inline bool is_intranet_traffic_rrd_creation_enabled()   { return(enable_intranet_traffic_rrd_creation);};
   inline bool is_arp_matrix_generation_enabled()         { return(enable_arp_matrix_generation);        };
 
   inline bool do_override_dst_with_post_nat_dst()     const { return(override_dst_with_post_nat_dst);     };

@@ -1141,4 +1141,9 @@ typedef enum {
   confidence_dpi = 1
 } ndpiConfidence;
 
+typedef struct {
+  u_int32_t bytes_sent;
+  u_int32_t bytes_rcvd;
+} traffic;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

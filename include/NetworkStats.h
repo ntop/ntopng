@@ -35,6 +35,7 @@ class NetworkStats : public InterfaceMemberAlertableEntity, public GenericTraffi
   AlertCounter syn_flood_victim_alert;
   AlertCounter flow_flood_victim_alert;
   u_int32_t syn_recvd_last_min, synack_sent_last_min; /* syn scan counters (victim) */
+  traffic *network_matrix;
 
 #if defined(NTOPNG_PRO)
   time_t nextMinPeriodicUpdate;
@@ -90,6 +91,11 @@ class NetworkStats : public InterfaceMemberAlertableEntity, public GenericTraffi
   inline void incInnerTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
     incTcp(&tcp_packet_stats_inner, ooo_pkts, retr_pkts, lost_pkts, keep_alive_pkts);
   };
+
+#ifdef NTOPNG_PRO
+  void incTrafficBetweenNets(u_int16_t net_id, u_int32_t bytes_sent, u_int32_t bytes_rcvd);
+  void resetTrafficBetweenNets();
+#endif
 
   inline void incNumHosts() { numHosts++; };
   inline void decNumHosts() { numHosts--; };

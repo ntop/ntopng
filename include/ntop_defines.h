@@ -675,6 +675,7 @@
 #define CONST_RUNTIME_PREFS_LOG_TO_FILE                NTOPNG_PREFS_PREFIX".log_to_file"
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQ          NTOPNG_PREFS_PREFIX".housekeeping_freq"
 #define CONST_RUNTIME_PREFS_OBSERVATION_POINTS_RRD_CREATION   NTOPNG_PREFS_PREFIX".observation_points_rrd_creation" /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_INTRANET_TRAFFIC_RRD_CREATION     NTOPNG_PREFS_PREFIX".intranet_traffic_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION     NTOPNG_PREFS_PREFIX".flow_device_port_rrd_creation"   /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_THPT_CONTENT               NTOPNG_PREFS_PREFIX".thpt_content"     /* bps / pps */
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        NTOPNG_PREFS_PREFIX".alerts_global.min.local_hosts"
