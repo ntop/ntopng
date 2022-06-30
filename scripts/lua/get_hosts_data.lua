@@ -340,6 +340,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)
    if(sent2rcvd == nil) then sent2rcvd = 0 end
+   record["column_score"] = custom_column_utils.hostToScoreValue(value)
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
 	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
 
