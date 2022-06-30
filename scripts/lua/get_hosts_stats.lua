@@ -62,7 +62,8 @@ local function get_host_data(host)
    res["column_since"] = secondsToTime(now-host["seen.first"]+1)
    res["column_last"] = secondsToTime(now-host["seen.last"]+1)
    res["column_traffic"] = bytesToSize(host["bytes.sent"]+host["bytes.rcvd"])
-
+   res["column_score"] = custom_column_utils.hostToScoreValue(host)
+   
    if not isEmptyString(custom_column) and custom_column_utils.isCustomColumn(custom_column) then
       local custom_column_key, custom_column_format = custom_column_utils.label2criteriakey(custom_column)
       local val = custom_column_utils.hostStatsToColumnValue(host, custom_column_key, true)

@@ -28,7 +28,7 @@ custom_column_utils.available_custom_columns = {
    { "total_num_retx_rcvd", i18n("total_retransmissions_rcvd"), function(host_stats) return host_stats["tcpPacketStats.rcvd"]["retransmissions"] end, format_utils.formatValue, "center" },
    { "alerts", i18n("show_alerts.engaged_alerts"), "num_alerts", format_utils.formatValue, "center", {page = "alerts"} },
    { "total_alerts", i18n("alerts_dashboard.total_alerts"), "total_alerts", format_utils.formatValue, "center" },
-   { "score", i18n("score"), "score", format_utils.formatValue, "center", nil, (not isScoreEnabled()) },
+--   { "score", i18n("score"), "score", format_utils.formatValue, "center", nil, (not isScoreEnabled()) },
    { "score_as_client", i18n("score_as_client"), "score.as_client", format_utils.formatValue, "center", nil, (not isScoreEnabled()) },
    { "score_as_server", i18n("score_as_server"), "score.as_server", format_utils.formatValue, "center", nil, (not isScoreEnabled()) },
 }
@@ -50,6 +50,24 @@ local function host_stats_getter(host_stats, key)
    end
 end
 
+-- ###########################################
+
+function custom_column_utils.hostToScoreValue(host_stats)
+   local score = { "score", i18n("score"), "score", format_utils.formatValue, "center", nil, (not isScoreEnabled()) }
+   local val = nil
+   val = host_stats_getter(host_stats, score[3])
+
+   if not tonumber(val) or val > 0 then
+      val = score[4](val)
+   else
+      val = ""
+   end
+
+   if((score[6] ~= nil) and (tonumber(val) ~= 0)) then
+      val = hostinfo2detailshref(host_stats, score[6], val)
+   end
+   return(val)
+end
 -- ###########################################
 
 function custom_column_utils.hostStatsToColumnValue(host_stats, column, formatted)

@@ -29,11 +29,12 @@ function host_table_setID (row) {
   row.find("td").eq(index++).attr('id', host_key+"_since");
   
   // hosts_stats_bottom
+  row.find("td").eq(index++).attr('id', host_key+"_score");
   row.find("td").eq(index++).attr('id', host_key+"_breakdown");
   row.find("td").eq(index++).attr('id', host_key+"_throughput");
   row.find("td").eq(index++).attr('id', host_key+"_traffic");
   
-  // console.log(row);
+  //console.log(row);
   return row;
 
 }
@@ -54,6 +55,7 @@ function get_row_key(host_key) {
 function row_update(host_key, data) {
   if (!data) return;
   $('td[id="'+host_key+'_since"]').html(data.column_since);
+  $('td[id="'+host_key+'_score"]').html(data.column_score);
   $('td[id="'+host_key+'_breakdown"]').html(data.column_breakdown);
   $('td[id="'+host_key+'_throughput"]').html(data.column_thpt);
   $('td[id="'+host_key+'_traffic"]').html(data.column_traffic);
