@@ -164,9 +164,11 @@ if(hosts_stats ~= nil) then
 	 hosts_stats[key]["name"] = update_host_name(hosts_stats[key])
 	 vals[hosts_stats[key]["name"]..postfix] = key
       elseif(sortColumn == "column_since") then
-	 vals[hosts_stats[key]["seen.first"]+postfix] = key
+   vals[hosts_stats[key]["seen.first"]+postfix] = key
       elseif(sortColumn == "column_alerts") then
-	 vals[hosts_stats[key]["num_alerts"]+postfix] = key
+   vals[hosts_stats[key]["seen.first"]+postfix] = key
+      elseif(sortColumn == "column_score") then
+	 vals[hosts_stats[key]["score"]+postfix] = key
       elseif(sortColumn == "column_last") then
 	 vals[hosts_stats[key]["seen.last"]+postfix] = key
       elseif(sortColumn == "column_country") then

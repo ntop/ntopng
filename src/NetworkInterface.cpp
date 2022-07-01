@@ -4683,7 +4683,11 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_obs_point:
     r->elems[r->actNumEntries++].numericValue = h->get_observation_point_id();
     break;
-
+  
+  case column_score: 
+    r->elems[r->actNumEntries++].numericValue = h->getScore(); 
+    break;
+  
   case column_thpt:
     r->elems[r->actNumEntries++].numericValue = h->getBytesThpt();
     break;
@@ -4731,7 +4735,6 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_total_num_retx_sent:  r->elems[r->actNumEntries++].numericValue = h->getTcpPacketSentStats()->get_retr(); break;
   case column_total_num_retx_rcvd:  r->elems[r->actNumEntries++].numericValue = h->getTcpPacketRcvdStats()->get_retr(); break;
   case column_total_alerts:    r->elems[r->actNumEntries++].numericValue = h->getTotalAlerts(); break;
-  case column_score: r->elems[r->actNumEntries++].numericValue = h->getScore(); break;
   case column_score_as_client: r->elems[r->actNumEntries++].numericValue = h->getScoreAsClient(); break;
   case column_score_as_server: r->elems[r->actNumEntries++].numericValue = h->getScoreAsServer(); break;
 
