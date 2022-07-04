@@ -146,6 +146,32 @@ Countries, VLANs and so on, which can be enabled independently.
   :align: center
   :alt: InfluxDB Preferences
 
+Network Matrix Timeseries
+-------------------------
+
+.. note::
+
+  Network Matrix is available only with at least Pro License
+
+A particular timeseries is also available in the list, the Network Matrix.
+It represent the traffic done between Local Networks (can be added to ntopng using the `-m` option in the configuration file), both sent and received.
+
+.. figure:: ../img/basic_concepts_timeseries_enable_network_matrix.png
+  :align: center
+  :alt: Network Matrix Preference
+
+It can be found into the Networks timeseries page; to jump to it, access the Networks tab and then click the charts icon. 
+This particular timeseries is available only from the 30 minutes timeseries on (unavailable for the 5 minutes time range).
+
+.. figure:: ../img/basic_concepts_timeseries_jump_to_network_matrix.png
+  :align: center
+  :alt: Network Matrix Preference
+
+.. figure:: ../img/basic_concepts_timeseries_network_matrix.png
+  :align: center
+  :alt: Network Matrix
+
+
 
 .. _RRD: https://oss.oetiker.ch/rrdtool
 
