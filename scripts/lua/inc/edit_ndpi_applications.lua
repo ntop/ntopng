@@ -16,6 +16,11 @@ local protos_utils = require("protos_utils")
 local info = ntop.getInfo()
 local has_protos_file = protos_utils.hasProtosFile()
 
+if proto_filter and not tonumber(proto_filter) then
+  proto_filter = interface.getnDPIProtoId(proto_filter)
+  proto_filter = tostring(proto_filter)
+end
+
 local ifId = getInterfaceId(ifname)
 
 if not isAdministratorOrPrintErr() then
