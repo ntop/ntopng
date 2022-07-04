@@ -1106,7 +1106,7 @@ end
 -- ##############################################
 
 -- @brief Update the configuration of a specific script in a configset
-function checks.updateScriptConfig(script_key, subdir, new_config, additional_filters)
+function checks.updateScriptConfig(script_key, subdir, new_config)
    local configset = checks.getConfigset()
    local script_type = checks.getScriptType("flow")
    new_config = new_config or {}
@@ -1186,83 +1186,6 @@ function checks.updateScriptConfig(script_key, subdir, new_config, additional_fi
 	    end
 	 end
       end
-   end
-
-   -- Updating the filters
-   if script.alert_id and additional_filters and (subdir == "host" or subdir == "flow") then
-      if subdir == "host" then
-	 local current_filters = alert_exclusions.host_alerts_get_exclusions(script.alert_id)
-
-	 -- Add new filters
-	 for _, new_filter in pairs(additional_filters["new_filters"] or {}) do
-	    local new_ip = new_filter["ip"]
-
-	    if not current_filters[new_ip] then
-	       -- Not an already-added filter
-	       alert_exclusions.disable_host_alert_by_host(new_ip, 0, script.alert_id)
-	    else
-	       -- Filter was already added, nothing to do
-	       current_filters[new_ip] = nil
-	    end
-	 end
-
-	 -- Here we have leftovers, that is, previously added filters that should
-	 -- be removed as they don't appear in the new filters
-	 for current_ip, _ in pairs(current_filters or {}) do
-	    alert_exclusions.enable_host_alert_by_host(current_ip, 0, script.alert_id)
-	 end
-      elseif subdir == "flow" then
-	 local current_filters = alert_exclusions.flow_alerts_get_exclusions(script.alert_id)
-
-	 -- Add new filters (see above for hosts)
-	 for _, new_filter in pairs(additional_filters["new_filters"] or {}) do
-	    local new_ip = new_filter["ip"]
-
-	    if not current_filters[new_ip] then
-	       -- Not an already-added filter
-	       alert_exclusions.disable_flow_alert_by_host(new_ip, 0, script.alert_id)
-	    else
-	       -- Filter was already added, nothing to do
-	       current_filters[new_ip] = nil
-	    end
-	 end
-
-	 -- See above for flows
-	 for current_ip, _ in pairs(current_filters or {}) do
-	    alert_exclusions.enable_flow_alert_by_host(current_ip, 0, script.alert_id)
-	 end
-      end
-   elseif additional_filters then
-      local new_filter_conf = filter_conf
-      
-      if not new_filter_conf["filter"] then
-	 new_filter_conf["filter"] = {}
-      end
-      
-      if not new_filter_conf["filter"]["current_filters"] then
-	 new_filter_conf["filter"]["current_filters"] = {}
-	 new_filter_conf["filter"]["current_filters"] = (checks.getDefaultFilters(interface.getId(), subdir, script_key))["current_filters"] or {}
-      end
-
-      -- If filter reset requested, clear all the filters
-      if additional_filters["reset_filters"] == "true" then
-	 new_filter_conf["filter"]["current_filters"] = {}
-      end
-
-      if table.len(additional_filters) == 0 then
-	 new_filter_conf["filter"]["current_filters"] = {}
-      else
-	 -- There can be multiple filters, so cycle through them
-	 for _, new_filter in pairs(additional_filters["new_filters"]) do
-	    local add_params = filterIsEqual(new_filter_conf["filter"]["current_filters"], new_filter)
-	    if add_params > 0 then
-	       new_filter_conf["filter"]["current_filters"][add_params] = new_filter
-	    end
-	 end
-      end
-
-      -- Updating the configuration
-      configset["filters"][subdir][script_key] = new_filter_conf
    end
    
    if table.len(applied_config) > 0 then
@@ -1714,86 +1637,6 @@ function checks.prepareFilterSQLiteWhere(subdir, check, filter)
    where = table.concat(where, " AND ")
 
    return where
-end
-
--- #################################
-
-function checks.parseFilterParams(additional_filters, subdir, reset_filters)
-   local separator   = ";"
-   local filter_list = {}
-   local param_list  = {}
-
-   -- Empty string given, error
-   if isEmptyString(additional_filters) then
-      return false, i18n("invalid_filters.empty")
-   end
-   
-   -- Sanity Check, Sometimes js puts a "_" or a ";" at the end of the string so removes them
-   if additional_filters:match("(.*)_$") or additional_filters:match("(.*);$") then
-      additional_filters = additional_filters:sub(1, -2)
-   end
-
-   additional_filters = additional_filters:gsub(" ", "")
-
-   if reset_filters == true then
-      filter_list["reset_filters"] = "true"
-   end
-
-   filter_list["new_filters"] = {}
-   param_list = filter_list["new_filters"]
-   
-   -- Splitting on the ";" - ";" is used to remove "\n" from js
-   local ex_list = split(additional_filters, separator)
-   local subdir_id = getSubdirId(subdir)
-   
-   if subdir_id == -1 then
-      return false, i18n("invalid_filters.invalid_subdir")
-   end
-
-   -- Retrieving the available filters for the subdir. e.g. flow subdir
-   local available_fields = available_subdirs[subdir_id]["filter"]["available_fields"]
-
-   for filter_num, filter in pairs(ex_list) do
-      separator  = ","
-      -- Splitting the filters
-      local parameters = split(filter, separator)
-
-      for _,field in pairs(parameters) do
-	 if field ~= "" then
-	    separator        = "="
-	    -- Splitting filter name and filter value
-	    local field_key_value = split(field, separator)
-
-	    -- Checking that for each filter a key and a value is given
-	    if not table.len(field_key_value) == 2 then
-	       return false, i18n("invalid_filters.few_args", {args=field})
-	    end
-
-	    local field_key   = field_key_value[1]
-	    local field_value = field_key_value[2]
-
-	    -- Getting the http_lint for the selected param, if no param is found
-	    -- then the filter is not correct
-
-	    if not available_fields[field_key] or not available_fields[field_key]["lint"] or not available_fields[field_key]["lint"](field_value) then
-	       return false, i18n("invalid_filters.incorrect_args", {args=field})
-	    end
-
-	    if not param_list[filter_num] then
-	       param_list[filter_num] = {}
-	    end
-
-	    -- Already added this param before, so 2 identical arguments given
-	    if param_list[filter_num][field_key] then
-	       return false, i18n("invalid_filters.double_arg", {args=field})
-	    end
-
-	    param_list[filter_num][field_key] = field_value
-	 end
-      end
-   end
-
-   return true, filter_list
 end
 
 -- ##############################################

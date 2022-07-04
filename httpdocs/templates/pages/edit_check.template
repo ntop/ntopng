@@ -31,13 +31,6 @@
                     <li class="nav-item">
                       <a class="nav-link active" href="#params" data-bs-toggle='tab' role="tab">{{ i18n("edit_check.hooks_config") }}</a>
                     </li>
-
-                    {# Add the exclusion list tab only for the flow scripts#}
-                    {% if (edit_check.check_subdir == "flow") then %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="#exclusion-list" data-bs-toggle='tab' role="tab">{{ i18n("edit_check.exclusion_list") }}</a>
-                        </li>
-                    {% end %}
                 </ul>
             </div>
             <div class="card-body">
@@ -73,15 +66,6 @@
                             </div>                    
                         </form>
                     </div>
-                    {% if (edit_check.check_subdir == "flow") then %}
-                        <div class="tab-pane fade show" id="exclusion-list">
-                            <div class="mb-3">
-                                <label>{{ i18n("edit_check.exclusion_list") }}:</label>
-                                <textarea name="exclusion-list" id="exclusionlist-textarea" class="w-50 form-control" rows="6">{{ edit_check.filters }}</textarea>
-                                <small class="text-muted">{{ i18n("scripts_list.exclusion_list") }}</small>
-                            </div>
-                        </div>
-                    {% end %}
                     <div class="alert alert-danger mt-2" id="error-alert" style="display: none;">
                     </div>
                 </div>
@@ -141,7 +125,6 @@ $(document).ready(function() {
     const RESET_ENDPOINT = "{{ ntop.getHttpPrefix() }}/lua/get_check_config.lua?check_subdir={{edit_check.check_subdir}}&script_key={{edit_check.script_key}}&factory=true"
     const SAVE_ENDPOINT = "{{ ntop.getHttpPrefix() }}/lua/edit_check_config.lua";
 
-    const $exclusionList = $(`[name='exclusion-list']`);
     const $errorAlert = $(`#error-alert`);
 
     // Handle the enabled state of each input contained in a fieldset.
@@ -260,11 +243,6 @@ $(document).ready(function() {
             csrf: CSRF,
             JSON: JSON.stringify(serialized),
         };
-
-        // check if the exclusion list is defined
-        if ($exclusionList.length > 0) {
-            payload.script_exclusion_list = $exclusionList.val();
-        }
 
         const request = $.post(SAVE_ENDPOINT, payload);
         request.then(function(data) {

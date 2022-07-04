@@ -25,7 +25,6 @@ sendHTTPContentTypeHeader('application/json')
 
 local subdir = _POST["check_subdir"]
 local script_key = _POST["script_key"]
-local alert_exclusion_list = _POST['script_exclusion_list']
 
 -- ################################################
 
@@ -64,17 +63,7 @@ local result = {}
 local success = false
 local err = ""
 
-local additional_filters = {}
-if alert_exclusion_list ~= nil then
-  success, additional_filters = checks.parseFilterParams(alert_exclusion_list, subdir, true)
-
-  if not success then
-    err = additional_filters
-    goto response
-  end
-end
-
-success, err = checks.updateScriptConfig(script_key, subdir, data, additional_filters)
+success, err = checks.updateScriptConfig(script_key, subdir, data)
 
 ::response::
 

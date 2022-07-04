@@ -153,7 +153,6 @@ i18n_ext.scripts_list.templates.elephant_flows_l2r = "{{ i18n('scripts_list.temp
 i18n_ext.scripts_list.templates.elephant_flows_r2l = "{{ i18n('scripts_list.templates.elephant_flows_r2l') }}";
 i18n_ext.scripts_list.templates.template_not_implemented = "{{ i18n('scripts_list.templates.template_not_implemented') }}";
 i18n_ext.scripts_list.templates.blacklisted_country_list = "{{ i18n('scripts_list.templates.blacklisted_country_list') }}";
-i18n_ext.scripts_list.exclusion_list_title = "{{ i18n('scripts_list.exclusion_list_title') }}";
 
 i18n_ext.enable = "{{ i18n('show_alerts.enable_alerts') }}";
 i18n_ext.disable = "{{ i18n('show_alerts.disable_alerts') }}";
@@ -489,35 +488,10 @@ else if (seconds >= 86400) {
 
 /* ******************************************************* */
 
-function getSanitizedScriptExList(script_exclusion_list) {
-var ex_list_purified;
-
-// IP only are supported at the moment, values are listed without <name>=
-// as this is more intuitive for the user, however the backend 
-// handles <name>=<value> (see also appendExclusionList)
-//ex_list_purified = script_exclusion_list.split("\n").join(";");
-
-ex_list_purified = script_exclusion_list.split(" ").join(""); 
-ex_list_purified = ex_list_purified.split("\n").join("");
-if (ex_list_purified.length > 0) 
-  ex_list_purified = "ip="+ex_list_purified;
-ex_list_purified = ex_list_purified.split(",").join(";ip=");
-
-return ex_list_purified.split(" ").join("");
-}
-
-/* ******************************************************* */
-
 const apply_edits_script = (template_data, check_subdir, script_key) => {
-const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
-var script_exclusion_list = exclusionList || undefined;
 
 const $apply_btn = $('#btn-apply');
 const $error_label = $("#apply-error");
-
-if (script_exclusion_list !== undefined) {
-   script_exclusion_list = getSanitizedScriptExList(script_exclusion_list);
-}
 
 // remove dirty class from form
 $('#edit-form').removeClass('dirty')
@@ -527,7 +501,6 @@ $.post(`${http_prefix}/lua/edit_check_config.lua`, {
    check_subdir: check_subdir,
    script_key: script_key,
    csrf: pageCsrf,
-   script_exclusion_list: script_exclusion_list,
    JSON: JSON.stringify(template_data)
 })
    .done((d, status, xhr) => {
@@ -571,37 +544,8 @@ $.get(`${http_prefix}/lua/get_check_config.lua`, {
       if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
 
       const { metadata } = reset_data;
-      const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
-      const script_exclusion_list = exclusionList || undefined;
 
-      /* Creating the default string for the exclusion list when reset is called */
-      if (script_exclusion_list) {
-         let ex_list_str = ""
-         const scriptConfExList = reset_data.filters;
-
-         if (scriptConfExList) {
-            const scriptConfCurrFil = scriptConfExList.current_filters;
-            if (scriptConfCurrFil) {
-               for (const [index, filters] of Object.entries(scriptConfCurrFil)) {
-                  for (const [name, value] of Object.entries(filters)) {
-                     // Concat the string to create a human readable string
-                     if (name === "str_format") {
-                        // Temporary check, needs to be removed in a few time
-                        continue;
-                     }
-                     ex_list_str = ex_list_str + name + "=" + value + ",";
-                  }
-
-                  ex_list_str = ex_list_str.slice(0, -1);
-                  ex_list_str = ex_list_str + "\n";
-               }
-            }
-
-            $(`#script-config-editor textarea[name='exclusion-list']`).val(ex_list_str);
-         }
-      }
-
-       // call callback function to reset fields
+      // call callback function to reset fields
       callback_reset(reset_data);
 
       // add dirty class to form
@@ -1515,12 +1459,6 @@ $.get(`${http_prefix}/lua/get_check_config.lua`,
       // render template
       template.render();
 
-// append the exclusion list 
-      if(script_subdir == "flow" || script_subdir == "host")
-    appendExclusionList(data);
-      else
-        $(`#exclusion-list-template`).hide();
-
       // bind on_apply event on apply button
       $("#edit-form").off("submit").on('submit', template.apply_click_event);
       $("#btn-reset").off("click").on('click', template.reset_click_event);
@@ -1653,55 +1591,6 @@ $button.off('click').on('click', function () {
 
 return $button;
 };
-
-function appendExclusionList(data) {
-let ex_list_str = ""
-const scriptConfExList = data.filters;
-
-if (scriptConfExList) {
-   const scriptConfCurrFil = scriptConfExList.current_filters;
-   if (scriptConfCurrFil) {
-      for (const [index, filters] of Object.entries(scriptConfCurrFil)) {
-         for (const [name, value] of Object.entries(filters)) {
-            // Concat the string to create a human readable string
-            if (name === "str_format") {
-               // Temporary check, needs to be removed in a few time
-               continue;
-            }
-            // IP only are supported at the moment, just list the values without <name>=
-            // as this is more intuitive for the user
-            //ex_list_str = ex_list_str + name + "=" + value + ",";
-            ex_list_str = ex_list_str + value + ",";
-         }
-
-         //ex_list_str = ex_list_str.slice(0, -1);
-         //ex_list_str = ex_list_str + "\n";
-      }
-      if (ex_list_str.length > 0) 
-        ex_list_str = ex_list_str.slice(0, -1);
-   }
-}
-
- if ($(`#exclusion-list-template`).length) {
-      /* Only show exclusion lists configuration textarea for those entities that support it */
-      let $container;
-      const $textarea = $($(`#exclusion-list-template`).html());
-      const label = i18n_ext.scripts_list.exclusion_list_title;
-
-      if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder)) {
-         $container = $(`<tr></tr>`);
-         $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
-         $(`<label class='col-3 col-form-label'>${label}</label>`),
-         $(`<div class='col-12'></div>`).append($textarea))));
-      } else {
-         $container = $(`<tr><td></td></tr>`);
-         $container.append($(`<td class='align-middle'>${label}</td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append($textarea)));
-      }
-
-      $(`#script-config-editor`).append($container);
-      $(`#script-config-editor Textarea[name='exclusion-list']`).val(ex_list_str);
- }
-}
 
 function delegateActionButton(gui) {
 
