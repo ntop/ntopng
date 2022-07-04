@@ -356,7 +356,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   prefs = _prefs;
 
-  if(!quick_registration) {
+  if(!quick_registration) {   
     if(stat(prefs->get_data_dir(), &buf)
        || (!(buf.st_mode & S_IFDIR))  /* It's not a directory */
        // || (!(buf.st_mode & S_IWRITE)) /* It's not writable    */
@@ -396,7 +396,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     if(ntop->getRedis() == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize redis. Quitting...");
       exit(-1);
-    }
+    }    
   }
 
 #ifdef NTOPNG_PRO
@@ -408,6 +408,8 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   if(quick_registration) return;
 
+  checkReloadAlertExclusions();
+  
   system_interface = new (std::nothrow) NetworkInterface(SYSTEM_INTERFACE_NAME, SYSTEM_INTERFACE_NAME);
 
   /* License check could have increased the number of interfaces available */
@@ -551,7 +553,6 @@ void Ntop::start() {
 #endif
 
   checkReloadHostPools();
-  checkReloadAlertExclusions();
   checkReloadFlowChecks();
   checkReloadHostChecks();
 

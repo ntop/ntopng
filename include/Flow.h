@@ -871,7 +871,7 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getTLSNotAfter()  { return(isTLS() ? protos.tls.notAfter    : 0); };
   inline char* getTLSCertificateIssuerDN()  { return(isTLS() ? protos.tls.issuerDN  : NULL); }
   inline char* getTLSCertificateSubjectDN() { return(isTLS() ? protos.tls.subjectDN : NULL); }
-
+  inline void  setTLSCertificateIssuerDN(char *issuer)  { if(protos.tls.issuerDN) free(protos.tls.issuerDN); protos.tls.issuerDN = strdup(issuer); }
   inline void setTOS(u_int8_t tos, bool is_cli_tos) { if(is_cli_tos) cli2srv_tos = tos; srv2cli_tos = tos; }
   inline u_int8_t getTOS(bool is_cli_tos) const { return (is_cli_tos ? cli2srv_tos : srv2cli_tos); }
 

@@ -468,7 +468,29 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if(zflow->ja3c_hash) flow->updateJA3C(zflow->ja3c_hash);
   if(zflow->ja3s_hash) flow->updateJA3S(zflow->ja3s_hash);
 
-  if(zflow->flow_risk_info) flow->setJSONRiskInfo(zflow->flow_risk_info);
+  if(zflow->flow_risk_info) {
+    json_object *o, *obj;
+    enum json_tokener_error jerr = json_tokener_success;
+    
+    flow->setJSONRiskInfo(zflow->flow_risk_info);
+
+    /*
+      We use riskInfo to grab some flow attributes
+      to enrich the memory flor representation
+    */
+    if((o = json_tokener_parse_verbose(zflow->flow_risk_info, &jerr)) != NULL) {
+      /* NOTE: keep in sync with  FlowRisk::ignoreRisk() */
+      if(json_object_object_get_ex(o, "6" /* NDPI_TLS_SELFSIGNED_CERTIFICATE */, &obj)) {
+	const char *issuerDN = json_object_get_string(obj);
+
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]", issuerDN);
+	
+	flow->setTLSCertificateIssuerDN((char*)issuerDN);
+      }
+
+      json_object_put(o);
+    }    
+  }
   
 #ifdef NTOPNG_PRO
   if(zflow->custom_app.pen) {
@@ -484,6 +506,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if(zflow->external_alert) {
     enum json_tokener_error jerr = json_tokener_success;
     json_object *o = json_tokener_parse_verbose(zflow->external_alert, &jerr);
+    
     if(o) flow->setExternalAlert(o);
   }
 
