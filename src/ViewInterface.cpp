@@ -513,6 +513,26 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
         if(srv_ip->isSmtpServer()) srv_host->setSmtpServer(); 
       }
 
+    #ifdef NTOPNG_PRO
+      if(cli_host && srv_host) {
+        u_int16_t cli_net_id = cli_host->get_local_network_id(), srv_net_id = srv_host->get_local_network_id();
+  
+        if(cli_net_id != (u_int16_t) -1 &&
+          srv_net_id != (u_int16_t) -1 &&
+          cli_net_id != srv_net_id &&
+          partials.get_cli2srv_bytes() > 0 &&
+          partials.get_srv2cli_bytes() > 0) {
+          NetworkStats *cli_network_stats = getNetworkStats(cli_net_id), *srv_network_stats = getNetworkStats(srv_net_id);
+          if(cli_network_stats) cli_network_stats->incTrafficBetweenNets(srv_net_id, partials.get_cli2srv_bytes(), partials.get_srv2cli_bytes());
+          if(srv_network_stats) srv_network_stats->incTrafficBetweenNets(cli_net_id, partials.get_srv2cli_bytes(), partials.get_cli2srv_bytes());
+        #ifdef DEBUG
+          ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cli Network ID: %u | Srv Network ID: %u | Bytes: %lu | Num Loc Nets: %u", cli_net_id, srv_net_id, partials.get_srv2cli_bytes() + partials.get_cli2srv_bytes(), ntop->getNumLocalNetworks());
+        #endif
+        }
+      }
+    #endif
+
+
       if(cli_host) {
 	if(first_partial) {
 	  cli_host->incNumFlows(f->get_last_seen(), true), cli_host->incUses();
