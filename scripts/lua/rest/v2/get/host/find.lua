@@ -201,7 +201,7 @@ if not is_system_interface and not hosts_only then
 
          results[#results + 1] = {
 	    name = name,
-            type="network",
+            type = "network",
             network = network_id,
             links = links,
          }
@@ -240,7 +240,7 @@ if not is_system_interface and not hosts_only then
       elseif string.containsIgnoreCase(asn, query) then
          results[#results + 1] = {
             name = asn,
-	    type="asn",
+	    type = "asn",
             asn = as.asn,
             links = links,
             badges = badges,
@@ -288,6 +288,7 @@ if not hosts_only then
 	    name = matching_mac .. ' '..title,
             type = "snmp",
 	    ip = snmp_device_ip,
+            snmp = snmp_device_ip,
             snmp_port_idx = snmp_port_idx,
             links = links,
          }
@@ -324,6 +325,7 @@ if not hosts_only then
 	    name = title,
             type = "snmp",
 	    ip = snmp_device_ip,
+            snmp = snmp_device_ip,
             snmp_port_idx = snmp_port_idx,
             links = links,
          }
@@ -353,6 +355,7 @@ if not hosts_only then
 	    name = title,
             type = "snmp_device",
 	    ip = snmp_device["ip"],
+            snmp_device = snmp_device["ip"],
             links = links,
          }
          res_count = res_count + 1
