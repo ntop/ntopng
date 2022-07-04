@@ -38,6 +38,17 @@ bool FlowRisk::ignoreRisk(Flow *f, ndpi_risk_enum r) {
     }
     break;
 
+  case NDPI_SUSPICIOUS_DGA_DOMAIN:
+    {
+      ndpi_risk_params params[] = {
+	{ NDPI_PARAM_HOSTNAME, f->getDGADomain() }
+      };
+      
+      if(ndpi_check_flow_risk_exceptions(f->getInterface()->get_ndpi_struct(), 1, params))
+	return(true);
+    }
+    break;
+    
   default:
     break;
   }

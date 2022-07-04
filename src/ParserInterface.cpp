@@ -50,7 +50,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   now_tv.tv_sec = now;
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s()", __FUNCTION__);
-  
+
   if(unlikely(ntop->getPrefs()->get_num_simulated_ips())) {
     u_int32_t num_sim_ips = ntop->getPrefs()->get_num_simulated_ips();
     u_int32_t base_ip = 167772161; /* 10.0.0.1 */
@@ -77,8 +77,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     bool processed = false;
 
     /* Deliver eBPF info to companion queues */
-    if(zflow->process_info_set || 
-       zflow->container_info_set || 
+    if(zflow->process_info_set ||
+       zflow->container_info_set ||
        zflow->tcp_info_set ||
        zflow->external_alert ||
        zflow->getAdditionalFieldsJSON()) {
@@ -116,7 +116,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[IP: %u][inIndex: %u]", zflow->device_ip, zflow->inIndex);
 	vIface = getDynInterface((((u_int64_t)zflow->device_ip) << 32) + zflow->inIndex, true);
 	break;
-      
+
       case flowhashing_vrfid:
         vIface = getDynInterface((u_int64_t)zflow->vrfId, true);
         break;
@@ -174,7 +174,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   PROFILING_SECTION_EXIT(0);
 
   if(flow == NULL)
-    return false;  
+    return false;
 
   if(zflow->absolute_packet_octet_counters) {
     /* Ajdust bytes and packets counters if the zflow update contains absolute values.
@@ -248,12 +248,12 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     flow->setFlowApplLatency(zflow->tcp.applLatencyMsec);
 
   /* Update process and container info */
-  if(zflow->hasParsedeBPF()) {    
+  if(zflow->hasParsedeBPF()) {
     bool swap_direction = ((ntohs(zflow->src_port) == flow->get_cli_port())
 			   && (ntohs(zflow->dst_port) == flow->get_srv_port())) ? false : true;
 
     flow->setParsedeBPFInfo(zflow, swap_direction);
-    
+
     /* Now refresh the flow last seen so it will stay active as long as we keep receiving updates */
     flow->updateSeen();
   }
@@ -290,7 +290,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 			 zflow->pkt_sampling_rate * zflow->out_bytes);
     dstMac->incRcvdStats(getTimeLastPktRcvd(), zflow->pkt_sampling_rate * zflow->in_pkts,
 			 zflow->pkt_sampling_rate * zflow->in_bytes);
-  }    
+  }
 
   if(zflow->l4_proto == IPPROTO_TCP) {
     if(zflow->tcp.client_tcp_flags || zflow->tcp.server_tcp_flags) {
@@ -300,7 +300,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
       if(zflow->tcp.server_tcp_flags)
 	flow->updateTcpFlags(&now_tv, zflow->tcp.server_tcp_flags, !src2dst_direction);
-      
+
       if(zflow->tcp.tcp_flags
 	 && (zflow->tcp.client_tcp_flags == 0)
 	 && (zflow->tcp.server_tcp_flags == 0)) {
@@ -426,11 +426,11 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     } else if(flow->isTLS() && !zflow->tls_server_name) {
       zflow->tls_server_name = zflow->l7_info;
       if(flow->get_cli_host()) flow->get_cli_host()->incrVisitedWebSite(zflow->tls_server_name);
-    } 
+    }
     else free(zflow->l7_info);
 
     zflow->l7_info = NULL;
-    
+
 #if 0
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s][%s][%s][%s]",
 				 zflow->dns_query ? zflow->dns_query : "",
@@ -442,7 +442,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   flow->setErrorCode(zflow->l7_error_code);
   flow->setConfidence(zflow->confidence);
-  
+
   if(flow->isDNS())
     flow->updateDNS(zflow);
 
@@ -471,8 +471,10 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if(zflow->flow_risk_info) {
     json_object *o, *obj;
     enum json_tokener_error jerr = json_tokener_success;
-    
+
     flow->setJSONRiskInfo(zflow->flow_risk_info);
+
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]", zflow->flow_risk_info);
 
     /*
       We use riskInfo to grab some flow attributes
@@ -483,15 +485,17 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       if(json_object_object_get_ex(o, "6" /* NDPI_TLS_SELFSIGNED_CERTIFICATE */, &obj)) {
 	const char *issuerDN = json_object_get_string(obj);
 
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]", issuerDN);
-	
 	flow->setTLSCertificateIssuerDN((char*)issuerDN);
+      } else if(json_object_object_get_ex(o, "16" /* NDPI_SUSPICIOUS_DGA_DOMAIN */, &obj)) {
+	const char *dgaDomain = json_object_get_string(obj);
+
+	flow->setDGADomain((char*)dgaDomain);
       }
 
       json_object_put(o);
-    }    
+    }
   }
-  
+
 #ifdef NTOPNG_PRO
   if(zflow->custom_app.pen) {
     flow->setCustomApp(zflow->custom_app);
@@ -506,7 +510,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if(zflow->external_alert) {
     enum json_tokener_error jerr = json_tokener_success;
     json_object *o = json_tokener_parse_verbose(zflow->external_alert, &jerr);
-    
+
     if(o) flow->setExternalAlert(o);
   }
 
@@ -524,21 +528,21 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
 #ifdef DEBUG
   char a[32], b[32];
-  
+
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Direction: %u [ntop: %s][%s -> %s]",
 			       zflow->direction, flow->isLocalToRemote() ? "L->R" : "R->L",
 			       flow->get_cli_ip_addr()->print(a, sizeof(a)),
 			       flow->get_srv_ip_addr()->print(b, sizeof(b))
 			       );
 #endif
-  
+
   if(zflow->direction == UNKNOWN_FLOW_DIRECTION) {
     if(flow->isLocalToRemote())
       zflow->direction = 1 /* TX */;
     else
       zflow->direction = 0 /* RX */;
   }
-  
+
   if(zflow->direction == 0 /* RX */) {
     if(zflow->in_pkts)
       incStats(true /* Ingress */, now, eth_type,
@@ -562,7 +566,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 	       zflow->pkt_sampling_rate * zflow->in_bytes,
 	       zflow->pkt_sampling_rate * zflow->in_pkts);
   }
-    
+
 
 #ifdef NTOPNG_PRO
   /* Check if direct flow dump is enabled */
