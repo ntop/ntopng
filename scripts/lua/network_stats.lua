@@ -33,12 +33,17 @@ page_utils.print_page_title(getPageTitle())
 -- ##############################
 
 if(ntop.isPro()) then
-   local template_utils = require "template_utils"
+   local networks_stats = interface.getNetworksStats()
+   local numNetworks = table.len(networks_stats)
 
-   template_utils.render("pages/networks_map.html", {
-			    url = ntop.getHttpPrefix()..'/lua/pro/rest/v2/get/host/top/network_hosts_score.lua',
-			    prefix = ntop.getHttpPrefix()
-   })
+   if(numNetworks > 0) then
+      local template_utils = require "template_utils"
+      
+      template_utils.render("pages/networks_map.html", {
+			       url = ntop.getHttpPrefix()..'/lua/pro/rest/v2/get/host/top/network_hosts_score.lua',
+			       prefix = ntop.getHttpPrefix()
+      })
+   end
 end
 
 -- ##############################
