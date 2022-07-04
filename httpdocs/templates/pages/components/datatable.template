@@ -247,13 +247,13 @@
 	          let restText = " (" + (cardsData[i].value[0][j].count).toFixed(1) + "%)";
 	          if(cardsData[i].value[0][j].count != 0 && cardsData[i].value[0][j].count < 0.1){restText = " (< 0.1%)";}
 
-	          let a_tag = "<a class='tag-filter dropdown-item' data-tag-key='" + cardsData[i].value[0][j].key + 
+	          let a_tag = "<a class='ntopng-truncate tag-filter dropdown-item' data-tag-key='" + cardsData[i].value[0][j].key + 
 	            "' title='" + ( cardsData[i].value[0][j].title || cardsData[i].value[0][j].value) +
 		    "' data-tag-value='" + cardsData[i].value[0][j].value + 
 		    "' data-tag-label='" + cardsData[i].value[0][j].label + 
 		    "' href='#'>" + cardsData[i].value[0][j].label + "" + restText + "</a>";
 
-                  let itemText = '<li class="dropdown-item pointer">' + a_tag + '</li>';
+                  let itemText = '<li style="max-width:90rem;" class="dropdown-item pointer">' + a_tag + '</li>';
 		  menuOptions.push(itemText);
 		}
 	      }

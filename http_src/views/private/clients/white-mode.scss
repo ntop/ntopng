@@ -803,12 +803,15 @@ table.dataTable thead th.sorting_desc::after {
   color: #111111 !important;
 }
 
-.ntopng-external-link {
-  display: inline-block;
+.ntopng-truncate {
   white-space: nowrap;
-  max-width: 250px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.ntopng-external-link {
+  @extend .ntopng-truncate;    
+  display: inline-block;
+  max-width: 250px;
   vertical-align: middle;
 }
 
