@@ -484,9 +484,8 @@ function driver:query(schema, tstart, tend, tags, options)
    local series = {}
 
    local serie_idx = 0
-   for name_key, serie in pairs(fdata) do
+   for name, serie in pairs(fdata) do
       serie_idx = serie_idx + 1  -- the first id is 1
-      local name = schema._metrics[serie_idx]
       local max_val = ts_common.getMaxPointValue(schema, name, tags)
       count = 0
 
@@ -721,9 +720,8 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       local partials = {}
 
       local serie_idx = 0
-      for name_key, serie in pairs(fdata) do
+      for name, serie in pairs(fdata) do
 	 serie_idx = serie_idx + 1  -- the first id is 1
-	 local name = schema._metrics[serie_idx]
 	 local max_val = ts_common.getMaxPointValue(schema, name, serie_tags)
 	 partials[name] = 0
 
@@ -822,9 +820,8 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
    local totals = {}
 
    local serie_idx = 0
-   for name_key, serie in pairs(fdata) do
+   for name, serie in pairs(fdata) do
       serie_idx = serie_idx + 1  -- the first id is 1
-      local name = schema._metrics[serie_idx]
       local max_val = ts_common.getMaxPointValue(schema, name, tags)
       local sum = 0
 
