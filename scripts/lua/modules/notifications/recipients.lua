@@ -14,6 +14,9 @@ local checks = require "checks"
 local host_pools = require "host_pools":create()
 
 local endpoints = require("endpoints")
+local last_error_notification = 0
+local MIN_ERROR_DELAY = 120 -- 2 minutes
+local ERROR_KEY = "ntopng.cache.%s.error_time"
 
 -- ##############################################
 
@@ -813,21 +816,26 @@ local function process_notifications(ready_recipients, now, deadline, periodic_f
 
 	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " recipient_id: "..recipient.recipient_id) end
 
-	 if m.dequeueRecipientAlerts then
-	    local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter)
+   if last_error_notification == 0 then
+    last_error_notification = tonumber(ntop.getCache(string.format(ERROR_KEY, recipient.recipient_name))) or 0
+   end
+
+	 if m.dequeueRecipientAlerts and (now > MIN_ERROR_DELAY + last_error_notification) then
+       local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter)
 
 	    -- If the recipient has failed (not rv.success) or
 	    -- if it has no more work to do (not rv.more_available)
 	    -- it can be removed from the array of ready recipients.
 	    if not rv.success or not rv.more_available then
-	       table.remove(ready_recipients, i)
+        table.remove(ready_recipients, i)
 
-	       if do_trace then tprint("Ready recipient done: ".. recipient.recipient_name) end
-
-	       if not rv.success then
-		  local msg = rv.error_message or "Unknown Error"
-		  traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. recipient.recipient_name .. " " .. msg)
-	       end
+        if do_trace then tprint("Ready recipient done: ".. recipient.recipient_name) end
+        if not rv.success then
+          last_error_notification = now
+          ntop.setCache(string.format(ERROR_KEY, recipient.recipient_name), now)
+          local msg = rv.error_message or "Unknown Error"
+          traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. recipient.recipient_name .. " " .. msg)
+        end
 	    end
 	 end
       end
