@@ -5798,18 +5798,24 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
 
     /* add the single series to the series table */
     lua_setfield(vm, -2, names[i]);
-    rrd_freemem(names[i]);
-  }
-
-  rrd_freemem(names);
-  rrd_freemem(data);
+  } /* for */
 
   /* end and npoints as last values */
   lua_pushinteger(vm, (lua_Integer) end);
   lua_pushinteger(vm, (lua_Integer) npoints);
 
+  lua_createtable(vm, 0, ds_cnt);
+  for(i=0; i<ds_cnt; i++) {
+    lua_pushstring(vm, names[i]);
+    lua_rawseti(vm, -2, i+1);
+    rrd_freemem(names[i]);
+  }
+  
+  rrd_freemem(names);
+  rrd_freemem(data);
+
   /* number of return values */
-  return(5);
+  return(6);
 }
 
 /* ****************************************** */

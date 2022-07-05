@@ -269,6 +269,8 @@ end
 local function update_rrd(schema, rrdfile, timestamp, data)
    local params = { number_to_rrd_string(timestamp, schema), }
 
+   -- io.write("update_rrd(".. rrdfile ..")\n")
+   
    if isDebugEnabled() then
       traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Going to update %s [%s]", schema.name, rrdfile))
    end
@@ -474,7 +476,7 @@ function driver:query(schema, tstart, tend, tags, options)
    end
 
    -- tprint("rrdtool fetch ".. rrdfile.. " " .. getConsolidationFunction(schema) .. " -s ".. tstart .. " -e " .. tend)
-   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart, tend)
+   local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart, tend)
 
    if fdata == nil then
       return nil
@@ -484,8 +486,13 @@ function driver:query(schema, tstart, tend, tags, options)
    local series = {}
 
    local serie_idx = 0
-   for name, serie in pairs(fdata) do
+   
+   for name,_ in pairs(fdata) do
       serie_idx = serie_idx + 1  -- the first id is 1
+      local name = schema._metrics[serie_idx]
+      local fdata_name = names[serie_idx]      
+      serie = fdata[fdata_name]
+
       local max_val = ts_common.getMaxPointValue(schema, name, tags)
       count = 0
 
@@ -534,7 +541,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
    if options.initial_point then
       local serie_idx = 1
-      local _, _, initial_pt = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart-schema.options.step, tstart-schema.options.step)
+      local _, _, initial_pt, _, _, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart-schema.options.step, tstart-schema.options.step)
       initial_pt = initial_pt or {}
 
       for name_key, values in pairs(initial_pt) do
@@ -581,7 +588,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
       traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
       return nil
    end
-
+  
    local wildcard_tag = wildcard_tags[1]
 
    if not wildcard_tag then
@@ -604,6 +611,9 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
    local files = ntop.readdir(base)
    local res = {}
 
+   -- tprint(base)
+   -- tprint(files)
+   
    for f in pairs(files or {}) do
       local v = string.split(f, "%.rrd")
       local fpath = base .. "/" .. f
@@ -708,7 +718,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
       touchRRD(rrdfile)
 
-      local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, cf, query_start, tend)
+      local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, cf, query_start, tend)
       local sum = 0
 
       if fdata == nil then
@@ -720,8 +730,12 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       local partials = {}
 
       local serie_idx = 0
-      for name, serie in pairs(fdata) do
+      for _,_ in pairs(fdata) do
 	 serie_idx = serie_idx + 1  -- the first id is 1
+	 local name = schema._metrics[serie_idx]
+	 local fdata_name = names[serie_idx]
+	 serie = fdata[fdata_name]
+	 	 
 	 local max_val = ts_common.getMaxPointValue(schema, name, serie_tags)
 	 partials[name] = 0
 
@@ -816,12 +830,16 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
 
    touchRRD(rrdfile)
 
-   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart, tend)
+   local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart, tend)
    local totals = {}
 
    local serie_idx = 0
-   for name, serie in pairs(fdata) do
+   for _,_ in pairs(fdata) do
       serie_idx = serie_idx + 1  -- the first id is 1
+      local name = schema._metrics[serie_idx]
+      local fdata_name = names[serie_idx]
+      serie = fdata[fdata_name]
+      
       local max_val = ts_common.getMaxPointValue(schema, name, tags)
       local sum = 0
 
