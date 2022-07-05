@@ -5,7 +5,7 @@
   <template v-slot:body>
     <div class="form-group mb-3 ">
       <div>
-	<label>{{ _i18n('current_filter') }} "<b v-html="alert_name"></b>".<span class="alert_label">{{ _i18n('current_filter_for') }}:</span> </label>
+	<label>{{ _i18n('current_filter') }} "<b v-html="alert_name"></b>". <span class="alert_label">{{ _i18n('current_filter_for') }}:</span> </label>
 	<div class="form-check">
       	  <input class="form-check-input" type="radio" value="any" v-model="radio_selected">
       	  <label class="form-check-label">
