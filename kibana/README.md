@@ -5,6 +5,7 @@ this way users can create their own dashboards using Kibana and ELK (Elasticsear
 their personalized data visualization.
 In order to do this users have to export Flows to Elasticsearch and add a recipient to
 export Alerts instead and have all the information they are interested in available.<br />
+
 **_NOTE:_** Exporting Alerts to ELK needs at least a Pro License.
 
 ## Exporting Flows to ELK
@@ -62,4 +63,7 @@ To export a dashboard created in Kibana in the top left of the Kibana GUI `Dropd
 ## Importing An Existing Dashboard
 
 To import an existing dashboard follow the steps in previous step, and when the user is under the `Saved Objects` section, instead of exporting just click import and select the desired file on your local machine.
+
+## More about ntopng and Kibana
+You can read more about ntopng/Kibana integration [on this blog post](https://www.ntop.org/ntopng/howto-visualise-ntopng-alerts-in-kibana/).
 
