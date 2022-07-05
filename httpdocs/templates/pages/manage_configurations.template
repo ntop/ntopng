@@ -164,6 +164,7 @@
 
     });
 
+    $("#btn-confirm-import").click(() => $("#import-modal").modal("hide"));
     // configure import config modal
     NtopUtils.importModalHelper({
     loadConfigXHR: (jsonConf) => {
