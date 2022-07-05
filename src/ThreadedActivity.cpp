@@ -389,11 +389,22 @@ bool ThreadedActivity::isValidScript(char* dir, char *path) {
 #endif
 
   /* Discard files non ending with .lua suffix */
-	     len = strlen(path);
+  len = strlen(path);
   if(len <= 4) return(false); else suffix = &path[len-4];
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s / %s [%s]", dir, path, suffix);
 
+  if((ntop->getPrefs()->getTimeseriesDriver() != ts_driver_influxdb)
+     && (strstr(path, "influxdb") != NULL)) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping %s%s", dir, path);
+    return(false);
+  }
+  
+  if((!ntop->getPrefs()->useClickHouse()) && (strstr(path, "clickhouse") != NULL)) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping %s%s", dir, path);
+    return(false);
+  }
+    
   return(strcmp(suffix, LUA_TRAILER) == 0 ? true : false);
 }
 
