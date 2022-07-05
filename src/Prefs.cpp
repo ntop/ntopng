@@ -394,9 +394,8 @@ void usage() {
 	 "                                    |   es;ntopng;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;\n"
 	 "                                    |   Notes:\n"
 	 "                                    |   The <idx name> accepts the strftime() format.\n"
-	 "                                    |   <mapping type>s have been removed starting at\n"
-	 "                                    |   ElasticSearch version 6. <mapping type> values whill therefore be\n"
-	 "                                    |   ignored when using versions greater than or equal to 6.\n"
+	 "                                    |   <mapping type> must be set to ntopng and it is\n"
+	 "                                    |   used until ElasticSearch version 6 and ignored in newer versions.\n"
 	 "                                    |\n"
 #if !defined(WIN32) && !defined(__APPLE__)
 	 "                                    | syslog        Dump in syslog\n"
