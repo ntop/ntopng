@@ -2261,6 +2261,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       char *info = getFlowInfo(buf, sizeof(buf), true);
 
       if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
+      if(suspicious_dga_domain) lua_push_str_table_entry(vm, "suspicious_dga_domain", suspicious_dga_domain);
       if(bt_hash)          lua_push_str_table_entry(vm, "bittorrent_hash", bt_hash);
       lua_push_str_table_entry(vm, "info", info ? info : (char*)"");
     }
