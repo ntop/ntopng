@@ -905,8 +905,10 @@ function graph_utils.printCategoryDropdownButton(by_id, cat_id_or_name, base_url
          cat_count = cat_count - 1
       end
 
+      local cat_title = getCategoryLabel(cat_name, cat_id)
+
       if cat_count > 0 then
-         entries[#entries + 1] = {text=cat_name.." ("..cat_count..")", id=cat_name, cat_id=cat_id}
+         entries[#entries + 1] = {text=cat_title.." ("..cat_count..")", id=cat_name, cat_id=cat_id}
       end
    end
 
