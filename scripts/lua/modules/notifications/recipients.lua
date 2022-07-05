@@ -15,7 +15,7 @@ local host_pools = require "host_pools":create()
 
 local endpoints = require("endpoints")
 local last_error_notification = 0
-local MIN_ERROR_DELAY = 120 -- 2 minutes
+local MIN_ERROR_DELAY = 60 -- 1 minute
 local ERROR_KEY = "ntopng.cache.%s.error_time"
 
 -- ##############################################
