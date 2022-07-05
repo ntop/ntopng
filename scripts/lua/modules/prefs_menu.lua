@@ -365,15 +365,6 @@ local menu_subpages = {
       title       = i18n("prefs.network_discovery_interval_title"),
       description = i18n("prefs.network_discovery_interval_description"),
     },
-  }}, {id="telemetry",     label=i18n("prefs.telemetry"), advanced=false,  pro_only=false, hidden=info.oem, entries={
-    toggle_send_telemetry_data = {
-      title       = i18n("prefs.toggle_send_telemetry_data_title"),
-      description = i18n("prefs.toggle_send_telemetry_data_description", {product = info.product, url = ntop.getHttpPrefix() .. "/lua/telemetry.lua", ntop_org="https://www.ntop.org"}),
-    },
-    telemetry_email = {
-      title       = i18n("prefs.telemetry_email_title"),
-      description = i18n("prefs.telemetry_email_description", {product = info.product, url = ntop.getHttpPrefix() .. "/lua/telemetry.lua", ntop_org="https://www.ntop.org"}),
-    },
   }}, {id="recording",     label=i18n("prefs.recording"),             advanced=false, pro_only=false,  hidden=(not recording_utils.isAvailable()), entries={
     n2disk_license = {
       title       = i18n("prefs.n2disk_license_title"),
@@ -417,9 +408,6 @@ local menu_subpages = {
     connectivity_check_url = {
       title       = i18n("prefs.connectivity_check_url_title"),
       description = i18n("prefs.connectivity_check_url_description"),
-    }, toggle_send_telemetry_data = {
-      title       = i18n("prefs.toggle_send_telemetry_data_title"),
-      description = i18n("prefs.toggle_send_telemetry_data_description", { product = info.product}),
     }, toggle_thpt_content = {
       title       = i18n("prefs.toggle_thpt_content_title"),
       description = i18n("prefs.toggle_thpt_content_description"),

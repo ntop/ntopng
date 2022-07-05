@@ -170,7 +170,6 @@ page_utils.menu_entries = {
    
    -- Help
    about                  = {key = "about", i18n_title = "about.about", section = "about", help_link = "https://www.ntop.org/guides/ntopng/web_gui/help_menu.html?#about"},
-   telemetry              = {key = "telemetry", i18n_title = "telemetry", section = "about"},
    blog                   = {key = "blog", i18n_title = "about.ntop_blog", section = "about"},
    telegram               = {key = "telegram", i18n_title = "about.telegram", section = "about"},
    report_issue           = {key = "report_issue", i18n_title = "about.report_issue", section = "about"},

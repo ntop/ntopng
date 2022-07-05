@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local telemetry_utils = require "telemetry_utils"
 local page = _GET["page"] or "overview"
 
 sendHTTPContentTypeHeader('text/html')

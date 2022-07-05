@@ -9,7 +9,6 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 require "prefs_utils"
 local template = require "template_utils"
-local telemetry_utils = require "telemetry_utils"
 local recording_utils = require "recording_utils"
 local data_retention_utils = require "data_retention_utils"
 local page_utils = require("page_utils")
@@ -325,44 +324,6 @@ function printNetworkDiscovery()
 
    prefsInputFieldPrefs(subpage_active.entries["network_discovery_interval"].title, subpage_active.entries["network_discovery_interval"].description,
     "ntopng.prefs.", "network_discovery_interval", interval, "number", showNetworkDiscoveryInterval, nil, nil, {min=60 * 15, tformat="mhd"})
-
-   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
-
-   print('</table>')
-  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-    </form>]]
-end
-
-
--- ================================================================================
-
-function printTelemetry()
-   print('<form method="post">')
-   print('<table class="table">')
-
-   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.telemetry")..'</th></tr></thead>')
-
-   local t_labels = {i18n("prefs.telemetry_do_not_contribute")..' <i class="fas fa-frown-o"></i>',
-		     i18n("prefs.telemetry_contribute")..' <i class="fas fa-heart"></i>'}
-   local t_values = {"0", "1"}
-   local elementToSwitch = {"telemetry_email"}
-   local showElementArray = {false, true}
-
-   multipleTableButtonPrefs(subpage_active.entries["toggle_send_telemetry_data"].title,
-			    subpage_active.entries["toggle_send_telemetry_data"].description,
-			    t_labels, t_values,
-			    "0",
-			    "primary", "toggle_send_telemetry_data", "ntopng.prefs.send_telemetry_data", nil,
-			    elementToSwitch, showElementArray, nil, true--[[show]])
-
-   prefsInputFieldPrefs(subpage_active.entries["telemetry_email"].title,
-			subpage_active.entries["telemetry_email"].description,
-		       "ntopng.prefs.",
-		       "telemetry_email",
-		       "",
-		       false,
-		       telemetry_utils.telemetry_enabled(),
-		       nil, nil,  {attributes={spellcheck="false"}, pattern=email_peer_pattern, required=false})
 
    print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
@@ -1554,10 +1515,6 @@ end
 
 if(tab == "discovery") then
    printNetworkDiscovery()
-end
-
-if(tab == "telemetry") then
-   printTelemetry()
 end
 
 if(tab == "recording") then

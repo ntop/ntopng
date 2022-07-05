@@ -712,10 +712,6 @@ page_utils.add_menubar_section(
             url = '/lua/about.lua',
          },
          {
-            entry = page_utils.menu_entries.telemetry,
-            url = '/lua/telemetry.lua',
-         },
-         {
             entry = page_utils.menu_entries.blog,
             url = 'http://blog.ntop.org/',
          },

@@ -45,16 +45,6 @@ local pages = page_utils.menu_entries
 
 local defined_toats = {
     {
-        id = 0,
-        dismissable = false,
-        has_priority = false,
-        predicate = predicates.contribute,
-        pages = EMPTY_PAGES,
-        subpages = EMPTY_PAGES,
-        excluded_pages = {pages.preferences.key},
-        excluded_subpages = EMPTY_PAGES
-    },
-    {
         id = 1,
         dismissable = false,
         has_priority = true,

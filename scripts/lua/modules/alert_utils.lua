@@ -15,7 +15,6 @@ local recovery_utils = require "recovery_utils"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
-local telemetry_utils = require "telemetry_utils"
 local alerts_api = require "alerts_api"
 local icmp_utils = require "icmp_utils"
 local flow_risk_utils = require "flow_risk_utils"
@@ -909,18 +908,6 @@ local function notify_ntopng_status(started)
    end
 
    local entity_value = ntop.getInfo().product
-
-   obj = {
-      entity_id = alerts_api.systemEntity(entity_value), entity_val = entity_value,
-      type = alert_consts.alertType("alert_process_notification"),
-      score = score,
-      message = msg,
-      when = os.time() }
-
-   if anomalous then
-      telemetry_utils.notify(obj)
-   end
-
    local entity_info = alerts_api.systemEntity(entity_value)
    local type_info = alert_consts.alert_types.alert_process_notification.new(
       event,

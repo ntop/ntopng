@@ -9,7 +9,6 @@ local check_utils         = require("checks")
 local endpoint_configs          = require("endpoints")
 local recipients_manager        = require("recipients")
 local page_utils                = require('page_utils')
-local telemetry_utils           = require("telemetry_utils")
 local toast_ui                  = require("toast_ui")
 local stats_utils               = require("stats_utils")
 local delete_data_utils         = require("delete_data_utils")
@@ -93,23 +92,6 @@ local function create_geo_ip_toast_ui(toast)
     })
 
     return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, nil, toast.dismissable)
-end
-
--- ###############################################################
-
-local function create_contribute_toast_ui(toast)
-    local title = i18n("about.contribute_to_project")
-    local description = i18n("about.telemetry_data_opt_out_msg", {
-        tel_url = ntop.getHttpPrefix() .. "/lua/telemetry.lua",
-        ntop_org = "https://www.ntop.org/"
-    })
-
-    local action = {
-        url = ntop.getHttpPrefix() .. '/lua/admin/prefs.lua?tab=telemetry',
-        title = i18n("configure")
-    }
-
-    return toast_ui:new(toast.id, title, description, ToastLevel.INFO, action, toast.dismissable)
 end
 
 
@@ -327,17 +309,6 @@ function predicates.temp_working_dir(toast, container)
 
     if (dirs.workingdir == "/var/tmp/ntopng") then
         table.insert(container, create_tempdir_toast_ui(toast))
-    end
-end
-
---- Create an instance for contribute alert toast
---- @param toast table The toast is the logic model defined in defined_toasts
---- @param container table Is the table where to put the new toast ui
-function predicates.contribute(toast, container)
-    if not IS_ADMIN then return end
-
-    if (not info.oem) and (not telemetry_utils.dismiss_notice()) then
-        table.insert(container, create_contribute_toast_ui(toast))
     end
 end
 

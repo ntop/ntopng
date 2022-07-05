@@ -185,13 +185,6 @@ print [[
 
 print[[
 var is_historical = false;
-
-$(`[data-toast-id='0'`).on('hide.bs.toast', function() {
-	$.post(']] print(ntop.getHttpPrefix()) print[[/lua/update_prefs.lua', {
-		csrf: ']] print(ntop.getRandomCSRFValue()) print[[', action: 'disable-telemetry-data'
-	});
-});
-
 let updatingChart_uploads = [
 	$("#n-navbar .network-load-chart-upload").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null }),
 	$(".mobile-menu-stats .network-load-chart-upload").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null }),
