@@ -634,7 +634,7 @@ else
    if flow["bytes"] > 0 then
       print("<tr><th width=30% rowspan=3>"..i18n("details.total_traffic").."</th><td>"..i18n("total")..": <span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td>")
       if((ifstats.type ~= "zmq") and ((flow["proto.l4"] == "TCP") or (flow["proto.l4"] == "UDP")) and (flow["goodput_bytes"] > 0)) then
-	 print("<td><A HREF=\"https://en.wikipedia.org/wiki/Goodput\">"..i18n("details.goodput").."</A>: <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
+	 print("<td><A class=\"ntopng-external-link\" HREF=\"https://en.wikipedia.org/wiki/Goodput\">"..i18n("details.goodput").."</A> <i class=\"fas fa-external-link-alt\"></i> : <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
 	 pctg = round(((flow["goodput_bytes"]*100)/flow["bytes"]), 2)
 	 if(pctg < 50) then
 	    pctg = "<font color=red>"..pctg.."</font>"

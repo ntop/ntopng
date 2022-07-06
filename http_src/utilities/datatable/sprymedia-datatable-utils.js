@@ -276,7 +276,7 @@ export class DataTableUtils {
         return {
             dom: dom,
             pagingType: 'full_numbers',
-            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, `${i18n.all}`]],
+            lengthMenu: [[10, 25, 50, 100, 250], [10, 25, 50, 100, 250]],
             language: {
                 search: i18n.script_search,
                 paginate: {
