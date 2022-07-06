@@ -605,7 +605,7 @@ sorted_measurements.sort(function(a, b){
           },
           {
               data: 'hours',
-              className: 'text-center dt-head-center',
+              className: 'text-center dt-head-center text-nowrap',
               sortable: false,
               render: function(data, type) {
                   if (type == 'display') {
