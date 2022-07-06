@@ -725,7 +725,7 @@ end
 
 -- ##############################################
 
-function alert_utils.formatAlertCulript(notif)
+function alert_utils.formatAlertCulprit(notif)
    local msg
 
    -- Formatting cli-srv
