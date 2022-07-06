@@ -2487,7 +2487,7 @@ bool Flow::hasRisks() const {
 
 /* *************************************** */
 
-void Flow::clearRisks() const {
+void Flow::clearRisks() {
   ndpi_flow_risk_bitmap = 0;
   NDPI_SET_BIT(ndpi_flow_risk_bitmap, NDPI_NO_RISK);
 }
