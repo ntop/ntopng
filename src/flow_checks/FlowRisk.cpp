@@ -67,8 +67,10 @@ void FlowRisk::protocolDetected(Flow *f) {
 
     /* Check exceptions for ZMQ-delivered flows */
     if(f->getInterface()->get_type() == CONST_INTERFACE_TYPE_ZMQ) {
-      if(ignoreRisk(f, r))
-	return;
+      if(ignoreRisk(f, r)) {
+        f->clearRisks();
+        return;
+      }
     }
     
     risk_bitmap = 0;

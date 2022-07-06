@@ -722,6 +722,7 @@ class Flow : public GenericHashEntry {
   inline ndpi_risk getRiskBitmap() const { return ndpi_flow_risk_bitmap; }
   bool hasRisk(ndpi_risk_enum r) const;
   bool hasRisks() const;
+  void clearRisks() const;
   inline void setDGADomain(char *name) { if(name) { if(suspicious_dga_domain) free(suspicious_dga_domain); suspicious_dga_domain = strdup(name); } }
   inline char* getDGADomain() const { return(hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && suspicious_dga_domain ? suspicious_dga_domain : (char*)""); }
   inline char* getDNSQuery()  const { return(isDNS() ? protos.dns.last_query : (char*)"");  }

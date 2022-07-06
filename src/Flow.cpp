@@ -53,9 +53,8 @@ Flow::Flow(NetworkInterface *_iface,
   predominant_alert_info.is_cli_victim = 0;
   predominant_alert_info.is_srv_attacker = 0;
   predominant_alert_info.is_srv_victim = 0;
-  json_protocol_info = NULL, riskInfo = NULL;  
-  ndpi_flow_risk_bitmap = 0;
-  NDPI_SET_BIT(ndpi_flow_risk_bitmap, NDPI_NO_RISK);
+  json_protocol_info = NULL, riskInfo = NULL;
+  clearRisks(); 
   detection_completed = 0;
   non_zero_payload_observed = 0;
   extra_dissection_completed = 0;
@@ -2484,6 +2483,13 @@ bool Flow::hasRisks() const {
   }
 
   return false;
+}
+
+/* *************************************** */
+
+void Flow::clearRisks() const {
+  ndpi_flow_risk_bitmap = 0;
+  NDPI_SET_BIT(ndpi_flow_risk_bitmap, NDPI_NO_RISK);
 }
 
 /* *************************************** */
