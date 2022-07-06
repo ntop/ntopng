@@ -1,5 +1,132 @@
 # Changelog
 
+#### ntopng 5.4 (July 2022)
+
+## Breakthroughs
+* Enchanted search support, with different options now available
+* Added support to ELK version 8
+* Added listening ports page in combination with nProbe agent
+* Expose Chart Vue components for external website
+* Standardized ELK exported format data
+* Added packages for Ubuntu 22.04
+* Added centrality map in service map
+* Add E2E module for testing
+* Extended aggregated flows data to ClickHouse page
+* Added ability to set historical flow permission to users
+* Removed plugins concept
+* Major performance improvements to periodic scripts
+* Added nDPI alert exclusion handling
+* Added fat SNMP MIB polling
+* Added similarity map
+
+## Improvements
+* Improved alert exclusions performances
+* Improved buttons view using latest Bootstrap version
+* Speedup alerts and historical flow pages
+* Reworked network initialization
+* Introduced Vue.js
+* Improved Historical Flow and Alerts informations (added new fields for better analysis) 
+* Improved iec_invalid_transition
+* Added new alerts (DHCP Storm, DNS Fragmented, ...)
+* Added Top Dropdown menu (Top Clients, Top Servers, ...) to alerts
+* Added various mapping (DNS answers, DNS query types, ICMP answers, ...)
+* Reworked and Improved Maps (Service/Periodicity/Host)
+* Upgrade C++ standard to C++1y standard
+* Improved documentation, added all the available checks description
+* Improved tracing
+* Improved Exporter IP Flow Layout
+* Improved ClickHouse queries by using tstamp
+* Updated ECS to 8.1 version
+* Cleaned up MySQL code
+* Added Scan Detection (host/port) Alerts
+* Improved alert formatting
+* Added various SNMP checks
+* Added npm and Webpack support
+* Added new alert exclusions fields (Domain and IssuerDN)
+* Added DGA domain handling received via ZMQ
+* Added network matrix for view interfaces
+* Added ZMQ min flow idle timeout
+* Added vlan field support to alert exclusions
+* Added top sites to nprobe flows
+* Added various format validations
+* Added ELK dump frequency to settings
+* Added flow verdict badges
+* Implement Network/FQDN Exclusion in Alerts
+* Added dpi and guessed badge to flow list and details
+* Added %L7_CONFIDENCE support
+* Added ClickHouse json field search
+* Added filters to service/periodicity maps
+* Added --offline to force offline mode
+* Added support for Active Monitoring selection in recipients
+* Added copy button for all external link
+* Allow download of PCAP in Historical Flows Explorer
+* Added flow exporter to view interfaces
+* Added secure cookie attributes to the user and password cookies on the 302 redirect response
+* Added ECS support to ELK flow dump
+* Added MAC Address to View Interfaces
+* Added similarity check
+
+## Changes
+* Removed Telemetry
+* Changed charts view in both community and pro
+* Replace type='text/javascript' with type='application/javascript'
+* Moved UDP unidirection to nDPI alerts
+* Disable flow dump to syslog on MacOS due to broken openlog API on Sierra and later
+* Removed travis
+* Reworked MAC/IP Reassociation alert used to detect spoofind and MITM (Man In The Middle) Attacks
+* Separated data retention into Flow/Alerts data retention and Timeseries/Top data retention
+* Create if not exists img folder for customizable logo
+* Cleanup to avoid spawning an unnecessary thread due to MySQL inheritance
+* Removed plugin reloaded var in pro version
+* Initial cleanup of useless consts towards migration to modern C++
+
+## Fixes
+* Fixes various GUI incorrect/undefined names
+* Fixes datatables incorrect data visualization
+* Fixes RRD timeseries implementation
+* Fixes log spam in case of endpoint not working
+* Fixes modals not hiding
+* Fixes alert/historical page filters not working correctly
+* Fixes bugs with flows informations while using View Interface
+* Fixes time format, shown as local instead of server time in some pages
+* Fixes format validations not correctly working
+* Fixes nProbe template flow mapping
+* Fixes segfault (access to uninitialized obj)
+* Fixes idle time too low
+* Fixes invalid risk set from nDPI to ntopng's Flow class
+* eBPF fixes
+* Removed duplicated require
+* Fixes dns large packets alert incorrectly triggered
+* Fixes network discovery
+* Fixes csv download
+* Fixes minor leak
+* Fixes bug that prevented flows to be dumped on ClickHouse
+* Fixes external urls not correctly working
+* Fixes database initializations
+* Fixes IEC continuous dissection
+* Fixes NetBIOS name should not be used for hostnames
+* Fixes checks edition availability
+* Fixes various css bugs
+* Fixes recording data check on sub interfaces
+* Fixes filter operators
+* Fixes name lookup
+* Fixes for detecting ZMQ drops
+* Fixes Historical Filters lost when switching windows
+* Fixes traffic directions with mirrored traffic
+* Fixes various API not correctly working
+* Fixes range picker not correctly working
+* Fixes crash when using interfaces with no database
+* Fixes various nil description
+* Fixes SIGABRT on shutdown with Views
+* Fixes for SNMP bridge alerting
+* Fixes external links not working
+* Fixes flow drilldown not correctly working
+
+## nEdge
+* Fix username field in captive_portal.lua
+* Add alert gateway_unreachable
+* Add captive portal debug msg
+
 #### ntopng 5.2 (February 2022)
 
 ## Breakthroughs
