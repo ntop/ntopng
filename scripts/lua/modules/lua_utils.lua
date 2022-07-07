@@ -1602,7 +1602,7 @@ function computeL7Stats(stats, show_breed, show_ndpi_category)
       local ndpi_category_stats = {}
 
       for key, value in pairs(stats["ndpi_categories"]) do
-         key = getCategoryLabel(key)
+         key = getCategoryLabel(key, value.category)
          local traffic = value["bytes"]
 
          if(ndpi_category_stats[key] == nil) then

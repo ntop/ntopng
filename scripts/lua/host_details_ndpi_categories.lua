@@ -37,7 +37,7 @@ print("<tr><td colspan=2>Total</td><td class=\"text-end\">".. secondsToTime(host
 
 for k, v in pairsByKeys(host["ndpi_categories"], desc) do
    print("<tr><td>")
-   local label = getCategoryLabel(k)
+   local label = getCategoryLabel(k, v.category)
 
    if(areHostCategoriesTimeseriesEnabled(ifid, host)) then
       local details_href = hostinfo2detailshref(host, {page = "historical", ts_schema = "host:ndpi_categories", category = k}, label)
