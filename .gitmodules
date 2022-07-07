@@ -1,8 +1,8 @@
 [submodule "tests/e2e"]
 	path = tests/e2e
 	url = https://github.com/ntop/ntopng-e2e-tests.git
-	branch = dev
+	branch = 5.4-stable
 [submodule "dist"]
 	path = httpdocs/dist
 	url = https://github.com/ntop/ntopng-dist.git
-	branch = dev
+	branch = 5.4-stable
