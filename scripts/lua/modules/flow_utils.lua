@@ -1575,7 +1575,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 
    if flowdevs == nil then flowdevs = {} end
 
-   local devips = getProbesName(flowdevs)
+   local devips = getProbesName(flowdevs, false, false)
    local devips_order = ntop.getPref("ntopng.prefs.flow_table_probe_order") == "1" -- Order by Probe Name
 
    if devips_order then
@@ -1599,18 +1599,18 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
       <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
 	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
-   for dev_ip, dev_resolved_name in ordering_fun(devips, asc) do
+   for dev_ip, dev_resolved_name in pairsByValues(devips, asc) do
       local dev_name = dev_ip
+      local dev_name_full = dev_ip
 
       dev_params["deviceIP"] = dev_name
 
-      if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
-         dev_name = dev_name .. " ["..shortenString(dev_resolved_name).."]"
-      end
+      dev_name = format_name_value(dev_resolved_name, dev_ip, true)
+      dev_name_full = format_name_value(dev_resolved_name, dev_ip, false)
 
       print[[
 	 <li>\
-	   <a class="dropdown-item ]] print(dev_ip == cur_dev and 'active' or '') print[[" href="]] print(getPageUrl(base_url, dev_params)) print[[" title="]] print(dev_ip) print[[">]] print(i18n("flows_page.device_ip").." "..dev_name) print[[</a></li>\]]
+	   <a class="dropdown-item ]] print(dev_ip == cur_dev and 'active' or '') print[[" href="]] print(getPageUrl(base_url, dev_params)) print[[" title="]] print(dev_name_full) print[[">]] print(dev_name) print[[</a></li>\]]
    end
    print[[
       </ul>\
