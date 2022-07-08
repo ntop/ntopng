@@ -203,12 +203,16 @@ end
 -- #################################
 
 -- NOTE: this function must be called after page_utils.set_active_menu_entry
-function page_utils.print_page_title(title)
+function page_utils.print_page_title(title, mini_title)
    local help_link = page_utils.menu_entries[active_entry].help_link or ""
    print("<header class='mb-3 d-flex align-items-center'>")
    print("<h2 class='d-inline-block'>".. title .."</h2>")
    if (not isEmptyString(help_link)) then
       print("<a data-bs-toggle='tooltip' title='".. i18n("open_documentation") .."' target='_newtab' href='".. help_link .."' class='text-muted ms-auto'><i class='fas fa-question-circle'></i></a>")
+   end
+   
+   if mini_title and not isEmptyString(mini_title) then
+    print("<small style='margin-left: auto;'>" .. mini_title .. "</small>")
    end
    print("</header>")
 

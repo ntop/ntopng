@@ -68,11 +68,12 @@ local flowstats = interface.getActiveFlowsStats(host, flows_filter)
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = { ifid = interface.getId() }
+local mini_title = i18n("flow_details.purge_time", { purge_time = ntop.getPref("ntopng.prefs.flow_max_idle"), prefs_url = ntop.getHttpPrefix().. '/lua/admin/prefs.lua?tab=in_memory' })
 
 if (page == "flows" or page == nil) then
    local active_msg = getFlowsTableTitle()
 
-   page_utils.print_page_title(active_msg)
+   page_utils.print_page_title(active_msg, mini_title)
 
    if(category ~= nil) then
       page_params["category"] = category
