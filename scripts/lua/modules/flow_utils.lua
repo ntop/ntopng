@@ -1961,7 +1961,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        print('<li><a class="dropdown-item '..class_active..'" href="')
        category_filter_params["category"] = key
        print(getPageUrl(base_url, category_filter_params))
-       print('">'.. getCategoryLabel(key) ..'</a></li>')
+       print('">'.. getCategoryLabel(key, value.category) ..'</a></li>')
     end
 
     print("</ul> </div>'")

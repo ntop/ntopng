@@ -37,7 +37,7 @@ if(json_format) then print('[\n') end
 
 local num = 0
 for k, v in pairsByKeys(ifstats["ndpi_categories"], asc) do
-  local label = getCategoryLabel(k)
+  local label = getCategoryLabel(k, v.category)
 
   if(not(json_format)) then
      print('<tr id="t_protocol_'..k..'">')

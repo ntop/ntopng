@@ -501,7 +501,7 @@ else
       print(getApplicationLabel(flow["proto.ndpi"],32).."</A> ")
       print("(<A HREF=\""..ntop.getHttpPrefix().."/lua/")
       print("flows_stats.lua?category=" .. flow["proto.ndpi_cat"] .. "\">")
-      print(getCategoryLabel(flow["proto.ndpi_cat"]).."</A>")
+      print(getCategoryLabel(flow["proto.ndpi_cat"], interface.getnDPICategoryId(flow["proto.ndpi_cat"])).."</A>")
       if(flow["proto.ndpi_cat_file"]) then
 	 print(" @ " ..flow["proto.ndpi_cat_file"])
       end

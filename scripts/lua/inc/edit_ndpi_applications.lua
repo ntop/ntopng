@@ -232,6 +232,7 @@ print [[
   <td style="white-space:nowrap; padding-right:1em;">]]
   if catid ~= nil then
     local key = interface.getnDPICategoryName(tonumber(catid))
+    key = getCategoryLabel(key, catid)
     print("<h2>"..i18n("users.cat_protocols", {cat=(i18n("ndpi_categories." .. key) or key)}).."</h2>")
   end
   print[[</td>]]

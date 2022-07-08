@@ -592,7 +592,7 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
 	 local by_category = {}
 
 	 for _, serie in pairs(series) do
-	    by_category[getCategoryLabel(serie.category)] = serie.category
+	    by_category[getCategoryLabel(serie.category, interface.getnDPICategoryId(serie.category))] = serie.category
 	 end
 
 	 for label, category in pairsByKeys(by_category, asc_insensitive) do
