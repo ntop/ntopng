@@ -5,6 +5,10 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+-- Enable trace with   "redis-cli set ntopng.debug.do_trace 1"
+-- Disablee trace with "redis-cli del ntopng.debug.do_trace"
+local do_trace = ntop.getPref("ntopng.debug.do_trace")
+
 require "lua_utils"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
@@ -634,18 +638,25 @@ function tag_utils.get_tag_info(id, entity)
       end
 
    elseif tag.value_type == "snmp_interface" then
+      if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace A") end
 
       if ntop.isPro() then
          filter.value_type = 'array'
          filter.options = {}
 
          local snmp_config = require "snmp_config"
-         local devices = snmp_config.get_all_configured_devices()
+	 local devices = snmp_config.get_all_configured_devices()
+	 if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace B") end
+
          local snmp_cached_dev = require "snmp_cached_dev"
+
+	 if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace C") end
 
          -- use pairsByKeys to impose order
          for probe_ip, _ in pairsByKeys(devices) do
+	    if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace A1") end
             local cached_device = snmp_cached_dev:create(probe_ip)
+	    if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace B1") end
             if cached_device and cached_device["interfaces"] then
                local interfaces = cached_device["interfaces"]
                for interface_id, interface_info in pairs(interfaces) do
@@ -663,6 +674,7 @@ function tag_utils.get_tag_info(id, entity)
 
             end
          end
+	 if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace D") end
       end
 
    end
