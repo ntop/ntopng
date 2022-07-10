@@ -5506,7 +5506,6 @@ function format_name_value(name, value, shorten)
     if (shorten) and (shorten == true) then
       formatted_name_value = shortenString(name) .. " [" .. value .. "]"
     else
-      tprint(name)
       formatted_name_value = name .. " [" .. value .. "]"
     end
   end
