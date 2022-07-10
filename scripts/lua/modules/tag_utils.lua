@@ -654,7 +654,7 @@ function tag_utils.get_tag_info(id, entity)
 
          -- use pairsByKeys to impose order
          for probe_ip, _ in pairsByKeys(devices) do
-            local cached_device = snmp_cached_dev:create(probe_ip)
+            local cached_device = snmp_cached_dev:get_interfaces(probe_ip)
             if cached_device and cached_device["interfaces"] then
                local interfaces = cached_device["interfaces"]
                for interface_id, interface_info in pairs(interfaces) do
