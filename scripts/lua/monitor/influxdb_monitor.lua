@@ -15,23 +15,15 @@ local influxdb_export_api = require "influxdb_export_api"
 
 sendHTTPContentTypeHeader('text/html')
 
+local charts_available = script_manager.systemTimeseriesEnabled()
+local page = _GET["page"] or "overview"
+local url = script_manager.getMonitorUrl("influxdb_monitor.lua") .. "?ifid=" .. interface.getId()
+
 page_utils.set_active_menu_entry(page_utils.menu_entries.influxdb_status)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local charts_available = script_manager.systemTimeseriesEnabled()
-
-if not isAllowedSystemInterface() or (ts_utils.getDriverName() ~= "influxdb") then
-   local url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts"
-   print('<div class="alert alert-danger">'..i18n("alert_messages.no_influxdb", { url=url })..'</div>')
-   return
-end
-
-local page = _GET["page"] or "overview"
-local url = script_manager.getMonitorUrl("influxdb_monitor.lua") .. "?ifid=" .. interface.getId()
-local title = "InfluxDB"
-
-page_utils.print_navbar(title, url,
+page_utils.print_navbar("InfluxDB", url,
 			{
 			   {
 			      active = page == "overview" or not page,
@@ -98,9 +90,13 @@ if(page == "overview") then
   $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
      $(".influxdb-info-load").hide();
 
+     let influxdb_status = health_descr['green']["status"] + "<br>" + health_descr['green']["descr"]
      if(typeof info.health !== "undefined" && health_descr[info.health]) {
-       $("#influxdb-health").html(health_descr[info.health]["status"] + "<br>" + health_descr[info.health]["descr"]);
+      influxdb_status = health_descr[info.health]["status"] + "<br>" + health_descr[info.health]["descr"]
      }
+
+     $("#influxdb-health").html(influxdb_status);
+
      if(typeof info.db_bytes !== "undefined") {
        $("#influxdb-info-text").html(NtopUtils.bytesToVolume(info.db_bytes) + " ");
        if(typeof last_db_bytes !== "undefined")

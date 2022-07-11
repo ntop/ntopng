@@ -105,7 +105,7 @@ page_utils.menu_entries = {
     system_status         = {key = "system_status", i18n_title = "system_status", section = "health"},
     interfaces_status     = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "health"},
     alerts_status         = {key = "alerts_status", i18n_title = "system_alerts_status", section = "health"},
-    influxdb_status       = {key = "influxdb", i18n_title = "InfluxDB", section = "health"},
+    influxdb_status       = {key = "influxdb_status", i18n_title = "InfluxDB", section = "health"},
     redis_status          = {key = "redis_monitor", i18n_title = "Redis", section = "health"},
     clickhouse_status     = {key = "clickhouse", i18n_title = "ClickHouse", section = "health"},
 
@@ -436,6 +436,8 @@ end
 -- #################################
 
 function page_utils.print_navbar(title, base_url, items_table, label_url, back_url)
+  tprint(active_entry)
+  tprint(page_utils.menu_entries[active_entry])
    local help_link = page_utils.menu_entries[active_entry].help_link or nil
    local icon = page_utils.menu_sections[active_section].icon or ""
 

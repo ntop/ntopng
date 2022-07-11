@@ -115,7 +115,7 @@ local ifs = interface.getStats()
 local is_pcap_dump = interface.isPcapDumpInterface()
 local is_packet_interface = interface.isPacketInterface()
 local is_viewed = ifs.isViewed
-local is_influxdb_enabled = false
+local is_influxdb_enabled = ntop.getPref("ntopng.prefs.timeseries_driver") == "influxdb"
 ifId = ifs.id
 
 -- NOTE: see sidebar.js for the client logic
