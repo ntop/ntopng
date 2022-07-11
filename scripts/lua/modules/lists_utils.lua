@@ -12,6 +12,7 @@ local json = require("dkjson")
 local alerts_api = require("alerts_api")
 local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
+local file_utils = require "file_utils"
 
 -- ##############################################
 
@@ -52,99 +53,67 @@ local is_nedge = ntop.isnEdge()
 --    [hosts] 127.0.0.1   amalwaredomain.com
 --    [hosts] 127.0.0.1   1.2.3.4
 --
-local BUILTIN_LISTS = {
-   ["dshield 7 days"] = {
-      url = "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/dshield_7d.netset",
-      category = CUSTOM_CATEGORY_MALWARE,
-      format = "ip",
-      enabled = true,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["AlienVault"] = {
-      url = "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/alienvault_reputation.ipset",
-      category = CUSTOM_CATEGORY_MALWARE,
-      format = "ip",
-      enabled = false,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["Feodo"] = {
-      url = "https://feodotracker.abuse.ch/downloads/ipblocklist_recommended.txt",
-      category = CUSTOM_CATEGORY_MALWARE,
-      format = "ip",
-      enabled = true,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["Emerging Threats"] = {
-      url = "https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt",
-      category = CUSTOM_CATEGORY_MALWARE,
-      format = "ip",
-      enabled = true,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["Snort IP Block List"] = {
-      url = "https://snort.org/downloads/ip-block-list",
-      category = CUSTOM_CATEGORY_MALWARE,
-      format = "ip",
-      enabled = false,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["Feodo Tracker Botnet C2 IP Blocklist"] = {
-      url = "https://feodotracker.abuse.ch/downloads/ipblocklist.txt",
-      category = CUSTOM_CATEGORY_MALWARE,
-      format = "ip",
-      enabled = true,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["SSLBL Botnet C2 IP Blacklist"] = {
-      url = "https://sslbl.abuse.ch/blacklist/sslipblacklist.txt",
-      category = CUSTOM_CATEGORY_MALWARE,
-      format = "ip",
-      enabled = true,
-      update_interval = SIXH_DOWNLOAD_INTERVAL,
-   }, ["URLhaus"] = {
-      url = "https://urlhaus.abuse.ch/downloads/hostfile/",
-      category = CUSTOM_CATEGORY_MALWARE,
-      format = "domain",
-      enabled = true,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["Anti-WebMiner"] = {
-      url = "https://raw.githubusercontent.com/greatis/Anti-WebMiner/master/hosts",
-      category = CUSTOM_CATEGORY_MINING,
-      format = "hosts",
-      enabled = false,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["NoCoin Filter List"] = {
-      url = "https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/hosts.txt",
-      category = CUSTOM_CATEGORY_MINING,
-      format = "hosts",
-      enabled = true,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["Abuse.ch URLhaus"] = {
-      url = "https://urlhaus.abuse.ch/downloads/hostfile/",
-      category = CUSTOM_CATEGORY_MALWARE,
-      format = "hosts",
-      enabled = true,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["Disconnect.me Simple Ad List"] = {
-      url = "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt",
-      category = CUSTOM_CATEGORY_ADVERTISEMENT,
-      format = "domain",
-      enabled = is_nedge,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["AdAway default blocklist"] = {
-      url = "https://adaway.org/hosts.txt",
-      category = CUSTOM_CATEGORY_ADVERTISEMENT,
-      format = "hosts",
-      enabled = is_nedge,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["SSLBL JA3"] = {
-      url = "https://sslbl.abuse.ch/blacklist/ja3_fingerprints.csv",
-      format = "ja3_suricata_csv",
-      category = CUSTOM_CATEGORY_MALWARE,
-      enabled = false,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }, ["ThreatFox"] = {
-      url = "https://threatfox.abuse.ch/downloads/hostfile/",
-      format = "hosts",
-      category = CUSTOM_CATEGORY_MALWARE,
-      enabled = true,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
-   }
-}
+
+-- ##############################################
+
+local function parse_lists_from_dir(where)
+  local files = ntop.readdir(where)
+  local ret = {}
+  
+  for _,f in pairs(files) do
+    if(string.ends(f, ".list")) then
+      local path = where .. "/" .. f
+      local content = file_utils.read_file(path)
+      local j = json.decode(content)
+
+      if(j == nil) then
+        traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path..": parse error")
+      else
+	-- Fix glitches
+	local skip = false
+
+        if(j.category == nil) then
+	  traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": no category")
+	  skip = true	
+	elseif(j.category == "mining") then            j.category = CUSTOM_CATEGORY_MINING
+	elseif(j.category == "malware")       then j.category = CUSTOM_CATEGORY_MALWARE
+	elseif(j.category == "advertisement") then j.category = CUSTOM_CATEGORY_ADVERTISEMENT
+	else
+	  traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": invalid category ".. j.category)
+	  skip = true
+	end
+
+	if(not(skip) and (j.name == nil)) then
+	  traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": missing name")
+	  skip = true
+	end
+	
+	if(not(skip)) then
+          ret[j.name] = j
+        end
+      end
+    end
+  end
+
+  return(ret)
+end
+
+-- ##############################################
+
+local cached_lists = nil
+
+local function get_lists()
+  if(cached_lists == nil) then
+    local lists_dir = dirs.installdir .. "/" .. "httpdocs/misc/lists"
+
+    local builtin = parse_lists_from_dir(lists_dir .. "/builtin")
+    local custom  = parse_lists_from_dir(lists_dir .. "/custom")
+
+    cached_lists = table.merge(builtin, custom)
+  end
+
+  return cached_lists
+end
 
 -- ##############################################
 
@@ -163,7 +132,7 @@ local function loadListsFromRedis()
       lists = json.decode(lists_metadata)
    end
 
-   lists = table.merge(BUILTIN_LISTS, lists)
+   lists = table.merge(get_lists(), lists)
 
    if((lists == nil) or (status == nil)) then
       return {}
@@ -198,9 +167,10 @@ end
 -- @note see saveListsStatusToRedis for the list status
 local function saveListsMetadataToRedis(lists)
    local metadata = {}
-
+   local all_lists = get_lists()
+   
    for list_name, list in pairs(lists or {}) do
-      local default_prefs = BUILTIN_LISTS[list_name]
+      local default_prefs = all_lists[list_name]
       local meta = {}
       local has_custom_pref = false
 
@@ -226,10 +196,11 @@ function lists_utils.getCategoryLists()
    -- TODO add support for user defined urls
    local lists = {}
    local redis_lists = loadListsFromRedis()
-
+   local all_lists = get_lists()
+   
    local default_status = {last_update=0, num_hosts=0, last_error=false, num_errors=0}
 
-   for key, default_values in pairs(BUILTIN_LISTS) do
+   for key, default_values in pairs(all_lists) do
       local list = table.merge(default_values, redis_lists[key] or {status = {}})
       list.status = table.merge(default_status, list.status)
       lists[key] = list
@@ -803,6 +774,10 @@ end
 -- ##############################################
 
 function lists_utils.startup()
+   local all_lists = get_lists()
+
+   -- tprint(all_lists)
+   
    if ntop.isOffline() then
       traceError(TRACE_NORMAL, TRACE_CONSOLE, "Category lists not loaded (offline)")
       return

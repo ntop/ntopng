@@ -1,0 +1,1 @@
+{"name":"NoCoin Filter List","format":"hosts","enabled":true,"update_interval":86400,"url":"https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/hosts.txt","category":"mining"}

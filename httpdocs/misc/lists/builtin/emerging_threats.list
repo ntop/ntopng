@@ -1,0 +1,1 @@
+{"name":"Emerging Threats","format":"ip","enabled":true,"update_interval":86400,"url":"https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt","category":"mining"}
