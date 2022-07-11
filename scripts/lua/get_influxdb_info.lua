@@ -9,26 +9,19 @@ require "lua_utils"
 local ts_utils = require("ts_utils")
 local json = require "dkjson"
 local checks = require("checks")
+local rest_utils = require("rest_utils")
 
-local driver = ts_utils.getQueryDriver()
-local probe = checks.loadModule(getSystemInterfaceId(), checks.script_types.system, "system", "influxdb_monitor")
-
+local influxdb = ts_utils.getQueryDriver()
 local info = {}
 
-if driver.getInfluxdbVersion then
-  info.version = driver:getInfluxdbVersion()
-  info.db_bytes = driver:getDiskUsage()
-  info.memory = driver:getMemoryUsage()
-  info.num_series = driver:getSeriesCardinality()
-
-  if(probe ~= nil) then
-    local stats = probe.getExportStats()
-    info.points_exported = stats.points_exported
-    info.points_dropped = stats.points_dropped
-    info.exports = stats.exports
-    info.health = stats.health
-  end
+if influxdb.getInfluxdbVersion then
+  info.version = influxdb:getInfluxdbVersion()
+  info.db_bytes = influxdb:getDiskUsage()
+  info.memory = influxdb:getMemoryUsage()
+  info.num_series = influxdb:getSeriesCardinality()
+  info.points_exported = influxdb:get_exported_points()
+  info.exports = influxdb:get_exports()
+  info.health = influxdb:get_health()
 end
 
-sendHTTPContentTypeHeader('application/json')
-print(json.encode(info))
+rest_utils.answer(rest_utils.consts.success.ok, info)
