@@ -683,11 +683,11 @@ end
 
 -- ##############################################
 
-function getProbesName(flowdevs)
+function getProbesName(flowdevs, show_vlan, shorten_len)
    local devips = {}
 
    for dip, _ in pairsByValues(flowdevs, asc) do
-      devips[dip] = getProbeName(dip)
+      devips[dip] = getProbeName(dip, show_vlan, shorten_len)
    end
 
    return devips
@@ -695,7 +695,7 @@ end
 
 -- ##############################################
 
-function getProbeName(exporter_ip)
+function getProbeName(exporter_ip, show_vlan, shorten_len)
    local cached_device_name 
    local snmp_cached_dev
 
@@ -711,7 +711,7 @@ function getProbeName(exporter_ip)
       cached_device_name = cached_device_name["name"]
    else
       local hinfo = hostkey2hostinfo(exporter_ip)
-      local exporter_label = hostinfo2label(hinfo)
+      local exporter_label = hostinfo2label(hinfo, show_vlan, shorten_len)
 
       if not isEmptyString(exporter_label) then
          cached_device_name = exporter_label
@@ -5497,6 +5497,21 @@ function format_location_badge(location)
   return loc
 end
 
+-- ##############################################
+
+function format_name_value(name, value, shorten)
+  local formatted_name_value = value
+
+  if not isEmptyString(name) and name ~= value then
+    if (shorten) and (shorten == true) then
+      formatted_name_value = shortenString(name) .. " [" .. value .. "]"
+    else
+      formatted_name_value = name .. " [" .. value .. "]"
+    end
+  end
+
+  return formatted_name_value
+end
 
 --
 -- IMPORTANT

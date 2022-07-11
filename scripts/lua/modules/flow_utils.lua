@@ -1575,7 +1575,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 
    if flowdevs == nil then flowdevs = {} end
 
-   local devips = getProbesName(flowdevs)
+   local devips = getProbesName(flowdevs, false, false)
    local devips_order = ntop.getPref("ntopng.prefs.flow_table_probe_order") == "1" -- Order by Probe Name
 
    if devips_order then
@@ -1604,14 +1604,12 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 
       dev_params["deviceIP"] = dev_name
 
-      if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
-         dev_name = dev_name .. " ["..shortenString(dev_resolved_name).."]"
-      end
+      dev_name = format_name_value(dev_resolved_name, dev_ip, true)
+      dev_name_full = format_name_value(dev_resolved_name, dev_ip, false)
 
       print[[
 	 <li>\
-	   <a class="dropdown-item ]] print(dev_ip == cur_dev and 'active' or '') print[[" href="]] print(getPageUrl(base_url, dev_params)) print[[" title="]] print(dev_ip) print[[">]] print(i18n("flows_page.device_ip").." "..dev_name) print[[</a></li>\]]
-   end
+   <a class="dropdown-item ]] print(dev_ip == cur_dev and 'active' or '') print[[" href="]] print(getPageUrl(base_url, dev_params)) print[[" title="]] print(dev_name_full) print[[">]] print(dev_name) print[[</a></li>\]]   end
    print[[
       </ul>\
 </div>']]
