@@ -2417,7 +2417,7 @@ local lang = {
     ["process_pid_name"] = "Process PID/Name",
     ["profile_name"] = "Profile Name",
     ["pseudo_mos"] = "(Pseudo) MOS",
-    ["purge_time"] = "Flow purge timeout: %{purge_time} sec <span title='A Flow is purged when no traffic is seen for the time set; to change it jump to the Flow Idle Timeout preferences. To set in combination with nProbe, set -d configuration option to nProbe' style='cursor: help;'><i class='fas fa-question-circle'></i></span> <a href='%{prefs_url}' target='_blank'><i class='fas fa-cog fa-sm'></i></a>",
+    ["purge_time"] = "Flow Idle Timeout: %{purge_time} sec <span title='A Flow is purged when no traffic is seen for the time set; to change it jump to the Flow Idle Timeout preferences. To set in combination with nProbe, set -d configuration option in nProbe' style='cursor: help;'><i class='fas fa-question-circle'></i></span> <a href='%{prefs_url}' target='_blank'><i class='fas fa-cog fa-sm'></i></a>",
     ["r_factor"] = "R-Factor",
     ["reach_connection_label"] = "Reach Connection",
     ["remote_to_remote"] = "Remote Client and Remote Server",
