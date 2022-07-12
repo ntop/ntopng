@@ -52,8 +52,8 @@ class Flow : public GenericHashEntry {
   u_int8_t view_cli_mac[6], view_srv_mac[6];
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
-  /* The bitmap of all possible flow alerts set by FlowCheck subclasses. When no alert is set, the 
-     flow is in flow_alert_normal.
+  /* The bitmap of all possible flow alerts set by FlowCheck subclasses.
+     When no alert is set, the flow is in flow_alert_normal.
 
      A flow can have multiple alerts but at most ONE of its alerts is predominant
      of a flow, which is written into `predominant_alert`.
