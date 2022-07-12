@@ -582,10 +582,8 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
       /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
       u_int32_t ip = ntohl(inet_addr(value->string));
 
-      if(ip) {
+      if(ip)
         flow->device_ip = ip;
-        return false; /* FIXX check why we are returning false here */
-      }
     }
     break;
   case EXPORTER_IPV6_ADDRESS:
@@ -628,11 +626,13 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
   case POST_NAPT_SRC_TRANSPORT_PORT:
-    if(ntop->getPrefs()->do_override_src_with_post_nat_src())
+    if(ntop->getPrefs()->do_override_src_with_post_nat_src()
+       && (value->int_num != 0))
       flow->src_port = htons((u_int16_t) value->int_num);
     break;
   case POST_NAPT_DST_TRANSPORT_PORT:
-    if(ntop->getPrefs()->do_override_dst_with_post_nat_dst())
+    if(ntop->getPrefs()->do_override_dst_with_post_nat_dst()
+       && (value->int_num != 0))
       flow->dst_port = htons((u_int16_t) value->int_num);
     break;
   case INGRESS_VRFID:
