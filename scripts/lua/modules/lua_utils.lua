@@ -5127,7 +5127,7 @@ end
 -- @params device_ip: snmp device ip
 --         portidx:   number or string, interface index to format
 --         short_version: boolean, long formatting version (e.g. flow info) or short version (e.g. dropdown menu)
-function format_portidx_name(device_ip, portidx, short_version)
+function format_portidx_name(device_ip, portidx, short_version, shorten_string)
   local idx_name = portidx
   -- SNMP is available only with Pro version at least
   if ntop.isPro() then
@@ -5147,7 +5147,11 @@ function format_portidx_name(device_ip, portidx, short_version)
         end
    
         if short_version then
-          idx_name = string.format('%s [%s]', port_info["index"], port_info["name"]) 
+          local name = port_info["name"]
+          if shorten_string then
+            name = shortenString(name)
+          end
+          idx_name = string.format('%s [%s]', name, port_info["index"]) 
         else
           idx_name = string.format('%s', i18n("snmp.interface_device_2", {interface=snmp_location.snmp_port_link(port_info, true), device=snmp_location.snmp_device_link(cached_dev["host_ip"])}))
         end

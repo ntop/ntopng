@@ -415,6 +415,7 @@ local lang = {
   ["show_hide_filters"] = "Show/Hide Filters",
   ["showing_x_to_y_rows"] = "Showing %{x} to %{y} of %{tot} rows",
   ["similarity"] = "Similarity",
+  ["span_with_title"] = "<span class='help' title='%{full_name}'>%{shorten_name}</span>",
   ["speed"] = "Speed",
   ["srv_port"] = "Srv Port",
   ["ssh"] = "SSH",

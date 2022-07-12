@@ -1636,12 +1636,17 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page.all_"..direction)) print[[</a></li>\]]
 
 	    for portidx, _ in pairsByKeys(ports, asc) do
-	       if_params[direction] = portidx
+         if_params[direction] = portidx
          local idx_name = format_portidx_name(cur_dev, portidx, true)
+         local label = idx_name
 
+         if portidx == tonumber(idx_name) then
+          label = i18n("flows_page."..direction).." "..idx_name
+         end
+         
          print[[
 	 <li>\
-	   <a class="dropdown-item ]] print(cur_if == tostring(portidx) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page."..direction).." "..idx_name) print[[</a></li>\]]
+	   <a class="dropdown-item ]] print(cur_if == tostring(portidx) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(label) print[[</a></li>\]]
 	    end
 	    print[[
       </ul>\

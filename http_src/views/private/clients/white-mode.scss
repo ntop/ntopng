@@ -818,5 +818,9 @@ table.dataTable thead th.sorting_desc::after {
 .ntopng-external-link:hover {
   overflow: visible; 
   white-space: normal;
-  height:auto;
+  height: auto;
+}
+
+.help {
+  cursor: help;
 }

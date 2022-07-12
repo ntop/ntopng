@@ -208,9 +208,21 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    record["key_and_hash"] = string.format("%s@%s", record["key"], record["hash_id"])
    if (value["in_index"] ~= nil and value["out_index"] ~= nil) then
       local device_ip = value["device_ip"]
-      local idx_name_in = format_portidx_name(device_ip, value["in_index"], true)
-      local idx_name_out = format_portidx_name(device_ip, value["out_index"], true)
-      record["column_device_ip"] = value["device_ip"]
+      local idx_name_in = i18n("span_with_title", {
+        shorten_name = format_portidx_name(device_ip, value["in_index"], true, true),
+        full_name = format_portidx_name(device_ip, value["in_index"], true),
+      })
+      
+      local idx_name_out = i18n("span_with_title", {
+        shorten_name = format_portidx_name(device_ip, value["out_index"], true, true),
+        full_name = format_portidx_name(device_ip, value["out_index"], true),
+      })
+        
+      record["column_device_ip"] = i18n("span_with_title", {
+        shorten_name = format_name_value(getProbeName(value["device_ip"]), value["device_ip"], true),
+        full_name = format_name_value(getProbeName(value["device_ip"]), value["device_ip"], false),
+      })
+
       record["column_in_index"] = idx_name_in
       record["column_out_index"] = idx_name_out
    end
