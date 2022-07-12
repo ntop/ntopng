@@ -962,7 +962,7 @@ The alert is sent when periodicity change is detected.
 *Enabled by Default*
 
 
-**Potentially dangerous protocol**
+**Potentially Dangerous Protocol**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for potencially dangerous protocols.
@@ -976,6 +976,131 @@ The alert is sent to totify about dangerous protocol.
 *Enabled by Default*
 
 
+**Remote Access**
+~~~~~~~~~~~~~~~~~
 
+Checks for remote access end.
+
+
+The connection to the remote computer was lost, possibly due to network connectivity problems.
+When the remote desktop connection between a Windows desktop and its host fails, it's time to do some remote desktop troubleshooting by checking firewalls, security certificates.
+It also could happen when the remote access to the server is not enabled or the remote computer is turned off.
+
+The alert is sent when the the remote access is ended.
+
+*Category:Network*
+
+*Enabled by Default*
+
+
+**Suspicious DNS traffic**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for suspicious dns traffic.
+
+The attackers have discovered ways to take advantage of the protocol.By manipulating DNS to hijack traffic and redirect it to an IP address under the attacker’s control. This could send users intending to visit bbc.com.uk, for example, to an unrelated malicious website. Another technique involves using the DNS protocol for command-and-control activities with the attacker’s malicious code or to exfiltrate data.
+
+The alert is sent when a suspicious dns traffic is seen.
+
+Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+**Suspicious TLS ESNI Usage**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for suspicious tls esni usage.
+
+Server Name Indication (SNI) is an extension to the TLS protocol. It allows a client or browser to indicate which hostname it is trying to connect to at the start of the TLS handshake. This allows the server to present multiple certificates on the same IP address and port number.
+
+The alert notifies about a suspicious tls esni usage.
+
+Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+**TLS (probably) not carrying HTTPS**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for TLS.
+
+HTTP is an application layer protocol that is sent over TCP.In HTTPS, the communication protocol is encrypted using Transport Layer Security (TLS)
+
+The Alert is sent when TLS is not carrying HTTPS.
+
+
+Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+
+**Self-Signed Certificates**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for self signed certificates.
+
+To eliminate the risk of a self-signed SSL certificate is to get an SSL/TLS certificate issued from a trusted Certificate Authority.
+
+The alert notifies about self - signed certificates.
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+**TLS certificate validity longer than 13 months**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for certificate validity.
+
+TLS/SSL Certificate Validity Periods are currently 398 days, or about 13 months.
+
+The alert is sent to notify about the certificate expiration date.
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+**Unexpected DHCP**
+~~~~~~~~~~~~~~~~~~~~
+
+Checks for unusual DHCP.
+
+A DHCP server setup on a network by a hacker called Rogue DHCP server, can lead to Man in the Middle, Sniffing, and Reconnaissance attacks. By placing a rogue DHCP server on the network, an attacker can supply the clients with fake addresses and other network information to snoop into the data packets.
+
+
+The alert is sent when the system identifies an unexpected DHCP server.
+
+*Category:Cybersecurity*
+
+*Not Enabled by Default*
+
+
+**Unexpected SMTP Server**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for unexpected smtp.
+
+An SMTP attack is any exploitation of the SMTP server that enables attackers to gain unauthorized access to it. When an SMTP hack occurs, attacker can see the email addresses stored on the server and send messages impersonating a company.
+
+An alert is sent to notify about a unexpected SMTP server.
+
+*Category:Cybersecurity*
+
+*Not Enabled by Default*
+
+**Unidirectional UDP Flow**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for unidirectional UDP flow.
+
+UDP is usually used for Multicast, that is - one to many destinations. 
+But UDP could be also implemented in unidirectional communications.
+
+The alert notifies about unidirectional UDP flow.
+
+*Category:Network*
+
+*Enabled by Default*
 
 
