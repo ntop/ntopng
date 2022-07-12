@@ -893,4 +893,89 @@ The alert is sent when a crawler on the webpage is detected.
 *Enabled by Default*
 
 
+**DNS Data Exfiltration**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verifies for data exfiltration.
+
+
+The data is exchanged through DNS protocol on intermediate DNS servers. During the exfiltration phase, the client makes a DNS resolution request to an external DNS server address. Instead of responding with an A record in response, the attacker’s name server will respond back with a MX or TXT record, which allows a large amount of not structured data to be sent between attacker and victim.
+
+
+The Alert is sent data exfiltration is detected.
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+**Device Application Not Allowed**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for not allowed application
+
+An unusual application has been identified by the system
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+**Lateral Movement Detection**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for lateral movement.
+
+Network Lateral Movement, refers to the techniques that cyber attackers, or threat actors, use to progressively move through a network as they search for the key data and assets.
+
+The alert is sent to notify about a lateral movement detected in the network.
+
+*Category:Network*
+
+*Enabled by Default*
+
+
+**Obsolete SSH Server Version or Cipher**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for obsolete SSH Version
+
+It is possible to customize the supported SSH ciphers on the client machine when support is needed for a deprecated cipher. This is not a very common issue. It typically happens when a modern SSH client is used to connect to an old SSH server that hasn’t yet disabled weaker ciphers.
+
+The system sends an alert to nitify an obsolete SSH version or Cipher.
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+**Periodicity Changed Detection**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for periodicity change.
+
+New periodic distance measures for time-series sequences have been implemented.
+
+The alert is sent when periodicity change is detected.
+
+*Category:Network*
+
+*Enabled by Default*
+
+
+**Potentially dangerous protocol**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for potencially dangerous protocols.
+
+The most commonly attacked ports are those used by Secure Shell (SSH), the file transfer protocol (FTP), the remote desktop protocol (RDP), and Web servers (HTTP) are among the more vulnerable protocols.
+
+The alert is sent to totify about dangerous protocol.
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+
+
 
