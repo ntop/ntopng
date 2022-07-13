@@ -20,9 +20,9 @@
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
 	<div class="custom-control custom-switch">
-	  <input type="checkbox" class="custom-control-input whitespace" v-model="save_time">
+	  <input type="checkbox" class="custom-control-input whitespace form-check-input" v-model="save_time">
 	  
-	  <label class="custom-control-label ms-1">{{save_time_text}}</label>
+	  <label class="custom-control-label ms-1 form-check-label">{{save_time_text}}</label>
 	</div>
       </div>      
     </div> <!-- action add -->
@@ -52,9 +52,9 @@
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
 	<div class="custom-control custom-switch">
-	  <input type="checkbox" class="custom-control-input whitespace" v-model="apply_time">
+	  <input type="checkbox" class="custom-control-input whitespace form-check-input" v-model="apply_time">
 	  
-	  <label class="custom-control-label ms-1">{{apply_time_text}}</label>
+	  <label class="custom-control-label ms-1 form-check-label">{{apply_time_text}}</label>
 	</div>
       </div>
     </div> <!-- action select -->
