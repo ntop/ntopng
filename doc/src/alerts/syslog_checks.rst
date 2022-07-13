@@ -1,7 +1,7 @@
 Syslog Checks
 #############
 
-Syslog checks are called whenever ntopng :ref:`Syslog target`. They are not real checks but rather are triggered whenever a syslog entry is received. Below you can find the various syslog families.
+Syslog checks are called whenever ntopng collects logs as described in :ref:`Syslog target`. They are not real checks but rather are triggered whenever a syslog event is received. Below you can find the various syslog families.
 
 ____________________
 
