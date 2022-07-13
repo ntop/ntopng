@@ -11,12 +11,12 @@
 <script type='text/javascript'>
   const base_path = '{* ntop.getHttpPrefix() *}';
   const default_ifid = '{* interface.getId() *}';
-  const show_permalink = '{* show_permalink *}';
-  const show_download = '{* show_download *}';
+  const show_permalink = '{* show_permalink *}' == 'true';
+  const show_download = '{* show_download *}' == 'true';
   const download_endpoint = '{* datatable.download.endpoint *}';
   const navbar_context = {* navbar *};
-  const show_pcap_download = '{* show_pcap_download *}';
-  const isNtopEnterpriseM = '{* ntop.isEnterpriseM() *}';
+  const show_pcap_download = '{* show_pcap_download *}' == 'true';
+  const isNtopEnterpriseM = '{* ntop.isEnterpriseM() *}' == 'true';
 </script>
 <div id="navbar">
 <page-navbar
