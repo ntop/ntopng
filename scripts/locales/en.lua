@@ -1467,6 +1467,7 @@ local lang = {
   ["datatable"] = {
     ["abort_add_filter"] = "Abort add filter?",
     ["add_filter"] = "Add Filter",
+    ["manage_snapshots"] = "Manage Snapshots",
     ["edit_filter"] = "Edit Filter",
     ["no_records"] = "No Records",
     ["number_of_records"] = "Number of records",
@@ -5845,6 +5846,18 @@ local lang = {
     ["top_sites_not_enabled_message"] = "To keep track of visited sites, enable the creation of top visited web sites for local hosts from the <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</a>.",
     ["top_sites_not_seen"] = "Current local host has not visited any website yet.",
     ["top_visited_sites"] = "Top Visited Sites",
+  },
+  ["snapshots"] = {
+     ["add"] = "Add Snapshot",
+     ["apply"] = "Apply Snapshot",
+     ["manage"] = "Manage Snapshots",
+     ["name"] = "Snapshot Name",
+     ["date"] = "Snapshot Date",
+     ["order_by"] = "Order By",
+     ["save_time"] = "Save time interval %begin_time - %end_time",
+     ["apply_time"] = "Apply current time interval %begin_time - %end_time",
+     ["select"] = "Select Snapshot",
+     ["delete"] = "Delete Snapshot",
   },
   ["snmp"] = {
     ["AlertDescription"] = "Alert Description",

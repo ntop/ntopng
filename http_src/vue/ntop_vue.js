@@ -14,6 +14,7 @@ import { default as ModalAddCheckExclusion } from "./modal-add-check-exclusion.v
 import { default as ModalAlertsFilter } from "./modal-alerts-filter.vue";
 import { default as ModalFilters } from "./modal-filters.vue";
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
+import { default as ModalSnapshot } from "./modal-snapshot.vue";
 
 let ntopVue = {
     AlertInfo: AlertInfo,
@@ -29,6 +30,7 @@ let ntopVue = {
     ModalFilters: ModalFilters,
     ModalTrafficExtraction: ModalTrafficExtraction,
     ModalDeleteConfirm: ModalDeleteConfirm,
+    ModalSnapshot: ModalSnapshot,
 
     Vue: Vue,
 };

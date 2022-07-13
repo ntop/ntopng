@@ -16,6 +16,7 @@
   const download_endpoint = '{* datatable.download.endpoint *}';
   const navbar_context = {* navbar *};
   const show_pcap_download = '{* show_pcap_download *}';
+  const isNtopEnterpriseM = '{* ntop.isEnterpriseM() *}';
 </script>
 <div id="navbar">
 <page-navbar
@@ -37,11 +38,15 @@
 	  <div class="range-picker d-flex m-auto flex-wrap" id="rangepicker">
 	  <alert-info id="alert_info" ref="alert_info"></alert-info>
 	  <modal-traffic-extraction id="modal_traffic_extraction" ref="modal_traffic_extraction"></modal-traffic-extraction>
+	  <modal-snapshot ref="modal_snapshot"
+	    :csrf="csrf">
+	  </modal-snapshot>
 	    <range-picker ref="range-picker-vue" :id="id_range_picker">
 	    <template v-slot:extra_range_buttons>
 	    <button v-if="show_permalink" class="btn btn-link btn-sm" @click="get_permanent_link" :title="i18n('graphs.get_permanent_link')" ref="permanet_link_button"><i class="fas fa-lg fa-link"></i></button>
 	    <a v-if="show_download" class="btn btn-link btn-sm" id="dt-btn-download" :title="i18n('graphs.download_records')" ><i class="fas fa-lg fa-file"></i></a>
 	    <button v-if="show_pcap_download" class="btn btn-link btn-sm" @click="show_modal_traffic_extraction" :title="i18n('traffic_recording.pcap_download')"><i class="fas fa-lg fa-download"></i></button>
+	    <button v-if="is_ntop_enterprise_m" class="btn btn-link btn-sm" @click="show_modal_snapshot" :title="i18n('datatable.manage_snapshots')"><i class="fas fa-lg fa-camera-retro"></i></button>
 	    </template>
 	    </range-picker>
 	  </div>
@@ -469,6 +474,7 @@
 	  mounted() {},
 	  data() {
 	      return {
+	          csrf: pageCsrf,
 		  chart_base_url_request: chart_data_url,
 		  page: page,
 		  current_alert: null,
@@ -515,6 +521,7 @@
    	      // 'alert-info': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/alert-info.vue`, ntopng_vue_loader.loadOptions) ),
    	      'range-picker': ntopVue.RangePicker,
    	      'modal-traffic-extraction': ntopVue.ModalTrafficExtraction,
+	      'modal-snapshot': ntopVue.ModalSnapshot,
    	      'alert-info': ntopVue.AlertInfo,
 	  },
 	  /**
@@ -524,6 +531,8 @@
 	  mounted() {},
 	  data() {
 	      return {
+	          csrf: pageCsrf,
+		  is_ntop_enterprise_m: isNtopEnterpriseM,
 		  chart_base_url_request: `${base_path}/lua/rest/v2/get/flow/alert/ts.lua`,
 		  show_download: show_download,
 		  show_permalink: show_permalink,
@@ -535,6 +544,9 @@
 	  methods: {
 	  show_modal_traffic_extraction: async function() {
 	  this.$refs["modal_traffic_extraction"].show();
+	  },
+	  show_modal_snapshot: function() {
+	    this.$refs["modal_snapshot"].show();
 	  },
 	  get_permanent_link: function() {
 	  const $this = $(this.$refs['permanet_link_button']);

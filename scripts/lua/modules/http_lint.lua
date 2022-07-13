@@ -1623,6 +1623,7 @@ local known_parameters = {
    ["flow_key"]                = validateNumber,                -- The key of the flow
    ["flow_hash_id"]            = validateNumber,                -- The ID uniquely identifying the flow in the hash table
    ["user"]                    = validateSingleWord,            -- The user ID
+   ["snapshot_name"]           = validateSingleWord,            -- The user ID
    ["pool"]                    = validateNumber,                -- A pool ID
    ["pool_id"]                 = validateNumber,                -- A pool ID
    ["direction"]               = validateDirection,             -- Sent or Received direction
