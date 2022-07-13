@@ -7,31 +7,54 @@ local throughput_type = getThroughputType()
 local now = os.time()
 
 function printMacHosts(mac)
-   local mac_hosts = interface.getMacHosts(mac)
-   local num_hosts = table.len(mac_hosts)
+  local mac_hosts = interface.getMacHosts(mac)
+  local num_hosts = table.len(mac_hosts)
 
-   if num_hosts > 0 then
-      local first_host
+  if num_hosts > 0 then
+     local first_host
 
-      for _, h in pairsByKeys(mac_hosts, asc) do
-	 first_host = h
-	 break
-      end
+     for _, h in pairsByKeys(mac_hosts, asc) do
+  first_host = h
+  break
+     end
 
-      local url = ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac
-      local host_url = hostinfo2detailsurl(first_host)
-      local host_label = first_host["ip"]
+     local url = ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac
+     local host_url = hostinfo2detailsurl(first_host)
+     local host_label = first_host["ip"]
 
-      if num_hosts > 2 then
-	 return i18n("mac_details.and_n_more_hosts", {host_url = host_url, host_label = host_label, url = url, num = num_hosts})
-      elseif num_hosts > 1 then
-	 return i18n("mac_details.and_one_more_host", {host_url = host_url, host_label = host_label, url = url})
-      else
-	 return i18n("mac_details.mac_host", {host_url = host_url, host_label = host_label})
-      end
-   end
+     if num_hosts > 2 then
+  return i18n("mac_details.and_n_more_hosts", {host_url = host_url, host_label = host_label, url = url, num = num_hosts})
+     elseif num_hosts > 1 then
+  return i18n("mac_details.and_one_more_host", {host_url = host_url, host_label = host_label, url = url})
+     else
+  return i18n("mac_details.mac_host", {host_url = host_url, host_label = host_label})
+     end
+  end
 
-   return ''
+  return ''
+end
+
+function getMacHosts(mac)
+  local mac_hosts = interface.getMacHosts(mac)
+  local num_hosts = table.len(mac_hosts)
+  local url, hosts
+
+  if num_hosts > 0 then
+    local first_host
+
+    for _, h in pairsByKeys(mac_hosts, asc) do
+      first_host = h
+      break
+    end
+
+    url = ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac
+    
+    if num_hosts > 1 then
+      hosts = i18n("n_more_objects", { label = first_host["ip"], num = num_hosts, object = i18n("hosts")})
+    end
+  end
+
+  return hosts, url
 end
 
 function macAddIcon(mac, pre)
@@ -45,6 +68,10 @@ function macAddIcon(mac, pre)
    end
 
    return pre
+end
+
+function mac2url(mac)
+  return ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac)
 end
 
 function mac2link(mac, cached_name, alt_name)
