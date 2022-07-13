@@ -271,6 +271,7 @@ local lang = {
   ["local_traffic"] = "Local Traffic",
   ["lua_c_api"] = "Lua/C API",
   ["mac_address"] = "MAC Address",
+  ["n_more_objects"] = "%{label} and %{num} more %{object}",
   ["main_issue"] = "Main Issue",
   ["maps"] = "Maps",
   ["max_entries_reached"] = "Warning: The entries of the Maps are too many, limited to %{entries} flows.",
@@ -6055,6 +6056,8 @@ local lang = {
     ["snmp_device_not_found"] = "SNMP device \"%{host}\" cannot be found: perhaps it has been removed from the list of configured SNMP devices ?",
     ["trying_to_retrive_message"] = "Trying to retrieve host SNMP MIB using the default community '%{community}'",
     ["unable_to_retrive_snmp_default_community_message"] = "Unable to retrieve host SNMP MIB using the default community '%{community}'.",
+    ["multiple_macs"] = "<a href='%{num_mac_href}'>%{mac} and %{num_mac} more macs</a>",
+    ["single_mac"] = "<a href='%{num_mac_href}'>%{mac}</a>",
   },
   ["snmp_ratio_errors"] = {
     ["flowdevice_timeseries_not_existing"] = "Not available.",
