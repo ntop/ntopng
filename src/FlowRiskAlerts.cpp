@@ -169,7 +169,7 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
 
 /* **************************************************** */
 
-bool FlowRiskAlerts::isRiskUnhanlded(ndpi_risk_enum risk) {
+bool FlowRiskAlerts::isRiskUnhandled(ndpi_risk_enum risk) {
   /*
     A risk is unhandled by this class if either it exceeds the number of available risks
     or if it has not been mapped to the risk_enum_to_alert_type array.
@@ -182,9 +182,9 @@ bool FlowRiskAlerts::isRiskUnhanlded(ndpi_risk_enum risk) {
 void FlowRiskAlerts::checkUnhandledRisks() {
   for(int risk_id = 1; risk_id < NDPI_MAX_RISK; risk_id++) {
     if(risk_enum_to_alert_type[risk_id].alert_type.id == flow_alert_normal)
-      ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI risk unhanded by ntopng [risk: %u/%s]", risk_id, ndpi_risk2str((ndpi_risk_enum)risk_id));
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI risk unhanded by ntopng [risk: %u/%s]", risk_id, ndpi_risk2str((ndpi_risk_enum)risk_id));
     else
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Risk handled [risk: %u/%s]", risk_id, ndpi_risk2str((ndpi_risk_enum)risk_id));
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Risk handled [risk: %u/%s]", risk_id, ndpi_risk2str((ndpi_risk_enum)risk_id));
   }
 }
 
@@ -218,7 +218,7 @@ bool FlowRiskAlerts::lua(lua_State* vm) {
 /* **************************************************** */
 
 FlowAlertType FlowRiskAlerts::getFlowRiskAlertType(ndpi_risk_enum risk) {
-  if(isRiskUnhanlded(risk))
+  if(isRiskUnhandled(risk))
     return risk_enum_to_alert_type[NDPI_NO_RISK].alert_type;
   else
     return risk_enum_to_alert_type[risk].alert_type;
@@ -227,7 +227,7 @@ FlowAlertType FlowRiskAlerts::getFlowRiskAlertType(ndpi_risk_enum risk) {
 /* **************************************************** */
 
 const char * FlowRiskAlerts::getCheckName(ndpi_risk_enum risk) {
-  if(isRiskUnhanlded(risk))
+  if(isRiskUnhandled(risk))
     return risk_enum_to_alert_type[NDPI_NO_RISK].alert_lua_name;
   else
     return risk_enum_to_alert_type[risk].alert_lua_name;

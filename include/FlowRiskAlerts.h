@@ -25,7 +25,7 @@
 #include "ntop_includes.h"
 class FlowRiskAlerts {
  private:
-  static bool isRiskUnhanlded(ndpi_risk_enum risk);
+  static bool isRiskUnhandled(ndpi_risk_enum risk);
 
  public:
   static inline u_int8_t getFlowRiskScore(ndpi_risk_enum risk) {
