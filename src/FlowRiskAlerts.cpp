@@ -29,7 +29,7 @@
  * - Flow risks which are handled through dedicated Checks are listed here 
  *   and the check is explicitly registered in FlowChecksLoader::registerChecks
  * - Flow risks which are defined below and assigned to an alert type defined in 
- *   FlowAlertTypeEnum, but with no dedicated Check, are handled by FlowRiskSimple
+ *   FlowAlertTypeEnum, but with no dedicated Check, are handled by FlowRiskGeneric
  *   automatically
  * - Other flow risks (not listed below or with flow_alert_normal) are not
  *   handled and they do not trigger an alert (they are just reported in the

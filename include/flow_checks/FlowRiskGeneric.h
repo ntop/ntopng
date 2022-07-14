@@ -19,23 +19,24 @@
  *
  */
 
-#ifndef _FR_SIMPLE_ALERT_H_
-#define _FR_SIMPLE_ALERT_H_
+#ifndef _FLOW_RISK_SIMPLE_H_
+#define _FLOW_RISK_SIMPLE_H_
 
 #include "ntop_includes.h"
 
-class FlowRiskSimpleAlert : public FlowRiskAlert {
+class FlowRiskGeneric : public FlowRisk {
  private:
   ndpi_risk_enum risk;
+  FlowAlertType getAlertType() const { return FlowRiskAlerts::getFlowRiskAlertType(risk); }
 
-  ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);  
  public:
- FlowRiskSimpleAlert(FlowCheck *c, Flow *f, ndpi_risk_enum _risk) : FlowRiskAlert(c, f) { risk = _risk; };
-  ~FlowRiskSimpleAlert() { };
+  FlowRiskGeneric(ndpi_risk_enum _risk) : FlowRisk() { risk = _risk; };
+  ~FlowRiskGeneric() {};
 
-  FlowAlertType  getAlertType()  const { return FlowRiskAlerts::getFlowRiskAlertType(risk); }
-  ndpi_risk_enum getAlertRisk()  const { return risk;}
-  u_int8_t       getAlertScore() const { return FlowRiskAlerts::getFlowRiskScore(risk); }
+  FlowAlert *buildAlert(Flow *f) { return new FlowRiskGenericAlert(this, f, risk); }
+
+  std::string getName() const { return(FlowRiskAlerts::getCheckName(risk)); }
+  ndpi_risk_enum handledRisk() { return risk; }
 };
 
-#endif /* _FR_SIMPLE_ALERT_H_ */
+#endif

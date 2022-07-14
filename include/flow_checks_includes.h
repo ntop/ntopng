@@ -30,7 +30,7 @@
 #include "flow_checks/DeviceProtocolNotAllowed.h"
 #include "flow_checks/ExternalAlertCheck.h"
 #include "flow_checks/FlowRisk.h"
-#include "flow_checks/FlowRiskSimple.h"
+#include "flow_checks/FlowRiskGeneric.h"
 #include "flow_checks/FlowRiskBinaryApplicationTransfer.h"
 #include "flow_checks/FlowRiskDNSSuspiciousTraffic.h"
 #include "flow_checks/FlowRiskHTTPNumericIPHost.h"

@@ -21,7 +21,7 @@
 
 #include "flow_alerts_includes.h"
 
-ndpi_serializer* FlowRiskSimpleAlert::getAlertJSON(ndpi_serializer* serializer) {
+ndpi_serializer* FlowRiskGenericAlert::getAlertJSON(ndpi_serializer* serializer) {
   if(serializer == NULL)
     return NULL;
 
