@@ -143,7 +143,8 @@ void FlowChecksLoader::registerChecks() {
        /* The risk is among those supported by class FlowRiskAlerts */
        && FlowRiskAlerts::getFlowRiskAlertType(risk).id != flow_alert_normal) {
       /* Instantiate a simple risk class to handle it */
-      if((fcb = new FlowRiskSimple(risk)))                      registerCheck(fcb);
+      if((fcb = new FlowRiskSimple(risk)))
+        registerCheck(fcb);
     }
   }
 
