@@ -25,7 +25,7 @@
 #include "ntop_includes.h"
 class FlowRiskAlerts {
  private:
-  static bool isRiskUnhandled(ndpi_risk_enum risk);
+  static bool isRiskUndefined(ndpi_risk_enum risk);
 
  public:
   static inline u_int8_t getFlowRiskScore(ndpi_risk_enum risk) {
@@ -41,7 +41,7 @@ class FlowRiskAlerts {
   
   static FlowAlertType getFlowRiskAlertType(ndpi_risk_enum risk);  
   static const char * getCheckName(ndpi_risk_enum risk);
-  static void checkUnhandledRisks();
+  static void checkUndefinedRisks();
   static bool lua(lua_State* vm);
 };
 

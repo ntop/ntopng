@@ -489,7 +489,8 @@ typedef enum {
   flow_alert_connection_failed                    = 75,
   flow_alert_ndpi_anonymous_subscriber            = 76,
   flow_alert_unidirectional_traffic               = 77,
-  
+  flow_alert_ndpi_desktop_or_file_sharing_session = 78,
+ 
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
   MAX_FLOW_ALERT_TYPE = 127 /* Constrained by `Bitmap128 alert_map` inside Flow.h */  

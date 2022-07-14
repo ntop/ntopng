@@ -497,7 +497,7 @@ void Ntop::start() {
     pro->printLicenseInfo();
 #endif
 
-  FlowRiskAlerts::checkUnhandledRisks();
+  FlowRiskAlerts::checkUndefinedRisks();
 
   prefs->loadInstanceNameDefaults();
 

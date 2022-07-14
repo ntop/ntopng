@@ -47,12 +47,13 @@ void FlowChecksLoader::registerCheck(FlowCheck *cb) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Ignoring duplicate flow check %s", cb->getName().c_str());
     delete cb;
     return;
-  } else
-    cb_all[cb->getName()] = cb;
+  }
+
+  cb_all[cb->getName()] = cb;
 
   /*
-    If this is a check that handles an nDPI flow risk, the corresponding risk is cleared in the
-    unhandled risks bitmap
+    If this is a check that handles an nDPI flow risk,
+    the corresponding risk is cleared in the unhandled risks bitmap
    */
   FlowRisk *fr = dynamic_cast<FlowRisk*>(cb);
   if(fr) NDPI_CLR_BIT(unhandled_ndpi_risks, fr->handledRisk());

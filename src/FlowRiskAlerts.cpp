@@ -24,11 +24,16 @@
 /* **************************************************** */
 
 /*
- * Note:
+ * Note about handled/defined/undefined nDPI Risks:
  *
- * Flow risks which are not explicitly handled via specific Checks
- * and marked as "Unhandled" below, are handled by a generic Check
- * class named FlowRiskSimple.
+ * - Flow risks which are handled through dedicated Checks are listed here 
+ *   and the check is explicitly registered in FlowChecksLoader::registerChecks
+ * - Flow risks which are defined below and assigned to an alert type defined in 
+ *   FlowAlertTypeEnum, but with no dedicated Check, are handled by FlowRiskSimple
+ *   automatically
+ * - Other flow risks (not listed below or with flow_alert_normal) are not
+ *   handled and they do not trigger an alert (they are just reported in the
+ *   live flow information, without contributing to the score for instance)
  */
 
 static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
@@ -111,31 +116,31 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
   { { flow_alert_ndpi_http_suspicious_content, alert_category_security }, "ndpi_http_suspicious_content" },
 
   /* NDPI_RISKY_ASN */
-  { { flow_alert_normal /* Unhandled */, alert_category_other }, "nspi_risky_asn" },
+  { { flow_alert_normal /* Undefined */, alert_category_other }, "nspi_risky_asn" },
 
   /* NDPI_RISKY_DOMAIN */
-  { { flow_alert_normal /* Unhandled */, alert_category_other }, "ndpi_risky_domain" },
+  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_risky_domain" },
 
   /* NDPI_MALICIOUS_JA3 */
-  { { flow_alert_normal /* Unhandled */, alert_category_other }, "ndpi_malicious_ja3" },
+  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_malicious_ja3" },
 
   /* NDPI_MALICIOUS_SHA1_CERTIFICATE */
-  { { flow_alert_normal /* Unhandled */, alert_category_other }, "ndpi_malicious_sha1_certificate" },
+  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_malicious_sha1_certificate" },
 
   /* NDPI_DESKTOP_OR_FILE_SHARING_SESSION */
-  { { flow_alert_normal /* Unhandled */, alert_category_other }, "ndpi_desktop_or_file_sharing_session" },
+  { { flow_alert_ndpi_desktop_or_file_sharing_session, alert_category_other }, "ndpi_desktop_or_file_sharing_session" },
 
   /* NDPI_TLS_UNCOMMON_ALPN */
-  { { flow_alert_normal /* Unhandled */, alert_category_other }, "ndpi_tls_uncommon_alpn" },
+  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_tls_uncommon_alpn" },
 
   /* NDPI_TLS_CERT_VALIDITY_TOO_LONG */
   { { flow_alert_ndpi_tls_cert_validity_too_long, alert_category_security }, "ndpi_tls_cert_validity_too_long" },
 
   /* NDPI_TLS_SUSPICIOUS_EXTENSION */
-  { { flow_alert_normal /* Unhandled */, alert_category_other }, "ndpi_tls_suspicious_extension" },
+  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_tls_suspicious_extension" },
 
   /* NDPI_TLS_FATAL_ALERT */
-  { { flow_alert_normal /* Unhandled */, alert_category_other }, "ndpi_tls_fatal_alert" },
+  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_tls_fatal_alert" },
 
   /* NDPI_SUSPICIOUS_ENTROPY */
   { { flow_alert_ndpi_suspicious_entropy, alert_category_security }, "ndpi_suspicious_entropy" },
@@ -177,7 +182,7 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
 
 /* **************************************************** */
 
-bool FlowRiskAlerts::isRiskUnhandled(ndpi_risk_enum risk) {
+bool FlowRiskAlerts::isRiskUndefined(ndpi_risk_enum risk) {
   /*
     A risk is unhandled by this class if either it exceeds the number of available risks
     or if it has not been mapped to the risk_enum_to_alert_type array.
@@ -187,12 +192,12 @@ bool FlowRiskAlerts::isRiskUnhandled(ndpi_risk_enum risk) {
 
 /* **************************************************** */
 
-void FlowRiskAlerts::checkUnhandledRisks() {
+void FlowRiskAlerts::checkUndefinedRisks() {
   for(int risk_id = 1; risk_id < NDPI_MAX_RISK; risk_id++) {
     if(risk_enum_to_alert_type[risk_id].alert_type.id == flow_alert_normal)
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI risk unhanded by ntopng [risk: %u/%s]", risk_id, ndpi_risk2str((ndpi_risk_enum)risk_id));
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[!] nDPI risk %u/%s has not been defined in ntopng", risk_id, ndpi_risk2str((ndpi_risk_enum)risk_id));
     else
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Risk handled [risk: %u/%s]", risk_id, ndpi_risk2str((ndpi_risk_enum)risk_id));
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Risk %u/%s handled", risk_id, ndpi_risk2str((ndpi_risk_enum)risk_id));
   }
 }
 
@@ -226,7 +231,7 @@ bool FlowRiskAlerts::lua(lua_State* vm) {
 /* **************************************************** */
 
 FlowAlertType FlowRiskAlerts::getFlowRiskAlertType(ndpi_risk_enum risk) {
-  if(isRiskUnhandled(risk))
+  if(isRiskUndefined(risk))
     return risk_enum_to_alert_type[NDPI_NO_RISK].alert_type;
   else
     return risk_enum_to_alert_type[risk].alert_type;
@@ -235,7 +240,7 @@ FlowAlertType FlowRiskAlerts::getFlowRiskAlertType(ndpi_risk_enum risk) {
 /* **************************************************** */
 
 const char * FlowRiskAlerts::getCheckName(ndpi_risk_enum risk) {
-  if(isRiskUnhandled(risk))
+  if(isRiskUndefined(risk))
     return risk_enum_to_alert_type[NDPI_NO_RISK].alert_lua_name;
   else
     return risk_enum_to_alert_type[risk].alert_lua_name;
