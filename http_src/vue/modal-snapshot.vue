@@ -1,15 +1,18 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
 <modal @showed="showed()" ref="modal_id">
-  <template v-slot:title>{{_i18n("snapshots.manage")}}</template>
+  <template v-slot:title>
+      {{_i18n("snapshots.manage")}}
+      <a target="_newtab" href="#" style="" class="nav-item text-muted"><i class="fas fa-question-circle" style="margin-left:28rem;padding-top:0.8rem;"></i></a>    
+  </template>
   <template v-slot:body>
     <ul class="nav nav-tabs">
       <li class="nav-item" @click="action='add'">
 	<a class="nav-link" :class="{'active': action == 'add'}" href="#">{{_i18n("snapshots.add")}}</a>
       </li>
-      <li class="nav-item" @click="action='select'">
-	<a class="nav-link" :class="{'active': action == 'select'}" href="#">{{_i18n("snapshots.manage")}}</a>
-      </li>
+      <li class="nav-item" @click="update_action('select')">
+	<a :disabled="snapshots.length == 0" class="nav-link" :class="{'active': action == 'select', 'not-allowed': snapshots.length == 0 }" href="#">{{_i18n("snapshots.manage")}}</a>
+      </li>      
     </ul>
     <div v-if="action == 'add'" style="min-height:8.5rem">
       <div class="form-group ms-2 me-2 mt-3 row">
@@ -18,13 +21,13 @@
 	  <input :pattern="pattern_singleword" placeholder="" required type="text" class="form-control" v-model="snapshot_name">
 	</div>
       </div>
-      <div class="form-group ms-2 me-2 mt-3 row">
-	<div class="custom-control custom-switch">
-	  <input type="checkbox" class="custom-control-input whitespace form-check-input" v-model="save_time">
+      <!-- <div class="form-group ms-2 me-2 mt-3 row"> -->
+      <!-- 	<div class="custom-control custom-switch"> -->
+      <!-- 	  <input type="checkbox" class="custom-control-input whitespace form-check-input" v-model="save_time"> -->
 	  
-	  <label class="custom-control-label ms-1 form-check-label">{{save_time_text}}</label>
-	</div>
-      </div>      
+      <!-- 	  <label class="custom-control-label ms-1 form-check-label">{{save_time_text}}</label> -->
+      <!-- 	</div> -->
+      <!-- </div>       -->
     </div> <!-- action add -->
     
     <div v-if="action == 'select'" style="min-height:8.5rem">
@@ -45,7 +48,6 @@
         </label>
         <div class="col-sm-8">
           <select class="form-select" v-model="snapshot_selected">
-            <option value=""></option>
             <option v-for="item in snapshots" :value="item">{{ display_name(item) }}</option>
           </select>
         </div>
@@ -62,6 +64,7 @@
   
   <template v-slot:footer>
     <button v-if="action == 'add'" type="button" @click="add_snapshot" :disabled="disable_add" class="btn btn-primary">{{_i18n("snapshots.add")}}</button>
+    <button v-if="action == 'select'" @click="delete_snapshot(true)" type="button" style="text-align: left;margin-left: 0px;" class="btn btn-danger start-0 position-absolute ms-3">{{_i18n("snapshots.delete_all")}}</button>    
     <button v-if="action == 'select'" type="button" @click="delete_snapshot" :disabled="disable_select" class="btn btn-danger">{{_i18n("snapshots.delete")}}</button>
     <button v-if="action == 'select'" type="button" @click="select_snapshot" :disabled="disable_select" class="btn btn-primary">{{_i18n("snapshots.apply")}}</button>
   </template>
@@ -104,6 +107,11 @@ const show = () => {
     modal_id.value.show();
 };
 
+const update_action = (a) => {
+    if (snapshots.value.length == 0 && a == "select") { return; }
+    action.value = a;
+}
+
 function get_page() {
     let is_alert_stats_url = window.location.toString().match(/alert_stats.lua/) != null;
     let page = "alerts";
@@ -119,7 +127,7 @@ function display_name(snapshot) {
     return `${snapshot.name} (${date})`
 }
 
-let last_order_by = order_by.value;
+let last_order_by = null;
 function sort_snapshots_by() {
     if (last_order_by == order_by.value) { return; }
     
@@ -129,12 +137,15 @@ function sort_snapshots_by() {
 	}
 	return a.utc - b.utc;
     });
+    if (snapshots.value.length > 0) {
+	snapshot_selected.value = snapshots.value[0];
+    }
     last_order_by = order_by.value;    
 }
 
 let load_snapshots = true;
 async function init() {
-    //action.value = "add";
+    action.value = "add";
     snapshot_name.value = "";
     save_time.value = true;
     apply_time.value = false;
@@ -158,6 +169,10 @@ async function init() {
 	for (let key in snapshots_obj) {
 	    snapshots.value.push(snapshots_obj[key]);
 	}
+    }
+    sort_snapshots_by();
+    if (snapshots.value.length > 0) {
+	snapshot_selected.value = snapshots.value[0];
     }
 }
 
@@ -205,8 +220,9 @@ const select_snapshot = () => {
     ntopng_url_manager.replace_url_and_reload(filters);
 }
 
-const delete_snapshot = async () => {
+const delete_snapshot = async (delete_all) => {
     let name = snapshot_selected.value.name;
+    if (delete_all == true) { name = "*"; }
     let page = get_page();
     let params = {
     	snapshot_name: name,
@@ -243,5 +259,8 @@ const _i18n = (t) => i18n(t);
 <style scoped>
 input:invalid {
   border-color: #ff0000;
+}
+.not-allowed {
+  cursor: not-allowed;
 }
 </style>
