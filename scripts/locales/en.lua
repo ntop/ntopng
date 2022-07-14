@@ -5900,6 +5900,7 @@ local lang = {
     ["delete_unresponsive_devices"] = "Delete Unresponsive",
     ["device_example"] = "Example: %{example}",
     ["device_ip"] = "Device IP",
+    ["device_name"] = "Device Name",
     ["device_model"] = "Device Model",
     ["device_polling"] = "Device Polling",
     ["device_polling_desc"] = "Perform periodic SNMP walks to collect device data, including device interfaces traffic and status.",
