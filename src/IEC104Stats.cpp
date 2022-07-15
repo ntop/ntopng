@@ -263,9 +263,11 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
                 alert = new IECInvalidTransitionAlert(NULL, f, packet_time, last_type_i, type_id);
 
-		if (alert)
+		if(alert) {
+      f->setPredominantAlertInfo(alert);
 		  f->triggerAlertSync(alert, c_score, s_score);
-		
+    }
+
 		type_i_transitions[transition] = 2; /* Post Learning */
 	      } else
 		type_i_transitions[transition] = 1; /* During Learning */
@@ -296,8 +298,10 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 							   transitions.c_to_m,
 							   transitions.c_to_c);
 	      
-	      if(alert)
-		f->triggerAlertSync(alert, c_score, s_score);
+	      if(alert) {
+          f->setPredominantAlertInfo(alert);
+          f->triggerAlertSync(alert, c_score, s_score);
+        }
 	      
 	      // ntop->getTrace()->traceEvent(TRACE_WARNING, "*** INVALID TRANSITION %u -> %u", last_type_i, type_id);
 		
@@ -329,9 +333,10 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
 	    alert = new IECUnexpectedTypeIdAlert(NULL, f, type_id, asdu, cause_tx, negative);
 	
-	    if(alert)
+      if(alert) {
+        f->setPredominantAlertInfo(alert);
 	      f->triggerAlertSync(alert, c_score, s_score);
-	    
+      } 
 	  } /* unexpected_typeid_alerted */
 	  /* Discard typeIds 127..255 */
 	} else /* payload_len < len */
