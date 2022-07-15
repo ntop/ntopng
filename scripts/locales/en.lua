@@ -1015,6 +1015,8 @@ local lang = {
     ["snmp_interface_mac_detection_script_title"] = "MAC Detection",
     ["snmp_interfaces_rsi"] = "SNMP Interfaces RSI",
     ["snmp_interfaces_rsi_descr"] = "Detect changes in the interfaces traffic and trigger alerts (experimental)",
+    ["snmp_interface_errors"] = "SNMP High Error Counter",
+    ["snmp_interface_errors_description"] = "Error counters exceed 5% of total traffic, on interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a>",
     ["snmp_port_changed_duplex_status"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed its duplex status to %{new_op}",
     ["snmp_port_changed_operational_status"] = "Interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> changed its status to %{new_op}",
     ["snmp_port_duplexstatus_change"] = "Duplex Status Change",
