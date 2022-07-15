@@ -154,7 +154,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   srcIP.set(&zflow->src_ip), dstIP.set(&zflow->dst_ip);
 
-  PROFILING_SECTION_ENTER("NetworkInterface::processFlow: getFlow", 0);
+  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processFlow: getFlow", 0);
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac,
@@ -171,7 +171,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 		 (u_int8_t*)zflow->src_mac,
 		 (u_int8_t*)zflow->dst_mac);
 
-  PROFILING_SECTION_EXIT(0);
+  INTERFACE_PROFILING_SECTION_EXIT(0);
 
   if(flow == NULL)
     return false;

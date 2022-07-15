@@ -360,7 +360,7 @@ void NetworkInterface::init(const char *interface_name) {
   ndpi_struct = initnDPIStruct();
   ndpi_finalize_initialization(ndpi_struct);
 
-  PROFILING_INIT();
+  INTERFACE_PROFILING_INIT();
 }
 
 /* **************************************************** */
@@ -762,13 +762,13 @@ NetworkInterface::~NetworkInterface() {
   std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity*>::iterator it;
   std::map<u_int16_t /* observationPointId */, ObservationPointIdTrafficStats*>::iterator it_o;
 
-#ifdef PROFILING
+#ifdef INTERFACE_PROFILING
   u_int64_t n = ethStats.getNumIngressPackets();
   if(isPacketInterface() && n > 0) {
-    for (u_int i = 0; i < PROFILING_NUM_SECTIONS; i++) {
-      if(PROFILING_SECTION_LABEL(i) != NULL)
+    for (u_int i = 0; i < INTERFACE_PROFILING_NUM_SECTIONS; i++) {
+      if(INTERFACE_PROFILING_SECTION_LABEL(i) != NULL)
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks",
-          i, PROFILING_SECTION_LABEL(i), PROFILING_SECTION_AVG(i, n));
+          i, INTERFACE_PROFILING_SECTION_LABEL(i), INTERFACE_PROFILING_SECTION_AVG(i, n));
     }
   }
 #endif
@@ -1137,12 +1137,12 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
      || (dstMac && Utils::macHash(dstMac->get_mac()) != 0))
     setSeenMacAddresses();
 
-  PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 1);
+  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 1);
   ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
 			 vlan_id, observation_domain_id,
 			 l4_proto, icmp_info, src2dst_direction,
 			 true /* Inline call */);
-  PROFILING_SECTION_EXIT(1);
+  INTERFACE_PROFILING_SECTION_EXIT(1);
 
   if(ret == NULL) {
     if(!create_if_missing)
@@ -1158,14 +1158,14 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
     }
 
     try {
-      PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 2);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 2);
       ret = new (std::nothrow) Flow(this, vlan_id, observation_domain_id, l4_proto,
 				    srcMac, src_ip, src_port,
 				    dstMac, dst_ip, dst_port,
 				    icmp_info,
 				    first_seen, last_seen,
             view_cli_mac, view_srv_mac);
-      PROFILING_SECTION_EXIT(2);
+      INTERFACE_PROFILING_SECTION_EXIT(2);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -1681,7 +1681,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   }
 #endif
 
-  PROFILING_SECTION_ENTER("NetworkInterface::processPacket: getFlow", 0);
+  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processPacket: getFlow", 0);
 
  pre_get_flow:
   /* Updating Flow */
@@ -1691,7 +1691,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 		 &src_ip, &dst_ip, src_port, dst_port,
 		 l4_proto, &src2dst_direction, last_pkt_rcvd,
 		 last_pkt_rcvd, len_on_wire, &new_flow, true, eth->h_source, eth->h_dest /* Eth lvl, used just in view interfaces to add MAC */);
-  PROFILING_SECTION_EXIT(0);
+  INTERFACE_PROFILING_SECTION_EXIT(0);
 
   if(flow == NULL) {
     incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
@@ -3305,10 +3305,10 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
     return;
   }
 
-  PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
+  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
   /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
   (*src) = hosts_hash->get(vlanId, _src_ip, true /* Inline call */, observation_domain_id);
-  PROFILING_SECTION_EXIT(3);
+  INTERFACE_PROFILING_SECTION_EXIT(3);
 
   if((*src) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
@@ -3319,19 +3319,19 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
 
     if(_src_ip
        && (_src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress())) {
-      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*src) = new (std::nothrow) LocalHost(this, src_mac, vlanId, observation_domain_id, _src_ip);
-      PROFILING_SECTION_EXIT(4);
+      INTERFACE_PROFILING_SECTION_EXIT(4);
     } else {
-      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
       (*src) = new (std::nothrow) RemoteHost(this, src_mac, vlanId, observation_domain_id, _src_ip);
-      PROFILING_SECTION_EXIT(5);
+      INTERFACE_PROFILING_SECTION_EXIT(5);
     }
 
     if(*src) {
-      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->add", 6);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->add", 6);
       bool add_res = hosts_hash->add(*src, false /* Don't lock, we're inline with the purgeIdle */);
-      PROFILING_SECTION_EXIT(6);
+      INTERFACE_PROFILING_SECTION_EXIT(6);
 
       if(!add_res) {
 	//ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
@@ -3347,9 +3347,9 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
 
   /* ***************************** */
 
-  PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
+  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
   (*dst) = hosts_hash->get(vlanId, _dst_ip, true /* Inline call */, observation_domain_id);
-  PROFILING_SECTION_EXIT(3);
+  INTERFACE_PROFILING_SECTION_EXIT(3);
 
   if((*dst) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
@@ -3360,19 +3360,19 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
 
     if(_dst_ip
        && (_dst_ip->isLocalHost(&local_network_id) || _dst_ip->isLocalInterfaceAddress())) {
-      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlanId, observation_domain_id, _dst_ip);
-      PROFILING_SECTION_EXIT(4);
+      INTERFACE_PROFILING_SECTION_EXIT(4);
     } else {
-      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
       (*dst) = new (std::nothrow) RemoteHost(this, dst_mac, vlanId, observation_domain_id, _dst_ip);
-      PROFILING_SECTION_EXIT(5);
+      INTERFACE_PROFILING_SECTION_EXIT(5);
     }
 
     if(*dst) {
-      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->add", 6);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->add", 6);
       bool add_res = hosts_hash->add(*dst, false /* Don't lock, we're inline with the purgeIdle */);
-      PROFILING_SECTION_EXIT(6);
+      INTERFACE_PROFILING_SECTION_EXIT(6);
 
       if(!add_res) {
 	// ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);

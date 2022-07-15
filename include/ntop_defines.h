@@ -1179,37 +1179,16 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 
 #define UNKNOWN_FLOW_DIRECTION          2
 
+/******************************************************************************/
+
+/* ClickHouse */
+
 /*
   Also on FreeBSD the tool is installed on /usr/bin and not /usr/local/bin
   when installed as specified on https://clickhouse.com/#quick-start
 */
 #define CLICKHOUSE_CLIENT               "/usr/bin/clickhouse-client"
 #define CLICKHOUSE_ALT_CLIENT           "/usr/local/bin/clickhouse-client"
-
-//#define PROFILING
-#ifdef PROFILING
-#define PROFILING_DECLARE(n) \
-        ticks __profiling_sect_start[n]; \
-        const char *__profiling_sect_label[n]; \
-        ticks __profiling_sect_tot[n]; \
-	u_int64_t __profiling_sect_counter[n];
-#define PROFILING_INIT() memset(__profiling_sect_tot, 0, sizeof(__profiling_sect_tot)), memset(__profiling_sect_label, 0, sizeof(__profiling_sect_label)), memset(__profiling_sect_counter, 0, sizeof(__profiling_sect_counter))
-#define PROFILING_SECTION_ENTER(l,i) __profiling_sect_start[i] = Utils::getticks(), __profiling_sect_label[i] = l, __profiling_sect_counter[i]++
-#define PROFILING_SECTION_EXIT(i)    __profiling_sect_tot[i] += Utils::getticks() - __profiling_sect_start[i]
-#define PROFILING_SUB_SECTION_ENTER(f, l, i) f->profiling_section_enter(l, i)
-#define PROFILING_SUB_SECTION_EXIT(f, i)     f->profiling_section_exit(i)
-#define PROFILING_NUM_SECTIONS (sizeof(__profiling_sect_tot)/sizeof(ticks))
-#define PROFILING_SECTION_AVG(i,n) (__profiling_sect_tot[i] / (n + 1))
-#define PROFILING_SECTION_TICKS(i) (__profiling_sect_tot[i] / (__profiling_sect_counter[i] + 1))
-#define PROFILING_SECTION_LABEL(i) __profiling_sect_label[i]
-#else
-#define PROFILING_DECLARE(n)
-#define PROFILING_INIT()
-#define PROFILING_SECTION_ENTER(l, i)
-#define PROFILING_SECTION_EXIT(i)
-#define PROFILING_SUB_SECTION_ENTER(f, l, i)
-#define PROFILING_SUB_SECTION_EXIT(f, i)
-#endif
 
 #define CLICKHOUSE_DUMP_PERF_MAX_RECORDS 1000
 #define CLICKHOUSE_DUMP_PERF_NUM_LOOPS   500000
@@ -1229,5 +1208,66 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define CLICKHOUSE_DISCARD_TRAILER       DISCARD_TRAILER
 
 #define DELAYED_TRAILER                  "-delayed"
+
+/******************************************************************************/
+
+/* Profiling */
+
+#ifdef __x86_64__
+#define PROFILING
+#endif
+
+#ifdef PROFILING
+#define PROFILING_DECLARE(n) \
+        ticks __profiling_sect_start[n]; \
+        const char *__profiling_sect_label[n]; \
+        ticks __profiling_sect_tot[n]; \
+	u_int64_t __profiling_sect_counter[n];
+#define PROFILING_INIT() memset(__profiling_sect_tot, 0, sizeof(__profiling_sect_tot)), memset(__profiling_sect_label, 0, sizeof(__profiling_sect_label)), memset(__profiling_sect_counter, 0, sizeof(__profiling_sect_counter))
+#define PROFILING_SECTION_ENTER(l,i) __profiling_sect_start[i] = Utils::getticks(), __profiling_sect_label[i] = l, __profiling_sect_counter[i]++
+#define PROFILING_SECTION_EXIT(i)    __profiling_sect_tot[i] += Utils::getticks() - __profiling_sect_start[i]
+#define PROFILING_SUB_SECTION_ENTER(f, l, i) f->profiling_section_enter(l, i)
+#define PROFILING_SUB_SECTION_EXIT(f, i)     f->profiling_section_exit(i)
+#define PROFILING_NUM_SECTIONS (sizeof(__profiling_sect_tot)/sizeof(ticks))
+#define PROFILING_SECTION_AVG(i,n) (__profiling_sect_tot[i] / (n + 1))
+#define PROFILING_SECTION_TICKS(i) (__profiling_sect_tot[i] / (__profiling_sect_counter[i] + 1))
+#define PROFILING_SECTION_LABEL(i) __profiling_sect_label[i]
+#endif
+
+//#define INTERFACE_PROFILING
+#if defined(PROFILING) && defined(INTERFACE_PROFILING)
+#define INTERFACE_PROFILING_DECLARE(n) PROFILING_DECLARE(n)
+#define INTERFACE_PROFILING_INIT() PROFILING_INIT()
+#define INTERFACE_PROFILING_SECTION_ENTER(l, i) PROFILING_SECTION_ENTER(l, i)
+#define INTERFACE_PROFILING_SECTION_EXIT(i) PROFILING_SECTION_EXIT(i)
+#define INTERFACE_PROFILING_SUB_SECTION_ENTER(f, l, i) PROFILING_SUB_SECTION_ENTER(f, l, i)
+#define INTERFACE_PROFILING_SUB_SECTION_EXIT(f, i) PROFILING_SUB_SECTION_EXIT(f, i)
+#else
+#define INTERFACE_PROFILING_DECLARE(n)
+#define INTERFACE_PROFILING_INIT()
+#define INTERFACE_PROFILING_SECTION_ENTER(l, i)
+#define INTERFACE_PROFILING_SECTION_EXIT(i)
+#define INTERFACE_PROFILING_SUB_SECTION_ENTER(f, l, i)
+#define INTERFACE_PROFILING_SUB_SECTION_EXIT(f, i)
+#endif
+
+//#define CHECKS_PROFILING
+#if defined(PROFILING) && defined(CHECKS_PROFILING)
+#define CHECKS_PROFILING_DECLARE(n) PROFILING_DECLARE(n)
+#define CHECKS_PROFILING_INIT() PROFILING_INIT()
+#define CHECKS_PROFILING_SECTION_ENTER(l, i) PROFILING_SECTION_ENTER(l, i)
+#define CHECKS_PROFILING_SECTION_EXIT(i) PROFILING_SECTION_EXIT(i)
+#define CHECKS_PROFILING_SUB_SECTION_ENTER(f, l, i) PROFILING_SUB_SECTION_ENTER(f, l, i)
+#define CHECKS_PROFILING_SUB_SECTION_EXIT(f, i) PROFILING_SUB_SECTION_EXIT(f, i)
+#else
+#define CHECKS_PROFILING_DECLARE(n)
+#define CHECKS_PROFILING_INIT()
+#define CHECKS_PROFILING_SECTION_ENTER(l, i)
+#define CHECKS_PROFILING_SECTION_EXIT(i)
+#define CHECKS_PROFILING_SUB_SECTION_ENTER(f, l, i)
+#define CHECKS_PROFILING_SUB_SECTION_EXIT(f, i)
+#endif
+
+/******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */

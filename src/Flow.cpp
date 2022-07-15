@@ -99,9 +99,9 @@ Flow::Flow(NetworkInterface *_iface,
 
   flow_score = 0;
 
-  PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
+  INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _observation_point_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
-  PROFILING_SUB_SECTION_EXIT(iface, 7);
+  INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 7);
 
   char country[64];
 

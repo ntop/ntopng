@@ -281,7 +281,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   InterfaceStatsHash *interfaceStats;
   dhcp_range* dhcp_ranges, *dhcp_ranges_shadow;
 
-  PROFILING_DECLARE(32);
+  INTERFACE_PROFILING_DECLARE(32);
 
   void init(const char *interface_name);
   void deleteDataStructures();
@@ -980,9 +980,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool enqueueFlowToCompanion(ParsedFlow * const pf, bool skip_loopback_traffic);
   bool dequeueFlowFromCompanion(ParsedFlow ** pf);
 
-#ifdef PROFILING
-  inline void profiling_section_enter(const char *label, int id) { PROFILING_SECTION_ENTER(label, id); };
-  inline void profiling_section_exit(int id) { PROFILING_SECTION_EXIT(id); };
+#ifdef INTERFACE_PROFILING
+  inline void profiling_section_enter(const char *label, int id) { INTERFACE_PROFILING_SECTION_ENTER(label, id); };
+  inline void profiling_section_exit(int id) { INTERFACE_PROFILING_SECTION_EXIT(id); };
 #endif
 
   void incNumAlertedFlows(Flow *f, AlertLevel severity);

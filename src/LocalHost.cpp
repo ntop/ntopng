@@ -104,12 +104,12 @@ void LocalHost::initialize() {
 
   systemHost = ip.isLocalInterfaceAddress();
 
-  PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: local_host_cache", 16);
+  INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: local_host_cache", 16);
   if(ntop->getPrefs()->is_idle_local_host_cache_enabled()) {
     if(!deserializeFromRedis())
       deleteRedisSerialization();
   }
-  PROFILING_SUB_SECTION_EXIT(iface, 16);
+  INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 16);
 
   /* Clone the initial point. It will be written to the timeseries DB to
    * address the first point problem (https://github.com/ntop/ntopng/issues/2184). */
@@ -130,9 +130,9 @@ void LocalHost::initialize() {
       ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true);
   }
   
-  PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
+  INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
   updateHostTrafficPolicy(host);
-  PROFILING_SUB_SECTION_EXIT(iface, 18);
+  INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 18);
 
   iface->incNumHosts(true /* Local Host */);
   if(NetworkStats *ns = iface->getNetworkStats(local_network_id))

@@ -1521,9 +1521,11 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 #endif
 
     /* Process Flow */
-    PROFILING_SECTION_ENTER("processFlow", 30);
+    INTERFACE_PROFILING_SECTION_ENTER("processFlow", 30);
+
     rc = processFlow(flow);
-    PROFILING_SECTION_EXIT(30);
+
+    INTERFACE_PROFILING_SECTION_EXIT(30);
   }
 
   if(!rc)
@@ -1667,7 +1669,8 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
   flow.source_id = source_id;
   flow.direction = UNKNOWN_FLOW_DIRECTION;
   
-  PROFILING_SECTION_ENTER("Decode TLV", 9);
+  INTERFACE_PROFILING_SECTION_ENTER("Decode TLV", 9);
+
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing TLV record");
   while((et = ndpi_deserialize_get_item_type(deserializer, &kt)) != ndpi_serialization_unknown) {
     ParsedValue value = { 0 };
@@ -1869,11 +1872,13 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
  end_of_record:
   if(recordFound) {
-    PROFILING_SECTION_EXIT(9); /* Closes Decode TLV */
-    PROFILING_SECTION_ENTER("processFlow", 10);
+    INTERFACE_PROFILING_SECTION_EXIT(9); /* Closes Decode TLV */
+    INTERFACE_PROFILING_SECTION_ENTER("processFlow", 10);
+
     if(preprocessFlow(&flow))
       ret = 1;
-    PROFILING_SECTION_EXIT(10);
+
+    INTERFACE_PROFILING_SECTION_EXIT(10);
   }
 
  error:

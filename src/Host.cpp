@@ -251,7 +251,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   more_then_one_device = false;
   device_ip = 0;
 
-  PROFILING_SUB_SECTION_ENTER(iface, "Host::initialize: new AlertCounter", 17);
+  INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "Host::initialize: new AlertCounter", 17);
   syn_flood.attacker_counter  = new (std::nothrow) AlertCounter();
   syn_flood.victim_counter    = new (std::nothrow) AlertCounter();
   flow_flood.attacker_counter = new (std::nothrow) AlertCounter();
@@ -262,7 +262,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min  = 0;
   fin_scan.fin_sent_last_min  = fin_scan.finack_recvd_last_min = 0;
   fin_scan.fin_recvd_last_min = fin_scan.finack_sent_last_min  = 0;
-  PROFILING_SUB_SECTION_EXIT(iface, 17);
+  INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 17);
 
   if(ip.getVersion() /* IP is set */) {
     char country_name[64];
