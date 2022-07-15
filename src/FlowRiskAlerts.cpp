@@ -26,13 +26,14 @@
 /*
  * Note about handled/defined/undefined nDPI Risks:
  *
- * - Flow risks which are handled through dedicated Checks are listed here 
- *   and the check is explicitly registered in FlowChecksLoader::registerChecks
+ * - Flow risks which are handled through dedicated Checks are listed here, assigned
+ *   to an alert type defined in FlowAlertTypeEnum, and the check is explicitly 
+ *   registered in FlowChecksLoader::registerChecks
  * - Flow risks which are defined below and assigned to an alert type defined in 
  *   FlowAlertTypeEnum, but with no dedicated Check, are handled by FlowRiskGeneric
  *   automatically
- * - Other flow risks (not listed below or with flow_alert_normal) are not
- *   handled and they do not trigger an alert (they are just reported in the
+ * - Other flow risks (not listed below or with flow_alert_normal as alert type) are
+ *   not handled and they do not trigger an alert (they are just reported in the
  *   live flow information, without contributing to the score for instance)
  */
 
@@ -122,25 +123,25 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
   { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_risky_domain" },
 
   /* NDPI_MALICIOUS_JA3 */
-  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_malicious_ja3" },
+  { { flow_alert_ndpi_malicious_ja3, alert_category_security }, "ndpi_malicious_ja3" },
 
   /* NDPI_MALICIOUS_SHA1_CERTIFICATE */
-  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_malicious_sha1_certificate" },
+  { { flow_alert_ndpi_malicious_sha1_certificate, alert_category_security }, "ndpi_malicious_sha1_certificate" },
 
   /* NDPI_DESKTOP_OR_FILE_SHARING_SESSION */
-  { { flow_alert_ndpi_desktop_or_file_sharing_session, alert_category_other }, "ndpi_desktop_or_file_sharing_session" },
+  { { flow_alert_ndpi_desktop_or_file_sharing_session, alert_category_security }, "ndpi_desktop_or_file_sharing_session" },
 
   /* NDPI_TLS_UNCOMMON_ALPN */
-  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_tls_uncommon_alpn" },
+  { { flow_alert_ndpi_tls_uncommon_alpn, alert_category_other }, "ndpi_tls_uncommon_alpn" },
 
   /* NDPI_TLS_CERT_VALIDITY_TOO_LONG */
   { { flow_alert_ndpi_tls_cert_validity_too_long, alert_category_security }, "ndpi_tls_cert_validity_too_long" },
 
   /* NDPI_TLS_SUSPICIOUS_EXTENSION */
-  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_tls_suspicious_extension" },
+  { { flow_alert_ndpi_tls_suspicious_extension, alert_category_security }, "ndpi_tls_suspicious_extension" },
 
   /* NDPI_TLS_FATAL_ALERT */
-  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_tls_fatal_alert" },
+  { { flow_alert_ndpi_tls_fatal_alert, alert_category_other }, "ndpi_tls_fatal_alert" },
 
   /* NDPI_SUSPICIOUS_ENTROPY */
   { { flow_alert_ndpi_suspicious_entropy, alert_category_security }, "ndpi_suspicious_entropy" },

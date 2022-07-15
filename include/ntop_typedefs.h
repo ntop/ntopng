@@ -490,6 +490,11 @@ typedef enum {
   flow_alert_ndpi_anonymous_subscriber            = 76,
   flow_alert_unidirectional_traffic               = 77,
   flow_alert_ndpi_desktop_or_file_sharing_session = 78,
+  flow_alert_ndpi_malicious_ja3                   = 79,
+  flow_alert_ndpi_malicious_sha1_certificate      = 80,
+  flow_alert_ndpi_tls_uncommon_alpn               = 81,
+  flow_alert_ndpi_tls_suspicious_extension        = 82,
+  flow_alert_ndpi_tls_fatal_alert                 = 83,
  
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
