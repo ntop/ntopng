@@ -548,8 +548,9 @@ function flow_alert_store:format_record(value, no_html)
      flow_tls_issuerdn = getExtraFlowInfoTLSIssuerDN(alert_json)
    end
 
-   if not no_html and alert_json then
+   if not no_html and alert_json and (alert_json["ntopng.key"]) and (alert_json["hash_entry_id"]) then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
+
       if active_flow and active_flow["seen.first"] < tonumber(value["tstamp_end"]) then
 	 local href = string.format("%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u",
             ntop.getHttpPrefix(), active_flow["ntopng.key"], active_flow["hash_entry_id"])
