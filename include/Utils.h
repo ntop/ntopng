@@ -61,6 +61,9 @@ public:
   static char* trim(char *s);
   static u_int32_t hashString(const char * s, u_int32_t len = 0 /* automatically computed */);
   static float timeval2ms(const struct timeval *tv);
+#ifdef PROFILING
+  static u_int64_t getTimeNsec();
+#endif
   static float msTimevalDiff(const struct timeval *end, const struct timeval *begin);
   static u_int32_t usecTimevalDiff(const struct timeval *end, const struct timeval *begin);
   /* Returns the difference new_value - cur_value and then stores new_value in *cur_value */

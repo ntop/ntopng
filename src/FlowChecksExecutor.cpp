@@ -53,6 +53,9 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
   FlowCheck *predominant_check = NULL;
   std::list<FlowCheck*> *checks = NULL;
   FlowAlert *alert = NULL;
+#ifdef CHECKS_PROFILING
+  u_int64_t t1, t2;
+#endif
 
   switch (c) {
     case flow_check_protocol_detected:
@@ -72,27 +75,39 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
   }
 
   for(list<FlowCheck*>::iterator it = checks->begin(); it != checks->end(); ++it) {
+    FlowCheck *fc = (*it);
+
+#ifdef CHECKS_PROFILING
+    t1 = Utils::getTimeNsec();
+#endif
+
     switch (c) {
       case flow_check_protocol_detected:
-        (*it)->protocolDetected(f);
+        fc->protocolDetected(f);
         break;
       case flow_check_periodic_update:
-        (*it)->periodicUpdate(f);
+        fc->periodicUpdate(f);
         break;
       case flow_check_flow_end:
-        (*it)->flowEnd(f);
+        fc->flowEnd(f);
         break;
       case flow_check_flow_begin:
-        (*it)->flowBegin(f);
+        fc->flowBegin(f);
         break;
       default:
 	break;
     }
+
+#ifdef CHECKS_PROFILING
+    t2 = Utils::getTimeNsec();
+
+    fc->incStats(t2 - t1);
+#endif
     
     /* Check if the check triggered a predominant alert */
     if (f->getPredominantAlert().id != predominant_alert.id) {
       predominant_alert = f->getPredominantAlert();
-      predominant_check = (*it);
+      predominant_check = fc;
     }
   }
 

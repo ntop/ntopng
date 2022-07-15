@@ -25,6 +25,7 @@ local alert_consts = require "alert_consts"
 local http_lint = require("http_lint")
 local alert_exclusions = require "alert_exclusions"
 local alerts_api = require("alerts_api")
+local format_utils = require("format_utils")
 
 local checks = {}
 
@@ -1727,47 +1728,55 @@ end
 
 local function printUserScriptsTable()
    local ifid = interface.getId()
+   local flow_checks_stats = ntop.getFlowChecksStats() or {}
 
-    for _, info in ipairs(checks.listSubdirs()) do
-        local scripts = checks.load(ifid, checks.getScriptType(info.id), info.id, {return_all = true})
+   for _, info in ipairs(checks.listSubdirs()) do
+      local scripts = checks.load(ifid, checks.getScriptType(info.id), info.id, {return_all = true})
 
-        for name, script in pairsByKeys(scripts.modules) do
-            local available = ""
-            local filters = {}
-            local hooks = {}
+      for name, script in pairsByKeys(scripts.modules) do
+         local available = ""
+         local filters = {}
+         local hooks = {}
+         local tot_exec_time
 
-            -- Hooks
-            for hook in pairsByKeys(script.hooks) do
-              hooks[#hooks + 1] = hook
-            end
-            hooks = table.concat(hooks, ", ")
+         -- Hooks
+         for hook in pairsByKeys(script.hooks) do
+            hooks[#hooks + 1] = hook
+         end
+         hooks = table.concat(hooks, ", ")
 
-            -- Filters
-            if(script.l4_proto) then filters[#filters + 1] = "l4_proto=" .. script.l4_proto end
-            if(script.l7_proto) then filters[#filters + 1] = "l7_proto=" .. script.l7_proto end
-            if(script.packet_interface_only) then filters[#filters + 1] = "packet_interface" end
-            if(script.three_way_handshake_ok) then filters[#filters + 1] = "3wh_completed" end
-            if(script.local_only) then filters[#filters + 1] = "local_only" end
-            if(script.nedge_only) then filters[#filters + 1] = "nedge=true" end
-	    if(script.nedge_exclude) then filters[#filters + 1] = "nedge=false" end
-            filters = table.concat(filters, ", ")
+         -- Filters
+         if(script.l4_proto) then filters[#filters + 1] = "l4_proto=" .. script.l4_proto end
+         if(script.l7_proto) then filters[#filters + 1] = "l7_proto=" .. script.l7_proto end
+         if(script.packet_interface_only) then filters[#filters + 1] = "packet_interface" end
+         if(script.three_way_handshake_ok) then filters[#filters + 1] = "3wh_completed" end
+         if(script.local_only) then filters[#filters + 1] = "local_only" end
+         if(script.nedge_only) then filters[#filters + 1] = "nedge=true" end
+	 if(script.nedge_exclude) then filters[#filters + 1] = "nedge=false" end
+         filters = table.concat(filters, ", ")
 
-            if (name == "my_custom_script") then
-              goto skip
-            end
+         if (name == "my_custom_script") then
+            goto skip
+         end
 
-            -- Availability
-            if(script.edition == "enterprise_m") then
-              available = "Enterprise M"
-            elseif(script.edition == "enterprise_l") then
-              available = "Enterprise L"
-            elseif(script.edition == "pro") then
-              available = "Pro"
-            else
-              available = "Community"
-            end
+         -- Availability
+         if(script.edition == "enterprise_m") then
+            available = "Enterprise M"
+         elseif(script.edition == "enterprise_l") then
+            available = "Enterprise L"
+         elseif(script.edition == "pro") then
+            available = "Pro"
+         else
+            available = "Community"
+         end
 
-            print(string.format(([[
+         -- Execution stats
+         if info.id == 'flow' and
+            flow_checks_stats[name] and flow_checks_stats[name].stats and flow_checks_stats[name].stats.execution_time then
+            tot_exec_time = format_utils.msToTime(flow_checks_stats[name].stats.execution_time/1000000)
+         end
+
+         print(string.format(([[
                 <tr>
                     <td>%s</td>
                     <td>%s</td>
@@ -1775,13 +1784,13 @@ local function printUserScriptsTable()
                     <td>%s</td>
                     <td>%s</td>
                     <td class="text-end">%u</td>
+                    <td class="text-end">%s</td>
                     <td class="text-center">%s</td></tr>
-                ]]), name, info.label, available, hooks, filters, script.num_filtered, edit_url or ""))
-            ::skip::
-          end
-    end
+                ]]), name, info.label, available, hooks, filters, script.num_filtered, tot_exec_time or "", edit_url or ""))
+         ::skip::
+      end
+   end
 end
-
 
 -- #######################################################
 
@@ -1797,6 +1806,7 @@ function checks.printUserScripts()
                             <th>]].. i18n("scripts_overview.hooks") ..[[</th>
                             <th>]].. i18n("scripts_overview.filters") ..[[</th>
                             <th>]].. i18n("scripts_overview.filtered") ..[[</th>
+                            <th>]].. i18n("scripts_overview.total_elapsed_time") ..[[</th>
                             <th>]].. i18n("action") ..[[</th>
                         </tr>
                     </thead>

@@ -5642,6 +5642,7 @@ local lang = {
     ["source_location"] = "Source Location",
     ["status_key"] = "Flow Status Key",
     ["type"] = "Type",
+    ["total_elapsed_time"] = "Tot Exec Time",
   },
   ["severity_groups"] = {
     ["group_error_or_higher"] = "Error or Higher",

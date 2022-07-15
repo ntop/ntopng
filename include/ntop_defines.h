@@ -1213,7 +1213,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 
 /* Profiling */
 
-#ifdef __x86_64__
+#if defined(__linux__) && defined(__x86_64__)
 #define PROFILING
 #endif
 
@@ -1243,6 +1243,9 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define INTERFACE_PROFILING_SUB_SECTION_ENTER(f, l, i) PROFILING_SUB_SECTION_ENTER(f, l, i)
 #define INTERFACE_PROFILING_SUB_SECTION_EXIT(f, i) PROFILING_SUB_SECTION_EXIT(f, i)
 #else
+#ifdef INTERFACE_PROFILING
+#undef INTERFACE_PROFILING
+#endif
 #define INTERFACE_PROFILING_DECLARE(n)
 #define INTERFACE_PROFILING_INIT()
 #define INTERFACE_PROFILING_SECTION_ENTER(l, i)
@@ -1251,7 +1254,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define INTERFACE_PROFILING_SUB_SECTION_EXIT(f, i)
 #endif
 
-//#define CHECKS_PROFILING
+#define CHECKS_PROFILING
 #if defined(PROFILING) && defined(CHECKS_PROFILING)
 #define CHECKS_PROFILING_DECLARE(n) PROFILING_DECLARE(n)
 #define CHECKS_PROFILING_INIT() PROFILING_INIT()
@@ -1260,6 +1263,9 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define CHECKS_PROFILING_SUB_SECTION_ENTER(f, l, i) PROFILING_SUB_SECTION_ENTER(f, l, i)
 #define CHECKS_PROFILING_SUB_SECTION_EXIT(f, i) PROFILING_SUB_SECTION_EXIT(f, i)
 #else
+#ifdef CHECKS_PROFILING
+#undef CHECKS_PROFILING
+#endif
 #define CHECKS_PROFILING_DECLARE(n)
 #define CHECKS_PROFILING_INIT()
 #define CHECKS_PROFILING_SECTION_ENTER(l, i)

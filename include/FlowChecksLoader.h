@@ -51,6 +51,7 @@ class FlowChecksLoader : public ChecksLoader { /* A single instance inside Ntop 
   inline ndpi_risk getUnhandledRisks() const { return unhandled_ndpi_risks; };
   inline bool isRiskUnhandled(ndpi_risk_enum risk) const { return NDPI_ISSET_BIT(unhandled_ndpi_risks, risk); };
   bool luaCheckInfo(lua_State* vm, std::string check_name) const;
+  void lua(lua_State *vm);
 };
 
 #endif /* _FLOW_CHECKS_LOADER_H_ */

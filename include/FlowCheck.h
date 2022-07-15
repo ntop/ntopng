@@ -27,6 +27,11 @@
 class FlowCheck : public Check {
  private:
   bool has_protocol_detected, has_periodic_update, has_flow_end, has_flow_begin;
+#ifdef CHECKS_PROFILING
+  struct {
+    std::atomic<u_int64_t> execution_time;
+  } stats;
+#endif
 
  public:
   FlowCheck(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only,
@@ -48,6 +53,12 @@ class FlowCheck : public Check {
   virtual std::string getName()        const = 0;
 
   static void computeCliSrvScore(FlowAlertType alert_type, risk_percentage cli_pctg, u_int8_t *cli_score, u_int8_t *srv_score);
+
+#ifdef CHECKS_PROFILING
+  inline void incStats(u_int64_t exec_time) { stats.execution_time += exec_time; };
+#endif
+
+  void lua(lua_State *vm);
 };
 
 #endif /* _FLOW_CHECK_H_ */

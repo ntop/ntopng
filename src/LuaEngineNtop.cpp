@@ -754,6 +754,21 @@ static int ntop_is_ipv6(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_flow_checks_stats(lua_State* vm) {
+  FlowChecksLoader *fcl = ntop->getFlowChecksLoader();
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (fcl)
+    fcl->lua(vm);
+  else
+    lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_reload_flow_checks(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -6564,6 +6579,7 @@ static luaL_Reg _ntop_reg[] = {
   { "reloadFlowChecks",      ntop_reload_flow_checks      },
   { "reloadHostChecks",      ntop_reload_host_checks      },
   { "reloadAlertExclusions", ntop_reload_alert_exclusions },
+  { "getFlowChecksStats",    ntop_get_flow_checks_stats   },
   { "getFlowAlertScore",     ntop_get_flow_alert_score    },
   { "getFlowAlertRisk",      ntop_get_flow_alert_risk     },
   { "getFlowRiskAlerts",     ntop_get_flow_risk_alerts    },

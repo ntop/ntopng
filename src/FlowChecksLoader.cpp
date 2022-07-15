@@ -309,3 +309,21 @@ bool FlowChecksLoader::luaCheckInfo(lua_State* vm, std::string check_name) const
 }
 
 /* **************************************************** */
+
+void FlowChecksLoader::lua(lua_State *vm) {
+  lua_newtable(vm);
+
+  for(std::map<std::string, FlowCheck*>::const_iterator it = cb_all.begin(); it != cb_all.end(); ++it) {
+    FlowCheck *fc = it->second;
+
+    lua_newtable(vm);
+
+    fc->lua(vm);
+
+    lua_pushstring(vm, it->first.c_str());
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+}
+
+/* **************************************************** */

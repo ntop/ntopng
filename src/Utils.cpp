@@ -309,6 +309,22 @@ bool Utils::isIPAddress(const char *ip) {
 
 /* ****************************************************** */
 
+#ifdef PROFILING
+u_int64_t Utils::getTimeNsec() {
+  u_int64_t nsec = 0;
+#ifdef __linux__
+  struct timespec t;
+
+  if (clock_gettime(CLOCK_REALTIME, &t) == 0)
+    nsec = (u_int64_t) ((u_int64_t) t.tv_sec * 1000000000) + t.tv_nsec;
+#endif
+
+  return nsec;
+}
+#endif
+
+/* ****************************************************** */
+
 #ifdef __linux__
 
 int Utils::setAffinityMask(char *cores_list, cpu_set_t *mask) {

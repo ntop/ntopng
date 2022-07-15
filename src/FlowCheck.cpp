@@ -31,6 +31,9 @@ FlowCheck::FlowCheck(NtopngEdition _edition,
   has_periodic_update    = _has_periodic_update;
   has_flow_end           = _has_flow_end;
   has_flow_begin         = _has_flow_begin;
+#ifdef CHECKS_PROFILING
+  stats.execution_time = 0;
+#endif
 };
 
 /* **************************************************** */
@@ -97,6 +100,21 @@ void FlowCheck::computeCliSrvScore(FlowAlertType alert_type, risk_percentage cli
   u_int8_t score = ntop->getFlowAlertScore(alert_type.id);
   *cli_score = (score * cli_pctg) / 100;
   *srv_score = score - (*cli_score);
+}
+
+/* **************************************************** */
+
+void FlowCheck::lua(lua_State *vm) {
+#ifdef CHECKS_PROFILING
+  /* Stats */
+  lua_newtable(vm);
+
+  lua_push_uint64_table_entry(vm, "execution_time", stats.execution_time);
+
+  lua_pushstring(vm, "stats");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+#endif
 }
 
 /* **************************************************** */
