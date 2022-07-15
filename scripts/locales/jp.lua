@@ -1541,8 +1541,6 @@ local lang = {
     ["suspicious_client_device_protocol"] = "クライアント プロトコル \"%{proto}\" は設定された<a href=\"%{url}\">%{devtype} プロトコルポリシーにより許可されません</a>",
     ["suspicious_device_protocol"] = "疑わしいデバイスプロトコル",
     ["suspicious_server_device_protocol"] = "サーバー プロトコル \"%{proto}\" は設定された<a href=\"%{url}\">%{devtype} プロトコルポリシーにより許可されません</a>",
-    ["suspicious_tcp_probing"] = "疑わしいTCPプローブ",
-    ["suspicious_tcp_syn_probing"] = "疑わしいTCP SYNプローブ",
     ["sync_source_id"] = "同期ソースID",
     ["tcp_connection_issues"] = "TCP接続の問題",
     ["tcp_connection_refused"] = "TCP接続が拒否されました",

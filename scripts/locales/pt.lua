@@ -752,8 +752,6 @@ local lang = {
     ["ssh_signature"] = "Assinatura SSH",
     ["suspicious_client_device_protocol"] = "Aplicação cliente \"%{proto}\" não é permitido pelo configurado <a href=\"%{url}\">%{devtype} política de aplicação</a>",
     ["suspicious_server_device_protocol"] = "Aplicação do servidor \"%{proto}\" não é permitido pelo configurado <a href=\"%{url}\">%{devtype} política de aplicação</a>",
-    ["suspicious_tcp_probing"] = "Pesquisa TCP Suspeita",
-    ["suspicious_tcp_syn_probing"] = "Sondagem TCP SYN suspeita",
     ["sync_source_id"] = "Sincronizar ID da fonte",
     ["tcp_connection_issues"] = "Problemas de conexão TCP (Retransmission, OOO, Lost)",
     ["tcp_connection_refused"] = "Conexão TCP recusada",

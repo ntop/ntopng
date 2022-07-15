@@ -621,8 +621,6 @@ local lang = {
     ["slow_tcp_connection"] = "Slow TCP Verbingung",
     ["son_of_father_process"] = "son of <a href ='%{url}'>%{proc_father_pid}/%{proc_father_name}</a>",
     ["ssh_signature"] = "SSH Unterschrift",
-    ["suspicious_tcp_probing"] = "Suspicious TCP Probing",
-    ["suspicious_tcp_syn_probing"] = "Suspicious TCP SYN probing",
     ["sync_source_id"] = "Sync Source ID",
     ["tcp_connection_issues"] = "TCP Connection Issues (Retransmission, OOO, Lost)",
     ["tcp_packet_analysis"] = "TCP Paketanalyse",
