@@ -69,26 +69,26 @@ local function parse_lists_from_dir(where)
       if(j == nil) then
         traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path..": parse error")
       else
-	-- Fix glitches
-	local skip = false
+        -- Fix glitches
+        local skip = false
 
         if(j.category == nil) then
-	  traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": no category")
-	  skip = true	
-	elseif(j.category == "mining") then            j.category = CUSTOM_CATEGORY_MINING
-	elseif(j.category == "malware")       then j.category = CUSTOM_CATEGORY_MALWARE
-	elseif(j.category == "advertisement") then j.category = CUSTOM_CATEGORY_ADVERTISEMENT
-	else
-	  traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": invalid category ".. j.category)
-	  skip = true
-	end
+          traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": no category")
+          skip = true        
+        elseif(j.category == "mining") then            j.category = CUSTOM_CATEGORY_MINING
+        elseif(j.category == "malware")       then j.category = CUSTOM_CATEGORY_MALWARE
+        elseif(j.category == "advertisement") then j.category = CUSTOM_CATEGORY_ADVERTISEMENT
+        else
+          traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": invalid category ".. j.category)
+          skip = true
+        end
 
-	if(not(skip) and (j.name == nil)) then
-	  traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": missing name")
-	  skip = true
-	end
-	
-	if(not(skip)) then
+        if(not(skip) and (j.name == nil)) then
+          traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": missing name")
+          skip = true
+        end
+        
+        if(not(skip)) then
           ret[j.name] = j
         end
       end
@@ -140,7 +140,7 @@ local function loadListsFromRedis()
 
    for list_name, list in pairs(lists) do
       if status[list_name] then
-	 list.status = status[list_name]
+         list.status = status[list_name]
       end
    end
 
@@ -316,15 +316,15 @@ function shouldUpdate(list_name, list, now)
       tprint('---------------')
 
       tprint(((now >= next_update) or
-	       (not ntop.exists(list_file) and (list.status.num_errors < MAX_LIST_ERRORS)) or
-	       (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1")))
+               (not ntop.exists(list_file) and (list.status.num_errors < MAX_LIST_ERRORS)) or
+               (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1")))
       return(false)
    else
       -- note: num_errors is used to avoid retying downloading the same list again when
       -- the file does not exist
       return(((now >= next_update) or
-	       (not ntop.exists(list_file) and (list.status.num_errors < MAX_LIST_ERRORS)) or
-	       (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1")))
+               (not ntop.exists(list_file) and (list.status.num_errors < MAX_LIST_ERRORS)) or
+               (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1")))
    end
 end
 
@@ -347,78 +347,78 @@ local function checkListsUpdate(timeout)
       local list_file = getListCacheFile(list_name, false)
 
       if(shouldUpdate(list_name, list, now)) then
-	 local temp_fname = getListCacheFile(list_name, true)
-	 local msg = string.format("Updating list '%s' [%s]... ", list_name, list.url)
+         local temp_fname = getListCacheFile(list_name, true)
+         local msg = string.format("Updating list '%s' [%s]... ", list_name, list.url)
 
-	 traceError(trace_level, TRACE_INFO, string.format("Updating list '%s'... ", list_name))
+         traceError(trace_level, TRACE_INFO, string.format("Updating list '%s'... ", list_name))
 
-	 local started_at = os.time()
-	 local res = ntop.httpFetch(list.url, temp_fname, timeout)
+         local started_at = os.time()
+         local res = ntop.httpFetch(list.url, temp_fname, timeout)
 
-	 if(res and (res["RESPONSE_CODE"] == 200)) then
-	    -- download was successful, replace the original file
-	    os.rename(temp_fname, list_file)
-	    list.status.last_error = false
-	    list.status.num_errors = 0
-	    needs_reload = true
+         if(res and (res["RESPONSE_CODE"] == 200)) then
+            -- download was successful, replace the original file
+            os.rename(temp_fname, list_file)
+            list.status.last_error = false
+            list.status.num_errors = 0
+            needs_reload = true
 
-	    local alert = alert_consts.alert_types.alert_list_download_succeeded.new(
-	       list_name
-	    )
+            local alert = alert_consts.alert_types.alert_list_download_succeeded.new(
+               list_name
+            )
 
-	    alert:set_score_notice()
+            alert:set_score_notice()
 
-	    alert:store(alerts_api.systemEntity(list_name))
+            alert:store(alerts_api.systemEntity(list_name))
 
-	    msg = msg .. "OK"
-	 else
-	    -- failure
-	    local respcode = 0
-	    local last_error = i18n("delete_data.msg_err_unknown")
+            msg = msg .. "OK"
+         else
+            -- failure
+            local respcode = 0
+            local last_error = i18n("delete_data.msg_err_unknown")
 
-	    if res and res["ERROR"] then
-	       last_error = res["ERROR"]
-	    elseif res and res["RESPONSE_CODE"] ~= nil then
-	       respcode = ternary(res["RESPONSE_CODE"], res["RESPONSE_CODE"], "-")
+            if res and res["ERROR"] then
+               last_error = res["ERROR"]
+            elseif res and res["RESPONSE_CODE"] ~= nil then
+               respcode = ternary(res["RESPONSE_CODE"], res["RESPONSE_CODE"], "-")
 
-	       if res["IS_PARTIAL"] then
-		  last_error = i18n("category_lists.connection_time_out", {duration=(os.time() - started_at)})
-	       else
-		  last_error = i18n("category_lists.server_returned_error")
-	       end
+               if res["IS_PARTIAL"] then
+                  last_error = i18n("category_lists.connection_time_out", {duration=(os.time() - started_at)})
+               else
+                  last_error = i18n("category_lists.server_returned_error")
+               end
 
-	       if(respcode > 0) then
-		  last_error = string.format("%s %s", last_error, i18n("category_lists.http_code", {err_code = respcode}))
-	       end
-	    end
+               if(respcode > 0) then
+                  last_error = string.format("%s %s", last_error, i18n("category_lists.http_code", {err_code = respcode}))
+               end
+            end
 
-	    list.status.last_error = last_error
-	    list.status.num_errors = list.status.num_errors + 1
+            list.status.last_error = last_error
+            list.status.num_errors = list.status.num_errors + 1
 
-	    local alert = alert_consts.alert_types.alert_list_download_failed.new(
-	       list_name,
-	       last_error
-	    )
+            local alert = alert_consts.alert_types.alert_list_download_failed.new(
+               list_name,
+               last_error
+            )
 
-	    alert:set_score_error()
+            alert:set_score_error()
 
-	    alert:store(alerts_api.systemEntity(list_name))
+            alert:store(alerts_api.systemEntity(list_name))
 
-	    msg = msg .. "ERROR ["..last_error.."]"
-	 end
+            msg = msg .. "ERROR ["..last_error.."]"
+         end
 
-	 traceError(TRACE_NORMAL, TRACE_CONSOLE, msg)
+         traceError(TRACE_NORMAL, TRACE_CONSOLE, msg)
 
-	 now = os.time()
-	 -- set last_update even on failure to avoid blocking on the same list again
-	 list.status.last_update = now
-	 ntop.delCache("ntopng.cache.category_lists.update." .. list_name)
+         now = os.time()
+         -- set last_update even on failure to avoid blocking on the same list again
+         list.status.last_update = now
+         ntop.delCache("ntopng.cache.category_lists.update." .. list_name)
 
-	 if now-begin_time >= timeout then
-	    -- took too long, will resume on next housekeeping execution
-	    all_processed = false
-	    break
-	 end
+         if now-begin_time >= timeout then
+            -- took too long, will resume on next housekeeping execution
+            all_processed = false
+            break
+         end
       end
    end
 
@@ -428,20 +428,20 @@ local function checkListsUpdate(timeout)
    if(not all_processed) then
       -- Still in progress, do not mark as finished yet
       if(needs_reload) then
-	 -- cache this for the next invocation of checkListsUpdate as
-	 -- we are still in progress
-	 ntop.setCache("ntopng.cache.category_lists.needs_reload", "1")
+         -- cache this for the next invocation of checkListsUpdate as
+         -- we are still in progress
+         ntop.setCache("ntopng.cache.category_lists.needs_reload", "1")
       end
 
       return {
-	 in_progress = true
+         in_progress = true
       }
    else
       ntop.delCache("ntopng.cache.category_lists.needs_reload")
 
       return {
-	 in_progress = false,
-	 needs_reload = needs_reload,
+         in_progress = false,
+         needs_reload = needs_reload,
       }
    end
 end
@@ -474,38 +474,42 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
 
       -- Checking for "whitelisted hosts"
       if user_custom_categories[category] ~= nil then
-	 local hosts_map = swapKeysValues(user_custom_categories[category])
-	 if hosts_map["!"..host] ~= nil then
-	    return nil
-	 end
+         local hosts_map = swapKeysValues(user_custom_categories[category])
+         if hosts_map["!"..host] ~= nil then
+            return nil
+         end
       end
 
       if isIPv4(host) or isIPv4Network(host) then
-	 -- IPv4 address
-	 if((not list) or (list.format ~= "domain")) then
-	   if((host == "0.0.0.0") or (host == "0.0.0.0/0") or (host == "255.255.255.255")) then
-	     loadWarning(string.format("Bad IPv4 address '%s' in list '%s'", host, list.name))
-	   else
-       if (list and list.name) then
-	      ntop.loadCustomCategoryIp(host, category, list.name)
-	     end
+         -- IPv4 address
+         if((not list) or (list.format ~= "domain")) then
+            if((host == "0.0.0.0") or (host == "0.0.0.0/0") or (host == "255.255.255.255")) then
+               loadWarning(string.format("Bad IPv4 address '%s' in list '%s'", host, list.name))
+            else
+               if (list and list.name) then
+                  if not ntop.loadCustomCategoryIp(host, category, list.name) then
+                     loadWarning(string.format("Failure loading IP '%s' category '%s' in list '%s'", host, category, list.name))
+                  end
+               end
        
-       return "ip"
-	   end
-	 else
-	   loadWarning(string.format("Invalid IPv4 address '%s' in list '%s'", host, list.name))
-	 end
+               return "ip"
+            end
+         else
+            loadWarning(string.format("Invalid IPv4 address '%s' in list '%s'", host, list.name))
+         end
       elseif isIPv6(host) then
-	 -- IPv6 address
+         -- IPv6 address
          loadWarning(string.format("Unsupported IPv6 address '%s' found in list '%s'", host, list.name))
       else
-	 -- Domain
-	 if((not list) or (list.format ~= "ip")) then
-	    ntop.loadCustomCategoryHost(host, category, list.name)
-	    return "domain"
-	 else
-	   loadWarning(string.format("Invalid domain '%s' in list '%s'", host, list.name))
-	 end
+         -- Domain
+         if((not list) or (list.format ~= "ip")) then
+            if not ntop.loadCustomCategoryHost(host, category, list.name) then
+              loadWarning(string.format("Failure loading host '%s' category '%s' in list '%s'",  host, category, list.name))
+            end
+            return "domain"
+         else
+           loadWarning(string.format("Invalid domain '%s' in list '%s'", host, list.name))
+         end
       end
    end
 
@@ -522,7 +526,7 @@ local function parse_hosts_line(line)
       host = words[2]
 
       if((host == "localhost") or (host == "127.0.0.1") or (host == "::1")) then
-	 host = nil
+         host = nil
       end
    else
       -- invalid host
@@ -541,8 +545,8 @@ local function handle_ja3_suricata_csv_line(line)
       local md5_hash = parts[1]
 
       if(string.len(md5_hash) == 32) then
-	 ntop.loadMaliciousJA3Hash(string.lower(md5_hash))
-	 return(true)
+         ntop.loadMaliciousJA3Hash(string.lower(md5_hash))
+         return(true)
       end
    end
 
@@ -570,7 +574,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
       else -- Failure
          if list.status.num_hosts > 0 then
             -- Avoid generating warnings during first startup
-	    traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
+            traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
          end
 
          return(false)
@@ -584,44 +588,44 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
       if f == nil then
          if list.status.num_hosts > 0 then
             -- Avoid generating warnings during first startup
-	    traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
+            traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
          end
 
          return(false)
       end
 
       for line in f:lines() do
-      	  num_line = num_line + 1
+                num_line = num_line + 1
          if ntop.isShutdown() then
-	    break
+            break
          end
          local trimmed = line:match("^%s*(.-)%s*$")
 
          if((string.len(trimmed) > 0) and not(string.starts(trimmed, "#"))) then
-	    local host = trimmed
+            local host = trimmed
 
-	    if list.format == "hosts" then
-	       host = parse_hosts_line(trimmed)
+            if list.format == "hosts" then
+               host = parse_hosts_line(trimmed)
             end
 
-	    if host then
-	       local rv = loadListItem(host, list.category, user_custom_categories, list, num_line)
+            if host then
+               local rv = loadListItem(host, list.category, user_custom_categories, list, num_line)
 
-	       if(rv == "domain") then
-	          stats.num_hosts = stats.num_hosts + 1
-	          num_rules = num_rules + 1
-	       elseif(rv == "ip") then
-	          stats.num_ips = stats.num_ips + 1
-	          num_rules = num_rules + 1
-	       end
-	    end
+               if(rv == "domain") then
+                  stats.num_hosts = stats.num_hosts + 1
+                  num_rules = num_rules + 1
+               elseif(rv == "ip") then
+                  stats.num_ips = stats.num_ips + 1
+                  num_rules = num_rules + 1
+               end
+            end
 
-	    if((stats.num_ips >= MAX_TOTAL_IP_RULES) or
-	          (stats.num_hosts >= MAX_TOTAL_DOMAIN_RULES) or
-	          (stats.num_ja3 >= MAX_TOTAL_JA3_RULES)) then
-	       limit_exceeded = true
-	       break
-	    end
+            if((stats.num_ips >= MAX_TOTAL_IP_RULES) or
+                  (stats.num_hosts >= MAX_TOTAL_DOMAIN_RULES) or
+                  (stats.num_ja3 >= MAX_TOTAL_JA3_RULES)) then
+               limit_exceeded = true
+               break
+            end
          end
       end
 
@@ -659,32 +663,32 @@ local function reloadListsNow()
    -- Load hosts from cached URL lists
    for list_name, list in pairsByKeys(lists) do
       if list.enabled then
-	 if((not limit_reached_error) and loadFromListFile(list_name, list, user_custom_categories, stats)) then
-	    -- A limit was exceeded
-	    if(stats.num_ips >= MAX_TOTAL_IP_RULES) then
-	       limit_reached_error = i18n("category_lists.too_many_ips_loaded", {limit = MAX_TOTAL_IP_RULES}) ..
-		  ". " .. i18n("category_lists.disable_some_list")
-	    elseif(stats.num_hosts >= MAX_TOTAL_DOMAIN_RULES) then
-	       limit_reached_error = i18n("category_lists.too_many_hosts_loaded", {limit = MAX_TOTAL_DOMAIN_RULES}) ..
-		  ". " .. i18n("category_lists.disable_some_list")
-	    elseif(stats.num_ja3 >= MAX_TOTAL_JA3_RULES) then
-	       limit_reached_error = i18n("category_lists.too_many_ja3_loaded", {limit = MAX_TOTAL_JA3_RULES}) ..
-		  ". " .. i18n("category_lists.disable_some_list")
-	    else
-	       -- should never happen
-	       limit_reached_error = "reloadListsNow: unknown error"
-	    end
+         if((not limit_reached_error) and loadFromListFile(list_name, list, user_custom_categories, stats)) then
+            -- A limit was exceeded
+            if(stats.num_ips >= MAX_TOTAL_IP_RULES) then
+               limit_reached_error = i18n("category_lists.too_many_ips_loaded", {limit = MAX_TOTAL_IP_RULES}) ..
+                  ". " .. i18n("category_lists.disable_some_list")
+            elseif(stats.num_hosts >= MAX_TOTAL_DOMAIN_RULES) then
+               limit_reached_error = i18n("category_lists.too_many_hosts_loaded", {limit = MAX_TOTAL_DOMAIN_RULES}) ..
+                  ". " .. i18n("category_lists.disable_some_list")
+            elseif(stats.num_ja3 >= MAX_TOTAL_JA3_RULES) then
+               limit_reached_error = i18n("category_lists.too_many_ja3_loaded", {limit = MAX_TOTAL_JA3_RULES}) ..
+                  ". " .. i18n("category_lists.disable_some_list")
+            else
+               -- should never happen
+               limit_reached_error = "reloadListsNow: unknown error"
+            end
 
-	    -- Continue to iterate to also set the error on the next lists
-	    traceError(TRACE_WARNING, TRACE_CONSOLE, limit_reached_error)
-	 end
+            -- Continue to iterate to also set the error on the next lists
+            traceError(TRACE_WARNING, TRACE_CONSOLE, limit_reached_error)
+         end
 
-	 if(limit_reached_error) then
-	    -- Set the invalid status to show it into the gui
-	    list.status.last_error = limit_reached_error
+         if(limit_reached_error) then
+            -- Set the invalid status to show it into the gui
+            list.status.last_error = limit_reached_error
 
-	    traceError(trace_level, TRACE_CONSOLE, limit_reached_error)
-	 end
+            traceError(trace_level, TRACE_CONSOLE, limit_reached_error)
+         end
       end
    end
 
@@ -694,10 +698,10 @@ local function reloadListsNow()
    -- Load user-customized categories
    for category_id, hosts in pairs(user_custom_categories) do
       for _, host in ipairs(hosts) do
-	 if ntop.isShutdown() then
-	    break
-	 end
-	 loadListItem(host, category_id, user_custom_categories, {} --[[ No list --]], 0 --[[ No line number --]])
+         if ntop.isShutdown() then
+            break
+         end
+         loadListItem(host, category_id, user_custom_categories, {} --[[ No list --]], 0 --[[ No line number --]])
       end
    end
 
@@ -708,8 +712,8 @@ local function reloadListsNow()
    stats.duration = (os.time() - stats.begin)
 
    traceError(TRACE_NORMAL, TRACE_CONSOLE,
-	      string.format("Category Lists (%u hosts, %u IPs, %u JA3) loaded in %d sec",
-			    stats.num_hosts, stats.num_ips, stats.num_ja3, stats.duration))
+              string.format("Category Lists (%u hosts, %u IPs, %u JA3) loaded in %d sec",
+                            stats.num_hosts, stats.num_ips, stats.num_ja3, stats.duration))
 
    -- Save the stats
    ntop.setCache("ntopng.cache.category_lists.load_stats", json.encode(stats))
@@ -745,8 +749,8 @@ function lists_utils.checkReloadLists()
       local rv = checkListsUpdate(60 --[[ timeout ]])
 
       if(not rv.in_progress) then
-	 ntop.delCache("ntopng.cache.download_lists_utils")
-	 reload_now = forced_reload or rv.needs_reload
+         ntop.delCache("ntopng.cache.download_lists_utils")
+         reload_now = forced_reload or rv.needs_reload
       end
    else
       reload_now = forced_reload
@@ -758,13 +762,13 @@ function lists_utils.checkReloadLists()
       -- print("[DEBUG] **** Reloading ****\n")
 
       if reloadListsNow() then
-	 -- print("[DEBUG]  Success !!!!\n")
-	 -- success
-	 ntop.delCache("ntopng.cache.reload_lists_utils")
+         -- print("[DEBUG]  Success !!!!\n")
+         -- success
+         ntop.delCache("ntopng.cache.reload_lists_utils")
       else
-	 -- print("[DEBUG]  ERROR !!!!\n")
-	 -- Remember to load the lists next time
-	 ntop.setCache("ntopng.cache.reload_lists_utils", "1")
+         -- print("[DEBUG]  ERROR !!!!\n")
+         -- Remember to load the lists next time
+         ntop.setCache("ntopng.cache.reload_lists_utils", "1")
       end
 
       -- print("[DEBUG] **** Reloading is over ****\n")

@@ -1062,8 +1062,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(get_ndpi_struct(), proto)); };
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
-  void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id, char *list_name);
-  void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name);
+  bool nDPILoadIPCategory(char *what, ndpi_protocol_category_t id, char *list_name);
+  bool nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name);
   int nDPILoadMaliciousJA3Signatures(const char *file_path);
 
   inline void setLastInterfacenDPIReload(time_t now)      { last_ndpi_reload = now;   }

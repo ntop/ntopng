@@ -3161,24 +3161,34 @@ void Ntop::finalizenDPIReload() {
 
 /* ******************************************* */
 
-void Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id, char *list_name) {
+bool Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id, char *list_name) {
   char *persistent_name = getPersistentCustomListName(list_name);
+  bool success = true;
 
   for(u_int i = 0; i<get_num_interfaces(); i++) {
-    if(getInterface(i))
-      getInterface(i)->nDPILoadIPCategory(what, id, persistent_name);
+    if(getInterface(i)) {
+      if (!getInterface(i)->nDPILoadIPCategory(what, id, persistent_name))
+        success = false;
+    }
   }
+
+  return success;
 }
 
 /* ******************************************* */
 
-void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name) {
+bool Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name) {
   char *persistent_name = getPersistentCustomListName(list_name);
+  bool success = true;
 
   for(u_int i = 0; i<get_num_interfaces(); i++) {
-    if(getInterface(i))
-      getInterface(i)->nDPILoadHostnameCategory(what, id, persistent_name);
+    if(getInterface(i)) {
+      if (!getInterface(i)->nDPILoadHostnameCategory(what, id, persistent_name))
+        success = false;
+    }
   }
+
+  return success;
 }
 
 /* ******************************************* */

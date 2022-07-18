@@ -617,21 +617,31 @@ static int ntop_initnDPIReload(lua_State* vm) {
 static int ntop_loadCustomCategoryIp(lua_State* vm) {
   char *net, *listname;
   ndpi_protocol_category_t catid;
+  bool success;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) {
+    lua_pushboolean(vm, false);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
   net = (char*)lua_tostring(vm, 1);
   
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) {
+    lua_pushboolean(vm, false);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
   catid = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) {
+    lua_pushboolean(vm, false);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
   listname = (char*)lua_tostring(vm, 3);
   
-  ntop->nDPILoadIPCategory(net, catid, listname);
+  success = ntop->nDPILoadIPCategory(net, catid, listname);
 
-  lua_pushnil(vm);
+  lua_pushboolean(vm, success);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -640,21 +650,31 @@ static int ntop_loadCustomCategoryIp(lua_State* vm) {
 static int ntop_loadCustomCategoryHost(lua_State* vm) {
   char *host, *listname;
   ndpi_protocol_category_t catid;
+  bool success;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) {
+    lua_pushboolean(vm, false);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
   host = (char*)lua_tostring(vm, 1);
   
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) {
+    lua_pushboolean(vm, false);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
   catid = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
   
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) {
+    lua_pushboolean(vm, false);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
   listname = (char*)lua_tostring(vm, 3);
   
-  ntop->nDPILoadHostnameCategory(host, catid, listname);
+  success = ntop->nDPILoadHostnameCategory(host, catid, listname);
 
-  lua_pushnil(vm);
+  lua_pushboolean(vm, success);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
