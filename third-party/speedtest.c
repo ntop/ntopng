@@ -12,8 +12,10 @@
 
 #include <stdio.h>
 #include <string.h>
+#ifndef WIN32
 #include <unistd.h>
 #include <pthread.h>
+#endif
 #include <math.h>
 #include <curl/curl.h>
 #include "json.h"
