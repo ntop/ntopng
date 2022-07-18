@@ -324,7 +324,7 @@ local function host_rev(a, b)
    return rev(a.value, b.value)
 end
 
-local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
+local function getTopTalkers(schema_id, tags, tstart, tend, options)
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    local top_utils = require "top_utils"
    local num_minutes = math.floor((tend - tstart) / 60)
@@ -342,8 +342,8 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
    end
    local tophosts = {}
 
-   for idx1, vlan in pairs(top_talkers.vlan or {}) do
-      for idx2, host in pairs(vlan.hosts[1][direction] or {}) do
+   for _, vlan in pairs(top_talkers.vlan or {}) do
+      for _, host in pairs(vlan.hosts[1][direction] or {}) do
 	    -- need to recalculate total value
 	    local host_tags = {ifid=tags.ifid, host=host.address}
 	    local host_partials = ts_utils.queryTotal("host:traffic", tstart, tend, host_tags)
@@ -390,11 +390,7 @@ end
 -- A bunch of pre-computed top items functions
 -- Must return in the same format as driver:topk
 local function getPrecomputedTops(schema_id, tags, tstart, tend, options)
-   if (schema_id == "local_senders") or (schema_id == "local_receivers") then
-      return getLocalTopTalkers(schema_id, tags, tstart, tend, options)
-   end
-
-   return nil
+  return getTopTalkers(schema_id, tags, tstart, tend, options)
 end
 
 -- ##############################################

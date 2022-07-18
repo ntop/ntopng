@@ -197,6 +197,7 @@ end
 
 -- Add layout information
 local layout = graph_utils.get_timeseries_layout(ts_schema)
+local filtered_serie = {}
 
 for _, serie in pairs(res.series or {}) do
 
@@ -206,7 +207,17 @@ for _, serie in pairs(res.series or {}) do
     end
   end
 
+  local ts_tot_value = 0
+  for _, ts_value in pairs(serie.data or {}) do
+    ts_tot_value = ts_tot_value + tonumber(ts_value or 0)
+  end
+
+  if ts_tot_value > 0 then
+    filtered_serie[#filtered_serie + 1] = serie
+  end
 end
+
+res.series = filtered_serie
 
 if extended_times then
   if res.series and res.step then
