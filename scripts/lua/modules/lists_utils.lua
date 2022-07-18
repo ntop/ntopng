@@ -701,7 +701,7 @@ local function reloadListsNow()
          if ntop.isShutdown() then
             break
          end
-         loadListItem(host, category_id, user_custom_categories, {} --[[ No list --]], 0 --[[ No line number --]])
+         loadListItem(host, category_id, user_custom_categories, { name = "__gui__" } --[[ No list --]], 0 --[[ No line number --]])
       end
    end
 
