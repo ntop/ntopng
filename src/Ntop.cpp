@@ -3610,6 +3610,15 @@ void Ntop::setZoneInfo() {
   }
 #endif
 
+#else
+    // Get the timezone info.
+    char c[256];
+    DYNAMIC_TIME_ZONE_INFORMATION dt;
+    GetDynamicTimeZoneInformation(&dt);
+
+    wcstombs(c, dt.TimeZoneKeyName, sizeof(c));
+    
+    // zoneinfo = strdup(c);
 #endif /* WIN32 */
 
   if(zoneinfo == NULL) {
@@ -3620,7 +3629,6 @@ void Ntop::setZoneInfo() {
   if(zoneinfo)
     ntop->getTrace()->traceEvent(TRACE_INFO, "Timezone set to %s", zoneinfo);
 }
-
 
 
 /* ******************************************* */
