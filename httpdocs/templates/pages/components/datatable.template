@@ -110,6 +110,7 @@
       {% end  %}
       </div>
 
+      {% if show_acknowledge_all or show_delete_all then %}
       <div class="card-footer">
 
         {% if show_acknowledge_all then %}
@@ -125,7 +126,13 @@
         {% end %}
 
       </div>
+      {% end %}
     </div>
+
+    {% if notes then %}
+      {* ui_utils.render_notes({ {content = notes} }) *}
+    {% end %}
+
   </div>
 </div>
 

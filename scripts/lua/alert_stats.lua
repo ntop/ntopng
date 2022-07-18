@@ -672,6 +672,7 @@ local context = {
    json = json,
    opsep = tag_utils.SEPARATOR,
    isPro = ntop.isPro(),
+   notes = ternary(status == "engaged", i18n("show_alerts.engaged_notes"), nil),
 
    show_chart = true,
 

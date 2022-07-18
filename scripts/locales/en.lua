@@ -5763,6 +5763,7 @@ local lang = {
     ["enable_alerts_title"] = "Enable Alerts",
     ["engaged"] = "Engaged",
     ["engaged_alerts"] = "Engaged Alerts",
+    ["engaged_notes"] = "Badges in the tab name indicate the number of engaged alerts for the corresponding alert family. This is the total number of engaged alerts, regardless of what is actually displayed in the table (data is filtered based on the selected time interval).",
     ["exclude_alert_err"] = "Error while excluding the alert, check the parameters and try again",
     ["expand_action"] = "Expand",
     ["explorer"] = "Explore",
