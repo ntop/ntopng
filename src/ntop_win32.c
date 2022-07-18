@@ -1132,3 +1132,8 @@ char* strndup(const char* s1, size_t n)
 	copy[n] = 0;
 	return copy;
 };
+
+
+void usleep(__int64 usec) {
+	win_usleep(usec);
+}
