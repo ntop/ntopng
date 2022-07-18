@@ -3525,6 +3525,8 @@ void Ntop::collectContinuousResponses(lua_State* vm) {
   cping->collectResponses(vm, true /* IPv6 */);
 }
 
+#endif
+
 /* ******************************************* */
 
 /*
@@ -3547,6 +3549,8 @@ char* Ntop::getPersistentCustomListName(char *list_name) {
 /* ******************************************* */
 
 void Ntop::setZoneInfo() {
+#ifndef WIN32
+
 #ifdef __FreeBSD__
   FILE *fd = fopen("/var/db/zoneinfo", "r");
 
@@ -3606,6 +3610,8 @@ void Ntop::setZoneInfo() {
   }
 #endif
 
+#endif /* WIN32 */
+
   if(zoneinfo == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find timezone: using UTC");
     zoneinfo = strdup("Europe/London"); /* UTC */
@@ -3615,7 +3621,7 @@ void Ntop::setZoneInfo() {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Timezone set to %s", zoneinfo);
 }
 
-#endif
+
 
 /* ******************************************* */
 

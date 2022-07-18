@@ -993,11 +993,7 @@ static int ntop_msleep(lua_State* vm) {
 
   if(ms_duration > max_duration) ms_duration = max_duration;
 
-#ifdef WIN32
-  win_usleep(ms_duration * 1000);
-#else
-  usleep(ms_duration * 1000);
-#endif
+  _usleep(ms_duration * 1000);
 
   lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
