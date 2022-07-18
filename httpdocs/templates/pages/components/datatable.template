@@ -458,7 +458,7 @@
     if (is_alert_stats_url) {
       page = ntopng_url_manager.get_url_entry("page");
       if (page == null) { page = "all"; }
-      chart_data_url = `${base_path}/lua/rest/v2/get/${page}/alert/ts.lua`;
+      chart_data_url = (page == "snmp_device") ? `${base_path}/lua/pro/rest/v2/get/snmp/device/alert/ts.lua` : `${base_path}/lua/rest/v2/get/${page}/alert/ts.lua`;
     }
 
     let chart_vue_options = {
