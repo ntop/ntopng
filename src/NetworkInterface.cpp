@@ -1803,9 +1803,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     the traffic direction is set based on the local (-m) host
   */
   if(isTrafficMirrored() && (!isGwMacConfigured())) {
-    int16_t network_id;
-    bool cli_local = src_ip.isLocalHost(&network_id);
-    bool srv_local = dst_ip.isLocalHost(&network_id);
+    bool cli_local = src_ip.isLocalHost();
+    bool srv_local = dst_ip.isLocalHost();
 
     if(cli_local && (!srv_local))
       ingressPacket = false;
@@ -1819,9 +1818,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s (%s) -> %s (%s) [%s]",
 				 src_ip.print(a, sizeof(a)),
-				 src_ip.isLocalHost(&network_id) ? "L" : "R",
+				 src_ip.isLocalHost() ? "L" : "R",
 				 dst_ip.print(b, sizeof(b)),
-				 dst_ip.isLocalHost(&network_id) ? "L" : "R",
+				 dst_ip.isLocalHost() ? "L" : "R",
 				 ingressPacket ? "IN" : "OUT");
 #endif
   }
@@ -3306,8 +3305,6 @@ void NetworkInterface::cleanup() {
 void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain_id,
 				     Mac *src_mac, IpAddress *_src_ip, Host **src,
 				     Mac *dst_mac, IpAddress *_dst_ip, Host **dst) {
-  int16_t local_network_id;
-
   if(!hosts_hash) {
     *src = *dst = NULL;
     return;
@@ -3326,7 +3323,7 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
     }
 
     if(_src_ip
-       && (_src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress())) {
+       && (_src_ip->isLocalHost() || _src_ip->isLocalInterfaceAddress())) {
       INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*src) = new (std::nothrow) LocalHost(this, src_mac, vlanId, observation_domain_id, _src_ip);
       INTERFACE_PROFILING_SECTION_EXIT(4);
@@ -3367,7 +3364,7 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
     }
 
     if(_dst_ip
-       && (_dst_ip->isLocalHost(&local_network_id) || _dst_ip->isLocalInterfaceAddress())) {
+       && (_dst_ip->isLocalHost() || _dst_ip->isLocalInterfaceAddress())) {
       INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlanId, observation_domain_id, _dst_ip);
       INTERFACE_PROFILING_SECTION_EXIT(4);
@@ -4420,14 +4417,14 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->clientMode(&client_policy)
-       && (((client_policy == location_local_only) && (!f->get_cli_ip_addr()->isLocalHost(&local_network_id)))
-	   || ((client_policy == location_remote_only) && (f->get_cli_ip_addr()->isLocalHost(&local_network_id)))))
+       && (((client_policy == location_local_only) && (!f->get_cli_ip_addr()->isLocalHost()))
+	   || ((client_policy == location_remote_only) && (f->get_cli_ip_addr()->isLocalHost()))))
       return(false);
 
     if(retriever->pag
        && retriever->pag->serverMode(&server_policy)
-       && (((server_policy == location_local_only) && (!f->get_srv_ip_addr()->isLocalHost(&local_network_id)))
-	   || ((server_policy == location_remote_only) && (f->get_srv_ip_addr()->isLocalHost(&local_network_id)))))
+       && (((server_policy == location_local_only) && (!f->get_srv_ip_addr()->isLocalHost()))
+	   || ((server_policy == location_remote_only) && (f->get_srv_ip_addr()->isLocalHost()))))
       return(false);
 
     if(retriever->pag
@@ -9491,7 +9488,6 @@ void NetworkInterface::checkHostsToRestore() {
     char *ip, *d;
     Host *h;
     Mac *mac = NULL;
-    int16_t local_network_id;
     VLANid vlan_id;
     IpAddress ipa;
 
@@ -9530,7 +9526,7 @@ void NetworkInterface::checkHostsToRestore() {
     }
 
     /* TODO provide the host MAC address when available to properly restore LBD hosts */
-    if(ipa.isLocalHost(&local_network_id) || ipa.isLocalInterfaceAddress())
+    if(ipa.isLocalHost() || ipa.isLocalInterfaceAddress())
       h = new (std::nothrow) LocalHost(this, mac, vlan_id, 0 /* any observation point */, &ipa);
     else
       h = new (std::nothrow) RemoteHost(this, mac, vlan_id, 0 /* any observation point */, &ipa);

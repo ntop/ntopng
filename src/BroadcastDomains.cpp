@@ -84,10 +84,9 @@ bool BroadcastDomains::addAddress(const IpAddress * const ipa, int network_bits)
 
   if(addr_node) {
     struct bcast_domain_info info;
-    int16_t network_id;
      
     info.is_interface_network = iface->isInterfaceNetwork(ipa, network_bits)
-      || ipa->isLocalHost(&network_id); /* Don't consider local-listed addresses as ghost networks */
+      || ipa->isLocalHost(); /* Don't consider local-listed addresses as ghost networks */
     info.hits = 1;
     
     domain_id = next_domain_id++;

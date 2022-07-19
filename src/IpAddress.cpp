@@ -109,6 +109,7 @@ void IpAddress::checkIP() {
   addr.privateIP = false;
   addr.multicastIP = false;
   addr.broadcastIP = false; 
+  addr.localIP = false; 
 
   if(addr.ipVersion == 4) {
     addr.loopbackIP = addr.ipType.ipv4 == 0x0100007F /* 127.0.0.1 */ ? true : false;
@@ -141,6 +142,7 @@ void IpAddress::checkIP() {
     else if((a == 0xFFFFFFFF) || (a == 0))
       addr.broadcastIP = true;
     else if(ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id, &nmask_bits)) {
+      addr.localIP = true;
       if(nmask_bits > 0 && nmask_bits < 31) { /* /0 no mask, /32 is just an host, /31 is a point-to-point */
         nmask = ~((1 << (32 - nmask_bits)) - 1);
         if(a == (a | ~nmask)   /* e.g., 10.0.0.0/8 -> matches 10.255.255.255.255 */
@@ -165,6 +167,9 @@ void IpAddress::checkIP() {
      */
     if(addr.ipType.ipv6.u6_addr.u6_addr8[0] == 0xFF)
       addr.multicastIP = true;
+    
+    if (ntop->isLocalAddress(AF_INET6, (void*)&addr.ipType.ipv6, &local_network_id))
+      addr.localIP = true; 
   }
 }
 
@@ -242,6 +247,12 @@ char* IpAddress::printMask(char *str, u_int str_len, bool isLocalIP) {
     return(str);
   } else
     return(intoa(str, str_len, 0xFF /* bitmask */));
+}
+
+/* ******************************************* */
+
+bool IpAddress::isLocalHost() const {
+  return (addr.localIP || addr.multicastIP || addr.broadcastIP);
 }
 
 /* ******************************************* */
@@ -402,12 +413,11 @@ void IpAddress::incCardinality(Cardinality *c) {
 /* ****************************** */
 
 void IpAddress::dump() {
-  int16_t network_id;
   char buf[48];
   const char *local, *system;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "-------------------- [ Local ]");
-  local  =  isLocalHost(&network_id)  ? "Yes" : "No";
+  local  =  isLocalHost()  ? "Yes" : "No";
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "-------------------- [ System ]");
   system =  isLocalInterfaceAddress() ? "Yes" : "No";
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "--------------------");

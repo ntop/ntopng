@@ -27,7 +27,7 @@
 struct ipAddress {
   u_int8_t ipVersion:3 /* Either 4 or 6 */,
     loopbackIP:1, privateIP:1, multicastIP:1, broadcastIP:1,
-    blacklistedIP:1;
+    blacklistedIP:1, localIP:1;
 
   u_int8_t dnsServer:1, dhcpServer:1, smtpServer:1, ntpServer:1,
     unused:4;
@@ -95,6 +95,7 @@ class IpAddress {
 
   char* print(char *str, u_int str_len, u_int8_t bitmask = 0xFF) const;
   char* printMask(char *str, u_int str_len, bool isLocalIP);
+  bool isLocalHost() const;
   bool isLocalHost(int16_t *network_id) const;
   bool isLocalInterfaceAddress();
   char* serialize();

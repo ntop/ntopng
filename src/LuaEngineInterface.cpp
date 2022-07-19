@@ -4241,7 +4241,6 @@ static int ntop_is_behaviour_analysis_available(lua_State* vm) {
 static int ntop_get_address_info(lua_State* vm) {
   char *addr;
   IpAddress ip;
-  int16_t network_id;
   
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   addr = (char*)lua_tostring(vm, 1);
@@ -4253,7 +4252,7 @@ static int ntop_get_address_info(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_broadcast",   ip.isBroadcastAddress());
   lua_push_bool_table_entry(vm, "is_multicast",   ip.isMulticastAddress());
   lua_push_bool_table_entry(vm, "is_private",     ip.isPrivateAddress());
-  lua_push_bool_table_entry(vm, "is_local",       ip.isLocalHost(&network_id));
+  lua_push_bool_table_entry(vm, "is_local",       ip.isLocalHost());
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }

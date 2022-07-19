@@ -4365,10 +4365,9 @@ bool Utils::shouldResolveHost(const char *host_ip) {
       remote hosts
     */
     IpAddress ip;
-    int16_t network_id;
 
     ip.set((char*)host_ip);
-    if(!ip.isLocalHost(&network_id))
+    if(!ip.isLocalHost())
       return false;
   }
 

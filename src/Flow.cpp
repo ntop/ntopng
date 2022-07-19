@@ -2814,8 +2814,7 @@ void Flow::formatECSHost(json_object *my_object, bool is_client, const IpAddress
       json_object_object_add(host_object, Utils::jsonLabel(is_client ? (addr->isIPv4() ? IPV4_SRC_ADDR : IPV6_SRC_ADDR) : (addr->isIPv4() ? IPV4_DST_ADDR : IPV6_DST_ADDR) , "ip", jsonbuf, sizeof(jsonbuf)), json_object_new_string(addr->print(buf, sizeof(buf))));
 
       /* Custom information elements, Local, Blacklisted, Has Services and domain name */
-      int16_t cli_network_id = 0;
-      json_object_object_add(host_object, Utils::jsonLabel(is_client ? SRC_ADDR_LOCAL : DST_ADDR_LOCAL, "is_local", jsonbuf, sizeof(jsonbuf)), json_object_new_boolean(addr->isLocalHost(&cli_network_id)));
+      json_object_object_add(host_object, Utils::jsonLabel(is_client ? SRC_ADDR_LOCAL : DST_ADDR_LOCAL, "is_local", jsonbuf, sizeof(jsonbuf)), json_object_new_boolean(addr->isLocalHost()));
       json_object_object_add(host_object, Utils::jsonLabel(is_client ? SRC_ADDR_BLACKLISTED : DST_ADDR_BLACKLISTED, "is_blacklisted", jsonbuf, sizeof(jsonbuf)), json_object_new_boolean(addr->isBlacklistedAddress()));
 
       if(get_cli_host()) {
@@ -2950,9 +2949,8 @@ void Flow::formatGenericFlow(json_object *my_object) {
     }
 
     /* Custom information elements not supported (yet) by nProbe */
-    int16_t cli_network_id = 0;
     json_object_object_add(my_object, Utils::jsonLabel(SRC_ADDR_LOCAL, "SRC_ADDR_LOCAL", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_boolean(cli_ip->isLocalHost(&cli_network_id)));
+			   json_object_new_boolean(cli_ip->isLocalHost()));
     json_object_object_add(my_object, Utils::jsonLabel(SRC_ADDR_BLACKLISTED, "SRC_ADDR_BLACKLISTED", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_boolean(cli_ip->isBlacklistedAddress()));
 
@@ -2974,9 +2972,8 @@ void Flow::formatGenericFlow(json_object *my_object) {
     }
 
     /* Custom information elements not supported (yet) by nProbe */
-    int16_t srv_network_id = 0;
     json_object_object_add(my_object, Utils::jsonLabel(DST_ADDR_LOCAL, "DST_ADDR_LOCAL", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_boolean(srv_ip->isLocalHost(&srv_network_id)));
+			   json_object_new_boolean(srv_ip->isLocalHost()));
     json_object_object_add(my_object, Utils::jsonLabel(DST_ADDR_BLACKLISTED, "DST_ADDR_BLACKLISTED", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_boolean(srv_ip->isBlacklistedAddress()));
 
@@ -3830,12 +3827,10 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 void Flow::updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len) {
   const IpAddress *from = src2dst_direction ? get_cli_ip_addr() : get_srv_ip_addr();
   const IpAddress *to   = src2dst_direction ? get_srv_ip_addr() : get_cli_ip_addr();
-  int16_t from_id = 0;
-  int16_t to_id = 0;
 
   iface->incLocalStats(num_pkts, pkt_len,
-		       from ? from->isLocalHost(&from_id) : false,
-		       to ? to->isLocalHost(&to_id) : false);
+		       from ? from->isLocalHost() : false,
+		       to ? to->isLocalHost() : false);
 }
 
 /* *************************************** */

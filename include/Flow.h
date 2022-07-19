@@ -396,9 +396,8 @@ class Flow : public GenericHashEntry {
     return (srv_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol;
   }
   inline bool isMaskedFlow() const {
-    int16_t network_id;
-    return(Utils::maskHost(get_cli_ip_addr()->isLocalHost(&network_id))
-	   || Utils::maskHost(get_srv_ip_addr()->isLocalHost(&network_id)));
+    return(Utils::maskHost(get_cli_ip_addr()->isLocalHost())
+	   || Utils::maskHost(get_srv_ip_addr()->isLocalHost()));
   };
   inline const char* getServerCipherClass()  const { return(isTLS() ? cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher) : NULL); }
   char* serialize(bool use_labels = false);
@@ -506,16 +505,13 @@ class Flow : public GenericHashEntry {
   inline bool isBidirectional()          const { return(get_packets_cli2srv() && get_packets_srv2cli()); };
   inline bool isRemoteToRemote()         const { return (cli_host && srv_host && !cli_host->isLocalHost() && !srv_host->isLocalHost()); };
   inline bool isLocalToRemote() const {
-    int16_t network_id;
-    return get_cli_ip_addr()->isLocalHost(&network_id) && !get_srv_ip_addr()->isLocalHost(&network_id);
+    return get_cli_ip_addr()->isLocalHost() && !get_srv_ip_addr()->isLocalHost();
   };
   inline bool isRemoteToLocal() const {
-    int16_t network_id;
-    return !get_cli_ip_addr()->isLocalHost(&network_id) && get_srv_ip_addr()->isLocalHost(&network_id);
+    return !get_cli_ip_addr()->isLocalHost() && get_srv_ip_addr()->isLocalHost();
   };
   inline bool isLocalToLocal()           const { 
-    int16_t network_id;
-    return get_cli_ip_addr()->isLocalHost(&network_id) && get_srv_ip_addr()->isLocalHost(&network_id);
+    return get_cli_ip_addr()->isLocalHost() && get_srv_ip_addr()->isLocalHost();
   };
   inline bool isUnicast()                const { return (cli_ip_addr && srv_ip_addr && !cli_ip_addr->isBroadMulticastAddress() && !srv_ip_addr->isBroadMulticastAddress()); };
   inline u_int32_t get_cli_ipv4()        const { return(cli_host->get_ip()->get_ipv4());  };
