@@ -3,9 +3,8 @@
 --
 
 local checks = require("checks")
-local alerts_api = require("alerts_api")
-local alert_consts = require("alert_consts")
 local flow_alert_keys = require "flow_alert_keys"
+local CHECKS_IEC_UNEXPECTED_TYPE_ID = "ntopng.checks.iec104_unexpected_type_id_enabled"
 
 -- #################################################################
 
@@ -35,5 +34,15 @@ local script = {
 }
 
 -- #################################################################
+
+function script.onEnable()
+  ntop.setCache(CHECKS_IEC_UNEXPECTED_TYPE_ID, "1")
+end
+
+-- #################################################################
+
+function script.onDisable()
+  ntop.setCache(CHECKS_IEC_UNEXPECTED_TYPE_ID, "0")
+end
 
 return script

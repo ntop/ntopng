@@ -1274,6 +1274,9 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define CHECKS_PROFILING_SUB_SECTION_EXIT(f, i)
 #endif
 
+#define CHECKS_IEC_INVALID_COMMAND_TRANSITION "ntopng.checks.iec104_invalid_command_transition_enabled"
+#define CHECKS_IEC_UNEXPECTED_TYPE_ID "ntopng.checks.iec104_unexpected_type_id_enabled"
+#define CHECKS_IEC_INVALID_TRANSITION "ntopng.checks.iec104_invalid_transition_enabled"
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */
