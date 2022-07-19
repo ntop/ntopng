@@ -4,7 +4,7 @@
     /* Score */
     {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', render: DataTableRenders.formatValueLabel},
     /* Application */
-    {responsivePriority: 3, name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center text-nowrap', render: (proto, type, row) => {
+    {responsivePriority: 3, name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-left text-nowrap', render: (proto, type, row) => {
         if (type !== "display") return proto.value;
         let confidence = ""
         if (proto.confidence !== undefined) {
