@@ -18,6 +18,8 @@ local host_pools = require "host_pools"
 local dscp_consts = require "dscp_consts"
 local country_codes = require "country_codes"
 
+local snmp_filter_options_cache
+
 local tag_utils = {}
 
 -- Operator Separator in query strings
@@ -642,39 +644,45 @@ function tag_utils.get_tag_info(id, entity)
 
       if ntop.isPro() then
          filter.value_type = 'array'
-         filter.options = {}
 
-         local snmp_config = require "snmp_config"
-	 local devices = snmp_config.get_all_configured_devices()
-	 if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace B") end
+         if snmp_filter_options_cache then
+            filter.options = snmp_filter_options_cache
+         else
+            filter.options = {}
 
-         local snmp_cached_dev = require "snmp_cached_dev"
+            local snmp_config = require "snmp_config"
+            local devices = snmp_config.get_all_configured_devices()
+            if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace B") end
 
-	 if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace C") end
+            local snmp_cached_dev = require "snmp_cached_dev"
 
-         -- use pairsByKeys to impose order
-         for probe_ip, _ in pairsByKeys(devices) do
-            local cached_device = snmp_cached_dev:get_interfaces(probe_ip)
-            if cached_device and cached_device["interfaces"] then
-               local interfaces = cached_device["interfaces"]
-               for interface_id, interface_info in pairs(interfaces) do
-                  local interface_name = interface_id
-                  if interface_info.name then
-                     interface_name = interface_info.name .. ' (' .. interface_id .. ')'
-                  end
-                  local label = probe_ip .. ' · ' .. interface_name
-                  --local label = format_portidx_name(probe_ip, tostring(interface_id))
-                  filter.options[#filter.options+1] = { 
-                     value = probe_ip .. "_" ..interface_id, 
-                     label = label,
-                  }
-               end 
+            if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace C") end
 
+            -- use pairsByKeys to impose order
+            for probe_ip, _ in pairsByKeys(devices) do
+               local cached_device = snmp_cached_dev:get_interfaces(probe_ip)
+               if cached_device and cached_device["interfaces"] then
+                  local interfaces = cached_device["interfaces"]
+                  for interface_id, interface_info in pairs(interfaces) do
+                     local interface_name = interface_id
+                     if interface_info.name then
+                        interface_name = interface_info.name .. ' (' .. interface_id .. ')'
+                     end
+                     local label = probe_ip .. ' · ' .. interface_name
+                     --local label = format_portidx_name(probe_ip, tostring(interface_id))
+                     filter.options[#filter.options+1] = { 
+                        value = probe_ip .. "_" ..interface_id, 
+                        label = label,
+                     }
+                  end 
+
+               end
             end
+            if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace D") end
+         
+            snmp_filter_options_cache = filter.options
          end
-	 if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trace D") end
       end
-
    end
 
    return filter
