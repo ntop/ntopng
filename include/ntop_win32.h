@@ -245,6 +245,7 @@ extern "C" {
 	const char *strcasestr(const char *haystack, const char *needle);
 	char* strptime(const char *buf, const char *format, struct tm *tm);
 	//extern int inet_pton(int af, const char *src, void *dst);
+    char* getWindowsTimezone();
 #ifdef __cplusplus
 };
 #endif
