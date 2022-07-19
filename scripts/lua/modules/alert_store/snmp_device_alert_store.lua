@@ -42,8 +42,13 @@ end
 -- ##############################################
 
 function snmp_device_alert_store:_entity_val_to_ip_and_port(entity_val)
+   local ip, port
+
    local ip_port = string.split(entity_val, "_ifidx")
-   local ip, port = ip_port[1], tonumber(ip_port[2])
+   if ip_port and #ip_port > 1 then
+      ip = ip_port[1]
+      port = tonumber(ip_port[2])
+   end
 
    return ip, port
 end
