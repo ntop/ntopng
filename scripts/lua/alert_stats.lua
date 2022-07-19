@@ -56,10 +56,35 @@ local CHART_NAME = "alert-timeseries"
 local page = _GET["page"] or 'all'
 local status = _GET["status"]
 
+local interface_stats = interface.getStats()
+
 -- Used to print badges next to navbar entries
-local num_alerts_engaged = interface.getStats()["num_alerts_engaged"]
-local num_alerts_engaged_by_entity = interface.getStats()["num_alerts_engaged_by_entity"]
-local num_alerts_engaged_cur_entity = (alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)]) or (page == 'all' and num_alerts_engaged) or 0
+local num_alerts_engaged = interface_stats["num_alerts_engaged"]
+local num_alerts_engaged_by_entity = interface_stats["num_alerts_engaged_by_entity"]
+
+-- Add system alerts to be displayed as badges in the interface page too
+if interface.getId() ~= tonumber(getSystemInterfaceId()) then
+  local system_interface_stats = ntop.getSystemAlertsStats()
+  local num_system_alerts_engaged_by_entity = system_interface_stats["num_alerts_engaged_by_entity"]
+
+  num_alerts_engaged = num_alerts_engaged + system_interface_stats["num_alerts_engaged"]
+
+  for entity_id, num in pairs(num_system_alerts_engaged_by_entity) do
+    if num_alerts_engaged_by_entity[entity_id] then
+      num_alerts_engaged_by_entity[entity_id] = num_alerts_engaged_by_entity[entity_id] + num
+    else
+      num_alerts_engaged_by_entity[entity_id] = num
+    end
+  end
+end
+
+local num_alerts_engaged_cur_entity = 0
+if alert_entities[page] then
+  local entity_id = tostring(alert_entities[page].entity_id)
+  num_alerts_engaged_cur_entity = num_alerts_engaged_by_entity[entity_id] or 0
+elseif page == 'all' and num_alerts_engaged then
+  num_alerts_engaged_cur_entity = num_alerts_engaged
+end
 
 -- If the status is not explicitly set, it is chosen between (engaged when there are engaged alerts) or historical when
 -- no engaged alert is currently active

@@ -6366,7 +6366,6 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_seen_external_alerts", hasSeenExternalAlerts());
   lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
 
-  lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
   luaNumEngagedAlerts(vm);
   luaAlertedFlows(vm);
   lua_push_uint64_table_entry(vm, "num_dropped_alerts", getNumDroppedAlertsSinceReset());
@@ -9333,6 +9332,9 @@ u_int32_t NetworkInterface::getNumEngagedAlerts(AlertLevelGroup alert_level_grou
 /* *************************************** */
 
 void NetworkInterface::luaNumEngagedAlerts(lua_State *vm) const {
+
+  lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
+
   /* By Entity */
   lua_newtable(vm);
 
