@@ -390,7 +390,11 @@ end
 -- A bunch of pre-computed top items functions
 -- Must return in the same format as driver:topk
 local function getPrecomputedTops(schema_id, tags, tstart, tend, options)
-  return getTopTalkers(schema_id, tags, tstart, tend, options)
+  if (schema_id == "local_senders") or (schema_id == "local_receivers") then
+    return getTopTalkers(schema_id, tags, tstart, tend, options)
+  end
+
+  return nil
 end
 
 -- ##############################################
