@@ -3450,7 +3450,7 @@ bool Utils::isInterfaceUp(char *_ifname) {
 #ifdef WIN32
   return(true);
 #else
-  char ifname[15];
+  char ifname[IFNAMSIZ];
   struct ifreq ifr;
   int sock;
 
