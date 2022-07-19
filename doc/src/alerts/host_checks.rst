@@ -147,6 +147,104 @@ The alert is sent whenever an host has at least one active flow using a remote a
 
 *Not Enabled by Default*
 
+**DNS Traffic Alert**
+~~~~~~~~~~~~~~~~~~~~~~
+Checks for DNS Traffic.
+
+DNS traffic exceeds the threshold >  (1 MB) 
+
+The alert is sent when the threshold is exceeded.
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+**Countries Contacts Alert**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for Countries Contacts.
+
+The endpoint sends too many requests to different countries - the recognition is based on IP location, overcoming the threshold > 100 Contacts (Minute).
+
+The alert is sent when the threshold is exceeded.
+
+
+*Category: Cybersecurity*
+
+*Not Enabled by Default*
+
+**Scan Detection Alert**
+~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for a scan detection.
+
+Host and network scanning cannot go unnoticed because they are usually a symptom of possible exploits and attacks.TCP/UDP flows exceeds the specified standard > 32 Flows (Minute) 
+
+*Category: Cybersecurity*
+
+*Not Enabled by Default*
+
+**Score Threshold Exceeded**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for Score Threshold
+
+Each host has a numerical non-negative value used to store the score value. This value is computed over a 1-minute time frame.When the score of an host exceeds the threshold 	> 5000 Score (Minute) the alert is triggered.
+
+The alert is sent when the threshold is passed.
+
+*Category: Cybersecurity*
+
+*Not Enabled by Default*
+
+
+**NTP Traffic Alert**
+~~~~~~~~~~~~~~~~~~~~~
+Checks for  NTP Traffic. 
+
+Network Time Protocol (NTP) server, could be flooded with traffic (DDoS attack). When NTP traffic exceeds the threshold 	> (1 MB) the alert is triggered.
+
+The alert is sent when the threshold is crossed.
+
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+**P2P Traffic Alert**
+~~~~~~~~~~~~~~~~~~~~~
+
+Checks for P2P Traffic.
+
+
+As P2P traffic continues to grow. This growth in traffic causes network congestion, performance deterioration.When P2P traffic exceeds the threshold the alert is triggered.
+
+The alert is sent when the threshold is crossed.
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+**Flows Anomaly**
+~~~~~~~~~~~~~~~~~
+
+Checks for a Flow Anomaly
+
+Flow-based anomaly detection centers around the concept of the network flow. A flow record is an indicator that a certain network flow took place and that two network endpoints have communicated with each other.
+
+The alert is sent when the system detects anomalies in active flows number.
+
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+
+
+
+
+
 
 
 
