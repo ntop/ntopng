@@ -91,6 +91,7 @@ local other_alert_keys = {
    alert_network_score_per_host         =  OTHER_BASE_KEY + 78,
    alert_dhcp_storm                     =  OTHER_BASE_KEY + 79,
    alert_snmp_interface_errors          =  OTHER_BASE_KEY + 80,
+   alert_snmp_device_traffic_change    =  OTHER_BASE_KEY + 81,
 }
 
 -- ##############################################
