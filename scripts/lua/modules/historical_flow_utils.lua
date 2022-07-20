@@ -1740,11 +1740,13 @@ local all_datatable_js_columns_by_tag = {
       order = 27,
       visible_by_default = false,
       js = [[
-        {name: 'probe_ip', responsivePriority: 2, data: 'probe_ip', visible: ]] ..ternary(not interface.isPacketInterface(), "true", "false").. [[, className: 'no-wrap', render: (probe_ip, type) => {
+        {name: 'probe_ip', responsivePriority: 2, data: 'probe_ip', className: 'no-wrap', render: (probe_ip, type) => {
             if (type !== 'display') return probe_ip;
-            if (probe_ip !== undefined)
-               //return `<span title='${probe_ip.title}'>${probe_ip.label}</span>`;
-                return `<a class='tag-filter' data-tag-value='${probe_ip.value}' title='${probe_ip.title}' href='#'>${probe_ip.label}</a>`;
+            if (probe_ip !== undefined && probe_ip.label !== "") {
+              debugger;
+              return `<a class='tag-filter' data-tag-value='${probe_ip.value}' title='${probe_ip.title}' href='#'>${probe_ip.label}</a>`;
+            }
+            return ''
         }}]] },
    ['cli_network'] = build_datatable_js_column_network('cli_network', 'cli_network', i18n("db_search.tags.cli_network"), 28, true),
    ['srv_network'] = build_datatable_js_column_network('srv_network', 'srv_network', i18n("db_search.tags.srv_network"), 29, true),
