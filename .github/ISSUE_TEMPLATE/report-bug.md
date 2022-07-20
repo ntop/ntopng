@@ -23,10 +23,6 @@ Pre-Submit Checklist: (check applicable sources for existing issues)
 
 
 
-**What did you expect to happen?**
-
-
-
 **How did you reproduce it?**
 
 
