@@ -172,7 +172,7 @@ function syslog.dequeueRecipientAlerts(recipient, budget)
 
    -- Most recent notifications first
    for _, notification in ipairs(notifications) do
-      syslog.sendMessage(settings, notification.alert, ntop.mapScoreToSeverity(notification.score))
+      syslog.sendMessage(settings, notification.alert, map_score_to_severity(notification.score))
    end
 
    return {success = true,  more_available = true}

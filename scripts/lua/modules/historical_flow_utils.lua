@@ -507,7 +507,7 @@ end
 
 local function dt_format_score(score)
    local score = tonumber(score)
-   local severity_id = ntop.mapScoreToSeverity(score or 0)
+   local severity_id = map_score_to_severity(score or 0)
    local severity = {}
 
    if severity_id ~= 0 then
@@ -792,7 +792,7 @@ local function dt_format_flow(processed_record, record)
          flow["srv_port"] = processed_record["srv_port"]["value"]
       end
 
-      local severity_id = ntop.mapScoreToSeverity(tonumber(record["SCORE"]))
+      local severity_id = map_score_to_severity(tonumber(record["SCORE"]))
       local severity = alert_consts.alertSeverityById(severity_id)
 
       flow["highlight"] = severity.color
@@ -860,7 +860,7 @@ local function format_flow_score(score, flow)
    local score = tonumber(score)
    local label = format_utils.formatValue(score)
 
-   local severity_id = ntop.mapScoreToSeverity(score or 0)
+   local severity_id = map_score_to_severity(score or 0)
    if severity_id ~= 0 then
       local severity = alert_consts.alertSeverityById(severity_id)
       label = "<span style='color: "..severity.color.."'>"..label.."</span>"

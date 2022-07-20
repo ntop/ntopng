@@ -1122,7 +1122,7 @@ else
             end
       
             if score_alert.alert_id then 
-              alert_consts.alertTypeIcon(score_alert.alert_id, ntop.mapScoreToSeverity(score_alert.alert_id), 'fa-lg')
+              alert_consts.alertTypeIcon(score_alert.alert_id, map_score_to_severity(score_alert.alert_id), 'fa-lg')
             end
 
             print(string.format('<tr>'))

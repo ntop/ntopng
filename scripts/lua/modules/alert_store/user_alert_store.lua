@@ -57,7 +57,7 @@ function user_alert_store:insert(alert)
       self:_convert_ifid(interface.getId()),
       alert.tstamp,
       alert.tstamp_end,
-      ntop.mapScoreToSeverity(alert.score),
+      map_score_to_severity(alert.score),
       alert.score,
       self:_escape(alert.entity_val),
       alert.granularity,

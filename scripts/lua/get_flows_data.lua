@@ -267,7 +267,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local column_proto_l4 = ''
    
    if value["predominant_alert"] then
-      column_proto_l4 = alert_consts.alertTypeIcon(value["predominant_alert"], ntop.mapScoreToSeverity(value["predominant_alert_score"]))
+      column_proto_l4 = alert_consts.alertTypeIcon(value["predominant_alert"], map_score_to_severity(value["predominant_alert_score"]))
    end
 
    column_proto_l4 = column_proto_l4..value["proto.l4"]

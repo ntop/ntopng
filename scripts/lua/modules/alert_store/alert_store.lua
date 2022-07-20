@@ -1620,7 +1620,7 @@ function alert_store:format_json_record_common(value, entity_id)
    record[BASE_RNAME.ROW_ID.name] = value["rowid"]
 
    local score = tonumber(value["score"])
-   local severity_id = ntop.mapScoreToSeverity(score)
+   local severity_id = map_score_to_severity(score)
    local severity = alert_consts.alertSeverityById(severity_id)
 
    local tstamp = tonumber(value["alert_tstamp"] or value["tstamp"])

@@ -208,7 +208,7 @@ function flow_alert_store:insert(alert)
       self:_convert_ifid(interface.getId()),
       alert.first_seen,
       alert.tstamp,
-      ntop.mapScoreToSeverity(alert.score),
+      map_score_to_severity(alert.score),
       alert.ip_version,
       alert.cli_ip,
       alert.srv_ip,

@@ -83,7 +83,7 @@ function host_alert_store:insert(alert)
       is_server,
       alert.tstamp,
       alert.tstamp_end,
-      ntop.mapScoreToSeverity(alert.score),
+      map_score_to_severity(alert.score),
       alert.score,
       alert.granularity,
       alert.host_pool_id or 0,

@@ -93,7 +93,7 @@ function snmp_device_alert_store:insert(alert)
       self:_convert_ifid(interface.getId()),
       alert.tstamp,
       alert.tstamp_end,
-      ntop.mapScoreToSeverity(alert.score),
+      map_score_to_severity(alert.score),
       alert.score,
       self:_escape(device_ip or alert.entity_val),
       self:_escape(device_name),

@@ -78,7 +78,7 @@ function am_alert_store:insert(alert)
       self:_convert_ifid(getSystemInterfaceId()),
       alert.tstamp,
       alert.tstamp_end,
-      ntop.mapScoreToSeverity(alert.score),
+      map_score_to_severity(alert.score),
       alert.score,
       self:_escape(resolved_ip),
       self:_escape(resolved_name),

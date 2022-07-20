@@ -136,7 +136,7 @@ end
 local function format_historical_score(flow)
   local alert_consts = require "alert_consts"
   local format_utils = require "format_utils"
-  local severity_id = ntop.mapScoreToSeverity(tonumber(flow["SCORE"]))
+  local severity_id = map_score_to_severity(tonumber(flow["SCORE"]))
   local severity = alert_consts.alertSeverityById(severity_id)
 
   return {
