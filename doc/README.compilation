@@ -104,6 +104,20 @@ Then list the streams which provide Redis (dnf module list redis) and install it
 
 yum install hiredis-devel
 
+
+On Rocky 9
+~~~~~~~~~~~~~~~~~
+dnf group install "Development Tools"
+dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+yum install http://rpms.remirepo.net/enterprise/remi-release-9.rpm
+yum config-manager --set-enabled remi
+dnf config-manager --set-enabled crb
+yum clean all
+yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect expat-devel npm
+yum update
+npm install -g uglify-es
+
+
 On Fedora 30/31/32
 ~~~~~~~~~~~~~~~~~~
 
