@@ -819,6 +819,8 @@ local lang = {
     ["alert_snmp_interface_mac_changed_title"] = "MAC Port Changed",
     ["alert_snmp_interface_mac_disappeared_description"] = "MAC <a href=\"%{mac_url}\">%{mac}</a> has disappeared from SNMP device <a href=\"%{url}\">%{device}</a> interface <a href=\"%{port_url}\">%{port_name} (%{port})</a>",
     ["alert_snmp_interface_mac_disappeared_title"] = "MAC Disappeared",
+    ["alert_snmp_no_more_traffic_detected"] = "No More Traffic",
+    ["alert_snmp_no_more_traffic_detected_description"] = "Trigger an alert when an SNMP device stops sending/receiving traffic",
     ["alert_type"] = "Type",
     ["alert_unexpected_behavior_description"] = "Trigger an alert when an unexpected behavior is identified from the specified %{type}/s. <b>Restart is required</b> after enabling/disabling the alert.",
     ["alert_unexpected_behavior_title"] = "Unexpected %{type} Behaviour",
@@ -6050,6 +6052,7 @@ local lang = {
   },
   ["snmp_page"] = {
     ["guide_snmp_page_message"] = "Visit page <a href='%{url}'> SNMP</a> to add this host to the list of configured SNMP devices.",
+    ["ip_associated"] = "IP Associated",
     ["not_configured_as_snmp_device_message"] = "Host %{host_ip} has not been configured as an SNMP device.",
     ["showing_snmp_mib_info_default_community_message"] = "Showing SNMP MIB information retrieved using the default community '%{community}'",
     ["snmp_device_interface_not_found"] = "SNMP device \"%{host}\" interface \"%{iface}\" cannot be found: perhaps it has been removed from the list of configured SNMP devices ?",
