@@ -1280,6 +1280,7 @@ function historical_flow_utils.format_clickhouse_record(record, csv_format, form
       ----------------------------------
       -- Cycling the value of the record
       for column_name, value in pairs(record) do
+	 if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, column_name .. " start") end
          local new_column_name = nil
          local new_value = nil
 
@@ -1295,6 +1296,7 @@ function historical_flow_utils.format_clickhouse_record(record, csv_format, form
       	 if new_column_name and new_value then
             processed_record[new_column_name] = new_value
       	 end
+	 if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, column_name .. " end") end
       end
 
       dt_format_asn(processed_record, record)
