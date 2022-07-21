@@ -113,7 +113,7 @@ yum install http://rpms.remirepo.net/enterprise/remi-release-9.rpm
 yum config-manager --set-enabled remi
 dnf config-manager --set-enabled crb
 yum clean all
-yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect expat-devel npm
+yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect expat-devel npm numactl-devel
 yum update
 npm install -g uglify-es
 
