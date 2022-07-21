@@ -1104,3 +1104,50 @@ The alert notifies about unidirectional UDP flow.
 *Enabled by Default*
 
 
+**IEC Invalid Command Transition**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check for the IEC 104 protocol used in Industrial Control Systems (ICS).
+
+In IEC systems the transitions must respect the following criteria:
+- m_to_c tranistions < 20
+- c_to_m tranistions < 20
+- c_to_m tranistions < 5
+
+Whenever IEC transitions do not respect this rule, and alert is triggered
+for the flow that does not satisfies these constraints.
+
+*Category:Cybersecurity*
+
+*Disabled by Default*
+
+     
+**IEC Invalid Transition**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check for the IEC 104 protocol used in Industrial Control Systems (ICS).
+
+ntopng implements for every IEC flow a learning time (see preferences for changing its duration)
+that keeps track of the transitions observed. Past the learning phase in case a
+new transition (i.e. not previously seen) is observed, this check triggers
+an alert that should not be confused with `IEC Invalid Command Transition'.
+
+*Category:Cybersecurity*
+
+*Disabled by Default*
+
+     
+**IEC Unexpected TypeID**
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check for the IEC 104 protocol used in Industrial Control Systems (ICS).
+
+In the check preference you can specify (numeric) the allowed IEC TypeIDs
+that can be observed in a IEC flow. In case ntopng identifies a TypeID that
+is not part of this list, an alert is triggered.
+
+*Category:Cybersecurity*
+
+*Disabled by Default*
+
+     
