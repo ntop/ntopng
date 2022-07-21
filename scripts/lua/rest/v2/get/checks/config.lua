@@ -7,13 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" ..
 
 require "lua_utils"
 
-local info = ntop.getInfo() 
-
 local checks_import_export = require "checks_import_export"
 local json = require ("dkjson")
-local page_utils = require("page_utils")
-local format_utils = require("format_utils")
-local os_utils = require "os_utils"
 local rest_utils = require("rest_utils")
 
 --
