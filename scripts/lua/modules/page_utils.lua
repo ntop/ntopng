@@ -354,10 +354,6 @@ function page_utils.print_header(title, addLoginJS)
     if addLoginJS then
       print[[<script type="application/javascript" src="]] print(http_prefix) print[[/dist/login.js?]] print(static_file_epoch) print[["></script>]]
     end
-    
-    if not zoneinfo then
-      zoneinfo = "null"
-    end
 
     print[[
     <link href="]] print(http_prefix) print[[/dist/custom-theme.css?]] print(static_file_epoch) print[[" rel="stylesheet">
