@@ -918,9 +918,9 @@
 #define ALERTS_MANAGER_SEVERITY_FIELD        "alert_severity"
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
+#define DB_SCHEMA_CLICKHOUSE_FILE_NAME       "db_schema_clickhouse.sql"
 #define ALERTS_STORE_SCHEMA_FILE_NAME        "alert_store_schema.sql"
 #define ALERTS_VIEW_STORE_SCHEMA_FILE_NAME   "alert_view_store_schema.sql"
-#define ALERTS_STORE_CA_SCHEMA_FILE_NAME     "alert_store_schema_clickhouse.sql"
 #define ALERTS_STORE_DB_FILE_NAME            "alert_store_v11.db"
 
 #define NTOPNG_DATASOURCE_KEY                "ntopng.datasources"
