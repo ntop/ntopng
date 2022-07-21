@@ -5138,7 +5138,7 @@ function format_portidx_name(device_ip, portidx, short_version, shorten_string)
     if(cached_dev == nil) then
        local snmp_cached_dev = require "snmp_cached_dev"
        
-       cached_dev = snmp_cached_dev:create(device_ip)
+       cached_dev = snmp_cached_dev:get_interfaces(device_ip)
        _snmp_devices[device_ip] = cached_dev
     end
     
