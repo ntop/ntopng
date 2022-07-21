@@ -262,7 +262,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    local column_name = ''
    if host then
       if host["name"] then
-	 column_name = shortenString(host["name"])
+	 column_name = shortenString(host["name"], 36)
       end
 
       -- This is the label as set-up by the user
