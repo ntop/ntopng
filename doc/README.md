@@ -76,7 +76,7 @@ In order to run multiple ntopng instances independently (i.e.
 they do not interfere each other), each instance must:
 1. Set a different value for `-d`
 2. Set a different database id for `-r`
-3. Use a different http port iwth `-w`
+3. Use a different http port with `-w`
 
 Example:
 - `ntopng -d /path1 -r 127.0.0.1:6379@1 -w 3001`
