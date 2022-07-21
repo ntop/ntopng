@@ -5123,6 +5123,8 @@ end
 
 -- ##############################################
 
+local _snmp_devices = {}
+
 -- @brief This function format the SNMP interface name.
 -- @params device_ip: snmp device ip
 --         portidx:   number or string, interface index to format
@@ -5131,9 +5133,15 @@ function format_portidx_name(device_ip, portidx, short_version, shorten_string)
   local idx_name = portidx
   -- SNMP is available only with Pro version at least
   if ntop.isPro() then
-    local snmp_cached_dev = require "snmp_cached_dev"
-    local cached_dev = snmp_cached_dev:create(device_ip)
-      
+    local cached_dev = _snmp_devices[device_ip]
+
+    if(cached_dev == nil) then
+       local snmp_cached_dev = require "snmp_cached_dev"
+       
+       cached_dev = snmp_cached_dev:create(device_ip)
+       _snmp_devices[device_ip] = cached_dev
+    end
+    
     if (cached_dev) and (cached_dev["interfaces"]) then
       local port_info = cached_dev["interfaces"][tostring(portidx)]
    
