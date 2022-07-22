@@ -213,7 +213,7 @@ async function set_query_preset(range_picker_vue) {
 	ntopng_url_manager.set_key_to_url("query_preset", query_preset[0].value);
 	ntopng_url_manager.set_key_to_url("count", query_preset[0].count);
     } else {
-       let q = query_preset.find((i) => i.value == query_presets.value);
+	let q = query_preset.find((i) => i.value == range_picker_vue.query_presets.value);
        range_picker_vue.query_presets = q;
     }
     range_picker_vue.query_preset = query_preset;
