@@ -380,7 +380,7 @@ page_utils.print_navbar(title, url,
 				 label = "<i class='fas fa-lg fa-user-slash' title='"..i18n("unknown_devices.unassigned_devices").."'></i>",
 			      },
 			      {
-				 hidden = not isAdministrator() or is_pcap_dump,
+				 hidden = not isAdministrator() or is_pcap_dump or interface.isZMQInterface(),
 				 active = page == "dhcp",
 				 page_name = "dhcp",
 				 label = "<i class='fas fa-lg fa-bolt' title='"..i18n("dhcp.dhcp").."'></i>",
