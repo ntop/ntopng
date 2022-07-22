@@ -1,0 +1,32 @@
+<div id="vue-app">
+  <page-stats></page-stats>
+</div>
+
+<script type="application/javascript">
+  function start_vue() {
+
+    let vue_options = {
+    	components: {
+	    'page-stats': ntopVue.PageStats,
+	},
+	/**
+	 * First method called when the component is created.
+	 */
+	created() {},
+	mounted() {},
+	data() {
+	    return {
+	    };
+	},
+	methods: {},
+    }; 
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount("#vue-app");
+    return vue_app;
+}
+
+$(document).ready(async function(){
+    start_vue();
+});
+
+</script>

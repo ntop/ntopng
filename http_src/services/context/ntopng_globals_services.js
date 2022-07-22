@@ -46,6 +46,15 @@ object_to_array: function(obj) {
     }
     return array;
 },
+      check_and_set_default_interval_time: function() {
+	  if (ntopng_url_manager.get_url_entry("epoch_begin") == null
+      	      || ntopng_url_manager.get_url_entry("epoch_end") == null) {
+	      let default_epoch_begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
+	      let default_epoch_end = Number.parseInt(Date.now() / 1000);
+	      ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
+	      ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
+	  }
+      },
       	from_utc_s_to_server_date: function(utc_seconds) {
 	    let utc = utc_seconds * 1000;
 	    let d_local = new Date(utc);
@@ -325,14 +334,16 @@ set_key_to_url: function(key, value) {
     search_params.set(key, value);
     this.replace_url(search_params.toString());
 },
-add_obj_to_url: function(url_params_obj) {
+add_obj_to_url: function(url_params_obj, url) {
     let new_url_params = this.obj_to_url_params(url_params_obj);
-    let search_params = this.get_url_search_params();
+    let search_params = this.get_url_search_params(url);
     let new_entries = this.get_url_entries(new_url_params);
     for (const [key, value] of new_entries) {
-  search_params.set(key, value);
+	search_params.set(key, value);
     }
-    this.replace_url(search_params.toString());
+    let new_url = search_params.toString();
+    if (url != null) { return new_url; }
+    this.replace_url(new_url);
 },
   }
 }();

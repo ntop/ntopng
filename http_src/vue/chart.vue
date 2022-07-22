@@ -13,7 +13,7 @@ export default {
 	chart_options_converter: String,
 	register_on_status_change: Boolean,
 	base_url_request: String,
-	params_url_request: String,
+	get_params_url_request: Function,
     },
     emits: ["apply", "hidden", "showed"],
     /** This method is the first method of the component called, it's called before html template creation. */
@@ -34,31 +34,38 @@ export default {
     },
     methods: {
 	init: async function() {
-	    let url_request = this.get_url_request();
+	    let status = ntopng_status_manager.get_status();
+	    let url_request = this.get_url_request(status);
 	    if (this.register_on_status_change) {
-		this.register_status();
+		this.register_status(status);
 	    }
 	    await this.draw_chart(url_request);
 	},
-	register_status: function() {
-	    let url_request = this.get_url_request();
+	register_status: function(status) {
+	    let url_request = this.get_url_request(status);
 	    ntopng_status_manager.on_status_change(this.id, (new_status) => {
 		if (this.from_zoom == true) {
 		    this.from_zoom = false;
 		    //return;
 		}
-		let new_url_request = this.get_url_request();
+		let new_url_request = this.get_url_request(new_status);
 		if (new_url_request == url_request) {
 		    return;
 		}
 		this.update_chart(new_url_request);
 	    }, false);
 	},
-	get_url_request: function() {
-	    let url_params = this.params_url_request;
-	    if (url_params == null) {
+	get_url_request: function(status) {
+	    let url_params;
+	    if (this.get_params_url_request != null) {
+		if (status == null) {
+		    status = ntopng_status_manager.get_status();
+		}
+		url_params = this.get_params_url_request(status);
+	    } else {
 		url_params = ntopng_url_manager.get_url_params();
 	    }
+	    
 	    return `${this.base_url_request}?${url_params}`;
 	},
 	draw_chart: async function(url_request) {

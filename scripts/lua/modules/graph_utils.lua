@@ -18,6 +18,7 @@ local have_nedge = ntop.isnEdge()
 local ts_utils = require("ts_utils")
 
 local iface_behavior_update_freq = 300 --Seconds
+local template_utils = require "template_utils"
 
 -- ########################################################
 
@@ -343,6 +344,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
 
    if graph_utils.drawProGraph then
       _ifstats = interface.getStats()
+      --template_utils.render("pages/components/historical_interface.template", context)
       graph_utils.drawProGraph(ifid, schema, tags, zoomLevel, baseurl, options, show_graph)
       return
    end

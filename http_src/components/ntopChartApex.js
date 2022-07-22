@@ -24,6 +24,11 @@ const ntopChartApex = function() {
 	    },
 	    events: {}
 	},
+	xaxis: {
+	    tooltip: {
+		enabled: false,
+	    },
+	},
 	yaxis: 
 	    {
 		labels: {
@@ -82,7 +87,7 @@ const ntopChartApex = function() {
 	    },
 	    xaxis: {
 		labels: {
-		    show: false,
+		    show: true,
 		    datetimeUTC: false,
 		    formatter: null,
 		},
