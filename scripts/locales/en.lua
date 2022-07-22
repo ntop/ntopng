@@ -3383,6 +3383,7 @@ local lang = {
     ["host_traffic_blocked_quota"] = "Some host traffic has been blocked by an exceeded quota",
     ["host_traffic_blocked_quota_and_shaper"] = "Some host traffic has been blocked by an exceeded quota and a blocking shaper",
     ["host_traffic_blocked_shaper"] = "Some host traffic has been blocked by a blocking shaper",
+    ["hosts_using_proto"] = "Hosts using %{proto}",
     ["inactive_host_x"] = "%{host} [Inactive]",
     ["list_of_general_purpose"] = "General purpose devices: %{list}",
     ["list_of_special_purpose"] = "Special purpose devices: %{list}",

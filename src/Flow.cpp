@@ -5404,6 +5404,8 @@ void Flow::lua_get_protocols(lua_State* vm) const {
      || (iface->getIfType() == interface_type_ZC_FLOW)) {
     lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     lua_push_uint64_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.app_protocol);
+    lua_push_uint64_table_entry(vm, "proto.ndpi_informative_proto", (!ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol) ? 
+                                                                      ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol));
     lua_push_uint64_table_entry(vm, "proto.master_ndpi_id", ndpiDetectedProtocol.master_protocol);
   } else {
     lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
