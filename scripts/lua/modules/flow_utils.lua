@@ -2089,7 +2089,12 @@ function getFlowsTableTitle()
    end
 
    if _GET["application"] then
-      active_msg = active_msg .. " "..  _GET["application"]
+      local application = _GET["application"]
+
+      if tonumber(application) then
+        application = interface.getnDPIProtoName(tonumber(application))
+      end
+      active_msg = active_msg .. " "..  application
    end
 
    if _GET["category"] then

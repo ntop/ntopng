@@ -14,7 +14,6 @@ if (if_stats.has_seen_pods or if_stats.has_seen_containers) then
 end
 
 require "lua_utils"
-local graph_utils = require "graph_utils"
 require "flow_utils"
 
 local page_utils = require("page_utils")
@@ -28,6 +27,11 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- nDPI application and category
 local application = _GET["application"]
+
+if tonumber(application) then
+  application = interface.getnDPIProtoName(tonumber(application))
+end
+
 local category = _GET["category"]
 
 local hosts = _GET["hosts"]

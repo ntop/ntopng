@@ -1480,7 +1480,7 @@ local known_parameters = {
    ["allow_historical_flow"]   = validateBool,
 
 -- NDPI
-   ["application"]             = validateApplication,           -- An nDPI application protocol name
+   ["application"]             = validateProtocolIdOrName,      -- An nDPI application protocol name
    ["category"]                = validateCategory,              -- An nDPI protocol category name
    ["category_alias"]          = validateUnquoted,            -- An nDPI protocol category alias given by the user
    ["breed"]                   = validateBool,                  -- True if nDPI breed should be shown
