@@ -14,12 +14,12 @@
 	</div>
 	<select v-if="enable_query_preset" class="me-2 form-select" v-model="query_presets"  @change="update_select_query_presets()">
 	  <template v-for="item in query_preset">
-	    <option v-if="item.builtin == true" :value="item.value">{{ item.name }}</option>
+	    <option v-if="item.builtin == true" :value="item">{{ item.name }}</option>
 	  </template>
 	  <optgroup v-if="page != 'analysis'" :label="i18n('queries.queries')">
 	    <template v-for="item in query_preset">
 	      
-    	      <option v-if="!item.builtin" :value="item.value">{{ item.name }}</option>
+    	      <option v-if="!item.builtin" :value="item">{{ item.name }}</option>
 	    </template>
 	  </optgroup>
 	</select>
@@ -84,9 +84,12 @@ let initialTags;
 //let pageHandle = {};
 let TAGIFY;
 let IS_ALERT_STATS_URL = window.location.toString().match(/alert_stats.lua/) != null;
-let QUERY_PRESETS = ntopng_url_manager.get_url_entry("query_preset");
-if (QUERY_PRESETS == null) {
-    QUERY_PRESETS = "";
+let QUERY_PRESETS = { 
+  value: ntopng_url_manager.get_url_entry("query_preset"),
+  count: ntopng_url_manager.get_url_entry("count"),
+};
+if (QUERY_PRESETS.value == null) {
+    QUERY_PRESETS.value = "";
 }
 let STATUS_VIEW = ntopng_url_manager.get_url_entry("status");
 if (STATUS_VIEW == null || STATUS_VIEW == "") {
@@ -191,6 +194,7 @@ async function set_query_preset(range_picker_vue) {
 	return {
 	    value: el.id, //== null ? "flow" : el.id,
 	    name: el.name,
+	    count: el.count,
 	    builtin: true,
 	};
     });
@@ -199,13 +203,18 @@ async function set_query_preset(range_picker_vue) {
     	    let query = {
     		value: el.id,
     		name: el.name,
+	        count: el.count,
     	    };
     	    query_preset.push(query);
 	});
     }
-    if (range_picker_vue.query_presets == null || range_picker_vue.query_presets == "") {
-	range_picker_vue.query_presets = query_preset[0].value;	
+    if (range_picker_vue.query_presets == null || range_picker_vue.query_presets.value == "") {
+	range_picker_vue.query_presets = query_preset[0];
 	ntopng_url_manager.set_key_to_url("query_preset", query_preset[0].value);
+	ntopng_url_manager.set_key_to_url("count", query_preset[0].count);
+    } else {
+       let q = query_preset.find((i) => i.value == query_presets.value);
+       range_picker_vue.query_presets = q;
     }
     range_picker_vue.query_preset = query_preset;
     return res;
@@ -271,7 +280,8 @@ export default {
 	},
 	update_select_query_presets: function() {
 	    let url = ntopng_url_manager.get_url_params();
-	    ntopng_url_manager.set_key_to_url("query_preset", this.query_presets);
+	    ntopng_url_manager.set_key_to_url("query_preset", this.query_presets.value);
+	    ntopng_url_manager.set_key_to_url("count", this.query_presets.count);
 	    ntopng_url_manager.reload_url();
 	},
 	show_modal_filters: function() {
