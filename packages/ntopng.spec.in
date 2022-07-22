@@ -9,10 +9,13 @@ Source: ntopng-%{version}.tgz
 Packager: Luca Deri <deri@ntop.org>
 # Temporary location where the RPM will be built
 BuildRoot:  %{_tmppath}/%{name}-%{version}-root
+%if 0%{?centos_ver} <= 8
 Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql-libs, ethtool, redhat-lsb-core, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, @LICENSE_DEP@
+%else
+Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql-libs, ethtool, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, @LICENSE_DEP@
+%endif
 # Disable shared libs dependency check (needed by FPGA libs)
 AutoReqProv: no
-
 # Make sure .build-id is not part of the package
 %define _build_id_links none
 
