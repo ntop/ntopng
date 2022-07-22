@@ -17,6 +17,7 @@
   const navbar_context = {* navbar *};
   const show_pcap_download = '{* show_pcap_download *}' == 'true';
   const isNtopEnterpriseM = '{* ntop.isEnterpriseM() *}' == 'true';
+  const show_chart = '{* show_chart *}' == 'true';
 </script>
 <div id="navbar">
 <page-navbar
@@ -596,8 +597,9 @@
       	 && ntopng_url_manager.get_url_entry("status") == "engaged") {
 	 ntopng_url_manager.set_key_to_url("status", "historical");
       }
-      
-      CHART_APP = start_chart();
+      if (show_chart) {
+        CHART_APP = start_chart();
+      }
       RANGEPICKER_APP = start_range_picker();
     const datatableButton = {* (datatable.buttons or '[]') *};
     datatableButton.push({
@@ -813,7 +815,9 @@
 
     // register to global event change status
     await ntopng_sync.on_ready("range_picker");
-    CHART_APP.register_status();
+    if (show_chart) {
+      CHART_APP.register_status();
+    }
     updateDownloadButton();
     ntopng_status_manager.on_status_change("datatable", (new_status) => {
       let url_params = ntopng_url_manager.get_url_params();
