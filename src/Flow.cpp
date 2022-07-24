@@ -774,7 +774,8 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
    * be able to guess the protocol. */
 
   proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
-					   ip_packet, ip_len, packet_time);
+					   ip_packet, ip_len, packet_time,
+					   NULL);
 
   detected = ndpi_is_protocol_detected(iface->get_ndpi_struct(), proto_id);
 
@@ -860,7 +861,8 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
   ndpiFlow->check_extra_packets = 1, ndpiFlow->max_extra_packets_to_check = 10;
 
   proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
-					   ip_packet, ip_len, packet_time);
+					   ip_packet, ip_len, packet_time,
+					   NULL);
 
   /*
     A DNS flow won't change to a non-DNS flow. However, this check is
