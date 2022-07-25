@@ -12,12 +12,12 @@
             <a v-if="page != 'flow'" href="#" @click="update_status_view('engaged')" class="btn btn-sm" :class="{'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged'}">Engaged</a>
 	  </div>
 	</div>
-	<select v-if="enable_query_preset" class="me-2 form-select" v-model="query_presets"  @change="update_select_query_presets()">
-	  <template v-for="item in query_preset">
+	<select v-if="enable_query_presets" class="me-2 form-select" v-model="query_preset"  @change="update_select_query_presets()">
+	  <template v-for="item in query_presets">
 	    <option v-if="item.builtin == true" :value="item">{{ item.name }}</option>
 	  </template>
 	  <optgroup v-if="page != 'analysis'" :label="i18n('queries.queries')">
-	    <template v-for="item in query_preset">
+	    <template v-for="item in query_presets">
 	      
     	      <option v-if="!item.builtin" :value="item">{{ item.name }}</option>
 	    </template>
@@ -84,18 +84,18 @@ let initialTags;
 //let pageHandle = {};
 let TAGIFY;
 let IS_ALERT_STATS_URL = window.location.toString().match(/alert_stats.lua/) != null;
-let QUERY_PRESETS = { 
+let QUERY_PRESET = { 
   value: ntopng_url_manager.get_url_entry("query_preset"),
   count: ntopng_url_manager.get_url_entry("count"),
 };
-if (QUERY_PRESETS.value == null) {
-    QUERY_PRESETS.value = "";
+if (QUERY_PRESET.value == null) {
+    QUERY_PRESET.value = "";
 }
 let STATUS_VIEW = ntopng_url_manager.get_url_entry("status");
 if (STATUS_VIEW == null || STATUS_VIEW == "") {
     STATUS_VIEW = "historical";
 }
-const ENABLE_QUERY_PRESET = !IS_ALERT_STATS_URL;
+const ENABLE_QUERY_PRESETS = !IS_ALERT_STATS_URL;
 
 let PAGE = get_page(IS_ALERT_STATS_URL);
 
@@ -190,7 +190,7 @@ async function set_query_preset(range_picker_vue) {
     let page = range_picker_vue.page;
     let url_request = `${base_path}/lua/pro/rest/v2/get/db/preset/consts.lua?page=${page}`;
     let res = await ntopng_utility.http_request(url_request);
-    let query_preset = res[0].list.map((el) => {
+    let query_presets = res[0].list.map((el) => {
 	return {
 	    value: el.id, //== null ? "flow" : el.id,
 	    name: el.name,
@@ -205,18 +205,18 @@ async function set_query_preset(range_picker_vue) {
     		name: el.name,
 	        count: el.count,
     	    };
-    	    query_preset.push(query);
+    	    query_presets.push(query);
 	});
     }
-    if (range_picker_vue.query_presets == null || range_picker_vue.query_presets.value == "") {
-	range_picker_vue.query_presets = query_preset[0];
-	ntopng_url_manager.set_key_to_url("query_preset", query_preset[0].value);
-	ntopng_url_manager.set_key_to_url("count", query_preset[0].count);
+    if (range_picker_vue.query_preset == null || range_picker_vue.query_preset.value == "") {
+	range_picker_vue.query_preset = query_presets[0];
+	ntopng_url_manager.set_key_to_url("query_preset", query_presets[0].value);
+	ntopng_url_manager.set_key_to_url("count", query_presets[0].count);
     } else {
-	let q = query_preset.find((i) => i.value == range_picker_vue.query_presets.value);
-       range_picker_vue.query_presets = q;
+	let q = query_presets.find((i) => i.value == range_picker_vue.query_preset.value);
+       range_picker_vue.query_preset = q;
     }
-    range_picker_vue.query_preset = query_preset;
+    range_picker_vue.query_presets = query_presets;
     return res;
 }
 
@@ -238,7 +238,7 @@ export default {
 	let modal_filters_mounted = ntopng_sync.on_ready(this.id_modal_filters);
 	await dt_range_picker_mounted;
 
-	if (this.enable_query_preset) {
+	if (this.enable_query_presets) {
 	    await set_query_preset(this);
 	}
 	if (this.page != 'all') {
@@ -261,10 +261,10 @@ export default {
 	    show_filters: false,
 	    edit_tag: null,
 	    is_alert_stats_url: IS_ALERT_STATS_URL,
-	    query_preset: [],
-	    query_presets: QUERY_PRESETS,
+	    query_presets: [],
+	    query_preset: QUERY_PRESET,
 	    status_view: STATUS_VIEW,
-	    enable_query_preset: ENABLE_QUERY_PRESET,
+	    enable_query_presets: ENABLE_QUERY_PRESETS,
 	    page: PAGE,
 	    modal_data: [],
 	    last_filters: [],
@@ -280,8 +280,8 @@ export default {
 	},
 	update_select_query_presets: function() {
 	    let url = ntopng_url_manager.get_url_params();
-	    ntopng_url_manager.set_key_to_url("query_preset", this.query_presets.value);
-	    ntopng_url_manager.set_key_to_url("count", this.query_presets.count);
+	    ntopng_url_manager.set_key_to_url("query_preset", this.query_preset.value);
+	    ntopng_url_manager.set_key_to_url("count", this.query_preset.count);
 	    ntopng_url_manager.reload_url();
 	},
 	show_modal_filters: function() {
