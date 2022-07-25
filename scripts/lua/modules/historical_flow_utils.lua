@@ -1040,21 +1040,18 @@ historical_flow_utils.builtin_presets = {
    {
       id = "",
       count = nil,
-      count_type = nil,
       i18n_name = "queries.raw_flows_records",
       name = i18n("queries.raw_flows_records"),
    },
    {
       id = "raw_flows_bytes",
       count = "TOTAL_BYTES",
-      count_type = tag_utils.defined_tags[flow_columns["TOTAL_BYTES"].tag].value_type,
       i18n_name = "queries.raw_flows_bytes",
       name = i18n("queries.raw_flows_bytes"),
    },
    {
       id = "raw_flows_score",
       count = "SCORE",
-      count_type = tag_utils.defined_tags[flow_columns["SCORE"].tag].value_type,
       i18n_name = "queries.raw_flows_score",
       name = i18n("queries.raw_flows_score"),
    },
