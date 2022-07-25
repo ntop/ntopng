@@ -391,7 +391,7 @@
 
                 {% if actions.show_disable then %}
                 /* Bell button to disable alerts is only supported for hosts and flows */
-                {icon: 'fa-bell-slash', handler: handlerDisableAlerts, title: "{{ i18n('disable') }}"},
+                {icon: 'fa-bell-slash', class: "pointer", handler: handlerDisableAlerts, title: "{{ i18n('disable') }}"},
                 {% end %}
 
                 {% if actions.show_settings then %}
