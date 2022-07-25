@@ -793,7 +793,7 @@ local function dt_format_flow(processed_record, record)
          flow["srv_port"] = processed_record["srv_port"]["value"]
       end
 
-      local severity_id = map_score_to_severity(tonumber(record["SCORE"]))
+      local severity_id = map_score_to_severity(tonumber(record["SCORE"]) or 0)
       local severity = alert_consts.alertSeverityById(severity_id)
 
       flow["highlight"] = severity.color
