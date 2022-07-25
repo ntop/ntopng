@@ -185,7 +185,7 @@ tag_utils.defined_tags = {
       operators = {'eq', 'neq'}
    },
    probe_ip = {
-      value_type = 'ip',
+      value_type = 'probe_ip',
       i18n_label = i18n('db_search.tags.probe_ip'),
       operators = {'eq', 'neq'}
    },
@@ -598,16 +598,24 @@ function tag_utils.get_tag_info(id, entity)
          filter.options[#filter.options+1] = { value = v.id, label = v.alias }
       end
 
-   elseif tag.value_type == "country" then
-      filter.value_type = 'array'
-      filter.options = {}
-      for code, label in pairsByValues(country_codes, asc) do
-         local id = code
-         -- if entity == nil then -- historical flows
-         --   id = interface.convertCountryCode2U16(code)
-         -- end
-         filter.options[#filter.options+1] = { value = id, label = label }
-      end
+    elseif tag.value_type == "country" then
+       filter.value_type = 'array'
+       filter.options = {}
+       for code, label in pairsByValues(country_codes, asc) do
+          local id = code
+          -- if entity == nil then -- historical flows
+          --   id = interface.convertCountryCode2U16(code)
+          -- end
+          filter.options[#filter.options+1] = { value = id, label = label }
+       end
+
+    elseif tag.value_type == "probe_ip" then
+        filter.value_type = 'array'
+        filter.options = {}
+        for probe, _ in pairsByValues(interface.getFlowDevices() or {}, asc) do
+          local label = format_name_value(getProbeName(probe), probe)
+          filter.options[#filter.options+1] = { value = probe, label = label }
+        end
 
    elseif tag.value_type == "ip_version" then
       filter.value_type = 'array'
