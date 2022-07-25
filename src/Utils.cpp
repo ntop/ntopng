@@ -1468,21 +1468,34 @@ static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State* vm) {
 /* **************************************** */
 
 static void fillcURLProxy(CURL *curl) {
-  if(getenv("HTTP_PROXY")) {
+  char *http_proxy = NULL;
+  char *http_proxy_port = NULL;
+  char *no_proxy = NULL;
+
+  http_proxy = getenv("HTTP_PROXY");
+  if (!http_proxy) http_proxy = getenv("http_proxy");
+
+  if(http_proxy) {
     char proxy[1024];
 
-    if(getenv("HTTP_PROXY_PORT"))
-      sprintf(proxy, "%s:%s", getenv("HTTP_PROXY"), getenv("HTTP_PROXY_PORT"));
+    http_proxy_port = getenv("HTTP_PROXY_PORT");
+    if (!http_proxy_port) http_proxy_port = getenv("http_proxy_port");
+
+    if(http_proxy_port)
+      sprintf(proxy, "%s:%s", http_proxy, http_proxy_port);
     else
-      sprintf(proxy, "%s", getenv("HTTP_PROXY"));
+      sprintf(proxy, "%s", http_proxy);
 
     curl_easy_setopt(curl, CURLOPT_PROXY, proxy);
     curl_easy_setopt(curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
 
-    if(getenv("no_proxy")) {
+    no_proxy = getenv("NO_PROXY");
+    if (!no_proxy) no_proxy = getenv("no_proxy");
+
+    if(no_proxy) {
       char no_proxy[1024];
 
-      sprintf(no_proxy, "%s", getenv("no_proxy"));
+      sprintf(no_proxy, "%s", no_proxy);
       curl_easy_setopt(curl, CURLOPT_NOPROXY, no_proxy);
     }
   }
