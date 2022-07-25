@@ -19,6 +19,8 @@ interface.select(ifname)
 
 local as = interface.getASInfo(asn)
 
+tprint(as["alerted_flows"]["total"])
+
 local res = {}
 if as ~= nil then
    res = as2record(getInterfaceId(ifname), as)

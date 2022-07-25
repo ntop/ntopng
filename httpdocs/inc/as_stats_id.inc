@@ -15,12 +15,12 @@ function as_table_setID (row) {
   row.find("td").eq(index++).attr('id', as_key+"_chart");
 
   row.find("td").eq(index++).attr('id', as_key+"_hosts");
-  row.find("td").eq(index++).attr('id', as_key+"_alerts");
 
   row.find("td").eq(index++).attr('id', as_key+"_asname");
 
   row.find("td").eq(index++).attr('id', as_key+"_since");
   row.find("td").eq(index++).attr('id', as_key+"_score");
+  row.find("td").eq(index++).attr('id', as_key+"_alerted_flows");
   row.find("td").eq(index++).attr('id', as_key+"_breakdown");
   row.find("td").eq(index++).attr('id', as_key+"_throughput");
   row.find("td").eq(index++).attr('id', as_key+"_traffic");
@@ -42,12 +42,12 @@ function as_row_update(as_key) {
       $("#"+as_key+'_chart').html(data.column_chart);
 
       $("#"+as_key+'_hosts').html(data.column_hosts);
-      $("#"+as_key+'_alerts').html(data.column_alerts);
 
       $("#"+as_key+'_asname').html(data.column_asname);
 
       $("#"+as_key+'_since').html(data.column_since);
       $("#"+as_key+'_score').html(data.column_score);
+      $("#"+as_key+'_alerted_flows').html(data.column_alerted_flows);
       $("#"+as_key+'_breakdown').html(data.column_breakdown);
       $("#"+as_key+'_throughput').html(data.column_thpt);
       $("#"+as_key+'_traffic').html(data.column_traffic);

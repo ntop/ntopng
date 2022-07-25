@@ -86,17 +86,6 @@ print [[
 
 				 },
 			     {
-			     title: "]] print(i18n("show_alerts.alerts")) print[[",
-				 field: "column_alerts",
-				 /* TODO: alerts not implemented */
-				 hidden: true,
-				 sortable: false,
-                             css: {
-			        textAlign: 'center'
-			     }
-
-				 },
-			     {
 			     title: "]] print(i18n("name")) print[[",
 				 field: "column_asname",
 				 sortable: true,
@@ -122,6 +111,14 @@ print [[
 			        textAlign: 'center'
 			     }
 				 },
+         {
+         title: "]] print(i18n("flow_details.alerted_flows")) print[[",
+       field: "column_alerted_flows",
+       sortable: true,
+                           css: {
+            textAlign: 'center'
+         },
+       },
 ]]
 
 print [[

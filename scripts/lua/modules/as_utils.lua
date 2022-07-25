@@ -43,6 +43,11 @@ function as2record(ifId, as)
       record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/as_details.lua?asn='..as["asn"]..'&page=historical"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
    end
 
+   record["column_alerted_flows"] = format_utils.formatValue(as["alerted_flows"]["total"] or 0)
+   if record["column_alerted_flows"] == '0' then
+    record["column_alerted_flows"] = ''
+   end
+
    return record
 end
 

@@ -6081,7 +6081,9 @@ void Flow::setNormalToAlertedCounters() {
   if(cli_h) {
     u_int16_t local_net_id = cli_h->get_local_network_id();
     NetworkStats *net_stats = cli_h->getNetworkStats(local_net_id);
+    AutonomousSystem *cli_as = cli_h ? cli_h->get_as() : NULL;
 
+    if(cli_as) cli_as->incNumAlertedFlows(true /* As client */);
     if(net_stats) net_stats->incNumAlertedFlows(true /* As client */);
     cli_h->incNumAlertedFlows(true /* As client */);
     cli_h->incTotalAlerts();
@@ -6090,7 +6092,9 @@ void Flow::setNormalToAlertedCounters() {
   if(srv_h) {
     u_int16_t local_net_id = srv_h->get_local_network_id();
     NetworkStats *net_stats = srv_h->getNetworkStats(local_net_id);
+    AutonomousSystem *srv_as = srv_h ? srv_h->get_as() : NULL;
 
+    if(srv_as) srv_as->incNumAlertedFlows(true /* As client */);
     if(net_stats) net_stats->incNumAlertedFlows(false /* As server */); 
     srv_h->incNumAlertedFlows(false /* As server */);
     srv_h->incTotalAlerts();

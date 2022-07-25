@@ -657,7 +657,8 @@ typedef enum {
   column_arp_rcvd,
   column_last_seen,
   column_first_seen,
-  column_obs_point
+  column_obs_point,
+  column_alerted_flows
 } sortField;
 
 typedef struct {

@@ -28,6 +28,7 @@
 AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface) {
   asname = NULL;
   round_trip_time = 0;
+  alerted_flows_as_client = alerted_flows_as_server = 0;
 #ifdef NTOPNG_PRO
   nextMinPeriodicUpdate = 0;
 
@@ -125,6 +126,14 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
       tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
     }
   }
+
+  lua_newtable(vm);
+  lua_push_uint64_table_entry(vm, "as_client", getTotalAlertedNumFlowsAsClient());
+  lua_push_uint64_table_entry(vm, "as_server", getTotalAlertedNumFlowsAsServer());
+  lua_push_uint64_table_entry(vm, "total", getTotalAlertedNumFlowsAsClient() + getTotalAlertedNumFlowsAsServer());
+  lua_pushstring(vm, "alerted_flows");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
 #ifdef NTOPNG_PRO
   if(traffic_rx_behavior)

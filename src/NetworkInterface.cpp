@@ -4851,6 +4851,10 @@ static bool as_search_walker(GenericHashEntry *he, void *user_data, bool *matche
     r->elems[r->actNumEntries++].numericValue = as->getScore();
     break;
 
+  case column_alerted_flows:
+    r->elems[r->actNumEntries++].numericValue = as->getTotalAlertedNumFlowsAsClient() + as->getTotalAlertedNumFlowsAsServer();
+    break;
+
   case column_since:
     r->elems[r->actNumEntries++].numericValue = as->get_first_seen();
     break;
@@ -5581,6 +5585,7 @@ int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortCo
   if((!strcmp(sortColumn, "column_asn")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_asn, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_asname"))       retriever->sorter = column_asname,       sorter = stringSorter;
   else if(!strcmp(sortColumn, "column_score"))        retriever->sorter = column_score,        sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_alerted_flows")) retriever->sorter = column_alerted_flows, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_since"))        retriever->sorter = column_since,        sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt"))         retriever->sorter = column_thpt,         sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;

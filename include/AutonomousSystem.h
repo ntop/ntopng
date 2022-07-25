@@ -31,6 +31,7 @@ private:
   u_int32_t asn;
   char *asname;
   u_int32_t round_trip_time;
+  u_int32_t alerted_flows_as_client, alerted_flows_as_server;
 
 #if defined(NTOPNG_PRO)
   time_t nextMinPeriodicUpdate;
@@ -73,6 +74,7 @@ public:
     incSentStats(when, sent_packets, sent_bytes);
     incRcvdStats(when, rcvd_packets, rcvd_bytes);
   }
+  inline void incNumAlertedFlows(bool as_client)   { if(as_client) alerted_flows_as_client++; else alerted_flows_as_server++; };
 
   void updateRoundTripTime(u_int32_t rtt_msecs);
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement, bool diff = false);
@@ -88,6 +90,8 @@ public:
     GenericTrafficElement::getJSONObject(obj, iface);
   }
   inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), asn); return(buf); }
+  inline u_int32_t getTotalAlertedNumFlowsAsClient() const { return(alerted_flows_as_client);  };
+  inline u_int32_t getTotalAlertedNumFlowsAsServer() const { return(alerted_flows_as_server);  };
 };
 
 #endif /* _AUTONOMOUS_SYSTEM_H_ */
