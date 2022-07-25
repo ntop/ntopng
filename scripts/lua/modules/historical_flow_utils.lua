@@ -506,6 +506,7 @@ end
 -- #####################################
 
 local function dt_format_score(score)
+  -- Score could be nil, in fact score could be not a selected column
    local score = tonumber(score) or 0
    local severity_id = map_score_to_severity(score or 0)
    local severity = {}
