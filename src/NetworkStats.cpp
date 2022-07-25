@@ -26,7 +26,7 @@
 NetworkStats::NetworkStats(NetworkInterface *iface, u_int16_t _network_id) : InterfaceMemberAlertableEntity(iface, alert_entity_network), GenericTrafficElement(), Score(iface) {
   const char *netname;
   network_id = _network_id;
-  numHosts = 0;
+  numHosts = 0, alerted_flows_as_client = alerted_flows_as_server = 0;
   syn_recvd_last_min = synack_sent_last_min = 0;
   network_matrix = (traffic *) calloc(ntop->getNumLocalNetworks(), sizeof(traffic));
 
@@ -101,6 +101,14 @@ void NetworkStats::lua(lua_State* vm, bool diff) {
   lua_push_uint64_table_entry(vm, "egress", egress_broadcast.getNumBytes());
   lua_push_uint64_table_entry(vm, "inner", inner_broadcast.getNumBytes());
   lua_pushstring(vm, "broadcast");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+  lua_push_uint64_table_entry(vm, "as_client", getTotalAlertedNumFlowsAsClient());
+  lua_push_uint64_table_entry(vm, "as_server", getTotalAlertedNumFlowsAsServer());
+  lua_push_uint64_table_entry(vm, "total", getTotalAlertedNumFlowsAsClient() + getTotalAlertedNumFlowsAsServer());
+  lua_pushstring(vm, "alerted_flows");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 

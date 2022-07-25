@@ -113,14 +113,22 @@ print [[
 			     }
 
 				 },
-			     {
-			     title: "]] print(i18n("score")) print[[",
-				 field: "column_score",
-				 sortable: true,
-                             css: {
-			        textAlign: 'center'
-			     },
-				 },
+         {
+         title: "]] print(i18n("score")) print[[",
+       field: "column_score",
+       sortable: true,
+                           css: {
+            textAlign: 'center'
+         },
+       },
+       {
+       title: "]] print(i18n("flow_details.alerted_flows")) print[[",
+     field: "column_alerted_flows",
+     sortable: true,
+                         css: {
+          textAlign: 'center'
+       },
+     },
 ]]
 
 print [[

@@ -67,6 +67,8 @@ for n, ns in pairs(networks_stats) do
       sort_helper[n] = ns["throughput_bps"]
     elseif sortColumn == "column_score" then
       sort_helper[n] = ns["score"]
+    elseif sortColumn == "column_alerted_flows" then
+      sort_helper[n] = ns["alerted_flows"]["total"]
     elseif sortColumn == "column_traffic" then
       sort_helper[n] = ns["bytes.sent"] + ns["bytes.rcvd"]
     else

@@ -28,6 +28,7 @@ class NetworkStats : public InterfaceMemberAlertableEntity, public GenericTraffi
  private:
   u_int16_t network_id;
   u_int32_t numHosts;
+  u_int32_t alerted_flows_as_client, alerted_flows_as_server;
   TrafficStats ingress, ingress_broadcast; /* outside -> network */
   TrafficStats egress, egress_broadcast;   /* network -> outside */
   TrafficStats inner, inner_broadcast;     /* network -> network (local traffic) */
@@ -98,8 +99,11 @@ class NetworkStats : public InterfaceMemberAlertableEntity, public GenericTraffi
 #endif
 
   inline void incNumHosts() { numHosts++; };
+  inline void incNumAlertedFlows(bool as_client)   { if(as_client) alerted_flows_as_client++; else alerted_flows_as_server++; };
   inline void decNumHosts() { numHosts--; };
   inline u_int32_t getNumHosts() const { return numHosts; };
+  inline u_int32_t getTotalAlertedNumFlowsAsClient() const { return(alerted_flows_as_client);  };
+  inline u_int32_t getTotalAlertedNumFlowsAsServer() const { return(alerted_flows_as_server);  };
 
   void setNetworkId(u_int8_t id);
   bool match(const AddressTree * const tree) const;

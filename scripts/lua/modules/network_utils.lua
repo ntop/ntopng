@@ -48,6 +48,11 @@ function network_utils.network2record(ifId, network)
       record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..network["network_id"]..'&page=historical"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
    end
 
+   record["column_alerted_flows"] = format_utils.formatValue(network["alerted_flows"]["total"] or 0)
+   if record["column_alerted_flows"] == 0 then
+    record["column_alerted_flows"] = ''
+   end
+   
    return record
 end
 
