@@ -506,7 +506,7 @@ end
 -- #####################################
 
 local function dt_format_score(score)
-   local score = tonumber(score)
+   local score = tonumber(score) or 0
    local severity_id = map_score_to_severity(score or 0)
    local severity = {}
 
