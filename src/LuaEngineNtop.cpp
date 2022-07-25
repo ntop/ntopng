@@ -6338,6 +6338,14 @@ static int ntop_find_bin_similarities(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_check_nprobe_ips_configured(lua_State* vm) {
+  lua_pushboolean(vm, (ntop->getPrefs()->getZMQPublishEventsURL() ? true : false));
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static luaL_Reg _ntop_reg[] = {
   { "getDirs",           ntop_get_dirs },
   { "getInfo",           ntop_get_info },
@@ -6407,6 +6415,8 @@ static luaL_Reg _ntop_reg[] = {
   { "fileLastChange",   ntop_get_file_last_change },
   { "readdir",          ntop_list_dir_files },
   { "rmdir",            ntop_remove_dir_recursively },
+
+  { "isNProbeIPSConfigured", ntop_check_nprobe_ips_configured },
 
 #ifndef HAVE_NEDGE
   { "zmq_connect",      ntop_zmq_connect    },
