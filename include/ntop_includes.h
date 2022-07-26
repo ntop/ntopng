@@ -240,7 +240,7 @@ using namespace std;
 #include "BehaviouralCounter.h"
 
 #ifdef NTOPNG_PRO
-#include "SpecialHosts.h"
+#include "AssetManagement.h"
 #include "BehaviorAnalysis.h"
 #endif
 
