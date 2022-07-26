@@ -5532,9 +5532,6 @@ function map_score_to_severity(score)
     return ntop.mapScoreToSeverity(score)
   end
 
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Nil score value instead of number")
-  tprint(debug.traceback())
-
   return ntop.mapScoreToSeverity(0)
 end
 --
