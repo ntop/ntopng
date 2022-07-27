@@ -117,6 +117,7 @@ const ntopChartApex = function() {
 
     
     return {
+	chartOptionsUtility: ntopChartOptionsUtility,
 	typeChart: {
 	    TS_STACKED: "TS_STACKED",
 	    BASE: "BASE",
@@ -124,7 +125,7 @@ const ntopChartApex = function() {
 	typeOptionsConverter: {
 	    TS_INTERFACE: "TS_INTERFACE",
 	},
-	newChart: function(type, typeOptionsConverter) {	    
+	newChart: function(type, typeOptionsConverter) {
 	    let _chartOptions;
 	    let _chart;
 	    let _chartHtmlElement;
