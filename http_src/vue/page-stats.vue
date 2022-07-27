@@ -16,11 +16,15 @@
       	     :base_url_request="chart_data_url"
       	     :get_params_url_request="get_params_url_request"
       	     :chart_options_converter="chart_options_converter"
-      	     :register_on_status_change="false">
+      	     :register_on_status_change="false"
+	     @chart_reloaded="chart_reloaded">
       </Chart>
     </div>
   </div>
 </div>
+<SimpleTable :chart_options="last_chart_options"
+></SimpleTable>
+
 <ModalTimeseries ref="modal_time_series"></ModalTimeseries>
 </template>
 
@@ -29,6 +33,7 @@ import { ref, onMounted, computed, watch } from "vue";
 import { default as Chart } from "./chart.vue";
 import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as ModalTimeseries } from "./modal-timeseries.vue";
+import { default as SimpleTable } from "./simple-table.vue";
 
 ntopng_utility.check_and_set_default_interval_time();
 
@@ -47,6 +52,12 @@ const get_params_url_request = function(status) {
     let obj = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
     return ntopng_url_manager.add_obj_to_url(obj, params_url_request);
 };
+
+const last_chart_options = ref({});
+const chart_reloaded = (chart_options) => {
+    console.log(chart_options);
+    last_chart_options.value = chart_options;
+}
 
 const show_manage_timeseries = () => {
     modal_time_series.value.show();

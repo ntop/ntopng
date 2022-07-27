@@ -15,7 +15,7 @@ export default {
 	base_url_request: String,
 	get_params_url_request: Function,
     },
-    emits: ["apply", "hidden", "showed"],
+    emits: ["apply", "hidden", "showed", "chart_reloaded"],
     /** This method is the first method of the component called, it's called before html template creation. */
     created() {
     },
@@ -76,12 +76,17 @@ export default {
 	    }
 	    this.chart = chartApex.newChart(chart_type, this.chart_options_converter);
 	    this.chart.registerEvent("zoomed", (chart_context, axis) => this.on_zoomed(chart_context, axis));
-	    let chart_options = await ntopng_utility.http_request(url_request);
+	    let chart_options = await this.get_chart_options(url_request);
 	    this.chart.drawChart(this.$refs["chart"], chart_options);
 	},
 	update_chart: async function(url_request) {
-	    let chart_options = await ntopng_utility.http_request(url_request);
+	    let chart_options = await this.get_chart_options(url_request);
 	    this.chart.updateChart(chart_options);
+	},
+	get_chart_options: async function(url_request) {
+	    let chart_options = await ntopng_utility.http_request(url_request);
+	    this.$emit('chart_reloaded', chart_options);
+	    return chart_options;
 	},
 	on_zoomed: function(chart_context, { xaxis, yaxis }) {
 	    this.from_zoom = true;
