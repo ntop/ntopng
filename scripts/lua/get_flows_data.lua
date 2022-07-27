@@ -18,8 +18,10 @@ sendHTTPContentTypeHeader('application/json')
 
 local ifid  = _GET["ifid"]
 
-if not isEmptyString(ifid) then
-   interface.select(ifid)
+if (ifid) and (not isEmptyString(ifid)) then
+  interface.select(ifid)
+else
+  ifid = interface.getId()
 end
 
 local ifstats = interface.getStats()
