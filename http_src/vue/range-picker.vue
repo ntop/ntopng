@@ -210,12 +210,12 @@ async function set_query_preset(range_picker_vue) {
     }
     if (range_picker_vue.query_preset == null || range_picker_vue.query_preset.value == "") {
 	range_picker_vue.query_preset = query_presets[0];
-	ntopng_url_manager.set_key_to_url("query_preset", query_presets[0].value);
-	ntopng_url_manager.set_key_to_url("count", query_presets[0].count);
     } else {
 	let q = query_presets.find((i) => i.value == range_picker_vue.query_preset.value);
        range_picker_vue.query_preset = q;
     }
+    ntopng_url_manager.set_key_to_url("query_preset", range_picker_vue.query_preset.value);
+    ntopng_url_manager.set_key_to_url("count", range_picker_vue.query_preset.count);
     range_picker_vue.query_presets = query_presets;
     return res;
 }
