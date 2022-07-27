@@ -880,7 +880,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void checkNetworksAlerts(vector<ScriptPeriodicity> *p, lua_State* vm);
   void checkInterfaceAlerts(vector<ScriptPeriodicity> *p, lua_State* vm);
   bool isHiddenFromTop(Host *host);
-  virtual bool areTrafficDirectionsSupported() { return(false); };
+  virtual bool areTrafficDirectionsSupported() { return(true); };
 
   inline bool isView()                const { return is_view;             };
   inline ViewInterface*    viewedBy() const { return viewed_by;           };
