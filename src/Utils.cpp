@@ -4854,12 +4854,9 @@ bool Utils::isPingSupported() {
 #endif
   
   if(sd != -1) {
-    closesocket(sd);
-    
+    closesocket(sd);    
     return(true);
   }
-
-  closesocket(sd);
 #endif
 
   return(false);
