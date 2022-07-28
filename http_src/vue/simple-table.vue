@@ -1,8 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
 <div>
-  Hello World
-{{max_sent}} {{70}}
 <table  class="table table-borderless graph-statistics mb-2" style="">
     <thead class="text-center">
         <tr>
@@ -13,11 +11,11 @@
         </tr>
     </thead>
     <tbody><tr>
-   <td class="graph-val-total text-center" style="border-width: 1px;"> <span>62.57 MB</span></td>
-   <td class="graph-val-95percentile text-center" style="border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px;"> <span>388.04 Kbit/s [Sent]<br>97.09 Kbit/s [Rcvd]</span></td>
-   <td class="graph-val-average text-center" style="border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px;"> <span>{{max_sent}} Kbit/s [Sent]<br>54.98 Kbit/s [Rcvd]</span></td>
+   <td class="graph-val-total text-center" style="border-width: 1px;"> <span>{{total}}</span></td>
+   <td class="graph-val-95percentile text-center" style="border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px;"> <span>{{percentile_sent}} [Sent]<br>{{percentile_rcvd}} [Rcvd]</span></td>
+   <td class="graph-val-average text-center" style="border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px;"> <span>{{avg_sent}} Kbit/s [Sent]<br>{{avg_rcvd}} [Rcvd]</span></td>
    <!-- <td class="graph-val-min" style="display:none;border-bottom-width: 1px;border-top-width: 1px;border-right-width: 1px;">nil: <span></span></td> -->
-   <td class="graph-val-max text-center" style="border-bottom-width: 1px; border-top-width: 1px; border-right-width: 1px;"> <span>2.07 Mbit/s [Sent] (27/07/2022 10:25:41)<br>135.55 Kbit/s [Rcvd] (27/07/2022 10:34:31)</span></td>
+   <td class="graph-val-max text-center" style="border-bottom-width: 1px; border-top-width: 1px; border-right-width: 1px;"> <span>{{max_sent}} [Sent]<br>{{max_rcvd}} [Rcvd]</span></td>
 </tr></tbody></table>
 
 </div>
@@ -41,8 +39,14 @@ export default {
     },
     data() {
 	return {
+        total:0,
+        percetile_sent:0,
+        percetile_rcvd:0,
+        avg_sent:0,
+        avg_rcvd:0,
 	    max_sent: 0,
 	    max_rcvd: 0,
+
 	};
     },
     /** This method is the first method called after html template creation. */
@@ -51,9 +55,27 @@ export default {
     },
     methods: {
 	reloaded_table: function() {
+        let fBit =  ntopChartApex.chartOptionsUtility.getApexYFormatter(ntopChartApex.chartOptionsUtility.apexYFormatterTypes.bps.id);
+        let fBytes = ntopChartApex.chartOptionsUtility.getApexYFormatter(ntopChartApex.chartOptionsUtility.apexYFormatterTypes.bytes.id);
 	    console.log("reloaded table called");
-	    console.log(this.chart_options);
-	    this.max_sent = 100;
+	    //console.log(Object.keys(this.chart_options.statistics));
+        console.log(this.chart_options.statistics.by_serie);
+        console.log("OBJECT KEYS")
+        let total = fBit(this.chart_options.statistics.total)
+        let max_sent = this.chart_options.statistics.by_serie[0].max_val;
+        let max_rcvd = this.chart_options.statistics.by_serie[1].max_val;
+        let avg_sent = this.chart_options.statistics.by_serie[0].average;
+        let avg_rcvd = this.chart_options.statistics.by_serie[1].average;
+        let percentile_sent = this.chart_options.statistics.by_serie[0]["95th_percentile"];
+        let percentile_rcvd = this.chart_options.statistics.by_serie[1]["95th_percentile"];
+        this.max_sent = fBit(max_sent*8);
+        this.max_rcvd = fBit(max_rcvd*8);
+        this.avg_sent = fBit(avg_sent*8);
+        this.avg_rcvd = fBit(avg_rcvd*8);
+        this.percentile_sent = fBit(percentile_sent*8);
+        this.percentile_rcvd = fBit(percentile_rcvd*8);
+        this.total = fBytes(total)
+
 	},
     },
 };
