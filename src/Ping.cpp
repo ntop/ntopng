@@ -148,8 +148,8 @@ Ping::~Ping() {
     pthread_join(resultPoller, NULL);
   }
 
-  if(sd < 0)  close(sd);
-  if(sd6 < 0) close(sd6);
+  if(sd < 0)  closesocket(sd);
+  if(sd6 < 0) closesocket(sd6);
 
   if(ifname) free(ifname);
 }

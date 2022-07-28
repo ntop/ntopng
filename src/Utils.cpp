@@ -2590,8 +2590,8 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
 
   if((res = ioctl(_sock, SIOCGIFHWADDR, &ifr)) >= 0)
     memcpy(mac_addr, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
-
-  close(_sock);
+  
+  closesocket(_sock);
 #endif
 
   if(res < 0)
@@ -2771,7 +2771,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *_ifname) {
 
   rc = ioctl(sock, SIOCETHTOOL, &ifr);
   closesocket(sock);
-
+  
   if(rc < 0) {
     // ntop->getTrace()->traceEvent(TRACE_ERROR, "I/O Control error [%s]", ifname);
     return(ifSpeed);
@@ -2810,12 +2810,12 @@ int Utils::ethtoolGet(const char *ifname, int cmd, uint32_t *v) {
   ifr.ifr_data = (char *) &ethv;
 
   if(ioctl(fd, SIOCETHTOOL, (char *) &ifr) < 0) {
-    close(fd);
+    closesocket(fd);
     return -1;
   }
 
   *v = ethv.data;
-  close(fd);
+  closesocket(fd);
 
   return 0;
 #else
@@ -2845,11 +2845,11 @@ int Utils::ethtoolSet(const char *ifname, int cmd, uint32_t v) {
   ifr.ifr_data = (char *) &ethv;
 
   if(ioctl(fd, SIOCETHTOOL, (char *) &ifr) < 0) {
-    close(fd);
+    closesocket(fd);
     return -1;
   }
 
-  close(fd);
+  closesocket(fd);
 
   return 0;
 #else
@@ -3494,11 +3494,11 @@ bool Utils::isInterfaceUp(char *_ifname) {
   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
 
   if(ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-    close(sock);
+    closesocket(sock);
     return(false);
   }
 
-  close(sock);
+  closesocket(sock);
 
   return(!!(ifr.ifr_flags & IFF_UP) ? true : false);
 #endif
@@ -4852,11 +4852,14 @@ bool Utils::isPingSupported() {
 #else
   sd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
 #endif
-
+  
   if(sd != -1) {
-    close(sd);
+    closesocket(sd);
+    
     return(true);
   }
+
+  closesocket(sd);
 #endif
 
   return(false);

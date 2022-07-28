@@ -44,7 +44,7 @@ bool SyslogCollectorInterface::openSocket(syslog_socket *ss, const char *server_
 #ifdef WIN32
   (const char*)
 #endif
-	  &reuse, sizeof(reuse)) != 0) {
+		&reuse, sizeof(reuse)) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "setsockopt error");
     return false;
   }
@@ -83,7 +83,7 @@ void SyslogCollectorInterface::closeSocket(syslog_socket *ss, int protocol) {
   if (protocol == SOCK_STREAM) { 
     for(int i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i)
       if(tcp_connections[i].socket != 0)
-        close(tcp_connections[i].socket);
+        closesocket(tcp_connections[i].socket);
   }
 }
 
@@ -164,7 +164,7 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
 SyslogCollectorInterface::~SyslogCollectorInterface() {
   if (udp_socket.enable)
     closeSocket(&udp_socket, SOCK_DGRAM);
-
+  
   if (tcp_socket.enable)
     closeSocket(&tcp_socket, SOCK_STREAM);
 
