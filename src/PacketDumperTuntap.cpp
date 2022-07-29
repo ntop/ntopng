@@ -171,7 +171,7 @@ void PacketDumperTuntap::up() {
   int sockfd;
   struct ifreq ifr;
   
-  sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+  sockfd = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "PacketDumperTuntap");
   
   if(sockfd < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open socket");
@@ -185,7 +185,7 @@ void PacketDumperTuntap::up() {
   if(ioctl(sockfd, SIOCSIFFLAGS, &ifr) < 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while enabling %s interface [%d/%s]", 
 				 ifr.ifr_name, errno, strerror(errno));
-  closesocket(sockfd);
+  Utils::closeSocket(sockfd);
 }
 #endif
 

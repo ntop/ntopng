@@ -64,7 +64,8 @@ bool SerializableElement::deleteRedisSerialization() {
   char key[CONST_MAX_LEN_REDIS_KEY];
   char *serialization_key = getSerializationKey(key, sizeof(key));
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Delete serialization %s", serialization_key);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Delete serialization %s", serialization_key);
+
   return(ntop->getRedis()->del(serialization_key) == 0);
 }
 
@@ -81,7 +82,7 @@ json_object* SerializableElement::deserializeJson(const char *key) {
   json_len = ntop->getRedis()->len(key);
   if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", key);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Deserializing %s", key);
 
   if((json = (char*)calloc(json_len, sizeof(char))) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);

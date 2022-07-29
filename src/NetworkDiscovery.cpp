@@ -62,7 +62,7 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
       }
     }
 
-  if ((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) != -1) {
+  if ((udp_sock = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "NetworkDiscovery UDP")) != -1) {
     int rc;
 
     errno = 0;
@@ -80,8 +80,9 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
 /* ******************************* */
 
 NetworkDiscovery::~NetworkDiscovery() {
-  if(pd)             pcap_close(pd);
-  if(udp_sock != -1) closesocket(udp_sock);
+  if(pd) pcap_close(pd);
+
+  Utils::closeSocket(udp_sock);
 
   if(has_bpf_filter) pcap_freecode(&fcode);
 }
@@ -339,7 +340,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
   if(ntop->getGlobals()->isShutdown()) return;
 
-  if((mdns_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+  if((mdns_sock = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "NetworkDiscovery MDNS")) == -1)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create MDNS socket");
   else {
     const char* anyservices = "_services._dns-sd._udp.local";
@@ -462,7 +463,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	break;
     }
 
-    closesocket(mdns_sock);
+    Utils::closeSocket(mdns_sock);
   }
 
   setMDNSvm(NULL);

@@ -75,9 +75,9 @@ Ping::Ping(char *_ifname) {
   
   errno = 0;
 #if defined(__APPLE__)
-  sd  = socket(AF_INET,  SOCK_DGRAM, IPPROTO_ICMP);
+  sd  = Utils::openSocket(AF_INET,  SOCK_DGRAM, IPPROTO_ICMP, "Ping");
 #else
-  sd  = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
+  sd  = Utils::openSocket(PF_INET, SOCK_RAW, IPPROTO_ICMP, "Ping");
 #endif
 
   if((sd == -1) && (errno != 0)) {
@@ -103,9 +103,9 @@ Ping::Ping(char *_ifname) {
 
   errno = 0;
 #if defined(__APPLE__)
-  sd6 = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
+  sd6 = Utils::openSocket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6, "Ping6");
 #else
-  sd6 = socket(PF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
+  sd6 = Utils::openSocket(PF_INET6, SOCK_RAW, IPPROTO_ICMPV6, "Ping6");
 #endif
 
 #if 0 /* Not needed as privileges are not yet dropped */
@@ -148,8 +148,8 @@ Ping::~Ping() {
     pthread_join(resultPoller, NULL);
   }
 
-  if(sd < 0)  closesocket(sd);
-  if(sd6 < 0) closesocket(sd6);
+  Utils::closeSocket(sd);
+  Utils::closeSocket(sd6);
 
   if(ifname) free(ifname);
 }

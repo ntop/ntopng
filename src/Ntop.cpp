@@ -202,7 +202,7 @@ Ntop::Ntop(const char *appName) {
 
   initAllowedProtocolPresets();
 
-  udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+  udp_socket = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "Ntop UDP");
 
 #ifndef WIN32
   setservent(1);
@@ -306,7 +306,7 @@ Ntop::~Ntop() {
     delete it->second;
 #endif
 
-  if(udp_socket != -1)    closesocket(udp_socket);
+  Utils::closeSocket(udp_socket);
 
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
   if(custom_ndpi_protos)  free(custom_ndpi_protos);
@@ -827,10 +827,11 @@ void Ntop::loadLocalInterfaceAddress() {
   /* buf must be big enough for an IPv6 address(e.g. 3ffe:2fa0:1010:ca22:020a:95ff:fe8a:1cf8) */
   char buf_orig[bufsize+32];
   char net_buf[bufsize+32];
-  int sock = socket(AF_INET, SOCK_STREAM, 0);
+  int sock = Utils::openSocket(AF_INET, SOCK_STREAM, 0, "loadLocalInterfaceAddress");
 
   if(getifaddrs(&local_addresses) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read interface addresses");
+    Utils::closeSocket(sock);
     return;
   }
 
@@ -928,7 +929,7 @@ void Ntop::loadLocalInterfaceAddress() {
 
   freeifaddrs(local_addresses);
 
-  closesocket(sock);
+  Utils::closeSocket(sock);
 #endif
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Local Interface Addresses (System Host)");

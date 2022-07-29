@@ -1055,12 +1055,14 @@ static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
 #ifdef WIN32
 		  (char*)
 #endif
-		  &error, &len) < 0)
+		  &error, &len) < 0) {
       return -1;
-  }else
+    }
+  } else {
     return -1;
+  }
 
-  if(error){  //check if we had a socket error
+  if(error) {  //check if we had a socket error
     errno = error;
     return -1;
   }
@@ -1099,7 +1101,7 @@ static int ntop_tcp_probe(lua_State* vm) {
 
   if(lua_type(vm, 3) == LUA_TNUMBER) timeout = (u_int16_t)lua_tonumber(vm, 3);
 
-  if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+  if((sockfd = Utils::openSocket(AF_INET, SOCK_STREAM, 0, "Lua TCP Probe")) < 0)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   memset(&serv_addr, '0', sizeof(serv_addr));
@@ -1141,7 +1143,7 @@ static int ntop_tcp_probe(lua_State* vm) {
     lua_pushstring(vm, buf);
   }
 
-  closesocket(sockfd);
+  Utils::closeSocket(sockfd);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }

@@ -839,14 +839,14 @@ void SNMP::snmp_fetch_responses(lua_State* vm, u_int sec_timeout) {
    lua_pushnil(vm);
  }
 
-/* ******************************* */
+/* ******************************************* */
 
 SNMP::SNMP() {
   char version[4] = { '\0' };
 
   ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_SNMP_PROTO_VERSION, version, sizeof(version));
 
-  if((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+  if((udp_sock = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "SNMP")) < 0)
     throw("Unable to start network discovery");
 
   Utils::maximizeSocketBuffer(udp_sock, true /* RX */, 2 /* MB */);
@@ -855,14 +855,13 @@ SNMP::SNMP() {
   request_id = rand(); // Avoid overlaps with coroutines
 }
 
-/* ******************************* */
+/* ******************************************* */
 
 SNMP::~SNMP() {
-  if(udp_sock != -1) closesocket(udp_sock);
+  Utils::closeSocket(udp_sock);
 }
 
-/* ******************************* */
-/* ******************************* */
+/* ******************************************* */
 
 #endif /* HAVE_LIBSNMP */
 

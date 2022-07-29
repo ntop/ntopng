@@ -32,7 +32,7 @@ bool SyslogCollectorInterface::openSocket(syslog_socket *ss, const char *server_
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting %s syslog collector on %s:%d", 
     protocol == SOCK_DGRAM ? "UDP" : "TCP", server_address, server_port);
 
-  ss->sock = socket(AF_INET, protocol, 0);
+  ss->sock = Utils::openSocket(AF_INET, protocol, 0, "SyslogCollectorInterface");
 
   if(ss->sock < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "socket error");
@@ -83,7 +83,7 @@ void SyslogCollectorInterface::closeSocket(syslog_socket *ss, int protocol) {
   if (protocol == SOCK_STREAM) { 
     for(int i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i)
       if(tcp_connections[i].socket != 0)
-        closesocket(tcp_connections[i].socket);
+        Utils::closeSocket(tcp_connections[i].socket);
   }
 }
 

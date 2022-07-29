@@ -831,10 +831,6 @@
 #define MACSTR_SIZE     32
 #define DUMP_MTU	16384
 
-#if !defined(WIN32) && !defined(closesocket)
-#define closesocket(c)		close(c)
-#endif
-
 #ifndef DLT_IPV4
 #define DLT_IPV4  228
 #endif

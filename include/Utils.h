@@ -271,6 +271,8 @@ public:
   static void make_session_key(char *buf, u_int buf_len);
   static const char* get_state_label(ThreadedActivityState ta_state);
   static bool endsWith(const char* base, const char* str);
+  static int openSocket(int domain, int type, int protocol, const char *label);
+  static void closeSocket(int socket);
 };
 
 #endif /* _UTILS_H_ */

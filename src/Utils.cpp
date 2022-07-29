@@ -1263,7 +1263,7 @@ bool Utils::sendTCPData(char *host, int port, char *data, int timeout /* msec */
   memcpy((char*)&serv_addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
   serv_addr.sin_port = htons(port);
 
-  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  sockfd = Utils::openSocket(AF_INET, SOCK_STREAM, 0, "sendTCPData");
 
   if(sockfd < 0) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
@@ -1275,7 +1275,7 @@ bool Utils::sendTCPData(char *host, int port, char *data, int timeout /* msec */
     retval = fcntl(sockfd, F_SETFL, fcntl(sockfd,F_GETFL,0) | O_NONBLOCK);
     if(retval == -1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Error setting NONBLOCK flag");
-      closesocket(sockfd);
+      Utils::closeSocket(sockfd);
       return false;
     }
   } else {
@@ -1285,7 +1285,7 @@ bool Utils::sendTCPData(char *host, int port, char *data, int timeout /* msec */
     retval = setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &tv_timeout, sizeof(tv_timeout));
     if(retval == -1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Error setting send timeout: %s", strerror(errno));
-      closesocket(sockfd);
+      Utils::closeSocket(sockfd);
       return false;
     }
   }
@@ -1295,7 +1295,7 @@ bool Utils::sendTCPData(char *host, int port, char *data, int timeout /* msec */
      && (errno == ECONNREFUSED || errno == EALREADY || errno == EAGAIN ||
 	 errno == ENETUNREACH  || errno == ETIMEDOUT )) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,"Could not connect to remote party");
-    closesocket(sockfd);
+    Utils::closeSocket(sockfd);
     return false;
   }
 
@@ -1310,7 +1310,7 @@ bool Utils::sendTCPData(char *host, int port, char *data, int timeout /* msec */
     rc = false;
   }
 
-  closesocket(sockfd);
+  Utils::closeSocket(sockfd);
 
   return rc;
 }
@@ -2585,13 +2585,13 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
   memset(&ifr, 0, sizeof(struct ifreq));
 
   /* Dummy socket, just to make ioctls with */
-  _sock = socket(PF_INET, SOCK_DGRAM, 0);
+  _sock = Utils::openSocket(PF_INET, SOCK_DGRAM, 0, "readMac");
   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
 
   if((res = ioctl(_sock, SIOCGIFHWADDR, &ifr)) >= 0)
     memcpy(mac_addr, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
   
-  closesocket(_sock);
+  Utils::closeSocket(_sock);
 #endif
 
   if(res < 0)
@@ -2621,7 +2621,7 @@ u_int32_t Utils::readIPv4(char *ifname) {
   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
   ifr.ifr_addr.sa_family = AF_INET;
 
-  if((fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP)) < 0) {
+  if((fd = Utils::openSocket(AF_INET, SOCK_DGRAM, IPPROTO_IP, "readIPv4")) < 0) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
   } else {
     if(ioctl(fd, SIOCGIFADDR, &ifr) == -1)
@@ -2629,7 +2629,7 @@ u_int32_t Utils::readIPv4(char *ifname) {
     else
       ret_ip = (((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr).s_addr;
 
-    closesocket(fd);
+    Utils::closeSocket(fd);
   }
 #endif
 
@@ -2702,7 +2702,7 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
   ifr.ifr_addr.sa_family = AF_INET;
 
-  if((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+  if((fd = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "getIfMTU")) < 0) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
   } else {
     if(ioctl(fd, SIOCGIFMTU, &ifr) == -1)
@@ -2714,7 +2714,7 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
 	max_packet_size = ((u_int16_t)-1);
     }
 
-    closesocket(fd);
+    Utils::closeSocket(fd);
   }
 
   return((u_int16_t) max_packet_size);
@@ -2757,7 +2757,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *_ifname) {
 
   memset(&ifr, 0, sizeof(struct ifreq));
 
-  sock = socket(PF_INET, SOCK_DGRAM, 0);
+  sock = Utils::openSocket(PF_INET, SOCK_DGRAM, 0, "getMaxIfSpeed");
   if(sock < 0) {
     // ntop->getTrace()->traceEvent(TRACE_ERROR, "Socket error [%s]", ifname);
     return(ifSpeed);
@@ -2770,7 +2770,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *_ifname) {
   edata.cmd = ETHTOOL_GSET;
 
   rc = ioctl(sock, SIOCETHTOOL, &ifr);
-  closesocket(sock);
+  Utils::closeSocket(sock);
   
   if(rc < 0) {
     // ntop->getTrace()->traceEvent(TRACE_ERROR, "I/O Control error [%s]", ifname);
@@ -2799,7 +2799,7 @@ int Utils::ethtoolGet(const char *ifname, int cmd, uint32_t *v) {
 
   memset(&ifr, 0, sizeof(ifr));
 
-  fd = socket(AF_INET, SOCK_DGRAM, 0);
+  fd = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "ethtoolGet");
 
   if(fd == -1)
     return -1;
@@ -2810,12 +2810,12 @@ int Utils::ethtoolGet(const char *ifname, int cmd, uint32_t *v) {
   ifr.ifr_data = (char *) &ethv;
 
   if(ioctl(fd, SIOCETHTOOL, (char *) &ifr) < 0) {
-    closesocket(fd);
+    Utils::closeSocket(fd);
     return -1;
   }
 
   *v = ethv.data;
-  closesocket(fd);
+  Utils::closeSocket(fd);
 
   return 0;
 #else
@@ -2833,7 +2833,7 @@ int Utils::ethtoolSet(const char *ifname, int cmd, uint32_t v) {
 
   memset(&ifr, 0, sizeof(ifr));
 
-  fd = socket(AF_INET, SOCK_DGRAM, 0);
+  fd = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "ethtoolSet");
 
   if(fd == -1)
     return -1;
@@ -2845,11 +2845,11 @@ int Utils::ethtoolSet(const char *ifname, int cmd, uint32_t v) {
   ifr.ifr_data = (char *) &ethv;
 
   if(ioctl(fd, SIOCETHTOOL, (char *) &ifr) < 0) {
-    closesocket(fd);
+    Utils::closeSocket(fd);
     return -1;
   }
 
-  closesocket(fd);
+  Utils::closeSocket(fd);
 
   return 0;
 #else
@@ -3449,7 +3449,7 @@ u_int32_t Utils::stringHash(const char *s) {
 
 /* Note: the returned IP address is in network byte order */
 u_int32_t Utils::getHostManagementIPv4Address() {
-  int sock = socket(AF_INET, SOCK_DGRAM, 0);
+  int sock = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "getHostManagementIPv4Address");
   const char* kGoogleDnsIp = "8.8.8.8";
   u_int16_t kDnsPort = 53;
   struct sockaddr_in serv;
@@ -3468,7 +3468,7 @@ u_int32_t Utils::getHostManagementIPv4Address() {
   } else
     me = inet_addr("127.0.0.1");
 
-  closesocket(sock);
+  Utils::closeSocket(sock);
 
   return(me);
 }
@@ -3483,7 +3483,7 @@ bool Utils::isInterfaceUp(char *_ifname) {
   struct ifreq ifr;
   int sock;
 
-  sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+  sock = Utils::openSocket(PF_INET, SOCK_DGRAM, IPPROTO_IP, "isInterfaceUp");
 
   if(sock == -1)
     return(false);
@@ -3494,11 +3494,11 @@ bool Utils::isInterfaceUp(char *_ifname) {
   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
 
   if(ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-    closesocket(sock);
+    Utils::closeSocket(sock);
     return(false);
   }
 
-  closesocket(sock);
+  Utils::closeSocket(sock);
 
   return(!!(ifr.ifr_flags & IFF_UP) ? true : false);
 #endif
@@ -4848,13 +4848,13 @@ bool Utils::isPingSupported() {
   int sd;
 
 #if defined(__APPLE__)
-  sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+  sd = Utils::openSocket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP, "isPingSupported");
 #else
-  sd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
+  sd = Utils::openSocket(PF_INET, SOCK_RAW, IPPROTO_ICMP, "isPingSupported");
 #endif
   
   if(sd != -1) {
-    closesocket(sd);    
+    Utils::closeSocket(sd);    
     return(true);
   }
 #endif
@@ -5198,3 +5198,34 @@ bool Utils::endsWith(const char* base, const char* str) {
 }
 
 /* ******************************************* */
+
+int Utils::openSocket(int domain, int type, int protocol, const char *label) {
+  int sock;
+
+  sock = socket(domain, type, protocol);
+
+  if (sock < 0)
+    return sock;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Socket %d (%s) created", sock, label);
+
+  return sock;
+}
+
+/* ******************************************* */
+
+void Utils::closeSocket(int sock) {
+  if (sock < 0)
+    return;
+
+#if !defined(WIN32) && !defined(closesocket)
+  close(sock);
+#else
+  closesocket(sock);
+#endif
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Socket %d closed", sock);
+}
+
+/* ******************************************* */
+

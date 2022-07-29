@@ -34,8 +34,8 @@ static void* resolverCheckFctn(void* ptr) {
 /* ******************************* */
 
 MDNS::MDNS(NetworkInterface *iface) {
-  if(((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-     || ((batch_udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1))
+  if(((udp_sock = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "MDNS UDP")) == -1)
+     || ((batch_udp_sock = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "MDNS Batch UDP")) == -1))
     throw("Unable to create socket");
 
   /* Multicast group is 224.0.0.251 */
@@ -47,8 +47,8 @@ MDNS::MDNS(NetworkInterface *iface) {
 /* ******************************* */
 
 MDNS::~MDNS() {
-  if(udp_sock != -1)       closesocket(udp_sock);
-  if(batch_udp_sock != -1) closesocket(batch_udp_sock);
+  Utils::closeSocket(udp_sock);
+  Utils::closeSocket(batch_udp_sock);
 
   pthread_join(resolverCheck, NULL);
 }
