@@ -783,7 +783,7 @@
 					{
 						"name": "epoch_end",
 						"in": "query",
-						"description": "Start time (epoch)",
+						"description": "End time (epoch)",
 						"required": true,
 						"type": "integer",
 						"format": "int32"
@@ -4230,6 +4230,22 @@
 						"required": true,
 						"type": "integer",
 						"format": "int32"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "End time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
 					}
 				],
 				"responses": {
@@ -4404,6 +4420,22 @@
 						"required": true,
 						"type": "integer",
 						"format": "int32"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "End time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
 					}
 				],
 				"responses": {
@@ -4520,6 +4552,22 @@
 						"required": true,
 						"type": "integer",
 						"format": "int32"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "End time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
 					}
 				],
 				"responses": {
@@ -4583,6 +4631,22 @@
 						"name": "ifid",
 						"in": "query",
 						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "End time (epoch)",
 						"required": true,
 						"type": "integer",
 						"format": "int32"
@@ -4652,6 +4716,22 @@
 						"required": true,
 						"type": "integer",
 						"format": "int32"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "End time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
 					}
 				],
 				"responses": {
@@ -4715,6 +4795,22 @@
 						"name": "ifid",
 						"in": "query",
 						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "End time (epoch)",
 						"required": true,
 						"type": "integer",
 						"format": "int32"
@@ -4784,6 +4880,22 @@
 						"required": true,
 						"type": "integer",
 						"format": "int32"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "End time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
 					}
 				],
 				"responses": {
@@ -4847,6 +4959,22 @@
 						"name": "ifid",
 						"in": "query",
 						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "End time (epoch)",
 						"required": true,
 						"type": "integer",
 						"format": "int32"
@@ -6014,6 +6142,22 @@
 						"name": "ifid",
 						"in": "query",
 						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "End time (epoch)",
 						"required": true,
 						"type": "integer",
 						"format": "int32"
