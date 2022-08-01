@@ -18,6 +18,8 @@ local last_error_notification = 0
 local MIN_ERROR_DELAY = 60 -- 1 minute
 local ERROR_KEY = "ntopng.cache.%s.error_time"
 
+local do_trace = false
+
 -- ##############################################
 
 local recipients = {}
@@ -31,6 +33,16 @@ recipients.MAX_NUM_RECIPIENTS = 64 -- Keep in sync with ntop_defines.h MAX_NUM_R
 recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY = "ntopng.prefs.endpoint_hints.recipient_created"
 
 local default_builtin_minimum_severity = alert_severities.notice.severity_id -- minimum severity is notice (to avoid flooding) (*****)
+
+-- ##############################################
+
+local function debug_print(msg)
+   if not do_trace then
+      return
+   end
+
+   traceError(TRACE_NORMAL, TRACE_CONSOLE, msg)
+end
 
 -- ##############################################
 
@@ -706,80 +718,89 @@ end
 -- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
 -- @return nil
 function recipients.dispatch_notification(notification, current_script)
-   if(notification) then
-      local notification_category = get_notification_category(notification, current_script)
+   if not notification then
+      -- traceError(TRACE_ERROR, TRACE_CONSOLE, "Internal error. Empty notification")
+      -- tprint(debug.traceback())
+   end
+
+   local notification_category = get_notification_category(notification, current_script)
  
-      local recipients = recipients.get_all_recipients()
+   local recipients = recipients.get_all_recipients()
 
-      if #recipients > 0 then
-	 -- Use pcall to catch possible exceptions, e.g., (string expected, got light userdata)
-	 local status, json_notification = pcall(function() return json.encode(notification) end)
+   if #recipients > 0 then
+      -- Use pcall to catch possible exceptions, e.g., (string expected, got light userdata)
+      local status, json_notification = pcall(function() return json.encode(notification) end)
 
-	 -- If an exception occurred, print the notification and exit
-	 if not status then
-	    tprint({notification, json_notification})
-	    return
-	 end
-
-
-	 for _, recipient in ipairs(recipients) do
-            local recipient_ok = false
-
-            -- Check Category
-            if notification_category and recipient.check_categories ~= nil then
-               -- Make sure the user script category belongs to the recipient user script categories
-               for _, check_category in pairs(recipient.check_categories) do
-                  if check_category == notification_category then
-                     recipient_ok = true
-                  end
-               end
-            else
-               recipient_ok = true
-            end
-
-            -- Check Severity
-            if recipient_ok then
-               if notification.severity and recipient.minimum_severity ~= nil and 
-                  notification.severity < recipient.minimum_severity then
-                  -- If the current alert severity is less than the minimum requested severity exclude the recipient
-                  recipient_ok = false
-               end
-            end
-
-            -- Check Pool
-            if recipient_ok then
-               if notification.host_pool_id then
-                  if recipient.recipient_name ~= "builtin_recipient_alert_store_db" and recipient.host_pools then
-                     local host_pools_map = swapKeysValues(recipient.host_pools)
-                     if not host_pools_map[notification.host_pool_id] then
-                        recipient_ok = false
-                     end
-                  end
-               end
-            end
-
-            if recipient_ok then
-               if notification.entity_id == alert_entities.am_host.entity_id and notification.entity_val then
-                  if recipient.recipient_name ~= "builtin_recipient_alert_store_db" and recipient.am_hosts then
-                     local am_hosts_map = swapKeysValues(recipient.am_hosts)
-                     if not am_hosts_map[notification.entity_val] then
-                        recipient_ok = false
-                     end
-                  end
-               end
-            end
-
-            if recipient_ok then
-               -- Enqueue alert
-	       ntop.recipient_enqueue(recipient.recipient_id, json_notification, notification.score, notification_category)
-            end
-	 end
-
-	 ::continue::
+      -- If an exception occurred, print the notification and exit
+      if not status then
+         tprint({notification, json_notification})
+         return
       end
-   else
-      --      traceError(TRACE_ERROR, TRACE_CONSOLE, "Internal error. Empty notification")
-      --      tprint(debug.traceback())
+
+      for _, recipient in ipairs(recipients) do
+         local recipient_ok = false
+
+         -- Check Category
+         if notification_category and recipient.check_categories ~= nil then
+            -- Make sure the user script category belongs to the recipient user script categories
+            for _, check_category in pairs(recipient.check_categories) do
+               if check_category == notification_category then
+                  recipient_ok = true
+               end
+            end
+         else
+            recipient_ok = true
+         end
+
+         if not recipient_ok then
+            debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to category selection")
+         end
+
+         -- Check Severity
+         if recipient_ok then
+            if notification.severity and recipient.minimum_severity ~= nil and 
+               notification.severity < recipient.minimum_severity then
+               -- If the current alert severity is less than the minimum requested severity exclude the recipient
+               debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to severity")
+               recipient_ok = false
+            end
+         end
+
+         -- Check Pool
+         if recipient_ok then
+            if notification.host_pool_id then
+               if recipient.recipient_name ~= "builtin_recipient_alert_store_db" and recipient.host_pools then
+                  local host_pools_map = swapKeysValues(recipient.host_pools)
+                  if not host_pools_map[notification.host_pool_id] then
+                     debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to host pool selection (".. notification.host_pool_id ..")")
+                     recipient_ok = false
+                  end
+               end
+            end
+         end
+
+         if recipient_ok then
+            if notification.entity_id == alert_entities.am_host.entity_id and notification.entity_val then
+               if recipient.recipient_name ~= "builtin_recipient_alert_store_db" and recipient.am_hosts then
+                  local am_hosts_map = swapKeysValues(recipient.am_hosts)
+                  if not am_hosts_map[notification.entity_val] then
+                     recipient_ok = false
+                     debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to AM selection")
+                  end
+               end
+            end
+         end
+
+         if recipient_ok then
+            -- Enqueue alert
+
+            debug_print("> Delivering " .. notification.entity_val .. " alert to recipient " .. recipient.recipient_name)
+
+            ntop.recipient_enqueue(recipient.recipient_id, json_notification, notification.score, notification_category)
+         end
+      end
+
+      ::continue::
    end
 end
 
@@ -814,7 +835,7 @@ local function process_notifications(ready_recipients, now, deadline, periodic_f
 	 local recipient = ready_recipient.recipient
 	 local m = ready_recipient.mod
 
-	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " recipient_id: "..recipient.recipient_id) end
+	 debug_print("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " recipient_id: "..recipient.recipient_id)
 
    if last_error_notification == 0 then
     last_error_notification = tonumber(ntop.getCache(string.format(ERROR_KEY, recipient.recipient_name))) or 0
@@ -829,7 +850,8 @@ local function process_notifications(ready_recipients, now, deadline, periodic_f
 	    if not rv.success or not rv.more_available then
         table.remove(ready_recipients, i)
 
-        if do_trace then tprint("Ready recipient done: ".. recipient.recipient_name) end
+        debug_print("Ready recipient done: ".. recipient.recipient_name)
+
         if not rv.success then
           last_error_notification = now
           ntop.setCache(string.format(ERROR_KEY, recipient.recipient_name), now)
@@ -847,11 +869,11 @@ local function process_notifications(ready_recipients, now, deadline, periodic_f
 
    if do_trace then
       if #ready_recipients > 0 then
-	 tprint("Deadline approaching: "..tostring(deadline < cur_time))
-	 tprint("Budget left: "..total_budget)
-	 tprint("The following recipients were unable to dequeue all their notifications")
+	 debug_print("Deadline approaching: "..tostring(deadline < cur_time))
+	 debug_print("Budget left: "..total_budget)
+	 debug_print("The following recipients were unable to dequeue all their notifications")
 	 for _, ready_recipient in pairs(ready_recipients) do
-	    tprint(" "..ready_recipient.recipient.recipient_name)
+	    debug_print(" "..ready_recipient.recipient.recipient_name)
 	 end
       end
    end

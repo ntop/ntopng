@@ -25,7 +25,7 @@ MAX_TRACE_LEVEL = 4
 TRACE_CONSOLE = 0
 TRACE_WEB = 1
 
-function traceError(p_trace_level, p_trace_mode,p_message)
+function traceError(p_trace_level, p_trace_mode, p_message)
   local currentline = debug.getinfo(2).currentline
   local what =  debug.getinfo(2).what
   local src =  debug.getinfo(2).short_src
