@@ -8474,9 +8474,9 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
     return(true);
 
   if(db == NULL) {
+
     if(ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
-#ifdef NTOPNG_PRO
-#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
       if(ntop->getPrefs()->useClickHouse()) {
 	db = new (std::nothrow) ClickHouseFlowDB(this);
 
@@ -8486,23 +8486,24 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 	}
       }
 #endif
+    }
+#ifdef HAVE_MYSQL
+    else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
+      db = new (std::nothrow) MySQLDB(this);
+      if(!db) throw "Not enough memory";
+    }
+#endif
+#ifndef HAVE_NEDGE
+    else if(ntop->getPrefs()->do_dump_flows_on_es()) {
+      db = new (std::nothrow) ElasticSearch(this);
+    }
+#if !defined(WIN32) && !defined(__APPLE__)
+    else if(ntop->getPrefs()->do_dump_flows_on_syslog()) {
+      db = new (std::nothrow) SyslogDump(this);
+    }
+#endif
 #endif
 
-#ifdef HAVE_MYSQL
-      if(db == NULL) {
-	db = new (std::nothrow) MySQLDB(this);
-	if(!db) throw "Not enough memory";
-      }
-#endif
-    }
-#ifndef HAVE_NEDGE
-    else if(ntop->getPrefs()->do_dump_flows_on_es())
-      db = new (std::nothrow) ElasticSearch(this);
-#if !defined(WIN32) && !defined(__APPLE__)
-    else if(ntop->getPrefs()->do_dump_flows_on_syslog())
-      db = new (std::nothrow) SyslogDump(this);
-#endif
-#endif
   }
 
   return(db != NULL);
