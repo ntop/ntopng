@@ -13,10 +13,10 @@ While you can read more about ntopng on the ntop web site (http://www.ntop.org),
 If instead of source code you prefer to use a pre-built package, please go to http://packages.ntop.org
 
 We build binary packages for the following platforms:
-* Ubuntu Linux Server x64
-* CentOS/RedHat Linux x64
+* Debian/Ubuntu LTS x64
+* CentOS/RedHat/RockyLinux Linux x64
 * Windows x64
-* RaspberryPI/BeagleBoard ARM (based on Ubuntu Linux)
+* RaspberryPI
 
 Enjoy.
 
