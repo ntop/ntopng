@@ -1467,14 +1467,16 @@ else
 	 print("<td colspan=\"2\">"..custom_name.."</td></tr>")
       end
 
-      if(flow["in_index"] or flow["out_index"]) then
-	 if((flow["in_index"] == flow["out_index"]) and (flow["in_index"] == 0)) then
-	    -- nothing to do (they are likely to be not initialized)
-	 else
-	    printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
+      if(snmpdevice ~= nil) then
+	 if(flow["in_index"] or flow["out_index"]) then
+	    if((flow["in_index"] == flow["out_index"]) and (flow["in_index"] == 0)) then
+	       -- nothing to do (they are likely to be not initialized)
+	    else
+	       printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
+	    end
 	 end
       end
-
+      
       local num = 0      
       for key,value in pairsByKeys(info) do
 	 if(num == 0) then
