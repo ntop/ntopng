@@ -9,7 +9,7 @@ Using this capability it is possible to obtain full visibility of an infrastuctu
 
 For example, the following image shows the monitoring of an infrastructure with three instances, in Milan, Rome and Paris, respectively.
 
-.. figure:: ../img/infrastructure_mesh.png
+.. figure:: ../img/infrastructure_monitoring.png
   :align: center
   :alt: Infrastructure Monitoring
 
