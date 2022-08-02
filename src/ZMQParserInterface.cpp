@@ -82,6 +82,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("LAST_SWITCHED", LAST_SWITCHED);
   addMapping("EXPORTER_IPV4_ADDRESS", EXPORTER_IPV4_ADDRESS);
   addMapping("EXPORTER_IPV6_ADDRESS", EXPORTER_IPV6_ADDRESS);
+  addMapping("TOTAL_FLOWS_EXP", TOTAL_FLOWS_EXP);
   addMapping("NPROBE_IPV4_ADDRESS", NPROBE_IPV4_ADDRESS, NTOP_PEN);
   addMapping("TCP_FLAGS", TCP_FLAGS);
   addMapping("INITIATOR_PKTS", INITIATOR_PKTS);
@@ -589,6 +590,14 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
   case EXPORTER_IPV6_ADDRESS:
     if(value->string != NULL && strlen(value->string) > 0)
       inet_pton(AF_INET6, value->string, &flow->device_ipv6);
+    break;
+  case TOTAL_FLOWS_EXP:
+    /* Not used
+    if(value->string != NULL)      
+      total_flows_exp = atol(value->string);
+    else
+      total_flows_exp = value->int_num;
+    */
     break;
   case INPUT_SNMP:
     flow->inIndex = value->int_num;

@@ -1445,7 +1445,6 @@ int Prefs::setOption(int optkey, char *optarg) {
 	  /*
 	     Old Format: mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw>
 	     New Format: mysql;<host[@[port,]port]|unix socket>;<dbname>;<user>;<pw>
-
 	  */
 
 	  for(u_int i=0; optarg[i] != '\0'; i++)
