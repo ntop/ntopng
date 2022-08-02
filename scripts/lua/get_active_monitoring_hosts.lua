@@ -37,7 +37,7 @@ for key, am_host in pairs(am_hosts) do
     local column_last_update = ""
     local column_last_value = ""
     local column_jitter = ""
-    local column_ifname = am_host.ifname or ""
+    local column_ifname = ""
     local last_update = am_utils.getLastAmUpdate(am_host.host, am_host.measurement)
     local alerted = 0
 
@@ -45,6 +45,10 @@ for key, am_host in pairs(am_hosts) do
        column_last_update = last_update.when
        column_last_value = last_update.value
        column_last_ip = last_update.ip
+    end
+
+    if am_host.measurement == 'icmp' or am_host.measurement == 'cicmp' then
+      column_ifname = am_host.ifname or ""
     end
 
     column_last_value = tonumber(column_last_value)
