@@ -1037,13 +1037,23 @@ static int ntop_interface_inc_syslog_stats(lua_State* vm) {
 
 static int ntop_interface_alert_store_query(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
-  char *query;
+  char *query = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+  /* Query */
+  if (lua_type(vm, 1) == LUA_TSTRING) {
+    query = (char*)lua_tostring(vm, 1);
+  }
+
+  /* Optional: interface id */
+  if (lua_type(vm, 2) == LUA_TNUMBER) {
+    int ifid = lua_tointeger(vm, 2);
+    iface = ntop->getInterfaceById(ifid);
+  }
+
   if(!iface
-     || lua_type(vm, 1) != LUA_TSTRING
-     || !(query = (char*)lua_tostring(vm, 1))
+     || !query
      || !iface->alert_store_query(vm, query)) {
     lua_pushnil(vm);
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));

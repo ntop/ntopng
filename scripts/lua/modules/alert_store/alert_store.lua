@@ -1047,7 +1047,13 @@ function alert_store:has_alerts()
       has_historical_alerts = res and res[1] and (tonumber(res[1].num_alerts) > 0) or false
    else
       q = string.format(" SELECT EXISTS (SELECT 1 FROM `%s` WHERE interface_id = %d) has_historical_alerts", table_name, ifid)
-      res = interface.alert_store_query(q)
+
+      -- Convert from uint16 to int, which is what getInterfaceById uses
+      if ifid == 65535 then ifid = -1 end
+
+      -- Note: on SQLite the DB is per interface, thus we need to pass it to the alert store to select the right DB
+      res = interface.alert_store_query(q, ifid)
+
       has_historical_alerts = res and res[1] and res[1]["has_historical_alerts"] == "1" or false
    end
 
