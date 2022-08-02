@@ -263,7 +263,7 @@ if (page == "flows" or page == nil) then
             field: "column_ndpi",
             sortable: true,
             css: {
-               textAlign: 'center',
+               textAlign: 'left',
                whiteSpace: 'nowrap'
             }
          }, {
@@ -271,7 +271,7 @@ if (page == "flows" or page == nil) then
             field: "column_proto_l4",
             sortable: true,
             css: {
-               textAlign: 'center'
+               textAlign: 'left'
             }
          },
    ]]
