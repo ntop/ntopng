@@ -31,14 +31,14 @@ local refresh_rate = ntop.getPref("ntopng.prefs.alert_page_refresh_rate")
 if (ntop.getPref("ntopng.prefs.alert_page_refresh_rate_enabled") == '1') 
    and refresh_rate 
    and not isEmptyString(refresh_rate) then
-       -- The js function that refresh periodically the page needs the time in microseconds
-       refresh_rate = tonumber(refresh_rate) * 1000
-       -- Refresh rate equals to 0, remove refresh rate
-       if refresh_rate == 0 then
-           refresh_rate = nil
-       end
+   -- The js function that refresh periodically the page needs the time in microseconds
+   refresh_rate = tonumber(refresh_rate) * 1000
+   -- Refresh rate equals to 0, remove refresh rate
+   if refresh_rate == 0 then
+      refresh_rate = nil
+   end
 else
-       refresh_rate = nil
+   refresh_rate = nil
 end
 
 local user = "no_user"
@@ -64,26 +64,26 @@ local num_alerts_engaged_by_entity = interface_stats["num_alerts_engaged_by_enti
 
 -- Add system alerts to be displayed as badges in the interface page too
 if interface.getId() ~= tonumber(getSystemInterfaceId()) then
-  local system_interface_stats = ntop.getSystemAlertsStats()
-  local num_system_alerts_engaged_by_entity = system_interface_stats["num_alerts_engaged_by_entity"]
+   local system_interface_stats = ntop.getSystemAlertsStats()
+   local num_system_alerts_engaged_by_entity = system_interface_stats["num_alerts_engaged_by_entity"]
 
-  num_alerts_engaged = num_alerts_engaged + system_interface_stats["num_alerts_engaged"]
+   num_alerts_engaged = num_alerts_engaged + system_interface_stats["num_alerts_engaged"]
 
-  for entity_id, num in pairs(num_system_alerts_engaged_by_entity) do
-    if num_alerts_engaged_by_entity[entity_id] then
-      num_alerts_engaged_by_entity[entity_id] = num_alerts_engaged_by_entity[entity_id] + num
-    else
-      num_alerts_engaged_by_entity[entity_id] = num
-    end
-  end
+   for entity_id, num in pairs(num_system_alerts_engaged_by_entity) do
+      if num_alerts_engaged_by_entity[entity_id] then
+         num_alerts_engaged_by_entity[entity_id] = num_alerts_engaged_by_entity[entity_id] + num
+      else
+         num_alerts_engaged_by_entity[entity_id] = num
+      end
+   end
 end
 
 local num_alerts_engaged_cur_entity = 0
 if alert_entities[page] then
-  local entity_id = tostring(alert_entities[page].entity_id)
-  num_alerts_engaged_cur_entity = num_alerts_engaged_by_entity[entity_id] or 0
+   local entity_id = tostring(alert_entities[page].entity_id)
+   num_alerts_engaged_cur_entity = num_alerts_engaged_by_entity[entity_id] or 0
 elseif page == 'all' and num_alerts_engaged then
-  num_alerts_engaged_cur_entity = num_alerts_engaged
+   num_alerts_engaged_cur_entity = num_alerts_engaged
 end
 
 -- If the status is not explicitly set, it is chosen between (engaged when there are engaged alerts) or historical when
