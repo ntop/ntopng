@@ -1119,6 +1119,8 @@ typedef struct _MapsFilters {
   mapSortingColumn sort_column;
   sortingOrder sort_order;
   bool standard_view;
+  u_int8_t cli_location;
+  u_int8_t srv_location; 
 } MapsFilters;
 
 typedef struct _MapsFilteringMenu {

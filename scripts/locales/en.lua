@@ -4299,6 +4299,7 @@ local lang = {
     ["allowed"] = "<i class=\"fas fa-check\"></i> Allowed",
     ["centrality_view"] = "Graph Analysis",
     ["denied"] = "<i class=\"fas fa-times\"></i> Denied",
+    ["direction"] = "All Directions",
     ["fetch_error"] = "Error while fetching Service Map Status.",
     ["filter_hosts"] = "Filters",
     ["geo_map_notes"] = "The Host details shown by clicking the markers can be modified from the preferences <a href=\"%{prefs_link}\"><i class=\"fas fa-cog\"></i></a>",

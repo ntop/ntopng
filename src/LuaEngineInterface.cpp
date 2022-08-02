@@ -3998,9 +3998,12 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   filters->startingHit = (u_int32_t)0;
   filters->unicast = false;
   filters->network_id = (int16_t) -1;
+  filters->cli_location = (u_int8_t)-1; 
+  filters->srv_location = (u_int8_t)-1; 
   filters->sort_column = (mapSortingColumn)map_column_last_seen;
   filters->sort_order = (sortingOrder)desc;
   filters->standard_view = true;
+  u_int8_t direction = -1;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4023,20 +4026,36 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
     filters->ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(),
 					       (char *)lua_tostring(vm, 6));
 
-  if(lua_type(vm, 7) == LUA_TNUMBER)  filters->network_id       = (int16_t)lua_tonumber(vm, 7);
+  if(lua_type(vm, 7) == LUA_TNUMBER)  filters->network_id   = (int16_t)lua_tonumber(vm, 7);
   if(lua_type(vm, 8) == LUA_TNUMBER)  filters->status       = (ServiceAcceptance)lua_tonumber(vm, 8);
-  if(lua_type(vm, 9) == LUA_TSTRING)  {
-    char *str = (char *)lua_tostring(vm, 9);
+  if(lua_type(vm, 9) == LUA_TNUMBER)  direction             = (u_int8_t)lua_tonumber(vm, 9);
+  if(lua_type(vm, 10) == LUA_TSTRING)  {
+    char *str = (char *)lua_tostring(vm, 10);
 
     if(str)
       snprintf(filters->host_to_search, sizeof(filters->host_to_search), "%s", str);
   }
   
-  if(lua_type(vm, 10) == LUA_TNUMBER)  filters->maxHits      = (u_int32_t)lua_tonumber(vm, 10);
-  if(lua_type(vm, 11) == LUA_TNUMBER)  filters->startingHit = (u_int32_t)lua_tonumber(vm, 11);
-  if(lua_type(vm, 12) == LUA_TNUMBER) filters->sort_column  = (mapSortingColumn)lua_tonumber(vm, 12);
-  if(lua_type(vm, 13) == LUA_TNUMBER) filters->sort_order   = (sortingOrder)lua_tonumber(vm, 13);
-  if(lua_type(vm, 14) == LUA_TBOOLEAN) filters->standard_view  = (bool)lua_toboolean(vm, 14);
+  if(lua_type(vm, 11) == LUA_TNUMBER)  filters->maxHits      = (u_int32_t)lua_tonumber(vm, 11);
+  if(lua_type(vm, 12) == LUA_TNUMBER)  filters->startingHit = (u_int32_t)lua_tonumber(vm, 12);
+  if(lua_type(vm, 13) == LUA_TNUMBER) filters->sort_column  = (mapSortingColumn)lua_tonumber(vm, 13);
+  if(lua_type(vm, 14) == LUA_TNUMBER) filters->sort_order   = (sortingOrder)lua_tonumber(vm, 14);
+  if(lua_type(vm, 15) == LUA_TBOOLEAN) filters->standard_view  = (bool)lua_toboolean(vm, 15);
+
+  switch (direction) {
+  case 0:
+    filters->cli_location = 0, filters->srv_location = 0;
+    break;
+  case 1:
+    filters->cli_location = 1, filters->srv_location = 1;
+    break;
+  case 2:
+    filters->cli_location = 0, filters->srv_location = 1;
+    break;
+  case 3:
+    filters->cli_location = 1, filters->srv_location = 0;
+    break;
+  }
 }
 
 /* ****************************************** */
