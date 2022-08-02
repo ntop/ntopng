@@ -7,7 +7,7 @@ In ntopng it's possible to exclude Hosts from specific alerts.
 
 .. note::
 
-  This feature is only available from Pro Version
+  This feature is only available from Enterprise M Version
 
 .. figure:: ../img/check_exclusion_page.png
   :align: center
