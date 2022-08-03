@@ -22,8 +22,8 @@
     </div>
   </div>
 </div>
-<SimpleTable :chart_options="last_chart_options"
-></SimpleTable>
+<!-- <SimpleTable :chart_options="last_chart_options" -->
+<!-- ></SimpleTable> -->
 
 <ModalTimeseries ref="modal_time_series"></ModalTimeseries>
 </template>

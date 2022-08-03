@@ -40,8 +40,8 @@ export default {
     data() {
 	return {
         total:0,
-        percetile_sent:0,
-        percetile_rcvd:0,
+        percentile_sent:0,
+        percentile_rcvd:0,
         avg_sent:0,
         avg_rcvd:0,
 	    max_sent: 0,
@@ -61,7 +61,7 @@ export default {
 	    //console.log(Object.keys(this.chart_options.statistics));
         console.log(this.chart_options.statistics.by_serie);
         console.log("OBJECT KEYS")
-        let total = fBit(this.chart_options.statistics.total)
+        let total = this.chart_options.statistics.total;
         let max_sent = this.chart_options.statistics.by_serie[0].max_val;
         let max_rcvd = this.chart_options.statistics.by_serie[1].max_val;
         let avg_sent = this.chart_options.statistics.by_serie[0].average;
@@ -74,7 +74,7 @@ export default {
         this.avg_rcvd = fBit(avg_rcvd*8);
         this.percentile_sent = fBit(percentile_sent*8);
         this.percentile_rcvd = fBit(percentile_rcvd*8);
-        this.total = fBytes(total)
+        this.total = fBytes(total);
 
 	},
     },
