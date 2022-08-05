@@ -166,7 +166,8 @@ char* LocalHost::getSerializationKey(char *redis_key, uint bufsize) {
 void LocalHost::deserialize(json_object *o) {
   json_object *obj;
 
-  if(!isBroadcastHost()) stats->deserialize(o);
+  if((!isBroadcastHost()) && stats)
+    stats->deserialize(o);
 
   if(! mac) {
     u_int8_t mac_buf[6];
@@ -339,7 +340,9 @@ void LocalHost::lua_get_timeseries(lua_State* vm) {
 
   /* The timeseries point */
   lua_newtable(vm);
-  ((LocalHostStats*)stats)->lua_get_timeseries(vm);
+
+  if(stats != NULL)
+    ((LocalHostStats*)stats)->lua_get_timeseries(vm);
 
   Host::lua_blacklisted_flows(vm);
   
