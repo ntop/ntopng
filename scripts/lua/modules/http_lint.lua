@@ -1004,6 +1004,16 @@ local function validateMac(p)
    end
 end
 
+-- ##############################################
+
+-- @brief Returns true if inputstr is a Mac or all string
+local function validateDeviceOrAll(inputstr)
+   return (validateMac(inputstr) or inputstr == 'all')
+end
+http_lint.validateDeviceOrAll = validateDeviceOrAll
+
+-- ##############################################
+
 local function validateZoom(zoom)
    if string.match(zoom, "%d+%a") == zoom then
       return true
@@ -1557,6 +1567,9 @@ local known_parameters = {
    ["filters"]	       	       = validateScriptFilter,		-- Currently active exclusion list for the alert
    ["delete_alerts"]           = validateBool,
    ["alert_generation"]	       = { jsonCleanup, validateJSON },
+
+-- EXCLUDE DEVICES
+   ["device"]                  = validateDeviceOrAll,
 
 -- UI TOASTS
    ["toast_id"]        = validateSingleWord,

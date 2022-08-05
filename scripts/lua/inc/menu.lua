@@ -615,6 +615,15 @@ page_utils.add_menubar_section(
 	 {
 	    entry = page_utils.menu_entries.divider,
 	 },
+--[[	 {
+	    entry = page_utils.menu_entries.device_exclusions,
+	    section = page_utils.menu_sections.device_exclusions,
+	    hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isPro(),
+	    url = '/lua/pro/admin/edit_device_exclusions.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.divider,
+	 },]]
 	 {
 	    entry = page_utils.menu_entries.scripts_config,
 	    section = page_utils.menu_sections.checks,

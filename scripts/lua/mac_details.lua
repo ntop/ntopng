@@ -255,9 +255,9 @@ if((page == "overview") or (page == nil)) then
       print("</td></tr>\n")
    end
 
-   local first_observed = ntop.getHashCache(getFirstSeenDevicesHashKey(ifId), mac_info["mac"])
+   local first_observed = ntop.getHashCache(getDevicesHashMapKey(ifId), mac_info["mac"])
 
-   if(not isEmptyString(first_observed)) then
+   if(not isEmptyString(first_observed)) and (tonumber(first_observed)) then
       print("<tr><th>" .. i18n("details.first_observed_on") .. "</th><td colspan=2>")
       print(formatEpoch(first_observed))
       print("</td></tr>\n")

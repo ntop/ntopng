@@ -19,7 +19,7 @@ local alert_device_connection = classes.class(alert)
 -- ##############################################
 
 alert_device_connection.meta = {
-  alert_key = other_alert_keys.alert_device_connection,
+  alert_key = other_alert_keys.alert_device_connection_disconnection,
   i18n_title = "alerts_dashboard.device_connection",
   icon = "fas fa-fw fa-sign-in",
   entities = {
@@ -50,7 +50,7 @@ end
 -- @return A human-readable string
 function alert_device_connection.format(ifid, alert, alert_type_params)
   return(i18n("alert_messages.device_has_connected", {
-    device = info.device,
+    device = alert_type_params.device,
     url = getMacUrl(alert.entity_val),
   }))
 end
