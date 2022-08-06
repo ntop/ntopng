@@ -341,9 +341,12 @@ void LocalHost::lua_get_timeseries(lua_State* vm) {
   /* The timeseries point */
   lua_newtable(vm);
 
-  if(stats != NULL)
-    ((LocalHostStats*)stats)->lua_get_timeseries(vm);
+  if(stats != NULL) {
+    LocalHostStats *l = (LocalHostStats*)stats;
 
+    l->lua_get_timeseries(vm);
+  }
+  
   Host::lua_blacklisted_flows(vm);
   
   /* NOTE: the following data is *not* exported for the initial_point */
