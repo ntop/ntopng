@@ -17,6 +17,8 @@ import { default as SimpleTable } from "./simple-table.vue";
 import { default as Modal } from "./modal.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { default as ModalAddCheckExclusion } from "./modal-add-check-exclusion.vue";
+import { default as ModalAddDeviceExclusion } from "./modal-add-device-exclusion.vue";
+import { default as ModalEditDeviceExclusion } from "./modal-edit-device-exclusion.vue";
 import { default as ModalAlertsFilter } from "./modal-alerts-filter.vue";
 import { default as ModalFilters } from "./modal-filters.vue";
 import { default as ModalTimeseries } from "./modal-timeseries.vue";
@@ -45,6 +47,8 @@ let ntopVue = {
     ModalTrafficExtraction: ModalTrafficExtraction,
     ModalDeleteConfirm: ModalDeleteConfirm,
     ModalSnapshot: ModalSnapshot,
+    ModalAddDeviceExclusion: ModalAddDeviceExclusion,
+    ModalEditDeviceExclusion: ModalEditDeviceExclusion,
 
     Vue: Vue,
 };

@@ -918,6 +918,14 @@ local function validateCountry(p)
    end
 end
 
+-- #################################
+
+local function validateStatus(p)
+   return (p == 'allowed' or p == 'denied')
+end
+
+-- #################################
+
 local function validateInterface(i)
    return interface.isValidIfId(i)
 end
@@ -1570,6 +1578,9 @@ local known_parameters = {
 
 -- EXCLUDE DEVICES
    ["device"]                  = validateDeviceOrAll,
+   ["mac_list"]                = validateUnquoted,
+   ["mac_alias"]               = validateSingleWord,
+   ["mac_status"]              = validateStatus,
 
 -- UI TOASTS
    ["toast_id"]        = validateSingleWord,

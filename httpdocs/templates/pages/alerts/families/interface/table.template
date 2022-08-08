@@ -3,7 +3,7 @@
   <th>{{ i18n("score") }}</th>
   <th>{{ i18n("duration") }}</th>
   <th>{{ i18n("alerts_dashboard.alert") }}</th>
-  <th>{{ i18n("alerts_dashboard.element") }}</th>
-  <th>{{ i18n("description") }}</th>
+  <th>{{ i18n("culprit") }}</th>
+  <th>{{ i18n("information") }}</th>
   <th>{{ i18n("actions") }}</th>
 </tr>

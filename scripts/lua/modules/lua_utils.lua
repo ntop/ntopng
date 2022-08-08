@@ -146,6 +146,16 @@ end
 
 -- ##############################################
 
+function getInterfaceUrl(ifid)
+  if(not ifid) then
+    return("")
+  end
+
+  return ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid
+end
+
+-- ##############################################
+
 function getFirstInterfaceId()
    local ifid = interface.getFirstInterfaceId()
 
@@ -4013,8 +4023,8 @@ end
 -- ###########################################
 
 -- A redis hash mac -> first_seen
-function getDevicesHashMapKey(ifid)
-  return "ntopng.checks.device_connection_disconnection.ifid_" .. ifid
+function getDevicesHashMapKey(ifname)
+  return "ntopng.checks.device_connection_disconnection.ifname_" .. ifname
 end
 
 -- ###########################################

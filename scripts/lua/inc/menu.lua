@@ -585,6 +585,14 @@ page_utils.add_menubar_section(
   }
 )
 
+local checks = require "checks"
+local interface_config = checks.getConfigset()["config"]["interface"]
+local devices_exclusion_enabled = false
+
+if (interface_config) and (interface_config["device_connection_disconnection"]) and (interface_config["device_connection_disconnection"]["min"]["enabled"]) then
+  devices_exclusion_enabled = true
+end
+
 page_utils.add_menubar_section(
    {
       section = page_utils.menu_sections.admin,
@@ -607,23 +615,24 @@ page_utils.add_menubar_section(
 	    hidden = not is_admin,
 	    url = '/lua/admin/prefs.lua',
 	 },
-         {
-            entry = page_utils.menu_entries.license,
-            hidden = info["pro.forced_community"],
-            url = '/lua/license.lua',
-         },
+   { 
+      entry = page_utils.menu_entries.license,
+      hidden = info["pro.forced_community"],
+      url = '/lua/license.lua',
+   },
 	 {
 	    entry = page_utils.menu_entries.divider,
+      hidden = not devices_exclusion_enabled
 	 },
---[[	 {
+	 {
 	    entry = page_utils.menu_entries.device_exclusions,
 	    section = page_utils.menu_sections.device_exclusions,
-	    hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isPro(),
+	    hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isPro() or not devices_exclusion_enabled,
 	    url = '/lua/pro/admin/edit_device_exclusions.lua',
 	 },
 	 {
 	    entry = page_utils.menu_entries.divider,
-	 },]]
+	 },
 	 {
 	    entry = page_utils.menu_entries.scripts_config,
 	    section = page_utils.menu_sections.checks,
