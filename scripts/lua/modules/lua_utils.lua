@@ -4023,8 +4023,8 @@ end
 -- ###########################################
 
 -- A redis hash mac -> first_seen
-function getDevicesHashMapKey(ifname)
-  return "ntopng.checks.device_connection_disconnection.ifname_" .. ifname
+function getDevicesHashMapKey(ifid)
+  return "ntopng.checks.device_connection_disconnection.ifid_" .. ifid
 end
 
 -- ###########################################

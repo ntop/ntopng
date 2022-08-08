@@ -20,7 +20,7 @@ local alert_device_connection = classes.class(alert)
 
 alert_device_connection.meta = {
   alert_key = other_alert_keys.alert_device_connection_disconnection,
-  i18n_title = "alerts_dashboard.device_connection",
+  i18n_title = "alerts_dashboard.device_connection_disconnection",
   icon = "fas fa-fw fa-sign-in",
   entities = {
     alert_entities.mac
@@ -32,12 +32,13 @@ alert_device_connection.meta = {
 -- @brief Prepare an alert table used to generate the alert
 -- @param device The a string with the name or ip address of the device that connected the network
 -- @return A table with the alert built
-function alert_device_connection:init(device)
+function alert_device_connection:init(device, event)
    -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {
     device = device,
+    event = event,
    }
 end
 
@@ -50,6 +51,7 @@ end
 -- @return A human-readable string
 function alert_device_connection.format(ifid, alert, alert_type_params)
   return(i18n("alert_messages.device_has_connected", {
+    event = alert_type_params.event or "connected",
     device = alert_type_params.device,
     device_url = getMacUrl(alert_type_params.device),
     if_name = getInterfaceName(ifid),

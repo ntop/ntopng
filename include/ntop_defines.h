@@ -947,7 +947,7 @@
 #define HOURLY_SCRIPT_DIR                   "hourly"
 #define DAILY_SCRIPT_DIR                    "daily"
 
-
+#define MACS_DISCONNECTION                   "ntopng.cache.checks.ifid_%d.macs_disconnected"  /* Sync with checks.lua CONFIGSET_KEY  */
 #define CHECKS_CONFIG                        "ntopng.prefs.checks.configset_v1"  /* Sync with checks.lua CONFIGSET_KEY  */
 #define SYSLOG_SCRIPT_PATH                   "callbacks/system/syslog.lua"
 #define SYSLOG_SCRIPT_CALLBACK_EVENT         "handleEvent"

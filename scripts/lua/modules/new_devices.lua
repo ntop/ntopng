@@ -23,7 +23,7 @@ function new_devices.reset_macs()
         -- Retrieving the list of the addresses already seen
         local seen_devices = ntop.getHashAllCache(seen_devices_hash) or {}
 
-        for key, value in pairs(seen_devices) do
+        for key, _ in pairs(seen_devices) do
             ntop.delHashCache(seen_devices_hash, key)
             ntop.delCache(redis_key .. "." .. key)
         end

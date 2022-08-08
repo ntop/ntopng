@@ -83,13 +83,19 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6]) : GenericHashEntry(_iface) 
 /* *************************************** */
 
 Mac::~Mac() {
+  if(ntop->getRedis() && ntop->getPrefs()->is_pro_edition()) {
+    char mac_addr[64], mac_disconnection_key[128];
+    snprintf(mac_disconnection_key, sizeof(mac_disconnection_key), (char*) MACS_DISCONNECTION, iface->get_id());
+    ntop->getRedis()->lpush(MACS_DISCONNECTION, print(mac_addr, sizeof(mac_addr)), 120 /* 2 minutes */);
+  }
+
   if(model) free(model);
   if(ssid) free(ssid);
   if(fingerprint) free(fingerprint);
   freeMacData();
   if(stats) delete(stats);
   if(stats_shadow) delete(stats_shadow);
-
+  
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s [total %u][%s]",
 			       Utils::formatMac(mac, buf, sizeof(buf)),
