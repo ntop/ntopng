@@ -83,10 +83,10 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6]) : GenericHashEntry(_iface) 
 /* *************************************** */
 
 Mac::~Mac() {
-  if(ntop->getRedis() && ntop->getPrefs()->is_pro_edition()) {
+  if(!special_mac &&  ntop->getRedis() && ntop->getPrefs()->is_pro_edition()) {
     char mac_addr[64], mac_disconnection_key[128];
     snprintf(mac_disconnection_key, sizeof(mac_disconnection_key), (char*) MACS_DISCONNECTION, iface->get_id());
-    ntop->getRedis()->lpush(MACS_DISCONNECTION, print(mac_addr, sizeof(mac_addr)), 120 /* 2 minutes */);
+    ntop->getRedis()->lpush(mac_disconnection_key, print(mac_addr, sizeof(mac_addr)), 0 /* No Trim */);
   }
 
   if(model) free(model);
