@@ -3,6 +3,7 @@ import * as Vue from "vue";
 
 // pages
 import { default as PageStats } from "./page-stats.vue";
+import { default as PageDeviceExclusions } from "./page-device-exclusions.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -31,6 +32,7 @@ import { default as ModalSnapshot } from "./modal-snapshot.vue";
 let ntopVue = {
     // pages
     PageStats: PageStats,
+    PageDeviceExclusions: PageDeviceExclusions,
     
     // components
     AlertInfo: AlertInfo,
