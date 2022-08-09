@@ -31,3 +31,6 @@ import './sequence_sunburst'
 import * as ebpfUtils from './ebpf-utils'
 
 window.ebpfUtils = ebpfUtils
+
+import formatterUtils from "./formatter-utils";
+window.ntopFormatterUtils = formatterUtils;

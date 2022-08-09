@@ -30,7 +30,7 @@
 	</label>
 	<div class="col-sm-8">
           <select class="form-select"  v-model="selected_source">
-            <option v-for="item in sources" :value="item">{{item.ifname}}</option>
+            <option v-for="item in sources" :value="item">{{get_name_from_source(item)}}</option>
           </select>
 	</div>
       </div>
@@ -45,56 +45,19 @@
 	</div>
       </div>
       
-      <div>
-      	<div class="form-group ms-2 me-2 mt-3 row">
-          <label class="col-form-label col-sm-4" >
-            <b>Timeseries:</b>
-          </label>
-	</div>
-	<div v-for="item in timeseries_to_add" class="form-group ms-4 me-2 mt-1 row">
-      	  <div class="custom-control custom-switch">
-      	    <input type="checkbox" class="custom-control-input whitespace form-check-input" v-model="item.raw">
-	    
-      	    <label class="custom-control-label ms-1 form-check-label">{{item.label}}</label>
-      	  </div>
-      	  <div class="custom-control custom-switch">
-      	    <input type="checkbox" class="custom-control-input whitespace form-check-input" v-model="item.avg">
-	    
-      	    <label class="custom-control-label ms-1 form-check-label">Avg {{item.label}}</label>
-      	  </div>
-      	  <div class="custom-control custom-switch">
-      	    <input type="checkbox" class="custom-control-input whitespace form-check-input" v-model="item.perc_95">
-	    
-      	    <label class="custom-control-label ms-1 form-check-label">95th Perc {{item.label}}</label>
-      	  </div>
-	</div>
-      </div>
-
-      
+      <ListTimeseries
+	title="Timeseries:"
+	:timeseries="timeseries_to_add">
+      </ListTimeseries>      
     </template><!-- action == add -->
 
     <template v-if="action == 'select'">
-      <template v-for="item in metrics_added">
-	Hello World
-	<!-- <div v-if="exclude_type == 'ip'" class="ip-fields"> -->
-	<!--   <div class="mb-3 row"> -->
-        <!--     <label class="col-form-label col-sm-4" > -->
-        <!--       <b>{{ _i18n("check_exclusion.ip_address") }}</b> -->
-        <!--     </label> -->
-        <!--     <div class="col-sm-6"> -->
-        <!--       <input :pattern="pattern_ip" placeholder="192.168.1.1" required type="text" name="ip_address" class="form-control" v-model="input_ip" /> -->
-        <!--     </div> -->
-	<!--   </div> -->
-	<!-- </div> -->
-
-	<!-- <div class="form-group ms-2 me-2 mt-3 row"> -->
-	<!--   <div class="custom-control custom-switch"> -->
-	<!--     <input type="checkbox" class="custom-control-input whitespace form-check-input" v-model="apply_time"> -->
-	    
-	<!--     <label class="custom-control-label ms-1 form-check-label">{{apply_time_text}}</label> -->
-	<!--   </div> -->
-	<!-- </div> -->
-      </template><!-- v-for metrics_added -->
+      <template v-for="item in timeseries_groups_added">
+	<ListTimeseries
+	  :title="get_timeseries_group_name(item)"
+	  :timeseries="item.timeseries">
+	</ListTimeseries>      
+      </template><!-- v-for timeseries_groups_added -->
     </template><!-- action == select -->
   </template><!-- modal-body -->
   
@@ -107,37 +70,48 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { default as modal } from "./modal.vue";
+import { default as ListTimeseries } from "./list-timeseries.vue";
 
 const modal_id = ref(null);
 const showed = () => {};
 
 const action = ref("select"); // add/select 
 
-let sources_types = ["interface"];
+const source_type_enum = {
+    interface: "ifid"
+}
+
+let sources_types = [source_type_enum.interface];
 const selected_source_type = ref(sources_types[0]);
 
 const sources = ref([]);
 const selected_source = ref({});
 
+// const timeseries_group_name = computed(() => {
+//     let name = get_name_from_source(ts_group.source);
+//     return name;
+// });
+
 const metrics = ref([]);
 const selected_metric = ref({});
 
-const metrics_added = ref([]);
+const timeseries_groups_added = ref([]);
 
 const timeseries_to_add = ref([]);
 
+const emit = defineEmits(['apply'])
+
+let wait_init = null;
+
 onMounted(async () => {
+    action.value = "select";
+    let wait_init = init();
 });
 
-let is_already_init = false;
-const show = () => {
-    if (is_already_init == false) {
-	init();
-	is_already_init= true;
-    }
+const show = async () => {
+    await wait_init;
     modal_id.value.show();
 };
-
 
 async function init() {
     console.log("INIT modal-timeseries");
@@ -150,23 +124,29 @@ async function init() {
     if (res.length > 0) {
 	selected_source.value = res[0];
     }
-
+    
     // init metrics
     let url = `${http_prefix}/lua/pro/rest/v2/get/timeseries/type/consts.lua`;
     res = await ntopng_utility.http_request(url);
-    selected_metric.value = res[0];
     console.log(res);
     metrics.value = res;
-
+    // take default visible
+    let metric_default = metrics.value.find((m) => m.default_visible);    
+    selected_metric.value = metric_default;
+    
     update_timeseries_to_add();
-
+    
     // init metrics added
-    let metric_default = metrics.value.find((m) => m.default_visible);
-    metrics_added.value.push({
+    let ts_group = {
+	id: get_timeseries_group_id(),
 	source_type: selected_source_type.value,
 	source: selected_source.value,
 	metric: metric_default,
-    });
+	timeseries: timeseries_to_add.value,
+    };
+    timeseries_groups_added.value.push(ts_group);
+    console.log("emit");
+    emit('apply', timeseries_groups_added.value);
 }
 
 function update_timeseries_to_add() {
@@ -183,8 +163,56 @@ function update_timeseries_to_add() {
     }
 }
 
+function get_timeseries_group_name(ts_group) {
+    let source_type_name = "";
+    if (ts_group.source_type == source_type_enum.interface)  {
+	source_type_name = "Interface";
+    }
+    let name = get_name_from_source(ts_group.source);
+    let metric_name = ts_group.metric.label;
+    return `${source_type_name} - ${name} - ${metric_name}`;
+}
+
+function get_timeseries_group_id() {
+    let source = selected_source.value;
+    let source_type = selected_source_type.value;
+    let metric = selected_metric.value;
+    let source_id = get_id_from_source(source, source_type);
+    return `${source_type} - ${source_id} - ${metric.schema}`;
+}
+
+function get_name_from_source(source, source_type) {
+    if (source_type == null) {
+	source_type = selected_source_type.value;
+    }
+    if (source_type == source_type_enum.interface) {
+	return source.ifname;
+    }
+}
+
+function get_id_from_source(source, source_type) {
+    if (source_type == null) {
+	source_type = selected_source_type.value;
+    }
+    if (source_type == source_type_enum.interface) {
+	return source.ifid;
+    }
+}
+
 const apply = () => {
-    console.log(selected_metric.value);
+    if (action.value == "add") {
+	let ts_group_id = get_timeseries_group_id();
+	if (!timeseries_groups_added.value.some((ts_group) => ts_group.id == ts_group_id)) {
+	    timeseries_groups_added.value.push({
+		id: ts_group_id,
+		source_type: selected_source_type.value,
+		source: selected_source.value,
+		metric: selected_metric.value,
+		timeseries: timeseries_to_add.value,
+	    });
+	}
+    }
+    emit('apply', timeseries_groups_added.value);
     close();
 }
 

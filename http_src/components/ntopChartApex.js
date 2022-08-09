@@ -2,7 +2,6 @@
     (C) 2022 - ntop.org
 */
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
-import { ntopChartOptionsUtility } from './ntopChartOptionsUtility';
 
 const ntopChartApex = function() {
     // define default chartOptions for all chart type.
@@ -117,19 +116,14 @@ const ntopChartApex = function() {
 
     
     return {
-	chartOptionsUtility: ntopChartOptionsUtility,
 	typeChart: {
 	    TS_STACKED: "TS_STACKED",
 	    BASE: "BASE",
 	},
-	typeOptionsConverter: {
-	    TS_INTERFACE: "TS_INTERFACE",
-	},
-	newChart: function(type, typeOptionsConverter) {
+	newChart: function(type) {
 	    let _chartOptions;
 	    let _chart;
 	    let _chartHtmlElement;
-	    let _chartOptionsConverter = (options) => { return options; };
 
 	    if (type == this.typeChart.TS_STACKED) {
 		_chartOptions = ntopng_utility.clone(_default_TS_STACKED_ChartOptions);
@@ -139,13 +133,9 @@ const ntopChartApex = function() {
 	    } else {
 		throw `ntopChartApex::newChart: chart type = ${type} unsupported`;
 	    }
-	    if (typeOptionsConverter == this.typeOptionsConverter.TS_INTERFACE) {
-	    	_chartOptionsConverter = (options) => ntopChartOptionsUtility.tsInterfaceToApexOptions(options);
-	    }
 	    
 	    return {
 		drawChart: function(htmlElement, chartOptions) {
-		    _chartOptionsConverter(chartOptions);
 		    // add/replace chartOptions fields in _chartOptions
 		    ntopng_utility.copy_object_keys(chartOptions, _chartOptions, true);
 		    _chart = new ApexCharts(htmlElement, _chartOptions);
@@ -154,7 +144,6 @@ const ntopChartApex = function() {
 		},
 		updateChart: function(chartOptions) {
 		    if (_chart == null) { return; }
-		    _chartOptionsConverter(chartOptions);
 		    _chart.updateOptions(chartOptions, true);
 		},
 		registerEvent: function(eventName, callback, updateChart = false) {

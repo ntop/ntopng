@@ -10,10 +10,10 @@ export default {
     props: {
 	id: String,
 	chart_type: String,
-	chart_options_converter: String,
 	register_on_status_change: Boolean,
 	base_url_request: String,
 	get_params_url_request: Function,
+	get_custom_chart_options: Function,
     },
     emits: ["apply", "hidden", "showed", "chart_reloaded"],
     /** This method is the first method of the component called, it's called before html template creation. */
@@ -74,7 +74,7 @@ export default {
 	    if (chart_type == null) {
 		chart_type = chartApex.typeChart.TS_STACKED;
 	    }
-	    this.chart = chartApex.newChart(chart_type, this.chart_options_converter);
+	    this.chart = chartApex.newChart(chart_type);
 	    this.chart.registerEvent("zoomed", (chart_context, axis) => this.on_zoomed(chart_context, axis));
 	    let chart_options = await this.get_chart_options(url_request);
 	    this.chart.drawChart(this.$refs["chart"], chart_options);
@@ -84,7 +84,12 @@ export default {
 	    this.chart.updateChart(chart_options);
 	},
 	get_chart_options: async function(url_request) {
-	    let chart_options = await ntopng_utility.http_request(url_request);
+	    let chart_options;
+	    if (this.get_custom_chart_options == null) {
+		chart_options = await ntopng_utility.http_request(url_request);
+	    } else {
+		chart_options = await this.get_custom_chart_options(url_request);
+	    }
 	    this.$emit('chart_reloaded', chart_options);
 	    return chart_options;
 	},

@@ -13,6 +13,9 @@ import { default as PageNavbar } from "./page-navbar.vue";
 import { default as RangePicker } from "./range-picker.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 
+// list
+import { default as ListTimeseries } from "./list-timeseries.vue";
+
 // modals
 import { default as Modal } from "./modal.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
@@ -37,6 +40,9 @@ let ntopVue = {
     RangePicker: RangePicker,
     PageNavbar: PageNavbar,
     SimpleTable: SimpleTable,
+
+    // list
+    ListTimeseries: ListTimeseries,
 
     // modals
     Modal: Modal,
