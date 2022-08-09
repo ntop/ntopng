@@ -88,7 +88,7 @@ void MostVisitedList::saveOldData(u_int32_t iface_id, char *additional_key_info,
     /* List key = ntopng.cache.top_sites_hour_done | value = 1_17_11 */
     snprintf(hour_done, sizeof(hour_done), "%d_%d_%d", iface_id, t_now.tm_mday, hour);
 
-    ntop->getRedis()->lpush(hashkey, hour_done, 3600);
+    ntop->getRedis()->lpush(hashkey, hour_done, 0);
 
     current_cycle = 0;
   } else
@@ -143,8 +143,8 @@ void MostVisitedList::serializeDeserialize(u_int32_t iface_id,
 
   /* Serialize the data */
   if(do_serialize) {
-    ntop->getRedis()->lpush(hour_hashkey, redis_hour_key, 3600);
-    ntop->getRedis()->lpush(day_hashkey, redis_daily_key, 3600);
+    ntop->getRedis()->lpush(hour_hashkey, redis_hour_key, 0);
+    ntop->getRedis()->lpush(day_hashkey, redis_daily_key, 0);
     if(top_data->getSize()) {
       /* Serialize the double of the max value */
       char *top_data_json = top_data->json(2*max_num_items);
@@ -237,7 +237,7 @@ void MostVisitedList::resetTopSitesData(u_int32_t iface_id, char *extra_info, ch
   minute = t_now.tm_min - (t_now.tm_min % 5);
 
   snprintf(redis_reset_key, sizeof(redis_reset_key), "%s%u_%d_%u_%d", extra_info, iface_id, t_now.tm_mday, t_now.tm_hour, minute);
-  ntop->getRedis()->lpush(hashkey, redis_reset_key, 3600);
+  ntop->getRedis()->lpush(hashkey, redis_reset_key, 0);
 }
 
 /* *************************************** */

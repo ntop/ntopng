@@ -57,7 +57,7 @@ class Redis {
   char* getRedisVersion();
   void reconnectRedis(bool giveup_on_failure);
   int msg_push(const char * cmd, const char * queue_name, const char * msg, u_int queue_trim_size,
-	       bool trace_errors = true, bool head_trim = true);
+	       bool trace_errors = true, bool head_trim = false);
   int lrpop(const char *queue_name, char *buf, u_int buf_len, bool lpop);
   void addToCache(const char * key, const char * value, u_int expire_secs);
   bool isCacheable(const char * key);
