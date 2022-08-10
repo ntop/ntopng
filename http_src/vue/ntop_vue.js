@@ -13,6 +13,7 @@ import { default as DateTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as PageNavbar } from "./page-navbar.vue";
 import { default as RangePicker } from "./range-picker.vue";
 import { default as SimpleTable } from "./simple-table.vue";
+import { default as SelectSearch } from "./select-search.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -42,7 +43,8 @@ let ntopVue = {
     RangePicker: RangePicker,
     PageNavbar: PageNavbar,
     SimpleTable: SimpleTable,
-
+    SelectSearch: SelectSearch,
+    
     // list
     ListTimeseries: ListTimeseries,
 

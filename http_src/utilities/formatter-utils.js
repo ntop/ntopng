@@ -5,7 +5,7 @@ const types = {
     no_formatting: { id: "no_formatting", um: null, step: null, decimal: null, },
     number: { id: "number", um: ["", "K", "M", "G", "T"], step: 1000, decimal: null },
     bytes: { id: "bytes", um: ["B", "KB", "MB", "GB", "TB"], step: 1024, decimal: 2 },
-    bps: { id: "bps", um: ["bit/s", "Kbit/s", "Mbit/s", "Gbit/s"], step: 1000, decimal: 2 },
+    bps: { id: "bps", um: ["bit/s", "Kbit/s", "Mbit/s", "Gbit/s"], step: 1000, decimal: 2, invert_direction: true },
     pps: { id: "pps", um: ["pps", "Kpps", "Mpps", "Gpps", "Tpps"], step: 1000, decimal: 2 },
 };
 
@@ -14,6 +14,9 @@ function getFormatter(type) {
     let formatter = function(value) {	
 	if (type == types.no_formatting.id) {
 	    return value;
+	}
+	if (typeOptions.invert_direction == true && value < 0) {
+	    value *= -1;
 	}
 	let step = typeOptions.step;
 	let decimal = typeOptions.decimal;

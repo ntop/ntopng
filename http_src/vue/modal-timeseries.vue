@@ -16,27 +16,27 @@
     <template v-if="action == 'add'">
       <div class="form-group ms-2 me-2 mt-3 row">
 	<label class="col-form-label col-sm-4" >
-          <b>Select Source Type</b>
+          <b>Source Type</b>
 	</label>
 	<div class="col-sm-8">
-          <select class="form-select"  v-model="selected_source_type">
-            <option v-for="item in sources_types" :value="item">{{item}}</option>
+          <select class="form-select" v-model="selected_source_type">
+            <option v-for="item in sources_types" :value="item">{{item.name}}</option>
           </select>
 	</div>
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
 	<label class="col-form-label col-sm-4" >
-          <b>Select Source</b>
+          <b>Source</b>
 	</label>
 	<div class="col-sm-8">
           <select class="form-select"  v-model="selected_source">
-            <option v-for="item in sources" :value="item">{{get_name_from_source(item)}}</option>
+            <option v-for="item in sources" :value="item">{{item.name}}</option>
           </select>
 	</div>
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
 	<label class="col-form-label col-sm-4" >
-          <b>Select Metric</b>
+          <b>Metric</b>
 	</label>
 	<div class="col-sm-8">
           <select class="form-select" @click="update_timeseries_to_add()" v-model="selected_metric">
@@ -72,25 +72,19 @@ import { ref, onMounted, computed, watch } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as ListTimeseries } from "./list-timeseries.vue";
 
+import metricsManager from "../utilities/metrics-manager.js";
+
 const modal_id = ref(null);
 const showed = () => {};
 
 const action = ref("select"); // add/select 
 
-const source_type_enum = {
-    interface: "ifid"
-}
-
-let sources_types = [source_type_enum.interface];
-const selected_source_type = ref(sources_types[0]);
+let current_page_source_type = metricsManager.get_current_page_source_type();
+let sources_types = metricsManager.sources_types;
+const selected_source_type = ref(current_page_source_type);
 
 const sources = ref([]);
 const selected_source = ref({});
-
-// const timeseries_group_name = computed(() => {
-//     let name = get_name_from_source(ts_group.source);
-//     return name;
-// });
 
 const metrics = ref([]);
 const selected_metric = ref({});
@@ -113,90 +107,67 @@ const show = async () => {
     modal_id.value.show();
 };
 
-async function init() {
-    console.log("INIT modal-timeseries");
-    let res
-    // init sources, todo
-    let url_interfaces = `${http_prefix}/lua/rest/v2/get/ntopng/interfaces.lua`;
-    res = await ntopng_utility.http_request(url_interfaces);
-    console.log(res);
-    sources.value = res;
-    if (res.length > 0) {
-	selected_source.value = res[0];
-    }
+const select_metric = (metric) => {
+    selected_source_type.value = current_page_source_type;
+    init(metric);
+};
+
+async function init(default_selected_metric) {
+    sources.value = await metricsManager.get_sources(http_prefix, current_page_source_type);
+    let default_source_value = metricsManager.get_default_source_value(selected_source_type.value);
+    selected_source.value = sources.value.find((s) => s.value == default_source_value);
     
     // init metrics
-    let url = `${http_prefix}/lua/pro/rest/v2/get/timeseries/type/consts.lua`;
-    res = await ntopng_utility.http_request(url);
-    console.log(res);
-    metrics.value = res;
+    metrics.value = await metricsManager.get_metrics();
     // take default visible
-    let metric_default = metrics.value.find((m) => m.default_visible);    
-    selected_metric.value = metric_default;
+    if (default_selected_metric == null) {
+	selected_metric.value = metricsManager.get_default_metric(metrics.value);
+    } else {
+ 	selected_metric.value = default_selected_metric;
+    }
     
-    update_timeseries_to_add();
+    update_timeseries_to_add(true);
     
     // init metrics added
+    timeseries_groups_added.value = [];
     let ts_group = {
 	id: get_timeseries_group_id(),
 	source_type: selected_source_type.value,
 	source: selected_source.value,
-	metric: metric_default,
+	metric: selected_metric.value,
 	timeseries: timeseries_to_add.value,
     };
     timeseries_groups_added.value.push(ts_group);
     console.log("emit");
-    emit('apply', timeseries_groups_added.value);
+    //emit('apply', timeseries_groups_added.value);
 }
 
-function update_timeseries_to_add() {
+function update_timeseries_to_add(default_config) {
     timeseries_to_add.value = [];
-    let timeseries = selected_metric.value.timeseries
+    let timeseries = selected_metric.value.timeseries;
     for (let ts_id in timeseries) {
-	timeseries_to_add.value.push({
-	    id: ts_id,
-	    label: timeseries[ts_id].label,
-	    raw: true,
-	    avg: false,
-	    perc_95: false,
-	});
+    	timeseries_to_add.value.push({
+    	    id: ts_id,
+    	    label: timeseries[ts_id].label,
+    	    raw: true,
+    	    avg: false || default_config,
+    	    perc_95: false || default_config,
+    	});
     }
 }
 
 function get_timeseries_group_name(ts_group) {
-    let source_type_name = "";
-    if (ts_group.source_type == source_type_enum.interface)  {
-	source_type_name = "Interface";
-    }
-    let name = get_name_from_source(ts_group.source);
+    let source_type_name = ts_group.source_type.name;
+    let source_name = ts_group.source.name;
     let metric_name = ts_group.metric.label;
-    return `${source_type_name} - ${name} - ${metric_name}`;
+    return `${source_type_name} - ${source_name} - ${metric_name}`;
 }
 
 function get_timeseries_group_id() {
-    let source = selected_source.value;
     let source_type = selected_source_type.value;
+    let source = selected_source.value;
     let metric = selected_metric.value;
-    let source_id = get_id_from_source(source, source_type);
-    return `${source_type} - ${source_id} - ${metric.schema}`;
-}
-
-function get_name_from_source(source, source_type) {
-    if (source_type == null) {
-	source_type = selected_source_type.value;
-    }
-    if (source_type == source_type_enum.interface) {
-	return source.ifname;
-    }
-}
-
-function get_id_from_source(source, source_type) {
-    if (source_type == null) {
-	source_type = selected_source_type.value;
-    }
-    if (source_type == source_type_enum.interface) {
-	return source.ifid;
-    }
+    return `${source_type.value} - ${source.value} - ${metric.schema}`;
 }
 
 const apply = () => {
@@ -220,7 +191,7 @@ const close = () => {
     modal_id.value.close();
 };
 
-defineExpose({ show, close });
+defineExpose({ show, close, select_metric });
 
 const _i18n = (t) => i18n(t);
 
