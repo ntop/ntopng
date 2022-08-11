@@ -376,6 +376,8 @@ using namespace std;
 #include "HwBypass.h"
 #include "SilicomHwBypass.h"
 #include "NetfilterInterface.h"
+#else
+#include "nTapInterface.h"
 #endif
 #endif
 #ifndef HAVE_NEDGE

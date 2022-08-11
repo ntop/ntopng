@@ -227,6 +227,13 @@ int main(int argc, char *argv[])
 #if defined(HAVE_NEDGE)
         if(iface == NULL && strncmp(ifName, "nf:", 3) == 0)
           iface = new (std::nothrow) NetfilterInterface(ifName);
+#else
+#if defined(NTOPNG_PRO)
+        if((iface == NULL)
+	   && (strncmp(ifName, "ntap:", 3) == 0)
+	   && ntop->getPro()->has_valid_enterprise_l_license())
+          iface = new (std::nothrow) nTapInterface(ifName);
+#endif
 #endif
 
 #ifdef HAVE_PF_RING
