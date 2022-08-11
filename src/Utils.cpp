@@ -1493,10 +1493,10 @@ static void fillcURLProxy(CURL *curl) {
     if (!no_proxy) no_proxy = getenv("no_proxy");
 
     if(no_proxy) {
-      char no_proxy[1024];
+      char no_proxy_buf[1024];
 
-      sprintf(no_proxy, "%s", no_proxy);
-      curl_easy_setopt(curl, CURLOPT_NOPROXY, no_proxy);
+      sprintf(no_proxy_buf, "%s", no_proxy);
+      curl_easy_setopt(curl, CURLOPT_NOPROXY, no_proxy_buf);
     }
   }
 }
