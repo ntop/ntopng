@@ -138,7 +138,7 @@ On MacOS
 
 Using Brew (http://brew.sh):
 
-brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql json-c libmaxminddb zmq
+brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql json-c libmaxminddb zmq openssl
 
 Using MacPorts:
 
