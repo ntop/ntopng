@@ -185,3 +185,16 @@ Ntopng sends an alert in case DHCP starvation occurs.
 *Enabled by Default*
 
 
+**Unexpected Device Connected/Disconnected**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Check for MAC addresses.
+
+An alert is triggered whenever an unexpected MAC address connects or disconnects form an Interface. After enabling the alert, a new page, called `Devices Exclusion` (more info can be found `here <../advanced_features/devices_exclusion.html>`_) is going to available in the `Settings` menù. 
+
+By jumping there, users are able to configure denied/allowed MAC addresses (unexpected/expected MAC addresses). When a denied or non accounted MAC address connects to the Interface a new Engaged alert is going to be triggered, that is going to be released when the unexpected MAC address is going to disconnect from the Interface or when allowed.  
+
+*Category: Network*
+
+*License: Pro*
+
+*Disabled by Default*
