@@ -1472,6 +1472,10 @@ void Host::offlineSetMDNSInfo(char * const str) {
 
 	/* Time to set the actual info */
 	names.mdns_info = cur_info;
+
+#ifdef NTOPNG_PRO
+	ntop->get_am()->setResolvedName(this, label_mdns_info, names.mdns_info);
+#endif
       }
 
       return;
@@ -1491,23 +1495,33 @@ void Host::offlineSetSSDPLocation(const char * url) {
 void Host::offlineSetMDNSName(const char * mdns_n) {
   if(!isValidHostName(mdns_n))  return;
   
-  if(!names.mdns && mdns_n && (names.mdns = Utils::toLowerResolvedNames(mdns_n)))
-    ;
+  if(!names.mdns && mdns_n && (names.mdns = Utils::toLowerResolvedNames(mdns_n))) {
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setResolvedName(this, label_mdns, names.mdns);
+#endif
+  }
 }
 
 /* *************************************** */
 
 void Host::offlineSetMDNSTXTName(const char * mdns_n_txt) {
-  if(!names.mdns_txt && mdns_n_txt && (names.mdns_txt = Utils::toLowerResolvedNames(mdns_n_txt)))
-    ;
+  if(!names.mdns_txt && mdns_n_txt && (names.mdns_txt = Utils::toLowerResolvedNames(mdns_n_txt))) {
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setResolvedName(this, label_mdns_txt, names.mdns_txt);
+#endif
+  }
 }
 
 /* *************************************** */
 
 void Host::offlineSetNetbiosName(const char * netbios_n) {
   if(!isValidHostName(netbios_n))  return;
-  if(!names.netbios && netbios_n && (names.netbios = Utils::toLowerResolvedNames(netbios_n)))
-    ;
+  
+  if(!names.netbios && netbios_n && (names.netbios = Utils::toLowerResolvedNames(netbios_n))) {
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setResolvedName(this, label_netbios, names.netbios);
+#endif
+  }
 }
 
 /* *************************************** */
@@ -1515,8 +1529,11 @@ void Host::offlineSetNetbiosName(const char * netbios_n) {
 void Host::offlineSetTLSName(const char * tls_n) {
   if(!isValidHostName(tls_n))  return;
   
-  if(!names.tls && tls_n && (names.tls = Utils::toLowerResolvedNames(tls_n)))
-    ;
+  if(!names.tls && tls_n && (names.tls = Utils::toLowerResolvedNames(tls_n))) {
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setResolvedName(this, label_tls, names.tls);
+#endif
+  }
 }
 
 /* *************************************** */
@@ -1524,8 +1541,11 @@ void Host::offlineSetTLSName(const char * tls_n) {
 void Host::offlineSetHTTPName(const char * http_n) {
   if(!isValidHostName(http_n))  return;
   
-  if(!names.http && http_n && (names.http = Utils::toLowerResolvedNames(http_n)))
-    ;
+  if(!names.http && http_n && (names.http = Utils::toLowerResolvedNames(http_n))) {
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setResolvedName(this, label_http, names.http);
+#endif
+  }
 }
 
 /* *************************************** */
@@ -1556,8 +1576,11 @@ void Host::setServerName(const char * server_n) {
   if(!isValidHostName(server_n))
     return;
   
-  if(!names.server_name && server_n && (names.server_name = Utils::toLowerResolvedNames(server_n)))
-    ;
+  if(!names.server_name && server_n && (names.server_name = Utils::toLowerResolvedNames(server_n))) {
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setResolvedName(this, label_server_name, names.server_name);
+#endif
+  }   
 }
 
 /* *************************************** */
@@ -1567,11 +1590,16 @@ void Host::setResolvedName(const char * resolved_name) {
   if(resolved_name && resolved_name[0] != '\0') {
     m.lock(__FILE__, __LINE__);
 
-    if(!names.resolved /* Don't set hostnames already set */)
+    if(!names.resolved /* Don't set hostnames already set */) {
       names.resolved = Utils::toLowerResolvedNames(resolved_name);
 
-    m.unlock(__FILE__, __LINE__);
+#ifdef NTOPNG_PRO
+      ntop->get_am()->setResolvedName(this, label_resolver, names.resolved);
+#endif
     }
+    
+    m.unlock(__FILE__, __LINE__);
+  }
 }
 
 /* *************************************** */
@@ -1733,15 +1761,15 @@ void Host::checkBroadcastDomain() {
 /* *************************************** */
 
 void Host::freeHostNames() {
-  if(ssdpLocation)   { free(ssdpLocation); ssdpLocation = NULL;       }
-  if(names.http)     { free(names.http); names.http = NULL;           }
-  if(names.mdns)     { free(names.mdns); names.mdns = NULL;           }
-  if(names.mdns_info){ free(names.mdns_info); names.mdns_info = NULL; }
-  if(names.mdns_txt) { free(names.mdns_txt); names.mdns_txt = NULL;   }
-  if(names.netbios)  { free(names.netbios); names.netbios = NULL;     }
-  if(names.resolved) { free(names.resolved); names.resolved = NULL;   }
-  if(names.server_name) { free(names.server_name); names.server_name = NULL;           }
-  if(names.tls)      { free(names.tls); names.tls = NULL;             }
+  if(ssdpLocation)      { free(ssdpLocation); ssdpLocation = NULL;       }
+  if(names.http)        { free(names.http); names.http = NULL;           }
+  if(names.mdns)        { free(names.mdns); names.mdns = NULL;           }
+  if(names.mdns_info)   { free(names.mdns_info); names.mdns_info = NULL; }
+  if(names.mdns_txt)    { free(names.mdns_txt); names.mdns_txt = NULL;   }
+  if(names.netbios)     { free(names.netbios); names.netbios = NULL;     }
+  if(names.resolved)    { free(names.resolved); names.resolved = NULL;   }
+  if(names.server_name) { free(names.server_name); names.server_name = NULL; }
+  if(names.tls)         { free(names.tls); names.tls = NULL;             }
 }
 
 /* *************************************** */
@@ -2267,3 +2295,49 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 }
 
 /* *************************************** */
+
+void Host::setDhcpServer() {
+  if(!isDhcpServer()) {
+    host_services_bitmap |= 1 << HOST_IS_DHCP_SERVER;
+    
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setServerInfo(this, dhcp_server);
+#endif
+  }
+}
+
+/* *************************************** */
+
+void Host::setDnsServer() {
+  if(!isDnsServer()) {
+    host_services_bitmap |= 1 << HOST_IS_DNS_SERVER;
+    
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setServerInfo(this, dns_server);
+#endif
+  }
+}
+
+/* *************************************** */
+
+void Host::setSmtpServer() {
+  if(!isSmtpServer()) {
+    host_services_bitmap |= 1 << HOST_IS_SMTP_SERVER;
+    
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setServerInfo(this, smtp_server);
+#endif
+  }
+}
+
+/* *************************************** */
+
+void Host::setNtpServer() {
+  if(!isNtpServer()) {
+    host_services_bitmap |= 1 << HOST_IS_NTP_SERVER;
+    
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setServerInfo(this, ntp_server);
+#endif
+  }
+}

@@ -94,6 +94,9 @@ class Ntop {
 #endif
   FifoSerializerQueue *internal_alerts_queue;
   Recipients recipients; /* Handle notification recipients */
+#ifdef NTOPNG_PRO
+  AssetManagement am;
+#endif
   
   /* Local network address list */
   char *local_network_names[CONST_MAX_NUM_NETWORKS];
@@ -620,6 +623,10 @@ public:
   inline ClickHouseImport* getClickHouseImport()            { return(clickhouseImport); }
 #endif  
   inline char* getTZname()                                  { return(myTZname);         }
+#ifdef NTOPNG_PRO
+  inline AssetManagement* get_am()                          { return(&am);              }
+#endif
+
 };
 
 extern Ntop *ntop;

@@ -82,6 +82,9 @@ class Prefs {
   bool enable_zmq_encryption;
   bool flow_table_time, flow_table_probe_order;
   bool enable_broadcast_domain_too_large;
+#ifdef NTOPNG_PRO
+  bool create_labels_logfile;
+#endif
   u_int32_t max_num_secs_before_delete_alert, alert_page_refresh_rate;
   int32_t max_entity_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
@@ -438,6 +441,9 @@ class Prefs {
   inline void        dontUseClickHouse()         { dump_flows_on_clickhouse = dump_flows_on_mysql = false;        };
   inline char*       getZMQPublishEventsURL()    { return(zmq_publish_events_url);                      };
   inline const char* getClickHouseClientPath()   { return(clickhouse_client);                           };
+#ifdef NTOPNG_PRO
+  inline bool        isLabelDumpEnabled()        { return(create_labels_logfile);                       };
+#endif
   void setIEC104AllowedTypeIDs(const char * protos);
   void validate();
 };

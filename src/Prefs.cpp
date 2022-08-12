@@ -84,6 +84,7 @@ Prefs::Prefs(Ntop *_ntop) {
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
 #ifdef NTOPNG_PRO
   pro_callbacks_dir = strdup(CONST_DEFAULT_PRO_CALLBACKS_DIR);
+  create_labels_logfile = false;
 #endif
   pcap_dir = NULL;
   test_pre_script_path = test_post_script_path = NULL;
@@ -377,7 +378,29 @@ void usage() {
 	 "                                    | (default: %u)\n"
 	 "[--users-file|-u] <path>            | Users configuration file path\n"
 	 "                                    | Default: %s\n"
-	 "[--original-speed]                  | Reproduce (-i) the pcap file at original speed\n"
+	 "[--original-speed]                  | Reproduce (-i) the pcap file at original speed\n",
+#ifdef HAVE_NEDGE
+	 "edge "
+#else
+	 ""
+#endif
+	 , PACKAGE_MACHINE, PACKAGE_VERSION,
+#ifndef WIN32
+	 ntop->get_working_dir(),
+#endif
+	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
+         CONST_DEFAULT_CALLBACKS_DIR,
+	 CONST_DEFAULT_DATA_DIR,
+	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT+1,
+         CONST_DEFAULT_NTOP_USER,
+	 MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS,
+	 CONST_DEFAULT_USERS_FILE);
+
+
+  printf(
+#ifdef NTOPNG_PRO
+	 "[--log-labels}                      | Enable dump of host labels in %s/%s\n"
+#endif
 #ifndef WIN32
 	 "[--pid|-G] <path>                   | Pid file path\n"
 #endif
@@ -462,23 +485,11 @@ void usage() {
 	 "[--simulate-vlans]                  | Simulate VLAN traffic (debug only)\n"
 	 "[--simulate-macs]                   | Simulate MACs in the traffic (debug only)\n"
 	 "[--simulate-ips] <num>              | Simulate IPs by choosing clients and servers among <num> random addresses\n"
-	 "[--help|-h]                         | Help\n",
-#ifdef HAVE_NEDGE
-	 "edge "
-#else
-	 ""
+	 "[--help|-h]                         | Help\n"
+#ifdef NTOPNG_PRO
+	 , CONST_DEFAULT_DATA_DIR, CONST_LABELS_LOG_FILE
 #endif
-	 , PACKAGE_MACHINE, PACKAGE_VERSION,
-#ifndef WIN32
-	 ntop->get_working_dir(),
-#endif
-	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
-         CONST_DEFAULT_CALLBACKS_DIR,
-	 CONST_DEFAULT_DATA_DIR,
-	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT+1,
-         CONST_DEFAULT_NTOP_USER,
-	 MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS,
-	 CONST_DEFAULT_USERS_FILE);
+	 );
 
   printf("\n");
 
@@ -833,6 +844,9 @@ static const struct option long_options[] = {
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
   { "pcap-dir",                          required_argument, NULL, '5' },
+#ifdef NTOPNG_PRO
+  { "log-labels",                        no_argument,       NULL, 202 },
+#endif
   { "zmq-publish-events",                required_argument, NULL, 203 },
 #ifdef HAVE_PF_RING
   { "cluster-id",                        required_argument, NULL, 204 },
@@ -1575,6 +1589,12 @@ int Prefs::setOption(int optkey, char *optarg) {
     print_version = true;
     break;
 
+#ifdef NTOPNG_PRO
+  case 202:
+    create_labels_logfile = true;
+    break;
+#endif
+    
   case 203:
     zmq_publish_events_url = strdup(optarg);
     break;

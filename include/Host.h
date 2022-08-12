@@ -173,14 +173,18 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t getNumBlacklistedAsCliReset() const { return getNumBlacklistedAsCli() - getCheckpointBlacklistedAsCli(); }
   inline u_int32_t getNumBlacklistedAsSrvReset() const { return getNumBlacklistedAsSrv() - getCheckpointBlacklistedAsSrv(); }
 
-  inline  bool isDhcpServer()          const { return(host_services_bitmap & (1 << HOST_IS_DHCP_SERVER)); }
-  inline  void setDhcpServer()               { host_services_bitmap |= 1 << HOST_IS_DHCP_SERVER;          }
-  inline  bool isDnsServer()          const  { return(host_services_bitmap & (1 << HOST_IS_DNS_SERVER));  }
-  inline  void setDnsServer()                { host_services_bitmap |= 1 << HOST_IS_DNS_SERVER;           }
-  inline  bool isSmtpServer()          const { return(host_services_bitmap & (1 << HOST_IS_SMTP_SERVER)); }
-  inline  void setSmtpServer()               { host_services_bitmap |= 1 << HOST_IS_SMTP_SERVER;          }
-  inline  bool isNtpServer()          const  { return(host_services_bitmap & (1 << HOST_IS_NTP_SERVER));  }
-  inline  void setNtpServer()                { host_services_bitmap |= 1 << HOST_IS_NTP_SERVER;           }
+  inline  bool isDhcpServer() const { return(host_services_bitmap & (1 << HOST_IS_DHCP_SERVER));  }
+  void setDhcpServer();
+
+  inline  bool isDnsServer()  const  { return(host_services_bitmap & (1 << HOST_IS_DNS_SERVER));  }
+  void setDnsServer();
+
+  inline  bool isSmtpServer() const { return(host_services_bitmap & (1 << HOST_IS_SMTP_SERVER));  }
+  void setSmtpServer();
+
+  inline  bool isNtpServer()  const  { return(host_services_bitmap & (1 << HOST_IS_NTP_SERVER));  }
+  void setNtpServer();
+  
   inline  u_int16_t getServicesMap()         { return(host_services_bitmap);                              }
   /*
     NOTE: update the fucntion below when a new isXXXServer is added
