@@ -45,6 +45,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    nEdge <https://www.ntop.org/guides/nedge/>
    nScrub <https://www.ntop.org/guides/nscrub/>
    nBox <https://www.ntop.org/guides/nbox/>
+   nTap <https://www.ntop.org/guides/ntap/>
 
 .. Indices and tables
 .. ==================
