@@ -6,7 +6,6 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local cpu_utils = {}
-local alert_utils = require "alert_utils"
 
 -- #################################
 
