@@ -1746,7 +1746,6 @@ local all_datatable_js_columns_by_tag = {
         {name: 'probe_ip', responsivePriority: 2, data: 'probe_ip', className: 'no-wrap', render: (probe_ip, type) => {
             if (type !== 'display') return probe_ip;
             if (probe_ip !== undefined && probe_ip.label !== "") {
-              debugger;
               return `<a class='tag-filter' data-tag-value='${probe_ip.value}' title='${probe_ip.title}' href='#'>${probe_ip.label}</a>`;
             }
             return ''
