@@ -5171,7 +5171,12 @@ function format_portidx_name(device_ip, portidx, short_version, shorten_string)
           end
           idx_name = string.format('%s [%s]', name, port_info["index"]) 
         else
-          idx_name = string.format('%s', i18n("snmp.interface_device_2", {interface=snmp_location.snmp_port_link(port_info, true), device=snmp_location.snmp_device_link(cached_dev["host_ip"])}))
+          idx_name = string.format('%s', 
+            i18n("snmp.interface_device_2", {
+              interface=snmp_location.snmp_port_link(port_info, true), 
+              device=snmp_location.snmp_device_link(cached_dev["host_ip"])
+            })
+          )
         end
       end
     end

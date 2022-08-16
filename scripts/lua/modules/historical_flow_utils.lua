@@ -545,25 +545,25 @@ end
 -- #####################################
 
 local function dt_format_probe(probe_ip)
-   probe_ip = {
+   local probe_info = {
       title     = probe_ip or "",
       label     = probe_ip or "",
       value     = probe_ip or "",
    }
 
-   if isEmptyString(probe_ip["label"]) or probe_ip["label"] == "0.0.0.0" or probe_ip["label"] == "0" then
-      probe_ip["title"] = ""
-      probe_ip["label"] = ""
+   if isEmptyString(probe_ip) or probe_ip == "0.0.0.0" or probe_ip == "0" then
+      probe_info["title"] = ""
+      probe_info["label"] = ""
    else
-      probe_ip["label"] = getProbeName(probe_ip["label"])
-      if (probe_ip["label"]
-            and (probe_ip["title"] ~= probe_ip["label"]) 
-            and not isEmptyString(probe_ip["label"])) then
-         probe_ip["title"] = probe_ip["title"] .. " [" .. probe_ip["label"] .. "]"
+      probe_info["label"] = getProbeName(probe_ip)
+      if (probe_info["label"]
+            and (probe_info["title"] ~= probe_info["label"]) 
+            and not isEmptyString(probe_info["label"])) then
+         probe_info["title"] = probe_info["title"] .. " [" .. probe_info["label"] .. "]"
       end
    end
 
-   return probe_ip
+   return probe_info
 end
 
 -- #####################################
