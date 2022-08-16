@@ -669,6 +669,11 @@ function tag_utils.get_tag_info(id, entity)
             -- use pairsByKeys to impose order
             for probe_ip, _ in pairsByKeys(devices) do
                local cached_device = snmp_cached_dev:get_interface_names(probe_ip)
+
+               local probe_label
+               if not isEmptyString(probe_ip) then probe_label = getProbeName(probe_ip) end
+               if isEmptyString(probe_label)  then probe_label = probe_ip end
+
                if cached_device and cached_device["interfaces"] then
                   local interfaces = cached_device["interfaces"]
                   for interface_id, interface_info in pairs(interfaces) do
@@ -676,10 +681,6 @@ function tag_utils.get_tag_info(id, entity)
                      if interface_info.name then
                         interface_name = interface_info.name .. ' (' .. interface_id .. ')'
                      end
-
-                     local probe_label
-                     if not isEmptyString(probe_ip) then probe_label = getProbeName(probe_ip) end
-                     if isEmptyString(probe_label)  then probe_label = probe_ip end
 
                      local label = probe_label .. ' · ' .. interface_name
                      -- local label = format_portidx_name(probe_ip, tostring(interface_id), true, false)
