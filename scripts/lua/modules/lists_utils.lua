@@ -68,7 +68,7 @@ local function parse_lists_from_dir(where)
       local j = json.decode(content)
 
       if(j == nil) then
-        traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path..": parse error")
+	 traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path..": parse error")
       else
         -- Fix glitches
         local skip = false
