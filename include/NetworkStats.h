@@ -36,9 +36,9 @@ class NetworkStats : public InterfaceMemberAlertableEntity, public GenericTraffi
   AlertCounter syn_flood_victim_alert;
   AlertCounter flow_flood_victim_alert;
   u_int32_t syn_recvd_last_min, synack_sent_last_min; /* syn scan counters (victim) */
-  traffic *network_matrix;
 
 #if defined(NTOPNG_PRO)
+  InOutTraffic *network_matrix;
   time_t nextMinPeriodicUpdate;
   /* Behavioural analysis regarding the interface */
   BehaviorAnalysis *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;  

@@ -1152,6 +1152,6 @@ typedef enum {
 typedef struct {
   u_int32_t bytes_sent;
   u_int32_t bytes_rcvd;
-} traffic;
+} InOutTraffic;
 
 #endif /* _NTOP_TYPEDEFS_H_ */
