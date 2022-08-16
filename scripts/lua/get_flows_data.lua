@@ -215,19 +215,20 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    record["key_and_hash"] = string.format("%s@%s", record["key"], record["hash_id"])
    if (value["in_index"] ~= nil and value["out_index"] ~= nil) then
       local device_ip = value["device_ip"]
+
       local idx_name_in = i18n("span_with_title", {
         shorten_name = format_portidx_name(device_ip, value["in_index"], true, true),
-        full_name = format_portidx_name(device_ip, value["in_index"], true),
+        url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]..'&snmp_port_idx='..value["in_index"]
       })
       
       local idx_name_out = i18n("span_with_title", {
         shorten_name = format_portidx_name(device_ip, value["out_index"], true, true),
-        full_name = format_portidx_name(device_ip, value["out_index"], true),
+        url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]..'&snmp_port_idx='..value["out_index"]
       })
         
       record["column_device_ip"] = i18n("span_with_title", {
-        shorten_name = format_name_value(getProbeName(value["device_ip"]), value["device_ip"], true),
-        full_name = format_name_value(getProbeName(value["device_ip"]), value["device_ip"], false),
+        shorten_name = getProbeName(value["device_ip"]),
+        url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]
       })
 
       record["column_in_index"] = idx_name_in

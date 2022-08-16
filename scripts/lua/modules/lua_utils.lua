@@ -5169,7 +5169,7 @@ function format_portidx_name(device_ip, portidx, short_version, shorten_string)
           if shorten_string then
             name = shortenString(name)
           end
-          idx_name = string.format('%s [%s]', name, port_info["index"]) 
+          idx_name = string.format('%s', name);
         else
           idx_name = string.format('%s', 
             i18n("snmp.interface_device_2", {
