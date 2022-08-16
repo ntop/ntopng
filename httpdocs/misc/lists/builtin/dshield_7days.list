@@ -1,1 +1,1 @@
-{"name":"dshield 7 days","format":"ip","enabled":true,"update_interval":86400,"url":"https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/dshield_7d.netset","category":"mining"}
+{"name":"dshield 7 days","format":"ip","enabled":true,"update_interval":86400,"url":"https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/dshield_7d.netset","category":"malware"}

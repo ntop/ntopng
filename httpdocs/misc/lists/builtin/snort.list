@@ -1,1 +1,1 @@
-{"name":"Snort IP Block List","format":"ip","enabled":false,"update_interval":86400,"url":"https://snort.org/downloads/ip-block-list","category":"mining"}
+{"name":"Snort IP Block List","format":"ip","enabled":false,"update_interval":86400,"url":"https://snort.org/downloads/ip-block-list","category":"malware"}

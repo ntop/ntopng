@@ -1,1 +1,1 @@
-{"name":"SSLBL Botnet C2 IP Blacklist","format":"ip","enabled":true,"update_interval":21600,"url":"https://sslbl.abuse.ch/blacklist/sslipblacklist.txt","category":"mining"}
+{"name":"SSLBL Botnet C2 IP Blacklist","format":"ip","enabled":true,"update_interval":86400,"url":"https://sslbl.abuse.ch/blacklist/sslipblacklist.txt","category":"malware"}

@@ -1,1 +1,1 @@
-{"name":"SSLBL JA3","format":"ja3_suricata_csv","enabled":false,"update_interval":86400,"url":"https://sslbl.abuse.ch/blacklist/ja3_fingerprints.csv","category":"mining"}
+{"name":"SSLBL JA3","format":"ja3_suricata_csv","enabled":false,"update_interval":86400,"url":"https://sslbl.abuse.ch/blacklist/ja3_fingerprints.csv","category":"malware"}

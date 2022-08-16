@@ -1,1 +1,1 @@
-{"name":"AlienVault","format":"ip","enabled":false,"update_interval":86400,"url":"https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/alienvault_reputation.ipset","category":"mining"}
+{"name":"AlienVault","format":"ip","enabled":false,"update_interval":86400,"url":"https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/alienvault_reputation.ipset","category":"malware"}

@@ -1,1 +1,1 @@
-{"name":"ThreatFox","format":"hosts","enabled":true,"update_interval":86400,"url":"https://threatfox.abuse.ch/downloads/hostfile/","category":"mining"}
+{"name":"ThreatFox","format":"hosts","enabled":true,"update_interval":86400,"url":"https://threatfox.abuse.ch/downloads/hostfile/","category":"malware"}

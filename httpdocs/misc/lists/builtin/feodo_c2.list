@@ -1,1 +1,1 @@
-{"name":"Feodo Tracker Botnet C2 IP Blocklist","format":"ip","enabled":true,"update_interval":86400,"url":"https://feodotracker.abuse.ch/downloads/ipblocklist.txt","category":"mining"}
+{"name":"Feodo Tracker Botnet C2 IP Blocklist","format":"ip","enabled":true,"update_interval":86400,"url":"https://feodotracker.abuse.ch/downloads/ipblocklist.txt","category":"malware"}
