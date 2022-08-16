@@ -44,11 +44,12 @@ local MAX_TOTAL_JA3_RULES = 200000
 
 local is_nedge = ntop.isnEdge()
 
--- supported formats: ip, domain, hosts
+-- supported formats: ip, ip_csv, domain, hosts
 --
 -- Examples:
 --    [ip] 1.2.3.4
 --    [ip] 1.2.3.0/24
+--    [ip_csv] 0,216.245.221.83,0.0962959583990113 (Number,IP address,Rating)
 --    [domain] amalwaredomain.com
 --    [hosts] 127.0.0.1   amalwaredomain.com
 --    [hosts] 127.0.0.1   1.2.3.4
@@ -460,7 +461,7 @@ local function loadWarning(msg)
    cur_load_warnings = cur_load_warnings + 1
 end
 
---@return nil on parse error, "domain" if the loaded item is an host, "ip" otherwise
+--@return nil on parse error, "domain" if the loaded item is an host, "ip" or "ip_csv" otherwise
 local function loadListItem(host, category, user_custom_categories, list, num_line)
    category = tonumber(category)
 
@@ -538,6 +539,26 @@ end
 
 -- ##############################################
 
+local function parse_ip_csv_line(line)
+   local words = string.split(line, ",")
+   local host = nil
+
+   if(words and (#words == 3)) then
+      host = words[2]
+
+      if((host == "localhost") or (host == "127.0.0.1") or (host == "::1")) then
+         host = nil
+      end
+   else
+      -- invalid host
+      host = nil
+   end
+   
+   return(host)
+end
+
+-- ##############################################
+
 local function handle_ja3_suricata_csv_line(line)
    local parts = string.split(line, ",")
 
@@ -604,8 +625,10 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
          if((string.len(trimmed) > 0) and not(string.starts(trimmed, "#"))) then
             local host = trimmed
 
-            if list.format == "hosts" then
+            if(list.format == "hosts") then
                host = parse_hosts_line(trimmed)
+	    elseif(list.format == "ip_csv") then
+	       host = parse_ip_csv_line(trimmed)
             end
 
             if host then
