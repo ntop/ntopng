@@ -679,7 +679,8 @@ function tag_utils.get_tag_info(id, entity)
                   for interface_id, interface_info in pairs(interfaces) do
                      local interface_name = interface_id
                      if interface_info.name then
-                        interface_name = interface_info.name .. ' (' .. interface_id .. ')'
+                        -- interface_name = interface_info.name .. ' (' .. interface_id .. ')'
+                        interface_name = interface_info.name
                      end
 
                      local label = probe_label .. ' · ' .. interface_name
