@@ -5140,49 +5140,50 @@ local _snmp_devices = {}
 --         portidx:   number or string, interface index to format
 --         short_version: boolean, long formatting version (e.g. flow info) or short version (e.g. dropdown menu)
 function format_portidx_name(device_ip, portidx, short_version, shorten_string)
-  local idx_name = portidx
-  -- SNMP is available only with Pro version at least
-  if ntop.isPro() then
-    local cached_dev = _snmp_devices[device_ip]
+   local idx_name = portidx
+   
+   -- SNMP is available only with Pro version at least
+   if ntop.isPro() then
+      local cached_dev = _snmp_devices[device_ip]
 
-    if(cached_dev == nil) then
-       local snmp_cached_dev = require "snmp_cached_dev"
-       
-       cached_dev = snmp_cached_dev:get_interfaces(device_ip)
-       _snmp_devices[device_ip] = cached_dev
-    end
-    
-    if (cached_dev) and (cached_dev["interfaces"]) then
-      local port_info = cached_dev["interfaces"][tostring(portidx)]
-   
-      if port_info then
-        package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-        snmp_location = require "snmp_location"
-   
-        if not port_info["id"] then
-          port_info["id"] = port_info["index"]
-          port_info["snmp_device_ip"] = cached_dev["host_ip"]
-        end
-   
-        if short_version then
-          local name = port_info["name"]
-          if shorten_string then
-            name = shortenString(name)
-          end
-          idx_name = string.format('%s', name);
-        else
-          idx_name = string.format('%s', 
-            i18n("snmp.interface_device_2", {
-              interface=snmp_location.snmp_port_link(port_info, true), 
-              device=snmp_location.snmp_device_link(cached_dev["host_ip"])
-            })
-          )
-        end
+      if(cached_dev == nil) then
+	 local snmp_cached_dev = require "snmp_cached_dev"
+	 
+	 cached_dev = snmp_cached_dev:get_interface_names(device_ip)
+	 _snmp_devices[device_ip] = cached_dev
       end
-    end
-  end
-   
-  return idx_name
+      
+      if (cached_dev) and (cached_dev["interfaces"]) then
+	 local port_info = cached_dev["interfaces"][tostring(portidx)]
+	 
+	 if port_info then
+	    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+	    snmp_location = require "snmp_location"
+	    
+	    if not port_info["id"] then
+	       port_info["id"] = port_info["index"]
+	       port_info["snmp_device_ip"] = cached_dev["host_ip"]
+	    end
+	    
+	    if short_version then
+	       local name = port_info["name"]
+	       if shorten_string then
+		  name = shortenString(name)
+	       end
+	       idx_name = string.format('%s', name);
+	    else
+	       idx_name = string.format('%s', 
+					i18n("snmp.interface_device_2", {
+						interface=snmp_location.snmp_port_link(port_info, true), 
+						--device=snmp_location.snmp_device_link(cached_dev["host_ip"])	      
+					})
+	       )
+	    end
+	 end
+      end
+   end
+
+   return idx_name
 end
 
 -- ##############################################
