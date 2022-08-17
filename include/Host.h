@@ -522,9 +522,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void resetCountriesContacts()               { ; }
   virtual u_int8_t getCountriesContactsCardinality()  { return(0); }
 
-  virtual void incNTPContactCardinality(Host *h)  { ; }
-  virtual void incDNSContactCardinality(Host *h)  { ; }
-  virtual void incSMTPContactCardinality(Host *h) { ; }
+  virtual bool incNTPContactCardinality(Host *h)  { return(false); }
+  virtual bool incDNSContactCardinality(Host *h)  { return(false); }
+  virtual bool incSMTPContactCardinality(Host *h) { return(false); }
 
   virtual u_int32_t getNTPContactCardinality()    { return(0); }
   virtual u_int32_t getDNSContactCardinality()    { return(0); }

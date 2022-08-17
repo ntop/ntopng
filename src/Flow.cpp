@@ -436,7 +436,6 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
 
   switch(l7proto) {
   case NDPI_PROTOCOL_DHCP:
-
     if(cli_port == htons(67)) {
       /* Server -> Client */
       if(cli_host && (!cli_host->isBroadcastHost())) {
@@ -447,12 +446,12 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
     } else {
       if(srv_host && (!srv_host->isBroadcastHost())) {
 	srv_host->setDhcpServer();
-    } else if(srv_ip_addr && !srv_ip_addr->isBroadcastAddress()) {
+      } else if(srv_ip_addr && !srv_ip_addr->isBroadcastAddress()) {
         srv_ip_addr->setDhcpServer();
-      }
-    break;
+      }     
     }
-
+    break;
+    
   case NDPI_PROTOCOL_NTP:
     real_srv_h = srv_h /* , real_cli_h = cli_h */;
 
@@ -1669,8 +1668,13 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       cli_host->getDNSstats()->incStats(true  /* Client */, partial->get_flow_dns_stats());
     if(srv_host && srv_host->getDNSstats())
       srv_host->getDNSstats()->incStats(false /* Server */, partial->get_flow_dns_stats());
-    if(cli_host && srv_host)
-      cli_host->incDNSContactCardinality(srv_host);
+    if(cli_host && srv_host) {
+      if(cli_host->incDNSContactCardinality(srv_host)) {
+#ifdef NTOPNG_PRO
+	ntop->get_am()->addClientServerUsage(cli_host, srv_host, dns_server);
+#endif
+      }
+    }
     break;
 
   case NDPI_PROTOCOL_MDNS:
@@ -1691,8 +1695,12 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     }
     break;
   case NDPI_PROTOCOL_NTP:
-	  if(cli_host && srv_host) {
-      cli_host->incNTPContactCardinality(srv_host);
+    if(cli_host && srv_host) {
+      if(cli_host->incNTPContactCardinality(srv_host)) {
+#ifdef NTOPNG_PRO
+	ntop->get_am()->addClientServerUsage(cli_host, srv_host, ntp_server);
+#endif
+      }
     }
     break;
   case NDPI_PROTOCOL_IP_ICMP:
@@ -1726,8 +1734,13 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     break;
   case NDPI_PROTOCOL_MAIL_SMTPS:
   case NDPI_PROTOCOL_MAIL_SMTP:
-    if(cli_host && srv_host)
-      cli_host->incSMTPContactCardinality(srv_host);
+    if(cli_host && srv_host) {
+      if(cli_host->incSMTPContactCardinality(srv_host)) {
+#ifdef NTOPNG_PRO
+	ntop->get_am()->addClientServerUsage(cli_host, srv_host, smtp_server);
+#endif
+      }
+    }
     break;
   default:
     break;

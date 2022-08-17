@@ -121,9 +121,9 @@ class LocalHost : public Host, public SerializableElement {
   virtual void resetCountriesContacts()               { stats->resetCountriesContacts();                  }
   virtual u_int8_t getCountriesContactsCardinality()  { return(stats->getCountriesContactsCardinality()); }
 
-  virtual void incNTPContactCardinality(Host *h)  { stats->incNTPContactCardinality(h);  }
-  virtual void incDNSContactCardinality(Host *h)  { stats->incDNSContactCardinality(h);  }
-  virtual void incSMTPContactCardinality(Host *h) { stats->incSMTPContactCardinality(h); }
+  virtual bool incNTPContactCardinality(Host *h)  { return(stats->incNTPContactCardinality(h));  }
+  virtual bool incDNSContactCardinality(Host *h)  { return(stats->incDNSContactCardinality(h));  }
+  virtual bool incSMTPContactCardinality(Host *h) { return(stats->incSMTPContactCardinality(h)); }
 
   virtual u_int32_t getNTPContactCardinality()    { return(stats->getNTPContactCardinality());  }
   virtual u_int32_t getDNSContactCardinality()    { return(stats->getDNSContactCardinality());  }

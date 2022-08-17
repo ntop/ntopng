@@ -103,9 +103,9 @@ class LocalHostStats: public HostStats {
   virtual void addContactedDomainName(char* domain_name) { num_contacted_domain_names.addElement(domain_name,strlen(domain_name));  }
   virtual void incContactedService(char *name)        { if(name && (name[0] != '\0')) num_contacted_services_as_client.addElement(name, strlen(name)); }
   virtual void incCountriesContacts(char *country)    { if(country && (country[0] != '\0')) num_contacted_countries.addElement(country, strlen(country)); } /* Update the countries contacts */
-  virtual void incNTPContactCardinality(Host *h)      { if(h->get_ip()) num_ntp_servers.addElement(h->get_ip()->key());  };
-  virtual void incDNSContactCardinality(Host *h)      { if(h->get_ip()) num_dns_servers.addElement(h->get_ip()->key());  };
-  virtual void incSMTPContactCardinality(Host *h)     { if(h->get_ip()) num_smtp_servers.addElement(h->get_ip()->key()); };
+  virtual bool incNTPContactCardinality(Host *h)      { if(h->get_ip()) return(num_ntp_servers.addElement(h->get_ip()->key())); else return(false); };
+  virtual bool incDNSContactCardinality(Host *h)      { if(h->get_ip()) return(num_dns_servers.addElement(h->get_ip()->key())); else return(false); };
+  virtual bool incSMTPContactCardinality(Host *h)     { if(h->get_ip()) return(num_smtp_servers.addElement(h->get_ip()->key())); else return(false); };
   virtual void incCliContactedPorts(u_int16_t port)   { num_contacted_ports_as_client.addElement(port);      }
   virtual void incSrvPortsContacts(u_int16_t port)    { num_host_contacted_ports_as_server.addElement(port); }
 

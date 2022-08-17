@@ -44,12 +44,12 @@ public:
       throw "init error";
   }
   
-  void addElement(const char *value, size_t value_len) {
-    ndpi_hll_add(&hll, value, value_len);
+  bool addElement(const char *value, size_t value_len) {
+    return(ndpi_hll_add(&hll, value, value_len) ? true : false);
   }
   
-  void addElement(u_int32_t value) {
-    ndpi_hll_add_number(&hll, value);
+  bool addElement(u_int32_t value) {
+    return(ndpi_hll_add_number(&hll, value) ? true : false);
   }
 
   u_int32_t getEstimate() {
