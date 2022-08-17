@@ -1444,10 +1444,9 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 	 local cached_device = snmp_cached_dev:create(snmpdevice)
 
 	 if cached_device and cached_device["interfaces"] and table.len(cached_device["interfaces"]) > 0 then
-      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path                                                                                                                          
-      local snmp_location = require "snmp_location"                 
-                                                                                                                                                           
-      local snmpurl = snmp_location.snmp_device_link(snmpdevice, format_device_name(snmpdevice, false))
+      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+            local snmp_location = require "snmp_location"
+            local snmpurl = snmp_location.snmp_device_link(snmpdevice, format_device_name(snmpdevice, false))
 
 	    local snmp_interfaces = cached_device["interfaces"]
 	    local inputurl, outputurl
@@ -1457,7 +1456,13 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 	       local ifurl
 
 	       if port then
-		  ifurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_interface_details.lua?host="..snmpdevice.."&snmp_port_idx="..port["index"].."'>"..snmp_utils.get_snmp_interface_label(port).."</A>"
+                  -- local label = snmp_utils.get_snmp_interface_label(port)
+                  local port_info = {
+                     -- name = label,
+                     id = port["index"],
+                     snmp_device_ip = snmpdevice,
+                  }
+		  ifurl = snmp_location.snmp_port_link(port_info)
 	       else
 		  ifurl = idx
 	       end
