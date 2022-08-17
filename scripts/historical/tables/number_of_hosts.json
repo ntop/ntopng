@@ -1,0 +1,57 @@
+{
+	"name" : "Number of Hosts",
+	"i18n_name" : "number_of_hosts",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"select" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "TotalIPv4Clients",
+				"func" : "count",
+				"param" : "DISTINCT IPV4_SRC_ADDR",
+				"value_type" : "number"
+			},
+			{
+				"name" : "TotalIPv6Clients",
+				"func" : "count",
+				"param" : "DISTINCT IPV6_SRC_ADDR",
+				"value_type" : "number"
+			},
+			{
+				"name" : "TotalIPv4Servers",
+				"func" : "count",
+				"param" : "DISTINCT IPV4_DST_ADDR",
+				"value_type" : "number"
+			},
+			{
+				"name" : "TotalIPv6Servers",
+				"func" : "count",
+				"param" : "DISTINCT IPV6_DST_ADDR",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID",
+				"order" : "ASC"
+			}
+		]
+	}
+}
