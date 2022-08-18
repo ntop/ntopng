@@ -186,7 +186,11 @@ if(hosts_stats ~= nil) then
       elseif(sortColumn == "column_traffic") then
 	 vals[hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]+postfix] = key
       elseif(sortColumn == "column_thpt") then
-	 vals[hosts_stats[key]["throughput_"..throughput_type]+postfix] = key
+	 local v = hosts_stats[key]["throughput_"..throughput_type]
+
+	 if(v ~= nil) then
+	    vals[v+postfix] = key
+	 end
       elseif(sortColumn == "column_queries") then
 	 vals[hosts_stats[key]["queries.rcvd"]+postfix] = key
       elseif(sortColumn == "column_ip") then
