@@ -1286,16 +1286,19 @@ function historical_flow_utils.format_clickhouse_record(record, csv_format, form
       -- Cycling the value of the record
       for column_name, value in pairs(record) do
 	 if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, column_name .. " start") end
-         local new_column_name = nil
-         local new_value = nil
+         local new_column_name = column_name
+         local new_value = value
 
       	 -- Format the values and pass to the answer
-      	 if extended_flow_columns[column_name] and extended_flow_columns[column_name]["dt_func"] then
-      	    new_column_name = extended_flow_columns[column_name]["tag"]
-      	    new_value = extended_flow_columns[column_name]["dt_func"](value, record, column_name, formatted_record)
-         else
-            new_column_name = column_name
-            new_value = value
+      	 if extended_flow_columns[column_name] and 
+            --extended_flow_columns[column_name]["dt_func"] and
+            extended_flow_columns[column_name]["tag"] then
+
+            new_column_name = extended_flow_columns[column_name]["tag"]
+
+            if extended_flow_columns[column_name]["dt_func"] then
+               new_value = extended_flow_columns[column_name]["dt_func"](value, record, column_name, formatted_record)
+            end
       	 end
 
       	 if new_column_name and new_value then
@@ -1770,7 +1773,7 @@ function historical_flow_utils.get_datatable_js_columns_by_tag(tag, hide)
    if all_datatable_js_columns_by_tag[tag] then
       return all_datatable_js_columns_by_tag[tag]
    else
-      local order = #all_datatable_js_columns_by_tag
+      local order = table.len(all_datatable_js_columns_by_tag)
       return build_datatable_js_column_default(tag, tag, i18n("db_search.tags."..tag) or tag, order, hide)
    end
 end
