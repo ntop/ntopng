@@ -240,7 +240,6 @@ using namespace std;
 #include "BehaviouralCounter.h"
 
 #ifdef NTOPNG_PRO
-#include "AssetManagement.h"
 #include "BehaviorAnalysis.h"
 #endif
 
@@ -408,9 +407,13 @@ using namespace std;
 #include "HostChecksStatus.h"
 #include "ActiveHostWalkerInfo.h"
 #include "Host.h"
+#include "DoHDoTStats.h"
 #include "LocalHostStats.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"
+#ifdef NTOPNG_PRO
+#include "AssetManagement.h"
+#endif
 #include "IEC104Stats.h"
 #include "Flow.h"
 #include "FlowHash.h"

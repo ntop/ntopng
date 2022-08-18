@@ -24,28 +24,6 @@
 
 #include "ntop_includes.h"
 
-class DoHDoTStats {
-private:
-  IpAddress ip;
-  VLANid vlan_id;
-  u_int32_t num_uses;
-  
-public:
-  DoHDoTStats(IpAddress i, VLANid id) { ip = i, vlan_id = id, num_uses = 0; }
-
-  inline void incUses() { num_uses++; }
-
-  void lua(lua_State *vm) {
-    char buf[64];
-    
-    lua_push_str_table_entry(vm, "ip", ip.print(buf, sizeof(buf)));
-    lua_push_uint32_table_entry(vm, "vlan_id", vlan_id);
-    lua_push_uint32_table_entry(vm, "num_uses", num_uses);
-  }
-};
-
-/* ************************************************************ */
-
 class LocalHost : public Host, public SerializableElement {
  protected:
   int16_t local_network_id;
@@ -53,6 +31,8 @@ class LocalHost : public Host, public SerializableElement {
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
   std::unordered_map<u_int32_t, DoHDoTStats*> doh_dot_map;
+  u_int8_t router_mac[6]; /* MAC address pf the first router used (no Mac* to avoid purging race conditions) */
+  bool router_mac_set;
   
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail;
@@ -129,6 +109,8 @@ class LocalHost : public Host, public SerializableElement {
   virtual u_int32_t getNTPContactCardinality()    { return(stats->getNTPContactCardinality());  }
   virtual u_int32_t getDNSContactCardinality()    { return(stats->getDNSContactCardinality());  }
   virtual u_int32_t getSMTPContactCardinality()   { return(stats->getSMTPContactCardinality()); }
+
+  void setRouterMac(Mac *gw);
 };
 
 #endif /* _LOCAL_HOST_H_ */

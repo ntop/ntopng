@@ -143,6 +143,8 @@ void LocalHost::initialize() {
 			       ip.print(buf, sizeof(buf)),
 			       isSystemHost() ? "systemHost" : "", this);
 #endif
+
+  router_mac_set = false, memset(router_mac, 0, sizeof(router_mac));
 }
 
 /* *************************************** */
@@ -302,6 +304,13 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
+
+  if(router_mac_set) {
+    char router_buf[24];
+    
+    lua_push_str_table_entry(vm, "router",
+			     Utils::formatMac(router_mac, router_buf, sizeof(router_buf)));
+  }  
   
   /* Don't add anything beyond this line (due to lua indexing) */
 }
@@ -501,3 +510,13 @@ void LocalHost::luaDoHDot(lua_State *vm) {
 }
 
 /* *************************************** */
+
+void LocalHost::setRouterMac(Mac *gw) {
+  if(!router_mac_set) {
+    memcpy(router_mac, gw->get_mac(), 6), router_mac_set = true;
+
+#ifdef NTOPNG_PRO
+    ntop->get_am()->addClientGateway(this, gw);
+#endif
+  }
+}

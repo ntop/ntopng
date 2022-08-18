@@ -168,7 +168,9 @@ if(hosts_stats ~= nil) then
       elseif(sortColumn == "column_alerts") then
    vals[hosts_stats[key]["seen.first"]+postfix] = key
       elseif(sortColumn == "column_score") then
-	 vals[hosts_stats[key]["score"]+postfix] = key
+	 if(hosts_stats[key]["score"] ~= nil) then
+	    vals[hosts_stats[key]["score"]+postfix] = key
+	 end
       elseif(sortColumn == "column_last") then
 	 vals[hosts_stats[key]["seen.last"]+postfix] = key
       elseif(sortColumn == "column_country") then

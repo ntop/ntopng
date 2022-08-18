@@ -27,7 +27,7 @@ end
 -- ########################################################
 
 local function updateCache(cache, key, val)
-   if cache[key] == nil then
+   if((key ~= nil) and (cache[key] == nil)) then
       cache[key] = val
    end
 end

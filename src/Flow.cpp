@@ -130,7 +130,13 @@ Flow::Flow(NetworkInterface *_iface,
     if(cli_host->isLocalHost() && srv_host) {
       srv_host->get_country(country, sizeof(country));
       if(country[0] != '\0') cli_host->incCountriesContacts(country);
-    }
+      
+      if(_srv_mac && (!srv_host->isLocalHost())) {
+	LocalHost *lh = (LocalHost*)cli_host;
+
+	lh->setRouterMac(_srv_mac);
+      }
+    }    
   } else { /* Client host has not been allocated, let's keep the info in an IpAddress */
     if((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
       cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());

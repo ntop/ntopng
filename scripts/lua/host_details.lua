@@ -492,8 +492,18 @@ else
    if((page == "overview") or (page == nil)) then
       print("<table class=\"table table-bordered table-striped\">\n")
       if(host["ip"] ~= nil) then
-         if(host["mac"]  ~= "00:00:00:00:00:00") then
-   	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], false).. " " .. discover.devtype2icon(host["device_type"]))
+         if(host["mac"] ~= "00:00:00:00:00:00") then
+
+	    if(host.router ~= nil) then
+	       print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td colspan=2>" ..get_symbolic_mac(host.router, false).. "</td></tr>")
+	       print("<tr><th width=35%>"..i18n("details.host_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], false).. " " .. discover.devtype2icon(host["device_type"]))
+	    else
+	       if(host.localhost) then
+		  print("<tr><th width=35%>"..i18n("details.mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], false).. " " .. discover.devtype2icon(host["device_type"]))
+	       else
+		  print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], false).. " " .. discover.devtype2icon(host["device_type"]))
+	       end
+	    end
    	 print('</td><td>')
 
    	 if(host['localhost'] and (macinfo ~= nil)) then
@@ -591,7 +601,7 @@ else
          if(isAdministrator()) then
 	    local n
 	    local method = "http"
-	    
+
 	    if(host.names.tls ~= nil) then
 	       n = host.names.tls
 	       method = "https"
