@@ -332,6 +332,26 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.srv_location'),
       operators = {'eq', 'neq'},
    },
+   cli_proc_name = {
+      value_type = 'text',
+      i18n_label = i18n('db_search.tags.cli_proc_name'),
+      operators = {'eq','neq'},
+   },
+   srv_proc_name = {
+      value_type = 'text',
+      i18n_label = i18n('db_search.tags.srv_proc_name'),
+      operators = {'eq','neq'},
+   },
+   cli_user_name = {
+      value_type = 'text',
+      i18n_label = i18n('db_search.tags.cli_user_name'),
+      operators = {'eq','neq'},
+   },
+   srv_user_name = {
+      value_type = 'text',
+      i18n_label = i18n('db_search.tags.srv_user_name'),
+      operators = {'eq','neq'},
+   },
 }
 
 -- #####################################

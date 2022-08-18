@@ -950,6 +950,10 @@ local flow_columns = {
    ['IS_SRV_VICTIM'] =        { tag = "is_srv_victim" },
    ['IS_SRV_BLACKLISTED'] =   { tag = "is_srv_blacklisted" },
    ['ALERT_JSON'] =           { tag = "json" },
+   ['SRC_PROC_NAME'] =        { tag = "cli_proc_name" },
+   ['DST_PROC_NAME'] =        { tag = "srv_proc_name" },
+   ['SRC_PROC_USER_NAME'] =   { tag = "cli_user_name" },
+   ['DST_PROC_USER_NAME'] =   { tag = "srv_user_name" },
 
    -- Alert data
    ['ALERT_STATUS'] =         { tag = "alert_status" },
@@ -1762,11 +1766,12 @@ local all_datatable_js_columns_by_tag = {
 
 -- #####################################
 
-function historical_flow_utils.get_datatable_js_columns_by_tag(tag)
+function historical_flow_utils.get_datatable_js_columns_by_tag(tag, hide)
    if all_datatable_js_columns_by_tag[tag] then
       return all_datatable_js_columns_by_tag[tag]
    else
-      return build_datatable_js_column_default(tag, tag, i18n("db_search.tags."..tag) or tag, 0)
+      local order = #all_datatable_js_columns_by_tag
+      return build_datatable_js_column_default(tag, tag, i18n("db_search.tags."..tag) or tag, order, hide)
    end
 end
 
@@ -1805,6 +1810,14 @@ local function get_js_columns_to_display()
    js_columns["srv_country"] = historical_flow_utils.get_datatable_js_columns_by_tag("srv_country")
    js_columns["input_snmp"]  = historical_flow_utils.get_datatable_js_columns_by_tag("input_snmp")
    js_columns["output_snmp"] = historical_flow_utils.get_datatable_js_columns_by_tag("output_snmp")
+
+   local ifstats = interface.getStats()
+   if ifstats.has_seen_ebpf_events then
+      js_columns["cli_proc_name"] = historical_flow_utils.get_datatable_js_columns_by_tag("cli_proc_name")
+      js_columns["srv_proc_name"] = historical_flow_utils.get_datatable_js_columns_by_tag("srv_proc_name")
+      js_columns["cli_user_name"] = historical_flow_utils.get_datatable_js_columns_by_tag("cli_user_name")
+      js_columns["srv_user_name"] = historical_flow_utils.get_datatable_js_columns_by_tag("srv_user_name")
+   end
 
    return js_columns
 
