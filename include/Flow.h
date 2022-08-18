@@ -917,12 +917,6 @@ class Flow : public GenericHashEntry {
     else if(srv_host && srv_host->isLocalHost()) return 1; // Local host
     else return 0; // Remote host
   }
-  
-  /* Placeholder */
-  inline char* getCliProcessName()     { return((char*)""); }
-  inline char* getSrvProcessName()     { return((char*)""); }
-  inline char* getCliProcessUserName() { return((char*)""); }
-  inline char* getSrvProcessUserName() { return((char*)""); }
 };
 
 #endif /* _FLOW_H_ */
