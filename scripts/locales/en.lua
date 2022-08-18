@@ -38,6 +38,7 @@ local lang = {
   ["as_server"] = "as Server",
   ["asn"] = "ASN",
   ["asn_id"] = "ASN %{id}",
+  ["assets"] = "Assets",
   ["attacker"] = "Is Attacker",
   ["auto_refresh_descr"] = "Click the arrows to enable/disable Auto-Refresh (enabled when spinning). Click the Cog next to the arrows to go to the alert Preferences.",
   ["autolayout_description"] = "Performing auto-layout could change the network's current layout drastically.",
@@ -6322,6 +6323,10 @@ local lang = {
     ["bytes_sent"] = "Bytes Sent",
     ["total_bytes"] = "Total (Bytes)",
     ["total_percentage"] = "Total (%)",
+  },
+  ["assets_page"] = {
+     ["host"] = "Server",
+     ["last_use"] = "Last Used"
   },
   ["traffic_page"] = {
     ["bytes_rcvd"] = "Bytes Received",

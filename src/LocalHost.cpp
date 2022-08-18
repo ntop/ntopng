@@ -272,6 +272,9 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
   char buf_id[64], *host_id = buf_id;
   const char *local_net;
   bool mask_host = Utils::maskHost(isLocalHost());
+#ifdef NTOPNG_PRO
+  char asset_key[96];
+#endif  
 
   if((ptree && (!match(ptree))) || mask_host)
     return;
@@ -287,7 +290,16 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
   lua_contacts_stats(vm);
 
   /* *** */
+
+#ifdef NTOPNG_PRO  
+  snprintf(asset_key, sizeof(asset_key), ASSET_SERVICE_KEY,
+	   getInterface()->get_id(),
+	   getRedisKey(buf_id, sizeof(buf_id))
+	   );
   
+  lua_push_str_table_entry(vm, "asset_key", asset_key);
+#endif
+    
   lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
   local_net = ntop->getLocalNetworkName(local_network_id);

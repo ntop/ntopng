@@ -285,7 +285,7 @@ else
 
    local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(host["mac"])
    local has_icmp = ((table.len(host["ICMPv4"]) + table.len(host["ICMPv6"])) ~= 0)
-
+   local has_assets = ntop.isEnterpriseL() and (host.asset_key ~= nil) and (ntop.getHashKeysCache(host.asset_key) ~= nil)
    local periodicity_map_available = false
    local service_map_available = false
    local num_periodicity = 0
@@ -305,7 +305,7 @@ else
   end
 
    if(periodicity_map_available) and (host_vlan ~= 0) then
-   	  periodicity_map_link = periodicity_map_link .. "&vlan_id=" .. host_vlan
+      periodicity_map_link = periodicity_map_link .. "&vlan_id=" .. host_vlan
    end
 
    local ifs = interface.getStats()
@@ -434,6 +434,12 @@ else
 	 page_name = "alerts",
 	 label = "<i class='fas fa-lg fa-exclamation-triangle' title='"..i18n("alerts_dashboard.alerts").."'></i>",
 	 url = hostinfo2detailsurl(host, {page = ternary((host.num_alerts or 0) > 0, "engaged-alerts", "alerts")})
+      },
+      {
+	 hidden = not has_assets,
+	 active = page == "assets",
+	 page_name = "assets",
+	 label = "<i class='fas fa-lg fa-compass' title='"..i18n("assets").."'></i>",
       },
       {
 	 hidden = not charts_available,
@@ -1471,6 +1477,12 @@ setInterval(update_ndpi_categories_table, 5000);
 
    end
 
+elseif(page == "assets") then
+   if(ntop.isEnterpriseL()) then
+      local am = require "asset_utils"
+
+      am.printHostAssets(host.asset_key)
+   end
 elseif(page == "dns") then
    if((host.DoH_DoT ~= nil) or (host["dns"] ~= nil)) then
       print("<table class=\"table table-bordered table-striped\">\n")
