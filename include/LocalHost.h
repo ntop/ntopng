@@ -105,10 +105,14 @@ class LocalHost : public Host, public SerializableElement {
   virtual bool incNTPContactCardinality(Host *h)  { return(stats->incNTPContactCardinality(h));  }
   virtual bool incDNSContactCardinality(Host *h)  { return(stats->incDNSContactCardinality(h));  }
   virtual bool incSMTPContactCardinality(Host *h) { return(stats->incSMTPContactCardinality(h)); }
+  virtual bool incIMAPContactCardinality(Host *h) { return(stats->incIMAPContactCardinality(h)); }
+  virtual bool incPOPContactCardinality(Host *h)  { return(stats->incPOPContactCardinality(h)); }
 
   virtual u_int32_t getNTPContactCardinality()    { return(stats->getNTPContactCardinality());  }
   virtual u_int32_t getDNSContactCardinality()    { return(stats->getDNSContactCardinality());  }
   virtual u_int32_t getSMTPContactCardinality()   { return(stats->getSMTPContactCardinality()); }
+  virtual u_int32_t getIMAPContactCardinality()   { return(stats->getIMAPContactCardinality()); }
+  virtual u_int32_t getPOPContactCardinality()    { return(stats->getPOPContactCardinality()); }
 
   void setRouterMac(Mac *gw);
 };

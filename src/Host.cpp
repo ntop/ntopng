@@ -615,9 +615,11 @@ void Host::lua_get_services(lua_State *vm) const {
   lua_newtable(vm);
 
   if(isDhcpServer()) lua_push_bool_table_entry(vm, "dhcp", true);
-  if(isDnsServer()) lua_push_bool_table_entry(vm,  "dns",  true);
+  if(isDnsServer())  lua_push_bool_table_entry(vm, "dns",  true);
   if(isSmtpServer()) lua_push_bool_table_entry(vm, "smtp", true);
-  if(isNtpServer()) lua_push_bool_table_entry(vm,  "ntp",  true);
+  if(isPopServer())  lua_push_bool_table_entry(vm, "pop",  true);
+  if(isImapServer()) lua_push_bool_table_entry(vm, "imap", true);
+  if(isNtpServer())  lua_push_bool_table_entry(vm, "ntp",  true);
 
   lua_pushstring(vm, "services");
   lua_insert(vm, -2);
@@ -2341,3 +2343,28 @@ void Host::setNtpServer() {
 #endif
   }
 }
+
+/* *************************************** */
+
+void Host::setImapServer() {
+  if(!isImapServer()) {
+    host_services_bitmap |= 1 << HOST_IS_IMAP_SERVER;
+    
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setServerInfo(this, imap_server);
+#endif
+  }
+}
+
+/* *************************************** */
+
+void Host::setPopServer() {
+  if(!isPopServer()) {
+    host_services_bitmap |= 1 << HOST_IS_POP_SERVER;
+    
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setServerInfo(this, pop_server);
+#endif
+  }
+}
+

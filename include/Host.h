@@ -182,6 +182,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline  bool isSmtpServer() const { return(host_services_bitmap & (1 << HOST_IS_SMTP_SERVER));  }
   void setSmtpServer();
 
+  inline  bool isImapServer() const { return(host_services_bitmap & (1 << HOST_IS_IMAP_SERVER));  }
+  void setImapServer();
+
+  inline  bool isPopServer() const { return(host_services_bitmap & (1 << HOST_IS_POP_SERVER));  }
+  void setPopServer();
+
   inline  bool isNtpServer()  const  { return(host_services_bitmap & (1 << HOST_IS_NTP_SERVER));  }
   void setNtpServer();
   
@@ -525,6 +531,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual bool incNTPContactCardinality(Host *h)  { return(false); }
   virtual bool incDNSContactCardinality(Host *h)  { return(false); }
   virtual bool incSMTPContactCardinality(Host *h) { return(false); }
+  virtual bool incIMAPContactCardinality(Host *h) { return(false); }
+  virtual bool incPOPContactCardinality(Host *h) { return(false); }
 
   virtual u_int32_t getNTPContactCardinality()    { return(0); }
   virtual u_int32_t getDNSContactCardinality()    { return(0); }

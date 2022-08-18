@@ -637,9 +637,11 @@ else
 
          if(host.services) then
    	 if(host.services.dhcp) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
-   	 if(host.services.dns)  then print(' <span class="badge bg-success">'..i18n("details.label_dns_server")..'</span>') end
+   	 if(host.services.dns)  then print(' <span class="badge bg-success">'..i18n("details.label_dns_server")..'</span>')  end
    	 if(host.services.smtp) then print(' <span class="badge bg-success">'..i18n("details.label_smtp_server")..'</span>') end
-   	 if(host.services.ntp)  then print(' <span class="badge bg-success">'..i18n("details.label_ntp_server")..'</span>') end
+   	 if(host.services.ntp)  then print(' <span class="badge bg-success">'..i18n("details.label_ntp_server")..'</span>')  end
+	 if(host.services.imap) then print(' <span class="badge bg-success">'..i18n("details.label_imap_server")..'</span>') end
+	 if(host.services.pop)  then print(' <span class="badge bg-success">'..i18n("details.label_pop_server")..'</span>')  end
          end
 
          if(host["dhcp_server"] == true) then print(' <span class="badge bg-success" style="cursor: help;">'..i18n("details.label_dhcp_server")..'</span>') end
@@ -872,6 +874,8 @@ else
       print("<tr><th>"..i18n("details.server_contacts").."</th><td colspan=2>")
       print("<b>DNS</b>: "..formatContacts(host.server_contacts.dns).." / ")
       print("<b>SMTP</b>: "..formatContacts(host.server_contacts.smtp).." / ");
+      print("<b>POP</b>: "..formatContacts(host.server_contacts.pop).." / ");
+      print("<b>IMAP</b>: "..formatContacts(host.server_contacts.imap).." / ");
       print("<b>NTP</b>: "..formatContacts(host.server_contacts.ntp).."</td></tr>");
    end
 

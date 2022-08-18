@@ -471,8 +471,8 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
 
     if(real_srv_h) {
       real_srv_h->setNtpServer();
-    }  else if(srv_ip_addr) {
-      srv_ip_addr->setDhcpServer();
+    } else if(srv_ip_addr) {
+      srv_ip_addr->setNtpServer();
     }
     break;
 
@@ -481,8 +481,20 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
     if(srv_h) {
       srv_h->setSmtpServer();
     } else if(srv_ip_addr) {
-      srv_ip_addr->setDhcpServer();
+      srv_ip_addr->setSmtpServer();
     }
+    break;
+
+  case NDPI_PROTOCOL_MAIL_IMAPS:
+  case NDPI_PROTOCOL_MAIL_IMAP:
+    if(srv_h)
+      srv_h->setImapServer();    
+    break;
+
+  case NDPI_PROTOCOL_MAIL_POPS:
+  case NDPI_PROTOCOL_MAIL_POP:
+    if(srv_h)
+      srv_h->setPopServer();
     break;
 
   case NDPI_PROTOCOL_DNS:
@@ -1652,6 +1664,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 	      || get_cli_ip_addr()->isMulticastAddress()))
 	cli_host->setOS(operating_system);
     }
+    
     /* Don't break, let's process also HTTP_PROXY */
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(srv_host) {
@@ -1669,6 +1682,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       }
     }
     break;
+    
   case NDPI_PROTOCOL_DNS:
     if(cli_host && cli_host->getDNSstats())
       cli_host->getDNSstats()->incStats(true  /* Client */, partial->get_flow_dns_stats());
@@ -1690,16 +1704,19 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       if(protos.mdns.name_txt) cli_host->offlineSetMDNSTXTName(protos.mdns.name_txt);
     }
     break;
+    
   case NDPI_PROTOCOL_SSDP:
     if(cli_host) {
       if(protos.ssdp.location) cli_host->offlineSetSSDPLocation(protos.ssdp.location);
     }
     break;
+    
   case NDPI_PROTOCOL_NETBIOS:
     if(cli_host) {
       if(protos.netbios.name) cli_host->offlineSetNetbiosName(protos.netbios.name);
     }
     break;
+    
   case NDPI_PROTOCOL_NTP:
     if(cli_host && srv_host) {
       if(cli_host->incNTPContactCardinality(srv_host)) {
@@ -1707,8 +1724,9 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 	ntop->get_am()->addClientServerUsage(cli_host, srv_host, ntp_server);
 #endif
       }
-    }
+    }    
     break;
+    
   case NDPI_PROTOCOL_IP_ICMP:
   case NDPI_PROTOCOL_IP_ICMPV6:
     if(cli_host && cli_host->getICMPstats()) {
@@ -1736,8 +1754,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 	if(cli_host) cli_host->incNumHostUnreachableFlows(false /* as client */);
       }
     }
-
     break;
+    
   case NDPI_PROTOCOL_MAIL_SMTPS:
   case NDPI_PROTOCOL_MAIL_SMTP:
     if(cli_host && srv_host) {
@@ -1748,6 +1766,29 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       }
     }
     break;
+    
+  case NDPI_PROTOCOL_MAIL_IMAPS:
+  case NDPI_PROTOCOL_MAIL_IMAP:
+    if(cli_host && srv_host) {
+      if(cli_host->incIMAPContactCardinality(srv_host)) {
+#ifdef NTOPNG_PRO
+	ntop->get_am()->addClientServerUsage(cli_host, srv_host, imap_server);
+#endif
+      }
+    }
+    break;
+    
+  case NDPI_PROTOCOL_MAIL_POPS:
+  case NDPI_PROTOCOL_MAIL_POP:
+    if(cli_host && srv_host) {
+      if(cli_host->incPOPContactCardinality(srv_host)) {
+#ifdef NTOPNG_PRO
+	ntop->get_am()->addClientServerUsage(cli_host, srv_host, pop_server);
+#endif
+      }
+    }
+    break;
+    
   default:
     break;
   }

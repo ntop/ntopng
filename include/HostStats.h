@@ -175,9 +175,14 @@ class HostStats: public GenericTrafficElement {
   virtual u_int32_t getNTPContactCardinality()    { return((u_int32_t)-1); }
   virtual u_int32_t getDNSContactCardinality()    { return((u_int32_t)-1); }
   virtual u_int32_t getSMTPContactCardinality()   { return((u_int32_t)-1); }
+  virtual u_int32_t getIMAPContactCardinality()   { return((u_int32_t)-1); }
+  virtual u_int32_t getPOPContactCardinality()   { return((u_int32_t)-1); }
+  
   virtual bool incNTPContactCardinality(Host *h)  { return(false); }
   virtual bool incDNSContactCardinality(Host *h)  { return(false); }
   virtual bool incSMTPContactCardinality(Host *h) { return(false); }
+  virtual bool incIMAPContactCardinality(Host *h) { return(false); }
+  virtual bool incPOPContactCardinality(Host *h) { return(false); }
 
   inline bool has_flows_anomaly(bool as_client) { return(as_client ? client_flows_anomaly : server_flows_anomaly); }
   inline u_int64_t value_flows_anomaly(bool as_client) { return(as_client ? active_flows_cli.getLastValue() : active_flows_srv.getLastValue()); }

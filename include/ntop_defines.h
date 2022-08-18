@@ -336,6 +336,8 @@
 #define HOST_IS_DNS_SERVER             0x02
 #define HOST_IS_NTP_SERVER             0x03
 #define HOST_IS_SMTP_SERVER            0x04
+#define HOST_IS_IMAP_SERVER            0x05
+#define HOST_IS_POP_SERVER             0x06
 
 #define MAX_DYNAMIC_STATS_VALUES       12
 

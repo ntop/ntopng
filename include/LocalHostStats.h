@@ -45,7 +45,8 @@ class LocalHostStats: public HostStats {
     num_contacted_countries,                 /* Estimate the number of contacted countries */
     num_contacted_hosts,                     /* Estimate the number of contacted hosts */
     num_contacted_domain_names,              /* Estimate of the number of different Domain Names contacted */
-    num_dns_servers, num_smtp_servers, num_ntp_servers; /* Estimate of the number of critical servers used by this host */
+    num_dns_servers, num_smtp_servers,
+    num_ntp_servers, num_imap_servers, num_pop_servers; /* Estimate of the number of critical servers used by this host */
 
   PeerStats *peers;
 
@@ -106,14 +107,18 @@ class LocalHostStats: public HostStats {
   virtual bool incNTPContactCardinality(Host *h)      { if(h->get_ip()) return(num_ntp_servers.addElement(h->get_ip()->key())); else return(false); };
   virtual bool incDNSContactCardinality(Host *h)      { if(h->get_ip()) return(num_dns_servers.addElement(h->get_ip()->key())); else return(false); };
   virtual bool incSMTPContactCardinality(Host *h)     { if(h->get_ip()) return(num_smtp_servers.addElement(h->get_ip()->key())); else return(false); };
+  virtual bool incIMAPContactCardinality(Host *h)     { if(h->get_ip()) return(num_imap_servers.addElement(h->get_ip()->key())); else return(false); };
+  virtual bool incPOPContactCardinality(Host *h)      { if(h->get_ip()) return(num_pop_servers.addElement(h->get_ip()->key())); else return(false); };  
   virtual void incCliContactedPorts(u_int16_t port)   { num_contacted_ports_as_client.addElement(port);      }
   virtual void incSrvPortsContacts(u_int16_t port)    { num_host_contacted_ports_as_server.addElement(port); }
 
-  virtual u_int16_t  getCountriesContactsCardinality() { return((u_int16_t) num_contacted_countries.getEstimate());     } /* Get the countries */
-  virtual u_int16_t  getContactedHostsCardinality()    { return((u_int16_t) num_contacted_hosts.getEstimate());     } /* Get the hosts */
+  virtual u_int16_t  getCountriesContactsCardinality(){ return((u_int16_t) num_contacted_countries.getEstimate());     } /* Get the countries */
+  virtual u_int16_t  getContactedHostsCardinality()   { return((u_int16_t) num_contacted_hosts.getEstimate());     } /* Get the hosts */
   virtual u_int32_t getNTPContactCardinality()        { return(num_ntp_servers.getEstimate());  };
   virtual u_int32_t getDNSContactCardinality()        { return(num_dns_servers.getEstimate());  };
   virtual u_int32_t getSMTPContactCardinality()       { return(num_smtp_servers.getEstimate()); };
+  virtual u_int32_t getIMAPContactCardinality()       { return(num_imap_servers.getEstimate()); };
+  virtual u_int32_t getPOPContactCardinality()         { return(num_pop_servers.getEstimate()); };
   virtual u_int32_t getDomainNamesCardinality()       { return num_contacted_domain_names.getEstimate(); }  
   
   virtual void resetCountriesContacts()               { num_contacted_countries.reset();    } /* Reset the countries */
