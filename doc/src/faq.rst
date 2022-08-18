@@ -9,11 +9,6 @@ I'm using nProbe with ntopng. Do I need a license for it?
 
 Yes. See the `nProbe product page <https://www.ntop.org/products/netflow/nprobe/>`_.
 
-I'm using nProbe Agent with ntopng. Do I need a license for it?
----------------------------------------------------------------
-
-Yes. See the `nProbe Agent product page <https://www.ntop.org/products/netflow/nprobe-agent/>`_.
-
 I'm using nProbe Cento with ntopng. Do I need a license for it?
 ---------------------------------------------------------------
 
