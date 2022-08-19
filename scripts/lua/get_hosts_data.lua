@@ -43,7 +43,6 @@ local top_hidden   = ternary(_GET["top_hidden"] == "1", true, nil)
 function update_host_name(h)
    if(h["name"] == nil) then
       if(h["ip"] ~= nil) then
-
          h["name"] = ip2label(h["ip"])
       else
 	 h["name"] = h["mac"]
@@ -158,11 +157,17 @@ if(hosts_stats ~= nil) then
       -- tprint(hosts_stats[key])
       -- io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
 
+      -- Safety check (trace failure for debugging)
+      if type(hosts_stats[key]) ~= "table" then
+         traceError(TRACE_WARNING, TRACE_CONSOLE, "Unexpected value for key = "..key.." (not a table)")
+         goto skip
+      end
+
       if(sortColumn == "column_") then
 	 vals[key] = key -- hosts_stats[key]["ipkey"]
       elseif(sortColumn == "column_name") then
 	 hosts_stats[key]["name"] = update_host_name(hosts_stats[key])
-	 vals[hosts_stats[key]["name"]..postfix] = key
+         vals[hosts_stats[key]["name"]..postfix] = key
       elseif(sortColumn == "column_since") then
          vals[hosts_stats[key]["seen.first"]+postfix] = key
       elseif(sortColumn == "column_alerts") then
@@ -184,11 +189,7 @@ if(hosts_stats ~= nil) then
 	 local t = hosts_stats[key]["flows.dropped"] or 0
 	 vals[t+postfix] = key
       elseif(sortColumn == "column_traffic") then
-         if type(hosts_stats[key]) == "table" then
-	    vals[hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]+postfix] = key
-         else
-            traceError(TRACE_WARNING, TRACE_CONSOLE, "Unexpected value for key = "..key)
-         end
+	 vals[hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]+postfix] = key
       elseif(sortColumn == "column_thpt") then
 	 local v = hosts_stats[key]["throughput_"..throughput_type]
 
@@ -210,6 +211,8 @@ if(hosts_stats ~= nil) then
       else
 	 vals[key] = key
       end
+
+      ::skip::
    end
 end
 
