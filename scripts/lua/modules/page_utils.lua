@@ -126,6 +126,7 @@ page_utils.menu_entries = {
    -- Map
    service_map            = {key = "service_map", i18n_title="service", section = "maps"},
    periodicity_map        = {key = "periodicity_map", i18n_title="periodicity", section = "maps"},
+   asset_map              = {key = "asset_map", i18n_title="assets", section = "maps"},
    geo_map                = {key = "geo_map", i18n_title = "geo_map.geo_map", section = "maps", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#geo-map"},
    hosts_map              = {key = "hosts_map", i18n_title = "flows_page.hosts", section = "maps"},
    

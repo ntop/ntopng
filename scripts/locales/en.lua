@@ -39,6 +39,7 @@ local lang = {
   ["asn"] = "ASN",
   ["asn_id"] = "ASN %{id}",
   ["assets"] = "Assets",
+  ["asset_map"] = "Asset Map",
   ["attacker"] = "Is Attacker",
   ["auto_refresh_descr"] = "Click the arrows to enable/disable Auto-Refresh (enabled when spinning). Click the Cog next to the arrows to go to the alert Preferences.",
   ["autolayout_description"] = "Performing auto-layout could change the network's current layout drastically.",
