@@ -640,12 +640,12 @@ else
          print(format_utils.formatFullAddressCategory(host))
 
          if(host.services) then
-   	 if(host.services.dhcp) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
-   	 if(host.services.dns)  then print(' <span class="badge bg-success">'..i18n("details.label_dns_server")..'</span>')  end
-   	 if(host.services.smtp) then print(' <span class="badge bg-success">'..i18n("details.label_smtp_server")..'</span>') end
-   	 if(host.services.ntp)  then print(' <span class="badge bg-success">'..i18n("details.label_ntp_server")..'</span>')  end
-	 if(host.services.imap) then print(' <span class="badge bg-success">'..i18n("details.label_imap_server")..'</span>') end
-	 if(host.services.pop)  then print(' <span class="badge bg-success">'..i18n("details.label_pop_server")..'</span>')  end
+	    if(host.services.dhcp) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
+	    if(host.services.dns)  then print(' <span class="badge bg-success">'..i18n("details.label_dns_server")..'</span>')  end
+	    if(host.services.smtp) then print(' <span class="badge bg-success">'..i18n("details.label_smtp_server")..'</span>') end
+	    if(host.services.ntp)  then print(' <span class="badge bg-success">'..i18n("details.label_ntp_server")..'</span>')  end
+	    if(host.services.imap) then print(' <span class="badge bg-success">'..i18n("details.label_imap_server")..'</span>') end
+	    if(host.services.pop)  then print(' <span class="badge bg-success">'..i18n("details.label_pop_server")..'</span>')  end
          end
 
          if(host["dhcp_server"] == true) then print(' <span class="badge bg-success" style="cursor: help;">'..i18n("details.label_dhcp_server")..'</span>') end
@@ -875,7 +875,13 @@ else
    end
 
    if(host.server_contacts ~= nil) then
-      print("<tr><th>"..i18n("details.server_contacts").."</th><td colspan=2>")
+      print("<tr><th>")
+      if(has_assets) then
+	 print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. host_ip .."&page=assets\">".. i18n("details.server_contacts") .. "</A>")
+      else
+	 print(i18n("details.server_contacts"))
+      end
+      print("</th><td colspan=2>")
       print("<b>DNS</b>: "..formatContacts(host.server_contacts.dns).." / ")
       print("<b>SMTP</b>: "..formatContacts(host.server_contacts.smtp).." / ");
       print("<b>POP</b>: "..formatContacts(host.server_contacts.pop).." / ");

@@ -6325,7 +6325,8 @@ local lang = {
     ["total_percentage"] = "Total (%)",
   },
   ["assets_page"] = {
-     ["host"] = "Server",
+     ["hostname"] = "Server Name",
+     ["address"] = "IP Address",
      ["last_use"] = "Last Used"
   },
   ["traffic_page"] = {
