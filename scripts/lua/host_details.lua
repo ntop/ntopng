@@ -112,6 +112,10 @@ if((host == nil) and ((_GET["mode"] == "restore"))) then
 end
 
 function formatContacts(v)
+   if not v then
+      return ""
+   end
+
    if(v > 5) then
       return("<font color=red><b>"..formatValue(v).."</b></font>")
    else
