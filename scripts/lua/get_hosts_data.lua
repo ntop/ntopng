@@ -164,9 +164,9 @@ if(hosts_stats ~= nil) then
 	 hosts_stats[key]["name"] = update_host_name(hosts_stats[key])
 	 vals[hosts_stats[key]["name"]..postfix] = key
       elseif(sortColumn == "column_since") then
-   vals[hosts_stats[key]["seen.first"]+postfix] = key
+         vals[hosts_stats[key]["seen.first"]+postfix] = key
       elseif(sortColumn == "column_alerts") then
-   vals[hosts_stats[key]["seen.first"]+postfix] = key
+         vals[hosts_stats[key]["seen.first"]+postfix] = key
       elseif(sortColumn == "column_score") then
 	 if(hosts_stats[key]["score"] ~= nil) then
 	    vals[hosts_stats[key]["score"]+postfix] = key
@@ -184,7 +184,11 @@ if(hosts_stats ~= nil) then
 	 local t = hosts_stats[key]["flows.dropped"] or 0
 	 vals[t+postfix] = key
       elseif(sortColumn == "column_traffic") then
-	 vals[hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]+postfix] = key
+         if type(hosts_stats[key]) == "table" then
+	    vals[hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]+postfix] = key
+         else
+            traceError(TRACE_WARNING, TRACE_CONSOLE, "Unexpected value for key = "..key)
+         end
       elseif(sortColumn == "column_thpt") then
 	 local v = hosts_stats[key]["throughput_"..throughput_type]
 
