@@ -2298,72 +2298,72 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 
 /* *************************************** */
 
-void Host::setDhcpServer() {
+void Host::setDhcpServer(char *name) {
   if(!isDhcpServer()) {
     host_services_bitmap |= 1 << HOST_IS_DHCP_SERVER;
     
 #ifdef NTOPNG_PRO
-    ntop->get_am()->setServerInfo(this, dhcp_server);
+    ntop->get_am()->setServerInfo(this, dhcp_server, name);
 #endif
   }
 }
 
 /* *************************************** */
 
-void Host::setDnsServer() {
+void Host::setDnsServer(char *name) {
   if(!isDnsServer()) {
     host_services_bitmap |= 1 << HOST_IS_DNS_SERVER;
     
 #ifdef NTOPNG_PRO
-    ntop->get_am()->setServerInfo(this, dns_server);
+    ntop->get_am()->setServerInfo(this, dns_server, name);
 #endif
   }
 }
 
 /* *************************************** */
 
-void Host::setSmtpServer() {
+void Host::setSmtpServer(char *name) {
   if(!isSmtpServer()) {
     host_services_bitmap |= 1 << HOST_IS_SMTP_SERVER;
     
 #ifdef NTOPNG_PRO
-    ntop->get_am()->setServerInfo(this, smtp_server);
+    ntop->get_am()->setServerInfo(this, smtp_server, name);
 #endif
   }
 }
 
 /* *************************************** */
 
-void Host::setNtpServer() {
+void Host::setNtpServer(char *name) {
   if(!isNtpServer()) {
     host_services_bitmap |= 1 << HOST_IS_NTP_SERVER;
     
 #ifdef NTOPNG_PRO
-    ntop->get_am()->setServerInfo(this, ntp_server);
+    ntop->get_am()->setServerInfo(this, ntp_server, name);
 #endif
   }
 }
 
 /* *************************************** */
 
-void Host::setImapServer() {
+void Host::setImapServer(char *name) {
   if(!isImapServer()) {
     host_services_bitmap |= 1 << HOST_IS_IMAP_SERVER;
     
 #ifdef NTOPNG_PRO
-    ntop->get_am()->setServerInfo(this, imap_server);
+    ntop->get_am()->setServerInfo(this, imap_server, name);
 #endif
   }
 }
 
 /* *************************************** */
 
-void Host::setPopServer() {
+void Host::setPopServer(char *name) {
   if(!isPopServer()) {
     host_services_bitmap |= 1 << HOST_IS_POP_SERVER;
     
 #ifdef NTOPNG_PRO
-    ntop->get_am()->setServerInfo(this, pop_server);
+    ntop->get_am()->setServerInfo(this, pop_server, name);
 #endif
   }
 }

@@ -500,17 +500,21 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
       
       /* Setting up dhcp/ntp/dns/smtp server bits */
       if(cli_host) {
-        if(cli_ip->isDhcpServer()) cli_host->setDhcpServer();
-        if(cli_ip->isNtpServer())  cli_host->setNtpServer();
-        if(cli_ip->isDnsServer())  cli_host->setDnsServer();
-        if(cli_ip->isSmtpServer()) cli_host->setSmtpServer(); 
+        if(cli_ip->isDhcpServer()) cli_host->setDhcpServer(NULL);
+        if(cli_ip->isNtpServer())  cli_host->setNtpServer(NULL);
+        if(cli_ip->isDnsServer())  cli_host->setDnsServer(NULL);
+        if(cli_ip->isSmtpServer()) cli_host->setSmtpServer(f->getFlowServerInfo());
+	if(cli_ip->isImapServer()) cli_host->setImapServer(f->getFlowServerInfo());
+	if(cli_ip->isPopServer())  cli_host->setPopServer(f->getFlowServerInfo()); 
       }
       
       if(srv_host) {
-        if(srv_ip->isDhcpServer()) srv_host->setDhcpServer();
-        if(srv_ip->isNtpServer())  srv_host->setNtpServer();
-        if(srv_ip->isDnsServer())  srv_host->setDnsServer();
-        if(srv_ip->isSmtpServer()) srv_host->setSmtpServer(); 
+        if(srv_ip->isDhcpServer()) srv_host->setDhcpServer(NULL);
+        if(srv_ip->isNtpServer())  srv_host->setNtpServer(NULL);
+        if(srv_ip->isDnsServer())  srv_host->setDnsServer(NULL);
+        if(srv_ip->isSmtpServer()) srv_host->setSmtpServer(f->getFlowServerInfo());
+	if(srv_ip->isImapServer()) srv_host->setImapServer(f->getFlowServerInfo());
+	if(srv_ip->isPopServer())  srv_host->setPopServer(f->getFlowServerInfo()); 
       }
 
     #ifdef NTOPNG_PRO

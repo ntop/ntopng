@@ -160,7 +160,8 @@ if(hosts_stats ~= nil) then
       -- Safety check (trace failure for debugging)
       if type(hosts_stats[key]) ~= "table" then
          traceError(TRACE_WARNING, TRACE_CONSOLE, "Unexpected value for key = "..key.." (not a table)")
-         goto skip
+	 tprint(value)
+	 goto skip
       end
 
       if(sortColumn == "column_") then

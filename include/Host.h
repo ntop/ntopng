@@ -174,22 +174,22 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t getNumBlacklistedAsSrvReset() const { return getNumBlacklistedAsSrv() - getCheckpointBlacklistedAsSrv(); }
 
   inline  bool isDhcpServer() const { return(host_services_bitmap & (1 << HOST_IS_DHCP_SERVER));  }
-  void setDhcpServer();
+  void setDhcpServer(char *name);
 
   inline  bool isDnsServer()  const  { return(host_services_bitmap & (1 << HOST_IS_DNS_SERVER));  }
-  void setDnsServer();
+  void setDnsServer(char *name);
 
   inline  bool isSmtpServer() const { return(host_services_bitmap & (1 << HOST_IS_SMTP_SERVER));  }
-  void setSmtpServer();
+  void setSmtpServer(char *name);
 
   inline  bool isImapServer() const { return(host_services_bitmap & (1 << HOST_IS_IMAP_SERVER));  }
-  void setImapServer();
+  void setImapServer(char *name);
 
   inline  bool isPopServer() const { return(host_services_bitmap & (1 << HOST_IS_POP_SERVER));  }
-  void setPopServer();
+  void setPopServer(char *name);
 
   inline  bool isNtpServer()  const  { return(host_services_bitmap & (1 << HOST_IS_NTP_SERVER));  }
-  void setNtpServer();
+  void setNtpServer(char *name);
   
   inline  u_int16_t getServicesMap()         { return(host_services_bitmap);                              }
   /*

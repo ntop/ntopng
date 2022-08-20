@@ -615,8 +615,9 @@ class Flow : public GenericHashEntry {
       *actual_client = get_cli_host(), *actual_server = get_srv_host();
   };
   bool is_hash_entry_state_idle_transition_ready();
-  void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial,
-				   bool first_partial, const struct timeval *tv) const;
+  void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
+				   Host *srv_host, PartializableFlowTrafficStats *partial,
+				   bool first_partial, const struct timeval *tv);
   void periodic_stats_update(const struct timeval *tv);
   void  set_hash_entry_id(u_int assigned_hash_entry_id);
   u_int get_hash_entry_id() const;

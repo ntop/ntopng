@@ -29,8 +29,7 @@ struct ipAddress {
     loopbackIP:1, privateIP:1, multicastIP:1, broadcastIP:1,
     blacklistedIP:1, localIP:1;
 
-  u_int8_t dnsServer:1, dhcpServer:1, smtpServer:1, ntpServer:1,
-    unused:4;
+  u_int8_t dnsServer:1, dhcpServer:1, smtpServer:1, ntpServer:1, imapServer:1, popServer:1, unused:2;
   union {
     struct ndpi_in6_addr ipv6;
     u_int32_t ipv4; /* Host byte code */
@@ -90,6 +89,10 @@ class IpAddress {
   inline  void setDnsServer()  { addr.dnsServer = true; }
   inline  bool isSmtpServer()  const { return(addr.smtpServer); }
   inline  void setSmtpServer() { addr.smtpServer = true; }
+  inline  bool isImapServer()  const { return(addr.imapServer);  }
+  inline  void setImapServer() { addr.imapServer = true; }
+  inline  bool isPopServer()   const { return(addr.popServer);  }
+  inline  void setPopServer()  { addr.popServer = true; }
   inline  bool isNtpServer()   const { return(addr.ntpServer);  }
   inline  void setNtpServer()  { addr.ntpServer = true; }
 

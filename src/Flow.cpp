@@ -54,7 +54,7 @@ Flow::Flow(NetworkInterface *_iface,
   predominant_alert_info.is_srv_attacker = 0;
   predominant_alert_info.is_srv_victim = 0;
   json_protocol_info = NULL, riskInfo = NULL;
-  clearRisks(); 
+  clearRisks();
   detection_completed = 0;
   non_zero_payload_observed = 0;
   extra_dissection_completed = 0;
@@ -130,13 +130,13 @@ Flow::Flow(NetworkInterface *_iface,
     if(cli_host->isLocalHost() && srv_host) {
       srv_host->get_country(country, sizeof(country));
       if(country[0] != '\0') cli_host->incCountriesContacts(country);
-      
+
       if(_srv_mac && (!srv_host->isLocalHost())) {
 	LocalHost *lh = (LocalHost*)cli_host;
 
 	lh->setRouterMac(_srv_mac);
       }
-    }    
+    }
   } else { /* Client host has not been allocated, let's keep the info in an IpAddress */
     if((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
       cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
@@ -440,24 +440,31 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
 
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
+  /* Domain Concats Alert */
+  if(ndpiFlow)
+    domain_name = ndpi_get_flow_name(ndpiFlow), confidence = ndpiFlow->confidence;
+
+  if(cli_h && domain_name && domain_name[0] != '\0')
+    cli_h->addContactedDomainName(domain_name);
+
   switch(l7proto) {
   case NDPI_PROTOCOL_DHCP:
     if(cli_port == htons(67)) {
       /* Server -> Client */
       if(cli_host && (!cli_host->isBroadcastHost())) {
-	cli_host->setDhcpServer();
+	cli_host->setDhcpServer(domain_name);
       } else if(cli_ip_addr && !cli_ip_addr->isBroadcastAddress()) {
         cli_ip_addr->setDhcpServer();
       }
     } else {
       if(srv_host && (!srv_host->isBroadcastHost())) {
-	srv_host->setDhcpServer();
+	srv_host->setDhcpServer(domain_name);
       } else if(srv_ip_addr && !srv_ip_addr->isBroadcastAddress()) {
         srv_ip_addr->setDhcpServer();
-      }     
+      }
     }
     break;
-    
+
   case NDPI_PROTOCOL_NTP:
     real_srv_h = srv_h /* , real_cli_h = cli_h */;
 
@@ -469,32 +476,34 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
 	real_srv_h = cli_h /* , real_cli_h = srv_h */;
     }
 
-    if(real_srv_h) {
-      real_srv_h->setNtpServer();
-    } else if(srv_ip_addr) {
+    if(real_srv_h)
+      real_srv_h->setNtpServer(domain_name);
+    else if(srv_ip_addr)
       srv_ip_addr->setNtpServer();
-    }
     break;
 
   case NDPI_PROTOCOL_MAIL_SMTPS:
   case NDPI_PROTOCOL_MAIL_SMTP:
-    if(srv_h) {
-      srv_h->setSmtpServer();
-    } else if(srv_ip_addr) {
+    if(srv_h)
+      srv_h->setSmtpServer(domain_name);
+    else if(srv_ip_addr)
       srv_ip_addr->setSmtpServer();
-    }
     break;
 
   case NDPI_PROTOCOL_MAIL_IMAPS:
   case NDPI_PROTOCOL_MAIL_IMAP:
     if(srv_h)
-      srv_h->setImapServer();    
+      srv_h->setImapServer(domain_name);
+    else if (srv_ip_addr)
+      srv_ip_addr->setImapServer();
     break;
 
   case NDPI_PROTOCOL_MAIL_POPS:
   case NDPI_PROTOCOL_MAIL_POP:
     if(srv_h)
-      srv_h->setPopServer();
+      srv_h->setPopServer(domain_name);
+    else if (srv_ip_addr)
+      srv_ip_addr->setPopServer();
     break;
 
   case NDPI_PROTOCOL_DNS:
@@ -502,11 +511,10 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
       No need to swap as Flow::processDNSPacket()
       take care of directions
     */
-    if(srv_h) {
-      srv_h->setDnsServer();
-    } else if (srv_ip_addr) {
+    if(srv_h)
+      srv_h->setDnsServer(domain_name);
+    else if (srv_ip_addr)
       srv_ip_addr->setDnsServer();
-    }
     break;
 
   case NDPI_PROTOCOL_TOR:
@@ -520,13 +528,6 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
   default:
     break;
   } /* switch */
-
-  /* Domain Concats Alert */
-  if(ndpiFlow)
-    domain_name = ndpi_get_flow_name(ndpiFlow), confidence = ndpiFlow->confidence;
-
-  if(cli_h && domain_name && domain_name[0] != '\0')
-    cli_h->addContactedDomainName(domain_name);
 }
 
 /* *************************************** */
@@ -676,11 +677,11 @@ void Flow::processExtraDissectedInformation() {
 
 	/* Now some minor cleanup */
 	char *c;
-	
+
 	if((c = strchr(protos.tls.client_requested_server_name, ',')) != NULL)
 	  c[0] = '\0';
 	else if((c = strchr(protos.tls.client_requested_server_name, ' ')) != NULL)
-	  c[0] = '\0';	
+	  c[0] = '\0';
       }
 
       if((protos.tls.server_names == NULL)
@@ -746,9 +747,9 @@ void Flow::processExtraDissectedInformation() {
   if(get_ndpi_flow()) {
     /* Save riskInfo */
     char *out, buf[512];
-    
+
     out = ndpi_get_flow_risk_info(get_ndpi_flow(), buf, sizeof(buf), 1 /* JSON */);
-    
+
     if(out != NULL)
       setJSONRiskInfo(out);
   }
@@ -816,7 +817,7 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
 
   if(payload_len > 0)
     non_zero_payload_observed = 1;
-  
+
   if(detected) {
     if(ndpiFlow->risk != 0) {
       if(srv_host) {
@@ -912,7 +913,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 	  char *at = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter);
 
 	  protos.dns.last_return_code = ndpiFlow->protos.dns.reply_code;
-	  
+
 	  /* Consider only positive DNS replies */
 	  if(at != NULL)
 	    name = &at[1], at[0] = '\0';
@@ -931,7 +932,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 					 ndpiFlow->protos.dns.num_answers);
 #endif
 
-	    
+
 	    if(ndpiFlow->protos.dns.reply_code == 0) {
 	      if(ndpiFlow->protos.dns.num_answers > 0) {
 		if(at != NULL) {
@@ -965,7 +966,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 void Flow::processIEC60870Packet(bool tx_direction,
 				 const u_char *payload, u_int16_t payload_len,
 				 struct timeval *packet_time) {
- 
+
   /* Exits if the flow isn't IEC60870 or it the interface is not a packet-interface */
   if(!isIEC60870()
      || (!getInterface()->isPacketInterface())
@@ -976,7 +977,7 @@ void Flow::processIEC60870Packet(bool tx_direction,
     iec104 = new (std::nothrow) IEC104Stats();
 
   if(iec104)
-    iec104->processPacket(this, tx_direction, payload, payload_len, packet_time);  
+    iec104->processPacket(this, tx_direction, payload, payload_len, packet_time);
 }
 
 /* *************************************** */
@@ -1036,7 +1037,7 @@ void Flow::setExtraDissectionCompleted() {
   }
 
   if(ndpiFlow) setErrorCode(ndpi_get_flow_error_code(ndpiFlow));
-  
+
   processExtraDissectedInformation();
 
   extra_dissection_completed = 1;
@@ -1084,7 +1085,7 @@ void Flow::setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_le
 
   /* Process detected protocol data and needs ndpiFlow only allocated for packet interfaces */
   processDetectedProtocolData();
- 
+
   detection_completed = 1;
 
 #ifdef BLACKLISTED_FLOWS_DEBUG
@@ -1464,10 +1465,10 @@ void Flow::incFlowDroppedCounters() {
  * with the subinterfaces). */
 void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host,
 				       PartializableFlowTrafficStats *partial,
-				       bool first_partial, const struct timeval *tv) const {
+				       bool first_partial, const struct timeval *tv) {
   update_pools_stats(iface, cli_host, srv_host, tv, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
 		     partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
-  
+
   if(cli_host && srv_host) {
     bool cli_and_srv_in_same_subnet = false;
     bool cli_and_srv_in_same_country = false;
@@ -1664,7 +1665,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 	      || get_cli_ip_addr()->isMulticastAddress()))
 	cli_host->setOS(operating_system);
     }
-    
+
     /* Don't break, let's process also HTTP_PROXY */
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(srv_host) {
@@ -1682,7 +1683,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       }
     }
     break;
-    
+
   case NDPI_PROTOCOL_DNS:
     if(cli_host && cli_host->getDNSstats())
       cli_host->getDNSstats()->incStats(true  /* Client */, partial->get_flow_dns_stats());
@@ -1691,7 +1692,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     if(cli_host && srv_host) {
       if(cli_host->incDNSContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
-	ntop->get_am()->addClientServerUsage(cli_host, srv_host, dns_server);
+	ntop->get_am()->addClientServerUsage(cli_host, srv_host, dns_server, NULL /* no DNS server name */);
 #endif
       }
     }
@@ -1704,29 +1705,29 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       if(protos.mdns.name_txt) cli_host->offlineSetMDNSTXTName(protos.mdns.name_txt);
     }
     break;
-    
+
   case NDPI_PROTOCOL_SSDP:
     if(cli_host) {
       if(protos.ssdp.location) cli_host->offlineSetSSDPLocation(protos.ssdp.location);
     }
     break;
-    
+
   case NDPI_PROTOCOL_NETBIOS:
     if(cli_host) {
       if(protos.netbios.name) cli_host->offlineSetNetbiosName(protos.netbios.name);
     }
     break;
-    
+
   case NDPI_PROTOCOL_NTP:
     if(cli_host && srv_host) {
       if(cli_host->incNTPContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
-	ntop->get_am()->addClientServerUsage(cli_host, srv_host, ntp_server);
+	ntop->get_am()->addClientServerUsage(cli_host, srv_host, ntp_server, NULL /* no NTP server name */);
 #endif
       }
-    }    
+    }
     break;
-    
+
   case NDPI_PROTOCOL_IP_ICMP:
   case NDPI_PROTOCOL_IP_ICMPV6:
     if(cli_host && cli_host->getICMPstats()) {
@@ -1755,40 +1756,40 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       }
     }
     break;
-    
+
   case NDPI_PROTOCOL_MAIL_SMTPS:
   case NDPI_PROTOCOL_MAIL_SMTP:
     if(cli_host && srv_host) {
       if(cli_host->incSMTPContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
-	ntop->get_am()->addClientServerUsage(cli_host, srv_host, smtp_server);
+	ntop->get_am()->addClientServerUsage(cli_host, srv_host, smtp_server, getFlowServerInfo());
 #endif
       }
     }
     break;
-    
+
   case NDPI_PROTOCOL_MAIL_IMAPS:
   case NDPI_PROTOCOL_MAIL_IMAP:
     if(cli_host && srv_host) {
       if(cli_host->incIMAPContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
-	ntop->get_am()->addClientServerUsage(cli_host, srv_host, imap_server);
+	ntop->get_am()->addClientServerUsage(cli_host, srv_host, imap_server, getFlowServerInfo());
 #endif
       }
     }
     break;
-    
+
   case NDPI_PROTOCOL_MAIL_POPS:
   case NDPI_PROTOCOL_MAIL_POP:
     if(cli_host && srv_host) {
       if(cli_host->incPOPContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
-	ntop->get_am()->addClientServerUsage(cli_host, srv_host, pop_server);
+	ntop->get_am()->addClientServerUsage(cli_host, srv_host, pop_server, getFlowServerInfo());
 #endif
       }
     }
     break;
-    
+
   default:
     break;
   }
@@ -2108,7 +2109,7 @@ bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
   if(icmp_info && !icmp_info->equal(_icmp_info))
     return(false);
 #endif
-  
+
   if(cli_ip && cli_ip->equal(_cli_ip)
      && srv_ip && srv_ip->equal(_srv_ip)
      && _cli_port == cli_port && _srv_port == srv_port) {
@@ -2715,10 +2716,10 @@ void Flow::formatECSObserver(json_object *my_object) {
   if((observer_object = json_object_new_object()) != NULL) {
     json_object_object_add(observer_object, "product", json_object_new_string("ntopng"));
     json_object_object_add(observer_object, "vendor", json_object_new_string("ntop"));
-    
+
     if(ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
       json_object_object_add(observer_object, "name", json_object_new_string(ntop->getPrefs()->get_instance_name()));
-    
+
     json_object_object_add(my_object, "observer", observer_object);
   }
 }
@@ -2739,7 +2740,7 @@ void Flow::formatECSInterface(json_object *my_object) {
   json_object *interface_object;
   if((interface_object = json_object_new_object()) != NULL) {
     json_object_object_add(interface_object, "id", json_object_new_int(iface->get_id()));
-    
+
     if(iface && iface->get_name())
       json_object_object_add(interface_object, "name", json_object_new_string(iface->get_name()));
 
@@ -2751,11 +2752,11 @@ void Flow::formatECSInterface(json_object *my_object) {
 
 void Flow::formatECSExtraInfo(json_object *my_object) {
   json_object *interface_object;
-  
+
   if((interface_object = json_object_new_object()) != NULL) {
     if(ntop->getPrefs()->do_dump_extended_json()) {
       json_object_object_add(my_object, "flow_time", json_object_new_int(last_seen));
-      
+
   #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
       json_object_object_add(my_object, "profile", json_object_new_string(get_profile_name()));
   #endif
@@ -2814,7 +2815,7 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
     if(((get_packets_cli2srv() + get_packets_srv2cli()) > NDPI_MIN_NUM_PACKETS) || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN))
       json_object_object_add(network_object, Utils::jsonLabel(L7_PROTO_NAME, "protocol", jsonbuf, sizeof(jsonbuf)), json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
 
-    if(protocol == IPPROTO_TCP) 
+    if(protocol == IPPROTO_TCP)
       json_object_object_add(network_object, Utils::jsonLabel(TCP_FLAGS, "tcp_flags", jsonbuf, sizeof(jsonbuf)), json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
 
     json_object_object_add(network_object, Utils::jsonLabel(FIRST_SWITCHED, "first_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int((u_int32_t)get_partial_first_seen()));
@@ -2828,12 +2829,12 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
     }
 
     json_object_object_add(my_object, "community_id", json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
-    
+
 
   #ifdef NTOPNG_PRO
   #ifndef HAVE_NEDGE
     // Traffic profile information, if any
-    if(trafficProfile && trafficProfile->getName()) 
+    if(trafficProfile && trafficProfile->getName())
       json_object_object_add(network_object, "profile", json_object_new_string(trafficProfile->getName()));
   #endif
   #endif
@@ -2847,7 +2848,7 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
 
     if(addr)
       json_object_object_add(network_object, Utils::jsonLabel(IP_PROTOCOL_VERSION, "type", jsonbuf, sizeof(jsonbuf)), json_object_new_string(addr->isIPv4() ? "ipv4" : "ipv6"));
-  
+
     if(flow_device.device_ip)
       json_object_object_add(network_object, "exporter", json_object_new_string(intoaV4(flow_device.device_ip, buf, sizeof(buf))));
 
@@ -2863,7 +2864,7 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
 
 void Flow::formatECSHost(json_object *my_object, bool is_client, const IpAddress *addr, Host *host) {
   json_object *host_object;
-  
+
   if((host_object = json_object_new_object()) != NULL) {
     char buf[64], jsonbuf[64], *c;
 
@@ -2893,7 +2894,7 @@ void Flow::formatECSHost(json_object *my_object, bool is_client, const IpAddress
 
       if(geo) {
         json_object_object_add(geo, "country_name", json_object_new_string(c));
-        
+
         if(host && location) {
           float latitude, longitude;
 
@@ -2916,12 +2917,12 @@ void Flow::formatECSHost(json_object *my_object, bool is_client, const IpAddress
     json_object_object_add(host_object, Utils::jsonLabel(TCP_FLAGS, "packtes_out_of_order", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? stats.get_cli2srv_tcp_ooo() : stats.get_srv2cli_tcp_ooo()));
     json_object_object_add(host_object, Utils::jsonLabel(TCP_FLAGS, "packtes_lost", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? stats.get_cli2srv_tcp_lost() : stats.get_srv2cli_tcp_lost()));
 
-    if(vlanId > 0) 
+    if(vlanId > 0)
       json_object_object_add(host_object, Utils::jsonLabel(is_client ? SRC_VLAN : DST_VLAN, "vlan", jsonbuf, sizeof(jsonbuf)), json_object_new_int(vlanId));
 
     if(protocol == IPPROTO_TCP)
       json_object_object_add(host_object, Utils::jsonLabel(is_client ? CLIENT_NW_LATENCY_MS : SERVER_NW_LATENCY_MS, "latency", jsonbuf, sizeof(jsonbuf)), json_object_new_double(toMs(&clientNwLatency)));
-  
+
     json_object_object_add(my_object, is_client ? "client" : "server", host_object);
   }
 }
@@ -2945,17 +2946,17 @@ void Flow::formatECSFlow(json_object *my_object) {
   */
   strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S.0Z", tm_info);
 
-  /* 
-    Dumping flows, using ECS Format 
-    https://www.elastic.co/guide/en/ecs/current/index.html 
+  /*
+    Dumping flows, using ECS Format
+    https://www.elastic.co/guide/en/ecs/current/index.html
   */
 
   json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
   json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
- 
+
   /* Formatting Client */
   formatECSHost(my_object, true, cli_ip, cli_host);
-  
+
   /* Formatting Server */
   formatECSHost(my_object, false, srv_ip, srv_host);
 
@@ -2966,7 +2967,7 @@ void Flow::formatECSFlow(json_object *my_object) {
   formatECSAppProto(my_object);
   formatECSExtraInfo(my_object);
 
-  if(json_info && json_object_object_length(json_info) > 0) 
+  if(json_info && json_object_object_length(json_info) > 0)
     json_object_object_add(my_object, "json", json_object_get(json_info));
 }
 
@@ -3162,7 +3163,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
     json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(protos.dns.last_query));
 
   json_object_object_add(my_object, "COMMUNITY_ID", json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
-  
+
   if(isHTTP()) {
     if(host_server_name && host_server_name[0] != '\0')
       json_object_object_add(my_object, "HTTP_HOST", json_object_new_string(host_server_name));
@@ -3578,7 +3579,7 @@ void Flow::housekeep(time_t t) {
   #ifdef NTOPNG_PRO
     if(cli_host && srv_host) {
       u_int16_t cli_net_id = cli_host->get_local_network_id(), srv_net_id = srv_host->get_local_network_id();
- 
+
       if(cli_net_id != (u_int16_t) -1 &&
          srv_net_id != (u_int16_t) -1 &&
          cli_net_id != srv_net_id) {
@@ -3603,7 +3604,7 @@ void Flow::housekeep(time_t t) {
     case IPPROTO_TCP:
       if(cli_host
 	 && ((getTcpFlagsCli2Srv() == TH_SYN)
-	     || (!non_zero_payload_observed)	     
+	     || (!non_zero_payload_observed)
 	     )
 	 )
 	cli_host->incIncompleteFlows();
@@ -3620,7 +3621,7 @@ void Flow::housekeep(time_t t) {
 
 #ifdef DEBUG_SCAN_DETECTION
     char buf[64];
-    
+
     ntop->getTrace()->traceEvent(TRACE_WARNING, "IDLE %s", print(buf, sizeof(buf)));
     break;
 #endif
@@ -3857,7 +3858,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
     if(srv_host) srv_host->incSentStats(1, pkt_len);
 
     /*
-      Need to reset this bit as nDPI might "forget" to do it in case of 
+      Need to reset this bit as nDPI might "forget" to do it in case of
       protocol detection with onl one packet
     */
     ndpi_flow_risk_bitmap &= ~(1UL << NDPI_UNIDIRECTIONAL_TRAFFIC); /* Clear bit */
@@ -4117,7 +4118,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 #if 0
 	if(!twh_ok) {
 	  char buf[256];
-	  
+
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[flags: %u][src2dst: %u] not ok %s",
 				       flags, src2dst_direction ? 1 : 0, print(buf, sizeof(buf)));
 	}
@@ -5466,7 +5467,7 @@ void Flow::lua_get_protocols(lua_State* vm) const {
      || (iface->getIfType() == interface_type_ZC_FLOW)) {
     lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     lua_push_uint64_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.app_protocol);
-    lua_push_uint64_table_entry(vm, "proto.ndpi_informative_proto", (!ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol) ? 
+    lua_push_uint64_table_entry(vm, "proto.ndpi_informative_proto", (!ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol) ?
                                                                       ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol));
     lua_push_uint64_table_entry(vm, "proto.master_ndpi_id", ndpiDetectedProtocol.master_protocol);
   } else {
@@ -6148,14 +6149,14 @@ void Flow::setNormalToAlertedCounters() {
     cli_h->incNumAlertedFlows(true /* As client */);
     cli_h->incTotalAlerts();
   }
-    
+
   if(srv_h) {
     u_int16_t local_net_id = srv_h->get_local_network_id();
     NetworkStats *net_stats = srv_h->getNetworkStats(local_net_id);
     AutonomousSystem *srv_as = srv_h ? srv_h->get_as() : NULL;
 
     if(srv_as) srv_as->incNumAlertedFlows(true /* As client */);
-    if(net_stats) net_stats->incNumAlertedFlows(false /* As server */); 
+    if(net_stats) net_stats->incNumAlertedFlows(false /* As server */);
     srv_h->incNumAlertedFlows(false /* As server */);
     srv_h->incTotalAlerts();
   }
@@ -6221,7 +6222,7 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
   u_int16_t l7proto = getLowerProtocol();
 
   ndpi_serialize_start_of_block(serializer, "proto"); /* proto block */
-  
+
   /* Adding protocol info; switch the lower application protocol */
   switch(l7proto) {
     case NDPI_PROTOCOL_DNS:
@@ -6229,14 +6230,14 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
       getDNSInfo(serializer);
       ndpi_serialize_end_of_block(serializer);
     break;
-      
+
     case NDPI_PROTOCOL_HTTP:
     case NDPI_PROTOCOL_HTTP_PROXY:
       ndpi_serialize_start_of_block(serializer, "http");
       getHTTPInfo(serializer);
       ndpi_serialize_end_of_block(serializer);
     break;
-      
+
     case NDPI_PROTOCOL_TLS:
     case NDPI_PROTOCOL_MAIL_IMAPS:
     case NDPI_PROTOCOL_MAIL_SMTPS:
@@ -6245,7 +6246,7 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
       ndpi_serialize_start_of_block(serializer, "tls");
       getTLSInfo(serializer);
       ndpi_serialize_end_of_block(serializer);
-    break; 
+    break;
 
     case NDPI_PROTOCOL_IP_ICMP:
     case NDPI_PROTOCOL_IP_ICMPV6:
@@ -6259,13 +6260,13 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
       getMDNSInfo(serializer);
       ndpi_serialize_end_of_block(serializer);
     break;
-         
+
     case NDPI_PROTOCOL_NETBIOS:
       ndpi_serialize_start_of_block(serializer, "netbios");
       getNetBiosInfo(serializer);
       ndpi_serialize_end_of_block(serializer);
     break;
-         
+
     case NDPI_PROTOCOL_SSH:
       ndpi_serialize_start_of_block(serializer, "ssh");
       getSSHInfo(serializer);
@@ -6547,7 +6548,7 @@ void Flow::setJSONRiskInfo(char *r) {
     free(riskInfo);
 
   // ntop->getTrace()->traceEvent(TRACE_INFO, "[%s]", r);
-  
+
   riskInfo = strdup(r);
 }
 
