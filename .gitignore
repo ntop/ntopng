@@ -50,6 +50,7 @@ httpdocs/geoip/*
 httpdocs/ssl/ntopng-cert.pem
 httpdocs/misc/ntopng-utils-manage-config
 httpdocs/misc/ntopng-utils-manage-updates
+httpdocs/css/custom-theme.css
 include/config.h.in
 autom4te.cache*
 *#
