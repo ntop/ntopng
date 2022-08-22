@@ -301,6 +301,9 @@ CREATE INDEX IF NOT EXISTS `system_alerts_i_alert_status` ON `system_alerts`(ale
  * this because SQLite does not support IF NOT EXISTS on ALTER TABLE, thus they will fail
  * on the second execution, preventing any subsequent statement to be executed.  */
 
+ALTER TABLE `flow_alerts` ADD `output_snmp` INTEGER NULL;
+ALTER TABLE `flow_alerts` ADD `input_snmp` INTEGER NULL;
+ALTER TABLE `flow_alerts` ADD `probe_ip` TEXT NULL;
 ALTER TABLE `flow_alerts` ADD `cli_location` INTEGER NULL;
 ALTER TABLE `flow_alerts` ADD `srv_location` INTEGER NULL;
 ALTER TABLE `flow_alerts` ADD `info` TEXT NULL;

@@ -166,7 +166,10 @@ IS_SRV_BLACKLISTED AS srv_blacklisted,
 CLIENT_LOCATION AS cli_location,
 SERVER_LOCATION AS srv_location,
 ALERTS_MAP AS alerts_map,
-INFO AS info
+INFO AS info,
+IPv4NumToString(PROBE_IP) AS probe_ip,
+INPUT_SNMP AS input_snmp,
+OUTPUT_SNMP AS output_snmp
 FROM `flows`
 WHERE STATUS != 0 AND IS_ALERT_DELETED != 1;
 
@@ -251,6 +254,12 @@ ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS info String;
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS cli_location UInt8;
 @
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS srv_location UInt8;
+@
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS probe_ip String;
+@
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS input_snmp UInt32;
+@
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS output_snmp UInt32;
 
 @
 
