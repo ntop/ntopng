@@ -724,13 +724,13 @@ local function loadAndCheckScript(mod_fname, full_path, script, script_type, sub
 
       if not flow_risk_alert then
 	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' is not associated to any known flow risk alert", mod_fname))
+      else
+         -- Add the necessary elements as found in C++
+         check.alert_id = flow_risk_alert.alert_id
+         check.category = checkCategory({id = flow_risk_alert.category})
+         check.gui.i18n_title = flow_risk_alert.risk_name
+         check.gui.i18n_description = flow_risk_alert.risk_name
       end
-
-      -- Add the necessary elements as found in C++
-      check.alert_id = flow_risk_alert.alert_id
-      check.category = checkCategory({id = flow_risk_alert.category})
-      check.gui.i18n_title = flow_risk_alert.risk_name
-      check.gui.i18n_description = flow_risk_alert.risk_name
    end
 
    if((not check.gui) or (not check.gui.i18n_title) or (not check.gui.i18n_description)) then
