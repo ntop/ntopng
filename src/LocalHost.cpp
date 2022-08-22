@@ -311,6 +311,15 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
   else
     lua_push_str_table_entry(vm, "local_network_name", local_net);
 
+  if(router_mac_set) {
+    char router_buf[24];
+    
+    lua_push_str_table_entry(vm, "router",
+			     Utils::formatMac(router_mac, router_buf, sizeof(router_buf)));
+  }  
+
+  /* Add new entries before this line! */
+
   if(asListElement) {
     host_id = get_hostkey(buf_id, sizeof(buf_id));
 
@@ -319,13 +328,6 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     lua_settable(vm, -3);
   }
 
-  if(router_mac_set) {
-    char router_buf[24];
-    
-    lua_push_str_table_entry(vm, "router",
-			     Utils::formatMac(router_mac, router_buf, sizeof(router_buf)));
-  }  
-  
   /* Don't add anything beyond this line (due to lua indexing) */
 }
 
