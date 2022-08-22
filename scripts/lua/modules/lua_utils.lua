@@ -86,16 +86,16 @@ end
 function convertDate(vardate)
    local m,d,y,h,i,s = string.match(vardate, '(%d+)/(%d+)/(%d+) (%d+):(%d+):(%d+)')
    local key = ntop.getPref('ntopng.user.' .. _SESSION["user"] .. '.date_format')
-   
+
    if(key == "little_endian") then
       return string.format('%s/%s/%s %s:%s:%s', d,m,y,h,i,s)
    elseif( key == "middle_endian") then
-      return string.format('%s/%s/%s %s:%s:%s', m,d,y,h,i,s) 
+      return string.format('%s/%s/%s %s:%s:%s', m,d,y,h,i,s)
    else
       return string.format('%s/%s/%s %s:%s:%s', y,m,d,h,i,s)
    end
 
-   
+
 end
 
 -- ##############################################
@@ -196,9 +196,9 @@ end
 -- ##############################################
 
 function hasSoftwareUpdatesSupport()
-   return (not ntop.isOffline() 
+   return (not ntop.isOffline()
       and isAdministrator()
-      and ntop.isPackage() 
+      and ntop.isPackage()
       and not ntop.isWindows())
 end
 
@@ -304,7 +304,7 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
    local uri = _SERVER.URI
 
    if(starts(uri, "/lua/rest/")) then
-      -- 
+      --
       -- Only for REST calls handle CORS (Cross-Origin Resource Sharing)
       --
       -- https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
@@ -313,7 +313,7 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
       lines[#lines + 1] = 'Access-Control-Allow-Origin: *'
       lines[#lines + 1] = 'Access-Control-Allow-Methods: GET, POST, HEAD'
    end
-   
+
    if(_SESSION ~= nil) then
       local key = "session_"..info.http_port.."_"..info.https_port
       lines[#lines + 1] = 'Set-Cookie: '..key..'='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; ' .. cookie_attr
@@ -326,7 +326,7 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
    if(info.timezone ~= nil) then
       lines[#lines + 1] = 'Set-Cookie: timezone=' .. info.timezone .. '; path=/' .. cookie_attr
    end
-   
+
    if(content_disposition ~= nil) then
       lines[#lines + 1] = 'Content-Disposition: '..content_disposition
    end
@@ -569,7 +569,7 @@ end
 
 function printHostPoolDropdown(base_url, page_params, host_pool_list)
    local host_pools = require "host_pools"
-   
+
    local host_pools_instance = host_pools:create()
    local host_pool = _GET["host_pool_id"]
    local host_pool_filter
@@ -600,7 +600,7 @@ function printHostPoolDropdown(base_url, page_params, host_pool_list)
 	 ordered_host_pool_list[key]["count"] = value.count
       end
    end
-   
+
    print[[\
       <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("details.host_pool")) print[[]] print(host_pool_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
@@ -610,12 +610,12 @@ function printHostPoolDropdown(base_url, page_params, host_pool_list)
       print[[<li]]
 
       print([[><a class="dropdown-item ]].. (tonumber(host_pool) == key and 'active' or '') ..[[" href="]])
-      
+
       local host_pool_table = ternary(key ~= 6, host_pool_params_non_filter, host_pool_params)
-      
+
       host_pool_table["host_pool_id"] = key
       print(getPageUrl(base_url, host_pool_table))
-      
+
       print[[">]] print(host_pools_instance:get_pool_name(key)) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
    end
 
@@ -706,10 +706,10 @@ end
 -- ##############################################
 
 function getProbeName(exporter_ip, show_vlan, shorten_len)
-   local cached_device_name 
+   local cached_device_name
    local snmp_cached_dev
 
-   if ntop.isPro() then   
+   if ntop.isPro() then
       snmp_cached_dev = require "snmp_cached_dev"
    end
 
@@ -761,10 +761,10 @@ function printHostsDeviceFilterDropdown(base_url, page_params)
          <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
          <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
-      
+
       for dev_ip, dev_resolved_name in ordering_fun(devips, asc) do
          local dev_name = dev_ip
-         
+
          dev_params["deviceIP"] = dev_name
 
          if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
@@ -887,7 +887,7 @@ function l4_proto_to_string(proto_id)
 
    if proto_id_num == nil then
       -- Already string?
-      return proto_id 
+      return proto_id
    end
 
    for _, proto in pairs(l4_keys) do
@@ -1570,7 +1570,7 @@ function getApplicationLabel(name, maxlen)
   if(maxlen == nil) then
      maxlen = 12
   end
-  
+
   -- Do not convert to upper case, keep the nDPI case
   --name = name:gsub("^%l", string.upper)
 
@@ -2194,7 +2194,7 @@ function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
    end
 
    if(flow_info == nil) then return("") end
-   
+
    if(host_type == "srv") then
       if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and flow_info["host_server_name"]:match("%w") and not isIPv4(flow_info["host_server_name"]) and not isIPv6(flow_info["host_server_name"]) then
 	 -- remove possible ports from the name
@@ -2310,7 +2310,7 @@ function getLocalNetworkAlias(network)
    local alias = ntop.getLocalNetworkAlias(network) or nil
 
    if not alias then
-      alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)      
+      alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)
    end
 
    if not isEmptyString(alias) then
@@ -2411,13 +2411,13 @@ end
 function flow2hostinfo(host_info, host_type)
   local host_name
   local res = interface.getHostMinInfo(host_info[host_type .. ".ip"])
-  
+
   if((res == nil) or (res["name"] == nil)) then
       host_name = host_info[host_type .. ".ip"]
   else
       host_name = res["name"]
   end
-  
+
   return({host = host_info[host_type .. ".ip"], vlan = host_info[host_type .. ".vlan"], name = host_name})
 end
 
@@ -3119,7 +3119,7 @@ end
 -- ##############################################
 
 function getRestUrl(script, is_pro, is_enterprise)
-   if is_enterprise then 
+   if is_enterprise then
       return(ntop.getHttpPrefix() .. "/lua/enterprise/rest/v2/get/" .. script)
    elseif is_pro then
       return(ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/" .. script)
@@ -3171,7 +3171,7 @@ function macInfo(mac)
 end
 
 -- get_symbolic_mac
-function get_symbolic_mac(mac_address, no_href, add_extra_info) 
+function get_symbolic_mac(mac_address, no_href, add_extra_info)
    if(magic_macs[mac_address] ~= nil) then
       return(magic_macs[mac_address])
    else
@@ -3197,17 +3197,20 @@ function get_symbolic_mac(mac_address, no_href, add_extra_info)
 	    else
 	       return '<a href="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='..mac_address..'">' .. get_mac_classification(m) .. ":" .. t .. '</a>'
 	    end
-	 else                                                                                                                                                                                      
-    local href = ""                                                                                                                                                                                            
-    if not no_href then                                                                                                                                                                                        
-      href = '<a href="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='..mac_address..'">'                                                                                                              
-    end    
-	  
-    if(add_extra_info == true) then
-      return(href .. get_mac_classification(m).."_"..t.." ("..macInfo(mac_address)..")" .. "</a>")
-    else
-      return(href .. get_mac_classification(m).."_"..t  .. "</a>")
-    end
+	 else
+	    local href = ""
+	    local href_end = ""
+
+	    if not no_href then
+	       href = '<a href="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='..mac_address..'">'
+	       href_end = "</a>"
+	    end
+
+	    if(add_extra_info == true) then
+	       return(href .. get_mac_classification(m).."_"..t.." ("..macInfo(mac_address)..")" .. href_end)
+	    else
+	       return(href .. get_mac_classification(m).."_"..t  .. href_end)
+	    end
 	 end
       end
    end
@@ -3770,16 +3773,16 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
         resol_recheck_input_range(input);
       }
 
-      /* 
+      /*
        * Remove the checked value inside the radio buttons
-       * and add it only to the one selected 
+       * and add it only to the one selected
        */
       function resol_selector_change_callback(event) {
         $(this).parent().find('label').removeClass('btn-primary').addClass('btn-secondary');
         $(this).parent().find('input[type="radio"]').prop('checked', false);
         $(this).prop('checked', true).removeClass('btn-secondary').addClass('btn-primary');
         $(this).parent().find('label[for="' + $(this).attr('id') + '"]').removeClass('btn-secondary').addClass('btn-primary');
- 
+
         resol_selector_reset_input_range($(this));
       }
 
@@ -3822,7 +3825,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
 
           var selected = $(elem).find("input[checked]");
           var input = resol_selector_get_input(selected);
- 
+
           /* transform in raw units */
           var new_input = $("<input type=\"hidden\"/>");
           new_input.attr("name", input.attr("name"));
@@ -4567,7 +4570,7 @@ function build_query_params(params)
 
     local query = "?"
     local t = {}
- 
+
     for key, value in pairs(params) do
         t[#t+1] = string.format("%s=%s", key, value)
     end
@@ -4597,8 +4600,8 @@ function create_ndpi_proto_name(v)
             app = app .. "." .. app_proto
          end
       end
-           
-      app = getApplicationLabel(app)  
+
+      app = getApplicationLabel(app)
    end
 
    return app
@@ -4660,7 +4663,7 @@ end
 
 function builMapHREF(service_peer, map, page)
   -- Getting minimal stats to know if the host is still present in memory
-  local name 
+  local name
   local vlan = service_peer.vlan
   service_peer.vlan = nil
   local map_url = ntop.getHttpPrefix()..'/lua/pro/enterprise/network_maps.lua?map=' .. map .. '&page=' .. page .. '&' ..hostinfo2url(service_peer)
@@ -4670,7 +4673,7 @@ function builMapHREF(service_peer, map, page)
   if vlan then
     map_url = map_url .. '&vlan_id=' .. vlan
   end
-  
+
   -- Getting stats and formatting initial href
   if (service_peer.ip or service_peer.host) and not service_peer.is_mac then
     -- Host URL only if the host is active
@@ -4691,14 +4694,14 @@ function builMapHREF(service_peer, map, page)
     if (service_peer.ip and service_peer.is_mac) or not service_peer.is_mac  then
         local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, vlan)
         name = hostinfo2label(hinfo or service_peer)
-    else   
+    else
         name = mac2label(service_peer.host)
     end
 
     if isMacAddress(name) then
       name = get_symbolic_mac(name, true)
     end
-    
+
     host_icon = "fa-microchip"
   end
 
@@ -4737,7 +4740,7 @@ end
 function getObsPointAlias(observation_point_id, add_id, add_href)
    local alias = ntop.getHashCache(getObsPointAliasKey(), observation_point_id)
    local ret
-   
+
    if not isEmptyString(alias) then
       if(add_id == true) then
 	 ret = observation_point_id .. " [".. alias .."]"
@@ -4795,11 +4798,11 @@ end
 -- ##############################################
 
 function addHTTPInfoToAlertDescr(msg, alert_json, url_only)
-   if ((alert_json) 
-      and (table.len(alert_json["proto"] or {}) > 0) 
+   if ((alert_json)
+      and (table.len(alert_json["proto"] or {}) > 0)
       and (table.len(alert_json["proto"]["http"]) > 0)) then
-      
-      local http_info = format_http_info({ http_info = alert_json["proto"]["http"]["last_method"], 
+
+      local http_info = format_http_info({ http_info = alert_json["proto"]["http"]["last_method"],
                                             last_return_code = alert_json["proto"]["http"]["last_return_code"],
                                             last_user_agent = alert_json["proto"]["http"]["last_user_agent"],
                                             last_url = alert_json["proto"]["http"]["last_url"] })
@@ -4827,22 +4830,22 @@ end
 -- ##############################################
 
 function addDNSInfoToAlertDescr(msg, alert_json)
-   if ((alert_json) 
-      and (table.len(alert_json["proto"] or {}) > 0) 
+   if ((alert_json)
+      and (table.len(alert_json["proto"] or {}) > 0)
       and (table.len(alert_json["proto"]["dns"] or {}) > 0)) then
-      
-      local dns_info = format_dns_query_info({ last_query_type = alert_json["proto"]["dns"]["last_query_type"], 
+
+      local dns_info = format_dns_query_info({ last_query_type = alert_json["proto"]["dns"]["last_query_type"],
                                                 last_return_code = alert_json["proto"]["dns"]["last_return_code"],
                                                 last_query = alert_json["proto"]["dns"]["last_query"] })
 
       if dns_info["last_query_type"] then
-         msg = msg .. string.format(" [ %s: %s ]", 
-            i18n("last_query_type"), 
+         msg = msg .. string.format(" [ %s: %s ]",
+            i18n("last_query_type"),
             dns_info["last_query_type"])
       end
 
       if dns_info["last_return_code"] then
-         msg = msg .. string.format(" [ %s: %s ]", 
+         msg = msg .. string.format(" [ %s: %s ]",
             i18n("last_return_code"),
             dns_info["last_return_code"])
       end
@@ -4859,10 +4862,10 @@ end
 
 function addTLSInfoToAlertDescr(msg, alert_json)
    if ((alert_json)
-      and (table.len(alert_json["proto"] or {}) > 0) 
+      and (table.len(alert_json["proto"] or {}) > 0)
       and (table.len(alert_json["proto"]["tls"] or {}) > 0)) then
 
-      local tls_info = format_tls_info({ notBefore = alert_json["proto"]["tls"]["notBefore"], 
+      local tls_info = format_tls_info({ notBefore = alert_json["proto"]["tls"]["notBefore"],
                                           notAfter = alert_json["proto"]["tls"]["notAfter"],
                                           client_requested_server_name = alert_json["proto"]["tls"]["client_requested_server_name"],
                                           ['ja3.server_unsafe_cipher'] = alert_json["proto"]["tls"]["ja3.server_unsafe_cipher"] })
@@ -4887,10 +4890,10 @@ end
 
 function addICMPInfoToAlertDescr(msg, alert_json)
    if ((alert_json)
-      and (table.len(alert_json["proto"] or {}) > 0) 
+      and (table.len(alert_json["proto"] or {}) > 0)
       and (table.len(alert_json["proto"]["icmp"] or {}) > 0)) then
 
-      local icmp_info = format_icmp_info({ code = alert_json["proto"]["icmp"]["code"], 
+      local icmp_info = format_icmp_info({ code = alert_json["proto"]["icmp"]["code"],
                                            type = alert_json["proto"]["icmp"]["type"] })
 
       -- Already formatted by the function
@@ -4909,10 +4912,10 @@ end
 -- ##############################################
 
 function addBytesInfoToAlertDescr(msg, value)
-  msg = string.format("%s [ %s: %s | %s: %s ]", msg, 
+  msg = string.format("%s [ %s: %s | %s: %s ]", msg,
                       i18n("server_traffic"), bytesToSize(value["srv2cli_bytes"] or 0),
                       i18n("client_traffic"), bytesToSize(value["cli2srv_bytes"] or 0))
-   
+
   return msg
 end
 
@@ -4920,7 +4923,7 @@ end
 
 function addExtraFlowInfo(alert_json, value)
   local msg = ""
-  msg = addHTTPInfoToAlertDescr(msg, alert_json)   
+  msg = addHTTPInfoToAlertDescr(msg, alert_json)
   msg = addDNSInfoToAlertDescr(msg, alert_json)
   msg = addTLSInfoToAlertDescr(msg, alert_json)
   msg = addICMPInfoToAlertDescr(msg, alert_json)
@@ -5068,7 +5071,7 @@ function iec104_typeids2str(c)
    return(c)
 end
 
-function table.slice(t, start_table, end_table) 
+function table.slice(t, start_table, end_table)
     if t == nil then
         error("The array to slice cannot be nil!")
     end
@@ -5093,7 +5096,7 @@ function add_historical_flow_explorer_button_ref(extra_params)
    if (ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"]) == false then
       return ''
    end
-   
+
    local base_url = ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?"
 
    for k, v in pairs(extra_params) do
@@ -5103,7 +5106,7 @@ function add_historical_flow_explorer_button_ref(extra_params)
    local button = '<a href="' .. base_url .. '" data-placement="bottom" class="btn btn-sm btn-primary" title="Historical Flow Explorer"><i class="fas fa-search-plus"></i></a>'
 
    return button
-end   
+end
 
 function add_delete_obs_point_button()
    local button = ''
@@ -5112,14 +5115,14 @@ function add_delete_obs_point_button()
    end
 
    return button
-end   
+end
 
 function format_device_name(device_ip, short_version)
   local device_name = device_ip
-  
+
   if ntop.isPro() then
     device_name = hostinfo2label(hostkey2hostinfo(device_ip))
-    
+
     if device_name ~= device_ip then
       if short_version then
         device_name = shortenString(device_name, 32)
@@ -5141,30 +5144,30 @@ local _snmp_devices = {}
 --         short_version: boolean, long formatting version (e.g. flow info) or short version (e.g. dropdown menu)
 function format_portidx_name(device_ip, portidx, short_version, shorten_string)
    local idx_name = portidx
-   
+
    -- SNMP is available only with Pro version at least
    if ntop.isPro() then
       local cached_dev = _snmp_devices[device_ip]
 
       if(cached_dev == nil) then
 	 local snmp_cached_dev = require "snmp_cached_dev"
-	 
+
 	 cached_dev = snmp_cached_dev:get_interface_names(device_ip)
 	 _snmp_devices[device_ip] = cached_dev
       end
-      
+
       if (cached_dev) and (cached_dev["interfaces"]) then
 	 local port_info = cached_dev["interfaces"][tostring(portidx)]
-	 
+
 	 if port_info then
 	    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 	    snmp_location = require "snmp_location"
-	    
+
 	    if not port_info["id"] then
 	       port_info["id"] = port_info["index"]
 	       port_info["snmp_device_ip"] = cached_dev["host_ip"]
 	    end
-	    
+
 	    if short_version then
 	       local name = port_info["name"]
 	       if shorten_string then
@@ -5172,10 +5175,10 @@ function format_portidx_name(device_ip, portidx, short_version, shorten_string)
 	       end
 	       idx_name = string.format('%s', name);
 	    else
-	       idx_name = string.format('%s', 
+	       idx_name = string.format('%s',
 					i18n("snmp.interface_device_2", {
-						interface=snmp_location.snmp_port_link(port_info, true), 
-						--device=snmp_location.snmp_device_link(cached_dev["host_ip"])	      
+						interface=snmp_location.snmp_port_link(port_info, true),
+						--device=snmp_location.snmp_device_link(cached_dev["host_ip"])
 					})
 	       )
 	    end
@@ -5190,7 +5193,7 @@ end
 
 function print_copy_button(id, data)
    print('<button style="" class="btn btn-sm border ms-1" data-placement="bottom" id="btn-copy-' .. id ..'" data="' .. data .. '"><i class="fas fa-copy"></i></button>')
-   print("<script>$('#btn-copy-" .. id .. "').click(function(e) { NtopUtils.copyToClipboard($(this).attr('data'), '" .. i18n('copied') .. "', '" .. i18n('request_failed_message') .. "', $(this));});</script>")   
+   print("<script>$('#btn-copy-" .. id .. "').click(function(e) { NtopUtils.copyToClipboard($(this).attr('data'), '" .. i18n('copied') .. "', '" .. i18n('request_failed_message') .. "', $(this));});</script>")
 end
 
 -- ##############################################
@@ -5220,7 +5223,7 @@ function format_dns_query_info(dns_info)
   end
 
   if dns_info.last_query then
-    local url = dns_info["last_query"] 
+    local url = dns_info["last_query"]
     url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
     if not string.find(url, '*') then
       dns_info.last_query = i18n("external_link_url", { proto = 'https', url = url, url_name = dns_info["last_query"] })
@@ -5239,7 +5242,7 @@ function format_tls_info(tls_info)
 
   if tls_info.notAfter then
     tls_info.notAfter = formatEpoch(tls_info.notAfter)
-  end     
+  end
 
   if tls_info.notBefore and tls_info.notAfter then
     tls_info["tls_certificate_validity"] = string.format("%s - %s", tls_info.notBefore, tls_info.notAfter)
@@ -5256,7 +5259,7 @@ function format_tls_info(tls_info)
   end
 
   if tls_info.client_requested_server_name then
-    local url = tls_info["client_requested_server_name"] 
+    local url = tls_info["client_requested_server_name"]
     url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
     if not string.find(url, '*') then
       tls_info["client_requested_server_name"] = i18n("external_link_url", { proto = 'https', url = url, url_name = url})
@@ -5298,14 +5301,14 @@ function format_icmp_info(icmp_info)
 
   if icmp_info.type then
     icmp_info.type = icmp_utils.get_icmp_type(icmp_info.type)
-  end     
+  end
 
   return icmp_info
 end
 
 -- ##############################################
 
-function format_http_info(http_info)   
+function format_http_info(http_info)
   if http_info["last_return_code"] then
     local badge = get_badge(http_info.last_return_code == 200)
     http_info["last_return_code"] = string.format('<span class="badge bg-%s">%s</span>', badge, http_utils.getResponseStatusCode(http_info["last_return_code"]))
@@ -5346,7 +5349,7 @@ function format_common_info(flow_info, formatted_info)
   formatted_info["predominant_direction"] = predominant_bytes
   formatted_info["server_traffic"] = bytesToSize(flow_info["srv2cli_bytes"] or 0)
   formatted_info["client_traffic"] = bytesToSize(flow_info["cli2srv_bytes"] or 0)
-   
+
   return formatted_info
 end
 
@@ -5386,7 +5389,7 @@ end
 -- @return A string IP@vlan
 function format_ip_vlan(ip, vlan)
   local host = ip
-  
+
   if (vlan) and (tonumber(vlan) ~= 0) then
     host = host .. '@' .. (tonumber(vlan) or vlan)
   end
@@ -5402,7 +5405,7 @@ end
 -- @return A string hostname@vlan
 function format_alert_hostname(alert, cli_srv)
   local host = alert[cli_srv .. "_name"]
-  
+
   if(isEmptyString(host)) then
     host = alert[cli_srv .. "_ip"]
   end
@@ -5414,25 +5417,25 @@ end
 
 -- @brief  This function format the info field used in tables
 -- @params info: A string containing the info field
---         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format), 
+--         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format),
 --                  false otherwise
 -- @return A string containing the info field formatted
 function format_external_link(url, name, no_html, proto)
    local external_field = url
    proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
- 
+
    if no_html == false then
      if not isEmptyString(url) and not string.find(url, '*') then
         url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
             external_field = i18n("external_link_url", { proto = proto, url = url, url_name = name})
      end
    end
- 
+
    return external_field
 end
- 
+
 -- ##############################################
- 
+
 function get_confidence(confidence_id, shorten_string)
   local tag_utils = require "tag_utils"
   local confidence_name = confidence_id
@@ -5472,16 +5475,16 @@ function format_query_direction(op, val)
   local historical_flow_utils = require "historical_flow_utils"
   local direction_where = ""
   if val == "0" then
-    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '0' AND " .. 
+    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '0' AND " ..
                              historical_flow_utils.get_flow_column_by_tag("srv_location") .. " "  .. op .. " '0')"
   elseif val == "1" then
-    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '1' AND " .. 
+    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '1' AND " ..
                              historical_flow_utils.get_flow_column_by_tag("srv_location") .. " "  .. op .. " '1')"
   elseif val == "2" then
-    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '0' AND " .. 
+    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '0' AND " ..
                              historical_flow_utils.get_flow_column_by_tag("srv_location") .. " "  .. op .. " '1')"
   elseif val == "3" then
-    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '1' AND " .. 
+    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '1' AND " ..
                              historical_flow_utils.get_flow_column_by_tag("srv_location") .. " "  .. op .. " '0')"
   end
 
@@ -5494,16 +5497,16 @@ function format_confidence_from_json(record)
   local json = require "dkjson"
   local alert_json = {}
   local confidence = nil
-    
+
   if record["ALERT_JSON"] then
     alert_json = json.decode(record["ALERT_JSON"])
   elseif record["json"] then
     alert_json = json.decode(record["json"])
   end
 
-  if (alert_json) and 
-     (alert_json.proto) and 
-     (alert_json.proto.confidence) and 
+  if (alert_json) and
+     (alert_json.proto) and
+     (alert_json.proto.confidence) and
      (not isEmptyString(alert_json.proto.confidence)) then
     confidence = get_confidence(alert_json.proto.confidence)
   end
@@ -5545,7 +5548,7 @@ end
 
 function format_utils.formatSNMPInterface(snmpdevice, interface_index)
   local interface_name = format_portidx_name(snmpdevice, interface_index)
-  
+
   return string.format('%s (%s)', interface_index, (interface_name))
 end
 
@@ -5564,4 +5567,3 @@ end
 -- defined in this file
 --
 http_lint = require "http_lint"
-
