@@ -1437,7 +1437,7 @@ local known_parameters = {
    ["ni_query_filter"]         = validateListOfTypeInline(validateSingleWord),
 
 -- HOST SPECIFICATION
-   ["host"]                    = validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
+   ["host"]                    = validateUnquoted,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
    ["versus_host"]             = validateHost,                  -- an host for comparison
    ["mac"]                     = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))),                   -- a MAC address
    ["cli_mac"]                 = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))),                   -- a MAC address
