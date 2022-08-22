@@ -5543,6 +5543,14 @@ end
 
 -- ##############################################
 
+function format_utils.formatSNMPInterface(snmpdevice, interface_index)
+  local interface_name = format_portidx_name(snmpdevice, interface_index)
+  
+  return string.format('%s (%s)', interface_index, (interface_name))
+end
+
+-- ##############################################
+
 function map_score_to_severity(score)
   if score ~= nil then
     return ntop.mapScoreToSeverity(score)

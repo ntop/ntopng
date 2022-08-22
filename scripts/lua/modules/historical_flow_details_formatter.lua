@@ -204,6 +204,29 @@ end
 
 -- ###############################################
 
+local function format_historical_probe(flow, info)
+  local historical_flow_utils = require "historical_flow_utils"
+  local format_utils = require "format_utils"
+  local info_field = {
+    device_ip = historical_flow_utils.get_historical_url(format_name_value(info["probe_ip"]["value"], info["probe_ip"]["label"], true), "probe_ip", info["probe_ip"]["value"], true, info["probe_ip"]["title"])
+  }
+
+  if (flow["INPUT_SNMP"]) and (tonumber(flow["INPUT_SNMP"]) ~= 0) then
+    info_field["input_interface"] = historical_flow_utils.get_historical_url(format_utils.formatSNMPInterface(flow["PROBE_IP"], flow["INPUT_SNMP"]), "input_snmp", info["input_snmp"]["value"], true, info["input_snmp"]["title"])
+  end
+
+  if (flow["OUTPUT_SNMP"]) and (tonumber(flow["OUTPUT_SNMP"]) ~= 0) then
+    info_field["output_interface"] = historical_flow_utils.get_historical_url(format_utils.formatSNMPInterface(flow["PROBE_IP"], flow["OUTPUT_SNMP"]), "output_snmp", info["output_snmp"]["value"], true, info["output_snmp"]["title"])
+  end
+
+  return {
+    label = i18n("details.flow_snmp_localization"),
+    content = info_field,
+  }
+end
+
+-- ###############################################
+
 local function format_historical_latency(flow, value, cli_or_srv)
   return {
     label = i18n("db_explorer." .. cli_or_srv .. "_latency"),
@@ -294,6 +317,10 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
     
     if (info['info']) and (not isEmptyString(info['info']["title"])) then
       flow_details[#flow_details + 1] = format_historical_info(flow)
+    end
+
+    if (flow["PROBE_IP"] and not isEmptyString(flow['PROBE_IP'])) then
+      flow_details[#flow_details + 1] = format_historical_probe(flow, info)
     end
         
     if tonumber(flow["CLIENT_NW_LATENCY_US"]) ~= 0 then
