@@ -322,6 +322,41 @@ function alert_store:build_sql_cond(cond, is_write)
          end
       end
 
+   -- Special case: snmp_interface
+   elseif cond.field == 'snmp_interface' or
+          cond.field == 'input_snmp' or
+          cond.field == 'output_snmp' then
+
+      local sql_val = cond.value
+
+      local probe_ip = nil
+      local snmp_info = string.split(sql_val, "_")
+      if #snmp_info == 2 then
+         probe_ip = snmp_info[1]
+         sql_val = snmp_info[2]
+      end
+
+      -- Look for input or output
+      if cond.field == 'snmp_interface' then
+         local input_snmp  = self:get_column_name('input_snmp', is_write)
+         local output_snmp = self:get_column_name('output_snmp', is_write)
+
+         sql_cond = input_snmp .. sql_op .. sql_val .." " .. 
+                ternary(cond.op == 'neq', 'AND', 'OR') .. " " .. 
+                output_snmp .. sql_op .. sql_val
+      else
+         local k = self:get_column_name(cond.field, is_write)
+         sql_cond = k .. sql_op .. sql_val
+      end
+
+      if probe_ip then
+         sql_cond = " (" .. sql_cond .. ")" .. 
+                ternary(cond.op == 'neq', 'OR', 'AND') .. " " .. 
+                self:get_column_name('probe_ip', is_write) .. sql_op .. string.format("('%s')", probe_ip) 
+      end
+
+      sql_cond = " (" .. sql_cond .. ")"
+
    -- Special case: role (host)
    elseif cond.field == 'host_role' then
       if cond.value == 'attacker' then
@@ -521,6 +556,11 @@ function alert_store:eval_alert_cond(alert, cond)
             end
          end
       end
+
+   -- Special case: snmp_interface
+   elseif cond.field == 'snmp_interface' then
+      return tag_utils.eval_op(alert['input_snmp'],  cond.op, cond.value) or
+             tag_utils.eval_op(alert['output_snmp'], cond.op, cond.value)
 
    -- Special case: role (host)
    elseif cond.field == 'host_role' then

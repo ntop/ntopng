@@ -406,6 +406,10 @@ function flow_alert_store:_add_additional_request_filters()
    local role = _GET["role"]
    local cli_country = _GET["cli_country"]
    local srv_country = _GET["srv_country"]
+   local probe_ip = _GET["probe_ip"]
+   local input_snmp = _GET["input_snmp"]
+   local output_snmp = _GET["output_snmp"]
+   local snmp_interface = _GET["snmp_interface"]
 
    local cli_host_pool_id = _GET["cli_host_pool_id"]
    local srv_host_pool_id = _GET["srv_host_pool_id"]
@@ -439,6 +443,11 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('cli_network', cli_network, 'number')
    self:add_filter_condition_list('srv_network', srv_network, 'number')
 
+   self:add_filter_condition_list('probe_ip', probe_ip)
+   self:add_filter_condition_list('input_snmp', input_snmp)
+   self:add_filter_condition_list('output_snmp', output_snmp)
+   self:add_filter_condition_list('snmp_interface', snmp_interface)
+
    self:add_filter_condition_list(self:format_query_json_value('proto.l7_error_code'), error_code, 'string')
    self:add_filter_condition_list(self:format_query_json_value('proto.confidence'), confidence, 'string')
 
@@ -471,7 +480,12 @@ function flow_alert_store:_get_additional_available_filters()
 
       l7_error_id     = tag_utils.defined_tags.l7_error_id,
       confidence      = tag_utils.defined_tags.confidence,
-      traffic_direction = tag_utils.defined_tags.traffic_direction
+      traffic_direction = tag_utils.defined_tags.traffic_direction,
+
+      probe_ip = tag_utils.defined_tags.probe_ip,
+      input_snmp = tag_utils.defined_tags.input_snmp,
+      output_snmp = tag_utils.defined_tags.output_snmp,
+      snmp_interface = tag_utils.defined_tags.snmp_interface,
   }
 
    return filters
