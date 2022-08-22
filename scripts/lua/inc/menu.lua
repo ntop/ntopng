@@ -343,7 +343,7 @@ end
 
 local service_map_available = false
 local periodicity_map_available = false
-local asset_map_available = false -- ntop.isEnterpriseL()
+local asset_map_available = ntop.isEnterpriseL()
 
 service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
 

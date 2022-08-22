@@ -4326,6 +4326,7 @@ local lang = {
   ["map_page"] = {
     ["alerted_view"] = "Alerted View",
     ["allowed"] = "<i class=\"fas fa-check\"></i> Allowed",
+    ["asset_family"] = "Asset Family",
     ["centrality_view"] = "Graph Analysis",
     ["denied"] = "<i class=\"fas fa-times\"></i> Denied",
     ["direction"] = "All Directions",
@@ -4339,9 +4340,12 @@ local lang = {
     ["learning_table"] = "The Service Map is <b>learning</b>, click on the reload table button to see new changes...",
     ["networks"] = "All Networks",
     ["no_services"] = "No <b>services</b> were found.",
-    ["node_descr"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> hosts and <font color=#8004e0>MAC</font> addresses.<li>Edges represent a communication between two hosts: <font color=#28a745>allowed</font>, <font color=red>denied</font>, and <font color=#ffc107>undecided</font> service status.<li>Double click on a node to jump to the host page. Use the mouse wheel to zoom in/out.</li><li>The <b>Standard View</b> is the normal view of the Service/Periodicity Map, showing which hosts are talking with whom.</li><li>The <b>Alerted View</b> is a going to show only the alerted hosts; the greater the node, the most alerts it has.</li>",
-    ["note_1"] = "During the <b>learning</b>, a service status cannot be changed.",
-    ["note_2"] = "The services with the <b>Undecided</b> (<kbd class='bg-warning text-dark'><i class='fas fa-hourglass-half'></i></kbd>) status require a confirmation by the user. Once a service status has been confirmed it can be <b>Allowed</b> (<kbd class='bg-success'><i class='fas fa-check'></i></kbd>) or <b>Denied</b> (<kbd class='bg-danger'><i class='fas fas fa-times'></i></kbd>).",
+    ["table_note_asset_map"] = " ",
+    ["table_note_periodicity_map"] = " ",
+    ["table_note_service_map"] = "The services with the <b>Undecided</b> (<kbd class='bg-warning text-dark'><i class='fas fa-hourglass-half'></i></kbd>) status require a confirmation by the user. Once a service status has been confirmed it can be <b>Allowed</b> (<kbd class='bg-success'><i class='fas fa-check'></i></kbd>) or <b>Denied</b> (<kbd class='bg-danger'><i class='fas fas fa-times'></i></kbd>).",
+    ["graph_note_asset_map"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> hosts and <font color=#8004e0>MAC</font> addresses.<li>Double click on a node to jump to the host map. Use the mouse wheel to zoom in/out.</li>",
+    ["graph_note_periodicity_map"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> hosts and <font color=#8004e0>MAC</font> addresses.<li>Double click on a node to jump to the host map. Use the mouse wheel to zoom in/out.</li>",
+    ["graph_note_service_map"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> hosts and <font color=#8004e0>MAC</font> addresses.<li>Edges represent a communication between two hosts: <font color=#28a745>allowed</font>, <font color=red>denied</font>, and <font color=#ffc107>undecided</font> service status.<li>Double click on a node to jump to the host map. Use the mouse wheel to zoom in/out.</li>",
     ["only_mem_hosts"] = "Active Hosts Only",
     ["out_edges"] = "Outgoing Edges",
     ["protocols"] = "All Protocols",
@@ -4359,6 +4363,13 @@ local lang = {
       ["month"] = "Since Last Month",
       ["week"] = "Since Last Week",
     },
+    ["assets"] = {
+      ["ntp"] = "NTP",
+      ["dns"] = "DNS",
+      ["smtp"] = "SMTP",
+      ["imap"] = "IMAP",
+      ["pop"] = "POP",
+    }
   },
   ["metrics"] = {
     ["days"] = "Days",
