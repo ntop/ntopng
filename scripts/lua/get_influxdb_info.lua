@@ -7,8 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local ts_utils = require("ts_utils")
-local json = require "dkjson"
-local checks = require("checks")
 local rest_utils = require("rest_utils")
 
 local influxdb = ts_utils.getQueryDriver()
