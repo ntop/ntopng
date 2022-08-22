@@ -5,8 +5,12 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local shaper_utils
 require "lua_utils"
+require "flow_utils"
+require "voip_utils"
+
+local shaper_utils
+
 local format_utils = require "format_utils"
 local have_nedge = ntop.isnEdge()
 local nf_config = nil
@@ -17,24 +21,21 @@ local dscp_consts = require "dscp_consts"
 local tag_utils = require "tag_utils"
 local flow_risk_utils = require "flow_risk_utils"
 local flow_consts = require "flow_consts"
-require "flow_utils"
-require "voip_utils"
 local template = require "template_utils"
 local categories_utils = require "categories_utils"
 local protos_utils = require("protos_utils")
 local discover = require("discover_utils")
 local json = require ("dkjson")
 local page_utils = require("page_utils")
-local flow_alert_keys = require "flow_alert_keys"
 
 if ntop.isPro() then
-   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
-   shaper_utils = require("shaper_utils")
+  package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+  shaper_utils = require("shaper_utils")
 
-   if ntop.isnEdge() then
-      package.path = dirs.installdir .. "/scripts/lua/pro/nedge/modules/system_config/?.lua;" .. package.path
-      nf_config = require("nf_config")
-   end
+  if ntop.isnEdge() then
+    package.path = dirs.installdir .. "/scripts/lua/pro/nedge/modules/system_config/?.lua;" .. package.path
+    nf_config = require("nf_config")
+  end
 end
 
 function formatASN(v)
@@ -1454,10 +1455,8 @@ else
 
       local snmpdevice = nil
 
-      if(ntop.isPro() and not isEmptyString(syminfo["EXPORTER_IPV4_ADDRESS"])) then
-	 snmpdevice = syminfo["EXPORTER_IPV4_ADDRESS"]
-      elseif(ntop.isPro() and not isEmptyString(syminfo["NPROBE_IPV4_ADDRESS"])) then
-	 snmpdevice = syminfo["NPROBE_IPV4_ADDRESS"]
+      if(ntop.isPro() and not isEmptyString(flow["device_ip"])) then
+        snmpdevice = flow["device_ip"]
       end
 
       if((flow["observation_point_id"] ~= nil) and (flow["observation_point_id"] ~= 0)) then
