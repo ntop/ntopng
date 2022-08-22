@@ -198,7 +198,8 @@ function flow_alert_store:insert(alert)
       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
       "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, cli_location, srv_location, "..
       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, "..
-      "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, json, info) "..
+      "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, probe_ip, input_snmp, output_snmp, "..
+      "json, info) "..
       "VALUES (%s%u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
       "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', '%s'); ",
       self:get_write_table_name(),
@@ -245,6 +246,9 @@ function flow_alert_store:insert(alert)
       alert.srv_host_pool_id or pools.DEFAULT_POOL_ID,
       alert.cli_network or network_utils.UNKNOWN_NETWORK,
       alert.srv_network or network_utils.UNKNOWN_NETWORK,
+      alert.probe_ip,
+      alert.input_snmp,
+      alert.output_snmp,
       self:_escape(alert.json),
       self:_escape(alert.info or '')
    )
