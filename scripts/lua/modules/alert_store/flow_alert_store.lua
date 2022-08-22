@@ -201,7 +201,7 @@ function flow_alert_store:insert(alert)
       "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, probe_ip, input_snmp, output_snmp, "..
       "json, info) "..
       "VALUES (%s%u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
-      "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', '%s'); ",
+      "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, '%s', %u, %u, %u, '%s', '%s'); ",
       self:get_write_table_name(),
       extra_columns,
       extra_values,
