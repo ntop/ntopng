@@ -158,7 +158,7 @@ if(hosts_stats ~= nil) then
       -- io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
 
       -- Safety check (trace failure for debugging)
-      if type(hosts_stats[key]) ~= "table" then
+      if type(value) ~= "table" then
          traceError(TRACE_WARNING, TRACE_CONSOLE, "Unexpected value for key = "..key.." (not a table)")
 	 tprint(value)
 	 goto skip
