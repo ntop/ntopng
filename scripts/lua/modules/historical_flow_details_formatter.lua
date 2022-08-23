@@ -319,7 +319,7 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
       flow_details[#flow_details + 1] = format_historical_info(flow)
     end
 
-    if (flow["PROBE_IP"] and not isEmptyString(flow['PROBE_IP'])) then
+    if (flow["PROBE_IP"] and not isEmptyString(flow['PROBE_IP']) and (flow['PROBE_IP'] ~= '0.0.0.0')) then
       flow_details[#flow_details + 1] = format_historical_probe(flow, info)
     end
         
