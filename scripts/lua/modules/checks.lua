@@ -880,7 +880,7 @@ function checks.load(ifid, script_type, subdir, options)
       local script = loadable_check.script
 
       -- io.write("Loading "..full_path.."\n")
-      
+     
       if(rv.modules[mod_fname]) then
 	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", mod_fname))
 	 goto next_module
@@ -940,7 +940,12 @@ function checks.loadModule(ifid, script_type, subdir, mod_fname)
    -- If this is a flow check, we attempt at locating it among the checks of nDPI flow risks
    -- To load it, we use the default path for all simple flow check definitions
    if not check and subdir == "flow" then
-      check = loadAndCheckScript(mod_fname, FLOW_RISK_SIMPLE_CHECK_DEFINITION_PATH, script, script_type, subdir)
+      local flow_risk_alerts = ntop.getFlowRiskAlerts()
+      local flow_risk_alert = flow_risk_alerts[mod_fname]
+
+      if flow_risk_alert then
+         check = loadAndCheckScript(mod_fname, FLOW_RISK_SIMPLE_CHECK_DEFINITION_PATH, script, script_type, subdir)
+      end
    end
 
    return check
