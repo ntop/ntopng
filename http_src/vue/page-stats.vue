@@ -24,6 +24,7 @@
     
     <div style="height:300px;">
       <Chart :id="id_chart" ref="chart"
+	     :chart_type="chart_type"
       	     :register_on_status_change="false"
 	     :get_custom_chart_options="get_custom_chart_options"
 	     @chart_reloaded="chart_reloaded">
@@ -54,6 +55,7 @@ ntopng_utility.check_and_set_default_interval_time();
 
 let id_chart = "chart";
 let id_date_time_picker = "date_time_picker";
+let chart_type = ntopChartApex.typeChart.TS_LINE;
 
 const chart = ref(null);
 const date_time_picker = ref(null);
@@ -108,7 +110,6 @@ async function init() {
 
 const last_chart_options = ref({});
 const chart_reloaded = (chart_options) => {
-    console.log(chart_options);
     last_chart_options.value = chart_options;
 }
 
@@ -139,15 +140,17 @@ async function get_custom_chart_options() {
     });
     let ts_chart_options = await Promise.all(ts_responses_promises);
     console.log(ts_chart_options);
-    ts_chart_options.forEach((ts_options, i) => timeseriesUtils.tsToApexOptions(ts_options, timeseries_groups[i].metric));
-    console.log(ts_chart_options);
+    console.log(timeseries_groups);
+    let chart_options = timeseriesUtils.tsArrayToApexOptions(ts_chart_options, timeseries_groups);
+    // ts_chart_options.forEach((ts_options, i) => timeseriesUtils.tsToApexOptions(ts_options, timeseries_groups[i].metric));
+    // console.log(ts_chart_options);
 
-    timeseriesUtils.mergeApexOptions(ts_chart_options, timeseries_groups);
+    // timeseriesUtils.mergeApexOptions(ts_chart_options, timeseries_groups);
     
-    let chart_options = ts_chart_options[0];
-    for (let i = 1; i < ts_chart_options.length; i += 1) {
-    	chart_options.series = chart_options.series.concat(ts_chart_options[i].series);
-    }
+    // let chart_options = ts_chart_options[0];
+    // for (let i = 1; i < ts_chart_options.length; i += 1) {
+    // 	chart_options.series = chart_options.series.concat(ts_chart_options[i].series);
+    // }
     console.log(chart_options);
     return chart_options;
 }

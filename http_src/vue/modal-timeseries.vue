@@ -62,7 +62,8 @@
   </template><!-- modal-body -->
   
   <template v-slot:footer>
-    <button type="button" @click="apply" class="btn btn-primary">Apply</button>
+    <button v-show="action == 'add'" type="button" @click="apply" class="btn btn-primary">Add</button>
+    <button v-show="action == 'select'" type="button" @click="apply" class="btn btn-primary">Apply</button>
   </template>
 </modal>
 </template>

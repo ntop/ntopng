@@ -28,31 +28,29 @@ const ntopChartApex = function() {
 		enabled: false,
 	    },
 	},
-	yaxis: 
-	    {
-		labels: {
-		    show: true,
-		    style: {
-			colors: [],
-			fontSize: "11px",
-			fontWeight: 400,
-			cssClass: ""
-		    }
-		},
-		title: {
-		    rotate: -90,
-		    offsetY: 0,
-		    offsetX: 0,
-		    style: {
-			fontSize: "11px",
-			fontWeight: 900,
-			cssClass: ""
-		    }
-		},
-	    }
-	,
+	yaxis: {
+	    labels: {
+		show: true,
+		style: {
+		    colors: [],
+		    fontSize: "11px",
+		    fontWeight: 400,
+		    cssClass: ""
+		}
+	    },
+	    title: {
+		rotate: -90,
+		offsetY: 0,
+		offsetX: 0,
+		style: {
+		    fontSize: "11px",
+		    fontWeight: 900,
+		    cssClass: ""
+		}
+	    },
+	},
     	grid: {
-    	    show: false
+    	    show: false,
     	},
 	legend: {
 	    show: true
@@ -79,6 +77,7 @@ const ntopChartApex = function() {
 		},
 	    },
 	    tooltip: {
+		// shared: true,
 		x: {
 		    format: "dd MMM yyyy HH:mm:ss"
 		},
@@ -91,11 +90,11 @@ const ntopChartApex = function() {
 		    formatter: null,
 		},
 		axisTicks: {
-		    show: false
+		    show: false,
 		},
 		type: "datetime",
 		axisBorder: {
-		    show: true
+		    show: true,
 		},
 		convertedCatToNumeric: false
 	    },
@@ -103,20 +102,69 @@ const ntopChartApex = function() {
     		enabled: false
     	    },
     	    stroke: {
-    		show: false,
-    		curve: "smooth"
+    	    	show: false,
+    	    	curve: "smooth"
     	    },
     	    fill: {
-    		type: "solid"
+    	    	type: "solid"
     	    },
 	};
 	ntopng_utility.copy_object_keys(TS_STACKED_ChartOptions, chartOptions, true);
 	return chartOptions;
     }();
 
+    // define default chartOptions for line chart type.
+    const _default_TS_LINE_ChartOptions = function() {
+	let chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
+	let TS_LINE_ChartOptions = {
+	    chart: {
+		type: "line",
+		zoom: {
+		    enabled: true,
+		    type: "x",
+		},
+	    },
+	    tooltip: {
+		shared: true,
+		x: {
+		    format: "dd MMM yyyy HH:mm:ss"
+		},
+		y: {}
+	    },
+	    xaxis: {
+		labels: {
+		    show: false,
+		    datetimeUTC: false,
+		    formatter: null,
+		},
+		axisTicks: {
+		    show: true
+		},
+		type: "datetime",
+		axisBorder: {
+		    show: true
+		},
+		convertedCatToNumeric: false
+	    },
+    	    stroke: {
+    	    	show: true,
+		width: 2,
+    	    	curve: "smooth"
+    	    },
+    	    grid: {
+    	    	show: true,
+    	    },
+    	    dataLabels: {
+    		enabled: false
+    	    },
+	};
+	ntopng_utility.copy_object_keys(TS_LINE_ChartOptions, chartOptions, true);
+	return chartOptions;
+    }();
     
     return {
 	typeChart: {
+	    TS_LINE: "TS_LINE",
 	    TS_STACKED: "TS_STACKED",
 	    BASE: "BASE",
 	},
@@ -127,6 +175,9 @@ const ntopChartApex = function() {
 
 	    if (type == this.typeChart.TS_STACKED) {
 		_chartOptions = ntopng_utility.clone(_default_TS_STACKED_ChartOptions);
+		_setXTimeFormatter(_chartOptions);
+	    } else if (type == this.typeChart.TS_LINE) {
+		_chartOptions = ntopng_utility.clone(_default_TS_LINE_ChartOptions);
 		_setXTimeFormatter(_chartOptions);
 	    } else if (type == this.typeChart.BASE) {
 		_chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);

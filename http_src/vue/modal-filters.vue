@@ -197,7 +197,7 @@ export default {
 		});
 		$(select2Div).on('select2:select', function (e) {
 		    let data = e.params.data;
-		    me.option_selected = data.id
+		    me.option_selected = data.id;
 		});
 	    }
 	},
