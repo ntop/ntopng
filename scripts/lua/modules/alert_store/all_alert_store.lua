@@ -59,53 +59,76 @@ end
 
 -- ##############################################
 
+function all_alert_store:__add_alert_stats(alert, alerts_by_entity, alerts_by_entity_flat)
+   local entity_id = alert.entity_id
+
+   -- Exclude alerts falling outside requested time ranges
+   local tstamp = tonumber(alert.tstamp)
+   if self._epoch_begin and tstamp < self._epoch_begin then return end
+   if self._epoch_end and tstamp > self._epoch_end then return end
+
+   if not alerts_by_entity[entity_id] then
+      -- Initialize grouped data with some defaults
+      alerts_by_entity[entity_id] = {
+         entity_id = entity_id,
+         score = 0,
+         count_group_notice_or_lower = 0, 
+         count_group_warning = 0, 
+         count_group_error_or_higher = 0,
+         count = 0, 
+         tstamp = 0, 
+         tstamp_end = 0, 
+         json = '{}'
+      }
+
+      -- Preserve a reference in a table which is flattened
+      alerts_by_entity_flat[#alerts_by_entity_flat + 1] = alerts_by_entity[entity_id]
+   end
+
+   alerts_by_entity[entity_id].score = alerts_by_entity[entity_id].score + alert.score
+   alerts_by_entity[entity_id].count = alerts_by_entity[entity_id].count + 1
+
+   local count_group
+   if alert.severity <= alert_severities.notice.severity_id then
+      count_group = "count_group_notice_or_lower"
+   elseif alert.severity == alert_severities.warning.severity_id then
+      count_group = "count_group_warning"
+   elseif alert.severity >= alert_severities.error.severity_id then
+      count_group = "count_group_error_or_higher"
+   end
+
+   alerts_by_entity[entity_id][count_group] = alerts_by_entity[entity_id][count_group] + 1
+end
+
+-- ##############################################
+
 --@brief Selects engaged alerts from memory
 --@return Selected engaged alerts, and the total number of engaged alerts
 function all_alert_store:select_engaged(filter)
    -- No filter, get all active interface alerts
-   local alerts = interface.getEngagedAlerts()
+   local alerts
    local alerts_by_entity_flat = {}
    local alerts_by_entity = {}
 
    local total_rows = 0
    local sort_2_col = {}
 
-   -- Sort and filtering
+   -- Compute alert stats for this interface
+   alerts = interface.getEngagedAlerts()
    for _, alert in pairs(alerts) do
-      local entity_id = alert.entity_id
+      seld:__add_alert_stats(alert, alerts_by_entity, alerts_by_entity_flat)
+   end
 
-      -- Exclude alerts falling outside requested time ranges
-      local tstamp = tonumber(alert.tstamp)
-      if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
-      if self._epoch_end and tstamp > self._epoch_end then goto continue end
-
-      if not alerts_by_entity[entity_id] then
-	 -- Initialize grouped data with some defaults
-	 alerts_by_entity[entity_id] = {
-	    entity_id = entity_id, score = 0,
-	    count_group_notice_or_lower = 0, count_group_warning = 0, count_group_error_or_higher = 0,
-	    count = 0, tstamp = 0, tstamp_end = 0, json = '{}'
-	 }
-
-	 -- Preserve a reference in a table which is flattened
-	 alerts_by_entity_flat[#alerts_by_entity_flat + 1] = alerts_by_entity[entity_id]
+   -- Compute alert stats for system alerts
+   local ifid = interface.getId()
+   local sys_ifid = getSystemInterfaceId()
+   if ifid ~= sys_ifid then
+      interface.select(tostring(sys_ifid))
+      alerts = interface.getEngagedAlerts()
+      for _, alert in pairs(alerts) do
+         self:__add_alert_stats(alert, alerts_by_entity, alerts_by_entity_flat)
       end
-
-      alerts_by_entity[entity_id].score = alerts_by_entity[entity_id].score + alert.score
-      alerts_by_entity[entity_id].count = alerts_by_entity[entity_id].count + 1
-
-      local count_group
-      if alert.severity <= alert_severities.notice.severity_id then
-	 count_group = "count_group_notice_or_lower"
-      elseif alert.severity == alert_severities.warning.severity_id then
-	 count_group = "count_group_warning"
-      elseif alert.severity >= alert_severities.error.severity_id then
-	 count_group = "count_group_error_or_higher"
-      end
-
-      alerts_by_entity[entity_id][count_group] = alerts_by_entity[entity_id][count_group] + 1
-
-      ::continue::
+      interface.select(tostring(sys_ifid))
    end
 
    -- Sort and filtering
