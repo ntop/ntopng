@@ -752,6 +752,7 @@ local function loadAndCheckScript(mod_fname, full_path, script, script_type, sub
       local script_ok = scripts_filter(check)
 
       if(not script_ok) then
+         traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module'%s' for scripts_filter", check.key))
 	 return(nil)
       end
    end
@@ -924,15 +925,15 @@ end
 -- ##############################################
 
 -- @brief Convenient method to only load a specific script
-function checks.loadModule(ifid, script_type, subdir, mod_fname)
+function checks.loadModule(ifid, script_type, subdir, mod_fname, return_all)
    local check
    local check_dirs = checks.getSubdirectoryPath(script_type, subdir)
 
    for _, checks_dir in pairs(check_dirs) do
       local full_path = os_utils.fixPath(checks_dir .. "/" .. mod_fname .. ".lua")
-      
+
       if ntop.exists(full_path) then
-	 check = loadAndCheckScript(mod_fname, full_path, script, script_type, subdir)
+	 check = loadAndCheckScript(mod_fname, full_path, script, script_type, subdir, return_all)
 	 break
       end
    end
@@ -1212,7 +1213,7 @@ end
 -- @param enable A boolean indicating whether the script shall be toggled on or off
 local function toggleScriptConfigset(configset, script_key, subdir, enable)
    local script_type = checks.getScriptType(subdir)
-   local script = checks.loadModule(interface.getId(), script_type, subdir, script_key)
+   local script = checks.loadModule(interface.getId(), script_type, subdir, script_key, true)
 
    if not script then
       return false, i18n("configsets.unknown_check", {check=script_key})
