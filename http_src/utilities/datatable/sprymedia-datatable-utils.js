@@ -45,7 +45,7 @@ export class DataTableFiltersMenu {
      *
      * @param {options}
      */
-    constructor({ tableAPI, filterMenuKey, filterTitle, filters, columnIndex, icon = null, extraAttributes = "", id = null, url = null, urlParams = null }) {
+    constructor({ tableAPI, filterMenuKey, filterTitle, filters, columnIndex, icon = null, extraAttributes = "", id = null, url = null, urlParams = null, removeAllEntry = false }) {
         this.rawFilters = filters;
         this.tableAPI = tableAPI;
         this.filterTitle = filterTitle;
@@ -59,6 +59,7 @@ export class DataTableFiltersMenu {
         this.id = id;
         this.url = url;
         this.urlParams;
+        this.removeAllEntry = removeAllEntry;
       }
 
     get selectedFilter() {
@@ -198,10 +199,11 @@ export class DataTableFiltersMenu {
         }
 
         // the All entry is created by the object
-        const allFilter = this._generateAllFilter();
-
-        $menuContainer.prepend(this._createMenuEntry(allFilter));
-
+        if(!this.removeAllEntry) {
+          const allFilter = this._generateAllFilter();
+          $menuContainer.prepend(this._createMenuEntry(allFilter));  
+        }
+        
         // append the created dropdown inside
         $dropdownContainer.append($dropdownButton);
         $dropdownContainer.append($menuContainer);
