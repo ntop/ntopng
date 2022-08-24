@@ -934,6 +934,7 @@ local lang = {
     ["local_origin_remote_target"] = "Local Origin - Remote Target",
     ["login_failed"] = "Login Failed",
     ["mac_ip_association_change"] = "IP/MAC Reassoc/Spoofing",
+    ["mac_ip_association_change_descr"] = "Trigger an alert when an IP address, previously seen with a MAC address, is now seen with another MAC address. This alert might indicate an ARP spoof attempt. Only works for the builtin alert recipient.", -- 
     ["malicious_signature_detected"] = "Malicious signature detected [Client JA3 Hash: %{ja3_hash}]",
     ["many_replies"] = "%{count} %{what} replies",
     ["many_requests"] = "%{count} %{what} requests",

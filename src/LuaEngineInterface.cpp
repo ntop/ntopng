@@ -4491,6 +4491,25 @@ static int ntop_clickhouse_exec_csv_query(lua_State* vm) {
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
+static int ntop_interface_update_ip_reassignment(lua_State* vm) {
+  NetworkInterface *iface = NULL;
+  int ifid = -1;
+  bool ip_reassignment_enabled = false;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  ifid = (int)lua_tointeger(vm, 1);
+  iface = ntop->getInterfaceById(ifid);
+
+  ip_reassignment_enabled = (bool)lua_toboolean(vm, 2);
+  iface->enable_ip_reassignment_alerts(ip_reassignment_enabled);
+
+  lua_pushnil(vm); 
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
 /* ****************************************** */
 
 static luaL_Reg _ntop_interface_reg[] = {
@@ -4737,6 +4756,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getAlerts",              ntop_interface_get_alerts               },
   { "releaseEngagedAlerts",   ntop_interface_release_engaged_alerts   },
   { "incTotalHostAlerts",     ntop_interface_inc_total_host_alerts    },
+  { "updateIPReassignment",   ntop_interface_update_ip_reassignment   },
 
   /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },

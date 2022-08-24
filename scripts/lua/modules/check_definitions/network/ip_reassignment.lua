@@ -4,7 +4,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 
 -- #################################################################
 
@@ -18,7 +18,7 @@ end
 
 local script = {
    -- Script category
-   category = user_scripts.script_categories.network,
+   category = checks.check_categories.network,
 
    -- Off by default
    default_enabled = false,
@@ -29,8 +29,8 @@ local script = {
    },
 
    gui = {
-      i18n_title = "ip_reassignment.title",
-      i18n_description = "ip_reassignment.description",
+      i18n_title = "alerts_dashboard.mac_ip_association_change",
+      i18n_description = "alerts_dashboard.mac_ip_association_change_descr",
    }
 }
 
