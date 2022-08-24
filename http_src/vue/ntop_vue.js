@@ -3,6 +3,7 @@ import * as Vue from "vue";
 
 // pages
 import { default as PageStats } from "./page-stats.vue";
+import { default as PageAssetTable } from "./page-asset-table.vue";
 import { default as PageDeviceExclusions } from "./page-device-exclusions.vue";
 
 // components
@@ -33,6 +34,7 @@ import { default as ModalSnapshot } from "./modal-snapshot.vue";
 let ntopVue = {
     // pages
     PageStats: PageStats,
+    PageAssetTable: PageAssetTable,
     PageDeviceExclusions: PageDeviceExclusions,
     
     // components
