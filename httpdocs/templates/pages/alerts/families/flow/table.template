@@ -13,5 +13,6 @@
   <th style="text-align: center;">{{ i18n("db_search.tags.srv_host_pool_id") }}</th>
   <th style="text-align: center;">{{ i18n("db_search.tags.cli_network") }}</th>
   <th style="text-align: center;">{{ i18n("db_search.tags.srv_network") }}</th>
+  <th style="text-align: center;">{{ i18n("db_search.tags.probe_ip") }}</th>
   <th style="text-align: center;">{{ i18n("actions") }}</th>
 </tr>

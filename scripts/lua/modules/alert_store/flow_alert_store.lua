@@ -511,6 +511,8 @@ local RNAME = {
    SRV_HOST_POOL_ID = { name = "srv_host_pool_id", export = false },
    CLI_NETWORK = { name = "cli_network", export = false },
    SRV_NETWORK = { name = "srv_network", export = false },
+   
+   PROBE_IP = { name = "probe_ip", export = true},
 
    INFO = { name = "info", export = true },
 }
@@ -841,6 +843,17 @@ function flow_alert_store:format_record(value, no_html)
       epoch_begin = tonumber(value["tstamp"]), 
       epoch_end = tonumber(value["tstamp_end"]) + 1,
       bpf = table.concat(rules, " and "),
+   }
+
+   local probe_ip = ''
+   local probe_label = ''
+   if value["probe_ip"] and value["probe_ip"] ~= "0.0.0.0" then
+      probe_ip = value["probe_ip"]
+      probe_label = getProbeName(probe_ip)
+   end
+   record[RNAME.PROBE_IP.name] = {
+      value = probe_ip,
+      label = probe_label,
    }
 
    return record

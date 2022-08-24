@@ -642,6 +642,17 @@ export class DataTableRenders {
         return label; 
     }
 
+    static getFormatGenericField(field) {
+	return function(obj, type, row) {
+            if (type !== "display") return obj.value;
+    	    let html_ref = '';
+	    if (obj.reference !== undefined)
+		html_ref = obj.reference
+            let label = DataTableRenders.filterize(field, row[field].value, row[field].label, row[field].label, row[field].label);
+            return label + ' ' + html_ref;
+	}
+    }
+
     static formatSNMPInterface(obj, type, row) {
         if (type !== "display") return obj.value;
         let cell = DataTableRenders.filterize('snmp_interface', obj.value, obj.label, obj.label, obj.label);
@@ -654,17 +665,14 @@ export class DataTableRenders {
         return DataTableRenders.filterize('ip', obj, obj, obj, obj);
     }
 
-    static getFormatGenericField(field) {
-	return function(obj, type, row) {
-            if (type !== "display") return obj.value;
-    	    let html_ref = '';
-	    if (obj.reference !== undefined)
-		html_ref = obj.reference
-            let label = DataTableRenders.filterize(field, row[field].value, row[field].label, row[field].label, row[field].label);
-            return label + ' ' + html_ref;
-	}
+    static formatProbeIP(obj, type, row) {
+        if (type !== "display") return obj;
+
+	let label = DataTableRenders.filterize('probe_ip', obj.value, obj.label, obj.label, obj.label_long);
+
+        return label; 
     }
-    
+   
     static formatHost(obj, type, row) {
         if (type !== "display") return obj;
     	let html_ref = '';
@@ -684,7 +692,7 @@ export class DataTableRenders {
             label = DataTableRenders.filterize('ip', obj.value, obj.label, obj.label, obj.label_long);
 	}
 
-        if (row.vlan_id && row.vlan_id != "") {
+        if (row.vlan_id && row.vlan_id != "" && row.vlan_id != "0") {
             label = DataTableRenders.filterize(hostKey, `${hostValue}@${row.vlan_id}`, `${obj.label}@${row.vlan_id}`, `${obj.label}@${row.vlan_id}`, `${obj.label_long}@${row.vlan_id}`);
 	}
 
