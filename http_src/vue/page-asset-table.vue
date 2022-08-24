@@ -17,11 +17,11 @@
             :body="body_delete"
             @delete="delete_all">
           </modal-delete-confirm>
-  -->        
+  
           <div class="card-header mb-2">
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
               <li class="nav-item">
-                <a class="nav-link" href="#" v-bind:class="(view === 'main' ) ? 'active' : '' " @click="switch_to_standard">{{ i18n('map_page.standard_view') }}</a>
+                <a class="nav-link" href="#" v-bind:class="(!view || view === 'main' ) ? 'active' : '' " @click="switch_to_standard">{{ i18n('map_page.standard_view') }}</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="#" v-bind:class="(view === 'centrality' ) ? 'active' : '' " @click="switch_to_centrality">{{ i18n('map_page.centrality_view') }}</a>
