@@ -87,7 +87,7 @@ Prefs::Prefs(Ntop *_ntop) {
   create_labels_logfile = false;
 #endif
   pcap_dir = NULL;
-  test_pre_script_path = test_post_script_path = NULL;
+  test_pre_script_path = test_post_script_path = test_runtime_script_path = NULL;
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
@@ -249,6 +249,7 @@ Prefs::~Prefs() {
   if(wan_interface)	free(wan_interface);
   if(ndpi_proto_path)	free(ndpi_proto_path);
   if(test_pre_script_path)  free(test_pre_script_path);
+  if(test_runtime_script_path) free(test_runtime_script_path);
   if(test_post_script_path) free(test_post_script_path);
 }
 
@@ -844,6 +845,7 @@ static const struct option long_options[] = {
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
   { "pcap-dir",                          required_argument, NULL, '5' },
+  { "test-script-post",                  required_argument, NULL, 201 },
 #ifdef NTOPNG_PRO
   { "log-labels",                        no_argument,       NULL, 202 },
 #endif
@@ -1589,6 +1591,11 @@ int Prefs::setOption(int optkey, char *optarg) {
     print_version = true;
     break;
 
+  case 201:
+    if(test_post_script_path) free(test_post_script_path);
+    test_post_script_path = strdup(optarg);
+    break;
+
 #ifdef NTOPNG_PRO
   case 202:
     create_labels_logfile = true;
@@ -1726,8 +1733,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 #endif
 
   case 218:
-    if(test_post_script_path) free(test_post_script_path);
-    test_post_script_path = strdup(optarg);
+    if(test_runtime_script_path) free(test_runtime_script_path);
+    test_runtime_script_path = strdup(optarg);
     break;
 
   default:

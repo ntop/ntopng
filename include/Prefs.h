@@ -161,6 +161,7 @@ class Prefs {
 #endif
 
   char *test_pre_script_path;
+  char *test_runtime_script_path;
   char *test_post_script_path;
 
 #ifdef NTOPNG_PRO
@@ -261,6 +262,7 @@ class Prefs {
   inline const char* get_pro_callbacks_dir()                  { return(pro_callbacks_dir); };
 #endif
   inline const char* get_test_pre_script_path()               { return(test_pre_script_path); };
+  inline const char* get_test_runtime_script_path()           { return(test_runtime_script_path); };
   inline const char* get_test_post_script_path()              { return(test_post_script_path); };
   inline char* get_export_endpoint()                    { return(export_endpoint);};
   inline char* get_export_zmq_encryption_key()          { return(export_zmq_encryption_key); };

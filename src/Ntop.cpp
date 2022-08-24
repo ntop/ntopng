@@ -2825,12 +2825,21 @@ void Ntop::checkShutdownWhenDone() {
     /* One extra housekeeping before executing tests (this assumes all flows have been walked) */
     runHousekeepingTasks();
 
-    /* Perform shutdown operations on all active interfaces - this also flushes all active flows*/
-    ntop->shutdownInterfaces();
-
-    /* Note: this also flushed buffered flows into tmp files to be dumped on disk */
     runShutdownTasks();
 
+    /* Test Script (Runtime Analysis) */
+    if(ntop->getPrefs()->get_test_runtime_script_path()) {
+      const char *test_runtime_script_path = ntop->getPrefs()->get_test_runtime_script_path();
+
+      /* Execute as Bash script */
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "> Running Runtime Script '%s'", test_runtime_script_path);
+      Utils::exec(test_runtime_script_path);
+    }
+
+    /* Perform shutdown operations on all active interfaces - this also flushes all active flows */
+    ntop->shutdownInterfaces();
+
+    /* Make sure all flushed flows are also dumped to the database for post analysis (e.g. historical data) */
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
     if(clickhouseImport)
       importClickHouseDumps(true);
