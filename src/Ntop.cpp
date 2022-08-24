@@ -100,6 +100,7 @@ Ntop::Ntop(const char *appName) {
   cpu_load = 0;
   system_interface = NULL;
   purgeLoop_started = false;
+  interfacesShuttedDown = false;
 #ifndef WIN32
   cping = NULL, default_ping = NULL;
 #endif
@@ -2824,7 +2825,16 @@ void Ntop::checkShutdownWhenDone() {
     /* One extra housekeeping before executing tests (this assumes all flows have been walked) */
     runHousekeepingTasks();
 
+    /* Perform shutdown operations on all active interfaces - this also flushes all active flows*/
+    ntop->shutdownInterfaces();
+
+    /* Note: this also flushed buffered flows into tmp files to be dumped on disk */
     runShutdownTasks();
+
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+    if(clickhouseImport)
+      importClickHouseDumps(true);
+#endif
 
     /* Test Script (Post Analysis) */
     if(ntop->getPrefs()->get_test_post_script_path()) {
@@ -2854,6 +2864,9 @@ void Ntop::shutdownPeriodicActivities() {
 
 void Ntop::shutdownInterfaces() {
   /* First, shutdown all view interfaces so they can release counters from the viewed interfaces */
+
+  if(interfacesShuttedDown) return;
+
   for(int i=0; i<num_defined_interfaces; i++) {
     if(iface[i]->isView()) {
       EthStats *stats = iface[i]->getStats();
@@ -2876,6 +2889,8 @@ void Ntop::shutdownInterfaces() {
 				   iface[i]->get_description());
     }
   }
+
+  interfacesShuttedDown = true;
 }
 
 /* ******************************************* */
@@ -2898,6 +2913,14 @@ void Ntop::shutdownAll() {
     shutdown_activity->runSystemScript(time(NULL));
     delete shutdown_activity;
   }
+
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+  /* Dump flows flushed during shutdown */
+  /* Commented out: this is done on restart to speed up the shitdown
+  if(clickhouseImport)
+    importClickHouseDumps(true);
+  */
+#endif
 
   ntop->getGlobals()->shutdown();
 

@@ -255,7 +255,7 @@ void NetworkInterface::init(const char *interface_name) {
     last_remote_pps = 0, last_remote_bps = 0,
     has_vlan_packets = false,
     cpu_affinity = -1 /* no affinity */,
-    inline_interface = false, running = false, interfaceStats = NULL,
+    inline_interface = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = false,
     flow_dump_disabled = false,
     numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
@@ -3087,7 +3087,7 @@ void NetworkInterface::flowAlertsDequeueLoop() {
     }
   }
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow alerts dump thread terminated for %s", get_name());
 }
 
 /* **************************************************** */
@@ -3124,7 +3124,7 @@ void NetworkInterface::hostAlertsDequeueLoop() {
     }
   }
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host dump thread completed for %s", get_name());
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host alerts dump thread terminated for %s", get_name());
 }
 
 /* **************************************************** */
@@ -3159,7 +3159,7 @@ void NetworkInterface::dumpFlowLoop() {
     }
   }
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump loop completed for %s", get_name());
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
 }
 
 /* **************************************************** */
@@ -3270,8 +3270,15 @@ void NetworkInterface::shutdown() {
     purgeIdle(time(NULL), true, true);
 
     /* Make sure all alerts have been dequeued and processed */
-    dequeueFlowAlertsFromChecks(0 /* unlimited budget */),
-      dequeueHostAlertsFromChecks(0 /* unlimited budged */);
+    dequeueFlowAlertsFromChecks(0 /* unlimited budget */);
+    dequeueHostAlertsFromChecks(0 /* unlimited budged */);
+
+    /* Make sure all flows have been dumper */
+    dequeueFlowsForDump(0 /* Unlimited budget for idle flows */,
+		        0 /* Unlimited budged for active flows */);
+  
+    if(db)
+      db->flush();
   }
 }
 
@@ -6032,9 +6039,9 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle, bool full_scan) {
 
   pollQueuedeCompanionEvents();
 
-  if(!force_idle && !full_scan && last_packet_time < next_idle_flow_purge)
+  if(!force_idle && !full_scan && last_packet_time < next_idle_flow_purge) {
     return(0); /* Too early */
-  else {
+  } else {
     /* Time to purge flows */
     const struct timeval tv = periodicUpdateInitTime();
 

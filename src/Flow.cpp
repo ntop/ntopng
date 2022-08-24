@@ -1367,7 +1367,7 @@ char* Flow::print(char *buf, u_int buf_len) const {
 
 bool Flow::dump(time_t t, bool last_dump_before_free) {
   bool rc = false;
-
+    
   if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
 #ifdef TINY_FLOWS_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -1980,6 +1980,7 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 /* *************************************** */
 
 void Flow::dumpCheck(time_t t, bool last_dump_before_free) {
+
   if((ntop->getPrefs()->is_flows_dump_enabled()
 #ifndef HAVE_NEDGE
       || ntop->get_export_interface()

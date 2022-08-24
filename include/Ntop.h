@@ -45,6 +45,7 @@ class Ntop {
   bool purgeLoop_started; /* Flag that indicates whether the purgeLoop has been started */
   bool flowChecksReloadInProgress, hostChecksReloadInProgress;
   bool hostPoolsReloadInProgress;
+  bool interfacesShuttedDown;
   bool offline;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
