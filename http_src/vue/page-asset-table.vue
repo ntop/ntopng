@@ -21,7 +21,7 @@
           <div class="card-header mb-2">
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
               <li class="nav-item">
-                <a class="nav-link" href="#" v-bind:class="(!view || view === 'main' ) ? 'active' : '' " @click="switch_to_standard">{{ i18n('map_page.standard_view') }}</a>
+                <a class="nav-link" href="#" v-bind:class="(view === 'main') ? 'active' : '' " @click="switch_to_standard">{{ i18n('map_page.standard_view') }}</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="#" v-bind:class="(view === 'centrality' ) ? 'active' : '' " @click="switch_to_centrality">{{ i18n('map_page.centrality_view') }}</a>
@@ -38,10 +38,8 @@
         </div>
       </div>
       <div class="card-footer">
-        <button type="button" id='btn-delete-all' class="btn btn-danger">
-          <i class='fas fa-trash'></i> {{ i18n("map_page.flush") }}
-        </button>
-        <a :href="full_url" class="btn btn-primary" role="button" aria-disabled="true"  download="asset_map.json" target="_blank"><i class="fas fa-download"></i></a>
+        <button type="button" id='btn-delete-all' class="btn btn-danger me-1"><i class='fas fa-trash'></i> {{ i18n("map_page.delete") }}</button>
+        <a v-bind:href="full_url" id="download_url" class="btn btn-primary" role="button" aria-disabled="true"  download="asset_map.json" target="_blank"><i class="fas fa-download"></i></a>
       </div>
     </div>
   </div>
@@ -80,6 +78,7 @@ export default {
       body_delete: i18n('map_page.delete_message'),
       title_download: i18n('map_page.download'),
       body_download: i18n('map_page.download_message'),
+      download_url: this.$props.full_url,
     };
   },
   methods: {
@@ -141,7 +140,7 @@ export default {
     let defaultDatatableConfig = {
       table_buttons: datatableButton,
       columns_config: [],
-      data_url: NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, url_params),
+      data_url: full_url,
       enable_search: true,
     };
     

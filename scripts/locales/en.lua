@@ -4338,7 +4338,7 @@ local lang = {
     ["fetch_error"] = "Error while fetching Service Map Status.",
     ["filter_hosts"] = "Filters",
     ["delete"] = "Delete Assets",
-    ["delete_message"] = "All the Assets are going to be delete",
+    ["delete_message"] = "All the Assets are going to be delete. Are you sure to delete all the Assets?",
     ["geo_map_notes"] = "The Host details shown by clicking the markers can be modified from the preferences <a href=\"%{prefs_link}\"><i class=\"fas fa-cog\"></i></a>",
     ["graph_view"] = "Graph View",
     ["host"] = "Host",
