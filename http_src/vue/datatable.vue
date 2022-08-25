@@ -17,10 +17,14 @@ import { ref, onMounted, getCurrentInstance, computed, watch, onBeforeUnmount } 
 import { default as modal } from "./modal.vue";
 
 const props = defineProps({
-    table_buttons: Array,
-    columns_config: Array,
-    data_url: String,
-    enable_search: Boolean,
+  table_buttons: Array,
+  columns_config: Array,
+  data_url: String,
+  enable_search: Boolean,
+  filter_buttons: {
+    type: Array,
+    required: false,
+  }
 });
 
 const table_id = ref(null);
@@ -28,29 +32,39 @@ const table_id = ref(null);
 
 let table = null;
 onMounted(() => {
-    /* Create a datatable with the buttons */
-    let config = DataTableUtils.getStdDatatableConfig(props.table_buttons);
-    config = DataTableUtils.extendConfig(config, {
-        serverSide: false,
-	destroy: true,
-        searching: props.enable_search,
-	order: [[0, "asc"]],
-        pagingType: 'full_numbers',
-	columnDefs: {},
-	ajax: {
-	    method: 'get',
-	    url: props.data_url,
-	    dataSrc: 'rsp',
-            beforeSend: function() {
-                NtopUtils.showOverlays();
-            },
-            complete: function() {
-              NtopUtils.hideOverlays();
-            }
-        },
-        columns: props.columns_config,
-    });
-    table = $(table_id.value).DataTable(config);
+  /* Create a datatable with the buttons */
+  let config = DataTableUtils.getStdDatatableConfig(props.table_buttons);
+  config = DataTableUtils.extendConfig(config, {
+    serverSide: false,
+    destroy: true,
+    searching: props.enable_search,
+    order: [[0, "asc"]],
+    pagingType: 'full_numbers',
+    columnDefs: {},
+    ajax: {
+      method: 'get',
+      url: props.data_url,
+      dataSrc: 'rsp',
+      beforeSend: function() {
+        NtopUtils.showOverlays();
+      },
+      complete: function() {
+        NtopUtils.hideOverlays();
+      }
+    },
+    columns: props.columns_config,
+  });
+  table = $(table_id.value).DataTable(config);
+  for (const filter of props.filter_buttons) {
+    new DataTableFiltersMenu({
+      filterTitle: filter.filterTitle,
+      tableAPI: table,
+      filters: filter.filters,
+      filterMenuKey: filter.filterMenuKey,
+      columnIndex: filter.columnIndex,
+      url: props.data_url
+    }).init();
+  }
 });
 
 //onUpdated(() => { console.log("Updated"); });

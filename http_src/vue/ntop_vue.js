@@ -15,6 +15,7 @@ import { default as PageNavbar } from "./page-navbar.vue";
 import { default as RangePicker } from "./range-picker.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
+import { default as TabList } from "./tab-list.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -46,6 +47,7 @@ let ntopVue = {
     PageNavbar: PageNavbar,
     SimpleTable: SimpleTable,
     SelectSearch: SelectSearch,
+    TabList: TabList,
     
     // list
     ListTimeseries: ListTimeseries,
