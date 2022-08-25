@@ -187,7 +187,8 @@ function start_datatable(DatatableVue) {
     filter.callbackFunction = (table, value) => {
       tmp_params[filter.filterMenuKey] = value.id;
       ntopng_url_manager.set_key_to_url(filter.filterMenuKey, value.id);
-      table.ajax.url(NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, tmp_params)).load();
+      table.ajax.url(NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, tmp_params));
+      table.ajax.reload();
     },
     table_filters.push(filter);
   }

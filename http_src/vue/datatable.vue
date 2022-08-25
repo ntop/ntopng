@@ -74,7 +74,7 @@ onMounted(() => {
 
 const reload = () => {
     if (table == null) { return; }
-    table.ajax.url(props.data_url).load();
+    table.ajax.reload();
 }
 
 const delete_button_handlers = (handlerId) => {
