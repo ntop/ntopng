@@ -62,7 +62,10 @@ onMounted(() => {
       filters: filter.filters,
       filterMenuKey: filter.filterMenuKey,
       columnIndex: filter.columnIndex,
-      url: props.data_url
+      url: props.data_url,
+      id: filter.id,
+      removeAllEntry: filter.removeAllEntry,
+      callbackFunction: filter.callbackFunction
     }).init();
   }
 });

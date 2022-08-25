@@ -53,6 +53,7 @@
 import { default as Datatable } from "./datatable.vue";
 import { default as TabList } from "./tab-list.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
+import { ntopng_events_manager, ntopng_status_manager } from '../services/context/ntopng_globals_services';
 const change_table_tab_event = "change_table_tab_event";
 
 export default {
@@ -170,7 +171,6 @@ function start_datatable(DatatableVue) {
       DatatableVue.reload_table();
     }
   });
-
   
   let tmp_params = url_params;
   tmp_params['view'] = 'standard'
@@ -181,6 +181,16 @@ function start_datatable(DatatableVue) {
     data_url: NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, tmp_params),
     enable_search: true,
   };
+
+  let table_filters = []
+  for (let filter of (DatatableVue.$props.table_filters || [])) {
+    filter.callbackFunction = (table, value) => {
+      tmp_params[filter.filterMenuKey] = value.id;
+      ntopng_url_manager.set_key_to_url(filter.filterMenuKey, value.id);
+      table.ajax.url(NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, tmp_params)).load();
+    },
+    table_filters.push(filter);
+  }
   
   /* Standard table configuration */  
 
@@ -195,7 +205,7 @@ function start_datatable(DatatableVue) {
   configDevices.table_buttons = defaultDatatableConfig.table_buttons;
   configDevices.data_url = `${configDevices.data_url}`;
   configDevices.columns_config = columns;
-  configDevices.table_filters = DatatableVue.$props.table_filters;
+  configDevices.table_filters = table_filters;
   DatatableVue.config_devices_standard = configDevices;
 
   /* Centrality table configuration */
@@ -214,7 +224,7 @@ function start_datatable(DatatableVue) {
   configDevices.table_buttons = defaultDatatableConfig.table_buttons;
   configDevices.data_url = `${configDevices.data_url}`;
   configDevices.columns_config = columns;
-  configDevices.table_filters = DatatableVue.$props.table_filters;
+  configDevices.table_filters = table_filters;
   DatatableVue.config_devices_centrality = configDevices;
 }
 </script>

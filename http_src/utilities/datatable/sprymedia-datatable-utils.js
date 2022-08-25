@@ -45,7 +45,7 @@ export class DataTableFiltersMenu {
      *
      * @param {options}
      */
-    constructor({ tableAPI, filterMenuKey, filterTitle, filters, columnIndex, icon = null, extraAttributes = "", id = null, url = null, urlParams = null, removeAllEntry = false }) {
+    constructor({ tableAPI, filterMenuKey, filterTitle, filters, columnIndex, icon = null, extraAttributes = "", id = null, url = null, urlParams = null, removeAllEntry = false, callbackFunction = null }) {
         this.rawFilters = filters;
         this.tableAPI = tableAPI;
         this.filterTitle = filterTitle;
@@ -60,6 +60,7 @@ export class DataTableFiltersMenu {
         this.url = url;
         this.urlParams;
         this.removeAllEntry = removeAllEntry;
+        this.callbackFunction = callbackFunction
       }
 
     get selectedFilter() {
@@ -127,6 +128,22 @@ export class DataTableFiltersMenu {
         }
 
         $entry.on('click', function (e) {
+          if(self.callbackFunction) {
+            // set active filter title and key
+            if (self.$dropdown.title.parent().find(`i.fas`).length == 0) {
+                self.$dropdown.title.parent().prepend(`<i class='fas fa-filter'></i>`);
+            }
+
+            const newContent = $entry.html();
+            self.$dropdown.title.html(newContent);
+            // remove the active class from the li elements
+            self.$dropdown.container.find('li').removeClass(`active`);
+            // add active class to current entry
+            $entry.addClass(`active`);
+            self.callbackFunction(self.tableAPI, filter);
+            return;
+          }
+
           if(!self.url) {
             self.preventUpdate = true;
 
