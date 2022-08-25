@@ -72,6 +72,7 @@ export default {
    * First method called when the component is created.
    */
   created() {
+    ntopng_url_manager.set_key_to_url('asset_family', this.$props.url_params.asset_family);
     start_datatable(this);
   },
   mounted() {
