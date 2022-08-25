@@ -269,7 +269,16 @@ http_dev_build:
 http_build:
 	npm run build
 
-pull:
-	git submodule update --init --recursive
+pull-deps:
+	echo "Pulling dependencies.."
+	rm -rf httpdocs/dist tests/e2e
+	git submodule init
+	git submodule update --remote
+
+pull-pro:
+	if test -d ./pro; then echo "Pulling ntopng/pro..."; cd pro; git pull --rebase; fi
+
+pull: pull-deps pull-pro
+	echo "Updating ntopng..."
 	git pull --rebase
-	if test -d ./pro; then cd pro; git pull --rebase; fi
+
