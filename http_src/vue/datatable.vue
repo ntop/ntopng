@@ -55,7 +55,7 @@ onMounted(() => {
     columns: props.columns_config,
   });
   table = $(table_id.value).DataTable(config);
-  for (const filter of props.filter_buttons) {
+  for (const filter of (props.filter_buttons || [])) {
     new DataTableFiltersMenu({
       filterTitle: filter.filterTitle,
       tableAPI: table,
