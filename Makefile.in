@@ -268,3 +268,8 @@ http_dev_build:
 
 http_build:
 	npm run build
+
+pull:
+	git submodule update --init --recursive
+	git pull --rebase
+	if test -d ./pro; then cd pro; git pull --rebase; fi
