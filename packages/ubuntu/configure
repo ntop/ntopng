@@ -1759,33 +1759,35 @@ fi
 MACHINE=`uname -m`
 SHORT_MACHINE=`uname -m | cut -b1-3`
 
+EXTN=""
+
 if test $MACHINE = "x86_64"; then
-   EXTN="amd64"
+  EXTN="amd64"
 else
   if test $SHORT_MACHINE = "aar"; then
-     EXTN="arm64"
-     EXTRA_DEPS=""
-     LIBRRD="librrd4, "
+    EXTN="arm64"
+    EXTRA_DEPS=""
+    LIBRRD="librrd4, "
   else
-  if test $SHORT_MACHINE = "arm"; then
-     EXTN="armhf"
-     EXTRA_DEPS=""
-     LIBRRD="librrd8, "
-  else
-     if test $SHORT_MACHINE = "mip"; then
-       EXTN="mips"
-       EXTRA_DEPS=""
-       LIBRRD=""
-     else
-       EXTN="i386"
-     fi
-   fi
+    if test $SHORT_MACHINE = "arm"; then
+      EXTN="armhf"
+      EXTRA_DEPS=""
+      LIBRRD="librrd8, "
+    else
+      if test $SHORT_MACHINE = "mip"; then
+        EXTN="mips"
+        EXTRA_DEPS=""
+        LIBRRD=""
+      else
+        EXTN="i386"
+      fi
+    fi
   fi
 fi
 
 if  test -d ../../pro/  &&  ! test -f ../../pro/utils/snzip ; then
-   echo "snzip is missing: please compile it and try again"
-   exit
+  echo "snzip is missing: please compile it and try again"
+  exit
 fi
 
 if  test -f /usr/bin/lsb_release ; then
@@ -1810,7 +1812,7 @@ if  test -f /usr/bin/lsb_release ; then
   fi
   EXTRA_DEPS=", debconf, libnuma1, $ZMQ_DEP, libnetfilter-queue1"
 
-  if  test -d $HOME/PF_RING ; then
+  if  test $MACHINE = "x86_64"  &&  test -d $HOME/PF_RING ; then
     PFRING_VERS=`$HOME/PF_RING/package/version.sh --release`
     PFRING_RELEASE=`$HOME/PF_RING/package/version.sh --revision`
     if  ! "x$PFRING_VERS" = "x" ; then
@@ -1863,12 +1865,12 @@ fi
 
 CHOWN="$SUDO chown $USER:$GROUP ../$APP_*deb"
 
-SHORT_MACHINE=`uname -m | cut -b1-3`
+CONTROL_EXT="$UBUNTU_RELEASE"
 if test $SHORT_MACHINE = "mip"; then
-  UBUNTU_RELEASE="mips"
+  CONTROL_EXT="mips"
 else
   if test $SHORT_MACHINE = "arm"; then
-     UBUNTU_RELEASE=`lsb_release -c|cut -f 2`_pi
+     CONTROL_EXT=`lsb_release -c|cut -f 2`_pi
   fi
 fi
 
@@ -1876,10 +1878,10 @@ fi
 \cd debian.ntopng
 
 if test "${with_nedge+set}" = set; then
- ln -s control.nedge.$UBUNTU_RELEASE.in control.in
+ ln -s control.nedge.$CONTROL_EXT.in control.in
  DEFAULT_TARGET=nedge
 else
- ln -s control.$UBUNTU_RELEASE.in control.in
+ ln -s control.$CONTROL_EXT.in control.in
  DEFAULT_TARGET=ntopng
 fi
 
@@ -1892,7 +1894,10 @@ GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[:space:]'`
 LICENSEDIR="`pwd`/../../../license"
 if test -d $LICENSEDIR; then
   LICENSE_VERS=`$LICENSEDIR/packages/version.sh --release`
-  EXTRA_DEPS="$EXTRA_DEPS, ntop-license (=$LICENSE_VERS)"
+  if test $MACHINE = "x86_64"; then
+    # ntop-license not installed on raspberry
+    EXTRA_DEPS="$EXTRA_DEPS, ntop-license (=$LICENSE_VERS)"
+  fi
 fi
 
 DATE=`date -R`
