@@ -77,6 +77,7 @@ export default {
   mounted() {
     ntopng_events_manager.on_custom_event("change_asset_table_tab", change_table_tab_event, (tab) => {
 	    let table = this.get_active_table();
+      ntopng_url_manager.set_key_to_url('view', tab);
       table.delete_button_handlers(this.asset_table_tab);
       table.destroy_table();
       this.asset_table_tab = tab;
@@ -185,6 +186,7 @@ function start_datatable(DatatableVue) {
   let table_filters = []
   for (let filter of (DatatableVue.$props.table_filters || [])) {
     filter.callbackFunction = (table, value) => {
+      tmp_params['view'] = DatatableVue.asset_table_tab;
       tmp_params[filter.filterMenuKey] = value.id;
       ntopng_url_manager.set_key_to_url(filter.filterMenuKey, value.id);
       table.ajax.url(NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, tmp_params));
