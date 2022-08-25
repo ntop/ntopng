@@ -215,7 +215,7 @@ function start_datatable(DatatableVue) {
   defaultDatatableConfig.data_url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, tmp_params)
 
   columns = [
-    { columnName: i18n("map_page.host"), name: 'host', data: 'host', className: 'text-nowrap', responsivePriority: 1 },
+    { columnName: i18n("map_page.host"), name: 'host', data: 'host', className: 'text-nowrap', render: (data, type) => { return data.label }, responsivePriority: 1 },
     { columnName: i18n("map_page.total_edges"), name: 'total_edges', data: 'total_edges', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: i18n("map_page.in_edges"), name: 'in_edges', data: 'in_edges', className: 'text-nowrap', responsivePriority: 2 },
     { columnName: i18n("map_page.out_edges"), name: 'out_edges', data: 'out_edges',  className: 'text-center', responsivePriority: 2 },
