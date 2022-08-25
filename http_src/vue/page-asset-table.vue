@@ -53,7 +53,7 @@
 import { default as Datatable } from "./datatable.vue";
 import { default as TabList } from "./tab-list.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
-import { ntopng_events_manager, ntopng_status_manager } from '../services/context/ntopng_globals_services';
+import { ntopng_events_manager } from '../services/context/ntopng_globals_services';
 const change_table_tab_event = "change_table_tab_event";
 
 export default {

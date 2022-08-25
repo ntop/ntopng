@@ -8,12 +8,12 @@
     <ul class="nav nav-tabs card-header-tabs" role="tablist">
       <template v-for="tab in tab_list">
 	      <template v-if="tab.active">
-	        <li  @click="this.$emit('click_item', tab)" :class="{ 'active': tab.active }" class="nav-item nav-link">
+	        <li @click="change_tab(tab)" :class="{ 'active': tab.active }" class="nav-item nav-link">
             {{ tab.title }}
           </li>
 	      </template>
 	      <template v-else>
-	        <a @click="this.$emit('click_item', tab)" href="#" class="nav-item nav-link">
+	        <a @click="change_tab(tab)" href="#" class="nav-item nav-link">
 	          {{ tab.title }}
 	        </a>
 	      </template>
@@ -37,15 +37,16 @@ export default defineComponent({
   created() {
   },
   data() {
-    return {
-        //i18n: (t) => i18n(t),
-    };
+    return {};
   },
   /** This method is the first method called after html template creation. */
   mounted() {
     ntopng_sync.ready(this.$props["id"]);
   },
   methods: {
+    change_tab: function(tab) {
+      this.$emit('click_item', tab)
+    }
   },
 });
 </script>
