@@ -54,7 +54,7 @@ fi
 # Detect OS
 OS="DEBIAN"
 if [ -x ${LSB_RELEASE} ]; then
-	REDHAT=$(${LSB_RELEASE} -i | grep -i "CentOS\|RedHat\|Oracle\|Rocky")
+	REDHAT=$(${LSB_RELEASE} -i | grep -i "CentOS\|RedHat\|Oracle\|Rocky\|AlmaLinux")
 	if [ ! -z "${REDHAT}" ]; then
 		OS="REDHAT"
 	fi
@@ -62,6 +62,8 @@ else
 	if [ -f /etc/rocky-release ]; then
 		OS="REDHAT"
 	elif [ -f /etc/oracle-release ]; then
+		OS="REDHAT"
+	elif [ -f /etc/redhat-release ]; then
 		OS="REDHAT"
 	fi
 fi
