@@ -132,13 +132,16 @@ void ThreadPool::run() {
       break;
     } else {
       char name[64], *slash = strrchr(q->script_path, '/');
-      
+      char *label = slash ? &slash[1] : q->script_path;
+
 #ifdef TASK_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "(**) Started task [%s][%s]",
 				   q->script_path, q->iface->get_name());
 #endif
-      snprintf(name, sizeof(name), "ntopng-%d-%s", q->iface->get_id(),
-	       slash ? &slash[1] : q->script_path);
+      if (q->iface->get_id() == -1)
+        snprintf(name, sizeof(name), "ntopng-S-%s", label);
+      else
+        snprintf(name, sizeof(name), "ntopng-%d-%s", q->iface->get_id(), label);
       Utils::setThreadName(name);
       
       q->j->set_state_running(q->iface, q->script_path);
