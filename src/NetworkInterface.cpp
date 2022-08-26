@@ -3028,6 +3028,10 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 
 void NetworkInterface::flowAlertsDequeueLoop() {
   u_int64_t n;
+  char buf[16];
+
+  snprintf(buf, sizeof(buf), "%u/flow_checks", get_id());
+  Utils::setThreadName(buf);
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started flow user script hooks loop on interface %s [id: %u]...",
@@ -3080,6 +3084,10 @@ void NetworkInterface::flowAlertsDequeueLoop() {
 
 void NetworkInterface::hostAlertsDequeueLoop() {
   u_int64_t n;
+  char buf[16];
+
+  snprintf(buf, sizeof(buf), "%u/host_checks", get_id());
+  Utils::setThreadName(buf);
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started host user script hooks loop on interface %s [id: %u]...",
@@ -3133,6 +3141,11 @@ void NetworkInterface::hostAlertsDequeueLoop() {
 /* **************************************************** */
 
 void NetworkInterface::dumpFlowLoop() {
+  char buf[16];
+
+  snprintf(buf, sizeof(buf), "%d/flowdump", get_id());
+  Utils::setThreadName(buf);
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started flow dump loop on interface %s [id: %u]...",
 			       get_description(), get_id());
@@ -3215,13 +3228,6 @@ void NetworkInterface::startFlowDumping() {
     if(idleFlowsToDump && activeFlowsToDump) {
       pthread_create(&flowDumpLoop, NULL, flowDumper, (void*)this);
       flowDumpLoopCreated = true;
-
-#ifdef __linux__
-      char buf[16];
-
-      snprintf(buf, sizeof(buf), "%d/flowdump", get_id());
-      pthread_setname_np(flowDumpLoop, buf);
-#endif
     } else {
       if(idleFlowsToDump)   { delete idleFlowsToDump; idleFlowsToDump = NULL;     }
       if(activeFlowsToDump) { delete activeFlowsToDump; activeFlowsToDump = NULL; }
@@ -8437,13 +8443,6 @@ bool NetworkInterface::initFlowChecksLoop() {
   pthread_create(&flowChecksLoop, NULL, ::flowChecksLoop, (void*)this);
   flowAlertsDequeueLoopCreated = true;
 
-#ifdef __linux__
-  char buf[16];
-
-  snprintf(buf, sizeof(buf), "%u/flow_checks", get_id());
-  Utils::setThreadName(buf);
-#endif
-
   return true;
 }
 
@@ -8458,13 +8457,6 @@ bool NetworkInterface::initHostChecksLoop() {
 
   pthread_create(&hostChecksLoop, NULL, ::hostChecksLoop, (void*)this);
   hostAlertsDequeueLoopCreated = true;
-
-#ifdef __linux__
-  char buf[16];
-
-  snprintf(buf, sizeof(buf), "%u/host_checks", get_id());
-  pthread_setname_np(hostChecksLoop, buf);
-#endif
 
   return true;
 }
