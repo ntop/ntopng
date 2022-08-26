@@ -2872,14 +2872,14 @@ u_int64_t NetworkInterface::dequeueFlowAlertsFromChecks(u_int budget) {
 #ifndef WIN32
   if(num_done == 0) {
     /*
-      No flow was dequeued. Let's wait for at most 1s. Cannot wait indefinitely
+      No flow was dequeued. Let's wait for at most 1-2s. Cannot wait indefinitely
       as we must ensure purgeQueuedIdleFlows() gets executed, and also to exit when it's
       time to shutdown.
     */
     struct timespec hooks_wait_expire;
 
-    hooks_wait_expire.tv_sec = time(NULL) + 1,
-      hooks_wait_expire.tv_nsec = 0;
+    hooks_wait_expire.tv_sec = time(NULL) + 2;
+    hooks_wait_expire.tv_nsec = 0;
 
     flow_checks_condvar.timedWait(&hooks_wait_expire);
   }
@@ -2902,14 +2902,14 @@ u_int64_t NetworkInterface::dequeueHostAlertsFromChecks(u_int budget) {
 #ifndef WIN32
   if(num_done == 0) {
     /*
-      No host was dequeued. Let's wait for at most 1s. Cannot wait indefinitely
+      No host was dequeued. Let's wait for at most 1-2s. Cannot wait indefinitely
       as we must ensure purgeQueuedIdleHosts() gets executed, and also to exit when it's
       time to shutdown.
     */
     struct timespec hooks_wait_expire;
 
-    hooks_wait_expire.tv_sec = time(NULL) + 1,
-      hooks_wait_expire.tv_nsec = 0;
+    hooks_wait_expire.tv_sec = time(NULL) + 2;
+    hooks_wait_expire.tv_nsec = 0;
 
     host_checks_condvar.timedWait(&hooks_wait_expire);
   }
@@ -3037,8 +3037,8 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
      */
     struct timespec dump_wait_expire;
 
-    dump_wait_expire.tv_sec = time(NULL) + 1,
-      dump_wait_expire.tv_nsec = 0;
+    dump_wait_expire.tv_sec = time(NULL) + 2;
+    dump_wait_expire.tv_nsec = 0;
 
     dump_condition.timedWait(&dump_wait_expire);
   }

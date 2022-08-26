@@ -74,12 +74,14 @@ int Condvar::timedWait(struct timespec *expiration) {
   }
 
 #if 1
-  while(predicate == false)
-    if((rc = pthread_cond_timedwait(&condvar, 
-				    &mutex, expiration)) == ETIMEDOUT) {
+  while(predicate == false) {
+    rc = pthread_cond_timedwait(&condvar, &mutex, expiration);
+
+    if (rc == ETIMEDOUT) {
       pthread_mutex_unlock(&mutex);
       return rc;
     }
+  }
 #endif
 
   predicate = false;
