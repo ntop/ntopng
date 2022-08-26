@@ -24,6 +24,10 @@ const props = defineProps({
   filter_buttons: {
     type: Array,
     required: false,
+  },
+  table_config: {
+    type: Object,
+    required: false,
   }
 });
 
@@ -33,8 +37,7 @@ const table_id = ref(null);
 let table = null;
 onMounted(() => {
   /* Create a datatable with the buttons */
-  let config = DataTableUtils.getStdDatatableConfig(props.table_buttons);
-  config = DataTableUtils.extendConfig(config, {
+  let extend_config = {
     serverSide: false,
     destroy: true,
     searching: props.enable_search,
@@ -45,6 +48,31 @@ onMounted(() => {
       method: 'get',
       url: props.data_url,
       dataSrc: 'rsp',
+      data: (data, settings) => {
+        if(Object.keys(data).length == 0) {
+          return;
+        }
+
+        const tableApi = settings.oInstance.api();
+        const orderColumnIndex = data.order[0].column;
+        const orderColumnName = tableApi.column(orderColumnIndex).name() || undefined;
+        
+        if (data.order) {
+          data.order = data.order[0].dir;
+          data.sort = orderColumnName;
+        }
+
+        if (data.columns !== undefined) {
+          delete data.columns;
+        }
+
+        if (data.search !== undefined) {
+          data.map_search = data.search.value;
+          delete data.search
+        }
+        
+        return data;
+      },
       beforeSend: function() {
         NtopUtils.showOverlays();
       },
@@ -53,7 +81,14 @@ onMounted(() => {
       }
     },
     columns: props.columns_config,
-  });
+  };
+
+  for (const item in (props.table_config || {})) {
+    extend_config[item] = props.table_config[item]
+  }
+
+  let config = DataTableUtils.getStdDatatableConfig(props.table_buttons);
+  config = DataTableUtils.extendConfig(config, extend_config);
   table = $(table_id.value).DataTable(config);
   for (const filter of (props.filter_buttons || [])) {
     new DataTableFiltersMenu({

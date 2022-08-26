@@ -113,7 +113,9 @@ export class DataTableFiltersMenu {
             // remove the active class from the li elements
             self.$dropdown.container.find('li').removeClass(`active`);
             // add active class to current entry
-            $entry.addClass(`active`);
+            if(filter.key !== 'all') {
+              $entry.addClass(`active`);
+            }
           }
         } else if (filter.regex !== undefined && (filter.countable === undefined || filter.countable)) {
             const data = this.tableAPI.columns(this.columnIndex).data()[0];
@@ -128,36 +130,29 @@ export class DataTableFiltersMenu {
         }
 
         $entry.on('click', function (e) {
-          if(self.callbackFunction) {
-            // set active filter title and key
-            if (self.$dropdown.title.parent().find(`i.fas`).length == 0) {
-                self.$dropdown.title.parent().prepend(`<i class='fas fa-filter'></i>`);
-            }
+          // set active filter title and key
+          if (self.$dropdown.title.parent().find(`i.fas`).length == 0) {
+            self.$dropdown.title.parent().prepend(`<i class='fas fa-filter'></i>`);
+          }
 
-            const newContent = $entry.html();
-            self.$dropdown.title.html(newContent);
-            // remove the active class from the li elements
-            self.$dropdown.container.find('li').removeClass(`active`);
-            // add active class to current entry
+          const newContent = $entry.html();
+          self.$dropdown.title.html(newContent);
+          // remove the active class from the li elements
+          self.$dropdown.container.find('li').removeClass(`active`);
+          // add active class to current entry
+          if(filter.key !== 'all') {
             $entry.addClass(`active`);
+          }
+
+          if(self.callbackFunction) {
             self.callbackFunction(self.tableAPI, filter);
+            if(filter.callback) filter.callback();
             return;
           }
 
           if(!self.url) {
             self.preventUpdate = true;
 
-            // set active filter title and key
-            if (self.$dropdown.title.parent().find(`i.fas`).length == 0) {
-                self.$dropdown.title.parent().prepend(`<i class='fas fa-filter'></i>`);
-            }
-
-            const newContent = $entry.html();
-            self.$dropdown.title.html(newContent);
-            // remove the active class from the li elements
-            self.$dropdown.container.find('li').removeClass(`active`);
-            // add active class to current entry
-            $entry.addClass(`active`);
             // if the filter have a callback then call it
             if (filter.callback) filter.callback();
             // perform the table filtering

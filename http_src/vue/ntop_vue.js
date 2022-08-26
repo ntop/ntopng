@@ -4,6 +4,7 @@ import * as Vue from "vue";
 // pages
 import { default as PageStats } from "./page-stats.vue";
 import { default as PageAssetTable } from "./page-asset-table.vue";
+import { default as PageServiceTable } from "./page-service-table.vue";
 import { default as PageDeviceExclusions } from "./page-device-exclusions.vue";
 
 // components
@@ -36,6 +37,7 @@ let ntopVue = {
     // pages
     PageStats: PageStats,
     PageAssetTable: PageAssetTable,
+    PageServiceTable: PageServiceTable,
     PageDeviceExclusions: PageDeviceExclusions,
     
     // components
