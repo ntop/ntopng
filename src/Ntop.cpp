@@ -591,49 +591,49 @@ void Ntop::start() {
     */
     checkShutdownWhenDone();
 
-#ifndef __linux__
     gettimeofday(&end, NULL);
-
     usec_diff = Utils::usecTimevalDiff(&end, &begin);
 
+    if(usec_diff >= nap_usec)
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Houkeeping activities (main loop) took %.3fs", (float)usec_diff/1e6);
+
+#ifndef __linux__
     if(usec_diff < nap_usec)
       _usleep(nap_usec-usec_diff);
 #else
-    do {
-      gettimeofday(&end, NULL);
-      usec_diff = Utils::usecTimevalDiff(&end, &begin);
+    while (usec_diff < nap_usec) {
+      int maxfd = 0;
+      fd_set rset;
+      struct timeval tv;
 
-      if(usec_diff < nap_usec) {
-        int maxfd = 0;
-        fd_set rset;
-        struct timeval tv;
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sleeping %i microsecods", (nap_usec - usec_diff));
 
-        //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sleeping %i microsecods", (nap_usec - usec_diff));
+      FD_ZERO(&rset);
 
-        FD_ZERO(&rset);
+      if(inotify_fd > 0) {
+        FD_SET(inotify_fd, &rset);
+        maxfd = inotify_fd;
+      }
 
-        if(inotify_fd > 0) {
-          FD_SET(inotify_fd, &rset);
-          maxfd = inotify_fd;
-        }
+      tv.tv_sec = 0, tv.tv_usec = (nap_usec - usec_diff);
 
-        tv.tv_sec = 0, tv.tv_usec = (nap_usec - usec_diff);
+      if(select(maxfd + 1, &rset, NULL, NULL, &tv) > 0) {
+        if(FD_ISSET(inotify_fd, &rset)) {
+          char buffer[EVENT_BUF_LEN];
 
-        if(select(maxfd + 1, &rset, NULL, NULL, &tv) > 0) {
-          if(FD_ISSET(inotify_fd, &rset)) {
-            char buffer[EVENT_BUF_LEN];
+          /* Consume the event */
+          int rc = read(inotify_fd, buffer, sizeof(buffer));
 
-            /* Consume the event */
-            int rc = read(inotify_fd, buffer, sizeof(buffer));
+          if(rc < 0)
+            ntop->getTrace()->traceEvent(TRACE_DEBUG, "read() returned %d", rc);
 
-	    if(rc < 0)
-	      ntop->getTrace()->traceEvent(TRACE_DEBUG, "read() returned %d", rc);
-
-            ntop->getTrace()->traceEvent(TRACE_DEBUG, "Directory changed");
-          }
+          ntop->getTrace()->traceEvent(TRACE_DEBUG, "Directory changed");
         }
       }
-    } while(usec_diff < nap_usec);
+
+      gettimeofday(&end, NULL);
+      usec_diff = Utils::usecTimevalDiff(&end, &begin);
+    }
 #endif
   }
 }
