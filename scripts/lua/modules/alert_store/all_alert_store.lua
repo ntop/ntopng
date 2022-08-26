@@ -116,7 +116,7 @@ function all_alert_store:select_engaged(filter)
    -- Compute alert stats for this interface
    alerts = interface.getEngagedAlerts()
    for _, alert in pairs(alerts) do
-      seld:__add_alert_stats(alert, alerts_by_entity, alerts_by_entity_flat)
+      self:__add_alert_stats(alert, alerts_by_entity, alerts_by_entity_flat)
    end
 
    -- Compute alert stats for system alerts
