@@ -603,6 +603,7 @@ void Ntop::start() {
         int maxfd = 0;
         fd_set rset;
         struct timeval tv;
+        int rc;
 
         //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sleeping %i microsecods", (nap_usec - usec_diff));
 
@@ -612,12 +613,14 @@ void Ntop::start() {
 
         tv.tv_sec = 0, tv.tv_usec = (nap_usec - usec_diff);
 
-        if(select(maxfd + 1, &rset, NULL, NULL, &tv) > 0) {
+        rc = select(maxfd + 1, &rset, NULL, NULL, &tv);
+
+        if(rc > 0) {
           if(FD_ISSET(inotify_fd, &rset)) {
             char buffer[EVENT_BUF_LEN];
 
             /* Consume the event */
-            int rc = read(inotify_fd, buffer, sizeof(buffer));
+            rc = read(inotify_fd, buffer, sizeof(buffer));
 
             if(rc < 0)
               ntop->getTrace()->traceEvent(TRACE_DEBUG, "read() returned %d", rc);
@@ -628,14 +631,16 @@ void Ntop::start() {
 
         gettimeofday(&end, NULL);
         usec_diff = Utils::usecTimevalDiff(&end, &begin);
+
+        if (rc < 0)
+          break; /* fall back to sleeping to avoid spinning on a failing select */
       }
-    } else {
-#endif
-      if(usec_diff < nap_usec)
-        _usleep(nap_usec-usec_diff);
-#ifdef __linux__
     }
 #endif
+
+    if(usec_diff < nap_usec)
+      _usleep(nap_usec-usec_diff);
+
   }
 }
 
