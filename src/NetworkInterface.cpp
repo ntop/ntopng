@@ -2867,29 +2867,14 @@ u_int64_t NetworkInterface::dequeueHostAlerts(u_int budget) {
 /* **************************************************** */
 
 u_int64_t NetworkInterface::dequeueFlowAlertsFromChecks(u_int budget) {
-  u_int64_t num_done = dequeueFlowAlerts(budget);
+  u_int64_t num_done;
 
-#ifndef WIN32
-  if(num_done == 0) {
-    /*
-      No flow was dequeued. Let's wait for at most 1-2s. Cannot wait indefinitely
-      as we must ensure purgeQueuedIdleFlows() gets executed, and also to exit when it's
-      time to shutdown.
-    */
-    struct timespec hooks_wait_expire;
-
-    hooks_wait_expire.tv_sec = time(NULL) + 2;
-    hooks_wait_expire.tv_nsec = 0;
-
-    flow_checks_condvar.timedWait(&hooks_wait_expire);
-  }
-#endif
+  num_done = dequeueFlowAlerts(budget);
 
 #if DEBUG_FLOW_CHECKS
   if(num_done > 0)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued flows total [%u]", num_done);
 #endif
-
 
   return num_done;
 }
@@ -2897,23 +2882,9 @@ u_int64_t NetworkInterface::dequeueFlowAlertsFromChecks(u_int budget) {
 /* **************************************************** */
 
 u_int64_t NetworkInterface::dequeueHostAlertsFromChecks(u_int budget) {
-  u_int64_t num_done = dequeueHostAlerts(budget);
+  u_int64_t num_done;
 
-#ifndef WIN32
-  if(num_done == 0) {
-    /*
-      No host was dequeued. Let's wait for at most 1-2s. Cannot wait indefinitely
-      as we must ensure purgeQueuedIdleHosts() gets executed, and also to exit when it's
-      time to shutdown.
-    */
-    struct timespec hooks_wait_expire;
-
-    hooks_wait_expire.tv_sec = time(NULL) + 2;
-    hooks_wait_expire.tv_nsec = 0;
-
-    host_checks_condvar.timedWait(&hooks_wait_expire);
-  }
-#endif
+  num_done = dequeueHostAlerts(budget);
 
 #if DEBUG_HOST_CHECKS
   if(num_done > 0)
@@ -3056,6 +3027,8 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 /* **************************************************** */
 
 void NetworkInterface::flowAlertsDequeueLoop() {
+  u_int64_t n;
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started flow user script hooks loop on interface %s [id: %u]...",
 			       get_description(), get_id());
@@ -3074,15 +3047,28 @@ void NetworkInterface::flowAlertsDequeueLoop() {
     /*
       Dequeue flows for dump.
      */
-    u_int64_t n = dequeueFlowAlertsFromChecks(32 /* budget */);
+    n = dequeueFlowAlertsFromChecks(32 /* budget */);
 
     if(n == 0) {
+      /* No flow was dequeued. Let's wait. */
+#ifdef WIN32
       /*
 	If windows, sleep if nothing was done during the previous cycle.
-	On non-windows, there's nothing do to as signal/waits are implemented to throttle the speed
       */
-#ifdef WIN32
       _usleep(10000);
+#else
+      /*
+        On non-windows, signal/waits are implemented to throttle the speed
+        Wait for at most 1-2s. Cannot wait indefinitely
+        as we must ensure purgeQueuedIdleFlows() gets executed, 
+        and also to exit when it's time to shutdown.
+      */
+      struct timespec hooks_wait_expire;
+
+      hooks_wait_expire.tv_sec = time(NULL) + 2;
+      hooks_wait_expire.tv_nsec = 0;
+
+      flow_checks_condvar.timedWait(&hooks_wait_expire);
 #endif
     }
   }
@@ -3093,6 +3079,8 @@ void NetworkInterface::flowAlertsDequeueLoop() {
 /* **************************************************** */
 
 void NetworkInterface::hostAlertsDequeueLoop() {
+  u_int64_t n;
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started host user script hooks loop on interface %s [id: %u]...",
 			       get_description(), get_id());
@@ -3111,15 +3099,30 @@ void NetworkInterface::hostAlertsDequeueLoop() {
     /*
       Dequeue hosts for dump.
      */
-    u_int64_t n = dequeueHostAlertsFromChecks(32 /* budget */);
+    n = dequeueHostAlertsFromChecks(32 /* budget */);
 
     if(n == 0) {
+      /*
+        No host was dequeued. Let's wait.
+      */
+#ifdef WIN32
       /*
 	If windows, sleep if nothing was done during the previous cycle.
 	On non-windows, there's nothing do to as signal/waits are implemented to throttle the speed
       */
-#ifdef WIN32
       _usleep(10000);
+#else
+      /*
+        Wait for at most 1-2s. Cannot wait indefinitely
+        as we must ensure purgeQueuedIdleHosts() gets executed, 
+        and also to exit when it's time to shutdown.
+      */
+      struct timespec hooks_wait_expire;
+
+      hooks_wait_expire.tv_sec = time(NULL) + 2;
+      hooks_wait_expire.tv_nsec = 0;
+
+      host_checks_condvar.timedWait(&hooks_wait_expire);
 #endif
     }
   }
