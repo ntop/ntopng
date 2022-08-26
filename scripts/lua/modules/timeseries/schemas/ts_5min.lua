@@ -857,11 +857,4 @@ if ntop.isPro() then
     schema:addMetric("value")
     schema:addMetric("lower_bound")
     schema:addMetric("upper_bound")
-
-    schema = ts_utils.newSchema("subnet:intranet_traffic", {step=300, metrics_type=ts_utils.metrics.counter})
-    schema:addTag("ifid")
-    schema:addTag("subnet")
-    schema:addTag("subnet_2")
-    schema:addMetric("bytes_sent")
-    schema:addMetric("bytes_rcvd")        
 end

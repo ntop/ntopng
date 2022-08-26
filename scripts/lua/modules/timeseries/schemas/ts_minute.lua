@@ -97,6 +97,15 @@ schema:addMetric("bytes_nfq")
 -- SUBNETS SCHEMAS
 -------------------------------------------------------
 
+if ntop.isPro() then
+  schema = ts_utils.newSchema("subnet:intranet_traffic_min", {step=60, metrics_type=ts_utils.metrics.counter})
+  schema:addTag("ifid")
+  schema:addTag("subnet")
+  schema:addTag("subnet_2")
+  schema:addMetric("bytes_sent")
+  schema:addMetric("bytes_rcvd")        
+end
+
 schema = ts_utils.newSchema("subnet:traffic", {step=60, rrd_fname="bytes"})
 schema:addTag("ifid")
 schema:addTag("subnet")
