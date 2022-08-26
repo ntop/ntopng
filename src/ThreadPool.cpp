@@ -27,7 +27,7 @@
 /* **************************************************** */
 
 static void* doRun(void* ptr)  {
-  Utils::setThreadName("TrPoolWorker");
+  Utils::setThreadName("ntopng-th-pool");
 
   ((ThreadPool*)ptr)->run();
   return(NULL);
@@ -137,7 +137,7 @@ void ThreadPool::run() {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "(**) Started task [%s][%s]",
 				   q->script_path, q->iface->get_name());
 #endif
-      snprintf(name, sizeof(name), "%d/%s", q->iface->get_id(),
+      snprintf(name, sizeof(name), "ntopng-%d-%s", q->iface->get_id(),
 	       slash ? &slash[1] : q->script_path);
       Utils::setThreadName(name);
       

@@ -24,7 +24,7 @@
 /* ******************************* */
 
 static void* resolverCheckFctn(void* ptr) {
-  Utils::setThreadName("MDNSresolver");
+  Utils::setThreadName("ntopng-MDNS-res");
   MDNS *m = (MDNS*)ptr;
 
   m->initializeResolver();

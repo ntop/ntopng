@@ -575,23 +575,12 @@ void Ntop::start() {
   gettimeofday(&begin, NULL);
   _usleep((5 - begin.tv_sec % 5) * 1e6 - begin.tv_usec);
 
+  Utils::setThreadName("ntopng-main");
+
   while((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
     const u_int32_t nap_usec = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
 
     gettimeofday(&begin, NULL);
-
-#ifdef HOUSEKEEPING_DEBUG
-    char tmbuf[64], buf[64];
-    time_t nowtime;
-    struct tm *nowtm;
-
-    nowtime = begin.tv_sec;
-    nowtm = localtime(&nowtime);
-    strftime(tmbuf, sizeof tmbuf, "%Y-%m-%d %H:%M:%S", nowtm);
-    snprintf(buf, sizeof buf, "%s.%06ld", tmbuf, begin.tv_usec);
-
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Housekeeping: %s", buf);
-#endif
 
     runHousekeepingTasks();
 
@@ -619,11 +608,7 @@ void Ntop::start() {
         fd_set rset;
         struct timeval tv;
 
-#if 0
-        ntop->getTrace()->traceEvent(TRACE_NORMAL,
-            "Sleeping %i microsecods before doing the chores.",
-            (nap_usec - usec_diff));
-#endif
+        //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sleeping %i microsecods", (nap_usec - usec_diff));
 
         FD_ZERO(&rset);
 

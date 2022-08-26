@@ -3030,7 +3030,7 @@ void NetworkInterface::flowAlertsDequeueLoop() {
   u_int64_t n;
   char buf[16];
 
-  snprintf(buf, sizeof(buf), "%u/flow_checks", get_id());
+  snprintf(buf, sizeof(buf), "ntopng-%u-fchek", get_id());
   Utils::setThreadName(buf);
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -3086,7 +3086,7 @@ void NetworkInterface::hostAlertsDequeueLoop() {
   u_int64_t n;
   char buf[16];
 
-  snprintf(buf, sizeof(buf), "%u/host_checks", get_id());
+  snprintf(buf, sizeof(buf), "ntopng-%u-hcheck", get_id());
   Utils::setThreadName(buf);
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -3143,7 +3143,7 @@ void NetworkInterface::hostAlertsDequeueLoop() {
 void NetworkInterface::dumpFlowLoop() {
   char buf[16];
 
-  snprintf(buf, sizeof(buf), "%d/flowdump", get_id());
+  snprintf(buf, sizeof(buf), "ntopng-%u-fdump", get_id());
   Utils::setThreadName(buf);
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -3250,7 +3250,7 @@ void NetworkInterface::startPacketPolling() {
 
 #ifdef __linux__
     char buf[16];
-    snprintf(buf, sizeof(buf), "%u/pkt_poll", get_id());
+    snprintf(buf, sizeof(buf), "ntopng-%u-pkt", get_id());
     pthread_setname_np(pollLoop, buf);
 #endif
   }

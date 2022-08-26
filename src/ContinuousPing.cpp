@@ -42,7 +42,7 @@
 static void* pollerFctn(void* ptr) {
   ContinuousPing *cp = (ContinuousPing*)ptr;
 
-  Utils::setThreadName("cping");
+  Utils::setThreadName("ntopng-cping");
 
   while((!ntop->getGlobals()->isShutdownRequested())
 	&& (!ntop->getGlobals()->isShutdown()))

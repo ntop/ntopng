@@ -3180,7 +3180,7 @@ static int ntop_reload_host_prefs(lua_State* vm) {
 
 static void* pcapDumpLoop(void* ptr) {
   struct ntopngLuaContext *c = (struct ntopngLuaContext*)ptr;
-  Utils::setThreadName("pcapDumpLoop");
+  Utils::setThreadName("ntopng-pcap");
 
   while(c->pkt_capture.captureInProgress) {
     u_char *pkt;

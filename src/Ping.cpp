@@ -271,9 +271,9 @@ void Ping::pollResults() {
   char thread_name[64];
 
   if(ifname)
-    snprintf(thread_name, sizeof(thread_name), "ping %s", ifname);
+    snprintf(thread_name, sizeof(thread_name), "ntopng-ping-%s", ifname);
   else
-    snprintf(thread_name, sizeof(thread_name), "ping");
+    snprintf(thread_name, sizeof(thread_name), "ntopng-ping");
   
   Utils::setThreadName(thread_name);
   

@@ -250,7 +250,7 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
 
 static void *extractionThread(void *ptr) {
   TimelineExtract *extr = (TimelineExtract *) ptr;
-  Utils::setThreadName("TimelineExtract");
+  Utils::setThreadName("ntopng-extract");
 
   extr->extractToDisk(
     extr->getID(),

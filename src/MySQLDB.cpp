@@ -35,7 +35,7 @@ static bool enable_db_traces = false;
 /* **************************************************** */
 
 static void* queryLoop(void* ptr) {
-  Utils::setThreadName("MySQLQueryLoop");
+  Utils::setThreadName("ntopng-MySQLQry");
   return(((MySQLDB*)ptr)->queryLoop());
 }
 

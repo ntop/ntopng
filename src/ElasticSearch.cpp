@@ -26,7 +26,7 @@
 /* **************************************************** */
 
 static void* esLoop(void* ptr) {
-  Utils::setThreadName("ESLoop");
+  Utils::setThreadName("ntopng-ES");
   
   ElasticSearch *es = (ElasticSearch *) ptr;
   es->pushEStemplate();  // sends ES ntopng template
