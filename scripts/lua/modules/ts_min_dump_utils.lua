@@ -67,6 +67,22 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
   local subnet_stats = interface.getNetworksStats()
 
   for subnet,sstats in pairs(subnet_stats) do
+    if ntop.isPro() and not isEmptyString(ntop.getPref("ntopng.prefs.intranet_traffic_rrd_creation") or "") then
+      for second_subnet, traffic in pairs(sstats["intranet_traffic"]) do
+        if traffic.bytes_sent ~= 0 or traffic.bytes_rcvd ~= 0 then
+          ts_utils.append("subnet:intranet_traffic_min", 
+                          { ifid = ifstats.id, 
+                            subnet = subnet, 
+                            subnet_2 = second_subnet, 
+                            bytes_sent = traffic.bytes_sent,
+                            bytes_rcvd = traffic.bytes_rcvd }, when)
+        end
+        
+        network.select(sstats.network_id)
+        network.resetTrafficBetweenNets()
+      end
+    end
+    
     ts_utils.append("subnet:traffic",
         {ifid=ifstats.id, subnet=subnet,
         bytes_ingress=sstats["ingress"], bytes_egress=sstats["egress"],

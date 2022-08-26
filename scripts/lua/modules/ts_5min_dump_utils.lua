@@ -71,21 +71,7 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
   local subnet_stats = interface.getNetworksStats()
 
   for subnet,sstats in pairs(subnet_stats) do
-    if ntop.isPro() and not isEmptyString(ntop.getPref("ntopng.prefs.intranet_traffic_rrd_creation") or "") then
-      for second_subnet, traffic in pairs(sstats["intranet_traffic"]) do
-        if traffic.bytes_sent ~= 0 or traffic.bytes_rcvd ~= 0 then
-          ts_utils.append("subnet:intranet_traffic", 
-                          { ifid = ifstats.id, 
-                            subnet = subnet, 
-                            subnet_2 = second_subnet, 
-                            bytes_sent = traffic.bytes_sent,
-                            bytes_rcvd = traffic.bytes_rcvd }, when)
-        end
-        
-        network.select(sstats.network_id)
-        network.resetTrafficBetweenNets()
-      end
-
+    if ntop.isPro() then
       -- Check to see if the values are inserted
       if not sstats["score_behavior"] or 
           not sstats["traffic_rx_behavior"] or 

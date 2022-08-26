@@ -130,7 +130,7 @@ if page == "historical" then
         local label_2 = getFullLocalNetworkName(second_subnet)
 
         net_matrix_ts[#net_matrix_ts + 1] = { 
-          schema="subnet:intranet_traffic",   
+          schema="subnet:intranet_traffic_min",   
           label= i18n("graphs.intranet_traffic", { net_1 = label_1, net_2 = label_2 }),
           split_directions = true --[[ split RX and TX directions ]], 
           extra_params = { 
