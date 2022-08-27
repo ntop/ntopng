@@ -67,7 +67,7 @@ protected:
     u_int32_t num_flows, /* flows processed */
       num_dropped_flows, /* flows unhandles (received but no room in the flow hash) */
       num_events, num_counters, num_hello, num_listening_ports,
-      num_templates, num_options, num_network_events,
+      num_templates, num_options, num_network_events, num_snmp_interfaces,
       zmq_msg_rcvd, zmq_msg_drops;
   } recvStats, recvStatsCheckpoint;
   inline void updateFlowMaxIdle() { returned_flow_max_idle = max(remote_idle_timeout, flow_max_idle); }
@@ -90,6 +90,7 @@ public:
   u_int8_t parseTemplate(const char * payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseOption(const char * payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseListeningPorts(const char * payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseSNMPIntefaces(const char * payload, int payload_size, u_int8_t source_id, void *data);
 
   u_int32_t periodicStatsUpdateFrequency() const;
   virtual void setRemoteStats(ZMQ_RemoteStats *zrs);

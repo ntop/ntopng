@@ -1217,9 +1217,6 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     /* Generic Host */
     json_object_object_add(my_object, "num_alerts", json_object_new_int(getNumEngagedAlerts()));
   }
-
-  /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
-  //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
 }
 
 /* *************************************** */

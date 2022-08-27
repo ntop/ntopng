@@ -38,6 +38,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
      "option",
      "hello",
      "listening-ports",
+     "snmp-ifaces",
      NULL
     };
   
@@ -493,6 +494,11 @@ void ZMQCollectorInterface::collect_flows() {
 	  case 'l': /* listening-ports */
 	    recvStats.num_listening_ports++;
 	    parseListeningPorts(uncompressed, uncompressed_len, subscriber_id, this);
+	    break;
+
+	  case 's': /* snmp-ifaces */
+	    recvStats.num_snmp_interfaces++;
+	    parseSNMPIntefaces(uncompressed, uncompressed_len, subscriber_id, this);
 	    break;
 	  }
 

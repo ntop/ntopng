@@ -5164,7 +5164,7 @@ function format_portidx_name(device_ip, portidx, short_version, shorten_string)
 	    snmp_location = require "snmp_location"
 
 	    if not port_info["id"] then
-	       port_info["id"] = port_info["index"]
+	       port_info["id"] = portidx
 	       port_info["snmp_device_ip"] = cached_dev["host_ip"]
 	    end
 
