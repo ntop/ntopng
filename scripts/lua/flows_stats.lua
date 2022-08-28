@@ -27,6 +27,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- nDPI application and category
 local application = _GET["application"]
+local appId = application
 
 if tonumber(application) then
   application = interface.getnDPIProtoName(tonumber(application))
@@ -77,6 +78,10 @@ local mini_title = i18n("flow_details.purge_time", { purge_time = ntop.getPref("
 if (page == "flows" or page == nil) then
    local active_msg = getFlowsTableTitle()
 
+   if(appId ~= nil) then
+      active_msg = active_msg .." <A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=".. tostring(application).."\" title=\"".. i18n("host_details.hosts_using_proto", { proto = interface.getnDPIProtoName(tonumber(appId)) }) .."\"><i class=\"fa-solid fa-timeline\" alt=></i></A>"
+   end
+   
    page_utils.print_page_title(active_msg, mini_title)
 
    if(category ~= nil) then
@@ -159,7 +164,7 @@ if (page == "flows" or page == nil) then
      page_params["icmp_type"] = icmp_type
      page_params["icmp_cod"] = icmp_code
    end
-   
+
    if(dscp_filter ~= nil) then
       page_params["dscp"] = dscp_filter
    end
@@ -267,7 +272,7 @@ if (page == "flows" or page == nil) then
                whiteSpace: 'nowrap'
             }
          }, {
-            title: "]] print(i18n("protocol")) print[[",
+            title: "]] print(i18n("proto")) print[[",
             field: "column_proto_l4",
             sortable: true,
             css: {

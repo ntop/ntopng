@@ -1479,16 +1479,16 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 	    end
 
 	    print("<tr><th rowspan='3'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.device_ip").."</th><td>"..snmpurl.."</td></tr>")
-	    print("<tr><th>"..i18n("flows_page.inIfIdx").."</th><td>"..(inputurl or "").." (".. inputidx_name ..")</td></tr>")
-	    print("<tr><th>"..i18n("flows_page.outIfIdx").."</th><td>"..(outputurl or "").." (".. outputidx_name ..")</td></tr>")
+	    print("<tr><th>"..i18n("flows_page.inIfIdx").."</th><td><span class=\"badge bg-info\">"..(inputurl or "").." (".. inputidx_name ..")</span></td></tr>")
+	    print("<tr><th>"..i18n("flows_page.outIfIdx").."</th><td><span class=\"badge bg-info\">"..(outputurl or "").." (".. outputidx_name ..")</span></td></tr>")
 	    printed = true
 	 end
       end
    end
 
    if(printed == false) then
-      print("<tr><th rowspan='2'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("flows_page.inIfIdx").."</th><td>"..(inputidx_name or "").."</td></tr>")
-      print("<tr><th>"..i18n("flows_page.outIfIdx").."</th><td>"..(outputidx_name or "").."</td></tr>")
+      print("<tr><th rowspan='2'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("flows_page.inIfIdx").."</th><td><span class=\"badge bg-info\">"..(inputidx_name or "").."</span></td></tr>")
+      print("<tr><th>"..i18n("flows_page.outIfIdx").."</th><td><span class=\"badge bg-info\">"..(outputidx_name or "").."</span></td></tr>")
    end
 end
 

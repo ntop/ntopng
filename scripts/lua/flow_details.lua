@@ -1467,6 +1467,9 @@ else
       end
 
       if(snmpdevice ~= nil) then
+	 print("<tr><th>"..i18n("details.flow_exporter").."</th>")
+	 print("<td colspan=\"2\">"..snmpdevice.."</td></tr>")
+
 	 if(flow["in_index"] or flow["out_index"]) then
 	    if((flow["in_index"] == flow["out_index"]) and (flow["in_index"] == 0)) then
 	       -- nothing to do (they are likely to be not initialized)
