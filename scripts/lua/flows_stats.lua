@@ -79,7 +79,7 @@ if (page == "flows" or page == nil) then
    local active_msg = getFlowsTableTitle()
 
    if(appId ~= nil) then
-      active_msg = active_msg .." <A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=".. tostring(application).."\" title=\"".. i18n("host_details.hosts_using_proto", { proto = interface.getnDPIProtoName(tonumber(appId)) }) .."\"><i class=\"fa-solid fa-timeline\" alt=></i></A>"
+      active_msg = active_msg .." <A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=".. tostring(appId).."\" title=\"".. i18n("host_details.hosts_using_proto", { proto = interface.getnDPIProtoName(tonumber(appId)) }) .."\"><i class=\"fa-solid fa-timeline\" alt=></i></A>"
    end
    
    page_utils.print_page_title(active_msg, mini_title)
