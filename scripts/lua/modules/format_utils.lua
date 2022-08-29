@@ -4,6 +4,8 @@
 
 local format_utils = {}
 
+local clock_start = os.clock()
+
 function format_utils.round(num, idp)
    num = tonumber(num)
    local res
@@ -440,4 +442,8 @@ function format_utils.formatHostNameAndAddress(hostname, address)
    return res
 end
    
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
+
 return format_utils

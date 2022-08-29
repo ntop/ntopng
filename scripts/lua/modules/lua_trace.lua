@@ -1,6 +1,8 @@
 --
--- (C) 2014-15 - ntop.org
+-- (C) 2014-22 - ntop.org
 --
+
+local clock_start = os.clock()
 
 -- Trace Level
 TRACE_LEVEL = 2
@@ -86,3 +88,7 @@ function resetTraceLevel()
 end
 
 --------------------------------
+
+if(trace_script_duration ~= nil) then
+  io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end

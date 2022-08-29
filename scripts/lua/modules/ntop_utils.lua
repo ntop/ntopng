@@ -4,6 +4,8 @@
 
 -- This file contains a small set of utility functions
 
+local clock_start = os.clock()
+
 -- ##############################################
 
 function string.starts(String,Start)
@@ -397,4 +399,8 @@ function hasHighResolutionTs()
    -- every 60 seconds instead of 300 seconds.
    return((active_driver == "influxdb") and
     (ntop.getPref("ntopng.prefs.ts_resolution") ~= "300"))
+end
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
 end

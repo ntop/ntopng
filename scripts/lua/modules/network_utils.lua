@@ -2,6 +2,8 @@
 -- (C) 2013-22 - ntop.org
 --
 
+local clock_start = os.clock()
+
 require "lua_utils"
 local format_utils = require "format_utils"
 
@@ -54,6 +56,10 @@ function network_utils.network2record(ifId, network)
    end
    
    return record
+end
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
 end
 
 return network_utils

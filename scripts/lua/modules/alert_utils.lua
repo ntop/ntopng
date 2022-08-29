@@ -6,6 +6,8 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 
+local clock_start = os.clock()
+
 -- This file contains the description of all functions
 -- used to trigger host alerts
 local verbose = ntop.getCache("ntopng.prefs.alerts.debug") == "1"
@@ -1076,5 +1078,9 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
 end
 
 -- ##############################################
+
+if(trace_script_duration ~= nil) then
+  io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return alert_utils

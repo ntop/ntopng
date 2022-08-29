@@ -2,6 +2,8 @@
 -- (C) 2013-22 - ntop.org
 --
 
+-- trace_script_duration = true
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 

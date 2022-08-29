@@ -5,6 +5,8 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.path
 
+local clock_start = os.clock()
+
 i18n = require "i18n"
 
 local locales = {}
@@ -163,5 +165,9 @@ end
 setmetatable(i18n, i18n_mt)
 
 -- ##############################################
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return locales

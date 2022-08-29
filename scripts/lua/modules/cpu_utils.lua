@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local cpu_utils = {}
 
+local clock_start = os.clock()
+
 -- #################################
 
 local CPU_STATES_PREV_KEY = "ntopng.cache.system_utils.cpu_states.prev"
@@ -154,6 +156,10 @@ function cpu_utils.processTimeseriesEnabled()
 end
 
 -- #################################
+
+if(trace_script_duration ~= nil) then
+  io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return cpu_utils
 
