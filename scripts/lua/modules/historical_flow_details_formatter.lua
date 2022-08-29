@@ -277,7 +277,7 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
     flow_details[#flow_details + 1] = format_historical_client_server_bytes(flow)
     flow_details[#flow_details + 1] = format_historical_bytes_progress_bar(flow, info)
         
-    if (info['dst2src_dscp']) and (info['dst2src_dscp']['value'] ~= 0) and (info['src2dst_dscp']['value'] ~= 0) then
+    if (info['dst2src_dscp']) and (info['src2dst_dscp']) then
       flow_details[#flow_details + 1] = format_historical_tos(flow)
     end
     
