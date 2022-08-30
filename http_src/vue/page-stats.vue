@@ -37,7 +37,7 @@
 
 <ModalTimeseries
   ref="modal_time_series"
-  @apply="reload_page"></ModalTimeseries>
+  @apply="apply_modal_timeseries"></ModalTimeseries>
 </template>
 
 <script setup>
@@ -65,6 +65,10 @@ const select_search = ref(null);
 const metrics = ref([]);
 const selected_metric = ref({});
 
+const custom_metric = {
+    label: "Custom Metrics",
+};
+
 onMounted(async () => {
     init();
     select_search.value.init();
@@ -75,16 +79,22 @@ onMounted(async () => {
     chart.value.register_status();
 });
 
-
-function select_metric(metric) {
-    console.log(metric);
-    // update modal
-    modal_time_series.value.select_metric(metric);
-
-    // update chart
+async function init() {    
+    metrics.value = await get_metrics();
+    
+    selected_metric.value = metricsManager.get_default_metric(metrics.value);
     set_last_timeseries_groups();
-    console.log("update chart from select");
+    
+    console.log("update chart from init");
     chart.value.update_chart();
+}
+
+async function get_metrics(from_apply_modal_ts) {
+    let metrics = await metricsManager.get_metrics(http_prefix);
+    if (from_apply_modal_ts) {
+	metrics.push(custom_metric);
+    }
+    return metrics;
 }
 
 let last_timeseries_groups;
@@ -95,17 +105,20 @@ function set_last_timeseries_groups() {
     	source: {
     	    value: metricsManager.get_default_source_value(),
     	},
-    	metric: selected_metric.value,
+    	metric: selected_metric.value,	
     }];
 }
 
-async function init() {    
-    metrics.value = await metricsManager.get_metrics(http_prefix);
-    selected_metric.value = metricsManager.get_default_metric(metrics.value);
+function select_metric(metric) {
+    console.log(metric);
+    // update modal
+    modal_time_series.value.select_metric(metric);    
+    // update chart
     set_last_timeseries_groups();
-    
-    console.log("update chart from init");
+    console.log("update chart from select");
     chart.value.update_chart();
+    // update metrics
+    refresh_metrics(false);
 }
 
 const last_chart_options = ref({});
@@ -155,8 +168,16 @@ async function get_custom_chart_options() {
     return chart_options;
 }
 
-async function reload_page(timeseries_groups) {
+async function refresh_metrics(from_apply_modal_ts) {
+    metrics.value = await get_metrics(from_apply_modal_ts);
+    if (from_apply_modal_ts) {
+	selected_metric.value = custom_metric;
+    }
+}
+
+async function apply_modal_timeseries(timeseries_groups) {
     console.log("reload page by modal-timeseries");
+    refresh_metrics(true);
     last_timeseries_groups = timeseries_groups;
     chart.value.update_chart();
 }

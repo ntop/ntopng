@@ -50,8 +50,8 @@ const get_metrics = async (http_prefix, source_type, source_value) => {
     if (cache_metrics[key] == null) {
 	cache_metrics[key] = ntopng_utility.http_request(url);
     }
-    
-    return cache_metrics[key];
+    let metrics = await cache_metrics[key];
+    return ntopng_utility.clone(metrics);
 };
 
 const get_current_page_source_type = () => {

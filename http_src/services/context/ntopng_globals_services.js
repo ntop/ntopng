@@ -37,7 +37,7 @@ export const ntopng_utility = function() {
       clone: function(obj) {
           if (obj == null) { return null; }
           return JSON.parse(JSON.stringify(obj));
-      },
+      },      
 object_to_array: function(obj) {
     if (obj == null) { return []; }
     let array = [];
@@ -123,6 +123,16 @@ http_request: async function(url, options, throw_exception, not_unwrap) {
   return null;
     }
 },
+      string_hash_code: function(s) {
+	  let hash = 0, i, chr;
+	  if (s.length === 0) return hash;
+	  for (i = 0; i < s.length; i++) {
+	      chr   = s.charCodeAt(i);
+	      hash  = ((hash << 5) - hash) + chr;
+	      hash |= 0; // Convert to 32bit integer
+	  }
+	  return hash;
+      },
   }
 }();
 

@@ -46,16 +46,20 @@
       </div>
       
       <ListTimeseries
+	:id="get_timeseries_group_id()"
 	title="Timeseries:"
-	:timeseries="timeseries_to_add">
+	v-model:timeseries="timeseries_to_add">
       </ListTimeseries>      
     </template><!-- action == add -->
 
     <template v-if="action == 'select'">
       <template v-for="item in timeseries_groups_added">
 	<ListTimeseries
+	  :id="get_timeseries_group_id(item)"
 	  :title="get_timeseries_group_name(item)"
-	  :timeseries="item.timeseries">
+	  v-model:timeseries="item.timeseries"
+	  :show_delete_button="timeseries_groups_added.length > 1"
+	  @delete_ts="delete_ts">
 	</ListTimeseries>      
       </template><!-- v-for timeseries_groups_added -->
     </template><!-- action == select -->
@@ -127,7 +131,7 @@ async function init(default_selected_metric) {
  	selected_metric.value = default_selected_metric;
     }
     
-    update_timeseries_to_add(true);
+    update_timeseries_to_add(false);
     
     // init metrics added
     timeseries_groups_added.value = [];
@@ -136,7 +140,7 @@ async function init(default_selected_metric) {
 	source_type: selected_source_type.value,
 	source: selected_source.value,
 	metric: selected_metric.value,
-	timeseries: timeseries_to_add.value,
+	timeseries: ntopng_utility.clone(timeseries_to_add.value),
     };
     timeseries_groups_added.value.push(ts_group);
     console.log("emit");
@@ -164,29 +168,44 @@ function get_timeseries_group_name(ts_group) {
     return `${source_type_name} - ${source_name} - ${metric_name}`;
 }
 
-function get_timeseries_group_id() {
-    let source_type = selected_source_type.value;
-    let source = selected_source.value;
-    let metric = selected_metric.value;
+function get_timeseries_group_id(ts_group) {
+    let source_type, source, metric;
+    if (ts_group == null) {
+	source_type = selected_source_type.value;
+	source = selected_source.value;
+	metric = selected_metric.value;
+    } else {
+	source_type = ts_group.source_type;
+	source = ts_group.source;
+	metric = ts_group.metric;
+    }
     return `${source_type.value} - ${source.value} - ${metric.schema}`;
 }
+
+const delete_ts = (ts_group_id) => {
+    timeseries_groups_added.value = timeseries_groups_added.value.filter((ts_group) => get_timeseries_group_id(ts_group) != ts_group_id);
+};
 
 const apply = () => {
     if (action.value == "add") {
 	let ts_group_id = get_timeseries_group_id();
-	if (!timeseries_groups_added.value.some((ts_group) => ts_group.id == ts_group_id)) {
-	    timeseries_groups_added.value.push({
-		id: ts_group_id,
-		source_type: selected_source_type.value,
-		source: selected_source.value,
-		metric: selected_metric.value,
-		timeseries: timeseries_to_add.value,
-	    });
+	let ts_group_index = timeseries_groups_added.value.findIndex((ts_group) => ts_group.id == ts_group_id);
+	let ts_group = {
+	    id: ts_group_id,
+	    source_type: selected_source_type.value,
+	    source: selected_source.value,
+	    metric: selected_metric.value,
+	    timeseries: ntopng_utility.clone(timeseries_to_add.value),
+	};
+	if (ts_group_index < 0) {
+	    timeseries_groups_added.value.push(ts_group);
+	} else {
+	    timeseries_groups_added.value[ts_group_index] = ts_group;
 	}
     }
     emit('apply', timeseries_groups_added.value);
     close();
-}
+};
 
 const close = () => {
     modal_id.value.close();
