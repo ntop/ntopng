@@ -2,12 +2,12 @@
 -- (C) 2013-22 - ntop.org
 --
 
+local clock_start = os.clock()
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
-
-local clock_start = os.clock()
 
 local json = require("dkjson")
 local alert_severities = require "alert_severities"

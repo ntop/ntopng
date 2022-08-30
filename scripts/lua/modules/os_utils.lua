@@ -11,7 +11,6 @@ local tracker = require "tracker"
 local os_utils = {}
 
 local is_windows = ntop.isWindows()
-local is_freebsd = ntop.isFreeBSD()
 
 local dirs = ntop.getDirs()
 
@@ -65,6 +64,7 @@ function os_utils.execWithOutput(c, ret_code_success)
    local debug = false
    local f_name = nil 
    local f 
+   local is_freebsd = ntop.isFreeBSD()
 
    ret_code_success = ret_code_success or 0
 

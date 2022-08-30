@@ -1,6 +1,9 @@
 --
 -- (C) 2017-22 - ntop.org
 --
+
+local clock_start = os.clock()
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
@@ -874,7 +877,15 @@ local function validateFilters(other_validation)
    end
 end
 http_lint.validateFilters = validateFilters
-  
+
+local L4_PROTO_KEYS = {
+   tcp=6,
+   udp=17,
+   icmp=1,
+   eigrp=88,
+   other_ip=-1
+}
+
 local function validateProtocolIdOrName(p)
    -- Lower used because TCP instead of tcp wasn't seen as a l4proto
    local tmp = string.lower(p)
@@ -2510,6 +2521,10 @@ if(pragma_once) then
    clearNotAllowedParams()
    lintParams()
    pragma_once = 0
+end
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
 end
 
 return http_lint

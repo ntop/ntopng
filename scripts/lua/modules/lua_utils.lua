@@ -24,11 +24,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/flow_dbms/?.lua;" .. pac
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_trace"
+require "lua_utils_generic"
 require "ntop_utils"
 locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
-local dscp_consts = require "dscp_consts"
 local http_utils = require "http_utils"
 local dns_utils = require "dns_utils"
 local network_utils = require "network_utils"
@@ -45,129 +45,6 @@ pktsToSize      = format_utils.pktsToSize
 bitsToSize      = format_utils.bitsToSize
 round           = format_utils.round
 bitsToSizeMultiplier = format_utils.bitsToSizeMultiplier
-
--- ##############################################
-
--- Note: Regexs are applied by default. Pass plain=true to disable them.
-function string.contains(str, start, is_plain)
-   if type(str) ~= 'string' or type(start) ~= 'string' or isEmptyString(str) or isEmptyString(start) then
-      return false
-   end
-
-   local i, _ = string.find(str, start, 1, is_plain)
-
-   return(i ~= nil)
-end
-
--- ##############################################
-
-function string.containsIgnoreCase(str, start, is_plain)
-   return string.contains(string.lower(str), string.lower(start), is_plain)
-end
-
--- ##############################################
-
-function shortenString(name, max_len)
-   local ellipsis = "\u{2026}" -- The unicode ellipsis (takes less space than three separate dots)
-   if(name == nil) then return("") end
-
-   if max_len == nil then
-      max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
-      max_len = tonumber(max_len)
-      if(max_len == nil) then max_len = 24 end
-   end
-
-   if(string.len(name) < max_len + 1 --[[ The space taken by the ellipsis --]]) then
-      return(name)
-   else
-      return(string.sub(name, 1, max_len)..ellipsis)
-   end
-end
-
--- ##############################################
-
-function convertDate(vardate)
-   local m,d,y,h,i,s = string.match(vardate, '(%d+)/(%d+)/(%d+) (%d+):(%d+):(%d+)')
-   local key = ntop.getPref('ntopng.user.' .. _SESSION["user"] .. '.date_format')
-
-   if(key == "little_endian") then
-      return string.format('%s/%s/%s %s:%s:%s', d,m,y,h,i,s)
-   elseif( key == "middle_endian") then
-      return string.format('%s/%s/%s %s:%s:%s', m,d,y,h,i,s)
-   else
-      return string.format('%s/%s/%s %s:%s:%s', y,m,d,h,i,s)
-   end
-
-
-end
-
--- ##############################################
-
--- See also getHumanReadableInterfaceName
-function getInterfaceName(interface_id, windows_skip_description)
-   if(interface_id == getSystemInterfaceId()) then
-      return(getSystemInterfaceName())
-   end
-
-   local ifnames = interface.getIfNames()
-   local iface = ifnames[tostring(interface_id)]
-
-   if iface ~= nil then
-      if(windows_skip_description ~= true and string.contains(iface, "{")) then -- Windows
-         local old_iface = interface.getId()
-
-         -- Use the interface description instead of the name
-         interface.select(tostring(iface))
-         iface = interface.getStats().description
-
-         interface.select(tostring(old_iface))
-      end
-
-      return(iface)
-   end
-
-   return("")
-end
-
--- ##############################################
-
-function getInterfaceId(interface_name)
-   if(interface_name == getSystemInterfaceName()) then
-      return(getSystemInterfaceId())
-   end
-
-   local ifnames = interface.getIfNames()
-
-   for if_id, if_name in pairs(ifnames) do
-      if if_name == interface_name then
-         return tonumber(if_id)
-      end
-   end
-
-   return(-1)
-end
-
--- ##############################################
-
-function getInterfaceUrl(ifid)
-  if(not ifid) then
-    return("")
-  end
-
-  return ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid
-end
-
--- ##############################################
-
-function getFirstInterfaceId()
-   local ifid = interface.getFirstInterfaceId()
-
-   if ifid ~= nil then
-      return ifid, getInterfaceName(ifid)
-   end
-
-   return -1, ""
-end
 
 -- ##############################################
 
@@ -205,31 +82,6 @@ function hasSoftwareUpdatesSupport()
       and not ntop.isWindows())
 end
 
--- ##############################################
-
--- Note that ifname can be set by Lua.cpp so don't touch it if already defined
-if((ifname == nil) and (_GET ~= nil)) then
-   ifname = _GET["ifid"]
-
-   if(ifname ~= nil) then
-      if(ifname.."" == tostring(tonumber(ifname)).."") then
-	 -- ifname does not contain the interface name but rather the interface id
-	 ifname = getInterfaceName(ifname, true)
-	 if(ifname == "") then ifname = nil end
-      end
-   end
-
-   if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => Session:".._SESSION["session"]) end
-
-   if((ifname == nil) and (_SESSION ~= nil)) then
-      if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => set ifname by _SESSION value") end
-      ifname = _SESSION["ifname"]
-      if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => ifname:"..ifname) end
-   else
-      if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => set ifname by _GET value") end
-   end
-end
-
 -- See Utils::l4proto2name()
 l4_keys = {
    { "IP",        "ip",          0 },
@@ -250,14 +102,6 @@ l4_keys = {
    { "ICMPv6",    "icmpv6",     58 },
    { "IGMP",      "igmp",        2 },
    { "Other IP",  "other_ip",   -1 }
-}
-
-L4_PROTO_KEYS = {
-   tcp=6,
-   udp=17,
-   icmp=1,
-   eigrp=88,
-   other_ip=-1
 }
 
 function __FILE__() return debug.getinfo(2,'S').source end
@@ -377,14 +221,6 @@ end
 
 -- ##############################################
 
-function printGETParameters(get)
-  for key, value in pairs(get) do
-    io.write(key.."="..value.."\n")
-  end
-end
-
--- ##############################################
-
 function findString(str, tofind)
   if(str == nil) then return(nil) end
   if(tofind == nil) then return(nil) end
@@ -416,374 +252,12 @@ end
 
 -- ##############################################
 
-function printASN(asn, asname)
-  asname = asname:gsub('"','')
-  if(asn > 0) then
-   return("<A class='ntopng-external-link' href='http://as.robtex.com/as"..asn..".html'>"..asname.." <i class='fas fa-external-link-alt fa-lg'></i></A>")
-  else
-    return(asname)
-  end
-end
-
--- ##############################################
-
 function urlencode(str)
    str = string.gsub (str, "\r?\n", "\r\n")
    str = string.gsub (str, "([^%w%-%.%_%~ ])",
 		      function (c) return string.format ("%%%02X", string.byte(c)) end)
    str = string.gsub (str, " ", "+")
    return str
-end
-
--- ##############################################
-
-function getPageUrl(base_url, params)
-   if table.empty(params) then
-      return base_url
-   end
-
-   local encoded = {}
-
-   for k, v in pairs(params) do
-      encoded[k] = urlencode(v)
-   end
-
-   local delim = "&"
-   if not string.find(base_url, "?") then
-     delim = "?"
-   end
-
-   return base_url .. delim .. table.tconcat(encoded, "=", "&")
-end
-
--- ##############################################
-
-function printIpVersionDropdown(base_url, page_params)
-   local ipversion = _GET["version"]
-   local ipversion_filter
-   if not isEmptyString(ipversion) then
-      ipversion_filter = '<span class="fas fa-filter"></span>'
-   else
-      ipversion_filter = ''
-   end
-
-   -- table.clone needed to modify some parameters while keeping the original unchanged
-   local ipversion_params = table.clone(page_params)
-   ipversion_params["version"] = nil
-
-   print[[\
-      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.ip_version")) print[[]] print(ipversion_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
-         <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, ipversion_params)) print[[">]] print(i18n("flows_page.all_ip_versions")) print[[</a></li>\
-         <li><a class="dropdown-item ]] if ipversion == "4" then print('active') end print[[" href="]] ipversion_params["version"] = "4"; print(getPageUrl(base_url, ipversion_params)); print[[">]] print(i18n("flows_page.ipv4_only")) print[[</a></li>\
-         <li><a class="dropdown-item ]] if ipversion == "6" then print('active') end print[[" href="]] ipversion_params["version"] = "6"; print(getPageUrl(base_url, ipversion_params)); print[[">]] print(i18n("flows_page.ipv6_only")) print[[</a></li>\
-      </ul>]]
-end
-
--- ##############################################
-
-function printVLANFilterDropdown(base_url, page_params)
-   local vlans = interface.getVLANsList()
-
-   if vlans == nil then vlans = {VLANs={}} end
-   vlans = vlans["VLANs"]
-
-   local ids = {}
-   for _, vlan in ipairs(vlans) do
-      ids[#ids + 1] = vlan["vlan_id"]
-   end
-
-   local vlan_id = _GET["vlan"]
-   local vlan_id_filter = ''
-   if not isEmptyString(vlan_id) then
-      vlan_id_filter = '<span class="fas fa-filter"></span>'
-   end
-
-   -- table.clone needed to modify some parameters while keeping the original unchanged
-   local vlan_id_params = table.clone(page_params)
-   vlan_id_params["vlan"] = nil
-
-   print[[\
-      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.vlan")) print[[]] print(vlan_id_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
-         <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">]] print(i18n("flows_page.all_vlan_ids")) print[[</a></li>\]]
-   for _, vid in ipairs(ids) do
-      vlan_id_params["vlan"] = vid
-      print[[
-         <li>\
-           <a class="dropdown-item ]] print(vlan_id == tostring(vid) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">VLAN ]] print(tostring(getFullVlanName(vid))) print[[</a></li>\]]
-   end
-   print[[
-
-      </ul>]]
-end
-
--- ##############################################
-
-function printDSCPDropdown(base_url, page_params, dscp_list)
-   local dscp = _GET["dscp"]
-   local dscp_filter
-   if not isEmptyString(dscp) then
-      dscp_filter = '<span class="fas fa-filter"></span>'
-   else
-      dscp_filter = ''
-   end
-
-   -- table.clone needed to modify some parameters while keeping the original unchanged
-   local dscp_params = table.clone(page_params)
-   dscp_params["dscp"] = nil
-   -- Used to possibly remove tcp state filters when selecting a non-TCP l4 protocol
-   local dscp_params_non_filter = table.clone(dscp_params)
-   if dscp_params_non_filter["dscp"] then
-      dscp_params_non_filter["dscp"] = nil
-   end
-
-   local ordered_dscp_list = {}
-
-   for key, value in pairs(dscp_list) do
-      local name = dscp_consts.dscp_descr(key)
-      ordered_dscp_list[name] = {}
-      ordered_dscp_list[name]["id"] = key
-      ordered_dscp_list[name]["count"] = value.count
-   end
-
-   print[[\
-      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.dscp")) print[[]] print(dscp_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
-         <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dscp_params_non_filter)) print[[">]] print(i18n("flows_page.all_dscp")) print[[</a></li>]]
-
-   for key, value in pairsByKeys(ordered_dscp_list, asc) do
-	  print[[<li]]
-
-	  print([[><a class="dropdown-item ]].. (tonumber(dscp) == value.id and 'active' or '') ..[[" href="]])
-
-	  local dscp_table = ternary(key ~= 6, dscp_params_non_filter, dscp_params)
-
-	  dscp_table["dscp"] = value.id
-	  print(getPageUrl(base_url, dscp_table))
-
-	  print[[">]] print(key) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
-   end
-
-   print[[</ul>]]
-end
-
--- ###################################
-
-function printHostPoolDropdown(base_url, page_params, host_pool_list)
-   local host_pools = require "host_pools"
-
-   local host_pools_instance = host_pools:create()
-   local host_pool = _GET["host_pool_id"]
-   local host_pool_filter
-   if not isEmptyString(host_pool) then
-      host_pool_filter = '<span class="fas fa-filter"></span>'
-   else
-      host_pool_filter = ''
-   end
-
-   -- table.clone needed to modify some parameters while keeping the original unchanged
-   local host_pool_params = table.clone(page_params)
-   host_pool_params["host_pool_id"] = nil
-   -- Used to possibly remove tcp state filters when selecting a non-TCP l4 protocol
-   local host_pool_params_non_filter = table.clone(host_pool_params)
-   if host_pool_params_non_filter["host_pool_id"] then
-      host_pool_params_non_filter["host_pool_id"] = nil
-   end
-
-   local ordered_host_pool_list = {}
-
-   if host_pool then
-      local id = tonumber(host_pool)
-      ordered_host_pool_list[id] = {}
-      ordered_host_pool_list[id]["count"] = host_pool_list[id]["count"]
-   else
-      for key, value in pairs(host_pool_list) do
-	 ordered_host_pool_list[key] = {}
-	 ordered_host_pool_list[key]["count"] = value.count
-      end
-   end
-
-   print[[\
-      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("details.host_pool")) print[[]] print(host_pool_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
-         <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, host_pool_params_non_filter)) print[[">]] print(i18n("flows_page.all_host_pool")) print[[</a></li>]]
-
-   for key, value in pairsByKeys(ordered_host_pool_list, asc) do
-      print[[<li]]
-
-      print([[><a class="dropdown-item ]].. (tonumber(host_pool) == key and 'active' or '') ..[[" href="]])
-
-      local host_pool_table = ternary(key ~= 6, host_pool_params_non_filter, host_pool_params)
-
-      host_pool_table["host_pool_id"] = key
-      print(getPageUrl(base_url, host_pool_table))
-
-      print[[">]] print(host_pools_instance:get_pool_name(key)) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
-   end
-
-   print[[</ul>]]
-end
-
--- ###################################
-
-function printLocalNetworksDropdown(base_url, page_params)
-   local networks_stats = interface.getNetworksStats()
-
-   local ids = {}
-   for n, local_network in pairs(networks_stats) do
-      local network_name = getFullLocalNetworkName(local_network["network_key"])
-      ids[network_name] = local_network
-   end
-
-   local local_network_id = _GET["network"]
-   local local_network_id_filter = ''
-   if not isEmptyString(local_network_id) then
-      local_network_id_filter = '<span class="fas fa-filter"></span>'
-   end
-
-   -- table.clone needed to modify some parameters while keeping the original unchanged
-   local local_network_id_params = table.clone(page_params)
-   local_network_id_params["network"] = nil
-
-   print[[\
-      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.networks")) print[[]] print(local_network_id_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
-	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, local_network_id_params)) print[[">]] print(i18n("flows_page.all_networks")) print[[</a></li>\]]
-
-   for local_network_name, local_network in pairsByKeys(ids) do
-      local cur_id = local_network["network_id"]
-      local_network_id_params["network"] = cur_id
-      print[[
-	 <li>\
-	   <a class="dropdown-item ]] print(local_network_id == tostring(cur_id) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, local_network_id_params)) print[[">]] print(local_network_name) print[[</a></li>\]]
-   end
-   print[[
-
-      </ul>]]
-end
-
--- ##############################################
-
-function printTrafficTypeFilterDropdown(base_url, page_params)
-   local traffic_type = _GET["traffic_type"]
-   local traffic_type_filter = ''
-   if not isEmptyString(traffic_type) then
-      traffic_type_filter = '<span class="fas fa-filter"></span>'
-   end
-
-   -- table.clone needed to modify some parameters while keeping the original unchanged
-   local traffic_type_params = table.clone(page_params)
-   traffic_type_params["traffic_type"] = nil
-
-   print[[\
-      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.direction")) print[[]] print(traffic_type_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
-         <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("hosts_stats.traffic_type_all")) print[[</a></li>\]]
-
-   -- now forthe one-way
-   traffic_type_params["traffic_type"] = "one_way"
-   print[[
-         <li>\
-           <a class="dropdown-item ]] if traffic_type == "one_way" then print('active') end print[[" href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("hosts_stats.traffic_type_one_way")) print[[</a></li>\]]
-   traffic_type_params["traffic_type"] = "bidirectional"
-   print[[
-         <li>\
-           <a class="dropdown-item ]] if traffic_type == "bidirectional" then print('active') end print[[" href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("hosts_stats.traffic_type_two_ways")) print[[</a></li>\]]
-   print[[
-      </ul>]]
-end
-
--- ##############################################
-
-function getProbesName(flowdevs, show_vlan, shorten_len)
-   local devips = {}
-
-   for dip, _ in pairsByValues(flowdevs, asc) do
-      devips[dip] = getProbeName(dip, show_vlan, shorten_len)
-   end
-
-   return devips
-end
-
--- ##############################################
-
-function getProbeName(exporter_ip, show_vlan, shorten_len)
-   local cached_device_name
-   local snmp_cached_dev
-
-   if ntop.isPro() then
-      snmp_cached_dev = require "snmp_cached_dev"
-   end
-
-   if snmp_cached_dev then
-      cached_device_name = snmp_cached_dev:create(exporter_ip)
-   end
-
-   if cached_device_name then
-      cached_device_name = cached_device_name["name"]
-   else
-      local hinfo = hostkey2hostinfo(exporter_ip)
-      local exporter_label = hostinfo2label(hinfo, show_vlan, shorten_len)
-
-      if not isEmptyString(exporter_label) then
-         cached_device_name = exporter_label
-      end
-   end
-
-   return cached_device_name
-end
-
--- ##############################################
-
-function printHostsDeviceFilterDropdown(base_url, page_params)
-   -- Getting probes
-   local flowdevs = interface.getFlowDevices() or {}
-   local ordering_fun = pairsByKeys
-   local cur_dev = _GET["deviceIP"]
-   local cur_dev_filter = ''
-   -- table.clone needed to modify some parameters while keeping the original unchanged
-   local dev_params = table.clone(page_params)
-   local devips = getProbesName(flowdevs)
-   local devips_order = ntop.getPref("ntopng.prefs.flow_table_probe_order") == "1" -- Order by Probe Name
-
-   if devips_order then
-      ordering_fun = pairsByValues
-   end
-
-   if not isEmptyString(cur_dev) then
-      cur_dev_filter = '<span class="fas fa-filter"></span>'
-   end
-
-   dev_params["deviceIP"] = nil
-
-   if table.len(devips) > 0 then
-      print[[, '<div class="btn-group float-right">]]
-
-      print[[
-         <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
-         <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
-         <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
-
-      for dev_ip, dev_resolved_name in ordering_fun(devips, asc) do
-         local dev_name = dev_ip
-
-         dev_params["deviceIP"] = dev_name
-
-         if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
-            dev_name = dev_name .. " ["..shortenString(dev_resolved_name).."]"
-         end
-
-         print[[
-         <li><a class="dropdown-item ]] print(dev_ip == cur_dev and 'active' or '') print[[" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.device_ip").." "..dev_name) print[[</a></li>\]]
-      end
-
-      print[[
-         </ul>\
-      ]]
-
-      print[[</div>']]
-   end
 end
 
 -- ##############################################
@@ -874,6 +348,8 @@ function l4Label(proto)
   return(_handleArray(l4_keys, proto))
 end
 
+-- ##############################################
+
 function l4_proto_to_id(proto_name)
   for _, proto in pairs(l4_keys) do
     if proto[1] == proto_name or proto[2] == proto_name then
@@ -881,6 +357,8 @@ function l4_proto_to_id(proto_name)
     end
   end
 end
+
+-- ##############################################
 
 function l4_proto_to_string(proto_id)
    if not proto_id then return "" end
@@ -901,6 +379,8 @@ function l4_proto_to_string(proto_id)
 
    return string.format("%d", proto_id_num)
 end
+
+-- ##############################################
 
 -- Return the list of L4 proto (key = name, value = id)
 function l4_proto_list()
@@ -979,6 +459,8 @@ function hasAlertsDisabled()
       ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
 end
 
+-- ##############################################
+
 function hasClickHouseSupport()
    local auth = require "auth"
 
@@ -1003,6 +485,8 @@ function hasClickHouseSupport()
    return false
 end
 
+-- ##############################################
+
 -- NOTE: global nindex support may be enabled but some disable on some interfaces
 function interfaceHasClickHouseSupport()
    return(hasClickHouseSupport() and ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"])
@@ -1012,9 +496,13 @@ end
 --   print(_key .. "=" .. _value .. "\n")
 --end
 
+-- ##############################################
+
 function truncate(x)
    return x<0 and math.ceil(x) or math.floor(x)
 end
+
+-- ##############################################
 
 -- Note that the function below returns a string as returning a number
 -- would not help as a new float would be returned
@@ -1022,9 +510,13 @@ function toint(num)
    return string.format("%u", truncate(num))
 end
 
+-- ##############################################
+
 function capitalize(str)
   return (str:gsub("^%l", string.upper))
 end
+
+-- ##############################################
 
 local function starstring(len)
 local s = ""
@@ -1037,6 +529,8 @@ local s = ""
   return(s)
 end
 
+-- ##############################################
+
 function obfuscate(str)
   local len = string.len(str)
   local in_clear = 2
@@ -1048,6 +542,8 @@ function obfuscate(str)
   end
 end
 
+-- ##############################################
+
 function isnumber(str)
    if((str ~= nil) and (string.len(str) > 0) and (tonumber(str) ~= nil)) then
       return(true)
@@ -1055,6 +551,8 @@ function isnumber(str)
       return(false)
    end
 end
+
+-- ##############################################
 
 function split(pString, pPattern)
   local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
@@ -1074,6 +572,8 @@ function split(pString, pPattern)
   end
   return Table
 end
+
+-- ##############################################
 
 -- returns the MAXIMUM value found in a table t, together with the corresponding
 -- index argmax. a pair argmax, max is returned.
@@ -1095,6 +595,8 @@ function tmax(t)
     return argmx, mx
 end
 
+-- ##############################################
+
 -- returns the MINIMUM value found in a table t, together with the corresponding
 -- index argmin. a pair argmin, min is returned.
 function tmin(t)
@@ -1115,9 +617,13 @@ function tmin(t)
     return argmn, mn
 end
 
+-- ##############################################
+
 function formatEpoch(epoch, full_time)
    return(format_utils.formatEpoch(epoch, full_time))
 end
+
+-- ##############################################
 
 function starts(String,Start)
    if((String == nil) or (Start == nil)) then
@@ -1126,6 +632,8 @@ function starts(String,Start)
 
   return string.sub(String,1,string.len(Start))==Start
 end
+
+-- ##############################################
 
 function ends(String,End)
   return End=='' or string.sub(String,-string.len(End))==End
@@ -1137,18 +645,26 @@ function bit(p)
   return 2 ^ (p - 1)  -- 1-based indexing
 end
 
+-- ##############################################
+
 -- Typical call:  if hasbit(x, bit(3)) then ...
 function hasbit(x, p)
   return x % (p + p) >= p
 end
 
+-- ##############################################
+
 function setbit(x, p)
   return hasbit(x, p) and x or x + p
 end
 
+-- ##############################################
+
 function clearbit(x, p)
   return hasbit(x, p) and x - p or x
 end
+
+-- ##############################################
 
 function isBroadMulticast(ip)
    if(ip == "0.0.0.0") then
@@ -1168,6 +684,8 @@ function isBroadMulticast(ip)
    return false
 end
 
+-- ##############################################
+
 function isBroadcastMulticast(ip)
    local ainfo = interface.getAddressInfo(ip)
 
@@ -1178,8 +696,9 @@ function isBroadcastMulticast(ip)
    end
 end
 
-function isIPv4(address)
+-- ##############################################
 
+function isIPv4(address)
    -- Reuse the for loop to check the address validity
    local checkAddress = (function(chunks)
       for _, v in pairs(chunks) do
@@ -1203,6 +722,8 @@ function isIPv4(address)
    return false
 end
 
+-- ##############################################
+
 function isIPv4Network(address)
    local parts = split(address, "/")
 
@@ -1219,6 +740,8 @@ function isIPv4Network(address)
    return isIPv4(parts[1])
 end
 
+-- ##############################################
+
 function addGoogleMapsScript()
    local g_maps_key = ntop.getCache('ntopng.prefs.google_apis_browser_key')
    if g_maps_key ~= nil and g_maps_key~= "" then
@@ -1228,6 +751,8 @@ function addGoogleMapsScript()
    end
    print("<script src=\"https://maps.googleapis.com/maps/api/js?v=3.exp"..g_maps_key.."\"></script>\n")
 end
+
+-- ##############################################
 
 function addLogoLightSvg()
    return ([[
@@ -1262,6 +787,8 @@ function addLogoLightSvg()
    ]])
 end
 
+-- ##############################################
+
 function addLogoDarkSvg()
    return ([[
       <div id='ntopng-logo'>
@@ -1293,6 +820,8 @@ function addLogoDarkSvg()
       </div>
    ]])
 end
+
+-- ##############################################
 
 function addLogoSvg()
    return ([[
@@ -1336,6 +865,8 @@ function addLogoSvg()
    ]])
 end
 
+-- ##############################################
+
 function addGauge(name, url, maxValue, width, height)
   if(url ~= nil) then print('<A HREF="'..url..'">') end
   print [[
@@ -1346,20 +877,7 @@ function addGauge(name, url, maxValue, width, height)
   if(url ~= nil) then print('</A>\n') end
 end
 
-function getCategoriesWithProtocols()
-   local protocol_categories = interface.getnDPICategories()
-
-   for k,v in pairsByKeys(protocol_categories) do
-      protocol_categories[k] = {id=v, protos=interface.getnDPIProtocols(tonumber(v)), count=0}
-
-      for proto,_ in pairs(protocol_categories[k].protos) do
-         protocol_categories[k].count = protocol_categories[k].count + 1
-      end
-   end
-
-   return protocol_categories
-end
-
+-- ##############################################
 
 --
 -- Members supported format
@@ -1402,6 +920,8 @@ function isValidPoolMember(member)
   return false
 end
 
+-- ##############################################
+
 function host2member(ip, vlan, prefix)
   if prefix == nil then
     if isIPv4(ip) then
@@ -1414,6 +934,8 @@ function host2member(ip, vlan, prefix)
   return ip .. "/" .. tostring(prefix) .. "@" .. tostring(vlan)
 end
 
+-- ##############################################
+
 function isLocal(host_ip)
   host = interface.getHostInfo(host_ip)
 
@@ -1424,32 +946,7 @@ function isLocal(host_ip)
   end
 end
 
--- Return the first 'howmany' hosts
-function getTopInterfaceHosts(howmany, localHostsOnly)
-  hosts_stats = interface.getHostsInfo()
-  hosts_stats = hosts_stats["hosts"]
-  ret = {}
-  sortTable = {}
-  n = 0
-  for k,v in pairs(hosts_stats) do
-    if((not localHostsOnly) or ((v["localhost"] == true) and (v["ip"] ~= nil))) then
-      sortTable[v["bytes.sent"]+v["bytes.rcvd"]+n] = k
-      n = n +0.01
-    end
-  end
-
-  n = 0
-  for _v,k in pairsByKeys(sortTable, rev) do
-    if(n < howmany) then
-      ret[k] = hosts_stats[k]
-      n = n+1
-    else
-      break
-    end
-  end
-
-  return(ret)
-end
+-- ##############################################
 
 -- Windows fixes for interfaces with "uncommon chars"
 function purifyInterfaceName(interface_name)
@@ -1459,6 +956,8 @@ function purifyInterfaceName(interface_name)
   interface_name = string.gsub(interface_name, "/", "_")
   return(interface_name)
 end
+
+-- ##############################################
 
 -- See datatype AggregationType in ntop_typedefs.h
 function aggregation2String(value)
@@ -1533,60 +1032,6 @@ function resolveAddress(hostinfo, allow_empty)
    return hostinfo2label(hostinfo)
 end
 
--- #################################
-
-function getIpUrl(ip)
-   if isIPv6(ip) then
-      -- https://www.ietf.org/rfc/rfc2732.txt
-      return "["..ip.."]"
-   end
-   return ip
-end
-
--- #################################
-
-function getApplicationIcon(name)
-  local icon = ""
-  if(name == nil) then name = "" end
-
-  if(findString(name, "Skype")) then icon = '<i class=\'fab fa-skype\'></i>'
-  elseif(findString(name, "Unknown")) then icon = '<i class=\'fas fa-question\'></i>'
-  elseif(findString(name, "Twitter")) then icon = '<i class=\'fab fa-twitter\'></i>'
-  elseif(findString(name, "DropBox")) then icon = '<i class=\'fab fa-dropbox\'></i>'
-  elseif(findString(name, "Spotify")) then icon = '<i class=\'fab fa-spotify\'></i>'
-  elseif(findString(name, "Apple")) then icon = '<i class=\'fab fa-apple\'></i>'
-  elseif(findString(name, "Google") or
-    findString(name, "Chrome")) then icon = '<i class=\'fab fa-google-plus-g\'></i>'
-  elseif(findString(name, "FaceBook")) then icon = '<i class=\'fab fa-facebook\'></i>'
-  elseif(findString(name, "Youtube")) then icon = '<i class=\'fab fa-youtube\'></i>'
-  elseif(findString(name, "thunderbird")) then icon = '<i class=\'fas fa-paper-plane\'></i>'
-  end
-
-  return(icon)
-end
-
--- #################################
-
-function getApplicationLabel(name, maxlen)
-  local icon = getApplicationIcon(name)
-
-  if(maxlen == nil) then
-     maxlen = 12
-  end
-
-  -- Do not convert to upper case, keep the nDPI case
-  --name = name:gsub("^%l", string.upper)
-
-  return(icon.." "..shortenString(name, maxlen))
-end
-
--- #################################
-
-function getCategoryLabel(cat_name, cat_id)
-  local categories_utils = require 'categories_utils'
-  return categories_utils.getCustomCategoryName(cat_id, cat_name)
-end
-
 -- ###########################################
 
 function computeL7Stats(stats, show_breed, show_ndpi_category)
@@ -1658,49 +1103,6 @@ function computeL7Stats(stats, show_breed, show_ndpi_category)
    return _ifstats
 end
 
--- ###########################################
-
-function getItemsNumber(n)
-  tot = 0
-  for k,v in pairs(n) do
-    --io.write(k.."\n")
-    tot = tot + 1
-  end
-
-  --io.write(tot.."\n")
-  return(tot)
-end
-
--- ###########################################
-
-function getHostCommaSeparatedList(p_hosts)
-  hosts = {}
-  hosts_size = 0
-  for i,host in pairs(split(p_hosts, ",")) do
-    hosts[i] = host
-    hosts_size = hosts_size + 1
-  end
-  return hosts,hosts_size
-end
-
--- ##############################################
-
-function getFirstIpFromMac(host_addr)
-   local mac_resolved = host_addr
-   -- Transforming the MAC into the ip address
-   local mac_hosts = interface.getMacHosts(mac_resolved) or {}
-
-   -- Mapping mac with ip and setting up the right href
-   for _, h in pairsByKeys(mac_hosts, rev) do
-      if (h.broadcast_domain_host) or (table.len(mac_hosts) == 1) then
-         mac_resolved = h.ip
-         break
-      end
-   end
-
-   return mac_resolved
-end
-
 -- ##############################################
 
 function splitNetworkPrefix(net)
@@ -1739,31 +1141,6 @@ end
 
 -- ##############################################
 
-function getHostAltNamesKey(host_key)
-   if(host_key == nil) then return(nil) end
-   return "ntopng.cache.host_labels."..host_key
-end
-
-function getHostAltName(host_info)
-   local host_key
-
-   if type(host_info) == "table" then
-     host_key = host_info["host"]
-   else
-     host_key = host_info
-   end
-
-   local alt_name = ntop.getCache(getHostAltNamesKey(host_key))
-
-   if isEmptyString(alt_name) and type(host_info) == "table" and host_info["vlan"] then
-      -- Check if there is an alias for the host@vlan
-      host_key = hostinfo2hostkey(host_info)
-      alt_name = ntop.getCache(getHostAltNamesKey(host_key))
-   end
-
-   return alt_name
-end
-
 function setHostAltName(host_info, alt_name)
    local host_key
 
@@ -1781,39 +1158,6 @@ end
 
 -- ##############################################
 
-function getHostNotesKey(host_key)
-   if(host_key == nil) then return(nil) end
-   return "ntopng.cache.host_notes."..host_key
-end
-
--- ##############################################
-
-function getHostNotes(host_info)
-   local host_key
-
-   if type(host_info) == "table" then
-     host_key = host_info["host"]
-   else
-     host_key = host_info
-   end
-
-   local notes = ntop.getCache(getHostNotesKey(host_key))
-
-   if isEmptyString(notes) and type(host_info) == "table" and host_info["vlan"] then
-      -- Check if there is an alias for the host@vlan
-      host_key = hostinfo2hostkey(host_info)
-      notes = ntop.getCache(getHostNotesKey(host_key))
-   end
-
-   if not isEmptyString(notes) then
-      notes = string.lower(notes)
-   end
-
-   return notes
-end
-
--- ##############################################
-
 function setHostNotes(host_info, notes)
    local host_key
 
@@ -1827,13 +1171,6 @@ function setHostNotes(host_info, notes)
    end
 
    ntop.setCache(getHostNotesKey(host_key), notes)
-end
-
--- ##############################################
-
-
-function getDhcpNameKey(ifid, mac)
-   return string.format("ntopng.dhcp.%d.cache.%s", ifid, mac)
 end
 
 -- ##############################################
@@ -1970,49 +1307,6 @@ end
 -- ##############################################
 
 -- Mac Addresses --
-
--- A function to give a useful device name
-function getDeviceName(device_mac, skip_manufacturer)
-   local name = mac2label(device_mac)
-
-   if name == device_mac then
-      -- Not found, try with first host
-      local info = interface.getHostsInfo(false, nil, 1, 0, nil, nil, nil, tonumber(vlan), nil,
-               nil, device_mac)
-
-      if (info ~= nil) then
-         for x, host in pairs(info.hosts) do
-	    -- Make sure the IP is in the broadcast domain to avoid setting up names to MACs such as the gateway
-            if host.broadcast_domain_host and not isEmptyString(host.name) and host.name ~= host.ip and host.name ~= "NoIP" then
-               name = host.name
-            elseif host.ip ~= "0.0.0.0" then
-               name = ip2label(host.ip)
-               if name == host.ip then
-                  name = nil
-               end
-            end
-            break
-         end
-      else
-         name = nil
-      end
-   end
-
-   if isEmptyString(name) then
-      if (not skip_manufacturer) then
-         name = get_symbolic_mac(device_mac, true)
-      else
-         -- last resort
-         name = device_mac
-      end
-   end
-
-   if isEmptyString(name) or name == device_mac then
-      return ''
-   end
-
-   return name
-end
 
 local specialMACs = {
   "01:00:0C",
@@ -2220,6 +1514,8 @@ function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
    return(hostinfo2label(hostinfo))
 end
 
+-- ##############################################
+
 function flowinfo2process(process, host_info_to_url)
    local fmt, proc_name, proc_user_name = '', '', ''
 
@@ -2283,72 +1579,6 @@ end
 
 -- ##############################################
 
-function getLocalNetworkAliasKey()
-   return "ntopng.network_aliases"
-end
-
--- ##############################################
-
-function getLocalNetworkAliasById(network)
-   local networks_stats = interface.getNetworksStats()
-   local network_id = tonumber(network)
-
-   -- If network is (u_int8_t)-1 then return an empty value
-   if network == nil or network == network_utils.UNKNOWN_NETWORK then
-     return ' '
-   end
-
-   local label = ''
-   for n, ns in pairs(networks_stats) do
-      if ns.network_id == network_id then
-         label = getFullLocalNetworkName(ns.network_key)
-      end
-   end
-   return label
-end
-
--- ##############################################
-
-function getLocalNetworkAlias(network)
-   local alias = ntop.getLocalNetworkAlias(network) or nil
-
-   if not alias then
-      alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)
-   end
-
-   if not isEmptyString(alias) then
-      return alias
-   end
-
-   return network
-end
-
--- ##############################################
-
-function getLocalNetworkLabel(network)
-   local alias = getLocalNetworkAlias(network)
-
-   if alias ~= network then
-      return string.format("%s  · %s", alias, network)
-   end
-
-   return network
-end
-
--- ##############################################
-
-function getFullLocalNetworkName(network)
-   local alias = getLocalNetworkAlias(network)
-
-   if alias ~= network then
-      return string.format("%s [%s]", alias, network)
-   end
-
-   return network
-end
-
--- ##############################################
-
 function setLocalNetworkAlias(network, alias)
    if((network ~= alias) or isEmptyString(alias)) then
       ntop.setHashCache(getLocalNetworkAliasKey(), network, alias)
@@ -2359,54 +1589,12 @@ end
 
 -- ##############################################
 
-function getVlanAliasKey()
-   return "ntopng.vlan_aliases"
-end
-
--- ##############################################
-
-function getVlanAlias(vlan_id)
-   local alias = ntop.getHashCache(getVlanAliasKey(), vlan_id)
-
-   if not isEmptyString(alias) then
-      return alias
-   end
-
-   return tostring(vlan_id)
-end
-
--- ##############################################
-
 function setVlanAlias(vlan_id, alias)
    if((vlan_id ~= alias) or isEmptyString(alias)) then
       ntop.setHashCache(getVlanAliasKey(), vlan_id, alias)
    else
       ntop.delHashCache(getVlanAliasKey(), vlan_id)
    end
-end
-
--- ##############################################
-
-function getFullVlanName(vlan_id, compact)
-  local alias = getVlanAlias(vlan_id)
-
-  -- In case of vlan 0, return empty string as name
-  if tonumber(vlan_id) == 0 then
-    return ''
-  end
-
-  if not isEmptyString(alias) then
-    if not isEmptyString(alias) and alias ~= tostring(vlan_id) then
-  if compact then
-    alias = shortenString(alias)
-    return string.format("%s", alias)
-  else
-    return string.format("%u [%s]", vlan_id, alias)
-  end
-    end
-  end
-
-  return vlan_id
 end
 
 -- ##############################################
@@ -2451,6 +1639,8 @@ function hostkey2hostinfo(key)
 
   return host
 end
+
+-- ##############################################
 
 --
 -- Analyze the host_info table and return the host key.
@@ -2497,6 +1687,8 @@ function hostinfo2hostkey(host_info, host_type, show_vlan)
    return rsp
 end
 
+-- ##############################################
+
 function member2visual(member)
    local info = hostkey2hostinfo(member)
    local host = info.host
@@ -2510,6 +1702,8 @@ function member2visual(member)
 
   return hostinfo2hostkey({host=host, vlan=info.vlan})
 end
+
+-- ##############################################
 
 --
 -- Analyze the get_info and return a new table containing the url information about an host.
@@ -2537,6 +1731,8 @@ function url2hostinfo(get_info)
 
   return host
 end
+
+-- ##############################################
 
 --
 -- Catch the main information about an host from the host_info table and return the corresponding url.
@@ -2594,6 +1790,7 @@ function hostinfo2url(host_info, host_type, novlan)
    return rsp
 end
 
+-- ##############################################
 
 --
 -- Catch the main information about an host from the host_info table and return the corresponding json.
@@ -2637,6 +1834,8 @@ function hostinfo2json(host_info,host_type)
 
   return rsp
 end
+
+-- ##############################################
 
 --
 -- Catch the main information about an host from the host_info table and return the corresponding jqueryid.
@@ -2683,28 +1882,7 @@ function hostinfo2jqueryid(host_info,host_type)
   return rsp
 end
 
--- ############################################
--- Redis Utils
--- ############################################
-
--- Inpur:     General prefix (i.e ntopng.pref)
--- Output:  User based prefix, if it exists
---
--- Examples:
---                With user:  ntopng.pref.user_name
---                Without:    ntopng.pref
-function getRedisPrefix(str)
-  if not (isEmptyString(_SESSION["user"] )) then
-    -- Login enabled
-    return (str .. '.' .. _SESSION["user"])
-  else
-    -- Login disabled
-    return (str)
-  end
-end
-
------  End of Redis Utils  ------
-
+-- ##############################################
 
 function isPausedInterface(current_ifname)
    if(not isEmptyString(_POST["toggle_local"])) then
@@ -2715,54 +1893,7 @@ function isPausedInterface(current_ifname)
   if(state == "0") then return true else return false end
 end
 
-function getThroughputType()
-  local throughput_type = ntop.getCache("ntopng.prefs.thpt_content")
-  if throughput_type == "" then throughput_type = "bps" end
-  return throughput_type
-end
-
-function processColor(proc)
-  if(proc == nil) then
-    return("")
-  elseif(proc["average_cpu_load"] < 33) then
-    return("<font color=green>"..proc["name"].."</font>")
-  elseif(proc["average_cpu_load"] < 66) then
-    return("<font color=orange>"..proc["name"].."</font>")
-  else
-    return("<font color=red>"..proc["name"].."</font>")
-  end
-end
-
- -- Table preferences
-
-function getDefaultTableSort(table_type)
-   local table_key = getRedisPrefix("ntopng.sort.table")
-   local value = nil
-
-  if(table_type ~= nil) then
-     value = ntop.getHashCache(table_key, "sort_"..table_type)
-  end
-  if((value == nil) or (value == "")) then value = 'column_' end
-  return(value)
-end
-
-function getDefaultTableSortOrder(table_type, force_get)
-   local table_key = getRedisPrefix("ntopng.sort.table")
-   local value = nil
-
-  if(table_type ~= nil) then
-    value = ntop.getHashCache(table_key, "sort_order_"..table_type)
-  end
-  if((value == nil) or (value == "")) and (force_get ~= true) then value = 'desc' end
-  return(value)
-end
-
-function getDefaultTableSize()
-  table_key = getRedisPrefix("ntopng.sort.table")
-  value = ntop.getHashCache(table_key, "rows_number")
-  if((value == nil) or (value == "")) then value = 10 end
-  return(tonumber(value))
-end
+-- ##############################################
 
 function tablePreferences(key, value, force_set)
   table_key = getRedisPrefix("ntopng.sort.table")
@@ -2777,17 +1908,7 @@ function tablePreferences(key, value, force_set)
   end
 end
 
-function getInterfaceSpeed(ifid)
-   local ifname = getInterfaceName(ifid)
-   local ifspeed = ntop.getCache('ntopng.prefs.ifid_'..tostring(ifid)..'.speed')
-   if not isEmptyString(ifspeed) and tonumber(ifspeed) ~= nil then
-      ifspeed = tonumber(ifspeed)
-   else
-      ifspeed = interface.getMaxIfSpeed(ifid)
-   end
-
-   return ifspeed
-end
+-- ##############################################
 
 function setInterfaceRegreshRate(ifid, refreshrate)
    local key = "ntopng.prefs.ifid_"..tostring(ifid)..".refresh_rate"
@@ -2799,24 +1920,7 @@ function setInterfaceRegreshRate(ifid, refreshrate)
    end
 end
 
-local function getCustomnDPIProtoCategoriesKey()
-   return "ntop.prefs.custom_nDPI_proto_categories"
-end
-
-function getCustomnDPIProtoCategories()
-   local ndpi_protos = interface.getnDPIProtocols()
-   local key = getCustomnDPIProtoCategoriesKey()
-
-   local res = {}
-   for _, app_id in pairs(ndpi_protos) do
-      local custom_category = ntop.getHashCache(key, tostring(app_id))
-      if not isEmptyString(custom_category) then
-	 res[tonumber(app_id)] = tonumber(custom_category)
-      end
-   end
-
-   return res
-end
+-- ##############################################
 
 function setCustomnDPIProtoCategory(app_id, new_cat_id)
    ntop.setnDPIProtoCategory(app_id, new_cat_id)
@@ -2827,6 +1931,8 @@ function setCustomnDPIProtoCategory(app_id, new_cat_id)
    -- reloaded by Ntop::loadProtocolsAssociations
    ntop.setHashCache(key, tostring(app_id), tostring(new_cat_id));
 end
+
+-- ##############################################
 
 -- "Some Very Long String" -> "Some Ver...g String"
 function shortenCollapse(s, max_len)
@@ -2850,34 +1956,6 @@ function shortenCollapse(s, max_len)
    end
 
    return s
-end
-
--- ##############################################
-
-function getHumanReadableInterfaceName(interface_name)
-   local interface_id = nil
-
-   if(interface_name == "__system__") then
-      return(i18n("system"))
-   elseif tonumber(interface_name) ~= nil then
-      -- convert ID to name
-      interface_id = tonumber(interface_name)
-      interface_name = getInterfaceName(interface_name)
-   else
-      -- Parameter is a string, let's take it's id first
-      interface_id = getInterfaceId(interface_name)
-      -- and then get the name
-      interface_name = getInterfaceName(interface_id)
-   end
-
-   local key = 'ntopng.prefs.ifid_'..tostring(interface_id)..'.name'
-   local custom_name = ntop.getCache(key)
-
-   if not isEmptyString(custom_name) then
-      return(shortenCollapse(custom_name))
-   end
-
-   return interface_name
 end
 
 -- ##############################################
@@ -2947,7 +2025,6 @@ end
  -- ##############################################
 
 function isAdministratorOrPrintErr(isJsonResponse)
-
    if (isAdministrator()) then
       return(true)
    end
@@ -2966,27 +2043,6 @@ function isAdministratorOrPrintErr(isJsonResponse)
    end
 
    return(false)
-end
-
- -- ##############################################
-
-function getKeysSortedByValue(tbl, sortFunction)
-  local keys = {}
-  for key in pairs(tbl) do
-    table.insert(keys, key)
-  end
-
-  table.sort(keys, function(a, b)
-    return sortFunction(tbl[a], tbl[b])
-  end)
-
-  return keys
-end
-
-function getKeys(t, col)
-  local keys = {}
-  for k,v in pairs(t) do keys[tonumber(v[col])] = k end
-  return keys
 end
 
  -- ##############################################
@@ -3013,300 +2069,22 @@ function formatBreed(breed, is_encrypted)
    return(ret)
 end
 
-function getFlag(country)
-   if((country == nil) or (country == "")) then
-      return("")
-   else
-      return(" <a href='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country=".. country .."'><img src='".. ntop.getHttpPrefix() .. "/dist/images/blank.gif' class='flag flag-".. string.lower(country) .."'></a> ")
-   end
-end
-
--- GENERIC UTILS
-
--- split
-function split(s, delimiter)
-   result = {};
-   if(s ~= nil) then
-      if delimiter == nil then
-         -- No delimiter, split all characters
-         for match in s:gmatch"." do
-   	    table.insert(result, match);
-         end
-      else
-         -- Split by delimiter
-         for match in (s..delimiter):gmatch("(.-)"..delimiter) do
-   	    table.insert(result, match);
-         end
-      end
-   end
-   return result;
-end
-
--- startswith
-function startswith(s, char)
-   return string.sub(s, 1, string.len(s)) == char
-end
-
--- strsplit
-
-function strsplit(s, delimiter)
-   result = {};
-   for match in (s..delimiter):gmatch("(.-)"..delimiter) do
-      if(match ~= "") then result[match] = true end
-   end
-    return result;
-end
-
--- isempty
-function isempty(array)
-  local count = 0
-  for _,__ in pairs(array) do
-    count = count + 1
-  end
-  return (count == 0)
-end
-
--- isin
-function isin(s, array)
-  if (s == nil or s == "" or array == nil or isempty(array)) then return false end
-  for _, v in pairs(array) do
-    if (s == v) then return true end
-  end
-  return false
-end
-
--- hasKey
-function hasKey(key, theTable)
-   if((theTable == nil) or (theTable[key] == nil)) then
-      return(false)
-   else
-      return(true)
-   end
-end
-
-function getUsernameInputPattern()
-  -- maximum len must be kept in sync with MAX_PASSWORD_LEN
-  return [[^[a-zA-Z0-9._@!-?]{3,30}$]]
-end
-
-function getPasswordInputPattern()
-  -- maximum len must be kept in sync with MAX_PASSWORD_LEN
-  return [[^[\w\$\\!\/\(\)= \?\^\*@_\-\u0000-\u0019\u0021-\u00ff]{5,31}$]]
-end
-
--- NOTE: keep in sync with validateLicense()
-function getLicensePattern()
-  return [[^[a-zA-Z0-9\+/=]+$]]
-end
-
-function getIPv4Pattern()
-  return "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
-end
-
-function getACLPattern()
-  local ipv4 = "(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])"
-  local netmask = "(\\/([0-9]|[1-2][0-9]|3[0-2]))"
-  local cidr = ipv4..netmask
-  local yesorno_cidr = "[\\+\\-]"..cidr
-  return "^"..yesorno_cidr.."(,"..yesorno_cidr..")*$"
-end
-
-function getMacPattern()
-  return "^([0-9a-fA-F][0-9a-fA-F]:){5}[0-9a-fA-F]{2}$"
-end
-
-function getURLPattern()
-  return "^https?://.+$"
-end
-
--- ##############################################
-
-function getRestUrl(script, is_pro, is_enterprise)
-   if is_enterprise then
-      return(ntop.getHttpPrefix() .. "/lua/enterprise/rest/v2/get/" .. script)
-   elseif is_pro then
-      return(ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/" .. script)
-   else
-      return(ntop.getHttpPrefix() .. "/lua/rest/v2/get/" .. script)
-   end
-end
-
--- ##############################################
-
--- get_mac_classification
-function get_mac_classification(m, extended_name)
-   local short_extended = ntop.getMacManufacturer(m) or {}
-
-   if extended_name then
-      return short_extended.extended or short_extended.short or m
-   else
-      return short_extended.short or m
-   end
-
-   return m
-end
-
-local magic_macs = {
-   ["00:00:00:00:00:00"] = "",
-   ["FF:FF:FF:FF:FF:FF"] = "Broadcast",
-   ["01:00:0C:CC:CC:CC"] = "CDP",
-   ["01:00:0C:CC:CC:CD"] = "CiscoSTP",
-   ["01:80:C2:00:00:00"] = "STP",
-   ["01:80:C2:00:00:00"] = "LLDP",
-   ["01:80:C2:00:00:03"] = "LLDP",
-   ["01:80:C2:00:00:0E"] = "LLDP",
-   ["01:80:C2:00:00:08"] = "STP",
-   ["01:1B:19:00:00:00"] = "PTP",
-   ["01:80:C2:00:00:0E"] = "PTP"
-}
-
-local magic_short_macs = {
-   ["01:00:5E"] = "IPv4mcast",
-   ["33:33:"] = "IPv6mcast"
-}
+-- ###############################################
 
 function macInfoWithSymbName(mac, name)
    return(' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='.. mac ..'">'..name..'</A> ')
 end
 
+-- ###############################################
+
 function macInfo(mac)
   return(' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='.. mac ..'">'..mac..'</A> ')
 end
 
--- get_symbolic_mac
-function get_symbolic_mac(mac_address, no_href, add_extra_info)
-   if(magic_macs[mac_address] ~= nil) then
-      return(magic_macs[mac_address])
-   else
-      local m = string.sub(mac_address, 1, 8)
-      local t = string.sub(mac_address, 10, 17)
-
-      if(magic_short_macs[m] ~= nil) then
-	 if(add_extra_info == true) then
-	    return(magic_short_macs[m].."_"..t.." ("..macInfo(mac_address)..")")
-	 else
-	    if no_href then
-	       return(magic_short_macs[m].."_"..t)
-	    else
-	       return(macInfoWithSymbName(mac_address, magic_short_macs[m].."_"..t))
-	    end
-	 end
-      else
-	 local s = get_mac_classification(m)
-
-	 if(m == s) then
-	    if no_href then
-	       return  get_mac_classification(m) .. ":" .. t
-	    else
-	       return '<a href="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='..mac_address..'">' .. get_mac_classification(m) .. ":" .. t .. '</a>'
-	    end
-	 else
-	    local href = ""
-	    local href_end = ""
-
-	    if not no_href then
-	       href = '<a href="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='..mac_address..'">'
-	       href_end = "</a>"
-	    end
-
-	    if(add_extra_info == true) then
-	       return(href .. get_mac_classification(m).."_"..t.." ("..macInfo(mac_address)..")" .. href_end)
-	    else
-	       return(href .. get_mac_classification(m).."_"..t  .. href_end)
-	    end
-	 end
-      end
-   end
-end
-
-function get_mac_url(mac)
-   local m = get_symbolic_mac(mac, true)
-
-   if isEmptyString(m) then
-      return ""
-   end
-
-   local url = ntop.getHttpPrefix() .."/lua/mac_details.lua?host="..mac
-
-   return string.format('[ <a href=\"%s\">%s</a> ]', url, m)
-end
-
-function get_manufacturer_mac(mac_address)
-  local m = string.sub(mac_address, 1, 8)
-  local ret = get_mac_classification(m, true --[[ extended name --]])
-
-  if(ret == m) then ret = "n/a" end
-
-  if ret and ret ~= "" then
-     ret = ret:gsub("'"," ")
-  end
-
-  return ret or "n/a"
-end
-
--- getservbyport
-function getservbyport(port_num, proto)
-   if(proto == nil) then proto = "TCP" end
-
-   port_num = tonumber(port_num)
-
-   proto = string.lower(proto)
-
-   -- io.write(port_num.."@"..proto.."\n")
-   return(ntop.getservbyport(port_num, proto))
-end
+-- ###############################################
 
 function intToIPv4(num)
    return(math.floor(num / 2^24).. "." ..math.floor((num % 2^24) / 2^16).. "." ..math.floor((num % 2^16) / 2^8).. "." ..num % 2^8)
-end
-
-function getFlowMaxRate(cli_max_rate, srv_max_rate)
-   cli_max_rate = tonumber(cli_max_rate)
-   srv_max_rate = tonumber(srv_max_rate)
-
-   if((cli_max_rate == 0) or (srv_max_rate == 0)) then
-      max_rate = 0
-      elseif((cli_max_rate == -1) and (srv_max_rate > 0)) then
-      max_rate = srv_max_rate
-      elseif((cli_max_rate > 0) and (srv_max_rate == -1)) then
-      max_rate = cli_max_rate
-   else
-      max_rate = math.min(cli_max_rate, srv_max_rate)
-   end
-
-   return(max_rate)
-end
-
--- ###############################################
-
--- removes trailing/leading spaces
-function trimString(s)
-  return (s:gsub("^%s*(.-)%s*$", "%1"))
-end
-
--- ###############################################
-
--- removes all spaces
-function trimSpace(what)
-   if(what == nil) then return("") end
-   return(string.gsub(string.gsub(what, "%s+", ""), "+%s", ""))
-end
-
--- ###############################################
-
--- TODO: improve this function
-function jsonencode(what)
-   what = string.gsub(what, '"', "'")
-   -- everything but all ASCII characters from the space to the tilde
-   what = string.gsub(what, "[^ -~]", " ")
-   -- cleanup line feeds and carriage returns
-   what = string.gsub(what, "\n", " ")
-   what = string.gsub(what, "\r", " ")
-   -- escape all the remaining backslashes
-   what = string.gsub(what, "\\", "\\\\")
-   -- max 1 sequential whitespace
-   what = string.gsub(what, " +"," ")
-   return(what)
 end
 
 -- ###############################################
@@ -3337,11 +2115,6 @@ function formatTCPFlags(flags)
    if(hasbit(flags,0x80)) then out = out .. '<span class="badge bg-info"    title="CWR">C</span> ' end
 
    return out
-end
-
--- print TCP flags
-function printTCPFlags(flags)
-   print(formatTCPFlags(flags))
 end
 
 -- convert the integer carrying TCP flags in a more convenient lua table
@@ -3433,6 +2206,8 @@ local guess_icon_keys = {
   ["xerox corporation"] = "fas fa-print"
 }
 
+-- #############################################
+
 function guessHostIcon(key)
    local m = string.lower(get_manufacturer_mac(key))
    local icon = guess_icon_keys[m]
@@ -3444,17 +2219,7 @@ function guessHostIcon(key)
    end
 end
 
--- ####################################################
-
--- Functions to set/get a device type of user choice
-
-local function getCustomDeviceKey(mac)
-   return "ntopng.prefs.device_types." .. string.upper(mac)
-end
-
-function getCustomDeviceType(mac)
-   return tonumber(ntop.getPref(getCustomDeviceKey(mac)))
-end
+-- #############################################
 
 function setCustomDeviceType(mac, device_type)
    ntop.setPref(getCustomDeviceKey(mac), tostring(device_type))
@@ -3471,44 +2236,6 @@ end
 
 -- @brief The difference, in seconds, between the local time of this instance and GMT
 local server_timezone_diff_seconds
-
--- @brief Compute and return the difference, in seconds, between the local time of this instance and GMT
--- @return A positive or negative number corresponding to the seconds between local time and GMT
-local function get_server_timezone_diff_seconds()
-   if not server_timezone_diff_seconds then
-      local tmp_time = os.time()
-      local d1 = os.date("*t",  tmp_time)
-      local d2 = os.date("!*t", tmp_time)
-      -- Forcefully set isdst to false otherwise difference won't work during DST
-      d1.isdst = false
-      -- Use a minus to have the difference between local time and GMT, rather than between GMT and loca ltime
-      server_timezone_diff_seconds = -os.difftime(os.time(d1), os.time(d2))
-   end
-
-   return server_timezone_diff_seconds
-end
-
--- ####################################################
-
--- @brief Get the frontend timezone offset in seconds
--- @return The offset of the frontend timezone
-function getFrontendTzSeconds()
-  local frontend_tz_offset = nil
-
-  if _COOKIE and _COOKIE.tzoffset then
-    -- The timezone offset can be passed from the client as a cookie.
-    -- This allows to format the dates in the frontend timezone.
-    frontend_tz_offset = tonumber(_COOKIE.tzoffset)
-  end
-
-  if frontend_tz_offset == nil then
-     -- If timezone is not available in the client _COOKIE,
-     -- server timezone is used as fallback
-     return -get_server_timezone_diff_seconds()
-  end
-
-   return frontend_tz_offset
-end
 
 -- ####################################################
 
@@ -3546,112 +2273,6 @@ function makeTimeStamp(d)
 
    -- Return the epoch in the client timezone
    return string.format("%u", server_epoch - server_to_client_delta)
-end
-
--- ###########################################
-
--- Merges table a and table b into a new table. If some elements are presents in
--- both a and b, b elements will have precedence.
--- NOTE: this does *not* perform a deep merge. Only first level is merged.
-function table.merge(a, b)
-  local merged = {}
-  a = a or {}
-  b = b or {}
-
-  if((a[1] ~= nil) and (b[1] ~= nil)) then
-    -- index based tables
-    for _, t in ipairs({a, b}) do
-       for _,v in pairs(t) do
-         merged[#merged + 1] = v
-       end
-   end
-  else
-     -- key based tables
-     for _, t in ipairs({a, b}) do
-       for k,v in pairs(t) do
-         merged[k] = v
-       end
-     end
-  end
-
-  return merged
-end
-
--- Performs a deep copy of the table.
-function table.clone(orig)
-   local orig_type = type(orig)
-   local copy
-
-   if orig_type == 'table' then
-      copy = {}
-      for orig_key, orig_value in next, orig, nil do
-         copy[table.clone(orig_key)] = table.clone(orig_value)
-      end
-      setmetatable(copy, table.clone(getmetatable(orig)))
-   else -- number, string, boolean, etc
-      copy = orig
-   end
-
-   return copy
-end
-
--- From http://lua-users.org/lists/lua-l/2014-09/msg00421.html
--- Returns true if tables are equal
-function table.compare(t1, t2, ignore_mt)
-  local ty1 = type(t1)
-  local ty2 = type(t2)
-
-  if ty1 ~= ty2 then return false end
-  if ty1 ~= 'table' and ty2 ~= 'table' then return t1 == t2 end
-  local mt = getmetatable(t1)
-  if not ignore_mt and mt and mt.__eq then return t1 == t2 end
-
-  for k1,v1 in pairs(t1) do
-      local v2 = t2[k1]
-      if v2 == nil or not table.compare(v1, v2) then return false end
-  end
-
-  for k2,v2 in pairs(t2) do
-      local v1 = t1[k2]
-      if v1 == nil or not table.compare(v1, v2) then return false end
-  end
-
-  return true
-end
-
-function toboolean(s)
-  if((s == "true") or (s == true)) then
-    return true
-  elseif((s == "false") or (s == false)) then
-    return false
-  else
-    return nil
-  end
-end
-
---
--- Find the highest divisor which divides input value.
--- val_idx can be used to index divisors values.
--- Returns the highest_idx
---
-function highestDivisor(divisors, value, val_idx, iterator_fn)
-  local highest_idx = nil
-  local highest_val = nil
-  iterator_fn = iterator_fn or ipairs
-
-  for i, v in iterator_fn(divisors) do
-    local cmp_v
-    if val_idx ~= nil then
-      v = v[val_idx]
-    end
-
-    if((highest_val == nil) or ((v > highest_val) and (value % v == 0))) then
-      highest_val = v
-      highest_idx = i
-    end
-  end
-
-  return highest_idx
 end
 
 -- ###########################################
@@ -3914,28 +2535,6 @@ function hasSnmpDevices(ifid)
   return has_snmp_devices(ifid)
 end
 
-function getTopFlowPeers(hostname_vlan, max_hits, detailed, other_options)
-  local detailed = detailed or false
-
-  local paginator_options = {
-    sortColumn = "column_bytes",
-    a2zSortOrder = false,
-    detailedResults = detailed,
-    maxHits = max_hits,
-  }
-
-  if other_options ~= nil then
-    paginator_options = table.merge(paginator_options, other_options)
-  end
-
-  local res = interface.getFlowsInfo(hostname_vlan, paginator_options)
-  if ((res ~= nil) and (res.flows ~= nil)) then
-    return res.flows
-  else
-    return {}
-  end
-end
-
 function stripVlan(name)
   local key = string.split(name, "@")
   if((key ~= nil) and (#key == 2)) then
@@ -3949,51 +2548,6 @@ function stripVlan(name)
   end
 
   return(name)
-end
-
-function getSafeChildIcon()
-   return("&nbsp;<font color='#5cb85c'><i class='fas fa-lg fa-child' aria-hidden='true'></i></font>")
-end
-
--- ###########################################
-
-function getNtopngRelease(ntopng_info, verbose)
-   local release
-
-   if ntopng_info.oem or ntopng_info["version.nedge_edition"] then
-      release = ""
-   elseif(ntopng_info["version.enterprise_l_edition"]) then
-      release =  "Enterprise L"
-   elseif(ntopng_info["version.enterprise_m_edition"]) then
-      release =  "Enterprise M"
-   elseif(ntopng_info["version.enterprise_edition"]) or (ntopng_info["version.nedge_enterprise_edition"]) then
-      release =  "Enterprise"
-   elseif(ntopng_info["pro.release"]) then
-      release =  "Professional"
-   elseif(ntopng_info["version.embedded_edition"]) then
-      release = "/Embedded"
-   else
-      release =  "Community"
-   end
-
-   -- E.g., ntopng edge v.4.3.210112 (Ubuntu 16.04.6 LTS)
-   local res = string.format("%s %s v.%s (%s)", ntopng_info.product, release, ntopng_info.version, ntopng_info.OS)
-
-   if verbose and ntopng_info.revision then
-     res = string.format("%s %s v.%s rev.%s (%s)", ntopng_info.product, release, ntopng_info.version, ntopng_info.revision, ntopng_info.OS)
-   end
-
-   if not ntopng_info.oem then
-      local vers = string.split(ntopng_info["version.git"], ":")
-
-      if vers and vers[2] then
-	 local ntopng_git_url = "<A HREF=\"https://github.com/ntop/ntopng/commit/".. vers[2] .."\"><i class='fab fa-github'></i></A>"
-
-	 res = string.format("%s | %s", res, ntopng_git_url)
-      end
-   end
-
-   return res
 end
 
 -- ###########################################
@@ -4024,36 +2578,6 @@ function swapKeysValues(tbl)
    end
 
    return new_tbl
-end
-
--- ###########################################
-
--- A redis hash mac -> first_seen
-function getDevicesHashMapKey(ifid)
-  return "ntopng.checks.device_connection_disconnection.ifid_" .. ifid
-end
-
--- ###########################################
-
-function getHideFromTopSet(ifid)
-   return "ntopng.prefs.iface_" .. ifid .. ".hide_from_top"
-end
-
--- ###########################################
-
-function getGwMacsSet(ifid)
-   return "ntopng.prefs.iface_" .. ifid .. ".gw_macs"
-end
-
--- ###########################################
-
-function printWarningAlert(message)
-   print[[<div class="alert alert-warning alert-dismissable" role="alert">]]
-   print[[<i class="fas fa-exclamation-triangle fa-sm"></i> ]]
-   print[[<strong>]] print(i18n("warning")) print[[</strong> ]]
-   print(message)
-   print[[<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>]]
-   print[[</div>]]
 end
 
 -- ###########################################
@@ -4105,49 +2629,6 @@ end
 
 -- ###########################################
 
-function getDeviceProtocolPoliciesUrl(params_str)
-   local url, sep
-
-   if ntop.isnEdge() then
-      url = "/lua/pro/nedge/admin/nf_edit_user.lua?page=device_protocols"
-      sep = "&"
-   else
-      url = "/lua/admin/edit_device_protocols.lua"
-      sep = "?"
-   end
-
-   if not isEmptyString(params_str) then
-      return ntop.getHttpPrefix() .. url .. sep .. params_str
-   end
-
-   return ntop.getHttpPrefix() .. url
-end
-
--- ###########################################
-
--- Banner format: {type="success|warning|danger", text="..."}
-function printMessageBanners(banners)
-   for _, msg in ipairs(banners) do
-      print[[
-  <div class="alert alert-]] print(msg.type) print([[ alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
-    ]])
-
-      if (msg.type == "warning") then
-         print("<b>".. i18n("warning") .. "</b>: ")
-      elseif (msg.type == "danger") then
-         print("<b>".. i18n("error") .. "</b>: ")
-      end
-
-      print(msg.text)
-
-      print[[
-         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>]]
-   end
-end
-
--- ###########################################
-
 function visualTsKey(tskey)
    if ends(tskey, "_v4") or ends(tskey, "_v6") then
       local ver = string.sub(tskey, string.len(tskey)-1, string.len(tskey))
@@ -4164,73 +2645,6 @@ function visualTsKey(tskey)
    end
 
    return tskey
-end
-
--- ###########################################
-
--- Returns the size of a folder (size is in bytes)
---! @param path the path to compute the size for
---! @param timeout the maxium time to compute the size. If nil, it defaults to 15 seconds.
-function getFolderSize(path, timeout)
-   local folder_size_key = "ntopng.cache.folder_size"
-   local now = os.time()
-   local expiration = 30 -- sec
-   local size = nil
-
-   if ntop.isWindows() then
-      size = 0 -- TODO
-   else
-      local MAX_TIMEOUT = tonumber(timeout) or 15 -- default
-      -- Check if timeout is present on the system to cap the execution time of the subsequent du,
-      -- which may be very time consuming, especially when the number of files is high
-      local has_timeout = ntop.getCache("ntopng.cache.has_gnu_timeout")
-
-      if isEmptyString(has_timeout) then
-	 -- Cache the timeout
-	 -- Check timeout existence with which. If no timeout is found, command will return nil
-	 has_timeout = (os_utils.execWithOutput("which timeout >/dev/null 2>&1") ~= nil)
-	 ntop.setCache("ntopng.cache.has_gnu_timeout", tostring(has_timeout), 3600)
-      else
-	 has_timeout = has_timeout == "true"
-      end
-
-      -- Check the cache for a recent value
-      local time_size = ntop.getHashCache(folder_size_key, path)
-      if not isEmptyString(time_size) then
-         local values = split(time_size, ',')
-         if #values >= 2 and tonumber(values[1]) >= (now - expiration) then
-            size = tonumber(values[2])
-         end
-      end
-
-      if size == nil then
-         size = 0
-         -- Read disk utilization
-	 local periodic_activities_utils = require "periodic_activities_utils"
-         if ntop.isdir(path) and not periodic_activities_utils.have_degraded_performance() then
-	    local du_cmd = string.format("du -s %s 2>/dev/null", path)
-	    if has_timeout then
-	       du_cmd = string.format("timeout %u%s %s", MAX_TIMEOUT, "s", du_cmd)
-	    end
-
-	    -- use POSIXLY_CORRECT=1 to guarantee results is returned in 512-byte blocks
-	    -- both on BSD and Linux
-            local line = os_utils.execWithOutput(string.format("POSIXLY_CORRECT=1 %s", du_cmd))
-            local values = split(line, '\t')
-            if #values >= 1 then
-               local used = tonumber(values[1])
-               if used ~= nil then
-                  size = math.ceil(used * 512)
-
-                  -- Cache disk utilization
-                  ntop.setHashCache("ntopng.cache.folder_size", path, now..","..size)
-               end
-            end
-         end
-      end
-   end
-
-   return size
 end
 
 -- ##############################################
@@ -4253,16 +2667,6 @@ function generate_select(id, name, is_required, is_disabled, options, additional
          ]].. parsed_options ..[[
       </select>
    ]])
-end
-
--- ###########################################
-
-function getHttpUrlPrefix()
-   if starts(_SERVER["HTTP_HOST"], 'https://') then
-      return "https://"
-   else
-      return "http://"
-   end
 end
 
 -- ###########################################
@@ -4338,16 +2742,6 @@ function areHostPoolsTimeseriesEnabled(ifid)
    return(ntop.isPro() and (ntop.getPref("ntopng.prefs.host_pools_rrd_creation") == "1"))
 end
 
-function getPoolName(pool_id)
- if isEmptyString(pool_id) or pool_id == "0" then
-   return "Default"
- else
-   local key = "ntopng.prefs.host_pools.details."..pool_id
-
-   return ntop.getHashCache(key, "name")
- end
-end
-
 function areASTimeseriesEnabled(ifid)
    return(ntop.getPref("ntopng.prefs.asn_rrd_creation") == "1")
 end
@@ -4407,23 +2801,6 @@ function version2int(v)
   else
     return(0)
   end
-end
-
-function get_version_update_msg(info, latest_version)
-  if info then
-    local version_elems = split(info["version"], " ")
-    local new_version = version2int(latest_version)
-    local this_version = version2int(version_elems[1])
-
-    if (new_version > this_version) then
-        return i18n("about.new_major_available", {
-          product = info["product"], version = latest_version,
-          url = "http://www.ntop.org/get-started/download/"
-        })
-    end
-  end
-
-  return ""
 end
 
 --- Check if there is a new major release
@@ -4492,68 +2869,6 @@ end
 
 -- ###########################################
 
---- Test if each element inside the table t satisfies the predicate function
---- @param t table The table containing values to test
---- @param predicate function The function that return a boolean value (true|false)
---- @return boolean
-function table.all(t, predicate)
-
-   if type(t) ~= 'table' then
-      traceError(TRACE_DEBUG, TRACE_CONSOLE, "the first paramater is not a table!")
-      return false
-   end
-   if type(predicate) ~= 'function' then
-      traceError(TRACE_DEBUG, TRACE_CONSOLE, "the passed predicate is not a function!")
-      return false
-   end
-
-   if t == nil then return false end
-
-   for _, value in pairs(t) do
-
-      -- check if the value satisfies the boolean predicate
-      local term = predicate(value)
-
-      -- if the return value is valid and true then do nothing
-      -- otherwise stop the loop and return false
-      if term == nil then
-         -- inform the client about the nil value
-         traceError(TRACE_DEBUG, TRACE_CONSOLE, "a null term has been returned from the predicate function!")
-         return false
-      elseif not term then
-         return false
-      end
-   end
-
-   -- each entry satisfies the predicate
-   return true
-end
-
--- ###########################################
-
---- Perform a linear search to check if an element is inside a table
---- @param t table The table to scan
---- @param needle any The element to search
---- @param comp function The compare function used to compare the searched element with others
---- @return boolean True if the element is insie the table, False otherwise
-function table.contains(t, needle, comp)
-
-   if (t == nil) then return false end
-   if (type(t) ~= "table") then return false end
-   if (#t == 0) then return false end
-
-   local default_compare = (function(e) return e == needle end)
-   comp = comp or default_compare
-
-   for _, element in ipairs(t) do
-      if comp(element) then return true end
-   end
-
-   return false
-end
-
--- ###########################################
-
 function build_query_url(excluded)
 
    local query = "?"
@@ -4608,33 +2923,6 @@ function create_ndpi_proto_name(v)
    end
 
    return app
-end
-
--- ###########################################
-
---- Insert an element inside the table if is not present
-function table.insertIfNotPresent(t, element, comp)
-   if table.contains(t, element, comp) then return end
-   t[#t+1] = element
-end
-
--- ###########################################
-
---- Fold right table with a custom function
---- @param t table Table to fold
---- @param func function Function to execute on table values
---- @param val any The returned default value
-function table.foldr(t, func, val)
-   for i,v in pairs(t) do
-       val = func(val, v)
-   end
-   return val
-end
-
--- ###########################################
-
-function table.has_key(table, key)
-   return table[key] ~= nil
 end
 
 -- ###########################################
@@ -4734,60 +3022,12 @@ end
 
 -- ##############################################
 
-function getObsPointAliasKey()
-   return "ntopng.observation_point_aliases"
-end
-
--- ##############################################
-
-function getObsPointAlias(observation_point_id, add_id, add_href)
-   local alias = ntop.getHashCache(getObsPointAliasKey(), observation_point_id)
-   local ret
-
-   if not isEmptyString(alias) then
-      if(add_id == true) then
-	 ret = observation_point_id .. " [".. alias .."]"
-      else
-	 ret = alias
-      end
-   else
-      ret = tostring(observation_point_id)
-   end
-
-   if(add_href == true) then
-      ret = "<A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/enterprise/observation_points.lua\">"..ret.."</A>"
-   end
-
-   return ret
-end
-
--- ##############################################
-
 function setObsPointAlias(observation_point_id, alias)
    if((observation_point_id ~= alias) and not isEmptyString(alias)) then
       ntop.setHashCache(getObsPointAliasKey(), observation_point_id, alias)
    else
       ntop.delHashCache(getObsPointAliasKey(), observation_point_id)
    end
-end
-
--- ##############################################
-
-function getFullObsPointName(observation_point_id, compact, add_id)
-   local alias = getObsPointAlias(observation_point_id, add_id)
-
-   if not isEmptyString(observation_point_id) then
-      if not isEmptyString(observation_point_id) and alias ~= tostring(observation_point_id) then
-    if compact then
-       alias = shortenString(alias)
-       return string.format("%s", alias)
-    else
-       return string.format("%u [%s]", observation_point_id, alias)
-    end
-      end
-   end
-
-   return observation_point_id
 end
 
 -- ##############################################
@@ -4937,41 +3177,6 @@ end
 
 -- ##############################################
 
-function getExtraFlowInfoTLSIssuerDN(alert_json)
-  if alert_json and alert_json["proto"] and alert_json["proto"]["tls"] and not isEmptyString(alert_json["proto"]["tls"]["issuerDN"]) then
-    return alert_json["proto"]["tls"]["issuerDN"]
-  end
-  return nil
-end
-
--- ##############################################
-
-function getExtraFlowInfoServerName(alert_json)
-  if alert_json then
-    if alert_json["proto"] and alert_json["proto"]["http"] and not isEmptyString(alert_json["proto"]["http"]["server_name"]) then
-      return alert_json["proto"]["http"]["server_name"]
-    elseif alert_json["proto"] and alert_json["proto"]["dns"] and not isEmptyString(alert_json["proto"]["dns"]["last_query"]) then
-      return alert_json["proto"]["dns"]["last_query"]
-    elseif alert_json["proto"] and alert_json["proto"]["tls"] and not isEmptyString(alert_json["proto"]["tls"]["client_requested_server_name"]) then
-      return alert_json["proto"]["tls"]["client_requested_server_name"]
-    end
-  end
-  return nil
-end
-
--- ##############################################
-
-function getExtraFlowInfoURL(alert_json)
-  if alert_json then
-    if alert_json["proto"] and alert_json["proto"]["http"] and not isEmptyString(alert_json["proto"]["http"]["last_url"]) then
-      return alert_json["proto"]["http"]["last_url"]
-    end
-  end
-  return getExtraFlowInfoServerName(alert_json)
-end
-
--- ##############################################
-
 function hostnameIsDomain(name)
   if not isEmptyString(name) then
     local parts = string.split(name, "%.")
@@ -5074,27 +3279,6 @@ function iec104_typeids2str(c)
    return(c)
 end
 
-function table.slice(t, start_table, end_table)
-    if t == nil then
-        error("The array to slice cannot be nil!")
-    end
-
-    if end_table > #t then
-       end_table = #t
-    end
-
-    if start_table < 1 then
-        error("Invalid bounds!")
-    end
-
-    local res = {}
-    for i = start_table, end_table, 1 do
-        res[#res + 1] = t[i]
-    end
-
-    return res
-end
-
 function add_historical_flow_explorer_button_ref(extra_params)
    if (ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"]) == false then
       return ''
@@ -5190,25 +3374,6 @@ function format_portidx_name(device_ip, portidx, short_version, shorten_string)
    end
 
    return idx_name
-end
-
--- ##############################################
-
-function print_copy_button(id, data)
-   print('<button style="" class="btn btn-sm border ms-1" data-placement="bottom" id="btn-copy-' .. id ..'" data="' .. data .. '"><i class="fas fa-copy"></i></button>')
-   print("<script>$('#btn-copy-" .. id .. "').click(function(e) { NtopUtils.copyToClipboard($(this).attr('data'), '" .. i18n('copied') .. "', '" .. i18n('request_failed_message') .. "', $(this));});</script>")
-end
-
--- ##############################################
-
-function get_badge(info)
-  local badge = 'success'
-
-  if info ~= true and info ~= 0 then
-    badge = 'danger'
-  end
-
-  return badge
 end
 
 -- ##############################################
@@ -5439,27 +3604,6 @@ end
 
 -- ##############################################
 
-function get_confidence(confidence_id, shorten_string)
-  local tag_utils = require "tag_utils"
-  local confidence_name = confidence_id
-
-  if confidence_id and tonumber(confidence_id) then
-    confidence_id = tonumber(confidence_id)
-
-    for _, confidence in pairs(tag_utils.confidence or {}) do
-      if confidence.id == confidence_id then
-        confidence_name = confidence.label
-
-        break
-      end
-    end
-  end
-
-  return confidence_name
-end
-
--- ##############################################
-
 function format_confidence_badge(confidence, shorten_string)
   local badge = ""
 
@@ -5564,6 +3708,38 @@ function map_score_to_severity(score)
 
   return ntop.mapScoreToSeverity(0)
 end
+
+-- ##############################################
+
+require "lua_utils_print"
+require "lua_utils_get"
+
+-- ##############################################
+
+-- Note that ifname can be set by Lua.cpp so don't touch it if already defined
+if((ifname == nil) and (_GET ~= nil)) then
+   ifname = _GET["ifid"]
+
+   if(ifname ~= nil) then
+      if(ifname.."" == tostring(tonumber(ifname)).."") then
+	 -- ifname does not contain the interface name but rather the interface id
+	 ifname = getInterfaceName(ifname, true)
+	 if(ifname == "") then ifname = nil end
+      end
+   end
+
+   if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => Session:".._SESSION["session"]) end
+
+   if((ifname == nil) and (_SESSION ~= nil)) then
+      if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => set ifname by _SESSION value") end
+      ifname = _SESSION["ifname"]
+      if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => ifname:"..ifname) end
+   else
+      if(debug_session) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Session => set ifname by _GET value") end
+   end
+end
+
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions
