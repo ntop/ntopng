@@ -14,6 +14,8 @@ end
 
 pragma_once_checks = true
 
+local clock_start = os.clock()
+
 local dirs = ntop.getDirs()
 
 require "lua_utils"
@@ -2253,5 +2255,9 @@ function checks.SNMPChecks(granularity, checks_var, do_trace)
 end
 
 -- #################################################################
+
+if(trace_script_duration ~= nil) then
+  io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return(checks)

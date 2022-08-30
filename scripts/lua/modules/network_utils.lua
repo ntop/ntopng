@@ -15,13 +15,16 @@ network_utils.UNKNOWN_NETWORK = 65535 -- uint16 (-1)
 local function getThroughputType()
   local throughput_type = ntop.getCache("ntopng.prefs.thpt_content")
   if throughput_type == "" then throughput_type = "bps" end
+  
   return throughput_type
 end
 
-network_utils.throughput_type = getThroughputType()
+-- network_utils.throughput_type = getThroughputType()
 
 function network_utils.network2record(ifId, network)
    local record = {}
+   local throughput_type = getThroughputType()
+   
    record["key"] = tostring(network["network_id"])
 
    local network_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?network='..network["network_id"].."' title='"..network["network_key"].."'>"..getFullLocalNetworkName(network["network_key"])..'</A>'
@@ -36,7 +39,7 @@ function network_utils.network2record(ifId, network)
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
       .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
 
-   if(network_utils.throughput_type == "pps") then
+   if(throughput_type == "pps") then
       record["column_thpt"] = pktsToSize(network["throughput_pps"])
    else
       record["column_thpt"] = bitsToSize(8*network["throughput_bps"])

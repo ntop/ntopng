@@ -8,6 +8,7 @@
 
 scripts_triggers = {}
 
+local clock_start = os.clock()
 
 -- ###########################################
 
@@ -106,5 +107,9 @@ function scripts_triggers.arePrefsChanged()
 end
       
 -- ###########################################
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return scripts_triggers

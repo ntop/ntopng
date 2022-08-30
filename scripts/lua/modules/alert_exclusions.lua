@@ -6,6 +6,8 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+local clock_start = os.clock()
+
 require "lua_utils"
 local alert_consts = require "alert_consts"
 local json = require "dkjson"
@@ -477,5 +479,9 @@ function alert_exclusions.cleanup()
 end
 
 -- ##############################################
+
+if(trace_script_duration ~= nil) then
+  io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return alert_exclusions

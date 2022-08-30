@@ -6,6 +6,8 @@ local dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+-- trace_script_duration = true
+
 require "lua_utils"
 local periodic_activities_utils = require "periodic_activities_utils"
 local cpu_utils = require("cpu_utils")

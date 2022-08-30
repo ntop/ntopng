@@ -2,6 +2,8 @@
 -- (C) 2014-22 - ntop.org
 --
 
+local clock_start = os.clock()
+
 local dirs = ntop.getDirs()
 require "lua_utils"
 local json = require("dkjson")
@@ -1169,6 +1171,10 @@ function recording_utils.checkExtractionJobs()
 end
 
 -- #################################
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return recording_utils
 

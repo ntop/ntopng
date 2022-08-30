@@ -14,8 +14,6 @@ local is_windows = ntop.isWindows()
 local is_freebsd = ntop.isFreeBSD()
 
 local dirs = ntop.getDirs()
-local NTOPCTL_CMD = dirs.bindir.."/ntopctl"
-local NTOPNG_CONFIG_TOOL = dirs.bindir.."/ntopng-utils-manage-config"
 
 -- ########################################################
 
@@ -114,6 +112,8 @@ end
 -- ########################################################
 
 local function ntopctl_cmd(service_name, use_sudo, ...)
+   local NTOPCTL_CMD = dirs.bindir.."/ntopctl"
+   
    if not ntop.exists(NTOPCTL_CMD) then
       return nil
    end
@@ -141,6 +141,7 @@ end
 --! @return true if service is available, false otherwise.
 function os_utils.hasService(service_name, ...)
    local prefs = ntop.getPrefs()
+   local NTOPNG_CONFIG_TOOL = dirs.bindir.."/ntopng-utils-manage-config"
 
    if not isEmptyString(prefs.user) 
       and prefs.user ~= "ntopng"

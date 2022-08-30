@@ -18,6 +18,8 @@
 -- and unprivileged users (non admins) which can only perform a subset of operations --
 ---------------------------------------------------------------------------------------
 
+local clock_start = os.clock()
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
@@ -67,5 +69,9 @@ function auth.has_capability(capability)
 end
 
 -- #######################
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return auth

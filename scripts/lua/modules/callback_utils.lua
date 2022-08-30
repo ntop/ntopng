@@ -9,6 +9,8 @@ local os_utils = require "os_utils"
 
 local callback_utils = {}
 
+local clock_start = os.clock()
+
 -- ########################################################
 
 -- Iterates available interfaces, excluding PCAP interfaces.
@@ -272,5 +274,9 @@ function callback_utils.uploadTSdata()
    end
 end
 -- ########################################################
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return callback_utils

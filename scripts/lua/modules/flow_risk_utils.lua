@@ -4,6 +4,8 @@
 
 local flow_risk_utils = {}
 
+local clock_start = os.clock()
+
 -- ##############################################
 
 function flow_risk_utils.get_documentation_link(risk_id)
@@ -33,5 +35,9 @@ function flow_risk_utils.get_risks_info()
 end
 
 -- ##############################################
+
+if(trace_script_duration ~= nil) then
+  io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return flow_risk_utils

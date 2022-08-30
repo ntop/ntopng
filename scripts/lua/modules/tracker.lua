@@ -2,6 +2,8 @@
 -- (C) 2017-22 - ntop.org
 --
 
+local clock_start = os.clock()
+
 local json = require "dkjson"
 
 local tracker = {}
@@ -187,6 +189,10 @@ function tracker.track(table, fn)
 end
 
 -- #################################
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return tracker
 
