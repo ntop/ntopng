@@ -11,37 +11,37 @@ local timeseries_utils = {}
 
 local series_extra_info = {
   alerts = {
-    color = 'black'
+    color = '#2d99bd'
   },
   bytes = {
-    color = 'yellow'
+    color = '#ffc046'
   },
   bytes_sent = {
-    color = 'blu'
+    color = '#c6d9fd'
   },
   bytes_rcvd = {
-    color = 'green'
+    color = '#09ee09'
   },
   devices = {
-    color = 'orange'
+    color = '#ac9ddf'
   },
   flows = {
-    color = 'purple'
+    color = '#8c6f94'
   },
   hosts = {
-    color = 'red'
+    color = '#ff7f0e'
   },
   score = {
-    color = 'red'
+    color = '#ff3231'
   },
   cli_score = {
-    color = 'orange'
+    color = '#690504'
   },
   srv_score = {
-    color = 'yellow'
+    color = '#f5a2a2'
   },
   default = {
-    color = 'grey'
+    color = '#c6d9fd'
   }
 }
 
