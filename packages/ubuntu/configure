@@ -1815,10 +1815,10 @@ if  test -f /usr/bin/lsb_release ; then
   if  test $MACHINE = "x86_64"  &&  test -d $HOME/PF_RING ; then
     PFRING_VERS=`$HOME/PF_RING/package/version.sh --release`
     PFRING_RELEASE=`$HOME/PF_RING/package/version.sh --revision`
-    if  ! "x$PFRING_VERS" = "x" ; then
-      PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
-    else
+    if test "x$PFRING_VERS" = "x"; then
       PFRING_DEP="pfring"
+    else
+      PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
     fi
   else
     PFRING_VERS=""
