@@ -30,6 +30,13 @@ const types = {
 	decimal: 2,
 	scale_values: 8,	
     },
+    fps: {
+	id: "fps",
+	um: ["flows/s", "Kflows/s", "Mflows/s", "Gflows/s"],
+	step: 1000,
+	decimal: 2,
+	scale_values: null,	
+    },
     pps: {
 	id: "pps",
 	um: ["pps", "Kpps", "Mpps", "Gpps", "Tpps"],

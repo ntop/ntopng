@@ -3359,6 +3359,9 @@ local lang = {
       ["num_flows"] = "Num. Flows",
       ["num_hosts"] = "Num. Hosts",
       ["num_servers"] = "Num. Servers",
+      ["pkts_vs_drops"] = "Pkts VS Drops",
+      ["rcvd"] = "Rcvd",
+      ["sent"] = "Sent",
       ["traffic"] = "Traffic",
     },
     ["metrics_prefixes"] = {
