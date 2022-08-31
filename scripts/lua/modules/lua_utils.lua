@@ -557,6 +557,15 @@ function split(pString, pPattern)
   local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
   local fpat = "(.-)" .. pPattern
   local last_end = 1
+
+  -- input check
+  if pString == nil then
+    return Table
+  end
+  if type(pString) ~= "string" then
+    pString = tostring(pString)
+  end
+
   local s, e, cap = pString:find(fpat, 1)
   while s do
     if s ~= 1 or cap ~= "" then
