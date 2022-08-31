@@ -31,7 +31,6 @@ local os_utils = require "os_utils"
 local format_utils = require "format_utils"
 local http_utils = require "http_utils"
 local dns_utils = require "dns_utils"
-local network_utils = require "network_utils"
 
 -- TODO: replace those globals with locals everywhere
 

@@ -206,9 +206,9 @@ function format_utils.formatEpochISO8601(epoch)
 
   if epoch == 0 then
     return("")
-  else
-     return os.date("!%Y-%m-%dT%TZ", epoch)
   end
+
+  return os.date("!%Y-%m-%dT%TZ", epoch)
 end
 
 -- format an epoch

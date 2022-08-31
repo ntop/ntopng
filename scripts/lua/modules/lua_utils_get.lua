@@ -393,6 +393,8 @@ end
 -- ##############################################
 
 function getLocalNetworkAliasById(network)
+   local network_utils = require "network_utils"
+
    local networks_stats = interface.getNetworksStats()
    local network_id = tonumber(network)
 
