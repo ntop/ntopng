@@ -553,32 +553,23 @@ end
 
 -- ##############################################
 
-function split(pString, pPattern)
-  local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
-  local fpat = "(.-)" .. pPattern
-  local last_end = 1
-
-  -- input check
-  if pString == nil then
-    return Table
-  end
-  if type(pString) ~= "string" then
-    pString = tostring(pString)
-  end
-
-  local s, e, cap = pString:find(fpat, 1)
-  while s do
-    if s ~= 1 or cap ~= "" then
-      table.insert(Table,cap)
-    end
-    last_end = e+1
-    s, e, cap = pString:find(fpat, last_end)
-  end
-  if last_end <= #pString then
-    cap = pString:sub(last_end)
-    table.insert(Table, cap)
-  end
-  return Table
+-- split
+function split(s, delimiter)
+   result = {};
+   if(s ~= nil) then
+      if delimiter == nil then
+         -- No delimiter, split all characters
+         for match in s:gmatch"." do
+   	    table.insert(result, match);
+         end
+      else
+         -- Split by delimiter
+         for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+   	    table.insert(result, match);
+         end
+      end
+   end
+   return result;
 end
 
 -- ##############################################
