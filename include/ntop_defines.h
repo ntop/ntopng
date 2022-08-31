@@ -823,7 +823,7 @@
 #define unlink(a) _unlink(a)
 #endif
 
-#if defined(__arm__) || defined(__mips__)
+#if defined(__arm__) || defined(__aarch64__) || defined(__mips__)
 #define NTOPNG_EMBEDDED_EDITION         1
 #endif
 
