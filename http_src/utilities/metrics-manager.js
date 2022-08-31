@@ -63,7 +63,11 @@ const get_current_page_source_type = () => {
 };
 
 const get_default_metric = (metrics) => {
-    return metrics.find((m) => m.default_visible == true);
+    let default_metric = metrics.find((m) => m.default_visible == true);
+    if (default_metric != null) {
+	return default_metric;
+    }
+    return metrics[0];
 };
 
 const metricsManager = function() {

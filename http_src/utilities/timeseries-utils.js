@@ -50,7 +50,10 @@ function getSerieId(serie) {
     return `${serie.label}`;
 }
 
-function getSerieName(name, tsGroup, extendSeriesName) {
+function getSerieName(name, id, tsGroup, extendSeriesName) {
+    if (name == null) {
+	name = id;
+    }
     if (extendSeriesName == false) {
 	return name;
     }
@@ -109,7 +112,7 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName) {
 		time += step;
 		return d2;
 	    });
-	    let sName = getSerieName(sMetadata.label, tsGroup, extendSeriesName);
+	    let sName = getSerieName(sMetadata.label, id, tsGroup, extendSeriesName);
 	    // create an apex chart serie
 	    let sApex = {
 		id,
@@ -123,11 +126,12 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName) {
 
 	// define a function to build a constant serie
 	let fBuildConstantSerie = (prefix, id, name, value) => {
+	    if (name == null) { name = id; }
 	    name = `${name} (${prefix})`;
 	    if (value != null) {
 		value *= scalar;
 	    } 
-	    let sName = getSerieName(name, tsGroup, extendSeriesName);
+	    let sName = getSerieName(name, id, tsGroup, extendSeriesName);
 	    let time = startTime;
 	    let data = s.data.map((d) => {
 		let d2 = { x: time, y: value * scalar };
@@ -177,8 +181,16 @@ const defaultColors = [
     "#8EA4E8", 
 ];
 
-function setSeriesColors(seriesArray) {
-    let colors = seriesArray.map((s) => s.color);
+function setSeriesColors(seriesArray) {    
+    let colors = seriesArray.map((s) => {
+	if (s.color != null) {
+	    return s.color;
+	}
+	let hash = ntopng_utility.string_hash_code(s.name);
+	if (hash < 0) { hash *= -1; }
+	let colorIndex = hash % defaultColors.length;
+	return defaultColors[colorIndex];
+    });
     console.log("COLORS");
     console.log(colors);
     colors = colorsInterpolation.transformColors(colors);

@@ -6,10 +6,10 @@
   </template>
   <template v-slot:body>
     <ul class="nav nav-tabs">
-      <li class="nav-item" @click="action='add'">
+      <li class="nav-item" @click="change_action('add')">
     	<a class="nav-link" :class="{'active': action == 'add'}" href="#">Add Timeseries</a>
       </li>
-      <li class="nav-item" @click="action='select'">
+      <li class="nav-item" @click="change_action('select')">
     	<a class="nav-link" :class="{'active': action == 'select' }" href="#">Manage Timeseries</a>
       </li>
     </ul>
@@ -39,9 +39,15 @@
           <b>Metric</b>
 	</label>
 	<div class="col-sm-8">
-          <select class="form-select" @click="update_timeseries_to_add()" v-model="selected_metric">
-            <option v-for="item in metrics" :value="item">{{item.label}}</option>
-          </select>
+          <!-- <select class="form-select" @click="update_timeseries_to_add()" v-model="selected_metric"> -->
+            <!--   <option v-for="item in metrics" :value="item">{{item.label}}</option> -->
+            <!-- </select> -->
+          <SelectSearch ref="select_search"
+			@click="update_timeseries_to_add()"
+			v-model:select_option="selected_metric"
+			:options="metrics">
+          </SelectSearch>
+	  
 	</div>
       </div>
       
@@ -76,10 +82,13 @@
 import { ref, onMounted, computed, watch } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as ListTimeseries } from "./list-timeseries.vue";
+import { default as SelectSearch } from "./select-search.vue";
 
 import metricsManager from "../utilities/metrics-manager.js";
 
 const modal_id = ref(null);
+const select_search = ref(null);
+
 const showed = () => {};
 
 const action = ref("select"); // add/select 
@@ -107,6 +116,11 @@ onMounted(async () => {
     let wait_init = init();
 });
 
+watch(() => action.value, (current_value, old_value) => {
+    if (current_value != "add") { return; }
+    select_search.value.init();
+}, { flush: 'post'});
+
 const show = async () => {
     await wait_init;
     modal_id.value.show();
@@ -117,7 +131,13 @@ const select_metric = (metric) => {
     init(metric);
 };
 
+function change_action(a) {
+    action.value = a;
+}
+
+
 async function init(default_selected_metric) {
+    action.value = "select";
     sources.value = await metricsManager.get_sources(http_prefix, current_page_source_type);
     let default_source_value = metricsManager.get_default_source_value(selected_source_type.value);
     selected_source.value = sources.value.find((s) => s.value == default_source_value);
