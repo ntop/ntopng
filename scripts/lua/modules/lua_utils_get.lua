@@ -1036,6 +1036,7 @@ end
 --! @param path the path to compute the size for
 --! @param timeout the maxium time to compute the size. If nil, it defaults to 15 seconds.
 function getFolderSize(path, timeout)
+  local os_utils = require "os_utils"
    local folder_size_key = "ntopng.cache.folder_size"
    local now = os.time()
    local expiration = 30 -- sec
