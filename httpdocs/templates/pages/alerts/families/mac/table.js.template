@@ -6,7 +6,7 @@
     /* Alert */
     {responsivePriority: 2, name: 'msg', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Mac Address */
-    {responsivePriority: 2, name: 'address', className: 'text-left', data: 'address'},
+    {responsivePriority: 2, name: 'address', className: 'text-left text-nowrap', data: 'address'},
     /* Device Type */
     {responsivePriority: 3, name: 'device_type', className: 'text-nowrap', data: 'device_type', orderable: false, render: DataTableRenders.formatValueLabel},
     /* Name */

@@ -260,7 +260,7 @@ local pages = {
       endpoint_delete = "/lua/rest/v2/delete/mac/alerts.lua",
       endpoint_acknowledge = "/lua/rest/v2/acknowledge/mac/alerts.lua",
       url = getPageUrl(base_url_historical_only, {page = "mac"}),
-      hidden = is_system_interface or not alert_store_instances["mac"]:has_alerts(),
+      hidden = is_system_interface,
       badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.mac.entity_id)]
    },
    {
