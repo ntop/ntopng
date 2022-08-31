@@ -14,9 +14,9 @@
     <!-- select metric -->
     <div class="form-group ms-2 me-2 mt-3 row">
       <div class="col-4">
-	<SelectSearch ref="select_search"
-		      v-model:selected_option="selected_metric"
+	<SelectSearch v-model:selected_option="selected_metric"
 		      :options="metrics"
+		      :init="true"
 		      @select_option="select_metric">
 	</SelectSearch>
       </div>
@@ -60,7 +60,6 @@ let chart_type = ntopChartApex.typeChart.TS_LINE;
 const chart = ref(null);
 const date_time_picker = ref(null);
 const modal_time_series = ref(null);
-const select_search = ref(null);
 
 const metrics = ref([]);
 const selected_metric = ref({});
@@ -71,7 +70,6 @@ const custom_metric = {
 
 onMounted(async () => {
     init();
-    select_search.value.init();
     await Promise.all([
 	ntopng_sync.on_ready(id_chart),
 	ntopng_sync.on_ready(id_date_time_picker),

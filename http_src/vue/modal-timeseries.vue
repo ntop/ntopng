@@ -43,8 +43,8 @@
             <!--   <option v-for="item in metrics" :value="item">{{item.label}}</option> -->
             <!-- </select> -->
           <SelectSearch ref="select_search"
-			@click="update_timeseries_to_add()"
-			v-model:select_option="selected_metric"
+			@select_option="update_timeseries_to_add()"
+			v-model:selected_option="selected_metric"
 			:options="metrics">
           </SelectSearch>
 	  
@@ -112,7 +112,6 @@ const emit = defineEmits(['apply'])
 let wait_init = null;
 
 onMounted(async () => {
-    action.value = "select";
     let wait_init = init();
 });
 

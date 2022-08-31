@@ -16,9 +16,14 @@ const emit = defineEmits(['update:selected_option', 'select_option']);
 const props = defineProps({
     options: Array,
     selected_option: Object,
+    init: Boolean,
 });
 
-
+onMounted(() => {
+    if (props.init) {
+	init();
+    }
+});
 
 const init = () => {
     let select2Div = select2.value;
