@@ -1275,7 +1275,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	c = strtok_r(NULL, ":", &w);
 	if(c) redis_port = atoi(c);
 
-	c = strtok_r(NULL, ":", &w);
+	c = strtok_r(NULL, "\0", &w);
 	if(c) redis_password = strdup(c);
       } else if(strlen(buf) > 0) {
 	/* only the host */
