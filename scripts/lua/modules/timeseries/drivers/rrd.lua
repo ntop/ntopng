@@ -7,7 +7,6 @@ local driver = {}
 local os_utils = require("os_utils")
 local ts_common = require("ts_common")
 local data_retention_utils = require "data_retention_utils"
-local json = require("dkjson")
 
 require("rrd_paths")
 
@@ -24,6 +23,14 @@ local aggregation_to_consolidation = {
    [ts_common.aggregation.max]  = "MAX",
    [ts_common.aggregation.min]  = "MIN",
    [ts_common.aggregation.last] = "LAST",
+}
+
+local L4_PROTO_KEYS = {
+  tcp=6,
+  udp=17,
+  icmp=1,
+  eigrp=88,
+  other_ip=-1
 }
 
 -- ##############################################
@@ -624,7 +631,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 	 if last_update ~= nil and last_update >= start_time then
 	    local value = v[1]
 	    local toadd = false
-
+      
 	    if wildcard_tag == "if_index" then
 	       -- NOTE: needed to add this crazy exception. Don't now what it is
 	       -- but it's needed, otherwise this function is tricked into thinking
