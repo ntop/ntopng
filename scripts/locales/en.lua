@@ -4157,6 +4157,10 @@ local lang = {
     ["incorrect_args"] = "Incorrect parameters, one of the parameters is not supported or incorrect \"%{args}\"",
     ["invalid_subdir"] = "Invalid subdir given",
   },
+  ["kerberos_collector"] = {
+    ["description"] = "Collect Kerberos authentication logs exported by NXLog in XML format: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
+    ["title"] = "Kerberos/NXLog",
+  },
   ["license_page"] = {
     ["agreement"] = "License Agreement",
     ["license"] = "License",
