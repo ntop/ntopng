@@ -76,6 +76,14 @@ end
 
 -- ##############################################
 
+-- Convert day number according to RFC3164 (space instead of 0)
+local function convertRFC3164Day(num)
+  local n = tonumber(num)
+  return string.format(ternary(n < 10, ' ', '') .. '%u', n)
+end
+
+-- ##############################################
+
 function syslog.sendMessage(settings, notif, severity)
    local syslog_severity = alert_consts.alertLevelToSyslogLevel(severity)
    local syslog_format = settings.syslog_alert_format
@@ -117,7 +125,7 @@ function syslog.sendMessage(settings, notif, severity)
       local pid = info.pid
 
       if syslog_format and syslog_format == "plaintextrfc" then
-         local iso_time = format_utils.formatEpochISO8601() -- "2020-11-19T18:31:21.003Z"
+         local iso_time = format_utils.formatEpochISO8601() -- "2020-11-19T18:31:21.003Z" (UTC)
 
          -- RFC5424 Format:
          -- <PRIO>VERSION ISOTIMESTAMP HOSTNAME APPLICATION PID MESSAGEID MSG
@@ -125,13 +133,17 @@ function syslog.sendMessage(settings, notif, severity)
          -- <113>1 2020-11-19T18:31:21.003Z 192.168.1.1 ntopng 21365 ID1 -
          msg = "<"..prio..">1 "..iso_time.." "..host.." "..tag.." "..pid.." - - "..msg
       else
-         local log_time = os.date("!%b %d %X") -- "Feb 25 09:58:12"
+         local log_time = os.date("%b %d %X") -- "Feb 25 09:58:12" (localtime)
+         --local log_time = os.date("!%b %d %X") -- "Feb 25 09:58:12" (UTC)
+
+         local log_time_arr = split(log_time, ' ')
+         local month = log_time_arr[1]
+         local day = log_time_arr[2]
+         local time = log_time_arr[3]
 
          -- Convert day according to RFC3164
-         local log_time_arr = split(log_time, ' ')
-         local day = tonumber(log_time_arr[2])
-         log_time_arr[2] = string.format(ternary(day < 10, ' ', '') .. '%u', day)
-         log_time = table.concat(log_time_arr, ' ')
+         log_time = string.format("%s %s %s",
+            month, convertRFC3164Day(day), time)
 
          -- Unix Format:
          -- <PRIO>DATE TIME DEVICE APPLICATION[PID]: MSG
