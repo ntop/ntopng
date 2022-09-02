@@ -1251,17 +1251,22 @@ int Prefs::setOption(int optkey, char *optarg) {
 	host:port
 	host@redis_instance
 	host:port@redis_instance
+	host:port:password@redis_instance
        */
       snprintf(buf, sizeof(buf), "%s", optarg);
       r = strrchr(buf, '@');
       if(r) {
-        int id = atoi((const char*)&r[1]);
-        if (id < 0 || id > 0xff) {
-           ntop->getTrace()->traceEvent(TRACE_WARNING, "Redis DB ID provided with --redis|-r cannot be bigger than %u", 0xff);
-        } else {
-          redis_db_id = id;
+        bool is_float;
+        r++;
+        if (Utils::isNumber(r, strlen(r), &is_float)) {
+          int id = atoi((const char*)r);
+          if (id < 0 || id > 0xff) {
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "Redis DB ID provided with --redis|-r cannot be bigger than %u", 0xff);
+          } else {
+            redis_db_id = id;
+          }
+	  (*r) = '\0';
         }
-	(*r) = '\0';
       }
 
       if(strchr(buf, ':')) {
