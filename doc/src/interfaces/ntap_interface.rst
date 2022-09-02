@@ -29,7 +29,11 @@ Suppose to start ntopng on host 1.2.3.4 and let it listen on port 5678, and encr
 - [ntopng host] ntopng -i ntap:5678:hello
 - [remote host we want we want to monitor] tap -i eth0 -c 1.2.3.4:5678 -k hello
 
+.. note::
 
+	Due to nature of nTap, only one application can collect traffic sent by remote probes. In case of ntopng enterprise L, if you receive traffic with -i ntap:XXX:YYY those packets will be sent only to ntopng. This means that if you also want to enable n2disk/nProbe over ntap, you should start the ntap_collector (a nTap license is needed) and create a virtual ntap0 device to which ntopng, nProbe and n2disk can attach simultaneously.
+
+	
 All Other ntopng Editions
 -------------------------
 
