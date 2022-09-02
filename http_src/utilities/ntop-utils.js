@@ -968,8 +968,9 @@ export default class NtopUtils {
 		const url = new URL(location, window.location);
 
 		for (const [name, value] of Object.entries(params)) {
-			if (!value) continue;
-			url.searchParams.set(name, value);
+      if (value || value === 0)
+			  url.searchParams.set(name, value);
+			continue;
 		}
 
 		if (hasReferer) {

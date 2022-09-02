@@ -113,8 +113,6 @@ export default {
       config_devices_centrality: null,
       title_delete: i18n('map_page.delete_services'),
       body_delete: i18n('map_page.delete_services_message'),
-      title_download: i18n('map_page.download'),
-      body_download: i18n('map_page.download_message'),
       get_url: null,
       service_table_tab: 'standard',
       tab_list: [

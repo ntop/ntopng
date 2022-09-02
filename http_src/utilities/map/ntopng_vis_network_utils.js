@@ -2,6 +2,179 @@
     (C) 2022 - ntop.org    
 */
 
+
+const defaultOptions = { 
+  autoResize: true, 
+  nodes: { 
+      shape: "dot", 
+      scaling: {
+          min: 10,
+          max: 30,
+          label: {
+              min: 15,
+              max: 15,
+          },
+      },
+      shadow: false,
+  },
+  edges: {
+      width: 0.15,
+      color: { inherit: "from" },
+      smooth: {
+          type: "continuous",
+          roundness: 0
+      },
+  },
+  interaction: {
+      tooltipDelay: 150,
+      hideEdgesOnDrag: true,
+      hideEdgesOnZoom: true,
+      hover: true,
+      tooltipDelay: 0,
+  },
+  physics: {
+      barnesHut: {
+          springConstant: 0,
+          avoidOverlap: 0.3,
+          gravitationalConstant: -1000,
+          damping: 0.65,
+          centralGravity: 0
+      },
+      stabilization: {
+          onlyDynamicEdges: false
+      },    
+      solver: "repulsion",
+      repulsion: {
+        nodeDistance: 200 // Put more distance between the nodes.
+      }
+  },
+  groups: {
+      unknown: {
+          shape: "dot",
+      },
+      printer: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\uf02f",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+      video: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\uf03d",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+      workstation: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\uf109",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+      laptop: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\uf109",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+      tablet: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\uf10a",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+      phone: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\uf10b",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+      tv: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\uf26c",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+      networking: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\uf0b2",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+      wifi: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\uf1eb",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+      nas: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\uf1c0",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+      multimedia: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\uf001",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+      iot: {
+        shape: "icon",
+        icon: {
+          face: "'FontAwesome'",
+          code: "\ue012",
+          size: 50,
+          weight: 700,
+        },
+      },
+
+  },
+};
+
 export const ntopng_map_manager = {
   /**
    * Change the status of a service.
@@ -17,5 +190,8 @@ export const ntopng_map_manager = {
       if(data.success && callback) 
         callback();
     });
-  }
+  },
+  get_default_options: function() {
+    return defaultOptions;
+  },
 }
