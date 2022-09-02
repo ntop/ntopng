@@ -38,10 +38,10 @@ const defaultOptions = {
           theta: 0.5,
           springConstant: 0.1,
           avoidOverlap: 1,
-          gravitationalConstant: -2500,
-          damping: 0.8,
+          gravitationalConstant: -2000,
+          damping: 1,
           centralGravity: 0,
-          springLength: 250
+          springLength: 200
       },
       stabilization: {
           onlyDynamicEdges: false
