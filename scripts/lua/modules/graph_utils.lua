@@ -9,16 +9,12 @@ require "lua_utils"
 require "db_utils"
 require "rrd_paths"
 
-local dkjson = require("dkjson")
 local top_talkers_utils = require "top_talkers_utils"
-local os_utils = require "os_utils"
 local graph_common = require "graph_common"
-local have_nedge = ntop.isnEdge()
 
 local ts_utils = require("ts_utils")
 
 local iface_behavior_update_freq = 300 --Seconds
-local template_utils = require "template_utils"
 
 -- ########################################################
 
