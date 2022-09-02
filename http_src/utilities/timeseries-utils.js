@@ -217,11 +217,15 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
 		seriesName: s.name,
 		labels: {
 		    formatter: formatterUtils.getFormatter(metric.measure_unit, invertDirection),
+		    minWidth: 60,
+		     // maxWidth: 75,
+		    // offsetX: -20,
 		},
 		axisTicks: {
 		    show: true
 		},
 		axisBorder: {
+		    // offsetX: 60,
 		    show: true,
 		},
 		title: {
@@ -253,8 +257,7 @@ const groupsOptionsModesEnum = {
 function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsMode) {
     if (groupsOptionsMode == groupsOptionsModesEnum["1_chart"]) {	
 	let apexOptions = tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray);
-	setYaxisPadding([apexOptions]);
-
+	setLeftPadding(apexOptions);
 	return [apexOptions];
     } else if (groupsOptionsMode == groupsOptionsModesEnum["1_chart_x_yaxis"]) {
 	let tsDict = {};
@@ -266,38 +269,39 @@ function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsM
 	    } else {
 		tsDict[yaxisId].push(tsEl);
 	    }
-	});
+	});	
 	let apexOptionsArray = [];
 	for (let key in tsDict) {
 	    let tsArray = tsDict[key];
 	    let tsOptionsArray2 = tsArray.map((ts) => ts.tsOptions);
 	    let tsGrpupsArray2 = tsArray.map((ts) => ts.tsGroup);
 	    let apexOptions = tsArrayToApexOptions(tsOptionsArray2, tsGrpupsArray2);
+	    setLeftPadding(apexOptions);
 	    apexOptionsArray.push(apexOptions);
 	}
-	setYaxisPadding(apexOptionsArray);
 	return apexOptionsArray;
     } else if (groupsOptionsMode == groupsOptionsModesEnum["1_chart_x_metric"]) {
 	let apexOptionsArray = [];
 	tsOptionsArray.forEach((tsOptions, i) => {
 	    let apexOptions = tsArrayToApexOptions([tsOptions], [tsGrpupsArray[i]]);
+	    setLeftPadding(apexOptions);
 	    apexOptionsArray.push(apexOptions);	    
 	});
-	setYaxisPadding(apexOptionsArray);
 	return apexOptionsArray;
     }
     return [];
 }
 
-function setYaxisPadding(apexOptionsArray) {
-    // apexOptionsArray.forEach((options) => {
-    // 	options.yaxis.forEach((yaxis) => {
-    // 	    yaxis.minWidth = 100;
-    // 	});
-	// if (options.yaxis.length > 0) {
-	//     options.yaxis[0].minWidth = 400;
-	// }
-    // });
+function setLeftPadding(apexOptions) {
+    // apexOptions.yaxis.filter((yaxis) => yaxis.show).forEach((yaxis) => yaxis
+    if (apexOptions.yaxis.length < 2) {
+	return;
+    }    
+    apexOptions.yaxis.forEach((yaxis) => {
+	yaxis.labels.offsetX = -20;
+	// yaxis.labels.minWidth = 100;
+    });
+    apexOptions.grid.padding.left = -8;
 }
 
 function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray) {
@@ -339,12 +343,9 @@ function buildChartOptions(seriesArray, yaxisArray) {
 	    // height: 300,
 	},
 	grid: {
-	    // margin: {
-	    // 	left: 100,
-	    // },
-	    // padding: {
-	    // 	left: 100,
-	    // },
+	    padding: {
+	    	// left: -8,
+	    },
 	},
 	legend: {
 	    show: true,

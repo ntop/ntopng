@@ -46,8 +46,24 @@ const types = {
     },
 };
 
+function getUnitMeasureLen(type) {
+    // 000.00
+    let t = types[type];
+    let spaceValue = 3;
+    if (t.decimal != null && t.decimal > 0) {	
+	spaceValue = 6;
+    }
+    let spaceUm = 0;
+    if (t.um != null) {
+	spaceUm = Math.max(...t.um.map((um) => um.length));
+    }
+    return (spaceValue + 1 + spaceUm);
+}
+
 function getFormatter(type, absoluteValue) {
     let typeOptions = types[type];
+    let maxLenValue = 6; // 000.00
+    let maxLenUm = 8; // Mflows/s
     let formatter = function(value) {	
 	if (type == types.no_formatting.id) {
 	    return value;
@@ -76,10 +92,16 @@ function getFormatter(type, absoluteValue) {
 	}
 	
 	if (negativeValue && !absoluteValue) { value *= -1; }
-	let text = `${value}    ${measures[i]}`;
+	let valString = `${value}`;
+	// if (valString.length < maxLenValue) {
+	//     valString = valString.padEnd(maxLenValue - valString.length, " ");
+	// }
+	let mString = `${measures[i]}`;
+	// if (mString.length < maxLenUm) {
+	//     mString = mString.padStart(maxLenUm - mString.length, "_");
+	// }
+	let text = `${valString} ${mString}`;
 	return text;
-	// console.log(text);
-	// return text.padStart(40 - text.length, "&nbsp;()");
     }
     return formatter;
 }
@@ -87,6 +109,7 @@ function getFormatter(type, absoluteValue) {
 const formatterUtils = function() {
     return {
 	types,
+	getUnitMeasureLen,
 	getFormatter,
     };
 }();
