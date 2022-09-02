@@ -123,6 +123,9 @@ http_request: async function(url, options, throw_exception, not_unwrap) {
   return null;
     }
 },
+      get_random_string: function() {
+	  return Math.random().toString(16).substr(2, 8);
+      },
       string_hash_code: function(s) {
 	  let hash = 0, i, chr;
 	  if (s.length === 0) return hash;

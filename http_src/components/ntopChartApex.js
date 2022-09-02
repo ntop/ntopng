@@ -193,6 +193,10 @@ const ntopChartApex = function() {
 		    _chartHtmlElement = htmlElement;
 		    _chart.render();
 		},
+		destroyChart: function() {
+		    if (_chart == null) { return; }
+		    _chart.destroy();
+		},
 		updateChart: function(chartOptions) {
 		    if (_chart == null) { return; }
 		    _chart.updateOptions(chartOptions, true);

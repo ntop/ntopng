@@ -244,6 +244,62 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
     return yaxisApex;
 }
 
+const groupsOptionsModesEnum = {
+    "1_chart": "1_chart",
+    "1_chart_x_yaxis": "1_chart_x_yaxis",
+    "1_chart_x_metric": "1_chart_x_metric",
+};
+
+function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsMode) {
+    if (groupsOptionsMode == groupsOptionsModesEnum["1_chart"]) {	
+	let apexOptions = tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray);
+	setYaxisPadding([apexOptions]);
+
+	return [apexOptions];
+    } else if (groupsOptionsMode == groupsOptionsModesEnum["1_chart_x_yaxis"]) {
+	let tsDict = {};
+	tsGrpupsArray.forEach((tsGroup, i) => {
+	    let yaxisId = getYaxisId(tsGroup.metric);
+	    let tsEl = {tsGroup, tsOptions: tsOptionsArray[i]};
+	    if (tsDict[yaxisId] == null) {
+		tsDict[yaxisId] = [tsEl];
+	    } else {
+		tsDict[yaxisId].push(tsEl);
+	    }
+	});
+	let apexOptionsArray = [];
+	for (let key in tsDict) {
+	    let tsArray = tsDict[key];
+	    let tsOptionsArray2 = tsArray.map((ts) => ts.tsOptions);
+	    let tsGrpupsArray2 = tsArray.map((ts) => ts.tsGroup);
+	    let apexOptions = tsArrayToApexOptions(tsOptionsArray2, tsGrpupsArray2);
+	    apexOptionsArray.push(apexOptions);
+	}
+	setYaxisPadding(apexOptionsArray);
+	return apexOptionsArray;
+    } else if (groupsOptionsMode == groupsOptionsModesEnum["1_chart_x_metric"]) {
+	let apexOptionsArray = [];
+	tsOptionsArray.forEach((tsOptions, i) => {
+	    let apexOptions = tsArrayToApexOptions([tsOptions], [tsGrpupsArray[i]]);
+	    apexOptionsArray.push(apexOptions);	    
+	});
+	setYaxisPadding(apexOptionsArray);
+	return apexOptionsArray;
+    }
+    return [];
+}
+
+function setYaxisPadding(apexOptionsArray) {
+    // apexOptionsArray.forEach((options) => {
+    // 	options.yaxis.forEach((yaxis) => {
+    // 	    yaxis.minWidth = 100;
+    // 	});
+	// if (options.yaxis.length > 0) {
+	//     options.yaxis[0].minWidth = 400;
+	// }
+    // });
+}
+
 function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray) {
     if (tsOptionsArray.length != tsGrpupsArray.length) {
 	console.error(`Error in timeseries-utils:tsArrayToApexOptions: tsOptionsArray ${tsOptionsArray} different length from tsGrpupsArray ${tsGrpupsArray}`);
@@ -267,13 +323,28 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray) {
 	let yaxisApex = getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict);
 	yaxisArray = yaxisArray.concat(yaxisApex);
     });
-    
+
     // set colors in series
     setSeriesColors(seriesArray);
-    
+
+    let chartOptions = buildChartOptions(seriesArray, yaxisArray);
+    return chartOptions;
+}
+
+function buildChartOptions(seriesArray, yaxisArray) {
     return {
 	chart: {
-	    group: "test",
+	    id: ntopng_utility.get_random_string(),
+	    group: "timeseries",
+	    // height: 300,
+	},
+	grid: {
+	    // margin: {
+	    // 	left: 100,
+	    // },
+	    // padding: {
+	    // 	left: 100,
+	    // },
 	},
 	legend: {
 	    show: true,
@@ -292,13 +363,15 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray) {
 		show: true,
 	    },
 	},
-    }
+    };
 }
 
 const timeseriesUtils = function() {
     return {
+	groupsOptionsModesEnum,
 	tsToApexOptions,
 	tsArrayToApexOptions,
+	tsArrayToApexOptionsArray
     };
 }();
 

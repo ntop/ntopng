@@ -13,6 +13,7 @@
     	<a class="nav-link" :class="{'active': action == 'select' }" href="#">Manage Timeseries</a>
       </li>
     </ul>
+    <!-- action add -->
     <template v-if="action == 'add'">
       <div class="form-group ms-2 me-2 mt-3 row">
 	<label class="col-form-label col-sm-4" >
@@ -58,6 +59,7 @@
       </ListTimeseries>      
     </template><!-- action == add -->
 
+    <!-- action select-->
     <template v-if="action == 'select'">
       <template v-for="item in timeseries_groups_added">
 	<ListTimeseries

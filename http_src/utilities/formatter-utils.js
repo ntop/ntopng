@@ -76,7 +76,10 @@ function getFormatter(type, absoluteValue) {
 	}
 	
 	if (negativeValue && !absoluteValue) { value *= -1; }
-	return `${value} ${measures[i]}`;
+	let text = `${value}    ${measures[i]}`;
+	return text;
+	// console.log(text);
+	// return text.padStart(40 - text.length, "&nbsp;()");
     }
     return formatter;
 }

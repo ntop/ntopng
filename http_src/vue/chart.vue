@@ -19,6 +19,10 @@ export default {
     /** This method is the first method of the component called, it's called before html template creation. */
     created() {
     },
+    beforeUnmount() {
+	console.log("UNMOUNT");
+	this.chart.destroyChart();
+    },
     data() {
 	return {
 	    chart: null,
@@ -85,7 +89,7 @@ export default {
 	},
 	get_chart_options: async function(url_request) {
 	    let chart_options;
-	    if (this.get_custom_chart_options == null) {
+	    if (this.get_custom_chart_options == null) {		
 		chart_options = await ntopng_utility.http_request(url_request);
 	    } else {
 		chart_options = await this.get_custom_chart_options(url_request);
@@ -104,3 +108,6 @@ export default {
     },
 };
 </script>
+
+<style>
+</style>
