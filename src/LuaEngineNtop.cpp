@@ -6641,9 +6641,9 @@ static luaL_Reg _ntop_reg[] = {
   { "getRiskList",           ntop_get_risk_list           },
 
   /* ASN */
-  { "getASName",            ntop_get_asn_name },
-
-  { "getHostGeolocation",   ntop_get_host_geolocation },
+  { "getASName",            ntop_get_asn_name            },
+  { "getHostGeolocation",   ntop_get_host_geolocation    },
+  
   /* Mac */
   { "setMacDeviceType",     ntop_set_mac_device_type     },
 
