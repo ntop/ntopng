@@ -433,7 +433,7 @@ void usage() {
 	 "                                    |\n"
 #endif
 #ifdef HAVE_CLICKHOUSE
-	 "                                    | clickhouse    Dump in ClickHouse (Enterprise M/L)\n"
+	 "                                    | clickhouse    Dump in ClickHouse (Enterprise M/L/XL)\n"
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse;<host[@[<tcpport>,]<mysqlport]|socket>;<dbname>;<user>;<pw>\n"
 	 "                                    |   clickhouse;127.0.0.1;ntopng;default;\n"
@@ -2271,8 +2271,9 @@ bool Prefs::is_pro_edition() {
 bool Prefs::is_enterprise_m_edition() {
   return
 #ifdef NTOPNG_PRO
-    ntop->getPro()->has_valid_enterprise_m_license() ||
-    ntop->getPro()->has_valid_enterprise_l_license()
+    ntop->getPro()->has_valid_enterprise_m_license()
+    || ntop->getPro()->has_valid_enterprise_l_license()
+    || ntop->getPro()->has_valid_enterprise_xl_license()
 #else
   false
 #endif
@@ -2285,6 +2286,19 @@ bool Prefs::is_enterprise_l_edition() {
   return
 #ifdef NTOPNG_PRO
     ntop->getPro()->has_valid_enterprise_l_license()
+    || ntop->getPro()->has_valid_enterprise_xl_license()
+#else
+  false
+#endif
+    ;
+}
+
+/* *************************************** */
+
+bool Prefs::is_enterprise_xl_edition() {
+  return
+#ifdef NTOPNG_PRO
+    ntop->getPro()->has_valid_enterprise_xl_license()
 #else
   false
 #endif

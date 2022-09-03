@@ -936,7 +936,7 @@ function am_utils.run_am_check(when, all_hosts, granularity)
 
     if(do_trace) then
        print("[AM result] "..key.."\n")
-       tprint(info)
+       -- tprint(info)
     end
 
     if jitter then jitter = round(jitter, 2) end
@@ -952,7 +952,7 @@ function am_utils.run_am_check(when, all_hosts, granularity)
        local ts_data = {ifid = getSystemInterfaceId(), host = host.host, metric = host.measurement, value = value}
        if(do_trace) then
 	  print("[Writing AM timeseries ")
-	  tprint(ts_data)
+	  -- tprint(ts_data)
        end
 
        ts_utils.append(am_schema, ts_data, when)

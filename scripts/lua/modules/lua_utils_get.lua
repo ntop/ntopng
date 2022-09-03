@@ -957,6 +957,8 @@ function getNtopngRelease(ntopng_info, verbose)
 
    if ntopng_info.oem or ntopng_info["version.nedge_edition"] then
       release = ""
+   elseif(ntopng_info["version.enterprise_xl_edition"]) then
+      release =  "Enterprise XL"
    elseif(ntopng_info["version.enterprise_l_edition"]) then
       release =  "Enterprise L"
    elseif(ntopng_info["version.enterprise_m_edition"]) then

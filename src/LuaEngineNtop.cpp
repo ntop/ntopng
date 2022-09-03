@@ -2775,6 +2775,14 @@ static int ntop_is_enterprise_l(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_enterprise_xl(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_xl_edition());
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_is_nedge(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushboolean(vm, ntop->getPrefs()->is_nedge_edition());
@@ -3265,6 +3273,7 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_bool_table_entry(vm, "version.enterprise_edition", ntop->getPrefs()->is_enterprise_m_edition());
     lua_push_bool_table_entry(vm, "version.enterprise_m_edition", ntop->getPrefs()->is_enterprise_m_edition());
     lua_push_bool_table_entry(vm, "version.enterprise_l_edition", ntop->getPrefs()->is_enterprise_l_edition());
+    lua_push_bool_table_entry(vm, "version.enterprise_xl_edition", ntop->getPrefs()->is_enterprise_xl_edition());
     lua_push_bool_table_entry(vm, "version.embedded_edition", ntop->getPrefs()->is_embedded_edition());
     lua_push_bool_table_entry(vm, "version.nedge_edition", ntop->getPrefs()->is_nedge_edition());
     lua_push_bool_table_entry(vm, "version.nedge_enterprise_edition", ntop->getPrefs()->is_nedge_enterprise_edition());
@@ -6442,14 +6451,15 @@ static luaL_Reg _ntop_reg[] = {
 #endif
 
   { "isForcedCommunity",      ntop_is_forced_community },
-  { "isPro",                  ntop_is_pro },
-  { "isEnterprise",           ntop_is_enterprise_m },
-  { "isEnterpriseM",          ntop_is_enterprise_m },
-  { "isEnterpriseL",          ntop_is_enterprise_l },
-  { "isnEdge",                ntop_is_nedge },
+  { "isPro",                  ntop_is_pro        },
+  { "isEnterprise",           ntop_is_enterprise_m  },
+  { "isEnterpriseM",          ntop_is_enterprise_m  },
+  { "isEnterpriseL",          ntop_is_enterprise_l  },
+  { "isEnterpriseXL",         ntop_is_enterprise_xl },
+  { "isnEdge",                ntop_is_nedge      },
   { "isnEdgeEnterprise",      ntop_is_nedge_enterprise },
-  { "isPackage",              ntop_is_package },
-  { "isAppliance",            ntop_is_appliance },
+  { "isPackage",              ntop_is_package    },
+  { "isAppliance",            ntop_is_appliance  },
   { "isIoTBridge",            ntop_is_iot_bridge },
 
   /* Historical database */
