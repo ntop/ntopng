@@ -296,6 +296,52 @@ end
 
 -- ##############################################
 
+-- @brief Implements the logic to decide whether to show or not the url for a given `host_info`
+local function hostdetails_exists(host_info, hostdetails_params)
+   if not hostdetails_params then
+      hostdetails_params = {}
+   end
+
+   if hostdetails_params["page"] ~= "historical" and not hostdetails_params["ts_schema"] then
+      -- If the requested host_details.lua page is not the "historical" page
+      -- and if no ts_schema has been requested
+      -- then we check for host existance in memory, to make sure the page host_details.lua
+      -- won't bring to an empty page.
+      if not host_info["ipkey"] then
+	 -- host_info hasn't been generated with Host::lua so we can try and
+	 -- see if the host is active
+	 local active_host = interface.getHostInfo(hostinfo2hostkey(host_info))
+	 if not active_host then
+	    return false
+	 end
+      end
+   else
+      -- If the requested page is the "historical" page, or if a ts_schema has been requested,
+      -- then we assume page host_details.lua
+      -- exists if the timeseries are enabled and if the requested timeseries exists for the host
+      if not hostdetails_params["ts_schema"] then
+	 -- Default schema for hosts
+	 hostdetails_params["ts_schema"] = "host:traffic"
+      end
+
+      -- A ts_schema has been requested, let's see if it exists
+      local ts_utils = require("ts_utils_core")
+      local tags = table.merge(host_info, hostdetails_params)
+      if not tags["ifid"] then tags["ifid"] = interface.getId() end
+
+      -- If nIndex support is enabled, then there's no need to check for existence of the
+      -- schema: nIndex flows must be visible from the historical page even when there's no timeseries
+      -- associated
+      if not interfaceHasClickHouseSupport() and not ts_utils.exists(hostdetails_params["ts_schema"], tags) then
+	 -- If here, the requested schema, along with its hostdetails_params doesn't exist
+	 return false
+      end
+   end
+   return true
+end
+
+-- ##############################################
+
 -- @brief Generates an host_details.lua url (if available)
 -- @param host_info A lua table containing at least keys `host` and `vlan` or a full lua table generated with Host::lua
 -- @param href_params A lua table containing params host_details.lua params, e.g., {page = "historical"}
