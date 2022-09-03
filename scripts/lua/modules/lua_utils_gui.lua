@@ -1015,7 +1015,17 @@ function buildHostHREF(ip_address, vlan_id, page)
    end
 end
 
+-- ###########################################
+
+local _cache_map_href = {}
+
 function buildMapHREF(service_peer, map, page)
+
+   -- cache information in order to speed-up things
+   if(_cache_map_href[service_peer.ip] ~= nil) then
+      return(_cache_map_href[service_peer.ip])
+   end
+   
   -- Getting minimal stats to know if the host is still present in memory
   local name
   local vlan = service_peer.vlan
@@ -1073,6 +1083,7 @@ function buildMapHREF(service_peer, map, page)
     res = string.format('<a href="%s">%s</a>', map_url, name)
   end
 
+  _cache_map_href[service_peer.ip] = res
   return res
 end
 

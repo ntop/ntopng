@@ -289,7 +289,7 @@ else
 
    local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(host["mac"])
    local has_icmp = ((table.len(host["ICMPv4"]) + table.len(host["ICMPv6"])) ~= 0)
-   local has_assets = ntop.isEnterpriseL() and (host.asset_key ~= nil) and (ntop.getHashKeysCache(host.asset_key) ~= nil)
+   local has_assets = ntop.isEnterpriseXL() and (host.asset_key ~= nil) and (ntop.getHashKeysCache(host.asset_key) ~= nil)
    local periodicity_map_available = false
    local service_map_available = false
    local num_periodicity = 0
