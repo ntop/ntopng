@@ -339,7 +339,7 @@ end
 function isMacAddress(address)
   if (address == nil) then return false end
 
-  if(ends(address, "_v4") or ends(address, "_v6")
+  if(string.ends(address, "_v4") or string.ends(address, "_v6")
      or (string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") ~= nil)
      or (string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x%@%d+$") ~= nil)) then
       return true
