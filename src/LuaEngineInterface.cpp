@@ -2183,8 +2183,8 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   if(lua_type(vm, 3) == LUA_TSTRING) {
     get_host_vlan_info((char*)lua_tostring(vm, 3), &talking_with_ip, &vlan_id, buf, sizeof(buf));
     talking_with_host = ntop_interface->getHost(talking_with_ip, vlan_id,
-				   getLuaVMUservalue(vm, observationPointId),
-				   false /* Not an inline call */);
+						getLuaVMUservalue(vm, observationPointId),
+						false /* Not an inline call */);
   }
 
   if(ntop_interface
