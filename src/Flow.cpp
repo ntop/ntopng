@@ -2207,7 +2207,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   bool mask_flow;
   bool has_json_info = false;
   u_char community_id[200];
-
+  char buf[64];
+  
   if(ptree) {
     if(src_ip) src_match = src_ip->match(ptree);
     if(dst_ip) dst_match = dst_ip->match(ptree);
@@ -2219,7 +2220,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
   lua_get_ip(vm, true  /* Client */);
   lua_get_ip(vm, false /* Server */);
-
+  lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
   lua_get_port(vm, true  /* Client */);
   lua_get_port(vm, false /* Server */);
 
@@ -2236,8 +2237,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(vrfId) lua_push_uint64_table_entry(vm, "vrfId", vrfId);
 
-    /* See VLANAddressTree.h for details */
-    lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
+    /* See VLANAddressTree.h for details */    
     lua_push_uint32_table_entry(vm, "observation_point_id", get_observation_point_id());
 
     if(srcAS)
@@ -2436,6 +2436,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
   lua_get_status(vm);
 
+  lua_push_str_table_entry(vm, "proto.ndpi",
+			   detection_completed ? get_detected_protocol_name(buf, sizeof(buf)) : (char*)CONST_TOO_EARLY);
+    
   // this is used to dynamicall update entries in the GUI
   lua_push_uint64_table_entry(vm, "ntopng.key", key()); // Key
   lua_push_uint64_table_entry(vm, "hash_entry_id", get_hash_entry_id());

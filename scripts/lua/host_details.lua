@@ -87,8 +87,6 @@ end
 
 -- print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_info",{hostinfo=host_info["host"],vlan=host_vlan}).."\n") end
-
-
 local host = interface.getHostInfo(host_info["host"], host_vlan)
 local tskey
 
@@ -425,6 +423,12 @@ else
 	 active = page == "flows",
 	 page_name = "flows",
 	 label = '<i class="fas fa-stream" title="'..i18n("active_flows")..'"></i>',
+      },
+      {
+	 hidden = only_historical or not ntop.isEnterpriseL() or (host.localhost == false),
+	 active = page == "flows_sankey",
+	 page_name = "flows_sankey",
+	 label = '<i class="fas fa-draw-polygon" title="'..i18n("local_flows_sankey")..'"></i>',
       },
       {
 	 hidden = only_historical or host["is_broadcast"] or host["is_multicast"] or not ntop.hasGeoIP(),
@@ -1912,6 +1916,8 @@ elseif(page == "flows") then
 
       ]]
 
+elseif(page == "flows_sankey") then
+   print(template.gen("pages/sankey_host.template", { host = host_ip }))
 
 elseif(page == "snmp" and ntop.isEnterpriseM() and isAllowedSystemInterface()) then
    local snmp_config = require "snmp_config"

@@ -7,6 +7,7 @@ local lang = {
   ["action"] = "Action",
   ["actions"] = "Actions",
   ["active_flows"] = "Live",
+  ["local_flows_sankey"] = "Local Flows",
   ["activities"] = "Activities",
   ["activity"] = "Activity",
   ["add"] = "Add",
