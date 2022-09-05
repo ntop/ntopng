@@ -1,5 +1,5 @@
 --
--- (C) 2020 - ntop.org
+-- (C) 2020-22 - ntop.org
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
@@ -66,6 +66,7 @@ local context = {
       external_link = external_link,
       version = version,
       systemIdHref = systemIdHref,
+      systemId = info["pro.systemid"],
       is_admin = isAdministrator()
    }
 }
