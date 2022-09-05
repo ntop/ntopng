@@ -1,5 +1,5 @@
 --
--- (C) 2014-15 - ntop.org
+-- (C) 2014-22 - ntop.org
 --
 
 _ifstats = interface.getStats()
