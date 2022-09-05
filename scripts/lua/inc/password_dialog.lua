@@ -3,6 +3,7 @@ require("prefs_utils")
 
 local is_admin = isAdministrator()
 local template = require("template_utils")
+local locales_utils = require "locales_utils"
 
 print [[
 
