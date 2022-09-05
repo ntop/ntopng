@@ -195,7 +195,7 @@
     }
 
     if($("#full_name_input").val().length < 5) {
-      add_user_alert.error("Username too short (5 or more characters)");
+      add_user_alert.error("Full Name too short (5 or more characters)");
       return(false);
     }
 
