@@ -1257,9 +1257,9 @@ int Prefs::setOption(int optkey, char *optarg) {
       r = strrchr(buf, '@');
       if(r) {
         bool is_float;
-        r++;
-        if (Utils::isNumber(r, strlen(r), &is_float)) {
-          int id = atoi((const char*)r);
+        char *idptr = &r[1];
+        if (Utils::isNumber(idptr, strlen(idptr), &is_float)) {
+          int id = atoi((const char*)idptr);
           if (id < 0 || id > 0xff) {
             ntop->getTrace()->traceEvent(TRACE_WARNING, "Redis DB ID provided with --redis|-r cannot be bigger than %u", 0xff);
           } else {
