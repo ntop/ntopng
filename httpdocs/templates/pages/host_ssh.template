@@ -1,14 +1,14 @@
 {#
   (C) 2022 - ntop.org
-  This template is used by the `TLS host details` page inside the `Hosts`.    
+  This template is used by the `SSH host details` page inside the `Hosts`.    
 #}
 
 
-<div id="host-tls-table">
-  <page-host-tls
+<div id="host-ssh-table">
+  <page-host-ssh
     :page_csrf="page_csrf"
     :url_params="url_params">
-  </page-host-tls>
+  </page-host-ssh>
 </div>
   
 <script type="text/javascript">  
@@ -24,7 +24,7 @@
   function start_vue() {
     let vue_options = {
       components: {	  
-        'page-host-tls': ntopVue.PageHostTLS,
+        'page-host-ssh': ntopVue.PageHostSSH,
       },
       /**
       * First method called when the component is created.
@@ -42,7 +42,7 @@
       },
     };
     const _vue = ntopVue.Vue.createApp(vue_options);
-    const vue_app = _vue.mount('#host-tls-table');
+    const vue_app = _vue.mount('#host-ssh-table');
     return vue_app;
   }
 
@@ -52,5 +52,4 @@
     // initialize script table
     start_vue();
   });
-
 </script>

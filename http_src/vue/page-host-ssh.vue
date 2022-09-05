@@ -1,6 +1,6 @@
 {#
   (C) 2022 - ntop.org
-  This template is used by the `TLS host details` page inside the `Hosts`.    
+  This template is used by the `SSH host details` page inside the `Hosts`.    
 #}
 
 <template>
@@ -11,8 +11,8 @@
     </div>
     <div class="card">
       <div class="card-body">
-      	<div id="table_host_tls">
-          <datatable ref="table_fingerprint"
+      	<div id="table_host_ssh">
+          <datatable ref="table_hassh"
             :table_buttons="config_devices_standard.table_buttons"
             :columns_config="config_devices_standard.columns_config"
             :data_url="config_devices_standard.data_url"
@@ -20,9 +20,6 @@
             :table_config="config_devices_standard.table_config">
           </datatable>
         </div>
-      </div>
-      <div class="card-footer">
-        <b>{{ i18n('fingerprint_note') }}</b>
       </div>
     </div>
   </div>
@@ -58,10 +55,11 @@ export default {
     /* Method used to switch active table tab */
     reload_table: function() {
       let table = this.get_active_table();
+      debugger;
       table.reload();
     },
     get_active_table: function() {
-      return this.$refs[`table_fingerprint`];
+      return this.$refs[`table_hassh`];
     },
   },
 }  
@@ -90,7 +88,7 @@ function start_datatable(DatatableVue) {
   /* Standard table configuration */  
 
   columns = [
-    { columnName: i18n("ja3_client_fingerprint"), name: 'ja3', data: 'ja3', className: 'text-nowrap', render: (data, type) => {
+    { columnName: i18n("hassh_fingerprint"), name: 'ja3', data: 'ja3', className: 'text-nowrap', render: (data, type) => {
         return `<a class="ntopng-external-link" href="https://sslbl.abuse.ch/ja3-fingerprints/${data}">${data} <i class="fas fa-external-link-alt"></i></a>`;
       }, responsivePriority: 0, createdCell: DataTableRenders.applyCellStyle },
     { columnName: i18n("status"), name: 'is_malicious', data: 'is_malicious', className: 'text-nowrap text-center', responsivePriority: 0, render: (data, type) => {
