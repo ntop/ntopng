@@ -21,6 +21,8 @@ if(ntop.isPro()) then
   -- NOTE: import snmp_utils below to avoid import cycles
 end
 
+alert_consts.SEPARATOR = ';'
+
 -- NOTE: sqlite can handle about 10-50 alerts/sec
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_MODULE = 1024 -- should match ALERTS_MANAGER_MAX_ENTITY_ALERTS
 

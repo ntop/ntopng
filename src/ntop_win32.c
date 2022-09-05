@@ -83,14 +83,31 @@ void pthread_mutex_destroy(pthread_mutex_t *mutex) {
 /* ************************************ */
 
 int pthread_mutex_lock(pthread_mutex_t *mutex) {
-
   if(*mutex == NULL) {
-	printf("Error\n");
-	return(-1);
+    printf("Error\n");
+    return(-1);
   }
 
   WaitForSingleObject(*mutex, INFINITE);
   return(0);
+}
+
+/* ************************************ */
+
+int pthread_mutex_timedlock(pthread_mutex_t * mutex, const struct timespec *abstime) {
+  DWORD status;
+  DWORD milliseconds;
+  
+  if((*mutex == NULL) || (wait == NULL)) {
+    printf("Error\n");
+    return(-1);
+  }
+
+  milliseconds = abstime->tv_sec * 1000 + abstime->tv_sec(abstime->tv_usec / 1000);
+
+  WaitForSingleObject(*mutex, milliseconds);
+
+  return(status == WAIT_TIMEOUT ? -1 : 00);
 }
 
 /* ************************************ */

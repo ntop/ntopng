@@ -32,8 +32,6 @@ end
 
 local alert_utils = {}
 
-alert_utils.SEPARATOR = ';'
-
 -- ##############################################
 
 local function alertTypeDescription(alert_key, entity_id)
@@ -619,7 +617,7 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	 -- Join the TAG filters using the predefined operator
 	 local final_filter = {}
 	 for _, tag in pairs(tags) do
-	    final_filter[tag.name] = string.format("%s%s%s", tag.val, alert_utils.SEPARATOR, tag.op)
+	    final_filter[tag.name] = string.format("%s%s%s", tag.val, alert_consts.SEPARATOR, tag.op)
 	 end
 
 	 -- tprint({formatEpoch(epoch_begin), formatEpoch(epoch_end), formatEpoch(tonumber(alert.tstamp)), formatEpoch(tonumber(alert.tstamp_end))})

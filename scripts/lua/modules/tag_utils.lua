@@ -13,7 +13,6 @@ require "lua_utils"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local alert_severities = require "alert_severities"
-local alert_utils = require "alert_utils"
 local host_pools = require "host_pools"
 local dscp_consts = require "dscp_consts"
 local country_codes = require "country_codes"
@@ -23,7 +22,7 @@ local snmp_filter_options_cache
 local tag_utils = {}
 
 -- Operator Separator in query strings
-tag_utils.SEPARATOR = alert_utils.SEPARATOR
+tag_utils.SEPARATOR = alert_consts.SEPARATOR
 
 -- #####################################
 

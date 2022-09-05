@@ -63,7 +63,7 @@ class Ntop {
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
-  Mutex m, users_m, speedtest_m;
+  Mutex m, users_m, speedtest_m, pools_lock;
   std::map<std::string, bool> cachedCustomLists; /* Cache of lists filenames */
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
@@ -627,7 +627,7 @@ public:
 #ifdef NTOPNG_PRO
   inline AssetManagement* get_am()                          { return(&am);              }
 #endif
-
+  inline Mutex* get_pools_lock()                            { return(&pools_lock);      }
 };
 
 extern Ntop *ntop;

@@ -36,7 +36,7 @@ Mutex::Mutex() {
 
 /* ******************************* */
 
-void Mutex::lock(const char *filename, const int line, bool trace_errors) {
+bool Mutex::lock(const char *filename, const int line, bool trace_errors) {
   int rc;
 
   errno = 0;
@@ -56,6 +56,78 @@ void Mutex::lock(const char *filename, const int line, bool trace_errors) {
   last_lock_line = line, num_locks++;
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p)", __FUNCTION__, this);
 #endif
+
+  return(locked);
+}
+
+/* ******************************* */
+
+#ifdef __APPLE__
+/*
+ *
+ * https://www.mail-archive.com/dev@apr.apache.org/msg26846.html
+ *
+ * A pthread_mutex_timedlock() impl for OSX/macOS, which lacks the
+ * real thing.
+ * NOTE: Unlike the real McCoy, won't return EOWNERDEAD, EDEADLK
+ *       or EOWNERDEAD
+ */
+static int pthread_mutex_timedlock(pthread_mutex_t *mutex, struct timespec *abs_timeout) {
+  int rv;
+  struct timespec remaining, slept, ts;
+
+  remaining = *abs_timeout;
+
+  while((rv = pthread_mutex_trylock(mutex)) == EBUSY) {
+    ts.tv_sec = 0;
+    ts.tv_nsec = (remaining.tv_sec > 0 ? 10000000 :
+		  (remaining.tv_nsec < 10000000 ? remaining.tv_nsec :
+		   10000000));
+    nanosleep(&ts, &slept);
+    ts.tv_nsec -= slept.tv_nsec;
+
+    if(ts.tv_nsec <= remaining.tv_nsec) {
+      remaining.tv_nsec -= ts.tv_nsec;
+    } else {
+      remaining.tv_sec--;
+      remaining.tv_nsec = (1000000 - (ts.tv_nsec - remaining.tv_nsec));
+    }
+
+    if(remaining.tv_sec < 0
+       || (!remaining.tv_sec && remaining.tv_nsec <= 0)) {
+      return ETIMEDOUT;
+    }
+  }
+
+  return rv;
+}
+
+#endif /* __APPLE__ */
+
+/* ******************************* */
+
+bool Mutex::lockTimeout(const char *filename, const int line, struct timespec *wait, bool trace_errors) {
+  int rc;
+
+  errno = 0;
+  rc = pthread_mutex_timedlock(&the_mutex, wait);
+  //~ printf("LOCK %s:%d\n", filename, line);
+
+  if(rc != 0) {
+    if(trace_errors)
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "pthread_mutex_timedlock() returned %d [%s][errno=%d]",
+				   rc, strerror(rc), errno);
+  } else
+    locked = true;
+
+#ifdef MUTEX_DEBUG
+  snprintf(last_lock_file, sizeof(last_lock_file), "%s", filename);
+  last_lock_line = line, num_locks++;
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p)", __FUNCTION__, this);
+#endif
+
+  return(locked);
 }
 
 /* ******************************* */

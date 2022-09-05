@@ -43,7 +43,8 @@ class Mutex {
   Mutex();
   ~Mutex() { pthread_mutex_destroy(&the_mutex); };
 
-  void lock(const char *filename, const int line, bool trace_errors = true);
+  bool lock(const char *filename, const int line, bool trace_errors = true);
+  bool lockTimeout(const char *filename, const int line, struct timespec *wait, bool trace_errors = true);
   void unlock(const char *filename, const int line, bool trace_errors = true);
   inline bool is_locked() { return(locked); };
 
