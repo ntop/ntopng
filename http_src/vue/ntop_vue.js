@@ -10,6 +10,7 @@ import { default as PageServiceMap } from "./page-service-map.vue";
 import { default as PagePeriodicityMap } from "./page-periodicity-map.vue";
 import { default as PageAssetMap } from "./page-asset-map.vue";
 import { default as PageDeviceExclusions } from "./page-device-exclusions.vue";
+import { default as PageHostTls } from "./page-host-tls.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -49,6 +50,7 @@ let ntopVue = {
     PagePeriodicityMap: PagePeriodicityMap,
     PageAssetMap: PageAssetMap,
     PageDeviceExclusions: PageDeviceExclusions,
+    PageHostTls: PageHostTls,
     
     // components
     AlertInfo: AlertInfo,

@@ -1584,17 +1584,14 @@ elseif(page == "dns") then
       end
    end
 elseif(page == "tls") then
-   local fingerprint_type = 'ja3'
-   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v2/get/host/fingerprint/data.lua?fingerprint_type=%s&ifid=%s&host=%s", fingerprint_type, ifId, host_ip)
-   local context = {
-      json = json,
-      template = template,
-      sites = {
-         endpoint = endpoint,
-      }
-   }
+  local fingerprint_type = 'ja3'
+  local context = {
+    fingerprint_type = fingerprint_type,
+    ifid = ifId,
+    host = host_ip,
+  }
 
-print(template.gen("pages/ja3_fingerprint.template", context))
+print(template.gen("pages/host_tls.template", context))
 
 elseif(page == "ssh") then
    local fingerprint_type = 'hassh'
