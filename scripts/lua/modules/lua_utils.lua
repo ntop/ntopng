@@ -26,11 +26,9 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 require "lua_trace"
 require "lua_utils_generic"
 require "ntop_utils"
-locales_utils = require "locales_utils"
+require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
-local http_utils = require "http_utils"
-local dns_utils = require "dns_utils"
 
 -- TODO: replace those globals with locals everywhere
 

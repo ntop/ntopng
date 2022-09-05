@@ -12,6 +12,7 @@ local http_lint = {}
 
 local json = require "dkjson"
 local tracker = require "tracker"
+local locales_utils = require "locales_utils"
 
 -- #################################################################
 
