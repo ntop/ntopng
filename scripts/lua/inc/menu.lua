@@ -292,12 +292,7 @@ else
 	    {
 	       entry = page_utils.menu_entries.http_servers,
 	       url = '/lua/http_servers_stats.lua',
-	    },
-	    {
-	       entry = page_utils.menu_entries.top_hosts,
-	       hidden = is_pcap_dump,
-	       url = '/lua/top_hosts.lua',
-	    },
+	    }
 	 },
       }
    )
