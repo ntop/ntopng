@@ -35,6 +35,7 @@ let container = null;
 let max_entries = false;
 let update_view_state_id = null;
 let url_params = {};
+let is_destroyed = false;
 
 onMounted(() => {
   load_scale();
@@ -56,7 +57,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  destroy_map();
+  if (is_destroyed == true) { return; }
+  destroy();
 });
 
 const jump_to_host = (params) => {
@@ -175,9 +177,9 @@ const drag = () => {
   save_topology_view();
 }
 
-const destroy_map = () => {
+const destroy = () => {
   network.destroy(true);
-  is_destroyed = true;
+  is_destroyed = true
 }
 
 const is_max_entry_reached = () => {
@@ -196,11 +198,13 @@ const reload = () => {
     max_entries = max_entry_reached;
     nodes_dataset = new vis.DataSet(nodes);
     edges_dataset = new vis.DataSet(edges);
-    network.setData({ nodes: nodes_dataset, edges: edges_dataset });
+    if(network)
+      network.setData({ nodes: nodes_dataset, edges: edges_dataset });
+    
     save_topology_view();
   });
 }
 
 
-defineExpose({ reload, destroy_map, is_max_entry_reached, autolayout, update_url_params });
+defineExpose({ reload, destroy, is_max_entry_reached, autolayout, update_url_params });
 </script>

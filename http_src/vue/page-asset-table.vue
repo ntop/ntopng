@@ -18,8 +18,8 @@
             @delete="delete_all">
           </modal-delete-confirm>
   
-          <tab-list ref="tab_list"
-            id="tab_list"
+          <tab-list ref="asset_tab_list"
+            id="asset_tab_list"
             :tab_list="tab_list"
             @click_item="click_item">
           </tab-list>
@@ -54,7 +54,7 @@ import { default as Datatable } from "./datatable.vue";
 import { default as TabList } from "./tab-list.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { ntopng_events_manager } from '../services/context/ntopng_globals_services';
-const change_table_tab_event = "change_table_tab_event";
+const change_asset_table_tab_event = "change_asset_table_tab_event";
 
 export default {
   components: {	  
@@ -76,13 +76,18 @@ export default {
     start_datatable(this);
   },
   mounted() {
-    ntopng_events_manager.on_custom_event("change_asset_table_tab", change_table_tab_event, (tab) => {
+    this.asset_table_tab = this.$props.url_params.view
+    this.tab_list.forEach((i) => {
+      this.asset_table_tab == i.id ? i.active = true : i.active = false
+    });
+    ntopng_events_manager.on_custom_event("change_asset_table_tab", change_asset_table_tab_event, (tab) => {
 	    let table = this.get_active_table();
       ntopng_url_manager.set_key_to_url('view', tab);
       table.delete_button_handlers(this.asset_table_tab);
       table.destroy_table();
       this.asset_table_tab = tab;
     });
+
     $("#btn-delete-all").click(() => this.show_delete_all_dialog());
   },    
   data() {
@@ -95,7 +100,7 @@ export default {
       title_download: i18n('map_page.download'),
       body_download: i18n('map_page.download_message'),
       get_url: null,
-      asset_table_tab: 'standard',
+      asset_table_tab: null,
       tab_list: [
         { 
           title: i18n('map_page.standard_view'),
@@ -111,11 +116,16 @@ export default {
     };
   },
   methods: {
+    destroy: function() {
+      let table = this.get_active_table();
+      table.delete_button_handlers(this.asset_table_tab);
+      table.destroy_table();
+    },
     /* Method used to switch active table tab */
     click_item: function(item) {
       this.tab_list.forEach((i) => i.active = false);
       item.active = true;
-      ntopng_events_manager.emit_custom_event(change_table_tab_event, item.id);
+      ntopng_events_manager.emit_custom_event(change_asset_table_tab_event, item.id);
     },
     delete_all: async function() {
       let url = `${http_prefix}/lua/pro/enterprise/network_maps.lua`;

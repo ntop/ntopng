@@ -97,11 +97,20 @@ export default {
     start_vis_network_map(this)
   },
   mounted() {
+    this.updated_url_params = this.$props.url_params
+    /* Remove invalid filters */
+    let entries = ntopng_url_manager.get_url_entries();
+    for(const [key, value] of entries) {
+      this.updated_url_params[key] = value;
+    }
+
+    this.update_and_reload_map()
+
     const reload_map = this.reload_map
     ntopng_events_manager.on_custom_event("change_filter_event", change_filter_event, (filter) => {
 	    this.active_filter_list[filter.id] = filter.filter;
       ntopng_url_manager.set_key_to_url(filter.key, filter.filter.key);
-      this.url_params[filter.key] = filter.filter.key;
+      this.updated_url_params[filter.key] = filter.filter.key;
       this.update_and_reload_map();
     });
     
@@ -124,6 +133,7 @@ export default {
       update_view_state_id: null,
       get_url: null,
       download_url: null,
+      updated_url_params: {},
       filter_list: [],
       filter_parameter_list: [],
       active_filter_list: [],
@@ -137,6 +147,10 @@ export default {
     };
   },
   methods: { 
+    destroy: function() {
+      let map = this.$refs[`periodicity_map`];
+      map.destroy();
+    },
     /* Method used to switch active table tab */
     click_item: function(filter, key, id) {
       ntopng_events_manager.emit_custom_event(change_filter_event, { filter: filter, key: key, id: id });
@@ -151,7 +165,7 @@ export default {
     },
     update_and_reload_map: function() {
       let map = this.$refs[`periodicity_map`];
-      map.update_url_params(this.url_params)
+      map.update_url_params(this.updated_url_params)
       map.reload();
     },
     autolayout: function() {
@@ -167,10 +181,10 @@ export default {
     delete_all: async function() {
       let url = `${http_prefix}/lua/pro/enterprise/network_maps.lua`;
       let params = {
-        ifid: this.url_params.ifid,
+        ifid: this.updated_url_params.ifid,
         action: 'reset',
         csrf: this.$props.page_csrf,
-        map: this.url_params.map
+        map: this.updated_url_params.map
       };
       try {
         let headers = {
@@ -196,9 +210,10 @@ function start_vis_network_map(NetworkMapVue) {
       }
     }
   }
+  console.log(NetworkMapVue.updated_url_params)
 
   NetworkMapVue.get_url = `${http_prefix}/lua/pro/rest/v2/get/interface/map/data.lua`
-  NetworkMapVue.download_url = NtopUtils.buildURL(NetworkMapVue.get_url, NetworkMapVue.$props.url_params)
+  NetworkMapVue.download_url = NtopUtils.buildURL(NetworkMapVue.get_url, NetworkMapVue.updated_url_params)
   NetworkMapVue.event_listeners = {};
 }
 </script>

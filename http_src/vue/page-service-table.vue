@@ -18,8 +18,8 @@
             @delete="delete_all">
           </modal-delete-confirm>
   
-          <tab-list ref="tab_list"
-            id="tab_list"
+          <tab-list ref="service_tab_list"
+            id="service_tab_list"
             :tab_list="tab_list"
             @click_item="click_item">
           </tab-list>
@@ -74,7 +74,7 @@ import { default as TabList } from "./tab-list.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { ntopng_events_manager, ntopng_url_manager } from '../services/context/ntopng_globals_services';
 import { ntopng_map_manager } from '../utilities/map/ntopng_vis_network_utils';
-const change_table_tab_event = "change_table_tab_event";
+const change_service_table_tab_event = "change_service_table_tab_event";
 
 export default {
   components: {	  
@@ -97,7 +97,12 @@ export default {
     start_datatable(this);
   },
   mounted() {
-    ntopng_events_manager.on_custom_event("change_service_table_tab", change_table_tab_event, (tab) => {
+    this.service_table_tab = this.$props.url_params.view
+    this.tab_list.forEach((i) => {
+      this.service_table_tab == i.id ? i.active = true : i.active = false
+    });
+  
+    ntopng_events_manager.on_custom_event("change_service_table_tab", change_service_table_tab_event, (tab) => {
 	    let table = this.get_active_table();
       ntopng_url_manager.set_key_to_url('view', tab);
       table.delete_button_handlers(this.service_table_tab);
@@ -114,7 +119,7 @@ export default {
       title_delete: i18n('map_page.delete_services'),
       body_delete: i18n('map_page.delete_services_message'),
       get_url: null,
-      service_table_tab: 'standard',
+      service_table_tab: null,
       tab_list: [
         { 
           title: i18n('map_page.standard_view'),
@@ -130,11 +135,16 @@ export default {
     };
   },
   methods: { 
+    destroy: function() {
+      let table = this.get_active_table();
+      table.delete_button_handlers(this.service_table_tab);
+      table.destroy_table();
+    },
     /* Method used to switch active table tab */
     click_item: function(item) {
       this.tab_list.forEach((i) => i.active = false);
       item.active = true;
-      ntopng_events_manager.emit_custom_event(change_table_tab_event, item.id);
+      ntopng_events_manager.emit_custom_event(change_service_table_tab_event, item.id);
     },
     create_action_buttons: function(data, type, service) {
       const reload = this.reload_table

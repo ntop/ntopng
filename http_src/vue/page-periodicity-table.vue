@@ -11,7 +11,7 @@
     </div>
     <div class="card">
       <div class="card-body">
-      	<div id="table_periodicity">
+      	<div id="periodicity-table">
           <modal-delete-confirm ref="modal_delete_all"
             :title="title_delete"
             :body="body_delete"
@@ -24,7 +24,9 @@
             :data_url="config_devices_standard.data_url"
             :enable_search="config_devices_standard.enable_search"
             :filter_buttons="config_devices_standard.table_filters"
-            :table_config="config_devices_standard.table_config">
+            :table_config="config_devices_standard.table_config"
+            :base_url="base_url"
+            :base_params="url_params">
           </datatable>
         </div>
       </div>
@@ -39,9 +41,8 @@
 
 <script>
 import { default as Datatable } from "./datatable.vue";
-import { default as TabList } from "./tab-list.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
-import { ntopng_events_manager, ntopng_url_manager } from '../services/context/ntopng_globals_services';
+import { ntopng_url_manager } from '../services/context/ntopng_globals_services';
 
 export default {
   components: {	  
@@ -61,12 +62,13 @@ export default {
   created() {
     start_datatable(this);
   },
-  mounted() {
+  mounted() {  
     $("#btn-delete-all").click(() => this.show_delete_all_dialog());
   },    
   data() {
     return {
       i18n: (t) => i18n(t),
+      base_url: `${http_prefix}/lua/pro/enterprise/get_map.lua`,
       config_devices_standard: null,
       config_devices_centrality: null,
       title_delete: i18n('map_page.delete_services'),
@@ -100,6 +102,10 @@ export default {
       let table = this.get_active_table();
       table.reload();
     },
+    destroy: function() {
+      let table = this.get_active_table();
+      table.destroy_table();
+    },
     get_active_table: function() {
       return this.$refs[`table_periodicity`];
     },
@@ -125,6 +131,7 @@ function start_datatable(DatatableVue) {
   });
   
   let tmp_params = ntopng_utility.clone(url_params)
+  tmp_params['view'] = null
   let defaultDatatableConfig = {
     table_buttons: datatableButton,
     columns_config: [],

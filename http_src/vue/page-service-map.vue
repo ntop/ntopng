@@ -104,6 +104,14 @@ export default {
       this.url_params[filter.key] = filter.filter.key;
       this.update_and_reload_map();
     });
+
+    /* Remove invalid filters */
+    let entries = ntopng_url_manager.get_url_entries();
+    for(const [key, value] of entries) {
+      this.url_params[key] = value;
+    }
+
+    this.update_and_reload_map()
     
     $(`#reload-graph`).click(function(e){
       reload_map();
@@ -137,6 +145,10 @@ export default {
     };
   },
   methods: { 
+    destroy: function() {
+      let map = this.$refs[`service_map`];
+      map.destroy();
+    },
     /* Method used to switch active table tab */
     click_item: function(filter, key, id) {
       ntopng_events_manager.emit_custom_event(change_filter_event, { filter: filter, key: key, id: id });

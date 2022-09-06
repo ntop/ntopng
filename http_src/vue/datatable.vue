@@ -13,8 +13,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, getCurrentInstance, computed, watch, onBeforeUnmount } from "vue";
-import { default as modal } from "./modal.vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ntopng_url_manager } from "../services/context/ntopng_globals_services";
 
 const props = defineProps({
   table_buttons: Array,
@@ -28,14 +28,18 @@ const props = defineProps({
   table_config: {
     type: Object,
     required: false,
-  }
+  },
+  base_url: String,
+  base_params: Object, 
 });
 
+let new_params = props.base_params
 const table_id = ref(null);
 // let _this = getCurrentInstance().ctx;
 
 let table = null;
 onMounted(() => {
+  let updated = false;
   /* Create a datatable with the buttons */
   let extend_config = {
     serverSide: false,
@@ -91,6 +95,25 @@ onMounted(() => {
   config = DataTableUtils.extendConfig(config, extend_config);
   table = $(table_id.value).DataTable(config);
   for (const filter of (props.filter_buttons || [])) {
+    /* Set filters to active if available in the url */
+    const curr_value = ntopng_url_manager.get_url_entry(filter.filterMenuKey)
+    if(curr_value && curr_value != '') {
+      let num_non_active_entries = 0
+      filter.filters.forEach((i) => {
+        i.currently_active = false
+        num_non_active_entries += 1
+        if(i.id == curr_value) {
+          i.currently_active = true
+          num_non_active_entries -= 1
+        }
+      })
+
+      if(num_non_active_entries == filter.filters.length) {
+        ntopng_url_manager.set_key_to_url(filter.filterMenuKey, '');
+        updated = true
+      }
+    }
+
     new DataTableFiltersMenu({
       filterTitle: filter.filterTitle,
       tableAPI: table,
@@ -103,9 +126,16 @@ onMounted(() => {
       callbackFunction: filter.callbackFunction
     }).init();
   }
-});
 
-//onUpdated(() => { console.log("Updated"); });
+  if(updated && props.base_params) {
+    const entries = ntopng_url_manager.get_url_entries()
+    for(const [key, value] of (entries)) {
+      new_params[key] = value
+    }
+    table.ajax.url(NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, new_params))
+    reload()
+  }
+});
 
 const reload = () => {
     if (table == null) { return; }
