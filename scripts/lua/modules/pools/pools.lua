@@ -134,13 +134,6 @@ end
 
 -- ##############################################
 
-function pools:_get_pool_lock_key()
-    local key = string.format("ntopng.cache.pools.%s.pool_lock", self.key)
-    return key
-end
-
--- ##############################################
-
 function pools:_get_pool_details_key(pool_id)
     if not pool_id then
         -- A pool id is always needed
@@ -196,7 +189,9 @@ end
 
 -- ##############################################
 
-local _use_lock = true
+
+-- NOTE: lock looks useless at the moment. Se we disable it for the tiem being until we remove it
+local _use_lock = false
 
 function pools:_lock()
    local max_lock_duration = 5 -- seconds
