@@ -280,7 +280,7 @@ export class DataTableUtils {
     /**
      * Return a standard config for the Sprymedia (c) DataTables
      */
-    static getStdDatatableConfig(dtButtons = [], dom = "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-end'<'dt-search'f>B>rtip>") {
+    static getStdDatatableConfig(dtButtons = [], dom = "<'row'<'col-sm-12'l><'col-sm-12 text-end'<'dt-search'f>B>rtip>") {
 
         // hide the buttons section if there aren't buttons inside the array
         if (dtButtons.length == 0) {
