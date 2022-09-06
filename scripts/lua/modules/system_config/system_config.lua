@@ -67,6 +67,31 @@ end
 
 -- ##############################################
 
+-- Migrate an old configuration format with a single lan item 
+-- for routing mode to a generic array compatible with bridge mode
+function system_config:_migrate_config(config)
+  for mode_name, mode_conf in pairs(config.globals.available_modes) do
+    if mode_conf["interfaces"] then
+      if mode_conf["interfaces"]["lan"] and
+         type(mode_conf["interfaces"]["lan"]) == "string" then
+        config.globals.available_modes[mode_name]["interfaces"]["lan"] = { 
+          config.globals.available_modes[mode_name]["interfaces"]["lan"]
+        }
+      end
+      if mode_conf["interfaces"]["wan"] and
+         type(mode_conf["interfaces"]["wan"]) == "string" then
+        config.globals.available_modes[mode_name]["interfaces"]["wan"] = { 
+          config.globals.available_modes[mode_name]["interfaces"]["wan"]
+        }
+      end
+    end
+  end
+
+  return config
+end
+
+-- ##############################################
+
 -- Loads temporary configuration
 function system_config:_load_config(fname, guess)
   local dirs = ntop.getDirs()
@@ -102,6 +127,8 @@ function system_config:_load_config(fname, guess)
   end
 
   sys_utils.setRealExec(config.globals and not config.globals.fake_exec)
+
+  config = self:_migrate_config(config)
 
   return config
 end
@@ -272,25 +299,15 @@ function system_config:getUnusedInterfaces()
 end
 
 -- Get the LAN interface, based on the current operating mode
+-- TODO when multiple LAN interfaces will be fully supported, this function will be removed
 function system_config:getLanInterface()
   local mode = self:getOperatingMode()
 
   if mode == "bridging" then
     return self.config.globals.available_modes.bridging.name
   else
-    return self.config.globals.available_modes[mode].interfaces.lan
+    return self.config.globals.available_modes[mode].interfaces.lan[1]
   end
-end
-
--- You should only call this in single port routing mode
-function system_config:getWanInterface()
-  local mode = self:getOperatingMode()
-
-  if mode == "single_port_router" then
-    return self.config.globals.available_modes.single_port_router.interfaces.wan
-  end
-
-  return nil
 end
 
 -- Get all the interfaces, along with their roles
@@ -338,12 +355,7 @@ function system_config:setLanWanIfaces(lan_ifaces, wan_ifaces)
     unused_ifaces[#unused_ifaces + 1] = iface
   end
 
-  if mode == "bridging" then
-    self.config.globals.available_modes.bridging.interfaces.lan = lan_ifaces
-  else
-    self.config.globals.available_modes[mode].interfaces.lan = lan_ifaces[1]
-  end
-
+  self.config.globals.available_modes[mode].interfaces.lan = lan_ifaces
   self.config.globals.available_modes[mode].interfaces.wan = wan_ifaces
   self.config.globals.available_modes[mode].interfaces.unused = unused_ifaces
 end
@@ -390,19 +402,21 @@ function system_config:getInterfaceAddress(ifname)
 end
 
 -- Get the LAN address, based on the current operating mode
-function system_config:getLocalIpv4Address()
-  local lan_iface = self:getLanInterface()
-  local lan_address = self:getInterfaceAddress(lan_iface)
+function system_config:getLocalIpv4Address(iface)
+  if not iface then
+     iface = self:getLanInterface()
+  end
+  local address = self:getInterfaceAddress(iface)
 
-  if isEmptyString(lan_address) then
+  if isEmptyString(address) then
     if not self:isBridgeOverVLANTrunkEnabled() then
-      traceError(TRACE_WARNING, TRACE_CONSOLE, "Cannot get LAN interface " .. lan_iface .. " address")
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "Cannot get interface " .. iface .. " address")
     end
     -- This is possibly wrong (e.g. in transparent bridge)
-    lan_address = self.config.interfaces.configuration[lan_iface].network.ip or "192.168.1.1"
+    address = self.config.interfaces.configuration[iface].network.ip or "192.168.1.1"
   end
 
-  return lan_address
+  return address
 end
 
 -- ##############################################
@@ -604,15 +618,6 @@ function system_config:_writeNetworkInterfaceConfig(f, iface, network_conf, brid
   self.conf_handler.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, bridge_ifaces)
 end
 
-function system_config:_writePassiveModeNetworkConfig(f)
-  local network_config = self.config.interfaces.configuration
-  local mode_config = self.config.globals.available_modes["passive"]
-  local lan_config = network_config[mode_config.interfaces.lan]
-
-  -- Lan interface
-  self:_writeNetworkInterfaceConfig(f, mode_config.interfaces.lan, lan_config.network)
-end
-
 function system_config:_writeBridgeModeNetworkConfig(f)
   local network_config = self.config.interfaces.configuration
   local mode_config = self.config.globals.available_modes["bridging"]
@@ -664,7 +669,9 @@ function system_config:_writeRoutingModeNetworkConfig(f)
   local mode_config = self.config.globals.available_modes["routing"].interfaces
 
   -- Lan interface
-  self:_writeNetworkInterfaceConfig(f, mode_config.lan, network_config[mode_config.lan].network)
+  for _, iface in ipairs(mode_config.lan) do
+    self:_writeNetworkInterfaceConfig(f, iface, network_config[iface].network)
+  end
 
   -- Wan interfaces
   for _, iface in ipairs(mode_config.wan) do
@@ -675,14 +682,23 @@ end
 function system_config:_writeSinglePortModeInterfaces(f)
   local network_config = self.config.interfaces.configuration
   local mode_config = self.config.globals.available_modes["single_port_router"]
-  local lan_iface = self:getLanInterface()
-  local wan_iface = self:getWanInterface()
 
   -- Lan interface
+  local lan_iface = self:getLanInterface()
   self:_writeNetworkInterfaceConfig(f, lan_iface, network_config[lan_iface].network)
 
   -- Wan interface
+  local wan_iface = mode_config.interfaces.wan[1]
   self:_writeNetworkInterfaceConfig(f, wan_iface, network_config[wan_iface].network)
+end
+
+function system_config:_writePassiveModeNetworkConfig(f)
+  local network_config = self.config.interfaces.configuration
+  local mode_config = self.config.globals.available_modes["passive"]
+
+  -- Lan interface
+  local lan_iface = mode_config.interfaces.lan[1]
+  self:_writeNetworkInterfaceConfig(f, lan_iface, network_config[lan_iface].network)
 end
 
 function system_config:_getRecoveryInterface()
@@ -764,18 +780,23 @@ end
 
 -- ##############################################
 
-function system_config:getStaticLanNetwork()
-  local lan_iface = self:getLanInterface()
-  local lan_config = self.config.interfaces.configuration[lan_iface].network
-  local lan_network = ipv4_utils.addressToNetwork(lan_config.ip, lan_config.netmask)
+function system_config:getLanNetworks()
+  local networks = {}
 
-  return {
-    iface = lan_iface,
-    network = lan_network,
-    cidr = lan_network,
-    ip = lan_config.ip,
-    netmask = lan_config.netmask,
-  }
+  for _, lan_iface in ipairs(self:getPhysicalLanInterfaces()) do
+    local lan_config = self.config.interfaces.configuration[lan_iface].network
+    local lan_network = ipv4_utils.addressToNetwork(lan_config.ip, lan_config.netmask)
+
+    table.insert(networks, {
+      iface = lan_iface,
+      network = lan_network,
+      cidr = lan_network,
+      ip = lan_config.ip,
+      netmask = lan_config.netmask,
+    })
+  end
+
+  return networks
 end
 
 -- Returns true if the interface is currently up and running

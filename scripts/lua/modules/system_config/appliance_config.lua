@@ -79,8 +79,10 @@ end
 -- ##############################################
 
 function appliance_config:getPassiveInterfaceName()
-  if self.config.globals.available_modes["passive"] then
-    return self.config.globals.available_modes["passive"]["interfaces"]["lan"]
+  if self.config.globals.available_modes["passive"] and 
+     self.config.globals.available_modes["passive"]["interfaces"] and
+     self.config.globals.available_modes["passive"]["interfaces"]["lan"] then
+    return self.config.globals.available_modes["passive"]["interfaces"]["lan"][1]
   end
 
   return nil
@@ -94,11 +96,7 @@ function appliance_config:getPhysicalLanInterfaces()
   local mode = self:getOperatingMode()
   if not mode then return {} end
 
-  if mode == "passive" then
-    return { self.config.globals.available_modes[mode].interfaces.lan, }
-  elseif mode == "bridging" then
-    return self.config.globals.available_modes[mode].interfaces.lan
-  end
+  return self.config.globals.available_modes[mode].interfaces.lan
 end
 
 -- Get the physical WAN interfaces, based on the current operating mode
@@ -253,7 +251,7 @@ function appliance_config:_guess_config()
    end
    if management ~= nil then
       passive["interfaces"] = {}
-      passive["interfaces"]["lan"] = management
+      passive["interfaces"]["lan"] = { management }
       passive["interfaces"]["wan"] = {}
       passive["interfaces"]["unused"] = {}
       passive["comment"] = "Passive monitoring appliance"

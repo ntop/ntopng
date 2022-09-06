@@ -67,7 +67,7 @@ end
 -- Execute a system command
 function sys_utils.execCmd(cmd)
    if(REAL_EXEC) then
-    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "[execCmd] ".. cmd)
+    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "[>] ".. cmd)
     return(os.execute(cmd))
    else
     traceError(TRACE_NORMAL, TRACE_CONSOLE, "[execCmd] ".. cmd)

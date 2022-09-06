@@ -67,7 +67,8 @@ local min_wan_ifaces = "1"
 local max_lan_ifaces = "1"
 local max_wan_ifaces = ""
 if mode == "routing" then
-  -- nothing to change
+  -- testing
+  max_lan_ifaces = ""
 elseif mode == "bridging" then
   -- temporary limits - we need to support multiple LAN interfaces in C code
   max_wan_ifaces = "1"
