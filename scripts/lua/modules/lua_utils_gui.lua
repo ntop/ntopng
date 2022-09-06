@@ -10,6 +10,7 @@ local clock_start = os.clock()
 
 local format_utils = require "format_utils"
 local dns_utils = require "dns_utils"
+local http_utils = require "http_utils"
 
 -- ##############################################
 
