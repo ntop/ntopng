@@ -4390,7 +4390,7 @@ local lang = {
     ["learning"] = "The Service Map is <b>learning</b>...",
     ["learning_table"] = "The Service Map is <b>learning</b>, click on the reload table button to see new changes...",
     ["networks"] = "All Networks",
-    ["no_services"] = "No <b>services</b> were found.",
+    ["no_services"] = "No services found.",
     ["table_note_asset_map"] = "In graph analysis the number of edges is used to determine how important is a node.",
     ["table_note_periodicity_map"] = "The above table reports periodic activities (at various frequencies) that have been observed in the network.",
     ["table_note_service_map"] = "The services with the <b>Undecided</b> (<kbd class='bg-warning text-dark'><i class='fas fa-hourglass-half'></i></kbd>) status require a confirmation by the user. Once a service status has been confirmed it can be <b>Allowed</b> (<kbd class='bg-success'><i class='fas fa-check'></i></kbd>) or <b>Denied</b> (<kbd class='bg-danger'><i class='fas fas fa-times'></i></kbd>).<li>Rank represents how important is a node in a network: higher is the rank more important is the node.",
