@@ -143,6 +143,7 @@ void Mac::set_hash_entry_state_idle() {
 
 /* *************************************** */
 
+#ifdef HAVE_NEDGE
 static const char* location2str(MacLocation location) {
   switch(location) {
     case located_on_lan_interface: return "lan";
@@ -150,6 +151,7 @@ static const char* location2str(MacLocation location) {
     default: return "unknown";
   }
 }
+#endif
 
 /* *************************************** */
 
@@ -167,7 +169,9 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
     lua_push_bool_table_entry(vm, "source_mac", source_mac);
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
+#ifdef HAVE_NEDGE
     lua_push_str_table_entry(vm, "location", (char *) location2str(locate()));
+#endif
     lua_push_uint64_table_entry(vm, "devtype", device_type);
     if(model) lua_push_str_table_entry(vm, "model", (char*)model);
     if(ssid) lua_push_str_table_entry(vm, "ssid", (char*)ssid);
@@ -266,8 +270,8 @@ void Mac::serialize(json_object *my_object, DetailsLevel details_level) {
 
 /* *************************************** */
 
-MacLocation Mac::locate() {
 #ifdef HAVE_NEDGE
+MacLocation Mac::locate() {
   if(iface->is_bridge_interface()) {
     InterfaceLocation location = iface->getInterfaceLocation(bridge_seen_iface_id);
     if(location == lan_interface)
@@ -278,10 +282,10 @@ MacLocation Mac::locate() {
     if(bridge_seen_iface_id == DUMMY_BRIDGE_INTERFACE_ID)
       return(located_on_lan_interface);
   }
-#endif
 
   return(located_on_unknown_interface);
 }
+#endif
 
 /* *************************************** */
 

@@ -132,8 +132,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void inlineSetOS(OSType _os);
   bool statsResetRequested();
   void checkStatsReset();
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
   TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol, bool isIngress);
+  inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
+  inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
+#endif
+#ifdef NTOPNG_PRO
   void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category);
 #endif
   void lua_get_names(lua_State * const vm, char * const buf, ssize_t buf_size);
@@ -285,8 +289,6 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   char * getTLSName(char * const buf, ssize_t buf_len);
   char * getHTTPName(char * const buf, ssize_t buf_len);
 #ifdef NTOPNG_PRO
-  inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
-  inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
   inline void resetQuotaStats()                                        { stats->resetQuotaStats(); }
   bool checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source, const struct tm *now);
   inline bool hasBlockedTraffic() { return has_blocking_quota || has_blocking_shaper; };

@@ -1484,7 +1484,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
     srcMac->setSeenIface(bridge_iface_idx);
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
     u_int16_t mac_pool = 0;
     char bufMac[24];
     char *mac_str;
@@ -4781,7 +4781,9 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *match
      || (r->min_first_seen >= m->get_first_seen()) /* first seen must be greater than or equal to the minimum first seen */
      || (r->sourceMacsOnly && !m->isSourceMac())
      || ((r->devtypeFilter != (u_int8_t)-1) && (m->getDeviceType() != r->devtypeFilter))
+#ifdef HAVE_NEDGE
      || ((r->locationFilter != (u_int8_t)-1) && (m->locate() != r->locationFilter))
+#endif
      || ((r->poolFilter != (u_int16_t)-1) && (m->getInterface()->getHostPool(m) != r->poolFilter))
      || (r->manufacturer && strcmp(r->manufacturer, m->get_manufacturer() ? m->get_manufacturer() : "") != 0))
     return(false); /* false = keep on walking */

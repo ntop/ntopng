@@ -81,7 +81,10 @@ class Mac : public GenericHashEntry, public SerializableElement {
     }
   }
 
+#ifdef HAVE_NEDGE
   MacLocation locate();
+#endif
+
   inline u_int32_t key()                       { return(Utils::macHash(mac)); }
   inline const u_int8_t* const get_mac() const { return(mac);                 }
 

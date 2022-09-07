@@ -1306,9 +1306,7 @@ void Host::decNumFlows(time_t t, bool as_client) {
 
 /* *************************************** */
 
-// TODO NTOPNG_PRO -> HAVE_NEDGE
-#ifdef NTOPNG_PRO
-
+#ifdef HAVE_NEDGE
 TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   HostPools *hp;
   TrafficShaper *ts = NULL, **shapers = NULL;
@@ -1371,9 +1369,11 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 
   return ts;
 }
+#endif
 
 /* *************************************** */
 
+#ifdef NTOPNG_PRO
 bool Host::checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source, const struct tm *now) {
   bool is_above;
   L7Policer *policer;
