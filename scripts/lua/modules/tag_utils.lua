@@ -489,7 +489,7 @@ tag_utils.formatters = {
 -- ######################################
 
 function tag_utils.get_tag_info(id, entity)
-
+   local alert_utils = require "alert_utils"
    local tag = tag_utils.defined_tags[id]
 
    if tag == nil then
