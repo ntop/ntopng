@@ -11,8 +11,7 @@ local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-local info = ntop.getInfo()
-page_utils.set_active_menu_entry(page_utils.menu_entries.about, { product=info.product })
+page_utils.set_active_menu_entry(page_utils.menu_entries.analyze_pcap, {  })
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- accept=".pcap"
