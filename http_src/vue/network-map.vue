@@ -1,9 +1,9 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
+<div id="empty-map-message" class="alert alert-info" hidden>
+  {{ empty_message }}
+</div>
 <div class="d-flex justify-content-center align-items-center resizable-y-container" style="width: 100%; height: 60vh;" :id=map_id>
-  <div id="empty-map-message" class="alert alert-info" style="display: none;">
-    {{ empty_message }}
-  </div>
 </div>
 </template>
 
@@ -50,6 +50,7 @@ onMounted(() => {
     nodes_dataset = new vis.DataSet(nodes);
     edges_dataset = new vis.DataSet(edges);
     const datasets = {nodes: nodes_dataset, edges: edges_dataset};
+    empty_network(datasets);
     network = new vis.Network(container, datasets, ntopng_map_manager.get_default_options());
     save_topology_view();
     set_event_listener();
@@ -70,6 +71,14 @@ const jump_to_host = (params) => {
   ntopng_url_manager.set_key_to_url('host', url_params['host']);
   ntopng_url_manager.set_key_to_url('vlan_id', url_params['vlan_id']);
   reload();
+}
+
+const empty_network = (datasets) => {
+  if(datasets.nodes.length == 0 && datasets.edges.length == 0) {
+    $(`#empty-map-message`).removeAttr('hidden');
+  } else {
+    $(`#empty-map-message`).attr('hidden', 'hidden');
+  }
 }
 
 const load_scale = () => {
@@ -198,8 +207,10 @@ const reload = () => {
     max_entries = max_entry_reached;
     nodes_dataset = new vis.DataSet(nodes);
     edges_dataset = new vis.DataSet(edges);
+    const datasets = { nodes: nodes_dataset, edges: edges_dataset }
+    empty_network(datasets);
     if(network)
-      network.setData({ nodes: nodes_dataset, edges: edges_dataset });
+      network.setData(datasets);
     
     save_topology_view();
   });
