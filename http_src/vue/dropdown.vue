@@ -11,9 +11,13 @@
     <button class="btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       {{ active_entry.label }} <i :class="(filter_icon || '')"></i>
     </button> 
-    <div class="dropdown-menu dropdown-menu-end scrollable-dropdown">
-      <a type="button" v-for="element in list" @click="change_filter(element)" :class="{ 'active': (element.currently_active == true) }" class="dropdown-item"><i :class="(element.icon || '')"></i> {{ element.label }}</a>
-    </div>
+    <ul class="dropdown-menu dropdown-menu-lg-end scrollable-dropdown">
+      <li v-for="element in list" @click="change_filter(element)" class="dropdown-item pointer" :class="{ 'active': (element.currently_active == true) }">
+        <a href="#" class="p-1 standard-color">
+          <i :class="(element.icon || '')"></i> {{ element.label }}
+        </a>
+      </li>
+    </ul>
   </div>
 </template>
 
