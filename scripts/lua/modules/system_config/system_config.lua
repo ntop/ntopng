@@ -978,6 +978,13 @@ local function allowedDevName(devname)
       allowed_interfaces = ntop.listInterfaces()
    end
 
+   -- Stripping out vlan id, if any (support vlan interfaces)
+   local devnamevlan = string.split(devname, "%.")
+   if devnamevlan and devnamevlan[1] then
+      devname = devnamevlan[1]
+      -- vlan = devnamevlan[2] 
+   end
+
    -- Interface is allowed if it appears in the list retrieved from C
    return allowed_interfaces[devname]
 end
