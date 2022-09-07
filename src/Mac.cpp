@@ -267,6 +267,7 @@ void Mac::serialize(json_object *my_object, DetailsLevel details_level) {
 /* *************************************** */
 
 MacLocation Mac::locate() {
+#ifdef HAVE_NEDGE
   if(iface->is_bridge_interface()) {
     InterfaceLocation location = iface->getInterfaceLocation(bridge_seen_iface_id);
     if(location == lan_interface)
@@ -277,6 +278,7 @@ MacLocation Mac::locate() {
     if(bridge_seen_iface_id == DUMMY_BRIDGE_INTERFACE_ID)
       return(located_on_lan_interface);
   }
+#endif
 
   return(located_on_unknown_interface);
 }
