@@ -268,9 +268,10 @@ void Mac::serialize(json_object *my_object, DetailsLevel details_level) {
 
 MacLocation Mac::locate() {
   if(iface->is_bridge_interface()) {
-    if(bridge_seen_iface_id == iface->getBridgeLanInterfaceId())
+    InterfaceLocation location = iface->getInterfaceLocation(bridge_seen_iface_id);
+    if(location == lan_interface)
       return(located_on_lan_interface);
-    else if(bridge_seen_iface_id == iface->getBridgeWanInterfaceId())
+    else if(location == wan_interface)
       return(located_on_wan_interface);
   } else {
     if(bridge_seen_iface_id == DUMMY_BRIDGE_INTERFACE_ID)

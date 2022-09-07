@@ -236,7 +236,6 @@ NetworkInterface::NetworkInterface(const char *name,
 
 void NetworkInterface::init(const char *interface_name) {
   ifname = interface_name ? strdup(interface_name) : NULL;
-  bridge_lan_interface_id = bridge_wan_interface_id = 0;
   inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
     has_seen_dhcp_addresses = false,

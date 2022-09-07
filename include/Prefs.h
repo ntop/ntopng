@@ -43,7 +43,7 @@ class Prefs {
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
   bool enable_client_x509_auth, reproduce_at_original_speed;
-  char *lan_interface, *wan_interface, *zmq_publish_events_url;
+  char *zmq_publish_events_url;
   const char *clickhouse_client;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, pcap_file_purge_hosts_flows,
@@ -168,6 +168,8 @@ class Prefs {
   bool print_maintenance, print_license;
 #endif
   bool print_version, print_version_json;
+
+  std::set<std::string> lan_interfaces, wan_interfaces;
 
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
@@ -358,10 +360,14 @@ class Prefs {
   inline char* get_zmq_encryption_priv_key() { return(zmq_encryption_priv_key); };
   inline bool  is_zmq_encryption_enabled() { return(enable_zmq_encryption); };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
-  inline char* get_lan_interface()      { return(lan_interface ? lan_interface : (char*)""); };
-  inline char* get_wan_interface()      { return(wan_interface ? wan_interface : (char*)""); };
-  inline void set_lan_interface(char *iface) { if(lan_interface) free(lan_interface); lan_interface = strdup(iface); };
-  inline void set_wan_interface(char *iface) { if(wan_interface) free(wan_interface); wan_interface = strdup(iface); };
+  inline const char* get_first_lan_interface() { return(get_num_lan_interfaces() ? lan_interfaces.begin()->c_str() : (char*)""); };
+  inline const char* get_first_wan_interface() { return(get_num_wan_interfaces() ? wan_interfaces.begin()->c_str() : (char*)""); };
+  inline void add_lan_interface(char *iface) { lan_interfaces.insert(iface); };
+  inline void add_wan_interface(char *iface) { wan_interfaces.insert(iface); };
+  inline bool is_lan_interface(char *iface) { return lan_interfaces.find(iface) != lan_interfaces.end(); }
+  inline bool is_wan_interface(char *iface) { return wan_interfaces.find(iface) != wan_interfaces.end(); }
+  inline int get_num_lan_interfaces() { return lan_interfaces.size(); }
+  inline int get_num_wan_interfaces() { return wan_interfaces.size(); }
   inline bool areMacNdpiStatsEnabled()  { return(enable_mac_ndpi_stats); };
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); };
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; };

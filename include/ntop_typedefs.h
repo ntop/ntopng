@@ -907,6 +907,13 @@ struct ntopngLuaContext {
 };
 
 typedef enum {
+  lan_interface = 1,
+  wan_interface,
+  other_interface,
+  unknown_interface,
+} InterfaceLocation;
+
+typedef enum {
   located_on_lan_interface = 1,
   located_on_wan_interface,
   located_on_unknown_interface,

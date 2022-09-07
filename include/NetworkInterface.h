@@ -76,7 +76,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bpf_u_int32 ipv4_network_mask, ipv4_network;
   const char *customIftype;
   u_int8_t purgeRuns;
-  u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
+#ifdef HAVE_NEDGE
+  std::map<u_int32_t, InterfaceLocation> bridge_interface_id_to_location;
+#endif
   u_int32_t num_alerts_engaged_notice[ALERT_ENTITY_MAX_NUM_ENTITIES],
     num_alerts_engaged_warning[ALERT_ENTITY_MAX_NUM_ENTITIES],
     num_alerts_engaged_error[ALERT_ENTITY_MAX_NUM_ENTITIES];
@@ -814,10 +816,19 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void loadScalingFactorPrefs();
   void getnDPIFlowsCount(lua_State *vm);
 
-  inline void setBridgeLanInterfaceId(u_int32_t v) { bridge_lan_interface_id = v;     };
-  inline u_int32_t getBridgeLanInterfaceId()       { return(bridge_lan_interface_id); };
-  inline void setBridgeWanInterfaceId(u_int32_t v) { bridge_wan_interface_id = v;     };
-  inline u_int32_t getBridgeWanInterfaceId()       { return(bridge_wan_interface_id); };
+#ifdef HAVE_NEDGE
+  inline void setInterfaceLocation(u_int32_t interface_id, InterfaceLocation location) {
+    bridge_interface_id_to_location[interface_id] = location;
+  }
+  inline InterfaceLocation getInterfaceLocation(u_int32_t interface_id) {
+    std::map<u_int32_t, InterfaceLocation>::iterator it;
+    if((it = bridge_interface_id_to_location.find(interface_id)) != bridge_interface_id_to_location.end())
+       return it->second;
+    else
+      return unknown_interface;
+  }
+#endif
+
   inline HostHash* get_hosts_hash()                { return(hosts_hash);              }
   inline bool is_bridge_interface()                { return(bridge_interface);        }
   inline const char* getLocalIPAddresses()         { return(ip_addresses.c_str());    }

@@ -6272,14 +6272,14 @@ static int ntop_override_interface(lua_State* vm) {
 
 #ifdef HAVE_NEDGE
 
-static int ntop_set_lan_interface(lua_State* vm) {
+static int ntop_add_lan_interface(lua_State* vm) {
   char *lan_ifname;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   lan_ifname = (char*)lua_tostring(vm, 1);
 
-  ntop->getPrefs()->set_lan_interface(lan_ifname);
+  ntop->getPrefs()->add_lan_interface(lan_ifname);
 
   lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -6287,14 +6287,14 @@ static int ntop_set_lan_interface(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_set_wan_interface(lua_State* vm) {
+static int ntop_add_wan_interface(lua_State* vm) {
   char *lan_ifname;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   lan_ifname = (char*)lua_tostring(vm, 1);
 
-  ntop->getPrefs()->set_wan_interface(lan_ifname);
+  ntop->getPrefs()->add_wan_interface(lan_ifname);
 
   lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -6729,8 +6729,8 @@ static luaL_Reg _ntop_reg[] = {
   { "setHTTPSBindAddr",      ntop_set_https_bind_addr      },
   { "setRoutingMode",        ntop_set_routing_mode         },
   { "isRoutingMode",         ntop_is_routing_mode          },
-  { "setLanInterface",       ntop_set_lan_interface        },
-  { "setWanInterface",       ntop_set_wan_interface        },
+  { "addLanInterface",       ntop_add_lan_interface        },
+  { "addWanInterface",       ntop_add_wan_interface        },
   { "refreshDeviceProtocolsPoliciesConf", ntop_refresh_device_protocols_policies_pref },
 #endif
 
