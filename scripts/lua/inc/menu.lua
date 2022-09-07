@@ -697,6 +697,10 @@ if not info.oem and auth.has_capability(auth.capabilities.developer) then
 	 section = page_utils.menu_sections.dev,
 	 entries = {
 	    {
+	       entry = page_utils.menu_entries.analyze_pcap,
+	       url = '/lua/upload_pcap.lua',
+	    },
+	    {
 	       entry = page_utils.menu_entries.checks_dev,
 	       url = '/lua/checks_overview.lua',
 	    },

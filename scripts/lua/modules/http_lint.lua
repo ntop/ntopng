@@ -42,6 +42,11 @@ local function validateChoiceByKeys(defaults, v)
    end
 end
 
+-- Placeholder for pcap file validation
+local function validatePcap(defaults, v)
+   return true
+end
+
 -- Searches into the value of the table
 -- Optional key can be used to access fields of the array element
 local function validateChoice(defaults, v, key)
@@ -196,6 +201,14 @@ local function validateLuaScriptPath(p)
 
    if (string.find(p, "'") ~= nil) then return false end
    return(starts(p, os_utils.getPathDivider() .. "scripts"))
+end
+http_lint.validateLuaScriptPath = validateLuaScriptPath
+
+local function validateUploadedFile(p)
+   local os_utils = require("os_utils")
+   local dirs = ntop.getDirs()
+   
+   return(starts(p, dirs.workingdir .. os_utils.getPathDivider() .. "tmp" .. os_utils.getPathDivider() .. "upload"))
 end
 http_lint.validateLuaScriptPath = validateLuaScriptPath
 
@@ -2237,6 +2250,10 @@ local known_parameters = {
    ["payload"]                 = { jsonCleanup, validateJSON },
    ["JSON"]                    = { jsonCleanup, validateJSON },
 
+   -- POST pcap
+   ["pcap"]                    = validatePcap,
+   ["uploaded_file"]           = validateUploadedFile,
+
    -- See https://github.com/ntop/ntopng/issues/4275
    ["csrf"]               = validateSingleWord,
 
@@ -2246,7 +2263,7 @@ local known_parameters = {
    ["order"]              = validateSortOrder,
    ["length"]             = validateNumber,
    ["draw"]               = validateNumber,
-   ["visible_columns"]          = validateEmptyOr(validateListOfTypeInline(validateSingleWord))
+   ["visible_columns"]    = validateEmptyOr(validateListOfTypeInline(validateSingleWord))
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix

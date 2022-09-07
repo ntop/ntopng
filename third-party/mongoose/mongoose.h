@@ -280,7 +280,8 @@ void mg_close_connection(struct mg_connection *conn);
 // File upload functionality. Each uploaded file gets saved into a temporary
 // file and MG_UPLOAD event is sent.
 // Return number of uploaded files.
-int mg_upload(struct mg_connection *conn, const char *destination_dir);
+int mg_upload(struct mg_connection *conn, const char *destination_dir,
+	      char *fname, u_int fname_len);
 
 
 // Convenience function -- create detached thread.

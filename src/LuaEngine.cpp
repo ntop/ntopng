@@ -35,6 +35,8 @@ extern luaL_Reg *ntop_interface_reg;
 extern luaL_Reg *ntop_reg;
 extern luaL_Reg *ntop_network_reg;
 
+#define HTTP_MAX_UPLOAD_DATA_LEN 10000000 /* ~10MB */
+
 /* ******************************* */
 
 struct ntopngLuaContext* getUserdata(struct lua_State *vm) {
@@ -952,7 +954,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   const char* origin_header;
   bool send_redirect = false;
   IpAddress client_addr;
-
+  int num_uploaded_files = 0;
+  
   *attack_attempt = false;
 
   if(!L) return(-1);
@@ -969,105 +972,141 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   /* Check for POST requests */
   if((strcmp(request_info->request_method, "POST") == 0) && (content_type != NULL)) {
     int content_len = mg_get_content_len(conn) + 1;
-
-    if(content_len > HTTP_MAX_POST_DATA_LEN) {
+    bool is_file_upload = (strncmp(content_type, "multipart/form-data", 19) == 0) ? true : false;
+      
+    if((!is_file_upload) && (content_len > HTTP_MAX_POST_DATA_LEN)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Too much data submitted with the form. [data len: %u][max len: %u][URI: %s]",
 				   content_len, HTTP_MAX_POST_DATA_LEN, request_info->uri);
       valid_csrf = 0;
-    } else if((post_data = (char*)malloc(content_len * sizeof(char))) == NULL
-              || (post_data_len = mg_read(conn, post_data, content_len)) == 0) {
-      valid_csrf = 0;
     } else {
-      post_data[post_data_len] = '\0';
+      if(is_file_upload) {
+	if((!is_file_upload) && (content_len > HTTP_MAX_UPLOAD_DATA_LEN)) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "You are uploading a file that is too big [len: %u][max len: %u][URI: %s]",
+				       content_len, HTTP_MAX_UPLOAD_DATA_LEN, request_info->uri);
+	  valid_csrf = 0;
+	} else {
+	  char fname[1024], upload_dir[512];
+	
+	  snprintf(upload_dir, sizeof(upload_dir), "%s/tmp/upload", ntop->get_working_dir());
+	  ntop->fixPath(upload_dir);
+	
+	  if(!Utils::mkdir_tree(upload_dir))
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create directory %s", upload_dir);
+	  else {
+	    /* NOTE: mongoose is currently unable to handle multiple fields in a single upload */
+	    num_uploaded_files = mg_upload(conn, upload_dir, fname, sizeof(fname));
+	  
+	    if(num_uploaded_files > 0) {
+	      char uploaded_file[1024];
 
-      if(!strcmp(session_csrf, NTOP_CSRF_TOKEN_NO_SESSION)) {
-	/* Authentication has taken place with direct username:password submission, without the use of a session,
-	   hence, this request cannot be the result of a CSRF attack which, by construction, relies on a valid session. */
-	valid_csrf = 1;
+	      snprintf(uploaded_file, sizeof(uploaded_file), "%s/%s", upload_dir, fname);
+	      ntop->fixPath(uploaded_file);
+
+	      lua_newtable(L);
+	      lua_push_str_table_entry(L, "uploaded_file", uploaded_file);
+	      lua_setglobal(L, "_POST");
+	      valid_csrf = 1; /* Dummy */	    
+	    }
+	  }
+	}
+      } else if((post_data = (char*)malloc(content_len * sizeof(char))) == NULL
+		|| (post_data_len = mg_read(conn, post_data, content_len)) == 0) {
+	valid_csrf = 0;
       } else {
-	/* If here, authentication has taken place using a session, thus CSRF is mandatory in POST request and must
-	   be checked for validity.
-	   Note that session_csrf is trusted, that it it comes from ntopng, whereas csrf read from the POST is untrusted. */
-	if(strstr(content_type, "application/json") == content_type) {
-	  /*
-	    post_data is JSON which is only allowed when using the REST API
-	  */
-	  if((strstr(request_info->uri, REST_API_PREFIX) ||
-	      strstr(request_info->uri, REST_API_PRO_PREFIX)) &&
-	     strstr(request_info->uri, "/get/")) {
+	post_data[post_data_len] = '\0';
+
+	if(!strcmp(session_csrf, NTOP_CSRF_TOKEN_NO_SESSION)) {
+	  /* Authentication has taken place with direct username:password submission, without the use of a session,
+	     hence, this request cannot be the result of a CSRF attack which, by construction, relies on a valid session. */
+	  valid_csrf = 1;
+	} else {
+	  /* If here, authentication has taken place using a session, thus CSRF is mandatory in POST request and must
+	     be checked for validity.
+	     Note that session_csrf is trusted, that it it comes from ntopng, whereas csrf read from the POST is untrusted. */
+	  if(strstr(content_type, "application/json") == content_type) {
 	    /*
-	      REST API URI, GET, no CSRF required
+	      post_data is JSON which is only allowed when using the REST API
 	    */
+	    if((strstr(request_info->uri, REST_API_PREFIX) ||
+		strstr(request_info->uri, REST_API_PRO_PREFIX)) &&
+	       strstr(request_info->uri, "/get/")) {
+	      /*
+		REST API URI, GET, no CSRF required
+	      */
+	    } else {
+	      /*
+		REST API URIs not containing /get/, e.g., /set/, /add/, /delete/, are assumed to
+		change the status of ntopng and thus CSRF checks MUST be enforced.
+		In this case, post_data is decoded as JSON to enforce the check.
+	      */
+	      json_object *o = NULL, *csrf_o;
+
+	      if(!(o = json_tokener_parse(post_data))
+		 || !json_object_object_get_ex(o, "csrf", &csrf_o)
+		 || !strncpy(csrf, json_object_get_string(csrf_o), sizeof(csrf)-1)
+		 || strncmp(session_csrf, csrf, NTOP_CSRF_TOKEN_LENGTH)) {
+		/*
+		  Either the CSRF token has not been submitted as part of the JSON, or
+		  the submitted token is invalid.
+		*/
+		valid_csrf = 0;
+	      }
+
+	      if (o) json_object_put(o);
+	    }
 	  } else {
 	    /*
-	      REST API URIs not containing /get/, e.g., /set/, /add/, /delete/, are assumed to
-	      change the status of ntopng and thus CSRF checks MUST be enforced.
-	      In this case, post_data is decoded as JSON to enforce the check.
+	      post_data is assumed to be application/x-www-form-urlencoded
+	      CSRF token is searched and validated using mg_get_var
 	    */
-	    json_object *o = NULL, *csrf_o;
+	    mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
 
-	    if(!(o = json_tokener_parse(post_data))
-	       || !json_object_object_get_ex(o, "csrf", &csrf_o)
-	       || !strncpy(csrf, json_object_get_string(csrf_o), sizeof(csrf)-1)
-	       || strncmp(session_csrf, csrf, NTOP_CSRF_TOKEN_LENGTH)) {
-	      /*
-		Either the CSRF token has not been submitted as part of the JSON, or
-		the submitted token is invalid.
-	      */
+	    if(strncmp(session_csrf, csrf, NTOP_CSRF_TOKEN_LENGTH))
 	      valid_csrf = 0;
-            }
-
-            if (o) json_object_put(o);
 	  }
-	} else {
-	  /*
-	    post_data is assumed to be application/x-www-form-urlencoded
-	    CSRF token is searched and validated using mg_get_var
-	  */
-	  mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
-
-	  if(strncmp(session_csrf, csrf, NTOP_CSRF_TOKEN_LENGTH))
-	    valid_csrf = 0;
 	}
       }
     }
 
-    /* Empty CSRF only allowed for nologin user. Such user has no associated
-     * session so it has an empty CSRF. */
-    if(valid_csrf) {
-      if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
-	*attack_attempt = setParamsTable(L, request_info, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
-      else {
-	/* application/json */
+    if(num_uploaded_files == 0) {
+      /* Empty CSRF only allowed for nologin user. Such user has no associated
+       * session so it has an empty CSRF. */
+      if(valid_csrf) {
+	if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
+	  *attack_attempt = setParamsTable(L, request_info, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
+	else {
+	  /* application/json */
 
-	lua_newtable(L);
-	lua_push_str_table_entry(L, "payload", post_data); /* This payload is NOT parsed, checked or verified against attacks */
-	lua_setglobal(L, "_POST");
-      }
-
-      /* Check for interface switch requests */
-      mg_get_var(post_data, post_data_len, "switch_interface", switch_interface, sizeof(switch_interface));
-      if(strlen(switch_interface) > 0 && request_info->query_string) {
-	/* Read the interface id */
-	mg_get_var(request_info->query_string, strlen(request_info->query_string), "ifid", ifid_buf, sizeof(ifid_buf));
-	/* Read the observation point id */
-	mg_get_var(request_info->query_string, strlen(request_info->query_string), "observationPointId", obs_id_buf, sizeof(obs_id_buf));
-        if(strlen(ifid_buf) > 0) {
-          switchInterface(L, ifid_buf, obs_id_buf, user, group, session_buf);
-
-	  /* Sending a redirect is needed to prevent the current lua script
-	   * from receiving the POST request, as it could exchange the request
-	   * as a configuration save request. */
-	  send_redirect = true;
+	  lua_newtable(L);
+	  lua_push_str_table_entry(L, "payload", post_data); /* This payload is NOT parsed, checked or verified against attacks */
+	  lua_setglobal(L, "_POST");
 	}
+
+	/* Check for interface switch requests */
+	mg_get_var(post_data, post_data_len, "switch_interface", switch_interface, sizeof(switch_interface));
+	if(strlen(switch_interface) > 0 && request_info->query_string) {
+	  /* Read the interface id */
+	  mg_get_var(request_info->query_string, strlen(request_info->query_string), "ifid", ifid_buf, sizeof(ifid_buf));
+	  /* Read the observation point id */
+	  mg_get_var(request_info->query_string, strlen(request_info->query_string), "observationPointId", obs_id_buf, sizeof(obs_id_buf));
+	  if(strlen(ifid_buf) > 0) {
+	    switchInterface(L, ifid_buf, obs_id_buf, user, group, session_buf);
+
+	    /* Sending a redirect is needed to prevent the current lua script
+	     * from receiving the POST request, as it could exchange the request
+	     * as a configuration save request. */
+	    send_redirect = true;
+	  }
+	}
+      } else {
+	*attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
       }
-    } else {
-      *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
-    }
     
-    if(post_data)
-      free(post_data);
+      if(post_data)
+	free(post_data);
+    }
   } else
     *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
 

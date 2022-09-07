@@ -626,7 +626,7 @@ static int ntop_loadCustomCategoryIp(lua_State* vm) {
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
   net = (char*)lua_tostring(vm, 1);
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) {
     lua_pushboolean(vm, false);
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -638,7 +638,7 @@ static int ntop_loadCustomCategoryIp(lua_State* vm) {
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
   listname = (char*)lua_tostring(vm, 3);
-  
+
   success = ntop->nDPILoadIPCategory(net, catid, listname);
 
   lua_pushboolean(vm, success);
@@ -659,19 +659,19 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
   host = (char*)lua_tostring(vm, 1);
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) {
     lua_pushboolean(vm, false);
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
   catid = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) {
     lua_pushboolean(vm, false);
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
   listname = (char*)lua_tostring(vm, 3);
-  
+
   success = ntop->nDPILoadHostnameCategory(host, catid, listname);
 
   lua_pushboolean(vm, success);
@@ -1197,6 +1197,66 @@ static int ntop_remove_dir_recursively(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_unlink_file(lua_State* vm) {
+  char *path = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) == LUA_TSTRING)
+    path = (char*)lua_tostring(vm, 1);
+
+  if(path)
+    ntop->fixPath(path);
+
+  lua_pushboolean(vm, path && (unlink(path) == 0) ? true /* OK */ : false /* Errors */);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_register_pcap_interface(lua_State* vm) {
+  char *path = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) == LUA_TSTRING)
+    path = (char*)lua_tostring(vm, 1);
+ 
+  if((!ntop->isUserAdministrator(vm))
+     || (path == NULL)
+     || (ntop->get_num_interfaces() >= MAX_NUM_DEFINED_INTERFACES)) {
+    lua_pushinteger(vm, -99);
+  } else {
+    NetworkInterface *iface;
+
+    ntop->fixPath(path);
+     
+    try {
+      errno = 0;
+      iface = new PcapInterface(path, ntop->get_num_interfaces());
+      if(ntop->registerInterface(iface)) {
+	ntop->initInterface(iface);
+	iface->allocateStructures();
+	iface->startPacketPolling();
+	lua_pushinteger(vm, iface->get_id());
+      } else {
+	lua_pushinteger(vm, -99);
+      }
+    } catch(int err) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open interface %s with pcap [%d]: %s",
+				   path, err, strerror(err));
+      if(iface) delete iface;
+      iface = NULL;
+      lua_pushinteger(vm, -99);
+    }
+  }
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_gettimemsec(lua_State* vm) {
   struct timeval tp;
   double ret;
@@ -1210,7 +1270,6 @@ static int ntop_gettimemsec(lua_State* vm) {
   lua_pushnumber(vm, ret);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
-
 
 /* ****************************************** */
 
@@ -1698,7 +1757,7 @@ static int ntop_has_speedtest_support(lua_State* vm) {
 
 static int ntop_speedtest(lua_State* vm) {
   ntop->speedtest(vm);
-  
+
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -5871,7 +5930,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
     lua_rawseti(vm, -2, i+1);
     rrd_freemem(names[i]);
   }
-  
+
   rrd_freemem(names);
   rrd_freemem(data);
 
@@ -6360,7 +6419,7 @@ static int ntop_check_nprobe_ips_configured(lua_State* vm) {
 static int ntop_pools_lock(lua_State* vm) {
   u_int max_lock_duration;
   struct timespec wait;
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   max_lock_duration = lua_tonumber(vm, 1);
 
@@ -6376,7 +6435,7 @@ static int ntop_pools_lock(lua_State* vm) {
 static int ntop_pools_unlock(lua_State* vm) {
   ntop->get_pools_lock()->unlock(__FILE__, __LINE__);
   lua_pushboolean(vm, true);
-  
+
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -6451,6 +6510,7 @@ static luaL_Reg _ntop_reg[] = {
   { "fileLastChange",   ntop_get_file_last_change },
   { "readdir",          ntop_list_dir_files },
   { "rmdir",            ntop_remove_dir_recursively },
+  { "unlink",           ntop_unlink_file },
 
   { "isNProbeIPSConfigured", ntop_check_nprobe_ips_configured },
 
@@ -6678,7 +6738,7 @@ static luaL_Reg _ntop_reg[] = {
   /* ASN */
   { "getASName",            ntop_get_asn_name            },
   { "getHostGeolocation",   ntop_get_host_geolocation    },
-  
+
   /* Mac */
   { "setMacDeviceType",     ntop_set_mac_device_type     },
 
@@ -6760,7 +6820,10 @@ static luaL_Reg _ntop_reg[] = {
   /* Pools Lock/Unlock */
   { "poolsLock",                 ntop_pools_lock                     },
   { "poolsUnlock",               ntop_pools_unlock                   },
-  
+
+  /* Register pcap Interface */
+  { "registerPcapInterface",     ntop_register_pcap_interface        },
+
   { NULL,          NULL}
 };
 

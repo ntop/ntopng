@@ -4269,12 +4269,14 @@ static void handle_lsp_request(struct mg_connection *conn, const char *path,
 }
 #endif // MONGOOSE_USE_LUA
 
-int mg_upload(struct mg_connection *conn, const char *destination_dir) {
+int mg_upload(struct mg_connection *conn, const char *destination_dir,
+	      char *fname, u_int fname_len) {
   const char *content_type_header, *boundary_start;
-  char buf[MG_BUF_LEN], path[PATH_MAX], fname[1024], boundary[100], *s;
+  char buf[MG_BUF_LEN], path[PATH_MAX], boundary[100], *s;
   FILE *fp;
   int bl, n, i, j, headers_len, boundary_len, len = 0, num_uploaded_files = 0;
 
+  fname[0] = '\0';
   // Request looks like this:
   //
   // POST /upload HTTP/1.1
