@@ -439,8 +439,10 @@ print [[
 	  .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
 	  .call(d3.behavior.drag()
 		.origin(function(d) { return d; })
-		.on("dragstart", function() { this.parentNode.appendChild(this); })
-		.on("drag", dragmove));
+		.on("drag", dragmove))
+	  .on("click", function(d) { window.location.href = "]]
+print (ntop.getHttpPrefix())
+print [[/lua/host_details.lua?host="+escape(d.host)+"@"+escape(d.vlan);  });
 
 
 	node.append("rect")
@@ -458,9 +460,6 @@ print [[
 	  .attr("height", 12)
 	  .attr("width", 150)
 	  .style("opacity", "0")
-	  .on("click", function(d) { window.location.href = "]]
-print (ntop.getHttpPrefix())
-print [[/lua/host_details.lua?host="+escape(d.host)+"@"+escape(d.vlan);  })
 	  .attr("transform", null)
 	  .filter(function(d) { return d.x < width / 2; })
 	  .attr("x", 4 + sankey.nodeWidth())
