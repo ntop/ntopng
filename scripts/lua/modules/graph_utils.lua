@@ -339,11 +339,11 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
    if(zoomLevel == nil) then zoomLevel = min_zoom end
 
    if graph_utils.drawProGraph then
-      if render_new_chart and render_new_chart == true then
+      --[[if render_new_chart and render_new_chart == true then
         local template_utils = require "template_utils"
         template_utils.render("pages/components/historical_interface.template", {})
         return
-      end
+      end]]
       
       graph_utils.drawProGraph(ifid, schema, tags, zoomLevel, baseurl, options, show_graph)
       return
