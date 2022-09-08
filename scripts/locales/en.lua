@@ -137,6 +137,7 @@ local lang = {
   ["does_not_have"] = "does not contain",
   ["domain"] = "Domain",
   ["double_num_flows_hosts"] = "Double Number",
+  ["double_click_node"] = "<b>Note:</b> Double click on a host rectangle to drill down.",
   ["download"] = "Download",
   ["download_icon"] = "<i class='fas fa-arrow-down'></i>",
   ["download_x"] = "%{what} Download",
