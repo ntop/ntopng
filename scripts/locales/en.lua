@@ -10,6 +10,7 @@ local lang = {
   ["local_flows_sankey"] = "Local Flows",
   ["activities"] = "Activities",
   ["activity"] = "Activity",
+  ["live_flows"] = "Active Flows",
   ["add"] = "Add",
   ["admin_status"] = "Administrative Status",
   ["admin_status_short"] = "Admin. Status",

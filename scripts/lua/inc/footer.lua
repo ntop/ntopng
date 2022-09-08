@@ -359,16 +359,16 @@ print[[
 				}
 
 				if(rsp.num_flows > 0 && (!systemInterfaceEnabled)) {
-    					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua\">";
-
+          msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua\">";
+          const flows_label = "]] print(i18n("live_flows")) print[["
 					if (rsp.flows_pctg < alarm_threshold_low) {
-						msg += "<span class=\"badge bg-secondary\">";
+						msg += "<span title=\"" + flows_label +"\" class=\"badge bg-secondary\">";
 					} else if(rsp.flows_pctg < alarm_threshold_high) {
 						alert = 1;
-						msg += "<span class=\"badge bg-warning\">";
+						msg += "<span title=\"" + flows_label +"\" class=\"badge bg-warning\">";
 					} else {
 						alert = 1;
-						msg += "<span class=\"badge bg-danger\">";
+						msg += "<span title=\"" + flows_label +"\" class=\"badge bg-danger\">";
 					}
 
 					msg += NtopUtils.formatValue(rsp.num_flows, 1)+" <i class=\"fas fa-stream\"></i>  </span> </a>";
