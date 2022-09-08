@@ -48,6 +48,9 @@ const ntopChartApex = function() {
 		    cssClass: ""
 		}
 	    },
+	    tooltip: {
+		enabled: false,
+	    },
 	},
     	grid: {
     	    show: false,
@@ -188,8 +191,17 @@ const ntopChartApex = function() {
 	    return {
 		drawChart: function(htmlElement, chartOptions) {
 		    // add/replace chartOptions fields in _chartOptions
-		    ntopng_utility.copy_object_keys(chartOptions, _chartOptions, true);
-		    _chart = new ApexCharts(htmlElement, _chartOptions);
+		    if(chartOptions.yaxis && chartOptions.yaxis.labels && chartOptions.yaxis.labels.formatter) {
+          const formatter = chartOptions.yaxis.labels.formatter
+          if(formatter == "formatValue") {
+            chartOptions.yaxis.labels.formatter = NtopUtils.formatValue
+          }
+          else if(formatter == "bytesToSize") {
+            chartOptions.yaxis.labels.formatter = NtopUtils.bytesToSize
+          }
+        }
+        ntopng_utility.copy_object_keys(chartOptions, _chartOptions, true);
+        _chart = new ApexCharts(htmlElement, _chartOptions);
 		    _chartHtmlElement = htmlElement;
 		    _chart.render();
 		},
