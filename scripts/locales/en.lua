@@ -10,6 +10,7 @@ local lang = {
   ["activities"] = "Activities",
   ["activity"] = "Activity",
   ["add"] = "Add",
+  ["live_flows"] = "Active Flows",
   ["admin_status"] = "Administrative Status",
   ["admin_status_short"] = "Admin. Status",
   ["advanced"] = "Advanced",
