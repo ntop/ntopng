@@ -342,6 +342,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
       if render_new_chart and render_new_chart == true then
         local template_utils = require "template_utils"
         template_utils.render("pages/components/historical_interface.template", {})
+        return
       end
       
       graph_utils.drawProGraph(ifid, schema, tags, zoomLevel, baseurl, options, show_graph)
