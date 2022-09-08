@@ -6,12 +6,23 @@
 			 ref="date_time_picker"
 			 @epoch_change="epoch_change">
       <template v-slot:begin>
-	<div class="d-flex align-items-center ms-2 me-2">
-	  <button type="button" @click="show_manage_timeseries" class="btn btn-sm btn-primary">
-	    Timeseries
-	  </button>
-	</div>
-	<select class="me-2 form-select" @change="change_groups_options_mode" style="width:18rem;" v-model="current_groups_options_mode">
+      </template>
+      <template v-slot:extra_buttons>
+	<button class="btn btn-link btn-sm" @click="show_modal_snapshot" title="Manage Snapshots"><i class="fas fa-lg fa-camera-retro"></i></button>
+	
+      </template>
+    </DataTimeRangePicker>
+    <!-- select metric -->
+    <div v-show="ts_menu_ready" class="form-group ms-1 me-1 mt-1">
+      <div class="inline select2-size me-2" style="top:0.4rem;position:relative;">
+	<SelectSearch v-model:selected_option="selected_metric"
+		      :options="metrics"
+		      :init="true"
+		      @select_option="select_metric">
+	</SelectSearch>
+      </div>
+      <div class="inline mb-2 select2-size">
+	<select class="me-2  form-select" @change="change_groups_options_mode" style="width:18rem;" v-model="current_groups_options_mode">
 	  <option :value="groups_options_modes[0]">
 	    One Chart
 	  </option>
@@ -21,18 +32,13 @@
 	  <option :value="groups_options_modes[2]">
 	    One Chart for each Metric
 	  </option>
-	</select>	  
-      </template>
-    </DataTimeRangePicker>
-    <!-- select metric -->
-    <div class="form-group ms-2 me-2 mt-3 row">
-      <div class="col-4">
-	<SelectSearch v-model:selected_option="selected_metric"
-		      :options="metrics"
-		      :init="true"
-		      @select_option="select_metric">
-	</SelectSearch>
+	</select>
       </div>
+      
+      <button type="button" @click="show_manage_timeseries" class="btn btn-sm btn-primary inline">
+      	Manage Timeseries
+      </button>
+      
     </div>
     
     <template v-for="(item, i) in charts_options_items" :key="item.key">
@@ -49,6 +55,9 @@
 </div>
 <!-- <SimpleTable :chart_options="last_chart_options" -->
 <!-- ></SimpleTable> -->
+<ModalSnapshot ref="modal_snapshot"
+		:csrf="csrf">
+</ModalSnapshot>
 
 <ModalTimeseries
   ref="modal_time_series"
@@ -59,10 +68,12 @@
 import { ref, onMounted, computed, watch } from "vue";
 import { default as Chart } from "./chart.vue";
 import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
+import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
 
+import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../services/context/ntopng_globals_services.js";
 import timeseriesUtils from "../utilities/timeseries-utils.js";
 import metricsManager from "../utilities/metrics-manager.js";
 
@@ -75,6 +86,7 @@ let chart_type = ntopChartApex.typeChart.TS_LINE;
 const charts = ref([]);
 const date_time_picker = ref(null);
 const modal_time_series = ref(null);
+const modal_snapshot = ref(null);
 
 const metrics = ref([]);
 const selected_metric = ref({});
@@ -92,13 +104,22 @@ const groups_options_modes = ntopng_utility.object_to_array(timeseriesUtils.grou
 /**
  * Current display timeseries mode.
  */
-const current_groups_options_mode = ref(groups_options_modes[0]);
+const current_groups_options_mode = ref(init_groups_option_mode());
 
 let last_timeseries_groups_loaded = null;
 
 const custom_metric = {
     label: "Custom Metrics",
 };
+const ts_menu_ready = ref(false);
+
+function init_groups_option_mode() {
+    let groups_mode = ntopng_url_manager.get_url_entry("timeseries_groups_mode");
+    if (groups_mode != null && groups_mode != "") {
+	return groups_mode;
+    }
+    return groups_options_modes[0];
+}
 
 onMounted(async () => {
     init();
@@ -108,36 +129,45 @@ onMounted(async () => {
     // chart.value.register_status();
 });
 
-async function init() {    
-    metrics.value = await get_metrics();
-    
-    selected_metric.value = metricsManager.get_default_metric(metrics.value);
-    await load_charts_selected_metric();
+async function init() {
+    //get_default_timeseries_groups
+    let push_custom_metric = true;
+    let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix);
+    if (timeseries_groups == null) {
+	push_custom_metric = false;
+	timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix);
+    }
+    metrics.value = await get_metrics(push_custom_metric);
+
+    if (push_custom_metric == true) {
+	selected_metric.value = custom_metric;
+    } else {
+	selected_metric.value = metricsManager.get_default_metric(metrics.value);
+
+    }
+    ts_menu_ready.value = true;
+    await load_charts_data(timeseries_groups);
 }
 
-async function get_metrics(from_apply_modal_ts) {
+async function get_metrics(push_custom_metric) {
     let metrics = await metricsManager.get_metrics(http_prefix);
-    if (from_apply_modal_ts) {
+    if (push_custom_metric) {
 	metrics.push(custom_metric);
     }
     return metrics;
 }
 
-function get_selected_timeseries_groups() {
-    let timeseries_groups = [{
-    	source_type: metricsManager.get_current_page_source_type(),
-    	source: {
-    	    value: metricsManager.get_default_source_value(),
-    	},
-    	metric: selected_metric.value,	
-    }];
+async function get_selected_timeseries_groups() {
+    let source_type = metricsManager.get_current_page_source_type();
+    let source = await metricsManager.get_default_source(http_prefix, source_type);
+    let metric = selected_metric.value;
+    let ts_group = metricsManager.get_ts_group(source_type, source, metric);
+    let timeseries_groups = [ts_group];
     return timeseries_groups;
 }
 
 async function select_metric(metric) {
     console.log(metric);
-    // update modal
-    modal_time_series.value.select_metric(metric);    
     // update chart
     await load_charts_selected_metric();
     // console.log("update chart from select");
@@ -147,7 +177,7 @@ async function select_metric(metric) {
 }
 
 async function load_charts_selected_metric() {
-    let timeseries_groups = get_selected_timeseries_groups();
+    let timeseries_groups = await get_selected_timeseries_groups();
     await load_charts_data(timeseries_groups);
 }
 
@@ -160,8 +190,13 @@ function chart_reloaded(chart_options) {
     console.log("chart reloaded");
 }
 
+function show_modal_snapshot() {
+    modal_snapshot.value.show();
+}
+
 function show_manage_timeseries() {
-    modal_time_series.value.show();
+    if (last_timeseries_groups_loaded == null) { return; }
+    modal_time_series.value.show(last_timeseries_groups_loaded);
 };
 
 /**
@@ -175,9 +210,9 @@ function get_f_get_custom_chart_options(chart_index) {
     }
 }
 
-async function refresh_metrics(from_apply_modal_ts) {
-    metrics.value = await get_metrics(from_apply_modal_ts);
-    if (from_apply_modal_ts) {
+async function refresh_metrics(push_custom_metric) {
+    metrics.value = await get_metrics(push_custom_metric);
+    if (push_custom_metric) {
 	selected_metric.value = custom_metric;
     }
 }
@@ -190,7 +225,7 @@ async function apply_modal_timeseries(timeseries_groups) {
     // chart.value.update_chart();
 }
 
-function change_groups_options_mode() {
+function change_groups_options_mode() {    
     load_charts_data(last_timeseries_groups_loaded, true);
 }
 
@@ -223,6 +258,15 @@ async function load_charts_data(timeseries_groups, not_reload) {
     
     // set last_timeseries_groupd_loaded
     last_timeseries_groups_loaded = timeseries_groups;
+    console.log("SET last_timeseries_groups_loaded");
+    console.log(last_timeseries_groups_loaded);
+    // update url params
+    update_url_params();
+}
+
+function update_url_params(timeseries_groups) {
+    ntopng_url_manager.set_key_to_url("timeseries_groups_mode", current_groups_options_mode.value);
+    metricsManager.set_timeseries_groups_in_url(last_timeseries_groups_loaded);
 }
 
 function set_charts_options_items(charts_options) {
@@ -257,4 +301,10 @@ const _i18n = (t) => i18n(t);
 </script>
 
 <style scoped>
+  .inline {
+    display: inline-block;
+  }
+  .select2-size {
+    min-width: 18rem;
+  }
 </style>

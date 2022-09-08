@@ -312,8 +312,8 @@ export default {
                 this.wrong_date = true;
 		return;
             }
-            this.$emit("epoch_change", epoch_status);
             ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_status, id);
+            this.$emit("epoch_change", epoch_status);
         },
         change_begin_date: function() {
         },

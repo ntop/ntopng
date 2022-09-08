@@ -2328,6 +2328,10 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["columns_"]                = { validateNumber, validateBool },
    ["search_"]                 = { validateNumber, validateSingleWord },
    ["order_"]                  = { validateNumber, validateSingleWord },
+
+   -- only client parameters
+   ["timeseries_groups"]       = { validateUnchecked, validateUnchecked },
+   ["timeseries_groups_mode"]  = { validateUnchecked, validateUnchecked },
 }
 
 -- #################################################################

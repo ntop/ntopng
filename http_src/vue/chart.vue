@@ -20,7 +20,6 @@ export default {
     created() {
     },
     beforeUnmount() {
-	console.log("UNMOUNT");
 	this.chart.destroyChart();
     },
     data() {

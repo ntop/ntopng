@@ -85,6 +85,7 @@ import { ref, onMounted, computed, watch } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as ListTimeseries } from "./list-timeseries.vue";
 import { default as SelectSearch } from "./select-search.vue";
+import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 
 import metricsManager from "../utilities/metrics-manager.js";
 
@@ -113,57 +114,62 @@ const emit = defineEmits(['apply'])
 
 let wait_init = null;
 
+// const props = defineProps({
+//     timseries_groups: Array,
+// });
+
+
 onMounted(async () => {
-    let wait_init = init();
+    wait_init = init();
 });
 
+// watch(() => props.timeseries_groups, (current_value, old_value) => {
+//     if (current_value == null) { return; }
+//     timeseries_groups_added.value = current_value;
+// });
+let init_select_search = false;
 watch(() => action.value, (current_value, old_value) => {
     if (current_value != "add") { return; }
+    // take default visible
+    selected_metric.value = metricsManager.get_default_metric(metrics.value);
     select_search.value.init();
+    init_select_search = true;
 }, { flush: 'post'});
 
-const show = async () => {
+const show = async (timeseries_groups) => {
+    console.log(selected_metric.value);
+    timeseries_groups_added.value = timeseries_groups;
     await wait_init;
+    action.value = "select";
     modal_id.value.show();
-};
-
-const select_metric = (metric) => {
-    selected_source_type.value = current_page_source_type;
-    init(metric);
 };
 
 function change_action(a) {
     action.value = a;
 }
 
-
-async function init(default_selected_metric) {
-    action.value = "select";
+async function init() {
+    console.log("INIT MODAL TIMESERIES");
     sources.value = await metricsManager.get_sources(http_prefix, current_page_source_type);
     let default_source_value = metricsManager.get_default_source_value(selected_source_type.value);
     selected_source.value = sources.value.find((s) => s.value == default_source_value);
     
     // init metrics
-    metrics.value = await metricsManager.get_metrics();
+    metrics.value = await metricsManager.get_metrics(http_prefix);
     // take default visible
-    if (default_selected_metric == null) {
-	selected_metric.value = metricsManager.get_default_metric(metrics.value);
-    } else {
- 	selected_metric.value = default_selected_metric;
-    }
-    
+    selected_metric.value = metricsManager.get_default_metric(metrics.value);
     update_timeseries_to_add(false);
     
     // init metrics added
-    timeseries_groups_added.value = [];
-    let ts_group = {
-	id: get_timeseries_group_id(),
-	source_type: selected_source_type.value,
-	source: selected_source.value,
-	metric: selected_metric.value,
-	timeseries: ntopng_utility.clone(timeseries_to_add.value),
-    };
-    timeseries_groups_added.value.push(ts_group);
+    // timeseries_groups_added.value = [];
+    // let ts_group = {
+    // 	id: get_timeseries_group_id(),
+    // 	source_type: selected_source_type.value,
+    // 	source: selected_source.value,
+    // 	metric: selected_metric.value,
+    // 	timeseries: ntopng_utility.clone(timeseries_to_add.value),
+    // };
+    // timeseries_groups_added.value.push(ts_group);
     console.log("emit");
     //emit('apply', timeseries_groups_added.value);
 }
@@ -176,8 +182,8 @@ function update_timeseries_to_add(default_config) {
     	    id: ts_id,
     	    label: timeseries[ts_id].label,
     	    raw: true,
-    	    avg: false || default_config,
-    	    perc_95: false || default_config,
+    	    avg: false,
+    	    perc_95: false,
     	});
     }
 }
@@ -200,7 +206,7 @@ function get_timeseries_group_id(ts_group) {
 	source = ts_group.source;
 	metric = ts_group.metric;
     }
-    return `${source_type.value} - ${source.value} - ${metric.schema}`;
+    return metricsManager.get_ts_group_id(source_type, source, metric);
 }
 
 const delete_ts = (ts_group_id) => {
@@ -232,7 +238,7 @@ const close = () => {
     modal_id.value.close();
 };
 
-defineExpose({ show, close, select_metric });
+defineExpose({ show, close });
 
 const _i18n = (t) => i18n(t);
 

@@ -1,6 +1,7 @@
 /**
     (C) 2022 - ntop.org    
 */
+import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 
 function transformColors(colors) {
     let colorsPositionDict = {};

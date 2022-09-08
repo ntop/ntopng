@@ -4,6 +4,7 @@
 
 import formatterUtils from "./formatter-utils";
 import colorsInterpolation from "./colors-interpolation.js";
+import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 
 function tsToApexOptions(tsOptions, metric) {
     let startTime = tsOptions.start;
@@ -215,9 +216,10 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
 	if (yaxisSeriesName == null) {
 	    let yaxis = {
 		seriesName: s.name,
+		show: true,
 		labels: {
 		    formatter: formatterUtils.getFormatter(metric.measure_unit, invertDirection),
-		    minWidth: 60,
+		    // minWidth: 60,
 		     // maxWidth: 75,
 		    // offsetX: -20,
 		},
@@ -257,8 +259,9 @@ const groupsOptionsModesEnum = {
 function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsMode) {
     if (groupsOptionsMode == groupsOptionsModesEnum["1_chart"]) {	
 	let apexOptions = tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray);
-	setLeftPadding(apexOptions);
-	return [apexOptions];
+	let apexOptionsArray = [apexOptions];
+	setLeftPadding(apexOptionsArray);
+	return apexOptionsArray;
     } else if (groupsOptionsMode == groupsOptionsModesEnum["1_chart_x_yaxis"]) {
 	let tsDict = {};
 	tsGrpupsArray.forEach((tsGroup, i) => {
@@ -276,32 +279,41 @@ function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsM
 	    let tsOptionsArray2 = tsArray.map((ts) => ts.tsOptions);
 	    let tsGrpupsArray2 = tsArray.map((ts) => ts.tsGroup);
 	    let apexOptions = tsArrayToApexOptions(tsOptionsArray2, tsGrpupsArray2);
-	    setLeftPadding(apexOptions);
 	    apexOptionsArray.push(apexOptions);
 	}
+	setLeftPadding(apexOptionsArray);
 	return apexOptionsArray;
     } else if (groupsOptionsMode == groupsOptionsModesEnum["1_chart_x_metric"]) {
 	let apexOptionsArray = [];
 	tsOptionsArray.forEach((tsOptions, i) => {
 	    let apexOptions = tsArrayToApexOptions([tsOptions], [tsGrpupsArray[i]]);
-	    setLeftPadding(apexOptions);
 	    apexOptionsArray.push(apexOptions);	    
 	});
+	setLeftPadding(apexOptionsArray);
 	return apexOptionsArray;
     }
     return [];
 }
 
-function setLeftPadding(apexOptions) {
+function setLeftPadding(apexOptionsArray) {
     // apexOptions.yaxis.filter((yaxis) => yaxis.show).forEach((yaxis) => yaxis
-    if (apexOptions.yaxis.length < 2) {
-	return;
-    }    
-    apexOptions.yaxis.forEach((yaxis) => {
-	yaxis.labels.offsetX = -20;
-	// yaxis.labels.minWidth = 100;
+    let oneChart = apexOptionsArray.length == 1;
+    apexOptionsArray.forEach((apexOptions) => {
+	if (!oneChart) {
+	    apexOptions.yaxis.filter((yaxis) => yaxis.show).forEach((yaxis) => {
+		yaxis.labels.minWidth = 60;
+		// yaxis.labels.minWidth = 100;
+	    });
+	}
+	if (apexOptions.yaxis.length < 2) {
+	    return;
+	}    
+	apexOptions.yaxis.forEach((yaxis) => {
+	    yaxis.labels.offsetX = -20;
+	    // yaxis.labels.minWidth = 100;
+	});
+	apexOptions.grid.padding.left = -8;
     });
-    apexOptions.grid.padding.left = -8;
 }
 
 function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray) {
