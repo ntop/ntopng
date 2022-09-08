@@ -298,7 +298,7 @@ end
 
 -- #################################################
 
-function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options, show_graph)
+function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options, show_graph, render_new_chart)
    local page_utils =require("page_utils") -- Do not require at the top as it could conflict with script_manager.getMenuEntries
    local debug_rrd = false
    local is_system_interface = page_utils.is_system_view()
@@ -339,8 +339,11 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
    if(zoomLevel == nil) then zoomLevel = min_zoom end
 
    if graph_utils.drawProGraph then
-      _ifstats = interface.getStats()
-      --template_utils.render("pages/components/historical_interface.template", context)
+      if render_new_chart and render_new_chart == true then
+        local template_utils = require "template_utils"
+        template_utils.render("pages/components/historical_interface.template", {})
+      end
+      
       graph_utils.drawProGraph(ifid, schema, tags, zoomLevel, baseurl, options, show_graph)
       return
    end

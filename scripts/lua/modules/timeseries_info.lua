@@ -144,6 +144,12 @@ local function retrieve_specific_timeseries(prefix)
   end
 
   for index, info in pairs(timeseries_list) do
+    -- Remove if the timeseries does not exists
+    if not ts_utils.exists(info.schema, {}) then
+      table.remove(timeseries_list, index)
+      goto skip
+    end
+
     -- Check if the schema starts with 'iface:', 
     -- if not then it's not an interface timeseries, so drop it
     if not string.starts(info.schema, prefix) then
@@ -159,12 +165,6 @@ local function retrieve_specific_timeseries(prefix)
 
     -- Remove from ntopng the timeseries only for nEdge
     if (info.nedge_only) and (not ntop.isnEdge()) then
-      table.remove(timeseries_list, index)
-      goto skip
-    end
-
-    -- Remove if the timeseries does not exists
-    if not ts_utils.exists(info.schema, {}) then
       table.remove(timeseries_list, index)
       goto skip
     end

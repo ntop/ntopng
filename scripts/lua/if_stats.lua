@@ -1499,7 +1499,7 @@ elseif(page == "historical") then
 			     dscp_classes = "iface:dscp",
 			     show_historical = not ifstats.isViewed,
 			     timeseries = graph_utils.get_default_timeseries()
-   })
+   }, nil, true)
 elseif(page == "trafficprofiles") then
    
    print("<table class=\"table table-striped table-bordered\">\n")
