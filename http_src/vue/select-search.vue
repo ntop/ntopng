@@ -1,5 +1,5 @@
 <template>
-<select class="select2 form-select" ref="select2" required name="filter_type">
+<select class="select2 form-select" ref="select2" v-model="selected_option" required name="filter_type">
   <option v-for="item in options" :value="item">
     {{item.label}}
   </option>	  

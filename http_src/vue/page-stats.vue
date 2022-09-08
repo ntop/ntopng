@@ -56,7 +56,8 @@
 <!-- <SimpleTable :chart_options="last_chart_options" -->
 <!-- ></SimpleTable> -->
 <ModalSnapshot ref="modal_snapshot"
-		:csrf="csrf">
+	       :csrf="csrf"
+	       page="timeseries">
 </ModalSnapshot>
 
 <ModalTimeseries
@@ -76,6 +77,10 @@ import { default as SelectSearch } from "./select-search.vue";
 import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../services/context/ntopng_globals_services.js";
 import timeseriesUtils from "../utilities/timeseries-utils.js";
 import metricsManager from "../utilities/metrics-manager.js";
+
+const props = defineProps({
+    csrf: String,
+});
 
 ntopng_utility.check_and_set_default_interval_time();
 

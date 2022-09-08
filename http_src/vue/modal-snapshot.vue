@@ -89,6 +89,7 @@ const order_by = ref("date"); // name / date
 
 const props = defineProps({
     csrf: String,
+    page: String,
 });
 
 let pattern_singleword = NtopUtils.REGEXES.singleword;
@@ -113,6 +114,9 @@ const update_action = (a) => {
 }
 
 function get_page() {
+    if (props.page != null) {
+	return props.page;
+    }
     let is_alert_stats_url = window.location.toString().match(/alert_stats.lua/) != null;
     let page = "alerts";
     if (!is_alert_stats_url) {

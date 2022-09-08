@@ -1,8 +1,10 @@
 <div id="vue-app">
-  <page-stats></page-stats>
+  <page-stats :csrf="csrf">
+  </page-stats>
 </div>
 
 <script type="application/javascript">
+  let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
   function start_vue() {
 
     let vue_options = {
@@ -16,6 +18,7 @@
 	mounted() {},
 	data() {
 	    return {
+	      csrf: pageCsrf,
 	    };
 	},
 	methods: {},
