@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
     if(iface == NULL) {
       try {
 	errno = 0;
-	iface = new PcapInterface(ifName, i);
+	iface = new PcapInterface(ifName, i, false);
       } catch(int err) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open interface %s with pcap [%d]: %s",
 				     ifName, err, strerror(err));
