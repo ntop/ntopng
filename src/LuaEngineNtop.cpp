@@ -87,7 +87,6 @@ static int ntop_dump_file(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   if((fname = (char*)lua_tostring(vm, 1)) == NULL)     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
-  ntop->fixPath(fname);
   if((fd = fopen(fname, "r")) != NULL) {
     char tmp[1024];
 
@@ -1217,7 +1216,8 @@ static int ntop_unlink_file(lua_State* vm) {
 
 static int ntop_register_pcap_interface(lua_State* vm) {
   char *path = NULL;
-
+  int if_id = -99;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TSTRING)
@@ -1226,32 +1226,18 @@ static int ntop_register_pcap_interface(lua_State* vm) {
   if((!ntop->isUserAdministrator(vm))
      || (path == NULL)
      || (ntop->get_num_interfaces() >= MAX_NUM_DEFINED_INTERFACES)) {
-    lua_pushinteger(vm, -99);
+    ; /* No way */
   } else {
-    NetworkInterface *iface;
+    int id;
+    bool rc;
 
     ntop->fixPath(path);
-     
-    try {
-      errno = 0;
-      iface = new PcapInterface(path, ntop->get_num_interfaces());
-      if(ntop->registerInterface(iface)) {
-	ntop->initInterface(iface);
-	iface->allocateStructures();
-	iface->startPacketPolling();
-	lua_pushinteger(vm, iface->get_id());
-      } else {
-	lua_pushinteger(vm, -99);
-      }
-    } catch(int err) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open interface %s with pcap [%d]: %s",
-				   path, err, strerror(err));
-      if(iface) delete iface;
-      iface = NULL;
-      lua_pushinteger(vm, -99);
-    }
+    rc = ntop->createPcapInterface((const char*)path, &id);
+
+    if(rc) if_id = id;
   }
 
+  lua_pushinteger(vm, if_id);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 

@@ -27,7 +27,9 @@
 class PcapInterface : public NetworkInterface {
  private:
   pcap_t *pcap_handle;
-  bool read_pkts_from_pcap_dump, read_pkts_from_pcap_dump_done, emulate_traffic_directions, read_from_stdin_pipe;
+  char *pcap_path;
+  bool read_pkts_from_pcap_dump, read_pkts_from_pcap_dump_done,
+    emulate_traffic_directions, read_from_stdin_pipe, delete_pcap_when_done;
   ProtoStats prev_stats_in, prev_stats_out;
   FILE *pcap_list;
 
@@ -44,7 +46,7 @@ class PcapInterface : public NetworkInterface {
   };
 
  public:
-  PcapInterface(const char *name, u_int8_t ifIdx);
+  PcapInterface(const char *name, u_int8_t ifIdx, bool _delete_pcap_when_done);
   virtual ~PcapInterface();
 
   bool isDiscoverableInterface()    { return(getMDNS() != NULL  && !isTrafficMirrored()); };

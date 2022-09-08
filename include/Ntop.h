@@ -628,6 +628,8 @@ public:
   inline AssetManagement* get_am()                          { return(&am);              }
 #endif
   inline Mutex* get_pools_lock()                            { return(&pools_lock);      }
+
+  bool createPcapInterface(const char *path, int *iface_id);
 };
 
 extern Ntop *ntop;

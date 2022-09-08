@@ -3679,3 +3679,43 @@ void Ntop::speedtest(lua_State *vm) {
 
   speedtest_m.unlock(__FILE__, __LINE__);
 }
+
+/* ******************************************* */
+
+bool Ntop::createPcapInterface(const char *path, int *iface_id) {
+#ifndef HAVE_NEDGE
+  NetworkInterface *iface;
+#endif
+  bool ret;
+  
+  *iface_id = -99;
+
+#ifndef HAVE_NEDGE
+  try {
+    errno = 0;
+    iface = new PcapInterface((const char*)path,
+			      (u_int8_t)ntop->get_num_interfaces(),
+			      true /* delete pcap when done */);
+    
+    if(ntop->registerInterface(iface)) {
+      ntop->initInterface(iface);
+      iface->allocateStructures();
+      iface->startPacketPolling();
+      *iface_id = iface->get_id();
+    }
+
+    ret = true;
+    
+  } catch(int err) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Unable to open interface %s with pcap [%d]: %s",
+				 path, err, strerror(err));
+
+    ret = false;
+  }
+#else
+  ret = false;
+#endif
+  
+  return(ret);
+}

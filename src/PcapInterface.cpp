@@ -29,15 +29,17 @@
 
 /* **************************************************** */
 
-PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterface(name) {
+PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx, bool _delete_pcap_when_done) : NetworkInterface(name) {
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
   struct stat buf;
 
+  delete_pcap_when_done = _delete_pcap_when_done;
   pcap_handle = NULL, pcap_list = NULL;
   memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
   emulate_traffic_directions = false;
   read_pkts_from_pcap_dump = read_pkts_from_pcap_dump_done = false, read_from_stdin_pipe = false;;
-
+  pcap_path = NULL;
+  
   if((stat(name, &buf) == 0) || (name[0] == '-') || !strncmp(name, "stdin", 5)) {
     /*
       The file exists so we need to check if it's a
@@ -55,6 +57,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
     } else if((pcap_handle = pcap_open_offline(ifname, pcap_error_buffer)) != NULL) {
       char *slash = strrchr(ifname, '/');
 
+      pcap_path = strdup(ifname);
       if(slash) {
 	char *old = ifname;
 	ifname = strdup(&slash[1]);
@@ -93,6 +96,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
 	free(tmp);
       }
 
+      pcap_path = NULL;
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from %s [id: %d]",
           ntop->getPrefs()->get_if_descr(ifIdx), ifIdx);
       read_pkts_from_pcap_dump = false;
@@ -131,8 +135,13 @@ PcapInterface::~PcapInterface() {
   if(pcap_handle) {
     pcap_close(pcap_handle);
     pcap_handle = NULL;
-  }
 
+    if(pcap_path != NULL) {
+      if(elete_pcap_when_done) unlink(pcap_path);
+      free(pcap_path)
+    }    
+  }
+ 
   if(getIfType() == interface_type_PCAP_DUMP) {
     /* Cleanup any possible leftover file */
     cleanupPcapDumpDir();
@@ -183,7 +192,7 @@ static void* packetPollLoop(void* ptr) {
   do {
     if(pcap_list != NULL) {
       char path[256], *fname;
-      pcap_t *pcap_handle;
+      pcap_t *file_pcap_handle;
 
       while((fname = fgets(path, sizeof(path), pcap_list)) != NULL) {
 	char pcap_error_buffer[PCAP_ERRBUF_SIZE];
@@ -204,12 +213,13 @@ static void* packetPollLoop(void* ptr) {
 	}
 
 	if(fname != NULL) {
-	  if((pcap_handle = pcap_open_offline(path, pcap_error_buffer)) == NULL) {
+	  if((file_pcap_handle = pcap_open_offline(path, pcap_error_buffer)) == NULL) {
 	    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file '%s': %s",
 					 path, pcap_error_buffer);
 	  } else {
+	    pcap_path = strdup(path);
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s", path);
-	    iface->set_pcap_handle(pcap_handle);
+	    iface->set_pcap_handle(file_pcap_handle);
 	    break;
 	  }
 	} else
@@ -221,7 +231,7 @@ static void* packetPollLoop(void* ptr) {
 	fclose(pcap_list);
 	break;
       } else
-	iface->set_datalink(pcap_datalink(pcap_handle));
+	iface->set_datalink(pcap_datalink(file_pcap_handle));
     }
 
     pd = iface->get_pcap_handle();
@@ -321,11 +331,12 @@ static void* packetPollLoop(void* ptr) {
 	iface->purgeIdle(time(NULL));
       }
     } /* while */
-  } while(pcap_list != NULL);
 
-  if(iface->read_from_pcap_dump()) {
-    iface->set_read_from_pcap_dump_done();
-  }
+    pcap_close(file_pcap_handle);
+  } while(pcap_list != NULL);
+  
+  if(iface->read_from_pcap_dump())
+    iface->set_read_from_pcap_dump_done();  
 
   /* Do two full scans to make sure all stats are updated */
   for(int i = 0; i < 2; i++)
@@ -333,7 +344,7 @@ static void* packetPollLoop(void* ptr) {
  
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
 			       iface->get_description());
-
+  
   return(NULL);
 }
 
