@@ -139,40 +139,36 @@ local pro_timeseries = {
 
 local function retrieve_specific_timeseries(prefix)
   local timeseries_list = community_timeseries
+  local timeseries = {}
+  local ifid = interface.getId()
+
   if ntop.isPro() then
     timeseries_list = table.merge(community_timeseries, pro_timeseries)
   end
 
-  for index, info in pairs(timeseries_list) do
-    -- Remove if the timeseries does not exists
-    if not ts_utils.exists(info.schema, {}) then
-      table.remove(timeseries_list, index)
-      goto skip
-    end
-
+  for _, info in pairs(timeseries_list) do
     -- Check if the schema starts with 'iface:', 
     -- if not then it's not an interface timeseries, so drop it
     if not string.starts(info.schema, prefix) then
-      table.remove(timeseries_list, index)
       goto skip
     end
 
     -- Remove from nEdge the timeseries only for ntopng
     if (info.nedge_exclude) and (ntop.isnEdge()) then
-      table.remove(timeseries_list, index)
       goto skip
     end
 
     -- Remove from ntopng the timeseries only for nEdge
     if (info.nedge_only) and (not ntop.isnEdge()) then
-      table.remove(timeseries_list, index)
       goto skip
     end
+
+    timeseries[#timeseries + 1] = info
 
     ::skip::
   end
 
-  return timeseries_list  
+  return timeseries  
 end
 
 -- #################################
