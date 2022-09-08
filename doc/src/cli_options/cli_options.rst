@@ -100,7 +100,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | (default: 131072)
    [--max-num-hosts|-x] <num>          | Max number of active hosts
                                        | (default: 131072)
-   [--users-file|-u] <path>            | Users configuration file path
+   [--users-file] <path>               | Users configuration file path
                                        | Default: ntopng-users.conf
    [--original-speed]                  | Reproduce (-i) the pcap file at original speed
    [--pid|-G] <path>                   | Pid file path

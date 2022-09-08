@@ -375,7 +375,7 @@ void usage() {
 	 "                                    | (default: %u)\n"
 	 "[--max-num-hosts|-x] <num>          | Max number of active hosts\n"
 	 "                                    | (default: %u)\n"
-	 "[--users-file|-u] <path>            | Users configuration file path\n"
+	 "[--users-file] <path>               | Users configuration file path\n"
 	 "                                    | Default: %s\n"
 	 "[--original-speed]                  | Reproduce (-i) the pcap file at original speed\n"
 #ifndef WIN32
