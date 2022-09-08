@@ -8,6 +8,7 @@ require "lua_utils"
 local ts_utils = require("ts_utils")
 local info = ntop.getInfo()
 local page_utils = require("page_utils")
+local template = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -19,15 +20,9 @@ if(_POST.uploaded_file ~= nil) then
    local iface_id = ntop.registerPcapInterface(_POST.uploaded_file)
 
    if(iface_id > 0) then
-       print [[
-	 <form method='POST' action="]] print(ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?ifid=]] print(toint(iface_id)) print[[">
-	   <input hidden name='switch_interface' value='1' />
-	   <input hidden name='csrf' value=']] print(ntop.getRandomCSRFValue()) print[[' />
-           <input type="submit" value="]] print(i18n("switch_new_pcap_interface")) print [[">  
-         </form>
-	]]
+      print(template.gen("analyze_pcap.template", { iface_id = toint(iface_id) }))
    else
-      print(i18n("switch_new_pcap_interface_error"))
+      print(i18n("analyze_pcap_error"))
       ntop.unlink(_POST.uploaded_file)
    end
 end

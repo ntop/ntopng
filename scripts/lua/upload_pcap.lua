@@ -8,6 +8,7 @@ require "lua_utils"
 local ts_utils = require("ts_utils")
 local info = ntop.getInfo()
 local page_utils = require("page_utils")
+local template = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -17,18 +18,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- accept=".pcap"
 
 if isAdministrator() then
-   print("<H3>"..i18n("analyze_pcap").."</H3>")
-
-   print [[
-     <table class="table table-bordered table-striped">
-     <tr><td>
-     <form action="]] print(ntop.getHttpPrefix()) print [[/lua/analyze_pcap.lua" method=POST enctype="multipart/form-data">
-     <input type="file" id="pcap" name="pcap">
-     <input type="submit" value="]] print(i18n("upload_pcap")) print [[">
-     </form>
-     </td></tr>
-     </table>
-   ]]
-end
+   print(template.gen("upload_pcap.template", {  }))
+end   
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -1,0 +1,7 @@
+<H3> {{ i18n("analyze_pcap_ok") }} </H3>
+
+	 <form method='POST' action="{{ ntop.getHttpPrefix() }}/lua/flows_stats.lua?ifid={{ iface_id }}">
+	   <input hidden name='switch_interface' value='1' />
+	   <input hidden name='csrf' value='{{ ntop.getRandomCSRFValue() }}' />
+           <input type="submit" value="{{ i18n("switch_new_pcap_interface") }}">  
+         </form>
