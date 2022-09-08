@@ -137,8 +137,8 @@ PcapInterface::~PcapInterface() {
     pcap_handle = NULL;
 
     if(pcap_path != NULL) {
-      if(elete_pcap_when_done) unlink(pcap_path);
-      free(pcap_path)
+      if(delete_pcap_when_done) unlink(pcap_path);
+      free(pcap_path);
     }    
   }
  
@@ -217,7 +217,6 @@ static void* packetPollLoop(void* ptr) {
 	    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file '%s': %s",
 					 path, pcap_error_buffer);
 	  } else {
-	    pcap_path = strdup(path);
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s", path);
 	    iface->set_pcap_handle(file_pcap_handle);
 	    break;
@@ -331,8 +330,6 @@ static void* packetPollLoop(void* ptr) {
 	iface->purgeIdle(time(NULL));
       }
     } /* while */
-
-    pcap_close(file_pcap_handle);
   } while(pcap_list != NULL);
   
   if(iface->read_from_pcap_dump())
