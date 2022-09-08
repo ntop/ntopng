@@ -4,6 +4,8 @@
  */
 'use strict';
 
+import NtopUtils from "../ntop-utils";
+
 
 const DataTableHandlers = function() {
     let handlersIdDict = {};
@@ -739,11 +741,12 @@ export class DataTableRenders {
 	    labelVlan = `${label}@${flow.vlan.label}`;
 	    titleVlan = `${title}@${flow.vlan.title}`;
 	}
+      labelVlan = NtopUtils.shortenLabel(labelVlan, 16, "\.")
         return DataTableRenders.filterize(key, valueVlan, labelVlan, labelVlan, titleVlan); 
     }
 
     static formatFlowTuple(flow, type, row) {
-        let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
+      let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
         let vlan = ""
 
         let cliLabel = "";

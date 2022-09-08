@@ -48,6 +48,7 @@ onMounted(() => {
     order: [[0, "asc"]],
     pagingType: 'full_numbers',
     columnDefs: {},
+    autoWidth: false,
     ajax: {
       method: 'get',
       url: props.data_url,

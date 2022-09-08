@@ -626,13 +626,13 @@
     let url_params = ntopng_url_manager.get_url_params();
     let config = DataTableUtils.getStdDatatableConfig(datatableButton);
     config = DataTableUtils.extendConfig(config, {
-        autowidth: true,
         serverSide: true,
         searching: false,
         info: false,
         order: [[ column_order_id, "{* datatable.order_sorting *}" ]],
         pagingType: '{{ datatable.pagination }}',
         columnDefs: {},
+        autoWidth: false,
         ajax: {
             method: 'get',
             url: '{* datatable.datasource.name *}?' + url_params,

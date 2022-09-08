@@ -1089,6 +1089,24 @@ export default class NtopUtils {
 		t.innerHTML = html;
 		return t.textContent || t.innerText || "";
 	}
+
+  static shortenLabel(label, len, last_char) {
+    let shortened_label = label
+    if(label.length > len + 5) {
+      let last_index = len
+      if(last_char) {
+        last_index = label.lastIndexOf(last_char)
+        const requested_label = label.slice(last_index)
+        if(len > last_index) 
+          len = last_index
+        shortened_label = label.slice(0, len) + "... " + requested_label
+      } else {
+        shortened_label = label.slice(0, len) + "...";
+      }
+    }
+
+    return shortened_label
+  }
 	
 }
 
