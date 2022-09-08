@@ -155,6 +155,8 @@
   let RANGEPICKER_APP;
   let CHART_APP;
   const ifid = {{ ifid }}
+  const local_storage_order_key = "{* datatable.name *}_column" + ifid
+  const local_storage_order_asc_desc = "{* datatable.name *}_order" + ifid
 
     const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
 
@@ -617,6 +619,9 @@
             column_order_id = index;
         }
     });
+    column_order_id = localStorage.getItem(local_storage_order_key) || column_order_id
+    const column_order_sorting = localStorage.getItem(local_storage_order_asc_desc) || "{* datatable.order_sorting *}"
+    
 
     /* Ordering the array in order to have the selected row length at the beginning of the array */
     let length_array = [10, 50, 100, 250, 500];
@@ -629,7 +634,7 @@
         serverSide: true,
         searching: false,
         info: false,
-        order: [[ column_order_id, "{* datatable.order_sorting *}" ]],
+        order: [[ column_order_id,  column_order_sorting]],
         pagingType: '{{ datatable.pagination }}',
         columnDefs: {},
         autoWidth: false,
@@ -646,6 +651,8 @@
                 if (data.order) {
                     data.order = data.order[0].dir;
                     data.sort = orderColumnName;
+                    localStorage.setItem(local_storage_order_key, orderColumnIndex);
+                    localStorage.setItem(local_storage_order_asc_desc, data.order || "{* datatable.order_sorting *}")
                 }
 
                 if (data.columns !== undefined) {

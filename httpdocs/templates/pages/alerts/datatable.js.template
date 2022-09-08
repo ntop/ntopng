@@ -8,7 +8,7 @@ const FAMILY = "{{ entity }}"
 $table.on('click', `a[href='#check_info']`, function (e) {
     const alert = $table.row($(this).parent().parent().parent().parent()).data();
     const href = "{* alert_details_url *}?page={* entity *}&status={* alert_status *}&row_id=" + alert.row_id + "&tstamp=" + alert.tstamp.value;
-    window.location.href = href;
+    window.open(href, "_blank");
 });
 
 $table.on('click', `a[href='#check_settings']`, function (e) {
