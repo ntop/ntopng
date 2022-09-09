@@ -27,7 +27,6 @@ end
 local ifstats = interface.getStats()
 
 -- System host parameters
-local hosts  = _GET["hosts"]
 local host   = _GET["host"] -- TODO: merge
 local flows_to_update = _GET["custom_hosts"]
 
