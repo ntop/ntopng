@@ -4538,65 +4538,65 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
     retriever->totBytesRcvd += f->get_bytes_srv2cli();
 
     switch(retriever->sorter) {
-      case column_client:
-	if(f->getInterface()->isViewed())
-	  retriever->elems[retriever->actNumEntries++].ipValue = (IpAddress*)f->get_cli_ip_addr();
-	else
-	  retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
-	break;
-      case column_server:
-	if(f->getInterface()->isViewed())
-	  retriever->elems[retriever->actNumEntries++].ipValue = (IpAddress*)f->get_srv_ip_addr();
-	else
-	  retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
-	break;
-      case column_vlan:
-	retriever->elems[retriever->actNumEntries++].numericValue = f->get_vlan_id();
-	break;
-      case column_proto_l4:
-	retriever->elems[retriever->actNumEntries++].numericValue = f->get_protocol();
-	break;
-      case column_ndpi:
-	retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().app_protocol;
-	  break;
-  case column_duration:
-	  retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
-	  break;
-  case column_score:
-    retriever->elems[retriever->actNumEntries++].numericValue = f->getScore();
-    break;
-  case column_thpt:
-	  retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes_thpt();
-	break;
-      case column_bytes:
-	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes();
-	break;
-      case column_last_seen:
-  retriever->elems[retriever->actNumEntries++].numericValue = f->get_last_seen();
-  break;
-      case column_first_seen:
-  retriever->elems[retriever->actNumEntries++].numericValue = f->get_first_seen();
-  break;
-      case column_client_rtt:
-	if((tcp_info = f->getClientTcpInfo()))
-	  retriever->elems[retriever->actNumEntries++].numericValue = (u_int64_t)(tcp_info->rtt * 1000);
-	else
-	  retriever->elems[retriever->actNumEntries++].numericValue = 0;
-	break;
-      case column_server_rtt:
-	if((tcp_info = f->getServerTcpInfo()))
-	  retriever->elems[retriever->actNumEntries++].numericValue = (u_int64_t)(tcp_info->rtt * 1000);
-	else
-	  retriever->elems[retriever->actNumEntries++].numericValue = 0;
-	break;
-      case column_info:
-	{
-	  char buf[64];
+    case column_client:
+      if(f->getInterface()->isViewed())
+	retriever->elems[retriever->actNumEntries++].ipValue = (IpAddress*)f->get_cli_ip_addr();
+      else
+	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
+      break;
+    case column_server:
+      if(f->getInterface()->isViewed())
+	retriever->elems[retriever->actNumEntries++].ipValue = (IpAddress*)f->get_srv_ip_addr();
+      else
+	retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
+      break;
+    case column_vlan:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->get_vlan_id();
+      break;
+    case column_proto_l4:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->get_protocol();
+      break;
+    case column_ndpi:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().app_protocol;
+      break;
+    case column_duration:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
+      break;
+    case column_score:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->getScore();
+      break;
+    case column_thpt:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes_thpt();
+      break;
+    case column_bytes:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes();
+      break;
+    case column_last_seen:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->get_last_seen();
+      break;
+    case column_first_seen:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->get_first_seen();
+      break;
+    case column_client_rtt:
+      if((tcp_info = f->getClientTcpInfo()))
+	retriever->elems[retriever->actNumEntries++].numericValue = (u_int64_t)(tcp_info->rtt * 1000);
+      else
+	retriever->elems[retriever->actNumEntries++].numericValue = 0;
+      break;
+    case column_server_rtt:
+      if((tcp_info = f->getServerTcpInfo()))
+	retriever->elems[retriever->actNumEntries++].numericValue = (u_int64_t)(tcp_info->rtt * 1000);
+      else
+	retriever->elems[retriever->actNumEntries++].numericValue = 0;
+      break;
+    case column_info:
+      {
+	char buf[64];
 
-	  flow_info = f->getFlowInfo(buf, sizeof(buf), false);
-	  retriever->elems[retriever->actNumEntries++].stringValue = flow_info ? flow_info : (char*)"";
-	}
-	break;
+	flow_info = f->getFlowInfo(buf, sizeof(buf), false);
+	retriever->elems[retriever->actNumEntries++].stringValue = flow_info ? flow_info : (char*)"";
+      }
+      break;
     case column_device_ip:
       retriever->elems[retriever->actNumEntries++].numericValue = f->getFlowDeviceIP();
       break;
@@ -4606,9 +4606,9 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
     case column_out_index:
       retriever->elems[retriever->actNumEntries++].numericValue = f->getFlowDeviceOutIndex();
       break;
-      default:
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
-	break;
+    default:
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
+      break;
     }
 
     *matched = true;
@@ -5189,6 +5189,17 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
     retriever->sorter = column_bytes, sorter = numericSorter;
   }
 
+  if(false) {
+    u_int32_t deviceIP = 0;
+    u_int32_t inIndex=0, outIndex=0;
+    char buf[32];
+    
+    p->deviceIpFilter(&deviceIP), p->inIndexFilter(&inIndex), p->outIndexFilter(&outIndex);
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Device IP] %s / In Idx] %u / [Out Idx] %u",
+				 Utils::intoaV4(deviceIP, buf, sizeof(buf)), inIndex, outIndex);
+  }			       
+			       
   // make sure the caller has disabled the purge!!
   walker(begin_slot, walk_all, walker_flows, flow_search_walker, (void*)retriever);
 
