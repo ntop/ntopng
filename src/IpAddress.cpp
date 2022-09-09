@@ -168,7 +168,7 @@ void IpAddress::checkIP() {
     if(addr.ipType.ipv6.u6_addr.u6_addr8[0] == 0xFF)
       addr.multicastIP = true;
     
-    if (ntop->isLocalAddress(AF_INET6, (void*)&addr.ipType.ipv6, &local_network_id))
+    if(ntop->isLocalAddress(AF_INET6, (void*)&addr.ipType.ipv6, &local_network_id))
       addr.localIP = true; 
   }
 }

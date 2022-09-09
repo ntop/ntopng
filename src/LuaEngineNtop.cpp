@@ -3421,7 +3421,8 @@ static int ntop_is_local_interface_address(lua_State* vm) {
   char *host;
   IpAddress ipa;
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   host = (char*)lua_tostring(vm, 1);
   ipa.set(host);
@@ -3429,6 +3430,53 @@ static int ntop_is_local_interface_address(lua_State* vm) {
   /* Check if this IP address is local to this machine */
   lua_pushboolean(vm, ipa.isLocalInterfaceAddress());
 
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_is_local_address(lua_State* vm) {
+  char *host, *slash;
+  IpAddress ipa;
+  char shadow[64];
+    
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  host = (char*)lua_tostring(vm, 1);
+  snprintf(shadow, sizeof(shadow), "%s", host);
+    
+  if((slash = strchr(shadow, '/')) != NULL) {
+    /* network/CIDR */
+    char *ip, *mask;
+    u_int8_t nmask_bits;
+    int16_t local_network_id;
+    
+    shadow[0] = '\0';
+    ip = shadow, mask = &shadow[1];
+    nmask_bits = (u_int8_t)atoi(mask);
+      
+    if(strchr(ip, ':') != NULL) {
+      /* IPv6 */
+      struct ndpi_in6_addr ipv6;
+      
+      if(inet_pton(AF_INET6, ip, &ipv6) <= 0)
+	lua_pushboolean(vm, false);
+      else
+	lua_pushboolean(vm, ntop->isLocalAddress(AF_INET6, (void*)&ipv6, &local_network_id, &nmask_bits));
+    } else {
+      /* IPv4 */
+      u_int32_t addr = inet_addr(ip);
+      
+      lua_pushboolean(vm, ntop->isLocalAddress(AF_INET, &addr, &local_network_id, &nmask_bits));
+    }
+  } else {
+    ipa.set(shadow);
+    
+    /* Check if this IP address is local (-m) */
+    lua_pushboolean(vm, ipa.isLocalHost());
+  }
+  
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -6441,6 +6489,7 @@ static luaL_Reg _ntop_reg[] = {
   { "isAllowedInterface",  ntop_is_allowed_interface },
   { "isAllowedNetwork",  ntop_is_allowed_network },
   { "isLocalInterfaceAddress", ntop_is_local_interface_address },
+  { "isLocalAddress",     ntop_is_local_address },
   { "md5",               ntop_md5 },
   { "hasRadiusSupport",  ntop_has_radius_support },
   { "hasLdapSupport",    ntop_has_ldap_support },

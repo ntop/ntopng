@@ -251,6 +251,9 @@ local function initListCacheDir()
    ntop.mkdir(os_utils.fixPath(string.format("%s/category_lists", dirs.workingdir)))
 end
 
+-- ##############################################
+
+
 local function getListCacheFile(list_name, downloading)
    local f = string.format("%s/category_lists/%s.txt", dirs.workingdir, list_name)
 
@@ -289,6 +292,8 @@ local function getNextListUpdate(list)
 
    return next_update
 end
+
+-- ##############################################
 
 -- Returns true if the given list should be updated
 function shouldUpdate(list_name, list, now)
@@ -363,12 +368,8 @@ local function checkListsUpdate(timeout)
             list.status.num_errors = 0
             needs_reload = true
 
-            local alert = alert_consts.alert_types.alert_list_download_succeeded.new(
-               list_name
-            )
-
+            local alert = alert_consts.alert_types.alert_list_download_succeeded.new(list_name)
             alert:set_score_notice()
-
             alert:store(alerts_api.systemEntity(list_name))
 
             msg = msg .. "OK"
@@ -490,6 +491,15 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
                if (list and list.name) then
                   if not ntop.loadCustomCategoryIp(host, category, list.name) then
                      loadWarning(string.format("Failure loading IP '%s' category '%s' in list '%s'", host, category, list.name))
+		  else
+		     if((category == CUSTOM_CATEGORY_MALWARE) and ntop.isLocalAddress(host)) then
+			local alert = alert_consts.alert_types.alert_local_host_blacklisted.new(list.name, host)
+			
+			alert:set_score_error()
+			alert:store(alerts_api.systemEntity(list.name, host))
+
+			-- loadWarning(string.format("Found local IP '%s' in malware list '%s'", host, list.name))
+		     end
                   end
                end
        
