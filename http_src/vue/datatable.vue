@@ -139,8 +139,13 @@ onMounted(() => {
 });
 
 const reload = () => {
-    if (table == null) { return; }
-    table.ajax.reload();
+  if (table == null) { return; }
+  table.ajax.reload();
+}
+
+const update_url = (new_url) => {
+  if (table == null) { return; }
+  table.ajax.url(new_url);
 }
 
 const delete_button_handlers = (handlerId) => {
@@ -155,7 +160,7 @@ const destroy_table = () => {
     is_destroyed = true;
 }
 
-defineExpose({ reload, delete_button_handlers, destroy_table });
+defineExpose({ reload, delete_button_handlers, destroy_table, update_url });
 
 onBeforeUnmount(() => {
     if (is_destroyed == true) { return; }

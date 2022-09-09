@@ -2238,6 +2238,7 @@ local known_parameters = {
    ["old_syslog_producer"]     = validateSingleWord,
    ["old_syslog_producer_host"]= validateSingleWord,
    ["query_preset"]            = validateEmptyOr(validateSingleWord),
+   ["new_charts"]              = validateBool,
 
    -- Containers
    ["pod"]                     = validateSingleWord,

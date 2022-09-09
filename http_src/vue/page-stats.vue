@@ -42,7 +42,7 @@
     </div>
     
     <template v-for="(item, i) in charts_options_items" :key="item.key">
-      <div style="height:300px;">
+      <div class="m-3" style="height:300px;">
 	<Chart :id="id_chart + i" :ref="el => { charts[i] = el }"
 	       :chart_type="chart_type"
       	       :register_on_status_change="false"
@@ -51,6 +51,20 @@
 	</Chart>
       </div>
     </template>
+  </div>
+  <div class="mt-4 card card-shadow">
+    <div class="card-body">
+      <div class="mb-4 text-nowrap" style="font-size: 1.1rem;">
+        <i class="fa-solid fa-chart-line"></i> Top Applications
+      </div>
+      <Datatable ref="top_applications_table"
+        :table_buttons="config_app_table.table_buttons"
+        :columns_config="config_app_table.columns_config"
+        :data_url="config_app_table.data_url"
+        :enable_search="config_app_table.enable_search"
+        :table_config="config_app_table.table_config">
+      </Datatable>
+    </div>
   </div>
 </div>
 <!-- <SimpleTable :chart_options="last_chart_options" -->
@@ -66,13 +80,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, onBeforeMount, computed, watch } from "vue";
 import { default as Chart } from "./chart.vue";
 import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
+import { default as Datatable } from "./datatable.vue";
 
 import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../services/context/ntopng_globals_services.js";
 import timeseriesUtils from "../utilities/timeseries-utils.js";
@@ -87,9 +102,10 @@ ntopng_utility.check_and_set_default_interval_time();
 let id_chart = "chart";
 let id_date_time_picker = "date_time_picker";
 let chart_type = ntopChartApex.typeChart.TS_LINE;
-
+let config_app_table = ref({});
 const charts = ref([]);
 const date_time_picker = ref(null);
+const top_applications_table = ref(null);
 const modal_time_series = ref(null);
 const modal_snapshot = ref(null);
 
@@ -126,6 +142,10 @@ function init_groups_option_mode() {
     return groups_options_modes[0];
 }
 
+onBeforeMount(async() => {
+  await load_datatable_data();
+});
+
 onMounted(async () => {
     init();
     await Promise.all([
@@ -139,8 +159,8 @@ async function init() {
     let push_custom_metric = true;
     let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix);
     if (timeseries_groups == null) {
-	push_custom_metric = false;
-	timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix);
+      push_custom_metric = false;
+      timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix);
     }
     metrics.value = await get_metrics(push_custom_metric);
 
@@ -148,7 +168,6 @@ async function init() {
 	selected_metric.value = custom_metric;
     } else {
 	selected_metric.value = metricsManager.get_default_metric(metrics.value);
-
     }
     ts_menu_ready.value = true;
     await load_charts_data(timeseries_groups);
@@ -187,8 +206,9 @@ async function load_charts_selected_metric() {
 }
 
 function epoch_change(new_epoch) {
-    console.log(new_epoch);
-    load_charts_data(last_timeseries_groups_loaded);
+  console.log(new_epoch);
+  load_charts_data(last_timeseries_groups_loaded);
+  reload_table_data();
 }
 
 function chart_reloaded(chart_options) {
@@ -299,6 +319,55 @@ function set_charts_options_items(charts_options) {
     // 	console.log("UPDATE CHART");
     // 	chart.update_chart();
     // });
+}
+
+function get_datatable_url() {
+  let chart_data_url = `${http_prefix}/lua/pro/get_ts_table.lua`;
+	let p_obj = {
+    zoom: '5m',
+    ts_query: `ifid:${ntopng_url_manager.get_url_entry('ifid')}`,
+    ts_schema: `iface:traffic_rx_tx`,
+    epoch_begin: `${ntopng_url_manager.get_url_entry('epoch_begin')}`,
+    epoch_end: `${ntopng_url_manager.get_url_entry('epoch_end')}`,
+    detail_view: `top_protocols`,
+    new_charts: `true`
+  };
+  
+  let p_url_request =  ntopng_url_manager.add_obj_to_url(p_obj, '');
+  return `${chart_data_url}?${p_url_request}`;
+}
+
+function reload_table_data() {
+  const url = get_datatable_url();
+  top_applications_table.value.update_url(url);
+  top_applications_table.value.reload();
+}
+
+async function load_datatable_data() {
+  const url = get_datatable_url()
+  set_table_configuration(url)
+};
+
+function set_table_configuration(url) {
+  const default_sorting_columns = 1 /* Traffic column */
+  const columns = [
+    { columnName: i18n("application"), width: '35%', name: 'application', data: 'protocol', className: 'text-nowrap', responsivePriority: 1 },
+    { columnName: i18n("traffic"), name: 'traffic', width: '30%', data: 'traffic', className: 'text-nowrap', responsivePriority: 1 },
+    { columnName: i18n("percentage"), name: 'traffic_perc', width: '35%', data: 'percentage', className: 'text-nowrap', responsivePriority: 1 },
+    { columnName: i18n("actions"), name: 'actions', data: 'drilldown',  className: 'text-center', orderable: false, responsivePriority: 0, render: (data, type, service) => {
+        return DatatableVue.create_action_buttons(data, type, service);
+      },
+    }
+  ];  
+
+  const datatable_config = {
+    table_buttons: [ { text: '<i class="fas fa-sync"></i>', className: 'btn-link', action: function () { DatatableVue.reload_table(); } } ],
+    columns_config: columns,
+    data_url: url,
+    enable_search: true,
+    table_config: { serverSide: false, order: [[ default_sorting_columns, 'desc' ]] }
+  };
+  config_app_table = ntopng_utility.clone(datatable_config)
 }
       
 const _i18n = (t) => i18n(t);
