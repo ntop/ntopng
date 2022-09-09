@@ -349,7 +349,7 @@ async function load_datatable_data() {
 };
 
 function set_table_configuration(url) {
-  const default_sorting_columns = 1 /* Traffic column */
+  const default_sorting_columns = 2 /* Percentage column */
   const columns = [
     { columnName: i18n("application"), width: '35%', name: 'application', data: 'protocol', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: i18n("traffic"), name: 'traffic', width: '30%', data: 'traffic', className: 'text-nowrap', responsivePriority: 1 },
