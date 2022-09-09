@@ -41,18 +41,6 @@ for id, v in pairs(tags) do
 
    local filter = tag_utils.get_tag_info(id, alert_entities[page])
 
-   -- select (array of values)
-   if filter.value_type == "alert_id" then
-      filter.value_type = 'array'
-      filter.options = {}
-      for _, alert_type in pairsByValues(all_alert_types, alert_consts.alert_type_info_asc) do
-         filter.options[#filter.options+1] = {
-            value = alert_type.alert_id,
-            label = alert_type.label,
-         }
-      end
-   end
-
    res[#res+1] = filter
 end
 

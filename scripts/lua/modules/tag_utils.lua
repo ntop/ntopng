@@ -514,7 +514,10 @@ function tag_utils.get_tag_info(id, entity)
 
    -- select (array of values)
    
-   if tag.value_type == "alert_type" and entity ~= nil then
+   if (tag.value_type == "alert_id" or
+       tag.value_type == "alert_type" --[[ alert_id should be used --]]) 
+      and entity ~= nil then
+
       filter.value_type = 'array'
       filter.options = {}
       local alert_types = alert_consts.getAlertTypesInfo(entity.entity_id)
