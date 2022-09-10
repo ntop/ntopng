@@ -339,11 +339,13 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
    if(zoomLevel == nil) then zoomLevel = min_zoom end
 
    if graph_utils.drawProGraph then
-      --[[if render_new_chart and render_new_chart == true then
-        local template_utils = require "template_utils"
-        template_utils.render("pages/components/historical_interface.template", {})
-        return
-      end]]
+      local enable_new_timeseries = ntop.getPref("ntopng.enable_new_timeseries")
+      tprint(enable_new_timeseries)
+      if render_new_chart and render_new_chart == true and enable_new_timeseries == "1" then
+	 local template_utils = require "template_utils"
+	 template_utils.render("pages/components/historical_interface.template", {})
+	 return
+      end
       
       graph_utils.drawProGraph(ifid, schema, tags, zoomLevel, baseurl, options, show_graph)
       return
