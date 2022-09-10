@@ -49,7 +49,7 @@ print [[
 			</div>
 			<div class="col-12 col-md-4 text-center text-md-end pr-md-0">
 				<small>
-						<i class="fas fa-clock" title="]] print(i18n("about.server_time")) print[["></i> <div class="d-inline-block" id='network-clock'></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
+						<i class="fas fa-clock" title="]] print(i18n("about.server_time")) print[["></i> <div class="d-inline-block" id='network-clock'></div> ]] if(info.tzname ~= nil) then print(info.tzname) end print(" | ") print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
 				</small>
 			</div>
      	</div>
