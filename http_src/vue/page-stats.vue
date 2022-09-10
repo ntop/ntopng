@@ -2,9 +2,10 @@
 <template>
 <div class="col-12 mb-2 mt-2">
   <div class="card h-100 overflow-hidden">
-    <DataTimeRangePicker :id="id_date_time_picker"
-			 ref="date_time_picker"
-			 @epoch_change="epoch_change">
+    <DataTimeRangePicker style="margin-top:0.5rem;"
+      :id="id_date_time_picker"
+      ref="date_time_picker"
+      @epoch_change="epoch_change">
       <template v-slot:begin>
       </template>
       <template v-slot:extra_buttons>
@@ -17,7 +18,6 @@
       <div class="inline select2-size me-2" style="top:0.4rem;position:relative;">
 	<SelectSearch v-model:selected_option="selected_metric"
 		      :options="metrics"
-		      :init="true"
 		      @select_option="select_metric">
 	</SelectSearch>
       </div>
@@ -71,7 +71,8 @@
 <!-- ></SimpleTable> -->
 <ModalSnapshot ref="modal_snapshot"
 	       :csrf="csrf"
-	       page="timeseries">
+	       :page="page_snapshots"
+	       @added_snapshots="add_snapshots">
 </ModalSnapshot>
 
 <ModalTimeseries
@@ -132,6 +133,9 @@ let last_timeseries_groups_loaded = null;
 const custom_metric = {
     label: "Custom Metrics",
 };
+
+const page_snapshots = "timeseries";
+
 const ts_menu_ready = ref(false);
 
 function init_groups_option_mode() {
@@ -173,12 +177,34 @@ async function init() {
     await load_charts_data(timeseries_groups);
 }
 
-async function get_metrics(push_custom_metric) {
+let last_push_custom_metric = null;
+async function get_metrics(push_custom_metric, force_refresh) {
+    if (!force_refresh && last_push_custom_metric == push_custom_metric) { return metrics.value; }
+    
     let metrics = await metricsManager.get_metrics(http_prefix);
     if (push_custom_metric) {
 	metrics.push(custom_metric);
     }
+    let snapshots_metrics = await get_snapshots_metrics();
+    snapshots_metrics.forEach((sm) => metrics.push(sm));
+
     return metrics;
+}
+
+async function get_snapshots_metrics() {
+    let url = `${http_prefix}/lua/pro/rest/v2/get/filters/snapshots.lua?page=${page_snapshots}`;
+
+    let snapshots_obj = await ntopng_utility.http_request(url);
+    let snapshots = ntopng_utility.object_to_array(snapshots_obj);
+    let metrics_snapshots = snapshots.map((s) => {
+       return {
+           ...s,
+           is_snapshot: true,
+           label: `${s.name} (snap)`,
+       };
+    });
+    console.log(snapshots);
+    return metrics_snapshots;
 }
 
 async function get_selected_timeseries_groups() {
@@ -191,13 +217,19 @@ async function get_selected_timeseries_groups() {
 }
 
 async function select_metric(metric) {
-    console.log(metric);
-    // update chart
-    await load_charts_selected_metric();
-    // console.log("update chart from select");
-    // chart.value.update_chart();
+    console.log(``);
+    if (metric.is_snapshot == true) {
+       let url_parameters = metric.filters;
+       let timeseries_url_params = ntopng_url_manager.get_url_entry("timeseries_groups", url_parameters);
+       let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix, timeseries_url_params);
+       current_groups_options_mode.value = ntopng_url_manager.get_url_entry("timeseries_groups_mode", url_parameters);
+       await load_charts_data(timeseries_groups);
+    } else {
+	await load_charts_selected_metric();
+	refresh_metrics(false);
+    }
+
     // update metrics
-    refresh_metrics(false);
 }
 
 async function load_charts_selected_metric() {
@@ -235,8 +267,13 @@ function get_f_get_custom_chart_options(chart_index) {
     }
 }
 
-async function refresh_metrics(push_custom_metric) {
-    metrics.value = await get_metrics(push_custom_metric);
+function add_snapshots() {
+    let push_custom_metric = selected_metric.value.label == custom_metric.label;
+    refresh_metrics(push_custom_metric, true);
+}
+
+async function refresh_metrics(push_custom_metric, force_refresh) {
+    metrics.value = await get_metrics(push_custom_metric, force_refresh);
     if (push_custom_metric) {
 	selected_metric.value = custom_metric;
     }
@@ -245,9 +282,8 @@ async function refresh_metrics(push_custom_metric) {
 async function apply_modal_timeseries(timeseries_groups) {
     console.log("apply modal-timeseries in page-stats");
     refresh_metrics(true);
+    reload_table_data();
     await load_charts_data(timeseries_groups);
-    
-    // chart.value.update_chart();
 }
 
 function change_groups_options_mode() {    

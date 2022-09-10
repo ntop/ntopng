@@ -23,8 +23,10 @@ function get_ts_group_url_param(ts_group) {
     return param;
 }
 
-const get_timeseries_groups_from_url = async (http_prefix) => {
-    let url_timeseries_groups = ntopng_url_manager.get_url_entry("timeseries_groups");
+const get_timeseries_groups_from_url = async (http_prefix, url_timeseries_groups) => {
+    if (url_timeseries_groups == null) {
+	url_timeseries_groups = ntopng_url_manager.get_url_entry("timeseries_groups");
+    }
     if (url_timeseries_groups == null || url_timeseries_groups == "") {
 	return null;
     }

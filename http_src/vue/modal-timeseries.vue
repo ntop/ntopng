@@ -42,11 +42,11 @@
 	<div class="col-sm-8">
           <!-- <select class="form-select" @click="update_timeseries_to_add()" v-model="selected_metric"> -->
             <!--   <option v-for="item in metrics" :value="item">{{item.label}}</option> -->
-            <!-- </select> -->
+          <!-- </select> -->
           <SelectSearch ref="select_search"
-			@select_option="update_timeseries_to_add()"
-			v-model:selected_option="selected_metric"
-			:options="metrics">
+	  		@select_option="update_timeseries_to_add()"
+	  		v-model:selected_option="selected_metric"
+	  		:options="metrics">
           </SelectSearch>
 	  
 	</div>
@@ -127,13 +127,12 @@ onMounted(async () => {
 //     if (current_value == null) { return; }
 //     timeseries_groups_added.value = current_value;
 // });
-let init_select_search = false;
 watch(() => action.value, (current_value, old_value) => {
     if (current_value != "add") { return; }
+    select_search.value.render();
     // take default visible
-    selected_metric.value = metricsManager.get_default_metric(metrics.value);
-    select_search.value.init();
-    init_select_search = true;
+    // selected_metric.value = metricsManager.get_default_metric(metrics.value);
+    // select_search.value.init();
 }, { flush: 'post'});
 
 const show = async (timeseries_groups) => {

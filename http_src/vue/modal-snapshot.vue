@@ -92,6 +92,8 @@ const props = defineProps({
     page: String,
 });
 
+const emit = defineEmits(['added_snapshots']);
+
 let pattern_singleword = NtopUtils.REGEXES.singleword;
 
 const disable_add = computed(() => {
@@ -165,14 +167,11 @@ async function init() {
     apply_time_filter_text = apply_time_filter_text.replace(/\%end_time/, end_time);
     apply_time_text.value = apply_time_filter_text;
     if (load_snapshots) {
-	snapshots.value = [];
 	load_snapshots = false;
 	let page = get_page();
 	let url = `${http_prefix}/lua/pro/rest/v2/get/filters/snapshots.lua?page=${page}`;
 	let snapshots_obj = await ntopng_utility.http_request(url);
-	for (let key in snapshots_obj) {
-	    snapshots.value.push(snapshots_obj[key]);
-	}
+	snapshots.value = ntopng_utility.object_to_array(snapshots_obj);
     }
     sort_snapshots_by();
     if (snapshots.value.length > 0) {
@@ -209,6 +208,7 @@ const add_snapshot = async () => {
 	console.error(err);
     }
     close();
+    emit('added_snapshots', params);
 }
 
 const select_snapshot = () => {

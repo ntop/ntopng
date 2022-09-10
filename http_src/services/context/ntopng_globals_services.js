@@ -278,9 +278,9 @@ get_url_entries: function(url) {
           const url_params = this.get_url_search_params(url);
           const entries = url_params.entries();
     return entries;
-},	
-get_url_entry: function(param_name) {
-    let entries = this.get_url_entries();
+},
+      get_url_entry: function(param_name, url) {
+    let entries = this.get_url_entries(url);
     for(const [key, value] of entries) {
   if (key == param_name) { return value; }
     }
