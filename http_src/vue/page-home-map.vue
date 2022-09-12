@@ -116,7 +116,7 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
       this.active_tab = this.$props.map_id
       this.page = this.url_params.page
       this.updated_view = this.$props.view
-      
+
       this.navbar_context.items_table.forEach((i) => {
         (i.id == this.active_tab && i.page == this.page) ? i.active = true : i.active = false
       });
@@ -181,7 +181,6 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
         } else {
           this.navbar_context.a_second_title = ` / ${data.selected_iface.name}`
         }
-        //this.navbar_context.a_second_title = ` / ${iface_atag}`
       },
       get_active_tab: function() {
         return this.$refs[this.active_tab + "_" + this.page];
