@@ -41,74 +41,74 @@
       items: {*typeahead.max_items or 8*}, /* Max num of items, use "'all'" for unlimited */
       //item: "<li class='dropdown-item'></li>",
       highlighter: function (item) {
-	  // <a href="#" class="dropdown-item">${item}</a>
-	  if (item == null || item == "") { return ""; }
-	  let query = `(${this.$element.val()})`;
-	  let format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
-	  let itemHtml = item;
-	  if (format.test(query) == false) {
-	      let regex = new RegExp(query, "gi");
-	      item.replace(regex, "<strong>$1</strong>");
-	  }
+          // <a href="#" class="dropdown-item">${item}</a>
+          if (item == null || item == "") { return ""; }
+          let query = `(${this.$element.val()})`;
+          let format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+          let itemHtml = item;
+          if (format.test(query) == false) {
+              let regex = new RegExp(query, "gi");
+              item.replace(regex, "<strong>$1</strong>");
+          }
           var parts = item.split('#');
-	  let printLinksButtons = (links) => {
-	      if (links == null) { return ""; }
-	      let linksButtons = [];
-	      links.forEach((l) => {
-		  let icon = "fa fas fa-link";
-		  if (l.icon != null) {
-		      icon = `fa fas fa-${l.icon}`;		      
-		  }
-		  if (l.url == null) {
-		      l.url = "";
-		  }
-		  let title = "";
-		  if (l.title != null) {
-		      title = `title='${l.title}'`
-		  }
-		  let b = `<button ${title} type="button" class="btn btn-sm btn-link" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
-		  if (l.url == "") {
-		      b = `<span ${title} style="margin-right:4px;"><i class="text-muted ${icon}"></i></span>`;
-		  }
-		  linksButtons.push(b);
-	      });
-	      return linksButtons.join("");
-	  };
-	  let printBadges = (badges) => {
-	      if (badges == null) { return ""; }
-	      let badgesButtons = [];
-	      badges.forEach((bg) => {
-		  let title = "";
-		  if (bg.title != null) {
-		      title = `title='${bg.title}'`
-		  }
-		  let icon = "";
-		  if (bg.icon != null) {
-		      icon = `<i class="fa fas fa-${bg.icon}"></i>`;
-		  }
-		  let label = "";
-		  if (bg.label != null) {
-		      label = `<span ${title} class="badge bg-secondary">${icon}${bg.label} </span>`;
-		  } else {
-		      label = `<span ${title} class="badge bg-secondary">${icon}</span>`
-		  }
-		  let b = `
+          let printLinksButtons = (links) => {
+              if (links == null) { return ""; }
+              let linksButtons = [];
+              links.forEach((l) => {
+                  let icon = "fa fas fa-link";
+                  if (l.icon != null) {
+                      icon = `fa fas fa-${l.icon}`;                      
+                  }
+                  if (l.url == null) {
+                      l.url = "";
+                  }
+                  let title = "";
+                  if (l.title != null) {
+                      title = `title='${l.title}'`
+                  }
+                  let b = `<button ${title} type="button" class="btn btn-sm btn-link" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
+                  if (l.url == "") {
+                      b = `<span ${title} style="margin-right:4px;"><i class="text-muted ${icon}"></i></span>`;
+                  }
+                  linksButtons.push(b);
+              });
+              return linksButtons.join("");
+          };
+          let printBadges = (badges) => {
+              if (badges == null) { return ""; }
+              let badgesButtons = [];
+              badges.forEach((bg) => {
+                  let title = "";
+                  if (bg.title != null) {
+                      title = `title='${bg.title}'`
+                  }
+                  let icon = "";
+                  if (bg.icon != null) {
+                      icon = `<i class="fa fas fa-${bg.icon}"></i>`;
+                  }
+                  let label = "";
+                  if (bg.label != null) {
+                      label = `<span ${title} class="badge bg-secondary">${icon}${bg.label} </span>`;
+                  } else {
+                      label = `<span ${title} class="badge bg-secondary">${icon}</span>`
+                  }
+                  let b = `
 ${label}
 `;
-		  badgesButtons.push(b);
-	      });
-	      return badgesButtons.join("");
-	  }
-	  let allLinksButtons = this.linksElementsDict[item];
-	  if (allLinksButtons == null) { allLinksButtons = []; }
-	  let linksRight = allLinksButtons.filter((l) => l.url != null && l.url != "");
-	  let linksLeft = allLinksButtons.filter((l) => l.url == null || l.url == "");
-	  let linksRightButtonsHtml = printLinksButtons(linksRight);
-	  let linksLeftButtonsHtml = printLinksButtons(linksLeft);
-	  let badgesHtml = printBadges(this.badgesElementsDict[item]);
-	  // <div style="margin-left:-12px;margin-right:-22px;"class="btn-group float-begin">
+                  badgesButtons.push(b);
+              });
+              return badgesButtons.join("");
+          }
+          let allLinksButtons = this.linksElementsDict[item];
+          if (allLinksButtons == null) { allLinksButtons = []; }
+          let linksRight = allLinksButtons.filter((l) => l.url != null && l.url != "");
+          let linksLeft = allLinksButtons.filter((l) => l.url == null || l.url == "");
+          let linksRightButtonsHtml = printLinksButtons(linksRight);
+          let linksLeftButtonsHtml = printLinksButtons(linksLeft);
+          let badgesHtml = printBadges(this.badgesElementsDict[item]);
+          // <div style="margin-left:-12px;margin-right:-22px;"class="btn-group float-begin">
 
-	  let html = `
+          let html = `
 <div>
   <div class="btn-group float-begin">
     ${linksLeftButtonsHtml}
@@ -130,71 +130,71 @@ ${label}
       queryInProcess: false,
       delay: 300,
       matcher: function(item) {
-	  return item != null && item != "";
+          return item != null && item != "";
       },
       source: async function (query, process) {
-	  if (query == null || query == "" || query.startsWith("."))  {
-	      this.lastQueryValue = query;
-	      return;
-	  }
-	  /* Avoid this kind of queries which generates file path warnings into the ntopng log */
-	  let me = this;
-	  if (this.lastQueryValue == query && this.query.length > 1) { return; }
-	  if (this.queryInProcess == true) { return; }
-	  this.queryInProcess = true;
-	  this.lastQueryValue = query;
-      var _get = {};
-    {% for k,v in pairs(typeahead.parameters or {}) do %}
-      _get["{{k}}"] = "{{v}}";
-    {% end %}
-	  _get["query"] = query;
-	  let data = null;
-	  let addEmptyElement = (data, menu) => {
-	      if (data && data.rsp && data.rsp.results && data.rsp.results.length > 0) {
-		  $("li:last > a:empty", menu).remove();
-	      } else {
-		  $("li:last", menu)
-		      .attr("data-no-results", "")
-		      .html("<span style='padding-left:1em; cursor:default;'>No results found</span>");
+          if (query == null || query == "" || query.startsWith("."))  {
+              this.lastQueryValue = query;
+              return;
+          }
+          /* Avoid this kind of queries which generates file path warnings into the ntopng log */
+          let me = this;
+          if (this.lastQueryValue == query && this.query.length > 1) { return; }
+          if (this.queryInProcess == true) { return; }
+          this.queryInProcess = true;
+          this.lastQueryValue = query;
+          var _get = {};
+          {% for k,v in pairs(typeahead.parameters or {}) do %}
+              _get["{{k}}"] = "{{v}}";
+          {% end %}
+          _get["query"] = query;
+          let data = null;
+          let addEmptyElement = (data, menu) => {
+              if (data && data.rsp && data.rsp.results && data.rsp.results.length > 0) {
+                  $("li:last > a:empty", menu).remove();
+              } else {
+                  $("li:last", menu)
+                      .attr("data-no-results", "")
+                      .html("<span style='padding-left:1em; cursor:default;'>No results found</span>");
 
               }
-	  };
-	  try {
-	      data = await $.get("{*typeahead.query_url*}", _get);
-	      let elements = data.rsp.results || data.results;
-	      me.linksElementsDict = {};
-	      me.badgesElementsDict = {};
-	      let maxLinks = 0;
-	      elements.forEach((e) => {
-		  if (e.links != null) {
-		      //e.links.push({icon: "fas fa-search-minus", url: "ntop.org"});
-		      if (e.links.length > maxLinks) { maxLinks = e.links.length; }
-		      me.linksElementsDict[e.name] = e.links;
-		  } else { }
-		  //e.badges = [{label: "ipv6", title: "lkasd", icon: "laptop"}];
-		  if (e.badges != null) {
-		      me.badgesElementsDict[e.name] = e.badges;
-		  }
-	      });
+          };
+          try {
+              data = await $.get("{*typeahead.query_url*}", _get);
+              let elements = data.rsp.results || data.results;
+              me.linksElementsDict = {};
+              me.badgesElementsDict = {};
+              let maxLinks = 0;
+              elements.forEach((e) => {
+                  if (e.links != null) {
+                      //e.links.push({icon: "fas fa-search-minus", url: "ntop.org"});
+                      if (e.links.length > maxLinks) { maxLinks = e.links.length; }
+                      me.linksElementsDict[e.name] = e.links;
+                  } else { }
+                  //e.badges = [{label: "ipv6", title: "lkasd", icon: "laptop"}];
+                  if (e.badges != null) {
+                      me.badgesElementsDict[e.name] = e.badges;
+                  }
+              });
               var res = process(data.rsp.results);
-	      
+              
               var menu = res.$menu;
               menu.click(function (e) { e.preventDefault(); });
-	      let currentWidth = $("li", menu).width();
-	      $("li", menu).width(currentWidth + 36 * maxLinks);
-	      addEmptyElement(data, menu);
-	  } catch(err) {
-	      let res = process([]);
-	      let menu = res.$menu;
-	      addEmptyElement([], menu);
-	  }
-	  me.queryInProcess = false;
-	  // $.get("{*typeahead.query_url*}", _get, function (data) {
-	  // });
+              let currentWidth = $("li", menu).width();
+              $("li", menu).width(currentWidth + 36 * maxLinks);
+              addEmptyElement(data, menu);
+          } catch(err) {
+              let res = process([]);
+              let menu = res.$menu;
+              addEmptyElement([], menu);
+          }
+          me.queryInProcess = false;
+          // $.get("{*typeahead.query_url*}", _get, function (data) {
+          // });
       }, afterSelect: function(item) {
-	  if (isButtonLinkClicked == true) {
-	      return;
-	  }
+          if (isButtonLinkClicked == true) {
+              return;
+          }
       if (! item.no_results) {
         var form = $("#{{typeahead.base_id}}_query")
           .val(item[item.type])
@@ -206,23 +206,28 @@ ${label}
     }, addItem: {name:"", no_results:true},
   });
 
-  $('#{{typeahead.base_id}}_form').submit(function(e) {
-    if ($('#{{typeahead.base_id}}_query').val() === '') {
-      $("#{{typeahead.base_id}}_query").val($('#{{typeahead.base_id}}_search_field').val());
-    }
-  })
-
-  $('#{{typeahead.base_id}}_submit').click(function(e) {
+  function typeaheadSubmit(e) {
     if ($('#{{typeahead.base_id}}_query').val() === '') {
       /* No typeahead result has been selected by the user */
+      /*
       if($('#{{typeahead.base_id}}_search_field').val() === '' || "${{typeahead.allow_partial}}" !== "true") {
-        /* Do not submit if also the typeahead content is empty or if we do not allow partial inputs */
+        // Do not submit if also the typeahead content is empty 
+        // or if we do not allow partial inputs
         e.preventDefault();
-      } else {
+      } else */
+      {
         /* Populate the search field with the user submitted values */
         $("#{{typeahead.base_id}}_query").val($('#{{typeahead.base_id}}_search_field').val());
       }
     }
+  }
+
+  $('#{{typeahead.base_id}}_form').submit(function(e) {
+    typeaheadSubmit(e);
+  })
+
+  $('#{{typeahead.base_id}}_submit').click(function(e) {
+    typeaheadSubmit(e);
   });
 
   /* Restore the original callbacks for new objects */
