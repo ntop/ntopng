@@ -2,22 +2,23 @@
 <template>
 <modal @showed="showed()" ref="modal_id">
   <template v-slot:title>
-    Manage Timeseries
+    {{_i18n("modal_timeseries.title")}}
   </template>
   <template v-slot:body>
     <ul class="nav nav-tabs">
       <li class="nav-item" @click="change_action('add')">
-    	<a class="nav-link" :class="{'active': action == 'add'}" href="#">Add Timeseries</a>
+    	<a class="nav-link" :class="{'active': action == 'add'}" href="#">{{_i18n("modal_timeseries.add_timeseries")}}
+</a>
       </li>
       <li class="nav-item" @click="change_action('select')">
-    	<a class="nav-link" :class="{'active': action == 'select' }" href="#">Manage Timeseries</a>
+    	<a class="nav-link" :class="{'active': action == 'select' }" href="#">{{_i18n("modal_timeseries.manage_timeseries")}}</a>
       </li>
     </ul>
     <!-- action add -->
     <template v-if="action == 'add'">
       <div class="form-group ms-2 me-2 mt-3 row">
 	<label class="col-form-label col-sm-4" >
-          <b>Source Type</b>
+          <b>{{_i18n("modal_timeseries.source_type")}}</b>
 	</label>
 	<div class="col-sm-8">
           <select class="form-select" v-model="selected_source_type">
@@ -27,7 +28,7 @@
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
 	<label class="col-form-label col-sm-4" >
-          <b>Source</b>
+          <b>{{_i18n("modal_timeseries.source")}}</b>
 	</label>
 	<div class="col-sm-8">
           <select class="form-select"  v-model="selected_source">
@@ -37,7 +38,7 @@
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
 	<label class="col-form-label col-sm-4" >
-          <b>Metric</b>
+          <b>{{_i18n("modal_timeseries.metric")}}</b>
 	</label>
 	<div class="col-sm-8">
           <!-- <select class="form-select" @click="update_timeseries_to_add()" v-model="selected_metric"> -->
@@ -54,7 +55,7 @@
       
       <ListTimeseries
 	:id="get_timeseries_group_id()"
-	title="Timeseries:"
+	:title="_i18n('modal_timeseries.timeseries_list')"
 	v-model:timeseries="timeseries_to_add">
       </ListTimeseries>      
     </template><!-- action == add -->
@@ -74,8 +75,8 @@
   </template><!-- modal-body -->
   
   <template v-slot:footer>
-    <button v-show="action == 'add'" type="button" @click="apply" class="btn btn-primary">Add</button>
-    <button v-show="action == 'select'" type="button" @click="apply" class="btn btn-primary">Apply</button>
+    <button v-show="action == 'add'" type="button" @click="apply" class="btn btn-primary">{{_i18n("modal_timeseries.add")}}</button>
+    <button v-show="action == 'select'" type="button" @click="apply" class="btn btn-primary">{{_i18n("modal_timeseries.apply")}}</button>
   </template>
 </modal>
 </template>
@@ -236,10 +237,9 @@ const apply = () => {
 const close = () => {
     modal_id.value.close();
 };
+const _i18n = (t) => i18n(t);
 
 defineExpose({ show, close });
-
-const _i18n = (t) => i18n(t);
 
 </script>
 

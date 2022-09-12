@@ -9,7 +9,7 @@
       <template v-slot:begin>
       </template>
       <template v-slot:extra_buttons>
-	<button class="btn btn-link btn-sm" @click="show_modal_snapshot" title="Manage Snapshots"><i class="fas fa-lg fa-camera-retro"></i></button>
+	<button v-if="enable_snapshots" class="btn btn-link btn-sm" @click="show_modal_snapshot" :title="_i18n('page_stats.manage_snapshots_btn')"><i class="fas fa-lg fa-camera-retro"></i></button>
 	
       </template>
     </DataTimeRangePicker>
@@ -24,19 +24,19 @@
       <div class="inline mb-2 select2-size">
 	<select class="me-2  form-select" @change="change_groups_options_mode" style="width:18rem;" v-model="current_groups_options_mode">
 	  <option :value="groups_options_modes[0]">
-	    One Chart
+	    {{_i18n('page_stats.layout_1_per_all')}}
 	  </option>
 	  <option :value="groups_options_modes[1]">
-	    One Chart for each Y-axis
+	    {{_i18n('page_stats.layout_1_per_y')}}
 	  </option>
 	  <option :value="groups_options_modes[2]">
-	    One Chart for each Metric
+	    {{_i18n('page_stats.layout_1_per_1')}}
 	  </option>
 	</select>
       </div>
       
       <button type="button" @click="show_manage_timeseries" class="btn btn-sm btn-primary inline">
-      	Manage Timeseries
+	{{_i18n('page_stats.manage_timeseries_btn')}}
       </button>
       
     </div>
@@ -55,7 +55,7 @@
   <div class="mt-4 card card-shadow">
     <div class="card-body">
       <div class="mb-4 text-nowrap" style="font-size: 1.1rem;">
-        <i class="fa-solid fa-chart-line"></i> Top Applications
+        <i class="fa-solid fa-chart-line"></i> 	{{_i18n('page_stats.top_applications')}}
       </div>
       <Datatable ref="top_applications_table"
         :table_buttons="config_app_table.table_buttons"
@@ -69,7 +69,7 @@
 </div>
 <!-- <SimpleTable :chart_options="last_chart_options" -->
 <!-- ></SimpleTable> -->
-<ModalSnapshot ref="modal_snapshot"
+<ModalSnapshot v-if="enable_snapshots" ref="modal_snapshot"
 	       :csrf="csrf"
 	       :page="page_snapshots"
 	       @added_snapshots="add_snapshots">
@@ -96,6 +96,7 @@ import metricsManager from "../utilities/metrics-manager.js";
 
 const props = defineProps({
     csrf: String,
+    enable_snapshots: Boolean,
 });
 
 ntopng_utility.check_and_set_default_interval_time();
@@ -192,6 +193,7 @@ async function get_metrics(push_custom_metric, force_refresh) {
 }
 
 async function get_snapshots_metrics() {
+    if (!props.enable_snapshots) { return; }
     let url = `${http_prefix}/lua/pro/rest/v2/get/filters/snapshots.lua?page=${page_snapshots}`;
 
     let snapshots_obj = await ntopng_utility.http_request(url);
@@ -214,6 +216,11 @@ async function get_selected_timeseries_groups() {
     let ts_group = metricsManager.get_ts_group(source_type, source, metric);
     let timeseries_groups = [ts_group];
     return timeseries_groups;
+}
+
+function select_metric_from_metric_schema(metric_schema) {
+    let metric = metrics.value.find((m) => m.schema == metric_schema);
+    select_metric(metric);
 }
 
 async function select_metric(metric) {
@@ -373,10 +380,12 @@ function get_datatable_url() {
   return `${chart_data_url}?${p_url_request}`;
 }
 
-function reload_table_data() {
-  const url = get_datatable_url();
-  top_applications_table.value.update_url(url);
-  top_applications_table.value.reload();
+async function reload_table_data() {
+    let push_custom_metric = selected_metric.value.label == custom_metric.label;    
+    metrics.value = await get_metrics(push_custom_metric, true);
+    const url = get_datatable_url();
+    top_applications_table.value.update_url(url);
+    top_applications_table.value.reload();
 }
 
 async function load_datatable_data() {

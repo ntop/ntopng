@@ -6721,6 +6721,25 @@ local lang = {
       ["abort_edit"] = "Abort edit of a Widget?",
     },
   },
+  ["page_stats"] = {
+     ["manage_snapshots_btn"] = "Manage Snapshots",
+     ["layout_1_per_all"] = "One Chart",
+     ["layout_1_per_y"] = "One Chart for each Y-axis",
+     ["layout_1_per_1"] = "One Chart for each Metric",
+     ["manage_timeseries_btn"] = "Manage Timeseries",
+     ["top_applications"] = "Top Applications",     
+  },
+  ["modal_timeseries"] = {
+     ["title"] = "Manage Timeseries",
+     ["add_timeseries"] = "Add Timeseries",
+     ["manage_timeseries"] = "Manage Timeseries",
+     ["source_type"] = "Source Type",
+     ["source"] = "Source",
+     ["metric"] = "Metric",
+     ["timeseries_list"] = "Timeseries:",
+     ["add"] = "Add",
+     ["apply"] = "Apply",
+  }
 }
 
 return lang
