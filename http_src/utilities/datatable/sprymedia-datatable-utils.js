@@ -734,15 +734,15 @@ export class DataTableRenders {
 
     static filterizeVlan(flow, row, key, value, label, title) {
 	let valueVlan = value;
-	let labelVlan = label;
+  let labelVlan = label;
 	let titleVlan = title;
 	if (flow.vlan && flow.vlan.value != 0) {
 	    valueVlan = `${value}@${flow.vlan.value}`;
 	    labelVlan = `${label}@${flow.vlan.label}`;
 	    titleVlan = `${title}@${flow.vlan.title}`;
 	}
-      labelVlan = NtopUtils.shortenLabel(labelVlan, 16, "\.")
-        return DataTableRenders.filterize(key, valueVlan, labelVlan, labelVlan, titleVlan); 
+      labelVlan = NtopUtils.shortenLabel(labelVlan, 16, ".")
+      return DataTableRenders.filterize(key, valueVlan, labelVlan, labelVlan, titleVlan); 
     }
 
     static formatFlowTuple(flow, type, row) {
