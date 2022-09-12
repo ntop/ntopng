@@ -104,7 +104,7 @@ ntopng_utility.check_and_set_default_interval_time();
 
 let id_chart = "chart";
 let id_date_time_picker = "date_time_picker";
-let chart_type = ntopChartApex.typeChart.TS_LINE;
+let chart_type = ref([]);
 let config_app_table = ref({});
 const charts = ref([]);
 const date_time_picker = ref(null);
@@ -192,7 +192,15 @@ async function get_metrics(push_custom_metric, force_refresh) {
     }
     let snapshots_metrics = cache_snapshots;
     snapshots_metrics.forEach((sm) => metrics.push(sm));
-
+    /* Order Metrics */
+    metrics.sort((a, b) => {
+      const nameA = a.label.toUpperCase(); // ignore upper and lowercase
+      const nameB = b.label.toUpperCase(); // ignore upper and lowercase
+      if (nameA < nameB) { return -1; }
+      if (nameA > nameB) { return 1; }
+      return 0;
+    });
+    
     return metrics;
 }
 
