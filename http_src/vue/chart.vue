@@ -15,7 +15,7 @@ export default {
 	get_params_url_request: Function,
 	get_custom_chart_options: Function,
     },
-    emits: ["apply", "hidden", "showed", "chart_reloaded"],
+    emits: ["apply", "hidden", "showed", "chart_reloaded", "zoom"],
     /** This method is the first method of the component called, it's called before html template creation. */
     created() {
     },
@@ -103,6 +103,7 @@ export default {
             // the timestamps are in milliseconds, convert them into seconds
 	    let new_epoch_status = { epoch_begin: Number.parseInt(begin.unix()), epoch_end: Number.parseInt(end.unix()) };
 	    ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, new_epoch_status, this.id);
+	    this.$emit('zoom', new_epoch_status);
 	},
     },
 };

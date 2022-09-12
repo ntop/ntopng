@@ -168,7 +168,11 @@ const get_default_source_value = (source_type) => {
 };
 
 let cache_metrics = {};
+let last_metrics_time_interval = null;
 const get_metrics = async (http_prefix, source_type, source_value) => {
+    let epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
+    let epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
+    let current_last_metrics_time_interval = `${epoch_begin}_${epoch_end}`;
     if (source_type == null) {
 	source_type = get_current_page_source_type();
     }
@@ -177,6 +181,10 @@ const get_metrics = async (http_prefix, source_type, source_value) => {
     }
     let url = `${http_prefix}/lua/pro/rest/v2/get/timeseries/type/consts.lua`;
     let key = `${source_type.value}_${source_value}`;
+    if (current_last_metrics_time_interval != last_metrics_time_interval) {
+	cache_metrics[key] = null;
+	last_metrics_time_interval = current_last_metrics_time_interval;
+    }
     if (cache_metrics[key] == null) {
 	cache_metrics[key] = ntopng_utility.http_request(url);
     }

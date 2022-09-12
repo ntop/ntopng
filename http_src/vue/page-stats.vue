@@ -47,6 +47,7 @@
 	       :chart_type="chart_type"
       	       :register_on_status_change="false"
 	       :get_custom_chart_options="get_f_get_custom_chart_options(i)"
+	       @zoom="epoch_change"
 	       @chart_reloaded="chart_reloaded">
 	</Chart>
       </div>
