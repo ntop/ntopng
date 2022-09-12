@@ -187,7 +187,10 @@ async function get_metrics(push_custom_metric, force_refresh) {
     if (push_custom_metric) {
 	metrics.push(custom_metric);
     }
-    let snapshots_metrics = await get_snapshots_metrics();
+    if (cache_snapshots == null) {
+	cache_snapshots = await get_snapshots_metrics();
+    }
+    let snapshots_metrics = cache_snapshots;
     snapshots_metrics.forEach((sm) => metrics.push(sm));
 
     return metrics;
@@ -245,10 +248,12 @@ async function load_charts_selected_metric() {
     await load_charts_data(timeseries_groups);
 }
 
-function epoch_change(new_epoch) {
-  console.log(new_epoch);
-  load_charts_data(last_timeseries_groups_loaded);
-  reload_table_data();
+function epoch_change(new_epoch) {    
+    console.log(new_epoch);
+        let push_custom_metric = selected_metric.value.label == custom_metric.label;
+    load_charts_data(last_timeseries_groups_loaded);    
+    reload_table_data();
+    refresh_metrics(push_custom_metric, true);
 }
 
 function chart_reloaded(chart_options) {
@@ -275,6 +280,7 @@ function get_f_get_custom_chart_options(chart_index) {
     }
 }
 
+let cache_snapshots = null;
 function add_snapshots() {
     let push_custom_metric = selected_metric.value.label == custom_metric.label;
     refresh_metrics(push_custom_metric, true);
@@ -290,7 +296,6 @@ async function refresh_metrics(push_custom_metric, force_refresh) {
 async function apply_modal_timeseries(timeseries_groups) {
     console.log("apply modal-timeseries in page-stats");
     refresh_metrics(true);
-    reload_table_data();
     await load_charts_data(timeseries_groups);
 }
 
@@ -382,8 +387,6 @@ function get_datatable_url() {
 }
 
 async function reload_table_data() {
-    let push_custom_metric = selected_metric.value.label == custom_metric.label;    
-    metrics.value = await get_metrics(push_custom_metric, true);
     const url = get_datatable_url();
     top_applications_table.value.update_url(url);
     top_applications_table.value.reload();
