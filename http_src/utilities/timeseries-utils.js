@@ -251,9 +251,9 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
 }
 
 const groupsOptionsModesEnum = {
-  '1_chart': { value: "1_chart", label: "i18n('1_chart')" },
-  '1_chart_x_yaxis': { value: "1_chart_x_yaxis", label: "i18n('1_chart_x_yaxis')" },
-  '1_chart_x_metric': { value: "1_chart_x_metric", label: "i18n('1_chart_x_metric')" },
+  '1_chart': { value: "1_chart", label: i18n('page_stats.layout_1_per_all') },
+  '1_chart_x_yaxis': { value: "1_chart_x_yaxis", label: i18n('page_stats.layout_1_per_y') },
+  '1_chart_x_metric': { value: "1_chart_x_metric", label: i18n('page_stats.layout_1_per_1') },
 }
 
 function getGroupOptionMode(group_id) {
