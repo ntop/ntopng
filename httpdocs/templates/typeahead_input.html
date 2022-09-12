@@ -195,15 +195,19 @@ ${label}
           if (isButtonLinkClicked == true) {
               return;
           }
-      if (! item.no_results) {
-        var form = $("#{{typeahead.base_id}}_query")
-          .val(item[item.type])
-          .closest("form");
+          if (! item.no_results) {
+            if (item.type)
+              $("#{{typeahead.base_id}}_query").val(item[item.type])
+            else
+              $("#{{typeahead.base_id}}_query").val(item['{{typeahead.json_key}}'])
 
-        if ({*typeahead.before_submit or "$.noop"*}(form, item) !== "false")
-          form.submit();
-      }
-    }, addItem: {name:"", no_results:true},
+            var form = $("#{{typeahead.base_id}}_query")
+              .closest("form");
+
+            if ({*typeahead.before_submit or "$.noop"*}(form, item) !== "false")
+              form.submit();
+          }
+      }, addItem: {name:"", no_results:true},
   });
 
   function typeaheadSubmit(e) {
