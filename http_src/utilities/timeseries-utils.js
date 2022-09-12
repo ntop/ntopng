@@ -251,18 +251,22 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
 }
 
 const groupsOptionsModesEnum = {
-    "1_chart": "1_chart",
-    "1_chart_x_yaxis": "1_chart_x_yaxis",
-    "1_chart_x_metric": "1_chart_x_metric",
-};
+  '1_chart': { value: "1_chart", label: "i18n('1_chart')" },
+  '1_chart_x_yaxis': { value: "1_chart_x_yaxis", label: "i18n('1_chart_x_yaxis')" },
+  '1_chart_x_metric': { value: "1_chart_x_metric", label: "i18n('1_chart_x_metric')" },
+}
+
+function getGroupOptionMode(group_id) {
+  return groupsOptionsModesEnum[group_id] || null;
+};  
 
 function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsMode) {
-    if (groupsOptionsMode == groupsOptionsModesEnum["1_chart"]) {	
+    if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart"].value) {	
 	let apexOptions = tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray);
 	let apexOptionsArray = [apexOptions];
 	setLeftPadding(apexOptionsArray);
 	return apexOptionsArray;
-    } else if (groupsOptionsMode == groupsOptionsModesEnum["1_chart_x_yaxis"]) {
+    } else if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart_x_yaxis"].value) {
 	let tsDict = {};
 	tsGrpupsArray.forEach((tsGroup, i) => {
 	    let yaxisId = getYaxisId(tsGroup.metric);
@@ -283,7 +287,7 @@ function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsM
 	}
 	setLeftPadding(apexOptionsArray);
 	return apexOptionsArray;
-    } else if (groupsOptionsMode == groupsOptionsModesEnum["1_chart_x_metric"]) {
+    } else if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart_x_metric"].value) {
 	let apexOptionsArray = [];
 	tsOptionsArray.forEach((tsOptions, i) => {
 	    let apexOptions = tsArrayToApexOptions([tsOptions], [tsGrpupsArray[i]]);
@@ -384,7 +388,8 @@ const timeseriesUtils = function() {
 	groupsOptionsModesEnum,
 	tsToApexOptions,
 	tsArrayToApexOptions,
-	tsArrayToApexOptionsArray
+	tsArrayToApexOptionsArray,
+  getGroupOptionMode
     };
 }();
 

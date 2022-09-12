@@ -56,6 +56,7 @@ const render = () => {
 	    height: '500px',
 	    theme: 'bootstrap-5',
 	    dropdownParent: $(select2Div).parent(),
+      dropdownAutoWidth : true
 	});
 	$(select2Div).on('select2:select', function (e) {
 	    let data = e.params.data;

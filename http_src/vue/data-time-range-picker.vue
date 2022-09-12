@@ -5,23 +5,12 @@
     <div class="controls d-flex flex-wrap">
       <div class="btn-group me-auto btn-group-sm">
         <slot name="begin"></slot>
-        <select v-model="select_time_value" @change="change_select_time" class="form-select me-2">
-                <!-- <option value="min_5">{{context.text.show_alerts_presets["5_min"]}}</option> -->
-                <option value="min_5">{{i18n('show_alerts.presets.5_min')}}</option>
-        
-                <option value="min_30">{{i18n('show_alerts.presets.30_min')}}</option>
-        
-                <option value="hour">{{i18n('show_alerts.presets.hour')}}</option>
-        
-                <option value="day">{{i18n('show_alerts.presets.day')}}</option>
-                <option value="week">{{i18n('show_alerts.presets.week')}}</option>
-        
-                <option value="month">{{i18n('show_alerts.presets.month')}}</option>
-                <option value="year">{{i18n('show_alerts.presets.year')}}</option>
-                <option value="custom">{{i18n('graphs.custom')}}</option>
-        </select>
-        
-        <div class="btn-group">
+        <select-search v-model:selected_option="selected_time_preset"
+          :id="'time_preset_range_picker'"
+          :options="time_preset_list"
+          @select_option="change_select_time">
+        </select-search>
+        <div class="btn-group ms-2">
             <span class="input-group-text">
                 <i class="fas fa-calendar-alt"></i>
             </span>
@@ -65,8 +54,11 @@
 </template>
 
 <script>
+import { default as SelectSearch } from "./select-search.vue";
+
 export default {
     components: {
+      'select-search': SelectSearch,
     },
     props: {
 	id: String,
@@ -190,6 +182,13 @@ export default {
                 this.select_time_value = "custom";
             }
             
+            this.time_preset_list.forEach(element => {
+              element.currently_active = false
+              if(element.value == this.select_time_value) {
+                this.selected_time_preset = element
+                element.currently_active = true
+              }
+            });
         },
         apply: function() {
             // let date_begin = this.$refs["begin-date"].valueAsDate;
@@ -228,7 +227,7 @@ export default {
         // },
         change_select_time: function() {
             let s_values = this.get_select_values();
-            let interval_s = s_values[this.select_time_value];
+            let interval_s = s_values[this.selected_time_preset.value];
             let epoch_end = this.get_utc_seconds(Date.now());
             let epoch_begin = epoch_end - interval_s;
             let status = { epoch_begin: epoch_begin, epoch_end: epoch_end };
@@ -321,18 +320,29 @@ export default {
     /**
        Private date of vue component.
     */
-    data() {
-        return {
-	    i18n: (t) => i18n(t),
-            //status_id: "data-time-range-picker" + this.$props.id,
-            epoch_status: null,
-            enable_apply: false,
-            select_time_value: "min_5",
-            wrong_date: false,
-	    flat_begin_date: null,
-	    flat_end_date: null,
-        };
-    },
+  data() {
+      return {
+    i18n: (t) => i18n(t),
+      //status_id: "data-time-range-picker" + this.$props.id,
+      epoch_status: null,
+      enable_apply: false,
+      select_time_value: "min_5",
+      wrong_date: false,
+      flat_begin_date: null,
+      flat_end_date: null,
+      selected_time_preset: { value: "min_30", label: i18n('show_alerts.presets.30_min') },
+      time_preset_list: [
+        { value: "min_5", label: i18n('show_alerts.presets.5_min'), currently_active: false },
+        { value: "min_30", label: i18n('show_alerts.presets.30_min'), currently_active: true },
+        { value: "hour", label: i18n('show_alerts.presets.hour'), currently_active: false },
+        { value: "day", label: i18n('show_alerts.presets.day'), currently_active: false },
+        { value: "week", label: i18n('show_alerts.presets.week'), currently_active: false },
+        { value: "month", label: i18n('show_alerts.presets.month'), currently_active: false },
+        { value: "year", label: i18n('show_alerts.presets.year'), currently_active: false },
+        { value: "custom", label: i18n('show_alerts.presets.custom'), currently_active: false },
+      ]
+    };
+  },
 }
 
 </script>

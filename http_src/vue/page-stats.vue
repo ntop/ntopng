@@ -15,28 +15,20 @@
     </DataTimeRangePicker>
     <!-- select metric -->
     <div v-show="ts_menu_ready" class="form-group ms-1 me-1 mt-1">
-      <div class="inline select2-size me-2" style="top:0.4rem;position:relative;">
+      <div class="inline select2-size me-2 mt-2">
 	<SelectSearch v-model:selected_option="selected_metric"
 		      :options="metrics"
 		      @select_option="select_metric">
 	</SelectSearch>
       </div>
-      <div class="inline mb-2 select2-size">
-	<select class="me-2  form-select" @change="change_groups_options_mode" style="width:18rem;" v-model="current_groups_options_mode">
-	  <option :value="groups_options_modes[0]">
-	    {{_i18n('page_stats.layout_1_per_all')}}
-	  </option>
-	  <option :value="groups_options_modes[1]">
-	    {{_i18n('page_stats.layout_1_per_y')}}
-	  </option>
-	  <option :value="groups_options_modes[2]">
-	    {{_i18n('page_stats.layout_1_per_1')}}
-	  </option>
-	</select>
+      <div class="inline select2-size me-2 mt-2">
+	<SelectSearch v-model:selected_option="current_groups_options_mode"
+		      :options="groups_options_modes"
+		      @select_option="change_groups_options_mode">
+	</SelectSearch>
       </div>
-      
-      <button type="button" @click="show_manage_timeseries" class="btn btn-sm btn-primary inline">
-	{{_i18n('page_stats.manage_timeseries_btn')}}
+      <button type="button" @click="show_manage_timeseries" class="btn btn-sm btn-primary inline" style='vertical-align: super;'>
+      	Manage Timeseries
       </button>
       
     </div>
@@ -90,6 +82,7 @@ import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as Datatable } from "./datatable.vue";
+import { default as Dropdown } from "./dropdown.vue";
 
 import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../services/context/ntopng_globals_services.js";
 import timeseriesUtils from "../utilities/timeseries-utils.js";
@@ -104,7 +97,7 @@ ntopng_utility.check_and_set_default_interval_time();
 
 let id_chart = "chart";
 let id_date_time_picker = "date_time_picker";
-let chart_type = ref([]);
+let chart_type = ntopChartApex.typeChart.TS_LINE;
 let config_app_table = ref({});
 const charts = ref([]);
 const date_time_picker = ref(null);
@@ -132,9 +125,7 @@ const current_groups_options_mode = ref(init_groups_option_mode());
 
 let last_timeseries_groups_loaded = null;
 
-const custom_metric = {
-    label: "Custom Metrics",
-};
+const custom_metric = { value: "custom", label: i18n('show_alerts.presets.custom'), currently_active: false }
 
 const page_snapshots = "timeseries";
 
@@ -143,7 +134,7 @@ const ts_menu_ready = ref(false);
 function init_groups_option_mode() {
     let groups_mode = ntopng_url_manager.get_url_entry("timeseries_groups_mode");
     if (groups_mode != null && groups_mode != "") {
-	return groups_mode;
+	return timeseriesUtils.getGroupOptionMode(groups_mode);
     }
     return groups_options_modes[0];
 }
@@ -241,7 +232,7 @@ async function select_metric(metric) {
        let url_parameters = metric.filters;
        let timeseries_url_params = ntopng_url_manager.get_url_entry("timeseries_groups", url_parameters);
        let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix, timeseries_url_params);
-       current_groups_options_mode.value = ntopng_url_manager.get_url_entry("timeseries_groups_mode", url_parameters);
+       current_groups_options_mode.value = timeseriesUtils.getGroupOptionMode(ntopng_url_manager.get_url_entry("timeseries_groups_mode", url_parameters));
        await load_charts_data(timeseries_groups);
     } else {
 	await load_charts_selected_metric();
@@ -347,7 +338,7 @@ async function load_charts_data(timeseries_groups, not_reload) {
 }
 
 function update_url_params(timeseries_groups) {
-    ntopng_url_manager.set_key_to_url("timeseries_groups_mode", current_groups_options_mode.value);
+    ntopng_url_manager.set_key_to_url("timeseries_groups_mode", current_groups_options_mode.value.value);
     metricsManager.set_timeseries_groups_in_url(last_timeseries_groups_loaded);
 }
 

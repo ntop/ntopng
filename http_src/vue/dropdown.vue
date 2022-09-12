@@ -7,7 +7,7 @@
   
 }
 <template>
-  <div class="dropdown<">
+  <div class="dropdown">
     <button class="btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       {{ active_entry.label }} <i :class="(filter_icon || '')"></i>
     </button> 

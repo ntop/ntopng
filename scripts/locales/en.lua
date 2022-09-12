@@ -5952,6 +5952,7 @@ local lang = {
       ["presets"] = "Presets",
       ["week"] = "Last Week",
       ["year"] = "Last Year",
+      ["custom"] = "Custom",
     },
   },
   ["sites_page"] = {
