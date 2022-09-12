@@ -22,7 +22,7 @@ local series_extra_info = {
     color = '#c6d9fd'
   },
   bytes_rcvd = {
-    color = '#09ee09'
+    color = '#90ee90'
   },
   devices = {
     color = '#ac9ddf'
