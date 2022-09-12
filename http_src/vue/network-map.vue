@@ -37,14 +37,14 @@ let update_view_state_id = null;
 let url_params = {};
 let is_destroyed = false;
 
-onMounted(() => {
+onMounted(async () => {
   load_scale();
   url_params = props.url_params;
   container = document.getElementById(props.map_id);
   
   // if an host has been defined inside the URL query then add it to the request
   const url = NtopUtils.buildURL(props.url, url_params); 
-  $.get(url, dataRequest, function(response) {
+  await $.get(url, dataRequest, function(response) {
     const {nodes, edges, max_entry_reached} = response.rsp;
     max_entries = max_entry_reached;
     nodes_dataset = new vis.DataSet(nodes);
@@ -54,7 +54,8 @@ onMounted(() => {
     network = new vis.Network(container, datasets, ntopng_map_manager.get_default_options());
     save_topology_view();
     set_event_listener();
-  });
+    ntopng_events_manager.emit_custom_event(ntopng_custom_events.VIS_DATA_LOADED);
+	});
 })
 
 onBeforeUnmount(() => {
@@ -199,10 +200,10 @@ const update_url_params = (new_url_params) => {
   url_params = new_url_params;
 }
 
-const reload = () => {
+const reload = async () => {
   console.log(url_params)
   const url = NtopUtils.buildURL(props.url, url_params); 
-  $.get(url, dataRequest, function(response) {
+  await $.get(url, dataRequest, function(response) {
     const {nodes, edges, max_entry_reached} = response.rsp;
     max_entries = max_entry_reached;
     nodes_dataset = new vis.DataSet(nodes);
@@ -212,7 +213,8 @@ const reload = () => {
     if(network)
       network.setData(datasets);
     
-    save_topology_view();
+    ntopng_events_manager.emit_custom_event(ntopng_custom_events.VIS_DATA_LOADED);
+	  save_topology_view();
   });
 }
 

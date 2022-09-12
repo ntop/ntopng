@@ -97,12 +97,19 @@ export default {
     start_vis_network_map(this)
   },
   mounted() {
+    const max_entries_reached = this.max_entry_reached
     const reload_map = this.reload_map
     ntopng_events_manager.on_custom_event("change_filter_event", change_filter_event, (filter) => {
 	    this.active_filter_list[filter.id] = filter.filter;
       ntopng_url_manager.set_key_to_url(filter.key, filter.filter.key);
       this.url_params[filter.key] = filter.filter.key;
       this.update_and_reload_map();
+    });
+
+    ntopng_events_manager.on_custom_event(this.get_map(), ntopng_custom_events.VIS_DATA_LOADED, (filter) => {
+      if(max_entries_reached()) {
+        $(`#max-entries-reached`).removeAttr('hidden')
+      }
     });
 
     /* Remove invalid filters */
@@ -118,9 +125,6 @@ export default {
     });
     
     setTimeout(() => NtopUtils.hideOverlays(), 0);
-    if(this.max_entry_reached()) {
-      $(`#max-entries-reached`).removeAttr('hidden')
-    }
 
     $("#btn-delete-all").click(() => this.show_delete_all_dialog());
     $("#autolayout").click(() => this.show_autolayout_dialog());
@@ -146,28 +150,31 @@ export default {
   },
   methods: { 
     destroy: function() {
-      let map = this.$refs[`asset_map`];
+      let map = this.get_map();
       map.destroy();
     },
     /* Method used to switch active table tab */
     click_item: function(filter, key, id) {
       ntopng_events_manager.emit_custom_event(change_filter_event, { filter: filter, key: key, id: id });
     },
+    get_map: function() {
+      return this.$refs[`asset_map`];
+    },
     max_entry_reached: function() {
-      let map = this.$refs[`asset_map`];
+      let map = this.get_map();
       return map.is_max_entry_reached();
     },
     reload_map: function() {
-      let map = this.$refs[`asset_map`];
+      let map = this.get_map();
       map.reload();
     },
     update_and_reload_map: function() {
-      let map = this.$refs[`asset_map`];
+      let map = this.get_map();
       map.update_url_params(this.url_params)
       map.reload();
     },
     autolayout: function() {
-      let map = this.$refs[`asset_map`];
+      let map = this.get_map();
       map.autolayout();
     },
     show_delete_all_dialog: function() {

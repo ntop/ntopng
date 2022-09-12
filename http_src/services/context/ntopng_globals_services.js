@@ -402,7 +402,8 @@ return (new_status.filters == null && old_status.filters != null)
 export const ntopng_custom_events = {
   SHOW_MODAL_FILTERS: "show_modal_filters", // {id: string, operator: string, value: string}
   MODAL_FILTERS_APPLY: "modal_filters_apply", // {id: string, label: string, operator: string, value: string, value_label: string}
-    SHOW_GLOBAL_ALERT_INFO: "show_global_alert_info", // html_text: string
+  SHOW_GLOBAL_ALERT_INFO: "show_global_alert_info", // html_text: string
+  VIS_DATA_LOADED: "vis_data_loaded", 
 };
 
 

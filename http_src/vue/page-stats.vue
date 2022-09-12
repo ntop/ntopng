@@ -388,7 +388,7 @@ function set_table_configuration(url) {
   const default_sorting_columns = 2 /* Percentage column */
   const columns = [
     { columnName: i18n("application"), width: '35%', name: 'application', data: 'protocol', className: 'text-nowrap', responsivePriority: 1 },
-    { columnName: i18n("traffic"), name: 'traffic', width: '30%', data: 'traffic', className: 'text-nowrap', responsivePriority: 1 },
+    { columnName: i18n("traffic"), name: 'traffic', width: '30%', data: 'traffic', orderable: false, className: 'text-nowrap', responsivePriority: 1 },
     { columnName: i18n("percentage"), name: 'traffic_perc', width: '35%', data: 'percentage', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: i18n("actions"), name: 'actions', data: 'drilldown',  className: 'text-center', orderable: false, responsivePriority: 0, render: (data, type, service) => {
         return DatatableVue.create_action_buttons(data, type, service);
