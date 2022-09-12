@@ -104,9 +104,10 @@ export default {
       this.updated_url_params[key] = value;
     }
 
+    const max_entries_reached = this.max_entry_reached
+    const reload_map = this.reload_map
     this.update_and_reload_map()
 
-    const reload_map = this.reload_map
     ntopng_events_manager.on_custom_event("change_filter_event", change_filter_event, (filter) => {
 	    this.active_filter_list[filter.id] = filter.filter;
       ntopng_url_manager.set_key_to_url(filter.key, filter.filter.key);

@@ -3,6 +3,8 @@
   <span class="me-1 text-nowrap" style="font-size: 1.1rem;">
     <i :class="main_icon"></i>
     {{main_title}}
+    <a :href="a_first_title_href" >{{a_first_title_label}}</a>
+    {{a_second_title}}
   </span>
   <span class="text-muted ms-1 d-none d-lg-inline d-md-none">|</span>
   <button class="navbar-toggler" type="button">
@@ -53,11 +55,14 @@ export default defineComponent({
 	main_icon: String,
 	help_link: String,
 	items_table: Array,
+  a_first_title_href: String,
+  a_first_title_label: String,
+  a_second_title: String,
     },
     emits: ["click_item"],
     /** This method is the first method of the component called, it's called before html template creation. */
     created() {
-    },
+      },
     data() {
 	return {
 	    //i18n: (t) => i18n(t),

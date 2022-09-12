@@ -21,9 +21,9 @@
           <b>{{_i18n("modal_timeseries.source_type")}}</b>
 	</label>
 	<div class="col-sm-8">
-          <select class="form-select" v-model="selected_source_type">
-            <option v-for="item in sources_types" :value="item">{{item.name}}</option>
-          </select>
+    <SelectSearch v-model:selected_option="selected_source_type"
+		      :options="sources_types">
+	  </SelectSearch>
 	</div>
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
@@ -31,7 +31,7 @@
           <b>{{_i18n("modal_timeseries.source")}}</b>
 	</label>
 	<div class="col-sm-8">
-          <select class="form-select"  v-model="selected_source">
+  <select class="form-select"  v-model="selected_source">
             <option v-for="item in sources" :value="item">{{item.name}}</option>
           </select>
 	</div>
@@ -99,6 +99,7 @@ const action = ref("select"); // add/select
 
 let current_page_source_type = metricsManager.get_current_page_source_type();
 let sources_types = metricsManager.sources_types;
+
 const selected_source_type = ref(current_page_source_type);
 
 const sources = ref([]);
@@ -158,6 +159,13 @@ async function init() {
     metrics.value = await metricsManager.get_metrics(http_prefix);
     // take default visible
     selected_metric.value = metricsManager.get_default_metric(metrics.value);
+    metrics.value.sort((a, b) => {
+      const nameA = a.label.toUpperCase(); // ignore upper and lowercase
+      const nameB = b.label.toUpperCase(); // ignore upper and lowercase
+      if (nameA < nameB) { return -1; }
+      if (nameA > nameB) { return 1; }
+      return 0;
+    });
     update_timeseries_to_add(false);
     
     // init metrics added

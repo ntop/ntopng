@@ -7,6 +7,9 @@
 
 <page-navbar
   id="page_navbar"
+  :a_first_title_label="navbar_context.a_first_title_label"
+  :a_first_title_href="navbar_context.a_first_title_href"
+  :a_second_title="navbar_context.a_second_title"
   :main_icon="navbar_context.main_icon"
   :main_title="navbar_context.main_title"
   :base_url="navbar_context.base_url"
@@ -96,6 +99,7 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
       is_admin: Boolean,
       map_id: String,
       view: String,
+      navbar_info: Object,
       service_acceptance: Array,
       service_map_filter_list: Object,
       service_table_filter_list: Array,
@@ -107,15 +111,21 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
     /**
      * First method called when the component is created.
      */
-    created() {},
-    mounted() {
+    created() {
       this.url_params = this.$props.base_url_params
       this.active_tab = this.$props.map_id
       this.page = this.url_params.page
       this.updated_view = this.$props.view
-
+      
       this.navbar_context.items_table.forEach((i) => {
         (i.id == this.active_tab && i.page == this.page) ? i.active = true : i.active = false
+      });
+      this.format_navbar_title(this.$props.navbar_info);
+    },
+    mounted() {
+      
+      ntopng_events_manager.on_custom_event("page_navbar", ntopng_custom_events.CHANGE_PAGE_TITLE, (node) => {
+        this.format_navbar_title({ selected_iface: this.$props.navbar_info.selected_iface, selected_host: node.label });
       });
 
       ntopng_events_manager.on_custom_event("change_service_table_tab", change_map_event, (tab) => {
@@ -141,7 +151,10 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
         navbar_context: {
           main_icon: "fas fa-map",
           main_title: i18n("maps"),
+          a_first_title_label: '',
+          a_first_title_href: '',
           base_url: "#",
+          a_main_title: "",
           items_table: [
             { active: true, label: i18n('service_map'), id: "service_map", page: "graph" },
             { active: false, label: i18n('service_table'), id: "service_map", page: "table" },
@@ -157,6 +170,18 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
       destroy: function() {
         let current_tab = this.get_active_tab();
         current_tab.destroy()
+      },
+      format_navbar_title: function(data) {
+        this.navbar_context.main_title = `${i18n("maps")}` 
+        if(data.selected_host && data.selected_host != '') {
+          this.navbar_context.main_title += ` / `
+          this.navbar_context.a_second_title = ` / ${data.selected_host}`  
+          this.navbar_context.a_first_title_label = `${data.selected_iface.name}`
+          this.navbar_context.a_first_title_href = `/lua/pro/enterprise/network_maps.lua?map=${this.active_tab}`
+        } else {
+          this.navbar_context.a_second_title = ` / ${data.selected_iface.name}`
+        }
+        //this.navbar_context.a_second_title = ` / ${iface_atag}`
       },
       get_active_tab: function() {
         return this.$refs[this.active_tab + "_" + this.page];

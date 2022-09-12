@@ -404,6 +404,7 @@ export const ntopng_custom_events = {
   MODAL_FILTERS_APPLY: "modal_filters_apply", // {id: string, label: string, operator: string, value: string, value_label: string}
   SHOW_GLOBAL_ALERT_INFO: "show_global_alert_info", // html_text: string
   VIS_DATA_LOADED: "vis_data_loaded", 
+  CHANGE_PAGE_TITLE: "change_page_title", 
 };
 
 

@@ -10,7 +10,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount } from "vue";
 import { ntopng_map_manager } from '../utilities/map/ntopng_vis_network_utils';
-import { ntopng_url_manager } from '../services/context/ntopng_globals_services';
+import { ntopng_events_manager, ntopng_url_manager } from '../services/context/ntopng_globals_services';
 
 const MIN_SCALE = 0.15;
 const dataRequest = { 
@@ -64,13 +64,12 @@ onBeforeUnmount(() => {
 });
 
 const jump_to_host = (params) => {
-  const target = params.nodes[0];
-  const selectedNode = network.clustering.findNode(target);
-  const tmpHost = selectedNode[0].split('@')
+  const tmpHost = params.id.split('@')
   url_params['host'] = tmpHost[0]
   url_params['vlan_id'] = tmpHost[1]
   ntopng_url_manager.set_key_to_url('host', url_params['host']);
   ntopng_url_manager.set_key_to_url('vlan_id', url_params['vlan_id']);
+  ntopng_events_manager.emit_custom_event(ntopng_custom_events.CHANGE_PAGE_TITLE, params)
   reload();
 }
 
@@ -109,7 +108,7 @@ const set_event_listener = () => {
   });
   
   network.on("doubleClick", function (params) {
-    jump_to_host(params)
+    jump_to_host(nodes_dataset.get(params.nodes[0]))
   });
 
   network.on('zoom', function(e) {
