@@ -278,7 +278,8 @@ if (page == "flows" or page == nil) then
             field: "column_proto_l4",
             sortable: true,
             css: {
-               textAlign: 'left'
+               textAlign: 'left',
+               whiteSpace: 'nowrap'
             }
          },
    ]]
@@ -290,7 +291,8 @@ if (page == "flows" or page == nil) then
            field: "column_vlan",
            sortable: true,
            css: {
-              textAlign: 'center'
+              textAlign: 'center',
+              whiteSpace: 'nowrap'
            }
          },
       ]]
@@ -364,14 +366,16 @@ print[[{
          hidden: ]] print(ternary(isScoreEnabled(), "false", "true")) print[[,
          sortable: true,
          css: {
-            textAlign: 'center'
+            textAlign: 'center',
+            whiteSpace: 'nowrap'
          }
       }, {
          title: "]] print(i18n("breakdown")) print[[",
          field: "column_breakdown",
          sortable: false,
          css: {
-            textAlign: 'center'
+            textAlign: 'center',
+            whiteSpace: 'nowrap'
          }
       }, {
          title: "]] print(i18n("flows_page.actual_throughput")) print[[",
