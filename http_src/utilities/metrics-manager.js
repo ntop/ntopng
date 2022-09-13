@@ -114,7 +114,7 @@ function get_timeseries(timeseries_url, metric) {
 
 const sources_types = [
     {
-	name: "Interface",
+	label: "Interface",
 	sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	value: "ifid",
     },
@@ -152,8 +152,8 @@ const get_sources = async (http_prefix, source_type) => {
     if (source_type.value == "ifid") {
 	return res.map((s) => {
 	    return {
-		name: s.ifname,
-		value: s.ifid,
+        label: s.ifname,
+    		value: s.ifid,
 	    };
 	});
     }

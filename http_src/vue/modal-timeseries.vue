@@ -31,9 +31,9 @@
           <b>{{_i18n("modal_timeseries.source")}}</b>
 	</label>
 	<div class="col-sm-8">
-  <select class="form-select"  v-model="selected_source">
-            <option v-for="item in sources" :value="item">{{item.name}}</option>
-          </select>
+    <SelectSearch v-model:selected_option="selected_source"
+		      :options="sources">
+	  </SelectSearch>
 	</div>
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
@@ -98,8 +98,8 @@ const showed = () => {};
 const action = ref("select"); // add/select 
 
 let current_page_source_type = metricsManager.get_current_page_source_type();
-let sources_types = metricsManager.sources_types;
 
+const sources_types = metricsManager.sources_types;
 const selected_source_type = ref(current_page_source_type);
 
 const sources = ref([]);
