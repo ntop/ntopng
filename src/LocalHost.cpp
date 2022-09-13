@@ -296,8 +296,8 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 #ifdef NTOPNG_PRO  
   snprintf(asset_key, sizeof(asset_key), ASSET_SERVICE_KEY,
 	   getInterface()->get_id(),
-	   getRedisKey(buf_id, sizeof(buf_id))
-	   );
+	   getRedisKey(buf_id, sizeof(buf_id)),
+	   get_vlan_id());
   
   lua_push_str_table_entry(vm, "asset_key", asset_key);
 #endif
