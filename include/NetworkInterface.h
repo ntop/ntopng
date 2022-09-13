@@ -444,7 +444,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
       num_alerts, num_host_correlations, num_collected_flows);
   };
 
-#if defined(linux) && !defined(HAVE_LIBCAP) && !defined(HAVE_NEDGE)
+#if defined(__linux__) && !defined(HAVE_LIBCAP) && !defined(HAVE_NEDGE)
   /* Note: if we miss the capabilities, we block the overriding of this method. */
   inline bool
 #else

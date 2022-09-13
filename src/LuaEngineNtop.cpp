@@ -3195,7 +3195,7 @@ static int ntop_get_info(lua_State* vm) {
   if(zoneinfo)
     lua_push_str_table_entry(vm, "zoneinfo", zoneinfo);
 
-#ifdef linux
+#ifdef __linux__
   lua_push_int32_table_entry(vm, "timezone", timezone); /* Seconds west of UTC */
 #endif
 
