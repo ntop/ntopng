@@ -184,13 +184,7 @@ async function get_metrics(push_custom_metric, force_refresh) {
     let snapshots_metrics = cache_snapshots;
     snapshots_metrics.forEach((sm) => metrics.push(sm));
     /* Order Metrics */
-    metrics.sort((a, b) => {
-      const nameA = a.label.toUpperCase(); // ignore upper and lowercase
-      const nameB = b.label.toUpperCase(); // ignore upper and lowercase
-      if (nameA < nameB) { return -1; }
-      if (nameA > nameB) { return 1; }
-      return 0;
-    });
+    metrics.sort(NtopUtils.sortAlphabetically);
     
     return metrics;
 }

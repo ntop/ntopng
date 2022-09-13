@@ -159,13 +159,7 @@ async function init() {
     metrics.value = await metricsManager.get_metrics(http_prefix);
     // take default visible
     selected_metric.value = metricsManager.get_default_metric(metrics.value);
-    metrics.value.sort((a, b) => {
-      const nameA = a.label.toUpperCase(); // ignore upper and lowercase
-      const nameB = b.label.toUpperCase(); // ignore upper and lowercase
-      if (nameA < nameB) { return -1; }
-      if (nameA > nameB) { return 1; }
-      return 0;
-    });
+    metrics.value.sort(NtopUtils.sortAlphabetically);
     update_timeseries_to_add(false);
     
     // init metrics added

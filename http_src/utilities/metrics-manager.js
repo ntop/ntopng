@@ -2,6 +2,7 @@
     (C) 2022 - ntop.org
 */
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
+import NtopUtils from "./ntop-utils.js";
 
 const set_timeseries_groups_in_url = (timeseries_groups) => {
     let params_timeseries_groups = [];
@@ -150,12 +151,13 @@ const get_sources = async (http_prefix, source_type) => {
     }
     let res = await cache_sources[key];
     if (source_type.value == "ifid") {
-	return res.map((s) => {
-	    return {
-        label: s.ifname,
-    		value: s.ifid,
-	    };
-	});
+	    const sources = res.map((s) => {
+        return {
+          label: s.ifname,
+          value: s.ifid,
+        };
+	    });
+      return sources.sort(NtopUtils.sortAlphabetically)
     }
     throw "source_type not reconized";
 };
