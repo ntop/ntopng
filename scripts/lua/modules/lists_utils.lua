@@ -10,7 +10,6 @@ local os_utils = require("os_utils")
 local categories_utils = require("categories_utils")
 local json = require("dkjson")
 local alerts_api = require("alerts_api")
-local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local file_utils = require "file_utils"
 
@@ -492,7 +491,7 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
                   if not ntop.loadCustomCategoryIp(host, category, list.name) then
                      loadWarning(string.format("Failure loading IP '%s' category '%s' in list '%s'", host, category, list.name))
 		  else
-		     if((category == CUSTOM_CATEGORY_MALWARE) and ntop.isLocalAddress(host)) then
+		     if((category == CUSTOM_CATEGORY_MALWARE) and isLocal(host)) then
 			local alert = alert_consts.alert_types.alert_local_host_blacklisted.new(list.name, host)
 			
 			alert:set_score_error()
