@@ -188,47 +188,47 @@ if(host == nil) and (not only_historical) then
 
       page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
       if restoreInProgress then
-	 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-	 print('<div class=\"alert alert-info\"> '.. i18n("host_details.host_restore_in_progress",{host=hostinfo2hostkey(host_info)}) .. " ")
-	 print('<i class="fas fa-spinner fa-spin"></i>')
-	 print("</div>")
-	 print[[<script type='text/javascript'>
+         dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+         print('<div class=\"alert alert-info\"> '.. i18n("host_details.host_restore_in_progress",{host=hostinfo2hostkey(host_info)}) .. " ")
+         print('<i class="fas fa-spinner fa-spin"></i>')
+         print("</div>")
+         print[[<script type='text/javascript'>
    let recheckInterval = null;
 
    function recheckHostRestore() {
       $.ajax({
-	type: 'GET',
-	url: ']]
+        type: 'GET',
+        url: ']]
       print (ntop.getHttpPrefix())
       print [[/lua/host_stats.lua',
-	data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ },
-	success: function(content) {
-	 if(content && content != '"{}"') {
-	    /* Host found, reload the page */
-	    clearInterval(recheckInterval);
-	    recheckInterval = null;
-	    location.reload();
-	 }
-	}
+        data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ },
+        success: function(content) {
+         if(content && content != '"{}"') {
+            /* Host found, reload the page */
+            clearInterval(recheckInterval);
+            recheckInterval = null;
+            location.reload();
+         }
+        }
       });
    }
 
    recheckInterval = setInterval(recheckHostRestore, 2000);
    recheckHostRestore();
 </script>]]
-	 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+         dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
       else
-	 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-	 if(not(restoreFailed) and (host_info ~= nil) and canRestoreHost(ifId, host_info["host"], host_vlan)) then
-	    printRestoreHostBanner()
-	 else
-	    print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle"></i> ')
-	    print(i18n("host_details.host_cannot_be_found_message",{host=hostinfo2hostkey(host_info)}) .. " ")
-	    print(purgedErrorString())
-	    print("</div>")
-	 end
+         dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+         if(not(restoreFailed) and (host_info ~= nil) and canRestoreHost(ifId, host_info["host"], host_vlan)) then
+            printRestoreHostBanner()
+         else
+            print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle"></i> ')
+            print(i18n("host_details.host_cannot_be_found_message",{host=hostinfo2hostkey(host_info)}) .. " ")
+            print(purgedErrorString())
+            print("</div>")
+         end
 
-	 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+         dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
       return
    end
 else
@@ -244,7 +244,7 @@ else
 
    if _POST["action"] == "reset_stats" and isAdministrator() then
       if _POST["resetstats_mode"] == "reset_blacklisted" then
-	 interface.resetHostStats(hostkey, true)
+         interface.resetHostStats(hostkey, true)
       elseif interface.resetHostStats(hostkey) then
          print("<div class=\"alert alert alert-success\">")
          print(i18n("host_details.reset_stats_in_progress"))
@@ -314,186 +314,186 @@ else
 
    page_utils.print_navbar(title, url, {
       {
-	 hidden = only_historical,
-	 active = page == "overview" or page == nil,
-	 page_name = "overview",
-	 label = "<i class=\"fas fa-lg fa-home\"></i>",
+         hidden = only_historical,
+         active = page == "overview" or page == nil,
+         page_name = "overview",
+         label = "<i class=\"fas fa-lg fa-home\"></i>",
       },
       {
-	 hidden = only_historical,
-	 active = page == "traffic",
-	 page_name = "traffic",
-	 label = i18n("traffic"),
+         hidden = only_historical,
+         active = page == "traffic",
+         page_name = "traffic",
+         label = i18n("traffic"),
       },
       {
-	 hidden = have_nedge or host["is_broadcast"] or host["is_multicast"] or only_historical or (host["packets.sent"] == 0) or(host["packets.rcvd"] == 0),
-	 active = page == "packets",
-	 page_name = "packets",
-	 label = i18n("packets"),
+         hidden = have_nedge or host["is_broadcast"] or host["is_multicast"] or only_historical or (host["packets.sent"] == 0) or(host["packets.rcvd"] == 0),
+         active = page == "packets",
+         page_name = "packets",
+         label = i18n("packets"),
       },
       {
-	 hidden = only_historical,
-	 active = page == "DSCP",
-	 page_name = "DSCP",
-	 label = i18n("dscp"),
+         hidden = only_historical,
+         active = page == "DSCP",
+         page_name = "DSCP",
+         label = i18n("dscp"),
       },
       {
-	 hidden = only_historical,
-	 active = page == "ports",
-	 page_name = "ports",
-	 label = i18n("ports"),
+         hidden = only_historical,
+         active = page == "ports",
+         page_name = "ports",
+         label = i18n("ports"),
       },
       {
-	 hidden = only_historical or interface.isLoopback(),
-	 active = page == "peers",
-	 page_name = "peers",
-	 label = i18n("peers"),
+         hidden = only_historical or interface.isLoopback(),
+         active = page == "peers",
+         page_name = "peers",
+         label = i18n("peers"),
       },
       {
-	 hidden = have_nedge or only_historical or not(has_icmp),
-	 active = page == "ICMP",
-	 page_name = "ICMP",
-	 label = i18n("icmp"),
+         hidden = have_nedge or only_historical or not(has_icmp),
+         active = page == "ICMP",
+         page_name = "ICMP",
+         label = i18n("icmp"),
       },
       {
-	 hidden = only_historical,
-	 active = page == "ndpi",
-	 page_name = "ndpi",
-	 label = i18n("applications"),
+         hidden = only_historical,
+         active = page == "ndpi",
+         page_name = "ndpi",
+         label = i18n("applications"),
       },
       {
-	 hidden = have_nedge or only_historical or not host["localhost"],
-	 active = page == "dns",
-	 page_name = "dns",
-	 label = i18n("dns"),
+         hidden = have_nedge or only_historical or not host["localhost"],
+         active = page == "dns",
+         page_name = "dns",
+         label = i18n("dns"),
       },
       {
-	 hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "ja3"),
-	 active = page == "tls",
-	 page_name = "tls",
-	 label = i18n("tls"),
+         hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "ja3"),
+         active = page == "tls",
+         page_name = "tls",
+         label = i18n("tls"),
       },
       {
-	 hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "hassh"),
-	 active = page == "ssh",
-	 page_name = "ssh",
-	 label = i18n("ssh"),
+         hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "hassh"),
+         active = page == "ssh",
+         page_name = "ssh",
+         label = i18n("ssh"),
       },
       {
-	 hidden = only_historical
-	    or have_nedge
-	    or not host["localhost"]
-	    or not host["http"]
-	    or (host["http"]["sender"]["query"]["total"] == 0
-	           and host["http"]["receiver"]["response"]["total"] == 0
-	           and table.len(host["http"]["virtual_hosts"] or {}) == 0),
-	 active = page == "http",
-	 page_name = "http",
-	 label = i18n("http"),
-	 badge_num = host["active_http_hosts"],
+         hidden = only_historical
+            or have_nedge
+            or not host["localhost"]
+            or not host["http"]
+            or (host["http"]["sender"]["query"]["total"] == 0
+                   and host["http"]["receiver"]["response"]["total"] == 0
+                   and table.len(host["http"]["virtual_hosts"] or {}) == 0),
+         active = page == "http",
+         page_name = "http",
+         label = i18n("http"),
+         badge_num = host["active_http_hosts"],
       },
       {
-	 hidden = only_historical or not host["localhost"] or (table.len(sites_granularities) == 0),
-	 active = page == "sites",
-	 page_name = "sites",
-	 label = i18n("sites_page.sites"),
+         hidden = only_historical or not host["localhost"] or (table.len(sites_granularities) == 0),
+         active = page == "sites",
+         page_name = "sites",
+         label = i18n("sites_page.sites"),
       },
       {
-	 hidden = not has_snmp_location,
-	 active = page == "snmp",
-	 page_name = "snmp",
-	 label = i18n("host_details.snmp"),
+         hidden = not has_snmp_location,
+         active = page == "snmp",
+         page_name = "snmp",
+         label = i18n("host_details.snmp"),
       },
       {
-	 hidden = only_historical
+         hidden = only_historical
                   -- or not host["systemhost"]
                   or not interface.hasEBPF(),
-	 active = page == "processes",
-	 page_name = "processes",
-	 label = i18n("user_info.processes"),
+         active = page == "processes",
+         page_name = "processes",
+         label = i18n("user_info.processes"),
       },
       {
-	 hidden = have_nedge or only_historical or not host.listening_ports or table.len(host.listening_ports) == 0,
-	 active = page == "listening_ports",
-	 page_name = "listening_ports",
-	 label = "<i class='fas fa-lg fa-headphones' title='"..i18n("listening_ports").."'></i>",
+         hidden = have_nedge or only_historical or not host.listening_ports or table.len(host.listening_ports) == 0,
+         active = page == "listening_ports",
+         page_name = "listening_ports",
+         label = "<i class='fas fa-lg fa-headphones' title='"..i18n("listening_ports").."'></i>",
       },
       {
-	 hidden = only_historical,
-	 active = page == "flows",
-	 page_name = "flows",
-	 label = '<i class="fas fa-stream" title="'..i18n("active_flows")..'"></i>',
+         hidden = only_historical,
+         active = page == "flows",
+         page_name = "flows",
+         label = '<i class="fas fa-stream" title="'..i18n("active_flows")..'"></i>',
       },
       {
-	 hidden = only_historical or not ntop.isEnterpriseL() or (host.localhost == false),
-	 active = page == "flows_sankey",
-	 page_name = "flows_sankey",
-	 label = '<i class="fas fa-draw-polygon" title="'..i18n("local_flows_sankey")..'"></i>',
+         hidden = only_historical or not ntop.isEnterpriseL() or (host.localhost == false),
+         active = page == "flows_sankey",
+         page_name = "flows_sankey",
+         label = '<i class="fas fa-draw-polygon" title="'..i18n("local_flows_sankey")..'"></i>',
       },
       {
-	 hidden = only_historical or host["is_broadcast"] or host["is_multicast"] or not ntop.hasGeoIP(),
-	 active = page == "geomap",
-	 page_name = "geomap",
-	 label = "<i class='fas fa-lg fa-globe' title='"..i18n("geo_map.geo_map").."'></i>",
+         hidden = only_historical or host["is_broadcast"] or host["is_multicast"] or not ntop.hasGeoIP(),
+         active = page == "geomap",
+         page_name = "geomap",
+         label = "<i class='fas fa-lg fa-globe' title='"..i18n("geo_map.geo_map").."'></i>",
       },
       {
-	 hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
-	 active = page == "alerts",
-	 page_name = "alerts",
-	 label = "<i class='fas fa-lg fa-exclamation-triangle' title='"..i18n("alerts_dashboard.alerts").."'></i>",
-	 url = hostinfo2detailsurl(host, {page = ternary((host.num_alerts or 0) > 0, "engaged-alerts", "alerts")})
+         hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
+         active = page == "alerts",
+         page_name = "alerts",
+         label = "<i class='fas fa-lg fa-exclamation-triangle' title='"..i18n("alerts_dashboard.alerts").."'></i>",
+         url = hostinfo2detailsurl(host, {page = ternary((host.num_alerts or 0) > 0, "engaged-alerts", "alerts")})
       },
       {
-	 hidden = not has_assets,
-	 active = page == "assets",
-	 page_name = "assets",
-	 label = "<i class='fas fa-lg fa-compass' title='"..i18n("assets").."'></i>",
+         hidden = not has_assets,
+         active = page == "assets",
+         page_name = "assets",
+         label = "<i class='fas fa-lg fa-compass' title='"..i18n("assets").."'></i>",
       },
       {
-	 hidden = not charts_available,
-	 active = page == "historical",
-	 page_name = "historical",
-	 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
+         hidden = not charts_available,
+         active = page == "historical",
+         page_name = "historical",
+         label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
       },
       {
-	 hidden = only_historical or (not host["localhost"]) or (not hasTrafficReport()),
-	 active = page == "traffic_report",
-	 page_name = "traffic_report",
-	 label = "<i class='fas fa-lg fa-file-alt report-icon' title='"..i18n("report.traffic_report").."'></i>",
+         hidden = only_historical or (not host["localhost"]) or (not hasTrafficReport()),
+         active = page == "traffic_report",
+         page_name = "traffic_report",
+         label = "<i class='fas fa-lg fa-file-alt report-icon' title='"..i18n("report.traffic_report").."'></i>",
       },
       {
-	 hidden = only_historical or not ntop.isEnterpriseM() or not ifstats.inline or not host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID,
-	 active = page == "quotas",
-	 page_name = "quotas",
-	 label = i18n("quotas"),
+         hidden = only_historical or not ntop.isEnterpriseM() or not ifstats.inline or not host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID,
+         active = page == "quotas",
+         page_name = "quotas",
+         label = i18n("quotas"),
       },
       {
-	 hidden = not periodicity_map_available,
-	 active = page == "periodicity_map",
-	 page_name = "periodicity_map",
-	 url = periodicity_map_link,
-	 label = "<i class=\"fas fa-lg fa-clock\" title='" .. i18n("periodicity_map") .. "'></i>",
-	 badge_num = num_periodicity,
+         hidden = not periodicity_map_available,
+         active = page == "periodicity_map",
+         page_name = "periodicity_map",
+         url = periodicity_map_link,
+         label = "<i class=\"fas fa-lg fa-clock\" title='" .. i18n("periodicity_map") .. "'></i>",
+         badge_num = num_periodicity,
       },
       {
-	 hidden = not service_map_available,
-	 active = page == "service_map",
-	 page_name = "service_map",
-	 label = "<i class=\"fas fa-lg fa-concierge-bell\" title='" .. i18n("service_map") .. "'\"></i>",
-	 url = service_map_link
+         hidden = not service_map_available,
+         active = page == "service_map",
+         page_name = "service_map",
+         label = "<i class=\"fas fa-lg fa-concierge-bell\" title='" .. i18n("service_map") .. "'\"></i>",
+         url = service_map_link
       },
       {
-	 hidden = not prefs.is_dump_flows_to_clickhouse_enabled,
-	 active = page == "db_search",
-	 page_name = "db_search",
-	 label = "<i class=\"fas fa-search-plus\" title='" .. i18n("db_explorer.historical_data_explorer") .. "'\"></i>",
-	 url = historical_flow_link
+         hidden = not prefs.is_dump_flows_to_clickhouse_enabled,
+         active = page == "db_search",
+         page_name = "db_search",
+         label = "<i class=\"fas fa-search-plus\" title='" .. i18n("db_explorer.historical_data_explorer") .. "'\"></i>",
+         url = historical_flow_link
       },
       {
-	 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
-	 active = page == "config",
-	 page_name = "config",
-	 label = "<i class='fas fa-lg fa-cog' title='"..i18n("settings").."'></i></a></li>",
+         hidden = not isAdministrator() or interface.isPcapDumpInterface(),
+         active = page == "config",
+         page_name = "config",
+         label = "<i class='fas fa-lg fa-cog' title='"..i18n("settings").."'></i></a></li>",
       },
    })
 
@@ -508,32 +508,32 @@ else
       if(host["ip"] ~= nil) then
          if(host["mac"] ~= "00:00:00:00:00:00") then
 
-	    if(host.router ~= nil) then
-	       print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td colspan=2>" ..get_symbolic_mac(host.router, false).. "</td></tr>")
-	       print("<tr><th width=35%>"..i18n("details.host_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], false).. " " .. discover.devtype2icon(host["device_type"]))
-	    else
-	       if(host.localhost) then
-		  print("<tr><th width=35%>"..i18n("details.mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], false).. " " .. discover.devtype2icon(host["device_type"]))
-	       else
-		  print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], false).. " " .. discover.devtype2icon(host["device_type"]))
-	       end
-	    end
-   	 print('</td><td>')
+            if(host.router ~= nil) then
+               print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td colspan=2>" ..get_symbolic_mac(host.router, false).. "</td></tr>")
+               print("<tr><th width=35%>"..i18n("details.host_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], false).. " " .. discover.devtype2icon(host["device_type"]))
+            else
+               if(host.localhost) then
+                  print("<tr><th width=35%>"..i18n("details.mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], false).. " " .. discover.devtype2icon(host["device_type"]))
+               else
+                  print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], false).. " " .. discover.devtype2icon(host["device_type"]))
+               end
+            end
+            print('</td><td>')
 
-   	 if(host['localhost'] and (macinfo ~= nil)) then
-   	    -- This is a known device type
-   	    print(discover.devtype2icon(macinfo.devtype) .. " ")
-   	    if macinfo.devtype ~= 0 then
-   	       print(discover.devtype2string(macinfo.devtype) .. " ")
-   	    else
-   	       print(i18n("host_details.unknown_device_type") .. " ")
-   	    end
-   	    print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(macinfo)..'&page=config"><i class="fas fa-cog"></i></a>\n')
-   	 else
-   	    print("&nbsp;")
-   	 end
+            if(host['localhost'] and (macinfo ~= nil)) then
+               -- This is a known device type
+               print(discover.devtype2icon(macinfo.devtype) .. " ")
+               if macinfo.devtype ~= 0 then
+                  print(discover.devtype2string(macinfo.devtype) .. " ")
+               else
+                  print(i18n("host_details.unknown_device_type") .. " ")
+               end
+               print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(macinfo)..'&page=config"><i class="fas fa-cog"></i></a>\n')
+            else
+               print("&nbsp;")
+            end
 
-   	 print('</td></tr>')
+            print('</td></tr>')
          end
 
          if has_snmp_location then
@@ -550,15 +550,15 @@ else
         end
 
          if(host["local_network_name"] ~= nil) then
-   	 local network_name = getLocalNetworkAlias(host["local_network_name"] )
+            local network_name = getLocalNetworkAlias(host["local_network_name"] )
 
-   	 if((network_name == nil) or (network_name == "") or (network_name == host["local_network_name"])) then
-   	    network_name = ""
-   	 else
-   	    network_name = " ("..network_name..")"
-   	 end
+            if((network_name == nil) or (network_name == "") or (network_name == host["local_network_name"])) then
+               network_name = ""
+            else
+               network_name = " ("..network_name..")"
+            end
 
-   	 print(" [&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..host["local_network_id"].."&page=historical'>".. host["local_network_name"].."</A> "..network_name.." &nbsp;]")
+            print(" [&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..host["local_network_id"].."&page=historical'>".. host["local_network_name"].."</A> "..network_name.." &nbsp;]")
          end
 
          if((host["city"] ~= nil) and (host["city"] ~= "")) then
@@ -572,7 +572,7 @@ else
          print("</td></tr>")
       else
          if(host["mac"] ~= nil) then
-   	 print("<tr><th>"..i18n("mac_address").."</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
+            print("<tr><th>"..i18n("mac_address").."</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
          end
       end
 
@@ -609,27 +609,27 @@ else
          print("<td colspan=\"2\">"..host["observation_point_id"].."</td></tr>")
       end
 
-   if(host["ip"] ~= nil) then
+      if(host["ip"] ~= nil) then
          print("<tr><th>"..i18n("name").."</th>")
 
          if(isAdministrator()) then
-	    local n
-	    local method = "http"
+            local n
+            local method = "http"
 
-	    if(host.names.tls ~= nil) then
-	       n = host.names.tls
-	       method = "https"
-	    elseif(host.names.http ~= nil) then
-	       n = host.names.http
-   	    elseif(host.names.resolved ~= nil) then
-	       n = host.names.resolved
-	    else
-	       n = getIpUrl(host["ip"])
-	    end
+            if(host.names.tls ~= nil) then
+               n = host.names.tls
+               method = "https"
+            elseif(host.names.http ~= nil) then
+               n = host.names.http
+               elseif(host.names.resolved ~= nil) then
+               n = host.names.resolved
+            else
+               n = getIpUrl(host["ip"])
+            end
 
-	    print("<td colspan=2><A class='ntopng-external-link' href=\""..method.."://" .. n .. "\"> <span id=name>")
+            print("<td colspan=2><A class='ntopng-external-link' href=\""..method.."://" .. n .. "\"> <span id=name>")
          else
-	    print("<td colspan=2>")
+            print("<td colspan=2>")
          end
 
          if ntop.shouldResolveHost(host["ip"]) then
@@ -644,85 +644,85 @@ else
          print(format_utils.formatFullAddressCategory(host))
 
          if(host.services) then
-	    if(host.services.dhcp) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
-	    if(host.services.dns)  then print(' <span class="badge bg-success">'..i18n("details.label_dns_server")..'</span>')  end
-	    if(host.services.smtp) then print(' <span class="badge bg-success">'..i18n("details.label_smtp_server")..'</span>') end
-	    if(host.services.ntp)  then print(' <span class="badge bg-success">'..i18n("details.label_ntp_server")..'</span>')  end
-	    if(host.services.imap) then print(' <span class="badge bg-success">'..i18n("details.label_imap_server")..'</span>') end
-	    if(host.services.pop)  then print(' <span class="badge bg-success">'..i18n("details.label_pop_server")..'</span>')  end
+            if(host.services.dhcp) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
+            if(host.services.dns)  then print(' <span class="badge bg-success">'..i18n("details.label_dns_server")..'</span>')  end
+            if(host.services.smtp) then print(' <span class="badge bg-success">'..i18n("details.label_smtp_server")..'</span>') end
+            if(host.services.ntp)  then print(' <span class="badge bg-success">'..i18n("details.label_ntp_server")..'</span>')  end
+            if(host.services.imap) then print(' <span class="badge bg-success">'..i18n("details.label_imap_server")..'</span>') end
+            if(host.services.pop)  then print(' <span class="badge bg-success">'..i18n("details.label_pop_server")..'</span>')  end
          end
 
          if(host["dhcp_server"] == true) then print(' <span class="badge bg-success" style="cursor: help;">'..i18n("details.label_dhcp_server")..'</span>') end
          if(host["systemhost"] == true) then print(' <span class="badge bg-success" style="cursor: help;"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
          if(host["is_blacklisted"] == true) then print(' <span class="badge bg-danger" style="cursor: help;">'..i18n("details.label_blacklisted_host")..'</span>') end
          if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
-   	 print(' <A class="ntopng-external-link" href="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><small>VirusTotal</small> <i class=\"fas fa-external-link-alt\"></i></A>')
-   	 print(' <A class="ntopng-external-link" href="https://www.greynoise.io/viz/ip/'.. host["ip"] ..'" target=_blank><small>GreyNoise</small> <i class=\"fas fa-external-link-alt\"></i></A>')
+               print(' <A class="ntopng-external-link" href="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><small>VirusTotal</small> <i class=\"fas fa-external-link-alt\"></i></A>')
+               print(' <A class="ntopng-external-link" href="https://www.greynoise.io/viz/ip/'.. host["ip"] ..'" target=_blank><small>GreyNoise</small> <i class=\"fas fa-external-link-alt\"></i></A>')
          end
 
          print("</td>\n")
-   end
-
-   local h_notes = getHostNotes(host_info) or ''
-
-   if(not isEmptyString(h_notes)) then
-   	print[[
-
-   	<tr><th>]] print(i18n("host_details.notes"))
-   	print[[</th><td colspan="2"><span id="host_notes">]]print(h_notes)
-   	print[[</span><span id="host_notes"></span></td></tr>
-
-   	]]
-   end
-
-   if(host["num_alerts"] > 0) then
-      print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "engaged-alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").." <span id=alerts_trend></span></td></tr>\n")
-   end
-
-   if isScoreEnabled() then
-      local score_chart = ""
-
-      if charts_available then
-         score_chart = hostinfo2detailshref(host, {page = "historical", tskey = tskey, ts_schema = "host:score"}, '<i class="fas fa-chart-area fa-sm"></i>')
       end
 
-      print("<tr><th rowspan=2>"..i18n("score").." " .. score_chart .."</th>")
-      print("<th>"..i18n("host_details.client_score").."</th><th>"..i18n("host_details.server_score").."</th></tr>")
+      local h_notes = getHostNotes(host_info) or ''
 
-      local c = host.score_pct and host.score_pct["score_breakdown_client"]
-      local s = host.score_pct and host.score_pct["score_breakdown_server"]
+      if(not isEmptyString(h_notes)) then
+         print[[
 
-      print("<tr>")
-      print("<td>")
-      print("<div class='d-flex align-items-center'>")
-      print("<span id='score_as_client'>".. formatValue(host["score.as_client"] or 0) .."</span> <span class='ms-1' id='client_score_trend'></span>")
-      if c then
-         scoreBreakdown(c)
+            <tr><th>]] print(i18n("host_details.notes"))
+            print[[</th><td colspan="2"><span id="host_notes">]]print(h_notes)
+            print[[</span><span id="host_notes"></span></td></tr>
+
+            ]]
       end
-      print("</div>")
-      print("</td>")
 
-      print("<td>")
-      print("<div class='d-flex align-items-center'>")
-      print("<span id='score_as_server'>".. formatValue(host["score.as_server"] or 0).."</span><span class='ms-1' id='server_score_trend'></span>")
-      if s then
-         scoreBreakdown(s)
+      if(host["num_alerts"] > 0) then
+         print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "engaged-alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").." <span id=alerts_trend></span></td></tr>\n")
       end
-      print("</div>")
-      print("</td>")
 
-      print("</tr>\n")
-   end
+      if isScoreEnabled() then
+         local score_chart = ""
 
-   -- Active monitoring
-   if am_utils and am_utils.isMeasurementAvailable('icmp') then
-      local icmp = isIPv6(host["ip"]) and 'icmp6' or 'icmp'
-      print([[
+         if charts_available then
+            score_chart = hostinfo2detailshref(host, {page = "historical", tskey = tskey, ts_schema = "host:score"}, '<i class="fas fa-chart-area fa-sm"></i>')
+         end
+
+         print("<tr><th rowspan=2>"..i18n("score").." " .. score_chart .."</th>")
+         print("<th>"..i18n("host_details.client_score").."</th><th>"..i18n("host_details.server_score").."</th></tr>")
+
+         local c = host.score_pct and host.score_pct["score_breakdown_client"]
+         local s = host.score_pct and host.score_pct["score_breakdown_server"]
+
+         print("<tr>")
+         print("<td>")
+         print("<div class='d-flex align-items-center'>")
+         print("<span id='score_as_client'>".. formatValue(host["score.as_client"] or 0) .."</span> <span class='ms-1' id='client_score_trend'></span>")
+         if c then
+            scoreBreakdown(c)
+         end
+         print("</div>")
+         print("</td>")
+
+         print("<td>")
+         print("<div class='d-flex align-items-center'>")
+         print("<span id='score_as_server'>".. formatValue(host["score.as_server"] or 0).."</span><span class='ms-1' id='server_score_trend'></span>")
+         if s then
+            scoreBreakdown(s)
+         end
+         print("</div>")
+         print("</td>")
+
+         print("</tr>\n")
+      end
+
+      -- Active monitoring
+      if am_utils and am_utils.isMeasurementAvailable('icmp') then
+         local icmp = isIPv6(host["ip"]) and 'icmp6' or 'icmp'
+         print([[
          <tr>
             <th>]] .. i18n("active_monitoring_stats.active_monitoring") .. [[</th>
-      ]])
-      if (not am_utils.hasHost(host["ip"], icmp)) then
-         print([[
+         ]])
+         if (not am_utils.hasHost(host["ip"], icmp)) then
+            print([[
             <td colspan="2">
                <a href='#' id='btn-add-am-host'>]].. i18n('active_monitoring_stats.add_icmp') ..[[ <i class='fas fa-plus'></i></a>
             </td>
@@ -737,7 +737,7 @@ else
                         action: 'add',
                         am_host: ']].. host["ip"] ..[[',
                         threshold: 100,
-   		     granularity: "min",
+                        granularity: "min",
                         measurement: ']].. icmp ..[[',
                         csrf: am_csrf,
                      };
@@ -775,170 +775,170 @@ else
             </script>
          ]])
 
-      else
-         local last_update = am_utils.getLastAmUpdate(host['ip'], icmp)
-         local last_rtt = ""
-
-         if(last_update ~= nil) then
-            last_rtt = last_update.value .. " " .. i18n("active_monitoring_stats.msec")
          else
-   	 last_rtt = i18n("active_monitoring_stats.no_updates_yet")
-         end
+            local last_update = am_utils.getLastAmUpdate(host['ip'], icmp)
+            local last_rtt = ""
 
-         print([[
+            if(last_update ~= nil) then
+               last_rtt = last_update.value .. " " .. i18n("active_monitoring_stats.msec")
+            else
+               last_rtt = i18n("active_monitoring_stats.no_updates_yet")
+            end
+
+            print([[
             <td colspan="2">
                <a href=']].. ntop.getHttpPrefix() ..[[/lua/monitor/active_monitoring_monitor.lua?am_host=]].. host['ip'] ..[[&measurement=]].. icmp ..[['>]].. last_rtt ..[[</a>
             </td>
-         ]])
+            ]])
 
-      end
-
-      print("</tr>")
-   end
-
-   if(host["active_alerted_flows"] > 0) then
-      print("<tr><th>"..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..formatValue(host["active_alerted_flows"]) .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
-   end
-
-   if(host.score_behaviour.tot_num_anomalies > 0) then
-      -- TODO: Add JSON update
-      print("<tr><th>"..i18n("host_details.behavioural_anomalies").."</th><td colspan=2><span id=beh_anomalies>"..formatValue(host.score_behaviour.tot_num_anomalies).."</span><span id=beh_anomalies_trend></span></td></tr>\n")
-   end
-
-   if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
-
-   local msg = ""
-   local target = ""
-   local quotas_page = hostinfo2detailsurl(host, {page = "quota"})
-   local policies_page = "/lua/if_stats.lua?ifid="..ifId.."&page=filtering&pool="..host_pool_id
-
-      if host["has_blocking_quota"] then
-         if host["has_blocking_shaper"] then
-            msg = i18n("host_details.host_traffic_blocked_quota_and_shaper")
-            target = quotas_page
-         else
-            msg = i18n("host_details.host_traffic_blocked_quota")
-            target = quotas_page
          end
-      else
-         msg = i18n("host_details.host_traffic_blocked_shaper")
-         target = policies_page
+
+         print("</tr>")
       end
 
-       print("<tr><th><i class=\"fas fa-ban fa-lg\"></i> <a href=\""..ntop.getHttpPrefix()..target.."\">"..i18n("host_details.blocked_traffic").."</a></th><td colspan=2>"..msg)
-      print(".")
+      if(host["active_alerted_flows"] > 0) then
+         print("<tr><th>"..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..formatValue(host["active_alerted_flows"]) .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
+      end
+
+      if(host.score_behaviour.tot_num_anomalies > 0) then
+         -- TODO: Add JSON update
+         print("<tr><th>"..i18n("host_details.behavioural_anomalies").."</th><td colspan=2><span id=beh_anomalies>"..formatValue(host.score_behaviour.tot_num_anomalies).."</span><span id=beh_anomalies_trend></span></td></tr>\n")
+      end
+
+      if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
+
+         local msg = ""
+         local target = ""
+         local quotas_page = hostinfo2detailsurl(host, {page = "quota"})
+         local policies_page = "/lua/if_stats.lua?ifid="..ifId.."&page=filtering&pool="..host_pool_id
+
+         if host["has_blocking_quota"] then
+            if host["has_blocking_shaper"] then
+               msg = i18n("host_details.host_traffic_blocked_quota_and_shaper")
+               target = quotas_page
+            else
+               msg = i18n("host_details.host_traffic_blocked_quota")
+               target = quotas_page
+            end
+         else
+            msg = i18n("host_details.host_traffic_blocked_shaper")
+            target = policies_page
+         end
+
+         print("<tr><th><i class=\"fas fa-ban fa-lg\"></i> <a href=\""..ntop.getHttpPrefix()..target.."\">"..i18n("host_details.blocked_traffic").."</a></th><td colspan=2>"..msg)
+         print(".")
+         print("</td></tr>")
+      end
+
+      print("<tr><th>"..i18n("details.first_last_seen").."</th><td nowrap><span id=first_seen>" .. formatEpoch(host["seen.first"]) ..  " [" .. secondsToTime(os.time()-host["seen.first"]) .. " "..i18n("details.ago").."]" .. "</span></td>\n")
+      print("<td  width='35%'><span id=last_seen>" .. formatEpoch(host["seen.last"]) .. " [" .. secondsToTime(os.time()-host["seen.last"]) .. " "..i18n("details.ago") .. "]" .. "</span></td></tr>\n")
+
+
+      if((host["bytes.sent"]+host["bytes.rcvd"]) > 0) then
+         print("<tr><th>"..i18n("details.sent_vs_received_traffic_breakdown").."</th><td colspan=2>")
+         graph_utils.breakdownBar(host["bytes.sent"], i18n("sent"), host["bytes.rcvd"], i18n("details.rcvd"), 0, 100)
+         print("</td></tr>\n")
+      end
+
+      print("<tr><th>"..i18n("details.traffic_sent_received").."</th><td><span id=pkts_sent>" .. formatPackets(host["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(host["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(host["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(host["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
+
+      local flows_th = i18n("details.flows_non_packet_iface")
+      if interface.isPacketInterface() then
+         flows_th = i18n("details.flows_packet_iface")
+      end
+
+      print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
+      print("<tr><th>"..flows_th.."</th><td><span id=active_flows_as_client>" .. formatValue(host["active_flows.as_client"]) .. "</span> <span id=trend_as_active_client></span> \n")
+      print("/ <span id=flows_as_client>" .. formatValue(host["flows.as_client"]) .. "</span> <span id=trend_as_client></span> \n")
+      print("/ <span id=alerted_flows_as_client>" .. formatValue(host["alerted_flows.as_client"]) .. "</span> <span id=trend_alerted_flows_as_client></span>")
+      print(" / <span id=unreachable_flows_as_client>" .. formatValue(host["unreachable_flows.as_client"]) .. "</span> <span id=trend_unreachable_flows_as_client></span>")
+      print("</td>")
+
+      print("<td><span id=active_flows_as_server>" .. formatValue(host["active_flows.as_server"]) .. "</span>  <span id=trend_as_active_server></span> \n")
+      print("/ <span id=flows_as_server>"..formatValue(host["flows.as_server"]) .. "</span> <span id=trend_as_server></span> \n")
+      print("/ <span id=alerted_flows_as_server>" .. formatValue(host["alerted_flows.as_server"]) .. "</span> <span id=trend_alerted_flows_as_server></span>")
+      print(" / <span id=unreachable_flows_as_server>" .. formatValue(host["unreachable_flows.as_server"]) .. "</span> <span id=trend_unreachable_flows_as_server></span>")
       print("</td></tr>")
-   end
 
-   print("<tr><th>"..i18n("details.first_last_seen").."</th><td nowrap><span id=first_seen>" .. formatEpoch(host["seen.first"]) ..  " [" .. secondsToTime(os.time()-host["seen.first"]) .. " "..i18n("details.ago").."]" .. "</span></td>\n")
-   print("<td  width='35%'><span id=last_seen>" .. formatEpoch(host["seen.last"]) .. " [" .. secondsToTime(os.time()-host["seen.last"]) .. " "..i18n("details.ago") .. "]" .. "</span></td></tr>\n")
-
-
-   if((host["bytes.sent"]+host["bytes.rcvd"]) > 0) then
-      print("<tr><th>"..i18n("details.sent_vs_received_traffic_breakdown").."</th><td colspan=2>")
-      graph_utils.breakdownBar(host["bytes.sent"], i18n("sent"), host["bytes.rcvd"], i18n("details.rcvd"), 0, 100)
-      print("</td></tr>\n")
-   end
-
-   print("<tr><th>"..i18n("details.traffic_sent_received").."</th><td><span id=pkts_sent>" .. formatPackets(host["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(host["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(host["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(host["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
-
-   local flows_th = i18n("details.flows_non_packet_iface")
-   if interface.isPacketInterface() then
-      flows_th = i18n("details.flows_packet_iface")
-   end
-
-   print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
-   print("<tr><th>"..flows_th.."</th><td><span id=active_flows_as_client>" .. formatValue(host["active_flows.as_client"]) .. "</span> <span id=trend_as_active_client></span> \n")
-   print("/ <span id=flows_as_client>" .. formatValue(host["flows.as_client"]) .. "</span> <span id=trend_as_client></span> \n")
-   print("/ <span id=alerted_flows_as_client>" .. formatValue(host["alerted_flows.as_client"]) .. "</span> <span id=trend_alerted_flows_as_client></span>")
-   print(" / <span id=unreachable_flows_as_client>" .. formatValue(host["unreachable_flows.as_client"]) .. "</span> <span id=trend_unreachable_flows_as_client></span>")
-   print("</td>")
-
-   print("<td><span id=active_flows_as_server>" .. formatValue(host["active_flows.as_server"]) .. "</span>  <span id=trend_as_active_server></span> \n")
-   print("/ <span id=flows_as_server>"..formatValue(host["flows.as_server"]) .. "</span> <span id=trend_as_server></span> \n")
-   print("/ <span id=alerted_flows_as_server>" .. formatValue(host["alerted_flows.as_server"]) .. "</span> <span id=trend_alerted_flows_as_server></span>")
-   print(" / <span id=unreachable_flows_as_server>" .. formatValue(host["unreachable_flows.as_server"]) .. "</span> <span id=trend_unreachable_flows_as_server></span>")
-   print("</td></tr>")
-
-   print("<tr><th>"..i18n("details.contacts_blacklisted").."</th>")
-   print("<td><span id=num_blacklisted_flows_as_client>" .. formatValue(host.num_blacklisted_flows.as_client) .. "</span> <span id=trend_num_blacklisted_flows_as_client></span> \n")
-   print("<td><span id=num_blacklisted_flows_as_server>" .. formatValue(host.num_blacklisted_flows.as_server) .. "</span>  <span id=trend_num_blacklisted_flows_as_server></span> \n")
-   print("</tr>")
-
-   print("<tr><th>"..i18n("details.peers").."</th>")
-   print("<td><span id=active_peers_as_client>" .. formatValue(host["contacts.as_client"]) .. "</span> <span id=peers_trend_as_active_client></span> \n")
-   print("<td><span id=active_peers_as_server>" .. formatValue(host["contacts.as_server"]) .. "</span>  <span id=peers_trend_as_active_server></span> \n")
-
-   if ntop.isnEdge() then
-      print("<tr id=bridge_dropped_flows_tr ") if not host["flows.dropped"] then print("style='display:none;'") end print(">")
-
-      print("<th><i class=\"fas fa-ban fa-lg\"></i> "..i18n("details.flows_dropped_by_bridge").."</th>")
-      print("<td colspan=2><span id=bridge_dropped_flows>" .. formatValue((host["flows.dropped"] or 0)) .. "</span>  <span id=trend_bridge_dropped_flows></span>")
-
+      print("<tr><th>"..i18n("details.contacts_blacklisted").."</th>")
+      print("<td><span id=num_blacklisted_flows_as_client>" .. formatValue(host.num_blacklisted_flows.as_client) .. "</span> <span id=trend_num_blacklisted_flows_as_client></span> \n")
+      print("<td><span id=num_blacklisted_flows_as_server>" .. formatValue(host.num_blacklisted_flows.as_server) .. "</span>  <span id=trend_num_blacklisted_flows_as_server></span> \n")
       print("</tr>")
-   end
 
-   if(host.server_contacts ~= nil) then
-      print("<tr><th>")
-      if(has_assets) then
-	 print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. host_ip .."&page=assets\">".. i18n("details.server_contacts") .. "</A>")
-      else
-	 print(i18n("details.server_contacts"))
+      print("<tr><th>"..i18n("details.peers").."</th>")
+      print("<td><span id=active_peers_as_client>" .. formatValue(host["contacts.as_client"]) .. "</span> <span id=peers_trend_as_active_client></span> \n")
+      print("<td><span id=active_peers_as_server>" .. formatValue(host["contacts.as_server"]) .. "</span>  <span id=peers_trend_as_active_server></span> \n")
+
+      if ntop.isnEdge() then
+         print("<tr id=bridge_dropped_flows_tr ") if not host["flows.dropped"] then print("style='display:none;'") end print(">")
+
+         print("<th><i class=\"fas fa-ban fa-lg\"></i> "..i18n("details.flows_dropped_by_bridge").."</th>")
+         print("<td colspan=2><span id=bridge_dropped_flows>" .. formatValue((host["flows.dropped"] or 0)) .. "</span>  <span id=trend_bridge_dropped_flows></span>")
+
+         print("</tr>")
       end
-      print("</th><td colspan=2>")
-      print("<b>DNS</b>: "..formatContacts(host.server_contacts.dns).." / ")
-      print("<b>SMTP</b>: "..formatContacts(host.server_contacts.smtp).." / ");
-      print("<b>POP</b>: "..formatContacts(host.server_contacts.pop).." / ");
-      print("<b>IMAP</b>: "..formatContacts(host.server_contacts.imap).." / ");
-      print("<b>NTP</b>: "..formatContacts(host.server_contacts.ntp).."</td></tr>");
-   end
 
-   if host["tcp.packets.seq_problems"] == true then
-      local tcp_seq_label = "TCP: "..i18n("details.retransmissions").." / "..i18n("details.out_of_order").." / "..i18n("details.lost").." / "..i18n("details.keep_alive")
+      if(host.server_contacts ~= nil) then
+         print("<tr><th>")
+         if(has_assets) then
+            print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. host_ip .."&page=assets\">".. i18n("details.server_contacts") .. "</A>")
+         else
+            print(i18n("details.server_contacts"))
+         end
+         print("</th><td colspan=2>")
+         print("<b>DNS</b>: "..formatContacts(host.server_contacts.dns).." / ")
+         print("<b>SMTP</b>: "..formatContacts(host.server_contacts.smtp).." / ");
+         print("<b>POP</b>: "..formatContacts(host.server_contacts.pop).." / ");
+         print("<b>IMAP</b>: "..formatContacts(host.server_contacts.imap).." / ");
+         print("<b>NTP</b>: "..formatContacts(host.server_contacts.ntp).."</td></tr>");
+      end
 
-      -- SENT ANALYSIS
-      local tcp_retx_sent = "<span id=pkt_retransmissions_sent>"..formatPackets(host["tcpPacketStats.sent"]["retransmissions"]).."</span> <span id=pkt_retransmissions_sent_trend></span>"
-      local tcp_ooo_sent = "<span id=pkt_ooo_sent>"..formatPackets(host["tcpPacketStats.sent"]["out_of_order"]).."</span> <span id=pkt_ooo_sent_trend></span>"
-      local tcp_lost_sent = "<span id=pkt_lost_sent>"..formatPackets(host["tcpPacketStats.sent"]["lost"]).."</span> <span id=pkt_lost_sent_trend></span>"
-      local tcp_keep_alive_sent = "<span id=pkt_keep_alive_sent>"..formatPackets(host["tcpPacketStats.sent"]["keep_alive"]).."</span> <span id=pkt_keep_alive_sent_trend></span>"
+      if host["tcp.packets.seq_problems"] == true then
+         local tcp_seq_label = "TCP: "..i18n("details.retransmissions").." / "..i18n("details.out_of_order").." / "..i18n("details.lost").." / "..i18n("details.keep_alive")
 
-      -- RCVD ANALYSIS
-      local tcp_retx_rcvd = "<span id=pkt_retransmissions_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["retransmissions"]).."</span> <span id=pkt_retransmissions_rcvd_trend></span>"
-      local tcp_ooo_rcvd = "<span id=pkt_ooo_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]).."</span> <span id=pkt_ooo_rcvd_trend></span>"
-      local tcp_lost_rcvd = "<span id=pkt_lost_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["lost"]).."</span> <span id=pkt_lost_rcvd_trend></span>"
-      local tcp_keep_alive_rcvd = "<span id=pkt_keep_alive_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]).."</span> <span id=pkt_keep_alive_rcvd_trend></span>"
+         -- SENT ANALYSIS
+         local tcp_retx_sent = "<span id=pkt_retransmissions_sent>"..formatPackets(host["tcpPacketStats.sent"]["retransmissions"]).."</span> <span id=pkt_retransmissions_sent_trend></span>"
+         local tcp_ooo_sent = "<span id=pkt_ooo_sent>"..formatPackets(host["tcpPacketStats.sent"]["out_of_order"]).."</span> <span id=pkt_ooo_sent_trend></span>"
+         local tcp_lost_sent = "<span id=pkt_lost_sent>"..formatPackets(host["tcpPacketStats.sent"]["lost"]).."</span> <span id=pkt_lost_sent_trend></span>"
+         local tcp_keep_alive_sent = "<span id=pkt_keep_alive_sent>"..formatPackets(host["tcpPacketStats.sent"]["keep_alive"]).."</span> <span id=pkt_keep_alive_sent_trend></span>"
 
-      print("<tr><th rowspan=2>"..tcp_seq_label.."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th></tr>")
-      print("<tr><td>"..string.format("%s / %s / %s / %s", tcp_retx_sent, tcp_ooo_sent, tcp_lost_sent, tcp_keep_alive_sent).."</td><td>"..string.format("%s / %s / %s / %s", tcp_retx_rcvd, tcp_ooo_rcvd, tcp_lost_rcvd, tcp_keep_alive_rcvd).."</td></tr>")
-   end
+         -- RCVD ANALYSIS
+         local tcp_retx_rcvd = "<span id=pkt_retransmissions_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["retransmissions"]).."</span> <span id=pkt_retransmissions_rcvd_trend></span>"
+         local tcp_ooo_rcvd = "<span id=pkt_ooo_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]).."</span> <span id=pkt_ooo_rcvd_trend></span>"
+         local tcp_lost_rcvd = "<span id=pkt_lost_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["lost"]).."</span> <span id=pkt_lost_rcvd_trend></span>"
+         local tcp_keep_alive_rcvd = "<span id=pkt_keep_alive_rcvd>"..formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]).."</span> <span id=pkt_keep_alive_rcvd_trend></span>"
 
-   -- Stats reset
-   print(
-     template.gen("modal_confirm_dialog.html", {
-       dialog={
-         id      = "reset_host_stats_dialog",
-         action  = "$('#reset_host_stats_form').submit();",
-         title   = i18n("host_details.reset_host_stats"),
-         message = i18n("host_details.reset_host_stats_confirm", {host=host_label}) .. "<br><br>" .. i18n("host_details.reset_host_stats_note"),
-         confirm = i18n("reset"),
-       }
-     })
-   )
+         print("<tr><th rowspan=2>"..tcp_seq_label.."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th></tr>")
+         print("<tr><td>"..string.format("%s / %s / %s / %s", tcp_retx_sent, tcp_ooo_sent, tcp_lost_sent, tcp_keep_alive_sent).."</td><td>"..string.format("%s / %s / %s / %s", tcp_retx_rcvd, tcp_ooo_rcvd, tcp_lost_rcvd, tcp_keep_alive_rcvd).."</td></tr>")
+      end
 
-   -- Stats reset
-   print(
-     template.gen("modal_confirm_dialog.html", {
-       dialog={
+      -- Stats reset
+      print(
+        template.gen("modal_confirm_dialog.html", {
+          dialog={
+            id      = "reset_host_stats_dialog",
+            action  = "$('#reset_host_stats_form').submit();",
+            title   = i18n("host_details.reset_host_stats"),
+            message = i18n("host_details.reset_host_stats_confirm", {host=host_label}) .. "<br><br>" .. i18n("host_details.reset_host_stats_note"),
+            confirm = i18n("reset"),
+          }
+        })
+      )
+
+      -- Stats reset
+      print(
+        template.gen("modal_confirm_dialog.html", {
+          dialog={
          id      = "reset_blacklisted_stats_dialog",
          action  = "$('#reset_blacklisted_stats_form').submit();",
          title   = i18n("host_details.reset_blacklisted_stats"),
          message = i18n("host_details.reset_blacklisted_stats_confirm", {host=host_label}) .. "<br><br>" .. i18n("host_details.reset_blacklisted_stats_note"),
          confirm = i18n("reset"),
-       }
-     })
-   )
-   print[[<tr><th width=30% >]] print(i18n("host_details.reset_host_stats"))
-   print[[</th><td colspan=2><form id='reset_host_stats_form' method="POST">
+         }
+         })
+      )
+      print[[<tr><th width=30% >]] print(i18n("host_details.reset_host_stats"))
+      print[[</th><td colspan=2><form id='reset_host_stats_form' method="POST">
       <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
       <input name="action" type="hidden" value="reset_stats" />
       <input name="resetstats_mode" type="hidden" value="reset_all" />
@@ -953,81 +953,79 @@ else
 
    </td></tr>]]
 
-   local num_extra_names = 0
-   local extra_names = host["names"]
-   local num_extra_names = table.len(extra_names)
+      local num_extra_names = 0
+      local extra_names = host["names"]
+      local num_extra_names = table.len(extra_names)
 
-   if num_extra_names > 0 then
-      local name_sources = {}
-      for source, name in pairsByKeys(extra_names, rev) do
-	 if source == "resolved" then
-	    source = "DNS Resolution"
-	 else
-	    source = source:upper()
-	 end
+      if num_extra_names > 0 then
+         local name_sources = {}
+         for source, name in pairsByKeys(extra_names, rev) do
+            if source == "resolved" then
+               source = "DNS Resolution"
+            else
+               source = source:upper()
+            end
 
-	 if not name_sources[name] then
-	    name_sources[name] = source
-	 else
-	    -- Collapse multiple sources in a single row when the name is the same
-	    name_sources[name] = string.format("%s, %s", source, name_sources[name])
-	    num_extra_names = num_extra_names - 1
-	 end
+            if not name_sources[name] then
+               name_sources[name] = source
+            else
+               -- Collapse multiple sources in a single row when the name is the same
+               name_sources[name] = string.format("%s, %s", source, name_sources[name])
+               num_extra_names = num_extra_names - 1
+            end
+         end
 
-
+         print('<tr><td width=35% rowspan='..(num_extra_names + 1)..'><b>'.. i18n("details.further_host_names_information") ..' </a></b></td>')
+         print("<th>"..i18n("details.source").."</th><th>"..i18n("name").."</th></tr>\n")
+         for name, source in pairsByValues(name_sources, asc) do
+            print("<tr><td>"..source.."</td><td>"..name.."</td></tr>\n")
+         end
       end
 
-      print('<tr><td width=35% rowspan='..(num_extra_names + 1)..'><b>'.. i18n("details.further_host_names_information") ..' </a></b></td>')
-      print("<th>"..i18n("details.source").."</th><th>"..i18n("name").."</th></tr>\n")
-      for name, source in pairsByValues(name_sources, asc) do
-	 print("<tr><td>"..source.."</td><td>"..name.."</td></tr>\n")
+      if host["device_ip"] then
+         print('<tr><td width=35% rowspan='..(table.len(host["devices_ip"]) + 1)..'><b>'.. i18n("details.probes_ipv4_address") ..' </a></b></td>')
+         print("<td colspan='2'>" .. host["device_ip"])
+         if host["more_then_one_device"] then
+            print(i18n("details.more_then_one_device"))
+         end
+         print("</td></tr>\n")
       end
-   end
 
-   if host["device_ip"] then
-	   print('<tr><td width=35% rowspan='..(table.len(host["devices_ip"]) + 1)..'><b>'.. i18n("details.probes_ipv4_address") ..' </a></b></td>')
-	   print("<td colspan='2'>" .. host["device_ip"])
-		if host["more_then_one_device"] then
-			print(i18n("details.more_then_one_device"))
-		end
-		print("</td></tr>\n")
-	end
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td")
+      local show_live_capture = ntop.isPcapDownloadAllowed()
+      if(not show_live_capture) then print(" colspan=2") end
+      print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/v2/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."' download='host-".. host_ip ..".json'>JSON</A></td>")
+      print [[<td>]]
+      if (show_live_capture and ifstats.isView == false and not interface.isSubInterface() and interface.isPacketInterface()) then
+         local live_traffic_utils = require("live_traffic_utils")
+         live_traffic_utils.printLiveTrafficForm(ifId, host_info)
+      end
 
-   print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td")
-   local show_live_capture = ntop.isPcapDownloadAllowed()
-   if(not show_live_capture) then print(" colspan=2") end
-   print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/v2/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."' download='host-".. host_ip ..".json'>JSON</A></td>")
-   print [[<td>]]
-   if (show_live_capture and ifstats.isView == false and not interface.isSubInterface() and interface.isPacketInterface()) then
-      local live_traffic_utils = require("live_traffic_utils")
-      live_traffic_utils.printLiveTrafficForm(ifId, host_info)
-   end
-
-   print[[</td>]]
-   print("</tr>\n")
+      print[[</td>]]
+      print("</tr>\n")
 
 
-   if(host["ssdp"] ~= nil) then
-      print("<tr><th><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)<i class=\"fas fa-external-link-alt fa-lg\"></i></A></th><td colspan=2> <A HREF='"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
-   end
+      if(host["ssdp"] ~= nil) then
+         print("<tr><th><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)<i class=\"fas fa-external-link-alt fa-lg\"></i></A></th><td colspan=2> <A HREF='"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
+      end
 
-   print("</table>\n")
+      print("</table>\n")
 
    elseif((page == "packets")) then
       print [[
       <table class="table table-bordered table-striped">
-	 ]]
+         ]]
 
       local tots = 0 for key, value in pairs(host["pktStats.sent"]["size"]) do tots = tots + value end
       local totr = 0 for key, value in pairs(host["pktStats.recv"]["size"]) do totr = totr + value end
 
      print('<tr>')
      if(tots > 0) then
-			print('<th class="text-start">'..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
-			print('<td colspan=1><div class="pie-chart" id="sizeSentDistro"></div></td>')
+                        print('<th class="text-start">'..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
+                        print('<td colspan=1><div class="pie-chart" id="sizeSentDistro"></div></td>')
      else
-			print('<th class="text-start" style="width: 15rem;"> '..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
-			print('<td colspan=1 style="width: 15rem;">~</td>')
+                        print('<th class="text-start" style="width: 15rem;"> '..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
+                        print('<td colspan=1 style="width: 15rem;">~</td>')
      end
 
      if(totr > 0) then
@@ -1041,35 +1039,35 @@ else
    local has_arp_distro = (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") and (ifs.type ~= "zmq")
 
    if(has_tcp_distro and has_arp_distro) then
-    	print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_vs_arp_distribution")..'</th><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td><td colspan=1><div class="pie-chart" id="arpDistro"></div></td></tr>')
+            print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_vs_arp_distribution")..'</th><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td><td colspan=1><div class="pie-chart" id="arpDistro"></div></td></tr>')
    else
       if (has_tcp_distro) then
-	 		print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
+                         print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
       elseif (has_arp_distro) then
          if (macinfo ~= nil) and (macinfo["arp_requests.sent"] + macinfo["arp_requests.rcvd"] + macinfo["arp_replies.sent"] + macinfo["arp_replies.rcvd"] > 0) then
             print('<tr><th class="text-start">'..i18n("packets_page.arp_distribution")..'</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
          end
       else
-	     	print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_distribution")..'</th>') print('<td colspan=5>~</td></tr>')
+                     print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_distribution")..'</th>') print('<td colspan=5>~</td></tr>')
       end
-	end
+        end
 
       hostinfo2json(host_info)
       print [[
       </table>
 
         <script type='text/javascript'>
-	       window.onload=function() {
+               window.onload=function() {
 
-		   do_pie("#sizeSentDistro", ']]
+                   do_pie("#sizeSentDistro", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "sent", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-	print [[
-		   do_pie("#sizeRecvDistro", ']]
+        print [[
+                   do_pie("#sizeRecvDistro", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-	print [[
-		   do_pie("#flagsDistro", ']]
+        print [[
+                   do_pie("#flagsDistro", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/if_tcpflags_pkt_distro.lua', { ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
 
@@ -1077,16 +1075,16 @@ print [[/lua/if_tcpflags_pkt_distro.lua', { ifid: "]] print(ifId.."") print ('",
 local macinfo = table.clone(host_info)
 macinfo["host"] = host["mac"]
 
-	print [[
-		   do_pie("#arpDistro", ']]
+        print [[
+                   do_pie("#arpDistro", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostinfo2json(macinfo) .."}, \"\", refresh); \n")
-	print [[
+        print [[
 
-		}
+                }
 
-	    </script><p>
-	]]
+            </script><p>
+        ]]
 
    elseif((page == "DSCP")) then
       print('<table class="table table-bordered table-striped">\n')
@@ -1100,19 +1098,19 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
         window.onload=function() {
           do_pie("#dscpPrecedenceSent", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/host/dscp/stats.lua', { direction: "sent", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
       print [[
-	  do_pie("#dscpPrecedenceReceived", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/host/dscp/stats.lua', { direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+          do_pie("#dscpPrecedenceReceived", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/host/dscp/stats.lua', { direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
       print [[
-	}
+        }
       </script>
       ]]
 
    elseif((page == "ports")) then
       print('<table class="table table-bordered table-striped">\n')
       if(host.cardinality) then
-	 print('<tr><th class="text-start">'..i18n("ports_page.num_contacted_ports")..'</th>')
-	 print('<th class="text-start">'..i18n("ports_page.num_contacted_ports_as_client")..'</th><td><span id="num_contacted_ports_as_client">'.. formatValue(host.cardinality.num_contacted_ports_as_client) ..'</span> <span id="num_contacted_ports_as_client_trend"></span></td>')
-	 print('<th class="text-start">'..i18n("ports_page.num_host_contacted_ports_as_server")..'</th><td><span id="num_host_contacted_ports_as_server">'.. formatValue(host.cardinality.num_host_contacted_ports_as_server) ..'</span> <span id="num_host_contacted_ports_as_server_trend"></span></td>')
-	 print('</tr>')
+         print('<tr><th class="text-start">'..i18n("ports_page.num_contacted_ports")..'</th>')
+         print('<th class="text-start">'..i18n("ports_page.num_contacted_ports_as_client")..'</th><td><span id="num_contacted_ports_as_client">'.. formatValue(host.cardinality.num_contacted_ports_as_client) ..'</span> <span id="num_contacted_ports_as_client_trend"></span></td>')
+         print('<th class="text-start">'..i18n("ports_page.num_host_contacted_ports_as_server")..'</th><td><span id="num_host_contacted_ports_as_server">'.. formatValue(host.cardinality.num_host_contacted_ports_as_server) ..'</span> <span id="num_host_contacted_ports_as_server_trend"></span></td>')
+         print('</tr>')
       end
       print('<tr><th class="text-start">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
       print('<tr><th class="text-start">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
@@ -1121,20 +1119,20 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
       </table>
 
         <script type='text/javascript'>
-	       window.onload=function() {
+               window.onload=function() {
 
-		   do_pie("#clientPortsDistro", ']]
+                   do_pie("#clientPortsDistro", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/iface_ports_list.lua', { clisrv: "client", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-	print [[
-		   do_pie("#serverPortsDistro", ']]
+        print [[
+                   do_pie("#serverPortsDistro", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/iface_ports_list.lua', { clisrv: "server", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-	print [[
+        print [[
 
-		}
-	    </script><p>
-	]]
+                }
+            </script><p>
+        ]]
 
    elseif((page == "peers")) then
 host_info = url2hostinfo(_GET)
@@ -1332,14 +1330,14 @@ elseif((page == "ndpi")) then
       <table class="table table-bordered mt-1 table-striped">]]
 
       if(host.cardinality) then
-	 print('<tr><th class="text-start" colspan=2>'..i18n("ndpi_page.num_contacted_services_as_client")..'</th>')
-	 print('<td align=right><span id="num_contacted_services_as_client">'.. formatValue(host.cardinality.num_contacted_services_as_client))
-	 print('</span> <span id="num_contacted_services_as_client_trend"></span></td><td>'..i18n("ndpi_page.num_contacted_services_as_client_descr")..'</td></tr>')
+         print('<tr><th class="text-start" colspan=2>'..i18n("ndpi_page.num_contacted_services_as_client")..'</th>')
+         print('<td align=right><span id="num_contacted_services_as_client">'.. formatValue(host.cardinality.num_contacted_services_as_client))
+         print('</span> <span id="num_contacted_services_as_client_trend"></span></td><td>'..i18n("ndpi_page.num_contacted_services_as_client_descr")..'</td></tr>')
       end
 
 
       if ntop.isPro() and host["custom_apps"] then
-	 print[[
+         print[[
     <tr>
       <th class="text-start">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.custom_applications")})) print [[</th>
       <td colspan=5><div class="pie-chart" id="topCustomApps"></div></td>
@@ -1358,7 +1356,7 @@ elseif((page == "ndpi")) then
       local direction_filter = ""
 
       if(direction ~= nil) then
-	 direction_filter = '<span class="fas fa-filter"></span>'
+         direction_filter = '<span class="fas fa-filter"></span>'
       end
 
       print('<div class="dt-toolbar-container d-flex">')
@@ -1373,14 +1371,14 @@ elseif((page == "ndpi")) then
       print [[
      <table class="table table-bordered table-striped">
        <thead>
-	 <tr>
-	   <th>]] print(i18n("application")) print[[</th>
-	   <th class="text-end">]] print(i18n("duration")) print[[</th>
+         <tr>
+           <th>]] print(i18n("application")) print[[</th>
+           <th class="text-end">]] print(i18n("duration")) print[[</th>
       <th class="text-end">]] print(i18n("sent")) print[[</th>
       <th class="text-end">]] print(i18n("received")) print[[</th>
       <th class="text-center">]] print(i18n("breakdown")) print[[</th>
       <th colspan=2 class="text-center">]] print(i18n("total")) print[[</th>
-	 </tr>
+         </tr>
        </thead>
        <tbody id="host_details_ndpi_applications_tbody"></tbody>
      </table>
@@ -1397,12 +1395,12 @@ elseif((page == "ndpi")) then
       <div class='tables-responsive'>
      <table class="table table-bordered table-striped">
        <thead>
-	 <tr>
-	   <th>]] print(i18n("category")) print[[</th>
-	   <th>]] print(i18n("applications")) print[[</th>
+         <tr>
+           <th>]] print(i18n("category")) print[[</th>
+           <th>]] print(i18n("applications")) print[[</th>
       <th class="text-end">]] print(i18n("duration")) print[[</th>
       <th colspan=2 class="text-center">]] print(i18n("total")) print[[</th>
-	 </tr>
+         </tr>
        </thead>
        <tbody id="host_details_ndpi_categories_tbody"></tbody>
      </table>
@@ -1414,13 +1412,13 @@ elseif((page == "ndpi")) then
 
       print[[
 
-	<script type='text/javascript'>
-	       window.onload=function() {]]
+        <script type='text/javascript'>
+               window.onload=function() {]]
 
       if ntop.isPro() and host["custom_apps"] then
-	 print[[do_pie("#topCustomApps", ']]
-	 print (ntop.getHttpPrefix())
-	 print [[/lua/pro/get_custom_app_stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
+         print[[do_pie("#topCustomApps", ']]
+         print (ntop.getHttpPrefix())
+         print [[/lua/pro/get_custom_app_stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 ]]
       end
 
@@ -1428,16 +1426,16 @@ elseif((page == "ndpi")) then
       print (ntop.getHttpPrefix())
    print [[/lua/rest/v2/get/host/l7/stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
-				   do_pie("#topApplicationCategories", ']]
+                                   do_pie("#topApplicationCategories", ']]
       print (ntop.getHttpPrefix())
       print [[/lua/rest/v2/get/host/l7/stats.lua', { ndpi_category: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
-				   do_pie("#topApplicationBreeds", ']]
+                                   do_pie("#topApplicationBreeds", ']]
       print (ntop.getHttpPrefix())
       print [[/lua/rest/v2/get/host/l7/stats.lua', { breed: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
 
-				}
+                                }
 
 function update_ndpi_table() {
   $.ajax({
@@ -1506,81 +1504,81 @@ elseif(page == "dns") then
       print("<table class=\"table table-bordered table-striped\">\n")
 
       if(host.DoH_DoT ~= nil) then
-	 print("<tr><th>"..i18n("dns_page.doh_dot_servers").."</th><th colspan=4>"..i18n("dns_page.doh_dot_server_uses").."</th></tr>")
+         print("<tr><th>"..i18n("dns_page.doh_dot_servers").."</th><th colspan=4>"..i18n("dns_page.doh_dot_server_uses").."</th></tr>")
 
-	 for _, v in pairs(host.DoH_DoT) do
-	    print("<tr><th>"..buildHostHREF(v.ip, v.vlan_id, "overview").."</th><td colspan=4 align=right>"..formatValue(v.num_uses) .."</td>")
-	 end
+         for _, v in pairs(host.DoH_DoT) do
+            print("<tr><th>"..buildHostHREF(v.ip, v.vlan_id, "overview").."</th><td colspan=4 align=right>"..formatValue(v.num_uses) .."</td>")
+         end
 
-	 print("</td></tr>\n")
+         print("</td></tr>\n")
       end
 
       if(host["dns"] ~= nil) then
-      	print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th class='text-end'>"..i18n("dns_page.queries").."</th><th class='text-end'>"..i18n("dns_page.positive_replies").."</th><th class='text-end'>"..i18n("dns_page.error_replies").."</th><th colspan=2 class='text-center'>"..i18n("dns_page.reply_breakdown").."</th></tr>")
-			print("<tr><th>"..i18n("sent").."</th><td class=\"text-end\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
+              print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th class='text-end'>"..i18n("dns_page.queries").."</th><th class='text-end'>"..i18n("dns_page.positive_replies").."</th><th class='text-end'>"..i18n("dns_page.error_replies").."</th><th colspan=2 class='text-center'>"..i18n("dns_page.reply_breakdown").."</th></tr>")
+                        print("<tr><th>"..i18n("sent").."</th><td class=\"text-end\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
 
-	 print("<td class=\"text-end\"><span id=dns_sent_num_replies_ok>".. formatValue(host["dns"]["sent"]["num_replies_ok"]) .."</span> <span id=trend_sent_num_replies_ok></span></td>")
-	 print("<td class=\"text-end\"><span id=dns_sent_num_replies_error>".. formatValue(host["dns"]["sent"]["num_replies_error"]) .."</span> <span id=trend_sent_num_replies_error></span></td><td colspan=2>")
-	 graph_utils.breakdownBar(host["dns"]["sent"]["num_replies_ok"], "OK", host["dns"]["sent"]["num_replies_error"], "Error", 0, 100)
-	 print("</td></tr>")
+         print("<td class=\"text-end\"><span id=dns_sent_num_replies_ok>".. formatValue(host["dns"]["sent"]["num_replies_ok"]) .."</span> <span id=trend_sent_num_replies_ok></span></td>")
+         print("<td class=\"text-end\"><span id=dns_sent_num_replies_error>".. formatValue(host["dns"]["sent"]["num_replies_error"]) .."</span> <span id=trend_sent_num_replies_error></span></td><td colspan=2>")
+         graph_utils.breakdownBar(host["dns"]["sent"]["num_replies_ok"], "OK", host["dns"]["sent"]["num_replies_error"], "Error", 0, 100)
+         print("</td></tr>")
 
-	 print("<tr><th>"..i18n("dns_page.rcvd").."</th><td class=\"text-end\"><span id=dns_rcvd_num_queries>".. formatValue(host["dns"]["rcvd"]["num_queries"]) .."</span> <span id=trend_rcvd_num_queries></span></td>")
-	 print("<td class=\"text-end\"><span id=dns_rcvd_num_replies_ok>".. formatValue(host["dns"]["rcvd"]["num_replies_ok"]) .."</span> <span id=trend_rcvd_num_replies_ok></span></td>")
-	 print("<td class=\"text-end\"><span id=dns_rcvd_num_replies_error>".. formatValue(host["dns"]["rcvd"]["num_replies_error"]) .."</span> <span id=trend_rcvd_num_replies_error></span></td><td colspan=2>")
-	 graph_utils.breakdownBar(host["dns"]["rcvd"]["num_replies_ok"], "OK", host["dns"]["rcvd"]["num_replies_error"], "Error", 50, 100)
-	 print("</td></tr>")
+         print("<tr><th>"..i18n("dns_page.rcvd").."</th><td class=\"text-end\"><span id=dns_rcvd_num_queries>".. formatValue(host["dns"]["rcvd"]["num_queries"]) .."</span> <span id=trend_rcvd_num_queries></span></td>")
+         print("<td class=\"text-end\"><span id=dns_rcvd_num_replies_ok>".. formatValue(host["dns"]["rcvd"]["num_replies_ok"]) .."</span> <span id=trend_rcvd_num_replies_ok></span></td>")
+         print("<td class=\"text-end\"><span id=dns_rcvd_num_replies_error>".. formatValue(host["dns"]["rcvd"]["num_replies_error"]) .."</span> <span id=trend_rcvd_num_replies_error></span></td><td colspan=2>")
+         graph_utils.breakdownBar(host["dns"]["rcvd"]["num_replies_ok"], "OK", host["dns"]["rcvd"]["num_replies_error"], "Error", 50, 100)
+         print("</td></tr>")
 
-	 if host["dns"]["rcvd"]["num_replies_ok"] + host["dns"]["rcvd"]["num_replies_error"] > 0 then
-	    print('<tr><th>'..i18n("dns_page.request_vs_reply")..'</th>')
-	    local dns_ratio = tonumber(host["dns"]["sent"]["num_queries"]) / tonumber(host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"])
-	    local dns_ratio_str = string.format("%.2f", dns_ratio)
+         if host["dns"]["rcvd"]["num_replies_ok"] + host["dns"]["rcvd"]["num_replies_error"] > 0 then
+            print('<tr><th>'..i18n("dns_page.request_vs_reply")..'</th>')
+            local dns_ratio = tonumber(host["dns"]["sent"]["num_queries"]) / tonumber(host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"])
+            local dns_ratio_str = string.format("%.2f", dns_ratio)
 
-	    if(dns_ratio < 0.9) then
-	       dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>"
-	    end
+            if(dns_ratio < 0.9) then
+               dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>"
+            end
 
-	    print('<td colspan=2 align=right>'..  dns_ratio_str ..'</td><td colspan=2>')
-	    graph_utils.breakdownBar(host["dns"]["sent"]["num_queries"], i18n("dns_page.queries"), host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"], i18n("dns_page.replies"), 30, 70)
+            print('<td colspan=2 align=right>'..  dns_ratio_str ..'</td><td colspan=2>')
+            graph_utils.breakdownBar(host["dns"]["sent"]["num_queries"], i18n("dns_page.queries"), host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"], i18n("dns_page.replies"), 30, 70)
 
-	    print [[</td></tr>]]
-	 end
+            print [[</td></tr>]]
+         end
 
-	 -- Charts
-	 if((host["dns"]["sent"]["num_queries"] + host["dns"]["rcvd"]["num_queries"]) > 0) then
-	    print [[<tr><th>]] print(i18n("dns_page.dns_query_sent_vs_rcvd_distribution")) print[[</th>]]
-	    if(host["dns"]["sent"]["num_queries"] > 0) then
-	       print[[<td colspan=2>
-		     <div class="pie-chart" id="dnsSent"></div>
-		     <script type='text/javascript'>
+         -- Charts
+         if((host["dns"]["sent"]["num_queries"] + host["dns"]["rcvd"]["num_queries"]) > 0) then
+            print [[<tr><th>]] print(i18n("dns_page.dns_query_sent_vs_rcvd_distribution")) print[[</th>]]
+            if(host["dns"]["sent"]["num_queries"] > 0) then
+               print[[<td colspan=2>
+                     <div class="pie-chart" id="dnsSent"></div>
+                     <script type='text/javascript'>
 
-					 do_pie("#dnsSent", ']]
-		  print (ntop.getHttpPrefix())
-	       print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "sent" }, "", refresh);
-				      </script>
-					 </td>
+                                         do_pie("#dnsSent", ']]
+                  print (ntop.getHttpPrefix())
+               print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "sent" }, "", refresh);
+                                      </script>
+                                         </td>
            ]]
-	    else
-	       print[[<td colspan=2>&nbsp;</td>]]
-	    end
+            else
+               print[[<td colspan=2>&nbsp;</td>]]
+            end
 
-	    if(host["dns"]["rcvd"]["num_queries"] > 0) then
-	       print [[
+            if(host["dns"]["rcvd"]["num_queries"] > 0) then
+               print [[
          <td colspan=2><div class="pie-chart" id="dnsRcvd"></div>
          <script type='text/javascript'>
 
-	     do_pie("#dnsRcvd", ']]
-	       print (ntop.getHttpPrefix())
-	       print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "recv" }, "", refresh);
+             do_pie("#dnsRcvd", ']]
+               print (ntop.getHttpPrefix())
+               print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "recv" }, "", refresh);
          </script>
          </td>
 ]]
-	    else
-	       print [[<td colspan=2>&nbsp;</td>]]
-	    end
-	    print("</tr>")
-	 end
+            else
+               print [[<td colspan=2>&nbsp;</td>]]
+            end
+            print("</tr>")
+         end
 
-	 print[[
+         print[[
         </table>
        <small><b>]] print(i18n("dns_page.note")) print[[:</b><br>]] print(i18n("dns_page.note_dns_ratio")) print[[
 </small>
@@ -1612,63 +1610,63 @@ elseif(page == "http") then
       print("<table class=\"table table-bordered table-striped\">\n")
 
       if http["sender"]["query"]["total"] > 0 then
-	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods'>"..i18n("http_page.http_queries").."</A></th><th width=20%>"..i18n("http_page.method").."</th><th width=20% class='text-end'>"..i18n("http_page.requests").."</th><th colspan=2 class='text-center'>"..i18n("http_page.distribution").."</th></tr>")
+         print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods'>"..i18n("http_page.http_queries").."</A></th><th width=20%>"..i18n("http_page.method").."</th><th width=20% class='text-end'>"..i18n("http_page.requests").."</th><th colspan=2 class='text-center'>"..i18n("http_page.distribution").."</th></tr>")
     print("<tr><th>GET</th><td style=\"text-align: right;\"><span id=http_query_num_get>".. formatValue(http["sender"]["query"]["num_get"]) .."</span> <span id=trend_http_query_num_get></span></td><td colspan=2 rowspan=5>")
 
-	 print [[
-	 <div class="pie-chart" id="httpQueries"></div>
-	 <script type='text/javascript'>
+         print [[
+         <div class="pie-chart" id="httpQueries"></div>
+         <script type='text/javascript'>
 
-	     do_pie("#httpQueries", ']]
-	 print (ntop.getHttpPrefix())
-	 print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, http_mode: "queries" }, "", refresh);
-	 </script>
+             do_pie("#httpQueries", ']]
+         print (ntop.getHttpPrefix())
+         print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, http_mode: "queries" }, "", refresh);
+         </script>
 ]]
 
-	 print("</td></tr>")
-	 print("<tr><th>POST</th><td style=\"text-align: right;\"><span id=http_query_num_post>".. formatValue(http["sender"]["query"]["num_post"]) .."</span> <span id=trend_http_query_num_post></span></td></tr>")
-	 print("<tr><th>HEAD</th><td style=\"text-align: right;\"><span id=http_query_num_head>".. formatValue(http["sender"]["query"]["num_head"]) .."</span> <span id=trend_http_query_num_head></span></td></tr>")
-	 print("<tr><th>PUT</th><td style=\"text-align: right;\"><span id=http_query_num_put>".. formatValue(http["sender"]["query"]["num_put"]) .."</span> <span id=trend_http_query_num_put></span></td></tr>")
-	 print("<tr><th>"..i18n("http_page.other_method").."</th><td style=\"text-align: right;\"><span id=http_query_num_other>".. formatValue(http["sender"]["query"]["num_other"]) .."</span> <span id=trend_http_query_num_other></span></td></tr>")
+         print("</td></tr>")
+         print("<tr><th>POST</th><td style=\"text-align: right;\"><span id=http_query_num_post>".. formatValue(http["sender"]["query"]["num_post"]) .."</span> <span id=trend_http_query_num_post></span></td></tr>")
+         print("<tr><th>HEAD</th><td style=\"text-align: right;\"><span id=http_query_num_head>".. formatValue(http["sender"]["query"]["num_head"]) .."</span> <span id=trend_http_query_num_head></span></td></tr>")
+         print("<tr><th>PUT</th><td style=\"text-align: right;\"><span id=http_query_num_put>".. formatValue(http["sender"]["query"]["num_put"]) .."</span> <span id=trend_http_query_num_put></span></td></tr>")
+         print("<tr><th>"..i18n("http_page.other_method").."</th><td style=\"text-align: right;\"><span id=http_query_num_other>".. formatValue(http["sender"]["query"]["num_other"]) .."</span> <span id=trend_http_query_num_other></span></td></tr>")
       end
 
       if http["receiver"]["response"]["total"] > 0 then
-	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/List_of_HTTP_status_codes'>"..i18n("http_page.http_responses").."</A></th><th width=20%>"..i18n("http_page.response_code").."</th><th width=20% class='text-end'>"..i18n("http_page.responses").."</th><th colspan=2 class='text-center'>"..i18n("http_page.distribution").."</th></tr>")
+         print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/List_of_HTTP_status_codes'>"..i18n("http_page.http_responses").."</A></th><th width=20%>"..i18n("http_page.response_code").."</th><th width=20% class='text-end'>"..i18n("http_page.responses").."</th><th colspan=2 class='text-center'>"..i18n("http_page.distribution").."</th></tr>")
     print("<tr><th>"..i18n("http_page.response_code_1xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_1xx>".. formatValue(http["receiver"]["response"]["num_1xx"]) .."</span> <span id=trend_http_response_num_1xx></span></td><td colspan=2 rowspan=5>")
-	 print [[
-	 <div class="pie-chart" id="httpResponses"></div>
-	 <script type='text/javascript'>
+         print [[
+         <div class="pie-chart" id="httpResponses"></div>
+         <script type='text/javascript'>
 
-	     do_pie("#httpResponses", ']]
-	 print (ntop.getHttpPrefix())
-	 print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, http_mode: "responses" }, "", refresh);
-	 </script>
+             do_pie("#httpResponses", ']]
+         print (ntop.getHttpPrefix())
+         print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, http_mode: "responses" }, "", refresh);
+         </script>
 ]]
-	 print("</td></tr>")
-	 print("<tr><th>"..i18n("http_page.response_code_2xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_2xx>".. formatValue(http["receiver"]["response"]["num_2xx"]) .."</span> <span id=trend_http_response_num_2xx></span></td></tr>")
-	 print("<tr><th>"..i18n("http_page.response_code_3xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_3xx>".. formatValue(http["receiver"]["response"]["num_3xx"]) .."</span> <span id=trend_http_response_num_3xx></span></td></tr>")
-	 print("<tr><th>"..i18n("http_page.response_code_4xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_4xx>".. formatValue(http["receiver"]["response"]["num_4xx"]) .."</span> <span id=trend_http_response_num_4xx></span></td></tr>")
-	 print("<tr><th>"..i18n("http_page.response_code_5xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_5xx>".. formatValue(http["receiver"]["response"]["num_5xx"]) .."</span> <span id=trend_http_response_num_5xx></span></td></tr>")
+         print("</td></tr>")
+         print("<tr><th>"..i18n("http_page.response_code_2xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_2xx>".. formatValue(http["receiver"]["response"]["num_2xx"]) .."</span> <span id=trend_http_response_num_2xx></span></td></tr>")
+         print("<tr><th>"..i18n("http_page.response_code_3xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_3xx>".. formatValue(http["receiver"]["response"]["num_3xx"]) .."</span> <span id=trend_http_response_num_3xx></span></td></tr>")
+         print("<tr><th>"..i18n("http_page.response_code_4xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_4xx>".. formatValue(http["receiver"]["response"]["num_4xx"]) .."</span> <span id=trend_http_response_num_4xx></span></td></tr>")
+         print("<tr><th>"..i18n("http_page.response_code_5xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_5xx>".. formatValue(http["receiver"]["response"]["num_5xx"]) .."</span> <span id=trend_http_response_num_5xx></span></td></tr>")
       end
 
       local vh = http["virtual_hosts"]
       if vh then
-	 local now    = os.time()
-	 local ago1h  = now - 3600
-	 local num = table.len(vh)
-	 if(num > 0) then
-	    local ifId = getInterfaceId(ifname)
-	    print("<tr><th rowspan="..(num+1).." width=20%>"..i18n("http_page.virtual_hosts").."</th><th>Name</th><th>"..i18n("http_page.traffic_sent").."</th><th>"..i18n("http_page.traffic_received").."</th><th>"..i18n("http_page.requests_served").."</th></tr>\n")
-	    for k,v in pairsByKeys(vh, asc) do
-	       local j = string.gsub(k, "%.", "___")
-	       print("<tr><td>" .. format_external_link(k, k, false, "https") .. "")
-	       historicalProtoHostHref(ifId, host, nil, nil, k, host_vlan)
-	       print("</td>")
-	       print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
-	       print("<td align=right><span id="..j.."_bytes_vhost_rcvd>"..bytesToSize(vh[k]["bytes.rcvd"]).."</span></td>")
-	       print("<td align=right><span id="..j.."_num_vhost_req_serv>"..formatValue(vh[k]["http.requests"]).."</span></td></tr>\n")
-	    end
-	 end
+         local now    = os.time()
+         local ago1h  = now - 3600
+         local num = table.len(vh)
+         if(num > 0) then
+            local ifId = getInterfaceId(ifname)
+            print("<tr><th rowspan="..(num+1).." width=20%>"..i18n("http_page.virtual_hosts").."</th><th>Name</th><th>"..i18n("http_page.traffic_sent").."</th><th>"..i18n("http_page.traffic_received").."</th><th>"..i18n("http_page.requests_served").."</th></tr>\n")
+            for k,v in pairsByKeys(vh, asc) do
+               local j = string.gsub(k, "%.", "___")
+               print("<tr><td>" .. format_external_link(k, k, false, "https") .. "")
+               historicalProtoHostHref(ifId, host, nil, nil, k, host_vlan)
+               print("</td>")
+               print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
+               print("<td align=right><span id="..j.."_bytes_vhost_rcvd>"..bytesToSize(vh[k]["bytes.rcvd"]).."</span></td>")
+               print("<td align=right><span id="..j.."_num_vhost_req_serv>"..formatValue(vh[k]["http.requests"]).."</span></td></tr>\n")
+            end
+         end
       end
 
       print("</table>\n")
@@ -1708,7 +1706,7 @@ elseif(page == "flows") then
 
    print [[
       <div id="table-flows"></div>
-	 <script>
+         <script>
    var url_update = "]]
 
   local page_params = {
@@ -1746,14 +1744,14 @@ elseif(page == "flows") then
    local active_flows_msg = getFlowsTableTitle()
 
    print [[
-   	 $("#table-flows").datatable({
+            $("#table-flows").datatable({
             url: url_update,
             buttons: [ ]] printActiveFlowsDropdown("host_details.lua?page=flows", page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info), nil, nil, page_params["talking_with"] or nil)) print[[ ],
             tableCallback: function()  {
-   	    ]] initFlowsRefreshRows() print[[
-   	 },
+               ]] initFlowsRefreshRows() print[[
+            },
             showPagination: true,
-   	       ]]
+                  ]]
 
      print('title: "'..active_flows_msg..'",')
 
@@ -1795,11 +1793,11 @@ elseif(page == "flows") then
                textAlign: 'center'
             }
          },
-   	]]
+           ]]
 
-   	if(show_vlan) then
-   	   print('{ title: "'..i18n("vlan")..'",\n')
-   	   print [[
+           if(show_vlan) then
+              print('{ title: "'..i18n("vlan")..'",\n')
+              print [[
             field: "column_vlan",
             sortable: true,
                     css: {
@@ -1807,58 +1805,58 @@ elseif(page == "flows") then
               }
 
             },
-   		]]
-   	end
-   	print [[
+                   ]]
+           end
+           print [[
          {
             title: "]] print(i18n("client")) print[[",
             field: "column_client",
             sortable: true,
          }, {
-   	      title: "]] print(i18n("server")) print[[",
+                 title: "]] print(i18n("server")) print[[",
             field: "column_server",
             sortable: true,
          },
-   	]]
-   	if begin_epoch_set == true then
-      	print[[
-   	      {
-   	         title: "]] print(i18n("first_seen")) print[[",
-   	         field: "column_first_seen",
-   	         sortable: true,
-   	         css: {
-   	         	whiteSpace: 'nowrap',
-   	            textAlign: 'center',
-   	         }
-   	      },
-      	]]
-   	end
+           ]]
+           if begin_epoch_set == true then
+              print[[
+                 {
+                    title: "]] print(i18n("first_seen")) print[[",
+                    field: "column_first_seen",
+                    sortable: true,
+                    css: {
+                            whiteSpace: 'nowrap',
+                       textAlign: 'center',
+                    }
+                 },
+              ]]
+           end
 
-   	if duration_or_last_seen == false then
-   	   print[[
-   	      {
-   	         title: "]] print(i18n("duration")) print[[",
-   	         field: "column_duration",
-   	         sortable: true,
-   	         css: {
-   	         	whiteSpace: 'nowrap',
-   	            textAlign: 'center',
-   	         }
-   	      },
-   	   ]]
-   	else
-   	   print[[
-   	      {
-   	         title: "]] print(i18n("last_seen")) print[[",
-   	         field: "column_last_seen",
-   	         sortable: true,
-   	         css: {
-   	         	whiteSpace: 'nowrap',
-   	            textAlign: 'center',
-   	         }
-   	      },
-   	   ]]
-   	end
+           if duration_or_last_seen == false then
+              print[[
+                 {
+                    title: "]] print(i18n("duration")) print[[",
+                    field: "column_duration",
+                    sortable: true,
+                    css: {
+                            whiteSpace: 'nowrap',
+                       textAlign: 'center',
+                    }
+                 },
+              ]]
+           else
+              print[[
+                 {
+                    title: "]] print(i18n("last_seen")) print[[",
+                    field: "column_last_seen",
+                    sortable: true,
+                    css: {
+                            whiteSpace: 'nowrap',
+                       textAlign: 'center',
+                    }
+                 },
+              ]]
+           end
 
       print[[{
         title: "]] print(i18n("score")) print[[",
@@ -1904,8 +1902,8 @@ elseif(page == "flows") then
         }
             }
         ]
-   	});
-   	]]
+           });
+           ]]
 
    if(have_nedge) then
      printBlockFlowJs()
@@ -2243,12 +2241,12 @@ if(num > 0) then
       max_num = 64 -- Do not create huge maps
       for _v,k in pairsByKeys(sortTable, rev) do
 
-	 if(num >= max_num) then break end
-	 num = num + 1
-	 name = interface.getHostInfo(k)
+         if(num >= max_num) then break end
+         num = num + 1
+         name = interface.getHostInfo(k)
 
    -- TOFIX VLAN (We need to remove the host vlan and add the client vlan)
-	 v = host["contacts"]["client"][k]
+         v = host["contacts"]["client"][k]
    info = interface.getHostInfo(k)
 
    if(info ~= nil) then
@@ -2262,7 +2260,7 @@ if(num > 0) then
       url = url .. getFlag(info["country"]).." "
    end
    -- print(v.."<br>")
-	 print("<tr><th>"..url.."</th><td class=\"text-end\">" .. formatValue(v) .. "</td></tr>\n")
+         print("<tr><th>"..url.."</th><td class=\"text-end\">" .. formatValue(v) .. "</td></tr>\n")
       end
       print("</table></td>\n")
    end
@@ -2278,19 +2276,19 @@ if(num > 0) then
       for k,v in pairs(host["contacts"]["server"]) do sortTable[v]=k end
 
       for _v,k in pairsByKeys(sortTable, rev) do
-	 v = host["contacts"]["server"][k]
+         v = host["contacts"]["server"][k]
    info = interface.getHostInfo(k)
-	 if(info ~= nil) then
-	    if(info["name"] ~= nil) then n = info["name"] else n = hostinfo2label(info) end
-	    url = hostinfo2detailshref(info, nil, n)
-	 else
-	    url = k
-	 end
+         if(info ~= nil) then
+            if(info["name"] ~= nil) then n = info["name"] else n = hostinfo2label(info) end
+            url = hostinfo2detailshref(info, nil, n)
+         else
+            url = k
+         end
 
-	 if(info ~= nil) then
-	    url = url ..getFlag(info["country"]).." "
-	 end
-	 print("<tr><th>"..url.."</th><td class=\"text-end\">" .. formatValue(v) .. "</td></tr>\n")
+         if(info ~= nil) then
+            url = url ..getFlag(info["country"]).." "
+         end
+         print("<tr><th>"..url.."</th><td class=\"text-end\">" .. formatValue(v) .. "</td></tr>\n")
       end
       print("</table></td>\n")
    end
@@ -2369,18 +2367,18 @@ elseif (page == "config") then
       </tr>]]
 
    print[[<tr>
-   			<th>]]
-   				print(i18n("host_notes"))
-   			print[[
-   			</th>
-   		 <td>
-   		 <input type="text" name="custom_notes" class="form-control" placeholder="Custom Notes" style="width: 280px;" value="]]
+                           <th>]]
+                                   print(i18n("host_notes"))
+                           print[[
+                           </th>
+                    <td>
+                    <input type="text" name="custom_notes" class="form-control" placeholder="Custom Notes" style="width: 280px;" value="]]
 
-		   print(ip_notes)
-		   print[["></input> ]]
+                   print(ip_notes)
+                   print[["></input> ]]
 
-   		print[[</td>
-   		 </tr>]]
+                   print[[</td>
+                    </tr>]]
 
    if host_pool_id ~= nil then
       graph_utils.printPoolChangeDropdown(ifId, host_pool_id.."", have_nedge)
@@ -2415,11 +2413,11 @@ elseif (page == "config") then
             drop_traffic_value = "true" -- Opposite
          end
 
-	 print(template.gen("on_off_switch.html", {
-	    id = "drop_host_traffic",
-	    label = i18n("host_config.drop_all_host_traffic"),
-	    checked = drop_traffic == "true",
-	 }))
+         print(template.gen("on_off_switch.html", {
+            id = "drop_host_traffic",
+            label = i18n("host_config.drop_all_host_traffic"),
+            checked = drop_traffic == "true",
+         }))
       end
 
       print('</td></tr>')
@@ -2462,21 +2460,21 @@ local tags = {
 local items = split(_GET["ts_query"], ",") or {}
 
 for _, concat_tag in pairs(items) do
-	local tag = split(concat_tag, ":")
+        local tag = split(concat_tag, ":")
 
-	if (tag) and (tag[1] == "dscp_class") then
-		tags["dscp_class"] = tag[2]
-		break
-	end
+        if (tag) and (tag[1] == "dscp_class") then
+                tags["dscp_class"] = tag[2]
+                break
+        end
 end
 
 local url = hostinfo2detailsurl(host, {page = "historical"})
 local show_graph = true
 
 if not host["localhost"] or
-	(host["localhost"] == false or
-	 host["is_multicast"] == true) then
-	show_graph = false
+        (host["localhost"] == false or
+         host["is_multicast"] == true) then
+        show_graph = false
 end
 
 graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
@@ -2601,40 +2599,40 @@ if(not only_historical) and (host ~= nil) and (page ~= "traffic") then
 
    print [[
    var host_details_interval = window.setInterval(function() {
-   	  $.ajax({
-   		    type: 'GET',
-   		    url: ']]
+             $.ajax({
+                       type: 'GET',
+                       url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/host_stats.lua',
-   		    data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ },
-   		    /* error: function(content) { alert("]] print(i18n("mac_details.json_error_inactive", {product=info["product"]})) print[["); }, */
-   		    success: function(content) {
+                       data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ },
+                       /* error: function(content) { alert("]] print(i18n("mac_details.json_error_inactive", {product=info["product"]})) print[["); }, */
+                       success: function(content) {
          if(content == "\"{}\"") {
              var e = document.getElementById('host_purged');
              e.style.display = "block";
          } else {
-   			var host = jQuery.parseJSON(content);
+                           var host = jQuery.parseJSON(content);
                         var http = host.http;
                         var card = host.cardinality;
-   			$('#first_seen').html(NtopUtils.epoch2Seen(host["seen.first"]));
-   			$('#last_seen').html(NtopUtils.epoch2Seen(host["seen.last"]));
-   			$('#pkts_sent').html(NtopUtils.formatPackets(host["packets.sent"]));
-   			$('#pkts_rcvd').html(NtopUtils.formatPackets(host["packets.rcvd"]));
-   			$('#bytes_sent').html(NtopUtils.bytesToVolume(host["bytes.sent"]));
-   			$('#bytes_rcvd').html(NtopUtils.bytesToVolume(host["bytes.rcvd"]));
+                           $('#first_seen').html(NtopUtils.epoch2Seen(host["seen.first"]));
+                           $('#last_seen').html(NtopUtils.epoch2Seen(host["seen.last"]));
+                           $('#pkts_sent').html(NtopUtils.formatPackets(host["packets.sent"]));
+                           $('#pkts_rcvd').html(NtopUtils.formatPackets(host["packets.rcvd"]));
+                           $('#bytes_sent').html(NtopUtils.bytesToVolume(host["bytes.sent"]));
+                           $('#bytes_rcvd').html(NtopUtils.bytesToVolume(host["bytes.rcvd"]));
 
-   			$('#score_as_client').html(NtopUtils.addCommas(host["score.as_client"]));
-   			$('#score_as_server').html(NtopUtils.addCommas(host["score.as_server"]));
+                           $('#score_as_client').html(NtopUtils.addCommas(host["score.as_client"]));
+                           $('#score_as_server').html(NtopUtils.addCommas(host["score.as_server"]));
 
-   			$('#pkt_retransmissions_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["retransmissions"]));
-   			$('#pkt_ooo_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["out_of_order"]));
-   			$('#pkt_lost_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["lost"]));
-   			$('#pkt_keep_alive_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["keep_alive"]));
+                           $('#pkt_retransmissions_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["retransmissions"]));
+                           $('#pkt_ooo_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["out_of_order"]));
+                           $('#pkt_lost_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["lost"]));
+                           $('#pkt_keep_alive_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["keep_alive"]));
 
-   			$('#pkt_retransmissions_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["retransmissions"]));
-   			$('#pkt_ooo_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]));
-   			$('#pkt_lost_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["lost"]));
-   			$('#pkt_keep_alive_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]));
+                           $('#pkt_retransmissions_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["retransmissions"]));
+                           $('#pkt_ooo_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]));
+                           $('#pkt_lost_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["lost"]));
+                           $('#pkt_keep_alive_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]));
 
                         if(card) {
                           $('#num_contacted_ports_as_client').html(NtopUtils.formatValue(card.num_contacted_ports_as_client));
@@ -2656,27 +2654,27 @@ if(not only_historical) and (host ~= nil) and (page ~= "traffic") then
                           last_num_contacted_services_as_client = card.num_contacted_services_as_client;
                         }
 
-   			if(!host["name"]) {
-   			   $('#name').html(host["ip"]);
-   			} else {
-   			   $('#name').html(host["name"]);
-   			}
-   			$('#num_alerts').html(host["num_alerts"]);
-   			$('#score').html(host["score"]);
-   			$('#num_flow_alerts').html(host["active_alerted_flows"]);
-   			$('#active_flows_as_client').html(NtopUtils.addCommas(host["active_flows.as_client"]));
-   			$('#active_flows_as_server').html(NtopUtils.addCommas(host["active_flows.as_server"]));
-   			$('#active_peers_as_client').html(NtopUtils.addCommas(host["contacts.as_client"]));
-   			$('#active_peers_as_server').html(NtopUtils.addCommas(host["contacts.as_server"]));
-   			$('#num_blacklisted_flows_as_client').html(NtopUtils.addCommas(host.num_blacklisted_flows.as_client));
-   			$('#num_blacklisted_flows_as_server').html(NtopUtils.addCommas(host.num_blacklisted_flows.as_server));
-   			$('#flows_as_client').html(NtopUtils.addCommas(host["flows.as_client"]));
+                           if(!host["name"]) {
+                              $('#name').html(host["ip"]);
+                           } else {
+                              $('#name').html(host["name"]);
+                           }
+                           $('#num_alerts').html(host["num_alerts"]);
+                           $('#score').html(host["score"]);
+                           $('#num_flow_alerts').html(host["active_alerted_flows"]);
+                           $('#active_flows_as_client').html(NtopUtils.addCommas(host["active_flows.as_client"]));
+                           $('#active_flows_as_server').html(NtopUtils.addCommas(host["active_flows.as_server"]));
+                           $('#active_peers_as_client').html(NtopUtils.addCommas(host["contacts.as_client"]));
+                           $('#active_peers_as_server').html(NtopUtils.addCommas(host["contacts.as_server"]));
+                           $('#num_blacklisted_flows_as_client').html(NtopUtils.addCommas(host.num_blacklisted_flows.as_client));
+                           $('#num_blacklisted_flows_as_server').html(NtopUtils.addCommas(host.num_blacklisted_flows.as_server));
+                           $('#flows_as_client').html(NtopUtils.addCommas(host["flows.as_client"]));
                         $('#alerted_flows_as_client').html(NtopUtils.addCommas(host["alerted_flows.as_client"]));
                         $('#unreachable_flows_as_client').html(NtopUtils.addCommas(host["unreachable_flows.as_client"]));
-   			$('#flows_as_server').html(NtopUtils.addCommas(host["flows.as_server"]));
+                           $('#flows_as_server').html(NtopUtils.addCommas(host["flows.as_server"]));
                         $('#alerted_flows_as_server').html(NtopUtils.addCommas(host["alerted_flows.as_server"]));
                         $('#unreachable_flows_as_server').html(NtopUtils.addCommas(host["unreachable_flows.as_server"]));
-   		  }]]
+                     }]]
 
    if ntop.isnEdge() then
 print [[
@@ -2699,55 +2697,55 @@ print [[
 
    if(host["dns"] ~= nil) then
    print [[
-   			   $('#dns_sent_num_queries').html(NtopUtils.addCommas(host["dns"]["sent"]["num_queries"]));
-   			   $('#dns_sent_num_replies_ok').html(NtopUtils.addCommas(host["dns"]["sent"]["num_replies_ok"]));
-   			   $('#dns_sent_num_replies_error').html(NtopUtils.addCommas(host["dns"]["sent"]["num_replies_error"]));
-   			   $('#dns_rcvd_num_queries').html(NtopUtils.addCommas(host["dns"]["rcvd"]["num_queries"]));
-   			   $('#dns_rcvd_num_replies_ok').html(NtopUtils.addCommas(host["dns"]["rcvd"]["num_replies_ok"]));
-   			   $('#dns_rcvd_num_replies_error').html(NtopUtils.addCommas(host["dns"]["rcvd"]["num_replies_error"]));
+                              $('#dns_sent_num_queries').html(NtopUtils.addCommas(host["dns"]["sent"]["num_queries"]));
+                              $('#dns_sent_num_replies_ok').html(NtopUtils.addCommas(host["dns"]["sent"]["num_replies_ok"]));
+                              $('#dns_sent_num_replies_error').html(NtopUtils.addCommas(host["dns"]["sent"]["num_replies_error"]));
+                              $('#dns_rcvd_num_queries').html(NtopUtils.addCommas(host["dns"]["rcvd"]["num_queries"]));
+                              $('#dns_rcvd_num_replies_ok').html(NtopUtils.addCommas(host["dns"]["rcvd"]["num_replies_ok"]));
+                              $('#dns_rcvd_num_replies_error').html(NtopUtils.addCommas(host["dns"]["rcvd"]["num_replies_error"]));
 
-   			   if(host["dns"]["sent"]["num_queries"] == last_dns_sent_num_queries) {
-   			      $('#trend_sent_num_queries').html("<i class=\"fas fa-minus\"></i>");
-   			   } else {
-   			      last_dns_sent_num_queries = host["dns"]["sent"]["num_queries"];
-   			      $('#trend_sent_num_queries').html("<i class=\"fas fa-arrow-up\"></i>");
-   			   }
+                              if(host["dns"]["sent"]["num_queries"] == last_dns_sent_num_queries) {
+                                 $('#trend_sent_num_queries').html("<i class=\"fas fa-minus\"></i>");
+                              } else {
+                                 last_dns_sent_num_queries = host["dns"]["sent"]["num_queries"];
+                                 $('#trend_sent_num_queries').html("<i class=\"fas fa-arrow-up\"></i>");
+                              }
 
-   			   if(host["dns"]["sent"]["num_replies_ok"] == last_dns_sent_num_replies_ok) {
-   			      $('#trend_sent_num_replies_ok').html("<i class=\"fas fa-minus\"></i>");
-   			   } else {
-   			      last_dns_sent_num_replies_ok = host["dns"]["sent"]["num_replies_ok"];
-   			      $('#trend_sent_num_replies_ok').html("<i class=\"fas fa-arrow-up\"></i>");
-   			   }
+                              if(host["dns"]["sent"]["num_replies_ok"] == last_dns_sent_num_replies_ok) {
+                                 $('#trend_sent_num_replies_ok').html("<i class=\"fas fa-minus\"></i>");
+                              } else {
+                                 last_dns_sent_num_replies_ok = host["dns"]["sent"]["num_replies_ok"];
+                                 $('#trend_sent_num_replies_ok').html("<i class=\"fas fa-arrow-up\"></i>");
+                              }
 
-   			   if(host["dns"]["sent"]["num_replies_error"] == last_dns_sent_num_replies_error) {
-   			      $('#trend_sent_num_replies_error').html("<i class=\"fas fa-minus\"></i>");
-   			   } else {
-   			      last_dns_sent_num_replies_error = host["dns"]["sent"]["num_replies_error"];
-   			      $('#trend_sent_num_replies_error').html("<i class=\"fas fa-arrow-up\"></i>");
-   			   }
+                              if(host["dns"]["sent"]["num_replies_error"] == last_dns_sent_num_replies_error) {
+                                 $('#trend_sent_num_replies_error').html("<i class=\"fas fa-minus\"></i>");
+                              } else {
+                                 last_dns_sent_num_replies_error = host["dns"]["sent"]["num_replies_error"];
+                                 $('#trend_sent_num_replies_error').html("<i class=\"fas fa-arrow-up\"></i>");
+                              }
 
-   			   if(host["dns"]["rcvd"]["num_queries"] == last_dns_rcvd_num_queries) {
-   			      $('#trend_rcvd_num_queries').html("<i class=\"fas fa-minus\"></i>");
-   			   } else {
-   			      last_dns_rcvd_num_queries = host["dns"]["rcvd"]["num_queries"];
-   			      $('#trend_rcvd_num_queries').html("<i class=\"fas fa-arrow-up\"></i>");
-   			   }
+                              if(host["dns"]["rcvd"]["num_queries"] == last_dns_rcvd_num_queries) {
+                                 $('#trend_rcvd_num_queries').html("<i class=\"fas fa-minus\"></i>");
+                              } else {
+                                 last_dns_rcvd_num_queries = host["dns"]["rcvd"]["num_queries"];
+                                 $('#trend_rcvd_num_queries').html("<i class=\"fas fa-arrow-up\"></i>");
+                              }
 
-   			   if(host["dns"]["rcvd"]["num_replies_ok"] == last_dns_rcvd_num_replies_ok) {
-   			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fas fa-minus\"></i>");
-   			   } else {
-   			      last_dns_rcvd_num_replies_ok = host["dns"]["rcvd"]["num_replies_ok"];
-   			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fas fa-arrow-up\"></i>");
-   			   }
+                              if(host["dns"]["rcvd"]["num_replies_ok"] == last_dns_rcvd_num_replies_ok) {
+                                 $('#trend_rcvd_num_replies_ok').html("<i class=\"fas fa-minus\"></i>");
+                              } else {
+                                 last_dns_rcvd_num_replies_ok = host["dns"]["rcvd"]["num_replies_ok"];
+                                 $('#trend_rcvd_num_replies_ok').html("<i class=\"fas fa-arrow-up\"></i>");
+                              }
 
-   			   if(host["dns"]["rcvd"]["num_replies_error"] == last_dns_rcvd_num_replies_error) {
-   			      $('#trend_rcvd_num_replies_error').html("<i class=\"fas fa-minus\"></i>");
-   			   } else {
-   			      last_dns_rcvd_num_replies_error = host["dns"]["rcvd"]["num_replies_error"];
-   			      $('#trend_rcvd_num_replies_error').html("<i class=\"fas fa-arrow-up\"></i>");
-   			   }
-   		     ]]
+                              if(host["dns"]["rcvd"]["num_replies_error"] == last_dns_rcvd_num_replies_error) {
+                                 $('#trend_rcvd_num_replies_error').html("<i class=\"fas fa-minus\"></i>");
+                              } else {
+                                 last_dns_rcvd_num_replies_error = host["dns"]["rcvd"]["num_replies_error"];
+                                 $('#trend_rcvd_num_replies_error').html("<i class=\"fas fa-arrow-up\"></i>");
+                              }
+                        ]]
    end
 
    if((host ~= nil) and (http ~= nil)) then
@@ -2755,20 +2753,20 @@ print [[
       if(vh ~= nil) then
          num = table.len(vh)
          if(num > 0) then
-   	 print [[
-   	       var last_http_val = {};
-   	       if((host !== undefined) && (http !== undefined)) {
-   		  $.each(http["virtual_hosts"], function(idx, obj) {
-   		      var key = idx.replace(/\./g,'___');
-   		      $('#'+key+'_bytes_vhost_rcvd').html(NtopUtils.bytesToVolume(obj["bytes.rcvd"])+" "+NtopUtils.get_trend(obj["bytes.rcvd"], last_http_val[key+"_rcvd"]));
-   		      $('#'+key+'_bytes_vhost_sent').html(NtopUtils.bytesToVolume(obj["bytes.sent"])+" "+NtopUtils.get_trend(obj["bytes.sent"], last_http_val[key+"_sent"]));
-   		      $('#'+key+'_num_vhost_req_serv').html(NtopUtils.addCommas(obj["xs"])+" "+NtopUtils.get_trend(obj["http.requests"], last_http_val[key+"_req_serv"]));
-   		      last_http_val[key+"_rcvd"] = obj["bytes.rcvd"];
-   		      last_http_val[key+"_sent"] = obj["bytes.sent"];
-   		      last_http_val[key+"_req_serv"] = obj["bytes.http_requests"];
-   		   });
-   	      }
-   	 ]]
+            print [[
+                  var last_http_val = {};
+                  if((host !== undefined) && (http !== undefined)) {
+                     $.each(http["virtual_hosts"], function(idx, obj) {
+                         var key = idx.replace(/\./g,'___');
+                         $('#'+key+'_bytes_vhost_rcvd').html(NtopUtils.bytesToVolume(obj["bytes.rcvd"])+" "+NtopUtils.get_trend(obj["bytes.rcvd"], last_http_val[key+"_rcvd"]));
+                         $('#'+key+'_bytes_vhost_sent').html(NtopUtils.bytesToVolume(obj["bytes.sent"])+" "+NtopUtils.get_trend(obj["bytes.sent"], last_http_val[key+"_sent"]));
+                         $('#'+key+'_num_vhost_req_serv').html(NtopUtils.addCommas(obj["xs"])+" "+NtopUtils.get_trend(obj["http.requests"], last_http_val[key+"_req_serv"]));
+                         last_http_val[key+"_rcvd"] = obj["bytes.rcvd"];
+                         last_http_val[key+"_sent"] = obj["bytes.sent"];
+                         last_http_val[key+"_req_serv"] = obj["bytes.http_requests"];
+                      });
+                 }
+            ]]
          end
 
       methods = { "get", "post", "head", "put", "other" }
@@ -2788,80 +2786,80 @@ print [[
    end
 
    print [[
-   			/* **************************************** */
+                           /* **************************************** */
 
-			$('#trend_as_active_client').html(NtopUtils.drawTrend(host["active_flows.as_client"], last_active_flows_as_client, ""));
-			$('#trend_as_active_server').html(NtopUtils.drawTrend(host["active_flows.as_server"], last_active_flows_as_server, ""));
-			$('#peers_trend_as_active_client').html(NtopUtils.drawTrend(host["contacts.as_client"], last_active_peers_as_client, ""));
-			$('#peers_trend_as_active_server').html(NtopUtils.drawTrend(host["contacts.as_server"], last_active_peers_as_server, ""));
-			$('#trend_num_blacklisted_flows_as_client').html(NtopUtils.drawTrend(host.num_blacklisted_flows.as_client, last_num_blacklisted_flows_as_client, ""));
-			$('#trend_num_blacklisted_flows_as_server').html(NtopUtils.drawTrend(host.num_blacklisted_flows.as_server, last_num_blacklisted_flows_as_server, ""));
-			$('#trend_as_client').html(NtopUtils.drawTrend(host["flows.as_client"], last_flows_as_client, ""));
-			$('#trend_as_server').html(NtopUtils.drawTrend(host["flows.as_server"], last_flows_as_server, ""));
-			$('#trend_alerted_flows_as_server').html(NtopUtils.drawTrend(host["alerted_flows.as_server"], last_alerted_flows_as_server, " style=\"color: #B94A48;\""));
-			$('#trend_alerted_flows_as_client').html(NtopUtils.drawTrend(host["alerted_flows.as_client"], last_alerted_flows_as_client, " style=\"color: #B94A48;\""));
-			$('#trend_unreachable_flows_as_server').html(NtopUtils.drawTrend(host["unreachable_flows.as_server"], last_unreachable_flows_as_server, " style=\"color: #B94A48;\""));
-			$('#trend_unreachable_flows_as_client').html(NtopUtils.drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
+                        $('#trend_as_active_client').html(NtopUtils.drawTrend(host["active_flows.as_client"], last_active_flows_as_client, ""));
+                        $('#trend_as_active_server').html(NtopUtils.drawTrend(host["active_flows.as_server"], last_active_flows_as_server, ""));
+                        $('#peers_trend_as_active_client').html(NtopUtils.drawTrend(host["contacts.as_client"], last_active_peers_as_client, ""));
+                        $('#peers_trend_as_active_server').html(NtopUtils.drawTrend(host["contacts.as_server"], last_active_peers_as_server, ""));
+                        $('#trend_num_blacklisted_flows_as_client').html(NtopUtils.drawTrend(host.num_blacklisted_flows.as_client, last_num_blacklisted_flows_as_client, ""));
+                        $('#trend_num_blacklisted_flows_as_server').html(NtopUtils.drawTrend(host.num_blacklisted_flows.as_server, last_num_blacklisted_flows_as_server, ""));
+                        $('#trend_as_client').html(NtopUtils.drawTrend(host["flows.as_client"], last_flows_as_client, ""));
+                        $('#trend_as_server').html(NtopUtils.drawTrend(host["flows.as_server"], last_flows_as_server, ""));
+                        $('#trend_alerted_flows_as_server').html(NtopUtils.drawTrend(host["alerted_flows.as_server"], last_alerted_flows_as_server, " style=\"color: #B94A48;\""));
+                        $('#trend_alerted_flows_as_client').html(NtopUtils.drawTrend(host["alerted_flows.as_client"], last_alerted_flows_as_client, " style=\"color: #B94A48;\""));
+                        $('#trend_unreachable_flows_as_server').html(NtopUtils.drawTrend(host["unreachable_flows.as_server"], last_unreachable_flows_as_server, " style=\"color: #B94A48;\""));
+                        $('#trend_unreachable_flows_as_client').html(NtopUtils.drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
 
-			$('#alerts_trend').html(NtopUtils.drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
-			$('#client_score_trend').html(NtopUtils.drawTrend(host["score.as_client"], last_client_score, " style=\"color: #B94A48;\""));
-			$('#server_score_trend').html(NtopUtils.drawTrend(host["score.as_server"], last_server_score, " style=\"color: #B94A48;\""));
-			$('#flow_alerts_trend').html(NtopUtils.drawTrend(host["active_alerted_flows"], last_num_flow_alerts, " style=\"color: #B94A48;\""));
-			$('#sent_trend').html(NtopUtils.drawTrend(host["packets.sent"], last_pkts_sent, ""));
-			$('#rcvd_trend').html(NtopUtils.drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
+                        $('#alerts_trend').html(NtopUtils.drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
+                        $('#client_score_trend').html(NtopUtils.drawTrend(host["score.as_client"], last_client_score, " style=\"color: #B94A48;\""));
+                        $('#server_score_trend').html(NtopUtils.drawTrend(host["score.as_server"], last_server_score, " style=\"color: #B94A48;\""));
+                        $('#flow_alerts_trend').html(NtopUtils.drawTrend(host["active_alerted_flows"], last_num_flow_alerts, " style=\"color: #B94A48;\""));
+                        $('#sent_trend').html(NtopUtils.drawTrend(host["packets.sent"], last_pkts_sent, ""));
+                        $('#rcvd_trend').html(NtopUtils.drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
 
-			$('#pkt_retransmissions_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["retransmissions"], last_sent_tcp_retransmissions, ""));
-			$('#pkt_ooo_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["out_of_order"], last_sent_tcp_ooo, ""));
- 		        $('#pkt_lost_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["lost"], last_sent_tcp_lost, ""));
- 		        $('#pkt_keep_alive_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["keep_alive"], last_sent_tcp_keep_alive, ""));
+                        $('#pkt_retransmissions_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["retransmissions"], last_sent_tcp_retransmissions, ""));
+                        $('#pkt_ooo_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["out_of_order"], last_sent_tcp_ooo, ""));
+                         $('#pkt_lost_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["lost"], last_sent_tcp_lost, ""));
+                         $('#pkt_keep_alive_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["keep_alive"], last_sent_tcp_keep_alive, ""));
 
-			$('#pkt_retransmissions_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["retransmissions"], last_rcvd_tcp_retransmissions, ""));
-			$('#pkt_ooo_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["out_of_order"], last_rcvd_tcp_ooo, ""));
- 		        $('#pkt_lost_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["lost"], last_rcvd_tcp_lost, ""));
- 		        $('#pkt_keep_alive_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["keep_alive"], last_rcvd_tcp_keep_alive, ""));
+                        $('#pkt_retransmissions_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["retransmissions"], last_rcvd_tcp_retransmissions, ""));
+                        $('#pkt_ooo_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["out_of_order"], last_rcvd_tcp_ooo, ""));
+                         $('#pkt_lost_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["lost"], last_rcvd_tcp_lost, ""));
+                         $('#pkt_keep_alive_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["keep_alive"], last_rcvd_tcp_keep_alive, ""));
 
-   			last_num_alerts = host["num_alerts"];
-   			last_client_score = host["score.as_client"];
-   			last_server_score = host["score.as_server"];
-   			last_num_flow_alerts = host["active_alerted_flows"];
-   			last_pkts_sent = host["packets.sent"];
-   			last_pkts_rcvd = host["packets.rcvd"];
-   			last_active_flows_as_client = host["active_flows.as_client"];
-   			last_active_flows_as_server = host["active_flows.as_server"];
-   			last_active_peers_as_client = host["contacts.as_client"];
-   			last_active_peers_as_server = host["contacts.as_server"];
-   			last_flows_as_client = host["flows.as_client"];
-   			last_alerted_flows_as_server = host["alerted_flows.as_server"];
-   			last_alerted_flows_as_client = host["alerted_flows.as_client"];
-   			last_unreachable_flows_as_server = host["unreachable_flows.as_server"];
-   			last_unreachable_flows_as_client = host["unreachable_flows.as_client"];
-   			last_flows_as_server = host["flows.as_server"];
-   			last_sent_tcp_retransmissions = host["tcpPacketStats.sent"]["retransmissions"];
-   			last_sent_tcp_ooo = host["tcpPacketStats.sent"]["out_of_order"];
-   			last_sent_tcp_lost = host["tcpPacketStats.sent"]["lost"];
-   			last_sent_tcp_keep_alive = host["tcpPacketStats.sent"]["keep_alive"];
-   			last_rcvd_tcp_retransmissions = host["tcpPacketStats.rcvd"]["retransmissions"];
-   			last_rcvd_tcp_ooo = host["tcpPacketStats.rcvd"]["out_of_order"];
-   			last_rcvd_tcp_lost = host["tcpPacketStats.rcvd"]["lost"];
-   			last_rcvd_tcp_keep_alive = host["tcpPacketStats.rcvd"]["keep_alive"];
-   		  ]]
+                           last_num_alerts = host["num_alerts"];
+                           last_client_score = host["score.as_client"];
+                           last_server_score = host["score.as_server"];
+                           last_num_flow_alerts = host["active_alerted_flows"];
+                           last_pkts_sent = host["packets.sent"];
+                           last_pkts_rcvd = host["packets.rcvd"];
+                           last_active_flows_as_client = host["active_flows.as_client"];
+                           last_active_flows_as_server = host["active_flows.as_server"];
+                           last_active_peers_as_client = host["contacts.as_client"];
+                           last_active_peers_as_server = host["contacts.as_server"];
+                           last_flows_as_client = host["flows.as_client"];
+                           last_alerted_flows_as_server = host["alerted_flows.as_server"];
+                           last_alerted_flows_as_client = host["alerted_flows.as_client"];
+                           last_unreachable_flows_as_server = host["unreachable_flows.as_server"];
+                           last_unreachable_flows_as_client = host["unreachable_flows.as_client"];
+                           last_flows_as_server = host["flows.as_server"];
+                           last_sent_tcp_retransmissions = host["tcpPacketStats.sent"]["retransmissions"];
+                           last_sent_tcp_ooo = host["tcpPacketStats.sent"]["out_of_order"];
+                           last_sent_tcp_lost = host["tcpPacketStats.sent"]["lost"];
+                           last_sent_tcp_keep_alive = host["tcpPacketStats.sent"]["keep_alive"];
+                           last_rcvd_tcp_retransmissions = host["tcpPacketStats.rcvd"]["retransmissions"];
+                           last_rcvd_tcp_ooo = host["tcpPacketStats.rcvd"]["out_of_order"];
+                           last_rcvd_tcp_lost = host["tcpPacketStats.rcvd"]["lost"];
+                           last_rcvd_tcp_keep_alive = host["tcpPacketStats.rcvd"]["keep_alive"];
+                     ]]
 
 
    print [[
 
-   			/* **************************************** */
+                           /* **************************************** */
 
-   			/*
-   			$('#throughput').html(rsp.throughput);
+                           /*
+                           $('#throughput').html(rsp.throughput);
 
-   			var values = thptChart.text().split(",");
-   			values.shift();
-   			values.push(rsp.throughput_raw);
-   			thptChart.text(values.join(",")).change();
-   			*/
-   		     }
-   	           });
-   		 }, 3000);
+                           var values = thptChart.text().split(",");
+                           values.shift();
+                           values.push(rsp.throughput_raw);
+                           thptChart.text(values.join(",")).change();
+                           */
+                        }
+                      });
+                    }, 3000);
 
    </script>
     ]]
