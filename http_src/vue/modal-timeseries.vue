@@ -197,8 +197,8 @@ function update_timeseries_to_add(default_config) {
 }
 
 function get_timeseries_group_name(ts_group) {
-    let source_type_name = ts_group.source_type.name;
-    let source_name = ts_group.source.name;
+    let source_type_name = ts_group.source_type.label;
+    let source_name = ts_group.source.label;
     let metric_name = ts_group.metric.label;
     return `${source_type_name} - ${source_name} - ${metric_name}`;
 }
