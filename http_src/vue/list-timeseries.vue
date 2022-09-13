@@ -14,21 +14,23 @@
       </button>
     </div>
   </div>
-  <div v-for="item in timeseries" class="form-group custom-ms me-2 mt-1">
-    <div class="inline-block">
-      <input type="checkbox" class="custom-control-input whitespace form-check-input" @change="update_timeseries" v-model="item.raw">
-      
-      <label class="custom-control-label ms-1 form-check-label">{{item.label}}</label>
-    </div>
-    <div class="inline-block">
-      <input type="checkbox" class="custom-control-input whitespace form-check-input" @change="update_timeseries" v-model="item.avg">
-      
-      <label class="custom-control-label ms-1 form-check-label">Avg {{item.label}}</label>
-    </div>
-    <div class="inline-block">
-      <input type="checkbox" class="custom-control-input whitespace form-check-input" @change="update_timeseries" v-model="item.perc_95">
-      
-      <label class="custom-control-label ms-1 form-check-label">95th Perc {{item.label}}</label>
+  <div class="container">
+      <div v-for="item in timeseries" class="row custom-ms me-2 mt-1">
+        <div class="col">
+          <input type="checkbox" class="custom-control-input whitespace form-check-input" @change="update_timeseries" v-model="item.raw">
+          
+          <label class="custom-control-label ms-1 form-check-label">{{item.label}}</label>
+        </div>
+        <div class="col">
+          <input type="checkbox" class="custom-control-input whitespace form-check-input" @change="update_timeseries" v-model="item.avg">
+          
+          <label class="custom-control-label ms-1 form-check-label">Avg {{item.label}}</label>
+        </div>
+        <div class="col-6">
+          <input type="checkbox" class="custom-control-input whitespace form-check-input" @change="update_timeseries" v-model="item.perc_95">
+          
+          <label class="custom-control-label ms-1 form-check-label">95th Perc {{item.label}}</label>
+        </div>
     </div>
   </div>
 </div>
