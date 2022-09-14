@@ -1194,7 +1194,7 @@
 					{
 						"name": "where_clause",
 						"in": "query",
-						"description": "Where clause (default: none)",
+						"description": "Where clause (default: none). IP values should be double-quoted and between parenthesis (e.g. IPV4_SRC_ADDR = (\"192.168.1.1\")).",
 						"required": false,
 						"type": "string"
 					},
