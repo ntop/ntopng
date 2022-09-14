@@ -108,7 +108,7 @@ watch(() => props.alert, (current_value, old_value) => {
 
 const check_disable_apply = () => {
     if (radio_selected.value == "domain") {
-	let regex_domain = new RegExp(pattern_domain);
+	const regex_domain = new RegExp(pattern_domain);
 	return domain.value == null || regex_domain.test(domain.value) == false;
     } else if (radio_selected.value == "certificate") {
 	let regex_certificate = new RegExp(pattern_certificate);
@@ -158,7 +158,7 @@ function get_type() {
     return "host";
 }
 
-let pattern_domain = NtopUtils.REGEXES.domain_name_not_strict;
+let pattern_domain = NtopUtils.REGEXES.non_quoted_text;
 let pattern_certificate = NtopUtils.REGEXES.tls_certificate;
 
 const exclude = () => {
