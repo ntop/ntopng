@@ -338,11 +338,22 @@ end
 -- ##############################################
 
 function isMacAddress(address)
-  if (address == nil) then return false end
+   local v
+   local addr
+   
+   if(address == nil) then return false end
 
-  if(string.ends(address, "_v4") or string.ends(address, "_v6")
-     or (string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") ~= nil)
-     or (string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x%@%d+$") ~= nil)) then
+   v = string.split(address, "@")
+
+   if(v ~= nil) then
+      addr = v[1]
+   else
+      addr = address
+   end
+   
+  if(string.ends(addr, "_v4") or string.ends(addr, "_v6")
+     or (string.match(addr, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") ~= nil)
+     or (string.match(addr, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x%@%d+$") ~= nil)) then
       return true
    end
    return false
