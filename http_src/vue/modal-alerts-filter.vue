@@ -158,7 +158,7 @@ function get_type() {
     return "host";
 }
 
-let pattern_domain = NtopUtils.REGEXES.domain_name_not_strict;
+let pattern_domain = NtopUtils.REGEXES.non_quoted_text;
 let pattern_certificate = NtopUtils.REGEXES.tls_certificate;
 
 const exclude = () => {

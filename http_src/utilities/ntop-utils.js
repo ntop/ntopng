@@ -51,9 +51,10 @@ const REGEXES = {
 	token: "^[0-9a-f]{32}",
   score: "^[0-9]{1,5}",
   telegram_channel: "^[0-9\-]{1,15}",
-    password: "^[\w\/$!\/()=?^*@_-]{5,31}$",
-    tls_certificate: String.raw`^[^=,]+=[^=,]+(,\s[^=,]+=[^=,]+)*$`,
-    domain_name_not_strict: String.raw`^[a-zA-Z0-9\-_~]+((\.[a-zA-Z0-9\-_~]+)+)$`,
+  password: "^[\w\/$!\/()=?^*@_-]{5,31}$",
+  tls_certificate: String.raw`^[^=,]+=[^=,]+(,\s[^=,]+=[^=,]+)*$`,
+  domain_name_not_strict: String.raw`^[a-zA-Z0-9\-_~]+((\.[a-zA-Z0-9\-_~]+)+)$`,
+	non_quoted_text: "^[a-zA-Z0-9.-_]+$",
 };
 
 export default class NtopUtils {
