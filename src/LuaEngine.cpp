@@ -171,7 +171,7 @@ LuaEngine::~LuaEngine() {
 void LuaEngine::luaRegister(lua_State *L, const char *class_name, luaL_Reg *class_methods) {
   const luaL_Reg _meta[] = { { NULL, NULL } };
   int lib_id, meta_id;
-  
+
   /* newclass = {} */
   lua_createtable(L, 0, 0);
   lib_id = lua_gettop(L);
@@ -197,12 +197,12 @@ void LuaEngine::luaRegister(lua_State *L, const char *class_name, luaL_Reg *clas
 
 int ntop_lua_return_value(lua_State* vm, const char *function_name, int val) {
   bool show_warning;
-  
+
   switch(val) {
   case CONST_LUA_OK:
     show_warning = true;
     break;
-    
+
   default:
     show_warning = false; /* CONST_LUA_PARAM_ERROR and CONST_LUA_ERROR */
     break;
@@ -213,10 +213,10 @@ int ntop_lua_return_value(lua_State* vm, const char *function_name, int val) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "[INTERNAL ERROR] Invalid lua VM state returned by %s()", function_name);
       ntop->getTrace()->traceEvent(TRACE_ERROR, "[INTERNAL ERROR] Please report it here https://github.com/ntop/ntopng/issues");
     }
-    
+
     lua_pushnil(vm); /* Add dummy push to make sure the stack has a return value */
   }
-  
+
   return(val);
 }
 
@@ -354,7 +354,7 @@ static int __ntop_lua_handlefile(lua_State* L, char *script_path, bool ex) {
 #ifdef DEBUG_LUA_LOADING
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading %s", script_path);
 #endif
-  
+
   rc = lh->luaL_dofileM(ex);
   delete lh;
   return rc;
@@ -463,7 +463,7 @@ void LuaEngine::lua_register_classes(lua_State *L, bool http_mode) {
   luaRegister(L, "interface", ntop_interface_reg);
   luaRegister(L, "ntop",      ntop_reg);
   luaRegister(L, "network",   ntop_network_reg);
-  
+
   if(http_mode) {
     /* Overload the standard Lua print() with ntop_lua_http_print that dumps data on HTTP server */
     lua_register(L, "print", ntop_lua_http_print);
@@ -545,7 +545,7 @@ int LuaEngine::load_script(char *script_path, NetworkInterface *iface) {
       lua_register_classes(L, false); /* Load custom classes */
     } else
       lua_settop(L, lua_gettop(L)); /* Reset the stack */
-    
+
     if(iface) {
       /* Select the specified inteface */
       getLuaVMUservalue(L, iface) = iface;
@@ -723,7 +723,7 @@ bool LuaEngine::switchInterface(struct lua_State *vm, const char *ifid, const ch
 
   if(user != NULL) {
     if(!strlen(session) && strcmp(user, NTOP_NOLOGIN_USER))
-      return false; 
+      return false;
 
     /* Non-admins cannot switch to the system interface */
     if(iface == ntop->getSystemInterface()
@@ -769,7 +769,7 @@ void LuaEngine::setInterface(const char * user, char * const ifname,
   NetworkInterface *iface = NULL;
   char key[CONST_MAX_LEN_REDIS_KEY];
   u_int16_t observationPointId = 0;
-  
+
   ifname[0] = '\0';
 
   if((user == NULL) || (user[0] == '\0'))
@@ -808,9 +808,9 @@ void LuaEngine::setInterface(const char * user, char * const ifname,
 
   if(iface && iface->haveObservationPointsDefined()) {
     char buf[16];
-    
+
     snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".%s.observationPointId", user);
-    
+
     if(ntop->getRedis()->get(key, buf, sizeof(buf)) != -1) {
       observationPointId = atoi(buf);
 
@@ -824,7 +824,7 @@ void LuaEngine::setInterface(const char * user, char * const ifname,
   getLuaVMUservalue(L, observationPointId) = observationPointId;
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "observationPointId: %u", observationPointId);
-  
+
   lua_push_uint32_table_entry(L, "observationPointId", observationPointId);
 }
 
@@ -955,9 +955,10 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   bool send_redirect = false;
   IpAddress client_addr;
   int num_uploaded_files = 0;
-  
+  bool is_post = false;
+		      
   *attack_attempt = false;
-
+  
   if(!L) return(-1);
 
   luaL_openlibs(L); /* Load base libraries */
@@ -971,9 +972,10 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
   /* Check for POST requests */
   if((strcmp(request_info->request_method, "POST") == 0) && (content_type != NULL)) {
+    is_post = true;
     int content_len = mg_get_content_len(conn) + 1;
     bool is_file_upload = (strncmp(content_type, "multipart/form-data", 19) == 0) ? true : false;
-      
+
     if((!is_file_upload) && (content_len > HTTP_MAX_POST_DATA_LEN)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Too much data submitted with the form. [data len: %u][max len: %u][URI: %s]",
@@ -988,16 +990,16 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	  valid_csrf = 0;
 	} else {
 	  char fname[1024], upload_dir[512];
-	
+
 	  snprintf(upload_dir, sizeof(upload_dir), "%s/tmp/upload", ntop->get_working_dir());
 	  ntop->fixPath(upload_dir);
-	
+
 	  if(!Utils::mkdir_tree(upload_dir))
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create directory %s", upload_dir);
 	  else {
 	    /* NOTE: mongoose is currently unable to handle multiple fields in a single upload */
 	    num_uploaded_files = mg_upload(conn, upload_dir, fname, sizeof(fname));
-	  
+
 	    if(num_uploaded_files > 0) {
 	      char uploaded_file[1024];
 
@@ -1006,8 +1008,32 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
 	      lua_newtable(L);
 	      lua_push_str_table_entry(L, "uploaded_file", uploaded_file);
+
+	      if(request_info->query_string) {
+		char *d = strdup(request_info->query_string);
+
+		if(d != NULL) {
+		  char *where;
+		  char *tok = strtok_r(d, "&", &where);
+
+		  while(tok != NULL) {
+		    char *tok_where;
+		    char *k = strtok_r(tok, "=", &tok_where);
+
+		    if(k != NULL) {
+		      char *v = strtok_r(NULL, "=", &tok_where);
+
+		      if(v != NULL)
+			lua_push_str_table_entry(L, k, v);
+		    }
+
+		    tok = strtok_r(NULL, "&", &where);		    
+		  } /* while */
+		}
+	      }
+	      
 	      lua_setglobal(L, "_POST");
-	      valid_csrf = 1; /* Dummy */	    
+	      valid_csrf = 1; /* Dummy */
 	    }
 	  }
 	}
@@ -1103,7 +1129,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       } else {
 	*attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
       }
-    
+
       if(post_data)
 	free(post_data);
     }
@@ -1112,7 +1138,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
   if(send_redirect) {
     char buf[2048], uri[512];
-    
+
     snprintf(uri, sizeof(uri), "%s%s", ntop->getPrefs()->get_http_prefix(), request_info->uri);
     build_redirect(uri, request_info->query_string, buf, sizeof(buf));
 
@@ -1122,11 +1148,11 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   }
 
   /* Put the GET params into the environment */
-  if(request_info->query_string)
+  if((!is_post) && request_info->query_string)
     *attack_attempt = setParamsTable(L, request_info, "_GET", request_info->query_string);
   else
     *attack_attempt = setParamsTable(L, request_info, "_GET", NULL /* Empty */);
-
+  
   /* _SERVER */
   lua_newtable(L);
   lua_push_str_table_entry(L, "REQUEST_METHOD", (char*)request_info->request_method);
@@ -1148,7 +1174,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   /* Additional headers can be added eventually */
   origin_header = mg_get_header(conn, "Origin");
   if(origin_header) lua_push_str_table_entry(L, "Origin", origin_header);
-  
+
   for(int i=0; ((request_info->http_headers[i].name != NULL)
 		&& request_info->http_headers[i].name[0] != '\0'); i++)
     lua_push_str_table_entry(L,
@@ -1237,7 +1263,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   lua_push_str_table_entry(L, "user", (char*)user);
   lua_push_str_table_entry(L, "group", (char*)group);
   lua_push_bool_table_entry(L, "localuser", localuser);
-  lua_push_uint64_table_entry(L, "capabilities", capabilities);  
+  lua_push_uint64_table_entry(L, "capabilities", capabilities);
 
   // now it's time to set the interface.
   setInterface(user, ifname, sizeof(ifname), &is_interface_allowed);
@@ -1263,11 +1289,11 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       lua_pushstring(L, val);
     } else
       lua_pushstring(L, NTOP_DEFAULT_USER_LANG);
-    
+
     lua_setglobal(L, CONST_USER_LANGUAGE);
   }
 
-  
+
   getLuaVMUservalue(L, group) = (char*)(group ? (group) : "");
   getLuaVMUservalue(L, localuser) = localuser;
   getLuaVMUservalue(L, csrf) = (char*)session_csrf;

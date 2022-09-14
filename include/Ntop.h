@@ -57,6 +57,7 @@ class Ntop {
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
   NetworkInterface **iface; /**< Array of network interfaces. */
   NetworkInterface *system_interface; /** The system interface */
+  NetworkInterface *old_iface_to_purge;
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */
   u_int8_t num_dump_interfaces;
   HTTPserver *httpd; /**< Pointer of httpd server. */

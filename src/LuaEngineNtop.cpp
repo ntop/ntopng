@@ -1217,24 +1217,36 @@ static int ntop_unlink_file(lua_State* vm) {
 static int ntop_register_pcap_interface(lua_State* vm) {
   char *path = NULL;
   int if_id = -99;
+  bool create_new_interface;
+  NetworkInterface *iface = getCurrentInterface(vm);
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TSTRING)
     path = (char*)lua_tostring(vm, 1);
- 
-  if((!ntop->isUserAdministrator(vm))
-     || (path == NULL)
-     || (ntop->get_num_interfaces() >= MAX_NUM_DEFINED_INTERFACES)) {
-    ; /* No way */
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  create_new_interface = (bool)lua_toboolean(vm, 2);
+
+  ntop->fixPath(path);
+  
+  if(create_new_interface) {
+    if((!ntop->isUserAdministrator(vm))
+       || (path == NULL)
+       || (ntop->get_num_interfaces() >= MAX_NUM_DEFINED_INTERFACES)) {
+      ; /* No way */
+    } else {
+      int id = -1; /* -1 = allocate new interface */
+      bool rc = ntop->createPcapInterface((const char*)path, &id);
+      
+      if(rc) if_id = id;
+    }
   } else {
-    int id;
-    bool rc;
-
-    ntop->fixPath(path);
-    rc = ntop->createPcapInterface((const char*)path, &id);
-
-    if(rc) if_id = id;
+    /* Upload pcap on this interface */
+    int id = iface->get_id();
+    bool rc = ntop->createPcapInterface((const char*)path, &id);
+    
+    if(rc) if_id = id;    
   }
 
   lua_pushinteger(vm, if_id);

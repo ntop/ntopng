@@ -1,5 +1,5 @@
 --
--- (C) 2013-21 - ntop.org
+-- (C) 2013-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -17,8 +17,10 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- accept=".pcap"
 
+local ifstats = interface.getStats()
+
 if isAdministrator() then
-   print(template.gen("upload_pcap.template", {  }))
+   print(template.gen("upload_pcap.template", { iftype = ifstats.type }))
 end   
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

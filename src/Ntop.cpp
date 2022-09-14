@@ -63,7 +63,7 @@ Ntop::Ntop(const char *appName) {
   myTZname = strdup(_tzname[0] ? _tzname[0] : "CET");
 #else
   myTZname = strdup(tzname[0] ? tzname[0] : "CET");
-#endif  
+#endif
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
 #ifndef HAVE_NEDGE
@@ -77,7 +77,8 @@ Ntop::Ntop(const char *appName) {
   iface = NULL;
   start_time = last_modified_static_file_epoch = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
-
+  old_iface_to_purge = NULL;
+  
   setZoneInfo();
 
   /* Checks loader */
@@ -311,7 +312,8 @@ Ntop::~Ntop() {
 
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
   if(custom_ndpi_protos)  free(custom_ndpi_protos);
-
+  if(old_iface_to_purge)  delete old_iface_to_purge;
+  
   delete address;
 
   if(pa)    delete pa;
@@ -357,7 +359,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   prefs = _prefs;
 
-  if(!quick_registration) {   
+  if(!quick_registration) {
     if(stat(prefs->get_data_dir(), &buf)
        || (!(buf.st_mode & S_IFDIR))  /* It's not a directory */
        // || (!(buf.st_mode & S_IWRITE)) /* It's not writable    */
@@ -397,7 +399,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     if(ntop->getRedis() == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize redis. Quitting...");
       exit(-1);
-    }    
+    }
   }
 
 #ifdef NTOPNG_PRO
@@ -410,7 +412,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   if(quick_registration) return;
 
   checkReloadAlertExclusions();
-  
+
   system_interface = new (std::nothrow) NetworkInterface(SYSTEM_INTERFACE_NAME, SYSTEM_INTERFACE_NAME);
 
   /* License check could have increased the number of interfaces available */
@@ -2492,7 +2494,6 @@ NetworkInterface* Ntop::getInterfaceById(int if_id) {
   return(NULL);
 }
 
-
 /* ******************************************* */
 
 bool Ntop::isExistingInterface(const char * name) const {
@@ -3684,38 +3685,77 @@ void Ntop::speedtest(lua_State *vm) {
 
 bool Ntop::createPcapInterface(const char *path, int *iface_id) {
 #ifndef HAVE_NEDGE
-  NetworkInterface *iface;
+  NetworkInterface *new_iface, *old_iface = NULL;
 #endif
   bool ret;
+  u_int slot_id;
   
-  *iface_id = -99;
-
 #ifndef HAVE_NEDGE
+
+  if(old_iface_to_purge != NULL) {
+    delete old_iface_to_purge;
+    old_iface_to_purge = NULL;
+  }
+  
+  if(*iface_id != -1) {
+    for(int i=0; i<num_defined_interfaces; i++) {
+      if(iface[i]->get_id() == *iface_id) {
+	old_iface = iface[i], slot_id = i;
+	break;
+      }
+    }
+  }
+  
   try {
     errno = 0;
-    iface = new PcapInterface((const char*)path,
-			      (u_int8_t)ntop->get_num_interfaces(),
-			      true /* delete pcap when done */);
-    
-    if(ntop->registerInterface(iface)) {
-      ntop->initInterface(iface);
-      iface->allocateStructures();
-      iface->startPacketPolling();
-      *iface_id = iface->get_id();
+    new_iface = new PcapInterface((const char*)path,
+				  (u_int8_t)ntop->get_num_interfaces(),
+				  true /* delete pcap when done */);
+
+    if(old_iface == NULL) {
+      /* Allocate new interface */
+
+      if(registerInterface(new_iface)) {
+	initInterface(new_iface);
+	new_iface->allocateStructures();
+	new_iface->startPacketPolling();
+	*iface_id = new_iface->get_id();
+      }
+    } else {
+      NetworkInterface *old = iface[slot_id];
+
+      initInterface(new_iface);
+      new_iface->allocateStructures();
+      new_iface->startPacketPolling();
+
+      m.lock(__FILE__, __LINE__);
+      
+      iface[slot_id] = new_iface; /* Swap interfaces */
+
+      old->shutdown();
+
+      /* Wait until the interface is shutdown */
+      while(old->isRunning()) sleep(1);
+
+      /* Trick to avoid crashing while using the same interface we want to free */
+      old_iface_to_purge = old;
+
+      *iface_id = new_iface->get_id();
+      m.unlock(__FILE__, __LINE__);
     }
 
     ret = true;
-    
+
   } catch(int err) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-				 "Unable to open interface %s with pcap [%d]: %s",
-				 path, err, strerror(err));
+    getTrace()->traceEvent(TRACE_ERROR,
+			   "Unable to open interface %s with pcap [%d]: %s",
+			   path, err, strerror(err));
 
     ret = false;
   }
 #else
   ret = false;
 #endif
-  
+
   return(ret);
 }

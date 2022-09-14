@@ -33,8 +33,6 @@ local graph_utils = require "graph_utils"
 local recording_utils = require "recording_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
-
-
 local have_nedge = ntop.isnEdge()
 local sites_granularities = nil
 local show_zmq_encryption_public_key = false

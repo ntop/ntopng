@@ -2254,6 +2254,7 @@ local known_parameters = {
    -- POST pcap
    ["pcap"]                    = validatePcap,
    ["uploaded_file"]           = validateUploadedFile,
+   ["create_new_iface"]        = validateBool,
 
    -- See https://github.com/ntop/ntopng/issues/4275
    ["csrf"]               = validateSingleWord,
