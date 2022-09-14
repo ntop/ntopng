@@ -636,7 +636,6 @@ else
             print('<div id="throbber" class="spinner-border spinner-border-sm text-primary" role="status"><span class="sr-only">Loading...</span></div> ')
          end
 
-         -- tprint(host) io.write("\n")
          print(host_label .. "</span> <i class=\"fas fa-external-link-alt\"></i> </A>")
 
          print(hostinfo2detailshref(host, {page = "config"}, ' <i class="fas fa-sm fa-cog" aria-hidden="true"></i> '))

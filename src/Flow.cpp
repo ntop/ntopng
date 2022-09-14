@@ -908,7 +908,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
       if(ndpiFlow->protos.dns.is_query)
 	protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
       else { /* this is a response... */
-	if(ntop->getPrefs()->decode_dns_responses()) {
+	if(ntop->getPrefs()->is_dns_decoding_enabled()) {
 	  char delimiter = '@', *name = NULL;
 	  char *at = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter);
 
