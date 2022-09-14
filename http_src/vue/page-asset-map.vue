@@ -109,6 +109,8 @@ export default {
     ntopng_events_manager.on_custom_event(this.get_map(), ntopng_custom_events.VIS_DATA_LOADED, (filter) => {
       if(max_entries_reached()) {
         $(`#max-entries-reached`).removeAttr('hidden')
+      } else {
+        $(`#max-entries-reached`).attr('hidden', 'hidden')
       }
     });
 

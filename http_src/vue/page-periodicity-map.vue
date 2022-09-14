@@ -118,6 +118,8 @@ export default {
     ntopng_events_manager.on_custom_event(this.get_map(), ntopng_custom_events.VIS_DATA_LOADED, (filter) => {
       if(max_entries_reached()) {
         $(`#max-entries-reached`).removeAttr('hidden')
+      } else {
+        $(`#max-entries-reached`).attr('hidden', 'hidden')
       }
     });
     
@@ -126,9 +128,6 @@ export default {
     });
     
     setTimeout(() => NtopUtils.hideOverlays(), 0);
-    if(this.max_entry_reached()) {
-      $(`#max-entries-reached`).removeAttr('hidden')
-    }
 
     $("#btn-delete-all").click(() => this.show_delete_all_dialog());
     $("#autolayout").click(() => this.show_autolayout_dialog());
