@@ -10,6 +10,13 @@
     <div class="alert alert-danger d-none" id='alert-row-buttons' role="alert">
     </div>
     <div class="card">
+      <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+        <div class="text-center">
+          <div class="spinner-border text-primary mt-5" role="status">
+            <span class="sr-only position-absolute">Loading...</span>
+          </div>
+        </div>
+      </div>
       <div class="card-body">
       	<div id="periodicity-table">
           <modal-delete-confirm ref="modal_delete_all"
@@ -100,7 +107,9 @@ export default {
     },
     reload_table: function() {
       let table = this.get_active_table();
+      NtopUtils.showOverlays();
       table.reload();
+      NtopUtils.hideOverlays();
     },
     destroy: function() {
       let table = this.get_active_table();
@@ -145,7 +154,9 @@ function start_datatable(DatatableVue) {
       tmp_params[filter.filterMenuKey] = value.id;
       ntopng_url_manager.set_key_to_url(filter.filterMenuKey, value.id);
       table.ajax.url(NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, tmp_params));
+      NtopUtils.showOverlays();
       table.ajax.reload();
+      NtopUtils.hideOverlays();
     },
     table_filters.push(filter);
   }

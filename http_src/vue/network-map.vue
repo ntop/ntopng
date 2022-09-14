@@ -126,6 +126,7 @@ const set_event_listener = () => {
 }
 
 const save_topology_view = () => {
+  if(!network) return;
   // get all nodes position
   const positions = network.getPositions(network.body.data.nodes.map(x => x.id));
 

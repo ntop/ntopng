@@ -165,13 +165,17 @@ export default {
       return map.is_max_entry_reached();
     },
     reload_map: function() {
+      NtopUtils.showOverlays();
       let map = this.get_map();
       map.reload();
+      NtopUtils.hideOverlays();
     },
     update_and_reload_map: function() {
       let map = this.get_map();
+      NtopUtils.showOverlays();
       map.update_url_params(this.url_params)
       map.reload();
+      NtopUtils.hideOverlays();
     },
     autolayout: function() {
       let map = this.get_map();
