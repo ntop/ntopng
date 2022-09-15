@@ -1148,7 +1148,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   }
 
   /* Put the GET params into the environment */
-  if((!is_post) && request_info->query_string)
+  if(request_info->query_string)
     *attack_attempt = setParamsTable(L, request_info, "_GET", request_info->query_string);
   else
     *attack_attempt = setParamsTable(L, request_info, "_GET", NULL /* Empty */);

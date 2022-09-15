@@ -3688,9 +3688,8 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
   NetworkInterface *new_iface, *old_iface = NULL;
 #endif
   bool ret;
-  u_int slot_id;
-  
 #ifndef HAVE_NEDGE
+  u_int slot_id;
 
   if(old_iface_to_purge != NULL) {
     delete old_iface_to_purge;
