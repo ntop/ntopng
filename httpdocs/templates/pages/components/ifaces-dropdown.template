@@ -43,27 +43,27 @@
               {% selected = 'selected=""' %}
    	    {% end %}
   
-            {% if pcapdump[v] then %}
+            {% if pcapdump[k] then %}
               {% icons[#icons + 1] = "<i class='fas fa-file'></i>" %}
-            {% elseif packetinterfaces[v] then %}
+            {% elseif packetinterfaces[k] then %}
               {% icons[#icons + 1] = "<i class='fas fa-ethernet'></i>" %}
-            {% elseif zmqinterfaces[v] then %}
+            {% elseif zmqinterfaces[k] then %}
               {% icons[#icons + 1] = "<i class='fas fa-bezier-curve'></i>" %} {% --broadcast-tower %}
             {% end %}
 
-            {% if views[v] then %}
+            {% if views[k] then %}
               {% icons[#icons + 1] = "<i class='fas fa-eye'></i>" %}
             {% end %}
 
-            {% if dynamic[v] then %}
+            {% if dynamic[k] then %}
               {% icons[#icons + 1] = "<i class='fas fa-code-branch'></i>" %}
             {% end %}
 
-            {% if drops[v] then %}
+            {% if drops[k] then %}
               {% icons[#icons + 1] = "<i class='fas fa-tint'></i>" %}
             {% end %}
 
-            {% if recording[v] then %}
+            {% if recording[k] then %}
               {% icons[#icons + 1] = "<i class='fas fa-hdd'></i>" %}
             {% end %}
 

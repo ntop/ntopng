@@ -802,14 +802,14 @@ for v,k in pairs(iface_names) do
    ifnames[_ifstats.id] = k
    action_urls[_ifstats.id] = page_utils.switch_interface_form_action_url(ifId, _ifstats.id, _ifstats.type)
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
-   if interface.isPcapDumpInterface() then pcapdump[k] = true end
-   if(_ifstats.isView == true) then views[k] = true end
-   if(interface.isSubInterface()) then dynamic[k] = true end
-   if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
-   if(interface.isPacketInterface()) then packetinterfaces[k] = true end
-   if(interface.isZMQInterface()) then zmqinterfaces[k] = true end
+   if interface.isPcapDumpInterface() then pcapdump[_ifstats.id] = true end
+   if(_ifstats.isView == true) then views[_ifstats.id] = true end
+   if(interface.isSubInterface()) then dynamic[_ifstats.id] = true end
+   if(recording_utils.isEnabled(_ifstats.id)) then recording[_ifstats.id] = true end
+   if(interface.isPacketInterface()) then packetinterfaces[_ifstats.id] = true end
+   if(interface.isZMQInterface()) then zmqinterfaces[_ifstats.id] = true end
    if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
-      drops[k] = true
+      drops[_ifstats.id] = true
    end
 
    ifCustom[_ifstats.id] = _ifstats.customIftype
