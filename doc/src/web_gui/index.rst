@@ -71,6 +71,7 @@ Each individual menu bar entry will be discussed below.
     interfaces
     settings
     administration
+    pcap_analysis
     host_search
     storage_monitor
     import_export
