@@ -178,7 +178,8 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
           this.navbar_context.secondary_title_list.push({
             label: NtopUtils.shortenLabel(`${data.selected_host.label}`, 16, '.'),
             title: `${data.selected_host.label}`,
-            href: data.selected_host.is_active ? `${http_prefix}/lua/host_details.lua?host=${data.selected_host.id}` : null
+            href: data.selected_host.is_active ? `${http_prefix}/lua/host_details.lua?host=${data.selected_host.id}` : null,
+            target_blank: "true",
           })
         }  
       },
