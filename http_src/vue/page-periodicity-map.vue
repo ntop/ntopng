@@ -174,21 +174,21 @@ export default {
       let map = this.get_map();
       return map.is_max_entry_reached();
     },
-    reload_map: function() {
+    reload_map: async function() {
       NtopUtils.showOverlays();
       let map = this.get_map();
-      map.reload();
+      await map.reload();
       NtopUtils.hideOverlays();
     },
     hide_dropdowns: function() {
       $(`#network_dropdown`).attr('hidden', 'hidden')
       $(`#vlan_id_dropdown`).attr('hidden', 'hidden')
     }, 
-    update_and_reload_map: function() {
+    update_and_reload_map: async function() {
       let map = this.get_map();
       NtopUtils.showOverlays();
       map.update_url_params(this.updated_url_params)
-      map.reload();
+      await map.reload();
       NtopUtils.hideOverlays();
     },
     autolayout: function() {
