@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require ("dkjson")
 local page_utils = require("page_utils")
-local tracker = require("tracker")
 local storage_utils = require("storage_utils")
 local graph_utils = require("graph_utils")
 
@@ -33,6 +32,9 @@ if not ntop.isWindows() then
    end
 
    local storage_items = {}
+
+   if storage_info.pcap_volume_dev == nil then
+    storage_items = {}
 
    local classes = { "primary", "info", "warning", "success", "secondary" }
    local colors = { "blue", "salmon", "seagreen", "cyan", "green", "magenta", "orange", "red", "violet" }
@@ -70,8 +72,7 @@ if not ntop.isWindows() then
    info.storage =
       "<span>"..i18n("volume")..": "..dirs.workingdir.." ("..storage_info.volume_dev..")</span><br />"..
       graph_utils.stackedProgressBars(storage_info.volume_size, storage_items, i18n("available"), bytesToSize, "", true)
-
-   if storage_info.pcap_volume_dev ~= nil then
+   else
       storage_items = {}
 
       -- interfaces
