@@ -22,7 +22,6 @@
 <div id="navbar">
 <page-navbar
 	id="page_navbar"
-	:main_icon="navbar_context.main_icon"
 	:main_title="navbar_context.main_title"
 	:base_url="navbar_context.base_url"
 	:help_link="navbar_context.help_link"

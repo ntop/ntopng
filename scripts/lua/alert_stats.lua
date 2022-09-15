@@ -777,7 +777,7 @@ local context = {
        name = CHART_NAME
    },
    datatable = datatable,
-   navbar = json.encode(page_utils.get_navbar_context(i18n("alerts_dashboard.alerts"), url, pages)),
+   navbar = json.encode(page_utils.get_new_navbar_context(i18n("alerts_dashboard.alerts"), url, pages)),
    extra_js = "pages/alerts/datatable.js.template",
    extra_js_context = {
        ifid = ifid,

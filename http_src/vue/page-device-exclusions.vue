@@ -2,7 +2,6 @@
 <div id="navbar">
 <page-navbar
 	id="page_navbar"
-	:main_icon="navbar_context.main_icon"
 	:main_title="navbar_context.main_title"
 	:base_url="navbar_context.base_url"
 	:help_link="navbar_context.help_link"
@@ -91,8 +90,10 @@ export default {
 	    i18n: (t) => i18n(t),
 	    config_devices: null,
             navbar_context: {
-		main_icon: "fas fa-bell-slash",
-		main_title: i18n("edit_check.device_exclusion_list"),
+		main_title: {
+      label: i18n("edit_check.device_exclusion_list"),
+      icon: "fas fa-bell-slash",
+    },
 		base_url: "#",
 		// help_link: "https://www.ntop.org/guides/ntopng/web_gui/checks.html",
 		items_table: [
