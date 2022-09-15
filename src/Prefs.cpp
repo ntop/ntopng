@@ -1452,7 +1452,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 	  if(!client_found) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "-F clickhouse is not available (ClickHouse client not found)");
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Expected %sor %s", CLICKHOUSE_CLIENT, CLICKHOUSE_ALT_CLIENT);
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Expected %s or %s", CLICKHOUSE_CLIENT, CLICKHOUSE_ALT_CLIENT);
 	    all_good = dump_flows_on_clickhouse = false;
 	  }
 	}
