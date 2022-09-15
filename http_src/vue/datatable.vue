@@ -83,6 +83,7 @@ onMounted(() => {
       },
       complete: function() {
         NtopUtils.hideOverlays();
+        ntopng_events_manager.emit_custom_event(ntopng_custom_events.DATATABLE_LOADED);
       }
     },
     columns: props.columns_config,

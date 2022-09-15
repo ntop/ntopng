@@ -71,6 +71,11 @@ export default {
   },
   mounted() {  
     $("#btn-delete-all").click(() => this.show_delete_all_dialog());
+    
+    ntopng_events_manager.on_custom_event("page_periodicity_table", ntopng_custom_events.DATATABLE_LOADED, () => {
+      if(ntopng_url_manager.get_url_entry('host'))
+        this.hide_dropdowns();
+    });
   },    
   data() {
     return {
@@ -86,6 +91,12 @@ export default {
     };
   },
   methods: { 
+    hide_dropdowns: function() {
+      $(`#network_dropdown`).attr('hidden', 'hidden')
+      $(`#vlan_id_dropdown`).attr('hidden', 'hidden')
+      $(`#network_dropdown`).removeClass('d-inline')
+      $(`#vlan_id_dropdown`).removeClass('d-inline')
+    }, 
     delete_all: async function() {
       let url = `${http_prefix}/lua/pro/enterprise/network_maps.lua`;
       let params = {

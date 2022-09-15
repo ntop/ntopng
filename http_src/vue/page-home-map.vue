@@ -7,12 +7,8 @@
 
 <page-navbar
   id="page_navbar"
-  :a_first_title_label="navbar_context.a_first_title_label"
-  :a_first_title_href="navbar_context.a_first_title_href"
-  :a_second_title="navbar_context.a_second_title"
-  :main_icon="navbar_context.main_icon"
   :main_title="navbar_context.main_title"
-  :base_url="navbar_context.base_url"
+  :secondary_title_list="navbar_context.secondary_title_list"
   :help_link="navbar_context.help_link"
   :items_table="navbar_context.items_table"
   @click_item="click_item">
@@ -120,12 +116,13 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
       this.navbar_context.items_table.forEach((i) => {
         (i.id == this.active_tab && i.page == this.page) ? i.active = true : i.active = false
       });
-      this.format_navbar_title(this.$props.navbar_info);
     },
     mounted() {
-      
+      const format_navbar = this.format_navbar_title;
+      format_navbar(this.$props.navbar_info);
+
       ntopng_events_manager.on_custom_event("page_navbar", ntopng_custom_events.CHANGE_PAGE_TITLE, (node) => {
-        this.format_navbar_title({ selected_iface: this.$props.navbar_info.selected_iface, selected_host: node.label });
+        format_navbar({ selected_iface: this.$props.navbar_info.selected_iface, selected_host: node });
       });
 
       ntopng_events_manager.on_custom_event("change_service_table_tab", change_map_event, (tab) => {
@@ -139,7 +136,8 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
         this.url_params.map = tab.id
         this.url_params.page = tab.page
         this.updated_view = ntopng_url_manager.get_url_entry('view')
-      });
+        format_navbar(this.$props.navbar_info)
+     });
     },    
     data() {
       return {
@@ -149,12 +147,11 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
         url_params: {},
         updated_view: null,
         navbar_context: {
-          main_icon: "fas fa-map",
-          main_title: i18n("maps"),
-          a_first_title_label: '',
-          a_first_title_href: '',
-          base_url: "#",
-          a_main_title: "",
+          main_title: {
+            label: ' ' + i18n("maps"),
+            icon: "fas fa-map",
+          },
+          secondary_title_list: [],
           items_table: [
             { active: true, label: i18n('service_map'), id: "service_map", page: "graph" },
             { active: false, label: i18n('service_table'), id: "service_map", page: "table" },
@@ -172,15 +169,18 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
         current_tab.destroy()
       },
       format_navbar_title: function(data) {
-        this.navbar_context.main_title = `${i18n("maps")}` 
-        if(data.selected_host && data.selected_host != '') {
-          this.navbar_context.main_title += ` / `
-          this.navbar_context.a_second_title = ` / ${data.selected_host}`  
-          this.navbar_context.a_first_title_label = `${data.selected_iface.name}`
-          this.navbar_context.a_first_title_href = `/lua/pro/enterprise/network_maps.lua?map=${this.active_tab}`
-        } else {
-          this.navbar_context.a_second_title = ` / ${data.selected_iface.name}`
-        }
+        this.navbar_context.secondary_title_list = [
+          { label: data.selected_iface.label, title: NtopUtils.shortenLabel(`${data.selected_iface.label}`, 16) }
+        ]
+
+        if(data.selected_host && data.selected_host.id != '') {
+          this.navbar_context.secondary_title_list[0]['href'] = `${http_prefix}/lua/pro/enterprise/network_maps.lua?map=${this.active_tab}&page=${this.page}&ifid=${this.$props.ifid}`
+          this.navbar_context.secondary_title_list.push({
+            label: NtopUtils.shortenLabel(`${data.selected_host.label}`, 16, '.'),
+            title: `${data.selected_host.label}`,
+            href: data.selected_host.is_active ? `${http_prefix}/lua/host_details.lua?host=${data.selected_host.id}` : null
+          })
+        }  
       },
       get_active_tab: function() {
         return this.$refs[this.active_tab + "_" + this.page];

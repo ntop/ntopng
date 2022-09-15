@@ -87,6 +87,10 @@ export default {
     this.tab_list.forEach((i) => {
       this.asset_table_tab == i.id ? i.active = true : i.active = false
     });
+    ntopng_events_manager.on_custom_event("page_asset_table", ntopng_custom_events.DATATABLE_LOADED, () => {
+      if(ntopng_url_manager.get_url_entry('host'))
+        this.hide_dropdowns();
+    });
     ntopng_events_manager.on_custom_event("change_asset_table_tab", change_asset_table_tab_event, (tab) => {
 	    let table = this.get_active_table();
       ntopng_url_manager.set_key_to_url('view', tab);
@@ -153,6 +157,12 @@ export default {
         this.reload_table();  
       }      
     },
+    hide_dropdowns: function() {      
+      $(`#network_dropdown`).removeClass('d-inline')
+      $(`#vlan_id_dropdown`).removeClass('d-inline')
+      $(`#network_dropdown`).attr('hidden', 'hidden')
+      $(`#vlan_id_dropdown`).attr('hidden', 'hidden')
+    }, 
     reload_table: function() {
       let table = this.get_active_table();
       NtopUtils.showOverlays();

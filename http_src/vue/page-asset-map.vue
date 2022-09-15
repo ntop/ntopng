@@ -21,9 +21,8 @@
               <i class="text-danger fa-solid fa-triangle-exclamation"></i>
             </button>
             <dropdown v-for="(filter, index) in filter_list"
-              :ref="index + '_dropdown'"
               v-bind:active_element="active_filter_list[index]"
-              :id="index"
+              :id="filter_parameter_list[index] + '_dropdown'"
               :dropdown_list="filter_list[index]"
               :url_param="filter_parameter_list[index]"
               @click_item="click_item">
@@ -99,6 +98,14 @@ export default {
   mounted() {
     const max_entries_reached = this.max_entry_reached
     const reload_map = this.reload_map
+    if(this.$props.url_params.host && this.$props.url_params.host != '') {
+      this.hide_dropdowns();
+    }
+
+    ntopng_events_manager.on_custom_event("page_service_map", ntopng_custom_events.CHANGE_PAGE_TITLE, (node) => {
+      this.hide_dropdowns();
+    });
+
     ntopng_events_manager.on_custom_event("change_filter_event", change_filter_event, (filter) => {
 	    this.active_filter_list[filter.id] = filter.filter;
       ntopng_url_manager.set_key_to_url(filter.key, filter.filter.key);
@@ -162,6 +169,10 @@ export default {
     get_map: function() {
       return this.$refs[`asset_map`];
     },
+    hide_dropdowns: function() {
+      $(`#network_dropdown`).attr('hidden', 'hidden')
+      $(`#vlan_id_dropdown`).attr('hidden', 'hidden')
+    }, 
     max_entry_reached: function() {
       let map = this.get_map();
       return map.is_max_entry_reached();

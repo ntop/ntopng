@@ -108,7 +108,12 @@ export default {
     this.tab_list.forEach((i) => {
       this.service_table_tab == i.id ? i.active = true : i.active = false
     });
-  
+
+    ntopng_events_manager.on_custom_event("page_service_table", ntopng_custom_events.DATATABLE_LOADED, () => {
+      if(ntopng_url_manager.get_url_entry('host'))
+        this.hide_dropdowns();
+    });
+
     ntopng_events_manager.on_custom_event("change_service_table_tab", change_service_table_tab_event, (tab) => {
 	    let table = this.get_active_table();
       ntopng_url_manager.set_key_to_url('view', tab);
@@ -142,6 +147,12 @@ export default {
     };
   },
   methods: { 
+    hide_dropdowns: function() {
+      $(`#network_dropdown`).attr('hidden', 'hidden')
+      $(`#vlan_id_dropdown`).attr('hidden', 'hidden')
+      $(`#network_dropdown`).removeClass('d-inline')
+      $(`#vlan_id_dropdown`).removeClass('d-inline')
+    }, 
     destroy: function() {
       let table = this.get_active_table();
       table.delete_button_handlers(this.service_table_tab);

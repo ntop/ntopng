@@ -194,7 +194,7 @@ export class DataTableFiltersMenu {
       if(typeof this.columnIndex == 'undefined') {
         $(`<span id="${this.id}" ${this.extraAttributes} title="${this.filterTitle}">${this.icon || this.filterTitle}</span>`).insertBefore(this.$datatableWrapper.find('.dataTables_filter').parent());
       } else {
-        const $dropdownContainer = $(`<div id='${this.filterMenuKey}-filters' class='dropdown d-inline'></div>`);
+        const $dropdownContainer = $(`<div id='${this.filterMenuKey}_dropdown' class='dropdown d-inline'></div>`);
         const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-bs-toggle="dropdown" type='button'></button>`);
         const $dropdownTitle = $(`<span class='filter-title'>${this.filterTitle}</span>`);
         $dropdownButton.append($dropdownTitle);
@@ -207,7 +207,7 @@ export class DataTableFiltersMenu {
 
         this.filters = this._createFilters(filters);
 
-        const $menuContainer = $(`<ul class='dropdown-menu dropdown-menu-lg-end scrollable-dropdown' id='${this.filterMenuKey}-filter-menu'></ul>`);
+        const $menuContainer = $(`<ul class='dropdown-menu dropdown-menu-lg-end scrollable-dropdown' id='${this.filterMenuKey}_dropdown_menu'></ul>`);
         for (const [_, filter] of Object.entries(this.filters)) {
             $menuContainer.append(filter.$node);
         }

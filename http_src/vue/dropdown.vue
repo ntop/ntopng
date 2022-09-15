@@ -7,7 +7,7 @@
   
 }
 <template>
-  <div class="dropdown">
+  <div class="dropdown" :id="id">
     <button class="btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       {{ active_entry.label }} <i :class="(filter_icon || '')"></i>
     </button> 
@@ -30,10 +30,11 @@ export default defineComponent({
   components: {
   },
   props: {
-    id: Number,
+    id: String,
     dropdown_list: Array,
     url_param: String,
     active_element: Object,
+    show_dropdown: Boolean,
   },
   emits: ["click_item"],
   /** This method is the first method of the component called, it's called before html template creation. */
