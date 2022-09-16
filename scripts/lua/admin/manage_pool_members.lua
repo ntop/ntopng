@@ -14,7 +14,7 @@ sendHTTPContentTypeHeader('application/json')
 
 --[[ 
    Request example:
-   curl -u admin:admin -H "Content-Type: application/json" -d '{"associations" : {"DE:AD:BE:EE:FF:FF" : {"group" : "staff", "connectivity" : "pass"},"AB:AB:AB:AB:AB:AB" : {"group" : "guest", "connectivity" : "reject"}}}' http://192.168.1.1:3000/lua/admin/manage_pool_members.lua 
+   curl -u admin:admin -H "Content-Type: application/json" -d '{"associations" : {"DE:AD:BE:EE:FF:FF" : {"group" : "staff", "connectivity" : "pass"},"AB:AB:AB:AB:AB:AB" : {"group" : "guest", "connectivity" : "reject"},"192.168.2.221/32@0" : {"group" : "staff", "connectivity" : "pass"}}}' http://192.168.1.1:3000/lua/admin/manage_pool_members.lua 
 
    Data example:
    local res = {
@@ -25,6 +25,10 @@ sendHTTPContentTypeHeader('application/json')
        },
        ["AB:AB:AB:AB:AB:AB"] = {
          group = "guest", 
+         connectivity = "reject"
+       },
+       ["192.168.2.221/32@0"] = {
+         group = "staff", 
          connectivity = "reject"
        }
      }
@@ -57,6 +61,9 @@ for member, info in pairs(_POST["associations"] or {}) do
       if connectivity == "pass" then
 	 if s:bind_member(member, pool_id) == true then
 	    res["associations"][member]["status"] = "OK"
+         else
+	    res["associations"][member]["status"] = "ERROR"
+	    res["associations"][member]["status_msg"] = "Failure adding member, maybe bad member MAC or IP"
 	 end
       elseif info["connectivity"] == "reject" then
 	 s:bind_member(member, host_pools.DEFAULT_POOL_ID)
