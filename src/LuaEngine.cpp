@@ -955,7 +955,6 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   bool send_redirect = false;
   IpAddress client_addr;
   int num_uploaded_files = 0;
-  bool is_post = false;
 		      
   *attack_attempt = false;
   
@@ -972,7 +971,6 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
   /* Check for POST requests */
   if((strcmp(request_info->request_method, "POST") == 0) && (content_type != NULL)) {
-    is_post = true;
     int content_len = mg_get_content_len(conn) + 1;
     bool is_file_upload = (strncmp(content_type, "multipart/form-data", 19) == 0) ? true : false;
 
