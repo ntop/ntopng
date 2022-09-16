@@ -2539,7 +2539,7 @@ end
 
 if(pragma_once) then
    if(ignore_post_payload_parse == nil) then
-    parsePOSTpayload()
+      parsePOSTpayload()
    end
 
    clearNotAllowedParams()

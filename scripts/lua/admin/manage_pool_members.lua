@@ -13,12 +13,11 @@ local json = require "dkjson"
 sendHTTPContentTypeHeader('application/json')
 
 --[[ 
-
    Request example:
-   curl -u admin:admin -H "Content-Type: application/json" -d '{"associations" = {["DE:AD:BE:EE:FF:FF"] = {"group" = "staff", "connectivity" = "pass"},["AB:AB:AB:AB:AB:AB"] = {"group" = "guest", "connectivity" = "reject"}}}' http://192.168.1.1:3000/lua/admin/manage_pool_members.lua
+   curl -u admin:admin -H "Content-Type: application/json" -d '{"associations" : {"DE:AD:BE:EE:FF:FF" : {"group" : "staff", "connectivity" : "pass"},"AB:AB:AB:AB:AB:AB" : {"group" : "guest", "connectivity" : "reject"}}}' http://192.168.1.1:3000/lua/admin/manage_pool_members.lua 
 
-   Payload example:
-   local ret = {
+   Data example:
+   local res = {
      associations = {
        ["DE:AD:BE:EE:FF:FF"] = {
          group = "staff", 
@@ -30,8 +29,6 @@ sendHTTPContentTypeHeader('application/json')
        }
      }
    }
-   return ret
-
 --]]
 
 -- Instantiate host pools
