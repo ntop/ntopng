@@ -12,13 +12,26 @@ local json = require "dkjson"
 
 sendHTTPContentTypeHeader('application/json')
 
---[[ EXAMPLE PAYLOAD:
+--[[ 
 
-   local ret = {associations = {
-   ["DE:AD:BE:EE:FF:FF"] = {group = "maina", connectivity = "pass"},
-   ["AB:AB:AB:AB:AB:AB"] = {group = "simon", connectivity = "reject"}}
+   Request example:
+   curl -u admin:admin -H "Content-Type: application/json" -d '{"associations" = {["DE:AD:BE:EE:FF:FF"] = {"group" = "staff", "connectivity" = "pass"},["AB:AB:AB:AB:AB:AB"] = {"group" = "guest", "connectivity" = "reject"}}}' http://192.168.1.1:3000/lua/admin/manage_pool_members.lua
+
+   Payload example:
+   local ret = {
+     associations = {
+       ["DE:AD:BE:EE:FF:FF"] = {
+         group = "staff", 
+         connectivity = "pass"
+       },
+       ["AB:AB:AB:AB:AB:AB"] = {
+         group = "guest", 
+         connectivity = "reject"
+       }
+     }
    }
    return ret
+
 --]]
 
 -- Instantiate host pools
@@ -61,6 +74,5 @@ end
 
 -- Formerly an array with interfaces as keys. Now that pools are global, placeholder "_all_" is used
 r["_all_"] = res
-
 
 print(json.encode(r))

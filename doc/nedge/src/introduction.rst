@@ -161,11 +161,7 @@ ntopng can be configured programmatically without any GUI interaction.
 This is particularly useful for those who wants to integrate ntopng
 Edge in their own automatized solutions. Let's consider the following case as an example.
 
-An Internet connectivity provider, say ACME ISP, is sells three Internet profiles:
-
-- :code:`basic`
-- :code:`gold`
-- :code:`platinum`
+An Internet connectivity provider, say ACME ISP, is sells three Internet profiles: :code:`basic`, :code:`gold` and :code:`platinum`.
 
 The service provider wants to policy the profiles as follow:
 
@@ -232,7 +228,6 @@ special ntopng Edge web page
 associations using an HTTP POST.
 
 A JSON that tells ntopng Edge the three associations exemplified above is the following:
-
 
 .. code:: json
 
