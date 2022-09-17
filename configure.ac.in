@@ -365,16 +365,14 @@ AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/src/%.cpp, pro/src/%.o, $(wildcard pro/src/*.cpp)) $(patsubst pro/src/flow_checks/%.cpp, pro/src/flow_checks/%.o, $(wildcard pro/src/flow_checks/*.cpp)) $(patsubst pro/src/host_checks/%.cpp, pro/src/host_checks/%.o, $(wildcard pro/src/host_checks/*.cpp))'
 CFLAGS="${CFLAGS} -I ./pro/include -I./pro/include/flow_checks -I ./pro/include/host_checks"
 
-if test "${with_nedge+set}" != set; then
-  if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" || test $MACHINE = "aarch64"; then
-  if test -d "../PF_RING"; then
-      cd ../PF_RING/userland/; ./configure; cd ./nbpf; ${MAKE}; cd ${HERE}
-      LIBS="${LIBS} -L../PF_RING/userland/nbpf -lnbpf"
-   else
-      echo "Missing ../PF_RING: please fetch PF_RING code from https://github.com/ntop/PF_RING and try again"
-      exit
-   fi
-  fi
+if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" || test $MACHINE = "aarch64"; then
+ if test -d "../PF_RING"; then
+    cd ../PF_RING/userland/; ./configure; cd ./nbpf; ${MAKE}; cd ${HERE}
+    LIBS="${LIBS} -L../PF_RING/userland/nbpf -lnbpf"
+ else
+    echo "Missing ../PF_RING: please fetch PF_RING code from https://github.com/ntop/PF_RING and try again"
+    exit
+ fi
 fi
 
 CFLAGS="${CFLAGS} -I../PF_RING/userland/nbpf"
