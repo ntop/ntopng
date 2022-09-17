@@ -325,6 +325,19 @@ else
   fi
 fi
 
+
+AC_MSG_CHECKING([PF_RING nBPF])
+NBPF_HOME=${PWD}/../PF_RING/userland/nbpf
+LIBNBPF=${NBPF_HOME}/libnbpf.a
+if test -f ${LIBNBPF}; then :
+   LIBS="${LIBS} ${LIBNBPF}"
+   CFLAGS="${CFLAGS} -I${NBPF_HOME}"
+   AC_DEFINE_UNQUOTED(HAVE_NBPF, "1", [PF_RING nBPF is present])
+   AC_MSG_RESULT(yes)
+else
+   AC_MSG_RESULT(no)
+fi
+
 AC_MSG_CHECKING(for ntopng professional edition)
 
 REDIS_SERVICE="redis.service"
@@ -365,17 +378,6 @@ AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/src/%.cpp, pro/src/%.o, $(wildcard pro/src/*.cpp)) $(patsubst pro/src/flow_checks/%.cpp, pro/src/flow_checks/%.o, $(wildcard pro/src/flow_checks/*.cpp)) $(patsubst pro/src/host_checks/%.cpp, pro/src/host_checks/%.o, $(wildcard pro/src/host_checks/*.cpp))'
 CFLAGS="${CFLAGS} -I ./pro/include -I./pro/include/flow_checks -I ./pro/include/host_checks"
 
-if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" || test $MACHINE = "aarch64"; then
- if test -d "../PF_RING"; then
-    cd ../PF_RING/userland/; ./configure; cd ./nbpf; ${MAKE}; cd ${HERE}
-    LIBS="${LIBS} -L../PF_RING/userland/nbpf -lnbpf"
- else
-    echo "Missing ../PF_RING: please fetch PF_RING code from https://github.com/ntop/PF_RING and try again"
-    exit
- fi
-fi
-
-CFLAGS="${CFLAGS} -I../PF_RING/userland/nbpf"
 PRO_HEADERS='$(wildcard pro/include/*.h) $(wildcard pro/include/flow_checks/*.h) $(wildcard pro/include/host_checks/*.h) '
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 dnl> Remove heading spaces
