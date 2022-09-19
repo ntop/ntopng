@@ -910,7 +910,7 @@ bool NetworkInterface::enqueueHostAlert(HostAlert *alert) {
   HostAlertReleasedPair alert_info(alert, alert->isReleased());
   Host *h = alert->getHost();
   bool ret = false;
-
+   
   if (!ntop->getPrefs()->dontEmitHostAlerts()
       && hostAlertsQueue
       && hostAlertsQueue->enqueue(alert_info, true)) {
@@ -3084,6 +3084,9 @@ void NetworkInterface::flowAlertsDequeueLoop() {
     }
   }
 
+  /* Make sure all alerts have been dequeued and processed */
+  dequeueFlowAlertsFromChecks(0 /* unlimited budget */);
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow alerts dump thread terminated for %s", get_name());
 }
 
@@ -3142,6 +3145,9 @@ void NetworkInterface::hostAlertsDequeueLoop() {
     }
   }
 
+  /* Make sure all alerts have been dequeued and processed */
+  dequeueHostAlertsFromChecks(0 /* unlimited budged */);
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host alerts dump thread terminated for %s", get_name());
 }
 
@@ -3181,6 +3187,11 @@ void NetworkInterface::dumpFlowLoop() {
 #endif
     }
   }
+
+  /* Make sure all flows have been dumper */
+  dequeueFlowsForDump(0 /* Unlimited budget for idle flows */,
+		      0 /* Unlimited budged for active flows */);
+
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
 }
@@ -3290,14 +3301,6 @@ void NetworkInterface::shutdown() {
     if(flowDumpLoopCreated)          pthread_join(flowDumpLoop, &res);
     if(flowAlertsDequeueLoopCreated) pthread_join(flowChecksLoop, &res);
     if(hostAlertsDequeueLoopCreated) pthread_join(hostChecksLoop, &res);
-
-    /* Make sure all alerts have been dequeued and processed */
-    dequeueFlowAlertsFromChecks(0 /* unlimited budget */);
-    dequeueHostAlertsFromChecks(0 /* unlimited budged */);
-
-    /* Make sure all flows have been dumper */
-    dequeueFlowsForDump(0 /* Unlimited budget for idle flows */,
-		        0 /* Unlimited budged for active flows */);
   
     if(db)
       db->flush();
@@ -6599,8 +6602,6 @@ void NetworkInterface::runHousekeepingTasks() {
 /* **************************************************** */
 
 void NetworkInterface::runShutdownTasks() {
-  void *res;
-
   /* NOTE NOTE NOTE
    *  This task runs asynchronously with respect to the datapath
    *  which has been already stopped
