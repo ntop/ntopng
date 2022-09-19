@@ -278,7 +278,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool has_seen_pods, has_seen_containers, has_external_alerts;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge, next_idle_other_purge;
-  bool running, is_idle;
+  bool running, shutting_down, is_idle;
   NetworkStats **networkStats;
   InterfaceStatsHash *interfaceStats;
   dhcp_range* dhcp_ranges, *dhcp_ranges_shadow;
@@ -575,6 +575,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
   bool isStartingUp() const;
   bool isRunning() const;
+  bool isShuttingDown() const;
   inline bool isTrafficMirrored()           const { return is_traffic_mirrored;            };
   inline bool showDynamicInterfaceTraffic() const { return show_dynamic_interface_traffic; };
   inline bool discardProbingTraffic()       const { return discard_probing_traffic;        };

@@ -2774,6 +2774,7 @@ void Ntop::runHousekeepingTasks() {
 /* ******************************************* */
 
 void Ntop::runShutdownTasks() {
+  /* Final shut down tasks for all interfaces */
   for(int i=0; i<num_defined_interfaces; i++) {
     if(!iface[i]->isView())
       iface[i]->runShutdownTasks();
@@ -2782,7 +2783,7 @@ void Ntop::runShutdownTasks() {
   for(int i=0; i<num_defined_interfaces; i++) {
     if(iface[i]->isView())
       iface[i]->runShutdownTasks();
-  }
+  }  
 }
 
 /* ******************************************* */
@@ -2900,10 +2901,11 @@ void Ntop::shutdownAll() {
   ThreadedActivity *shutdown_activity;
 
   /* Wait until currently executing periodic activities are completed,
-   Periodic activites should not run during interfaces shutdown */
+   * Periodic activites should not run during interfaces shutdown */
   ntop->shutdownPeriodicActivities();
 
-  /* Perform shutdown operations on all active interfaces */
+  /* Perform shutdown operations on all active interfaces,
+   * including purging all active flows, hosts, etc */
   ntop->shutdownInterfaces();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing shutdown script [%s]", SHUTDOWN_SCRIPT_PATH);
@@ -2917,12 +2919,13 @@ void Ntop::shutdownAll() {
 
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   /* Dump flows flushed during shutdown */
-  /* Commented out: this is done on restart to speed up the shitdown
+  /* Commented out: this is done on restart to speed up the shutdown
   if(clickhouseImport)
     importClickHouseDumps(true);
   */
 #endif
 
+  /* Complete the shutdown */
   ntop->getGlobals()->shutdown();
 
 #ifndef WIN32

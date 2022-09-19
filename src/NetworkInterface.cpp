@@ -243,7 +243,7 @@ void NetworkInterface::init(const char *interface_name) {
     has_external_alerts = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
-    running = false, customIftype = NULL,
+    running = false, shutting_down = false, customIftype = NULL,
     is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false,
     discard_probing_traffic = false;
     flows_only_interface = false;
@@ -658,6 +658,14 @@ bool NetworkInterface::isRunning() const {
   return running
     && !ntop->getGlobals()->isShutdownRequested()
     && !ntop->getGlobals()->isShutdown();
+}
+
+/* **************************************************** */
+
+/* Whether the interface is running and shutting down (flows/hosts purge already completed) */
+bool NetworkInterface::isShuttingDown() const {
+  return !running
+    && shutting_down;
 }
 
 /* **************************************************** */
@@ -3046,7 +3054,7 @@ void NetworkInterface::flowAlertsDequeueLoop() {
   }
 
   /* Now operational */
-  while(isRunning()) {
+  while(!isShuttingDown()) {
     /*
       Dequeue flows for dump.
      */
@@ -3102,7 +3110,7 @@ void NetworkInterface::hostAlertsDequeueLoop() {
   }
 
   /* Now operational */
-  while(isRunning()) {
+  while(!isShuttingDown()) {
     /*
       Dequeue hosts for dump.
      */
@@ -3159,7 +3167,7 @@ void NetworkInterface::dumpFlowLoop() {
   }
 
   /* Now operational */
-  while(isRunning()) {
+  while(!isShuttingDown()) {
     /*
       Dequeue flows for dump. Use an unlimited budget for idle flows as they're high-priority and
       thus we want to keep processing them if they're in the queue.
@@ -3270,12 +3278,18 @@ void NetworkInterface::shutdown() {
     running = false;
 
     if(pollLoopCreated)          pthread_join(pollLoop, &res);
-    if(flowDumpLoopCreated)      pthread_join(flowDumpLoop, &res);
-    if(flowAlertsDequeueLoopCreated) pthread_join(flowChecksLoop, &res);
-    if(hostAlertsDequeueLoopCreated) pthread_join(hostChecksLoop, &res);
 
     /* purgeIdle one last time to make sure all entries will be marked as idle */
     purgeIdle(time(NULL), true, true);
+
+    /* stop host/flow alerts dump threads */
+    shutting_down = true;
+
+    /* Shut down dump threads (after purging flows/hosts to flush engaged
+     * alerts to the database) */
+    if(flowDumpLoopCreated)          pthread_join(flowDumpLoop, &res);
+    if(flowAlertsDequeueLoopCreated) pthread_join(flowChecksLoop, &res);
+    if(hostAlertsDequeueLoopCreated) pthread_join(hostChecksLoop, &res);
 
     /* Make sure all alerts have been dequeued and processed */
     dequeueFlowAlertsFromChecks(0 /* unlimited budget */);
@@ -6585,9 +6599,12 @@ void NetworkInterface::runHousekeepingTasks() {
 /* **************************************************** */
 
 void NetworkInterface::runShutdownTasks() {
+  void *res;
+
   /* NOTE NOTE NOTE
-     This task runs asynchronously with respect to the datapath
-  */
+   *  This task runs asynchronously with respect to the datapath
+   *  which has been already stopped
+   */
 
   /* Run the periodic stats update one last time so certain tasks can be properly finalized,
      e.g., all hosts and all flows can be marked as idle */

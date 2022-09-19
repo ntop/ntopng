@@ -2015,8 +2015,9 @@ void Host::releaseAllEngagedAlerts() {
   for (u_int i = 0; i < NUM_DEFINED_HOST_CHECKS; i++) {
     HostCheckID t = (HostCheckID) i;
     HostAlert *alert = getCheckEngagedAlert(t);
-    if(alert)
+    if(alert) {
       releaseAlert(alert);
+    }
   }
 }
 

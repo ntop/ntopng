@@ -432,12 +432,13 @@ int main(int argc, char *argv[])
 #endif
 
   /* This method returns after a shutdown has been requested.
-     runHousekeepingTasks() is performed within this method untile it has returned. */
+     runHousekeepingTasks() is performed within this method until it has returned */
   ntop->start();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating...");
 
-  /* Perform all the necessary cleanup and wait for other threads termination */
+  /* Perform all the necessary cleanup (purge all flows, hosts, etc)
+   * and wait for other threads termination */
   ntop->shutdownAll();
 
   ntop->runShutdownTasks();
