@@ -321,6 +321,10 @@ local menu_subpages = {
       title       = i18n("prefs.iec60870_learning_period_title"),
       description = i18n("prefs.iec60870_learning_period_description"),
     },
+    devices_learning_period = {
+      title       = i18n("prefs.devices_learning_period_title"),
+      description = i18n("prefs.devices_learning_period_description"),
+    },
   }, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
     toggle_top_sites = {
       title       = i18n("prefs.toggle_top_sites_title"),

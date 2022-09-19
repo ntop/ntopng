@@ -876,6 +876,18 @@ function printNetworkBehaviour()
       "number", nil, nil, nil, {min=21600, tformat="hd"})
 
    -- #####################
+
+  print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.devices_behaviour")..'</th></tr></thead>')
+  -- Behavior analysis for asn, network and l7proto (iface)
+
+  prefsInputFieldPrefs(
+    subpage_active["devices_learning_period"].title, 
+    subpage_active["devices_learning_period"].description,
+    "ntopng.prefs.","devices_learning_period",
+    prefs.devices_learning_period,
+    "number", nil, nil, nil, {min=21600, tformat="hd"})
+   
+   -- #####################
    
    print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 

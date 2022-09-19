@@ -56,7 +56,7 @@ class Prefs {
     enable_asn_behaviour_analysis, enable_network_behaviour_analysis, enable_iface_l7_behaviour_analysis,
     emit_flow_alerts, emit_host_alerts, dump_flows_on_clickhouse;
   u_int32_t behaviour_analysis_learning_period;
-  u_int32_t iec60870_learning_period;
+  u_int32_t iec60870_learning_period, devices_learning_period;
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
     behaviour_analysis_learning_status_post_learning;
   TsDriver timeseries_driver;
@@ -444,8 +444,9 @@ class Prefs {
 
   inline ServiceAcceptance behaviourAnalysisStatusDuringLearning() { return behaviour_analysis_learning_status_during_learning; };
   inline ServiceAcceptance behaviourAnalysisStatusPostLearning()   { return behaviour_analysis_learning_status_post_learning;   };
-  inline u_int64_t* getIEC104AllowedTypeIDs()    { return(iec104_allowed_typeids);                      };
-  inline u_int32_t getIEC60870LearingPeriod()    { return(iec60870_learning_period);                    };
+  inline u_int64_t*  getIEC104AllowedTypeIDs()   { return(iec104_allowed_typeids);                      };
+  inline u_int32_t   getIEC60870LearingPeriod()  { return(iec60870_learning_period);                    };
+  inline u_int32_t   devicesLearingPeriod()      { return(devices_learning_period);                    };
   inline bool        dontEmitFlowAlerts()        { return(!emit_flow_alerts);                           };
   inline bool        dontEmitHostAlerts()        { return(!emit_host_alerts);                           };
   inline bool        useClickHouse()             { return(dump_flows_on_clickhouse);                              };

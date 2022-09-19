@@ -568,6 +568,7 @@
 /* Maximum line lenght for the line protocol to write timeseries */
 #define LINE_PROTOCOL_MAX_LINE             512
 
+#define CONST_DEVICES_LEARNING_TIME        7200  /* 2 hours */
 #define CONST_IEC104_LEARNING_TIME         21600 /* 6 hours */
 #define CONST_INFLUXDB_KEY_EXPORTED_POINTS "ntopng.cache.influxdb.num_exported_points"
 #define CONST_INFLUXDB_FLUSH_TIME          10 /* sec */
@@ -650,6 +651,7 @@
 #define CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_POST_LEARNING  NTOPNG_PREFS_PREFIX".behaviour_analysis_learning_status_post_learning"
 
 #define CONST_PREFS_IEC60870_ANALYSIS_LEARNING_PERIOD   NTOPNG_PREFS_PREFIX".iec60870_learning_period"
+#define CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD   NTOPNG_PREFS_PREFIX".devices_learning_period"
 
 #define CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD  7200 // 2 hours by default
 

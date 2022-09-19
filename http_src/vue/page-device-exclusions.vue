@@ -16,6 +16,9 @@
     </div>
     <div class="card">
       <div class="card-body">
+        <div id="devices-learning-status" class="alert alert-info" hidden>
+          {{ learning_message }}
+        </div>
       	<div id="table_devices_vue">
           <modal-delete-confirm ref="modal_delete_confirm"
             :title="title_delete"
@@ -83,7 +86,8 @@ export default {
 	start_datatable(this);
     },
     mounted() {
-        $("#btn-delete-all-devices").click(() => this.show_delete_all_dialog());
+      this.learning_status();
+      $("#btn-delete-all-devices").click(() => this.show_delete_all_dialog());
     },    
     data() {
 	return {
@@ -110,6 +114,7 @@ export default {
             footer_add: i18n('edit_check.add_device_exclusion_notes'),
             list_notes_add: i18n('edit_check.add_device_exclusion_list_notes'),
             title_edit: i18n('edit_check.edit_device_exclusion'),
+            learning_message: i18n('edit_check.learning'),
             row_to_delete: null,
             row_to_edit: null,
         };
@@ -176,9 +181,26 @@ export default {
             console.error(err);
           }
         },
+        learning_status: async function() {
+          let url = `${http_prefix}/lua/pro/rest/v2/get/device/learning_status.lua`;
+          try {
+            let headers = {
+              'Content-Type': 'application/json'
+            };
+            const rsp = await ntopng_utility.http_request(url, { method: 'get', headers });
+            if(rsp.learning_done) {
+              $(`#devices-learning-status`).attr('hidden', 'hidden')
+            } else {
+              $(`#devices-learning-status`).removeAttr('hidden')  
+            }
+          } catch(err) {
+            console.error(err);
+          }      
+        },
         reload_table: function() {
           let table = this.get_active_table();
           table.reload();
+          this.learning_status();
         },
         get_active_table: function() {
           return this.$refs[`table_devices_exclusion`];
