@@ -50,7 +50,7 @@ if not flows_to_update then
    end
 else
    flows_stats = {}
-   
+
    -- Only update the requested rows
    for _, k in pairs(split(flows_to_update, ",")) do
       local flow_key_and_hash = string.split(k, "@") or {}
@@ -90,14 +90,13 @@ for key, value in ipairs(flows_stats) do
       info = noHtml(info)
       info = info:gsub('"', '')
       local alt_info = info
-      
+
       if italic then
 	 info = string.format("<i>%s</i>", info)
       end
       info = shortenString(info)
       flows_stats[key]["info"] = "<span data-bs-toggle='tooltip' title='"..alt_info.."'>"..info.."</span>"
    end
-     
 
    if(flows_stats[key]["profile"] ~= nil) then
       flows_stats[key]["info"] = formatTrafficProfile(flows_stats[key]["profile"])..flows_stats[key]["info"]
@@ -135,7 +134,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    if value["cli.allowed_host"] and not ifstats.isViewed then
       local src_name = shortenString(cli_name)
-      
+
       if(value["cli.systemhost"] == true) then src_name = src_name .. "&nbsp;<i class='fas fa-flag'></i>" end
       src_key = hostinfo2detailshref(flow2hostinfo(value, "cli"), nil, src_name, cli_tooltip, false)
 
@@ -219,12 +218,12 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
         shorten_name = format_portidx_name(device_ip, value["in_index"], true, true),
         url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]..'&snmp_port_idx='..value["in_index"]
       })
-      
+
       local idx_name_out = i18n("span_with_title", {
         shorten_name = format_portidx_name(device_ip, value["out_index"], true, true),
         url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]..'&snmp_port_idx='..value["out_index"]
       })
-        
+
       record["column_device_ip"] = i18n("span_with_title", {
         shorten_name = getProbeName(value["device_ip"]),
         url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]
@@ -272,7 +271,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    local column_proto_l4 = ''
-   
+
    if value["predominant_alert"] then
       column_proto_l4 = alert_consts.alertTypeIcon(value["predominant_alert"], map_score_to_severity(value["predominant_alert_score"]))
    end
@@ -285,7 +284,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    record["column_proto_l4"] = column_proto_l4
 
    local app = getApplicationLabel(value["proto.ndpi"])
-   
+
    if(value["verdict.pass"] == false) then
       app = "<strike>"..app.."</strike>"
     end
@@ -294,7 +293,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    if((not ifstats.isViewed) and (value["proto.ndpi_id"] ~= -1)) then
       record["column_ndpi"] = "<A HREF='".. ntop.getHttpPrefix().."/lua/flows_stats.lua?application=" .. value["proto.ndpi_id"] .."'&ifid='" .. ifid .. "'>"..app.." " .. formatBreed(value["proto.ndpi_breed"], value["proto.is_encrypted"]) .."</A>"
       record["column_ndpi"] = record["column_ndpi"] .. " " .. format_confidence_badge(value["confidence"])
---      record["column_ndpi"] = record["column_ndpi"] .. " " .. "<a href='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_informative_proto"] .. "' title='" .. i18n("host_details.hosts_using_proto", { proto = interface.getnDPIProtoName(value["proto.ndpi_informative_proto"]) }) .. "'><i class='fa-solid fa-timeline'></i></a>" 
+--      record["column_ndpi"] = record["column_ndpi"] .. " " .. "<a href='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_informative_proto"] .. "' title='" .. i18n("host_details.hosts_using_proto", { proto = interface.getnDPIProtoName(value["proto.ndpi_informative_proto"]) }) .. "'><i class='fa-solid fa-timeline'></i></a>"
    end
    record["column_duration"] = secondsToTime(value["duration"])
    record["column_bytes"] = value["bytes"]

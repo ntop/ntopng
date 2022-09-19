@@ -154,7 +154,7 @@ class GenericHashEntry {
    * hash entry into the hash table (class GenericHash)
    * it belongs to.
    */
-  virtual void set_hash_entry_id(u_int hash_entry_id) { };
+  virtual void set_hash_entry_id(u_int32_t hash_entry_id) { };
 
   /**
    * @brief Set the next hash entry.
@@ -211,7 +211,7 @@ class GenericHashEntry {
    * 
    */
   virtual bool is_hash_entry_state_idle_transition_ready() {
-    return getUses() == 0 && is_active_entry_now_idle(MAX_HASH_ENTRY_IDLE);
+    return((getUses() == 0) && is_active_entry_now_idle(MAX_HASH_ENTRY_IDLE));
   }
 
   /**

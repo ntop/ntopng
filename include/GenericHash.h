@@ -47,8 +47,8 @@ class GenericHash {
   u_int32_t upper_num_visited_entries; /**< Max number of entries to purge per run */
   RwLock **locks;
   NetworkInterface *iface; /**< Pointer of network interface for this generic hash */
-  u_int last_purged_hash; /**< Index of last purged hash */
-  u_int last_entry_id; /**< An uniue identifier assigned to each entry in the hash table */
+  u_int32_t last_purged_hash; /**< Index of last purged hash */
+  u_int32_t last_entry_id; /**< An uniue identifier assigned to each entry in the hash table */
   u_int purge_step;
   u_int walk_idle_start_hash_id; /**< The id of the hash bucket from which to start walkIdle hash table walk */
   struct {

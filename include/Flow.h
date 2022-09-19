@@ -73,7 +73,7 @@ class Flow : public GenericHashEntry {
   struct {
     struct ndpi_analyze_struct *c2s, *s2c;
   } entropy;
-  u_int hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table */
+  u_int32_t hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table */
   
   u_int16_t detection_completed:1, extra_dissection_completed:1,
     twh_over:1, twh_ok:1, dissect_next_http_packet:1, passVerdict:1,
@@ -619,8 +619,8 @@ class Flow : public GenericHashEntry {
 				   Host *srv_host, PartializableFlowTrafficStats *partial,
 				   bool first_partial, const struct timeval *tv);
   void periodic_stats_update(const struct timeval *tv);
-  void  set_hash_entry_id(u_int assigned_hash_entry_id);
-  u_int get_hash_entry_id() const;
+  void  set_hash_entry_id(u_int32_t assigned_hash_entry_id);
+  u_int32_t get_hash_entry_id() const;
 
   static char* printTCPflags(u_int8_t flags, char * const buf, u_int buf_len);
   char* print(char *buf, u_int buf_len) const;

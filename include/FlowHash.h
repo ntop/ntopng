@@ -42,7 +42,7 @@ class FlowHash : public GenericHash {
    * @param hash_id The unique identifier of the flow in the hash table
    * @return Pointer of entry that matches with the key parameter, NULL if there isn't entry with the key parameter or if the hash is empty.
    */
-  Flow* findByKeyAndHashId(u_int32_t key, u_int hash_id);
+  Flow* findByKeyAndHashId(u_int32_t key, u_int32_t hash_id);
 };
 
 #endif /* _FLOW_HASH_H_ */

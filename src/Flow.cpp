@@ -2595,14 +2595,14 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 
 /* *************************************** */
 
-void Flow::set_hash_entry_id(u_int assigned_hash_entry_id) {
+void Flow::set_hash_entry_id(u_int32_t assigned_hash_entry_id) {
   hash_entry_id = assigned_hash_entry_id;
 };
 
 /* *************************************** */
 
-u_int Flow::get_hash_entry_id() const {
-  return hash_entry_id;
+u_int32_t Flow::get_hash_entry_id() const {
+  return(hash_entry_id);
 };
 
 /* *************************************** */
