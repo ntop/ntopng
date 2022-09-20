@@ -106,15 +106,31 @@ void GenericHash::cleanup() {
 bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
   if(hasEmptyRoom()) {
     u_int32_t hash = (h->key() % num_hashes);
+    u_int32_t this_entry_id = (u_int32_t)iface->get_id();
 
+    /* We take the least significat 8 bit */
+    this_entry_id &= 0x000000FF;
+
+    /* We shift it of 24 bit */
+    this_entry_id = this_entry_id << 24;
+
+    /*
+      In essence the entryId is:
+      [8 bit interfaceId][24 bit flow serial]
+    */
+    this_entry_id |= last_entry_id;
+    
     if(do_lock)
       locks[hash]->wrlock(__FILE__, __LINE__);
 
     h->set_hash_table(this);
-    h->set_hash_entry_id(last_entry_id++);
+    h->set_hash_entry_id(this_entry_id);
     h->set_next(table[hash]);
     table[hash] = h;
     current_size++;
+
+    if(++last_entry_id == 0x00FFFFFF) /* Limit it to 24 bit */
+      last_entry_id = 0;
 
     if(do_lock)
       locks[hash]->unlock(__FILE__, __LINE__);
