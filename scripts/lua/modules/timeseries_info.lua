@@ -137,6 +137,41 @@ local pro_timeseries = {
 
 -- #################################
 
+local function add_top_timeseries(tags, timeseries)
+  local interface_ts_enabled = ntop.getCache("ntopng.prefs.interface_ndpi_timeseries_creation")
+  local has_top_protocols = interface_ts_enabled == "both" or interface_ts_enabled == "per_protocol" or interface_ts_enabled ~= "0"
+  local has_top_categories = interface_ts_enabled == "both" or interface_ts_enabled == "per_category"
+  
+  ts_utils.loadSchemas()
+  
+  -- Top l7 Protocols
+  if has_top_protocols then
+    local series = ts_utils.listSeries("iface:ndpi", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    
+    if not table.empty(series) then
+      for _, serie in pairs(series) do
+        timeseries[#timeseries + 1] = { schema = "top:iface:ndpi", query = "protocol:" .. serie.protocol , label = serie.protocol, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = serie.protocol, color = timeseries_utils.get_timeseries_color('bytes') }} }
+      end
+    end
+  end
+  
+  -- Top Categories
+  if has_top_categories then
+    local series = ts_utils.listSeries("iface:ndpi_categories", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    
+    if not table.empty(series) then
+      for _, serie in pairs(series) do
+        local category_name = getCategoryLabel(serie.category, interface.getnDPICategoryId(serie.category))
+        timeseries[#timeseries + 1] = { schema = "top:iface:ndpi_categories", query = "category:" .. category_name , label = category_name, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = category_name, color = timeseries_utils.get_timeseries_color('bytes') }} }
+      end
+    end
+  end
+
+  return timeseries
+end
+
+-- #################################
+
 local function retrieve_specific_timeseries(prefix)
   local timeseries_list = community_timeseries
   local timeseries = {}
@@ -167,6 +202,12 @@ local function retrieve_specific_timeseries(prefix)
 
     ::skip::
   end
+
+  local tags = {
+    ifid = tostring(ifid)
+  }
+  
+  timeseries = add_top_timeseries(tags, timeseries)
 
   return timeseries  
 end

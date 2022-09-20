@@ -221,19 +221,16 @@ function select_metric_from_metric_schema(metric_schema) {
 }
 
 async function select_metric(metric) {
-    console.log(``);
-    if (metric.is_snapshot == true) {
-       let url_parameters = metric.filters;
-       let timeseries_url_params = ntopng_url_manager.get_url_entry("timeseries_groups", url_parameters);
-       let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix, timeseries_url_params);
-       current_groups_options_mode.value = timeseriesUtils.getGroupOptionMode(ntopng_url_manager.get_url_entry("timeseries_groups_mode", url_parameters));
-       await load_charts_data(timeseries_groups);
-    } else {
-	await load_charts_selected_metric();
-	refresh_metrics(false);
-    }
-
-    // update metrics
+  if (metric.is_snapshot == true) {
+    let url_parameters = metric.filters;
+    let timeseries_url_params = ntopng_url_manager.get_url_entry("timeseries_groups", url_parameters);
+    let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix, timeseries_url_params);
+    current_groups_options_mode.value = timeseriesUtils.getGroupOptionMode(ntopng_url_manager.get_url_entry("timeseries_groups_mode", url_parameters));
+    await load_charts_data(timeseries_groups);
+  } else {
+    await load_charts_selected_metric();
+    refresh_metrics(false);
+  }
 }
 
 async function load_charts_selected_metric() {
@@ -305,14 +302,18 @@ async function load_charts_data(timeseries_groups, not_reload) {
 	let params_obj = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
 	
 	let ts_responses_promises = timeseries_groups.map((ts_group) => {
-    	    let p_obj = {
-    		...params_obj,
-    		ts_query: `${ts_group.source_type.value}:${ts_group.source.value}`,
-    		ts_schema: `${ts_group.metric.schema}`,
-    	    };
-    	    let p_url_request =  ntopng_url_manager.add_obj_to_url(p_obj, params_url_request);
-    	    let url = `${chart_data_url}?${p_url_request}`;
-    	    return ntopng_utility.http_request(url);
+    let ts_query = `${ts_group.source_type.value}:${ts_group.source.value}`
+    if(ts_group.metric.query) 
+      ts_query = `${ts_query},${ts_group.metric.query}`
+
+    let p_obj = {
+      ...params_obj,
+      ts_query: ts_query,
+      ts_schema: `${ts_group.metric.schema}`,
+    };
+    let p_url_request =  ntopng_url_manager.add_obj_to_url(p_obj, params_url_request);
+    let url = `${chart_data_url}?${p_url_request}`;
+    return ntopng_utility.http_request(url);
 	});
 	ts_chart_options = await Promise.all(ts_responses_promises);
     }
@@ -331,7 +332,7 @@ async function load_charts_data(timeseries_groups, not_reload) {
     update_url_params();
 }
 
-function update_url_params(timeseries_groups) {
+function update_url_params() {
     ntopng_url_manager.set_key_to_url("timeseries_groups_mode", current_groups_options_mode.value.value);
     metricsManager.set_timeseries_groups_in_url(last_timeseries_groups_loaded);
 }
@@ -364,11 +365,10 @@ function set_charts_options_items(charts_options) {
 }
 
 function get_datatable_url() {
-  let chart_data_url = `${http_prefix}/lua/pro/get_ts_table.lua`;
+  let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/interface/top/ts_stats.lua`;
 	let p_obj = {
     zoom: '5m',
     ts_query: `ifid:${ntopng_url_manager.get_url_entry('ifid')}`,
-    ts_schema: `iface:traffic_rx_tx`,
     epoch_begin: `${ntopng_url_manager.get_url_entry('epoch_begin')}`,
     epoch_end: `${ntopng_url_manager.get_url_entry('epoch_end')}`,
     detail_view: `top_protocols`,
