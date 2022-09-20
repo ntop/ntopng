@@ -45,6 +45,7 @@ class GenericHash {
   u_int32_t current_size; /**< Current size of hash (including idle or ready-to-purge elements) */
   u_int32_t max_hash_size; /**< Max size of hash */
   u_int32_t upper_num_visited_entries; /**< Max number of entries to purge per run */
+  u_int32_t hash_mask;
   RwLock **locks;
   NetworkInterface *iface; /**< Pointer of network interface for this generic hash */
   u_int32_t last_purged_hash; /**< Index of last purged hash */
