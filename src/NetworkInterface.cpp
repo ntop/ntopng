@@ -5163,7 +5163,8 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
     retriever->sorter = column_bytes, sorter = numericSorter;
   }
 
-if(true) {
+#ifdef DEBUG
+  {
     u_int32_t deviceIP = 0;
     u_int32_t inIndex=0, outIndex=0;
     char buf[32];
@@ -5173,7 +5174,8 @@ if(true) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Device IP] %s / [In Idx] %u / [Out Idx] %u",
                                  Utils::intoaV4(deviceIP, buf, sizeof(buf)), inIndex, outIndex);
   }
-	
+#endif
+  
   // make sure the caller has disabled the purge!!
   walker(begin_slot, walk_all, walker_flows, flow_search_walker, (void*)retriever);
 
