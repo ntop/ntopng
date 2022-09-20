@@ -51,6 +51,14 @@ GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
   idle_entries_in_use = new (std::nothrow) vector<GenericHashEntry*>;
 
   last_purged_hash = _num_hashes - 1;
+
+  hash_mask = (u_int32_t)iface->get_id();
+
+  /* We take the least significat 8 bit */
+  hash_mask &= 0x000000FF;
+
+  /* We shift it of 24 bit */
+  hash_mask = hash_mask << 24;
 }
 
 /* ************************************ */
@@ -106,15 +114,31 @@ void GenericHash::cleanup() {
 bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
   if(hasEmptyRoom()) {
     u_int32_t hash = (h->key() % num_hashes);
-
+    u_int32_t this_entry_id;
+    
+    /*
+      In essence the entryId is:
+      [8 bit interfaceId][24 bit flow serial]
+    */
+    this_entry_id = hash_mask | last_entry_id;
+    
     if(do_lock)
       locks[hash]->wrlock(__FILE__, __LINE__);
 
     h->set_hash_table(this);
-    h->set_hash_entry_id(last_entry_id++);
+    h->set_hash_entry_id(this_entry_id);
     h->set_next(table[hash]);
     table[hash] = h;
     current_size++;
+
+#ifdef DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "%08X [ifId: %08X][id: %08X]",
+				 this_entry_id, iface->get_id(), last_entry_id);
+#endif
+    
+    if(++last_entry_id == 0x00FFFFFF) /* Limit it to 24 bit */
+      last_entry_id = 0;
 
     if(do_lock)
       locks[hash]->unlock(__FILE__, __LINE__);
