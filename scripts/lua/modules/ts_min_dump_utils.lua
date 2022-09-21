@@ -83,7 +83,6 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
       end
     end
 
-
     ts_utils.append("subnet:traffic",
         {ifid=ifstats.id, subnet=subnet,
         bytes_ingress=sstats["ingress"], bytes_egress=sstats["egress"],

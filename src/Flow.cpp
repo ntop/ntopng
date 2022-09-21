@@ -1498,6 +1498,13 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 		   partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
     }
 
+    // Update local stats (local vs remote)
+    // this replaces the old call to Flow::updateInterfaceLocalStats from packet processing
+    iface->incLocalStats(partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
+			 cli_host->isLocalHost(), srv_host->isLocalHost());
+    iface->incLocalStats(partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(),
+			 srv_host->isLocalHost(), cli_host->isLocalHost());
+
     // Update network stats
     cli_network_stats = cli_host->getNetworkStats(cli_network_id);
     cli_host->incStats(tv->tv_sec, get_protocol(),
@@ -3895,6 +3902,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
 /* *************************************** */
 
+/*
 void Flow::updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len) {
   const IpAddress *from = src2dst_direction ? get_cli_ip_addr() : get_srv_ip_addr();
   const IpAddress *to   = src2dst_direction ? get_srv_ip_addr() : get_cli_ip_addr();
@@ -3903,6 +3911,7 @@ void Flow::updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_i
 		       from ? from->isLocalHost() : false,
 		       to ? to->isLocalHost() : false);
 }
+*/
 
 /* *************************************** */
 

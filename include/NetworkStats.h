@@ -62,7 +62,7 @@ class NetworkStats : public InterfaceMemberAlertableEntity, public GenericTraffi
   inline bool trafficSeen(){
     return ingress.getNumPkts() || egress.getNumPkts() || inner.getNumPkts();
   };
-  
+ 
   inline void incIngress(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
     rcvd.incStats(t, num_pkts, num_bytes);
     ingress.incStats(t, num_pkts, num_bytes);
