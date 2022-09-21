@@ -1834,7 +1834,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   /* Protocol Detection */
 
-  /* This is not incremented in Flow::hosts_periodic_stats_update 
+  /* This is now incremented in Flow::hosts_periodic_stats_update 
    * by calling iface->incLocalStats */
   //flow->updateInterfaceLocalStats(src2dst_direction, 1, len_on_wire);
 

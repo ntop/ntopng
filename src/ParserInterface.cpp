@@ -409,9 +409,12 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   flow->setJSONInfo(zflow->getAdditionalFieldsJSON());
   flow->setTLVInfo(zflow->getAdditionalFieldsTLV());
 
+  /* This is now incremented in Flow::hosts_periodic_stats_update 
+   * by calling iface->incLocalStats
   flow->updateInterfaceLocalStats(src2dst_direction,
 				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 				  zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
+  */
 
   /*
     Parse flow info into the corresponding element (without overriding plugin-generated data:
