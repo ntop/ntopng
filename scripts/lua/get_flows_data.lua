@@ -58,7 +58,11 @@ else
       if(#flow_key_and_hash == 2) then
          local flow = interface.findFlowByKeyAndHashId(tonumber(flow_key_and_hash[1]), tonumber(flow_key_and_hash[2]))
 
-         if flow then
+         if((flow ~= nil)
+	    and ((flows_filter.deviceIpFilter == nil) or (flows_filter.deviceIpFilter == flow["device_ip"]))
+	    and ((flows_filter.inIndexFilter == nil)  or (flows_filter.inIndexFilter == flow["in_index"]) )
+	    and ((flows_filter.outIndexFilter == nil) or (flows_filter.outIndexFilter == flow["out_index"]))
+	 ) then
             flows_stats[#flows_stats + 1] = flow
          end
       end
@@ -207,10 +211,12 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	 column_key = column_key.." <span title='"..i18n("flow_details.flow_traffic_is_dropped").."' class='btn btn-sm btn-danger block-badge'><i class='fas fa-ban' /></span>"
       end
    end
+
    record["column_key"] = column_key
    record["key"] = string.format("%u", value["ntopng.key"])
    record["hash_id"] = string.format("%u", value["hash_entry_id"])
    record["key_and_hash"] = string.format("%s@%s", record["key"], record["hash_id"])
+
    if (value["in_index"] ~= nil and value["out_index"] ~= nil) then
       local device_ip = value["device_ip"]
 
