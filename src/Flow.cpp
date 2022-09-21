@@ -23,8 +23,10 @@
 
 /* static so default is zero-initialization, let's just define it */
 
-const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
-  NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, NULL };
+const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN, /* master_protocol */
+						  NDPI_PROTOCOL_UNKNOWN, /* app_protocol    */
+						  NDPI_PROTOCOL_UNKNOWN, /* protocol_by_ip */
+						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, NULL };
 // #define DEBUG_DISCOVERY
 // #define DEBUG_UA
 // #define DEBUG_SCORE
@@ -2448,17 +2450,15 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
 void Flow::lua_confidence(lua_State* vm) {
   switch(getConfidence()) {
-  case NDPI_CONFIDENCE_MATCH_BY_PORT:
-  case NDPI_CONFIDENCE_MATCH_BY_IP:
-    lua_push_uint32_table_entry(vm, "confidence", (ndpiConfidence) confidence_guessed);
-    break;
-
   case NDPI_CONFIDENCE_DPI_CACHE:
+  case NDPI_CONFIDENCE_DPI_PARTIAL_CACHE:
   case NDPI_CONFIDENCE_DPI:
+  case NDPI_CONFIDENCE_NBPF:
     lua_push_uint32_table_entry(vm, "confidence", (ndpiConfidence) confidence_dpi);
     break;
 
   default:
+    lua_push_uint32_table_entry(vm, "confidence", (ndpiConfidence) confidence_guessed);
     break;
   }
 }
@@ -6287,17 +6287,14 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
 
   if(getConfidence() != NDPI_CONFIDENCE_UNKNOWN) {
     switch(getConfidence()) {
-      case NDPI_CONFIDENCE_MATCH_BY_PORT:
-      case NDPI_CONFIDENCE_MATCH_BY_IP:
-        ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_guessed);
-      break;
-
-      case NDPI_CONFIDENCE_DPI_CACHE:
-      case NDPI_CONFIDENCE_DPI:
+    case NDPI_CONFIDENCE_DPI_CACHE:
+    case NDPI_CONFIDENCE_DPI:
+    case NDPI_CONFIDENCE_NBPF:
         ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_dpi);
       break;
 
       default:
+	ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_guessed);
       break;
     }
   }
