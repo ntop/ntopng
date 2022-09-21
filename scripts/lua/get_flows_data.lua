@@ -52,7 +52,11 @@ else
       if(#flow_key_and_hash == 2) then
          local flow = interface.findFlowByKeyAndHashId(tonumber(flow_key_and_hash[1]), tonumber(flow_key_and_hash[2]))
 
-         if flow then
+         if((flow ~= nil)
+	    and ((flows_filter.deviceIpFilter == nil) or (flows_filter.deviceIpFilter == flow["device_ip"]))
+	    and ((flows_filter.inIndexFilter == nil)  or (flows_filter.inIndexFilter == flow["in_index"]) )
+	    and ((flows_filter.outIndexFilter == nil) or (flows_filter.outIndexFilter == flow["out_index"]))
+	 ) then
             flows_stats[#flows_stats + 1] = flow
          end
       end
