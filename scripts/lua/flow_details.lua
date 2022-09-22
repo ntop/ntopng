@@ -1197,7 +1197,17 @@ else
    end
 
    if((flow.l7_error_code ~= nil) and (flow.l7_error_code ~= 0)) then
-      print("<tr><th width=30%>Error Code</th><td colspan=2><span class=\"badge bg-danger\">".. flow.l7_error_code .. "</span></td></tr>\n")
+      print("<tr><th width=30%>"..i18n("l7_error_code").."</th>")
+      print("<td colspan=2><span class=\"badge ")
+
+      if((flow["protos.http.last_url"] ~= nil) and (tonumber(flow.l7_error_code) >= 300)) then
+	 print("bg-danger")
+      else
+	 print("bg-success")
+      end
+      
+      print("\">".. flow.l7_error_code .. "</td>")
+      print("</tr>\n")
    end
 
    if((flow.client_process == nil) and (flow.server_process == nil)) then
