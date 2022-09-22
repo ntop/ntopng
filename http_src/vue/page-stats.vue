@@ -87,10 +87,12 @@ import { default as Dropdown } from "./dropdown.vue";
 import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../services/context/ntopng_globals_services.js";
 import timeseriesUtils from "../utilities/timeseries-utils.js";
 import metricsManager from "../utilities/metrics-manager.js";
+import { DataTableUtils } from "../utilities/datatable/sprymedia-datatable-utils";
 
 const props = defineProps({
     csrf: String,
     enable_snapshots: Boolean,
+    is_clickhouse_enabled: Boolean
 });
 
 ntopng_utility.check_and_set_default_interval_time();
@@ -168,6 +170,13 @@ async function init() {
     }
     ts_menu_ready.value = true;
     await load_charts_data(timeseries_groups);
+}
+
+function reload_table() {
+  let table = top_applications_table.value;
+  NtopUtils.showOverlays();
+  table.reload();
+  NtopUtils.hideOverlays();
 }
 
 let last_push_custom_metric = null;
@@ -390,26 +399,53 @@ async function load_datatable_data() {
   set_table_configuration(url)
 };
 
+
+
 function set_table_configuration(url) {
   const default_sorting_columns = 2 /* Percentage column */
-  const columns = [
-    { columnName: i18n("application"), width: '35%', name: 'application', data: 'protocol', className: 'text-nowrap', responsivePriority: 1 },
-    { columnName: i18n("traffic"), name: 'traffic', width: '30%', data: 'traffic', orderable: false, className: 'text-nowrap', responsivePriority: 1 },
-    { columnName: i18n("percentage"), name: 'traffic_perc', width: '35%', data: 'percentage', className: 'text-nowrap', responsivePriority: 1 },
-    { columnName: i18n("actions"), name: 'actions', data: 'drilldown',  className: 'text-center', orderable: false, responsivePriority: 0, render: (data, type, service) => {
-        return DatatableVue.create_action_buttons(data, type, service);
-      },
+  let columns = [
+    { columnName: i18n("application"), name: 'application', data: 'protocol', className: 'text-nowrap', responsivePriority: 1 },
+    { columnName: i18n("traffic"), name: 'traffic', data: 'traffic', orderable: false, className: 'text-nowrap', responsivePriority: 1, render: (data) => { 
+        return NtopUtils.bytesToSize(data)
+      }, 
+    },
+    { columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+        const percentage = data.toFixed(1);
+        return `<div class="d-flex flex-row">
+                  <div class="col-9 progress">
+                    <div class="progress-bar bg-warning" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage}%;">
+                    </div>
+                  </div>
+                  <div class="col ms-3"> %${percentage}</div>
+                </div>`
+      } 
     }
   ];  
 
+  /* If ClickHouse is enabled, then add an href to Historical Flows */
+  if(props.is_clickhouse_enabled) {
+    columns.push({ columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, render: (data, type, service) => {
+      const jump_to_historical = {
+        onClick: () => {
+          debugger;
+          window.open(`${http_prefix}/lua/pro/db_search.lua?ifid=${ntopng_url_manager.get_url_entry('ifid')}&epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&l7proto=${service.protocol};eq`)
+        }
+      }        
+    
+      DataTableUtils.createActionButtons([
+        { class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
+      ])  
+    }})
+  }
+
   const datatable_config = {
-    table_buttons: [ { text: '<i class="fas fa-sync"></i>', className: 'btn-link', action: function () { DatatableVue.reload_table(); } } ],
+    table_buttons: [ { text: '<i class="fas fa-sync"></i>', className: 'btn-link', action: function () { reload_table(); } } ],
     columns_config: columns,
     data_url: url,
     enable_search: true,
     table_config: { serverSide: false, order: [[ default_sorting_columns, 'desc' ]] }
   };
-  config_app_table = ntopng_utility.clone(datatable_config)
+  config_app_table = datatable_config
 }
       
 const _i18n = (t) => i18n(t);

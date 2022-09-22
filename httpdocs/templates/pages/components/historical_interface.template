@@ -1,5 +1,8 @@
 <div id="vue-app">
-  <page-stats :csrf="csrf" :enable_snapshots="is_ntop_enterprise_m">
+  <page-stats 
+    :csrf="csrf" 
+    :enable_snapshots="is_ntop_enterprise_m"
+    :is_clickhouse_enabled="is_clickhouse_enabled">
   </page-stats>
 </div>
 
@@ -7,8 +10,9 @@
   let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
 
   function start_vue() {
-    let is_ntop_enterprise_m = '{* ntop.isEnterpriseM() *}' == 'true';
-    let vue_options = {
+    const is_ntop_enterprise_m = '{* ntop.isEnterpriseM() *}' == 'true';
+    const is_clickhouse_enabled = '{* is_clickhouse_enabled *}' == 'true';
+    const vue_options = {
     	components: {
 	    'page-stats': ntopVue.PageStats,
 	},
@@ -21,6 +25,7 @@
 	    return {
 	      csrf: pageCsrf,
 	      is_ntop_enterprise_m,
+        is_clickhouse_enabled,
 	    };
 	},
 	methods: {},
