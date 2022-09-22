@@ -2476,14 +2476,7 @@ if not host["localhost"] or
         show_graph = false
 end
 
-graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-   top_protocols = "top:host:ndpi",
-   top_categories = "top:host:ndpi_categories",
-   l4_protocols = "host:l4protos",
-   dscp_classes = "iface:dscp",
-   show_historical = true,
-   tskey = tskey,
-   timeseries = table.merge({
+local timeseries = table.merge({
       {schema="host:traffic",                label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
       {schema="host:score",                  label=i18n("score"), metrics_labels = { i18n("graphs.cli_score"), i18n("graphs.srv_score")}},
       {schema="host:active_flows",           label=i18n("graphs.active_flows")},
@@ -2492,7 +2485,6 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:alerted_flows",          label=i18n("graphs.total_alerted_flows")},
       {schema="host:unreachable_flows",      label=i18n("graphs.total_unreachable_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
-      {schema="host:contacts_behaviour",     label=i18n("graphs.host_contacts_behaviour"), split_directions = true, metrics_labels = {i18n("graphs.contacts"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
       {schema="host:total_alerts",           label=i18n("details.alerts")},
       {schema="host:engaged_alerts",         label=i18n("show_alerts.engaged_alerts")},
       {schema="host:host_unreachable_flows", label=i18n("graphs.host_unreachable_flows")},
@@ -2506,6 +2498,11 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:tcp_packets",            label=i18n("graphs.tcp_packets")},
       {schema="host:udp_sent_unicast",       label=i18n("graphs.udp_sent_unicast_vs_non_unicast")},
       {schema="host:dscp",                   label=i18n("graphs.dscp_classes")},
+ }, graph_utils.getDeviceCommonTimeseries())
+
+if(ntop.isPro()) then
+   timeseries = table.merge(timeseries, {
+      {schema="host:contacts_behaviour",          label=i18n("graphs.host_contacts_behaviour"), split_directions = true, metrics_labels = {i18n("graphs.contacts"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
       {schema="host:srv_score_behaviour",         label=i18n("graphs.srv_score_behaviour"), split_directions = true, metrics_labels = {i18n("graphs.score"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
       {schema="host:cli_score_behaviour",         label=i18n("graphs.cli_score_behaviour"), split_directions = true, metrics_labels = {i18n("graphs.score"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
       {schema="host:srv_active_flows_behaviour",  label=i18n("graphs.srv_active_flows_behaviour"), split_directions = true, metrics_labels = {i18n("graphs.active_flows"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
@@ -2514,7 +2511,17 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:cli_score_anomalies",         label=i18n("graphs.cli_score_anomalies")},
       {schema="host:srv_active_flows_anomalies",  label=i18n("graphs.srv_active_flows_anomalies")},
       {schema="host:cli_active_flows_anomalies",  label=i18n("graphs.cli_active_flows_anomalies")},
-   }, graph_utils.getDeviceCommonTimeseries()),
+   })
+end
+
+graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+   top_protocols = "top:host:ndpi",
+   top_categories = "top:host:ndpi_categories",
+   l4_protocols = "host:l4protos",
+   dscp_classes = "iface:dscp",
+   show_historical = true,
+   tskey = tskey,
+   timeseries = timeseries,
    device_timeseries_mac = host["mac"],
 }, show_graph)
 
