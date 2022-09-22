@@ -2933,7 +2933,8 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
   */
   DB *dumper = isViewed() ? viewedBy()->getDB() : getDB();
   u_int64_t idle_flows_done = 0, active_flows_done = 0;
-
+  time_t when = time(NULL);
+  
   if(!dumper) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "WARNING: Something is broken with flow dump");
     return(0);
@@ -2954,7 +2955,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
       json = f->serialize(flows_dump_json_use_labels);
 
     if(f->get_partial_bytes()) /* Make sure data is not at zero */
-      rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
+      rc = dumper->dumpFlow(when, f, json); /* Finally dump this flow */
 
     if(json) free(json);
 
@@ -2986,7 +2987,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
       json = f->serialize(flows_dump_json_use_labels);
 
     if(f->get_partial_bytes()) /* Make sure data is not at zero */
-      rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
+      rc = dumper->dumpFlow(when, f, json); /* Finally dump this flow */
 
     if(json) free(json);
 
@@ -3031,7 +3032,9 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
   //flushFlowDump();
 #endif
 
-  return num_done;
+  dumper->checkIdle(when);
+  
+  return(num_done);
 }
 
 /* **************************************************** */

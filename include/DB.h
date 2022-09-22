@@ -65,6 +65,7 @@ class DB {
   virtual void flush() {};
   virtual void lua(lua_State* vm, bool since_last_checkpoint) const;
   virtual int select_database(char *dbname)                 { return(-1); }
+  virtual void checkIdle(time_t when) { ; }
 };
 
 #endif /* _DB_CLASS_H_ */
