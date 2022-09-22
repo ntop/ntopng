@@ -49,21 +49,23 @@
   :is_admin="is_admin">
 </page-periodicity-table>
 
-<page-asset-map v-if="active_tab == 'asset_map' && page == 'graph'" ref="asset_map_graph"
-  :page_csrf="page_csrf"
-  :url_params="url_params"
-  :ifid="ifid"
-  :is_admin="is_admin"
-  :map_id="map_id"
-  :all_filter_list="asset_map_filter_list">
-</page-asset-map>
+<template v-if="asset_map_filter_list && asset_table_filter_list">
+  <page-asset-map v-if="active_tab == 'asset_map' && page == 'graph'" ref="asset_map_graph"
+    :page_csrf="page_csrf"
+    :url_params="url_params"
+    :ifid="ifid"
+    :is_admin="is_admin"
+    :map_id="map_id"
+    :all_filter_list="asset_map_filter_list">
+  </page-asset-map>
 
-<page-asset-table v-if="active_tab == 'asset_map' && page == 'table'" ref="asset_map_table"
-  :page_csrf="page_csrf"
-  :url_params="url_params"
-  :view="updated_view"
-  :table_filters="asset_table_filter_list">
-</page-asset-table>
+  <page-asset-table v-if="active_tab == 'asset_map' && page == 'table'" ref="asset_map_table"
+    :page_csrf="page_csrf"
+    :url_params="url_params"
+    :view="updated_view"
+    :table_filters="asset_table_filter_list">
+  </page-asset-table>
+</template>
 
 </template>
 
@@ -113,11 +115,17 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
       this.page = this.url_params.page
       this.updated_view = this.$props.view
 
+      if(asset_map_filter_list && asset_table_filter_list) {
+        this.navbar_context.items_table.push({ active: false, label: i18n('asset_map'), id: "asset_map", page: "graph" })
+        this.navbar_context.items_table.push({ active: false, label: i18n('asset_table'), id: "asset_map", page: "table" })
+      }
+
       this.navbar_context.items_table.forEach((i) => {
         (i.id == this.active_tab && i.page == this.page) ? i.active = true : i.active = false
       });
     },
     mounted() {
+      
       const format_navbar = this.format_navbar_title;
       format_navbar(this.$props.navbar_info);
 
@@ -157,8 +165,6 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
             { active: false, label: i18n('service_table'), id: "service_map", page: "table" },
             { active: false, label: i18n('periodicity_map'), id: "periodicity_map", page: "graph" },
             { active: false, label: i18n('periodicity_table'), id: "periodicity_map", page: "table" },
-            { active: false, label: i18n('asset_map'), id: "asset_map", page: "graph" },
-            { active: false, label: i18n('asset_table'), id: "asset_map", page: "table" },
           ],
         },
       };
