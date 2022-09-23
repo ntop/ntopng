@@ -144,7 +144,7 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
         this.url_params.map = tab.id
         this.url_params.page = tab.page
         this.updated_view = ntopng_url_manager.get_url_entry('view')
-        format_navbar(this.$props.navbar_info)
+        format_navbar()
      });
     },    
     data() {
@@ -154,6 +154,7 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
         page: null,
         url_params: {},
         updated_view: null,
+        navbar_node: {},
         navbar_context: {
           main_title: {
             label: ' ' + i18n("maps"),
@@ -175,6 +176,12 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
         current_tab.destroy()
       },
       format_navbar_title: function(data) {
+        if(data) {
+          this.navbar_node = data /* Update navbar node */
+        } else {
+          data = this.navbar_node /* Use the old navbar node */
+        } 
+
         this.navbar_context.secondary_title_list = [
           { label: data.selected_iface.label, title: NtopUtils.shortenLabel(`${data.selected_iface.label}`, 16) }
         ]

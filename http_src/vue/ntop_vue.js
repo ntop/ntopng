@@ -25,7 +25,6 @@ import { default as RangePicker } from "./range-picker.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as TabList } from "./tab-list.vue";
-import { default as Dropdown } from "./dropdown.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -67,8 +66,7 @@ let ntopVue = {
     SimpleTable: SimpleTable,
     SelectSearch: SelectSearch,
     TabList: TabList,
-    Dropdown: Dropdown,
-
+    
     // list
     ListTimeseries: ListTimeseries,
 

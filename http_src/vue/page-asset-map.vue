@@ -20,13 +20,15 @@
             <button id="max-entries-reached" type="button" class="btn btn-link" :title=max_entry_title disabled hidden>
               <i class="text-danger fa-solid fa-triangle-exclamation"></i>
             </button>
-            <dropdown v-for="(filter, index) in filter_list"
-              v-bind:active_element="active_filter_list[index]"
-              :id="filter_parameter_list[index] + '_dropdown'"
-              :dropdown_list="filter_list[index]"
-              :url_param="filter_parameter_list[index]"
-              @click_item="click_item">
-            </dropdown>
+            <div class="d-flex ms-auto">
+              <div class="m-1" v-for="(_, index) in filter_list">
+                <select-search
+                  v-model:selected_option="active_filter_list[index]"
+                  :options="filter_list[index]"
+                  @select_option="click_item">
+                </select-search>
+              </div>
+            </div>
             <button type="button" id="reload-graph" class="btn btn-link btn-reload-graph">
               <i class='fas fa-sync'></i>
             </button>
@@ -68,10 +70,10 @@
 
 <script>
 import { default as NetworkMap } from "./network-map.vue";
-import { default as Dropdown } from "./dropdown.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { default as ModalAutolayoutConfirm } from "./modal-autolayout-confirm.vue";
-import { ntopng_events_manager } from '../services/context/ntopng_globals_services';
+import { default as SelectSearch } from "./select-search.vue"
+import { ntopng_events_manager, ntopng_url_manager } from '../services/context/ntopng_globals_services';
 const change_filter_event = "change_filter_event";
 
 export default {
@@ -79,7 +81,7 @@ export default {
     'network-map': NetworkMap,
     'modal-delete-confirm': ModalDeleteConfirm,
     'modal-autolayout-confirm': ModalAutolayoutConfirm,
-    'dropdown': Dropdown,
+    'select-search': SelectSearch,
   },
   props: {
     page_csrf: String,
@@ -107,9 +109,9 @@ export default {
     });
 
     ntopng_events_manager.on_custom_event("change_filter_event", change_filter_event, (filter) => {
-	    this.active_filter_list[filter.id] = filter.filter;
-      ntopng_url_manager.set_key_to_url(filter.key, filter.filter.key);
-      this.url_params[filter.key] = filter.filter.key;
+	    this.active_filter_list[filter.id] = filter;
+      ntopng_url_manager.set_key_to_url(filter.filter_name, filter.key);
+      this.url_params[filter.filter_name] = filter.key;
       this.update_and_reload_map();
     });
 
@@ -146,7 +148,6 @@ export default {
       get_url: null,
       download_url: null,
       filter_list: [],
-      filter_parameter_list: [],
       active_filter_list: [],
       event_listeners: {},
       title_delete: i18n('map_page.delete_services'),
@@ -163,8 +164,8 @@ export default {
       map.destroy();
     },
     /* Method used to switch active table tab */
-    click_item: function(filter, key, id) {
-      ntopng_events_manager.emit_custom_event(change_filter_event, { filter: filter, key: key, id: id });
+    click_item: function(filter) {
+      ntopng_events_manager.emit_custom_event(change_filter_event, filter);
     },
     get_map: function() {
       return this.$refs[`asset_map`];
@@ -224,13 +225,20 @@ export default {
 
 function start_vis_network_map(NetworkMapVue) {
   /* Format the filter list, to add the dropdowns */
-  for (const filter_parameter in NetworkMapVue.$props.all_filter_list) {
-    NetworkMapVue.filter_parameter_list.push(filter_parameter);
-    NetworkMapVue.filter_list.push(NetworkMapVue.$props.all_filter_list[filter_parameter]);
-    for(const [key, value] of Object.entries(NetworkMapVue.$props.all_filter_list[filter_parameter])) {
-      if(value.currently_active == true) {
-        NetworkMapVue.active_filter_list.push(value);
-        break;
+  for (const filter_name in NetworkMapVue.$props.all_filter_list) {
+    NetworkMapVue.filter_list.push(NetworkMapVue.$props.all_filter_list[filter_name]);
+    const active_filter = ntopng_url_manager.get_url_entry(filter_name)
+    /* Put the filter name into the filters */
+    for(let [_, value] of Object.entries(NetworkMapVue.$props.all_filter_list[filter_name])) {
+      value['filter_name'] = filter_name
+      if(active_filter) {
+        /* If there is a filter selected in the url push that as active */
+        if(value.id == active_filter) 
+          NetworkMapVue.active_filter_list.push(value);
+      } else {
+        /* push the default filter as active */
+        if(value.currently_active == true) 
+          NetworkMapVue.active_filter_list.push(value);
       }
     }
   }

@@ -82,7 +82,6 @@ import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as Datatable } from "./datatable.vue";
-import { default as Dropdown } from "./dropdown.vue";
 
 import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../services/context/ntopng_globals_services.js";
 import timeseriesUtils from "../utilities/timeseries-utils.js";
