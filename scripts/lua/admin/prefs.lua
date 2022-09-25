@@ -828,14 +828,7 @@ function printNetworkBehaviour()
    print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.traffic_behaviour")..'</th></tr></thead>')
    -- Behavior analysis for asn, network and l7proto (iface)
  
-   prefsToggleButton(subpage_active, {
-			field = "toggle_behaviour_analysis",
-			default = "0",
-			pref = "is_behaviour_analysis_enabled", -- redis preference
-			to_switch = {"learning-status-thead", "behaviour_analysis_learning_period", "row_behaviour_analysis_learning_status_during_learning", "row_behaviour_analysis_learning_status_post_learning"},
-   })
-
-   local is_behaviour_analysis_enabled = ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1"
+   local is_behaviour_analysis_enabled = ntop.isEnterpriseL()
 
    prefsInputFieldPrefs(
       subpage_active.entries["behaviour_analysis_learning_period"].title, 
@@ -885,7 +878,7 @@ function printNetworkBehaviour()
     subpage_active["devices_learning_period"].description,
     "ntopng.prefs.","devices_learning_period",
     prefs.devices_learning_period,
-    "number", nil, nil, nil, {min=21600, tformat="hd"})
+    "number", nil, nil, nil, {min=7200, tformat="hd"})
    
    -- #####################
    

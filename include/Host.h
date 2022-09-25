@@ -143,7 +143,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void freeHostNames();
   void resetHostNames();
   virtual void deleteHostData();
-  char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize);
+  char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize, bool skip_prefix = false);
   bool isValidHostName(const char *name);
   
  public:

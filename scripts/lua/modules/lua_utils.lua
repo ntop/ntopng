@@ -438,7 +438,7 @@ end
 -- ##############################################
 
 function ends(String,End)
-  return End=='' or string.sub(String,-string.len(End))==End
+   return End=='' or string.sub(String,-string.len(End))==End
 end
 
 -- #################################################################

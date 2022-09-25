@@ -165,11 +165,11 @@ char* LocalHost::getSerializationKey(char *redis_key, uint bufsize) {
 
 /* *************************************** */
 
-char* LocalHost::getRedisKey(char *buf, uint buf_len) {
+char* LocalHost::getRedisKey(char *buf, uint buf_len, bool skip_prefix) {
   Mac *mac = getMac();
 
   if(mac && serializeByMac()) {
-    get_mac_based_tskey(mac, buf, buf_len);
+    get_mac_based_tskey(mac, buf, buf_len, skip_prefix);
     return(buf);    
   } else
     return(get_hostkey(buf, buf_len, false));

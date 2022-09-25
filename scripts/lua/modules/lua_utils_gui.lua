@@ -1067,8 +1067,7 @@ end
 
 local _cache_map_href = {}
 
-function buildMapHREF(service_peer, map, page)
-
+function buildMapHREF(service_peer, map, page, asset_family)
    -- cache information in order to speed-up things
    if(_cache_map_href[service_peer.ip] ~= nil) then
       return(_cache_map_href[service_peer.ip])
@@ -1078,7 +1077,8 @@ function buildMapHREF(service_peer, map, page)
   local name
   local vlan = service_peer.vlan
   service_peer.vlan = nil
-  local map_url = ntop.getHttpPrefix()..'/lua/pro/enterprise/network_maps.lua?map=' .. map .. '&page=' .. page .. '&' ..hostinfo2url(service_peer)
+  local map_url = ntop.getHttpPrefix()..'/lua/pro/enterprise/network_maps.lua?map=' .. map
+     .. '&page=' .. page .. '&' ..hostinfo2url(service_peer)
   local host_url = ''
   local host_icon
 
@@ -1086,10 +1086,15 @@ function buildMapHREF(service_peer, map, page)
     map_url = map_url .. '&vlan_id=' .. vlan
   end
 
+  if(asset_family) then
+     map_url = map_url .. '&asset_family='..asset_family
+  end
+  
   -- Getting stats and formatting initial href
   if (service_peer.ip or service_peer.host) and not service_peer.is_mac then
     -- Host URL only if the host is active
-    host_url = hostinfo2detailsurl({host = service_peer.ip or service_peer.host, vlan = vlan}, nil, true --[[ check of the host is active --]])
+     host_url = hostinfo2detailsurl({host = service_peer.ip or service_peer.host, vlan = vlan},
+	nil, true --[[ check of the host is active --]])
 
     local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, vlan)
 
@@ -1111,7 +1116,10 @@ function buildMapHREF(service_peer, map, page)
     end
 
     if isMacAddress(name) then
-      name = get_symbolic_mac(name, true)
+       name = mac2label(string.upper(name))
+       if isMacAddress(name) then
+	  name = get_symbolic_mac(name, true)
+       end
     end
 
     host_icon = "fa-microchip"

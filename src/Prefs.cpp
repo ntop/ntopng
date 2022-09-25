@@ -769,7 +769,7 @@ void Prefs::reloadPrefsFromRedis() {
 /* ******************************************* */
 
 void Prefs::refreshBehaviourAnalysis() {
-  enable_behaviour_analysis          = getDefaultBoolPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS, false);
+  enable_behaviour_analysis          = ntop->getPrefs()->is_enterprise_l_edition();
   enable_asn_behaviour_analysis      = getDefaultBoolPrefsValue(CONST_PREFS_ASN_BEHAVIOR_ANALYSIS, false);
   enable_network_behaviour_analysis  = getDefaultBoolPrefsValue(CONST_PREFS_NETWORK_BEHAVIOR_ANALYSIS, false);
   enable_iface_l7_behaviour_analysis = getDefaultBoolPrefsValue(CONST_PREFS_IFACE_L7_BEHAVIOR_ANALYSIS, false);
