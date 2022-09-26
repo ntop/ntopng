@@ -149,7 +149,7 @@ local function add_top_timeseries(tags, timeseries)
     
     if not table.empty(series) then
       for _, serie in pairs(series) do
-        timeseries[#timeseries + 1] = { schema = "top:iface:ndpi", group = i18n("graphs.l7_proto"), priority = 2, query = "protocol:" .. serie.protocol , label = serie.protocol, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = serie.protocol, color = timeseries_utils.get_timeseries_color('bytes') }} }
+        timeseries[#timeseries + 1] = { schema = "top:iface:ndpi", group = i18n("graphs.l7_proto"), priority = 2, query = "protocol:" .. interface.getnDPIProtoId(serie.protocol) , label = serie.protocol, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = serie.protocol, color = timeseries_utils.get_timeseries_color('bytes') }} }
       end
     end
   end

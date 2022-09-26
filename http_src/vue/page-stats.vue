@@ -402,7 +402,7 @@ async function load_datatable_data() {
 function set_table_configuration(url) {
   const default_sorting_columns = 2 /* Percentage column */
   let columns = [
-    { columnName: i18n("application"), name: 'application', data: 'protocol', className: 'text-nowrap', responsivePriority: 1 },
+    { columnName: i18n("application"), name: 'application', data: 'protocol', className: 'text-nowrap', responsivePriority: 1, render: (data) => { return data.label } },
     { columnName: i18n("traffic"), name: 'traffic', data: 'traffic', orderable: false, className: 'text-nowrap', responsivePriority: 1, render: (data) => { 
         return NtopUtils.bytesToSize(data)
       }, 
@@ -427,7 +427,7 @@ function set_table_configuration(url) {
 	const jump_to_historical = {
 	    handlerId,
             onClick: () => {
-          window.open(`${http_prefix}/lua/pro/db_search.lua?ifid=${ntopng_url_manager.get_url_entry('ifid')}&epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&l7proto=${service.protocol};eq`)
+          window.open(`${http_prefix}/lua/pro/db_search.lua?ifid=${ntopng_url_manager.get_url_entry('ifid')}&epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&l7proto=${service.protocol.id};eq`)
         }
       }
       return DataTableUtils.createActionButtons([
