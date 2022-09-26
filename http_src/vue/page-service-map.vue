@@ -129,7 +129,7 @@ export default {
       this.url_params[key] = value;
     }
 
-    this.update_and_reload_map()
+    //this.update_and_reload_map()
     
     $(`#reload-graph`).click(function(e){
       reload_map();
