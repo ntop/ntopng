@@ -46,7 +46,8 @@ class Prefs {
   char *zmq_publish_events_url;
   const char *clickhouse_client;
   Ntop *ntop;
-  bool enable_dns_resolution, sniff_dns_responses, sniff_name_responses, pcap_file_purge_hosts_flows,
+  bool enable_dns_resolution, sniff_dns_responses, sniff_name_responses,
+    sniff_local_name_responses, pcap_file_purge_hosts_flows,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
     enable_auto_logout, enable_auto_logout_at_runtime, use_promiscuous_mode,
     enable_ixia_timestamps, enable_vss_apcon_timestamps, enable_interface_name_only,
@@ -60,7 +61,7 @@ class Prefs {
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
     behaviour_analysis_learning_status_post_learning;
   TsDriver timeseries_driver;
-  u_int64_t iec104_allowed_typeids[2];  
+  u_int64_t iec104_allowed_typeids[2];
   u_int32_t auth_session_duration;
   bool auth_session_midnight_expiration;
 
@@ -106,7 +107,7 @@ class Prefs {
 #ifdef NTOPNG_PRO
   bool dump_flows_direct;
   bool is_geo_map_score_enabled, is_geo_map_asname_enabled, is_geo_map_alerted_flows_enabled,
-    is_geo_map_blacklisted_flows_enabled, is_geo_map_host_name_enabled, 
+    is_geo_map_blacklisted_flows_enabled, is_geo_map_host_name_enabled,
     is_geo_map_rxtx_data_enabled, is_geo_map_num_flows_enabled;
 #endif
   bool enable_runtime_flows_dump; /**< runtime preference to enable/disable flows dump from the UI */
@@ -150,7 +151,7 @@ class Prefs {
   int mysql_port;
   int clickhouse_tcp_port;
   char *ls_host,*ls_port,*ls_proto;
-  bool has_cmdl_trace_lvl; /**< Indicate whether a verbose level 
+  bool has_cmdl_trace_lvl; /**< Indicate whether a verbose level
 			      has been provided on the command line.*/
 #ifndef HAVE_NEDGE
   bool appliance;
@@ -189,7 +190,7 @@ class Prefs {
   };
   bool getDefaultBoolPrefsValue(const char *pref_key, const bool default_value);
   void refreshBehaviourAnalysis();
-  
+
  public:
   Prefs(Ntop *_ntop);
   virtual ~Prefs();
@@ -200,7 +201,7 @@ class Prefs {
   bool is_enterprise_xl_edition();
   bool is_nedge_edition();
   bool is_nedge_enterprise_edition();
-  
+
   inline bool is_embedded_edition() {
 #ifdef NTOPNG_EMBEDDED_EDITION
     return(true);
@@ -217,10 +218,12 @@ class Prefs {
   inline bool is_users_login_enabled()                  { return(enable_users_login);     };
   inline bool is_localhost_users_login_disabled()       { return(disable_localhost_login);};
   inline bool is_log_to_file_enabled()                  { return(log_to_file);            };
-  inline void disable_dns_responses_decoding()          { sniff_dns_responses = false;    };  
-  inline void disable_all_name_decoding()               { sniff_name_responses = false;   };  
+  inline void disable_dns_responses_decoding()          { sniff_dns_responses = false;    };
+  inline void disable_localhost_name_decoding()         { sniff_local_name_responses = false; };
+  inline void disable_all_name_decoding()               { sniff_name_responses = false;   };
   inline bool is_dns_decoding_enabled() /* DNS only */  { return(sniff_dns_responses);    };
   inline bool is_name_decoding_enabled() /* Any */      { return(sniff_name_responses);   };
+  inline bool is_localhost_name_decoding_enabled()      { return(sniff_local_name_responses);   };
   inline void enable_categorization()                   { categorization_enabled = true;  };
   inline bool is_categorization_enabled()               { return(categorization_enabled); };
   inline bool do_change_user()                          { return(change_user);            };
@@ -249,7 +252,7 @@ class Prefs {
 #endif
   inline bool is_runtime_flows_dump_enabled()     const { return(enable_runtime_flows_dump); };
   inline bool is_flows_dump_enabled()             const { return(do_dump_flows() && is_runtime_flows_dump_enabled()); };
-    
+
   int32_t getDefaultPrefsValue(const char *pref_key, int32_t default_value);
   void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
   char* get_if_name(int id);
@@ -435,7 +438,7 @@ class Prefs {
   inline void      enableBehaviourAnalysis()     { enable_behaviour_analysis = true;                    };
   inline bool      isBehavourAnalysisEnabled()   { return(enable_behaviour_analysis);                   };
   inline u_int32_t behaviourAnalysisLearningPeriod() { return behaviour_analysis_learning_period;       };
-  
+
   inline bool      isBroadcastDomainTooLargeEnabled()     { return(enable_broadcast_domain_too_large);  };
 
   inline bool      isASNBehavourAnalysisEnabled()     { return(enable_asn_behaviour_analysis);               };
@@ -461,4 +464,3 @@ class Prefs {
 };
 
 #endif /* _PREFS_H_ */
-

@@ -896,6 +896,9 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   if(!ntop->getPrefs()->is_name_decoding_enabled())
     goto out;
 
+  if(isLocalHost() && (!ntop->getPrefs()->is_localhost_name_decoding_enabled()))
+    goto out;
+
   if(nextResolveAttempt
      && ((num_resolve_attempts > 1) || (nextResolveAttempt > now) || (nextResolveAttempt == (time_t)-1))) {
     skip_resolution = true;

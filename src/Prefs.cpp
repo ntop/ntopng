@@ -45,7 +45,7 @@ Prefs::Prefs(Ntop *_ntop) {
   num_simulated_ips = 0, enable_behaviour_analysis = false;
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
-  enable_dns_resolution = sniff_dns_responses = sniff_name_responses = true;
+  enable_dns_resolution = sniff_dns_responses = sniff_name_responses = sniff_local_name_responses = true;
   use_promiscuous_mode = true;
   resolve_all_host_ip = false, service_license_check = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
@@ -283,7 +283,9 @@ void usage() {
 	 "                                    | 2 - Decode DNS responses but don't\n"
 	 "                                    |     resolve numeric IPs\n"
 	 "                                    | 3 - Don't decode DNS/MDNS/HTTP/TLS responses\n"
-	 "                                    |     and don't resolve numeric IPs\n"
+	 "                                    |     and don't resolve numeric IPs (all hosts)\n"
+	 "                                    | 4 - Don't decode DNS/MDNS/HTTP/TLS responses\n"
+	 "                                    |     and don't resolve numeric IPs (localhost only)\n"
 #endif
 	 "[--interface|-i] <interface|pcap>   | Input interface name (numeric/symbolic),\n"
          "                                    | view or pcap file path\n"
@@ -1132,20 +1134,29 @@ int Prefs::setOption(int optkey, char *optarg) {
 #ifndef HAVE_NEDGE
   case 'n':
     dns_mode = atoi(optarg);
+    
     switch(dns_mode) {
     case 0:
       break;
+      
     case 1:
       resolve_all_hosts();
       break;
+      
     case 2:
       disable_dns_resolution();
       break;
+      
     case 3:
       disable_dns_resolution();
       disable_dns_responses_decoding();
       disable_all_name_decoding();
       break;
+      
+    case 4:
+      disable_localhost_name_decoding();
+      break;
+      
     default:
       usage();
     }
