@@ -6735,8 +6735,8 @@ local lang = {
   ["page_stats"] = {
      ["manage_snapshots_btn"] = "Manage Snapshots",
      ["layout_1_per_all"] = "One Chart",
-     ["layout_1_per_y"] = "One Chart for each Y-axis",
-     ["layout_1_per_1"] = "One Chart for each Metric",
+     ["layout_1_per_y"] = "One Chart per Y-axis",
+     ["layout_1_per_1"] = "One Chart per Metric",
      ["manage_timeseries_btn"] = "Manage Timeseries",
      ["top_applications"] = "Top Applications",     
   },
