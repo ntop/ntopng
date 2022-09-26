@@ -31,8 +31,8 @@ const get_timeseries_groups_from_url = async (http_prefix, url_timeseries_groups
     if (url_timeseries_groups == null || url_timeseries_groups == "") {
 	return null;
     }
-    let groups = url_timeseries_groups.split(";");    
-    if (!groups?.length > 0) {	
+    let groups = url_timeseries_groups.split(";");
+    if (!groups?.length > 0) {
 	return null;
     }
     let metrics = await get_metrics(http_prefix);
@@ -92,7 +92,11 @@ async function get_url_param_from_ts_group(ts_group_url_param) {
 }
 
 const get_ts_group_id = (source_type, source, metric) => {
-    return `${source_type.value} - ${source.value} - ${metric.schema}`;
+    let metric_id = metric.schema;
+    if (metric.query != null) {
+	metric_id = `${metric_id} - ${metric.query}`;
+    }
+    return `${source_type.value} - ${source.value} - ${metric_id}`;
 };
 
 function get_timeseries(timeseries_url, metric) {
@@ -181,7 +185,7 @@ const get_metrics = async (http_prefix, source_type, source_value) => {
     if (source_value == null) {
 	source_value = get_default_source_value(source_type);
     }
-    let url = `${http_prefix}/lua/pro/rest/v2/get/timeseries/type/consts.lua`;
+    let url = `${http_prefix}/lua/pro/rest/v2/get/timeseries/type/consts.lua?query=${source_type.value}`;
     let key = `${source_type.value}_${source_value}`;
     if (current_last_metrics_time_interval != last_metrics_time_interval) {
 	cache_metrics[key] = null;

@@ -58,7 +58,7 @@ function getSerieName(name, id, tsGroup, extendSeriesName) {
     if (extendSeriesName == false) {
 	return name;
     }
-    return `${tsGroup.source.name} ${name} (${tsGroup.metric.measure_unit})`;
+    return `${tsGroup.source.label} ${name} (${tsGroup.metric.measure_unit})`;
 }
 
 function getAddSeriesNameSource(tsGrpupsArray) {

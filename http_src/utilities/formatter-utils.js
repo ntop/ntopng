@@ -25,7 +25,7 @@ const types = {
     },
     bps: {
 	id: "bps",
-	um: ["bit/s", "Kbit/s", "Mbit/s", "Gbit/s"],
+	um: ["bps", "Kbps", "Mbps", "Gbps"],
 	step: 1000,
 	decimal: 2,
 	scale_values: 8,	

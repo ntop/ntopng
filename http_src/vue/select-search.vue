@@ -1,8 +1,13 @@
 <template>
 <select class="select2 form-select" ref="select2" required name="filter_type" >
-  <option v-for="(item, i) in options" :selected="selected_option.label == item.label" :value="item">
+  <option v-for="(item, i) in options_2" :selected="selected_option.label == item.label" :value="item">
     {{item.label}}
-  </option>	  
+  </option>
+  <optgroup v-for="(item, i) in groups_options_2" :label="item.group">
+    <option v-for="(opt, j) in item.options" :selected="selected_option.label == opt.label" :value="opt">
+      {{opt.label}}
+    </option>
+  </optgroup>
 </select>
 </template>
 
@@ -14,6 +19,9 @@ const select2 = ref(null);
 // const selected2_option = ref({});
 
 const emit = defineEmits(['update:selected_option', 'select_option']);
+
+const options_2 = ref([]);
+const groups_options_2 = ref([]);
 
 const props = defineProps({
     id: String,
@@ -29,8 +37,9 @@ watch(() => props.selected_option, (cur_value, old_value) => {
 
 let first_time_render = true;
 let is_mounted = false;
-watch(() => props.options, (current_value, old_value) => {
+watch(() => props.options, (current_value, old_value) => {    
     if (props.disable_change == true || is_mounted == false) { return; }
+
     console.log(`Watch select-search: ${props.id}, ${JSON.stringify(props.selected_option)}`);
     // setTimeout(() => render(), 100);
     render();
@@ -44,8 +53,29 @@ onMounted(() => {
     is_mounted = true;
 });
 
+function set_options() {
+    options_2.value = [];
+    groups_options_2.value = [];
+
+    if (props.options == null) { return; }
+    let groups_dict = {};
+    props.options.forEach((option) => {
+	if (option.group == null) {
+	    options_2.value.push(option);
+	} else {
+	    if (groups_dict[option.group] == null) {
+		groups_dict[option.group] = { group: option.group, options: [] };
+	    }
+	    groups_dict[option.group].options.push(option);
+	}	
+    });
+    groups_options_2.value = ntopng_utility.object_to_array(groups_dict);
+
+}
+
 const render = () => {
     console.log(`select-search:render ${JSON.stringify(props.selected_option)}`);
+    set_options();
     let select2Div = select2.value;
     if (first_time_render == false) {
 	destroy();
@@ -69,6 +99,7 @@ const render = () => {
 	});
     }
     first_time_render = false;
+    // this.$forceUpdate();
     // $(select2Div).val(props.selected_option);
 };
 
