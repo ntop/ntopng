@@ -90,3 +90,14 @@ window.aysHandleForm = aysHandleForm
 window.aysResetForm = aysResetForm
 window.aysUpdateForm = aysUpdateForm
 window.aysRecheckForm = aysRecheckForm
+
+import * as d3v7 from "d3v7";
+import * as sankey from "d3-sankey";
+import { chord} from "d3-chord";
+
+window.d3v7 = {
+    ...d3v7,
+    ...sankey,
+    ...chord,
+};
+
