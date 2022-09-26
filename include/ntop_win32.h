@@ -86,6 +86,7 @@ extern int pthread_mutex_lock(pthread_mutex_t *);
 extern int pthread_mutex_unlock(pthread_mutex_t *);
 extern int pthread_mutex_init(pthread_mutex_t *mutex, void *unused);
 extern void pthread_mutex_destroy(pthread_mutex_t *mutex);
+extern int pthread_mutex_timedlock(pthread_mutex_t* mutex, const struct timespec* w);
 extern int pthread_cond_init(pthread_cond_t *cv, const void *unused);
 extern int pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *mutex);
 extern int pthread_cond_timedwait(pthread_cond_t* cv, pthread_mutex_t* mutex, const struct timespec* abstime);
@@ -100,8 +101,9 @@ extern void win_usleep(__int64 usec);
 #ifdef __cplusplus
 }
 #endif
-#define strdup(a) _strdup(a)
 
+#define strdup(a) _strdup(a)
+#define strncasecmp _strnicmp
 #define inet_pton(a,b,c) win_inet_pton(a,b,c)
 
 /* mongoose.c */

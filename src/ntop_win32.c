@@ -23,6 +23,7 @@
 
 
 #include "ntop_win32.h"
+#include "time.h"
 #include <sys/timeb.h>		/* For prototype of "_ftime()" */
 
 #define _CRT_SECURE_NO_WARNINGS 1 /* Avoid Win warnings */
@@ -94,18 +95,18 @@ int pthread_mutex_lock(pthread_mutex_t *mutex) {
 
 /* ************************************ */
 
-int pthread_mutex_timedlock(pthread_mutex_t * mutex, const struct timespec *abstime) {
+int pthread_mutex_timedlock(pthread_mutex_t * mutex, const struct timespec *w) {
   DWORD status;
-  DWORD milliseconds;
+  DWORD ms;
   
-  if((*mutex == NULL) || (wait == NULL)) {
+  if((*mutex == NULL) || (w == NULL)) {
     printf("Error\n");
     return(-1);
   }
+  
+  ms = (w->tv_sec * 1000) + (w->tv_nsec / 1000000);
 
-  milliseconds = abstime->tv_sec * 1000 + abstime->tv_sec(abstime->tv_usec / 1000);
-
-  WaitForSingleObject(*mutex, milliseconds);
+  WaitForSingleObject(*mutex, ms);
 
   return(status == WAIT_TIMEOUT ? -1 : 00);
 }
