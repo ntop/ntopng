@@ -141,7 +141,7 @@ function init_groups_option_mode() {
 }
 
 onBeforeMount(async() => {
-  await load_datatable_data();
+    await load_datatable_data();
 });
 
 onMounted(async () => {
@@ -157,11 +157,11 @@ async function init() {
     let push_custom_metric = true;
     let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix);
     if (timeseries_groups == null) {
-      push_custom_metric = false;
-      timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix);
+	push_custom_metric = false;
+	timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix);
     }
     metrics.value = await get_metrics(push_custom_metric);
-
+    
     if (push_custom_metric == true) {
 	selected_metric.value = custom_metric;
     } else {
@@ -172,10 +172,10 @@ async function init() {
 }
 
 function reload_table() {
-  let table = top_applications_table.value;
-  NtopUtils.showOverlays();
-  table.reload();
-  NtopUtils.hideOverlays();
+    let table = top_applications_table.value;
+    NtopUtils.showOverlays();
+    table.reload();
+    NtopUtils.hideOverlays();
 }
 
 let last_push_custom_metric = null;
@@ -200,15 +200,15 @@ async function get_metrics(push_custom_metric, force_refresh) {
 async function get_snapshots_metrics() {
     if (!props.enable_snapshots) { return; }
     let url = `${http_prefix}/lua/pro/rest/v2/get/filters/snapshots.lua?page=${page_snapshots}`;
-
+    
     let snapshots_obj = await ntopng_utility.http_request(url);
     let snapshots = ntopng_utility.object_to_array(snapshots_obj);
     let metrics_snapshots = snapshots.map((s) => {
-       return {
-           ...s,
-           is_snapshot: true,
-           label: `${s.name} (snap)`,
-       };
+	return {
+            ...s,
+            is_snapshot: true,
+            label: `${s.name} (snap)`,
+	};
     });
     console.log(snapshots);
     return metrics_snapshots;
@@ -229,16 +229,16 @@ function select_metric_from_metric_schema(metric_schema) {
 }
 
 async function select_metric(metric) {
-  if (metric.is_snapshot == true) {
-    let url_parameters = metric.filters;
-    let timeseries_url_params = ntopng_url_manager.get_url_entry("timeseries_groups", url_parameters);
-    let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix, timeseries_url_params);
-    current_groups_options_mode.value = timeseriesUtils.getGroupOptionMode(ntopng_url_manager.get_url_entry("timeseries_groups_mode", url_parameters));
-    await load_charts_data(timeseries_groups);
-  } else {
-    await load_charts_selected_metric();
-    refresh_metrics(false);
-  }
+    if (metric.is_snapshot == true) {
+	let url_parameters = metric.filters;
+	let timeseries_url_params = ntopng_url_manager.get_url_entry("timeseries_groups", url_parameters);
+	let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix, timeseries_url_params);
+	current_groups_options_mode.value = timeseriesUtils.getGroupOptionMode(ntopng_url_manager.get_url_entry("timeseries_groups_mode", url_parameters));
+	await load_charts_data(timeseries_groups);
+    } else {
+	await load_charts_selected_metric();
+	refresh_metrics(false);
+    }
 }
 
 async function load_charts_selected_metric() {
@@ -248,7 +248,7 @@ async function load_charts_selected_metric() {
 
 function epoch_change(new_epoch) {    
     console.log(new_epoch);
-        let push_custom_metric = selected_metric.value.label == custom_metric.label;
+    let push_custom_metric = selected_metric.value.label == custom_metric.label;
     load_charts_data(last_timeseries_groups_loaded);    
     reload_table_data();
     refresh_metrics(push_custom_metric, true);
@@ -310,26 +310,27 @@ async function load_charts_data(timeseries_groups, not_reload) {
 	let params_obj = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
 	
 	let ts_responses_promises = timeseries_groups.map((ts_group) => {
-    let ts_query = `${ts_group.source_type.value}:${ts_group.source.value}`
-    if(ts_group.metric.query) 
-      ts_query = `${ts_query},${ts_group.metric.query}`
-
-    let p_obj = {
-      ...params_obj,
-      ts_query: ts_query,
-      ts_schema: `${ts_group.metric.schema}`,
-    };
-    let p_url_request =  ntopng_url_manager.add_obj_to_url(p_obj, params_url_request);
-    let url = `${chart_data_url}?${p_url_request}`;
-    return ntopng_utility.http_request(url);
+	    let ts_query = `${ts_group.source_type.value}:${ts_group.source.value}`
+	    if(ts_group.metric.query) {
+		ts_query = `${ts_query},${ts_group.metric.query}`
+	    }
+	    let p_obj = {
+		...params_obj,
+		ts_query: ts_query,
+		ts_schema: `${ts_group.metric.schema}`,
+	    };
+	    
+	    let p_url_request =  ntopng_url_manager.add_obj_to_url(p_obj, params_url_request);
+	    let url = `${chart_data_url}?${p_url_request}`;
+	    return ntopng_utility.http_request(url);
 	});
 	ts_chart_options = await Promise.all(ts_responses_promises);
     }
     console.log(ts_chart_options);
     console.log(timeseries_groups);
-
+    
     let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_chart_options, timeseries_groups, current_groups_options_mode.value);
-
+    
     set_charts_options_items(charts_options);
     
     // set last_timeseries_groupd_loaded
@@ -398,8 +399,6 @@ async function load_datatable_data() {
   set_table_configuration(url)
 };
 
-
-
 function set_table_configuration(url) {
   const default_sorting_columns = 2 /* Percentage column */
   let columns = [
@@ -422,18 +421,18 @@ function set_table_configuration(url) {
   ];  
 
   /* If ClickHouse is enabled, then add an href to Historical Flows */
-  if(props.is_clickhouse_enabled) {
-    columns.push({ columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, render: (data, type, service) => {
-      const jump_to_historical = {
-        onClick: () => {
-          debugger;
+    if(true) {
+	let handlerId = "page-stats-action-jump-historical";
+    columns.push({ columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, handlerId, render: (data, type, service) => {
+	const jump_to_historical = {
+	    handlerId,
+            onClick: () => {
           window.open(`${http_prefix}/lua/pro/db_search.lua?ifid=${ntopng_url_manager.get_url_entry('ifid')}&epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&l7proto=${service.protocol};eq`)
         }
-      }        
-    
-      DataTableUtils.createActionButtons([
+      }
+      return DataTableUtils.createActionButtons([
         { class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
-      ])  
+      ]);
     }})
   }
 

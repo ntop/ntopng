@@ -159,13 +159,17 @@ const destroy_table = () => {
     table.clear();
     table.destroy(true);
     is_destroyed = true;
+    props.columns_config.filter((config) => config.handlerId != null).forEach((config) => {
+	delete_button_handlers(config.handlerId);
+    });
 }
 
 defineExpose({ reload, delete_button_handlers, destroy_table, update_url });
 
 onBeforeUnmount(() => {
     if (is_destroyed == true) { return; }
-    table.destroy(true);
+    destroy_table();
+    // table.destroy(true);
 });
 
 </script>

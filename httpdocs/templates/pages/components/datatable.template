@@ -354,9 +354,10 @@
 
         /* Actions Column */
         {% if show_actions then %}
-        columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (rowData, type, dataRow) => {
+	let handlerId = "disableAlerts";
+        columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, handlerId, render: (rowData, type, dataRow) => {
             let handlerDisableAlerts = {
-	      handlerId: "diableAlerts",
+	      handlerId,
 	      onClick: () => {
 		CHART_APP.show_modal_alerts_filter(rowData);
 	      },
@@ -491,6 +492,13 @@
 	      };
 	  },
 	  methods: {
+	    chart_options_converter: function(options) {
+	      
+	      let formatter = ntopChartOptionsUtility.getApexYFormatter()
+	      if (is_alert_stats_url) {
+	        
+	      }
+	    },
 	    show_modal_alerts_filter: function(alert) {
 	      this.current_alert = alert;
 	      this.$refs["modal_alerts_filter"].show();
@@ -821,7 +829,7 @@
 
     // register to global event change status
     await ntopng_sync.on_ready("range_picker");
-    if (show_chart) {
+    if (show_chart) {      
       CHART_APP.register_status();
     }
     updateDownloadButton();
