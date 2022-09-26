@@ -36,7 +36,8 @@
             :columns_config="config_devices_standard.columns_config"
             :data_url="config_devices_standard.data_url"
             :enable_search="config_devices_standard.enable_search"
-            :filter_buttons="config_devices_centrality.table_filters">
+            :filter_buttons="config_devices_standard.table_filters">
+            :table_config="config_devices_standard.table_config">
           </datatable>
           <datatable v-if="asset_table_tab == 'centrality'" ref="table_asset_centrality"
             :table_buttons="config_devices_centrality.table_buttons"
@@ -44,6 +45,7 @@
             :data_url="config_devices_centrality.data_url"
             :enable_search="config_devices_centrality.enable_search"
             :filter_buttons="config_devices_centrality.table_filters">
+            :table_config="config_devices_centrality.table_config">
           </datatable>
         </div>
       </div>
@@ -60,7 +62,7 @@
 import { default as Datatable } from "./datatable.vue";
 import { default as TabList } from "./tab-list.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
-import { ntopng_events_manager } from '../services/context/ntopng_globals_services';
+import { ntopng_events_manager, ntopng_url_manager } from '../services/context/ntopng_globals_services';
 const change_asset_table_tab_event = "change_asset_table_tab_event";
 
 export default {
@@ -83,7 +85,7 @@ export default {
     start_datatable(this);
   },
   mounted() {
-    this.asset_table_tab = this.$props.url_params.view
+    this.asset_table_tab = ntopng_url_manager.get_url_entry("view") || 'standard'
     this.tab_list.forEach((i) => {
       this.asset_table_tab == i.id ? i.active = true : i.active = false
     });
@@ -237,11 +239,11 @@ function start_datatable(DatatableVue) {
   ];
   
   let configDevices = ntopng_utility.clone(defaultDatatableConfig);
-  configDevices.table_buttons = defaultDatatableConfig.table_buttons;
-  configDevices.data_url = `${configDevices.data_url}`;
+  configDevices.table_config = { serverSide: false, order: [[ 3 /* Last Seen */, 'desc' ]] }
   configDevices.columns_config = columns;
   configDevices.table_filters = table_filters;
   DatatableVue.config_devices_standard = configDevices;
+
 
   /* Centrality table configuration */
 
@@ -255,12 +257,15 @@ function start_datatable(DatatableVue) {
     { columnName: i18n("map_page.asset_out_edges"), name: 'out_edges', data: 'out_edges',  className: 'text-center', responsivePriority: 2 },
   ];
   
-  configDevices = ntopng_utility.clone(defaultDatatableConfig);
-  configDevices.table_buttons = defaultDatatableConfig.table_buttons;
-  configDevices.data_url = `${configDevices.data_url}`;
-  configDevices.columns_config = columns;
-  configDevices.table_filters = table_filters;
-  DatatableVue.config_devices_centrality = configDevices;
+  let centralityConfigDevices = ntopng_utility.clone(defaultDatatableConfig);
+  centralityConfigDevices.table_config = { serverSide: false, order: [[ 1 /* Total Edges */, 'desc' ]] }
+  centralityConfigDevices.columns_config = columns;
+  centralityConfigDevices.table_filters = table_filters;
+
+  console.log(configDevices)
+  console.log(centralityConfigDevices)
+  
+  DatatableVue.config_devices_centrality = centralityConfigDevices;
 }
 </script>
 
