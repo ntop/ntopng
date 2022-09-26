@@ -214,7 +214,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.interface, { ifname=get
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print(msg)
+--print(msg)
 
 if _SERVER["REQUEST_METHOD"] == "POST" and _POST["companion_interface"] ~= nil then
    companion_interface_utils.setCompanion(ifstats.id, _POST["companion_interface"])
