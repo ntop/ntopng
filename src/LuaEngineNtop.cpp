@@ -483,10 +483,6 @@ int ntop_store_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, u
   /* triggered = */ alertable->triggerAlert(vm, std::string(key), periodicity, time(NULL),
 				      score, alert_type, alert_subtype, alert_json);
 
-  /* This looks like old code, Host Checks are C++ only now */
-  //if(triggered && (host = dynamic_cast<Host*>(alertable)))
-  //  host->incTotalAlerts();
-
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
