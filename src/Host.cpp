@@ -885,6 +885,11 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   time_t now = time(NULL);
   bool skip_resolution = false;
 
+  if(isLocalHost() && (!ntop->getPrefs()->is_localhost_name_decoding_enabled())) {
+    name_buf[0] = '\0';
+    goto out;
+  }
+  
   if(nextResolveAttempt
      && ((num_resolve_attempts > 1) || (nextResolveAttempt > now) || (nextResolveAttempt == (time_t)-1))) {
     skip_resolution = true;

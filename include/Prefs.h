@@ -47,6 +47,7 @@ class Prefs {
   const char *clickhouse_client;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, pcap_file_purge_hosts_flows,
+    sniff_local_name_responses,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
     enable_auto_logout, enable_auto_logout_at_runtime, use_promiscuous_mode,
     enable_ixia_timestamps, enable_vss_apcon_timestamps, enable_interface_name_only,
@@ -210,7 +211,9 @@ class Prefs {
   inline bool is_users_login_enabled()                  { return(enable_users_login);     };
   inline bool is_localhost_users_login_disabled()       { return(disable_localhost_login);};
   inline bool is_log_to_file_enabled()                  { return(log_to_file);            };
-  inline void disable_dns_responses_decoding()          { sniff_dns_responses = false;    };  
+  inline void disable_dns_responses_decoding()          { sniff_dns_responses = false;    };
+  inline void disable_localhost_name_decoding()         { sniff_local_name_responses = false; };
+  inline bool is_localhost_name_decoding_enabled()      { return(sniff_local_name_responses);   };
   inline bool decode_dns_responses()                    { return(sniff_dns_responses);    };
   inline void enable_categorization()                   { categorization_enabled = true;  };
   inline bool is_categorization_enabled()               { return(categorization_enabled); };
