@@ -72,6 +72,9 @@ function os_utils.execWithOutput(c, ret_code_success)
       return nil
    end
 
+   -- Avoid errors to be displayed on the console
+   c = c .. " 2>/dev/null"
+   
    if(debug) then tprint(c) end
 
    if is_freebsd then
@@ -89,7 +92,7 @@ function os_utils.execWithOutput(c, ret_code_success)
    local ret_string = f:read('*a')
 
    if ret_string ~= nil then
-      if(debug) then tprint(s) end
+      if(debug) then tprint(ret_string) end
    end
    
    local rv = { f:close() }
