@@ -441,7 +441,7 @@ function set_table_configuration(url) {
                     <div class="progress-bar bg-warning" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage}%;">
                     </div>
                   </div>
-                  <div class="col ms-3"> ${percentage}%</div>
+                  <div class="col ms-3"> ${percentage} %</div>
                 </div>`
       } 
     }
