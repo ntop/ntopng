@@ -72,12 +72,14 @@ function os_utils.execWithOutput(c, ret_code_success)
       return nil
    end
 
-   -- Avoid errors to be displayed on the console
-   c = c .. " 2>/dev/null"
+   if(not(is_windows)) then
+      -- Avoid errors to be displayed on the console
+      c = c .. " 2>/dev/null"
+   end
    
    if(debug) then tprint(c) end
 
-   if is_freebsd then
+   if(is_freebsd) then
       f_name = os.tmpname()
       os.execute(c.." > "..f_name)
       f = io.open(f_name, 'r')
@@ -91,7 +93,7 @@ function os_utils.execWithOutput(c, ret_code_success)
   
    local ret_string = f:read('*a')
 
-   if ret_string ~= nil then
+   if(ret_string ~= nil) then
       if(debug) then tprint(ret_string) end
    end
    
@@ -99,13 +101,13 @@ function os_utils.execWithOutput(c, ret_code_success)
 
    local retcode = ret_code_success
 
-   if f_name then
+   if(f_name) then
       os.remove(f_name)
    else
       retcode = rv[3]
    end
 
-   if retcode ~= ret_code_success then
+   if(retcode ~= ret_code_success) then
       return nil, retcode
    end
 
