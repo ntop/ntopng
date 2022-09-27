@@ -49,8 +49,10 @@ function getMacHosts(mac)
 
     url = ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac
     
-    if num_hosts > 1 then
-      hosts = i18n("n_more_objects", { label = first_host["ip"], num = num_hosts, object = i18n("hosts")})
+    if num_hosts == 1 then
+       hosts = first_host["ip"]
+    elseif num_hosts > 1 then
+       hosts = i18n("n_more_objects", { label = first_host["ip"], num = num_hosts, object = i18n("hosts")})
     end
   end
 
