@@ -178,7 +178,7 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
 	  if(!tsLua) {
 	    lua_newtable(vm);
 
-	    lua_push_str_table_entry(vm, "breed", iface->get_ndpi_proto_breed_name(i));
+	    lua_push_str_table_entry(vm,    "breed", iface->get_ndpi_proto_breed_name(i));
 	    lua_push_uint64_table_entry(vm, "packets.sent", counters[i]->packets.sent);
 	    lua_push_uint64_table_entry(vm, "packets.rcvd", counters[i]->packets.rcvd);
 	    lua_push_uint64_table_entry(vm, "bytes.sent", counters[i]->bytes.sent);
@@ -187,8 +187,8 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
 	    lua_push_uint64_table_entry(vm, "num_flows", counters[i]->total_flows);
 
     #ifdef NTOPNG_PRO
-      if(behavior_bytes_traffic && behavior_bytes_traffic[i])
-        behavior_bytes_traffic[i]->luaBehavior(vm, "l7_traffic_behavior", (diff ? NDPI_TRAFFIC_BEHAVIOR_REFRESH : 0 ));
+	    if(behavior_bytes_traffic && behavior_bytes_traffic[i])
+	      behavior_bytes_traffic[i]->luaBehavior(vm, "l7_traffic_behavior", (diff ? NDPI_TRAFFIC_BEHAVIOR_REFRESH : 0 ));
     #endif
 
 	    if(bytes_thpt && bytes_thpt[i]) {
@@ -221,7 +221,9 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  if (with_categories) {
+  /* *********************************************** */
+  
+  if(with_categories) {
     lua_newtable(vm);
 
     for (int i = 0;  i < NDPI_PROTOCOL_NUM_CATEGORIES; i++) {

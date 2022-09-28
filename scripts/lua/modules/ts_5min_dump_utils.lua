@@ -723,7 +723,7 @@ end
 
 -- ########################################################
 
-function ts_dump.light_host_update_rrd(when, hostname, host, ifstats, verbose)
+function ts_dump.light_host_update_rrd(when, hostname, host, ifstats, verbose)   
   -- Traffic stats
   ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
            bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
@@ -787,12 +787,56 @@ function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
     end
     
     ------------------------
+
+    ----- Custom Stats -----
+
+    ------------------------
+    
+    --tprint(host) -- ### LUCA ADD host stats here
   end
 end
 
 -- ########################################################
 
+function ts_custom_host_function(hostname, host_ts)
+   -- do nothing
+end
+
+local function read_file(path)
+   local file = io.open(path, "rb") -- r read mode and b binary mode
+   if not file then return nil end
+   local content = file:read "*a" -- *a or *all reads the whole file
+   file:close()
+   return content
+end
+
+local function local_custom_timeseries_dump_callback()
+   local base_dir_file     = dirs.installdir .. "/scripts/lua/modules/timeseries"
+   local custom_file       = "ts_custom_function"
+   local lists_custom_file = base_dir_file.."/"..custom_file ..".lua"
+
+   if ntop.exists(lists_custom_file) then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Loading "..lists_custom_file)
+      local content = read_file(lists_custom_file)
+
+      tprint(content)
+      local rc = load(content)
+
+      rc("", "") -- needed to activate the function
+      -- lua.execute(open(lists_custom_file).read())
+   else
+      traceError(TRACE_INFO, TRACE_CONSOLE, "Missing file "..lists_custom_file)
+   end
+end
+
+-- ########################################################
+
+--
 -- NOTE: this is executed every minute if ts_utils.hasHighResolutionTs() is true
+--
+-- See scripts/callbacks/minute/interface/timeseries.lua
+--
+
 function ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
   local num_processed_hosts = 0
   local min_instant = when - (when % 60) - 60
@@ -800,11 +844,14 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
   local dump_tstart = os.time()
   local dumped_hosts = {}
 
+  -- load custom functions
+  local_custom_timeseries_dump_callback()
+  
   -- Save hosts stats (if enabled from the preferences)
   if config.host_ts_creation ~= "off" then
      local is_one_way_hosts_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.hosts_one_way_traffic_rrd_creation") == "1")
 
-     local in_time = callback_utils.foreachLocalRRDHost(_ifname, true --[[ timeseries ]], is_one_way_hosts_rrd_creation_enabled, function (hostname, host_ts)
+     local in_time = callback_utils.foreachLocalTimeseriesHost(_ifname, true --[[ timeseries ]], is_one_way_hosts_rrd_creation_enabled, function (hostname, host_ts)
       local host_key = host_ts.tskey
 
       if(dumped_hosts[host_key] == nil) then
@@ -823,6 +870,8 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
         dumped_hosts[host_key] = true
       end
 
+      ts_custom_host_function(hostname, host_ts)
+      
       if((num_processed_hosts % 64) == 0) then
         if not ntop.isDeadlineApproaching() then
           local num_local = interface.getNumLocalHosts() -- note: may be changed

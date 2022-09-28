@@ -75,7 +75,7 @@ local function parse_lists_from_dir(where)
         if(j.category == nil) then
           traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": no category")
           skip = true        
-        elseif(j.category == "mining") then            j.category = CUSTOM_CATEGORY_MINING
+        elseif(j.category == "mining")        then j.category = CUSTOM_CATEGORY_MINING
         elseif(j.category == "malware")       then j.category = CUSTOM_CATEGORY_MALWARE
         elseif(j.category == "advertisement") then j.category = CUSTOM_CATEGORY_ADVERTISEMENT
         else
@@ -609,9 +609,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
 
          return(false)
       end
-
    else
-
       local f = io.open(list_fname, "r")
       local num_line = 0
 

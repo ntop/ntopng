@@ -160,12 +160,12 @@ end
 
 -- ########################################################
 
--- Iterates each active host on the ifname interface for RRD creation.
+-- Iterates each active host on the ifname interface for timeseries creation.
 -- Each host is passed to the callback with some more information.
-function callback_utils.foreachLocalRRDHost(ifname, with_ts, with_one_way_traffic_hosts, callback)
-   interface.select(ifname)
-
+function callback_utils.foreachLocalTimeseriesHost(ifname, with_ts, with_one_way_traffic_hosts, callback)
    local iterator
+   
+   interface.select(ifname)
 
    if with_ts then
       iterator = callback_utils.getLocalHostsTsIterator(nil --[[ show_details --]], nil --[[ maxHits --]], nil --[[ anomalousOnly --]], with_one_way_traffic_hosts)
