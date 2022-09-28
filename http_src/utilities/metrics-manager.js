@@ -17,10 +17,14 @@ const set_timeseries_groups_in_url = (timeseries_groups) => {
 function get_ts_group_url_param(ts_group) {
     let timeseries = [];
     ts_group.timeseries.forEach((ts) => {
-	timeseries.push(`${ts.id}=${ts.raw}:${ts.avg}:${ts.perc_95}`);
+	timeseries.push(`${ts.id}=${ts.raw}:${ts.past}:${ts.avg}:${ts.perc_95}`);
     });
+    let metric_schema_query = ts_group.metric.schema;
+    if (ts_group.metric.query != null) {
+	metric_schema_query = `${metric_schema_query}+${ts_group.metric.query}`;
+    }
     let timeseries_param = timeseries.join("|");
-    let param = `${ts_group.source_type.value},${ts_group.source.value},${ts_group.metric.schema},${timeseries_param}`;
+    let param = `${ts_group.source_type.value},${ts_group.source.value},${metric_schema_query},${timeseries_param}`;
     return param;
 }
 
@@ -52,6 +56,7 @@ const get_ts_group = (source_type, source, metric) => {
 	    id: key,
 	    label: ts.label,
 	    raw: true,
+	    past: false,
 	    avg: false,
 	    perc_95: false,
 	});
@@ -75,12 +80,16 @@ async function get_url_param_from_ts_group(ts_group_url_param) {
     let info = g.split(",");
     let source_type_value = info[0];
     let source_value = info[1];
-    let metric_schema = info[2];
+    let metric_schema_query = info[2];
+    let metric_schema_query_array = metric_schema_query.split("+");
+    if (metric_schema_query_array.lenght < 2) {
+	metric_schema_query_array.push(null);
+    }
     let timeseries_url = info[3];
 
     let source_type = get_source_type_from_value(source_type_value);
     let source = await get_source_from_value(http_prefix, source_type, source_value);
-    let metric = await get_metrics_from_schema(http_prefix, source_type, source_value, metric_schema);
+    let metric = await get_metrics_from_schema(http_prefix, source_type, source_value, metric_schema_query_array[0], metric_schema_query_array[1]);
     let timeseries = get_timeseries(timeseries_url, metric);
     return {
 	id: get_ts_group_id(source_type, source, metric),
@@ -101,17 +110,18 @@ const get_ts_group_id = (source_type, source, metric) => {
 
 function get_timeseries(timeseries_url, metric) {
     let ts_url_array = timeseries_url.split("|");
-    let r = /(.+)=(.+):(.+):(.+)/;
+    let r = /(.+)=(.+):(.+):(.+):(.+)/;
     let timeseries = [];
     ts_url_array.forEach((ts_url) => {
 	let values = r.exec(ts_url);
 	let id = values[1];
 	let label = metric.timeseries[id].label;
 	let raw = JSON.parse(values[2]);
-	let avg = JSON.parse(values[3]);
-	let perc_95 = JSON.parse(values[4]);
+	let past = JSON.parse(values[3]);
+	let avg = JSON.parse(values[4]);
+	let perc_95 = JSON.parse(values[5]);
 	timeseries.push({
-	    id, label, raw, avg, perc_95,
+	    id, label, raw, past, avg, perc_95,
 	});
     });
     return timeseries;
@@ -206,9 +216,9 @@ const get_current_page_source_type = () => {
     throw `source_type not found for ${pathname}`;
 };
 
-const get_metrics_from_schema = async (http_prefix, source_type, source_value, metric_schema) => {
+const get_metrics_from_schema = async (http_prefix, source_type, source_value, metric_schema, metric_query) => {
     let metrics = await get_metrics(http_prefix, source_type, source_value);
-    return metrics.find((m) => m.schema == metric_schema); 
+    return metrics.find((m) => m.schema == metric_schema && m.query == metric_query); 
 };
 
 const get_default_metric = (metrics) => {

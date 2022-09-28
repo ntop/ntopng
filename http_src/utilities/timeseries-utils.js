@@ -51,6 +51,13 @@ function getSerieId(serie) {
     return `${serie.label}`;
 }
 
+function getYaxisName(measureUnit, scale) {
+    if (measureUnit == "number") {
+	return scale;
+    }
+    return measureUnit;
+}
+
 function getSerieName(name, id, tsGroup, extendSeriesName) {
     if (name == null) {
 	name = id;
@@ -58,7 +65,8 @@ function getSerieName(name, id, tsGroup, extendSeriesName) {
     if (extendSeriesName == false) {
 	return name;
     }
-    return `${tsGroup.source.label} ${name} (${tsGroup.metric.measure_unit})`;
+    let yaxisName = getYaxisName(tsGroup.metric.measure_unit, tsGroup.metric.scale);
+    return `${tsGroup.source.label} ${name} (${yaxisName})`;
 }
 
 function getAddSeriesNameSource(tsGrpupsArray) {
@@ -77,7 +85,7 @@ function getAddSeriesNameYAxisName(tsOptionsArray) {
     
 }
 
-function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName) {
+function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawType, tsCompare) {
     // extract start time and step
     let startTime = tsOptions.start * 1000;;
     let step = tsOptions.step * 1000;
@@ -95,8 +103,6 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName) {
     tsOptions.series.forEach((s, i) => {
 	// extract id
 	let id = getSerieId(s);
-	// set time at startTime in unix ms
-	let time = startTime;
 	// find timeseries metadata
 	let sMetadata = tsGroup.metric.timeseries[id];
 	// extract data and check if we need invert direction
@@ -104,44 +110,72 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName) {
 	if (sMetadata.invert_direction == true) {
 	    scalar = -1;
 	}
-	// extract ts visibility (raw, avg, perc_95)
-	let tsVisibility = tsGroup.timeseries?.find((t) => t.id == id);
-	// check and add raw serie visibility
-	if (tsVisibility == null || tsVisibility.raw == true) {
-	    let data = s.data.map((d) => {
+	let fMapData = (data) => {
+	    let time = startTime;
+	    let res = data.map((d) => {
 		let d2 = { x: time, y: d * scalar };
 		time += step;
 		return d2;
 	    });
-	    let sName = getSerieName(sMetadata.label, id, tsGroup, extendSeriesName);
+	    return res;
+	};
+	
+	// extract ts visibility (raw, avg, perc_95)
+	let tsVisibility = tsGroup.timeseries?.find((t) => t.id == id);
+	let sName = getSerieName(sMetadata.label, id, tsGroup, extendSeriesName);
+	// check and add raw serie visibility
+	if (tsVisibility == null || tsVisibility.raw == true) {
+	    let data = fMapData(s.data);
+
+	    let drawType = sMetadata.draw_type;
+	    if (drawType == null && forceDrawType != null) { drawType = forceDrawType; }
+	    else if (drawType == null) { drawType = "area"; }
+	    
 	    // create an apex chart serie
 	    let sApex = {
 		id,
+		colorPalette: 0,
 		color: sMetadata.color,
-		type: "area",
+		type: drawType,
 		name: sName,
 		data,
 	    };
 	    seriesApex.push(sApex);
 	}
 
+	// check and add past serie visibility
+	if (tsVisibility?.past == true
+	    && ntopng_utility.is_object(tsOptions.additional_series)) {
+	    let seriesData = ntopng_utility.object_to_array(tsOptions.additional_series)[0];
+	    let sApex = {
+		id,
+		colorPalette: 1,
+		color: sMetadata.color,
+		type: "line",
+		name: `${sName} ${tsCompare} Ago`,
+		data: fMapData(seriesData),
+	    };
+	    seriesApex.push(sApex);
+	}
+
 	// define a function to build a constant serie
-	let fBuildConstantSerie = (prefix, id, name, value) => {
+	let fBuildConstantSerie = (prefix, id, value) => {
 	    if (name == null) { name = id; }
-	    name = `${name} (${prefix})`;
+	    if (value == null) { return null; }
+	    name = `${sName} (${prefix})`;
 	    if (value != null) {
 		value *= scalar;
-	    } 
-	    let sName = getSerieName(name, id, tsGroup, extendSeriesName);
+	    }
 	    let time = startTime;
 	    let data = s.data.map((d) => {
-		let d2 = { x: time, y: value * scalar };
+		let d2 = { x: time, y: value };
 		time += step;
 		return d2;
 	    });
 	    return {
 		id,
 		name: sName,
+		colorPalette: 1,
 		color: sMetadata.color,
 		type: 'line',
 		stacked: false,
@@ -152,14 +186,14 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName) {
 	if (tsVisibility?.avg == true) {
 	    let value = tsOptions.statistics?.by_serie[i].average;
 	    // create an apex chart serie
-	    let sApex = fBuildConstantSerie("Avg", id, sMetadata.label, value);
+	    let sApex = fBuildConstantSerie("Avg", id, value);
 	    seriesApex.push(sApex);
 	}
 	// check and add 95thperc serie visibility
 	if (tsVisibility?.perc_95 == true) {
 	    let value = tsOptions.statistics?.by_serie[i]["95th_percentile"];
 	    // create an apex chart serie
-	    let sApex = fBuildConstantSerie("95th Perc", id, sMetadata.label, value);
+	    let sApex = fBuildConstantSerie("95th Perc", id, value);
 	    seriesApex.push(sApex);
 	}
 
@@ -192,11 +226,24 @@ function setSeriesColors(seriesArray) {
 	let colorIndex = hash % defaultColors.length;
 	return defaultColors[colorIndex];
     });
-    console.log("COLORS");
-    console.log(colors);
     colors = colorsInterpolation.transformColors(colors);
     console.log(colors);
     seriesArray.forEach((s, i) => s.color = colors[i]);
+}
+
+function setSeriesColors2(seriesArray) {
+    let count0 = 0, count1 = 0;
+    let colors0 = defaultColors;
+    let colors1 = d3v7.schemeCategory10;
+    seriesArray.forEach((s) => {
+	if (s.colorPalette == 0) {
+	    s.color = colors0[count0 % colors0.length];
+	    count0 += 1;
+	} else if (s.colorPalette == 1) {
+	    s.color = colors1[count1 % colors1.length];
+	    count1 += 1;
+	}
+    });
 }
 
 function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
@@ -231,7 +278,7 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
 		    show: true,
 		},
 		title: {
-		    text: metric.measure_unit,
+		    text: getYaxisName(tsGroup.metric.measure_unit, tsGroup.metric.scale),
 		},
 		opposite: (countYaxisId % 2) == 1,
 	    };
@@ -260,9 +307,9 @@ function getGroupOptionMode(group_id) {
   return groupsOptionsModesEnum[group_id] || null;
 };  
 
-function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsMode) {
+function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsMode, tsCompare) {
     if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart"].value) {	
-	let apexOptions = tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray);
+	let apexOptions = tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare);
 	let apexOptionsArray = [apexOptions];
 	setLeftPadding(apexOptionsArray);
 	return apexOptionsArray;
@@ -282,7 +329,7 @@ function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsM
 	    let tsArray = tsDict[key];
 	    let tsOptionsArray2 = tsArray.map((ts) => ts.tsOptions);
 	    let tsGrpupsArray2 = tsArray.map((ts) => ts.tsGroup);
-	    let apexOptions = tsArrayToApexOptions(tsOptionsArray2, tsGrpupsArray2);
+	    let apexOptions = tsArrayToApexOptions(tsOptionsArray2, tsGrpupsArray2, tsCompare);
 	    apexOptionsArray.push(apexOptions);
 	}
 	setLeftPadding(apexOptionsArray);
@@ -290,7 +337,7 @@ function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsM
     } else if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart_x_metric"].value) {
 	let apexOptionsArray = [];
 	tsOptionsArray.forEach((tsOptions, i) => {
-	    let apexOptions = tsArrayToApexOptions([tsOptions], [tsGrpupsArray[i]]);
+	    let apexOptions = tsArrayToApexOptions([tsOptions], [tsGrpupsArray[i]], tsCompare);
 	    apexOptionsArray.push(apexOptions);	    
 	});
 	setLeftPadding(apexOptionsArray);
@@ -320,23 +367,24 @@ function setLeftPadding(apexOptionsArray) {
     });
 }
 
-function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray) {
+function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare) {
     if (tsOptionsArray.length != tsGrpupsArray.length) {
 	console.error(`Error in timeseries-utils:tsArrayToApexOptions: tsOptionsArray ${tsOptionsArray} different length from tsGrpupsArray ${tsGrpupsArray}`);
 	return;
     }
-    
     let seriesArray = [];
     let yaxisArray = [];
     let yaxisDict = {};
-    let colors = [];
     let addSeriesNameSource = getAddSeriesNameSource(tsGrpupsArray);
-    let addSeriesNameYAxisName = 
+    let forceDrawType = null;
     tsOptionsArray.forEach((tsOptions, i) => {
 	let tsGroup = tsGrpupsArray[i];
 
+	if (i > 0) {
+	    forceDrawType = "line"
+	}
 	// get seriesData
-	let seriesApex = getSeriesInApexFormat(tsOptions, tsGroup, true);
+	let seriesApex = getSeriesInApexFormat(tsOptions, tsGroup, true, forceDrawType, tsCompare);
 	seriesArray = seriesArray.concat(seriesApex);
 
 	// get yaxis
@@ -345,7 +393,7 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray) {
     });
 
     // set colors in series
-    setSeriesColors(seriesArray);
+    setSeriesColors2(seriesArray);
 
     let chartOptions = buildChartOptions(seriesArray, yaxisArray);
     return chartOptions;
@@ -363,8 +411,24 @@ function buildChartOptions(seriesArray, yaxisArray) {
 	    	// left: -8,
 	    },
 	},
+	fill: {
+	    opacity: 0.5,
+	    type: 'solid',
+	    pattern: {
+		strokeWidth: 10,
+	    },
+	},
+	// fill: {
+	    
+	// }
+	stroke: {
+	    show: true,
+	    lineCap: 'butt',
+	    width: 3,
+	},
 	legend: {
 	    show: true,
+	    showForSingleSeries: true,
 	    onItemClick: {
 		toggleDataSeries: false,
 	    },
@@ -389,7 +453,7 @@ const timeseriesUtils = function() {
 	tsToApexOptions,
 	tsArrayToApexOptions,
 	tsArrayToApexOptionsArray,
-  getGroupOptionMode
+	getGroupOptionMode
     };
 }();
 

@@ -92,7 +92,7 @@ const props = defineProps({
     page: String,
 });
 
-const emit = defineEmits(['added_snapshots']);
+const emit = defineEmits(['added_snapshot', 'deleted_snapshot', 'deleted_all_snapshots']);
 
 let pattern_singleword = NtopUtils.REGEXES.singleword;
 
@@ -242,6 +242,11 @@ const delete_snapshot = async (delete_all) => {
     	load_snapshots = true;
     } catch(err) {
     	console.error(err);
+    }
+    if (delete_all == true) {
+	emit('deleted_all_snapshots', params);
+    } else {
+	emit('deleted_snapshot', params);
     }
     close();
 }

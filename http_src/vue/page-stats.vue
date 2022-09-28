@@ -65,11 +65,13 @@
 <ModalSnapshot v-if="enable_snapshots" ref="modal_snapshot"
 	       :csrf="csrf"
 	       :page="page_snapshots"
-	       @added_snapshots="add_snapshots">
+	       @added_snapshot="refresh_snapshots"
+	       @deleted_snapshots="refresh_snapshots"
+	       @deleted_all_snapshots="refresh_snapshots">
 </ModalSnapshot>
 
 <ModalTimeseries
-  ref="modal_time_series"
+  ref="modal_timeseries"
   @apply="apply_modal_timeseries"></ModalTimeseries>
 </template>
 
@@ -103,7 +105,7 @@ let config_app_table = ref({});
 const charts = ref([]);
 const date_time_picker = ref(null);
 const top_applications_table = ref(null);
-const modal_time_series = ref(null);
+const modal_timeseries = ref(null);
 const modal_snapshot = ref(null);
 
 const metrics = ref([]);
@@ -126,7 +128,7 @@ const current_groups_options_mode = ref(init_groups_option_mode());
 
 let last_timeseries_groups_loaded = null;
 
-const custom_metric = { value: "custom", label: i18n('show_alerts.presets.custom'), currently_active: false }
+const custom_metric = { value: "custom", label: i18n('page_stats.custom_metrics'), currently_active: false }
 
 const page_snapshots = "timeseries";
 
@@ -186,7 +188,7 @@ async function get_metrics(push_custom_metric, force_refresh) {
     if (push_custom_metric) {
 	metrics.push(custom_metric);
     }
-    if (cache_snapshots == null) {
+    if (cache_snapshots == null || force_refresh) {
 	cache_snapshots = await get_snapshots_metrics();
     }
     let snapshots_metrics = cache_snapshots;
@@ -207,7 +209,8 @@ async function get_snapshots_metrics() {
 	return {
             ...s,
             is_snapshot: true,
-            label: `${s.name} (snap)`,
+            label: `${s.name}`,
+	    group: "Snapshots",
 	};
     });
     console.log(snapshots);
@@ -215,17 +218,26 @@ async function get_snapshots_metrics() {
 }
 
 async function get_selected_timeseries_groups() {
+    let metric = selected_metric.value;
+    return get_timeseries_groups_from_metric(metric);
+}
+
+async function get_timeseries_groups_from_metric(metric) {
     let source_type = metricsManager.get_current_page_source_type();
     let source = await metricsManager.get_default_source(http_prefix, source_type);
-    let metric = selected_metric.value;
     let ts_group = metricsManager.get_ts_group(source_type, source, metric);
     let timeseries_groups = [ts_group];
     return timeseries_groups;
 }
 
-function select_metric_from_metric_schema(metric_schema) {
-    let metric = metrics.value.find((m) => m.schema == metric_schema);
-    select_metric(metric);
+async function add_metric_from_metric_schema(metric_schema, metric_query) {
+    let metric = metrics.value.find((m) => m.schema == metric_schema && m.query == metric_query);
+    if (metric == null) {
+	console.error(`metric = ${metric_schema}, query = ${metric_query} not found.`);
+	return;
+    }
+    let timeseries_groups = await get_timeseries_groups_from_metric(metric);
+    modal_timeseries.value.add_ts_group(timeseries_groups[0], true);
 }
 
 async function select_metric(metric) {
@@ -264,7 +276,7 @@ function show_modal_snapshot() {
 
 function show_manage_timeseries() {
     if (last_timeseries_groups_loaded == null) { return; }
-    modal_time_series.value.show(last_timeseries_groups_loaded);
+    modal_timeseries.value.show(last_timeseries_groups_loaded);
 };
 
 /**
@@ -279,7 +291,7 @@ function get_f_get_custom_chart_options(chart_index) {
 }
 
 let cache_snapshots = null;
-function add_snapshots() {
+function refresh_snapshots() {
     let push_custom_metric = selected_metric.value.label == custom_metric.label;
     refresh_metrics(push_custom_metric, true);
 }
@@ -303,10 +315,11 @@ function change_groups_options_mode() {
 
 let ts_chart_options;
 async function load_charts_data(timeseries_groups, not_reload) {
+    let status = ntopng_status_manager.get_status();
+    let ts_compare = get_ts_compare(status);
     if (!not_reload) {	
-	let status = ntopng_status_manager.get_status();
 	let chart_data_url = `${http_prefix}/lua/rest/v2/get/timeseries/ts.lua`;
-	let params_url_request = `ts_compare=30m&version=4&zoom=30m&initial_point=true&limit=180`;
+	let params_url_request = `ts_compare=${ts_compare}&version=4&zoom=${ts_compare}&initial_point=true&limit=180`;
 	let params_obj = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
 	
 	let ts_responses_promises = timeseries_groups.map((ts_group) => {
@@ -329,7 +342,7 @@ async function load_charts_data(timeseries_groups, not_reload) {
     console.log(ts_chart_options);
     console.log(timeseries_groups);
     
-    let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_chart_options, timeseries_groups, current_groups_options_mode.value);
+    let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_chart_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
     
     set_charts_options_items(charts_options);
     
@@ -353,24 +366,26 @@ function set_charts_options_items(charts_options) {
 	    chart_options: options,
 	};
     });
-    // let old_charts_length = charts_options_items.value.length;
-    // charts_options_items.value = charts_options.map((options, i) => {
-    // 	let key;
-    // 	if (charts_options_items.value.length > i) {
-    // 	    key = charts_options_items.value[i].key;
-    // 	} else {
-    // 	    key = ntopng_utility.get_random_string();
-    // 	}
-    // 	return {
-    // 	    key,
-    // 	    chart_options: options,
-    // 	};
-    // });
-    // let new_charts_length = charts_options_items.value.length;
-    // charts.value.filter((c, i) => i < old_charts_length && i < new_charts_length).forEach((chart) => {
-    // 	console.log("UPDATE CHART");
-    // 	chart.update_chart();
-    // });
+}
+
+function get_ts_compare(status) {
+    // 5m, 30m, 1h, 1d, 1w, 1M, 1Y
+    let r = Number.parseInt((status.epoch_end - status.epoch_begin) / 60);
+    if (r <= 5) {
+	return "5m";
+    } else if (r <= 30) {
+	return "30m";
+    } else if (r <= 60) {
+	return "1h";
+    } else if (r <= 60 * 24) {
+	return "1d";
+    } else if (r <= 60 * 24 * 7) {
+	return "1w";
+    } else if (r <= 60 * 24 * 30) {
+	return "1M";
+    } else {
+	return "1Y";
+    }
 }
 
 function get_datatable_url() {
@@ -402,7 +417,18 @@ async function load_datatable_data() {
 function set_table_configuration(url) {
   const default_sorting_columns = 2 /* Percentage column */
   let columns = [
-    { columnName: i18n("application"), name: 'application', data: 'protocol', className: 'text-nowrap', responsivePriority: 1, render: (data) => { return data.label } },
+      { columnName: i18n("application"), name: 'application', data: 'protocol', className: 'text-nowrap', responsivePriority: 1, handlerId: "page-stats-action-link-application", render: (data, type, service) => {
+	  let handler = {
+	      handlerId: "page-stats-action-link-application",
+	      onClick: () => {
+		  console.log(data);
+		  console.log(service);
+		  let schema = `top:${service.ts_schema}`;
+		  add_metric_from_metric_schema(schema, service.ts_query)
+	      },
+	  };
+	  return DataTableUtils.createLinkCallback({ text: data.label, handler });
+      },},
     { columnName: i18n("traffic"), name: 'traffic', data: 'traffic', orderable: false, className: 'text-nowrap', responsivePriority: 1, render: (data) => { 
         return NtopUtils.bytesToSize(data)
       }, 
@@ -414,7 +440,7 @@ function set_table_configuration(url) {
                     <div class="progress-bar bg-warning" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage}%;">
                     </div>
                   </div>
-                  <div class="col ms-3"> %${percentage}</div>
+                  <div class="col ms-3"> ${percentage}%</div>
                 </div>`
       } 
     }
@@ -422,12 +448,15 @@ function set_table_configuration(url) {
 
   /* If ClickHouse is enabled, then add an href to Historical Flows */
     if(true) {
-	let handlerId = "page-stats-action-jump-historical";
-    columns.push({ columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, handlerId, render: (data, type, service) => {
+	let handlerIdJumpHistorical = "page-stats-action-jump-historical";
+    columns.push({ columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, handlerId: handlerIdJumpHistorical, render: (data, type, service) => {
 	const jump_to_historical = {
-	    handlerId,
+	    handlerId: handlerIdJumpHistorical,
             onClick: () => {
-          window.open(`${http_prefix}/lua/pro/db_search.lua?ifid=${ntopng_url_manager.get_url_entry('ifid')}&epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&l7proto=${service.protocol.id};eq`)
+		let l7_proto = ntopng_url_manager.serialize_param("l7proto", `${service.protocol.id};eq`); 
+		let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?ifid=${ntopng_url_manager.get_url_entry('ifid')}&epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&${l7_proto}`;
+          console.log(historical_flows_url);
+          window.open(historical_flows_url);
         }
       }
       return DataTableUtils.createActionButtons([

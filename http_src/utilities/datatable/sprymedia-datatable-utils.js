@@ -318,6 +318,15 @@ export class DataTableUtils {
         }
     }
 
+    static createLinkCallback(action) {
+	let handler = "";
+	let fOnClick = DataTableHandlers.addHandler(action.handler);
+	handler = `onclick="${fOnClick}"`;
+	return `<a href=#
+                   ${handler}>
+                   ${action.text || ''}
+                </a>`;
+    }
 
     /**
      * Example of action:

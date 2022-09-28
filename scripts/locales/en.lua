@@ -6745,6 +6745,7 @@ local lang = {
     },
   },
   ["page_stats"] = {
+     ["custom_metrics"] = "Custom Metrics",
      ["manage_snapshots_btn"] = "Manage Snapshots",
      ["layout_1_per_all"] = "One Chart",
      ["layout_1_per_y"] = "One Chart per Y-axis",

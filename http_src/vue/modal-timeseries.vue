@@ -184,6 +184,7 @@ function update_timeseries_to_add(default_config) {
     	    id: ts_id,
     	    label: timeseries[ts_id].label,
     	    raw: true,
+	    past: false,
     	    avg: false,
     	    perc_95: false,
     	});
@@ -208,17 +209,31 @@ function get_timeseries_group_id(ts_group) {
 	source = ts_group.source;
 	metric = ts_group.metric;
     }
-    return metricsManager.get_ts_group_id(source_type, source, metric);
+    let id = metricsManager.get_ts_group_id(source_type, source, metric);
+    console.log(`modal-timeseries: id = ${id}`);
+    return id;
 }
 
 const delete_ts = (ts_group_id) => {
     timeseries_groups_added.value = timeseries_groups_added.value.filter((ts_group) => get_timeseries_group_id(ts_group) != ts_group_id);
 };
 
+const add_ts_group = (ts_group_to_add, emit_apply) => {
+    let ts_group_index = timeseries_groups_added.value.findIndex((ts_group) => ts_group.id == ts_group_to_add.id);
+    if (ts_group_index < 0) {
+	timeseries_groups_added.value.push(ts_group_to_add);
+    } else {
+	timeseries_groups_added.value[ts_group_index] = ts_group_to_add;
+    }
+
+    if (emit_apply) {
+	emit('apply', timeseries_groups_added.value);
+    }
+};
+
 const apply = () => {
     if (action.value == "add") {
 	let ts_group_id = get_timeseries_group_id();
-	let ts_group_index = timeseries_groups_added.value.findIndex((ts_group) => ts_group.id == ts_group_id);
 	let ts_group = {
 	    id: ts_group_id,
 	    source_type: selected_source_type.value,
@@ -226,11 +241,7 @@ const apply = () => {
 	    metric: selected_metric.value,
 	    timeseries: ntopng_utility.clone(timeseries_to_add.value),
 	};
-	if (ts_group_index < 0) {
-	    timeseries_groups_added.value.push(ts_group);
-	} else {
-	    timeseries_groups_added.value[ts_group_index] = ts_group;
-	}
+	add_ts_group(ts_group);
     }
     emit('apply', timeseries_groups_added.value);
     close();
@@ -241,7 +252,7 @@ const close = () => {
 };
 const _i18n = (t) => i18n(t);
 
-defineExpose({ show, close });
+defineExpose({ show, close, add_ts_group });
 
 </script>
 
