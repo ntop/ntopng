@@ -218,6 +218,13 @@ const delete_ts = (ts_group_id) => {
     timeseries_groups_added.value = timeseries_groups_added.value.filter((ts_group) => get_timeseries_group_id(ts_group) != ts_group_id);
 };
 
+const set_timeseries_groups = (timeseries_groups, emit_apply) => {
+    timeseries_groups_added.value = timeseries_groups;
+    if (emit_apply) {
+	emit('apply', timeseries_groups_added.value);
+    }
+}
+
 const add_ts_group = (ts_group_to_add, emit_apply) => {
     let ts_group_index = timeseries_groups_added.value.findIndex((ts_group) => ts_group.id == ts_group_to_add.id);
     if (ts_group_index < 0) {
@@ -252,7 +259,7 @@ const close = () => {
 };
 const _i18n = (t) => i18n(t);
 
-defineExpose({ show, close, add_ts_group });
+defineExpose({ show, close, add_ts_group, set_timeseries_groups });
 
 </script>
 

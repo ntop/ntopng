@@ -160,9 +160,8 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 
 	// define a function to build a constant serie
 	let fBuildConstantSerie = (prefix, id, value) => {
-	    if (name == null) { name = id; }
 	    if (value == null) { return null; }
-	    name = `${sName} (${prefix})`;
+	    let name = `${sName} (${prefix})`;
 	    if (value != null) {
 		value *= scalar;
 	    }
@@ -174,7 +173,7 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 	    });
 	    return {
 		id,
-		name: sName,
+		name: name,
 		colorPalette: 1,
 		color: sMetadata.color,
 		type: 'line',
@@ -429,6 +428,8 @@ function buildChartOptions(seriesArray, yaxisArray) {
 	legend: {
 	    show: true,
 	    showForSingleSeries: true,
+	    position: "top",
+	    horizontalAlign: "right",
 	    onItemClick: {
 		toggleDataSeries: false,
 	    },

@@ -237,6 +237,7 @@ async function add_metric_from_metric_schema(metric_schema, metric_query) {
 	return;
     }
     let timeseries_groups = await get_timeseries_groups_from_metric(metric);
+    modal_timeseries.value.set_timeseries_groups(last_timeseries_groups_loaded);
     modal_timeseries.value.add_ts_group(timeseries_groups[0], true);
 }
 
