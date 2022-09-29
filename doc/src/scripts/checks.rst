@@ -56,24 +56,21 @@ Furthermore, a script may define the following extra functions, which are only c
 
 .. _Flow Checks:
 
-Flow Checks
------------------
+Flow and Host Checks
+--------------------
 
-Flow checks are executed on each network flow directly from the C++ with flow checks. The check have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things.
+Flow and Host checks are currently executed in the core engine by means of C++ checks. Flow checks have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things. 
 This information can be retrieved via the `Flow Checks API`_.
+Similarly Host checks have access to all the host information available in the engine.
 
-Refer to :ref:`Flow Check Hooks` for available hooks.
-
-.. _`Flow Checks API`: ../api/lua_c/flow_checks/index.html
-
-ntopng supports users scripts for the following traffic elements:
+ntopng supports users scripts (Lua) for the following traffic elements:
 
   - :code:`interface`: a network interface of ntopng. Check out the `Interface Checks API`_.
   - :code:`network`: a local network of ntopng. Check out the `Network Checks API`_.
   - :code:`system`: the system on top of which is running ntopng
   - :code:`SNMP interfaces`: interfaces of monitored SNMP devices
 
-Refer to :ref:`Other Check Hooks` for available hooks.
+Refer to :ref:`Check Hooks` for available hooks.
 
 .. _`Interface Checks API`: ../api/lua_c/interface_checks/index.html
 .. _`Network Checks API`: ../api/lua_c/network_checks/index.html
