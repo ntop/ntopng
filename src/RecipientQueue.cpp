@@ -68,20 +68,24 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification, AlertEntit
      || !notification->alert
      || notification->alert_severity < minimum_severity              /* Severity too low for this recipient     */
      || !(enabled_categories.isSetBit(notification->alert_category))  /* Category not enabled for this recipient */
-     )
+     ) {
     return true; /* Nothing to enqueue */
+  }
+
+  if(recipient_id == 0 && /* Default recipient (DB) */
+     alert_entity == alert_entity_flow &&
+     ntop->getPrefs()->useClickHouse()) {
+    /* Do not store flow alerts on ClickHouse as they are retrieved using a view on historical flows) */
+    return true;
+  }
 
   if(recipient_id == 0) {
     /* Default recipient (SQLite / ClickHouse DB) - do not filter alerts by host */
-    if(alert_entity == alert_entity_flow &&
-        ntop->getPrefs()->useClickHouse()) {
-      return true; /* Do not store flow alert - a view on historical flows is used */
-    }
   } else { 
     /* Other recipients (notifications) */
     if(alert_entity == alert_entity_flow) {
       if(!enabled_host_pools.isSetBit(notification->pools.flow.cli_host_pool) &&
-          !enabled_host_pools.isSetBit(notification->pools.flow.srv_host_pool))
+         !enabled_host_pools.isSetBit(notification->pools.flow.srv_host_pool))
         return true;
     } else if(alert_entity == alert_entity_host) {
       if(!enabled_host_pools.isSetBit(notification->pools.host.host_pool))
@@ -98,14 +102,16 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification, AlertEntit
 
   /* Enqueue the notification (allocate memory for the alert string) */
   AlertFifoItem q = *notification;
-  if((q.alert = strdup(notification->alert)))
+  if((q.alert = strdup(notification->alert))) {
     res = queue->enqueue(q);
+  }
 
   if(!res) {
     drops++;
     if(q.alert) free(q.alert);
-  } else
+  } else {
     uses++;
+  }
 
   return res;
 }
