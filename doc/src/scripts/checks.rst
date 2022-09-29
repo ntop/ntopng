@@ -60,8 +60,10 @@ Flow and Host Checks
 --------------------
 
 Flow and Host checks are currently executed in the core engine by means of C++ checks. Flow checks have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things. 
-This information can be retrieved via the `Flow Checks API`_.
 Similarly Host checks have access to all the host information available in the engine.
+Please read the `Developing Alerts`_ section for instructions about the implementation of C++ checks.
+
+.. _`Developing Alerts`: ../developing_alerts/developing_alerts.html
 
 ntopng supports users scripts (Lua) for the following traffic elements:
 
