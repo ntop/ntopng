@@ -1409,8 +1409,8 @@ int Prefs::setOption(int optkey, char *optarg) {
     }
     else if(
 	    (!strncmp(optarg, "mysql", 5))
-	    || (!strncmp(optarg, "clickhouse", 10)))
-      {
+	    || (ntop->getPrefs()->is_enterprise_m_edition() && (!strncmp(optarg, "clickhouse", 10)))
+	    ) {
 #ifdef HAVE_MYSQL
       char *sep = strchr(optarg, ';');
 
