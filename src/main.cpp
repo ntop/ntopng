@@ -153,11 +153,11 @@ int main(int argc, char *argv[])
   prefs->validate();
 
 #ifndef HAVE_NEDGE 
-  if(ntop->getPrefs()->is_appliance()) {
+  if(prefs->is_appliance()) {
     /* Disabling user change for the time being as system configuration
      * scripts currently require permissions. */
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Disabling user change in appliance mode");
-    ntop->getPrefs()->dont_change_user();
+    prefs->dont_change_user();
   }
 #endif
  
@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
   /* Drop the privileges before initializing the network interfaces. This
    * is necessary as the initialization may create files/directories, which
    * should not be created as root. */
-  if(ntop->getPrefs()->do_change_user())
+  if(prefs->do_change_user())
     Utils::dropPrivileges();
 
   /* initInterface writes DB data on disk, keep it after changing user */
