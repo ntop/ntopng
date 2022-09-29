@@ -771,7 +771,7 @@ void Prefs::reloadPrefsFromRedis() {
 /* ******************************************* */
 
 void Prefs::refreshBehaviourAnalysis() {
-  enable_behaviour_analysis          = ntop->getPrefs()->is_enterprise_l_edition();
+  enable_behaviour_analysis          = is_enterprise_l_edition();
   enable_asn_behaviour_analysis      = getDefaultBoolPrefsValue(CONST_PREFS_ASN_BEHAVIOR_ANALYSIS, false);
   enable_network_behaviour_analysis  = getDefaultBoolPrefsValue(CONST_PREFS_NETWORK_BEHAVIOR_ANALYSIS, false);
   enable_iface_l7_behaviour_analysis = getDefaultBoolPrefsValue(CONST_PREFS_IFACE_L7_BEHAVIOR_ANALYSIS, false);
@@ -1439,7 +1439,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     }
     else if(
 	    (!strncmp(optarg, "mysql", 5))
-	    || (ntop->getPrefs()->is_enterprise_m_edition() && (!strncmp(optarg, "clickhouse", 10)))
+	    || (is_enterprise_m_edition() && (!strncmp(optarg, "clickhouse", 10)))
 	    ) {
 #ifdef HAVE_MYSQL
       char *sep = strchr(optarg, ';');
