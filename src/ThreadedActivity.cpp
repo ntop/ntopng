@@ -400,7 +400,7 @@ bool ThreadedActivity::isValidScript(char* dir, char *path) {
     return(false);
   }
   
-  if((!ntop->getPrefs()->useClickHouse()) && (strstr(path, "clickhouse") != NULL)) {
+  if((!ntop->getPrefs()->do_dump_flows_on_clickhouse()) && (strstr(path, "clickhouse") != NULL)) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping %s%s", dir, path);
     return(false);
   }

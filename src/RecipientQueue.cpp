@@ -74,7 +74,7 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification, AlertEntit
   if(recipient_id == 0) {
     /* Default recipient (SQLite / ClickHouse DB) - do not filter alerts by host */
     if(alert_entity == alert_entity_flow &&
-        ntop->getPrefs()->useClickHouse()) {
+        ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
       return true; /* Do not store flow alert - a view on historical flows is used */
     }
   } else { 

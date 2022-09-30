@@ -1407,10 +1407,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
     }
-    else if(
-	    (!strncmp(optarg, "mysql", 5))
-	    || (is_enterprise_m_edition() && (!strncmp(optarg, "clickhouse", 10)))
-	    ) {
+    else if((!strncmp(optarg, "mysql", 5))
+	    || (!strncmp(optarg, "clickhouse", 10))) {
 #ifdef HAVE_MYSQL
       char *sep = strchr(optarg, ';');
 

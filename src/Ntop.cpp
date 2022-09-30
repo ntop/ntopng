@@ -423,7 +423,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   pa = new (std::nothrow) PeriodicActivities();
 
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
-  if(prefs->useClickHouse())
+  if(prefs->do_dump_flows_on_clickhouse())
     clickhouseImport = new (std::nothrow) ClickHouseImport();
   else
     clickhouseImport = NULL;
