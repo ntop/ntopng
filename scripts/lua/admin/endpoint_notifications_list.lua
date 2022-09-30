@@ -14,6 +14,7 @@ local script_manager = require("script_manager")
 local endpoints = require("endpoints")
 local checks = require("checks")
 local alert_severities = require "alert_severities"
+local alert_entities = require "alert_entities"
 local am_utils = require "am_utils"
 local host_pools = require "host_pools":create()
 
@@ -126,6 +127,7 @@ local context = {
     endpoint_list = endpoints.get_configs(true),
     can_create_recipient = can_create_recipient,
     check_categories = checks.check_categories,
+    check_entities = alert_entities,
     alert_severities = alert_severities,
     endpoints = endpoint_list,
     endpoints_info = get_max_configs_available(),

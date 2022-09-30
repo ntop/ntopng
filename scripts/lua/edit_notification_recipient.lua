@@ -36,6 +36,7 @@ local response = {}
 local recipient_id = _POST["recipient_id"]
 local recipient_name = _POST["recipient_name"]
 local categories = recipients_rest_utils.parse_check_categories(_POST["recipient_check_categories"])
+local entities = recipients_rest_utils.parse_check_entities(_POST["recipient_check_entities"])
 local host_pools_ids = recipients_rest_utils.parse_host_pools(_POST["recipient_host_pools"])
 local am_hosts_ids = recipients_rest_utils.parse_am_hosts(_POST["recipient_am_hosts"])
 local minimum_severity = recipients_rest_utils.parse_minimum_severity(_POST["recipient_minimum_severity"])
@@ -45,6 +46,7 @@ if (action == "add") then
    response.result = recipients.add_recipient(endpoint_id,
 					      recipient_name,
 					      categories,
+					      entities,
 					      minimum_severity,
 					      host_pools_ids,
 					      am_hosts_ids,
@@ -53,6 +55,7 @@ elseif (action == "edit") then
    response.result = recipients.edit_recipient(recipient_id,
 					       recipient_name,
 					       categories,
+					       entities,
 					       minimum_severity,
 					       host_pools_ids,
 					       am_hosts_ids,

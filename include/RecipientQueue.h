@@ -46,6 +46,9 @@ class RecipientQueue {
   /* Only enable enqueue/dequeue for notifications falling into these categories */
   Bitmap128 enabled_categories; /* MUST be large enough to contain MAX_NUM_SCRIPT_CATEGORIES */
 
+  /* Only enable enqueue/dequeue for notifications falling into these entities */
+  Bitmap128 enabled_entities; /* MUST be large enough to contain ALERT_ENTITY_MAX_NUM_ENTITIES */
+
   /* MUST be large enough to contain MAX_NUM_HOST_POOLS */
   Bitmap128 enabled_host_pools;
 
@@ -85,6 +88,14 @@ class RecipientQueue {
   * @return
   */
   inline void setEnabledCategories(Bitmap128 _enabled_categories) { enabled_categories = _enabled_categories; };
+
+  /**
+  * @brief Sets enabled notification entities to use this recipient
+  * @param enabled_entities A bitmap of notification entities to use this recipient
+  *
+  * @return
+  */
+  inline void setEnabledEntities(Bitmap128 _enabled_entities) { enabled_entities = _enabled_entities; };
 
   /**
   * @brief Sets enabled host pools to use this recipient

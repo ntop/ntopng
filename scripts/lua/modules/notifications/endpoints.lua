@@ -464,11 +464,12 @@ function endpoints.add_configs_with_recipients(configs)
             for _, recipient_conf in ipairs(conf.recipients) do
                local endpoint_recipient_name = recipient_conf.recipient_name
                local check_categories = recipient_conf.check_categories
+               local check_entities   = recipient_conf.check_entities
                local minimum_severity = recipient_conf.minimum_severity
                local recipient_params = recipient_conf.recipient_params
 
                ret = recipients.add_recipient(ret.endpoint_id, endpoint_recipient_name,
-					      check_categories, minimum_severity,
+					      check_categories, check_entities, minimum_severity,
 					      {}, -- Host pools - restore should take care of this automatically
 					      {}, -- Interface pools - restore should take care of this automatically
 					      recipient_params)

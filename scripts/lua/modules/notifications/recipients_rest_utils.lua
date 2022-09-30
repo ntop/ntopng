@@ -8,6 +8,7 @@ local alert_severities = require "alert_severities"
 local checks = require "checks"
 local host_pools = require "host_pools":create()
 local am_utils = require "am_utils"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -15,8 +16,8 @@ local recipients_rest_utils = {}
 
 -- ##############################################
 
--- @brief Parses and validates a comma-separated list of user script category ids into a lua array
--- @return A lua array of valid user script category ids
+-- @brief Parses and validates a comma-separated list of check category ids into a lua array
+-- @return A lua array of valid check category ids
 function recipients_rest_utils.parse_check_categories(categories_string)
    local categories = {}
 
@@ -32,6 +33,33 @@ function recipients_rest_utils.parse_check_categories(categories_string)
        for _, category in pairs(checks.check_categories) do
 	  if category_id == category.id then
 	     res[#res + 1] = category_id
+	     break
+	  end
+       end
+    end
+
+    return res
+end
+
+-- ##############################################
+
+-- @brief Parses and validates a comma-separated list of check entity ids into a lua array
+-- @return A lua array of valid checkentity ids
+function recipients_rest_utils.parse_check_entities(entities_string)
+   local entities = {}
+
+    if isEmptyString(entities_string) then return entities end
+
+    -- Unfold the entities csv
+    entities = entities_string:split(",") or {entities_string}
+
+    local res = {}
+    for _, entity_id in pairs(entities) do
+       local entity_id = tonumber(entity_id)
+
+       for _, entity_info in pairs(alert_entities) do
+	  if entity_id == entity_info.entity_id then
+	     res[#res + 1] = entity_id
 	     break
 	  end
        end

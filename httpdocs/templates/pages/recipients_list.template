@@ -20,6 +20,7 @@
                                 <th>{{ i18n('endpoint_notifications.num_drops') }}</th>
 				<th>{{ i18n('endpoint_notifications.fill_pct') }}</th>
                                 <th>{{ i18n('endpoint_notifications.categories') }}</th>
+                                <th>{{ i18n('endpoint_notifications.entities') }}</th>
                                 <th>{{ i18n('endpoint_notifications.min_severity') }}</th>
                                 <th>{{ i18n('actions') }}</th>
                             </tr>
@@ -94,6 +95,7 @@
             endpoint_id: $(`${formSelector} [name='endpoint']`).val(),
             recipient_minimum_severity: $(`${formSelector} [name='recipient_minimum_severity']`).val(),
             recipient_check_categories: $(`${formSelector} [name='recipient_check_categories']`).val().join(","),
+            recipient_check_entities: $(`${formSelector} [name='recipient_check_entities']`).val().join(","),
             recipient_host_pools: $(`${formSelector} [name='recipient_host_pools']`).val().join(","),
             recipient_am_hosts: $(`${formSelector} [name='recipient_am_hosts']`).val().join(",")
         };
@@ -204,6 +206,8 @@
                 $("#recipient-template-container-add-id input").val("");
 		$('#add-recipient-categories-select').selectpicker('selectAll');
 		$('#add-recipient-categories-select').selectpicker('refresh');
+		$('#add-recipient-entities-select').selectpicker('selectAll');
+		$('#add-recipient-entities-select').selectpicker('refresh');
 		$('#add-recipient-host-pools-select').selectpicker('selectAll');
 		$('#add-recipient-host-pools-select').selectpicker('refresh');
 		$('#add-recipient-am-hosts-select').selectpicker('selectAll');
@@ -299,6 +303,17 @@
             },
             {
                 data: "check_categories",
+                className: "text-right",
+                width: "5%",
+                render: function (data, type) {
+                    if (data.length == 0)
+                        return `<i class='text-danger fas fa-exclamation-triangle'></i> ` + data.length;
+                    else
+                        return data.length;
+                }  
+            },
+            {
+                data: "check_entities",
                 className: "text-right",
                 width: "5%",
                 render: function (data, type) {
@@ -480,6 +495,9 @@
             $(`#edit-recipient-modal form [name='recipient_check_categories']`).val(recipient.check_categories);
             $(`#edit-recipient-modal form [name='recipient_check_categories']`).selectpicker('refresh');
 
+            $(`#edit-recipient-modal form [name='recipient_check_entities']`).val(recipient.check_entities);
+            $(`#edit-recipient-modal form [name='recipient_check_entities']`).selectpicker('refresh');
+
             $(`#edit-recipient-modal form [name='recipient_host_pools']`).val(recipient.host_pools);
             $(`#edit-recipient-modal form [name='recipient_host_pools']`).selectpicker('refresh');
 
@@ -596,6 +614,16 @@
     });
 
     $(`[name='recipient_check_categories']`).on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
+
+        const lessThanOne = $(this).val().length < 1;
+
+        if (lessThanOne) {
+            $(this).val(previousValue);
+            $(this).selectpicker('refresh');
+        }
+    });
+
+    $(`[name='recipient_check_entities']`).on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
 
         const lessThanOne = $(this).val().length < 1;
 

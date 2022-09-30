@@ -1621,6 +1621,7 @@ local known_parameters = {
    ["bind_to_all_pools"]      = validateBool,
    ["recipient_id"]           = validateNumber,
    ["recipient_check_categories"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
+   ["recipient_check_entities"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
    ["recipient_host_pools"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
    ["recipient_am_hosts"] = validateEmptyOr(validateListOfTypeInline(validateUnquoted)),
    ["recipient_interface_pools"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),

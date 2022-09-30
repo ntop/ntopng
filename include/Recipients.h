@@ -69,11 +69,12 @@ public:
   * @param minimum_severity The minimum severity for notifications to use this recipient
   * @param enabled_categories A bitmap of notification categories to use this recipient
   * @param enabled_host_pools A bitmap of pools to use this recipient
+  * @param enabled_entities A bitmap of notification entities to use this recipient
   *
   * @return
   */
   void register_recipient(u_int16_t recipient_id, AlertLevel minimum_severity, 
-                          Bitmap128 enabled_categories, Bitmap128 enabled_host_pools);
+                          Bitmap128 enabled_categories, Bitmap128 enabled_host_pools, Bitmap128 enabled_entities);
   
   /**
   * @brief Marks a recipient as deleted

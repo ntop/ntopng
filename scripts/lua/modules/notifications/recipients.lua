@@ -52,9 +52,17 @@ function recipients.initialize()
 
    -- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
    -- For each builtin configuration type, a configuration and a recipient is created
+
+   -- Add categories
    local all_categories = {}
    for _, category in pairs(checks.check_categories) do
       all_categories[#all_categories + 1] = category.id
+   end
+
+   -- Add entities
+   local all_entities = {}
+   for _, entity_info in pairs(alert_entities) do
+      all_entities[#all_entities + 1] = entity_info.entity_id
    end
 
    -- Add host pools
@@ -87,6 +95,7 @@ function recipients.initialize()
 	       res.endpoint_id --[[ the id of the endpoint --]],
 	       "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	       all_categories,
+	       all_entities,
 	       default_builtin_minimum_severity,
                all_host_pools, -- host pools
                all_am_hosts, -- active monitoring hosts
@@ -119,7 +128,8 @@ function recipients.initialize()
    for _, recipient in pairs(recipients.get_all_recipients()) do     
       ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, 
          table.concat(recipient.check_categories, ','),
-         table.concat(recipient.host_pools, ',')
+         table.concat(recipient.host_pools, ','),
+         table.concat(recipient.check_entities, ',')
       )
    end
 end
@@ -275,16 +285,18 @@ end
 -- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param check_categories A Lua array with already-validated ids as found in `checks.check_categories` or nil to indicate all categories
+-- @param check_entities A Lua array with already-validated ids as found in `checks.check_entities` or nil to indicate all entities
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param safe_params A table with endpoint recipient params already sanitized
 -- @return nil
-local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, am_hosts_ids, safe_params)
+local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, check_entities, minimum_severity, host_pools_ids, am_hosts_ids, safe_params)
    -- Write the endpoint recipient config into another hash
    local k = _get_recipient_details_key(recipient_id)
 
    ntop.setCache(k, json.encode({endpoint_id = endpoint_id,
 				 recipient_name = endpoint_recipient_name,
 				 check_categories = check_categories,
+				 check_entities = check_entities,
 				 minimum_severity = minimum_severity,
 				 host_pools = host_pools_ids,
 				 am_hosts = am_hosts_ids,
@@ -299,10 +311,11 @@ end
 -- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param check_categories A Lua array with already-validated ids as found in `checks.check_categories` or nil to indicate all categories
+-- @param check_entities A Lua array with already-validated ids as found in `checks.check_entities` or nil to indicate all entities
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
-function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, am_hosts_ids, recipient_params)
+function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, check_entities, minimum_severity, host_pools_ids, am_hosts_ids, recipient_params)
    local locked = _lock()
    local res = { 
       status = "failed",
@@ -336,12 +349,13 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
 	       -- Assign the recipient id
 	       local recipient_id = _assign_recipient_id()
 	       -- Persist the configuration
-	       _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, am_hosts_ids, safe_params)
+	       _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, check_entities, minimum_severity, host_pools_ids, am_hosts_ids, safe_params)
 
 	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
 	       ntop.recipient_register(recipient_id, minimum_severity, 
                   table.concat(check_categories, ','),
-                  table.concat(host_pools_ids, ',')
+                  table.concat(host_pools_ids, ','),
+                  table.concat(check_entities, ',')
                )
 
 	       -- Set a flag to indicate that a recipient has been created
@@ -381,7 +395,7 @@ end
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, am_hosts_ids, recipient_params)
+function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_categories, check_entities, minimum_severity, host_pools_ids, am_hosts_ids, recipient_params)
    local locked = _lock()
    local res = { status = "failed" }
 
@@ -410,6 +424,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
 		  recipient_id,
 		  endpoint_recipient_name,
 		  check_categories,
+		  check_entities,
 		  minimum_severity,
 		  host_pools_ids,
                   am_hosts_ids,
@@ -419,7 +434,8 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
 	       -- and periodic scripts can be reloaded
 	       ntop.recipient_register(tonumber(recipient_id), minimum_severity, 
                   table.concat(check_categories, ','),
-                  table.concat(host_pools_ids, ',')
+                  table.concat(host_pools_ids, ','),
+                  table.concat(check_entities, ',')
                )
 
 	       res = {status = "OK"}
@@ -575,7 +591,7 @@ function recipients.get_recipient(recipient_id, include_stats)
 	 recipient_details["endpoint_conf_name"] =  ec["endpoint_conf_name"]
 	 recipient_details["endpoint_id"] =  ec["endpoint_id"]
 
-	 -- Add user script categories. nil or empty user script categories read from the JSON imply ANY AVAILABLE category
+	 -- Add check categories. nil or empty check categories read from the JSON imply ANY AVAILABLE category
 	 if not recipient_details["check_categories"] or #recipient_details["check_categories"] == 0 then
 	    if not recipient_details["check_categories"] then
 	       recipient_details["check_categories"] = {}
@@ -584,6 +600,17 @@ function recipients.get_recipient(recipient_id, include_stats)
 	    local checks = require "checks"
 	    for _, category in pairs(checks.check_categories) do
 	       recipient_details["check_categories"][#recipient_details["check_categories"] + 1] = category.id
+	    end
+	 end
+
+	 -- Add check entities. nil or empty check entities read from the JSON imply ANY AVAILABLE entity
+	 if not recipient_details["check_entities"] or #recipient_details["check_entities"] == 0 then
+	    if not recipient_details["check_entities"] then
+	       recipient_details["check_entities"] = {}
+	    end
+
+            for _, entity_info in pairs(alert_entities) do
+	       recipient_details["check_entities"][#recipient_details["check_entities"] + 1] = entity_info.entity_id
 	    end
 	 end
 
@@ -688,7 +715,7 @@ end
 
 local function get_notification_category(notification, current_script)
    -- Category is first read from the current_script. If no current_script is found (e.g., for
-   -- alerts cenerated from the C++ core such as start after anomalous termination), the category
+   -- alerts generated from the C++ core such as start after anomalous termination), the category
    -- is guessed from the alert entity.
    local checks = require "checks"
    local entity_id = notification.entity_id
@@ -724,7 +751,7 @@ function recipients.dispatch_notification(notification, current_script)
    end
 
    local notification_category = get_notification_category(notification, current_script)
- 
+
    local recipients = recipients.get_all_recipients()
 
    if #recipients > 0 then
@@ -738,22 +765,36 @@ function recipients.dispatch_notification(notification, current_script)
       end
 
       for _, recipient in ipairs(recipients) do
-         local recipient_ok = false
+         local recipient_ok = true
 
          -- Check Category
-         if notification_category and recipient.check_categories ~= nil then
-            -- Make sure the user script category belongs to the recipient user script categories
+         if recipient_ok and notification_category and recipient.check_categories ~= nil then
+            -- Make sure the user script category belongs to the recipient check categories
+            recipient_ok = false
             for _, check_category in pairs(recipient.check_categories) do
                if check_category == notification_category then
                   recipient_ok = true
                end
             end
-         else
-            recipient_ok = true
+
+            if not recipient_ok then
+               debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to category selection")
+            end
          end
 
-         if not recipient_ok then
-            debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to category selection")
+         -- Check Entity
+         if recipient_ok and notification.entity_id and recipient.check_entities ~= nil then
+            -- Make sure the user script entity belongs to the recipient check entities
+            recipient_ok = false
+            for _, check_entity_id in pairs(recipient.check_entities) do
+               if check_entity_id == notification.entity_id then
+                  recipient_ok = true
+               end
+            end
+
+            if not recipient_ok then
+               debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to entity selection")
+            end
          end
 
          -- Check Severity

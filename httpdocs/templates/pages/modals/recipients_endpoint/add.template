@@ -72,6 +72,18 @@
                         </div>
                     </div>
                     <div class="mb-3 row">
+                        <label class="col-form-label col-sm-3" for="add-recipient-entities-select">
+                            <b>{{ i18n("endpoint_notifications.recipient_entities") }}</b>
+                        </label>
+                        <div class="col-sm-5">
+                            <select multiple name="recipient_check_entities" class="selectpicker col-sm-12" id="add-recipient-entities-select">
+                                {% for _, entity_info in pairsByKeys(check_entities) do %}
+                                    <option value="{{ entity_info.entity_id }}">{{ i18n(entity_info.i18n_label) }}</option>
+                                {% end %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="add-recipient-host-pools-select">
                             <b>{{ i18n("host_pools.host_pools") }}</b>
                         </label>

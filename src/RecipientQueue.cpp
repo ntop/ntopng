@@ -34,6 +34,10 @@ RecipientQueue::RecipientQueue(u_int16_t _recipient_id) {
   /* All categories enabled by default */
   for (int i=0; i < MAX_NUM_SCRIPT_CATEGORIES; i++)
     enabled_categories.setBit(i);
+
+  /* All entities enabled by default */
+  for (int i=0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++)
+    enabled_entities.setBit(i);
 }
 
 /* *************************************** */
@@ -67,7 +71,8 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification, AlertEntit
   if(!notification
      || !notification->alert
      || notification->alert_severity < minimum_severity              /* Severity too low for this recipient     */
-     || !(enabled_categories.isSetBit(notification->alert_category))  /* Category not enabled for this recipient */
+     || !(enabled_categories.isSetBit(notification->alert_category)) /* Category not enabled for this recipient */
+     || !(enabled_entities.isSetBit(alert_entity))                   /* Entity not enabled for this recipient */
      ) {
     return true; /* Nothing to enqueue */
   }
