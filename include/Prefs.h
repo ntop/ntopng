@@ -240,19 +240,19 @@ class Prefs {
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
-  inline bool  do_dump_flows_on_clickhouse()            { return(dump_flows_on_clickhouse);         };
+  inline bool  do_dump_flows_on_clickhouse()            { return(is_enterprise_m_edition() && dump_flows_on_clickhouse);         };
   inline bool  do_dump_flows_on_syslog()                { return(dump_flows_on_syslog);   };
   inline bool  do_dump_extended_json()                  { return(dump_ext_json);          };
   inline bool  do_dump_json_flows_on_disk()             { return(dump_json_flows_on_disk);};
-  inline bool  do_dump_flows() const                    { return(dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_clickhouse || dump_flows_on_syslog); };
+  inline bool  do_dump_flows()                          { return(do_dump_flows_on_es() || do_dump_flows_on_mysql() || do_dump_flows_on_clickhouse() || do_dump_flows_on_syslog()); };
 
 #ifdef NTOPNG_PRO
   inline void  toggle_dump_flows_direct(bool enable)    { dump_flows_direct = enable; };
   inline bool  do_dump_flows_direct()                   { return(dump_flows_direct); };
 #endif
   inline bool is_runtime_flows_dump_enabled()     const { return(enable_runtime_flows_dump); };
-  inline bool is_flows_dump_enabled()             const { return(do_dump_flows() && is_runtime_flows_dump_enabled()); };
-
+  inline bool is_flows_dump_enabled()                   { return(do_dump_flows() && is_runtime_flows_dump_enabled()); };
+    
   int32_t getDefaultPrefsValue(const char *pref_key, int32_t default_value);
   void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
   char* get_if_name(int id);
@@ -452,8 +452,7 @@ class Prefs {
   inline u_int32_t   devicesLearingPeriod()      { return(devices_learning_period);                     };
   inline bool        dontEmitFlowAlerts()        { return(!emit_flow_alerts);                           };
   inline bool        dontEmitHostAlerts()        { return(!emit_host_alerts);                           };
-  inline bool        useClickHouse()             { return(is_enterprise_m_edition() && dump_flows_on_clickhouse); };
-  inline void        dontUseClickHouse()         { dump_flows_on_clickhouse = dump_flows_on_mysql = false;        };
+  inline void        dontUseClickHouse()         { dump_flows_on_clickhouse = dump_flows_on_mysql = false; };
   inline char*       getZMQPublishEventsURL()    { return(zmq_publish_events_url);                      };
   inline const char* getClickHouseClientPath()   { return(clickhouse_client);                           };
 #ifdef NTOPNG_PRO

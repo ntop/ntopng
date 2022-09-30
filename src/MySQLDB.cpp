@@ -712,7 +712,7 @@ MYSQL* MySQLDB::mysql_try_connect(MYSQL *conn, const char *dbname) {
   if(!host)
     return(NULL);
 
-  if((!ntop->getPrefs()->useClickHouse()) && (host[0] == '/') /* Use socketD */)
+  if((!ntop->getPrefs()->do_dump_flows_on_clickhouse()) && (host[0] == '/') /* Use socketD */)
     rc = mysql_real_connect(conn,
 			    NULL, /* Host */
 			    user,
@@ -804,14 +804,14 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   }
   
   ntop->getTrace()->traceEvent(TRACE_INFO, "Attempting to connect to %s for interface %s...",
-			       ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL",
+			       ntop->getPrefs()->do_dump_flows_on_clickhouse() ? "ClickHouse" : "MySQL",
 			       iface->get_name());
 
   m.lock(__FILE__, __LINE__);
 
   if(mysql_init(conn) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize %s connection",
-				 ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL");
+				 ntop->getPrefs()->do_dump_flows_on_clickhouse() ? "ClickHouse" : "MySQL");
     m.unlock(__FILE__, __LINE__);
     return(db_operational);
   }
@@ -820,7 +820,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   if(rc == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to %s: %s [%s@%s:%i]\n",
-				 ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL",
+				 ntop->getPrefs()->do_dump_flows_on_clickhouse() ? "ClickHouse" : "MySQL",
 				 mysql_error(conn), user, host, port);
 
     m.unlock(__FILE__, __LINE__);
@@ -830,7 +830,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   db_operational = true;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to %s [%s@%s:%i][dbname: %s] for interface %s",
-			       ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL",
+			       ntop->getPrefs()->do_dump_flows_on_clickhouse() ? "ClickHouse" : "MySQL",
 			       user, host, port, dbname ? dbname : "", iface->get_name());
 
   m.unlock(__FILE__, __LINE__);
@@ -968,7 +968,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows,
   int rc, num_fields;
   struct timeval begin, end;
 
-  if(!ntop->getPrefs()->useClickHouse()) {
+  if(!ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
     if(wait_for_db_created && (!db_created /* Make sure the db exists before doing queries */)) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unable to perform query: database being created");
       return(-2);

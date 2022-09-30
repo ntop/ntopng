@@ -7424,14 +7424,12 @@ void NetworkInterface::allocateStructures() {
 #ifdef NTOPNG_PRO
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
 	/* Allocate only the DB connection, not any thread or queue for the export */
-	if(ntop->getPrefs()->useClickHouse()) {
-	  try {
-	    db = new ClickHouseFlowDB(this);
-	  } catch(const std::invalid_argument& e) {
-	    db = NULL;
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Leaving due to failed ClickHouse initialization");
-	    exit(-1);
-	  }
+	try {
+	  db = new ClickHouseFlowDB(this);
+	} catch(const std::invalid_argument& e) {
+	  db = NULL;
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Leaving due to failed ClickHouse initialization");
+	  exit(-1);
 	}
 #endif
 #endif
@@ -7440,7 +7438,7 @@ void NetworkInterface::allocateStructures() {
 
     if(!isViewed()) {
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
-      if(ntop->getPrefs()->useClickHouse())
+      if(ntop->getPrefs()->do_dump_flows_on_clickhouse())
         alertStore = new ClickHouseAlertStore(this);
 #endif
 
@@ -8515,13 +8513,11 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 
     if(ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
-      if(ntop->getPrefs()->useClickHouse()) {
-	db = new (std::nothrow) ClickHouseFlowDB(this);
+      db = new (std::nothrow) ClickHouseFlowDB(this);
 
-	if((db == NULL) || (db->isDbCreated() == false)) {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Leaving due to failed ClickHouse initialization");
-	  exit(-1);
-	}
+      if((db == NULL) || (db->isDbCreated() == false)) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Leaving due to failed ClickHouse initialization");
+	exit(-1);
       }
 #endif
     }

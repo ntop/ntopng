@@ -1758,7 +1758,7 @@ static int ntop_speedtest(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_clickhouse_enabled(lua_State* vm) {
-  lua_pushboolean(vm, ntop->getPrefs()->useClickHouse());
+  lua_pushboolean(vm, ntop->getPrefs()->do_dump_flows_on_clickhouse());
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
