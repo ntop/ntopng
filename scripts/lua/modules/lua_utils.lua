@@ -1452,12 +1452,6 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info, vlan
   end
 end
 
--- #############################################
-
-function setCustomDeviceType(mac, device_type)
-   ntop.setPref(getCustomDeviceKey(mac), tostring(device_type))
-end
-
 -- ####################################################
 
 function tableToJsObject(lua_table)

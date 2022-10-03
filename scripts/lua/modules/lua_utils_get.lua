@@ -880,6 +880,12 @@ function getCustomDeviceType(mac)
    return tonumber(ntop.getPref(getCustomDeviceKey(mac)))
 end
 
+-- #############################################
+
+function setCustomDeviceType(mac, device_type)
+   ntop.setPref(getCustomDeviceKey(mac), tostring(device_type))
+end
+
 -- ##############################################
 
 -- @brief Compute and return the difference, in seconds, between the local time of this instance and GMT
