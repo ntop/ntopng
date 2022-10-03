@@ -810,6 +810,8 @@ local function read_file(path)
    return content
 end
 
+-- ########################################################
+
 local function local_custom_timeseries_dump_callback()
    local base_dir_file     = dirs.installdir .. "/scripts/lua/modules/timeseries"
    local custom_file       = "ts_custom_function"
@@ -819,7 +821,8 @@ local function local_custom_timeseries_dump_callback()
       traceError(TRACE_NORMAL, TRACE_CONSOLE, "Loading "..lists_custom_file)
       local content = read_file(lists_custom_file)
 
-      tprint(content)
+      -- tprint(content)
+      
       local rc = load(content)
 
       rc("", "") -- needed to activate the function
