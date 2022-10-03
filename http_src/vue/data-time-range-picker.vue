@@ -5,7 +5,7 @@
     <div class="controls d-flex flex-wrap">
       <div class="btn-group me-auto btn-group-sm">
         <slot name="begin"></slot>
-        <select-search v-model:selected_option="selected_time_preset"
+        <select-search v-model:selected_option="selected_time_option"
           :id="'time_preset_range_picker'"
           :options="time_preset_list"
           @select_option="change_select_time">
@@ -159,7 +159,8 @@ export default {
             const now = this.get_utc_seconds(Date.now());
             const end_utc_s = this.get_utc_seconds(end_utc);
             const begin_utc_s = this.get_utc_seconds(begin_utc);
-            
+
+	    
             if (this.is_between(end_utc_s, now, tolerance)) {
                 if (this.is_between(begin_utc_s, now - s_values.min_5, tolerance)) {
                     this.select_time_value = "min_5";
@@ -185,8 +186,8 @@ export default {
             this.time_preset_list.forEach(element => {
               element.currently_active = false
               if(element.value == this.select_time_value) {
-                this.selected_time_preset = element
-                element.currently_active = true
+                this.selected_time_option = element;
+                element.currently_active = true;
               }
             });
         },
@@ -326,7 +327,8 @@ export default {
       //status_id: "data-time-range-picker" + this.$props.id,
       epoch_status: null,
       enable_apply: false,
-      select_time_value: "min_5",
+	  select_time_value: "min_5",
+	  selected_time_option: null,
       wrong_date: false,
       flat_begin_date: null,
       flat_end_date: null,

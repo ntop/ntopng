@@ -128,7 +128,7 @@ const current_groups_options_mode = ref(init_groups_option_mode());
 
 let last_timeseries_groups_loaded = null;
 
-const custom_metric = { value: "custom", label: i18n('page_stats.custom_metrics'), currently_active: false }
+const custom_metric = { label: i18n('page_stats.custom_metrics'), currently_active: false }
 
 const page_snapshots = "timeseries";
 
