@@ -19,7 +19,7 @@ local host_pools = require "host_pools":create()
 
 sendHTTPContentTypeHeader('text/html')
 
-local NOTIFICATION_URL = "/lua/admin/endpoint_notifications_list.lua"
+local NOTIFICATION_URL = ntop.getHttpPrefix() .. "/lua/admin/endpoint_notifications_list.lua"
 local check_subdir = _GET["subdir"] or "endpoint"
 
 if not isAdministratorOrPrintErr() then
@@ -72,7 +72,6 @@ end
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local url = ntop.getHttpPrefix() .. "/lua/admin/endpoint_notifications_list.lua"
 page_utils.print_navbar(i18n("endpoint_notifications.notifications"), '#', navbar_menu)
 
 -- localize endpoint name types in a table
