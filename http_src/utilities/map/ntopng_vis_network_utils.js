@@ -35,9 +35,9 @@ const defaultOptions = {
   physics: {
       solver: "barnesHut",
       barnesHut: {
-          theta: 0.5,
-          springConstant: 0.1,
-          avoidOverlap: 1,
+          theta: 0.1,
+          springConstant: 1,
+          avoidOverlap: 0.01,
           gravitationalConstant: -2000,
           damping: 1,
           centralGravity: 0,
