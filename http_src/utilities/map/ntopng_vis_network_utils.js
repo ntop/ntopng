@@ -33,18 +33,19 @@ const defaultOptions = {
       tooltipDelay: 0,
   },
   physics: {
-      solver: "barnesHut",
-      barnesHut: {
-          theta: 0.1,
+      solver: "repulsion",
+      repulsion: {
+          nodeDistance: 200,  
+//          theta: 0,
           springConstant: 1,
-          avoidOverlap: 0.01,
-          gravitationalConstant: -2000,
+//          avoidOverlap: 0,
+//          gravitationalConstant: -5000,
           damping: 1,
           centralGravity: 0,
-          springLength: 200
+          springLength: 150
       },
       stabilization: {
-          onlyDynamicEdges: false
+          onlyDynamicEdges: true
       },    
   },
   groups: {
