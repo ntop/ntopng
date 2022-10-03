@@ -720,7 +720,7 @@ local lang = {
     ["other"] = "Other",
     ["snmp_device"] = "SNMP",
     ["system"] = "System",
-    ["test"] = "Test",
+    ["test"] = "Unit Test",
     ["user"] = "User",
   },
   ["alert_messages"] = {
