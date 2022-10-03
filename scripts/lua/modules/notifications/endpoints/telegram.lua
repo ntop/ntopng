@@ -83,15 +83,20 @@ function telegram.sendMessage(recipient, message_body, settings)
          tmp = message_body
       end
 
-      -- In this case "httpPost" method is needed
-      local msg = json.encode(message_body)
-      data = '{"chat_id": "' .. recipient.recipient_params.telegram_channel .. '", "text": "' .. tmp .. '", "disable_notification": true}'
+      local message = {
+        chat_id = recipient.recipient_params.telegram_channel,
+        text = tmp,
+        disable_notification = true
+      }
 
+      local data = json.encode(message)
+
+      -- In this case "httpPost" method is needed
       local post_rc = ntop.httpPost(settings.url, data)
 
       if(post_rc and (post_rc.RESPONSE_CODE == 200)) then 
-	      rc = true
-	      break 
+        rc = true
+        break 
       end
       
       retry_attempts = retry_attempts - 1

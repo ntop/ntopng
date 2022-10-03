@@ -68,9 +68,11 @@ function alert_device_protocol_not_allowed.format(ifid, alert, alert_type_params
    end
 
    local label = discover.devtype2string(devtype)
-   return i18n(msg, {proto=interface.getnDPIProtoName(forbidden_proto), devtype=label,
+   local description = i18n(msg, {proto=interface.getnDPIProtoName(forbidden_proto), devtype=label,
       url=getDeviceProtocolPoliciesUrl("device_type="..
       devtype.."&l7proto="..forbidden_proto)})
+
+   return description
 end
 
 -- #######################################################
