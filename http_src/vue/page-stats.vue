@@ -45,11 +45,25 @@
       </div>
     </template>
   </div>
+  
+  <div class="mt-4 card card-shadow">
+    <div class="card-body">
+      <BootstrapTable
+	id="page_stats_bootstrap_table"
+	:columns="stats_columns"
+	:rows="stats_rows"
+	:print_html_column="(col) => print_stats_column(col)"
+	:print_html_row="(col, row) => print_stats_row(col, row)">
+      </BootstrapTable>
+    </div>
+  </div>
+  
   <div class="mt-4 card card-shadow">
     <div class="card-body">
       <div class="mb-4 text-nowrap" style="font-size: 1.1rem;">
         <i class="fa-solid fa-chart-line"></i> 	{{_i18n('page_stats.top_applications')}}
       </div>
+      
       <Datatable ref="top_applications_table"
         :table_buttons="config_app_table.table_buttons"
         :columns_config="config_app_table.columns_config"
@@ -84,10 +98,12 @@ import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as Datatable } from "./datatable.vue";
+import { default as BootstrapTable } from "./bootstrap-table.vue";
 
 import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../services/context/ntopng_globals_services.js";
 import timeseriesUtils from "../utilities/timeseries-utils.js";
 import metricsManager from "../utilities/metrics-manager.js";
+import formatterUtils from "../utilities/formatter-utils";
 import { DataTableUtils } from "../utilities/datatable/sprymedia-datatable-utils";
 
 const props = defineProps({
@@ -346,6 +362,7 @@ async function load_charts_data(timeseries_groups, not_reload) {
     let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_chart_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
     
     set_charts_options_items(charts_options);
+    set_stats_rows(ts_chart_options, timeseries_groups);
     
     // set last_timeseries_groupd_loaded
     last_timeseries_groups_loaded = timeseries_groups;
@@ -390,18 +407,18 @@ function get_ts_compare(status) {
 }
 
 function get_datatable_url() {
-  let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/interface/top/ts_stats.lua`;
-	let p_obj = {
-    zoom: '5m',
-    ts_query: `ifid:${ntopng_url_manager.get_url_entry('ifid')}`,
-    epoch_begin: `${ntopng_url_manager.get_url_entry('epoch_begin')}`,
-    epoch_end: `${ntopng_url_manager.get_url_entry('epoch_end')}`,
-    detail_view: `top_protocols`,
-    new_charts: `true`
-  };
-  
-  let p_url_request =  ntopng_url_manager.add_obj_to_url(p_obj, '');
-  return `${chart_data_url}?${p_url_request}`;
+    let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/interface/top/ts_stats.lua`;
+    let p_obj = {
+	zoom: '5m',
+	ts_query: `ifid:${ntopng_url_manager.get_url_entry('ifid')}`,
+	epoch_begin: `${ntopng_url_manager.get_url_entry('epoch_begin')}`,
+	epoch_end: `${ntopng_url_manager.get_url_entry('epoch_end')}`,
+	detail_view: `top_protocols`,
+	new_charts: `true`
+    };
+    
+    let p_url_request =  ntopng_url_manager.add_obj_to_url(p_obj, '');
+    return `${chart_data_url}?${p_url_request}`;
 }
 
 async function reload_table_data() {
@@ -411,71 +428,130 @@ async function reload_table_data() {
 }
 
 async function load_datatable_data() {
-  const url = get_datatable_url()
-  set_table_configuration(url)
+    const url = get_datatable_url()
+    set_table_configuration(url)
 };
 
 function set_table_configuration(url) {
-  const default_sorting_columns = 2 /* Percentage column */
-  let columns = [
-      { columnName: i18n("application"), name: 'application', data: 'protocol', className: 'text-nowrap', responsivePriority: 1, handlerId: "page-stats-action-link-application", render: (data, type, service) => {
-	  let handler = {
-	      handlerId: "page-stats-action-link-application",
-	      onClick: () => {
-		  console.log(data);
-		  console.log(service);
-		  let schema = `top:${service.ts_schema}`;
-		  add_metric_from_metric_schema(schema, service.ts_query)
-	      },
-	  };
-	  return DataTableUtils.createLinkCallback({ text: data.label, handler });
-      },},
-    { columnName: i18n("traffic"), name: 'traffic', data: 'traffic', orderable: false, className: 'text-nowrap', responsivePriority: 1, render: (data) => { 
-        return NtopUtils.bytesToSize(data)
-      }, 
-    },
-    { columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-        const percentage = data.toFixed(1);
-        return `<div class="d-flex flex-row">
+    const default_sorting_columns = 2 /* Percentage column */
+    let columns = [
+	{ columnName: i18n("application"), name: 'application', data: 'protocol', className: 'text-nowrap', responsivePriority: 1, handlerId: "page-stats-action-link-application", render: (data, type, service) => {
+	    let handler = {
+		handlerId: "page-stats-action-link-application",
+		onClick: () => {
+		    console.log(data);
+		    console.log(service);
+		    let schema = `top:${service.ts_schema}`;
+		    add_metric_from_metric_schema(schema, service.ts_query)
+		},
+	    };
+	    return DataTableUtils.createLinkCallback({ text: data.label, handler });
+	},},
+	{ columnName: i18n("traffic"), name: 'traffic', data: 'traffic', orderable: false, className: 'text-nowrap', responsivePriority: 1,
+	  render: (data) => {
+	      return NtopUtils.bytesToSize(data)
+	  }, 
+	},
+	{ columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage', className: 'text-nowrap', responsivePriority: 1,
+	  render: (data) => {
+              const percentage = data.toFixed(1);
+              return `<div class="d-flex flex-row">
                   <div class="col-9 progress">
                     <div class="progress-bar bg-warning" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage}%;">
                     </div>
                   </div>
                   <div class="col ms-3"> ${percentage} %</div>
                 </div>`
-      } 
-    }
-  ];  
-
-  /* If ClickHouse is enabled, then add an href to Historical Flows */
+	  } 
+	}
+    ];  
+    
+    /* If ClickHouse is enabled, then add an href to Historical Flows */
     if(true) {
 	let handlerIdJumpHistorical = "page-stats-action-jump-historical";
-    columns.push({ columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, handlerId: handlerIdJumpHistorical, render: (data, type, service) => {
-	const jump_to_historical = {
+	columns.push({
+	    columnName: i18n("actions"),
+	    width: '5%',
+	    name: 'actions',
+	    className: 'text-center',
+	    orderable: false,
+	    responsivePriority: 0,
 	    handlerId: handlerIdJumpHistorical,
-            onClick: () => {
-		let l7_proto = ntopng_url_manager.serialize_param("l7proto", `${service.protocol.id};eq`); 
-		let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?ifid=${ntopng_url_manager.get_url_entry('ifid')}&epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&${l7_proto}`;
-          console.log(historical_flows_url);
-          window.open(historical_flows_url);
-        }
-      }
-      return DataTableUtils.createActionButtons([
-        { class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
-      ]);
-    }})
-  }
-
-  const datatable_config = {
-    table_buttons: [ { text: '<i class="fas fa-sync"></i>', className: 'btn-link', action: function () { reload_table(); } } ],
-    columns_config: columns,
-    data_url: url,
-    enable_search: true,
-    table_config: { serverSide: false, order: [[ default_sorting_columns, 'desc' ]] }
-  };
-  config_app_table = datatable_config
+	    render: (data, type, service) => {
+		const jump_to_historical = {
+		    handlerId: handlerIdJumpHistorical,
+		    onClick: () => {
+			let l7_proto = ntopng_url_manager.serialize_param("l7proto", `${service.protocol.id};eq`); 
+			let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?ifid=${ntopng_url_manager.get_url_entry('ifid')}&epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&${l7_proto}`;
+			console.log(historical_flows_url);
+			window.open(historical_flows_url);
+		    }
+		};
+		return DataTableUtils.createActionButtons([
+		    { class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
+		]);
+	    }
+	});
+    }
+    
+    const datatable_config = {
+	table_buttons: [ { text: '<i class="fas fa-sync"></i>', className: 'btn-link', action: function () { reload_table(); } } ],
+	columns_config: columns,
+	data_url: url,
+	enable_search: true,
+	table_config: { serverSide: false, order: [[ default_sorting_columns, 'desc' ]] }
+    };
+    config_app_table = datatable_config
 }
-      
+
+let stats_columns = [
+    { id: "metric", label: "Metric" },
+    { id: "avg", label: "Average" },
+    { id: "perc_95", label: "95th Percentile" },
+    { id: "max", label: "Max" },
+    { id: "min", label: "Min" },
+    { id: "total", label: "Total" },
+];
+
+const stats_rows = ref([]);
+
+function set_stats_rows(ts_chart_options, timeseries_groups) {
+    let extend_serie_name = true;
+    let print_stat = (value) => {
+	if (value == null) { return ''; }
+	return value;
+    };
+    stats_rows.value = [];
+    ts_chart_options.forEach((options, i) => {
+	let ts_group = timeseries_groups[i];
+	options.series.forEach((s, j) => {
+	    let ts_id = timeseriesUtils.getSerieId(s);
+	    let s_metadata = ts_group.metric.timeseries[ts_id];
+	    let formatter = formatterUtils.getFormatter(ts_group.metric.measure_unit);
+	    let ts_stats = options.statistics?.by_serie[j];
+	    let name = timeseriesUtils.getSerieName(s_metadata.label, ts_id, ts_group, extend_serie_name);
+	    let row = {
+		metric: name,
+		total: formatter(ts_stats.total),
+		perc_95: formatter(ts_stats["95th_percentile"]),
+		avg: formatter(ts_stats.average),
+		max: formatter(ts_stats.max_val),
+		min: formatter(ts_stats.min_val),
+	    };
+	    stats_rows.value.push(row);
+	});
+    });
+}
+
+function print_stats_column(col) {
+    return col.label;
+}
+
+function print_stats_row(col, row) {
+    let label = row[col.id];
+    return label;
+}
+
 const _i18n = (t) => i18n(t);
 
 </script>

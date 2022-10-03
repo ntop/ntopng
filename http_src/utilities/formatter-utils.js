@@ -64,7 +64,10 @@ function getFormatter(type, absoluteValue) {
     let typeOptions = types[type];
     let maxLenValue = 6; // 000.00
     let maxLenUm = 8; // Mflows/s
-    let formatter = function(value) {	
+    let formatter = function(value) {
+	if (value == null) {
+	    return '';
+	}
 	if (type == types.no_formatting.id) {
 	    return value;
 	}

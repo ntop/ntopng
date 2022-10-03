@@ -454,7 +454,9 @@ const timeseriesUtils = function() {
 	tsToApexOptions,
 	tsArrayToApexOptions,
 	tsArrayToApexOptionsArray,
-	getGroupOptionMode
+	getGroupOptionMode,
+	getSerieId,
+	getSerieName,
     };
 }();
 
