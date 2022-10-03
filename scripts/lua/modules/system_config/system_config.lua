@@ -311,23 +311,84 @@ function system_config:getLanInterface()
 end
 
 -- Get all the interfaces, along with their roles
-function system_config:getAllInterfaces()
+function system_config:getAllInterfaces(exclude)
   local ifaces = {}
 
   for _, iface in pairs(self:getPhysicalLanInterfaces()) do
-    ifaces[iface] = "lan"
+    if not exclude then
+      ifaces[iface] = "lan"
+    elseif exclude == 'vlans' then
+      local vlan = iface:match('[^.]+$')
+      -- Be sure that this is not a vlan, check if the string 
+      -- is not a number or it is greater then 4096 - max vlan number
+      if not vlan or not tonumber(vlan) or 
+            tonumber(vlan) > 4096 or
+            tonumber(vlan) < 0 then
+        ifaces[iface] = "lan"
+      end
+    elseif exclude == 'physicals' then
+      local vlan = iface:match('[^.]+$')
+      -- Be sure that this is not a phisical interface, check if the string 
+      -- is a number and it is lesser then 4096 - max vlan number
+      if vlan and tonumber(vlan) and 
+            tonumber(vlan) > 0 and 
+            tonumber(vlan) < 4096 then
+        ifaces[iface] = "lan"
+      end
+    end
   end
 
   for _, iface in pairs(self:getPhysicalWanInterfaces()) do
-    ifaces[iface] = "wan"
+    if not exclude then
+      ifaces[iface] = "wan"
+    elseif exclude == 'vlans' then
+      local vlan = iface:match('[^.]+$')
+      -- Be sure that this is not a vlan, check if the string 
+      -- is not a number or it is greater then 4096 - max vlan number
+      if not vlan or not tonumber(vlan) or 
+            tonumber(vlan) > 4096 or
+            tonumber(vlan) < 0 then
+        ifaces[iface] = "wan"
+      end
+    elseif exclude == 'physicals' then
+      local vlan = iface:match('[^.]+$')
+      -- Be sure that this is not a phisical interface, check if the string 
+      -- is a number and it is lesser then 4096 - max vlan number
+      if vlan and tonumber(vlan) and 
+            tonumber(vlan) > 0 and 
+            tonumber(vlan) < 4096 then
+        ifaces[iface] = "wan"
+      end
+    end
   end
 
   for _, iface in pairs(self:getUnusedInterfaces()) do
-    ifaces[iface] = "unused"
+    if not exclude then
+      ifaces[iface] = "unused"
+    elseif exclude == 'vlans' then
+      local vlan = iface:match('[^.]+$')
+      -- Be sure that this is not a vlan, check if the string 
+      -- is not a number or it is greater then 4096 - max vlan number
+      if not vlan or not tonumber(vlan) or 
+            tonumber(vlan) > 4096 or
+            tonumber(vlan) < 0 then
+        ifaces[iface] = "unused"
+      end
+    elseif exclude == 'physicals' then
+      local vlan = iface:match('[^.]+$')
+      -- Be sure that this is not a phisical interface, check if the string 
+      -- is a number and it is lesser then 4096 - max vlan number
+      if vlan and tonumber(vlan) and 
+            tonumber(vlan) > 0 and 
+            tonumber(vlan) < 4096 then
+        ifaces[iface] = "unused"
+      end
+    end
   end
 
   return ifaces
 end
+
 
 function system_config:getBridgeInterfaceName()
   if self.config.globals.available_modes["bridging"] then
@@ -868,6 +929,21 @@ end
 
 -- ##############################################
 
+function system_config:setInterfaceConfiguration(interface, config)
+  if self.config.interfaces.configuration and 
+      not self.config.interfaces.configuration[interface] then
+    self.config.interfaces.configuration[interface] = config
+  end
+end
+
+function system_config:removeInterfaceConfiguration(interface)
+  if self.config.interfaces.configuration[interface] then
+    self.config.interfaces.configuration[interface] = null
+  end
+end
+
+-- ##############################################
+
 function system_config:setInterfaceMode(iface, mode)
   local net_config = self.config.interfaces.configuration[iface]
 
@@ -1174,6 +1250,80 @@ function system_config:verifyNetworkInterfaces()
   end
 
   return true
+end
+
+-- ##############################################
+
+function system_config:addDefaultInterfaceConfig(interface_name)
+  self:setInterfaceConfiguration(interface_name, {
+    family = "wired",
+    masquerade = true,
+    speed = {
+      download = 10000,
+      upload = 10000,
+    },
+    network = {
+      mode = "static"
+    }
+  })
+  
+  self:setInterfaceMode(interface_name, 'static')
+end
+
+-- ##############################################
+
+-- Add to the configuration file a new interface, VLAN supported.
+-- When added, it's going to be added to the unused interfaces of the modes
+function system_config:addInterface(interface_name)
+  -- First set the new interface configuration
+  self:addDefaultInterfaceConfig(interface_name)
+  
+  -- Then add the interface to the unused ones
+  for _, mode_conf in pairs(self.config.globals.available_modes) do
+    if mode_conf["interfaces"] then
+      if not mode_conf["interfaces"]["unused"] then
+        mode_conf["interfaces"]["unused"] = {}
+      end
+
+      local unused_interfaces = mode_conf["interfaces"]["unused"]
+      local add_interface = true
+      
+      for _, iface in pairs(unused_interfaces) do
+        if iface == interface_name then
+          add_interface = false
+          break
+        end
+      end
+
+      if add_interface == true then
+        -- Add to all modes, routing and bridging the new interface and set it to unused
+        mode_conf["interfaces"]["unused"][#unused_interfaces + 1] = interface_name
+      end
+    end
+  end
+end
+
+-- ##############################################
+
+-- Remove from the configuration file an unused interface, VLAN supported.
+function system_config:removeInterface(interface_name)
+  -- First remove the interface configuration
+  self:removeInterfaceConfiguration(interface_name)
+
+  -- Then remove the interface from the unused ones
+  for mode_name, mode_conf in pairs(self.config.globals.available_modes) do
+    if mode_conf["interfaces"] then
+      local unused_interfaces = mode_conf["interfaces"]["unused"]
+      if unused_interfaces and table.len(unused_interfaces) > 0 then
+        for index, iface in pairs(unused_interfaces) do
+          if iface == interface_name then
+            table.remove(mode_conf["interfaces"]["unused"], index)
+            break
+          end
+        end
+      end
+    end
+  end
 end
 
 -- ##############################################

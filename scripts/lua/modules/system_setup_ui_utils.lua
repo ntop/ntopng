@@ -23,6 +23,7 @@ local subpages = {
    { name = "mode",               nedge = true,  appliance = true,                       url = "mode.lua",           label = i18n("nedge.setup_mode")                  },
    { name = "wifi",               nedge = false, appliance = true,                       url = "wifi.lua",           label = i18n("prefs.wifi")                        },
    { name = "network_interfaces", nedge = true,  appliance = true,                       url = "interfaces.lua",     label = i18n("prefs.network_interfaces")          },
+   { name = "vlan",               nedge = true,  appliance = false,                       url = "vlan.lua",           label = i18n("nedge.vlan_configuration")          },
    { name = "network_setup",      nedge = true,  appliance = true,                       url = "network.lua",        label = i18n("nedge.interfaces_configuration")    },
    { name = "dhcp",               nedge = true,  appliance = false, routing_only = true, url = "dhcp.lua",           label = i18n("nedge.dhcp_server")                 },
    { name = "dns",                nedge = true,  appliance = false, vlan_trunk = false,  url = "dns.lua",            label = i18n("nedge.dns_configuration")           },

@@ -1659,6 +1659,7 @@ local known_parameters = {
    ["recipients"]             = validateEmptyOr(validateListOfTypeInline(validateNumber)),
 
 -- OTHER
+   ["interface"]               = validateSingleWord,
    ["get_all_values"]          = validateBool,                  -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if all the values have to be returned
    ["collapse_stats"]          = validateBool,                  -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if stats need to be collapsed
    ["max_values"]              = validateNumber,                -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know the max number of stats to be returned
@@ -1699,6 +1700,7 @@ local known_parameters = {
    ["subdir"]                  = validateSingleWord,            -- A user script subdir
    ["profile"]                 = http_lint.validateTrafficProfile,        -- Traffic Profile name
    ["delete_profile"]          = http_lint.validateTrafficProfile,        -- A Traffic Profile to delete
+   ["delete_vlan"]             = validateSingleWord,        -- A Traffic Profile to delete
    ["alert_id"]                = validateListOfTypeInline(validateFilters(validateNumber)),-- An alert type enum
    ["alert_l7_proto"]          = validateNumber,                -- An alert l7 protocol
    ["alert_subtype"]           = validateSingleWord,            -- An alert subtype string
