@@ -6499,6 +6499,8 @@ local lang = {
     ["about_to_extract"] = "About to extract traffic from <b>%{date_begin}</b> to <b>%{date_end}</b>",
     ["active_since"] = "Active Since",
     ["archive"] = "Archive",
+    ["capture_filter_bpf"] = "Capture Filter (nBPF Format)",
+    ["capture_filter_bpf_note"] = "Capture filter format and examples are available in the <a href=\"https://www.ntop.org/guides/n2disk/filters.html#capture-filters\" target=\"_blank\">n2disk User's Guide</a>.",
     ["completed"] = "Completed",
     ["continuous_recording"] = "Continuous Traffic Recording",
     ["continuous_recording_and_flows"] = "Continuous Traffic Recording and Flow Visibility",

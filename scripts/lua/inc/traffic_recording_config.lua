@@ -23,7 +23,12 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   else
     ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.enabled')
   end
-  
+ 
+  local bpf_filter = ''
+  if not isEmptyString(_POST["bpf_filter"]) then
+    bpf_filter = _POST["bpf_filter"]
+  end
+  ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.bpf_filter', bpf_filter)
 
   local disk_space = recording_utils.default_disk_space
   if not isEmptyString(_POST["disk_space"]) then
@@ -50,6 +55,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   if record_traffic then
     local config = {}
     config.max_disk_space = disk_space
+    config.bpf_filter = bpf_filter
     if recording_utils.isSupportedZMQInterface(master_ifid) then 
       config.zmq_endpoint = recording_utils.getZMQProbeAddr(master_ifid)
       recording_utils.stop(master_ifid) -- stop before starting as the interface can be changed
@@ -66,6 +72,8 @@ local record_traffic = false
 if ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.enabled') == "1" then
   record_traffic = true
 end
+
+local bpf_filter = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.bpf_filter')
 
 local disk_space = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.disk_space')
 local storage_info = recording_utils.storageInfo(master_ifid)
@@ -135,6 +143,14 @@ print [[
       </tr>
 
       <tr>
+        <th>]] print(i18n("traffic_recording.capture_filter_bpf")) print [[</th>
+        <td colspan=2>
+          <input style="width:300px;display:inline;" class="form-control" name="bpf_filter" placeholder="" class="form-control input-sm" data-bpf="bpf" autocomplete="off" spellcheck="false" value="]] print(bpf_filter) print [["></input><br>
+<small>]] print(i18n("traffic_recording.capture_filter_bpf_note")) print[[</small>
+        </td>
+      </tr>
+
+      <tr>
         <th>]] print(i18n("traffic_recording.storage_dir")) print [[</th>
         <td colspan=2>]] print(recording_utils.getPcapPath(master_ifid)) print [[</td>
       </tr>
@@ -173,7 +189,7 @@ print[[
 
 print [[
     </table>
-    <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
+    <button id="traffic_recording_submit" class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
   </form>
   <span>]]
 
@@ -184,6 +200,20 @@ print[[
       <li>]] print(i18n("traffic_recording.storage_directory_config", {option="--pcap-dir", product=info.product})) print[[</li>
     </ul>
   </span>
+
+  <script>
+  $("#traffic_recording_form")
+    .validator({ custom: { bpf: bpfValidator }, errors: { bpf: 'Invalid filter' } })
+    .on('validate.bs.validator', function(e) {
+      var submitbtn = $("#traffic_recording_submit");
+      var invalid = $(".has-error", $(this)).length > 0;
+      if (invalid) {
+        submitbtn.addClass("disabled");
+      } else {
+        submitbtn.removeClass("disabled");
+      }
+    });
+  </script>
 
   <script>
     aysHandleForm("#traffic_recording_form");

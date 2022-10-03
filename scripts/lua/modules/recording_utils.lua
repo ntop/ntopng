@@ -615,6 +615,11 @@ function recording_utils.createConfig(ifid, params)
     end
   end
 
+  -- Capture filter (BPF)
+  if not isEmptyString(config.bpf_filter) then
+    f:write("--fast-filter="..config.bpf_filter.."\n")
+  end
+
   -- ZMQ
   if config.zmq_endpoint ~= nil then
     f:write("--zmq="..config.zmq_endpoint.."\n")
