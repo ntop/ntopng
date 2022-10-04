@@ -108,7 +108,7 @@ end
 -- ##############################################
 
 local function formatTelegramMessage(alert)
-   local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=false, no_bracket_around_date=true, emoji=true, nodate=true})
+   local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=false, no_bracket_around_date=true, emoji=true, nodate=true, show_entity=true})
    
    return(msg)
 end
