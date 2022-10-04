@@ -751,15 +751,14 @@ void Flow::processExtraDissectedInformation() {
   if(get_ndpi_flow()) {
     /* Save riskInfo */
     char *out, buf[512];
-
-    out = ndpi_get_flow_risk_info(get_ndpi_flow(), buf, sizeof(buf), 1 /* JSON */);
-
+    struct ndpi_flow_struct* f = get_ndpi_flow();
+    
+    out = ndpi_get_flow_risk_info(f, buf, sizeof(buf), 1 /* JSON */);
+    
     if(out != NULL)
       setJSONRiskInfo(out);
-  }
 
-  if(ndpiFlow) {
-    flow_payload = ndpiFlow->flow_payload, flow_payload_len = ndpiFlow->flow_payload_len;
+    flow_payload = f->flow_payload, flow_payload_len = f->flow_payload_len;
     ndpiFlow->flow_payload = NULL; /* ntopng will free this memory not nDPI */
   }
 
