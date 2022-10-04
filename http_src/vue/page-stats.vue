@@ -1,15 +1,17 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
 <div class="col-12 mb-2 mt-2">
+  <AlertInfo></AlertInfo>
   <div class="card h-100 overflow-hidden">
     <DataTimeRangePicker style="margin-top:0.5rem;"
-      :id="id_date_time_picker"
-      ref="date_time_picker"
-      @epoch_change="epoch_change">
+			 :id="id_date_time_picker"
+			 ref="date_time_picker"
+			 @epoch_change="epoch_change">
       <template v-slot:begin>
       </template>
       <template v-slot:extra_buttons>
 	<button v-if="enable_snapshots" class="btn btn-link btn-sm" @click="show_modal_snapshot" :title="_i18n('page_stats.manage_snapshots_btn')"><i class="fas fa-lg fa-camera-retro"></i></button>
+	<button v-if="show_pcap_download || false" class="btn btn-link btn-sm" @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i class="fas fa-lg fa-download"></i></button>
 	
       </template>
     </DataTimeRangePicker>
@@ -74,8 +76,7 @@
     </div>
   </div>
 </div>
-<!-- <SimpleTable :chart_options="last_chart_options" -->
-<!-- ></SimpleTable> -->
+
 <ModalSnapshot v-if="enable_snapshots" ref="modal_snapshot"
 	       :csrf="csrf"
 	       :page="page_snapshots"
@@ -86,7 +87,13 @@
 
 <ModalTimeseries
   ref="modal_timeseries"
-  @apply="apply_modal_timeseries"></ModalTimeseries>
+  @apply="apply_modal_timeseries">
+</ModalTimeseries>
+
+<ModalTrafficExtraction
+  id="page_stats_modal_traffic_extraction"
+  ref="modal_traffic_extraction">
+</ModalTrafficExtraction>
 </template>
 
 <script setup>
@@ -95,7 +102,9 @@ import { default as Chart } from "./chart.vue";
 import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalTimeseries } from "./modal-timeseries.vue";
-import { default as SimpleTable } from "./simple-table.vue";
+import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
+import { default as AlertInfo } from "./alert-info.vue";
+
 import { default as SelectSearch } from "./select-search.vue";
 import { default as Datatable } from "./datatable.vue";
 import { default as BootstrapTable } from "./bootstrap-table.vue";
@@ -550,6 +559,11 @@ function print_stats_column(col) {
 function print_stats_row(col, row) {
     let label = row[col.id];
     return label;
+}
+
+const modal_traffic_extraction = ref(null);
+function show_modal_traffic_extraction() {
+    modal_traffic_extraction.value.show();
 }
 
 const _i18n = (t) => i18n(t);

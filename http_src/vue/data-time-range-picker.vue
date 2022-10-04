@@ -228,7 +228,7 @@ export default {
         // },
         change_select_time: function() {
             let s_values = this.get_select_values();
-            let interval_s = s_values[this.selected_time_preset.value];
+            let interval_s = s_values[this.selected_time_option.value];
             let epoch_end = this.get_utc_seconds(Date.now());
             let epoch_begin = epoch_end - interval_s;
             let status = { epoch_begin: epoch_begin, epoch_end: epoch_end };
@@ -328,11 +328,10 @@ export default {
       epoch_status: null,
       enable_apply: false,
 	  select_time_value: "min_5",
-	  selected_time_option: null,
+	  selected_time_option: { value: "min_5", label: i18n('show_alerts.presets.5_min'), currently_active: false },
       wrong_date: false,
       flat_begin_date: null,
       flat_end_date: null,
-      selected_time_preset: { value: "min_30", label: i18n('show_alerts.presets.30_min') },
       time_preset_list: [
         { value: "min_5", label: i18n('show_alerts.presets.5_min'), currently_active: false },
         { value: "min_30", label: i18n('show_alerts.presets.30_min'), currently_active: true },

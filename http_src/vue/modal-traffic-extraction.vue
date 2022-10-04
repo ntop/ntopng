@@ -12,15 +12,15 @@
           </div>
 	  
 	  <div class="form-group mb-3 col-md-9 text-right asd">
-	    <label class="radio-inline"><input type="radio" name="extract_now" v-model="extract_now"  value="true" checked="">{{i18n('traffic_recording.extract_now')}}</label>
-	    <label class="radio-inline"><input type="radio" name="extract_now" v-model="extract_now" value="false">{{i18n('traffic_recording.queue_as_job')}}</label>
+	    <label class="radio-inline" style="margin-left: 1rem;"><input type="radio" name="extract_now" v-model="extract_now"  value="true" checked=""> {{i18n('traffic_recording.extract_now')}} </label>
+	    <label class="radio-inline"><input type="radio" name="extract_now" v-model="extract_now" value="false"> {{i18n('traffic_recording.queue_as_job')}} </label>
 	  </div>
         </div>
 	
         <div v-show="show_menu" class="row" id="pcapDownloadModal_advanced" style="">
           <div class="form-group mb-3 col-md-12 has-feedback">
 	    <br>
-            <label class="form-label">{{i18n('traffic_recording.filter_nbpf')}}<a class="ntopng-external-link" href="https://www.ntop.org/guides/n2disk/filters.html"><i class="fas fa-external-link-alt"></i></a></label>
+            <label class="form-label">{{i18n('traffic_recording.filter_bpf')}} <a class="ntopng-external-link" href="https://www.ntop.org/guides/n2disk/filters.html"><i class="fas fa-external-link-alt"></i></a></label>
             <div class="input-group">
               <span class="input-group-addon"><span class="glyphicon glyphicon-filter"></span></span>
               <input name="bpf_filter" v-model="bpf_filter" class="form-control input-sm" data-bpf="bpf" autocomplete="off" spellcheck="false">
@@ -91,7 +91,7 @@ export default defineComponent({
 	},
 	apply: async function() {
 	    if (this.bpf_filter != null && this.bpf_filter != "") {
-		let url_request = `${base_path}/lua/pro/rest/v2/check/filter.lua?query=${this.bpf_filter}`;
+		let url_request = `${http_prefix}/lua/pro/rest/v2/check/filter.lua?query=${this.bpf_filter}`;
 		let res = await ntopng_utility.http_request(url_request, null, false, true);
 		this.invalid_bpf = !res.response;
 		if (this.invalid_bpf == true) {
@@ -107,10 +107,10 @@ export default defineComponent({
 	    let url_request_params = ntopng_url_manager.obj_to_url_params(url_request_obj);
 	    if (this.extract_now == true) {
 		
-		let url_request = `${base_path}/lua/rest/v2/get/pcap/live_extraction.lua?${url_request_params}`;
+		let url_request = `${http_prefix}/lua/rest/v2/get/pcap/live_extraction.lua?${url_request_params}`;
 		window.open(url_request, '_self', false);
 	    } else {
-		let url_request = `${base_path}/lua/traffic_extraction.lua?${url_request_params}`;
+		let url_request = `${http_prefix}/lua/traffic_extraction.lua?${url_request_params}`;
 		let resp = await ntopng_utility.http_request(url_request, null, false, true);
 		let job_id = resp.id;
 		//let job_id = 2;
@@ -127,7 +127,7 @@ export default defineComponent({
 	show: async function(bpf_filter) {
 	    if (bpf_filter == null) {
 		let url_params = ntopng_url_manager.get_url_params();
-		let url_request = `${base_path}/lua/pro/rest/v2/get/db/filter/bpf.lua?${url_params}`;
+		let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/bpf.lua?${url_params}`;
 		let res = await ntopng_utility.http_request(url_request);
 		if (res == null || res.bpf == null) {
 		    console.error(`modal-traffic-extraction: ${url_request} return null value`);
@@ -149,7 +149,7 @@ export default defineComponent({
 	    this.description = desc;
 	    
 	    // let url_params = ntopng_url_manager.get_url_params();
-	    // let url_request = `${base_path}/lua/pro/rest/v2/get/db/filter/bpf.lua?${url_params}`;
+	    // let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/bpf.lua?${url_params}`;
 	    // let res = await ntopng_utility.http_request(url_request);
 	    // this.bpf_filter = res.bpf;
 	    this.bpf_filter = bpf_filter;
