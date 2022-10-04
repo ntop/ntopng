@@ -758,9 +758,11 @@ void Flow::processExtraDissectedInformation() {
       setJSONRiskInfo(out);
   }
 
-  flow_payload = ndpiFlow->flow_payload, flow_payload_len = ndpiFlow->flow_payload_len;
-  ndpiFlow->flow_payload = NULL; /* ntopng will free this memory not nDPI */
-  
+  if(ndpiFlow) {
+    flow_payload = ndpiFlow->flow_payload, flow_payload_len = ndpiFlow->flow_payload_len;
+    ndpiFlow->flow_payload = NULL; /* ntopng will free this memory not nDPI */
+  }
+
   /* Free the nDPI memory */
   if(free_ndpi_memory)
     freeDPIMemory();
