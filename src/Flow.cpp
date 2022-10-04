@@ -79,7 +79,7 @@ Flow::Flow(NetworkInterface *_iface,
   json_info = NULL, tlv_info = NULL, twh_over = twh_ok = 0,
     dissect_next_http_packet = 0, host_server_name = NULL;
   bt_hash = NULL;
-
+  flow_payload = NULL, flow_payload_len = 0; 
   flow_verdict = 0;
   operating_system = os_unknown;
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
@@ -360,6 +360,8 @@ Flow::~Flow() {
   if(entropy.c2s) ndpi_free_data_analysis(entropy.c2s, 1);
   if(entropy.s2c) ndpi_free_data_analysis(entropy.s2c, 1);
 
+  if(flow_payload)                   free(flow_payload);
+  
   if(isHTTP()) {
     if(protos.http.last_url)         free(protos.http.last_url);
     if(protos.http.last_user_agent)  free(protos.http.last_user_agent);
@@ -756,6 +758,9 @@ void Flow::processExtraDissectedInformation() {
       setJSONRiskInfo(out);
   }
 
+  flow_payload = ndpiFlow->flow_payload, flow_payload_len = ndpiFlow->flow_payload_len;
+  ndpiFlow->flow_payload = NULL; /* ntopng will free this memory not nDPI */
+  
   /* Free the nDPI memory */
   if(free_ndpi_memory)
     freeDPIMemory();
@@ -2387,6 +2392,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_int32_table_entry(vm, "l7_error_code", getErrorCode());
     lua_push_int32_table_entry(vm, "flow_verdict", flow_verdict);
 
+    if(flow_payload != NULL) {
+      flow_payload[flow_payload_len] = '\0';
+      lua_push_str_table_entry(vm, "flow_payload", flow_payload);
+    }
+    
     if(get_json_info()) {
       lua_push_str_table_entry(vm, "moreinfo.json", json_object_to_json_string(get_json_info()));
       has_json_info = true;
@@ -4499,7 +4509,8 @@ void Flow::setBittorrentHash(char *hash) {
 
   for(i=0, j = 0; i<20; i++) {
     u_char c = hash[i] & 0xFF;
-    sprintf(&bittorrent_hash[j], "%02x", c);
+    
+    snprintf(&bittorrent_hash[j], 2, "%02x", c);
     j += 2, n += c;
   }
 

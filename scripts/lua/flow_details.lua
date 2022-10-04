@@ -1502,7 +1502,13 @@ else
 	 num = num + 1
       end
    end
-   print("</table>\n")
+
+if(flow.flow_payload ~= nil) then
+    print("<tr><th width=30%>Payload</th><td colspan=2><pre>" .. flow.flow_payload .. "</pre></td></tr>\n")
+end
+
+
+print("</table>\n")
 end
 
 local traffic_peity_width = "64"

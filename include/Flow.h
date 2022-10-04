@@ -120,6 +120,10 @@ class Flow : public GenericHashEntry {
   time_t next_call_periodic_update; /* The time at which the periodic lua script on this flow shall be called */
   u_int32_t periodic_update_ctr;
 
+  /* Flow payload */
+  u_int16_t flow_payload_len;
+  char *flow_payload;
+
   union {
     struct {
       char *last_url, *last_user_agent;

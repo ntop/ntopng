@@ -380,7 +380,7 @@ u_int16_t NetworkInterface::getnDPIProtoByName(const char *name) {
 /* ********************** */
 
 struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
-  struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module(ndpi_no_prefs);
+  struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module(ndpi_track_flow_payload);
   ndpi_port_range d_port[MAX_DEFAULT_PORTS];
   NDPI_PROTOCOL_BITMASK all;
 
