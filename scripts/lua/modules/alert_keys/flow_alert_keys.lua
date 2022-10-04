@@ -84,6 +84,7 @@ local flow_alert_keys = {
    flow_alert_tcp_connection_no_answer             = 75,
    flow_alert_ndpi_anonymous_subscriber            = 76,
    flow_alert_unidirectional_traffic               = 77,
+   flow_alert_ndpi_http_obsolete_server            = 78,
    
    -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
 }

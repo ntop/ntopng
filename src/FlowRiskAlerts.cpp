@@ -179,6 +179,8 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
   /* NDPI_UNIDIRECTIONAL_TRAFFIC */
   { { flow_alert_ndpi_unidirectional_traffic, alert_category_network }, "ndpi_unidirectional_traffic" },
 
+  /* NDPI_HTTP_OBSOLETE_SERVER */
+  { { flow_alert_ndpi_http_obsolete_server, alert_category_security }, "ndpi_http_obsolete_server" },
 };
 
 /* **************************************************** */
