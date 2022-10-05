@@ -30,7 +30,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
  protected:
   IpAddress ip;
   Mac *mac;
-  char *asname;
+  char *asname, *blacklist_name;
 
   struct {
     Fingerprint ja3;
@@ -590,6 +590,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   }
 
   inline HostStats* getStats() { return(stats); }
+  void setBlacklistName(char*);
 };
 
 #endif /* _HOST_H_ */

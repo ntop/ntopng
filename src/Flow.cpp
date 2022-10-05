@@ -139,7 +139,9 @@ Flow::Flow(NetworkInterface *_iface,
 	lh->setRouterMac(_srv_mac);
       }
     }
-  } else { /* Client host has not been allocated, let's keep the info in an IpAddress */
+  } else {
+    /* Client host has not been allocated, let's keep the info in an IpAddress */
+    
     if((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
       cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
   }
@@ -158,7 +160,9 @@ Flow::Flow(NetworkInterface *_iface,
       cli_host->get_country(country, sizeof(country));
       if(country[0] != '\0') srv_host->incCountriesContacts(country);
     }
-  } else { /* Server host has not been allocated, let's keep the info in an IpAddress */
+  } else {
+    /* Server host has not been allocated, let's keep the info in an IpAddress */
+    
     if((srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip)))
       srv_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
   }
@@ -169,7 +173,9 @@ Flow::Flow(NetworkInterface *_iface,
      && get_cli_ip_addr()->isIPv4()
      && get_srv_ip_addr()->isIPv4() /* IPv4 only */
      && !get_srv_ip_addr()->isBroadcastAddress() /* Avoid 255.255.255.255 */)
-    getInterface()->updateBroadcastDomains(_vlanId, _cli_mac->get_mac(), _srv_mac->get_mac(), ntohl(_cli_ip->get_ipv4()), ntohl(_srv_ip->get_ipv4()));
+    getInterface()->updateBroadcastDomains(_vlanId, _cli_mac->get_mac(),
+					   _srv_mac->get_mac(), ntohl(_cli_ip->get_ipv4()),
+					   ntohl(_srv_ip->get_ipv4()));
 
   memset(&custom_app, 0, sizeof(custom_app));
 
@@ -180,7 +186,8 @@ Flow::Flow(NetworkInterface *_iface,
 
   if(hp) {
     if(cli_host) routing_table_id = hp->getRoutingPolicy(cli_host->get_host_pool());
-    if(srv_host) routing_table_id = max_val(routing_table_id, hp->getRoutingPolicy(srv_host->get_host_pool()));
+    if(srv_host) routing_table_id = max_val(routing_table_id,
+					    hp->getRoutingPolicy(srv_host->get_host_pool()));
   }
 #endif
 
@@ -267,8 +274,10 @@ Flow::Flow(NetworkInterface *_iface,
 
   if(isBlacklistedClient()) {
     if(srv_host) srv_host->inc_num_blacklisted_flows(false);
+    cli_host->setBlacklistName((char*)get_custom_category_file());
   } else if(isBlacklistedServer()) {
     if(cli_host) cli_host->inc_num_blacklisted_flows(true);
+    srv_host->setBlacklistName((char*)get_custom_category_file());
   }
 
   iface->execFlowBeginChecks(this);
@@ -865,9 +874,18 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
 			  payload, payload_len,
 			  (struct timeval *)&h->ts);
 
-  if(detection_completed && (!needsExtraDissection())) {
-    setExtraDissectionCompleted();
-    updateProtocol(proto_id);
+  if(detection_completed) {
+    if(!needsExtraDissection()) {
+      setExtraDissectionCompleted();
+      updateProtocol(proto_id);
+    }
+
+    if(get_custom_category_file()) {
+      if(isBlacklistedClient())
+	cli_host->setBlacklistName((char*)get_custom_category_file());
+      else if(isBlacklistedServer())
+	srv_host->setBlacklistName((char*)get_custom_category_file());
+    }
   }
 }
 

@@ -91,6 +91,8 @@ Host::~Host() {
   if(listening_ports)             delete listening_ports;
   if(listening_ports_shadow)      delete listening_ports_shadow;
 #endif
+
+  if(blacklist_name)              free(blacklist_name);
   
   /*
     Pool counters are updated both in and outside the datapath.
@@ -291,6 +293,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
 
   memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
+  blacklist_name = NULL;
 }
 
 /* *************************************** */
@@ -816,6 +819,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(device_ip != 0)
     lua_push_str_table_entry(vm, "device_ip", Utils::intoaV4(device_ip, buf, sizeof(buf)));
 
+  if(blacklist_name != NULL)
+    lua_push_str_table_entry(vm, "blacklist_name", blacklist_name);
+  
   if(more_then_one_device)
     lua_push_bool_table_entry(vm, "more_then_one_device", more_then_one_device);
 
@@ -2380,3 +2386,9 @@ void Host::setPopServer(char *name) {
   }
 }
 
+/* *************************************** */
+
+void Host::setBlacklistName(char *name) {
+  if((blacklist_name == NULL) && (name != NULL))
+    blacklist_name = strdup(name);
+}

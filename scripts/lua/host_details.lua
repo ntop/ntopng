@@ -653,7 +653,14 @@ else
 
          if(host["dhcp_server"] == true) then print(' <span class="badge bg-success" style="cursor: help;">'..i18n("details.label_dhcp_server")..'</span>') end
          if(host["systemhost"] == true) then print(' <span class="badge bg-success" style="cursor: help;"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
-         if(host["is_blacklisted"] == true) then print(' <span class="badge bg-danger" style="cursor: help;">'..i18n("details.label_blacklisted_host")..'</span>') end
+         if(host["is_blacklisted"] == true) then
+	    print(' <span class="badge bg-danger" style="cursor: help;">'..i18n("details.label_blacklisted_host"))
+
+	    if(host.blacklist_name ~= nil) then print(' ('.. host.blacklist_name ..')') end
+
+	    print('</span>')
+	 end
+	 
          if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
                print(' <A class="ntopng-external-link" href="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><small>VirusTotal</small> <i class=\"fas fa-external-link-alt\"></i></A>')
                print(' <A class="ntopng-external-link" href="https://www.greynoise.io/viz/ip/'.. host["ip"] ..'" target=_blank><small>GreyNoise</small> <i class=\"fas fa-external-link-alt\"></i></A>')
