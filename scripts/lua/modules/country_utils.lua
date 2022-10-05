@@ -12,8 +12,8 @@ function country2record(ifId, country)
    local country_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?country='..country["country"].."' title='"..country["country"].."'>"..country["country"]..'</A>'
    record["column_id"] = getFlag(country["country"]).."&nbsp&nbsp" .. country_link
 
-   record["column_hosts"] = country["num_hosts"]..""
-   record["column_score"] = country["score"]
+   record["column_score"] = format_high_num_value_for_tables(country, "score") 
+   record["column_hosts"] = format_high_num_value_for_tables(country, "num_hosts")
    record["column_since"] = secondsToTime(now - country["seen.first"] + 1)
 
    local sent2rcvd = round((country["egress"] * 100) / (country["egress"] + country["ingress"]), 0)
