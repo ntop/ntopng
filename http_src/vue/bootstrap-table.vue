@@ -1,5 +1,5 @@
 <template>
-<table class="table">
+<table class="table table-hover table-borderless mb-0">
   <thead>
     <tr>
       <th v-for="col in columns" scope="col" v-html="print_html_column(col)"></th>
