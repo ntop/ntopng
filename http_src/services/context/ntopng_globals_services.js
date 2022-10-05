@@ -35,9 +35,19 @@ export const ntopng_utility = function() {
        * @returns {object}.
        */
       clone: function(obj) {
-          if (obj == null) { return null; }
+        if (obj == null) { return null; }
+        return $.extend(true, {}, obj)
+    },      
+    clone: function(obj) {
+        if (obj == null) { return null; }
+        if (typeof(object) == 'object') {
+          /* This does the deep copy using jquery for objects */
           return $.extend(true, {}, obj)
-      },      
+        } else {
+          /* This does the deep copy using jquery for other types */
+          return JSON.parse(JSON.stringify(obj))
+        }
+    },      
 object_to_array: function(obj) {
     if (obj == null) { return []; }
     let array = [];
