@@ -78,6 +78,7 @@ class Ntop {
   PeriodicActivities *pa; /**< Instance of periodical activities. */
   AddressResolution *address;
   Prefs *prefs;
+  BlacklistStats blStats;
   Geolocation *geo;
   MacManufacturers *mac_manufacturers;
   void *trackers_automa;
@@ -631,6 +632,7 @@ public:
   inline Mutex* get_pools_lock()                            { return(&pools_lock);      }
 
   bool createPcapInterface(const char *path, int *iface_id);
+  void incBlacklisHits(std::string listname);
 };
 
 extern Ntop *ntop;

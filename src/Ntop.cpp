@@ -3761,3 +3761,9 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
 
   return(ret);
 }
+
+/* ******************************************* */
+
+void Ntop::incBlacklisHits(std::string listname) {
+  blStats.incHits(listname);
+}

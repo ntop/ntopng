@@ -252,6 +252,8 @@ using namespace std;
 #endif
 #include "ThroughputStats.h"
 #include "GenericTrafficElement.h"
+#include "BlacklistUsageStats.h"
+#include "BlacklistStats.h"
 #include "AlertCounter.h"
 #include "NetworkStats.h"
 #include "ContainerStats.h"

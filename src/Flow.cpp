@@ -274,10 +274,8 @@ Flow::Flow(NetworkInterface *_iface,
 
   if(isBlacklistedClient()) {
     if(srv_host) srv_host->inc_num_blacklisted_flows(false);
-    cli_host->setBlacklistName((char*)get_custom_category_file());
   } else if(isBlacklistedServer()) {
     if(cli_host) cli_host->inc_num_blacklisted_flows(true);
-    srv_host->setBlacklistName((char*)get_custom_category_file());
   }
 
   iface->execFlowBeginChecks(this);
@@ -885,6 +883,8 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
 	cli_host->setBlacklistName((char*)get_custom_category_file());
       else if(isBlacklistedServer())
 	srv_host->setBlacklistName((char*)get_custom_category_file());
+
+      ntop->incBlacklisHits(std::string(get_custom_category_file()));
     }
   }
 }
