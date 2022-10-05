@@ -117,8 +117,7 @@ function mac2record(mac)
 					       + mac["arp_replies.rcvd"])
 
    record["column_device_type"] = discover.devtype2string(mac["devtype"]).." "..discover.devtype2icon(mac["devtype"])
-
-   record["column_hosts"] = mac["num_hosts"]..""
+   record["column_hosts"] = format_high_num_value_for_tables(mac, "num_hosts")
    record["column_since"] = secondsToTime(now - mac["seen.first"]+1)
 
    local sent2rcvd = round((mac["bytes.sent"] * 100) / (mac["bytes.sent"] + mac["bytes.rcvd"]), 0)

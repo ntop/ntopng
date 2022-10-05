@@ -31,7 +31,7 @@ function os_data_utils.os2record(ifId, os)
    if((os["num_alerts"] ~= nil) and (os["num_alerts"] > 0)) then
       record["column_alerts"] = "<font color=#B94A48>"..formatValue(value["num_alerts"]).."</font>"
    else
-      record["column_alerts"] = "0"
+      record["column_alerts"] = ""
    end
 
    record["column_chart"] = ""
@@ -40,7 +40,7 @@ function os_data_utils.os2record(ifId, os)
       record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/os_details.lua?os='..os["os"]..'&page=historical"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
    end
 
-   record["column_hosts"] = os["num_hosts"]..""
+   record["column_hosts"] = format_high_num_value_for_tables(os, "num_hosts")
    record["column_since"] = secondsToTime(now - os["seen.first"] + 1)
    
    local sent2rcvd = round((os["bytes.sent"] * 100) / (os["bytes.sent"] + os["bytes.rcvd"]), 0)

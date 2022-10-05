@@ -16,13 +16,9 @@ function as2record(ifId, as)
 
    local as_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='..as["asn"].."' title='"..as["asname"].."'>"..as["asn"]..'</A>'
    record["column_asn"] = as_link
-
    record["column_asname"] = printASN(as["asn"], as["asname"])
-   record["column_score"] = format_utils.formatValue(as["score"] or 0)
-   if record["column_score"] == '0' then
-    record["column_score"] = ''
-   end
-   record["column_hosts"] = as["num_hosts"]..""
+   record["column_score"] = format_high_num_value_for_tables(as, "score") 
+   record["column_hosts"] = format_high_num_value_for_tables(as, "num_hosts")
    record["column_since"] = secondsToTime(now - as["seen.first"] + 1)
 
    local sent2rcvd = round((as["bytes.sent"] * 100) / (as["bytes.sent"] + as["bytes.rcvd"]), 0)

@@ -2103,6 +2103,8 @@ function iec104_typeids2str(c)
    return(c)
 end
 
+-- ##############################################
+
 function format_device_name(device_ip, short_version)
   local device_name = device_ip
 
@@ -2118,6 +2120,20 @@ function format_device_name(device_ip, short_version)
   end
 
   return device_name
+end
+
+-- ##############################################
+
+-- This function, given a record and a name return a  standard formatted value
+-- and if the value is 0, an empty string is returned
+-- e.g.   1000 -> 1,000    | 0 -> 
+function format_high_num_value_for_tables(record, name)
+  local formatted_record = format_utils.formatValue(record[name] or 0)
+  if formatted_record == '0' then
+    formatted_record = ''
+  end
+
+  return formatted_record
 end
 
 -- ##############################################
