@@ -69,48 +69,84 @@ const ntopChartApex = function() {
 
     // define default chartOptions for area chart type.
     const _default_TS_STACKED_ChartOptions = function() {
+      let chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
+      let TS_STACKED_ChartOptions = {
+          chart: {
+        stacked: true,
+        type: "area",
+        zoom: {
+            enabled: true,
+            type: "x",
+        },
+          },
+          tooltip: {
+        // shared: true,
+        x: {
+            format: "dd MMM yyyy HH:mm:ss"
+        },
+        y: {}
+          },
+          xaxis: {
+        labels: {
+            show: true,
+            datetimeUTC: false,
+            formatter: null,
+        },
+        axisTicks: {
+            show: false,
+        },
+        type: "datetime",
+        axisBorder: {
+            show: true,
+        },
+        convertedCatToNumeric: false
+          },
+              dataLabels: {
+            enabled: false
+              },
+              stroke: {
+                show: false,
+                curve: "smooth"
+              },
+              fill: {
+                type: "solid"
+              },
+      };
+      ntopng_utility.copy_object_keys(TS_STACKED_ChartOptions, chartOptions, true);
+      return chartOptions;
+        }();
+    
+        
+    // define default chartOptions for area chart type.
+    const _default_TS_PIE_ChartOptions = function() {
 	let chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
 	let TS_STACKED_ChartOptions = {
-	    chart: {
-		stacked: true,
-		type: "area",
-		zoom: {
-		    enabled: true,
-		    type: "x",
-		},
-	    },
-	    tooltip: {
-		// shared: true,
-		x: {
-		    format: "dd MMM yyyy HH:mm:ss"
-		},
-		y: {}
-	    },
-	    xaxis: {
-		labels: {
-		    show: true,
-		    datetimeUTC: false,
-		    formatter: null,
-		},
-		axisTicks: {
-		    show: false,
-		},
-		type: "datetime",
-		axisBorder: {
-		    show: true,
-		},
-		convertedCatToNumeric: false
-	    },
-    	    dataLabels: {
-    		enabled: false
-    	    },
-    	    stroke: {
-    	    	show: false,
-    	    	curve: "smooth"
-    	    },
-    	    fill: {
-    	    	type: "solid"
-    	    },
+    chart: {
+      stacked: true,
+      type: "polarArea",
+      height: 300
+    },
+    yaxis: {
+      labels: {
+        formatter: function(value) {
+          return value;
+        },
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: (value) => {
+        debugger;
+        return NtopUtils.bytesToSize(value);
+      },
+    },
+    stroke: {
+      show: false,
+      curve: "smooth"
+    },
+    fill: {
+      type: "solid"
+    },
 	};
 	ntopng_utility.copy_object_keys(TS_STACKED_ChartOptions, chartOptions, true);
 	return chartOptions;
@@ -169,6 +205,7 @@ const ntopChartApex = function() {
 	typeChart: {
 	    TS_LINE: "TS_LINE",
 	    TS_STACKED: "TS_STACKED",
+	    PIE: "PIE",
 	    BASE: "BASE",
 	},
 	newChart: function(type) {
@@ -177,14 +214,16 @@ const ntopChartApex = function() {
 	    let _chartHtmlElement;
 
 	    if (type == this.typeChart.TS_STACKED) {
-		_chartOptions = ntopng_utility.clone(_default_TS_STACKED_ChartOptions);
-		_setXTimeFormatter(_chartOptions);
+        _chartOptions = ntopng_utility.clone(_default_TS_STACKED_ChartOptions);
+        _setXTimeFormatter(_chartOptions);
 	    } else if (type == this.typeChart.TS_LINE) {
-		_chartOptions = ntopng_utility.clone(_default_TS_LINE_ChartOptions);
-		_setXTimeFormatter(_chartOptions);
-	    } else if (type == this.typeChart.BASE) {
-		_chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
-	    } else {
+        _chartOptions = ntopng_utility.clone(_default_TS_LINE_ChartOptions);
+        _setXTimeFormatter(_chartOptions);
+	    } else if (type == this.typeChart.PIE) {
+        _chartOptions = ntopng_utility.clone(_default_TS_PIE_ChartOptions);
+      }  else if (type == this.typeChart.BASE) {
+        _chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
+      } else {
 		throw `ntopChartApex::newChart: chart type = ${type} unsupported`;
 	    }
 	    

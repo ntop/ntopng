@@ -1,0 +1,59 @@
+{#
+  (C) 2022 - ntop.org
+  This template is used by the `Service Map` page inside the `Hosts` menu.    
+#}
+
+
+<div id="host-details-applications">
+  <page-host-details-applications
+  :page_csrf="page_csrf"
+  :url_params="url_params"
+  :is_ch_enabled="is_ch_enabled"
+  :view="view">
+  </page-host-details-applications>
+</div>
+  
+<script type="text/javascript">  
+  const pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+  const is_ch_enabled = ("{{ ntop.isClickHouseEnabled() }}" == "true")
+  const url_params = {
+    view: "{{ view or 'applications' }}",
+    host: "{{ host_ip }}",
+    vlan: "{{ vlan }}",
+    ifid: "{{ ifid }}",
+  }
+  
+  function start_vue() {
+    let vue_options = {
+      components: {	  
+        'page-host-details-applications': ntopVue.PageHostDetailsApplications,
+      },
+      /**
+      * First method called when the component is created.
+      */
+      created() { },
+      mounted() {
+      },
+      data() {
+        return {
+          page_csrf: pageCsrf,
+          url_params: url_params,
+          view: url_params.view,
+          is_ch_enabled: is_ch_enabled,
+        };
+      },
+      methods: { },
+    };
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#host-details-applications');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>
+

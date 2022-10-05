@@ -108,7 +108,7 @@ end
 
 -- @brief Return a comma-separated list of protocols belonging to `cat_id`
 --        If protocols are more than 5, an hyperlink with the whole list is shown.
-function categories_utils.get_category_protocols_list(cat_id)
+function categories_utils.get_category_protocols_list(cat_id, return_list)
    local res = {}
    local max_protocols_in_list = 5
 
@@ -123,10 +123,20 @@ function categories_utils.get_category_protocols_list(cat_id)
       max_protocols_in_list = #res
    end
 
-   local res_str = table.concat(res, ', ', 1, max_protocols_in_list)
+   local res_str
 
-   if overflown_protos then
-      res_str = string.format("%s <a href='%s/lua/admin/edit_categories.lua?tab=protocols&category=cat_%i'>%s</a>", res_str, ntop.getHttpPrefix(), cat_id, i18n("and_x_more", {num = overflown_protos}))
+   if overflown_protos and not return_list then
+      res_str = string.format("%s <a href='%s/lua/admin/edit_categories.lua?tab=protocols&category=cat_%i'>%s</a>", table.concat(res, ', ', 1, max_protocols_in_list), ntop.getHttpPrefix(), cat_id, i18n("and_x_more", {num = overflown_protos}))
+   elseif overflown_protos and return_list then
+      local list = {
+        href = 'lua/admin/edit_categories.lua?tab=protocols&category=cat_',
+        category_id = cat_id,
+        label = table.concat(res, ', ', 1, max_protocols_in_list),
+        more_protos = i18n("and_x_more", {num = overflown_protos})
+      }
+      res_str = list
+   else
+      res_str = table.concat(res, ', ', 1, max_protocols_in_list)
    end
 
    return res_str

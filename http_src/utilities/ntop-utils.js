@@ -1116,6 +1116,25 @@ export default class NtopUtils {
     if (nameA > nameB) { return 1; }
     return 0;
   }
+
+  static createProgressBar(percentage) {
+    return `<div class="d-flex flex-row">
+              <div class="col-9 progress">
+                <div class="progress-bar bg-warning" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage}%;">
+                </div>
+              </div>
+              <div class="col ms-3"> ${percentage} %</div>
+            </div>`
+  }
+
+  static createBreakdown(percentage_1, percentage_2, label_1, label_2) {
+    return `<div class="d-flex flex-row">
+              <div class="col-12 progress">
+                <div class="progress-bar bg-warning" aria-valuenow="${percentage_1}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage_1}%;">${label_1}</div>
+                <div class="progress-bar bg-success" aria-valuenow="${percentage_2}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage_2}%;">${label_2}</div>
+              </div>
+            </div>`
+  }
 }
 
 $(function () {
