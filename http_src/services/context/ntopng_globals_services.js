@@ -28,44 +28,56 @@ export const ntopng_sync = function() {
 */
 export const ntopng_utility = function() {
     let global_http_headers = {};
-  return {	
-      /**
-       * Deep copy of a object.
-       * @param {object} obj.
-       * @returns {object}.
-       */
-      clone: function(obj) {
-        if (obj == null) { return null; }
-        return $.extend(true, {}, obj)
-    },      
-    clone: function(obj) {
-        if (obj == null) { return null; }
-        if (typeof(object) == 'object') {
-          /* This does the deep copy using jquery for objects */
-          return $.extend(true, {}, obj)
-        } else {
-          /* This does the deep copy using jquery for other types */
-          return JSON.parse(JSON.stringify(obj))
-        }
-    },      
-object_to_array: function(obj) {
-    if (obj == null) { return []; }
-    let array = [];
-    for (let key in obj) {
-  array.push(obj[key]);
-    }
-    return array;
-},
-      check_and_set_default_interval_time: function() {
-	  if (ntopng_url_manager.get_url_entry("epoch_begin") == null
-      	      || ntopng_url_manager.get_url_entry("epoch_end") == null) {
-	      let default_epoch_begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
-	      let default_epoch_end = Number.parseInt(Date.now() / 1000);
-	      ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
-	      ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
-	  }
-      },
-      	from_utc_s_to_server_date: function(utc_seconds) {
+    return {
+	is_array: function(e) {
+	    return Array.isArray(e);
+	},
+	is_object: function(e) {
+	    return typeof e === 'object'
+		&& !this.is_array(e)
+		&& e !== null;
+	},
+	/**
+	 * Deep copy of a object.
+	 * @param {object} obj.
+	 * @returns {object}.
+	 */
+	clone: function(obj) {
+            if (obj == null) { return null; }
+            if (this.is_object(obj)) {
+		/* This does the deep copy using jquery for objects */
+		return $.extend(true, {}, obj);
+            } else if (Array.isArray(obj)){
+		/* This does the deep copy using jquery for other types */
+		let res = [];
+		for (let i = 0; i < obj.length; i += 1) {
+		    let el = this.clone(obj[i]);
+		    res.push(el);
+		}
+		return res;
+            } else {
+		// return JSON.parse(JSON.stringify(obj))
+		return obj;
+	    }
+	},      
+	object_to_array: function(obj) {
+	    if (obj == null) { return []; }
+	    let array = [];
+	    for (let key in obj) {
+		array.push(obj[key]);
+	    }
+	    return array;
+	},
+	check_and_set_default_interval_time: function() {
+	    if (ntopng_url_manager.get_url_entry("epoch_begin") == null
+      		|| ntopng_url_manager.get_url_entry("epoch_end") == null) {
+		let default_epoch_begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
+		let default_epoch_end = Number.parseInt(Date.now() / 1000);
+		ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
+		ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
+	    }
+	},
+	from_utc_s_to_server_date: function(utc_seconds) {
 	    let utc = utc_seconds * 1000;
 	    let d_local = new Date(utc);
 	    let local_offset = d_local.getTimezoneOffset();
@@ -75,78 +87,73 @@ object_to_array: function(obj) {
 	    var d_server = new Date(utc + offset_ms);
 	    return d_server;
 	},
-      from_utc_to_server_date_format: function(utc_ms, format) {
-	  if (format == null) { format = "DD/MMM/YYYY HH:mm"; }
-	  let m = moment.tz(utc_ms, ntop_zoneinfo);
-	  let m_local = moment(utc_ms);
-	  let tz_local = m_local.format(format);
-	  let tz_server = m.format(format);
-	  return tz_server;
-      },
-is_object: function(e) {
-  return typeof e === 'object'
-    && !Array.isArray(e)
-    && e !== null;
-},
-copy_object_keys: function(source_obj, dest_obj, recursive_object = false) {
-  if (source_obj == null) {
-    return;
-  }
-    for (let key in source_obj) {
-	if (source_obj[key] == null) { continue; }
-    if (recursive_object == true && this.is_object(source_obj[key]) && this.is_object(dest_obj[key])) {
-      this.copy_object_keys(source_obj[key], dest_obj[key], recursive_object);
-    } else {
-      dest_obj[key] = source_obj[key];
+	from_utc_to_server_date_format: function(utc_ms, format) {
+	    if (format == null) { format = "DD/MMM/YYYY HH:mm"; }
+	    let m = moment.tz(utc_ms, ntop_zoneinfo);
+	    let m_local = moment(utc_ms);
+	    let tz_local = m_local.format(format);
+	    let tz_server = m.format(format);
+	    return tz_server;
+	},
+	copy_object_keys: function(source_obj, dest_obj, recursive_object = false) {
+	    if (source_obj == null) {
+		return;
+	    }
+	    for (let key in source_obj) {
+	    	if (source_obj[key] == null) { continue; }
+	    	if (recursive_object == true && this.is_object(source_obj[key]) && this.is_object(dest_obj[key])) {
+	    	    this.copy_object_keys(source_obj[key], dest_obj[key], recursive_object);
+	    	} else {
+	    	    dest_obj[key] = source_obj[key];
+	    	}
+	    }
+	},
+	set_http_globals_headers(headers) {
+	    global_http_headers = headers;
+	},
+	http_request: async function(url, options, throw_exception, not_unwrap) {
+	    try {
+		if (options == null) {
+		    options = {};
+		}
+		if (options.headers == null) {
+		    options.headers = {};
+		}
+		if (options != null && options.headers != null && global_http_headers != null) {
+		    options.headers = {
+			...options.headers,
+			...global_http_headers,
+		    };
+		}
+		let res = await fetch(url, options);
+		if (res.ok == false) {
+		    console.error(`http_request ${url}\n ok == false`);
+		    console.error(res);
+		    return null;
+		}
+		let json_res = await res.json();
+		if (not_unwrap == true) { return json_res; }
+		return json_res.rsp;
+	    } catch (err) {
+		console.error(err);
+		if (throw_exception == true) { throw err; }
+		return null;
+	    }
+	},
+	get_random_string: function() {
+	    return Math.random().toString(16).substr(2, 8);
+	},
+	string_hash_code: function(s) {
+	    let hash = 0, i, chr;
+	    if (s.length === 0) return hash;
+	    for (i = 0; i < s.length; i++) {
+		chr   = s.charCodeAt(i);
+		hash  = ((hash << 5) - hash) + chr;
+		hash |= 0; // Convert to 32bit integer
+	    }
+	    return hash;
+	},
     }
-  }
-},
-set_http_globals_headers(headers) {
-    global_http_headers = headers;
-},
-http_request: async function(url, options, throw_exception, not_unwrap) {
-    try {
-	if (options == null) {
-	    options = {};
-	}
-	if (options.headers == null) {
-	    options.headers = {};
-	}
-	if (options != null && options.headers != null && global_http_headers != null) {
-	    options.headers = {
-		...options.headers,
-		...global_http_headers,
-	    };
-	}
-  let res = await fetch(url, options);
-  if (res.ok == false) {
-      console.error(`http_request ${url}\n ok == false`);
-      console.error(res);
-      return null;
-  }
-  let json_res = await res.json();
-	if (not_unwrap == true) { return json_res; }
-  return json_res.rsp;
-    } catch (err) {
-  console.error(err);
-  if (throw_exception == true) { throw err; }
-  return null;
-    }
-},
-      get_random_string: function() {
-	  return Math.random().toString(16).substr(2, 8);
-      },
-      string_hash_code: function(s) {
-	  let hash = 0, i, chr;
-	  if (s.length === 0) return hash;
-	  for (i = 0; i < s.length; i++) {
-	      chr   = s.charCodeAt(i);
-	      hash  = ((hash << 5) - hash) + chr;
-	      hash |= 0; // Convert to 32bit integer
-	  }
-	  return hash;
-      },
-  }
 }();
 
 /**
@@ -157,7 +164,7 @@ export const ntopng_status_manager = function() {
   let gloabal_status = {};
   /** @type {{ [id: string]: (status: object) => void}} */
   let subscribers = {}; // dictionary of { [id: string]: f_on_ntopng_status_change() }
-  const clone = ntopng_utility.clone;
+    const clone = (e) => ntopng_utility.clone(e);
 
   const relplace_global_status = function(status) {
 gloabal_status = status;
@@ -430,7 +437,7 @@ export const ntopng_events_manager = function() {
   /** @type {{ [event_name: string]: { [id: string]: (status: object) => void}}} */
   let events_subscribers = {}; // dictionary of { [event_name: string]: { [id: string]: f_on_event }
 
-  const clone = ntopng_utility.clone;
+    const clone = (e) => ntopng_utility.clone(e);
 
   /**
    * Notifies the status to all subscribers with id different from skip_id.
