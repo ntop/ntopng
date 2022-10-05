@@ -172,16 +172,6 @@ export default {
     get_active_table: function() {
       return this.$refs[`table_asset_${this.asset_table_tab}`];
     },
-    switch_to_standard: function() {
-      let new_url = this.url_params
-      new_url['view'] = 'standard'
-      document.location.href = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/network_maps.lua`, url_params)
-    },
-    switch_to_centrality: function() {
-      let new_url = this.url_params
-      new_url['view'] = 'centrality'
-      document.location.href = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/network_maps.lua`, url_params)
-    },
     show_delete_all_dialog: function() {
       this.$refs["modal_delete_all"].show();
     },
