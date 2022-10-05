@@ -425,7 +425,7 @@ function host_pools:hostpool2record(ifid, pool_id, pool)
                           pool_name .. "'>" .. pool_name .. '</A>'
     record["column_id"] = pool_link
 
-    record["column_hosts"] = pool["num_hosts"] .. ""
+    record["column_hosts"] = format_high_num_value_for_tables(pool, "num_hosts")
     record["column_since"] = secondsToTime(os.time() - pool["seen.first"] + 1)
     record["column_num_dropped_flows"] = (pool["flows.dropped"] or 0) .. ""
 
