@@ -36,7 +36,7 @@ export const ntopng_utility = function() {
        */
       clone: function(obj) {
           if (obj == null) { return null; }
-          return JSON.parse(JSON.stringify(obj));
+          return $.extend(true, {}, obj)
       },      
 object_to_array: function(obj) {
     if (obj == null) { return []; }

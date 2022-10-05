@@ -91,9 +91,9 @@ export default {
   mounted() {
     ntopng_events_manager.on_custom_event("change_applications_tab_event", change_applications_tab_event, (tab) => {
 	    let table = this.get_active_table();
-      ntopng_url_manager.set_key_to_url('view', tab);
+      ntopng_url_manager.set_key_to_url('view', tab.id);
       table.destroy_table();
-      this.applications_tab = tab;
+      this.applications_tab = tab.id;
     });
   },    
   data() {
@@ -169,7 +169,7 @@ export default {
     click_item: function(item) {
       this.tab_list.forEach((i) => i.active = false);
       item.active = true;
-      ntopng_events_manager.emit_custom_event(change_applications_tab_event, item.id);
+      ntopng_events_manager.emit_custom_event(change_applications_tab_event, item);
     }, 
     reload_table: function() {
       let table = this.get_active_table();
@@ -210,7 +210,13 @@ function start_datatable(PageVue) {
     enable_search: true,
     table_config: { 
       serverSide: false, 
-      order: [[ 6 /* percentage column */, 'desc' ]] 
+      order: [[ 6 /* percentage column */, 'desc' ]],
+      columnDefs: [
+        { type: "time-uni", targets: 1 },
+        { type: "file-size", targets: 2 },
+        { type: "file-size", targets: 3 },
+        { type: "file-size", targets: 5 },
+      ]
     }
   };
   
@@ -225,23 +231,23 @@ function start_datatable(PageVue) {
         return NtopUtils.secondsToTime(data);
       }  
     },
-    { columnName: i18n("host_details.sent"), name: 'bytes_sent', data: 'bytes_sent', className: 'text-nowrap', responsivePriority: 2, render: (data) => {
+    { columnName: i18n("host_details.sent"), name: 'sent', data: 'bytes_sent', className: 'text-nowrap', responsivePriority: 2, render: (data) => {
         return NtopUtils.bytesToSize(data);
       }  
     },
-    { columnName: i18n("host_details.rcvd"), name: 'bytes_rcvd', data: 'bytes_rcvd',  className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
+    { columnName: i18n("host_details.rcvd"), name: 'rcvd', data: 'bytes_rcvd',  className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
         return NtopUtils.bytesToSize(data);
       }  
     },
-    { columnName: i18n("host_details.breakdown"), name: 'breakdown', data: 'breakdown',  className: 'text-center text-nowrap', responsivePriority: 2, render: (data, type, row) => {
+    { columnName: i18n("host_details.breakdown"), name: 'breakdown', data: 'breakdown', orderable: false, className: 'text-center text-nowrap', responsivePriority: 2, render: (data, type, row) => {
         const percentage_sent = (row.bytes_sent * 100) / row.tot_bytes;
         const percentage_rcvd = (row.bytes_rcvd * 100) / row.tot_bytes;
         return NtopUtils.createBreakdown(percentage_sent, percentage_rcvd, i18n('host_details.sent'), i18n('host_details.rcvd'));
       }  
     },
-    { columnName: i18n("host_details.tot_bytes"), name: 'tot_bytes', data: 'tot_bytes', orderable: false, className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
+    { columnName: i18n("host_details.tot_bytes"), name: 'tot_bytes', data: 'tot_bytes', className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
         return NtopUtils.bytesToSize(data);
-      }  
+      }   
     },
     { columnName: i18n("host_details.tot_percentage"), name: 'percentage', data: 'percentage',  className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
         const percentage = data.toFixed(1);
@@ -269,7 +275,7 @@ function start_datatable(PageVue) {
         return `<a href="${http_prefix}/lua/host_details.lua?host=${PageVue.$props.url_params.host}@${PageVue.$props.url_params.vlan}&ts_schema=host:ndpi_categories&page=historical&category=${data.label}" target="_blank">${data.label}</a>`
       } 
     },
-    { columnName: i18n("host_details.applications"), name: 'applications', data: 'applications', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+    { columnName: i18n("host_details.applications"), name: 'applications', data: 'applications', orderable: false, className: 'text-nowrap', responsivePriority: 1, render: (data) => {
         return `${data.label || ''} <a href="${http_prefix}/${data.href}${data.category_id}">${data.more_protos || ''}</a>`
       } 
     },
@@ -277,7 +283,7 @@ function start_datatable(PageVue) {
         return NtopUtils.secondsToTime(data);
       }  
     },
-    { columnName: i18n("host_details.tot_bytes"), name: 'tot_bytes', data: 'tot_bytes', orderable: false, className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
+    { columnName: i18n("host_details.tot_bytes"), name: 'tot_bytes', data: 'tot_bytes', className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
         return NtopUtils.bytesToSize(data);
       }  
     },
@@ -294,6 +300,10 @@ function start_datatable(PageVue) {
   let categoriesConfig = ntopng_utility.clone(defaultDatatableConfig);
   categoriesConfig.columns_config = columns;
   categoriesConfig.table_config.order = [[ 4 /* percentage column */, 'desc' ]]
+  categoriesConfig.table_config.columnDefs = [
+    { type: "time-uni", targets: 2 },
+    { type: "file-size", targets: 3 },
+  ]
   
   PageVue.config_devices_categories = categoriesConfig;
 }

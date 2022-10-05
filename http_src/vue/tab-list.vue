@@ -56,8 +56,8 @@ export default defineComponent({
     change_tab: function(tab) {
       if((!tab.id || this.old_tab != tab.id) &&
          (!tab.name || this.old_tab != tab.name)) {
-        this.$emit('click_item', tab)
         this.old_tab = tab.id || tab.name
+        this.$emit('click_item', tab)
       }
     }
   },

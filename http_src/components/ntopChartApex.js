@@ -2,6 +2,7 @@
     (C) 2022 - ntop.org
 */
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
+import NtopUtils from "../utilities/ntop-utils";
 
 const ntopChartApex = function() {
     // define default chartOptions for all chart type.
@@ -127,18 +128,13 @@ const ntopChartApex = function() {
       height: 300
     },
     yaxis: {
+      show: true,
       labels: {
-        formatter: function(value) {
-          return value;
-        },
+        formatter: NtopUtils.bytesToSize
       }
     },
     dataLabels: {
       enabled: true,
-      formatter: (value) => {
-        debugger;
-        return NtopUtils.bytesToSize(value);
-      },
     },
     stroke: {
       show: false,
@@ -146,6 +142,11 @@ const ntopChartApex = function() {
     },
     fill: {
       type: "solid"
+    },
+    tooltip: {
+      y: {
+        formatter: NtopUtils.bytesToSize
+      },
     },
 	};
 	ntopng_utility.copy_object_keys(TS_STACKED_ChartOptions, chartOptions, true);
@@ -209,7 +210,7 @@ const ntopChartApex = function() {
 	    BASE: "BASE",
 	},
 	newChart: function(type) {
-	    let _chartOptions;
+	    let _chartOptions = {};
 	    let _chart;
 	    let _chartHtmlElement;
 

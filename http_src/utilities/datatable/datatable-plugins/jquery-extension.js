@@ -41,3 +41,99 @@ jQuery.fn.dataTableExt.showProgress = (percentage, type, row) => {
     }
     return percentage;
 };
+/* Extended sorting like written here https://datatables.net/plug-ins/sorting/ */
+/** Time sorting */
+jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+  "time-uni-pre": function (a) {
+      var uniTime;
+      debugger;
+
+      if (a.toLowerCase().indexOf("am") > -1 || (a.toLowerCase().indexOf("pm") > -1 && Number(a.split(":")[0]) === 12)) {
+          uniTime = a.toLowerCase().split("pm")[0].split("am")[0];
+          while (uniTime.indexOf(":") > -1) {
+              uniTime = uniTime.replace(":", "");
+          }
+      } else if (a.toLowerCase().indexOf("pm") > -1 || (a.toLowerCase().indexOf("am") > -1 && Number(a.split(":")[0]) === 12)) {
+          uniTime = Number(a.split(":")[0]) + 12;
+          var leftTime = a.toLowerCase().split("pm")[0].split("am")[0].split(":");
+          for (var i = 1; i < leftTime.length; i++) {
+              uniTime = uniTime + leftTime[i].trim().toString();
+          }
+      } else {
+          uniTime = a.replace(":", "");
+          while (uniTime.indexOf(":") > -1) {
+              uniTime = uniTime.replace(":", "");
+          }
+      }
+      return Number(uniTime);
+  },
+
+  "time-uni-asc": function (a, b) {
+      return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+  },
+
+  "time-uni-desc": function (a, b) {
+      return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+  }
+});
+/** Bytes sorting */
+jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+  "bytes-pre": function (a) {
+      var uniTime;
+
+      if (a.toLowerCase().indexOf("am") > -1 || (a.toLowerCase().indexOf("pm") > -1 && Number(a.split(":")[0]) === 12)) {
+          uniTime = a.toLowerCase().split("pm")[0].split("am")[0];
+          while (uniTime.indexOf(":") > -1) {
+              uniTime = uniTime.replace(":", "");
+          }
+      } else if (a.toLowerCase().indexOf("pm") > -1 || (a.toLowerCase().indexOf("am") > -1 && Number(a.split(":")[0]) === 12)) {
+          uniTime = Number(a.split(":")[0]) + 12;
+          var leftTime = a.toLowerCase().split("pm")[0].split("am")[0].split(":");
+          for (var i = 1; i < leftTime.length; i++) {
+              uniTime = uniTime + leftTime[i].trim().toString();
+          }
+      } else {
+          uniTime = a.replace(":", "");
+          while (uniTime.indexOf(":") > -1) {
+              uniTime = uniTime.replace(":", "");
+          }
+      }
+      return Number(uniTime);
+  },
+
+  "bytes-asc": function (a, b) {
+      return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+  },
+
+  "bytes-desc": function (a, b) {
+      return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+  }
+});
+jQuery.fn.dataTable.ext.type.order['file-size-pre'] = function ( data ) {
+  if (data === null || data === '') {
+      return 0;
+  }
+
+  var matches = data.match( /^(\d+(?:\.\d+)?)\s*([a-z]+)/i );
+  var multipliers = {
+      b:  1,
+      bytes: 1,
+      kb: 1000,
+      kib: 1024,
+      mb: 1000000,
+      mib: 1048576,
+      gb: 1000000000,
+      gib: 1073741824,
+      tb: 1000000000000,
+      tib: 1099511627776,
+      pb: 1000000000000000,
+      pib: 1125899906842624
+  };
+
+  if (matches) {
+      var multiplier = multipliers[matches[2].toLowerCase()];
+      return parseFloat( matches[1] ) * multiplier;
+  } else {
+      return -1;
+  };
+};
