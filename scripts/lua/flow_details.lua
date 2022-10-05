@@ -1504,7 +1504,7 @@ else
    end
 
 if(flow.flow_payload ~= nil) then
-    print("<tr><th width=30%>Payload</th><td colspan=2><pre>" .. flow.flow_payload .. "</pre></td></tr>\n")
+    print("<tr><th width=30%>Payload</th><td colspan=2><div style='white-space: pre-wrap;word-break: keep-all;font-family: \"courier new\", courier, monospace;'>" .. flow.flow_payload .. "</div></td></tr>\n")
 end
 
 
