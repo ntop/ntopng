@@ -347,7 +347,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    record["column_ip"] = column_ip .. column_location
 
-   record["column_num_flows"] = format_utils.formatValue(value["active_flows.as_client"] + value["active_flows.as_server"])
+   value["num_flows"] = value["active_flows.as_client"] + value["active_flows.as_server"]
+   record["column_num_flows"] = format_high_num_value_for_tables(value, "num_flows") 
 
    -- exists only for bridged interfaces
    if isBridgeInterface(interface.getStats()) then
@@ -356,7 +357,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)
    if(sent2rcvd == nil) then sent2rcvd = 0 end
-   record["column_score"] = custom_column_utils.hostToScoreValue(value)
+   record["column_score"] = format_high_num_value_for_tables(value, "score") 
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
 	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
 
