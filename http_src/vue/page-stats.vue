@@ -114,6 +114,7 @@ import timeseriesUtils from "../utilities/timeseries-utils.js";
 import metricsManager from "../utilities/metrics-manager.js";
 import formatterUtils from "../utilities/formatter-utils";
 import { DataTableUtils } from "../utilities/datatable/sprymedia-datatable-utils";
+import NtopUtils from "../utilities/ntop-utils";
 
 const props = defineProps({
     csrf: String,
@@ -463,14 +464,8 @@ function set_table_configuration(url) {
 	},
 	{ columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage', className: 'text-nowrap', responsivePriority: 1,
 	  render: (data) => {
-              const percentage = data.toFixed(1);
-              return `<div class="d-flex flex-row">
-                  <div class="col-9 progress">
-                    <div class="progress-bar bg-warning" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage}%;">
-                    </div>
-                  </div>
-                  <div class="col ms-3"> ${percentage} %</div>
-                </div>`
+      const percentage = data.toFixed(1);
+      return NtopUtils.createProgressBar(percentage)
 	  } 
 	}
     ];  
