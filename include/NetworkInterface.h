@@ -86,7 +86,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   std::atomic<u_int64_t> num_active_alerted_flows_notice;  /* Counts all flow alerts with severity <= notice  */
   std::atomic<u_int64_t> num_active_alerted_flows_warning; /* Counts all flow alerts with severity == warning */
   std::atomic<u_int64_t> num_active_alerted_flows_error;   /* Counts all flow alerts with severity >= error   */
-  u_int32_t num_host_dropped_alerts, num_flow_dropped_alerts, num_other_dropped_alerts;
+  u_int32_t num_host_dropped_alerts, num_flow_dropped_alerts, num_other_dropped_alerts, last_purge_idle;
   u_int64_t num_written_alerts, num_alerts_queries, score_as_cli, score_as_srv;
   u_int64_t num_new_flows;
   time_t last_ndpi_reload;

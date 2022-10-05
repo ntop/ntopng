@@ -346,7 +346,7 @@ void NetworkInterface::init(const char *interface_name) {
   else
     companionQueue = new (std::nothrow) ParsedFlow*[COMPANION_QUEUE_LEN]();
   next_compq_insert_idx = next_compq_remove_idx = 0;
-
+  last_purge_idle= 0;
   idleFlowsToDump = activeFlowsToDump = NULL;
   flowAlertsQueue = new (std::nothrow) SPSCQueue<FlowAlert *>(MAX_FLOW_CHECKS_QUEUE_LEN, "flowAlertsQueue");
   hostAlertsQueue = new (std::nothrow) SPSCQueue<HostAlertReleasedPair>(MAX_HOST_CHECKS_QUEUE_LEN, "hostAlertsQueue");
@@ -2058,7 +2058,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
   u_int n, m, o;
   last_pkt_rcvd = when;
-
+  
   bcast_domains->reloadBroadcastDomains(full_scan /* Force a reload only if a full scan is requested */);
 
   if((n = purgeIdleFlows(force_idle, full_scan)) > 0)
@@ -2158,6 +2158,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 #ifdef __linux__
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Packets exceeding the expected max size have been received "
                                    "[len: %u][max len: %u].", h->len, ifMTU);
+      
       if(!read_from_pcap_dump()) {
         ntop->getTrace()->traceEvent(TRACE_WARNING, "If TSO/GRO is enabled, please disable it for best accuracy");
         if(strchr(ifname, ':') == NULL) /* print ethtool command for standard interfaces only */
@@ -2169,7 +2170,12 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   }
 
   setTimeLastPktRcvd(h->ts.tv_sec);
-  purgeIdle(h->ts.tv_sec);
+
+  if(last_purge_idle != h->ts.tv_sec) {
+    if(!read_from_pcap_dump())
+      purgeIdle(h->ts.tv_sec);    
+    last_purge_idle = h->ts.tv_sec;
+  }
 
   time = ((uint64_t) h->ts.tv_sec) * 1000 + h->ts.tv_usec / 1000;
 
