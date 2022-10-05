@@ -23,9 +23,16 @@ const types = {
 	decimal: 2,
 	scale_values: null,
     },
+    bytes_network: {
+	id: "bytes_network",
+	um: ["B", "KB", "MB", "GB", "TB"],
+	step: 1000,
+	decimal: 2,
+	scale_values: null,
+    },
     bps: {
 	id: "bps",
-	um: ["bps", "Kbps", "Mbps", "Gbps"],
+	um: ["bps", "Kbps", "Mbps", "Gbps", "Tbps"],
 	step: 1000,
 	decimal: 2,
 	scale_values: 8,	

@@ -11,7 +11,7 @@
       </template>
       <template v-slot:extra_buttons>
 	<button v-if="enable_snapshots" class="btn btn-link btn-sm" @click="show_modal_snapshot" :title="_i18n('page_stats.manage_snapshots_btn')"><i class="fas fa-lg fa-camera-retro"></i></button>
-	<button v-if="show_pcap_download || false" class="btn btn-link btn-sm" @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i class="fas fa-lg fa-download"></i></button>
+	<button v-if="traffic_extraction_permitted" class="btn btn-link btn-sm" @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i class="fas fa-lg fa-download"></i></button>
 	
       </template>
     </DataTimeRangePicker>
@@ -119,10 +119,13 @@ import NtopUtils from "../utilities/ntop-utils";
 const props = defineProps({
     csrf: String,
     enable_snapshots: Boolean,
-    is_clickhouse_enabled: Boolean
+    is_clickhouse_enabled: Boolean,
+    traffic_extraction_permitted: Boolean,
 });
 
 ntopng_utility.check_and_set_default_interval_time();
+
+const _i18n = (t) => i18n(t);
 
 let id_chart = "chart";
 let id_date_time_picker = "date_time_picker";
@@ -372,7 +375,7 @@ async function load_charts_data(timeseries_groups, not_reload) {
     let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_chart_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
     
     set_charts_options_items(charts_options);
-    set_stats_rows(ts_chart_options, timeseries_groups);
+    set_stats_rows(ts_chart_options, timeseries_groups, status);
     
     // set last_timeseries_groupd_loaded
     last_timeseries_groups_loaded = timeseries_groups;
@@ -509,22 +512,22 @@ function set_table_configuration(url) {
 }
 
 let stats_columns = [
-    { id: "metric", label: "Metric" },
-    { id: "avg", label: "Average" },
-    { id: "perc_95", label: "95th Percentile" },
-    { id: "max", label: "Max" },
-    { id: "min", label: "Min" },
-    { id: "total", label: "Total" },
+    { id: "metric", label: _i18n("page_stats.metric") },
+    { id: "avg", label: _i18n("page_stats.average") },
+    { id: "perc_95", label: _i18n("page_stats.95_perc") },
+    { id: "max", label: _i18n("page_stats.max") },
+    { id: "min", label: _i18n("page_stats.min") },
+    { id: "total", label: _i18n("page_stats.total") },
 ];
 
 const stats_rows = ref([]);
 
-function set_stats_rows(ts_chart_options, timeseries_groups) {
+function set_stats_rows(ts_chart_options, timeseries_groups, status) {
     let extend_serie_name = true;
-    let print_stat = (value) => {
-	if (value == null) { return ''; }
-	return value;
-    };
+    const f_get_total_formatter_type = (type) => {
+	if (type == "bps") { return "bytes_network"; }
+	return type;
+    };    
     stats_rows.value = [];
     ts_chart_options.forEach((options, i) => {
 	let ts_group = timeseries_groups[i];
@@ -534,9 +537,17 @@ function set_stats_rows(ts_chart_options, timeseries_groups) {
 	    let formatter = formatterUtils.getFormatter(ts_group.metric.measure_unit);
 	    let ts_stats = options.statistics?.by_serie[j];
 	    let name = timeseriesUtils.getSerieName(s_metadata.label, ts_id, ts_group, extend_serie_name);
+	    let total = null;
+	    let total_formatter_type = f_get_total_formatter_type(ts_group.metric.measure_unit);
+	    let total_formatter = formatterUtils.getFormatter(total_formatter_type);
+	    if (ts_stats.total != null) {
+		let interval = status.epoch_end - status.epoch_begin;
+		total = interval * ts_stats.average;
+	    }
+	    
 	    let row = {
 		metric: name,
-		total: formatter(ts_stats.total),
+		total: total_formatter(total),
 		perc_95: formatter(ts_stats["95th_percentile"]),
 		avg: formatter(ts_stats.average),
 		max: formatter(ts_stats.max_val),
@@ -560,8 +571,6 @@ const modal_traffic_extraction = ref(null);
 function show_modal_traffic_extraction() {
     modal_traffic_extraction.value.show();
 }
-
-const _i18n = (t) => i18n(t);
 
 </script>
 

@@ -165,9 +165,13 @@ const get_sources = async (http_prefix, source_type) => {
     }
     let res = await cache_sources[key];
     if (source_type.value == "ifid") {
-	    const sources = res.map((s) => {
+	const sources = res.map((s) => {
+	    let label = s.ifname;
+	    if (s.name != null) {
+		label = s.name;
+	    }
         return {
-          label: s.ifname,
+          label,
           value: s.ifid,
         };
 	    });

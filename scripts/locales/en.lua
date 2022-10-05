@@ -5007,6 +5007,12 @@ local lang = {
     ["manage_snapshots_btn"] = "Manage Snapshots",
     ["manage_timeseries_btn"] = "Manage Timeseries",
     ["top_applications"] = "Top Applications",
+    ["metric"] = "Metric",
+    ["average"] = "Average",
+    ["95_perc"] = "95th Percentile",
+    ["min"] = "Min",
+    ["max"] = "Max",
+    ["total"] = "Total",
   },
   ["peers_page"] = {
     ["host"] = "Host",

@@ -2,7 +2,8 @@
   <page-stats 
     :csrf="csrf" 
     :enable_snapshots="is_ntop_enterprise_m"
-    :is_clickhouse_enabled="is_clickhouse_enabled">
+    :is_clickhouse_enabled="is_clickhouse_enabled"
+    :traffic_extraction_permitted="traffic_extraction_permitted">
   </page-stats>
 </div>
 
@@ -12,6 +13,8 @@
   function start_vue() {
     const is_ntop_enterprise_m = '{* ntop.isEnterpriseM() *}' == 'true';
     const is_clickhouse_enabled = '{* is_clickhouse_enabled *}' == 'true';
+    const traffic_extraction_permitted = '{* traffic_extraction_permitted *}' == 'true';
+
     const vue_options = {
     	components: {
 	    'page-stats': ntopVue.PageStats,
@@ -25,7 +28,8 @@
 	    return {
 	      csrf: pageCsrf,
 	      is_ntop_enterprise_m,
-        is_clickhouse_enabled,
+	      traffic_extraction_permitted,
+              is_clickhouse_enabled,
 	    };
 	},
 	methods: {},

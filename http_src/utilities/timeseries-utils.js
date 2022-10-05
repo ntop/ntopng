@@ -245,6 +245,49 @@ function setSeriesColors2(seriesArray) {
     });
 }
 
+function setMinMaxYaxis(yAxisArray, seriesArray) {
+    let yAxisArrayDict = {};
+    let minMaxDict = {};
+    for (let i = 0; i < seriesArray.length; i+= 1) {
+	let s = seriesArray[i];
+	let y = yAxisArray[i];
+	let id = y.seriesName;
+	if (yAxisArrayDict[id] == null) {
+	    yAxisArrayDict[id] = [];
+	    minMaxDict[id] = { min: Number.MAX_SAFE_INTEGER, max: Number.MIN_SAFE_INTEGER };
+	}
+	yAxisArrayDict[id].push(y);
+	let minMax = minMaxDict[id];
+	s.data.forEach((d) => {
+	    minMax.max = Math.max(minMax.max, d.y);
+	    minMax.min = Math.min(minMax.min, d.y);
+	});	
+    }
+
+    let fAddOrSubtrac3Perc = (x, isAdd) => {
+	if (x == 0 || x == null || x == Number.MAX_SAFE_INTEGER || x == Number.MIN_SAFE_INTEGER) {
+	    return 0;
+	}
+	let onePerc = x / 100 * 3;
+	if ((isAdd && x > 0) || (!isAdd && x < 0)) {
+	    return x + onePerc;
+	} else {
+	    return x - onePerc;
+	}
+    }
+    for (let sName in yAxisArrayDict) {
+	let yArray = yAxisArrayDict[sName];
+	let minMax = minMaxDict[sName];
+	minMax.min = fAddOrSubtrac3Perc(minMax.min, false);
+	minMax.max = fAddOrSubtrac3Perc(minMax.max, true);
+	
+	yArray.forEach((y) => {
+	    y.min = minMax.min;
+	    y.max = minMax.max;
+	});
+    }
+}
+
 function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
     let metric = tsGroup.metric;
     let yaxisId = getYaxisId(metric);
@@ -263,6 +306,7 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
 	    let yaxis = {
 		seriesName: s.name,
 		show: true,
+		//forceNiceScale: true,
 		labels: {
 		    formatter: formatterUtils.getFormatter(metric.measure_unit, invertDirection),
 		    // minWidth: 60,
@@ -393,8 +437,9 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare) {
 
     // set colors in series
     setSeriesColors2(seriesArray);
-
-    let chartOptions = buildChartOptions(seriesArray, yaxisArray);
+    setMinMaxYaxis(yaxisArray, seriesArray);
+    
+    let chartOptions = buildChartOptions(seriesArray, yaxisArray);    
     return chartOptions;
 }
 
