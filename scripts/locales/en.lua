@@ -518,6 +518,7 @@ local lang = {
   ["upload"] = "Upload",
   ["upload_icon"] = "<i class='fas fa-arrow-up'></i>",
   ["upload_pcap"] = "Upload pcap",
+  ["upload_pcap_max_size"] = "File too big: max upload size %{size} MB",
   ["uploaders"] = "Upload Volume",
   ["used_by"] = "Used by",
   ["value"] = "Value",

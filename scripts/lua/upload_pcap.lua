@@ -12,7 +12,7 @@ local template = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.analyze_pcap, {  })
+page_utils.set_active_menu_entry(page_utils.menu_entries.analyze_pcap)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- accept=".pcap"

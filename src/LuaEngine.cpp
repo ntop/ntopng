@@ -35,7 +35,7 @@ extern luaL_Reg *ntop_interface_reg;
 extern luaL_Reg *ntop_reg;
 extern luaL_Reg *ntop_network_reg;
 
-#define HTTP_MAX_UPLOAD_DATA_LEN 10000000 /* ~10MB */
+#define HTTP_MAX_UPLOAD_DATA_LEN 25000000 /* ~25MB (see also upload_pcap.template) */
 
 /* ******************************* */
 

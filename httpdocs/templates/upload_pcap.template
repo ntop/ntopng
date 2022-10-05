@@ -5,13 +5,27 @@
 
 <script type="text/javascript">
     function get_action(form) {
-       form.action = form.action+"?create_new_iface="+document.getElementById('create_new_interface').checked;
-     }
+	form.action = form.action+"?create_new_iface="+document.getElementById('create_new_interface').checked;
+    }
+
+function upload_check()
+{
+    var upl = document.getElementById("pcap");
+    var max_mb = 25;
+    var max_size = max_mb * 1000 * 1000;
+
+    if(upl.files[0].size > max_size)
+    {
+	alert("{{ i18n("upload_pcap_max_size", { size = 25 }) }}");
+	upl.value = "";
+    }
+};
+
 </script>
 		
 <table class="table w-100 table-striped table-hover table-bordered">
 <form action="{{ ntop.getHttpPrefix() }}/lua/analyze_pcap.lua" method=POST enctype="multipart/form-data" onsubmit="get_action(this);">
-<tr><th>{{ i18n("pcap_file") }}</th><td><input type="file" id="pcap" name="pcap" accept=".pcap" required><br><small>{{ i18n("analyze_pcap_descr") }} </small></br> </td></tr>
+<tr><th>{{ i18n("pcap_file") }}</th><td><input onchange="upload_check()" type="file" id="pcap" name="pcap" accept=".pcap" required><br><small>{{ i18n("analyze_pcap_descr") }} </small></br> </td></tr>
 
 <tr><th>{{ i18n("create_new_pcap_iface") }}</th><td align=left><span class="form-switch"><input 
 {% if(iftype ~= "pcap dump") then %}
