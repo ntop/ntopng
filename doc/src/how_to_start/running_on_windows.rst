@@ -49,6 +49,18 @@ Windows services are started and stopped using the Services application part of 
    c:\Program Files\ntopng>
 
 
+Note that when you install the ntopng service (/i) you can specify a configuration file (the format is the same one used on Linux) instead of specifying the individual options. Example
+
+.. code:: bash
+
+   c:\Program Files\ntopng>ntopng c:\Documents\ntopng.conf
+
+Please make sure to
+
+  - Specify an absolute configuration file path (i.e. c:\....) and not a local one.
+  - Store the file in a directory that is readeable by the Windows service manager.
+
+   
 Troubleshooting
 ---------------
 ntopng requires the Redis service to be activated in order to start. You can check Redis status from the Services application.
