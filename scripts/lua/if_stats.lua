@@ -67,6 +67,8 @@ local is_pcap_dump = interface.isPcapDumpInterface()
 local ifstats = interface.getStats()
 local is_sub_interface = interface.isSubInterface()
 
+-- tprint(ifstats.stats.hosts_rcvd_only .. " / " .. ifstats.stats.hosts)
+
 if page == "syslog_producers" and not ifstats.isSyslog then
    page = "overview"
 end

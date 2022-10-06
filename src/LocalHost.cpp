@@ -80,7 +80,8 @@ void LocalHost::set_hash_entry_state_idle() {
     }
   }
 
-  iface->decNumHosts(true /* A local host */);
+  iface->decNumHosts(true /* A local host */, isReceiveOnlyHost());
+  
   if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
     ns->decNumHosts();
 
@@ -134,7 +135,7 @@ void LocalHost::initialize() {
   updateHostTrafficPolicy(host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 18);
 
-  iface->incNumHosts(true /* Local Host */);
+  iface->incNumHosts(true /* Local Host */, isReceiveOnlyHost());
   if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
     ns->incNumHosts();
   

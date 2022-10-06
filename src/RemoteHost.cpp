@@ -48,7 +48,7 @@ RemoteHost::~RemoteHost() {
 /* *************************************** */
 
 void RemoteHost::set_hash_entry_state_idle() {
-  iface->decNumHosts(false /* A remote host */);
+  iface->decNumHosts(false /* A remote host */, isReceiveOnlyHost());
 
   GenericHashEntry::set_hash_entry_state_idle();
 }
@@ -71,5 +71,5 @@ void RemoteHost::initialize() {
     ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true);
   }
 
-  iface->incNumHosts(false /* Remote Host */);
+  iface->incNumHosts(false /* Remote Host */, isReceiveOnlyHost());
 }

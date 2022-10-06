@@ -246,10 +246,10 @@ void NetworkInterface::init(const char *interface_name) {
     running = false, shutting_down = false, customIftype = NULL,
     is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false,
     discard_probing_traffic = false;
-    flows_only_interface = false;
-    numSubInterfaces = 0;
-    ip_reassignment_alerts_enabled = false;
-    pcap_datalink_type = 0, mtuWarningShown = false,
+  flows_only_interface = false;
+  numSubInterfaces = 0;
+  ip_reassignment_alerts_enabled = false;
+  pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
     has_vlan_packets = false,
@@ -257,7 +257,7 @@ void NetworkInterface::init(const char *interface_name) {
     inline_interface = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = false,
     flow_dump_disabled = false,
-    numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
+    numL2Devices = 0, totalNumHosts = numTotalRcvdOnlyHosts = numLocalHosts = numLocalRcvdOnlyHosts = 0,
     arp_requests = arp_replies = 0,
     has_mac_addresses = false,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = checkpointDroppedAlertsCount = 0,
@@ -265,8 +265,8 @@ void NetworkInterface::init(const char *interface_name) {
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
-      num_new_flows = 0;
-    last_obs_point_id = 0;
+  num_new_flows = 0;
+  last_obs_point_id = 0;
 
   flows_hash = NULL, hosts_hash = NULL;
   macs_hash = NULL, ases_hash = NULL, oses_hash = NULL, vlans_hash = NULL, obs_hash = NULL;
@@ -346,7 +346,7 @@ void NetworkInterface::init(const char *interface_name) {
   else
     companionQueue = new (std::nothrow) ParsedFlow*[COMPANION_QUEUE_LEN]();
   next_compq_insert_idx = next_compq_remove_idx = 0;
-  last_purge_idle= 0;
+  last_purge_idle = 0;
   idleFlowsToDump = activeFlowsToDump = NULL;
   flowAlertsQueue = new (std::nothrow) SPSCQueue<FlowAlert *>(MAX_FLOW_CHECKS_QUEUE_LEN, "flowAlertsQueue");
   hostAlertsQueue = new (std::nothrow) SPSCQueue<HostAlertReleasedPair>(MAX_HOST_CHECKS_QUEUE_LEN, "hostAlertsQueue");
@@ -6161,24 +6161,6 @@ u_int NetworkInterface::getNumFlows() {
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumL2Devices() {
-  return(numL2Devices);
-};
-
-/* **************************************************** */
-
-u_int NetworkInterface::getNumHosts() {
-  return(numHosts);
-};
-
-/* **************************************************** */
-
-u_int NetworkInterface::getNumLocalHosts() {
-  return(numLocalHosts);
-};
-
-/* **************************************************** */
-
 u_int NetworkInterface::getNumHTTPHosts() {
   return(hosts_hash ? hosts_hash->getNumHTTPEntries() : 0);
 };
@@ -6445,7 +6427,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "bytes",        getNumBytes());
   lua_push_uint64_table_entry(vm, "flows",        getNumFlows());
   lua_push_uint64_table_entry(vm, "hosts",        getNumHosts());
+  lua_push_uint64_table_entry(vm, "hosts_rcvd_only", getNumRcvdOnlyHosts());
   lua_push_uint64_table_entry(vm, "local_hosts",  getNumLocalHosts());
+  lua_push_uint64_table_entry(vm, "local_rcvd_only_hosts", getNumLocalRcvdOnlyHosts());
   lua_push_uint64_table_entry(vm, "http_hosts",   getNumHTTPHosts());
   lua_push_uint64_table_entry(vm, "drops",        getNumPacketDrops());
   lua_push_uint64_table_entry(vm, "new_flows",    getNumNewFlows());

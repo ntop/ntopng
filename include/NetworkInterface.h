@@ -224,7 +224,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool pollLoopCreated, flowDumpLoopCreated, flowAlertsDequeueLoopCreated, hostAlertsDequeueLoopCreated;
   bool has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   bool flow_dump_disabled;
-  u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
+  u_int32_t ifSpeed, numL2Devices,
+    totalNumHosts, numTotalRcvdOnlyHosts /* subset of numTotalRcvdOnlyHosts that have received but never sent any traffic */,
+    numLocalHosts, numLocalRcvdOnlyHosts /* subset of numLocalHosts that have received but never sent any traffic */,
+    scalingFactor;
   /* Those will hold counters at checkpoints */
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount, checkpointDroppedAlertsCount;
   u_int64_t checkpointDiscardedProbingPktCount, checkpointDiscardedProbingBytesCount;
@@ -748,9 +751,12 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   virtual u_int64_t getNumDiscardedProbingPackets() const;
   virtual u_int64_t getNumDiscardedProbingBytes()   const;
   virtual u_int     getNumFlows();
-  u_int             getNumL2Devices();
-  u_int             getNumHosts();
-  u_int             getNumLocalHosts();
+  inline u_int      getNumL2Devices()          { return(numL2Devices);          };
+  inline u_int      getNumHosts()              { return(totalNumHosts);         };
+  inline u_int      getNumLocalHosts()         { return(numLocalHosts);         };
+  inline u_int      getNumRcvdOnlyHosts()      { return(numTotalRcvdOnlyHosts); };
+  inline u_int      getNumLocalRcvdOnlyHosts() { return(numLocalRcvdOnlyHosts); };
+  
   u_int             getNumMacs();
   u_int             getNumHTTPHosts();
 
@@ -916,8 +922,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool getOSInfo(lua_State* vm, OSType os_type);
   bool getCountryInfo(lua_State* vm, const char *country);
   bool getVLANInfo(lua_State* vm, VLANid vlan_id);
-  inline void incNumHosts(bool local) { if(local) numLocalHosts++; numHosts++; };
-  inline void decNumHosts(bool local) { if(local) numLocalHosts--; numHosts--; };
+  inline void incNumHosts(bool local, bool recvdOnlyHost) { if(local) numLocalHosts++; if(recvdOnlyHost) numLocalRcvdOnlyHosts++, numTotalRcvdOnlyHosts++; totalNumHosts++; };
+  inline void decNumHosts(bool local, bool recvdOnlyHost) { if(local) numLocalHosts--; if(recvdOnlyHost) numLocalRcvdOnlyHosts--, numTotalRcvdOnlyHosts--; totalNumHosts--; };
   inline void incNumL2Devices()       { numL2Devices++; }
   inline void decNumL2Devices()       { numL2Devices--; }
   inline u_int32_t getScalingFactor()       const { return(scalingFactor); }
@@ -1081,7 +1087,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void setLastInterfacenDPIReload(time_t now)      { last_ndpi_reload = now;   }
   inline bool needsnDPICleanup()                          { return(ndpi_cleanup_needed); }
   inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
-  u_int16_t getnDPIProtoByName(const char *name);
+  u_int16_t   getnDPIProtoByName(const char *name);
+  inline void decNumSentRcvdHosts(bool isLocal)           { if(isLocal) numLocalRcvdOnlyHosts--; numTotalRcvdOnlyHosts--; }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

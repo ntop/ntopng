@@ -74,7 +74,7 @@ class HostStats: public GenericTrafficElement {
   virtual void incStats(time_t when, u_int8_t l4_proto,
 			u_int ndpi_proto, ndpi_protocol_category_t ndpi_category,
 			custom_app_t custom_app,
-			u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+			u_int64_t sent_packets, u_int64_t sentb_ytes, u_int64_t sent_goodput_bytes,
 			u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
 			bool peer_is_unicast);
   void checkpoint(lua_State* vm);
@@ -100,7 +100,7 @@ class HostStats: public GenericTrafficElement {
   inline u_int32_t getTotalUnreachableNumFlowsAsServer() const { return(unreachable_flows_as_server);  };
   inline u_int32_t getTotalHostUnreachableNumFlowsAsClient() const { return(host_unreachable_flows_as_client);  };
   inline u_int32_t getTotalHostUnreachableNumFlowsAsServer() const { return(host_unreachable_flows_as_server);  };
-  u_int32_t getTotalAlerts() const;
+  u_int32_t getTotalAlerts()          const { return(total_alerts); };
   inline u_int32_t getNumFlowAlerts() const { return(num_flow_alerts); };
   void luaNdpiStats(lua_State *vm);
   void luaActiveFlowsBehaviour(lua_State *vm);
@@ -195,8 +195,8 @@ class HostStats: public GenericTrafficElement {
 
   inline PacketStats* getSentStats() { return(&sent_stats); }
   inline PacketStats* getRecvStats() { return(&recv_stats); }
-  inline L4Stats*    getL4Stats()    { return(&l4stats);    }
-
+  inline L4Stats*     getL4Stats()   { return(&l4stats);    }
+  inline bool isReceiveOnly()        { return((getNumPktsSent() > 0) ? false : true); }
 };
 
 #endif

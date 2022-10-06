@@ -30,11 +30,11 @@ PacketStats::PacketStats() {
 /* *************************************** */
 
 void PacketStats::resetStats() {
-    upTo64 = 0, upTo128 = 0, upTo256 = 0,
-      upTo512 = 0, upTo1024 = 0, upTo1518 = 0,
-      upTo2500 = 0, upTo6500 = 0, upTo9000 = 0,
-      above9000 = 0, syn = 0, synack = 0,
-      finack = 0, rst = 0;
+  upTo64 = 0, upTo128 = 0, upTo256 = 0,
+    upTo512 = 0, upTo1024 = 0, upTo1518 = 0,
+    upTo2500 = 0, upTo6500 = 0, upTo9000 = 0,
+    above9000 = 0, syn = 0, synack = 0,
+    finack = 0, rst = 0;
 }
 
 /* *************************************** */
