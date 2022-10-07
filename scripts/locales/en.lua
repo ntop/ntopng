@@ -214,6 +214,7 @@ local lang = {
   ["host"] = "Host %{host}",
   ["host_address"] = "Host Address",
   ["host_notes"] = "Host Notes",
+  ["host_score_ratio"] = "Host/Score Ratio",
   ["hostname"] = "Hostname",
   ["hosts"] = "Hosts",
   ["hosts_map"] = "Hosts Map",

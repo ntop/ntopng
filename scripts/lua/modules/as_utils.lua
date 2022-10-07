@@ -15,11 +15,14 @@ function as2record(ifId, as)
    record["key"] = tostring(as["asn"])
 
    local as_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?asn='..as["asn"].."' title='"..as["asname"].."'>"..as["asn"]..'</A>'
+   as["host_score_ratio"] = math.floor(as["score"] / as["num_hosts"])
+   
    record["column_asn"] = as_link
    record["column_asname"] = printASN(as["asn"], as["asname"])
    record["column_score"] = format_high_num_value_for_tables(as, "score") 
    record["column_hosts"] = format_high_num_value_for_tables(as, "num_hosts")
    record["column_since"] = secondsToTime(now - as["seen.first"] + 1)
+   record["column_host_score_ratio"] = format_high_num_value_for_tables(as, "host_score_ratio")
 
    local sent2rcvd = round((as["bytes.sent"] * 100) / (as["bytes.sent"] + as["bytes.rcvd"]), 0)
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "

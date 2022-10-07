@@ -28,9 +28,14 @@ function network_utils.network2record(ifId, network)
    record["key"] = tostring(network["network_id"])
 
    local network_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?network='..network["network_id"].."' title='"..network["network_key"].."'>"..getFullLocalNetworkName(network["network_key"])..'</A>'
+   
+   network["host_score_ratio"] = math.floor(network["score"] / network["num_hosts"])
+
    record["column_id"] = network_link
    record["column_score"] = format_high_num_value_for_tables(network, "score") 
    record["column_hosts"] = format_high_num_value_for_tables(network, "num_hosts")
+   record["column_alerted_flows"] = format_high_num_value_for_tables(network["alerted_flows"], "total")
+   record["column_host_score_ratio"] = format_high_num_value_for_tables(network, "host_score_ratio")
 
    local sent2rcvd = round((network["bytes.sent"] * 100) / (network["bytes.sent"] + network["bytes.rcvd"]), 0)
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
@@ -48,11 +53,6 @@ function network_utils.network2record(ifId, network)
       record["column_chart"] = ""
    else
       record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..network["network_id"]..'&page=historical"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
-   end
-
-   record["column_alerted_flows"] = format_utils.formatValue(network["alerted_flows"]["total"] or 0)
-   if record["column_alerted_flows"] == 0 then
-    record["column_alerted_flows"] = ''
    end
    
    return record

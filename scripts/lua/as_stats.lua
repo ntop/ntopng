@@ -85,6 +85,22 @@ print [[
 			     }
 
 				 },
+         {
+          title: "]] print(i18n("score")) print[[",
+          field: "column_score",
+          sortable: true,
+                      css: {
+          textAlign: 'center'
+            }
+          },
+          {
+           title: "]] print(i18n("host_score_ratio")) print[[",
+           field: "column_host_score_ratio",
+           sortable: false,
+                       css: {
+           textAlign: 'center'
+             }
+           },
 			     {
 			     title: "]] print(i18n("name")) print[[",
 				 field: "column_asname",
@@ -102,14 +118,6 @@ print [[
 			        textAlign: 'center'
 			     }
 
-				 },
-                         {
-			     title: "]] print(i18n("score")) print[[",
-				 field: "column_score",
-				 sortable: true,
-                             css: {
-			        textAlign: 'center'
-			     }
 				 },
          {
          title: "]] print(i18n("flow_details.alerted_flows")) print[[",
