@@ -153,6 +153,11 @@ export const ntopng_utility = function() {
 	    }
 	    return hash;
 	},
+	mod: function(x, y) {
+	    x = x % y;
+	    if (x < 0) { x += y; }
+	    return x;
+	}
     }
 }();
 

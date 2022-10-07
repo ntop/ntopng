@@ -1,10 +1,10 @@
 <template>
 <select class="select2 form-select" ref="select2" required name="filter_type" >
-  <option v-for="(item, i) in options_2" :selected="item.value == selected_option_2.value" :value="item.value">
+  <option v-for="(item, i) in options_2" :selected="item.value == selected_option_2.value" :value="item.value" :disabled="item.disabled">
     {{item.label}}
   </option>
   <optgroup v-for="(item, i) in groups_options_2" :label="item.group">
-    <option v-for="(opt, j) in item.options" :selected="item.value == selected_option_2.value" :value="opt.value">
+    <option v-for="(opt, j) in item.options" :selected="item.value == selected_option_2.value" :value="opt.value" :disabled="opt.disabled">
       {{opt.label}}
     </option>
   </optgroup>

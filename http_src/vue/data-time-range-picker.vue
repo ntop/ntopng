@@ -32,17 +32,23 @@
             <button :disabled="!enable_apply || wrong_date" @click="apply" class="btn btn-sm btn-primary">{{i18n('apply')}}</button>
                 
             <div class="btn-group">
-                <button @click="jump_time_back()" class="btn btn-sm btn-link" ref="btn-jump-time-back">
+                <button @click="jump_time_back()" class="btn btn-sm btn-link" ref="btn-jump-time-back" :title="i18n('date_time_range_picker.btn_move_left')">
                 <i class="fas fa-long-arrow-alt-left"></i>
                 </button>
-                <button @click="jump_time_ahead()" class="btn btn-sm btn-link me-2" ref="btn-jump-time-ahead">
+                <button @click="jump_time_ahead()" class="btn btn-sm btn-link me-2" ref="btn-jump-time-ahead" :title="i18n('date_time_range_picker.btn_move_right')">
                 <i class="fas fa-long-arrow-alt-right"></i>
                 </button>
-                <button @click="zoom(2)" class="btn btn-sm btn-link" ref="btn-zoom-in">
+                <button @click="zoom(2)" class="btn btn-sm btn-link" ref="btn-zoom-in" :title="i18n('date_time_range_picker.btn_zoom_in')">
                 <i class="fas fa-search-plus"></i>
                 </button>
-                <button @click="zoom(0.5)" class="btn btn-sm btn-link" ref="btn-zoom-out">
+                <button @click="zoom(0.5)" class="btn btn-sm btn-link" ref="btn-zoom-out" :title="i18n('date_time_range_picker.btn_zoom_out')">
                 <i class="fas fa-search-minus"></i>
+                </button>
+                <button :disabled="history_last_status == null" @click="apply_status_by_history()" class="btn btn-sm btn-link" :title="i18n('date_time_range_picker.btn_undo')">
+                <i class="fas fa-undo"></i>
+                </button>
+                <button :disabled="select_time_value == 'custom'" @click="change_select_time()" class="btn btn-sm btn-link" :title="i18n('date_time_range_picker.btn_refresh')">
+                <i class="fas fa-sync"></i>
                 </button>
 		<slot name="extra_buttons"></slot>
             </div>
@@ -58,11 +64,22 @@ import { default as SelectSearch } from "./select-search.vue";
 
 export default {
     components: {
-      'select-search': SelectSearch,
+	'select-search': SelectSearch,
     },
     props: {
 	id: String,
+	enable_refresh: Boolean,
     },
+    watch: {
+	"enable_refresh": function(val, oldVal) {
+	    if (val == true) {
+		this.start_refresh();
+	    } else if (this.refresh_interval != null) {
+		clearInterval(this.refresh_interval);
+		this.refresh_interval = null;
+	    }
+	}
+    },	
     emits: ["epoch_change"],
     /** This method is the first method of the component called, it's called before html template creation. */
     created() {	
@@ -90,22 +107,35 @@ export default {
 		//mode: "range",
 		//static: true,
 		onChange: function(selectedDates, dateStr, instance) {
-          me.enable_apply = true;
-          me.wrong_date = me.flat_begin_date.selectedDates[0].getTime() > me.flat_end_date.selectedDates[0].getTime();
-          //me.a[data] = d;
-      },
-    });
+		    me.enable_apply = true;
+		    me.wrong_date = me.flat_begin_date.selectedDates[0].getTime() > me.flat_end_date.selectedDates[0].getTime();
+		    //me.a[data] = d;
+		},
+	    });
 	};
 	this.flat_begin_date = f_set_picker("begin-date", "begin_date");
 	this.flat_end_date = f_set_picker("end-date", "end_date");
         ntopng_events_manager.on_event_change(this.$props.id, ntopng_events.EPOCH_CHANGE, (new_status) => this.on_status_updated(new_status), true);
+	
 	// notifies that component is ready
 	//console.log(this.$props["id"]);
 	ntopng_sync.ready(this.$props["id"]);
+	if (this.enable_refresh) {
+	    this.start_refresh();
+	}
     },
     
     /** Methods of the component. */
     methods: {
+	start_refresh: function() {
+	    this.refresh_interval = setInterval(() => {
+		let value = this.selected_time_option?.value;
+		if (this.enable_refresh && value != null && value != "custom") {
+		    this.update_from_interval = true;
+		    this.change_select_time();
+		}
+	    }, this.refresh_interval_seconds);
+	},
 	utc_s_to_server_date: function(utc_seconds) {
 	    let utc = utc_seconds * 1000;
 	    let d_local = new Date(utc);
@@ -138,6 +168,7 @@ export default {
             } else {
                 status.epoch_end = this.get_utc_seconds(end_date_time_utc);
                 status.epoch_begin = this.get_utc_seconds(begin_date_time_utc);
+		ntopng_url_manager.add_obj_to_url(status);
                 this.emit_epoch_change(status, this.$props.id);
             }
 	    // this.flat_begin_date.setDate(new Date(status.epoch_begin * 1000));
@@ -149,9 +180,13 @@ export default {
             // this.set_date_time("end-date", end_date_time_utc, false);
             // this.set_date_time("end-time", end_date_time_utc, true);
             this.set_select_time_value(begin_date_time_utc, end_date_time_utc);
-            this.epoch_status = status;
+            this.epoch_status = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
+	    if (this.update_from_interval == false) {
+		this.add_status_in_history(this.epoch_status);
+	    }
             this.enable_apply = false;
-	    ntopng_url_manager.add_obj_to_url({epoch_begin: status.epoch_begin, epoch_end: status.epoch_end});
+	    this.update_from_interval = false;
+	    ntopng_url_manager.add_obj_to_url(this.epoch_status);
         },
         set_select_time_value: function(begin_utc, end_utc) {
             let s_values = this.get_select_values();
@@ -312,11 +347,26 @@ export default {
                 this.wrong_date = true;
 		return;
             }
-            ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_status, id);
+	    if (id != this.id) {
+		this.on_status_updated(epoch_status);
+	    }
+            ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_status, this.id);
             this.$emit("epoch_change", epoch_status);
         },
-        change_begin_date: function() {
-        },
+	add_status_in_history: function(epoch_status) {
+	    this.history_last_status = this.history.findLast(() => true);
+	    if (this.history.length > 5) {
+		this.history.shift();
+	    }
+	    this.history.push(epoch_status);
+	},
+	
+	apply_status_by_history: function() {
+	    if (this.history_last_status == null) { return; }
+	    this.history.pop();
+	    this.history.pop();
+	    this.emit_epoch_change(this.history_last_status);
+	},
     },
     /**
        Private date of vue component.
@@ -325,7 +375,12 @@ export default {
       return {
     i18n: (t) => i18n(t),
       //status_id: "data-time-range-picker" + this.$props.id,
-      epoch_status: null,
+	  epoch_status: null,
+	  refresh_interval: null,
+	  refresh_interval_seconds: 60 * 1000,
+	  update_from_interval: false,
+	  history: [],
+	  history_last_status: null,
       enable_apply: false,
 	  select_time_value: "min_5",
 	  selected_time_option: { value: "min_5", label: i18n('show_alerts.presets.5_min'), currently_active: false },
@@ -340,7 +395,7 @@ export default {
         { value: "week", label: i18n('show_alerts.presets.week'), currently_active: false },
         { value: "month", label: i18n('show_alerts.presets.month'), currently_active: false },
         { value: "year", label: i18n('show_alerts.presets.year'), currently_active: false },
-        { value: "custom", label: i18n('show_alerts.presets.custom'), currently_active: false },
+        { value: "custom", label: i18n('show_alerts.presets.custom'), currently_active: false, disabled: true, },
       ]
     };
   },

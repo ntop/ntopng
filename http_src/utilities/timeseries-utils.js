@@ -396,7 +396,6 @@ function setLeftPadding(apexOptionsArray) {
 	if (!oneChart) {
 	    apexOptions.yaxis.filter((yaxis) => yaxis.show).forEach((yaxis) => {
 		yaxis.labels.minWidth = 60;
-		// yaxis.labels.minWidth = 100;
 	    });
 	}
 	if (apexOptions.yaxis.length < 2) {
@@ -404,9 +403,8 @@ function setLeftPadding(apexOptionsArray) {
 	}    
 	apexOptions.yaxis.forEach((yaxis) => {
 	    yaxis.labels.offsetX = -20;
-	    // yaxis.labels.minWidth = 100;
 	});
-	apexOptions.grid.padding.left = -8;
+	apexOptions.grid.padding.left = -7;
     });
 }
 

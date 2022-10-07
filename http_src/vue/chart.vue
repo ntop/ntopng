@@ -53,8 +53,10 @@ export default {
 		}
 		let new_url_request = this.get_url_request(new_status);
 		if (new_url_request == url_request) {
+		    url_request = new_url_request;
 		    return;
 		}
+		url_request = new_url_request;
 		this.update_chart(new_url_request);
 	    }, false);
 	},

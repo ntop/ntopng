@@ -5,6 +5,7 @@
   <div class="card h-100 overflow-hidden">
     <DataTimeRangePicker style="margin-top:0.5rem;"
 			 :id="id_date_time_picker"
+			 :enable_refresh="true"
 			 ref="date_time_picker"
 			 @epoch_change="epoch_change">
       <template v-slot:begin>
@@ -502,7 +503,7 @@ function set_table_configuration(url) {
     }
     
     const datatable_config = {
-	table_buttons: [ { text: '<i class="fas fa-sync"></i>', className: 'btn-link', action: function () { reload_table(); } } ],
+	table_buttons: [ ],
 	columns_config: columns,
 	data_url: url,
 	enable_search: true,

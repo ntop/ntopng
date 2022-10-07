@@ -6794,6 +6794,14 @@ local lang = {
       ["abort_edit"] = "Abort edit of a Widget?",
     },
   },
+  ["date_time_range_picker"] = {
+     ["btn_refresh"] = "Refresh Time Interval",
+     ["btn_undo"] = "Restore the previous Time Interval",
+     ["btn_zoom_in"] = "Zoom In Time Interval",
+     ["btn_zoom_out"] = "Zoom Out Time Interval",
+     ["btn_move_left"] = "Shift Left Time Interval",
+     ["btn_move_right"] = "Shift Right Time Interval",
+  },  
 }
 
 return lang
