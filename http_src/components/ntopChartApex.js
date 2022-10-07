@@ -125,7 +125,7 @@ const ntopChartApex = function() {
     chart: {
       stacked: true,
       type: "polarArea",
-      height: 300
+      height: 400
     },
     yaxis: {
       show: true,
@@ -135,6 +135,10 @@ const ntopChartApex = function() {
     },
     dataLabels: {
       enabled: true,
+    },
+    legend: {
+      enabled: true,
+      position: 'bottom',
     },
     stroke: {
       show: false,

@@ -24,6 +24,7 @@
           <div class="row" id="host_details_applications">
             <template v-for="chart_option in chart_options">
               <div class="col-6">
+                <h3 v-if="chart_option.tab == applications_tab" class="widget-name">{{ chart_option.title }}</h3>
                 <chart v-if="chart_option.tab == applications_tab"
                   :id="chart_option.id"
                   :chart_type="chart_option.type"
@@ -104,24 +105,28 @@ export default {
       config_devices_categories: null,
       chart_options: [
         {
+          title: i18n('graphs.top_10_ndpi_protocols'),
           type: ntopChartApex.typeChart.PIE,
           url: `${http_prefix}/lua/rest/v2/get/host/l7/proto_data.lua`,
           tab: `applications`,
           id: `top_applications`,
         },
         {
+          title: i18n('graphs.top_breed'),
           type: ntopChartApex.typeChart.PIE,
           url: `${http_prefix}/lua/rest/v2/get/host/l7/breed_data.lua`,
           tab: `applications`,
           id: `top_breed`,
         },
         {
+          title: i18n('graphs.top_10_ndpi_categories'),
           type: ntopChartApex.typeChart.PIE,
           url: `${http_prefix}/lua/rest/v2/get/host/l7/cat_data.lua`,
           tab: `categories`,
           id: `top_categories`,
         },
         {
+          title: i18n('graphs.top_breed'),
           type: ntopChartApex.typeChart.PIE,
           url: `${http_prefix}/lua/rest/v2/get/host/l7/breed_data.lua`,
           tab: `categories`,
