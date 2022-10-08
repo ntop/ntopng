@@ -350,7 +350,8 @@ void NetworkInterface::init(const char *interface_name) {
   idleFlowsToDump = activeFlowsToDump = NULL;
   flowAlertsQueue = new (std::nothrow) SPSCQueue<FlowAlert *>(MAX_FLOW_CHECKS_QUEUE_LEN, "flowAlertsQueue");
   hostAlertsQueue = new (std::nothrow) SPSCQueue<HostAlertReleasedPair>(MAX_HOST_CHECKS_QUEUE_LEN, "hostAlertsQueue");
-
+  flow_serial = 0;
+  
   /* nDPI handling */
   ndpi_cleanup_needed = false;
   last_ndpi_reload = 0;
@@ -4567,6 +4568,9 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
     retriever->totBytesRcvd += f->get_bytes_srv2cli();
 
     switch(retriever->sorter) {
+    case column_serial:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->getFlowSerial();
+      break;
     case column_client:
       if(f->getInterface()->isViewed())
 	retriever->elems[retriever->actNumEntries++].ipValue = (IpAddress*)f->get_cli_ip_addr();
@@ -5195,6 +5199,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   }
 
   if(!strcmp(sortColumn, "column_client")) retriever->sorter = column_client, sorter = (isViewed() || isView()) ? ipSorter : hostSorter;
+  else if(!strcmp(sortColumn, "column_key")) retriever->sorter = column_serial, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_vlan")) retriever->sorter = column_vlan, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_server")) retriever->sorter = column_server, sorter = (isViewed() || isView()) ? ipSorter : hostSorter;
   else if(!strcmp(sortColumn, "column_proto_l4")) retriever->sorter = column_proto_l4, sorter = numericSorter;
@@ -5337,9 +5342,8 @@ int NetworkInterface::getFlows(lua_State* vm,
   retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
   retriever.talking_with_host = talking_with_host;
 
-  if(sortFlows(begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0) {
-    return(-1);
-  }
+  if(sortFlows(begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0)
+    return(-1);  
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "numFlows", retriever.actNumEntries);

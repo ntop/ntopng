@@ -81,7 +81,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #endif
   u_int32_t num_alerts_engaged_notice[ALERT_ENTITY_MAX_NUM_ENTITIES],
     num_alerts_engaged_warning[ALERT_ENTITY_MAX_NUM_ENTITIES],
-    num_alerts_engaged_error[ALERT_ENTITY_MAX_NUM_ENTITIES];
+    num_alerts_engaged_error[ALERT_ENTITY_MAX_NUM_ENTITIES], flow_serial;
   /* Counters for active alerts. Changed by multiple concurrent threads */
   std::atomic<u_int64_t> num_active_alerted_flows_notice;  /* Counts all flow alerts with severity <= notice  */
   std::atomic<u_int64_t> num_active_alerted_flows_warning; /* Counts all flow alerts with severity == warning */
@@ -1089,6 +1089,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
   u_int16_t   getnDPIProtoByName(const char *name);
   inline void decNumSentRcvdHosts(bool isLocal)           { if(isLocal) numLocalRcvdOnlyHosts--; numTotalRcvdOnlyHosts--; }
+  inline u_int32_t getNewFlowSerial()                     { return(flow_serial++); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

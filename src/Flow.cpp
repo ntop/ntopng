@@ -81,6 +81,7 @@ Flow::Flow(NetworkInterface *_iface,
   bt_hash = NULL;
   flow_payload = NULL, flow_payload_len = 0; 
   flow_verdict = 0;
+  flow_serial = _iface->getNewFlowSerial();
   operating_system = os_unknown;
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
     top_bytes_thpt = 0, top_pkts_thpt = 0;
@@ -2341,6 +2342,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_int32_table_entry(vm, "cli.devtype", (cli_host && cli_host->getMac()) ? cli_host->getMac()->getDeviceType() : device_unknown);
     lua_push_int32_table_entry(vm, "srv.devtype", (srv_host && srv_host->getMac()) ? srv_host->getMac()->getDeviceType() : device_unknown);
 
+    lua_push_int32_table_entry(vm, "flow_serial", flow_serial);
+    
 #ifdef HAVE_NEDGE
     if(iface->is_bridge_interface())
       lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? 1 : 0);

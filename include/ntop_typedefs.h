@@ -616,6 +616,7 @@ typedef enum {
   column_device_ip,
   column_in_index,
   column_out_index,
+  column_serial,
   /* Hosts */
   column_ip,
   column_alerts,

@@ -422,6 +422,7 @@ local lang = {
   ["search_host"] = "Search",
   ["seen_since"] = "Seen Since",
   ["sent"] = "Sent",
+  ["serial"] = "Serial",
   ["server"] = "Server",
   ["server_name"] = "Server Name",
   ["server_names"] = "Server Names",
