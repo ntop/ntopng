@@ -23,17 +23,13 @@ local res = {}
 local interfaces = interface.getIfNames()
 
 for ifid, ifname in pairs(interfaces) do
-   local custom_name = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.name')
+  local custom_name = shortenCollapse(getHumanReadableInterfaceName(ifname))
 
-   if isEmptyString(custom_name) then
-      custom_name = ifname
-   end
-
-   res[#res + 1] = {
-      ifid = tonumber(ifid),
-      ifname = ifname,
-      name = custom_name
-   }
+  res[#res + 1] = {
+    ifid = tonumber(ifid),
+    ifname = ifname,
+    name = custom_name
+  }
 end
 
 rest_utils.answer(rc, res)
