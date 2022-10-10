@@ -354,7 +354,7 @@ export default {
             this.$emit("epoch_change", epoch_status);
         },
 	add_status_in_history: function(epoch_status) {
-	    this.history_last_status = this.history.findLast(() => true);
+	    this.history_last_status = this.history[this.history.length - 1];
 	    if (this.history.length > 5) {
 		this.history.shift();
 	    }
