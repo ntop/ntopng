@@ -350,7 +350,8 @@ local function validateOnOff(mode)
 end
 
 local function validateMode(mode)
-   local modes = {"all", "local", "remote", "broadcast_domain", "filtered", "blacklisted",
+   local modes = {"all", "local", "local_no_tx", "remote", "remote_no_tx",
+		  "broadcast_domain", "filtered", "blacklisted",
 		  "dhcp", "restore", "client_duration", "server_duration",
 		  "client_frequency", "server_frequency"  }
 
@@ -542,7 +543,7 @@ local function validateAlertStatsType(mode)
 end
 
 local function validateFlowHostsType(mode)
-   local modes = {"local_only", "remote_only",
+   local modes = {"local_only", "remote_only", 
       "local_origin_remote_target", "remote_origin_local_target", "all_hosts"}
 
    return validateChoice(modes, mode)

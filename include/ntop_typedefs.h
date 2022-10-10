@@ -125,7 +125,9 @@ typedef enum {
 typedef enum {
   location_none = 0,
   location_local_only,
+  location_local_only_no_tx,
   location_remote_only,
+  location_remote_only_no_tx,
   location_broadcast_domain_only,
   location_private_only, /* Only 192.168.0.0/16 and other private */
   location_public_only,  /* Only non-private */

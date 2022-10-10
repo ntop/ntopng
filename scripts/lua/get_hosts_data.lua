@@ -115,8 +115,12 @@ local dhcp_hosts = false
 local hosts_retrv_function = interface.getHostsInfo
 if mode == "local" then
    hosts_retrv_function = interface.getLocalHostsInfo
+elseif mode == "local_no_tx" then
+   hosts_retrv_function = interface.getLocalHostsInfoNoTX
 elseif mode == "remote" then
    hosts_retrv_function = interface.getRemoteHostsInfo
+elseif mode == "remote_no_tx" then
+   hosts_retrv_function = interface.getRemoteHostsInfoNoTX
 elseif mode == "broadcast_domain" then
    hosts_retrv_function = interface.getBroadcastDomainHostsInfo
 elseif mode == "filtered" then

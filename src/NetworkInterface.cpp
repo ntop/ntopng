@@ -4668,7 +4668,9 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     return(false);
 
   if((r->location == location_local_only            && !h->isLocalHost())                 ||
+     (r->location == location_local_only_no_tx      && ((!h->isLocalHost()) || (!h->isReceiveOnlyHost()))) ||
      (r->location == location_remote_only           && h->isLocalHost())                  ||
+     (r->location == location_remote_only_no_tx     && (h->isLocalHost() || (!h->isReceiveOnlyHost()))) ||
      (r->location == location_broadcast_domain_only && !h->isBroadcastDomainHost())       ||
      (r->location == location_private_only && !h->isPrivateHost())                        ||
      (r->location == location_public_only && h->isPrivateHost())                          ||
@@ -5834,7 +5836,8 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       &retriever, bridge_iface_idx,
 	       allowed_hosts, host_details, location,
 	       countryFilter, mac_filter, vlan_id, osFilter,
-	       asnFilter, networkFilter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
+	       asnFilter, networkFilter, pool_filter,
+	       filtered_hosts, blacklisted_hosts, hide_top_hidden,
 	       anomalousOnly, dhcpOnly,
 	       cidr_filter,
 	       ipver_filter, proto_filter,
