@@ -1,6 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-<div class="input-group mx-1">    
+<div class="input-group">    
   <div class="form-group">
     <div class="controls d-flex flex-wrap">
       <div class="btn-group me-auto btn-group-sm">
