@@ -9951,3 +9951,21 @@ void NetworkInterface::checkDHCPStorm(time_t when, u_int32_t num_pkts) {
   }
 }
 #endif
+
+/* *************************************** */
+
+void NetworkInterface::incNumHosts(bool local, bool recvdOnlyHost) {
+  if(local) numLocalHosts++;
+  if(local && recvdOnlyHost) numLocalRcvdOnlyHosts++;
+  if(recvdOnlyHost) numTotalRcvdOnlyHosts++;
+  totalNumHosts++;
+};
+
+/* *************************************** */
+
+void NetworkInterface::decNumHosts(bool local, bool recvdOnlyHost) {
+  if(local) numLocalHosts--;
+  if(local &&recvdOnlyHost) numLocalRcvdOnlyHosts--;
+  if(recvdOnlyHost)numTotalRcvdOnlyHosts--;
+  totalNumHosts--;
+};

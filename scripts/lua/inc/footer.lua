@@ -320,7 +320,9 @@ print[[
 				if(rsp.num_local_hosts > 0 && (!systemInterfaceEnabled)) {
 					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local\">";
 					msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge bg-success\">";
-					msg += NtopUtils.formatValue(rsp.num_local_hosts, 1)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+					msg += NtopUtils.formatValue(rsp.num_local_hosts, 1);
+					if(rsp.num_local_rcvd_only_hosts > 0) msg += " ("+NtopUtils.formatValue(rsp.num_local_rcvd_only_hosts, 1)+")";
+					msg += " <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 				}
 
 				const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
@@ -338,7 +340,9 @@ print[[
 						msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge bg-danger\">";
 					}
 
-					msg += NtopUtils.formatValue(num_remote_hosts, 1)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+					msg += NtopUtils.formatValue(num_remote_hosts, 1);
+					if(rsp.num_rcvd_only_hosts > 0) msg += " ("+NtopUtils.formatValue(rsp.num_rcvd_only_hosts, 1)+")";
+					msg += " <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 				}
 
 				if(rsp.num_devices > 0 && (!systemInterfaceEnabled)) {

@@ -94,7 +94,7 @@ function dumpInterfaceStats(ifid)
       res["packets"] = ifstats.stats_since_reset.packets
       res["bytes"]   = ifstats.stats_since_reset.bytes
       res["drops"]   = ifstats.stats_since_reset.drops
-
+      
       if ifstats.stats_since_reset.discarded_probing_packets then
 	 res["discarded_probing_packets"] = ifstats.stats_since_reset.discarded_probing_packets
 	 res["discarded_probing_bytes"]   = ifstats.stats_since_reset.discarded_probing_bytes
@@ -139,6 +139,8 @@ function dumpInterfaceStats(ifid)
          res["num_hosts"]        = ifstats.stats.hosts
          res["num_local_hosts"]  = ifstats.stats.local_hosts
          res["num_devices"]      = ifstats.stats.devices
+	 res["num_rcvd_only_hosts"]  = ifstats.stats.hosts_rcvd_only
+         res["num_local_rcvd_only_hosts"] = ifstats.stats.local_rcvd_only_hosts
       else
          local num_hosts = countHosts()
          res["num_hosts"]        = num_hosts.hosts
@@ -324,11 +326,12 @@ function dumpBriefInterfaceStats(ifid)
       res["num_hosts"]        = ifstats.stats.hosts
       res["num_local_hosts"]  = ifstats.stats.local_hosts
       res["num_devices"]      = ifstats.stats.devices
+      res["num_rcvd_only_hosts"]  = ifstats.stats.hosts_rcvd_only
+      res["num_local_rcvd_only_hosts"] = ifstats.stats.local_rcvd_only_hosts
     else
       res["num_hosts"]        = countHosts().hosts
       res["num_local_hosts"]  = countHosts().local_hosts
     end
-
 
     res["localtime"]  = os.date("%H:%M:%S %z", res["epoch"])
     res["uptime"]     = secondsToTime(uptime)

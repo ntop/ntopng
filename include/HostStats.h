@@ -74,7 +74,7 @@ class HostStats: public GenericTrafficElement {
   virtual void incStats(time_t when, u_int8_t l4_proto,
 			u_int ndpi_proto, ndpi_protocol_category_t ndpi_category,
 			custom_app_t custom_app,
-			u_int64_t sent_packets, u_int64_t sentb_ytes, u_int64_t sent_goodput_bytes,
+			u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 			u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
 			bool peer_is_unicast);
   void checkpoint(lua_State* vm);

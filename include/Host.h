@@ -591,7 +591,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   inline HostStats* getStats()    { return(stats); }
   void setBlacklistName(char*);
-  inline bool isReceiveOnlyHost() { return(stats->isReceiveOnly()); }
+  inline bool isReceiveOnlyHost() { return(stats->isReceiveOnly() && (!isBroadcastHost()) && (!isMulticastHost())); }
 };
 
 #endif /* _HOST_H_ */

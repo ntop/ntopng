@@ -355,10 +355,14 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto,
 			 u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 			 u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
 			 bool peer_is_unicast) {
-  if((getNumPktsSent() == 0) && (sent_packets > 0)) {
+  if((getNumPktsSent() == 0) /* Current count */
+     && (!host->isBroadcastHost()) && (!host->isMulticastHost())
+     && (sent_packets > 0)) {
     /*
-      This is a host that used to be rcvdOnly and that has now sent traffic
-     */
+      This is a host (non broadcast/multicast host)
+      that used to be rcvdOnly and that has now sent traffic
+    */
+    
     iface->decNumSentRcvdHosts(host->isLocalHost());
   }
   

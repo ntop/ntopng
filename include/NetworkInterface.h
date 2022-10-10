@@ -922,8 +922,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool getOSInfo(lua_State* vm, OSType os_type);
   bool getCountryInfo(lua_State* vm, const char *country);
   bool getVLANInfo(lua_State* vm, VLANid vlan_id);
-  inline void incNumHosts(bool local, bool recvdOnlyHost) { if(local) numLocalHosts++; if(recvdOnlyHost) numLocalRcvdOnlyHosts++, numTotalRcvdOnlyHosts++; totalNumHosts++; };
-  inline void decNumHosts(bool local, bool recvdOnlyHost) { if(local) numLocalHosts--; if(recvdOnlyHost) numLocalRcvdOnlyHosts--, numTotalRcvdOnlyHosts--; totalNumHosts--; };
+  void incNumHosts(bool local, bool recvdOnlyHost);
+  void decNumHosts(bool local, bool recvdOnlyHost);
   inline void incNumL2Devices()       { numL2Devices++; }
   inline void decNumL2Devices()       { numL2Devices--; }
   inline u_int32_t getScalingFactor()       const { return(scalingFactor); }
