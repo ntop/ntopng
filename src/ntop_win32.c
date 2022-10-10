@@ -1073,7 +1073,7 @@ strptime(const char *buf, const char *format, struct tm *tm)
 
 
 
-
+#if 0
 /*
  * gettimeofday() --  gets the current time in elapsed seconds and
  *                     microsends since GMT Jan 1, 1970.
@@ -1107,7 +1107,7 @@ int gettimeofday(struct timeval* curTimeP) {
 
 	return(0);
 }
-
+#endif
 
 #ifdef HAVE_LOCALE_H
 void get_locale_strings(void)

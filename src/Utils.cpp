@@ -4273,10 +4273,11 @@ bool Utils::validInterfaceName(const char *name) {
 
 bool Utils::validInterfaceDescription(const char *description) {
   if(description &&
-     (strstr(description, "PPP")            /* Avoid to use the PPP interface              */
-      || strstr(description, "dialup")      /* Avoid to use the dialup interface           */
-      || strstr(description, "ICSHARE")     /* Avoid to use the internet sharing interface */
-      || strstr(description, "NdisWan"))) { /* Avoid to use the internet sharing interface */
+     (strstr(description, "PPP")            /* Skip the PPP interface              */
+      || strstr(description, "dialup")      /* Skip the dialup interface           */
+      || strstr(description, "Miniport")    /* Skip the miniport interface         */
+      || strstr(description, "ICSHARE")     /* Skip the internet sharing interface */
+      || strstr(description, "NdisWan"))) { /* Skip the internet sharing interface */
     return false;
   }
 
