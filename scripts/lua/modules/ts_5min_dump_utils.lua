@@ -818,7 +818,7 @@ local function local_custom_timeseries_dump_callback()
    local lists_custom_file = base_dir_file.."/"..custom_file ..".lua"
 
    if ntop.exists(lists_custom_file) then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Loading "..lists_custom_file)
+      traceError(TRACE_INFO, TRACE_CONSOLE, "Loading "..lists_custom_file)
       local content = read_file(lists_custom_file)
 
       -- tprint(content)
