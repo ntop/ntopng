@@ -1,10 +1,10 @@
 <template>
 <select class="select2 form-select" ref="select2" required name="filter_type" >
-  <option v-for="(item, i) in options_2" :selected="item.value == selected_option_2.value" :value="item.value" :disabled="item.disabled">
+  <option v-for="(item, i) in options_2" :selected="(item.value == selected_option_2.value)" :value="item.value" :disabled="item.disabled">
     {{item.label}}
   </option>
   <optgroup v-for="(item, i) in groups_options_2" :label="item.group">
-    <option v-for="(opt, j) in item.options" :selected="item.value == selected_option_2.value" :value="opt.value" :disabled="opt.disabled">
+    <option v-for="(opt, j) in item.options" :selected="(item.value == selected_option_2.value)" :value="opt.value" :disabled="opt.disabled">
       {{opt.label}}
     </option>
   </optgroup>
@@ -49,15 +49,9 @@ function set_selected_option(selected_option) {
 }
 
 watch(() => props.selected_option, (cur_value, old_value) => {
-    // if (first_time_render == true) { return; }
-    console.log(`select-search: selected_options: ${cur_value.label}`);
-    // selected2_option.value = cur_value;
     set_selected_option(cur_value);
     let select2Div = select2.value;
     let value = get_value_from_selected_option(cur_value);
-    // let option = find_option_from_value(value);
-    // if (option != null) {
-	console.log(`select-search update value with trigger ${value}`);
 	$(select2Div).val(value)
 	$(select2Div).trigger("change");
     // }
@@ -95,14 +89,11 @@ function find_option_from_value(value) {
 let first_time_render = true;
 
 watch(() => props.options, (current_value, old_value) => {    
-    if (props.disable_change == true) { return; }
-    
-    console.log(`select-search:watch-post ${props.id}, ${JSON.stringify(props.selected_option)}`);
+    if (props.disable_change == true) { return; }    
     set_input();
 }, { flush: 'pre'});
 
 onMounted(() => {
-    console.log("select-search:mounted");
     if (!props.disable_change || !first_time_render) {
     	set_input();
     }
@@ -133,7 +124,6 @@ function set_options() {
 }
 
 watch([options_2, groups_options_2], (cur_value, old_value) => {
-    console.log(`select-search:watchEffect`);
     render();
 }, { flush: 'post'});
 
@@ -143,7 +133,6 @@ function set_input() {
 }
 
 const render = () => {
-    console.log(`select-search:render ${JSON.stringify(props.selected_option)}`);
     let select2Div = select2.value;
     if (first_time_render == false) {
 	destroy();
@@ -161,7 +150,6 @@ const render = () => {
 	    let value = data.element._value;
 	    let option = find_option_from_value(value);
 	    if (value != props.selected_option) {
-		console.log(`select-search: UPDATE \n${JSON.stringify(value)} ${JSON.stringify(props.selected_option)}`);
 		// emit('update:selected_option', value);
 		// emit('select_option', value);
 		emit('update:selected_option', option);
@@ -170,7 +158,6 @@ const render = () => {
 	});
     }
     first_time_render = false;
-    console.log(`select-search render: set value ${selected_option_2.value.value}`);
     // this.$forceUpdate();
     // $(select2Div).val(props.selected_option);
 };
@@ -178,7 +165,6 @@ const render = () => {
 defineExpose({ render });
 
 function destroy() {
-    console.log("Call destroy select-search");
     try {
 	$(select2.value).select2('destroy');
 	$(select2.value).off('select2:select');    
@@ -189,7 +175,6 @@ function destroy() {
 }
 
 onBeforeUnmount(() => {
-    console.log("select-search: unmount");
     destroy();
 });
 
