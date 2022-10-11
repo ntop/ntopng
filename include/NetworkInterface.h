@@ -294,6 +294,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   NetworkInterface* getDynInterface(u_int64_t criteria, bool parser_interface);
   Flow* getFlow(Mac *srcMac, Mac *dstMac, VLANid vlan_id,
 		u_int16_t observation_domain_id,
+		u_int32_t private_flow_id,
 		u_int32_t deviceIP, u_int32_t inIndex, u_int32_t outIndex,
 		const ICMPinfo * const icmp_info,
 		IpAddress *src_ip, IpAddress *dst_ip,
@@ -593,11 +594,13 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void checkHostsToRestore();
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
   void findFlowHosts(VLANid vlan_id, u_int16_t observation_domain_id,
+		     u_int32_t private_flow_id,
 		     Mac *src_mac, IpAddress *_src_ip, Host **src,
 		     Mac *dst_mac, IpAddress *_dst_ip, Host **dst);
   virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts);
   virtual Flow* findFlowByTuple(VLANid vlan_id,
 				u_int16_t observation_domain_id,
+				u_int32_t private_flow_id,
 				IpAddress *src_ip,  IpAddress *dst_ip,
 				u_int16_t src_port, u_int16_t dst_port,
 				u_int8_t l4_proto,

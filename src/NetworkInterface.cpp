@@ -1128,6 +1128,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 
 Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				VLANid vlan_id, u_int16_t observation_domain_id,
+				u_int32_t private_flow_id,
 				u_int32_t deviceIP,
 				u_int32_t inIndex,  u_int32_t outIndex,
 				const ICMPinfo * const icmp_info,
@@ -1138,7 +1139,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				time_t first_seen, time_t last_seen,
 				u_int32_t len_on_wire,
 				bool *new_flow, bool create_if_missing,
-        u_int8_t *view_cli_mac, u_int8_t *view_srv_mac) {
+				u_int8_t *view_cli_mac, u_int8_t *view_srv_mac) {
   Flow *ret;
   Mac *primary_mac;
   Host *srcHost = NULL, *dstHost = NULL;
@@ -1156,6 +1157,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 1);
   ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
 			 vlan_id, observation_domain_id,
+			 private_flow_id,
 			 l4_proto, icmp_info, src2dst_direction,
 			 true /* Inline call */);
   INTERFACE_PROFILING_SECTION_EXIT(1);
@@ -1175,7 +1177,8 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
     try {
       INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 2);
-      ret = new (std::nothrow) Flow(this, vlan_id, observation_domain_id, l4_proto,
+      ret = new (std::nothrow) Flow(this, vlan_id, observation_domain_id,
+				    private_flow_id, l4_proto,
 				    srcMac, src_ip, src_port,
 				    dstMac, dst_ip, dst_port,
 				    icmp_info,
@@ -1410,6 +1413,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     Flow **hostFlow) {
   u_int16_t trusted_ip_len = max_val(0, (int)h->caplen - ip_offset);
   u_int16_t trusted_payload_len = 0;
+  u_int32_t private_flow_id = 0;
   bool src2dst_direction;
   u_int8_t l4_proto;
   Flow *flow;
@@ -1697,16 +1701,36 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   }
 #endif
 
+  /*
+    We need to populate the private_flow_id with protocol-specific
+    such as DNS....
+
+    Unfortunately nDPI has not yet seen this packet so we need to 
+    implement a micro-DPI code here
+  */
+  if((l4_proto == IPPROTO_UDP) && (trusted_payload_len > 20)) {
+    u_int16_t fiftythree = htons(53);
+    
+    if((src_port == fiftythree) || (dst_port == fiftythree)) {
+      /* Looks like DNS */
+      u_int16_t dns_transaction_id = (payload[0] << 8) + payload[1];
+      
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%04X", dns_transaction_id);
+      private_flow_id = (u_int32_t)dns_transaction_id;
+    }
+  }  
+  
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processPacket: getFlow", 0);
 
  pre_get_flow:
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac, vlan_id, 0 /* observationPointId */,
-		 0, 0, 0,
+		 private_flow_id, 0, 0, 0,
 		 l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
 		 &src_ip, &dst_ip, src_port, dst_port,
 		 l4_proto, &src2dst_direction, last_pkt_rcvd,
-		 last_pkt_rcvd, len_on_wire, &new_flow, true, eth->h_source, eth->h_dest /* Eth lvl, used just in view interfaces to add MAC */);
+		 last_pkt_rcvd, len_on_wire, &new_flow, true,
+		 eth->h_source, eth->h_dest /* Eth lvl, used just in view interfaces to add MAC */);
   INTERFACE_PROFILING_SECTION_EXIT(0);
 
   if(flow == NULL) {
@@ -2767,6 +2791,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
       flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
 		     0 /* vlan_id */,
 		     0 /* observationPointId */,
+		     0 /* private_flow_id */,
 		     0 /* deviceIP */,
 		     0 /* inIndex */, 1 /* outIndex */,
 		     NULL /* ICMPinfo */,
@@ -3348,6 +3373,7 @@ void NetworkInterface::cleanup() {
 /* **************************************************** */
 
 void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain_id,
+				     u_int32_t private_flow_id,
 				     Mac *src_mac, IpAddress *_src_ip, Host **src,
 				     Mac *dst_mac, IpAddress *_dst_ip, Host **dst) {
   if(!hosts_hash) {
@@ -6906,6 +6932,7 @@ Flow* NetworkInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, Add
 
 Flow* NetworkInterface::findFlowByTuple(VLANid vlan_id,
 					u_int16_t observation_domain_id,
+					u_int32_t private_flow_id,
 					IpAddress *src_ip,  IpAddress *dst_ip,
 					u_int16_t src_port, u_int16_t dst_port,
 					u_int8_t l4_proto,
@@ -6917,7 +6944,8 @@ Flow* NetworkInterface::findFlowByTuple(VLANid vlan_id,
     return NULL;
 
   f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id,
-			      observation_domain_id, l4_proto, NULL, &src2dst, false /* Not an inline call */);
+			      observation_domain_id, private_flow_id,
+			      l4_proto, NULL, &src2dst, false /* Not an inline call */);
 
   if(f && (!f->match(allowed_hosts))) f = NULL;
 

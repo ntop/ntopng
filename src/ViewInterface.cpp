@@ -439,6 +439,7 @@ void ViewInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 
 Flow* ViewInterface::findFlowByTuple(VLANid vlan_id,
 				     u_int16_t observation_point_id,
+				     u_int32_t private_flow_id,
 				     IpAddress *src_ip,  IpAddress *dst_ip,
 				     u_int16_t src_port, u_int16_t dst_port,
 				     u_int8_t l4_proto,
@@ -446,7 +447,7 @@ Flow* ViewInterface::findFlowByTuple(VLANid vlan_id,
   Flow *f = NULL;
 
   for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
-    if((f = (Flow*)viewed_interfaces[s]->findFlowByTuple(vlan_id, observation_point_id,
+    if((f = (Flow*)viewed_interfaces[s]->findFlowByTuple(vlan_id, observation_point_id, private_flow_id,
 							 src_ip, dst_ip, src_port, dst_port, l4_proto, allowed_hosts)))
       break;
   }
@@ -483,6 +484,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
        * findFlowHosts is called only when first_partial is true. */
       if(first_partial) {
 	findFlowHosts(f->get_vlan_id(), f->get_observation_point_id(),
+		      f->getPrivateFlowId(),
 		      NULL /* Mac Address */, (IpAddress*)cli_ip, &cli_host,
 		      NULL /* Mac Address */, (IpAddress*)srv_ip, &srv_host);
 

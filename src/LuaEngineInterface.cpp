@@ -2706,6 +2706,7 @@ static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
   IpAddress src_ip_addr, dst_ip_addr;
   VLANid vlan_id, src_port, dst_port;
   u_int8_t l4_proto;
+  u_int32_t private_flow_id = 0 /* FIX */; 
   char *src_ip, *dst_ip;
   Flow *f;
   AddressTree *ptree = get_allowed_nets(vm);
@@ -2734,7 +2735,7 @@ static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
 
   src_ip_addr.set(src_ip), dst_ip_addr.set(dst_ip);
 
-  f = ntop_interface->findFlowByTuple(vlan_id, getLuaVMUservalue(vm, observationPointId),
+  f = ntop_interface->findFlowByTuple(vlan_id, getLuaVMUservalue(vm, observationPointId), private_flow_id,
 				      &src_ip_addr, &dst_ip_addr, htons(src_port), htons(dst_port), l4_proto, ptree);
 
   if(f == NULL)

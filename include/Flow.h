@@ -40,7 +40,7 @@ class Flow : public GenericHashEntry {
   Host *cli_host, *srv_host;
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
-  u_int32_t flowCreationTime;
+  u_int32_t flowCreationTime, privateFlowId /* Used to store specific flow info such as DNS TransactionId */;
   u_int8_t cli2srv_tos, srv2cli_tos; /* RFC 2474, 3168 */
   u_int16_t cli_port, srv_port;
   VLANid vlanId;
@@ -297,6 +297,7 @@ class Flow : public GenericHashEntry {
  public:
   Flow(NetworkInterface *_iface,
        VLANid _vlanId, u_int16_t _observation_point_id,
+       u_int32_t _private_flow_id,
        u_int8_t _protocol,
        Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
        Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
@@ -676,6 +677,7 @@ class Flow : public GenericHashEntry {
   bool equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     VLANid _vlanId, u_int16_t _observation_point_id,
+	     u_int32_t _private_flow_id,
 	     u_int8_t _protocol,
 	     const ICMPinfo * const icmp_info,
 	     bool *src2srv_direction) const;
@@ -923,6 +925,8 @@ class Flow : public GenericHashEntry {
     else return 0; // Remote host
   }
   inline u_int32_t getFlowSerial() { return(flow_serial); }
+
+  inline u_int32_t getPrivateFlowId() const { return(privateFlowId); }
 };
 
 #endif /* _FLOW_H_ */

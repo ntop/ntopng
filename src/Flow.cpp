@@ -35,7 +35,7 @@ const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN, /* mast
 
 Flow::Flow(NetworkInterface *_iface,
 	   VLANid _vlanId, u_int16_t _observation_point_id,
-	   u_int8_t _protocol,
+	   u_int32_t _private_flow_id, u_int8_t _protocol,
 	   Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
@@ -56,6 +56,7 @@ Flow::Flow(NetworkInterface *_iface,
   predominant_alert_info.is_srv_attacker = 0;
   predominant_alert_info.is_srv_victim = 0;
   json_protocol_info = NULL, riskInfo = NULL;
+  privateFlowId = _private_flow_id;
   clearRisks();
   detection_completed = 0;
   non_zero_payload_observed = 0;
@@ -103,7 +104,7 @@ Flow::Flow(NetworkInterface *_iface,
   flow_score = 0;
 
   INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
-  iface->findFlowHosts(_vlanId, _observation_point_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
+  iface->findFlowHosts(_vlanId, _observation_point_id, _private_flow_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 7);
 
   char country[64];
@@ -2112,7 +2113,7 @@ void Flow::update_pools_stats(NetworkInterface *iface,
 bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 		 u_int16_t _cli_port, u_int16_t _srv_port,
 		 VLANid _vlanId, u_int16_t _observation_point_id,
-		 u_int8_t _protocol,
+		 u_int32_t _private_flow_id, u_int8_t _protocol,
 		 const ICMPinfo * const _icmp_info,
 		 bool *src2srv_direction) const {
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
@@ -2126,6 +2127,9 @@ bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 			       _srv_ip->print(buf4, sizeof(buf4)));
 #endif
 
+  if(getPrivateFlowId() != _private_flow_id)
+    return(false);
+  
   if((get_vlan_id() != _vlanId)
 #ifdef MAKE_OBSERVATION_POINT_KEY
      /*
@@ -2601,7 +2605,7 @@ void Flow::clearRisks() {
 /* *************************************** */
 
 u_int32_t Flow::key() {
-  u_int32_t k = cli_port + srv_port + vlanId + protocol;
+  u_int32_t k = cli_port + srv_port + vlanId + protocol + privateFlowId;
 
 #ifdef MAKE_OBSERVATION_POINT_KEY
   k += get_observation_point_id();
