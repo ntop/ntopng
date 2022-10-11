@@ -1402,6 +1402,14 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
   if(flow->vlan_id && ntop->getPrefs()->do_ignore_vlans())
     flow->vlan_id = 0;
 
+  /*
+    Some flow exporters write in host ports the ICMP type/code.
+    hence we need to make sure such fields are zeroed in order
+    to avoid odd values in the web GUI
+   */
+  if((flow->l4_proto == IPPROTO_ICMP) || (flow->l4_proto == IPPROTO_ICMPV6))
+    flow->src_port = flow->dst_port = 0;
+
   /* Handle zero IPv4/IPv6 discrepacies */
   if(!flow->hasParsedeBPF()) {
     if(flow->src_ip.getVersion() != flow->dst_ip.getVersion()) {
