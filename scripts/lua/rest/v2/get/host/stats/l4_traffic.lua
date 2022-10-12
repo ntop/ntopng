@@ -25,6 +25,7 @@ local host = interface.getHostInfo(host_ip, host_vlan)
 
 local total = 0
 local proto_info = {}
+local timeseries_not_available = (host["localhost"] == false or host["is_multicast"] == true or host["is_broadcast"] == true)
 
 -- Calculate total bytes
 for id, _ in ipairs(l4_keys) do
@@ -52,7 +53,7 @@ for id, _ in ipairs(l4_keys) do
     proto_stats["totalPctg"] = round((proto_stats["totalBytes"] * 100) / total, 2)
     proto_stats["breakdown"] = round((proto_stats["bytesSent"] * 100) / (proto_stats["bytesSent"] + proto_stats["bytesRcvd"]), 0)
 
-    if(areHostTimeseriesEnabled(ifId, url2hostinfo(_GET)) and ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") then -- Check if the host timeseries are enabled
+    if(areHostTimeseriesEnabled(ifId) and ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") and not timeseries_not_available then -- Check if the host timeseries are enabled
       proto_stats["historical"] = hostinfo2detailshref(host, {page = "historical", ts_schema = "host:l4protos", l4proto = k}, '<i class="fas fa-chart-area"></i>')
     end
 
