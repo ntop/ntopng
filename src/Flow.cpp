@@ -881,11 +881,12 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
     }
 
     if(get_custom_category_file()) {
-      if(isBlacklistedClient())
-	cli_host->setBlacklistName((char*)get_custom_category_file());
-      else if(isBlacklistedServer())
-	srv_host->setBlacklistName((char*)get_custom_category_file());
-
+      if(isBlacklistedClient()) {
+	if(cli_host) cli_host->setBlacklistName((char*)get_custom_category_file());
+      } else if(isBlacklistedServer()) {
+	if(srv_host) srv_host->setBlacklistName((char*)get_custom_category_file());
+      }
+      
       ntop->incBlacklisHits(std::string(get_custom_category_file()));
     }
   }
