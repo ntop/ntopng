@@ -72,23 +72,24 @@ end
 if(flows_stats == nil) then flows_stats = { } end
 
 for key, value in ipairs(flows_stats) do
+  local flows_info = flows_stats[key]
    local info = ""
    -- use an italic font to indicate extra information added after sorting
    local italic = true
-   if(not isEmptyString(flows_stats[key]["info"])) then
-      info = flows_stats[key]["info"]
-      italic = false
-   elseif(not isEmptyString(flows_stats[key]["icmp"])) then
-      local icmp = flows_stats[key]["icmp"]
-      info = icmp_utils.get_icmp_label(ternary(isIPv4(flows_stats[key]["cli.ip"]), 4, 6), icmp["type"], icmp["code"])
-   elseif(flows_stats[key]["proto.ndpi"] == "SIP") then
-      info = getSIPInfo(flows_stats[key])
-   elseif(flows_stats[key]["proto.ndpi"] == "RTP") then
-      info = getRTPInfo(flows_stats[key])
+   if(not isEmptyString(flows_info["info"])) then
+      info = flows_info["info"]
+      italic = false   
+   elseif(not isEmptyString(flows_info["icmp"])) then
+      local icmp = flows_info["icmp"]
+      info = icmp_utils.get_icmp_label(ternary(isIPv4(flows_info["cli.ip"]), 4, 6), icmp["type"], icmp["code"])
+   elseif(flows_info["proto.ndpi"] == "SIP") then
+      info = getSIPInfo(flows_info)
+   elseif(flows_info["proto.ndpi"] == "RTP") then
+      info = getRTPInfo(flows_info)
    end
 
    if(starts(info, "<i class")) then
-      flows_stats[key]["info"] = info
+      flows_info["info"] = info
    else
       -- safety checks against injections
       info = noHtml(info)
@@ -96,15 +97,31 @@ for key, value in ipairs(flows_stats) do
       local alt_info = info
 
       if italic then
-	 info = string.format("<i>%s</i>", info)
+	      info = string.format("<i>%s</i>", info)
       end
       info = shortenString(info)
-      flows_stats[key]["info"] = "<span data-bs-toggle='tooltip' title='"..alt_info.."'>"..info.."</span>"
+
+      -- Add extra icons to info column
+      if (flows_info["protos.dns.last_query_type"] or flows_info["protos.dns.last_return_code"]) then
+        local dns_info = format_dns_query_info({ last_query_type = flows_info["protos.dns.last_query_type"], last_return_code = flows_info["protos.dns.last_return_code"]})
+        info = dns_info.last_query_type .. " " .. dns_info.last_return_code .. " " .. info
+      end
+
+      tprint(flows_info)
+  
+      if flows_info["protos.http.last_return_code"] or flows_info["protos.http.last_method"] then
+        local http_info = format_http_info({ last_return_code = flows_info["protos.http.last_return_code"], last_method = flows_info["protos.http.last_method"]})
+        info = (http_info.last_return_code or '') .. " " .. http_info.last_method .. " " .. info
+      end
+  
+      flows_info["info"] = "<span data-bs-toggle='tooltip' title='"..alt_info.."'>"..info.."</span>"
    end
 
-   if(flows_stats[key]["profile"] ~= nil) then
-      flows_stats[key]["info"] = formatTrafficProfile(flows_stats[key]["profile"])..flows_stats[key]["info"]
+   if(flows_info["profile"] ~= nil) then
+      flows_info["info"] = formatTrafficProfile(flows_info["profile"])..flows_info["info"]
    end
+
+   --tprint(flows_info["info"])
 end
 
 local formatted_res = {}
