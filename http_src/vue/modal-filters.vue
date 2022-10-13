@@ -12,7 +12,7 @@
     <select-search v-model:selected_option="filter_type_selected"
       :id="'filter_type'"
       :options="filters_options"
-      @select_option="change_filter">
+      @select_option="change_filter()">
     </select-search>
 	</div>
       </div>
@@ -30,18 +30,17 @@
                 @select_option="change_operator_type">
               </select-search>
             </div>
-            <div class="col-sm-9" v-show="options_to_show">
+            <div class="col-sm-9" v-if="options_to_show">
               <select-search v-model:selected_option="option_selected"
                 :id="'data_filter'"
                 :options="options_to_show"
                 @select_option="change_data_filter">
               </select-search>
             </div>
-            <!-- <div v-show="!options_to_show" class="input-group"> -->
+            <template v-else>
               <input v-show="!options_to_show" v-model="input_value" :pattern="data_pattern_selected" name="value" :required="input_required" type="text" class="form-control">
-              <!-- <span class="invalid-feedback">Invalid value</span> -->
               <span v-show="!options_to_show" style="margin: 0px;padding:0;" class="alert invalid-feedback">{{i18n('invalid_value')}}</span>
-              <!-- </div> -->
+            </template>
           </div>
           <!-- end div input-group mb-3 -->
 	</div>
@@ -140,8 +139,9 @@ export default {
     }
   },  
   change_filter: function(selected_filter) {
-    this.options_to_show = [];
-    this.option_selected = [];
+    this.options_to_show = null;
+    this.option_selected = null;
+    this.input_value = null
     let filters_options = this.$props.filters_options;
     /* Search the filter selected */
     let filter = filters_options.find((fo) => fo.id == this.filter_type_selected.id);
@@ -149,16 +149,22 @@ export default {
       return; 
     }
     /* Set the correct filters to display */
-    this.input_value = null;
     this.operators_to_show = filter.operators;
     this.filter_type_label_selected = filter.label;
-    this.options_to_show = filter.options;
     if (filter.options != null) {
       this.options_to_show = filter.options.sort((a, b) => {
         if (a == null || a.label == null) { return -1; }
         if (b == null || b.label == null) { return 1; }
         return a.label.toString().localeCompare(b.label.toString());
       });
+      if(!this.option_selected)
+        this.option_selected = this.options_to_show[0]
+    } else {
+      this.options_to_show = null
+    }
+
+    if(filter.operators && this.operator_selected.length == 0) {
+      this.operator_selected = filter.operators[0]
     }
 
     if (selected_filter != null) { 
@@ -190,11 +196,11 @@ export default {
 	apply: function() {
     let value = this.input_value;
     let value_label = this.input_value;
-    if (value == null && this.option_selected !== undefined) {
+    if (value == null || (this.option_selected != undefined && this.option_selected.length != 0)) {
       let filter = this.filters_options.find((fo) => fo.id == this.filter_type_selected.id);
       let option = filter.options.find((o) => o.value == this.option_selected.value);
       value = option.value;
-      value_label = option.value_label;
+      value_label = option.value_label || option.label;
     } else if (value == null) {
       value = "";
     }

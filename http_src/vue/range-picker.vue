@@ -315,7 +315,6 @@ export default {
 		this.edit_tag = null;
 	    }
 	    filters.push(params);
-	    
 	    // trigger event and then call reload_status
 	    ntopng_events_manager.emit_event(ntopng_events.FILTERS_CHANGE, {filters});
 	},
