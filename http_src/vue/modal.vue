@@ -1,6 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-<div class="modal fade" ref="modal_id" tabindex="-1" role="dialog" aria-labelledby="dt-add-filter-modal-title"
+<div @submit.prevent="preventEnter" class="modal fade" ref="modal_id" tabindex="-1" role="dialog" aria-labelledby="dt-add-filter-modal-title"
      aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
@@ -36,7 +36,7 @@ export default defineComponent({
     props: {
 	id: String,
     },
-    emits: ["apply", "hidden", "showed"],
+    emits: ["hidden", "showed"],
     /** This method is the first method of the component called, it's called before html template creation. */
     created() {
     },
@@ -61,10 +61,7 @@ export default defineComponent({
 	show: function() {
 	    $(this.$refs["modal_id"]).modal("show");
 	},
-	apply: function() {
-	    $(this.$refs["modal_id"]).modal("hide");
-	    this.$emit("apply");
-	},
+	preventEnter: function() {},
 	close: function() {
 	    $(this.$refs["modal_id"]).modal("hide");
 	},

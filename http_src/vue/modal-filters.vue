@@ -1,6 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-<modal @submit.prevent="apply" :id="id_modal" ref="modal">
+<modal :id="id_modal" ref="modal">
   <template v-slot:title>{{i18n('alerts_dashboard.add_filter')}}</template>
   <template v-slot:body>
     <form autocomplete="off">
