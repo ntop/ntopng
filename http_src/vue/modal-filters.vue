@@ -1,6 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-<modal :id="id_modal" ref="modal">
+<modal @submit.prevent="apply" :id="id_modal" ref="modal">
   <template v-slot:title>{{i18n('alerts_dashboard.add_filter')}}</template>
   <template v-slot:body>
     <form autocomplete="off">
@@ -38,8 +38,8 @@
               </select-search>
             </div>
             <template v-else>
-              <input v-show="!options_to_show" v-model="input_value" :pattern="data_pattern_selected" name="value" :required="input_required" type="text" class="form-control">
-              <span v-show="!options_to_show" style="margin: 0px;padding:0;" class="alert invalid-feedback">{{i18n('invalid_value')}}</span>
+              <input v-model="input_value" :pattern="data_pattern_selected" name="value" :required="input_required" type="text" class="form-control">
+              <span style="margin: 0px;padding:0;" class="alert invalid-feedback">{{i18n('invalid_value')}}</span>
             </template>
           </div>
           <!-- end div input-group mb-3 -->
@@ -119,8 +119,8 @@ export default {
 			  this.option_selected = this.options_to_show.find((fo) => fo.value == filter.value);
       } else {
 		    this.option_selected = [];
-		    this.data_pattern_selected = this.get_data_pattern(filter.value_type);
         this.input_value = filter.value;
+        this.data_pattern_selected = this.get_data_pattern(filter.value_type);
       }
     }
     if (filter.operator && this.operators_to_show) {
@@ -161,6 +161,7 @@ export default {
         this.option_selected = this.options_to_show[0]
     } else {
       this.options_to_show = null
+      this.data_pattern_selected = this.get_data_pattern(filter.value_type);
     }
 
     if(filter.operators && this.operator_selected.length == 0) {
@@ -186,7 +187,7 @@ export default {
 	    return NtopUtils.REGEXES[value_type];
 	},
 	check_disable_apply: function() {
-	    let regex = new RegExp(this.data_pattern_selected);
+      let regex = new RegExp(this.data_pattern_selected);
 	    let disable_apply = !this.options_to_show && (
 		(this.input_required && (this.input_value == null || this.input_value == ""))
 		    || (regex.test(this.input_value) == false)
@@ -212,6 +213,7 @@ export default {
       value_label: value_label,
     };
     this.$emit("apply", params);
+    debugger;
     ntopng_events_manager.emit_custom_event(ntopng_custom_events.MODAL_FILTERS_APPLY, params);
     this.close();
 	},

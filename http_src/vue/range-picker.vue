@@ -307,6 +307,7 @@ export default {
 	    this.last_filters = filters;
 	},
 	apply_modal: function(params) {
+    debugger;
 	    let status = ntopng_status_manager.get_status();
 	    let filters = status.filters;
 	    if (filters == null) { filters = []; }
