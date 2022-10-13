@@ -10,6 +10,8 @@ local timeseries_info = require "timeseries_info"
 
 local rc = rest_utils.consts.success.ok
 local ifid = _GET["ifid"]
+local query = _GET["query"]
+local host = _GET["host"]
 
 local res = {}
 
@@ -17,5 +19,14 @@ if ifid then
   interface.select(ifid)
 end
 
-res = table.merge(res, timeseries_info.get_interface_timeseries())      
+local tags = {
+  ifid = tostring(ifid),
+  host = host
+}
+
+if query == "ifid" then
+  res = table.merge(res, timeseries_info.get_interface_timeseries(tags))
+elseif query == "host" then
+  res = table.merge(res, timeseries_info.get_host_timeseries(tags))
+end
 rest_utils.answer(rc, res)
