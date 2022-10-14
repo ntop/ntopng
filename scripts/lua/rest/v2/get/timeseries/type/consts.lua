@@ -9,7 +9,7 @@ local rest_utils = require "rest_utils"
 local timeseries_info = require "timeseries_info"
 
 local rc = rest_utils.consts.success.ok
-local ifid = _GET["ifid"]
+local ifid = tostring(_GET["ifid"] or interface.getId())
 local query = _GET["query"]
 local host = _GET["host"]
 
@@ -20,7 +20,7 @@ if ifid then
 end
 
 local tags = {
-  ifid = tostring(ifid),
+  ifid = ifid,
   host = host
 }
 
