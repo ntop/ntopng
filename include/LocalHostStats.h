@@ -56,6 +56,7 @@ class LocalHostStats: public HostStats {
 #if defined(NTOPNG_PRO)
   void resetTrafficStats();
 #endif
+
  public:
   LocalHostStats(Host *_host);
   LocalHostStats(LocalHostStats &s);
@@ -73,8 +74,7 @@ class LocalHostStats: public HostStats {
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   virtual void deserialize(json_object *obj);
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
-  virtual void resetTopSitesData();
-  
+
   virtual void luaDNS(lua_State *vm, bool verbose)  { if(dns) dns->lua(vm, verbose); }
   virtual void luaHTTP(lua_State *vm)  { if(http) http->lua(vm); }
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)    { if (icmp) icmp->lua(isV4, vm, verbose); }
@@ -108,7 +108,7 @@ class LocalHostStats: public HostStats {
   virtual bool incDNSContactCardinality(Host *h)      { if(h->get_ip()) return(num_dns_servers.addElement(h->get_ip()->key())); else return(false); };
   virtual bool incSMTPContactCardinality(Host *h)     { if(h->get_ip()) return(num_smtp_servers.addElement(h->get_ip()->key())); else return(false); };
   virtual bool incIMAPContactCardinality(Host *h)     { if(h->get_ip()) return(num_imap_servers.addElement(h->get_ip()->key())); else return(false); };
-  virtual bool incPOPContactCardinality(Host *h)      { if(h->get_ip()) return(num_pop_servers.addElement(h->get_ip()->key())); else return(false); };  
+  virtual bool incPOPContactCardinality(Host *h)      { if(h->get_ip()) return(num_pop_servers.addElement(h->get_ip()->key())); else return(false); };
   virtual void incCliContactedPorts(u_int16_t port)   { num_contacted_ports_as_client.addElement(port);      }
   virtual void incSrvPortsContacts(u_int16_t port)    { num_host_contacted_ports_as_server.addElement(port); }
 
@@ -118,12 +118,13 @@ class LocalHostStats: public HostStats {
   virtual u_int32_t getDNSContactCardinality()        { return(num_dns_servers.getEstimate());  };
   virtual u_int32_t getSMTPContactCardinality()       { return(num_smtp_servers.getEstimate()); };
   virtual u_int32_t getIMAPContactCardinality()       { return(num_imap_servers.getEstimate()); };
-  virtual u_int32_t getPOPContactCardinality()         { return(num_pop_servers.getEstimate()); };
-  virtual u_int32_t getDomainNamesCardinality()       { return num_contacted_domain_names.getEstimate(); }  
-  
+  virtual u_int32_t getPOPContactCardinality()        { return(num_pop_servers.getEstimate());  };
+  virtual u_int32_t getDomainNamesCardinality()       { return num_contacted_domain_names.getEstimate(); }
+
   virtual void resetCountriesContacts()               { num_contacted_countries.reset();    } /* Reset the countries */
   virtual void resetContactedHosts()                  { num_contacted_hosts.reset();        } /* Reset the hosts */
-  virtual void resetDomainNamesCardinality()          { num_contacted_domain_names.reset(); } 
+  virtual void resetDomainNamesCardinality()          { num_contacted_domain_names.reset(); }
+  inline void  resetTopSitesData()                    { top_sites->clear();                 }
 };
 
 #endif

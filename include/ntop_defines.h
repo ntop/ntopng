@@ -510,7 +510,6 @@
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS                "ntopng.cache.top_sites"
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED    "ntopng.cache.top_sites_hour_done"
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED     "ntopng.cache.top_sites_day_done"
-#define HASHKEY_LOCAL_HOSTS_TOP_SITES_RESET               "ntopng.cache.top_sites.reset"
 #define HASHKEY_IFACE_TOP_OS                              "ntopng.cache.top_os"
 #define HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED             "ntopng.cache.top_os_hour_done"
 #define HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED              "ntopng.cache.top_os_day_done"

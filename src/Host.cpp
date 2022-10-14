@@ -1753,8 +1753,9 @@ void Host::checkStatsReset() {
 
   if(statsResetRequested()) {
     HostStats *new_stats = allocateStats();
+    
     stats_shadow = stats;
-    stats = new_stats;
+    stats        = new_stats;
     stats_shadow->resetTopSitesData();
     blacklistedStatsResetRequested();
 

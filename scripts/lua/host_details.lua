@@ -1526,9 +1526,10 @@ elseif(page == "sites") then
             default_granularity = "current"
          }
       }
-
+      
+      -- interface.resetHostTopSites(host_info["host"], host_vlan)
+      
       print(template.gen("pages/top_sites.template", context))
-
    else
       local msg = i18n("sites_page.top_sites_not_seen")
       print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")

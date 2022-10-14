@@ -10000,3 +10000,17 @@ void NetworkInterface::decNumHosts(bool local, bool recvdOnlyHost) {
   if(recvdOnlyHost)numTotalRcvdOnlyHosts--;
   totalNumHosts--;
 };
+
+/* **************************************************** */
+
+bool NetworkInterface::resetHostTopSites(AddressTree *allowed_hosts,
+					 char *host_ip, VLANid vlan_id,
+					 u_int16_t observationPointId) {
+  Host *h = findHostByIP(allowed_hosts, host_ip, vlan_id, observationPointId);
+
+  if(h)
+    return(h->resetHostTopSites());
+  else
+    return(false);
+}
+

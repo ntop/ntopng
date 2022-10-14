@@ -798,7 +798,7 @@ end
 
 -- ########################################################
 
-function ts_custom_host_function(ifstats, hostname, host_ts)
+function ts_custom_host_function(when, ifstats, hostname, host_ts)
    -- do nothing
 end
 
@@ -873,7 +873,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
         dumped_hosts[host_key] = true
       end
 
-      ts_custom_host_function(ifstats, hostname, host_ts)
+      ts_custom_host_function(min_instant, ifstats, hostname, host_ts)
       
       if((num_processed_hosts % 64) == 0) then
         if not ntop.isDeadlineApproaching() then

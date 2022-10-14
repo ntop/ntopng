@@ -58,9 +58,9 @@ void RemoteHost::set_hash_entry_state_idle() {
 void RemoteHost::initialize() {
   char buf[64], host[96];
   char *strIP = ip.print(buf, sizeof(buf));
-  snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
   char rsp[256];
 
+  snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
   stats = allocateStats();
   updateHostPool(true /* inline with packet processing */, true /* first inc */);
 

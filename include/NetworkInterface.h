@@ -1093,6 +1093,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int16_t   getnDPIProtoByName(const char *name);
   inline void decNumSentRcvdHosts(bool isLocal)           { if(isLocal) numLocalRcvdOnlyHosts--; numTotalRcvdOnlyHosts--; }
   inline u_int32_t getNewFlowSerial()                     { return(flow_serial++); }
+  bool resetHostTopSites(AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id, u_int16_t observationPointId);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
