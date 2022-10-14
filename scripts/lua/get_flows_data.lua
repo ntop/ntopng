@@ -107,8 +107,6 @@ for key, value in ipairs(flows_stats) do
         info = dns_info.last_query_type .. " " .. dns_info.last_return_code .. " " .. info
       end
 
-      tprint(flows_info)
-  
       if flows_info["protos.http.last_return_code"] or flows_info["protos.http.last_method"] then
         local http_info = format_http_info({ last_return_code = flows_info["protos.http.last_return_code"], last_method = flows_info["protos.http.last_method"]})
         info = (http_info.last_return_code or '') .. " " .. http_info.last_method .. " " .. info
