@@ -128,7 +128,6 @@ local function add_top_timeseries(tags, prefix, timeseries)
   if has_top_protocols then
     local series = ts_utils.listSeries(prefix .. ":ndpi", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
     
-    tprint(series)
     if not table.empty(series) then
       for _, serie in pairs(series) do
         timeseries[#timeseries + 1] = { schema = "top:" .. prefix .. ":ndpi", group = i18n("graphs.l7_proto"), priority = 2, query = "protocol:" .. serie.protocol , label = serie.protocol, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = serie.protocol, color = timeseries_info.get_timeseries_color('bytes') }} }
