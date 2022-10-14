@@ -34,6 +34,19 @@ static bool enable_db_traces = false;
 
 /* **************************************************** */
 
+const char *MySQLDB::getEngineName() {
+  return ntop->getPrefs()->do_dump_flows_on_clickhouse() ? "ClickHouse" : "MySQL";
+}
+
+/* **************************************************** */
+
+void MySQLDB::printFailure(const char *query, int status) {
+  ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL query: %s", query);
+  ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL error (%d): %s", status, get_last_db_error(&mysql));
+}
+
+/* **************************************************** */
+
 static void* queryLoop(void* ptr) {
   Utils::setThreadName("MySQLQueryLoop");
   return(((MySQLDB*)ptr)->queryLoop());
@@ -73,6 +86,7 @@ void* MySQLDB::queryLoop() {
 
 bool MySQLDB::createDBSchema() {
   char sql[CONST_MAX_SQL_QUERY_LEN];
+  int rc;
 
   if(iface) {
     disconnectFromDB(&mysql);
@@ -83,13 +97,15 @@ bool MySQLDB::createDBSchema() {
 
     /* 1 - Create database if missing */
     snprintf(sql, sizeof(sql), "CREATE DATABASE IF NOT EXISTS `%s`", ntop->getPrefs()->get_mysql_dbname());
-    if(exec_sql_query(&mysql, sql, true) < 0) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
+    rc = exec_sql_query(&mysql, sql, true);
+    if (rc < 0) {
+      printFailure(sql, rc);
       return(false);
     }
 
-    if(mysql_select_db(&mysql, ntop->getPrefs()->get_mysql_dbname())) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
+    rc = mysql_select_db(&mysql, ntop->getPrefs()->get_mysql_dbname());
+    if (rc) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "DB select error: %s\n", get_last_db_error(&mysql));
       return(false);
     }
 
@@ -126,8 +142,9 @@ bool MySQLDB::createDBSchema() {
 	     "PARTITIONS 32 */",
 	     ntop->getPrefs()->get_mysql_tablename());
 
-    if(exec_sql_query(&mysql, sql, true) < 0) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
+    rc = exec_sql_query(&mysql, sql, true);
+    if (rc < 0) {
+      printFailure(sql, rc);
       return(false);
     }
 
@@ -164,8 +181,9 @@ bool MySQLDB::createDBSchema() {
 	     "PARTITIONS 32 */",
 	     ntop->getPrefs()->get_mysql_tablename());
 
-    if(exec_sql_query(&mysql, sql, true) < 0) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
+    rc = exec_sql_query(&mysql, sql, true);
+    if (rc < 0) {
+      printFailure(sql, rc);
       return(false);
     }
 
@@ -799,19 +817,17 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   db_operational = false;
 
   if((host == NULL) || (user == NULL)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "MySQL not configured: connection failed");
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s not configured: connection failed", getEngineName());
     return(db_operational);
   }
   
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Attempting to connect to %s for interface %s...",
-			       ntop->getPrefs()->do_dump_flows_on_clickhouse() ? "ClickHouse" : "MySQL",
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Attempting to connect to %s for interface %s...",getEngineName(),
 			       iface->get_name());
 
   m.lock(__FILE__, __LINE__);
 
   if(mysql_init(conn) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize %s connection",
-				 ntop->getPrefs()->do_dump_flows_on_clickhouse() ? "ClickHouse" : "MySQL");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize %s connection", getEngineName());
     m.unlock(__FILE__, __LINE__);
     return(db_operational);
   }
@@ -819,8 +835,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   rc = mysql_try_connect(conn, dbname);
 
   if(rc == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to %s: %s [%s@%s:%i]\n",
-				 ntop->getPrefs()->do_dump_flows_on_clickhouse() ? "ClickHouse" : "MySQL",
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to %s: %s [%s@%s:%i]\n", getEngineName(),
 				 mysql_error(conn), user, host, port);
 
     m.unlock(__FILE__, __LINE__);
@@ -830,8 +845,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   db_operational = true;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to %s [%s@%s:%i][dbname: %s] for interface %s",
-			       ntop->getPrefs()->do_dump_flows_on_clickhouse() ? "ClickHouse" : "MySQL",
-			       user, host, port, dbname ? dbname : "", iface->get_name());
+			       getEngineName(), user, host, port, dbname ? dbname : "", iface->get_name());
 
   m.unlock(__FILE__, __LINE__);
   return(db_operational);
@@ -911,8 +925,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
   
   if((rc = mysql_query(conn, sql)) != 0) {
     if(!ignoreErrors)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]",
-				   get_last_db_error(conn), sql);
+      printFailure(sql, rc);
 
     switch(mysql_errno(conn)) {
     case CR_SERVER_GONE_ERROR:
@@ -1042,10 +1055,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows,
 
   if(rc != 0) {
     if(vm) lua_pushstring(vm, get_last_db_error(&mysql));
-    
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d][%s]",
-				 get_last_db_error(&mysql), rc, sql);
-    
+    printFailure(sql, rc); 
     m.unlock(__FILE__, __LINE__);
     return(rc);
   }
@@ -1128,10 +1138,8 @@ int MySQLDB::exec_quick_sql_query(char *sql, char *out, u_int out_len) {
 	 && mysql_field_count(&mysql) != 0 /* mysql_store_result() returned nothing; should it have? */)) {
     rc = mysql_errno(&mysql);
 
-    if(rc) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d][%s]",
-				   get_last_db_error(&mysql), rc, sql);
-    }
+    if(rc)
+      printFailure(sql, rc); 
 
     m.unlock(__FILE__, __LINE__);
     return(rc);
@@ -1168,7 +1176,7 @@ int MySQLDB::select_database(char *dbname) {
   int rc = mysql_select_db(&mysql, (const char*)dbname);
 
   if(rc) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d][%s]",
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "DB select error: [%s][%d][%s]",
 				 get_last_db_error(&mysql), rc, dbname);    
   }
   
