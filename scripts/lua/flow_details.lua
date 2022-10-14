@@ -1196,7 +1196,7 @@ else
       print("</td></tr>\n")
    end
 
-   if((flow.l7_error_code ~= nil) and (flow.l7_error_code ~= 0)) then
+   if((flow["protos.http.last_url"] ~= nil) and (flow.l7_error_code ~= 0)) then
       print("<tr><th width=30%>"..i18n("l7_error_code").."</th>")
       print("<td colspan=2><span class=\"badge ")
 
@@ -1504,7 +1504,7 @@ else
    end
 
 if(flow.flow_payload ~= nil) then
-    print("<tr><th width=30%>Payload</th><td colspan=2><div style='white-space: pre-wrap;word-break: keep-all;font-family: \"courier new\", courier, monospace;'>" .. flow.flow_payload .. "</div></td></tr>\n")
+    print("<tr><th width=30%>Payload</th><td colspan=2 width=400><div style='white-space: pre-wrap;word-break: keep-all;font-family: \"courier new\", courier, monospace;'>" .. flow.flow_payload .. "</div></td></tr>\n")
 end
 
 

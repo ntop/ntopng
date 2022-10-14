@@ -103,8 +103,13 @@ for key, value in ipairs(flows_stats) do
 
       -- Add extra icons to info column
       if (flows_info["protos.dns.last_query_type"] or flows_info["protos.dns.last_return_code"]) then
-        local dns_info = format_dns_query_info({ last_query_type = flows_info["protos.dns.last_query_type"], last_return_code = flows_info["protos.dns.last_return_code"]})
-        info = dns_info.last_query_type .. " " .. dns_info.last_return_code .. " " .. info
+	 local dns_info = format_dns_query_info({ last_query_type = flows_info["protos.dns.last_query_type"], last_return_code = flows_info["protos.dns.last_return_code"]})
+
+	 if(dns_info.last_query_type ~= 0) then
+	    info = dns_info.last_query_type .. " " .. dns_info.last_return_code .. " " .. info
+	 else
+	    info = dns_info.last_query_type .. info
+	 end
       end
 
       if flows_info["protos.http.last_return_code"] or flows_info["protos.http.last_method"] then

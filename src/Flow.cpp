@@ -933,10 +933,11 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 	  /* Unable to set the DNS query, must free the memory */
 	  free(q);
       }
-
-      if(ndpiFlow->protos.dns.is_query)
+      if(ndpiFlow->protos.dns.query_type != 0)
 	protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
-      else { /* this is a response... */
+      
+      if(!ndpiFlow->protos.dns.is_query) {
+	/* this is a response... */
 	if(ntop->getPrefs()->is_dns_decoding_enabled()) {
 	  char delimiter = '@', *name = NULL;
 	  char *at = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter);
