@@ -4695,8 +4695,10 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
 
   if((r->location == location_local_only            && !h->isLocalHost())                 ||
      (r->location == location_local_only_no_tx      && ((!h->isLocalHost()) || (!h->isReceiveOnlyHost()))) ||
+     (r->location == location_local_only_no_tcp_tx  && ((!h->isLocalHost()) || (!h->isReceiveOnlyHost()) || (h->getNumBytesTCPSent() > 0) || (h->getNumBytesTCPRcvd() == 0) )) ||
      (r->location == location_remote_only           && h->isLocalHost())                  ||
      (r->location == location_remote_only_no_tx     && (h->isLocalHost() || (!h->isReceiveOnlyHost()))) ||
+     (r->location == location_remote_only_no_tcp_tx && (h->isLocalHost() || (!h->isReceiveOnlyHost()) || (h->getNumBytesTCPSent() > 0) || (h->getNumBytesTCPRcvd() == 0) )) ||
      (r->location == location_broadcast_domain_only && !h->isBroadcastDomainHost())       ||
      (r->location == location_private_only && !h->isPrivateHost())                        ||
      (r->location == location_public_only && h->isPrivateHost())                          ||

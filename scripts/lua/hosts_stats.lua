@@ -79,10 +79,14 @@ function getPageTitle(protocol_name, traffic_type_title, device_ip_title, networ
       mode_label = i18n("hosts_stats.remote")
    elseif mode == "remote_no_tx" then
       mode_label = i18n("hosts_stats.remote_no_tx")
+   elseif mode == "remote_no_tcp_tx" then
+      mode_label = i18n("hosts_stats.remote_no_tcp_tx")
    elseif mode == "local" then
       mode_label = i18n("hosts_stats.local")
    elseif mode == "local_no_tx" then
       mode_label = i18n("hosts_stats.local_no_tx")
+   elseif mode == "local_no_tcp_tx" then
+      mode_label = i18n("hosts_stats.local_no_tcp_tx")
    elseif mode == "filtered" then
       mode_label = i18n("hosts_stats.filtered")
    elseif mode == "blacklisted" then
@@ -414,13 +418,19 @@ if (_GET["page"] ~= "historical") then
    print('"><a class="dropdown-item ' .. ternary(mode == "local", "active", "") ..'" href="')
    print (getPageUrl(base_url, hosts_filter_params))
    print ('">'..i18n("hosts_stats.local_hosts_only")..'</a></li>')
-
+   
    hosts_filter_params.mode = "local_no_tx"
    print('<li ')
    print('"><a class="dropdown-item ' .. ternary(mode == "local_no_tx", "active", "") ..'" href="')
    print (getPageUrl(base_url, hosts_filter_params))
    print ('">'..i18n("hosts_stats.local_no_tx")..'</a></li>')
-
+   
+   hosts_filter_params.mode = "local_no_tcp_tx"
+   print('<li ')
+   print('"><a class="dropdown-item ' .. ternary(mode == "local_no_tcp_tx", "active", "") ..'" href="')
+   print (getPageUrl(base_url, hosts_filter_params))
+   print ('">'..i18n("hosts_stats.local_no_tcp_tx")..'</a></li>')
+   
    hosts_filter_params.mode = "remote"
    print('<li ')
    print('"><a class="dropdown-item ' .. ternary(mode == "remote", "active", "") ..'" href="')
@@ -432,6 +442,12 @@ if (_GET["page"] ~= "historical") then
    print('"><a class="dropdown-item ' .. ternary(mode == "remote_no_tx", "active", "") ..'" href="')
    print (getPageUrl(base_url, hosts_filter_params))
    print ('">'..i18n("hosts_stats.remote_no_tx")..'</a></li>')
+
+   hosts_filter_params.mode = "remote_no_tcp_tx"
+   print('<li ')
+   print('"><a class="dropdown-item ' .. ternary(mode == "remote_no_tcp_tx", "active", "") ..'" href="')
+   print (getPageUrl(base_url, hosts_filter_params))
+   print ('">'..i18n("hosts_stats.remote_no_tcp_tx")..'</a></li>')
 
    if interface.isPacketInterface() and not interface.isPcapDumpInterface() then
       hosts_filter_params.mode = "dhcp"

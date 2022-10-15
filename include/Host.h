@@ -304,14 +304,21 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   }
 
   inline void incQuotaEnforcementCategoryStats(u_int32_t when,
-				       ndpi_protocol_category_t category_id,
-				       u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
+					       ndpi_protocol_category_t category_id,
+					       u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
     stats->incQuotaEnforcementCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
   }
 #endif
 
   inline u_int64_t getNumBytesSent()     const { return(stats->getNumBytesSent());   }
   inline u_int64_t getNumBytesRcvd()     const { return(stats->getNumBytesRcvd());   }
+
+  inline u_int64_t getNumBytesTCPSent()  const { return(stats->getL4Stats()->getTCPSent()->getNumBytes());   }
+  inline u_int64_t getNumBytesTCPRcvd()  const { return(stats->getL4Stats()->getTCPRcvd()->getNumBytes());   }
+  inline u_int64_t getNumBytesUDPSent()  const { return(stats->getL4Stats()->getUDPSent()->getNumBytes());   }
+  inline u_int64_t getNumBytesUDPRcvd()  const { return(stats->getL4Stats()->getUDPRcvd()->getNumBytes());   }
+
+
   inline u_int64_t getNumPktsSent()      const { return(stats->getNumPktsSent());    }
   inline u_int64_t getNumPktsRcvd()      const { return(stats->getNumPktsRcvd());    }
   inline u_int64_t getNumDroppedFlows()        { return(stats->getNumDroppedFlows());}
@@ -591,8 +598,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   inline HostStats* getStats()    { return(stats); }
   void setBlacklistName(char*);
-  inline bool isReceiveOnlyHost() { return(stats->isReceiveOnly() && (!isBroadcastHost()) && (!isMulticastHost())); }
   inline bool resetHostTopSites() { if(stats) { stats->resetTopSitesData(); return(true); } else return(false);     }
+  inline bool isReceiveOnlyHost() { return(stats->isReceiveOnly() && (!isBroadcastHost()) && (!isMulticastHost())); }
 };
 
 #endif /* _HOST_H_ */

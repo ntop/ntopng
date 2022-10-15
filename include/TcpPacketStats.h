@@ -30,10 +30,17 @@ class TcpPacketStats {
 
  public:
   TcpPacketStats();
-  
+
+  /* TCP Retransmissions */
   inline void incRetr(u_int32_t num)      { pktRetr += num;      }
+
+  /* Out-of-Order */
   inline void incOOO(u_int32_t num)       { pktOOO += num;       }
+
+  /* TCP Segments Lost */
   inline void incLost(u_int32_t num)      { pktLost += num;      }
+
+  /* TCP Keep-Alive */
   inline void incKeepAlive(u_int32_t num) { pktKeepAlive += num; }
 
   char* serialize();

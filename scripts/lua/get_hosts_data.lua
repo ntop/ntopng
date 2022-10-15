@@ -117,10 +117,14 @@ if mode == "local" then
    hosts_retrv_function = interface.getLocalHostsInfo
 elseif mode == "local_no_tx" then
    hosts_retrv_function = interface.getLocalHostsInfoNoTX
+elseif mode == "local_no_tcp_tx" then
+   hosts_retrv_function = interface.getLocalHostsInfoNoTXTCP
 elseif mode == "remote" then
    hosts_retrv_function = interface.getRemoteHostsInfo
 elseif mode == "remote_no_tx" then
    hosts_retrv_function = interface.getRemoteHostsInfoNoTX
+elseif mode == "remote_no_tcp_tx" then
+   hosts_retrv_function = interface.getRemoteHostsInfoNoTXTCP
 elseif mode == "broadcast_domain" then
    hosts_retrv_function = interface.getBroadcastDomainHostsInfo
 elseif mode == "filtered" then
