@@ -540,6 +540,9 @@ local lang = {
   ["welcome_to"] = "Welcome to %{product}",
   ["wrong_date_range"] = "Invalid range date, please change it.",
   ["yes"] = "Yes",
+  ["year"] = "Year",
+  ["years"] = "Years",
+
   ["about"] = {
     ["about"] = "About",
     ["about_x"] = "About %{product}",

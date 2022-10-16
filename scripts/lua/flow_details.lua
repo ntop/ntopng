@@ -500,6 +500,7 @@ else
       if((flow.client_process ~= nil) or (flow.server_process ~= nil))then	print("s") end
       print("flows_stats.lua?application=" .. flow["proto.ndpi"] .. "\">")
       print(getApplicationLabel(flow["proto.ndpi"],32).."</A> ")
+
       print("(<A HREF=\""..ntop.getHttpPrefix().."/lua/")
       print("flows_stats.lua?category=" .. flow["proto.ndpi_cat"] .. "\">")
       print(getCategoryLabel(flow["proto.ndpi_cat"], interface.getnDPICategoryId(flow["proto.ndpi_cat"])).."</A>")
@@ -507,6 +508,11 @@ else
 	 print(" @ " ..flow["proto.ndpi_cat_file"])
       end
       print(") ".. formatBreed(flow["proto.ndpi_breed"], flow["proto.is_encrypted"]))
+
+      if(flow["proto.ndpi_address_family"] ~= nil) then
+	 print(" [".. i18n("network") ..": "..flow["proto.ndpi_address_family"].."]")
+      end
+      
       if (flow.confidence) and (not isEmptyString(flow.confidence)) then
         print(" ["..i18n("ndpi_confidence")..": "..format_confidence_badge(flow.confidence).."]")
       end
@@ -1503,9 +1509,22 @@ else
       end
    end
 
-if(flow.flow_payload ~= nil) then
-    print("<tr><th width=30%>Payload</th><td colspan=2 width=400><div style='white-space: pre-wrap;word-break: keep-all;font-family: \"courier new\", courier, monospace;'>" .. flow.flow_payload .. "</div></td></tr>\n")
-end
+   if(flow.flow_payload ~= nil) then
+      local idx
+
+      -- Check for HTTP (remove data past response)
+      payload = string.reverse(flow.flow_payload)
+      
+      idx = string.find(payload, "\n\r\n\r")
+
+      if(idx == nil) then
+	 payload = flow.flow_payload
+      else
+	 payload = string.reverse(string.sub(payload, idx))
+      end         
+
+      print("<tr><th width=30%>Payload</th><td colspan=2 style='white-space: pre-wrap; word-break: keep-all; font-family: \"courier new\", courier, monospace;font-size: 13px;'>" .. payload .. "</td></tr>\n")
+   end
 
 
 print("</table>\n")

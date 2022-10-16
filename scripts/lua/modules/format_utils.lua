@@ -52,8 +52,13 @@ function format_utils.secondsToTime(seconds)
       if(years > 0) then
 	 days = days % 365
 
-	 msg = years .. " year"
-	 if(years > 1) then msg = msg .. "s" end
+	 msg = years .. " "
+
+	 if(years == 1) then
+	    msg = msg .. i18n("year")
+	 else
+	    msg = msg .. i18n("years")
+	 end
       end
 
       if(days > 0) then

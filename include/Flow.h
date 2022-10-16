@@ -90,6 +90,7 @@ class Flow : public GenericHashEntry {
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
   bool lateral_movement;
+  char *ndpiAddressFamilyProtocol; 
   PeriodicityStatus periodicity_status;
 #ifndef HAVE_NEDGE
   FlowProfile *trafficProfile;
@@ -910,6 +911,9 @@ class Flow : public GenericHashEntry {
 
   inline u_int32_t getErrorCode()        { return(protocolErrorCode); }
   inline void setErrorCode(u_int32_t rc) { protocolErrorCode = rc;    }
+  
+  inline char* getAddressFamilyProtocol() const      { return(ndpiAddressFamilyProtocol);         }
+  inline void  setAddressFamilyProtocol(char* proto) { ndpiAddressFamilyProtocol = strdup(proto); }
   
   inline ndpi_confidence_t getConfidence()        { return(confidence); }
   inline void setConfidence(ndpi_confidence_t rc) { confidence = rc;    }
