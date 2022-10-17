@@ -292,6 +292,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
 
   is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
 
+  memset(&oneWayTCPFlows, 0, sizeof(oneWayTCPFlows));
   memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
   blacklist_name = NULL;
 }
@@ -737,6 +738,19 @@ void Host::lua_get_fingerprints(lua_State* vm) {
 
 /* ***************************************************** */
 
+void Host::lua_oneway_tcp_flows(lua_State* vm) const {
+  lua_newtable(vm);
+
+  lua_push_uint32_table_entry(vm, "num_ingress", oneWayTCPFlows.numIngressFlows);
+  lua_push_uint32_table_entry(vm, "num_egress", oneWayTCPFlows.numEgressFlows);
+			      
+  lua_pushstring(vm, "num_oneway_tcp_flows");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* ***************************************************** */
+
 void Host::lua_blacklisted_flows(lua_State* vm) const {
   /* Flow exchanged with blacklists hosts */
   lua_newtable(vm);
@@ -832,7 +846,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(host_details) {
     lua_get_score_breakdown(vm);
     lua_blacklisted_flows(vm);
-
+    lua_oneway_tcp_flows(vm);
+    
     /*
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste
       a lot of time doing activities that are not necessary

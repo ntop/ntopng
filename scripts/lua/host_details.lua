@@ -871,6 +871,11 @@ else
       print("<td><span id=num_blacklisted_flows_as_server>" .. formatValue(host.num_blacklisted_flows.as_server) .. "</span>  <span id=trend_num_blacklisted_flows_as_server></span> \n")
       print("</tr>")
 
+      print("<tr><th>"..i18n("details.oneway_tcp_flows").."</th>")
+      print("<td><span id=num_oneway_ingress_flows>" .. formatValue(host.num_oneway_tcp_flows.num_ingress) .. "</span> <span id=trend_num_oneway_ingress_flows></span> \n")
+      print("<td><span id=num_oneway_egress_flows>" .. formatValue(host.num_oneway_tcp_flows.num_egress) .. "</span> <span id=trend_num_oneway_egress_flows></span> \n")
+      print("</tr>")
+
       print("<tr><th>"..i18n("details.peers").."</th>")
       print("<td><span id=active_peers_as_client>" .. formatValue(host["contacts.as_client"]) .. "</span> <span id=peers_trend_as_active_client></span> \n")
       print("<td><span id=active_peers_as_server>" .. formatValue(host["contacts.as_server"]) .. "</span>  <span id=peers_trend_as_active_server></span> \n")
@@ -2386,6 +2391,8 @@ if(not only_historical) and (host ~= nil) and (page ~= "traffic") then
    print("var last_num_flow_alerts = " .. host["active_alerted_flows"] .. ";\n")
    print("var last_active_flows_as_server = " .. host["active_flows.as_server"] .. ";\n")
    print("var last_active_flows_as_client = " .. host["active_flows.as_client"] .. ";\n")
+   print("var last_num_oneway_ingress_flows = " .. host.num_oneway_tcp_flows.num_ingress .. ";\n")
+   print("var last_num_oneway_egress_flows = " .. host.num_oneway_tcp_flows.num_egress .. ";\n")
    print("var last_flows_as_server = " .. host["flows.as_server"] .. ";\n")
    print("var last_flows_as_client = " .. host["flows.as_client"] .. ";\n")
    print("var last_active_peers_as_server = " .. host["contacts.as_server"] .. ";\n")
@@ -2516,6 +2523,9 @@ if(not only_historical) and (host ~= nil) and (page ~= "traffic") then
                            $('#flows_as_server').html(NtopUtils.addCommas(host["flows.as_server"]));
                         $('#alerted_flows_as_server').html(NtopUtils.addCommas(host["alerted_flows.as_server"]));
                         $('#unreachable_flows_as_server').html(NtopUtils.addCommas(host["unreachable_flows.as_server"]));
+
+                        $('#num_oneway_ingress_flows').html(NtopUtils.addCommas(host.num_oneway_tcp_flows.num_ingress));
+                        $('#num_oneway_egress_flows').html(NtopUtils.addCommas(host.num_oneway_tcp_flows.num_egress));
                      }]]
 
    if ntop.isnEdge() then
@@ -2643,6 +2653,9 @@ print [[
                         $('#trend_unreachable_flows_as_server').html(NtopUtils.drawTrend(host["unreachable_flows.as_server"], last_unreachable_flows_as_server, " style=\"color: #B94A48;\""));
                         $('#trend_unreachable_flows_as_client').html(NtopUtils.drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
 
+                        $('#trend_num_oneway_ingress_flows').html(NtopUtils.drawTrend(host.num_oneway_tcp_flows.num_ingress, last_num_oneway_ingress_flows, " style=\"color: #B94A48;\""));
+                        $('#trend_num_oneway_egress_flows').html(NtopUtils.drawTrend(host.num_oneway_tcp_flows.num_egress, last_num_oneway_egress_flows, " style=\"color: #B94A48;\""));
+
                         $('#alerts_trend').html(NtopUtils.drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
                         $('#client_score_trend').html(NtopUtils.drawTrend(host["score.as_client"], last_client_score, " style=\"color: #B94A48;\""));
                         $('#server_score_trend').html(NtopUtils.drawTrend(host["score.as_server"], last_server_score, " style=\"color: #B94A48;\""));
@@ -2675,6 +2688,8 @@ print [[
                            last_alerted_flows_as_client = host["alerted_flows.as_client"];
                            last_unreachable_flows_as_server = host["unreachable_flows.as_server"];
                            last_unreachable_flows_as_client = host["unreachable_flows.as_client"];
+                           last_num_oneway_ingress_flows = host.num_oneway_tcp_flows.num_ingress;
+                           last_num_oneway_egress_flows = host.num_oneway_tcp_flows.num_egress;
                            last_flows_as_server = host["flows.as_server"];
                            last_sent_tcp_retransmissions = host["tcpPacketStats.sent"]["retransmissions"];
                            last_sent_tcp_ooo = host["tcpPacketStats.sent"]["out_of_order"];

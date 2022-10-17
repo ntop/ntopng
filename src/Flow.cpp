@@ -330,6 +330,9 @@ Flow::~Flow() {
   if(cli_u) {
     cli_u->decUses(); /* Decrease the number of uses */
     cli_u->decNumFlows(get_last_seen(), true);
+
+    if((protocol == IPPROTO_TCP) && (get_packets_srv2cli() == 0))
+      cli_u->incOneWayEgressFlows();
   }
 
   if(!cli_host && cli_ip_addr) /* Dynamically allocated only when cli_host was NULL in Flow constructor (viewed interfaces) */
@@ -338,6 +341,9 @@ Flow::~Flow() {
   if(srv_u) {
     srv_u->decUses(); /* Decrease the number of uses */
     srv_u->decNumFlows(get_last_seen(), false);
+
+    if((protocol == IPPROTO_TCP) && (get_packets_srv2cli() == 0))
+      srv_u->incOneWayIngressFlows();    
   }
 
   if(!srv_host && srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow constructor (viewed interfaces) */

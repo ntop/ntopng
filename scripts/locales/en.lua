@@ -1797,6 +1797,7 @@ local lang = {
     ["note"] = "NOTE",
     ["note_hosts_located_snmp_device"] = "Hosts are located in SNMP devices using the <A HREF=%{url}>Bridge MIB</A>.",
     ["observation_point_id"] = "Observation Point Id",
+    ["oneway_tcp_flows"] = "OneWay TCP Flows",
     ["out_of_order"] = "Out of Order",
     ["output_device_port"] = "Egress Interface Id",
     ["peers"] = "Peers: Active",

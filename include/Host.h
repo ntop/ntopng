@@ -78,7 +78,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     u_int32_t syn_sent_last_min, synack_recvd_last_min; /* (attacker) */
     u_int32_t syn_recvd_last_min, synack_sent_last_min; /* (victim) */
   } syn_scan;
-  
+
   struct {
     u_int32_t fin_sent_last_min, finack_recvd_last_min; /* (attacker) */
     u_int32_t fin_recvd_last_min, finack_sent_last_min; /* (victim) */
@@ -97,6 +97,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   OperatingSystem *os; /* Pointer to an instance of operating system, used internally to handle operating system statistics    */
   OSType os_type;      /* Operating system type, equivalent to os->get_os_type(), used by operating system setters and getters */
+
+  struct {
+    u_int32_t numIngressFlows, numEgressFlows;
+  } oneWayTCPFlows;
 
   /*
     TCP flows with SYN only, resets or unidirectional UDP flows not sent to broad/multicast addresees
@@ -127,7 +131,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 #ifndef HAVE_NEDGE
   ListeningPorts *listening_ports, *listening_ports_shadow;
 #endif
-  
+
   void initialize(Mac *_mac, VLANid _vlan_id, u_int16_t observation_point_id);
   void inlineSetOS(OSType _os);
   bool statsResetRequested();
@@ -145,7 +149,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void deleteHostData();
   char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize, bool skip_prefix = false);
   bool isValidHostName(const char *name);
-  
+
  public:
   Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId, u_int16_t observation_point_id);
   Host(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id, IpAddress *_ip);
@@ -192,7 +196,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   inline  bool isNtpServer()  const  { return(host_services_bitmap & (1 << HOST_IS_NTP_SERVER));  }
   void setNtpServer(char *name);
-  
+
   inline  u_int16_t getServicesMap()         { return(host_services_bitmap);                              }
   /*
     NOTE: update the fucntion below when a new isXXXServer is added
@@ -376,6 +380,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void lua_get_fingerprints(lua_State *vm);
   void lua_get_geoloc(lua_State *vm);
   void lua_blacklisted_flows(lua_State* vm) const;
+  void lua_oneway_tcp_flows(lua_State* vm) const;
   void lua_get_listening_ports(lua_State *vm);
 
   void resolveHostName();
@@ -421,7 +426,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t fin_scan_victim_hits()   const { return fin_scan.fin_recvd_last_min > fin_scan.finack_sent_last_min ? fin_scan.fin_recvd_last_min - fin_scan.finack_sent_last_min : 0; };
   inline u_int32_t fin_scan_attacker_hits() const { return fin_scan.fin_sent_last_min > fin_scan.finack_recvd_last_min ? fin_scan.fin_sent_last_min - fin_scan.finack_recvd_last_min : 0; };
   inline void reset_fin_scan_hits() { fin_scan.fin_sent_last_min = fin_scan.finack_recvd_last_min = fin_scan.fin_recvd_last_min = fin_scan.finack_sent_last_min = 0; };
-  
+
   void incNumFlows(time_t t, bool as_client);
   void decNumFlows(time_t t, bool as_client);
   inline void incNumAlertedFlows(bool as_client) { active_alerted_flows++; if(stats) stats->incNumAlertedFlows(as_client); }
@@ -555,14 +560,14 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 #endif
 
 #ifndef HAVE_NEDGE
-  inline void setListeningPorts(ListeningPorts &lp) { 
+  inline void setListeningPorts(ListeningPorts &lp) {
     if (listening_ports_shadow) { delete listening_ports_shadow; listening_ports_shadow = NULL; }
     listening_ports_shadow = listening_ports;
-    listening_ports = new ListeningPorts(lp); 
+    listening_ports = new ListeningPorts(lp);
   }
   inline ListeningPorts* getListeningPorts() { return(listening_ports); }
 #endif
-  
+
   /* Enqueues an alert to all available host recipients. */
   bool enqueueAlertToRecipients(HostAlert *alert, bool released);
   void alert2JSON(HostAlert *alert, bool released, ndpi_serializer *serializer);
@@ -574,7 +579,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void releaseAllEngagedAlerts();
 
   void visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode);
-  
+
   u_int16_t get_country_code();
   inline bool has_flows_anomaly(bool as_client) { return(stats->has_flows_anomaly(as_client)); }
   inline u_int32_t value_flows_anomaly(bool as_client) { return(stats->value_flows_anomaly(as_client)); }
@@ -600,6 +605,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void setBlacklistName(char*);
   inline bool resetHostTopSites() { if(stats) { stats->resetTopSitesData(); return(true); } else return(false);     }
   inline bool isReceiveOnlyHost() { return(stats->isReceiveOnly() && (!isBroadcastHost()) && (!isMulticastHost())); }
+  inline void incOneWayIngressFlows() { oneWayTCPFlows.numIngressFlows++; }
+  inline void incOneWayEgressFlows()  { oneWayTCPFlows.numEgressFlows++;  }
 };
 
 #endif /* _HOST_H_ */
