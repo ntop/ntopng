@@ -1504,11 +1504,11 @@ end
 
 -- ###########################################
 
--- Note: the base unit is Kbit/s here
+-- Note: the base unit is Kbps here
 FMT_TO_DATA_RATES_KBPS = {
-   ["k"] = {label="kbit/s", value=1},
-   ["m"] = {label="Mbit/s", value=1000},
-   ["g"] = {label="Gbit/s", value=1000*1000},
+   ["k"] = {label="Kbps", value=1},
+   ["m"] = {label="Mbps", value=1000},
+   ["g"] = {label="Gbps", value=1000*1000},
 }
 
 FMT_TO_DATA_BYTES = {

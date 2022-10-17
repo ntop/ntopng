@@ -199,7 +199,7 @@ export default class NtopUtils {
 	}
 
 	static fbits(bits) {
-		const sizes = ['bit/s', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
+		const sizes = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
 
 		if (typeof (bits) === "undefined")
 			return "-";
@@ -508,7 +508,7 @@ export default class NtopUtils {
 
 	static bitsToSize(bits, factor) {
 		factor = factor || 1000;
-		var sizes = ['bit/s', 'kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
+		var sizes = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
 		if (bits == 0) return '0 bps';
 		if ((bits > 0) && (bits < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + " bps");
 		var res = NtopUtils.scaleValue(bits, sizes, factor);
