@@ -105,11 +105,11 @@ local function delete_host_mysql_flows(interface_id, host_info)
       local q
 
       if isIPv4(addr) then
-	 q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = INET_ATON('%s') OR IP_DST_ADDR = INET_ATON('%s')) AND VLAN_ID = %u and INTERFACE_ID = %d",
-			   "flowsv4", addr, addr, vlan, interface_id)
+         q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = INET_ATON('%s') OR IP_DST_ADDR = INET_ATON('%s')) AND VLAN_ID = %u and INTERFACE_ID = %d",
+            "flowsv4", addr, addr, vlan, interface_id)
       elseif isIPv6(addr) then
-	 q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = '%s' OR IP_DST_ADDR = '%s') AND VLAN_ID = %u AND INTERFACE_ID = %d",
-			   "flowsv6", addr, addr, vlan, interface_id)
+         q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = '%s' OR IP_DST_ADDR = '%s') AND VLAN_ID = %u AND INTERFACE_ID = %d",
+            "flowsv6", addr, addr, vlan, interface_id)
       end
 
       if not dry_run and q then

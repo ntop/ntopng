@@ -1253,7 +1253,14 @@ local function validateAssociations(associations)
 
    for k, v in pairs(associations) do
       if not isValidPoolMember(k) then
-	 return false
+         -- Try to fix the format (add prefix/vlan if missing)
+         local fixedk = fixPoolMemberFormat(k)
+         if fixedk and isValidPoolMember(fixedk) then
+            associations[fixedk] = v
+            associations[k] = nil
+         else
+	    return false
+         end
       end
    end
 

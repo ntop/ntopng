@@ -53,24 +53,29 @@ for member, info in pairs(_POST["associations"] or {}) do
    local pool = info["group"]
    local connectivity = info["connectivity"]
 
-   if pools_list[pool] == nil then
+   if member == nil then
       res["associations"][member]["status"] = "ERROR"
-      res["associations"][member]["status_msg"] = "Unable to find a group with the specified name"
+      res["associations"][member]["status_msg"] = "Bad member format"
    else
-      local pool_id = pools_list[pool]["pool_id"]
-      if connectivity == "pass" then
-	 if s:bind_member(member, pool_id) == true then
+      if pools_list[pool] == nil then
+         res["associations"][member]["status"] = "ERROR"
+         res["associations"][member]["status_msg"] = "Unable to find a group with the specified name"
+      else
+         local pool_id = pools_list[pool]["pool_id"]
+         if connectivity == "pass" then
+	    if s:bind_member(member, pool_id) == true then
+	       res["associations"][member]["status"] = "OK"
+            else
+               res["associations"][member]["status"] = "ERROR"
+	       res["associations"][member]["status_msg"] = "Failure adding member, maybe bad member MAC or IP"
+	    end
+         elseif info["connectivity"] == "reject" then
+            s:bind_member(member, host_pools.DEFAULT_POOL_ID)
 	    res["associations"][member]["status"] = "OK"
          else
 	    res["associations"][member]["status"] = "ERROR"
-	    res["associations"][member]["status_msg"] = "Failure adding member, maybe bad member MAC or IP"
-	 end
-      elseif info["connectivity"] == "reject" then
-	 s:bind_member(member, host_pools.DEFAULT_POOL_ID)
-	 res["associations"][member]["status"] = "OK"
-      else
-	 res["associations"][member]["status"] = "ERROR"
-	 res["associations"][member]["status_msg"] = "Unknown association: allowed associations are 'pass' and 'reject'"
+	    res["associations"][member]["status_msg"] = "Unknown association: allowed associations are 'pass' and 'reject'"
+         end
       end
    end
 

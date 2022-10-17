@@ -211,8 +211,8 @@ int main(int argc, char *argv[])
 #endif
       } else
 #endif
-	{
-	  iface = NULL;
+      {
+        iface = NULL;
 	  
 #if defined(NTOPNG_PRO) && !defined(WIN32)
 	if(strncmp(ifName, "bridge:", 7) == 0) {
