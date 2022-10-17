@@ -1135,7 +1135,7 @@ function alert_store:_prepare_count_by_severity_and_time_series(all_severities, 
    local res = {}
 
    if table.len(all_severities) == 0 then
-      -- No series, add a dummy series for "no alerts"
+      -- No series, add a placeholder series for "no alerts"
       local noalert_res = {}
       for slot = min_slot, max_slot + 1, time_slot_width do
 	 noalert_res[#noalert_res + 1] = {slot * 1000 --[[ In milliseconds --]], 0}

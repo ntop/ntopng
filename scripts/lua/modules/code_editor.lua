@@ -106,7 +106,7 @@ function code_editor.editor(plugin_file_path, plugin_path, referarl_script_page)
       plugin_file_url = string.gsub(plugin_file_path, "/plugins/", "/plugins-src/")
    end
 
-   -- Sanity check, never go outside the plugins directory
+   -- Coherence check, never go outside the plugins directory
    if starts(plugin_path, "/plugins/") then
       plugin_path = os_utils.fixPath(string.format("%s/%s", dirs.scriptdir, plugin_path))
    else

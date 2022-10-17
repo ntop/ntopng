@@ -567,14 +567,14 @@
 	  },
 	  get_permanent_link: function() {
 	  const $this = $(this.$refs['permanet_link_button']);
-	  const dummyInput = document.createElement('input');
-	  dummyInput.value = location.href;
-	  document.body.appendChild(dummyInput);
-	  dummyInput.select();
+	  const placeholder = document.createElement('input');
+	  placeholder.value = location.href;
+	  document.body.appendChild(placeholder);
+	  placeholder.select();
 
-	  // copy the url to the clipboard from the dummy input
+	  // copy the url to the clipboard from the placeholder
 	  document.execCommand("copy");
-	  document.body.removeChild(dummyInput);
+	  document.body.removeChild(placeholder);
 
 	  $this.attr("title", "{{ i18n('copied') }}!")
 	  .tooltip("dispose")

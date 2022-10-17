@@ -351,7 +351,7 @@ function notification_recipients.test_recipient(endpoint_conf_name, endpoint_rec
 
    local safe_params = status["safe_params"]
 
-   -- Create dummy recipient
+   -- Create placeholder recipient
 
    local recipient = {
       endpoint_conf = ec,

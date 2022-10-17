@@ -4151,7 +4151,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	if((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
 	  memcpy(&synAckTime, when, sizeof(struct timeval));
 	  timeval_diff(&synTime, (struct timeval*)when, &serverNwLatency, 1);
-	  /* Sanity check */
+	  /* Coherence check */
 	  if(serverNwLatency.tv_sec > 5)
 	    memset(&serverNwLatency, 0, sizeof(serverNwLatency));
 	  else if(srv_host)
@@ -4164,7 +4164,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	  memcpy(&ackTime, when, sizeof(struct timeval));
 	  timeval_diff(&synAckTime, (struct timeval*)when, &clientNwLatency, 1);
 
-	  /* Sanity check */
+	  /* Coherence check */
 	  if(clientNwLatency.tv_sec > 5)
 	    memset(&clientNwLatency, 0, sizeof(clientNwLatency));
 	  else if(cli_host)

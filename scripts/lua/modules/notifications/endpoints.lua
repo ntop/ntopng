@@ -161,9 +161,9 @@ end
 
 -- #################################################################
 
--- @brief Sanity checks for the endpoint key
+-- @brief coherence checks for the endpoint key
 -- @param endpoint_key A string with the notification endpoint key
--- @return true if the sanity checks are ok, false otherwise
+-- @return true if the coherence checks are ok, false otherwise
 local function check_endpoint_key(endpoint_key)
    if not endpoints.get_types()[endpoint_key] then
       return false, {status = "failed", error = {type = "endpoint_not_existing"}}
@@ -174,9 +174,9 @@ end
 
 -- #################################################################
 
--- @brief Sanity checks for the endpoint configuration name
+-- @brief coherence checks for the endpoint configuration name
 -- @param endpoint_conf_name A string with the configuration name
--- @return true if the sanity checks are ok, false otherwise
+-- @return true if the coherence checks are ok, false otherwise
 local function check_endpoint_conf_name(endpoint_conf_name)
    if not endpoint_conf_name or endpoint_conf_name == "" then
       return false, {status = "failed", error = {type = "invalid_endpoint_conf_name"}}
@@ -187,7 +187,7 @@ end
 
 -- #################################################################
 
--- @brief Sanity checks for the endpoint configuration parameters
+-- @brief coherence checks for the endpoint configuration parameters
 -- @param endpoint_key A string with the notification endpoint key
 -- @param endpoint_params A table with endpoint configuration params that will be possibly sanitized
 -- @return false with a description of the error, or true, with a table containing sanitized configuration params.

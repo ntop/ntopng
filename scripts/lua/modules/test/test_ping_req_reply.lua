@@ -58,7 +58,7 @@ unittest:appendTest("REST API: hosts",
    end
 )
 
-unittest:appendTest("Dummy test",
+unittest:appendTest("Test",
    function()
       unittest:assertEqual(1, 1, "Math is an opinion")
    end

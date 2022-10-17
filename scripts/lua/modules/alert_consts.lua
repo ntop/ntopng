@@ -411,7 +411,7 @@ function loadDefinition(def_script, mod_fname, script_path)
       return(false)
    end
 
-   -- Sanity check: make sure the alert key is not redefined
+   -- Coherence check: make sure the alert key is not redefined
    local alert_entity_id = alert_entity.entity_id
   
    if alerts_by_id[alert_entity_id] and alerts_by_id[alert_entity_id][alert_key] then

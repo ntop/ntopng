@@ -1085,7 +1085,7 @@ function driver:export()
 
 	 local parsed_ts_point = line_protocol_to_tags_and_metrics(ts_point)
 
-	 -- No need to do sanity checks on the schema. This queue is 'private' and should
+	 -- No need to do coherence checks on the schema. This queue is 'private' and should
 	 -- only be written with valid data already checked.
 	 local schema = ts_utils.getSchema(parsed_ts_point["schema_name"])
 	 local timestamp = parsed_ts_point["timestamp"]

@@ -250,7 +250,7 @@ end
 
 -- ##############################################
 
--- @brief Sanity checks for the endpoint configuration parameters
+-- @brief Coherence checks for the endpoint configuration parameters
 -- @param endpoint_key A string with the notification endpoint key
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return false with a description of the error, or true, with a table containing sanitized configuration params.
@@ -538,7 +538,7 @@ function recipients.test_recipient(endpoint_id, recipient_params)
 
    local safe_params = status["safe_params"]
 
-   -- Create dummy recipient
+   -- Create test recipient
    local recipient = {
       endpoint_id = ec["endpoint_id"],
       endpoint_conf_name = ec["endpoint_conf_name"],
