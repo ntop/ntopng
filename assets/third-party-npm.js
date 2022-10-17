@@ -78,6 +78,8 @@ window.ToastUtils = ToastUtils
 
 import '../http_src/utilities/datatable/datatable-plugins/api-extension'
 import '../http_src/utilities/datatable/datatable-plugins/jquery-extension'
+import '../http_src/utilities/datatable/datatable-plugins/datatable-colvisibility'
+import '../http_src/utilities/datatable/datatable-plugins/datatable-colreorder'
 
 import './third-party-npm.scss'
 
