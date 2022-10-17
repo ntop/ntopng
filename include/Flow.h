@@ -90,7 +90,6 @@ class Flow : public GenericHashEntry {
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
   bool lateral_movement;
-  char *ndpiAddressFamilyProtocol; 
   PeriodicityStatus periodicity_status;
 #ifndef HAVE_NEDGE
   FlowProfile *trafficProfile;
@@ -100,6 +99,7 @@ class Flow : public GenericHashEntry {
 #endif
   CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
 #endif
+  char *ndpiAddressFamilyProtocol; 
   ndpi_protocol ndpiDetectedProtocol;
   custom_app_t custom_app;
   json_object *json_info;
