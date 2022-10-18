@@ -437,9 +437,10 @@ void usage() {
 	 "                                    | clickhouse    Dump in ClickHouse (Enterprise M/L/XL)\n"
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse;<host[@[<tcpport>,]<mysqlport]|socket>;<dbname>;<user>;<pw>\n"
+	 "                                    |   Example:\n"
 	 "                                    |   clickhouse;127.0.0.1;ntopng;default;\n"
-	 "                                    |   You can also use -F clickhouse as alias of \n"
-	 "                                    |   -F clickhouse;127.0.0.1;ntopng;default;\n"
+	 "                                    |   You can also use just -F clickhouse as alias of:\n"
+	 "                                    |   -F clickhouse;127.0.0.1@%u,%u;ntopng;default;\n"
 	 "                                    |\n"
 #endif
 #ifdef HAVE_MYSQL
@@ -490,6 +491,9 @@ void usage() {
 	 "[--help|-h]                         | Help\n"
 #ifdef NTOPNG_PRO
 	 , CONST_DEFAULT_DATA_DIR, CONST_LABELS_LOG_FILE
+#endif
+#ifdef HAVE_CLICKHOUSE
+         , CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
 #endif
 	 );
 
