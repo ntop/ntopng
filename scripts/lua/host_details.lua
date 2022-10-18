@@ -872,8 +872,8 @@ else
       print("</tr>")
 
       print("<tr><th>"..i18n("details.oneway_tcp_flows").."</th>")
-      print("<td><span id=num_oneway_ingress_flows>" .. formatValue(host.num_oneway_tcp_flows.num_ingress) .. "</span> <span id=trend_num_oneway_ingress_flows></span> \n")
       print("<td><span id=num_oneway_egress_flows>" .. formatValue(host.num_oneway_tcp_flows.num_egress) .. "</span> <span id=trend_num_oneway_egress_flows></span> \n")
+      print("<td><span id=num_oneway_ingress_flows>" .. formatValue(host.num_oneway_tcp_flows.num_ingress) .. "</span> <span id=trend_num_oneway_ingress_flows></span> \n")
       print("</tr>")
 
       print("<tr><th>"..i18n("details.peers").."</th>")

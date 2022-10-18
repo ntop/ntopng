@@ -302,6 +302,8 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
+  bool is_oneway_tcp_syn_seen = ((protocol == IPPROTO_TCP) && (get_packets_srv2cli() == 0) && (src2dst_tcp_flags == TH_SYN)) ? true : false;
+  
   if(getUses() != 0 && !ntop->getGlobals()->isShutdown())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]", __FUNCTION__, getUses());
 
@@ -327,11 +329,12 @@ Flow::~Flow() {
   if(getInterface()->isViewed()) /* Score decrements done here for 'viewed' interfaces to avoid races. */
     decAllFlowScores();
 
+  
   if(cli_u) {
     cli_u->decUses(); /* Decrease the number of uses */
     cli_u->decNumFlows(get_last_seen(), true);
 
-    if((protocol == IPPROTO_TCP) && (get_packets_srv2cli() == 0))
+    if(is_oneway_tcp_syn_seen)
       cli_u->incOneWayEgressFlows();
   }
 
@@ -342,7 +345,7 @@ Flow::~Flow() {
     srv_u->decUses(); /* Decrease the number of uses */
     srv_u->decNumFlows(get_last_seen(), false);
 
-    if((protocol == IPPROTO_TCP) && (get_packets_srv2cli() == 0))
+    if(is_oneway_tcp_syn_seen)
       srv_u->incOneWayIngressFlows();    
   }
 
