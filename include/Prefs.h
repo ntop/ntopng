@@ -240,7 +240,8 @@ class Prefs {
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
-  inline bool  do_dump_flows_on_clickhouse()            { return(is_enterprise_m_edition() && dump_flows_on_clickhouse);         };
+  inline bool  do_dump_flows_on_clickhouse()            { return(is_enterprise_m_edition() && dump_flows_on_clickhouse); };
+  inline bool  do_dump_alerts_on_clickhouse()           { return(do_dump_flows_on_clickhouse()); };
   inline bool  do_dump_flows_on_syslog()                { return(dump_flows_on_syslog);   };
   inline bool  do_dump_extended_json()                  { return(dump_ext_json);          };
   inline bool  do_dump_json_flows_on_disk()             { return(dump_json_flows_on_disk);};
