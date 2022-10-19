@@ -758,6 +758,7 @@ function am_utils.triggerAlert(numeric_ip, ip_label, current_value, upper_thresh
     -- Unreachable
     local host, measurement = key2amhost(ip_label)
     local info = am_utils.getMeasurementInfo(measurement)
+    type_info:set_score_critical()
 
     if info and info.unreachable_alert_i18n then
       -- The measurement provides an alternative message for the alert

@@ -2,6 +2,8 @@
     <th></th>
     <th>{{ i18n("severity_groups.group_notice_or_lower") }}</th>
     <th>{{ i18n("severity_groups.group_warning") }}</th>
-    <th>{{ i18n("severity_groups.group_error_or_higher") }}</th>
+    <th>{{ i18n("severity_groups.group_error") }}</th>
+    <th>{{ i18n("severity_groups.group_critical") }}</th>
+    <th>{{ i18n("severity_groups.group_emergency") }}</th>
     <th>{{ i18n("total_alerts") }}</th>
 </tr>

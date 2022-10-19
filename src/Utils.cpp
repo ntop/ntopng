@@ -4907,13 +4907,17 @@ AlertLevel Utils::mapScoreToSeverity(u_int32_t score) {
     return alert_level_notice;
   else if (score < SCORE_LEVEL_ERROR)
     return alert_level_warning;
-  else
+  else if (score < SCORE_LEVEL_CRITICAL)
     return alert_level_error;
+  else if (score < SCORE_LEVEL_EMERGENCY)
+    return alert_level_critical;
+  else
+    return alert_level_emergency;
 }
 
 /* ****************************************************** */
 
-u_int8_t Utils::mapSeverityToScore(AlertLevel alert_level) {
+u_int16_t Utils::mapSeverityToScore(AlertLevel alert_level) {
   if(alert_level <= alert_level_info)
     return SCORE_LEVEL_INFO;
   else if(alert_level <= alert_level_notice)
@@ -4922,6 +4926,10 @@ u_int8_t Utils::mapSeverityToScore(AlertLevel alert_level) {
     return SCORE_LEVEL_WARNING;
   else if(alert_level <= alert_level_error)
     return SCORE_LEVEL_ERROR;
+  else if(alert_level <= alert_level_critical)
+    return SCORE_LEVEL_CRITICAL;
+  else if(alert_level <= alert_level_emergency)
+    return SCORE_LEVEL_EMERGENCY;
   else
     return SCORE_LEVEL_SEVERE;
 }
@@ -4937,10 +4945,12 @@ AlertLevelGroup Utils::mapAlertLevelToGroup(AlertLevel alert_level) {
   case alert_level_warning:
     return alert_level_group_warning;
   case alert_level_error:
+    return alert_level_group_error;
   case alert_level_critical:
   case alert_level_alert:
+    return alert_level_group_critical;
   case alert_level_emergency:
-    return alert_level_group_error_or_higher;
+    return alert_level_group_emergency;
   default:
     return alert_level_group_none;
   }

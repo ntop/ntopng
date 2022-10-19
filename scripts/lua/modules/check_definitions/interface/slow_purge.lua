@@ -33,7 +33,7 @@ local function check_interface_idle(params)
     threshold
   )
 
-  alert:set_score_warning()
+  alert:set_score_error()
   alert:set_subtype(getInterfaceName(interface.getId()))
   alert:set_granularity(params.granularity)
 

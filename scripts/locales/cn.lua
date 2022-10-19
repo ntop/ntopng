@@ -4698,7 +4698,7 @@ local lang = {
     },
   },
   ["severity_groups"] = {
-    ["group_error_or_higher"] = "错误或更高",
+    ["group_error"] = "错误或更高",
     ["group_none"] = "空",
     ["group_notice_or_lower"] = "通知或更低",
     ["group_warning"] = "警告",

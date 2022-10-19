@@ -119,6 +119,8 @@ end
 function Alert:set_score_notice()  self.score = ntop.mapSeverityToScore(alert_severities.notice.severity_id) end
 function Alert:set_score_warning() self.score = ntop.mapSeverityToScore(alert_severities.warning.severity_id) end
 function Alert:set_score_error()   self.score = ntop.mapSeverityToScore(alert_severities.error.severity_id) end
+function Alert:set_score_critical() self.score = ntop.mapSeverityToScore(alert_severities.critical.severity_id) end
+function Alert:set_score_emergency() self.score = ntop.mapSeverityToScore(alert_severities.emergency.severity_id) end
 
 -- ##############################################
 

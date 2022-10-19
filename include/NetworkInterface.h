@@ -81,7 +81,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #endif
   u_int32_t num_alerts_engaged_notice[ALERT_ENTITY_MAX_NUM_ENTITIES],
     num_alerts_engaged_warning[ALERT_ENTITY_MAX_NUM_ENTITIES],
-    num_alerts_engaged_error[ALERT_ENTITY_MAX_NUM_ENTITIES], flow_serial;
+    num_alerts_engaged_error[ALERT_ENTITY_MAX_NUM_ENTITIES],
+    num_alerts_engaged_critical[ALERT_ENTITY_MAX_NUM_ENTITIES],
+    num_alerts_engaged_emergency[ALERT_ENTITY_MAX_NUM_ENTITIES], flow_serial;
   /* Counters for active alerts. Changed by multiple concurrent threads */
   std::atomic<u_int64_t> num_active_alerted_flows_notice;  /* Counts all flow alerts with severity <= notice  */
   std::atomic<u_int64_t> num_active_alerted_flows_warning; /* Counts all flow alerts with severity == warning */

@@ -38,22 +38,30 @@ alert_consts.ALL_ALERT_KEY = 0 -- Special ID to select 'all' alerts
 -- NOTE: keep it in sync with ntop_typedefs.h AlertLevelGroup
 --
 alert_consts.severity_groups = {
-   group_none = {
-      severity_group_id = 0,
-      i18n_title = "severity_groups.group_none",
-   },
-   notice_or_lower = {
-      severity_group_id = 1,
-      i18n_title = "severity_groups.group_notice_or_lower",
-   },
-   warning = {
-      severity_group_id = 2,
-      i18n_title = "severity_groups.group_warning",
-   },
-   error_or_higher = {
-      severity_group_id = 3,
-      i18n_title = "severity_groups.group_error_or_higher",
-   },
+  group_none = {
+    severity_group_id = 0,
+    i18n_title = "severity_groups.group_none",
+  },
+  notice_or_lower = {
+    severity_group_id = 1,
+    i18n_title = "severity_groups.group_notice_or_lower",
+  },
+  warning = {
+    severity_group_id = 2,
+    i18n_title = "severity_groups.group_warning",
+  },
+  error = {
+    severity_group_id = 3,
+    i18n_title = "severity_groups.group_error",
+  },
+  critical = {
+    severity_group_id = 4,
+    i18n_title = "severity_groups.group_critical",
+  },
+  emergency = {
+    severity_group_id = 5,
+    i18n_title = "severity_groups.group_emergency",
+},
 }
 
 -- ##############################################
@@ -576,7 +584,21 @@ function alert_consts.alertSeverityRaw(severity_id)
    return alert_severities_id_to_key[severity_id] 
 end
 
- -- ################################################################################
+-- ################################################################################
+
+function alert_consts.get_printable_severities()
+  local severities = {}
+
+  for name, conf in pairs(alert_severities, "severity_id", asc) do
+    if (conf.severity_id > 2) and (conf.severity_id < 7) then
+      severities[name] = conf
+    end
+  end
+
+  return severities
+end
+
+-- ################################################################################
 
 function alert_consts.alertSeverityLabel(score, nohtml, emoji)
    local severity_id = alert_consts.alertSeverityRaw(map_score_to_severity(score))

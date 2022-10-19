@@ -184,8 +184,10 @@ typedef enum {
   alert_level_group_none = 0,
   alert_level_group_notice_or_lower = 1,
   alert_level_group_warning = 2,
-  alert_level_group_error_or_higher = 3,
-  ALERT_LEVEL_GROUP_MAX_LEVEL = 4,
+  alert_level_group_error = 3,
+  alert_level_group_critical = 4,
+  alert_level_group_emergency = 5,
+  ALERT_LEVEL_GROUP_MAX_LEVEL = 9,
 } AlertLevelGroup;
 
 /*

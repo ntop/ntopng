@@ -5015,7 +5015,7 @@ local lang = {
     },
   },
   ["severity_groups"] = {
-    ["group_error_or_higher"] = "Errore o Più",
+    ["group_error"] = "Errore o Più",
     ["group_none"] = "Nessuno",
     ["group_notice_or_lower"] = "Notizia o Meno",
     ["group_warning"] = "Attenzione",

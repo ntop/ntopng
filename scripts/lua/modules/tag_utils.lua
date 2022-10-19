@@ -661,8 +661,7 @@ function tag_utils.get_tag_info(id, entity)
    elseif tag.value_type == "severity" then
       filter.value_type = 'array'
       filter.options = {}
-      local severities = alert_severities
-      for _, severity in pairsByValues(severities, alert_utils.severity_rev) do
+      for _, severity in pairsByField(alert_consts.get_printable_severities(), "severity_id", asc) do
          filter.options[#filter.options+1] = {
             value = severity.severity_id,
             label = i18n(severity.i18n_title),

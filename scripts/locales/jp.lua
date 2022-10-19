@@ -5047,7 +5047,7 @@ local lang = {
     },
   },
   ["severity_groups"] = {
-    ["group_error_or_higher"] = "エラーもしくはそれ以上",
+    ["group_error"] = "エラーもしくはそれ以上",
     ["group_none"] = "無し",
     ["group_notice_or_lower"] = "通知もしくはそれ以下",
     ["group_warning"] = "警告",

@@ -74,7 +74,9 @@ function all_alert_store:__add_alert_stats(alert, alerts_by_entity, alerts_by_en
          score = 0,
          count_group_notice_or_lower = 0, 
          count_group_warning = 0, 
-         count_group_error_or_higher = 0,
+         count_group_error = 0, 
+         count_group_critical = 0, 
+         count_group_emergency = 0,
          count = 0, 
          tstamp = 0, 
          tstamp_end = 0, 
@@ -87,15 +89,18 @@ function all_alert_store:__add_alert_stats(alert, alerts_by_entity, alerts_by_en
 
    alerts_by_entity[entity_id].score = alerts_by_entity[entity_id].score + alert.score
    alerts_by_entity[entity_id].count = alerts_by_entity[entity_id].count + 1
-
    local count_group
-   if alert.severity <= alert_severities.notice.severity_id then
-      count_group = "count_group_notice_or_lower"
-   elseif alert.severity == alert_severities.warning.severity_id then
-      count_group = "count_group_warning"
-   elseif alert.severity >= alert_severities.error.severity_id then
-      count_group = "count_group_error_or_higher"
-   end
+  if alert.severity <= alert_severities.notice.severity_id then
+    count_group = "count_group_notice_or_lower"
+  elseif alert.severity == alert_severities.warning.severity_id then
+    count_group = "count_group_warning"
+  elseif alert.severity == alert_severities.error.severity_id then
+    count_group = "count_group_error"
+  elseif alert.severity == alert_severities.critical.severity_id then
+    count_group = "count_group_critical"
+  elseif alert.severity >= alert_severities.emergency.severity_id then
+    count_group = "count_group_emergency"
+  end
 
    alerts_by_entity[entity_id][count_group] = alerts_by_entity[entity_id][count_group] + 1
 end
@@ -136,7 +141,7 @@ function all_alert_store:select_engaged(filter)
       if self._order_by and self._order_by.sort_column and alert[self._order_by.sort_column] then
 	 sort_2_col[#sort_2_col + 1] = {idx = idx, val = tonumber(alert[self._order_by.sort_column]) or alert[self._order_by.sort_column]}
       else
-	 sort_2_col[#sort_2_col + 1] = {idx = idx, val = count_group_error_or_higher}
+	 sort_2_col[#sort_2_col + 1] = {idx = idx, val = count_group_error}
       end
 
       total_rows = total_rows + 1
@@ -207,13 +212,17 @@ function all_alert_store:select_historical(filter, fields)
    local q = string.format(" SELECT entity_id, SUM(score) score, "..
 			      "SUM(group_notice_or_lower) count_group_notice_or_lower, "..
 			      "SUM(group_warning) count_group_warning, "..
-			      "SUM(group_error_or_higher) count_group_error_or_higher, "..
+			      "SUM(group_error) count_group_error, "..
+			      "SUM(group_critical) count_group_critical, "..
+			      "SUM(group_emergency) count_group_emergency, "..
 			      "COUNT(*) count, "..
 			      "0 tstamp, 0 tstamp_end, '{}' json FROM "..
 			      "    (SELECT entity_id, score, "..
 			      "    CASE WHEN severity <= 3 THEN 1 ELSE 0 END AS group_notice_or_lower, "..
 			      "    CASE WHEN severity  = 4 THEN 1 ELSE 0 END AS group_warning, "..
-			      "    CASE WHEN severity >= 5 THEN 1 ELSE 0 END AS group_error_or_higher, "..
+			      "    CASE WHEN severity  = 5 THEN 1 ELSE 0 END AS group_error, "..
+			      "    CASE WHEN severity  = 6 THEN 1 ELSE 0 END AS group_critical, "..
+			      "    CASE WHEN severity >= 7 THEN 1 ELSE 0 END AS group_emergency, "..
 			      "    score FROM `%s` WHERE %s) "..
 			      "GROUP BY entity_id %s %s %s ",
 			   self._table_name, where_clause, order_by_clause, limit_clause, offset_clause)
@@ -314,7 +323,9 @@ local RNAME = {
    SCORE = { name = "score", export = true},
    COUNT_GROUP_NOTICE_OR_LOWER = { name = "count_group_notice_or_lower", export = true},
    COUNT_GROUP_WARNING = { name = "count_group_warning", export = true},
-   COUNT_GROUP_ERROR_OR_HIGHER = { name = "count_group_error_or_higher", export = true},
+   COUNT_GROUP_ERROR = { name = "count_group_error", export = true},
+   COUNT_GROUP_CRITICAL = { name = "count_group_critical", export = true},
+   COUNT_GROUP_EMERGENCY = { name = "count_group_emergency", export = true},
 }
 
 function all_alert_store:get_rnames()
@@ -359,9 +370,21 @@ function all_alert_store:format_record(value, no_html)
       url = url.."&severity=4" .. tag_utils.SEPARATOR .. "eq",
    }
 
-   record[RNAME.COUNT_GROUP_ERROR_OR_HIGHER.name] = {
-      value = value["count_group_error_or_higher"],
+   record[RNAME.COUNT_GROUP_ERROR.name] = {
+      value = value["count_group_error"],
       color = alert_severities.error.color,
+      url = url.."&severity=5" .. tag_utils.SEPARATOR .. "gte",
+   }
+
+   record[RNAME.COUNT_GROUP_CRITICAL.name] = {
+      value = value["count_group_critical"],
+      color = alert_severities.critical.color,
+      url = url.."&severity=5" .. tag_utils.SEPARATOR .. "gte",
+   }
+
+   record[RNAME.COUNT_GROUP_EMERGENCY.name] = {
+      value = value["count_group_emergency"],
+      color = alert_severities.emergency.color,
       url = url.."&severity=5" .. tag_utils.SEPARATOR .. "gte",
    }
 

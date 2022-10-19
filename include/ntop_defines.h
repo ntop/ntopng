@@ -1170,7 +1170,9 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define SCORE_LEVEL_NOTICE              NDPI_SCORE_RISK_LOW
 #define SCORE_LEVEL_WARNING             NDPI_SCORE_RISK_MEDIUM
 #define SCORE_LEVEL_ERROR               NDPI_SCORE_RISK_HIGH
-#define SCORE_LEVEL_SEVERE              NDPI_SCORE_RISK_SEVERE
+#define SCORE_LEVEL_SEVERE              NDPI_SCORE_RISK_SEVERE /* 250 */
+#define SCORE_LEVEL_CRITICAL            350
+#define SCORE_LEVEL_EMERGENCY           450
 
 #define SCORE_MAX_VALUE                 SCORE_LEVEL_SEVERE /* Maximum client/server score. Flow score is 2 * SCORE_MAX_VALUE. */
 

@@ -21,7 +21,7 @@ local function check_interface_activity(params)
 
    local no_if_activity_type = alert_consts.alert_types.alert_no_if_activity.new(params.entity_info.name)
 
-   no_if_activity_type:set_score_error()
+   no_if_activity_type:set_score_critical()
    no_if_activity_type:set_subtype(params.entity_info.name)
    no_if_activity_type:set_granularity(params.granularity)
 

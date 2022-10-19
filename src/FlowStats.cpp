@@ -174,7 +174,7 @@ void FlowStats::lua(lua_State* vm) {
   lua_settable(vm, -3);
 
   /* Alert levels */
-  u_int32_t count_notice_or_lower = 0, count_warning = 0, count_error_or_higher = 0;
+  u_int32_t count_notice_or_lower = 0, count_warning = 0, count_error = 0, count_critical = 0, count_emergency = 0;
 
   for(int i = 0; i < ALERT_LEVEL_MAX_LEVEL; i++) {
     AlertLevel alert_level = (AlertLevel)i;
@@ -186,8 +186,15 @@ void FlowStats::lua(lua_State* vm) {
     case alert_level_group_warning:
       count_warning += alert_levels[alert_level];
       break;
-    case alert_level_group_error_or_higher:
-      count_error_or_higher += alert_levels[alert_level];
+    case alert_level_group_error:
+      count_error += alert_levels[alert_level];
+      break;
+    case alert_level_group_critical:
+      count_critical += alert_levels[alert_level];
+      break;
+    case alert_level_group_emergency:
+      count_error += alert_levels[alert_level];
+      break;
     default:
       break;
     }
@@ -197,7 +204,9 @@ void FlowStats::lua(lua_State* vm) {
 
   if(count_notice_or_lower > 0) lua_push_uint64_table_entry(vm, "notice_or_lower", count_notice_or_lower);
   if(count_warning > 0)         lua_push_uint64_table_entry(vm, "warning",         count_warning);
-  if(count_error_or_higher > 0) lua_push_uint64_table_entry(vm, "error_or_higher", count_error_or_higher);
+  if(count_error > 0)           lua_push_uint64_table_entry(vm, "error", count_error);
+  if(count_critical > 0)        lua_push_uint64_table_entry(vm, "critical", count_critical);
+  if(count_emergency > 0)       lua_push_uint64_table_entry(vm, "emergency", count_emergency);
 
   lua_pushstring(vm, "alert_levels");
   lua_insert(vm, -2);

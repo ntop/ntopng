@@ -298,7 +298,9 @@ void NetworkInterface::init(const char *interface_name) {
   memset(live_captures, 0, sizeof(live_captures));
   memset(&num_alerts_engaged_notice, 0, sizeof(num_alerts_engaged_notice)),
     memset(&num_alerts_engaged_warning, 0, sizeof(num_alerts_engaged_warning)),
-    memset(&num_alerts_engaged_error, 0, sizeof(num_alerts_engaged_error));
+    memset(&num_alerts_engaged_error, 0, sizeof(num_alerts_engaged_error)),
+    memset(&num_alerts_engaged_critical, 0, sizeof(num_alerts_engaged_critical)),
+    memset(&num_alerts_engaged_emergency, 0, sizeof(num_alerts_engaged_emergency));
   tot_num_anomalies.local_hosts = tot_num_anomalies.remote_hosts = 0;
   num_active_alerted_flows_notice = 0,
     num_active_alerted_flows_warning = 0,
@@ -4517,7 +4519,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	 || f->getPredominantAlertSeverity() == alert_level_none
 	 || (flow_status_severity_filter == alert_level_group_notice_or_lower  && f->getPredominantAlertSeverity() > alert_level_notice)
 	 || (flow_status_severity_filter == alert_level_group_warning          && f->getPredominantAlertSeverity() != alert_level_warning)
-	 || (flow_status_severity_filter == alert_level_group_error_or_higher  && f->getPredominantAlertSeverity() < alert_level_error))
+	 || (flow_status_severity_filter == alert_level_group_error            && f->getPredominantAlertSeverity() < alert_level_error))
 	return(false);
     }
 
@@ -9155,7 +9157,7 @@ void NetworkInterface::incNumAlertedFlows(Flow *f, AlertLevel severity) {
   case alert_level_group_warning:
     num_active_alerted_flows_warning++;
     break;
-  case alert_level_group_error_or_higher:
+  case alert_level_group_error:
     num_active_alerted_flows_error++;
     break;
   default:
@@ -9173,7 +9175,7 @@ void NetworkInterface::decNumAlertedFlows(Flow *f, AlertLevel severity){
   case alert_level_group_warning:
     num_active_alerted_flows_warning--;
     break;
-  case alert_level_group_error_or_higher:
+  case alert_level_group_error:
     num_active_alerted_flows_error--;
     break;
   default:
@@ -9189,7 +9191,7 @@ u_int64_t NetworkInterface::getNumActiveAlertedFlows(AlertLevelGroup alert_level
     return num_active_alerted_flows_notice;
   case alert_level_group_warning:
     return num_active_alerted_flows_warning;
-  case alert_level_group_error_or_higher:
+  case alert_level_group_error:
     return num_active_alerted_flows_error;
   default:
     return 0;
@@ -9328,8 +9330,14 @@ void NetworkInterface::incNumAlertsEngaged(AlertEntity alert_entity, AlertLevel 
     case alert_level_group_warning:
       num_alerts_engaged_warning[i]++;
       break;
-    case alert_level_group_error_or_higher:
+    case alert_level_group_error:
       num_alerts_engaged_error[i]++;
+      break;
+    case alert_level_group_critical:
+      num_alerts_engaged_critical[i]++;
+      break;
+    case alert_level_group_emergency:
+      num_alerts_engaged_emergency[i]++;
       break;
     default:
       break;
@@ -9350,8 +9358,14 @@ void NetworkInterface::decNumAlertsEngaged(AlertEntity alert_entity, AlertLevel 
     case alert_level_group_warning:
       num_alerts_engaged_warning[i]--;
       break;
-    case alert_level_group_error_or_higher:
+    case alert_level_group_error:
       num_alerts_engaged_error[i]--;
+      break;
+    case alert_level_group_critical:
+      num_alerts_engaged_critical[i]--;
+      break;
+    case alert_level_group_emergency:
+      num_alerts_engaged_emergency[i]--;
       break;
     default:
       break;
@@ -9383,8 +9397,14 @@ u_int32_t NetworkInterface::getNumEngagedAlerts(AlertLevelGroup alert_level_grou
   case alert_level_group_warning:
     num_alerts_engaged = &num_alerts_engaged_warning;
     break;
-  case alert_level_group_error_or_higher:
+  case alert_level_group_error:
     num_alerts_engaged = &num_alerts_engaged_error;
+    break;
+  case alert_level_group_critical:
+    num_alerts_engaged = &num_alerts_engaged_critical;
+    break;
+  case alert_level_group_emergency:
+    num_alerts_engaged = &num_alerts_engaged_emergency;
     break;
   default:
     return tot_engaged_alerts;
@@ -9422,7 +9442,9 @@ void NetworkInterface::luaNumEngagedAlerts(lua_State *vm) const {
 
   lua_push_uint64_table_entry(vm, "notice", getNumEngagedAlerts(alert_level_group_notice_or_lower));
   lua_push_uint64_table_entry(vm, "warning", getNumEngagedAlerts(alert_level_group_warning));
-  lua_push_uint64_table_entry(vm, "error", getNumEngagedAlerts(alert_level_group_error_or_higher));
+  lua_push_uint64_table_entry(vm, "error", getNumEngagedAlerts(alert_level_group_error));
+  lua_push_uint64_table_entry(vm, "critical", getNumEngagedAlerts(alert_level_group_critical));
+  lua_push_uint64_table_entry(vm, "emergency", getNumEngagedAlerts(alert_level_group_emergency));
 
   lua_pushstring(vm, "num_alerts_engaged_by_severity");
   lua_insert(vm, -2);
@@ -9620,7 +9642,7 @@ void NetworkInterface::luaAlertedFlows(lua_State* vm) {
   /* Breakdown */
   lua_push_int32_table_entry(vm, "num_alerted_flows_notice",  getNumActiveAlertedFlows(alert_level_group_notice_or_lower));
   lua_push_int32_table_entry(vm, "num_alerted_flows_warning", getNumActiveAlertedFlows(alert_level_group_warning));
-  lua_push_int32_table_entry(vm, "num_alerted_flows_error",   getNumActiveAlertedFlows(alert_level_group_error_or_higher));
+  lua_push_int32_table_entry(vm, "num_alerted_flows_error",   getNumActiveAlertedFlows(alert_level_group_error));
 }
 
 /* *************************************** */
