@@ -4917,7 +4917,7 @@ AlertLevel Utils::mapScoreToSeverity(u_int32_t score) {
 
 /* ****************************************************** */
 
-u_int16_t Utils::mapSeverityToScore(AlertLevel alert_level) {
+u_int8_t Utils::mapSeverityToScore(AlertLevel alert_level) {
   if(alert_level <= alert_level_info)
     return SCORE_LEVEL_INFO;
   else if(alert_level <= alert_level_notice)

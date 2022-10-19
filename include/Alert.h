@@ -27,7 +27,7 @@ class Alert {
   time_t tstamp;
   time_t last_update;
   AlertType alert_id;
-  u_int16_t score;
+  u_int8_t score;
   std::string subtype;
   std::string json;
 };

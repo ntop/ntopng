@@ -1167,14 +1167,14 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define ALERT_ACTION_STORE            "store"
 
 #define SCORE_LEVEL_INFO                1
-#define SCORE_LEVEL_NOTICE              NDPI_SCORE_RISK_LOW
-#define SCORE_LEVEL_WARNING             NDPI_SCORE_RISK_MEDIUM
-#define SCORE_LEVEL_ERROR               NDPI_SCORE_RISK_HIGH
-#define SCORE_LEVEL_SEVERE              NDPI_SCORE_RISK_SEVERE /* 250 */
-#define SCORE_LEVEL_CRITICAL            350
-#define SCORE_LEVEL_EMERGENCY           450
+#define SCORE_LEVEL_NOTICE              NDPI_SCORE_RISK_LOW       /*  10 */
+#define SCORE_LEVEL_WARNING             NDPI_SCORE_RISK_MEDIUM    /*  50 */
+#define SCORE_LEVEL_ERROR               NDPI_SCORE_RISK_HIGH      /* 100 */
+#define SCORE_LEVEL_SEVERE              NDPI_SCORE_RISK_SEVERE    /* 150 */
+#define SCORE_LEVEL_CRITICAL            NDPI_SCORE_RISK_CRITICAL  /* 200 */
+#define SCORE_LEVEL_EMERGENCY           NDPI_SCORE_RISK_EMERGENCY /* 250 */
 
-#define SCORE_MAX_VALUE                 SCORE_LEVEL_SEVERE /* Maximum client/server score. Flow score is 2 * SCORE_MAX_VALUE. */
+#define SCORE_MAX_VALUE                 NDPI_RISK_EMERGENCY /* Maximum client/server score. Flow score is 2 * SCORE_MAX_VALUE. */
 
 #ifndef WIN32
 #define CONST_DEFAULT_DUMP_SYSLOG_FACILITY LOG_DAEMON
