@@ -122,6 +122,9 @@ class Prefs {
     , *pro_callbacks_dir
 #endif
     ;
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+  char *kafka_brokers_list, *kafka_topic, *kafka_options;
+#endif
   char *categorization_key;
   char *zmq_encryption_pwd;
   char *zmq_encryption_priv_key;
@@ -243,9 +246,14 @@ class Prefs {
   inline bool  do_dump_flows_on_clickhouse()            { return(is_enterprise_m_edition() && dump_flows_on_clickhouse); };
   inline bool  do_dump_alerts_on_clickhouse()           { return(do_dump_flows_on_clickhouse()); };
   inline bool  do_dump_flows_on_syslog()                { return(dump_flows_on_syslog);   };
+  inline bool  do_dump_flows_on_kafka()                 { return((kafka_brokers_list && kafka_topic) ? true : false);   };
   inline bool  do_dump_extended_json()                  { return(dump_ext_json);          };
   inline bool  do_dump_json_flows_on_disk()             { return(dump_json_flows_on_disk);};
-  inline bool  do_dump_flows()                          { return(do_dump_flows_on_es() || do_dump_flows_on_mysql() || do_dump_flows_on_clickhouse() || do_dump_flows_on_syslog()); };
+  inline bool  do_dump_flows()                          { return(do_dump_flows_on_es()
+								 || do_dump_flows_on_mysql()
+								 || do_dump_flows_on_clickhouse()
+								 || do_dump_flows_on_syslog()
+								 || do_dump_flows_on_kafka()); };
 
 #ifdef NTOPNG_PRO
   inline void  toggle_dump_flows_direct(bool enable)    { dump_flows_direct = enable; };
@@ -461,6 +469,11 @@ class Prefs {
 #endif
   void setIEC104AllowedTypeIDs(const char * protos);
   void validate();
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+  char* getKakfaBrokersList() { return(kafka_brokers_list); }
+  char* getKafkaTopic()       { return(kafka_topic);        }
+  char* getKafkaOptions()     { return(kafka_options);      }
+#endif
 };
 
 #endif /* _PREFS_H_ */

@@ -999,7 +999,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	    num_uploaded_files = mg_upload(conn, upload_dir, fname, sizeof(fname));
 
 	    if(num_uploaded_files > 0) {
-	      char uploaded_file[1024];
+	      char uploaded_file[2048];
 
 	      snprintf(uploaded_file, sizeof(uploaded_file), "%s/%s", upload_dir, fname);
 	      ntop->fixPath(uploaded_file);

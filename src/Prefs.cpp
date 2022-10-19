@@ -142,6 +142,10 @@ Prefs::Prefs(Ntop *_ntop) {
   appliance = false;
 #endif
 
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+  kafka_brokers_list = kafka_topic = kafka_options = NULL;
+#endif
+  
 #ifdef NTOPNG_PRO
   print_maintenance = print_license = false;
 #endif
@@ -433,7 +437,7 @@ void usage() {
 	 "                                    |   <facility-text> is case-insensitive.\n"
 	 "                                    |\n"
 #endif
-#ifdef HAVE_CLICKHOUSE
+#if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO)
 	 "                                    | clickhouse    Dump in ClickHouse (Enterprise M/L/XL)\n"
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse;<host[@[<tcpport>,]<mysqlport]|socket>;<dbname>;<user>;<pw>\n"
@@ -443,6 +447,21 @@ void usage() {
 	 "                                    |   -F clickhouse;127.0.0.1@%u,%u;ntopng;default;\n"
 	 "                                    |\n"
 #endif
+
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+	 "                                    | kafka   Dump to Kafka (Enterprise M/L/XL)\n"
+	 "                                    |   Format:\n"
+	 "                                    |   kafka;[<brokerIP[:<port>]]+;<topic>[;<kafka option>=<value>]+\n"
+	 "                                    |   \n"
+	 "                                    |   Example:\n"
+	 "                                    |   kafka;127.0.0.1;flows\n"
+	 "                                    |   kafka;127.0.0.1:7689,192.168.1.20,192.168.1.2:9092;flows;compression.codec=gzip\n"
+	 "                                    |   \n"
+	 "                                    |   See https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md\n"
+	 "                                    |   for kafka configuration options.\n"
+	 "                                    |\n"
+#endif
+	 
 #ifdef HAVE_MYSQL
 	 "                                    | mysql         Dump in MySQL database\n"
 	 "                                    |   Format:\n"
@@ -1441,6 +1460,42 @@ int Prefs::setOption(int optkey, char *optarg) {
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
     }
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+    else if((strncmp(optarg, "kafka", 5) == 0) && (strlen(optarg) > 3)) {
+      char *conf = strdup(&optarg[5]);
+
+      if(conf != NULL) {
+	char *brokers_list, *tmp;
+
+	if((brokers_list = strtok_r(conf, ";", &tmp)) != NULL) {
+	  char *topic = strtok_r(NULL, ";", &tmp);
+
+	  if(conf != NULL) {
+	    char *options = strtok_r(NULL, ";", &tmp);
+
+	    if((kafka_brokers_list = strdup(brokers_list)) != NULL) {
+	      if((kafka_topic = strdup(topic)) != NULL) {
+		kafka_options = options ? strdup(options) : NULL;
+	      }
+	    }
+	    
+	    if((kafka_brokers_list == NULL) || (kafka_topic == NULL)) {
+	      /* Out of memory */
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+	      
+	      if(kafka_brokers_list) { free(kafka_brokers_list); kafka_brokers_list = NULL; }
+	      if(kafka_topic)        { free(kafka_topic); kafka_topic = NULL;               }
+	    }
+	  } else
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to parse kafka topic: skipping -F");
+	} else
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to parse brokers list: skipping -F");
+	
+	free(conf);
+      } else
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding -F: unable to parse kafka options");
+    }
+#endif
     else if((!strncmp(optarg, "mysql", 5))
 	    || (!strncmp(optarg, "clickhouse", 10))) {
 #ifdef HAVE_MYSQL

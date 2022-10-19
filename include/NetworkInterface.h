@@ -204,6 +204,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   ProtoStats discardedProbingStats;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
+
+#if defined(HAVE_KAFKA)
+  KafkaProducer *kafka;
+#endif
+  
 #ifndef HAVE_NEDGE
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
   SubInterfaces *sub_interfaces;

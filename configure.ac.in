@@ -151,7 +151,8 @@ else
 fi
 
 AC_CHECK_LIB([sodium], [sodium_init], LIBS="${LIBS} -lsodium")
-
+AC_CHECK_LIB([rdkafka], [rd_kafka_metadata], AC_DEFINE_UNQUOTED(HAVE_KAFKA, 1, [librdkafka is installed] LIBS="${LIBS} -lrdkafka") LIBS="${LIBS} -lrdkafka")
+   
 NEDGE=0
 if test "${with_nedge+set}" = set; then
   AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])

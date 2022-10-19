@@ -4557,7 +4557,7 @@ void Flow::setBittorrentHash(char *hash) {
   for(i=0, j = 0; i<20; i++) {
     u_char c = hash[i] & 0xFF;
 
-    snprintf(&bittorrent_hash[j], 2, "%02x", c);
+    snprintf(&bittorrent_hash[j], 3, "%02x", (u_int8_t)c);
     j += 2, n += c;
   }
 

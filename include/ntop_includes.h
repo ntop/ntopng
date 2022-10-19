@@ -238,7 +238,6 @@ using namespace std;
 #include "NetworkInterfaceAlertableEntity.h"
 #include "InterfaceMemberAlertableEntity.h"
 #include "BehaviouralCounter.h"
-
 #ifdef NTOPNG_PRO
 #include "BehaviorAnalysis.h"
 #endif
@@ -310,6 +309,9 @@ using namespace std;
 #include "AlertStore.h"
 #include "SQLiteAlertStore.h"
 #include "DB.h"
+#ifdef HAVE_KAFKA
+#include "KafkaProducer.h"
+#endif
 #ifdef HAVE_MYSQL
 #include "MySQLDB.h"
 #endif

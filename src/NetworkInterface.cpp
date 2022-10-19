@@ -361,7 +361,9 @@ void NetworkInterface::init(const char *interface_name) {
   ndpi_struct_shadow = NULL;
   ndpi_struct = initnDPIStruct();
   ndpi_finalize_initialization(ndpi_struct);
-
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+  kafka = NULL;
+#endif
   INTERFACE_PROFILING_INIT();
 }
 
@@ -868,6 +870,8 @@ NetworkInterface::~NetworkInterface() {
   if(prev_host_checks_executor) delete prev_host_checks_executor;
   if(host_checks_executor)      delete host_checks_executor;
 
+  /* Note do not need to delete kafka as it's shared with db */
+  
   if(ndpi_struct) {
     ndpi_exit_detection_module(ndpi_struct);
     ndpi_struct = NULL;
@@ -8560,13 +8564,21 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
     else if(ntop->getPrefs()->do_dump_flows_on_es()) {
       db = new (std::nothrow) ElasticSearch(this);
     }
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+    else if((ntop->getPrefs()->getKakfaBrokersList() != NULL)) {
+      kafka = new KafkaProducer(this,
+				ntop->getPrefs()->getKakfaBrokersList(),
+				ntop->getPrefs()->getKafkaTopic(),
+				ntop->getPrefs()->getKafkaOptions());
+      db = kafka;
+    }
+#endif
 #if !defined(WIN32) && !defined(__APPLE__)
     else if(ntop->getPrefs()->do_dump_flows_on_syslog()) {
       db = new (std::nothrow) SyslogDump(this);
     }
 #endif
 #endif
-
   }
 
   return(db != NULL);
