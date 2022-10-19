@@ -7393,7 +7393,7 @@ void NetworkInterface::allocateStructures() {
 
     if(!isViewed()) {
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
-      if(ntop->getPrefs()->do_dump_flows_on_clickhouse())
+      if(ntop->getPrefs()->do_dump_alerts_on_clickhouse())
         alertStore = new ClickHouseAlertStore(this);
 #endif
 
