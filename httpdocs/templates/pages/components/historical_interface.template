@@ -1,6 +1,8 @@
 <div id="vue-app">
   <page-stats 
-    :csrf="csrf" 
+    :csrf="csrf"
+    :default_ifid="default_ifid"
+    :is_ntop_pro="is_ntop_pro"
     :enable_snapshots="is_ntop_enterprise_m"
     :is_clickhouse_enabled="is_clickhouse_enabled"
     :traffic_extraction_permitted="traffic_extraction_permitted">
@@ -9,11 +11,13 @@
 
 <script type="application/javascript">
   let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
-
+  
   function start_vue() {
+    const is_ntop_pro = '{* ntop.isPro() *}' == 'true';
     const is_ntop_enterprise_m = '{* ntop.isEnterpriseM() *}' == 'true';
     const is_clickhouse_enabled = '{* is_clickhouse_enabled *}' == 'true';
     const traffic_extraction_permitted = '{* traffic_extraction_permitted *}' == 'true';
+    const default_ifid = '{* interface.getId() *}'
 
     const vue_options = {
     	components: {
@@ -27,6 +31,8 @@
 	data() {
 	    return {
 	      csrf: pageCsrf,
+	      default_ifid,
+	      is_ntop_pro,
 	      is_ntop_enterprise_m,
 	      traffic_extraction_permitted,
               is_clickhouse_enabled,

@@ -2364,7 +2364,7 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    tskey = tskey,
    timeseries = timeseries,
    device_timeseries_mac = host["mac"],
-}, show_graph)
+}, show_graph, true)
 
 elseif(page == "traffic_report") then
    package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/?.lua;" .. package.path

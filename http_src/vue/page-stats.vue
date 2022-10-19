@@ -61,7 +61,7 @@
     </div>
   </div>
   
-  <div class="mt-4 card card-shadow">
+  <div class="mt-4 card card-shadow" v-if="enable_table == true">
     <div class="card-body">
       <div class="mb-4 text-nowrap" style="font-size: 1.1rem;">
         <i class="fa-solid fa-chart-line"></i> 	{{_i18n('page_stats.top_applications')}}
@@ -119,6 +119,8 @@ import NtopUtils from "../utilities/ntop-utils";
 
 const props = defineProps({
     csrf: String,
+    is_ntop_pro: Boolean,
+    default_ifid: String,
     enable_snapshots: Boolean,
     is_clickhouse_enabled: Boolean,
     traffic_extraction_permitted: Boolean,
@@ -140,6 +142,12 @@ const modal_snapshot = ref(null);
 
 const metrics = ref([]);
 const selected_metric = ref({});
+
+const enable_table = function() {
+    let source_type = metricsManager.get_current_page_source_type();
+    if (source_type.value != "ifid") { return false; }
+    return true;
+}();
 
 /**
  * { key: identifier of Chart component, if change Chart will be destroyed and recreated,
@@ -172,7 +180,12 @@ function init_groups_option_mode() {
     return groups_options_modes[0];
 }
 
+function set_default_ifid() {
+    ntopng_url_manager.set_key_to_url("ifid", props.default_ifid);
+}
+
 onBeforeMount(async() => {
+    set_default_ifid();
     await load_datatable_data();
 });
 
@@ -201,13 +214,6 @@ async function init() {
     }
     ts_menu_ready.value = true;
     await load_charts_data(timeseries_groups);
-}
-
-function reload_table() {
-    let table = top_applications_table.value;
-    NtopUtils.showOverlays();
-    table.reload();
-    NtopUtils.hideOverlays();
 }
 
 let last_push_custom_metric = null;
@@ -349,26 +355,7 @@ async function load_charts_data(timeseries_groups, not_reload) {
     let status = ntopng_status_manager.get_status();
     let ts_compare = get_ts_compare(status);
     if (!not_reload) {	
-	let chart_data_url = `${http_prefix}/lua/rest/v2/get/timeseries/ts.lua`;
-	let params_url_request = `ts_compare=${ts_compare}&version=4&zoom=${ts_compare}&initial_point=true&limit=180`;
-	let params_obj = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
-	
-	let ts_responses_promises = timeseries_groups.map((ts_group) => {
-	    let ts_query = `${ts_group.source_type.value}:${ts_group.source.value}`
-	    if(ts_group.metric.query) {
-		ts_query = `${ts_query},${ts_group.metric.query}`
-	    }
-	    let p_obj = {
-		...params_obj,
-		ts_query: ts_query,
-		ts_schema: `${ts_group.metric.schema}`,
-	    };
-	    
-	    let p_url_request =  ntopng_url_manager.add_obj_to_url(p_obj, params_url_request);
-	    let url = `${chart_data_url}?${p_url_request}`;
-	    return ntopng_utility.http_request(url);
-	});
-	ts_chart_options = await Promise.all(ts_responses_promises);
+	ts_chart_options = await timeseriesUtils.getTsChartOptions(http_prefix, status, ts_compare, timeseries_groups, props.is_ntop_pro);
     }
     console.log(ts_chart_options);
     console.log(timeseries_groups);
@@ -421,6 +408,9 @@ function get_ts_compare(status) {
 }
 
 function get_datatable_url() {
+    // let metric = metricsManager.get_default_metric(metrics.value);
+    // let timeseries_groups = get_timeseries_groups_from_metric(metric);
+    // get_ts_compare(status);
     let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/interface/top/ts_stats.lua`;
     let p_obj = {
 	zoom: '5m',
@@ -436,9 +426,12 @@ function get_datatable_url() {
 }
 
 async function reload_table_data() {
+    // NtopUtils.showOverlays();
+    if (enable_table == false) { return; }
     const url = get_datatable_url();
     top_applications_table.value.update_url(url);
     top_applications_table.value.reload();
+    // NtopUtils.hideOverlays();
 }
 
 async function load_datatable_data() {
@@ -537,6 +530,9 @@ function set_stats_rows(ts_chart_options, timeseries_groups, status) {
 	    let s_metadata = ts_group.metric.timeseries[ts_id];
 	    let formatter = formatterUtils.getFormatter(ts_group.metric.measure_unit);
 	    let ts_stats = options.statistics?.by_serie[j];
+	    if (ts_stats == null) {
+		return;
+	    }
 	    let name = timeseriesUtils.getSerieName(s_metadata.label, ts_id, ts_group, extend_serie_name);
 	    let total = null;
 	    let total_formatter_type = f_get_total_formatter_type(ts_group.metric.measure_unit);

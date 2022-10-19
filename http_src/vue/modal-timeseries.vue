@@ -8,7 +8,7 @@
     <ul class="nav nav-tabs">
       <li class="nav-item" @click="change_action('add')">
     	<a class="nav-link" :class="{'active': action == 'add'}" href="#">{{_i18n("modal_timeseries.add_timeseries")}}
-</a>
+	</a>
       </li>
       <li class="nav-item" @click="change_action('select')">
     	<a class="nav-link" :class="{'active': action == 'select' }" href="#">{{_i18n("modal_timeseries.manage_timeseries")}}</a>
@@ -16,26 +16,78 @@
     </ul>
     <!-- action add -->
     <template v-if="action == 'add'">
+      <!-- Sources Types -->
       <div class="form-group ms-2 me-2 mt-3 row">
 	<label class="col-form-label col-sm-4" >
           <b>{{_i18n("modal_timeseries.source_type")}}</b>
 	</label>
 	<div class="col-sm-8">
-    <SelectSearch v-model:selected_option="selected_source_type"
-		      :options="sources_types">
+	  <SelectSearch v-model:selected_option="selected_source_type"
+			@select_option="change_source_type()"
+			:options="sources_types">
 	  </SelectSearch>
 	</div>
       </div>
-      <div class="form-group ms-2 me-2 mt-3 row">
-	<label class="col-form-label col-sm-4" >
-          <b>{{_i18n("modal_timeseries.source")}}</b>
-	</label>
-	<div class="col-sm-8">
-    <SelectSearch v-model:selected_option="selected_source"
-		      :options="sources">
-	  </SelectSearch>
+      
+      <!-- Sources -->
+      <!-- Interface -->
+      <template v-if="selected_source_type.ui_type == ui_types.select">
+	<div class="form-group ms-2 me-2 mt-3 row">
+	  <label class="col-form-label col-sm-4" >
+            <b>{{_i18n("modal_timeseries.source")}}</b>
+	  </label>
+	  <!-- <label class="col-form-label col-sm-4" > -->
+            <!--   <b>{{selected_source_type.label}}</b> -->
+	    <!-- </label> -->
+	  <div class="col-sm-8">
+	    <SelectSearch v-model:selected_option="selected_source"
+			  @select_option="change_source()"
+			  :options="sources">
+	    </SelectSearch>
+	  </div>
 	</div>
-      </div>
+      </template>
+      
+      <!-- Host -->
+      <template v-if="selected_source_type.ui_type == ui_types.select_and_input">
+	<div class="form-group ms-2 me-2 mt-3">
+	  <div class="form-group row ms-1 me-1 mb-2">
+	    <label class="col-form-label col-sm-4" >
+              <b>{{_i18n("modal_timeseries.source")}}</b>
+	    </label>
+	    <div class="col-sm-8" >
+	      <input class="form-control" v-model="selected_source_text" type="text" disabled>
+	      <!-- <input class="form-control" :class="{ 'alert alert-warning': selected_source_text_warn() }" v-model="selected_source_text" type="text" disabled> -->
+	      <!-- <label> -->
+	      <!-- 	<b>{{selected_source_text}}</b> -->
+	      <!-- </label> -->
+	    </div>
+	  </div>
+	  <div class="form-group row ms-3 me-1">
+	    <label class="col-form-label col-sm-4">
+              <b>{{ selected_source_type.sub_label }}</b>
+	    </label>
+	    <div class="col-sm-8">
+	      <SelectSearch v-model:selected_option="selected_sub_source"
+			    :options="sub_sources">
+	      </SelectSearch>
+	    </div>
+	  </div>
+	  <div class="form-group row ms-3 me-1">
+	    <label class="col-form-label col-sm-4">
+              <b>{{ selected_source_type.label }}</b>
+	    </label>
+	    <div class="col-sm-6">
+	      <input class="form-control" v-model="source_text"  :pattern="source_text_validation" required type="text" placeholder="192.168.1.1">	      
+	    </div>
+	    <div class="col-sm-2" style="text-align:end !important;">
+	      <button type="button" :disabled="!is_source_text_valid"  @click="apply_source_text" class="btn btn-primary">{{_i18n("modal_timeseries.apply")}}</button>
+	    </div>
+	  </div>
+	</div>
+      </template>
+
+      <!-- Metrics -->
       <div class="form-group ms-2 me-2 mt-3 row">
 	<label class="col-form-label col-sm-4" >
           <b>{{_i18n("modal_timeseries.metric")}}</b>
@@ -44,7 +96,7 @@
           <!-- <select class="form-select" @click="update_timeseries_to_add()" v-model="selected_metric"> -->
             <!--   <option v-for="item in metrics" :value="item">{{item.label}}</option> -->
           <!-- </select> -->
-          <SelectSearch ref="select_search"
+          <SelectSearch ref="select_search_metrics"
 	  		@select_option="update_timeseries_to_add()"
 	  		v-model:selected_option="selected_metric"
 	  		:options="metrics">
@@ -89,9 +141,10 @@ import { default as SelectSearch } from "./select-search.vue";
 import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 
 import metricsManager from "../utilities/metrics-manager.js";
+import regexValidation from "../utilities/regex-validation.js";
 
 const modal_id = ref(null);
-const select_search = ref(null);
+const select_search_metrics = ref(null);
 
 const showed = () => {};
 
@@ -102,8 +155,21 @@ let current_page_source_type = metricsManager.get_current_page_source_type();
 const sources_types = metricsManager.sources_types;
 const selected_source_type = ref(current_page_source_type);
 
+const ui_types = metricsManager.ui_types;
 const sources = ref([]);
 const selected_source = ref({});
+const selected_source_text = ref("");
+const selected_source_text_warn = () => {
+    return get_selected_source_text(source_text.value) != get_selected_source_text();
+};
+const sub_sources = ref([]);
+const selected_sub_source = ref({});
+const source_text = ref("");
+const source_text_validation = ref(regexValidation.get_data_pattern("ip"));
+const is_source_text_valid = computed(() => {
+    let regex = new RegExp(source_text_validation.value);
+    return regex.test(source_text.value);
+});
 
 const metrics = ref([]);
 const selected_metric = ref({});
@@ -130,8 +196,8 @@ onMounted(async () => {
 //     timeseries_groups_added.value = current_value;
 // });
 watch(() => action.value, (current_value, old_value) => {
-    if (current_value != "add") { return; }
-    select_search.value.render();
+    if (current_value != "select_search_metrics") { return; }
+    //select_search.value.render();
     // take default visible
     // selected_metric.value = metricsManager.get_default_metric(metrics.value);
     // select_search.value.init();
@@ -149,29 +215,62 @@ function change_action(a) {
     action.value = a;
 }
 
+async function apply_source_text() {
+    selected_source.value = await metricsManager.get_source_from_value(http_prefix, selected_source_type.value, source_text.value, selected_sub_source.value.value);
+    set_selected_source_text();
+    await set_metrics();
+}
+
+async function change_source_type() {
+    await set_sources();
+    await set_metrics();
+}
+
+async function change_source() {
+    await set_metrics();
+}
+
+function get_selected_source_text(source_value) {
+    if (source_value == null) {
+	source_value = selected_source.value.value;
+    }
+    return `${selected_sub_source.value.label} - ${source_value}`;
+}
+
+function set_selected_source_text() {
+    selected_source_text.value = get_selected_source_text();
+}
+
+async function set_sources() {
+    if (selected_source_type.value.sub_value != null) {
+	sub_sources.value = await metricsManager.get_sub_sources(http_prefix, selected_source_type.value.sub_value);
+	selected_sub_source.value = await metricsManager.get_default_sub_source(http_prefix, selected_source_type.value.sub_value);
+    }
+    if (!selected_source_type.value.disable_url) {
+	sources.value = await metricsManager.get_sources(http_prefix, selected_source_type.value);
+    }
+    let default_source = await metricsManager.get_default_source(http_prefix, selected_source_type.value);
+    selected_source.value = default_source;
+    if (selected_source_type.value.ui_type == ui_types.select_and_input) {
+	source_text.value = selected_source.value.value;
+	set_selected_source_text();
+    }
+}
+
+async function set_metrics() {
+    metrics.value = await metricsManager.get_metrics(http_prefix, selected_source_type.value, selected_source.value);
+    metrics.value.sort(NtopUtils.sortAlphabetically);
+    selected_metric.value = metricsManager.get_default_metric(metrics.value);
+}
+
 async function init() {
     console.log("INIT MODAL TIMESERIES");
-    sources.value = await metricsManager.get_sources(http_prefix, current_page_source_type);
-    let default_source_value = metricsManager.get_default_source_value(selected_source_type.value);
-    selected_source.value = sources.value.find((s) => s.value == default_source_value);
-    
-    // init metrics
-    metrics.value = await metricsManager.get_metrics(http_prefix);
+    // set sources
+    await set_sources();
+    // set metrics
+    await set_metrics();
     // take default visible
-    selected_metric.value = metricsManager.get_default_metric(metrics.value);
-    metrics.value.sort(NtopUtils.sortAlphabetically);
     update_timeseries_to_add(false);
-    
-    // init metrics added
-    // timeseries_groups_added.value = [];
-    // let ts_group = {
-    // 	id: get_timeseries_group_id(),
-    // 	source_type: selected_source_type.value,
-    // 	source: selected_source.value,
-    // 	metric: selected_metric.value,
-    // 	timeseries: ntopng_utility.clone(timeseries_to_add.value),
-    // };
-    // timeseries_groups_added.value.push(ts_group);
     console.log("emit");
     //emit('apply', timeseries_groups_added.value);
 }
@@ -264,4 +363,12 @@ defineExpose({ show, close, add_ts_group, set_timeseries_groups });
 </script>
 
 <style scoped>
+input:invalid {
+  border-color: #ff0000;
+}
+
+.warn {
+border-color: #ffd500;
+border-style: solid;
+}
 </style>

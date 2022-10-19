@@ -4,7 +4,7 @@
 
 import formatterUtils from "./formatter-utils";
 import colorsInterpolation from "./colors-interpolation.js";
-import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
+import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 
 function tsToApexOptions(tsOptions, metric) {
     let startTime = tsOptions.start;
@@ -491,6 +491,43 @@ function buildChartOptions(seriesArray, yaxisArray) {
     };
 }
 
+function getTsQuery(tsGroup) {
+    let tsQuery;
+    if (tsGroup.source_type.value == "ifid") {
+	tsQuery = `${tsGroup.source_type.value}:${tsGroup.source.value}`;
+    } else {
+	let ifid = ntopng_url_manager.get_url_entry("ifid");
+	tsQuery = `ifid:${ifid},${tsGroup.source_type.value}:${tsGroup.source.value}`;
+    }
+
+    if (tsGroup.metric.query != null) {
+	tsQuery = `${tsQuery},${tsGroup.metric.query}`
+    }
+    return tsQuery;
+}
+
+async function getTsChartOptions(httpPrefix, epochStatus, tsCompare, timeseriesGroups, isPro) {
+    let chartDataUrl = `${httpPrefix}/lua/rest/v2/get/timeseries/ts.lua`;
+    let paramsUrlRequest = `ts_compare=${tsCompare}&version=4&zoom=${tsCompare}&initial_point=true&limit=180`;
+    let paramsEpochObj = { epoch_begin: epochStatus.epoch_begin, epoch_end: epochStatus.epoch_end };
+    
+    let tsResponsesPromises = timeseriesGroups.map((tsGroup) => {
+	let tsQuery = getTsQuery(tsGroup);
+	let pObj = {
+	    ...paramsEpochObj,
+	    ts_query: tsQuery,
+	    tskey: tsGroup.source.value,
+	    ts_schema: `${tsGroup.metric.schema}`,
+	};
+	
+	let pUrlRequest =  ntopng_url_manager.add_obj_to_url(pObj, paramsUrlRequest);
+	let url = `${chartDataUrl}?${pUrlRequest}`;
+	return ntopng_utility.http_request(url);
+    });
+    let tsChartOptions = await Promise.all(tsResponsesPromises);
+    return tsChartOptions;
+}
+
 const timeseriesUtils = function() {
     return {
 	groupsOptionsModesEnum,
@@ -500,6 +537,7 @@ const timeseriesUtils = function() {
 	getGroupOptionMode,
 	getSerieId,
 	getSerieName,
+	getTsChartOptions,
     };
 }();
 
