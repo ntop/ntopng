@@ -188,10 +188,8 @@ At this point, ACME ISP wants to programmatically configure ntopng Edge to
    of the purchased profile.
 
 Policies can be created programmatically by serving ntopng Edge a
-configuration JSON via web. Upon startup, ntopng Edge will connect to
-the  ACME ISP web server to fetch the configuration JSON.
-ACME ISP will serve the following JSON to create the policies
-described above
+configuration JSON, which is downloaded upon startup from the ACME ISP 
+as configured in *http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL*.
 
 .. code:: json
 
