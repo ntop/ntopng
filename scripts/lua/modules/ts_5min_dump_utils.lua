@@ -506,6 +506,15 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             flows_as_client = host["host_unreachable_flows.as_client"]},
       when)
 
+  -- Number of host TCP unidirectional flows  
+  if(host.num_unidirectional_tcp_flows ~= nil) then
+     ts_utils.append("host:host_tcp_unidirectional_flows",
+		     {ifid = ifstats.id, host = hostname,
+		      flows_as_server = host.num_unidirectional_tcp_flows.num_ingress,
+		      flows_as_client = host.num_unidirectional_tcp_flows.num_egress},
+		     when)
+  end
+  
   -- Number of dns packets sent
   ts_utils.append("host:dns_qry_sent_rsp_rcvd", {ifid = ifstats.id, host = hostname,
             queries_pkts = host["dns"]["sent"]["num_queries"],

@@ -234,7 +234,6 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
     lua_pushstring(vm, "cardinality");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
-
   }
 }
 

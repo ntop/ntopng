@@ -25,6 +25,7 @@ local template = require "template_utils"
 local categories_utils = require "categories_utils"
 local protos_utils = require("protos_utils")
 local discover = require("discover_utils")
+local http_utils = require("http_utils")
 local json = require ("dkjson")
 local page_utils = require("page_utils")
 
@@ -1206,13 +1207,13 @@ else
       print("<tr><th width=30%>"..i18n("l7_error_code").."</th>")
       print("<td colspan=2><span class=\"badge ")
 
-      if((flow["protos.http.last_url"] ~= nil) and (tonumber(flow.l7_error_code) >= 300)) then
+      if((flow["protos.http.last_url"] ~= nil) and (tonumber(flow.l7_error_code) >= 400)) then
 	 print("bg-danger")
       else
 	 print("bg-success")
       end
       
-      print("\">".. flow.l7_error_code .. "</td>")
+      print("\">".. http_utils.getResponseStatusCode(flow.l7_error_code) .. "</td>")
       print("</tr>\n")
    end
 
@@ -1368,7 +1369,7 @@ else
         else
             color = "badge bg-warning"
         end
-        print("<tr><th>"..i18n("flow_details.response_code").."</th><td colspan=2><span class='"..color.."'>"..(flow["protos.http.last_return_code"] or '').."</span></td></tr>\n")
+        print("<tr><th>"..i18n("flow_details.response_code").."</th><td colspan=2><span class='"..color.."'>"..(http_utils.getResponseStatusCode(flow["protos.http.last_return_code"]) or '').."</span></td></tr>\n")
       end
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then

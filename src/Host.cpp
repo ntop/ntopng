@@ -710,8 +710,6 @@ void Host::lua_get_num_flows(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", getTotalNumHostUnreachableOutgoingFlows());
 
-  lua_blacklisted_flows(vm);
-
   if(stats)
     stats->luaHostBehaviour(vm);
 }
@@ -843,10 +841,11 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   luaTCP(vm);
   luaICMP(vm, get_ip()->isIPv4(), false);
 
+  lua_unidirectional_tcp_flows(vm);
+  
   if(host_details) {
     lua_get_score_breakdown(vm);
     lua_blacklisted_flows(vm);
-    lua_unidirectional_tcp_flows(vm);
     
     /*
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste

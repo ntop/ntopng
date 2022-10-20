@@ -413,6 +413,14 @@ schema:addTag("host")
 schema:addMetric("flows_as_server")
 schema:addMetric("flows_as_client")
 
+-- ##############################################
+
+schema = ts_utils.newSchema("host:host_tcp_unidirectional_flows", {step = 300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("flows_as_server")
+schema:addMetric("flows_as_client")
+
 --##############################################
 
 schema = ts_utils.newSchema("host:ndpi_flows", {step = 300})
