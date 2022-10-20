@@ -22,7 +22,7 @@ prefix:      /
 EOF
 
 echo "deps: {" >> ${STAGEDIR}/+MANIFEST
-for i in "json-c" "libmaxminddb" "libzmq4" "rrdtool" "lua53" "libsodium" "sqlite3" "redis" "zstd"
+for i in "json-c" "libmaxminddb" "libzmq4" "rrdtool" "lua53" "libsodium" "sqlite3" "redis" "librdkafka" "zstd"
 do
     pkg query "  %n: { version: \"%v\", origin: %o }" "$i" >> ${STAGEDIR}/+MANIFEST
 done
