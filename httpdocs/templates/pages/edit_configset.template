@@ -1946,9 +1946,12 @@ const $script_table = $("#scripts-config").DataTable({
          searchable: true,
          className: 'text-center',
          render: function (data, type, row) {
-            if (type == "display") return data;
-            return data;
-         }
+          let severity = ''
+          if (Object.keys(data).length > 0) {
+            severity = `${data.title || ''} <i class="${data.icon}"></i>`
+          }
+          return severity;
+        }
       },
       {
          data: 'description',

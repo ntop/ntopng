@@ -104,7 +104,6 @@ jQuery.extend(jQuery.fn.dataTableExt.oSort, {
   "bytes-asc": function (a, b) {
       return ((a < b) ? -1 : ((a > b) ? 1 : 0));
   },
-
   "bytes-desc": function (a, b) {
       return ((a < b) ? 1 : ((a > b) ? -1 : 0));
   }
@@ -143,6 +142,9 @@ jQuery.fn.dataTable.ext.type.order['severity-pre'] = function ( data ) {
   }
 
   var lowerData = data.toLowerCase()
+  var iclassIndex = data.indexOf('<')
+  lowerData = lowerData.slice(0, iclassIndex - 1)
+
   var severities = [
     '',
     'none',

@@ -77,12 +77,14 @@ for _, subdir in ipairs(subdirs) do
 
       if subdir == 'flow' and script.alert_id then
         -- This is an exception, flow alerts has scores set in c++
-        script.severity = alert_consts.alertSeverityById(ntop.mapScoreToSeverity(ntop.getFlowAlertScore(script.alert_id)))
+        local severity_id = ntop.mapScoreToSeverity(ntop.getFlowAlertScore(script.alert_id))
+        script.severity = alert_consts.alertSeverityById(severity_id)
       end
 
-      local severity = ""
+      local severity = {}
       if script.severity then
-        severity = i18n(script.severity.i18n_title)
+        severity.title = i18n(script.severity.i18n_title)
+        severity.icon =  script.severity.icon
       end
 
 

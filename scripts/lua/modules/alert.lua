@@ -26,9 +26,18 @@ end
 
 -- ##############################################
 
+-- @brief Function called to set standard information:
+--        - score
+--        - subtype
+--        - granularity
+--        Those information could be set using standard functions
+--        like set_score() or set_granularity
 function Alert:set_info(params)
   local script = params.check
-  self.score = ntop.mapSeverityToScore(script.severity.severity_id or 0 --[[ no score ]])
+  if(not self.score or self.score == 0) then
+    self.score = ntop.mapSeverityToScore(script.severity.severity_id or 0 --[[ no score ]])
+  end
+  
   self.subtype = params.entity_info.name or ""
   self.granularity = params.granularity or ""
 end
