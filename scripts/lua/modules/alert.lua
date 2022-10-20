@@ -38,7 +38,10 @@ function Alert:set_info(params)
     self.score = ntop.mapSeverityToScore(script.severity.severity_id or 0 --[[ no score ]])
   end
   
-  self.subtype = params.entity_info.name or ""
+  if params.entity_info then
+    self.subtype = params.entity_info.name or ""
+  end
+  
   self.granularity = params.granularity or ""
 end
 
