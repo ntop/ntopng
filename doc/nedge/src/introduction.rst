@@ -216,8 +216,8 @@ described above
 		       "default_policy": "pass",
 		       "policies" : {
 		       }
-		 },
-	  },
+		 }
+	  }
    }
 
 After the startup, ntopng Edge is ready to associate the Mac addresses
@@ -231,12 +231,13 @@ A JSON that tells ntopng Edge the three associations exemplified above is the fo
 
 .. code:: json
 
-	  "associations" : {
+   {
+	   "associations" : {
 		"AA:BB:CC:DD:EE:11"  : {"group" : "basic",    "connectivity" : "pass"},
 		"AA:BB:CC:DD:EE:22"  : {"group" : "gold",     "connectivity" : "pass"},
-		"AA:BB:CC:DD:EE:33"  : {"group" : "platinum", "connectivity" : "pass"},
+		"AA:BB:CC:DD:EE:33"  : {"group" : "platinum", "connectivity" : "pass"}
 	  }
-
+   }
 
 From now on, ntopng Edge will be able to correctly associate the
 traffic exchanged by any of the three Mac addresses above with the
@@ -256,9 +257,11 @@ member from a policy, ACME ISP, will only have to change to :code:`reject` the
 
 .. code:: json
 
+   {
 	  "associations" : {
 		"AA:BB:CC:DD:EE:33"  : {"group" : "platinum", "connectivity" : "reject"},
 	  }
+   }
 
 
 An in-depth explanation on how to programmatically configure ntopng
