@@ -145,7 +145,11 @@ const selected_metric = ref({});
 
 const enable_table = function() {
     let source_type = metricsManager.get_current_page_source_type();
-    if (source_type.value != "ifid") { return false; }
+    if (source_type.value != "ifid" && 
+        source_type.value != "host") { 
+      return false; 
+    }
+    
     return true;
 }();
 
@@ -482,8 +486,14 @@ function set_table_configuration(url) {
 		const jump_to_historical = {
 		    handlerId: handlerIdJumpHistorical,
 		    onClick: () => {
-			let l7_proto = ntopng_url_manager.serialize_param("l7proto", `${service.protocol.id};eq`); 
-			let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?ifid=${ntopng_url_manager.get_url_entry('ifid')}&epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&${l7_proto}`;
+			let l7_proto = ntopng_url_manager.serialize_param("l7proto", `${service.protocol.id};eq`);
+      let host = ntopng_url_manager.get_url_entry('host')
+      if(host) {
+        host = ntopng_url_manager.serialize_param("ip", `${host};eq`);
+      } else {
+        host = ''
+      }
+			let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?ifid=${ntopng_url_manager.get_url_entry('ifid')}&epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&${l7_proto}&${host}`;
 			console.log(historical_flows_url);
 			window.open(historical_flows_url);
 		    }
