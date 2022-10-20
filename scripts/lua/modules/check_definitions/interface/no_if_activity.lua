@@ -6,7 +6,20 @@ local alerts_api = require("alerts_api")
 local alert_consts = require "alert_consts"
 local checks = require("checks")
 
-local script
+local script = {
+   -- Script category
+   category = checks.check_categories.internals,
+
+   default_enabled = true,
+   hooks = {},
+
+   severity = alert_consts.get_printable_severities().critical,
+
+   gui = {
+      i18n_title        = "checks.no_if_activity_title",
+      i18n_description  = "checks.no_if_activity_description",
+   }
+}
 
 -- #################################################################
 
@@ -21,19 +34,11 @@ local function check_interface_activity(params)
 
    local no_if_activity_type = alert_consts.alert_types.alert_no_if_activity.new(params.entity_info.name)
 
-   no_if_activity_type:set_score_critical()
-   no_if_activity_type:set_subtype(params.entity_info.name)
-   no_if_activity_type:set_granularity(params.granularity)
+   no_if_activity_type:set_info(params)
 
    local delta_packets = alerts_api.interface_delta_val(params.check.key..".pkts" --[[ metric name --]], params.granularity, num_packets or 0)
    local delta_flows = alerts_api.interface_delta_val(params.check.key..".flows" --[[ metric name --]], params.granularity, num_flows or 0)
    local delta_logs = alerts_api.interface_delta_val(params.check.key..".logs" --[[ metric name --]], params.granularity, num_logs or 0)
-
-   -- tprint(">>> selected: "..interface.getId() .. " name: "..getInterfaceName(interface.getId()))
-   -- tprint(params.alert_entity)
-   -- tprint("delta_packets: "..delta_packets.. " delta_flows: "..delta_flows.. " delta_logs: "..delta_logs)
-   -- tprint("num_packets: "..num_packets.. " num_flows: "..num_flows.. " num_logs: "..num_logs)
-   -- tprint("<<<")
 
    -- Check if the previous number it's equal to the actual number of both, packets and flows
    -- this distinction is done due to the fact that exist packet based interfaces
@@ -47,23 +52,7 @@ end
 
 -- #################################################################
 
-script = {
-   -- Script category
-   category = checks.check_categories.internals,
-
-   default_enabled = true,
-   hooks = {
-      -- Time past between one call and an other
-      --["5mins"] = check_interface_activity,
-      min = check_interface_activity,
-   },
-
-
-   gui = {
-      i18n_title        = "checks.no_if_activity_title",
-      i18n_description  = "checks.no_if_activity_description",
-   }
-}
+script.hooks.min = check_interface_activity
 
 -- #################################################################
 

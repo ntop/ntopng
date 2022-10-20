@@ -9,7 +9,20 @@ local alerts_api = require("alerts_api")
 local checks = require("checks")
 local alert_consts = require("alert_consts")
 
-local script
+local script = {
+  -- Script category
+  category = checks.check_categories.ids_ips,
+  severity = alert_consts.get_printable_severities().notice,
+  
+  default_enabled = false,
+
+  hooks = {},
+
+  gui = {
+     i18n_title = "show_alerts.ids_ips_log",
+     i18n_description = "show_alerts.ids_ips_log_descr",
+  }
+}
 
 -- #################################################################
 
@@ -32,9 +45,8 @@ local function check_ids_ips_log(params)
 	 os.time()
       )
 
-      alert:set_score_notice()
+      alert:set_info(params)
       alert:set_subtype(added_host)
-      alert:set_granularity(params.granularity)
 
       alert:store(params.alert_entity, nil, params.cur_alerts)
 
@@ -67,21 +79,7 @@ end
 
 -- #################################################################
 
-script = {
-   -- Script category
-   category = checks.check_categories.ids_ips,
-
-   default_enabled = false,
-
-   hooks = {
-      min = check_ids_ips_log,
-   },
-
-   gui = {
-      i18n_title = "show_alerts.ids_ips_log",
-      i18n_description = "show_alerts.ids_ips_log_descr",
-   }
-}
+script.hooks.min = check_ids_ips_log
 
 -- #################################################################
 

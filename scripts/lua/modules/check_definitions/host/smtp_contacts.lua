@@ -4,12 +4,14 @@
 
 local checks = require("checks")
 local host_alert_keys = require "host_alert_keys"
+local alert_consts = require("alert_consts")
 
 -- #################################################################
 
 local smtp_contacts = {
   -- Script category
   category = checks.check_categories.network,
+  severity = alert_consts.get_printable_severities().notice,
 
   default_enabled = false,
   alert_id = host_alert_keys.host_alert_smtp_server_contacts,

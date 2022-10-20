@@ -4,6 +4,7 @@
 
 local checks = require("checks")
 local host_alert_keys = require "host_alert_keys"
+local alert_consts = require("alert_consts")
 
 local script = {
   -- Script category
@@ -13,6 +14,7 @@ local script = {
   default_enabled = false,
 
   alert_id = host_alert_keys.host_alert_scan_detected,
+  severity = alert_consts.get_printable_severities().error,
   
   default_value = {
      operator = "gt",

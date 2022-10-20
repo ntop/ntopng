@@ -6,6 +6,32 @@ local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
 local checks = require("checks")
 
+local script = {
+  -- Script category
+  category = checks.check_categories.internals,
+
+  default_enabled = true,
+  default_value = {
+    -- "> 50%"
+    operator = "gt",
+    threshold = 50,
+  },
+
+  severity = alert_consts.get_printable_severities().error,
+
+  hooks = {},
+
+  gui = {
+    i18n_title = "alerts_thresholds_config.alert_slow_purge_threshold",
+    i18n_description = "alerts_thresholds_config.alert_slow_purge_threshold_descr",
+    i18n_field_unit = checks.field_units.percentage,
+    input_builder = "threshold_cross",
+    field_max = 99,
+    field_min = 1,
+    field_operator = "gt";
+  }
+}
+
 -- #################################################################
 
 local function check_interface_idle(params)
@@ -33,9 +59,8 @@ local function check_interface_idle(params)
     threshold
   )
 
-  alert:set_score_error()
+  alert:set_info(params)
   alert:set_subtype(getInterfaceName(interface.getId()))
-  alert:set_granularity(params.granularity)
 
   if max_idle_perc > threshold then
     alert:trigger(params.alert_entity, nil, params.cur_alerts)
@@ -46,32 +71,7 @@ end
 
 -- #################################################################
 
-local script = {
-  -- Script category
-  category = checks.check_categories.internals,
-
-  default_enabled = true,
-  default_value = {
-    -- "> 50%"
-    operator = "gt",
-    threshold = 50,
-  },
-
-
-  hooks = {
-    min = check_interface_idle,
-  },
-
-  gui = {
-    i18n_title = "alerts_thresholds_config.alert_slow_purge_threshold",
-    i18n_description = "alerts_thresholds_config.alert_slow_purge_threshold_descr",
-    i18n_field_unit = checks.field_units.percentage,
-    input_builder = "threshold_cross",
-    field_max = 99,
-    field_min = 1,
-    field_operator = "gt";
-  }
-}
+script.hooks.min = check_interface_idle
 
 -- #################################################################
 

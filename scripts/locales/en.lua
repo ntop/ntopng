@@ -438,6 +438,7 @@ local lang = {
   ["service_table"] = "Service Table",
   ["set"] = "Set",
   ["settings"] = "Settings",
+  ["severity"] = "Severity",
   ["short_broadcast"] = "B",
   ["short_multicast"] = "M",
   ["shortcuts"] = "Shortcuts",

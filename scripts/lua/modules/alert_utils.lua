@@ -959,8 +959,7 @@ function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype, 
          anomaly_table["extra_params"]
       )
  
-      alert:set_score_warning()
-      alert:set_granularity(params.granularity)
+      alert:set_info(params)
       alert:set_subtype(name)
 
       -- Trigger an alert if an anomaly is found

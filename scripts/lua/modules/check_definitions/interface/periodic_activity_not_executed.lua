@@ -6,7 +6,18 @@ local alert_consts = require("alert_consts")
 local alerts_api = require("alerts_api")
 local checks = require("checks")
 
-local script
+local script = {
+  -- Script category
+  category = checks.check_categories.internals,
+
+  severity = alert_consts.get_printable_severities().warning,
+  hooks = {},
+
+  gui = {
+    i18n_title = "alerts_dashboard.periodic_activity_not_executed",
+    i18n_description = "alerts_dashboard.periodic_activity_not_executed_descr",
+  }
+}
 
 -- #################################################################
 
@@ -21,8 +32,7 @@ local function check_periodic_activity_not_executed(params)
          ps_stats["last_queued_time"] or 0
          )
    
-      alert:set_score_warning()
-      alert:set_granularity(params.granularity)
+      alert:set_info(params)
       alert:set_subtype(ps_name)
 
       if delta > 0 then
@@ -37,20 +47,7 @@ end
 
 -- #################################################################
 
-script = {
-  -- Script category
-  category = checks.check_categories.internals,
-
-
-  hooks = {
-    min = check_periodic_activity_not_executed,
-  },
-
-  gui = {
-    i18n_title = "alerts_dashboard.periodic_activity_not_executed",
-    i18n_description = "alerts_dashboard.periodic_activity_not_executed_descr",
-  }
-}
+script.hooks.min = check_periodic_activity_not_executed
 
 -- #################################################################
 

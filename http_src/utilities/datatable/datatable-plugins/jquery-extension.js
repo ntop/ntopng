@@ -137,3 +137,22 @@ jQuery.fn.dataTable.ext.type.order['file-size-pre'] = function ( data ) {
       return -1;
   };
 };
+jQuery.fn.dataTable.ext.type.order['severity-pre'] = function ( data ) {
+  if (data === null || data === '') {
+      return 0;
+  }
+
+  var lowerData = data.toLowerCase()
+  var severities = [
+    '',
+    'none',
+    'info',
+    'notice',
+    'warning',
+    'error',
+    'critical',
+    'emergency',
+  ]
+
+  return severities.indexOf(lowerData);
+};

@@ -10,6 +10,7 @@ local script = {
   -- Script category
   category = checks.check_categories.internals,
 
+  severity = alert_consts.get_printable_severities().error,
 
   -- See below
   hooks = {},
@@ -33,9 +34,8 @@ local function dropped_alerts_check(params)
       delta_drops
       )
 
-   alert:set_score_error()
+   alert:set_info(params)
    alert:set_subtype(getInterfaceName(interface.getId()))
-   alert:set_granularity(params.granularity)
 
    if(delta_drops > 0) then
       alert:trigger(params.alert_entity, nil, params.cur_alerts)

@@ -18,6 +18,7 @@ local script = {
     threshold = 80,
   },
 
+  severity = alert_consts.get_printable_severities().error,
   -- See below
   hooks = {},
 
@@ -54,9 +55,7 @@ function script.hooks.min(params)
     threshold
   )
 
-  alert:set_score_error()
-  alert:set_subtype(params.entity_info["name"])
-  alert:set_granularity(params.granularity)
+  alert:set_info(params)
 
   if(value > threshold) then
     alert:trigger(params.alert_entity, nil, params.cur_alerts)

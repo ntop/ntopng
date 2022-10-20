@@ -26,6 +26,7 @@
 	            <th>{{ i18n("name", {}) }}</th>
               <th>{{ i18n("interface", {}) }}</th>
               <th>{{ i18n("category", {}) }}</th>
+              <th>{{ i18n("severity", {}) }}</th>
               <th>{{ i18n("description", {}) }}</th>
               <th>{{ i18n("values", {}) }}</th>
               <th>{{ i18n("action", {})}}</th>
@@ -570,7 +571,7 @@ const $table_editor = $("#script-config-editor");
 const render_select_operator = (operators, key, hook) => {
 
    const $select = $(`
-   <select
+    <select
       name='${key}-select'
       required
       ${hook.enabled ? '' : 'disabled'}
@@ -590,78 +591,81 @@ const render_select_operator = (operators, key, hook) => {
 }
 
 const render_template = () => {
+  const operators = ['gt', 'lt'];
+  // save input fields
+  const $input_fields = {};
 
-   const { field_operator, fields_unit, field_min, field_max } = gui;
-   const operators = ['gt', 'lt'];
+  // iterate over keys to create each hooks
+  for (const key in hooks) {
+    /* Get hook -- Currently only 1 hook is available for all the configs */
+    const hook = hooks[key];
 
-   // save input fields
-   const $input_fields = {};
+    /* Skip if key is undefined */
+    if (key == undefined) 
+        continue;
+      
+    const $field = $(`<div class="container"></div>`);
+    
+    /* Define the checkbox to enable/disable the alert */
+    const $checkbox = $(`
+      <div class="form-switch">
+          <input class="form-check-input ms-0" id="id-${key}-check" name="${key}-check" type="checkbox" ${hook.enabled ? "checked" : ""} >
+          <label class="form-check-label" for="id-${key}-check"></label>
+      </div>
+    `);
 
-   // iterate over keys to create each hooks
-   for (const key in hooks) {
-
-      if (key == undefined) continue;
-
-      // get hook
-      const hook = hooks[key];
-
-      let $select = null;
-      if (field_operator == undefined) {
-         $select = render_select_operator(operators, key, hook);
+    /* Bind check event on checkboxes */
+    $checkbox.find(`input[type='checkbox']`).change(function (e) {
+      const checked = $(this).prop('checked');
+      /* If the checked option is false the disable the elements */
+      if (!checked) {
+        $field.find(`input[type='number']`).attr("readonly", "");
+        return;
       }
-      else {
-         $select = $(`<span class='input-group-text'>&${field_operator}</span>`).data('value', field_operator);
-      }
 
-      const $field = $(`<div class='input-group template'></div>`);
-      $field.append($select);
-      $field.append(`<input
-                        type='number'
-                        class='form-control text-end'
-                        required
-                        style='max-width: 7rem;'
-                        name='${key}-input'
-                        ${hook.enabled ? '' : 'readonly'}
-                        value='${hook.script_conf.threshold == undefined ? '' : hook.script_conf.threshold}'
-                        min='${field_min == undefined ? '' : field_min}'
-                        max='${field_max == undefined ? '' : field_max}'>`);
-      $field.append(`<span class='mt-auto mb-auto ms-2 me-2'>${fields_unit ? fields_unit : ""}</span>`);
-      $field.append(`<div class='invalid-feedback'></div>`);
+      $field.find(`input[type='number']`).removeAttr("readonly");
+    });
 
-      const $input_container = $(`<tr id='${key}'></tr>`);
-      const $checkbox = $(`
-         <div class="form-switch">
-            <input class="form-check-input ms-0" id="id-${key}-check" name="${key}-check" type="checkbox" ${hook.enabled ? "checked" : ""} >
-            <label class="form-check-label" for="id-${key}-check"></label>
-         </div>
+    const hook_length = Object.keys(hook.script_conf).length
+    let counter = 0;
+    /* Multiple metrics configurable */
+    for (const [metric_name, metric_config] of Object.entries(hook.script_conf)) {
+      counter = counter + 1; 
+      const id = `${key}_${metric_name}`
+      const { default_value, field_operator, fields_unit, field_min, field_max, title } = metric_config;
+    
+      /* Input field */
+      $field.append(`
+        <div class="row m-auto ${counter == hook_length ? '' : 'mb-2'}">
+          <span class='input-group-text col-1'>&${field_operator}</span>
+          <input
+            type='number'
+            class='form-control col-3'
+            required
+            style='max-width: 7rem;'
+            name='${id}-input'
+            ${hook.enabled ? '' : 'readonly'}
+            value='${default_value == undefined ? '' : default_value}'
+            min='${field_min == undefined ? '' : field_min}'
+            max='${field_max == undefined ? '' : field_max}'>
+          <span class='col-1 m-auto'>${fields_unit ? i18n(fields_unit) : ""}</span>
+          <span class='col-7 m-auto'>${title ? title : ""}</span>
+          <div class='invalid-feedback'></div>
+        </div>
       `);
+    }
 
-      // bind check event on checkboxes
-      $checkbox.find(`input[type='checkbox']`).change(function (e) {
+    const $input_container = $(`<tr id='${key}'></tr>`);
+    // append label and checkbox inside the row
+    $input_container.append(
+      $(`<td class='text-center align-middle'></td>`).append($checkbox),
+      $(`<td class='align-middle'>${hook.label ? hook.label.titleCase() : ""}</td>`),
+      $(`<td></td>`).append($field)
+    );
 
-         const checked = $(this).prop('checked');
-
-         // if the checked option is false the disable the elements
-         if (!checked) {
-            $field.find(`input[type='number']`).attr("readonly", "");
-            $select.attr("disabled", "");
-            return;
-         }
-
-         $field.find(`input[type='number']`).removeAttr("readonly");
-         $select.removeAttr("disabled");
-      });
-
-      // append label and checkbox inside the row
-      $input_container.append(
-         $(`<td class='text-center align-middle'></td>`).append($checkbox),
-         $(`<td class='align-middle'>${hook.label ? hook.label.titleCase() : ""}</td>`),
-         $(`<td></td>`).append($field)
-      );
-
-      // save input field
-      $input_fields[key] = $input_container;
-
+    // save input field
+    $input_fields[key] = $input_container;
+      
    }
 
    // clean script editor table from previous state
@@ -701,15 +705,17 @@ const render_template = () => {
 };
 
 const apply_event = (event) => {
-
    // prepare request to save config
    const data = {};
 
    // iterate over granularities
    $table_editor.find("tr[id]").each(function (index) {
-
+    
       const id = $(this).attr("id");
 
+      $(this).find("input").each(function(index) {
+        debugger
+      })
       const enabled = $(this).find("input[type='checkbox']").is(":checked");
       const $template = $(this).find(".template");
       const $error_label = $template.find(`.invalid-feedback`);
@@ -729,7 +735,6 @@ const apply_event = (event) => {
 
       // remove class error
       $input_box.removeClass('is-invalid');
-
       // save data into dictonary
       data[id] = {
          'enabled': enabled,
@@ -1659,7 +1664,7 @@ $(`span[data-bs-toggle='popover']`).popover({
 $(function () {
 
 const CATEGORY_COLUMN_INDEX = 3;
-const VALUES_COLUMN_INDEX = 5;
+const VALUES_COLUMN_INDEX = 6;
 
 const add_filter_categories_dropdown = () => {
 
@@ -1764,6 +1769,9 @@ if(typeof check_subdir === 'undefined') return;
 const $script_table = $("#scripts-config").DataTable({
    dom: "Bfrtip",
    pagingType: 'full_numbers',
+   columnDefs: [
+      { type: "severity", targets: 4 },
+    ],
    language: {
       info: i18n_ext.showing_x_to_y_rows,
       search: i18n_ext.script_search,
@@ -1809,7 +1817,7 @@ const $script_table = $("#scripts-config").DataTable({
       delegateTooltips();
 
       // update the tabs counters
-      const INDEX_SEARCH_COLUMN = 5;
+      const INDEX_SEARCH_COLUMN = 6;
 
       const $disabled_button = $(`#disabled-scripts`);
       const $all_button = $("#all-scripts");
@@ -1933,7 +1941,18 @@ const $script_table = $("#scripts-config").DataTable({
          }
       },
       {
+         data: 'severity',
+         sortable: true,
+         searchable: true,
+         className: 'text-center',
+         render: function (data, type, row) {
+            if (type == "display") return data;
+            return data;
+         }
+      },
+      {
          data: 'description',
+         sortable: false,
          render: function (data, type, row) {
 
             if (type == "display") {

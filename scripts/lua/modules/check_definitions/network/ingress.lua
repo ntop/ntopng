@@ -9,6 +9,7 @@ local checks = require("checks")
 local script = {
   -- Script category
   category = checks.check_categories.network,
+  severity = alert_consts.get_printable_severities().error,
 
   default_enabled = false,
 

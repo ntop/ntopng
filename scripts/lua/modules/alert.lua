@@ -26,6 +26,15 @@ end
 
 -- ##############################################
 
+function Alert:set_info(params)
+  local script = params.check
+  self.score = ntop.mapSeverityToScore(script.severity.severity_id or 0 --[[ no score ]])
+  self.subtype = params.entity_info.name or ""
+  self.granularity = params.granularity or ""
+end
+
+-- ##############################################
+
 function Alert:_build_type_info()
    local type_info =  {
       -- Keys necessary for the engine
@@ -125,7 +134,7 @@ function Alert:set_score_emergency() self.score = ntop.mapSeverityToScore(alert_
 -- ##############################################
 
 function Alert:set_subtype(subtype)
-   self.subtype = subtype
+  self.subtype = subtype
 end
 
 -- ##############################################

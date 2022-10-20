@@ -3,6 +3,7 @@
 --
 
 local checks = require("checks")
+local alert_consts = require("alert_consts")
 local host_alert_keys = require "host_alert_keys"
 
 local fin_scan = {
@@ -11,6 +12,7 @@ local fin_scan = {
 
    default_enabled = false,
    alert_id = host_alert_keys.host_alert_fin_scan,
+   severity = alert_consts.get_printable_severities().error,
 
    -- The default threshold value. The format is specific of the
    -- "threshold_cross" input builder

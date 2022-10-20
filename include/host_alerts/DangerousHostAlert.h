@@ -39,7 +39,7 @@ class DangerousHostAlert : public HostAlert {
   ~DangerousHostAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore()     const { return SCORE_LEVEL_SEVERE; };
+  u_int8_t getAlertScore()     const { return SCORE_LEVEL_ERROR; };
 };
 
 #endif /* _DANGEROUS_HOST_ALERT_H_ */

@@ -11,7 +11,7 @@ local script = {
   category = checks.check_categories.network,
 
   default_enabled = false,
-
+  severity = alert_consts.get_printable_severities().error,
 
   default_value = {
     operator = "gt",

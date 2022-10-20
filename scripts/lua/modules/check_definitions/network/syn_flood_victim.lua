@@ -11,6 +11,7 @@ local script = {
   
   -- Script category
   category = checks.check_categories.security,
+  severity = alert_consts.get_printable_severities().error,
 
   default_enabled = false,
 

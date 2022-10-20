@@ -5,7 +5,21 @@
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
 local checks = require("checks")
-local script
+local script = {
+  -- Script category
+  category = checks.check_categories.security,
+
+  default_enabled = true,
+
+  severity = alert_consts.get_printable_severities().warning,
+
+  hooks = {},
+
+  gui = {
+    i18n_title = "alerts_dashboard.ghost_networks",
+    i18n_description = "alerts_dashboard.ghost_networks_description",
+  },
+}
 
 -- #################################################################
 
@@ -17,8 +31,7 @@ local function check_ghost_networks(params)
 
       local alert = alert_consts.alert_types.alert_ghost_network.new(domain)
 
-      alert:set_score_warning()
-      alert:set_granularity(params.granularity)
+      alert:set_info(params)
       alert:set_subtype(domain)
 
       if(delta_hits > 0) then
@@ -32,22 +45,7 @@ end
 
 -- #################################################################
 
-script = {
-  -- Script category
-  category = checks.check_categories.security,
-
-  default_enabled = true,
-
-
-  hooks = {
-    min = check_ghost_networks,
-  },
-
-  gui = {
-    i18n_title = "alerts_dashboard.ghost_networks",
-    i18n_description = "alerts_dashboard.ghost_networks_description",
-  },
-}
+script.hooks.min = check_ghost_networks
 
 -- #################################################################
 

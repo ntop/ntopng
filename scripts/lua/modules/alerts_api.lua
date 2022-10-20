@@ -572,8 +572,7 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
     threshold
   )
   
-  alert:set_score_error()
-  alert:set_granularity(params.granularity)
+  alert:set_info(params)
   alert:set_subtype(script.key)
 
   if attacker ~= nil then
