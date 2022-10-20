@@ -292,7 +292,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
 
   is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
 
-  memset(&oneWayTCPFlows, 0, sizeof(oneWayTCPFlows));
+  memset(&unidirectionalTCPFlows, 0, sizeof(unidirectionalTCPFlows));
   memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
   blacklist_name = NULL;
 }
@@ -738,13 +738,13 @@ void Host::lua_get_fingerprints(lua_State* vm) {
 
 /* ***************************************************** */
 
-void Host::lua_oneway_tcp_flows(lua_State* vm) const {
+void Host::lua_unidirectional_tcp_flows(lua_State* vm) const {
   lua_newtable(vm);
 
-  lua_push_uint32_table_entry(vm, "num_ingress", oneWayTCPFlows.numIngressFlows);
-  lua_push_uint32_table_entry(vm, "num_egress", oneWayTCPFlows.numEgressFlows);
+  lua_push_uint32_table_entry(vm, "num_ingress", unidirectionalTCPFlows.numIngressFlows);
+  lua_push_uint32_table_entry(vm, "num_egress", unidirectionalTCPFlows.numEgressFlows);
 			      
-  lua_pushstring(vm, "num_oneway_tcp_flows");
+  lua_pushstring(vm, "num_unidirectional_tcp_flows");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
@@ -846,7 +846,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(host_details) {
     lua_get_score_breakdown(vm);
     lua_blacklisted_flows(vm);
-    lua_oneway_tcp_flows(vm);
+    lua_unidirectional_tcp_flows(vm);
     
     /*
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste
@@ -1718,7 +1718,7 @@ void Host::serialize_geocoordinates(ndpi_serializer *s, const char *prefix) {
 
 /* *************************************** */
 
-bool Host::isOneWayTraffic() const {
+bool Host::isUnidirectionalTraffic() const {
   /* When both directions are at zero, it means no periodic update has visited the host yet,
      so nothing can be said about its traffic directions. One way is only returned when
      exactly one direction is greater than zero. */
@@ -1727,7 +1727,7 @@ bool Host::isOneWayTraffic() const {
 
 /* *************************************** */
 
-bool Host::isTwoWaysTraffic() const {
+bool Host::isBidirectionalTraffic() const {
   return(stats ? stats->getNumBytesRcvd() && stats->getNumBytesSent() : false);
 }
 

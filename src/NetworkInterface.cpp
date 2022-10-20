@@ -4722,8 +4722,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->dhcpOnly && !h->isDHCPHost())                ||
      (r->cidr_filter && !h->match(r->cidr_filter))    ||
      (r->hideTopHidden && h->isHiddenFromTop())       ||
-     (r->traffic_type == traffic_type_one_way && !h->isOneWayTraffic())         ||
-     (r->traffic_type == traffic_type_bidirectional && !h->isTwoWaysTraffic())  ||
+     (r->traffic_type == traffic_type_unidirectional && !h->isUnidirectionalTraffic())         ||
+     (r->traffic_type == traffic_type_bidirectional && !h->isBidirectionalTraffic())  ||
      (r->device_ip && h->getLastDeviceIp() && (r->device_ip != h->getLastDeviceIp())) ||
      (r->dhcpHostsOnly && (!h->isDHCPHost())) ||
 #ifdef NTOPNG_PRO

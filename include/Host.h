@@ -100,7 +100,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   struct {
     u_int32_t numIngressFlows, numEgressFlows;
-  } oneWayTCPFlows;
+  } unidirectionalTCPFlows;
 
   /*
     TCP flows with SYN only, resets or unidirectional UDP flows not sent to broad/multicast addresees
@@ -380,7 +380,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void lua_get_fingerprints(lua_State *vm);
   void lua_get_geoloc(lua_State *vm);
   void lua_blacklisted_flows(lua_State* vm) const;
-  void lua_oneway_tcp_flows(lua_State* vm) const;
+  void lua_unidirectional_tcp_flows(lua_State* vm) const;
   void lua_get_listening_ports(lua_State *vm);
 
   void resolveHostName();
@@ -480,8 +480,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this) ? 1 : 0; }
   inline void reloadDhcpHost()    { is_dhcp_host = iface->isInDhcpRange(get_ip()) ? 1 : 0; }
   inline bool isHiddenFromTop()   { return(hidden_from_top ? true : false); }
-  bool isOneWayTraffic()  const;
-  bool isTwoWaysTraffic() const;
+  bool isUnidirectionalTraffic() const;
+  bool isBidirectionalTraffic()  const;
   virtual void lua_get_timeseries(lua_State* vm)        { lua_pushnil(vm); };
   virtual void lua_peers_stats(lua_State* vm)     const { lua_pushnil(vm); };
   virtual void lua_contacts_stats(lua_State *vm)  const { lua_pushnil(vm); };
@@ -605,8 +605,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void setBlacklistName(char*);
   inline bool resetHostTopSites() { if(stats) { stats->resetTopSitesData(); return(true); } else return(false);     }
   inline bool isReceiveOnlyHost() { return(stats->isReceiveOnly() && (!isBroadcastHost()) && (!isMulticastHost())); }
-  inline void incOneWayIngressFlows() { oneWayTCPFlows.numIngressFlows++; }
-  inline void incOneWayEgressFlows()  { oneWayTCPFlows.numEgressFlows++;  }
+  inline void incUnidirectionalIngressFlows() { unidirectionalTCPFlows.numIngressFlows++; }
+  inline void incUnidirectionalEgressFlows()  { unidirectionalTCPFlows.numEgressFlows++;  }
 };
 
 #endif /* _HOST_H_ */

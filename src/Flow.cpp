@@ -335,7 +335,7 @@ Flow::~Flow() {
     cli_u->decNumFlows(get_last_seen(), true);
 
     if(is_oneway_tcp_syn_seen)
-      cli_u->incOneWayEgressFlows();
+      cli_u->incUnidirectionalEgressFlows();
   }
 
   if(!cli_host && cli_ip_addr) /* Dynamically allocated only when cli_host was NULL in Flow constructor (viewed interfaces) */
@@ -346,7 +346,7 @@ Flow::~Flow() {
     srv_u->decNumFlows(get_last_seen(), false);
 
     if(is_oneway_tcp_syn_seen)
-      srv_u->incOneWayIngressFlows();    
+      srv_u->incUnidirectionalIngressFlows();    
   }
 
   if(!srv_host && srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow constructor (viewed interfaces) */

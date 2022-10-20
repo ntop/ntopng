@@ -146,7 +146,7 @@ typedef enum {
 
 typedef enum {
   traffic_type_all = 0,
-  traffic_type_one_way = 1,
+  traffic_type_unidirectional = 1,
   traffic_type_bidirectional = 2,
 } TrafficType;
 
