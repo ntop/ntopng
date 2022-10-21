@@ -2526,10 +2526,10 @@ if(not only_historical) and (host ~= nil) and (page ~= "traffic") then
 
                         let val;
 
-                        if(host["flows.as_client"] == 0) { val = 0; } else { val = (host.num_unidirectional_tcp_flows.num_ingress * 100) / host["flows.as_client"]; }
+                        if(host["flows.as_server"] == 0) { val = 0; } else { val = (host.num_unidirectional_tcp_flows.num_ingress * 100) / host["flows.as_server"]; }
                         $('#num_unidirectional_ingress_flows').html(NtopUtils.addCommas(host.num_unidirectional_tcp_flows.num_ingress)+ " ("+val.toFixed(1)+" %)");
 
-                        if(host["flows.as_server"] == 0) { val = 0; } else { val = (host.num_unidirectional_tcp_flows.num_egress * 100) / host["flows.as_server"]; }
+                        if(host["flows.as_client"] == 0) { val = 0; } else { val = (host.num_unidirectional_tcp_flows.num_egress * 100) / host["flows.as_client"]; }
                         $('#num_unidirectional_egress_flows').html(NtopUtils.addCommas(host.num_unidirectional_tcp_flows.num_egress)+ " ("+val.toFixed(1)+" %)");
                      }]]
 
