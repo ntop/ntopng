@@ -3649,8 +3649,6 @@ local lang = {
     ["all_flows"] = "All Flows",
     ["blacklisted_flows_hosts"] = "Flows with Blacklisted Hosts",
     ["hosts_unidirectional_tcp_no_tx"] = "Hosts with RX-Only TCP Flows",
-    ["hosts_unidirectional_tcp_no_tx_as_client"] = "RX-Only TCP Flows as Client",
-    ["hosts_unidirectional_tcp_no_tx_as_server"] = "RX-Only TCP Flows as Server",
     ["dns_bytes"] = "DNS Traffic",
     ["dns_queries"] = "DNS Queries vs Replies",
     ["ntp_packets"] = "NTP Traffic",
@@ -3691,6 +3689,9 @@ local lang = {
       ["tcp_p_s"] = "TCP Packets Sent",
       ["uf_c"] = "Unreachable Flows as Client",
       ["uf_s"] = "Unreachable Flows as Server",
+      ["hosts_unidirectional_tcp_no_tx_as_client"] = "RX-Only TCP Flows as Client",
+      ["hosts_unidirectional_tcp_no_tx_as_server"] = "RX-Only TCP Flows as Server",
+
     },
   },
   ["hosts_stats"] = {
