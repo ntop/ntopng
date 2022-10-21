@@ -873,8 +873,8 @@ else
 
       if(host.num_unidirectional_tcp_flows ~= nil) then
         print("<tr><th>"..i18n("details.unidirectional_tcp_flows").."</th>")
-        print("<td><span id=num_unidirectional_egress_flows>" .. formatValue(host.num_unidirectional_tcp_flows.num_egress) .. "</span> <span id=trend_num_unidirectional_egress_flows></span> \n")
-        print("<td><span id=num_unidirectional_ingress_flows>" .. formatValue(host.num_unidirectional_tcp_flows.num_ingress) .. "</span> <span id=trend_num_unidirectional_ingress_flows></span> \n")
+        print("<td><span id=num_unidirectional_egress_flows>" .. formatValue(host.num_unidirectional_tcp_flows.num_egress) .. "</span> <span id=trend_num_unidirectional_egress_flows></span>  <a href='" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. host_ip .. "&page=historical&ts_schema=host:host_tcp_unidirectional_flows' data-bs-toggle='tooltip' title=''><i class='fas fa-chart-area'></i></a> \n")
+        print("<td><span id=num_unidirectional_ingress_flows>" .. formatValue(host.num_unidirectional_tcp_flows.num_ingress) .. "</span> <span id=trend_num_unidirectional_ingress_flows></span>  <a href='" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. host_ip .. "&page=historical&ts_schema=host:host_tcp_unidirectional_flows' data-bs-toggle='tooltip' title=''><i class='fas fa-chart-area'></i></a> \n")
         print("</tr>")
       end
 
