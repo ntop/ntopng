@@ -1444,7 +1444,7 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 	 local cached_device = snmp_cached_dev:create(snmpdevice)
 
 	 if cached_device and cached_device["interfaces"] and table.len(cached_device["interfaces"]) > 0 then
-      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+	    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
             local snmp_location = require "snmp_location"
             local snmpurl = snmp_location.snmp_device_link(snmpdevice, format_device_name(snmpdevice, false))
 
@@ -1479,8 +1479,13 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 	    end
 
 	    print("<tr><th rowspan='3'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.device_ip").."</th><td>"..snmpurl.."</td></tr>")
-	    print("<tr><th>"..i18n("flows_page.inIfIdx").."</th><td><span class=\"badge bg-info\">"..(inputurl or "").." (".. inputidx_name ..")</span></td></tr>")
-	    print("<tr><th>"..i18n("flows_page.outIfIdx").."</th><td><span class=\"badge bg-info\">"..(outputurl or "").." (".. outputidx_name ..")</span></td></tr>")
+	    print("<tr><th>"..i18n("flows_page.inIfIdx").."</th><td><span class=\"badge bg-info\">"..(inputurl or ""))
+	    if(inputurl ~= inputidx_name) then print(" (".. inputidx_name ..")") end
+	    print("</span></td></tr>")
+	    
+	    print("<tr><th>"..i18n("flows_page.outIfIdx").."</th><td><span class=\"badge bg-info\">"..(outputurl or ""))
+	    if(outputurl ~= outputidx_name) then print(" (".. outputidx_name ..")") end
+	    print("</span></td></tr>")
 	    printed = true
 	 end
       end
