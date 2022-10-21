@@ -153,6 +153,7 @@ with the configuration for a user named *maina*
         "maina" : {
             "full_name": "Maina Bar",
             "password": "ntop0101",
+	    "routing_policy": "crew",
             "default_policy": "pass",
             "policies" : {
 	       10 : "slow_pass",
@@ -171,6 +172,9 @@ following keys:
 - :code:`password:`: The password the user will have to submit to the
   captive portal in order to access the Internet. This field is not
   used when the captive portal is off.
+- :code:`routing_policy`: In case of multi-path routing configuration,
+  with multiple WAN interfaces, this represents the name of the Routing
+  Policy to be applied to the user.
 - :code:`default_policy`: A policy to be used as last resort, that is,
   when no other policy in :code:`policies` matches.
 - :code:`policies`: A JSON object containing zero or more key-value
