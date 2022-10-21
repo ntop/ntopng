@@ -1939,7 +1939,7 @@ const $script_table = $("#scripts-config").DataTable({
          data: 'severity',
          sortable: true,
          searchable: true,
-         className: 'text-center',
+         className: 'text-center no-wrap',
          render: function (data, type, row) {
           let severity = ''
           if (Object.keys(data).length > 0) {
