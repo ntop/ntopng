@@ -975,6 +975,7 @@ typedef enum {
   TRAFFIC_RATIO = 10,
   SCORE = 11,
   BLACKLISTED_FLOWS_HOSTS = 12,
+  HOSTS_TCP_FLOWS_UNIDIRECTIONAL = 13,
 } HostWalkMode;
 
 /* Action to be performed after ntopng shutdown*/

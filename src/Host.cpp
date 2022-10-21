@@ -2158,14 +2158,14 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 
   switch(mode) {
   case ALL_FLOWS:
-    v->push_back(ActiveHostWalkerInfo(key,label,
+    v->push_back(ActiveHostWalkerInfo(key, label,
 				      getNumIncomingFlows(),
 				      getNumOutgoingFlows(),
 				      getNumBytesSent()+getNumBytesRcvd()));
     break;
 
   case UNREACHABLE_FLOWS:
-    v->push_back(ActiveHostWalkerInfo(key,label,
+    v->push_back(ActiveHostWalkerInfo(key, label,
 				      getTotalNumUnreachableIncomingFlows(),
 				      getTotalNumUnreachableOutgoingFlows(),
 				      getNumBytesSent()+getNumBytesRcvd()));
@@ -2175,7 +2175,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
     tot = getTotalNumAlertedIncomingFlows() + getTotalNumAlertedOutgoingFlows();
 
     if(tot > 0)
-      v->push_back(ActiveHostWalkerInfo(key,label,
+      v->push_back(ActiveHostWalkerInfo(key, label,
 					getTotalNumAlertedIncomingFlows(),
 					getTotalNumAlertedOutgoingFlows(),
 					tot));
@@ -2189,7 +2189,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 	tot = dns->getRcvdNumRepliesOk() + dns->getSentNumQueries();
 
 	if(tot > 0)
-	  v->push_back(ActiveHostWalkerInfo(key,label,
+	  v->push_back(ActiveHostWalkerInfo(key, label,
 					    dns->getRcvdNumRepliesOk(),
 					    dns->getSentNumQueries(),
 					    tot));
@@ -2205,7 +2205,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 	tot = getNumOutgoingFlows() + getNumIncomingFlows();
 
 	if(tot > 0)
-	  v->push_back(ActiveHostWalkerInfo(key,label,
+	  v->push_back(ActiveHostWalkerInfo(key, label,
 					    stats->getSentStats()->getNumSYN(),
 					    stats->getRecvStats()->getNumSYN(),
 					    tot));
@@ -2221,7 +2221,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 	tot = getNumOutgoingFlows() + getNumIncomingFlows();
 
 	if(tot > 0)
-	  v->push_back(ActiveHostWalkerInfo(key,label,
+	  v->push_back(ActiveHostWalkerInfo(key, label,
 					    stats->getSentStats()->getNumSYN(),
 					    stats->getRecvStats()->getNumRST(),
 					    tot));
@@ -2237,7 +2237,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 	tot = getNumOutgoingFlows() + getNumIncomingFlows();
 
 	if(tot > 0)
-	  v->push_back(ActiveHostWalkerInfo(key,label,
+	  v->push_back(ActiveHostWalkerInfo(key, label,
 					    stats->getSentStats()->getNumSYN(),
 					    stats->getRecvStats()->getNumSYNACK(),
 					    tot));
@@ -2256,7 +2256,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 	  tot = l4->getTCPSent()->getNumBytes() + l4->getTCPRcvd()->getNumBytes();
 
 	  if(tot > 0)
-	    v->push_back(ActiveHostWalkerInfo(key,label,
+	    v->push_back(ActiveHostWalkerInfo(key, label,
 					      l4->getTCPSent()->getNumPkts(),
 					      l4->getTCPRcvd()->getNumPkts(),
 					      tot));
@@ -2276,7 +2276,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 	  tot = l4->getTCPSent()->getNumBytes() + l4->getTCPRcvd()->getNumBytes();
 
 	  if(tot > 0)
-	    v->push_back(ActiveHostWalkerInfo(key,label,
+	    v->push_back(ActiveHostWalkerInfo(key, label,
 					      l4->getTCPSent()->getNumBytes(),
 					      l4->getTCPRcvd()->getNumBytes(),
 					      tot));
@@ -2287,7 +2287,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 
   case ACTIVE_ALERT_FLOWS:
     if(getNumAlertedFlows() > 0)
-      v->push_back(ActiveHostWalkerInfo(key,label,
+      v->push_back(ActiveHostWalkerInfo(key, label,
 					getNumIncomingFlows(),
 					getNumOutgoingFlows(),
 					getNumAlertedFlows()));
@@ -2311,7 +2311,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
     tot = getScoreAsClient()+getScoreAsServer();
 
     if(tot > 0)
-      v->push_back(ActiveHostWalkerInfo(key,label,
+      v->push_back(ActiveHostWalkerInfo(key, label,
 					getScoreAsClient(),
 					getScoreAsServer(),
 					tot));
@@ -2321,9 +2321,19 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
     tot = num_blacklisted_flows.as_client+num_blacklisted_flows.as_server;
 
     if(tot > 0)
-      v->push_back(ActiveHostWalkerInfo(key,label,
+      v->push_back(ActiveHostWalkerInfo(key, label,
 					num_blacklisted_flows.as_client,
 					num_blacklisted_flows.as_server,
+					tot));
+    break;
+
+  case HOSTS_TCP_FLOWS_UNIDIRECTIONAL:
+    tot = unidirectionalTCPFlows.numIngressFlows + unidirectionalTCPFlows.numEgressFlows;
+
+    if(tot > 0)
+      v->push_back(ActiveHostWalkerInfo(key, label,
+					unidirectionalTCPFlows.numEgressFlows,
+					unidirectionalTCPFlows.numIngressFlows,
 					tot));
     break;
   }
