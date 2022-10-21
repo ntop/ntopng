@@ -88,6 +88,8 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new FlowRiskDNSFragmented()))                       registerCheck(fcb);
   if((fcb = new FlowRiskClearTextCredentials()))                registerCheck(fcb);
   if((fcb = new FlowRiskTLSMissingSNI()))                       registerCheck(fcb);
+  if((fcb = new FlowRiskRiskyASN()))                            registerCheck(fcb);
+  if((fcb = new FlowRiskRiskyDomain()))                         registerCheck(fcb);
   if((fcb = new FlowRiskTLSNotCarryingHTTPS()))                 registerCheck(fcb);
   if((fcb = new FlowRiskTLSSuspiciousESNIUsage()))              registerCheck(fcb);
   if((fcb = new FlowRiskUnsafeProtocol()))                      registerCheck(fcb);

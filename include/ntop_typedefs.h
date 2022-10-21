@@ -502,6 +502,8 @@ typedef enum {
   flow_alert_ndpi_tls_suspicious_extension        = 82,
   flow_alert_ndpi_tls_fatal_alert                 = 83,
   flow_alert_ndpi_http_obsolete_server            = 84,
+  flow_alert_ndpi_risky_asn                       = 85,
+  flow_alert_ndpi_risky_domain                    = 86,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

@@ -117,10 +117,10 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
   { { flow_alert_ndpi_http_suspicious_content, alert_category_security }, "ndpi_http_suspicious_content" },
 
   /* NDPI_RISKY_ASN */
-  { { flow_alert_normal /* Undefined */, alert_category_other }, "nspi_risky_asn" },
+  { { flow_alert_ndpi_risky_asn, alert_category_security }, "ndpi_risky_asn" },
 
   /* NDPI_RISKY_DOMAIN */
-  { { flow_alert_normal /* Undefined */, alert_category_other }, "ndpi_risky_domain" },
+  { { flow_alert_ndpi_risky_domain, alert_category_security }, "ndpi_risky_domain" },
 
   /* NDPI_MALICIOUS_JA3 */
   { { flow_alert_ndpi_malicious_ja3, alert_category_security }, "ndpi_malicious_ja3" },

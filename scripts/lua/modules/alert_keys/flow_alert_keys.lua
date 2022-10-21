@@ -25,7 +25,7 @@ local flow_alert_keys = {
    flow_alert_remote_to_remote                     = 16,
    flow_alert_suspicious_tcp_probing               = 17, -- No longer used, can be recycled
    flow_alert_suspicious_tcp_syn_probing           = 18, -- No longer used, can be recycled
-   flow_alert_tcp_connection_issues                = 19,
+   flow_alert_tcp_packets_issues                   = 19,
    flow_alert_tcp_connection_refused               = 20,
    flow_alert_tcp_severe_connection_issues         = 21,
    flow_alert_tls_certificate_expired              = 22,
@@ -81,10 +81,18 @@ local flow_alert_keys = {
    flow_alert_ndpi_http_crawler_bot                = 72,
    flow_alert_ndpi_suspicious_entropy              = 73,
    flow_alert_iec_invalid_command_transition       = 74,
-   flow_alert_tcp_connection_no_answer             = 75,
+   flow_alert_connection_failed                    = 75,
    flow_alert_ndpi_anonymous_subscriber            = 76,
    flow_alert_unidirectional_traffic               = 77,
-   flow_alert_ndpi_http_obsolete_server            = 78,
+   flow_alert_ndpi_desktop_or_file_sharing_session = 78,
+   flow_alert_ndpi_malicious_ja3                   = 79,
+   flow_alert_ndpi_malicious_sha1_certificate      = 80,
+   flow_alert_ndpi_tls_uncommon_alpn               = 81,
+   flow_alert_ndpi_tls_suspicious_extension        = 82,
+   flow_alert_ndpi_tls_fatal_alert                 = 83,
+   flow_alert_ndpi_http_obsolete_server            = 84,
+   flow_alert_ndpi_risky_asn                       = 85,
+   flow_alert_ndpi_risky_domain                    = 86,
    
    -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
 }

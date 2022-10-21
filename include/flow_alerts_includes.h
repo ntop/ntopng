@@ -61,6 +61,8 @@
 #include "flow_alerts/FlowRiskDNSFragmentedAlert.h"
 #include "flow_alerts/FlowRiskTLSCertValidityTooLongAlert.h"
 #include "flow_alerts/FlowRiskTLSMissingSNIAlert.h"
+#include "flow_alerts/FlowRiskRiskyDomainAlert.h"
+#include "flow_alerts/FlowRiskRiskyASNAlert.h"
 #include "flow_alerts/FlowRiskTLSNotCarryingHTTPSAlert.h"
 #include "flow_alerts/FlowRiskTLSSuspiciousESNIUsageAlert.h"
 #include "flow_alerts/FlowRiskURLPossibleRCEInjectionAlert.h"

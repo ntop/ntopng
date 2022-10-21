@@ -45,6 +45,8 @@
 #include "flow_checks/FlowRiskSuspiciousDGADomain.h"
 #include "flow_checks/FlowRiskTLS.h"
 #include "flow_checks/FlowRiskTLSMissingSNI.h"
+#include "flow_checks/FlowRiskRiskyASN.h"
+#include "flow_checks/FlowRiskRiskyDomain.h"
 #include "flow_checks/FlowRiskTLSNotCarryingHTTPS.h"
 #include "flow_checks/FlowRiskTLSSuspiciousESNIUsage.h"
 #include "flow_checks/FlowRiskSuspiciousEntropy.h"

@@ -17,7 +17,7 @@ local alert_tcp_connection_no_answer = classes.class(alert)
 -- ##############################################
 
 alert_tcp_connection_no_answer.meta = {
-   alert_key = flow_alert_keys.flow_alert_tcp_connection_no_answer,
+   alert_key = flow_alert_keys.flow_alert_connection_failed,
    i18n_title = "flow_checks_config.tcp_connection_no_answer_title",
    icon = "fas fa-fw fa-exclamation",
 }
