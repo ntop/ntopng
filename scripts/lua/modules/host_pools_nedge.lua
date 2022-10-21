@@ -438,6 +438,22 @@ function host_pools_nedge.setChildrenSafe(pool_id, value)
   host_pools_nedge.setPoolDetail(pool_id, "children_safe", ternary(value, "true", "false"))
 end
 
+function host_pools_nedge.routingPolicyNameToId(policy_name)
+  package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
+  local nf_config = require("nf_config"):create()
+  local routing_policies = nf_config:getRoutingPolicies()
+
+  -- Return default policy on failure
+  local policy_id = host_pools_nedge.DEFAULT_ROUTING_POLICY_ID
+
+  local routing_policy = routing_policies[policy_name]
+  if routing_policy then
+    policy_id = routing_policy.id
+  end
+
+  return policy_id
+end
+
 function host_pools_nedge.getRoutingPolicyId(pool_id)
   local routing_policy_id = host_pools_nedge.getPoolDetail(pool_id, "routing_policy_id")
   if isEmptyString(routing_policy_id) then routing_policy_id = host_pools_nedge.DEFAULT_ROUTING_POLICY_ID end

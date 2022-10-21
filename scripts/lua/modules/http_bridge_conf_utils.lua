@@ -55,16 +55,16 @@ function http_bridge_conf_utils.configureBridge()
 	 -- 	     ["ConnectivityCheck"] = "pass"
 	 --       }
 	 --    },
-	 --    ["maina"] = {
-	 --       ["full_name"] = "Maina Fast",
+	 --    ["guest"] = {
+	 --       ["full_name"] = "Guest Users",
 	 --       ["password"] = "ntop0101",
 	 --       ["default_policy"] = "pass",
 	 --       ["policies"] = {
 	 -- 	     [10] = "slow_pass", ["Facebook"] = "slower_pass",  ["YouTube"] = "drop"
 	 --       }
 	 --    },
-	 --    ["simon"] = {
-	 --       ["full_name"] = "Simon Speed",
+	 --    ["iot"] = {
+	 --       ["full_name"] = "IoT Devices",
 	 --       ["password"] = "ntop0202",
 	 --       ["default_policy"] = "drop",
 	 --       ["policies"] = {
@@ -121,7 +121,13 @@ function http_bridge_conf_utils.configureBridge()
             end
 
 	    local pool_id = host_pools_nedge.usernameToPoolId(username) or host_pools_nedge.DEFAULT_POOL_ID
+
 	    host_pools_nedge.traceHostPoolEvent(TRACE_NORMAL, ifname..": creating user: "..username.. " pool id: "..pool_id)
+
+	    if not isEmptyString(user_config["routing_policy"]) then
+               local routing_policy_id = host_pools_nedge.routingPolicyNameToId(user_config["routing_policy"])
+               host_pools_nedge.setRoutingPolicyId(pool_id, routing_policy_id)
+	    end
 
 	    if not isEmptyString(user_config["default_policy"]) then
 	       local default_policy = string.lower(user_config["default_policy"])
