@@ -871,10 +871,12 @@ else
       print("<td><span id=num_blacklisted_flows_as_server>" .. formatValue(host.num_blacklisted_flows.as_server) .. "</span>  <span id=trend_num_blacklisted_flows_as_server></span> \n")
       print("</tr>")
 
-      print("<tr><th>"..i18n("details.unidirectional_tcp_flows").."</th>")
-      print("<td><span id=num_unidirectional_egress_flows>" .. formatValue(host.num_unidirectional_tcp_flows.num_egress) .. "</span> <span id=trend_num_unidirectional_egress_flows></span> \n")
-      print("<td><span id=num_unidirectional_ingress_flows>" .. formatValue(host.num_unidirectional_tcp_flows.num_ingress) .. "</span> <span id=trend_num_unidirectional_ingress_flows></span> \n")
-      print("</tr>")
+      if(host.num_unidirectional_tcp_flows ~= nil) then
+        print("<tr><th>"..i18n("details.unidirectional_tcp_flows").."</th>")
+        print("<td><span id=num_unidirectional_egress_flows>" .. formatValue(host.num_unidirectional_tcp_flows.num_egress) .. "</span> <span id=trend_num_unidirectional_egress_flows></span> \n")
+        print("<td><span id=num_unidirectional_ingress_flows>" .. formatValue(host.num_unidirectional_tcp_flows.num_ingress) .. "</span> <span id=trend_num_unidirectional_ingress_flows></span> \n")
+        print("</tr>")
+      end
 
       print("<tr><th>"..i18n("details.peers").."</th>")
       print("<td><span id=active_peers_as_client>" .. formatValue(host["contacts.as_client"]) .. "</span> <span id=peers_trend_as_active_client></span> \n")
