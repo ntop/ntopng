@@ -134,13 +134,6 @@ end
 
 -- ##############################################
 
-function pools:_get_pool_lock_key()
-    local key = string.format("ntopng.cache.pools.%s.pool_lock", self.key)
-    return key
-end
-
--- ##############################################
-
 function pools:_get_pool_details_key(pool_id)
     if not pool_id then
         -- A pool id is always needed
@@ -196,27 +189,28 @@ end
 
 -- ##############################################
 
+
+-- NOTE: lock looks useless at the moment. Se we disable it for the tiem being until we remove it
+local _use_lock = false
+
 function pools:_lock()
-    local max_lock_duration = 5 -- seconds
-    local max_lock_attempts = 5 -- give up after at most this number of attempts
-    local lock_key = self:_get_pool_lock_key()
+   local max_lock_duration = 5 -- seconds
 
-    for i = 1, max_lock_attempts do
-        local value_set = ntop.setnxCache(lock_key, "1", max_lock_duration)
-
-        if value_set then
-            return true -- lock acquired
-        end
-
-        ntop.msleep(1000)
-    end
-
-    return false -- lock not acquired
+   if(_use_lock) then
+      -- tprint(debug.traceback()) -- TODO: remove this useless lock
+      return ntop.poolsLock(max_lock_duration)
+   else
+      return true
+   end
 end
 
 -- ##############################################
 
-function pools:_unlock() ntop.delCache(self:_get_pool_lock_key()) end
+function pools:_unlock()
+   if(_use_lock) then
+      ntop.poolsUnlock()
+   end
+end
 
 -- ##############################################
 
