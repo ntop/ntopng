@@ -1,7 +1,7 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
 <div>  
-<table ref="table_id" class="table w-100 table-striped table-hover table-bordered mt-3">
+<table ref="table_id" class="table w-100 table-striped table-hover table-bordered">
   <thead>
     <tr>
       <th v-for="item in columns_config">{{ item.columnName }}</th>
@@ -36,18 +36,71 @@ const props = defineProps({
 let new_params = props.base_params
 const table_id = ref(null);
 // let _this = getCurrentInstance().ctx;
+function setUserColumnsDefWidths() {
+  let userColumnDef;
+  // Get the settings for this table from localStorage
+  let userColumnDefs = JSON.parse(localStorage.getItem(table_id.value)) || [];
+  if (userColumnDefs.length === 0 ) return;
 
-let table = null;
-onMounted(() => {
+  props.columns_config.forEach( function(columnDef) {
+    // Check if there is a width specified for this column
+    userColumnDef = userColumnDefs.find( function(column) {
+      return column.targets === columnDef.targets;
+    });
+
+    // If there is, set the width of this columnDef in px
+    if ( userColumnDef ) {
+      columnDef.width = userColumnDef.width + 'px';
+    }
+  });
+}
+
+function saveColumnSettings() {
+	var userColumnDefs = JSON.parse(localStorage.getItem(table_id.value)) || [];
+  var width, header, existingSetting; 
+
+  table.columns().every( function ( targets ) {
+    // Check if there is a setting for this column in localStorage
+    existingSetting = userColumnDefs.findIndex( function(column) { return column.targets === targets;});
+    // Get the width of this column
+    header = this.header();
+    width = $(header).width();
+    if ( existingSetting !== -1 ) {
+      // Update the width
+      userColumnDefs[existingSetting].width = width;
+    } else {
+      // Add the width for this column
+      userColumnDefs.push({
+        targets: targets,
+        width:  width,
+      });
+    }
+  });
+
+  // Save (or update) the settings in localStorage
+  localStorage.setItem(table_id.value, JSON.stringify(userColumnDefs));
+}
+
+function reloadDataTable() {
+  loadDatatable()
+}
+
+function loadDatatable() {
+  setUserColumnsDefWidths();
+  
   let updated = false;
   /* Create a datatable with the buttons */
   let extend_config = {
+    dom: 't',
     serverSide: false,
+    deferRender: true,
+    scrollX: true,
     destroy: true,
     searching: props.enable_search,
     order: [[0, "asc"]],
     pagingType: 'full_numbers',
-    columnDefs: {},
+    columnDefs: props.columns_config,
+    columns: props.columns_config,
     autoWidth: false,
     ajax: {
       method: 'get',
@@ -81,14 +134,22 @@ onMounted(() => {
       beforeSend: function() {
         NtopUtils.showOverlays();
       },
-      complete: function() {
-        NtopUtils.hideOverlays();
-        ntopng_events_manager.emit_custom_event(ntopng_custom_events.DATATABLE_LOADED);
-      }
     },
-    columns: props.columns_config,
-  };
+    initComplete: function (settings) {
+      NtopUtils.hideOverlays();
+      ntopng_events_manager.emit_custom_event(ntopng_custom_events.DATATABLE_LOADED);
 
+      //Add JQueryUI resizable functionality to each th in the ScrollHead table
+      $('#' + table_id.value.id + '_wrapper .dataTables_scrollHead thead th').resizable({
+        handles: "e",
+        alsoResize: '#' + table_id.value.id + '_wrapper .dataTables_scrollHead table', //Not essential but makes the resizing smoother
+        stop: function () {
+          saveColumnSettings();
+          reloadDataTable();
+        }
+      });
+    },
+  };
   for (const item in (props.table_config || {})) {
     extend_config[item] = props.table_config[item]
   }
@@ -137,6 +198,11 @@ onMounted(() => {
     table.ajax.url(NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, new_params))
     reload()
   }
+}
+
+let table = null;
+onMounted(() => {
+  loadDatatable()
 });
 
 const reload = () => {
