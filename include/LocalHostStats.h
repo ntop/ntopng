@@ -39,8 +39,6 @@ class LocalHostStats: public HostStats {
   Cardinality num_contacted_hosts_as_client, /* # of hosts contacted by this host   */
     num_host_contacts_as_server,             /* # of hosts that contacted this host */
     num_contacted_services_as_client,        /* DNS, TLS, HTTP....                  */
-    num_contacted_ports_as_client,           /* # of different ports this host has contacted          */
-    num_host_contacted_ports_as_server,      /* # of different server ports contacted by remote peers */
     contacts_as_cli, contacts_as_srv,        /* Minute reset host contacts          */
     num_contacted_countries,                 /* Estimate the number of contacted countries */
     num_contacted_hosts,                     /* Estimate the number of contacted hosts */
@@ -109,8 +107,6 @@ class LocalHostStats: public HostStats {
   virtual bool incSMTPContactCardinality(Host *h)     { if(h->get_ip()) return(num_smtp_servers.addElement(h->get_ip()->key())); else return(false); };
   virtual bool incIMAPContactCardinality(Host *h)     { if(h->get_ip()) return(num_imap_servers.addElement(h->get_ip()->key())); else return(false); };
   virtual bool incPOPContactCardinality(Host *h)      { if(h->get_ip()) return(num_pop_servers.addElement(h->get_ip()->key())); else return(false); };
-  virtual void incCliContactedPorts(u_int16_t port)   { num_contacted_ports_as_client.addElement(port);      }
-  virtual void incSrvPortsContacts(u_int16_t port)    { num_host_contacted_ports_as_server.addElement(port); }
 
   virtual u_int16_t  getCountriesContactsCardinality(){ return((u_int16_t) num_contacted_countries.getEstimate());     } /* Get the countries */
   virtual u_int16_t  getContactedHostsCardinality()   { return((u_int16_t) num_contacted_hosts.getEstimate());     } /* Get the hosts */

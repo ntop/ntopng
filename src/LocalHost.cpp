@@ -291,7 +291,8 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 
   Host::lua_blacklisted_flows(vm);
   lua_contacts_stats(vm);
-
+  usedPorts.lua(vm);
+  
   /* *** */
 
 #ifdef NTOPNG_PRO  

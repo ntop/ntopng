@@ -51,8 +51,6 @@ local host_ip     = host_info["host"]
 local host_vlan   = host_info["vlan"] or 0
 local format_utils = require("format_utils")
 
-local ntopinfo    = ntop.getInfo()
-
 if not isEmptyString(_GET["ifid"]) then
   interface.select(_GET["ifid"])
 else
@@ -109,7 +107,17 @@ if((host == nil) and ((_GET["mode"] == "restore"))) then
    end
 end
 
-function formatContacts(v)
+local function printPorts(ports)
+   if(table.len(ports) == 0) then
+      print(i18n("none"))
+   else
+      for k,v in pairs(ports) do
+	 print('<A HREF="/lua/flows_stats.lua?port='..v..'"><span class="badge bg-secondary">'.. v .."</span></A> ")
+      end
+   end
+end
+
+local function formatContacts(v)
    if not v then
       return ""
    end
@@ -1119,12 +1127,15 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
 
    elseif((page == "ports")) then
       print('<table class="table table-bordered table-striped">\n')
-      if(host.cardinality) then
-         print('<tr><th class="text-start">'..i18n("ports_page.num_contacted_ports")..'</th>')
-         print('<th class="text-start">'..i18n("ports_page.num_contacted_ports_as_client")..'</th><td><span id="num_contacted_ports_as_client">'.. formatValue(host.cardinality.num_contacted_ports_as_client) ..'</span> <span id="num_contacted_ports_as_client_trend"></span></td>')
-         print('<th class="text-start">'..i18n("ports_page.num_host_contacted_ports_as_server")..'</th><td><span id="num_host_contacted_ports_as_server">'.. formatValue(host.cardinality.num_host_contacted_ports_as_server) ..'</span> <span id="num_host_contacted_ports_as_server_trend"></span></td>')
-         print('</tr>')
-      end
+
+      print('<tr><th class="text-start">'..i18n("ports_page.active_server_ports")..'</th><td>')
+      printPorts(host.used_ports.local_server_ports)
+      print('</td></tr>')
+      
+      print('<tr><th class="text-start">'..i18n("ports_page.client_contacted_server_ports")..'</th><td>')
+      printPorts(host.used_ports.remote_contacted_ports)
+      print('</td></tr>')
+
       print('<tr><th class="text-start">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
       print('<tr><th class="text-start">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
 
@@ -2440,14 +2451,6 @@ if(not only_historical) and (host ~= nil) and (page ~= "traffic") then
       print("var last_http_response_num_5xx = " .. http["receiver"]["response"]["num_5xx"] .. ";\n")
    end
 
-  if(host.cardinality) then
-     print("var last_num_contacted_ports_as_client = " .. host.cardinality.num_contacted_ports_as_client .. ";\n")
-     print("var last_num_host_contacted_ports_as_server = " .. host.cardinality.num_host_contacted_ports_as_server .. ";\n")
-     print("var last_num_contacted_hosts_as_client = " .. host.cardinality.num_contacted_hosts_as_client .. ";\n")
-     print("var last_num_host_contacts_as_server = " .. host.cardinality.num_host_contacts_as_server .. ";\n")
-     print("var last_num_contacted_services_as_client = " .. host.cardinality.num_contacted_services_as_client .. ";\n")
-   end
-
    print [[
    var host_details_interval = window.setInterval(function() {
              $.ajax({
@@ -2464,7 +2467,7 @@ if(not only_historical) and (host ~= nil) and (page ~= "traffic") then
          } else {
                            var host = jQuery.parseJSON(content);
                         var http = host.http;
-                        var card = host.cardinality;
+
                            $('#first_seen').html(NtopUtils.epoch2Seen(host["seen.first"]));
                            $('#last_seen').html(NtopUtils.epoch2Seen(host["seen.last"]));
                            $('#pkts_sent').html(NtopUtils.formatPackets(host["packets.sent"]));
@@ -2484,26 +2487,6 @@ if(not only_historical) and (host ~= nil) and (page ~= "traffic") then
                            $('#pkt_ooo_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]));
                            $('#pkt_lost_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["lost"]));
                            $('#pkt_keep_alive_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]));
-
-                        if(card) {
-                          $('#num_contacted_ports_as_client').html(NtopUtils.formatValue(card.num_contacted_ports_as_client));
-                          $('#num_contacted_ports_as_client_trend').html(NtopUtils.drawTrend(card.num_contacted_ports_as_client, last_num_contacted_ports_as_client, ""));
-                          $('#num_host_contacted_ports_as_server').html(NtopUtils.formatValue(card.num_host_contacted_ports_as_server));
-                          $('#num_host_contacted_ports_as_server_trend').html(NtopUtils.drawTrend(card.num_host_contacted_ports_as_server, last_num_host_contacted_ports_as_server, ""));
-                          last_num_contacted_ports_as_client = card.num_contacted_ports_as_client;
-                          last_num_host_contacted_ports_as_server = card.num_host_contacted_ports_as_server;
-
-                          $('#num_contacted_hosts_as_client').html(NtopUtils.formatValue(card.num_contacted_hosts_as_client));
-                          $('#num_host_contacts_as_server').html(NtopUtils.formatValue(card.num_host_contacts_as_server));
-                          $('#num_contacted_hosts_as_client_trend').html(NtopUtils.drawTrend(card.num_contacted_hosts_as_client, last_num_contacted_hosts_as_client, ""));
-                          $('#num_host_contacts_as_server_trend').html(NtopUtils.drawTrend(card.num_host_contacts_as_server, last_num_host_contacts_as_server, ""));
-                          last_num_contacted_hosts_as_client = card.num_contacted_hosts_as_client;
-                          last_num_host_contacts_as_server = card.num_host_contacts_as_server;
-
-                          $('#num_contacted_services_as_client').html(NtopUtils.formatValue(card.num_contacted_services_as_client));
-                          $('#num_contacted_services_as_client_trend').html(NtopUtils.drawTrend(card.num_contacted_services_as_client, last_num_contacted_services_as_client, ""));
-                          last_num_contacted_services_as_client = card.num_contacted_services_as_client;
-                        }
 
                            if(!host["name"]) {
                               $('#name').html(host["ip"]);

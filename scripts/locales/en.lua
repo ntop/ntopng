@@ -314,6 +314,7 @@ local lang = {
   ["new"] = "New",
   ["next"] = "Next",
   ["no"] = "No",
+  ["none"] = "None",
   ["noTraffic"] = "No traffic has been reported for the specified date/time selection",
   ["no_attacker_no_victim"] = "No Attacker/Victim",
   ["no_data_available"] = "No Data Available",
@@ -1005,7 +1006,7 @@ local lang = {
     ["ngi_trust_event"] = "NGI Trust Event",
     ["no_alert"] = "No Alert",
     ["no_alerts"] = "No alerts",
-    ["none"] = "None",
+    ["client_ports"] = "Client Ports",    ["none"] = "None",
     ["not_engaged"] = "Not engaged",
     ["notice"] = "Notice",
     ["one_day"] = "Last Day",
@@ -5220,9 +5221,8 @@ local lang = {
   },
   ["ports_page"] = {
     ["client_ports"] = "Client Ports",
-    ["num_contacted_ports"] = "Total Unique Port Contacts",
-    ["num_contacted_ports_as_client"] = "Remote Contacted Ports (as Client)",
-    ["num_host_contacted_ports_as_server"] = "Local Contacted Ports (as Server)",
+    ["client_contacted_server_ports"] = "Client Contacted Server Ports",
+    ["active_server_ports"] = "Active Server Ports",
     ["server_ports"] = "Server Ports",
   },
   ["prefs"] = {

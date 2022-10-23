@@ -607,6 +607,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline bool isReceiveOnlyHost() { return(stats->isReceiveOnly() && (!isBroadcastHost()) && (!isMulticastHost())); }
   inline void incUnidirectionalIngressFlows() { unidirectionalTCPFlows.numIngressFlows++; }
   inline void incUnidirectionalEgressFlows()  { unidirectionalTCPFlows.numEgressFlows++;  }
+
+  virtual void setServerPort(bool isTCP, u_int16_t port)    { ; };
+  virtual void setContactedPort(bool isTCP, u_int16_t port) { ; };
 };
 
 #endif /* _HOST_H_ */

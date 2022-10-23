@@ -412,6 +412,7 @@ using namespace std;
 #include "ActiveHostWalkerInfo.h"
 #include "Host.h"
 #include "DoHDoTStats.h"
+#include "HostPorts.h"
 #include "LocalHostStats.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"

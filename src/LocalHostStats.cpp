@@ -37,8 +37,6 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   num_contacted_hosts_as_client.init(8);       /* 128 bytes */
   num_host_contacts_as_server.init(8);         /* 128 bytes */
   num_contacted_services_as_client.init(8);    /* 128 bytes */
-  num_contacted_ports_as_client.init(4);       /* 16 bytes  */
-  num_host_contacted_ports_as_server.init(4);  /* 16 bytes  */
   num_contacted_hosts.init(4);                 /* 16 bytes  */
   num_contacted_countries.init(4);             /* 16 bytes  */
   contacts_as_cli.init(4);                     /* 16 bytes  */
@@ -66,8 +64,6 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   num_contacted_hosts_as_client.init(8);       /* 128 bytes */
   num_host_contacts_as_server.init(8);         /* 128 bytes */
   num_contacted_services_as_client.init(8);    /* 128 bytes */
-  num_contacted_ports_as_client.init(4);       /* 16 bytes  */
-  num_host_contacted_ports_as_server.init(4);  /* 16 bytes  */
   num_contacted_hosts.init(4);                 /* 16 bytes  */
   num_contacted_countries.init(4);             /* 16 bytes  */
   contacts_as_cli.init(4);                     /* 16 bytes  */
@@ -226,10 +222,6 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
 			       num_host_contacts_as_server.getEstimate());
     lua_push_int32_table_entry(vm, "num_contacted_services_as_client",
 			       num_contacted_services_as_client.getEstimate());
-    lua_push_int32_table_entry(vm, "num_contacted_ports_as_client",
-			       num_contacted_ports_as_client.getEstimate());
-    lua_push_int32_table_entry(vm, "num_host_contacted_ports_as_server",
-			       num_host_contacted_ports_as_server.getEstimate());
 
     lua_pushstring(vm, "cardinality");
     lua_insert(vm, -2);

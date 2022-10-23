@@ -141,6 +141,13 @@ Flow::Flow(NetworkInterface *_iface,
 	lh->setRouterMac(_srv_mac);
       }
     }
+
+    switch(protocol) {
+    case IPPROTO_TCP:
+    case IPPROTO_UDP:
+      cli_host->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port));
+      break;
+    }
   } else {
     /* Client host has not been allocated, let's keep the info in an IpAddress */
 
@@ -3899,6 +3906,18 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int16_t fragment_extra_overhead) {
   bool update_iat = true;
 
+  /* Updated server -> client in case no traffic was already observed on the server side */
+  if(srv_host
+     && (cli2srv_direction == false)
+     && (get_bytes_srv2cli() == 0)) {
+    switch(protocol) {
+    case IPPROTO_TCP:
+    case IPPROTO_UDP:
+      srv_host->setServerPort((protocol == IPPROTO_TCP), ntohs(srv_port));
+      break;
+    }
+  }
+  
   payload_len *= iface->getScalingFactor();
   updateSeen();
 
