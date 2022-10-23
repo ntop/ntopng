@@ -119,6 +119,8 @@ class LocalHost : public Host, public SerializableElement {
   
   inline void setServerPort(bool isTCP, u_int16_t port)    { usedPorts.setServerPort(isTCP, port);    };
   inline void setContactedPort(bool isTCP, u_int16_t port) { usedPorts.setContactedPort(isTCP, port); };
+  virtual void luaUsedPorts(lua_State* vm)                 { usedPorts.lua(vm); }
+  virtual ndpi_bitmap* getServerPorts()                    { return(usedPorts.getServerPorts()); }
 };
 
 #endif /* _LOCAL_HOST_H_ */

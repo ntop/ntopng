@@ -610,6 +610,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   virtual void setServerPort(bool isTCP, u_int16_t port)    { ; };
   virtual void setContactedPort(bool isTCP, u_int16_t port) { ; };
+  virtual void luaUsedPorts(lua_State* vm) { ; }
+  virtual ndpi_bitmap* getServerPorts()    { return(NULL); }
 };
 
 #endif /* _HOST_H_ */

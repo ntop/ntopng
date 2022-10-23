@@ -1101,6 +1101,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void decNumSentRcvdHosts(bool isLocal)           { if(isLocal) numLocalRcvdOnlyHosts--; numTotalRcvdOnlyHosts--; }
   inline u_int32_t getNewFlowSerial()                     { return(flow_serial++); }
   bool resetHostTopSites(AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id, u_int16_t observationPointId);
+  void localHostsServerPorts(lua_State* vm);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

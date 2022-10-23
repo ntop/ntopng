@@ -353,7 +353,7 @@ void NetworkInterface::init(const char *interface_name) {
   flowAlertsQueue = new (std::nothrow) SPSCQueue<FlowAlert *>(MAX_FLOW_CHECKS_QUEUE_LEN, "flowAlertsQueue");
   hostAlertsQueue = new (std::nothrow) SPSCQueue<HostAlertReleasedPair>(MAX_HOST_CHECKS_QUEUE_LEN, "hostAlertsQueue");
   flow_serial = 0;
-  
+
   /* nDPI handling */
   ndpi_cleanup_needed = false;
   last_ndpi_reload = 0;
@@ -417,7 +417,7 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
       excl->loadnDPIExclusions(ndpi_s);
   }
 #endif
-  
+
   return(ndpi_s);
 }
 
@@ -871,7 +871,7 @@ NetworkInterface::~NetworkInterface() {
   if(host_checks_executor)      delete host_checks_executor;
 
   /* Note do not need to delete kafka as it's shared with db */
-  
+
   if(ndpi_struct) {
     ndpi_exit_detection_module(ndpi_struct);
     ndpi_struct = NULL;
@@ -917,7 +917,7 @@ bool NetworkInterface::enqueueHostAlert(HostAlert *alert) {
   HostAlertReleasedPair alert_info(alert, alert->isReleased());
   Host *h = alert->getHost();
   bool ret = false;
-   
+
   if (!ntop->getPrefs()->dontEmitHostAlerts()
       && hostAlertsQueue
       && hostAlertsQueue->enqueue(alert_info, true)) {
@@ -1711,21 +1711,21 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     We need to populate the private_flow_id with protocol-specific
     such as DNS....
 
-    Unfortunately nDPI has not yet seen this packet so we need to 
+    Unfortunately nDPI has not yet seen this packet so we need to
     implement a micro-DPI code here
   */
   if((l4_proto == IPPROTO_UDP) && (trusted_payload_len > 20)) {
     u_int16_t fiftythree = htons(53);
-    
+
     if((src_port == fiftythree) || (dst_port == fiftythree)) {
       /* Looks like DNS */
       u_int16_t dns_transaction_id = (payload[0] << 8) + payload[1];
-      
+
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%04X", dns_transaction_id);
       private_flow_id = (u_int32_t)dns_transaction_id;
     }
-  }  
-  
+  }
+
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processPacket: getFlow", 0);
 
  pre_get_flow:
@@ -1865,7 +1865,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   /* Protocol Detection */
 
-  /* This is now incremented in Flow::hosts_periodic_stats_update 
+  /* This is now incremented in Flow::hosts_periodic_stats_update
    * by calling iface->incLocalStats */
   //flow->updateInterfaceLocalStats(src2dst_direction, 1, len_on_wire);
 
@@ -2089,7 +2089,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
   u_int n, m, o;
   last_pkt_rcvd = when;
-  
+
   bcast_domains->reloadBroadcastDomains(full_scan /* Force a reload only if a full scan is requested */);
 
   if((n = purgeIdleFlows(force_idle, full_scan)) > 0)
@@ -2189,7 +2189,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 #ifdef __linux__
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Packets exceeding the expected max size have been received "
                                    "[len: %u][max len: %u].", h->len, ifMTU);
-      
+
       if(!read_from_pcap_dump()) {
         ntop->getTrace()->traceEvent(TRACE_WARNING, "If TSO/GRO is enabled, please disable it for best accuracy");
         if(strchr(ifname, ':') == NULL) /* print ethtool command for standard interfaces only */
@@ -2204,7 +2204,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 
   if(last_purge_idle != h->ts.tv_sec) {
     if(!read_from_pcap_dump())
-      purgeIdle(h->ts.tv_sec);    
+      purgeIdle(h->ts.tv_sec);
     last_purge_idle = h->ts.tv_sec;
   }
 
@@ -2972,7 +2972,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
   DB *dumper = isViewed() ? viewedBy()->getDB() : getDB();
   u_int64_t idle_flows_done = 0, active_flows_done = 0;
   time_t when = time(NULL);
-  
+
   if(!dumper) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "WARNING: Something is broken with flow dump");
     return(0);
@@ -3071,7 +3071,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 #endif
 
   dumper->checkIdle(when);
-  
+
   return(num_done);
 }
 
@@ -3115,7 +3115,7 @@ void NetworkInterface::flowAlertsDequeueLoop() {
       /*
         On non-windows, signal/waits are implemented to throttle the speed
         Wait for at most 1-2s. Cannot wait indefinitely
-        as we must ensure purgeQueuedIdleFlows() gets executed, 
+        as we must ensure purgeQueuedIdleFlows() gets executed,
         and also to exit when it's time to shutdown.
       */
       struct timespec hooks_wait_expire;
@@ -3176,7 +3176,7 @@ void NetworkInterface::hostAlertsDequeueLoop() {
 #else
       /*
         Wait for at most 1-2s. Cannot wait indefinitely
-        as we must ensure purgeQueuedIdleHosts() gets executed, 
+        as we must ensure purgeQueuedIdleHosts() gets executed,
         and also to exit when it's time to shutdown.
       */
       struct timespec hooks_wait_expire;
@@ -3345,7 +3345,7 @@ void NetworkInterface::shutdown() {
     if(flowDumpLoopCreated)          pthread_join(flowDumpLoop, &res);
     if(flowAlertsDequeueLoopCreated) pthread_join(flowChecksLoop, &res);
     if(hostAlertsDequeueLoopCreated) pthread_join(hostChecksLoop, &res);
-  
+
     if(db)
       db->flush();
   }
@@ -3750,6 +3750,52 @@ void NetworkInterface::refreshHostPools() {
 
 /* **************************************************** */
 
+static bool count_open_server_ports(GenericHashEntry *node, void *user_data, bool *matched) {
+  Host *h = (Host*)node;
+  std::unordered_map<u_int16_t /* port */, u_int32_t /* count */> *count = (std::unordered_map<u_int16_t,u_int32_t>*)user_data;
+  ndpi_bitmap* ports = h->getServerPorts();
+  ndpi_bitmap_iterator *i = ndpi_bitmap_iterator_alloc(ports);
+
+  if(i) {
+    u_int32_t port;
+
+    while(ndpi_bitmap_iterator_next(i, &port)) {
+      std::unordered_map<u_int16_t,u_int32_t>::iterator it = count->find(port);
+
+      if(it == count->end())
+	(*count)[port] = 1;
+      else
+	(*count)[port] = (*count)[port] + 1;
+    }
+
+    ndpi_bitmap_iterator_free(i);
+  }
+
+  *matched = true;
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+void NetworkInterface::localHostsServerPorts(lua_State* vm) {
+  u_int32_t begin_slot = 0;
+  std::unordered_map<u_int16_t /* port */, u_int32_t /* count */> count;
+  std::unordered_map<u_int16_t,u_int32_t>::iterator it;
+
+  walker(&begin_slot, true /* walk_all */, walker_hosts, count_open_server_ports, &count);
+
+  lua_newtable(vm);
+
+  for(it = count.begin(); it != count.end(); ++it) {
+    char port[32];
+
+    snprintf(port, sizeof(port), "%u", it->first);
+    lua_push_uint32_table_entry(vm, port, it->second);
+  }
+}
+
+/* **************************************************** */
+
 #ifdef HAVE_NEDGE
 
 static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data, bool *matched) {
@@ -3759,7 +3805,6 @@ static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data, bool 
   f->updateFlowShapers();
   return(false); /* false = keep on walking */
 }
-
 
 /* **************************************************** */
 
@@ -4772,11 +4817,11 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_obs_point:
     r->elems[r->actNumEntries++].numericValue = h->get_observation_point_id();
     break;
-  
-  case column_score: 
-    r->elems[r->actNumEntries++].numericValue = h->getScore(); 
+
+  case column_score:
+    r->elems[r->actNumEntries++].numericValue = h->getScore();
     break;
-  
+
   case column_thpt:
     r->elems[r->actNumEntries++].numericValue = h->getBytesThpt();
     break;
@@ -5263,13 +5308,13 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
     u_int32_t deviceIP = 0;
     u_int32_t inIndex=0, outIndex=0;
     char buf[32];
-    
+
     p->deviceIpFilter(&deviceIP), p->inIndexFilter(&inIndex), p->outIndexFilter(&outIndex);
-    
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Device IP] %s / [In Idx] %u / [Out Idx] %u",
 				 Utils::intoaV4(deviceIP, buf, sizeof(buf)), inIndex, outIndex);
-  }			       
-			       
+  }
+
   // make sure the caller has disabled the purge!!
   walker(begin_slot, walk_all, walker_flows, flow_search_walker, (void*)retriever);
 
@@ -5379,7 +5424,7 @@ int NetworkInterface::getFlows(lua_State* vm,
   retriever.talking_with_host = talking_with_host;
 
   if(sortFlows(begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0)
-    return(-1);  
+    return(-1);
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "numFlows", retriever.actNumEntries);
@@ -10049,4 +10094,3 @@ bool NetworkInterface::resetHostTopSites(AddressTree *allowed_hosts,
   else
     return(false);
 }
-

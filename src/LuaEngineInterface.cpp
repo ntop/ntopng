@@ -2290,6 +2290,21 @@ static int ntop_get_interface_networks_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_local_server_ports(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface)
+    ntop_interface->localHostsServerPorts(vm);
+  else
+    lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_network_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int8_t network_id;
@@ -4628,6 +4643,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getHostCountry",           ntop_get_interface_host_country },
   { "addMacsIpAddresses",       ntop_add_macs_ip_addresses },
   { "getNetworksStats",         ntop_get_interface_networks_stats       },
+  { "getLocalServerPorts",      ntop_get_local_server_ports             },
   { "getNetworkStats",          ntop_get_interface_network_stats        },
   { "restoreHost",              ntop_restore_interface_host             },
   { "checkpointHostTalker",     ntop_checkpoint_host_talker             },

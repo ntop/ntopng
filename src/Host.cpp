@@ -431,7 +431,6 @@ void Host::lua_get_names(lua_State * const vm, char * const buf, ssize_t buf_siz
   lua_newtable(vm);
 
   if(ntop->getPrefs()->is_name_decoding_enabled()) {
-
     getMDNSName(buf, buf_size);
     if(buf[0]) lua_push_str_table_entry(vm, "mdns", buf);
 

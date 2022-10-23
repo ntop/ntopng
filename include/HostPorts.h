@@ -41,6 +41,7 @@ class HostPorts {
 
   void setServerPort(bool isTCP, u_int16_t port);
   void setContactedPort(bool isTCP, u_int16_t port);  
+  inline ndpi_bitmap* getServerPorts() { return(host_server_ports); }
 };
 
 #endif /* _HOST_PORTS_H_ */
