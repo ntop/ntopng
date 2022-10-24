@@ -1174,7 +1174,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define SCORE_LEVEL_CRITICAL            NDPI_SCORE_RISK_CRITICAL  /* 200 */
 #define SCORE_LEVEL_EMERGENCY           NDPI_SCORE_RISK_EMERGENCY /* 250 */
 
-#define SCORE_MAX_VALUE                 NDPI_RISK_EMERGENCY /* Maximum client/server score. Flow score is 2 * SCORE_MAX_VALUE. */
+#define SCORE_MAX_VALUE                 NDPI_SCORE_RISK_EMERGENCY /* Maximum client/server score. Flow score is 2 * SCORE_MAX_VALUE. */
 
 #ifndef WIN32
 #define CONST_DEFAULT_DUMP_SYSLOG_FACILITY LOG_DAEMON

@@ -6471,7 +6471,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
   flow_inc = cli_inc + srv_inc;
 
 #ifdef DEBUG_SCORE
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Set alert score: %u (%u/%u)", flow_inc, cli_inc, srv_inc);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Set alert score: %u (%u/%u) | MAX VALUE: %u", flow_inc, cli_inc, srv_inc, SCORE_MAX_VALUE);
 #endif
 
   if(alert_type.id == flow_alert_normal) {
