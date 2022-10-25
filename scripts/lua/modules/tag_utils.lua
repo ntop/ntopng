@@ -12,7 +12,6 @@ local do_trace = ntop.getPref("ntopng.debug.do_trace")
 require "lua_utils"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
-local alert_severities = require "alert_severities"
 local host_pools = require "host_pools"
 local dscp_consts = require "dscp_consts"
 local country_codes = require "country_codes"

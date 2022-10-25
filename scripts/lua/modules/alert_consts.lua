@@ -590,7 +590,7 @@ function alert_consts.get_printable_severities()
   local severities = {}
 
   for name, conf in pairs(alert_severities, "severity_id", asc) do
-    if (conf.severity_id > 2) and (conf.severity_id < 7) then
+    if (conf.severity_id > 2) then
       severities[name] = conf
     end
   end

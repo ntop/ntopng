@@ -81,15 +81,6 @@ local alert_severities = {
       syslog_severity = 2,
       emoji = "\xE2\x9D\x97"
    },
-   alert = {
-      severity_id = 7,
-      label = "bg-danger",
-      icon = "fas fa-bomb text-danger",
-      color = "#fb6962",
-      i18n_title = "alerts_dashboard.alert",
-      syslog_severity = 1,
-      emoji = "\xF0\x9F\x9A\xA9"
-   },
    emergency = {
       severity_id = 8,
       label = "bg-danger text-danger",
