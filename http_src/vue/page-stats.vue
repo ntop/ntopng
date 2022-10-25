@@ -67,7 +67,7 @@
         <i class="fa-solid fa-chart-line"></i> 	{{_i18n('page_stats.top_applications')}}
       </div>
       
-      <Datatable ref="top_applications_table"
+      <Datatable v-if="init_config_table" ref="top_applications_table"
         :table_buttons="config_app_table.table_buttons"
         :columns_config="config_app_table.columns_config"
         :data_url="config_app_table.data_url"
@@ -133,7 +133,8 @@ const _i18n = (t) => i18n(t);
 let id_chart = "chart";
 let id_date_time_picker = "date_time_picker";
 let chart_type = ntopChartApex.typeChart.TS_LINE;
-let config_app_table = ref({});
+const config_app_table = ref({});
+const init_config_table = ref(false);
 const charts = ref([]);
 const date_time_picker = ref(null);
 const top_applications_table = ref(null);
@@ -147,7 +148,7 @@ const enable_table = function() {
     let source_type = metricsManager.get_current_page_source_type();
     if (source_type.value != "ifid" && 
         source_type.value != "host") { 
-      return false; 
+	return false; 
     }
     
     return true;
@@ -188,8 +189,11 @@ function set_default_ifid() {
     ntopng_url_manager.set_key_to_url("ifid", props.default_ifid);
 }
 
-onBeforeMount(async() => {
+onBeforeMount(async () => {
     set_default_ifid();
+    let get_value = (key) => ntopng_url_manager.get_url_entry(key);
+    let ts_key = 
+    
     await load_datatable_data();
 });
 
@@ -205,16 +209,19 @@ async function init() {
     //get_default_timeseries_groups
     let push_custom_metric = true;
     let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix);
+    let metric_ts_schema;
     if (timeseries_groups == null) {
 	push_custom_metric = false;
-	timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix);
+	metric_ts_schema = ntopng_url_manager.get_url_entry("ts_schema");
+	if (metric_ts_schema == "") { metric_ts_schema = null; }
+	timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix, metric_ts_schema);
     }
     metrics.value = await get_metrics(push_custom_metric);
     
     if (push_custom_metric == true) {
 	selected_metric.value = custom_metric;
     } else {
-	selected_metric.value = metricsManager.get_default_metric(metrics.value);
+	selected_metric.value = metricsManager.get_default_metric(metrics.value, metric_ts_schema);
     }
     ts_menu_ready.value = true;
     await load_charts_data(timeseries_groups);
@@ -411,14 +418,26 @@ function get_ts_compare(status) {
     }
 }
 
-function get_datatable_url() {
-    // let metric = metricsManager.get_default_metric(metrics.value);
-    // let timeseries_groups = get_timeseries_groups_from_metric(metric);
-    // get_ts_compare(status);
-    let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/interface/top/ts_stats.lua`;
+async function get_datatable_url() {
+    let source_type = metricsManager.get_current_page_source_type();
+    let source = await metricsManager.get_default_source(http_prefix, source_type);
+    let ts_group = {
+	source_type,
+	source,
+	metric: {},
+    };
+    if (source_type.sub_value) {
+	let sub_source = await metricsManager.get_default_sub_source(http_prefix, source_type.sub_value);
+	ts_group.sub_source = sub_source;
+    }
+    let ts_query = timeseriesUtils.getTsQuery(ts_group);
+    let v = source_type.table_value;    
+    let data_url = `${http_prefix}/lua/pro/rest/v2/get/${v}/top/ts_stats.lua`;
+    //todo: get ts_query
     let p_obj = {
 	zoom: '5m',
-	ts_query: `ifid:${ntopng_url_manager.get_url_entry('ifid')}`,
+	ts_query,
+	// ts_query: `ifid:${ntopng_url_manager.get_url_entry('ifid')}`,
 	epoch_begin: `${ntopng_url_manager.get_url_entry('epoch_begin')}`,
 	epoch_end: `${ntopng_url_manager.get_url_entry('epoch_end')}`,
 	detail_view: `top_protocols`,
@@ -426,21 +445,21 @@ function get_datatable_url() {
     };
     
     let p_url_request =  ntopng_url_manager.add_obj_to_url(p_obj, '');
-    return `${chart_data_url}?${p_url_request}`;
+    return `${data_url}?${p_url_request}`;
 }
 
 async function reload_table_data() {
     // NtopUtils.showOverlays();
     if (enable_table == false) { return; }
-    const url = get_datatable_url();
+    const url = await get_datatable_url();
     top_applications_table.value.update_url(url);
     top_applications_table.value.reload();
     // NtopUtils.hideOverlays();
 }
 
 async function load_datatable_data() {
-    const url = get_datatable_url()
-    set_table_configuration(url)
+    const url = await get_datatable_url();
+    set_table_configuration(url);
 };
 
 function set_table_configuration(url) {
@@ -465,8 +484,8 @@ function set_table_configuration(url) {
 	},
 	{ columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage', className: 'text-nowrap', responsivePriority: 1,
 	  render: (data) => {
-      const percentage = data.toFixed(1);
-      return NtopUtils.createProgressBar(percentage)
+	      const percentage = data.toFixed(1);
+	      return NtopUtils.createProgressBar(percentage)
 	  } 
 	}
     ];  
@@ -487,13 +506,20 @@ function set_table_configuration(url) {
 		    handlerId: handlerIdJumpHistorical,
 		    onClick: () => {
 			let l7_proto = ntopng_url_manager.serialize_param("l7proto", `${service.protocol.id};eq`);
-      let host = ntopng_url_manager.get_url_entry('host')
-      if(host) {
-        host = ntopng_url_manager.serialize_param("ip", `${host};eq`);
-      } else {
-        host = ''
-      }
-			let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?ifid=${ntopng_url_manager.get_url_entry('ifid')}&epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&${l7_proto}&${host}`;
+			let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&${l7_proto}`;
+			let source_type = metricsManager.get_current_page_source_type();
+			let params = "";
+			if(source_type.value == "host") {
+			    let ifid = `ifid=${ntopng_url_manager.get_url_entry('ifid')}`;
+			    let host = ntopng_url_manager.serialize_param("ip", `${host};eq`);
+			    params = `${ifid}&${host}`;
+			} else if (source_type.value == "ifid"){
+			    let ifid = `ifid=${ntopng_url_manager.get_url_entry('ifid')}`;
+			    params = ifid;
+			} else {
+			    throw "page-stats:set_table_configuration source_type not managed";
+			}
+			historical_flows_url = `${historical_flows_url}&${params}`;
 			console.log(historical_flows_url);
 			window.open(historical_flows_url);
 		    }
@@ -512,7 +538,8 @@ function set_table_configuration(url) {
 	enable_search: true,
 	table_config: { serverSide: false, order: [[ default_sorting_columns, 'desc' ]] }
     };
-    config_app_table = datatable_config
+    init_config_table.value = true;
+    config_app_table.value = datatable_config
 }
 
 let stats_columns = [

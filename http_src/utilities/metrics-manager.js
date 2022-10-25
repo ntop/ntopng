@@ -69,11 +69,11 @@ const get_ts_group = (source_type, source, metric) => {
     };
 };
 
-const get_default_timeseries_groups = async (http_prefix) => {
+const get_default_timeseries_groups = async (http_prefix, metric_ts_schema) => {
     let source_type = get_current_page_source_type();
     let source = await get_default_source(http_prefix, source_type);
     let metrics = await get_metrics(http_prefix, source_type, source);
-    let metric = get_default_metric(metrics);
+    let metric = get_default_metric(metrics, metric_ts_schema);
     let ts_group = get_ts_group(source_type, source, metric);
     return [ts_group];
 };
@@ -112,7 +112,11 @@ const get_ts_group_id = (source_type, source, metric) => {
     if (metric.query != null) {
 	metric_id = `${metric_id} - ${metric.query}`;
     }
-    return `${source_type.value} - ${source.value} - ${metric_id}`;
+    let source_value = source.value;
+    if (source.sub_value != null) {
+	source_value = `${source_value}_${source.sub_value}`
+    }
+    return `${source_type.value} - ${source_value} - ${metric_id}`;
 };
 
 function get_timeseries(timeseries_url, metric) {
@@ -145,6 +149,7 @@ const sources_types = [
 	sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	value: "ifid",
 	ui_type: ui_types.select,
+	table_value: "interface",
     },
     {
 	label: "Host",
@@ -155,6 +160,7 @@ const sources_types = [
 	sub_value: "ifid",
 	sub_label: "Interface",
 	ui_type: ui_types.select_and_input,
+	table_value: "host",
     },
 ];
 
@@ -303,8 +309,14 @@ const get_metrics_from_schema = async (http_prefix, source_type, source, metric_
     return metrics.find((m) => m.schema == metric_schema && m.query == metric_query); 
 };
 
-const get_default_metric = (metrics) => {
-    let default_metric = metrics.find((m) => m.default_visible == true);
+const get_default_metric = (metrics, metric_ts_schema) => {
+    let default_metric;
+    if (metric_ts_schema != null) {
+	default_metric = metrics.find((m) => m.schema == metric_ts_schema);
+    }
+    if (default_metric == null) {
+	default_metric = metrics.find((m) => m.default_visible == true);
+    }
     if (default_metric != null) {
 	return default_metric;
     }

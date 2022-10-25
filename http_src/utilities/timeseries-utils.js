@@ -493,11 +493,12 @@ function buildChartOptions(seriesArray, yaxisArray) {
 
 function getTsQuery(tsGroup) {
     let tsQuery;
-    if (tsGroup.source_type.value == "ifid") {
+    if (tsGroup.source_type.sub_value == null) {
 	tsQuery = `${tsGroup.source_type.value}:${tsGroup.source.value}`;
     } else {
-	let ifid = ntopng_url_manager.get_url_entry("ifid");
-	tsQuery = `ifid:${ifid},${tsGroup.source_type.value}:${tsGroup.source.value}`;
+	// let sub_value = ntopng_url_manager.get_url_entry(tsGroup.source_type.sub_value);
+	let sub_value = tsGroup.source.sub_value;
+	tsQuery = `${tsGroup.source_type.sub_value}:${sub_value},${tsGroup.source_type.value}:${tsGroup.source.value}`;
     }
 
     if (tsGroup.metric.query != null) {
@@ -538,6 +539,7 @@ const timeseriesUtils = function() {
 	getSerieId,
 	getSerieName,
 	getTsChartOptions,
+	getTsQuery,
     };
 }();
 
