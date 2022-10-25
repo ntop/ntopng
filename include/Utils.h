@@ -273,6 +273,7 @@ public:
   static bool endsWith(const char* base, const char* str);
   static int openSocket(int domain, int type, int protocol, const char *label);
   static void closeSocket(int socket);
+  static const char** getMessagingTopics();
 };
 
 #endif /* _UTILS_H_ */

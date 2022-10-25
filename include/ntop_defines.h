@@ -289,6 +289,7 @@
 #define CONST_INTERFACE_TYPE_PCAP      "pcap"
 #define CONST_INTERFACE_TYPE_PCAP_DUMP "pcap dump"
 #define CONST_INTERFACE_TYPE_ZMQ       "zmq"
+#define CONST_INTERFACE_TYPE_KAFKA     "kafka"
 #define CONST_INTERFACE_TYPE_SYSLOG    "syslog"
 #define CONST_INTERFACE_TYPE_VLAN      "Dynamic VLAN"
 #define CONST_INTERFACE_TYPE_FLOW      "Dynamic Flow Collection"

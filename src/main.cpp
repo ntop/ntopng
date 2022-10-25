@@ -203,6 +203,10 @@ int main(int argc, char *argv[])
 	  endpoint = ifName;
 
 	iface = new (std::nothrow) ZMQCollectorInterface(endpoint);
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+      } else if(strstr(ifName, "kafka://")) {
+	iface = new (std::nothrow) KafkaCollectorInterface(&ifName[8]);
+#endif
       } else if(strstr(ifName, "syslog://")) {
 	iface = new (std::nothrow) SyslogCollectorInterface(ifName);
 #if defined(HAVE_PF_RING) && (!defined(NTOPNG_EMBEDDED_EDITION)) && (!defined(__i686__)) && (!defined(__ARM_ARCH))

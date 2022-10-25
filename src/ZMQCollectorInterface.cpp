@@ -29,18 +29,7 @@
 
 ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserInterface(_endpoint) {
   char *tmp, *e, *t;
-  const char *topics[] =
-    {
-     "flow",
-     "event",
-     "counter",
-     "template",
-     "option",
-     "hello",
-     "listening-ports",
-     "snmp-ifaces",
-     NULL
-    };
+  const char **topics = Utils::getMessagingTopics();
   
   num_subscribers = 0;
   server_secret_key[0] = '\0';

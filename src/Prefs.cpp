@@ -292,7 +292,11 @@ void usage() {
 	 "                                    |     and don't resolve numeric IPs (localhost only)\n"
 #endif
 	 "[--interface|-i] <interface|pcap>   | Input interface name (numeric/symbolic),\n"
-         "                                    | view or pcap file path\n"
+         "                                    | view or pcap file path, including:\n"
+	 "                                    | tcp://<IP address>     [ZMQ flow collection]\n"
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+	 "                                    | kafka://<brokers list> [Kafka flow collection]\n"
+#endif
 #ifndef WIN32
 	 "[--data-dir|-d] <path>              | Data directory (must be writable).\n"
 	 "                                    | Default: %s\n"

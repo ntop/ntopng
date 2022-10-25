@@ -396,6 +396,10 @@ using namespace std;
 #include "ExportInterface.h"
 #endif
 
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+#include "KafkaCollectorInterface.h"
+#endif
+
 #include "Geolocation.h"
 #include "VLAN.h"
 #include "AutonomousSystem.h"
