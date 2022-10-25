@@ -118,34 +118,82 @@ local community_timeseries = {
 
 -- #################################
 
-local function add_top_timeseries(tags, prefix, timeseries)
-  local interface_ts_enabled = ntop.getCache("ntopng.prefs.interface_ndpi_timeseries_creation")
-  local has_top_protocols = interface_ts_enabled == "both" or interface_ts_enabled == "per_protocol" or interface_ts_enabled ~= "0"
-  local has_top_categories = interface_ts_enabled == "both" or interface_ts_enabled == "per_category"
-  
+local function add_top_host_timeseries(tags, timeseries)
+  local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
+  local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~= "0"
+  local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
+
   ts_utils.loadSchemas()
   
   -- Top l7 Protocols
   if has_top_protocols then
-    local series = ts_utils.listSeries(prefix .. ":ndpi", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    local series = ts_utils.listSeries("host:ndpi", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
     
     if not table.empty(series) then
       for _, serie in pairs(series) do
-        timeseries[#timeseries + 1] = { schema = "top:" .. prefix .. ":ndpi", group = i18n("graphs.l7_proto"), priority = 2, query = "protocol:" .. serie.protocol , label = serie.protocol, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = serie.protocol, color = timeseries_info.get_timeseries_color('bytes') }} }
+        timeseries[#timeseries + 1] = { schema = "top:host:ndpi", group = i18n("graphs.l7_proto"), priority = 2, query = "protocol:" .. serie.protocol , label = serie.protocol, measure_unit = "bps", scale = 0, timeseries = { bytes_sent = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }} }
       end
     end
   end
   
   -- Top Categories
   if has_top_categories then
-    local series = ts_utils.listSeries(prefix .. ":ndpi_categories", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    local series = ts_utils.listSeries("host:ndpi_categories", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
     
     if not table.empty(series) then
       for _, serie in pairs(series) do
         local category_name = getCategoryLabel(serie.category, interface.getnDPICategoryId(serie.category))
-        timeseries[#timeseries + 1] = { schema = "top:" .. prefix .. ":ndpi_categories", group = i18n("graphs.category"), priority = 3, query = "category:" .. category_name , label = category_name, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = category_name, color = timeseries_info.get_timeseries_color('bytes') }} }
+        timeseries[#timeseries + 1] = { schema = "top:host:ndpi_categories", group = i18n("graphs.category"), priority = 3, query = "category:" .. category_name , label = category_name, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = category_name, color = timeseries_info.get_timeseries_color('bytes') }} }
       end
     end
+  end
+
+  return timeseries
+end
+
+-- #################################
+
+local function add_top_interface_timeseries(tags, timeseries)
+  local interface_ts_enabled = ntop.getCache("ntopng.prefs.interface_ndpi_timeseries_creation")
+  local has_top_protocols = interface_ts_enabled == "both" or interface_ts_enabled == "per_protocol" or interface_ts_enabled ~= "0"
+  local has_top_categories = interface_ts_enabled == "both" or interface_ts_enabled == "per_category"
+
+  ts_utils.loadSchemas()
+  
+  -- Top l7 Protocols
+  if has_top_protocols then
+    local series = ts_utils.listSeries("iface:ndpi", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    
+    if not table.empty(series) then
+      for _, serie in pairs(series) do
+        timeseries[#timeseries + 1] = { schema = "top:iface:ndpi", group = i18n("graphs.l7_proto"), priority = 2, query = "protocol:" .. serie.protocol , label = serie.protocol, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = serie.protocol, color = timeseries_info.get_timeseries_color('bytes') }} }
+      end
+    end
+  end
+  
+  -- Top Categories
+  if has_top_categories then
+    local series = ts_utils.listSeries("iface:ndpi_categories", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    
+    if not table.empty(series) then
+      for _, serie in pairs(series) do
+        local category_name = getCategoryLabel(serie.category, interface.getnDPICategoryId(serie.category))
+        timeseries[#timeseries + 1] = { schema = "top:iface:ndpi_categories", group = i18n("graphs.category"), priority = 3, query = "category:" .. category_name , label = category_name, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = category_name, color = timeseries_info.get_timeseries_color('bytes') }} }
+      end
+    end
+  end
+
+  return timeseries
+end
+
+-- #################################
+local function add_top_timeseries(tags, prefix, timeseries)
+  if prefix == 'iface' then
+    -- Add the top interface timeseries
+    timeseries = add_top_interface_timeseries(tags, timeseries)
+  elseif prefix == 'host' then
+    -- Add the top host timeseries
+    timeseries = add_top_host_timeseries(tags, timeseries)
   end
 
   return timeseries
