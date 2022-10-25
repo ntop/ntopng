@@ -719,10 +719,13 @@ void Flow::processExtraDissectedInformation() {
 	 && (ndpiFlow->protos.tls_quic.server_names != NULL))
 	protos.tls.server_names = strdup(ndpiFlow->protos.tls_quic.server_names);
 
-      if((protos.tls.client_alpn == NULL)
-	 && (ndpiFlow->protos.tls_quic.alpn != NULL))
-	protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic.alpn);
-
+      if(protos.tls.client_alpn == NULL) {
+	if(ndpiFlow->protos.tls_quic.negotiated_alpn != NULL)
+	  protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic.negotiated_alpn);
+	else if(ndpiFlow->protos.tls_quic.advertised_alpns != NULL)
+	  protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic.advertised_alpns);
+      }
+      
       if((protos.tls.client_tls_supported_versions == NULL)
 	 && (ndpiFlow->protos.tls_quic.tls_supported_versions != NULL))
 	protos.tls.client_tls_supported_versions = strdup(ndpiFlow->protos.tls_quic.tls_supported_versions);
