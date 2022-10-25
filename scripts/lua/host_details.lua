@@ -1128,14 +1128,16 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
    elseif((page == "ports")) then
       print('<table class="table table-bordered table-striped">\n')
 
-      print('<tr><th class="text-start">'..i18n("ports_page.active_server_ports")..'</th><td>')
-      printPorts(host.used_ports.local_server_ports)
-      print('</td></tr>')
+      if(host.used_ports ~= nil) then
+	 print('<tr><th class="text-start">'..i18n("ports_page.active_server_ports")..'</th><td>')
+	 printPorts(host.used_ports.local_server_ports)
+	 print('</td></tr>')
+	 
+	 print('<tr><th class="text-start">'..i18n("ports_page.client_contacted_server_ports")..'</th><td>')
+	 printPorts(host.used_ports.remote_contacted_ports)
+	 print('</td></tr>')
+      end
       
-      print('<tr><th class="text-start">'..i18n("ports_page.client_contacted_server_ports")..'</th><td>')
-      printPorts(host.used_ports.remote_contacted_ports)
-      print('</td></tr>')
-
       print('<tr><th class="text-start">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
       print('<tr><th class="text-start">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
 

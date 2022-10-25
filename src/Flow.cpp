@@ -142,11 +142,13 @@ Flow::Flow(NetworkInterface *_iface,
       }
     }
 
-    switch(protocol) {
-    case IPPROTO_TCP:
-    case IPPROTO_UDP:
-      cli_host->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port));
-      break;
+    if(cli_host->isLocalHost()) {
+      switch(protocol) {
+      case IPPROTO_TCP:
+      case IPPROTO_UDP:
+	cli_host->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port));
+	break;
+      }
     }
   } else {
     /* Client host has not been allocated, let's keep the info in an IpAddress */
@@ -3908,6 +3910,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
   /* Updated server -> client in case no traffic was already observed on the server side */
   if(srv_host
+     && srv_host->isLocalHost()
      && (cli2srv_direction == false)
      && (get_bytes_srv2cli() == 0)) {
     switch(protocol) {
@@ -3978,31 +3981,17 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
 /* *************************************** */
 
-/*
-void Flow::updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len) {
-  const IpAddress *from = src2dst_direction ? get_cli_ip_addr() : get_srv_ip_addr();
-  const IpAddress *to   = src2dst_direction ? get_srv_ip_addr() : get_cli_ip_addr();
-
-  iface->incLocalStats(num_pkts, pkt_len,
-		       from ? from->isLocalHost() : false,
-		       to ? to->isLocalHost() : false);
-}
-*/
-
-/* *************************************** */
-
 void Flow::addFlowStats(bool new_flow,
 			bool cli2srv_direction,
 			u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 			u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes,
 			u_int in_fragments, u_int out_fragments,
 			time_t first_seen, time_t last_seen) {
-
+  double thp_delta_time;
+  
   /* Don't update seen if no traffic has been observed */
   if(!(in_bytes || out_bytes || in_pkts || out_pkts))
     return;
-
-  double thp_delta_time;
 
   if(new_flow)
     /* Average between last and first seen */
@@ -4012,7 +4001,7 @@ void Flow::addFlowStats(bool new_flow,
     thp_delta_time = difftime(last_seen, get_last_seen());
 
 #if 0
-<  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first: %u][last: %u][get_last_seen: %u][%u][%u][in_bytes: %u][out_bytes: %u][bytes : %u][thpt: %.2f]",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first: %u][last: %u][get_last_seen: %u][%u][%u][in_bytes: %u][out_bytes: %u][bytes : %u][thpt: %.2f]",
 			       first_seen, last_seen,
 			       get_last_seen(),
 			       last_seen - first_seen,
@@ -4026,11 +4015,23 @@ void Flow::addFlowStats(bool new_flow,
   updateSeen(last_seen);
   callFlowUpdate(last_seen);
 
+  if(srv_host
+     && srv_host->isLocalHost()
+     && (get_bytes_srv2cli() == 0)
+     && (out_bytes > 0)) {
+    switch(protocol) {
+    case IPPROTO_TCP:
+    case IPPROTO_UDP:
+      srv_host->setServerPort((protocol == IPPROTO_TCP), ntohs(srv_port));
+      break;
+    }
+  }
+  
   if(cli2srv_direction) {
     stats.incStats(true, in_pkts, in_bytes, in_goodput_bytes);
     stats.incStats(false, out_pkts, out_bytes, out_goodput_bytes);
     ip_stats_s2d.pktFrag += in_fragments, ip_stats_d2s.pktFrag += out_fragments;
-  } else {
+  } else {    
     stats.incStats(true, out_pkts, out_bytes, out_goodput_bytes);
     stats.incStats(false, in_pkts, in_bytes, in_goodput_bytes);
     ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments;
@@ -5227,7 +5228,8 @@ bool Flow::checkPassVerdict(const struct tm *now) {
 
 #ifdef HAVE_NEDGE
 
-bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper) {
+bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingress_shaper,
+				  TrafficShaper **egress_shaper) {
   bool verdict = true;
 
   if(cli_host && srv_host) {

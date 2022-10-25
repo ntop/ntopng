@@ -25,7 +25,8 @@
 
 /* **************************************************** */
 
-ParserInterface::ParserInterface(const char *endpoint, const char *custom_interface_type) : NetworkInterface(endpoint, custom_interface_type) {
+ParserInterface::ParserInterface(const char *endpoint, const char *custom_interface_type)
+  : NetworkInterface(endpoint, custom_interface_type) {
   num_companion_interfaces = 0;
   companion_interfaces = new (std::nothrow) NetworkInterface*[MAX_NUM_COMPANION_INTERFACES]();
 }
