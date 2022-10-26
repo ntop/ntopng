@@ -228,14 +228,16 @@ end
 local dt_buttons = "['<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-bs-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
 dt_buttons = dt_buttons..'<li><a class="dropdown-item" href="'..nav_url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
 
-local ndpi_stats = interface.getASInfo(asn)
+local ndpi_stats = interface.getASInfo(asn) or {}
 
-for key, value in pairsByKeys(ndpi_stats["ndpi"], asc) do
-   local class_active = ''
-   if(key == application) then
-      class_active = 'active'
-   end
-   dt_buttons = dt_buttons..'<li><a class="dropdown-item '..class_active..'" href="'..nav_url..'&page=flows&application='..key..'">'..key..'</a></li>'
+if table.len(ndpi_stats) > 0 then
+  for key, value in pairsByKeys(ndpi_stats["ndpi"], asc) do
+    local class_active = ''
+    if(key == application) then
+        class_active = 'active'
+    end
+    dt_buttons = dt_buttons..'<li><a class="dropdown-item '..class_active..'" href="'..nav_url..'&page=flows&application='..key..'">'..key..'</a></li>'
+  end
 end
 
 dt_buttons = dt_buttons .. "</ul>"
