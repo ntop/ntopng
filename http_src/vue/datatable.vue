@@ -136,9 +136,6 @@ function loadDatatable() {
       },
     },
     initComplete: function (settings) {
-      NtopUtils.hideOverlays();
-      ntopng_events_manager.emit_custom_event(ntopng_custom_events.DATATABLE_LOADED);
-
       //Add JQueryUI resizable functionality to each th in the ScrollHead table
       $('#' + table_id.value.id + '_wrapper .dataTables_scrollHead thead th').resizable({
         handles: "e",
@@ -149,6 +146,10 @@ function loadDatatable() {
         }
       });
     },
+    drawCallback: function (settings) {
+      NtopUtils.hideOverlays();
+      ntopng_events_manager.emit_custom_event(ntopng_custom_events.DATATABLE_LOADED);
+    }
   };
   for (const item in (props.table_config || {})) {
     extend_config[item] = props.table_config[item]

@@ -22,7 +22,7 @@
 #ifndef _ROUND_TRIP_STATS_H_
 #define _ROUND_TRIP_STATS_H_
 
-#define ROUND_TRIP_LENGTH 20
+#define ROUND_TRIP_LENGTH 30
 
 class RoundTripStats {
  private:
