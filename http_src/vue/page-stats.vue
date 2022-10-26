@@ -238,8 +238,11 @@ async function get_metrics(push_custom_metric, force_refresh) {
     if (cache_snapshots == null || force_refresh) {
 	cache_snapshots = await get_snapshots_metrics();
     }
-    let snapshots_metrics = cache_snapshots;
-    snapshots_metrics.forEach((sm) => metrics.push(sm));
+    if(props.enable_snapshots) {
+      let snapshots_metrics = cache_snapshots;
+      snapshots_metrics.forEach((sm) => metrics.push(sm));
+    }
+
     /* Order Metrics */
     metrics.sort(NtopUtils.sortAlphabetically);
     
