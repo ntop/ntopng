@@ -150,8 +150,9 @@ bool TimelineExtract::extractToDisk(u_int32_t id, NetworkInterface *iface,
   else
     handle = openTimeline(timeline_path, from, to, bpf_filter);
 
-  if (handle == NULL)
+  if (handle == NULL) {
     goto delete_dumper;
+  }
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping traffic to '%s'", out_path);
 
@@ -207,8 +208,9 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
   else
     handle = openTimeline(timeline_path, from, to, bpf_filter);
 
-  if (handle == NULL)
+  if (handle == NULL) {
     goto error;
+  }
 
   Utils::init_pcap_header(&pcaphdr,
     pfring_get_link_type(handle),
@@ -238,7 +240,7 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
   pfring_close(handle);
 
  error:
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Live extraction %s %s", 
+  ntop->getTrace()->traceEvent(completed ? TRACE_INFO : TRACE_ERROR, "Live extraction %s %s", 
 			       completed ? "completed" : "failed",
 			       http_client_disconnected ? "(disconnected)" : "");
 #endif
