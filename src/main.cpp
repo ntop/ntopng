@@ -193,7 +193,9 @@ int main(int argc, char *argv[])
 #ifndef HAVE_NEDGE
       if(!strcmp(ifName, "dummy")) {
 	iface = new (std::nothrow) DummyInterface();
-      } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
+      } else if(strstr(ifName, "zmq://")
+		|| strstr(ifName, "tcp://")
+		|| strstr(ifName, "ipc://")) {
 	char *at = strchr(ifName, '@');
 	char *endpoint;
 
@@ -205,7 +207,9 @@ int main(int argc, char *argv[])
 	iface = new (std::nothrow) ZMQCollectorInterface(endpoint);
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
       } else if(strstr(ifName, "kafka://")) {
-	iface = new (std::nothrow) KafkaCollectorInterface(&ifName[8]);
+	iface = new (std::nothrow) KafkaCollectorInterface(&ifName[8], false);
+      } else if(strstr(ifName, "kafka-ssl://")) {
+	iface = new (std::nothrow) KafkaCollectorInterface(&ifName[12], true);
 #endif
       } else if(strstr(ifName, "syslog://")) {
 	iface = new (std::nothrow) SyslogCollectorInterface(ifName);

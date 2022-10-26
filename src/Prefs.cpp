@@ -293,9 +293,11 @@ void usage() {
 #endif
 	 "[--interface|-i] <interface|pcap>   | Input interface name (numeric/symbolic),\n"
          "                                    | view or pcap file path, including:\n"
-	 "                                    | tcp://<IP address>     [ZMQ flow collection]\n"
+	 "                                    | zmq://<IP address>         [ZMQ flow collection]\n"
+	 "                                    | tcp://<IP address>         [DEPRECATED ZMQ flow collection]\n"
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
-	 "                                    | kafka://<brokers list> [Kafka flow collection]\n"
+	 "                                    | kafka://<brokers list>     [Kafka flow collection]\n"
+	 "                                    | kafka-ssl://<brokers list> [Kafka flow collection over SSL/TLS]\n"
 #endif
 #ifndef WIN32
 	 "[--data-dir|-d] <path>              | Data directory (must be writable).\n"

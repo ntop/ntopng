@@ -37,8 +37,9 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
 
   context = zmq_ctx_new();
 
-  if((tmp = strdup(_endpoint)) == NULL) throw("Out of memory");
-
+  if((tmp = strdup(_endpoint)) == NULL)
+    throw("Out of memory");  
+  
   is_collector = false;
   
   e = strtok_r(tmp, ",", &t);
@@ -46,6 +47,10 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
     int l = strlen(e)-1, val;
     char last_char = e[l];
 
+    /* Replace zmq:// with tcp:// */
+    if(strncmp(e, "zmq", 3) == 0)
+      e[0] = 't', e[1] = 'c', e[2] = 'p';
+    
     if(num_subscribers == MAX_ZMQ_SUBSCRIBERS) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Too many endpoints defined %u: skipping those in excess",
