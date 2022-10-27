@@ -49,6 +49,8 @@ const defaultOptions = {
         stabilization: 200,
         onlyDynamicEdges: true
       },    
+      maxVelocity: 50,
+      minVelocity: 45,
   },
   groups: {
       unknown: {
