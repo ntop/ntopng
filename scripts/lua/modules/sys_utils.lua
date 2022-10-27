@@ -117,6 +117,10 @@ function sys_utils.isActiveService(service_name)
    return _isServiceStatus(service_name, "active")
 end
 
+function sys_utils.isEnabledService(service_name)
+   return _isServiceStatus(service_name, "enabled")
+end
+
 function sys_utils.isFailedService(service_name)
    return _isServiceStatus(service_name, "failed")
 end
