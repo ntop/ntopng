@@ -99,6 +99,9 @@ class Ntop {
   Recipients recipients; /* Handle notification recipients */
 #ifdef NTOPNG_PRO
   AssetManagement am;
+#ifdef HAVE_KAFKA
+  KafkaClient kafkaClient;
+#endif
 #endif
   
   /* Local network address list */
@@ -633,6 +636,11 @@ public:
 
   bool createPcapInterface(const char *path, int *iface_id);
   void incBlacklisHits(std::string listname);
+#if defined(NTOPNG_PRO) && defined(HAVE_KAFKA)
+  inline bool sendKafkaMessage(char *kafka_broker_info, char *msg, u_int msg_len) {
+    return(kafkaClient.sendMessage(kafka_broker_info, msg, msg_len));
+  }
+#endif
 };
 
 extern Ntop *ntop;

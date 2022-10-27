@@ -1251,6 +1251,28 @@ static int ntop_register_pcap_interface(lua_State* vm) {
 
 /* ****************************************** */
 
+#if defined(NTOPNG_PRO) && defined(HAVE_KAFKA)
+static int ntop_send_kafka_message(lua_State* vm) {
+  char *kafka_broker_info, *message;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  /* <brokers>;<topic>;<options> */
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  kafka_broker_info = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  message = (char*)lua_tostring(vm, 2);
+
+  if(kafka_broker_info && message)
+    lua_pushboolean(vm, ntop->sendKafkaMessage(kafka_broker_info, message, strlen(message)));
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+#endif
+
+/* ****************************************** */
+
 static int ntop_gettimemsec(lua_State* vm) {
   struct timeval tp;
   double ret;
@@ -6871,6 +6893,11 @@ static luaL_Reg _ntop_reg[] = {
 
   /* Register pcap Interface */
   { "registerPcapInterface",     ntop_register_pcap_interface        },
+
+#if defined(NTOPNG_PRO) && defined(HAVE_KAFKA)
+  /* Kafka */
+  { "sendKafkaMessage",          ntop_send_kafka_message             },
+#endif
 
   { NULL,          NULL}
 };
