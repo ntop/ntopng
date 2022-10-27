@@ -971,10 +971,12 @@ end
 -- ##############################################
 
 function system_config:_enableDisableDhcpService()
+  local dhcp_service_utils = require "dhcp_service_utils"
+
   if self:isDhcpServerEnabled() then
-    sys_utils.enableService("isc-dhcp-server")
+    dhcp_service_utils.startDHCPService()
   else
-    sys_utils.disableService("isc-dhcp-server")
+    dhcp_service_utils.stopDHCPService()
   end
 end
 
