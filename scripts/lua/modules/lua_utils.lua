@@ -557,6 +557,12 @@ end
 
 -- ###################################
 
+local function sub_quotes_to_string(string_to_fix)
+  return string_to_fix:gsub("%'", "&lsquo;")
+end
+
+-- ###################################
+
 function printHostPoolDropdown(base_url, page_params, host_pool_list)
    local host_pools = require "host_pools"
    
@@ -606,7 +612,7 @@ function printHostPoolDropdown(base_url, page_params, host_pool_list)
       host_pool_table["host_pool_id"] = key
       print(getPageUrl(base_url, host_pool_table))
       
-      print[[">]] print(host_pools_instance:get_pool_name(key)) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
+      print[[">]] print(sub_quotes_to_string(host_pools_instance:get_pool_name(key))) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
    end
 
    print[[</ul>]]
