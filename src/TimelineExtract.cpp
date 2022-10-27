@@ -240,9 +240,14 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
   pfring_close(handle);
 
  error:
-  ntop->getTrace()->traceEvent(completed ? TRACE_INFO : TRACE_ERROR, "Live extraction %s %s", 
-			       completed ? "completed" : "failed",
-			       http_client_disconnected ? "(disconnected)" : "");
+  if(completed)
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Live extraction %s %s", 
+				 "completed",
+				 http_client_disconnected ? "(disconnected)" : "");
+  else
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Live extraction %s %s", 
+				 "failed",
+				 http_client_disconnected ? "(disconnected)" : "");    
 #endif
   
   return completed;

@@ -311,6 +311,7 @@ using namespace std;
 #include "DB.h"
 #ifdef HAVE_KAFKA
 #include "KafkaProducer.h"
+#include "KafkaClient.h"
 #endif
 #ifdef HAVE_MYSQL
 #include "MySQLDB.h"
