@@ -1297,7 +1297,7 @@ else
 end
 elseif((page == "traffic")) then
     -- template render
-    template.render("htmlPages/hostDetails/hosttraffic.html", {})
+    template.render("pages/hosts/traffic.template", {})
 
 elseif((page == "listening_ports")) then
     template.render("htmlPages/hostDetails/listening-ports.template", {

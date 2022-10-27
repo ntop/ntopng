@@ -65,14 +65,7 @@ for id, _ in ipairs(l4_keys) do
 end
 
 if table.len(proto_info) > 0 then
-  rsp["records"] = proto_info
-end
-
-if(total > 0) then
-  if(host.cardinality) then
-    rsp["contactedHostsAsCli"] = formatValue(host.cardinality.num_contacted_hosts_as_client)
-    rsp["contactedHostsAsSrv"] = formatValue(host.cardinality.num_contacted_hosts_as_server)
-  end
+  rsp = proto_info
 end
 
 rest_utils.answer(rc, rsp)
