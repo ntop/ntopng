@@ -140,7 +140,7 @@ end
 -- ###################################
 
 local function sub_quotes_to_string(string_to_fix)
-  return string_to_fix:gsub("%'", "&sbquo;")
+  return string_to_fix:gsub("%'", "&lsquo;")
 end
 
 -- ###################################
