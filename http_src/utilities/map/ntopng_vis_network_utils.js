@@ -33,7 +33,7 @@ const defaultOptions = {
       tooltipDelay: 0,
   },
   physics: {
-      solver: "barnesHut",
+      solver: null,
       barnesHut: {
           nodeDistance: 150,  
           theta: 1,
