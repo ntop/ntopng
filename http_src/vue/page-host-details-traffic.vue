@@ -140,25 +140,25 @@ function start_datatable(PageVue) {
   let columns = [
     { columnName: i18n("protocol"), targets: 0, width: '10', name: 'protocol', data: 'protocol', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: i18n("chart"), targets: 1, width: '10', name: 'historical', data: 'historical', className: 'text-nowrap', responsivePriority: 1 },
-    { columnName: i18n("traffic_labels.bytes_sent"), targets: 2, width: '10', name: 'sent', data: 'bytesSent', className: 'text-nowrap', responsivePriority: 2, render: (data) => {
+    { columnName: i18n("traffic_labels.bytes_sent"), targets: 2, width: '10', name: 'sent', data: 'bytes_sent', className: 'text-nowrap', responsivePriority: 2, render: (data) => {
         return NtopUtils.bytesToSize(data);
       }  
     },
-    { columnName: i18n("traffic_labels.bytes_rcvd"), targets: 3, width: '10', name: 'rcvd', data: 'bytesRcvd',  className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
+    { columnName: i18n("traffic_labels.bytes_rcvd"), targets: 3, width: '10', name: 'rcvd', data: 'bytes_rcvd',  className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
         return NtopUtils.bytesToSize(data);
       }  
     },
     { columnName: i18n("traffic_labels.breakdown"), targets: 4, width: '20', name: 'breakdown', data: 'breakdown', orderable: false, className: 'text-center text-nowrap', responsivePriority: 2, render: (data, type, row) => {
-        const percentage_sent = (row.bytes_sent * 100) / row.tot_bytes;
-        const percentage_rcvd = (row.bytes_rcvd * 100) / row.tot_bytes;
+        const percentage_sent = (row.bytes_sent * 100) / row.total_bytes;
+        const percentage_rcvd = (row.bytes_rcvd * 100) / row.total_bytes;
         return NtopUtils.createBreakdown(percentage_sent, percentage_rcvd, i18n('host_details.sent'), i18n('host_details.rcvd'));
       }  
     },
-    { columnName: i18n("traffic_labels.total_bytes"), targets: 5, width: '20', name: 'tot_bytes', data: 'totalBytes', className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
+    { columnName: i18n("traffic_labels.total_bytes"), targets: 5, width: '20', name: 'tot_bytes', data: 'total_bytes', className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
         return NtopUtils.bytesToSize(data);
       }   
     },
-    { columnName: i18n("traffic_labels.total_percentage"), targets: 6, width: '20', name: 'percentage', data: 'totalPctg',  className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
+    { columnName: i18n("traffic_labels.total_percentage"), targets: 6, width: '20', name: 'percentage', data: 'total_percentage',  className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
         const percentage = data.toFixed(1);
         return NtopUtils.createProgressBar(percentage);
       }  

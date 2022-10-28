@@ -41,23 +41,22 @@ for id, _ in ipairs(l4_keys) do
     local proto_stats = {}
 
     if host[k..".bytes.sent"] then
-      proto_stats["bytesSent"] = host[k..".bytes.sent"] or 0
+      proto_stats["bytes_sent"] = host[k..".bytes.sent"] or 0
     end
 
     if host[k..".bytes.rcvd"] then
-      proto_stats["bytesRcvd"] = host[k..".bytes.rcvd"] or 0
+      proto_stats["bytes_rcvd"] = host[k..".bytes.rcvd"] or 0
     end
 
     proto_stats["protocol"] = l4_keys[id][1] or "" .. " " .. historicalProtoHostHref(ifid, host_ip, l4_keys[id][1], nil, nil, host_vlan, true) or ""
-    proto_stats["totalBytes"] = (host[k..".bytes.sent"] or 0) + (host[k..".bytes.rcvd"] or 0)
-    proto_stats["totalPctg"] = round((proto_stats["totalBytes"] * 100) / total, 2)
-    proto_stats["breakdown"] = round((proto_stats["bytesSent"] * 100) / (proto_stats["bytesSent"] + proto_stats["bytesRcvd"]), 0)
+    proto_stats["total_bytes"] = (host[k..".bytes.sent"] or 0) + (host[k..".bytes.rcvd"] or 0)
+    proto_stats["total_percentage"] = round((proto_stats["total_bytes"] * 100) / total, 2)
 
     if(areHostTimeseriesEnabled(ifId) and ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") and not timeseries_not_available then -- Check if the host timeseries are enabled
       proto_stats["historical"] = hostinfo2detailshref(host, {page = "historical", ts_schema = "host:l4protos", l4proto = k}, '<i class="fas fa-chart-area"></i>')
     end
 
-    if proto_stats["totalBytes"] > 0 then
+    if proto_stats["total_bytes"] > 0 then
       -- Add the stats only if greater then 0
       proto_info[#proto_info + 1] = proto_stats
     end
