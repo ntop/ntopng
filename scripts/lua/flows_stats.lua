@@ -79,8 +79,6 @@ local mini_title = i18n("flow_details.purge_time", { purge_time = ntop.getPref("
 if (page == "flows" or page == nil) then
    local active_msg = getFlowsTableTitle()
 
-   active_msg = active_msg .." <A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=".. tostring(appId).."\" title=\"".. i18n("host_details.hosts_using_proto", { proto = application }) .."\"><i class=\"fa-solid fa-timeline\" alt=></i></A>"
-   
    page_utils.print_page_title(active_msg, mini_title)
 
    if(category ~= nil) then
