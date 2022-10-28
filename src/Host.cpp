@@ -2060,7 +2060,8 @@ bool Host::triggerAlert(HostAlert *alert) {
 
   alert_type = alert->getAlertType();
 
-  if(isHostAlertDisabled(alert_type)) {
+  if(ntop->getPrefs()->dontEmitHostAlerts() /* all host alerts disabled */ || 
+     isHostAlertDisabled(alert_type) /* alerts disabled for this host and type */) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding disabled alert");
 #endif

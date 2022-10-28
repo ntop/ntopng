@@ -58,7 +58,9 @@ void HostChecksExecutor::releaseAllDisabledAlerts(Host *h) {
 
     if (!cb) { /* check disabled, check engaged alerts with auto release */
       HostAlert *alert = h->getCheckEngagedAlert(t);
-      if (alert && alert->hasAutoRelease())
+      if (alert && 
+          (alert->hasAutoRelease() || 
+           ntop->getPrefs()->dontEmitHostAlerts() /* alerts disabled */))
         h->releaseAlert(alert);
     }
   }
@@ -73,8 +75,12 @@ void HostChecksExecutor::execChecks(Host *h) {
   /* Release (auto-release) alerts for disabled checks */
   releaseAllDisabledAlerts(h);
 
-  run_min_cbs = h->isTimeToRunMinChecks(now),
-    run_5min_cbs = h->isTimeToRun5MinChecks(now);
+  /* Disable checks execution when alerts are disabled - remove this to still run checks and just disable alerts */
+  if (ntop->getPrefs()->dontEmitHostAlerts())
+    return;
+
+  run_min_cbs = h->isTimeToRunMinChecks(now);
+  run_5min_cbs = h->isTimeToRun5MinChecks(now);
 
   /* Exec all enabled checks */
   for(std::list<HostCheck*>::iterator it = periodic_host_cb->begin(); it != periodic_host_cb->end(); ++it) {

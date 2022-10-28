@@ -403,7 +403,6 @@ class Prefs {
   inline u_int32_t get_alerted_host_max_idle()       const { return(local_host_max_idle); /* Treat all hosts as local */         };
   inline u_int32_t get_local_host_cache_duration()      { return(local_host_cache_duration);   };
   inline u_int32_t get_pkt_ifaces_flow_max_idle()       { return(pkt_ifaces_flow_max_idle);    };
-  inline bool  are_alerts_disabled()                    { return(disable_alerts);              };
   inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
   inline bool  flow_table_duration_or_last_seen()       { return(flow_table_time);     };
   inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };
@@ -464,8 +463,9 @@ class Prefs {
   inline u_int64_t*  getIEC104AllowedTypeIDs()   { return(iec104_allowed_typeids);                      };
   inline u_int32_t   getIEC60870LearingPeriod()  { return(iec60870_learning_period);                    };
   inline u_int32_t   devicesLearingPeriod()      { return(devices_learning_period);                     };
-  inline bool        dontEmitFlowAlerts()        { return(!emit_flow_alerts);                           };
-  inline bool        dontEmitHostAlerts()        { return(!emit_host_alerts);                           };
+  inline bool        are_alerts_disabled()       { return(disable_alerts);                              };
+  inline bool        dontEmitFlowAlerts()        { return(disable_alerts || !emit_flow_alerts);         };
+  inline bool        dontEmitHostAlerts()        { return(disable_alerts || !emit_host_alerts);         };
   inline void        dontUseClickHouse()         { dump_flows_on_clickhouse = dump_flows_on_mysql = false; };
   inline char*       getZMQPublishEventsURL()    { return(zmq_publish_events_url);                      };
   inline const char* getClickHouseClientPath()   { return(clickhouse_client);                           };
