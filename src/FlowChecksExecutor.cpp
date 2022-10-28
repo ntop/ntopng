@@ -57,10 +57,6 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
   u_int64_t t1, t2;
 #endif
 
-  /* Disable checks execution when alerts are disabled - remove this to still run checks and just disable alerts */
-  if (ntop->getPrefs()->dontEmitFlowAlerts())
-    return NULL;
-
   switch (c) {
     case flow_check_protocol_detected:
       checks = protocol_detected;

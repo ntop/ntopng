@@ -75,10 +75,6 @@ void HostChecksExecutor::execChecks(Host *h) {
   /* Release (auto-release) alerts for disabled checks */
   releaseAllDisabledAlerts(h);
 
-  /* Disable checks execution when alerts are disabled - remove this to still run checks and just disable alerts */
-  if (ntop->getPrefs()->dontEmitHostAlerts())
-    return;
-
   run_min_cbs = h->isTimeToRunMinChecks(now);
   run_5min_cbs = h->isTimeToRun5MinChecks(now);
 
