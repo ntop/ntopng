@@ -27,21 +27,24 @@
 class HostPorts {
  private:
   /* Used for both TCP and UDP */
-  ndpi_bitmap *host_server_ports, *contacted_ports;
+  std::unordered_map<u_int16_t, ndpi_protocol> udp_host_server_ports, tcp_host_server_ports;
+  std::unordered_map<u_int16_t, ndpi_protocol> udp_client_contacted_ports, tcp_client_contacted_ports;
 
-  void setLuaArray(lua_State *vm, ndpi_bitmap *ports, const char *label);
-  
+  void setLuaArray(lua_State *vm, NetworkInterface *iface, bool isTCP,
+		   std::unordered_map<u_int16_t, ndpi_protocol> *ports);
+
  public:
   HostPorts();
   ~HostPorts();
 
   void reset();
-  
-  void lua(lua_State *vm);
 
-  void setServerPort(bool isTCP, u_int16_t port);
-  void setContactedPort(bool isTCP, u_int16_t port);  
-  inline ndpi_bitmap* getServerPorts() { return(host_server_ports); }
+  void lua(lua_State *vm, NetworkInterface *iface);
+
+  void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto);
+  void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto);
+
+  std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(isTCP ? &tcp_host_server_ports : &udp_host_server_ports); }
 };
 
 #endif /* _HOST_PORTS_H_ */

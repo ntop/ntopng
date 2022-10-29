@@ -24,56 +24,67 @@
 /* *************************************** */
 
 HostPorts::HostPorts() {
-  host_server_ports = ndpi_bitmap_alloc(), contacted_ports = ndpi_bitmap_alloc();
+  ;
 }
 
 /* *************************************** */
 
 HostPorts::~HostPorts() {
-  if(host_server_ports) ndpi_bitmap_free(host_server_ports);
-  if(contacted_ports)   ndpi_bitmap_free(contacted_ports);
+  ;
 }
 
 /* *************************************** */
 
 void HostPorts::reset() {
-  if(host_server_ports) ndpi_bitmap_clear(host_server_ports);
-  if(contacted_ports)   ndpi_bitmap_clear(contacted_ports);
+  udp_host_server_ports.clear(), tcp_host_server_ports.clear();
+  udp_client_contacted_ports.clear(), tcp_client_contacted_ports.clear();
 }
 
 /* *************************************** */
 
-void HostPorts::setLuaArray(lua_State *vm, ndpi_bitmap *ports, const char *label) {
+void HostPorts::setLuaArray(lua_State *vm, NetworkInterface *iface,
+			    bool isTCP, std::unordered_map<u_int16_t, ndpi_protocol> *ports) {
   if(ports) {
-    ndpi_bitmap_iterator *i = ndpi_bitmap_iterator_alloc(ports);
-
-    if(i) {
-      u_int32_t port, index = 1;
+    std::unordered_map<u_int16_t, ndpi_protocol>::iterator it;
+    
+    for(it = ports->begin(); it != ports->end(); ++it) {
+      char str[32], buf[64];
       
-      lua_createtable(vm, ndpi_bitmap_cardinality(ports), 0);
-
-      while(ndpi_bitmap_iterator_next(i, &port)) {
-	lua_pushinteger(vm, port);
-	lua_rawseti(vm, -2, index++);
-      }
-      
-      ndpi_bitmap_iterator_free(i);
-				
-      lua_pushstring(vm, label);
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
+      snprintf(str, sizeof(str), "%s:%u", isTCP ? "tcp" : "udp", it->first);
+      lua_push_str_table_entry(vm, str, ndpi_protocol2name(iface->get_ndpi_struct(), it->second, buf, sizeof(buf)));
     }
   }
 }
 
 /* *************************************** */
 
-void HostPorts::lua(lua_State *vm) {
+void HostPorts::lua(lua_State *vm, NetworkInterface *iface) {
   lua_newtable(vm);
 
-  setLuaArray(vm, host_server_ports, "local_server_ports");
-  setLuaArray(vm, contacted_ports, "remote_contacted_ports");
-  
+  lua_newtable(vm);
+
+  /* ***************************** */
+
+  setLuaArray(vm, iface, true,  &tcp_host_server_ports);
+  setLuaArray(vm, iface, false, &udp_host_server_ports);
+
+  lua_pushstring(vm, "local_server_ports");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  /* ***************************** */
+
+  lua_newtable(vm);
+
+  setLuaArray(vm, iface, true,  &tcp_client_contacted_ports);
+  setLuaArray(vm, iface, false, &udp_client_contacted_ports);
+
+  lua_pushstring(vm, "remote_contacted_ports");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  /* ***************************** */
+
   lua_pushstring(vm, "used_ports");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -81,12 +92,18 @@ void HostPorts::lua(lua_State *vm) {
 
 /* *************************************** */
 
-void HostPorts::setServerPort(bool isTCP /* ignored */, u_int16_t port) {
-  if(host_server_ports) ndpi_bitmap_set(host_server_ports, port);
+void HostPorts::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
+  if(isTCP)
+    tcp_host_server_ports[port] = *proto;
+  else
+    udp_host_server_ports[port] = *proto;
 }
 
 /* *************************************** */
 
-void HostPorts::setContactedPort(bool isTCP /* ignored */, u_int16_t port) {
-  if(contacted_ports) ndpi_bitmap_set(contacted_ports, port);
+void HostPorts::setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
+  if(isTCP)
+    tcp_client_contacted_ports[port] = *proto;
+  else
+    udp_client_contacted_ports[port] = *proto;
 }

@@ -141,15 +141,6 @@ Flow::Flow(NetworkInterface *_iface,
 	lh->setRouterMac(_srv_mac);
       }
     }
-
-    if(cli_host->isLocalHost()) {
-      switch(protocol) {
-      case IPPROTO_TCP:
-      case IPPROTO_UDP:
-	cli_host->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port));
-	break;
-      }
-    }
   } else {
     /* Client host has not been allocated, let's keep the info in an IpAddress */
 
@@ -1133,8 +1124,10 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
 
 /* *************************************** */
 
-/* Called to update the flow protocol and possibly advance the flow to
- * the protocol_detected state. */
+/*
+ * Called to update the flow protocol and possibly advance the flow to
+ * the protocol_detected state. 
+ */
 void Flow::setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_len) {
   if(detection_completed)
     return;
@@ -1149,6 +1142,15 @@ void Flow::setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_le
 
   detection_completed = 1;
 
+  if(cli_host && srv_host) {
+    /*
+      Hosts are NULL for view interfaces and thus they are updated
+      in Flow::hosts_periodic_stats_update()
+    */
+    updateServerPortsStats(srv_host, &ndpiDetectedProtocol);
+    updateClientContactedPorts(cli_host, &ndpiDetectedProtocol);
+  }
+  
 #ifdef BLACKLISTED_FLOWS_DEBUG
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE) {
     char buf[512];
@@ -1524,10 +1526,13 @@ void Flow::incFlowDroppedCounters() {
  *
  * const is *required* here as the flow must not be modified (as it could go in concuncurrency
  * with the subinterfaces). */
+
+
 void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host,
 				       PartializableFlowTrafficStats *partial,
 				       bool first_partial, const struct timeval *tv) {
-  update_pools_stats(iface, cli_host, srv_host, tv, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
+  update_pools_stats(iface, cli_host, srv_host, tv,
+		     partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
 		     partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
 
   if(cli_host && srv_host) {
@@ -1538,6 +1543,9 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     int16_t srv_network_id = srv_host->get_local_network_id();
     int16_t stats_protocol = getStatsProtocol(); /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
     NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
+
+    updateServerPortsStats(srv_host, &ndpiDetectedProtocol);
+    updateClientContactedPorts(cli_host, &ndpiDetectedProtocol);
 
     if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
       cli_and_srv_in_same_subnet = true;
@@ -3904,6 +3912,68 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
 
 /* *************************************** */
 
+/* Update server -> client in case no traffic was already observed on the server side */
+
+void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto) {
+  /*
+    NOTE use the method parameter 'server' instead of
+    srv_host as with view interfaces it can be invalid
+  */
+
+  if(get_bytes_srv2cli() == 0) return;
+  
+  if(server
+     && server->isLocalHost()
+     // && (get_bytes_srv2cli() == 0)
+     ) {
+    switch(protocol) {
+    case IPPROTO_TCP:
+      if((src2dst_tcp_flags & TH_SYN) == TH_SYN)
+	server->setServerPort(true, ntohs(srv_port), proto);
+      break;
+      
+    case IPPROTO_UDP:
+      {
+	u_int16_t c_port = ntohs(cli_port);
+	u_int16_t s_port = ntohs(srv_port);
+
+	if(c_port > s_port) /* minimal check, to improve */
+	  server->setServerPort(false, s_port, proto);      
+	break;
+      }
+    }
+  }
+}
+
+/* *************************************** */
+
+void Flow::updateClientContactedPorts(Host *client, ndpi_protocol *proto) {
+  /*
+    NOTE use the method parameter 'client' instead of
+    cli_host as with view interfaces it can be invalid
+  */
+
+  if(client->isLocalHost()) {
+    switch(protocol) {
+    case IPPROTO_TCP:
+      if((src2dst_tcp_flags & TH_SYN) == TH_SYN)
+	client->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port), proto);
+      break;
+
+    case IPPROTO_UDP:
+      {
+	u_int16_t c_port = ntohs(cli_port);
+	u_int16_t s_port = ntohs(srv_port);
+
+	if(c_port > s_port) /* minimal check, to improve */
+	  client->setContactedPort(false, s_port, proto);
+      }
+      break;
+    }
+  }
+}
+/* *************************************** */
+
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int8_t *payload, u_int payload_len,
                     u_int8_t l4_proto, u_int8_t is_fragment,
@@ -3911,19 +3981,6 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int16_t fragment_extra_overhead) {
   bool update_iat = true;
 
-  /* Updated server -> client in case no traffic was already observed on the server side */
-  if(srv_host
-     && srv_host->isLocalHost()
-     && (cli2srv_direction == false)
-     && (get_bytes_srv2cli() == 0)) {
-    switch(protocol) {
-    case IPPROTO_TCP:
-    case IPPROTO_UDP:
-      srv_host->setServerPort((protocol == IPPROTO_TCP), ntohs(srv_port));
-      break;
-    }
-  }
-  
   payload_len *= iface->getScalingFactor();
   updateSeen();
 
@@ -4018,18 +4075,6 @@ void Flow::addFlowStats(bool new_flow,
   updateSeen(last_seen);
   callFlowUpdate(last_seen);
 
-  if(srv_host
-     && srv_host->isLocalHost()
-     && (get_bytes_srv2cli() == 0)
-     && (out_bytes > 0)) {
-    switch(protocol) {
-    case IPPROTO_TCP:
-    case IPPROTO_UDP:
-      srv_host->setServerPort((protocol == IPPROTO_TCP), ntohs(srv_port));
-      break;
-    }
-  }
-  
   if(cli2srv_direction) {
     stats.incStats(true, in_pkts, in_bytes, in_goodput_bytes);
     stats.incStats(false, out_pkts, out_bytes, out_goodput_bytes);
@@ -4121,6 +4166,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
     cli_host->incFlagStats(src2dst_direction, flags, cumulative_flags);
     cli_network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
   }
+  
   if(srv_host) {
     srv_host->incFlagStats(!src2dst_direction, flags, cumulative_flags);
     srv_network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());

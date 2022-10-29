@@ -608,10 +608,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline void incUnidirectionalIngressFlows() { unidirectionalTCPFlows.numIngressFlows++; }
   inline void incUnidirectionalEgressFlows()  { unidirectionalTCPFlows.numEgressFlows++;  }
 
-  virtual void setServerPort(bool isTCP, u_int16_t port)    { ; };
-  virtual void setContactedPort(bool isTCP, u_int16_t port) { ; };
+  virtual void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { ; };
+  virtual void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { ; };
   virtual void luaUsedPorts(lua_State* vm) { ; }
-  virtual ndpi_bitmap* getServerPorts()    { return(NULL); }
+  virtual std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(NULL); }
 };
 
 #endif /* _HOST_H_ */

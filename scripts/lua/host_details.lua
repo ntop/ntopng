@@ -112,7 +112,9 @@ local function printPorts(ports)
       print(i18n("none"))
    else
       for k,v in pairs(ports) do
-	 print('<A HREF="/lua/flows_stats.lua?port='..v..'"><span class="badge bg-secondary">'.. v .."</span></A> ")
+	 local res = split(k, ":")
+	 
+	 print('<A HREF="/lua/flows_stats.lua?port='..res[2]..'"><span class="badge bg-secondary">'.. k.. " (" .. v ..")" .."</span></A> ")
       end
    end
 end

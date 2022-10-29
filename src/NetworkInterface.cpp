@@ -3753,22 +3753,27 @@ void NetworkInterface::refreshHostPools() {
 static bool count_open_server_ports(GenericHashEntry *node, void *user_data, bool *matched) {
   Host *h = (Host*)node;
   std::unordered_map<u_int16_t /* port */, u_int32_t /* count */> *count = (std::unordered_map<u_int16_t,u_int32_t>*)user_data;
-  ndpi_bitmap* ports = h->getServerPorts();
-  ndpi_bitmap_iterator *i = ndpi_bitmap_iterator_alloc(ports);
+  std::unordered_map<u_int16_t, ndpi_protocol>::iterator it;
 
-  if(i) {
-    u_int32_t port;
+  for(u_int i=0; i<2; i++) {
+    std::unordered_map<u_int16_t, ndpi_protocol>* ports;
 
-    while(ndpi_bitmap_iterator_next(i, &port)) {
-      std::unordered_map<u_int16_t,u_int32_t>::iterator it = count->find(port);
+    if(i == 0)
+      ports = h->getServerPorts(true);
+    else
+      ports = h->getServerPorts(false);
 
-      if(it == count->end())
-	(*count)[port] = 1;
-      else
-	(*count)[port] = (*count)[port] + 1;
+    if(ports) {
+      for(it = ports->begin(); it != ports->end(); ++it) {
+	u_int16_t port = it->first;
+	std::unordered_map<u_int16_t,u_int32_t>::iterator it1 = count->find(port);
+
+	if(it1 == count->end())
+	  (*count)[port] = 1;
+	else
+	  (*count)[port] = (*count)[port] + 1;
+      }
     }
-
-    ndpi_bitmap_iterator_free(i);
   }
 
   *matched = true;

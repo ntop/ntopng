@@ -294,7 +294,9 @@ class Flow : public GenericHashEntry {
   void setNormalToAlertedCounters();
   /* Decreases scores on both client and server hosts when the flow is being destructed */
   void decAllFlowScores();
-
+  void updateServerPortsStats(Host *server_host, ndpi_protocol *proto);
+  void updateClientContactedPorts(Host *client, ndpi_protocol *proto);
+  
  public:
   Flow(NetworkInterface *_iface,
        VLANid _vlanId, u_int16_t _observation_point_id,

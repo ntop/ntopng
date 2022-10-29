@@ -117,10 +117,10 @@ class LocalHost : public Host, public SerializableElement {
 
   void setRouterMac(Mac *gw);
   
-  inline void setServerPort(bool isTCP, u_int16_t port)    { usedPorts.setServerPort(isTCP, port);    };
-  inline void setContactedPort(bool isTCP, u_int16_t port) { usedPorts.setContactedPort(isTCP, port); };
-  virtual void luaUsedPorts(lua_State* vm)                 { usedPorts.lua(vm); }
-  virtual ndpi_bitmap* getServerPorts()                    { return(usedPorts.getServerPorts()); }
+  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
+  inline void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { usedPorts.setContactedPort(isTCP, port, proto); };
+  virtual void luaUsedPorts(lua_State* vm)                                       { usedPorts.lua(vm, iface);                       };
+  virtual std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(usedPorts.getServerPorts(isTCP));      };
 };
 
 #endif /* _LOCAL_HOST_H_ */
