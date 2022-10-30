@@ -109,13 +109,31 @@ end
 
 local function printPorts(ports)
    if(table.len(ports) == 0) then
-      print(i18n("none"))
+      print("<td colspan=2>"..i18n("none").."</td></tr>")
    else
+      local udp = {}
+      local tcp = {}
+      print("<th>TCP</th><th>UDP</th></tr>\n")
+
       for k,v in pairs(ports) do
 	 local res = split(k, ":")
-	 
-	 print('<A HREF="/lua/flows_stats.lua?port='..res[2]..'"><span class="badge bg-secondary">'.. k.. " (" .. v ..")" .."</span></A> ")
+
+         if(res[1] == "udp") then
+  	   udp[tonumber(res[2])	] = v
+         else
+	   tcp[tonumber(res[2])] = v
+	 end
       end
+
+      print("<tr><td valign=top><ul>")
+      for port,proto in pairsByKeys(udp) do
+  	   print('<li><A HREF="/lua/flows_stats.lua?port='..port..'"><span class="badge bg-secondary">'.. port.. " (" .. proto ..")" .."</span></A></li>\n")
+      end
+      print("</ul></td><td valign=top><ul>")
+      for port,proto in pairsByKeys(tcp) do
+  	   print('<li><A HREF="/lua/flows_stats.lua?port='..port..'"><span class="badge bg-secondary">'.. port.. " (" .. proto ..")" .."</span></A></li>\n")
+      end
+      print("</td></tr>\n")
    end
 end
 
@@ -1131,13 +1149,15 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
       print('<table class="table table-bordered table-striped">\n')
 
       if(host.used_ports ~= nil) then
-	 print('<tr><th class="text-start">'..i18n("ports_page.active_server_ports")..'</th><td>')
+         local len
+	 if(table.len(host.used_ports.local_server_ports) == 0) then len = "" else len = "rowspan=2" end
+      
+	 print('\n<tr><th class="text-start" '..len..'>'..i18n("ports_page.active_server_ports")..'</th>')
 	 printPorts(host.used_ports.local_server_ports)
-	 print('</td></tr>')
-	 
-	 print('<tr><th class="text-start">'..i18n("ports_page.client_contacted_server_ports")..'</th><td>')
+
+	 if(table.len(host.used_ports.remote_contacted_ports) == 0) then len = "" else len = "rowspan=2" end
+	 print('\n<tr><th class="text-start" '..len..'>'..i18n("ports_page.client_contacted_server_ports")..'</th>')
 	 printPorts(host.used_ports.remote_contacted_ports)
-	 print('</td></tr>')
       end
       
       print('<tr><th class="text-start">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
