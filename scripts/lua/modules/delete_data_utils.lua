@@ -98,11 +98,32 @@ end
 
 local function delete_host_mysql_flows(interface_id, host_info)
    local status = "OK"
+   local addr = host_info["host"]
+   local vlan = host_info["vlan"] or 0
+   local q
 
-   if ntop.getPrefs()["is_dump_flows_to_mysql_enabled"] then
-      local addr = host_info["host"]
-      local vlan = host_info["vlan"] or 0
-      local q
+   if ntop.isClickHouseEnabled() then
+      local historical_flow_utils = require "historical_flow_utils"
+ 
+      local where_clause
+
+      if isIPv4(addr) then
+         where_clause = string.format("(IPV4_SRC_ADDR = ('%s') OR IPV4_DST_ADDR = ('%s')) AND VLAN_ID = %u AND INTERFACE_ID = %d",
+            addr, addr, vlan, interface_id)
+      else
+         where_clause = string.format("(IPV6_SRC_ADDR = ('%s') OR IPV6_DST_ADDR = ('%s')) AND VLAN_ID = %u AND INTERFACE_ID = %d",
+            addr, addr, vlan, interface_id)
+      end
+
+      where_clause = historical_flow_utils.fixWhereTypes(where_clause)
+
+      q = string.format("ALTER TABLE `flows` DELETE WHERE %s", where_clause)
+
+      if not dry_run and q then
+         interface.execSQLQuery(q)
+      end
+
+   elseif ntop.getPrefs()["is_dump_flows_to_mysql_enabled"] then
 
       if isIPv4(addr) then
          q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = INET_ATON('%s') OR IP_DST_ADDR = INET_ATON('%s')) AND VLAN_ID = %u and INTERFACE_ID = %d",
@@ -113,7 +134,7 @@ local function delete_host_mysql_flows(interface_id, host_info)
       end
 
       if not dry_run and q then
-	 interface.execSQLQuery(q)
+         interface.execSQLQuery(q)
       end
    end
 
