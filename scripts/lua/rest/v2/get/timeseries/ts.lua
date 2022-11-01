@@ -4,7 +4,7 @@
 
 --
 -- Example of REST call
--- 
+--
 -- curl -u admin:admin -X POST -d '{"ts_schema":"host:traffic", "ts_query": "ifid:3,host:192.168.1.98", "epoch_begin": "1532180495", "epoch_end": "1548839346"}' -H "Content-Type: application/json" "http://127.0.0.1:3000/lua/rest/get/timeseries/ts.lua"
 --
 
@@ -61,9 +61,18 @@ if _GET["tskey"] then
     local host = hostkey2hostinfo(tags.host)
     if not isEmptyString(host["host"]) then
       local host_info = interface.getHostInfo(host["host"], host["vlan"])
-      local mac_info = split(tskey, "_")
-      if (host_info) and (host_info.mac == mac_info[1]) then
-         tags.host_ip = tags.host;
+
+      if(host_info ~= nil) then
+         local mac_info = split(tskey, "_")
+
+	 if(host_info.name ~= nil) then
+	   -- Add the symbolic host name (if present)
+	   tags.label = host_info.name
+	 end
+
+         if(host_info.mac == mac_info[1]) then
+           tags.host_ip = tags.host;
+	 end
       end
     end
   end
@@ -131,11 +140,11 @@ if starts(ts_schema, "custom:") and graph_utils.performCustomQuery then
 else
   res = performQuery(tstart, tend) or {}
 
-  -- if Mac address ts is requested, check if the serialize by mac is enabled and if no data is found, use the host timeseries. 
+  -- if Mac address ts is requested, check if the serialize by mac is enabled and if no data is found, use the host timeseries.
   if (table.len(res) == 0) or (res.statistics) and (res.statistics.total == 0) then
     local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. tags.ifid .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
     local tmp = split(ts_schema, ":")
-    
+
     if (serialize_by_mac) and (tags.mac) then
       ts_schema = "host:" .. tmp[2]
       tags.host = tags.mac .. "_v4"
