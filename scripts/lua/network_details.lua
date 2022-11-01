@@ -54,7 +54,7 @@ end
 Create Menu Bar with buttons
 --]]
 local nav_url = ntop.getHttpPrefix().."/lua/network_details.lua?network="..tonumber(network_id)
-local title = i18n("network_details.network") .. ": "..network_name
+local title = i18n("network_details.network") .. ": "..custom_name
 
 page_utils.print_navbar(title, nav_url,
 			{
