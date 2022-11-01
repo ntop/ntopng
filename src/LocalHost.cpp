@@ -368,9 +368,11 @@ void LocalHost::lua_peers_stats(lua_State* vm) const {
 
 /* *************************************** */
 
-/* Optimized method to fetch timeseries data for the host. Only returns
+/*
+ *Optimized method to fetch timeseries data for the host. Only returns
  * the ::Lua of the needed fields. Moreover, some fields are represented
- * in a compact way to speedup insertion and lookup (e.g. nDPIStats::lua with tsLua) */
+ * in a compact way to speedup insertion and lookup (e.g. nDPIStats::lua with tsLua)
+ */
 void LocalHost::lua_get_timeseries(lua_State* vm) {
   char buf_id[64], *host_id;
 
