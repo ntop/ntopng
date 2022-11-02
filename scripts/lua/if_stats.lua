@@ -83,7 +83,9 @@ local service_map_available = false
 local periodicity_map_available = false
 service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
 
-local disaggregation_criterion_key = "ntopng.prefs.dynamic_sub_interfaces.ifid_"..tostring(ifid)..".mode"
+local disaggregation_criterion_key  = "ntopng.prefs.dynamic_sub_interfaces.ifid_"..tostring(ifid)..".mode"
+local host_threshold_rules_key = "ntopng.prefs.ifid_"..tostring(ifid)..".host_threshold_rules"
+
 local charts_available = areInterfaceTimeseriesEnabled(ifid)
 
 function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_class, measure_unit)
@@ -227,6 +229,14 @@ if _SERVER["REQUEST_METHOD"] == "POST" and _POST["disaggregation_criterion"] ~= 
       ntop.delCache(disaggregation_criterion_key)
    else
       ntop.setCache(disaggregation_criterion_key, _POST["disaggregation_criterion"])
+   end
+end
+
+if _SERVER["REQUEST_METHOD"] == "POST" and _POST["host_threshold_rules"] ~= nil then
+   if _POST["host_threshold_rules"] == "none" then
+      ntop.delCache(host_threshold_rules_key)
+   else
+      ntop.setCache(host_threshold_rules_key, _POST["host_threshold_rules"])
    end
 end
 
@@ -2103,8 +2113,13 @@ function toggle_mirrored_traffic_function_off(){
 
    end
 
-      print[[
-   </table>
+      -- JSON Host Rules
+      print('<tr><th width="30%">'.. i18n("if_stats_config.host_threshold_rules") ..'</th><td><textarea name="host_threshold_rules" rows="8" cols="80">')
+      print(ntop.getCache(host_threshold_rules_key))
+      print("</textarea></td></tr>")
+
+print[[
+</table>
    <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
    </form>
    <script>

@@ -2262,7 +2262,8 @@ local known_parameters = {
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },
    ["JSON"]                    = { jsonCleanup, validateJSON },
-
+   ["host_threshold_rules"]    = { jsonCleanup, validateJSON },
+   
    -- POST pcap
    ["pcap"]                    = validatePcap,
    ["uploaded_file"]           = validateUploadedFile,

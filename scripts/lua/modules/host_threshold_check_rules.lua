@@ -10,20 +10,11 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-local ts_utils = require "ts_utils_core"
+local ts_utils = require "ts_utils"
 local callback_utils = require "callback_utils"
 local json = require "dkjson"
 
 local host_threshold_check_rules = {}
-
--- ########################################################
-
-local function read_file(path)
-   local f = assert(io.open(path, "rb"))
-   local content = f:read("*all")
-   f:close()
-   return content
-end
 
 -- ########################################################
 
@@ -57,7 +48,7 @@ local function host_l7_ts(ifid, hostkey, l7_proto, start_time, end_time)
    }
 
    local data = ts_utils.query(schema, tags, start_time, end_time)
-
+   
    return(sum_series(data))
 end
 
@@ -85,7 +76,7 @@ end
 
 local function eval_metric(metric, ifid, hostname, start_time, end_time)
    local tot = 0
-
+  
    if(metric == "bytes") then
       tot = host_bytes(ifid, hostname, start_time, end_time)
    elseif(metric == "score") then
@@ -94,6 +85,8 @@ local function eval_metric(metric, ifid, hostname, start_time, end_time)
       tot = host_l7_ts(ifid, hostname, metric, start_time, end_time)
    end
 
+   -- tprint(ifid .."/".. hostname  .."/".. metric  .."/".. start_time .."/".. end_time .."/".. tot)
+   
    return(tot)
 end
 
@@ -101,14 +94,14 @@ end
 
 -- function called when threshold is crossed
 local function trigger_alert_error(if_name, ifid, hostname, value, threshold, rule, start_time, end_time)
-   print("<li>"..hostname.." = ".. value .. " [".. rule.metric .."] <b><font color=red>ALERT</font></b><br>\n")
+   print(hostname.." = ".. value .. " [".. rule.metric .."] ALERT\n") -- FIXME
 end
 
 -- ########################################################
 
 -- function called when threshold is not crossed (OK)
 local function trigger_alert_ok(if_name, ifid, hostname, value, threshold, rule, start_time, end_time)
-   print("<li>"..hostname.." = ".. value .. " [".. rule.metric .."] <b><font color=green>OK</font></b><br>\n")
+   print(hostname.." = ".. value .. " [".. rule.metric .."] OK\n") -- FIXME
 end
 
 -- ########################################################
@@ -154,7 +147,8 @@ local function interpret_rule(if_name, ifid, frequency, r)
 						   else
 						      trigger_alert_ok(if_name, ifid, hostname, tot, threshold, r, start_time, end_time)
 
-						end						end
+						   end
+						  end
       )
    else
       local hostname = r.target
@@ -172,11 +166,16 @@ end
 
 -- ########################################################
 
-function host_threshold_check_rules.check_threshold_rules(if_name, ifid, frequency, path)
+function host_threshold_check_rules.check_threshold_rules(if_name, ifid, frequency)
    local num = 1
-   local rules = read_file(path)
+   local key = "ntopng.prefs.ifid_"..ifid..".host_threshold_rules"
+   local rules = ntop.getCache(key)
 
-   rules = json.decode(rules)
+   if((rules == nil) or (rules == "")) then
+      return
+   else
+      rules = json.decode(rules)
+   end
 
    for _,rule in ipairs(rules) do
       local rc = interpret_rule(if_name, ifid, frequency, rule)

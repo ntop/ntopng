@@ -3983,6 +3983,7 @@ local lang = {
     ["show_dyn_iface_traffic"] = "Duplicate Disaggregated Traffic",
     ["show_dyn_iface_traffic_note"] = "By enabling this option, traffic directed to dynamic or custom sub-interfaces is still shown in the master interface",
     ["trigger_interface_alerts"] = "Trigger Interface Alerts",
+    ["host_threshold_rules"] = "JSON Host Rules",
   },
   ["if_stats_networks"] = {
     ["no_broadcast_domains"] = "No broadcast domains inferred by inspecting ARP traffic.",
