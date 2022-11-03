@@ -3,13 +3,6 @@
     Base template for datatables.
 #}
 
-<!-- vue3 -->
-<!--
-<script src="{* ntop.getHttpPrefix() *}/vue/vue-prod.js"></script>
-<script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js"></script>
-<script src="{* ntop.getHttpPrefix() *}/vue/ntopng_vue_loader.js"></script>
--->
-
 <!-- defines base_path globals const-->
 <script type='text/javascript'>
   const base_path = '{* ntop.getHttpPrefix() *}';
