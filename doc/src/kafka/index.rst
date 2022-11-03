@@ -10,6 +10,9 @@ Kafka
    
 Below you can read mode about how to use Kafka with ntopng (and nProbe):
 
+.. toctree::
+    :maxdepth: 2
+
     export_flows
     collect_flows
     send_kafka_messages
