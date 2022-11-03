@@ -91,9 +91,7 @@ function loadDatatable() {
   let updated = false;
   /* Create a datatable with the buttons */
   let extend_config = {
-    dom: 't',
     serverSide: false,
-    deferRender: true,
     scrollX: true,
     destroy: true,
     searching: props.enable_search,

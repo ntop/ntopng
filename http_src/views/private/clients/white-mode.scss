@@ -779,26 +779,6 @@ li > a > .fa-external-link-alt{
   min-width: 10rem !important;
 }
 
-/* Using the unicode as content, fontawesome icons are not working */
-table.dataTable thead th.sorting::after {
-  color: #111111;
-  font-size: 1em;
-  padding-left: inherit;
-  opacity: 0.2;
-}
-
-table.dataTable thead th.sorting_asc::after {
-  content: '\25B4';
-  padding-left: inherit;
-  opacity: 1;
-}
-
-table.dataTable thead th.sorting_desc::after {
-  content: '\25BE';
-  padding-left: inherit;
-  opacity: 1;
-}
-
 .standard-color {
   color: #111111 !important;
 }
