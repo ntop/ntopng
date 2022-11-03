@@ -9,7 +9,7 @@ In addition of flow export and collection, you can use kafka from Lua scripts to
   - the string message to be delivered to the specified topic.
 
 Example
--------
+=======
 
 Below you can find some examples:
 

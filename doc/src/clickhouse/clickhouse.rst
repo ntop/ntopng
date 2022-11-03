@@ -17,7 +17,7 @@ Where
 - :code:`<pw>` Specifies the password that authenticates :code:`<user>`
 
 Example
--------
+=======
 
 To connect ntopng and ClickHouse, both running on the same machine, the following line can be used
 

@@ -17,9 +17,9 @@ Where
 
 
 Example
--------
+=======
 
 Below you can find some examples:
 
-  - Export flows to the topic ntopng_flows to a Kafka broker running on the same host where ntopng runs and listening on the default port (9092). Use: ::code:`kafka;127.0.0.1;ntopng_flows`.
-  - Export flows to brokers 127.0.0.1:7689, 192.168.1.20:9092 and 192.168.1.2:9091 and compress data (when talking to Kafka) using gzip. Use: ::code:`kafka;127.0.0.1:7689,192.168.1.20,192.168.1.2;ntopng_flows;compression.codec=gzip`.
+  - Export flows to the topic ntopng_flows to a Kafka broker running on the same host where ntopng runs and listening on the default port (9092). Use: :code:`kafka;127.0.0.1;ntopng_flows`.
+  - Export flows to brokers 127.0.0.1:7689, 192.168.1.20:9092 and 192.168.1.2:9091 and compress data (when talking to Kafka) using gzip. Use: :code:`kafka;127.0.0.1:7689,192.168.1.20,192.168.1.2;ntopng_flows;compression.codec=gzip`.
