@@ -118,11 +118,13 @@ local function printPorts(ports)
       for k,v in pairs(ports) do
 	 local res = split(k, ":")
 
+        if tonumber(res[2]) then
          if(res[1] == "udp") then
-  	   udp[tonumber(res[2])	] = v
+  	      udp[tonumber(res[2])	] = v
          else
-	   tcp[tonumber(res[2])] = v
-	 end
+	        tcp[tonumber(res[2])] = v
+         end
+	      end
       end
 
       print("<tr><td valign=top><ul>")
