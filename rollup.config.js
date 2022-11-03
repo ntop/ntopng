@@ -50,7 +50,7 @@ let buildFormat = {
         name: 'ntopng',
 	// globals: { vue: "Vue", },
 	// exports: "auto",
-	sourceMap: argv && argv.prod ? "inline" : false,
+	sourcemap: argv && argv.prod ? "inline" : false,
     },
     watch: {
 	chokidar: {
