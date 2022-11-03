@@ -22,7 +22,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    using_with_other_tools/index
    historical_flows
    clickhouse/index
-   kakfa/index
+   kafka/index
    advanced_features/index
    operating_ntopng_on_large_networks
    third_party_integrations/index
