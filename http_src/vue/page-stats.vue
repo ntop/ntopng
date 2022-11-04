@@ -30,7 +30,7 @@
 		      @select_option="change_groups_options_mode">
 	</SelectSearch>
       </div>
-      <button type="button" @click="show_manage_timeseries" class="btn btn-sm btn-primary inline" style='vertical-align: super;'>
+      <button type="button" @click="show_manage_timeseries" class="btn btn-sm btn-primary inline" style='vertical-align: super;' v-if="is_ntop_pro">
       	Manage Timeseries
       </button>
       
@@ -61,7 +61,7 @@
     </div>
   </div>
   
-  <div class="mt-4 card card-shadow" v-if="enable_table == true">
+  <div class="mt-4 card card-shadow" v-if="enable_table == true && is_ntop_pro">
     <div class="card-body">
       <div class="mb-4 text-nowrap" style="font-size: 1.1rem;">
         <i class="fa-solid fa-chart-line"></i> 	{{_i18n('page_stats.top_applications')}}
@@ -86,7 +86,7 @@
 	       @deleted_all_snapshots="refresh_snapshots">
 </ModalSnapshot>
 
-<ModalTimeseries
+<ModalTimeseries v-if="is_ntop_pro"
   ref="modal_timeseries"
   @apply="apply_modal_timeseries">
 </ModalTimeseries>
@@ -122,7 +122,7 @@ const props = defineProps({
     is_ntop_pro: Boolean,
     default_ifid: String,
     enable_snapshots: Boolean,
-    is_clickhouse_enabled: Boolean,
+    is_history_enabled: Boolean,
     traffic_extraction_permitted: Boolean,
 });
 
@@ -145,13 +145,8 @@ const metrics = ref([]);
 const selected_metric = ref({});
 
 const enable_table = function() {
-    let source_type = metricsManager.get_current_page_source_type();
-    if (source_type.value != "ifid" && 
-        source_type.value != "host") { 
-	return false; 
-    }
-    
-    return true;
+    let source_type = metricsManager.get_current_page_source_type();    
+    return source_type.table_value != null;
 }();
 
 /**
@@ -191,9 +186,6 @@ function set_default_ifid() {
 
 onBeforeMount(async () => {
     set_default_ifid();
-    let get_value = (key) => ntopng_url_manager.get_url_entry(key);
-    let ts_key = 
-    
     await load_datatable_data();
 });
 
@@ -242,7 +234,6 @@ async function get_metrics(push_custom_metric, force_refresh) {
       let snapshots_metrics = cache_snapshots;
       snapshots_metrics.forEach((sm) => metrics.push(sm));
     }
-
     /* Order Metrics */
     metrics.sort(NtopUtils.sortAlphabetically);
     
@@ -364,20 +355,23 @@ function change_groups_options_mode() {
     load_charts_data(last_timeseries_groups_loaded, true);
 }
 
-let ts_chart_options;
+let ts_charts_options;
 async function load_charts_data(timeseries_groups, not_reload) {
     let status = ntopng_status_manager.get_status();
     let ts_compare = get_ts_compare(status);
-    if (!not_reload) {	
-	ts_chart_options = await timeseriesUtils.getTsChartOptions(http_prefix, status, ts_compare, timeseries_groups, props.is_ntop_pro);
+    if (!not_reload) {
+	ts_charts_options = await timeseriesUtils.getTsChartsOptions(http_prefix, status, ts_compare, timeseries_groups, props.is_ntop_pro);
     }
-    console.log(ts_chart_options);
+    console.log(ts_charts_options);
     console.log(timeseries_groups);
+
+    // update timeseries_groups source label
+    set_timeseries_groups_source_label(timeseries_groups, ts_charts_options);
     
-    let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_chart_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
-    
+    let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_charts_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
+
     set_charts_options_items(charts_options);
-    set_stats_rows(ts_chart_options, timeseries_groups, status);
+    set_stats_rows(ts_charts_options, timeseries_groups, status);
     
     // set last_timeseries_groupd_loaded
     last_timeseries_groups_loaded = timeseries_groups;
@@ -385,6 +379,16 @@ async function load_charts_data(timeseries_groups, not_reload) {
     console.log(last_timeseries_groups_loaded);
     // update url params
     update_url_params();
+}
+
+function set_timeseries_groups_source_label(timeseries_groups, ts_charts_options) {    
+    timeseries_groups.forEach((ts_group, i) => {
+	let ts_options = ts_charts_options[i];
+	let label = ts_options?.query?.label;
+	if (label != null) {
+	    ts_group.source.label = label;
+	}
+    });
 }
 
 function update_url_params() {
@@ -453,7 +457,7 @@ async function get_datatable_url() {
 
 async function reload_table_data() {
     // NtopUtils.showOverlays();
-    if (enable_table == false) { return; }
+    if (enable_table == false || !is_ntop_pro) { return; }
     const url = await get_datatable_url();
     top_applications_table.value.update_url(url);
     top_applications_table.value.reload();
@@ -461,6 +465,7 @@ async function reload_table_data() {
 }
 
 async function load_datatable_data() {
+    if (enable_table == false || !props.is_ntop_pro) { return; } 
     const url = await get_datatable_url();
     set_table_configuration(url);
 };
@@ -493,8 +498,8 @@ function set_table_configuration(url) {
 	}
     ];  
     
-    /* If ClickHouse is enabled, then add an href to Historical Flows */
-    if(true) {
+    /* If history is enabled, then add an href to Historical Flows */
+    if(props.is_history_enabled) {
 	let handlerIdJumpHistorical = "page-stats-action-jump-historical";
 	columns.push({
 	    columnName: i18n("actions"),
@@ -556,14 +561,14 @@ let stats_columns = [
 
 const stats_rows = ref([]);
 
-function set_stats_rows(ts_chart_options, timeseries_groups, status) {
+function set_stats_rows(ts_charts_options, timeseries_groups, status) {
     let extend_serie_name = true;
     const f_get_total_formatter_type = (type) => {
 	if (type == "bps") { return "bytes_network"; }
 	return type;
     };    
     stats_rows.value = [];
-    ts_chart_options.forEach((options, i) => {
+    ts_charts_options.forEach((options, i) => {
 	let ts_group = timeseries_groups[i];
 	options.series.forEach((s, j) => {
 	    let ts_id = timeseriesUtils.getSerieId(s);

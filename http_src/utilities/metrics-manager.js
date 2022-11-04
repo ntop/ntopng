@@ -140,6 +140,7 @@ function get_timeseries(timeseries_url, metric) {
 
 const ui_types = {
     select: "select",
+    // input: "input",
     select_and_input: "select_and_input",
 };
 
@@ -150,17 +151,33 @@ const sources_types = [
 	value: "ifid",
 	ui_type: ui_types.select,
 	table_value: "interface",
+	query: "ifid",
     },
     {
 	label: "Host",
 	disable_url: true,
 	//sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	value: "host",
+	regex_type: "ip",
 	sources_sub_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	sub_value: "ifid",
 	sub_label: "Interface",
 	ui_type: ui_types.select_and_input,
 	table_value: "host",
+	query: "host",
+    },
+    {
+	label: "Mac",
+	disable_url: true,
+	//sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
+	value_url: "host",
+	value: "mac",
+	regex_type: "macAddress",
+	sources_sub_url: "lua/rest/v2/get/ntopng/interfaces.lua",
+	sub_value: "ifid",
+	sub_label: "Interface",
+	ui_type: ui_types.select_and_input,
+	query: "mac",
     },
 ];
 
@@ -246,17 +263,19 @@ const get_default_source_value = (source_type) => {
     if (source_type == null) {
 	source_type = get_current_page_source_type();
     }
-    return ntopng_url_manager.get_url_entry(source_type.value);
+    let source_type_value_url = source_type.value_url;
+    if (source_type_value_url == null) {
+	source_type_value_url = source_type.value;
+    }
+    return ntopng_url_manager.get_url_entry(source_type_value_url);
 };
 
 function get_metrics_url(http_prefix, source_type, source_value, source_sub_value) {
-    let params;
-    if (source_type.value == "ifid") {
-	params = `ifid=${source_value}`;
-    } else if (source_type.value == "host") {
-	params = `ifid=${source_sub_value}&host=${source_value}`;	
+    let params = `${source_type.value}=${source_value}`;
+    if (source_type.sub_value != null && source_sub_value != null) {
+	params = `${params}&${source_type.sub_value}=${source_sub_value}`;
     }
-    let url = `${http_prefix}/lua/rest/v2/get/timeseries/type/consts.lua?query=${source_type.value}&${params}`;
+    let url = `${http_prefix}/lua/rest/v2/get/timeseries/type/consts.lua?query=${source_type.query}&${params}`;
     return url;
 }
 
@@ -300,6 +319,8 @@ const get_current_page_source_type = () => {
 	return sources_types[0];
     } else if (/lua\/host_details/.test(pathname) == true) {
 	return sources_types[1];
+    } else if (/lua\/mac_details/.test(pathname) == true) {
+	return sources_types[2];
     }
     throw `source_type not found for ${pathname}`;
 };

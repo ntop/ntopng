@@ -65,8 +65,9 @@ function getSerieName(name, id, tsGroup, extendSeriesName) {
     if (extendSeriesName == false) {
 	return name;
     }
+    let prefix = `${tsGroup.source.label}`;
     let yaxisName = getYaxisName(tsGroup.metric.measure_unit, tsGroup.metric.scale);
-    return `${tsGroup.source.label} ${name} (${yaxisName})`;
+    return `${prefix} ${name} (${yaxisName})`;
 }
 
 function getAddSeriesNameSource(tsGrpupsArray) {
@@ -92,13 +93,15 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
     let seriesApex = [];
 
     let seriesKeys = Object.keys(tsGroup.metric.timeseries);
-    if (tsOptions.series?.length != seriesKeys.length) {
-	tsOptions.series = seriesKeys.map((sk) => {
+    if (tsOptions.series?.length != seriesKeys.length) {	
+	tsOptions.series = seriesKeys.map((sk, i) => {
+	    let serie = tsOptions.series.find((s) => getSerieId(s) == sk);
+	    if (serie != null) { return serie; }
 	    return {
 		label: sk,
 		data: [null],
-	    }
-	})	
+	    };
+	});
     }
     tsOptions.series.forEach((s, i) => {
 	// extract id
@@ -507,12 +510,14 @@ function getTsQuery(tsGroup) {
     return tsQuery;
 }
 
-async function getTsChartOptions(httpPrefix, epochStatus, tsCompare, timeseriesGroups, isPro) {
-    let chartDataUrl = `${httpPrefix}/lua/rest/v2/get/timeseries/ts.lua`;
-    let paramsUrlRequest = `ts_compare=${tsCompare}&version=4&zoom=${tsCompare}&initial_point=true&limit=180`;
+async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseriesGroups, isPro) {
     let paramsEpochObj = { epoch_begin: epochStatus.epoch_begin, epoch_end: epochStatus.epoch_end };
-    
-    let tsResponsesPromises = timeseriesGroups.map((tsGroup) => {
+
+    let tsChartsOptions;
+    if (!isPro) {
+	let tsDataUrl = `${httpPrefix}/lua/rest/v2/get/timeseries/ts.lua`;
+	let paramsUrlRequest = `ts_compare=${tsCompare}&version=4&zoom=${tsCompare}&initial_point=true&limit=180`;
+	let tsGroup = timeseriesGroups[0];
 	let tsQuery = getTsQuery(tsGroup);
 	let pObj = {
 	    ...paramsEpochObj,
@@ -520,13 +525,37 @@ async function getTsChartOptions(httpPrefix, epochStatus, tsCompare, timeseriesG
 	    tskey: tsGroup.source.value,
 	    ts_schema: `${tsGroup.metric.schema}`,
 	};
-	
 	let pUrlRequest =  ntopng_url_manager.add_obj_to_url(pObj, paramsUrlRequest);
-	let url = `${chartDataUrl}?${pUrlRequest}`;
-	return ntopng_utility.http_request(url);
-    });
-    let tsChartOptions = await Promise.all(tsResponsesPromises);
-    return tsChartOptions;
+	let url = `${tsDataUrl}?${pUrlRequest}`;
+	let tsChartOption = await ntopng_utility.http_request(url);
+	tsChartsOptions = [tsChartOption];
+    } else {
+	let paramsChart = {
+		zoom: tsCompare,
+		initial_point: true,
+		limit: 180,
+		version: 4,
+		ts_compare: tsCompare,
+	};
+	let tsRequests = timeseriesGroups.map((tsGroup) => {
+	    let tsQuery = getTsQuery(tsGroup);
+	    let pObj = {
+		...paramsEpochObj,
+		...paramsChart,
+		ts_query: tsQuery,
+		tskey: tsGroup.source.value,
+		ts_schema: `${tsGroup.metric.schema}`,
+	    };
+	    return pObj;
+	});
+	let tsDataUrlMulti = `${httpPrefix}/lua/pro/rest/v2/get/timeseries/ts_multi.lua`;
+	let req = { ts_requests: tsRequests };
+	let headers = {
+            'Content-Type': 'application/json'
+	};
+	tsChartsOptions = await ntopng_utility.http_request(tsDataUrlMulti, { method: 'post', headers, body: JSON.stringify(req)});
+    }
+    return tsChartsOptions;
 }
 
 const timeseriesUtils = function() {
@@ -538,7 +567,7 @@ const timeseriesUtils = function() {
 	getGroupOptionMode,
 	getSerieId,
 	getSerieName,
-	getTsChartOptions,
+	getTsChartsOptions,
 	getTsQuery,
     };
 }();

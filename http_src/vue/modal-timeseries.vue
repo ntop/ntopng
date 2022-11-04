@@ -47,8 +47,22 @@
 	  </div>
 	</div>
       </template>
+
+      <!-- -->
+      <!-- <template v-if="selected_source_type.ui_type == ui_types.input"> -->
+      <!-- 	<div class="form-group ms-2 me-2 mt-3"> -->
+      <!-- 	  <div class="form-group row ms-1 me-1 mb-2"> -->
+      <!-- 	    <label class="col-form-label col-sm-4" > -->
+      <!--         <b>{{_i18n("modal_timeseries.source")}}</b> -->
+      <!-- 	    </label> -->
+      <!-- 	    <div class="col-sm-8" > -->
+      <!-- 	      <input class="form-control" v-model="source_text"  :pattern="source_text_validation" required type="text" placeholder="192.168.1.1"> -->
+      <!-- 	    </div> -->
+      <!-- 	  </div> -->
+      <!-- 	</div> -->
+      <!-- </template> -->
       
-      <!-- Host -->
+      <!-- Host, Mac -->
       <template v-if="selected_source_type.ui_type == ui_types.select_and_input">
 	<div class="form-group ms-2 me-2 mt-3">
 	  <div class="form-group row ms-1 me-1 mb-2">
@@ -78,7 +92,7 @@
               <b>{{ selected_source_type.label }}</b>
 	    </label>
 	    <div class="col-sm-6">
-	      <input class="form-control" v-model="source_text"  :pattern="source_text_validation" required type="text" placeholder="192.168.1.1">	      
+	      <input class="form-control" v-model="source_text"  :pattern="source_text_validation" required type="text" placeholder="">	      
 	    </div>
 	    <div class="col-sm-2" style="text-align:end !important;">
 	      <button type="button" :disabled="!is_source_text_valid"  @click="apply_source_text" class="btn btn-primary">{{_i18n("modal_timeseries.apply")}}</button>
@@ -165,7 +179,8 @@ const selected_source_text_warn = () => {
 const sub_sources = ref([]);
 const selected_sub_source = ref({});
 const source_text = ref("");
-const source_text_validation = ref(regexValidation.get_data_pattern("ip"));
+const regex_source = selected_source_type.value?.regex_type;
+const source_text_validation = ref(regexValidation.get_data_pattern(regex_source));
 const is_source_text_valid = computed(() => {
     let regex = new RegExp(source_text_validation.value);
     return regex.test(source_text.value);
@@ -222,6 +237,9 @@ async function apply_source_text() {
 }
 
 async function change_source_type() {
+    let regex_source = selected_source_type.value?.regex_type;
+    source_text_validation.value = regexValidation.get_data_pattern(regex_source);
+
     await set_sources();
     await set_metrics();
 }
@@ -322,7 +340,7 @@ const set_timeseries_groups = (timeseries_groups, emit_apply) => {
     if (emit_apply) {
 	emit('apply', timeseries_groups_added.value);
     }
-}
+};
 
 const add_ts_group = (ts_group_to_add, emit_apply) => {
     let ts_group_index = timeseries_groups_added.value.findIndex((ts_group) => ts_group.id == ts_group_to_add.id);
