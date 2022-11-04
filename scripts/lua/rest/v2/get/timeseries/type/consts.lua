@@ -28,5 +28,7 @@ if query == "ifid" then
   res = table.merge(res, timeseries_info.get_interface_timeseries(tags))
 elseif query == "host" then
   res = table.merge(res, timeseries_info.get_host_timeseries(tags))
+elseif query == "mac" then
+  res = table.merge(res, timeseries_info.get_mac_timeseries(tags))
 end
 rest_utils.answer(rc, res)

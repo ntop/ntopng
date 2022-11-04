@@ -114,6 +114,7 @@ local community_timeseries = {
   { schema = "host:udp_sent_unicast",         label = i18n("graphs.udp_sent_unicast_vs_non_unicast"), priority = 0, measure_unit = "bps", scale = 0, timeseries = { bytes_sent_unicast = { label = i18n('graphs.metric_labels.sent_uni'), color = timeseries_info.get_timeseries_color('bytes') },       bytes_sent_non_uni = { label = i18n('graphs.metric_labels.sent_non_uni'), color = timeseries_info.get_timeseries_color('bytes') }}},
   { schema = "host:dscp",                     label = i18n("graphs.dscp_classes"),              priority = 0, measure_unit = "bps",    scale = 0, timeseries = { bytes_sent         = { label = i18n('graphs.metric_labels.sent'),        color = timeseries_info.get_timeseries_color('bytes') },       bytes_rcvd      = { label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }}},
   { schema = "host:host_tcp_unidirectional_flows", label = i18n("graphs.unidirectional_tcp_flows"), priority = 0, measure_unit = "fps",scale = 0, timeseries = { flows_as_client         = { label = i18n('graphs.flows_as_client'),      color = timeseries_info.get_timeseries_color('flows') },  flows_as_server      = { label = i18n('graphs.flows_as_server'),    color = timeseries_info.get_timeseries_color('flows') }}},
+  { schema = "mac:traffic", label = i18n("traffic"), priority = 0, measure_unit = "bps", scale = 0, timeseries = { bytes_sent = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes_sent') }, bytes_rcvd = { invert_direction = true, label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes_rcvd') }}, default_visible = true },
 }
 
 -- #################################
@@ -249,6 +250,12 @@ end
 
 function timeseries_info.get_host_timeseries(tags)
   return retrieve_specific_timeseries(tags, 'host')
+end
+
+-- #################################
+
+function timeseries_info.get_mac_timeseries(tags)
+  return retrieve_specific_timeseries(tags, 'mac')
 end
 
 -- #################################
