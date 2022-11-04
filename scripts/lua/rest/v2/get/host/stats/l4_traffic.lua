@@ -22,49 +22,50 @@ local ifid = _GET["ifid"] or interface.getId()
 local host_ip     = _GET["host"]
 local host_vlan   = _GET["vlan"] or 0
 local host = interface.getHostInfo(host_ip, host_vlan)
+if host then 
+  local total = 0
+  local proto_info = {}
+  local timeseries_not_available = (host["localhost"] == false or host["is_multicast"] == true or host["is_broadcast"] == true)
 
-local total = 0
-local proto_info = {}
-local timeseries_not_available = (host["localhost"] == false or host["is_multicast"] == true or host["is_broadcast"] == true)
+  -- Calculate total bytes
+  for id, _ in ipairs(l4_keys) do
+    local k = l4_keys[id][2]
+    total = total + (host[k..".bytes.sent"] or 0) + (host[k..".bytes.rcvd"] or 0)
+  end
 
--- Calculate total bytes
-for id, _ in ipairs(l4_keys) do
-	local k = l4_keys[id][2]
-  total = total + (host[k..".bytes.sent"] or 0) + (host[k..".bytes.rcvd"] or 0)
-end
+  -- Getting l4 protocols info
+  for id, _ in ipairs(l4_keys) do
+    local k = l4_keys[id][2]
+    
+    if host[k..".bytes.sent"] or host[k..".bytes.rcvd"] then
+      local proto_stats = {}
 
--- Getting l4 protocols info
-for id, _ in ipairs(l4_keys) do
-	local k = l4_keys[id][2]
-  
-  if host[k..".bytes.sent"] or host[k..".bytes.rcvd"] then
-    local proto_stats = {}
+      if host[k..".bytes.sent"] then
+        proto_stats["bytes_sent"] = host[k..".bytes.sent"] or 0
+      end
 
-    if host[k..".bytes.sent"] then
-      proto_stats["bytes_sent"] = host[k..".bytes.sent"] or 0
-    end
+      if host[k..".bytes.rcvd"] then
+        proto_stats["bytes_rcvd"] = host[k..".bytes.rcvd"] or 0
+      end
 
-    if host[k..".bytes.rcvd"] then
-      proto_stats["bytes_rcvd"] = host[k..".bytes.rcvd"] or 0
-    end
+      proto_stats["protocol"] = l4_keys[id][1] or "" .. " " .. historicalProtoHostHref(ifid, host_ip, l4_keys[id][1], nil, nil, host_vlan, true) or ""
+      proto_stats["total_bytes"] = (host[k..".bytes.sent"] or 0) + (host[k..".bytes.rcvd"] or 0)
+      proto_stats["total_percentage"] = round((proto_stats["total_bytes"] * 100) / total, 2)
 
-    proto_stats["protocol"] = l4_keys[id][1] or "" .. " " .. historicalProtoHostHref(ifid, host_ip, l4_keys[id][1], nil, nil, host_vlan, true) or ""
-    proto_stats["total_bytes"] = (host[k..".bytes.sent"] or 0) + (host[k..".bytes.rcvd"] or 0)
-    proto_stats["total_percentage"] = round((proto_stats["total_bytes"] * 100) / total, 2)
+      if(areHostTimeseriesEnabled(ifId) and ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") and not timeseries_not_available then -- Check if the host timeseries are enabled
+        proto_stats["historical"] = hostinfo2detailshref(host, {page = "historical", ts_schema = "host:l4protos", l4proto = k}, '<i class="fas fa-chart-area"></i>')
+      end
 
-    if(areHostTimeseriesEnabled(ifId) and ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") and not timeseries_not_available then -- Check if the host timeseries are enabled
-      proto_stats["historical"] = hostinfo2detailshref(host, {page = "historical", ts_schema = "host:l4protos", l4proto = k}, '<i class="fas fa-chart-area"></i>')
-    end
-
-    if proto_stats["total_bytes"] > 0 then
-      -- Add the stats only if greater then 0
-      proto_info[#proto_info + 1] = proto_stats
+      if proto_stats["total_bytes"] > 0 then
+        -- Add the stats only if greater then 0
+        proto_info[#proto_info + 1] = proto_stats
+      end
     end
   end
-end
 
-if table.len(proto_info) > 0 then
-  rsp = proto_info
+  if table.len(proto_info) > 0 then
+    rsp = proto_info
+  end
 end
 
 rest_utils.answer(rc, rsp)
