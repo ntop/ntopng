@@ -55,7 +55,6 @@ export default {
     /* Method used to switch active table tab */
     reload_table: function() {
       let table = this.get_active_table();
-      debugger;
       table.reload();
     },
     get_active_table: function() {

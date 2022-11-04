@@ -213,7 +213,6 @@ export default {
       value_label: value_label,
     };
     this.$emit("apply", params);
-    debugger;
     ntopng_events_manager.emit_custom_event(ntopng_custom_events.MODAL_FILTERS_APPLY, params);
     this.close();
 	},
