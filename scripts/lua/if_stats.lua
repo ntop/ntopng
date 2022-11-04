@@ -271,7 +271,7 @@ local short_name = getHumanReadableInterfaceName(ifname)
 local title = i18n("interface") .. ": " .. shortenCollapse(short_name)
 
 if (ntop.isPro()) then
-   sites_granularities = top_sites_update.getGranularitySites(nil, nil, ifId, true)
+   sites_granularities = top_sites_update.getGranularitySites(nil, nil, ifid, true)
 end
 
 page_utils.print_navbar(title, url,
