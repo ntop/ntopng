@@ -395,22 +395,23 @@ elseif(page == "snmp" and has_snmp_location) then
    snmp_location.print_host_snmp_localization_table_entry(mac)
    print[[</table>]]
 elseif(page == "historical") then
-   local schema = _GET["ts_schema"] or "mac:traffic"
-   local selected_epoch = _GET["epoch"] or ""
-   url = url..'&page=historical'
-
-   local tags = {
-      ifid = ifId,
-      mac = mac,
-      category = _GET["category"],
-   }
-
-   graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-      top_categories = "top:mac:ndpi_categories",
-      timeseries = table.merge({
-         {schema="mac:traffic",                 label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
-      }, graph_utils.getDeviceCommonTimeseries())
-   })
+   graph_utils.drawNewGraphs()
+   -- local schema = _GET["ts_schema"] or "mac:traffic"
+   -- local selected_epoch = _GET["epoch"] or ""
+   -- tprint(hostinfo2hostkey(host_info))
+   -- url = url..'&page=historical&mac='..hostinfo2hostkey(host_info)
+   -- --..hostinfo2url(host_info, nil, nil, "mac")
+   -- local tags = {
+   --    ifid = ifId,
+   --    mac = mac,
+   --    category = _GET["category"],
+   -- }
+   -- graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+   --    top_categories = "top:mac:ndpi_categories",
+   --    timeseries = table.merge({
+   --       {schema="mac:traffic",                 label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
+   --    }, graph_utils.getDeviceCommonTimeseries())
+   -- })
 
 elseif(page == "config") then
    if(not isAdministrator()) then
