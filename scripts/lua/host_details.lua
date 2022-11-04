@@ -113,7 +113,7 @@ local function printPorts(ports)
    else
       local udp = {}
       local tcp = {}
-      print("<th>TCP</th><th>UDP</th></tr>\n")
+      print("<th>UDP</th><th>TCP</th></tr>\n")
 
       for k,v in pairs(ports) do
 	 local res = split(k, ":")
