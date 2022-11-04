@@ -1,7 +1,7 @@
 {
   "name": "ntopng",
   "version": "5.5.0",
-  "description": "ntopng project",
+  "description": "Network analysis tool, used to report problems, communications and statistics about the network itself. This packages is used to build the Web GUI part (client).",
   "main": "http_src/ntopng.js",
   "directories": {
     "doc": "doc",
