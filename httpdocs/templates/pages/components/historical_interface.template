@@ -4,7 +4,7 @@
     :default_ifid="default_ifid"
     :is_ntop_pro="is_ntop_pro"
     :enable_snapshots="is_ntop_enterprise_m"
-    :is_clickhouse_enabled="is_clickhouse_enabled"
+    :is_history_enabled="is_history_enabled"
     :traffic_extraction_permitted="traffic_extraction_permitted">
   </page-stats>
 </div>
@@ -15,7 +15,7 @@
   function start_vue() {
     const is_ntop_pro = '{* ntop.isPro() *}' == 'true';
     const is_ntop_enterprise_m = '{* ntop.isEnterpriseM() *}' == 'true';
-    const is_history_enabled = '{* is_clickhouse_enabled *}' == 'true';
+    const is_history_enabled = '{* ntop.isClickHouseEnabled() *}' == 'true';
     const traffic_extraction_permitted = '{* traffic_extraction_permitted *}' == 'true';
     const default_ifid = '{* interface.getId() *}'
 

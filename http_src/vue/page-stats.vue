@@ -457,7 +457,7 @@ async function get_datatable_url() {
 
 async function reload_table_data() {
     // NtopUtils.showOverlays();
-    if (enable_table == false || !is_ntop_pro) { return; }
+    if (enable_table == false || !props.is_ntop_pro) { return; }
     const url = await get_datatable_url();
     top_applications_table.value.update_url(url);
     top_applications_table.value.reload();
