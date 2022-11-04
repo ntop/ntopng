@@ -16,15 +16,17 @@ import 'jquery-ui-bundle'
 
 /* See https://datatables.net/forums/discussion/comment/103356 */
 import 'datatables.net'
-import 'datatables.net-bs'
 import dt from 'datatables.net-dt'
 window.dt = dt
 
 import 'datatables.net-buttons'
-import 'datatables.net-buttons-bs'
 import 'datatables.net-responsive'
+/*
+NOTE: It seemes that bs5 datatable components are not correctly working on MacOS
+import 'datatables.net-bs'
+import 'datatables.net-buttons-bs'
 import 'datatables.net-responsive-bs'
-
+*/
 import 'peity'
 import * as L from 'leaflet'
 import 'leaflet.markercluster'
