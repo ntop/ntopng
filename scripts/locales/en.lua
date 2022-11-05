@@ -2624,10 +2624,10 @@ local lang = {
   },
   ["flow_fields_description"] = {
     ["appl_latency_ms"] = "Application latency (msec), a.k.a. server response time",
-    ["application_id"] = "Collected Application Id (Cisco or IXIA)",
-    ["application_name"] = "Palo Alto App-Id",
+    ["application_id"] = "Application Id",
+    ["application_name"] = "Application Name",
     ["biflow_direction"] = "1=initiator, 2=reverseInitiator",
-    ["bittorrent_hash"] = "BITTORRENT hash",
+    ["bittorrent_hash"] = "BitTorrent hash",
     ["client_nw_latency_ms"] = "Network RTT/2 client <-> nprobe (msec)",
     ["community_id"] = "Community ID",
     ["cumulative_icmp_type"] = "Cumulative OR of ICMP type packets",

@@ -74,6 +74,7 @@ flow_consts.flow_fields_description = {
    ["IN_DST_MAC"] = i18n("flow_fields_description.in_dst_mac"),
    ["OUT_DST_MAC"] = i18n("flow_fields_description.out_dst_mac"),
    ["APPLICATION_ID"] = i18n("flow_fields_description.application_id"),
+   ["APPLICATION_NAME"] = i18n("flow_fields_description.application_name"),
    ["PACKET_SECTION_OFFSET"] = i18n("flow_fields_description.packet_section_offset"),
    ["SAMPLED_PACKET_SIZE"] = i18n("flow_fields_description.sampled_packet_size"),
    ["SAMPLED_PACKET_ID"] = i18n("flow_fields_description.sampled_packet_id"),
