@@ -31,8 +31,8 @@ if(host and host.cardinality) then
   series[#series + 1] = tonumber(host.cardinality.num_contacted_hosts_as_client or 0)
   series[#series + 1] = tonumber(host.cardinality.num_contacted_hosts_as_server or 0)
 else
-  series[#series + 1] = {}
-  series[#series + 1] = {}
+  series[#series + 1] = 0
+  series[#series + 1] = 0
 end
 
 colors[#colors + 1] =  graph_utils.get_html_color(#colors + 1)

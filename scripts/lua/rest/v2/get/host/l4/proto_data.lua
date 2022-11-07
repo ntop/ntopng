@@ -66,6 +66,13 @@ rsp["series"] = series
 rsp["labels"] = labels
 rsp["colors"] = colors
 
+-- Just in case no data were found put an empty serie
+if table.len(rsp["series"]) == 0 then
+  rsp["series"] = { 0 }
+  rsp["labels"] = { i18n('no_data_available') }
+  rsp["colors"] = { graph_utils.get_html_color(#colors + 1) }
+end
+
 -- ##################################
 
 rest_utils.answer(rest_utils.consts.success.ok, rsp)

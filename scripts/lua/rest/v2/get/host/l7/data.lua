@@ -19,7 +19,7 @@ local rsp = {}
 
 -- Applications
 if view == 'applications' and host then
-  local host_applications = host["ndpi"]
+  local host_applications = host["ndpi"] or {}
 
   -- Calculate the total bytes sent and received, to calculate the percentages
   for _, v in pairs(host_applications) do
@@ -45,7 +45,7 @@ if view == 'applications' and host then
 elseif host then
 -- Categories
   local categories_utils = require "categories_utils"
-  local host_categories = host["ndpi_categories"]
+  local host_categories = host["ndpi_categories"] or {}
 
   -- Calculate the total bytes sent and received, to calculate the percentages
   for _, v in pairs(host_categories) do
