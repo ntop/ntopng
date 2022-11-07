@@ -140,8 +140,30 @@ function get_timeseries(timeseries_url, metric) {
 
 const ui_types = {
     select: "select",
-    // input: "input",
+    select_and_select: "select_and_select",
     select_and_input: "select_and_input",
+};
+
+// dictionary of functions to convert an element of source_url rest result to a source ({label, value })
+const sources_url_el_to_source = {
+    ifid: (s) => {
+	let label = s.ifname;
+	if (s.name != null) {
+	    label = s.name;
+	}
+        return {
+	    label,
+	    value: s.ifid,
+        };
+    },
+    pool: (p) => {
+	let label = p.pool_id;
+	if (p.name != null) { label = p.name; }
+	return {
+	    label,
+	    value: p.pool_id,
+	};
+    },
 };
 
 const sources_types = [
@@ -157,7 +179,7 @@ const sources_types = [
     {
 	regex_page_url: "lua\/host_details",
 	label: "Host",
-	disable_url: true,
+	disable_sources_url: true,
 	value: "host",
 	regex_type: "ip",
 	sources_sub_url: "lua/rest/v2/get/ntopng/interfaces.lua",
@@ -170,7 +192,7 @@ const sources_types = [
     {
 	regex_page_url: "lua\/mac_details",
 	label: "Mac",
-	disable_url: true,
+	disable_sources_url: true,
 	value_url: "host",
 	value: "mac",
 	regex_type: "macAddress",
@@ -183,7 +205,7 @@ const sources_types = [
     {
 	regex_page_url: "lua\/network_details",
 	label: "Network",
-	disable_url: true,
+	disable_sources_url: true,
 	// value_url: "subnet",
 	value: "subnet",
 	regex_type: "text",
@@ -196,7 +218,7 @@ const sources_types = [
     {
 	regex_page_url: "lua\/as_details",
 	label: "ASN",
-	disable_url: true,
+	disable_sources_url: true,
 	value: "asn",
 	regex_type: "text",
 	sources_sub_url: "lua/rest/v2/get/ntopng/interfaces.lua",
@@ -208,7 +230,7 @@ const sources_types = [
     {
 	regex_page_url: "lua\/country_details",
 	label: "Country",
-	disable_url: true,
+	disable_sources_url: true,
 	value: "country",
 	regex_type: "text",
 	sources_sub_url: "lua/rest/v2/get/ntopng/interfaces.lua",
@@ -220,7 +242,7 @@ const sources_types = [
     {
 	regex_page_url: "lua\/os_details",
 	label: "OS",
-	disable_url: true,
+	disable_sources_url: true,
 	value: "os",
 	regex_type: "text",
 	sources_sub_url: "lua/rest/v2/get/ntopng/interfaces.lua",
@@ -232,7 +254,7 @@ const sources_types = [
     {
 	regex_page_url: "lua\/vlan_details",
 	label: "VLAN",
-	disable_url: true,
+	disable_sources_url: true,
 	value: "vlan",
 	regex_type: "text",
 	sources_sub_url: "lua/rest/v2/get/ntopng/interfaces.lua",
@@ -244,13 +266,14 @@ const sources_types = [
     {
 	regex_page_url: "lua\/pool_details",
 	label: "Host Pool",
-	disable_url: true,
+	// get sources_url() { return `lua/rest/v2/get/host/pools.lua?_=${Date.now()}` },
+	sources_url: `lua/rest/v2/get/host/pools.lua`,
 	value: "pool",
 	regex_type: "text",
 	sources_sub_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	sub_value: "ifid",
 	sub_label: "Interface",
-	ui_type: ui_types.select_and_input,
+	ui_type: ui_types.select_and_select,
 	query: "host_pool",
     },
 ];
@@ -266,7 +289,11 @@ async function get_default_sub_source(http_prefix, sub_source_type_value) {
 
 const get_default_source = async (http_prefix, source_type) => {
     let source_value = get_default_source_value(source_type);
-    let source = await get_source_from_value(http_prefix, source_type, source_value);
+    let source_sub_value;
+    if (source_type.sub_value) {
+	source_sub_value = get_default_source_value({ value: source_type.sub_value })
+    }
+    let source = await get_source_from_value(http_prefix, source_type, source_value, source_sub_value);
     return source;
 };
 
@@ -282,9 +309,13 @@ const get_source_from_value = async (http_prefix, source_type, source_value, sou
     if (source_type == null) {
 	source_type = get_current_page_source_type();
     }
-    if (!source_type.disable_url) {
+    if (!source_type.disable_sources_url) {
 	let sources = await get_sources(http_prefix, source_type);
-	return sources.find((s) => s.value == source_value);
+	let source = sources.find((s) => s.value == source_value);
+	if (source != null && source_sub_value != null) {
+	    source.sub_value = source_sub_value;
+	}
+	return source;
     } else {
 	if (source_sub_value == null) {
 	    source_sub_value = get_default_source_value({ value: source_type.sub_value });
@@ -311,7 +342,7 @@ const get_sources = async (http_prefix, source_type) => {
     }
     let key = source_type.value;    
     if (cache_sources[key] == null) {
-	if (!source_type.disable_url) {
+	if (!source_type.disable_sources_url) {
 	    let url = `${http_prefix}/${source_type.sources_url}`;
 	    cache_sources[key] = ntopng_utility.http_request(url);
 	}
@@ -320,16 +351,21 @@ const get_sources = async (http_prefix, source_type) => {
 	}
     }
     let res = await cache_sources[key];
-    const sources = res.map((s) => {
-	let label = s.ifname;
-	if (s.name != null) {
-	    label = s.name;
-	}
-        return {
-	    label,
-	    value: s.ifid,
-        };
-    });	
+    let f_map_source_element = sources_url_el_to_source[source_type.value];
+    if (f_map_source_element == null) {
+	throw `:Error: metrics-manager.js, missing sources_url_to_source ${source_type.value} key`;
+    }
+    const sources = res.map((s) => f_map_source_element(s))
+    // const sources = res.map((s) => {
+    // 	let label = s.ifname;
+    // 	if (s.name != null) {
+    // 	    label = s.name;
+    // 	}
+    //     return {
+    // 	    label,
+    // 	    value: s.ifid,
+    //     };
+    // });	
     return sources.sort(NtopUtils.sortAlphabetically)    
 };
 

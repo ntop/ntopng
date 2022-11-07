@@ -36,9 +36,6 @@
 	  <label class="col-form-label col-sm-4" >
             <b>{{_i18n("modal_timeseries.source")}}</b>
 	  </label>
-	  <!-- <label class="col-form-label col-sm-4" > -->
-            <!--   <b>{{selected_source_type.label}}</b> -->
-	    <!-- </label> -->
 	  <div class="col-sm-8">
 	    <SelectSearch v-model:selected_option="selected_source"
 			  @select_option="change_source()"
@@ -47,20 +44,43 @@
 	  </div>
 	</div>
       </template>
-
-      <!-- -->
-      <!-- <template v-if="selected_source_type.ui_type == ui_types.input"> -->
-      <!-- 	<div class="form-group ms-2 me-2 mt-3"> -->
-      <!-- 	  <div class="form-group row ms-1 me-1 mb-2"> -->
-      <!-- 	    <label class="col-form-label col-sm-4" > -->
-      <!--         <b>{{_i18n("modal_timeseries.source")}}</b> -->
-      <!-- 	    </label> -->
-      <!-- 	    <div class="col-sm-8" > -->
-      <!-- 	      <input class="form-control" v-model="source_text"  :pattern="source_text_validation" required type="text" placeholder="192.168.1.1"> -->
-      <!-- 	    </div> -->
-      <!-- 	  </div> -->
-      <!-- 	</div> -->
-      <!-- </template> -->
+      
+      <!-- Host Pool -->
+      <template v-if="selected_source_type.ui_type == ui_types.select_and_select">
+	<div class="form-group ms-2 me-2 mt-3 ms-1 me-1">
+	  <div class="form-group row  mb-2">
+	    <label class="col-form-label col-sm-4" >
+              <b>{{_i18n("modal_timeseries.source")}}</b>
+	    </label>
+	    <div class="col-sm-8" >
+	      <input class="form-control" v-model="selected_source_text" type="text" disabled>
+	    </div>
+	  </div>
+	</div>
+	<div class="form-group ms-2 me-2 mt-3 ms-3 me-1 row">
+	  <label class="col-form-label col-sm-4" >
+            <b>{{selected_source_type.sub_label}}</b>
+	  </label>
+	  <div class="col-sm-8">
+	    <SelectSearch v-model:selected_option="selected_sub_source"
+			  :options="sub_sources">
+	    </SelectSearch>
+	  </div>
+	</div>
+	<div class="form-group ms-2 me-2 mt-3 ms-3 me-1 row">
+	  <label class="col-form-label col-sm-4" >
+            <b>{{selected_source_type.label}}</b>
+	  </label>
+	  <div class="col-sm-6">
+	    <SelectSearch v-model:selected_option="selected_source"
+			  :options="sources">
+	    </SelectSearch>
+	  </div>
+	  <div class="col-sm-2" style="text-align:end !important;">
+	    <button type="button" :disabled="!is_source_text_valid"  @click="apply_source_text(false)" class="btn btn-primary">{{_i18n("modal_timeseries.apply")}}</button>
+	  </div>	  
+	</div>
+      </template>
       
       <!-- Host, Mac -->
       <template v-if="selected_source_type.ui_type == ui_types.select_and_input">
@@ -71,10 +91,6 @@
 	    </label>
 	    <div class="col-sm-8" >
 	      <input class="form-control" v-model="selected_source_text" type="text" disabled>
-	      <!-- <input class="form-control" :class="{ 'alert alert-warning': selected_source_text_warn() }" v-model="selected_source_text" type="text" disabled> -->
-	      <!-- <label> -->
-	      <!-- 	<b>{{selected_source_text}}</b> -->
-	      <!-- </label> -->
 	    </div>
 	  </div>
 	  <div class="form-group row ms-3 me-1">
@@ -95,7 +111,7 @@
 	      <input class="form-control" v-model="source_text"  :pattern="source_text_validation" required type="text" placeholder="">	      
 	    </div>
 	    <div class="col-sm-2" style="text-align:end !important;">
-	      <button type="button" :disabled="!is_source_text_valid"  @click="apply_source_text" class="btn btn-primary">{{_i18n("modal_timeseries.apply")}}</button>
+	      <button type="button" :disabled="!is_source_text_valid"  @click="apply_source_text(true)" class="btn btn-primary">{{_i18n("modal_timeseries.apply")}}</button>
 	    </div>
 	  </div>
 	</div>
@@ -230,8 +246,10 @@ function change_action(a) {
     action.value = a;
 }
 
-async function apply_source_text() {
-    selected_source.value = await metricsManager.get_source_from_value(http_prefix, selected_source_type.value, source_text.value, selected_sub_source.value.value);
+async function apply_source_text(set_selected_source) {
+    if (set_selected_source == true) {
+	selected_source.value = await metricsManager.get_source_from_value(http_prefix, selected_source_type.value, source_text.value, selected_sub_source.value.value);
+    }
     set_selected_source_text();
     await set_metrics();
 }
@@ -269,10 +287,10 @@ async function set_sources() {
     }
     let default_source = await metricsManager.get_default_source(http_prefix, selected_source_type.value);
     selected_source.value = default_source;
-    if (selected_source_type.value.ui_type == ui_types.select_and_input) {
+    // if (selected_source_type.value.ui_type == ui_types.select_and_input) {
 	source_text.value = selected_source.value.value;
 	set_selected_source_text();
-    }
+    // }
 }
 
 async function set_metrics() {
