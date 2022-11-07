@@ -83,6 +83,8 @@ for _key, _value in pairsByValues(vals, funct) do
    local key = _key
    local value = users_list[_key]
    local js_key = _key:gsub("%.", "\\\\\\\\.")
+   local id_key = _key:gsub("%.", "")
+   id_key = id_key:gsub("@", "")
 
    if(to_skip > 0) then
       to_skip = to_skip-1
@@ -116,7 +118,7 @@ end
    
     local can_be_deleted = (key ~= "admin" and key ~= logged_user)
 
-    print ("<a href='#delete_user_dialog' role='button' class='add-on btn btn-sm btn-danger ".. (not can_be_deleted and 'disabled' or '') .."' data-bs-toggle='modal' id='delete_btn_" .. key .. "'><i class='fas fa-trash'></i></a><script> $('#delete_btn_" .. js_key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
+    print ("<a href='#delete_user_dialog' role='button' class='add-on btn btn-sm btn-danger ".. (not can_be_deleted and 'disabled' or '') .."' data-bs-toggle='modal' id='delete_btn_" .. id_key .. "'><i class='fas fa-trash'></i></a><script> $('#delete_btn_" .. id_key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
 
 	 print ("\"}")
 	 num = num + 1
