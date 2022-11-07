@@ -2316,7 +2316,7 @@ elseif (page == "config") then
    </script>]]
 
 elseif(page == "historical") then
-   graph_utils.drawNewGraphs()
+   graph_utils.drawNewGraphs(nil, interface.getId())
 -- host_url = "host="..host_ip
 -- host_key = host_ip
 -- if(host_vlan and (host_vlan > 0)) then

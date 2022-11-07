@@ -120,7 +120,8 @@ import NtopUtils from "../utilities/ntop-utils";
 const props = defineProps({
     csrf: String,
     is_ntop_pro: Boolean,
-    default_ifid: String,
+    source_value: String,
+    source_sub_value: String,
     enable_snapshots: Boolean,
     is_history_enabled: Boolean,
     traffic_extraction_permitted: Boolean,
@@ -180,12 +181,20 @@ function init_groups_option_mode() {
     return groups_options_modes[0];
 }
 
-function set_default_ifid() {
-    ntopng_url_manager.set_key_to_url("ifid", props.default_ifid);
+function set_default_source_in_url() {
+    let source_type = metricsManager.get_current_page_source_type();
+    if (props.source_value != null && props.source_value != "") {
+	let value_url = metricsManager.get_source_type_key_value_url(source_type);
+	ntopng_url_manager.set_key_to_url(value_url, props.source_value);
+    }
+    if (props.source_sub_value != null && props.source_sub_value != "") {
+	let sub_value_url = metricsManager.get_source_type_key_sub_value_url(source_type);
+	ntopng_url_manager.set_key_to_url(sub_value_url, props.source_sub_value);
+    }
 }
 
 onBeforeMount(async () => {
-    set_default_ifid();
+    set_default_source_in_url();
     await load_datatable_data();
 });
 

@@ -115,6 +115,17 @@ local community_timeseries = {
   { schema = "host:dscp",                     label = i18n("graphs.dscp_classes"),              priority = 0, measure_unit = "bps",    scale = 0, timeseries = { bytes_sent         = { label = i18n('graphs.metric_labels.sent'),        color = timeseries_info.get_timeseries_color('bytes') },       bytes_rcvd      = { label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }}},
   { schema = "host:host_tcp_unidirectional_flows", label = i18n("graphs.unidirectional_tcp_flows"), priority = 0, measure_unit = "fps",scale = 0, timeseries = { flows_as_client         = { label = i18n('graphs.flows_as_client'),      color = timeseries_info.get_timeseries_color('flows') },  flows_as_server      = { label = i18n('graphs.flows_as_server'),    color = timeseries_info.get_timeseries_color('flows') }}},
   { schema = "mac:traffic", label = i18n("traffic"), priority = 0, measure_unit = "bps", scale = 0, timeseries = { bytes_sent = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes_sent') }, bytes_rcvd = { invert_direction = true, label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes_rcvd') }}, default_visible = true },
+
+  -- network_details.lua (SUBNET): --
+  { schema = "subnet:traffic", label = i18n("traffic"), measure_unit = "bps", scale = 0, timeseries = { bytes_egress = { label = i18n('graphs.metrics_suffixes.egress') }, bytes_ingress = { label = i18n('graphs.metrics_suffixes.ingress') }, bytes_inner = { label = i18n('graphs.metrics_suffixes.inner') }}, default_visible = true },
+  { schema = "subnet:broadcast_traffic", label = i18n("broadcast_traffic"), measure_unit = "bps", scale = 0, timeseries = { bytes_egress = { label = i18n('graphs.metrics_suffixes.egress') }, bytes_ingress = { label = i18n('graphs.metrics_suffixes.ingress') }, bytes_inner = { label = i18n('graphs.metrics_suffixes.inner') }} },
+  { schema = "subnet:engaged_alerts", label = i18n("show_alerts.engaged_alerts"), measure_unit = "number", scale = 0, timeseries = { alerts = { label = i18n('graphs.engaged_alerts') }} },
+  { schema = "subnet:score", label = i18n("score"), measure_unit = "number", scale = 0, timeseries = { score = { label = i18n('score') }, scoreAsClient = { label = i18n('score_as_client') }, scoreAsServer = { label = i18n('score_as_server') } }},
+  { schema = "subnet:tcp_retransmissions", label = i18n("graphs.tcp_packets_retr"), measure_unit = "number", scale = 0, timeseries = { packets_ingress = { label = i18n('if_stats_overview.ingress_packets') }, packets_egress = { label = i18n('if_stats_overview.egress_packets') }, packets_inner = { label = 'Inner Packets' } }},
+    { schema = "subnet:tcp_out_of_order", label = i18n("graphs.tcp_packets_ooo"), measure_unit = "number", scale = 0, timeseries = { packets_ingress = { label = i18n('if_stats_overview.ingress_packets') }, packets_egress = { label = i18n('if_stats_overview.egress_packets') }, packets_inner = { label = 'Inner Packets' } }},
+    { schema = "subnet:tcp_lost", label = i18n("graphs.tcp_packets_lost"), measure_unit = "number", scale = 0, timeseries = { packets_ingress = { label = i18n('if_stats_overview.ingress_packets') }, packets_egress = { label = i18n('if_stats_overview.egress_packets') }, packets_inner = { label = 'Inner Packets' } }},
+    { schema = "subnet:tcp_keep_alive", label = i18n("graphs.tcp_packets_keep_alive"), measure_unit = "number", scale = 0, timeseries = { packets_ingress = { label = i18n('if_stats_overview.ingress_packets') }, packets_egress = { label = i18n('if_stats_overview.egress_packets') }, packets_inner = { label = 'Inner Packets' } }},
+  
 }
 
 -- #################################
@@ -202,7 +213,7 @@ end
 
 -- #################################
 
-local function retrieve_specific_timeseries(tags, prefix)
+function timeseries_info.retrieve_specific_timeseries(tags, prefix)
   local timeseries_list = community_timeseries
   local timeseries = {}
 
@@ -243,19 +254,19 @@ end
 -- #################################
 
 function timeseries_info.get_interface_timeseries(tags)
-  return retrieve_specific_timeseries(tags, 'iface')
+  return timeseries_info.retrieve_specific_timeseries(tags, 'iface')
 end
 
 -- #################################
 
 function timeseries_info.get_host_timeseries(tags)
-  return retrieve_specific_timeseries(tags, 'host')
+  return timeseries_info.retrieve_specific_timeseries(tags, 'host')
 end
 
 -- #################################
 
 function timeseries_info.get_mac_timeseries(tags)
-  return retrieve_specific_timeseries(tags, 'mac')
+  return timeseries_info.retrieve_specific_timeseries(tags, 'mac')
 end
 
 -- #################################

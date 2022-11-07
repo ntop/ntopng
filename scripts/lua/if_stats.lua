@@ -1478,7 +1478,7 @@ elseif(page == "sites") then
    end
 
 elseif(page == "historical") then
-   graph_utils.drawNewGraphs()
+   graph_utils.drawNewGraphs(interface.getId())
    -- local schema = _GET["ts_schema"]
    -- local selected_epoch = _GET["epoch"] or ""
    -- local tags = {

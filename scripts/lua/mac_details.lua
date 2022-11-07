@@ -395,7 +395,7 @@ elseif(page == "snmp" and has_snmp_location) then
    snmp_location.print_host_snmp_localization_table_entry(mac)
    print[[</table>]]
 elseif(page == "historical") then
-   graph_utils.drawNewGraphs()
+   graph_utils.drawNewGraphs(nil, interface.getId())
    -- local schema = _GET["ts_schema"] or "mac:traffic"
    -- local selected_epoch = _GET["epoch"] or ""
    -- tprint(hostinfo2hostkey(host_info))

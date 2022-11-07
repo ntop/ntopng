@@ -298,12 +298,18 @@ end
 
 -- #################################################
 
-function graph_utils.drawNewGraphs()
-      local enable_new_timeseries = ntop.getPref("ntopng.enable_new_timeseries")
-      local recording_utils = require "recording_utils"
-      local traffic_extraction_permitted = recording_utils.isActive(ifid) or recording_utils.isExtractionActive(ifid)
-      local template_utils = require "template_utils"
-      template_utils.render("pages/components/historical_interface.template", { traffic_extraction_permitted = traffic_extraction_permitted })
+function graph_utils.drawNewGraphs(source_value, source_sub_value)
+   if (source_value == nil) then
+      source_value = ""
+   end
+   if (source_sub_value == nil) then
+      source_sub_value = ""
+   end
+   local enable_new_timeseries = ntop.getPref("ntopng.enable_new_timeseries")
+   local recording_utils = require "recording_utils"
+   local traffic_extraction_permitted = recording_utils.isActive(ifid) or recording_utils.isExtractionActive(ifid)
+   local template_utils = require "template_utils"
+   template_utils.render("pages/components/historical_interface.template", { traffic_extraction_permitted = traffic_extraction_permitted, source_value = source_value, source_sub_value = source_sub_value })
 end
 
 -- #################################################
