@@ -18,38 +18,38 @@ local total_bytes = 0
 local rsp = {}
 
 -- Applications
-if view == 'applications' then
+if view == 'applications' and host then
   local host_applications = host["ndpi"]
 
   -- Calculate the total bytes sent and received, to calculate the percentages
   for _, v in pairs(host_applications) do
-    total_bytes = total_bytes + v["bytes.rcvd"] + v["bytes.sent"]
+    total_bytes = total_bytes + (v["bytes.rcvd"] or 0) + (v["bytes.sent"] or 0)
   end
 
   -- Now format the values
   for k, v in pairs(host_applications) do
-    local tot_l7_bytes = v["bytes.sent"] + v["bytes.rcvd"]
+    local tot_l7_bytes = (v["bytes.sent"] or 0) + (v["bytes.rcvd"] or 0)
 
     rsp[#rsp + 1] = {
       application = {
         id = interface.getnDPIProtoId(k), 
         label = k,
       },
-      duration    = v["duration"],
-      bytes_sent  = v["bytes.sent"],
-      bytes_rcvd  = v["bytes.rcvd"],
+      duration    = (v["duration"] or 0),
+      bytes_sent  = (v["bytes.sent"] or 0),
+      bytes_rcvd  = (v["bytes.rcvd"] or 0),
       tot_bytes   = tot_l7_bytes,
       percentage  = (tot_l7_bytes * 100) / total_bytes,
     }
   end
-else
+elseif host then
 -- Categories
   local categories_utils = require "categories_utils"
   local host_categories = host["ndpi_categories"]
 
   -- Calculate the total bytes sent and received, to calculate the percentages
   for _, v in pairs(host_categories) do
-    total_bytes = total_bytes + v["bytes"]
+    total_bytes = total_bytes + (v["bytes"] or 0)
   end
 
   -- Now format the values
@@ -60,9 +60,9 @@ else
         label = getCategoryLabel(k, v.category),
       },
       applications = categories_utils.get_category_protocols_list(v.category, true),
-      duration     = v["duration"],
-      tot_bytes    = v["bytes"],
-      percentage   = (v["bytes"] * 100) / total_bytes,
+      duration     = (v["duration"] or 0),
+      tot_bytes    = (v["bytes"] or 0),
+      percentage   = ((v["bytes"] or 0) * 100) / total_bytes,
     }
   end
 end

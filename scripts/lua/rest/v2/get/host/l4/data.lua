@@ -49,7 +49,7 @@ if host then
       end
 
       proto_stats["protocol"] = l4_keys[id][1] or "" .. " " .. historicalProtoHostHref(ifid, host_ip, l4_keys[id][1], nil, nil, host_vlan, true) or ""
-      proto_stats["total_bytes"] = (host[k..".bytes.sent"] or 0) + (host[k..".bytes.rcvd"] or 0)
+      proto_stats["total_bytes"] = (proto_stats["bytes_sent"] or 0) + (proto_stats["bytes_rcvd"] or 0)
       proto_stats["total_percentage"] = round((proto_stats["total_bytes"] * 100) / total, 2)
 
       if(areHostTimeseriesEnabled(ifId) and ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") and not timeseries_not_available then -- Check if the host timeseries are enabled

@@ -21,7 +21,7 @@
             @click_item="click_item">
           </tab-list>
 
-          <div class="row" id="host_details_applications">
+          <div class="row mb-4 mt-4" id="host_details_applications">
             <template v-for="chart_option in chart_options">
               <div class="col-6">
                 <h3 v-if="chart_option.tab == applications_tab" class="widget-name">{{ chart_option.title }}</h3>
