@@ -70,10 +70,11 @@ function get_value_from_selected_option(selected_option) {
     return value;
 }
 
-function find_option_from_value(value) {
+function find_option_2_from_value(value) {
     if (value == null) {
 	value = get_value_from_selected_option();
     }
+    // let option = options_2.value.find((o) => o.value == value);
     let option = options_2.value.find((o) => o.value == value);
     if (option != null) { return option; }
     for (let i = 0; i < groups_options_2.value.length; i += 1) {
@@ -107,6 +108,9 @@ function set_options() {
     let groups_dict = {};
     props.options.forEach((option) => {
 	let opt_2 = { ...option };
+	if (opt_2.value == 0 || opt_2.value == "0") {
+	    opt_2.value = null;
+	}
 	if (opt_2.value == null) {
 	    opt_2.value = opt_2.label;
 	}
@@ -148,7 +152,8 @@ const render = () => {
 	$(select2Div).on('select2:select', function (e) {
 	    let data = e.params.data;
 	    let value = data.element._value;
-	    let option = find_option_from_value(value);
+	    let option_2 = find_option_2_from_value(value);
+	    let option = props.options.find((o) => o.label == option_2.label);
 	    if (value != props.selected_option) {
 		// emit('update:selected_option', value);
 		// emit('select_option', value);
