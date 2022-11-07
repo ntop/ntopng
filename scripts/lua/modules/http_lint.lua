@@ -1364,10 +1364,11 @@ http_lint.validateListItems = validateListItems
 
 local known_parameters = {
 -- UNCHECKED (Potentially Dangerous)
-   ["custom_name"]             = validateUnchecked,            -- A custom interface/host name
-   ["custom_notes"]            = validateUnchecked,            -- Host custom notes 
-   ["pool_name"]               = validateUnchecked,
-   ["query"]                   = validateUnchecked,            -- This field should be used to perform partial queries.
+  ["custom_name"]             = validateUnchecked,            -- A custom interface/host name
+  ["old_name"]                = validateUnchecked,            -- Old custom interface/host name
+  ["custom_notes"]            = validateUnchecked,            -- Host custom notes 
+  ["pool_name"]               = validateUnchecked,
+  ["query"]                   = validateUnchecked,            -- This field should be used to perform partial queries.
                                                                -- It up to the script to implement proper validation.
                                                                -- In NO case query should be executed directly without validation.
 -- UNQUOTED (Not Generally dangerous)
