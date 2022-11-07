@@ -125,25 +125,8 @@ elseif page == "historical" then
     print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("pool_details.no_available_data_for_host_pool_message",{pool_name=pool_name}))
     print(" "..i18n("pool_details.host_pool_timeseries_enable_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fas fa-flask\"></i>"})..'</div>')
   else
-    local schema = _GET["ts_schema"] or "host_pool:traffic"
-    local selected_epoch = _GET["epoch"] or ""
-    local url = getPageUrl(base_url, page_params)
-
-    local tags = {
-      ifid = ifId,
-      pool = pool_id,
-      protocol = _GET["protocol"],
-    }
-
-    graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-      top_protocols = "top:host_pool:ndpi",
-      timeseries = {
-        {schema="host_pool:traffic",           label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
-        {schema="host_pool:blocked_flows",     label=i18n("graphs.blocked_flows")},
-        {schema="host_pool:hosts",             label=i18n("graphs.active_hosts")},
-        {schema="host_pool:devices",           label=i18n("graphs.active_devices")},
-      },
-    })
+    --top_protocols = "top:host_pool:ndpi",
+    graph_utils.drawNewGraphs(tonumber(pool_id), interface.getId())
   end
 end
 

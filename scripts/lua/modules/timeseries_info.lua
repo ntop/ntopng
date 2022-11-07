@@ -91,6 +91,8 @@ local community_timeseries = {
   { schema = "iface:tcp_synack",              label = i18n("graphs.tcp_synack_packets"),        priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.packets'), timeseries = { packets            = { label = i18n('graphs.tcp_syn_packets'),           color = timeseries_info.get_timeseries_color('packets') }},  nedge_exclude = true },
   { schema = "iface:tcp_finack",              label = i18n("graphs.tcp_finack_packets"),        priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.packets'), timeseries = { packets            = { label = i18n('graphs.tcp_finack_packets'),        color = timeseries_info.get_timeseries_color('packets') }},  nedge_exclude = true },
   { schema = "iface:tcp_rst",                 label = i18n("graphs.tcp_rst_packets"),           priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.packets'), timeseries = { packets            = { label = i18n('graphs.tcp_rst_packets'),           color = timeseries_info.get_timeseries_color('packets') }},  nedge_exclude = true },
+  
+  -- host_details.lua (HOST): --
   { schema = "host:traffic",                  label = i18n("graphs.traffic"),                   priority = 0, measure_unit = "bps",    scale = 0, timeseries = { bytes_sent         = { label = i18n('graphs.metric_labels.sent'),        color = timeseries_info.get_timeseries_color('bytes_sent') },  bytes_rcvd = { invert_direction = true, label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes_rcvd') }}, default_visible = true },
   { schema = "host:score",                    label = i18n("graphs.score"),                     priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.score'), timeseries = { cli_score          = { label = i18n('graphs.cli_score'),                 color = timeseries_info.get_timeseries_color('cli_score') },   srv_score = { label = i18n('graphs.srv_score'), color = timeseries_info.get_timeseries_color('srv_score') }}},
   { schema = "host:active_flows",             label = i18n("graphs.active_flows"),              priority = 0, measure_unit = "fps",    scale = 0, timeseries = { flows_as_client    = { label = i18n('graphs.flows_as_client'),           color = timeseries_info.get_timeseries_color('flows') },       flows_as_server = { label = i18n('graphs.flows_as_server'), color = timeseries_info.get_timeseries_color('flows') }}},
@@ -114,18 +116,47 @@ local community_timeseries = {
   { schema = "host:udp_sent_unicast",         label = i18n("graphs.udp_sent_unicast_vs_non_unicast"), priority = 0, measure_unit = "bps", scale = 0, timeseries = { bytes_sent_unicast = { label = i18n('graphs.metric_labels.sent_uni'), color = timeseries_info.get_timeseries_color('bytes') },       bytes_sent_non_uni = { label = i18n('graphs.metric_labels.sent_non_uni'), color = timeseries_info.get_timeseries_color('bytes') }}},
   { schema = "host:dscp",                     label = i18n("graphs.dscp_classes"),              priority = 0, measure_unit = "bps",    scale = 0, timeseries = { bytes_sent         = { label = i18n('graphs.metric_labels.sent'),        color = timeseries_info.get_timeseries_color('bytes') },       bytes_rcvd      = { label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }}},
   { schema = "host:host_tcp_unidirectional_flows", label = i18n("graphs.unidirectional_tcp_flows"), priority = 0, measure_unit = "fps",scale = 0, timeseries = { flows_as_client         = { label = i18n('graphs.flows_as_client'),      color = timeseries_info.get_timeseries_color('flows') },  flows_as_server      = { label = i18n('graphs.flows_as_server'),    color = timeseries_info.get_timeseries_color('flows') }}},
-  { schema = "mac:traffic", label = i18n("traffic"), priority = 0, measure_unit = "bps", scale = 0, timeseries = { bytes_sent = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes_sent') }, bytes_rcvd = { invert_direction = true, label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes_rcvd') }}, default_visible = true },
+
+  -- mac_details.lua (MAC): --
+  { schema = "mac:traffic", label = i18n("graphs.traffic"), priority = 0, measure_unit = "bps", scale = 0, timeseries = { bytes_sent = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes_sent') }, bytes_rcvd = { invert_direction = true, label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes_rcvd') }}, default_visible = true },
 
   -- network_details.lua (SUBNET): --
-  { schema = "subnet:traffic", label = i18n("traffic"), measure_unit = "bps", scale = 0, timeseries = { bytes_egress = { label = i18n('graphs.metrics_suffixes.egress') }, bytes_ingress = { label = i18n('graphs.metrics_suffixes.ingress') }, bytes_inner = { label = i18n('graphs.metrics_suffixes.inner') }}, default_visible = true },
+  { schema = "subnet:traffic", label = i18n("graphs.traffic"), measure_unit = "bps", scale = 0, timeseries = { bytes_egress = { label = i18n('graphs.metrics_suffixes.egress') }, bytes_ingress = { label = i18n('graphs.metrics_suffixes.ingress') }, bytes_inner = { label = i18n('graphs.metrics_suffixes.inner') }}, default_visible = true },
   { schema = "subnet:broadcast_traffic", label = i18n("broadcast_traffic"), measure_unit = "bps", scale = 0, timeseries = { bytes_egress = { label = i18n('graphs.metrics_suffixes.egress') }, bytes_ingress = { label = i18n('graphs.metrics_suffixes.ingress') }, bytes_inner = { label = i18n('graphs.metrics_suffixes.inner') }} },
   { schema = "subnet:engaged_alerts", label = i18n("show_alerts.engaged_alerts"), measure_unit = "number", scale = 0, timeseries = { alerts = { label = i18n('graphs.engaged_alerts') }} },
   { schema = "subnet:score", label = i18n("score"), measure_unit = "number", scale = 0, timeseries = { score = { label = i18n('score') }, scoreAsClient = { label = i18n('score_as_client') }, scoreAsServer = { label = i18n('score_as_server') } }},
   { schema = "subnet:tcp_retransmissions", label = i18n("graphs.tcp_packets_retr"), measure_unit = "number", scale = 0, timeseries = { packets_ingress = { label = i18n('if_stats_overview.ingress_packets') }, packets_egress = { label = i18n('if_stats_overview.egress_packets') }, packets_inner = { label = 'Inner Packets' } }},
-    { schema = "subnet:tcp_out_of_order", label = i18n("graphs.tcp_packets_ooo"), measure_unit = "number", scale = 0, timeseries = { packets_ingress = { label = i18n('if_stats_overview.ingress_packets') }, packets_egress = { label = i18n('if_stats_overview.egress_packets') }, packets_inner = { label = 'Inner Packets' } }},
-    { schema = "subnet:tcp_lost", label = i18n("graphs.tcp_packets_lost"), measure_unit = "number", scale = 0, timeseries = { packets_ingress = { label = i18n('if_stats_overview.ingress_packets') }, packets_egress = { label = i18n('if_stats_overview.egress_packets') }, packets_inner = { label = 'Inner Packets' } }},
-    { schema = "subnet:tcp_keep_alive", label = i18n("graphs.tcp_packets_keep_alive"), measure_unit = "number", scale = 0, timeseries = { packets_ingress = { label = i18n('if_stats_overview.ingress_packets') }, packets_egress = { label = i18n('if_stats_overview.egress_packets') }, packets_inner = { label = 'Inner Packets' } }},
+  { schema = "subnet:tcp_out_of_order", label = i18n("graphs.tcp_packets_ooo"), measure_unit = "number", scale = 0, timeseries = { packets_ingress = { label = i18n('if_stats_overview.ingress_packets') }, packets_egress = { label = i18n('if_stats_overview.egress_packets') }, packets_inner = { label = 'Inner Packets' } }},
+  { schema = "subnet:tcp_lost", label = i18n("graphs.tcp_packets_lost"), measure_unit = "number", scale = 0, timeseries = { packets_ingress = { label = i18n('if_stats_overview.ingress_packets') }, packets_egress = { label = i18n('if_stats_overview.egress_packets') }, packets_inner = { label = 'Inner Packets' } }},
+  { schema = "subnet:tcp_keep_alive", label = i18n("graphs.tcp_packets_keep_alive"), measure_unit = "number", scale = 0, timeseries = { packets_ingress = { label = i18n('if_stats_overview.ingress_packets') }, packets_egress = { label = i18n('if_stats_overview.egress_packets') }, packets_inner = { label = 'Inner Packets' } }},
   
+  -- as_details.lua (ASN): --
+  { schema = "asn:traffic",                  label = i18n("graphs.traffic"),                   priority = 0, measure_unit = "bps",    scale = 0, timeseries = { bytes_sent         = { label = i18n('graphs.metric_labels.sent'),        color = timeseries_info.get_timeseries_color('bytes_sent') },  bytes_rcvd = { invert_direction = true, label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes_rcvd') }}, default_visible = true },
+  { schema = "asn:rtt",                      label = i18n("graphs.rtt"),                       priority = 0, measure_unit = "ms",     scale = 0, timeseries = { millis_rtt         = { label = i18n('graphs.metric_labels.rtt'),         color = timeseries_info.get_timeseries_color('default') } }, nedge_exclude = true },
+  { schema = "asn:traffic_sent",             label = i18n("graphs.traffic_sent"),              priority = 0, measure_unit = "bps",    scale = 0, timeseries = { bytes              = { label = i18n('graphs.metric_labels.sent'),        color = timeseries_info.get_timeseries_color('bytes_sent') } }, nedge_exclude = true },
+  { schema = "asn:traffic_rcvd",             label = i18n("graphs.traffic_rcvd"),              priority = 0, measure_unit = "bps",    scale = 0, timeseries = { bytes              = { label = i18n('graphs.metric_labels.rcvd'),        color = timeseries_info.get_timeseries_color('bytes_rcvd') } }, nedge_exclude = true },
+  { schema = "asn:score",                    label = i18n("graphs.score"),                     priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.score'),   timeseries = { score = { label = i18n('graphs.metric_labels.score'), color = timeseries_info.get_timeseries_color('score') }, cli_score = { label = i18n('graphs.metric_labels.cli_score'), color = timeseries_info.get_timeseries_color('cli_score') }, srv_score = { label = i18n('graphs.metric_labels.srv_score'), color = timeseries_info.get_timeseries_color('srv_score') } }},
+  { schema = "asn:tcp_retransmissions",      label = i18n("graphs.tcp_packets_retr"),          priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.packets'), timeseries = { packets_sent = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('packets') }, packets_rcvd = { label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('packets') }},  nedge_exclude = true },
+  { schema = "asn:tcp_keep_alive",           label = i18n("graphs.tcp_packets_keep_alive"),    priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.packets'), timeseries = { packets_sent = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('packets') }, packets_rcvd = { label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('packets') }},  nedge_exclude = true },
+  { schema = "asn:tcp_out_of_order",         label = i18n("graphs.tcp_packets_ooo"),           priority = 0, measure_unit = "number", scale = i18n('graphs.tcp_packets_ooo'),       timeseries = { packets_sent = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('packets') }, packets_rcvd = { label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('packets') }},  nedge_exclude = true },
+  { schema = "asn:tcp_lost",                 label = i18n("graphs.tcp_packets_lost"),          priority = 0, measure_unit = "number", scale = i18n('graphs.tcp_packets_lost'),      timeseries = { packets_sent = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('packets') }, packets_rcvd = { label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('packets') }},  nedge_exclude = true },  
+
+  -- country_details.lua (Country): --
+  { schema = "country:traffic",              label = i18n("graphs.traffic"),                   priority = 0, measure_unit = "bps",    scale = 0, timeseries = { bytes_egress = { label = i18n('graphs.metrics_suffixes.egress') }, bytes_ingress = { label = i18n('graphs.metrics_suffixes.ingress') }, bytes_inner = { label = i18n('graphs.metrics_suffixes.inner') }}, default_visible = true },
+  { schema = "country:score",                label = i18n("score"),                            priority = 0, measure_unit = "number", scale = 0, timeseries = { score = { label = i18n('score') }, scoreAsClient = { label = i18n('score_as_client') }, scoreAsServer = { label = i18n('score_as_server') } }},
+
+  -- os_details.lua (Operative System): --
+  { schema = "os:traffic",                   label = i18n("graphs.traffic"),                   priority = 0, measure_unit = "bps",    scale = 0, timeseries = { bytes_egress = { label = i18n('graphs.metrics_suffixes.egress') }, bytes_ingress = { label = i18n('graphs.metrics_suffixes.ingress') }}, default_visible = true },
+  
+  -- vlan_details.lua (VLAN): --
+  { schema = "vlan:traffic",                 label = i18n("graphs.traffic"),                   priority = 0, measure_unit = "bps",    scale = 0, timeseries = { bytes_sent         = { label = i18n('graphs.metric_labels.sent'),        color = timeseries_info.get_timeseries_color('bytes_sent') },  bytes_rcvd = { invert_direction = true, label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes_rcvd') }}, default_visible = true },
+  { schema = "vlan:score",                   label = i18n("score"),                            priority = 0, measure_unit = "number", scale = 0, timeseries = { score = { label = i18n('score') }, scoreAsClient = { label = i18n('score_as_client') }, scoreAsServer = { label = i18n('score_as_server') } }},
+
+  -- pool_details.lua (Host Pool): --
+  { schema = "host_pool:traffic",            label = i18n("graphs.traffic"),                   priority = 0, measure_unit = "bps",    scale = 0, timeseries = { bytes_sent         = { label = i18n('graphs.metric_labels.sent'),        color = timeseries_info.get_timeseries_color('bytes_sent') },  bytes_rcvd = { invert_direction = true, label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes_rcvd') }}, default_visible = true },
+  { schema = "host_pool:blocked_flows",      label = i18n("graphs.blocked_flows"),             priority = 0, measure_unit = "number", scale = 0, timeseries = { num_flows          = { label = i18n('graphs.metric_labels.num_flows'),   color = timeseries_info.get_timeseries_color('default') } } },
+  { schema = "host_pool:hosts",              label = i18n("graphs.active_hosts"),              priority = 0, measure_unit = "number", scale = 0, timeseries = { num_hosts          = { label = i18n('graphs.metric_labels.num_hosts'),   color = timeseries_info.get_timeseries_color('default') } } },
+  { schema = "host_pool:devices",            label = i18n("graphs.active_devices"),            priority = 0, measure_unit = "number", scale = 0, timeseries = { num_devices        = { label = i18n('graphs.metric_labels.num_devices'), color = timeseries_info.get_timeseries_color('default') } } },
 }
 
 -- #################################
@@ -249,24 +280,6 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
   timeseries = add_top_timeseries(tags, prefix, timeseries)
 
   return timeseries  
-end
-
--- #################################
-
-function timeseries_info.get_interface_timeseries(tags)
-  return timeseries_info.retrieve_specific_timeseries(tags, 'iface')
-end
-
--- #################################
-
-function timeseries_info.get_host_timeseries(tags)
-  return timeseries_info.retrieve_specific_timeseries(tags, 'host')
-end
-
--- #################################
-
-function timeseries_info.get_mac_timeseries(tags)
-  return timeseries_info.retrieve_specific_timeseries(tags, 'mac')
 end
 
 -- #################################

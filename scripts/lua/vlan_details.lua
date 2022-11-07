@@ -81,14 +81,8 @@ else
          vlan = vlan_id,
          protocol = _GET["protocol"],
       }
-
-      graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], vlan_url, selected_epoch, {
-         top_protocols = "top:vlan:ndpi",
-         timeseries = {
-            {schema="vlan:traffic",             	  label=i18n("traffic")},
-	    {schema="vlan:score",                	  label=i18n("score"), split_directions = true},
-         },
-      })
+      -- top_protocols = "top:vlan:ndpi",
+      graph_utils.drawNewGraphs(tonumber(vlan_id), interface.getId())
    elseif (page == "config") then
       if(not isAdministrator()) then
          return

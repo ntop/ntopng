@@ -51,6 +51,13 @@ const types = {
 	decimal: 2,
 	scale_values: null,	
     },
+    ms: {
+	id: "ms",
+	um: ["ms", "Kms", "Mms", "Gms", "Tms"],
+	step: 1000,
+	decimal: 2,
+	scale_values: null,	
+    },
 };
 
 function getUnitMeasureLen(type) {
