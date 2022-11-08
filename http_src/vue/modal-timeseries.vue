@@ -45,10 +45,10 @@
 	</div>
       </template>
       
-      <!-- Host Pool -->
+      <!-- Pool -->
       <template v-if="selected_source_type.ui_type == ui_types.select_and_select">
 	<div class="form-group ms-2 me-2 mt-3 ms-1 me-1">
-	  <div class="form-group row  mb-2">
+	  <div class="form-group row ms-1 mb-2">
 	    <label class="col-form-label col-sm-4" >
               <b>{{_i18n("modal_timeseries.source")}}</b>
 	    </label>
@@ -249,6 +249,8 @@ function change_action(a) {
 async function apply_source_text(set_selected_source) {
     if (set_selected_source == true) {
 	selected_source.value = await metricsManager.get_source_from_value(http_prefix, selected_source_type.value, source_text.value, selected_sub_source.value.value);
+    } else {
+	selected_source.value.sub_value = selected_sub_source.value.value;
     }
     set_selected_source_text();
     await set_metrics();
@@ -266,11 +268,11 @@ async function change_source() {
     await set_metrics();
 }
 
-function get_selected_source_text(source_value) {
-    if (source_value == null) {
-	source_value = selected_source.value.value;
+function get_selected_source_text(source_label) {
+    if (source_label == null) {
+	source_label = selected_source.value.label;
     }
-    return `${selected_sub_source.value.label} - ${source_value}`;
+    return `${selected_sub_source.value.label} - ${source_label}`;
 }
 
 function set_selected_source_text() {
