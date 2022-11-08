@@ -171,18 +171,6 @@ function ts_dump.iface_update_l4_stats(when, ifstats, verbose)
   end
 end
 
-function ts_dump.iface_update_dscp_stats(when, ifstats, verbose)
-  for id, value in pairs(ifstats.dscp) do
-    ts_utils.append("iface:dscp",
-      {
-        ifid=ifstats.id,
-        dscp_class=id,
-        bytes=value["bytes.sent"] + value["bytes.rcvd"]
-      }, 
-      when)
-  end
-end
-
 function ts_dump.iface_update_flow_dump_stats(when, ifstats, verbose)
    ts_utils.append("iface:dumped_flows",
 		   {
@@ -401,7 +389,6 @@ function ts_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
   ts_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
   ts_dump.iface_update_general_stats(when, ifstats, verbose)
   ts_dump.iface_update_l4_stats(when, ifstats, verbose)
-  ts_dump.iface_update_dscp_stats(when, ifstats, verbose)
   ts_dump.iface_update_anomalies(when, ifstats, verbose)
   ts_dump.iface_update_map_stats(when, ifstats, verbose)
 

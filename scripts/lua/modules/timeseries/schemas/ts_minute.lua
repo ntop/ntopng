@@ -199,13 +199,6 @@ schema:addMetric("bytes")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:dscp", {step=60, is_critical_ts = true})
-schema:addTag("ifid")
-schema:addTag("dscp_class")
-schema:addMetric("bytes")
-
--- ##############################################
-
 schema = ts_utils.newSchema("iface:ndpi_flows", {step=60, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addTag("protocol")
