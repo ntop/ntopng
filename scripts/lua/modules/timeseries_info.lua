@@ -319,11 +319,22 @@ end
 -- #################################
 
 local function add_top_host_timeseries(tags, timeseries)
+  local host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation")
   local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
   local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~= "0"
   local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
 
   ts_utils.loadSchemas()
+  
+  -- L4 Protocols
+  if host_ts_creation == "full" then
+    local series = ts_utils.listSeries("host:l4protos", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    if not table.empty(series) then
+      for _, serie in pairs(series or {}) do
+        timeseries[#timeseries + 1] = { schema = "top:host:ndpi", group = i18n("graphs.l4_proto"), priority = 2, query = "l4proto:" .. serie.l4proto , label = i18n(serie.l4proto) or serie.l4proto, measure_unit = "bps", scale = 0, timeseries = { bytes_sent = { label = serie.l4proto .. " " .. i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = serie.l4proto .. " " .. i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }} }
+      end
+    end
+  end
   
   -- Top l7 Protocols
   if has_top_protocols then
@@ -360,6 +371,28 @@ local function add_top_interface_timeseries(tags, timeseries)
 
   ts_utils.loadSchemas()
   
+  -- Top Traffic Profiles
+  if ntop.isPro() then
+    local series = ts_utils.listSeries("profile:traffic", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    
+    if not table.empty(series) then
+      for _, serie in pairs(series) do
+        timeseries[#timeseries + 1] = { schema = "top:profile:traffic", group = i18n("graphs.top_profiles"), priority = 2, query = "profile:" .. serie.profile , label = serie.profile, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = serie.profile, color = timeseries_info.get_timeseries_color('bytes') }} }
+      end
+    end
+  end
+
+  -- L4 Protocols
+  if interface_ts_enabled then
+    local series = ts_utils.listSeries("iface:l4protos", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    
+    if not table.empty(series) then
+      for _, serie in pairs(series) do
+        timeseries[#timeseries + 1] = { schema = "top:iface:l4protos", group = i18n("graphs.l4_proto"), priority = 2, query = "protocol:" .. serie.l4proto , label = i18n(serie.l4proto) or serie.l4proto, measure_unit = "bps", scale = 0, timeseries = { bytes = { label = serie.l4proto, color = timeseries_info.get_timeseries_color('bytes') }} }
+      end
+    end
+  end
+
   -- Top l7 Protocols
   if has_top_protocols then
     local series = ts_utils.listSeries("iface:ndpi", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])

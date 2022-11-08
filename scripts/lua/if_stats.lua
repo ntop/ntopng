@@ -1479,38 +1479,6 @@ elseif(page == "sites") then
 
 elseif(page == "historical") then
    graph_utils.drawNewGraphs(interface.getId())
-   -- local schema = _GET["ts_schema"]
-   -- local selected_epoch = _GET["epoch"] or ""
-   -- local tags = {
-   --    ifid = ifid,
-   --    protocol = _GET["protocol"],
-   --    category = _GET["category"],
-   --    l4proto = _GET["l4proto"],
-   --    dscp_class = _GET["dscp_class"],
-   -- }
-   -- url = url.."&page=historical"
-
-   -- if(schema == nil) then
-   --    if(ifstats.has_traffic_directions) then
-   -- 	 schema = "iface:traffic_rxtx"
-   --    else
-   -- 	 schema = "iface:traffic"
-   --    end
-   -- end
-   
-   -- local top_enabled = top_talkers_utils.areTopEnabled(ifid)
-
-   -- graph_utils.drawGraphs(ifstats.id, schema, tags, _GET["zoom"], url, selected_epoch, {
-   -- 			     top_protocols = "top:iface:ndpi",
-   -- 			     top_categories = "top:iface:ndpi_categories",
-   -- 			     top_profiles = "top:profile:traffic",
-   -- 			     top_senders = ternary(top_enabled, "top:local_senders", nil),
-   -- 			     top_receivers = ternary(top_enabled, "top:local_receivers", nil),
-   -- 			     l4_protocols = "iface:l4protos",
-   -- 			     dscp_classes = "iface:dscp",
-   -- 			     show_historical = not ifstats.isViewed,
-   -- 			     timeseries = graph_utils.get_default_timeseries()
-   -- }, nil, true)
 elseif(page == "trafficprofiles") then
    
    print("<table class=\"table table-striped table-bordered\">\n")
