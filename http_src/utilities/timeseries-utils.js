@@ -501,7 +501,7 @@ function getTsQuery(tsGroup) {
     } else {
 	// let sub_value = ntopng_url_manager.get_url_entry(tsGroup.source_type.sub_value);
 	let sub_value = tsGroup.source.sub_value;
-	tsQuery = `${tsGroup.source_type.sub_value}:${sub_value},${tsGroup.source_type.value}:${tsGroup.source.value}`;
+tsQuery = `${tsGroup.source_type.sub_value}:${sub_value},${(tsGroup.source_type.ts_query || tsGroup.source_type.value)}:${tsGroup.metric.ts_query || tsGroup.source.value}`;
     }
 
     if (tsGroup.metric.query != null) {

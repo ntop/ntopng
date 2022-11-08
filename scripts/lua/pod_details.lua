@@ -49,23 +49,7 @@ page_utils.print_navbar(title, nav_url,
 Selectively render information pages
 --]]
 if page == "historical" then
-  local schema = _GET["ts_schema"] or "pod:num_flows"
-  local selected_epoch = _GET["epoch"] or ""
-  local url = ntop.getHttpPrefix()..'/lua/pod_details.lua?pod='..pod..'&page=historical'
-
-  local tags = {
-    ifid = ifId,
-    pod = pod,
-  }
-
-  graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-    timeseries = {
-      {schema="pod:num_flows",             label=i18n("graphs.active_flows")},
-      {schema="pod:num_containers",        label=i18n("containers_stats.containers")},
-      {schema="pod:rtt",                   label=i18n("containers_stats.avg_rtt")},
-      {schema="pod:rtt_variance",          label=i18n("containers_stats.avg_rtt_variance")},
-    }
-  })
+  graph_utils.drawNewGraphs(pod, interface.getId())
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

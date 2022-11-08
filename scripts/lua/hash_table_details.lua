@@ -12,9 +12,7 @@ end
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
-local alert_utils = require "alert_utils"
 local page_utils = require("page_utils")
-local os_utils = require "os_utils"
 local ts_utils = require "ts_utils"
 
 local hash_table     = _GET["hash_table"]
@@ -54,25 +52,6 @@ page_utils.print_navbar(title, nav_url,
 			}
 )
 
-local schema = _GET["ts_schema"] or "ht:state"
-local selected_epoch = _GET["epoch"] or ""
-local url = ntop.getHttpPrefix()..'/lua/hash_table_details.lua?ifid='..ifId..'&page=historical'
-
-local tags = {
-   ifid = ifId,
-   hash_table = hash_table,
-}
-
-graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-   timeseries = {
-      {schema = "ht:state", label = i18n("hash_table.CountriesHash"), extra_params = {hash_table = "CountriesHash"}},
-      {schema = "ht:state", label = i18n("hash_table.HostHash"), extra_params = {hash_table = "HostHash"}},
-      {schema = "ht:state", label = i18n("hash_table.MacHash"), extra_params = {hash_table = "MacHash"}},
-      {schema = "ht:state", label = i18n("hash_table.FlowHash"), extra_params = {hash_table = "FlowHash"}},
-      {schema = "ht:state", label = i18n("hash_table.AutonomousSystemHash"), extra_params = {hash_table = "AutonomousSystemHash"}},
-      {schema = "ht:state", label = i18n("hash_table.ObservationPointHash"), extra_params = {hash_table = "ObservationPointHash"}},
-      {schema = "ht:state", label = i18n("hash_table.VlanHash"), extra_params = {hash_table = "VlanHash"}},
-   }
-})
+graph_utils.drawNewGraphs(hash_table, interface.getId())
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
