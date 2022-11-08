@@ -153,30 +153,7 @@ refreshInfluxStats();
        print("</ul>")
 
 elseif(page == "historical" and charts_available) then
-   local schema = _GET["ts_schema"] or "influxdb:storage_size"
-   local selected_epoch = _GET["epoch"] or ""
-   local tags = {ifid = getSystemInterfaceId()}
-   url = url.."&page=historical"
-
-   graph_utils.drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
-      timeseries = {
-      {schema="influxdb:storage_size",                      label=i18n("traffic_recording.storage_utilization")},
-      {schema="influxdb:memory_size",                       label=i18n("about.ram_memory")},
-      {schema="influxdb:write_successes",                   label=i18n("system_stats.write_througput")},
-      {schema="influxdb:exports",                           label=i18n("system_stats.exports_label"),
-       value_formatter = {"NtopUtils.export_rate", "NtopUtils.exports_format"},
-       metrics_labels = {i18n("system_stats.exports_label")}},
-      {schema="influxdb:exported_points",                   label=i18n("system_stats.exported_points")},
-      {schema="influxdb:dropped_points",                    label=i18n("system_stats.dropped_points")},
-      {schema="custom:infludb_exported_vs_dropped_points",  label=i18n("system_stats.exported_vs_dropped_points"),
-       custom_schema = {
-	  bases = {"influxdb:exported_points", "influxdb:dropped_points"},
-	  types = {"area", "line"}, axis = {1,2},
-       },
-       metrics_labels = {i18n("system_stats.exported_points"), i18n("system_stats.dropped_points")},
-      },
-      {schema="influxdb:rtt",                               label=i18n("graphs.num_ms_rtt")},
-   }})
+   graph_utils.drawNewGraphs(nil, interface.getId())
 end
 
 -- #######################################################

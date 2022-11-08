@@ -125,7 +125,6 @@ elseif page == "historical" then
     print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("pool_details.no_available_data_for_host_pool_message",{pool_name=pool_name}))
     print(" "..i18n("pool_details.host_pool_timeseries_enable_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fas fa-flask\"></i>"})..'</div>')
   else
-    --top_protocols = "top:host_pool:ndpi",
     graph_utils.drawNewGraphs(tonumber(pool_id), interface.getId())
   end
 end

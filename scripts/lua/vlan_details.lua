@@ -72,16 +72,6 @@ else
       Selectively render information pages
    --]]
    if page == "historical" then
-      local schema = _GET["ts_schema"] or "vlan:traffic"
-      local selected_epoch = _GET["epoch"] or ""
-      local vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifid='..ifId..'&vlan='..vlan_id..'&page=historical'
-
-      local tags = {
-         ifid = ifId,
-         vlan = vlan_id,
-         protocol = _GET["protocol"],
-      }
-      -- top_protocols = "top:vlan:ndpi",
       graph_utils.drawNewGraphs(tonumber(vlan_id), interface.getId())
    elseif (page == "config") then
       if(not isAdministrator()) then

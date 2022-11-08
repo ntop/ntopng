@@ -88,15 +88,6 @@ $("#table-system-interfaces-stats").datatable({
 	 width: '10%',
        }
      }, {
-       title: "]] print(i18n("chart")) print[[",
-       field: "column_chart",
-       hidden: ]] if not ifid or not ts_creation then print('true') else print('false') end print[[,
-       sortable: false,
-       css: {
-	 textAlign: 'center',
-	 width: '1%',
-       }
-     }, {
        title: "]] print(i18n("internals.state_active")) print[[",
        field: "column_active_entries",
        sortable: true,
@@ -347,15 +338,6 @@ $("#table-internals-periodic-activities").datatable({
        css: {
 	 textAlign: 'right',
 	 width: '3%',
-       }
-     }, {
-       title: "]] print(i18n("chart")) print[[",
-       field: "column_chart",
-       hidden: ]] if not ts_creation then print('true') else print('false') end print[[,
-       sortable: false,
-       css: {
-	 textAlign: 'center',
-	 width: '1%',
        }
      }, {
        title: "]] print(i18n("internals.time_usage")) print[[",
@@ -678,107 +660,6 @@ function internals_utils.getPeriodicActivitiesFillBar(busy_pct, available_pct)
    code = code..[[</div>]]
 
    return code
-end
-
--- ###########################################
-
-function internals_utils.printPeriodicActivityDetails(ifId, url)
-   local periodic_script = _GET["periodic_script"]
-   local schema = _GET["ts_schema"] or "custom:flow_script:stats"
-   local selected_epoch = _GET["epoch"] or ""
-   url = url..'&page=historical'
-
-   if ifId and tostring(getSystemInterfaceId()) ~= ifId then
-      url = url..'&ifid='..ifId
-   end
-
-   local tags = {
-      ifid = ifId,
-      periodic_script = periodic_script,
-   }
-
-   local periodic_scripts_ts = {}
-
-   for script, script_details in pairsByKeys(periodic_activities_utils.periodic_activities) do
-      local max_duration = script_details["max_duration"]
-
-      periodic_scripts_ts[#periodic_scripts_ts + 1] = {
-	 schema = "periodic_script:duration",
-	 label = i18n("internals.chart_script_duration", {script = script}),
-	 extra_params = {periodic_script = script},
-	 metrics_labels = {i18n("flow_checks.last_duration"), },
-
-	 -- Horizontal line with max duration
-	 extra_series = {
-	    {
-	       label = i18n("internals.max_duration_ms"),
-	       axis = 1,
-	       type = "line",
-	       color = "red",
-	       value = max_duration * 1000,
-	       class = "line-dashed",
-	    },
-	 }
-      }
-
-      if ts_utils.getDriverName() == "rrd" then
-	 periodic_scripts_ts[#periodic_scripts_ts + 1] = {
-	    schema = "periodic_script:timeseries_writes",
-	    label = i18n("internals.chart_script_rrds", {script = script}),
-	    extra_params = {periodic_script = script},
-	    metrics_labels = {i18n("internals.num_writes"), i18n("internals.num_drops")},
-	    value_formatter = {"NtopUtils.fpoints", "formatPoints"}
-	 }
-
-      end
-   end
-
-   if ts_utils.getDriverName() == "rrd" then
-      periodic_scripts_ts[#periodic_scripts_ts + 1] = {
-	 separator = 1,
-      }
-      periodic_scripts_ts[#periodic_scripts_ts + 1] = {
-	 schema = "iface:ts_queue_length",
-	 label = i18n("internals.timeseries_queue_length"),
-	 metrics_labels = {i18n("internals.timeseries_queued_points")},
-      }
-   end
-
-   local timeseries = periodic_scripts_ts
-
-   if tostring(ifId) ~= getSystemInterfaceId() and ntop.getPref("ntopng.prefs.checks_rrd_creation") == "1" then
-      timeseries = table.merge(timeseries,
-			       {
-				  {
-				     separator = 1,
-				     label="dequeue_flows_for_hooks.lua"
-				  },
-				  {
-				     schema = "flow_script:lua_duration",
-				     label = i18n("internals.flow_lua_duration"),
-				     metrics_labels = {
-					i18n("duration")
-				     }
-				  },
-				  {
-				     schema = "custom:flow_script:stats",
-				     label = i18n("internals.flow_calls_stats"),
-				     metrics_labels =
-					{
-					   i18n("internals.missed_idle"),
-					   i18n("internals.missed_proto_detected"),
-					   i18n("internals.missed_periodic_update"),
-					   i18n("internals.pending_proto_detected"),
-					   i18n("internals.pending_periodic_update"),
-					   i18n("internals.successful_calls")
-					},
-				  },
-      })
-   end
-
-   graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, { timeseries = timeseries })
-
-
 end
 
 -- ###########################################

@@ -5,11 +5,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-if(ntop.isPro()) then
-    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-    local snmp_utils = require "snmp_utils"
-end
-
 require "lua_utils"
 local graph_utils = require "graph_utils"
 local ts_utils = require("ts_utils")
@@ -27,7 +22,6 @@ local ifId = interface.getId()
 local as_info = interface.getASInfo(asn) or {}
 local asname = as_info["asname"]
 local base_url = ntop.getHttpPrefix() .. "/lua/as_details.lua"
-local asn_behavior_update_freq = 300 -- An update each 300 seconds
 
 local page_params = {}
 
@@ -57,27 +51,6 @@ sendHTTPContentTypeHeader('text/html')
 -- #######################
 
 local function formatDropdownEntries(entries, base_url, param_arr, param_filter, curr_filter)
-   local dropdownString = "" 
-
-   for _, htype in ipairs(entries) do
-      if type(htype) == "string" then
-        -- plain html
-        dropdownString = htype
-        goto continue
-      end
-
-      param_arr[param_filter] = htype[1]
-      
-      dropdownString = dropdownString .. '<li><a class="dropdown-item' .. (htype[1] == curr_filter and 'active' or '') .. '" href="' .. getPageUrl(base_url, param_arr) .. '">' .. htype[2] .. '</a></li>'
-      ::continue::
-   end
-
-   return dropdownString
-end
-
--- #######################
-
-local function addDropdownEntries(entries, base_url, param_arr, param_filter, curr_filter)
    local dropdownString = "" 
 
    for _, htype in ipairs(entries) do
@@ -138,7 +111,6 @@ if isEmptyString(page) or page == "historical" then
       print(" "..i18n("as_details.as_timeseries_enable_message",{url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fas fa-flask\"></i>"})..'</div>')
 
    else
---         top_protocols = "top:asn:ndpi"
        graph_utils.drawNewGraphs(tonumber(asn), interface.getId())
    end
 

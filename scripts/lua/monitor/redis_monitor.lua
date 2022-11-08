@@ -162,37 +162,8 @@ $("#table-redis-stats").datatable({
 </script>
  ]]
 
-elseif(page == "historical" and charts_available) then
-   local ts_utils = require("ts_utils")
-   local schema = _GET["ts_schema"] or "redis:memory"
-   local selected_epoch = _GET["epoch"] or ""
-   local tags = {ifid = getSystemInterfaceId(), command = _GET["redis_command"]}
-   url = url.."&page=historical"
-
-   local timeseries = {
-      {schema = "redis:memory", label = i18n("about.ram_memory")},
-      {schema = "redis:keys", label = i18n("system_stats.redis.redis_keys")},
-      {separator=1, label=i18n("system_stats.redis.commands")},
-   }
-
-   -- Populate individual commands timeseries
-   local series = ts_utils.listSeries("redis:hits", {ifid = getSystemInterfaceId()}, 0)
-
-   if(series) then
-      for _, serie in pairsByField(series, "command", asc) do
-          timeseries[#timeseries + 1] = {
-             schema = "redis:hits",
-             label = i18n("system_stats.redis.command_hits", {cmd = string.upper(string.sub(serie.command, 5))}),
-             extra_params = {redis_command = serie.command},
-             metrics_labels = {i18n("graphs.num_calls")},
-          }
-      end
-   end
-
-   graph_utils.drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
-       top_redis_hits = "top:redis:hits",
-		 timeseries = timeseries,
-   })
+elseif(page == "historical" and charts_available) then 
+  graph_utils.drawNewGraphs(nil, interface.getId())
 end
 
 -- #######################################################

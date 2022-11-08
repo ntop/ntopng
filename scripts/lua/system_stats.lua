@@ -171,51 +171,7 @@ print [[/lua/system_stats_data.lua',
    ]]
 
 elseif(page == "historical" and ts_creation) then
-   local sys_stats = ntop.systemHostStat()
-   local selected_epoch = _GET["epoch"] or ""
-   local tags = {ifid = getSystemInterfaceId()}
-   local skip_cpu_load = (sys_stats.cpu_load == nil)
-   local schema = _GET["ts_schema"] or ternary(skip_cpu_load, "process:num_alerts", "system:cpu_load")
-   url = url.."&page=historical"
-
-   graph_utils.drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
-      timeseries = {
-	 {
-	    schema = "system:cpu_load",
-	    label=i18n("about.cpu_load"),
-	    metrics_labels = {i18n("about.cpu_load")},
-	    value_formatter = {"NtopUtils.ffloat"},
-	    skip = skip_cpu_load,
-	 },
-	 {
-	    schema="system:cpu_states",
-	    label=i18n("about.cpu_states"),
-	    metrics_labels = {i18n("about.iowait"), i18n("about.active"), i18n("about.idle")},
-	    value_formatter = {"NtopUtils.fpercent"}
-	 },
-	 {
-	    schema="process:resident_memory",
-	    label=i18n("graphs.process_memory")
-	 },
-	 {
-	    schema="process:num_alerts",
-	    label=i18n("graphs.process_alerts"),
-	    metrics_labels = {i18n("about.alerts_stored"), i18n("about.alert_queries"), i18n("about.alerts_dropped")},
-	 },
-	 {
-	    schema="iface:engaged_alerts",
-	    label=i18n("show_alerts.engaged_alerts"),
-	    metrics_labels = { i18n("show_alerts.engaged_alerts") },
-	    skip=hasAllowedNetworksSet()
-	 },
-	 {
-	    schema="iface:dropped_alerts",
-	    label=i18n("show_alerts.dropped_alerts"),
-	    metrics_labels = { i18n("show_alerts.dropped_alerts") },
-	    skip=hasAllowedNetworksSet()
-	 },
-      }
-   })
+  graph_utils.drawNewGraphs(nil, interface.getId())
 elseif page == "internals" then
    internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]], true --[[ queues --]])
 end

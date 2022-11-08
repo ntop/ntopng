@@ -12,6 +12,10 @@ local rc = rest_utils.consts.success.ok
 local ifid = tostring(_GET["ifid"] or interface.getId())
 local query = _GET["query"]
 local host = _GET["host"]
+local asn = _GET["asn"]
+local pool = _GET["pool"]
+local vlan = _GET["vlan"]
+local mac = _GET["mac"]
 
 local res = {}
 
@@ -21,7 +25,11 @@ end
 
 local tags = {
   ifid = ifid,
-  host = host
+  host = host,
+  asn  = asn,
+  pool = pool,
+  vlan = vlan,
+  mac  = mac,
 }
 
 res = table.merge(res, timeseries_info.retrieve_specific_timeseries(tags, query))
