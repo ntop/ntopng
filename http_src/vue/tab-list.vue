@@ -49,6 +49,10 @@ export default defineComponent({
         tmp = tab
       }
     })
+
+    if(tmp == undefined)
+      tmp = this.tab_list[0]
+
     this.old_tab = tmp.id || tmp.name
     ntopng_sync.ready(this.$props["id"]);
   },
