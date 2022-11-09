@@ -460,7 +460,7 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
   for _, info in pairs(timeseries_list) do
     -- Check if the schema starts with 'iface:', 
     -- if not then it's not an interface timeseries, so drop it
-    if not string.starts(info.schema, prefix) then
+    if info.id ~= prefix then
       goto skip
     end
 
