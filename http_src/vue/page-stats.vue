@@ -187,7 +187,7 @@ function set_default_source_in_url() {
 	let value_url = metricsManager.get_source_type_key_value_url(source_type);
 	ntopng_url_manager.set_key_to_url(value_url, props.source_value);
     }
-    if (props.source_sub_value != null && props.source_sub_value != "") {
+    if (source_type.sub_value && props.source_sub_value != null && props.source_sub_value != "") {
 	let sub_value_url = metricsManager.get_source_type_key_sub_value_url(source_type);
 	ntopng_url_manager.set_key_to_url(sub_value_url, props.source_sub_value);
     }
