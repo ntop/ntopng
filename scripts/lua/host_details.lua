@@ -363,12 +363,6 @@ else
       },
       {
          hidden = only_historical,
-         active = page == "DSCP",
-         page_name = "DSCP",
-         label = i18n("dscp"),
-      },
-      {
-         hidden = only_historical,
          active = page == "ports",
          page_name = "ports",
          label = i18n("ports"),
@@ -1055,98 +1049,12 @@ else
       print("</table>\n")
 
    elseif((page == "packets")) then
-      print [[
-      <table class="table table-bordered table-striped">
-         ]]
-
-      local tots = 0 for key, value in pairs(host["pktStats.sent"]["size"]) do tots = tots + value end
-      local totr = 0 for key, value in pairs(host["pktStats.recv"]["size"]) do totr = totr + value end
-
-     print('<tr>')
-     if(tots > 0) then
-                        print('<th class="text-start">'..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
-                        print('<td colspan=1><div class="pie-chart" id="sizeSentDistro"></div></td>')
-     else
-                        print('<th class="text-start" style="width: 15rem;"> '..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
-                        print('<td colspan=1 style="width: 15rem;">~</td>')
-     end
-
-     if(totr > 0) then
-       print('<td colspan=1><div class="pie-chart" id="sizeRecvDistro"></div></td>')
-     else
-       print('<td colspan=1 style="width: 15rem;">~</td>')
-     end
-     print('</tr>')
-
-   local has_tcp_distro = (host["tcp.packets.rcvd"] + host["tcp.packets.sent"] > 0)
-   local has_arp_distro = (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") and (ifs.type ~= "zmq")
-
-   if(has_tcp_distro and has_arp_distro) then
-            print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_vs_arp_distribution")..'</th><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td><td colspan=1><div class="pie-chart" id="arpDistro"></div></td></tr>')
-   else
-      if (has_tcp_distro) then
-                         print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
-      elseif (has_arp_distro) then
-         if (macinfo ~= nil) and (macinfo["arp_requests.sent"] + macinfo["arp_requests.rcvd"] + macinfo["arp_replies.sent"] + macinfo["arp_replies.rcvd"] > 0) then
-            print('<tr><th class="text-start">'..i18n("packets_page.arp_distribution")..'</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
-         end
-      else
-                     print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_distribution")..'</th>') print('<td colspan=5>~</td></tr>')
-      end
-        end
-
-      hostinfo2json(host_info)
-      print [[
-      </table>
-
-        <script type='text/javascript'>
-               window.onload=function() {
-
-                   do_pie("#sizeSentDistro", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "sent", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-        print [[
-                   do_pie("#sizeRecvDistro", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-        print [[
-                   do_pie("#flagsDistro", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/if_tcpflags_pkt_distro.lua', { ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-
--- table.clone needed to change macinfo while keeping host_info unchanged
-local macinfo = table.clone(host_info)
-macinfo["host"] = host["mac"]
-
-        print [[
-                   do_pie("#arpDistro", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostinfo2json(macinfo) .."}, \"\", refresh); \n")
-        print [[
-
-                }
-
-            </script><p>
-        ]]
-
-   elseif((page == "DSCP")) then
-      print('<table class="table table-bordered table-striped">\n')
-      print('<tr><th class="text-start">'..i18n("dscp_page.statistics_sent")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceSent"></div></td></tr>')
-      print('<tr><th class="text-start">'..i18n("dscp_page.statistics_received")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceReceived"></div></td></tr>')
-
-      print [[
-      </table>
-
-      <script type='text/javascript'>
-        window.onload=function() {
-          do_pie("#dscpPrecedenceSent", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/host/dscp/stats.lua', { direction: "sent", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-      print [[
-          do_pie("#dscpPrecedenceReceived", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/host/dscp/stats.lua', { direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-      print [[
-        }
-      </script>
-      ]]
-
+    template.render("pages/hosts/packets_stats.template", { 
+      view = "applications",
+      host_ip = host_ip, 
+      vlan = host_vlan, 
+      ifid = ifId,
+    })
    elseif((page == "ports")) then
       print('<table class="table table-bordered table-striped">\n')
 
@@ -1321,7 +1229,7 @@ else
 end
 elseif((page == "traffic")) then
     -- template render
-    template.render("pages/hosts/traffic.template", {})
+    template.render("pages/hosts/traffic_stats.template", {})
 
 elseif((page == "listening_ports")) then
     template.render("htmlPages/hostDetails/listening-ports.template", {
@@ -1598,7 +1506,6 @@ elseif(page == "flows") then
     traffic_type = _GET["traffic_type"],
     version = _GET["version"],
     l4proto = _GET["l4proto"],
-    dscp_class = _GET["dscp_class"],
     host = hostinfo2hostkey(host),
     tskey = _GET["tskey"],
     host_pool_id = _GET["host_pool_id"],

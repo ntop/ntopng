@@ -1,0 +1,53 @@
+{#
+  (C) 2022 - ntop.org
+  This template is used by the `Service Map` page inside the `Hosts` menu.    
+#}
+
+
+<div id="host-details-packets">
+  <page-host-details-packets
+  :page_csrf="page_csrf"
+  :url_params="url_params">
+  </page-host-details-packets>
+</div>
+  
+<script type="text/javascript">  
+  const pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+  const url_params = {
+    host: "{{ host_ip }}",
+    vlan: "{{ vlan }}",
+    ifid: "{{ ifid }}",
+  }
+  
+  function start_vue() {
+    let vue_options = {
+      components: {	  
+        'page-host-details-packets': ntopVue.PageHostDetailsPackets,
+      },
+      /**
+      * First method called when the component is created.
+      */
+      created() { },
+      mounted() {
+      },
+      data() {
+        return {
+          page_csrf: pageCsrf,
+          url_params: url_params,
+        };
+      },
+      methods: { },
+    };
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#host-details-packets');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>
+

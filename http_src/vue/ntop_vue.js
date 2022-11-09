@@ -16,6 +16,7 @@ import { default as PageHomeMap } from "./page-home-map.vue";
 import { default as PageSankey } from "./page-sankey.vue";
 import { default as PageHostDetailsApplications } from "./page-host-details-applications.vue";
 import { default as PageHostDetailsTraffic } from "./page-host-details-traffic.vue";
+import { default as PageHostDetailsPackets } from "./page-host-details-packets.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -58,8 +59,11 @@ let ntopVue = {
     PageHostSSH: PageHostSSH,
     PageHomeMap: PageHomeMap,
     PageSankey: PageSankey,
+
+    // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,
     PageHostDetailsTraffic: PageHostDetailsTraffic,
+    PageHostDetailsPackets: PageHostDetailsPackets,
 
     // components
     AlertInfo: AlertInfo,
