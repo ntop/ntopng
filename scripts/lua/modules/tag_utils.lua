@@ -633,9 +633,11 @@ function tag_utils.get_tag_info(id, entity)
     elseif tag.value_type == "probe_ip" then
         filter.value_type = 'array'
         filter.options = {}
-        for probe, _ in pairsByValues(interface.getFlowDevices() or {}, asc) do
-          local label = format_name_value(getProbeName(probe), probe)
-          filter.options[#filter.options+1] = { value = probe, label = label }
+        if interface.getFlowDevices then -- Pro Only
+          for probe, _ in pairsByValues(interface.getFlowDevices() or {}, asc) do
+            local label = format_name_value(getProbeName(probe), probe)
+            filter.options[#filter.options+1] = { value = probe, label = label }
+          end
         end
 
    elseif tag.value_type == "ip_version" then
