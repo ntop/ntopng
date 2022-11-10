@@ -309,7 +309,7 @@ using namespace std;
 #include "AlertStore.h"
 #include "SQLiteAlertStore.h"
 #include "DB.h"
-#ifdef HAVE_KAFKA
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
 #include "KafkaProducer.h"
 #include "KafkaClient.h"
 #endif
