@@ -2,9 +2,6 @@
 -- (C) 2013-22 - ntop.org
 --
 
-local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-
 local sys_utils = require "sys_utils"
 local service_name = "isc-dhcp-server"
 
@@ -28,7 +25,7 @@ end
 
 -- This function is used to check if the DHCP server status is up 
 -- and if not, restart it.
-function dhcp_service_utils.startDHCPservice()
+function dhcp_service_utils.startDHCPService()
   if ntop.isnEdge() then
     ntop.setCache(redis_key, '1')
     sys_utils.enableService(service_name)
@@ -40,7 +37,7 @@ end
 
 -- This function is used to check if the DHCP server status is up 
 -- and if not, restart it.
-function dhcp_service_utils.stopDHCPservice()
+function dhcp_service_utils.stopDHCPService()
   if ntop.isnEdge() then
     ntop.setCache(redis_key, '0')
     sys_utils.disableService(service_name)

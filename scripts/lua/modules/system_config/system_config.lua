@@ -972,7 +972,6 @@ end
 
 function system_config:_enableDisableDhcpService()
   local dhcp_service_utils = require "dhcp_service_utils"
-
   if self:isDhcpServerEnabled() then
     dhcp_service_utils.startDHCPService()
   else

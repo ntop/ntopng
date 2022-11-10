@@ -2323,6 +2323,12 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["pol_id_"]                 = { validateNumber, validateRoutingPolicyName },
    ["routing_"]                = { validateRoutingPolicyGateway, validateEmptyOr(validateNumber) }, -- a routing policy
 
+-- DHCP Configuration
+   ["dhcp_server_enabled_"]    = { validateNetworkInterface, validateBool },
+   ["dhcp_first_ip_"]          = { validateNetworkInterface, validateIPV4 },
+   ["dhcp_last_ip_"]           = { validateNetworkInterface, validateIPV4 },
+   
+
 -- Network Configuration
    ["iface_mode_"]             = { validateNetworkInterface, validateInterfaceConfMode },
    ["iface_ip_"]               = { validateNetworkInterface, validateIPV4 },

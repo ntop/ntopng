@@ -86,13 +86,22 @@ function system_setup_ui_utils.printConfigChange(sys_config, warnings)
    if config_changed or first_start then
 
       if is_nedge then
-         local dhcp_config = sys_config:getDhcpServerConfig()
+        local lan_networks = sys_config:getLanNetworks()
+        local dhcp_config = sys_config:getDhcpServerConfig()
 
-         if dhcp_config.enabled then
-            if not sys_config:hasValidDhcpRange(dhcp_config.subnet.first_ip, dhcp_config.subnet.last_ip) then
-               warnings[#warnings + 1] = i18n("nedge.invalid_dhcp_range")
+          if dhcp_config.enabled then
+            for _, lan_config in pairs(lan_networks) do
+              local lan_name = lan_config.iface
+              if (not lan_name) or (not dhcp_config["subnet"][lan_name]) then
+                goto continue
+              end
+
+              if not sys_config:hasValidDhcpRange(dhcp_config["subnet"][lan_name]["first_ip"], dhcp_config["subnet"][lan_name]["last_ip"]) then
+                warnings[#warnings + 1] = i18n("nedge.invalid_dhcp_range")
+              end
+              ::continue::
             end
-         end
+          end
       end
 
       print(
