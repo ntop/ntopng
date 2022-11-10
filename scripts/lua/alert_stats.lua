@@ -714,7 +714,7 @@ local context = {
        show_flows = (page == 'host'),
        show_historical = ((page == 'host') or (page == 'flow')) and ntop.isEnterpriseM() and hasClickHouseSupport(),
        show_pcap_download = traffic_extraction_available and page == 'flow',
-       show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator(),
+       show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator() and ntop.isEnterpriseM(),
        show_acknowledge = (page ~= 'all') and (status == "historical") and isAdministrator(),
        show_delete = (page ~= 'all') and (status ~= "engaged") and isAdministrator(),
        show_info = (page == 'flow'),

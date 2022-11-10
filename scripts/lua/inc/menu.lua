@@ -623,7 +623,7 @@ page_utils.add_menubar_section(
          },
          {
             entry = page_utils.menu_entries.divider,
-      hidden = not devices_exclusion_enabled
+            hidden = not devices_exclusion_enabled
          },
          {
             entry = page_utils.menu_entries.device_exclusions,
