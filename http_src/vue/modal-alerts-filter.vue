@@ -1,11 +1,11 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
 <modal @showed="showed()" ref="modal_id">
-  <template v-slot:title>{{ _i18n('current_filter') }}: <span v-html="alert_name"></span></template>
+  <template v-slot:title>{{ _i18n('exclude_check') }}: <span v-html="alert_name"></span></template>
   <template v-slot:body>
     <div class="form-group mb-3 ">
       <div>
-	<label>{{ _i18n('current_filter') }} "<b v-html="alert_name"></b>". <span class="alert_label">{{ _i18n('current_filter_for') }}:</span> </label>
+	<label>{{ _i18n('exclude_check') }} "<b v-html="alert_name"></b>". <span class="alert_label">{{ _i18n('exclude_for') }}:</span> </label>
 	<div class="form-check">
       	  <input class="form-check-input" type="radio" value="any" v-model="radio_selected">
       	  <label class="form-check-label">

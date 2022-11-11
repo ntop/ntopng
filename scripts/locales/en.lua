@@ -166,6 +166,8 @@ local lang = {
   ["error_rrd_cannot_complete_dump"] = "Cannot complete local hosts timeseries dump. Disk slow or too many local hosts?",
   ["error_rrd_low_resolution"] = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data.<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Application/Networks Timeseries</a> preferences",
   ["errors"] = "Errors",
+  ["exclude_check"] = "Exclude Check",
+  ["exclude_for"] = "Exclude for",
   ["expired_csrf"] = "Could not perform the requested action because the page expired. Please reload the page and perform the action again.",
   ["export"] = "Export",
   ["external_link"] = "External Link",
