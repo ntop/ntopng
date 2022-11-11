@@ -12,6 +12,7 @@ function os_table_setID (row) {
   row.find("td").eq(index++).attr('id', os_key+"_key");
   row.find("td").eq(index++).attr('id', os_key+"_number");
   // os_stats_top
+  row.find("td").eq(index++).attr('id', os_key+"_chart");
   row.find("td").eq(index++).attr('id', os_key+"_hosts");
   row.find("td").eq(index++).attr('id', os_key+"_alerts");
 
@@ -35,6 +36,7 @@ function os_row_update(os_key) {
     cache: false,
     success: function(content) {
       var data = jQuery.parseJSON(content);
+      $('td[id="' + os_key + '_chart"]').html(data.column_chart);
       $('td[id="' + os_key + '_hosts"]').html(data.column_hosts);
       $('td[id="' + os_key + '_alerts"]').html(data.column_alerts);
       $('td[id="' + os_key + '_since"]').html(data.column_since);
