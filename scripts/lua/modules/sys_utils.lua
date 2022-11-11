@@ -107,10 +107,11 @@ end
 -- ################################################################
 
 local function _isServiceStatus(service_name, status)
+  require "lua_utils"
   local check_cmd = "systemctl is-"..status.." " .. service_name
   local is_active = sys_utils.execShellCmd(check_cmd)
 
-  return ternary(string.match(is_active, "^"..status), true, false)
+  return ternary(string.match(tostring(is_active), "^"..status), true, false)
 end
 
 function sys_utils.isActiveService(service_name)
@@ -126,10 +127,12 @@ function sys_utils.isFailedService(service_name)
 end
 
 function sys_utils.isActiveFailedService(service_name)
+  require "lua_utils"
+  
   local check_cmd = "systemctl is-active " .. service_name
   local is_active = sys_utils.execShellCmd(check_cmd)
 
-  return ternary(string.match(is_active, "inactive"), false, true)
+  return ternary(string.match(tostring(is_active), "inactive"), false, true)
 end
 
 -- ################################################################
