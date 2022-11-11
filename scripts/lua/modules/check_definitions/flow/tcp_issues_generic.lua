@@ -10,7 +10,7 @@ local flow_alert_keys = require "flow_alert_keys"
 -- #################################################################
 
 -- NOTE: this module is always enabled
-local script = {
+--[[local script = {
    -- Script category
    category = checks.check_categories.network,
 
@@ -32,3 +32,4 @@ local script = {
 -- #################################################################
 
 return script
+]]
