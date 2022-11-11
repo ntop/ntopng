@@ -337,7 +337,7 @@ const sources_types = [
 	sources_function: () => { return [{ label: "", value: -1 }] },
 	regex_type: "text",
 	ui_type: ui_types.hide,
-	query: "process",
+	query: "system",
     },
     {
 	id: "profile",	
