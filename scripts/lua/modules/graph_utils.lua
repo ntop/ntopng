@@ -299,6 +299,7 @@ end
 -- #################################################
 
 function graph_utils.drawNewGraphs(source_value, source_sub_value)
+   local ifid = interface.getId()
    if (source_value == nil) then
       source_value = ""
    end
