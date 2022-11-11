@@ -66,9 +66,15 @@ function config.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, 
       if_config_iface = iface
       if_config = config._getInterfaceConfig(if_config_section, if_config_iface) 
     else
-      if_config_section = "ethernets"
-      if_config_iface = iface
-      if_config = config._getInterfaceConfig(if_config_section, if_config_iface) 
+      if vlan_id then
+        if_config_section = "vlans"
+        if_config_iface = iface
+        if_config = config._getInterfaceConfig(if_config_section, if_config_iface)
+      else
+        if_config_section = "ethernets"
+        if_config_iface = iface
+        if_config = config._getInterfaceConfig(if_config_section, if_config_iface)
+      end 
     end
 
   elseif vlan_raw_iface then
@@ -117,6 +123,13 @@ function config.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, 
     if not if_config.extra_conf then
       if_config.extra_conf = {}
     end
+
+    if vlan_id then
+      -- Check if the vlan has the alias or not, in case remove it
+      -- Otherwise an the id section is going to be wrong, e.g. '11:2'
+      vlan_id = split(vlan_id, ":")[1]
+    end
+    
     if_config.extra_conf['accept-ra'] = 'no'
     if_config.extra_conf['id'] = vlan_id
     if_config.extra_conf['link'] = vlan_raw_iface
