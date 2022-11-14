@@ -12,7 +12,7 @@
     "js:lint": "eslint './http_src/**/*.js'",
     "watch": "rollup -c -w",
     "build:ntopngjs": "rollup -c",
-    "build": "npm run css:lint && webpack --mode=production --config webpack.prod.js; rm -fr httpdocs/dist/*; mv httpdocs/tmp-dist/* httpdocs/dist;rollup -c",
+    "build": "npm run css:lint && webpack --mode=production --config webpack.prod.js; rm -fr httpdocs/dist/*; mv httpdocs/tmp-dist/* httpdocs/dist;rollup -c --prod",
     "build:dev": "npm run css:lint && webpack --mode=development --config webpack.prod.js; rm -fr httpdocs/dist/*; mv httpdocs/tmp-dist/* httpdocs/dist;rollup -c"
   },
   "repository": {

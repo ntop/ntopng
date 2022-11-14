@@ -1,3 +1,7 @@
+/**
+    (C) 2022 - ntop.org    
+*/
+
 import * as Vue from "vue";
 // window.Vue = Vue;
 
@@ -17,6 +21,7 @@ import { default as PageSankey } from "./page-sankey.vue";
 import { default as PageHostDetailsApplications } from "./page-host-details-applications.vue";
 import { default as PageHostDetailsTraffic } from "./page-host-details-traffic.vue";
 import { default as PageHostDetailsPackets } from "./page-host-details-packets.vue";
+import { default as PageHostDetailsFlowSankey } from "./page-host-details-flow-sankey.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -29,6 +34,7 @@ import { default as RangePicker } from "./range-picker.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as TabList } from "./tab-list.vue";
+import { default as Sankey } from "./sankey.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -64,6 +70,7 @@ let ntopVue = {
     PageHostDetailsApplications: PageHostDetailsApplications,
     PageHostDetailsTraffic: PageHostDetailsTraffic,
     PageHostDetailsPackets: PageHostDetailsPackets,
+    PageHostDetailsFlowSankey: PageHostDetailsFlowSankey,
 
     // components
     AlertInfo: AlertInfo,
@@ -76,6 +83,7 @@ let ntopVue = {
     SimpleTable: SimpleTable,
     SelectSearch: SelectSearch,
     TabList: TabList,
+    Sankey: Sankey,
     
     // list
     ListTimeseries: ListTimeseries,
