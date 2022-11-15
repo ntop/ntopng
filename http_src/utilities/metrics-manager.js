@@ -169,7 +169,7 @@ const sources_url_el_to_source = {
 
 const sources_types = [
     {
-	id: "interface",
+	id: "ifid",
 	regex_page_url: "lua\/if_stats",
 	label: "Interface",
 	sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
