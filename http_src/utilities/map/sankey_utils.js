@@ -46,16 +46,9 @@ const getDefaultSankeySettings = function() {
   return defaultSankeySettings;
 }
 
-const dragNodeEvent = function(d) {
-  d3.select(this).attr("transform", "translate(" + d.x + "," + (d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))) + ")");
-  sankey.relayout();
-  link.attr("d", path);
-}
-
 const sankeyUtils = function() {
   return {
     formatFlowTitle,
-    dragNodeEvent,
     getDefaultSankeySettings
   };
 }();
