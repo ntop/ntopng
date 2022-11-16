@@ -46,7 +46,7 @@ end
 -- @return A human-readable string
 function alert_tcp_packets_issues.format(ifid, alert, alert_type_params)
   local msg = ''
-  tprint(alert_type_params)
+  
   if alert_type_params.lost > alert_type_params.lost_threshold then
     msg = i18n("flow_checks_config.tcp_packets_issues_alert", { type = 'loss', value = alert_type_params.lost, threshold = alert_type_params.lost_threshold })
   elseif alert_type_params.retransmission > alert_type_params.retransmission_threshold then
