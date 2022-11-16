@@ -347,6 +347,8 @@ void usage() {
 	 "                                    | h is the host running Redis (default\n"
 	 "                                    | localhost), optionally followed by a\n"
 	 "                                    |  ':'-separated port (default 6379).\n"
+   "                                    | The special characters \\ and ` are not\n"
+   "                                    | supported by ntopng.\n"
 	 "                                    | A password can be specified after\n"
 	 "                                    | the port when Redis auth is required.\n"
 	 "                                    | By default password auth is disabled.\n"
