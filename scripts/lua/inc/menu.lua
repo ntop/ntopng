@@ -337,29 +337,18 @@ end
 -- Maps
 
 local service_map_available = false
-local periodicity_map_available = false
 local asset_map_available = ntop.isEnterpriseXL()
 
-service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
+service_map_available, _ = behavior_utils.mapsAvailable()
 
 page_utils.add_menubar_section({
   section = page_utils.menu_sections.maps,
   hidden = is_system_interface or is_viewed,
   entries = {
    {
-      entry = page_utils.menu_entries.service_map,
+      entry = page_utils.menu_entries.analysis_map,
       hidden = not service_map_available,
       url = '/lua/pro/enterprise/network_maps.lua?map=service_map',
-   },
-   {
-      entry = page_utils.menu_entries.periodicity_map,
-      hidden = not periodicity_map_available,
-      url = '/lua/pro/enterprise/network_maps.lua?map=periodicity_map',
-   },
-   {
-      entry = page_utils.menu_entries.asset_map,
-      hidden = not asset_map_available,
-      url = '/lua/pro/enterprise/network_maps.lua?map=asset_map&asset_family=dns',
    },
    {
       entry = page_utils.menu_entries.geo_map,
