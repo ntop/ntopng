@@ -69,6 +69,7 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(RemoteToRemoteAlert::getClassType(),             RemoteToRemoteAlert::getDefaultScore());
   registerAlert(TCPConnectionNoAnswerAlert::getClassType(),      TCPConnectionNoAnswerAlert::getDefaultScore());
   registerAlert(TCPConnectionRefusedAlert::getClassType(),       TCPConnectionRefusedAlert::getDefaultScore());
+  registerAlert(TCPPacketsIssuesAlert::getClassType(),           TCPPacketsIssuesAlert::getDefaultScore());
   registerAlert(TCPNoDataExchangedAlert::getClassType(),         TCPNoDataExchangedAlert::getDefaultScore());
   registerAlert(TCPZeroWindowAlert::getClassType(),              TCPZeroWindowAlert::getDefaultScore());
   registerAlert(TLSMaliciousSignatureAlert::getClassType(),      TLSMaliciousSignatureAlert::getDefaultScore());

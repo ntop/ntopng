@@ -1,0 +1,65 @@
+{#
+    
+    (C) 2020 - ntop.org
+    Template for the Checks using the 'Threshold Cross' GUI.
+
+    Defined fields:
+    * hook_name: contains the name for the current rendered hook 
+    * hook_conf: contains the configuration for the current rendered hook
+    * user_script: contains data about the loaded user script
+
+#}
+
+{%
+
+    local field_unit = i18n(user_script.gui.i18n_field_unit)
+    local default_operator_not_defined = isEmptyString(user_script.default_value.operator)
+%}
+
+<div class="mb-3 row">
+    <label class="col-sm-2 col-form-label">{{ i18n("enabled") }}</label>
+    <div class="col-2">
+        <div class="custom-control custom-switch">
+            <input id="enabled-{{ hook_name }}" name="enabled" class="custom-control-input" type="checkbox" {{ (hook_conf.enabled and 'checked' or '') }}>
+            <label class="custom-control-label" for="enabled-{{ hook_name }}"></label>
+        </div>
+    </div>
+</div>
+<div class="mb-3 row">
+    <label class="col-sm-2 col-form-label">{{ i18n("edit_user_script.hooks_name." .. hook_name) or hook_name }}</label>
+    <div class="col-2">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                {% if default_operator_not_defined then %}
+                <select name="operator" required class="btn btn-outline-secondary" {{ (hook_conf.enabled and '' or 'disabled') }}>
+                    <option value="gt" {{ (hook_conf.script_conf.operator == 'gt' and 'selected' or '') }} >&gt;</option>
+                    <option value="lt" {{ (hook_conf.script_conf.operator == 'lt' and 'selected' or '') }} >&lt;</option>
+                </select>
+                {% else %}
+                    <span class='input-group-text'>&{{ (user_script.default_value.operator) }}</span>
+                    <input name="operator" hidden value="{{ user_script.default_value.operator }}">
+                {% end %}
+            </div>
+            <input type="number" class="form-control text-right" required {{ (hook_conf.enabled and '' or 'disabled') }} value="{{ hook_conf.script_conf.threshold }}" name="threshold">
+            <span class="mt-auto mb-auto ms-2 me-2">{{ field_unit }}</span>    
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript">
+
+    $(document).ready(function() {
+
+        const $thresholdInput = $(`input[name='threshold']`);
+        const $operatorSelect = $(`select[name='operator']`);
+
+        // Notice: the registerResetCallback must be called inside the document ready!
+        registerResetCallback('{{ hook_name }}', function(hookName, hook, resetData) {
+            
+            const scriptConf = hook.script_conf;
+            NtopUtils.fillFieldIfValid($thresholdInput, scriptConf.threshold);
+            NtopUtils.fillFieldIfValid($operatorSelect, scriptConf.operator);
+        });
+
+    });
+</script>

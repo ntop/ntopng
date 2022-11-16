@@ -67,6 +67,7 @@
 #include "flow_checks/RemoteToRemote.h"
 #include "flow_checks/TCPNoDataExchanged.h"
 #include "flow_checks/TCPZeroWindow.h"
+#include "flow_checks/TCPPacketsIssues.h"
 #include "flow_checks/UnexpectedServer.h"
 #include "flow_checks/UnexpectedDNSServer.h"
 #include "flow_checks/UnexpectedDHCPServer.h"

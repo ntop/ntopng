@@ -786,6 +786,224 @@ return {
 }
 }
 
+/* ********************************* */
+
+/* Multi Threshold cross template, used to set multiple threshold cross.
+ * e.g.: tcp retransmissions > 4% and out of order packets > 5%
+ */
+const MultiThresholdCross = (gui, metadata, hooks, check_subdir, script_key) => {
+const $table_editor = $("#script-config-editor");
+const render_select_operator = (operators, key, hook) => {
+
+   const $select = $(`
+    <select
+      name='${key}-select'
+      required
+      ${hook.enabled ? '' : 'disabled'}
+      class='btn btn-outline-secondary'></select>
+   `);
+
+   operators.forEach((op) => {
+      $select.append($(`<option value="${op}">&${op}</option>`));
+   });
+
+   // select the right operator
+   if (hook.script_conf.operator != undefined) {
+      $select.val(hook.script_conf.operator)
+   }
+
+   return $select;
+}
+
+const render_template = () => {
+  const operators = ['gt', 'lt'];
+
+  // clean script editor table from previous state
+  $table_editor.empty();
+  // append each hooks to the table
+  $table_editor.append(`<tr>
+                          <th class="col-2" style="padding-left: 22px!important;">${i18n('options')}</th>
+                          <th class="col-3 text-center align-middle">${i18n('enabled')}</th>
+                          <th>${i18n('threshold')}</th>
+                        </tr>`)
+   
+  // iterate over keys to create each hooks
+  for (const key in hooks) {
+    if (key == undefined) continue;
+      
+    // get hook
+    const hook = hooks[key];
+    for (const field in hook.script_conf) {
+      const $field = $(`<div class='input-group template'></div>`);
+      let { default_value, field_operator, fields_unit, field_min, field_max, title } = hook.script_conf[field];  
+      let enabled = hook.script_conf[field]["enabled"]
+
+      if(enabled == undefined)
+        enabled = hook.enabled
+      if(default_value == undefined)
+        default_value = hook.script_conf[field]["threshold"]
+      if(field_operator == undefined)
+        field_operator = hook.script_conf[field]["operator"]
+      if(fields_unit == undefined)
+        fields_unit = metadata.default_value[field].i18n_fields_unit
+      if(field_min == undefined)
+        field_min = metadata.default_value[field].field_min
+      if(field_max == undefined)
+        field_max = metadata.default_value[field].field_max
+      if(title == undefined)
+        title = metadata.default_value[field].title
+
+      let $select = null;
+  
+      if (field_operator == undefined) {
+        $select = render_select_operator(operators, key, hook);
+      } else {
+        $select = $(`<span class='input-group-text'>&${field_operator}</span>`).data('value', field_operator);
+      }
+
+      const $title = `<span class='mt-auto mb-auto ms-2 me-2'>${title ? title : ""}</span>`;
+      
+      $field.append($select);
+      $field.append(`<input
+                        type='number'
+                        class='form-control text-end'
+                        required
+                        style='max-width: 7rem;'
+                        name='${key}-${field}-input'
+                        ${enabled ? '' : 'readonly'}
+                        value='${default_value == undefined ? '' : default_value}'
+                        min='${field_min == undefined ? '' : field_min}'
+                        max='${field_max == undefined ? '' : field_max}'>`);
+      $field.append(`<span class='mt-auto mb-auto ms-2 me-2'>${i18n(fields_unit) ? i18n(fields_unit) : ""}</span>`);
+      $field.append(`<div class='invalid-feedback'></div>`);
+      
+      const $input_container = $(`<tr id='${field}'></tr>`);
+      const $checkbox = $(`
+        <div class="form-switch">
+          <input class="form-check-input ms-0" id="id-${key}-${field}-check" name="${key}-${field}-check" type="checkbox" ${enabled ? "checked" : ""} >
+          <label class="form-check-label" for="id-${key}-${field}-check"></label>
+        </div>
+      `);
+
+      // bind check event on checkboxes
+      $checkbox.find(`input[type='checkbox']`).change(function (e) {
+        const checked = $(this).prop('checked');
+        // if the checked option is false the disable the elements
+        if (!checked) {
+          $field.find(`input[type='number']`).attr("readonly", "");
+          $select.attr("disabled", "");
+          return;
+        }
+
+        $field.find(`input[type='number']`).removeAttr("readonly");
+        $select.removeAttr("disabled");
+      });
+
+      // append label and checkbox inside the row
+      $input_container.append(
+        $(`<td class='align-middle'></td>`).append($title),
+        $(`<td class='text-center align-middle'></td>`).append($checkbox),
+        $(`<td class='text-center align-middle'></td>`).append($field)
+      );
+
+      $table_editor.append($input_container);
+    }
+  }
+};
+
+const apply_event = (event) => {
+  // prepare request to save config
+  const data = {};
+  let script_threshold = {}
+  let script_enabled = false;
+
+  // iterate over granularities
+  $table_editor.find("tr[id]").each(function (index) {
+    const id = $(this).attr("id");
+    const enabled = $(this).find("input[type='checkbox']").is(":checked");
+    const $template = $(this).find(".template");
+    const $error_label = $template.find(`.invalid-feedback`);
+
+    let operator = $template.find("select").val();
+    // if operator is undefined it means there isn't any select, so take the value from span
+    if (operator == undefined) {
+        operator = $template.find('span.input-group-text').data('value');
+    }
+
+    const $input_box = $template.find("input");
+
+    let threshold = parseInt($input_box.val());
+
+    // hide before errors
+    $error_label.hide();
+
+    // remove class error
+    $input_box.removeClass('is-invalid');
+    // save data into dictonary
+    script_threshold[id] = {
+      'enabled': enabled,
+      'operator': operator,
+      'threshold': parseInt(threshold),
+    }
+
+    if(script_enabled || enabled) {
+      script_enabled = true
+    } else {
+      script_enabled = false;
+    } 
+  });
+
+  data['all'] = {
+    'enabled': script_enabled,
+    'script_conf': script_threshold,
+  }
+
+  apply_edits_script(data, check_subdir, script_key);
+};
+
+const reset_event = (event) => {
+
+   reset_script_defaults(script_key, check_subdir, (data) => {
+
+      const { hooks } = data;
+
+      for (const key in hooks) {
+        if (key == undefined) continue;
+          
+        // get hook
+        const hook = hooks[key];
+        for (const field in hook.script_conf) {
+          const { default_value, field_operator } = hook.script_conf[field];
+
+          $(`input[name='${key}-${field}-check']`).prop('checked', hook.enabled);
+
+          (default_value === undefined) 
+              ? $(`input[name='${key}-${field}-input']`).val('')
+              : $(`input[name='${key}-${field}-input']`).val(default_value);
+
+          if (hook.enabled) {
+              $(`select[name='${key}-${field}-select']`).removeAttr("disabled");
+              $(`input[name='${key}-${field}-input']`).removeAttr("readonly");
+          }
+          else {
+              $(`input[name='${key}-${field}-input']`).attr("readonly", "");
+              $(`select[name='${key}-${field}-select']`).attr("disabled", "");
+          }
+
+          $(`select[name='${key}-${field}-select']`).val(field_operator);
+        }
+      }
+   });
+
+}
+
+return {
+   apply_click_event: apply_event,
+   reset_click_event: reset_event,
+   render: render_template,
+}
+}
+
 /* ******************************************************* */
 
 const ItemsList = (gui, hooks, check_subdir, script_key) => {
@@ -1499,7 +1717,8 @@ const templates = {
    items_list: ItemsList(gui, hooks, check_subdir, script_key),
    long_lived: LongLived(gui, hooks, check_subdir, script_key),
    elephant_flows: ElephantFlows(gui, hooks, check_subdir, script_key),
-   multi_select: MultiSelect(gui, hooks, check_subdir, script_key)
+   multi_select: MultiSelect(gui, hooks, check_subdir, script_key),
+   multi_threshold_cross: MultiThresholdCross(gui, metadata, hooks, check_subdir, script_key)
 }
 
 const isSubdirFlow = (check_subdir === "flow")

@@ -436,7 +436,7 @@ typedef enum {
   flow_alert_notused_3                            = 16,
   flow_alert_notused_4                            = 17,
   flow_alert_notused_5                            = 18,
-  flow_alert_notused_6                            = 19,
+  flow_alert_tcp_packets_issues                   = 19,
   flow_alert_tcp_connection_refused               = 20,
   flow_alert_notused_7                            = 21,
   flow_alert_ndpi_tls_certificate_expired         = 22,

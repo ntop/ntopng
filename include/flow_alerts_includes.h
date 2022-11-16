@@ -35,6 +35,7 @@
 #include "flow_alerts/RemoteToRemoteAlert.h"
 #include "flow_alerts/TCPNoDataExchangedAlert.h"
 #include "flow_alerts/TCPZeroWindowAlert.h"
+#include "flow_alerts/TCPPacketsIssuesAlert.h"
 #include "flow_alerts/UnexpectedServerAlert.h"
 #include "flow_alerts/UnexpectedDHCPServerAlert.h"
 #include "flow_alerts/UnexpectedDNSServerAlert.h"

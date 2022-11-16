@@ -106,6 +106,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new RemoteToRemote()))                              registerCheck(fcb);
   if((fcb = new TCPZeroWindow()))                               registerCheck(fcb);
   if((fcb = new TCPNoDataExchanged()))                          registerCheck(fcb);
+  if((fcb = new TCPPacketsIssues()))                            registerCheck(fcb);
   if((fcb = new UnexpectedDNSServer()))                         registerCheck(fcb);
   if((fcb = new UnexpectedDHCPServer()))                        registerCheck(fcb);
   if((fcb = new UnexpectedNTPServer()))                         registerCheck(fcb);
