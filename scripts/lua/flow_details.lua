@@ -109,13 +109,13 @@ local function drawiecgraph(iec, total)
       local keys = split(k, ",")
 
       if(iec[keys[2]..","..keys[1]] == nil) then
-	 uni[k] = v
+         uni[k] = v
       else
-	 if(keys[2] < keys[1]) then
-	    bi[keys[2]..","..keys[1]] = v
-	 else
-	    bi[keys[1]..","..keys[2]] = v
-	 end
+         if(keys[2] < keys[1]) then
+            bi[keys[2]..","..keys[1]] = v
+         else
+            bi[keys[1]..","..keys[2]] = v
+         end
       end
    end
 
@@ -198,7 +198,7 @@ local function ja3url(what, safety, label)
       print(format_external_link("sslbl.abuse.ch/ja3-fingerprints/".. what .."/", what, false, "https"))
 
       if((safety ~= nil) and (safety ~= "safe")) then
-	 print(' [ <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]')
+         print(' [ <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]')
       end
    end
 end
@@ -217,41 +217,41 @@ if isAdministrator() then
       local proto_name = interface.getnDPIProtoName(proto_id)
 
       if protos_utils.addAppRule(proto_name, {match="host", value=_POST["custom_hosts"]}) then
-	 local info = ntop.getInfo()
+         local info = ntop.getInfo()
 
-	 alert_banners[#alert_banners + 1] = {
+         alert_banners[#alert_banners + 1] = {
           type = "success",
           text = i18n("custom_categories.protos_reboot_necessary", {product=info.product})
         }
       else
-	 alert_banners[#alert_banners + 1] = {
-	    type="danger",
-	    text=i18n("flow_details.could_not_add_host_to_category",
-	       {host=_POST["custom_hosts"], category=proto_name})
-	 }
+         alert_banners[#alert_banners + 1] = {
+            type="danger",
+            text=i18n("flow_details.could_not_add_host_to_category",
+               {host=_POST["custom_hosts"], category=proto_name})
+         }
       end
    elseif _POST["custom_hosts"] and _POST["category"] then
       local lists_utils = require("lists_utils")
       local category_id = tonumber(split(_POST["category"], "cat_")[2])
 
       if categories_utils.addCustomCategoryHost(category_id, _POST["custom_hosts"]) then
-	 lists_utils.reloadLists()
-	 local label = interface.getnDPICategoryName(category_id)
+         lists_utils.reloadLists()
+         local label = interface.getnDPICategoryName(category_id)
 
-	 alert_banners[#alert_banners + 1] = {
-	    type="success",
-	    text=i18n("flow_details.host_successfully_added_to_category",
-	       {host=_POST["custom_hosts"], category=(i18n("ndpi_categories." .. label) or label),
-	       url = ntop.getHttpPrefix() .. "/lua/admin/edit_categories.lua?l7proto=" .. category_id})
-	 }
+         alert_banners[#alert_banners + 1] = {
+            type="success",
+            text=i18n("flow_details.host_successfully_added_to_category",
+               {host=_POST["custom_hosts"], category=(i18n("ndpi_categories." .. label) or label),
+               url = ntop.getHttpPrefix() .. "/lua/admin/edit_categories.lua?l7proto=" .. category_id})
+         }
       else
-	 local label = interface.getnDPICategoryName(category_id)
+         local label = interface.getnDPICategoryName(category_id)
 
-	 alert_banners[#alert_banners + 1] = {
-	    type="danger",
-	    text=i18n("flow_details.could_not_add_host_to_category",
-	       {host=_POST["custom_hosts"], category=(i18n("ndpi_categories." .. label) or label)})
-	 }
+         alert_banners[#alert_banners + 1] = {
+            type="danger",
+            text=i18n("flow_details.could_not_add_host_to_category",
+               {host=_POST["custom_hosts"], category=(i18n("ndpi_categories." .. label) or label)})
+         }
       end
    end
 end
@@ -287,37 +287,37 @@ local function printAddCustomHostRule(full_url)
 
    existing_note = "<br>" ..
       i18n("flow_details.existing_rules_note",
-	 {name=i18n("custom_categories.apps_and_categories"), url=ntop.getHttpPrefix().."/lua/admin/edit_categories.lua"})
+         {name=i18n("custom_categories.apps_and_categories"), url=ntop.getHttpPrefix().."/lua/admin/edit_categories.lua"})
 
    if matched_category ~= nil then
       local cat_name = interface.getnDPICategoryName(matched_category)
 
       existing_note = existing_note .. "<br><br>" .. i18n("details.note") .. ": " ..
-	 i18n("custom_categories.similar_host_found", {host=page_utils.safe_html(full_url), category=(i18n("ndpi_categories." .. cat_name) or cat_name)}) ..
-	 "<br><br>"
+         i18n("custom_categories.similar_host_found", {host=page_utils.safe_html(full_url), category=(i18n("ndpi_categories." .. cat_name) or cat_name)}) ..
+         "<br><br>"
    end
 
    local rule_type_selection = ""
    if protos_utils.hasProtosFile() then
       rule_type_selection = i18n("flow_details.rule_type")..":"..[[<br><select id="new_rule_type" onchange="new_rule_dropdown_select(this)" class="form-select">
-	    <option value="application">]]..i18n("application")..[[</option>
-	    <option value="category" selected>]]..i18n("category")..[[</option>
-	 </select><br>]]
+            <option value="application">]]..i18n("application")..[[</option>
+            <option value="category" selected>]]..i18n("category")..[[</option>
+         </select><br>]]
    end
 
    print(
      template.gen("modal_confirm_dialog.html", {
        dialog={
-	 id      = "add_to_customized_categories",
-	 action  = "addToCustomizedCategories()",
-	 custom_alert_class = "",
-	 custom_dialog_class = "dialog-body-full-height",
-	 title   = i18n("custom_categories.custom_host_category"),
-	 message = rule_type_selection .. i18n("custom_categories.select_url_category") .. "<br>" ..
-	    cat_select_dropdown .. app_select_dropdown .. "<br>" .. i18n("custom_categories.the_following_url_will_be_added") ..
-	    '<br><input id="categories_url_add" class="form-control" required value="'.. short_url ..'">' .. existing_note,
-	 confirm = i18n("custom_categories.add"),
-	 cancel = i18n("cancel"),
+         id      = "add_to_customized_categories",
+         action  = "addToCustomizedCategories()",
+         custom_alert_class = "",
+         custom_dialog_class = "dialog-body-full-height",
+         title   = i18n("custom_categories.custom_host_category"),
+         message = rule_type_selection .. i18n("custom_categories.select_url_category") .. "<br>" ..
+            cat_select_dropdown .. app_select_dropdown .. "<br>" .. i18n("custom_categories.the_following_url_will_be_added") ..
+            '<br><input id="categories_url_add" class="form-control" required value="'.. short_url ..'">' .. existing_note,
+         confirm = i18n("custom_categories.add"),
+         cancel = i18n("cancel"),
        }
      })
    )
@@ -331,26 +331,26 @@ local function printAddCustomHostRule(full_url)
       var target_url = NtopUtils.cleanCustomHostUrl($("#categories_url_add").val());
 
       if(!target_value || !target_url)
-	 return;
+         return;
 
       var params = {};
       params.custom_hosts = target_url;
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
       if(is_category)
-	 params.category = target_value;
+         params.category = target_value;
       else
-	 params.l7proto = target_value;
+         params.l7proto = target_value;
 
       NtopUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
    }
 
    function new_rule_dropdown_select(dropdown) {
       if($(dropdown).val() == "category") {
-	 $("#flow_target_category").show();
-	 $("#flow_target_app").hide();
+         $("#flow_target_category").show();
+         $("#flow_target_app").hide();
       } else {
-	 $("#flow_target_category").hide();
-	 $("#flow_target_app").show();
+         $("#flow_target_category").hide();
+         $("#flow_target_app").show();
       }
    }
 </script>]]
@@ -377,7 +377,7 @@ local function displayContainer(cont, label)
       local header = ''
 
       if i == 1 then
-	 header = "<th width=30% rowspan="..(#k8s_rows)..">"..i18n("flow_details.k8s").."</th>"
+         header = "<th width=30% rowspan="..(#k8s_rows)..">"..i18n("flow_details.k8s").."</th>"
       end
 
       print("<tr>"..header.."<th>"..row[1].."</th><td>"..row[2].."</td></tr>\n")
@@ -392,7 +392,7 @@ local function displayContainer(cont, label)
       local header = ''
 
       if i == 1 then
-	 header = "<th width=30% rowspan="..(#docker_rows)..">"..i18n("flow_details.docker").."</th>"
+         header = "<th width=30% rowspan="..(#docker_rows)..">"..i18n("flow_details.docker").."</th>"
       end
 
       print("<tr>"..header.."<th>"..row[1].."</th><td>"..row[2].."</td></tr>\n")
@@ -455,13 +455,13 @@ local title = i18n("flow")..": "..label
 local url = ntop.getHttpPrefix().."/lua/flow_details.lua"
 
 page_utils.print_navbar(title, url,
-			{
-			   {
-			      active = true,
-			      page_name = "overview",
-			      label = i18n("overview"),
-			   },
-			}
+                        {
+                           {
+                              active = true,
+                              page_name = "overview",
+                              label = i18n("overview"),
+                           },
+                        }
 )
 
 if(flow == nil) then
@@ -469,8 +469,8 @@ if(flow == nil) then
 else
    if isAdministrator() then
       if(_POST["drop_flow_policy"] == "true") then
-	 interface.dropFlowTraffic(tonumber(flow_key))
-	 flow["verdict.pass"] = false
+         interface.dropFlowTraffic(tonumber(flow_key))
+         flow["verdict.pass"] = false
       end
    end
 
@@ -498,7 +498,7 @@ else
       print(flow["proto.ndpi"])
    else
       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/")
-      if((flow.client_process ~= nil) or (flow.server_process ~= nil))then	print("s") end
+      if((flow.client_process ~= nil) or (flow.server_process ~= nil))then        print("s") end
       print("flows_stats.lua?application=" .. flow["proto.ndpi"] .. "\">")
       print(getApplicationLabel(flow["proto.ndpi"],32).."</A> ")
 
@@ -506,12 +506,12 @@ else
       print("flows_stats.lua?category=" .. flow["proto.ndpi_cat"] .. "\">")
       print(getCategoryLabel(flow["proto.ndpi_cat"], interface.getnDPICategoryId(flow["proto.ndpi_cat"])).."</A>")
       if(flow["proto.ndpi_cat_file"]) then
-	 print(" @ " ..flow["proto.ndpi_cat_file"])
+         print(" @ " ..flow["proto.ndpi_cat_file"])
       end
       print(") ".. formatBreed(flow["proto.ndpi_breed"], flow["proto.is_encrypted"]))
 
       if(flow["proto.ndpi_address_family"] ~= nil) then
-	 print(" [".. i18n("network") ..": "..flow["proto.ndpi_address_family"].."]")
+         print(" [".. i18n("network") ..": "..flow["proto.ndpi_address_family"].."]")
       end
       
       if (flow.confidence) and (not isEmptyString(flow.confidence)) then
@@ -527,23 +527,23 @@ else
       local tls_version_name = ntop.getTLSVersionName(flow["protos.tls_version"])
 
       if isEmptyString(tls_version_name) then
-	 print(" [ TLS"..flow["protos.tls_version"].." ]")
+         print(" [ TLS"..flow["protos.tls_version"].." ]")
       else
-	 print(" [ "..tls_version_name.." ]")
+         print(" [ "..tls_version_name.." ]")
       end
       if(tonumber(flow["protos.tls_version"]) < 771) then
-	 print(' <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> ')
-	 print(i18n("flow_details.tls_old_protocol_version"))
+         print(' <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> ')
+         print(i18n("flow_details.tls_old_protocol_version"))
       end
    end
 
    if(ifstats.inline) then
       if(flow["verdict.pass"]) then
-	 print('<form class="form-inline float-right" style="margin-bottom: 0px;" method="post">')
-	 print('<input type="hidden" name="drop_flow_policy" value="true">')
-	 print('<button type="submit" class="btn btn-secondary btn-xs"><i class="fas fa-ban"></i> '..i18n("flow_details.drop_flow_traffic_btn")..'</button>')
-	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print('</form>')
+         print('<form class="form-inline float-right" style="margin-bottom: 0px;" method="post">')
+         print('<input type="hidden" name="drop_flow_policy" value="true">')
+         print('<button type="submit" class="btn btn-secondary btn-xs"><i class="fas fa-ban"></i> '..i18n("flow_details.drop_flow_traffic_btn")..'</button>')
+         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+         print('</form>')
       end
    end
    print('</td>')
@@ -599,8 +599,8 @@ else
       local forbidden_peer = nil
 
       if alert_info then
-	 forbidden_proto = alert_info["devproto_forbidden_id"] or forbidden_proto
-	 forbidden_peer = alert_info["devproto_forbidden_peer"]
+         forbidden_proto = alert_info["devproto_forbidden_id"] or forbidden_proto
+         forbidden_peer = alert_info["devproto_forbidden_peer"]
       end
 
       local cli_mac = flow["cli.mac"] and interface.getMacInfo(flow["cli.mac"])
@@ -610,50 +610,50 @@ else
       local num_rows = 0
 
       if cli_show then
-	num_rows = num_rows + 1
+        num_rows = num_rows + 1
       end
       if srv_show then
-	num_rows = num_rows + 1
+        num_rows = num_rows + 1
       end
 
       if num_rows > 0 then
-	print("<tr><th width=30% rowspan=".. num_rows ..">"..i18n("device_protocols.device_protocol_policy").."</th>")
+        print("<tr><th width=30% rowspan=".. num_rows ..">"..i18n("device_protocols.device_protocol_policy").."</th>")
 
-	if cli_show then
-	  print("<td>"..i18n("device_protocols.devtype_as_proto_client", {devtype=discover.devtype2string(flow["cli.devtype"]), proto=interface.getnDPIProtoName(forbidden_proto)}).."</td>")
-	  print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. flow["cli.devtype"]) .."&l7proto=".. forbidden_proto .."\">")
-	  print(i18n(ternary(forbidden_peer ~= "cli", "allowed", "forbidden")))
-	  print("</a></td></tr><tr>")
-	end
+        if cli_show then
+          print("<td>"..i18n("device_protocols.devtype_as_proto_client", {devtype=discover.devtype2string(flow["cli.devtype"]), proto=interface.getnDPIProtoName(forbidden_proto)}).."</td>")
+          print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. flow["cli.devtype"]) .."&l7proto=".. forbidden_proto .."\">")
+          print(i18n(ternary(forbidden_peer ~= "cli", "allowed", "forbidden")))
+          print("</a></td></tr><tr>")
+        end
 
-	if srv_show then
-	  print("<td>"..i18n("device_protocols.devtype_as_proto_server", {devtype=discover.devtype2string(flow["srv.devtype"]), proto=interface.getnDPIProtoName(forbidden_proto)}).."</td>")
-	  print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. flow["srv.devtype"]) .."&l7proto=".. forbidden_proto .."\">")
-	  print(i18n(ternary(forbidden_peer ~= "srv", "allowed", "forbidden")))
-	  print("</a></td></tr><tr>")
-	end
+        if srv_show then
+          print("<td>"..i18n("device_protocols.devtype_as_proto_server", {devtype=discover.devtype2string(flow["srv.devtype"]), proto=interface.getnDPIProtoName(forbidden_proto)}).."</td>")
+          print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. flow["srv.devtype"]) .."&l7proto=".. forbidden_proto .."\">")
+          print(i18n(ternary(forbidden_peer ~= "srv", "allowed", "forbidden")))
+          print("</a></td></tr><tr>")
+        end
       end
    end
 
    print("<tr><th width=33%>"..i18n("details.first_last_seen").."</th><td nowrap width=33%><div id=first_seen>"
-	    .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " "..i18n("details.ago").."]" .. "</div></td>\n")
+            .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " "..i18n("details.ago").."]" .. "</div></td>\n")
    print("<td nowrap><div id=last_seen>" .. formatEpoch(flow["seen.last"]) .. " [" .. secondsToTime(os.time()-flow["seen.last"]) .. " "..i18n("details.ago").."]" .. "</div></td></tr>\n")
 
    if flow["bytes"] > 0 then
       print("<tr><th width=30% rowspan=3>"..i18n("details.total_traffic").."</th><td>"..i18n("total")..": <span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td>")
       if((ifstats.type ~= "zmq") and ((flow["proto.l4"] == "TCP") or (flow["proto.l4"] == "UDP")) and (flow["goodput_bytes"] > 0)) then
-	 print("<td><A class=\"ntopng-external-link\" HREF=\"https://en.wikipedia.org/wiki/Goodput\">"..i18n("details.goodput").."</A> <i class=\"fas fa-external-link-alt\"></i> : <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
-	 pctg = round(((flow["goodput_bytes"]*100)/flow["bytes"]), 2)
-	 if(pctg < 50) then
-	    pctg = "<font color=red>"..pctg.."</font>"
-	 elseif(pctg < 60) then
-	    pctg = "<font color=orange>"..pctg.."</font>"
-	 end
-	 print(pctg.."")
+         print("<td><A class=\"ntopng-external-link\" HREF=\"https://en.wikipedia.org/wiki/Goodput\">"..i18n("details.goodput").."</A> <i class=\"fas fa-external-link-alt\"></i> : <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
+         pctg = round(((flow["goodput_bytes"]*100)/flow["bytes"]), 2)
+         if(pctg < 50) then
+            pctg = "<font color=red>"..pctg.."</font>"
+         elseif(pctg < 60) then
+            pctg = "<font color=orange>"..pctg.."</font>"
+         end
+         print(pctg.."")
 
-	 print("</span> %) <span id=goodput_volume_trend></span> </td></tr>\n")
+         print("</span> %) <span id=goodput_volume_trend></span> </td></tr>\n")
       else
-	 print("<td>&nbsp;</td></tr>\n")
+         print("<td>&nbsp;</td></tr>\n")
       end
 
       print("<tr><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") .. ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " .. i18n("server") .. ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
@@ -665,8 +665,8 @@ else
       local srv_name = shortHostName(flowinfo2hostname(flow, "srv"))
 
       if(flow["cli.port"] > 0) then
-	 cli_name = cli_name .. ":" .. flow["cli.port"]
-	 srv_name = srv_name .. ":" .. flow["srv.port"]
+         cli_name = cli_name .. ":" .. flow["cli.port"]
+         srv_name = srv_name .. ":" .. flow["srv.port"]
       end
       print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. cli2srv.. '%;">'.. cli_name..'</div><div class="progress-bar bg-success" style="width: ' .. (100-cli2srv) .. '%;">' .. srv_name .. '</div></div>')
       print("</td></tr>\n")
@@ -677,15 +677,15 @@ else
 
       total = 0
       for k,v in pairsByKeys(flow.iec104.typeid, rev) do
-	 total = total + v
+         total = total + v
       end
 
       print("<table border width=100%>")
       for k,v in pairsByValues(flow.iec104.typeid, rev) do
-	 local pctg = (v*100)/total
-	 local key = iec104_typeids2str(tonumber(k))
+         local pctg = (v*100)/total
+         local key = iec104_typeids2str(tonumber(k))
 
-	 print(string.format("<th>%s</th><td align=right>%.3f %%</td></tr>\n", key, pctg))
+         print(string.format("<th>%s</th><td align=right>%.3f %%</td></tr>\n", key, pctg))
       end
 
       print("</table>\n")
@@ -695,7 +695,7 @@ else
 
       total = 0
       for k,v in pairsByValues(flow.iec104.typeid_transitions, rev) do
-	 total = total+v
+         total = total+v
       end
 
       print("<tr><th>".. i18n("flow_details.iec104_transitions"))
@@ -704,19 +704,19 @@ else
 
       print("<table border width=100%>")
       for k,v in pairsByValues(flow.iec104.typeid_transitions, rev) do
-	 local pctg = (v*100)/total
-	 local keys = split(k, ",")
-	 local key = iec104_typeids2str(tonumber(keys[1]))
+         local pctg = (v*100)/total
+         local keys = split(k, ",")
+         local key = iec104_typeids2str(tonumber(keys[1]))
 
-	 if(keys[1] == keys[2]) then
-	    key = key ..' <i class="fas fa-exchange-alt"></i> '
-	 else
-	    key = key ..' <i class="fas fa-long-arrow-alt-right"></i> '
-	 end
+         if(keys[1] == keys[2]) then
+            key = key ..' <i class="fas fa-exchange-alt"></i> '
+         else
+            key = key ..' <i class="fas fa-long-arrow-alt-right"></i> '
+         end
 
-	 key = key .. iec104_typeids2str(tonumber(keys[2]))
+         key = key .. iec104_typeids2str(tonumber(keys[2]))
 
-	 print(string.format("<tr><th>%s</th><td align=right>%.3f %%</td></tr>\n", key, pctg))
+         print(string.format("<tr><th>%s</th><td align=right>%.3f %%</td></tr>\n", key, pctg))
       end
 
       print("</table>\n")
@@ -726,16 +726,16 @@ else
 
       print("<tr><th>"..i18n("flow_details.iec104_latency").."</th><td>")
       if(flow.iec104.ack_time.stddev > flow.iec104.ack_time.average) then
-	 on = "<font color=red>"
-	 off = "</font>"
+         on = "<font color=red>"
+         off = "</font>"
       else
-	 on = ""
-	 off = ""
+         on = ""
+         off = ""
       end
       if((flow.iec104.ack_time.average > 1000) or (flow.iec104.ack_time.stddev > 1000)) then
-	 print(string.format("%.3f sec (%s%.3f sec%s)", flow.iec104.ack_time.average/1000, on, (flow.iec104.ack_time.stddev/1000), off))
+         print(string.format("%.3f sec (%s%.3f sec%s)", flow.iec104.ack_time.average/1000, on, (flow.iec104.ack_time.stddev/1000), off))
       else
-	 print(string.format("%.3f ms (%s%.3f msec%s)", flow.iec104.ack_time.average, on, flow.iec104.ack_time.stddev, off))
+         print(string.format("%.3f ms (%s%.3f msec%s)", flow.iec104.ack_time.average, on, flow.iec104.ack_time.stddev, off))
       end
       print("</td></tr>\n")
 
@@ -744,8 +744,8 @@ else
       local pctg = string.format("%.1f", (flow.iec104.stats.forward_msgs * 100) / total)
 
       if(flow["srv.port"] == 2404) then
-	 -- we need to swap directions
-	 pctg = 100-pctg
+         -- we need to swap directions
+         pctg = 100-pctg
       end
 
       print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. pctg .. '%;">'..pctg..'% </div>')
@@ -758,9 +758,9 @@ else
       print("<i class=\"fas fa-long-arrow-alt-left\"></i> "..colorNotZero(flow.iec104.pkt_lost.rx)..", <i class=\"fas fa-long-arrow-alt-right\"></i> "..colorNotZero(flow.iec104.pkt_lost.tx).." / ")
 
       if(flow.iec104.stats.retransmitted_msgs == 0) then
-	 print("0")
+         print("0")
       else
-	 print(colorNotZero(flow.iec104.stats.retransmitted_msgs))
+         print(colorNotZero(flow.iec104.stats.retransmitted_msgs))
       end
       
       print(" Retransmitted")
@@ -781,30 +781,30 @@ else
       local rtt = flow["tcp.nw_latency.client"] + flow["tcp.nw_latency.server"]
 
       if(rtt > 0) then
-	 local cli2srv = round(flow["tcp.nw_latency.client"], 3)
-	 local srv2cli = round(flow["tcp.nw_latency.server"], 3)
+         local cli2srv = round(flow["tcp.nw_latency.client"], 3)
+         local srv2cli = round(flow["tcp.nw_latency.server"], 3)
 
-	 print("<tr><th width=30%>"..i18n("flow_details.rtt_breakdown").."</th><td colspan=2>")
-	 print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (cli2srv * 100 / rtt) .. '%;">'.. cli2srv ..' ms (client)</div>')
-	 print('<div class="progress-bar bg-success" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
-	 print("</td></tr>\n")
+         print("<tr><th width=30%>"..i18n("flow_details.rtt_breakdown").."</th><td colspan=2>")
+         print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (cli2srv * 100 / rtt) .. '%;">'.. cli2srv ..' ms (client)</div>')
+         print('<div class="progress-bar bg-success" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
+         print("</td></tr>\n")
 
-	 c = interface.getAddressInfo(flow["cli.ip"])
-	 s = interface.getAddressInfo(flow["srv.ip"])
+         c = interface.getAddressInfo(flow["cli.ip"])
+         s = interface.getAddressInfo(flow["srv.ip"])
 
-	 if(not(c.is_private and s.is_private)) then
--- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125
-	 print("<tr><th width=30%><A class='ntopng-external-link' href=\"https://en.wikipedia.org/wiki/Velocity_factor\">"..i18n("flow_details.rtt_distance").." <i class=\"fas fa-external-link-alt\"></i></A></th><td>")
-	 local c_vacuum_km_s = 299792
-	 local c_vacuum_mi_s = 186000
-	 local fiber_vf      = .67
-	 local delta_t       = rtt/1000
-	 local dd_fiber_km   = delta_t * c_vacuum_km_s * fiber_vf
-	 local dd_fiber_mi   = delta_t * c_vacuum_mi_s * fiber_vf
+         if(not(c.is_private and s.is_private)) then
+            -- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125
+            print("<tr><th width=30%><A class='ntopng-external-link' href=\"https://en.wikipedia.org/wiki/Velocity_factor\">"..i18n("flow_details.rtt_distance").." <i class=\"fas fa-external-link-alt\"></i></A></th><td>")
+            local c_vacuum_km_s = 299792
+            local c_vacuum_mi_s = 186000
+            local fiber_vf      = .67
+            local delta_t       = rtt/1000
+            local dd_fiber_km   = delta_t * c_vacuum_km_s * fiber_vf
+            local dd_fiber_mi   = delta_t * c_vacuum_mi_s * fiber_vf
 
-	 print(formatValue(toint(dd_fiber_km)).." Km</td><td>"..formatValue(toint(dd_fiber_mi)).." Miles")
-	 print("</td></tr>\n")
-	 end
+            print(formatValue(toint(dd_fiber_km)).." Km</td><td>"..formatValue(toint(dd_fiber_mi)).." Miles")
+            print("</td></tr>\n")
+         end
       end
    end
 
@@ -814,52 +814,52 @@ else
 
    if not ntop.isnEdge() then
       if flow["cli2srv.packets"] > 1 and flow["interarrival.cli2srv"] and flow["interarrival.cli2srv"]["max"] > 0 then
-	 print("<tr><th width=30%")
-	 if(flow["flow.idle"] == true) then print(" rowspan=2") end
-	 print(">"..i18n("flow_details.packet_inter_arrival_time").."</th><td nowrap>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server")..": ")
-	 print(msToTime(flow["interarrival.cli2srv"]["min"]).." / "..msToTime(flow["interarrival.cli2srv"]["avg"]).." / "..msToTime(flow["interarrival.cli2srv"]["max"]))
-	 print("</td>\n")
-	 if(flow["srv2cli.packets"] < 2) then
-	    print("<td>&nbsp;")
-	 else
-	    print("<td nowrap>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server")..": ")
-	    print(msToTime(flow["interarrival.srv2cli"]["min"]).." / "..msToTime(flow["interarrival.srv2cli"]["avg"]).." / "..msToTime(flow["interarrival.srv2cli"]["max"]))
-	 end
-	 print("</td></tr>\n")
-	 if(flow["flow.idle"] == true) then print("<tr><td colspan=2><i class='fas fa-clock-o'></i> <small>"..i18n("flow_details.looks_like_idle_flow_message").."</small></td></tr>") end
+         print("<tr><th width=30%")
+         if(flow["flow.idle"] == true) then print(" rowspan=2") end
+         print(">"..i18n("flow_details.packet_inter_arrival_time").."</th><td nowrap>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server")..": ")
+         print(msToTime(flow["interarrival.cli2srv"]["min"]).." / "..msToTime(flow["interarrival.cli2srv"]["avg"]).." / "..msToTime(flow["interarrival.cli2srv"]["max"]))
+         print("</td>\n")
+         if(flow["srv2cli.packets"] < 2) then
+            print("<td>&nbsp;")
+         else
+            print("<td nowrap>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server")..": ")
+            print(msToTime(flow["interarrival.srv2cli"]["min"]).." / "..msToTime(flow["interarrival.srv2cli"]["avg"]).." / "..msToTime(flow["interarrival.srv2cli"]["max"]))
+         end
+         print("</td></tr>\n")
+         if(flow["flow.idle"] == true) then print("<tr><td colspan=2><i class='fas fa-clock-o'></i> <small>"..i18n("flow_details.looks_like_idle_flow_message").."</small></td></tr>") end
       end
 
       if((flow["cli2srv.fragments"] + flow["srv2cli.fragments"]) > 0) then
-	 rowspan = 2
-	 print("<tr><th width=30% rowspan="..rowspan..">"..i18n("flow_details.ip_packet_analysis").."</th>")
-	 print("<th>&nbsp;</th><th>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server").."</th></tr>\n")
-	 print("<tr><th>"..i18n("details.fragments").."</th><td align=right><span id=c2sFrag>".. formatPackets(flow["cli2srv.fragments"]) .."</span> / <span id=s2cFrag>".. formatPackets(flow["srv2cli.fragments"]) .."</span></td></tr>\n")
+         rowspan = 2
+         print("<tr><th width=30% rowspan="..rowspan..">"..i18n("flow_details.ip_packet_analysis").."</th>")
+         print("<th>&nbsp;</th><th>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server").."</th></tr>\n")
+         print("<tr><th>"..i18n("details.fragments").."</th><td align=right><span id=c2sFrag>".. formatPackets(flow["cli2srv.fragments"]) .."</span> / <span id=s2cFrag>".. formatPackets(flow["srv2cli.fragments"]) .."</span></td></tr>\n")
       end
 
       if flow["tcp.seq_problems"] then
-	 rowspan = 1
-	 if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then rowspan = rowspan + 1 end
-	 if((flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"]) > 0)       then rowspan = rowspan + 1 end
-	 if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0)                       then rowspan = rowspan + 1 end
-	 if((flow["cli2srv.keep_alive"] + flow["srv2cli.keep_alive"]) > 0)           then rowspan = rowspan + 1 end
+         rowspan = 1
+         if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then rowspan = rowspan + 1 end
+         if((flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"]) > 0)       then rowspan = rowspan + 1 end
+         if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0)                       then rowspan = rowspan + 1 end
+         if((flow["cli2srv.keep_alive"] + flow["srv2cli.keep_alive"]) > 0)           then rowspan = rowspan + 1 end
 
-	 if rowspan > 1 then
-	    print("<tr><th width=30% rowspan="..rowspan..">"..i18n("flow_details.tcp_packet_analysis").."</th>")
-	    print("<th></th><th>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server").."</th></tr>\n")
+         if rowspan > 1 then
+            print("<tr><th width=30% rowspan="..rowspan..">"..i18n("flow_details.tcp_packet_analysis").."</th>")
+            print("<th></th><th>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server").."</th></tr>\n")
 
-	    if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then
-	       print("<tr><th>"..i18n("details.retransmissions").."</th><td align=right><span id=c2sretr>".. formatPackets(flow["cli2srv.retransmissions"]) .."</span> / <span id=s2cretr>".. formatPackets(flow["srv2cli.retransmissions"]) .."</span></td></tr>\n")
-	    end
-	    if((flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"]) > 0) then
-	       print("<tr><th>"..i18n("details.out_of_order").."</th><td align=right><span id=c2sOOO>".. formatPackets(flow["cli2srv.out_of_order"]) .."</span> / <span id=s2cOOO>".. formatPackets(flow["srv2cli.out_of_order"]) .."</span></td></tr>\n")
-	    end
-	    if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0) then
-	       print("<tr><th>"..i18n("details.lost").."</th><td align=right><span id=c2slost>".. formatPackets(flow["cli2srv.lost"]) .."</span> / <span id=s2clost>".. formatPackets(flow["srv2cli.lost"]) .."</span></td></tr>\n")
-	    end
-	    if((flow["cli2srv.keep_alive"] + flow["srv2cli.keep_alive"]) > 0) then
-	       print("<tr><th>"..i18n("details.keep_alive").."</th><td align=right><span id=c2skeep_alive>".. formatPackets(flow["cli2srv.keep_alive"]) .."</span> / <span id=s2ckeep_alive>".. formatPackets(flow["srv2cli.keep_alive"]) .."</span></td></tr>\n")
-	    end
-	 end
+            if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then
+               print("<tr><th>"..i18n("details.retransmissions").."</th><td align=right><span id=c2sretr>".. formatPackets(flow["cli2srv.retransmissions"]) .."</span> / <span id=s2cretr>".. formatPackets(flow["srv2cli.retransmissions"]) .."</span></td></tr>\n")
+            end
+            if((flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"]) > 0) then
+               print("<tr><th>"..i18n("details.out_of_order").."</th><td align=right><span id=c2sOOO>".. formatPackets(flow["cli2srv.out_of_order"]) .."</span> / <span id=s2cOOO>".. formatPackets(flow["srv2cli.out_of_order"]) .."</span></td></tr>\n")
+            end
+            if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0) then
+               print("<tr><th>"..i18n("details.lost").."</th><td align=right><span id=c2slost>".. formatPackets(flow["cli2srv.lost"]) .."</span> / <span id=s2clost>".. formatPackets(flow["srv2cli.lost"]) .."</span></td></tr>\n")
+            end
+            if((flow["cli2srv.keep_alive"] + flow["srv2cli.keep_alive"]) > 0) then
+               print("<tr><th>"..i18n("details.keep_alive").."</th><td align=right><span id=c2skeep_alive>".. formatPackets(flow["cli2srv.keep_alive"]) .."</span> / <span id=s2ckeep_alive>".. formatPackets(flow["srv2cli.keep_alive"]) .."</span></td></tr>\n")
+            end
+         end
       end
    end
 
@@ -875,21 +875,21 @@ else
 
       print("<td>")
       if(flow["protos.tls.server_names"] ~= nil) then
-	 local servers = string.split(flow["protos.tls.server_names"], ",") or {flow["protos.tls.server_names"]}
+         local servers = string.split(flow["protos.tls.server_names"], ",") or {flow["protos.tls.server_names"]}
 
-	 print(i18n("flow_details.tls_server_names")..":<br>")
-	 for i, server in ipairs(servers) do
-	    if i > 1 then
-	       print("<br>")
-	    end
+         print(i18n("flow_details.tls_server_names")..":<br>")
+         for i, server in ipairs(servers) do
+            if i > 1 then
+               print("<br>")
+            end
 
-	    if starts(server, '*') then
-	       print(server)
-	    else
-        -- TLS, so use https
-        print(format_external_link(server, server, false, "https"))
-	    end
-	 end
+            if starts(server, '*') then
+               print(server)
+            else
+               -- TLS, so use https
+               print(format_external_link(server, server, false, "https"))
+            end
+         end
       end
       print("</td>")
       print("</tr>\n")
@@ -900,7 +900,7 @@ else
       print('<tr><th width=30%>'..i18n("flow_details.tls_certificate_validity").."</th><td colspan=2>")
 
       if((flow["protos.tls.notBefore"] > now) or (flow["protos.tls.notAfter"] < now)) then
-	 print(" <i class=\"fas fa-exclamation-triangle fa-lg\" style=\"color: #f0ad4e;\"></i>")
+         print(" <i class=\"fas fa-exclamation-triangle fa-lg\" style=\"color: #f0ad4e;\"></i>")
       end
 
       print(formatEpoch(flow["protos.tls.notBefore"]))
@@ -920,7 +920,7 @@ else
    if((flow["protos.tls.ja3.client_hash"] ~= nil) or (flow["protos.tls.ja3.server_hash"] ~= nil)) then
       print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3C / JA3S</A></th><td>')
       if(flow["protos.tls.ja3.client_malicious"]) then
-	 print('<font color=red><i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i></font> ')
+         print('<font color=red><i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i></font> ')
       end
 
       ja3url(flow["protos.tls.ja3.client_hash"], nil, 'ja3c')
@@ -973,23 +973,23 @@ else
 
       local flow_msg = ""
       if flow["tcp_reset"] then
-	 local resetter = ""
+         local resetter = ""
 
-	 if(hasbit(flow["cli2srv.tcp_flags"],0x04)) then
-	    resetter = "client"
-	 else
-	    resetter = "server"
-	 end
+         if(hasbit(flow["cli2srv.tcp_flags"],0x04)) then
+            resetter = "client"
+         else
+            resetter = "server"
+         end
 
-	 flow_msg = flow_msg..i18n("flow_details.flow_reset_by_resetter_msg",{resetter = resetter})
+         flow_msg = flow_msg..i18n("flow_details.flow_reset_by_resetter_msg",{resetter = resetter})
       elseif flow["tcp_closed"] then
-	 flow_msg = flow_msg..i18n("flow_details.flow_completed_msg")
+         flow_msg = flow_msg..i18n("flow_details.flow_completed_msg")
       elseif flow["tcp_connecting"] then
-	 flow_msg = flow_msg..i18n("flow_details.flow_connecting_msg")
+         flow_msg = flow_msg..i18n("flow_details.flow_connecting_msg")
       elseif flow["tcp_established"] then
-	 flow_msg = flow_msg..i18n("flow_details.flow_active_msg")
+         flow_msg = flow_msg..i18n("flow_details.flow_active_msg")
       else
-	 flow_msg = flow_msg.." "..i18n("flow_details.flow_peer_roles_inaccurate_msg")
+         flow_msg = flow_msg.." "..i18n("flow_details.flow_peer_roles_inaccurate_msg")
       end
 
       print(flow_msg)
@@ -1007,21 +1007,21 @@ else
       print("<tr><th width=30%>"..i18n("flow_details.icmp_info").."</th><td colspan=2>"..icmp_label)
 
       if icmp["unreach"] then
-	 local unreachable_flow = interface.findFlowByTuple(flow["cli.ip"], flow["srv.ip"], flow["vlan"], icmp["unreach"]["dst_port"], icmp["unreach"]["src_port"], icmp["unreach"]["protocol"])
+         local unreachable_flow = interface.findFlowByTuple(flow["cli.ip"], flow["srv.ip"], flow["vlan"], icmp["unreach"]["dst_port"], icmp["unreach"]["src_port"], icmp["unreach"]["protocol"])
 
-	 print("<br>"..i18n("flow")..": ")
-	 if unreachable_flow then
-	    print(" <a class='btn btn-sm border ms-1 btn-info' HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."&flow_hash_id="..unreachable_flow["hash_entry_id"].."'><i class='fas fa-search-plus'></i></a>")
-	    print(" "..getFlowLabel(unreachable_flow, true, true))
-	 else
-	    -- The flow hasn't been found so very likely it is no longer active or it hasn't been seen.
-	    -- Still print the flow using data found in the original datagram found in the icmp packet
-	    print(getFlowLabel({
-			["cli.ip"] = icmp["unreach"]["src_ip"], ["srv.ip"] = icmp["unreach"]["dst_ip"],
-			["cli.port"] = icmp["unreach"]["src_port"], ["srv.port"] = icmp["unreach"]["dst_port"]},
-		     false, false))
-	 end
-	 print("")
+         print("<br>"..i18n("flow")..": ")
+         if unreachable_flow then
+            print(" <a class='btn btn-sm border ms-1 btn-info' HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."&flow_hash_id="..unreachable_flow["hash_entry_id"].."'><i class='fas fa-search-plus'></i></a>")
+            print(" "..getFlowLabel(unreachable_flow, true, true))
+         else
+            -- The flow hasn't been found so very likely it is no longer active or it hasn't been seen.
+            -- Still print the flow using data found in the original datagram found in the icmp packet
+            print(getFlowLabel({
+                        ["cli.ip"] = icmp["unreach"]["src_ip"], ["srv.ip"] = icmp["unreach"]["dst_ip"],
+                        ["cli.port"] = icmp["unreach"]["src_port"], ["srv.port"] = icmp["unreach"]["dst_port"]},
+                     false, false))
+         end
+         print("")
       end
 
       print("</td></tr>")
@@ -1058,13 +1058,13 @@ else
       local alert_risk = ntop.getFlowAlertRisk(id)
 
       if alert_score > 0 then
-	 message = message .. string.format(" [%s: %s]",
-					    i18n("score"),
-					    format_utils.formatValue(alert_score))
+         message = message .. string.format(" [%s: %s]",
+                                            i18n("score"),
+                                            format_utils.formatValue(alert_score))
       end
 
       if not alerts_by_score[alert_score] then
-	 alerts_by_score[alert_score] = {}
+         alerts_by_score[alert_score] = {}
       end
       alerts_by_score[alert_score][#alerts_by_score[alert_score] + 1] = {message = message, is_predominant = is_predominant, alert_id = id, alert_label = alert_label, alert_risk = alert_risk}
       num_statuses = num_statuses + 1
@@ -1077,17 +1077,17 @@ else
       local risk = flow["unhandled_flow_risk"]
 
       for risk_str,risk_id in pairs(risk) do
-	 if not alerts_by_score[unhandled_risk_score] then
-	    alerts_by_score[unhandled_risk_score] = {}
-	 end
+         if not alerts_by_score[unhandled_risk_score] then
+            alerts_by_score[unhandled_risk_score] = {}
+         end
 
-	 local message =  string.format("%s [%s: %s]",
-					risk_str,
-					i18n("score"),
-					i18n("score_not_accounted"))
+         local message =  string.format("%s [%s: %s]",
+                                        risk_str,
+                                        i18n("score"),
+                                        i18n("score_not_accounted"))
 
-	 alerts_by_score[unhandled_risk_score][#alerts_by_score[unhandled_risk_score] + 1] = {message = message, is_predominant = false, alert_risk = risk_id}
-	 num_statuses = num_statuses + 1
+         alerts_by_score[unhandled_risk_score][#alerts_by_score[unhandled_risk_score] + 1] = {message = message, is_predominant = false, alert_risk = risk_id}
+         num_statuses = num_statuses + 1
       end
    end
 
@@ -1152,7 +1152,7 @@ else
               if alert_id_to_flow_check[score_alert.alert_id] then
                   print(string.format('&nbsp;<a href="%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-cog"></i></a>', alert_utils.getConfigsetURL(alert_id_to_flow_check[score_alert.alert_id], "flow")))
               end
-	 
+         
               -- Add an anchor to the historical alert
               if not ifstats.isViewed 
                  -- and score_alert.is_predominant 
@@ -1176,14 +1176,14 @@ else
                     cli_ip, cli_port,
                     srv_ip, srv_port))
               end
-	 
+         
               print('</td>')
             else -- These are unhandled alerts, e.g., flow risks for which a check doesn't exist
               print(string.format('<td></td>'))
             end
       
             print('</tr>')
-	        end
+                end
         end
       end
     end
@@ -1208,9 +1208,9 @@ else
       print("<td colspan=2><span class=\"badge ")
 
       if((flow["protos.http.last_url"] ~= nil) and (tonumber(flow.l7_error_code) >= 400)) then
-	 print("bg-danger")
+         print("bg-danger")
       else
-	 print("bg-success")
+         print("bg-success")
       end
       
       print("\">".. http_utils.getResponseStatusCode(flow.l7_error_code) .. "</td>")
@@ -1220,15 +1220,15 @@ else
    if((flow.client_process == nil) and (flow.server_process == nil)) then
       print("<tr><th width=30%>"..i18n("flow_details.actual_peak_throughput").."</th><td width=20%>")
       if (throughput_type == "bps") then
-	 print("<span id='flow-throughput' class='peity'>" .. bitsToSize(8*flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
+         print("<span id='flow-throughput' class='peity'>" .. bitsToSize(8*flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
       elseif (throughput_type == "pps") then
-	 print("<span id='flow-throughput' class='peity'>" .. pktsToSize(flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
+         print("<span id='flow-throughput' class='peity'>" .. pktsToSize(flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
       end
 
       if (throughput_type == "bps") then
-	 print(" / <span id=top-flow-throughput>" .. bitsToSize(8*flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
+         print(" / <span id=top-flow-throughput>" .. bitsToSize(8*flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
       elseif (throughput_type == "pps") then
-	 print(" / <span id=top-flow-throughput>" .. pktsToSize(flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
+         print(" / <span id=top-flow-throughput>" .. pktsToSize(flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
       end
 
       print("</td><td><span id=thpt-load-chart>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>")
@@ -1247,20 +1247,20 @@ else
       print('</th></tr>\n')
 
       if(flow.client_process ~= nil) then
-	 displayProc(flow.client_process,
-		     "<tr><th colspan=3>"..i18n("flow_details.client_process_information").."</th></tr>\n")
+         displayProc(flow.client_process,
+                     "<tr><th colspan=3>"..i18n("flow_details.client_process_information").."</th></tr>\n")
       end
       if(flow.client_container ~= nil) then
-	 displayContainer(flow.client_container,
-			  "<tr><th colspan=3>"..i18n("flow_details.client_container_information").."</th></tr>\n")
+         displayContainer(flow.client_container,
+                          "<tr><th colspan=3>"..i18n("flow_details.client_container_information").."</th></tr>\n")
       end
       if(flow.server_process ~= nil) then
-	 displayProc(flow.server_process,
+         displayProc(flow.server_process,
                      "<tr><th colspan=3>"..i18n("flow_details.server_process_information").."</th></tr>\n")
       end
       if(flow.server_container ~= nil) then
-	 displayContainer(flow.server_container,
-			  "<tr><th colspan=3>"..i18n("flow_details.server_container_information").."</th></tr>\n")
+         displayContainer(flow.server_container,
+                          "<tr><th colspan=3>"..i18n("flow_details.server_container_information").."</th></tr>\n")
       end
    end
 
@@ -1280,16 +1280,16 @@ else
       end
 
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then
-	 print(shortHostName(flow["protos.dns.last_query"]))
+         print(shortHostName(flow["protos.dns.last_query"]))
       else
-	 print(format_external_link(page_utils.safe_html(flow["protos.dns.last_query"]), page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])), false, "dns"))
+         print(format_external_link(page_utils.safe_html(flow["protos.dns.last_query"]), page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])), false, "dns"))
       end
 
       historicalProtoHostHref(ifid, flow["cli.ip"], flow["proto.l4"], flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.dns.last_query"] or ''))
 
 
       if(flow["category"] ~= nil) then
-	 print(" "..getCategoryIcon(flow["protos.dns.last_query"], flow["category"]))
+         print(" "..getCategoryIcon(flow["protos.dns.last_query"], flow["category"]))
       end
 
       printAddCustomHostRule(flow["protos.dns.last_query"])
@@ -1330,7 +1330,7 @@ else
       print("<tr><th>"..i18n("flow_details.server_name").."</th><td colspan=2>")
       local s = flowinfo2hostname(flow,"srv")
       if(not isEmptyString(flow["host_server_name"])) then
-	 s = flow["host_server_name"]
+         s = flow["host_server_name"]
       end
 
       print(format_external_link(page_utils.safe_html(s), page_utils.safe_html(s), false, "http"))
@@ -1373,16 +1373,16 @@ else
       end
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
-	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2>")
+         print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2>")
          local proto = "http"
          if(starts(flow["proto.ndpi"], "TLS")) then
-	    proto = "https"
-	 end
+            proto = "https"
+         end
          print(format_external_link(page_utils.safe_html(flow["host_server_name"]), page_utils.safe_html(flow["host_server_name"]), false, proto))
-	 if not isEmptyString(flow["protos.http.server_name"]) then
-	    printAddCustomHostRule(flow["protos.http.server_name"])
-	 end
-	 print("</td></tr>\n")
+         if not isEmptyString(flow["protos.http.server_name"]) then
+            printAddCustomHostRule(flow["protos.http.server_name"])
+         end
+         print("</td></tr>\n")
       end
    end
 
@@ -1426,25 +1426,25 @@ else
       -- Convert the array to symbolic identifiers if necessary
       local syminfo = {}
       for key, value in pairs(info) do
-	 key, value = flow_field_value_maps.map_field_value(ifid, key, value)
+         key, value = flow_field_value_maps.map_field_value(ifid, key, value)
 
-	 local k = rtemplate[tonumber(key)]
+         local k = rtemplate[tonumber(key)]
 
-	 if(k == nil) then
-	    k = flow_consts.flow_fields_description[tostring(key)]
-	 end
+         if(k == nil) then
+            k = flow_consts.flow_fields_description[tostring(key)]
+         end
 
-	 if(k ~= nil) then
-	    syminfo[k] = value
-	 else
-	    local nprobe_description = interface.getZMQFlowFieldDescr(key)
+         if(k ~= nil) then
+            syminfo[k] = value
+         else
+            local nprobe_description = interface.getZMQFlowFieldDescr(key)
 
-	    if not isEmptyString(nprobe_description) and nprobe_description ~= key then
-	       syminfo[nprobe_description] = value
-	    else
-	       syminfo[key] = value
-	    end
-	 end
+            if not isEmptyString(nprobe_description) and nprobe_description ~= key then
+               syminfo[nprobe_description] = value
+            else
+               syminfo[key] = value
+            end
+         end
       end
       info = syminfo
       
@@ -1455,7 +1455,7 @@ else
 
         isThereSIP = isThereProtocol("SIP", info)
         if(isThereSIP == 1) then
-	   isThereSIP = isThereSIPCall(info)
+           isThereSIP = isThereSIPCall(info)
         end
       end
       info = removeProtocolFields("SIP",info)
@@ -1465,8 +1465,8 @@ else
         local rtp_table_rows = getRTPTableRows(info)
         print(rtp_table_rows)
 
-	-- io.write(flow["proto.ndpi"].."\n")
-	isThereRTP = isThereProtocol("RTP", info)
+        -- io.write(flow["proto.ndpi"].."\n")
+        isThereRTP = isThereProtocol("RTP", info)
       end
       info = removeProtocolFields("RTP",info)
 
@@ -1477,36 +1477,36 @@ else
       end
 
       if((flow["observation_point_id"] ~= nil) and (flow["observation_point_id"] ~= 0)) then
-	 local custom_name = getObsPointAlias(flow["observation_point_id"], true, true)
+         local custom_name = getObsPointAlias(flow["observation_point_id"], true, true)
 
-	 print("<tr><th>"..i18n("details.observation_point_id").."</th>")
-	 print("<td colspan=\"2\">"..custom_name.."</td></tr>")
+         print("<tr><th>"..i18n("details.observation_point_id").."</th>")
+         print("<td colspan=\"2\">"..custom_name.."</td></tr>")
       end
 
       if(snmpdevice ~= nil) then
-	 print("<tr><th>"..i18n("details.flow_exporter").."</th>")
-	 print("<td colspan=\"2\">"..snmpdevice.."</td></tr>")
+         print("<tr><th>"..i18n("details.flow_exporter").."</th>")
+         print("<td colspan=\"2\">"..snmpdevice.."</td></tr>")
 
-	 if(flow["in_index"] or flow["out_index"]) then
-	    if((flow["in_index"] == flow["out_index"]) and (flow["in_index"] == 0)) then
-	       -- nothing to do (they are likely to be not initialized)
-	    else
-	       printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
-	    end
-	 end
+         if(flow["in_index"] or flow["out_index"]) then
+            if((flow["in_index"] == flow["out_index"]) and (flow["in_index"] == 0)) then
+               -- nothing to do (they are likely to be not initialized)
+            else
+               printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
+            end
+         end
       end
       
       local num = 0      
       for key,value in pairsByKeys(info) do
-	 if(num == 0) then
-	    print("<tr><th colspan=3>"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")
-	 end
+         if(num == 0) then
+            print("<tr><th colspan=3>"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")
+         end
 
-	 if(value ~= "") then
-	    print("<tr><th width=30%>" .. getFlowKey(key) .. "</th><td colspan=2>" .. handleCustomFlowField(key, value, snmpdevice) .. "</td></tr>\n")
-	 end
+         if(value ~= "") then
+            print("<tr><th width=30%>" .. getFlowKey(key) .. "</th><td colspan=2>" .. handleCustomFlowField(key, value, snmpdevice) .. "</td></tr>\n")
+         end
 
-	 num = num + 1
+         num = num + 1
       end
    end
 
@@ -1519,9 +1519,9 @@ else
       idx = string.find(payload, "\n\r\n\r")
 
       if(idx == nil) then
-	 payload = flow.flow_payload
+         payload = flow.flow_payload
       else
-	 payload = string.reverse(string.sub(payload, idx))
+         payload = string.reverse(string.sub(payload, idx))
       end         
 
       print("<tr><th width=30%>Payload</th><td colspan=2 style='white-space: pre-wrap; word-break: keep-all; font-family: \"courier new\", courier, monospace;font-size: 13px;'>" .. payload .. "</td></tr>\n")
@@ -1631,41 +1631,41 @@ print [[
     let page = 'flow';
 
     let vue_options = {
-    	components: {
-	      'modal-alerts-filter': ntopVue.ModalAlertsFilter,
-	  },
-	  /**
-	   * First method called when the component is created.
-	   */
-	  created() {},
-	  mounted() {},
-	  data() {
-	      return {
-		  page: page,
-		  current_alert: null,
-		  i18n: (t) => { return i18n(t); },
-	      };
-	  },
-	  methods: {
-	    show_modal_alerts_filter: function(alert) {
-	      this.current_alert = alert;
-	      this.$refs["modal_alerts_filter"].show();
-	    },
-	    add_exclude: async function(params) {
-	      params.csrf = pageCsrf;
+            components: {
+              'modal-alerts-filter': ntopVue.ModalAlertsFilter,
+          },
+          /**
+           * First method called when the component is created.
+           */
+          created() {},
+          mounted() {},
+          data() {
+              return {
+                  page: page,
+                  current_alert: null,
+                  i18n: (t) => { return i18n(t); },
+              };
+          },
+          methods: {
+            show_modal_alerts_filter: function(alert) {
+              this.current_alert = alert;
+              this.$refs["modal_alerts_filter"].show();
+            },
+            add_exclude: async function(params) {
+              params.csrf = pageCsrf;
 //{"delete_alerts":true,"type":"host","alert_addr": null,"flow_alert_key":"46","csrf":"bd493658564ff3ddcf7d08e9552358df"}
-	      let url = `${http_prefix}/lua/pro/rest/v2/add/alert/exclusion.lua`;
-	      try {
-	        let headers = {
-		  'Content-Type': 'application/json'
-		};
-		await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+              let url = `${http_prefix}/lua/pro/rest/v2/add/alert/exclusion.lua`;
+              try {
+                let headers = {
+                  'Content-Type': 'application/json'
+                };
+                await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
                 $('a[alert_id=' +  params.flow_alert_key+']').hide();
               } catch(err) {
-	        console.error(err);
+                console.error(err);
               }
-	    }
-	  },
+            }
+          },
       }; 
       const vue = ntopVue.Vue.createApp(vue_options);
       const vue_app = vue.mount("#vue-modals");
@@ -1690,19 +1690,19 @@ end
 
 print [[
 function update () {
-	  $.ajax({
-		    type: 'GET',
-		    url: ']]
+          $.ajax({
+                    type: 'GET',
+                    url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/flow_stats.lua',
-		    data: { ifid: "]] print(tostring(ifid)) print [[", ]]
+                    data: { ifid: "]] print(tostring(ifid)) print [[", ]]
    if(flow_key ~= nil) then
       print [[flow_key: "]] print(string.format("%u", flow_key)) print [[", ]]
    end
 print [[flow_hash_id: "]] print(string.format("%u", flow_hash_id)) print [[", ]]
 print[[ },
-		    success: function(content) {
-			if(content == "{}") {
+                    success: function(content) {
+                        if(content == "{}") {
    ]]
 
 -- If the flow is already idle, another error message is already shown
@@ -1715,68 +1715,68 @@ end
 
 print[[
                         } else {
-			var rsp = jQuery.parseJSON(content);
-			$('#first_seen').html(rsp["seen.first"]);
-			$('#last_seen').html(rsp["seen.last"]);
-			$('#volume').html(NtopUtils.bytesToVolume(rsp.bytes));
-			$('#goodput_volume').html(NtopUtils.bytesToVolume(rsp["goodput_bytes"]));
-			pctg = ((rsp["goodput_bytes"]*100)/rsp["bytes"]).toFixed(1);
+                        var rsp = jQuery.parseJSON(content);
+                        $('#first_seen').html(rsp["seen.first"]);
+                        $('#last_seen').html(rsp["seen.last"]);
+                        $('#volume').html(NtopUtils.bytesToVolume(rsp.bytes));
+                        $('#goodput_volume').html(NtopUtils.bytesToVolume(rsp["goodput_bytes"]));
+                        pctg = ((rsp["goodput_bytes"]*100)/rsp["bytes"]).toFixed(1);
 
-			/* 50 is the same threshold specified in FLOW_GOODPUT_THRESHOLD */
-			if(pctg < 50) { pctg = "<font color=red>"+pctg+"</font>"; } else if(pctg < 60) { pctg = "<font color=orange>"+pctg+"</font>"; }
+                        /* 50 is the same threshold specified in FLOW_GOODPUT_THRESHOLD */
+                        if(pctg < 50) { pctg = "<font color=red>"+pctg+"</font>"; } else if(pctg < 60) { pctg = "<font color=orange>"+pctg+"</font>"; }
 
-			$('#goodput_percentage').html(pctg);
-			$('#cli2srv').html(NtopUtils.addCommas(rsp["cli2srv.packets"])+" Pkts / " + NtopUtils.addCommas(NtopUtils.bytesToVolume(rsp["cli2srv.bytes"])));
-			$('#srv2cli').html(NtopUtils.addCommas(rsp["srv2cli.packets"])+" Pkts / " + NtopUtils.addCommas(NtopUtils.bytesToVolume(rsp["srv2cli.bytes"])));
-			$('#flow-throughput').html(rsp.throughput);
+                        $('#goodput_percentage').html(pctg);
+                        $('#cli2srv').html(NtopUtils.addCommas(rsp["cli2srv.packets"])+" Pkts / " + NtopUtils.addCommas(NtopUtils.bytesToVolume(rsp["cli2srv.bytes"])));
+                        $('#srv2cli').html(NtopUtils.addCommas(rsp["srv2cli.packets"])+" Pkts / " + NtopUtils.addCommas(NtopUtils.bytesToVolume(rsp["srv2cli.bytes"])));
+                        $('#flow-throughput').html(rsp.throughput);
 
-			if(typeof rsp["c2sOOO"] !== "undefined") {
-			   $('#c2sOOO').html(NtopUtils.formatPackets(rsp["c2sOOO"]));
-			   $('#s2cOOO').html(NtopUtils.formatPackets(rsp["s2cOOO"]));
-			   $('#c2slost').html(NtopUtils.formatPackets(rsp["c2slost"]));
-			   $('#s2clost').html(NtopUtils.formatPackets(rsp["s2clost"]));
-			   $('#c2skeep_alive').html(NtopUtils.formatPackets(rsp["c2skeep_alive"]));
-			   $('#s2ckeep_alive').html(NtopUtils.formatPackets(rsp["s2ckeep_alive"]));
-			   $('#c2sretr').html(NtopUtils.formatPackets(rsp["c2sretr"]));
-			   $('#s2cretr').html(NtopUtils.formatPackets(rsp["s2cretr"]));
-			}
-			if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
-			if (rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["srv2cli_quota"]);
+                        if(typeof rsp["c2sOOO"] !== "undefined") {
+                           $('#c2sOOO').html(NtopUtils.formatPackets(rsp["c2sOOO"]));
+                           $('#s2cOOO').html(NtopUtils.formatPackets(rsp["s2cOOO"]));
+                           $('#c2slost').html(NtopUtils.formatPackets(rsp["c2slost"]));
+                           $('#s2clost').html(NtopUtils.formatPackets(rsp["s2clost"]));
+                           $('#c2skeep_alive').html(NtopUtils.formatPackets(rsp["c2skeep_alive"]));
+                           $('#s2ckeep_alive').html(NtopUtils.formatPackets(rsp["s2ckeep_alive"]));
+                           $('#c2sretr').html(NtopUtils.formatPackets(rsp["c2sretr"]));
+                           $('#s2cretr').html(NtopUtils.formatPackets(rsp["s2cretr"]));
+                        }
+                        if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
+                        if (rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["srv2cli_quota"]);
 
-			/* **************************************** */
+                        /* **************************************** */
 
-			if(cli2srv_packets == rsp["cli2srv.packets"]) {
-			   $('#sent_trend').html("<i class=\"fas fa-minus\"></i>");
-			} else {
-			   $('#sent_trend').html("<i class=\"fas fa-arrow-up\"></i>");
-			}
+                        if(cli2srv_packets == rsp["cli2srv.packets"]) {
+                           $('#sent_trend').html("<i class=\"fas fa-minus\"></i>");
+                        } else {
+                           $('#sent_trend').html("<i class=\"fas fa-arrow-up\"></i>");
+                        }
 
-			if(srv2cli_packets == rsp["srv2cli.packets"]) {
-			   $('#rcvd_trend').html("<i class=\"fas fa-minus\"></i>");
-			} else {
-			   $('#rcvd_trend').html("<i class=\"fas fa-arrow-up\"></i>");
-			}
+                        if(srv2cli_packets == rsp["srv2cli.packets"]) {
+                           $('#rcvd_trend').html("<i class=\"fas fa-minus\"></i>");
+                        } else {
+                           $('#rcvd_trend').html("<i class=\"fas fa-arrow-up\"></i>");
+                        }
 
-			if(bytes == rsp["bytes"]) {
-			   $('#volume_trend').html("<i class=\"fas fa-minus\"></i>");
-			} else {
-			   $('#volume_trend').html("<i class=\"fas fa-arrow-up\"></i>");
-			}
+                        if(bytes == rsp["bytes"]) {
+                           $('#volume_trend').html("<i class=\"fas fa-minus\"></i>");
+                        } else {
+                           $('#volume_trend').html("<i class=\"fas fa-arrow-up\"></i>");
+                        }
 
-			if(goodput_bytes == rsp["goodput_bytes"]) {
-			   $('#goodput_volume_trend').html("<i class=\"fas fa-minus\"></i>");
-			} else {
-			   $('#goodput_volume_trend').html("<i class=\"fas fa-arrow-up\"></i>");
-			}
+                        if(goodput_bytes == rsp["goodput_bytes"]) {
+                           $('#goodput_volume_trend').html("<i class=\"fas fa-minus\"></i>");
+                        } else {
+                           $('#goodput_volume_trend').html("<i class=\"fas fa-arrow-up\"></i>");
+                        }
 
-			if(throughput > rsp["throughput_raw"]) {
-			   $('#throughput_trend').html("<i class=\"fas fa-arrow-down\"></i>");
-			} else if(throughput < rsp["throughput_raw"]) {
-			   $('#throughput_trend').html("<i class=\"fas fa-arrow-up\"></i>");
-			   $('#top-flow-throughput').html(rsp["top_throughput_display"]);
-			} else {
-			   $('#throughput_trend').html("<i class=\"fas fa-minus\"></i>");
-			} ]]
+                        if(throughput > rsp["throughput_raw"]) {
+                           $('#throughput_trend').html("<i class=\"fas fa-arrow-down\"></i>");
+                        } else if(throughput < rsp["throughput_raw"]) {
+                           $('#throughput_trend').html("<i class=\"fas fa-arrow-up\"></i>");
+                           $('#top-flow-throughput').html(rsp["top_throughput_display"]);
+                        } else {
+                           $('#throughput_trend').html("<i class=\"fas fa-minus\"></i>");
+                        } ]]
 
 if(isThereSIP == 1) then
    updatePrintSip()
@@ -1784,33 +1784,33 @@ end
 if(isThereRTP == 1) then
    updatePrintRtp()
 end
-print [[			cli2srv_packets = rsp["cli2srv.packets"];
-			srv2cli_packets = rsp["srv2cli.packets"];
-			throughput = rsp["throughput_raw"];
-			bytes = rsp["bytes"];
+print [[                        cli2srv_packets = rsp["cli2srv.packets"];
+                        srv2cli_packets = rsp["srv2cli.packets"];
+                        throughput = rsp["throughput_raw"];
+                        bytes = rsp["bytes"];
 
-	 /* **************************************** */
-	 // Processes information update, based on the pid
+         /* **************************************** */
+         // Processes information update, based on the pid
 
-	 for (var pid in rsp["processes"]) {
-	    var proc = rsp["processes"][pid]
-	    // console.log(pid);
-	    // console.log(proc);
-	    if (proc["memory"])           $('#memory_'+pid).html(proc["memory"]);
-	    if (proc["average_cpu_load"]) $('#average_cpu_load_'+pid).html(proc["average_cpu_load"]);
-	    if (proc["percentage_iowait_time"]) $('#percentage_iowait_time_'+pid).html(proc["percentage_iowait_time"]);
-	    if (proc["page_faults"])      $('#page_faults_'+pid).html(proc["page_faults"]);
-	 }
+         for (var pid in rsp["processes"]) {
+            var proc = rsp["processes"][pid]
+            // console.log(pid);
+            // console.log(proc);
+            if (proc["memory"])           $('#memory_'+pid).html(proc["memory"]);
+            if (proc["average_cpu_load"]) $('#average_cpu_load_'+pid).html(proc["average_cpu_load"]);
+            if (proc["percentage_iowait_time"]) $('#percentage_iowait_time_'+pid).html(proc["percentage_iowait_time"]);
+            if (proc["page_faults"])      $('#page_faults_'+pid).html(proc["page_faults"]);
+         }
 
-			/* **************************************** */
+                        /* **************************************** */
 
-			let values = thptChart.text().split(",");
-			values.shift();
-			values.push(rsp.throughput_raw);
-			thptChart.text(values.join(",")).change();
-		     } }
-		   });
-		 }
+                        let values = thptChart.text().split(",");
+                        values.shift();
+                        values.push(rsp.throughput_raw);
+                        thptChart.text(values.join(",")).change();
+                     } }
+                   });
+                 }
 
 ]]
 
