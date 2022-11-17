@@ -61,6 +61,8 @@ local function check(measurement, hosts, granularity)
 
       -- HTTP/S specific metrics
       if(host.measurement == "https") then
+        print("[ActiveMonitoring] GET "..domain_name.."\n")
+        print("[ActiveMonitoring] Response: "..rv.."\n")
 	ts_utils.append("am_host:https_stats_" .. granularity, {
 	    ifid = getSystemInterfaceId(),
 	    host = host.host,
