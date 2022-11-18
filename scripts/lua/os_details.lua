@@ -57,7 +57,8 @@ local title = i18n("os_details.os") .. ": "..OS
 Selectively render information pages
 --]]
 if page == "historical" then
-  graph_utils.drawNewGraphs(tonumber(os), interface.getId())
+   local source_value_object = { os = tonumber(os), ifid = interface.getId() }
+   graph_utils.drawNewGraphs(source_value_object)
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -72,7 +72,8 @@ else
       Selectively render information pages
    --]]
    if page == "historical" then
-      graph_utils.drawNewGraphs(tonumber(vlan_id), interface.getId())
+      local source_value_object = { vlan = tonumber(vlan_id), ifid = interface.getId() }
+      graph_utils.drawNewGraphs(source_value_object)
    elseif (page == "config") then
       if(not isAdministrator()) then
          return

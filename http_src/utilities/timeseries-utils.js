@@ -65,7 +65,9 @@ function getSerieName(name, id, tsGroup, extendSeriesName) {
     if (extendSeriesName == false) {
 	return name;
     }
-    let prefix = `${tsGroup.source.label}`;
+    let source_index = getMainSourceDefIndex(tsGroup);
+    let source = tsGroup.source_array[source_index];
+    let prefix = `${source.label}`;
     let yaxisName = getYaxisName(tsGroup.metric.measure_unit, tsGroup.metric.scale);
     return `${prefix} ${name} (${yaxisName})`;
 }
@@ -76,14 +78,6 @@ function getAddSeriesNameSource(tsGrpupsArray) {
 
 function getYaxisId(metric) {
     return `${metric.measure_unit}_${metric.scale}`;
-}
-
-function getAddSeriesNameYAxisName(tsOptionsArray) {
-    tsOptionsArray.forEach((tsOptions) => {
-	let sourceId = `${tsOptions.source_type.value}_${tsOptions.source.value}`;
-	sourceDict[sourceId] = true;
-    });
-    
 }
 
 function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawType, tsCompare) {
@@ -495,34 +489,41 @@ function buildChartOptions(seriesArray, yaxisArray) {
 }
 
 function getTsQuery(tsGroup) {
-    let tsQuery;
-    if (tsGroup.source_type.sub_value == null) {
-	tsQuery = `${tsGroup.source_type.value}:${tsGroup.source.value}`;
-    } else {
-	// let sub_value = ntopng_url_manager.get_url_entry(tsGroup.source_type.sub_value);
-	let sub_value = tsGroup.source.sub_value;
-tsQuery = `${tsGroup.source_type.sub_value}:${sub_value},${(tsGroup.source_type.ts_query || tsGroup.source_type.value)}:${tsGroup.metric.ts_query || tsGroup.source.value}`;
-    }
-
+    let tsQuery = tsGroup.source_type.source_def_array.map((source_def, i) => {
+	let source_value = tsGroup.source_array[i].value;
+	return `${source_def.value}:${source_value}`;
+    }).join(",");
+    
     if (tsGroup.metric.query != null) {
 	tsQuery = `${tsQuery},${tsGroup.metric.query}`
     }
     return tsQuery;
 }
 
+function getMainSourceDefIndex(tsGroup) {
+    let source_def_array = tsGroup.source_type.source_def_array;
+    for (let i = 0; i < source_def_array.length; i += 1) {
+	let source_def = source_def_array[i];
+	if (source_def.main_source_def == true) { return i; }
+    }
+    return 0;
+    
+}
+
 async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseriesGroups, isPro) {
     let paramsEpochObj = { epoch_begin: epochStatus.epoch_begin, epoch_end: epochStatus.epoch_end };
-
+    
     let tsChartsOptions;
     if (!isPro) {
 	let tsDataUrl = `${httpPrefix}/lua/rest/v2/get/timeseries/ts.lua`;
 	let paramsUrlRequest = `ts_compare=${tsCompare}&version=4&zoom=${tsCompare}&initial_point=true&limit=180`;
 	let tsGroup = timeseriesGroups[0];
+	let main_source_index = getMainSourceDefIndex(tsGroup);
 	let tsQuery = getTsQuery(tsGroup);
 	let pObj = {
 	    ...paramsEpochObj,
 	    ts_query: tsQuery,
-	    tskey: tsGroup.source.value,
+	    tskey: tsGroup.source_array[main_source_index].value,
 	    ts_schema: `${tsGroup.metric.schema}`,
 	};
 	let pUrlRequest =  ntopng_url_manager.add_obj_to_url(pObj, paramsUrlRequest);
@@ -538,12 +539,13 @@ async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseries
 		ts_compare: tsCompare,
 	};
 	let tsRequests = timeseriesGroups.map((tsGroup) => {
+	    let main_source_index = getMainSourceDefIndex(tsGroup);
 	    let tsQuery = getTsQuery(tsGroup);
 	    let pObj = {
 		...paramsEpochObj,
 		...paramsChart,
 		ts_query: tsQuery,
-		tskey: tsGroup.source.value,
+		tskey: tsGroup.source_array[main_source_index].value,
 		ts_schema: `${tsGroup.metric.schema}`,
 	    };
 	    return pObj;
@@ -569,6 +571,7 @@ const timeseriesUtils = function() {
 	getSerieName,
 	getTsChartsOptions,
 	getTsQuery,
+	getMainSourceDefIndex,
     };
 }();
 

@@ -89,7 +89,8 @@ page_utils.print_navbar(title, nav_url,
 Selectively render information pages
 --]]
 if page == "historical" then
-   graph_utils.drawNewGraphs(network_name, interface.getId())
+   local source_value_object = { subnet = network_name, ifid = interface.getId() }
+   graph_utils.drawNewGraphs(source_value_object)
 elseif (page == "config") then
     if(not isAdministrator()) then
       return

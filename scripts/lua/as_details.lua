@@ -111,7 +111,8 @@ if isEmptyString(page) or page == "historical" then
       print(" "..i18n("as_details.as_timeseries_enable_message",{url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fas fa-flask\"></i>"})..'</div>')
 
    else
-       graph_utils.drawNewGraphs(tonumber(asn), interface.getId())
+      local source_value_object = { asn = tonumber(asn), ifid = interface.getId() }
+      graph_utils.drawNewGraphs(source_value_object)
    end
 
    print[[

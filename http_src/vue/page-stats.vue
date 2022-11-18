@@ -120,8 +120,7 @@ import NtopUtils from "../utilities/ntop-utils";
 const props = defineProps({
     csrf: String,
     is_ntop_pro: Boolean,
-    source_value: String,
-    source_sub_value: String,
+    source_value_object: Object,
     enable_snapshots: Boolean,
     is_history_enabled: Boolean,
     traffic_extraction_permitted: Boolean,
@@ -181,20 +180,14 @@ function init_groups_option_mode() {
     return groups_options_modes[0];
 }
 
-function set_default_source_in_url() {
+function set_default_source_object_in_url() {
+    if (props.source_value_object == null) { return; }
     let source_type = metricsManager.get_current_page_source_type();
-    if (props.source_value != null && props.source_value != "") {
-	let value_url = metricsManager.get_source_type_key_value_url(source_type);
-	ntopng_url_manager.set_key_to_url(value_url, props.source_value);
-    }
-    if (source_type.sub_value && props.source_sub_value != null && props.source_sub_value != "") {
-	let sub_value_url = metricsManager.get_source_type_key_sub_value_url(source_type);
-	ntopng_url_manager.set_key_to_url(sub_value_url, props.source_sub_value);
-    }
+    metricsManager.set_source_value_object_in_url(source_type, props.source_value_object);
 }
 
 onBeforeMount(async () => {
-    set_default_source_in_url();
+    set_default_source_object_in_url();
     await load_datatable_data();
 });
 
@@ -274,8 +267,8 @@ async function get_selected_timeseries_groups() {
 
 async function get_timeseries_groups_from_metric(metric) {
     let source_type = metricsManager.get_current_page_source_type();
-    let source = await metricsManager.get_default_source(http_prefix, source_type);
-    let ts_group = metricsManager.get_ts_group(source_type, source, metric);
+    let source_array = await metricsManager.get_default_source_array(http_prefix, source_type);
+    let ts_group = metricsManager.get_ts_group(source_type, source_array, metric);
     let timeseries_groups = [ts_group];
     return timeseries_groups;
 }
@@ -394,8 +387,11 @@ function set_timeseries_groups_source_label(timeseries_groups, ts_charts_options
     timeseries_groups.forEach((ts_group, i) => {
 	let ts_options = ts_charts_options[i];
 	let label = ts_options?.query?.label;
+	
 	if (label != null) {
-	    ts_group.source.label = label;
+	    let source_index = timeseriesUtils.getMainSourceDefIndex(ts_group);
+	    let source = ts_group.source_array[source_index];
+	    source.label = label;
 	}
     });
 }
@@ -436,16 +432,12 @@ function get_ts_compare(status) {
 
 async function get_datatable_url() {
     let source_type = metricsManager.get_current_page_source_type();
-    let source = await metricsManager.get_default_source(http_prefix, source_type);
+    let source_array = await metricsManager.get_default_source_array(http_prefix, source_type);
     let ts_group = {
 	source_type,
-	source,
+	source_array,
 	metric: {},
     };
-    if (source_type.sub_value) {
-	let sub_source = await metricsManager.get_default_sub_source(http_prefix, source_type.sub_value);
-	ts_group.sub_source = sub_source;
-    }
     let ts_query = timeseriesUtils.getTsQuery(ts_group);
     let v = source_type.table_value;    
     let data_url = `${http_prefix}/lua/pro/rest/v2/get/${v}/top/ts_stats.lua`;
@@ -526,11 +518,11 @@ function set_table_configuration(url) {
 			let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${ntopng_url_manager.get_url_entry('epoch_begin')}&epoch_end=${ntopng_url_manager.get_url_entry('epoch_end')}&${l7_proto}`;
 			let source_type = metricsManager.get_current_page_source_type();
 			let params = "";
-			if(source_type.value == "host") {
+			if(source_type.id == "host") {
 			    let ifid = `ifid=${ntopng_url_manager.get_url_entry('ifid')}`;
 			    let host = ntopng_url_manager.serialize_param("ip", `${host};eq`);
 			    params = `${ifid}&${host}`;
-			} else if (source_type.value == "ifid"){
+			} else if (source_type.id == "interface"){
 			    let ifid = `ifid=${ntopng_url_manager.get_url_entry('ifid')}`;
 			    params = ifid;
 			} else {

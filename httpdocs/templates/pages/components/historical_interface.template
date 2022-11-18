@@ -1,8 +1,7 @@
 <div id="vue-app">
   <page-stats 
     :csrf="csrf"
-    :source_value="source_value"
-    :source_sub_value="source_sub_value"    
+    :source_value_object="source_value_object"
     :is_ntop_pro="is_ntop_pro"
     :enable_snapshots="is_ntop_enterprise_m"
     :is_history_enabled="is_history_enabled"
@@ -18,8 +17,7 @@
     const is_ntop_enterprise_m = '{* ntop.isEnterpriseM() *}' == 'true';
     const is_history_enabled = '{* ntop.isClickHouseEnabled() *}' == 'true';
     const traffic_extraction_permitted = '{* traffic_extraction_permitted *}' == 'true';
-    const source_value = '{* source_value *}'
-    const source_sub_value = '{* source_sub_value *}'
+    const source_value_object = {* source_value_object *};
 
     const vue_options = {
     	components: {
@@ -33,8 +31,7 @@
 	data() {
 	    return {
 	      csrf: pageCsrf,
-	      source_value,
-	      source_sub_value,
+	      source_value_object: source_value_object,
 	      is_ntop_pro,
 	      is_ntop_enterprise_m,
 	      traffic_extraction_permitted,

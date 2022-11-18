@@ -4569,6 +4569,7 @@ local lang = {
     ["add"] = "Add",
     ["add_timeseries"] = "Add Timeseries",
     ["apply"] = "Apply",
+    ["apply_source"] = "Apply Source",
     ["manage_timeseries"] = "Manage Timeseries",
     ["metric"] = "Metric",
     ["source"] = "Source",

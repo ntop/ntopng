@@ -2223,7 +2223,8 @@ elseif (page == "config") then
    </script>]]
 
 elseif(page == "historical") then
-   graph_utils.drawNewGraphs(nil, interface.getId())
+   local source_value_object = { ifid = interface.getId() }
+   graph_utils.drawNewGraphs(source_value_object)
 elseif(page == "traffic_report") then
    package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/?.lua;" .. package.path
    local traffic_report = require "traffic_report"
@@ -2232,7 +2233,7 @@ elseif(page == "traffic_report") then
 end
 end
 
-if(not only_historical) and (host ~= nil) and (page ~= "traffic") then
+if(not only_historical) and (host ~= nil) and (page ~= "traffic") and (page ~= "historical") then
    print [[
    <script>
 

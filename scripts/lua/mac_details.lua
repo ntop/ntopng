@@ -395,7 +395,8 @@ elseif(page == "snmp" and has_snmp_location) then
    snmp_location.print_host_snmp_localization_table_entry(mac)
    print[[</table>]]
 elseif(page == "historical") then
-   graph_utils.drawNewGraphs(nil, interface.getId())
+   local source_value_object = { ifid = interface.getId() }
+   graph_utils.drawNewGraphs(source_value_object)
 elseif(page == "config") then
    if(not isAdministrator()) then
       return

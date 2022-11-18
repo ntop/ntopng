@@ -1478,7 +1478,8 @@ elseif(page == "sites") then
    end
 
 elseif(page == "historical") then
-   graph_utils.drawNewGraphs(interface.getId())
+   local source_value_object = { ifid = interface.getId() }
+   graph_utils.drawNewGraphs(source_value_object)
 elseif(page == "trafficprofiles") then
    
    print("<table class=\"table table-striped table-bordered\">\n")

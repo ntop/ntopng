@@ -57,7 +57,8 @@ local title = i18n("country_details.country") .. ": "..country
 Selectively render information pages
 --]]
 if page == "historical" then
-  graph_utils.drawNewGraphs(country, interface.getId())
+   local source_value_object = { country = country, ifid = interface.getId() }
+   graph_utils.drawNewGraphs(source_value_object)
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
