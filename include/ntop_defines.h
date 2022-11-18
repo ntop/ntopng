@@ -1167,7 +1167,8 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define MAX_NUM_FINGERPRINT               25
 
 #define MAX_ENTROPY_BYTES                 4096
-#define MAX_NUM_OBSERVATION_POINTS        256
+
+#define MAX_NUM_FLOW_EXPORTERS        1024
 
 #define ALERT_ACTION_ENGAGE           "engage"
 #define ALERT_ACTION_RELEASE          "release"
