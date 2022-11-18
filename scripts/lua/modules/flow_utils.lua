@@ -1430,71 +1430,11 @@ end
 -- #######################
 
 function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
-   local printed = false
+   local inputidx_name = format_portidx_name(snmpdevice, tostring(input_idx))
+   local outputidx_name = format_portidx_name(snmpdevice, tostring(output_idx))
 
-   -- Make sure indices are strings as snmp_utils handles them as strings
-   input_idx = tostring(input_idx)
-   output_idx = tostring(output_idx)
-   local inputidx_name = format_portidx_name(snmpdevice, input_idx)
-   local outputidx_name = format_portidx_name(snmpdevice, output_idx)
-
-   if ntop.isPro() then
-      if not isEmptyString(snmpdevice) then
-	 local snmp_cached_dev = require "snmp_cached_dev"
-	 local cached_device = snmp_cached_dev:create(snmpdevice)
-
-	 if cached_device and cached_device["interfaces"] and table.len(cached_device["interfaces"]) > 0 then
-	    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-            local snmp_location = require "snmp_location"
-            local snmpurl = snmp_location.snmp_device_link(snmpdevice, format_device_name(snmpdevice, false))
-
-	    local snmp_interfaces = cached_device["interfaces"]
-	    local inputurl, outputurl
-
-	    local function prepare_interface_url(idx, port)
-	       local snmp_utils = require "snmp_utils"
-	       local ifurl
-
-	       if port then
-                  -- local label = snmp_utils.get_snmp_interface_label(port)
-                  local port_info = {
-                     -- name = label,
-                     id = port["index"],
-                     snmp_device_ip = snmpdevice,
-                  }
-		  ifurl = snmp_location.snmp_port_link(port_info)
-	       else
-		  ifurl = idx
-	       end
-
-	       return ifurl
-	    end
-
-	    if input_idx then
-	       inputurl = prepare_interface_url(input_idx, snmp_interfaces[input_idx])
-	    end
-
-	    if output_idx then
-	       outputurl = prepare_interface_url(output_idx, snmp_interfaces[output_idx])
-	    end
-
-	    print("<tr><th rowspan='3'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.device_ip").."</th><td>"..snmpurl.."</td></tr>")
-	    print("<tr><th>"..i18n("flows_page.inIfIdx").."</th><td><span class=\"badge bg-info\">"..(inputurl or ""))
-	    if(inputurl ~= inputidx_name) then print(" (".. inputidx_name ..")") end
-	    print("</span></td></tr>")
-	    
-	    print("<tr><th>"..i18n("flows_page.outIfIdx").."</th><td><span class=\"badge bg-info\">"..(outputurl or ""))
-	    if(outputurl ~= outputidx_name) then print(" (".. outputidx_name ..")") end
-	    print("</span></td></tr>")
-	    printed = true
-	 end
-      end
-   end
-
-   if(printed == false) then
-      print("<tr><th rowspan='2'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("flows_page.inIfIdx").."</th><td><span class=\"badge bg-info\">"..(inputidx_name or "").."</span></td></tr>")
-      print("<tr><th>"..i18n("flows_page.outIfIdx").."</th><td><span class=\"badge bg-info\">"..(outputidx_name or "").."</span></td></tr>")
-   end
+   print("<tr><th rowspan='2'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("flows_page.inIfIdx").."</th><td><span class=\"badge bg-info\">"..(inputidx_name or "").."</span></td></tr>")
+   print("<tr><th>"..i18n("flows_page.outIfIdx").."</th><td><span class=\"badge bg-info\">"..(outputidx_name or "").."</span></td></tr>")
 end
 
 -- #######################

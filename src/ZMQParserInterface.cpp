@@ -2350,8 +2350,12 @@ u_int8_t ZMQParserInterface::parseSNMPIntefaces(const char * payload, int payloa
       const char *rsp     = json_object_to_json_string(value);
       char redis_key[64];
 
-      /* Saving 'short' interface names */
-      snprintf(redis_key, sizeof(redis_key), "cachedsnmp.%s.ifnames", key);
+      /* 
+	 Saving 'short' interface names 
+
+	 Use lua/modules/snmp_mappings.lua to access them from Lua // 
+       */
+      snprintf(redis_key, sizeof(redis_key), "cachedexporters.%s.ifnames", key);
       ntop->getRedis()->set(redis_key, rsp);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[JSON] %s = %s", redis_key, rsp);

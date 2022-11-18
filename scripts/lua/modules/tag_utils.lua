@@ -706,7 +706,6 @@ function tag_utils.get_tag_info(id, entity)
                      end
 
                      local label = probe_label .. ' · ' .. interface_name
-                     -- local label = format_portidx_name(probe_ip, tostring(interface_id), true, false)
 
                      filter.options[#filter.options+1] = { 
                         value = probe_ip .. "_" ..interface_id, 
