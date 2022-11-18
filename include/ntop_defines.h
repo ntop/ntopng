@@ -1160,8 +1160,6 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 
 #define MAX_ENTROPY_BYTES                 4096
 
-#define MAX_NUM_FLOW_EXPORTERS        1024
-
 #define ALERT_ACTION_ENGAGE           "engage"
 #define ALERT_ACTION_RELEASE          "release"
 #define ALERT_ACTION_STORE            "store"
