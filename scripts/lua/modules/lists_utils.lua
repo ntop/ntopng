@@ -457,7 +457,7 @@ local function loadWarning(msg)
       return
    end
 
-   traceError(TRACE_WARNING, TRACE_CONSOLE, msg)
+   traceError(TRACE_NORMAL, TRACE_CONSOLE, msg)
    cur_load_warnings = cur_load_warnings + 1
 end
 
