@@ -67,7 +67,7 @@ local timeseries_id = {
   redis = "redis",
   influxdb = "influxdb",
   active_monitoring = "am",
-  snmp = "snmp_dev"
+  snmp = "snmp"
 }
 
 -- #################################
