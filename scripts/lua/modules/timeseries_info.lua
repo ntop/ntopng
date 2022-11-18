@@ -66,7 +66,8 @@ local timeseries_id = {
   profile = "profile",
   redis = "redis",
   influxdb = "influxdb",
-  active_monitoring = "am"
+  active_monitoring = "am",
+  snmp = "snmp_dev"
 }
 
 -- #################################
@@ -228,6 +229,12 @@ local community_timeseries = {
   { schema = "am_host:cicmp_stats_min",       id = timeseries_id.active_monitoring, label = i18n("flow_details.round_trip_time"),          priority = 0, measure_unit = "ms",    scale = 0, timeseries = { min_rtt          = { label = i18n('graphs.min_rtt'),        color = timeseries_info.get_timeseries_color('default') }, max_rtt = { label = i18n('graphs.max_rtt'),        color = timeseries_info.get_timeseries_color('default') } } },
   { schema = "am_host:jitter_stats_min",      id = timeseries_id.active_monitoring, label = i18n("active_monitoring_stats.rtt_vs_jitter"), priority = 0, measure_unit = "ms",    scale = 0, timeseries = { latency          = { label = i18n('flow_details.mean_rtt'), color = timeseries_info.get_timeseries_color('default') }, jitter = { label = i18n('flow_details.rtt_jitter'),        color = timeseries_info.get_timeseries_color('default') } } },
   { schema = "am_host:http_stats_min",        id = timeseries_id.active_monitoring, label = i18n("graphs.http_stats"),                     priority = 0, measure_unit = "ms",    scale = 0, timeseries = { lookup_ms        = { label = i18n('graphs.name_lookup'),    color = timeseries_info.get_timeseries_color('default') }, other_ms = { label = i18n('other'),        color = timeseries_info.get_timeseries_color('default') } } },
+
+  -- active_monitoring.lua (Active Monitoring): --
+  { schema = "snmp_dev:cpu_states",           id = timeseries_id.snmp, label = i18n("about.cpu_load"),                   priority = 0, measure_unit = "number", scale = 0, timeseries = { user_pct    = { label = i18n("snmp.cpuUser"),    color = timeseries_info.get_timeseries_color('default') },  system_pct = { label = i18n("snmp.cpuSystem"), color = timeseries_info.get_timeseries_color('default') },  idle_pct    = { label = i18n("snmp.cpuIdle"),    color = timeseries_info.get_timeseries_color('default') } }, default_visible = true },
+  { schema = "snmp_dev:avail_memory",         id = timeseries_id.snmp, label =i18n("snmp.memAvailReal"),                 priority = 0, measure_unit = "number", scale = 0, timeseries = { avail_bytes = { label = i18n("snmp.memAvailReal"),    color = timeseries_info.get_timeseries_color('default') } } },
+  { schema = "snmp_dev:swap_memory",          id = timeseries_id.snmp, label =i18n("snmp.memTotalReal"),                 priority = 0, measure_unit = "number", scale = 0, timeseries = { swap_bytes  = { label = i18n("snmp.memTotalReal"),    color = timeseries_info.get_timeseries_color('default') } } },
+  { schema = "snmp_dev:total_memory",         id = timeseries_id.snmp, label =i18n("snmp.memTotalSwap"),                 priority = 0, measure_unit = "number", scale = 0, timeseries = { total_bytes = { label = i18n("snmp.memTotalSwap"),    color = timeseries_info.get_timeseries_color('default') } } },
 }
 
 -- #################################
@@ -482,6 +489,35 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
   timeseries = add_top_timeseries(tags, prefix, timeseries)
 
   return timeseries  
+end
+
+-- #################################
+
+function timeseries_info.get_host_rules_schema()
+  local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
+  local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~= "0"
+  local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
+
+  local metric_list = {
+    { title = i18n('traffic'), group = i18n('generic_data'), label = i18n('traffic'), id = 'host:traffic' --[[ here the ID is the schema ]] },
+    { title = i18n('score'),  group = i18n('generic_data'), label = i18n('score'), id = 'host:score' --[[ here the ID is the schema ]] },
+  } 
+
+  if has_top_protocols then
+    local application_list = interface.getnDPIProtocols()
+    for application, _ in pairsByKeys(application_list or {}, asc) do 
+      metric_list[#metric_list + 1] = { label = application, group = i18n('applications_long'), title = application, id = 'top:host:ndpi,protocol:' .. application --[[ here the schema is the ID ]] }
+    end
+  end
+
+  if has_top_categories then
+    local category_list = interface.getnDPICategories()
+    for category, _ in pairsByKeys(category_list or {}, asc) do 
+      metric_list[#metric_list + 1] = { label = category, group = i18n('categories'), title = category, id = 'top:host:ndpi_categories,category:' .. category --[[ here the schema is the ID ]] }
+    end
+  end
+
+  return metric_list
 end
 
 -- #################################
