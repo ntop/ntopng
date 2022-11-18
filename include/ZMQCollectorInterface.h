@@ -38,7 +38,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   void *context;
   std::map<u_int8_t, u_int32_t>source_id_last_msg_id;
   bool is_collector;
-  u_int8_t num_subscribers;
+  u_int16_t num_subscribers;
   zmq_subscriber subscriber[MAX_ZMQ_SUBSCRIBERS];
   char server_public_key[41], server_secret_key[41];
     
