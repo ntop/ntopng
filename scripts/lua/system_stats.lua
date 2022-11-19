@@ -171,7 +171,7 @@ print [[/lua/system_stats_data.lua',
    ]]
 
 elseif(page == "historical" and ts_creation) then
-  graph_utils.drawNewGraphs(nil, interface.getId())
+   graph_utils.drawNewGraphs({ ifid = interface.getId()})
 elseif page == "internals" then
    internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]], true --[[ queues --]])
 end

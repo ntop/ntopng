@@ -49,7 +49,7 @@
     </template>
   </div>
   
-  <div class="mt-4 card card-shadow">
+  <div class="mt-4 card card-shadow" v-if="!source_type.disable_stats">
     <div class="card-body">
       <BootstrapTable
 	id="page_stats_bootstrap_table"
@@ -143,9 +143,9 @@ const modal_snapshot = ref(null);
 
 const metrics = ref([]);
 const selected_metric = ref({});
+const source_type = metricsManager.get_current_page_source_type();    
 
 const enable_table = function() {
-    let source_type = metricsManager.get_current_page_source_type();    
     return source_type.table_value != null;
 }();
 
@@ -373,7 +373,9 @@ async function load_charts_data(timeseries_groups, not_reload) {
     let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_charts_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
 
     set_charts_options_items(charts_options);
-    set_stats_rows(ts_charts_options, timeseries_groups, status);
+    if (!source_type.disable_stats) {
+	set_stats_rows(ts_charts_options, timeseries_groups, status);
+    }
     
     // set last_timeseries_groupd_loaded
     last_timeseries_groups_loaded = timeseries_groups;

@@ -49,7 +49,7 @@ page_utils.print_navbar(title, nav_url,
 Selectively render information pages
 --]]
 if page == "historical" then
-  graph_utils.drawNewGraphs(pod, interface.getId())
+   graph_utils.drawNewGraphs({ pod = pod, ifid = interface.getId()})
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

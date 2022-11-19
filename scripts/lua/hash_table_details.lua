@@ -52,6 +52,6 @@ page_utils.print_navbar(title, nav_url,
 			}
 )
 
-graph_utils.drawNewGraphs(hash_table, interface.getId())
+graph_utils.drawNewGraphs({ hash_table = hash_table, ifid = interface.getId()})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

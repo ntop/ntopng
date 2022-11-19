@@ -252,7 +252,6 @@ async function set_sources_array() {
     for (let i = 0; i < source_def_array.length; i += 1) {
 	sources_array.value[i] = await metricsManager.get_sources(http_prefix, selected_source_type.value.id, source_def_array[i]);
     }
-    
     let default_source_array = await metricsManager.get_default_source_array(http_prefix, selected_source_type.value);
     selected_source_array.value = default_source_array;
     selected_source_text_array.value = default_source_array.map((s) => s.value);

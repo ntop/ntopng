@@ -47,7 +47,10 @@ function tsToApexOptions(tsOptions, metric) {
     //tsInterface.colors = ["#ff3231", "#ffc007"];
 }
 
-function getSerieId(serie) {
+function getSerieId(serie, serie_id_field) {
+    if (serie_id_field != null) {
+	return serie[serie_id_field];
+    }
     return `${serie.label}`;
 }
 
@@ -89,7 +92,7 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
     let seriesKeys = Object.keys(tsGroup.metric.timeseries);
     if (tsOptions.series?.length != seriesKeys.length) {	
 	tsOptions.series = seriesKeys.map((sk, i) => {
-	    let serie = tsOptions.series.find((s) => getSerieId(s) == sk);
+	    let serie = tsOptions.series.find((s) => getSerieId(s, tsGroup.source_type.serie_id_field) == sk);
 	    if (serie != null) { return serie; }
 	    return {
 		label: sk,
