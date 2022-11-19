@@ -27,6 +27,7 @@
 #include "flow_alerts/BlacklistedFlowAlert.h"
 #include "flow_alerts/BlacklistedCountryAlert.h"
 #include "flow_alerts/BroadcastNonUDPTrafficAlert.h"
+#include "flow_alerts/CustomFlowLuaScriptAlert.h"
 #include "flow_alerts/ExternalAlertCheckAlert.h"
 #include "flow_alerts/LowGoodputFlowAlert.h"
 #include "flow_alerts/NotPurgedAlert.h"

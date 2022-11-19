@@ -67,6 +67,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new BlacklistedFlow()))                             registerCheck(fcb);
   if((fcb = new BlacklistedCountry()))                          registerCheck(fcb);
   if((fcb = new BroadcastNonUDPTraffic()))                      registerCheck(fcb);
+  if((fcb = new CustomFlowLuaScript()))                         registerCheck(fcb);
   if((fcb = new DeviceProtocolNotAllowed()))                    registerCheck(fcb);
 #ifndef NTOPNG_PRO
   if((fcb = new ExternalAlertCheck()))                          registerCheck(fcb);
@@ -159,7 +160,7 @@ void FlowChecksLoader::registerChecks() {
   }
 #endif
 
-  // printChecks();
+  //  printChecks();
 }
 
 /* **************************************************** */
@@ -249,7 +250,7 @@ void FlowChecksLoader::loadConfiguration() {
 	  cb->scriptDisable(); 
 	}
       }	else
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to find flow check %s", check_key);
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find flow check '%s': skipping it", check_key);
     }
 
   next_object:

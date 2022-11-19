@@ -43,7 +43,9 @@ function multi_threshold_cross:describeConfig(hooks_conf)
   local msg = ''
 
   for field, value in pairs(configured_threshold) do
-    msg = msg .. i18n(field) .. ": " .. value.threshold .. "%, " 
+     if(value.threshold ~= nil) then
+	msg = msg .. i18n(field) .. ": " .. value.threshold .. "%, "
+     end
   end
 
   return msg

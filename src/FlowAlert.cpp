@@ -27,7 +27,7 @@ FlowAlert::FlowAlert(FlowCheck *c, Flow *f) {
   flow = f;
   cli_attacker = srv_attacker = false;
   cli_victim = srv_victim = false;
-  if (c) check_name = c->getName();
+  if(c) check_name = c->getName();
 }
 
 /* **************************************************** */

@@ -415,7 +415,7 @@ typedef enum {
 } FlowChecks;
 
 /* NOTE: Throw modules/alert_keys.lua as it has been merged with modules/alert_keys.lua */
-/* NOTE: keep in sync with modules/alert_keys.lua */
+/* NOTE: keep in sync with modules/alert_keys/flow_alert_keys.lua */
 typedef enum {
   flow_alert_normal                               = 0,
   flow_alert_blacklisted                          = 1,
@@ -446,7 +446,7 @@ typedef enum {
   flow_alert_ndpi_unidirectional_traffic          = 26,
   flow_alert_web_mining_detected                  = 27,
   flow_alert_ndpi_tls_certificate_selfsigned      = 28,
-  flow_alert_ndpi_binary_application_transfer     = 29, 
+  flow_alert_ndpi_binary_application_transfer     = 29,
   flow_alert_ndpi_known_proto_on_non_std_port     = 30,
   flow_alert_noutused_8                           = 31,
   flow_alert_unexpected_dhcp_server               = 32,
@@ -504,10 +504,11 @@ typedef enum {
   flow_alert_ndpi_http_obsolete_server            = 84,
   flow_alert_ndpi_risky_asn                       = 85,
   flow_alert_ndpi_risky_domain                    = 86,
-  
+  flow_alert_custom_lua_script                    = 87,
+
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
-  MAX_FLOW_ALERT_TYPE = 127 /* Constrained by `Bitmap128 alert_map` inside Flow.h */  
+  MAX_FLOW_ALERT_TYPE = 127 /* Constrained by `Bitmap128 alert_map` inside Flow.h */
 } FlowAlertTypeEnum;
 
 typedef struct {
@@ -520,7 +521,7 @@ typedef struct {
   const char *alert_lua_name;
 } FlowAlertTypeExtended;
 
-/* 
+/*
    Each C++ host check must have an entry here,
    returned with HostCheckID getID()
 */
@@ -532,7 +533,7 @@ typedef enum {
   host_alert_flow_flood                  =  4,
   host_alert_syn_scan                    =  5,
   host_alert_syn_flood                   =  6,
-  host_alert_domain_names_contacts       =  7, 
+  host_alert_domain_names_contacts       =  7,
   host_alert_p2p_traffic                 =  8,
   host_alert_dns_traffic                 =  9,
   host_alert_flows_anomaly               = 10,
@@ -548,7 +549,7 @@ typedef enum {
   host_alert_scan_detected               = 20,
   host_alert_fin_scan                    = 21,
 
-  MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */ 
+  MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */
   MAX_HOST_ALERT_TYPE = 32 /* Constrained by HostAlertBitmap */
 } HostAlertTypeEnum;
 
@@ -586,8 +587,8 @@ typedef enum {
   host_check_scan_detection,
   host_check_mac_reassociation,
   host_check_fin_scan,
-  
-  NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */ 
+
+  NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */
 } HostCheckID;
 
 typedef enum {
@@ -818,7 +819,7 @@ typedef enum {
   device_nas,
   device_multimedia,
   device_iot,
-  
+
   device_max_type /* Leave it at the end */
 } DeviceType;
 
@@ -866,7 +867,7 @@ struct ntopngLuaContext {
   Flow *flow;
   bool localuser;
   u_int16_t observationPointId;
-  
+
   /* Capabilities bitmap */
   u_int64_t capabilities;
 
@@ -885,21 +886,21 @@ struct ntopngLuaContext {
     void *matching_host;
     bool bpfFilterSet;
     struct bpf_program fcode;
-    
+
     /* Status */
     bool pcaphdr_sent;
     bool stopped;
 
     /* Partial sends */
     char send_buffer[1600];
-    u_int data_not_yet_sent_len; /* 
-				    Amount of data that was 
-				    not sent mostly due to 
-				    socket buffering 
+    u_int data_not_yet_sent_len; /*
+				    Amount of data that was
+				    not sent mostly due to
+				    socket buffering
 				 */
   } live_capture;
 
-  /* 
+  /*
      Indicate the time when the vm will be reloaded.
      This can be used so that Lua scripts running in an infinite-loop fashion, e.g., notifications.lua,
      can know when to break so they can be reloaded with new configurations.
@@ -942,7 +943,7 @@ typedef enum {
   interface_type_DIVERT,
   interface_type_DUMMY,
   interface_type_ZC_FLOW,
-  interface_type_SYSLOG 
+  interface_type_SYSLOG
 } InterfaceType;
 
 /* Update Flow::dissectHTTP when extending the type below */
@@ -1122,7 +1123,7 @@ typedef struct _MapsFilters {
   bool periodicity_or_service;
   NetworkInterface *iface;
   u_int8_t *mac;
-  IpAddress *ip;  
+  IpAddress *ip;
   bool unicast;
   u_int16_t vlan_id;
   u_int16_t host_pool_id;
@@ -1138,12 +1139,12 @@ typedef struct _MapsFilters {
   sortingOrder sort_order;
   bool standard_view;
   u_int8_t cli_location;
-  u_int8_t srv_location; 
+  u_int8_t srv_location;
 } MapsFilters;
 
 typedef struct _MapsFilteringMenu {
-  std::set<u_int16_t> *proto_map; 
-  std::set<u_int16_t> *vlan_map; 
+  std::set<u_int16_t> *proto_map;
+  std::set<u_int16_t> *vlan_map;
   std::set<u_int16_t> *pool_map;
 } MapsFilteringMenu;
 
