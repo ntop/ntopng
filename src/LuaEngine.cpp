@@ -34,6 +34,7 @@ struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
 extern luaL_Reg *ntop_interface_reg;
 extern luaL_Reg *ntop_reg;
 extern luaL_Reg *ntop_network_reg;
+extern luaL_Reg *ntop_flow_reg;
 
 #define HTTP_MAX_UPLOAD_DATA_LEN 25000000 /* ~25MB (see also upload_pcap.template) */
 
@@ -463,6 +464,7 @@ void LuaEngine::lua_register_classes(lua_State *L, bool http_mode) {
   luaRegister(L, "interface", ntop_interface_reg);
   luaRegister(L, "ntop",      ntop_reg);
   luaRegister(L, "network",   ntop_network_reg);
+  luaRegister(L, "flow",      ntop_flow_reg);
 
   if(http_mode) {
     /* Overload the standard Lua print() with ntop_lua_http_print that dumps data on HTTP server */
@@ -591,7 +593,7 @@ int LuaEngine::run_loaded_script() {
   lua_pushvalue(L, -1);
 
   /* Perform the actual call */
-  if(lua_pcall(L, 0, 0, 0) != 0) {
+  if(lua_pcall(L, 0, LUA_MULTRET /* Allow the script to be called multiple times */, 0) != 0) {
     if(lua_type(L, -1) == LUA_TSTRING) {
       const char *err = lua_tostring(L, -1);
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", loaded_script_path, err ? err : "");

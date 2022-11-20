@@ -26,13 +26,11 @@
 
 class CustomFlowLuaScript : public FlowCheck {
  private:
+  LuaEngine *lua;
   
  public:
-  CustomFlowLuaScript() : FlowCheck(ntopng_edition_community,
-				    false /* All interfaces */, false /* Don't exclude for nEdge */,
-				    false /* NOT only for nEdge */, true /* has_protocol_detected */,
-				    false /* has_periodic_update */, false /* has_flow_end */) {};
-  ~CustomFlowLuaScript() {};
+  CustomFlowLuaScript();
+  ~CustomFlowLuaScript();
   
   bool loadConfiguration(json_object *config);
   void protocolDetected(Flow *f);

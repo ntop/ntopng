@@ -22,24 +22,65 @@
 #include "ntop_includes.h"
 #include "flow_checks_includes.h"
 
-void CustomFlowLuaScript::protocolDetected(Flow *f) {
-  bool triggered = false;
+/* ***************************************************** */
 
-  /* Run script */
-  if(true) {
-    char buf[128];
+CustomFlowLuaScript::CustomFlowLuaScript() : FlowCheck(ntopng_edition_community,
+						       false /* All interfaces */,
+						       false /* Don't exclude for nEdge */,
+						       false /* NOT only for nEdge */,
+						       true /* has_protocol_detected */,
+						       false /* has_periodic_update */,
+						       false /* has_flow_end */) {
+  const char *script_path = "scripts/callbacks/custom_flow_lua_script.lua";
+  char where[256];
+  struct stat s;
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Lua script on %s", f->print(buf, sizeof(buf)));
-  }
+  snprintf(where, sizeof(where), "%s/%s", ntop->get_install_dir(), script_path);
   
-  if(triggered) {
-    FlowAlertType alert_type = CustomFlowLuaScriptAlert::getClassType();
-    u_int8_t c_score, s_score;
-    risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
+  if(stat(where, &s) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", where);
     
-    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+    lua = NULL;
+  } else {
+    try {
+      lua = new LuaEngine(NULL);
+      lua->load_script((char*)where, NULL /* NetworkInterface filled later via lua->setFlow(f); */);
+    } catch(std::bad_alloc& ba) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "[HTTP] Unable to start Lua interpreter.");
+    }
+  }
+}
 
-    f->triggerAlertAsync(alert_type, c_score, s_score);
+/* ***************************************************** */
+
+CustomFlowLuaScript::~CustomFlowLuaScript() {
+  if(lua) delete lua;
+}
+
+/* ***************************************************** */
+
+void CustomFlowLuaScript::protocolDetected(Flow *f) {
+  if(lua != NULL) {
+    bool triggered = false;
+
+    if(false) {
+      char buf[128];
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Lua script on %s", f->print(buf, sizeof(buf)));
+    }
+    lua->setFlow(f);
+    lua->run_loaded_script(); /* Run script */
+    
+  
+    if(triggered) {
+      FlowAlertType alert_type = CustomFlowLuaScriptAlert::getClassType();
+      u_int8_t c_score, s_score;
+      risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
+    
+      computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+
+      f->triggerAlertAsync(alert_type, c_score, s_score);
+    }
   }
 }
 
