@@ -135,6 +135,9 @@ const ntopChartApex = function() {
     },
     dataLabels: {
       enabled: true,
+      formatter: function (val, opts) {
+        return (val ? `${val.toFixed(1)}%` : `0%`)
+      },
     },
     legend: {
       enabled: true,
