@@ -171,6 +171,8 @@
 #define MAX_NUM_POOL_MEMBERS        LIMITED_NUM_POOL_MEMBERS
 #define MAX_ZMQ_SUBSCRIBERS         LIMITED_MAX_ZMQ_SUBSCRIBERS
 #else
+/* Max number of ZMQ endpoints that can be configured to connect to the probes
+ * Note: when running as server/collector the max number of clients/subscribers is not limited (tested up to 256) */
 #define MAX_ZMQ_SUBSCRIBERS         UNLIMITED_MAX_ZMQ_SUBSCRIBERS
 #endif
 
