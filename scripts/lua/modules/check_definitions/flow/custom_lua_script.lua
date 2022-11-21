@@ -11,15 +11,17 @@ local flow_alert_keys = require "flow_alert_keys"
 -- #################################################################
 
 local script = {
-   -- Script category
-   category = checks.check_categories.security, 
+  default_enabled = false,
 
-   alert_id = flow_alert_keys.flow_alert_custom_lua_script,
+  -- Script category
+  category = checks.check_categories.security, 
 
-   gui = {
-      i18n_title = "flow_checks_config.custom_lua_script",
-      i18n_description = "flow_checks_config.custom_lua_script_description",
-   }
+  alert_id = flow_alert_keys.flow_alert_custom_lua_script,
+
+  gui = {
+    i18n_title = "flow_checks_config.custom_lua_script",
+    i18n_description = "flow_checks_config.custom_lua_script_description",
+  }
 }
 
 -- #################################################################
