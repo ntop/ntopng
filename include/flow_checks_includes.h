@@ -61,6 +61,7 @@
 #include "flow_checks/FlowRiskUnidirectionalTraffic.h"
 #include "flow_checks/IECUnexpectedTypeId.h"
 #include "flow_checks/IECInvalidTransition.h"
+#include "flow_checks/IECInvalidCommandTransition.h"
 #include "flow_checks/LowGoodputFlow.h"
 #include "flow_checks/NotPurged.h"
 #include "flow_checks/RemoteAccess.h"

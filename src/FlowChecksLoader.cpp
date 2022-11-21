@@ -100,6 +100,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new FlowRiskUnidirectionalTraffic()))               registerCheck(fcb);
   if((fcb = new IECUnexpectedTypeId()))                         registerCheck(fcb);
   if((fcb = new IECInvalidTransition()))                        registerCheck(fcb);
+  if((fcb = new IECInvalidCommandTransition()))                 registerCheck(fcb);
   if((fcb = new LowGoodputFlow()))                              registerCheck(fcb);
   if((fcb = new NotPurged()))                                   registerCheck(fcb);  
   if((fcb = new RemoteAccess()))                                registerCheck(fcb);
