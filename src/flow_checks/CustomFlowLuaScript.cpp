@@ -31,6 +31,12 @@ CustomFlowLuaScript::CustomFlowLuaScript() : FlowCheck(ntopng_edition_community,
 						       true /* has_protocol_detected */,
 						       false /* has_periodic_update */,
 						       false /* has_flow_end */) {
+  /* Nothng to do */;
+}
+
+/* ***************************************************** */
+
+LuaEngine* CustomFlowLuaScript::initVM() {
   const char *script_path = "scripts/callbacks/custom_flow_lua_script.lua";
   char where[256];
   struct stat s;
@@ -40,26 +46,42 @@ CustomFlowLuaScript::CustomFlowLuaScript() : FlowCheck(ntopng_edition_community,
   if(stat(where, &s) != 0) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", where);
     
-    lua = NULL;
+    return(NULL);
   } else {
+    LuaEngine *lua;
+    
     try {
       lua = new LuaEngine(NULL);
       lua->load_script((char*)where, NULL /* NetworkInterface filled later via lua->setFlow(f); */);
     } catch(std::bad_alloc& ba) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "[HTTP] Unable to start Lua interpreter.");
     }
+
+    return(lua);
   }
 }
-
 /* ***************************************************** */
 
 CustomFlowLuaScript::~CustomFlowLuaScript() {
-  if(lua) delete lua;
+
 }
 
 /* ***************************************************** */
 
 void CustomFlowLuaScript::protocolDetected(Flow *f) {
+  LuaEngine *lua;
+  
+  if(!f)
+    return;
+  else {
+    lua = f->getInterface()->getCustomFlowLuaScript();
+
+    if(lua == NULL) {
+      lua = initVM();
+      f->getInterface()->setCustomFlowLuaScript(lua);
+    }
+  }
+  
   if(lua != NULL) {
     bool triggered = false;
 
