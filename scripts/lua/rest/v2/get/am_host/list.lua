@@ -18,8 +18,8 @@ local am_utils = require "am_utils"
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPContentTypeHeader('application/json')
-  
+-- sendHTTPContentTypeHeader('application/json')
+
 local charts_available = script_manager.systemTimeseriesEnabled()
 
 -- ################################################
