@@ -125,7 +125,8 @@ if (page == "overview") then
     template.render("active_monitoring_stats.template", context)
 
 elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) then
-
+   local host_value = host.host .. ",metric:" .. host.measurement
+   -- graph_utils.drawNewGraphs({ifid = -1, host = host_value})
     local suffix = "_" .. host.granularity
     local schema = _GET["ts_schema"] or ("am_host:val" .. suffix)
     local selected_epoch = _GET["epoch"] or ""
