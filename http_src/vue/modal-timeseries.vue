@@ -32,7 +32,7 @@
       </div>
       
       <!-- Sources -->
-      <div class="form-group ms-2 me-2 mb-2 mt-3 row">
+      <div v-if="!hide_sources" class="form-group ms-2 me-2 mb-2 mt-3 row">
 	<div class="form-group row ">
 	  <label class="col-form-label col-sm-4" >
             <b>{{_i18n("modal_timeseries.source")}}</b>
@@ -166,6 +166,7 @@ const enable_apply_source = computed(() => {
     }
     return true;
 });
+const hide_sources = ref(false);
 
 const metrics = ref([]);
 const selected_metric = ref({});
@@ -202,8 +203,14 @@ function change_action(a) {
 async function change_source_type() {
     is_selected_source_changed.value = false;
     set_regex();
+    set_hide_sources();
     await set_sources_array();
     await set_metrics();
+}
+
+function set_hide_sources() {
+    let source_type = selected_source_type.value;
+    hide_sources.value = source_type.source_def_array.map((sd) => sd.ui_type == ui_types.hide).every((hide) => hide == true);
 }
 
 async function apply_source_array() {

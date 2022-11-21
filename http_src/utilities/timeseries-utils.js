@@ -526,9 +526,11 @@ async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseries
 	let pObj = {
 	    ...paramsEpochObj,
 	    ts_query: tsQuery,
-	    tskey: tsGroup.source_array[main_source_index].value,
 	    ts_schema: `${tsGroup.metric.schema}`,
 	};
+	if (!tsGroup.source_type.source_def_array[main_source_index].disable_tskey) {
+	    pObj.tskey = tsGroup.source_array[main_source_index].value;
+	}
 	let pUrlRequest =  ntopng_url_manager.add_obj_to_url(pObj, paramsUrlRequest);
 	let url = `${tsDataUrl}?${pUrlRequest}`;
 	let tsChartOption = await ntopng_utility.http_request(url);
@@ -548,9 +550,11 @@ async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseries
 		...paramsEpochObj,
 		...paramsChart,
 		ts_query: tsQuery,
-		tskey: tsGroup.source_array[main_source_index].value,
 		ts_schema: `${tsGroup.metric.schema}`,
 	    };
+	    if (!tsGroup.source_type.source_def_array[main_source_index].disable_tskey) {
+		pObj.tskey = tsGroup.source_array[main_source_index].value;
+	    }
 	    return pObj;
 	});
 	let tsDataUrlMulti = `${httpPrefix}/lua/pro/rest/v2/get/timeseries/ts_multi.lua`;

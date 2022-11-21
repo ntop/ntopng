@@ -166,6 +166,9 @@ const get_source_array_from_value_array = async (http_prefix, source_type, sourc
 		sources = source_def.sources_function();
 	    }
 	    source = sources.find((s) => s.value == source_value);
+	    if (source == null) {
+		source = sources[0];
+	    }
 	} else {
 	    source = { label: source_value, value: source_value };	    
 	}
@@ -190,7 +193,10 @@ const get_sources = async (http_prefix, id, source_def) => {
     }
     let sources = await cache_sources[key];
     if (source_def.sources_url) {
-	let f_map_source_element = sources_url_el_to_source[source_def.value];
+	let f_map_source_element = sources_url_el_to_source[source_def.value_map_sources_res];
+	if (f_map_source_element == null) {
+	    f_map_source_element = sources_url_el_to_source[source_def.value];
+	}
 	if (f_map_source_element == null) {
 	    throw `:Error: metrics-manager.js, missing sources_url_to_source ${source_def.value} key`;
 	}
@@ -225,14 +231,15 @@ const get_default_source_value_array = (source_type) => {
 	if (source_def_value == null) {
 	    source_def_value = source_def.value;
 	}
-	return ntopng_url_manager.get_url_entry(source_def_value);
+	let source_value = ntopng_url_manager.get_url_entry(source_def_value);
+	return source_value;
     });
     return source_value_array;
 };
 
 function get_metrics_url(http_prefix, source_type, source_array) {
     let params = source_type.source_def_array.map((source_def, i) => {
-	return `${source_def.value}=${source_array[i].value};`
+	return `${source_def.value}=${source_array[i].value}`;
     }).join("&");
     let url = `${http_prefix}/lua/rest/v2/get/timeseries/type/consts.lua?query=${source_type.query}&${params}`;
     return url;
