@@ -28,6 +28,7 @@ local host_alert_keys = {
   host_alert_pkt_threshold               = 19,
   host_alert_scan_detected               = 20,
   host_alert_fin_scan                    = 21,
+  host_alert_dns_flood                   = 22,
 
   -- NOTE: Keep in sync with HostAlertTypeEnum in ntop_typedefs.h
 }

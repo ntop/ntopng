@@ -1999,6 +1999,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	e.g., during three-way-handshake, or when acknowledging.
 	Make sure only non-zero-payload segments are processed.
       */
+      /* However still consider for a possible DNS flood */
+    #ifdef NTOPNG_PRO
+      flow->updateDNSFlood(when, src2dst_direction);
+    #endif
+    
       if((trusted_payload_len > 0) && payload) {
 	flow->dissectDNS(src2dst_direction, (char*)payload, trusted_payload_len);
 	/*

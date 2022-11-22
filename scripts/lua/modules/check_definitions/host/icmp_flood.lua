@@ -18,7 +18,7 @@ local icmp_flood = {
 
    default_value = {
       operator = "gt",
-      threshold = 256,
+      threshold = 250,
    },
 
    gui = {

@@ -71,6 +71,7 @@ void HostChecksLoader::registerChecks() {
   
 #ifdef NTOPNG_PRO
   if((fcb = new ScoreAnomaly()))               registerCheck(fcb);
+  if((fcb = new DNSFlood()))                   registerCheck(fcb);
   if((fcb = new FlowAnomaly()))                registerCheck(fcb);
   if((fcb = new HostMACReassociation()))       registerCheck(fcb);
 #endif
