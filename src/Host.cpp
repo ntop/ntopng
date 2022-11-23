@@ -85,6 +85,8 @@ Host::~Host() {
   if(icmp_flood.victim_counter)   delete icmp_flood.victim_counter;
   if(dns_flood.attacker_counter) delete dns_flood.attacker_counter;
   if(dns_flood.victim_counter)   delete dns_flood.victim_counter;
+  if(snmp_flood.attacker_counter) delete snmp_flood.attacker_counter;
+  if(snmp_flood.victim_counter)   delete snmp_flood.victim_counter;
 
   if(stats)                       delete stats;
   if(stats_shadow)                delete stats_shadow;
@@ -183,6 +185,14 @@ void Host::updateDNSAlertsCounter(time_t when, bool dns_sent) {
 
 /* *************************************** */
 
+void Host::updateSNMPAlertsCounter(time_t when, bool snmp_sent) {
+  AlertCounter *counter = snmp_sent ? snmp_flood.attacker_counter : snmp_flood.victim_counter;
+
+  counter->inc(when, this);
+}
+
+/* *************************************** */
+
 void Host::updateSynAckAlertsCounter(time_t when, bool synack_sent) {
   if(synack_sent)
     syn_scan.synack_sent_last_min++;
@@ -272,6 +282,8 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   icmp_flood.victim_counter   = new (std::nothrow) AlertCounter();
   dns_flood.attacker_counter  = new (std::nothrow) AlertCounter();
   dns_flood.victim_counter    = new (std::nothrow) AlertCounter();
+  snmp_flood.attacker_counter  = new (std::nothrow) AlertCounter();
+  snmp_flood.victim_counter    = new (std::nothrow) AlertCounter();
   syn_scan.syn_sent_last_min  = syn_scan.synack_recvd_last_min = 0;
   syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min  = 0;
   fin_scan.fin_sent_last_min  = fin_scan.finack_recvd_last_min = 0;

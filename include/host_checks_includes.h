@@ -53,6 +53,7 @@
 
 #ifdef NTOPNG_PRO
 #include "host_checks/DNSFlood.h"
+#include "host_checks/SNMPFlood.h"
 #include "host_checks/ScoreAnomaly.h"
 #include "host_checks/FlowAnomaly.h"
 #include "host_checks/HostMACReassociation.h"

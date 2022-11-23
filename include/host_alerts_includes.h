@@ -39,6 +39,7 @@
 #include "host_alerts/ScoreThresholdAlert.h"
 #include "host_alerts/ICMPFloodAlert.h"
 #include "host_alerts/DNSFloodAlert.h"
+#include "host_alerts/SNMPFloodAlert.h"
 #include "host_alerts/PktThresholdAlert.h"
 
 #include "host_alerts/FlowAnomalyAlert.h"

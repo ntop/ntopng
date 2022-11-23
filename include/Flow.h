@@ -463,6 +463,7 @@ class Flow : public GenericHashEntry {
   inline void  setServerName(char *v)  { if(host_server_name) free(host_server_name);  host_server_name = v; }
   void updateICMPFlood(const struct bpf_timeval *when, bool src2dst_direction);
   void updateDNSFlood(const struct bpf_timeval *when, bool src2dst_direction);
+  void updateSNMPFlood(const struct bpf_timeval *when, bool src2dst_direction);
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
   void updateTcpWindow(u_int16_t window, bool src2dst_direction);

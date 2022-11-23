@@ -2013,6 +2013,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       }
 
       break;
+    case NDPI_PROTOCOL_SNMP:
+    #ifdef NTOPNG_PRO
+      flow->updateSNMPFlood(when, src2dst_direction);
+    #endif
+    break;
 
     case NDPI_PROTOCOL_IEC60870:
       if((trusted_payload_len > 0) && payload) {

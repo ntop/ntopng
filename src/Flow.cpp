@@ -4159,6 +4159,13 @@ void Flow::updateDNSFlood(const struct bpf_timeval *when, bool src2dst_direction
 
 /* *************************************** */
 
+void Flow::updateSNMPFlood(const struct bpf_timeval *when, bool src2dst_direction) {
+  if(cli_host) cli_host->updateSNMPAlertsCounter(when->tv_sec, src2dst_direction);
+  if(srv_host) srv_host->updateSNMPAlertsCounter(when->tv_sec, !src2dst_direction);
+}
+
+/* *************************************** */
+
 void Flow::updateTcpFlags(const struct bpf_timeval *when,
 			  u_int8_t flags, bool src2dst_direction) {
   NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;

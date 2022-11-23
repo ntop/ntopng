@@ -76,6 +76,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   struct {
     AlertCounter *attacker_counter, *victim_counter;
   } dns_flood;
+  struct {
+    AlertCounter *attacker_counter, *victim_counter;
+  } snmp_flood;
 
   struct {
     u_int32_t syn_sent_last_min, synack_recvd_last_min; /* (attacker) */
@@ -404,6 +407,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void updateFinAlertsCounter(time_t when, bool fin_sent);
   void updateICMPAlertsCounter(time_t when, bool icmp_sent);
   void updateDNSAlertsCounter(time_t when, bool dns_sent);
+  void updateSNMPAlertsCounter(time_t when, bool snmp_sent);
   void updateSynAckAlertsCounter(time_t when, bool synack_sent);
   void updateFinAckAlertsCounter(time_t when, bool finack_sent);
   inline void updateRoundTripTime(u_int32_t rtt_msecs) {
@@ -417,6 +421,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int16_t dns_flood_victim_hits()   const { return dns_flood.victim_counter ? dns_flood.victim_counter->hits() : 0;     };
   inline u_int16_t dns_flood_attacker_hits() const { return dns_flood.attacker_counter ? dns_flood.attacker_counter->hits() : 0; };
   inline void reset_dns_flood_hits() { if(dns_flood.victim_counter) dns_flood.victim_counter->reset_hits(); if(dns_flood.attacker_counter) dns_flood.attacker_counter->reset_hits(); };
+
+  inline u_int16_t snmp_flood_victim_hits()   const { return snmp_flood.victim_counter ? snmp_flood.victim_counter->hits() : 0;     };
+  inline u_int16_t snmp_flood_attacker_hits() const { return snmp_flood.attacker_counter ? snmp_flood.attacker_counter->hits() : 0; };
+  inline void reset_snmp_flood_hits() { if(snmp_flood.victim_counter) snmp_flood.victim_counter->reset_hits(); if(snmp_flood.attacker_counter) snmp_flood.attacker_counter->reset_hits(); };
 
   inline u_int16_t syn_flood_victim_hits()   const { return syn_flood.victim_counter ? syn_flood.victim_counter->hits() : 0;     };
   inline u_int16_t syn_flood_attacker_hits() const { return syn_flood.attacker_counter ? syn_flood.attacker_counter->hits() : 0; };
