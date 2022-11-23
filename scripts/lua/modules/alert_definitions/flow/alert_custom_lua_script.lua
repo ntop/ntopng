@@ -34,5 +34,16 @@ end
 
 -- #######################################################
 
+-- @brief Format an alert into a human-readable string
+-- @param ifid The integer interface id of the generated alert
+-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
+-- @param alert_type_params Table `alert_type_params` as built in the `:init` method
+-- @return A human-readable string
+function alert_custom_lua_script.format(ifid, alert, alert_type_params)
+   return i18n("flow_details.custom_lua_script", { message = alert_type_params["alert.message"], value = alert_type_params["alert.value"] } )
+end
+
+-- #######################################################
+
 return alert_custom_lua_script
 

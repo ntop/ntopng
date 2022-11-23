@@ -28,8 +28,9 @@ ndpi_serializer* CustomFlowLuaScriptAlert::getAlertJSON(ndpi_serializer* seriali
     return NULL;
 
   if(msg.size() > 0)
-    ndpi_serialize_string_string(serializer, "message", msg.c_str());
-  
+    ndpi_serialize_string_string(serializer, "alert.message", msg.c_str());
+
+  ndpi_serialize_string_uint32(serializer, "alert.value", value);
+
   return serializer;
 }
-

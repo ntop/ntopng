@@ -2443,6 +2443,7 @@ local lang = {
     ["connection_failed_descr"] = "Host [ %{cli} ] is trying to talk with Host [ %{srv} ] but got no answer",
     ["container_id"] = "Container ID",
     ["could_not_add_host_to_category"] = "Could not add host \"%{host}\" to \"%{category}\".",
+    ["custom_lua_script"] = "%{message} [Value: %{value}].",
     ["dangerous_flows"] = "Dangerous Flows",
     ["data_exfiltration"] = "Data Exfiltration",
     ["desirable_label"] = "Desirable",
