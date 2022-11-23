@@ -717,11 +717,11 @@
 #define CONST_FIELD_VALUE_MAP_CACHE_KEY                NTOPNG_CACHE_PREFIX".ifid_%d.field_value_map.pen_%u.field_%u"
 #ifdef NTOPNG_PRO
 #define MAX_NUM_CUSTOM_APPS  128
-#define CONST_RUNTIME_PREFS_DAILY_REPORTS            NTOPNG_PREFS_PREFIX".daily_reports"    /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_DAILY_REPORTS		NTOPNG_PREFS_PREFIX".daily_reports"    /* 0 / 1 */
 #endif
-#define CONST_RUNTIME_PREFS_HOSTMASK  NTOPNG_PREFS_PREFIX".host_mask"
-#define CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID      NTOPNG_PREFS_PREFIX".auto_assigned_pool_id"
-
+#define CONST_RUNTIME_PREFS_HOSTMASK			NTOPNG_PREFS_PREFIX".host_mask"
+#define CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID	NTOPNG_PREFS_PREFIX".auto_assigned_pool_id"
+#define CONST_ALERT_EXCLUSIONS_KEY			NTOPNG_PREFS_PREFIX".alert_exclusions" /* Keep in sync with hosts_control.lua */
 
 #define CONST_MAX_ALERT_MSG_QUEUE_LEN 8192
 #define CONST_MAX_ES_MSG_QUEUE_LEN    8192
