@@ -281,6 +281,7 @@ Flow::Flow(NetworkInterface *_iface,
   }
 
   iface->execFlowBeginChecks(this);
+  memset(&customFlowAlert, 0, sizeof(customFlowAlert));
 }
 
 /* *************************************** */
@@ -419,6 +420,8 @@ Flow::~Flow() {
   if(json_protocol_info) free(json_protocol_info);
   if(external_alert.json) json_object_put(external_alert.json);
   if(external_alert.source) free(external_alert.source);
+
+  if(customFlowAlert.msg) free(customFlowAlert.msg);
 }
 
 /* *************************************** */
@@ -6708,4 +6711,14 @@ void Flow::setJSONRiskInfo(char *r) {
 
 char* Flow::getJSONRiskInfo() {
   return(riskInfo);
+}
+
+/* *************************************** */
+
+void Flow::triggerCustomFlowAlert(u_int32_t value, char *msg) {
+  customFlowAlert.alertTriggered = true, customFlowAlert.threshold_value = value;
+  
+  if(customFlowAlert.msg) { free(customFlowAlert.msg); customFlowAlert.msg = NULL; }
+
+  if(msg) customFlowAlert.msg = strdup(msg);
 }

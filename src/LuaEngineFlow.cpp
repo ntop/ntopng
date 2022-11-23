@@ -21,6 +21,10 @@
 
 #include "ntop_includes.h"
 
+/*
+  This file implements the flow.**** class
+*/
+
 /* ****************************************** */
 
 static int ntop_flow_get_bytes(lua_State* vm) {
@@ -29,6 +33,34 @@ static int ntop_flow_get_bytes(lua_State* vm) {
 
   if(f)
     lua_pushinteger(vm, f->get_bytes());
+  else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_cli2srv_bytes(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  if(f)
+    lua_pushinteger(vm, f->get_bytes_cli2srv());
+  else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_srv2cli_bytes(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  if(f)
+    lua_pushinteger(vm, f->get_bytes_srv2cli());
   else
     lua_pushnil(vm);
   
@@ -123,6 +155,56 @@ static int ntop_flow_get_vlan_id(lua_State* vm) {
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
+/* **************************************************************** */
+
+static int ntop_flow_get_l7_master_proto(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  if(f) 
+    lua_pushinteger(vm, f->get_detected_protocol().master_protocol);
+  else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_flow_get_l7_proto(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  if(f) 
+    lua_pushinteger(vm, f->get_detected_protocol().app_protocol);
+  else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_trigger_flow_alert(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  if(f) {
+    u_int32_t value;
+    char *msg;
+     
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+    value = (u_int32_t) lua_tointeger(vm, 1);
+    
+    if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+    msg = (char*)lua_tostring(vm, 2);
+
+    f->triggerCustomFlowAlert(value, msg);
+  } else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
 
 /* **************************************************************** */
 
@@ -133,9 +215,17 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "srv_port",         ntop_flow_get_server_port      },
   { "protocol",         ntop_flow_get_protocol         },
   { "vlan_id",          ntop_flow_get_vlan_id          },
+
+  { "cli2srv_bytes",    ntop_flow_get_cli2srv_bytes    },
+  { "srv2cli_bytes",    ntop_flow_get_srv2cli_bytes    },
   { "bytes",            ntop_flow_get_bytes            },
+
+  { "l7_master_proto",  ntop_flow_get_l7_master_proto  },
+  { "l7_proto",         ntop_flow_get_l7_proto         },
+
+  { "triggerAlert",     ntop_trigger_flow_alert        },
   
-  { NULL,                  NULL }
+  { NULL,               NULL                           }
 };
 
 luaL_Reg *ntop_flow_reg = _ntop_flow_reg;

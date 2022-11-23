@@ -31,13 +31,13 @@ CustomFlowLuaScript::CustomFlowLuaScript() : FlowCheck(ntopng_edition_community,
 						       true /* has_protocol_detected */,
 						       false /* has_periodic_update */,
 						       false /* has_flow_end */) {
-  /* Nothng to do */;
+  /* Nothing to do */;
 }
 
 /* ***************************************************** */
 
 LuaEngine* CustomFlowLuaScript::initVM() {
-  const char *script_path = "scripts/callbacks/custom_flow_lua_script.lua";
+  const char *script_path = "scripts/callbacks/checks/flows/custom_flow_lua_script.lua";
   char where[256];
   struct stat s;
 
@@ -83,22 +83,20 @@ void CustomFlowLuaScript::protocolDetected(Flow *f) {
   }
   
   if(lua != NULL) {
-    bool triggered = false;
-
     if(false) {
       char buf[128];
 
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Lua script on %s", f->print(buf, sizeof(buf)));
     }
+
     lua->setFlow(f);
     lua->run_loaded_script(); /* Run script */
     
-  
-    if(triggered) {
+    if(f->isCustomFlowAlertTriggered()) {
       FlowAlertType alert_type = CustomFlowLuaScriptAlert::getClassType();
       u_int8_t c_score, s_score;
       risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
-    
+
       computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
 
       f->triggerAlertAsync(alert_type, c_score, s_score);
@@ -111,7 +109,8 @@ void CustomFlowLuaScript::protocolDetected(Flow *f) {
 FlowAlert *CustomFlowLuaScript::buildAlert(Flow *f) {
   CustomFlowLuaScriptAlert *alert = new CustomFlowLuaScriptAlert(this, f);
 
-  /* TODO */
+  alert->setAlertMessage(f->getCustomFlowAlertMessage());
+  alert->setAlertValue(f->getCustomFlowAlertValue());
   
   return alert;
 }

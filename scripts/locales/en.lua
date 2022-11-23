@@ -857,6 +857,7 @@ local lang = {
     ["add_filter"] = "Add Filter",
     ["alert"] = "Alert",
     ["alert_counts"] = "Counts",
+    ["alert_custom_lua_script"] = "Custom Script",
     ["alert_duration"] = "Duration",
     ["alert_ids_ips_jail_add"] = "Jailed Host Added",
     ["alert_ids_ips_jail_remove"] = "Jailed Host Removed",
@@ -3181,7 +3182,7 @@ local lang = {
     ["ndpi_unsafe_protocol"] = "Unsafe Protocol",
     ["ndpi_url_possible_rce_injection"] = "Possible Remote Code Execution (RCE)",
     ["ndpi_url_possible_sql_injection"] = "Possible SQL Injection",
-    ["ndpi_url_possible_xss"] = "Possible XSS",
+    ["ndpi_url_possible_xss"] = "Possible XSS",    
   },
   ["flows_page"] = {
     ["active_flows"] = "%{filter} Live Flows",

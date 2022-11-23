@@ -102,6 +102,12 @@ class Flow : public GenericHashEntry {
   char *ndpiAddressFamilyProtocol; 
   ndpi_protocol ndpiDetectedProtocol;
   custom_app_t custom_app;
+
+  struct {
+    bool alertTriggered;
+    u_int32_t threshold_value;
+    char *msg;
+  } customFlowAlert;
   json_object *json_info;
   ndpi_serializer *tlv_info;
   ndpi_confidence_t confidence;
@@ -487,12 +493,8 @@ class Flow : public GenericHashEntry {
 			     struct timeval *packet_time);
   
   void endProtocolDissection();
-  inline void setCustomApp(custom_app_t ca) {
-    memcpy(&custom_app, &ca, sizeof(custom_app));
-  };
-  inline custom_app_t getCustomApp() const {
-    return custom_app;
-  };
+  inline void setCustomApp(custom_app_t ca) {  memcpy(&custom_app, &ca, sizeof(custom_app)); };
+  inline custom_app_t getCustomApp() const  {  return custom_app;                            };
   u_int16_t getStatsProtocol() const;
   void setJSONInfo(json_object *json);
   void setTLVInfo(ndpi_serializer *tlv);
@@ -933,6 +935,12 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getFlowSerial() { return(flow_serial); }
 
   inline u_int32_t getPrivateFlowId() const { return(privateFlowId); }
+
+  inline bool isCustomFlowAlertTriggered()       { return(customFlowAlert.alertTriggered);   }
+  inline u_int32_t getCustomFlowAlertValue()     { return(customFlowAlert.threshold_value); }
+  inline char*     getCustomFlowAlertMessage()   { return(customFlowAlert.msg); }
+  void triggerCustomFlowAlert(u_int32_t value, char *msg);
+  
 };
 
 #endif /* _FLOW_H_ */
