@@ -126,61 +126,7 @@ if (page == "overview") then
 
 elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) then
    local host_value = host.host .. ",metric:" .. host.measurement
-   -- graph_utils.drawNewGraphs({ifid = -1, host = host_value})
-    local suffix = "_" .. host.granularity
-    local schema = _GET["ts_schema"] or ("am_host:val" .. suffix)
-    local selected_epoch = _GET["epoch"] or ""
-    local tags = {
-        ifid = getSystemInterfaceId(),
-        host = host.host,
-        metric = host.measurement --[[ note: measurement is a reserved InfluxDB keyword ]]
-    }
-    local am_ts_label
-    local am_metric_label
-    local notes = {{content = i18n("graphs.red_line_unreachable")}}
-
-    if measurement_info.i18n_am_ts_label then
-        am_ts_label = i18n(measurement_info.i18n_am_ts_label) or
-                          measurement_info.i18n_am_ts_label
-    else
-        -- Fallback
-        am_ts_label = i18n("graphs.num_ms_rtt")
-    end
-
-    if measurement_info.i18n_am_ts_metric then
-        am_metric_label = i18n(measurement_info.i18n_am_ts_metric) or
-                              measurement_info.i18n_am_ts_metric
-    else
-        am_metric_label = i18n("flow_details.round_trip_time")
-    end
-
-    url = url .. "&page=historical"
-
-    local timeseries = {
-        {
-            schema = "am_host:val" .. suffix,
-            label = am_ts_label,
-            value_formatter = measurement_info.value_js_formatter or
-                "NtopUtils.fmillis",
-            metrics_labels = {am_metric_label},
-            show_unreachable = true -- Show the unreachable host status as a red line
-        }
-    }
-
-    for _, note in ipairs(measurement_info.i18n_chart_notes or {}) do
-        notes[#notes + 1] = {content = i18n(note) or note}
-    end
-
-    for _, ts_info in ipairs(measurement_info.additional_timeseries or {}) do
-        -- Add the per-granularity suffix (e.g. _min)
-        ts_info.schema = ts_info.schema .. suffix
-
-        timeseries[#timeseries + 1] = ts_info
-    end
-
-    graph_utils.drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"],
-                           url, selected_epoch,
-                           {timeseries = timeseries, notes = notes})
+   graph_utils.drawNewGraphs({ifid = -1, host = host_value})
 end
 
 -- #######################################################

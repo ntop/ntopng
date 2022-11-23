@@ -225,10 +225,6 @@ local community_timeseries = {
   { schema = "influxdb:rtt",                  id = timeseries_id.influxdb, label = i18n("graphs.num_ms_rtt"),                     priority = 0, measure_unit = "ms",    scale = 0, timeseries = { millis_rtt       = { label = i18n('graphs.num_ms_rtt'),     color = timeseries_info.get_timeseries_color('default') } } },
 
   -- active_monitoring.lua (Active Monitoring): --
-  { schema = "am_host:val_min",               id = timeseries_id.active_monitoring, label = i18n("graphs.num_ms_rtt"),                     priority = 0, measure_unit = "ms",    scale = 0, timeseries = { value            = { label = i18n('graphs.num_ms_rtt'),     color = timeseries_info.get_timeseries_color('default') } } },
-  { schema = "am_host:cicmp_stats_min",       id = timeseries_id.active_monitoring, label = i18n("flow_details.round_trip_time"),          priority = 0, measure_unit = "ms",    scale = 0, timeseries = { min_rtt          = { label = i18n('graphs.min_rtt'),        color = timeseries_info.get_timeseries_color('default') }, max_rtt = { label = i18n('graphs.max_rtt'),        color = timeseries_info.get_timeseries_color('default') } } },
-  { schema = "am_host:jitter_stats_min",      id = timeseries_id.active_monitoring, label = i18n("active_monitoring_stats.rtt_vs_jitter"), priority = 0, measure_unit = "ms",    scale = 0, timeseries = { latency          = { label = i18n('flow_details.mean_rtt'), color = timeseries_info.get_timeseries_color('default') }, jitter = { label = i18n('flow_details.rtt_jitter'),        color = timeseries_info.get_timeseries_color('default') } } },
-  { schema = "am_host:http_stats_min",        id = timeseries_id.active_monitoring, label = i18n("graphs.http_stats"),                     priority = 0, measure_unit = "ms",    scale = 0, timeseries = { lookup_ms        = { label = i18n('graphs.name_lookup'),    color = timeseries_info.get_timeseries_color('default') }, other_ms = { label = i18n('other'),        color = timeseries_info.get_timeseries_color('default') } } },
 
   -- active_monitoring.lua (Active Monitoring): --
   { schema = "top:snmp_if:traffic",           id = timeseries_id.snmp, group = i18n("snmp.top"),                         priority = 2, measure_unit = "bps", scale = 0,    timeseries = { bytes_sent  = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') } } },
@@ -237,6 +233,58 @@ local community_timeseries = {
   { schema = "snmp_dev:swap_memory",          id = timeseries_id.snmp, label =i18n("snmp.memTotalReal"),                 priority = 0, measure_unit = "number", scale = 0, timeseries = { swap_bytes  = { label = i18n("snmp.memTotalReal"),    color = timeseries_info.get_timeseries_color('default') } } },
   { schema = "snmp_dev:total_memory",         id = timeseries_id.snmp, label =i18n("snmp.memTotalSwap"),                 priority = 0, measure_unit = "number", scale = 0, timeseries = { total_bytes = { label = i18n("snmp.memTotalSwap"),    color = timeseries_info.get_timeseries_color('default') } } },
 }
+
+-- #################################
+
+local function add_active_monitoring_timeseries(tags, timeseries)
+  local am_utils = require "am_utils"
+  
+  -- google.com,metric:cicmp
+  local data = split(tags.host, ',')
+  local metric = split(data[2], ':')[2]
+
+  local host = am_utils.getHost(data[1], metric)
+  local measurement_info = {}
+
+  local label = i18n("graphs.num_ms_rtt")
+  local measure_label = i18n("flow_details.round_trip_time")
+  local measure_unit = 'ms'
+
+  if host then
+    measurement_info = am_utils.getMeasurementInfo(host.measurement) or {}
+  end
+
+  if measurement_info then
+    tprint(measurement_info.i18n_unit)
+    label = i18n(measurement_info.i18n_am_ts_label) or measurement_info.i18n_am_ts_label
+    measure_label = i18n(measurement_info.i18n_am_ts_metric) or measurement_info.i18n_am_ts_metric
+    if (measurement_info.i18n_unit) and (measurement_info.i18n_unit == 'field_units.mbits') then
+      measure_unit = 'bps'
+    elseif (measurement_info.i18n_unit) and (measurement_info.i18n_unit == 'field_units.percentage') then
+      measure_unit = 'percentage'
+    end 
+  end
+  
+  timeseries[#timeseries + 1] = { schema = "am_host:val_min", id = timeseries_id.active_monitoring, label = label, priority = 0, measure_unit = measure_unit, scale = 0, timeseries = { value = { label = measure_label, color = timeseries_info.get_timeseries_color('default') } } }
+      
+  if (measurement_info) and (table.len(measurement_info.additional_timeseries) > 0) then
+    for _, ts_information in ipairs(measurement_info.additional_timeseries) do
+      timeseries[#timeseries + 1] = { schema = ts_information.schema .. "_min", id = timeseries_id.active_monitoring, label = ts_information.label, priority = 0, measure_unit = "ms", scale = 0 }
+      local am_schema_info = {}
+
+      if ts_information.schema == 'am_host:jitter_stats' then
+        am_schema_info = { latency = { label = i18n('flow_details.mean_rtt'), color = timeseries_info.get_timeseries_color('default') }, jitter = { label = i18n('flow_details.rtt_jitter'), color = timeseries_info.get_timeseries_color('default') } } 
+      elseif ts_information.schema == 'am_host:cicmp_stats' then
+        am_schema_info = { min_rtt = { label = i18n('graphs.min_rtt'), color = timeseries_info.get_timeseries_color('default') }, max_rtt = { label = i18n('graphs.max_rtt'), color = timeseries_info.get_timeseries_color('default') } }
+      elseif ts_information.schema == 'am_host:http_stats' then
+        am_schema_info = { lookup_ms = { label = i18n('graphs.name_lookup'), color = timeseries_info.get_timeseries_color('default') }, other_ms = { label = i18n('other'), color = timeseries_info.get_timeseries_color('default') } }
+      end
+      timeseries[#timeseries]['timeseries'] = am_schema_info
+    end
+  end
+
+  return timeseries
+end
 
 -- #################################
 
@@ -445,8 +493,11 @@ local function add_top_timeseries(tags, prefix, timeseries)
     -- Add the top vlan timeseries
     timeseries = add_top_vlan_timeseries(tags, timeseries)
   elseif prefix == 'mac' then
-    -- Add the top vlan timeseries
+    -- Add the top mac timeseries
     timeseries = add_top_mac_timeseries(tags, timeseries)
+  elseif prefix == 'am' then
+    -- Add the active monitoring timeseries
+    timeseries = add_active_monitoring_timeseries(tags, timeseries)
   end
 
   return timeseries

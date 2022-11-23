@@ -58,6 +58,14 @@ const types = {
 	decimal: 2,
 	scale_values: null,	
     },
+    percentage: {
+	id: "percentage",
+	um: ["%"],
+	step: 101,
+	decimal: 0,
+	scale_values: null,	
+  max_value: 100,
+    },
 };
 
 function getUnitMeasureLen(type) {
@@ -95,10 +103,15 @@ function getFormatter(type, absoluteValue) {
 	let decimal = typeOptions.decimal;
 	let measures = typeOptions.um;
 	let i = 0;
+  if (typeOptions.max_value != null && value > typeOptions.max_value) {
+    value = typeOptions.max_value
+  }
+
 	while (value >= step && i < measures.length) {
-	    value = value / step;
-	    i += 1;
+    value = value / step;
+    i += 1;
 	}
+
 	if (decimal != null && decimal > 0) {	    
 	    value = value * Math.pow(10, decimal);
 	    value = Math.round(value);
