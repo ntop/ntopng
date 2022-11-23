@@ -550,6 +550,7 @@ typedef enum {
   host_alert_fin_scan                    = 21,
   host_alert_dns_flood                   = 22,
   host_alert_snmp_flood                  = 23,
+  host_alert_custom_lua_script           = 24,
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */
   MAX_HOST_ALERT_TYPE = 32 /* Constrained by HostAlertBitmap */
@@ -590,8 +591,13 @@ typedef enum {
   host_check_mac_reassociation,
   host_check_fin_scan,
   host_check_dns_flood,
+<<<<<<< HEAD
   host_check_snmp_flood,
 
+=======
+  host_check_custom_lua_script,
+  
+>>>>>>> f2c6fc622 (Initial implementation of custom Host script)
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */
 } HostCheckID;
 

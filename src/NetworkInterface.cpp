@@ -364,7 +364,7 @@ void NetworkInterface::init(const char *interface_name) {
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
   kafka = NULL;
 #endif
-  customFlowLuaScript = NULL;
+  customFlowLuaScript = customHostLuaScript = NULL;
   INTERFACE_PROFILING_INIT();
 }
 
@@ -827,6 +827,7 @@ NetworkInterface::~NetworkInterface() {
   if(interfaceStats) delete interfaceStats;
 
   if(customFlowLuaScript) delete customFlowLuaScript;
+  if(customHostLuaScript) delete customHostLuaScript;
   
 #if defined(NTOPNG_PRO)
   if(pMap) delete pMap;

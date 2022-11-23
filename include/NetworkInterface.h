@@ -124,8 +124,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
   Condvar dump_condition; /* Condition variable used to wait when no flows have been enqueued for dump */
   
-  /* CustomFlowLuaScript VM */
-  LuaEngine *customFlowLuaScript;
+  /* CustomScript VMs */
+  LuaEngine *customFlowLuaScript, *customHostLuaScript;
   
   /* Queues for the execution of flow user scripts */
   SPSCQueue<FlowAlert *> *flowAlertsQueue;
@@ -1107,6 +1107,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   inline void setCustomFlowLuaScript(LuaEngine *vm)       { customFlowLuaScript = vm; }
   inline LuaEngine* getCustomFlowLuaScript()              { return(customFlowLuaScript); }
+  inline void setCustomHostLuaScript(LuaEngine *vm)       { customHostLuaScript = vm; }
+  inline LuaEngine* getCustomHostLuaScript()              { return(customHostLuaScript); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
