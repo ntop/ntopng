@@ -162,6 +162,14 @@ local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add
         else
           exclusions[subject_key].host_alerts = r
         end
+
+        -- Delete empty subjects
+        if (          exclusions[subject_key].flow_alerts == nil or
+            table.len(exclusions[subject_key].flow_alerts) == 0) and
+           (          exclusions[subject_key].host_alerts == nil or
+            table.len(exclusions[subject_key].host_alerts) == 0) then
+          exclusions[subject_key] = nil
+        end
       end
     end
       
