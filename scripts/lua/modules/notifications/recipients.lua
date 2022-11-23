@@ -760,7 +760,7 @@ function recipients.dispatch_notification(notification, current_script)
 
       -- If an exception occurred, print the notification and exit
       if not status then
-         tprint({notification, json_notification})
+         --tprint({notification, json_notification})
          return
       end
 
