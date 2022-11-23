@@ -2609,7 +2609,7 @@ local lang = {
     ["half_duplex"] = "Half-Duplex",
     ["in_errors"] = "In Errors",
     ["note_condition_1"] = "Device %{device} supports SNMP and it has been configured in the <a href=\"%{url}\">SNMP</a> devices page",
-    ["note_condition_2"] = "SNMP and flow probes timeseries are enabled under <A HREF=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</A>",
+    ["note_condition_2"] = "Charts are shown by enabling SNMP and Flow Probes timeseries under <A HREF=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</A>",
     ["note_observation_points_fields1"] = "Observation Points timeseries can be enabled from the <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</a>. Few minutes are necessary to see the first data points",
     ["note_observation_points_fields2"] = "To check the way to configure a new observation point check <a class='ntopng-external-link' href=\"%{url}\"><i class=\"fas fa-external-link-alt\"></i> Here</a>. Restart is needed.",
     ["note_observation_points_fields3"] = "Throughput is updated with recently active traffic over the last minute.",
