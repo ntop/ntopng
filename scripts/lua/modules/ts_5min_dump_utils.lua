@@ -37,11 +37,11 @@ function ts_dump.l2_device_update_categories_rrds(when, devicename, device, ifst
    -- nDPI Protocol CATEGORIES
    if not ifstats.isViewed and not ifstats.isView then
       for k, cat in pairs(device["ndpi_categories"] or {}) do
-	 ts_utils.append("mac:ndpi_categories",
-			 {
-			    ifid=ifstats.id, mac=devicename, category=k,
-			    bytes=cat["bytes"]
-			 }, when)
+     ts_utils.append("mac:ndpi_categories",
+             {
+                ifid=ifstats.id, mac=devicename, category=k,
+                bytes=cat["bytes"]
+             }, when)
       end
    end
 end
@@ -49,17 +49,17 @@ end
 function ts_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, verbose)
    if not ifstats.isViewed and not ifstats.isView then
       ts_utils.append("mac:traffic",
-		      {
-			 ifid=ifstats.id, mac=devicename,
-			 bytes_sent=device["bytes.sent"], bytes_rcvd=device["bytes.rcvd"]
-		      }, when, verbose)
+              {
+             ifid=ifstats.id, mac=devicename,
+             bytes_sent=device["bytes.sent"], bytes_rcvd=device["bytes.rcvd"]
+              }, when, verbose)
       
       ts_utils.append("mac:arp_rqst_sent_rcvd_rpls",
-		      {
-			 ifid=ifstats.id, mac=devicename,
-			 request_pkts_sent = device["arp_requests.sent"],
-			 reply_pkts_rcvd = device["arp_replies.rcvd"]
-		      }, when)
+              {
+             ifid=ifstats.id, mac=devicename,
+             request_pkts_sent = device["arp_requests.sent"],
+             reply_pkts_rcvd = device["arp_replies.rcvd"]
+              }, when)
    end
 end
 
@@ -337,8 +337,8 @@ function ts_dump.country_update_rrds(when, ifstats, verbose)
                 bytes_inner=country_stats["inner"]}, when)
    
     ts_utils.append("country:score",
-		     {ifid=ifstats.id, country=country,
-		      score=country_stats["score"], scoreAsClient=country_stats["score.as_client"], scoreAsServer=country_stats["score.as_server"]}, when)
+             {ifid=ifstats.id, country=country,
+              score=country_stats["score"], scoreAsClient=country_stats["score.as_client"], scoreAsServer=country_stats["score.as_server"]}, when)
   end
 end
 
@@ -365,11 +365,11 @@ function ts_dump.vlan_update_rrds(when, ifstats, verbose)
       local vlan_id = vlan_stats["vlan_id"]
 
       ts_utils.append("vlan:traffic", {ifid=ifstats.id, vlan=vlan_id,
-				       bytes_sent=vlan_stats["bytes.sent"], bytes_rcvd=vlan_stats["bytes.rcvd"]}, when)
+                       bytes_sent=vlan_stats["bytes.sent"], bytes_rcvd=vlan_stats["bytes.rcvd"]}, when)
 
     ts_utils.append("vlan:score",
-		     {ifid=ifstats.id, vlan=vlan_id,
-		      score=vlan_stats["score"], scoreAsClient=vlan_stats["score.as_client"], scoreAsServer=vlan_stats["score.as_server"]}, when)
+             {ifid=ifstats.id, vlan=vlan_id,
+              score=vlan_stats["score"], scoreAsClient=vlan_stats["score.as_client"], scoreAsServer=vlan_stats["score.as_server"]}, when)
 
       -- Save VLAN ndpi stats
       if vlan_stats["ndpi"] ~= nil then
@@ -398,12 +398,25 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
       if ifstats.has_seen_ebpf_events then
         -- This is actualy an event exporter
         local dev_ifname = format_utils.formatExporterInterface(port_idx, port_value)
-
-        ts_utils.append("evexporter_iface:traffic", {ifid=ifstats.id, exporter=flow_device_ip, ifname=dev_ifname,
-                bytes_sent=port_value.ifOutOctets, bytes_rcvd=port_value.ifInOctets}, when)
+        ts_utils.append("evexporter_iface:traffic", 
+          {
+            ifid = ifstats.id,
+            exporter = flow_device_ip,
+            ifname = dev_ifname,
+            bytes_sent = port_value.ifOutOctets,
+            bytes_rcvd = port_value.ifInOctets
+          },
+          when)
       else
-        ts_utils.append("sflowdev_port:traffic", {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
-                bytes_sent=port_value.ifOutOctets, bytes_rcvd=port_value.ifInOctets}, when)
+        ts_utils.append("sflowdev_port:traffic", 
+          {
+            ifid = ifstats.id,
+            device = flow_device_ip,
+            port = port_idx,
+            bytes_sent = port_value.ifOutOctets,
+            bytes_rcvd = port_value.ifInOctets
+          }, 
+          when)
       end
     end
   end
@@ -414,29 +427,29 @@ end
 function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
  local flowdevs = interface.getFlowDevices() -- Flow, not sFlow here
 
-  for flow_device_ip,_ in pairs(flowdevs) do
+  for flow_device_ip, _ in pairs(flowdevs) do
     local ports = interface.getFlowDeviceInfo(flow_device_ip)
 
     if(verbose) then print ("["..__FILE__()..":"..__LINE__().."] Processing flow probe "..flow_device_ip.."\n") end
 
-    for port_idx,port_value in pairs(ports) do
-       -- Traffic
-       ts_utils.append("flowdev_port:traffic",
-		       {
-			  ifid = ifstats.id, device = flow_device_ip, port = port_idx,
-			  bytes_sent = port_value["bytes.out_bytes"], bytes_rcvd = port_value["bytes.in_bytes"]
-		       },
-		       when)
+    for port_idx, port_value in pairs(ports) do
+      -- Traffic
+      ts_utils.append("flowdev_port:traffic", 
+        {
+          ifid = ifstats.id, device = flow_device_ip, port = port_idx,
+          bytes_sent = port_value["bytes.out_bytes"], bytes_rcvd = port_value["bytes.in_bytes"]
+        },
+        when)
 
-       -- nDPI
-       for proto_name, proto_stats in pairs(port_value["ndpi"]) do
-          ts_utils.append("flowdev_port:ndpi",
-			  {
-			     ifid = ifstats.id, device = flow_device_ip, port = port_idx, protocol = proto_name,
-			     bytes_sent = proto_stats["bytes.sent"], bytes_rcvd = proto_stats["bytes.rcvd"]
-			  },
-			  when)
-        end
+      -- nDPI
+      for proto_name, proto_stats in pairs(port_value["ndpi"]) do
+        ts_utils.append("flowdev_port:ndpi",
+          {
+            ifid = ifstats.id, device = flow_device_ip, port = port_idx, protocol = proto_name,
+            bytes_sent = proto_stats["bytes.sent"], bytes_rcvd = proto_stats["bytes.rcvd"]
+          },
+          when)
+      end
     end
   end
 end
@@ -490,14 +503,14 @@ end
 function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   -- Number of alerted flows
   ts_utils.append("host:alerted_flows", {ifid = ifstats.id, host = hostname,
-					   flows_as_client = host["alerted_flows.as_client"],
-					   flows_as_server = host["alerted_flows.as_server"]},
-		  when)
+                       flows_as_client = host["alerted_flows.as_client"],
+                       flows_as_server = host["alerted_flows.as_server"]},
+          when)
 
   -- Number of unreachable flows
   ts_utils.append("host:unreachable_flows", {ifid = ifstats.id, host = hostname,
-					   flows_as_client = host["unreachable_flows.as_client"],
-					   flows_as_server = host["unreachable_flows.as_server"]},
+                       flows_as_client = host["unreachable_flows.as_client"],
+                       flows_as_server = host["unreachable_flows.as_server"]},
       when)
     
   -- Number of host unreachable flows
@@ -509,10 +522,10 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   -- Number of host TCP unidirectional flows  
   if(host.num_unidirectional_tcp_flows ~= nil) then
      ts_utils.append("host:host_tcp_unidirectional_flows",
-		     {ifid = ifstats.id, host = hostname,
-		      flows_as_server = host.num_unidirectional_tcp_flows.num_ingress,
-		      flows_as_client = host.num_unidirectional_tcp_flows.num_egress},
-		     when)
+             {ifid = ifstats.id, host = hostname,
+              flows_as_server = host.num_unidirectional_tcp_flows.num_ingress,
+              flows_as_client = host.num_unidirectional_tcp_flows.num_egress},
+             when)
   end
   
   -- Number of dns packets sent
@@ -580,11 +593,14 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   end
 
   if(host.num_blacklisted_flows ~= nil) then
-     -- Note: tot_as_* are never resetted, instead the other counters can be resetted
-     ts_utils.append("host:num_blacklisted_flows", {ifid=ifstats.id, host=hostname,
-						    flows_as_client = host.num_blacklisted_flows.tot_as_client,
-						    flows_as_server = host.num_blacklisted_flows.tot_as_server},
-		     when)
+    -- Note: tot_as_* are never resetted, instead the other counters can be resetted
+    ts_utils.append("host:num_blacklisted_flows",
+      {
+        ifid = ifstats.id, host = hostname,
+        flows_as_client = host.num_blacklisted_flows.tot_as_client,
+        flows_as_server = host.num_blacklisted_flows.tot_as_server
+      },
+      when)
   end
   
 
