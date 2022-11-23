@@ -255,7 +255,6 @@ local function add_active_monitoring_timeseries(tags, timeseries)
   end
 
   if measurement_info then
-    tprint(measurement_info.i18n_unit)
     label = i18n(measurement_info.i18n_am_ts_label) or measurement_info.i18n_am_ts_label
     measure_label = i18n(measurement_info.i18n_am_ts_metric) or measurement_info.i18n_am_ts_metric
     if (measurement_info.i18n_unit) and (measurement_info.i18n_unit == 'field_units.mbits') then
@@ -265,7 +264,12 @@ local function add_active_monitoring_timeseries(tags, timeseries)
     end 
   end
   
-  timeseries[#timeseries + 1] = { schema = "am_host:val_min", id = timeseries_id.active_monitoring, label = label, priority = 0, measure_unit = measure_unit, scale = 0, timeseries = { value = { label = measure_label, color = timeseries_info.get_timeseries_color('default') } } }
+  if measurement_info.force_host then
+    -- Special case of speedtest
+    timeseries[#timeseries + 1] = { schema = "am_host:val_hour", id = timeseries_id.active_monitoring, label = label, priority = 0, measure_unit = measure_unit, scale = 0, timeseries = { value = { label = measure_label, color = timeseries_info.get_timeseries_color('default') } } }
+  else
+    timeseries[#timeseries + 1] = { schema = "am_host:val_min", id = timeseries_id.active_monitoring, label = label, priority = 0, measure_unit = measure_unit, scale = 0, timeseries = { value = { label = measure_label, color = timeseries_info.get_timeseries_color('default') } } }
+  end
       
   if (measurement_info) and (table.len(measurement_info.additional_timeseries) > 0) then
     for _, ts_information in ipairs(measurement_info.additional_timeseries) do
@@ -278,7 +282,20 @@ local function add_active_monitoring_timeseries(tags, timeseries)
         am_schema_info = { min_rtt = { label = i18n('graphs.min_rtt'), color = timeseries_info.get_timeseries_color('default') }, max_rtt = { label = i18n('graphs.max_rtt'), color = timeseries_info.get_timeseries_color('default') } }
       elseif ts_information.schema == 'am_host:http_stats' then
         am_schema_info = { lookup_ms = { label = i18n('graphs.name_lookup'), color = timeseries_info.get_timeseries_color('default') }, other_ms = { label = i18n('other'), color = timeseries_info.get_timeseries_color('default') } }
+      elseif ts_information.schema == 'am_host:upload' then
+        -- Speedtest specialcase
+        am_schema_info = { speed = { label = i18n('active_monitoring_stats.upload_speed'), color = timeseries_info.get_timeseries_color('bytes') } }
+        timeseries[#timeseries]['measure_unit'] = 'bps'
+      elseif ts_information.schema == 'am_host:latency' then
+        -- Speedtest specialcase
+        am_schema_info = { latency = { label = ts_information.metrics_labels[1], color = timeseries_info.get_timeseries_color('number') } }
       end
+
+      if measurement_info.force_host then
+        -- Speedtest special case
+        timeseries[#timeseries]['schema'] = ts_information.schema .. "_hour"
+      end
+
       timeseries[#timeseries]['timeseries'] = am_schema_info
     end
   end
