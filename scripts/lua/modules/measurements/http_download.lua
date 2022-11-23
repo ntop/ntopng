@@ -20,9 +20,21 @@ local result = {}
 -- the hosts identifiers, whereas the table values contain host information
 -- see (am_utils.key2host for the details on such format).
 local function check(measurement, hosts, granularity)
+  package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+  local infrastructure_utils = require "infrastructure_utils"
   result[measurement] = {}
 
   for key, host in pairs(hosts) do
+    if host.is_infrastructure then
+      local infrastructure_instance = infrastructure_utils.get_instance_by_host(host.host)
+  
+      if infrastructure_instance then
+        local _, protocol = infrastructure_utils.getHostAndHTTPMeasurement(infrastructure_instance.url)
+        host.host = protocol .. '://' .. host.host
+        measurement = protocol
+      end
+    end
+    
     local domain_name = host.host
 
     if do_trace then
@@ -55,10 +67,14 @@ local function check(measurement, hosts, granularity)
 
       local bandwidth = (download_bit / total_time) / 1000000
 
+      if not result[measurement] then
+        result[measurement] = {}
+      end
+
       result[measurement][key] = {
-	    value = bandwidth,
+	      value = bandwidth,
         resolved_addr = rv.RESOLVED_IP,
-	 }
+	    }
     end
   end
 end

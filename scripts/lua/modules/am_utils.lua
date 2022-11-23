@@ -394,6 +394,7 @@ local function deserializeAmPrefs(host_key, val, config_only)
     local v = json.decode(val)
 
     if v then
+      rv.host_key = host_key
       rv.show_iface = false
       rv.ifname = v.ifname or ''
       rv.threshold = tonumber(v.threshold) or 500
@@ -425,7 +426,7 @@ end
 function am_utils.getHosts(config_only, granularity)
   local hosts = ntop.getHashAllCache(am_hosts_key) or {}
   local rv = {}
-
+  
   for host_key, val in pairs(hosts) do
     local host = deserializeAmPrefs(host_key, val, config_only)
 
