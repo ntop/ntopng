@@ -632,8 +632,9 @@ sorted_measurements.sort(function(a, b){
               sortable: false,
               render: function(data, type, row) {
                   if(type === 'display' || type === 'filter') {
-                      if (row.last_measure)
-                          return `${row.last_measure} ${row.unit}`
+                    if (row.last_measure) {
+                        return (parseFloat(row.last_measure) != NaN ? `${parseFloat(row.last_measure)} ${row.unit}` : `${row.last_measure}`)
+                      }
                       else
                           return "";
                   }

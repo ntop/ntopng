@@ -49,14 +49,16 @@ local function check(measurement, hosts, granularity)
     end
 
     if(rv and rv.HTTP_STATS and (rv.HTTP_STATS.TOTAL_TIME > 0)) then
-      local download_bit = rv.BYTES_DOWNLOAD * 8
+      local download_bytes = rv.BYTES_DOWNLOAD
       local total_time = rv.HTTP_STATS.TOTAL_TIME
-      local lookup_time = (rv.HTTP_STATS.NAMELOOKUP_TIME or 0)
 
-      local bandwidth = (download_bit / total_time) / 1000000
+      -- the total_time is in seconds, being Bps, bandwidth is bit / seconds,
+      -- however all the timeseries are saved as Bps
+      local bandwidth = download_bytes / total_time
 
-      result[measurement][key] = {
-	    value = bandwidth,
+      result[measurement][key] = {        
+        calculate_scaling = false,
+	      value = bandwidth,
         resolved_addr = rv.RESOLVED_IP,
 	 }
     end

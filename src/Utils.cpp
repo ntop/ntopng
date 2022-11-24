@@ -2128,7 +2128,6 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
     if(vm) lua_newtable(vm);
 
     if((curlcode = curl_easy_perform(curl)) == CURLE_OK) {
-      readCurlStats(curl, stats, vm);
 
       if(return_content && vm) {
 	lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
@@ -2150,6 +2149,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
     }
 
     if(vm) {
+      readCurlStats(curl, stats, vm);
       if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
 	lua_push_uint64_table_entry(vm, "RESPONSE_CODE", response_code);
 

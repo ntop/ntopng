@@ -9,6 +9,7 @@ require "lua_utils"
 local json = require("dkjson")
 local script_manager = require("script_manager")
 local am_utils = require "am_utils"
+local format_utils = require "format_utils"
 
 sendHTTPContentTypeHeader('application/json')
   
@@ -41,6 +42,10 @@ for key, am_host in pairs(am_hosts) do
     local last_update = am_utils.getLastAmUpdate(am_host.host, am_host.measurement)
     local alerted = 0
 
+    if (last_update) and (am_host.measurement == 'throughput') then
+      last_update.value = format_utils.bitsToSize(last_update.value * 8 --[[ Stored in bytes ]])
+    end
+
     if(last_update ~= nil) then
        column_last_update = last_update.when
        column_last_value = last_update.value
@@ -50,8 +55,6 @@ for key, am_host in pairs(am_hosts) do
     if am_host.measurement == 'icmp' or am_host.measurement == 'cicmp' then
       column_ifname = am_host.ifname or ""
     end
-
-    column_last_value = tonumber(column_last_value)
 
     if(column_last_value == nil) then
       chart = ""
