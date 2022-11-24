@@ -20,21 +20,9 @@ local result = {}
 -- the hosts identifiers, whereas the table values contain host information
 -- see (am_utils.key2host for the details on such format).
 local function check(measurement, hosts, granularity)
-  package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
-  local infrastructure_utils = require "infrastructure_utils"
   result[measurement] = {}
 
-  for key, host in pairs(hosts) do
-    if host.is_infrastructure then
-      local infrastructure_instance = infrastructure_utils.get_instance_by_host(host.host)
-  
-      if infrastructure_instance then
-        local _, protocol = infrastructure_utils.getHostAndHTTPMeasurement(infrastructure_instance.url)
-        host.host = protocol .. '://' .. host.host
-        measurement = protocol
-      end
-    end
-    
+  for key, host in pairs(hosts) do    
     local domain_name = host.host
 
     if do_trace then
@@ -61,17 +49,15 @@ local function check(measurement, hosts, granularity)
     end
 
     if(rv and rv.HTTP_STATS and (rv.HTTP_STATS.TOTAL_TIME > 0)) then
-      local download_bit = rv.BYTES_DOWNLOAD * 8
+      local download_bytes = rv.BYTES_DOWNLOAD
       local total_time = rv.HTTP_STATS.TOTAL_TIME
-      local lookup_time = (rv.HTTP_STATS.NAMELOOKUP_TIME or 0)
 
-      local bandwidth = (download_bit / total_time) / 1000000
-
-      if not result[measurement] then
-        result[measurement] = {}
-      end
+      -- the total_time is in seconds, being Bps, bandwidth is bit / seconds,
+      -- however all the timeseries are saved as Bps
+      local bandwidth = download_bytes / total_time
 
       result[measurement][key] = {
+        calculate_scaling = false,
 	      value = bandwidth,
         resolved_addr = rv.RESOLVED_IP,
 	    }

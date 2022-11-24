@@ -935,7 +935,11 @@ function am_utils.run_am_check(when, all_hosts, granularity)
     local operator = info.measurement.operator
     local jitter = tonumber(info.jitter)
     local mean = tonumber(info.mean)
+    local calculate_scaling = true
 
+    if info.calculate_scaling then
+      calculate_scaling = info.calculate_scaling
+    end
     if(do_trace) then
        print("[AM result] "..key.."\n")
        -- tprint(info)
@@ -947,7 +951,7 @@ function am_utils.run_am_check(when, all_hosts, granularity)
     if areSystemTimeseriesEnabled() then
        local value = host_value
 
-       if info.measurement.chart_scaling_value then
+       if (calculate_scaling) and (info.measurement.chart_scaling_value) and (info.measurement.chart_scaling_value == 1) then
          value = value * info.measurement.chart_scaling_value
        end
 

@@ -176,15 +176,15 @@ function format_utils.bitsToSizeMultiplier(bits, multiplier)
    local terabit = gigabit * multiplier;
 
    if((bits >= kilobit) and (bits < megabit)) then
-      return round(bits / kilobit, precision) .. ' kbit/s';
+      return round(bits / kilobit, precision) .. ' kbps';
    elseif((bits >= megabit) and (bits < gigabit)) then
-      return round(bits / megabit, precision) .. ' Mbit/s';
+      return round(bits / megabit, precision) .. ' Mbps';
    elseif((bits >= gigabit) and (bits < terabit)) then
-      return round(bits / gigabit, precision) .. ' Gbit/s';
+      return round(bits / gigabit, precision) .. ' Gbps';
    elseif(bits >= terabit) then
-      return round(bits / terabit, precision) .. ' Tbit/s';
+      return round(bits / terabit, precision) .. ' Tbps';
    else
-      return round(bits, precision) .. ' bit/s';
+      return round(bits, precision) .. ' bps';
    end
 end
 
