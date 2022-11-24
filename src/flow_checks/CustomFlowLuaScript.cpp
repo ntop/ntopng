@@ -53,8 +53,9 @@ LuaEngine* CustomFlowLuaScript::initVM() {
     try {
       lua = new LuaEngine(NULL);
       lua->load_script((char*)where, NULL /* NetworkInterface filled later via lua->setFlow(f); */);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loaded custom user script %s", where);
     } catch(std::bad_alloc& ba) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "[HTTP] Unable to start Lua interpreter.");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start Lua interpreter.");
     }
 
     return(lua);
@@ -110,7 +111,7 @@ FlowAlert *CustomFlowLuaScript::buildAlert(Flow *f) {
   CustomFlowLuaScriptAlert *alert = new CustomFlowLuaScriptAlert(this, f);
 
   alert->setAlertMessage(f->getCustomFlowAlertMessage());
-  alert->setAlertValue(f->getCustomFlowAlertValue());
+  alert->setAlertScore(f->getCustomFlowAlertScore());
   
   return alert;
 }

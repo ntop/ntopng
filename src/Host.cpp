@@ -104,6 +104,7 @@ Host::~Host() {
     consistency (no thread outside the datapath will change the last pool id)
   */
   iface->decPoolNumHosts(get_host_pool(), false /* Host is deleted offline */);
+  if(customHostAlert.msg) free(customHostAlert.msg);
 }
 
 /* *************************************** */
@@ -319,6 +320,8 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   memset(&unidirectionalTCPFlows, 0, sizeof(unidirectionalTCPFlows));
   memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
   blacklist_name = NULL;
+
+  memset(&customHostAlert, 0, sizeof(customHostAlert));
 }
 
 /* *************************************** */
@@ -2440,4 +2443,14 @@ void Host::setPopServer(char *name) {
 void Host::setBlacklistName(char *name) {
   if((blacklist_name == NULL) && (name != NULL))
     blacklist_name = strdup(name);
+}
+
+/* *************************************** */
+
+void Host::triggerCustomHostAlert(u_int8_t score, char *msg) {
+  customHostAlert.alertTriggered = true, customHostAlert.score = score;
+  
+  if(customHostAlert.msg) { free(customHostAlert.msg); customHostAlert.msg = NULL; }
+
+  if(msg) customHostAlert.msg = strdup(msg);
 }

@@ -114,6 +114,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   */
   u_int32_t num_incomplete_flows;
 
+  struct {
+    bool alertTriggered;
+    u_int32_t score;
+    char *msg;
+  } customHostAlert;
+
   Mutex m;
   u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
@@ -627,6 +633,11 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { ; };
   virtual void luaUsedPorts(lua_State* vm) { ; }
   virtual std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(NULL); }
+
+  inline bool     isCustomHostAlertTriggered()  { return(customHostAlert.alertTriggered);   }
+  inline u_int8_t getCustomHostAlertScore()     { return(customHostAlert.score); }
+  inline char*    getCustomHostAlertMessage()   { return(customHostAlert.msg); }
+  void triggerCustomHostAlert(u_int8_t score, char *msg);
 };
 
 #endif /* _HOST_H_ */

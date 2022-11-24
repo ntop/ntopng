@@ -35,6 +35,7 @@ extern luaL_Reg *ntop_interface_reg;
 extern luaL_Reg *ntop_reg;
 extern luaL_Reg *ntop_network_reg;
 extern luaL_Reg *ntop_flow_reg;
+extern luaL_Reg *ntop_host_reg;
 
 #define HTTP_MAX_UPLOAD_DATA_LEN 25000000 /* ~25MB (see also upload_pcap.template) */
 
@@ -465,6 +466,7 @@ void LuaEngine::lua_register_classes(lua_State *L, bool http_mode) {
   luaRegister(L, "ntop",      ntop_reg);
   luaRegister(L, "network",   ntop_network_reg);
   luaRegister(L, "flow",      ntop_flow_reg);
+  luaRegister(L, "host",      ntop_host_reg);
 
   if(http_mode) {
     /* Overload the standard Lua print() with ntop_lua_http_print that dumps data on HTTP server */

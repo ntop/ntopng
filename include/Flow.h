@@ -105,7 +105,7 @@ class Flow : public GenericHashEntry {
 
   struct {
     bool alertTriggered;
-    u_int32_t threshold_value;
+    u_int8_t score;
     char *msg;
   } customFlowAlert;
   json_object *json_info;
@@ -938,10 +938,9 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getPrivateFlowId() const { return(privateFlowId); }
 
   inline bool isCustomFlowAlertTriggered()       { return(customFlowAlert.alertTriggered);   }
-  inline u_int32_t getCustomFlowAlertValue()     { return(customFlowAlert.threshold_value); }
+  inline u_int8_t  getCustomFlowAlertScore()     { return(customFlowAlert.score); }
   inline char*     getCustomFlowAlertMessage()   { return(customFlowAlert.msg); }
-  void triggerCustomFlowAlert(u_int32_t value, char *msg);
-  
+  void triggerCustomFlowAlert(u_int8_t score, char *msg);  
 };
 
 #endif /* _FLOW_H_ */

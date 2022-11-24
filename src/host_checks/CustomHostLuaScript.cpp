@@ -26,7 +26,10 @@
 
 /* ***************************************************** */
 
-CustomHostLuaScript::CustomHostLuaScript() : HostCheck(ntopng_edition_community, false /* All interfaces */, true /* Exclude for nEdge */, false /* NOT only for nEdge */) {
+CustomHostLuaScript::CustomHostLuaScript() : HostCheck(ntopng_edition_community, false /* All interfaces */,
+						       true /* Exclude for nEdge */,
+						       false /* NOT only for nEdge */) {
+  ;
 };
 
 /* ***************************************************** */
@@ -48,8 +51,9 @@ LuaEngine* CustomHostLuaScript::initVM() {
     try {
       lua = new LuaEngine(NULL);
       lua->load_script((char*)where, NULL /* NetworkInterface filled later below */);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loaded custom user script %s", where);
     } catch(std::bad_alloc& ba) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "[HTTP] Unable to start Lua interpreter.");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start Lua interpreter.");
     }
 
     return(lua);
@@ -78,33 +82,23 @@ void CustomHostLuaScript::periodicUpdate(Host *h, HostAlert *engaged_alert) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Lua script on %s", h->get_name(buf, sizeof(buf), false));
     }
 
-#if 0
-    lua->setFlow(f);
+    lua->setHost(h);
     lua->run_loaded_script(); /* Run script */
+     
+    if(h->isCustomHostAlertTriggered()) {
+      HostAlert *alert = engaged_alert;
     
-    if(f->isCustomFlowAlertTriggered()) {
-      FlowAlertType alert_type = CustomHostLuaScriptAlert::getClassType();
-      u_int8_t c_score, s_score;
-      risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
-
-      computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
-
-      f->triggerAlertAsync(alert_type, c_score, s_score);
+      if(!alert) {
+	/* Alert not already triggered */
+	alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE,
+			   h->getCustomHostAlertScore(),
+			   h->getCustomHostAlertMessage());
+      }
+    
+      /* Refresh the alert */
+      if(alert) h->triggerAlert(alert);
     }
-#endif
   }
-
-#if 0
-  HostAlert *alert = engaged_alert;
-
-    if(!alert) { /* Alert not already triggered */
-      /* Trigger the alert and add the host to the Default nProbe IPS host pool */
-      alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, h->getScore(), h->getConsecutiveHighScore());
-    }
-
-    /* Refresh the alert */
-    if(alert) h->triggerAlert(alert);
-#endif
 }
 
 /* ***************************************************** */

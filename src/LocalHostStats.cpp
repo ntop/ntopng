@@ -133,7 +133,7 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
     resetContactedHosts();
 
     /* countries contacts update */
-    resetCountriesContacts();;
+    resetCountriesContacts();
 
     /* Contacted peers update */
     updateHostContacts();

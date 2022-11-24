@@ -40,7 +40,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_custom_lua_script.format(ifid, alert, alert_type_params)
-   return i18n("flow_details.custom_lua_script", { message = alert_type_params["alert.message"], value = alert_type_params["alert.value"] } )
+   return i18n("flow_details.custom_lua_script", { message = alert_type_params["alert.message"] } )
 end
 
 -- #######################################################

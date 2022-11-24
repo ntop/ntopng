@@ -591,13 +591,9 @@ typedef enum {
   host_check_mac_reassociation,
   host_check_fin_scan,
   host_check_dns_flood,
-<<<<<<< HEAD
   host_check_snmp_flood,
-
-=======
   host_check_custom_lua_script,
   
->>>>>>> f2c6fc622 (Initial implementation of custom Host script)
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */
 } HostCheckID;
 

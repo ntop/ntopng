@@ -6722,8 +6722,8 @@ char* Flow::getJSONRiskInfo() {
 
 /* *************************************** */
 
-void Flow::triggerCustomFlowAlert(u_int32_t value, char *msg) {
-  customFlowAlert.alertTriggered = true, customFlowAlert.threshold_value = value;
+void Flow::triggerCustomFlowAlert(u_int8_t score, char *msg) {
+  customFlowAlert.alertTriggered = true, customFlowAlert.score = score;
   
   if(customFlowAlert.msg) { free(customFlowAlert.msg); customFlowAlert.msg = NULL; }
 
