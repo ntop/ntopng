@@ -13,7 +13,7 @@
 
 
 -- the function below shows an example of how a host alert is triggered
-function trigger_dummy_alert
+function trigger_dummy_alert()
 
    local score   = 100
    local message = "dummy host alert message"
