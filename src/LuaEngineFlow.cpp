@@ -185,6 +185,66 @@ static int ntop_flow_get_l7_proto(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_flow_get_direction(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  if(f) {
+    const char *rsp;
+
+    if(f->isRemoteToRemote())     rsp = "remote2remote";
+    else if(f->isLocalToRemote()) rsp = "local@remote";
+    else if(f->isRemoteToLocal()) rsp = "remote@local";
+    else if(f->isLocalToLocal())  rsp = "local@local";
+    else rsp = "unknown";
+    
+    lua_pushstring(vm, rsp);
+  } else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_flow_is_oneway(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  lua_pushboolean(vm, f ? f->isOneWay() : false);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_flow_is_unicast(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  lua_pushboolean(vm, f ? f->isUnicast() : false);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_flow_get_l7_proto_name(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  if(f) {
+    char buf[64];
+    
+    lua_pushstring(vm, f->get_detected_protocol_name(buf, sizeof(buf)));
+  } else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static int ntop_trigger_flow_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
@@ -215,6 +275,8 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "srv_port",         ntop_flow_get_server_port      },
   { "protocol",         ntop_flow_get_protocol         },
   { "vlan_id",          ntop_flow_get_vlan_id          },
+  { "is_oneway",        ntop_flow_is_oneway            },
+  { "is_unicast",       ntop_flow_is_unicast           },
 
   { "cli2srv_bytes",    ntop_flow_get_cli2srv_bytes    },
   { "srv2cli_bytes",    ntop_flow_get_srv2cli_bytes    },
@@ -222,6 +284,9 @@ static luaL_Reg _ntop_flow_reg[] = {
 
   { "l7_master_proto",  ntop_flow_get_l7_master_proto  },
   { "l7_proto",         ntop_flow_get_l7_proto         },
+  { "l7_proto_name",    ntop_flow_get_l7_proto_name    },
+
+  { "direction",        ntop_flow_get_direction        },
 
   { "triggerAlert",     ntop_trigger_flow_alert        },
   

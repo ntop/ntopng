@@ -1,11 +1,23 @@
+--
+-- (C) 2013-22 - ntop.org
+--
+
+--
+-- This script is a demo of what ntopng can do when enabling
+-- the 'Custom Script Check' behavioural check under the 'Hosts' page
+--
+-- NOTE: this script is called periodically (i.e. every minute) for every host
+--       that ntopng has in memory
+--
 
 
-if(false) then
-   io.write("Hello ".. host.ip() .. " [custom_host_lua_script.lua]\n")
-   
+
+-- the function below shows an example of how a host alert is triggered
+function trigger_dummy_alert
+
    local score   = 100
    local message = "dummy host alert message"
-   
+
    host.triggerAlert(score, message)
 end
 
