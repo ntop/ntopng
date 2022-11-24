@@ -25,32 +25,36 @@
 /* ***************************************************** */
 
 void TCPPacketsIssues::checkTCPPacketsIssues(Flow *f) {
-  FlowAlertType alert_type = TCPPacketsIssuesAlert::getClassType();
-  u_int8_t c_score, s_score;
-  risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
-  FlowTrafficStats* stats = f->getTrafficStats();
-  u_int64_t retransmission = stats ? (stats->get_cli2srv_tcp_retr() + stats->get_srv2cli_tcp_retr()) : 0, 
-            out_of_order = stats ? (stats->get_cli2srv_tcp_ooo() + stats->get_srv2cli_tcp_ooo()) : 0, 
-            lost = stats ? (stats->get_cli2srv_tcp_lost() + stats->get_srv2cli_tcp_lost()) : 0;
+  if(f->get_packets() == 0)
+    return;
+  else {
+    FlowAlertType alert_type = TCPPacketsIssuesAlert::getClassType();
+    u_int8_t c_score, s_score;
+    risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
+    FlowTrafficStats* stats = f->getTrafficStats();
+    u_int64_t retransmission = stats ? (stats->get_cli2srv_tcp_retr() + stats->get_srv2cli_tcp_retr()) : 0, 
+      out_of_order = stats ? (stats->get_cli2srv_tcp_ooo() + stats->get_srv2cli_tcp_ooo()) : 0, 
+      lost = stats ? (stats->get_cli2srv_tcp_lost() + stats->get_srv2cli_tcp_lost()) : 0;
   
-  u_int8_t retransmission_pctg = (u_int8_t) retransmission * 100 / f->get_packets();
-  u_int8_t out_of_order_pctg = (u_int8_t) out_of_order * 100 / f->get_packets();
-  u_int8_t lost_pctg = (u_int8_t) lost * 100 / f->get_packets();
+    u_int8_t retransmission_pctg = (u_int8_t) retransmission * 100 / f->get_packets();
+    u_int8_t out_of_order_pctg = (u_int8_t) out_of_order * 100 / f->get_packets();
+    u_int8_t lost_pctg = (u_int8_t) lost * 100 / f->get_packets();
   
-  if(retransmission_pctg <= retransmission_threshold
-     && out_of_order_pctg <= out_of_order_threshold
-     && lost_pctg <= lost_threshold)
-    return; /* Thresholds not exceeded */
+    if(retransmission_pctg <= retransmission_threshold
+       && out_of_order_pctg <= out_of_order_threshold
+       && lost_pctg <= lost_threshold)
+      return; /* Thresholds not exceeded */
 
 #ifdef DEBUG_PACKETS_ISSUES
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Retransmissions: %u | %u % | Threshold: %u %", retransmission, retransmission_pctg, retransmission_threshold);
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Out of Order: %u | %u % | Threshold: %u %", out_of_order, out_of_order_pctg, out_of_order_threshold);
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loss: %u | %u % | Threshold: %u %", lost, lost_pctg, lost_threshold);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Retransmissions: %u | %u % | Threshold: %u %", retransmission, retransmission_pctg, retransmission_threshold);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Out of Order: %u | %u % | Threshold: %u %", out_of_order, out_of_order_pctg, out_of_order_threshold);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loss: %u | %u % | Threshold: %u %", lost, lost_pctg, lost_threshold);
 #endif /* DEBUG_PACKETS_ISSUES */
 
-  computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
 
-  f->triggerAlertAsync(alert_type, c_score, s_score);
+    f->triggerAlertAsync(alert_type, c_score, s_score);
+  }
 }
 
 /* ***************************************************** */
