@@ -89,12 +89,13 @@ function find_option_2_from_value(value) {
 
 let first_time_render = true;
 
-watch(() => props.options, (current_value, old_value) => {    
-    if (props.disable_change == true) { return; }    
+watch(() => props.options, (current_value, old_value) => {
+    if (props.disable_change == true || current_value == null) { return; }    
     set_input();
 }, { flush: 'pre'});
 
 onMounted(() => {
+    if (!props.options) { return; }
     if (!props.disable_change || !first_time_render) {
     	set_input();
     }
