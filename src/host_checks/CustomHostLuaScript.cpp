@@ -29,7 +29,7 @@
 CustomHostLuaScript::CustomHostLuaScript() : HostCheck(ntopng_edition_community, false /* All interfaces */,
 						       true /* Exclude for nEdge */,
 						       false /* NOT only for nEdge */) {
-  ;
+  disabled = false;
 };
 
 /* ***************************************************** */
@@ -42,7 +42,10 @@ LuaEngine* CustomHostLuaScript::initVM() {
   snprintf(where, sizeof(where), "%s/%s", ntop->get_install_dir(), script_path);
   
   if(stat(where, &s) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", where);
+    if(!disabled) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s: ignored `Host User Check Script` host check", where);
+      disabled = true;
+    }
     
     return(NULL);
   } else {

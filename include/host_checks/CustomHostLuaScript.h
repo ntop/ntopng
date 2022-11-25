@@ -27,6 +27,7 @@
 class CustomHostLuaScript : public HostCheck {
 private:
   LuaEngine* initVM();
+  bool disabled;
   
   HostAlert *allocAlert(HostCheck *c, Host *h,  risk_percentage cli_pctg,
 			u_int32_t _score, std::string _msg) {

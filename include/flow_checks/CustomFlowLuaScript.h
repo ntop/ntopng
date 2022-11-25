@@ -27,6 +27,7 @@
 class CustomFlowLuaScript : public FlowCheck {
  private:
   LuaEngine* initVM();
+  bool disabled;
   
  public:
   CustomFlowLuaScript();

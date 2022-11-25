@@ -31,7 +31,7 @@ CustomFlowLuaScript::CustomFlowLuaScript() : FlowCheck(ntopng_edition_community,
 						       true /* has_protocol_detected */,
 						       false /* has_periodic_update */,
 						       false /* has_flow_end */) {
-  /* Nothing to do */;
+  disabled = false;
 }
 
 /* ***************************************************** */
@@ -42,14 +42,17 @@ LuaEngine* CustomFlowLuaScript::initVM() {
   struct stat s;
 
   snprintf(where, sizeof(where), "%s/%s", ntop->get_install_dir(), script_path);
-  
+
   if(stat(where, &s) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", where);
+    if(!disabled) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s: ignored `Flow User Check Script` flow check", where);
+      disabled = true;
+    }
     
     return(NULL);
   } else {
     LuaEngine *lua;
-    
+
     try {
       lua = new LuaEngine(NULL);
       lua->load_script((char*)where, NULL /* NetworkInterface filled later via lua->setFlow(f); */);
@@ -71,7 +74,7 @@ CustomFlowLuaScript::~CustomFlowLuaScript() {
 
 void CustomFlowLuaScript::protocolDetected(Flow *f) {
   LuaEngine *lua;
-  
+
   if(!f)
     return;
   else {
@@ -82,7 +85,7 @@ void CustomFlowLuaScript::protocolDetected(Flow *f) {
       f->getInterface()->setCustomFlowLuaScript(lua);
     }
   }
-  
+
   if(lua != NULL) {
     if(false) {
       char buf[128];
@@ -92,7 +95,7 @@ void CustomFlowLuaScript::protocolDetected(Flow *f) {
 
     lua->setFlow(f);
     lua->run_loaded_script(); /* Run script */
-    
+
     if(f->isCustomFlowAlertTriggered()) {
       FlowAlertType alert_type = CustomFlowLuaScriptAlert::getClassType();
       u_int8_t c_score, s_score;
@@ -112,7 +115,7 @@ FlowAlert *CustomFlowLuaScript::buildAlert(Flow *f) {
 
   alert->setAlertMessage(f->getCustomFlowAlertMessage());
   alert->setAlertScore(f->getCustomFlowAlertScore());
-  
+
   return alert;
 }
 
@@ -135,9 +138,8 @@ bool CustomFlowLuaScript::loadConfiguration(json_object *config) {
   FlowCheck::loadConfiguration(config); /* Parse parameters in common */
 
   /* Parse additional parameters */
-  
+
   return(true);
 }
 
 /* ***************************************************** */
-
