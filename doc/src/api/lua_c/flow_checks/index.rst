@@ -35,66 +35,50 @@ In the script above an alert is triggered flow flows whose server port is 53.
 Flow Object Methods
 -------------------
 
-- `flow.cli()`
-   
-  Read the flow client IP (string)
+- | **flow.cli()**
+  | Read the flow client IP (string)
 
-   
-- `flow.cli_port()`
+- | **flow.cli_port()**
+  | Read the flow client port (number)
 
-  Read the flow client port (number)
-      
-- `flow.srv()`
+- | **flow.srv()**
+  | Read the flow server IP (string)
 
-  Read the flow server IP (string)
+- | **flow.srv_port()**
+  | Read the flow server port (number)
 
-   
-- `flow.srv_port()`
+- | **flow.protocol()**
+  | Read the flow layer 4 protocol (number)
 
-  Read the flow server port (number)
-   
-- `flow.protocol()`
+- | **flow.vlan_id()**
+  | Read the flow VLAN Id (number)
 
-  Read the flow layer 4 protocol (number)
-   
-- `flow.vlan_id()`
+- | **flow.is_oneway()**
+  | Check if the flow is unidirectional, meaning that there is no traffic from server to client (boolean)
 
-  Read the flow VLAN Id (number)
-      
-- `flow.is_oneway()`
+- | **flow.is_unicast()**
+  | Check if the flow has unicast peers (boolean)
 
-  Check if the flow is unidirectional, meaning that there is no traffic from server to client (boolean)
-   
-- `flow.is_unicast()`
+- | **flow.cli2srv_bytes()**
+  | Read the flow bytes from client to server (number)
 
-  Check if the flow has unicast peers (boolean)
-      
-- `flow.cli2srv_bytes()`
+- | **flow.srv2cli_bytes()**
+  | Read the flow bytes from server to client (number)
 
-  Read the flow bytes from client to server (number)
-   
-- `flow.srv2cli_bytes()`
+- | **flow.bytes()**
+  | Read the total (sent + received) flow bytes (number)
 
-  Read the flow bytes from server to client (number)
-      
-- `flow.bytes()`
+- | **flow.l7_master_proto()**
+  | Read the flow nDPI master protocol (number)
 
-  Read the total (sent + received) flow bytes (number)
-      
-- `flow.l7_master_proto()`
+- | **flow.l7_proto()**
+  | Read the flow nDPI application protocol (number)
 
-  Read the flow nDPI master protocol (number)
-      
-- `flow.l7_proto()`
-  
-  Read the flow nDPI application protocol (number)
-      
-- `flow.l7_proto_name()`
+- | **flow.l7_proto_name()**
+  | Read the flow nDPI protocol name (string)
 
-  Read the flow nDPI protocol name (string)
+- | **flow.direction()**
+  | Read the flow (e.g. local2remote) direction (string)
 
-  
-- `flow.direction()`
-
-  Read the flow (e.g. local2remote) direction (string)
-		 
+- | **flow.triggerAlert(score, message)**
+  | Triggers an alert for the selected flow. The score parameter (numeric) is used to set the alert score, and the message (string) is used to set the alert string that typically contains a human-readeable message related to the triggered alert.
