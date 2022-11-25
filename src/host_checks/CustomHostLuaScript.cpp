@@ -70,6 +70,10 @@ void CustomHostLuaScript::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   if(!h)
     return;
   else {
+    /* Ignore host for which this script has been already visited */
+    if(h->isCustomHostScriptAlreadyEvaluated())
+      return;
+
     lua = h->getInterface()->getCustomHostLuaScript();
 
     if(lua == NULL) {
@@ -79,12 +83,14 @@ void CustomHostLuaScript::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   }
   
   if(lua != NULL) {
-    if(false) {
+#ifdef DEBUG
+    {
       char buf[128];
 
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Lua script on %s", h->get_name(buf, sizeof(buf), false));
     }
-
+#endif
+    
     lua->setHost(h);
     lua->run_loaded_script(); /* Run script */
      

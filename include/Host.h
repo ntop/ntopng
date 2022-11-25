@@ -115,8 +115,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   u_int32_t num_incomplete_flows;
 
   struct {
-    bool alertTriggered;
-    u_int32_t score;
+    bool alertTriggered, hostAlreadyEvaluated;
+    u_int8_t score;
     char *msg;
   } customHostAlert;
 
@@ -403,7 +403,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 		custom_app_t custom_app,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
-    bool peer_is_unicast);
+		bool peer_is_unicast);
   inline void checkpoint(lua_State* vm) { if(stats) return stats->checkpoint(vm); };
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   virtual void updateHostTrafficPolicy(char *key) {};
@@ -634,9 +634,11 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void luaUsedPorts(lua_State* vm) { ; }
   virtual std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(NULL); }
 
-  inline bool     isCustomHostAlertTriggered()  { return(customHostAlert.alertTriggered);   }
-  inline u_int8_t getCustomHostAlertScore()     { return(customHostAlert.score); }
-  inline char*    getCustomHostAlertMessage()   { return(customHostAlert.msg); }
+  inline bool     isCustomHostAlertTriggered()  { return(customHostAlert.alertTriggered);                 }
+  inline bool     isCustomHostScriptAlreadyEvaluated()  { return(customHostAlert.hostAlreadyEvaluated);   }
+  inline void     setCustomHostScriptAlreadyEvaluated() { customHostAlert.hostAlreadyEvaluated = true;    }
+  inline u_int8_t getCustomHostAlertScore()     { return(customHostAlert.score);                          }
+  inline char*    getCustomHostAlertMessage()   { return(customHostAlert.msg);                            }
   void triggerCustomHostAlert(u_int8_t score, char *msg);
 };
 

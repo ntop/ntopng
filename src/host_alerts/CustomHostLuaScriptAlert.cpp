@@ -34,7 +34,6 @@ ndpi_serializer* CustomHostLuaScriptAlert::getAlertJSON(ndpi_serializer* seriali
   if(serializer == NULL)
     return NULL;
 
-  ndpi_serialize_string_uint32(serializer, "score", score);
   if(msg.size() > 0)
     ndpi_serialize_string_string(serializer, "message", msg.c_str());
 

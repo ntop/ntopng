@@ -34,6 +34,7 @@ function dump_flow()
    rsp.l7_proto_name        = flow.l7_proto_name()
    rsp.direction            = flow.direction()
 
+   io.write("----------------------------\n")
    tprint(rsp)
 end
 
@@ -44,7 +45,7 @@ end
 
 -- the function below shows an example of how an alert is triggered
 function trigger_dummy_alert()
-   local score   = 100
+   local score   = 102
    local message = "dummy alert message"
 
    flow.triggerAlert(score, message)

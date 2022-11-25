@@ -168,7 +168,7 @@ void nDPIStats::print(NetworkInterface *iface) {
 void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories, bool tsLua, bool diff) {
   lua_newtable(vm);
 
-  for(int i = 0; i < MAX_NDPI_PROTOS; i++)
+  for(int i = 0; i < MAX_NDPI_PROTOS; i++) {
     if(unlikely(counters[i] != NULL)) {
       char *name = iface->get_ndpi_proto_name(i);
 
@@ -216,7 +216,8 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
 	}
       }
     }
-
+  }
+  
   lua_pushstring(vm, "ndpi");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

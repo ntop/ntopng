@@ -43,6 +43,24 @@ static int ntop_host_get_ip(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_host_get_mac(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h) {
+    Mac *cur_mac = h->getMac();
+    const u_int8_t *mac = cur_mac ? cur_mac->get_mac() : NULL;    
+    char buf[64];
+
+    lua_pushstring(vm, Utils::formatMac(mac ? mac : NULL, buf, sizeof(buf)));
+  } else
+    lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static int ntop_host_get_name(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
@@ -73,6 +91,129 @@ static int ntop_host_get_vlan_id(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_host_is_unicast(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+  IpAddress *ip = h ? h->get_ip() : NULL;
+  
+  lua_pushboolean(vm, ip ? (!ip->isBroadMulticastAddress()) : true);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_host_is_multicast(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+  IpAddress *ip = h ? h->get_ip() : NULL;
+  
+  lua_pushboolean(vm, ip ? ip->isMulticastAddress() : false);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_host_is_broadcast(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+  IpAddress *ip = h ? h->get_ip() : NULL;
+  
+  lua_pushboolean(vm, ip ? ip->isBroadcastAddress() : false);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_host_is_blacklisted(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  lua_pushboolean(vm, h ? h->isBlacklisted() : false);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_host_get_bytes_sent(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h)
+    lua_pushinteger(vm, h->getNumBytesSent());
+  else
+    lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_host_get_bytes_rcvd(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h)
+    lua_pushinteger(vm, h->getNumBytesRcvd());
+  else
+    lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_host_get_bytes_total(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h)
+    lua_pushinteger(vm, h->getNumBytesSent() + h->getNumBytesRcvd());
+  else
+    lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_host_get_l7_stats(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h) {
+    nDPIStats *stats = h->get_ndpi_stats();
+
+    if(stats) {
+      lua_newtable(vm);
+      stats->lua(h->getInterface(), vm, false, false, false);
+    } else
+      lua_pushnil(vm);
+  } else
+    lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_skip_visited_host(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h)
+    h->setCustomHostScriptAlreadyEvaluated();
+  
+  lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static int ntop_trigger_host_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
@@ -97,10 +238,22 @@ static int ntop_trigger_host_alert(lua_State* vm) {
 /* **************************************************************** */
 
 static luaL_Reg _ntop_host_reg[] = {
-  { "ip",         ntop_host_get_ip                     },
-  { "name",       ntop_host_get_name                   },
-  { "vlan",       ntop_host_get_vlan_id                },
+  { "ip",               ntop_host_get_ip               },
+  { "mac",              ntop_host_get_mac              },
+  { "name",             ntop_host_get_name             },
+  { "vlan_id",          ntop_host_get_vlan_id          },
 
+  { "is_unicast",       ntop_host_is_unicast           },
+  { "is_multicast",     ntop_host_is_multicast         },
+  { "is_broadcast",     ntop_host_is_broadcast         },
+  { "is_blacklisted",   ntop_host_is_blacklisted       },
+
+  { "bytes_sent",       ntop_host_get_bytes_sent       },
+  { "bytes_rcvd",       ntop_host_get_bytes_rcvd       },
+  { "bytes",            ntop_host_get_bytes_total      },
+  { "l7",               ntop_host_get_l7_stats         },
+
+  { "skipVisitedHost",  ntop_skip_visited_host         },
   { "triggerAlert",     ntop_trigger_host_alert        },
 
   { NULL,               NULL                           }
