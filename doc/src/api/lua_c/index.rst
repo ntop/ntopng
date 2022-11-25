@@ -1,7 +1,7 @@
-Lua C API
+Lua API
 =========
 
-The ntopng core provides a Lua C API to interact with it. The API is internally used
+The ntopng core provides a LuaAPI to interact with it. The API is internally used
 by periodic scripts and GUI scripts to extract information or to apply configuration
 changes.
 
@@ -28,5 +28,6 @@ so it's available through the interface object API via `interface.getFlowsInfo()
 
     ntop/index
     interface/index
+    flow_checks/index
     interface_checks/index
     network_checks/index

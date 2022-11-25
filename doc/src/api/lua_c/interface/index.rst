@@ -1,5 +1,5 @@
-interface
-=========
+interface Lua Object
+====================
 
 A Lua script is associated with a network interface, called *active interface*.
 All the interface methods are referred to the *active interface*.
