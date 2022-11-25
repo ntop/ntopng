@@ -252,6 +252,11 @@ const ntopChartApex = function() {
 		    _chartHtmlElement = htmlElement;
 		    _chart.render();
 		},
+		to_data_uri: async function(options) {
+		    if (_chart == null) { return; }
+		    let res = await _chart.dataURI(options);
+		    return res.imgURI;
+		},
 		destroyChart: function() {
 		    if (_chart == null) { return; }
 		    _chart.destroy();

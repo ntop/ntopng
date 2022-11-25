@@ -44,6 +44,16 @@ export default {
 	    }
 	    await this.draw_chart(url_request);
 	},
+	get_data_uri: async function(options) {
+	    if (this.chart == null) { return null; }
+	    let data_uri = await this.chart.to_data_uri();
+	    return data_uri;
+	},
+	download_chart_png: async function(file_name, options) {
+	    if (this.chart == null) { return; }
+	    let data_uri = await this.chart.to_data_uri();
+	    downloadURI(data_uri, file_name);
+	},
 	register_status: function(status) {
 	    let url_request = this.get_url_request(status);
 	    ntopng_status_manager.on_status_change(this.id, (new_status) => {
