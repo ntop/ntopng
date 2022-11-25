@@ -14,6 +14,7 @@ section.
     view_interfaces
     dynamic_interfaces_disaggregation
     traffic_profiles
+    host_rules
     device_protocols
     category_lists
     devices_exclusion
