@@ -138,8 +138,8 @@ Ntop::Ntop(const char *appName) {
   } else {
     for(int i=(int)strlen(startup_dir)-1; i>0; i--) {
       if(startup_dir[i] == '\\') {
-	startup_dir[i] = '\0';
-	break;
+        startup_dir[i] = '\0';
+        break;
       }
     }
   }
@@ -159,7 +159,7 @@ Ntop::Ntop(const char *appName) {
 
   if(getcwd(startup_dir, sizeof(startup_dir)) == NULL)
     ntop->getTrace()->traceEvent(TRACE_ERROR,
-				 "Occurred while checking the current directory (errno=%d)", errno);
+                                 "Occurred while checking the current directory (errno=%d)", errno);
 
   dirs[0] = startup_dir;
 
@@ -174,8 +174,8 @@ Ntop::Ntop(const char *appName) {
       fixPath(path);
 
       if(stat(path, &statbuf) == 0) {
-	snprintf(install_dir, sizeof(install_dir), "%s", dirs[i]);
-	break;
+        snprintf(install_dir, sizeof(install_dir), "%s", dirs[i]);
+        break;
       }
     }
   }
@@ -237,7 +237,7 @@ void Ntop::lockNtopInstance() {
 
   if((startupLockFile = open(lockPath, O_RDWR | O_CREAT, 0666)) < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open lock file %s [%s]",
-				 lockPath, strerror(errno));
+                                 lockPath, strerror(errno));
     exit(EXIT_FAILURE);
   }
 
@@ -365,7 +365,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
        // || (!(buf.st_mode & S_IWRITE)) /* It's not writable    */
        ) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
-				   prefs->get_data_dir());
+                                   prefs->get_data_dir());
       exit(-1);
     }
 
@@ -373,7 +373,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
        || (!(buf.st_mode & S_IFDIR))  /* It's not a directory */
        || (!(buf.st_mode & S_IREAD)) /* It's not readable    */) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
-				   prefs->get_callbacks_dir());
+                                   prefs->get_callbacks_dir());
       exit(-1);
     }
 
@@ -388,13 +388,13 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   /* Initialize redis and populate some default values */
   Utils::initRedis(&redis, prefs->get_redis_host(), prefs->get_redis_password(),
-		   prefs->get_redis_port(), prefs->get_redis_db_id(), quick_registration);
+                   prefs->get_redis_port(), prefs->get_redis_db_id(), quick_registration);
   if(redis) redis->setDefaults();
 
   if(!quick_registration) {
     /* Initialize another redis instance for the trace of events */
     ntop->getTrace()->initRedis(prefs->get_redis_host(), prefs->get_redis_password(),
-				prefs->get_redis_port(), prefs->get_redis_db_id());
+                                prefs->get_redis_port(), prefs->get_redis_db_id());
 
     if(ntop->getRedis() == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize redis. Quitting...");
@@ -467,13 +467,13 @@ void Ntop::start() {
   int i = 0;
 
   getTrace()->traceEvent(TRACE_NORMAL,
-			 "Welcome to %s %s v.%s (%s) - (C) 1998-22 ntop.org",
+                         "Welcome to %s %s v.%s (%s) - (C) 1998-22 ntop.org",
 #ifdef HAVE_NEDGE
-			 "ntopng edge",
+                         "ntopng edge",
 #else
-			 "ntopng",
+                         "ntopng",
 #endif
-			 PACKAGE_MACHINE, PACKAGE_VERSION, NTOPNG_GIT_RELEASE);
+                         PACKAGE_MACHINE, PACKAGE_VERSION, NTOPNG_GIT_RELEASE);
 
   if(PACKAGE_OS[0] != '\0')
     getTrace()->traceEvent(TRACE_NORMAL, "Built on %s", PACKAGE_OS);
@@ -489,7 +489,7 @@ void Ntop::start() {
 #else
     (char*)"ntopng"
 #endif
-			 ; i++;
+                         ; i++;
   string_to_replace[i].key = NULL, string_to_replace[i].val = NULL;
 
   strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
@@ -719,17 +719,17 @@ char* Ntop::getIfName(int if_id, char *name, u_int name_len) {
   if(dwRetVal == NO_ERROR) {
     for(i = 0; i < pInfo->NumAdapters; i++) {
       if(pInfo->Adapter[i].Index == if_id) {
-	int j, k, begin = 0;
+        int j, k, begin = 0;
 
-	for(j = 0, k = 0; (k < name_len) && (pInfo->Adapter[i].Name[j] != '\0'); j++) {
-	  if(begin) {
-	    if((char)pInfo->Adapter[i].Name[j] == '}') break;
-	    name[k++] = (char)pInfo->Adapter[i].Name[j];
-	  } else if((char)pInfo->Adapter[i].Name[j] == '{')
-	    begin = 1;
-	}
+        for(j = 0, k = 0; (k < name_len) && (pInfo->Adapter[i].Name[j] != '\0'); j++) {
+          if(begin) {
+            if((char)pInfo->Adapter[i].Name[j] == '}') break;
+            name[k++] = (char)pInfo->Adapter[i].Name[j];
+          } else if((char)pInfo->Adapter[i].Name[j] == '{')
+            begin = 1;
+        }
 
-	name[k] = '\0';
+        name[k] = '\0';
       }
       break;
     }
@@ -765,7 +765,7 @@ void Ntop::loadLocalInterfaceAddress() {
     // Make an initial call to GetIpAddrTable to get the
     // necessary size into the dwSize variable
     if(GetIpAddrTable(pIPAddrTable, &dwSize, 0) ==
-	ERROR_INSUFFICIENT_BUFFER) {
+        ERROR_INSUFFICIENT_BUFFER) {
       FREE(pIPAddrTable);
       pIPAddrTable = (MIB_IPADDRTABLE *)MALLOC(dwSize);
 
@@ -779,8 +779,8 @@ void Ntop::loadLocalInterfaceAddress() {
   // actual data we want
   if((dwRetVal = GetIpAddrTable(pIPAddrTable, &dwSize, 0)) != NO_ERROR) {
     if(FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		     NULL, dwRetVal, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-		      (LPTSTR)& lpMsgBuf, 0, NULL)) {
+                     NULL, dwRetVal, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+                      (LPTSTR)& lpMsgBuf, 0, NULL)) {
       LocalFree(lpMsgBuf);
     }
 
@@ -794,21 +794,21 @@ void Ntop::loadLocalInterfaceAddress() {
 
     for(int id = 0; id < num_defined_interfaces; id++) {
       if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
-	u_int32_t bits = Utils::numberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
+        u_int32_t bits = Utils::numberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
 
-	IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
-	snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
-	local_interface_addresses.addAddress(buf);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 NIC addr. [%s]",
-				     buf, iface[id]->get_description());
-	iface[id]->addInterfaceAddress(buf);
+        IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
+        snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
+        local_interface_addresses.addAddress(buf);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 NIC addr. [%s]",
+                                     buf, iface[id]->get_description());
+        iface[id]->addInterfaceAddress(buf);
 
-	IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
-	snprintf(buf2, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local nw [%s]",
-				     buf2, iface[id]->get_description());
-	addLocalNetworkList(buf2);
-	iface[id]->addInterfaceNetwork(buf2, buf);
+        IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
+        snprintf(buf2, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local nw [%s]",
+                                     buf2, iface[id]->get_description());
+        addLocalNetworkList(buf2);
+        iface[id]->addInterfaceNetwork(buf2, buf);
       }
     }
   }
@@ -838,14 +838,14 @@ void Ntop::loadLocalInterfaceAddress() {
 
     if((ifa->ifa_addr == NULL)
        || ((ifa->ifa_addr->sa_family != AF_INET)
-	   && (ifa->ifa_addr->sa_family != AF_INET6))
+           && (ifa->ifa_addr->sa_family != AF_INET6))
        || ((ifa->ifa_flags & IFF_UP) == 0))
       continue;
 
     for(int i = 0; i < num_defined_interfaces; i++) {
       if(strstr(iface[i]->get_name(), ifa->ifa_name)) {
-	ifId = i;
-	break;
+        ifId = i;
+        break;
       }
     }
 
@@ -865,27 +865,27 @@ void Ntop::loadLocalInterfaceAddress() {
       cidr = 0, nm = netmask;
 
       while(nm) {
-	cidr += (nm & 0x01);
-	nm >>= 1;
+        cidr += (nm & 0x01);
+        nm >>= 1;
       }
 
       if(inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf)) != NULL) {
-	char buf_orig2[bufsize+32];
+        char buf_orig2[bufsize+32];
 
-	snprintf(buf_orig2, sizeof(buf_orig2), "%s/%d", buf, 32);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s",
-				     buf_orig2, iface[ifId]->get_name());
-	local_interface_addresses.addAddress(buf_orig2);
-	iface[ifId]->addInterfaceAddress(buf_orig2);
+        snprintf(buf_orig2, sizeof(buf_orig2), "%s/%d", buf, 32);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s",
+                                     buf_orig2, iface[ifId]->get_name());
+        local_interface_addresses.addAddress(buf_orig2);
+        iface[ifId]->addInterfaceAddress(buf_orig2);
 
-	/* Set to zero non network bits */
-	s4->sin_addr.s_addr = htonl(ntohl(s4->sin_addr.s_addr) & ntohl(netmask));
-	inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf));
-	snprintf(net_buf, sizeof(net_buf), "%s/%d", buf, cidr);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %s",
-				     net_buf, iface[ifId]->get_name());
-	iface[ifId]->addInterfaceNetwork(net_buf, buf_orig2);
-	addLocalNetworkList(net_buf);
+        /* Set to zero non network bits */
+        s4->sin_addr.s_addr = htonl(ntohl(s4->sin_addr.s_addr) & ntohl(netmask));
+        inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf));
+        snprintf(net_buf, sizeof(net_buf), "%s/%d", buf, cidr);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %s",
+                                     net_buf, iface[ifId]->get_name());
+        iface[ifId]->addInterfaceNetwork(net_buf, buf_orig2);
+        addLocalNetworkList(net_buf);
       }
     } else if(ifa->ifa_addr->sa_family == AF_INET6) {
       struct sockaddr_in6 *s6 =(struct sockaddr_in6 *)(ifa->ifa_netmask);
@@ -894,31 +894,31 @@ void Ntop::loadLocalInterfaceAddress() {
       cidr = 0;
 
       for(int i=0; i<16; i++) {
-	u_int8_t num_bits = __builtin_popcount(b[i]);
+        u_int8_t num_bits = __builtin_popcount(b[i]);
 
-	if(num_bits == 0) break;
-	cidr += num_bits;
+        if(num_bits == 0) break;
+        cidr += num_bits;
       }
 
       s6 = (struct sockaddr_in6 *)(ifa->ifa_addr);
       if(inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf)) != NULL) {
-	snprintf(buf_orig, sizeof(buf_orig), "%s/%d", buf, 128);
+        snprintf(buf_orig, sizeof(buf_orig), "%s/%d", buf, 128);
 
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 interface address for %s",
-				     buf_orig, iface[ifId]->get_name());
-	local_interface_addresses.addAddresses(buf_orig);
-	iface[ifId]->addInterfaceAddress(buf_orig);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 interface address for %s",
+                                     buf_orig, iface[ifId]->get_name());
+        local_interface_addresses.addAddresses(buf_orig);
+        iface[ifId]->addInterfaceAddress(buf_orig);
 
-	for(int i = cidr, j = 0; i > 0; i -= 8, ++j)
-	  s6->sin6_addr.s6_addr[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
+        for(int i = cidr, j = 0; i > 0; i -= 8, ++j)
+          s6->sin6_addr.s6_addr[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
 
-	inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf));
-	snprintf(net_buf, sizeof(net_buf), "%s/%d", buf, cidr);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 local network for %s",
-				     net_buf, iface[ifId]->get_name());
+        inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf));
+        snprintf(net_buf, sizeof(net_buf), "%s/%d", buf, cidr);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 local network for %s",
+                                     net_buf, iface[ifId]->get_name());
 
-	iface[ifId]->addInterfaceNetwork(net_buf, buf_orig);
-	addLocalNetworkList(net_buf);
+        iface[ifId]->addInterfaceNetwork(net_buf, buf_orig);
+        addLocalNetworkList(net_buf);
       }
     }
   }
@@ -1229,13 +1229,13 @@ bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
 
   if((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
-				 "No allowed interface found for %s", ifname);
+                                 "No allowed interface found for %s", ifname);
     // this is a lua script called within ntopng (no HTTP UI and user interaction, e.g. startup.lua)
     ret = true;
   } else {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
-				 "Allowed interface %s, requested %s",
-				 allowed_ifname, ifname);
+                                 "Allowed interface %s, requested %s",
+                                 allowed_ifname, ifname);
     ret = !strncmp(allowed_ifname, ifname, strlen(allowed_ifname));
   }
 
@@ -1443,226 +1443,227 @@ bool Ntop::checkUserPassword(const char * user, const char * password, char *gro
 
 #if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   if(ntop->getPro()->has_valid_license()) {
-    if(ntop->getRedis()->get((char*)PREF_NTOP_LDAP_AUTH, val, sizeof(val)) >= 0) {
-      if(val[0] == '1') {
-        ntop->getTrace()->traceEvent(TRACE_INFO, "Checking LDAP auth");
+    if(ntop->getRedis()->get((char*)PREF_NTOP_LDAP_AUTH, val, sizeof(val)) >= 0 && val[0] == '1') {
 
-	bool ldap_ret = false;
-        bool is_admin;
-	char *ldapServer = NULL, *ldapAccountType = NULL,  *ldapAnonymousBind = NULL,
-	  *bind_dn = NULL, *bind_pwd = NULL, *user_group = NULL,
-	  *search_path = NULL, *admin_group = NULL;
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Checking LDAP auth");
 
- 	if(!(ldapServer = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
-	   || !(ldapAccountType = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) /* either 'posix' or 'samaccount' */
-	   || !(ldapAnonymousBind = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) /* either '1' or '0' */
-	   || !(bind_dn = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
-	   || !(bind_pwd = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
-	   || !(user_group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
-	   || !(search_path = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
-	   || !(admin_group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))) {
-	  static bool ldap_nomem = false;
+      bool ldap_ret = false;
+      bool is_admin;
+      char *ldapServer = NULL, *ldapAccountType = NULL,  *ldapAnonymousBind = NULL,
+          *bind_dn = NULL, *bind_pwd = NULL, *user_group = NULL,
+          *search_path = NULL, *admin_group = NULL;
 
-	  if(!ldap_nomem) {
-	    ntop->getTrace()->traceEvent(TRACE_ERROR,
-					 "Unable to allocate memory for the LDAP authentication");
-	    ldap_nomem = true;
-	  }
+      if(   !(ldapServer = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+         || !(ldapAccountType = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) /* either 'posix' or 'samaccount' */
+         || !(ldapAnonymousBind = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) /* either '1' or '0' */
+         || !(bind_dn = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+         || !(bind_pwd = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+         || !(user_group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+         || !(search_path = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+         || !(admin_group = (char*)calloc(sizeof(char), MAX_LDAP_LEN))) {
+        static bool ldap_nomem = false;
 
- 	  goto ldap_auth_out;
-	}
-
-        ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, MAX_LDAP_LEN);
-        ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, MAX_LDAP_LEN);
-        ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind, MAX_LDAP_LEN);
-        ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, MAX_LDAP_LEN);
-        ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, MAX_LDAP_LEN);
-        ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, MAX_LDAP_LEN);
-        ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, user_group, MAX_LDAP_LEN);
-        ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, MAX_LDAP_LEN);
-
-        if(ldapServer[0]) {
-	  ldap_ret = LdapAuthenticator::validUserLogin(ldapServer, ldapAccountType,
-						       (atoi(ldapAnonymousBind) == 0) ? false : true,
-						       bind_dn[0] != '\0' ? bind_dn : NULL,
-						       bind_pwd[0] != '\0' ? bind_pwd : NULL,
-						       search_path[0] != '\0' ? search_path : NULL,
-						       user,
-						       password[0] != '\0' ? password : NULL,
-						       user_group[0] != '\0' ? user_group : NULL,
-						       admin_group[0] != '\0' ? admin_group : NULL,
-						       &is_admin);
-
-	  if(ldap_ret) {
-            strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
-            group[NTOP_GROUP_MAXLEN - 1] = '\0';
-	  }
+        if(!ldap_nomem) {
+          ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                       "Unable to allocate memory for the LDAP authentication");
+          ldap_nomem = true;
         }
 
-      ldap_auth_out:
-	if(ldapServer) free(ldapServer);
-	if(ldapAnonymousBind) free(ldapAnonymousBind);
-	if(bind_dn) free(bind_dn);
-	if(bind_pwd) free(bind_pwd);
-	if(user_group) free(user_group);
-	if(search_path) free(search_path);
-	if(admin_group) free(admin_group);
-
-	if(ldap_ret)
-	  return(true);
+         goto ldap_auth_out;
       }
+
+      ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, MAX_LDAP_LEN);
+      ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, MAX_LDAP_LEN);
+      ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind, MAX_LDAP_LEN);
+      ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, MAX_LDAP_LEN);
+      ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, MAX_LDAP_LEN);
+      ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, MAX_LDAP_LEN);
+      ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, user_group, MAX_LDAP_LEN);
+      ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, MAX_LDAP_LEN);
+
+      if(ldapServer[0]) {
+        ldap_ret = LdapAuthenticator::validUserLogin(ldapServer, ldapAccountType,
+                                                       (atoi(ldapAnonymousBind) == 0) ? false : true,
+                                                       bind_dn[0] != '\0' ? bind_dn : NULL,
+                                                       bind_pwd[0] != '\0' ? bind_pwd : NULL,
+                                                       search_path[0] != '\0' ? search_path : NULL,
+                                                       user,
+                                                       password[0] != '\0' ? password : NULL,
+                                                       user_group[0] != '\0' ? user_group : NULL,
+                                                       admin_group[0] != '\0' ? admin_group : NULL,
+                                                       &is_admin);
+
+        if(ldap_ret) {
+          strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
+          group[NTOP_GROUP_MAXLEN - 1] = '\0';
+        }
+      }
+
+    ldap_auth_out:
+      if(ldapServer) free(ldapServer);
+      if(ldapAnonymousBind) free(ldapAnonymousBind);
+      if(bind_dn) free(bind_dn);
+      if(bind_pwd) free(bind_pwd);
+      if(user_group) free(user_group);
+      if(search_path) free(search_path);
+      if(admin_group) free(admin_group);
+
+      if(ldap_ret)
+        return(true);
     }
   }
 #endif
 
 #ifdef HAVE_RADIUS
-  if(ntop->getRedis()->get((char*)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >= 0) {
+  if(ntop->getRedis()->get((char*)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >= 0 && val[0] == '1') {
+
     ntop->getTrace()->traceEvent(TRACE_INFO, "Checking RADIUS auth");
 
-    if(val[0] == '1') {
-      int result;
-      bool radius_ret = false;
-      char dict_path[MAX_RADIUS_LEN];
-      char *radiusServer = NULL, *radiusSecret = NULL, *authServer = NULL, *radiusAdminGroup = NULL;
-      rc_handle       *rh = NULL;
-      VALUE_PAIR      *send = NULL, *received = NULL;
+    int result;
+    bool radius_ret = false;
+    char dict_path[MAX_RADIUS_LEN];
+    char *radiusServer = NULL, *radiusSecret = NULL, *authServer = NULL, *radiusAdminGroup = NULL;
+    rc_handle       *rh = NULL;
+    VALUE_PAIR      *send = NULL, *received = NULL;
 
-      if(!password || !password[0])
-        return false;
+    if(!password || !password[0])
+      return false;
 
-      if(!(radiusServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
-          !(radiusSecret = (char*)calloc(sizeof(char), MAX_SECRET_LENGTH + 1)) ||
-          !(radiusAdminGroup = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
-          !(authServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN))) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
-        goto radius_auth_out;
-      }
-      ntop->getRedis()->get((char*)PREF_RADIUS_SERVER, radiusServer, MAX_RADIUS_LEN);
-      ntop->getRedis()->get((char*)PREF_RADIUS_SECRET, radiusSecret, MAX_SECRET_LENGTH + 1);
-      ntop->getRedis()->get((char*)PREF_RADIUS_ADMIN_GROUP, radiusAdminGroup, MAX_RADIUS_LEN);
-      if(!radiusServer[0] || !radiusSecret[0]) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: no radius server or secret set !");
-        goto radius_auth_out;
-      }
-      snprintf(authServer, MAX_RADIUS_LEN - 1, "%s:%s", radiusServer, radiusSecret);
+    if(!(radiusServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
+       !(radiusSecret = (char*)calloc(sizeof(char), MAX_SECRET_LENGTH + 1)) ||
+       !(radiusAdminGroup = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
+       !(authServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN))) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
+      goto radius_auth_out;
+    }
 
-      /* NOTE: this is an handle to the radius lib. It will be passed to multiple functions and cleaned up at the end.
-       * https://github.com/FreeRADIUS/freeradius-client/blob/master/src/radembedded.c
-       */
-      rh = rc_new();
-      if(rh == NULL) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
-        goto radius_auth_out;
-      }
+    ntop->getRedis()->get((char*)PREF_RADIUS_SERVER, radiusServer, MAX_RADIUS_LEN);
+    ntop->getRedis()->get((char*)PREF_RADIUS_SECRET, radiusSecret, MAX_SECRET_LENGTH + 1);
+    ntop->getRedis()->get((char*)PREF_RADIUS_ADMIN_GROUP, radiusAdminGroup, MAX_RADIUS_LEN);
 
-      /* ********* */
+    if(!radiusServer[0] || !radiusSecret[0]) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: no radius server or secret set !");
+      goto radius_auth_out;
+    }
 
-      rh = rc_config_init(rh);
+    snprintf(authServer, MAX_RADIUS_LEN - 1, "%s:%s", radiusServer, radiusSecret);
 
-      if(rh == NULL) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: failed to init configuration");
-        goto radius_auth_out;
-      }
+    /* NOTE: this is an handle to the radius lib. It will be passed to multiple functions and cleaned up at the end.
+     * https://github.com/FreeRADIUS/freeradius-client/blob/master/src/radembedded.c
+     */
+    rh = rc_new();
+    if(rh == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
+      goto radius_auth_out;
+    }
 
-      /* RADIUS only auth */
-      if(rc_add_config(rh, "auth_order", "radius", "config", 0) != 0) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set auth_order");
-        goto radius_auth_out;
-      }
+    /* ********* */
 
-      if(rc_add_config(rh, "radius_retries", "3", "config", 0) != 0) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set retries config");
-        goto radius_auth_out;
-      }
+    rh = rc_config_init(rh);
 
-      if(rc_add_config(rh, "radius_timeout", "5", "config", 0)  != 0) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set timeout config");
-        goto radius_auth_out;
-      }
+    if(rh == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: failed to init configuration");
+      goto radius_auth_out;
+    }
 
-      snprintf(dict_path, sizeof(dict_path), "%s/other/radcli_dictionary.txt", ntop->getPrefs()->get_docs_dir());
-      if(rc_add_config(rh, "dictionary", dict_path, "config", 0) != 0) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set dictionary config");
-        goto radius_auth_out;
-      }
+    /* RADIUS only auth */
+    if(rc_add_config(rh, "auth_order", "radius", "config", 0) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set auth_order");
+      goto radius_auth_out;
+    }
 
-      if(rc_add_config(rh, "authserver", authServer, "config", 0) != 0) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set authserver config: \"%s\"", authServer);
-        goto radius_auth_out;
-      }
+    if(rc_add_config(rh, "radius_retries", "3", "config", 0) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set retries config");
+      goto radius_auth_out;
+    }
+
+    if(rc_add_config(rh, "radius_timeout", "5", "config", 0)  != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set timeout config");
+      goto radius_auth_out;
+    }
+
+    snprintf(dict_path, sizeof(dict_path), "%s/other/radcli_dictionary.txt", ntop->getPrefs()->get_docs_dir());
+    if(rc_add_config(rh, "dictionary", dict_path, "config", 0) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set dictionary config");
+      goto radius_auth_out;
+    }
+
+    if(rc_add_config(rh, "authserver", authServer, "config", 0) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set authserver config: \"%s\"", authServer);
+      goto radius_auth_out;
+    }
 
 #ifdef HAVE_RC_TEST_CONFIG
-      /* Necessary since radcli release 1.2.10 */
-      if(rc_test_config(rh, "ntopng") != 0) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: rc_test_config failed");
-        goto radius_auth_out;
-      }
+    /* Necessary since radcli release 1.2.10 */
+    if(rc_test_config(rh, "ntopng") != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: rc_test_config failed");
+      goto radius_auth_out;
+    }
 #endif
 
-      /* ********* */
+    /* ********* */
 
-      if(rc_read_dictionary(rh, rc_conf_str(rh, "dictionary")) != 0) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to read dictionary");
-        goto radius_auth_out;
-      }
-
-      if(rc_avpair_add(rh, &send, PW_USER_NAME, user, -1, 0) == NULL) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set username");
-        goto radius_auth_out;
-      }
-      if(rc_avpair_add(rh, &send, PW_USER_PASSWORD, password, -1, 0) == NULL) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set password");
-        goto radius_auth_out;
-      }
-
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Radius: performing auth for user %s\n", user);
-
-      result = rc_auth(rh, 0, send, &received, NULL);
-      if(result == OK_RC) {
-        bool is_admin = false;
-
-        if(radiusAdminGroup[0] != '\0') {
-          VALUE_PAIR *vp = received;
-          char name[sizeof(vp->name)];
-          char value[sizeof(vp->strvalue)];
-
-          while(vp != NULL) {
-            if(rc_avpair_tostr(rh, vp, name, sizeof(name), value, sizeof(value)) == 0) {
-              if((strcmp(name, "Filter-Id") == 0) && (strcmp(value, radiusAdminGroup) == 0))
-                is_admin = true;
-            }
-
-            vp = vp->next;
-          }
-        }
-
-        strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
-        group[NTOP_GROUP_MAXLEN - 1] = '\0';
-        radius_ret = true;
-      } else {
-        switch(result) {
-          case TIMEOUT_RC:
-            ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication timeout for user \"%s\"", user);
-            break;
-          case REJECT_RC:
-            ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication rejected for user \"%s\"", user);
-            break;
-          default:
-            ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication failure[%d]: user \"%s\"", result, user);
-        }
-      }
-
-    radius_auth_out:
-      if(send) rc_avpair_free(send);
-      if(received) rc_avpair_free(received);
-      if(rh) rc_destroy(rh);
-      if(radiusAdminGroup) free(radiusAdminGroup);
-      if(radiusServer) free(radiusServer);
-      if(radiusSecret) free(radiusSecret);
-      if(authServer) free(authServer);
-      if(radius_ret)
-        return(true);
+    if(rc_read_dictionary(rh, rc_conf_str(rh, "dictionary")) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to read dictionary");
+      goto radius_auth_out;
     }
+
+    if(rc_avpair_add(rh, &send, PW_USER_NAME, user, -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set username");
+      goto radius_auth_out;
+    }
+    if(rc_avpair_add(rh, &send, PW_USER_PASSWORD, password, -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set password");
+      goto radius_auth_out;
+    }
+
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Radius: performing auth for user %s\n", user);
+
+    result = rc_auth(rh, 0, send, &received, NULL);
+    if(result == OK_RC) {
+      bool is_admin = false;
+
+      if(radiusAdminGroup[0] != '\0') {
+        VALUE_PAIR *vp = received;
+        char name[sizeof(vp->name)];
+        char value[sizeof(vp->strvalue)];
+
+        while(vp != NULL) {
+          if(rc_avpair_tostr(rh, vp, name, sizeof(name), value, sizeof(value)) == 0) {
+            if((strcmp(name, "Filter-Id") == 0) && (strcmp(value, radiusAdminGroup) == 0))
+              is_admin = true;
+          }
+
+          vp = vp->next;
+        }
+      }
+
+      strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
+      group[NTOP_GROUP_MAXLEN - 1] = '\0';
+      radius_ret = true;
+    } else {
+      switch(result) {
+        case TIMEOUT_RC:
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication timeout for user \"%s\"", user);
+          break;
+        case REJECT_RC:
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication rejected for user \"%s\"", user);
+          break;
+        default:
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication failure[%d]: user \"%s\"", result, user);
+      }
+    }
+
+  radius_auth_out:
+    if(send) rc_avpair_free(send);
+    if(received) rc_avpair_free(received);
+    if(rh) rc_destroy(rh);
+    if(radiusAdminGroup) free(radiusAdminGroup);
+    if(radiusServer) free(radiusServer);
+    if(radiusSecret) free(radiusSecret);
+    if(authServer) free(authServer);
+    if(radius_ret)
+      return(true);
   }
 #endif
 
@@ -1843,7 +1844,7 @@ bool Ntop::mustChangePassword(const char *user) {
 
   if ((strcmp(user, "admin") == 0)
       && (ntop->getRedis()->get((char *)CONST_DEFAULT_PASSWORD_CHANGED, val, sizeof(val)) < 0
-	  || val[0] == '0'))
+          || val[0] == '0'))
     return true;
 
   return false;
@@ -1886,8 +1887,8 @@ bool Ntop::changeUserFullName(const char * username, const char * full_name) con
     return false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
-			       "Changing full name to %s for %s",
-			       full_name, username);
+                               "Changing full name to %s for %s",
+                               full_name, username);
 
   snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
   ntop->getRedis()->set(key, full_name, 0);
@@ -1938,8 +1939,8 @@ bool Ntop::changeAllowedIfname(char *username, char *allowed_ifname) const {
     column_slash[1] = column_slash[2] = '/';
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
-			       "Changing allowed ifname to %s for %s",
-			       allowed_ifname, username);
+                               "Changing allowed ifname to %s for %s",
+                               allowed_ifname, username);
 
   char key[64];
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
@@ -1960,8 +1961,8 @@ bool Ntop::changeUserHostPool(const char * username, const char * host_pool_id) 
     return false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
-			       "Changing host pool id to %s for %s",
-			       host_pool_id, username);
+                               "Changing host pool id to %s for %s",
+                               host_pool_id, username);
 
   char key[64];
   snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
@@ -1982,8 +1983,8 @@ bool Ntop::changeUserLanguage(const char * username, const char * language) cons
     return false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
-			       "Changing user language %s for %s",
-			       language, username);
+                               "Changing user language %s for %s",
+                               language, username);
 
   char key[64];
   snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
@@ -2005,8 +2006,8 @@ bool Ntop::changeUserPermission(const char * username, bool allow_pcap_download)
     return false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
-			       "Changing user permission [allow-pcap-download: %s] for %s",
-			       allow_pcap_download ? "true" : "false", username);
+                               "Changing user permission [allow-pcap-download: %s] for %s",
+                               allow_pcap_download ? "true" : "false", username);
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, username);
 
@@ -2028,8 +2029,8 @@ bool Ntop::changeUserHistoricalFlowPermission(const char * username, bool allow_
     return false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
-			       "Changing user permission [allow-historical-flow: %s] for %s",
-			       allow_historical_flow ? "true" : "false", username);
+                               "Changing user permission [allow-historical-flow: %s] for %s",
+                               allow_historical_flow ? "true" : "false", username);
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, username);
 
@@ -2104,8 +2105,8 @@ bool Ntop::existsUser(const char * username) const {
 /* ******************************************* */
 
 bool Ntop::addUser(char *username, char *full_name, char *password, char *host_role,
-		   char *allowed_networks, char *allowed_ifname, char *host_pool_id,
-		   char *language, bool allow_pcap_download, bool allow_historical_flow) {
+                   char *allowed_networks, char *allowed_ifname, char *host_pool_id,
+                   char *language, bool allow_pcap_download, bool allow_historical_flow) {
   char key[CONST_MAX_LEN_REDIS_KEY];
   char password_hash[33];
   char new_user_id_buf[8];
@@ -2321,20 +2322,20 @@ void Ntop::fixPath(char *str, bool replaceDots) {
       Allowed windows path and file characters:
       https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#win32_file_namespaces
     */
-	  if (str[i] == '/')
-		  str[i] = '\\';
-	  else if (str[i] == '\\')
-		  continue;
-	  else if ((i == 1) && (str[i] == ':')) // c:\\...
-		  continue;
-	  else if (str[i] == ':' || str[i] == '"' || str[i] == '|' || str[i] == '?' || str[i] == '*')
+          if (str[i] == '/')
+                  str[i] = '\\';
+          else if (str[i] == '\\')
+                  continue;
+          else if ((i == 1) && (str[i] == ':')) // c:\\...
+                  continue;
+          else if (str[i] == ':' || str[i] == '"' || str[i] == '|' || str[i] == '?' || str[i] == '*')
       str[i] = '_';
 #endif
 
     if(replaceDots) {
       if((i > 0) && (str[i] == '.') && (str[i-1] == '.')) {
-	// ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid path detected %s", str);
-	str[i-1] = '_', str[i] = '_'; /* Invalidate the path */
+        // ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid path detected %s", str);
+        str[i-1] = '_', str[i] = '_'; /* Invalidate the path */
       }
     }
   }
@@ -2378,10 +2379,10 @@ char* Ntop::getValidPath(char *__path) {
   for(int i = 0; i < (int)COUNT_OF(dirs); i++) {
     if(dirs[i]
        /*
-	  Ignore / as when you start ntopng as a
-	  service you might have /scripts or /httpdocs
-	  on your filesystem fooling ntopng
-	  initialization and thus breaking averything
+          Ignore / as when you start ntopng as a
+          service you might have /scripts or /httpdocs
+          on your filesystem fooling ntopng
+          initialization and thus breaking averything
        */
        && strcmp(dirs[i], "/")
        ) {
@@ -2391,8 +2392,8 @@ char* Ntop::getValidPath(char *__path) {
       fixPath(path);
 
       if(stat(path, &buf) == 0) {
-	free(__path);
-	return(strdup(path));
+        free(__path);
+        return(strdup(path));
       }
     }
   }
@@ -2408,7 +2409,7 @@ void Ntop::daemonize() {
   int childpid;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "Parent process is exiting (this is normal)");
+                               "Parent process is exiting (this is normal)");
 
   signal(SIGPIPE, SIG_IGN);
   signal(SIGHUP,  SIG_IGN);
@@ -2425,7 +2426,7 @@ void Ntop::daemonize() {
 
   if((childpid = fork()) < 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Occurred while daemonizing (errno=%d)",
-				 errno);
+                                 errno);
   else {
     if(!childpid) {
       /* child */
@@ -2434,7 +2435,7 @@ void Ntop::daemonize() {
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Bye bye: I'm becoming a daemon...");
       rc = chdir("/");
       if(rc != 0)
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while moving to / directory");
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while moving to / directory");
 
       setsid();  /* detach from the terminal */
 
@@ -2519,7 +2520,7 @@ NetworkInterface* Ntop::getNetworkInterface(const char *name, lua_State* vm) {
 
   if(vm && getInterfaceAllowed(vm, allowed_ifname)) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Forcing allowed interface. [requested: %s][selected: %s]",
-				 name, allowed_ifname);
+                                 name, allowed_ifname);
     return getNetworkInterface(allowed_ifname);
   }
 
@@ -2544,7 +2545,7 @@ NetworkInterface* Ntop::getNetworkInterface(const char *name, lua_State* vm) {
       NetworkInterface *ret_iface = isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
 
       if(ret_iface)
-	return(ret_iface);
+        return(ret_iface);
     }
   }
 
@@ -2574,7 +2575,7 @@ bool Ntop::registerInterface(NetworkInterface *_if) {
   for(int i = 0; i < num_defined_interfaces; i++) {
     if(strcmp(iface[i]->get_name(), _if->get_name()) == 0) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Skipping duplicated interface %s", _if->get_description());
+                                   "Skipping duplicated interface %s", _if->get_description());
 
       rv = false;
       goto out;
@@ -2583,7 +2584,7 @@ bool Ntop::registerInterface(NetworkInterface *_if) {
 
   if(num_defined_interfaces < MAX_NUM_DEFINED_INTERFACES) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Registered interface %s [id: %d]",
-				 _if->get_description(), _if->get_id());
+                                 _if->get_description(), _if->get_id());
     iface[num_defined_interfaces++] = _if;
 
     rv = true;
@@ -2631,9 +2632,9 @@ void Ntop::addToPool(char *host_or_mac, u_int16_t user_pool_id) {
 
 #ifdef HOST_POOLS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_INFO,
-			       "Adding %s as host pool member [pool id: %i]",
-			       host_or_mac,
-			       user_pool_id);
+                               "Adding %s as host pool member [pool id: %i]",
+                               host_or_mac,
+                               user_pool_id);
 #endif
 
   snprintf(pool_buf, sizeof(pool_buf), "%u", user_pool_id);
@@ -2654,7 +2655,7 @@ void Ntop::checkReloadHostPools() {
       NetworkInterface *iface;
 
       if((iface = ntop->getInterface(i)) != NULL)
-	iface->reloadHostPools();
+        iface->reloadHostPools();
     }
   }
 }
@@ -2801,8 +2802,8 @@ void Ntop::checkShutdownWhenDone() {
 
       /* Check all the interfaces reading from pcap files if they are done with their activities. */
       if(iface->read_from_pcap_dump() && !iface->read_from_pcap_dump_done())
-	/* iface isn't done yet */
-	return;
+        /* iface isn't done yet */
+        return;
     }
 
     /* Here all interface reading from pcap files are done. */
@@ -2876,7 +2877,7 @@ void Ntop::shutdownInterfaces() {
       stats->print();
       iface[i]->shutdown();
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]",
-				   iface[i]->get_description());
+                                   iface[i]->get_description());
     }
   }
 
@@ -2888,7 +2889,7 @@ void Ntop::shutdownInterfaces() {
       stats->print();
       iface[i]->shutdown();
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]",
-				   iface[i]->get_description());
+                                   iface[i]->get_description());
     }
   }
 
@@ -2939,8 +2940,8 @@ void Ntop::shutdownAll() {
     int rc = unlink(ntop->getPrefs()->get_pid_path());
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted PID %s: [rc: %d][%s]",
-				 ntop->getPrefs()->get_pid_path(),
-				 rc, strerror(errno));
+                                 ntop->getPrefs()->get_pid_path(),
+                                 rc, strerror(errno));
   }
 #endif
 #endif
@@ -3069,8 +3070,8 @@ void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client, lu
 #ifdef NTOPNG_PRO
 
 bool Ntop::addIPToLRUMatches(u_int32_t client_ip,
-			     u_int16_t user_pool_id,
-			     char *label, char *ifname) {
+                             u_int16_t user_pool_id,
+                             char *label, char *ifname) {
   for(int i=0; i<num_defined_interfaces; i++) {
     if(iface[i]->is_bridge_interface() && (strcmp(iface[i]->get_name(), ifname) == 0)) {
       iface[i]->addIPToLRUMatches(client_ip, user_pool_id, label);
@@ -3097,8 +3098,8 @@ bool Ntop::addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) {
 /* ******************************************* */
 
 DeviceProtoStatus Ntop::getDeviceAllowedProtocolStatus(DeviceType dev_type,
-						       ndpi_protocol proto, u_int16_t pool_id,
-						       bool as_client) {
+                                                       ndpi_protocol proto, u_int16_t pool_id,
+                                                       bool as_client) {
   /* Check if this application protocol is allowd for the specified device type */
   DeviceProtocolBitmask *bitmask = getDeviceAllowedProtocols(dev_type);
   NDPI_PROTOCOL_BITMASK *direction_bitmask = as_client ? (&bitmask->clientAllowed) : (&bitmask->serverAllowed);
@@ -3323,7 +3324,7 @@ bool Ntop::addLocalNetwork(char *_net) {
 
   if(id >= CONST_MAX_NUM_NETWORKS) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s",
-				 id, _net);
+                                 id, _net);
     return(false);
   }
 
@@ -3361,7 +3362,7 @@ bool Ntop::addLocalNetwork(char *_net) {
 
     for(u_int i=0, j=0; i<len; i++) {
       if(isprint(alias[i]))
-	out[j++] = alias[i];
+        out[j++] = alias[i];
     }
 
     local_network_aliases[id] = strdup(out);
@@ -3511,21 +3512,21 @@ void Ntop::initPing() {
     case interface_type_PF_RING:
     case interface_type_PCAP:
       {
-	char *name = iface[i]->get_name();
-	Ping *p = new (std::nothrow)Ping(name);
+        char *name = iface[i]->get_name();
+        Ping *p = new (std::nothrow)Ping(name);
 
-	if(p) {
-	  ping[std::string(name)] = p;
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created pinger for %s", name);
-	} else
-	  ntop->getTrace()->traceEvent(TRACE_WARNING,
-				       "Unable to create ping for interface %s", name);
+        if(p) {
+          ping[std::string(name)] = p;
+          ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created pinger for %s", name);
+        } else
+          ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                       "Unable to create ping for interface %s", name);
       }
       break;
 
     default:
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skipping pinger for %s [ifType: %u]",
-				   iface[i]->get_name(), iface[i]->getIfType());
+                                   iface[i]->get_name(), iface[i]->getIfType());
       /* Nothing to do for other interface types */
       break;
     }
@@ -3606,7 +3607,7 @@ void Ntop::setZoneInfo() {
       char line[256];
 
       if(fgets(line, sizeof(line), fp) != NULL)
-	zoneinfo = strdup(line);
+        zoneinfo = strdup(line);
 
       pclose(fp);
     }
@@ -3626,8 +3627,8 @@ void Ntop::setZoneInfo() {
 
     while(rc > 0) {
       if(buf[rc] == '/') {
-	if(++num_slash == 2)
-	  break;
+        if(++num_slash == 2)
+          break;
       }
 
       rc--;
@@ -3702,8 +3703,8 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
   if(*iface_id != -1) {
     for(int i=0; i<num_defined_interfaces; i++) {
       if(iface[i]->get_id() == *iface_id) {
-	old_iface = iface[i], slot_id = i;
-	break;
+        old_iface = iface[i], slot_id = i;
+        break;
       }
     }
   }
@@ -3711,17 +3712,17 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
   try {
     errno = 0;
     new_iface = new PcapInterface((const char*)path,
-				  (u_int8_t)ntop->get_num_interfaces(),
-				  true /* delete pcap when done */);
+                                  (u_int8_t)ntop->get_num_interfaces(),
+                                  true /* delete pcap when done */);
 
     if(old_iface == NULL) {
       /* Allocate new interface */
 
       if(registerInterface(new_iface)) {
-	initInterface(new_iface);
-	new_iface->allocateStructures();
-	new_iface->startPacketPolling();
-	*iface_id = new_iface->get_id();
+        initInterface(new_iface);
+        new_iface->allocateStructures();
+        new_iface->startPacketPolling();
+        *iface_id = new_iface->get_id();
       }
     } else {
       NetworkInterface *old = iface[slot_id];
@@ -3750,8 +3751,8 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
 
   } catch(int err) {
     getTrace()->traceEvent(TRACE_ERROR,
-			   "Unable to open interface %s with pcap [%d]: %s",
-			   path, err, strerror(err));
+                           "Unable to open interface %s with pcap [%d]: %s",
+                           path, err, strerror(err));
 
     ret = false;
   }
