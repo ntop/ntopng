@@ -329,23 +329,29 @@ page_utils.print_navbar(title, url,
                   page_name = "sites",
                   label = i18n("sites_page.sites"),
                },
-                              {
-                                 hidden = not charts_available,
-                                 active = page == "historical",
-                                 page_name = "historical",
-                                 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
-                              },
-                              {
-                                 hidden = have_nedge or not ifstats or table.empty(ifstats.profiles),
-                                 active = page == "trafficprofiles",
-                                 page_name = "trafficprofiles",
-                                 label = "<i class=\"fas fa-lg fa-user-md\"></i>",
-                              },
-                              {
-                                 hidden = not has_traffic_recording_page,
-                                 active = page == "traffic_recording",
-                                 page_name = "traffic_recording",
-                                 label = "<i class='fas fa-lg fa-hdd'  title='"..i18n("traffic_recording.traffic_recording").."'></i>",
+			      {
+				 hidden = not charts_available,
+				 active = page == "historical",
+				 page_name = "historical",
+				 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
+			      },
+			      {
+				 hidden = have_nedge or not ifstats or table.empty(ifstats.profiles),
+				 active = page == "trafficprofiles",
+				 page_name = "trafficprofiles",
+				 label = "<i class=\"fas fa-lg fa-user-md\"></i>",
+			      },
+			      {
+				 hidden = true, -- not ntop.isEnterprise(),
+				 active = page == "host_rules",
+				 page_name = "host_rules",
+				 label = '<i class="fas fa-pencil-ruler" title='..i18n("if_stats_config.host_rules")..'></i>',
+			      },
+			      {
+				 hidden = not has_traffic_recording_page,
+				 active = page == "traffic_recording",
+				 page_name = "traffic_recording",
+				 label = "<i class='fas fa-lg fa-hdd' title='"..i18n("traffic_recording.traffic_recording").."'></i>",
                },
                               {
                                  hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
@@ -1527,6 +1533,10 @@ print [[
 
    </script>
 ]]
+elseif(page == "host_rules") then
+  template.render("pages/interface/host_rules.template", { 
+    ifid = tonumber(ifstats.id),
+  })
 
 elseif(page == "traffic_recording" and has_traffic_recording_page) then
    local master_ifid = interface.getMasterInterfaceId()

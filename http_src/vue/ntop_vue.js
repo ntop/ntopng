@@ -22,6 +22,7 @@ import { default as PageHostDetailsApplications } from "./page-host-details-appl
 import { default as PageHostDetailsTraffic } from "./page-host-details-traffic.vue";
 import { default as PageHostDetailsPackets } from "./page-host-details-packets.vue";
 import { default as PageHostDetailsFlowSankey } from "./page-host-details-flow-sankey.vue";
+import { default as PageHostRules } from "./page-host-rules.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -35,6 +36,7 @@ import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as TabList } from "./tab-list.vue";
 import { default as Sankey } from "./sankey.vue";
+import { default as NoteList } from "./note-list.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -50,6 +52,7 @@ import { default as ModalFilters } from "./modal-filters.vue";
 import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
+import { default as ModalAddHostRules } from "./modal-add-host-rules.vue";
 
 let ntopVue = {
     // pages
@@ -65,6 +68,7 @@ let ntopVue = {
     PageHostSSH: PageHostSSH,
     PageHomeMap: PageHomeMap,
     PageSankey: PageSankey,
+    PageHostRules: PageHostRules,
 
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,
@@ -84,6 +88,7 @@ let ntopVue = {
     SelectSearch: SelectSearch,
     TabList: TabList,
     Sankey: Sankey,
+    NoteList: NoteList,
     
     // list
     ListTimeseries: ListTimeseries,
@@ -99,6 +104,7 @@ let ntopVue = {
     ModalSnapshot: ModalSnapshot,
     ModalAddDeviceExclusion: ModalAddDeviceExclusion,
     ModalEditDeviceExclusion: ModalEditDeviceExclusion,
+    ModalAddHostRules: ModalAddHostRules,
 
     Vue: Vue,
 };

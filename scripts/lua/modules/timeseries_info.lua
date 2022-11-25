@@ -225,8 +225,6 @@ local community_timeseries = {
   { schema = "influxdb:rtt",                  id = timeseries_id.influxdb, label = i18n("graphs.num_ms_rtt"),                     priority = 0, measure_unit = "ms",    scale = 0, timeseries = { millis_rtt       = { label = i18n('graphs.num_ms_rtt'),     color = timeseries_info.get_timeseries_color('default') } } },
 
   -- active_monitoring.lua (Active Monitoring): --
-
-  -- active_monitoring.lua (Active Monitoring): --
   { schema = "top:snmp_if:traffic",           id = timeseries_id.snmp, group = i18n("snmp.top"),                         priority = 2, measure_unit = "bps", scale = 0,    timeseries = { bytes_sent  = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') } } },
   { schema = "snmp_dev:cpu_states",           id = timeseries_id.snmp, label = i18n("about.cpu_load"),                   priority = 0, measure_unit = "number", scale = 0, timeseries = { user_pct    = { label = i18n("snmp.cpuUser"),    color = timeseries_info.get_timeseries_color('default') },  system_pct = { label = i18n("snmp.cpuSystem"), color = timeseries_info.get_timeseries_color('default') },  idle_pct    = { label = i18n("snmp.cpuIdle"),    color = timeseries_info.get_timeseries_color('default') } }, default_visible = true },
   { schema = "snmp_dev:avail_memory",         id = timeseries_id.snmp, label =i18n("snmp.memAvailReal"),                 priority = 0, measure_unit = "number", scale = 0, timeseries = { avail_bytes = { label = i18n("snmp.memAvailReal"),    color = timeseries_info.get_timeseries_color('default') } } },
@@ -575,14 +573,14 @@ function timeseries_info.get_host_rules_schema()
   if has_top_protocols then
     local application_list = interface.getnDPIProtocols()
     for application, _ in pairsByKeys(application_list or {}, asc) do 
-      metric_list[#metric_list + 1] = { label = application, group = i18n('applications_long'), title = application, id = 'top:host:ndpi,protocol:' .. application --[[ here the schema is the ID ]] }
+      metric_list[#metric_list + 1] = { label = application, group = i18n('applications_long'), title = application, id = 'top:host:ndpi', extra_metric = 'protocol:' .. application --[[ here the schema is the ID ]] }
     end
   end
 
   if has_top_categories then
     local category_list = interface.getnDPICategories()
     for category, _ in pairsByKeys(category_list or {}, asc) do 
-      metric_list[#metric_list + 1] = { label = category, group = i18n('categories'), title = category, id = 'top:host:ndpi_categories,category:' .. category --[[ here the schema is the ID ]] }
+      metric_list[#metric_list + 1] = { label = category, group = i18n('categories'), title = category, id = 'top:host:ndpi_categories', extra_metric = 'category:' .. category --[[ here the schema is the ID ]] }
     end
   end
 
