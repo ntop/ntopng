@@ -4610,6 +4610,10 @@ local lang = {
     ["timeseries_list"] = "Timeseries:",
     ["title"] = "Manage Timeseries",
   },
+  ["modal_download_file"] = {
+     ["filename"] = "FileName",
+     ["download"] = "Downlaod",
+  },
   ["ndpi_categories"] = {
     ["Advertisement"] = "Advertisement",
     ["Allowed_Site"] = "Allowed Site",
@@ -5125,6 +5129,7 @@ local lang = {
     ["metric"] = "Metric",
     ["min"] = "Min",
     ["top_applications"] = "Top Applications",
+    ["title_modal_download_file"] = "Export Chart Image as .png",
     ["total"] = "Total",
   },
   ["peers_page"] = {

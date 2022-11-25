@@ -13,7 +13,7 @@
       <template v-slot:extra_buttons>
 	<button v-if="enable_snapshots" class="btn btn-link btn-sm" @click="show_modal_snapshot" :title="_i18n('page_stats.manage_snapshots_btn')"><i class="fas fa-lg fa-camera-retro"></i></button>
 	<button v-if="traffic_extraction_permitted" class="btn btn-link btn-sm" @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i class="fas fa-lg fa-download"></i></button>
-	
+	<button  class="btn btn-link btn-sm" @click="show_modal_download_file" :title="_i18n('page_stats.title_modal_download_file')"><i class="fas fa-lg fa-file-image"></i></button>	
       </template>
     </DataTimeRangePicker>
     <!-- select metric -->
@@ -95,6 +95,13 @@
   id="page_stats_modal_traffic_extraction"
   ref="modal_traffic_extraction">
 </ModalTrafficExtraction>
+
+<ModalDownloadFile
+  ref="modal_download_file"
+  :title="_i18n('page_stats.title_modal_download_file')"
+  ext="png"
+  @download="download_chart_png">
+</ModalDownloadFile>
 </template>
 
 <script setup>
@@ -104,6 +111,7 @@ import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
+import { default as ModalDownloadFile } from "./modal-download-file.vue";
 import { default as AlertInfo } from "./alert-info.vue";
 
 import { default as SelectSearch } from "./select-search.vue";
@@ -140,6 +148,7 @@ const date_time_picker = ref(null);
 const top_applications_table = ref(null);
 const modal_timeseries = ref(null);
 const modal_snapshot = ref(null);
+const modal_download_file = ref(null);
 
 const metrics = ref([]);
 const selected_metric = ref({});
@@ -233,8 +242,8 @@ async function get_metrics(push_custom_metric, force_refresh) {
 	cache_snapshots = await get_snapshots_metrics();
     }
     if(props.enable_snapshots) {
-      let snapshots_metrics = cache_snapshots;
-      snapshots_metrics.forEach((sm) => metrics.push(sm));
+	let snapshots_metrics = cache_snapshots;
+	snapshots_metrics.forEach((sm) => metrics.push(sm));
     }
     /* Order Metrics */
     metrics.sort(NtopUtils.sortAlphabetically);
@@ -366,12 +375,12 @@ async function load_charts_data(timeseries_groups, not_reload) {
     }
     console.log(ts_charts_options);
     console.log(timeseries_groups);
-
+    
     // update timeseries_groups source label
     set_timeseries_groups_source_label(timeseries_groups, ts_charts_options);
     
     let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_charts_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
-
+    
     set_charts_options_items(charts_options);
     if (!source_type.disable_stats) {
 	set_stats_rows(ts_charts_options, timeseries_groups, status);
@@ -617,6 +626,40 @@ function show_modal_traffic_extraction() {
     modal_traffic_extraction.value.show();
 }
 
+function show_modal_download_file() {
+    if (!ts_charts_options?.length) { return; } 
+    let ts_group = last_timeseries_groups_loaded[0];
+    let filename = timeseriesUtils.getSerieName("", null, ts_group);
+    modal_download_file.value.show(filename);
+}
+
+async function download_chart_png(filename) {
+    let chart_image_array_promise = charts.value.map(async (chart) => {
+    	let data_uri = await chart.get_data_uri();
+    	return new Promise((resolve, reject) => {
+    	    let image = new Image();
+    	    image.src = data_uri;
+    	    image.onload = function() {
+    		resolve(image);
+    	    };	    
+    	});
+    });
+    let height = 0;
+    let chart_image_array = await Promise.all(chart_image_array_promise);
+    chart_image_array.forEach((image) => {
+    	height += image.height;
+    }); 
+    let canvas = document.createElement('canvas');
+    let canvas_context = canvas.getContext('2d');
+    canvas.width = chart_image_array[0].width;
+    canvas.height = height;
+    height = 0;
+    chart_image_array.forEach((image) => {
+    	canvas_context.drawImage(image, 0, height, image.width, image.height);
+    	height += image.height;
+    });
+    ntopng_utility.download_URI(canvas.toDataURL(), filename);
+}
 </script>
 
 <style scoped>
