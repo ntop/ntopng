@@ -68,13 +68,16 @@ export const ntopng_utility = function() {
 	    }
 	    return array;
 	},
-	check_and_set_default_interval_time: function() {
+	check_and_set_default_interval_time: function(set_status) {
 	    if (ntopng_url_manager.get_url_entry("epoch_begin") == null
       		|| ntopng_url_manager.get_url_entry("epoch_end") == null) {
 		let default_epoch_begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
 		let default_epoch_end = Number.parseInt(Date.now() / 1000);
 		ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
 		ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
+	    }
+	    if (set_status == true) {
+		
 	    }
 	},
 	from_utc_s_to_server_date: function(utc_seconds) {
@@ -139,6 +142,14 @@ export const ntopng_utility = function() {
 		if (throw_exception == true) { throw err; }
 		return null;
 	    }
+	},
+	download_URI: function(uri, name) {
+	    var link = document.createElement("a");
+	    link.download = name;
+	    link.href = uri;
+	    document.body.appendChild(link);
+	    link.click();
+	    document.body.removeChild(link);
 	},
 	get_random_string: function() {
 	    return Math.random().toString(16).substr(2, 8);
