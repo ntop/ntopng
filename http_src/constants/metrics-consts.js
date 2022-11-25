@@ -202,11 +202,22 @@ const sources_types = [
 	}],
     },
     {
-	//todo_test
-	id: "observation",
-	regex_page_url: "lua\/pro\/enterprise\/observation_points",
-	label: "Observation",
-	query: "obs_point",
+	id: "system",
+	regex_page_url: "lua\/system_stats",
+	label: "System Stats",
+	query: "system",
+	source_def_array: [{
+	    label: "Interface",
+	    sources_function: () => { return [{ label: "System", value: -1 }] },
+	    value: "ifid", 
+	    ui_type: ui_types.hide,
+	}],
+    },
+    {
+	id: "profile",	
+	regex_page_url: "lua\/profile_details",
+	label: "Profile",
+	query: "profile",
 	source_def_array: [{
 	    label: "Interface",
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
@@ -214,10 +225,54 @@ const sources_types = [
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true,
-	    label: "Observation",
+	    label: "Profile",
 	    regex_type: "text",
-	    value: "observation_point",
+	    value: "profile",
 	    ui_type: ui_types.input,
+	}],
+    },
+    {
+    	id: "redis",
+    	regex_page_url: "lua\/monitor\/redis_monitor.lua",
+    	label: "Redis Stats", 
+    	query: "redis",
+	source_def_array: [{
+	    label: "Interface",
+	    sources_function: () => { return [{ label: "Redis", value: -1 }] },
+	    value: "ifid", 
+	    ui_type: ui_types.hide,
+	}],
+    },
+    {
+    	id: "influx",
+    	regex_page_url: "lua\/monitor\/influxdb_monitor.lua",
+    	label: "Influx DB Stats",
+    	query: "influxdb",
+	source_def_array: [{
+	    label: "Interface",
+	    sources_function: () => { return [{ label: "Influx", value: -1 }] },
+	    value: "ifid", 
+	    ui_type: ui_types.hide,
+	}],
+    },
+    {
+	id: "active_monitoring",
+	regex_page_url: "lua\/monitor\/active_monitoring_monitor.lua",
+	label: "Active Monitoring",
+	query: "am",
+	source_def_array: [{
+	    label: "Interface",
+	    sources_function: () => { return [{ label: "", value: -1 }] },
+	    value: "ifid", 
+	    ui_type: ui_types.hide,
+	}, {
+	    main_source_def: true,
+	    label: "Active Monitoring",
+	    sources_url: "lua/rest/v2/get/am_host/list.lua",
+	    value: "host",
+	    disable_tskey: true,
+	    value_map_sources_res: "am_host",
+	    ui_type: ui_types.select,
 	}],
     },
     {
@@ -257,37 +312,6 @@ const sources_types = [
 	    ui_type: ui_types.input,
 	}],
     },
-    {
-	//todo_test
-	id: "hash",
-	regex_page_url: "lua\/hash_table_details",
-	label: "Hash Table",
-	query: "ht",
-	source_def_array: [{
-	    label: "Interface",
-	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
-	    value: "ifid", 
-	    ui_type: ui_types.select,
-	}, {
-	    main_source_def: true,
-	    label: "Hash Table",
-	    regex_type: "text",
-	    value: "hash_table",
-	    ui_type: ui_types.input,
-	}],
-    },
-    {
-	id: "system",
-	regex_page_url: "lua\/system_stats",
-	label: "System Stats",
-	query: "system",
-	source_def_array: [{
-	    label: "Interface",
-	    sources_function: () => { return [{ label: "", value: -1 }] },
-	    value: "ifid", 
-	    ui_type: ui_types.hide,
-	}],
-    },
     // {
     // 	//todo_test
     // 	id: "snmp",
@@ -310,24 +334,25 @@ const sources_types = [
     // 	    ui_type: ui_types.input,
     // 	}],
     // },
-    {
-	id: "profile",	
-	regex_page_url: "lua\/profile_details",
-	label: "Profile",
-	query: "profile",
-	source_def_array: [{
-	    label: "Interface",
-	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
-	    value: "ifid", 
-	    ui_type: ui_types.select,
-	}, {
-	    main_source_def: true,
-	    label: "Profile",
-	    regex_type: "text",
-	    value: "profile",
-	    ui_type: ui_types.input,
-	}],
-    },
+    // {
+    // 	//todo_test
+    // 	id: "observation",
+    // 	regex_page_url: "lua\/pro\/enterprise\/observation_points",
+    // 	label: "Observation",
+    // 	query: "obs_point",
+    // 	source_def_array: [{
+    // 	    label: "Interface",
+    // 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
+    // 	    value: "ifid", 
+    // 	    ui_type: ui_types.select,
+    // 	}, {
+    // 	    main_source_def: true,
+    // 	    label: "Observation",
+    // 	    regex_type: "text",
+    // 	    value: "observation_point",
+    // 	    ui_type: ui_types.input,
+    // 	}],
+    // },
     // {
     // 	id: "n_edge_interface",
     // 	regex_page_url: "lua\/pro\/nedge\/if_stats.lua",
@@ -337,44 +362,6 @@ const sources_types = [
     // 	ui_type: ui_types.select_and_input,
     // 	query: "iface:nedge",
     // },
-    // {
-    // 	id: "redis",
-    // 	regex_page_url: "lua\/monitor\/redis_monitor.lua",
-    // 	label: "Redis",
-    // 	value: "ifid",
-    // 	regex_type: "text",
-    // 	ui_type: ui_types.select_and_input,
-    // 	query: "redis",
-    // },
-    // {
-    // 	id: "influx",
-    // 	regex_page_url: "lua\/monitor\/influxdb_monitor.lua",
-    // 	label: "Influx DB",
-    // 	value: "ifid",
-    // 	regex_type: "text",
-    // 	ui_type: ui_types.select_and_input,
-    // 	query: "influxdb",
-    // },
-    {
-	id: "active_monitoring",
-	regex_page_url: "lua\/monitor\/active_monitoring_monitor.lua",
-	label: "Active Monitoring",
-	query: "am",
-	source_def_array: [{
-	    label: "Interface",
-	    sources_function: () => { return [{ label: "", value: -1 }] },
-	    value: "ifid", 
-	    ui_type: ui_types.hide,
-	}, {
-	    main_source_def: true,
-	    label: "Active Monitoring",
-	    sources_url: "lua/rest/v2/get/am_host/list.lua",
-	    value: "host",
-	    disable_tskey: true,
-	    value_map_sources_res: "am_host",
-	    ui_type: ui_types.select,
-	}],
-    },
 ];
 
 const metricsConsts = function() {

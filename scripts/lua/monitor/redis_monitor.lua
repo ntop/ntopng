@@ -163,7 +163,7 @@ $("#table-redis-stats").datatable({
  ]]
 
 elseif(page == "historical" and charts_available) then 
-  graph_utils.drawNewGraphs(nil, interface.getId())
+   graph_utils.drawNewGraphs({ ifid = -1})
 end
 
 -- #######################################################

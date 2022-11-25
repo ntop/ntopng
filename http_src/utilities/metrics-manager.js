@@ -170,7 +170,7 @@ const get_source_array_from_value_array = async (http_prefix, source_type, sourc
 		source = sources[0];
 	    }
 	} else {
-	    source = { label: source_value, value: source_value };	    
+	    source = { label: source_value, value: source_value };
 	}
 	source_array.push(source);
     }
