@@ -3,6 +3,8 @@ Flow Checks
 
 Flow checks are written in C++ for efficiency reasons. However ntopng also offers a Lua API that can be used to create flow checks. All you need to do is to enable the `Flow User Check Script` behavioural check under the `Settings` menu sidebar. Done that you need to create a script named `custom_flow_lua_script.lua` under `/usr/share/ntopng/scripts/callbacks/checks/flows/`.
 
+.. figure::  ../../../img/flow_user_check_script.png
+
 ntopng has a sample flow script that you can find `here <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks/checks/flows>`_ and that can be used as reference.
 
 Operational Mode

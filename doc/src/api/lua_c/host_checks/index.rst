@@ -3,6 +3,8 @@ Host Checks
 
 Host checks are written in C++ for efficiency reasons. However ntopng also offers a Lua API that can be used to create host checks. All you need to do is to enable the `Host User Check Script` behavioural check under the `Settings` menu sidebar. Done that you need to create a script named `custom_host_lua_script.lua` under `/usr/share/ntopng/scripts/callbacks/checks/hosts/`.
 
+.. figure:: ../../../img/host_user_check_script.png
+
 ntopng has a sample host script that you can find `here <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks/checks/hosts>`_ and that can be used as reference.
 
 Operational Mode
