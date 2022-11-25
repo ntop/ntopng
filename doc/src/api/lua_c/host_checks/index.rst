@@ -44,29 +44,29 @@ Host Object Methods
 - | **host.vlan_id()**
   | Read the host VLAN Id (number)
 
-- | **host.is_unicast**
+- | **host.is_unicast()**
   | Check if host has an unicast IP address (bool)
 
-- | **host.is_multicast**
+- | **host.is_multicast()**
   | Check if host has an multicast IP address (bool)
 
-- | **host.is_broadcast**
+- | **host.is_broadcast()**
   | Check if host has a broadcast IP address (bool)
 
-- | **host.is_blacklisted**
+- | **host.is_blacklisted()**
   | Check if the host is blacklisted (bool)
 
-- | **host.bytes_sent**
+- | **host.bytes_sent()**
   | Read the (total) host bytes sent (number)
 
-- | **host.bytes_rcvd**
+- | **host.bytes_rcvd()**
   | Read the (total) host bytes received (number)
 
-- | **host.bytes**
-  | Read the (total sentplus received) host bytes  (number)
+- | **host.bytes()**
+  | Read the (total sent and received) host bytes (number)
 
-- | **host.l7**
-  | Read the host nDPI protocol statistics  (table)
+- | **host.l7()**
+  | Read the host nDPI protocol statistics (table)
 
 - | **host.triggerAlert(score, message)**
   | Triggers an alert for the selected host. The score parameter (numeric) is used to set the alert score, and the message (string) is used to set the alert string that typically contains a human-readeable message related to the triggered alert.
