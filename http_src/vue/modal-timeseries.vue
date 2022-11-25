@@ -38,7 +38,7 @@
             <b>{{_i18n("modal_timeseries.source")}}</b>
 	  </label>
 	  <div class="col-sm-8">
-	    <input class="form-control" v-model="selected_sources_union_label" type="text" disabled>
+	    <input class="form-control" v-model="selected_sources_union_label" :title="selected_sources_union_label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" type="text" disabled>
 	  </div>
 	</div>
 	<template v-for="(source_def, source_def_index) in selected_source_type.source_def_array">
@@ -245,7 +245,7 @@ function set_regex() {
 }
 
 function get_selected_sources_union_label() {
-    let source_label_array = selected_source_array.value.map((source) => source.label);
+    let source_label_array = selected_source_array.value.filter((source) => source.label != null && source.label != "").map((source) => source.label);
     let label = source_label_array.join(" - ");
     return `${label}`;
 }
@@ -256,11 +256,14 @@ function set_selected_sources_union_label() {
 
 async function set_sources_array() {
     let source_def_array = selected_source_type.value.source_def_array;
+    let sources_array_temp = [];
     for (let i = 0; i < source_def_array.length; i += 1) {
-	sources_array.value[i] = await metricsManager.get_sources(http_prefix, selected_source_type.value.id, source_def_array[i]);
+	let sources = await metricsManager.get_sources(http_prefix, selected_source_type.value.id, source_def_array[i]);
+	sources_array_temp.push(sources);
     }
     let default_source_array = await metricsManager.get_default_source_array(http_prefix, selected_source_type.value);
     selected_source_array.value = default_source_array;
+    sources_array.value = sources_array_temp;
     selected_source_text_array.value = default_source_array.map((s) => s.value);
     set_selected_sources_union_label();
 }
