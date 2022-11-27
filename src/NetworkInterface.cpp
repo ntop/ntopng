@@ -1675,7 +1675,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       trusted_payload_len = trusted_l4_packet_len - sizeof(struct sctphdr);
     } else {
       /* Packet too short: this is a faked packet */
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid SCTP packet received [%u bytes long]", trusted_l4_packet_len);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid SCTP packet received [%u bytes long]",
+				   trusted_l4_packet_len);
       incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
 	       0, len_on_wire, 1);
@@ -2556,6 +2557,15 @@ datalink_check:
 	    goto dissect_packet_end;
 	  }
 	}
+      } else if(ntop->getGlobals()->decode_tunnels() && (iph->protocol == IPPROTO_IP_IN_IP)) {
+	u_short ip_len = ((u_short)iph->ihl * 4);
+
+	ip_offset += ip_len, eth_type = ETHERTYPE_IP;
+
+	if(ip_offset > h->caplen)
+	  goto dissect_packet_end;
+	else
+	  goto decode_packet_eth;
       }
 
       if(vlan_id && ntop->getPrefs()->do_ignore_vlans())
