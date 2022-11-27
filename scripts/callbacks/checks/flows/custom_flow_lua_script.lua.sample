@@ -33,8 +33,12 @@ function dump_flow()
    rsp.l7_proto             = flow.l7_proto()
    rsp.l7_proto_name        = flow.l7_proto_name()
    rsp.direction            = flow.direction()
-
-   io.write("----------------------------\n")
+   rsp.http                 = flow.http()
+   rsp.dns                  = flow.dns()
+   rsp.ssh                  = flow.ssh()
+   rsp.tls                  = flow.tls()
+   
+io.write("----------------------------\n")
    tprint(rsp)
 end
 
@@ -52,7 +56,7 @@ function trigger_dummy_alert()
 end
 
 
--- dump_flow()
+--  dump_flow()
 
 -- IMPORTANT: do not forget this return at the end of the script
 return(0)

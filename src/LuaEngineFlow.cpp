@@ -245,6 +245,66 @@ static int ntop_flow_get_l7_proto_name(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_flow_get_l7_proto_http(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  if(f) {
+    lua_newtable(vm);
+    f->lua_get_http_info(vm);
+  } else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_flow_get_l7_proto_dns(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  if(f) {
+    lua_newtable(vm);
+    f->lua_get_dns_info(vm);
+  } else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_flow_get_l7_proto_ssh(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  if(f) {
+    lua_newtable(vm);
+    f->lua_get_ssh_info(vm);
+  } else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_flow_get_l7_proto_tls_quic(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f = c ? c->flow : NULL;
+
+  if(f) {
+    lua_newtable(vm);
+    f->lua_get_tls_info(vm);
+  } else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static int ntop_trigger_flow_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
@@ -286,6 +346,12 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "l7_proto",         ntop_flow_get_l7_proto         },
   { "l7_proto_name",    ntop_flow_get_l7_proto_name    },
 
+  /* Layer-7 Protocols */
+  { "http",             ntop_flow_get_l7_proto_http    },
+  { "dns",              ntop_flow_get_l7_proto_dns     },
+  { "ssh",              ntop_flow_get_l7_proto_ssh     },
+  { "tls_quic",         ntop_flow_get_l7_proto_tls_quic},
+  
   { "direction",        ntop_flow_get_direction        },
 
   { "triggerAlert",     ntop_trigger_flow_alert        },

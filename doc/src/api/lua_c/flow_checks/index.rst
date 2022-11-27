@@ -82,5 +82,17 @@ Flow Object Methods
 - | **flow.direction()**
   | Read the flow (e.g. local2remote) direction (string)
 
+- | **flow.http()**
+  | For HTTP flows, it reports protocol information (e.g. HTTP URL or return code) or nil otherwise (table)
+
+- | **flow.dns()**
+  | For DNS flows, it reports protocol information (e.g. domain name) or nil otherwise (table)
+
+- | **flow.ssh()**
+  | For SSH flows, it reports protocol information (e.g. SSH client signatute) or nil otherwise (table)
+
+- | **flow.tls_quic()**
+  | For TLS/QUIC flows, it reports protocol information (e.g. TLS ciphers or SNI) or nil otherwise (table)
+
 - | **flow.triggerAlert(score, message)**
   | Triggers an alert for the selected flow. The score parameter (numeric) is used to set the alert score, and the message (string) is used to set the alert string that typically contains a human-readeable message related to the triggered alert.
