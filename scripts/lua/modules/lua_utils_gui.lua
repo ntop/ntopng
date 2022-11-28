@@ -1241,6 +1241,47 @@ end
 
 -- ##############################################
 
+-- @brief This function converts the SNMP interface name to the corresponding port index.
+-- @params device_ip: snmp device ip
+--         port_name: string, interface name
+function get_portidx_by_name(device_ip, port_name)
+   -- SNMP is available only with Pro version at least
+   if ntop.isPro() then
+      local cached_dev = _snmp_devices[device_ip]
+
+      if(cached_dev == nil) then
+         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+	 local snmp_cached_dev = require "snmp_cached_dev"
+
+	 cached_dev = snmp_cached_dev:get_interface_names(device_ip)
+	 _snmp_devices[device_ip] = cached_dev
+      end
+
+      if (cached_dev) and (cached_dev["interfaces"]) then
+
+         -- SNMP lookup
+         for idx, info in pairs(cached_dev["interfaces"]) do
+            if info.name and info.name == port_name then
+               return idx
+            end
+         end
+         
+	 -- No SNMP configured: last resort use exporters
+	 local snmp_mappings = require "snmp_mappings"
+
+	 local idx = snmp_mappings.get_iface_idx(device_ip, port_name)
+	 if idx then
+	    return idx
+	 end
+
+      end
+   end
+
+   return nil
+end
+
+-- ##############################################
+
 -- @brief Given a table of values, if available, it's going to format the values with the standard
 --        info and then return the same table formatted
 function format_dns_query_info(dns_info)

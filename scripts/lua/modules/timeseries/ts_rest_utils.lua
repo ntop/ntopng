@@ -15,14 +15,13 @@ function ts_rest_utils.get_timeseries(http_context)
    local tstart    = http_context.epoch_begin
    local tend      = http_context.epoch_end
    local compare_backward = http_context.ts_compare
-   local tags      = http_context.ts_query
+   local tags      = http_context.tags
    local extended_times  = http_context.extended
    local ts_aggregation  = http_context.ts_aggregation
    local no_fill = tonumber(http_context.no_fill)
 
    tstart = tonumber(tstart) or (os.time() - 3600)
    tend = tonumber(tend) or os.time()
-   tags = tsQueryToTags(tags)
    if http_context.tskey then
       -- This can contain a MAC address for local broadcast domain hosts
       local tskey = http_context.tskey

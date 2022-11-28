@@ -86,4 +86,21 @@ end
 
 -- ################################################################################
 
+function snmp_mappings.get_iface_idx(snmp_device_ip, if_name)
+   local ports
+   
+   _cache_device(snmp_device_ip)   
+   ports = _localcache[snmp_device_ip]
+   
+   for idx, info in pairs(ports) do
+      if info.name and info.name == if_name then
+         return idx
+      end
+   end
+
+   return nil
+end
+
+-- ################################################################################
+
 return snmp_mappings
