@@ -1872,7 +1872,6 @@ local known_parameters = {
    ["toggle_remote_to_remote_alerts"]              = validateBool,
    ["toggle_dropped_flows_alerts"]                 = validateBool,
    ["toggle_malware_probing"]                      = validateBool,
-   ["toggle_potentially_dangerous_protocols_alerts"] = validateBool,
    ["toggle_device_protocols_alerts"]              = validateBool,
    ["toggle_elephant_flows_alerts"]                = validateBool,
    ["toggle_ip_reassignment_alerts"]               = validateBool,
