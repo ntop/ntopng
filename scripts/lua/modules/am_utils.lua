@@ -316,8 +316,6 @@ end
 -- Only used for the formatting, don't use as a key as the "/"
 -- character is escaped in HTTP parameters
 function am_utils.formatAmHost(host, measurement, isHtml)
-  local m_info = am_utils.getMeasurementInfo(measurement)
-
   --if m_info and m_info.force_host then
     -- Only a single host is present, return it
     --return(host)
@@ -332,7 +330,6 @@ function am_utils.formatAmHost(host, measurement, isHtml)
 
   -- Make a smarter way to determine infrastructure labels
   if is_infr then
-
      -- Make a nicer label for infrastructure hosts
      -- If the am host contains a name for the infrastructure use it
      if isHtml then

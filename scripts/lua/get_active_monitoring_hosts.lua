@@ -41,6 +41,8 @@ for key, am_host in pairs(am_hosts) do
     local column_ifname = ""
     local last_update = am_utils.getLastAmUpdate(am_host.host, am_host.measurement)
     local alerted = 0
+    local column_label = am_host.label
+    local column_html_label = ""
 
     if (last_update) and (am_host.measurement == 'throughput') then
       last_update.value = format_utils.bitsToSize(last_update.value * 8 --[[ Stored in bytes ]])
@@ -50,6 +52,27 @@ for key, am_host in pairs(am_hosts) do
        column_last_update = last_update.when
        column_last_value = last_update.value
        column_last_ip = last_update.ip
+    end
+
+    if not isEmptyString(column_last_ip) then
+      if string.starts(column_last_ip, 'http') then
+        column_last_ip = split(column_last_ip, '//')[2]
+        if string.find(column_last_ip, '/') then
+          column_last_ip = split(column_last_ip, '/')[1]
+        end
+      end
+    end
+
+    if(am_host.is_infrastructure) then
+      package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+      local infrastructure_utils = require("infrastructure_utils")
+      local infrastructure_instance = infrastructure_utils.get_instance_by_host(column_last_ip)
+
+      if infrastructure_instance then
+        column_label = string.format('%s [Infrastructure]', infrastructure_instance.alias)
+        column_html_label = string.format('%s <i class="fas fa-building"></i>', infrastructure_instance.alias)
+        am_host.host = column_last_ip
+      end
     end
 
     if am_host.measurement == 'icmp' or am_host.measurement == 'cicmp' then
@@ -76,16 +99,18 @@ for key, am_host in pairs(am_hosts) do
 	column_jitter = string.format("%.1f / %.1f %s", last_update.mean, last_update.jitter, jitter_unit)
     end
 
-    local html_label = am_utils.formatAmHost(am_host.host, am_host.measurement, true)
+    if isEmptyString(column_html_label) then
+      column_html_label = am_utils.formatAmHost(am_host.host, am_host.measurement, true)
+    end
 
     if(column_ifname ~= "") then
-       html_label = html_label .. " [ <span class=\"fas fa-ethernet\"></span> "..column_ifname.." ]"
+      column_html_label = column_html_label .. " [ <span class=\"fas fa-ethernet\"></span> "..column_ifname.." ]"
     end
     
     res[#res + 1] = {
        key = key,
-       label = am_host.label,
-       html_label = html_label,
+       label = column_label,
+       html_label = column_html_label,
        host = am_host.host,
        alerted = alerted,
        measurement = i18n(m_info.i18n_label),

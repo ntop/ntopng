@@ -12,12 +12,12 @@
                     <thead>
                         <tr>
                         <th>{{i18n("flow_details.url")}}</th>
+                        <th>{{i18n("system_stats.last_ip")}}</th>
 			                  <th>{{i18n("active_monitoring_stats.measurement")}}</th>
                         <th>{{i18n("chart")}}</th>
                         <th>{{i18n("threshold")}}</th>
                         <th>{{i18n("active_monitoring_stats.last_24_hours")}}</th>
                         <th>{{i18n("active_monitoring_stats.last_measurement")}}</th>
-                        <th>{{i18n("system_stats.last_ip")}}</th>
                         <th>{{i18n("active_monitoring_stats.measurement")}}</th>
                         <th>{{i18n("active_monitoring_stats.alerted")}}</th>
                         <th>{{i18n("active_monitoring_stats.pool")}}</th>
@@ -541,6 +541,7 @@ sorted_measurements.sort(function(a, b){
   dtConfig = DataTableUtils.extendConfig(dtConfig, {
       lengthChange: (get_host === ""),
       paging: (get_host === ""),
+      order: [[ 1 /* Last IP */, "desc" ]],
       initComplete: function(settings, data) {
 
           if (get_host != "") {
@@ -569,6 +570,10 @@ sorted_measurements.sort(function(a, b){
 
                   return (row.label);
               }
+          },
+          {
+              data: 'last_ip',
+              className: 'dt-body-right dt-head-center text-nowrap'
           },
           {
               data: 'measurement',
@@ -621,10 +626,6 @@ sorted_measurements.sort(function(a, b){
               data: 'last_mesurement_time',
               className: 'text-center text-nowrap',
   render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS,
-          },
-          {
-              data: 'last_ip',
-              className: 'dt-body-right dt-head-center text-nowrap'
           },
           {
               data: 'last_measure',
