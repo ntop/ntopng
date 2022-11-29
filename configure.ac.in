@@ -7,53 +7,42 @@ CPPFLAGS="${CPPFLAGS} -Wno-address-of-packed-member -Wno-unused-function"
 AC_PROG_CPP
 AC_PROG_CXX
 
-dnl> On Ubuntu do sudo apt-get install -y clang-10  clang-tools-10
 AC_ARG_WITH(leak-sanitizer,     [  --with-leak-sanitizer   Build with support for the LLVM address leak and sanitizer])
 AS_IF([test "${with_leak_sanitizer+set}" = set],[
     CFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
     CPPFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
     LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak"
-    if test $SYSTEM = "Darwin"; then
-        CC=clang
-        CXX="clang++ -fPIE"
-    else
-       if test -x "/usr/bin/clang-10"; then
-           CC=clang-10
-           CXX="clang++-10 -fPIE"
-       elif test -x "/usr/bin/clang-11"; then
-           CC=clang-11
-           CXX="clang++-11 -fPIE"
-       else
-           echo "Could not find clang"
-           exit 1
-       fi
-    fi
-    CPP=$CC
+    USE_CLANG=yes
 ])
 
-dnl> On Ubuntu do sudo apt-get install -y clang-10  clang-tools-10
 AC_ARG_WITH(sanitizer,     [  --with-sanitizer   Build with support for the LLVM address sanitizer])
 AS_IF([test "${with_sanitizer+set}" = set],[
     CFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
     CPPFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
     LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment"
+    USE_CLANG=yes
+])
+
+dnl> On Ubuntu do sudo apt-get install -y clang-10  clang-tools-10
+if test "x$USE_CLANG" = xyes; then
     if test $SYSTEM = "Darwin"; then
         CC=clang
         CXX="clang++ -fPIE"
     else
        if test -x "/usr/bin/clang-10"; then
-           CC=clang-10
-           CXX="clang++-10 -fPIE"
+           CLANG_VERSION=10
        elif test -x "/usr/bin/clang-11"; then
-           CC=clang-11
-           CXX="clang++-11 -fPIE"
+           CLANG_VERSION=11
        else
-           echo "Could not find clang"
+           echo "Could not find clang. Please install clang-11 clang-tools-11"
            exit 1
        fi
+
+       CC=clang-$CLANG_VERSION
+       CXX="clang++-$CLANG_VERSION -fPIE"
     fi
     CPP=$CC
-])
+fi
 
 dnl> Add /usr/local/ /opt/local
 CFLAGS="${CFLAGS} -I${HERE} -I${HERE}/include"
