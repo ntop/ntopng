@@ -310,8 +310,7 @@ void ZMQCollectorInterface::collect_flows() {
 	size = zmq_recv(items[subscriber_id].socket, &h0, sizeof(h0), 0);
 
 	if(size == sizeof(struct zmq_msg_hdr_v0)) {
-	  /* Legacy version */
-	  msg_id = 0, source_id = 0;
+	  /* Legacy version (msg_id = 0, source_id = 0) */
           publisher_version = h0.version;
 
 	} else {
@@ -348,45 +347,43 @@ void ZMQCollectorInterface::collect_flows() {
           }
         }
 
-	/*
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[size: %u][source_id: %u]", size, source_id);
-	*/
-	
-	if(source_id_last_msg_id.find(source_id) == source_id_last_msg_id.end())
-	  last_msg_id = msg_id;
-	else
-	  last_msg_id = source_id_last_msg_id[source_id];
-	
 #ifdef ZMQ_DEBUG
+	//ntop->getTrace()->traceEvent(TRACE_NORMAL, "[size: %u][source_id: %u]", size, source_id);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[topic: %s]", h->url);
 #endif
 
+        /* Read last message ID for the current source ID */	
+	if(source_id_last_msg_id.find(source_id) != source_id_last_msg_id.end()) {
+	  last_msg_id = source_id_last_msg_id[source_id];
+	
 #ifdef MSG_DEBUG
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[subscriber_id: %u][message source: %u]"
-				     "[msg_id: %u][last_msg_id: %u][lost: %i]",
-				     subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[subscriber_id: %u][message source: %u]"
+				       "[msg_id: %u][last_msg_id: %u][lost: %i]",
+				       subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
 #endif
 	
-	if(msg_id < last_msg_id) {
+	  if(msg_id < last_msg_id) {
+            /* Start over (just reset source_id_last_msg_id) */
 #ifdef MSG_DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "ROLLBACK [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u]", 
-				       subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops);
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "ROLLBACK [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u]", 
+				         subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops);
 #endif
-
-	  ; /* Start over */
-	} else if(last_msg_id > 0) {
-	  int32_t diff = msg_id - last_msg_id;
+	  } else {
+            /* Compute delta (this message ID - last message ID) */
+	    int32_t diff = msg_id - last_msg_id;
 	  
-	  if(diff > 1) {
-	    recvStats.zmq_msg_drops += diff - 1;
-	      
+	    if(diff > 1) {
+              /* Lost message detected */
+	      recvStats.zmq_msg_drops += diff - 1;
 #ifdef MSG_DEBUG
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "DROP [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
-					 subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "DROP [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
+					   subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
 #endif
-	  }
+	    }
+          }
 	}
-	
+
+        /* Store last message ID for the current source ID */	
 	source_id_last_msg_id[source_id] = msg_id;	       
 	
 	/*
