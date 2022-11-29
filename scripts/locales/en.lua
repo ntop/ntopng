@@ -4618,8 +4618,8 @@ local lang = {
     ["title"] = "Manage Timeseries",
   },
   ["modal_download_file"] = {
-     ["filename"] = "FileName",
-     ["download"] = "Downlaod",
+     ["filename"] = "Filename",
+     ["download"] = "Download",
   },
   ["ndpi_categories"] = {
     ["Advertisement"] = "Advertisement",
