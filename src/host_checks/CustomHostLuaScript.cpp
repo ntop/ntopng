@@ -43,7 +43,7 @@ LuaEngine* CustomHostLuaScript::initVM() {
   
   if(stat(where, &s) != 0) {
     if(!disabled) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s: ignored `Host User Check Script` host check", where);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unable to find script %s: ignored `Host User Check Script` host check", where);
       disabled = true;
     }
     

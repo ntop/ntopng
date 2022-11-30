@@ -45,7 +45,7 @@ LuaEngine* CustomFlowLuaScript::initVM() {
 
   if(stat(where, &s) != 0) {
     if(!disabled) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s: ignored `Flow User Check Script` flow check", where);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unable to find script %s: ignored `Flow User Check Script` flow check", where);
       disabled = true;
     }
     
