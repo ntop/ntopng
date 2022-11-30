@@ -3,14 +3,16 @@
 */
 
 <template>
+  <div v-if="no_data" class="alert alert-info" id="empty-message">{{ _i18n('flows_page.no_data') }}</div>
   <div class="d-flex justify-content-center align-items-center" v-bind:id="id"></div>
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import sankeyUtils from "../utilities/map/sankey_utils"
 let d3 = d3v7
 
+const no_data = ref(false)
 const props = defineProps({
   id: String,
   page_csrf: String,
@@ -180,8 +182,12 @@ const updateData = async function(data) {
   /* Do the request and update the sankey */
   await $.get(url, function(rsp, status){
     const data = rsp.rsp;
-    let chart = SankeyChart(data)
-    $(`#${props.id}`).append(chart);  
+    if(data.length > 0) {
+      let chart = SankeyChart(data)
+      $(`#${props.id}`).append(chart);
+    } else {
+      no_data.value = true
+    }  
   });
 
   NtopUtils.hideOverlays();

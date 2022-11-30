@@ -1698,6 +1698,7 @@ local known_parameters = {
    ["stats_type"]              = validateStatsType,             -- A mode for historical stats queries
    ["alertstats_type"]         = validateAlertStatsType,        -- A mode for alerts stats queries
    ["flowhosts_type"]          = validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
+   ["hosts_type"]              = validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
    ["talking_with"]            = validateHost,                  -- A filter for hosts in each of the two directions
    ["status"]                  = validateUnquoted,              -- An alert type to filter
    ["enabled_status"]          = validateSingleWord,            -- Can be: All, Enabled, Disabled

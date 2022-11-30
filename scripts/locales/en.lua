@@ -3245,6 +3245,7 @@ local lang = {
     ["networks"] = "Networks",
     ["non_multicast"] = "Non-Multicast/Non-Broadcast",
     ["normal"] = "Normal",
+    ["no_data"] = "No Data Found",
     ["one_way_multicast"] = "One-Way Multicast/Broadcast",
     ["one_way_non_multicast"] = "One-Way Non-Multicast/Non-Broadcast",
     ["outIfIdx"] = "Output Interface",
