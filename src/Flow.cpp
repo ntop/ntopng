@@ -4210,9 +4210,12 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
   if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
     iface->getTcpFlowStats()->incSyn();
 
-  if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST))
+  if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) {
     iface->getTcpFlowStats()->incReset();
-
+    if(cli_host) cli_host->updateRstAlertsCounter(when->tv_sec, src2dst_direction);
+    if(srv_host) srv_host->updateRstAlertsCounter(when->tv_sec, !src2dst_direction);
+  }
+    
   if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN)) {
     if(cli_host) cli_host->updateFinAlertsCounter(when->tv_sec, src2dst_direction);
     if(srv_host) srv_host->updateFinAlertsCounter(when->tv_sec, !src2dst_direction);

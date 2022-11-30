@@ -90,6 +90,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     u_int32_t fin_recvd_last_min, finack_sent_last_min; /* (victim) */
   } fin_scan;
 
+  struct {
+    AlertCounter *attacker_counter, *victim_counter;
+  } rst_scan;
+
   std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* Need atomic as inc/dec done on different threads */
   u_int32_t asn;
   struct {
@@ -379,6 +383,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void lua_get_services(lua_State *vm)      const;
   void lua_get_syn_scan(lua_State* vm)      const;
   void lua_get_fin_scan(lua_State* vm)      const;
+  void lua_get_rst_scan(lua_State* vm)      const;
   void lua_get_anomalies(lua_State* vm)     const;
   void lua_get_num_alerts(lua_State* vm)    const;
   void lua_get_num_total_flows(lua_State* vm) const;
@@ -411,6 +416,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   bool addIfMatching(lua_State* vm, u_int8_t *mac);
   void updateSynAlertsCounter(time_t when, bool syn_sent);
   void updateFinAlertsCounter(time_t when, bool fin_sent);
+  void updateRstAlertsCounter(time_t when, bool rst_sent);
   void updateICMPAlertsCounter(time_t when, bool icmp_sent);
   void updateDNSAlertsCounter(time_t when, bool dns_sent);
   void updateSNMPAlertsCounter(time_t when, bool snmp_sent);
@@ -447,6 +453,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t fin_scan_victim_hits()   const { return fin_scan.fin_recvd_last_min > fin_scan.finack_sent_last_min ? fin_scan.fin_recvd_last_min - fin_scan.finack_sent_last_min : 0; };
   inline u_int32_t fin_scan_attacker_hits() const { return fin_scan.fin_sent_last_min > fin_scan.finack_recvd_last_min ? fin_scan.fin_sent_last_min - fin_scan.finack_recvd_last_min : 0; };
   inline void reset_fin_scan_hits() { fin_scan.fin_sent_last_min = fin_scan.finack_recvd_last_min = fin_scan.fin_recvd_last_min = fin_scan.finack_sent_last_min = 0; };
+
+  inline u_int16_t rst_scan_victim_hits()   const { return rst_scan.victim_counter ? rst_scan.victim_counter->hits() : 0;     };
+  inline u_int16_t rst_scan_attacker_hits() const { return rst_scan.attacker_counter ? rst_scan.attacker_counter->hits() : 0; };
+  inline void reset_rst_scan_hits() { if(rst_scan.victim_counter) rst_scan.victim_counter->reset_hits(); if(rst_scan.attacker_counter) rst_scan.attacker_counter->reset_hits(); };
 
   void incNumFlows(time_t t, bool as_client);
   void decNumFlows(time_t t, bool as_client);

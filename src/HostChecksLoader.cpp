@@ -56,6 +56,7 @@ void HostChecksLoader::registerChecks() {
   if((fcb = new SYNScan()))                    registerCheck(fcb);
   if((fcb = new SYNFlood()))                   registerCheck(fcb);
   if((fcb = new FINScan()))                    registerCheck(fcb);
+  if((fcb = new RSTScan()))                    registerCheck(fcb);
   if((fcb = new DNSServerContacts()))          registerCheck(fcb);
   if((fcb = new SMTPServerContacts()))         registerCheck(fcb);
   if((fcb = new NTPServerContacts()))          registerCheck(fcb);
