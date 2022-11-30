@@ -298,12 +298,15 @@ else
    )
 
    -- ##############################################
-
+   
    -- Exporters
+
+   local has_exporters = (ifs.type == "zmq") or (ifs.type == "custom") or (table.len(interface.getFlowDevices()) > 0)
+
    page_utils.add_menubar_section(
       {
          section = page_utils.menu_sections.collection,
-         hidden = ((ifs.type ~= "zmq" and ifs.type ~= "custom") or not ntop.isEnterpriseM()) or is_system_interface,
+         hidden = not has_exporters or not ntop.isEnterpriseM() or is_system_interface,
          entries = {
             --[[
             {
