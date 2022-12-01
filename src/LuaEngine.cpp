@@ -1255,8 +1255,18 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     NOTE: currently, this is only given for local-users. For non-local users (i.e., Radius, LDAP)
     this is left for future implementation.
   */
-  if(localuser && !strncmp(allowed_nets, CONST_DEFAULT_ALL_NETS, sizeof(allowed_nets)))
-    capabilities |= (1 << capability_alerts) | (1 << capability_historical_flows);
+  if(localuser) {
+    if(!strncmp(allowed_nets, CONST_DEFAULT_ALL_NETS, sizeof(allowed_nets)))
+      capabilities |= (1 << capability_alerts) | (1 << capability_historical_flows);
+  } else {
+    /* LDAP/Radius user */
+    bool allow_pcap_download = false, allow_historical_flow = false;
+
+    ntop->getUserCapabilities(user, &allow_pcap_download, &allow_historical_flow);
+
+    // if(allow_pcap_download)    capabilities |= (1 << capability_alerts); /* CHECKME */
+    if(allow_historical_flow)  capabilities |= (1 << capability_historical_flows);
+  }
 
   /* Put the _SESSION params into the environment */
   lua_newtable(L);

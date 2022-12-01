@@ -1009,9 +1009,12 @@
 #define PREF_RADIUS_SERVER              NTOPNG_PREFS_PREFIX".radius.radius_server_address"
 #define PREF_RADIUS_SECRET              NTOPNG_PREFS_PREFIX".radius.radius_secret"
 #define PREF_RADIUS_ADMIN_GROUP         NTOPNG_PREFS_PREFIX".radius.radius_admin_group"
+#define PREF_RADIUS_UNPRIV_CAP_GROUP    NTOPNG_PREFS_PREFIX".radius.radius_unpriv_capabilties_group"
+
 #ifdef HAVE_RADIUS
 #define MAX_RADIUS_LEN   256
 #endif
+
 #define PREF_NTOP_HTTP_AUTH           NTOPNG_PREFS_PREFIX".http_authenticator.auth_enabled"
 #define PREF_HTTP_AUTHENTICATOR_URL   NTOPNG_PREFS_PREFIX".http_authenticator.http_auth_url"
 #define MAX_HTTP_AUTHENTICATOR_LEN    256

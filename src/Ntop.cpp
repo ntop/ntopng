@@ -78,7 +78,7 @@ Ntop::Ntop(const char *appName) {
   start_time = last_modified_static_file_epoch = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
   old_iface_to_purge = NULL;
-  
+
   setZoneInfo();
 
   /* Checks loader */
@@ -313,7 +313,7 @@ Ntop::~Ntop() {
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
   if(custom_ndpi_protos)  free(custom_ndpi_protos);
   if(old_iface_to_purge)  delete old_iface_to_purge;
-  
+
   delete address;
 
   if(pa)    delete pa;
@@ -1269,12 +1269,14 @@ bool Ntop::isPcapDownloadAllowed(lua_State* vm, const char *ifname) {
   if(isUserAdministrator(vm))
     return true;
 
-  if (isInterfaceAllowed(vm, ifname)) {
+  if(isInterfaceAllowed(vm, ifname)) {
     char *username = getLuaVMUserdata(vm,user);
-    ntop->getUserPermission(username, &allow_pcap_download);
+    bool allow_historical_flow;
+    
+    ntop->getUserCapabilities(username, &allow_pcap_download, &allow_historical_flow);
   }
 
-  return allow_pcap_download;
+  return(allow_pcap_download);
 }
 
 /* ******************************************* */
@@ -1515,16 +1517,24 @@ bool Ntop::checkUserPassword(const char * user, const char * password, char *gro
 #endif
 
 #ifdef HAVE_RADIUS
-  if(ntop->getRedis()->get((char*)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >= 0 && val[0] == '1') {
+  /*
+     NOTE
 
+     Use https://idblender.com/tools/public-radius for testing
+     the implementation with a public server
+  */
+
+  if(ntop->getRedis()->get((char*)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >= 0 && val[0] == '1') {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Checking RADIUS auth");
 
     int result;
     bool radius_ret = false;
     char dict_path[MAX_RADIUS_LEN];
-    char *radiusServer = NULL, *radiusSecret = NULL, *authServer = NULL, *radiusAdminGroup = NULL;
-    rc_handle       *rh = NULL;
-    VALUE_PAIR      *send = NULL, *received = NULL;
+    char *radiusServer = NULL, *radiusSecret = NULL, *authServer = NULL,
+      *radiusAdminGroup = NULL, *radiusUnprivCapabilitiesGroup = NULL;
+    rc_handle  *rh = NULL;
+    VALUE_PAIR *send = NULL, *received = NULL;
+    bool has_unprivileged_capabilities = false;
 
     if(!password || !password[0])
       return false;
@@ -1532,6 +1542,7 @@ bool Ntop::checkUserPassword(const char * user, const char * password, char *gro
     if(!(radiusServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
        !(radiusSecret = (char*)calloc(sizeof(char), MAX_SECRET_LENGTH + 1)) ||
        !(radiusAdminGroup = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
+       !(radiusUnprivCapabilitiesGroup = (char*)calloc(sizeof(char), MAX_RADIUS_LEN)) ||
        !(authServer = (char*)calloc(sizeof(char), MAX_RADIUS_LEN))) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to allocate memory");
       goto radius_auth_out;
@@ -1540,6 +1551,7 @@ bool Ntop::checkUserPassword(const char * user, const char * password, char *gro
     ntop->getRedis()->get((char*)PREF_RADIUS_SERVER, radiusServer, MAX_RADIUS_LEN);
     ntop->getRedis()->get((char*)PREF_RADIUS_SECRET, radiusSecret, MAX_SECRET_LENGTH + 1);
     ntop->getRedis()->get((char*)PREF_RADIUS_ADMIN_GROUP, radiusAdminGroup, MAX_RADIUS_LEN);
+    ntop->getRedis()->get((char*)PREF_RADIUS_UNPRIV_CAP_GROUP, radiusUnprivCapabilitiesGroup, MAX_RADIUS_LEN);
 
     if(!radiusServer[0] || !radiusSecret[0]) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: no radius server or secret set !");
@@ -1617,32 +1629,55 @@ bool Ntop::checkUserPassword(const char * user, const char * password, char *gro
       goto radius_auth_out;
     }
 
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Radius: performing auth for user %s\n", user);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Radius: performing auth for user %s", user);
 
     result = rc_auth(rh, 0, send, &received, NULL);
     if(result == OK_RC) {
       bool is_admin = false;
 
-      if(radiusAdminGroup[0] != '\0') {
+      if((radiusAdminGroup[0] != '\0') || (radiusUnprivCapabilitiesGroup[0] != '\0')) {
         VALUE_PAIR *vp = received;
         char name[sizeof(vp->name)];
         char value[sizeof(vp->strvalue)];
 
         while(vp != NULL) {
           if(rc_avpair_tostr(rh, vp, name, sizeof(name), value, sizeof(value)) == 0) {
-            if((strcmp(name, "Filter-Id") == 0) && (strcmp(value, radiusAdminGroup) == 0))
-              is_admin = true;
+	    /* The "Filter-Id" attribute is used to set user privileges */
+	    if(strcmp(name, "Filter-Id") == 0) {
+	      if(strcmp(value, radiusAdminGroup) == 0)
+		is_admin = true;
+	      else if(strcmp(value, radiusUnprivCapabilitiesGroup) == 0)
+		has_unprivileged_capabilities = true;
+
+	      break; /* We care only about "Filter-Id" */
+	    }
           }
 
           vp = vp->next;
         }
       }
 
+      if(has_unprivileged_capabilities) {
+	changeUserPermission(user, true);
+	changeUserHistoricalFlowPermission(user, true);
+      } else {
+	char key[64];
+
+	snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, user);
+	ntop->getRedis()->del(key);
+
+	snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, user);
+	ntop->getRedis()->del(key);
+      }
+      
       strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
       group[NTOP_GROUP_MAXLEN - 1] = '\0';
       radius_ret = true;
     } else {
-      switch(result) {
+      /* Do not display messages for user 'admin' */
+      
+      if(strcmp(user, "admin")) {
+	switch(result) {
         case TIMEOUT_RC:
           ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication timeout for user \"%s\"", user);
           break;
@@ -1651,17 +1686,20 @@ bool Ntop::checkUserPassword(const char * user, const char * password, char *gro
           break;
         default:
           ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication failure[%d]: user \"%s\"", result, user);
+	}
       }
     }
 
   radius_auth_out:
-    if(send) rc_avpair_free(send);
-    if(received) rc_avpair_free(received);
-    if(rh) rc_destroy(rh);
-    if(radiusAdminGroup) free(radiusAdminGroup);
-    if(radiusServer) free(radiusServer);
-    if(radiusSecret) free(radiusSecret);
-    if(authServer) free(authServer);
+    if(send)                          rc_avpair_free(send);
+    if(received)                      rc_avpair_free(received);
+    if(rh)                            rc_destroy(rh);
+    if(radiusAdminGroup)              free(radiusAdminGroup);
+    if(radiusUnprivCapabilitiesGroup) free(radiusUnprivCapabilitiesGroup);
+    if(radiusServer)                  free(radiusServer);
+    if(radiusSecret)                  free(radiusSecret);
+    if(authServer)                    free(authServer);
+
     if(radius_ret)
       return(true);
   }
@@ -2044,18 +2082,27 @@ bool Ntop::changeUserHistoricalFlowPermission(const char * username, bool allow_
 
 /* ******************************************* */
 
-bool Ntop::getUserPermission(const char * username, bool *allow_pcap_download) const {
+bool Ntop::getUserCapabilities(const char * username,
+			       bool *allow_pcap_download,
+			       bool *allow_historical_flow) const {
   char key[64], val[2];
 
-  *allow_pcap_download = false;
+  *allow_pcap_download = *allow_historical_flow = false;
 
   if(username == NULL || username[0] == '\0')
     return(false);
 
+  /* ************** */
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, username);
 
   if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
     if(strcmp(val, "1") == 0) *allow_pcap_download = true;
+
+  /* ************** */
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, username);
+
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    if(strcmp(val, "1") == 0) *allow_historical_flow = true;
 
   return(true);
 }
@@ -2784,7 +2831,7 @@ void Ntop::runShutdownTasks() {
   for(int i=0; i<num_defined_interfaces; i++) {
     if(iface[i]->isView())
       iface[i]->runShutdownTasks();
-  }  
+  }
 }
 
 /* ******************************************* */
@@ -3699,7 +3746,7 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
     delete old_iface_to_purge;
     old_iface_to_purge = NULL;
   }
-  
+
   if(*iface_id != -1) {
     for(int i=0; i<num_defined_interfaces; i++) {
       if(iface[i]->get_id() == *iface_id) {
@@ -3708,7 +3755,7 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
       }
     }
   }
-  
+
   try {
     errno = 0;
     new_iface = new PcapInterface((const char*)path,
@@ -3732,7 +3779,7 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
       new_iface->startPacketPolling();
 
       m.lock(__FILE__, __LINE__);
-      
+
       iface[slot_id] = new_iface; /* Swap interfaces */
 
       old->shutdown();

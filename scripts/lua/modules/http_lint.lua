@@ -1445,6 +1445,7 @@ local known_parameters = {
    ["user_group"]              = validateUnquoted,
    ["admin_group"]             = validateUnquoted,
    ["radius_admin_group"]      = validateUnquoted,
+   ["radius_unpriv_capabilties_group"]      = validateUnquoted,
    ["ts_post_data_url"]        = validateUnquoted,             -- URL for influxdb
    ["connectivity_check_url"]  = validateUnquoted,             -- URL for connectivity check
 

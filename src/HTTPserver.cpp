@@ -196,9 +196,8 @@ static void set_session_cookie(const struct mg_connection * const conn,
 			       const char * referer) {
   char session_id[64], session_key[32];
   u_int session_duration;
-
-  if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
-     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))
+  
+  if(!strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))
      || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, POOL_MEMBERS_ASSOC_URL, strlen(POOL_MEMBERS_ASSOC_URL)))
     return;
 
@@ -1237,7 +1236,6 @@ static int handle_lua_request(struct mg_connection *conn) {
   }
 
   if((strncmp(request_info->uri, "/lua/", 5) == 0)
-     || (strcmp(request_info->uri, "/metrics") == 0)
      || (strncmp(request_info->uri, "/scripts/", 9) == 0)
      || (strcmp(request_info->uri, "/") == 0)) {
     /* Lua Script */
@@ -1493,7 +1491,9 @@ int init_client_x509_auth(void *ctx) {
   ntop->fixPath(ssl_ca_path),
   ntop->fixPath(ssl_cert_path);
 
-  if(!SSL_CTX_set_session_id_context((SSL_CTX*)ctx, ssl_session_ctx_id, sizeof(ssl_session_ctx_id)>SSL_MAX_SSL_SESSION_ID_LENGTH?SSL_MAX_SSL_SESSION_ID_LENGTH:sizeof(ssl_session_ctx_id))) {
+  if(!SSL_CTX_set_session_id_context((SSL_CTX*)ctx, ssl_session_ctx_id,
+				     (sizeof(ssl_session_ctx_id) > SSL_MAX_SSL_SESSION_ID_LENGTH) ?
+				     SSL_MAX_SSL_SESSION_ID_LENGTH : sizeof(ssl_session_ctx_id))) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SSL session init failed: %s", ERR_reason_error_string(ERR_get_error()));
     return 0;
   }

@@ -651,7 +651,7 @@ local function printRadiusAuth()
 
   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.radius_auth")..'</th></tr></thead>')
 
-  local elementToSwitch = {"radius_server_address", "radius_secret", "radius_admin_group"}
+  local elementToSwitch = {"radius_server_address", "radius_secret", "radius_admin_group", "radius_unpriv_capabilties_group"}
 
   prefsToggleButton(subpage_active, {
 	      field = auth_toggles.radius,
@@ -673,6 +673,10 @@ local function printRadiusAuth()
 
   prefsInputFieldPrefs(subpage_active.entries["radius_admin_group"].title, subpage_active.entries["radius_admin_group"].description,
     "ntopng.prefs.radius", "radius_admin_group", "", nil, showElements, true, false,
+    {attributes={spellcheck="false", maxlength=255, pattern="[^\\s]+"}})
+
+  prefsInputFieldPrefs(subpage_active.entries["radius_unpriv_capabilties_group"].title, subpage_active.entries["radius_unpriv_capabilties_group"].description,
+    "ntopng.prefs.radius", "radius_unpriv_capabilties_group", "", nil, showElements, true, false,
     {attributes={spellcheck="false", maxlength=255, pattern="[^\\s]+"}})
 end
 
