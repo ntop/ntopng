@@ -23,6 +23,7 @@ import { default as PageHostDetailsTraffic } from "./page-host-details-traffic.v
 import { default as PageHostDetailsPackets } from "./page-host-details-packets.vue";
 import { default as PageHostDetailsFlowSankey } from "./page-host-details-flow-sankey.vue";
 import { default as PageHostRules } from "./page-host-rules.vue";
+import { default as PageHostDetailsPorts } from "./page-host-details-ports.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -75,6 +76,7 @@ let ntopVue = {
     PageHostDetailsTraffic: PageHostDetailsTraffic,
     PageHostDetailsPackets: PageHostDetailsPackets,
     PageHostDetailsFlowSankey: PageHostDetailsFlowSankey,
+    PageHostDetailsPorts: PageHostDetailsPorts,
 
     // components
     AlertInfo: AlertInfo,

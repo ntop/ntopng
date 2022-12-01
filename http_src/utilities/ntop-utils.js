@@ -65,11 +65,17 @@ export default class NtopUtils {
   }
   
   static showOverlays(time = 500) {
+    localStorage.setItem('overlayFading', 'false')
     $(`.overlay`).fadeIn(time);
   }
   
   static hideOverlays(time = 500) {
-    $(`.overlay`).fadeOut(time);
+    const overlayFading = localStorage.getItem('overlayFading')
+    
+    if(overlayFading == 'false') {
+      localStorage.setItem('overlayFading', 'true')
+      $(`.overlay`).fadeOut(time);
+    }
   }
 
 	static get REGEXES() {

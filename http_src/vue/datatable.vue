@@ -4,7 +4,7 @@
 <table ref="table_id" class="table w-100 table-striped table-hover table-bordered">
   <thead>
     <tr>
-      <th v-for="item in columns_config">{{ item.columnName }}</th>
+      <th class="text-center" v-for="item in columns_config">{{ item.columnName }}</th>
     </tr>
   </thead>
   <tbody></tbody>

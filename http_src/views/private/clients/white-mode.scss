@@ -825,3 +825,7 @@ table.dataTable thead th.sorting_desc::after {
   padding-left: inherit;
   opacity: 1;
 }
+
+.dataTables_filter {
+  margin-bottom: 8px;
+}

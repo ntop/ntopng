@@ -6,7 +6,6 @@
 
 local host_alert_keys = require "host_alert_keys"
 
-local json = require("dkjson")
 local alert_creators = require "alert_creators"
 -- Import the classes library.
 local classes = require "classes"
