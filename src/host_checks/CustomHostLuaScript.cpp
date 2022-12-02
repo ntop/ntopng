@@ -57,6 +57,7 @@ LuaEngine* CustomHostLuaScript::initVM() {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loaded custom user script %s", where);
     } catch(std::bad_alloc& ba) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start Lua interpreter.");
+      lua = NULL;
     }
 
     return(lua);
