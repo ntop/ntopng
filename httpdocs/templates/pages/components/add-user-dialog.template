@@ -175,7 +175,7 @@
 
   $(`#add_user_submit`).on('click', function () {
     if(!isValidPassword($("#password_input").val())) {
-      add_user_alert.error("Password contains invalid chars. Please use valid ISO8859-1 (latin1) letters and numbers.");
+      add_user_alert.error("{* i18n("invalid_password") *}");
       return(false);
     }
 

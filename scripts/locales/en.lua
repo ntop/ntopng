@@ -253,6 +253,7 @@ local lang = {
   ["interfaces"] = "Interfaces",
   ["intranet_traffic"] = "Intranet Traffic",
   ["invalid_value"] = "Invalid value",
+  ["invalid_password"] = "Password is not compliant with the ntop requirements: too short or does not contain valid ISO8859-1 (latin1) letters/numbers",
   ["ip_address"] = "IP Address",
   ["ipv4"] = "IPv4",
   ["ipv6"] = "IPv6",
