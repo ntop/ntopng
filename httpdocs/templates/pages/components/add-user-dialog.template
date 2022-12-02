@@ -138,6 +138,11 @@
     }
   }
 
+  /* Reset modal on close */
+  $("#add_user_dialog").on('hidden.bs.modal', function() {
+    frmadduser[0].reset();
+  })
+
   $("#user_role").change(function() {
     if ($(this).val() == "unprivileged")
       $('#unprivileged_input').show();
