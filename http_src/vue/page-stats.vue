@@ -68,26 +68,13 @@
 		      :options="table_top_options">
 	</SelectSearch>
       </div>
-      <Datatable v-if="selected_top_table?.table_config_def" :key="selected_top_table?.value"
+      <Datatable v-if="selected_top_table?.table_config_def" :key="selected_top_table?.value" ref="top_applications_table"
         :table_buttons="selected_top_table.table_config_def.table_button"
         :columns_config="selected_top_table.table_config_def.columns_config"
         :data_url="selected_top_table.table_config_def.data_url"
         :enable_search="selected_top_table.table_config_def.enable_search"
         :table_config="selected_top_table.table_config_def.table_config">
-      </Datatable>
-
-      
-      <div class="mb-4 text-nowrap" style="font-size: 1.1rem;">
-        <i class="fa-solid fa-chart-line"></i> 	{{_i18n('page_stats.top_applications')}}
-      </div>
-      
-      <Datatable v-if="init_config_table" ref="top_applications_table"
-        :table_buttons="config_app_table.table_buttons"
-        :columns_config="config_app_table.columns_config"
-        :data_url="config_app_table.data_url"
-        :enable_search="config_app_table.enable_search"
-        :table_config="config_app_table.table_config">
-      </Datatable>
+      </Datatable>      
     </div>
   </div>
 </div>
