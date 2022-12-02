@@ -1670,7 +1670,7 @@ local known_parameters = {
 
 -- OTHER
    ["interface"]               = validateSingleWord,
-   ["get_all_values"]          = validateBool,                  -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if all the values have to be returned
+   ["all_values"]              = validateBool,                  -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if all the values have to be returned
    ["collapse_stats"]          = validateBool,                  -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if stats need to be collapsed
    ["max_values"]              = validateNumber,                -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know the max number of stats to be returned
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
