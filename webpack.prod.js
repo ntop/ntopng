@@ -31,7 +31,6 @@ module.exports = {
     new webpack.ProvidePlugin({
       $: "jquery",
       jQuery: "jquery",
-      d3: 'd3',
     }),   
     new MiniCssExtractPlugin({ filename: '[name].css' }),
     new CleanWebpackPlugin(),
@@ -72,6 +71,7 @@ module.exports = {
           {
             loader: 'file-loader',
             options: {
+              publicPath: '',
               outputPath: './images',
               name: '[name].[ext]'
             }
