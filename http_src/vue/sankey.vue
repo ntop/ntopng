@@ -184,6 +184,7 @@ const updateData = async function(data) {
     const data = rsp.rsp;
     if(data.length > 0) {
       let chart = SankeyChart(data)
+      no_data.value = false
       $(`#${props.id}`).empty();
       $(`#${props.id}`).append(chart);
     } else {
