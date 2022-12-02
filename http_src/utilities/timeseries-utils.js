@@ -491,13 +491,13 @@ function buildChartOptions(seriesArray, yaxisArray) {
     };
 }
 
-function getTsQuery(tsGroup) {
+function getTsQuery(tsGroup, not_metric_query) {
     let tsQuery = tsGroup.source_type.source_def_array.map((source_def, i) => {
 	let source_value = tsGroup.source_array[i].value;
 	return `${source_def.value}:${source_value}`;
     }).join(",");
     
-    if (tsGroup.metric.query != null) {
+    if (!not_metric_query && tsGroup.metric.query != null) {
 	tsQuery = `${tsQuery},${tsGroup.metric.query}`
     }
     return tsQuery;

@@ -49,7 +49,7 @@
     </template>
   </div>
   
-  <div class="mt-4 card card-shadow" v-if="!source_type.disable_stats">
+  <div class="mt-4 card card-shadow" v-if="enable_stats_table">
     <div class="card-body">
       <BootstrapTable
 	id="page_stats_bootstrap_table"
@@ -61,8 +61,22 @@
     </div>
   </div>
   
-  <div class="mt-4 card card-shadow" v-if="enable_table == true && is_ntop_pro">
+  <div class="mt-4 card card-shadow" v-if="is_ntop_pro">
     <div class="card-body">
+      <div v-if="selected_top_table?.table_config_def" class="inline select2-size me-2 mt-2">
+	<SelectSearch v-model:selected_option="selected_top_table"
+		      :options="table_top_options">
+	</SelectSearch>
+      </div>
+      <Datatable v-if="selected_top_table?.table_config_def" :key="selected_top_table?.value"
+        :table_buttons="selected_top_table.table_config_def.table_button"
+        :columns_config="selected_top_table.table_config_def.columns_config"
+        :data_url="selected_top_table.table_config_def.data_url"
+        :enable_search="selected_top_table.table_config_def.enable_search"
+        :table_config="selected_top_table.table_config_def.table_config">
+      </Datatable>
+
+      
       <div class="mb-4 text-nowrap" style="font-size: 1.1rem;">
         <i class="fa-solid fa-chart-line"></i> 	{{_i18n('page_stats.top_applications')}}
       </div>
@@ -154,9 +168,8 @@ const metrics = ref([]);
 const selected_metric = ref({});
 const source_type = metricsManager.get_current_page_source_type();    
 
-const enable_table = function() {
-    return source_type.table_value != null;
-}();
+const enable_stats_table = ref(false);
+const enable_top_table = ref(false);
 
 /**
  * { key: identifier of Chart component, if change Chart will be destroyed and recreated,
@@ -197,7 +210,7 @@ function set_default_source_object_in_url() {
 
 onBeforeMount(async () => {
     set_default_source_object_in_url();
-    await load_datatable_data();
+    // await load_datatable_data();
 });
 
 onMounted(async () => {
@@ -227,7 +240,7 @@ async function init() {
 	selected_metric.value = metricsManager.get_default_metric(metrics.value, metric_ts_schema);
     }
     ts_menu_ready.value = true;
-    await load_charts_data(timeseries_groups);
+    await load_page_stats_data(timeseries_groups);
 }
 
 let last_push_custom_metric = null;
@@ -299,23 +312,23 @@ async function select_metric(metric) {
 	let timeseries_url_params = ntopng_url_manager.get_url_entry("timeseries_groups", url_parameters);
 	let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix, timeseries_url_params);
 	current_groups_options_mode.value = timeseriesUtils.getGroupOptionMode(ntopng_url_manager.get_url_entry("timeseries_groups_mode", url_parameters));
-	await load_charts_data(timeseries_groups);
+	await load_page_stats_data(timeseries_groups);
     } else {
-	await load_charts_selected_metric();
+	await load_selected_metric_page_stats_data();
 	refresh_metrics(false);
     }
 }
 
-async function load_charts_selected_metric() {
+async function load_selected_metric_page_stats_data() {
     let timeseries_groups = await get_selected_timeseries_groups();
-    await load_charts_data(timeseries_groups);
+    await load_page_stats_data(timeseries_groups);
 }
 
 function epoch_change(new_epoch) {    
     console.log(new_epoch);
     let push_custom_metric = selected_metric.value.label == custom_metric.label;
-    load_charts_data(last_timeseries_groups_loaded);    
-    reload_table_data();
+    load_page_stats_data(last_timeseries_groups_loaded);    
+    // reload_table_data();
     refresh_metrics(push_custom_metric, true);
 }
 
@@ -359,18 +372,18 @@ async function refresh_metrics(push_custom_metric, force_refresh) {
 async function apply_modal_timeseries(timeseries_groups) {
     console.log("apply modal-timeseries in page-stats");
     refresh_metrics(true);
-    await load_charts_data(timeseries_groups);
+    await load_page_stats_data(timeseries_groups);
 }
 
 function change_groups_options_mode() {    
-    load_charts_data(last_timeseries_groups_loaded, true);
+    load_page_stats_data(last_timeseries_groups_loaded, true);
 }
 
 let ts_charts_options;
-async function load_charts_data(timeseries_groups, not_reload) {
+async function load_page_stats_data(timeseries_groups, not_reload_charts_data) {
     let status = ntopng_status_manager.get_status();
     let ts_compare = get_ts_compare(status);
-    if (!not_reload) {
+    if (!not_reload_charts_data) {
 	ts_charts_options = await timeseriesUtils.getTsChartsOptions(http_prefix, status, ts_compare, timeseries_groups, props.is_ntop_pro);
     }
     console.log(ts_charts_options);
@@ -382,10 +395,8 @@ async function load_charts_data(timeseries_groups, not_reload) {
     let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_charts_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
     
     set_charts_options_items(charts_options);
-    if (!source_type.disable_stats) {
-	set_stats_rows(ts_charts_options, timeseries_groups, status);
-    }
-    
+    set_stats_rows(ts_charts_options, timeseries_groups, status);
+    set_table_configuration2(timeseries_groups, status);
     // set last_timeseries_groupd_loaded
     last_timeseries_groups_loaded = timeseries_groups;
     console.log("SET last_timeseries_groups_loaded");
@@ -467,20 +478,111 @@ async function get_datatable_url() {
     return `${data_url}?${p_url_request}`;
 }
 
-async function reload_table_data() {
-    // NtopUtils.showOverlays();
-    if (enable_table == false || !props.is_ntop_pro) { return; }
-    const url = await get_datatable_url();
-    top_applications_table.value.update_url(url);
-    top_applications_table.value.reload();
-    // NtopUtils.hideOverlays();
+function get_datatable_url2(ts_group, table_value) {
+    let ts_query = timeseriesUtils.getTsQuery(ts_group, true);
+    let v = table_value;
+    let data_url = `${http_prefix}/lua/pro/rest/v2/get/${v}/top/ts_stats.lua`;
+    //todo: get ts_query
+    let p_obj = {
+	zoom: '5m',
+	ts_query,
+	// ts_query: `ifid:${ntopng_url_manager.get_url_entry('ifid')}`,
+	epoch_begin: `${ntopng_url_manager.get_url_entry('epoch_begin')}`,
+	epoch_end: `${ntopng_url_manager.get_url_entry('epoch_end')}`,
+	detail_view: `top_protocols`,
+	new_charts: `true`
+    };
+    
+    let p_url_request =  ntopng_url_manager.add_obj_to_url(p_obj, '');
+    return `${data_url}?${p_url_request}`;
 }
 
+
+// async function reload_table_data() {
+//     // NtopUtils.showOverlays();
+//     if (!props.is_ntop_pro) { return; }
+//     let status = ntopng_status_manager.get_status();
+//     let sources_types_tables = metricsManager.sources_types_tables;
+//     let source_type_tables = sources_types_tables[selected_top_table.value.table_config_def.ts_group.source_type.id];
+//     let data_url = get_datatable_url2(selected_top_table.value.ts_group, table_def.table_value);
+//     const url = await get_datatable_url2();
+//     top_applications_table.value.update_url(url);
+//     top_applications_table.value.reload();
+//     // NtopUtils.hideOverlays();
+// }
+
 async function load_datatable_data() {
-    if (enable_table == false || !props.is_ntop_pro) { return; } 
+    if (!props.is_ntop_pro) { return; } 
     const url = await get_datatable_url();
     set_table_configuration(url);
 };
+
+const table_top_options = ref([]);
+const selected_top_table = ref({});
+function set_table_configuration2(timeseries_groups, status) {
+    if (!props.is_ntop_pro) { return; }
+    if (timeseries_groups == null) {
+	timeseries_groups = last_timeseries_groups_loaded;
+    }
+    if (status == null) {
+	status = ntopng_status_manager.get_status();
+    }
+    
+    let sources_types_tables = metricsManager.sources_types_tables;
+    let ts_group_dict = {}; // dictionary with 1 ts_group for each (source_type, source_array)
+    timeseries_groups.forEach((ts_group) => {
+	let id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array);
+	ts_group_dict[id] = ts_group;
+    });
+    
+    selected_top_table.value = null;
+    table_top_options.value = [];
+    let select_options = [];
+    for (let id in ts_group_dict) {
+	let ts_group = ts_group_dict[id];
+	let main_source_index = timeseriesUtils.getMainSourceDefIndex(ts_group);
+	let main_source = ts_group.source_array[main_source_index];
+	let source_type = ts_group.source_type;
+	let source_type_tables = sources_types_tables[source_type.id];
+	if (source_type_tables == null) { continue; }	
+	
+	source_type_tables.forEach((table_def) => {
+	    let data_url = get_datatable_url2(ts_group, table_def.table_value);
+	    let value = `${table_def.table_value}_${table_def.view}_${id}`;
+	    let label = `${table_def.title} - ${source_type.label} ${main_source.label}`;
+	    const table_config_def = {
+		ts_group,
+		table_buttons: [ ],
+		data_url,
+		enable_search: true,
+		table_config: { serverSide: false, order: [[ table_def.default_sorting_columns, 'desc' ]] }
+	    };
+	    // it should be here in this instance the vuetify object with its properties
+	    table_config_def.columns_config = table_def.columns.map((column) => {
+		if (column.render_if && column.render_if({ is_history_enabled: props.is_history_enabled }) == false) {
+		    return; // skip column
+		}
+		let c = {
+		    ...column,
+		};
+		if (c.className == null) { c.className = "text-nowrap"; }
+		if (c.responsivePriority == null) { c.responsivePriority = 1; }
+		c.render = column.render.bind({add_metric_from_metric_schema: (metric_schema, metric_query) => add_metric_from_metric_schema(metric_schema, metric_query), status, source_type,  source_array: ts_group.source_array});
+		return c;
+	    });
+	    let option = { value, label, table_config_def };
+	    table_top_options.value.push(option);
+	});
+	if (table_top_options.value.find((option) => option.value == selected_top_table.value.value)) {
+	    return;
+	}
+	
+	selected_top_table.value = table_top_options.value.find((option) => option.table_config_def.default == true);
+	if (selected_top_table.value == null) {
+	    selected_top_table.value = table_top_options.value[0];
+	}
+    }
+}
 
 function set_table_configuration(url) {
     const default_sorting_columns = 2 /* Percentage column */
@@ -508,7 +610,7 @@ function set_table_configuration(url) {
 	      return NtopUtils.createProgressBar(percentage)
 	  } 
 	}
-    ];  
+    ];
     
     /* If history is enabled, then add an href to Historical Flows */
     if(props.is_history_enabled) {
@@ -575,6 +677,8 @@ const stats_rows = ref([]);
 
 function set_stats_rows(ts_charts_options, timeseries_groups, status) {
     let extend_serie_name = true;
+    enable_stats_table.value = timeseries_groups.map((ts_group) => !ts_group.source_type.disable_stats).reduce((res, el) => res | el, false);
+    if (!enable_stats_table.value) { return; }
     const f_get_total_formatter_type = (type) => {
 	if (type == "bps") { return "bytes_network"; }
 	return type;
@@ -582,6 +686,7 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
     stats_rows.value = [];
     ts_charts_options.forEach((options, i) => {
 	let ts_group = timeseries_groups[i];
+	if (ts_group.source_type.disable_stats == true) { return; }
 	options.series.forEach((s, j) => {
 	    let ts_id = timeseriesUtils.getSerieId(s);
 	    let s_metadata = ts_group.metric.timeseries[ts_id];

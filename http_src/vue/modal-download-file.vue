@@ -10,7 +10,7 @@
         <b>{{_i18n("modal_download_file.filename")}}:</b>
       </label>
       <div class="col-sm-6">
-	<input class="form-control" v-model="filename" required type="text" placeholder="">
+	<input class="form-control" required :pattern="filename_validation" v-model="filename" type="text" placeholder="">
       </div>
       <label class="col-form-label col-sm-2">
 	.{{props.ext}}
@@ -19,7 +19,7 @@
   </template><!-- modal-body -->
   
   <template v-slot:footer>
-    <button type="button" @click="download" class="btn btn-primary" :disabled="filename == null || filename == ''" >{{_i18n("modal_download_file.download")}}</button>
+    <button type="button" @click="download" class="btn btn-primary" :disabled="enable_download == false" >{{_i18n("modal_download_file.download")}}</button>
   </template>
 </modal>
 </template>
@@ -31,6 +31,16 @@ import { default as modal } from "./modal.vue";
 const modal_id = ref(null);
 const filename = ref("");
 
+//const filename_validation = `[\`~!@#$%^&*_|+-=?;:'",.<>{}[]\\/]`;
+const filename_validation = `^[^\`~!@#$%^&*_|+-=?;:'",.<>\/\{\}\(\)\\[\\]\\s]+$`;
+
+const enable_download = computed(() => {
+    let rg_text = filename_validation;
+    let regex = new RegExp(rg_text);
+    return regex.test(filename.value);
+});
+
+
 const props = defineProps({
     title: String,
     ext: String,
@@ -39,6 +49,8 @@ const props = defineProps({
 const emit = defineEmits(["download"]);
 
 const show = (name) => {
+    if (name == null) { name = ""; }
+    name = name.replaceAll(/[`~!@#$%^&*_|+-=?;:'",.<>\s\/\{\}\[\]\(\)]/g, "");
     filename.value = name;
     modal_id.value.show();
 };

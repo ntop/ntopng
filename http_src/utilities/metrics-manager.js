@@ -105,9 +105,12 @@ async function get_url_param_from_ts_group(ts_group_url_param) {
 }
 
 const get_ts_group_id = (source_type, source_array, metric) => {
-    let metric_id = metric.schema;
-    if (metric.query != null) {
-	metric_id = `${metric_id} - ${metric.query}`;
+    let metric_id = "";
+    if (metric != null) {
+	metric_id = metric.schema;    
+	if (metric.query != null) {
+	    metric_id = `${metric_id} - ${metric.query}`;
+	}
     }
     let source_value_array = source_array.map((source) => source.value).join("_");
     return `${source_type.id} - ${source_value_array} - ${metric_id}`;
@@ -138,6 +141,7 @@ const ui_types = metricsConsts.ui_types;
 const sources_url_el_to_source = metricsConsts.sources_url_el_to_source;
 
 const sources_types = metricsConsts.sources_types;
+const sources_types_tables = metricsConsts.sources_types_tables;
 
 const get_source_type_from_id = (source_type_id) => {
     return sources_types.find((st) => st.id == source_type_id);
@@ -319,6 +323,7 @@ const metricsManager = function() {
 	get_ts_group_id,
 
 	sources_types,
+	sources_types_tables,	
 	get_source_type_from_id,
 	get_current_page_source_type,
 

@@ -1,3 +1,8 @@
+import { DataTableUtils } from "../utilities/datatable/sprymedia-datatable-utils";
+import formatterUtils from "../utilities/formatter-utils.js";
+import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
+import NtopUtils from "../utilities/ntop-utils";
+
 const ui_types = {
     hide: "hide",
     select: "select",
@@ -33,12 +38,97 @@ const sources_url_el_to_source = {
     },
 };
 
+const table_column_render_types = {
+    metric: "metric",
+    text: "text",
+    percentage: "percentage",
+    button_link: "button_link",
+};
+
+const bytesToSizeFormatter = formatterUtils.getFormatter(formatterUtils.types.bytes.id);
+const handlerIdAddLinkApplication = "page-stats-action-link-application";
+const handlerIdJumpHistorical = "page-stats-action-jump-historical";
+
+const sources_types_tables = {
+    interface: [{
+	    table_value: "interface",
+	    title: i18n('page_stats.top_applications'),
+	    view: "top_protocols",
+	    default_sorting_columns: 2,
+	    default: true,
+	    
+	    columns: [{
+		columnName: i18n("application"), name: 'application', data: 'protocol', handlerId: handlerIdAddLinkApplication,
+		render: function(data, type, service) {
+		    let context = this;
+		    let handler = {
+			handlerId: handlerIdAddLinkApplication,
+			onClick: function() {
+			    console.log(data);
+			    console.log(service);
+			    let schema = `top:${service.ts_schema}`;
+			    context.add_metric_from_metric_schema(schema, service.ts_query)
+			},
+		    };
+		    return DataTableUtils.createLinkCallback({ text: data.label, handler });
+		},
+	    }, {
+	    	columnName: i18n("traffic"), name: 'traffic', data: 'traffic', orderable: false,
+	    	render: (data) => {
+	    	    return bytesToSizeFormatter(data);
+	    	    //return NtopUtils.bytesToSize(data)
+	    	},
+	    }, {
+		columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage',
+		render: (data) => {
+		    const percentage = data.toFixed(1);
+		    return NtopUtils.createProgressBar(percentage)
+		}
+	    }, {
+		columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, handlerId: handlerIdJumpHistorical,
+		render_if: function(context) { return context.is_history_enabled },
+		render: function(data, type, service) {
+		    let context = this;
+		    const jump_to_historical = {
+			handlerId: handlerIdJumpHistorical,
+			onClick: function() {
+			    let status = context.status;
+			    let l7_proto = ntopng_url_manager.serialize_param("l7proto", `${service.protocol.id};eq`);
+			    let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}&${l7_proto}`;
+			    let source_type = context.source_type;
+			    let source_array = context.source_array;
+			    
+			    let params = "";
+			    let params_array = source_type.source_def_array.map((source_def, i) => {
+				let source = source_array[i];
+				if (source_def.value == "ifid") {
+				    return ntopng_url_manager.serialize_param("ifid", source.value);
+				} else if (source_def.value == "host") {
+				    return ntopng_url_manager.serialize_param("ip", `${source.value};eq`);
+				}
+			    });
+			    params = params_array.join("&");
+			    historical_flows_url = `${historical_flows_url}&${params}`;
+			    console.log(historical_flows_url);
+			    window.open(historical_flows_url);
+			}
+		    };
+		    return DataTableUtils.createActionButtons([
+			{ class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
+		    ]);
+		}
+	    },],
+	}],
+};
+
+sources_types_tables["host"] = [ntopng_utility.clone(sources_types_tables["interface"][0])];
+sources_types_tables["host"].forEach((table_def) => table_def.table_value = "host");
+
 const sources_types = [
     {
 	id: "interface", //unique id
 	regex_page_url: "lua\/if_stats", // regex to match url page
 	label: "Interface",
-	table_value: "interface",
 	query: "iface",
 	source_def_array: [{
 	    main_source_def: true, 
@@ -369,6 +459,7 @@ const metricsConsts = function() {
 	ui_types,
 	sources_url_el_to_source,
 	sources_types,
+	sources_types_tables,
     };
 }();
 
