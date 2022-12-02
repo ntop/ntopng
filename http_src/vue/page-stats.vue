@@ -560,7 +560,7 @@ function set_table_configuration2(timeseries_groups, status) {
 	    let option = { value, label, table_config_def };
 	    table_top_options.value.push(option);
 	});
-	if (table_top_options.value.find((option) => option.value == selected_top_table.value.value)) {
+	if (selected_top_table.value != null && table_top_options.value.find((option) => option.value == selected_top_table.value.value)) {
 	    return;
 	}
 	
