@@ -2052,7 +2052,7 @@ bool Ntop::changeUserPermission(const char * username,
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, username);
 
   if(allow_pcap_download)
-    return (ntop->getRedis()->set(key, "1", 0) >= 0);
+    return (ntop->getRedis()->set(key, "1", ttl) >= 0);
   else
     ntop->getRedis()->del(key);
 
@@ -2062,7 +2062,9 @@ bool Ntop::changeUserPermission(const char * username,
 
 /* ******************************************* */
 
-bool Ntop::changeUserHistoricalFlowPermission(const char * username, bool allow_historical_flow) const {
+bool Ntop::changeUserHistoricalFlowPermission(const char * username,
+					      bool allow_historical_flow,
+					      u_int32_t ttl) const {
   char key[64];
 
   if (username == NULL || username[0] == '\0')
@@ -2075,7 +2077,7 @@ bool Ntop::changeUserHistoricalFlowPermission(const char * username, bool allow_
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, username);
 
   if(allow_historical_flow)
-    return (ntop->getRedis()->set(key, "1", 0) >= 0);
+    return (ntop->getRedis()->set(key, "1", ttl) >= 0);
   else
     ntop->getRedis()->del(key);
 
