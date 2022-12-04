@@ -844,6 +844,8 @@ AC_CONFIG_FILES(httpdocs/misc/ntopng-utils-manage-updates)
 AC_CONFIG_FILES(packages/wizard/ntopng-config)
 AC_CONFIG_FILES(packages/etc/systemd/system/ntopng.service)
 AC_CONFIG_FILES(packages/etc/systemd/system/ntopng@.service)
+AC_CONFIG_FILES(python/setup.py)
+AC_CONFIG_FILES(python/__init__.py)
 
 AC_OUTPUT
 

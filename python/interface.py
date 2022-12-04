@@ -6,10 +6,8 @@
 # https://www.ntop.org/guides/ntopng/api/rest/api_v2.html
 #
 
-import requests
-import json
-from requests.auth import HTTPBasicAuth
-from ntopng import ntopng
+import ntopng
+
 
 class interface:
     def __init__(self, ntopng_obj):
@@ -17,16 +15,16 @@ class interface:
         self.rest_v2_url = "/lua/rest/v2"
         
     def get_data(self, ifid):
-        return(ntopng.request(self.ntopng_obj, self.rest_v2_url + "/get/interface/data.lua", {"ifid": ifid}))
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/interface/data.lua", {"ifid": ifid}))
     
     def get_broadcast_domains(self, ifid):
-        return(ntopng.request(self.ntopng_obj, self.rest_v2_url + "/get/interface/bcast_domains.lua", {"ifid": ifid}))
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/interface/bcast_domains.lua", {"ifid": ifid}))
     
     def get_address(self, ifid):
-        return(ntopng.request(self.ntopng_obj, self.rest_v2_url + "/get/interface/address.lua", {"ifid": ifid}))
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/interface/address.lua", {"ifid": ifid}))
 
     def get_l7_stats(self, ifid, max_num_results):
-        return(ntopng.request(self.ntopng_obj, self.rest_v2_url + "/get/interface/l7/stats.lua",
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/interface/l7/stats.lua",
                               {"ifid": ifid,
                                'ndpistats_mode': 'count',
                                'breed': True,
@@ -37,10 +35,10 @@ class interface:
                                }))
     
     def get_dscp_stats(self, ifid):
-        return(ntopng.request(self.ntopng_obj, self.rest_v2_url + "/get/interface/dscp/stats.lua", {"ifid": ifid}))
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/interface/dscp/stats.lua", {"ifid": ifid}))
 
     def get_interfaces(self):
-        return(ntopng.request(self.ntopng_obj, self.rest_v2_url + "/get/ntopng/interfaces.lua", None))
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/ntopng/interfaces.lua", None))
 
     def self_test(self, ifid):
         print("----------------------------")

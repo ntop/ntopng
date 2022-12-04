@@ -4,10 +4,7 @@
 # Test application for python API
 #
 
-from ntopng import ntopng
-from interface import interface
-from host import host
-from flow import flow
+from ntopng import ntopng, interface, host, flow
 import os
 
 my_ntopng = ntopng('admin', 'admin', 'http://localhost:3000')
