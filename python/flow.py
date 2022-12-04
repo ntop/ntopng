@@ -6,9 +6,7 @@
 # https://www.ntop.org/guides/ntopng/api/rest/api_v2.html
 #
 
-#import ntopng
-
-class flow:
+class Flow:
     def __init__(self, ntopng_obj):
         self.ntopng_obj      = ntopng_obj
         self.rest_v2_url     = "/lua/rest/v2"
@@ -35,16 +33,18 @@ class flow:
 
 
     def self_test(self, ifid):
-        print("----------------------------")
-        print(self.get_active_flows_paginated(ifid, 1, 100))
-        print("----------------------------")
-        print(self.get_active_host_flows_paginated(ifid, "192.168.1.1", 0, 1, 100))
-        print("----------------------------")
-        print(self.get_active_l4_proto_flow_counters(ifid))
-        print("----------------------------")
-        print(self.get_active_l7_proto_flow_counters(ifid))
-        print("----------------------------")
-        print(self.get_historical_flows(ifid, 1641042000, 1735736400, 10, None))
-        print("----------------------------")
-        print(self.get_historical_topk_flows(ifid, 1641042000, 1735736400, 10, None))
-        print("----------------------------")
+        try:
+            print(self.get_active_flows_paginated(ifid, 1, 100))
+            print("----------------------------")
+            print(self.get_active_host_flows_paginated(ifid, "192.168.1.1", 0, 1, 100))
+            print("----------------------------")
+            print(self.get_active_l4_proto_flow_counters(ifid))
+            print("----------------------------")
+            print(self.get_active_l7_proto_flow_counters(ifid))
+            print("----------------------------")
+            print(self.get_historical_flows(ifid, 1641042000, 1735736400, 10, None))
+            print("----------------------------")
+            print(self.get_historical_topk_flows(ifid, 1641042000, 1735736400, 10, None))
+            print("----------------------------")
+        except:
+            raise ValueError("Invalid parameters specified")

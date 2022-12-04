@@ -6,9 +6,7 @@
 # https://www.ntop.org/guides/ntopng/api/rest/api_v2.html
 #
 
-#import ntopng
-
-class host:
+class Host:
     def __init__(self, ntopng_obj):
         self.ntopng_obj      = ntopng_obj
         self.rest_v2_url     = "/lua/rest/v2"
@@ -63,32 +61,34 @@ class host:
 
 
     def self_test(self, ifid):
-        print("----------------------------")
-        print(self.get_active_hosts(ifid))
-        print("----------------------------")
-        print(self.get_active_hosts_paginated(ifid, 1, 100))
-        print("----------------------------")
-        print(self.get_host_interfaces("192.168.1.1"))
-        print("----------------------------")
-        print(self.get_host_data(ifid, "192.168.1.1"))
-        print("----------------------------")
-        print(self.get_host_l7_stats(ifid, "192.168.1.1", 0))
-        print("----------------------------")
-        print(self.get_host_dscp_stats(ifid, "192.168.1.1", 0, True))
-        print("----------------------------")
-        print(self.get_top_local_talkers(ifid))
-        print("----------------------------")
-        print(self.get_top_remote_talkers(ifid))
-        print("----------------------------")
-        print(self.get_alert_types())
-        print("----------------------------")
-        print(self.get_alert_severities())
-        print("----------------------------")
-        print(self.get_historical_alert_type_counters(ifid, 1641042000, 1735736400))
-        print("----------------------------")
-        print(self.get_historical_flows_type_counters(ifid, 1641042000, 1735736400))
-        print("----------------------------")
-        print(self.get_historical_alert_severity_counters(ifid, 1641042000, 1735736400))
-        print("----------------------------")
-        print(self.get_historical_flows_severity_counters(ifid, 1641042000, 1735736400))
-        print("----------------------------")
+        try:
+            print(self.get_active_hosts(ifid))
+            print("----------------------------")
+            print(self.get_active_hosts_paginated(ifid, 1, 100))
+            print("----------------------------")
+            print(self.get_host_interfaces("192.168.1.1"))
+            print("----------------------------")
+            print(self.get_host_data(ifid, "192.168.1.1"))
+            print("----------------------------")
+            print(self.get_host_l7_stats(ifid, "192.168.1.1", 0))
+            print("----------------------------")
+            print(self.get_host_dscp_stats(ifid, "192.168.1.1", 0, True))
+            print("----------------------------")
+            print(self.get_top_local_talkers(ifid))
+            print("----------------------------")
+            print(self.get_top_remote_talkers(ifid))
+            print("----------------------------")
+            print(self.get_alert_types())
+            print("----------------------------")
+            print(self.get_alert_severities())
+            print("----------------------------")
+            print(self.get_historical_alert_type_counters(ifid, 1641042000, 1735736400))
+            print("----------------------------")
+            print(self.get_historical_flows_type_counters(ifid, 1641042000, 1735736400))
+            print("----------------------------")
+            print(self.get_historical_alert_severity_counters(ifid, 1641042000, 1735736400))
+            print("----------------------------")
+            print(self.get_historical_flows_severity_counters(ifid, 1641042000, 1735736400))
+            print("----------------------------")
+        except:
+            raise ValueError("Invalid interfaceId specified")

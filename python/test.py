@@ -4,21 +4,69 @@
 # Test application for python API
 #
 
-from ntopng import ntopng, interface, host, flow
 import os
+import sys
+import getopt
 
-my_ntopng = ntopng('admin', 'admin', 'http://localhost:3000')
 
-ifid = 4
+from ntopng.ntopng import Ntopng
+from ntopng.interface import Interface
+from ntopng.host import Host
+from ntopng.flow import Flow
 
-my_interface = interface.interface(my_ntopng)
-my_interface.self_test(ifid)
 
-my_host = host.host(my_ntopng)
-my_host.self_test(ifid)
+# Defaults
+username   = "admin"
+password   = "admin"
+ntopng_url = "http://localhost:3000"
+iface_id   = 0
 
-my_flow = flow.flow(my_ntopng)
-my_flow.self_test(ifid)
+def usage():
+    print("test.py [-h] [-u <username>] [-p <passwrd>] [-n <ntopng_url>] [-i <iface id>]")
+    sys.exit(0)
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "hu:p:n:i:",
+                               ["help", "username=", "password=", "ntopng_url=", "iface_id="]
+                               )
+except getopt.GetoptError as err:
+    print(err)
+    usage()
+    sys.exit(2)
+
+for o, v in opts:
+    if(o in ("-h", "--help")):
+        usage()
+    elif(o in ("-u", "--username")):
+        username = v
+    elif(o in ("-p", "--password")):
+        password = v
+    elif(o in ("-n", "--ntopng_url")):
+        ntopng_url = v
+    elif(o in ("-i", "--iface_id")):
+        iface_id = v
+
+try:
+    my_ntopng = Ntopng(username, password, ntopng_url)
+except ValueError as e:
+    print(e)
+    os._exit(-1)
+    
+try:
+    my_interface = Interface(my_ntopng)
+    print("\n\nInterface")
+    my_interface.self_test(iface_id)
+    
+    my_host = Host(my_ntopng)
+    print("\n\nHost")
+    my_host.self_test(iface_id)
+    
+    my_flow = Flow(my_ntopng)
+    print("\n\nFlow")
+    my_flow.self_test(iface_id)
+except ValueError as e:
+    print(e)
+    os._exit(-1)
 
 
 os._exit(0)
