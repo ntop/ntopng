@@ -7,6 +7,7 @@
 import requests
 import json
 from requests.auth import HTTPBasicAuth
+import flow, host, interface
 
 class ntopng:
     def __init__(self, username, password, url):

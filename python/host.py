@@ -6,7 +6,7 @@
 # https://www.ntop.org/guides/ntopng/api/rest/api_v2.html
 #
 
-import ntopng
+#import ntopng
 
 class host:
     def __init__(self, ntopng_obj):

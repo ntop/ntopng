@@ -11,13 +11,13 @@ my_ntopng = ntopng('admin', 'admin', 'http://localhost:3000')
 
 ifid = 4
 
-my_interface = interface(my_ntopng)
+my_interface = interface.interface(my_ntopng)
 my_interface.self_test(ifid)
 
-my_host = host(my_ntopng)
+my_host = host.host(my_ntopng)
 my_host.self_test(ifid)
 
-my_flow = flow(my_ntopng)
+my_flow = flow.flow(my_ntopng)
 my_flow.self_test(ifid)
 
 
