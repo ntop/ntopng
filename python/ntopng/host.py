@@ -47,19 +47,6 @@ class Host:
     def get_alert_severities(self):
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/severity/consts.lua", None))
 
-    def get_historical_alert_type_counters(self, ifid, epoch_begin, epoch_end):
-        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/type/counters.lua", { "ifid": ifid, "status": "historical", "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
-
-    def get_historical_flows_type_counters(self, ifid, epoch_begin, epoch_end):
-        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/type/counters.lua", { "ifid": ifid, "status": "historical", "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
-
-    def get_historical_alert_severity_counters(self, ifid, epoch_begin, epoch_end):
-        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/severity/counters.lua", { "ifid": ifid, "status": "historical", "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
-
-    def get_historical_flows_severity_counters(self, ifid, epoch_begin, epoch_end):
-        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/severity/counters.lua", { "ifid": ifid, "status": "historical", "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
-
-
     def self_test(self, ifid):
         try:
             print(self.get_active_hosts(ifid))
@@ -81,14 +68,6 @@ class Host:
             print(self.get_alert_types())
             print("----------------------------")
             print(self.get_alert_severities())
-            print("----------------------------")
-            print(self.get_historical_alert_type_counters(ifid, 1641042000, 1735736400))
-            print("----------------------------")
-            print(self.get_historical_flows_type_counters(ifid, 1641042000, 1735736400))
-            print("----------------------------")
-            print(self.get_historical_alert_severity_counters(ifid, 1641042000, 1735736400))
-            print("----------------------------")
-            print(self.get_historical_flows_severity_counters(ifid, 1641042000, 1735736400))
             print("----------------------------")
         except:
             raise ValueError("Invalid interfaceId specified")
