@@ -12,5 +12,3 @@ Interfaces/Hosts/Flows information and raw PCAP data.
     examples_v2
     api_v1
     examples_v1
-    api
-    examples
