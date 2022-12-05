@@ -273,6 +273,23 @@ function flow_alert_store:top_l7_proto_historical()
    return q_res
 end
 
+-- ##############################################
+
+--@brief Performs a query for the top VLAN by alert count
+function flow_alert_store:top_vlan_historical()
+   if not interface.hasVLANs() then
+      return {}
+   end
+
+   -- Preserve all the filters currently set
+   local where_clause = self:build_where_clause()
+
+   local q = string.format("SELECT vlan_id, count(*) count FROM %s WHERE %s AND vlan_id != 0 GROUP BY vlan_id ORDER BY count DESC LIMIT %u",
+         self:get_table_name(), where_clause, self._top_limit)
+   local q_res = interface.alert_store_query(q) or {}
+
+   return q_res
+end
 
 -- ##############################################
 
@@ -358,6 +375,75 @@ end
 
 -- ##############################################
 
+--@brief Performs a query for the top client hosts by alert count
+function flow_alert_store:top_cli_network_historical()
+   -- Preserve all the filters currently set
+   local where_clause = self:build_where_clause()
+
+   local q
+   if ntop.isClickHouseEnabled() then
+      q = string.format("SELECT cli_network, count(*) count FROM %s WHERE %s GROUP BY cli_network ORDER BY count DESC LIMIT %u",
+         self:get_table_name(), where_clause, self._top_limit)
+   else
+      q = string.format("SELECT cli_network, count(*) count FROM %s WHERE %s GROUP BY cli_network ORDER BY count DESC LIMIT %u",
+         self:get_table_name(), where_clause, self._top_limit)
+   end
+
+   local q_res = interface.alert_store_query(q) or {}
+
+   return q_res
+end
+
+-- ##############################################
+
+--@brief Performs a query for the top server hosts by alert count
+function flow_alert_store:top_srv_network_historical()
+   -- Preserve all the filters currently set
+   local where_clause = self:build_where_clause()
+
+   local q
+   if ntop.isClickHouseEnabled() then
+      q = string.format("SELECT srv_network, count(*) count FROM %s WHERE %s GROUP BY srv_network ORDER BY count DESC LIMIT %u",
+         self:get_table_name(), where_clause, self._top_limit)
+   else
+      q = string.format("SELECT srv_network, count(*) count FROM %s WHERE %s GROUP BY srv_network ORDER BY count DESC LIMIT %u",
+         self:get_table_name(), where_clause, self._top_limit)
+   end
+
+   local q_res = interface.alert_store_query(q) or {}
+
+   return q_res
+end
+
+-- ##############################################
+
+--@brief Merge top clients and top servers to build a top hosts 
+function flow_alert_store:top_network_merge(top_cli_network, top_srv_network)
+   local all_network = {}
+   local top_network = {}
+
+   for _, p in ipairs(top_cli_network) do
+      all_network[p.cli_network] = tonumber(p.count)
+      p.network = p.cli_network
+   end 
+   for _, p in ipairs(top_srv_network) do
+      all_network[p.srv_network] = (all_network[p.srv_network] or 0) + tonumber(p.count)
+      p.network = p.srv_network
+   end 
+
+   for network, count in pairsByValues(all_network, rev) do
+      top_network[#top_network + 1] = {
+         network = network,
+         count = count,
+      }
+      if #top_network >= self._top_limit then break end
+   end
+
+   return top_network
+end
+
+-- ##############################################
+
 --@brief Stats used by the dashboard
 function flow_alert_store:_get_additional_stats()
    local stats = {}
@@ -366,6 +452,10 @@ function flow_alert_store:_get_additional_stats()
    stats.top.srv_ip = self:top_srv_ip_historical()
    stats.top.ip = self:top_ip_merge(stats.top.cli_ip, stats.top.srv_ip)
    stats.top.l7_proto = self:top_l7_proto_historical()
+   stats.top.cli_network = self:top_cli_network_historical()
+   stats.top.srv_network = self:top_srv_network_historical()
+   stats.top.network = self:top_network_merge(stats.top.cli_network, stats.top.srv_network)
+   stats.top.vlan = self:top_vlan_historical()
    return stats
 end
 
