@@ -38,8 +38,8 @@ class Interface:
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/ntopng/interfaces.lua", None))
 
     def self_test(self, ifid):
+        print(self.get_data(ifid))
         try:
-            print(self.get_data(ifid))
             print("----------------------------")
             print(self.get_broadcast_domains(ifid))
             print("----------------------------")

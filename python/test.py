@@ -20,14 +20,26 @@ username   = "admin"
 password   = "admin"
 ntopng_url = "http://localhost:3000"
 iface_id   = 0
+auth_token = None
 
 def usage():
     print("test.py [-h] [-u <username>] [-p <passwrd>] [-n <ntopng_url>] [-i <iface id>]")
+    print("        [-t <auth token>]")
+    print("")
+    print("Example: ./test.py -t ce0e284c774fac5a3e981152d325cfae -i 4")
+    print("         ./test.py -u ntop -p mypassword -i 4")
     sys.exit(0)
 
+##########
+
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "hu:p:n:i:",
-                               ["help", "username=", "password=", "ntopng_url=", "iface_id="]
+    opts, args = getopt.getopt(sys.argv[1:], "hu:p:n:i:t:",
+                               ["help",
+                                "username=",
+                                "password=",
+                                "ntopng_url=",
+                                "iface_id=",
+                                "auth_token="]
                                )
 except getopt.GetoptError as err:
     print(err)
@@ -45,9 +57,11 @@ for o, v in opts:
         ntopng_url = v
     elif(o in ("-i", "--iface_id")):
         iface_id = v
+    elif(o in ("-t", "--auth_token")):
+        auth_token = v
 
 try:
-    my_ntopng = Ntopng(username, password, ntopng_url)
+    my_ntopng = Ntopng(username, password, auth_token, ntopng_url)
 except ValueError as e:
     print(e)
     os._exit(-1)
