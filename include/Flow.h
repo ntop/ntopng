@@ -133,7 +133,7 @@ class Flow : public GenericHashEntry {
 
   union {
     struct {
-      char *last_url, *last_user_agent;
+      char *last_url, *last_user_agent, *last_server;
       ndpi_http_method last_method;
       u_int16_t last_return_code;
     } http;

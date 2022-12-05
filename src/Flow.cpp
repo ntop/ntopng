@@ -384,6 +384,7 @@ Flow::~Flow() {
   if(isHTTP()) {
     if(protos.http.last_url)         free(protos.http.last_url);
     if(protos.http.last_user_agent)  free(protos.http.last_user_agent);
+    if(protos.http.last_server)      free(protos.http.last_server);
   } else if(isDNS()) {
     if(protos.dns.last_query)        free(protos.dns.last_query);
     if(protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
@@ -626,6 +627,7 @@ void Flow::processDetectedProtocolData() {
 
       setHTTPMethod(ndpiFlow->http.method);
     }
+    
     break;
   } /* switch */
 }
@@ -742,6 +744,9 @@ void Flow::processExtraDissectedInformation() {
 	if((risk != NDPI_NO_RISK) && (risk < NDPI_MAX_RISK))
 	  addRisk(2 << (risk-1));
       }
+      
+      if((!protos.http.last_server) && ndpiFlow->http.server)
+	protos.http.last_server = strdup(ndpiFlow->http.server);
 
       if(ndpiFlow->http.response_status_code == 200) {
 	if(srv_host && ndpiFlow->host_server_name[0] != '\0')
@@ -2885,6 +2890,8 @@ void Flow::formatECSAppProto(json_object *my_object) {
         json_object_object_add(application_object, "request.method", json_object_new_string(ndpi_http_method2str(protos.http.last_method)));
       if(protos.http.last_return_code > 0)
         json_object_object_add(application_object, "response.status_code", json_object_new_int((u_int32_t)protos.http.last_return_code));
+      if(protos.http.last_server != NULL)
+        json_object_object_add(application_object, "response.server", json_object_new_string(protos.http.last_server));
 
       json_object_object_add(my_object, "http", application_object);
     }
@@ -6132,6 +6139,8 @@ void Flow::lua_get_http_info(lua_State *vm) const {
       lua_push_str_table_entry(vm, "protos.http.last_url", protos.http.last_url);
       if(protos.http.last_user_agent)
 	lua_push_str_table_entry(vm, "protos.http.last_user_agent", protos.http.last_user_agent);
+      if(protos.http.last_server)
+	lua_push_str_table_entry(vm, "protos.http.last_server", protos.http.last_server);
     }
 
     if(host_server_name)
@@ -6148,6 +6157,7 @@ void Flow::getHTTPInfo(ndpi_serializer *serializer) const {
       ndpi_serialize_string_uint64(serializer, "last_return_code", protos.http.last_return_code);
       ndpi_serialize_string_string(serializer, "last_url", protos.http.last_url);
       ndpi_serialize_string_string(serializer, "last_user_agent", protos.http.last_user_agent);
+      ndpi_serialize_string_string(serializer, "last_server", protos.http.last_server);
     }
 
     if(host_server_name)

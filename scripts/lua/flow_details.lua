@@ -1317,6 +1317,7 @@ else
       if(not isEmptyString(flow["protos.http.last_method"])) then rowspan = rowspan + 1 end
       if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then rowspan = rowspan + 1 end
       if(not isEmptyString(flow["protos.http.last_user_agent"])) then rowspan = rowspan + 1 end
+      if(not isEmptyString(flow["protos.http.last_server"])) then rowspan = rowspan + 1 end
       if(not isEmptyString(flow["protos.http.last_return_code"])) then rowspan = rowspan + 1 end
 
       print("<tr><th width=30% rowspan="..rowspan..">"..i18n("http").."</th>")
@@ -1344,6 +1345,10 @@ else
 
       if(not isEmptyString(flow["protos.http.last_user_agent"])) then
         print("<tr><th>"..i18n("flow_details.user_agent").."</th><td colspan=2>"..flow["protos.http.last_user_agent"].."</td></tr>")
+      end
+
+      if(not isEmptyString(flow["protos.http.last_server"])) then
+        print("<tr><th>"..i18n("flow_details.server").."</th><td colspan=2>"..flow["protos.http.last_server"].."</td></tr>")
       end
 
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
