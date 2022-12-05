@@ -1135,6 +1135,11 @@ export default class NtopUtils {
               </div>
             </div>`
   }
+
+  /* Return the number of rows available in a table */
+  static getNumTableRows() {
+    return [10, 20, 50, 100];
+  }
 }
 
 $(function () {

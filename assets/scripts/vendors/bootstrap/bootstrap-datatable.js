@@ -974,12 +974,6 @@
 	      ).click(function() {
 		  _updatePerPage.call(this, that);
 		  return false;
-	      }),
-	      $(
-		  '<li data-value="200"><a class="dropdown-item" href="#">200</a></li>'
-	      ).click(function() {
-		  _updatePerPage.call(this, that);
-		  return false;
 	      })
 	  );
 

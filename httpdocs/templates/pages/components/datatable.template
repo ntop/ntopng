@@ -631,10 +631,14 @@
     
 
     /* Ordering the array in order to have the selected row length at the beginning of the array */
-    let length_array = [10, 50, 100, 250, 500];
-    const index = length_array.indexOf(INITIAL_ROWS_LENGTH);
+    let length_array = NtopUtils.getNumTableRows();
+    let index = length_array.indexOf(INITIAL_ROWS_LENGTH);
+    /* Validate index */
+    (index >= 0) ? index = index : index = length_array.length - 1; /* Use the last index */
+    
     length_array.splice(index, 1);
     length_array.unshift(INITIAL_ROWS_LENGTH);
+    
     let url_params = ntopng_url_manager.get_url_params();
     let config = DataTableUtils.getStdDatatableConfig(datatableButton);
     config = DataTableUtils.extendConfig(config, {

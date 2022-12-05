@@ -68,7 +68,7 @@ function SankeyChart(data) {
   const link_title_list = d3v7.map(links, settings.linkTitle);
 
   /* Compute the Sankey layout. */
-  d3v7.sankey()
+  let sankey = d3v7.sankey()
     .nodeId(({index: i}) => node_id_list[i])
     .nodeAlign(settings.nodeAlign)
     .nodeWidth(settings.nodeWidth)
@@ -80,6 +80,40 @@ function SankeyChart(data) {
     .attr("viewBox", [0, 0, settings.width, settings.height])
     .attr("style", "max-width: 100%; height: 60vh; height: intrinsic;");
 
+  let deltaX, deltaY;
+    
+  const width = settings.width
+  const link = svg.append("g")
+    .attr("fill", "none")
+    .attr("stroke-opacity", settings.linkStrokeOpacity)
+    .selectAll("g")
+    .data(links)
+    .join("g")
+    .style("mix-blend-mode", settings.linkMixBlendMode)
+    .append("path")
+    .attr("d", settings.linkPath)
+    .attr("stroke", ({ color }) => color )
+    .attr("stroke-width", ({ width }) => Math.max(1, width))
+    .call(link_title_list ? path => path.append("title").text(({index: i}) => link_title_list[i]) : () => {});
+
+
+  const drag = d3v7.drag()
+    .on("start", function (event, d) {
+        const current = d3v7.select(this);
+        deltaX = current.attr("x") - event.x;
+        deltaY = current.attr("y") - event.y;
+    })
+    .on("drag", function (event, d) {
+      d3v7.select(this)
+            .attr("x", event.x + deltaX)
+            .attr("y", event.y + deltaY);
+
+      debugger;
+      sankey = d3v7.sankey().update(sankey)
+        link.selectAll("path")
+        .data(sankey.links, function(d) { return d; });
+    });
+    
   const node = svg.append("g")
     .attr("stroke", settings.nodeStroke)
     .attr("stroke-width", settings.nodeStrokeWidth)
@@ -88,6 +122,7 @@ function SankeyChart(data) {
     .selectAll("rect")
     .data(nodes)    
     .join("rect")
+    .call(drag)
 	  .on("dblclick", function(data) { 
       data = data.currentTarget.__data__
       const sourceLink = data.sourceLinks;
@@ -127,20 +162,6 @@ function SankeyChart(data) {
       return node_color;
     })
     .append("title").text(({index: i}) => node_title_list[i])
-
-  const width = settings.width
-  const link = svg.append("g")
-    .attr("fill", "none")
-    .attr("stroke-opacity", settings.linkStrokeOpacity)
-    .selectAll("g")
-    .data(links)
-    .join("g")
-    .style("mix-blend-mode", settings.linkMixBlendMode)
-    .append("path")
-    .attr("d", settings.linkPath)
-    .attr("stroke", ({ color }) => color )
-    .attr("stroke-width", ({ width }) => Math.max(1, width))
-    .call(link_title_list ? path => path.append("title").text(({index: i}) => link_title_list[i]) : () => {});
 
   svg.append("g")
     .attr("font-family", "sans-serif")
@@ -195,7 +216,7 @@ const updateData = async function(data) {
   NtopUtils.hideOverlays();
 };
 
-onMounted(() => {})
+onMounted(() => { })
 
 defineExpose({ updateData })
 </script>
