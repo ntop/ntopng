@@ -12,11 +12,12 @@ This API is based on ntopng's [REST API](https://www.ntop.org/guides/ntopng/api/
 API Information
 ----------------
 For each ntopng REST API call there is a corresponding Python method for the defined Python classes:
-- [host](host.py)
-- [flow](flow.py)
-- [interface](interface.py)
+- [host](ntopng/host.py)
+- [flow](ntopng/flow.py)
+- [historical](ntopng/historical.py)
+- [interface](ntopng/interface.py)
 
-The [ntopng](ntopng.py) class is used to store information such as ntopng IP address and credentials used to connect it.
+The [ntopng](ntopng/ntopng.py) class is used to store information such as ntopng IP address and credentials used to connect it.
 
 The [test](test.py) application can be used as example of the Python API
 
