@@ -25,6 +25,6 @@ upload_test: build
 
 
 upload: build
-	# Official PyPy
+	# Official PyPI
 	python3 -m twine upload dist/*
 	pip3 install ntopng
