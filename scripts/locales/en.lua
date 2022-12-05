@@ -5157,7 +5157,14 @@ local lang = {
     ["metric"] = "Metric",
     ["min"] = "Min",
     ["title_modal_download_file"] = "Export Chart Image as .png",
-    ["top_applications"] = "Top Applications",
+    ["top"] = {
+       ["top_applications"] = "Top Applications",
+       ["top_receivers"] = "Top Receivers",
+       ["top_senders"] = "Top Senders",
+       ["host_name"] = "Host Name",
+       ["received"] = "Received",
+       ["sent"] = "Sent",
+    },
     ["total"] = "Total",
   },
   ["peers_page"] = {

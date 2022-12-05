@@ -153,6 +153,12 @@ const get_default_source_array = async (http_prefix, source_type) => {
     return source_array;
 };
 
+async function get_source_array_from_value_dict(http_prefix, source_type, source_value_dict) {
+    let source_value_array = source_type.source_def_array.map((source_def) => source_value_dict[source_def.value]);
+    let source_array = await get_source_array_from_value_array(http_prefix, source_type, source_value_array);
+    return source_array;
+}
+
 const get_source_array_from_value_array = async (http_prefix, source_type, source_value_array) => {
     if (source_type == null) {
 	source_type = get_current_page_source_type();
@@ -329,6 +335,7 @@ const metricsManager = function() {
 
 	get_sources,
 	get_default_source_array,
+	get_source_array_from_value_dict,
 	get_source_array_from_value_array,
 	get_default_source_value_array,
 

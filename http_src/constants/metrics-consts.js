@@ -52,7 +52,7 @@ const handlerIdJumpHistorical = "page-stats-action-jump-historical";
 const sources_types_tables = {
     interface: [{
 	    table_value: "interface",
-	    title: i18n('page_stats.top_applications'),
+	    title: i18n('page_stats.top.top_applications'),
 	    view: "top_protocols",
 	    default_sorting_columns: 2,
 	    default: true,
@@ -107,6 +107,146 @@ const sources_types_tables = {
 				    return ntopng_url_manager.serialize_param("ip", `${source.value};eq`);
 				}
 			    });
+			    params = params_array.join("&");
+			    historical_flows_url = `${historical_flows_url}&${params}`;
+			    console.log(historical_flows_url);
+			    window.open(historical_flows_url);
+			}
+		    };
+		    return DataTableUtils.createActionButtons([
+			{ class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
+		    ]);
+		}
+	    },],
+    }, {
+	    table_value: "interface",
+	    title: i18n('page_stats.top.top_senders'),
+	    view: "top_senders",
+	    default_sorting_columns: 2,
+	    
+	    columns: [{
+		columnName: i18n("page_stats.top.host_name"), name: 'host_name', data: 'host', handlerId: handlerIdAddLinkApplication,
+		render: function(data, type, service) {
+		    let context = this;
+		    let handler = {
+			handlerId: handlerIdAddLinkApplication,
+			onClick: async function() {
+			    console.log(data);
+			    console.log(service);
+			    let schema = `host:traffic`;
+			    context.add_ts_group_from_source_value_dict("host", service.tags, schema);
+			},
+		    };
+		    return DataTableUtils.createLinkCallback({ text: data.label, handler });
+		},
+	    }, {
+	    	columnName: i18n("page_stats.top.sent"), name: 'sent', data: 'traffic', orderable: false,
+	    	render: (data) => {
+	    	    return bytesToSizeFormatter(data);
+	    	    //return NtopUtils.bytesToSize(data)
+	    	},
+	    }, // {
+	    // 	columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage',
+	    // 	render: (data) => {
+	    // 	    const percentage = data.toFixed(1);
+	    // 	    return NtopUtils.createProgressBar(percentage)
+	    // 	}
+	    // },
+		      {
+		columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, handlerId: handlerIdJumpHistorical,
+		render_if: function(context) { return context.is_history_enabled },
+		render: function(data, type, service) {
+		    let context = this;
+		    const jump_to_historical = {
+			handlerId: handlerIdJumpHistorical,
+			onClick: function() {
+			    let status = context.status;
+			    let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}`;
+			    let source_type = context.source_type;
+			    let source_array = context.source_array;
+			    
+			    let params = "";			    
+			    let params_array = [];
+			    for (let key in service.tags) {
+				let value = service.tags[key];
+				let p_url = "";
+				if (key == "ifid") {
+				    p_url = ntopng_url_manager.serialize_param(key, value);
+				} else if (key == "host") {
+				    p_url = ntopng_url_manager.serialize_param("ip", `${value};eq`);
+				}
+				params_array.push(p_url);
+			    }
+			    params = params_array.join("&");
+			    historical_flows_url = `${historical_flows_url}&${params}`;
+			    console.log(historical_flows_url);
+			    window.open(historical_flows_url);
+			}
+		    };
+		    return DataTableUtils.createActionButtons([
+			{ class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
+		    ]);
+		}
+	    },],
+	}, {
+	    table_value: "interface",
+	    title: i18n('page_stats.top.top_receivers'),
+	    view: "top_receivers",
+	    default_sorting_columns: 2,
+	    
+	    columns: [{
+		columnName: i18n("page_stats.top.host_name"), name: 'host_name', data: 'host', handlerId: handlerIdAddLinkApplication,
+		render: function(data, type, service) {
+		    let context = this;
+		    let handler = {
+			handlerId: handlerIdAddLinkApplication,
+			onClick: async function() {
+			    console.log(data);
+			    console.log(service);
+			    let schema = `host:traffic`;
+			    context.add_ts_group_from_source_value_dict("host", service.tags, schema);
+			},
+		    };
+		    return DataTableUtils.createLinkCallback({ text: data.label, handler });
+		},
+	    }, {
+	    	columnName: i18n("page_stats.top.received"), name: 'received', data: 'traffic', orderable: false,
+	    	render: (data) => {
+	    	    return bytesToSizeFormatter(data);
+	    	    //return NtopUtils.bytesToSize(data)
+	    	},
+	    }, // {
+	    // 	columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage',
+	    // 	render: (data) => {
+	    // 	    const percentage = data.toFixed(1);
+	    // 	    return NtopUtils.createProgressBar(percentage)
+	    // 	}
+	    // },
+		      {
+		columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, handlerId: handlerIdJumpHistorical,
+		render_if: function(context) { return context.is_history_enabled },
+		render: function(data, type, service) {
+		    let context = this;
+		    const jump_to_historical = {
+			handlerId: handlerIdJumpHistorical,
+			onClick: function() {
+			    let status = context.status;
+			    let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}`;
+			    let source_type = context.source_type;
+			    let source_array = context.source_array;
+			    
+			    let params = "";			    
+			    let params_array = [];
+			    for (let key in service.tags) {
+				let value = service.tags[key];
+				let p_url = "";
+				if (key == "ifid") {
+				    p_url = ntopng_url_manager.serialize_param(key, value);
+				} else if (key == "host") {
+				    p_url = ntopng_url_manager.serialize_param("ip", `${value};eq`);
+				}
+				params_array.push(p_url);
+			    }
 			    params = params_array.join("&");
 			    historical_flows_url = `${historical_flows_url}&${params}`;
 			    console.log(historical_flows_url);
