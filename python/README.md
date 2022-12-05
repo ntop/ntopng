@@ -20,6 +20,17 @@ The [ntopng](ntopng.py) class is used to store information such as ntopng IP add
 
 The [test](test.py) application can be used as example of the Python API
 
+
+Installation
+------------
+For you convenience, ntop periodically builds pip packages. You can install the latest available package as:
+- `pip3 install ntopng`
+
+
+Developing the Python API
+-------------------------
+We encourage our users to extend this API. For your convenience we are sharing a [Makefile](Makefile) that you can use as skeleton for installing the package locally or creating test packages.
+
 Documentation
 -------------
 [ntopng REST API v2](https://www.ntop.org/guides/ntopng/api/rest/api_v2.html)
