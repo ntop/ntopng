@@ -549,7 +549,7 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
        && cli_h && srv_h && cli_h->isLocalHost())
       cli_h->incDohDoTUses(srv_h);
     break;
-
+    
   default:
     break;
   } /* switch */
@@ -617,7 +617,6 @@ void Flow::processDetectedProtocolData() {
     break;
 
   case NDPI_PROTOCOL_HTTP:
-    if(srv_h && ndpiFlow->host_server_name[0] != '\0') srv_h->setServerName(host_server_name);
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(ndpiFlow->http.url) {
       if(!protos.http.last_url) protos.http.last_url = strdup(ndpiFlow->http.url);
@@ -626,27 +625,6 @@ void Flow::processDetectedProtocolData() {
 	protos.http.last_user_agent = strdup(ndpiFlow->http.user_agent);
 
       setHTTPMethod(ndpiFlow->http.method);
-    }
-
-    if(ndpiFlow->host_server_name[0] != '\0') {
-      char *doublecol, delimiter = ':';
-
-      /* If <host>:<port> we need to remove ':' */
-      if((doublecol = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter)) != NULL)
-	doublecol[0] = '\0';
-
-      if(cli_h) {
-	cli_h->incContactedService((char*)ndpiFlow->host_server_name);
-
-	if(ndpiFlow->http.detected_os)
-	  cli_h->inlineSetOSDetail((char*)ndpiFlow->http.detected_os);
-
-	if(cli_h->isLocalHost())
-	  cli_h->incrVisitedWebSite(host_server_name);
-      }
-
-      if(srv_h && (ndpiFlow->protos.dns.reply_code == 0 /* No Error */))
-	srv_h->setResolvedName((char*)ndpiFlow->host_server_name);
     }
     break;
   } /* switch */
@@ -685,7 +663,7 @@ void Flow::processExtraDissectedInformation() {
       }
       break;
 
-    /* Protocols with TLS transport (keep in sync with isTLS()) */
+      /* Protocols with TLS transport (keep in sync with isTLS()) */
     case NDPI_PROTOCOL_TLS:
     case NDPI_PROTOCOL_MAIL_IMAPS:
     case NDPI_PROTOCOL_MAIL_SMTPS:
@@ -744,6 +722,10 @@ void Flow::processExtraDissectedInformation() {
       break;
 
     case NDPI_PROTOCOL_DNS:
+      if(srv_host && (ndpiFlow->protos.dns.reply_code == 0 /* No Error */))
+	srv_host->setResolvedName((char*)ndpiFlow->host_server_name);
+
+      /* No break */
     case NDPI_PROTOCOL_IEC60870:
       /*
 	Don't free the memory, let the nDPI dissection run for DNS.
@@ -761,6 +743,28 @@ void Flow::processExtraDissectedInformation() {
 	  addRisk(2 << (risk-1));
       }
 
+      if(ndpiFlow->http.response_status_code == 200) {
+	if(srv_host && ndpiFlow->host_server_name[0] != '\0')
+	  srv_host->setServerName(host_server_name);
+      
+	if(ndpiFlow->host_server_name[0] != '\0') {
+	  char *doublecol, delimiter = ':';
+	
+	  /* If <host>:<port> we need to remove ':' */
+	  if((doublecol = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter)) != NULL)
+	    doublecol[0] = '\0';
+	
+	  if(cli_host) {
+	    cli_host->incContactedService((char*)ndpiFlow->host_server_name);
+	  
+	    if(ndpiFlow->http.detected_os)
+	      cli_host->inlineSetOSDetail((char*)ndpiFlow->http.detected_os);
+	  
+	    if(cli_host->isLocalHost())
+	      cli_host->incrVisitedWebSite(host_server_name);
+	  }
+	}
+      }
       break;
     }
 

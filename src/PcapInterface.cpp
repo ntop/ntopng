@@ -48,6 +48,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx, bool _delete_pcap
 
     if(strcmp(name, "-") == 0 || !strncmp(name, "stdin", 5)) {
       /* stdin */
+      pcap_error_buffer[0] = '\0';
       pcap_handle = pcap_fopen_offline(stdin, pcap_error_buffer);
       pcap_datalink_type = pcap_datalink(pcap_handle);
       read_pkts_from_pcap_dump = false;
