@@ -580,6 +580,32 @@ const sources_types = [
 	}],
     },
     {
+    	//todo_test
+    	id: "snmp_interface",
+    	// disable_stats: true,
+    	regex_page_url: "lua\/pro\/enterprise\/snmp_interface_details",
+    	label: "SNMP",
+    	query: "snmp",	
+    	source_def_array: [{
+    	    label: "Interface",
+    	    sources_function: () => { return [{ label: "", value: -1 }] },
+    	    value: "ifid", 
+    	    ui_type: ui_types.hide,
+    	}, {
+    	    label: "Device",
+    	    regex_type: "ip",
+    	    value: "device",
+	    value_url: "host",
+    	    ui_type: ui_types.input,
+    	}, {
+    	    label: "SNMP Interface",
+    	    regex_type: "text",
+    	    value: "if_index",
+	    value_url: "snmp_port_idx",
+    	    ui_type: ui_types.input,
+    	}],
+    },
+    {
 	//todo_test
 	id: "pod",
 	regex_page_url: "lua\/pod_details",

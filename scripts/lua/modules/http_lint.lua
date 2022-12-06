@@ -1750,6 +1750,7 @@ local known_parameters = {
    ["snmp_username"]           = validateSingleWord,            -- SNMP Username
    ["cidr"]                    = validateCIDR,                  -- /32 or /24
    ["snmp_port_idx"]           = validateNumber,                -- SNMP port index
+   ["if_index"]                = validateNumber,                -- SNMP port index
    ["snmp_recache" ]           = validateBool,                  -- forces SNMP queries to be re-executed and cached
    ["request_discovery" ]      = validateBool,                  -- forces device discovery to be re-cached
    ["intfs"]                   = validateInterfacesList,        -- a list of network interfaces ids

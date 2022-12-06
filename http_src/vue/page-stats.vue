@@ -481,7 +481,7 @@ function get_top_table_url(ts_group, table_value, table_view, status) {
 
 async function refresh_top_table() {
     if (!props.is_ntop_pro) { return; }
-    let table_config = selected_top_table.value.table_config_def;
+    let table_config = selected_top_table.value?.table_config_def;
     if (table_config == null) { return; }
     // NtopUtils.showOverlays();
     let data_url = get_top_table_url(table_config.ts_group, table_config.table_value, table_config.table_view);
