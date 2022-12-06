@@ -302,43 +302,51 @@ function graph_utils.drawNewGraphs(source_value_object)
    if source_value_object == nil then
       source_value_object = {}
    end
+   local ifstats = interface.getStats()
    local json = require ("dkjson")
    local ifid = interface.getId()
    local enable_new_timeseries = ntop.getPref("ntopng.enable_new_timeseries")
    local recording_utils = require "recording_utils"
    local traffic_extraction_permitted = recording_utils.isActive(ifid) or recording_utils.isExtractionActive(ifid)
    local template_utils = require "template_utils"
-   --todo: set right boolean values
+   local interface_ts_enabled = ntop.getCache("ntopng.prefs.interface_ndpi_timeseries_creation")
+   local interface_has_top_protocols = interface_ts_enabled == "both" or interface_ts_enabled == "per_protocol" or interface_ts_enabled ~= "0"
+   local interface_has_top_categories = interface_ts_enabled == "both" or interface_ts_enabled == "per_category"
+   local host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation")
+   local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
+   local host_has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~= "0"
+   local host_has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
+ 
    local sources_types_enabled = {
-      interface = true,
-      host = true,
-      mac = true,
-      network = true,
-      as = true,
-      country = true,
-      os = true,
-      vlan = true,
-      pool = true,
-      system = true,
-      profile = true,
-      redis = true,
-      influx = true,
-      active_monitoring = true,
-      pod = false,
-      container = false,
-      snmp_interface = false,
-      snmp_device = false,
+      interface = interface_ts_enabled,
+      host = host_ts_creation,
+      mac = ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1",
+      network = ntop.getPref("ntopng.prefs.asn_rrd_creation") == "1",
+      as = ntop.getPref("ntopng.prefs.asn_rrd_creation") == "1",
+      country = ntop.getPref("ntopng.prefs.country_rrd_creation") == "1",
+      os = ntop.getPref("ntopng.prefs.os_rrd_creation") == "1",
+      vlan = ntop.getPref("ntopng.prefs.vlan_rrd_creation") == "1",
+      pool = ntop.getPref("ntopng.prefs.host_pools_rrd_creation") == "1",
+      system = ntop.getPref("ntopng.prefs.system_probes_timeseries") == "1",
+      profile = ntop.isPro() and ifstats.profiles,
+      redis = ntop.getPref("ntopng.prefs.timeseries_driver") ~= "influxdb",
+      influx = ntop.getPref("ntopng.prefs.timeseries_driver") == "influxdb",
+      active_monitoring = ntop.getPref("ntopng.prefs.system_probes_timeseries") == "1",
+      pod = ifstats.has_seen_pods,
+      container = ifstats.has_seen_containers,
+      snmp_interface = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1",
+      snmp_device = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1",
    }
-   --todo: set right boolean values
-   sources_types_top_enabled = {
+   
+   local sources_types_top_enabled = {
       interface = {
-	 top_protocols = true,
-	 top_categories = true,
-	 top_senders = true,
-	 top_receivers = true,
+	 top_protocols = interface_has_top_protocols,
+	 top_categories = interface_has_top_categories,
+	 top_senders = ntop.getPref("ntopng.prefs.topk_heuristic_precision") ~= "disabled",
+	 top_receivers = ntop.getPref("ntopng.prefs.topk_heuristic_precision") ~= "disabled",
       },
       host = {
-	 top_protocols = true,
+	 top_protocols = host_has_top_protocols,
       },
    }
    
