@@ -766,7 +766,7 @@ void Flow::processExtraDissectedInformation() {
 	      cli_host->inlineSetOSDetail((char*)ndpiFlow->http.detected_os);
 	  
 	    if(cli_host->isLocalHost())
-	      cli_host->incrVisitedWebSite(host_server_name);
+	      cli_host->incrVisitedWebSite((char*)ndpiFlow->host_server_name);
 	  }
 	}
       }
