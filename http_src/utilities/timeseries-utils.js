@@ -547,8 +547,6 @@ async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseries
 	    let main_source_index = getMainSourceDefIndex(tsGroup);
 	    let tsQuery = getTsQuery(tsGroup);
 	    let pObj = {
-		...paramsEpochObj,
-		...paramsChart,
 		ts_query: tsQuery,
 		ts_schema: `${tsGroup.metric.schema}`,
 	    };
@@ -558,7 +556,7 @@ async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseries
 	    return pObj;
 	});
 	let tsDataUrlMulti = `${httpPrefix}/lua/pro/rest/v2/get/timeseries/ts_multi.lua`;
-	let req = { ts_requests: tsRequests };
+	let req = { ts_requests: tsRequests, ...paramsEpochObj, ...paramsChart };
 	let headers = {
             'Content-Type': 'application/json'
 	};
