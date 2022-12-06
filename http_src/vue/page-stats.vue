@@ -485,7 +485,7 @@ async function refresh_top_table() {
     top_table_ref.value.update_url(data_url);
     top_table_ref.value.reload();
     // NtopUtils.hideOverlays();
-
+    
 }
 
 const top_table_options = ref([]);
@@ -514,7 +514,7 @@ function set_top_table_options(timeseries_groups, status) {
 	let main_source = ts_group.source_array[main_source_index];
 	let source_type = ts_group.source_type;
 	let source_type_tables = sources_types_tables[source_type.id];
-	if (source_type_tables == null) { continue; }	
+	if (source_type_tables == null) { continue; }
 	
 	source_type_tables.forEach((table_def) => {
 	    let data_url = get_top_table_url(ts_group, table_def.table_value, table_def.view, status);
@@ -550,14 +550,14 @@ function set_top_table_options(timeseries_groups, status) {
 	    let option = { value, label, table_config_def };
 	    top_table_options.value.push(option);
 	});
-	if (selected_top_table.value != null && top_table_options.value.find((option) => option.value == selected_top_table.value.value)) {
-	    return;
-	}
-	
-	selected_top_table.value = top_table_options.value.find((option) => option.table_config_def.default == true);
-	if (selected_top_table.value == null) {
-	    selected_top_table.value = top_table_options.value[0];
-	}
+    }
+    if (selected_top_table.value != null && top_table_options.value.find((option) => option.value == selected_top_table.value.value)) {
+	return;
+    }
+    
+    selected_top_table.value = top_table_options.value.find((option) => option.table_config_def.default == true);
+    if (selected_top_table.value == null) {
+	selected_top_table.value = top_table_options.value[0];
     }
 }
 

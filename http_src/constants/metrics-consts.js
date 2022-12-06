@@ -120,6 +120,74 @@ const sources_types_tables = {
 	    },],
     }, {
 	    table_value: "interface",
+	    title: i18n('page_stats.top.top_categories'),
+	    view: "top_categories",
+	    default_sorting_columns: 2,
+	    default: true,
+	    
+	    columns: [{
+		columnName: i18n("page_stats.top.category"), name: 'category', data: 'category', handlerId: handlerIdAddLinkApplication,
+		render: function(data, type, service) {
+		    let context = this;
+		    let handler = {
+			handlerId: handlerIdAddLinkApplication,
+			onClick: function() {
+			    console.log(data);
+			    console.log(service);
+			    let schema = `top:${service.ts_schema}`;
+			    context.add_metric_from_metric_schema(schema, service.ts_query)
+			},
+		    };
+		    return DataTableUtils.createLinkCallback({ text: data.label, handler });
+		},
+	    }, {
+	    	columnName: i18n("traffic"), name: 'traffic', data: 'traffic', orderable: false,
+	    	render: (data) => {
+	    	    return bytesToSizeFormatter(data);
+	    	    //return NtopUtils.bytesToSize(data)
+	    	},
+	    }, {
+		columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage',
+		render: (data) => {
+		    const percentage = data.toFixed(1);
+		    return NtopUtils.createProgressBar(percentage)
+		}
+	    }, {
+		columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, handlerId: handlerIdJumpHistorical,
+		render_if: function(context) { return context.is_history_enabled },
+		render: function(data, type, service) {
+		    let context = this;
+		    const jump_to_historical = {
+			handlerId: handlerIdJumpHistorical,
+			onClick: function() {
+			    let status = context.status;
+			    let category = ntopng_url_manager.serialize_param("l7cat", `${service.category.id};eq`);
+			    let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}&${category}`;
+			    let source_type = context.source_type;
+			    let source_array = context.source_array;
+			    
+			    let params = "";
+			    let params_array = source_type.source_def_array.map((source_def, i) => {
+				let source = source_array[i];
+				if (source_def.value == "ifid") {
+				    return ntopng_url_manager.serialize_param("ifid", source.value);
+				} else if (source_def.value == "host") {
+				    return ntopng_url_manager.serialize_param("ip", `${source.value};eq`);
+				}
+			    });
+			    params = params_array.join("&");
+			    historical_flows_url = `${historical_flows_url}&${params}`;
+			    console.log(historical_flows_url);
+			    window.open(historical_flows_url);
+			}
+		    };
+		    return DataTableUtils.createActionButtons([
+			{ class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
+		    ]);
+		}
+	    },],
+    }, {
+	    table_value: "interface",
 	    title: i18n('page_stats.top.top_senders'),
 	    view: "top_senders",
 	    default_sorting_columns: 2,
