@@ -88,8 +88,9 @@
 </ModalSnapshot>
 
 <ModalTimeseries v-if="is_ntop_pro"
-  ref="modal_timeseries"
-  @apply="apply_modal_timeseries">
+		 ref="modal_timeseries"
+		 :sources_types_enabled="sources_types_enabled"
+		 @apply="apply_modal_timeseries">
 </ModalTimeseries>
 
 <ModalTrafficExtraction
@@ -130,6 +131,8 @@ const props = defineProps({
     csrf: String,
     is_ntop_pro: Boolean,
     source_value_object: Object,
+    sources_types_enabled: Object,
+    sources_types_top_enabled: Object,
     enable_snapshots: Boolean,
     is_history_enabled: Boolean,
     traffic_extraction_permitted: Boolean,
@@ -517,6 +520,11 @@ function set_top_table_options(timeseries_groups, status) {
 	if (source_type_tables == null) { continue; }
 	
 	source_type_tables.forEach((table_def) => {
+	    let enables_table_value = props.sources_types_top_enabled[table_def.table_value];
+	    if (enables_table_value == null) { return; }
+	    let enable_table_def = enables_table_value[table_def.view];
+	    if (!enable_table_def) { return; }
+	    
 	    let data_url = get_top_table_url(ts_group, table_def.table_value, table_def.view, status);
 	    let value = `${table_def.table_value}_${table_def.view}_${id}`;
 	    let label = `${table_def.title} - ${source_type.label} ${main_source.label}`;
@@ -532,7 +540,10 @@ function set_top_table_options(timeseries_groups, status) {
 	    };
 	    // it should be here in this instance the vuetify object with its properties
 	    table_config_def.columns_config = table_def.columns.map((column) => {
-		if (column.render_if && column.render_if({ is_history_enabled: props.is_history_enabled }) == false) {
+		let render_if_context = {
+		    is_history_enabled: props.is_history_enabled
+		};
+		if (column.render_if && column.render_if(render_if_context) == false) {
 		    return; // skip column
 		}
 		let c = {
@@ -543,6 +554,7 @@ function set_top_table_options(timeseries_groups, status) {
 		c.render = column.render.bind({
 		    add_metric_from_metric_schema,
 		    add_ts_group_from_source_value_dict,
+		    sources_types_enabled: props.sources_types_enabled,
 		    status, source_type,  source_array: ts_group.source_array,
 		});
 		return c;

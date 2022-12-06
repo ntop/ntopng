@@ -205,7 +205,10 @@ const sources_types_tables = {
 			    context.add_ts_group_from_source_value_dict("host", service.tags, schema);
 			},
 		    };
-		    return DataTableUtils.createLinkCallback({ text: data.label, handler });
+		    if (context.sources_types_enabled["host"]) {
+			return DataTableUtils.createLinkCallback({ text: data.label, handler });
+		    }
+		    return data.label;
 		},
 	    }, {
 	    	columnName: i18n("page_stats.top.sent"), name: 'sent', data: 'traffic', orderable: false,
@@ -275,7 +278,10 @@ const sources_types_tables = {
 			    context.add_ts_group_from_source_value_dict("host", service.tags, schema);
 			},
 		    };
-		    return DataTableUtils.createLinkCallback({ text: data.label, handler });
+		    if (context.sources_types_enabled["host"]) {
+			return DataTableUtils.createLinkCallback({ text: data.label, handler });
+		    }
+		    return data.label;
 		},
 	    }, {
 	    	columnName: i18n("page_stats.top.received"), name: 'received', data: 'traffic', orderable: false,

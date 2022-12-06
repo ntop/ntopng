@@ -2,6 +2,8 @@
   <page-stats 
     :csrf="csrf"
     :source_value_object="source_value_object"
+    :sources_types_enabled="sources_types_enabled"
+    :sources_types_top_enabled="sources_types_top_enabled"
     :is_ntop_pro="is_ntop_pro"
     :enable_snapshots="is_ntop_enterprise_m"
     :is_history_enabled="is_history_enabled"
@@ -18,6 +20,8 @@
     const is_history_enabled = '{* ntop.isClickHouseEnabled() *}' == 'true';
     const traffic_extraction_permitted = '{* traffic_extraction_permitted *}' == 'true';
     const source_value_object = {* source_value_object *};
+    const sources_types_enabled = {* sources_types_enabled *};
+    const sources_types_top_enabled = {* sources_types_top_enabled *};
 
     const vue_options = {
     	components: {
@@ -32,6 +36,8 @@
 	    return {
 	      csrf: pageCsrf,
 	      source_value_object: source_value_object,
+	      sources_types_enabled,
+	      sources_types_top_enabled,
 	      is_ntop_pro,
 	      is_ntop_enterprise_m,
 	      traffic_extraction_permitted,

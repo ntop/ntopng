@@ -308,7 +308,48 @@ function graph_utils.drawNewGraphs(source_value_object)
    local recording_utils = require "recording_utils"
    local traffic_extraction_permitted = recording_utils.isActive(ifid) or recording_utils.isExtractionActive(ifid)
    local template_utils = require "template_utils"
-   template_utils.render("pages/components/historical_interface.template", { traffic_extraction_permitted = traffic_extraction_permitted, source_value_object = json.encode(source_value_object) })
+   --todo: set right boolean values
+   local sources_types_enabled = {
+      interface = true,
+      host = true,
+      mac = true,
+      network = true,
+      as = true,
+      country = true,
+      os = true,
+      vlan = true,
+      pool = true,
+      system = true,
+      profile = true,
+      redis = true,
+      influx = true,
+      active_monitoring = true,
+      pod = false,
+      container = false,
+      snmp_interface = false,
+      snmp_device = false,
+   }
+   --todo: set right boolean values
+   sources_types_top_enabled = {
+      interface = {
+	 top_protocols = true,
+	 top_categories = true,
+	 top_senders = true,
+	 top_receivers = true,
+      },
+      host = {
+	 top_protocols = true,
+      },
+   }
+   
+   local context = {
+      traffic_extraction_permitted = traffic_extraction_permitted,
+      sources_types_enabled = json.encode(sources_types_enabled),
+      source_value_object = json.encode(source_value_object),
+      sources_types_top_enabled = json.encode(sources_types_top_enabled),
+   }
+   
+   template_utils.render("pages/components/historical_interface.template", context)
 end
 
 -- #################################################
