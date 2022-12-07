@@ -324,6 +324,27 @@ end
 
 -- #################################
 
+local function add_top_snmp_timeseries(tags, timeseries)
+  local snmp_ts_enabled = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1"
+  
+  ts_utils.loadSchemas()
+  
+  -- Top l7 Protocols
+  if snmp_ts_enabled then
+    local series = ts_utils.listSeries("top:snmp_if:traffic", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    
+    if not table.empty(series) then
+      for _, serie in pairs(series or {}) do
+        --timeseries[#timeseries + 1] = { schema = "top:snmp_if:traffic", group = i18n("graphs.l7_proto"), priority = 2, query = "protocol:" .. serie.protocol , label = serie.protocol, measure_unit = "bps", scale = 0, timeseries = { bytes_sent = { label = serie.protocol .. " " .. i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = serie.protocol .. " " .. i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }} }
+      end
+    end
+  end
+  
+  return timeseries
+end
+
+-- #################################
+
 local function add_top_host_pool_timeseries(tags, timeseries)
   local host_pool_ts_enabled = ntop.getCache("ntopng.prefs.host_pools_rrd_creation")
   
@@ -513,6 +534,9 @@ local function add_top_timeseries(tags, prefix, timeseries)
   elseif prefix == 'am' then
     -- Add the active monitoring timeseries
     timeseries = add_active_monitoring_timeseries(tags, timeseries)
+  elseif prefix == 'snmp' then
+    -- Add the active monitoring timeseries
+    timeseries = add_top_snmp_timeseries(tags, timeseries)
   end
 
   return timeseries
