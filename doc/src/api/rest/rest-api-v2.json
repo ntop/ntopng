@@ -2344,10 +2344,10 @@
 					"Timeseries"
 				],
 				"summary": "Return the number of flows in a period of time",
-				"description": "Raw PCAP data is returned",
+				"description": "Return the timeseries of number of flows in a period of time",
 				"operationId": "live_traffic",
 				"produces": [
-					"application/vnd.tcpdump.pcap"
+					"application/json"
 				],
 				"parameters": [{
           "name": "ifid",
