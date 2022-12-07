@@ -413,8 +413,8 @@ end
 local function add_top_host_timeseries(tags, timeseries)
   local host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation")
   local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
-  local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~= "0"
-  local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
+  local has_top_protocols = (host_ts_enabled == "both" or host_ts_enabled == "per_protocol") and (host_ts_creation == "full")
+  local has_top_categories = (host_ts_enabled == "both" or host_ts_enabled == "per_category") and (host_ts_creation == "full")
 
   ts_utils.loadSchemas()
   
