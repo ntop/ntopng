@@ -126,27 +126,25 @@ Severity
 Event and threshold alerts are always associated with a severity that tells the importance of such occurrence. For example, the contact of a blacklisted host is emphasized with a *warning*, whereas a threshold crossed by an host is highlighted with an *error*. Currently, severity levels available those defined in RFC 3164, namely:
 
 - *Emergency*: system is unusable
-- *Alert*: action must be taken immediately
 - *Critical*: critical conditions
 - *Error*: error conditions
 - *Warning*: warning conditions
 - *Notice*: normal but significant condition
-- *Debug*: debug-level messages
 
   
 Entities
 --------
 
-Every alert has an entity and an entity value associated. The entity is the subject for which the alert has been generated. The list of entities supported by ntopng are:
+Every alert has an entity (subject for which the alert has been generated). The list of entities supported by ntopng are:
 
-- **Hosts**: Layer-3 IP addresses
-- **Interfaces**: monitored ntopng interfaces
-- **Networks**: ntopng local networks
-- **SNMP devices**: devices added to ntopng from the SNMP page
-- **SNMP device interfaces**: devices added to ntopng from the SNMP page
-- **Flows**: monitored flows
-- **Devices**: Layer-2 Mac addresses
-- **Host Pools**: the user-created host pools
+- **Host**: Layer-3 IP address
+- **Interface**: monitored ntopng interface
+- **Network**: ntopng local network
+- **SNMP device**: device added to ntopng from the SNMP page
+- **SNMP device interface**: device added to ntopng from the SNMP page
+- **Flow**: monitored flow
+- **MAC Address**: Layer-2 Mac address
+- **Host Pool**: the user-created host pool
 - **Process**: the ntopng process itself
 - **User**: the ntopng GUI user
 
@@ -157,7 +155,7 @@ Entities are not shown when browsing ntopng alert pages as they are clear from t
 Type
 ----
 
-The full list of alerts is available under the Developer section, page *Alerts and Flow Status Definitions*.
+The full list of alerts is available under the Settings section, page *Behavioral Checks*.
 
 .. figure:: ../img/basic_concepts_alert_definitions.png
   :align: center

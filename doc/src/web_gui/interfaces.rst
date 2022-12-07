@@ -1,5 +1,5 @@
-Interfaces
-##########
+Interface
+#########
 
 The Interfaces dropdown menu entry in the top toolbar contains lists all the interfaces that are currently
 monitored by ntopng. Among all interfaces listed, one has a check mark that indicates the interface is
