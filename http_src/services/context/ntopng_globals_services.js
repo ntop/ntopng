@@ -177,94 +177,95 @@ export const ntopng_utility = function() {
 * The status is incapsulated into the url.
 */
 export const ntopng_status_manager = function() {
-  let gloabal_status = {};
-  /** @type {{ [id: string]: (status: object) => void}} */
-  let subscribers = {}; // dictionary of { [id: string]: f_on_ntopng_status_change() }
+    let gloabal_status = {};
+    /** @type {{ [id: string]: (status: object) => void}} */
+    let subscribers = {}; // dictionary of { [id: string]: f_on_ntopng_status_change() }
     const clone = (e) => ntopng_utility.clone(e);
 
-  const relplace_global_status = function(status) {
-gloabal_status = status;
-  }
-  /**
-   * Notifies the status to all subscribers with id different from skip_id.
-   * @param {object} status object that represent the application status.
-   * @param {string} skip_id if != null doesn't notify the subscribers with skip_id identifier.
-   */
-  const notify_subscribers = function(status, skip_id) {
-      for (let id in subscribers) {
-          if (id == skip_id) { continue; }
-          let f_on_change = subscribers[id];
-          f_on_change(clone(status));
-      }
-  };
+    const relplace_global_status = function(status) {
+        gloabal_status = status;
+    }
 
-  return {	
-      /**
-       * Gets the current global application status.
-       * @returns {object}
-       */
-      get_status: function() {
-    return clone(gloabal_status);
-      },
+    /**
+     * Notifies the status to all subscribers with id different from skip_id.
+     * @param {object} status object that represent the application status.
+     * @param {string} skip_id if != null doesn't notify the subscribers with skip_id identifier.
+     */
+    const notify_subscribers = function(status, skip_id) {
+        for (let id in subscribers) {
+            if (id == skip_id) { continue; }
+            let f_on_change = subscribers[id];
+            f_on_change(clone(status));
+        }
+    };
 
-update_subscribers: function() {
-    const status = this.get_status();
-    notify_subscribers(status);
-},
+    return {
+        /**
+         * Gets the current global application status.
+         * @returns {object}
+         */
+        get_status: function() {
+            return clone(gloabal_status);
+        },
 
-      /**
-       * Allows to subscribers f_on_change callback on status change event.
-       * @param {string} id an identifier of the subscribtion. 
-       * @param {(status:object) => void} f_on_change callback that take object status as param.
-       * @param {boolean} get_init_notify if true the callback it's immediately called with the last status available.
-       */
-      on_status_change: function(id, f_on_change, get_init_notify) {
-          subscribers[id] = f_on_change;
-          if (get_init_notify == true) {
-              let status = this.get_status();
-              f_on_change(clone(status));
-          }
-      },
+        update_subscribers: function() {
+            const status = this.get_status();
+            notify_subscribers(status);
+        },
 
-      /**
-       * Raplaces the application status and notifies the new status to all subscribers.
-       * Notifies the new status to all subscribers.
-       * @param {Object} status object that represent the application status.
-       * @param {string} skip_id if != null doesn't notify the subscribers with skip_id identifier.
-       */
-      replace_status: function(status, skip_id) {
-    relplace_global_status(status);
-          notify_subscribers(status, skip_id);
-      },
+        /**
+         * Allows to subscribers f_on_change callback on status change event.
+         * @param {string} id an identifier of the subscribtion. 
+         * @param {(status:object) => void} f_on_change callback that take object status as param.
+         * @param {boolean} get_init_notify if true the callback it's immediately called with the last status available.
+         */
+        on_status_change: function(id, f_on_change, get_init_notify) {
+            subscribers[id] = f_on_change;
+            if (get_init_notify == true) {
+                let status = this.get_status();
+                f_on_change(clone(status));
+            }
+        },
 
-      /**
-       * Adds or replaces all obj param keys to the application status.
-       * Notifies the new status to all subscribers.
-       * @param {Object} obj object to add or edit to the application status. 
-       * @param {string} skip_id if != null doesn't notify the subscribers with skip_id identifier.
-       */
-      add_obj_to_status: function(obj, skip_id) {
-          let new_status = this.get_status();
-    ntopng_utility.copy_object_keys(obj, new_status);
-          this.replace_status(new_status, skip_id);
-      },
+        /**
+         * Raplaces the application status and notifies the new status to all subscribers.
+         * Notifies the new status to all subscribers.
+         * @param {Object} status object that represent the application status.
+         * @param {string} skip_id if != null doesn't notify the subscribers with skip_id identifier.
+         */
+        replace_status: function(status, skip_id) {
+            relplace_global_status(status);
+            notify_subscribers(status, skip_id);
+        },
 
-      /**
-       * Adds or replaces the value key to the application status.
-       * Notifies the new status to all subscribers.
-       * @param {string} key key to adds or replaces.
-       * @param {any} value value to adds or replaces.
-       * @param {*} skip_id if != null doesn't notify the subscribers with skip_id identifier.
-       */
-      add_value_to_status: function(key, value, skip_id) {
-          let new_status = this.get_status();
-          new_status[key] = value;
-          // /* This is needed to have muliple filters for the same key */
-          // (new_status[key] && new_status[key].search(value) === -1) ? new_status[key] += "," + value : new_status[key] = value
+        /**
+         * Adds or replaces all obj param keys to the application status.
+         * Notifies the new status to all subscribers.
+         * @param {Object} obj object to add or edit to the application status. 
+         * @param {string} skip_id if != null doesn't notify the subscribers with skip_id identifier.
+         */
+        add_obj_to_status: function(obj, skip_id) {
+            let new_status = this.get_status();
+            ntopng_utility.copy_object_keys(obj, new_status);
+            this.replace_status(new_status, skip_id);
+        },
+
+        /**
+         * Adds or replaces the value key to the application status.
+         * Notifies the new status to all subscribers.
+         * @param {string} key key to adds or replaces.
+         * @param {any} value value to adds or replaces.
+         * @param {*} skip_id if != null doesn't notify the subscribers with skip_id identifier.
+         */
+        add_value_to_status: function(key, value, skip_id) {
+            let new_status = this.get_status();
+            new_status[key] = value;
+            // /* This is needed to have muliple filters for the same key */
+            // (new_status[key] && new_status[key].search(value) === -1) ? new_status[key] += "," + value : new_status[key] = value
           
-          this.replace_status(new_status, skip_id);
-      },
-  }
+            this.replace_status(new_status, skip_id);
+        },
+    }
 }();
 
 const ntopng_params_url_serializer = {
@@ -291,116 +292,126 @@ const ntopng_params_url_serializer = {
 };
 
 export const ntopng_url_manager = function() {
-  /** @type {{ [key: string]: (obj: any) => string}} */
-  let custom_params_serializer = {};
-  ntopng_utility.copy_object_keys(ntopng_params_url_serializer, custom_params_serializer);
+    /** @type {{ [key: string]: (obj: any) => string}} */
+    let custom_params_serializer = {};
+    ntopng_utility.copy_object_keys(ntopng_params_url_serializer, custom_params_serializer);
   
-  return {
-get_url_params: function() {
-    return window.location.search.substring(1);
-},
-get_url_search_params: function(url) {
-    if (url == null) {
-  url = this.get_url_params();
-    }
-    // for(const [key, value] of entries) {
-          const url_params = new URLSearchParams(url);
-    return url_params;
-},
-get_url_entries: function(url) {
-          const url_params = this.get_url_search_params(url);
-          const entries = url_params.entries();
-    return entries;
-},
-      get_url_entry: function(param_name, url) {
-    let entries = this.get_url_entries(url);
-    for(const [key, value] of entries) {
-  if (key == param_name) { return value; }
-    }
-    return null;
-},
-get_url_object: function(url) {
-    let entries = this.get_url_entries(url);
-    let obj = {};
-    for (const [key, value] of entries) {
-  obj[key] = value;
-    }
-    return obj;
-},
-reload_url: function() {
-    window.location.reload();
-},
-replace_url: function(url_params) {
-          window.history.replaceState({}, null, `?${url_params}`);
-},
-replace_url_and_reload: function(url_params) {
-    this.replace_url(url_params);
-    this.reload_url();
-},
-serialize_param: function(key, value) {
-    if (value == null) {
-  value = "";
-    }
-    return `${key}=${encodeURIComponent(value)}`;
-},	
-set_custom_key_serializer: function(key, f_get_url_param) {
-    custom_params_serializer[key] = f_get_url_param;
-},
+    return {
 
-/**
- * Convert js object into a string that represent url params.
- * Uses custom serializer if set.
- * @param {object} obj.
- * @returns {string}.
- */
-obj_to_url_params: function(obj) {
-    let params = [];
-    const default_serializer = this.serialize_param;
-    for (let key in obj) {
-  let serializer = custom_params_serializer[key];
-  if (serializer == null) {
-      serializer = default_serializer;
-  }
-  let param = serializer(key, obj[key]);
-  params.push(param);
+        get_url_params: function() {
+            return window.location.search.substring(1);
+        },
+
+        get_url_search_params: function(url) {
+            if (url == null) {
+                url = this.get_url_params();
+            }
+            // for(const [key, value] of entries) {
+            const url_params = new URLSearchParams(url);
+            return url_params;
+        },
+
+        get_url_entries: function(url) {
+            const url_params = this.get_url_search_params(url);
+            const entries = url_params.entries();
+            return entries;
+        },
+
+        get_url_entry: function(param_name, url) {
+            let entries = this.get_url_entries(url);
+            for(const [key, value] of entries) {
+                if (key == param_name) { return value; }
+            }
+            return null;
+        },
+
+        get_url_object: function(url) {
+            let entries = this.get_url_entries(url);
+            let obj = {};
+            for (const [key, value] of entries) {
+                obj[key] = value;
+            }
+            return obj;
+        },
+
+        reload_url: function() {
+            window.location.reload();
+        },
+
+        replace_url: function(url_params) {
+            window.history.replaceState({}, null, `?${url_params}`);
+        },
+
+        replace_url_and_reload: function(url_params) {
+            this.replace_url(url_params);
+            this.reload_url();
+        },
+
+        serialize_param: function(key, value) {
+            if (value == null) {
+                value = "";
+            }
+            return `${key}=${encodeURIComponent(value)}`;
+        },	
+
+        set_custom_key_serializer: function(key, f_get_url_param) {
+            custom_params_serializer[key] = f_get_url_param;
+        },
+
+        /**
+         * Convert js object into a string that represent url params.
+         * Uses custom serializer if set.
+         * @param {object} obj.
+         * @returns {string}.
+         */
+        obj_to_url_params: function(obj) {
+            let params = [];
+            const default_serializer = this.serialize_param;
+            for (let key in obj) {
+                let serializer = custom_params_serializer[key];
+                if (serializer == null) {
+                    serializer = default_serializer;
+                }
+                let param = serializer(key, obj[key]);
+                params.push(param);
+            }
+            let url_params = params.join("&");
+            return url_params;
+        },
+
+        delete_params: function(params_key) {
+            let search_params = this.get_url_search_params();
+            params_key.forEach((p) => {
+                search_params.delete(p);
+            });
+            this.replace_url(search_params.toString());	    
+        },
+
+        set_key_to_url: function(key, value) {
+            if (value == null) { value = ""; }	  
+            let search_params = this.get_url_search_params();
+            search_params.set(key, value);
+            this.replace_url(search_params.toString());
+        },
+
+        add_obj_to_url: function(url_params_obj, url) {
+            let new_url_params = this.obj_to_url_params(url_params_obj);
+            let search_params = this.get_url_search_params(url);
+            let new_entries = this.get_url_entries(new_url_params);
+            for (const [key, value] of new_entries) {
+        	search_params.set(key, value);
+            }
+            let new_url = search_params.toString();
+            if (url != null) { return new_url; }
+            this.replace_url(new_url);
+        },
     }
-    let url_params = params.join("&");
-          return url_params;
-},
-delete_params: function(params_key) {
-    let search_params = this.get_url_search_params();
-    params_key.forEach((p) => {
-  search_params.delete(p);
-    });
-    this.replace_url(search_params.toString());	    
-},
-set_key_to_url: function(key, value) {
-    if (value == null) { value = ""; }	  
-    let search_params = this.get_url_search_params();
-    search_params.set(key, value);
-    this.replace_url(search_params.toString());
-},
-add_obj_to_url: function(url_params_obj, url) {
-    let new_url_params = this.obj_to_url_params(url_params_obj);
-    let search_params = this.get_url_search_params(url);
-    let new_entries = this.get_url_entries(new_url_params);
-    for (const [key, value] of new_entries) {
-	search_params.set(key, value);
-    }
-    let new_url = search_params.toString();
-    if (url != null) { return new_url; }
-    this.replace_url(new_url);
-},
-  }
 }();
 
 // export const ntopng_params_manager = function() {
 //     const new = function(params_in_url) {
-	
 //     }
-    
 //     return {
-
 //     }
 // }
 
