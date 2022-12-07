@@ -1976,11 +1976,11 @@
 				"tags": [
 					"PCAP"
 				],
-				"summary": "Live traffic capture",
-				"description": "Raw PCAP data is returned",
-				"operationId": "live_traffic",
+				"summary": "BPF filter generation",
+				"description": "Convert tags used to extract data from the database into the equivalent BPF filter, suitable for traffic extraction",
+				"operationId": "get_db_filter_bpf",
 				"produces": [
-					"application/vnd.tcpdump.pcap"
+					"application/json"
 				],
 				"parameters": [{
           "name": "ifid",
