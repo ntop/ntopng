@@ -1815,6 +1815,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	trusted_payload_len = trusted_l4_packet_len, payload = l4;
       }
       break;
+
     default:
       /*
 	NOTE: for non TCP-flows, the swap heuristic is always checked on the first packet
@@ -2015,6 +2016,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       }
 
       break;
+      
     case NDPI_PROTOCOL_SNMP:
     #ifdef NTOPNG_PRO
       flow->updateSNMPFlood(when, src2dst_direction);
@@ -2042,6 +2044,35 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       if(discovery && iph)
 	discovery->queueMDNSResponse(iph->saddr, payload, trusted_payload_len);
       break;
+
+    case NDPI_PROTOCOL_RTP:
+      if(flow->getRTPStreamType() == rtp_unknown) {
+	if(flow->isZoomRTP()) {
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "XXX [%d]", payload[0]);
+	  
+	  if(payload[0] == 5 /* RTCP/RTP */) {
+	    u_int8_t encoding_type = payload[8];
+
+	    switch(encoding_type) {
+	    case 13: /* Screen Share */
+	    case 30: /* Screen Share */
+	      flow->setRTPStreamType(rtp_screen_share);
+	      break;
+	      
+	    case 15: /* Audio */	      
+	      flow->setRTPStreamType(rtp_audio);
+	      break;
+	      
+	    case 16: /* Video */
+	      flow->setRTPStreamType(rtp_video);
+	      break;
+	    }
+	  }
+	} else if(flow->get_ndpi_flow() != NULL) {
+	  flow->setRTPStreamType(flow->get_ndpi_flow()->protos.rtp.stream_type);
+	}
+      }
+      break;     
     }
 
 #ifdef HAVE_NEDGE

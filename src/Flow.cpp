@@ -101,8 +101,8 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
-  flow_score = 0;
-
+  flow_score = 0, rtp_stream_type = rtp_unknown;
+  
   INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _observation_point_id, _private_flow_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 7);
@@ -722,7 +722,7 @@ void Flow::processExtraDissectedInformation() {
 	updateSrvJA3();
       }
       break;
-
+      
     case NDPI_PROTOCOL_DNS:
       if(srv_host && (ndpiFlow->protos.dns.reply_code == 0 /* No Error */))
 	srv_host->setResolvedName((char*)ndpiFlow->host_server_name);
@@ -2471,6 +2471,30 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_int32_table_entry(vm, "l7_error_code", getErrorCode());
     lua_push_int32_table_entry(vm, "flow_verdict", flow_verdict);
 
+    if(rtp_stream_type != rtp_unknown) {
+      switch(rtp_stream_type) {
+      case rtp_audio:
+	lua_push_str_table_entry(vm, "rtp_stream_type", "audio");
+	break;
+
+      case rtp_video:
+	lua_push_str_table_entry(vm, "rtp_stream_type", "video");
+	break;
+
+      case rtp_audio_video:
+	lua_push_str_table_entry(vm, "rtp_stream_type", "audio_video");
+	break;
+
+      case rtp_screen_share:
+	lua_push_str_table_entry(vm, "rtp_stream_type", "screen_share");
+	break;
+
+      default:
+	/* Nothing to do */
+	break;
+      }
+    }
+    
     if(flow_payload != NULL) {
       flow_payload[flow_payload_len] = '\0';
       lua_push_str_table_entry(vm, "flow_payload", flow_payload);

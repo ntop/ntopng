@@ -564,6 +564,12 @@ local lang = {
   ["year"] = "Year",
   ["years"] = "Years",
   ["yes"] = "Yes",
+  ["rtp"]  = {
+     ["screen_share"] = "Screen Sharing Stream",
+     ["audio"] = "Audio Stream",
+     ["video"] = "Video Stream",
+     ["audio_video"] = "Multimedia Stream",
+  },  
   ["about"] = {
     ["about"] = "About",
     ["about_x"] = "About %{product}",

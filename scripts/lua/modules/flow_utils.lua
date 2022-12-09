@@ -951,11 +951,11 @@ end
 function getRTPInfo(infoPar)
   local call_id
   local returnString = ""
-
   local infoFlow, posFlow, errFlow = json.decode(infoPar["moreinfo.json"], 1, nil)
 
   if infoFlow ~= nil then
      call_id = getFlowValue(infoFlow, "RTP_SIP_CALL_ID")
+
      if tostring(call_id) ~= "" then
 	call_id = "<i class='fas fa-phone fa-sm' aria-hidden='true' title='SIP Call-ID'></i>&nbsp;"..call_id
      else
@@ -964,6 +964,14 @@ function getRTPInfo(infoPar)
      returnString = call_id
   end
 
+  if(infoPar.rtp_stream_type ~= nil) then
+     if(infoPar.rtp_stream_type == "screen_share") then str = "Screen Sharing"
+     else str = capitalize(infoPar.rtp_stream_type)
+     end
+     
+     returnString = returnString .. '<span class="badge bg-secondary">' .. str .. '</span>'
+  end
+  
   return returnString
 end
 

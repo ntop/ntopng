@@ -82,7 +82,8 @@ class Flow : public GenericHashEntry {
     has_malicious_cli_signature:1, has_malicious_srv_signature:1,
     src2dst_tcp_zero_window:1, dst2src_tcp_zero_window:1,
     non_zero_payload_observed:1, _notused:1;
-  
+
+  enum ndpi_rtp_stream_type rtp_stream_type;
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
 #endif
@@ -372,6 +373,7 @@ class Flow : public GenericHashEntry {
   inline bool isEncryptedProto() const { return(ndpi_is_encrypted_proto(iface->get_ndpi_struct(), ndpiDetectedProtocol)); }
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
+  inline bool isZoomRTP()  const { return(isProto(NDPI_PROTOCOL_ZOOM) && isProto(NDPI_PROTOCOL_RTP));  }
   inline bool isIEC60870()  const { return(isProto(NDPI_PROTOCOL_IEC60870));  }
   inline bool isMDNS() const { return(isProto(NDPI_PROTOCOL_MDNS)); }
   inline bool isSSDP() const { return(isProto(NDPI_PROTOCOL_SSDP)); }
@@ -941,6 +943,8 @@ class Flow : public GenericHashEntry {
   inline u_int8_t  getCustomFlowAlertScore()     { return(customFlowAlert.score); }
   inline char*     getCustomFlowAlertMessage()   { return(customFlowAlert.msg); }
   void triggerCustomFlowAlert(u_int8_t score, char *msg);  
+  inline void setRTPStreamType(enum ndpi_rtp_stream_type s) { rtp_stream_type = s;     }
+  inline enum ndpi_rtp_stream_type getRTPStreamType()       { return(rtp_stream_type); }
 };
 
 #endif /* _FLOW_H_ */
