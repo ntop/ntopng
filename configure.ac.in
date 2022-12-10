@@ -48,6 +48,15 @@ dnl> Add /usr/local/ /opt/local
 CFLAGS="${CFLAGS} -I${HERE} -I${HERE}/include"
 CPPFLAGS="${CPPFLAGS} -I${HERE} -I${HERE}/include"
 
+dnl> MacOS brew.sh
+HOMEBREW_DIR=/opt/homebrew
+if test -d $HOMEBREW_DIR; then
+ CFLAGS="${CFLAGS} -I ${HOMEBREW_DIR}/include"
+ CPPFLAGS="${CPPFLAGS} -I ${HOMEBREW_DIR}/include"
+ LDFLAGS="${LDFLAGS} -L ${HOMEBREW_DIR}/lib"
+fi
+
+
 TODAY=`date +%y%m%d`
 NTOPNG_MAJOR=`echo "${PACKAGE_VERSION}" | cut -d . -f 1`
 NTOPNG_MINOR=`echo "${PACKAGE_VERSION}" | cut -d . -f 2`
@@ -304,6 +313,10 @@ else
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
     SSL_INC="-I/usr/local/opt/openssl/include"
     SSL_LIB="-L/usr/local/opt/openssl/lib -lssl -lcrypto"
+  elif test -d "/opt/homebrew"; then
+    AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
+    SSL_INC="-I/opt/homebrew/include"
+    SSL_LIB="-L/opt/homebrew/lib -lssl -lcrypto"
   dnl Workaround for FreeBSD
   elif test -f "/usr/lib/libssl.so"; then
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
