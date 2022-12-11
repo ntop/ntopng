@@ -47,19 +47,19 @@ class Host:
     def get_alert_severities(self):
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/severity/consts.lua", None))
 
-    def self_test(self, ifid):
+    def self_test(self, ifid, host):
         try:
             print(self.get_active_hosts(ifid))
             print("----------------------------")
             print(self.get_active_hosts_paginated(ifid, 1, 100))
             print("----------------------------")
-            print(self.get_host_interfaces("192.168.1.1"))
+            print(self.get_host_interfaces(host))
             print("----------------------------")
-            print(self.get_host_data(ifid, "192.168.1.1"))
+            print(self.get_host_data(ifid, host))
             print("----------------------------")
-            print(self.get_host_l7_stats(ifid, "192.168.1.1", 0))
+            print(self.get_host_l7_stats(ifid, host, 0))
             print("----------------------------")
-            print(self.get_host_dscp_stats(ifid, "192.168.1.1", 0, True))
+            print(self.get_host_dscp_stats(ifid, host, 0, True))
             print("----------------------------")
             print(self.get_top_local_talkers(ifid))
             print("----------------------------")

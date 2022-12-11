@@ -556,22 +556,24 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
   end
 
   for _, info in pairs(timeseries_list) do
-    -- Check if the schema starts with 'iface:', 
-    -- if not then it's not an interface timeseries, so drop it
-    if info.id ~= prefix then
-      goto skip
-    end
-
-    -- Remove from nEdge the timeseries only for ntopng
-    if (info.nedge_exclude) and (ntop.isnEdge()) then
-      goto skip
-    end
-
-    -- Remove from ntopng the timeseries only for nEdge
-    if (info.nedge_only) and (not ntop.isnEdge()) then
-      goto skip
-    end
-
+     if(prefix ~= nil) then
+	-- Check if the schema starts with 'iface:', 
+	-- if not then it's not an interface timeseries, so drop it
+	if info.id ~= prefix then
+	   goto skip
+	end
+	
+	-- Remove from nEdge the timeseries only for ntopng
+	if (info.nedge_exclude) and (ntop.isnEdge()) then
+	   goto skip
+	end
+	
+	-- Remove from ntopng the timeseries only for nEdge
+	if (info.nedge_only) and (not ntop.isnEdge()) then
+	   goto skip
+	end
+     end
+     
     timeseries[#timeseries + 1] = info
 
     ::skip::

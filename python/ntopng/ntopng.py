@@ -13,15 +13,16 @@ class Ntopng:
         if(self.debug):
             print("Requesting [GET]: "+url)
             print(params)
-            
+
         if(self.auth_token != None):
             response = requests.get(url, auth = None, headers = { "Authorization" : "Token " + self.auth_token }, params = params)
         else:
             response = requests.get(url, auth = HTTPBasicAuth(self.username, self.password), params = params)
 
         if(self.debug):
-            print("Response")
-            print(response)
+            print("Elapsed time: " + str(response.elapsed))
+            #print("Response")
+            #print(response)
             
         return(response)
 
@@ -35,8 +36,9 @@ class Ntopng:
             response = requests.post(url, auth = HTTPBasicAuth(self.username, self.password), headers = { "Content-Type" : "application/json" }, json = params)
 
         if(self.debug):
-            print("Response")
-            print(response)
+            print("Elapsed time: " + str(response.elapsed))
+            #print("Response")
+            #print(response)
             
         return(response)
 
@@ -70,7 +72,9 @@ class Ntopng:
     def request(self, url, params):
         api_url = self.url + url
 
-        print(params)
+        if(self.debug):
+            print(params)
+            
         response = self.issue_request(api_url, params)
             
         if response.status_code != 200:
@@ -85,7 +89,9 @@ class Ntopng:
     def post_request(self, url, params):
         api_url = self.url + url
 
-        print(params)
+        if(self.debug):
+            print(params)
+            
         response = self.issue_post_request(api_url, params)
             
         if response.status_code != 200:

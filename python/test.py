@@ -39,13 +39,14 @@ def usage():
 
 try:
     opts, args = getopt.getopt(sys.argv[1:],
-                               "hdu:p:n:i:t:",
+                               "hdu:p:n:i:H:t:",
                                ["help",
                                 "debug",
                                 "username=",
                                 "password=",
                                 "ntopng_url=",
                                 "iface_id=",
+                                "host_ip=",
                                 "auth_token="]
                                )
 except getopt.GetoptError as err:
@@ -66,6 +67,8 @@ for o, v in opts:
         ntopng_url = v
     elif(o in ("-i", "--iface_id")):
         iface_id = v
+    elif(o in ("-H", "--host_ip")):
+        host_ip = v
     elif(o in ("-t", "--auth_token")):
         auth_token = v
 
@@ -85,16 +88,15 @@ try:
 
     my_host = Host(my_ntopng)
     print("\n\n==========================\nHost")
-    my_host.self_test(iface_id)
+    my_host.self_test(iface_id, host_ip)
 
     my_flow = Flow(my_ntopng)
     print("\n\n==========================\nFlow")
-    my_flow.self_test(iface_id)
+    my_flow.self_test(iface_id, host_ip)
 
     my_historical = Historical(my_ntopng)
     print("\n\n==========================\nHistorical Data")
     my_historical.self_test(iface_id, host_ip)
-
 except ValueError as e:
     print(e)
     os._exit(-1)

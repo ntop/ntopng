@@ -32,11 +32,11 @@ class Flow:
 
 
 
-    def self_test(self, ifid):
+    def self_test(self, ifid, host):
         try:
             print(self.get_active_flows_paginated(ifid, 1, 100))
             print("----------------------------")
-            print(self.get_active_host_flows_paginated(ifid, "192.168.1.1", 0, 1, 100))
+            print(self.get_active_host_flows_paginated(ifid, host, 0, 1, 100))
             print("----------------------------")
             print(self.get_active_l4_proto_flow_counters(ifid))
             print("----------------------------")
