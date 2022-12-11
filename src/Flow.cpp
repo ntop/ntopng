@@ -3293,16 +3293,30 @@ void Flow::formatGenericFlow(json_object *my_object) {
   if(isHTTP()) {
     if(host_server_name && host_server_name[0] != '\0')
       json_object_object_add(my_object, "HTTP_HOST", json_object_new_string(host_server_name));
+
     if(protos.http.last_url && protos.http.last_url[0] != '0')
       json_object_object_add(my_object, "HTTP_URL", json_object_new_string(protos.http.last_url));
+
     if(protos.http.last_user_agent && protos.http.last_user_agent[0] != '0')
       json_object_object_add(my_object, "HTTP_USER_AGENT", json_object_new_string(protos.http.last_user_agent));
+
+    if(protos.http.last_server && protos.http.last_server[0] != '0')
+      json_object_object_add(my_object, "HTTP_SERVER", json_object_new_string(protos.http.last_server));
+
     if(protos.http.last_method != NDPI_HTTP_METHOD_UNKNOWN)
       json_object_object_add(my_object, "HTTP_METHOD", json_object_new_string(ndpi_http_method2str(protos.http.last_method)));
+
     if(protos.http.last_return_code > 0)
       json_object_object_add(my_object, "HTTP_RET_CODE", json_object_new_int((u_int32_t)protos.http.last_return_code));
   }
 
+  if(protocol == IPPROTO_ICMP) {
+    json_object_object_add(my_object, "ICMP_IPV4_TYPE",
+			   json_object_new_int((u_int32_t)protos.icmp.cli2srv.icmp_type));
+    json_object_object_add(my_object, "ICMP_IPV$_CODE",
+			   json_object_new_int((u_int32_t)protos.icmp.cli2srv.icmp_type));
+  }
+  
   if(flow_device.device_ip)
     json_object_object_add(my_object, "EXPORTER_IPV4_ADDRESS",
          json_object_new_string(intoaV4(flow_device.device_ip, buf, sizeof(buf))));
