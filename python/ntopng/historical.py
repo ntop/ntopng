@@ -29,8 +29,15 @@ class Historical:
     def get_flows_severity_counters(self, ifid, epoch_begin, epoch_end):
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/severity/counters.lua", { "ifid": ifid, "status": "historical", "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
 
+    # For ts_schema see scripts/lua/modules/timeseries_info.lua
     def get_timeseries(self, ts_schema, ts_query, epoch_begin, epoch_end):
         return(self.ntopng_obj.post_request(self.rest_v2_url + "/get/timeseries/ts.lua", { "ts_schema": ts_schema, "ts_query": ts_query, "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
+
+    def get_host_timeseries(self, ifid, host_ip, ts_schema, epoch_begin, epoch_end):
+        return(self.get_timeseries(ts_schema, "ifid:"+str(ifid)+",host:"+host_ip, epoch_begin, epoch_end))
+
+    def get_interface_timeseries(self, ifid, ts_schema, epoch_begin, epoch_end):
+        return(self.get_timeseries(ts_schema, "ifid:"+str(ifid), epoch_begin, epoch_end))
 
 
     def self_test(self, ifid, host):
