@@ -5058,10 +5058,10 @@ local lang = {
       },
     },
     ["fail2ban"] = {
-      ["description"] = "<ul><li>Fail2Ban is required to use the Endpoint. Check: <a href='https://www.fail2ban.org/wiki/index.php/Downloads' target='_blank'>here</a> <i class='%{icon}'></i> for more infos about the installation.<li>Fail2Ban Endpoint will be executed only with specific supported alerts.</ul><ul>Note:<li>ntopng user must have sudo privileges.</ul>",
+      ["description"] = "<ul><li>Fail2Ban is required to use the Endpoint. Check: <a href='https://www.fail2ban.org/wiki/index.php/Downloads' target='_blank'>here</a> <i class='%{icon}'></i> for more info about the installation.<li>Fail2Ban Endpoint will be executed only with specific supported alerts.</ul><ul>Note:<li>ntopng user must have sudo privileges.</ul>",
       ["fail2ban_send_error"] = "Fail2Ban not working properly.",
       ["jail"] = "Jail",
-      ["jail_description"] = "<ul><li>Specify the JAIL used to ban the IP. Check: <a href='https://www.fail2ban.org/wiki/index.php/MANUAL_0_8#Jails' target='_blank'>here</a> <i class='%{icon}'></i> for more infos about JAIL.</ul>Note, if the check isn't successfull be sure:<ul><li>That ntopng user has sudo privileges.<li>That the JAIL added is a correct one (use the command `fail2ban-client status` to check the available Jails).",
+      ["jail_description"] = "<ul><li>Specify the JAIL used to ban the IP. Check: <a href='https://www.fail2ban.org/wiki/index.php/MANUAL_0_8#Jails' target='_blank'>here</a> <i class='%{icon}'></i> for more info about JAIL.</ul>Note, if the check isn't successfull be sure:<ul><li>That ntopng user has sudo privileges.<li>That the JAIL added is a correct one (use the command `fail2ban-client status` to check the available Jails).",
       ["validation"] = {
         ["empty_jail"] = "Fail2Ban JAIL cannot be empty.",
         ["invalid_jail"] = "Invalid Fail2Ban jail.",
@@ -6630,7 +6630,7 @@ local lang = {
     ["current"] = "Current",
     ["day"] = "Previous day",
     ["last_5_min"] = "Last 5 minutes",
-    ["note_protocol_used"] = "Application Protocols providing infos: HTTP, TLS, QUIC, DNS.",
+    ["note_protocol_used"] = "Application Protocols providing info: HTTP, TLS, QUIC, DNS.",
     ["note_time_range"] = "The Time Range is ordered from the current data to the oldest data known.",
     ["note_tot_entries"] = "Maximum 20 records are provided per host.",
     ["note_yesterday_data"] = "The data are stored at most for 24 hours, meaning that at most you can see yesterday datas. For this reason any hour into the menu that is subsequent to the current time is from yesterday data.",
