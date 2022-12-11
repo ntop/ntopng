@@ -828,7 +828,7 @@ NetworkInterface::~NetworkInterface() {
 
   if(customFlowLuaScript) delete customFlowLuaScript;
   if(customHostLuaScript) delete customHostLuaScript;
-  
+
 #if defined(NTOPNG_PRO)
   if(pMap) delete pMap;
   if(sMap) delete sMap;
@@ -2006,7 +2006,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     #ifdef NTOPNG_PRO
       flow->updateDNSFlood(when, src2dst_direction);
     #endif
-    
+
       if((trusted_payload_len > 0) && payload) {
 	flow->dissectDNS(src2dst_direction, (char*)payload, trusted_payload_len);
 	/*
@@ -2016,7 +2016,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       }
 
       break;
-      
+
     case NDPI_PROTOCOL_SNMP:
     #ifdef NTOPNG_PRO
       flow->updateSNMPFlood(when, src2dst_direction);
@@ -2046,33 +2046,34 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       break;
 
     case NDPI_PROTOCOL_RTP:
-      if(flow->getRTPStreamType() == rtp_unknown) {
-	if(flow->isZoomRTP()) {
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "XXX [%d]", payload[0]);
-	  
-	  if(payload[0] == 5 /* RTCP/RTP */) {
-	    u_int8_t encoding_type = payload[8];
 
-	    switch(encoding_type) {
-	    case 13: /* Screen Share */
-	    case 30: /* Screen Share */
-	      flow->setRTPStreamType(rtp_screen_share);
-	      break;
-	      
-	    case 15: /* Audio */	      
-	      flow->setRTPStreamType(rtp_audio);
-	      break;
-	      
-	    case 16: /* Video */
-	      flow->setRTPStreamType(rtp_video);
-	      break;
-	    }
+      if(flow->isZoomRTP()) {
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "XXX [%d]", payload[0]);
+
+	if(payload[0] == 5 /* RTCP/RTP */) {
+	  u_int8_t encoding_type = payload[8];
+
+	  switch(encoding_type) {
+	  case 13: /* Screen Share */
+	  case 30: /* Screen Share */
+	    flow->setRTPStreamType(rtp_screen_share);
+	    break;
+
+	  case 15: /* Audio */
+	    flow->setRTPStreamType(rtp_audio);
+	    break;
+
+	  case 16: /* Video */
+	    flow->setRTPStreamType(rtp_video);
+	    break;
 	  }
-	} else if(flow->get_ndpi_flow() != NULL) {
+	}
+      } else if(flow->getRTPStreamType() == rtp_unknown) {
+	if(flow->get_ndpi_flow() != NULL) {
 	  flow->setRTPStreamType(flow->get_ndpi_flow()->protos.rtp.stream_type);
 	}
       }
-      break;     
+      break;
     }
 
 #ifdef HAVE_NEDGE
