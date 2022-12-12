@@ -1410,7 +1410,7 @@ bool HTTPserver::check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "HTTPS Disabled: missing TLS certificate %s", ssl_cert_path);
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "Please read https://github.com/ntop/ntopng/blob/dev/doc/README.SSL if you want to enable TLS.");
+			       "Please read https://github.com/ntop/ntopng/blob/888be4858f5af01569a065b35bd5acc1f625d0cc/doc/README.SSL.md if you want to enable TLS.");
 
   return false;
 }
