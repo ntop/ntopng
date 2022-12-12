@@ -5170,6 +5170,7 @@ local lang = {
       ["host_name"] = "Host Name",
       ["received"] = "Received",
       ["sent"] = "Sent",
+      ["throughput"] = "Throughput",
       ["top_applications"] = "Top Applications",
       ["top_categories"] = "Top Categories",
       ["top_receivers"] = "Top Receivers",

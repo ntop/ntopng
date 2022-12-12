@@ -491,11 +491,12 @@ function buildChartOptions(seriesArray, yaxisArray) {
     };
 }
 
-function getTsQuery(tsGroup, not_metric_query) {
+function getTsQuery(tsGroup, not_metric_query, enable_source_def_value_dict) {
     let tsQuery = tsGroup.source_type.source_def_array.map((source_def, i) => {
+	if (enable_source_def_value_dict != null && !enable_source_def_value_dict[source_def.value]) { return null; }
 	let source_value = tsGroup.source_array[i].value;
 	return `${source_def.value}:${source_value}`;
-    }).join(",");
+    }).filter((s) => s != null).join(",");
     
     if (!not_metric_query && tsGroup.metric.query != null) {
 	tsQuery = `${tsQuery},${tsGroup.metric.query}`

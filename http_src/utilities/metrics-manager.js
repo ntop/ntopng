@@ -104,7 +104,7 @@ async function get_url_param_from_ts_group(ts_group_url_param) {
     };
 }
 
-const get_ts_group_id = (source_type, source_array, metric) => {
+const get_ts_group_id = (source_type, source_array, metric, enable_source_def_value_dict) => {
     let metric_id = "";
     if (metric != null) {
 	metric_id = metric.schema;    
@@ -112,7 +112,12 @@ const get_ts_group_id = (source_type, source_array, metric) => {
 	    metric_id = `${metric_id} - ${metric.query}`;
 	}
     }
-    let source_value_array = source_array.map((source) => source.value).join("_");
+    let source_def_array = source_type.source_def_array;
+    let source_value_array = source_array.map((source, i) => {
+	let source_def_value = source_def_array[i].value;
+	if (enable_source_def_value_dict != null && !enable_source_def_value_dict[source_def_value]) { return null; }
+	return source.value;
+    }).filter((s) => s != null).join("_");
     return `${source_type.id} - ${source_value_array} - ${metric_id}`;
 };
 

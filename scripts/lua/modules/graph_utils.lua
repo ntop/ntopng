@@ -348,6 +348,9 @@ function graph_utils.drawNewGraphs(source_value_object)
       host = {
 	 top_protocols = host_has_top_protocols,
       },
+      snmp = {
+	 top_snmp_ifaces = true,
+      },
    }
    
    local context = {

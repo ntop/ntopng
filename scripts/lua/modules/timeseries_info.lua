@@ -230,6 +230,8 @@ local community_timeseries = {
   { schema = "snmp_dev:avail_memory",         id = timeseries_id.snmp, label =i18n("snmp.memAvailReal"),                 priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.memory'), timeseries = { avail_bytes = { label = i18n("snmp.memAvailReal"),    color = timeseries_info.get_timeseries_color('default') } } },
   { schema = "snmp_dev:swap_memory",          id = timeseries_id.snmp, label =i18n("snmp.memTotalReal"),                 priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.memory'), timeseries = { swap_bytes  = { label = i18n("snmp.memTotalReal"),    color = timeseries_info.get_timeseries_color('default') } } },
   { schema = "snmp_dev:total_memory",         id = timeseries_id.snmp, label =i18n("snmp.memTotalSwap"),                 priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.memory'), timeseries = { total_bytes = { label = i18n("snmp.memTotalSwap"),    color = timeseries_info.get_timeseries_color('default') } } },
+  { schema = "top:snmp_if:traffic",           id = timeseries_id.snmp,  group = "top", label = "Top Traffic",                        priority = 2, measure_unit = "bps", scale = 0,    timeseries = { bytes_sent  = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = i18n('graphs.metric_labels.rcvd') } }, },
+
 }
 
 -- #################################

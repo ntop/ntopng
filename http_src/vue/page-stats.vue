@@ -396,7 +396,6 @@ async function load_page_stats_data(timeseries_groups, reload_charts_data, reloa
     set_timeseries_groups_source_label(timeseries_groups, ts_charts_options);
     
     let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_charts_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
-    
     set_charts_options_items(charts_options);
     set_stats_rows(ts_charts_options, timeseries_groups, status);
     if (reload_top_table_options) {
@@ -457,11 +456,11 @@ function get_ts_compare(status) {
     }
 }
 
-function get_top_table_url(ts_group, table_value, table_view, status) {
+function get_top_table_url(ts_group, table_value, table_view, table_source_def_value_dict, status) {
     if (status == null) {
 	status = ntopng_status_manager.get_status();	
     }
-    let ts_query = timeseriesUtils.getTsQuery(ts_group, true);
+    let ts_query = timeseriesUtils.getTsQuery(ts_group, true, table_source_def_value_dict);
     let v = table_value;
     let data_url = `${http_prefix}/lua/pro/rest/v2/get/${v}/top/ts_stats.lua`;
     //todo: get ts_query
@@ -505,10 +504,14 @@ function set_top_table_options(timeseries_groups, status) {
     let sources_types_tables = metricsManager.sources_types_tables;
     let ts_group_dict = {}; // dictionary with 1 ts_group for each (source_type, source_array)
     timeseries_groups.forEach((ts_group) => {
+	let source_type = ts_group.source_type;
+	// let source_type_tables = sources_types_tables[source_type.id];
+	// let table_source_def_value_dict = source_type_tables.table_source_def_value_dict
+	
 	let id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array);
 	ts_group_dict[id] = ts_group;
     });
-    
+    let top_table_id_dict = {}
     top_table_options.value = [];
     let select_options = [];
     for (let id in ts_group_dict) {
@@ -524,9 +527,14 @@ function set_top_table_options(timeseries_groups, status) {
 	    if (enables_table_value == null) { return; }
 	    let enable_table_def = enables_table_value[table_def.view];
 	    if (!enable_table_def) { return; }
+	    let table_source_def_value_dict = table_def.table_source_def_value_dict
 	    
-	    let data_url = get_top_table_url(ts_group, table_def.table_value, table_def.view, status);
-	    let value = `${table_def.table_value}_${table_def.view}_${id}`;
+	    let data_url = get_top_table_url(ts_group, table_def.table_value, table_def.view, table_source_def_value_dict, status);
+	    let table_id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array, table_source_def_value_dict);
+	    if (top_table_id_dict[table_id] != null) { return; }
+	    top_table_id_dict[table_id] = true;
+	    
+	    let value = `${table_def.table_value}_${table_def.view}_${table_id}`;
 	    let label = `${table_def.title} - ${source_type.label} ${main_source.label}`;
 	    const table_config_def = {
 		ts_group,
@@ -543,10 +551,8 @@ function set_top_table_options(timeseries_groups, status) {
 		let render_if_context = {
 		    is_history_enabled: props.is_history_enabled
 		};
-		if (column.render_if && column.render_if(render_if_context) == false) {
-		    return; // skip column
-		}
 		let c = {
+		    visible: !column.render_if || column.render_if(render_if_context),
 		    ...column,
 		};
 		if (c.className == null) { c.className = "text-nowrap"; }
