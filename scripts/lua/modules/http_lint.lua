@@ -1460,7 +1460,9 @@ local known_parameters = {
    ["select_keys_clause"]      = validateUnquoted,
    ["select_values_clause"]    = validateUnquoted,
    ["approx_search"]           = validateBool,
-
+   ["group_by_clause"]         = validateUnquoted,
+   ["order_by_clause"]         = validateUnquoted,
+   
    ["where_clause"]            = { whereCleanup, validateUnquoted },
    ["where_clause_unck"]       = { whereCleanup, validateUnchecked },
    ["begin_time_clause"]       = validateUnquoted,

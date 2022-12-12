@@ -1240,6 +1240,20 @@
 						"required": false,
 						"type": "integer",
 						"format": "int32"
+					},
+					{
+						"name": "order_by_clause",
+						"in": "query",
+						"description": "Order by clause (default: no order)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "group_by_clause",
+						"in": "query",
+						"description": "Group by clause (default: no group)",
+						"required": false,
+						"type": "string"
 					}
 				],
 				"responses": {

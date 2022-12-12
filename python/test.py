@@ -7,7 +7,7 @@
 import os
 import sys
 import getopt
-
+import time
 
 from ntopng.ntopng import Ntopng
 from ntopng.interface import Interface
