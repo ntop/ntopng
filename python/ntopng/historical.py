@@ -56,7 +56,7 @@ class Historical:
     def get_flows(self, ifid, epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by):
         return(self.ntopng_obj.post_request(self.rest_pro_v2_url + "/get/db/flows.lua", { "ifid": ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end,
                                                                                           "select_clause": select_clause, "where_clause": where_clause,
-                                                                                          "maxhits_clause": maxhits, "group_by_clause": group_by, "order_by_clause": orderv_by }))
+                                                                                          "maxhits_clause": maxhits, "group_by_clause": group_by, "order_by_clause": order_by }))
 
 
     def self_test(self, ifid, host):
