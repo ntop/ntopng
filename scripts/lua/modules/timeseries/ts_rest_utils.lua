@@ -31,7 +31,8 @@ function ts_rest_utils.get_timeseries(http_context)
       if tags.host then
 	 local host = hostkey2hostinfo(tags.host)
 	 if not isEmptyString(host["host"]) then
-	    local host_info = interface.getHostInfo(host["host"], host["vlan"])
+    local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. tags.ifid .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
+    local host_info = interface.getHostInfo(host["host"], host["vlan"])
 	    -- local mac_info = split(tskey, "_")
 	    -- if (host_info) and (host_info.mac == mac_info[1]) then
 	    --    tags.host_ip = tags.host;
@@ -45,6 +46,10 @@ function ts_rest_utils.get_timeseries(http_context)
 
 	       if(host_info.mac == mac_info[1]) then
 		  tags.host_ip = tags.host;
+	       end
+
+	       if(host_info.mac) then
+		  tags.mac = host_info.mac;
 	       end
 	    end
 	 end
@@ -111,20 +116,19 @@ function ts_rest_utils.get_timeseries(http_context)
       res = graph_utils.performCustomQuery(ts_schema, tags, tstart, tend, options)
       compare_backward = nil
    else
-      res = performQuery(tstart, tend) or {}
-
       -- if Mac address ts is requested, check if the serialize by mac is enabled and if no data is found, use the host timeseries. 
-      if (table.len(res) == 0) or (res.statistics) and (res.statistics.total == 0) then
-	 local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. tags.ifid .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
-	 local tmp = split(ts_schema, ":")
-	 
-	 if (serialize_by_mac) and (tags.mac) then
-	    ts_schema = "host:" .. tmp[2]
-	    tags.host = tags.mac .. "_v4"
-	    res = performQuery(tstart, tend)
-	 end
+    -- if (table.len(res) == 0) or (res.statistics) and (res.statistics.total == 0) then
+      local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. tags.ifid .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
+      local tmp = split(ts_schema, ":")
+        
+      if (serialize_by_mac) and (tags.mac) then
+        ts_schema = "host:" .. tmp[2]
+        tags.host = tags.mac .. "_v4"
       end
-   end
+
+      res = performQuery(tstart, tend) or {}
+    --end
+  end
 
    if res == nil then
       res = {}
