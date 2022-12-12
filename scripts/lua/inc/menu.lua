@@ -305,7 +305,7 @@ else
    
    -- Exporters
 
-   local has_exporters = (ifs.type == "zmq") or (ifs.type == "custom") or (table.len(interface.getFlowDevices()) > 0)
+   local has_exporters = (ifs.type == "zmq") or (ifs.type == "custom") or (ntop.isPro() and (table.len(interface.getFlowDevices()) > 0))
 
    page_utils.add_menubar_section(
       {
