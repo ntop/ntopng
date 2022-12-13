@@ -788,6 +788,7 @@ li > a > .fa-external-link-alt{
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .ntopng-external-link {
   @extend .ntopng-truncate;    
   display: inline-block;
@@ -805,7 +806,6 @@ li > a > .fa-external-link-alt{
   cursor: help;
 }
 
-
 /* Using the unicode as content, fontawesome icons are not working */
 table.dataTable thead th.sorting::after {
   color: #111111;
@@ -814,13 +814,13 @@ table.dataTable thead th.sorting::after {
   opacity: 0.2;
 }
 
-table.dataTable thead th.sorting_asc::after {
+table.dataTable thead th.sorting_desc::after {
   content: '\25BE';
   padding-left: inherit;
   opacity: 1;
 }
 
-table.dataTable thead th.sorting_desc::after {
+table.dataTable thead th.sorting_asc::after {
   content: '\25B4';
   padding-left: inherit;
   opacity: 1;
