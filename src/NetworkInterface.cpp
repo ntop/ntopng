@@ -594,7 +594,7 @@ void NetworkInterface::checkDisaggregationMode() {
 
   if((!ntop->getRedis()->get(rkey, rsp, sizeof(rsp))) && (rsp[0] != '\0')) {
     if(getIfType() == interface_type_ZMQ) { /* ZMQ interface */
-      if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
+      if(!strcmp(rsp, DISAGGREGATION_PROBE_IP))              flowHashingMode = flowhashing_probe_ip;
       else if(!strcmp(rsp, DISAGGREGATION_IFACE_ID))         flowHashingMode = flowhashing_iface_idx;
       else if(!strcmp(rsp, DISAGGREGATION_INGRESS_IFACE_ID)) flowHashingMode = flowhashing_ingress_iface_idx;
       else if(!strcmp(rsp, DISAGGREGATION_INGRESS_PROBE_IP_AND_IFACE_ID)) flowHashingMode = flowhashing_probe_ip_and_ingress_iface_idx;
@@ -1455,7 +1455,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
     /* Custom disaggregation */
-    if(sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
+    if(sub_interfaces && (sub_interfaces->getNumSubInterfaces() > 0)) {
       processed = sub_interfaces->processPacket(bridge_iface_idx,
 						ingressPacket, when, packet_time,
 						eth, vlan_id,
@@ -1469,9 +1469,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
 #endif
 
-    if(!processed && flowHashingMode != flowhashing_none) {
+    if((!processed) && (flowHashingMode != flowhashing_none)) {
       /* VLAN disaggregation */
-      if(flowHashingMode == flowhashing_vlan && vlan_id > 0) {
+      if((flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
         NetworkInterface *vIface;
 
         if((vIface = getDynInterface((u_int32_t)vlan_id, false)) != NULL) {
