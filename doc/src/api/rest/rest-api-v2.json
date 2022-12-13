@@ -732,6 +732,46 @@
 				}
 			}
 		},
+		"/lua/rest/v2/get/asn/asn_info.lua": {
+			"post": {
+				"tags": [
+					"Autonomous System"
+				],
+				"summary": "Get Autonomous systems data",
+				"description": "Return the ASN data ntopng collected from analyzing the network. If an ASN is given, then return the data regarding the requested ASN",
+				"operationId": "asn_data",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },{
+            "name": "asn",
+            "in": "formData",
+            "description": "Autonomous System ID",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+          "-2": {
+            "description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
+		},
 		"/lua/rest/v2/get/alert/type/consts.lua": {
 			"get": {
 				"tags": [
