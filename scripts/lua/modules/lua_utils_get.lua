@@ -600,6 +600,18 @@ end
 
 -- ##############################################
 
+function setCustomnDPIProtoCategory(app_id, new_cat_id)
+   ntop.setnDPIProtoCategory(app_id, new_cat_id)
+
+   local key = getCustomnDPIProtoCategoriesKey(ifid)
+
+   -- NOTE: when the ndpi struct changes, the custom associations are
+   -- reloaded by Ntop::loadProtocolsAssociations
+   ntop.setHashCache(key, tostring(app_id), tostring(new_cat_id));
+end
+
+-- ##############################################
+
 function getHumanReadableInterfaceName(interface_name)
    local interface_id = nil
 
