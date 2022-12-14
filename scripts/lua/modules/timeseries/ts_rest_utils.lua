@@ -181,6 +181,13 @@ function ts_rest_utils.get_timeseries(http_context)
       graph_utils.extendLabels(res)
    end
 
+   if (res.query) and (res.query.if_index)  then
+    local snmp_utils = require "snmp_utils"
+    local snmp_cached_dev = require "snmp_cached_dev"
+    local cached_device = snmp_cached_dev:create(tags.device)
+    res.query.label = shortenString(snmp_utils.get_snmp_interface_label(cached_device["interfaces"][res.query.if_index]), 64)
+   end
+
    -- Add layout information
    local layout = graph_utils.get_timeseries_layout(ts_schema)
    local filtered_serie = {}
