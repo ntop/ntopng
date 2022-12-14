@@ -482,7 +482,7 @@ async function refresh_top_table() {
     let table_config = selected_top_table.value?.table_config_def;
     if (table_config == null) { return; }
     // NtopUtils.showOverlays();
-    let data_url = get_top_table_url(table_config.ts_group, table_config.table_def.table_value, table_config.table_def.view, table_config.table_source_def_value_dict, status);
+    let data_url = get_top_table_url(table_config.ts_group, table_config.table_def.table_value, table_config.table_def.view, table_config.table_source_def_value_dict);
     top_table_ref.value.update_url(data_url);
     top_table_ref.value.reload();
     // NtopUtils.hideOverlays();
