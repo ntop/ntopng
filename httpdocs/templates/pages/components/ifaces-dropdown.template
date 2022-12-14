@@ -94,8 +94,7 @@
   <li class="nav-item d-sm-flex">
     <div class="d-flex">
       <select name="observationpoint-dropdown" id="observationpoint-dropdown" class="selectpicker form-select-lg pb-0" data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
-      {% tprint(observationPoints) 
-        for _, v in pairsByField(observationPoints, 'obs_point', asc) do %}
+      {% for _, v in pairsByField(observationPoints, 'obs_point', asc) do %}
         {% local selected = '' %}
         {% if((observationPointId ~= nil) and (tostring(v["obs_point"]) == tostring(observationPointId))) then selected = 'selected' end %}
         <option value="{{ v["obs_point"] }}" {{ selected }}>{{ getObsPointAlias(v["obs_point"], true) }}</option>
