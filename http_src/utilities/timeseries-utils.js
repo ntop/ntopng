@@ -119,7 +119,7 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 	// extract ts visibility (raw, avg, perc_95)
 	let tsVisibility = tsGroup.timeseries?.find((t) => t.id == id);
 	let name = sMetadata.label;
-	if (s.ext_label != null) {
+	if (s.ext_label != null && tsGroup.metric.type == "top") {
 	    name = s.ext_label;
 	}
 	let sName = getSerieName(name, id, tsGroup, extendSeriesName);
