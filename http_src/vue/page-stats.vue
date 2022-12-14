@@ -413,7 +413,6 @@ function set_timeseries_groups_source_label(timeseries_groups, ts_charts_options
     timeseries_groups.forEach((ts_group, i) => {
 	let ts_options = ts_charts_options[i];
 	let label = ts_options?.query?.label;
-	
 	if (label != null) {
 	    let source_index = timeseriesUtils.getMainSourceDefIndex(ts_group);
 	    let source = ts_group.source_array[source_index];
@@ -483,7 +482,7 @@ async function refresh_top_table() {
     let table_config = selected_top_table.value?.table_config_def;
     if (table_config == null) { return; }
     // NtopUtils.showOverlays();
-    let data_url = get_top_table_url(table_config.ts_group, table_config.table_value, table_config.table_view);
+    let data_url = get_top_table_url(table_config.ts_group, table_config.table_def.table_value, table_config.table_def.view, table_config.table_source_def_value_dict, status);
     top_table_ref.value.update_url(data_url);
     top_table_ref.value.reload();
     // NtopUtils.hideOverlays();
@@ -530,7 +529,7 @@ function set_top_table_options(timeseries_groups, status) {
 	    let table_source_def_value_dict = table_def.table_source_def_value_dict
 	    
 	    let data_url = get_top_table_url(ts_group, table_def.table_value, table_def.view, table_source_def_value_dict, status);
-	    let table_id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array, table_source_def_value_dict);
+	    let table_id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array, null, table_source_def_value_dict, true);
 	    if (top_table_id_dict[table_id] != null) { return; }
 	    top_table_id_dict[table_id] = true;
 	    
@@ -538,8 +537,9 @@ function set_top_table_options(timeseries_groups, status) {
 	    let label = `${table_def.title} - ${source_type.label} ${main_source.label}`;
 	    const table_config_def = {
 		ts_group,
-		table_value: table_def.table_value,
-		table_view: table_def.view,
+		table_def,
+		// table_value: table_def.table_value,
+		// table_view: table_def.view,
 		
 		table_buttons: [ ],
 		data_url,
@@ -606,8 +606,13 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
 	    let ts_id = timeseriesUtils.getSerieId(s);
 	    let s_metadata = ts_group.metric.timeseries[ts_id];
 	    let formatter = formatterUtils.getFormatter(ts_group.metric.measure_unit);
-	    let ts_stats = options.statistics?.by_serie[j];
-	    if (ts_stats == null) {
+	    let ts_stats;
+	    if (ts_group.metric.type == "top") {
+		ts_stats = options.statistics;
+	    } else {
+		ts_stats = options.statistics?.by_serie[j];
+	    }
+	    if (ts_stats == null || ts_group.metric.type == "top" && j > 0) {
 		return;
 	    }
 	    let name = timeseriesUtils.getSerieName(s_metadata.label, ts_id, ts_group, extend_serie_name);

@@ -52,6 +52,7 @@ const sources_types_tables = {
     interface: interfaceTopTables,
     host: hostTopTables,
     snmp_interface: snmpInterfaceTopTables,
+    snmp_device: snmpInterfaceTopTables,
     // snmp_interface: [;
 };
 
@@ -299,10 +300,11 @@ const sources_types = [
     {
     	//todo_test
     	id: "snmp_interface",
+	id_group: "snmp",
     	// disable_stats: true,
     	regex_page_url: "lua\/pro\/enterprise\/snmp_interface_details",
-    	label: "SNMP",
-    	query: "snmp",	
+    	label: "SNMP Interface",
+    	query: "snmp_interface",	
     	source_def_array: [{
     	    label: "Interface",
     	    sources_function: () => { return [{ label: "", value: -1 }] },
@@ -320,6 +322,28 @@ const sources_types = [
     	    regex_type: "text",
     	    value: "if_index",
 	    value_url: "snmp_port_idx",
+    	    ui_type: ui_types.input,
+    	}],
+    },
+    {
+    	//todo_test
+    	id: "snmp_device",
+	id_group: "snmp",
+    	// disable_stats: true,
+    	regex_page_url: "lua\/pro\/enterprise\/snmp_device_details",
+    	label: "SNMP Top Interfaces",
+    	query: "snmp_device",
+    	source_def_array: [{
+    	    label: "Interface",
+    	    sources_function: () => { return [{ label: "", value: -1 }] },
+    	    value: "ifid", 
+    	    ui_type: ui_types.hide,
+    	}, {
+	    main_source_def: true,
+    	    label: "Device",
+    	    regex_type: "ip",
+    	    value: "device",
+	    value_url: "host",
     	    ui_type: ui_types.input,
     	}],
     },

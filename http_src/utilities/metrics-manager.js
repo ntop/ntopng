@@ -104,7 +104,7 @@ async function get_url_param_from_ts_group(ts_group_url_param) {
     };
 }
 
-const get_ts_group_id = (source_type, source_array, metric, enable_source_def_value_dict) => {
+const get_ts_group_id = (source_type, source_array, metric, enable_source_def_value_dict, set_source_type_id_group) => {
     let metric_id = "";
     if (metric != null) {
 	metric_id = metric.schema;    
@@ -118,7 +118,11 @@ const get_ts_group_id = (source_type, source_array, metric, enable_source_def_va
 	if (enable_source_def_value_dict != null && !enable_source_def_value_dict[source_def_value]) { return null; }
 	return source.value;
     }).filter((s) => s != null).join("_");
-    return `${source_type.id} - ${source_value_array} - ${metric_id}`;
+    let source_type_id = source_type.id;
+    if (set_source_type_id_group && source_type.id_group != null) {
+	source_type_id = source_type.id_group;
+    }
+    return `${source_type_id} - ${source_value_array} - ${metric_id}`;
 };
 
 function get_timeseries(timeseries_url, metric) {

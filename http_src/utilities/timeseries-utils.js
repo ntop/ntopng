@@ -47,10 +47,7 @@ function tsToApexOptions(tsOptions, metric) {
     //tsInterface.colors = ["#ff3231", "#ffc007"];
 }
 
-function getSerieId(serie, serie_id_field) {
-    if (serie_id_field != null) {
-	return serie[serie_id_field];
-    }
+function getSerieId(serie) {
     return `${serie.label}`;
 }
 
@@ -88,11 +85,10 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
     let startTime = tsOptions.start * 1000;;
     let step = tsOptions.step * 1000;
     let seriesApex = [];
-
     let seriesKeys = Object.keys(tsGroup.metric.timeseries);
-    if (tsOptions.series?.length != seriesKeys.length) {	
+    if (tsGroup.metric.type != "top" && tsOptions.series?.length != seriesKeys.length) {	
 	tsOptions.series = seriesKeys.map((sk, i) => {
-	    let serie = tsOptions.series.find((s) => getSerieId(s, tsGroup.source_type.serie_id_field) == sk);
+	    let serie = tsOptions.series.find((s) => getSerieId(s) == sk);
 	    if (serie != null) { return serie; }
 	    return {
 		label: sk,
@@ -122,7 +118,11 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 	
 	// extract ts visibility (raw, avg, perc_95)
 	let tsVisibility = tsGroup.timeseries?.find((t) => t.id == id);
-	let sName = getSerieName(sMetadata.label, id, tsGroup, extendSeriesName);
+	let name = sMetadata.label;
+	if (s.ext_label != null) {
+	    name = s.ext_label;
+	}
+	let sName = getSerieName(name, id, tsGroup, extendSeriesName);
 	// check and add raw serie visibility
 	if (tsVisibility == null || tsVisibility.raw == true) {
 	    let data = fMapData(s.data);
@@ -136,6 +136,7 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 		id,
 		colorPalette: 0,
 		color: sMetadata.color,
+		// stacked: tsGroup.metric.draw_stacked,
 		type: drawType,
 		name: sName,
 		data,
@@ -152,6 +153,7 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 		colorPalette: 1,
 		color: sMetadata.color,
 		type: "line",
+		// stacked: tsGroup.metric.draw_stacked,
 		name: `${sName} ${tsCompare} Ago`,
 		data: fMapData(seriesData),
 	    };
@@ -177,7 +179,7 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 		colorPalette: 1,
 		color: sMetadata.color,
 		type: 'line',
-		stacked: false,
+		// stacked: tsGroup.metric.draw_stacked,
 		data,
 	    };
 	};
@@ -422,7 +424,7 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare) {
 	let tsGroup = tsGrpupsArray[i];
 
 	if (i > 0) {
-	    forceDrawType = "line"
+	    forceDrawType = "line";
 	}
 	// get seriesData
 	let seriesApex = getSeriesInApexFormat(tsOptions, tsGroup, true, forceDrawType, tsCompare);
