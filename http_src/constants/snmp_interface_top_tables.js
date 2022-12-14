@@ -12,7 +12,7 @@ const handlerIdJumpHistorical = "page-stats-action-jump-historical";
 const top_snmp_interface = {
     table_value: "snmp",
     table_source_def_value_dict: { ifid: true, device: true, if_index: false },
-    title: i18n('page_stats.top.top_applications'),
+    title: i18n('page_stats.top.top_traffic'),
     view: "top_snmp_ifaces",
     default_sorting_columns: 4,
     default: true,
