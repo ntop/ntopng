@@ -424,7 +424,7 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
 
 /* **************************************************** */
 
-/* Operations are performed in the followin order:
+/* Operations are performed in the followinf order:
  *
  * 1. initnDPIReload()
  * 2. ... nDPILoadIPCategory/nDPILoadHostnameCategory() ...
@@ -436,7 +436,13 @@ bool NetworkInterface::initnDPIReload() {
 			       ndpiReloadInProgress ? "[IN PROGRESS]" : "");
 
   if(ndpiReloadInProgress) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
+    /*
+      Do not display this alert for subinterfaces as they might have been
+      created on the fly and thus trigger this alert
+    */
+    if(!isSubInterface())
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
+    
     return(false);
   }
 
