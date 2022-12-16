@@ -514,8 +514,22 @@ else
          print(" [".. i18n("network") ..": "..flow["proto.ndpi_address_family"].."]")
       end
       
-      if (flow.confidence) and (not isEmptyString(flow.confidence)) then
+      if(flow.confidence) and (not isEmptyString(flow.confidence)) then
         print(" ["..i18n("ndpi_confidence")..": "..format_confidence_badge(flow.confidence).."]")
+      end
+
+      if(flow.rtp_stream_type ~= nil) then
+	 print(" [ ")
+	 if(flow.rtp_stream_type == "screen_share") then
+	    print('<i class="fas fa-desktop"></i> <span class="badge bg-secondary">'.. i18n("rtp.screen_share")..'</span>')
+	 elseif(flow.rtp_stream_type == "audio") then
+	    print('<i class="fas fa-volume-up"></i> <span class="badge bg-secondary">'.. i18n("rtp.audio")..'</span>')
+	 elseif(flow.rtp_stream_type == "video") then
+	    print('<i class="fas fa-desktop"></i> <span class="badge bg-secondary">'.. i18n("rtp.video")..'</span>')
+	 elseif(flow.rtp_stream_type == "audio_video") then
+	    print('<i class="fas fa-video"></i> <span class="badge bg-secondary">'.. i18n("rtp.audio_video")..'</span>')
+	 end
+	 print(" ]")
       end
     end
 
@@ -1317,6 +1331,7 @@ else
       if(not isEmptyString(flow["protos.http.last_method"])) then rowspan = rowspan + 1 end
       if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then rowspan = rowspan + 1 end
       if(not isEmptyString(flow["protos.http.last_user_agent"])) then rowspan = rowspan + 1 end
+      if(not isEmptyString(flow["protos.http.last_server"])) then rowspan = rowspan + 1 end
       if(not isEmptyString(flow["protos.http.last_return_code"])) then rowspan = rowspan + 1 end
 
       print("<tr><th width=30% rowspan="..rowspan..">"..i18n("http").."</th>")
@@ -1344,6 +1359,10 @@ else
 
       if(not isEmptyString(flow["protos.http.last_user_agent"])) then
         print("<tr><th>"..i18n("flow_details.user_agent").."</th><td colspan=2>"..flow["protos.http.last_user_agent"].."</td></tr>")
+      end
+
+      if(not isEmptyString(flow["protos.http.last_server"])) then
+        print("<tr><th>"..i18n("flow_details.server").."</th><td colspan=2>"..flow["protos.http.last_server"].."</td></tr>")
       end
 
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")

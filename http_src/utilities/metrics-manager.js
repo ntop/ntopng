@@ -104,13 +104,25 @@ async function get_url_param_from_ts_group(ts_group_url_param) {
     };
 }
 
-const get_ts_group_id = (source_type, source_array, metric) => {
-    let metric_id = metric.schema;
-    if (metric.query != null) {
-	metric_id = `${metric_id} - ${metric.query}`;
+const get_ts_group_id = (source_type, source_array, metric, enable_source_def_value_dict, set_source_type_id_group) => {
+    let metric_id = "";
+    if (metric != null) {
+	metric_id = metric.schema;    
+	if (metric.query != null) {
+	    metric_id = `${metric_id} - ${metric.query}`;
+	}
     }
-    let source_value_array = source_array.map((source) => source.value).join("_");
-    return `${source_type.id} - ${source_value_array} - ${metric_id}`;
+    let source_def_array = source_type.source_def_array;
+    let source_value_array = source_array.map((source, i) => {
+	let source_def_value = source_def_array[i].value;
+	if (enable_source_def_value_dict != null && !enable_source_def_value_dict[source_def_value]) { return null; }
+	return source.value;
+    }).filter((s) => s != null).join("_");
+    let source_type_id = source_type.id;
+    if (set_source_type_id_group && source_type.id_group != null) {
+	source_type_id = source_type.id_group;
+    }
+    return `${source_type_id} - ${source_value_array} - ${metric_id}`;
 };
 
 function get_timeseries(timeseries_url, metric) {
@@ -138,6 +150,7 @@ const ui_types = metricsConsts.ui_types;
 const sources_url_el_to_source = metricsConsts.sources_url_el_to_source;
 
 const sources_types = metricsConsts.sources_types;
+const sources_types_tables = metricsConsts.sources_types_tables;
 
 const get_source_type_from_id = (source_type_id) => {
     return sources_types.find((st) => st.id == source_type_id);
@@ -148,6 +161,12 @@ const get_default_source_array = async (http_prefix, source_type) => {
     let source_array = await get_source_array_from_value_array(http_prefix, source_type, source_value_array);
     return source_array;
 };
+
+async function get_source_array_from_value_dict(http_prefix, source_type, source_value_dict) {
+    let source_value_array = source_type.source_def_array.map((source_def) => source_value_dict[source_def.value]);
+    let source_array = await get_source_array_from_value_array(http_prefix, source_type, source_value_array);
+    return source_array;
+}
 
 const get_source_array_from_value_array = async (http_prefix, source_type, source_value_array) => {
     if (source_type == null) {
@@ -319,11 +338,13 @@ const metricsManager = function() {
 	get_ts_group_id,
 
 	sources_types,
+	sources_types_tables,	
 	get_source_type_from_id,
 	get_current_page_source_type,
 
 	get_sources,
 	get_default_source_array,
+	get_source_array_from_value_dict,
 	get_source_array_from_value_array,
 	get_default_source_value_array,
 

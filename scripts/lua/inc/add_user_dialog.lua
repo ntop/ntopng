@@ -55,6 +55,7 @@ local location_href = ntop.getHttpPrefix().."/lua/admin/users.lua"
 local is_pcap_download_available = true or recording_utils.isAvailable()
 
 template_utils.render("pages/components/add-user-dialog.template", {
+  i18n = i18n,
   add_user_endpoint = add_user,
   available_locales = available_locales,
   csrf = csrf,

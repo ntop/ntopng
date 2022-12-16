@@ -1489,7 +1489,7 @@ elseif(page == "trafficprofiles") then
    
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">" .. i18n("traffic_profiles.profile_name") .. "</A></th><th width=5%>" .. i18n("chart") .. "</th><th>" .. i18n("traffic") .. "</th></tr>\n")
-   for pname,pbytes in pairs(ifstats.profiles) do
+   for pname,pbytes in pairsByKeys(ifstats.profiles, asc) do
      local trimmed = trimSpace(pname)
      local statschart_icon = ''
 

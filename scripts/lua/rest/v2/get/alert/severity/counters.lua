@@ -34,11 +34,6 @@ end
 
 interface.select(ifid)
 
-if not auth.has_capability(auth.capabilities.alerts) then
-   rest_utils.answer(rest_utils.consts.err.not_granted)
-   return
-end
-
 local res = all_alert_store:get_counters_by_severity()
 
 local top_alerts = {}

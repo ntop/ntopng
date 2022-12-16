@@ -91,7 +91,7 @@
       </div>
       
       <ListTimeseries
-	:id="get_timeseries_group_id()"
+	id=""
 	:title="_i18n('modal_timeseries.timeseries_list')"
 	v-model:timeseries="timeseries_to_add">
       </ListTimeseries>      
@@ -119,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, onBeforeMount, computed, watch } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as ListTimeseries } from "./list-timeseries.vue";
 import { default as SelectSearch } from "./select-search.vue";
@@ -128,6 +128,10 @@ import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import metricsManager from "../utilities/metrics-manager.js";
 import timeseriesUtils from "../utilities/timeseries-utils.js";
 import regexValidation from "../utilities/regex-validation.js";
+
+const props = defineProps({
+    sources_types_enabled: Object,
+});
 
 const modal_id = ref(null);
 const select_search_metrics = ref(null);
@@ -179,10 +183,14 @@ const emit = defineEmits(['apply'])
 
 let wait_init = null;
 
-// const props = defineProps({
-//     timseries_groups: Array,
-// });
-
+onBeforeMount(() => {
+    sources_types.forEach((source_type) => {
+	let source_type_enabled = props.sources_types_enabled[source_type.id];
+	if (source_type_enabled == null || source_type_enabled == false) {
+	    source_type.disabled = true;
+	}
+    });    
+});
 
 onMounted(async () => {
     wait_init = init();

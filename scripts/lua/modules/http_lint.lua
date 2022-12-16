@@ -502,6 +502,16 @@ local function validateAlertType(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateAlertFamily(family)
+   local modes = { "active_monitoring", "flow", "host", "interface", "mac" , "network" , "snmp" , "system" , "user" }
+
+   if validateAlertTypeNumber(family) then
+      return true
+   end
+
+   return validateChoice(modes, family)
+end
+
 local function validateAlertTypeSeverity(mode)
    local modes = {"group_none", "notice_or_lower", "warning", "error", "critical", "emergency"}
 
@@ -1460,7 +1470,9 @@ local known_parameters = {
    ["select_keys_clause"]      = validateUnquoted,
    ["select_values_clause"]    = validateUnquoted,
    ["approx_search"]           = validateBool,
-
+   ["group_by_clause"]         = validateUnquoted,
+   ["order_by_clause"]         = validateUnquoted,
+   ["alert_family"]            = validateAlertFamily,           -- Alert family validation
    ["where_clause"]            = { whereCleanup, validateUnquoted },
    ["where_clause_unck"]       = { whereCleanup, validateUnchecked },
    ["begin_time_clause"]       = validateUnquoted,
@@ -1670,7 +1682,7 @@ local known_parameters = {
 
 -- OTHER
    ["interface"]               = validateSingleWord,
-   ["get_all_values"]          = validateBool,                  -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if all the values have to be returned
+   ["all_values"]              = validateBool,                  -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if all the values have to be returned
    ["collapse_stats"]          = validateBool,                  -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if stats need to be collapsed
    ["max_values"]              = validateNumber,                -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know the max number of stats to be returned
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
@@ -1750,6 +1762,7 @@ local known_parameters = {
    ["snmp_username"]           = validateSingleWord,            -- SNMP Username
    ["cidr"]                    = validateCIDR,                  -- /32 or /24
    ["snmp_port_idx"]           = validateNumber,                -- SNMP port index
+   ["if_index"]                = validateNumber,                -- SNMP port index
    ["snmp_recache" ]           = validateBool,                  -- forces SNMP queries to be re-executed and cached
    ["request_discovery" ]      = validateBool,                  -- forces device discovery to be re-cached
    ["intfs"]                   = validateInterfacesList,        -- a list of network interfaces ids

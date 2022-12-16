@@ -486,7 +486,7 @@ function getFullVlanName(vlan_id, compact)
     alias = shortenString(alias)
     return string.format("%s", alias)
   else
-    return string.format("%u [%s]", vlan_id, alias)
+    return string.format("%s [%u]", alias, vlan_id)
   end
     end
   end
@@ -596,6 +596,18 @@ function getCustomnDPIProtoCategories()
    end
 
    return res
+end
+
+-- ##############################################
+
+function setCustomnDPIProtoCategory(app_id, new_cat_id)
+   ntop.setnDPIProtoCategory(app_id, new_cat_id)
+
+   local key = getCustomnDPIProtoCategoriesKey(ifid)
+
+   -- NOTE: when the ndpi struct changes, the custom associations are
+   -- reloaded by Ntop::loadProtocolsAssociations
+   ntop.setHashCache(key, tostring(app_id), tostring(new_cat_id));
 end
 
 -- ##############################################

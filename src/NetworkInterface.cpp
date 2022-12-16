@@ -424,7 +424,7 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
 
 /* **************************************************** */
 
-/* Operations are performed in the followin order:
+/* Operations are performed in the followinf order:
  *
  * 1. initnDPIReload()
  * 2. ... nDPILoadIPCategory/nDPILoadHostnameCategory() ...
@@ -436,7 +436,13 @@ bool NetworkInterface::initnDPIReload() {
 			       ndpiReloadInProgress ? "[IN PROGRESS]" : "");
 
   if(ndpiReloadInProgress) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
+    /*
+      Do not display this alert for subinterfaces as they might have been
+      created on the fly and thus trigger this alert
+    */
+    if(!isSubInterface())
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
+    
     return(false);
   }
 
@@ -594,7 +600,7 @@ void NetworkInterface::checkDisaggregationMode() {
 
   if((!ntop->getRedis()->get(rkey, rsp, sizeof(rsp))) && (rsp[0] != '\0')) {
     if(getIfType() == interface_type_ZMQ) { /* ZMQ interface */
-      if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
+      if(!strcmp(rsp, DISAGGREGATION_PROBE_IP))              flowHashingMode = flowhashing_probe_ip;
       else if(!strcmp(rsp, DISAGGREGATION_IFACE_ID))         flowHashingMode = flowhashing_iface_idx;
       else if(!strcmp(rsp, DISAGGREGATION_INGRESS_IFACE_ID)) flowHashingMode = flowhashing_ingress_iface_idx;
       else if(!strcmp(rsp, DISAGGREGATION_INGRESS_PROBE_IP_AND_IFACE_ID)) flowHashingMode = flowhashing_probe_ip_and_ingress_iface_idx;
@@ -828,7 +834,7 @@ NetworkInterface::~NetworkInterface() {
 
   if(customFlowLuaScript) delete customFlowLuaScript;
   if(customHostLuaScript) delete customHostLuaScript;
-  
+
 #if defined(NTOPNG_PRO)
   if(pMap) delete pMap;
   if(sMap) delete sMap;
@@ -1455,7 +1461,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
     /* Custom disaggregation */
-    if(sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
+    if(sub_interfaces && (sub_interfaces->getNumSubInterfaces() > 0)) {
       processed = sub_interfaces->processPacket(bridge_iface_idx,
 						ingressPacket, when, packet_time,
 						eth, vlan_id,
@@ -1469,9 +1475,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
 #endif
 
-    if(!processed && flowHashingMode != flowhashing_none) {
+    if((!processed) && (flowHashingMode != flowhashing_none)) {
       /* VLAN disaggregation */
-      if(flowHashingMode == flowhashing_vlan && vlan_id > 0) {
+      if((flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
         NetworkInterface *vIface;
 
         if((vIface = getDynInterface((u_int32_t)vlan_id, false)) != NULL) {
@@ -1815,6 +1821,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	trusted_payload_len = trusted_l4_packet_len, payload = l4;
       }
       break;
+
     default:
       /*
 	NOTE: for non TCP-flows, the swap heuristic is always checked on the first packet
@@ -2005,7 +2012,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     #ifdef NTOPNG_PRO
       flow->updateDNSFlood(when, src2dst_direction);
     #endif
-    
+
       if((trusted_payload_len > 0) && payload) {
 	flow->dissectDNS(src2dst_direction, (char*)payload, trusted_payload_len);
 	/*
@@ -2015,6 +2022,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       }
 
       break;
+
     case NDPI_PROTOCOL_SNMP:
     #ifdef NTOPNG_PRO
       flow->updateSNMPFlood(when, src2dst_direction);
@@ -2041,6 +2049,36 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
       if(discovery && iph)
 	discovery->queueMDNSResponse(iph->saddr, payload, trusted_payload_len);
+      break;
+
+    case NDPI_PROTOCOL_RTP:
+
+      if(flow->isZoomRTP()) {
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "XXX [%d]", payload[0]);
+
+	if(payload[0] == 5 /* RTCP/RTP */) {
+	  u_int8_t encoding_type = payload[8];
+
+	  switch(encoding_type) {
+	  case 13: /* Screen Share */
+	  case 30: /* Screen Share */
+	    flow->setRTPStreamType(rtp_screen_share);
+	    break;
+
+	  case 15: /* Audio */
+	    flow->setRTPStreamType(rtp_audio);
+	    break;
+
+	  case 16: /* Video */
+	    flow->setRTPStreamType(rtp_video);
+	    break;
+	  }
+	}
+      } else if(flow->getRTPStreamType() == rtp_unknown) {
+	if(flow->get_ndpi_flow() != NULL) {
+	  flow->setRTPStreamType(flow->get_ndpi_flow()->protos.rtp.stream_type);
+	}
+      }
       break;
     }
 

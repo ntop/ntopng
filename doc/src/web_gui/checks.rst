@@ -1,7 +1,7 @@
 .. _WebUIUserScripts:
 
 Checks
-############
+######
 
 Checks process network elements and perform actions such as triggering alerts. Creating checks is discussed in detail in :ref:`Checks`. This section describes how users scripts can be enabled and disabled, configured, and applied to network elements such as hosts and flows.
 

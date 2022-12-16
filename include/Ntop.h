@@ -458,8 +458,8 @@ public:
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;
   bool changeUserHostPool(const char * username, const char * host_pool_id) const;
   bool changeUserLanguage(const char * username, const char * language) const;
-  bool changeUserPermission(const char * username, bool allow_pcap_download) const;
-  bool changeUserHistoricalFlowPermission(const char * username, bool allow_historical_flow) const;
+  bool changeUserPermission(const char * username, bool allow_pcap_download, u_int32_t ttl = 0 /* Forever */) const;
+  bool changeUserHistoricalFlowPermission(const char * username, bool allow_historical_flow, u_int32_t ttl = 0 /* Forever */) const;
   bool getUserCapabilities(const char * username, bool *allow_pcap_download,
 			   bool *allow_historical_flow) const;  
   bool existsUser(const char * username) const;

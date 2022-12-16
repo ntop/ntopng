@@ -1264,8 +1264,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
     ntop->getUserCapabilities(user, &allow_pcap_download, &allow_historical_flow);
 
-    // if(allow_pcap_download)    capabilities |= (1 << capability_alerts); /* CHECKME */
-    if(allow_historical_flow)  capabilities |= (1 << capability_historical_flows);
+    if(allow_historical_flow)
+      capabilities |= (1 << capability_alerts) | (1 << capability_historical_flows);
   }
 
   /* Put the _SESSION params into the environment */

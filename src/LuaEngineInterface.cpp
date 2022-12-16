@@ -4768,10 +4768,12 @@ static luaL_Reg _ntop_interface_reg[] = {
   /* SNMP */
   { "getSNMPStats",                     ntop_interface_get_snmp_stats         },
 
+#ifdef NTOPNG_PRO
   /* Flow Devices */
   { "getFlowDevices",                   ntop_get_flow_devices                  },
   { "getFlowDeviceInfo",                ntop_get_flow_device_info              },
-
+#endif
+  
 #ifdef HAVE_NEDGE
   /* L7 */
   { "reloadL7Rules",                    ntop_reload_l7_rules                   },

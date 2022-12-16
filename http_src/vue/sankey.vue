@@ -10,7 +10,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import sankeyUtils from "../utilities/map/sankey_utils"
-let d3 = d3v7
 
 const no_data = ref(false)
 const props = defineProps({
@@ -29,26 +28,26 @@ function SankeyChart(data) {
   }
 
   /* Get the links and nodes formatted list */
-  const link_source = d3.map(data, settings.linkSource).map(intern);
-  const link_target = d3.map(data, settings.linkTarget).map(intern);
-  const link_source_node = d3.map(data, settings.linkSourceNode).map(intern);
-  const link_target_node = d3.map(data, settings.linkTargetNode).map(intern);
-  const link_link = d3.map(data, settings.linkLink).map(intern);
-  const link_value = d3.map(data, settings.linkValue);
-  const link_color = d3.map(data, settings.linkColor);
-  const source_color = d3.map(data, settings.sourceColor);
-  const target_color = d3.map(data, settings.targetColor);
-  const source_link = d3.map(data, settings.sourceLink);
-  const target_link = d3.map(data, settings.targetLink);
+  const link_source = d3v7.map(data, settings.linkSource).map(intern);
+  const link_target = d3v7.map(data, settings.linkTarget).map(intern);
+  const link_source_node = d3v7.map(data, settings.linkSourceNode).map(intern);
+  const link_target_node = d3v7.map(data, settings.linkTargetNode).map(intern);
+  const link_link = d3v7.map(data, settings.linkLink).map(intern);
+  const link_value = d3v7.map(data, settings.linkValue);
+  const link_color = d3v7.map(data, settings.linkColor);
+  const source_color = d3v7.map(data, settings.sourceColor);
+  const target_color = d3v7.map(data, settings.targetColor);
+  const source_link = d3v7.map(data, settings.sourceLink);
+  const target_link = d3v7.map(data, settings.targetLink);
 
   let links = data;
-  let nodes = Array.from(d3.union(link_source, link_target), id => ({ id }));
+  let nodes = Array.from(d3v7.union(link_source, link_target), id => ({ id }));
 
-  const node_id_list = d3.map(nodes, settings.nodeId).map(intern);
-  settings.nodeGroups = d3.map(nodes, settings.nodeGroup).map(intern);
+  const node_id_list = d3v7.map(nodes, settings.nodeId).map(intern);
+  settings.nodeGroups = d3v7.map(nodes, settings.nodeGroup).map(intern);
 
-  nodes = d3.map(nodes, (_, i) => ({ id: node_id_list[i] }));
-  links = d3.map(links, (_, i) => ({ 
+  nodes = d3v7.map(nodes, (_, i) => ({ id: node_id_list[i] }));
+  links = d3v7.map(links, (_, i) => ({ 
     source: link_source[i], 
     target: link_target[i], 
     value: link_value[i] ,
@@ -63,13 +62,13 @@ function SankeyChart(data) {
   }));
 
   /* Colors/Label/Titles arrays */
-  const color = d3.scaleOrdinal(settings.nodeGroups, settings.colors);
-  const node_label_list = d3.map(nodes, settings.nodeLabel);
-  const node_title_list = d3.map(nodes, settings.nodeTitle);
-  const link_title_list = d3.map(links, settings.linkTitle);
+  const color = d3v7.scaleOrdinal(settings.nodeGroups, settings.colors);
+  const node_label_list = d3v7.map(nodes, settings.nodeLabel);
+  const node_title_list = d3v7.map(nodes, settings.nodeTitle);
+  const link_title_list = d3v7.map(links, settings.linkTitle);
 
   /* Compute the Sankey layout. */
-  d3v7.sankey()
+  let sankey = d3v7.sankey()
     .nodeId(({index: i}) => node_id_list[i])
     .nodeAlign(settings.nodeAlign)
     .nodeWidth(settings.nodeWidth)
@@ -77,10 +76,44 @@ function SankeyChart(data) {
     .extent([[settings.marginLeft, settings.marginTop], [settings.width - settings.marginRight, settings.height - settings.marginBottom]])
     ({nodes, links});
 
-  const svg = d3.create("svg")
+  const svg = d3v7.create("svg")
     .attr("viewBox", [0, 0, settings.width, settings.height])
     .attr("style", "max-width: 100%; height: 60vh; height: intrinsic;");
 
+  let deltaX, deltaY;
+    
+  const width = settings.width
+  const link = svg.append("g")
+    .attr("fill", "none")
+    .attr("stroke-opacity", settings.linkStrokeOpacity)
+    .selectAll("g")
+    .data(links)
+    .join("g")
+    .style("mix-blend-mode", settings.linkMixBlendMode)
+    .append("path")
+    .attr("d", settings.linkPath)
+    .attr("stroke", ({ color }) => color )
+    .attr("stroke-width", ({ width }) => Math.max(1, width))
+    .call(link_title_list ? path => path.append("title").text(({index: i}) => link_title_list[i]) : () => {});
+
+
+  const drag = d3v7.drag()
+    .on("start", function (event, d) {
+        const current = d3v7.select(this);
+        deltaX = current.attr("x") - event.x;
+        deltaY = current.attr("y") - event.y;
+    })
+    .on("drag", function (event, d) {
+      d3v7.select(this)
+            .attr("x", event.x + deltaX)
+            .attr("y", event.y + deltaY);
+
+      debugger;
+      sankey = d3v7.sankey().update(sankey)
+        link.selectAll("path")
+        .data(sankey.links, function(d) { return d; });
+    });
+    
   const node = svg.append("g")
     .attr("stroke", settings.nodeStroke)
     .attr("stroke-width", settings.nodeStrokeWidth)
@@ -89,6 +122,7 @@ function SankeyChart(data) {
     .selectAll("rect")
     .data(nodes)    
     .join("rect")
+    .call(drag)
 	  .on("dblclick", function(data) { 
       data = data.currentTarget.__data__
       const sourceLink = data.sourceLinks;
@@ -128,20 +162,6 @@ function SankeyChart(data) {
       return node_color;
     })
     .append("title").text(({index: i}) => node_title_list[i])
-
-  const width = settings.width
-  const link = svg.append("g")
-    .attr("fill", "none")
-    .attr("stroke-opacity", settings.linkStrokeOpacity)
-    .selectAll("g")
-    .data(links)
-    .join("g")
-    .style("mix-blend-mode", settings.linkMixBlendMode)
-    .append("path")
-    .attr("d", settings.linkPath)
-    .attr("stroke", ({ color }) => color )
-    .attr("stroke-width", ({ width }) => Math.max(1, width))
-    .call(link_title_list ? path => path.append("title").text(({index: i}) => link_title_list[i]) : () => {});
 
   svg.append("g")
     .attr("font-family", "sans-serif")
@@ -184,6 +204,7 @@ const updateData = async function(data) {
     const data = rsp.rsp;
     if(data.length > 0) {
       let chart = SankeyChart(data)
+      no_data.value = false
       $(`#${props.id}`).empty();
       $(`#${props.id}`).append(chart);
     } else {
@@ -195,8 +216,7 @@ const updateData = async function(data) {
   NtopUtils.hideOverlays();
 };
 
-onMounted(() => {
-})
+onMounted(() => { })
 
 defineExpose({ updateData })
 </script>

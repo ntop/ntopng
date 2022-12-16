@@ -63,6 +63,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   if(zflow->vlan_id && ntop->getPrefs()->do_ignore_vlans())
     zflow->vlan_id = 0;
+
   if((zflow->vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
     zflow->vlan_id = rand() % 0xFF;
 
@@ -89,62 +90,106 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
     /* Custom disaggregation */
-    if(sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
+    if(sub_interfaces && (sub_interfaces->getNumSubInterfaces() > 0)) {
       processed = sub_interfaces->processFlow(zflow);
     }
 #endif
 #endif
-    if(!processed && flowHashingMode != flowhashing_none) {
-      NetworkInterface *vIface = NULL, *vIfaceEgress = NULL;
+    
+    if(!processed && (flowHashingMode != flowhashing_none)) {
+      bool observation_point_id_mode = false; /* TODO: handle this mode */
+	
+      if(observation_point_id_mode) {
+	/*
+	  Instead of creating sub-interfaces we set the
+	  observation point id
+	*/
+	u_int16_t virtual_observation_point_id = zflow->vlan_id;
+	
+	switch(flowHashingMode) {
+	case flowhashing_probe_ip:
+	  virtual_observation_point_id = zflow->device_ip & 0xFFF /* 4096 */;
+	  break;
 
-      switch(flowHashingMode) {
-      case flowhashing_probe_ip:
-        vIface = getDynInterface((u_int64_t)zflow->device_ip, true);
-        break;
+	case flowhashing_iface_idx:
+	  /* NOTE: we do not duplicate data but use only the egress interface */
+	  virtual_observation_point_id = zflow->outIndex & 0xFFF /* 4096 */;
+	  break;
+	    
+	case flowhashing_ingress_iface_idx:
+	  virtual_observation_point_id = zflow->inIndex & 0xFFF /* 4096 */;
+	  break;
 
-      case flowhashing_iface_idx:
-        if(flowHashingIgnoredInterfaces.find((u_int64_t)zflow->outIndex) == flowHashingIgnoredInterfaces.end())
-	  vIfaceEgress = getDynInterface((u_int64_t)zflow->outIndex, true);
-        /* No break HERE, want to get two interfaces, one for the ingress
-           and one for the egress. */
+	case flowhashing_probe_ip_and_ingress_iface_idx:
+	  virtual_observation_point_id = ((((u_int64_t)zflow->device_ip) << 32) + zflow->inIndex) & 0xFFF /* 4096 */;
+	  break;
 
-      case flowhashing_ingress_iface_idx:
-        if(flowHashingIgnoredInterfaces.find((u_int64_t)zflow->inIndex) == flowHashingIgnoredInterfaces.end())
-	  vIface = getDynInterface((u_int64_t)zflow->inIndex, true);
-        break;
+	case flowhashing_vrfid:
+	  virtual_observation_point_id = zflow->vrfId & 0xFFF /* 4096 */;
+	  break;
 
-      case flowhashing_probe_ip_and_ingress_iface_idx:
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[IP: %u][inIndex: %u]", zflow->device_ip, zflow->inIndex);
-	vIface = getDynInterface((((u_int64_t)zflow->device_ip) << 32) + zflow->inIndex, true);
-	break;
+	case flowhashing_vlan:
+	  /* Nothing to do */
+	  break;
 
-      case flowhashing_vrfid:
-        vIface = getDynInterface((u_int64_t)zflow->vrfId, true);
-        break;
+	default:
+	  break;
+	}
+	
+	zflow->observationPointId = virtual_observation_point_id;
+      } else {
+	NetworkInterface *vIface = NULL, *vIfaceEgress = NULL;
 
-      case flowhashing_vlan:
-        vIface = getDynInterface((u_int64_t)zflow->vlan_id, true);
-        break;
+	switch(flowHashingMode) {
+	case flowhashing_probe_ip:
+	  vIface = getDynInterface((u_int64_t)zflow->device_ip, true);
+	  break;
 
-      default:
-        break;
+	case flowhashing_iface_idx:
+	  if(flowHashingIgnoredInterfaces.find((u_int64_t)zflow->outIndex) == flowHashingIgnoredInterfaces.end())
+	    vIfaceEgress = getDynInterface((u_int64_t)zflow->outIndex, true);
+	  /* No break HERE, want to get two interfaces, one for the ingress
+	     and one for the egress. */
+
+	case flowhashing_ingress_iface_idx:
+	  if(flowHashingIgnoredInterfaces.find((u_int64_t)zflow->inIndex) == flowHashingIgnoredInterfaces.end())
+	    vIface = getDynInterface((u_int64_t)zflow->inIndex, true);
+	  break;
+
+	case flowhashing_probe_ip_and_ingress_iface_idx:
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[IP: %u][inIndex: %u]", zflow->device_ip, zflow->inIndex);
+	  vIface = getDynInterface((((u_int64_t)zflow->device_ip) << 32) + zflow->inIndex, true);
+	  break;
+
+	case flowhashing_vrfid:
+	  vIface = getDynInterface((u_int64_t)zflow->vrfId, true);
+	  break;
+
+	case flowhashing_vlan:
+	  vIface = getDynInterface((u_int64_t)zflow->vlan_id, true);
+	  break;
+
+	default:
+	  break;
+	}
+
+	if(vIface) {
+	  ParserInterface *vPIface = dynamic_cast<ParserInterface*>(vIface);
+	
+	  vPIface->processFlow(zflow);
+	}
+
+	if(vIfaceEgress) {
+	  ParserInterface *vPIface = dynamic_cast<ParserInterface*>(vIfaceEgress);
+	
+	  vPIface->processFlow(zflow);
+	}
+
+	processed = true;
       }
 
-      if(vIface) {
-        ParserInterface *vPIface = dynamic_cast<ParserInterface*>(vIface);
-        vPIface->processFlow(zflow);
-      }
-
-      if(vIfaceEgress) {
-        ParserInterface *vPIface = dynamic_cast<ParserInterface*>(vIfaceEgress);
-        vPIface->processFlow(zflow);
-      }
-
-      processed = true;
-    }
-
-    if(processed && !showDynamicInterfaceTraffic()) {
-      return true;
+      if(processed && (!showDynamicInterfaceTraffic()))
+	return true;
     }
   }
 

@@ -1,3 +1,11 @@
+import { DataTableUtils } from "../utilities/datatable/sprymedia-datatable-utils";
+import formatterUtils from "../utilities/formatter-utils.js";
+import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
+import NtopUtils from "../utilities/ntop-utils";
+import interfaceTopTables from "./interface_top_tables.js";
+import hostTopTables from "./host_top_tables.js";
+import snmpInterfaceTopTables from "./snmp_interface_top_tables.js";
+
 const ui_types = {
     hide: "hide",
     select: "select",
@@ -33,12 +41,26 @@ const sources_url_el_to_source = {
     },
 };
 
+const table_column_render_types = {
+    metric: "metric",
+    text: "text",
+    percentage: "percentage",
+    button_link: "button_link",
+};
+
+const sources_types_tables = {
+    interface: interfaceTopTables,
+    host: hostTopTables,
+    snmp_interface: snmpInterfaceTopTables,
+    snmp_device: snmpInterfaceTopTables,
+    // snmp_interface: [;
+};
+
 const sources_types = [
     {
 	id: "interface", //unique id
 	regex_page_url: "lua\/if_stats", // regex to match url page
 	label: "Interface",
-	table_value: "interface",
 	query: "iface",
 	source_def_array: [{
 	    main_source_def: true, 
@@ -276,6 +298,56 @@ const sources_types = [
 	}],
     },
     {
+    	//todo_test
+    	id: "snmp_interface",
+	id_group: "snmp",
+    	// disable_stats: true,
+    	regex_page_url: "lua\/pro\/enterprise\/snmp_interface_details",
+    	label: "SNMP Interface",
+    	query: "snmp_interface",	
+    	source_def_array: [{
+    	    label: "Interface",
+    	    sources_function: () => { return [{ label: "", value: -1 }] },
+    	    value: "ifid", 
+    	    ui_type: ui_types.hide,
+    	}, {
+    	    label: "Device",
+    	    regex_type: "ip",
+    	    value: "device",
+	    value_url: "host",
+    	    ui_type: ui_types.input,
+    	}, {
+	    main_source_def: true,
+    	    label: "SNMP Interface",
+    	    regex_type: "text",
+    	    value: "if_index",
+	    value_url: "snmp_port_idx",
+    	    ui_type: ui_types.input,
+    	}],
+    },
+    {
+    	//todo_test
+    	id: "snmp_device",
+	id_group: "snmp",
+    	// disable_stats: true,
+    	regex_page_url: "lua\/pro\/enterprise\/snmp_device_details",
+    	label: "SNMP Top Interfaces",
+    	query: "snmp_device",
+    	source_def_array: [{
+    	    label: "Interface",
+    	    sources_function: () => { return [{ label: "", value: -1 }] },
+    	    value: "ifid", 
+    	    ui_type: ui_types.hide,
+    	}, {
+	    main_source_def: true,
+    	    label: "Device",
+    	    regex_type: "ip",
+    	    value: "device",
+	    value_url: "host",
+    	    ui_type: ui_types.input,
+    	}],
+    },
+    {
 	//todo_test
 	id: "pod",
 	regex_page_url: "lua\/pod_details",
@@ -369,6 +441,7 @@ const metricsConsts = function() {
 	ui_types,
 	sources_url_el_to_source,
 	sources_types,
+	sources_types_tables,
     };
 }();
 

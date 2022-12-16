@@ -293,7 +293,7 @@ print [[
   var frmpassreset = $('#form_password_reset');
   frmpassreset.submit(function () {
     if(!isValidPassword($("#new_password_input").val())) {
-      password_alert.error("Password contains invalid chars. Please use valid ISO8859-1 (latin1) letters and numbers."); return(false);
+      password_alert.error("]] print(i18n("invalid_password")) print[["); return(false);
     }
     if(isDefaultPassword($("#new_password_input").val())) {
       password_alert.error("Password is weak. Please choose a stronger password."); return(false);

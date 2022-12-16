@@ -302,13 +302,65 @@ function graph_utils.drawNewGraphs(source_value_object)
    if source_value_object == nil then
       source_value_object = {}
    end
+   local ifstats = interface.getStats()
    local json = require ("dkjson")
    local ifid = interface.getId()
    local enable_new_timeseries = ntop.getPref("ntopng.enable_new_timeseries")
    local recording_utils = require "recording_utils"
    local traffic_extraction_permitted = recording_utils.isActive(ifid) or recording_utils.isExtractionActive(ifid)
    local template_utils = require "template_utils"
-   template_utils.render("pages/components/historical_interface.template", { traffic_extraction_permitted = traffic_extraction_permitted, source_value_object = json.encode(source_value_object) })
+   local interface_ts_enabled = ntop.getCache("ntopng.prefs.interface_ndpi_timeseries_creation")
+   local interface_has_top_protocols = interface_ts_enabled == "both" or interface_ts_enabled == "per_protocol" or interface_ts_enabled ~= "0"
+   local interface_has_top_categories = interface_ts_enabled == "both" or interface_ts_enabled == "per_category"
+   local host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation")
+   local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
+   local host_has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~= "0"
+   local host_has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
+ 
+   local sources_types_enabled = {
+      interface = interface_ts_enabled,
+      host = host_ts_creation,
+      mac = ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1",
+      network = ntop.getPref("ntopng.prefs.asn_rrd_creation") == "1",
+      as = ntop.getPref("ntopng.prefs.asn_rrd_creation") == "1",
+      country = ntop.getPref("ntopng.prefs.country_rrd_creation") == "1",
+      os = ntop.getPref("ntopng.prefs.os_rrd_creation") == "1",
+      vlan = ntop.getPref("ntopng.prefs.vlan_rrd_creation") == "1",
+      pool = ntop.getPref("ntopng.prefs.host_pools_rrd_creation") == "1",
+      system = ntop.getPref("ntopng.prefs.system_probes_timeseries") == "1",
+      profile = ntop.isPro() and ifstats.profiles,
+      redis = ntop.getPref("ntopng.prefs.timeseries_driver") ~= "influxdb",
+      influx = ntop.getPref("ntopng.prefs.timeseries_driver") == "influxdb",
+      active_monitoring = ntop.getPref("ntopng.prefs.system_probes_timeseries") == "1",
+      pod = ifstats.has_seen_pods,
+      container = ifstats.has_seen_containers,
+      snmp_interface = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1",
+      snmp_device = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1",
+   }
+   
+   local sources_types_top_enabled = {
+      interface = {
+	 top_protocols = interface_has_top_protocols,
+	 top_categories = interface_has_top_categories,
+	 top_senders = ntop.getPref("ntopng.prefs.topk_heuristic_precision") ~= "disabled",
+	 top_receivers = ntop.getPref("ntopng.prefs.topk_heuristic_precision") ~= "disabled",
+      },
+      host = {
+	 top_protocols = host_has_top_protocols,
+      },
+      snmp = {
+	 top_snmp_ifaces = true,
+      },
+   }
+   
+   local context = {
+      traffic_extraction_permitted = traffic_extraction_permitted,
+      sources_types_enabled = json.encode(sources_types_enabled),
+      source_value_object = json.encode(source_value_object),
+      sources_types_top_enabled = json.encode(sources_types_top_enabled),
+   }
+   
+   template_utils.render("pages/components/historical_interface.template", context)
 end
 
 -- #################################################

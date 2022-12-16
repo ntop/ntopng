@@ -10,6 +10,7 @@ local json = require "dkjson"
 local discover = require "discover_utils"
 local rest_utils = require "rest_utils"
 
+local ifid = tonumber(_GET["ifid"]) or ""
 local os_filter = tonumber(_GET["operating_system"])
 local devtype_filter = tonumber(_GET["device_type"])
 local manuf_filter = _GET["manufacturer"]
@@ -28,7 +29,11 @@ end
 
 -- ################################################
 
-interface.select(ifname)
+if isEmptyString(ifid) then
+  ifid = ifname
+end
+
+interface.select(ifid)
 
 local res = {}
 

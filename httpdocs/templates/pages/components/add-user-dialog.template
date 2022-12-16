@@ -138,6 +138,11 @@
     }
   }
 
+  /* Reset modal on close */
+  $("#add_user_dialog").on('hidden.bs.modal', function() {
+    frmadduser[0].reset();
+  })
+
   $("#user_role").change(function() {
     if ($(this).val() == "unprivileged")
       $('#unprivileged_input').show();
@@ -175,7 +180,7 @@
 
   $(`#add_user_submit`).on('click', function () {
     if(!isValidPassword($("#password_input").val())) {
-      add_user_alert.error("Password contains invalid chars. Please use valid ISO8859-1 (latin1) letters and numbers.");
+      add_user_alert.error("{* i18n("invalid_password") *}");
       return(false);
     }
 

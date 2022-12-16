@@ -13,7 +13,8 @@
     "watch": "rollup -c -w",
     "build:ntopngjs": "rollup -c --prod",
     "build": "npm run css:lint && webpack --mode=production --config webpack.prod.js; rm -fr httpdocs/dist/*; mv httpdocs/tmp-dist/* httpdocs/dist;rollup -c --prod",
-    "build:dev": "npm run css:lint && webpack --mode=development --config webpack.prod.js; rm -fr httpdocs/dist/*; mv httpdocs/tmp-dist/* httpdocs/dist;rollup -c"
+    "build:dev": "npm run css:lint && webpack --mode=development --config webpack.prod.js; rm -fr httpdocs/dist/*; mv httpdocs/tmp-dist/* httpdocs/dist;rollup -c",
+    "detect_circular_link": "madge --circular --extensions js http_src httpdocs "
   },
   "repository": {
     "type": "git",
@@ -100,6 +101,7 @@
     "jquery.are-you-sure": "^1.9.0",
     "leaflet": "^1.6.0",
     "leaflet.markercluster": "^1.5.3",
+    "madge": "^5.0.1",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.34",
     "nvd3": "^1.8.6",
