@@ -225,13 +225,6 @@ local community_timeseries = {
   { schema = "influxdb:dropped_points",       id = timeseries_id.influxdb, label = i18n("system_stats.dropped_points"),           priority = 0, measure_unit = "number",scale = i18n('graphs.metric_labels.drops'), timeseries = { points           = { label = i18n('graphs.metric_labels.num_points'),     color = timeseries_info.get_timeseries_color('default') } } },
   { schema = "influxdb:rtt",                  id = timeseries_id.influxdb, label = i18n("graphs.num_ms_rtt"),                     priority = 0, measure_unit = "ms",    scale = 0, timeseries = { millis_rtt       = { label = i18n('graphs.num_ms_rtt'),     color = timeseries_info.get_timeseries_color('default') } } },
 
-  -- active_monitoring.lua (Active Monitoring): --
-  { schema = "snmp_if:traffic",           id = timeseries_id.snmp_interface,  label = "Traffic",                        priority = 2, measure_unit = "bps", scale = 0,    timeseries = { bytes_sent  = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = i18n('graphs.metric_labels.rcvd') } }, default_visible = true },
-  { schema = "snmp_dev:cpu_states",           id = timeseries_id.snmp_interface, label = i18n("about.cpu_load"),                   priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.load'), timeseries = { user_pct    = { label = i18n("snmp.cpuUser"),    color = timeseries_info.get_timeseries_color('default') },  system_pct = { label = i18n("snmp.cpuSystem"), color = timeseries_info.get_timeseries_color('default') },  idle_pct    = { label = i18n("snmp.cpuIdle"),    color = timeseries_info.get_timeseries_color('default') } } },
-  { schema = "snmp_dev:avail_memory",         id = timeseries_id.snmp_interface, label =i18n("snmp.memAvailReal"),                 priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.memory'), timeseries = { avail_bytes = { label = i18n("snmp.memAvailReal"),    color = timeseries_info.get_timeseries_color('default') } } },
-  { schema = "snmp_dev:swap_memory",          id = timeseries_id.snmp_interface, label =i18n("snmp.memTotalReal"),                 priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.memory'), timeseries = { swap_bytes  = { label = i18n("snmp.memTotalReal"),    color = timeseries_info.get_timeseries_color('default') } } },
-  { schema = "snmp_dev:total_memory",         id = timeseries_id.snmp_interface, label =i18n("snmp.memTotalSwap"),                 priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.memory'), timeseries = { total_bytes = { label = i18n("snmp.memTotalSwap"),    color = timeseries_info.get_timeseries_color('default') } } },
-  { schema = "top:snmp_if:traffic",           id = timeseries_id.snmp_device, label = "Top Traffic", type = "top",  draw_stacked = true,                     priority = 2, measure_unit = "bps", scale = 0,    timeseries = { bytes              = { label = i18n('graphs.metric_labels.traffic'), draw_type = "line",    color = timeseries_info.get_timeseries_color('devices') }}, default_visible = true},
 }
 
 -- #################################
@@ -553,7 +546,7 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
   if ntop.isPro() then
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
     local timeseries_info_ext = require "timeseries_info_ext"
-    local pro_timeseries = timeseries_info_ext.retrieve_pro_timeseries(prefix)
+    local pro_timeseries = timeseries_info_ext.retrieve_pro_timeseries(tags, prefix)
     timeseries_list = table.merge(community_timeseries, pro_timeseries)
   end
 
