@@ -100,6 +100,7 @@ function loadDatatable() {
     columnDefs: props.columns_config,
     columns: props.columns_config,
     autoWidth: false,
+    responsive: true,
     ajax: {
       method: 'get',
       url: props.data_url,
