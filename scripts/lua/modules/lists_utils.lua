@@ -484,6 +484,9 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
       if isIPv4(host) or isIPv4Network(host) then
          -- IPv4 address
          if((not list) or (list.format ~= "domain")) then
+	    local h = split(host, ":") -- Handle hosts with ports
+
+	    host = h[1]
             if((host == "0.0.0.0") or (host == "0.0.0.0/0") or (host == "255.255.255.255")) then
                loadWarning(string.format("Bad IPv4 address '%s' in list '%s'", host, list.name))
             else
