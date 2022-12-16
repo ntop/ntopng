@@ -64,4 +64,6 @@ Each individual menu bar entry will be discussed below.
     settings
     developer
     help_menu
+    health
+    notifications
     other_components

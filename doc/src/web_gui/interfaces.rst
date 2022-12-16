@@ -17,6 +17,9 @@ The dropdown menu is only used to switch between selected interfaces, it is also
 interface traffic statistics. Interface traffic statistics can be accessed by clicking on the currently selected
 interface.
 
+.. note::
+  See the available Network Interfaces types `here`_
+
 .. figure:: ../img/web_gui_interfaces_home.png
   :align: center
   :alt: Interface Home
@@ -27,6 +30,7 @@ A contextual menu with multiple options and badges appear right below the top to
 entries are discussed below.
 
 .. _`System Interface`: ../basic_concepts/system_interface.html
+.. _`here`: ../interfaces/index.html
 
 Home
 ----
