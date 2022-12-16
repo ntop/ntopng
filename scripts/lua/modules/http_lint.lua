@@ -502,6 +502,16 @@ local function validateAlertType(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateAlertFamily(family)
+   local modes = { "active_monitoring", "flow", "host", "interface", "mac" , "network" , "snmp" , "system" , "user" }
+
+   if validateAlertTypeNumber(family) then
+      return true
+   end
+
+   return validateChoice(modes, family)
+end
+
 local function validateAlertTypeSeverity(mode)
    local modes = {"group_none", "notice_or_lower", "warning", "error", "critical", "emergency"}
 
@@ -1462,7 +1472,7 @@ local known_parameters = {
    ["approx_search"]           = validateBool,
    ["group_by_clause"]         = validateUnquoted,
    ["order_by_clause"]         = validateUnquoted,
-   
+   ["alert_family"]            = validateAlertFamily,           -- Alert family validation
    ["where_clause"]            = { whereCleanup, validateUnquoted },
    ["where_clause_unck"]       = { whereCleanup, validateUnchecked },
    ["begin_time_clause"]       = validateUnquoted,

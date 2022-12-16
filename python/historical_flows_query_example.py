@@ -26,6 +26,7 @@ enable_debug = False
 epoch_end    = int(time.time())
 epoch_begin  = epoch_end - 3600
 maxhits      = 10
+host_ip      = "192.168.1.1"
 
 ##########
 
@@ -122,6 +123,9 @@ except ValueError as e:
 try:
     my_historical = Historical(my_ntopng)
 
+    if(True):
+        my_historical.self_test(iface_id, host_ip)
+        
     print("\n\n==========================\nTop X Remote Hosts Traffic")
     top_x_remote_ipv4_hosts(my_historical, epoch_begin, epoch_end, maxhits)
     print("\n\n==========================\nTop X Remote Host/Ports Traffic")
