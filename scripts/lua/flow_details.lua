@@ -1209,6 +1209,13 @@ else
       print("<td>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.client) .. "</td>")
       print("<td>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.server) .. "</td>")
       print("</tr>\n")
+
+      if(flow.entropy.icmp ~= nil) then
+	 print("<tr><th width=30%>" .. i18n("flow_details.icmp_entropy") .. "</th>")
+	 print("<td>"..i18n("flow_details.icmp_entropy_min_max")..": ".. string.format("%.3f", flow.entropy.icmp.min) .. " - " .. string.format("%.3f", flow.entropy.icmp.max) .."</td>")
+	 print("<td>"..i18n("flow_details.icmp_entropy_diff")..": ".. string.format("%.3f", flow.entropy.icmp.max - flow.entropy.icmp.min) .. "</td>")
+	 print("</tr>\n")
+      end
    end
 
    if((flow.community_id ~= nil) and (flow.community_id ~= "")) then
@@ -1543,7 +1550,7 @@ else
          payload = string.reverse(string.sub(payload, idx))
       end         
 
-      print("<tr><th width=30%>Payload</th><td colspan=2 style='white-space: pre-wrap; word-break: keep-all; font-family: \"courier new\", courier, monospace;font-size: 13px;'>" .. payload .. "</td></tr>\n")
+      print("<tr><th width=30%>Payload</th><td colspan=2 style='max-width: 200px; white-space: pre-wrap; word-break: keep-all; font-family: \"courier new\", courier, monospace;font-size: 13px;'>" .. payload .. "</td></tr>\n")
    end
 
 

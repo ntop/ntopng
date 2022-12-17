@@ -62,7 +62,7 @@ if(stats ~= nil) then
 
 	    print('<tr><td><a href="'..ntop.getHttpPrefix()..'/lua/flows_stats.lua?icmp_type='..
 		     icmp_type..'&icmp_cod='..icmp_value..'&version='.. ternary(is_v4, "4", "6") ..'">'..
-		     icmp_utils.get_icmp_label(ternary(is_v4, 4, 6), icmp_type, icmp_value)..'</a>')
+		     icmp_utils.get_icmp_label(icmp_type, icmp_value)..'</a>')
 
 	    print(string.format("<td>%u</td>", icmp_type))
 	    print(string.format("<td>%u</td>", icmp_value))

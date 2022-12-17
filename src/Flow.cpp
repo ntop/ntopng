@@ -216,12 +216,12 @@ Flow::Flow(NetworkInterface *_iface,
   if(iface->isPacketInterface() && !iface->isSampledTraffic()) {
     cli2srvPktTime = new (std::nothrow) InterarrivalStats();
     srv2cliPktTime = new (std::nothrow) InterarrivalStats();
-    entropy.c2s = ndpi_alloc_data_analysis(256);
-    entropy.s2c = ndpi_alloc_data_analysis(256);
+    initial_bytes_entropy.c2s = ndpi_alloc_data_analysis(256);
+    initial_bytes_entropy.s2c = ndpi_alloc_data_analysis(256);
   } else {
     cli2srvPktTime = NULL;
     srv2cliPktTime = NULL;
-    entropy.c2s = entropy.s2c = NULL;
+    initial_bytes_entropy.c2s = initial_bytes_entropy.s2c = NULL;
   }
 
 #ifdef NTOPNG_PRO
@@ -376,8 +376,8 @@ Flow::~Flow() {
   if(cli2srvPktTime) delete cli2srvPktTime;
   if(srv2cliPktTime) delete srv2cliPktTime;
 
-  if(entropy.c2s) ndpi_free_data_analysis(entropy.c2s, 1);
-  if(entropy.s2c) ndpi_free_data_analysis(entropy.s2c, 1);
+  if(initial_bytes_entropy.c2s) ndpi_free_data_analysis(initial_bytes_entropy.c2s, 1);
+  if(initial_bytes_entropy.s2c) ndpi_free_data_analysis(initial_bytes_entropy.s2c, 1);
 
   if(flow_payload)                   free(flow_payload);
 
@@ -964,6 +964,7 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
       ntop->incBlacklisHits(std::string(get_custom_category_file()));
     }
   }
+
 }
 
 /* *************************************** */
@@ -4100,6 +4101,38 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   if((l4_proto == IPPROTO_TCP) && (tcp_flags & (TH_SYN|TH_FIN|TH_RST)))
     update_iat = false;
 
+  if((protocol == IPPROTO_ICMP)
+     && cli2srv_direction
+     && (payload != NULL)
+     && (payload_len > 0)) {
+    /* 
+       We compute cli->srv entropy to see how much
+       packets are different and see if they are 
+       repetitions or not
+    */
+    struct ndpi_analyze_struct e;
+    float res;
+    
+    ndpi_init_data_analysis(&e, 256);
+    updateEntropy(&e, payload, payload_len);
+    res = ndpi_data_entropy(&e);
+
+    if(protos.icmp.client_to_server.min_entropy == 0)
+      protos.icmp.client_to_server.min_entropy = protos.icmp.client_to_server.max_entropy = res;
+    else {
+      if(protos.icmp.client_to_server.min_entropy > res)
+	protos.icmp.client_to_server.min_entropy = res;
+      else if(protos.icmp.client_to_server.max_entropy < res)
+	protos.icmp.client_to_server.max_entropy = res;
+    }
+
+#ifdef DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Entropy %.23f - %.23f",
+				 protos.icmp.client_to_server.min_entropy,
+				 protos.icmp.client_to_server.max_entropy);
+#endif
+  }
+  
   updatePacketStats(cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats(), when, update_iat);
 
   stats.incStats(cli2srv_direction, 1, pkt_len, payload_len);
@@ -4123,10 +4156,10 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   if(payload_len > 0) {
     if(cli2srv_direction) {
       if(get_bytes_cli2srv() < MAX_ENTROPY_BYTES)
-	updateEntropy(entropy.c2s, payload, payload_len);
+	updateEntropy(initial_bytes_entropy.c2s, payload, payload_len);
     } else {
       if(get_bytes_srv2cli() < MAX_ENTROPY_BYTES)
-	updateEntropy(entropy.s2c, payload, payload_len);
+	updateEntropy(initial_bytes_entropy.s2c, payload, payload_len);
     }
 
     if(applLatencyMsec == 0) {
@@ -6784,12 +6817,22 @@ void Flow::updateEntropy(struct ndpi_analyze_struct *e,
 /* *************************************** */
 
 void Flow::lua_entropy(lua_State* vm) {
-  if(entropy.c2s && entropy.s2c) {
+  if(initial_bytes_entropy.c2s && initial_bytes_entropy.s2c) {
     lua_newtable(vm);
 
     lua_push_float_table_entry(vm,  "client", getEntropy(true));
     lua_push_float_table_entry(vm,  "server", getEntropy(false));
 
+    if(protos.icmp.client_to_server.min_entropy != 0) {
+      lua_newtable(vm);
+      lua_push_float_table_entry(vm,  "min", protos.icmp.client_to_server.min_entropy);
+      lua_push_float_table_entry(vm,  "max", protos.icmp.client_to_server.max_entropy);
+      
+      lua_pushstring(vm, "icmp");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);	
+    }
+      
     lua_pushstring(vm, "entropy");
     lua_insert(vm, -2);
     lua_settable(vm, -3);

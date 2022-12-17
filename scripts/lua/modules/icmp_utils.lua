@@ -40,13 +40,15 @@ end
 
 -- #######################
 
-function icmp_utils.get_icmp_type(icmp_type)
+function icmp_utils.get_icmp_type(icmp_type, omit_number)
   local icmp_type_string = i18n("icmp_info.type." .. tostring(icmp_type) .. ".info") or ""
 
   if isEmptyString(icmp_type_string) then
     icmp_type_string = tostring(icmp_type)
   else
-    icmp_type_string = string.format("%s (%u)", icmp_type_string, icmp_type)
+     if(omit_number ~= true) then
+	icmp_type_string = string.format("%s (%u)", icmp_type_string, icmp_type)
+     end
   end
 
   return icmp_type_string 
@@ -80,13 +82,13 @@ end
 
 -- #######################
 
-function icmp_utils.get_icmp_label(ip_version, icmp_type, icmp_code)
+function icmp_utils.get_icmp_label(icmp_type, icmp_code)
   if not icmp_locale_loaded then
     load_icmp_locale()
   end
 
   -- local type_label = icmp_utils.get_icmp_type_label(icmp_type)
-  -- local code_label = icmp_utils.get_icmp_code_label(icmp_type, icmp_code)
+  --local code_label = icmp_utils.get_icmp_code_label(icmp_type, icmp_code)
   -- return string.format("%s, %s", type_label, code_label)
 
   return(icmp_utils.get_icmp_type(icmp_type))
