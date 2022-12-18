@@ -355,8 +355,15 @@ end
 
    local info = value["info"]
 
-   if((info == "") and (value.icmp ~= nil)) then
+   if((info == "") and (value.icmp.entropy ~= nil)) then
+      local e = value.icmp.entropy
+      local diff = e.max - e.min
+      
       info = icmp_utils.get_icmp_type(value.icmp.type, true)
+
+      if(icmp_utils.is_suspicious_entropy(e.min, e.max)) then
+	 info = info .. " <span class=\"badge bg-warning\">".. i18n("suspicious_payload") .."</span>"
+      end
    end
    
    if isScoreEnabled() then

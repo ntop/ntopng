@@ -464,6 +464,7 @@ local lang = {
   ["similarity"] = "Similarity",
   ["span_with_title"] = "<A HREF='%{url}'>%{shorten_name}</A",
   ["speed"] = "Speed",
+  ["suspicious_payload"] = "Suspicious Payload",
   ["srv_port"] = "Srv Port",
   ["ssh"] = "SSH",
   ["ssid"] = "SSID",

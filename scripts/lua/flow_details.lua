@@ -28,6 +28,7 @@ local discover = require("discover_utils")
 local http_utils = require("http_utils")
 local json = require ("dkjson")
 local page_utils = require("page_utils")
+local icmp_utils = require("icmp_utils")
 
 if ntop.isPro() then
   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -1212,9 +1213,14 @@ else
 
       if(flow.entropy.icmp ~= nil) then
 	 print("<tr><th width=30%>" .. i18n("flow_details.icmp_entropy") .. "</th>")
-	 print("<td>"..i18n("flow_details.icmp_entropy_min_max")..": ".. string.format("%.3f", flow.entropy.icmp.min) .. " - " .. string.format("%.3f", flow.entropy.icmp.max) .."</td>")
-	 print("<td>"..i18n("flow_details.icmp_entropy_diff")..": ".. string.format("%.3f", flow.entropy.icmp.max - flow.entropy.icmp.min) .. "</td>")
-	 print("</tr>\n")
+	 print("<td colspan=2>"..i18n("flow_details.icmp_entropy_min_max")..": ".. string.format("%.3f", flow.entropy.icmp.min) .. " - " .. string.format("%.3f", flow.entropy.icmp.max) .." [")
+	 print(i18n("flow_details.icmp_entropy_diff")..": ".. string.format("%.3f", flow.entropy.icmp.max - flow.entropy.icmp.min) .. "]")
+
+	 if(icmp_utils.is_suspicious_entropy(flow.entropy.icmp.min, flow.entropy.icmp.max)) then
+	    print(" <span class=\"badge bg-warning\">".. i18n("suspicious_payload") .."</span>")
+	 end
+	 
+	 print("</td></tr>\n")
       end
    end
 
