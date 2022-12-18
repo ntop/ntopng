@@ -928,7 +928,7 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
 	  cli_host->setCrawlerBotScannerHost();
       }
 
-      setRisk(ndpiFlow->risk);
+      addRisk(ndpiFlow->risk);
     }
 
     updateProtocol(proto_id);
@@ -4112,6 +4112,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
     update_iat = false;
 
   if((protocol == IPPROTO_ICMP)
+     && ((protos.icmp.cli2srv.icmp_type == 0) || (protos.icmp.cli2srv.icmp_type == 8)) /* Echo Request or Reply */
      && cli2srv_direction
      && (payload != NULL)
      && (payload_len > 0)) {
@@ -4136,6 +4137,15 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 	protos.icmp.client_to_server.max_entropy = res;
     }
 
+    /* See icmp_utils.is_suspicious_entropy() */
+    if((protos.icmp.client_to_server.min_entropy < 5)
+       || (protos.icmp.client_to_server.max_entropy > 6)
+       || ((protos.icmp.client_to_server.max_entropy-protos.icmp.client_to_server.min_entropy) > 0.3)) {
+      ndpi_risk r = (ndpi_risk)2 << (NDPI_SUSPICIOUS_ENTROPY-1);
+      
+      addRisk(r);
+    }
+    
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Entropy %.23f - %.23f",
 				 protos.icmp.client_to_server.min_entropy,

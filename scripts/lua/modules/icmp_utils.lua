@@ -98,10 +98,13 @@ if(trace_script_duration ~= nil) then
   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
 end
 
+-- #######################
+
+-- See Flow::incStats()
 function icmp_utils.is_suspicious_entropy(e_min, e_max)
    local diff = e_max - e_min
    
-   if((e_min < 5) or (e_max >= 6) or (diff > 0.2)) then
+   if((e_min < 5) or (e_max >= 6) or (diff > 0.3)) then
       return true
    else
       return false
