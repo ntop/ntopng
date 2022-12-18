@@ -342,7 +342,7 @@ page_utils.print_navbar(title, url,
 				 label = "<i class=\"fas fa-lg fa-user-md\"></i>",
 			      },
 			      {
-				 hidden = true, -- not ntop.isEnterprise(),
+				 hidden = not ntop.isEnterprise(),
 				 active = page == "host_rules",
 				 page_name = "host_rules",
 				 label = '<i class="fas fa-pencil-ruler" title='..i18n("if_stats_config.host_rules")..'></i>',
