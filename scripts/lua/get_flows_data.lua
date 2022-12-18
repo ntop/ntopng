@@ -81,8 +81,16 @@ for key, value in ipairs(flows_stats) do
       info = flows_info["info"]
       italic = false   
    elseif(not isEmptyString(flows_info["icmp"])) then
-      local icmp = flows_info["icmp"]
-      info = icmp_utils.get_icmp_label(icmp["type"], icmp["code"])
+      flows_info["info"] = icmp_utils.get_icmp_type(value.icmp.type, true)
+      
+      if(value.icmp.entropy ~= nil) then
+	 local e = value.icmp.entropy
+	 local diff = e.max - e.min
+	 	 
+	 if(icmp_utils.is_suspicious_entropy(e.min, e.max)) then
+	    flows_info["info"] = flows_info["info"] .. " <span class=\"badge bg-warning\">".. i18n("suspicious_payload") .."</span>"
+	 end
+      end  
    elseif(flows_info["proto.ndpi"] == "SIP") then
       info = getSIPInfo(flows_info)
    elseif(starts(flows_info["proto.ndpi"], "RTP")) then
@@ -355,17 +363,6 @@ end
 
    local info = value["info"]
 
-   if((info == "") and (value.icmp.entropy ~= nil)) then
-      local e = value.icmp.entropy
-      local diff = e.max - e.min
-      
-      info = icmp_utils.get_icmp_type(value.icmp.type, true)
-
-      if(icmp_utils.is_suspicious_entropy(e.min, e.max)) then
-	 info = info .. " <span class=\"badge bg-warning\">".. i18n("suspicious_payload") .."</span>"
-      end
-   end
-   
    if isScoreEnabled() then
       record["column_score"] = format_utils.formatValue(value.score.flow_score)
    end

@@ -43,6 +43,7 @@ end
 function icmp_utils.get_icmp_type(icmp_type, omit_number)
   local icmp_type_string = i18n("icmp_info.type." .. tostring(icmp_type) .. ".info") or ""
 
+
   if isEmptyString(icmp_type_string) then
     icmp_type_string = tostring(icmp_type)
   else
