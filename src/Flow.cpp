@@ -747,6 +747,11 @@ void Flow::processExtraDissectedInformation() {
 
 		if(addr->equal(ipv4_addr))
 		  srv_host->setResolvedName((char*)ndpiFlow->protos.dns.ptr_domain_name);
+		else {
+		  /* This is not the right IPv4 host: let's cache it for later */
+		  
+		  ntop->getRedis()->setResolvedAddress(buf, (char*)ndpiFlow->protos.dns.ptr_domain_name);
+		}
 	      }
 	    } else if(strcmp(&ndpiFlow->host_server_name[len-9], ".ip6.arpa") == 0) {
 	      /* 1.0.0.4.0.6.3.0.0.0.0.0.0.0.0.0.0.d.0.0.2.0.0.0.0.c.0.b.3.0.a.2.ip6.arpa */
@@ -772,6 +777,13 @@ void Flow::processExtraDissectedInformation() {
 
 	      if(addr->equal(&ipv6_addr))
 		srv_host->setResolvedName((char*)ndpiFlow->protos.dns.ptr_domain_name);
+	      else {
+		char buf[64];
+
+		/* This is not the right IPv6 host: let's cache it for later */
+		ntop->getRedis()->setResolvedAddress(Utils::intoaV6(ipv6_addr, 128, buf, sizeof(buf)),
+						     (char*)ndpiFlow->protos.dns.ptr_domain_name);
+	      }
 	    }
 	  }
 	}
