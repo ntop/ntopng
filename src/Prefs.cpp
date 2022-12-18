@@ -145,7 +145,7 @@ Prefs::Prefs(Ntop *_ntop) {
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
   kafka_brokers_list = kafka_topic = kafka_options = NULL;
 #endif
-  
+
 #ifdef NTOPNG_PRO
   print_maintenance = print_license = false;
 #endif
@@ -260,9 +260,14 @@ Prefs::~Prefs() {
 
 /* C-binding needed by Win32 service call */
 void nDPIusage() {
-  printf("\nnDPI detected protocols:\n");
-
+  NDPI_PROTOCOL_BITMASK all;
   struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module(ndpi_no_prefs);
+
+  // enable all protocols
+  NDPI_BITMASK_SET_ALL(all);
+  ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
+
+  printf("\nnDPI detected protocols:\n");
   ndpi_dump_protocols(ndpi_struct);
 
   exit(0);
@@ -469,7 +474,7 @@ void usage() {
 	 "                                    |   for kafka configuration options.\n"
 	 "                                    |\n"
 #endif
-	 
+
 #ifdef HAVE_MYSQL
 	 "                                    | mysql         Dump in MySQL database\n"
 	 "                                    |   Format:\n"
@@ -1165,29 +1170,29 @@ int Prefs::setOption(int optkey, char *optarg) {
 #ifndef HAVE_NEDGE
   case 'n':
     dns_mode = atoi(optarg);
-    
+
     switch(dns_mode) {
     case 0:
       break;
-      
+
     case 1:
       resolve_all_hosts();
       break;
-      
+
     case 2:
       disable_dns_resolution();
       break;
-      
+
     case 3:
       disable_dns_resolution();
       disable_dns_responses_decoding();
       disable_all_name_decoding();
       break;
-      
+
     case 4:
       disable_localhost_name_decoding();
       break;
-      
+
     default:
       usage();
     }
@@ -1486,11 +1491,11 @@ int Prefs::setOption(int optkey, char *optarg) {
 		kafka_options = options ? strdup(options) : NULL;
 	      }
 	    }
-	    
+
 	    if((kafka_brokers_list == NULL) || (kafka_topic == NULL)) {
 	      /* Out of memory */
 	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	      
+
 	      if(kafka_brokers_list) { free(kafka_brokers_list); kafka_brokers_list = NULL; }
 	      if(kafka_topic)        { free(kafka_topic); kafka_topic = NULL;               }
 	    }
@@ -1498,7 +1503,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to parse kafka topic: skipping -F");
 	} else
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to parse brokers list: skipping -F");
-	
+
 	free(conf);
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding -F: unable to parse kafka options");
@@ -1683,7 +1688,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     create_labels_logfile = true;
     break;
 #endif
-    
+
   case 203:
     zmq_publish_events_url = strdup(optarg);
     break;
@@ -2213,11 +2218,11 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
   lua_push_bool_table_entry(vm, "is_arp_matrix_generation_enabled", is_arp_matrix_generation_enabled());
   lua_push_bool_table_entry(vm, "is_users_login_enabled", enable_users_login);
-  
+
   lua_push_uint64_table_entry(vm, "dump_frequency",   dump_frequency);
   lua_push_uint64_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
   lua_push_uint64_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
-  
+
   lua_push_uint64_table_entry(vm, "max_extracted_pcap_bytes", max_extracted_pcap_bytes);
 
   lua_push_uint64_table_entry(vm, "ewma_alpha_percent", ewma_alpha_percent);
