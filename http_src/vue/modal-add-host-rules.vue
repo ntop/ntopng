@@ -49,9 +49,9 @@
             :options="metric_type_list">
           </SelectSearch>  
         </div>
-        <div class="col-3">
+        <div class="col-3" :class="[ metric_type.id == 'throughput' ? 'p-0' : '']" >
           <div class="btn-group float-end btn-group-toggle" data-bs-toggle="buttons">
-          <template v-if="metric_type.id == 'throughput'" v-for="measure in throughput_threshold_list" >
+            <template v-if="metric_type.id == 'throughput'" v-for="measure in throughput_threshold_list" >
               <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_measure" name="threshold_measure">
               <label class="btn " :id="measure.id" @click="set_active_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
             </template> 
@@ -200,7 +200,7 @@ const add_ = () => {
     volume_threshold_list.forEach((measure) => { if(measure.active) basic_value = measure.value; })
     tmp_threshold = basic_value * parseInt(threshold.value.value);
   }
-  
+
   emit('add', { 
     host: tmp_host, 
     frequency: tmp_frequency, 
