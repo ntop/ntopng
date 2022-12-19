@@ -342,12 +342,6 @@ page_utils.print_navbar(title, url,
 				 label = "<i class=\"fas fa-lg fa-user-md\"></i>",
 			      },
 			      {
-				 hidden = not ntop.isEnterprise(),
-				 active = page == "host_rules",
-				 page_name = "host_rules",
-				 label = '<i class="fas fa-pencil-ruler" title='..i18n("if_stats_config.host_rules")..'></i>',
-			      },
-			      {
 				 hidden = not has_traffic_recording_page,
 				 active = page == "traffic_recording",
 				 page_name = "traffic_recording",
@@ -1533,11 +1527,6 @@ print [[
 
    </script>
 ]]
-elseif(page == "host_rules") then
-  template.render("pages/interface/host_rules.template", { 
-    ifid = tonumber(ifstats.id),
-  })
-
 elseif(page == "traffic_recording" and has_traffic_recording_page) then
    local master_ifid = interface.getMasterInterfaceId()
 

@@ -296,6 +296,15 @@ else
             {
                entry = page_utils.menu_entries.http_servers,
                url = '/lua/http_servers_stats.lua',
+            },
+            {
+              hidden = not ntop.isEnterprise() or not isAdministrator(),
+              entry = page_utils.menu_entries.divider,
+            },
+            {
+              hidden = not ntop.isEnterprise() or not isAdministrator(),
+              entry = page_utils.menu_entries.host_rules,
+              url = '/lua/pro/host_rules.lua',
             }
          },
       }
