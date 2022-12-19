@@ -23,15 +23,27 @@
 
 /* **************************************************** */
 
-HostAlert::HostAlert(HostCheck *c, Host *h, risk_percentage _cli_pctg) {
+void HostAlert::init(HostCheckID _check_id, std::string _check_name, Host *h, risk_percentage _cli_pctg) {
   host = h;
   expiring = released = false;
-  check_id = c->getID();
-  check_name = c->getName();
+  check_id = _check_id;
+  check_name = _check_name;
   engage_time = time(NULL);
   release_time = 0;
   cli_pctg = _cli_pctg;
   is_attacker = is_victim = false;
+}
+
+/* **************************************************** */
+
+HostAlert::HostAlert(HostCheckID _check_id, std::string _check_name, Host *h, risk_percentage _cli_pctg) {
+  init(_check_id, _check_name, h, _cli_pctg);
+}
+
+/* **************************************************** */
+
+HostAlert::HostAlert(HostCheck *c, Host *h, risk_percentage _cli_pctg) {
+  init(c->getID(), c->getName(), h, _cli_pctg);
 }
 
 /* **************************************************** */
