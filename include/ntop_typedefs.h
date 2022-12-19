@@ -545,13 +545,14 @@ typedef enum {
   host_alert_countries_contacts          = 16,
   host_alert_score_threshold             = 17,
   host_alert_icmp_flood                  = 18,
-  host_alert_pkt_threshold		           = 19,
+  host_alert_pkt_threshold               = 19,
   host_alert_scan_detected               = 20,
   host_alert_fin_scan                    = 21,
   host_alert_dns_flood                   = 22,
   host_alert_snmp_flood                  = 23,
   host_alert_custom_lua_script           = 24,
   host_alert_rst_scan                    = 25,
+  host_alert_traffic_volume              = 26,
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */
   MAX_HOST_ALERT_TYPE = 32 /* Constrained by HostAlertBitmap */
@@ -595,6 +596,7 @@ typedef enum {
   host_check_snmp_flood,
   host_check_custom_lua_script,
   host_check_rst_scan,
+  host_check_traffic_volume, /* Dummy check (see ntop_interface_update_ip_reassignment) */
   
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */
 } HostCheckID;

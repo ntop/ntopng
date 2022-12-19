@@ -42,13 +42,13 @@
 #include "host_alerts/DNSFloodAlert.h"
 #include "host_alerts/SNMPFloodAlert.h"
 #include "host_alerts/PktThresholdAlert.h"
-
 #include "host_alerts/FlowAnomalyAlert.h"
 #include "host_alerts/DangerousHostAlert.h"
 #include "host_alerts/RemoteConnectionAlert.h"
 #include "host_alerts/ScoreAnomalyAlert.h"
 #include "host_alerts/DomainNamesContactsAlert.h"
 #include "host_alerts/ScanDetectionAlert.h"
+#include "host_alerts/TrafficVolumeAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
 
