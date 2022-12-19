@@ -62,6 +62,10 @@ function getSerieName(name, id, tsGroup, extendSeriesName) {
     if (name == null) {
 	name = id;
     }
+    let name_more_space = "";
+    if (name != null) {
+	name_more_space = `${name} `;
+    }
     if (extendSeriesName == false) {
 	return name;
     }
@@ -69,7 +73,7 @@ function getSerieName(name, id, tsGroup, extendSeriesName) {
     let source = tsGroup.source_array[source_index];
     let prefix = `${source.label}`;
     let yaxisName = getYaxisName(tsGroup.metric.measure_unit, tsGroup.metric.scale);
-    return `${prefix} ${name} (${yaxisName})`;
+    return `${prefix} ${name_more_space}(${yaxisName})`;
 }
 
 function getAddSeriesNameSource(tsGrpupsArray) {

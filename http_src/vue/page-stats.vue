@@ -654,7 +654,7 @@ function show_modal_traffic_extraction() {
 function show_modal_download_file() {
     if (!ts_charts_options?.length) { return; } 
     let ts_group = last_timeseries_groups_loaded[0];
-    let filename = timeseriesUtils.getSerieName("", null, ts_group);
+    let filename = timeseriesUtils.getSerieName(null, null, ts_group);
     modal_download_file.value.show(filename);
 }
 

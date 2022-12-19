@@ -32,7 +32,7 @@ const modal_id = ref(null);
 const filename = ref("");
 
 //const filename_validation = `[\`~!@#$%^&*_|+-=?;:'",.<>{}[]\\/]`;
-const filename_validation = `^[^\`~!@#$%^&*_|+-=?;:'",.<>\/\{\}\(\)\\[\\]\\s]+$`;
+const filename_validation = `^[^\`~!@#$%^&*|+-=?;:'",.<>\/\{\}\(\)\\[\\]\\s]+$`;
 
 const enable_download = computed(() => {
     let rg_text = filename_validation;
@@ -50,7 +50,8 @@ const emit = defineEmits(["download"]);
 
 const show = (name) => {
     if (name == null) { name = ""; }
-    name = name.replaceAll(/[`~!@#$%^&*_|+-=?;:'",.<>\s\/\{\}\[\]\(\)]/g, "");
+    name = name.replaceAll(/[-=?;:\s]/g, "_");
+    name = name.replaceAll(/[`~!@#$%^&*|+-=?;:'",.<>\s\/\{\}\[\]\(\)]/g, "");
     filename.value = name;
     modal_id.value.show();
 };
