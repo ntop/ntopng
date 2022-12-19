@@ -486,7 +486,7 @@ function getFullVlanName(vlan_id, compact)
     alias = shortenString(alias)
     return string.format("%s", alias)
   else
-    return string.format("%s [%u]", alias, vlan_id)
+    return string.format("%u [%s]", vlan_id, alias)
   end
     end
   end

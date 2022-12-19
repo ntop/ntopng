@@ -863,8 +863,8 @@ function flow_alert_store:format_record(value, no_html)
    local vlan 
    if value["vlan_id"] and tonumber(value["vlan_id"]) ~= 0 then
       vlan = {
-         label = value["vlan_id"],
-         title = value["vlan_id"],
+         label = getFullVlanName(value["vlan_id"], true --[[ Compact --]]),
+         title = getFullVlanName(value["vlan_id"], false --[[ non Compact --]]),
          value = tonumber(value["vlan_id"]),
       }
    end
