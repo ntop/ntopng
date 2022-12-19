@@ -6902,6 +6902,7 @@ char* Flow::getJSONRiskInfo() {
 
 /* *************************************** */
 
+/* The alert will be triggered by src/flow_checks/CustomFlowLuaScript.cpp */
 void Flow::triggerCustomFlowAlert(u_int8_t score, char *msg) {
   customFlowAlert.alertTriggered = true, customFlowAlert.score = score;
 

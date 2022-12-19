@@ -2459,6 +2459,8 @@ void Host::setBlacklistName(char *name) {
 
 /* *************************************** */
 
+/* The alert will be triggered by src/host_checks/CustomHostLuaScript.cpp */
+
 void Host::triggerCustomHostAlert(u_int8_t score, char *msg) {
   customHostAlert.alertTriggered = true, customHostAlert.score = score;
   
