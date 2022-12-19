@@ -585,21 +585,21 @@ function timeseries_info.get_host_rules_schema()
   local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
 
   local metric_list = {
-    { title = i18n('traffic'), group = i18n('generic_data'), label = i18n('traffic'), id = 'host:traffic' --[[ here the ID is the schema ]] },
-    { title = i18n('score'),  group = i18n('generic_data'), label = i18n('score'), id = 'host:score' --[[ here the ID is the schema ]] },
+    { title = i18n('traffic'), group = i18n('generic_data'), label = i18n('traffic'), id = 'host:traffic' --[[ here the ID is the schema ]], show_volume = true },
+    { title = i18n('score'),  group = i18n('generic_data'), label = i18n('score'), id = 'host:score' --[[ here the ID is the schema ]], show_volume = false },
   } 
 
   if has_top_protocols then
     local application_list = interface.getnDPIProtocols()
     for application, _ in pairsByKeys(application_list or {}, asc) do 
-      metric_list[#metric_list + 1] = { label = application, group = i18n('applications_long'), title = application, id = 'top:host:ndpi', extra_metric = 'protocol:' .. application --[[ here the schema is the ID ]] }
+      metric_list[#metric_list + 1] = { label = application, group = i18n('applications_long'), title = application, id = 'top:host:ndpi', extra_metric = 'protocol:' .. application --[[ here the schema is the ID ]], show_volume = true }
     end
   end
 
   if has_top_categories then
     local category_list = interface.getnDPICategories()
     for category, _ in pairsByKeys(category_list or {}, asc) do 
-      metric_list[#metric_list + 1] = { label = category, group = i18n('categories'), title = category, id = 'top:host:ndpi_categories', extra_metric = 'category:' .. category --[[ here the schema is the ID ]] }
+      metric_list[#metric_list + 1] = { label = category, group = i18n('categories'), title = category, id = 'top:host:ndpi_categories', extra_metric = 'category:' .. category --[[ here the schema is the ID ]], show_volume = true }
     end
   end
 

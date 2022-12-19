@@ -20,6 +20,7 @@
 	    </label>
       <div class="col-8">
         <SelectSearch v-model:selected_option="selected_metric"
+          @select_option="change_threshold()"
           :options="metric_list">
         </SelectSearch>
       </div>
@@ -33,7 +34,7 @@
       <div class="col-8">
         <SelectSearch v-model:selected_option="selected_frequency"
           :options="frequency_list">
-        </SelectSearch>
+			  </SelectSearch>
       </div>
     </div>
 
@@ -42,24 +43,26 @@
 	    <label class="col-form-label col-sm-4" >
         <b>{{_i18n("if_stats_config.threshold")}}</b>
 	    </label>
-      <div class="col-3">
-        <SelectSearch v-model:selected_option="metric_type"
-          :options="metric_type_list">
-        </SelectSearch>  
-      </div>
-      <div class="col-3">
-        <div class="btn-group float-end btn-group-toggle" data-bs-toggle="buttons">
-         <template v-if="metric_type.id == 'throughput'" v-for="measure in throughput_threshold_list" >
-            <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_measure" name="threshold_measure">
-            <label class="btn " :id="measure.id" @click="set_active_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
-          </template> 
-          <template v-else v-for="measure in volume_threshold_list" >
-            <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_measure" name="threshold_measure">
-            <label class="btn " :id="measure.id" @click="set_active_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
-          </template>
+      <template v-if="visible">
+        <div class="col-3">
+          <SelectSearch v-model:selected_option="metric_type"
+            :options="metric_type_list">
+          </SelectSearch>  
         </div>
-      </div>
-      <div class="col-2">
+        <div class="col-3">
+          <div class="btn-group float-end btn-group-toggle" data-bs-toggle="buttons">
+          <template v-if="metric_type.id == 'throughput'" v-for="measure in throughput_threshold_list" >
+              <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_measure" name="threshold_measure">
+              <label class="btn " :id="measure.id" @click="set_active_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
+            </template> 
+            <template v-else v-for="measure in volume_threshold_list" >
+              <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_measure" name="threshold_measure">
+              <label class="btn " :id="measure.id" @click="set_active_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
+            </template>
+          </div>
+        </div>
+      </template>
+      <div :class="[ visible ? 'col-2' : 'col-8']">
         <input value="1" ref="threshold" type="number" name="threshold" class="form-control" max="1023" min="1" required>
       </div>
     </div>
@@ -74,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onBeforeMount } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as NoteList } from "./note-list.vue";
@@ -95,6 +98,7 @@ const selected_metric = ref({})
 const selected_frequency = ref({})
 const disable_add = ref(true)
 const metric_type = ref({})
+const visible = ref(true)
 const note_list = [
   _i18n('if_stats_config.note_1'),
   _i18n('if_stats_config.note_2'),
@@ -134,6 +138,10 @@ const show = () => {
   modal_id.value.show();
 };
 
+const change_threshold = () => {
+  (selected_metric.value.show_volume == true) ? visible.value = true : visible.value = false
+}
+
 const check_empty_host = () => {
   let regex = new RegExp(regexValidation.get_data_pattern('ip'));
   disable_add.value = !(regex.test(host.value.value) || host.value.value === '*');
@@ -169,23 +177,30 @@ const set_active_radio = (selected_radio) => {
 }
 
 const add_ = () => {
+  debugger;
   const tmp_host = host.value.value;
-  const tmp_metric_type = metric_type.value.id;
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_metric.value.id;
-  const tmp_extra_metric = (selected_metric.value.extra_metric) ? selected_metric.value.extra_metric : null
+  let tmp_metric_type = metric_type.value.id;
+  let tmp_extra_metric = (selected_metric.value.extra_metric) ? selected_metric.value.extra_metric : null
   let basic_value;
   let tmp_threshold;
+  console.log(tmp_metric_type);
 
+  if(visible.value === false) {
+    tmp_metric_type = ''
+    tmp_extra_metric = ''
+    tmp_threshold = threshold.value.value;
+  }
   if(tmp_metric_type == 'throughput') {
     throughput_threshold_list.forEach((measure) => { if(measure.active) basic_value = measure.value; })
     tmp_threshold = basic_value * parseInt(threshold.value.value) / 8;
     /* The throughput is in bit, the volume in Bytes!! */
-  } else {
+  } else if(tmp_metric_type == 'volume') {
     volume_threshold_list.forEach((measure) => { if(measure.active) basic_value = measure.value; })
     tmp_threshold = basic_value * parseInt(threshold.value.value);
   }
-
+  
   emit('add', { 
     host: tmp_host, 
     frequency: tmp_frequency, 
@@ -208,6 +223,10 @@ const metricsLoaded = (_metric_list) => {
   selected_frequency.value = frequency_list.value[0];
   selected_metric.value = metric_list.value[0];
 }
+
+onBeforeMount(() => {
+  metric_type.value = metric_type_list[0]
+})
 
 defineExpose({ show, close, metricsLoaded });
 

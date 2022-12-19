@@ -169,8 +169,14 @@ const format_frequency = function(data) {
 
 const format_threshold = function(data, rowData) {
   let formatted_data = parseInt(data);
-  ((rowData.metric_type) && (rowData.metric_type == 'throughput')) ? formatted_data = NtopUtils.bitsToSize(data * 8) : formatted_data = NtopUtils.bytesToSize(data);
-
+  if((rowData.metric_type) && (rowData.metric_type == 'throughput')) {
+    formatted_data = NtopUtils.bitsToSize(data * 8)
+  } else if((rowData.metric_type) && (rowData.metric_type == 'volume')) {
+    formatted_data = NtopUtils.bytesToSize(data);
+  } else {
+    formatted_data = data
+  }
+  
   return formatted_data
 }
 
