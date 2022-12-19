@@ -586,6 +586,7 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
   end
 
   local host
+  local tooltip = ''
    if(cli_or_srv) then
       host = interface.getHostMinInfo(flow[cli_or_srv .. ".ip"], flow[cli_or_srv .. ".vlan"])
    else
@@ -597,9 +598,11 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
 
   if(host ~= nil) then
      host_name = host["name"]
+     tooltip = host["ip"]
 
      if isEmptyString(host_name) then
         host_name = host["ip"]
+        tooltip = ''
      end
   end
 
@@ -614,7 +617,7 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
      mac = host["mac"]
   end
   
-  return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), hyperlink_params, host_name, nil, true --[[ perform link existance checks --]]), mac
+  return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), hyperlink_params, host_name, tooltip, true --[[ perform link existance checks --]]), mac
 end
 
 local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
