@@ -336,6 +336,8 @@ function graph_utils.drawNewGraphs(source_value_object)
       container = ifstats.has_seen_containers,
       snmp_interface = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1",
       snmp_device = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1",
+      flow_device = false,
+      sflow_device = false,
    }
    
    local sources_types_top_enabled = {
