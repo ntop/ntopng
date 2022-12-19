@@ -137,13 +137,25 @@ const flow_addr = computed(() => {
     let alert = props.alert;
     res.cli_value = alert.flow.cli_ip.value;
     res.srv_value = alert.flow.srv_ip.value;
+    let cli_label = `${alert.flow.cli_ip.label || alert.flow.cli_ip.value}`
+    let srv_label = `${alert.flow.srv_ip.label || alert.flow.srv_ip.value}`
+
     if(alert.flow.vlan != null && alert.flow.vlan.value != null && alert.flow.vlan.value != 0) {
-        res.cli_value = res.cli_value + '@' + alert.flow.vlan.value
-        res.srv_value = res.srv_value + '@' + alert.flow.vlan.value
+      cli_label = `${cli_label}@${alert.flow.vlan.label}`
+      srv_label = `${srv_label}@${alert.flow.vlan.label}`
+      res.cli_value = res.cli_value + '@' + alert.flow.vlan.value
+      res.srv_value = res.srv_value + '@' + alert.flow.vlan.value
+    }
+
+    if(cli_label !== res.cli_value) {
+      cli_label = `${cli_label} (${res.cli_value})`
+    }
+    if(srv_label !== res.srv_value) {
+      srv_label = `${srv_label} (${res.srv_value})`
     }
     
-    res.cli_label = (alert.flow.cli_ip.label) ? `${alert.flow.cli_ip.label} (${res.cli_value})` : res.cli_value;
-    res.srv_label = (alert.flow.srv_ip.label) ? `${alert.flow.srv_ip.label} (${res.srv_value})` : res.srv_value;
+    res.cli_label = cli_label
+    res.srv_label = srv_label
     return res;
 });
 
