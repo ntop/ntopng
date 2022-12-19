@@ -331,7 +331,7 @@ const sources_types = [
 	id_group: "snmp",
     	// disable_stats: true,
     	regex_page_url: "lua\/pro\/enterprise\/snmp_device_details",
-    	label: "SNMP Top Interfaces",
+    	label: "SNMP Interfaces",
     	query: "snmp_device",
     	source_def_array: [{
     	    label: "Interface",
