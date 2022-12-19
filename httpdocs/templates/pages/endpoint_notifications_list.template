@@ -188,6 +188,7 @@
                 }
             },
             {
+              responsivePriority: 1,
                 targets: -1,
                 className: 'text-center',
                 data: null,
