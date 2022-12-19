@@ -10,7 +10,7 @@ local timeseries_info = require "timeseries_info"
 
 local rc = rest_utils.consts.success.ok
 local ifid = tostring(_GET["ifid"] or interface.getId())
-local query = _GET["query"]
+local query = _GET["query"] or ''
 local host = _GET["host"]
 local asn = _GET["asn"]
 local pool = _GET["pool"]
@@ -21,6 +21,10 @@ local res = {}
 
 if ifid then
   interface.select(ifid)
+end
+
+if isEmptyString(query) then
+  rest_utils.answer(rest_utils.consts.err.invalid_args)
 end
 
 local tags = {

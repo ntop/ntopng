@@ -6434,6 +6434,141 @@
 				}
 			}
 		},
+		"/lua/rest/v2/get/timeseries/type/consts.lua": {
+			"get": {
+				"tags": [
+					"Timeseries"
+				],
+				"summary": "Get available timeseries",
+				"description": "Get all the available timeseries given a tag",
+				"operationId": "get_timeseries_ts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }, {
+            "name": "query",
+            "in": "query",
+            "description": "Tag used to retrieve the timeseries; currently available: iface, host, mac, subnet, asn, country, os, vlan, host_pool, pod, container, ht, system, profile, redis, influxdb, am, snmp_interface, snmp_device, obs_point, sflowdev_port, flowdev, flowdev_port",
+            "required": true,
+            "type": "string"
+          }, {
+            "name": "host",
+            "in": "query",
+            "description": "Host IP@VLAN, REQUIRED in case of timeseries regarding Host, SNMP or Flow devices",
+            "required": false,
+            "type": "string"
+          }, {
+            "name": "asn",
+            "in": "query",
+            "description": "ASN identifier, REQUIRED in case of timeseries regarding Autonomous Systems",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }, {
+            "name": "pool",
+            "in": "query",
+            "description": "Host Pool identifier, REQUIRED in case of timeseries regarding Host Pools",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }, {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN identifier, REQUIRED in case of timeseries regarding VLANs",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }, {
+            "name": "mac",
+            "in": "query",
+            "description": "MAC address, REQUIRED in case of timeseries regarding MACs",
+            "required": false,
+            "type": "string"
+          }
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/timeseries/ts_multi.lua": {
+			"get": {
+				"tags": [
+					"Timeseries"
+				],
+				"summary": "Return timeseries",
+				"description": "Return the requested timeseries in the requested timeframe",
+				"operationId": "get_timeseries_ts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of timeseries points",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "ts_requests",
+            "in": "query",
+            "description": "An array of timeseries to be returned, containing ts_query, a string composed by the interface id (ifid:1) and an additional parameter, representing the host, asn, ecc. (e.g. [{ts_query: 'ifid:1,asn:199524', ts_schema: 'asn:traffic', tskey: '199524'}])",
+            "required": true,
+            "type": "array"
+          }
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
 		"/lua/rest/v2/get/timeseries/ts.lua": {
 			"get": {
 				"tags": [
