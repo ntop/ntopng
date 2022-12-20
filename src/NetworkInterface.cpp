@@ -395,12 +395,12 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
     exit(-1);
   }
 
-  if(ntop->getCustomnDPIProtos() != NULL)
-    ndpi_load_protocols_file(ndpi_s, ntop->getCustomnDPIProtos());
-
   // enable all protocols
   NDPI_BITMASK_SET_ALL(all);
   ndpi_set_protocol_detection_bitmask2(ndpi_s, &all);
+
+  if(ntop->getCustomnDPIProtos() != NULL)
+    ndpi_load_protocols_file(ndpi_s, ntop->getCustomnDPIProtos());
 
   memset(d_port, 0, sizeof(d_port));
   ndpi_set_proto_defaults(ndpi_s, 0, 0,
