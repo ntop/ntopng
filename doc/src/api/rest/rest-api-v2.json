@@ -1224,7 +1224,32 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/db/flows.lua": {
+		"/lua/pro/rest/v2/get/db/columns_info.lua": {
+      "get": {
+				"tags": [
+					"Flows"
+				],
+				"summary": "Get Clickhouse available columns",
+				"description": "Executes a query to the flows database and return all the available columns the DB has",
+				"operationId": "get_flows_columns",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+        "responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+    },
+    "/lua/pro/rest/v2/get/db/flows.lua": {
 			"get": {
 				"tags": [
 					"Flows"

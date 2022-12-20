@@ -2070,5 +2070,26 @@ function historical_flow_utils.getSimpleColumnFormatter(label, data)
    return data
 end
 
+-- #####################################
+
+-- Return the list of available DB columns and 
+-- relative tags used to filter info
+function historical_flow_utils.getAvailableColumns()
+  if not interfaceHasClickHouseSupport() then
+    return {}
+  end
+  local extended_flow_columns = historical_flow_utils.get_extended_flow_columns()
+  local data = {}
+
+  for column_name, column_options in pairs(extended_flow_columns) do
+    data[#data + 1] = {
+      column_name = column_name,
+      tag = column_options["tag"]
+    }
+  end
+
+  return data
+end
+
 return historical_flow_utils
 
