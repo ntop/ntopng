@@ -4622,9 +4622,9 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
 							 frequency_sec, threshold, value);
 
       if(alert)
-	h->triggerAlert(alert);
+	h->storeAlert(alert);
 
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert triggered %s@%d", ipaddress, vlan_id);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Alert triggered %s@%d", ipaddress, vlan_id);
       rc = true;
     }
   }
