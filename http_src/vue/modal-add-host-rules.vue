@@ -9,7 +9,7 @@
         <b>{{_i18n("if_stats_config.target")}}</b>
 	    </label>
 	    <div class="col-sm-8" >
-	      <input ref="host" @change="check_empty_host" class="form-control" type="text" placeholder="A local host IP or '*' for checking all local hosts" required>
+	      <input ref="host" @input="check_empty_host" class="form-control" type="text" placeholder="A local host IP or '*' for checking all local hosts" required>
 	    </div>
     </div>
 
@@ -177,7 +177,6 @@ const set_active_radio = (selected_radio) => {
 }
 
 const add_ = () => {
-  debugger;
   const tmp_host = host.value.value;
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_metric.value.id;
@@ -185,7 +184,6 @@ const add_ = () => {
   let tmp_extra_metric = (selected_metric.value.extra_metric) ? selected_metric.value.extra_metric : null
   let basic_value;
   let tmp_threshold;
-  console.log(tmp_metric_type);
 
   if(visible.value === false) {
     tmp_metric_type = ''
