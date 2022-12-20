@@ -606,6 +606,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   /* Checks API */
   bool triggerAlert(HostAlert *alert);
   void releaseAlert(HostAlert* alert);
+  bool storeAlert(HostAlert* alert);
 
   void releaseAllEngagedAlerts();
 

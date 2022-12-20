@@ -2170,6 +2170,40 @@ void Host::releaseAlert(HostAlert *alert) {
 
 /* *************************************** */
 
+/*
+ * This is called by the Check to store an alert (trigger as already released)
+ */
+bool Host::storeAlert(HostAlert *alert) {
+  HostAlertType alert_type;
+
+  if(alert == NULL)
+    return false;
+
+  alert_type = alert->getAlertType();
+
+  if(ntop->getPrefs()->dontEmitHostAlerts() /* all host alerts disabled */ || 
+     isHostAlertDisabled(alert_type) /* alerts disabled for this host and type */) {
+#ifdef DEBUG_SCORE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding disabled alert");
+#endif
+    delete alert;
+    return false;
+  }
+
+  /* Enqueue the alert to be notified */
+  iface->enqueueHostAlert(alert);
+
+  /* Set as released */
+  alert->release();
+
+  /* Enqueue the released alert to be notified */
+  iface->enqueueHostAlert(alert);
+
+  return true;
+}
+
+/* *************************************** */
+
 u_int16_t Host::get_country_code() {
   if(country) {
     char *country_name = country->get_country_name();
