@@ -4576,11 +4576,9 @@ static int ntop_interface_update_ip_reassignment(lua_State* vm) {
 static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
   u_int32_t frequency_sec, threshold, value;
   char *metric, *ipaddress, ip_buf[64], *host_ip, *tmp;
-  LocalHost *h;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  u_int16_t vlan_id = 0;
   bool rc = false;
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   ipaddress = (char*)lua_tostring(vm, 1);
 
@@ -4598,33 +4596,41 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
 
   snprintf(ip_buf, sizeof(ip_buf), "%s", ipaddress);
   host_ip  = strtok_r(ipaddress, "@", &tmp);
-  
+
   if(host_ip) {
     char *vlan_str = strtok_r(NULL, "@", &tmp);
+    u_int16_t vlan_id = 0;
+    AddressTree ptree;
+    Host *h;
 
     if(vlan_str)
       vlan_id = atoi(vlan_str);
-    
-    h = new LocalHost(ntop_interface, ipaddress, vlan_id, 0 /* observation_point_id */);
-    
+
+    ptree.addAddresses("0.0.0.0/0,::/0");
+
+    h = ntop_interface->findHostByIP(&ptree, ipaddress, vlan_id, 0 /* observation_point_id */);
+
+    if(h == NULL) {
+      ntop_interface->restoreHost(ipaddress, vlan_id);
+      h = ntop_interface->findHostByIP(&ptree, ipaddress, vlan_id, 0 /* observation_point_id */);
+    }
+
     if(h != NULL) {
       TrafficVolumeAlert *alert = new TrafficVolumeAlert(host_check_traffic_volume, h,
 							 CLIENT_FULL_RISK_PERCENTAGE,
 							 std::string(metric),
 							 frequency_sec, threshold, value);
-      
+
       if(alert)
 	h->triggerAlert(alert);
-      
-      /* delete h; */ /* FIXME */
-      
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert triggered");    
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert triggered %s@%d", ipaddress, vlan_id);
       rc = true;
-    }  
+    }
   }
 
   lua_pushboolean(vm, rc);
-  
+
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 

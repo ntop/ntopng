@@ -41,6 +41,7 @@ local function recipient2sendMessageSettings(recipient)
    return settings
 end
 
+local debugme = false
 
 -- ##############################################
 
@@ -76,6 +77,9 @@ function alert_store_db.dequeueRecipientAlerts(recipient, budget)
 
       for i=1, budget do
          local notification = ntop.recipient_dequeue(recipient.recipient_id)
+
+	 if(debugme) then tprint(notification) end
+	 
          if notification then
 	    notifications[#notifications + 1] = notification.alert
          else
@@ -101,6 +105,9 @@ function alert_store_db.dequeueRecipientAlerts(recipient, budget)
 
                if alert_store then
                   alert_store:insert(alert)
+		  if(debugme) then io.write("Stored alert in alert.entity_id "..alert.entity_id) end
+	       else
+		  if(debugme) then io.write("Unable to find alert.entity_id "..alert.entity_id) end
                end
 	    end
    
