@@ -458,9 +458,12 @@ function buildChartOptions(seriesArray, yaxisArray) {
 	    padding: {
 	    	// left: -8,
 	    },
+	    row: {
+		// opacity: 1,
+	    }
 	},
 	fill: {
-	    opacity: 0.5,
+	    opacity: 0.9,
 	    type: 'solid',
 	    pattern: {
 		strokeWidth: 10,
@@ -472,7 +475,7 @@ function buildChartOptions(seriesArray, yaxisArray) {
 	stroke: {
 	    show: true,
 	    lineCap: 'butt',
-	    width: 3,
+	    width: 4,
 	},
 	legend: {
 	    show: true,
