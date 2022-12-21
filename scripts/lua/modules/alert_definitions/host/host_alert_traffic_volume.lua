@@ -56,9 +56,9 @@ function host_alert_traffic_volume.format(ifid, alert, alert_type_params)
      alert_type_params.threshold = format_utils.bytesToSize(alert_type_params.threshold)
   end
 
-  if(alert_type_params.frequency == "300") then
+  if(alert_type_params.frequency == 300) then
      alert_type_params.frequency = i18n("edit_check.hooks_name.5mins")
-  elseif(alert_type_params.frequency == "3600") then
+  elseif(alert_type_params.frequency == 3600) then
      alert_type_params.frequency = i18n("edit_check.hooks_name.hour")
   else
      alert_type_params.frequency = i18n("edit_check.hooks_name.day")
