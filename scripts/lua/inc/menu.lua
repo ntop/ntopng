@@ -215,12 +215,12 @@ else
          {
             entry = page_utils.menu_entries.db_explorer,
 	    hidden = (not ntop.isEnterprise())
-      or (not prefs.is_dump_flows_to_clickhouse_enabled)
-      or ifs.isViewed
-      or not (auth.has_capability(auth.capabilities.historical_flows)
-        or (ntop.getPref("ntopng.user." .. session_user .. ".allow_historical_flow") == "1")
+        or (not prefs.is_dump_flows_to_clickhouse_enabled)
+        or ifs.isViewed
+        or not auth.has_capability(auth.capabilities.historical_flows)
+        or not ((ntop.getPref("ntopng.user." .. session_user .. ".allow_historical_flow") == "1")
         or is_admin),
-            url = "/lua/pro/db_search.lua",
+        url = "/lua/pro/db_search.lua",
          },
       }
    })
