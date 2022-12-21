@@ -118,7 +118,9 @@ end
    
     local can_be_deleted = (key ~= "admin" and key ~= logged_user)
 
-    print ("<a href='#delete_user_dialog' role='button' class='add-on btn btn-sm btn-danger ".. (not can_be_deleted and 'disabled' or '') .."' data-bs-toggle='modal' id='delete_btn_" .. id_key .. "'><i class='fas fa-trash'></i></a><script> $('#delete_btn_" .. id_key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
+    local id_key2 = id_key:gsub('[%p%c%s]', '')
+    
+    print ("<a href='#delete_user_dialog' role='button' class='add-on btn btn-sm btn-danger ".. (not can_be_deleted and 'disabled' or '') .."' data-bs-toggle='modal' id='delete_btn_" .. id_key2 .. "'><i class='fas fa-trash'></i></a><script> $('#delete_btn_" .. id_key2 .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
 
 	 print ("\"}")
 	 num = num + 1
