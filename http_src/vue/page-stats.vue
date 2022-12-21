@@ -267,7 +267,6 @@ async function get_snapshots_metrics() {
 	    group: "Snapshots",
 	};
     });
-    console.log(snapshots);
     return metrics_snapshots;
 }
 
@@ -328,7 +327,6 @@ async function load_selected_metric_page_stats_data() {
 }
 
 function epoch_change(new_epoch) {
-    console.log(new_epoch);
     let push_custom_metric = selected_metric.value.label == custom_metric.label;
     load_page_stats_data(last_timeseries_groups_loaded, true, false);
     refresh_top_table();
@@ -336,7 +334,6 @@ function epoch_change(new_epoch) {
 }
 
 function chart_reloaded(chart_options) {
-    console.log("chart reloaded");
 }
 
 function show_modal_snapshot() {
@@ -352,9 +349,7 @@ function show_manage_timeseries() {
  * Function called by Chart component to draw or update that return chart options.
  **/
 function get_f_get_custom_chart_options(chart_index) {
-    console.log("get_f_");
     return async (url) => {
-	console.log("get_charts_options");	
 	return charts_options_items.value[chart_index].chart_options;
     }
 }
@@ -373,7 +368,6 @@ async function refresh_metrics(push_custom_metric, force_refresh) {
 }
 
 async function apply_modal_timeseries(timeseries_groups) {
-    console.log("apply modal-timeseries in page-stats");
     refresh_metrics(true);
     await load_page_stats_data(timeseries_groups, true, true);
 }
@@ -389,8 +383,6 @@ async function load_page_stats_data(timeseries_groups, reload_charts_data, reloa
     if (reload_charts_data) {
 	ts_charts_options = await timeseriesUtils.getTsChartsOptions(http_prefix, status, ts_compare, timeseries_groups, props.is_ntop_pro);
     }
-    console.log(ts_charts_options);
-    console.log(timeseries_groups);
     
     // update timeseries_groups source label
     set_timeseries_groups_source_label(timeseries_groups, ts_charts_options);
@@ -403,8 +395,6 @@ async function load_page_stats_data(timeseries_groups, reload_charts_data, reloa
     }
     // set last_timeseries_groupd_loaded
     last_timeseries_groups_loaded = timeseries_groups;
-    console.log("SET last_timeseries_groups_loaded");
-    console.log(last_timeseries_groups_loaded);
     // update url params
     update_url_params();
 }

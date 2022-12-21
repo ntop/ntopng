@@ -197,7 +197,6 @@ onMounted(async () => {
 });
 
 const show = async (timeseries_groups) => {
-    console.log(selected_metric.value);
     timeseries_groups_added.value = timeseries_groups;
     await wait_init;
     action.value = "select";
@@ -283,7 +282,6 @@ async function set_metrics() {
 }
 
 async function init() {
-    console.log("INIT MODAL TIMESERIES");
     await change_source_type();
     // take default visible
     update_timeseries_to_add(false);
@@ -326,7 +324,6 @@ function get_timeseries_group_id(ts_group) {
 	metric = ts_group.metric;
     }
     let id = metricsManager.get_ts_group_id(source_type, source_array, metric);
-    console.log(`modal-timeseries: id = ${id}`);
     return id;
 }
 

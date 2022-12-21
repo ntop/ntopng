@@ -232,7 +232,6 @@ function setSeriesColors(seriesArray) {
 	return defaultColors[colorIndex];
     });
     colors = colorsInterpolation.transformColors(colors);
-    console.log(colors);
     seriesArray.forEach((s, i) => s.color = colors[i]);
 }
 
