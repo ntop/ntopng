@@ -530,11 +530,17 @@ function set_top_table_options(timeseries_groups, status) {
 	    
 	    let data_url = get_top_table_url(ts_group, table_def.table_value, table_def.view, table_source_def_value_dict, status);
 	    let table_id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array, null, table_source_def_value_dict, true);
+	    table_id = `${table_id}_${table_def.view}`;
 	    if (top_table_id_dict[table_id] != null) { return; }
 	    top_table_id_dict[table_id] = true;
 	    
 	    let value = `${table_def.table_value}_${table_def.view}_${table_id}`;
-	    let label = `${table_def.title} - ${source_type.label} ${main_source.label}`;
+	    let label;
+	    if (table_def.f_get_label == null) {
+		label = `${table_def.title} - ${source_type.label} ${main_source.label}`;
+	    } else {
+		label = table_def.f_get_label(ts_group)
+	    }
 	    const table_config_def = {
 		ts_group,
 		table_def,
