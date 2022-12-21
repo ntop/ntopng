@@ -470,11 +470,10 @@ void usage() {
 	 "                                    |   kafka;127.0.0.1;flows\n"
 	 "                                    |   kafka;127.0.0.1:7689,192.168.1.20,192.168.1.2:9092;flows;compression.codec=gzip\n"
 	 "                                    |   \n"
-	 "                                    |   See https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md\n"
-	 "                                    |   for kafka configuration options.\n"
+	 "                                    |   See at the bottom of this help the list of supported kafka configuration options.\n"
 	 "                                    |\n"
 #endif
-
+	 
 #ifdef HAVE_MYSQL
 	 "                                    | mysql         Dump in MySQL database\n"
 	 "                                    |   Format:\n"
@@ -534,6 +533,12 @@ void usage() {
   /* Just create an instance of the system interface to print out the available interfaces */
   NetworkInterface n(SYSTEM_INTERFACE_NAME);
   n.printAvailableInterfaces(true, 0, NULL, 0);
+
+#if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+  printf("\n\nList of supported kafka configuration options:\n");
+  rd_kafka_conf_properties_show(stdout);
+  printf("\n");
+#endif
 
   exit(0);
 }
