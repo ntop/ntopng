@@ -142,6 +142,10 @@
   $("#add_user_dialog").on('hidden.bs.modal', function() {
     frmadduser[0].reset();
   })
+  /* Reset modal on open */
+  $("#add_user_dialog").on('show.bs.modal', function() {
+    resetAddUserForm();
+  })
 
   $("#user_role").change(function() {
     if ($(this).val() == "unprivileged")
