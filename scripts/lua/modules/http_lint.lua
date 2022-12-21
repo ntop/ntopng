@@ -1753,6 +1753,7 @@ local known_parameters = {
    ["snmp_auth_passphrase"]    = validateSingleWord,
    ["snmp_privacy_protocol"]   = validateSnmpPrivacyProtocol,
    ["observation_point"]       = validateNumber,
+   ["obs_point"]               = validateNumber,
    ["snmp_privacy_passphrase"] = validateSingleWord,
    ["lldp_cdp_mode"]           = validateBool,                  -- LLDP/CDP mode
    ["default_snmp_community"]  = validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts

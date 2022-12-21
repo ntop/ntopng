@@ -340,14 +340,15 @@ function graph_utils.drawNewGraphs(source_value_object)
       flow_interface = false,
       sflow_device = false,
       sflow_interface = false,
+      observation_point = false,
    }
    
    local sources_types_top_enabled = {
       interface = {
 	 top_protocols = interface_has_top_protocols,
-	 top_categories = interface_has_top_categories,
-	 top_senders = ntop.getPref("ntopng.prefs.topk_heuristic_precision") ~= "disabled",
-	 top_receivers = ntop.getPref("ntopng.prefs.topk_heuristic_precision") ~= "disabled",
+	 top_categories = interface_has_top_categories or true,
+	 top_senders = ntop.getPref("ntopng.prefs.topk_heuristic_precision") ~= "disabled" or true,
+	 top_receivers = ntop.getPref("ntopng.prefs.topk_heuristic_precision") ~= "disabled" or true,
       },
       host = {
 	 top_protocols = host_has_top_protocols,

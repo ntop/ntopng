@@ -12,9 +12,19 @@ const handlerIdJumpHistorical = "page-stats-action-jump-historical";
 const top_snmp_interface = {
     table_value: "snmp",
     table_source_def_value_dict: { ifid: true, device: true, if_index: false },
-    title: i18n('page_stats.top.top_traffic'),
+    title: i18n('page_stats.top.top_interfaces'),
     view: "top_snmp_ifaces",
     default_sorting_columns: 4,
+    f_get_label: (ts_group) => {
+	let source_def_array = ts_group.source_type.source_def_array;
+	let source_label;
+	for (let i = 0; i < source_def_array.length; i += 1) {
+	    if (source_def_array[i].value != "device") { continue; }
+	    source_label = ts_group.source_array[i].label;
+	    break;
+	}
+	return `${i18n('page_stats.top.top_interfaces')} - SNMP ${i18n('page_stats.source_def.device')} ${source_label}`;
+    },
     default: true,
     
     columns: [{

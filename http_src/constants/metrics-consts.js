@@ -60,11 +60,11 @@ const sources_types = [
     {
 	id: "interface", //unique id
 	regex_page_url: "lua\/if_stats", // regex to match url page
-	label: "Interface",
+	label: i18n("page_stats.source_def.interface"),
 	query: "iface",
 	source_def_array: [{
 	    main_source_def: true, 
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    regex_type: null,
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua", // url to get sources list
 	    sources_function: null, // custom function that return sources_list, overwrite sources_url
@@ -80,17 +80,17 @@ const sources_types = [
     {
 	id: "host",
 	regex_page_url: "lua\/host_details",
-	label: "Host",
+	label: i18n("page_stats.source_def.host"),
 	table_value: "host",
 	query: "host",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true, 
-	    label: "Host",
+	    label: i18n("page_stats.source_def.host"),
 	    regex_type: "ip",	    
 	    value: "host",
 	    ui_type: ui_types.input,
@@ -99,16 +99,16 @@ const sources_types = [
     {
 	id: "mac",
 	regex_page_url: "lua\/mac_details",
-	label: "Mac",
+	label: i18n("page_stats.source_def.mac"),
 	query: "mac",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true, 
-	    label: "Mac",
+	    label: i18n("page_stats.source_def.mac"),
 	    regex_type: "macAddress",	    
 	    value: "mac",
 	    value_url: "host",
@@ -118,16 +118,16 @@ const sources_types = [
     {
 	id: "network",
 	regex_page_url: "lua\/network_details",
-	label: "Network",
+	label: i18n("page_stats.source_def.network"),
 	query: "subnet",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true, 
-	    label: "Network",
+	    label: i18n("page_stats.source_def.network"),
 	    regex_type: "text",	    
 	    value: "subnet",
 	    ui_type: ui_types.input,
@@ -136,16 +136,16 @@ const sources_types = [
     {
 	id: "as",
 	regex_page_url: "lua\/as_details",
-	label: "ASN",
+	label: i18n("page_stats.source_def.as"),
 	query: "asn",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true,
-	    label: "ASN",
+	    label: i18n("page_stats.source_def.as"),
 	    regex_type: "text",
 	    value: "asn",
 	    ui_type: ui_types.input,
@@ -154,16 +154,16 @@ const sources_types = [
     {
 	id: "country",
 	regex_page_url: "lua\/country_details",
-	label: "Country",
+	label: i18n("page_stats.source_def.country"),
 	query: "country",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true,
-	    label: "Country",
+	    label: i18n("page_stats.source_def.country"),
 	    regex_type: "text",
 	    value: "country",
 	    ui_type: ui_types.input,
@@ -172,16 +172,16 @@ const sources_types = [
     {
 	id: "os",
 	regex_page_url: "lua\/os_details",
-	label: "OS",
+	label: i18n("page_stats.source_def.os"),
 	query: "os",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true,
-	    label: "OS",
+	    label: i18n("page_stats.source_def.os"),
 	    regex_type: "text",
 	    value: "os",
 	    ui_type: ui_types.input,
@@ -190,16 +190,16 @@ const sources_types = [
     {
 	id: "vlan",
 	regex_page_url: "lua\/vlan_details",
-	label: "VLAN",
+	label: i18n("page_stats.source_def.vlan"),
 	query: "vlan",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true,
-	    label: "VLAN",
+	    label: i18n("page_stats.source_def.vlan"),
 	    regex_type: "text",
 	    value: "vlan",
 	    ui_type: ui_types.input,
@@ -208,16 +208,16 @@ const sources_types = [
     {
 	id: "pool",
 	regex_page_url: "lua\/pool_details",
-	label: "Host Pool",
+	label: i18n("page_stats.source_def.pool"),
 	query: "host_pool",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true,
-	    label: "Host Pool",
+	    label: i18n("page_stats.source_def.pool"),
 	    sources_url: "lua/rest/v2/get/host/pools.lua",
 	    value: "pool",
 	    ui_type: ui_types.select,
@@ -226,10 +226,10 @@ const sources_types = [
     {
 	id: "system",
 	regex_page_url: "lua\/system_stats",
-	label: "System Stats",
+	label: i18n("page_stats.source_def.system"),
 	query: "system",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_function: () => { return [{ label: "System", value: -1 }] },
 	    value: "ifid", 
 	    ui_type: ui_types.hide,
@@ -238,16 +238,16 @@ const sources_types = [
     {
 	id: "profile",	
 	regex_page_url: "lua\/profile_details",
-	label: "Profile",
+	label: i18n("page_stats.source_def.profile"),
 	query: "profile",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true,
-	    label: "Profile",
+	    label: i18n("page_stats.source_def.profile"),
 	    regex_type: "text",
 	    value: "profile",
 	    ui_type: ui_types.input,
@@ -256,10 +256,10 @@ const sources_types = [
     {
     	id: "redis",
     	regex_page_url: "lua\/monitor\/redis_monitor.lua",
-    	label: "Redis Stats", 
+    	label: i18n("page_stats.source_def.redis"), 
     	query: "redis",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_function: () => { return [{ label: "Redis", value: -1 }] },
 	    value: "ifid", 
 	    ui_type: ui_types.hide,
@@ -268,10 +268,10 @@ const sources_types = [
     {
     	id: "influx",
     	regex_page_url: "lua\/monitor\/influxdb_monitor.lua",
-    	label: "Influx DB Stats",
+    	label: i18n("page_stats.source_def.influx"),
     	query: "influxdb",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_function: () => { return [{ label: "Influx", value: -1 }] },
 	    value: "ifid", 
 	    ui_type: ui_types.hide,
@@ -280,16 +280,16 @@ const sources_types = [
     {
 	id: "active_monitoring",
 	regex_page_url: "lua\/monitor\/active_monitoring_monitor.lua",
-	label: "Active Monitoring",
+	label: i18n("page_stats.source_def.active_monitoring"),
 	query: "am",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_function: () => { return [{ label: "", value: -1 }] },
 	    value: "ifid", 
 	    ui_type: ui_types.hide,
 	}, {
 	    main_source_def: true,
-	    label: "Active Monitoring",
+	    label: i18n("page_stats.source_def.active_monitoring"),
 	    sources_url: "lua/rest/v2/get/am_host/list.lua",
 	    value: "host",
 	    disable_tskey: true,
@@ -298,27 +298,26 @@ const sources_types = [
 	}],
     },
     {
-    	//todo_test
     	id: "snmp_interface",
 	id_group: "snmp",
     	// disable_stats: true,
     	regex_page_url: "lua\/pro\/enterprise\/snmp_interface_details",
-    	label: "SNMP Interface",
+    	label: i18n("page_stats.source_def.snmp_interface"),
     	query: "snmp_interface",	
     	source_def_array: [{
-    	    label: "Interface",
+    	    label: i18n("page_stats.source_def.interface"),
     	    sources_function: () => { return [{ label: "", value: -1 }] },
     	    value: "ifid", 
     	    ui_type: ui_types.hide,
     	}, {
-    	    label: "Device",
+    	    label: i18n("page_stats.source_def.device"),
     	    regex_type: "ip",
     	    value: "device",
 	    value_url: "host",
     	    ui_type: ui_types.input,
     	}, {
 	    main_source_def: true,
-    	    label: "SNMP Interface",
+    	    label: i18n("page_stats.source_def.snmp_interface"),
     	    regex_type: "text",
     	    value: "if_index",
 	    value_url: "snmp_port_idx",
@@ -331,16 +330,16 @@ const sources_types = [
 	id_group: "snmp",
     	// disable_stats: true,
     	regex_page_url: "lua\/pro\/enterprise\/snmp_device_details",
-    	label: "SNMP Interfaces",
+    	label: i18n("page_stats.source_def.snmp_device"),
     	query: "snmp_device",
     	source_def_array: [{
-    	    label: "Interface",
+    	    label: i18n("page_stats.source_def.interface"),
     	    sources_function: () => { return [{ label: "", value: -1 }] },
     	    value: "ifid", 
     	    ui_type: ui_types.hide,
     	}, {
 	    main_source_def: true,
-    	    label: "Device",
+    	    label: i18n("page_stats.source_def.device"),
     	    regex_type: "ip",
     	    value: "device",
 	    value_url: "host",
@@ -349,18 +348,17 @@ const sources_types = [
     },
     {
     	id: "flow_device",
-	// id_group: "snmp",
     	regex_page_url: "lua\/pro\/enterprise\/flowdevices_stats",
-    	label: "Flow Top Interfaces",
+    	label: i18n("page_stats.source_def.flow_device"),
     	query: "flowdev",
     	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
     	}, {
 	    main_source_def: true,
-    	    label: "Device",
+    	    label: i18n("page_stats.source_def.device"),
     	    regex_type: "ip",
     	    value: "device",
 	    value_url: "ip",
@@ -369,24 +367,23 @@ const sources_types = [
     },
     {
     	id: "flow_interface",
-	// id_group: "snmp",
     	regex_page_url: "lua\/pro\/enterprise\/flowdevice_interface_details",
-    	label: "Flow Interfaces",
+    	label: i18n("page_stats.source_def.flow_interface"),
     	query: "flowdev_port",
     	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
     	}, {
-    	    label: "Device",
+    	    label: i18n("page_stats.source_def.device"),
     	    regex_type: "ip",
     	    value: "device",
 	    value_url: "ip",
     	    ui_type: ui_types.input,
     	}, {
 	    main_source_def: true,
-    	    label: "Port",
+    	    label: i18n("page_stats.source_def.port"),
     	    regex_type: "port",
     	    value: "port",
 	    value_url: "snmp_port_idx",
@@ -395,18 +392,17 @@ const sources_types = [
     },
     {
     	id: "sflow_device",
-	// id_group: "snmp",
     	regex_page_url: "lua\/pro\/enterprise\/sflowdevices_stats",
-    	label: "sFlow Top Interfaces",
+    	label: i18n("page_stats.source_def.sflow_device"),
     	query: "sflowdev",
     	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
     	}, {
 	    main_source_def: true,
-    	    label: "Device",
+    	    label: i18n("page_stats.source_def.device"),
     	    regex_type: "ip",
     	    value: "device",
 	    value_url: "ip",
@@ -415,24 +411,23 @@ const sources_types = [
     },
     {
     	id: "sflow_interface",
-	// id_group: "snmp",
     	regex_page_url: "lua\/pro\/enterprise\/sflowdevice_interface_details",
-    	label: "sFlow Interfaces",
+    	label: i18n("page_stats.source_def.sflow_interface"),
     	query: "sflowdev_port",
     	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
     	}, {
-    	    label: "Device",
+    	    label: i18n("page_stats.source_def.device"),
     	    regex_type: "ip",
     	    value: "device",
 	    value_url: "ip",
     	    ui_type: ui_types.input,
     	}, {
 	    main_source_def: true,
-    	    label: "Port",
+    	    label: i18n("page_stats.source_def.port"),
     	    regex_type: "port",
     	    value: "port",
 	    value_url: "snmp_port_idx",
@@ -440,19 +435,38 @@ const sources_types = [
     	}],
     },
     {
+    	id: "observation_point",
+    	regex_page_url: "lua\/pro\/enterprise\/observation_points",
+    	label: i18n("page_stats.source_def.observation_point"),
+    	query: "obs_point",
+    	source_def_array: [{
+    	    label: i18n("page_stats.source_def.interface"),
+    	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
+    	    value: "ifid", 
+    	    ui_type: ui_types.select,
+    	}, {
+    	    main_source_def: true,
+    	    label: i18n("page_stats.source_def.observation_point"),
+    	    regex_type: "text",
+    	    value: "obs_point",
+    	    value_url: "observation_point",
+    	    ui_type: ui_types.input,
+    	}],
+    },
+    {
 	//todo_test
 	id: "pod",
 	regex_page_url: "lua\/pod_details",
-	label: "Pod",	
+	label: i18n("page_stats.source_def.pod"),	
 	query: "pod",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true,
-	    label: "Pod",
+	    label: i18n("page_stats.source_def.pod"),
 	    regex_type: "text",
 	    value: "pod",
 	    ui_type: ui_types.input,
@@ -461,62 +475,21 @@ const sources_types = [
 	//todo_test
 	id: "container",
 	regex_page_url: "lua\/container_details",
-	label: "Container",
+	label: i18n("page_stats.source_def.container"),
 	query: "container",
 	source_def_array: [{
-	    label: "Interface",
+	    label: i18n("page_stats.source_def.interface"),
 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
 	    value: "ifid", 
 	    ui_type: ui_types.select,
 	}, {
 	    main_source_def: true,
-	    label: "Container",
+	    label: i18n("page_stats.source_def.container"),
 	    regex_type: "text",
 	    value: "container",
 	    ui_type: ui_types.input,
 	}],
     },
-    // {
-    // 	//todo_test
-    // 	id: "snmp",
-    // 	serie_id_field: "ext_label",
-    // 	disable_stats: true,
-    // 	regex_page_url: "lua\/pro\/enterprise\/snmp_device_details",
-    // 	label: "SNMP",
-    // 	query: "snmp",	
-    // 	source_def_array: [{
-    // 	    label: "Interface",
-    // 	    sources_function: () => { return [{ label: "", value: -1 }] },
-    // 	    value: "ifid", 
-    // 	    ui_type: ui_types.hide,
-    // 	}, {
-    // 	    main_source_def: true,
-    // 	    label: "Device",
-    // 	    regex_type: "ip",
-    // 	    value: "device",
-    // 	    value_url: "host",
-    // 	    ui_type: ui_types.input,
-    // 	}],
-    // },
-    // {
-    // 	//todo_test
-    // 	id: "observation",
-    // 	regex_page_url: "lua\/pro\/enterprise\/observation_points",
-    // 	label: "Observation",
-    // 	query: "obs_point",
-    // 	source_def_array: [{
-    // 	    label: "Interface",
-    // 	    sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
-    // 	    value: "ifid", 
-    // 	    ui_type: ui_types.select,
-    // 	}, {
-    // 	    main_source_def: true,
-    // 	    label: "Observation",
-    // 	    regex_type: "text",
-    // 	    value: "observation_point",
-    // 	    ui_type: ui_types.input,
-    // 	}],
-    // },
     // {
     // 	id: "n_edge_interface",
     // 	regex_page_url: "lua\/pro\/nedge\/if_stats.lua",
