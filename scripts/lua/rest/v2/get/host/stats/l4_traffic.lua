@@ -54,7 +54,7 @@ for id, _ in ipairs(l4_keys) do
     proto_stats["breakdown"] = round((proto_stats["bytesSent"] * 100) / (proto_stats["bytesSent"] + proto_stats["bytesRcvd"]), 0)
 
     if(areHostTimeseriesEnabled(ifId) and ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") and not timeseries_not_available then -- Check if the host timeseries are enabled
-      proto_stats["historical"] = hostinfo2detailshref(host, {page = "historical", ts_schema = "host:l4protos", l4proto = k}, '<i class="fas fa-chart-area"></i>')
+      proto_stats["historical"] = hostinfo2detailshref(host, {page = "historical", ts_schema = "host:l4protos", l4proto = k, zoom = '1d'}, '<i class="fas fa-chart-area"></i>')
     end
 
     if proto_stats["totalBytes"] > 0 then
