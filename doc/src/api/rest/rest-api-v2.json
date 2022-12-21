@@ -791,6 +791,101 @@
 				}
 			}
 		},
+		"/lua/rest/v2/get/alert/list/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "List stored interface alerts",
+				"description": "List alerts stored in the ntopng alert database",
+				"operationId": "get_alert_list_alert",
+				"produces": [
+					"application/json"
+				],
+			    "parameters": [
+					{
+						"name": "alert_family",
+						"in": "query",
+						"description": "Alert family. Possible values: active_monitoring, flow, host, interface, mac , network , snmp , system , user",
+						"required": true,
+						"type": "string"
+					},
+				        {
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "End time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "select_clause",
+						"in": "query",
+						"description": "Select clause (default: *)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "where_clause",
+						"in": "query",
+						"description": "Where clause (default: none). IP values should be double-quoted and between parenthesis (e.g. IPV4_SRC_ADDR = (\"192.168.1.1\")).",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "maxhits_clause",
+						"in": "query",
+						"description": "Max hits (default: 10)",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "order_by_clause",
+						"in": "query",
+						"description": "Order by clause (default: no order)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "group_by_clause",
+						"in": "query",
+						"description": "Group by clause (default: no group)",
+						"required": false,
+						"type": "string"
+					}
+
+			    ],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-1": {
+						"description": "NOT_FOUND"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
 		"/lua/rest/v2/get/alert/severity/consts.lua": {
 			"get": {
 				"tags": [
