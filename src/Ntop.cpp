@@ -467,17 +467,19 @@ void Ntop::start() {
   int i = 0;
 
   getTrace()->traceEvent(TRACE_NORMAL,
-                         "Welcome to %s %s v.%s (%s) - (C) 1998-22 ntop.org",
+                         "Welcome to %s %s v.%s (%s)",
 #ifdef HAVE_NEDGE
                          "ntopng edge",
 #else
                          "ntopng",
 #endif
                          PACKAGE_MACHINE, PACKAGE_VERSION, NTOPNG_GIT_RELEASE);
-
+ 
   if(PACKAGE_OS[0] != '\0')
     getTrace()->traceEvent(TRACE_NORMAL, "Built on %s", PACKAGE_OS);
 
+  getTrace()->traceEvent(TRACE_NORMAL, "(C) 1998-22 ntop.org");
+  
   last_modified_static_file_epoch = start_time = time(NULL);
   snprintf(epoch_buf, sizeof(epoch_buf), "%u", (u_int32_t)start_time);
 
