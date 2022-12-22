@@ -312,6 +312,11 @@ end
 function string.split(s, p)
   local temp = {}
   local index = 0
+
+  if s == nil then
+    io.write(debug.traceback().."\n")
+  end
+
   local last_index = string.len(s)
 
   while true do
