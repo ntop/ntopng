@@ -2020,7 +2020,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
 
 int Prefs::loadFromFile(const char *path) {
   char buffer[16384], *line, *key, *value;
-  u_int line_len, opt_name_len;
+  u_int line_len, opt_name_len, num_line = 0;
   FILE *fd;
   const struct option *opt;
 
@@ -2038,7 +2038,7 @@ int Prefs::loadFromFile(const char *path) {
       break;
 
     line = Utils::trim(line);
-    value = NULL;
+    num_line++, value = NULL;
 
     if((line_len = strlen(line)) < 2 || line[0] == '#')
       continue;
@@ -2062,19 +2062,28 @@ int Prefs::loadFromFile(const char *path) {
 	  setOption(opt->val, value);
 
 	  break;
-	}
+	} else
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping unrecognized line format %s:%u : %s",
+				       config_file_path, num_line, buffer);
 
 	opt++;
       }
     } else if(line[0] == '-') { /* short opt */
       key = &line[1], line_len--;
+
+      if((key[1] != ' ') && (key[1] != '=')) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping unrecognized line format %s:%u : %s",
+				     config_file_path, num_line, buffer);
+	continue;
+      }
+      
       if(line_len > 1) key[1] = '\0';
       if(line_len > 2) value = Utils::trim(&key[2]);
 
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "key: %c value: %s", key[0], value);
       setOption(key[0], value);
     } else {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping unrecognized line: %s", line);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping unrecognized line format %s:%u", config_file_path, num_line);
       continue;
     }
   }
