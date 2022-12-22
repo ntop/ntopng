@@ -35,6 +35,7 @@ class HostAlert {
   std::string check_name;
   time_t engage_time;
   time_t release_time;
+  time_t timeout_time; /* used by alerts with no C++ Check to automatically disengage */
   risk_percentage cli_pctg; /* The fraction of total risk that goes to the client */
   bool is_attacker, is_victim; /* Whether the host of this alert is considered to be an attacker o a victim */
   /* 
@@ -76,6 +77,9 @@ class HostAlert {
 
   inline void setExpiring()      { expiring = true; }
   inline bool isExpired()        { return expiring; }
+
+  inline void setTimeout(time_t t) { timeout_time = t; }
+  inline time_t getTimeout()       { return timeout_time; }
 
   inline void release()          { released = true; release_time = time(NULL); }
   inline bool isReleased()       { return released; }

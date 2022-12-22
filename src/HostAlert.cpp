@@ -30,6 +30,7 @@ void HostAlert::init(HostCheckID _check_id, std::string _check_name, Host *h, ri
   check_name = _check_name;
   engage_time = time(NULL);
   release_time = 0;
+  timeout_time = 0;
   cli_pctg = _cli_pctg;
   is_attacker = is_victim = false;
 }

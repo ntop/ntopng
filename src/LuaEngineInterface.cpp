@@ -4621,8 +4621,11 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
 							 std::string(metric),
 							 frequency_sec, threshold, value);
 
-      if(alert)
-	h->storeAlert(alert);
+      if(alert) {
+        time_t now = time(NULL);
+        alert->setTimeout(now + frequency_sec + 120 /* 2 min tolerance */);
+	h->triggerAlert(alert);
+      }
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "Alert triggered %s@%d", ipaddress, vlan_id);
       rc = true;

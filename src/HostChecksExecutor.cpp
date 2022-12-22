@@ -52,13 +52,17 @@ void HostChecksExecutor::loadHostChecks(HostChecksLoader *fcl) {
 /* **************************************************** */
 
 void HostChecksExecutor::releaseAllDisabledAlerts(Host *h) {
+  time_t now = time(NULL);
+
   for (u_int i = 0; i < NUM_DEFINED_HOST_CHECKS; i++) {
     HostCheckID t = (HostCheckID) i;
     HostCheck *cb = getCheck(t);
 
-    if (!cb) { /* check disabled, check engaged alerts with auto release */
+    if (!cb) {
+      /* Check disabled or not a C++ check: check engaged alerts with auto release */
       HostAlert *alert = h->getCheckEngagedAlert(t);
       if (alert && 
+          (!alert->getTimeout() || alert->getTimeout() > now) &&
           (alert->hasAutoRelease() || 
            ntop->getPrefs()->dontEmitHostAlerts() /* alerts disabled */))
         h->releaseAlert(alert);
