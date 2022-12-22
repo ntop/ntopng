@@ -27,7 +27,7 @@ dnl> On Ubuntu do sudo apt-get install -y clang-10  clang-tools-10
 if test "x$USE_CLANG" = xyes; then
     if test $SYSTEM = "Darwin"; then
         CC=clang
-        CXX="clang++ -fPIE"
+        CXX="clang++ -fPIE -stdlib=libc++"
     else
        if test -x "/usr/bin/clang-10"; then
            CLANG_VERSION=10
@@ -39,7 +39,7 @@ if test "x$USE_CLANG" = xyes; then
        fi
 
        CC=clang-$CLANG_VERSION
-       CXX="clang++-$CLANG_VERSION -fPIE"
+       CXX="clang++-$CLANG_VERSION -fPIE -stdlib=libc++"
     fi
     CPP=$CC
 fi
@@ -91,7 +91,7 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
 
    dnl> https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
    CC=clang
-   CXX="clang++ -fPIE"
+   CXX="clang++ -fPIE -stdlib=libc++"
    if test $SYSTEM = "FreeBSD"; then
     MAKE=gmake
     BIN_PATH=/usr/local/bin
@@ -120,7 +120,7 @@ else
   if test $SYSTEM = "Linux"; then
     if [ test -f /usr/bin/clang++ ]; then
       CC=clang
-      CXX="clang++ -fPIE"
+      CXX="clang++ -fPIE -stdlib=libc++"
       AC_MSG_RESULT(Using clang++ compiler)
     fi
 
