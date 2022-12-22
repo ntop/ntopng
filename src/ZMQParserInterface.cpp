@@ -267,9 +267,20 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
     json_object *w, *z;
 
     zrs.source_id = source_id;
-    zrs.local_time = (u_int32_t) time(NULL);
 
-    if(json_object_object_get_ex(o, "time", &w))    zrs.remote_time  = (u_int32_t)json_object_get_int64(w);
+    if(json_object_object_get_ex(o, "time", &w)) {
+      int32_t time_delta;
+
+      zrs.local_time = (u_int32_t) time(NULL);
+      zrs.remote_time  = (u_int32_t)json_object_get_int64(w);
+
+      time_delta = (int32_t) zrs.local_time - zrs.remote_time;
+      if (abs(time_delta) >= 10) {
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remote probe clock drift detected (local: %u remove: %u)",
+          zrs.local_time, zrs.remote_time);
+      }
+    }
+
     if(json_object_object_get_ex(o, "bytes", &w))   zrs.remote_bytes = (u_int64_t)json_object_get_int64(w);
     if(json_object_object_get_ex(o, "packets", &w)) zrs.remote_pkts  = (u_int64_t)json_object_get_int64(w);
 
