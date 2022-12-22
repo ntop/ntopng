@@ -3,7 +3,6 @@ AC_INIT([ntopng],[@VERSION@])
 HERE=`pwd`
 SYSTEM=`uname -s`
 
-CPPFLAGS="${CPPFLAGS} -Wno-address-of-packed-member -Wno-unused-function"
 AC_PROG_CPP
 AC_PROG_CXX
 
@@ -23,30 +22,30 @@ AS_IF([test "${with_sanitizer+set}" = set],[
     USE_CLANG=yes
 ])
 
-dnl> On Ubuntu do sudo apt-get install -y clang-10  clang-tools-10
+dnl> On Ubuntu do sudo apt-get install -y clang-14  clang-tools-14
 if test "x$USE_CLANG" = xyes; then
     if test $SYSTEM = "Darwin"; then
         CC=clang
         CXX="clang++ -fPIE -stdlib=libc++"
     else
-       if test -x "/usr/bin/clang-10"; then
-           CLANG_VERSION=10
-       elif test -x "/usr/bin/clang-11"; then
-           CLANG_VERSION=11
+       if test -x "/usr/bin/clang-13"; then
+           CLANG_VERSION=13
+       elif test -x "/usr/bin/clang-14"; then
+           CLANG_VERSION=14
        else
-           echo "Could not find clang. Please install clang-11 clang-tools-11"
+           echo "Could not find clang. Please install clang-14 clang-tools-14"
            exit 1
        fi
 
        CC=clang-$CLANG_VERSION
        CXX="clang++-$CLANG_VERSION -fPIE -stdlib=libc++"
     fi
-    CPP=$CC
 fi
 
-dnl> Add /usr/local/ /opt/local
 CFLAGS="${CFLAGS} -I${HERE} -I${HERE}/include"
 CPPFLAGS="${CPPFLAGS} -I${HERE} -I${HERE}/include"
+
+CPPFLAGS="${CPPFLAGS} -Wno-address-of-packed-member -Wno-unused-function"
 
 dnl> MacOS brew.sh
 HOMEBREW_DIR=/opt/homebrew
@@ -776,6 +775,10 @@ STABLE_SUFFIX=""
 if test $GIT_BRANCH != "dev"; then
   STABLE_SUFFIX="-stable"
 fi
+
+CPP=$CXX
+CXXFLAGS=$CPPFLAGS
+
 
 PWD=${HERE}
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
