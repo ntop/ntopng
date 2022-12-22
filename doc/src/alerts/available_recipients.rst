@@ -1,5 +1,7 @@
-Available Endpoints and Recipients
-==================================
+.. _AvailableRecipients:
+
+Available Recipients
+====================
 
 Currently available Endpoints/Recipients and license required are: 
 

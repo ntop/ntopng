@@ -1,7 +1,7 @@
 .. _RiskAndCheckExclusion:
 
-Behavioural Check Exclusions
-============================
+Alert Exclusions
+================
 
 In ntopng it's possible to exclude Hosts from specific alerts.
 
