@@ -105,6 +105,9 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 	let id = getSerieId(s);
 	// find timeseries metadata
 	let sMetadata = tsGroup.metric.timeseries[id];
+	if (sMetadata == null) {
+	    throw `Impossible find timeserie_id = ${id} in metric metadata (id,schema,query) = (${metric.id},${metric.schema},${metric.id})`;
+	}
 	// extract data and check if we need invert direction
 	let scalar = 1;
 	if (sMetadata.invert_direction == true) {

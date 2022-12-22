@@ -67,11 +67,11 @@ const get_ts_group = (source_type, source_array, metric) => {
     };
 };
 
-const get_default_timeseries_groups = async (http_prefix, metric_ts_schema) => {
+const get_default_timeseries_groups = async (http_prefix, metric_ts_schema, metric_query) => {
     let source_type = get_current_page_source_type();
     let source_array = await get_default_source_array(http_prefix, source_type);
     let metrics = await get_metrics(http_prefix, source_type, source_array);
-    let metric = get_default_metric(metrics, metric_ts_schema);
+    let metric = get_default_metric(metrics, metric_ts_schema, metric_query);
     let ts_group = get_ts_group(source_type, source_array, metric);
     return [ts_group];
 };
@@ -315,10 +315,26 @@ const get_metric_from_schema = async (http_prefix, source_type, source_array, me
     return metrics.find((m) => m.schema == metric_schema && m.query == metric_query); 
 };
 
-const get_default_metric = (metrics, metric_ts_schema) => {
+const get_metric_query_from_ts_query = (ts_query, source_type) => {
+    if (source_type == null) {
+	source_type = get_current_page_source_type();
+    }
+    let source_def_dict = {};
+    source_type.source_def_array.forEach((s_def) => source_def_dict[s_def.value] = true);
+    let ts_query_array = ts_query.split(",");
+    for (let i = 0; i < ts_query_array.length; i += 1) {
+	let ts_val_key = ts_query_array[i].split(":")[0];
+	if (source_def_dict[ts_val_key] == null) {
+	    return ts_query_array[i];
+	}
+    }
+    return null;
+}
+
+const get_default_metric = (metrics, metric_ts_schema, metric_query) => {
     let default_metric;
     if (metric_ts_schema != null) {
-	default_metric = metrics.find((m) => m.schema == metric_ts_schema);
+	default_metric = metrics.find((m) => m.schema == metric_ts_schema && (metric_query == null || m.query == metric_query));
     }
     if (default_metric == null) {
 	default_metric = metrics.find((m) => m.default_visible == true);
@@ -350,6 +366,7 @@ const metricsManager = function() {
 
 	get_metrics,
 	get_metric_from_schema,
+	get_metric_query_from_ts_query,
 	get_default_metric,
 
 	set_source_value_object_in_url,

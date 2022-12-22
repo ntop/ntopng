@@ -215,18 +215,23 @@ async function init() {
     let push_custom_metric = true;
     let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix);
     let metric_ts_schema;
+    let metric_query;
     if (timeseries_groups == null) {
 	push_custom_metric = false;
 	metric_ts_schema = ntopng_url_manager.get_url_entry("ts_schema");
+	let ts_query = ntopng_url_manager.get_url_entry("ts_query");
+	if (ts_query != null && ts_query != "") {
+	    metric_query = metricsManager.get_metric_query_from_ts_query(ts_query);
+	}
 	if (metric_ts_schema == "") { metric_ts_schema = null; }
-	timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix, metric_ts_schema);
+	timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix, metric_ts_schema, metric_query);
     }
     metrics.value = await get_metrics(push_custom_metric);
     
     if (push_custom_metric == true) {
 	selected_metric.value = custom_metric;
     } else {
-	selected_metric.value = metricsManager.get_default_metric(metrics.value, metric_ts_schema);
+	selected_metric.value = metricsManager.get_default_metric(metrics.value, metric_ts_schema, metric_query);
     }
     ts_menu_ready.value = true;
     await load_page_stats_data(timeseries_groups, true, true);
@@ -605,8 +610,8 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
 	    let ts_stats;
 	    if (ts_group.metric.type == "top") {
 		ts_stats = options.statistics;
-	    } else {
-		ts_stats = options.statistics?.by_serie[j];
+	    } else if (options?.statistics?.by_serie?.length > i) {
+		ts_stats = options.statistics.by_serie[j];
 	    }
 	    if (ts_stats == null || ts_group.metric.type == "top" && j > 0) {
 		return;
