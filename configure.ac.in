@@ -22,6 +22,8 @@ AS_IF([test "${with_sanitizer+set}" = set],[
     USE_CLANG=yes
 ])
 
+dnl> CLANG_STDLIB="-stdlib=libc++"
+
 dnl> On Ubuntu do sudo apt-get install -y clang-14  clang-tools-14
 if test "x$USE_CLANG" = xyes; then
     if test $SYSTEM = "Darwin"; then
@@ -38,7 +40,7 @@ if test "x$USE_CLANG" = xyes; then
        fi
 
        CC=clang-$CLANG_VERSION
-       CXX="clang++-$CLANG_VERSION -fPIE -stdlib=libc++"
+       CXX="clang++-$CLANG_VERSION -fPIE $CLANG_STDLIB"
     fi
 fi
 
@@ -90,7 +92,7 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
 
    dnl> https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
    CC=clang
-   CXX="clang++ -fPIE -stdlib=libc++"
+   CXX="clang++ -fPIE $CLANG_STDLIB"
    if test $SYSTEM = "FreeBSD"; then
     MAKE=gmake
     BIN_PATH=/usr/local/bin
@@ -119,7 +121,7 @@ else
   if test $SYSTEM = "Linux"; then
     if [ test -f /usr/bin/clang++ ]; then
       CC=clang
-      CXX="clang++ -fPIE -stdlib=libc++"
+      CXX="clang++ -fPIE $CLANG_STDLIB"
       AC_MSG_RESULT(Using clang++ compiler)
     fi
 
