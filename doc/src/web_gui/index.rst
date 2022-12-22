@@ -55,15 +55,9 @@ Each individual menu bar entry will be discussed below.
 .. toctree::
     :maxdepth: 2
 
-    dashboard
-    checks
-    flows
-    hosts
-    maps
-    interfaces
+    network_index
+    system_index
     settings
     developer
     help_menu
-    health
-    notifications
     other_components

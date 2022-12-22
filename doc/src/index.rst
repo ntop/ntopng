@@ -17,7 +17,6 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    interfaces/index
    alerts/index
    developing_alerts/index
-   active_monitoring/index
    using_with_other_tools/index
    historical_flows
    clickhouse/index

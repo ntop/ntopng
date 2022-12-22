@@ -3,14 +3,6 @@
 Health
 ######
 
-.. figure:: ../img/web_gui_system_interface_dropdown.png
-  :align: center
-  :alt: System Interface Dropdown
-
-  System Interface Dropdown
-
-By changing interface and jumping to the System Interface other options are going to be available
-
 .. figure:: ../img/web_gui_system_interface.png
   :align: center
   :alt: System Interface
