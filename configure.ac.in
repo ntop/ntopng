@@ -117,22 +117,22 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
             CFLAGS="-fno-color-diagnostics $CFLAGS"
       fi
    fi
-else
-  if test $SYSTEM = "Linux"; then
-    if [ test -f /usr/bin/clang++ ]; then
-      CC=clang
-      CXX="clang++ -fPIE $CLANG_STDLIB"
-      AC_MSG_RESULT(Using clang++ compiler)
-    fi
-
-    if [ test -f /etc/redhat-release ]; then
-      OS=`cat /etc/redhat-release`
-    else
-      if [ test -f /usr/bin/lsb_release ]; then
-        OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
-      fi
-    fi
-  fi
+dnl> else
+dnl>   if test $SYSTEM = "Linux"; then
+dnl>     if [ test -f /usr/bin/clang++ ]; then
+dnl>       CC=clang
+dnl>       CXX="clang++ -fPIE $CLANG_STDLIB"
+dnl>       AC_MSG_RESULT(Using clang++ compiler)
+dnl>     fi
+dnl> 
+dnl>     if [ test -f /etc/redhat-release ]; then
+dnl>       OS=`cat /etc/redhat-release`
+dnl>     else
+dnl>       if [ test -f /usr/bin/lsb_release ]; then
+dnl>         OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
+dnl>       fi
+dnl>     fi
+dnl>   fi
 fi
 
 dnl> Remove spaces
@@ -715,22 +715,7 @@ if test x$radcli = xtrue; then
   fi
 fi
 
-AC_CACHE_CHECK([if pthread rwlocks are supported], [my_cv_rw_locks_supported], [
-  AC_TRY_RUN([
-  #include <pthread.h>
-
-  int main() {
-    pthread_rwlock_t t;
-    return 0;
-  }
-]
-, [my_cv_rw_locks_supported=yes], [my_cv_rw_locks_supported=no])
-]
-)
-
-if test "$my_cv_rw_locks_supported" = yes; then
-  AC_DEFINE_UNQUOTED(HAVE_RW_LOCK, 1, [pthread rwlocks supported])
-fi
+AC_CHECK_TYPES([pthread_spinlock_t, pthread_rwlock_t], AC_DEFINE_UNQUOTED(HAVE_RW_LOCK, 1, [pthread rwlocks supported]))
 
 if test -f /usr/bin/lsb_release; then
   LINUX_OS_RELEASE=`lsb_release -r | cut -f 2|cut -d '.' -f 1`
