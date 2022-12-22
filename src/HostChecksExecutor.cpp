@@ -62,10 +62,11 @@ void HostChecksExecutor::releaseAllDisabledAlerts(Host *h) {
       /* Check disabled or not a C++ check: check engaged alerts with auto release */
       HostAlert *alert = h->getCheckEngagedAlert(t);
       if (alert && 
-          (!alert->getTimeout() || alert->getTimeout() > now) &&
+          (!alert->getTimeout() || now > alert->getTimeout()) &&
           (alert->hasAutoRelease() || 
-           ntop->getPrefs()->dontEmitHostAlerts() /* alerts disabled */))
+           ntop->getPrefs()->dontEmitHostAlerts() /* alerts disabled */)) {
         h->releaseAlert(alert);
+      }
     }
   }
 }

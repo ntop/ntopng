@@ -4616,18 +4616,33 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
     }
 
     if(h != NULL) {
-      TrafficVolumeAlert *alert = new TrafficVolumeAlert(host_check_traffic_volume, h,
-							 CLIENT_FULL_RISK_PERCENTAGE,
-							 std::string(metric),
-							 frequency_sec, threshold, value);
+      HostAlert *alert;
+      bool engaged = false;
+
+      /* Check if already engaged */
+      alert = h->getCheckEngagedAlert(host_check_traffic_volume);
+
+      if (alert) {
+        engaged = true;
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Alert already engaged %s@%d", ipaddress, vlan_id);
+      } else {
+        /* Build new alert */
+        alert = new TrafficVolumeAlert(host_check_traffic_volume, h,
+				       CLIENT_FULL_RISK_PERCENTAGE,
+				       std::string(metric),
+				       frequency_sec, threshold, value);
+      }
 
       if(alert) {
         time_t now = time(NULL);
         alert->setTimeout(now + frequency_sec + 120 /* 2 min tolerance */);
-	h->triggerAlert(alert);
+
+	if (!engaged) {
+	  h->triggerAlert(alert);
+          ntop->getTrace()->traceEvent(TRACE_INFO, "Alert triggered %s@%d", ipaddress, vlan_id);
+        }
       }
 
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Alert triggered %s@%d", ipaddress, vlan_id);
       rc = true;
     }
   }
