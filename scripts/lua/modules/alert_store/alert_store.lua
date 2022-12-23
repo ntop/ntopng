@@ -1229,8 +1229,6 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
       ::continue::
    end
 
-tprint(all_severities)
-
    return self:_prepare_count_by_severity_and_time_series(all_severities, min_slot, max_slot, time_slot_width)
 end
 
