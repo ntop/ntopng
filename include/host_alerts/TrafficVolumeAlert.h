@@ -40,8 +40,10 @@ class TrafficVolumeAlert : public HostAlert {
 		     u_int32_t _threshold, u_int32_t _value);
   ~TrafficVolumeAlert() {};
 
-  HostAlertType getAlertType() const { return getClassType();    }
+  HostAlertType getAlertType() const { return getClassType();    };
   u_int8_t getAlertScore()     const { return SCORE_LEVEL_ERROR; };
+
+  std::string getMetric() { return metric; };
 };
 
 #endif /* _TRAFFIC_VOLUME_ALERT_ */

@@ -4623,12 +4623,21 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
       time_t now = time(NULL);
       time_t alert_timeout = now + frequency_sec + 120; /* interval + 2 min tolerance */
 
+      /* FIXX a lock on HostAlertableEntity.engaged_alerts_lock is probably
+       * required to handle concurrency with HostChecksExecutor */
+
       /* Check if already engaged */
       alert = h->getCheckEngagedAlert(host_check_traffic_volume);
 
       if(alert) {
         alert->setTimeout(alert_timeout); /* refresh timeout */
-        ntop->getTrace()->traceEvent(TRACE_INFO, "Alert already engaged %s@%d", ipaddress, vlan_id);
+
+        /*
+        TrafficVolumeAlert *tvalert = dynamic_cast<TrafficVolumeAlert*>(alert);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skipping host alert %s@%d (%s), already engaged for %s@%d (%s)",
+          ipaddress, vlan_id, metric,
+          ipaddress, vlan_id, tvalert->getMetric().c_str());
+        */
       } else {
         /* Build new alert */
         alert = new TrafficVolumeAlert(host_check_traffic_volume, h,
@@ -4640,7 +4649,7 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
           alert->setTimeout(alert_timeout);
 	  
 	  h->triggerAlert(alert); /* Trigger an engaged host alert */
-          ntop->getTrace()->traceEvent(TRACE_INFO, "Yriggered host alert %s@%d", ipaddress, vlan_id);
+          ntop->getTrace()->traceEvent(TRACE_INFO, "Triggered host alert %s@%d (%s)", ipaddress, vlan_id, metric);
         }
       }
 
