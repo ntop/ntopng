@@ -1205,19 +1205,31 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
       local severity_id = alert.severity
 
       local tstamp = tonumber(alert.tstamp)
-      local cur_slot = tstamp - (tstamp % time_slot_width)
 
       -- Exclude alerts falling outside requested time ranges
-      if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
+      -- Note: do not skip alerts before the interval begin as they are engaged
+      --if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
       if self._epoch_end and tstamp > self._epoch_end then goto continue end
 
       if not all_severities[severity_id] then all_severities[severity_id] = {} end
       if not all_severities[severity_id].all_slots then all_severities[severity_id].all_slots = {} end
 
+      -- Add point for the alert tstamp
+      local cur_slot = tstamp - (tstamp % time_slot_width)
       all_severities[severity_id].all_slots[cur_slot] = (all_severities[severity_id].all_slots[cur_slot] or 0) + 1
+
+      -- Add points for the whole duration of the engaged alert
+      if self._epoch_end then
+         while cur_slot < self._epoch_end do
+            cur_slot = cur_slot + time_slot_width
+            all_severities[severity_id].all_slots[cur_slot] = (all_severities[severity_id].all_slots[cur_slot] or 0) + 1
+         end
+      end
 
       ::continue::
    end
+
+tprint(all_severities)
 
    return self:_prepare_count_by_severity_and_time_series(all_severities, min_slot, max_slot, time_slot_width)
 end
