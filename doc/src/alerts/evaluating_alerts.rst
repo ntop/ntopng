@@ -13,6 +13,8 @@ Checks are desiged to verify specific conditions and when they are not met, trig
     :maxdepth: 2
 
     host_checks
+    host_rules
+    host_volume_check
     interface_checks
     local_network_checks
     snmp_checks
