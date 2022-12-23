@@ -4,7 +4,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local ts_rest_utils = {}
-   
+
 function ts_rest_utils.get_timeseries(http_context)
    local graph_common = require "graph_common"
    local graph_utils = require "graph_utils"
@@ -30,9 +30,10 @@ function ts_rest_utils.get_timeseries(http_context)
       -- mac address as safety check and to avoid security issues)
       if tags.host then
 	 local host = hostkey2hostinfo(tags.host)
+	 
 	 if not isEmptyString(host["host"]) then
-    local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. tags.ifid .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
-    local host_info = interface.getHostInfo(host["host"], host["vlan"])
+	    local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. tags.ifid .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
+	    local host_info = interface.getHostInfo(host["host"], host["vlan"])
 	    -- local mac_info = split(tskey, "_")
 	    -- if (host_info) and (host_info.mac == mac_info[1]) then
 	    --    tags.host_ip = tags.host;
@@ -117,18 +118,18 @@ function ts_rest_utils.get_timeseries(http_context)
       compare_backward = nil
    else
       -- if Mac address ts is requested, check if the serialize by mac is enabled and if no data is found, use the host timeseries. 
-    -- if (table.len(res) == 0) or (res.statistics) and (res.statistics.total == 0) then
+      -- if (table.len(res) == 0) or (res.statistics) and (res.statistics.total == 0) then
       local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. tags.ifid .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
       local tmp = split(ts_schema, ":")
-        
+      
       if (serialize_by_mac) and (tags.mac) then
-        ts_schema = "host:" .. tmp[2]
-        tags.host = tags.mac .. "_v4"
+	 ts_schema = "host:" .. tmp[2]
+	 tags.host = tags.mac .. "_v4"
       end
 
       res = performQuery(tstart, tend) or {}
-    --end
-  end
+      --end
+   end
 
    if res == nil then
       res = {}
@@ -182,10 +183,10 @@ function ts_rest_utils.get_timeseries(http_context)
    end
 
    if (res.query) and (res.query.if_index)  then
-    local snmp_utils = require "snmp_utils"
-    local snmp_cached_dev = require "snmp_cached_dev"
-    local cached_device = snmp_cached_dev:create(tags.device)
-    res.query.label = shortenString(snmp_utils.get_snmp_interface_label(cached_device["interfaces"][res.query.if_index]), 64)
+      local snmp_utils = require "snmp_utils"
+      local snmp_cached_dev = require "snmp_cached_dev"
+      local cached_device = snmp_cached_dev:create(tags.device)
+      res.query.label = shortenString(snmp_utils.get_snmp_interface_label(cached_device["interfaces"][res.query.if_index]), 64)
    end
 
    -- Add layout information
