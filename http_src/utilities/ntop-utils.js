@@ -1118,12 +1118,12 @@ export default class NtopUtils {
   }
 
   static createProgressBar(percentage) {
-    return `<div class="d-flex flex-row">
+    return `<div class="d-flex flex-row align-items-center">
               <div class="col-9 progress">
                 <div class="progress-bar bg-warning" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage}%;">
                 </div>
               </div>
-              <div class="col ms-3"> ${percentage} %</div>
+              <div class="col"> ${percentage} %</div>
             </div>`
   }
 

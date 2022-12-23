@@ -35,59 +35,8 @@ const props = defineProps({
 
 let new_params = props.base_params
 const table_id = ref(null);
-// let _this = getCurrentInstance().ctx;
-function setUserColumnsDefWidths() {
-  let userColumnDef;
-  // Get the settings for this table from localStorage
-  let userColumnDefs = JSON.parse(localStorage.getItem(table_id.value)) || [];
-  if (userColumnDefs.length === 0 ) return;
-
-  props.columns_config.forEach( function(columnDef) {
-    // Check if there is a width specified for this column
-    userColumnDef = userColumnDefs.find( function(column) {
-      return column.targets === columnDef.targets;
-    });
-
-    // If there is, set the width of this columnDef in px
-    if ( userColumnDef ) {
-      columnDef.width = userColumnDef.width + 'px';
-    }
-  });
-}
-
-function saveColumnSettings() {
-	var userColumnDefs = JSON.parse(localStorage.getItem(table_id.value)) || [];
-  var width, header, existingSetting; 
-
-  table.columns().every( function ( targets ) {
-    // Check if there is a setting for this column in localStorage
-    existingSetting = userColumnDefs.findIndex( function(column) { return column.targets === targets;});
-    // Get the width of this column
-    header = this.header();
-    width = $(header).width();
-    if ( existingSetting !== -1 ) {
-      // Update the width
-      userColumnDefs[existingSetting].width = width;
-    } else {
-      // Add the width for this column
-      userColumnDefs.push({
-        targets: targets,
-        width:  width,
-      });
-    }
-  });
-
-  // Save (or update) the settings in localStorage
-  localStorage.setItem(table_id.value, JSON.stringify(userColumnDefs));
-}
-
-function reloadDataTable() {
-  loadDatatable()
-}
 
 function loadDatatable() {
-  setUserColumnsDefWidths();
-  
   let updated = false;
   /* Create a datatable with the buttons */
   let extend_config = {
@@ -133,17 +82,6 @@ function loadDatatable() {
       beforeSend: function() {
         NtopUtils.showOverlays();
       },
-    },
-    initComplete: function (settings) {
-      //Add JQueryUI resizable functionality to each th in the ScrollHead table
-      $('#' + table_id.value.id + '_wrapper .dataTables_scrollHead thead th').resizable({
-        handles: "e",
-        alsoResize: '#' + table_id.value.id + '_wrapper .dataTables_scrollHead table', //Not essential but makes the resizing smoother
-        stop: function () {
-          saveColumnSettings();
-          reloadDataTable();
-        }
-      });
     },
     drawCallback: function (settings) {
       NtopUtils.hideOverlays();
