@@ -31,7 +31,7 @@ class ZMQParserInterface : public ParserInterface {
   typedef std::map<pen_value_t, string> descriptions_map_t;
   labels_map_t labels_map; /* Contains mappings between labels and integer IDs (PEN and ID) */
   descriptions_map_t descriptions_map; /* Contains mappings between integer IDs and descriptions */
-  
+  u_int32_t polling_start_time;
   bool once, is_sampled_traffic;
   u_int32_t flow_max_idle, returned_flow_max_idle;
   u_int64_t zmq_initial_bytes, zmq_initial_pkts,

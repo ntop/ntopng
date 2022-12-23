@@ -40,7 +40,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
 #ifdef NTOPNG_PRO
   custom_app_maps = NULL;
 #endif
-
+  polling_start_time = 0;
   updateFlowMaxIdle();
   memset(&recvStats, 0, sizeof(recvStats));
   memset(&recvStatsCheckpoint, 0, sizeof(recvStatsCheckpoint));
@@ -257,6 +257,9 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
   ZMQ_RemoteStats zrs;
   const u_int32_t max_timeout = 600, min_timeout = 60;
 
+  if(polling_start_time == 0)
+    polling_start_time = (u_int32_t) time(NULL);
+
   memset(&zrs, 0, sizeof(zrs));
 
   // payload[payload_size] = '\0';
@@ -272,14 +275,22 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
     if(json_object_object_get_ex(o, "time", &w)) {
       int32_t time_delta;
 
-      zrs.local_time = (u_int32_t) time(NULL);
-      zrs.remote_time  = (u_int32_t)json_object_get_int64(w);
+      zrs.local_time  = (u_int32_t) time(NULL);
+      zrs.remote_time = (u_int32_t)json_object_get_int64(w);
 
       time_delta = (int32_t) zrs.local_time - zrs.remote_time;
-      if (abs(time_delta) >= 10) {
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remote probe clock drift detected (local: %u remote: %u)",
-          zrs.local_time, zrs.remote_time);
-      }
+
+      /*
+	 Skip the check for the first few seconds
+	 as we might receive old messages from the probe
+      */
+      if((zrs.local_time - polling_start_time) > 5) {
+	if(abs(time_delta) >= 10) {
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remote probe clock drift detected (local: %u remote: %u)",
+				       zrs.local_time, zrs.remote_time);
+	}
+      } else
+	zrs.remote_time = zrs.local_time; /* Avoid clock drift messages during the grace period */
     }
 
     if(json_object_object_get_ex(o, "bytes", &w))   zrs.remote_bytes = (u_int64_t)json_object_get_int64(w);
@@ -2348,7 +2359,7 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char * payload, int paylo
 
 u_int8_t ZMQParserInterface::parseSNMPIntefaces(const char * payload, int payload_size,
 						u_int8_t source_id, void *data) {
-  enum json_tokener_error jerr = json_tokener_success; 
+  enum json_tokener_error jerr = json_tokener_success;
   json_object *f = json_tokener_parse_verbose(payload, &jerr);
 
   if(f != NULL) {
@@ -2361,16 +2372,16 @@ u_int8_t ZMQParserInterface::parseSNMPIntefaces(const char * payload, int payloa
       const char *rsp     = json_object_to_json_string(value);
       char redis_key[64];
 
-      /* 
-	 Saving 'short' interface names 
+      /*
+	 Saving 'short' interface names
 
-	 Use lua/modules/snmp_mappings.lua to access them from Lua // 
+	 Use lua/modules/snmp_mappings.lua to access them from Lua //
        */
       snprintf(redis_key, sizeof(redis_key), "cachedexporters.%s.ifnames", key);
       ntop->getRedis()->set(redis_key, rsp);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[JSON] %s = %s", redis_key, rsp);
-      
+
       /* Move to the next element */
       json_object_iter_next(&it);
     } // while json_object_iter_equal
