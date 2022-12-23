@@ -9,7 +9,13 @@
     <{{tag}}>
         {% for i, note in ipairs(notes) do %}
             {% if not note.hidden then %}
-                <li>{* note.content *}</li>
+	        {% if(type(note.content) == "table") then %}
+		   {% for _, msg in ipairs(note.content) do %}
+		     <li>{* msg *}</li>
+		   {% end %}		   
+		{% else %}
+                  <li>{* note.content *}</li>
+		{% end %}
             {% end %}
         {% end %}
     </{{tag}}>

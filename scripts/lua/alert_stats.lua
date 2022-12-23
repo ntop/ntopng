@@ -687,7 +687,16 @@ local datatable = {
        disable = (page ~= "host" and page ~= "flow")
    },
 }
-   
+
+local notes = {}
+
+table.insert(notes, i18n("show_alerts.alerts_info"))
+
+if(status == "engaged") then
+   table.insert(notes, i18n("show_alerts.engaged_notes"))
+end
+
+
 local context = {
    ifid = ifid,
    ui_utils = ui_utils,
@@ -696,10 +705,8 @@ local context = {
    json = json,
    opsep = tag_utils.SEPARATOR,
    isPro = ntop.isPro(),
-   notes = ternary(status == "engaged", i18n("show_alerts.engaged_notes"), nil),
-
+   notes = notes,
    show_chart = true,
-
    show_cards = (status ~= "engaged") and ntop.isPro(),
    endpoint_cards = endpoint_cards,
 
