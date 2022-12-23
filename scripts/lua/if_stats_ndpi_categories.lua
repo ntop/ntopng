@@ -50,7 +50,7 @@ for k, v in pairsByKeys(ifstats["ndpi_categories"], asc) do
 
   if(areInterfaceCategoriesTimeseriesEnabled(ifid)) then
      if(not(json_format)) then
-	print("<A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=" .. ifid .. "&page=historical&ts_schema=iface:ndpi_categories&category=".. k .."\">".. label .." </A>")
+	print("<A HREF=\""..interface2detailhref(ifid, {page = "historical", ts_schema = "top:iface:ndpi_categories", ts_query = "ifid:" .. ifid .. ",category:" .. k, zoom = '1d'}) .. "\">".. label .." </A>")
      else
 	print('{ "proto": "'..k..'", ')
      end

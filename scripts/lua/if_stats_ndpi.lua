@@ -86,7 +86,7 @@ for _k in pairsByKeys(vals, asc) do
 
   if(has_ndpi_proto == "1") then
      if(not(json_format)) then
-	print("<A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=" .. ifid .. "&page=historical&ts_schema=iface:ndpi&protocol=".. k .."\">".. k .." "..formatBreed(ifstats["ndpi"][k]["breed"]).."</A>")
+	print("<A HREF=\""..interface2detailhref(ifid, {page = "historical", ts_schema = "top:iface:ndpi", ts_query = "ifid:" .. ifid .. ",protocol:" .. k, zoom = '1d'}) .. "\">" .. k .." "..formatBreed(ifstats["ndpi"][k]["breed"]).."</A>")
      else
 	print('{ "proto": "'..k..'", "breed": "'..ifstats["ndpi"][k]["breed"]..'", ')
      end

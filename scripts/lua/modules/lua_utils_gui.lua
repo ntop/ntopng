@@ -434,6 +434,26 @@ end
 
 -- ##############################################
 
+-- @brief Given an interface id create an href to the interface detail page
+-- @param href_params A lua table containing params host_details.lua params, e.g., {page = "historical"}
+-- @return A string containing the a href link
+function interface2detailhref(ifid, href_params)
+  if ifid then
+    local params = string.format('ifid=%s', tostring(ifid))
+
+    -- Iterate all the href params and create a href
+    for param_name, param_value in pairs(href_params) do
+      params = string.format('%s&%s=%s', params, param_name, param_value)
+    end
+
+    return string.format('%s/lua/if_stats.lua?%s', ntop.getHttpPrefix(), params)
+  end
+
+  return ''
+end
+
+-- ##############################################
+
 -- @brief Generates an host_details.lua a href link (if available), starting from an ip and a vlan
 -- @param ip A string with a valid ip address
 -- @param vlan A string or a number with a VLAN or nil when VLAN information is not available

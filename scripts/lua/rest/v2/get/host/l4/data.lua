@@ -19,8 +19,10 @@ local rc = rest_utils.consts.success.ok
 local rsp = {}
 
 local ifid = _GET["ifid"] or interface.getId()
-local host_ip     = _GET["host"]
-local host_vlan   = _GET["vlan"] or 0
+local host_data   = hostkey2hostinfo(_GET["host"]) -- In case host@vlan is given, create a table with host and vlan data
+local host_ip     = host_data.host 
+local host_vlan   = _GET["vlan"] or host_data.vlan -- Put the correct vlan
+
 local host = interface.getHostInfo(host_ip, host_vlan)
 if host then 
   local total = 0
@@ -53,7 +55,12 @@ if host then
       proto_stats["total_percentage"] = round((proto_stats["total_bytes"] * 100) / total, 2)
 
       if(areHostTimeseriesEnabled(ifId) and ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") and not timeseries_not_available then -- Check if the host timeseries are enabled
-        proto_stats["historical"] = hostinfo2detailshref(host, {page = "historical", ts_schema = "host:l4protos", l4proto = k}, '<i class="fas fa-chart-area"></i>')
+        local host_label = host_ip
+        if tonumber(host_vlan) ~= 0 then
+          host_label = host_label .. "@" .. host_vlan
+        end
+
+        proto_stats["historical"] = hostinfo2detailshref(host, {page = "historical", ts_schema = "top:host:l4protos", ts_query = "ifid:" .. ifid .. ",host:" .. host_label .. ",l4proto:" .. k, zoom = '1d'}, '<i class="fas fa-chart-area"></i>')
       end
 
       if proto_stats["total_bytes"] > 0 then
