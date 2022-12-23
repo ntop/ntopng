@@ -2062,10 +2062,8 @@ int Prefs::loadFromFile(const char *path) {
 	  setOption(opt->val, value);
 
 	  break;
-	} else
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping unrecognized line format %s:%u : %s",
-				       config_file_path, num_line, buffer);
-
+	}
+	
 	opt++;
       }
     } else if(line[0] == '-') { /* short opt */
