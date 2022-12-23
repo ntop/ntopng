@@ -4602,17 +4602,20 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
     u_int16_t vlan_id = 0;
     AddressTree ptree;
     Host *h;
-
+    u_int16_t observation_point_id = 0;
     if(vlan_str)
       vlan_id = atoi(vlan_str);
 
+    /* No host search restrictions */
     ptree.addAddresses("0.0.0.0/0,::/0");
 
-    h = ntop_interface->findHostByIP(&ptree, ipaddress, vlan_id, 0 /* observation_point_id */);
+    /* Find the host in memory */
+    h = ntop_interface->findHostByIP(&ptree, ipaddress, vlan_id, observation_point_id);
 
     if(h == NULL) {
+      /* Host not found in memory: let's try to restore it from cache */
       ntop_interface->restoreHost(ipaddress, vlan_id);
-      h = ntop_interface->findHostByIP(&ptree, ipaddress, vlan_id, 0 /* observation_point_id */);
+      h = ntop_interface->findHostByIP(&ptree, ipaddress, vlan_id, observation_point_id);
     }
 
     if(h != NULL) {
@@ -4633,13 +4636,15 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
 				       std::string(metric),
 				       frequency_sec, threshold, value);
         if(alert) {
+	  /* Specify when the alert will auto-release if not continuously triggered */
           alert->setTimeout(alert_timeout);
-	  h->triggerAlert(alert);
-          ntop->getTrace()->traceEvent(TRACE_INFO, "Alert triggered %s@%d", ipaddress, vlan_id);
+	  
+	  h->triggerAlert(alert); /* Trigger an engaged host alert */
+          ntop->getTrace()->traceEvent(TRACE_INFO, "Yriggered host alert %s@%d", ipaddress, vlan_id);
         }
       }
 
-      rc = true;
+      rc = true; /* All went well */
     }
   }
 
