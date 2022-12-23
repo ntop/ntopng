@@ -40,7 +40,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
 #ifdef NTOPNG_PRO
   custom_app_maps = NULL;
 #endif
-
+  polling_start_time = 0;
   updateFlowMaxIdle();
   memset(&recvStats, 0, sizeof(recvStats));
   memset(&recvStatsCheckpoint, 0, sizeof(recvStatsCheckpoint));
@@ -256,6 +256,9 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
   ZMQ_RemoteStats zrs;
   const u_int32_t max_timeout = 600, min_timeout = 60;
 
+  if(polling_start_time == 0)
+    polling_start_time = (u_int32_t) time(NULL);
+
   memset(&zrs, 0, sizeof(zrs));
 
   // payload[payload_size] = '\0';
@@ -274,11 +277,19 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
       zrs.local_time = (u_int32_t) time(NULL);
       zrs.remote_time  = (u_int32_t)json_object_get_int64(w);
 
-      time_delta = (int32_t) zrs.local_time - zrs.remote_time;
-      if (abs(time_delta) >= 10) {
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remote probe clock drift detected (local: %u remove: %u)",
-          zrs.local_time, zrs.remote_time);
-      }
+      /*
+        Skip the check for the first few seconds
+        as we might receive old messages from the probe
+      */
+      if((zrs.local_time - polling_start_time) > 5) {
+        time_delta = (int32_t) zrs.local_time - zrs.remote_time;
+        if(abs(time_delta) >= 10) {
+          ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remote probe clock drift detected (local: %u remote: %u)",
+                                       zrs.local_time, zrs.remote_time);
+        }
+      } else
+        zrs.remote_time = zrs.local_time; /* Avoid clock drift messages during the grace period */
+
     }
 
     if(json_object_object_get_ex(o, "bytes", &w))   zrs.remote_bytes = (u_int64_t)json_object_get_int64(w);
