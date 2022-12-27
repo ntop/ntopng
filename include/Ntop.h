@@ -532,6 +532,7 @@ public:
   void lua_alert_queues_stats(lua_State* vm);
   bool   recipients_are_empty();
   bool   recipients_enqueue(AlertFifoItem *notification, AlertEntity alert_entity);
+  AlertLevel get_default_recipient_minimum_severity();
   bool   recipient_enqueue(u_int16_t recipient_id, const AlertFifoItem* const notification);
   bool   recipient_dequeue(u_int16_t recipient_id, AlertFifoItem *notification);
   void   recipient_stats(u_int16_t recipient_id, lua_State* vm);

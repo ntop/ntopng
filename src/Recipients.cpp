@@ -25,6 +25,7 @@
 
 Recipients::Recipients() {
   memset(&recipient_queues, 0, sizeof(recipient_queues));
+  default_recipient_minimum_severity = alert_level_none;
 }
 
 /* *************************************** */
@@ -127,6 +128,9 @@ void Recipients::register_recipient(u_int16_t recipient_id, AlertLevel minimum_s
     recipient_queues[recipient_id]->setEnabledEntities(enabled_entities);
     recipient_queues[recipient_id]->setEnabledHostPools(enabled_host_pools);
   }
+
+  if(recipient_id == 0) /* Default recipient (DB) */
+    default_recipient_minimum_severity = minimum_severity;
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "registered [%u][%u][%u][%u]", recipient_id, minimum_severity, enabled_categories, enabled_entities);
 

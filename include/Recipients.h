@@ -31,6 +31,8 @@ class Recipients {
   RecipientQueue* recipient_queues[MAX_NUM_RECIPIENTS];
   Mutex m;
 
+  AlertLevel default_recipient_minimum_severity;
+
 public:
   Recipients();
   ~Recipients();
@@ -83,7 +85,7 @@ public:
   * @return
   */
   void delete_recipient(u_int16_t recipient_id);
-  
+ 
   /**
    * @brief Returns status (drops and uses) of a given recipient
    * @param recipient_id An integer recipient identifier
@@ -107,6 +109,8 @@ public:
    * @return true if there are not notifications enqueued, false otherwise
    */
   bool empty();
+  
+  AlertLevel get_default_recipient_minimum_severity() { return default_recipient_minimum_severity; };
 };
 
 #endif /* _RECIPIENTS_ */

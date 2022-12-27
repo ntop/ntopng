@@ -1046,6 +1046,12 @@ void Ntop::recipient_register(u_int16_t recipient_id, AlertLevel minimum_severit
 
 /* ******************************************* */
 
+AlertLevel Ntop::get_default_recipient_minimum_severity() {
+  return recipients.get_default_recipient_minimum_severity();
+}
+
+/* ******************************************* */
+
 void Ntop::getUsers(lua_State* vm) {
   char **usernames;
   char *username;
