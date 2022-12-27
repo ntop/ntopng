@@ -134,7 +134,29 @@ const props = defineProps({
   frequency_list: Array,
 });
 
+function reset_modal_form() {
+    host.value.value = "";
+    selected_metric.value = props.metric_list[0];
+    selected_frequency.value = props.frequency_list[0];
+    metric_type.value = metric_type_list[0];
+
+    // reset metric_type_list
+    metric_type_list.forEach((t) => t.active = false);
+    metric_type_list[0].active = true;
+    
+    // reset volume_threshold_list
+    volume_threshold_list.forEach((t) => t.active = false);
+    volume_threshold_list[volume_threshold_list.length - 1].active = true;
+    
+    // reset throughput_threshold_list 
+    throughput_threshold_list.forEach((t) => t.active = false);
+    throughput_threshold_list[throughput_threshold_list.length - 1].active = true;
+
+    threshold.value.value = 1;
+}
+
 const show = () => {
+    reset_modal_form();
   modal_id.value.show();
 };
 
