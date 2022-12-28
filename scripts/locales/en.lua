@@ -988,6 +988,8 @@ local lang = {
     ["last_day"] = "Last Day",
     ["last_hour"] = "Last Hour",
     ["last_minute"] = "Last Minute",
+    ["last_5_minutes"] = "Last 5 Minutes",
+    ["last_12_hours"] = "Last 12 Hours",
     ["lateral_movement"] = "Lateral Movement",
     ["lateral_movement_descr"] = "Denied service detected %{info} %{href}",
     ["list_download_failed"] = "List Download Failed",
@@ -3739,6 +3741,9 @@ local lang = {
   },
 ["alerts_analysis_page"] = {
   ["flow_src_dst_alertid_density"] = "Flow Alert: Client/Server/AlertType",
+  ["flow_src_alertid_density"] = "Flow Alert: Client/AlertType",
+  ["flow_dst_alertid_density"] = "Flow Alert: Server/AlertType",
+  
   ["labels"] = {
      ["f_type"]   = "Alert Type",
      ["f_count"] = "Alerts Count",

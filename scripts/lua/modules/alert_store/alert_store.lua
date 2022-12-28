@@ -1430,6 +1430,13 @@ function alert_store:get_top_limit()
 end
 
 -- ##############################################
+
+--@brief Stats used by the dashboard
+function alert_store:set_top_limit(l)
+   self._top_limit = l
+end
+
+-- ##############################################
 -- REST API Utility Functions
 -- ##############################################
 
