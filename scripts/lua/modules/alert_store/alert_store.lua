@@ -923,12 +923,23 @@ function alert_store:select_historical(filter, fields)
    -- Prepare the final query
    -- NOTE: entity_id is necessary as alert_utils.formatAlertMessage assumes it to always be present inside the alert
    local q
+   
    if ntop.isClickHouseEnabled() then
-      q = string.format(" SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, toUnixTimestamp(tstamp) as tstamp_epoch, toUnixTimestamp(tstamp_end) as tstamp_end_epoch, %s FROM `%s` WHERE %s %s %s %s %s",
-         self._alert_entity.entity_id, fields, table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
+      if(group_by_clause == "") then
+	 q = string.format(" SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, toUnixTimestamp(tstamp) as tstamp_epoch, toUnixTimestamp(tstamp_end) as tstamp_end_epoch, %s FROM `%s` WHERE %s %s %s %s",
+			   self._alert_entity.entity_id, fields, table_name, where_clause, order_by_clause, limit_clause, offset_clause)
+      else
+	 q = string.format(" SELECT %s FROM `%s` WHERE %s %s %s %s %s",
+			   fields, table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
+      end
    else
-      q = string.format(" SELECT %u entity_id, (tstamp_end - tstamp) duration, %s FROM `%s` WHERE %s %s %s %s %s",
-         self._alert_entity.entity_id, fields, table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
+      if(group_by_clause == "") then
+	 q = string.format(" SELECT %u entity_id, (tstamp_end - tstamp) duration, %s FROM `%s` WHERE %s %s %s %s",
+			   self._alert_entity.entity_id, fields, table_name, where_clause, order_by_clause, limit_clause, offset_clause)
+      else
+	 q = string.format(" SELECT %s FROM `%s` WHERE %s %s %s %s %s",
+			   fields, table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
+      end
    end
 
    res = interface.alert_store_query(q)
