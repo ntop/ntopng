@@ -1,0 +1,44 @@
+{#
+    (C) 2022 - ntop.org
+#}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class='d-flex align-items-center justify-content-end mb-3'>
+                    <label class="my-auto me-1">
+                        {{ i18n("filter_by") }}:
+                    </label>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          {{ alerts_analysis.label_bubble_mode }}
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            {* alerts_analysis.select_options *}
+                        </div>
+			            <button class="btn btn-link btn-reload-graph" id="btn-reload-map">
+                            <i class='fas fa-sync'></i>
+                        </button>
+                    </div>
+                </div>
+                {* widget_gui_utils.render_chart(alerts_analysis.widget_name, { css_styles = { height = "60vh"}, displaying_label = ''}) *}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+    const WIDGET_NAME = "{{ alerts_analysis.widget_name }}";
+    const BUBBLE_MODE = "{{ alerts_analysis.bubble_mode }}";
+    
+    const widget = WidgetUtils.getWidgetByName(WIDGET_NAME);
+
+    $(`#btn-reload-map`).on('click', async function() {
+        await widget.update({bubble_mode: BUBBLE_MODE, ifid: {{ ifid }}});
+    });
+
+});
+</script>

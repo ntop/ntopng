@@ -80,7 +80,9 @@ page_utils.menu_entries = {
     detected_alerts       = {key = "detected_alerts", i18n_title = "show_alerts.detected_alerts", section = "alerts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/alerts.html"},
     alerts_dashboard      = {key = "alerts_dashboard", i18n_title = "alerts_dashboard.alerts_dashboard", section = "alerts"},
     flow_alerts_explorer  = {key = "flow_alerts_explorer", i18n_title = "flow_alerts_explorer.label", section = "alerts"},
-
+    alerts_list           = {key = "alerts_list", i18n_title = "details.alerts_list", section = "alerts"},
+    alerts_analysis       = {key = "alerts_analysis", i18n_title = "details.alerts_analysis", section = "alerts"},
+    
     -- Flows
     flows                 = {key = "flows", i18n_title = "flows", section = "flows", help_link = "https://www.ntop.org/guides/ntopng/web_gui/flows.html"},
     active_flows          = {key = "active_flows", i18n_title = "active_flows", section = "flows" },

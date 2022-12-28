@@ -193,13 +193,22 @@ else
    -- ##############################################
 
    -- Alerts
-   page_utils.add_menubar_section(
-      {
-         section = page_utils.menu_sections.alerts,
-         hidden = not ntop.getPrefs().are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts),
-         url = '/lua/alert_stats.lua',
+   page_utils.add_menubar_section({
+      section = page_utils.menu_sections.alerts,
+      hidden = not ntop.getPrefs().are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts),
+      entries = {
+         {
+            entry = page_utils.menu_entries.alerts_list,
+            url = "/lua/alert_stats.lua",
+         },
+         {
+            entry = page_utils.menu_entries.alerts_analysis,
+            url = "/lua/pro/enterprise/alerts_analysis.lua",
+	    hidden = (not ntop.isEnterprise())
+         },
+
       }
-   )
+   })
 
    -- ##############################################
 
