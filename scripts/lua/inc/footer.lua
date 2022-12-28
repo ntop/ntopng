@@ -30,39 +30,39 @@ end -- closes interface.isPcapDumpInterface() == false
 
 if not info.oem then
 
-print ([[
-<hr>
-<footer id="n-footer">
-	<div class="container-fluid">
-		<div class="row mt-2">
-			<div class="col-12 col-md-4 pl-md-0 text-center text-md-start">
-				<small>
-					<a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">
-				  		]] .. getNtopngRelease(info) ..[[
-					</a>
-				</small>
-			</div>
-			<div class="col-12 col-md-4 text-center">
-				<small>]].. ntop.getInfo()["copyright"] ..[[</small>
-]])
-print [[
-			</div>
-			<div class="col-12 col-md-4 text-center text-md-end pr-md-0">
-				<small>
-						<i class="fas fa-clock" title="]] print(i18n("about.server_time")) print[["></i> <div class="d-inline-block" id='network-clock'></div> ]] if(info.tzname ~= nil) then print(info.tzname) end print(" | ") print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
-				</small>
-			</div>
-     	</div>
-   </div>
-</footer>
-]]
+-- print ([[
+-- <hr>
+-- <footer id="n-footer">
+-- 	<div class="container-fluid">
+-- 		<div class="row mt-2">
+-- 			<div class="col-12 col-md-4 pl-md-0 text-center text-md-start">
+-- 				<small>
+-- 					<a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">
+-- 				  		]] .. getNtopngRelease(info) ..[[
+-- 					</a>
+-- 				</small>
+-- 			</div>
+-- 			<div class="col-12 col-md-4 text-center">
+-- 				<small>]].. ntop.getInfo()["copyright"] ..[[</small>
+-- ]])
+-- print [[
+-- 			</div>
+-- 			<div class="col-12 col-md-4 text-center text-md-end pr-md-0">
+-- 				<small>
+-- 						<i class="fas fa-clock" title="]] print(i18n("about.server_time")) print[["></i> <div class="d-inline-block" id='network-clock'></div> ]] if(info.tzname ~= nil) then print(info.tzname) end print(" | ") print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
+-- 				</small>
+-- 			</div>
+--      	</div>
+--    </div>
+-- </footer>
+-- ]]
 
-else -- info.oem
-  print[[<div class="col-12 text-end">
-    <small>
-		<i class="fas fa-clock"></i> <div class="d-inline-block" id='network-clock' title="]] print(i18n("about.server_time")) print[["></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
-    </small>
-</div>]]
+-- else -- info.oem
+--   print[[<div class="col-12 text-end">
+--     <small>
+-- 		<i class="fas fa-clock"></i> <div class="d-inline-block" id='network-clock' title="]] print(i18n("about.server_time")) print[["></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
+--     </small>
+-- </div>]]
 end
 
 local traffic_peity_width = "96"
@@ -224,6 +224,7 @@ const footerRefresh = function() {
 			const rsp = content["rsp"];
 
       try {
+ntopng_events_manager.emit_custom_event(ntopng_custom_events.GET_INTERFACE_DATA, rsp);
         let bps_upload = rsp.throughput.upload * 8;
         let bps_download = rsp.throughput.download * 8;
 
@@ -260,8 +261,8 @@ end
 
 -- systemInterfaceEnabled is defined inside menu.lua
 print[[
-				$('#network-clock').html(`${rsp.localtime}`);
-				$('#network-uptime').html(`${rsp.uptime}`);
+				//$('#network-clock').html(`${rsp.localtime}`);
+				//$('#network-uptime').html(`${rsp.uptime}`);
 
 				let msg = `<div class='m-2'><div class='d-flex flex-wrap navbar-main-badges'>`;
 				

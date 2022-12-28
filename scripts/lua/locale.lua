@@ -37,6 +37,8 @@ if(language ~= "en") then
       end
    end  
 end
+local info = ntop.getInfo(true)
+main_language_path["ntopng_release_info"] = getNtopngRelease(info)
 
 print[[ const ntop_locale = ]] print(json.encode(main_language_path))
 
