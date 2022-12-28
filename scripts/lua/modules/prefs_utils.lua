@@ -49,8 +49,6 @@ DNS_PRESETS = {
   {id="cloudflare", label="Cloudflare DNS", url="https://www.cloudflare.com/learning/dns/what-is-1.1.1.1", primary_dns="1.1.1.1", secondary_dns="1.0.0.1"},
   {id="cleanbrowsing_security", label="CleanBrowsing - Security", url="https://cleanbrowsing.org",  primary_dns="185.228.168.9", secondary_dns="185.228.169.9"},
   {id="cleanbrwosing_adult", label="CleanBrowsing - Adult Filter", url="https://cleanbrowsing.org",  primary_dns="185.228.168.168", secondary_dns="185.228.169.168", child_safe=true},
-  {id="yandex_safe", label="Yandex - Safe", url="https://dns.yandex.com", primary_dns="77.88.8.88", secondary_dns="77.88.8.2"},
-  {id="yandex_family", label="Yandex - Family", url="https://dns.yandex.com", primary_dns="77.88.8.7", secondary_dns="77.88.8.3", child_safe=true},
 }
 
 function isSubpageAvailable(subpage, show_advanced_prefs)
