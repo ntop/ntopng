@@ -1195,8 +1195,40 @@ elseif((page == "traffic")) then
   template.render("pages/hosts/traffic_stats.template", {})
 
 elseif((page == "ports")) then
+  print('<table class="table table-bordered table-striped">\n')
+
+  if(host.used_ports ~= nil) then
+     local len
+if(table.len(host.used_ports.local_server_ports) == 0) then len = "" else len = "rowspan=2" end
+
+print('\n<tr><th class="text-start" '..len..'>'..i18n("ports_page.active_server_ports")..'</th>')
+printPorts(host.used_ports.local_server_ports)
+
+if(table.len(host.used_ports.remote_contacted_ports) == 0) then len = "" else len = "rowspan=2" end
+print('\n<tr><th class="text-start" '..len..'>'..i18n("ports_page.client_contacted_server_ports")..'</th>')
+printPorts(host.used_ports.remote_contacted_ports)
+  end
+
+  print('<tr><th class="text-start">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
+  print('<tr><th class="text-start">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
+
+  print [[
+  </table>
+    <script type='text/javascript'>
+           window.onload=function() {
+               do_pie("#clientPortsDistro", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/iface_ports_list.lua', { clisrv: "client", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+    print [[
+               do_pie("#serverPortsDistro", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/iface_ports_list.lua', { clisrv: "server", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+    print [[
+            }
+        </script><p>
+    ]]
   -- template render
-  template.render("pages/hosts/ports_stats.template", {})
+  -- template.render("pages/hosts/ports_stats.template", {})
 
 elseif((page == "listening_ports")) then
     template.render("htmlPages/hostDetails/listening-ports.template", {
