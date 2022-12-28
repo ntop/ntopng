@@ -449,7 +449,8 @@ export const ntopng_custom_events = {
   SHOW_GLOBAL_ALERT_INFO: "show_global_alert_info", // html_text: string
   VIS_DATA_LOADED: "vis_data_loaded", 
   CHANGE_PAGE_TITLE: "change_page_title", 
-  DATATABLE_LOADED: "datatable_loaded", 
+    DATATABLE_LOADED: "datatable_loaded",
+    GET_INTERFACE_FATA: "get_interface_data", // object returned by /lua/rest/v2/get/interface/data.lua
 };
 
 
