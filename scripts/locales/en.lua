@@ -547,6 +547,7 @@ local lang = {
   ["upload_pcap"] = "Upload pcap",
   ["upload_pcap_max_size"] = "File too big: max upload size %{size} MB",
   ["uploaders"] = "Upload Volume",
+  ["untagged"] = "Untagged",
   ["used_by"] = "Used by",
   ["value"] = "Value",
   ["values"] = "Values",
