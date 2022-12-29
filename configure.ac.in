@@ -421,11 +421,16 @@ if test -f ".git/index"; then
 fi
 
 if test $SYSTEM = "Linux"; then
-  if test -f /etc/debian_version; then
-    DEBIAN_VERSION=`cat /etc/debian_version`
-    OSNAME="Debian $DEBIAN_VERSION"
+  if [ test -f /usr/bin/lsb_release ]; then
+      OSNAME=`/usr/bin/lsb_release -d|cut -d ':' -f 2| sed -e 's/^[[[:space:]]]*//'`
+      OS="$OSNAME"
   else
-    OSNAME=`./config.guess`
+    if test -f /etc/debian_version; then
+       DEBIAN_VERSION=`cat /etc/debian_version`
+       OSNAME="Debian $DEBIAN_VERSION"
+    else
+      OSNAME=`./config.guess`
+    fi
   fi
 else
 dnl> wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
