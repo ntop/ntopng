@@ -3741,12 +3741,15 @@ local lang = {
   },
 ["alerts_analysis_page"] = {
   ["flow_src_dst_alertid_density"] = "Flow Alert: Client/Server/AlertType",
-  ["flow_src_alertid_density"] = "Flow Alert: Client/AlertType",
-  ["flow_dst_alertid_density"] = "Flow Alert: Server/AlertType",
+  ["flow_src_alertid_density"]     = "Flow Alert: Client/AlertType",
+  ["flow_dst_alertid_density"]     = "Flow Alert: Server/AlertType",
+  ["flow_src_score_count_density"] = "Flow Alert: Client",
+  ["flow_dst_score_count_density"] = "Flow Alert: Server",
   
   ["labels"] = {
      ["f_type"]   = "Alert Type",
-     ["f_count"] = "Alerts Count",
+     ["f_count"]  = "Alerts Count",
+     ["f_score"]   = "Total Score";
   }
  },
   ["hosts_map_page"] = {
