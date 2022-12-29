@@ -5383,7 +5383,9 @@ local lang = {
     ["active_flows_on_port_symbolic"] = "Live Flows on Port %{port} [%{symbolic_port}]",
     ["l4_port"] = "L4 Port",
   },
-  ["ports_page"] = {
+  ["ports_page"] = {    
+    ["active_server_ports"] = "Active Server Ports",
+    ["client_contacted_server_ports"] = "Client Contacted Server Ports",
     ["active_server_tcp_ports"] = "Active TCP Server Ports",
     ["active_server_udp_ports"] = "Active UDP Server Ports",
     ["client_contacted_server_tcp_ports"] = "Contacted Server TCP Ports",
