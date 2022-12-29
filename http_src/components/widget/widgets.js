@@ -42,8 +42,9 @@ const DEFINED_EVENTS = {
 
         const serie = series[seriesIndex];
         if (serie.base_url !== undefined) {
+            const default_url = (serie.start_url || '') 
             const search = serie.data[dataPointIndex].meta.url_query;
-            location.href = `${serie.base_url}?${search}`;
+            location.href = `${serie.base_url}?${default_url}${search}`;
         }
     },
 }
@@ -98,7 +99,7 @@ const DEFINED_TOOLTIP = {
     },
     "format_label_from_xname" : function({series, seriesIndex, dataPointIndex, w}) {
         const serie = w.config.series[seriesIndex]["data"][dataPointIndex];
-        const name = w.config.series[seriesIndex]["name"]
+        const name = serie["name"]
         const y_value = serie["y"];
         const host_name = serie["meta"]["label"];
 
