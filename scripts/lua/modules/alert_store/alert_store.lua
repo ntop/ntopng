@@ -51,7 +51,7 @@ function alert_store:init(args)
    -- Example:
    -- {
    --   -- List of items
-   --   'alert_id' = { 
+   --   'alert_id' = {
    --     all = {
    --       -- List of AND conditions
    --       {
@@ -64,7 +64,7 @@ function alert_store:init(args)
    --     },
    --     any = {
    --       -- List of OR conditions
-   --     } 
+   --     }
    --   }
    -- }
    self._where = {}
@@ -81,7 +81,7 @@ end
 
 -- ##############################################
 
--- Get the table name for write operations (this may differ from the 
+-- Get the table name for write operations (this may differ from the
 -- tabel name (e.g. flows on clickhouse)
 function alert_store:get_write_table_name()
   if self._write_table_name then
@@ -139,7 +139,7 @@ function alert_store:get_ifid()
 
    ifid = tonumber(ifid)
 
-   -- The System Interface has the id -1 and in u_int16_t is 65535 
+   -- The System Interface has the id -1 and in u_int16_t is 65535
    if ifid == -1 then
       ifid = 65535
    end
@@ -200,8 +200,8 @@ end
 --@param epoch_end The end timestamp
 --@return True if set is successful, false otherwise
 function alert_store:add_time_filter(epoch_begin, epoch_end, is_write)
-   if not self._epoch_begin and 
-      tonumber(epoch_begin) and 
+   if not self._epoch_begin and
+      tonumber(epoch_begin) and
       tonumber(epoch_end) then
 
       self._epoch_begin = tonumber(epoch_begin)
@@ -213,7 +213,7 @@ function alert_store:add_time_filter(epoch_begin, epoch_end, is_write)
       field = self:get_column_name(field, is_write)
 
       self:add_filter_condition_raw(tstamp_column,
-        string.format("%s >= %u AND %s <= %u", 
+        string.format("%s >= %u AND %s <= %u",
           field, self._epoch_begin,
           field, self._epoch_end))
    end
@@ -226,7 +226,7 @@ end
 -- Get the 'real' field name (used by flow alerts where the flow table is a view
 -- and we write to the real table which has different column names)
 function alert_store:get_column_name(field, is_write)
-  return field 
+  return field
 end
 
 -- ##############################################
@@ -251,13 +251,13 @@ function alert_store:build_sql_cond(cond, is_write)
       sql_cond = string.format("(%s %s %u %s %s %s %u)",
          self:get_column_name('l7_proto', is_write),
          sql_op, cond.value,
-         ternary(cond.op == and_cond, 'AND', 'OR'), 
+         ternary(cond.op == and_cond, 'AND', 'OR'),
          self:get_column_name('l7_master_proto', is_write),
          sql_op, cond.value)
- 
+
    -- Special case: ip (with vlan)
    elseif cond.field == 'ip' or
-          cond.field == 'cli_ip' or 
+          cond.field == 'cli_ip' or
           cond.field == 'srv_ip' then
       local host = hostkey2hostinfo(cond.value)
       if not isEmptyString(host["host"]) then
@@ -265,7 +265,7 @@ function alert_store:build_sql_cond(cond, is_write)
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("(%s %s ('%s') %s %s %s ('%s'))",
                   self:get_column_name('cli_ip', is_write, cond.value), sql_op, cond.value,
-                  ternary(cond.op == 'neq', 'AND', 'OR'), 
+                  ternary(cond.op == 'neq', 'AND', 'OR'),
                   self:get_column_name('srv_ip', is_write, cond.value), sql_op, cond.value)
             else
                sql_cond = string.format("%s %s ('%s')", real_field, sql_op, cond.value)
@@ -273,14 +273,14 @@ function alert_store:build_sql_cond(cond, is_write)
          else
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("((%s %s ('%s') %s %s %s ('%s')) %s %s %s %u)",
-                  self:get_column_name('cli_ip', is_write, cond.value), sql_op, host["host"], 
+                  self:get_column_name('cli_ip', is_write, cond.value), sql_op, host["host"],
                   ternary(cond.op == 'neq', 'AND', 'OR'),
                   self:get_column_name('srv_ip', is_write, cond.value), sql_op, host["host"],
                   self:get_column_name('vlan_id', is_write),
                   ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
             else
-               sql_cond = string.format("(%s %s ('%s') %s %s %s %u)", 
-                 real_field, sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), 
+               sql_cond = string.format("(%s %s ('%s') %s %s %s %u)",
+                 real_field, sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'),
                  self:get_column_name('vlan_id', is_write),
                  sql_op, host["vlan"])
             end
@@ -289,7 +289,7 @@ function alert_store:build_sql_cond(cond, is_write)
 
    -- Special case: name (with vlan)
    elseif (cond.field == 'name' or
-           cond.field == 'cli_name' or 
+           cond.field == 'cli_name' or
            cond.field == 'srv_name') and
            (cond.op == 'eq' or cond.op == 'neq') then
       local host = hostkey2hostinfo(cond.value)
@@ -298,7 +298,7 @@ function alert_store:build_sql_cond(cond, is_write)
             if cond.field == 'name' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("(%s %s '%s' %s %s %s '%s')",
                   self:get_column_name('cli_name', is_write), sql_op, host["host"],
-                  ternary(cond.op == 'neq', 'AND', 'OR'), 
+                  ternary(cond.op == 'neq', 'AND', 'OR'),
                   self:get_column_name('srv_name', is_write), sql_op, host["host"])
             else
                sql_cond = string.format("%s %s '%s'", real_field, sql_op, host["host"])
@@ -306,14 +306,14 @@ function alert_store:build_sql_cond(cond, is_write)
          else
             if cond.field == 'name' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("((%s %s '%s' %s %s %s '%s') %s %s %s %u)",
-                  self:get_column_name('cli_name', is_write), sql_op, host["host"], 
+                  self:get_column_name('cli_name', is_write), sql_op, host["host"],
                   ternary(cond.op == 'neq', 'AND', 'OR'),
-                  self:get_column_name('srv_name', is_write), sql_op, host["host"], 
+                  self:get_column_name('srv_name', is_write), sql_op, host["host"],
                   ternary(cond.op == 'neq', 'OR', 'AND'),
                   self:get_column_name('vlan_id', is_write),
                   sql_op, host["vlan"])
             else
-               sql_cond = string.format("(%s %s '%s' %s %s %s %u)", real_field, sql_op, 
+               sql_cond = string.format("(%s %s '%s' %s %s %s %u)", real_field, sql_op,
                   host["host"],
                   ternary(cond.op == 'neq', 'OR', 'AND'),
                   self:get_column_name('vlan_id', is_write),
@@ -341,8 +341,8 @@ function alert_store:build_sql_cond(cond, is_write)
          local input_snmp  = self:get_column_name('input_snmp', is_write)
          local output_snmp = self:get_column_name('output_snmp', is_write)
 
-         sql_cond = input_snmp .. sql_op .. sql_val .." " .. 
-                ternary(cond.op == 'neq', 'AND', 'OR') .. " " .. 
+         sql_cond = input_snmp .. sql_op .. sql_val .." " ..
+                ternary(cond.op == 'neq', 'AND', 'OR') .. " " ..
                 output_snmp .. sql_op .. sql_val
       else
          local k = self:get_column_name(cond.field, is_write)
@@ -350,9 +350,9 @@ function alert_store:build_sql_cond(cond, is_write)
       end
 
       if probe_ip then
-         sql_cond = " (" .. sql_cond .. ")" .. 
-                ternary(cond.op == 'neq', 'OR', 'AND') .. " " .. 
-                self:get_column_name('probe_ip', is_write) .. sql_op .. string.format("('%s')", probe_ip) 
+         sql_cond = " (" .. sql_cond .. ")" ..
+                ternary(cond.op == 'neq', 'OR', 'AND') .. " " ..
+                self:get_column_name('probe_ip', is_write) .. sql_op .. string.format("('%s')", probe_ip)
       end
 
       sql_cond = " (" .. sql_cond .. ")"
@@ -370,10 +370,10 @@ function alert_store:build_sql_cond(cond, is_write)
    -- Special case: role (flow)
    elseif cond.field == 'flow_role' then
       if cond.value == 'attacker' then
-         sql_cond = string.format("(%s = 1 OR %s = 1)", 
+         sql_cond = string.format("(%s = 1 OR %s = 1)",
            self:get_column_name('is_cli_attacker', is_write), self:get_column_name('is_srv_attacker', is_write))
       elseif cond.value == 'victim' then
-         sql_cond = string.format("(%s = 1 OR %s = 1)", 
+         sql_cond = string.format("(%s = 1 OR %s = 1)",
            self:get_column_name('is_cli_victim', is_write), self:get_column_name('is_srv_victim', is_write))
       else -- 'no_attacker_no_victim'
          sql_cond = string.format("(%s = 0 AND %s = 0 AND %s = 0 AND %s = 0)",
@@ -448,7 +448,7 @@ function alert_store:build_where_clause(is_write)
    end
 
    -- Join all groups
-  
+
    -- AND groups
    for name, clause in pairs(and_clauses) do
       if isEmptyString(where_clause) then
@@ -486,10 +486,10 @@ function alert_store:eval_alert_cond(alert, cond)
       if tonumber(cond.value) == 0 --[[ Unknown --]] then and_cond = 'eq' end
 
       if cond.op == and_cond then
-         return tag_utils.eval_op(alert['l7_proto'], cond.op, cond.value) and 
+         return tag_utils.eval_op(alert['l7_proto'], cond.op, cond.value) and
                 tag_utils.eval_op(alert['l7_master_proto'], cond.op, cond.value)
       else
-         return tag_utils.eval_op(alert['l7_proto'], cond.op, cond.value) or 
+         return tag_utils.eval_op(alert['l7_proto'], cond.op, cond.value) or
                 tag_utils.eval_op(alert['l7_master_proto'], cond.op, cond.value)
       end
 
@@ -531,7 +531,7 @@ function alert_store:eval_alert_cond(alert, cond)
 
    -- Special case: hostname (with vlan)
    elseif (cond.field == 'name' or
-           cond.field == 'cli_name' or 
+           cond.field == 'cli_name' or
            cond.field == 'srv_name') and
            (cond.op == 'eq' or cond.op == 'neq') then
       local host = hostkey2hostinfo(cond.value)
@@ -609,7 +609,7 @@ function alert_store:filter_alerts(alerts)
    -- For all alerts
    for _, alert in ipairs(alerts) do
       local pass = true
-     
+
       -- For all fields
       for name, groups in pairs(self._where) do
 
@@ -681,18 +681,18 @@ function alert_store:add_filter_condition(field, op, value, value_type)
    if not op or not tag_utils.tag_operators[op] then
       op = 'eq'
    end
-  
+
    if value_type == 'number' then
      value = tonumber(value)
    end
-  
+
    local cond = {
       field = field,
       op = op,
       value = value,
       value_type = value_type,
    }
-  
+
    if not self._where[field] then
       self._where[field] = { all = {}, any = {} }
    end
@@ -793,7 +793,7 @@ function alert_store:add_order_by(sort_column, sort_order)
    -- Caching the order by depending on the user, the page and the interface id
    if sort_order and sort_column then
       local user = "no_user"
-      
+
       if (_SESSION) and (_SESSION["user"]) then
          user = _SESSION["user"]
       end
@@ -803,7 +803,7 @@ function alert_store:add_order_by(sort_column, sort_order)
    end
 
    -- Creating the order by if not defined and valid
-   if not self._order_by 
+   if not self._order_by
       and sort_column and self:_valid_fields(sort_column)
       and (sort_order == "asc" or sort_order == "desc") then
       self._order_by = {sort_column = sort_column, sort_order = sort_order}
@@ -816,7 +816,7 @@ end
 -- ##############################################
 
 function alert_store:group_by(fields)
-   if not self._group_by 
+   if not self._group_by
       and fields and self:_valid_fields(fields) then
       self._group_by = fields
       return true
@@ -900,6 +900,10 @@ function alert_store:select_historical(filter, fields)
 
    where_clause = self:build_where_clause()
 
+   if((filter ~= nil) and (string.len(filter) > 0)) then
+      where_clause = where_clause .. " AND "..filter
+   end
+
    -- [OPTIONAL] Add the group by
    if self._group_by then
       group_by_clause = string.format("GROUP BY %s", self._group_by)
@@ -923,7 +927,7 @@ function alert_store:select_historical(filter, fields)
    -- Prepare the final query
    -- NOTE: entity_id is necessary as alert_utils.formatAlertMessage assumes it to always be present inside the alert
    local q
-   
+
    if ntop.isClickHouseEnabled() then
       if(group_by_clause == "") then
 	 q = string.format(" SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, toUnixTimestamp(tstamp) as tstamp_epoch, toUnixTimestamp(tstamp_end) as tstamp_end_epoch, %s FROM `%s` WHERE %s %s %s %s",
@@ -942,6 +946,7 @@ function alert_store:select_historical(filter, fields)
       end
    end
 
+   -- tprint(q)
    res = interface.alert_store_query(q)
 
    if ntop.isClickHouseEnabled() then
@@ -953,7 +958,7 @@ function alert_store:select_historical(filter, fields)
          if record.tstamp_end_epoch then record.tstamp_end = record.tstamp_end_epoch
          elseif record.tstamp_end then record.tstamp_end = format_utils.parseDateTime(record.tstamp_end) end
 
-         -- first_seen is only used in where conditions as it is indexed,  
+         -- first_seen is only used in where conditions as it is indexed,
          -- using tstamp in select as it is commong to all alert tables
          -- if record.first_seen then record.first_seen = format_utils.parseDateTime(record.first_seen) end
 
@@ -1068,7 +1073,7 @@ function alert_store:count()
    if count_query then
       num_results = tonumber(count_query[1]["count"])
    end
-      
+
    return num_results
 end
 
@@ -1086,7 +1091,7 @@ function alert_store:has_alerts()
    end
 
    -- Now check for historical alerts written in the database. Slightly slower.
-      
+
    -- Fastest way to query SQLite for existance of records. Response will be either a string '1' if records exist,
    -- or '0' if records don't exist
    local q, res, has_historical_alerts
@@ -1294,7 +1299,7 @@ function alert_store:count_by_24h_historical()
    local where_clause = self:build_where_clause()
 
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
-   local q   
+   local q
    if ntop.isClickHouseEnabled() then
       q = string.format("SELECT (toUnixTimestamp(tstamp) - toUnixTimestamp(tstamp) %% %u) as hour, count(*) count FROM %s WHERE %s GROUP BY hour",
          time_slot_width, table_name, where_clause)
@@ -1377,7 +1382,7 @@ function alert_store:top_alert_id_historical()
    -- Preserve all the filters currently set
    local where_clause = self:build_where_clause()
    local limit = 10
-   
+
    local q = string.format("SELECT alert_id, count(*) count FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u",
 			   table_name, where_clause, limit)
 
@@ -1430,7 +1435,7 @@ function alert_store:format_top_alerts(stats)
       }
    end
 
-   return top_alerts 
+   return top_alerts
 end
 
 -- ##############################################
@@ -1508,7 +1513,7 @@ function alert_store:select_request(filter, select_fields)
 
       return alerts, total_rows, {}
    else -- Historical
-      
+
       -- Count
       local total_row = self:count()
 
@@ -1523,7 +1528,7 @@ end
 
 -- ##############################################
 
-function alert_store:get_earliest_available_epoch(status)   
+function alert_store:get_earliest_available_epoch(status)
    local table_name = self:get_table_name()
    -- Add filters (only needed for the status, must ignore all other filters)
    self:add_status_filter(status)
@@ -1613,7 +1618,7 @@ function alert_store:add_request_filters(is_write)
    self:add_filter_condition_list('score', score, 'number')
    self:add_filter_condition_list('tstamp', tstamp, 'number')
    self:add_filter_condition_list('info', info, 'string')
-   
+
    if(ntop.isClickHouseEnabled()) then
       -- Clickhouse db has the column 'interface_id', filter by that per interface
       self:add_filter_condition_list('interface_id', ifid, 'number')
@@ -1664,7 +1669,7 @@ end
 
 -- define the base record names of the document, both json and csv
 -- add a new record name here if you want to add a new base element
--- name: the actual record name 
+-- name: the actual record name
 -- export: use only in csv export, true the record is included in the csv, false otherwise
 -- in case an element is a table by default the 'value' key is exported, if you want to export multiple fields
 -- add an 'element' array specifing the field names to export, for example:
@@ -1686,9 +1691,9 @@ local BASE_RNAME = {
 function alert_store:format_json_record_common(value, entity_id)
    local record = {}
 
-   -- Note: this record is rendered by 
-   -- httpdocs/templates/pages/alerts/families/{host,..}/table[.js].template 
-   
+   -- Note: this record is rendered by
+   -- httpdocs/templates/pages/alerts/families/{host,..}/table[.js].template
+
    record[BASE_RNAME.FAMILY.name] = self:get_family()
 
    record[BASE_RNAME.ROW_ID.name] = value["rowid"]
@@ -1763,7 +1768,7 @@ function alert_store:get_rnames_to_export()
          rnames[key] = value
       end
    end
-   
+
    for key, value in pairs(self:get_rnames()) do
       if value.export then
          rnames[key] = value
@@ -1798,13 +1803,13 @@ function alert_store:build_csv_row_header(rnames)
    end
 
    row = string.sub(row, 2) -- remove first separator
-   
+
    return row;
 end
 
 function alert_store:build_csv_row(rnames, document)
    local row = ""
-   
+
    for _, rname in pairsByKeys(rnames) do
       local doc_value = document[rname.name]
       if type(doc_value) ~= "table" then
@@ -1817,9 +1822,9 @@ function alert_store:build_csv_row(rnames, document)
          end
       end
    end
-   
+
    row = string.sub(row, 2) -- remove first separator
-   
+
    return row
 end
 
@@ -1833,14 +1838,14 @@ function alert_store:build_csv_row_multiple_elements(value, elements)
       local splitted = string.split(element, "%.")
       if(splitted == nil) then
          row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(value[element]))
-      else 
+      else
          if #splitted > 2 then
             row = row .. self:build_csv_row_multiple_elements(value[splitted[1]], self:rebuild_sub_elements(splitted))
          else
-            row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(value[splitted[1]][splitted[2]]))   
+            row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(value[splitted[1]][splitted[2]]))
          end
       end
-   end   
+   end
    return row
 end
 
@@ -1868,21 +1873,21 @@ function alert_store:housekeeping(ifid)
    local prefs = ntop.getPrefs()
 
    -- By Number of records
-   
+
    local max_entity_alerts = prefs.max_entity_alerts
    local limit = math.floor(max_entity_alerts * 0.8) -- deletes 20% more alerts than the maximum number
 
    local q
    if ntop.isClickHouseEnabled() then
       q = string.format("ALTER TABLE `%s` DELETE WHERE %s = %d AND %s <= (SELECT %s FROM `%s` WHERE %s = %u ORDER BY %s DESC LIMIT 1 OFFSET %u)",
-			table_name, 
+			table_name,
                         self:get_column_name('interface_id', true),
-                        ifid, 
+                        ifid,
                         self:get_column_name('rowid', true),
                         self:get_column_name('rowid'),
-                        table_name, 
+                        table_name,
                         self:get_column_name('interface_id'),
-                        ifid, 
+                        ifid,
                         self:get_column_name('rowid'),
                         limit)
    else
@@ -1893,13 +1898,13 @@ function alert_store:housekeeping(ifid)
    local deleted = interface.alert_store_query(q)
 
    -- By Time
-   
+
    local now = os.time()
    local max_time_sec = prefs.max_num_secs_before_delete_alert
    local expiration_epoch = now - max_time_sec
 
    if ntop.isClickHouseEnabled() then
-      q = string.format("ALTER TABLE `%s` DELETE WHERE %s = %d AND tstamp < %u", 
+      q = string.format("ALTER TABLE `%s` DELETE WHERE %s = %d AND tstamp < %u",
          table_name,
          self:get_column_name('interface_id', true),
          ifid,
