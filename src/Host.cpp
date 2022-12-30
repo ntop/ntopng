@@ -837,7 +837,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_str_table_entry(vm, "ip", (ipaddr = printMask(ip_buf, sizeof(ip_buf))));
   lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
   lua_push_uint32_table_entry(vm, "observation_point_id", get_observation_point_id());
-
+  lua_push_bool_table_entry(vm, "serialize_by_mac", serializeByMac());
   lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
 
   lua_push_uint64_table_entry(vm, "ipkey", ip.key());

@@ -60,6 +60,8 @@ Flow::Flow(NetworkInterface *_iface,
   clearRisks();
   detection_completed = 0;
   non_zero_payload_observed = 0;
+  /* Note is_periodic_flow is updated by the updateFlowPeriodicity() call */
+  is_periodic_flow = 0;
   extra_dissection_completed = 0;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
@@ -804,7 +806,7 @@ void Flow::processExtraDissectedInformation() {
 	ndpi_risk_enum risk = ndpi_validate_url(protos.http.last_url);
 
 	if((risk != NDPI_NO_RISK) && (risk < NDPI_MAX_RISK))
-	  addRisk(2 << (risk-1));
+	  addRisk(((ndpi_risk)2) << (risk-1));
       }
 
       if((!protos.http.last_server) && ndpiFlow->http.server)
@@ -839,7 +841,15 @@ void Flow::processExtraDissectedInformation() {
   }
 
 #if defined(NTOPNG_PRO)
-  getInterface()->updateFlowPeriodicity(this);
+  getInterface()->updateFlowPeriodicity(this); /* <- here we eventually set is_periodic_flow */
+
+  if(is_periodic_flow) {
+    ndpi_risk_enum risk = NDPI_PERIODIC_FLOW;
+    ndpi_risk  r_bitmap = ((ndpi_risk)2) << (risk-1);
+
+    setRisk(r_bitmap);
+  }
+
   getInterface()->updateServiceMap(this);
 #endif
 
@@ -2543,7 +2553,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_int32_table_entry(vm, "l7_error_code", getErrorCode());
     lua_push_int32_table_entry(vm, "flow_verdict", flow_verdict);
-
+    lua_push_bool_table_entry(vm, "periodic_flow", is_periodic_flow ? true : false);
+    
     if(rtp_stream_type != rtp_unknown) {
       switch(rtp_stream_type) {
       case rtp_audio:
@@ -4153,7 +4164,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
     if((protos.icmp.client_to_server.min_entropy < 5)
        || (protos.icmp.client_to_server.max_entropy > 6)
        || ((protos.icmp.client_to_server.max_entropy-protos.icmp.client_to_server.min_entropy) > 0.3)) {
-      ndpi_risk r = (ndpi_risk)2 << (NDPI_SUSPICIOUS_ENTROPY-1);
+      ndpi_risk r = ((ndpi_risk)2) << (NDPI_SUSPICIOUS_ENTROPY-1);
       
       addRisk(r);
     }
@@ -5925,7 +5936,6 @@ void Flow::lua_get_ip(lua_State *vm, bool client) const {
     lua_push_str_table_entry(vm, client ? "cli.ip" : "srv.ip",
 			     h->get_ip()->printMask(buf, sizeof(buf),
 						    h->isLocalHost()));
-
     lua_push_uint64_table_entry(vm, client ? "cli.key" : "srv.key", mask_host ? 0 : h->key());
 
     if(h->isProtocolServer())
@@ -5948,8 +5958,10 @@ void Flow::lua_get_mac(lua_State *vm, bool client) const {
   char buf[24];
   Host *h = client ? get_cli_host() : get_srv_host();
 
-  if(h)
-    lua_push_str_table_entry(vm, client ? "cli.mac" : "srv.mac", Utils::formatMac(h->get_mac(), buf, sizeof(buf)));
+  if(h) {
+    lua_push_str_table_entry(vm, client ? "cli.mac" : "srv.mac", Utils::formatMac(h->get_mac(), buf, sizeof(buf)));    
+    lua_push_bool_table_entry(vm, client ? "cli.serialize_by_mac" : "srv.serialize_by_mac", h->serializeByMac());
+  }
 }
 
 /* ***************************************************** */

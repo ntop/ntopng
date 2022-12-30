@@ -76,21 +76,21 @@ for key, value in ipairs(flows_stats) do
    local info = ""
    -- use an italic font to indicate extra information added after sorting
    local italic = true
-   
+
    if(not isEmptyString(flows_info["info"])) then
       info = flows_info["info"]
-      italic = false   
+      italic = false
    elseif(not isEmptyString(flows_info["icmp"])) then
       flows_info["info"] = icmp_utils.get_icmp_type(value.icmp.type, true)
-      
+
       if(value.icmp.entropy ~= nil) then
 	 local e = value.icmp.entropy
 	 local diff = e.max - e.min
-	 	 
+
 	 if(icmp_utils.is_suspicious_entropy(e.min, e.max)) then
 	    flows_info["info"] = flows_info["info"] .. " <span class=\"badge bg-warning\">".. i18n("suspicious_payload") .."</span>"
 	 end
-      end  
+      end
    elseif(flows_info["proto.ndpi"] == "SIP") then
       info = getSIPInfo(flows_info)
    elseif(starts(flows_info["proto.ndpi"], "RTP")) then
@@ -105,28 +105,28 @@ for key, value in ipairs(flows_stats) do
 	 info = noHtml(info)
 	 info = info:gsub('"', '')
 	 local alt_info = info
-	 
+
 	 if italic then
 	    info = string.format("<i>%s</i>", info)
 	 end
 	 info = shortenString(info)
-	 
+
 	 -- Add extra icons to info column
 	 if (flows_info["protos.dns.last_query_type"] or flows_info["protos.dns.last_return_code"]) then
 	    local dns_info = format_dns_query_info({ last_query_type = flows_info["protos.dns.last_query_type"], last_return_code = flows_info["protos.dns.last_return_code"]})
-	    
+
 	    if(dns_info.last_query_type ~= 0) then
 	       info = dns_info.last_query_type .. " " .. dns_info.last_return_code .. " " .. info
 	    else
 	       info = dns_info.last_query_type .. info
 	    end
 	 end
-	 
+
 	 if flows_info["protos.http.last_return_code"] or flows_info["protos.http.last_method"] then
 	    local http_info = format_http_info({ last_return_code = flows_info["protos.http.last_return_code"], last_method = flows_info["protos.http.last_method"]})
 	    info = (http_info.last_return_code or '') .. " " .. http_info.last_method .. " " .. info
 	 end
-	 
+
 	 flows_info["info"] = "<span data-bs-toggle='tooltip' title='"..alt_info.."'>"..info.."</span>"
       end
    end
@@ -322,6 +322,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    local app = getApplicationLabel(value["proto.ndpi"])
 
+
    if(value["verdict.pass"] == false) then
       app = "<strike>"..app.."</strike>"
     end
@@ -365,6 +366,24 @@ end
 
    if isScoreEnabled() then
       record["column_score"] = format_utils.formatValue(value.score.flow_score)
+   end
+
+   if(value.periodic_flow) then
+      info = info .. " <A HREF='".. ntop.getHttpPrefix() .."/lua/pro/enterprise/network_maps.lua?map=periodicity_map&page=table"
+
+      if(info_cli.ip ~= nil) then
+	 local k
+
+	 if(value["cli.serialize_by_mac"] and (value["cli.mac"] ~= nil)) then
+	    k = value["cli.mac"]
+	 else
+	    k = value["cli.ip"]
+	 end
+	 
+	 info = info .. "&host=".. k .. "&l7proto=".. value["proto.ndpi"]
+      end
+
+      info = info .. "'><span class='badge bg-warning text-dark'>"..i18n("periodic_flow").."</span></h1></A>"
    end
 
    record["column_info"] = info

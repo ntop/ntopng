@@ -222,7 +222,11 @@ function getApplicationLabel(name, maxlen)
   -- Do not convert to upper case, keep the nDPI case
   --name = name:gsub("^%l", string.upper)
 
-  return(icon.." "..shortenString(name, maxlen))
+  if(icon == "") then
+     return(shortenString(name, maxlen))
+  else
+     return(icon.." "..shortenString(name, maxlen))
+  end
 end
 
 -- #################################

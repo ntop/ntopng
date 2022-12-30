@@ -181,6 +181,9 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
 
   /* NDPI_HTTP_OBSOLETE_SERVER */
   { { flow_alert_ndpi_http_obsolete_server, alert_category_security }, "ndpi_http_obsolete_server" },
+
+  /* NDPI_PERIODIC_FLOW */
+  { { flow_alert_ndpi_periodic_flow, alert_category_network }, "ndpi_periodic_flow" },
 };
 
 /* **************************************************** */

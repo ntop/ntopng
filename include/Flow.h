@@ -76,14 +76,14 @@ class Flow : public GenericHashEntry {
   } initial_bytes_entropy;
   
   u_int32_t hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table */
-  
+
   u_int16_t detection_completed:1, extra_dissection_completed:1,
     twh_over:1, twh_ok:1, dissect_next_http_packet:1, passVerdict:1,
     flow_dropped_counts_increased:1, quota_exceeded:1,
     swap_done:1, swap_requested:1,
     has_malicious_cli_signature:1, has_malicious_srv_signature:1,
     src2dst_tcp_zero_window:1, dst2src_tcp_zero_window:1,
-    non_zero_payload_observed:1, _notused:1;
+    non_zero_payload_observed:1, is_periodic_flow:1;
 
   enum ndpi_rtp_stream_type rtp_stream_type;
 #ifdef ALERTED_FLOWS_DEBUG
@@ -953,8 +953,10 @@ class Flow : public GenericHashEntry {
   inline u_int8_t  getCustomFlowAlertScore()     { return(customFlowAlert.score); }
   inline char*     getCustomFlowAlertMessage()   { return(customFlowAlert.msg); }
   void triggerCustomFlowAlert(u_int8_t score, char *msg);  
-  inline void setRTPStreamType(enum ndpi_rtp_stream_type s) { rtp_stream_type = s;     }
-  inline enum ndpi_rtp_stream_type getRTPStreamType()       { return(rtp_stream_type); }
+  inline void setRTPStreamType(enum ndpi_rtp_stream_type s) { rtp_stream_type = s;      }
+  inline enum ndpi_rtp_stream_type getRTPStreamType()       { return(rtp_stream_type);  }
+  inline void setPeriodicFlow()                             { is_periodic_flow = 1; }
+  inline bool isPeriodicFlow()                              { return(is_periodic_flow ? true : false); }
 };
 
 #endif /* _FLOW_H_ */

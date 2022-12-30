@@ -541,7 +541,6 @@ function flow_alert_store:_add_additional_request_filters()
 
    self:add_filter_condition_list(self:format_query_json_value('proto.l7_error_code'), error_code, 'string')
    self:add_filter_condition_list(self:format_query_json_value('proto.confidence'), confidence, 'string')
-
 end
 
 -- ##############################################
@@ -564,13 +563,13 @@ function flow_alert_store:_get_additional_available_filters()
       l7proto    = tag_utils.defined_tags.l7proto,
       info       = tag_utils.defined_tags.info,
 
-      cli_host_pool_id       = tag_utils.defined_tags.cli_host_pool_id,
-      srv_host_pool_id       = tag_utils.defined_tags.srv_host_pool_id,
+      cli_host_pool_id  = tag_utils.defined_tags.cli_host_pool_id,
+      srv_host_pool_id  = tag_utils.defined_tags.srv_host_pool_id,
       cli_network       = tag_utils.defined_tags.cli_network,
       srv_network       = tag_utils.defined_tags.srv_network,
 
-      l7_error_id     = tag_utils.defined_tags.l7_error_id,
-      confidence      = tag_utils.defined_tags.confidence,
+      l7_error_id       = tag_utils.defined_tags.l7_error_id,
+      confidence        = tag_utils.defined_tags.confidence,
       traffic_direction = tag_utils.defined_tags.traffic_direction,
 
       probe_ip = tag_utils.defined_tags.probe_ip,

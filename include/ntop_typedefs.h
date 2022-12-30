@@ -505,7 +505,8 @@ typedef enum {
   flow_alert_ndpi_risky_asn                       = 85,
   flow_alert_ndpi_risky_domain                    = 86,
   flow_alert_custom_lua_script                    = 87,
-
+  flow_alert_ndpi_periodic_flow                   = 88,
+  
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
   MAX_FLOW_ALERT_TYPE = 127 /* Constrained by `Bitmap128 alert_map` inside Flow.h */
