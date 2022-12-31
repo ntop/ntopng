@@ -54,6 +54,7 @@ Paginator::Paginator() {
   unidirectional_traffic = -1;
   alerted_flows = -1;
   filtered_flows = -1;
+  periodic_flows = -1;
   pool_filter = ((u_int16_t)-1);
   mac_filter = NULL;
   alert_type_filter = ((u_int16_t)-1);
@@ -225,6 +226,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  unidirectional_traffic = lua_toboolean(L, -1) ? 1 : 0;
 	else if (!strcmp(key, "alertedFlows"))
 	  alerted_flows = lua_toboolean(L, -1) ? 1 : 0;
+	else if (!strcmp(key, "periodicFlows"))
+	  periodic_flows = lua_toboolean(L, -1) ? 1 : 0;
 	else if (!strcmp(key, "filteredFlows"))
 	  filtered_flows = lua_toboolean(L, -1) ? 1 : 0;
 	//else

@@ -4404,7 +4404,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   LocationPolicy client_policy;
   LocationPolicy server_policy;
   TcpFlowStateFilter tcp_flow_state_filter;
-  bool unicast, unidirectional, alerted_flows, cli_pool_found = false, srv_pool_found = false;
+  bool unicast, unidirectional, alerted_flows, periodic_flows, cli_pool_found = false, srv_pool_found = false;
   u_int32_t asn_filter;
   char* username_filter;
   char* pidname_filter;
@@ -4627,6 +4627,12 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
        && retriever->pag->alertedFlows(&alerted_flows)
        && ((alerted_flows && !f->isFlowAlerted())
 	   || (!alerted_flows && f->isFlowAlerted())))
+      return(false);
+
+    if(retriever->pag
+       && retriever->pag->periodicFlows(&periodic_flows)
+       && ((periodic_flows && !f->isPeriodicFlow())
+	   || (!periodic_flows && f->isPeriodicFlow())))
       return(false);
 
     /* Flow Status filter */
@@ -5544,9 +5550,9 @@ int NetworkInterface::getFlows(lua_State* vm,
 /* **************************************************** */
 
 int NetworkInterface::getFlowsGroup(lua_State* vm,
-			       AddressTree *allowed_hosts,
-			       Paginator *p,
-			       const char *groupColumn) {
+				    AddressTree *allowed_hosts,
+				    Paginator *p,
+				    const char *groupColumn) {
   struct flowHostRetriever retriever;
   FlowGrouper *gper;
   u_int32_t begin_slot = 0;

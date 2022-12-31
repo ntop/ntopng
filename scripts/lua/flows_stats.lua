@@ -55,7 +55,7 @@ local inIfIdx  = _GET["inIfIdx"]
 local outIfIdx = _GET["outIfIdx"]
 
 local traffic_type = _GET["traffic_type"]
-local alert_type  = _GET["alert_type"]
+local alert_type   = _GET["alert_type"]
 local alert_type_severity  = _GET["alert_type_severity"]
 local tcp_state    = _GET["tcp_flow_state"]
 local port         = _GET["port"]

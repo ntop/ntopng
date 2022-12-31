@@ -3242,6 +3242,7 @@ local lang = {
     ["all_l4_protocols"] = "All Protocols",
     ["all_misbehaving"] = "All Misbehaving",
     ["all_networks"] = "All Networks",
+    ["all_periodic"] = "All Periodic",
     ["all_outIfIdx"] = "All Output Interfaces",
     ["all_proto"] = "All L7 Protocols",
     ["all_vlan_ids"] = "All VLANs",

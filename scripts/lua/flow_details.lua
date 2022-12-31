@@ -483,7 +483,13 @@ else
       print("</th><td colspan=2>" .. getFullVlanName(flow["vlan"]) .. "</td></tr>\n")
    end
 
-   print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, not ifstats.isViewed --[[ don't add hyperlinks, viewed interface don't have hosts --]], nil, nil, false --[[ add flags ]]).."</td></tr>\n")
+   print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, not ifstats.isViewed --[[ don't add hyperlinks, viewed interface don't have hosts --]], nil, nil, false --[[ add flags ]]))
+
+   if(flow.periodic_flow) then
+      print(" <span class='badge bg-warning text-dark'>"..i18n("periodic_flow").."</span>")
+   end
+
+   print("</td></tr>\n")
 
    print("<tr><th width=30%>"..i18n("protocol").." / "..i18n("application").."</th>")
    if((ifstats.inline and flow["verdict.pass"]) or (flow.vrfId ~= nil)) then
@@ -631,17 +637,17 @@ else
         num_rows = num_rows + 1
       end
 
-      if num_rows > 0 then
+      if(num_rows > 0) then
         print("<tr><th width=30% rowspan=".. num_rows ..">"..i18n("device_protocols.device_protocol_policy").."</th>")
 
-        if cli_show then
+        if(cli_show) then
           print("<td>"..i18n("device_protocols.devtype_as_proto_client", {devtype=discover.devtype2string(flow["cli.devtype"]), proto=interface.getnDPIProtoName(forbidden_proto)}).."</td>")
           print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. flow["cli.devtype"]) .."&l7proto=".. forbidden_proto .."\">")
           print(i18n(ternary(forbidden_peer ~= "cli", "allowed", "forbidden")))
           print("</a></td></tr><tr>")
         end
 
-        if srv_show then
+        if(srv_show) then
           print("<td>"..i18n("device_protocols.devtype_as_proto_server", {devtype=discover.devtype2string(flow["srv.devtype"]), proto=interface.getnDPIProtoName(forbidden_proto)}).."</td>")
           print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. flow["srv.devtype"]) .."&l7proto=".. forbidden_proto .."\">")
           print(i18n(ternary(forbidden_peer ~= "srv", "allowed", "forbidden")))
@@ -651,7 +657,7 @@ else
    end
 
    print("<tr><th width=33%>"..i18n("details.first_last_seen").."</th><td nowrap width=33%><div id=first_seen>"
-            .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " "..i18n("details.ago").."]" .. "</div></td>\n")
+	 .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " "..i18n("details.ago").."]" .. "</div></td>\n")
    print("<td nowrap><div id=last_seen>" .. formatEpoch(flow["seen.last"]) .. " [" .. secondsToTime(os.time()-flow["seen.last"]) .. " "..i18n("details.ago").."]" .. "</div></td></tr>\n")
 
    if flow["bytes"] > 0 then

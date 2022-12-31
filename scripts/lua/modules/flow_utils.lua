@@ -248,6 +248,9 @@ function getFlowsFilter()
 	 pageinfo["filteredFlows"] = false
       elseif alert_type == "alerted" then
 	 pageinfo["alertedFlows"] = true
+      elseif alert_type == "periodic" then
+	 pageinfo["periodicFlows"] = true
+	 pageinfo["filteredFlows"] = false
       elseif alert_type == "filtered" then
 	 pageinfo["filteredFlows"] = true
       else
@@ -1637,7 +1640,6 @@ local function printDropdownEntries(entries, base_url, param_arr, param_filter, 
       param_arr[param_filter] = htype[1]
       print[[<li]]
 
-
       print([[><a class="dropdown-item ]].. (htype[1] == curr_filter and 'active' or '') ..[[" href="]]) print(getPageUrl(base_url, param_arr)) print[[">]] print(htype[2]) print[[</a></li>]]
       ::continue::
    end
@@ -1713,6 +1715,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        local entries = {
 	  {"normal", i18n("flows_page.normal")},
 	  {"alerted", i18n("flows_page.all_alerted")},
+	  {"periodic", i18n("flows_page.all_periodic")},
        }
 
        local status_stats = flowstats["status"]

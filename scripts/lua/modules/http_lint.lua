@@ -493,7 +493,7 @@ local function validateAlertTypeNumber(status)
 end
 
 local function validateAlertType(mode)
-   local modes = {"normal", "alerted", "filtered"}
+   local modes = {"normal", "alerted", "filtered", "periodic"}
 
    if validateAlertTypeNumber(mode) then
       return true

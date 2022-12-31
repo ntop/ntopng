@@ -39,7 +39,7 @@ class Paginator {
   VLANid vlan_id_filter;
   u_int8_t ip_version /* Either 4 or 6 */;
   u_int8_t l4_protocol;
-  int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
+  int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows, periodic_flows;
   u_int32_t asn_filter;
   u_int32_t deviceIP;
   u_int32_t inIndex, outIndex;
@@ -176,19 +176,23 @@ class Paginator {
   }
 
   inline bool unidirectionalTraffic(bool *f) const {
-    if(unidirectional_traffic != -1) { (*f) = (unidirectional_traffic==1) ? true : false; return true; } return false;
+    if(unidirectional_traffic != -1) { (*f) = (unidirectional_traffic == 1) ? true : false; return true; } return false;
   }
 
   inline bool unicastTraffic(bool *f) const {
-    if(unicast_traffic != -1) { (*f) = (unicast_traffic==1) ? true : false; return true; } return false;
+    if(unicast_traffic != -1) { (*f) = (unicast_traffic == 1) ? true : false; return true; } return false;
   }
 
   inline bool alertedFlows(bool *f) const {
-    if(alerted_flows != -1) { (*f) = (alerted_flows==1) ? true : false; return true; } return false;
+    if(alerted_flows != -1) { (*f) = (alerted_flows == 1) ? true : false; return true; } return false;
+  }
+
+  inline bool periodicFlows(bool *f) const {
+    if(periodic_flows != -1) { (*f) = (periodic_flows == 1) ? true : false; return true; } return false;
   }
 
   inline bool filteredFlows(bool *f) const {
-    if(filtered_flows != -1) { (*f) = (filtered_flows==1) ? true : false; return true; } return false;
+    if(filtered_flows != -1) { (*f) = (filtered_flows == 1) ? true : false; return true; } return false;
   }
 };
 
