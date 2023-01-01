@@ -7026,7 +7026,7 @@ local lang = {
       ["abort_edit"] = "Abort edit of a Widget?",
     },
   },
-  ["ntop_age_to"] = "22",
+  ["ntop_age_to"] = "23",
 }
 
 return lang
