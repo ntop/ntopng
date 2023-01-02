@@ -120,42 +120,42 @@ const ntopChartApex = function() {
         
     // define default chartOptions for area chart type.
     const _default_TS_PIE_ChartOptions = function() {
-	let chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
-	let TS_STACKED_ChartOptions = {
-    chart: {
-      stacked: true,
-      type: "polarArea",
-      height: 400
-    },
-    yaxis: {
-      show: true,
-      labels: {
-        formatter: NtopUtils.bytesToSize
-      }
-    },
-    dataLabels: {
-      enabled: true,
-      formatter: function (val, opts) {
-        return (val ? `${val.toFixed(1)}%` : `0%`)
-      },
-    },
-    legend: {
-      enabled: true,
-      position: 'bottom',
-    },
-    stroke: {
-      show: false,
-      curve: "smooth"
-    },
-    fill: {
-      type: "solid"
-    },
-    tooltip: {
-      y: {
-        formatter: NtopUtils.bytesToSize
-      },
-    },
-	};
+      let chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
+      let TS_STACKED_ChartOptions = {
+        chart: {
+          stacked: true,
+          type: "polarArea",
+          height: 400
+        },
+        yaxis: {
+          show: true,
+          labels: {
+            formatter: NtopUtils.bytesToSize
+          }
+        },
+        dataLabels: {
+          enabled: true,
+          formatter: function (val, opts) {
+            return (val ? `${val.toFixed(1)}%` : `0%`)
+          },
+        },
+        legend: {
+          enabled: true,
+          position: 'bottom',
+        },
+        stroke: {
+          show: false,
+          curve: "smooth"
+        },
+        fill: {
+          type: "solid"
+        },
+        tooltip: {
+          y: {
+            formatter: NtopUtils.bytesToSize
+          },
+        },
+      };
 	ntopng_utility.copy_object_keys(TS_STACKED_ChartOptions, chartOptions, true);
 	return chartOptions;
     }();
@@ -208,12 +208,90 @@ const ntopChartApex = function() {
 	ntopng_utility.copy_object_keys(TS_LINE_ChartOptions, chartOptions, true);
 	return chartOptions;
     }();
+
+    const format_label_from_xname = function({ series, seriesIndex, dataPointIndex, w }) {
+      const serie = w.config.series[seriesIndex]["data"][dataPointIndex];
+      const name = serie["name"]
+      const y_value = serie["y"];
+      const host_name = serie["meta"]["label"];
+
+      const x_axis_title = w.config.xaxis.title.text;
+      const y_axis_title = w.config.yaxis[0].title.text;
+
+      return (`
+          <div class='apexcharts-theme-light apexcharts-active' id='test'>
+              <div class='apexcharts-tooltip-title' style='font-family: Helvetica, Arial, sans-serif; font-size: 12px;'>
+                  ${host_name}
+              </div>
+              <div class='apexcharts-tooltip-series-group apexcharts-active d-block'>
+                  <div class='apexcharts-tooltip-text text-left'>
+                      <b>${x_axis_title}</b>: ${name}
+                  </div>
+                  <div class='apexcharts-tooltip-text text-left'>
+                      <b>${y_axis_title}</b>: ${y_value}
+                  </div>
+              </div>
+          </div>`)
+    }
+
+    // define default chartOptions for line chart type.
+    const _default_TS_BUBBLE_ChartOptions = function() {
+	let chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
+  let TS_BUBBLE_ChartOptions = {
+    chart: {
+      width: '100%',
+      height: '100%',
+      stacked: true,
+      type: "bubble",
+      zoom: {
+        autoScaleYaxis: true
+      },
+    },
+    legend: {
+      enabled: true,
+      position: 'bottom',
+    },
+    stroke: {
+      show: false,
+      curve: "smooth"
+    },
+    fill: {
+      type: "solid"
+    },
+    events: {
+      dataPointSelection: "standard",
+    },
+    grid: {
+      padding: {
+        left: 6
+      },
+    },
+    xaxis: {
+      type: 'numeric',
+      labels: {}
+    },
+    yaxis: {
+      type: 'numeric',
+      forceNiceScale: true,
+      labels: {}
+    },
+    dataLabels: {
+      enabled: false
+    },
+    tooltip: {
+      custom: format_label_from_xname,
+    }
+  };
+	ntopng_utility.copy_object_keys(TS_BUBBLE_ChartOptions, chartOptions, true);
+	return chartOptions;
+    }();
     
     return {
 	typeChart: {
 	    TS_LINE: "TS_LINE",
 	    TS_STACKED: "TS_STACKED",
 	    PIE: "PIE",
+      BUBBLE: "BUBBLE",
 	    BASE: "BASE",
 	},
 	newChart: function(type) {
@@ -229,6 +307,8 @@ const ntopChartApex = function() {
         _setXTimeFormatter(_chartOptions);
 	    } else if (type == this.typeChart.PIE) {
         _chartOptions = ntopng_utility.clone(_default_TS_PIE_ChartOptions);
+      } else if (type == this.typeChart.BUBBLE) {
+        _chartOptions = ntopng_utility.clone(_default_TS_BUBBLE_ChartOptions);
       }  else if (type == this.typeChart.BASE) {
         _chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
       } else {

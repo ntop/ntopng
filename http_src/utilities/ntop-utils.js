@@ -1140,6 +1140,46 @@ export default class NtopUtils {
   static getNumTableRows() {
     return [10, 20, 50, 100];
   }
+
+  static formatApexChartLabelFromXandName({series, seriesIndex, dataPointIndex, w}) {
+    const serie = w.config.series[seriesIndex]["data"][dataPointIndex];
+    const name = serie["name"]
+    const y_value = serie["y"];
+    const host_name = serie["meta"]["label"];
+
+    const x_axis_title = w.config.xaxis.title.text;
+    const y_axis_title = w.config.yaxis[0].title.text;
+
+    return (`
+    <div class='apexcharts-theme-light apexcharts-active' id='test'>
+        <div class='apexcharts-tooltip-title' style='font-family: Helvetica, Arial, sans-serif; font-size: 12px;'>
+            ${host_name}
+        </div>
+        <div class='apexcharts-tooltip-series-group apexcharts-active d-block'>
+            <div class='apexcharts-tooltip-text text-left'>
+                <b>${x_axis_title}</b>: ${name}
+            </div>
+            <div class='apexcharts-tooltip-text text-left'>
+                <b>${y_axis_title}</b>: ${y_value}
+            </div>
+        </div>
+    </div>
+    `)
+  }
+
+  static apexChartJumpToAlerts(event, chartContext, config) {
+    const { seriesIndex, dataPointIndex } = config;
+    const { series } = config.config;
+    if (seriesIndex === -1) return;
+    if (series === undefined) return;
+
+    const serie = series[seriesIndex];
+    if (serie.base_url !== undefined) {
+        const default_url = (serie.start_url || '') 
+        const search = serie.data[dataPointIndex].meta.url_query;
+        location.href = `${serie.base_url}?${default_url}${search}`;
+    }
+  }
 }
 
 $(function () {
