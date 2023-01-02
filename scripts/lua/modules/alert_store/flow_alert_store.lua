@@ -73,6 +73,7 @@ end
 -- and we write to the real table which has different column names)
 function flow_alert_store:get_column_name(field, is_write, value)
    local col = field
+
    if is_write and self._write_table_name then
       -- This is using the flow table, in write mode we have to remap columns
 
@@ -92,12 +93,16 @@ function flow_alert_store:get_column_name(field, is_write, value)
          col = historical_flow_utils.get_flow_column_by_tag(field)
       end
 
-      if col then
-         return col
+      if not col then
+         col = field
+      end
+   else
+      if field == 'flow_risk' then
+         col = 'flow_risk_bitmap'
       end
    end
 
-   return field
+   return col
 end
 
 -- ##############################################
@@ -494,6 +499,7 @@ function flow_alert_store:_add_additional_request_filters()
    local srv_port = _GET["srv_port"]
    local vlan_id = _GET["vlan_id"]
    local l7proto = _GET["l7proto"]
+   local flow_risk = _GET["flow_risk"]
    local role = _GET["role"]
    local cli_country = _GET["cli_country"]
    local srv_country = _GET["srv_country"]
@@ -528,6 +534,7 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('srv_port', srv_port, 'number')
    self:add_filter_condition_list('flow_role', role)
    self:add_filter_condition_list('l7proto', l7proto, 'number')
+   self:add_filter_condition_list('flow_risk', flow_risk, 'number')
 
    self:add_filter_condition_list('cli_host_pool_id', cli_host_pool_id, 'number')
    self:add_filter_condition_list('srv_host_pool_id', srv_host_pool_id, 'number')
@@ -562,6 +569,7 @@ function flow_alert_store:_get_additional_available_filters()
       role       = tag_utils.defined_tags.role,
       l7proto    = tag_utils.defined_tags.l7proto,
       info       = tag_utils.defined_tags.info,
+      flow_risk  = tag_utils.defined_tags.flow_risk,
 
       cli_host_pool_id  = tag_utils.defined_tags.cli_host_pool_id,
       srv_host_pool_id  = tag_utils.defined_tags.srv_host_pool_id,
