@@ -49,7 +49,9 @@ local res = {}
 if asn then
   local as = interface.getASInfo(asn)
 
-  res[#res + 1] = format_asn_data(as)
+  if(as) then
+    res[#res + 1] = format_asn_data(as)
+  end
 else
   local asn_stats = interface.getASesInfo({ detailsLevel = "high" }) or {}
   local num_data = asn_stats.numASes or 0
