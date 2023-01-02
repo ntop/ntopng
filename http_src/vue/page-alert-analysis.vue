@@ -57,6 +57,7 @@ const rest_url = `${http_prefix}/lua/pro/rest/v2/charts/alert/analysis.lua`
 const widget_name = 'alerts-map';
 const active_filter_list = {}
 const bubble_chart = ref(null)
+const ordered_filter_list = ref({})
 
 const format_request = function() {
   let params_string = ''
@@ -140,6 +141,7 @@ onBeforeMount(() => {
       if(filter.currently_active)
         active_filter_list[name] = filter;
     })
+    ordered_filter_list[name] = filters.sort((a, b) => a.label.localeCompare(b.label))
   }
 });
 </script>
