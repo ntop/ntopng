@@ -1,6 +1,6 @@
 <template>
 <select class="select2 form-select" ref="select2" required name="filter_type" >
-  <option v-for="(item, i) in options_2" :selected="(item.value == selected_option_2.value)" :value="item.value" :disabled="item.disabled">
+  <option class="ntopng-dropdown-min-width" v-for="(item, i) in options_2" :selected="(item.value == selected_option_2.value)" :value="item.value" :disabled="item.disabled">
     {{item.label}}
   </option>
   <optgroup v-for="(item, i) in groups_options_2" :label="item.group">

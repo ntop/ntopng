@@ -1278,6 +1278,11 @@ local lang = {
     ["safe"] = "Safe Protocol",
     ["unsafe"] = "Unsafe Protocol",
   },
+  ["bubble_map"] = {
+    ["bubble_mode"] = "Filter By",
+    ["vlan"] = "VLAN",
+    ["timeframe"] = "Timeframe",
+  },
   ["capabilities"] = {
     ["active_monitoring"] = "Active Monitoring",
     ["alerts"] = "Alerts",

@@ -10,23 +10,28 @@
             <label class="my-auto me-1"></label>
             <div class="m-1" v-for="(value, key, index) in available_filters">
               <template v-if="value.length > 0">
-                <SelectSearch
-                  v-model:selected_option="active_filter_list[key]"
-                  :options="value"
-                  @select_option="click_item">
-                </SelectSearch>
+                <div style="min-width: 10rem;">
+                  <label class="my-auto me-1">{{ _i18n('bubble_map.' + key) }}: </label>
+                  <SelectSearch
+                    v-model:selected_option="active_filter_list[key]"
+                    :options="value"
+                    @select_option="click_item">
+                  </SelectSearch>
+                </div>
               </template>
             </div>
           </div>
-          <Chart
-            ref="bubble_chart"
-            :id="widget_name"
-            :chart_type="chart_type"
-            :base_url_request="rest_url"
-            :get_params_url_request="format_request"
-	          :get_custom_chart_options="get_f_get_custom_chart_options()"
-            :register_on_status_change="false">
-          </Chart>
+          <div :id="widget_name" style="height: 90%;">
+            <Chart
+              ref="bubble_chart"
+              :id="widget_name"
+              :chart_type="chart_type"
+              :base_url_request="rest_url"
+              :get_params_url_request="format_request"
+              :get_custom_chart_options="get_f_get_custom_chart_options()"
+              :register_on_status_change="false">
+            </Chart>
+          </div>
         </div>
       </div>
     </div>
@@ -41,6 +46,7 @@ import { default as SelectSearch } from "./select-search.vue";
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services";
 import NtopUtils from "../utilities/ntop-utils";
 
+const _i18n = (t) => i18n(t);
 const props = defineProps({
   ifid: String,
   page_csrf: String,
@@ -77,7 +83,12 @@ const format_request = function() {
 }
 
 const format_options = function(mode_id) {
-  let options = props.charts_options[mode_id]
+  let options = {}
+
+  props.charts_options.forEach((option_list) => {
+    if(option_list.mode_id == mode_id)
+      options = option_list;
+  })
 
   /* Add the corract event functions */
   if(options && options.chart && options.chart.ntop_events) {
@@ -141,7 +152,7 @@ onBeforeMount(() => {
       if(filter.currently_active)
         active_filter_list[name] = filter;
     })
-    ordered_filter_list[name] = filters.sort((a, b) => a.label.localeCompare(b.label))
   }
+  ordered_filter_list = props.available_filters
 });
 </script>
