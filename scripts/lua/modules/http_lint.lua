@@ -1739,6 +1739,7 @@ local known_parameters = {
    ["confidence"]              = validateListOfTypeInline(validateFilters(validateNumber)), -- client/server
    ["acknowledged"]            = validateListOfTypeInline(validateFilters(validateSingleWord)), -- acknowledged
    ["asn"]                     = validateNumber,                -- An ASN number
+   ["country_id"]              = validateNumber,                -- A Country Code
    ["module"]                  = validateTopModule,             -- A top script module
    ["step"]                    = validateNumber,                -- A step value
    ["cf"]                      = validateConsolidationFunction, -- An RRD consolidation function
