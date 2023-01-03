@@ -58,7 +58,7 @@ const props = defineProps({
 const currently_selected_chart = 0
 
 const chart_type = ntopChartApex.typeChart.BUBBLE
-const rest_url = `${http_prefix}/lua/pro/rest/v2/charts/alert/analysis.lua`
+const rest_url = `${http_prefix}/lua/rest/v2/charts/host/map.lua`
 const widget_name = 'alerts-map';
 const active_filter_list = {}
 const bubble_chart = ref(null)
@@ -67,8 +67,6 @@ const format_request = function() {
   let params_string = ''
   const params = {
     bubble_mode: ntopng_url_manager.get_url_entry('bubble_mode'),
-    timeframe: ntopng_url_manager.get_url_entry('timeframe'),
-    vlan: ntopng_url_manager.get_url_entry('vlan'),
     ifid: ntopng_url_manager.get_url_entry('ifid'),
   }
 
@@ -134,13 +132,9 @@ const click_item = function(item) {
 
 onBeforeMount(() => {
   /* Before mounting the various widgets, update the url to the correct one, by adding ifid, ecc. */
-  const timeframe = ntopng_url_manager.get_url_entry('timeframe');
-  const vlan = ntopng_url_manager.get_url_entry('vlan');
   const bubble_mode = ntopng_url_manager.get_url_entry('bubble_mode');
   
   if(!bubble_mode) ntopng_url_manager.set_key_to_url('bubble_mode', 0) /* First Entry */
-  if(!timeframe) ntopng_url_manager.set_key_to_url('timeframe', 300) /* Default 5 min */
-  if(!vlan) ntopng_url_manager.set_key_to_url('vlan', 0) /* Default no vlan */
   
   ntopng_url_manager.set_key_to_url('ifid', props.ifid) /* Current interface */
 

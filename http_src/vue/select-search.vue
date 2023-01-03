@@ -1,14 +1,14 @@
 <template>
-<select class="select2 form-select" ref="select2" required name="filter_type" >
-  <option class="ntopng-dropdown-min-width" v-for="(item, i) in options_2" :selected="(item.value == selected_option_2.value)" :value="item.value" :disabled="item.disabled">
-    {{item.label}}
-  </option>
-  <optgroup v-for="(item, i) in groups_options_2" :label="item.group">
-    <option v-for="(opt, j) in item.options" :selected="(opt.value == selected_option_2.value)" :value="opt.value" :disabled="opt.disabled">
-      {{opt.label}}
+  <select class="select2 form-select" ref="select2" required name="filter_type" >
+    <option class="ntopng-dropdown-min-width no-wrap" v-for="(item, i) in options_2" :selected="(item.value == selected_option_2.value)" :value="item.value" :disabled="item.disabled">
+      {{item.label}}
     </option>
-  </optgroup>
-</select>
+    <optgroup v-for="(item, i) in groups_options_2" :label="item.group">
+      <option v-for="(opt, j) in item.options" :selected="(opt.value == selected_option_2.value)" :value="opt.value" :disabled="opt.disabled">
+        {{opt.label}}
+      </option>
+    </optgroup>
+  </select>
 </template>
 
 <script setup>
@@ -148,7 +148,7 @@ const render = () => {
 	    height: '500px',
 	    theme: 'bootstrap-5',
 	    dropdownParent: $(select2Div).parent(),
-	    dropdownAutoWidth : true
+	    dropdownAutoWidth : true,
 	});
 	$(select2Div).on('select2:select', function (e) {
 	    let data = e.params.data;
