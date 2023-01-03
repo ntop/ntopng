@@ -3748,12 +3748,12 @@ local lang = {
     ["hosts_parameter_missing_message"] = "Hosts parameter is missing (internal error ?)",
   },
 ["alerts_analysis_page"] = {
-  ["flow_src_dst_score_count_density"] = "Client/Server",
-  ["flow_src_dst_alertid_density"]     = "Client/Server/AlertType",
-  ["flow_src_alertid_density"]         = "Client/AlertType",
-  ["flow_dst_alertid_density"]         = "Server/AlertType",
-  ["flow_src_score_count_density"]     = "Client",
-  ["flow_dst_score_count_density"]     = "Server",
+  ["flow_src_dst_alertid_density"]     = "AlertType: Client/Server",
+  ["flow_src_alertid_density"]         = "AlertType: Client",
+  ["flow_dst_alertid_density"]         = "AlertType: Server",
+  ["flow_src_dst_score_count_density"] = "Score: Client/Server",
+  ["flow_src_score_count_density"]     = "Score: Client",
+  ["flow_dst_score_count_density"]     = "Score: Server",
   
   ["labels"] = {
      ["f_type"]   = "Alert Type",
