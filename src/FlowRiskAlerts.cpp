@@ -184,9 +184,6 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
 
   /* NDPI_PERIODIC_FLOW */
   { { flow_alert_ndpi_periodic_flow, alert_category_network }, "ndpi_periodic_flow" },
-
-  /* NDPI_DNS_LARGE_PACKET */
-  { { flow_alert_ndpi_dns_large_packet, alert_category_security }, "ndpi_dns_large_packet" }    
 };
 
 /* **************************************************** */
