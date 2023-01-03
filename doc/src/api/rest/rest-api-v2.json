@@ -772,6 +772,72 @@
 				}
 			}
 		},
+		"/lua/rest/v2/get/asn/asn_name.lua": {
+			"post": {
+				"tags": [
+					"Autonomous System"
+				],
+				"summary": "Get Autonomous systems name",
+				"description": "Return the ASN name given an IP",
+				"operationId": "asn_name",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+            "name": "ip",
+            "in": "query",
+            "description": "IP Address",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+          "-2": {
+            "description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/country/country_name.lua": {
+			"post": {
+				"tags": [
+					"Country"
+				],
+				"summary": "Get Country Name",
+				"description": "Return the Country name given a country code",
+				"operationId": "country_code",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+            "name": "country_id",
+            "in": "query",
+            "description": "Country Code",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+          "-2": {
+            "description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
+		},
 		"/lua/rest/v2/get/alert/type/consts.lua": {
 			"get": {
 				"tags": [
