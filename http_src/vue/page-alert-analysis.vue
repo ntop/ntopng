@@ -10,7 +10,7 @@
             <label class="my-auto me-1"></label>
             <div class="m-1" v-for="(value, key, index) in available_filters">
               <template v-if="value.length > 0">
-                <div style="min-width: 10rem;">
+                <div style="min-width: 14rem;">
                   <label class="my-auto me-1">{{ _i18n('bubble_map.' + key) }}: </label>
                   <SelectSearch
                     v-model:selected_option="active_filter_list[key]"
