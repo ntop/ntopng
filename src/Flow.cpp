@@ -751,7 +751,7 @@ void Flow::processExtraDissectedInformation() {
 		  srv_host->setResolvedName((char*)ndpiFlow->protos.dns.ptr_domain_name);
 		else {
 		  /* This is not the right IPv4 host: let's cache it for later */
-		  
+
 		  ntop->getRedis()->setResolvedAddress(buf, (char*)ndpiFlow->protos.dns.ptr_domain_name);
 		}
 	      }
@@ -761,19 +761,19 @@ void Flow::processExtraDissectedInformation() {
 	      int i = 15;
 	      char *tmp, *item = strtok_r(ndpiFlow->host_server_name, ".", &tmp);
 	      struct ndpi_in6_addr ipv6_addr;
-	    
+
 	      while(item != NULL) {
 		a = strtol(item, NULL, 16);
 		item = strtok_r(NULL, ".", &tmp);
 		if(item) {
 		  b = strtol(item, NULL, 16);
-	       
+
 		  ipv6_addr.u6_addr.u6_addr8[i] = (b << 4) + a;
 
 		  if(--i < 0)
 		    break;
 		  else
-		    item = strtok_r(NULL, ".", &tmp);		  
+		    item = strtok_r(NULL, ".", &tmp);
 		}
 	      } /* while */
 
@@ -790,7 +790,7 @@ void Flow::processExtraDissectedInformation() {
 	  }
 	}
       }
-      
+
       /* No break */
     case NDPI_PROTOCOL_IEC60870:
       /*
@@ -2465,12 +2465,12 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	lua_newtable(vm);
 	lua_push_float_table_entry(vm,  "min", protos.icmp.client_to_server.min_entropy);
 	lua_push_float_table_entry(vm,  "max", protos.icmp.client_to_server.max_entropy);
-	
+
 	lua_pushstring(vm, "entropy");
 	lua_insert(vm, -2);
-	lua_settable(vm, -3);	
+	lua_settable(vm, -3);
       }
-            
+
       if(icmp_info)
 	icmp_info->lua(vm, NULL, iface, get_vlan_id());
 
@@ -2554,7 +2554,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_int32_table_entry(vm, "l7_error_code", getErrorCode());
     lua_push_int32_table_entry(vm, "flow_verdict", flow_verdict);
     lua_push_bool_table_entry(vm, "periodic_flow", is_periodic_flow ? true : false);
-    
+
     if(rtp_stream_type != rtp_unknown) {
       switch(rtp_stream_type) {
       case rtp_audio:
@@ -4139,14 +4139,14 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
      && cli2srv_direction
      && (payload != NULL)
      && (payload_len > 0)) {
-    /* 
+    /*
        We compute cli->srv entropy to see how much
-       packets are different and see if they are 
+       packets are different and see if they are
        repetitions or not
     */
     struct ndpi_analyze_struct e;
     float res;
-    
+
     ndpi_init_data_analysis(&e, 256);
     updateEntropy(&e, payload, payload_len);
     res = ndpi_data_entropy(&e);
@@ -4165,17 +4165,17 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
        || (protos.icmp.client_to_server.max_entropy > 6)
        || ((protos.icmp.client_to_server.max_entropy-protos.icmp.client_to_server.min_entropy) > 0.3)) {
       ndpi_risk r = ((ndpi_risk)2) << (NDPI_SUSPICIOUS_ENTROPY-1);
-      
+
       addRisk(r);
     }
-    
+
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Entropy %.23f - %.23f",
 				 protos.icmp.client_to_server.min_entropy,
 				 protos.icmp.client_to_server.max_entropy);
 #endif
   }
-  
+
   updatePacketStats(cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats(), when, update_iat);
 
   stats.incStats(cli2srv_direction, 1, pkt_len, payload_len);
@@ -4268,7 +4268,7 @@ void Flow::addFlowStats(bool new_flow,
     the average throughput. This prevents
     having flows with seemingly zero throughput.
   */
-  if(!new_flow && thp_delta_time <= 5) {
+  if((!new_flow) || (thp_delta_time <= 5) /* msec */) {
     /*
        If here, delta time is too small to enable meaningful throughput calculations
        using only bytes/packets delta. In this case, totals are used and averaged
@@ -4287,7 +4287,7 @@ void Flow::addFlowStats(bool new_flow,
       If here, delta time is enough to enable throughput estimations using
       bytes/packets delta. In this case, we can give throughput values
       that are averaged using the time delta, and not the overall flow lifetime.
-     */
+    */
     if(cli2srv_direction)
       updateThroughputStats(thp_delta_time * 1000, in_pkts, in_bytes, 0, out_pkts, out_bytes, 0);
     else
@@ -5959,7 +5959,7 @@ void Flow::lua_get_mac(lua_State *vm, bool client) const {
   Host *h = client ? get_cli_host() : get_srv_host();
 
   if(h) {
-    lua_push_str_table_entry(vm, client ? "cli.mac" : "srv.mac", Utils::formatMac(h->get_mac(), buf, sizeof(buf)));    
+    lua_push_str_table_entry(vm, client ? "cli.mac" : "srv.mac", Utils::formatMac(h->get_mac(), buf, sizeof(buf)));
     lua_push_bool_table_entry(vm, client ? "cli.serialize_by_mac" : "srv.serialize_by_mac", h->serializeByMac());
   }
 }
@@ -6871,12 +6871,12 @@ void Flow::lua_entropy(lua_State* vm) {
       lua_newtable(vm);
       lua_push_float_table_entry(vm,  "min", protos.icmp.client_to_server.min_entropy);
       lua_push_float_table_entry(vm,  "max", protos.icmp.client_to_server.max_entropy);
-      
+
       lua_pushstring(vm, "icmp");
       lua_insert(vm, -2);
-      lua_settable(vm, -3);	
+      lua_settable(vm, -3);
     }
-      
+
     lua_pushstring(vm, "entropy");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
