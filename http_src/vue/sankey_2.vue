@@ -24,6 +24,7 @@ const d3 = d3v7;
 const props = defineProps({
     width: Number,
     height: Number,
+    sankey_data: Object,
 });
 
 const sankey_chart_ref = ref(null);
@@ -31,13 +32,37 @@ const sankey_size = ref({});
 
 onBeforeMount(async() => {});
 
-onMounted(async () => {    
-    draw_sankey();
+onMounted(async () => {
+    set_sankey_data();
 });
+
+watch(() => props.sankey_data, (cur_value, old_value) => {
+    set_sankey_data();
+});
+
+function set_sankey_data() {
+    if (props.sankey_data.nodes == null || props.sankey_data.links == null) {
+	return;
+    }
+    draw_sankey();
+}
+
+function attach_events() {
+    window.addEventListener('resize', () => resize_chart());
+}
+
+function resize_chart() {
+    console.log("todo: on sankey resize");
+    // const size = get_size();
+    // var svg = d3.select("#bar-chart")
+    //     .append("svg")
+    //     .attr("width", width)
+    //     .attr("height", height);
+}
 
 async function draw_sankey() {
     const colors = d3.scaleOrdinal(d3.schemeCategory10);
-    let data = await get_sankey_data();
+    let data = props.sankey_data;//await get_sankey_data();
     const size = get_size();
     sankey_size.value = size;
     const { links, nodes } = calculate_sankey(data, size.width - 10, size.height - 5);
@@ -214,6 +239,30 @@ async function draw_sankey() {
 	);
 }
 
+function get_size() {
+    let width = props.width;
+    if (width == null) { width = window.innerWidth - 200; }
+    let height = props.height;
+    if (height == null) { height = window.innerHeight - 50; }
+
+    return { width, height };
+}
+
+function calculate_sankey(data, width, height) {
+    const sankeyimpl = d3.sankey()
+	  .nodeAlign(d3.sankeyCenter)
+	  .nodeWidth(10)
+	  .nodePadding(10)
+	  .extent([
+	      [0, 5],
+	      [width, height]
+	  ]);
+    
+    return sankeyimpl(data);
+}
+
+const _i18n = (t) => i18n(t);
+
 async function get_sankey_data() {
     const rsp = [
 	{
@@ -307,60 +356,10 @@ async function get_sankey_data() {
 
     data = wrap_graph_rsp(rsp);
 
-    debugger;
     return data;
 }
-
-function wrap_graph_rsp(rsp) {
-    let nodes = [];
-    let links = [];
-
-    let nodes_added_dict = {};
-    let links_added_dict = {};
-    const f_add_node = (node_id, href, color) => {
-	if (nodes_added_dict[node_id] != null) { return; }
-	let index = nodes.length;
-	nodes_added_dict[node_id] = index;
-	let new_node = { index, name: node_id, href, color };
-	nodes.push(new_node);
-    };
-    const f_add_link = (source, target, value, label) => {
-	const source_index = nodes_added_dict[source];
-	const target_index = nodes_added_dict[target];
-	let new_link = { source: source_index, target: target_index, value, label };
-	links.push(new_link);
-    };
-    rsp.forEach((el) => {
-	f_add_node(el.source, el.source_link, el.source_color);
-	f_add_node(el.target, el.target_link, el.target_color);
-	f_add_link(el.source, el.target, el.value, el.link);
-    });
-    return { nodes, links };
-}
-
-function get_size() {
-    let width = props.width;
-    if (width == null) { width = window.innerWidth - 200; }
-    let height = props.height;
-    if (height == null) { height = window.innerHeight - 50; }
-
-    return { width, height };
-}
-
-function calculate_sankey(data, width, height) {
-    const sankeyimpl = d3.sankey()
-	  .nodeAlign(d3.sankeyCenter)
-	  .nodeWidth(10)
-	  .nodePadding(10)
-	  .extent([
-	      [0, 5],
-	      [width, height]
-	  ]);
     
-    return sankeyimpl(data);
-}
-
-const _i18n = (t) => i18n(t);
+defineExpose({ draw_sankey });
 
 </script>
 
