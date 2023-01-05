@@ -403,6 +403,28 @@ end
 
 -- #################################
 
+local function add_top_network_timeseries(tags, timeseries)
+  local network_top_ts_enabled = ntop.getPref("ntopng.prefs.intranet_traffic_rrd_creation")
+  
+  ts_utils.loadSchemas()
+  
+  -- Top l7 Categories
+  if network_top_ts_enabled and tags.subnet then
+    network.select(tonumber(ntop.getLocalNetworkID(tags.subnet)))
+    local net_stats = network.getNetworkStats() or {}
+    for second_subnet, _ in pairs(net_stats["intranet_traffic"]) do
+      local label_1 = getFullLocalNetworkName(tags.subnet)
+      local label_2 = getFullLocalNetworkName(second_subnet)
+      
+      timeseries[#timeseries + 1] = { schema = "subnet:intranet_traffic_min", priority = 3, query = "subnet_2:" .. second_subnet, label = i18n("graphs.intranet_traffic", { net_1 = label_1, net_2 = label_2 }), measure_unit = "bps", scale = 0, timeseries = { bytes_sent = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { invert_direction = true, label = i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }} }
+    end
+  end
+  
+  return timeseries
+end
+
+-- #################################
+
 local function add_top_host_timeseries(tags, timeseries)
   local host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation")
   local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
@@ -530,6 +552,9 @@ local function add_top_timeseries(tags, prefix, timeseries)
   elseif prefix == 'snmp' then
     -- Add the active monitoring timeseries
     timeseries = add_top_snmp_timeseries(tags, timeseries)
+  elseif prefix == 'subnet' then
+    -- Add the active monitoring timeseries
+    timeseries = add_top_network_timeseries(tags, timeseries)
   end
 
   return timeseries

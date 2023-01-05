@@ -16,6 +16,7 @@ local asn = _GET["asn"]
 local pool = _GET["pool"]
 local vlan = _GET["vlan"]
 local mac = _GET["mac"]
+local subnet = _GET["subnet"]
 
 local res = {}
 
@@ -34,6 +35,7 @@ local tags = {
   pool = pool,
   vlan = vlan,
   mac  = mac,
+  subnet = subnet,
 }
 
 res = table.merge(res, timeseries_info.retrieve_specific_timeseries(tags, query))
