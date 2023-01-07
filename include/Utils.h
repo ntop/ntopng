@@ -274,6 +274,8 @@ public:
   static int openSocket(int domain, int type, int protocol, const char *label);
   static void closeSocket(int socket);
   static const char** getMessagingTopics();
+  static bool toHex(char *in, u_int in_len, char *out, u_int out_len);
+  static bool fromHex(char *in, u_int in_len, char *out, u_int out_len);
 };
 
 #endif /* _UTILS_H_ */

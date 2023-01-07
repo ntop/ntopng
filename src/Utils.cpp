@@ -5259,3 +5259,45 @@ const char** Utils::getMessagingTopics() {
 }
     
 /* ******************************************* */
+
+bool Utils::toHex(char *in, u_int in_len, char *out, u_int out_len) {
+  u_int i, j;
+  static const char hex_digits[] = "0123456789ABCDEF";
+  
+  if(in_len > (2*out_len))
+    return(false);
+
+  for(i=0, j=0; i<in_len; i++) {
+    u_char c = (u_char)in[i];
+    
+    out[j++] = hex_digits[c >> 4];
+    out[j++] = hex_digits[c & 15];
+  }
+
+  out[j] = '\0';
+
+  return(true);
+}
+
+/* ******************************************* */
+
+bool Utils::fromHex(char *in, u_int in_len, char *out, u_int out_len) {
+  u_int i, j;
+
+  if((in_len/2) > out_len)
+    return(false);
+
+  for(i=0, j=0; i<in_len;) {
+    char s[3];
+
+    s[0] = in[i], s[1] = in[i+1], s[2] = 0;
+    out[j++] = strtoul(s, NULL, 16);
+    
+    i += 2;
+  }
+
+  out[j] = '\0';
+
+  return(true);
+}
+

@@ -565,8 +565,12 @@ void ZMQCollectorInterface::lua(lua_State* vm) {
   lua_settable(vm, -3);
 
   if(ntop->getPrefs()->is_zmq_encryption_enabled() && strlen(server_public_key) > 0) {
+    char hex_key[83];
+
+    Utils::toHex(server_public_key, strlen(server_public_key), hex_key, sizeof(hex_key));
+    
     lua_newtable(vm);
-    lua_push_str_table_entry(vm, "public_key", server_public_key);
+    lua_push_str_table_entry(vm, "public_key", hex_key);
     lua_pushstring(vm, "encryption");
     lua_insert(vm, -2);
     lua_settable(vm, -3);

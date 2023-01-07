@@ -57,34 +57,34 @@ ExportInterface::ExportInterface(const char *_endpoint, const char *_topic) {
 
     if (strlen(server_public_key) != 40) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad ZMQ server public key size (%lu != 40) '%s'", 
-        strlen(server_public_key), server_public_key);
+				   strlen(server_public_key), server_public_key);
       throw("Bad ZMQ server public key size");
     }
 
     rc = zmq_setsockopt(publisher, ZMQ_CURVE_SERVERKEY,
-      server_public_key, strlen(server_public_key)+1);
+			server_public_key, strlen(server_public_key)+1);
 
     if (rc != 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Error setting ZMQ_CURVE_SERVERKEY = %s (%d)", 
-        server_public_key, errno);
+				   server_public_key, errno);
       throw("Error setting ZMQ_CURVE_SERVERKEY");
     }
-
+    
     rc = zmq_setsockopt(publisher, ZMQ_CURVE_PUBLICKEY,
-      client_public_key, strlen(client_public_key)+1);
-
+			client_public_key, strlen(client_public_key)+1);
+    
     if (rc != 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Error setting ZMQ_CURVE_PUBLICKEY = %s",
-        client_public_key);
+				   client_public_key);
       throw("Error setting ZMQ_CURVE_PUBLICKEY");
     }
 
     rc = zmq_setsockopt(publisher, ZMQ_CURVE_SECRETKEY, client_secret_key, 
-      strlen(client_secret_key)+1);
+			strlen(client_secret_key)+1);
 
     if (rc != 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Error setting ZMQ_CURVE_SECRETKEY = %s",
-        client_secret_key);
+				   client_secret_key);
       throw("Error setting ZMQ_CURVE_SECRETKEY");
     }
   }
