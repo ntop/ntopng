@@ -427,7 +427,7 @@ ALTER TABLE host_alerts ADD COLUMN IF NOT EXISTS `country` String
 
 @
 
-DROP VIEW IF EXISTS `all_alerts`;
+DROP VIEW IF EXISTS `all_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `all_alerts_view` AS
 SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `active_monitoring_alerts`
