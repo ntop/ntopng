@@ -16,6 +16,7 @@ It Combines extensive network visibility with configurable security policies.
    policies
    bandwidth_control
    security
+   vlan
    dns
    captive_portal
    bridging

@@ -154,6 +154,7 @@ Network Matrix Timeseries
   Network Matrix is not avaailble in the community edition.
 
   ntopng can store timeseries for communicatins across local networks, called Network Matrix.
+  
 It represent the traffic done between Local Networks (can be added to ntopng using the `-m` option in the configuration file), both sent and received.
 
 .. figure:: ../img/basic_concepts_timeseries_enable_network_matrix.png
@@ -166,6 +167,8 @@ This pspecific timeseries is reported in all time presets except the last 5 minu
 .. figure:: ../img/basic_concepts_timeseries_jump_to_network_matrix.png
   :align: center
   :alt: Network Matrix Preference
+
+|
 
 .. figure:: ../img/basic_concepts_timeseries_network_matrix.png
   :align: center
