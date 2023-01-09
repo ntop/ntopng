@@ -102,7 +102,7 @@ if(allow_pcap_download ~= nil) then
    if(tonumber(allow_pcap_download) == 1) then
       allow_pcap_download_enabled = true;
    end
-   if(not ntop.changeUserPermission(username, allow_pcap_download_enabled)) then
+   if(not ntop.changePcapDownloadPermission(username, allow_pcap_download_enabled)) then
       rest_utils.answer(rest_utils.consts.err.edit_user_failed, res)
       return
    end

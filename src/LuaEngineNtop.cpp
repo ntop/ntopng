@@ -2326,7 +2326,7 @@ static int ntop_change_user_language(lua_State* vm) {
 
 static int ntop_change_user_historical_flow_permission(lua_State* vm) {
   char *username;
-  bool allow_historical_flow = false;
+  bool allow_historical_flows = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2337,15 +2337,36 @@ static int ntop_change_user_historical_flow_permission(lua_State* vm) {
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-    allow_historical_flow = lua_toboolean(vm, 2) ? true : false;
+    allow_historical_flows = lua_toboolean(vm, 2) ? true : false;
 
-  lua_pushboolean(vm, ntop->changeUserHistoricalFlowPermission(username, allow_historical_flow));
+  lua_pushboolean(vm, ntop->changeUserHistoricalFlowPermission(username, allow_historical_flows));
   return CONST_LUA_OK;
 }
 
 /* ****************************************** */
 
-static int ntop_change_user_permission(lua_State* vm) {
+static int ntop_change_user_alerts_permission(lua_State* vm) {
+  char *username;
+  bool allow_alerts = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!allowLocalUserManagement(vm))
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+    allow_alerts = lua_toboolean(vm, 2) ? true : false;
+
+  lua_pushboolean(vm, ntop->changeUserAlertsPermission(username, allow_alerts));
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
+static int ntop_change_user_pcap_download_permission(lua_State* vm) {
   char *username;
   bool allow_pcap_download = false;
 
@@ -2360,7 +2381,7 @@ static int ntop_change_user_permission(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
     allow_pcap_download = lua_toboolean(vm, 2) ? true : false;
 
-  lua_pushboolean(vm, ntop->changeUserPermission(username, allow_pcap_download));
+  lua_pushboolean(vm, ntop->changeUserPcapDownloadPermission(username, allow_pcap_download));
   return CONST_LUA_OK;
 }
 
@@ -2534,7 +2555,8 @@ static int ntop_add_user(lua_State* vm) {
   char *username, *full_name, *password, *host_role, *allowed_networks, *allowed_interface;
   char *host_pool_id = NULL, *language = NULL;
   bool allow_pcap_download = false;
-  bool allow_historical_flow = false;
+  bool allow_historical_flows = false;
+  bool allow_alerts = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2569,10 +2591,14 @@ static int ntop_add_user(lua_State* vm) {
     allow_pcap_download = lua_toboolean(vm, 9);
 
   if(lua_type(vm, 10) == LUA_TBOOLEAN)
-    allow_historical_flow = lua_toboolean(vm, 10);
+    allow_historical_flows = lua_toboolean(vm, 10);
+
+  if(lua_type(vm, 11) == LUA_TBOOLEAN)
+    allow_alerts = lua_toboolean(vm, 11);
 
   lua_pushboolean(vm, ntop->addUser(username, full_name, password, host_role,
-				    allowed_networks, allowed_interface, host_pool_id, language, allow_pcap_download, allow_historical_flow));
+				    allowed_networks, allowed_interface, host_pool_id, language,
+				    allow_pcap_download, allow_historical_flows, allow_alerts));
 
   return CONST_LUA_OK;
 }
@@ -6689,8 +6715,9 @@ static luaL_Reg _ntop_reg[] = {
   { "changeUserHostPool",   ntop_change_user_host_pool },
   { "changeUserFullName",   ntop_change_user_full_name },
   { "changeUserLanguage",   ntop_change_user_language  },
-  { "changeUserPermission", ntop_change_user_permission },
+  { "changePcapDownloadPermission", ntop_change_user_pcap_download_permission },
   { "changeHistoricalFlowPermission", ntop_change_user_historical_flow_permission },
+  { "changeAlertsPermission", ntop_change_user_alerts_permission },
   { "addUser",              ntop_add_user },
   { "deleteUser",           ntop_delete_user },
   { "createUserSession",    ntop_create_user_session },

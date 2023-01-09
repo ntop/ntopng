@@ -458,14 +458,17 @@ public:
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;
   bool changeUserHostPool(const char * username, const char * host_pool_id) const;
   bool changeUserLanguage(const char * username, const char * language) const;
-  bool changeUserPermission(const char * username, bool allow_pcap_download, u_int32_t ttl = 0 /* Forever */) const;
-  bool changeUserHistoricalFlowPermission(const char * username, bool allow_historical_flow, u_int32_t ttl = 0 /* Forever */) const;
+  bool changeUserPcapDownloadPermission(const char * username, bool allow_pcap_download, u_int32_t ttl = 0 /* Forever */) const;
+  bool changeUserHistoricalFlowPermission(const char * username, bool allow_historical_flows, u_int32_t ttl = 0 /* Forever */) const;
+  bool changeUserAlertsPermission(const char * username, bool allow_alerts, u_int32_t ttl = 0 /* Forever */) const;
   bool getUserCapabilities(const char * username, bool *allow_pcap_download,
-			   bool *allow_historical_flow) const;  
+			   bool *allow_historical_flows,
+			   bool *allow_alerts) const;  
   bool existsUser(const char * username) const;
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id,
-	       char *language, bool allow_pcap_download, bool allow_historical_flow);
+	       char *language, bool allow_pcap_download, bool allow_historical_flows,
+               bool allow_alerts);
   bool addUserAPIToken(const char * username, const char *api_token);
   bool isCaptivePortalUser(const char * username);
   bool deleteUser(char *username);

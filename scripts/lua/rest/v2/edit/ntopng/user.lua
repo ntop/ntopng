@@ -32,7 +32,8 @@ local networks = _POST["allowed_networks"]
 local allowed_interface = _POST["allowed_interface"]
 local language = _POST["user_language"]
 local allow_pcap_download = _POST["allow_pcap_download"]
-local allow_historical_flow = _POST["allow_historical_flow"]
+local allow_historical_flows = _POST["allow_historical_flows"]
+local allow_alerts = _POST["allow_alerts"]
 local password = _POST["password"]
 local confirm_password = _POST["confirm_password"]
 
@@ -45,11 +46,12 @@ if host_role == nil and
     networks == nil and
     allowed_interface == nil and
     allow_pcap_download == nil and 
+    allow_alerts == nil and 
     language == nil and
     full_name == nil and
     (password == nil or confirm_password == nil) and
     host_pool_id == nil and
-    allow_historical_flow == nil then
+    allow_historical_flows == nil then
     rest_utils.answer(rest_utils.consts.err.invalid_args, res)
    return
 end
@@ -103,7 +105,7 @@ if(allow_pcap_download ~= nil) then
    if(tonumber(allow_pcap_download) == 1) then
       allow_pcap_download_enabled = true;
    end
-   if(not ntop.changeUserPermission(username, allow_pcap_download_enabled)) then
+   if(not ntop.changePcapDownloadPermission(username, allow_pcap_download_enabled)) then
       rest_utils.answer(rest_utils.consts.err.edit_user_failed, res)
       return
    end
@@ -129,12 +131,23 @@ if(password ~= nil and confirm_password ~= nil) then
    end
 end
 
-if(allow_historical_flow ~= nil) then
-  local allow_historical_flow_enabled = false
-  if(tonumber(allow_historical_flow) == 1) then
-     allow_historical_flow_enabled = true;
+if(allow_historical_flows ~= nil) then
+  local allow_historical_flows_enabled = false
+  if(tonumber(allow_historical_flows) == 1) then
+     allow_historical_flows_enabled = true;
   end
-  if(not ntop.changeHistoricalFlowPermission(username, allow_historical_flow_enabled)) then
+  if(not ntop.changeHistoricalFlowPermission(username, allow_historical_flows_enabled)) then
+    rest_utils.answer(rest_utils.consts.err.edit_user_failed, res)
+    return
+  end
+end
+
+if(allow_alerts ~= nil) then
+  local allow_alerts_enabled = false
+  if(tonumber(allow_alerts) == 1) then
+     allow_alerts_enabled = true;
+  end
+  if(not ntop.changeAlertsPermission(username, allow_alerts_enabled)) then
     rest_utils.answer(rest_utils.consts.err.edit_user_failed, res)
     return
   end

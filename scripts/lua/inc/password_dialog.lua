@@ -152,10 +152,14 @@ print [[
         label = i18n("manage_users.allow_pcap_download_descr"),
        }))
 
+      print(template.gen("on_off_switch.html", {
+        id = "allow_historical_flows",
+        label = i18n("manage_users.allow_historical_flows_descr"),
+      }))
 
       print(template.gen("on_off_switch.html", {
-        id = "allow_historical_flow",
-        label = i18n("manage_users.allow_historical_flow_descr"),
+        id = "allow_alerts",
+        label = i18n("manage_users.allow_alerts_descr"),
       }))
 
     print[[
@@ -407,7 +411,8 @@ function reset_pwd_dialog(user) {
         $('#user_language option[value="' + data.language + '"]').attr('selected','selected');
         
       $('#allow_pcap_download').prop('checked', data.allow_pcap_download === true ? true : false);
-      $('#allow_historical_flow').prop('checked', data.allow_historical_flow === true ? true : false);
+      $('#allow_historical_flows').prop('checked', data.allow_historical_flows === true ? true : false);
+      $('#allow_alerts').prop('checked', data.allow_alerts === true ? true : false);
       
       if(data.host_pool_id) {
         $('#old_host_pool_id').val(data.host_pool_id);

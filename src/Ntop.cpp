@@ -1112,7 +1112,11 @@ void Ntop::getUsers(lua_State* vm) {
 
     snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_ALLOW_HISTORICAL_FLOW, username);
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
-      lua_push_bool_table_entry(vm, "allow_historical_flow", true);
+      lua_push_bool_table_entry(vm, "allow_historical_flows", true);
+
+    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_ALLOW_ALERTS, username);
+    if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
+      lua_push_bool_table_entry(vm, "allow_alerts", true);
 
     snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_NETS, username);
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
@@ -1279,9 +1283,10 @@ bool Ntop::isPcapDownloadAllowed(lua_State* vm, const char *ifname) {
 
   if(isInterfaceAllowed(vm, ifname)) {
     char *username = getLuaVMUserdata(vm,user);
-    bool allow_historical_flow;
+    bool allow_historical_flows;
+    bool allow_alerts;
     
-    ntop->getUserCapabilities(username, &allow_pcap_download, &allow_historical_flow);
+    ntop->getUserCapabilities(username, &allow_pcap_download, &allow_historical_flows, &allow_alerts);
   }
 
   return(allow_pcap_download);
@@ -1666,8 +1671,9 @@ bool Ntop::checkUserPassword(const char * user, const char * password, char *gro
       }
 
       if(has_unprivileged_capabilities) {
-	changeUserPermission(user, true, 86400 /* 1 day */);
+	changeUserPcapDownloadPermission(user, true, 86400 /* 1 day */);
 	changeUserHistoricalFlowPermission(user, true, 86400 /* 1 day */);
+	changeUserAlertsPermission(user, true, 86400 /* 1 day */);
       } else {
 	char key[64];
 
@@ -1675,6 +1681,9 @@ bool Ntop::checkUserPassword(const char * user, const char * password, char *gro
 	ntop->getRedis()->del(key);
 
 	snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, user);
+	ntop->getRedis()->del(key);
+
+	snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, user);
 	ntop->getRedis()->del(key);
       }
       
@@ -2045,7 +2054,7 @@ bool Ntop::changeUserLanguage(const char * username, const char * language) cons
 
 /* ******************************************* */
 
-bool Ntop::changeUserPermission(const char * username,
+bool Ntop::changeUserPcapDownloadPermission(const char * username,
 				bool allow_pcap_download,
 				u_int32_t ttl) const {
   char key[64];
@@ -2071,7 +2080,7 @@ bool Ntop::changeUserPermission(const char * username,
 /* ******************************************* */
 
 bool Ntop::changeUserHistoricalFlowPermission(const char * username,
-					      bool allow_historical_flow,
+					      bool allow_historical_flows,
 					      u_int32_t ttl) const {
   char key[64];
 
@@ -2080,11 +2089,35 @@ bool Ntop::changeUserHistoricalFlowPermission(const char * username,
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
                                "Changing user permission [allow-historical-flow: %s] for %s",
-                               allow_historical_flow ? "true" : "false", username);
+                               allow_historical_flows ? "true" : "false", username);
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, username);
 
-  if(allow_historical_flow)
+  if(allow_historical_flows)
+    return (ntop->getRedis()->set(key, "1", ttl) >= 0);
+  else
+    ntop->getRedis()->del(key);
+
+  return(true);
+}
+
+/* ******************************************* */
+
+bool Ntop::changeUserAlertsPermission(const char * username,
+				      bool allow_alerts,
+				      u_int32_t ttl) const {
+  char key[64];
+
+  if (username == NULL || username[0] == '\0')
+    return false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+                               "Changing user permission [allow-alerts: %s] for %s",
+                               allow_alerts ? "true" : "false", username);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, username);
+
+  if(allow_alerts)
     return (ntop->getRedis()->set(key, "1", ttl) >= 0);
   else
     ntop->getRedis()->del(key);
@@ -2096,10 +2129,11 @@ bool Ntop::changeUserHistoricalFlowPermission(const char * username,
 
 bool Ntop::getUserCapabilities(const char * username,
 			       bool *allow_pcap_download,
-			       bool *allow_historical_flow) const {
+			       bool *allow_historical_flows,
+			       bool *allow_alerts) const {
   char key[64], val[2];
 
-  *allow_pcap_download = *allow_historical_flow = false;
+  *allow_pcap_download = *allow_historical_flows = false;
 
   if(username == NULL || username[0] == '\0')
     return(false);
@@ -2114,7 +2148,13 @@ bool Ntop::getUserCapabilities(const char * username,
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, username);
 
   if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
-    if(strcmp(val, "1") == 0) *allow_historical_flow = true;
+    if(strcmp(val, "1") == 0) *allow_historical_flows = true;
+
+  /* ************** */
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, username);
+
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+    if(strcmp(val, "1") == 0) *allow_alerts = true;
 
   return(true);
 }
@@ -2165,7 +2205,8 @@ bool Ntop::existsUser(const char * username) const {
 
 bool Ntop::addUser(char *username, char *full_name, char *password, char *host_role,
                    char *allowed_networks, char *allowed_ifname, char *host_pool_id,
-                   char *language, bool allow_pcap_download, bool allow_historical_flow) {
+                   char *language, bool allow_pcap_download, bool allow_historical_flows,
+                   bool allow_alerts) {
   char key[CONST_MAX_LEN_REDIS_KEY];
   char password_hash[33];
   char new_user_id_buf[8];
@@ -2212,8 +2253,13 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
     ntop->getRedis()->set(key, "1", 0);
   }
 
-  if(allow_historical_flow) {
+  if(allow_historical_flows) {
     snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, username);
+    ntop->getRedis()->set(key, "1", 0);
+  }
+
+  if(allow_alerts) {
+    snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, username);
     ntop->getRedis()->set(key, "1", 0);
   }
 

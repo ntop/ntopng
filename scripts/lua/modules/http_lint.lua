@@ -1548,7 +1548,8 @@ local known_parameters = {
    ["user_language"]           = validateUserLanguage,          -- User language
    ["add_user_language"]       = validateUserLanguage,          -- User language in add modal
    ["allow_pcap_download"]     = validateEmptyOr(validateBool),
-   ["allow_historical_flow"]   = validateBool,
+   ["allow_historical_flows"]  = validateBool,
+   ["allow_alerts"]            = validateBool,
 
 -- NDPI
    ["application"]             = validateProtocolIdOrName,      -- An nDPI application protocol name

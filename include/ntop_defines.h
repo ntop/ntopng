@@ -286,6 +286,7 @@
 #define CONST_STR_USER_LANGUAGE        NTOPNG_USER_PREFIX".%s.language"
 #define CONST_STR_USER_ALLOW_PCAP      NTOPNG_USER_PREFIX".%s.allow_pcap"
 #define CONST_STR_USER_ALLOW_HISTORICAL_FLOW NTOPNG_USER_PREFIX".%s.allow_historical_flow"
+#define CONST_STR_USER_ALLOW_ALERTS NTOPNG_USER_PREFIX".%s.allow_alerts"
 #define CONST_STR_USER_EXPIRE          NTOPNG_USER_PREFIX".%s.expire"
 #define CONST_STR_USER_CAPABILITIES    NTOPNG_USER_PREFIX".%s.capabilities"
 #define CONST_STR_USER_API_TOKEN       NTOPNG_USER_PREFIX".%s.api_token"

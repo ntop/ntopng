@@ -1222,50 +1222,59 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     Read user capabilities
   */
   u_int64_t capabilities = 0;
-
-  if(!strncmp(group, CONST_USER_GROUP_ADMIN, strlen(CONST_USER_GROUP_ADMIN)))
-    /* Administrators have all the possible capabilitites */
-    capabilities = (u_int64_t)-1;
-  else {
-    char val[32];
-
-    /*
-      Non-admins only have a subset of capabilities
-    */
-    snprintf(key, sizeof(key), CONST_STR_USER_CAPABILITIES, user);
-
-    if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
-       && (val[0] != '\0')) {
-      capabilities = strtol(val, NULL, 10);
-    }
-  }
-
-  /*
-    Read user allowed networks
-  */
   char allowed_nets[MAX_USER_NETS_VAL_LEN];
 
-  snprintf(key, sizeof(key), CONST_STR_USER_NETS, user);
-  /* Set the default, if no allowed networks are found */
-  if(ntop->getRedis()->get(key, allowed_nets, sizeof(allowed_nets)) == -1)
+  if(strncmp(group, CONST_USER_GROUP_ADMIN, strlen(CONST_USER_GROUP_ADMIN)) == 0) {
+    /*
+      Administrators have all the possible capabilitites
+    */
+    capabilities = (u_int64_t)-1;
     snprintf(allowed_nets, sizeof(allowed_nets), CONST_DEFAULT_ALL_NETS);
 
-  /*
-    Give user the 'alerts' and 'historical_flows' capabilities if its allowed networks equal the 'all networks' constant
-    NOTE: currently, this is only given for local-users. For non-local users (i.e., Radius, LDAP)
-    this is left for future implementation.
-  */
-  if(localuser) {
-    if(!strncmp(allowed_nets, CONST_DEFAULT_ALL_NETS, sizeof(allowed_nets)))
-      capabilities |= (1 << capability_alerts) | (1 << capability_historical_flows);
   } else {
-    /* LDAP/Radius user */
-    bool allow_pcap_download = false, allow_historical_flow = false;
+    /*
+      Non-administrators only have a subset of capabilities - stored on redis
+    */
+    char val[32];
+    snprintf(key, sizeof(key), CONST_STR_USER_CAPABILITIES, user);
+    if((ntop->getRedis()->get(key, val, sizeof(val)) != -1) && (val[0] != '\0')) {
+      capabilities = strtol(val, NULL, 10);
+    }
 
-    ntop->getUserCapabilities(user, &allow_pcap_download, &allow_historical_flow);
+    /*
+      Read user allowed networks - stored on redis
+    */
+    snprintf(key, sizeof(key), CONST_STR_USER_NETS, user);
+    if(ntop->getRedis()->get(key, allowed_nets, sizeof(allowed_nets)) == -1) {
+      /* 
+        Set the default (allow all), if no allowed networks are found
+      */
+      snprintf(allowed_nets, sizeof(allowed_nets), CONST_DEFAULT_ALL_NETS);
+    }
 
-    if(allow_historical_flow)
-      capabilities |= (1 << capability_alerts) | (1 << capability_historical_flows);
+    /*
+      Give user the 'alerts' and 'historical_flows' capabilities if its allowed networks equal the 'all networks' constant
+      NOTE: currently, this is only given for local-users. For non-local users (i.e., Radius, LDAP)
+      this is left for future implementation.
+
+      TODO remove the CONST_DEFAULT_ALL_NETS check for local users when networks will be supported
+    */
+    if((localuser && strncmp(allowed_nets, CONST_DEFAULT_ALL_NETS, sizeof(allowed_nets)) == 0)
+       || !localuser /* LDAP/Radius user */) {
+      bool allow_pcap_download = false, allow_historical_flows = false, allow_alerts = false;
+
+      ntop->getUserCapabilities(user, &allow_pcap_download, &allow_historical_flows, &allow_alerts);
+
+      if(allow_historical_flows)
+        capabilities |= (1 << capability_historical_flows);
+
+      if(allow_alerts)
+        capabilities |= (1 << capability_alerts);
+
+      if(allow_pcap_download)
+        capabilities |= (1 << capability_pcap_download);
+    }
+  
   }
 
   /* Put the _SESSION params into the environment */
