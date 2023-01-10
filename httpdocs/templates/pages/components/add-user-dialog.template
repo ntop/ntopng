@@ -92,10 +92,10 @@
             {% if clickhouse_enabled then %}
             
             <div class="form-group mb-3">
-              <label for="allow_historical_flow">{* messages.allow_historical_flow *}</label>
+              <label for="allow_historical_flows">{* messages.allow_historical_flows *}</label>
               <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" name="allow_historical_flow" value="1">
-                <small>{* messages.allow_historical_flow_descr *}</small>
+                <input class="form-check-input" type="checkbox" name="allow_historical_flows" value="1">
+                <small>{* messages.allow_historical_flows_descr *}</small>
               </div>
             </div>
             
