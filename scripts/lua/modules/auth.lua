@@ -70,6 +70,20 @@ end
 
 -- #######################
 
+-- @brief Returns the list of allowed networks or nil if all networks are allowed
+function auth.allowed_networks()
+   if isAdministrator()
+      or isEmptyString(_SESSION["allowed_nets"])
+      or _SESSION["allowed_nets"] == '0.0.0.0/0,::/0' -- See CONST_DEFAULT_ALL_NETS
+   then
+      return nil
+   end
+
+   return _SESSION["allowed_nets"]
+end
+
+-- #######################
+
 if(trace_script_duration ~= nil) then
    io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
 end

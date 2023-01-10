@@ -1285,6 +1285,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   lua_push_str_table_entry(L, "group", (char*)group);
   lua_push_bool_table_entry(L, "localuser", localuser);
   lua_push_uint64_table_entry(L, "capabilities", capabilities);
+  lua_push_str_table_entry(L, "allowed_nets", (char*)allowed_nets);
 
   // now it's time to set the interface.
   setInterface(user, ifname, sizeof(ifname), &is_interface_allowed);
@@ -1313,7 +1314,6 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
     lua_setglobal(L, CONST_USER_LANGUAGE);
   }
-
 
   getLuaVMUservalue(L, group) = (char*)(group ? (group) : "");
   getLuaVMUservalue(L, localuser) = localuser;

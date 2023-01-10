@@ -226,9 +226,7 @@ else
 	    hidden = (not ntop.isEnterprise())
         or (not prefs.is_dump_flows_to_clickhouse_enabled)
         or ifs.isViewed
-        or not auth.has_capability(auth.capabilities.historical_flows)
-        or not ((ntop.getPref("ntopng.user." .. session_user .. ".allow_historical_flow") == "1")
-        or is_admin),
+        or not auth.has_capability(auth.capabilities.historical_flows),
         url = "/lua/pro/db_search.lua",
          },
       }
