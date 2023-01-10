@@ -2463,16 +2463,6 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	lua_push_uint64_table_entry(vm, "code", protos.icmp.cli2srv.icmp_code);
       }
 
-      if(protos.icmp.client_to_server.min_entropy != 0) {
-	lua_newtable(vm);
-	lua_push_float_table_entry(vm,  "min", protos.icmp.client_to_server.min_entropy);
-	lua_push_float_table_entry(vm,  "max", protos.icmp.client_to_server.max_entropy);
-
-	lua_pushstring(vm, "entropy");
-	lua_insert(vm, -2);
-	lua_settable(vm, -3);
-      }
-
       if(icmp_info)
 	icmp_info->lua(vm, NULL, iface, get_vlan_id());
 
@@ -6869,16 +6859,18 @@ void Flow::lua_entropy(lua_State* vm) {
     lua_push_float_table_entry(vm,  "client", getEntropy(true));
     lua_push_float_table_entry(vm,  "server", getEntropy(false));
 
-    if(protos.icmp.client_to_server.min_entropy != 0) {
-      lua_newtable(vm);
-      lua_push_float_table_entry(vm,  "min", protos.icmp.client_to_server.min_entropy);
-      lua_push_float_table_entry(vm,  "max", protos.icmp.client_to_server.max_entropy);
-
-      lua_pushstring(vm, "icmp");
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
+    if(protocol == IPPROTO_ICMP) {
+      if(protos.icmp.client_to_server.min_entropy != 0) {
+	lua_newtable(vm);
+	lua_push_float_table_entry(vm,  "min", protos.icmp.client_to_server.min_entropy);
+	lua_push_float_table_entry(vm,  "max", protos.icmp.client_to_server.max_entropy);
+	
+	lua_pushstring(vm, "icmp");
+	lua_insert(vm, -2);
+	lua_settable(vm, -3);
+      }
     }
-
+    
     lua_pushstring(vm, "entropy");
     lua_insert(vm, -2);
     lua_settable(vm, -3);

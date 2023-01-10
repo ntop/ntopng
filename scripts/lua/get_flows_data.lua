@@ -11,6 +11,7 @@ local format_utils = require("format_utils")
 local alert_consts = require "alert_consts"
 local icmp_utils = require "icmp_utils"
 local json = require "dkjson"
+local http_utils = require("http_utils")
 
 local have_nedge = ntop.isnEdge()
 
@@ -386,6 +387,28 @@ end
       info = info .. "'><span class='badge bg-warning text-dark'>"..i18n("periodic_flow").."</span></h1></A>"
    end
 
+   if(not isEmptyString(value["protos.http.last_method"])) then
+      local span_mode
+      local color
+      local rcode
+      
+      if(value["p?rotos.http.last_method"] == "GET") then
+	 span_mode = "success"
+      else
+	 span_mode = "warning"
+      end
+
+      if(value["protos.http.last_return_code"] < 400) then
+	 color = "badge bg-success"
+      else
+	 color = "badge bg-danger"
+      end
+
+      rcode = http_utils.getResponseStatusCode(value["protos.http.last_return_code"]) or ''
+      info = "<span class='badge bg-"..span_mode.."'>"..value["protos.http.last_method"].."</span> <span class='"..color.."'>"..rcode.."</span> " .. info
+
+
+   end
    record["column_info"] = info
 
    formatted_res[#formatted_res + 1] = record
