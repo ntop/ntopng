@@ -2133,7 +2133,7 @@ bool Ntop::getUserCapabilities(const char * username,
 			       bool *allow_alerts) const {
   char key[64], val[2];
 
-  *allow_pcap_download = *allow_historical_flows = false;
+  *allow_pcap_download = *allow_historical_flows = *allow_alerts = false;
 
   if(username == NULL || username[0] == '\0')
     return(false);
