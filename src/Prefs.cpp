@@ -1684,7 +1684,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 226:
-    ntop->toggleOffline(true);
+    ntop->toggleForcedOffline(true);
     break;
 
 #ifdef NTOPNG_PRO
