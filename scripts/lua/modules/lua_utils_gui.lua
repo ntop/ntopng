@@ -151,6 +151,7 @@ function noHtml(s)
    local cleaned = s:gsub("<[aA] .->(.-)</[aA]>","%1")
       :gsub("<abbr .->(.-)</abbr>","%1")
       :gsub("<span .->(.-)</span>","%1")
+      :gsub("<button .->(.-)</button>","%1")
       :gsub("%s*<[iI].->(.-)</[iI]>","%1")
       :gsub("<.->(.-)</.->","%1") -- note: keep as last as this does not handle nested tags
       :gsub("^%s*(.-)%s*$", "%1")
