@@ -58,6 +58,7 @@ Ntop::Ntop(const char *appName) {
   extract = new (std::nothrow) TimelineExtract();
   address = new (std::nothrow) AddressResolution();
   offline = false;
+  forced_offline = false;
   pa = NULL;
 #ifdef WIN32
   myTZname = strdup(_tzname[0] ? _tzname[0] : "CET");

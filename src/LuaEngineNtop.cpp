@@ -5755,6 +5755,13 @@ static int ntop_get_drop_pool_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_forced_offline(lua_State* vm) {
+  lua_pushboolean(vm, ntop->isForcedOffline());
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_is_offline(lua_State* vm) {
   lua_pushboolean(vm, ntop->isOffline());
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -6559,6 +6566,7 @@ static luaL_Reg _ntop_reg[] = {
   { "getCurrentScriptsDir", ntop_get_current_scripts_dir },
   { "getDropPoolInfo",   ntop_get_drop_pool_info },
   { "isOffline",         ntop_is_offline },
+  { "isForcedOffline",   ntop_is_forced_offline },
   { "setOffline",        ntop_set_offline },
   { "setOnline",         ntop_set_online },
 

@@ -46,7 +46,7 @@ class Ntop {
   bool flowChecksReloadInProgress, hostChecksReloadInProgress;
   bool hostPoolsReloadInProgress;
   bool interfacesShuttedDown;
-  bool offline;
+  bool offline, forced_offline;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
   char epoch_buf[11], *zoneinfo, *myTZname;
@@ -603,6 +603,11 @@ public:
   inline bool timeToRefreshIPSRules() { bool rc = refresh_ips_rules; refresh_ips_rules = false; return(rc); }
 #endif
 
+  /* This offline mode is forced by the --offline option */
+  inline bool isForcedOffline() { return forced_offline; }
+  inline void toggleForcedOffline(bool off) { forced_offline = off; }
+
+  /* Used instead to check if ntopng is offline but without the --offline option */
   inline bool isOffline() { return offline; }
   inline void toggleOffline(bool off) { offline = off; }
 
