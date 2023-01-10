@@ -39,7 +39,7 @@
 import { ref, onMounted, onBeforeMount } from "vue";
 import { default as SelectSearch } from "./select-search.vue"
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
-import { default as Sankey2 } from "./sankey_2.vue";
+import { default as Sankey2 } from "./sankey_3.vue";
 
 const props = defineProps({
 });
