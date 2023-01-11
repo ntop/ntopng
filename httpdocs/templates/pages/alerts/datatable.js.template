@@ -1,5 +1,5 @@
 /*
- *   (C) 2021 - ntop.org    
+ *   (C) 2021-23 - ntop.org
  *   Base template for the alert tables.
  */
 
@@ -107,10 +107,10 @@ const $acknowledgeFilteredAlerts = $('#dt-acknowledge-modal form').modalHandler(
         $('#dt-acknowledge-modal .filters-list').empty();
         let datasourceParams = ntopng_status_manager.get_status();
         const tags = datasourceParams.filters
-      
+
         const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
         const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
-        
+
         const sortedTags = tags.sort((a, b) => {
           return i18n_ext.tags[a.id].localeCompare(i18n_ext.tags[b.id])
         });
@@ -141,7 +141,7 @@ const $deleteFilteredAlerts = $('#dt-delete-modal form').modalHandler({
     },
     onModalInit: function () {
       $('#dt-delete-modal .filters-list').empty();
-      
+
       let datasourceParams = ntopng_status_manager.get_status();
       const tags = datasourceParams.filters
       const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
@@ -153,7 +153,7 @@ const $deleteFilteredAlerts = $('#dt-delete-modal form').modalHandler({
 
       $('#dt-delete-modal #end-epoch-delete').val(endEpoch);
       $('#dt-delete-modal #begin-epoch-delete').val(beginEpoch);
-      
+
       for (const tag of sortedTags) {
         const { id, operator, value } = tag;
         const label = i18n_ext.tags[id]
@@ -203,7 +203,7 @@ $(`#dt-btn-delete`).on('click', function (e) {
 //         $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
 
 //         if (FAMILY === "host") {
-//             const label = (alert.ip.label) ? `${alert.ip.label} (${alert.ip.value})` : alert.ip.value; 
+//             const label = (alert.ip.label) ? `${alert.ip.label} (${alert.ip.value})` : alert.ip.value;
 //             $(`#srv_addr`).text(label);
 //             $(`#srv_radio`).val(alert.ip.value);
 //             $(`#cli_radio`).parent().hide();
@@ -211,7 +211,7 @@ $(`#dt-btn-delete`).on('click', function (e) {
 //         else if (FAMILY === "flow") {
 //             let cliValue = alert.flow.cli_ip.value
 //             let srvValue = alert.flow.srv_ip.value
-	    	
+
 //             if((alert.flow.vlan != undefined) && (alert.flow.vlan.value != 0)) {
 //               cliValue = cliValue + '@' + alert.flow.vlan.value
 //               srvValue = srvValue + '@' + alert.flow.vlan.value
@@ -219,7 +219,7 @@ $(`#dt-btn-delete`).on('click', function (e) {
 
 //             const cliLabel = (alert.flow.cli_ip.label) ? `${alert.flow.cli_ip.label} (${cliValue})` : cliValue;
 //             const srvLabel = (alert.flow.srv_ip.label) ? `${alert.flow.srv_ip.label} (${srvValue})` : srvValue;
-           
+
 //             $(`#cli_addr`).text(cliLabel);
 //             $(`#cli_radio`).val(cliValue);
 //             $(`#srv_addr`).text(srvLabel);
@@ -320,7 +320,7 @@ const $releaseAlertModal = $('#release_single_alert form').modalHandler({
 function formatFilteredParams() {
   const currentUrl = new URLSearchParams(window.location.search);
   let datasourceParams = ntopng_status_manager.get_status();
-  let params = {}    
+  let params = {}
 
   /* Cycling the filters */
   for (const tag of datasourceParams.filters) {
