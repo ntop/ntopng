@@ -30,4 +30,16 @@ local script = {
 
 -- #################################################################
 
+function script.onEnable()
+  ntop.setCache(CHECKS_IEC_INVALID_TRANSITION, "1")
+end
+
+-- #################################################################
+
+function script.onDisable()
+  ntop.setCache(CHECKS_IEC_INVALID_TRANSITION, "0")
+end
+
+-- #################################################################
+
 return script

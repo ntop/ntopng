@@ -647,6 +647,12 @@
 
 #define CONST_PREFS_IEC60870_ANALYSIS_LEARNING_PERIOD   NTOPNG_PREFS_PREFIX".iec60870_learning_period"
 
+
+#define CHECKS_IEC_INVALID_COMMAND_TRANSITION "ntopng.checks.iec104_invalid_command_transition_enabled"
+#define CHECKS_IEC_UNEXPECTED_TYPE_ID "ntopng.checks.iec104_unexpected_type_id_enabled"
+#define CHECKS_IEC_INVALID_TRANSITION "ntopng.checks.iec104_invalid_transition_enabled"
+
+
 #define CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD  7200 // 2 hours by default
 
 #define CONST_USER_GROUP_ADMIN             "administrator"
