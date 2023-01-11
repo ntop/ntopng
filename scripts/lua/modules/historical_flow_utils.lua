@@ -988,6 +988,7 @@ historical_flow_utils.min_db_columns = {
    "CLIENT_LOCATION",
    "SERVER_LOCATION",
    "COMMUNITY_ID",
+   "NTOPNG_INSTANCE_NAME"
 }
 
 historical_flow_utils.extra_db_columns = {

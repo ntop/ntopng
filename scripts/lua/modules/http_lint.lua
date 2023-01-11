@@ -2302,7 +2302,8 @@ local known_parameters = {
    ["order"]              = validateSortOrder,
    ["length"]             = validateNumber,
    ["draw"]               = validateNumber,
-   ["visible_columns"]    = validateEmptyOr(validateListOfTypeInline(validateSingleWord))
+   ["visible_columns"]    = validateEmptyOr(validateListOfTypeInline(validateSingleWord)),
+   ["instance_name"]      = validateSingleWord, -- used in flow explorer
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix

@@ -1063,7 +1063,7 @@ end
 
 local function add_historical_link(value, flow_link)
   local historical_href = ""
-  
+
   if ntop.isClickHouseEnabled() then
     historical_href = "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/pro/db_flow_details.lua?row_id=" .. value["rowid"] .. "&tstamp=" .. value["tstamp_epoch"] .. "\" title='" .. i18n('alert_details.flow_details') .. "' target='_blank'> <i class='fas fa fa-search-plus'></i> </a>"
   end
