@@ -1,6 +1,6 @@
 #
 #
-# (C) 2022 - ntop.org
+# (C) 2022-23 - ntop
 #
 # interface class
 # https://www.ntop.org/guides/ntopng/api/rest/api_v2.html

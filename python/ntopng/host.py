@@ -1,18 +1,35 @@
-#
-#
-# (C) 2022 - ntop.org
-#
-# host class
-# https://www.ntop.org/guides/ntopng/api/rest/api_v2.html
-#
+"""
+host.py
+====================================
+The 'Host' class can be used to access information about hosts
+through the REST API (https://www.ntop.org/guides/ntopng/api/rest/api_v2.html).
+"""
 
 class Host:
+    """
+    Host provides information about hosts
+    
+    :param ntopng_obj: The ntopng handle
+    """
     def __init__(self, ntopng_obj):
+        """
+        Construct a new 'Host' object
+        
+        :param ntopng_obj: The ntopng handle
+        """
         self.ntopng_obj      = ntopng_obj
         self.rest_v2_url     = "/lua/rest/v2"
         self.rest_pro_v2_url = "/lua/pro/rest/v2"
 
     def get_active_hosts(self, ifid):
+        """
+        Retrieve the list of active hosts for the specified interface
+        
+        :param ifid: The interface ID
+        :type ifid: int
+        :return: All active hosts
+        :rtype: array
+        """
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/active.lua", {"ifid": ifid}))
 
     def get_active_hosts_paginated(self, ifid, currentPage, perPage):
@@ -22,6 +39,16 @@ class Host:
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/interfaces.lua", { "host": host }))
 
     def get_host_data(self, ifid, host):
+        """
+        Return all available information about a single host
+        
+        :param ifid: The interface ID
+        :type ifid: int
+        :param host: The host
+        :type host: string
+        :return: Information about the host
+        :rtype: object
+        """
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/data.lua", { "ifid": ifid, "host": host }))
 
     def get_host_l7_stats(self, ifid, host, vlan):
