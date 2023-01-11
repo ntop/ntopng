@@ -2128,6 +2128,13 @@ bool Ntop::changeUserAlertsPermission(const char * username,
 
 /* ******************************************* */
 
+bool Ntop::hasCapability(lua_State* vm, UserCapabilities capability) {
+  u_int64_t capabilities = getLuaVMUservalue(vm, capabilities);
+  return !!(capabilities & (1 << capability));
+}
+
+/* ******************************************* */
+
 bool Ntop::getUserCapabilities(const char * username,
 			       bool *allow_pcap_download,
 			       bool *allow_historical_flows,

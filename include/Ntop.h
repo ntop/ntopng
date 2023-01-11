@@ -461,6 +461,7 @@ public:
   bool changeUserPcapDownloadPermission(const char * username, bool allow_pcap_download, u_int32_t ttl = 0 /* Forever */) const;
   bool changeUserHistoricalFlowPermission(const char * username, bool allow_historical_flows, u_int32_t ttl = 0 /* Forever */) const;
   bool changeUserAlertsPermission(const char * username, bool allow_alerts, u_int32_t ttl = 0 /* Forever */) const;
+  bool hasCapability(lua_State* vm, UserCapabilities capability);
   bool getUserCapabilities(const char * username, bool *allow_pcap_download,
 			   bool *allow_historical_flows,
 			   bool *allow_alerts) const;  
