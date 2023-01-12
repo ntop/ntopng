@@ -26,8 +26,8 @@
                     <small>
                         {* 
                             i18n("about.licence_generation", {
-                                purchase_url='http://shop.ntop.org/',
-                                universities_url='http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'
+                                purchase_url='https://shop.ntop.org/',
+                                universities_url='https://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'
                             })
                         *}
                     </small>
@@ -49,13 +49,13 @@
                                     <i class="fas fa-save"></i> {{ i18n("about.save_licence") }}
                                 </button>
                             </form>
-                        {% else %}
-                            {% if info["pro.license_encoded"] then %}
-			        <textarea readonly style="resize: none;" class="form-control w-50" rows="7">{{ info["pro.license_encoded"] }}</textarea>
-                            {% end %}
                         {% end %}
                     {% else %}
-		      {{ i18n("about.licence_save_path") }}
+		        {% if license.license ~= "" then %}
+		          <textarea readonly style="resize: none;" class="form-control w-50" rows="7">{{ info["pro.license_encoded"] }}</textarea>
+                        {% else %}
+   		          {{ i18n("about.licence_save_path") }}
+                        {% end %}
                     {% end %}
                     {% end %}
                 </td>

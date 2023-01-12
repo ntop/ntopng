@@ -67,7 +67,8 @@ local context = {
       version = version,
       systemIdHref = systemIdHref,
       systemId = info["pro.systemid"],
-      is_admin = isAdministrator()
+      is_admin = isAdministrator(),
+      license  = info["pro.license_encoded"]
    }
 }
 

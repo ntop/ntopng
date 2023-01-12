@@ -606,7 +606,7 @@ local lang = {
     ["last_log"] = "Last Log Trace",
     ["licence"] = "License",
     ["licence_expires_in"] = "License expires in %{time}",
-    ["licence_generation"] = "Click on the above URL to generate your professional version license, or purchase a license at <a class='ntopng-external-link' href=\"%{purchase_url}\">e-shop  <i class=\"fas fa-external-link-alt\"></i></a>.<br>If you are no-profit, research or an education institution please read <a class='ntopng-external-link' href=\"%{universities_url}\">this  <i class=\"fas fa-external-link-alt\"></i></a>.",
+    ["licence_generation"] = "Click on the above URL to generate your ntopng license, or purchase a license at <a class='ntopng-external-link' href=\"%{purchase_url}\"> ntop shop  <i class=\"fas fa-external-link-alt\"></i></a>.<br>If you are no-profit, research or an education institution please read <a class='ntopng-external-link' href=\"%{universities_url}\">this page  <i class=\"fas fa-external-link-alt\"></i></a>.",
     ["licence_save_path"] = "Please generate your license and save it on /etc/ntopng.license (or /usr/local/etc on BSD-based platforms) and restart ntopng.",
     ["licence_status"] = "License",
     ["maintenance"] = "Maintenance",
@@ -4400,7 +4400,7 @@ local lang = {
     ["license"] = "License",
     ["not_valid"] = "Not Valid",
     ["status"] = "Status",
-    ["valid"] = "Valid",
+    ["valid"] = "Valid License",
   },
   ["live_capture"] = {
     ["active_live_captures"] = "Live Captures",
