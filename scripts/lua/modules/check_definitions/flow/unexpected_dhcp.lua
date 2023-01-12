@@ -31,7 +31,7 @@ local script = {
       i18n_description  = "flow_checks.unexpected_dhcp_description",
 
       input_builder     = "items_list",
-      item_list_type    = "ip_address",
+      item_list_type    = "server",
       input_title       = "flow_checks.allowed_servers_title",
       input_description = "flow_checks.allowed_servers_description",
    }
