@@ -30,6 +30,12 @@ VLAN Trunk Bridging
 nEdge can also bridge interfaces with VLAN-tagged traffic when it is
 configured as a VLAN Trunk bridge.
 
+.. figure:: img/bridge_vlan_trunk.png
+  :align: center
+  :alt: VLAN Trunk Bridge Network Configuration
+
+  VLAN Trunk bridge network configuration
+
 In VLAN Trunk mode, it's necessary to specify the list of local networks by manually editing the file
 `/etc/ntopng/ntopng.conf` via the `-m` option. Policies will only be applied to local hosts, so
 this is very important. See `the ntopng documentation`_ for more details.
