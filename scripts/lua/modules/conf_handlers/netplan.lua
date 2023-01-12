@@ -117,6 +117,8 @@ function config.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, 
     end
   elseif network_conf.mode == "dhcp" then
     if_config.dhcp4 = 'true'
+  elseif network_conf.mode == "vlan_trunk" then
+    -- nothing to configure for a vlan-trunk bridge interface
   end
 
   if vlan_raw_iface then
