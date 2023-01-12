@@ -1,8 +1,8 @@
 """
-host.py
+Host
 ====================================
-The 'Host' class can be used to access information about hosts
-through the REST API (https://www.ntop.org/guides/ntopng/api/rest/api_v2.html).
+The Host class can be used to access information about hosts through the
+REST API (https://www.ntop.org/guides/ntopng/api/rest/api_v2.html).
 """
 
 class Host:

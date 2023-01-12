@@ -1,10 +1,9 @@
-#
-#
-# (C) 2022-23 - ntop
-#
-# interface class
-# https://www.ntop.org/guides/ntopng/api/rest/api_v2.html
-#
+"""
+Interface
+====================================
+The Interface class can be used to access information about interface statistics through the
+REST API (https://www.ntop.org/guides/ntopng/api/rest/api_v2.html).
+"""
 
 class Interface:
     def __init__(self, ntopng_obj):

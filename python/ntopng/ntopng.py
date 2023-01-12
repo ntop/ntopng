@@ -1,8 +1,8 @@
-#
-#
-# (C) 2022-23 - ntop
-#
-#
+"""
+Ntopng
+====================================
+The Ntopng class stores information (IP and credentials) for accessing the ntopng instance.
+"""
 
 import requests
 import json

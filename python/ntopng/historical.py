@@ -1,10 +1,9 @@
-#
-#
-# (C) 2022-23 - ntop
-#
-# historical class (timeseries, alerts and flows)
-# https://www.ntop.org/guides/ntopng/api/rest/api_v2.html
-#
+"""
+Historical
+====================================
+The Historical class can be used to retrieve historical traffic data through the
+REST API (https://www.ntop.org/guides/ntopng/api/rest/api_v2.html).
+"""
 
 import time
 

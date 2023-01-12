@@ -1,10 +1,9 @@
-#
-#
-# (C) 2022-23 - ntop
-#
-# flow class
-# https://www.ntop.org/guides/ntopng/api/rest/api_v2.html
-#
+"""
+Flow
+====================================
+The Flow class can be used to access information about active flows through the
+REST API (https://www.ntop.org/guides/ntopng/api/rest/api_v2.html).
+"""
 
 class Flow:
     def __init__(self, ntopng_obj):
