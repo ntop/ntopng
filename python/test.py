@@ -28,7 +28,7 @@ host_ip      = "192.168.1.1"
 
 def usage():
     print("test.py [-u <username>] [-p <passwrd>] [-t <auth token>] [-n <ntopng_url>]")
-    print("        [-i <interface ID>] [-H <host>] [--debug] [--help]")
+    print("        [-i <interface ID>] [-H <host IP>] [--debug] [--help]")
     print("")
     print("Example: ./test.py -t ce0e284c774fac5a3e981152d325cfae -i 4")
     print("         ./test.py -u ntop -p mypassword -i 4")

@@ -31,8 +31,8 @@ host_ip      = "192.168.1.1"
 ##########
 
 def usage():
-    print("historical_flows_query_example.py [-h] [-d] [-u <username>] [-p <passwrd>] [-n <ntopng_url>]")
-    print("         [-i <iface id>] [-t <auth token>]")
+    print("historical_flows_query_example.py [-u <username>] [-p <password>] [-t <auth token>] [-n <ntopng_url>]")
+    print("         [-i <interface ID>] [-H <host IP>] [--debug] [--help]")
     print("")
     print("Example: ./historical_flows_query_example.py -t ce0e284c774fac5a3e981152d325cfae -i 4")
     print("         ./historical_flows_query_example.py -u ntop -p mypassword -i 4")

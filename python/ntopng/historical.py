@@ -123,7 +123,7 @@ class Historical:
             print(self.get_interface_timeseries(ifid, "iface:score", epoch_begin, epoch_end))
             print("Host flows ----------------------------")
             select_clause = "IPV4_SRC_ADDR,IPV4_DST_ADDR,PROTOCOL,IP_SRC_PORT,IP_DST_PORT,L7_PROTO,L7_PROTO_MASTER"
-            where_clause  = "(PROTOCOL=4) AND IPV4_SRC_ADDR=(\""+host+"\")"
+            where_clause  = "(IP_PROTOCOL_VERSION=4) AND IPV4_SRC_ADDR=(\""+host+"\") AND (PROTOCOL=6) "
             maxhits       = 10 # 10 records max
             print(self.get_flows(ifid, epoch_begin, epoch_end, select_clause, where_clause, maxhits, '', ''))
             print("----------------------------")
