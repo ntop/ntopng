@@ -79,6 +79,9 @@ except ValueError as e:
     os._exit(-1)
 
 try:
+    print("\n\n==========================\nNtopng")
+    my_ntopng.self_test()
+
     print("\n\n==========================\nInterface")
     my_interface = Interface(my_ntopng)
     my_interface.self_test(iface_id)

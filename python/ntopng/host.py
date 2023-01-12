@@ -52,9 +52,35 @@ class Host:
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/data.lua", { "ifid": ifid, "host": host }))
 
     def get_host_l7_stats(self, ifid, host, vlan):
+        """
+        Return statistics about Layer 7 protocols for an host
+        
+        :param ifid: The interface ID
+        :type ifid: int
+        :param host: The host
+        :type host: string
+        :param host: The host VLAN ID (if any)
+        :type host: string
+        :return: Layer 7 protocol statistics
+        :rtype: object
+        """
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/l7/stats.lua", { "ifid": ifid, "host": host, "vlan": vlan, "breed": True, "ndpi_category": True, "collapse_stats": False }))
 
     def get_host_dscp_stats(self, ifid, host, vlan, direction_rcvd):
+        """
+        Return statistics about DSCP per traffic direction for an host
+        
+        :param ifid: The interface ID
+        :type ifid: int
+        :param host: The host
+        :type host: string
+        :param host: The host VLAN ID (if any)
+        :type host: string
+        :param host: The traffic direction (True for received traffic, False for sent)
+        :type host: boolean
+        :return: DSCP statistics
+        :rtype: object
+        """
         if(direction_rcvd):
             direction = "recvd"
         else:
@@ -63,16 +89,26 @@ class Host:
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/dscp/stats.lua", { "ifid": ifid, "host": host, "vlan": vlan, "direction": direction }))
 
     def get_top_local_talkers(self, ifid):
+        """
+        Return Top Local hosts generating more traffic
+        
+        :param ifid: The interface ID
+        :type ifid: int
+        :return: The top local hosts
+        :rtype: array
+        """
         return(self.ntopng_obj.request(self.rest_pro_v2_url + "/get/interface/top/local/talkers.lua", { "ifid": ifid }))
 
     def get_top_remote_talkers(self, ifid):
+        """
+        Return Top Remote hosts generating more traffic
+        
+        :param ifid: The interface ID
+        :type ifid: int
+        :return: The top remote hosts
+        :rtype: array
+        """
         return(self.ntopng_obj.request(self.rest_pro_v2_url + "/get/interface/top/remote/talkers.lua", { "ifid": ifid }))
-
-    def get_alert_types(self):
-        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/type/consts.lua", None))
-
-    def get_alert_severities(self):
-        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/severity/consts.lua", None))
 
     def self_test(self, ifid, host):
         try:
@@ -92,10 +128,6 @@ class Host:
             print(self.get_top_local_talkers(ifid))
             print("----------------------------")
             print(self.get_top_remote_talkers(ifid))
-            print("----------------------------")
-            print(self.get_alert_types())
-            print("----------------------------")
-            print(self.get_alert_severities())
             print("----------------------------")
         except:
             raise ValueError("Invalid interface ID or host specified")
