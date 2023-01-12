@@ -41,16 +41,36 @@ In VLAN Trunk mode, it's necessary to specify the list of local networks by manu
 this is very important. See `the ntopng documentation`_ for more details.
 
 In VLAN Trunk mode, it's also essential to set up a management address to
-reach the device. This should be done before applying the VLAN Trunk mode settings
-in order to avoid losing management access. This usually is performed in one of the following ways:
+reach the device (this should be done before applying the VLAN Trunk mode settings
+in order to avoid losing management access).
+This usually is performed in one of the following ways:
 
 - by using a dedicated network interface (this setup requires at least 3 network interfaces)
-- by using a virtual network interface on a VLAN (only 2 network interfaces required)
+- by using a virtual network interface by configuring a VLAN (only 2 network interfaces required)
 
-On Ubuntu 16, the management interface configuration should be written to the
-`/etc/network/interfaces.d/nedge_mgmt.conf` configuration file. Here is an example
-on how to set up a virtual network interface for the VLAN case above (the dedicated
-interface case is trivial):
+While the dedicated network interface case is trivial and does not require a specific configuration,
+please find below instructions for configuring a virtual interface over a VLAN on top of the bridge
+created by nedge.
+
+On Ubuntu 20 (or any netplan based system) the interfaces configuration is written by nedge in
+the `/etc/netplan/30-nedge.yaml` file. It is possible to write an additional configuration file
+`/etc/netplan/30-nedge-management.yaml` which contains the virtual interface configuration as below.
+In this example we assume that the appliance should be visible on VLAN 15 with IP address 10.10.10.1.
+
+.. code:: bash
+
+   $ cat /etc/netplan/30-nedge-management.yaml
+   network:
+     version: 2
+     vlans:
+       br0.15:
+         accept-ra: no
+         id: 15
+         link: br0
+         address: [ "10.10.10.1/24" ]
+
+On Ubuntu 16 (deprecated), the management interface configuration should be written to the
+`/etc/network/interfaces.d/nedge_mgmt.conf` configuration file. Here is an example:
 
 .. code:: bash
 
@@ -58,15 +78,14 @@ interface case is trivial):
  # https://bugs.launchpad.net/ubuntu/+source/ifupdown/+bug/1643063
  # must specify the pre-up command and the vlan-raw-device
 
- auto br0.86
- iface br0.86 inet static
-      pre-up /sbin/ip link add link br0 name br0.86 type vlan id 86
+ auto br0.15
+ iface br0.15 inet static
+      pre-up /sbin/ip link add link br0 name br0.15 type vlan id 15
       vlan-raw-device br0
       address 10.10.10.1
       netmask 255.255.255.0
 
-The configuration above specifies to create a virtual interface br0.86 with VLAN
-86. The VLAN id (86 in this example) should match one of the VLAN ids flowing through
+The VLAN ID (15 in the example) should match one of the VLAN IDs flowing through
 the VLAN trunk. Such virtual interface will be created after reboot. When the
 VLAN Trunk mode is running on the nEdge device, the administrator can connect to the
 management IP (10.10.10.1 in this example) by configuring a network interface on the same
@@ -77,7 +96,7 @@ network (10.10.10.0/24 in this example). For example:
    $ ifconfig eth0 10.10.10.99 netmask 255.255.255.0
 
 The switch port connected to the administrator eth0 interface must be tagged with the same
-VLAN id configured in the `nedge_mgmt.conf` file (86 in this example) in order for
+VLAN ID configured in the `nedge_mgmt.conf` file (15 in this example) in order for
 this to work.
 
 .. warning::
@@ -94,11 +113,9 @@ configuration is handled by nEdge.
    Overlapping IP addresses across multiple VLANs are not handled. nEdge will
    show them as a single host
 
-   
 .. warning::
 
    Neither the CaptivePortal nor the DNS enforcement is performed in this mode.
-
 
 Full Transparent Mode
 ---------------------
