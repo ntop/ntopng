@@ -21,14 +21,13 @@ class Ntopng:
 
         if(self.debug):
             print("Elapsed time: " + str(response.elapsed))
-            #print("Response")
-            #print(response)
             
         return(response)
 
     def issue_post_request(self, url, params):
         if(self.debug):
-            print("Requesting [POST]: "+url)
+            print("Requesting [POST]: " + url)
+            print(params)
         
         if(self.auth_token != None):
             response = requests.post(url, auth = None, headers = { "Authorization" : "Token " + self.auth_token, "Content-Type" : "application/json" }, json = params)
@@ -37,8 +36,6 @@ class Ntopng:
 
         if(self.debug):
             print("Elapsed time: " + str(response.elapsed))
-            #print("Response")
-            #print(response)
             
         return(response)
 
@@ -78,6 +75,7 @@ class Ntopng:
         response = self.issue_request(api_url, params)
             
         if response.status_code != 200:
+            print("Invalid response code " + str(response.status_code))
             raise Exception("Invalid response code " + str(response.status_code))
 
         response = response.json()
@@ -95,6 +93,7 @@ class Ntopng:
         response = self.issue_post_request(api_url, params)
             
         if response.status_code != 200:
+            print("Invalid response code " + str(response.status_code))
             raise Exception("Invalid response code " + str(response.status_code))
 
         response = response.json()

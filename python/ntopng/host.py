@@ -76,6 +76,7 @@ class Host:
 
     def self_test(self, ifid, host):
         try:
+            print("----------------------------")
             print(self.get_active_hosts(ifid))
             print("----------------------------")
             print(self.get_active_hosts_paginated(ifid, 1, 100))
@@ -97,4 +98,4 @@ class Host:
             print(self.get_alert_severities())
             print("----------------------------")
         except:
-            raise ValueError("Invalid interfaceId specified")
+            raise ValueError("Invalid interface ID or host specified")

@@ -33,6 +33,7 @@ class Flow:
 
     def self_test(self, ifid, host):
         try:
+            print("----------------------------")
             print(self.get_active_flows_paginated(ifid, 1, 100))
             print("----------------------------")
             print(self.get_active_host_flows_paginated(ifid, host, 0, 1, 100))

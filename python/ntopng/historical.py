@@ -19,9 +19,6 @@ class Historical:
     def get_alert_type_counters(self, ifid, epoch_begin, epoch_end):
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/type/counters.lua", { "ifid": ifid, "status": "historical", "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
 
-    def get_alerts_type_counters(self, ifid, epoch_begin, epoch_end):
-        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/type/counters.lua", { "ifid": ifid, "status": "historical", "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
-
     def get_alert_severity_counters(self, ifid, epoch_begin, epoch_end):
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/severity/counters.lua", { "ifid": ifid, "status": "historical", "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
 
@@ -89,60 +86,46 @@ class Historical:
     #
     # Raw call for gettting historical data from ClickHouse
     def get_flows(self, ifid, epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by):
-        return(self.ntopng_obj.post_request(self.rest_pro_v2_url + "/get/db/flows.lua", { "ifid": ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end,
-                                                                                          "select_clause": select_clause, "where_clause": where_clause,
-                                                                                          "maxhits_clause": maxhits, "group_by_clause": group_by, "order_by_clause": order_by }))
-
+        return(self.ntopng_obj.post_request(self.rest_pro_v2_url + "/get/db/flows.lua", { "ifid": ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end, "select_clause": select_clause, "where_clause": where_clause, "maxhits_clause": maxhits, "group_by_clause": group_by, "order_by_clause": order_by }))
 
     def self_test(self, ifid, host):
         try:
             epoch_end   = int(time.time())
             epoch_begin = epoch_end - 3600
 
-            print("Flows ----------------------------")
+            print("Flow alerts ----------------------------")
             print(self.get_flow_alerts(ifid, epoch_begin, epoch_end, "*", None, 5, None, "epoch_begin"), None, None)
-            print("Active Monitoring ----------------------------")
+            print("Active Monitoring alerts ----------------------------")
             print(self.get_active_monitoring_alerts(ifid, epoch_begin, epoch_end, "*", None, 5, None, "epoch_begin"), None, None)
-            print("Hosts ----------------------------")
+            print("Host alertss ----------------------------")
             print(self.get_host_alerts(ifid, epoch_begin, epoch_end, "*", None, 5, None, "epoch_begin"), None, None)
-            print("Interfaces ----------------------------")
+            print("Interface alerts ----------------------------")
             print(self.get_interface_alerts(ifid, epoch_begin, epoch_end, "*", None, 5, None, "epoch_begin"), None, None)
-            print("MAC ----------------------------")
+            print("MAC alerts ----------------------------")
             print(self.get_mac_alerts(ifid, epoch_begin, epoch_end, "*", None, 5, None, "epoch_begin"), None, None)
-            print("Networks ----------------------------")
+            print("Network alerts ----------------------------")
             print(self.get_network_alerts(ifid, epoch_begin, epoch_end, "*", None, 5, None, "epoch_begin"), None, None)
-            print("SNMP ----------------------------")
+            print("SNMP alerts ----------------------------")
             print(self.get_snmp_alerts(ifid, epoch_begin, epoch_end, "*", None, 5, None, "epoch_begin"), None, None)
-            print("System ----------------------------")
+            print("System alerts ----------------------------")
             print(self.get_system_alerts(ifid, epoch_begin, epoch_end, "*", None, 5, None, "epoch_begin"), None, None)
-            print("User ----------------------------")
+            print("User alerts ----------------------------")
             print(self.get_user_alerts(ifid, epoch_begin, epoch_end, "*", None, 5, None, "epoch_begin"), None, None)
-            print("----------------------------")
-            print("----------------------------")
-            
+            print("Alert counters by type ----------------------------")
             print(self.get_alert_type_counters(ifid, epoch_begin, epoch_end))
-            print("----------------------------")
-            print(self.get_alerts_type_counters(ifid, epoch_begin, epoch_end))
-            print("----------------------------")
+            print("Alert counters by severity ----------------------------")
             print(self.get_alert_severity_counters(ifid, epoch_begin, epoch_end))
-            print("----------------------------")
+            print("Flow counters by severity ----------------------------")
             print(self.get_flows_severity_counters(ifid, epoch_begin, epoch_end))
-            print("----------------------------")
+            print("Host traffic timeseries ----------------------------")
             print(self.get_timeseries("host:traffic", "ifid:"+str(ifid)+",host:"+host, epoch_begin, epoch_end))
-            print("----------------------------")
+            print("Interface traffic timeseries ----------------------------")
             print(self.get_interface_timeseries(ifid, "iface:score", epoch_begin, epoch_end))
-            print("----------------------------")
-
-
-
-            
+            print("Host flows ----------------------------")
             select_clause = "IPV4_SRC_ADDR,IPV4_DST_ADDR,PROTOCOL,IP_SRC_PORT,IP_DST_PORT,L7_PROTO,L7_PROTO_MASTER"
-            where_clause  = "(PROTOCOL=6) AND IPV4_SRC_ADDR=(\""+host+"\")"
+            where_clause  = "(PROTOCOL=4) AND IPV4_SRC_ADDR=(\""+host+"\")"
             maxhits       = 10 # 10 records max
-            print(self.get_flows(ifid, epoch_begin, epoch_end, select_clause, where_clause, maxhits))
-            print("----------------------------")
-            return
-
+            print(self.get_flows(ifid, epoch_begin, epoch_end, select_clause, where_clause, maxhits, '', ''))
             print("----------------------------")
         except:
-            raise ValueError("Invalid interfaceId specified")
+            raise ValueError("Invalid interface ID, host or parameters specified")

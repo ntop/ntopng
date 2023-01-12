@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-#
-# Test application for python API
-#
+"""
+Test application for the ntopng Python API
+"""
 
 import os
 import sys
@@ -15,8 +15,9 @@ from ntopng.host import Host
 from ntopng.historical import Historical
 from ntopng.flow import Flow
 
-
-# Defaults
+"""
+Defaults
+"""
 username     = "admin"
 password     = "admin"
 ntopng_url   = "http://localhost:3000"
@@ -25,17 +26,13 @@ auth_token   = None
 enable_debug = False
 host_ip      = "192.168.1.1"
 
-##########
-
 def usage():
-    print("test.py [-h] [-d] [-u <username>] [-p <passwrd>] [-n <ntopng_url>]")
-    print("         [-i <iface id>] [-t <auth token>]")
+    print("test.py [-u <username>] [-p <passwrd>] [-t <auth token>] [-n <ntopng_url>]")
+    print("        [-i <interface ID>] [-H <host>] [--debug] [--help]")
     print("")
     print("Example: ./test.py -t ce0e284c774fac5a3e981152d325cfae -i 4")
     print("         ./test.py -u ntop -p mypassword -i 4")
     sys.exit(0)
-
-##########
 
 try:
     opts, args = getopt.getopt(sys.argv[1:],
@@ -82,24 +79,23 @@ except ValueError as e:
     os._exit(-1)
 
 try:
-    my_interface = Interface(my_ntopng)
     print("\n\n==========================\nInterface")
+    my_interface = Interface(my_ntopng)
     my_interface.self_test(iface_id)
 
-    my_host = Host(my_ntopng)
     print("\n\n==========================\nHost")
+    my_host = Host(my_ntopng)
     my_host.self_test(iface_id, host_ip)
 
-    my_flow = Flow(my_ntopng)
     print("\n\n==========================\nFlow")
+    my_flow = Flow(my_ntopng)
     my_flow.self_test(iface_id, host_ip)
 
-    my_historical = Historical(my_ntopng)
     print("\n\n==========================\nHistorical Data")
+    my_historical = Historical(my_ntopng)
     my_historical.self_test(iface_id, host_ip)
 except ValueError as e:
     print(e)
     os._exit(-1)
-
 
 os._exit(0)

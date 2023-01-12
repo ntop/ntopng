@@ -52,7 +52,7 @@ class Interface:
             print(self.get_interfaces())
             print("----------------------------")
         except:
-            raise ValueError("Invalid interfaceId specified")
+            raise ValueError("Invalid interface ID specified")
 
         
 
