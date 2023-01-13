@@ -254,7 +254,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
 	    if(it == type_i_transitions.end()) {
 	      if(f->get_duration() > ntop->getPrefs()->getIEC60870LearingPeriod()) {
-	        FlowAlert *alert;
+	        FlowAlert *alert = NULL;
 		u_int16_t c_score = 50, s_score = 10;
 
 #ifdef IEC60870_TRACE
@@ -264,12 +264,12 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 		char key[128], rsp[64];
 		snprintf(key, sizeof(key), CHECKS_IEC_INVALID_TRANSITION);
             
-		if((!ntop->getRedis()->get(key, rsp, sizeof(rsp))) && ((rsp[0] != '\0') && (!strcmp(rsp, "1"))))
+		if((!ntop->getRedis()->get(key, rsp, sizeof(rsp))) && ((rsp[0] != '\0') && (!strcmp(rsp, "1")))) {
       alert = new IECInvalidTransitionAlert(NULL, f, packet_time, last_type_i, type_id);
-
-		if (alert)
-		  f->triggerAlertSync(alert, c_score, s_score);
-		
+      if (alert)
+        f->triggerAlertSync(alert, c_score, s_score);
+    }
+    	
 		type_i_transitions[transition] = 2; /* Post Learning */
 	      } else
 		type_i_transitions[transition] = 1; /* During Learning */
@@ -292,21 +292,23 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 		   || (transitions.c_to_m > 20)
 		   || (transitions.c_to_c > 5))) { 
 	      /* https://github.com/ntop/ntopng/issues/6598 */
-	      FlowAlert *alert;
+	      FlowAlert *alert = NULL;
 	      u_int16_t c_score = CLIENT_ALERT_SCORE, s_score = SERVER_ALERT_SCORE;
 	      
 	      char key[128], rsp[64];
 	      snprintf(key, sizeof(key), CHECKS_IEC_INVALID_COMMAND_TRANSITION);
-          
-	      if((!ntop->getRedis()->get(key, rsp, sizeof(rsp))) && ((rsp[0] != '\0') && (!strcmp(rsp, "1"))))
+
+	      if((!ntop->getRedis()->get(key, rsp, sizeof(rsp))) && ((rsp[0] != '\0') && (!strcmp(rsp, "1")))) {
 	        alert = new IECInvalidCommandTransitionAlert(NULL, f, packet_time,
 							   transitions.m_to_c,
 							   transitions.c_to_m,
 							   transitions.c_to_c);
+
+          if(alert)
+            f->triggerAlertSync(alert, c_score, s_score);
+        }
 	      
-	      if(alert)
-		f->triggerAlertSync(alert, c_score, s_score);
-	      
+
 	      // ntop->getTrace()->traceEvent(TRACE_WARNING, "*** INVALID TRANSITION %u -> %u", last_type_i, type_id);
 		
 	      invalid_command_transition_detected = true;
@@ -332,18 +334,19 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	  }
 
 	  if(unexpected_typeid_alerted) {
-	    FlowAlert *alert;
+	    FlowAlert *alert = NULL;
             u_int16_t c_score = CLIENT_ALERT_SCORE, s_score = SERVER_ALERT_SCORE;
 
 
 	    char key[128], rsp[64];
 	    snprintf(key, sizeof(key), CHECKS_IEC_UNEXPECTED_TYPE_ID);
         
-	    if((!ntop->getRedis()->get(key, rsp, sizeof(rsp))) && ((rsp[0] != '\0') && (!strcmp(rsp, "1"))))
-	      alert = new IECUnexpectedTypeIdAlert(NULL, f, type_id, asdu, cause_tx, negative);
+	    if((!ntop->getRedis()->get(key, rsp, sizeof(rsp))) && ((rsp[0] != '\0') && (!strcmp(rsp, "1")))) {
+        alert = new IECUnexpectedTypeIdAlert(NULL, f, type_id, asdu, cause_tx, negative);
 	
-	    if(alert)
-	      f->triggerAlertSync(alert, c_score, s_score);
+        if(alert)
+          f->triggerAlertSync(alert, c_score, s_score);
+	    }
 	    
 	  } /* unexpected_typeid_alerted */
 	  /* Discard typeIds 127..255 */
