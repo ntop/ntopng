@@ -2643,6 +2643,7 @@ local lang = {
     ["duplex"] = "Duplex",
     ["enable_flow_ratio"] = "Enable Flow/SNMP Ratio",
     ["exporter_devices"] = "Flow Exporter Devices",
+    ["exporter_list_per_obs"] = "Flow Exporter Devices per Obs. Point %{obs_point}",
     ["exporter_ip"] = "Flow Exporter IP",
     ["exporters"] = "Flow Exp.",
     ["flow_device_x"] = "Flow Exporter: %{device}",
