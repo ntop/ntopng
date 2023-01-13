@@ -13,7 +13,7 @@ class Host:
     """
     def __init__(self, ntopng_obj):
         """
-        Construct a new 'Host' object
+        Construct a new Host object
         
         :param ntopng_obj: The ntopng handle
         """
@@ -36,6 +36,14 @@ class Host:
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/active.lua", {"ifid": ifid, "currentPage": currentPage, "perPage": perPage}))
 
     def get_host_interfaces(self, host):
+        """
+        Return all ntopng interfaces for a given host
+        
+        :param host: The host
+        :type host: string
+        :return: List of interfaces
+        :rtype: array
+        """
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/interfaces.lua", { "host": host }))
 
     def get_host_data(self, ifid, host):
@@ -59,8 +67,8 @@ class Host:
         :type ifid: int
         :param host: The host
         :type host: string
-        :param host: The host VLAN ID (if any)
-        :type host: string
+        :param vlan: The host VLAN ID (if any)
+        :type vlan: string
         :return: Layer 7 protocol statistics
         :rtype: object
         """
@@ -74,10 +82,10 @@ class Host:
         :type ifid: int
         :param host: The host
         :type host: string
-        :param host: The host VLAN ID (if any)
-        :type host: string
-        :param host: The traffic direction (True for received traffic, False for sent)
-        :type host: boolean
+        :param vlan: The host VLAN ID (if any)
+        :type vlan: string
+        :param direction_rcvd: The traffic direction (True for received traffic, False for sent)
+        :type direction_rcvd: boolean
         :return: DSCP statistics
         :rtype: object
         """

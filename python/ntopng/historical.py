@@ -88,6 +88,9 @@ class Historical:
     def get_flows(self, ifid, epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by):
         return(self.ntopng_obj.post_request(self.rest_pro_v2_url + "/get/db/flows.lua", { "ifid": ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end, "select_clause": select_clause, "where_clause": where_clause, "maxhits_clause": maxhits, "group_by_clause": group_by, "order_by_clause": order_by }))
 
+    def get_topk_flows(self, ifid, epoch_begin, epoch_end, max_hits, where_clause):
+        return(self.ntopng_obj.request(self.rest_pro_v2_url + "/get/db/topk_flows.lua", {"ifid": ifid, "begin_time_clause": epoch_begin, "end_time_clause": epoch_end, "maxhits_clause": max_hits, "where_clause": where_clause }))
+
     def self_test(self, ifid, host):
         try:
             epoch_end   = int(time.time())
@@ -126,6 +129,8 @@ class Historical:
             where_clause  = "(IP_PROTOCOL_VERSION=4) AND IPV4_SRC_ADDR=(\""+host+"\") AND (PROTOCOL=6) "
             maxhits       = 10 # 10 records max
             print(self.get_flows(ifid, epoch_begin, epoch_end, select_clause, where_clause, maxhits, '', ''))
+            print("----------------------------")
+            print(self.get_topk_flows(ifid, epoch_begin, epoch_end, maxhits, None))
             print("----------------------------")
         except:
             raise ValueError("Invalid interface ID, host or parameters specified")

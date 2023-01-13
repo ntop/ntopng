@@ -2,7 +2,7 @@
 Ntopng
 ====================================
 The Ntopng class stores information for accessing the ntopng instance (IP and credentials)
-and provides global traffic information and constants (e.g. alert types).
+and provides global traffic information and constants (interfaces, alert types, etc).
 """
 
 import requests
@@ -138,12 +138,23 @@ class Ntopng:
         """
         return(self.request(self.rest_v2_url + "/get/alert/severity/consts.lua", None))
 
+    def get_interfaces(self):
+        """
+        Return all available interfaces
+        
+        :return: The list of interfaces
+        :rtype: array
+        """
+        return(self.request(self.rest_v2_url + "/get/ntopng/interfaces.lua", None))
+
     def self_test(self):
         try:
             print("----------------------------")
             print(self.get_alert_types())
             print("----------------------------")
             print(self.get_alert_severities())
+            print("----------------------------")
+            print(self.get_interfaces())
             print("----------------------------")
         except:
             raise ValueError("Unable to retrieve information")   
