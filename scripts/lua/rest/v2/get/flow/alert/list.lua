@@ -20,11 +20,11 @@ local auth = require "auth"
 local rc = rest_utils.consts.success.ok
 local res = {}
 
-local ifid = _GET["ifid"]
-local format = _GET["format"] or "json"
+local ifid        = _GET["ifid"]
+local format      = _GET["format"] or "json"
 local epoch_begin = _GET["epoch_begin"]
 local epoch_end   = _GET["epoch_end"]
-local no_html = (format == "txt")
+local no_html     = (format == "txt")
 
 if not auth.has_capability(auth.capabilities.alerts) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
