@@ -170,8 +170,10 @@ function printHostPoolDropdown(base_url, page_params, host_pool_list)
 
    if host_pool then
       local id = tonumber(host_pool)
-      ordered_host_pool_list[id] = {}
-      ordered_host_pool_list[id]["count"] = host_pool_list[id]["count"]
+      if host_pool_list[id] then
+        ordered_host_pool_list[id] = {}
+        ordered_host_pool_list[id]["count"] = host_pool_list[id]["count"]
+      end
    else
       for key, value in pairs(host_pool_list) do
 	 ordered_host_pool_list[key] = {}
