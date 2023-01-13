@@ -5,6 +5,7 @@
 local checks = require("checks")
 local flow_alert_keys = require "flow_alert_keys"
 local IEC_INVALID_TRANSITION_KEY = "ntopng.checks.iec104_invalid_command_transition_enable"
+
 -- #################################################################
 
 local script = {
