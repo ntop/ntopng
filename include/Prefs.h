@@ -44,7 +44,7 @@ class Prefs {
   char *https_binding_address1, *https_binding_address2;
   bool enable_client_x509_auth, reproduce_at_original_speed;
   char *zmq_publish_events_url;
-  const char *clickhouse_client;
+  const char *clickhouse_client, *clickhouse_cluster_name;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, sniff_name_responses,
     sniff_local_name_responses, pcap_file_purge_hosts_flows,
@@ -469,6 +469,7 @@ class Prefs {
   inline void        dontUseClickHouse()         { dump_flows_on_clickhouse = dump_flows_on_mysql = false; };
   inline char*       getZMQPublishEventsURL()    { return(zmq_publish_events_url);                      };
   inline const char* getClickHouseClientPath()   { return(clickhouse_client);                           };
+  inline const char* getClickHouseClusterName()  { return(clickhouse_cluster_name);                     };
 #ifdef NTOPNG_PRO
   inline bool        isLabelDumpEnabled()        { return(create_labels_logfile);                       };
 #endif

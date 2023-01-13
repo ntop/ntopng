@@ -40,7 +40,7 @@ Prefs::Prefs(Ntop *_ntop) {
   num_deferred_interfaces_to_register = 0, cli = NULL;
   ntop = _ntop, pcap_file_purge_hosts_flows = false,
     ignore_vlans = false, simulate_vlans = false, simulate_macs = false, ignore_macs = false;
-  insecure_tls = false, clickhouse_client = NULL;
+  insecure_tls = false, clickhouse_client = clickhouse_cluster_name = NULL;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
   num_simulated_ips = 0, enable_behaviour_analysis = false;
   local_networks_set = false, shutdown_when_done = false;
@@ -453,11 +453,19 @@ void usage() {
 #if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO)
 	 "                                    | clickhouse    Dump in ClickHouse (Enterprise M/L/XL)\n"
 	 "                                    |   Format:\n"
-	 "                                    |   clickhouse;<host[@[<tcpport>,]<mysqlport]|socket>;<dbname>;<user>;<pw>\n"
+	 "                                    |   clickhouse;<host[@[<tcp port>,]<mysqlport]|socket>;<dbname>;<user>;<pw>\n"
 	 "                                    |   Example:\n"
 	 "                                    |   clickhouse;127.0.0.1;ntopng;default;\n"
 	 "                                    |   You can also use just -F clickhouse as alias of:\n"
-	 "                                    |   -F clickhouse;127.0.0.1@%u,%u;ntopng;default;\n"
+	 "                                    |   -F \"clickhouse;127.0.0.1@%u,%u;ntopng;default;\"\n"
+	 "                                    |\n"
+	 "                                    | clickhouse-cluster    Dump in ClickHouse Cluster (Enterprise M/L/XL)\n"
+	 "                                    |   Format:\n"
+	 "                                    |   clickhouse-cluster;<host[@[<tcp port>,]<mysqlport]|socket>;<dbname>;<user>;<pw>;<cluster name>\n"
+	 "                                    |   Example:\n"
+	 "                                    |   clickhouse-cluster;127.0.0.1;ntopng;default;ntop_clickhouse_cluster\n"
+	 "                                    |   You can also use just -F clickhouse-cluster as alias of:\n"
+	 "                                    |   -F \"clickhouse-cluster;127.0.0.1@%u,%u;ntopng;default;ntop_clickhouse_cluster\"\n"
 	 "                                    |\n"
 #endif
 
@@ -467,8 +475,8 @@ void usage() {
 	 "                                    |   kafka;[<brokerIP[:<port>]]+;<topic>[;<kafka option>=<value>]+\n"
 	 "                                    |   \n"
 	 "                                    |   Example:\n"
-	 "                                    |   kafka;127.0.0.1;flows\n"
-	 "                                    |   kafka;127.0.0.1:7689,192.168.1.20,192.168.1.2:9092;flows;compression.codec=gzip\n"
+	 "                                    |   \"kafka;127.0.0.1;flows\"\n"
+	 "                                    |   \"kafka;127.0.0.1:7689,192.168.1.20,192.168.1.2:9092;flows;compression.codec=gzip\"\n"
 	 "                                    |   \n"
 	 "                                    |   See at the bottom of this help the list of supported kafka configuration options.\n"
 	 "                                    |\n"
@@ -525,6 +533,7 @@ void usage() {
 #endif
 #ifdef HAVE_CLICKHOUSE
          , CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
+	 , CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
 #endif
 	 );
 
@@ -940,7 +949,7 @@ static const struct option long_options[] = {
 /* Those options are hidden and will not be shown in the GUI cli string.
    Typically, such options contains passwords or other sensitive fields. */
 static const int hidden_optkeys[] = {
-  'F' /* flows export*/,
+  'F' /* flows export */,
   'r' /* redis */,
   215 /* zmq encryption password */,
   220 /* zmq encryption secret key */,
@@ -1515,7 +1524,9 @@ int Prefs::setOption(int optkey, char *optarg) {
     }
 #endif
     else if((!strncmp(optarg, "mysql", 5))
-	    || (!strncmp(optarg, "clickhouse", 10))) {
+	    || (!strncmp(optarg, "clickhouse", 10))
+	    || (!strncmp(optarg, "clickhouse-cluster", 18))
+	    ){
 #ifdef HAVE_MYSQL
       char *sep = strchr(optarg, ';');
 
@@ -1523,9 +1534,11 @@ int Prefs::setOption(int optkey, char *optarg) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid --mysql/--clickhouse format: ignored");
       } else {
 	bool all_good = true;
-
+	bool use_clickhouse_cluster;
+	
 	dump_flows_on_clickhouse = (optarg[0] == 'c') ? true : false;
-
+	use_clickhouse_cluster   = (strncmp(optarg, "clickhouse-cluster", 18) == 0) ? true : false;
+	
 	if(dump_flows_on_clickhouse) {
 	  /* Check if CLICKHOUSE_CLIENT is present */
 	  struct stat buf;
@@ -1550,11 +1563,6 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 	  dump_flows_on_mysql = true;
 
-	  /*
-	     Old Format: mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw>
-	     New Format: mysql;<host[@[port,]port]|unix socket>;<dbname>;<user>;<pw>
-	  */
-
 	  for(u_int i=0; optarg[i] != '\0'; i++)
 	    if(optarg[i] == ';') num_semicolumns++;
 
@@ -1563,20 +1571,31 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    mysql_dbname = strdup((char*)"ntopng");
 	    mysql_user   = strdup((char*)"default");
 	    mysql_pw     = strdup((char*)"");
+
+	    if(use_clickhouse_cluster)
+	      clickhouse_cluster_name = strdup((char*)DEFAULT_CLICKHOUSE_CLUSTER);
 	  } else {
 	    optarg = Utils::tokenizer(sep + 1, ';', &mysql_host);
 	    optarg = Utils::tokenizer(optarg, ';',  &mysql_dbname);
-
-	    if(num_semicolumns == 5) {
-	      char *mysql_tablename = NULL;
-	      optarg = Utils::tokenizer(optarg, ';',  &mysql_tablename); /* Skip it */
-              if (mysql_tablename) free(mysql_tablename);
-	    }
-
 	    optarg = Utils::tokenizer(optarg, ';',  &mysql_user);
 	    mysql_pw = strdup(optarg ? optarg : "");
+
+	    if(use_clickhouse_cluster) {
+	      optarg = Utils::tokenizer(optarg, ';',  &mysql_pw);
+	      if(optarg) clickhouse_cluster_name = strdup(optarg);
+	    }
 	  }
 
+	  if(use_clickhouse_cluster
+	     && ((clickhouse_cluster_name == NULL) || (clickhouse_cluster_name[0] == '\0'))) {
+	    if(clickhouse_cluster_name) {
+	      free((void*)clickhouse_cluster_name);
+	      clickhouse_cluster_name = NULL;	    
+	    }
+	    
+	    clickhouse_cluster_name = strdup((char*)DEFAULT_CLICKHOUSE_CLUSTER);
+	  }
+	  
 	  if(mysql_host && mysql_user) {
 	    if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))
 	      mysql_dbname  = strdup("ntopng");
@@ -1591,7 +1610,7 @@ int Prefs::setOption(int optkey, char *optarg) {
             clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
             if(!dump_flows_on_clickhouse) mysql_port = CONST_DEFAULT_MYSQL_PORT;
 
-            /* Configured ports, if any*/
+            /* Configured ports, if any */
 	    if((mysql_port_str = strchr(mysql_host, '@'))) {
 	      char *comma, *clickhouse_tcp_port_str;
               long l;

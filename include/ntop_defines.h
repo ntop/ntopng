@@ -929,7 +929,8 @@
 #define ALERTS_MANAGER_SEVERITY_FIELD        "alert_severity"
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
-#define DB_SCHEMA_CLICKHOUSE_FILE_NAME       "db_schema_clickhouse.sql"
+#define DB_SCHEMA_CLICKHOUSE_FNAME           "db_schema_clickhouse.sql"
+#define DB_SCHEMA_CLICKHOUSE_CLUSTER_FNAME   "db_schema_clickhouse_cluster.sql"
 #define ALERTS_STORE_SCHEMA_FILE_NAME        "alert_store_schema.sql"
 #define ALERTS_VIEW_STORE_SCHEMA_FILE_NAME   "alert_view_store_schema.sql"
 #define ALERTS_STORE_DB_FILE_NAME            "alert_store_v11.db"
@@ -1225,6 +1226,8 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 
 #define DELAYED_TRAILER                  "-delayed"
 
+#define DEFAULT_CLICKHOUSE_CLUSTER       "ntop_clickhouse_cluster"
+
 /******************************************************************************/
 
 /* Profiling */
@@ -1293,6 +1296,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define CHECKS_IEC_INVALID_COMMAND_TRANSITION "ntopng.checks.iec104_invalid_command_transition_enabled"
 #define CHECKS_IEC_UNEXPECTED_TYPE_ID "ntopng.checks.iec104_unexpected_type_id_enabled"
 #define CHECKS_IEC_INVALID_TRANSITION "ntopng.checks.iec104_invalid_transition_enabled"
+
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */
