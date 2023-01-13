@@ -1024,7 +1024,7 @@ function alert_store:select_engaged(filter)
       local tstamp = tonumber(alert.tstamp)
 
       -- Engaged alerts are currently active, ignore begin epoch
-      if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
+      -- if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
 
       if self._epoch_end and tstamp > self._epoch_end then goto continue end
 
