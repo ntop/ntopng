@@ -34,6 +34,7 @@ class ObservationPoint : public GenericHashEntry, public GenericTrafficElement, 
   u_int16_t obs_point;
   NetworkStats dirstats;
   u_int64_t num_flows;
+  ndpi_bitmap* exporter_list;
   std::atomic<bool> delete_requested;
   bool remove_entry;
 
@@ -59,6 +60,7 @@ class ObservationPoint : public GenericHashEntry, public GenericTrafficElement, 
   inline u_int16_t getNumHosts()               { return getUses(); }
   inline u_int32_t key()                       { return obs_point; }
   inline u_int32_t getObsPoint()               { return obs_point; }
+  inline void addProbeIp(u_int32_t probe_ip) { ndpi_bitmap_set(exporter_list, probe_ip); }
 
   bool equal(u_int16_t _obs_point)                         { return (obs_point == _obs_point);        } 
   inline bool equal(ObservationPoint *_obs_point)          { return (obs_point == _obs_point->key()); }

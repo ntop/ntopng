@@ -28,6 +28,7 @@ ObservationPoint::ObservationPoint(NetworkInterface *_iface, u_int16_t _obs_poin
   num_flows = 0;
   delete_requested = false;
   remove_entry = false;
+  exporter_list = ndpi_bitmap_alloc();
 
 #ifdef OBS_POINT_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Observation Point %s", obs_point);
@@ -58,6 +59,7 @@ bool ObservationPoint::is_hash_entry_state_idle_transition_ready() {
 /* *************************************** */
 
 ObservationPoint::~ObservationPoint() {
+  ndpi_bitmap_free(exporter_list);
 #ifdef OBS_POINT_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Observation Point");
 #endif
@@ -103,6 +105,18 @@ void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level, bool asLis
 
   Score::lua_get_score(vm);
   Score::lua_get_score_breakdown(vm);
+
+  u_int32_t exporter_ip = 0;
+
+  lua_newtable(vm);
+  ndpi_bitmap_iterator* iterator = ndpi_bitmap_iterator_alloc(exporter_list);
+  while(ndpi_bitmap_iterator_next(iterator, &exporter_ip)) {
+    char buf[32];
+    lua_push_uint32_table_entry(vm, Utils::intoaV4(exporter_ip, buf, sizeof(buf)), 1);
+  }
+  lua_pushstring(vm, "exporter_list");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
   if(asListElement) {
     lua_pushinteger(vm, obs_point);

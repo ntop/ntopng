@@ -827,6 +827,8 @@ class Flow : public GenericHashEntry {
     flow_device.in_index = inidx, flow_device.out_index = outidx;
     if(cli_host) cli_host->setLastDeviceIp(device_ip);
     if(srv_host) srv_host->setLastDeviceIp(device_ip);
+    ObservationPoint *obs_point = iface->getObsPoint(observation_point_id, true, true);
+    obs_point->addProbeIp(device_ip);
   }
   inline u_int32_t getFlowDeviceIP()           { return flow_device.device_ip;             };
   inline u_int16_t getFlowObservationPointId() { return flow_device.observation_point_id;  };
