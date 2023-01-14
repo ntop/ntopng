@@ -1226,7 +1226,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 
 #define DELAYED_TRAILER                  "-delayed"
 
-#define DEFAULT_CLICKHOUSE_CLUSTER       "ntop_clickhouse_cluster"
+#define DEFAULT_CLICKHOUSE_CLUSTER       "ntop_cluster"
 
 /******************************************************************************/
 
