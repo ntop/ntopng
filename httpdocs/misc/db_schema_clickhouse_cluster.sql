@@ -1,6 +1,6 @@
 USE ntopng;
 @
-CREATE TABLE IF NOT EXISTS `flows` ON CLUSTER $CLUSTER (
+CREATE TABLE IF NOT EXISTS `flows` ON CLUSTER '{cluster}' (
 `FLOW_ID` UInt64,
 `IP_PROTOCOL_VERSION` UInt8,
 `FIRST_SEEN` DateTime,
@@ -56,73 +56,73 @@ CREATE TABLE IF NOT EXISTS `flows` ON CLUSTER $CLUSTER (
 `DST_PROC_NAME` String,
 `SRC_PROC_USER_NAME` String,
 `DST_PROC_USER_NAME` String
-) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/ntopng/flows', '{replica}') PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, FIRST_SEEN);
+) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{cluster}/{shard}/ntopng/flows', '{replica}') PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, FIRST_SEEN);
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `FLOW_ID` UInt64
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `FLOW_ID` UInt64
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `CLIENT_NW_LATENCY_US` UInt32
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `CLIENT_NW_LATENCY_US` UInt32
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `SERVER_NW_LATENCY_US` UInt32
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `SERVER_NW_LATENCY_US` UInt32
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `CLIENT_LOCATION` UInt8
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `CLIENT_LOCATION` UInt8
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `SERVER_LOCATION` UInt8
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `SERVER_LOCATION` UInt8
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `SRC_NETWORK_ID` UInt16
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `SRC_NETWORK_ID` UInt16
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `DST_NETWORK_ID` UInt16
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `DST_NETWORK_ID` UInt16
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `INPUT_SNMP` UInt32
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `INPUT_SNMP` UInt32
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `OUTPUT_SNMP` UInt32
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `OUTPUT_SNMP` UInt32
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `SRC_HOST_POOL_ID` UInt16
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `SRC_HOST_POOL_ID` UInt16
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `DST_HOST_POOL_ID` UInt16
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `DST_HOST_POOL_ID` UInt16
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `SRC_PROC_NAME` String
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `SRC_PROC_NAME` String
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `DST_PROC_NAME` String
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `DST_PROC_NAME` String
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `SRC_PROC_USER_NAME` String
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `SRC_PROC_USER_NAME` String
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `DST_PROC_USER_NAME` String
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `DST_PROC_USER_NAME` String
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `ALERTS_MAP` String
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `ALERTS_MAP` String
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `SEVERITY` UInt8
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `SEVERITY` UInt8
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `IS_CLI_ATTACKER` UInt8
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `IS_CLI_ATTACKER` UInt8
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `IS_CLI_VICTIM` UInt8
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `IS_CLI_VICTIM` UInt8
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `IS_CLI_BLACKLISTED` UInt8
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `IS_CLI_BLACKLISTED` UInt8
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `IS_SRV_ATTACKER` UInt8
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `IS_SRV_ATTACKER` UInt8
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `IS_SRV_VICTIM` UInt8
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `IS_SRV_VICTIM` UInt8
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `IS_SRV_BLACKLISTED` UInt8
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `IS_SRV_BLACKLISTED` UInt8
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `ALERT_STATUS` UInt8
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `ALERT_STATUS` UInt8
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `USER_LABEL` String
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `USER_LABEL` String
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `USER_LABEL_TSTAMP` DateTime
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `USER_LABEL_TSTAMP` DateTime
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `ALERT_JSON` String
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `ALERT_JSON` String
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `IS_ALERT_DELETED` UInt8
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `IS_ALERT_DELETED` UInt8
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `SRC2DST_PACKETS` UInt32
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `SRC2DST_PACKETS` UInt32
 @
-ALTER TABLE flows ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `DST2SRC_PACKETS` UInt32
+ALTER TABLE flows ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `DST2SRC_PACKETS` UInt32
 
 @
 
-DROP VIEW IF EXISTS `flow_alerts_view` ON CLUSTER $CLUSTER;
+DROP VIEW IF EXISTS `flow_alerts_view` ON CLUSTER '{cluster}';
 @
-CREATE VIEW IF NOT EXISTS `flow_alerts_view` ON CLUSTER $CLUSTER AS SELECT
+CREATE VIEW IF NOT EXISTS `flow_alerts_view` ON CLUSTER '{cluster}' AS SELECT
 FLOW_ID AS rowid,
 IP_PROTOCOL_VERSION AS ip_version,
 FIRST_SEEN AS tstamp,
@@ -177,7 +177,7 @@ WHERE STATUS != 0 AND IS_ALERT_DELETED != 1;
 
 @
 
-CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` ON CLUSTER $CLUSTER (
+CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` ON CLUSTER '{cluster}' (
 `rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
@@ -196,11 +196,11 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` ON CLUSTER $CLUSTER (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime NULL
-) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/ntopng/active_monitoring_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{cluster}/{shard}/ntopng/active_monitoring_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
-CREATE TABLE IF NOT EXISTS `flow_alerts` ON CLUSTER $CLUSTER (
+CREATE TABLE IF NOT EXISTS `flow_alerts` ON CLUSTER '{cluster}' (
 `rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
@@ -241,31 +241,31 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` ON CLUSTER $CLUSTER (
 `flow_risk_bitmap` UInt64 NOT NULL,
 `user_label` String,
 `user_label_tstamp` DateTime
-) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/ntopng/flow_alerts', '{replica}') PARTITION BY toYYYYMMDD(first_seen) ORDER BY (first_seen);
+) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{cluster}/{shard}/ntopng/flow_alerts', '{replica}') PARTITION BY toYYYYMMDD(first_seen) ORDER BY (first_seen);
 @
-ALTER TABLE `flow_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS cli_host_pool_id UInt16;
+ALTER TABLE `flow_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS cli_host_pool_id UInt16;
 @
-ALTER TABLE `flow_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS srv_host_pool_id UInt16;
+ALTER TABLE `flow_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS srv_host_pool_id UInt16;
 @
-ALTER TABLE `flow_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS cli_network UInt16;
+ALTER TABLE `flow_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS cli_network UInt16;
 @
-ALTER TABLE `flow_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS srv_network UInt16;
+ALTER TABLE `flow_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS srv_network UInt16;
 @
-ALTER TABLE `flow_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS info String;
+ALTER TABLE `flow_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS info String;
 @
-ALTER TABLE `flow_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS cli_location UInt8;
+ALTER TABLE `flow_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS cli_location UInt8;
 @
-ALTER TABLE `flow_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS srv_location UInt8;
+ALTER TABLE `flow_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS srv_location UInt8;
 @
-ALTER TABLE `flow_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS probe_ip String;
+ALTER TABLE `flow_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS probe_ip String;
 @
-ALTER TABLE `flow_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS input_snmp UInt32;
+ALTER TABLE `flow_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS input_snmp UInt32;
 @
-ALTER TABLE `flow_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS output_snmp UInt32;
+ALTER TABLE `flow_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS output_snmp UInt32;
 
 @
 
-CREATE TABLE IF NOT EXISTS `host_alerts` ON CLUSTER $CLUSTER (
+CREATE TABLE IF NOT EXISTS `host_alerts` ON CLUSTER '{cluster}' (
 `rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
@@ -290,12 +290,12 @@ CREATE TABLE IF NOT EXISTS `host_alerts` ON CLUSTER $CLUSTER (
 `user_label_tstamp` DateTime
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE `host_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS host_pool_id UInt16;
+ALTER TABLE `host_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS host_pool_id UInt16;
 @
-ALTER TABLE `host_alerts` ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS network UInt16;
+ALTER TABLE `host_alerts` ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS network UInt16;
 @
 
-CREATE TABLE IF NOT EXISTS `mac_alerts` ON CLUSTER $CLUSTER (
+CREATE TABLE IF NOT EXISTS `mac_alerts` ON CLUSTER '{cluster}' (
 `rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
@@ -315,11 +315,11 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` ON CLUSTER $CLUSTER (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime
-) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/ntopng/host_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{cluster}/{shard}/ntopng/host_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
-CREATE TABLE IF NOT EXISTS `snmp_alerts` ON CLUSTER $CLUSTER (
+CREATE TABLE IF NOT EXISTS `snmp_alerts` ON CLUSTER '{cluster}' (
 `rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
@@ -338,11 +338,11 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` ON CLUSTER $CLUSTER (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime
-) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/ntopng/snmp_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{cluster}/{shard}/ntopng/snmp_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
-CREATE TABLE IF NOT EXISTS `network_alerts` ON CLUSTER $CLUSTER (
+CREATE TABLE IF NOT EXISTS `network_alerts` ON CLUSTER '{cluster}' (
 `rowid` UUID,
 `local_network_id` UInt16 NOT NULL,
 `alert_id` UInt32 NOT NULL,
@@ -360,11 +360,11 @@ CREATE TABLE IF NOT EXISTS `network_alerts` ON CLUSTER $CLUSTER (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime
-) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/ntopng/network_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{cluster}/{shard}/ntopng/network_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
-CREATE TABLE IF NOT EXISTS `interface_alerts` ON CLUSTER $CLUSTER (
+CREATE TABLE IF NOT EXISTS `interface_alerts` ON CLUSTER '{cluster}' (
 `rowid` UUID,
 `ifid` UInt8 NOT NULL,
 `alert_id` UInt32 NOT NULL,
@@ -383,11 +383,11 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` ON CLUSTER $CLUSTER (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime
-) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/ntopng/interface_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{cluster}/{shard}/ntopng/interface_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
-CREATE TABLE IF NOT EXISTS `user_alerts` ON CLUSTER $CLUSTER (
+CREATE TABLE IF NOT EXISTS `user_alerts` ON CLUSTER '{cluster}' (
 `rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
@@ -403,11 +403,11 @@ CREATE TABLE IF NOT EXISTS `user_alerts` ON CLUSTER $CLUSTER (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime
-) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/ntopng/user_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{cluster}/{shard}/ntopng/user_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
-CREATE TABLE IF NOT EXISTS `system_alerts` ON CLUSTER $CLUSTER (
+CREATE TABLE IF NOT EXISTS `system_alerts` ON CLUSTER '{cluster}' (
 `rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
@@ -423,15 +423,15 @@ CREATE TABLE IF NOT EXISTS `system_alerts` ON CLUSTER $CLUSTER (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime
-) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/ntopng/system_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{cluster}/{shard}/ntopng/system_alerts', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE host_alerts ON CLUSTER $CLUSTER ADD COLUMN IF NOT EXISTS `country` String
+ALTER TABLE host_alerts ON CLUSTER '{cluster}' ADD COLUMN IF NOT EXISTS `country` String
 
 @
 
-DROP VIEW IF EXISTS `all_alerts_view` ON CLUSTER $CLUSTER;
+DROP VIEW IF EXISTS `all_alerts_view` ON CLUSTER '{cluster}';
 @
-CREATE VIEW IF NOT EXISTS `all_alerts_view` ON CLUSTER $CLUSTER AS
+CREATE VIEW IF NOT EXISTS `all_alerts_view` ON CLUSTER '{cluster}' AS
 SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `active_monitoring_alerts`
 UNION ALL
 SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, 0 AS alert_status, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
