@@ -372,7 +372,7 @@ end
    if(value.periodic_flow) then
       info = info .. " <A HREF='".. ntop.getHttpPrefix() .."/lua/pro/enterprise/network_maps.lua?map=periodicity_map&page=table"
 
-      if(info_cli.ip ~= nil) then
+      if((info_cli ~= nil) and (info_cli.ip ~= nil)) then
 	 local k
 
 	 if(value["cli.serialize_by_mac"] and (value["cli.mac"] ~= nil)) then
