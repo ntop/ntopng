@@ -729,8 +729,8 @@ end
 
 -- This function actively resolves an host if there is not information about it.
 -- NOTE: prefer the host2name on this function
-function resolveAddress(hostinfo, allow_empty)
-   local alt_name = ip2label(hostinfo["host"])
+function resolveAddress(hostinfo, allow_empty, shorten_len)
+   local alt_name = ip2label(hostinfo["host"], nil, shorten_len)
 
    if(not isEmptyString(alt_name) and (alt_name ~= hostinfo["host"])) then
       -- The host label has priority
@@ -908,7 +908,7 @@ local function label2formattedlabel(alt_name, host_info, show_vlan, shorten_len)
 	    res = shortenString(res, shorten_len)
 	 else
 	    -- Use the default system-wide setting for the shortening
-	    res = shortenString(res)
+	    res = shortenString(res, shorten_len)
          end
       end
 
@@ -999,8 +999,8 @@ end
 -- ##############################################
 
 -- Just a convenience function for hostinfo2label with only IP and VLAN
-function ip2label(ip, vlan)
-   return hostinfo2label({host = ip, vlan = (vlan or 0)})
+function ip2label(ip, vlan, shorten_len)
+   return hostinfo2label({host = ip, vlan = (vlan or 0)}, false, shorten_len)
 end
 
 -- ##############################################
