@@ -34,3 +34,11 @@ ntopng
 
 Start ntopng as
 - ntopng -i XXX -F "clickhouse-cluster;192.168.2.92@9000,9004;ntopng;default;"
+
+
+Third Party Resources
+---------------------
+
+There are several documents on the Internet about ClickHouse setup. As clickhouse has changes several tiny configuration details as new versions are released, please make sure you adapt these files to the latest clickhouse version. A typical change is to replace `<yandex>..</yandex>` with `<clickhouse>...</clickhouse>`
+- https://hakanmazi123.medium.com/step-by-step-clickhouse-cluster-installation-with-3-servers-12cfa21daa1a
+- https://altinity.com/blog/how-to-set-up-a-clickhouse-cluster-with-zookeeper
