@@ -1,0 +1,16 @@
+<clickhouse>
+  <remote_servers>
+    <ntop_cluster>
+      <shard>
+	<replica>
+	  <host>192.168.2.92</host>
+	  <port>9000</port>
+	</replica>
+	<replica>
+	  <host>192.168.2.93</host>
+	  <port>9000</port>
+	</replica>
+      </shard>
+    </ntop_cluster>
+  </remote_servers>
+</clickhouse>

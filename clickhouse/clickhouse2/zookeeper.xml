@@ -1,0 +1,15 @@
+<clickhouse>
+  <zookeeper>
+    <node>
+      <host>192.168.2.221</host>
+      <port>2181</port>
+    </node>
+    <session_timeout_ms>30000</session_timeout_ms>
+    <operation_timeout_ms>10000</operation_timeout_ms>
+    <!-- <root>/path/to/zookeeper/node</root> -->
+    <!-- <identity>user:password</identity> -->
+  </zookeeper>
+  <distributed_ddl>
+    <path>/clickhouse/task_queue/ddl</path>
+  </distributed_ddl>
+</clickhouse>
