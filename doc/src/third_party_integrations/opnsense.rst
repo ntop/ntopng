@@ -46,13 +46,22 @@ The output should look like the below.
 Plugin Installation
 ===================
 
+The ntopng plugin can be installed from Shell or through the OPNsense web GUI.
+
 .. note::
 
    Plugins installation in OPNsense requires you to log in as administrator.
 
-Point the browser to the OPNsense management page, go to the *System* > *Firmware* > *Plugins* page,
-and click on the *Check for updates*.
+Log into the OPNsense Shell as administrator (select option 8) and run:
 
+.. code:: bash
+
+   pkg update
+   pkg install os-ntopng-enterprise
+
+
+Or point the browser to the OPNsense management page, go to the *System* > *Firmware* > *Plugins* page,
+and click on the *Check for updates*.
 
 .. figure:: ../img/opnsense_check_for_updates.png
   :align: center
