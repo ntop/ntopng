@@ -44,33 +44,29 @@ onBeforeMount(async() => {});
 
 onMounted(async () => {
     set_sankey_data();
+    attach_events();
 });
 
 watch(() => props.sankey_data, (cur_value, old_value) => {
-    $(".nodes", sankey_chart_ref.value).empty();
-    $(".links", sankey_chart_ref.value).empty();
-    set_sankey_data();
+    set_sankey_data(true);
 });
 
-function set_sankey_data() {
-    if (props.sankey_data.nodes == null || props.sankey_data.links == null) {
+function set_sankey_data(reset) {
+    if (reset) {
+	$(".nodes", sankey_chart_ref.value).empty();
+	$(".links", sankey_chart_ref.value).empty();
+    }
+    if (props.sankey_data.nodes == null || props.sankey_data.links == null
+       || props.sankey_data.length == 0 || props.sankey_data.links.length == 0) {
 	return;
     }
     draw_sankey();
 }
 
 function attach_events() {
-    window.addEventListener('resize', () => resize_chart());
+    window.addEventListener('resize', () => set_sankey_data(true));
 }
 
-function resize_chart() {
-    console.log("todo: on sankey resize");
-    // const size = get_size();
-    // var svg = d3.select("#bar-chart")
-    //     .append("svg")
-    //     .attr("width", width)
-    //     .attr("height", height);
-}
 let sankey = null;
 let sankeyData = null;
 async function draw_sankey() {
@@ -89,33 +85,37 @@ async function draw_sankey() {
 	.join((enter) => enter.append("g"))
 	.attr("transform", (d) => `translate(${d.x0}, ${d.y0})`);
     
+    const zoom = d3.zoom()
+	  .scaleExtent([1, 40])
+	  .on("zoom", zoomed);
+    
     d3_nodes.append("rect")
-	// .transition(d3.easeLinear)
-	// .delay(1000)
-	// .duration(500)
+    // .transition(d3.easeLinear)
+    // .delay(1000)
+    // .duration(500)
 	.attr("height", (d) => d.y1 - d.y0)
 	.attr("width", (d) => d.x1 - d.x0)
 	.attr("dataIndex", (d) => d.index)
 	.attr("fill", (d) => colors(d.index / nodes.length))
 	.attr("class", "sankey-node")
 	.attr("style", "cursor:pointer;");    
-    d3.selectAll("rect").append("title").text((d) => `${d.name}`);    
+    d3.selectAll("rect").append("title").text((d) => `${d.label}`);    
     
     // Relative to container/ node rect
     d3_nodes.append("text")
-	// .transition(d3.easeLinear)
-    	// .delay(1000)
-    	// .duration(500)
+    // .transition(d3.easeLinear)
+    // .delay(1000)
+    // .duration(500)
     	.attr("x", (d) => (d.x0 < size.width / 2 ? 6 + (d.x1 - d.x0) : -6))
     	.attr("y", (d) => (d.y1 - d.y0) / 2)
     	.attr("fill", (d) => "#000")
-    	// .attr("fill", (d) => d3.rgb(colors(d.index / nodes.length)).darker())
+    // .attr("fill", (d) => d3.rgb(colors(d.index / nodes.length)).darker())
     	.attr("alignment-baseline", "middle")
     	.attr("text-anchor", (d) =>
     	      d.x0 < size.width / 2 ? "start" : "end"
     	     )
     	.attr("font-size", 12)
-    	.text((d) => d.name);
+    	.text((d) => d.label);
     
     d3_nodes
 	.call(d3.drag().subject(d => d).on("start", dragStart).on("drag", dragMove));
@@ -146,22 +146,22 @@ async function draw_sankey() {
 	.append("path")
 	.attr("class", "sankey-link")
 	.attr("d", d3.sankeyLinkHorizontal())
-	// .attr("style", `stroke-width: ${d.width}px;`)
+    // .attr("style", `stroke-width: ${d.width}px;`)
 	.attr("stroke-width", (d) => {
 	    return Math.max(1, d.width);
 	})
-    	// .transition(d3.easeLinear)
-    	// .delay(1000)
-    	// .duration(500) 
+    // .transition(d3.easeLinear)
+    // .delay(1000)
+    // .duration(500) 
     	.attr("stroke", (d) => `url(#gradient-${d.index}`)
-   // 	.attr("stroke", `black`)
+    // 	.attr("stroke", `black`)
     
     // 	.attr("stroke-width", (d) => Math.max(100, d.width));
-
+    
     
     links_d3
     	.append("title")
-    	.text((d) => `test`);
+    	.text((d) => `${d.label}`);
 }
 
 function dragStart(event, d) {
@@ -209,6 +209,9 @@ function dragMove(event, d) {
     });
 }
 
+function zoomed({transform}) {
+    g.attr("transform", transform);
+}
 function get_size() {
     let width = props.width;
     if (width == null) { width = window.innerWidth - 200; }
@@ -231,102 +234,6 @@ function create_sankey(width, height) {
 }
 
 const _i18n = (t) => i18n(t);
-
-async function get_sankey_data() {
-    const rsp = [
-	{
-	    "link_color": "#e377c2",
-	    "source_color": "#e377c2",
-	    "source_link": "/lua/host_details.lua?page=flows&host=192.168.1.7&vlan=0&application=IGMP",
-	    "target": "224.0.0.251",
-	    "source": "IGMP",
-	    "link": "IGMP",
-	    "target_link": "/lua/host_details.lua?host=224.0.0.251&vlan=0",
-	    "target_node": "224.0.0.251",
-	    "source_node": "192.168.1.7",
-	    "value": 60
-	},
-	{
-	    "link_color": "#e377c2",
-	    "source_link": "/lua/host_details.lua?host=192.168.1.7&vlan=0",
-	    "target": "IGMP",
-	    "source": "192.168.1.7",
-	    "link": "IGMP",
-	    "target_link": "/lua/host_details.lua?page=flows&host=192.168.1.7&vlan=0&application=IGMP",
-	    "target_node": "224.0.0.2",
-	    "target_color": "#e377c2",
-	    "source_node": "192.168.1.7",
-	    "value": 120
-	},
-	{
-	    "link_color": "#e377c2",
-	    "source_color": "#e377c2",
-	    "source_link": "/lua/host_details.lua?page=flows&host=192.168.1.7&vlan=0&application=IGMP",
-	    "target": "224.0.0.2",
-	    "source": "IGMP",
-	    "link": "IGMP",
-	    "target_link": "/lua/host_details.lua?host=224.0.0.2&vlan=0",
-	    "target_node": "224.0.0.2",
-	    "source_node": "192.168.1.7",
-	    "value": 60
-	},
-	{
-	    "link_color": "#bcbd22",
-	    "source_link": "/lua/host_details.lua?host=192.168.1.7&vlan=0",
-	    "target": "MDNS",
-	    "source": "192.168.1.7",
-	    "link": "MDNS",
-	    "target_link": "/lua/host_details.lua?page=flows&host=192.168.1.7&vlan=0&application=MDNS",
-	    "target_node": "224.0.0.251",
-	    "target_color": "#bcbd22",
-	    "source_node": "192.168.1.7",
-	    "value": 396
-	},
-	{
-	    "link_color": "#bcbd22",
-	    "source_color": "#bcbd22",
-	    "source_link": "/lua/host_details.lua?page=flows&host=192.168.1.7&vlan=0&application=MDNS",
-	    "target": "224.0.0.251",
-	    "source": "MDNS",
-	    "link": "MDNS",
-	    "target_link": "/lua/host_details.lua?host=224.0.0.251&vlan=0",
-	    "target_node": "224.0.0.251",
-	    "source_node": "192.168.1.7",
-	    "value": 396
-	}
-    ];
-    
-        
-    let data = {
-	// nodes: [
-	//     { index: 0, name: "Liikevaihto", value: 100, hours: "100%" },
-	//     { index: 1, name: "Kiinteät kulut", value: 75, hours: "85%" },
-	//     { index: 2, name: "Muuttuvat kulut", value: 10, hours: "3:00" },
-	//     { index: 3, name: "Palkkakulut", value: 69, hours: "1:20" },
-	//     { index: 4, name: "Muut kiinte", value: 6, hours: "1:40" },
-	//     { index: 5, name: "Kate", value: 15, hours: "1:40" }
-	// ],
-	nodes: [
-	    { index: 0, name: "Liikevaihto", hours: "100%" },
-	    { index: 1, name: "Kiinteät kulut", hours: "85%" },
-	    { index: 2, name: "Muuttuvat kulut", hours: "3:00" },
-	    { index: 3, name: "Palkkakulut", hours: "1:20" },
-	    { index: 4, name: "Muut kiinte", hours: "1:40" },
-	    { index: 5, name: "Kate", hours: "1:40" }
-	],
-	links: [
-	    { source: 0, target: 1, value: 75, hours: "+1:00" },
-	    { source: 0, target: 2, value: 10, hours: "+2:00" },
-	    { source: 1, target: 3, value: 69, hours: "+1:20" },
-	    { source: 1, target: 4, value: 6, hours: "+1:40" },
-	    { source: 0, target: 5, value: 15, hours: "+1:40" }
-	]
-    };
-
-    data = wrap_graph_rsp(rsp);
-
-    return data;
-}
     
 defineExpose({ draw_sankey });
 
