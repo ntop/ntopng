@@ -346,6 +346,7 @@ using namespace std;
 #include "ServiceMap.h"
 #include "PeriodicityMap.h"
 #endif
+#include "UsedPorts.h"
 #include "ObservationPointIdTrafficStats.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
@@ -417,7 +418,6 @@ using namespace std;
 #include "ActiveHostWalkerInfo.h"
 #include "Host.h"
 #include "DoHDoTStats.h"
-#include "HostPorts.h"
 #include "LocalHostStats.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"

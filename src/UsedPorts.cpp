@@ -23,26 +23,26 @@
 
 /* *************************************** */
 
-HostPorts::HostPorts() {
+UsedPorts::UsedPorts() {
   ;
 }
 
 /* *************************************** */
 
-HostPorts::~HostPorts() {
+UsedPorts::~UsedPorts() {
   ;
 }
 
 /* *************************************** */
 
-void HostPorts::reset() {
-  udp_host_server_ports.clear(), tcp_host_server_ports.clear();
+void UsedPorts::reset() {
+  udp_server_ports.clear(), tcp_server_ports.clear();
   udp_client_contacted_ports.clear(), tcp_client_contacted_ports.clear();
 }
 
 /* *************************************** */
 
-void HostPorts::setLuaArray(lua_State *vm, NetworkInterface *iface,
+void UsedPorts::setLuaArray(lua_State *vm, NetworkInterface *iface,
 			    bool isTCP, std::unordered_map<u_int16_t, ndpi_protocol> *ports) {
   if(ports) {
     std::unordered_map<u_int16_t, ndpi_protocol>::iterator it;
@@ -58,15 +58,15 @@ void HostPorts::setLuaArray(lua_State *vm, NetworkInterface *iface,
 
 /* *************************************** */
 
-void HostPorts::lua(lua_State *vm, NetworkInterface *iface) {
+void UsedPorts::lua(lua_State *vm, NetworkInterface *iface) {
   lua_newtable(vm);
 
   lua_newtable(vm);
 
   /* ***************************** */
 
-  setLuaArray(vm, iface, true,  &tcp_host_server_ports);
-  setLuaArray(vm, iface, false, &udp_host_server_ports);
+  setLuaArray(vm, iface, true,  &tcp_server_ports);
+  setLuaArray(vm, iface, false, &udp_server_ports);
 
   lua_pushstring(vm, "local_server_ports");
   lua_insert(vm, -2);
@@ -92,16 +92,16 @@ void HostPorts::lua(lua_State *vm, NetworkInterface *iface) {
 
 /* *************************************** */
 
-void HostPorts::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
+void UsedPorts::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
   if(isTCP)
-    tcp_host_server_ports[port] = *proto;
+    tcp_server_ports[port] = *proto;
   else
-    udp_host_server_ports[port] = *proto;
+    udp_server_ports[port] = *proto;
 }
 
 /* *************************************** */
 
-void HostPorts::setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
+void UsedPorts::setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
   if(isTCP)
     tcp_client_contacted_ports[port] = *proto;
   else

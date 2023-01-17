@@ -19,23 +19,23 @@
  *
  */
 
-#ifndef _HOST_PORTS_H_
-#define _HOST_PORTS_H_
+#ifndef _USED_PORTS_H_
+#define _USED_PORTS_H_
 
 #include "ntop_includes.h"
 
-class HostPorts {
+class UsedPorts {
  private:
   /* Used for both TCP and UDP */
-  std::unordered_map<u_int16_t, ndpi_protocol> udp_host_server_ports, tcp_host_server_ports;
+  std::unordered_map<u_int16_t, ndpi_protocol> udp_server_ports, tcp_server_ports;
   std::unordered_map<u_int16_t, ndpi_protocol> udp_client_contacted_ports, tcp_client_contacted_ports;
 
   void setLuaArray(lua_State *vm, NetworkInterface *iface, bool isTCP,
 		   std::unordered_map<u_int16_t, ndpi_protocol> *ports);
 
  public:
-  HostPorts();
-  ~HostPorts();
+  UsedPorts();
+  ~UsedPorts();
 
   void reset();
 
@@ -44,7 +44,7 @@ class HostPorts {
   void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto);
   void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto);
 
-  std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(isTCP ? &tcp_host_server_ports : &udp_host_server_ports); }
+  std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(isTCP ? &tcp_server_ports : &udp_server_ports); }
 };
 
-#endif /* _HOST_PORTS_H_ */
+#endif /* _USED_PORTS_H_ */

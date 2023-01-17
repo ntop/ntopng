@@ -92,7 +92,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int64_t num_written_alerts, num_alerts_queries, score_as_cli, score_as_srv;
   u_int64_t num_new_flows;
   time_t last_ndpi_reload;
-  bool ndpi_cleanup_needed;
+  bool ndpi_cleanup_needed; 
   struct {
     u_int32_t local_hosts, remote_hosts;
   } tot_num_anomalies;
@@ -101,6 +101,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   PeriodicityMap *pMap;
   ServiceMap *sMap;
 #endif
+
+  UsedPorts usedPorts;
 
   struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
   bool ndpiReloadInProgress;
@@ -1109,6 +1111,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline LuaEngine* getCustomFlowLuaScript()              { return(customFlowLuaScript); }
   inline void setCustomHostLuaScript(LuaEngine *vm)       { customHostLuaScript = vm; }
   inline LuaEngine* getCustomHostLuaScript()              { return(customHostLuaScript); }
+
+  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
+  inline void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { usedPorts.setContactedPort(isTCP, port, proto); };
+  void luaUsedPorts(lua_State* vm)                                       { usedPorts.lua(vm, this);                       };
+  std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(usedPorts.getServerPorts(isTCP));      };
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

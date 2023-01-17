@@ -6610,6 +6610,9 @@ void NetworkInterface::lua(lua_State *vm) {
 
   if(db) db->lua(vm, false /* Overall */);
 
+
+  usedPorts.lua(vm, this);
+
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
