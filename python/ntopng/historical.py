@@ -6,6 +6,8 @@ REST API (https://www.ntop.org/guides/ntopng/api/rest/api_v2.html).
 """
 
 import time
+#import numpy as np
+import pandas as pd
 
 class Historical:
     """
@@ -307,6 +309,13 @@ class Historical:
         """
         return(self.get_alerts("user", ifid, epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by))
 
+    def timeseries_to_pandas(self, rsp):
+        interval = pd.interval_range(rsp['start'], periods=rsp['count'], freq=rsp['step'])
+        data = {}
+        for serie in rsp['series']:
+            data[serie['label']] = serie['data']
+        return pd.DataFrame(data, index=interval)
+
     def get_timeseries(self, ts_schema, ts_query, epoch_begin, epoch_end):
         """
         Return timeseries for a specified schema and query
@@ -322,7 +331,8 @@ class Historical:
         :return: Timeseries data
         :rtype: object
         """
-        return(self.ntopng_obj.post_request(self.rest_v2_url + "/get/timeseries/ts.lua", { "ts_schema": ts_schema, "ts_query": ts_query, "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
+        rsp = self.ntopng_obj.post_request(self.rest_v2_url + "/get/timeseries/ts.lua", { "ts_schema": ts_schema, "ts_query": ts_query, "epoch_begin": epoch_begin, "epoch_end": epoch_end })
+        return self.timeseries_to_pandas(rsp)
 
     def get_timeseries_metadata(self):
         """
@@ -442,7 +452,7 @@ class Historical:
             print(self.get_alert_severity_counters(ifid, epoch_begin, epoch_end))
             print("Host traffic timeseries ----------------------------")
             print(self.get_timeseries("host:traffic", "ifid:"+str(ifid)+",host:"+host, epoch_begin, epoch_end))
-            print("Interface traffic timeseries ----------------------------")
+            print("Interface score timeseries ----------------------------")
             print(self.get_interface_timeseries(ifid, "iface:score", epoch_begin, epoch_end))
             print("Host flows ----------------------------")
             select_clause = "IPV4_SRC_ADDR,IPV4_DST_ADDR,PROTOCOL,IP_SRC_PORT,IP_DST_PORT,L7_PROTO,L7_PROTO_MASTER"
