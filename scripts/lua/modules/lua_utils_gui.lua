@@ -1171,7 +1171,7 @@ function formatAlertAHref(key, value, label)
    return "<a class='tag-filter' data-tag-key='" .. key .. "' title='" .. value .. "' data-tag-value='" .. value .. "' data-tag-label='" .. label .. "' href='#'>" .. label .. "</a>"
 end
 
-function add_historical_flow_explorer_button_ref(extra_params)
+function add_historical_flow_explorer_button_ref(extra_params, no_href)
    if (ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"]) == false then
       return ''
    end
@@ -1184,9 +1184,12 @@ function add_historical_flow_explorer_button_ref(extra_params)
 
    base_url = base_url:sub(1, -2)
 
-   local button = '<a href="' .. base_url .. '" data-placement="bottom" class="btn btn-sm btn-primary" title="Historical Flow Explorer"><i class="fas fa-search-plus"></i></a>'
+   if (not no_href) then
+      return '<a href="' .. base_url .. '" data-placement="bottom" class="btn btn-sm btn-primary" title="Historical Flow Explorer"><i class="fas fa-search-plus"></i></a>'
+   else
+      return base_url
+   end
 
-   return button
 end
 
 function add_delete_obs_point_button()

@@ -107,7 +107,41 @@ if((host == nil) and ((_GET["mode"] == "restore"))) then
    end
 end
 
-local function printPorts(ports)
+local function takeHistoricalBaseUrl(port)
+   local extra_params = {
+      srv_ip = {
+         value = host_ip,
+         operator = "eq"
+      },
+      srv_port = {
+         value = port,
+         operator = "eq"
+      }
+   }
+   if host_vlan ~= 0 then
+      extra_params.vlan_id = {
+         value = host_vlan,
+         operator = "eq"
+      }
+   end
+
+   return add_historical_flow_explorer_button_ref(extra_params, true)
+end
+
+local function printPort(port, proto, is_server_port)
+   if is_server_port then
+      local historical_base_url = takeHistoricalBaseUrl(port)
+      if historical_base_url then
+         print('<li><A HREF="'..historical_base_url..'"><span class="badge bg-secondary">'.. port.. " (" .. proto ..")" .."</span></A></li>\n")
+      else
+         print('<li><A HREF="/lua/flows_stats.lua?port='..port..'"><span class="badge bg-secondary">'.. port.. " (" .. proto ..")" .."</span></A></li>\n")
+      end
+   else
+      print('<li><A HREF="/lua/flows_stats.lua?port='..port..'"><span class="badge bg-secondary">'.. port.. " (" .. proto ..")" .."</span></A></li>\n")
+   end
+end
+
+local function printPorts(ports, is_server_port)
    if(table.len(ports) == 0) then
       print("<td colspan=2>"..i18n("none").."</td></tr>")
    else
@@ -129,15 +163,18 @@ local function printPorts(ports)
 
       print("<tr><td valign=top><ul>")
       for port,proto in pairsByKeys(udp) do
-  	   print('<li><A HREF="/lua/flows_stats.lua?port='..port..'"><span class="badge bg-secondary">'.. port.. " (" .. proto ..")" .."</span></A></li>\n")
+         printPort(port, proto, is_server_port)
       end
+      
       print("</ul></td><td valign=top><ul>")
       for port,proto in pairsByKeys(tcp) do
-  	   print('<li><A HREF="/lua/flows_stats.lua?port='..port..'"><span class="badge bg-secondary">'.. port.. " (" .. proto ..")" .."</span></A></li>\n")
+         printPort(port, proto, is_server_port)
       end
       print("</td></tr>\n")
    end
 end
+
+
 
 local function formatContacts(v)
    if not v then
@@ -1202,11 +1239,11 @@ elseif((page == "ports")) then
 if(table.len(host.used_ports.local_server_ports) == 0) then len = "" else len = "rowspan=2" end
 
 print('\n<tr><th class="text-start" '..len..'>'..i18n("ports_page.active_server_ports")..'</th>')
-printPorts(host.used_ports.local_server_ports)
+printPorts(host.used_ports.local_server_ports, true)
 
 if(table.len(host.used_ports.remote_contacted_ports) == 0) then len = "" else len = "rowspan=2" end
 print('\n<tr><th class="text-start" '..len..'>'..i18n("ports_page.client_contacted_server_ports")..'</th>')
-printPorts(host.used_ports.remote_contacted_ports)
+printPorts(host.used_ports.remote_contacted_ports, false)
   end
 
   print('<tr><th class="text-start">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
