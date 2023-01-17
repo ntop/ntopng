@@ -25,7 +25,7 @@ ntopng
 ------
 
 Start ntopng as
-- ntopng -i XXX -F "clickhouse-cluster;192.168.2.92@9000,9004;ntopng;default;;ntop_cluster"
+- ntopng -i XXX -F "clickhouse-cluster;192.168.2.92;ntopng;default;;ntop_cluster"
 
 
 Troubleshooting
