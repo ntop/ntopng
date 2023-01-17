@@ -214,9 +214,9 @@ function zoomed({transform}) {
 }
 function get_size() {
     let width = props.width;
-    if (width == null) { width = window.innerWidth - 200; }
+    if (width == null) { width = $(sankey_chart_ref.value).parent().parent().width() - 10 }
     let height = props.height;
-    if (height == null) { height = window.innerHeight - 50; }
+    if (height == null) { height = $(sankey_chart_ref.value).parent().parent().height() - 50; }
 
     return { width, height };
 }

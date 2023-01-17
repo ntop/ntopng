@@ -14,21 +14,23 @@
         <!-- </div> -->
       <!-- </div> -->
       <div class="card-body">
-        <div class="d-flex align-items-center mb-2">
-          <div class="d-flex no-wrap">
-            <div>
-              <SelectSearch
-                v-model:selected_option="active_hosts_type"
-                :options="sankey_format_list"
-                @select_option="update_sankey">
-              </SelectSearch>
+        <div class="align-items-center justify-content-end mb-3" style="height: 70vh;">
+          <div class="d-flex align-items-center mb-2">
+            <div class="d-flex no-wrap">
+              <div>
+                <SelectSearch
+                  v-model:selected_option="active_hosts_type"
+                  :options="sankey_format_list"
+                  @select_option="update_sankey">
+                </SelectSearch>
+              </div>
             </div>
           </div>
-        </div>
 
-        <Sankey2
-	  :sankey_data="sankey_data">
-        </Sankey2>        
+          <Sankey2
+      :sankey_data="sankey_data">
+          </Sankey2>        
+        </div>
       </div>
     </div>
   </div>
