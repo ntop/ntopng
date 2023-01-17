@@ -4088,7 +4088,6 @@ void Flow::updateClientContactedPorts(Host *client, ndpi_protocol *proto) {
     case IPPROTO_TCP:
       if((src2dst_tcp_flags & TH_SYN) == TH_SYN)
 	client->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port), proto);
-	iface->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port), proto);
       break;
 
     case IPPROTO_UDP:
@@ -4098,7 +4097,6 @@ void Flow::updateClientContactedPorts(Host *client, ndpi_protocol *proto) {
 
 	if(c_port > s_port) /* minimal check, to improve */
 	  client->setContactedPort(false, s_port, proto);
-	  iface->setContactedPort(false, s_port, proto);
       }
       break;
     }
