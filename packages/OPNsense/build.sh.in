@@ -3,16 +3,28 @@
 PWD=`pwd`
 VERSION=`freebsd-version -u | cut -d '.' -f 1`
 
+USE_OPNSENSE_TOOLS=false
+
+#
+# Environment configuration for using USE_OPNSENSE_TOOLS
+#
+# mkdir -p /tmp/opnsense
+# cd /tmp/opnsense
+# git clone https://github.com/opnsense/tools
+# cd tools
+# env ROOTDIR=/tmp/opnsense make update
+#
+
 ########
 
 if ! test -d opnsense; then
-    git clone https://github.com/ntop/opnsense.git
+	git clone https://github.com/ntop/opnsense.git
 else
-    cd opnsense; git pull --rebase; cd ..
+	cd opnsense; git pull --rebase; cd ..
 fi
 
 if test -d $PWD/plugins; then
-    rm -r $PWD/plugins
+	rm -r $PWD/plugins
 fi
 cp -r $PWD/opnsense/ntopng/plugins .
 
@@ -31,52 +43,46 @@ cp -r plugins/net/ntopng-enterprise/src/* ${STAGEDIR}/usr/local/
 
 #######
 
-# Build plist
-
-PREFIX_LEN=$(echo ${STAGEDIR} | wc -m)
-find ${STAGEDIR} -type f -follow -print | cut -c ${PREFIX_LEN}- > plist
-mv plist ${STAGEDIR}/
-
-#######
-
-# Build +MANIFEST
-
-cat >> ${STAGEDIR}/+MANIFEST <<EOF
-name:        os-ntopng-enterprise
-version:     "@PACKAGE_VERSION@"
-origin:      opnsense/os-ntopng-enterprise
-comment:     "Network Traffic Analysis and Flow Collection"
-desc:        "ntopng is a high-speed web-based network traffic analysis and flow collection tool"
-maintainer:  packager@ntop.org
-www:         https://www.ntop.org
-prefix:      /
-deps: {
-  ntopng: { version: "@PACKAGE_VERSION@", origin: net/ntopng }
-}
-EOF
-
-# Build +POST_INSTALL
-
-cat >> ${STAGEDIR}/+POST_INSTALL <<EOF
-if /usr/local/etc/rc.d/configd status > /dev/null; then
-    /usr/local/etc/rc.d/configd restart
-fi
-/usr/local/etc/rc.configure_plugins
-EOF
-
-#######
-
 # Build package
 
-pkg create -m ${STAGEDIR}/ -r ${STAGEDIR}/ -p ${STAGEDIR}/plist -o .
+if [ "$USE_OPNSENSE_TOOLS" = true ] ; then
 
-/bin/rm -f ~/binary_packages/os-ntopng-enterprise-*
+	PLUGIN_TMP=/tmp/opnsense/plugins/devel/ntopng
 
-if test $VERSION -eq "13" ; then
-    tar -tvf os-ntopng-enterprise-@PACKAGE_VERSION@.pkg
+	mkdir -p ${PLUGIN_TMP}/src
+
+	cp    package/Makefile        ${PLUGIN_TMP}/
+	cp -r ${STAGEDIR}/usr/local/* ${PLUGIN_TMP}/src
+
 else
-    tar -tvf os-ntopng-enterprise-@PACKAGE_VERSION@.txz
-fi
 
-cp os-ntopng-enterprise-@PACKAGE_VERSION@.* ~/binary_packages/
+	# Build plist
+
+	PREFIX_LEN=$(echo ${STAGEDIR} | wc -m)
+	find ${STAGEDIR} -type f -follow -print | cut -c ${PREFIX_LEN}- > plist
+
+	mv plist ${STAGEDIR}/
+
+	# +MANIFEST
+
+	cp package/+MANIFEST ${STAGEDIR}/
+
+	# +POST_INSTALL
+
+	cp package/+POST_INSTALL ${STAGEDIR}/
+
+	# Package
+
+	pkg create -m ${STAGEDIR}/ -r ${STAGEDIR}/ -p ${STAGEDIR}/plist -o .
+
+	/bin/rm -f ~/binary_packages/os-ntopng-enterprise-*
+
+	if test $VERSION -eq "13" ; then
+		tar -tvf os-ntopng-enterprise-@PACKAGE_VERSION@.pkg
+	else
+		tar -tvf os-ntopng-enterprise-@PACKAGE_VERSION@.txz
+	fi
+
+	cp os-ntopng-enterprise-@PACKAGE_VERSION@.* ~/binary_packages/
+fi
 
