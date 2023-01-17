@@ -329,7 +329,7 @@ class Historical:
         :param epoch_end: End of the time interval (epoch)
         :type epoch_end: int
         :return: Timeseries data
-        :rtype: object
+        :rtype: object (pandas DataFrame)
         """
         rsp = self.ntopng_obj.post_request(self.rest_v2_url + "/get/timeseries/ts.lua", { "ts_schema": ts_schema, "ts_query": ts_query, "epoch_begin": epoch_begin, "epoch_end": epoch_end })
         return self.timeseries_to_pandas(rsp)
@@ -358,7 +358,7 @@ class Historical:
         :param epoch_end: End of the time interval (epoch)
         :type epoch_end: int
         :return: Timeseries data
-        :rtype: object
+        :rtype: object (pandas DataFrame)
         """
         return(self.get_timeseries(ts_schema, "ifid:"+str(ifid)+",host:"+host_ip, epoch_begin, epoch_end))
 
@@ -375,7 +375,7 @@ class Historical:
         :param epoch_end: End of the time interval (epoch)
         :type epoch_end: int
         :return: Timeseries data
-        :rtype: object
+        :rtype: object (pandas DataFrame)
         """
         return(self.get_timeseries(ts_schema, "ifid:"+str(ifid), epoch_begin, epoch_end))
 
