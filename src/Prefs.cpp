@@ -463,9 +463,9 @@ void usage() {
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse-cluster;<host[@[<tcp port>,]<mysqlport]|socket>;<dbname>;<user>;<pw>;<cluster name>\n"
 	 "                                    |   Example:\n"
-	 "                                    |   clickhouse-cluster;127.0.0.1;ntopng;default;ntop_clickhouse_cluster\n"
+	 "                                    |   clickhouse-cluster;127.0.0.1;ntopng;default;ntop_cluster\n"
 	 "                                    |   You can also use just -F clickhouse-cluster as alias of:\n"
-	 "                                    |   -F \"clickhouse-cluster;127.0.0.1@%u,%u;ntopng;default;ntop_clickhouse_cluster\"\n"
+	 "                                    |   -F \"clickhouse-cluster;127.0.0.1@%u,%u;ntopng;default;ntop_cluster\"\n"
 	 "                                    |\n"
 #endif
 
