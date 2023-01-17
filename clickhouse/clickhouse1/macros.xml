@@ -1,7 +1,8 @@
+<?xml version="1.0" ?>
 <clickhouse>
   <macros>
     <cluster>ntop_cluster</cluster>
+    <replica>replica1</replica>
     <shard>1</shard>
-    <replica>clickhouse1</replica>
   </macros>
 </clickhouse>
