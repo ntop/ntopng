@@ -486,7 +486,7 @@ else
          label = '<i class="fas fa-stream" title="'..i18n("active_flows")..'"></i>',
       },
       {
-         hidden = only_historical or not ntop.isEnterpriseL() or (host.localhost == false),
+         hidden = only_historical or not ntop.isEnterpriseL(),
          active = page == "flows_sankey",
          page_name = "flows_sankey",
          label = '<i class="fas fa-draw-polygon" title="'..i18n("local_flows_sankey")..'"></i>',
@@ -1737,7 +1737,7 @@ elseif(page == "flows") then
       ]]
 
 elseif(page == "flows_sankey") then
-   print(template.gen("pages/sankey_host.template", { host = host_ip }))
+   print(template.gen("pages/sankey_host.template", { host = host_ip, is_local = host["localhost"] }))
 
 elseif(page == "snmp" and ntop.isEnterpriseM() and isAllowedSystemInterface()) then
    local snmp_config = require "snmp_config"

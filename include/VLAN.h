@@ -27,6 +27,7 @@
 class VLAN : public GenericHashEntry, public GenericTrafficElement, public SerializableElement, public Score {
  private:
   VLANid vlan_id;
+  UsedPorts usedPorts;
   
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
     if(first_seen == 0) first_seen = t;
@@ -70,6 +71,8 @@ class VLAN : public GenericHashEntry, public GenericTrafficElement, public Seria
     GenericTrafficElement::getJSONObject(obj, iface);
   }
   inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, VLAN_SERIALIZED_KEY, iface->get_id(), vlan_id); return(buf); }
+  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
+  void luaUsedPorts(lua_State* vm)                                       { usedPorts.lua(vm, iface);                       };
 };
 
 #endif /* _VLAN_H_ */

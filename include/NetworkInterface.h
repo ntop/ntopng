@@ -1113,9 +1113,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline LuaEngine* getCustomHostLuaScript()              { return(customHostLuaScript); }
 
   inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
-  inline void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { usedPorts.setContactedPort(isTCP, port, proto); };
   void luaUsedPorts(lua_State* vm)                                       { usedPorts.lua(vm, this);                       };
-  std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(usedPorts.getServerPorts(isTCP));      };
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

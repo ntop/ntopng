@@ -26,6 +26,7 @@ import { default as PageHostRules } from "./page-host-rules.vue";
 import { default as PageHostDetailsPorts } from "./page-host-details-ports.vue";
 import { default as PageAlertAnalysis } from "./page-alert-analysis.vue";
 import { default as PageHostMap } from "./page-host-map.vue";
+import { default as PageVLANPortsSankey } from "./page-vlan-ports-sankey.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -74,6 +75,8 @@ let ntopVue = {
     PageHostRules: PageHostRules,
     PageAlertAnalysis: PageAlertAnalysis,
     PageHostMap: PageHostMap,
+
+    PageVLANPortsFlowSankey:PageVLANPortsSankey,
 
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,

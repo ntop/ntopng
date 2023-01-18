@@ -4056,9 +4056,15 @@ void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto) {
      ) {
     switch(protocol) {
     case IPPROTO_TCP:
-      if((src2dst_tcp_flags & TH_SYN) == TH_SYN)
-  iface->setServerPort(true, ntohs(srv_port), proto);
-	server->setServerPort(true, ntohs(srv_port), proto);
+      if((src2dst_tcp_flags & TH_SYN) == TH_SYN) {
+        if(vlanId == 0) /* In case the VLAN is 0 set this port to the network interface */
+          iface->setServerPort(true, ntohs(srv_port), proto);
+        else { /* Otherwise set this port to the right VLAN */
+          VLAN *vlan_hash = iface->getVLAN(vlanId, false, false);
+          if(vlan_hash) vlan_hash->setServerPort(true, ntohs(srv_port), proto);
+        }
+	      server->setServerPort(true, ntohs(srv_port), proto);
+      }
       break;
 
     case IPPROTO_UDP:
@@ -4066,9 +4072,16 @@ void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto) {
 	u_int16_t c_port = ntohs(cli_port);
 	u_int16_t s_port = ntohs(srv_port);
 
-	if(c_port > s_port) /* minimal check, to improve */
-    iface->setServerPort(false, s_port, proto);
+	if(c_port > s_port) /* minimal check, to improve */ {
+    if(vlanId == 0) /* In case the VLAN is 0 set this port to the network interface */
+      iface->setServerPort(false, s_port, proto);
+    else { /* Otherwise set this port to the right VLAN */
+      VLAN *vlan_hash = iface->getVLAN(vlanId, false, false);
+      if(vlan_hash) vlan_hash->setServerPort(false, s_port, proto);
+    }
+
 	  server->setServerPort(false, s_port, proto);
+  }
 	break;
       }
     }

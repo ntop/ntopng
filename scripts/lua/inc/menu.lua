@@ -294,6 +294,15 @@ else
                url = '/lua/http_servers_stats.lua',
             },
             {
+              hidden = true, --not ntop.isEnterprise() or not isAdministrator(),
+              entry = page_utils.menu_entries.divider,
+            },
+            {
+              hidden = true, --not ntop.isEnterprise() or not isAdministrator(),
+              entry = page_utils.menu_entries.ports_analysis,
+              url = '/lua/pro/enterprise/ports_analysis.lua',
+            },
+            {
               hidden = not ntop.isEnterprise() or not isAdministrator(),
               entry = page_utils.menu_entries.divider,
             },
