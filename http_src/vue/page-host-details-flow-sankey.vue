@@ -25,12 +25,12 @@
                 </SelectSearch>
               </div>
             </div>
-          </div>
-
+	  </div>
           <Sankey2
-      :sankey_data="sankey_data">
-          </Sankey2>        
-        </div>
+	    @node_click="on_node_click"
+	    :sankey_data="sankey_data">
+          </Sankey2>
+	</div>
       </div>
     </div>
   </div>
@@ -67,6 +67,10 @@ onMounted(() => {
     update_sankey(active_hosts_type);
 });
 
+function on_node_click(node) {
+    console.log(node);
+}
+
 const update_sankey = function() {
     let entry = active_hosts_type.value;
     ntopng_url_manager.set_key_to_url(entry.filter_name, entry.id);
@@ -87,8 +91,9 @@ async function get_sankey_data() {
     console.log(graph);
     // add_fake_circular_link(graph);
     graph = make_complete_graph(graph);
-    graph = make_dag_graph(graph);
-    const sankey_data = get_sankey_data_from_rest_data(graph);
+    let main_node_id = get_main_node_id();
+    let sankey_data = get_sankey_data_from_rest_data(graph, main_node_id);
+    // sankey_data = make_dag_graph(sankey_data);
     return sankey_data;
 }
 
@@ -104,23 +109,80 @@ function get_sankey_url() {
     return url_request;
 }
 
-function get_sankey_data_from_rest_data(res) {
-    let node_dict = {}, link_to_nodes_dict = {};
+function get_main_node_id() {
+    return ntopng_url_manager.get_url_entry("host");
+}
+
+function get_sankey_data_from_rest_data(graph, main_node_id) {
+    if (graph.nodes.length == 0 && graph.links.length == 0) { return graph; }
+    let node_dict = {};
     // create a node dict
-    res.nodes.forEach((node) => node_dict[node.node_id] = node);
-    
-    let f_get_link_node_id = (link) => {
-	return `${link.source_node_id}_${link.label}`; 
+    graph.nodes.forEach((node) => node_dict[node.node_id] = node);
+
+    //get link direction 
+    const f_get_link_direction = (link) => {
+	if (link.source_node_id == main_node_id) {
+	    return -1;
+	} else if (link.target_node_id == main_node_id) {
+	    return 1;
+	}
+	throw `Wrong direction link ${link.source_node_id} -> ${link.target_node_id}`;
     };
-    // merge all links by label
-    res.links.forEach((link) => {
+
+    // get node id with direction
+    const f_get_node_direction_id = (node_id, direction) => {
+	if (node_id == main_node_id) {
+	    return node_id;
+	}
+	return `${direction}_${node_id}`; 
+    };
+
+    // create a new graph duplicating all nodes with different direction  
+    let graph2 = { nodes: [], links: [] };
+    graph.links.forEach((link) => {	
+	let direction = f_get_link_direction(link);
+	let new_link = {
+	    source_node_id: f_get_node_direction_id(link.source_node_id, direction),
+	    target_node_id: f_get_node_direction_id(link.target_node_id, direction),
+	    label: link.label,
+	    value: link.value,
+	    data: link,
+	};
+	let new_node;
+	if (direction == -1) {
+	    let n = node_dict[link.target_node_id];
+	    new_node = { node_id: new_link.target_node_id, label: n.label, data: n };
+	} else {
+	    let n = node_dict[link.source_node_id];
+	    new_node = { node_id: new_link.source_node_id, label: n.label, data: n };
+	}
+	graph2.links.push(new_link);
+	graph2.nodes.push(new_node);
+    });
+    let main_node = node_dict[main_node_id];
+    graph2.nodes.push({node_id: main_node.node_id, label: main_node.label, data: main_node });
+
+    // update node dict
+    graph2.nodes.forEach((node) => node_dict[node.node_id] = node);
+    
+    // return the link node_id 
+    const f_get_link_node_id = (link) => {
+	let direction = f_get_link_direction(link);
+	return `${direction}_${link.label}`; 
+	// return `${link.source_node_id}_${link.label}`; 
+    };
+
+    let link_to_nodes_dict = {}; // key: link node id, value: links
+    // merge all links by link node_id
+    graph2.links.forEach((link) => {
 	let link_node_id = f_get_link_node_id(link);
 	let link_to_nodes = link_to_nodes_dict[link_node_id];
 	if (link_to_nodes == null) {
 	    link_to_nodes = {
 		id: link_node_id,
 		label: link.label,
-		node_links: [],		
+		data: link,
+		node_links: [],
 	    };
 	    link_to_nodes_dict[link_node_id] = link_to_nodes;
 	}
@@ -128,16 +190,17 @@ function get_sankey_data_from_rest_data(res) {
 	    source: node_dict[link.source_node_id],
 	    target: node_dict[link.target_node_id],
 	    value: link.value,
-	});	
+	});
     });
-    
-    // create nodes and links
-    let nodes = res.nodes.map((n) => n), links = [];
+
+    // create nodes and links graph, creating a new node for each link
+    let nodes = graph2.nodes.map((n) => n), links = [];
     for (let link_node_id in link_to_nodes_dict) {
 	let link_to_nodes = link_to_nodes_dict[link_node_id];
 	let link_node = {
-	    node_id: link_to_nodes.id,
+	    node_id: link_to_nodes.id,	    
 	    label: link_to_nodes.label,
+	    data: link_to_nodes.data,
 	};
 	nodes.push(link_node);
 	link_to_nodes.node_links.forEach((link) => {
@@ -155,17 +218,22 @@ function get_sankey_data_from_rest_data(res) {
 	    });
 	});
     }
-    let sankey_nodes = nodes.map((n, index) => {
-	return { index, label: n.label, data: n };
+
+    let sankey_node_dict = {}; // key: node_id, value: sankey_node
+    let sankey_nodes = [];
+    nodes.map((n, index) => {
+	let sankey_node = { index, node_id: n.node_id, label: n.label, data: n.data };
+	sankey_node_dict[n.node_id] = sankey_node;
+	sankey_nodes.push(sankey_node);
     });
-    let sankey_node_dict = {};    
-    sankey_nodes.forEach((sn, index) => sankey_node_dict[sn.data.node_id] = sn);
     let sankey_links = links.map((l) => {
-	let source_index = sankey_node_dict[l.source_node_id].index;
-	let target_index = sankey_node_dict[l.target_node_id].index;
+	let source = sankey_node_dict[l.source_node_id];
+	let target = sankey_node_dict[l.target_node_id];
 	return {
-	    source: source_index,
-	    target: target_index,
+	    source: source.index,
+	    target: target.index,
+	    source_node_id: source.index,
+	    target_node_id: target.index,
 	    value: l.value,
 	    label: l.label,
 	};

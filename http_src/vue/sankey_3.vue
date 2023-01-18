@@ -6,7 +6,7 @@
     :width="sankey_size.width"
     :height="sankey_size.height"
     style="margin:10px;">
-    <g class="nodes" @click="test" style="stroke: #000;strokeOpacity: 0.5;"/>
+    <g class="nodes" style="stroke: #000;strokeOpacity: 0.5;"/>
     <g class="links" style="stroke: #000;strokeOpacity: 0.3;fill:none;"/>
   </svg>
 </div>
@@ -18,9 +18,7 @@ import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../se
 
 const d3 = d3v7;
 
-function test() {
-    console.log("asd");
-}
+const emit = defineEmits(['node_click'])
 
 const margin = {
     top: 2.5,
@@ -83,7 +81,8 @@ async function draw_sankey() {
 	.selectAll("g")
 	.data(nodes)
 	.join((enter) => enter.append("g"))
-	.attr("transform", (d) => `translate(${d.x0}, ${d.y0})`);
+	.attr("transform", (d) => `translate(${d.x0}, ${d.y0})`)
+	.on("click", function(event, data_obj){ emit('node_click', data_obj.data); });
     
     const zoom = d3.zoom()
 	  .scaleExtent([1, 40])
@@ -98,7 +97,7 @@ async function draw_sankey() {
 	.attr("dataIndex", (d) => d.index)
 	.attr("fill", (d) => colors(d.index / nodes.length))
 	.attr("class", "sankey-node")
-	.attr("style", "cursor:pointer;");    
+	.attr("style", "cursor:pointer;");
     d3.selectAll("rect").append("title").text((d) => `${d.label}`);    
     
     // Relative to container/ node rect
