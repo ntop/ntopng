@@ -6,7 +6,6 @@ REST API (https://www.ntop.org/guides/ntopng/api/rest/api_v2.html).
 """
 
 import time
-#import numpy as np
 import pandas as pd
 
 class Historical:
@@ -318,9 +317,10 @@ class Historical:
 
     def get_timeseries(self, ts_schema, ts_query, epoch_begin, epoch_end):
         """
-        Return timeseries for a specified schema and query
+        Return timeseries in a pandas DataFrame for a specified schema and query
+        See https://pandas.pydata.org/docs/user_guide/10min.html
         
-        :param ts_schema: The timeseries schema
+        :param ts_schema: The timeseries schema (e.g. 'host:traffic')
         :type ts_schema: string
         :param ts_query: The timeseries query (e.g. 'ifid:0,host:10.0.0.1')
         :type ts_query: string
@@ -345,7 +345,7 @@ class Historical:
 
     def get_host_timeseries(self, ifid, host_ip, ts_schema, epoch_begin, epoch_end):
         """
-        Return timeseries data for a specified interface and host
+        Return timeseries data in a pandas DataFrame for a specified interface and host
         
         :param ifid: The interface ID
         :type ifid: int
@@ -364,7 +364,7 @@ class Historical:
 
     def get_interface_timeseries(self, ifid, ts_schema, epoch_begin, epoch_end):
         """
-        Return timeseries data for a specified interface
+        Return timeseries data in a pandas DataFrame for a specified interface
         
         :param ifid: The interface ID
         :type ifid: int

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# Test application for python API for historical flows extraction
+# Sample application for historical flows extraction
 #
 
 import os
@@ -9,12 +9,10 @@ import sys
 import getopt
 import time
 
-from ntopng.ntopng import Ntopng
-from ntopng.interface import Interface
-from ntopng.host import Host
-from ntopng.historical import Historical
-from ntopng.flow import Flow
+sys.path.insert(0, '../')
 
+from ntopng.ntopng import Ntopng
+from ntopng.historical import Historical
 
 # Defaults
 username     = "admin"
@@ -31,11 +29,11 @@ host_ip      = "192.168.1.1"
 ##########
 
 def usage():
-    print("historical_flows_query_example.py [-u <username>] [-p <password>] [-t <auth token>] [-n <ntopng_url>]")
+    print("historical_flows.py [-u <username>] [-p <password>] [-t <auth token>] [-n <ntopng_url>]")
     print("         [-i <interface ID>] [-H <host IP>] [--debug] [--help]")
     print("")
-    print("Example: ./historical_flows_query_example.py -t ce0e284c774fac5a3e981152d325cfae -i 4")
-    print("         ./historical_flows_query_example.py -u ntop -p mypassword -i 4")
+    print("Example: ./historical_flows.py -t ce0e284c774fac5a3e981152d325cfae -i 4")
+    print("         ./historical_flows.py -u ntop -p mypassword -i 4")
     sys.exit(0)
 
 ##########
@@ -75,7 +73,7 @@ for o, v in opts:
     elif(o in ("-t", "--auth_token")):
         auth_token = v
 
-# -----------------------------------------------------------
+##########
 
 def format_rsp(rsp):
     for row in rsp:
@@ -109,7 +107,7 @@ def top_x_remote_ports(my_historical, epoch_begin, epoch_end, maxhits):
     rsp = my_historical.get_flows(iface_id, epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by)
     format_rsp(rsp)
 
-# -----------------------------------------------------------
+##########
 
 try:
     my_ntopng = Ntopng(username, password, auth_token, ntopng_url)
@@ -122,20 +120,15 @@ except ValueError as e:
 
 try:
     my_historical = Historical(my_ntopng)
-
-    if(True):
-        my_historical.self_test(iface_id, host_ip)
-        
-    print("\n\n==========================\nTop X Remote Hosts Traffic")
+    print("\n==========================\nTop X Remote Hosts Traffic")
     top_x_remote_ipv4_hosts(my_historical, epoch_begin, epoch_end, maxhits)
-    print("\n\n==========================\nTop X Remote Host/Ports Traffic")
+    print("\n==========================\nTop X Remote Host/Ports Traffic")
     top_x_remote_ipv4_hosts_ports(my_historical, epoch_begin, epoch_end, maxhits)
-    print("\n\n==========================\nTop X Remote Ports Traffic")
+    print("\n==========================\nTop X Remote Ports Traffic")
     top_x_remote_ports(my_historical, epoch_begin, epoch_end, maxhits)
     
 except ValueError as e:
     print(e)
     os._exit(-1)
-
 
 os._exit(0)
