@@ -44,18 +44,23 @@ import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_g
 import { default as Sankey2 } from "./sankey_3.vue";
 
 const props = defineProps({
+  is_local: Boolean
 });
 
 const _i18n = (t) => i18n(t);
 const url = `${http_prefix}/lua/pro/rest/v2/get/host/flows/data.lua`;
 
 const sankey_format_list = [
-    { filter_name: 'hosts_type', key: 1, id: 'local_only', title: _i18n('flows_page.local_only'), label: _i18n('flows_page.local_only'), filter_icon: false, countable: false },
-    //  { filter_name: 'hosts_type', key: 2, id: 'remote_only', title: _i18n('flows_page.remote_only'), label: _i18n('flows_page.remote_only'),  filter_icon: false, countable: false },
-    { filter_name: 'hosts_type', key: 2, id: 'local_origin_remote_target', title: _i18n('flows_page.local_cli_remote_srv'), label: _i18n('flows_page.local_cli_remote_srv'), filter_icon: false, countable: false },
-    { filter_name: 'hosts_type', key: 3, id: 'remote_origin_local_target', title: _i18n('flows_page.local_srv_remote_cli'), label: _i18n('flows_page.local_srv_remote_cli'), filter_icon: false, countable: false },
-    { filter_name: 'hosts_type', key: 4, id: 'all_hosts', title: _i18n('flows_page.all_flows'), label: _i18n('flows_page.all_flows'), filter_icon: false, countable: false },
+    { filter_name: 'hosts_type', key: 3, id: 'local_origin_remote_target', title: _i18n('flows_page.local_cli_remote_srv'), label: _i18n('flows_page.local_cli_remote_srv'), filter_icon: false, countable: false },
+    { filter_name: 'hosts_type', key: 4, id: 'remote_origin_local_target', title: _i18n('flows_page.local_srv_remote_cli'), label: _i18n('flows_page.local_srv_remote_cli'), filter_icon: false, countable: false },
+    { filter_name: 'hosts_type', key: 5, id: 'all_hosts', title: _i18n('flows_page.all_flows'), label: _i18n('flows_page.all_flows'), filter_icon: false, countable: false },
 ];
+
+if(props.is_local) {
+  sankey_format_list.unshift({ filter_name: 'hosts_type', key: 1, id: 'local_only', title: _i18n('flows_page.local_only'), label: _i18n('flows_page.local_only'), filter_icon: false, countable: false })
+} else {
+  sankey_format_list.unshift({ filter_name: 'hosts_type', key: 2, id: 'remote_only', title: _i18n('flows_page.remote_only'), label: _i18n('flows_page.remote_only'),  filter_icon: false, countable: false })
+}
 
 const active_hosts_type = ref(sankey_format_list[0]);
 
