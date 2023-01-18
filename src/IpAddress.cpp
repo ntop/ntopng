@@ -199,17 +199,8 @@ bool IpAddress::isLocalInterfaceAddress() {
   bool systemHost;
 
   if(addr.ipVersion == 4) {
-    ip_key = ntohl(addr.ipType.ipv4);
-
     systemHost = ntop->isLocalInterfaceAddress(AF_INET, &addr.ipType.ipv4);
   } else if(addr.ipVersion == 6) {
-    u_int32_t key = 0;
-
-    for(u_int32_t i=0; i<4; i++)
-      key += addr.ipType.ipv6.u6_addr.u6_addr32[i];
-
-    ip_key = key;
-
     systemHost = ntop->isLocalInterfaceAddress(AF_INET6, &addr.ipType.ipv6);
   } else
     systemHost = false;
@@ -237,6 +228,24 @@ void IpAddress::compute_key() {
 char* IpAddress::print(char *str, u_int str_len, u_int8_t bitmask) const {
   str[0] = '\0';
   return(intoa(str, str_len, bitmask));
+}
+
+/* ******************************************* */
+
+char* IpAddress::get_ip_hex(char *buf, u_int buf_len) {
+  
+  if(addr.ipVersion == 4)
+    snprintf(buf, buf_len, "%08X", ntohl(addr.ipType.ipv4));
+  else if(addr.ipVersion == 6)
+    snprintf(buf, buf_len, "%08X%08X%08X%08X",
+	     ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[0]),
+	     ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[1]),
+	     ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[2]),
+	     ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[3]));
+  else
+    buf[0] = '\0';
+
+    return(buf);
 }
 
 /* ******************************************* */

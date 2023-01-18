@@ -11,7 +11,7 @@ local format_utils = require "format_utils"
 local json = require "dkjson"
 local have_nedge = ntop.isnEdge()
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/json')
 
 -- Table parameters
 local all = _GET["all"]
@@ -113,6 +113,7 @@ local anomalous = false
 local dhcp_hosts = false
 
 local hosts_retrv_function = interface.getHostsInfo
+
 if mode == "local" then
    hosts_retrv_function = interface.getLocalHostsInfo
 elseif mode == "local_no_tx" then
@@ -154,8 +155,8 @@ end
 
 local now = os.time()
 local vals = {}
-
 local num = 0
+
 if(hosts_stats ~= nil) then
    for key, value in pairs(hosts_stats) do
       num = num + 1
@@ -208,7 +209,7 @@ if(hosts_stats ~= nil) then
       elseif(sortColumn == "column_queries") then
 	 vals[hosts_stats[key]["queries.rcvd"]+postfix] = key
       elseif(sortColumn == "column_ip") then
-	 vals[hosts_stats[key]["ipkey"]+postfix] = key
+	 vals[hosts_stats[key]["iphex"]..postfix] = key
       elseif custom_column_utils.isCustomColumn(sortColumn) then
 	 custom_column_key, custom_column_format = custom_column_utils.label2criteriakey(sortColumn)
 	 local val = custom_column_utils.hostStatsToColumnValue(hosts_stats[key], custom_column_key, false)

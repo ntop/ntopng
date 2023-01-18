@@ -55,6 +55,7 @@ class IpAddress {
   inline void reset()                                  { memset(&addr, 0, sizeof(addr));               }
   inline bool isIPv4() const                           { return((addr.ipVersion == 4) ? true : false); }
   inline bool isIPv6() const                           { return((addr.ipVersion == 6) ? true : false); }
+  char* get_ip_hex(char *buf, u_int buf_len);
   inline u_int32_t get_ipv4() const                    { return((addr.ipVersion == 4) ? addr.ipType.ipv4 : 0);     }
   inline const struct ndpi_in6_addr* get_ipv6() const  { return((addr.ipVersion == 6) ? &addr.ipType.ipv6 : NULL); }
   inline const struct ipAddress* getIP()        const  { return(&addr); };

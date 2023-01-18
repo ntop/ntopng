@@ -5289,6 +5289,8 @@ int hostSorter(const void *_a, const void *_b) {
   return(a->hostValue->compare(b->hostValue));
 }
 
+/* **************************************************** */
+
 int ipNetworkSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
