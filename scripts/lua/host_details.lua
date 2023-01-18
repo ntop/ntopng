@@ -107,6 +107,8 @@ if((host == nil) and ((_GET["mode"] == "restore"))) then
    end
 end
 
+-- #####################################################
+
 local function takeHistoricalBaseUrl(port)
    local extra_params = {
       srv_ip = {
@@ -128,10 +130,13 @@ local function takeHistoricalBaseUrl(port)
    return add_historical_flow_explorer_button_ref(extra_params, true)
 end
 
+-- #####################################################
+
 local function printPort(port, proto, is_server_port)
    if is_server_port then
       local historical_base_url = takeHistoricalBaseUrl(port)
-      if historical_base_url then
+
+      if(historical_base_url and (historical_base_url ~= "")) then
          print('<li><A HREF="'..historical_base_url..'"><span class="badge bg-secondary">'.. port.. " (" .. proto ..")" .."</span></A></li>\n")
       else
          print('<li><A HREF="/lua/flows_stats.lua?port='..port..'"><span class="badge bg-secondary">'.. port.. " (" .. proto ..")" .."</span></A></li>\n")
@@ -141,6 +146,8 @@ local function printPort(port, proto, is_server_port)
    end
 end
 
+-- #####################################################
+
 local function printPorts(ports, is_server_port)
    if(table.len(ports) == 0) then
       print("<td colspan=2>"..i18n("none").."</td></tr>")
@@ -148,17 +155,17 @@ local function printPorts(ports, is_server_port)
       local udp = {}
       local tcp = {}
       print("<th>UDP</th><th>TCP</th></tr>\n")
-
+      
       for k,v in pairs(ports) do
 	 local res = split(k, ":")
-
-        if tonumber(res[2]) then
-         if(res[1] == "udp") then
-  	      udp[tonumber(res[2])	] = v
+	 
+	 if tonumber(res[2]) then
+	   if(res[1] == "udp") then
+	    udp[tonumber(res[2])] = v
          else
-	        tcp[tonumber(res[2])] = v
+	    tcp[tonumber(res[2])] = v
          end
-	      end
+	end
       end
 
       print("<tr><td valign=top><ul>")
@@ -174,7 +181,7 @@ local function printPorts(ports, is_server_port)
    end
 end
 
-
+-- #####################################################
 
 local function formatContacts(v)
    if not v then
@@ -187,6 +194,8 @@ local function formatContacts(v)
       return(formatValue(v))
    end
 end
+
+-- #####################################################
 
 local function scoreBreakdown(what)
    local score_category_network  = what[0]
@@ -203,6 +212,8 @@ local function scoreBreakdown(what)
       print("&nbsp;")
    end
 end
+
+-- #####################################################
 
 local function printRestoreHostBanner(hidden)
    print('<div id=\"host_purged\" class=\"alert alert-danger\" ')
