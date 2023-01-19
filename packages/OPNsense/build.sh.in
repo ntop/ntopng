@@ -3,7 +3,7 @@
 BASEDIR=`pwd`
 VERSION=`freebsd-version -u | cut -d '.' -f 1`
 
-USE_OPNSENSE_TOOLS=false
+USE_OPNSENSE_TOOLS=true
 
 #
 # Environment configuration for using USE_OPNSENSE_TOOLS
@@ -18,8 +18,10 @@ USE_OPNSENSE_TOOLS=false
 ########
 
 if ! test -d opnsense; then
+	echo "Cloning ntop/opnsense"
 	git clone https://github.com/ntop/opnsense.git
 else
+	echo "Updating ntop/opnsense"
 	cd opnsense; git pull --rebase; cd ${BASEDIR}
 fi
 
@@ -27,12 +29,16 @@ fi
 
 # Build package
 
+STAGEDIR=
+
 if [ "$USE_OPNSENSE_TOOLS" = true ] ; then
 
 	# Cloning OPNsense plugins repo
 	if ! test -d plugins; then
+		echo "Cloning opnsense/plugins"
 		git clone https://github.com/opnsense/plugins.git
 	else
+		echo "Updating opnsense/plugins"
 		cd plugins; git pull --rebase; cd ${BASEDIR}
 		rm -rf plugins/net/ntopng-enterprise
 	fi
@@ -45,6 +51,12 @@ if [ "$USE_OPNSENSE_TOOLS" = true ] ; then
 	cd plugins/net/ntopng-enterprise
 	make package
 	cd ${BASEDIR}
+
+	STAGEDIR=${BASEDIR}/plugins/net/ntopng-enterprise/work/src
+
+	# Fix package name
+	sed -i '' 's/os-ntopng-enterprise-devel/os-ntopng-enterprise/g' ${STAGEDIR}/+MANIFEST
+	sed -i '' 's/os-ntopng-enterprise-devel/os-ntopng-enterprise/g' ${STAGEDIR}/usr/local/opnsense/version/ntopng-enterprise
 
 else
 	STAGEDIR=${BASEDIR}/stage
@@ -70,19 +82,19 @@ else
 	# +POST_INSTALL
 
 	cp package/+POST_INSTALL ${STAGEDIR}/
-
-	# Package
-
-	pkg create -m ${STAGEDIR}/ -r ${STAGEDIR}/ -p ${STAGEDIR}/plist -o .
-
-	/bin/rm -f ~/binary_packages/os-ntopng-enterprise-*
-
-	if test $VERSION -eq "13" ; then
-		tar -tvf os-ntopng-enterprise-@PACKAGE_VERSION@.pkg
-	else
-		tar -tvf os-ntopng-enterprise-@PACKAGE_VERSION@.txz
-	fi
-
-	cp os-ntopng-enterprise-@PACKAGE_VERSION@.* ~/binary_packages/
 fi
+
+# Package
+
+pkg create -m ${STAGEDIR}/ -r ${STAGEDIR}/ -p ${STAGEDIR}/plist -o .
+
+/bin/rm -f ~/binary_packages/os-ntopng-enterprise-*
+
+if test $VERSION -eq "13" ; then
+	tar -tvf os-ntopng-enterprise-@PACKAGE_VERSION@.pkg
+else
+	tar -tvf os-ntopng-enterprise-@PACKAGE_VERSION@.txz
+fi
+
+cp os-ntopng-enterprise-@PACKAGE_VERSION@.* ~/binary_packages/
 
