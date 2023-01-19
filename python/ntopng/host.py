@@ -78,6 +78,19 @@ class Host:
 
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/dscp/stats.lua", params))
 
+    def get_active_flows_paginated(self, currentPage, perPage):
+        """
+        Retrieve the (paginated) list of active flows for the specified interface and host
+        
+        :param currentPage: The current page
+        :type currentPage: int
+        :param perPage: The number of results per page
+        :type perPage: int
+        :return: All active flows
+        :rtype: array
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/flow/active.lua", {"ifid": self.ifid, "host": self.ip, "vlan": self.vlan, "currentPage": currentPage, "perPage": perPage}))
+
     def self_test(self):
         try:
             print("Host Data ----------------------------")

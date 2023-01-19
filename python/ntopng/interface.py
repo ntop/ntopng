@@ -128,6 +128,37 @@ class Interface:
         """
         return(self.ntopng_obj.request(self.rest_pro_v2_url + "/get/interface/top/remote/talkers.lua", { "ifid": self.ifid }))
 
+    def get_active_flows_paginated(self, currentPage, perPage):
+        """
+        Retrieve the (paginated) list of active flows for the specified interface
+        
+        :param currentPage: The current page
+        :type currentPage: int
+        :param perPage: The number of results per page
+        :type perPage: int
+        :return: All active flows
+        :rtype: array
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/flow/active.lua", {"ifid": self.ifid, "currentPage": currentPage, "perPage": perPage}))
+
+    def get_active_l4_proto_flow_counters(self):
+        """
+        Return statistics about active flows per Layer 4 protocol on an interface
+        
+        :return: Layer 4 protocol flows statistics
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/flow/l4/counters.lua", {"ifid": self.ifid }))
+
+    def get_active_l7_proto_flow_counters(self):
+        """
+        Return statistics about active flows per Layer 7 protocol on an interface
+        
+        :return: Layer 7 protocol flows statistics
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/flow/l7/counters.lua", {"ifid": self.ifid }))
+
     def self_test(self):
         print(self.get_data())
         try:
@@ -148,6 +179,12 @@ class Interface:
             print(self.get_top_local_talkers())
             print("Top Remote Talkers ----------------------------")
             print(self.get_top_remote_talkers())
+            print("Active Flows (100) ----------------------------")
+            print(self.get_active_flows_paginated(1, 100))
+            print("L4 Flow Counters ----------------------------")
+            print(self.get_active_l4_proto_flow_counters())
+            print("L7 Flow Counters ----------------------------")
+            print(self.get_active_l7_proto_flow_counters())
             print("----------------------------")
         except:
             raise ValueError("Invalid interface ID specified")

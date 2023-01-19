@@ -10,9 +10,7 @@ import getopt
 import time
 
 from ntopng.ntopng import Ntopng
-from ntopng.host import Host
 from ntopng.historical import Historical
-from ntopng.flow import Flow
 
 """
 Defaults
@@ -88,10 +86,6 @@ try:
     print("\n\n==========================\nHost")
     my_host = my_interface.get_host(host_ip)
     my_host.self_test()
-
-    print("\n\n==========================\nFlow")
-    my_flow = Flow(my_ntopng)
-    my_flow.self_test(iface_id, host_ip)
 
     print("\n\n==========================\nHistorical Data")
     my_historical = Historical(my_ntopng)
