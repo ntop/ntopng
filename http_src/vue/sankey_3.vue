@@ -12,7 +12,7 @@
 </div>
 </template>
 
-<script setup>
+<script setup >
 import { ref, onMounted, onBeforeMount, computed, watch } from "vue";
 import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../services/context/ntopng_globals_services.js";
 
@@ -55,7 +55,7 @@ function set_sankey_data(reset) {
 	$(".links", sankey_chart_ref.value).empty();
     }
     if (props.sankey_data.nodes == null || props.sankey_data.links == null
-       || props.sankey_data.length == 0 || props.sankey_data.links.length == 0) {
+	|| props.sankey_data.length == 0 || props.sankey_data.links.length == 0) {
 	return;
     }
     draw_sankey();
@@ -82,7 +82,6 @@ async function draw_sankey() {
 	.data(nodes)
 	.join((enter) => enter.append("g"))
 	.attr("transform", (d) => `translate(${d.x0}, ${d.y0})`)
-	.on("click", function(event, data_obj){ emit('node_click', data_obj.data); });
     
     const zoom = d3.zoom()
 	  .scaleExtent([1, 40])
@@ -97,29 +96,32 @@ async function draw_sankey() {
 	.attr("dataIndex", (d) => d.index)
 	.attr("fill", (d) => colors(d.index / nodes.length))
 	.attr("class", "sankey-node")
-	.attr("style", "cursor:pointer;");
-    d3.selectAll("rect").append("title").text((d) => `${d.label}`);    
+	.attr("style", "cursor:move;");
+    d3.selectAll("rect").append("title").text((d) => `${d.label}`);
     
-    // Relative to container/ node rect
-    d3_nodes.append("text")
+    // Relative to container/ node rect    
+    d3_nodes.data(nodes)
+	.append("text")
     // .transition(d3.easeLinear)
     // .delay(1000)
     // .duration(500)
-    	.attr("x", (d) => (d.x0 < size.width / 2 ? 6 + (d.x1 - d.x0) : -6))
-    	.attr("y", (d) => (d.y1 - d.y0) / 2)
+    	.attr('class', 'label')
+    	.style('pointer-events', 'auto')
+	.attr("style", "cursor:pointer;")
+    	.style('fill-opacity', function(d) { return 1; } )
     	.attr("fill", (d) => "#000")
     // .attr("fill", (d) => d3.rgb(colors(d.index / nodes.length)).darker())
+	.attr("x", (d) => (d.x0 < size.width / 2 ? 6 + (d.x1 - d.x0) : -6))
+	.attr("y", (d) => (d.y1 - d.y0) / 2)
     	.attr("alignment-baseline", "middle")
-    	.attr("text-anchor", (d) =>
-    	      d.x0 < size.width / 2 ? "start" : "end"
-    	     )
+	.attr("text-anchor", (d) =>
+              d.x0 < size.width / 2 ? "start" : "end"
+             )
     	.attr("font-size", 12)
-    	.text((d) => d.label);
-    
+    	.text((d) => d.label)
+	.on("click", function(event, data_obj){ emit('node_click', data_obj.data); });    
     d3_nodes
 	.call(d3.drag().subject(d => d).on("start", dragStart).on("drag", dragMove));
-    
-    
     
     const links_d3 = d3.select(sankey_chart_ref.value)
 	  .select("g.links")
@@ -143,6 +145,7 @@ async function draw_sankey() {
     
     links_d3
 	.append("path")
+    	.style('pointer-events', 'none')
 	.attr("class", "sankey-link")
 	.attr("d", d3.sankeyLinkHorizontal())
     // .attr("style", `stroke-width: ${d.width}px;`)
@@ -156,8 +159,7 @@ async function draw_sankey() {
     // 	.attr("stroke", `black`)
     
     // 	.attr("stroke-width", (d) => Math.max(100, d.width));
-    
-    
+        
     links_d3
     	.append("title")
     	.text((d) => `${d.label}`);

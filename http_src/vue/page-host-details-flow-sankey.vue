@@ -42,6 +42,7 @@ import { ref, onMounted, onBeforeMount } from "vue";
 import { default as SelectSearch } from "./select-search.vue"
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as Sankey2 } from "./sankey_3.vue";
+import { default as sankeyUtils } from "../utilities/map/sankey_utils.js";
 
 const props = defineProps({
   is_local: Boolean
@@ -104,6 +105,7 @@ async function set_sankey_data() {
 
 async function get_sankey_data() {
     const url_request = get_sankey_url();
+    // let graph = await sankeyUtils.get_data();
     let graph = await ntopng_utility.http_request(url_request);
     console.log(graph);
     // add_fake_circular_link(graph);
@@ -154,8 +156,9 @@ function get_sankey_data_from_rest_data(graph, main_node_id) {
 	return `${direction}_${node_id}`; 
     };
 
-    // create a new graph duplicating all nodes with different direction  
-    let graph2 = { nodes: [], links: [] };
+    // create a new graph duplicating all nodes with different direction
+    let graph2_node_dict = {};
+    let graph2 = { nodes: [], links: [] };    
     graph.links.forEach((link) => {	
 	let direction = f_get_link_direction(link);
 	let new_link = {
@@ -174,7 +177,8 @@ function get_sankey_data_from_rest_data(graph, main_node_id) {
 	    new_node = { node_id: new_link.source_node_id, label: n.label, data: n };
 	}
 	graph2.links.push(new_link);
-	if (new_node.node_id != main_node_id) {
+	if (graph2_node_dict[new_node.node_id] == null) {
+	    graph2_node_dict[new_node.node_id] = true;
 	    graph2.nodes.push(new_node);
 	}
     });
