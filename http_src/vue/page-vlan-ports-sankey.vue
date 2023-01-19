@@ -31,6 +31,7 @@
           </div>
 
           <Sankey2
+	    @node_click="on_node_click"
       :sankey_data="sankey_data">
           </Sankey2>        
         </div>
@@ -81,6 +82,11 @@ onBeforeMount(() => {
 onMounted(() => { 
   update_sankey();
 });
+
+function on_node_click(node) {
+  if (node.is_link_node == true) { return; }
+  if (node.link) { ntopng_url_manager.go_to_url(node.link); }
+}
 
 const click_item = function(item) {
   ntopng_url_manager.set_key_to_url(item.filter_name, item.id)

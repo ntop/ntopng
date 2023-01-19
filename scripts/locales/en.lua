@@ -16,8 +16,6 @@ local lang = {
   ["advanced_charts_test"] = "Advanced Charts Test",
   ["aggregation"] = "Aggregation",
   ["alerts_analysis"] = "Flow Alerts Analyser",
-  ["ports_analysis"] = "Ports Analysis",
-  ["used_ports"] = "Used Ports",
   ["alias"] = "Alias",
   ["all"] = "All",
   ["all_hosts"] = "All Hosts",
@@ -5866,6 +5864,10 @@ local lang = {
       ["toggle_geo_map_rxtx_data_title"] = "Rx/Tx data",
       ["toggle_geo_map_score_title"] = "Score",
     },
+  },
+  ["ports_analysis"] = {
+    ["title"] = "Ports Analysis",
+    ["server_ports"] = "Server Ports",
   },
   ["processes_stats"] = {
     ["active_processes_title"] = "Active Processes: Realtime View",
