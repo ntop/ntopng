@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PWD=`pwd`
+BASEDIR=`pwd`
 VERSION=`freebsd-version -u | cut -d '.' -f 1`
 
 USE_OPNSENSE_TOOLS=false
@@ -20,26 +20,8 @@ USE_OPNSENSE_TOOLS=false
 if ! test -d opnsense; then
 	git clone https://github.com/ntop/opnsense.git
 else
-	cd opnsense; git pull --rebase; cd ..
+	cd opnsense; git pull --rebase; cd ${BASEDIR}
 fi
-
-if test -d $PWD/plugins; then
-	rm -r $PWD/plugins
-fi
-cp -r $PWD/opnsense/ntopng/plugins .
-
-########
-
-STAGEDIR=${PWD}/stage
-rm -rf ${STAGEDIR}
-mkdir -p ${STAGEDIR}
-
-#######
-
-# Build content
-
-mkdir -p ${STAGEDIR}/usr/local
-cp -r plugins/net/ntopng-enterprise/src/* ${STAGEDIR}/usr/local/
 
 #######
 
@@ -47,14 +29,32 @@ cp -r plugins/net/ntopng-enterprise/src/* ${STAGEDIR}/usr/local/
 
 if [ "$USE_OPNSENSE_TOOLS" = true ] ; then
 
-	PLUGIN_TMP=/tmp/opnsense/plugins/devel/ntopng
+	# Cloning OPNsense plugins repo
+	if ! test -d plugins; then
+		git clone https://github.com/opnsense/plugins.git
+	else
+		cd plugins; git pull --rebase; cd ${BASEDIR}
+		rm -rf plugins/net/ntopng-enterprise
+	fi
 
-	mkdir -p ${PLUGIN_TMP}/src
+	# Copying ntopng plugin
+	cp -r opnsense/ntopng/plugins/net/ntopng-enterprise plugins/net/
+	cp package/Makefile plugins/net/ntopng-enterprise/
 
-	cp    package/Makefile        ${PLUGIN_TMP}/
-	cp -r ${STAGEDIR}/usr/local/* ${PLUGIN_TMP}/src
+	# Build pkg
+	cd plugins/net/ntopng-enterprise
+	make package
+	cd ${BASEDIR}
 
 else
+	STAGEDIR=${BASEDIR}/stage
+	rm -rf ${STAGEDIR}
+	mkdir -p ${STAGEDIR}
+
+	# Build content
+
+	mkdir -p ${STAGEDIR}/usr/local
+	cp -r $BASEDIR/opnsense/ntopng/plugins/net/ntopng-enterprise/src/* ${STAGEDIR}/usr/local/
 
 	# Build plist
 
