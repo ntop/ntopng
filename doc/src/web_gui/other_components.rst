@@ -72,6 +72,7 @@ with others. If `traffic recording`_ is enabled, by clicking the |pcap_download_
 download a PCAP file of the interface or host traffic in the specified time frame. Depending on the selected
 historical timeseries, this could be available or not.
 
+By clicking on the |snapshot_icon| icon it's possible to `manage snapshots`_.
 
 Storage Monitor
 ---------------
@@ -149,8 +150,10 @@ Currently, the following views are implemented:
 
 .. |permalink_icon| image:: ../img/permalink_icon.png
 .. |pcap_download_icon| image:: ../img/pcap_download_icon.png
+.. |snapshot_icon| image:: ../img/snapshot_icon.png
 .. _`recorded timeseries data`: ../basic_concepts/timeseries.html
 .. _`traffic recording`: ../traffic_recording.html
+.. _`manage snapshot`: ../advanced_features/snapshots.html
 .. _`Exponential Moving Average`: https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average
 .. _`Simple Moving Average`: https://en.wikipedia.org/wiki/Moving_average#Simple_moving_average
 .. _`Relative Strength Index`: https://en.wikipedia.org/wiki/Relative_strength_index

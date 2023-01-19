@@ -25,3 +25,4 @@ section.
     syslog
     additional_features
     oem
+    snapshots
