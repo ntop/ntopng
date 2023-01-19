@@ -10,6 +10,7 @@ import json
 from requests.auth import HTTPBasicAuth
 
 from ntopng.interface import Interface
+from ntopng.historical import Historical
 
 class Ntopng:        
     def __init__(self, username, password, auth_token, url):
@@ -150,6 +151,17 @@ class Ntopng:
         :rtype: ntopng.Interface
         """ 
         return Interface(self, ifid)
+
+    def get_historical_interface(self, ifid):
+        """
+        Return an Historical handle for an interface
+        
+        :param ifid: The interface ID
+        :type ifid: int
+        :return: The historical handle
+        :rtype: ntopng.Historical
+        """ 
+        return Historical(self, ifid)
 
     def get_interfaces_list(self):
         """

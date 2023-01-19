@@ -10,7 +10,6 @@ import getopt
 import time
 
 from ntopng.ntopng import Ntopng
-from ntopng.historical import Historical
 
 """
 Defaults
@@ -88,8 +87,8 @@ try:
     my_host.self_test()
 
     print("\n\n==========================\nHistorical Data")
-    my_historical = Historical(my_ntopng)
-    my_historical.self_test(iface_id, host_ip)
+    my_historical = my_ntopng.get_historical_interface(iface_id)
+    my_historical.self_test(host_ip)
 except ValueError as e:
     print(e)
     os._exit(-1)

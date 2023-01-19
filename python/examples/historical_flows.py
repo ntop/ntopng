@@ -12,7 +12,6 @@ import time
 sys.path.insert(0, '../')
 
 from ntopng.ntopng import Ntopng
-from ntopng.historical import Historical
 
 # Defaults
 username     = "admin"
@@ -86,7 +85,7 @@ def top_x_remote_ipv4_hosts(my_historical, epoch_begin, epoch_end, maxhits):
     group_by      = "IPV4_DST_ADDR_FORMATTED"
     order_by      = "TOT DESC"
 
-    rsp = my_historical.get_flows(iface_id, epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by)
+    rsp = my_historical.get_flows(epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by)
     format_rsp(rsp)
 
 def top_x_remote_ipv4_hosts_ports(my_historical, epoch_begin, epoch_end, maxhits):
@@ -95,7 +94,7 @@ def top_x_remote_ipv4_hosts_ports(my_historical, epoch_begin, epoch_end, maxhits
     group_by      = "IPV4_DST_ADDR_FORMATTED,IP_DST_PORT"
     order_by      = "TOT DESC"
 
-    rsp = my_historical.get_flows(iface_id, epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by)
+    rsp = my_historical.get_flows(epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by)
     format_rsp(rsp)
 
 def top_x_remote_ports(my_historical, epoch_begin, epoch_end, maxhits):
@@ -104,7 +103,7 @@ def top_x_remote_ports(my_historical, epoch_begin, epoch_end, maxhits):
     group_by      = "IP_DST_PORT"
     order_by      = "TOT DESC"
 
-    rsp = my_historical.get_flows(iface_id, epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by)
+    rsp = my_historical.get_flows(epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by)
     format_rsp(rsp)
 
 ##########
@@ -119,7 +118,7 @@ except ValueError as e:
     os._exit(-1)
 
 try:
-    my_historical = Historical(my_ntopng)
+    my_historical = my_ntopng.get_historical_interface(iface_id)
     print("\n==========================\nTop X Remote Hosts Traffic")
     top_x_remote_ipv4_hosts(my_historical, epoch_begin, epoch_end, maxhits)
     print("\n==========================\nTop X Remote Host/Ports Traffic")

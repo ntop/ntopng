@@ -6,6 +6,7 @@ REST API (https://www.ntop.org/guides/ntopng/api/rest/api_v2.html).
 """
 
 from ntopng.host import Host
+from ntopng.historical import Historical
 
 class Interface:
     """
@@ -158,6 +159,15 @@ class Interface:
         :rtype: object
         """
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/flow/l7/counters.lua", {"ifid": self.ifid }))
+
+    def get_historical(self):
+        """
+        Return an Historical handle for the interface
+        
+        :return: The historical handle
+        :rtype: ntopng.Historical
+        """ 
+        return Historical(self.ntopng_obj, self.ifid)
 
     def self_test(self):
         print(self.get_data())

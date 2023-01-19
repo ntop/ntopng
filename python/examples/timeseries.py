@@ -13,7 +13,6 @@ import numpy as np
 sys.path.insert(0, '../')
 
 from ntopng.ntopng import Ntopng
-from ntopng.historical import Historical
 
 # Defaults
 username     = "admin"
@@ -87,17 +86,17 @@ def format_rsp(series):
     #np_series = series.to_numpy()
     #print(np_series)
 
-def host_traffic(my_historical, epoch_begin, epoch_end, ifid, host):
+def host_traffic(my_historical, epoch_begin, epoch_end, host):
     ts_schema = "host:traffic"
-    query = "ifid:" + str(ifid) + ",host:" + host
+    query = "ifid:" + str(iface_id) + ",host:" + host
     
     rsp = my_historical.get_timeseries(ts_schema, query, epoch_begin, epoch_end)
     format_rsp(rsp)
 
-def interface_score(my_historical, epoch_begin, epoch_end, ifid):
+def interface_score(my_historical, epoch_begin, epoch_end):
     ts_schema = "iface:score"
     
-    rsp = my_historical.get_interface_timeseries(ifid, ts_schema, epoch_begin, epoch_end)
+    rsp = my_historical.get_interface_timeseries(ts_schema, epoch_begin, epoch_end)
     format_rsp(rsp)
 
 ##########
@@ -112,11 +111,11 @@ except ValueError as e:
     os._exit(-1)
 
 try:
-    my_historical = Historical(my_ntopng)
+    my_historical = my_ntopng.get_historical_interface(iface_id)
     print("\n==========================\nHost traffic timeseries")
-    host_traffic(my_historical, epoch_begin, epoch_end, iface_id, host_ip)
+    host_traffic(my_historical, epoch_begin, epoch_end, host_ip)
     print("\n==========================\nInterface score timeseries")
-    interface_score(my_historical, epoch_begin, epoch_end, iface_id)
+    interface_score(my_historical, epoch_begin, epoch_end)
     
 except ValueError as e:
     print(e)
