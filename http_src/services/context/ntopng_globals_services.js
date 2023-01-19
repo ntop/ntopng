@@ -338,6 +338,11 @@ export const ntopng_url_manager = function() {
             window.location.reload();
         },
 
+	go_to_url: function(url) {
+	    window.history.pushState({}, '', window.location);
+	    window.location.replace(url);
+	},
+
         replace_url: function(url_params) {
             window.history.replaceState({}, null, `?${url_params}`);
         },
