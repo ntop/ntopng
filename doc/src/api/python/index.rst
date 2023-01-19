@@ -10,7 +10,7 @@ The API is based on the ntopng REST API and it allows users to perform operation
 - Query network interface stats
 - Search historical flows
 
-For each ntopng component there is a corresponding Python class (host, flow, historical, interface), and for each REST API call there is a corresponding method.
+For each ntopng component there is a corresponding Python class (Host, Interface, Historical), and for each REST API call there is a corresponding method.
 The ntopng class is used to keep information about the ntopng configuration including IP address and credentials required to connect.
 
 Installation
@@ -32,9 +32,6 @@ API
    :members:
 
 .. automodule:: host
-   :members:
-
-.. automodule:: flow
    :members:
 
 .. automodule:: historical

@@ -26,9 +26,8 @@ API Information
 
 For each ntopng REST API call there is a corresponding Python method for the defined Python classes:
 - [host](ntopng/host.py)
-- [flow](ntopng/flow.py)
-- [historical](ntopng/historical.py)
 - [interface](ntopng/interface.py)
+- [historical](ntopng/historical.py)
 
 The [ntopng](ntopng/ntopng.py) class is used to store information such as ntopng IP address and credentials used to connect it.
 
