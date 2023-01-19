@@ -10179,3 +10179,106 @@ bool NetworkInterface::resetHostTopSites(AddressTree *allowed_hosts,
   else
     return(false);
 }
+
+/* **************************************************** */
+
+class FlowsStats {
+private:
+  std::set<const IpAddress*> clients, servers;
+  u_int32_t num_flows;
+  u_int64_t tot_sent, tot_rcvd;
+
+public:
+  FlowsStats(const IpAddress *c, const IpAddress *s, u_int64_t bytes_sent, u_int64_t bytes_rcvd) {
+    num_flows = 0, tot_sent = tot_rcvd = 0;
+    incFlowStats(c, s, bytes_sent, bytes_rcvd);
+  }
+
+  inline u_int32_t getNumClients() { return(clients.size()); }
+  inline u_int32_t getNumServers() { return(servers.size()); }
+  inline u_int32_t getNumFlows()   { return(num_flows);      }
+  inline u_int64_t getTotalSent()  { return(tot_sent);       }
+  inline u_int64_t getTotalRcvd()  { return(tot_rcvd);       }
+  inline void      incFlowStats(const IpAddress *c, const IpAddress *s, u_int64_t bytes_sent, u_int64_t bytes_rcvd) {
+    clients.insert(c), servers.insert(c), num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd;
+  }
+};
+
+/* **************************************************** */
+
+static bool compute_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
+  Flow *f = (Flow*)node;
+  std::unordered_map<u_int32_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int32_t, FlowsStats*>*>(user_data);
+  u_int32_t p;
+  ndpi_protocol detected_protocol = f->get_detected_protocol();
+  std::unordered_map<u_int32_t, FlowsStats*>::iterator it;
+
+  p = (((u_int32_t)detected_protocol.app_protocol) << 16) + (u_int32_t)detected_protocol.master_protocol;
+
+  it = count->find(p);
+  
+  if(it == count->end()) {
+    FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli());
+
+    if(fs != NULL)
+      (*count)[p] = fs;
+  } else
+    it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli());
+  
+  *matched = true;
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
+  u_int32_t begin_slot = 0;
+  std::unordered_map<u_int32_t /* l7 proto */, FlowsStats*> count;
+  std::unordered_map<u_int32_t, FlowsStats*>::iterator it;
+  u_int num = 0;
+ 
+  walker(&begin_slot, true /* walk_all */, walker_flows, compute_flow_stats, &count);
+
+  lua_newtable(vm);
+
+  for(it = count.begin(); it != count.end(); ++it) {
+    FlowsStats *fs = it->second;
+    ndpi_protocol detected_protocol;
+    char buf[64], proto[16];
+      
+    detected_protocol.master_protocol = (u_int16_t)(it->first & 0x0000FFFF);
+    detected_protocol.app_protocol    = (u_int16_t)((it->first >> 16) & 0x0000FFFF);
+      
+    lua_newtable(vm);
+
+    if(detected_protocol.master_protocol == detected_protocol.app_protocol)
+      snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
+    else if(detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+      snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
+    else if(detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
+      snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
+    else
+      snprintf(proto, sizeof(proto), "%u.%u",
+	       detected_protocol.master_protocol,
+	       detected_protocol.app_protocol);
+    
+    lua_push_str_table_entry(vm,    "proto_id",    proto);
+    lua_push_str_table_entry(vm,    "proto_name",  get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
+    lua_push_uint32_table_entry(vm, "num_clients", fs->getNumClients());
+    lua_push_uint32_table_entry(vm, "num_servers", fs->getNumServers());
+    lua_push_uint32_table_entry(vm, "num_flows",   fs->getNumFlows());
+    lua_push_uint64_table_entry(vm, "bytes_sent",  fs->getTotalSent());
+    lua_push_uint64_table_entry(vm, "bytes_rcvd",  fs->getTotalRcvd());
+
+    lua_pushinteger(vm, ++num);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+
+    delete it->second;
+  }
+}
+
+
