@@ -136,8 +136,8 @@ const props = defineProps({
 
 function reset_modal_form() {
     host.value.value = "";
-    selected_metric.value = props.metric_list[0];
-    selected_frequency.value = props.frequency_list[0];
+    selected_metric.value = metric_list.value[0];
+    selected_frequency.value = frequency_list.value[0];
     metric_type.value = metric_type_list[0];
 
     // reset metric_type_list
@@ -199,6 +199,7 @@ const set_active_radio = (selected_radio) => {
 }
 
 const add_ = () => {
+  debugger;
   const tmp_host = host.value.value;
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_metric.value.id;
