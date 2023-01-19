@@ -9,6 +9,8 @@ import requests
 import json
 from requests.auth import HTTPBasicAuth
 
+from ntopng.interface import Interface
+
 class Ntopng:        
     def __init__(self, username, password, auth_token, url):
         """
@@ -138,7 +140,10 @@ class Ntopng:
         """
         return(self.request(self.rest_v2_url + "/get/alert/severity/consts.lua", None))
 
-    def get_interfaces(self):
+    def get_interface(self, ifid):
+        return Interface(self, ifid)
+
+    def get_interfaces_list(self):
         """
         Return all available interfaces
         
@@ -154,7 +159,7 @@ class Ntopng:
             print("----------------------------")
             print(self.get_alert_severities())
             print("----------------------------")
-            print(self.get_interfaces())
+            print(self.get_interfaces_list())
             print("----------------------------")
         except:
             raise ValueError("Unable to retrieve information")   

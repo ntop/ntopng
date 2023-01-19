@@ -10,7 +10,6 @@ import getopt
 import time
 
 from ntopng.ntopng import Ntopng
-from ntopng.interface import Interface
 from ntopng.host import Host
 from ntopng.historical import Historical
 from ntopng.flow import Flow
@@ -83,8 +82,8 @@ try:
     my_ntopng.self_test()
 
     print("\n\n==========================\nInterface")
-    my_interface = Interface(my_ntopng)
-    my_interface.self_test(iface_id)
+    my_interface = my_ntopng.get_interface(iface_id)
+    my_interface.self_test()
 
     print("\n\n==========================\nHost")
     my_host = Host(my_ntopng)
