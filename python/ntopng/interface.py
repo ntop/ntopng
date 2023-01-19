@@ -5,6 +5,8 @@ The Interface class can be used to access information about interface statistics
 REST API (https://www.ntop.org/guides/ntopng/api/rest/api_v2.html).
 """
 
+from ntopng.host import Host
+
 class Interface:
     """
     Interface provides information about a Network interface
@@ -24,6 +26,7 @@ class Interface:
         self.ntopng_obj = ntopng_obj
         self.ifid = ifid
         self.rest_v2_url = "/lua/rest/v2"
+        self.rest_pro_v2_url = "/lua/pro/rest/v2"
         
     def get_data(self):
         """
@@ -80,18 +83,71 @@ class Interface:
         """
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/interface/dscp/stats.lua", {"ifid": self.ifid}))
 
+    def get_host(self, ip, vlan=None):
+        """
+        Return an Host instance
+        
+        :param ifid: The interface ID
+        :type ifid: int
+        :param ip: The host IP address
+        :type ip: string
+        :param vlan: The host VLAN ID (if any)
+        :type vlan: int
+        :return: The host instance
+        :rtype: ntopng.Host
+        """ 
+        return Host(self.ntopng_obj, self.ifid, ip, vlan)
+
+    def get_active_hosts(self):
+        """
+        Retrieve the list of active hosts for the specified interface
+        
+        :return: All active hosts
+        :rtype: array
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/active.lua", {"ifid": self.ifid}))
+
+    def get_active_hosts_paginated(self, currentPage, perPage):
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/active.lua", {"ifid": self.ifid, "currentPage": currentPage, "perPage": perPage}))
+
+    def get_top_local_talkers(self):
+        """
+        Return Top Local hosts generating more traffic
+        
+        :return: The top local hosts
+        :rtype: array
+        """
+        return(self.ntopng_obj.request(self.rest_pro_v2_url + "/get/interface/top/local/talkers.lua", { "ifid": self.ifid }))
+
+    def get_top_remote_talkers(self):
+        """
+        Return Top Remote hosts generating more traffic
+        
+        :return: The top remote hosts
+        :rtype: array
+        """
+        return(self.ntopng_obj.request(self.rest_pro_v2_url + "/get/interface/top/remote/talkers.lua", { "ifid": self.ifid }))
+
     def self_test(self):
         print(self.get_data())
         try:
-            print("----------------------------")
+            print("Broadcast Domains ----------------------------")
             print(self.get_broadcast_domains())
-            print("----------------------------")
+            print("Address ----------------------------")
             print(self.get_address())
-            print("----------------------------")
+            print("L7 Stats ----------------------------")
             max_num_records = 100
             print(self.get_l7_stats(max_num_records))
-            print("----------------------------")
+            print("DSCP Stats ----------------------------")
             print(self.get_dscp_stats())
+            print("Active Hosts ----------------------------")
+            print(self.get_active_hosts())
+            print("Active Hosts (100) ----------------------------")
+            print(self.get_active_hosts_paginated(1, 100))
+            print("Top Local Talkers ----------------------------")
+            print(self.get_top_local_talkers())
+            print("Top Remote Talkers ----------------------------")
+            print(self.get_top_remote_talkers())
             print("----------------------------")
         except:
             raise ValueError("Invalid interface ID specified")

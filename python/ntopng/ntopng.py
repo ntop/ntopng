@@ -160,13 +160,24 @@ class Ntopng:
         """
         return(self.request(self.rest_v2_url + "/get/ntopng/interfaces.lua", None))
 
+    def get_host_interfaces_list(self, host):
+        """
+        Return all ntopng interfaces for a given host
+        
+        :param host: The host
+        :type host: string
+        :return: List of interfaces
+        :rtype: array
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/interfaces.lua", { "host": host }))
+
     def self_test(self):
         try:
-            print("----------------------------")
+            print("Alert Types ----------------------------")
             print(self.get_alert_types())
-            print("----------------------------")
+            print("Severities ----------------------------")
             print(self.get_alert_severities())
-            print("----------------------------")
+            print("Interfaces List ----------------------------")
             print(self.get_interfaces_list())
             print("----------------------------")
         except:

@@ -86,8 +86,8 @@ try:
     my_interface.self_test()
 
     print("\n\n==========================\nHost")
-    my_host = Host(my_ntopng)
-    my_host.self_test(iface_id, host_ip)
+    my_host = my_interface.get_host(host_ip)
+    my_host.self_test()
 
     print("\n\n==========================\nFlow")
     my_flow = Flow(my_ntopng)
