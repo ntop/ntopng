@@ -174,7 +174,9 @@ function get_sankey_data_from_rest_data(graph, main_node_id) {
 	    new_node = { node_id: new_link.source_node_id, label: n.label, data: n };
 	}
 	graph2.links.push(new_link);
-	graph2.nodes.push(new_node);
+	if (new_node.node_id != main_node_id) {
+	    graph2.nodes.push(new_node);
+	}
     });
     let main_node = node_dict[main_node_id];
     graph2.nodes.push({node_id: main_node.node_id, label: main_node.label, data: main_node });
