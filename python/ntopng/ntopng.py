@@ -9,40 +9,7 @@ import requests
 import json
 from requests.auth import HTTPBasicAuth
 
-class Ntopng:
-    def issue_request(self, url, params):
-        if(self.debug):
-            print("Requesting [GET]: "+url)
-            print(params)
-
-        if(self.auth_token != None):
-            response = requests.get(url, auth = None, headers = { "Authorization" : "Token " + self.auth_token }, params = params)
-        else:
-            response = requests.get(url, auth = HTTPBasicAuth(self.username, self.password), params = params)
-
-        if(self.debug):
-            print("Elapsed time: " + str(response.elapsed))
-            
-        return(response)
-
-    def issue_post_request(self, url, params):
-        if(self.debug):
-            print("Requesting [POST]: " + url)
-            print(params)
-        
-        if(self.auth_token != None):
-            response = requests.post(url, auth = None, headers = { "Authorization" : "Token " + self.auth_token, "Content-Type" : "application/json" }, json = params)
-        else:
-            response = requests.post(url, auth = HTTPBasicAuth(self.username, self.password), headers = { "Content-Type" : "application/json" }, json = params)
-
-        if(self.debug):
-            print("Elapsed time: " + str(response.elapsed))
-            
-        return(response)
-
-    def enable_debug(self):
-        self.debug = True
-        
+class Ntopng:        
     def __init__(self, username, password, auth_token, url):
         """
         Construct a new 'Ntopng' object
@@ -80,7 +47,40 @@ class Ntopng:
                 raise ValueError("Invalid credentials or URL specified")
         except:
             raise ValueError("Invalid credentials or URL specified")
+       
+    def issue_request(self, url, params):
+        if(self.debug):
+            print("Requesting [GET]: "+url)
+            print(params)
+
+        if(self.auth_token != None):
+            response = requests.get(url, auth = None, headers = { "Authorization" : "Token " + self.auth_token }, params = params)
+        else:
+            response = requests.get(url, auth = HTTPBasicAuth(self.username, self.password), params = params)
+
+        if(self.debug):
+            print("Elapsed time: " + str(response.elapsed))
+            
+        return(response)
+
+    def issue_post_request(self, url, params):
+        if(self.debug):
+            print("Requesting [POST]: " + url)
+            print(params)
         
+        if(self.auth_token != None):
+            response = requests.post(url, auth = None, headers = { "Authorization" : "Token " + self.auth_token, "Content-Type" : "application/json" }, json = params)
+        else:
+            response = requests.post(url, auth = HTTPBasicAuth(self.username, self.password), headers = { "Content-Type" : "application/json" }, json = params)
+
+        if(self.debug):
+            print("Elapsed time: " + str(response.elapsed))
+            
+        return(response)
+
+    def enable_debug(self):
+        self.debug = True
+ 
     # internal method used to issue requests
     def request(self, url, params):
         api_url = self.url + url

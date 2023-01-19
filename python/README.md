@@ -13,10 +13,13 @@ This API is based on ntopng's [REST API](https://www.ntop.org/guides/ntopng/api/
 Prerequisites
 -------------
 
-This API is using Pandas and NumPy for working with time series data.
+The API is using Pandas for working with time series data.
+
+- pandas
+
+Examples are using additional libraries including NumPy for playing with time series data.
 
 - numpy
-- pandas
 
 API Information
 ---------------
