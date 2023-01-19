@@ -141,6 +141,14 @@ class Ntopng:
         return(self.request(self.rest_v2_url + "/get/alert/severity/consts.lua", None))
 
     def get_interface(self, ifid):
+        """
+        Return an Interface instance
+        
+        :param ifid: The interface ID
+        :type ifid: int
+        :return: The interface instance
+        :rtype: ntopng.Interface
+        """ 
         return Interface(self, ifid)
 
     def get_interfaces_list(self):
