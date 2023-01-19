@@ -73,6 +73,17 @@ onMounted(() => {
 });
 
 function on_node_click(node) {
+    if (node.is_link_node == true) { return; }
+    let url_obj = {
+	host: node.info.ip,
+	vlan: node.info.vlan,
+    };
+    let url_params = ntopng_url_manager.obj_to_url_params(url_obj);
+    const host_url = `${http_prefix}/lua/host_details.lua?${url_params}`;
+    ntopng_url_manager.go_to_url(host_url);
+    //host=' .. flow["cli.ip"] .. '&vlan=' .. flow["vlan"]
+    
+    
     console.log(node);
 }
 
@@ -89,6 +100,7 @@ async function set_sankey_data() {
     }
     sankey_data.value = data;
 }
+
 
 async function get_sankey_data() {
     const url_request = get_sankey_url();
@@ -186,7 +198,7 @@ function get_sankey_data_from_rest_data(graph, main_node_id) {
 	    link_to_nodes = {
 		id: link_node_id,
 		label: link.label,
-		data: link,
+		data: { ...link, is_link_node: true },
 		node_links: [],
 	    };
 	    link_to_nodes_dict[link_node_id] = link_to_nodes;
@@ -194,7 +206,7 @@ function get_sankey_data_from_rest_data(graph, main_node_id) {
 	link_to_nodes.node_links.push({
 	    source: node_dict[link.source_node_id],
 	    target: node_dict[link.target_node_id],
-	    value: link.value,
+	    value: get_link_value(link),
 	});
     });
 
@@ -214,12 +226,14 @@ function get_sankey_data_from_rest_data(graph, main_node_id) {
 		target_node_id: link_node.node_id,
 		label: `${link.source.label} - ${link.target.label}: ${link_node.label}`,
 		value: link.value,
+		data: link,
 	    });
 	    links.push({
 		source_node_id: link_node.node_id,
 		target_node_id: link.target.node_id,
 		label: `${link.source.label} - ${link.target.label}: ${link_node.label}`,
 		value: link.value,
+		data: link,
 	    });
 	});
     }
@@ -351,6 +365,10 @@ function add_fake_circular_link(graph) {
     graph.nodes.push({ node_id: node_id_1, label: node_id_1 });
     graph.links.push({ source_node_id: node_id_0, target_node_id: node_id_1, value: 10, label: "${node_id_0}_${node_id_1}" });
     graph.links.push({ source_node_id: node_id_1, target_node_id: node_id_0, value: 10, label: "${node_id_1}_${node_id_0}" });
+}
+
+function get_link_value(link) {
+    return link.data?.info?.traffic;
 }
 
 </script>
