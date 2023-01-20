@@ -13,9 +13,14 @@ from ntopng.interface import Interface
 from ntopng.historical import Historical
 
 class Ntopng:        
+    """
+    Ntopng provides information about global data (e.g. list of interfaces) and consts (e.g. alert types)
+    
+    :param ntopng_obj: The ntopng handle
+    """
     def __init__(self, username, password, auth_token, url):
         """
-        Construct a new 'Ntopng' object
+        Construct a new Ntopng object
         
         :param username: The ntopng username (leave empty if token authentication is used)
         :type username: string
@@ -26,7 +31,6 @@ class Ntopng:
         :param url: The ntopng URL (e.g. http://localhost:3000)
         :type url: string
         """
-        
         self.url        = url
         self.rest_v2_url     = "/lua/rest/v2"
         self.rest_pro_v2_url = "/lua/pro/rest/v2"

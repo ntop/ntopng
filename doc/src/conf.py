@@ -3,6 +3,12 @@
 import sys
 import os
 import sphinx_rtd_theme
+import mock
+
+# Fix autodoc mock'ing imports from python modules which are not available
+MOCK_MODULES = ['numpy', 'pandas', 'ntopng.host', 'ntopng.historical', 'ntopng.interface']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock()
 
 sys.path.insert(0, os.path.abspath('../../python/ntopng'))
 
