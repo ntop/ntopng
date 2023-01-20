@@ -221,11 +221,11 @@ function zoomed({transform}) {
 function get_size() {
     emit('update_width');
     let width = props.width;
-    if (width == null) { width = $(sankey_chart_ref.value).parent().parent().width() - 10 }
+    if (width == undefined) { width = $(sankey_chart_ref.value).parent().parent().width() - 10 }
 
     emit('update_height');
     let height = props.height
-    if (height == null) { height = $(sankey_chart_ref.value).parent().parent().height() - 50; }
+    if (height == undefined) { height = $(sankey_chart_ref.value).parent().parent().height() - 50; }
 
     return { width, height };
 }

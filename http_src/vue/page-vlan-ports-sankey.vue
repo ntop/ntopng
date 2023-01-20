@@ -118,7 +118,6 @@ async function get_sankey_data() {
   let graph = await ntopng_utility.http_request(url_request);
   // add_fake_circular_link(graph);
   graph = make_complete_graph(graph);
-  graph = make_dag_graph(graph);
   const sankey_data = get_sankey_data_from_rest_data(graph);
   return sankey_data;
 }
