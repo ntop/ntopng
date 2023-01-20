@@ -190,7 +190,7 @@
         if (cache.cardsData == null) { cache.cardsData = cardsData; }
 	for (let i = 0; i < cardsData.length; i += 1) {
 	  let newTopData = cardsData[i];
-	  if (newTopData.value == null || newTopData.value[0] == null || newTopData.value[0].length == 0) {
+	  if (newTopData.value == null || newTopData.value.length == 0) {
 	    continue;
 	  }
 	  // update cache
@@ -253,19 +253,19 @@
 	  continue;
 	} else {
 	    let menuOptions = [];
-	    if (cardsData[i].value[0] != null) {
-	      for (j = 0; j < cardsData[i].value[0].length; j++) {
+	    if (cardsData[i].value != null) {
+	      for (j = 0; j < cardsData[i].value.length; j++) {
 	        // Concat the name with the percentage of the stat
 	        // NB: These name should be filters if available
-	        if(cardsData[i].value[0][j] != null){
-	          let restText = " (" + (cardsData[i].value[0][j].count).toFixed(1) + "%)";
-	          if(cardsData[i].value[0][j].count != 0 && cardsData[i].value[0][j].count < 0.1){restText = " (< 0.1%)";}
+	        if(cardsData[i].value[j] != null){
+	          let restText = " (" + (cardsData[i].value[j].count).toFixed(1) + "%)";
+	          if(cardsData[i].value[j].count != 0 && cardsData[i].value[j].count < 0.1){restText = " (< 0.1%)";}
 
-	          let a_tag = "<a class='ntopng-truncate tag-filter dropdown-item' data-tag-key='" + cardsData[i].value[0][j].key + 
-	            "' title='" + ( cardsData[i].value[0][j].title || cardsData[i].value[0][j].value) +
-		    "' data-tag-value='" + cardsData[i].value[0][j].value + 
-		    "' data-tag-label='" + cardsData[i].value[0][j].label + 
-		    "' href='#'>" + cardsData[i].value[0][j].label + "" + restText + "</a>";
+	          let a_tag = "<a class='ntopng-truncate tag-filter dropdown-item' data-tag-key='" + cardsData[i].value[j].key + 
+	            "' title='" + ( cardsData[i].value[j].title || cardsData[i].value[j].value) +
+		    "' data-tag-value='" + cardsData[i].value[j].value + 
+		    "' data-tag-label='" + cardsData[i].value[j].label + 
+		    "' href='#'>" + cardsData[i].value[j].label + "" + restText + "</a>";
 
                   let itemText = '<li style="max-width:90rem;" class="dropdown-item pointer">' + a_tag + '</li>';
 		  menuOptions.push(itemText);
