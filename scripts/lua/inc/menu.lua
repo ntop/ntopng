@@ -299,15 +299,6 @@ else
             },
             {
               hidden = not ntop.isEnterprise() or not isAdministrator(),
-              entry = page_utils.menu_entries.ports_analysis,
-              url = '/lua/pro/enterprise/ports_analysis.lua',
-            },
-            {
-              hidden = not ntop.isEnterprise() or not isAdministrator(),
-              entry = page_utils.menu_entries.divider,
-            },
-            {
-              hidden = not ntop.isEnterprise() or not isAdministrator(),
               entry = page_utils.menu_entries.host_rules,
               url = '/lua/pro/host_rules.lua',
             }
@@ -380,13 +371,24 @@ page_utils.add_menubar_section({
 -- ##############################################
 
 -- Interface
-page_utils.add_menubar_section(
-   {
-      section = page_utils.menu_sections.if_stats,
-      hidden = is_system_interface,
+page_utils.add_menubar_section({
+  section = page_utils.menu_sections.if_stats,
+  entries = {
+    {
+      entry = page_utils.menu_entries.interface,
       url = "/lua/if_stats.lua",
-   }
-)
+    },
+    {
+      hidden = not ntop.isEnterprise() or not isAdministrator(),
+      entry = page_utils.menu_entries.divider,
+    },
+    {
+      hidden = not ntop.isEnterprise() or not isAdministrator(),
+      entry = page_utils.menu_entries.ports_analysis,
+      url = '/lua/pro/enterprise/ports_analysis.lua',
+    }
+  }
+})
 
 
 -- ##############################################

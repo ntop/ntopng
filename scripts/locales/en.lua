@@ -247,6 +247,7 @@ local lang = {
   ["ingress"] = "Ingress",
   ["input_interface"] = "Input Interface",
   ["interface"] = "Interface",
+  ["interface_details"] = "Details",
   ["interface_id"] = "Interface Id",
   ["interface_ifname"] = "Interface %{ifname}",
   ["interface_status"] = "Operational Status",
@@ -5866,6 +5867,8 @@ local lang = {
     },
   },
   ["ports_analysis"] = {
+    ["live"] = "Live",
+    ["historical"] = "Historical",
     ["title"] = "Ports Analysis",
     ["server_ports"] = "Server Ports",
   },

@@ -104,11 +104,11 @@ page_utils.menu_entries = {
     hosts_treemap         = {key = "hosts_treemap", i18n_title = "tree_map.hosts_treemap", section = "hosts"},
     containers            = {key = "containers", i18n_title = "containers_stats.containers", section = "hosts"},
     pods                  = {key = "pods", i18n_title = "containers_stats.pods", section = "hosts"},
-    ports_analysis        = {key = "ports_analysis", i18n_title = "ports_analysis.title", section = "hosts"},
     
     -- Interface
-    interface             = {key = "interface", i18n_title = "interface_ifname", section = "if_stats"},
-
+    interface             = {key = "interface", i18n_title = "interface_details", section = "if_stats"},
+    ports_analysis        = {key = "ports_analysis", i18n_title = "ports_analysis.title", section = "if_stats"},
+    
     -- Pollers
     snmp                  = {key = "snmp", i18n_title = "prefs.snmp", section = "pollers"},
     infrastructure_dashboard = {key = "infrastructure_dashboard", i18n_title = "infrastructure_dashboard.infrastructure_dashboard", section = "pollers"},

@@ -51,10 +51,10 @@ const active_filter_list = ref({})
 const props = defineProps({
   ifid: Number,
   available_filters: Object,
+  rest_url: String,
 });
 
 const _i18n = (t) => i18n(t);
-const url = `${http_prefix}/lua/pro/rest/v2/get/vlan/ports.lua`;
 
 const sankey_data = ref({});
 
@@ -119,7 +119,7 @@ function get_sankey_url() {
     timeframe: ntopng_url_manager.get_url_entry("timeframe"),
   };
   let url_params = ntopng_url_manager.obj_to_url_params(params);
-  let url_request = `${url}?${url_params}`;
+  let url_request = `${props.rest_url}?${url_params}`;
   return url_request;
 }
 
