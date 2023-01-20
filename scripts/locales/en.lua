@@ -1284,7 +1284,7 @@ local lang = {
     ["unsafe"] = "Unsafe Protocol",
   },
   ["bubble_map"] = {
-    ["bubble_mode"] = "Type",
+    ["bubble_mode"] = "Criteria",
     ["vlan"] = "VLAN",
     ["timeframe"] = "Timeframe",
     ["notes"] = "A preview of the alerts can be found here, number of alerts, score of the hosts, ecc.<li>Above the chart a list of filters can be used to change the preview.<li>By changing the 'Type' filter, even the data are going to be changed.<li>When hovering on a node, a preview of the node data is going to be displayed.<li>When clicking on a node, the user is going to be redirect to the alert page with a set of filter to find the problem.",
@@ -5875,12 +5875,12 @@ local lang = {
     ["live"] = "Live",
     ["historical"] = "Historical",
     ["title"] = "Ports Analysis",
-    ["server_ports"] = "Server Ports",
+    ["server_ports"] = "Server Ports Analysis",
     ["bubble_mode"] = "Filter By",
     ["vlan"] = "VLAN",
     ["timeframe"] = "Timeframe",
     ["l4proto"] = "Protocol",
-    ["notes"] = "<font color=#dc3545>IMPORTANT</font>: at most 50 flows with the most traffic are going to be displayed.<li>Here all the server ports, on each VLAN, are displayed and it is possible to see, for each VLAN, which protocol was used on which server port.<li>On the left the VLANs are displayed (e.g. VLAN 5, No VLAN, ecc.).<li>In the center the protocols used are displayed (e.g. DNS, RTP, ecc.).<li>On the right the server ports used are instead displayed (e.g. Port 80, ecc.).<li>Use the filters above the sankey to change the displayed data. If Clickhouse is enabled even other timeframes are available (other then the live timeframe).",
+    ["notes"] = "The above chart represents the top server interface host ports.<li>If flow storage is enabled, historical flow ports can be reported.",
   },
   ["processes_stats"] = {
     ["active_processes_title"] = "Active Processes: Realtime View",
