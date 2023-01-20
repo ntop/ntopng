@@ -68,6 +68,9 @@ In this example we assume that the appliance should be visible on VLAN 15 with I
          id: 15
          link: br0
          address: [ "10.10.10.1/24" ]
+         gateway4: 10.10.10.254
+         nameservers:
+             addresses: [8.8.8.8,8.8.4.4]
 
 On Ubuntu 16 (deprecated), the management interface configuration should be written to the
 `/etc/network/interfaces.d/nedge_mgmt.conf` configuration file. Here is an example:
