@@ -222,9 +222,6 @@ function get_size() {
     let height = props.height
     if (height == null) { height = $(sankey_chart_ref.value).parent().parent().height() - 50; }
 
-    console.log("------------------------")
-    console.log(width)
-    console.log(height)
     return { width, height };
 }
 
