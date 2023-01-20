@@ -6962,7 +6962,7 @@ void Flow::swap() {
   predominant_alert_info.is_cli_attacker = predominant_alert_info.is_srv_attacker, predominant_alert_info.is_cli_victim = predominant_alert_info.is_srv_victim;
   predominant_alert_info.is_srv_attacker = f1, predominant_alert_info.is_srv_victim = f2;
 
-  initial_bytes_entropy.c2s = initial_bytes_entropy.s2c; initial_bytes_entropy.s2c = s;
+  initial_bytes_entropy.c2s = initial_bytes_entropy.s2c; initial_bytes_entropy.c2s = s;
 
   memcpy(&ts, &tcp_seq_s2d, sizeof(TCPSeqNum));
   memcpy(&tcp_seq_d2s, &tcp_seq_s2d, sizeof(TCPSeqNum));
