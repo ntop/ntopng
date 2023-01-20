@@ -57,6 +57,21 @@ Example:
 
    python3 alerts.py -n http://localhost:3000 -i admin -p password -i 0
 
+The below example is printing alert statistics, please see below a code snippet for achieving the same in your python application:
+
+.. code:: python
+
+   # Connect to ntopng using the Ntopng class
+   my_ntopng = Ntopng(username, password, auth_token, ntopng_url)
+   
+   # Get an Historical instance for a specific interface by ID
+   my_historical = my_ntopng.get_historical_interface(iface_id)
+   
+   # Read alert statistics
+   data = my_historical.get_alerts_stats(epoch_begin, epoch_end)
+   
+   # Print the raw statistics
+   print(data)
 
 API
 ---
