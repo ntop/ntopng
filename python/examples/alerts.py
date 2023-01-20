@@ -76,10 +76,15 @@ for o, v in opts:
 
 def format_rsp(rsp):
     for row in rsp:
-        print("\n==========================\n"+row['label'])
+        print("\n--------------------------\n"+row['label'])
         print(row['value'])
 
 def top_alerts(my_historical, epoch_begin, epoch_end):
+
+    rsp = my_historical.get_alerts_stats(epoch_begin, epoch_end)
+    format_rsp(rsp)
+
+def top_flow_alerts(my_historical, epoch_begin, epoch_end):
 
     rsp = my_historical.get_flow_alerts_stats(epoch_begin, epoch_end)
     format_rsp(rsp)
@@ -99,6 +104,9 @@ try:
     my_historical = my_ntopng.get_historical_interface(iface_id)
     print("\n==========================\nTop Alerts")
     top_alerts(my_historical, epoch_begin, epoch_end)
+    print("\n==========================\nTop Flow Alerts")
+    top_flow_alerts(my_historical, epoch_begin, epoch_end)
+
     
 except ValueError as e:
     print(e)

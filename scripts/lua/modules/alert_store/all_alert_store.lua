@@ -235,7 +235,6 @@ end
 -- ##############################################
 
 --@brief Performs a query for the top alerts by alert count
---       NOTE: OVERRIDES alert_store:top_alert_id_historical
 --@param count_by A valid column to be used as group-by criteria along with the entity id
 function all_alert_store:_get_counters(count_by)
    local res = {}

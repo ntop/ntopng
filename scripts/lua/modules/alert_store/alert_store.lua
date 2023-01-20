@@ -1443,14 +1443,43 @@ end
 -- ##############################################
 
 --@brief Performs a query for the top alerts by alert count
-function alert_store:top_alert_id_historical()
+function alert_store:top_alert_id_historical_by_count()
    local table_name = self:get_table_name()
    -- Preserve all the filters currently set
    local where_clause = self:build_where_clause()
    local limit = 10
 
    local q = string.format("SELECT alert_id, count(*) count FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u",
-			   table_name, where_clause, limit)
+      table_name, where_clause, limit)
+
+   if not self._alert_entity then
+      -- For the all view alert_entity is read from the database
+      q = string.format("SELECT entity_id, alert_id, count(*) count FROM %s WHERE %s GROUP BY entity_id, alert_id ORDER BY count DESC LIMIT %u",
+         table_name, where_clause, limit)
+   end
+
+   local q_res = interface.alert_store_query(q) or {}
+
+   return q_res
+end
+
+-- ##############################################
+
+--@brief Performs a query for the top alerts by severity
+function alert_store:top_alert_id_historical_by_severity()
+   local table_name = self:get_table_name()
+   -- Preserve all the filters currently set
+   local where_clause = self:build_where_clause()
+   local limit = 10
+
+   local q = string.format("SELECT alert_id, max(severity) severity, count(*) count FROM %s WHERE %s GROUP BY alert_id ORDER BY severity, count DESC LIMIT %u",
+      table_name, where_clause, limit)
+
+   if not self._alert_entity then
+      -- For the all view alert_entity is read from the database
+      q = string.format("SELECT entity_id, alert_id, max(severity) severity, count(*) count FROM %s WHERE %s GROUP BY entity_id, alert_id ORDER BY severity, count DESC LIMIT %u",
+         table_name, where_clause, limit)
+   end
 
    local q_res = interface.alert_store_query(q) or {}
 
@@ -1476,7 +1505,7 @@ function alert_store:get_stats()
 
    stats.count = self:count()
    stats.top = stats.top or {}
-   stats.top.alert_id = self:top_alert_id_historical()
+   stats.top.alert_id = self:top_alert_id_historical_by_count()
 
    return stats
 end
@@ -1484,21 +1513,37 @@ end
 -- ##############################################
 
 --@brief Format top alerts returned by get_stats() for top.lua
-function alert_store:format_top_alerts(stats)
+function alert_store:format_top_alerts(stats, count)
    local top_alerts = {}
 
-   for n, value in pairs(stats.top.alert_id) do
+   for n, value in pairs(stats) do
       if self._top_limit > 0 and n > self._top_limit then break end
 
-      local label = alert_consts.alertTypeLabel(tonumber(value.alert_id), true, self._alert_entity.entity_id)
+      local entity_id
+      if self._alert_entity then
+         entity_id = self._alert_entity.entity_id
+      else
+         -- all view
+         entity_id = value.entity_id
+      end
 
-      top_alerts[#top_alerts + 1] = {
-         count = (tonumber(value.count) * 100) / stats.count,
+      local label = alert_consts.alertTypeLabel(tonumber(value.alert_id), true, entity_id)
+
+      local alert_info =  {
          key = "alert_id",
          value = tonumber(value.alert_id),
          label = shortenString(label, s_len),
          title = label,
       }
+
+      if value.count and count then
+         alert_info.count = (tonumber(value.count) * 100) / count
+      end
+      if value.severity then
+         alert_info.severity = value.severity
+      end
+
+      top_alerts[#top_alerts + 1] = alert_info
    end
 
    return top_alerts

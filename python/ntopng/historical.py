@@ -78,6 +78,19 @@ class Historical:
                                                                                           "select_clause": select_clause, "where_clause": where_clause,
                                                                                           "maxhits_clause": maxhits, "group_by_clause": group_by, "order_by_clause": order_by }))
     
+    def get_alerts_stats(self, epoch_begin, epoch_end):
+        """
+        Return flow alerts stats
+        
+        :param epoch_begin: Start of the time interval (epoch)
+        :type epoch_begin: int
+        :param epoch_end: End of the time interval (epoch)
+        :type epoch_end: int
+        :return: Flow alert stats
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/top.lua", { "ifid": self.ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
+
     def get_flow_alerts_stats(self, epoch_begin, epoch_end):
         """
         Return flow alerts stats
@@ -89,7 +102,7 @@ class Historical:
         :return: Flow alert stats
         :rtype: object
         """
-        return(self.ntopng_obj.request(self.rest_pro_v2_url + "/get/flow/alert/top.lua", { "ifid": self.ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end, "page": "flow" }))
+        return(self.ntopng_obj.request(self.rest_pro_v2_url + "/get/flow/alert/top.lua", { "ifid": self.ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
 
     def get_flow_alerts(self, epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by):
         """
