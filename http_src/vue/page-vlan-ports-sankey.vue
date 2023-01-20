@@ -14,12 +14,12 @@
         <!-- </div> -->
       <!-- </div> -->
       <div class="card-body">
-        <div class="align-items-center justify-content-end mb-3" style="height: 70vh;">
-          <div class="d-flex align-items-center mb-2">
+        <div class="align-items-center justify-content-end mb-2" style="height: 70vh;" ref="body_div">
+          <div class="d-flex align-items-center flex-row-reverse mb-2">
             <div class="m-1" v-for="(value, key, index) in available_filters">
               <template v-if="value.length > 0">
                 <div style="min-width: 14rem;">
-                  <label class="my-auto me-1">{{ _i18n('bubble_map.' + key) }}: </label>
+                  <label class="my-auto me-1">{{ _i18n('ports_analysis.' + key) }}: </label>
                   <SelectSearch
                     v-model:selected_option="active_filter_list[key]"
                     :options="value"
@@ -31,8 +31,12 @@
           </div>
 
           <Sankey2
-	    @node_click="on_node_click"
-      :sankey_data="sankey_data">
+          :width="width"
+          :height="height"
+          @update_width="update_width"
+          @update_height="update_height"
+          @node_click="on_node_click"
+          :sankey_data="sankey_data">
           </Sankey2>        
         </div>
       </div>
@@ -47,26 +51,30 @@ import { default as SelectSearch } from "./select-search.vue"
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as Sankey2 } from "./sankey_3.vue";
 
-const active_filter_list = ref({})
+const active_filter_list = {}
 const props = defineProps({
   ifid: Number,
   available_filters: Object,
-  rest_url: String,
 });
 
 const _i18n = (t) => i18n(t);
 
+const body_div = ref(null);
+const width = ref(null);
+const height = ref(null);
 const sankey_data = ref({});
+const live_rest = `${http_prefix}/lua/pro/rest/v2/get/vlan/live_ports.lua`
+const historical_rest = `${http_prefix}/lua/pro/rest/v2/get/vlan/historical_ports.lua`
 
 onBeforeMount(() => {
   /* Before mounting the various widgets, update the url to the correct one, by adding ifid, ecc. */
   const timeframe = ntopng_url_manager.get_url_entry('timeframe');
   const vlan = ntopng_url_manager.get_url_entry('vlan');
-  const bubble_mode = ntopng_url_manager.get_url_entry('bubble_mode');
+  const l4_proto = ntopng_url_manager.get_url_entry('l4proto');
   
-  if(!bubble_mode) ntopng_url_manager.set_key_to_url('bubble_mode', 0) /* First Entry */
-  if(!timeframe) ntopng_url_manager.set_key_to_url('timeframe', 300) /* Default 5 min */
-  if(!vlan) ntopng_url_manager.set_key_to_url('vlan', 0) /* Default no vlan */
+  if(!timeframe) ntopng_url_manager.set_key_to_url('timeframe', 'none') /* Default live */
+  if(!vlan) ntopng_url_manager.set_key_to_url('vlan', 'none') /* Default all VLANs */
+  if(!vlan) ntopng_url_manager.set_key_to_url('l4proto', 'none') /* Default no protocol */
   
   ntopng_url_manager.set_key_to_url('ifid', props.ifid) /* Current interface */
 
@@ -77,9 +85,12 @@ onBeforeMount(() => {
         active_filter_list[name] = filter;
     })
   }
+  console.log(active_filter_list)
 });
 
-onMounted(() => { 
+onMounted(() => {
+  update_height();
+  update_width();
   update_sankey();
 });
 
@@ -113,13 +124,25 @@ async function get_sankey_data() {
 }
 
 function get_sankey_url() {
+  let vlan = ntopng_url_manager.get_url_entry("vlan");
+  let timeframe = ntopng_url_manager.get_url_entry("timeframe");
+  let l4proto = ntopng_url_manager.get_url_entry("l4proto");
+  if(vlan == 'none') { vlan = ''; }
+  if(timeframe == 'none') { timeframe = ''; }
+  if(l4proto == 'none') { l4proto = ''; }
+  
+  let url_request = ''
   let params = {
-    vlan: ntopng_url_manager.get_url_entry("vlan"),
     ifid: ntopng_url_manager.get_url_entry("ifid"),
-    timeframe: ntopng_url_manager.get_url_entry("timeframe"),
+    vlan: vlan,
+    timeframe: timeframe,
+    l4proto: l4proto
   };
   let url_params = ntopng_url_manager.obj_to_url_params(params);
-  let url_request = `${props.rest_url}?${url_params}`;
+
+  if(timeframe == '') { url_request = `${live_rest}?${url_params}`; }
+  else { url_request = `${historical_rest}?${url_params}`; }
+
   return url_request;
 }
 
@@ -289,6 +312,14 @@ function filter_log(elements, f_filter, f_log) {
 	}
 	return take_element;
     });
+}
+
+function update_height() {
+  height.value = $(body_div.value).height() - 100;
+}
+
+function update_width() {
+  width.value = $(body_div.value).width() - 10;
 }
 
 </script>

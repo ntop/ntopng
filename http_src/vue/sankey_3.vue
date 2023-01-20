@@ -18,7 +18,7 @@ import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../se
 
 const d3 = d3v7;
 
-const emit = defineEmits(['node_click'])
+const emit = defineEmits(['node_click', 'update_width', 'update_height'])
 
 const margin = {
     top: 2.5,
@@ -214,11 +214,17 @@ function zoomed({transform}) {
     g.attr("transform", transform);
 }
 function get_size() {
+    emit('update_width');
     let width = props.width;
     if (width == null) { width = $(sankey_chart_ref.value).parent().parent().width() - 10 }
-    let height = props.height;
+
+    emit('update_height');
+    let height = props.height
     if (height == null) { height = $(sankey_chart_ref.value).parent().parent().height() - 50; }
 
+    console.log("------------------------")
+    console.log(width)
+    console.log(height)
     return { width, height };
 }
 

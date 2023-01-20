@@ -5871,6 +5871,11 @@ local lang = {
     ["historical"] = "Historical",
     ["title"] = "Ports Analysis",
     ["server_ports"] = "Server Ports",
+    ["bubble_mode"] = "Filter By",
+    ["vlan"] = "VLAN",
+    ["timeframe"] = "Timeframe",
+    ["l4proto"] = "Transport Protocol",
+
   },
   ["processes_stats"] = {
     ["active_processes_title"] = "Active Processes: Realtime View",
