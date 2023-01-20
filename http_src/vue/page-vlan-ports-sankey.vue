@@ -33,6 +33,7 @@
           <Sankey2
           :width="width"
           :height="height"
+          :no_data_message="no_data_message"
           @update_width="update_width"
           @update_height="update_height"
           @node_click="on_node_click"
@@ -58,7 +59,7 @@ const props = defineProps({
 });
 
 const _i18n = (t) => i18n(t);
-
+const no_data_message = _i18n('ports_analysis.no_data')
 const body_div = ref(null);
 const width = ref(null);
 const height = ref(null);
@@ -85,7 +86,6 @@ onBeforeMount(() => {
         active_filter_list[name] = filter;
     })
   }
-  console.log(active_filter_list)
 });
 
 onMounted(() => {
@@ -162,6 +162,7 @@ function get_sankey_data_from_rest_data(res) {
 	    link_to_nodes = {
 		id: link_node_id,
 		label: link.label,
+    link: link.optional_info.link,
 		node_links: [],		
 	    };
 	    link_to_nodes_dict[link_node_id] = link_to_nodes;
@@ -180,6 +181,7 @@ function get_sankey_data_from_rest_data(res) {
 	let link_node = {
 	    node_id: link_to_nodes.id,
 	    label: link_to_nodes.label,
+      link: link_to_nodes.link,
 	};
 	nodes.push(link_node);
 	link_to_nodes.node_links.forEach((link) => {

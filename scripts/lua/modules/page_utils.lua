@@ -107,7 +107,7 @@ page_utils.menu_entries = {
     
     -- Interface
     interface             = {key = "interface", i18n_title = "interface_details", section = "if_stats"},
-    ports_analysis        = {key = "ports_analysis", i18n_title = "ports_analysis.title", section = "if_stats"},
+    ports_analysis        = {key = "ports_analysis", i18n_title = "ports_analysis.server_ports", section = "if_stats"},
     
     -- Pollers
     snmp                  = {key = "snmp", i18n_title = "prefs.snmp", section = "pollers"},

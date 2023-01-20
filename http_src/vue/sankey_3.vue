@@ -1,5 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
+<div v-if="no_data" class="alert alert-info" id="empty-message">{{ no_data_message || _i18n('flows_page.no_data') }}</div>
 <div>
   <svg
     ref="sankey_chart_ref"
@@ -28,11 +29,13 @@ const margin = {
 };
 
 const node_width = 10;
+const no_data = ref(false)
 
 const props = defineProps({
-    width: Number,
-    height: Number,
-    sankey_data: Object,
+  no_data_message: String,
+  width: Number,
+  height: Number,
+  sankey_data: Object,
 });
 
 const sankey_chart_ref = ref(null);
@@ -56,8 +59,10 @@ function set_sankey_data(reset) {
     }
     if (props.sankey_data.nodes == null || props.sankey_data.links == null
 	|| props.sankey_data.length == 0 || props.sankey_data.links.length == 0) {
+    no_data.value = true
 	return;
     }
+    no_data.value = false
     draw_sankey();
 }
 
