@@ -34,7 +34,7 @@ class FlowHash : public GenericHash {
 	     u_int32_t private_flow_id, u_int8_t protocol,
 	     const ICMPinfo * const icmp_info,
 	     bool *src2dst_direction,
-	     bool is_inline_call);
+	     bool is_inline_call, Flow **unswapped_flow);
   /**
    * @brief Find an entry by key value and hash entry id.
    *

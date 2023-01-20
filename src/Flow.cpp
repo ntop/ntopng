@@ -3781,7 +3781,6 @@ void Flow::housekeep(time_t t) {
        && is_swap_requested()
        && !is_swap_done())
       iface->execProtocolDetectedChecks(this);
-
     break;
 
   case hash_entry_state_idle:
@@ -6895,10 +6894,19 @@ void Flow::lua_entropy(lua_State* vm) {
 /* *************************************** */
 
 void Flow::check_swap() {
-  if(!(get_cli_ip_addr()->isNonEmptyUnicastAddress() && !get_srv_ip_addr()->isNonEmptyUnicastAddress()) /* Everything that is NOT unicast-to-non-unicast needs to be checked */
+  if(!(get_cli_ip_addr()->isNonEmptyUnicastAddress()
+       && (!get_srv_ip_addr()->isNonEmptyUnicastAddress())) /* Everything that is NOT unicast-to-non-unicast needs to be checked */
      /* && get_cli_port() < 1024 // Relax this constraint and also apply to non-well-known ports such as 8080 */
-     && get_cli_port() < get_srv_port())
-    swap_requested = 1;
+     && (get_cli_port() < get_srv_port())
+     ) {
+
+    if((protocol == IPPROTO_UDP)
+       && (get_cli_port() > 32768)
+       && (get_srv_port() > 32768))
+      ; /* Don't do anything: this might be RTP or similar */
+    else
+      swap_requested = 1; /* This flow will be swapped */
+  }
 }
 
 /* *************************************** */
@@ -6930,4 +6938,55 @@ void Flow::triggerCustomFlowAlert(u_int8_t score, char *msg) {
   if(customFlowAlert.msg) { free(customFlowAlert.msg); customFlowAlert.msg = NULL; }
 
   if(msg) customFlowAlert.msg = strdup(msg);
+}
+
+/* *************************************** */
+
+void Flow::swap() {
+  Host      *h = cli_host;
+  IpAddress *i = cli_ip_addr;
+  u_int8_t   m[6];
+  u_int8_t   f1 = predominant_alert_info.is_cli_attacker, f2 = predominant_alert_info.is_cli_victim;
+  struct ndpi_analyze_struct *s = initial_bytes_entropy.c2s;
+  TCPSeqNum ts;
+  InterarrivalStats *is = cli2srvPktTime;
+  
+  cli_host = srv_host, cli_ip_addr = srv_ip_addr;
+  srv_host = h, srv_ip_addr = i;
+
+  Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS), Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
+  initial_bytes_entropy.c2s = initial_bytes_entropy.s2c; initial_bytes_entropy.s2c = s;
+  
+  memcpy(m, view_cli_mac, 6); memcpy(view_cli_mac, view_srv_mac, 6); memcpy(view_srv_mac, m, 6);
+  
+  predominant_alert_info.is_cli_attacker = predominant_alert_info.is_srv_attacker, predominant_alert_info.is_cli_victim = predominant_alert_info.is_srv_victim;
+  predominant_alert_info.is_srv_attacker = f1, predominant_alert_info.is_srv_victim = f2;
+
+  initial_bytes_entropy.c2s = initial_bytes_entropy.s2c; initial_bytes_entropy.s2c = s;
+
+  memcpy(&ts, &tcp_seq_s2d, sizeof(TCPSeqNum));
+  memcpy(&tcp_seq_d2s, &tcp_seq_s2d, sizeof(TCPSeqNum));
+  memcpy(&tcp_seq_s2d, &ts, sizeof(TCPSeqNum));
+  Utils::swap16(&cli2srv_window, &srv2cli_window);
+	 
+  cli2srvPktTime = srv2cliPktTime; srv2cliPktTime = is;
+
+#ifdef HAVE_NEDGE
+  TrafficShaper *s1 = flowShaperIds.cli2srv.ingress;
+  TrafficShaper *s2 = flowShaperIds.srv2cli.egress;
+
+  flowShaperIds.cli2srv.ingress = flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress = flowShaperIds.cli2rv.egress;
+  flowShaperIds.srv2cli.ingress = s1, flowShaperIds.cli2rv.egress = s2;
+#endif
+  
+  Utils::swapfloat(&bytes_thpt_cli2srv, &bytes_thpt_srv2cli);
+  Utils::swapfloat(&goodput_bytes_thpt_cli2srv, &goodput_bytes_thpt_srv2cli);
+  Utils::swapfloat(&pkts_thpt_cli2srv, &pkts_thpt_srv2cli);
+
+  /*
+    We do not swap L7 info as if it direction was wrong they were not computed 
+    Same applies with latency counters
+  */
+
+  swap_done = 1, swap_requested = 0;
 }

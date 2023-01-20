@@ -1156,7 +1156,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				u_int32_t len_on_wire,
 				bool *new_flow, bool create_if_missing,
 				u_int8_t *view_cli_mac, u_int8_t *view_srv_mac) {
-  Flow *ret;
+  Flow *ret, *unswapped_flow;
   Mac *primary_mac;
   Host *srcHost = NULL, *dstHost = NULL;
 
@@ -1175,9 +1175,19 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 			 vlan_id, observation_domain_id,
 			 private_flow_id,
 			 l4_proto, icmp_info, src2dst_direction,
-			 true /* Inline call */);
+			 true /* Inline call */, &unswapped_flow);
   INTERFACE_PROFILING_SECTION_EXIT(1);
 
+  if((ret == NULL) && (unswapped_flow != NULL)) {
+    /* 
+       We have found this flow but with the wrong direction
+       and we're waiting it to be swapped.
+    */
+    
+    ret = unswapped_flow; /* 1 - Use the new flow */
+    ret->swap();          /* 2 - Swap flow keys   */    
+  }
+  
   if(ret == NULL) {
     if(!create_if_missing)
       return(NULL);
@@ -1341,7 +1351,7 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria, bool par
       too_many_interfaces_error = true;
     }
 
-    return NULL;
+    return(NULL);
   }
 
   switch(flowHashingMode) {
@@ -1396,13 +1406,13 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria, bool par
 
   if(sub_iface == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");
-    return NULL;
+    return(NULL);
   }
 
   if(!this->registerSubInterface(sub_iface, criteria)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure registering sub-interface");
     sub_iface = NULL; /* NOTE: interface deleted by registerSubInterface */
-    return NULL;
+    return(NULL);
   }
 #endif
 
@@ -1765,7 +1775,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
        /* This guarantees that at least a packet has been observed in both directions, and that
 	  we are in the dst->src direction of the flow that is being swapped
 	*/
-       && !src2dst_direction) {
+       && (!src2dst_direction)) {
 #if 0
       char buf[256];
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", flow->print(buf, sizeof(buf)));
@@ -4308,15 +4318,15 @@ Host* NetworkInterface::findHostByIP(AddressTree *allowed_hosts,
   Host *h = NULL;
 
   if (host_ip == NULL)
-    return NULL;
+    return(NULL);
 
   h = getHost(host_ip, vlan_id, observationPointId, false /* Not an inline call */);
 
   if (h == NULL)
-    return NULL;
+    return(NULL);
 
   if (allowed_hosts && !h->match(allowed_hosts))
-    return NULL;
+    return(NULL);
 
   return h;
 }
@@ -7057,7 +7067,7 @@ Flow* NetworkInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, Add
   Flow *f = NULL;
 
   if(!flows_hash)
-    return NULL;
+    return(NULL);
 
   f = flows_hash->findByKeyAndHashId(key, hash_id);
 
@@ -7076,14 +7086,15 @@ Flow* NetworkInterface::findFlowByTuple(VLANid vlan_id,
 					u_int8_t l4_proto,
 					AddressTree *allowed_hosts) const {
   bool src2dst;
-  Flow *f = NULL;
+  Flow *f, *unswapped_flow;
 
   if(!flows_hash)
-    return NULL;
+    return(NULL);
 
   f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id,
 			      observation_domain_id, private_flow_id,
-			      l4_proto, NULL, &src2dst, false /* Not an inline call */);
+			      l4_proto, NULL, &src2dst,
+			      false /* Not an inline call */, &unswapped_flow);
 
   if(f && (!f->match(allowed_hosts))) f = NULL;
 

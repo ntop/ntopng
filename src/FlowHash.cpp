@@ -38,7 +38,8 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
 		     u_int32_t private_flow_id, u_int8_t protocol,
 		     const ICMPinfo * const icmp_info,
 		     bool *src2dst_direction,
-		     bool is_inline_call) {
+		     bool is_inline_call,
+		     Flow **unswapped_flow) {
   u_int32_t hash = ((src_ip->key() + dst_ip->key()
 		     + (icmp_info ? icmp_info->key() : 0)
 		     + private_flow_id
@@ -46,6 +47,8 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
   Flow *head = (Flow*)table[hash];
   u_int16_t num_loops = 0;
 
+  *unswapped_flow = NULL;
+  
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u:%u / %u:%u [icmp: %u][key: %u][icmp info key: %u][head: 0x%x]", src_ip->key(), src_port, dst_ip->key(), dst_port, icmp_info ? 1 : 0, hash, icmp_info ? icmp_info->key() : 0, head);
 
   if(!head)
@@ -56,13 +59,22 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
 
   while(head) {
     if(!head->idle()
-       && !head->is_swap_done() /* Do NOT return flows for which swap has been done. Leave them so they will be marked as idle and disappear */
        && head->equal(src_ip, dst_ip, src_port, dst_port, vlanId, observation_point_id, private_flow_id, protocol, icmp_info, src2dst_direction)) {
       if(num_loops > max_num_loops) {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "DEBUG: [Num loops: %u][hashId: %u]", num_loops, hash);
 	max_num_loops = num_loops;
       }
 
+      if(head->is_swap_requested()) {
+	/*
+	  This is a good flow but in the wrong direction
+	  hence we remember the flow unswapped but merge
+	  data with the flow with the correct direction
+ 	 */
+	*unswapped_flow = head;	
+	head = NULL;
+      }
+      
       break;
     } else
       head = (Flow*)head->next(), num_loops++;

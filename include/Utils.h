@@ -52,7 +52,7 @@ public:
   static bool  isIPAddress(const char *ip);
   static void splitAddressAndVlan(char *addr, VLANid *vlan_id);
   static const bool isIpEmpty(ipAddress addr);
-#ifdef __linux__ 
+#ifdef __linux__
   static int   setAffinityMask(char *cores_list, cpu_set_t *mask);
   static int   setThreadAffinityWithMask(pthread_t thread, cpu_set_t *mask);
 #endif
@@ -197,7 +197,7 @@ public:
   static time_t str2epoch(const char *str);
   static u_int64_t mac2int(const u_int8_t *mac);
   static u_int8_t* int2mac(u_int64_t mac, u_int8_t *buf);
-  static void listInterfaces(lua_State* vm); 
+  static void listInterfaces(lua_State* vm);
   static bool validInterface(const ntop_if_t *ntop_if);
   static void containerInfoLua(lua_State *vm, const ContainerInfo * const cont);
   static char *ntop_lookupdev(char *ifname_out, int ifname_size);
@@ -233,8 +233,8 @@ public:
   static void init_pcap_header(struct pcap_file_header * const h, int linktype, int snaplen, bool nsec = false);
 
   /* Bitmap functions */
-  static bool bitmapIsSet(u_int64_t bitmap, u_int8_t v);  
-  static u_int64_t bitmapSet(u_int64_t bitmap, u_int8_t v);  
+  static bool bitmapIsSet(u_int64_t bitmap, u_int8_t v);
+  static u_int64_t bitmapSet(u_int64_t bitmap, u_int8_t v);
   static u_int64_t bitmapClear(u_int64_t bitmap, u_int8_t v);
 
   static inline u_int64_t bitmapOr(u_int64_t bitmap1, u_int64_t bitmap2) {
@@ -276,6 +276,11 @@ public:
   static const char** getMessagingTopics();
   static bool toHex(char *in, u_int in_len, char *out, u_int out_len);
   static bool fromHex(char *in, u_int in_len, char *out, u_int out_len);
+
+  static void swap8(u_int8_t   *a, u_int8_t *b);
+  static void swap16(u_int16_t *a, u_int16_t *b);
+  static void swap32(u_int32_t *a, u_int32_t *b);
+  static void swapfloat(float *a, float *b);
 };
 
 #endif /* _UTILS_H_ */
