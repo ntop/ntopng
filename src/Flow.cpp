@@ -6973,8 +6973,8 @@ void Flow::swap() {
   TrafficShaper *s1 = flowShaperIds.cli2srv.ingress;
   TrafficShaper *s2 = flowShaperIds.srv2cli.egress;
 
-  flowShaperIds.cli2srv.ingress = flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress = flowShaperIds.cli2rv.egress;
-  flowShaperIds.srv2cli.ingress = s1, flowShaperIds.cli2rv.egress = s2;
+  flowShaperIds.cli2srv.ingress = flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress = flowShaperIds.cli2srv.egress;
+  flowShaperIds.srv2cli.ingress = s1, flowShaperIds.cli2srv.egress = s2;
 #endif
   
   Utils::swapfloat(&bytes_thpt_cli2srv, &bytes_thpt_srv2cli);
