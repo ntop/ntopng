@@ -271,7 +271,7 @@ static int do_latency(char *p_url)
   curl = curl_easy_init();
 
   sprintf(latency_url, "%s%s", p_url, LATENCY_TXT_URL);
-  sprintf(useragent, "curl/%.02f.0", v);
+  snprintf(useragent, sizeof(useragent), "curl/%.02f.0", v);
 
 #ifdef DEBUG_SPEEDTEST
   printf("Calling %s\n", latency_url);  

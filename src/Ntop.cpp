@@ -1380,7 +1380,7 @@ bool Ntop::checkUserInterfaces(const char * user) const {
 
 /* ******************************************* */
 
-bool Ntop::getUserPasswordHashLocal(const char * user, char *password_hash) const {
+bool Ntop::getUserPasswordHashLocal(const char * user, char *password_hash, u_int password_hash_len) const {
   char key[64], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
@@ -1389,7 +1389,7 @@ bool Ntop::getUserPasswordHashLocal(const char * user, char *password_hash) cons
     return(false);
   }
 
-  sprintf(password_hash, "%s", val);
+  snprintf(password_hash, password_hash_len, "%s", val);
   return(true);
 }
 
@@ -1431,7 +1431,7 @@ bool Ntop::checkUserPasswordLocal(const char * user, const char * password, char
      (!strcmp(val, password)))
     goto valid_local_user;
 
-  if (!getUserPasswordHashLocal(user, val)) {
+  if (!getUserPasswordHashLocal(user, val, sizeof(val))) {
     return(false);
   } else {
     mg_md5(password_hash, password, NULL);

@@ -34,7 +34,8 @@ class LocalHost : public Host, public SerializableElement {
   u_int8_t router_mac[6]; /* MAC address pf the first router used (no Mac* to avoid purging race conditions) */
   bool router_mac_set;
   UsedPorts usedPorts;
-
+  struct ndpi_hll server_port_with_no_tx_hll;
+  
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail;
   bool drop_all_host_traffic;
@@ -99,28 +100,30 @@ class LocalHost : public Host, public SerializableElement {
   virtual void luaHostBehaviour(lua_State* vm)    { if(stats) stats->luaHostBehaviour(vm); }
   virtual void incDohDoTUses(Host *srv_host);
 
-  virtual void incCountriesContacts(char *country)    { stats->incCountriesContacts(country);             }
-  virtual void resetCountriesContacts()               { stats->resetCountriesContacts();                  }
-  virtual u_int8_t getCountriesContactsCardinality()  { return(stats->getCountriesContactsCardinality()); }
+  virtual inline void incCountriesContacts(char *country)    { stats->incCountriesContacts(country);             }
+  virtual inline void resetCountriesContacts()               { stats->resetCountriesContacts();                  }
+  virtual inline u_int8_t getCountriesContactsCardinality()  { return(stats->getCountriesContactsCardinality()); }
 
-  virtual bool incNTPContactCardinality(Host *h)  { return(stats->incNTPContactCardinality(h));  }
-  virtual bool incDNSContactCardinality(Host *h)  { return(stats->incDNSContactCardinality(h));  }
-  virtual bool incSMTPContactCardinality(Host *h) { return(stats->incSMTPContactCardinality(h)); }
-  virtual bool incIMAPContactCardinality(Host *h) { return(stats->incIMAPContactCardinality(h)); }
-  virtual bool incPOPContactCardinality(Host *h)  { return(stats->incPOPContactCardinality(h)); }
+  virtual inline bool incNTPContactCardinality(Host *h)  { return(stats->incNTPContactCardinality(h));  }
+  virtual inline bool incDNSContactCardinality(Host *h)  { return(stats->incDNSContactCardinality(h));  }
+  virtual inline bool incSMTPContactCardinality(Host *h) { return(stats->incSMTPContactCardinality(h)); }
+  virtual inline bool incIMAPContactCardinality(Host *h) { return(stats->incIMAPContactCardinality(h)); }
+  virtual inline bool incPOPContactCardinality(Host *h)  { return(stats->incPOPContactCardinality(h)); }
 
-  virtual u_int32_t getNTPContactCardinality()    { return(stats->getNTPContactCardinality());  }
-  virtual u_int32_t getDNSContactCardinality()    { return(stats->getDNSContactCardinality());  }
-  virtual u_int32_t getSMTPContactCardinality()   { return(stats->getSMTPContactCardinality()); }
-  virtual u_int32_t getIMAPContactCardinality()   { return(stats->getIMAPContactCardinality()); }
-  virtual u_int32_t getPOPContactCardinality()    { return(stats->getPOPContactCardinality()); }
+  virtual inline u_int32_t getNTPContactCardinality()    { return(stats->getNTPContactCardinality());  }
+  virtual inline u_int32_t getDNSContactCardinality()    { return(stats->getDNSContactCardinality());  }
+  virtual inline u_int32_t getSMTPContactCardinality()   { return(stats->getSMTPContactCardinality()); }
+  virtual inline u_int32_t getIMAPContactCardinality()   { return(stats->getIMAPContactCardinality()); }
+  virtual inline u_int32_t getPOPContactCardinality()    { return(stats->getPOPContactCardinality()); }
 
   void setRouterMac(Mac *gw);
   
   inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
   inline void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { usedPorts.setContactedPort(isTCP, port, proto); };
-  virtual void luaUsedPorts(lua_State* vm)                                       { usedPorts.lua(vm, iface);                       };
-  virtual std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(usedPorts.getServerPorts(isTCP));      };
+  virtual inline void luaUsedPorts(lua_State* vm)                                         { usedPorts.lua(vm, iface);                     };
+  virtual inline std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(usedPorts.getServerPorts(isTCP));      };
+  virtual void setUnidirectionalTCPNoTXExgressFlow(IpAddress *ip, u_int16_t port);
+  virtual inline u_int32_t getNumUnidirectionalTCPNoTXExgressFlows()                      { return((u_int32_t)ndpi_hll_count(&server_port_with_no_tx_hll)); }
 };
 
 #endif /* _LOCAL_HOST_H_ */

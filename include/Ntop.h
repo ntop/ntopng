@@ -144,7 +144,7 @@ class Ntop {
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
   
-  bool getUserPasswordHashLocal(const char * user, char *password_hash) const;
+  bool getUserPasswordHashLocal(const char * user, char *password_hash, u_int password_hash_len) const;
   bool checkUserPasswordLocal(const char * user, const char * password, char *group) const;
   bool checkUserPassword(const char * user, const char * password, char *group, bool *localuser) const;
   bool startPurgeLoop();
@@ -577,7 +577,7 @@ public:
   inline void setDroppedPrivileges()         { privileges_dropped = true; }
 
   void getUserGroupLocal(const char * user, char *group) const;
-  bool existsUserLocal(const char * user) { char val[64]; return getUserPasswordHashLocal(user, val); }
+  bool existsUserLocal(const char * user) { char val[64]; return getUserPasswordHashLocal(user, val, sizeof(val)); }
   void purgeLoopBody();
 
   /* Local network address list methods */

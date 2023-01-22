@@ -47,7 +47,8 @@ class Bloom {
    * Adds a new value to the bloom setting the relative bit in the bitmask.
    * @param str The value to set.
    */
-  inline void setBit(char *str) { bitmask->set_bit(ntophash(str)); }
+  inline void setBit(char *str)       { bitmask->set_bit(ntophash(str)); }
+  inline void setBit(u_int32_t value) { bitmask->set_bit(value & mask);  }
 
   /**
    * Removes a value to the bloom unsetting the relative bit in the bitmask.
@@ -55,8 +56,9 @@ class Bloom {
    * if the user is aware of the limitation it can be used safely
    * @param str The value to set.
    */
-  inline void unsetBit(char *str) { bitmask->clear_bit(ntophash(str)); }
-
+  inline void unsetBit(char *str)       { bitmask->clear_bit(ntophash(str)); }
+  inline void unsetBit(u_int32_t value) { bitmask->clear_bit(value & mask);  }
+  
   /**
    * Checks if a value is set in the bloom filter.
    * @param str The value to check.

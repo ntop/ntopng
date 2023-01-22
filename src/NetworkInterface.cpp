@@ -10106,7 +10106,7 @@ int NetworkInterface::walkActiveHosts(lua_State* vm,
   int rc;
   std::vector<ActiveHostWalkerInfo>::iterator it;
 
-  m.mode = mode, m.localHostsOnly = localHostsOnly, m.networkIdFilter = networkIdFilter;;
+  m.mode = mode, m.localHostsOnly = localHostsOnly, m.networkIdFilter = networkIdFilter;
 
   rc = walker(&begin_slot, true /* walk_all */, walker_hosts, active_hosts_walker, (void*)&m);
 

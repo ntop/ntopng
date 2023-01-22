@@ -146,6 +146,7 @@ void LocalHost::initialize() {
 #endif
 
   router_mac_set = false, memset(router_mac, 0, sizeof(router_mac));
+  ndpi_hll_init(&server_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
 }
 
 /* *************************************** */
@@ -317,8 +318,11 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     
     lua_push_str_table_entry(vm, "router",
 			     Utils::formatMac(router_mac, router_buf, sizeof(router_buf)));
-  }  
-
+  }
+  
+  lua_push_int32_table_entry(vm, "num_contacted_peers_with_tcp_flows_no_response",
+			     getNumUnidirectionalTCPNoTXExgressFlows());
+			     
   /* Add new entries before this line! */
 
   if(asListElement) {
@@ -431,6 +435,8 @@ void LocalHost::freeLocalHostData() {
   
   for(std::unordered_map<u_int32_t, DoHDoTStats*>::iterator it = doh_dot_map.begin(); it != doh_dot_map.end(); ++it)
     delete it->second;
+
+  ndpi_hll_destroy(&server_port_with_no_tx_hll);
 }
 
 /* *************************************** */
@@ -539,4 +545,14 @@ void LocalHost::setRouterMac(Mac *gw) {
     ntop->get_am()->addClientGateway(this, gw);
 #endif
   }
+}
+
+/* *************************************** */
+
+/*
+  Used to estimate the cardinality of <server, server_port> contacted
+  by this host over TCP and with no data received or connection refused
+ */
+void LocalHost::setUnidirectionalTCPNoTXExgressFlow(IpAddress *ip, u_int16_t port) {
+  ndpi_hll_add_number(&server_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
 }

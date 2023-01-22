@@ -332,7 +332,6 @@ Flow::~Flow() {
   if(getInterface()->isViewed()) /* Score decrements done here for 'viewed' interfaces to avoid races. */
     decAllFlowScores();
 
-
   if(cli_u) {
     cli_u->decUses(); /* Decrease the number of uses */
     cli_u->decNumFlows(get_last_seen(), true);
@@ -348,8 +347,12 @@ Flow::~Flow() {
     srv_u->decUses(); /* Decrease the number of uses */
     srv_u->decNumFlows(get_last_seen(), false);
 
-    if(is_oneway_tcp_syn_seen)
+    if(is_oneway_tcp_syn_seen) {
       srv_u->incUnidirectionalIngressFlows();
+
+      if(cli_u)
+	cli_u->setUnidirectionalTCPNoTXEgressFlow(srv_u->get_ip(), ntohs(srv_port));
+    }
   }
 
   if(!srv_host && srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow constructor (viewed interfaces) */
@@ -3803,6 +3806,7 @@ void Flow::housekeep(time_t t) {
          srv_net_id != (u_int16_t) -1 &&
          cli_net_id != srv_net_id) {
         NetworkStats *cli_network_stats = iface->getNetworkStats(cli_net_id), *srv_network_stats = iface->getNetworkStats(srv_net_id);
+	
         if(cli_network_stats) cli_network_stats->incTrafficBetweenNets(srv_net_id, get_bytes_cli2srv(), get_bytes_srv2cli());
         if(srv_network_stats) srv_network_stats->incTrafficBetweenNets(cli_net_id, get_bytes_srv2cli(), get_bytes_cli2srv());
       #ifdef DEBUG
