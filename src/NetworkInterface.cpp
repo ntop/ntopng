@@ -442,7 +442,7 @@ bool NetworkInterface::initnDPIReload() {
     */
     if(!isSubInterface())
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
-    
+
     return(false);
   }
 
@@ -1179,15 +1179,15 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
   INTERFACE_PROFILING_SECTION_EXIT(1);
 
   if((ret == NULL) && (unswapped_flow != NULL)) {
-    /* 
+    /*
        We have found this flow but with the wrong direction
        and we're waiting it to be swapped.
     */
-    
+
     ret = unswapped_flow; /* 1 - Use the new flow */
-    ret->swap();          /* 2 - Swap flow keys   */    
+    ret->swap();          /* 2 - Swap flow keys   */
   }
-  
+
   if(ret == NULL) {
     if(!create_if_missing)
       return(NULL);
@@ -10219,25 +10219,29 @@ public:
 
 static bool compute_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
-  std::unordered_map<u_int32_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int32_t, FlowsStats*>*>(user_data);
-  u_int32_t p;
+  std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
+  u_int64_t key = 0;
   ndpi_protocol detected_protocol = f->get_detected_protocol();
-  std::unordered_map<u_int32_t, FlowsStats*>::iterator it;
+  u_int64_t vlan_id = f->get_vlan_id();
+  std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
 
-  p = (((u_int32_t)detected_protocol.app_protocol) << 16) + (u_int32_t)detected_protocol.master_protocol;
+  /* <0 (16 bit)><vlanId (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
+  key = (vlan_id << 48)
+    + (((u_int64_t)detected_protocol.app_protocol) << 16)
+    + (u_int64_t)detected_protocol.master_protocol;
 
-  it = count->find(p);
-  
+  it = count->find(key);
+
   if(it == count->end()) {
     FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli());
 
     if(fs != NULL)
-      (*count)[p] = fs;
+      (*count)[key] = fs;
   } else
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli());
-  
+
   *matched = true;
 
   return(false); /* false = keep on walking */
@@ -10247,10 +10251,10 @@ static bool compute_flow_stats(GenericHashEntry *node, void *user_data, bool *ma
 
 void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
   u_int32_t begin_slot = 0;
-  std::unordered_map<u_int32_t /* l7 proto */, FlowsStats*> count;
-  std::unordered_map<u_int32_t, FlowsStats*>::iterator it;
+  std::unordered_map<u_int64_t /* vlanId + l7 proto */, FlowsStats*> count;
+  std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
   u_int num = 0;
- 
+
   walker(&begin_slot, true /* walk_all */, walker_flows, compute_flow_stats, &count);
 
   lua_newtable(vm);
@@ -10259,10 +10263,12 @@ void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
     FlowsStats *fs = it->second;
     ndpi_protocol detected_protocol;
     char buf[64], proto[16];
-      
-    detected_protocol.master_protocol = (u_int16_t)(it->first & 0x0000FFFF);
-    detected_protocol.app_protocol    = (u_int16_t)((it->first >> 16) & 0x0000FFFF);
-      
+    u_int16_t vlan_id;
+
+    detected_protocol.master_protocol = (u_int16_t)(it->first & 0x00000000000FFFF);
+    detected_protocol.app_protocol    = (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
+    vlan_id                           = (u_int16_t)((it->first >> 48) & 0x000000000000FFFF);
+
     lua_newtable(vm);
 
     if(detected_protocol.master_protocol == detected_protocol.app_protocol)
@@ -10275,7 +10281,8 @@ void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
       snprintf(proto, sizeof(proto), "%u.%u",
 	       detected_protocol.master_protocol,
 	       detected_protocol.app_protocol);
-    
+
+    lua_push_uint32_table_entry(vm, "vlan_id",     vlan_id);
     lua_push_str_table_entry(vm,    "proto_id",    proto);
     lua_push_str_table_entry(vm,    "proto_name",  get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
     lua_push_uint32_table_entry(vm, "num_clients", fs->getNumClients());
@@ -10291,5 +10298,3 @@ void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
     delete it->second;
   }
 }
-
-
