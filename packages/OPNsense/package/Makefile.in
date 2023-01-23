@@ -1,7 +1,7 @@
 PLUGIN_NAME=       ntopng-enterprise
 PLUGIN_VERSION=    @PACKAGE_VERSION@
 PLUGIN_COMMENT=    ntopng is a high-speed web-based network traffic analysis and flow collection tool
-PLUGIN_DEPENDS=    net/ntopng
+#PLUGIN_DEPENDS=    net/ntopng
 PLUGIN_MAINTAINER= packager@ntop.org
 
 .include "../../Mk/plugins.mk"
