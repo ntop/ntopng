@@ -3530,6 +3530,7 @@ local lang = {
     ["zmq_msg_rcvd_vs_drops"] = "Collected vs Dropped ZMQ Messages",
     ["zmq_received_flows"] = "Collected ZMQ Flows",
     ["metric_labels"] = {
+      ["entries"] = "Entries",
       ["alerted_flows"] = "Alerted Flows",
       ["alerts"] = "Alerts",
       ["anomalies"] = "Anomalies",
