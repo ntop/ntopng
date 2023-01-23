@@ -659,7 +659,7 @@ else
          if(host["os"] ~= "") then
            local os_detail = ""
            if not isEmptyString(host["os_detail"]) then
-             os_detail = os_detail .. " [" .. host["os_detail"] .. "]"
+             os_detail = os_detail .. " [ " .. host["os_detail"] .. " ]"
            end
             print("<th>"..i18n("os").."</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. host["os"] .."'>".. discover.getOsAndIcon(host["os"])  .."</A>".. os_detail .."</td><td></td>\n")
          else
@@ -982,7 +982,8 @@ else
 
       if(host.num_contacted_peers_with_tcp_flows_no_response ~= nil) then
 	 print("<b>"..i18n("details.server_contacts_tcp_unresponsive").."</b>: ")
-	 print(formatContacts(host.num_contacted_peers_with_tcp_flows_no_response).." / ")
+	 print(formatContacts(host.num_contacted_peers_with_tcp_flows_no_response))
+	 print(" / ")
 	 print(formatContacts(host.num_incoming_peers_that_sent_tcp_flows_no_response))
       else
 	 print("&nbsp;")
