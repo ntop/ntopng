@@ -10,8 +10,16 @@
       <div class="card-body">
         <div class="align-items-center justify-content-end mb-2" style="height: 70vh;" ref="body_div">
           <div class="d-flex align-items-center flex-row-reverse mb-2">
-            <div class="m-1" v-for="(value, key, index) in available_filters">
-              <template v-if="value.length > 0">
+            <div>
+              <label class="my-auto me-1"></label>
+              <div>
+                <button class="btn btn-link m-1" tabindex="0" type="button" @click="reload">
+                  <span><i class="fas fa-sync"></i></span>
+                </button>
+              </div>
+            </div>
+            <template v-for="(value, key, index) in available_filters">
+              <div class="m-1" v-if="value.length > 0">
                 <div style="min-width: 14rem;">
                   <label class="my-auto me-1">{{ _i18n('ports_analysis.' + key) }}: </label>
                   <SelectSearch
@@ -20,8 +28,8 @@
                     @select_option="click_item">
                   </SelectSearch>
                 </div>
-              </template>
-            </div>
+              </div>
+            </template>
           </div>
 
           <Sankey2
@@ -95,6 +103,10 @@ onMounted(() => {
 function on_node_click(node) {
   if (node.is_link_node == true) { return; }
   if (node.link) { ntopng_url_manager.go_to_url(node.link); }
+}
+
+const reload = function() {
+  update_sankey()
 }
 
 const click_item = function(item) {

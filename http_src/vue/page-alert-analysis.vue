@@ -8,9 +8,16 @@
       <div class="card-body">
         <div class='align-items-center justify-content-end mb-3' style='height: 70vh;'>
           <div class="d-flex ms-auto flex-row-reverse">
-            <label class="my-auto me-1"></label>
-            <div class="m-1" v-for="(value, key, index) in available_filters">
-              <template v-if="value.length > 0">
+            <div>
+              <label class="my-auto me-1"></label>
+              <div>
+                <button class="btn btn-link m-1" tabindex="0" type="button" @click="reload">
+                  <span><i class="fas fa-sync"></i></span>
+                </button>
+              </div>
+            </div>
+            <template v-for="(value, key, index) in available_filters">
+              <div class="m-1" v-if="value.length > 0">
                 <div style="min-width: 14rem;">
                   <label class="my-auto me-1">{{ _i18n('bubble_map.' + key) }}: </label>
                   <SelectSearch
@@ -19,8 +26,8 @@
                     @select_option="click_item">
                   </SelectSearch>
                 </div>
-              </template>
-            </div>
+              </div>
+            </template>
           </div>
           <div :id="widget_name" style="height: 90%;">
             <Chart
@@ -81,6 +88,12 @@ const format_request = function() {
 
   /* Return a custom string, containing custom options */
   return params_string
+}
+
+const reload = function() {
+  loading.value.show_loading();
+  bubble_chart.value.update_chart(`${rest_url}?${format_request()}`)
+  loading.value.hide_loading();
 }
 
 const format_options = function(mode_id) {
