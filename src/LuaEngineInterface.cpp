@@ -1882,6 +1882,21 @@ static int ntop_get_protocol_flows_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_vlan_flows_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  ntop_interface->getVLANFlowsStats(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_anomalies(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4818,6 +4833,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "serviceMapSetMultipleStatus",      ntop_interface_service_map_set_multiple_status },
   { "getThroughput",                    ntop_interface_get_throughput },
   { "getProtocolFlowsStats",            ntop_get_protocol_flows_stats },
+  { "getVLANFlowsStats",                ntop_get_vlan_flows_stats     },
   
   /* Addresses */
   { "getAddressInfo",                   ntop_get_address_info },
