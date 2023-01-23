@@ -6959,10 +6959,13 @@ void Flow::swap() {
   struct ndpi_analyze_struct *s = initial_bytes_entropy.c2s;
   TCPSeqNum ts;
   InterarrivalStats *is = cli2srvPktTime;
-
+  time_t now = time(NULL);
+  
+  cli_host->decNumFlows(now, true /* as client */), srv_host->decNumFlows(now, false /* as server */);
   cli_host = srv_host, cli_ip_addr = srv_ip_addr;
   srv_host = h, srv_ip_addr = i;
-
+  cli_host->incNumFlows(now, true /* as client */), srv_host->incNumFlows(now, false /* as server */);
+  
   Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS), Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
   initial_bytes_entropy.c2s = initial_bytes_entropy.s2c; initial_bytes_entropy.s2c = s;
 

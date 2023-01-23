@@ -1369,10 +1369,11 @@ void Host::incNumFlows(time_t t, bool as_client) {
 /* *************************************** */
 
 void Host::decNumFlows(time_t t, bool as_client) {
-  if(as_client)
+  if(as_client) {
     num_active_flows_as_client--;
-  else
+  } else {
     num_active_flows_as_server--;
+  }
 }
 
 /* *************************************** */
