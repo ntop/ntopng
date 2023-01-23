@@ -6,13 +6,7 @@
 <div class="row">
   <div class="col-md-12 col-lg-12">
     <div class="card card-shadow">
-      <!-- <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100"> -->
-        <!-- <div class="text-center"> -->
-        <!--   <div class="spinner-border text-primary mt-5" role="status"> -->
-        <!--     <span class="sr-only position-absolute">Loading...</span> -->
-        <!--   </div> -->
-        <!-- </div> -->
-      <!-- </div> -->
+      <Loading ref="loading"></Loading>
       <div class="card-body">
         <div class="align-items-center justify-content-end mb-3" style="height: 70vh;">
           <div class="d-flex align-items-center mb-2">
@@ -41,6 +35,7 @@
 <script setup>
 import { ref, onMounted, onBeforeMount } from "vue";
 import { default as SelectSearch } from "./select-search.vue"
+import { default as Loading } from "./loading.vue"
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as Sankey2 } from "./sankey_3.vue";
 import { default as sankeyUtils } from "../utilities/map/sankey_utils.js";
@@ -97,11 +92,10 @@ const update_sankey = function() {
 }
 
 async function set_sankey_data() {
-    let data = await get_sankey_data();    
-    if (data.nodes.length == 0 || data.links.length == 0) {
-	console.log("Empty Data");
-    }
-    sankey_data.value = data;
+  loading.value.show_loading();
+  let data = await get_sankey_data();
+  sankey_data.value = data;
+  loading.value.hide_loading();
 }
 
 

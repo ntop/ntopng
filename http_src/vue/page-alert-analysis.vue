@@ -4,6 +4,7 @@
 <div class="row">
   <div class="col-12">
     <div class="card">
+      <Loading ref="loading"></Loading>
       <div class="card-body">
         <div class='align-items-center justify-content-end mb-3' style='height: 70vh;'>
           <div class="d-flex ms-auto flex-row-reverse">
@@ -42,6 +43,7 @@
 <script setup>
 import { ref, onMounted, onBeforeMount } from "vue";
 import { default as Chart } from "./chart.vue";
+import { default as Loading } from "./loading.vue"
 import { default as SelectSearch } from "./select-search.vue";
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services";
 import NtopUtils from "../utilities/ntop-utils";
@@ -57,6 +59,7 @@ const props = defineProps({
 /* By default use the first entry */
 const currently_selected_chart = 0
 
+const loading = ref(null)
 const chart_type = ntopChartApex.typeChart.BUBBLE
 const rest_url = `${http_prefix}/lua/pro/rest/v2/charts/alert/analysis.lua`
 const widget_name = 'alerts-map';
@@ -128,8 +131,10 @@ const get_f_get_custom_chart_options = function() {
 }
 
 const click_item = function(item) {
+  loading.value.show_loading();
   ntopng_url_manager.set_key_to_url(item.filter_name, item.id)
   bubble_chart.value.update_chart(`${rest_url}?${format_request()}`)
+  loading.value.hide_loading();
 }
 
 onBeforeMount(() => {
@@ -152,4 +157,8 @@ onBeforeMount(() => {
     })
   }
 });
+
+onMounted(() => {
+  loading.value.hide_loading();
+})
 </script>

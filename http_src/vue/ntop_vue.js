@@ -41,6 +41,7 @@ import { default as SelectSearch } from "./select-search.vue";
 import { default as TabList } from "./tab-list.vue";
 import { default as Sankey } from "./sankey.vue";
 import { default as NoteList } from "./note-list.vue";
+import { default as Loading } from "./loading.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -98,6 +99,7 @@ let ntopVue = {
     TabList: TabList,
     Sankey: Sankey,
     NoteList: NoteList,
+    Loading: Loading,
     
     // list
     ListTimeseries: ListTimeseries,
