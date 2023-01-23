@@ -681,7 +681,9 @@ typedef enum {
   column_last_seen,
   column_first_seen,
   column_obs_point,
-  column_alerted_flows
+  column_alerted_flows,
+  column_tcp_unresp_as_client,
+  column_tcp_unresp_as_server
 } sortField;
 
 typedef struct {

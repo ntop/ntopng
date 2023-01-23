@@ -14,20 +14,20 @@ local have_nedge = ntop.isnEdge()
 sendHTTPContentTypeHeader('text/json')
 
 -- Table parameters
-local all = _GET["all"]
-local currentPage = _GET["currentPage"]
-local perPage     = _GET["perPage"]
-local sortColumn  = _GET["sortColumn"]
-local sortOrder   = _GET["sortOrder"]
-local protocol    = _GET["protocol"]
+local all           = _GET["all"]
+local currentPage   = _GET["currentPage"]
+local perPage       = _GET["perPage"]
+local sortColumn    = _GET["sortColumn"]
+local sortOrder     = _GET["sortOrder"]
+local protocol      = _GET["protocol"]
 local custom_column = _GET["custom_column"]
-local traffic_type = _GET["traffic_type"]
-local device_ip   = _GET["deviceIP"]
+local traffic_type  = _GET["traffic_type"]
+local device_ip     = _GET["deviceIP"]
 
 -- Host comparison parameters
-local mode        = _GET["mode"]
-local tracked     = _GET["tracked"]
-local ipversion   = _GET["version"]
+local mode          = _GET["mode"]
+local tracked       = _GET["tracked"]
+local ipversion     = _GET["version"]
 
 -- Used when filtering by ASn, VLAN or network
 local asn          = _GET["asn"]
@@ -210,9 +210,14 @@ if(hosts_stats ~= nil) then
 	 vals[hosts_stats[key]["queries.rcvd"]+postfix] = key
       elseif(sortColumn == "column_ip") then
 	 vals[hosts_stats[key]["iphex"]..postfix] = key
+      elseif(sortColumn == "column_tcp_unresp_as_client") then
+	 vals[hosts_stats[key]["num_contacted_peers_with_tcp_flows_no_response"]..postfix] = key
+      elseif(sortColumn == "column_tcp_unresp_as_server") then
+	 vals[hosts_stats[key]["num_incoming_peers_that_sent_tcp_flows_no_response"]..postfix] = key
       elseif custom_column_utils.isCustomColumn(sortColumn) then
 	 custom_column_key, custom_column_format = custom_column_utils.label2criteriakey(sortColumn)
 	 local val = custom_column_utils.hostStatsToColumnValue(hosts_stats[key], custom_column_key, false)
+	 
 	 if tonumber(val) then
 	    vals[val + postfix] = key
 	 else

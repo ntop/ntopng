@@ -4946,6 +4946,14 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     r->elems[r->actNumEntries++].numericValue = h->get_host_pool();
     break;
 
+  case column_tcp_unresp_as_client:
+    r->elems[r->actNumEntries++].numericValue = h->getNumContactedPeersAsClientTCPNoTX();
+    break;
+    
+  case column_tcp_unresp_as_server:
+    r->elems[r->actNumEntries++].numericValue = h->getNumContactsFromPeersAsServerTCPNoTX();
+    break;
+    
     /* Criteria */
   case column_traffic_sent:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesSent(); break;
   case column_traffic_rcvd:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesRcvd(); break;
@@ -5733,6 +5741,8 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_score_as_client")) retriever->sorter = column_score_as_client, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_score_as_server")) retriever->sorter = column_score_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_pool_id")) retriever->sorter = column_pool_id, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_tcp_unresp_as_client")) retriever->sorter = column_tcp_unresp_as_client, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_tcp_unresp_as_server")) retriever->sorter = column_tcp_unresp_as_server, sorter = numericSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
     retriever->sorter = column_traffic, sorter = numericSorter;

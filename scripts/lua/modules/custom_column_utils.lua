@@ -28,9 +28,10 @@ custom_column_utils.available_custom_columns = {
    { "total_num_retx_rcvd", i18n("total_retransmissions_rcvd"), function(host_stats) return host_stats["tcpPacketStats.rcvd"]["retransmissions"] end, format_utils.formatValue, "center" },
    { "alerts", i18n("show_alerts.engaged_alerts"), "num_alerts", format_utils.formatValue, "center", {page = "alerts"} },
    { "total_alerts", i18n("alerts_dashboard.total_alerts"), "total_alerts", format_utils.formatValue, "center" },
---   { "score", i18n("score"), "score", format_utils.formatValue, "center", nil, (not isScoreEnabled()) },
    { "score_as_client", i18n("score_as_client"), "score.as_client", format_utils.formatValue, "center", nil, (not isScoreEnabled()) },
    { "score_as_server", i18n("score_as_server"), "score.as_server", format_utils.formatValue, "center", nil, (not isScoreEnabled()) },
+   { "tcp_unresp_as_client", i18n("tcp_unresp_as_client"), "num_contacted_peers_with_tcp_flows_no_response", format_utils.formatValue, "center" },
+   { "tcp_unresp_as_server", i18n("tcp_unresp_as_server"), "num_incoming_peers_that_sent_tcp_flows_no_response", format_utils.formatValue, "center" },
 }
 local available_custom_columns = custom_column_utils.available_custom_columns
 

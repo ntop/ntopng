@@ -963,33 +963,30 @@ else
          print("</tr>")
       end
 
-      if((host.server_contacts ~= nil) or (host.num_contacted_peers_with_tcp_flows_no_response ~= nil)) then
+      if(host.server_contacts ~= nil) then
          print("<tr><th>")
+	 
          if(has_assets) then
             print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. host_ip .."&page=assets\">".. i18n("details.server_contacts") .. "</A>")
          else
             print(i18n("details.server_contacts"))
          end
-         print("</th><td>")
+	 
+         print("</th><td colspan=2>")
          print("<b>DNS</b>: "..formatContacts(host.server_contacts.dns).." / ")
          print("<b>SMTP</b>: "..formatContacts(host.server_contacts.smtp).." / ");
          print("<b>POP</b>: "..formatContacts(host.server_contacts.pop).." / ");
          print("<b>IMAP</b>: "..formatContacts(host.server_contacts.imap).." / ");
-         print("<b>NTP</b>: "..formatContacts(host.server_contacts.ntp).."</td>");
+         print("<b>NTP</b>: "..formatContacts(host.server_contacts.ntp));
+	 print("</tr></tr>\n")
       end
 
-      print("<td>")
-
-      if(host.num_contacted_peers_with_tcp_flows_no_response ~= nil) then
-	 print("<b>"..i18n("details.server_contacts_tcp_unresponsive").."</b>: ")
-	 print(formatContacts(host.num_contacted_peers_with_tcp_flows_no_response))
-	 print(" / ")
-	 print(formatContacts(host.num_incoming_peers_that_sent_tcp_flows_no_response))
-      else
-	 print("&nbsp;")
-      end
-
-
+      print("<tr><th>")
+      print(i18n("details.server_contacts_tcp_unresponsive"))
+      print("</th><td>")
+      print("<span id=num_contacted_peers_with_tcp_flows_no_response>"..formatContacts(host.num_contacted_peers_with_tcp_flows_no_response) .. "</span> <span id=num_contacted_peers_with_tcp_flows_no_response_trend></span> \n")
+      print("</td><td>")
+      print("<span id=num_incoming_peers_that_sent_tcp_flows_no_response>"..formatContacts(host.num_incoming_peers_that_sent_tcp_flows_no_response) .. "</span> <span id=num_incoming_peers_that_sent_tcp_flows_no_response_trend></span> \n")
       print("</td>")
       print("</tr>\n")
       
@@ -2324,6 +2321,8 @@ if(not only_historical) and (host ~= nil) and (page ~= "traffic") and (page ~= "
    print("var last_alerted_flows_as_client = " .. host["alerted_flows.as_client"] .. ";\n")
    print("var last_unreachable_flows_as_server = " .. host["unreachable_flows.as_server"] .. ";\n")
    print("var last_unreachable_flows_as_client = " .. host["unreachable_flows.as_client"] .. ";\n")
+   print("var last_num_contacted_peers_with_tcp_flows_no_response = " .. host["num_contacted_peers_with_tcp_flows_no_response"] .. ";\n")
+   print("var last_num_incoming_peers_that_sent_tcp_flows_no_response = " .. host["num_incoming_peers_that_sent_tcp_flows_no_response"] .. ";\n")
    print("var last_sent_tcp_retransmissions = " .. host["tcpPacketStats.sent"]["retransmissions"].. ";\n")
    print("var last_sent_tcp_ooo = " .. host["tcpPacketStats.sent"]["out_of_order"] .. ";\n")
    print("var last_sent_tcp_lost = " .. host["tcpPacketStats.sent"]["lost"].. ";\n")
@@ -2416,6 +2415,8 @@ if(not only_historical) and (host ~= nil) and (page ~= "traffic") and (page ~= "
                            $('#flows_as_server').html(NtopUtils.addCommas(host["flows.as_server"]));
                         $('#alerted_flows_as_server').html(NtopUtils.addCommas(host["alerted_flows.as_server"]));
                         $('#unreachable_flows_as_server').html(NtopUtils.addCommas(host["unreachable_flows.as_server"]));
+                        $('#num_contacted_peers_with_tcp_flows_no_response').html(NtopUtils.addCommas(host["num_contacted_peers_with_tcp_flows_no_response"]));
+                        $('#num_incoming_peers_that_sent_tcp_flows_no_response').html(NtopUtils.addCommas(host["num_incoming_peers_that_sent_tcp_flows_no_response"]));
 
                         let val;
 
@@ -2550,7 +2551,8 @@ print [[
                         $('#trend_alerted_flows_as_client').html(NtopUtils.drawTrend(host["alerted_flows.as_client"], last_alerted_flows_as_client, " style=\"color: #B94A48;\""));
                         $('#trend_unreachable_flows_as_server').html(NtopUtils.drawTrend(host["unreachable_flows.as_server"], last_unreachable_flows_as_server, " style=\"color: #B94A48;\""));
                         $('#trend_unreachable_flows_as_client').html(NtopUtils.drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
-
+                        $('#num_contacted_peers_with_tcp_flows_no_response_trend').html(NtopUtils.drawTrend(host["num_contacted_peers_with_tcp_flows_no_response"], last_num_contacted_peers_with_tcp_flows_no_response, " style=\"color: #B94A48;\""));
+                        $('#num_incoming_peers_that_sent_tcp_flows_no_response_trend').html(NtopUtils.drawTrend(host["num_incoming_peers_that_sent_tcp_flows_no_response"], last_num_incoming_peers_that_sent_tcp_flows_no_response, " style=\"color: #B94A48;\""));
                         $('#trend_num_unidirectional_ingress_flows').html(NtopUtils.drawTrend(host.num_unidirectional_tcp_flows.num_ingress, last_num_unidirectional_ingress_flows, " style=\"color: #B94A48;\""));
                         $('#trend_num_unidirectional_egress_flows').html(NtopUtils.drawTrend(host.num_unidirectional_tcp_flows.num_egress, last_num_unidirectional_egress_flows, " style=\"color: #B94A48;\""));
 
@@ -2586,6 +2588,8 @@ print [[
                            last_alerted_flows_as_client = host["alerted_flows.as_client"];
                            last_unreachable_flows_as_server = host["unreachable_flows.as_server"];
                            last_unreachable_flows_as_client = host["unreachable_flows.as_client"];
+                           last_num_contacted_peers_with_tcp_flows_no_response = host["num_contacted_peers_with_tcp_flows_no_response"];
+                           last_num_incoming_peers_that_sent_tcp_flows_no_response = host["num_incoming_peers_that_sent_tcp_flows_no_response"];
                            last_num_unidirectional_ingress_flows = host.num_unidirectional_tcp_flows.num_ingress;
                            last_num_unidirectional_egress_flows = host.num_unidirectional_tcp_flows.num_egress;
                            last_flows_as_server = host["flows.as_server"];
