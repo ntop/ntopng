@@ -651,8 +651,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int8_t getCustomHostAlertScore()     { return(customHostAlert.score);                          }
   inline char*    getCustomHostAlertMessage()   { return(customHostAlert.msg);                            }
   void triggerCustomHostAlert(u_int8_t score, char *msg);
-  virtual void setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port) { ; }
-  virtual u_int32_t getNumUnidirectionalTCPNoTXExgressFlows()                    { return(0); }
+
+  virtual void setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port)  { ; }
+  virtual void setUnidirectionalTCPNoTXIngressFlow(IpAddress *ip, u_int16_t port) { ; }
+  virtual u_int32_t getNumContactedPeersAsClientTCPNoTX()    { return(0); };
+  virtual u_int32_t getNumContactsFromPeersAsServerTCPNoTX() { return(0); };
+  
 };
 
 #endif /* _HOST_H_ */

@@ -34,7 +34,7 @@ class LocalHost : public Host, public SerializableElement {
   u_int8_t router_mac[6]; /* MAC address pf the first router used (no Mac* to avoid purging race conditions) */
   bool router_mac_set;
   UsedPorts usedPorts;
-  struct ndpi_hll server_port_with_no_tx_hll;
+  struct ndpi_hll outgoing_hosts_port_with_no_tx_hll, incoming_hosts_port_with_no_tx_hll;
   
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail;
@@ -122,8 +122,11 @@ class LocalHost : public Host, public SerializableElement {
   inline void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { usedPorts.setContactedPort(isTCP, port, proto); };
   virtual inline void luaUsedPorts(lua_State* vm)                                         { usedPorts.lua(vm, iface);                     };
   virtual inline std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(usedPorts.getServerPorts(isTCP));      };
+
   void setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port);
-  inline u_int32_t getNumUnidirectionalTCPNoTXExgressFlows() { return((u_int32_t)ndpi_hll_count(&server_port_with_no_tx_hll)); }
+  void setUnidirectionalTCPNoTXIngressFlow(IpAddress *ip, u_int16_t port);
+  inline u_int32_t getNumContactedPeersAsClientTCPNoTX()    { return((u_int32_t)ndpi_hll_count(&outgoing_hosts_port_with_no_tx_hll)); };
+  inline u_int32_t getNumContactsFromPeersAsServerTCPNoTX() { return((u_int32_t)ndpi_hll_count(&incoming_hosts_port_with_no_tx_hll)); };
 };
 
 #endif /* _LOCAL_HOST_H_ */

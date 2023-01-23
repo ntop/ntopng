@@ -963,7 +963,7 @@ else
          print("</tr>")
       end
 
-      if(host.server_contacts ~= nil) then
+      if((host.server_contacts ~= nil) or (host.num_contacted_peers_with_tcp_flows_no_response ~= nil)) then
          print("<tr><th>")
          if(has_assets) then
             print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. host_ip .."&page=assets\">".. i18n("details.server_contacts") .. "</A>")
@@ -982,7 +982,8 @@ else
 
       if(host.num_contacted_peers_with_tcp_flows_no_response ~= nil) then
 	 print("<b>"..i18n("details.server_contacts_tcp_unresponsive").."</b>: ")
-	 print(formatContacts(host.num_contacted_peers_with_tcp_flows_no_response))
+	 print(formatContacts(host.num_contacted_peers_with_tcp_flows_no_response).." / ")
+	 print(formatContacts(host.num_incoming_peers_that_sent_tcp_flows_no_response))
       else
 	 print("&nbsp;")
       end

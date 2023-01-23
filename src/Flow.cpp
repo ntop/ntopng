@@ -305,7 +305,10 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-  bool is_oneway_tcp_syn_seen = ((protocol == IPPROTO_TCP) && (get_packets_srv2cli() == 0) && (src2dst_tcp_flags == TH_SYN)) ? true : false;
+  bool is_oneway_tcp_syn_seen = ((protocol == IPPROTO_TCP)
+				 && (src2dst_tcp_flags == TH_SYN)
+				 && ((dst2src_tcp_flags & TH_SYN) == 0) /* Either no reply or connection refused (e.g. RST) */
+    ) ? true : false;
 
   if(getUses() != 0 && !ntop->getGlobals()->isShutdown())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]", __FUNCTION__, getUses());
@@ -350,8 +353,10 @@ Flow::~Flow() {
     if(is_oneway_tcp_syn_seen) {
       srv_u->incUnidirectionalIngressFlows();
 
-      if(cli_u)
-	cli_u->setUnidirectionalTCPNoTXEgressFlow(srv_u->get_ip(), ntohs(srv_port));
+      if(cli_u) {
+	cli_u->setUnidirectionalTCPNoTXEgressFlow(srv_u->get_ip(), ntohs(srv_port));      
+	srv_u->setUnidirectionalTCPNoTXIngressFlow(cli_u->get_ip(), ntohs(srv_port));
+      }
     }
   }
 
