@@ -1132,8 +1132,8 @@ else
         riskInfo = json.decode(flow.riskInfo, 1, nil)
       end
 
-      if (riskInfo ~= nil) then
-        for _, score_alerts in pairsByKeys(alerts_by_score, rev) do
+      if(riskInfo ~= nil) then
+	 for _, score_alerts in pairsByKeys(alerts_by_score, rev) do
           for _, score_alert in pairsByField(score_alerts, "message", asc) do
             if first then
               print("<tr><th width=30% rowspan="..(num_statuses+1)..">"..i18n("flow_details.flow_issues").."</th><th>"..i18n("description").."</th><th>"..i18n("actions").."</th></tr>")
@@ -1252,15 +1252,15 @@ else
 
    if((flow.client_process == nil) and (flow.server_process == nil)) then
       print("<tr><th width=30%>"..i18n("flow_details.actual_peak_throughput").."</th><td width=20%>")
-      if (throughput_type == "bps") then
+      if(throughput_type == "bps") then
          print("<span id='flow-throughput' class='peity'>" .. bitsToSize(8*flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
-      elseif (throughput_type == "pps") then
+      elseif(throughput_type == "pps") then
          print("<span id='flow-throughput' class='peity'>" .. pktsToSize(flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
       end
 
-      if (throughput_type == "bps") then
+      if(throughput_type == "bps") then
          print(" / <span id=top-flow-throughput>" .. bitsToSize(8*flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
-      elseif (throughput_type == "pps") then
+      elseif(throughput_type == "pps") then
          print(" / <span id=top-flow-throughput>" .. pktsToSize(flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
       end
 
@@ -1450,12 +1450,12 @@ else
       print("</tr>\n")
    end
 
-   if (not interface.isPacketInterface()) and (flow["flow_verdict"]) and (tonumber(flow["flow_verdict"]) ~= 0) then
+   if(not interface.isPacketInterface()) and (flow["flow_verdict"]) and (tonumber(flow["flow_verdict"]) ~= 0) then
       local flow_verdict_badge = addFlowVerdictBadge(flow["flow_verdict"], true)
       print("<tr><th width=30%>" .. i18n("details.flow_verdict") .. "</th><td colspan=2>" .. flow_verdict_badge .. "</td></tr>\n")
    end
 
-   if (flow["moreinfo.json"] ~= nil) then
+   if(flow["moreinfo.json"] ~= nil) then
       local flow_field_value_maps = require "flow_field_value_maps"
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
       local isThereSIP = 0
@@ -1713,13 +1713,13 @@ print [[
 ]]
 
 if(flow ~= nil) then
-   if (flow["cli2srv.packets"] ~= nil ) then
+   if(flow["cli2srv.packets"] ~= nil ) then
       print("var cli2srv_packets = " .. flow["cli2srv.packets"] .. ";")
    end
-   if (flow["srv2cli.packets"] ~= nil) then
+   if(flow["srv2cli.packets"] ~= nil) then
       print("var srv2cli_packets = " .. flow["srv2cli.packets"] .. ";")
    end
-   if (flow["throughput_"..throughput_type] ~= nil) then
+   if(flow["throughput_"..throughput_type] ~= nil) then
       print("var throughput = " .. flow["throughput_"..throughput_type] .. ";")
    end
    print("var bytes = " .. flow["bytes"] .. ";")
@@ -1778,8 +1778,8 @@ print[[
                            $('#c2sretr').html(NtopUtils.formatPackets(rsp["c2sretr"]));
                            $('#s2cretr').html(NtopUtils.formatPackets(rsp["s2cretr"]));
                         }
-                        if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
-                        if (rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["srv2cli_quota"]);
+                        if(rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
+                        if(rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["srv2cli_quota"]);
 
                         /* **************************************** */
 
@@ -1834,10 +1834,10 @@ print [[                        cli2srv_packets = rsp["cli2srv.packets"];
             var proc = rsp["processes"][pid]
             // console.log(pid);
             // console.log(proc);
-            if (proc["memory"])           $('#memory_'+pid).html(proc["memory"]);
-            if (proc["average_cpu_load"]) $('#average_cpu_load_'+pid).html(proc["average_cpu_load"]);
-            if (proc["percentage_iowait_time"]) $('#percentage_iowait_time_'+pid).html(proc["percentage_iowait_time"]);
-            if (proc["page_faults"])      $('#page_faults_'+pid).html(proc["page_faults"]);
+            if(proc["memory"])           $('#memory_'+pid).html(proc["memory"]);
+            if(proc["average_cpu_load"]) $('#average_cpu_load_'+pid).html(proc["average_cpu_load"]);
+            if(proc["percentage_iowait_time"]) $('#percentage_iowait_time_'+pid).html(proc["percentage_iowait_time"]);
+            if(proc["page_faults"])      $('#page_faults_'+pid).html(proc["page_faults"]);
          }
 
                         /* **************************************** */

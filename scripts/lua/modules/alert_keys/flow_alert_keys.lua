@@ -94,8 +94,7 @@ local flow_alert_keys = {
    flow_alert_ndpi_risky_asn                       = 85,
    flow_alert_ndpi_risky_domain                    = 86,
    flow_alert_custom_lua_script                    = 87,
-   flow_alert_ndpi_periodic_flow                   = 88,
-   flow_alert_ndpi_dns_large_packet                = 89,
+   flow_alert_ndpi_periodic_flow                   = 88
    
    -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
 }
