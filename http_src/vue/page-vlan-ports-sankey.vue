@@ -31,13 +31,14 @@
           </div>
 
           <Sankey2
+          ref="sankey_chart"
           :width="width"
           :height="height"
           :no_data_message="no_data_message"
+          :sankey_data="sankey_data"
           @update_width="update_width"
           @update_height="update_height"
-          @node_click="on_node_click"
-          :sankey_data="sankey_data">
+          @node_click="on_node_click">
           </Sankey2>        
         </div>
       </div>
@@ -60,6 +61,7 @@ const props = defineProps({
 
 const _i18n = (t) => i18n(t);
 const no_data_message = _i18n('ports_analysis.no_data')
+const sankey_chart = ref(null)
 const body_div = ref(null);
 const width = ref(null);
 const height = ref(null);
@@ -119,6 +121,11 @@ async function get_sankey_data() {
   // add_fake_circular_link(graph);
   graph = make_complete_graph(graph);
   const sankey_data = get_sankey_data_from_rest_data(graph);
+  /* In case no data is returned, show the No Data message */
+  (sankey_data.links.length > 0 && sankey_data.nodes.length > 0) ? 
+    sankey_chart.value.set_no_data_flag(false) : 
+    sankey_chart.value.set_no_data_flag(true);
+
   return sankey_data;
 }
 

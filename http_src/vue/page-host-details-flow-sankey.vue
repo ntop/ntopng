@@ -27,8 +27,9 @@
             </div>
 	  </div>
           <Sankey2
-	    @node_click="on_node_click"
-	    :sankey_data="sankey_data">
+          ref="sankey_chart"
+          @node_click="on_node_click"
+          :sankey_data="sankey_data">
           </Sankey2>
 	</div>
       </div>
@@ -50,6 +51,7 @@ const props = defineProps({
 
 const _i18n = (t) => i18n(t);
 const url = `${http_prefix}/lua/pro/rest/v2/get/host/flows/data.lua`;
+const sankey_chart = ref(null)
 
 const sankey_format_list = [
     { filter_name: 'hosts_type', key: 3, id: 'local_origin_remote_target', title: _i18n('flows_page.local_cli_remote_srv'), label: _i18n('flows_page.local_cli_remote_srv'), filter_icon: false, countable: false },
@@ -112,6 +114,9 @@ async function get_sankey_data() {
     graph = make_complete_graph(graph);
     let main_node_id = get_main_node_id();
     let sankey_data = get_sankey_data_from_rest_data(graph, main_node_id);
+    (sankey_data.links.length > 0 && sankey_data.nodes.length > 0) ? 
+      sankey_chart.value.set_no_data_flag(false) : 
+      sankey_chart.value.set_no_data_flag(true);
     // sankey_data = make_dag_graph(sankey_data);
     return sankey_data;
 }

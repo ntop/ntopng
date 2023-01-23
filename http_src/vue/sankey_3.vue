@@ -59,10 +59,8 @@ function set_sankey_data(reset) {
     }
     if (props.sankey_data.nodes == null || props.sankey_data.links == null
 	|| props.sankey_data.length == 0 || props.sankey_data.links.length == 0) {
-    no_data.value = true
 	return;
     }
-    no_data.value = false
     draw_sankey();
 }
 
@@ -242,9 +240,14 @@ function create_sankey(width, height) {
     return _sankey;
 }
 
+/* Set to true, to show the 'No Data' message */
+function set_no_data_flag(set_no_data) {
+  no_data.value = set_no_data
+}
+
 const _i18n = (t) => i18n(t);
     
-defineExpose({ draw_sankey });
+defineExpose({ draw_sankey, set_no_data_flag });
 
 </script>
 
