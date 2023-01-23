@@ -122,8 +122,8 @@ class LocalHost : public Host, public SerializableElement {
   inline void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { usedPorts.setContactedPort(isTCP, port, proto); };
   virtual inline void luaUsedPorts(lua_State* vm)                                         { usedPorts.lua(vm, iface);                     };
   virtual inline std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(usedPorts.getServerPorts(isTCP));      };
-  virtual void setUnidirectionalTCPNoTXExgressFlow(IpAddress *ip, u_int16_t port);
-  virtual inline u_int32_t getNumUnidirectionalTCPNoTXExgressFlows()                      { return((u_int32_t)ndpi_hll_count(&server_port_with_no_tx_hll)); }
+  void setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port);
+  inline u_int32_t getNumUnidirectionalTCPNoTXExgressFlows() { return((u_int32_t)ndpi_hll_count(&server_port_with_no_tx_hll)); }
 };
 
 #endif /* _LOCAL_HOST_H_ */

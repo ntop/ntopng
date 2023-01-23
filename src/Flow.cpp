@@ -41,6 +41,8 @@ Flow::Flow(NetworkInterface *_iface,
 	   const ICMPinfo * const _icmp_info,
 	   time_t _first_seen, time_t _last_seen,
 	   u_int8_t *_view_cli_mac, u_int8_t *_view_srv_mac) : GenericHashEntry(_iface) {
+  char country[64];
+
   periodic_stats_update_partial = NULL;
   viewFlowStats = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
@@ -108,8 +110,6 @@ Flow::Flow(NetworkInterface *_iface,
   INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _observation_point_id, _private_flow_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 7);
-
-  char country[64];
 
   if(_observation_point_id)
     iface->incObservationPointIdFlows(_observation_point_id);
@@ -1974,7 +1974,7 @@ void Flow::updateThroughputStats(float tdiff_msec,
 
   /* In order to avoid overestimating the throughput, we scale small intervals to at least one second */
   if(tdiff_msec < 1000) tdiff_msec = 1000.;
-  
+
   // bps
   float bytes_msec_cli2srv         = ((float)(diff_sent_bytes*1000))/tdiff_msec;
   float bytes_msec_srv2cli         = ((float)(diff_rcvd_bytes*1000))/tdiff_msec;
@@ -2058,7 +2058,7 @@ void Flow::updateThroughputStats(float tdiff_msec,
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][tdiff: %f][pkts: %lu][pkts_thpt: %.2f pps]",
 				 pkts_msec, tdiff_msec, diff_pkts, get_pkts_thpt());
 #endif
-  }  
+  }
 }
 
 /* *************************************** */
@@ -2131,7 +2131,7 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
      This makes throughput more precise as it is averaged on a timespan which is last-first switched. */
   if(iface->isPacketInterface() && last_update_time.tv_sec > 0) {
     float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
-    
+
     updateThroughputStats(tdiff_msec,
 			  diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 			  diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
@@ -3806,7 +3806,7 @@ void Flow::housekeep(time_t t) {
          srv_net_id != (u_int16_t) -1 &&
          cli_net_id != srv_net_id) {
         NetworkStats *cli_network_stats = iface->getNetworkStats(cli_net_id), *srv_network_stats = iface->getNetworkStats(srv_net_id);
-	
+
         if(cli_network_stats) cli_network_stats->incTrafficBetweenNets(srv_net_id, get_bytes_cli2srv(), get_bytes_srv2cli());
         if(srv_network_stats) srv_network_stats->incTrafficBetweenNets(cli_net_id, get_bytes_srv2cli(), get_bytes_cli2srv());
       #ifdef DEBUG
@@ -6882,13 +6882,13 @@ void Flow::lua_entropy(lua_State* vm) {
 	lua_newtable(vm);
 	lua_push_float_table_entry(vm,  "min", protos.icmp.client_to_server.min_entropy);
 	lua_push_float_table_entry(vm,  "max", protos.icmp.client_to_server.max_entropy);
-	
+
 	lua_pushstring(vm, "icmp");
 	lua_insert(vm, -2);
 	lua_settable(vm, -3);
       }
     }
-    
+
     lua_pushstring(vm, "entropy");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -6954,15 +6954,15 @@ void Flow::swap() {
   struct ndpi_analyze_struct *s = initial_bytes_entropy.c2s;
   TCPSeqNum ts;
   InterarrivalStats *is = cli2srvPktTime;
-  
+
   cli_host = srv_host, cli_ip_addr = srv_ip_addr;
   srv_host = h, srv_ip_addr = i;
 
   Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS), Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
   initial_bytes_entropy.c2s = initial_bytes_entropy.s2c; initial_bytes_entropy.s2c = s;
-  
+
   memcpy(m, view_cli_mac, 6); memcpy(view_cli_mac, view_srv_mac, 6); memcpy(view_srv_mac, m, 6);
-  
+
   predominant_alert_info.is_cli_attacker = predominant_alert_info.is_srv_attacker, predominant_alert_info.is_cli_victim = predominant_alert_info.is_srv_victim;
   predominant_alert_info.is_srv_attacker = f1, predominant_alert_info.is_srv_victim = f2;
 
@@ -6970,7 +6970,7 @@ void Flow::swap() {
   memcpy(&tcp_seq_d2s, &tcp_seq_s2d, sizeof(TCPSeqNum));
   memcpy(&tcp_seq_s2d, &ts, sizeof(TCPSeqNum));
   Utils::swap16(&cli2srv_window, &srv2cli_window);
-	 
+
   cli2srvPktTime = srv2cliPktTime; srv2cliPktTime = is;
 
 #ifdef HAVE_NEDGE
@@ -6980,13 +6980,13 @@ void Flow::swap() {
   flowShaperIds.cli2srv.ingress = flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress = flowShaperIds.cli2srv.egress;
   flowShaperIds.srv2cli.ingress = s1, flowShaperIds.cli2srv.egress = s2;
 #endif
-  
+
   Utils::swapfloat(&bytes_thpt_cli2srv, &bytes_thpt_srv2cli);
   Utils::swapfloat(&goodput_bytes_thpt_cli2srv, &goodput_bytes_thpt_srv2cli);
   Utils::swapfloat(&pkts_thpt_cli2srv, &pkts_thpt_srv2cli);
 
   /*
-    We do not swap L7 info as if it direction was wrong they were not computed 
+    We do not swap L7 info as if it direction was wrong they were not computed
     Same applies with latency counters
   */
 

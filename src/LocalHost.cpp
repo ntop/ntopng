@@ -552,7 +552,7 @@ void LocalHost::setRouterMac(Mac *gw) {
 /*
   Used to estimate the cardinality of <server, server_port> contacted
   by this host over TCP and with no data received or connection refused
- */
-void LocalHost::setUnidirectionalTCPNoTXExgressFlow(IpAddress *ip, u_int16_t port) {
+*/
+void LocalHost::setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port) {
   ndpi_hll_add_number(&server_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
 }
