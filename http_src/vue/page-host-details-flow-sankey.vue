@@ -47,6 +47,7 @@ const props = defineProps({
 const _i18n = (t) => i18n(t);
 const url = `${http_prefix}/lua/pro/rest/v2/get/host/flows/data.lua`;
 const sankey_chart = ref(null)
+const loading = ref(null)
 
 const sankey_format_list = [
     { filter_name: 'hosts_type', key: 3, id: 'local_origin_remote_target', title: _i18n('flows_page.local_cli_remote_srv'), label: _i18n('flows_page.local_cli_remote_srv'), filter_icon: false, countable: false },
