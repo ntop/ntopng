@@ -80,9 +80,6 @@ function on_node_click(node) {
     const host_url = `${http_prefix}/lua/host_details.lua?${url_params}`;
     ntopng_url_manager.go_to_url(host_url);
     //host=' .. flow["cli.ip"] .. '&vlan=' .. flow["vlan"]
-    
-    
-    console.log(node);
 }
 
 const update_sankey = function() {
@@ -103,7 +100,6 @@ async function get_sankey_data() {
     const url_request = get_sankey_url();
     // let graph = await sankeyUtils.get_data();
     let graph = await ntopng_utility.http_request(url_request);
-    console.log(graph);
     // add_fake_circular_link(graph);
     graph = make_complete_graph(graph);
     let main_node_id = get_main_node_id();
