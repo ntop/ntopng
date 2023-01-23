@@ -57,7 +57,7 @@ Example:
 
    python3 alerts.py -n http://localhost:3000 -i admin -p password -i 0
 
-The below example is printing alert statistics, please see below a code snippet for achieving the same in your python application:
+This sample application is printing alert statistics, please see below a code snippet for achieving the same:
 
 .. code:: python
 
