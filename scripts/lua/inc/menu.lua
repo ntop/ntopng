@@ -405,10 +405,6 @@ local health_entries = {
          url = '/lua/system_interfaces_stats.lua',
       },
       {
-         entry = page_utils.menu_entries.alerts_status,
-         url = '/lua/system_alerts_stats.lua',
-      },
-      {
          entry = page_utils.menu_entries.influxdb_status,
          url = '/lua/monitor/influxdb_monitor.lua',
          hidden = not is_influxdb_enabled,
