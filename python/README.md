@@ -48,5 +48,7 @@ We encourage our users to extend this API. For your convenience we are sharing a
 Documentation
 -------------
 
+For further information please visit the API documentation available at:
+
 [ntopng Python API](https://www.ntop.org/guides/ntopng/api/python/index.html)
 [ntopng REST API v2](https://www.ntop.org/guides/ntopng/api/rest/api_v2.html)
