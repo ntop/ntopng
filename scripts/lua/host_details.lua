@@ -970,14 +970,27 @@ else
          else
             print(i18n("details.server_contacts"))
          end
-         print("</th><td colspan=2>")
+         print("</th><td>")
          print("<b>DNS</b>: "..formatContacts(host.server_contacts.dns).." / ")
          print("<b>SMTP</b>: "..formatContacts(host.server_contacts.smtp).." / ");
          print("<b>POP</b>: "..formatContacts(host.server_contacts.pop).." / ");
          print("<b>IMAP</b>: "..formatContacts(host.server_contacts.imap).." / ");
-         print("<b>NTP</b>: "..formatContacts(host.server_contacts.ntp).."</td></tr>");
+         print("<b>NTP</b>: "..formatContacts(host.server_contacts.ntp).."</td>");
       end
 
+      print("<td>")
+
+      if(host.num_contacted_peers_with_tcp_flows_no_response ~= nil) then
+	 print("<b>"..i18n("details.server_contacts_tcp_unresponsive").."</b>: ")
+	 print(formatContacts(host.num_contacted_peers_with_tcp_flows_no_response))
+      else
+	 print("&nbsp;")
+      end
+
+
+      print("</td>")
+      print("</tr>\n")
+      
       if host["tcp.packets.seq_problems"] == true then
          local tcp_seq_label = "TCP: "..i18n("details.retransmissions").." / "..i18n("details.out_of_order").." / "..i18n("details.lost").." / "..i18n("details.keep_alive")
 

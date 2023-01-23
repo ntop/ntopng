@@ -1878,6 +1878,7 @@ local lang = {
     ["router_access_point_mac_address"] = "Router/AccessPoint MAC Address",
     ["sent_vs_received_traffic_breakdown"] = "Sent vs Received Traffic Breakdown",
     ["server_contacts"] = "Contacted Servers",
+    ["server_contacts_tcp_unresponsive"] = "TCP Unresponsive Destinations",
     ["show_hosts"] = "Show Hosts",
     ["source"] = "Source",
     ["source_id"] = "Source Id",
