@@ -1072,6 +1072,16 @@ local function validateZoom(zoom)
    end
 end
 
+-- ##############################################
+
+-- @brief Returns true if inputstr is a Mac or all string
+local function validateDevice(inputstr)
+   return (validateDeviceOrAll(inputstr) or validateIPV4(inputstr))
+end
+http_lint.validateDevice = validateDevice
+
+-- ##############################################
+
 local function validateCategory(cat)
    if starts(cat, "cat_") then
       local id = split(cat, "cat_")[2]
@@ -1631,7 +1641,7 @@ local known_parameters = {
    ["alert_generation"]	       = { jsonCleanup, validateJSON },
 
 -- EXCLUDE DEVICES
-   ["device"]                  = validateDeviceOrAll,
+   ["device"]                  = validateDevice,
    ["mac_list"]                = validateUnquoted,
    ["mac_alias"]               = validateSingleWord,
    ["mac_status"]              = validateStatus,
