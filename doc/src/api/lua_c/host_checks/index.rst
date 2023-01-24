@@ -1,3 +1,5 @@
+.. _ApiHostChecks target:
+
 Host Checks
 ===========
 

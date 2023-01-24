@@ -1,3 +1,5 @@
+.. _HostChecks target:
+
 Host Behavioural Checks
 #######################
 
@@ -234,18 +236,16 @@ Flow-based anomaly detection centers around the concept of the network flow. A f
 
 The alert is sent when the system detects anomalies in active flows number.
 
-
 *Category: Network*
 
 *Not Enabled by Default*
 
+**Host User Check Script**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Trigger a host alert based on a custom Lua user script. For further information please visit :ref:`ApiHostChecks target`
 
+*Category: Network*
 
-
-
-
-
-
-
+*Not Enabled by Default*
 
