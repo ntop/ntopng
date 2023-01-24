@@ -2068,8 +2068,6 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
 
   rv = ntop->recipients_enqueue(&notification, alert_entity_host /* Host recipients */);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host::enqueueAlertToRecipients");
-
   if(!rv)
     getInterface()->incNumDroppedAlerts(alert_entity_host);
 
