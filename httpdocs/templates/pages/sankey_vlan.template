@@ -15,8 +15,8 @@
   const ifid = {* ifid *}
   const rest_url = '{* rest_url *}'
   const available_filters = {
-    'vlan': {* ports_analysis.vlan_options *},
     'timeframe': {* ports_analysis.timeframe_options *},
+    'vlan': {* ports_analysis.vlan_options *},
     'l4proto': {* ports_analysis.l4_proto_options *},
   }
   function start_vue() {

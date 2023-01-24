@@ -30,11 +30,13 @@
                 </div>
               </div>
             </template>
-            <div class="mt-auto m-1" :class="(max_entries_reached)?' hidden':''" :title=max_entry_title style="cursor: help;">
-              <button type="button" class="btn btn-link" disabled>
-                <i class="text-danger fa-solid fa-triangle-exclamation"></i>
-              </button>
-            </div>
+            <template v-if="max_entries_reached == true">
+              <div class="mt-auto m-1" :title=max_entry_title style="cursor: help;">
+                <button type="button" class="btn btn-link" disabled>
+                  <i class="text-danger fa-solid fa-triangle-exclamation"></i>
+                </button>
+              </div>
+            </template>
           </div>
 
           <Sankey2
@@ -126,7 +128,7 @@ const update_sankey = function() {
 }
 
 function check_max_entries(data) {
-  data.max_entries_reached = max_entries_reached.value
+  max_entries_reached.value = data.max_entries_reached
 }
 
 async function set_sankey_data() {
