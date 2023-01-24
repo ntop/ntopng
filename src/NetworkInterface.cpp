@@ -4946,6 +4946,14 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     r->elems[r->actNumEntries++].numericValue = h->get_host_pool();
     break;
 
+  case column_tcp_unresp_as_client:
+    r->elems[r->actNumEntries++].numericValue = h->getNumContactedPeersAsClientTCPNoTX();
+    break;
+    
+  case column_tcp_unresp_as_server:
+    r->elems[r->actNumEntries++].numericValue = h->getNumContactsFromPeersAsServerTCPNoTX();
+    break;
+    
     /* Criteria */
   case column_traffic_sent:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesSent(); break;
   case column_traffic_rcvd:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesRcvd(); break;
@@ -5733,6 +5741,8 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_score_as_client")) retriever->sorter = column_score_as_client, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_score_as_server")) retriever->sorter = column_score_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_pool_id")) retriever->sorter = column_pool_id, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_tcp_unresp_as_client")) retriever->sorter = column_tcp_unresp_as_client, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_tcp_unresp_as_server")) retriever->sorter = column_tcp_unresp_as_server, sorter = numericSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
     retriever->sorter = column_traffic, sorter = numericSorter;
@@ -10198,19 +10208,23 @@ private:
   std::set<const IpAddress*> clients, servers;
   u_int32_t num_flows;
   u_int64_t tot_sent, tot_rcvd;
-
+  u_int8_t l4_proto;
+  
 public:
-  FlowsStats(const IpAddress *c, const IpAddress *s, u_int64_t bytes_sent, u_int64_t bytes_rcvd) {
-    num_flows = 0, tot_sent = tot_rcvd = 0;
+  FlowsStats(const IpAddress *c, const IpAddress *s, u_int8_t _l4_proto,
+	     u_int64_t bytes_sent, u_int64_t bytes_rcvd) {
+    num_flows = 0, tot_sent = tot_rcvd = 0, l4_proto = _l4_proto;;
     incFlowStats(c, s, bytes_sent, bytes_rcvd);
   }
 
   inline u_int32_t getNumClients() { return(clients.size()); }
   inline u_int32_t getNumServers() { return(servers.size()); }
+  inline u_int8_t  getL4Protocol() { return(l4_proto);       }
   inline u_int32_t getNumFlows()   { return(num_flows);      }
   inline u_int64_t getTotalSent()  { return(tot_sent);       }
   inline u_int64_t getTotalRcvd()  { return(tot_rcvd);       }
-  inline void      incFlowStats(const IpAddress *c, const IpAddress *s, u_int64_t bytes_sent, u_int64_t bytes_rcvd) {
+  inline void      incFlowStats(const IpAddress *c, const IpAddress *s,
+				u_int64_t bytes_sent, u_int64_t bytes_rcvd) {
     clients.insert(c), servers.insert(c), num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd;
   }
 };
@@ -10234,6 +10248,7 @@ static bool compute_protocol_flow_stats(GenericHashEntry *node, void *user_data,
 
   if(it == count->end()) {
     FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+						   f->get_protocol(),
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli());
 
     if(fs != NULL)
@@ -10285,6 +10300,7 @@ void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
     lua_push_uint32_table_entry(vm, "vlan_id",     vlan_id);
     lua_push_str_table_entry(vm,    "proto_id",    proto);
     lua_push_str_table_entry(vm,    "proto_name",  get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
+    lua_push_uint32_table_entry(vm, "l4_proto",    fs->getL4Protocol());
     lua_push_uint32_table_entry(vm, "num_clients", fs->getNumClients());
     lua_push_uint32_table_entry(vm, "num_servers", fs->getNumServers());
     lua_push_uint32_table_entry(vm, "num_flows",   fs->getNumFlows());
@@ -10320,6 +10336,7 @@ static bool compute_vlan_flow_stats(GenericHashEntry *node, void *user_data, boo
 
   if(it == count->end()) {
     FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+						   f->get_protocol(),
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli());
 
     if(fs != NULL)
@@ -10372,7 +10389,10 @@ void NetworkInterface::getVLANFlowsStats(lua_State* vm) {
     lua_push_uint32_table_entry(vm, "vlan_id",     vlan_id);
     lua_push_uint32_table_entry(vm, "dst_port",    dst_port);
     lua_push_str_table_entry(vm,    "proto_id",    proto);
-    lua_push_str_table_entry(vm,    "proto_name",  get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
+    lua_push_str_table_entry(vm,    "proto_name",
+			     get_ndpi_full_proto_name(detected_protocol,
+						      buf, sizeof(buf)));
+    lua_push_uint32_table_entry(vm, "l4_proto",    fs->getL4Protocol());
     lua_push_uint32_table_entry(vm, "num_clients", fs->getNumClients());
     lua_push_uint32_table_entry(vm, "num_servers", fs->getNumServers());
     lua_push_uint32_table_entry(vm, "num_flows",   fs->getNumFlows());

@@ -591,6 +591,7 @@ end
 -- one. For such tag, a list of available values will be returned.
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
    if #wildcard_tags > 1 then
+      tprint(debug.traceback())
       tprint({schema_name = schema.name, wildcards=wildcard_tags})
       traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
       return nil

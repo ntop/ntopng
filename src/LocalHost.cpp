@@ -322,11 +322,6 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 			     Utils::formatMac(router_mac, router_buf, sizeof(router_buf)));
   }
   
-  lua_push_int32_table_entry(vm, "num_contacted_peers_with_tcp_flows_no_response",
-			     getNumContactedPeersAsClientTCPNoTX());
-  lua_push_int32_table_entry(vm, "num_incoming_peers_that_sent_tcp_flows_no_response",
-			     getNumContactsFromPeersAsServerTCPNoTX());
-  
   /* Add new entries before this line! */
 
   if(asListElement) {

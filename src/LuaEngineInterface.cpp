@@ -1495,7 +1495,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 
 /* ****************************************** */
 
-static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
+static int ntop_get_interface_hosts_criteria(lua_State* vm, LocationPolicy location) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool show_details = true, filtered_hosts = false, blacklisted_hosts = false;
   char *sortColumn = (char*)"column_ip", *country = NULL, *mac_filter = NULL;
@@ -1550,7 +1550,8 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 					   show_details, location,
 					   country, mac_filter,
 					   vlan_filter, os_filter, asn_filter,
-					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
+					   network_filter, pool_filter,
+					   filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
 					   traffic_type_filter,
 					   device_ip, false /* host->lua */,
@@ -3409,39 +3410,39 @@ static int ntop_stop_running_capture(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_hosts_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, location_all));
+  return(ntop_get_interface_hosts_criteria(vm, location_all));
 }
 
 static int ntop_get_interface_local_hosts_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, location_local_only));
+  return(ntop_get_interface_hosts_criteria(vm, location_local_only));
 }
 
 static int ntop_get_interface_local_hosts_no_tx_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, location_local_only_no_tx));
+  return(ntop_get_interface_hosts_criteria(vm, location_local_only_no_tx));
 }
 
 static int ntop_get_interface_local_hosts_no_tcp_tx_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, location_local_only_no_tcp_tx));
+  return(ntop_get_interface_hosts_criteria(vm, location_local_only_no_tcp_tx));
 }
 
 static int ntop_get_interface_remote_hosts_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, location_remote_only));
+  return(ntop_get_interface_hosts_criteria(vm, location_remote_only));
 }
 
 static int ntop_get_interface_remote_hosts_no_tx_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, location_remote_only_no_tx));
+  return(ntop_get_interface_hosts_criteria(vm, location_remote_only_no_tx));
 }
 
 static int ntop_get_interface_remote_hosts_no_tcp_tx_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, location_remote_only_no_tcp_tx));
+  return(ntop_get_interface_hosts_criteria(vm, location_remote_only_no_tcp_tx));
 }
 
 static int ntop_get_interface_broadcast_domain_hosts_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, location_broadcast_domain_only));
+  return(ntop_get_interface_hosts_criteria(vm, location_broadcast_domain_only));
 }
 
 static int ntop_get_public_hosts_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, location_public_only));
+  return(ntop_get_interface_hosts_criteria(vm, location_public_only));
 }
 
 /* ****************************************** */

@@ -867,6 +867,11 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_float_table_entry(vm, "bytes_ratio", ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()));
   lua_push_float_table_entry(vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
 
+  lua_push_int32_table_entry(vm, "num_contacted_peers_with_tcp_flows_no_response",
+			     getNumContactedPeersAsClientTCPNoTX());
+  lua_push_int32_table_entry(vm, "num_incoming_peers_that_sent_tcp_flows_no_response",
+			     getNumContactsFromPeersAsServerTCPNoTX());
+  
   if(device_ip != 0)
     lua_push_str_table_entry(vm, "device_ip", Utils::intoaV4(device_ip, buf, sizeof(buf)));
 
