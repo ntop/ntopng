@@ -10221,7 +10221,7 @@ public:
   inline u_int64_t getTotalRcvd()  { return(tot_rcvd);       }
   inline void      incFlowStats(const IpAddress *c, const IpAddress *s,
 				u_int64_t bytes_sent, u_int64_t bytes_rcvd) {
-    clients.insert(c), servers.insert(c), num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd;
+    clients.insert(c), servers.insert(s), num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd;
   }
 };
 
