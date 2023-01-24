@@ -10289,9 +10289,8 @@ void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
     else if(detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
       snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
     else
-      snprintf(proto, sizeof(proto), "%u.%u",
-	       detected_protocol.master_protocol,
-	       detected_protocol.app_protocol);
+      snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
+    /* Currently it is not supported the possibily to add double filter on master and app proto */
 
     lua_push_uint32_table_entry(vm, "vlan_id",     vlan_id);
     lua_push_str_table_entry(vm,    "proto_id",    proto);
