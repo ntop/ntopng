@@ -5,6 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+require "lua_utils"
 local rest_utils = require("rest_utils")
 
 local rc = rest_utils.consts.success.ok
@@ -32,7 +33,7 @@ for _, data in pairs(aggregated_info) do
   local bytes_rcvd = data.bytes_rcvd
   local total_bytes = bytes_rcvd + bytes_sent
   res[#res + 1] = {
-    flows = data.num_flows,
+    flows = format_high_num_value_for_tables(data, 'num_flows'),
     application = {
       label = data.proto_name,
       id = data.proto_id,
@@ -44,8 +45,8 @@ for _, data in pairs(aggregated_info) do
     bytes_rcvd = bytes_rcvd,
     bytes_sent = bytes_sent,
     tot_traffic = total_bytes,
-    num_servers = data.num_servers,
-    num_clients = data.num_clients,
+    num_servers = format_high_num_value_for_tables(data, 'num_servers'),
+    num_clients = format_high_num_value_for_tables(data, 'num_clients'),
     vlan_id = {
       id = data.vlan_id,
       label = data.vlan_id

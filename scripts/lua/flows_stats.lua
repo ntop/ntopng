@@ -94,6 +94,7 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {
 })
 
 if (page == "flows" or page == nil) then
+  local active_msg = getFlowsTableTitle()
    if(category ~= nil) then
       page_params["category"] = category
    end
@@ -186,11 +187,13 @@ if (page == "flows" or page == nil) then
    if(traffic_profile ~= nil) then
      page_params["traffic_profile"] = traffic_profile
    end
+   local is_chart_printed = false
 
-   print[[<div class="d-flex">]]
+   print[[<div class="d-flex m-1">]]
    if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"])) then
+    is_chart_printed = true
          print [[
-         <div class="col-10">
+         <div class="col-4">
             <div class="info-stats">
                <ul class="nav-side m-0 ps-5 ms-1" style="list-style-type: none;">
                   <li class="nav-item">
@@ -220,9 +223,16 @@ if (page == "flows" or page == nil) then
          </div>
    ]]
    end
-   print[[<div class="col-2 ms-auto mt-auto mb-auto">]]
+   if is_chart_printed then
+    print[[<h3 class="m-auto">]]
+   else
+    print[[<h3 class="me-auto mt-auto mb-auto">]]
+   end
+   print(active_msg)
+   print[[</h3>]]
+   print[[<h6 class="ms-auto mt-auto mb-auto">]]
    print(mini_title)
-   print[[</div>]]
+   print[[</h6>]]
    print[[</div>]]
    
    print [[

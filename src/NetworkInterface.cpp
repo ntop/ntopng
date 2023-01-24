@@ -10221,7 +10221,7 @@ public:
   inline u_int64_t getTotalRcvd()  { return(tot_rcvd);       }
   inline void      incFlowStats(const IpAddress *c, const IpAddress *s,
 				u_int64_t bytes_sent, u_int64_t bytes_rcvd) {
-    clients.insert(c), servers.insert(c), num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd;
+    clients.insert(c), servers.insert(s), num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd;
   }
 };
 
@@ -10289,9 +10289,8 @@ void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
     else if(detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
       snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
     else
-      snprintf(proto, sizeof(proto), "%u.%u",
-	       detected_protocol.master_protocol,
-	       detected_protocol.app_protocol);
+      snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
+    /* Currently it is not supported the possibily to add double filter on master and app proto */
 
     lua_push_uint32_table_entry(vm, "vlan_id",     vlan_id);
     lua_push_str_table_entry(vm,    "proto_id",    proto);

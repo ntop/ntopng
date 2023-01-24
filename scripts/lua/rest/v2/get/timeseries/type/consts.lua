@@ -17,6 +17,8 @@ local pool = _GET["pool"]
 local vlan = _GET["vlan"]
 local mac = _GET["mac"]
 local subnet = _GET["subnet"]
+local device = _GET["device"]
+local port = _GET["port"]
 
 local res = {}
 
@@ -36,6 +38,8 @@ local tags = {
   vlan = vlan,
   mac  = mac,
   subnet = subnet,
+  device = device,
+  port = port
 }
 
 res = table.merge(res, timeseries_info.retrieve_specific_timeseries(tags, query))

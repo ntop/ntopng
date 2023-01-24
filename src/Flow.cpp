@@ -6960,12 +6960,27 @@ void Flow::swap() {
   TCPSeqNum ts;
   InterarrivalStats *is = cli2srvPktTime;
   time_t now = time(NULL);
+
+#if 0
+  char buf[128];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", print(buf, sizeof(buf)));
+#endif
   
-  cli_host->decNumFlows(now, true /* as client */), srv_host->decNumFlows(now, false /* as server */);
-  cli_host = srv_host, cli_ip_addr = srv_ip_addr;
-  srv_host = h, srv_ip_addr = i;
-  cli_host->incNumFlows(now, true /* as client */), srv_host->incNumFlows(now, false /* as server */);
-  
+  if(cli_host && srv_host) {
+    cli_host->decNumFlows(now, true /* as client */), srv_host->decNumFlows(now, false /* as server */);
+    cli_host = srv_host, cli_ip_addr = srv_ip_addr;
+    srv_host = h, srv_ip_addr = i;
+    cli_host->incNumFlows(now, true /* as client */), srv_host->incNumFlows(now, false /* as server */);
+  } else {
+    /* This is probably a view interface */
+
+    if(cli_ip_addr && srv_ip_addr && (cli_host == NULL) && (srv_host == NULL)) {
+      IpAddress *c = cli_ip_addr;
+
+      cli_ip_addr = srv_ip_addr; srv_ip_addr = c;
+    }
+  }
+    
   Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS), Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
   initial_bytes_entropy.c2s = initial_bytes_entropy.s2c; initial_bytes_entropy.s2c = s;
 
@@ -6996,7 +7011,7 @@ void Flow::swap() {
   /*
     We do not swap L7 info as if it direction was wrong they were not computed
     Same applies with latency counters
-  */
-
+  */  
+  
   swap_done = 1, swap_requested = 0;
 }

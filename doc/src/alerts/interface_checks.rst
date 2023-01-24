@@ -126,22 +126,6 @@ The alert is sent when unexpected behaviour is seen in ASN.
 *Not Enabled by Default*
 
 
-
-**Unexpected Device Connected**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Checks for unexpected device.
-
-A random device without an allowed MAC address connected to the network.
-
-Alert is sent when a unexpected device connected.
-
-*Category: Network*
-
-*Not Enabled by Default*
-
-
-
 **Unexpected Network Behaviour**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Checks for Unexpected Behaviour.
@@ -189,7 +173,7 @@ Ntopng sends an alert in case DHCP starvation occurs.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Check for MAC addresses.
 
-An alert is triggered whenever an unexpected MAC address connects or disconnects form an Interface. After enabling the alert, a new page, called `Devices Exclusion` (more info can be found `here <../advanced_features/devices_exclusion.html>`_) is going to available in the `Settings` menù. 
+An alert is triggered whenever an unexpected MAC address connects or disconnects form an Interface. After enabling the alert, a new page, called `Devices Exclusion` (more info can be found `here <../advanced_features/devices_exclusion.html>`_) is going to be available in the `Settings` menu. 
 
 By jumping there, users are able to configure denied/allowed MAC addresses (unexpected/expected MAC addresses). When a denied or non accounted MAC address connects to the Interface a new Engaged alert is going to be triggered, that is going to be released when the unexpected MAC address is going to disconnect from the Interface or when allowed.  
 

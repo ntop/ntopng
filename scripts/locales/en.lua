@@ -5892,7 +5892,7 @@ local lang = {
     ["vlan"] = "VLAN",
     ["timeframe"] = "Timeframe",
     ["l4proto"] = "Protocol",
-    ["notes"] = "The above chart represents the top server interface host ports.<li>If flow storage is enabled, historical flow ports can be reported.",
+    ["notes"] = "<b style='color: #d62728;'>Important</b>: At most 35 links are going to be displayed in order to have a readable chart.<li>The above chart represents the top server ports used on each VLAN.<li>If flow storage is enabled, historical flow ports can be reported.<li>The VLANs, ports and application protocols are clickable, sending the user to the corresponding live or historical flow page.",
   },
   ["processes_stats"] = {
     ["active_processes_title"] = "Active Processes: Realtime View",

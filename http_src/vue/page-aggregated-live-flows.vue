@@ -108,7 +108,7 @@ async function start_datatable() {
   let columns = [
     { 
       columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-        return `<a href="${http_prefix}/lua/flows_stats.lua?application=${data.label}" target="_blank">${data.label}</a>`
+        return `<a href="${http_prefix}/lua/flows_stats.lua?application=${data.id}" target="_blank">${data.label}</a>`
       } 
     },
     { 
@@ -129,22 +129,22 @@ async function start_datatable() {
       } 
     },
     { 
-      columnName: i18n("breakdown"), targets: 0, name: 'breakdown', data: 'breakdown', className: 'text-nowrap text-center', responsivePriority: 1, render: (data) => {
+      columnName: i18n("breakdown"), targets: 0, sorting: false, name: 'breakdown', data: 'breakdown', className: 'text-nowrap text-center', responsivePriority: 1, render: (data) => {
         return NtopUtils.createBreakdown(data.percentage_bytes_sent, data.percentage_bytes_rcvd, i18n('sent'), i18n('rcvd'));
       }
     },
     { 
-      columnName: i18n("traffic_sent"), targets: 0, name: 'bytes_sent', data: 'bytes_sent', className: 'text-nowrap text-center', responsivePriority: 1, render: (data) => {
+      columnName: i18n("traffic_sent"), targets: 0, name: 'bytes_sent', data: 'bytes_sent', className: 'text-nowrap text-end', responsivePriority: 1, render: (data) => {
         return NtopUtils.bytesToSize(data);
       }
     },
     { 
-      columnName: i18n("traffic_rcvd"), targets: 0, name: 'bytes_rcvd', data: 'bytes_rcvd', className: 'text-nowrap text-center', responsivePriority: 1, render: (data) => {
+      columnName: i18n("traffic_rcvd"), targets: 0, name: 'bytes_rcvd', data: 'bytes_rcvd', className: 'text-nowrap text-end', responsivePriority: 1, render: (data) => {
         return NtopUtils.bytesToSize(data);
       }
     },
     { 
-      columnName: i18n("total_traffic"), targets: 0, name: 'tot_traffic', data: 'tot_traffic', className: 'text-nowrap text-center', responsivePriority: 1, render: (data) => {
+      columnName: i18n("total_traffic"), targets: 0, name: 'tot_traffic', data: 'tot_traffic', className: 'text-nowrap text-end', responsivePriority: 1, render: (data) => {
         return NtopUtils.bytesToSize(data);
       }
     },
