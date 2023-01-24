@@ -187,7 +187,7 @@ void LocalHost::deserialize(json_object *o) {
   if((!isBroadcastHost()) && stats)
     stats->deserialize(o);
 
-  if(! mac) {
+  if(!mac) {
     u_int8_t mac_buf[6];
     memset(mac_buf, 0, sizeof(mac_buf));
 

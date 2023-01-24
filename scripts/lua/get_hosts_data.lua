@@ -210,10 +210,6 @@ if(hosts_stats ~= nil) then
 	 vals[hosts_stats[key]["queries.rcvd"]+postfix] = key
       elseif(sortColumn == "column_ip") then
 	 vals[hosts_stats[key]["iphex"]..postfix] = key
-      elseif(sortColumn == "column_tcp_unresp_as_client") then
-	 vals[hosts_stats[key]["num_contacted_peers_with_tcp_flows_no_response"]..postfix] = key
-      elseif(sortColumn == "column_tcp_unresp_as_server") then
-	 vals[hosts_stats[key]["num_incoming_peers_that_sent_tcp_flows_no_response"]..postfix] = key
       elseif custom_column_utils.isCustomColumn(sortColumn) then
 	 custom_column_key, custom_column_format = custom_column_utils.label2criteriakey(sortColumn)
 	 local val = custom_column_utils.hostStatsToColumnValue(hosts_stats[key], custom_column_key, false)

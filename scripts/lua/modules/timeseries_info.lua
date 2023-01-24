@@ -257,14 +257,14 @@ local function add_active_monitoring_timeseries(tags, timeseries)
   
   if measurement_info.force_host then
     -- Special case of speedtest
-    timeseries[#timeseries + 1] = { schema = "am_host:val_hour", id = timeseries_id.active_monitoring, label = label, priority = 0, measure_unit = measure_unit, scale = 0, timeseries = { value = { label = measure_label, color = timeseries_info.get_timeseries_color('default') } } }
+    timeseries[#timeseries + 1] = { schema = "am_host:val_hour", id = timeseries_id.active_monitoring, label = label, priority = 0, measure_unit = measure_unit, scale = measure_label, timeseries = { value = { label = measure_label, color = timeseries_info.get_timeseries_color('default') } } }
   else
-    timeseries[#timeseries + 1] = { schema = "am_host:val_min", id = timeseries_id.active_monitoring, label = label, priority = 0, measure_unit = measure_unit, scale = 0, timeseries = { value = { label = measure_label, color = timeseries_info.get_timeseries_color('default') } } }
+    timeseries[#timeseries + 1] = { schema = "am_host:val_min", id = timeseries_id.active_monitoring, label = label, priority = 0, measure_unit = measure_unit, scale = measure_label, timeseries = { value = { label = measure_label, color = timeseries_info.get_timeseries_color('default') } } }
   end
       
   if (measurement_info) and (table.len(measurement_info.additional_timeseries) > 0) then
     for _, ts_information in ipairs(measurement_info.additional_timeseries) do
-      timeseries[#timeseries + 1] = { schema = ts_information.schema .. "_min", id = timeseries_id.active_monitoring, label = ts_information.label, priority = 0, measure_unit = "ms", scale = 0 }
+      timeseries[#timeseries + 1] = { schema = ts_information.schema .. "_min", id = timeseries_id.active_monitoring, label = ts_information.label, priority = 0, measure_unit = "ms", scale = i18n('graphs.metric_labels.ms') }
       local am_schema_info = {}
 
       if ts_information.schema == 'am_host:jitter_stats' then
