@@ -24,6 +24,9 @@
 /* *************************************** */ 
 
 bool SerializableElement::serializeToRedis() {
+#if 1
+  return(true);
+#else
   json_object *my_obj;
 
   if((my_obj = json_object_new_object()) != NULL) {
@@ -41,11 +44,15 @@ bool SerializableElement::serializeToRedis() {
   }
 
   return(false);
+#endif
 }
 
 /* *************************************** */
 
 bool SerializableElement::deserializeFromRedis() {
+#if 1
+  return(true);
+#else
   char key[CONST_MAX_LEN_REDIS_KEY];
   json_object *o;
 
@@ -56,6 +63,7 @@ bool SerializableElement::deserializeFromRedis() {
   }
 
   return(false);
+#endif
 }
 
 /* *************************************** */
