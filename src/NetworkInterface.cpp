@@ -5709,7 +5709,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
     return(-1);
   }
 
-  if((!strcmp(sortColumn, "column_ip")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_ip, sorter = hostSorter;
+  if((!strcmp(sortColumn, "column_ip")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_ip, sorter = (isViewed() || isView()) ? ipSorter : hostSorter;
   else if(!strcmp(sortColumn, "column_vlan")) retriever->sorter = column_vlan, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_alerts")) retriever->sorter = column_alerts, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_name")) retriever->sorter = column_name, sorter = stringSorter;
