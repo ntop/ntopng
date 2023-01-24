@@ -8655,8 +8655,6 @@ void NetworkInterface::updateBroadcastDomains(VLANid vlan_id,
    Start the thread for the execution of flow user script hooks
  */
 bool NetworkInterface::initFlowChecksLoop() {
-  if(isView()) /* Don't init the loop for view interfaces: the loop is run by every viewed interface independently */
-    return true;
 
   pthread_create(&flowChecksLoop, NULL, ::flowChecksLoop, (void*)this);
   flowAlertsDequeueLoopCreated = true;
@@ -8670,8 +8668,6 @@ bool NetworkInterface::initFlowChecksLoop() {
    Start the thread for the execution of host user script hooks
  */
 bool NetworkInterface::initHostChecksLoop() {
-  if(isView()) /* Don't init the loop for view interfaces: the loop is run by every viewed interface independently */
-    return true;
 
   pthread_create(&hostChecksLoop, NULL, ::hostChecksLoop, (void*)this);
   hostAlertsDequeueLoopCreated = true;
