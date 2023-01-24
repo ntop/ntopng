@@ -6,12 +6,14 @@
 
 <div id="aggregated-live-flows">
   <page-aggregated-live-flows
-  :ifid="ifid">
+  :ifid="ifid"
+  :vlans="vlans">
   </page-aggregated-live-flows>
 </div>
   
 <script type="text/javascript">  
   const ifid = {* ifid *}
+  const vlans = {* vlans *}
   
   function start_vue() {
     let vue_options = {
@@ -26,6 +28,7 @@
       },
       data() {
         return {
+          vlans: vlans,
           ifid: ifid,
         };
       },

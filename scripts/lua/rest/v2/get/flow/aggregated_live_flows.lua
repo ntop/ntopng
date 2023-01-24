@@ -11,6 +11,7 @@ local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
+local vlan = _GET["vlan_id"]
 
 if isEmptyString(ifid) then
   rc = rest_utils.consts.err.invalid_interface
@@ -23,15 +24,26 @@ interface.select(ifid)
 local aggregated_info = interface.getProtocolFlowsStats()
 
 for _, data in pairs(aggregated_info) do
+  if vlan and not isEmptyString(vlan) and tonumber(vlan) ~= tonumber(data.vlan_id) then
+    goto continue
+  end
+
+  local bytes_sent = data.bytes_sent
+  local bytes_rcvd = data.bytes_rcvd
+  local total_bytes = bytes_rcvd + bytes_sent
   res[#res + 1] = {
     flows = data.num_flows,
     application = {
       label = data.proto_name,
       id = data.proto_id,
     },
-    bytes_rcvd = data.bytes_rcvd,
-    bytes_sent = data.bytes_sent,
-    tot_traffic = data.bytes_sent + data.bytes_rcvd,
+    breakdown = {
+      percentage_bytes_sent = (bytes_sent * 100) / total_bytes,
+      percentage_bytes_rcvd = (bytes_rcvd * 100) / total_bytes,
+    },
+    bytes_rcvd = bytes_rcvd,
+    bytes_sent = bytes_sent,
+    tot_traffic = total_bytes,
     num_servers = data.num_servers,
     num_clients = data.num_clients,
     vlan_id = {
@@ -39,6 +51,8 @@ for _, data in pairs(aggregated_info) do
       label = data.vlan_id
     }
   }
+
+::continue::
 end
 
 rest_utils.answer(rc, res)

@@ -87,9 +87,9 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {
     label = "<i class=\"fas fa-lg fa-home\"></i>",
   },
   {
-    active = page == "traffic",
-    page_name = "traffic",
-    label = i18n("traffic"),
+    active = page == "analysis",
+    page_name = "analysis",
+    label = i18n("analysis"),
   },
 })
 
@@ -511,8 +511,35 @@ if (page == "flows" or page == nil) then
       ]])
     end
 else
+  local json = require 'dkjson'
+  -- Format VLANs dropdown
+  local tmp_vlans = {}
+  local vlans = {}
+  local vlan_list = interface.getVLANsList() or {}
+
+  if table.len(vlan_list) > 0 then
+    vlan_list = vlan_list.VLANs
+  end
+
+  for _, vlan_info in pairs(vlan_list or {}) do
+    local label = i18n("hosts_stats.vlan_title", { vlan = vlan_info.vlan_id })
+    tmp_vlans[#tmp_vlans + 1] = {
+      label = label,
+      id = vlan_info.vlan_id,
+      countable = false,
+      key = vlan_info.vlan_id,
+      currently_active = (vlan == vlan_info.vlan_id)
+    }
+  end
+
+  -- Order again by name
+  for _, vlan in pairsByField(tmp_vlans or {}, 'label', asc_insensitive) do
+    vlans[#vlans + 1] = vlan
+  end
+
   template.render("pages/aggregated_live_flows.template", { 
     ifid = ifId,
+    vlans = json.encode(vlans),
   })
 end
 
