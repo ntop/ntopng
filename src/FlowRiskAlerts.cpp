@@ -187,6 +187,9 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
 
   /* NDPI_MINOR_ISSUES */
   { { flow_alert_ndpi_minor_issues, alert_category_network }, "ndpi_minor_issues" },
+
+  /* NDPI_TCP_ISSUES */
+  { { flow_alert_ndpi_tcp_issues, alert_category_network }, "ndpi_tcp_issues" },
 };
 
 /* **************************************************** */

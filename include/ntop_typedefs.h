@@ -507,6 +507,7 @@ typedef enum {
   flow_alert_custom_lua_script                    = 87,
   flow_alert_ndpi_periodic_flow                   = 88,
   flow_alert_ndpi_minor_issues                    = 89,
+  flow_alert_ndpi_tcp_issues                      = 90,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
