@@ -87,6 +87,7 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {
     label = "<i class=\"fas fa-lg fa-home\"></i>",
   },
   {
+    url = base_url .. "?vlan_id=0&page=analysis",
     active = page == "analysis",
     page_name = "analysis",
     label = i18n("analysis"),
@@ -531,14 +532,20 @@ else
     vlan_list = vlan_list.VLANs
   end
 
-  for _, vlan_info in pairs(vlan_list or {}) do
+  for _, vlan_info in pairsByField(vlan_list or {}, 'vlan_id', asc) do
     local label = i18n("hosts_stats.vlan_title", { vlan = vlan_info.vlan_id })
+    local currently_active = false
+
+    if vlan_info.vlan_id == 0 then
+      label = i18n('no_vlan')
+    end
+
     tmp_vlans[#tmp_vlans + 1] = {
       label = label,
       id = vlan_info.vlan_id,
       countable = false,
       key = vlan_info.vlan_id,
-      currently_active = (vlan == vlan_info.vlan_id)
+      currently_active = (vlan == vlan_info.vlan_id or currently_active)
     }
   end
 

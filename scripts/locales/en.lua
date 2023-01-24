@@ -32,7 +32,7 @@ local lang = {
   ["any"] = "any",
   ["app_name"] = "Application Name",
   ["application"] = "Application",
-  ["application_proto"] = "Application Proto",
+  ["application_proto"] = "Application Protocol",
   ["applications"] = "Apps",
   ["applications_long"] = "Applications",
   ["apply"] = "Apply",
@@ -5884,6 +5884,7 @@ local lang = {
   },
   ["ports_analysis"] = {
     ["no_data"] = "No Server Ports detected",
+    ["max_entries"] = "Only 35 flows with the most traffic are displayed due to the huge number of flows",
     ["live"] = "Live",
     ["historical"] = "Historical",
     ["title"] = "Ports Analysis",

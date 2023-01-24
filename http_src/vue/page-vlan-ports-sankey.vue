@@ -30,6 +30,11 @@
                 </div>
               </div>
             </template>
+            <div class="mt-auto m-1" :class="(max_entries_reached)?' hidden':''" :title=max_entry_title style="cursor: help;">
+              <button type="button" class="btn btn-link" disabled>
+                <i class="text-danger fa-solid fa-triangle-exclamation"></i>
+              </button>
+            </div>
           </div>
 
           <Sankey2
@@ -63,6 +68,8 @@ const props = defineProps({
 });
 
 const _i18n = (t) => i18n(t);
+const max_entries_reached = ref(false)
+const max_entry_title = _i18n('ports_analysis.max_entries')
 const no_data_message = _i18n('ports_analysis.no_data')
 const sankey_chart = ref(null)
 const body_div = ref(null);
@@ -118,6 +125,10 @@ const update_sankey = function() {
   set_sankey_data();
 }
 
+function check_max_entries(data) {
+  data.max_entries_reached = max_entries_reached.value
+}
+
 async function set_sankey_data() {
   loading.value.show_loading();
   let data = await get_sankey_data();    
@@ -128,7 +139,7 @@ async function set_sankey_data() {
 async function get_sankey_data() {
   const url_request = get_sankey_url();
   let graph = await ntopng_utility.http_request(url_request);
-  // add_fake_circular_link(graph);
+  check_max_entries(graph);
   graph = make_complete_graph(graph);
   const sankey_data = get_sankey_data_from_rest_data(graph);
   /* In case no data is returned, show the No Data message */
