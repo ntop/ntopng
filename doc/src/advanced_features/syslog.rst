@@ -15,15 +15,18 @@ case please read the Suricata Integration section.
 Firewall logs instead can be ingested by ntopng to provide visibility over firewall
 activities. An example is the *Identity Management*, in fact it is possible to track
 all connection/disconnection events logged by a VPN server, in order to associate 
-traffic to users. 
-
-ntopng Enterprise L additionally includes plugin for collecting VPN logs and correlate network
-traffic to VPN users supporting multiple devices from the vendors below:
+traffic to users. ntopng Enterprise L includes plugin for collecting VPN logs and
+correlate network traffic to VPN users supporting multiple devices from the vendors 
+below:
 
 - Fortinet
+- Kerberos/NXLog (Active Directory)
+- OpenVPN
 - OPNsense
 - SonicWall
 - Sophos
+
+For further information about all the VPN plugins please also visit :ref:`SyslogChecks target`.
 
 ntopng Configuration
 ~~~~~~~~~~~~~~~~~~~~
