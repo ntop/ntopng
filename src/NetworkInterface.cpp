@@ -2962,8 +2962,6 @@ u_int64_t NetworkInterface::dequeueHostAlerts(u_int budget) {
     bool released = alert_info.second;
     Host *h = alert->getHost();
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "NetworkInterface::dequeueHostAlerts");
-
     /* Enqueue alert to recipients */
     h->enqueueAlertToRecipients(alert, released);
 
