@@ -185,7 +185,7 @@ class Ntopng:
         :return: List of interfaces
         :rtype: array
         """
-        return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/interfaces.lua", { "host": host }))
+        return(self.request(self.rest_v2_url + "/get/host/interfaces.lua", { "host": host }))
 
     def self_test(self):
         try:
