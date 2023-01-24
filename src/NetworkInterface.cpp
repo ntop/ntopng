@@ -928,9 +928,13 @@ bool NetworkInterface::enqueueHostAlert(HostAlert *alert) {
   Host *h = alert->getHost();
   bool ret = false;
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "NetworkInterface::enqueueHostAlert");
+
   if (!ntop->getPrefs()->dontEmitHostAlerts()
       && hostAlertsQueue
       && hostAlertsQueue->enqueue(alert_info, true)) {
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "NetworkInterface::enqueueHostAlert::enqueued");
 
     /*
       If enqueue was successful, increase the host reference counter.
@@ -2961,6 +2965,8 @@ u_int64_t NetworkInterface::dequeueHostAlerts(u_int budget) {
     HostAlert *alert = alert_info.first;
     bool released = alert_info.second;
     Host *h = alert->getHost();
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "NetworkInterface::dequeueHostAlerts");
 
     /* Enqueue alert to recipients */
     h->enqueueAlertToRecipients(alert, released);

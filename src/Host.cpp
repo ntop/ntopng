@@ -223,6 +223,7 @@ void Host::housekeep(time_t t) {
     iface->execHostChecks(this);
     break;
   case hash_entry_state_idle:
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host::housekeep::releaseAllEngagedAlerts");
     releaseAllEngagedAlerts();
     break;
   default:
@@ -2068,6 +2069,8 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
 
   rv = ntop->recipients_enqueue(&notification, alert_entity_host /* Host recipients */);
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host::enqueueAlertToRecipients");
+
   if(!rv)
     getInterface()->incNumDroppedAlerts(alert_entity_host);
 
@@ -2083,6 +2086,7 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
 
 /* Call this when setting host idle (before removing it from memory) */
 void Host::releaseAllEngagedAlerts() {
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host::releaseAllEngagedAlerts");
   for (u_int i = 0; i < NUM_DEFINED_HOST_CHECKS; i++) {
     HostCheckID t = (HostCheckID) i;
     HostAlert *alert = getCheckEngagedAlert(t);

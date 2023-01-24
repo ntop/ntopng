@@ -1041,7 +1041,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int32_t getNumEngagedAlerts() const;
   u_int32_t getNumEngagedAlerts(AlertLevelGroup alert_level_group) const;
   void luaNumEngagedAlerts(lua_State *vm) const;
-  void releaseAllEngagedAlerts();
   int  walkActiveHosts(lua_State* vm, HostWalkMode mode,
 		       u_int32_t maxHits,
 		       int16_t networkIdFilter,
