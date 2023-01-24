@@ -928,13 +928,9 @@ bool NetworkInterface::enqueueHostAlert(HostAlert *alert) {
   Host *h = alert->getHost();
   bool ret = false;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "NetworkInterface::enqueueHostAlert");
-
   if (!ntop->getPrefs()->dontEmitHostAlerts()
       && hostAlertsQueue
       && hostAlertsQueue->enqueue(alert_info, true)) {
-
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "NetworkInterface::enqueueHostAlert::enqueued");
 
     /*
       If enqueue was successful, increase the host reference counter.
