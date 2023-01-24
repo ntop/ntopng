@@ -19,9 +19,12 @@ require "lua_utils"
 require "flow_utils"
 
 local page_utils = require("page_utils")
+local template = require "template_utils"
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
+
+
 
 page_utils.set_active_menu_entry(ternary(have_nedge, page_utils.menu_entries.nedge_flows, page_utils.menu_entries.active_flows))
 
@@ -60,6 +63,7 @@ local alert_type_severity  = _GET["alert_type_severity"]
 local tcp_state    = _GET["tcp_flow_state"]
 local port         = _GET["port"]
 local network_id   = _GET["network"]
+local page         = _GET["page"]
 
 local prefs = ntop.getPrefs()
 local ifstats = interface.getStats()
@@ -76,11 +80,20 @@ local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = { ifid = interface.getId() }
 local mini_title = i18n("flow_details.purge_time", { purge_time = ntop.getPref("ntopng.prefs.flow_max_idle"), prefs_url = ntop.getHttpPrefix().. '/lua/admin/prefs.lua?tab=in_memory' })
 
+page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {
+  {
+    active = page == "flows" or page == nil,
+    page_name = "flows",
+    label = "<i class=\"fas fa-lg fa-home\"></i>",
+  },
+  {
+    active = page == "traffic",
+    page_name = "traffic",
+    label = i18n("traffic"),
+  },
+})
+
 if (page == "flows" or page == nil) then
-   local active_msg = getFlowsTableTitle()
-
-   page_utils.print_page_title(active_msg, mini_title)
-
    if(category ~= nil) then
       page_params["category"] = category
    end
@@ -173,12 +186,13 @@ if (page == "flows" or page == nil) then
    if(traffic_profile ~= nil) then
      page_params["traffic_profile"] = traffic_profile
    end
-   
+
+   print[[<div class="d-flex">]]
    if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"])) then
          print [[
-         <div class="col-12 p-1">
+         <div class="col-10">
             <div class="info-stats">
-               <ul class="nav-side" style="list-style-type: none;">
+               <ul class="nav-side m-0 ps-5 ms-1" style="list-style-type: none;">
                   <li class="nav-item">
                      <div class="up">
                         <i class="fas fa-arrow-up" data-original-title="" title=""></i>
@@ -206,6 +220,10 @@ if (page == "flows" or page == nil) then
          </div>
    ]]
    end
+   print[[<div class="col-2 ms-auto mt-auto mb-auto">]]
+   print(mini_title)
+   print[[</div>]]
+   print[[</div>]]
    
    print [[
          <div id="table-flows"></div>
@@ -293,207 +311,209 @@ if (page == "flows" or page == nil) then
          },
       ]]
    end
+
+   print[[
+         {
+            title: "]] print(i18n("client")) print[[",
+            field: "column_client",
+            sortable: true,
+            css: {
+               whiteSpace: 'nowrap'
+            }
+         }, {
+            title: "]] print(i18n("server")) print[[",
+            field: "column_server",
+            sortable: true,
+            css: {
+               whiteSpace: 'nowrap'
+            }
    
-
-end
-
-print[[
-      {
-         title: "]] print(i18n("client")) print[[",
-         field: "column_client",
-         sortable: true,
-         css: {
-            whiteSpace: 'nowrap'
-         }
-      }, {
-         title: "]] print(i18n("server")) print[[",
-         field: "column_server",
-         sortable: true,
-         css: {
-            whiteSpace: 'nowrap'
-         }
-
-      },
-]]
-
-if begin_epoch_set == true then
-   print[[
-      {
-         title: "]] print(i18n("first_seen")) print[[",
-         field: "column_first_seen",
-         sortable: true,
-         css: {
-            whiteSpace: 'nowrap',
-            textAlign: 'center',
-         }
-      },
+         },
    ]]
-end
-
-if duration_or_last_seen == false then 
+   
+   if begin_epoch_set == true then
+      print[[
+         {
+            title: "]] print(i18n("first_seen")) print[[",
+            field: "column_first_seen",
+            sortable: true,
+            css: {
+               whiteSpace: 'nowrap',
+               textAlign: 'center',
+            }
+         },
+      ]]
+   end
+   
+   if duration_or_last_seen == false then 
+      print[[
+         {
+            title: "]] print(i18n("duration")) print[[",
+            field: "column_duration",
+            sortable: true,
+            css: {
+               whiteSpace: 'nowrap',
+               textAlign: 'center',
+            }
+         },
+      ]]
+   else
+      print[[
+         {
+            title: "]] print(i18n("last_seen")) print[[",
+            field: "column_last_seen",
+            sortable: true,
+            css: {
+               whiteSpace: 'nowrap',
+               textAlign: 'center'
+            }
+         },
+      ]]
+   end   
+   
+   print[[{
+            title: "]] print(i18n("score")) print[[",
+            field: "column_score",
+            hidden: ]] print(ternary(isScoreEnabled(), "false", "true")) print[[,
+            sortable: true,
+            css: {
+               textAlign: 'center',
+               whiteSpace: 'nowrap'
+            }
+         }, {
+            title: "]] print(i18n("breakdown")) print[[",
+            field: "column_breakdown",
+            sortable: false,
+            css: {
+               textAlign: 'center',
+               whiteSpace: 'nowrap'
+            }
+         }, {
+            title: "]] print(i18n("flows_page.actual_throughput")) print[[",
+            field: "column_thpt",
+            sortable: true,
+            css: {
+               textAlign: 'right',
+               whiteSpace: 'nowrap'
+            }
+         }, {
+            title: "]] print(i18n("flows_page.total_bytes")) print[[",
+            field: "column_bytes",
+            sortable: true,
+            css: {
+               textAlign: 'right',
+               whiteSpace: 'nowrap'
+            }
+         }, {
+            title: "]] print(i18n("info")) print[[",
+            field: "column_info",
+            sortable: false,
+            css: {
+               textAlign: 'left',
+               whiteSpace: 'nowrap'
+            }
+         },]]
+   if interface.isPacketInterface() == false then
+      print[[
+         {
+            title: "]] print(i18n('flow_devices.exporter_ip')) print[[",
+            field: "column_device_ip",
+            sortable: true,
+            css: {
+               textAlign: 'left',
+               whiteSpace: 'nowrap'
+            }
+         }, {
+            title: "]] print(i18n('flows_page.inIfIdx')) print[[",
+            field: "column_in_index",
+            sortable: true,
+            css: {
+               textAlign: 'left',
+               whiteSpace: 'nowrap'
+            }
+         }, {
+            title: "]] print(i18n('flows_page.outIfIdx')) print[[",
+            field: "column_out_index",
+            sortable: true,
+            css: {
+               textAlign: 'left',
+               whiteSpace: 'nowrap'
+            }
+         },
+      ]]
+   end
    print[[
-      {
-         title: "]] print(i18n("duration")) print[[",
-         field: "column_duration",
-         sortable: true,
-         css: {
-            whiteSpace: 'nowrap',
-            textAlign: 'center',
-         }
-      },
+         ]
+      });
    ]]
+   
+   if(have_nedge) then
+     printBlockFlowJs()
+   end
+   print[[
+   </script>
+   ]]
+   if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"])) then
+      print([[
+         <script type='text/javascript'>
+   
+            let old_totBytesSent = 0;
+            let old_totBytesRcvd = 0;
+            let refresh_rate     = 5; /* seconds */
+   
+            $(document).ready(function() {
+               const downloadChart = $("#download-filter-traffic-chart").peity("line", { width: 64, fill: "lightgreen" });
+               const uploadChart = $("#upload-filter-traffic-chart").peity("line", { width: 64 });
+               
+               function pushNewValue(chart, newValue) {
+                  const values = chart.text().split(",");
+                  values.shift();
+                  values.push(newValue);
+   
+                  chart
+                    .text(values.join(","))
+                    .change()
+               }
+   
+               function updateChart() {
+   
+                  const request = $.get("]] .. getPageUrl(ntop.getHttpPrefix() .. "/lua/rest/v2/get/flow/traffic_stats.lua", page_params) .. "&ifid=" .. interface.getId() .. [[");
+                  request.then((data) => {
+                     let throughput_bps_sent = (8 * (data.rsp.totBytesSent - old_totBytesSent)) / refresh_rate;
+                     let throughput_bps_rcvd = (8 * (data.rsp.totBytesRcvd - old_totBytesRcvd)) / refresh_rate;
+                     let tot_throughput = (8 * data.rsp.totThpt);
+   
+                     if (tot_throughput < 0)      tot_throughput = 0;
+                     if (throughput_bps_sent < 0) throughput_bps_sent = 0;
+                     if (throughput_bps_rcvd < 0) throughput_bps_rcvd = 0;
+   
+                     if ((old_totBytesSent > 0) || (old_totBytesRcvd > 0)) {
+                       /* Second iteration or later */
+                       pushNewValue(downloadChart, -throughput_bps_rcvd);
+                       pushNewValue(uploadChart, throughput_bps_sent);
+                       $('#download-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_rcvd, 1000));                  
+                       $('#upload-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_sent, 1000));
+                     }
+   
+                     /* Keep the old value for computing the differnce at the next round */
+                     old_totBytesSent = data.rsp.totBytesSent;
+                     old_totBytesRcvd = data.rsp.totBytesRcvd;
+                     $('#filtered-flows-tot-bytes-value').html(NtopUtils.bytesToSize(old_totBytesSent + old_totBytesRcvd));
+                     $('#filtered-flows-tot-throughput-value').html(NtopUtils.bitsToSize(tot_throughput, 1000));
+                  })
+               }
+   
+               setInterval(() => { updateChart() }, refresh_rate*1000);
+   
+               updateChart();
+            })
+         </script>
+      ]])
+    end
 else
-   print[[
-      {
-         title: "]] print(i18n("last_seen")) print[[",
-         field: "column_last_seen",
-         sortable: true,
-         css: {
-            whiteSpace: 'nowrap',
-            textAlign: 'center'
-         }
-      },
-   ]]
-end   
-
-print[[{
-         title: "]] print(i18n("score")) print[[",
-         field: "column_score",
-         hidden: ]] print(ternary(isScoreEnabled(), "false", "true")) print[[,
-         sortable: true,
-         css: {
-            textAlign: 'center',
-            whiteSpace: 'nowrap'
-         }
-      }, {
-         title: "]] print(i18n("breakdown")) print[[",
-         field: "column_breakdown",
-         sortable: false,
-         css: {
-            textAlign: 'center',
-            whiteSpace: 'nowrap'
-         }
-      }, {
-         title: "]] print(i18n("flows_page.actual_throughput")) print[[",
-         field: "column_thpt",
-         sortable: true,
-         css: {
-            textAlign: 'right',
-            whiteSpace: 'nowrap'
-         }
-      }, {
-         title: "]] print(i18n("flows_page.total_bytes")) print[[",
-         field: "column_bytes",
-         sortable: true,
-         css: {
-            textAlign: 'right',
-            whiteSpace: 'nowrap'
-         }
-      }, {
-         title: "]] print(i18n("info")) print[[",
-         field: "column_info",
-         sortable: false,
-         css: {
-            textAlign: 'left',
-            whiteSpace: 'nowrap'
-         }
-      },]]
-if interface.isPacketInterface() == false then
-   print[[
-      {
-         title: "]] print(i18n('flow_devices.exporter_ip')) print[[",
-         field: "column_device_ip",
-         sortable: true,
-         css: {
-            textAlign: 'left',
-            whiteSpace: 'nowrap'
-         }
-      }, {
-         title: "]] print(i18n('flows_page.inIfIdx')) print[[",
-         field: "column_in_index",
-         sortable: true,
-         css: {
-            textAlign: 'left',
-            whiteSpace: 'nowrap'
-         }
-      }, {
-         title: "]] print(i18n('flows_page.outIfIdx')) print[[",
-         field: "column_out_index",
-         sortable: true,
-         css: {
-            textAlign: 'left',
-            whiteSpace: 'nowrap'
-         }
-      },
-   ]]
-end
-print[[
-      ]
-   });
-]]
-
-if(have_nedge) then
-  printBlockFlowJs()
-end
-print[[
-</script>
-]]
-if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"])) then
-   print([[
-      <script type='text/javascript'>
-
-         let old_totBytesSent = 0;
-         let old_totBytesRcvd = 0;
-         let refresh_rate     = 5; /* seconds */
-
-         $(document).ready(function() {
-            const downloadChart = $("#download-filter-traffic-chart").peity("line", { width: 64, fill: "lightgreen" });
-            const uploadChart = $("#upload-filter-traffic-chart").peity("line", { width: 64 });
-            
-            function pushNewValue(chart, newValue) {
-               const values = chart.text().split(",");
-               values.shift();
-               values.push(newValue);
-
-               chart
-                 .text(values.join(","))
-                 .change()
-            }
-
-            function updateChart() {
-
-               const request = $.get("]] .. getPageUrl(ntop.getHttpPrefix() .. "/lua/rest/v2/get/flow/traffic_stats.lua", page_params) .. "&ifid=" .. interface.getId() .. [[");
-               request.then((data) => {
-                  let throughput_bps_sent = (8 * (data.rsp.totBytesSent - old_totBytesSent)) / refresh_rate;
-                  let throughput_bps_rcvd = (8 * (data.rsp.totBytesRcvd - old_totBytesRcvd)) / refresh_rate;
-                  let tot_throughput = (8 * data.rsp.totThpt);
-
-                  if (tot_throughput < 0)      tot_throughput = 0;
-                  if (throughput_bps_sent < 0) throughput_bps_sent = 0;
-                  if (throughput_bps_rcvd < 0) throughput_bps_rcvd = 0;
-
-                  if ((old_totBytesSent > 0) || (old_totBytesRcvd > 0)) {
-                    /* Second iteration or later */
-                    pushNewValue(downloadChart, -throughput_bps_rcvd);
-                    pushNewValue(uploadChart, throughput_bps_sent);
-                    $('#download-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_rcvd, 1000));                  
-                    $('#upload-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_sent, 1000));
-                  }
-
-                  /* Keep the old value for computing the differnce at the next round */
-                  old_totBytesSent = data.rsp.totBytesSent;
-                  old_totBytesRcvd = data.rsp.totBytesRcvd;
-                  $('#filtered-flows-tot-bytes-value').html(NtopUtils.bytesToSize(old_totBytesSent + old_totBytesRcvd));
-                  $('#filtered-flows-tot-throughput-value').html(NtopUtils.bitsToSize(tot_throughput, 1000));
-               })
-            }
-
-            setInterval(() => { updateChart() }, refresh_rate*1000);
-
-            updateChart();
-         })
-      </script>
-   ]])
+  template.render("pages/aggregated_live_flows.template", { 
+    ifid = ifId,
+  })
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

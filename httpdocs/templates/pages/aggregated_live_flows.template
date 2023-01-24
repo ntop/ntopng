@@ -1,0 +1,46 @@
+{#
+  (C) 2023 - ntop.org
+  This template is used by the `Live Flows` page inside the `Host Details`.    
+#}
+
+
+<div id="aggregated-live-flows">
+  <page-aggregated-live-flows
+  :ifid="ifid">
+  </page-aggregated-live-flows>
+</div>
+  
+<script type="text/javascript">  
+  const ifid = {* ifid *}
+  
+  function start_vue() {
+    let vue_options = {
+      components: {	  
+        'page-aggregated-live-flows': ntopVue.PageAggregatedLiveFlows,
+      },
+      /**
+      * First method called when the component is created.
+      */
+      created() { },
+      mounted() {
+      },
+      data() {
+        return {
+          ifid: ifid,
+        };
+      },
+      methods: { },
+    };
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#aggregated-live-flows');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>
+
