@@ -3559,6 +3559,7 @@ local lang = {
       ["load"] = "Load",
       ["lost_packets"] = "Lost Pkts",
       ["memory"] = "Memory",
+      ["ms"] = "Milliseconds",
       ["num_active"] = "active entries",
       ["num_containers"] = "Num. Containers",
       ["num_devices"] = "Num. Devices",
