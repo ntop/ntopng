@@ -24,6 +24,7 @@ ntopng_url   = "http://localhost:3000"
 iface_id     = 0
 auth_token   = None
 enable_debug = False
+output_file  = "report.pdf"
 
 actual_ts = int(time.time())
 yesterday = (actual_ts - 86400)
@@ -196,7 +197,7 @@ def df_to_table_png(df, fname):
     fig.update_layout(autosize=False, width=1100, height=350)
     fig.write_image(str(fname), scale=2)
 
-def plot_up_down():
+def plot_up_down(output_series_fname):
     """
     Plots a png of the timeseries
     """
@@ -218,7 +219,7 @@ def plot_up_down():
     #fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='black')
     #fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='black')
 
-    fig.write_image("series.png", width=1280, height=720)
+    fig.write_image(output_series_fname, width=1280, height=720)
 
 ##################################
 ######## DATA COLLECTION #########
@@ -309,18 +310,20 @@ pdf.cell(w=(pw/2), h=(ch/4), txt=f"Flows warnings: {flows_warnings}")
 pdf.ln(5)
 
 # Alerts
-pdf.image("alerts_table.png", x=10, y=75, w=190, h=65)
-## Hosts
-pdf.image("hosts_table.png", x=10, y=135, w=190, h=65)
-# Series plot
-plot_up_down()
-pdf.image("series.png", x=10, y=210, w=190, h=85)
+pdf.image(alerts_df_fname, x=10, y=75, w=190, h=65)
 
-created_files.append("series.png")
+## Hosts
+pdf.image(hosts_df_fname, x=10, y=135, w=190, h=65)
+
+# Series plot
+series_fname = "series.png"
+created_files.append(series_fname)
+plot_up_down(series_fname)
+pdf.image(series_fname, x=10, y=210, w=190, h=85)
 
 print("Generating PDF...")
 
-pdf.output(f"./report.pdf", "F")
+pdf.output(f"./{output_file}", "F")
 
 for file in created_files:
     delete_file(file)
