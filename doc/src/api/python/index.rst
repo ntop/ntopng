@@ -26,7 +26,7 @@ Examples are using additional libraries including NumPy for playing with time se
 
 .. code:: bash
 
-   pip3 install numpy plotly fpdf
+   pip3 install numpy plotly fpdf kaleido
 
 Installation
 ------------

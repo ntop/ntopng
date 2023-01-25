@@ -22,6 +22,7 @@ Examples are using additional libraries including NumPy for playing with time se
 - numpy
 - plotly
 - fpdf
+- kaleido
 
 API Information
 ---------------
