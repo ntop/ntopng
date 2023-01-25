@@ -19,7 +19,7 @@ from ntopng.ntopng import Ntopng
 
 ### NTOPNG API SETUP
 username     = "admin"
-password     = "admin"
+password     = "admin1"
 ntopng_url   = "http://localhost:3000"
 iface_id     = 0
 auth_token   = None
@@ -32,6 +32,8 @@ yesterday = (actual_ts - 86400)
 ######### DATA COLLECTOR #########
 ##################################
 
+print("Connecting to ntopng...")
+
 try:
     my_ntopng = Ntopng(username, password, auth_token, ntopng_url)
 
@@ -40,6 +42,8 @@ try:
 except ValueError as e:
     print(e)
     os._exit(-1)
+
+print("Collecting data...")
 
 try:
     my_interface = my_ntopng.get_interface(iface_id)
@@ -268,11 +272,12 @@ pdf.image("hosts_table.png", x=10, y=135, w=190, h=65)
 plot_up_down()
 pdf.image("series.png", x=10, y=210, w=190, h=85)
 
-created_files.append("report.pdf")
 created_files.append("series.png")
+
+print("Generating PDF...")
 
 pdf.output(f"./report.pdf", "F")
 
-
 for file in created_files:
     delete_file(file)
+
