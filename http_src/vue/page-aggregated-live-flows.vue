@@ -102,7 +102,7 @@ async function start_datatable() {
         { type: "file-size", targets: 5 },
         { type: "file-size", targets: 6 },
         { type: "file-size", targets: 7 },
-      ],
+      ]
     }
   };
 
@@ -114,7 +114,7 @@ async function start_datatable() {
     },
   ];
 
-  if(props.vlans.length > 0)
+  if(props.vlans.length > 0) {
     columns.push({ 
       columnName: i18n("vlan"), targets: 0, name: 'vlan_id', data: 'vlan_id', className: 'text-nowrap text-center', responsivePriority: 1, render: (data) => {
         if(data.id === 0)
@@ -123,6 +123,13 @@ async function start_datatable() {
           return `<a href="${http_prefix}/lua/flows_stats.lua?vlan=${data.id}" target="_blank">${data.label}</a>`
       } 
     })
+
+    defaultDatatableConfig.table_config.columnDefs = [
+      { type: "file-size", targets: 6 },
+      { type: "file-size", targets: 7 },
+      { type: "file-size", targets: 8 },
+    ]
+  }
 
   columns.push({ 
     columnName: i18n("flows"), targets: 0, name: 'flows', data: 'flows', className: 'text-nowrap text-center', responsivePriority: 1
