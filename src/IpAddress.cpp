@@ -245,7 +245,7 @@ char* IpAddress::get_ip_hex(char *buf, u_int buf_len) {
   else
     buf[0] = '\0';
 
-    return(buf);
+  return(buf);
 }
 
 /* ******************************************* */
