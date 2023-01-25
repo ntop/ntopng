@@ -333,7 +333,7 @@ async function load_selected_metric_page_stats_data() {
 
 function epoch_change(new_epoch) {
     let push_custom_metric = selected_metric.value.label == custom_metric.label;
-    load_page_stats_data(last_timeseries_groups_loaded, true, false);
+    load_page_stats_data(last_timeseries_groups_loaded, true, false, true);
     refresh_top_table();
     refresh_metrics(push_custom_metric, true);
 }
@@ -382,7 +382,7 @@ function change_groups_options_mode() {
 }
 
 let ts_charts_options;
-async function load_page_stats_data(timeseries_groups, reload_charts_data, reload_top_table_options) {
+async function load_page_stats_data(timeseries_groups, reload_charts_data, reload_top_table_options, refreshed_time_interval) {
     let status = ntopng_status_manager.get_status();
     let ts_compare = get_ts_compare(status);
     if (reload_charts_data) {
@@ -393,7 +393,11 @@ async function load_page_stats_data(timeseries_groups, reload_charts_data, reloa
     set_timeseries_groups_source_label(timeseries_groups, ts_charts_options);
     
     let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_charts_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
-    set_charts_options_items(charts_options);
+    if (refreshed_time_interval) {
+	update_charts(charts_options);
+    } else {
+	set_charts_options_items(charts_options);
+    }
     set_stats_rows(ts_charts_options, timeseries_groups, status);
     if (reload_top_table_options) {
 	set_top_table_options(timeseries_groups, status);
@@ -419,6 +423,12 @@ function set_timeseries_groups_source_label(timeseries_groups, ts_charts_options
 function update_url_params() {
     ntopng_url_manager.set_key_to_url("timeseries_groups_mode", current_groups_options_mode.value.value);
     metricsManager.set_timeseries_groups_in_url(last_timeseries_groups_loaded);
+}
+
+function update_charts(charts_options) {
+    charts_options.forEach((options, i) => {
+	charts.value[i].update_chart_options(options);
+    });    
 }
 
 function set_charts_options_items(charts_options) {

@@ -98,6 +98,9 @@ export default {
 	    let chart_options = await this.get_chart_options(url_request);
 	    this.chart.updateChart(chart_options);
 	},
+	update_chart_options: function(chart_options) {
+	    this.chart.updateChart(chart_options);
+	},
 	get_chart_options: async function(url_request) {
 	    let chart_options;
 	    if (this.get_custom_chart_options == null) {		
