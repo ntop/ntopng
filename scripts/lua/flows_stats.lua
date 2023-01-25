@@ -533,7 +533,7 @@ else
   end
 
   for _, vlan_info in pairsByField(vlan_list or {}, 'vlan_id', asc) do
-    local label = i18n("hosts_stats.vlan_title", { vlan = vlan_info.vlan_id })
+    local label = i18n("hosts_stats.vlan_title", { vlan = getFullVlanName(vlan_info.vlan_id) })
     local currently_active = false
 
     if vlan_info.vlan_id == 0 then
