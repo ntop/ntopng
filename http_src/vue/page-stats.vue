@@ -637,7 +637,8 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
 	    
 	    let row = {
 		metric: name,
-		total: total_formatter(total),
+		// total: total_formatter(total),
+		total: total_formatter(ts_stats.total * 8),
 		perc_95: formatter(ts_stats["95th_percentile"]),
 		avg: formatter(ts_stats.average),
 		max: formatter(ts_stats.max_val),
