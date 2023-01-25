@@ -1724,6 +1724,35 @@ static int ntop_set_host_operating_system(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_set_host_resolved_name(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *host_ip = NULL, buf[64];
+  VLANid vlan_id = 0;
+  char *host_name = NULL;
+  Host *host;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  host_name = (char*)lua_tostring(vm, 2);
+
+  host = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId));
+
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]", ntop_interface->get_name(), host_ip, vlan_id, host, os);
+#endif
+
+  if(ntop_interface && host && host_name)
+    host->setResolvedName(host_name);
+
+  lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_num_local_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4819,6 +4848,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
   { "reloadHostPrefs",                  ntop_reload_host_prefs },
   { "setHostOperatingSystem",           ntop_set_host_operating_system },
+  { "setHostResolvedName",              ntop_set_host_resolved_name },
   { "getNumLocalHosts",                 ntop_get_num_local_hosts },
   { "getNumHosts",                      ntop_get_num_hosts       },
   { "getNumFlows",                      ntop_get_num_flows       },
