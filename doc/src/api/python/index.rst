@@ -22,11 +22,11 @@ The API is using Pandas for working with time series data.
 
    pip3 install pandas
 
-Examples are using additional libraries including NumPy for playing with time series data.
+Examples are using additional libraries including NumPy for playing with time series data, plotly and fpdf for generating reports in PDF format.
 
 .. code:: bash
 
-   pip3 install numpy
+   pip3 install numpy plotly fpdf
 
 Installation
 ------------
