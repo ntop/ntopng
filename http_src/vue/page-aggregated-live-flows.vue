@@ -97,7 +97,7 @@ async function start_datatable() {
     table_filters: vlan_filters,
     table_config: { 
       serverSide: false, 
-      //order: [[ 0 /* percentage column */, 'desc' ]],
+      order: [[ 7 /* percentage column */, 'desc' ]],
       columnDefs: [
         { type: "file-size", targets: 5 },
         { type: "file-size", targets: 6 },
@@ -124,11 +124,12 @@ async function start_datatable() {
       } 
     })
 
+    defaultDatatableConfig.table_config.order = [[ 8 /* percentage column */, 'desc' ]];
     defaultDatatableConfig.table_config.columnDefs = [
       { type: "file-size", targets: 6 },
       { type: "file-size", targets: 7 },
       { type: "file-size", targets: 8 },
-    ]
+    ];
   }
 
   columns.push({ 
