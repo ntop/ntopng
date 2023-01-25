@@ -96,6 +96,7 @@ l4_keys = {
    { "PIM",       "pim",       103 },
    { "VRRP",      "vrrp",      112 },
    { "HIP",       "hip",       139 },
+   { "SCTP",      "sctp",      132 },
    { "ICMPv6",    "icmpv6",     58 },
    { "IGMP",      "igmp",        2 },
    { "Other IP",  "other_ip",   -1 }
