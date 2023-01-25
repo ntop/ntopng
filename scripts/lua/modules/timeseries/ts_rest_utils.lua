@@ -93,7 +93,7 @@ function ts_rest_utils.get_timeseries(http_context)
 	 res = ts_utils.queryTopk(ts_schema, tags, tstart, tend, options)
       else
 	 res = ts_utils.query(ts_schema, tags, tstart, tend, options)
-
+        
 	 if(not keep_total) and (res) and (res.additional_series) then
 	    -- no need for total serie in normal queries
 	    res.additional_series.total = nil

@@ -74,6 +74,7 @@
             <div class="card h-100 overflow-hidden">
               <chart ref="chart"
 	        id="chart_0"
+          :chart_type="chart_type"
 	        :base_url_request="chart_base_url_request"
 		:register_on_status_change="false">
 	      </chart>
@@ -485,6 +486,7 @@
 	  data() {
 	      return {
 	          csrf: pageCsrf,
+            chart_type: ntopChartApex.typeChart.TS_COLUMN,
 		  chart_base_url_request: chart_data_url,
 		  page: page,
 		  current_alert: null,
@@ -550,6 +552,7 @@
 	      return {
 	          csrf: pageCsrf,
 		  is_ntop_enterprise_m: isNtopEnterpriseM,
+            chart_type: ntopChartApex.typeChart.TS_COLUMN,
 		  chart_base_url_request: `${base_path}/lua/rest/v2/get/flow/alert/ts.lua`,
 		  show_download: show_download,
 		  show_permalink: show_permalink,
