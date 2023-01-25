@@ -60,8 +60,8 @@ if [ "$USE_OPNSENSE_TOOLS" = true ] ; then
 
 	# Add ntopng as dependency
 	echo "deps: {" >> ${STAGEDIR}/+MANIFEST
-	echo "    ntopng: { version: "@PACKAGE_VERSION@", origin: net/ntopng }" ${STAGEDIR}/+MANIFEST
-	echo "}" ${STAGEDIR}/+MANIFEST
+	echo "    ntopng: { version: "@PACKAGE_VERSION@", origin: net/ntopng }" >> ${STAGEDIR}/+MANIFEST
+	echo "}" >> ${STAGEDIR}/+MANIFEST
 
 else
 	STAGEDIR=${BASEDIR}/stage
