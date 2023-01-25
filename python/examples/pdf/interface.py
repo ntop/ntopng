@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Report creation script for the ntopng Python API
+Interface PDF report creation script using the ntopng Python API
 """
 
 import os
@@ -19,12 +19,11 @@ from ntopng.ntopng import Ntopng
 
 ### NTOPNG API SETUP
 username     = "admin"
-password     = "password"
-ntopng_url   = "http://localhost:4000"
-iface_id     = 2
+password     = "admin"
+ntopng_url   = "http://localhost:3000"
+iface_id     = 0
 auth_token   = None
 enable_debug = False
-host_ip      = "127.0.0.1"
 
 actual_ts = int(time.time())
 yesterday = (actual_ts - 86400)
@@ -236,7 +235,7 @@ pdf.set_text_color(r= 0, g= 0, b = 0)
 pdf.ln(9)
 pdf.cell(w=0, h=10, txt="HOST INFO", ln=1)
 pdf.set_font("Helvetica", "", 11)
-pdf.cell(w=0, h=5, txt=f"Host: {host_ip}")
+pdf.cell(w=0, h=5, txt=f"Host: {ntopng_url}")
 pdf.ln(5)
 pdf.cell(w=0, h=5, txt=f"Timestamp: {time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(actual_ts))}")
 pdf.ln(5)
