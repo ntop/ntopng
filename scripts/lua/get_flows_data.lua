@@ -28,12 +28,12 @@ end
 local ifstats = interface.getStats()
 
 -- System host parameters
-local host   = _GET["host"] -- TODO: merge
+local host            = _GET["host"] -- TODO: merge
 local flows_to_update = _GET["custom_hosts"]
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
-local flows_filter = getFlowsFilter()
+local flows_filter    = getFlowsFilter()
 local flows_stats
 local total = 0
 
@@ -314,7 +314,6 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       column_proto_l4 = alert_consts.alertTypeIcon(value["predominant_alert"], map_score_to_severity(value["predominant_alert_score"]))
    end
 
-   value["proto.l4"] = 132
    if tonumber(value["proto.l4"]) then
     value["proto.l4"] = l4_proto_to_string(value["proto.l4"]) 
    end
@@ -328,14 +327,21 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    local app = getApplicationLabel(value["proto.ndpi"])
 
-
    if(value["verdict.pass"] == false) then
       app = "<strike>"..app.."</strike>"
     end
 
    record["column_ndpi"] = app -- can't set the hosts_stats hyperlink for viewed interfaces
    if((not ifstats.isViewed) and (value["proto.ndpi_id"] ~= -1)) then
-      record["column_ndpi"] = "<A HREF='".. ntop.getHttpPrefix().."/lua/flows_stats.lua?application=" .. value["proto.ndpi_id"] .."'&ifid='" .. ifid .. "'>"..app.." " .. formatBreed(value["proto.ndpi_breed"], value["proto.is_encrypted"]) .."</A>"
+      local l7proto
+      
+      if((value["proto.ndpi_id"] == value["proto.master_ndpi_id"]) or (value["proto.master_ndpi_id"] == 0)) then
+	 l7proto = value["proto.ndpi_id"]
+      else
+	 l7proto = value["proto.master_ndpi_id"] .. "." .. value["proto.ndpi_id"]
+      end
+      
+      record["column_ndpi"] = "<A HREF='".. ntop.getHttpPrefix().."/lua/flows_stats.lua?application=" .. l7proto .."'&ifid='" .. ifid .. "'>"..app.." " .. formatBreed(value["proto.ndpi_breed"], value["proto.is_encrypted"]) .."</A>"
       record["column_ndpi"] = record["column_ndpi"] .. " " .. format_confidence_badge(value["confidence"])
 --      record["column_ndpi"] = record["column_ndpi"] .. " " .. "<a href='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_informative_proto"] .. "' title='" .. i18n("host_details.hosts_using_proto", { proto = interface.getnDPIProtoName(value["proto.ndpi_informative_proto"]) }) .. "'><i class='fa-solid fa-timeline'></i></a>"
    end

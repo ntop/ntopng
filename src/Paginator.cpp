@@ -41,7 +41,9 @@ Paginator::Paginator() {
   /* int */
   max_hits = CONST_MAX_NUM_HITS;
   to_skip = 0;
-  l7proto_filter = l7category_filter = -1;
+  l7proto_filter_master_proto = NDPI_PROTOCOL_UNKNOWN;
+  l7proto_filter_app_proto = NDPI_PROTOCOL_UNKNOWN;
+  l7category_filter = -1;
   port_filter = 0;
   local_network_filter = CONST_MAX_NUM_NETWORKS + 1;
   vlan_id_filter = (VLANid)-1;
@@ -170,6 +172,12 @@ void Paginator::readOptions(lua_State *L, int index) {
 	} else if(!strcmp(key, "trafficProfileFilter")) {
 	  if(traffic_profile_filter) free(traffic_profile_filter);
 	  traffic_profile_filter = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "l7protoFilter")) {
+	  /* Available values:  5.46 */
+	  const char *str = lua_tostring(L, -1);
+	  
+	  if(sscanf(str, "%d.%d", &l7proto_filter_master_proto, &l7proto_filter_app_proto) != 2)
+	    l7proto_filter_app_proto = atoi(str);
 	} //else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for option %s", lua_tostring(L, -1), key);
 	break;
@@ -179,9 +187,10 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  max_hits = lua_tointeger(L, -1);
 	else if(!strcmp(key, "toSkip"))
 	  to_skip = lua_tointeger(L, -1);
-	else if(!strcmp(key, "l7protoFilter"))
-	  l7proto_filter = lua_tointeger(L, -1);
-	else if(!strcmp(key, "l7categoryFilter"))
+	else if(!strcmp(key, "l7protoFilter")) {
+	  /* Available values: 46  */
+	  l7proto_filter_app_proto =  lua_tointeger(L, -1);
+	} else if(!strcmp(key, "l7categoryFilter"))
 	  l7category_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "portFilter"))
 	  port_filter = lua_tointeger(L, -1);

@@ -202,8 +202,14 @@ function getFlowsFilter()
    }
 
    if application ~= nil and application ~= "" then
-      pageinfo["l7protoFilter"] = interface.getnDPIProtoId(application)
+      local param = string.split(application, "%.")
 
+      if param and #param == 2 then
+	 -- Example 5.26
+	 pageinfo["l7protoFilter"] = application
+      else
+	 pageinfo["l7protoFilter"] = interface.getnDPIProtoId(application)
+      end
    end
 
    if category ~= nil and category ~= "" then

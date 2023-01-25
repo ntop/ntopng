@@ -4398,7 +4398,7 @@ struct flowHostRetriever {
 /* **************************************************** */
 
 static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
-  int ndpi_proto, ndpi_cat;
+  int ndpi_proto_master_proto, ndpi_proto_app_proto, ndpi_cat;
   u_int16_t port;
   int16_t local_network_id;
   VLANid vlan_id = 0;
@@ -4480,16 +4480,17 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     }
 
     if(retriever->pag
-       && retriever->pag->l7protoFilter(&ndpi_proto)
-       && ((ndpi_proto == NDPI_PROTOCOL_UNKNOWN
-	    && (f->get_detected_protocol().app_protocol != ndpi_proto
-		|| f->get_detected_protocol().master_protocol != ndpi_proto))
-	   ||
-	   (ndpi_proto != NDPI_PROTOCOL_UNKNOWN
-	    && (f->get_detected_protocol().app_protocol != ndpi_proto
-		&& f->get_detected_protocol().master_protocol != ndpi_proto))))
-      return(false);
-
+       && retriever->pag->l7protoFilter(&ndpi_proto_master_proto, &ndpi_proto_app_proto)) {
+      if(
+	 ((ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN) || (ndpi_proto_master_proto == f->get_detected_protocol().master_protocol))
+	 &&
+	 ((ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) || (ndpi_proto_app_proto == f->get_detected_protocol().app_protocol))
+	 )
+	; /* We're good */
+      else
+	return(false);
+    }
+    
     if(retriever->pag
        && retriever->pag->l7categoryFilter(&ndpi_cat)
        && f->get_protocol_category() != ndpi_cat)

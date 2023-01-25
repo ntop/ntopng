@@ -32,13 +32,22 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- nDPI application and category
 local application = _GET["application"]
-  
-if tonumber(application) then
-  application = interface.getnDPIProtoName(tonumber(application))
+
+if(application ~= nil) then
+   local application_split = string.split(application, "%.")
+   
+   if application_split and #application_split == 2 then
+      -- 5.26
+   else
+      local _application = tonumber(application)
+      
+      if(_application) then
+	 application = interface.getnDPIProtoName(_application)
+      end
+   end
 end
 
 local category = _GET["category"]
-
 local hosts = _GET["hosts"]
 local host = _GET["host"]
 local vhost = _GET["vhost"]
@@ -95,11 +104,12 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {
 })
 
 if (page == "flows" or page == nil) then
-  local active_msg = getFlowsTableTitle()
+   local active_msg = getFlowsTableTitle()
+   
    if(category ~= nil) then
       page_params["category"] = category
    end
-   
+
    if(application ~= nil) then
       page_params["application"] = application
    end
@@ -235,7 +245,7 @@ if (page == "flows" or page == nil) then
    print(mini_title)
    print[[</h6>]]
    print[[</div>]]
-   
+
    print [[
          <div id="table-flows"></div>
            <script>

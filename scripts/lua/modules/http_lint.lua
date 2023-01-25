@@ -914,14 +914,20 @@ local L4_PROTO_KEYS = {
 local function validateProtocolIdOrName(p)
    -- Lower used because TCP instead of tcp wasn't seen as a l4proto
    local tmp = string.lower(p)
-   
-   return (validateChoice(ndpi_protos, p) or
+   local param = string.split(p, "%.")
+
+   if param and #param == 2 then
+      -- Example 5.26
+      return(validateChoice(ndpi_protos, param[1]) and validateChoice(ndpi_protos, param[2]))
+   else
+      return (validateChoice(ndpi_protos, p) or
 	      validateChoiceByKeys(L4_PROTO_KEYS, p) or
 	      validateChoiceByKeys(ndpi_protos, p)) or
-      (validateChoice(ndpi_protos, tmp) or
+	 (validateChoice(ndpi_protos, tmp) or
 	  validateChoiceByKeys(L4_PROTO_KEYS, tmp) or
 	  validateChoiceByKeys(ndpi_protos, tmp))
-      or (p == 'none')
+	 or (p == 'none')
+   end
 end
 
 http_lint.validateProtocolIdOrName = validateProtocolIdOrName

@@ -33,7 +33,8 @@ class Paginator {
   char *container_filter, *pod_filter;
   char *traffic_profile_filter;
   char *username_filter, *pidname_filter;
-  int l7proto_filter, l7category_filter;
+  int l7proto_filter_master_proto, l7proto_filter_app_proto;
+  int l7category_filter;
   u_int16_t port_filter;
   int16_t local_network_filter;
   VLANid vlan_id_filter;
@@ -91,8 +92,13 @@ class Paginator {
     if(pidname_filter) { (*f) = pidname_filter; return true; } return false;
   }
 
-  inline bool l7protoFilter(int *f) const {
-    if(l7proto_filter >= 0) { (*f) = l7proto_filter; return true; } return false;
+  inline bool l7protoFilter(int *f_master_proto, int *f_app_proto) const {
+    if((l7proto_filter_master_proto >= 0) || (l7proto_filter_app_proto >= 0)) {
+      *f_master_proto = l7proto_filter_master_proto, *f_app_proto = l7proto_filter_app_proto;
+      return true;
+    }
+    
+    return false;
   }
 
   inline bool l7categoryFilter(int *f) const {
