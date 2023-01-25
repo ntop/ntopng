@@ -17,9 +17,11 @@ The API is using Pandas for working with time series data.
 
 - pandas
 
-Examples are using additional libraries including NumPy for playing with time series data.
+Examples are using additional libraries including NumPy for playing with time series data, plotly and fpdf for generating reports in PDF format.
 
 - numpy
+- plotly
+- fpdf
 
 API Information
 ---------------

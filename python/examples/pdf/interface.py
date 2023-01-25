@@ -4,16 +4,18 @@
 Report creation script for the ntopng Python API
 """
 
-import plotly.figure_factory as ff
-import plotly.graph_objects as go
-from ntopng.ntopng import Ntopng
-from fpdf import FPDF
-import pandas as pd
-import getopt
-import time
 import os
 import sys
+import time
+import getopt
+import pandas as pd
+from fpdf import FPDF
+import plotly.figure_factory as ff
+import plotly.graph_objects as go
 
+sys.path.insert(0, '../')
+
+from ntopng.ntopng import Ntopng
 
 ### NTOPNG API SETUP
 username     = "admin"
