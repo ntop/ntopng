@@ -58,6 +58,11 @@ if [ "$USE_OPNSENSE_TOOLS" = true ] ; then
 	sed -i '' 's/os-ntopng-enterprise-devel/os-ntopng-enterprise/g' ${STAGEDIR}/+MANIFEST
 	sed -i '' 's/os-ntopng-enterprise-devel/os-ntopng-enterprise/g' ${STAGEDIR}/usr/local/opnsense/version/ntopng-enterprise
 
+	# Add ntopng as dependency
+	echo "deps: {" >> ${STAGEDIR}/+MANIFEST
+	echo "    ntopng: { version: "@PACKAGE_VERSION@", origin: net/ntopng }" ${STAGEDIR}/+MANIFEST
+	echo "}" ${STAGEDIR}/+MANIFEST
+
 else
 	STAGEDIR=${BASEDIR}/stage
 	rm -rf ${STAGEDIR}
