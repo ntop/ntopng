@@ -10201,7 +10201,7 @@ bool NetworkInterface::resetHostTopSites(AddressTree *allowed_hosts,
 
 class FlowsStats {
 private:
-  std::set<const IpAddress*> clients, servers;
+  std::set<std::string> clients, servers;
   u_int32_t num_flows;
   u_int64_t tot_sent, tot_rcvd;
   u_int8_t l4_proto;
@@ -10221,7 +10221,11 @@ public:
   inline u_int64_t getTotalRcvd()  { return(tot_rcvd);       }
   inline void      incFlowStats(const IpAddress *c, const IpAddress *s,
 				u_int64_t bytes_sent, u_int64_t bytes_rcvd) {
-    clients.insert(c), servers.insert(s), num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd;
+    char buf_c[48], buf_s[48];
+			  
+    clients.insert(std::string(((IpAddress*)c)->get_ip_hex(buf_c, sizeof(buf_c)))),
+      servers.insert(std::string(((IpAddress*)s)->get_ip_hex(buf_s, sizeof(buf_s)))),
+      num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd;
   }
 };
 

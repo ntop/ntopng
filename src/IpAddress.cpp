@@ -219,7 +219,7 @@ void IpAddress::compute_key() {
     ip_key = 0;
 
     for(u_int32_t i=0; i<4; i++)
-      ip_key += addr.ipType.ipv6.u6_addr.u6_addr32[i];
+      ip_key += addr.ipType.ipv6.u6_addr.u6_addr32[i] << (2*i);
   }
 }
 
