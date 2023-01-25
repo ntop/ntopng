@@ -296,7 +296,7 @@ function setMinMaxYaxis(yAxisArray, seriesArray) {
     }
 }
 
-function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
+function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict, formatterDict) {
     let metric = tsGroup.metric;
     let yaxisId = getYaxisId(metric);
     let invertDirection = false;
@@ -321,12 +321,13 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
 	    scaleFactorIndex = formatterUtils.getScaleFactorIndex(metric.measure_unit, max);
 	}
 	if (yaxisSeriesName == null) {
+	    formatterDict[yaxisId] = formatterUtils.getFormatter(metric.measure_unit, invertDirection, scaleFactorIndex);
 	    let yaxis = {
 		seriesName: s.name,
 		show: true,
 		//forceNiceScale: true,
 		labels: {
-		    formatter: formatterUtils.getFormatter(metric.measure_unit, invertDirection, scaleFactorIndex),
+		    formatter: formatterDict[yaxisId],
 		    // minWidth: 60,
 		     // maxWidth: 75,
 		    // offsetX: -20,
@@ -349,7 +350,7 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
 	    yaxisApex.push({
 		seriesName: yaxisSeriesName,
 		labels: {
-		    // formatter: formatterUtils.getFormatter(metric.measure_unit, invertDirection),
+		    formatter: formatterDict[yaxisId],
 		},
 		show: false,
 	    });
@@ -434,6 +435,7 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare) {
     let seriesArray = [];
     let yaxisArray = [];
     let yaxisDict = {};
+    let formatterDict = {};
     let addSeriesNameSource = getAddSeriesNameSource(tsGrpupsArray);
     let forceDrawType = null;
     tsOptionsArray.forEach((tsOptions, i) => {
@@ -448,7 +450,7 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare) {
 	seriesArray = seriesArray.concat(seriesApex);
 
 	// get yaxis
-	let yaxisApex = getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict);
+	let yaxisApex = getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict, formatterDict);
 	yaxisArray = yaxisArray.concat(yaxisApex);
     });
 
