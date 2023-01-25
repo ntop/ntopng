@@ -18,6 +18,7 @@ local lang = {
   ["alerts_analysis"] = "Flow Alerts Analyser",
   ["alias"] = "Alias",
   ["all"] = "All",
+  ["all_tcp_udp"] = "All (TCP and UDP)",
   ["all_hosts"] = "All Hosts",
   ["allowed"] = "Allowed",
   ["analysis"] = "Analysis",
