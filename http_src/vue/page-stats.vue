@@ -620,10 +620,10 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
 	    let ts_stats;
 	    if (ts_group.metric.type == "top") {
 		ts_stats = options.statistics;
-	    } else if (options?.statistics?.by_serie?.length > i) {
+	    } else if (options?.statistics?.by_serie?.length > j) {
 		ts_stats = options.statistics.by_serie[j];
 	    }
-	    if (ts_stats == null || ts_group.metric.type == "top" && j > 0) {
+	    if (ts_stats == null || (ts_group.metric.type == "top" && j > 0)) {
 		return;
 	    }
 	    let name = timeseriesUtils.getSerieName(s_metadata.label, ts_id, ts_group, extend_serie_name);
@@ -638,7 +638,7 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
 	    let row = {
 		metric: name,
 		// total: total_formatter(total),
-		total: total_formatter(ts_stats.total * 8),
+		total: total_formatter(ts_stats.total),
 		perc_95: formatter(ts_stats["95th_percentile"]),
 		avg: formatter(ts_stats.average),
 		max: formatter(ts_stats.max_val),
