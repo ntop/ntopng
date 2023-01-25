@@ -82,7 +82,27 @@ function getUnitMeasureLen(type) {
     return (spaceValue + 1 + spaceUm);
 }
 
-function getFormatter(type, absoluteValue) {
+function getScaleFactorIndex(type, value) {
+   let typeOptions = types[type];
+    if (type == types.no_formatting.id || value == null) {
+	return null;
+    }
+    if (typeOptions.scale_values != null) {
+	value *= typeOptions.scale_values;
+    }
+    let step = typeOptions.step;
+    let negativeValue = value < 0;
+    if (negativeValue) { value *= -1; }
+    let i = 0;
+    let measures = typeOptions.um;
+    while (value >= step && i < measures.length) {
+	value = value / step;
+	i += 1;
+    }
+    return i;
+}
+
+function getFormatter(type, absoluteValue, scaleFactorIndex) {
     let typeOptions = types[type];
     let maxLenValue = 6; // 000.00
     let maxLenUm = 8; // Mflows/s
@@ -107,7 +127,7 @@ function getFormatter(type, absoluteValue) {
     value = typeOptions.max_value
   }
 
-	while (value >= step && i < measures.length) {
+	while ((value >= step && i < measures.length) || (scaleFactorIndex != null && i < scaleFactorIndex)) {
     value = value / step;
     i += 1;
 	}
@@ -141,6 +161,7 @@ const formatterUtils = function() {
 	types,
 	getUnitMeasureLen,
 	getFormatter,
+	getScaleFactorIndex,
     };
 }();
 

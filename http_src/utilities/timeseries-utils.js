@@ -310,13 +310,23 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
 
     seriesApex.forEach((s) => {
 	let yaxisSeriesName = yaxisDict[yaxisId];
+	let max = 0;
+	let scaleFactorIndex = null;
+	if (s.data != null) {
+	     let values = s.data.map((o) => {
+		if (o.y == null) { return 0; }
+		return Math.abs(o.y);
+	     });
+	    max = Math.max.apply(Math, values);
+	    scaleFactorIndex = formatterUtils.getScaleFactorIndex(metric.measure_unit, max);
+	}
 	if (yaxisSeriesName == null) {
 	    let yaxis = {
 		seriesName: s.name,
 		show: true,
 		//forceNiceScale: true,
 		labels: {
-		    formatter: formatterUtils.getFormatter(metric.measure_unit, invertDirection),
+		    formatter: formatterUtils.getFormatter(metric.measure_unit, invertDirection, scaleFactorIndex),
 		    // minWidth: 60,
 		     // maxWidth: 75,
 		    // offsetX: -20,
@@ -339,7 +349,7 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict) {
 	    yaxisApex.push({
 		seriesName: yaxisSeriesName,
 		labels: {
-		    formatter: formatterUtils.getFormatter(metric.measure_unit, invertDirection),
+		    // formatter: formatterUtils.getFormatter(metric.measure_unit, invertDirection),
 		},
 		show: false,
 	    });
@@ -434,6 +444,7 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare) {
 	}
 	// get seriesData
 	let seriesApex = getSeriesInApexFormat(tsOptions, tsGroup, true, forceDrawType, tsCompare);
+
 	seriesArray = seriesArray.concat(seriesApex);
 
 	// get yaxis
@@ -448,6 +459,7 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare) {
     let chartOptions = buildChartOptions(seriesArray, yaxisArray);    
     return chartOptions;
 }
+
 
 function buildChartOptions(seriesArray, yaxisArray) {
     return {
