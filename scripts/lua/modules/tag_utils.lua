@@ -91,6 +91,24 @@ tag_utils.defined_tags = {
       operators = {'eq', 'neq'},
       bpf_key = 'ip host',
    },
+   network_cidr = {
+      value_type = 'cidr',
+      i18n_label = i18n('db_search.tags.network_cidr'),
+      operators = {'eq', 'neq'},
+      bpf_key = 'net',
+   },
+   cli_network_cidr = {
+      value_type = 'cidr',
+      i18n_label = i18n('db_search.tags.cli_network_cidr'),
+      operators = {'eq', 'neq'},
+      bpf_key = 'net',
+   },
+   srv_network_cidr = {
+      value_type = 'cidr',
+      i18n_label = i18n('db_search.tags.srv_network_cidr'),
+      operators = {'eq', 'neq'},
+      bpf_key = 'net',
+   },
    traffic_direction = {
       value_type = 'traffic_direction',
       i18n_label = i18n('db_search.tags.traffic_direction'),

@@ -147,8 +147,70 @@ end
 
 -- ##############################################
 
+function isIPv4(address)
+   -- Reuse the for loop to check the address validity
+   local checkAddress = (function(chunks)
+      for _, v in pairs(chunks) do
+         if (tonumber(v) < 0) or (tonumber(v) > 255) then
+            return false
+         end
+      end
+      return true
+   end)
+
+   local chunks = {address:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")}
+   local chunksWithPort = {address:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)%:(%d+)$")}
+
+   if #chunks == 4 then
+      return checkAddress(chunks)
+   elseif #chunksWithPort == 5 then
+      table.remove(chunksWithPort, 5)
+      return checkAddress(chunksWithPort)
+   end
+
+   return false
+end
+
+-- ##############################################
+
 function isIPv6(ip)
   return((not isEmptyString(ip)) and ntop.isIPv6(ip))
+end
+
+-- ##############################################
+
+function isIPv4Network(address)
+   local parts = split(address, "/")
+
+   if #parts == 2 then
+      local prefix = tonumber(parts[2])
+
+      if (prefix == nil) or (math.floor(prefix) ~= prefix) or (prefix < 0) or (prefix > 32) then
+         return false
+      end
+   elseif #parts ~= 1 then
+      return false
+   end
+
+   return isIPv4(parts[1])
+end
+
+-- ##############################################
+
+function isIPv6Network(address)
+   local parts = split(address, "/")
+
+   if #parts == 2 then
+      local prefix = tonumber(parts[2])
+
+      if (prefix == nil) or (math.floor(prefix) ~= prefix) or (prefix < 0) or (prefix > 128) then
+         return false
+      end
+   elseif #parts ~= 1 then
+      return false
+   end
+
+   return isIPv6(parts[1])
 end
 
 -- ##############################################

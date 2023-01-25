@@ -1119,6 +1119,9 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["srv_location"] = tag_utils.defined_tags["srv_location"]
    flow_defined_tags["traffic_direction"] = tag_utils.defined_tags["traffic_direction"]
    flow_defined_tags["confidence"] = tag_utils.defined_tags["confidence"]
+   flow_defined_tags["network_cidr"] = tag_utils.defined_tags["network_cidr"]
+   flow_defined_tags["srv_network_cidr"] = tag_utils.defined_tags["srv_network_cidr"]
+   flow_defined_tags["cli_network_cidr"] = tag_utils.defined_tags["cli_network_cidr"]
 
    return flow_defined_tags
 end
