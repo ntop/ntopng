@@ -13,7 +13,7 @@ from fpdf import FPDF
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 
-sys.path.insert(0, '../')
+sys.path.insert(0, '../../')
 
 from ntopng.ntopng import Ntopng
 
