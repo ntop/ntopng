@@ -663,11 +663,12 @@ else
   exit 1
 fi
 
-if test $SYSTEM = "FreeBSD"; then
-   #MYSQL_LIB=/usr/local/lib/mysql/libmysqlclient.a
-   #MYSQL_INC="-I /usr/local/include/mysql/"
-   #AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
-else
+dnl> FreeBSD
+dnl> MYSQL_LIB=/usr/local/lib/mysql/libmysqlclient.a
+dnl> MYSQL_INC="-I /usr/local/include/mysql/"
+dnl> AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
+
+if test $SYSTEM != "FreeBSD"; then
  if test "${with_nedge+set}" != set; then
   AC_CHECK_TOOL(MARIADB, mariadb_config)
   if test "x$ac_cv_prog_ac_ct_MARIADB" = "xmariadb_config"; then
