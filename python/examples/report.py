@@ -226,7 +226,7 @@ pdf = FPDF()
 pdf.add_page()
 
 ## LOGO
-pdf.image("ntop.png", x=140, y=8, w=68.2, h=17.8)
+pdf.image("img/ntop.png", x=140, y=8, w=68.2, h=17.8)
 
 ## HOST PC SPECS AND STATS  ##
 pdf.set_font("Helvetica", "B", 14)
