@@ -1,3 +1,5 @@
+.. _RESTAPIDocV2 target:
+
 RESTful API v2 Specification
 ============================
 

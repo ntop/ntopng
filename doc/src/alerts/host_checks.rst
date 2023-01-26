@@ -249,3 +249,12 @@ Trigger a host alert based on a custom Lua user script. For further information 
 
 *Not Enabled by Default*
 
+**Host External Check (REST)**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Trigger a host alert from an external script via REST API. For further information please visit :ref:`RESTAPIDocV2 target` and check the *rest/v2/trigger/host/alert.lua* API.
+
+*Category: Network*
+
+*Not Enabled by Default*
+
