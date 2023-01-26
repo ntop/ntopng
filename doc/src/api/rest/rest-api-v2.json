@@ -732,6 +732,71 @@
 				}
 			}
 		},
+		"/lua/rest/v2/trigger/host/alert.lua": {
+			"get": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Trigger an external alert on a host",
+				"description": "Trigger alert",
+				"operationId": "trigger_host_alert",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "formData",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "host",
+						"in": "formData",
+						"description": "Host address",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "vlan",
+						"in": "formData",
+						"description": "VLAN ID",
+						"required": false,
+						"type": "integer",
+						"format": "int16"
+					},
+					{
+						"name": "score",
+						"in": "formData",
+						"description": "Set the alert score",
+						"required": false,
+						"type": "boolean"
+					},
+					{
+						"name": "info",
+						"in": "formData",
+						"description": "Set the alert description",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
 		"/lua/rest/v2/get/asn/asn_info.lua": {
 			"post": {
 				"tags": [
