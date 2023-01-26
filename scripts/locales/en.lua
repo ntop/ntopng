@@ -5887,7 +5887,7 @@ local lang = {
     },
   },
   ["ports_analysis"] = {
-    ["no_data"] = "No Server Ports detected",
+    ["no_data"] = "No flows detected",
     ["max_entries"] = "Only 35 flows with the most traffic are displayed due to the huge number of flows",
     ["live"] = "Live",
     ["historical"] = "Historical",
