@@ -150,7 +150,7 @@ const top_senders = {
     table_value: "interface",
     title: i18n('page_stats.top.top_senders'),
     view: "top_senders",
-    default_sorting_columns: 2,
+    default_sorting_columns: 1,
     
     columns: [{
 	columnName: i18n("page_stats.top.host_name"), name: 'host_name', data: 'host', handlerId: handlerIdAddLink,
@@ -225,7 +225,7 @@ const top_receivers = {
     table_value: "interface",
     title: i18n('page_stats.top.top_receivers'),
     view: "top_receivers",
-    default_sorting_columns: 2,
+    default_sorting_columns: 1,
     
     columns: [{
 	columnName: i18n("page_stats.top.host_name"), name: 'host_name', data: 'host', handlerId: handlerIdAddLink,
