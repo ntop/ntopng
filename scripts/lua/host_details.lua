@@ -155,10 +155,10 @@ local function printPorts(ports, is_server_port)
       local udp = {}
       local tcp = {}
       print("<th>UDP</th><th>TCP</th></tr>\n")
-      
+
       for k,v in pairs(ports) do
 	 local res = split(k, ":")
-	 
+
 	 if tonumber(res[2]) then
 	   if(res[1] == "udp") then
 	    udp[tonumber(res[2])] = v
@@ -172,7 +172,7 @@ local function printPorts(ports, is_server_port)
       for port,proto in pairsByKeys(udp) do
          printPort(port, proto, is_server_port)
       end
-      
+
       print("</ul></td><td valign=top><ul>")
       for port,proto in pairsByKeys(tcp) do
          printPort(port, proto, is_server_port)
@@ -732,7 +732,7 @@ else
 
 	    print('</span>')
 	 end
-	 
+
          if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
                print(' <A class="ntopng-external-link" href="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><small>VirusTotal</small> <i class=\"fas fa-external-link-alt\"></i></A>')
                print(' <A class="ntopng-external-link" href="https://www.greynoise.io/viz/ip/'.. host["ip"] ..'" target=_blank><small>GreyNoise</small> <i class=\"fas fa-external-link-alt\"></i></A>')
@@ -757,40 +757,7 @@ else
          print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "engaged-alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").." <span id=alerts_trend></span></td></tr>\n")
       end
 
-      if isScoreEnabled() then
-         local score_chart = ""
 
-         if charts_available then
-            score_chart = hostinfo2detailshref(host, {page = "historical", tskey = tskey, ts_schema = "host:score"}, '<i class="fas fa-chart-area fa-sm"></i>')
-         end
-
-         print("<tr><th rowspan=2>"..i18n("score").." " .. score_chart .."</th>")
-         print("<th>"..i18n("host_details.client_score").."</th><th>"..i18n("host_details.server_score").."</th></tr>")
-
-         local c = host.score_pct and host.score_pct["score_breakdown_client"]
-         local s = host.score_pct and host.score_pct["score_breakdown_server"]
-
-         print("<tr>")
-         print("<td>")
-         print("<div class='d-flex align-items-center'>")
-         print("<span id='score_as_client'>".. formatValue(host["score.as_client"] or 0) .."</span> <span class='ms-1' id='client_score_trend'></span>")
-         if c then
-            scoreBreakdown(c)
-         end
-         print("</div>")
-         print("</td>")
-
-         print("<td>")
-         print("<div class='d-flex align-items-center'>")
-         print("<span id='score_as_server'>".. formatValue(host["score.as_server"] or 0).."</span><span class='ms-1' id='server_score_trend'></span>")
-         if s then
-            scoreBreakdown(s)
-         end
-         print("</div>")
-         print("</td>")
-
-         print("</tr>\n")
-      end
 
       -- Active monitoring
       if am_utils and am_utils.isMeasurementAvailable('icmp') then
@@ -920,12 +887,51 @@ else
 
       print("<tr><th>"..i18n("details.traffic_sent_received").."</th><td><span id=pkts_sent>" .. formatPackets(host["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(host["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(host["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(host["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 
+      print("<tr><th colspan=4></th></tr>\n")
+
+      -- ###########################################################
+
+      print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
+
+      if isScoreEnabled() then
+         local score_chart = ""
+
+         if charts_available then
+            score_chart = hostinfo2detailshref(host, {page = "historical", tskey = tskey, ts_schema = "host:score"}, '<i class="fas fa-chart-area fa-sm"></i>')
+         end
+
+         print("<tr><th>"..i18n("score").." " .. score_chart .."</th>")
+
+         local c = host.score_pct and host.score_pct["score_breakdown_client"]
+         local s = host.score_pct and host.score_pct["score_breakdown_server"]
+
+         print("<td>")
+         print("<div class='d-flex align-items-center'>")
+         print("<span id='score_as_client'>".. formatValue(host["score.as_client"] or 0) .."</span> <span class='ms-1' id='client_score_trend'></span>")
+         if c then
+            scoreBreakdown(c)
+         end
+         print("</div>")
+         print("</td>")
+
+         print("<td>")
+         print("<div class='d-flex align-items-center'>")
+         print("<span id='score_as_server'>".. formatValue(host["score.as_server"] or 0).."</span><span class='ms-1' id='server_score_trend'></span>")
+         if s then
+            scoreBreakdown(s)
+         end
+         print("</div>")
+         print("</td>")
+
+         print("</tr>\n")
+      end
+
+
       local flows_th = i18n("details.flows_non_packet_iface")
       if interface.isPacketInterface() then
          flows_th = i18n("details.flows_packet_iface")
       end
 
-      print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
       print("<tr><th>"..flows_th.."</th><td><span id=active_flows_as_client>" .. formatValue(host["active_flows.as_client"]) .. "</span> <span id=trend_as_active_client></span> \n")
       print("/ <span id=flows_as_client>" .. formatValue(host["flows.as_client"]) .. "</span> <span id=trend_as_client></span> \n")
       print("/ <span id=alerted_flows_as_client>" .. formatValue(host["alerted_flows.as_client"]) .. "</span> <span id=trend_alerted_flows_as_client></span>")
@@ -963,15 +969,19 @@ else
          print("</tr>")
       end
 
+      print("<tr><th colspan=4></th></tr>\n")
+
+      -- ###########################################################
+
       if(host.server_contacts ~= nil) then
          print("<tr><th>")
-	 
+
          if(has_assets) then
             print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. host_ip .."&page=assets\">".. i18n("details.server_contacts") .. "</A>")
          else
             print(i18n("details.server_contacts"))
          end
-	 
+
          print("</th><td colspan=2>")
          print("<b>DNS</b>: "..formatContacts(host.server_contacts.dns).." / ")
          print("<b>SMTP</b>: "..formatContacts(host.server_contacts.smtp).." / ");
@@ -989,7 +999,7 @@ else
       print("<span id=num_incoming_peers_that_sent_tcp_flows_no_response>"..formatContacts(host.num_incoming_peers_that_sent_tcp_flows_no_response) .. "</span> <span id=num_incoming_peers_that_sent_tcp_flows_no_response_trend></span> \n")
       print("</td>")
       print("</tr>\n")
-      
+
       if host["tcp.packets.seq_problems"] == true then
          local tcp_seq_label = "TCP: "..i18n("details.retransmissions").." / "..i18n("details.out_of_order").." / "..i18n("details.lost").." / "..i18n("details.keep_alive")
 
@@ -1109,10 +1119,10 @@ else
       print("</table>\n")
 
    elseif((page == "packets")) then
-    template.render("pages/hosts/packets_stats.template", { 
+    template.render("pages/hosts/packets_stats.template", {
       view = "applications",
-      host_ip = host_ip, 
-      vlan = host_vlan, 
+      host_ip = host_ip,
+      vlan = host_vlan,
       ifid = ifId,
     })
    elseif((page == "peers")) then
@@ -1332,10 +1342,10 @@ setInterval(update_icmp_table, 5000);
 
 ]]
 elseif((page == "ndpi")) then
-  template.render("pages/hosts/l7_stats.template", { 
+  template.render("pages/hosts/l7_stats.template", {
     view = "applications",
-    host_ip = host_ip, 
-    vlan = host_vlan, 
+    host_ip = host_ip,
+    vlan = host_vlan,
     ifid = ifId,
   })
 elseif(page == "assets") then
@@ -1447,7 +1457,7 @@ elseif(page == "ssh") then
      ifid = ifId,
      host = host_ip,
    }
- 
+
  print(template.gen("pages/host_ssh.template", context))
 elseif(page == "http") then
    local http = host["http"]
@@ -1537,9 +1547,9 @@ elseif(page == "sites") then
             default_granularity = "current"
          }
       }
-      
+
       -- interface.resetHostTopSites(host_info["host"], host_vlan)
-      
+
       print(template.gen("pages/top_sites.template", context))
    else
       local msg = i18n("sites_page.top_sites_not_seen")
