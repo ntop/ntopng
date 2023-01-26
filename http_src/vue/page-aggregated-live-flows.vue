@@ -99,9 +99,9 @@ async function start_datatable() {
       serverSide: false, 
       order: [[ 7 /* percentage column */, 'desc' ]],
       columnDefs: [
-        { type: "file-size", targets: 5 },
         { type: "file-size", targets: 6 },
         { type: "file-size", targets: 7 },
+        { type: "file-size", targets: 8 },
       ]
     }
   };
@@ -126,14 +126,16 @@ async function start_datatable() {
 
     defaultDatatableConfig.table_config.order = [[ 8 /* percentage column */, 'desc' ]];
     defaultDatatableConfig.table_config.columnDefs = [
-      { type: "file-size", targets: 6 },
       { type: "file-size", targets: 7 },
       { type: "file-size", targets: 8 },
+      { type: "file-size", targets: 9 },
     ];
   }
 
   columns.push({ 
     columnName: i18n("flows"), targets: 0, name: 'flows', data: 'flows', className: 'text-nowrap text-center', responsivePriority: 1
+  }, { 
+    columnName: i18n("score"), targets: 0, name: 'score', data: 'tot_score', className: 'text-nowrap text-center', responsivePriority: 1
   }, { 
     columnName: i18n("clients"), targets: 0, name: 'num_clients', data: 'num_clients', className: 'text-nowrap text-center', responsivePriority: 1
   }, { 

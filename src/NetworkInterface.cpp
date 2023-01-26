@@ -10203,15 +10203,15 @@ bool NetworkInterface::resetHostTopSites(AddressTree *allowed_hosts,
 class FlowsStats {
 private:
   std::set<std::string> clients, servers;
-  u_int32_t num_flows;
+  u_int32_t num_flows, tot_score;
   u_int64_t tot_sent, tot_rcvd;
   u_int8_t l4_proto;
   
 public:
   FlowsStats(const IpAddress *c, const IpAddress *s, u_int8_t _l4_proto,
-	     u_int64_t bytes_sent, u_int64_t bytes_rcvd) {
-    num_flows = 0, tot_sent = tot_rcvd = 0, l4_proto = _l4_proto;;
-    incFlowStats(c, s, bytes_sent, bytes_rcvd);
+	     u_int64_t bytes_sent, u_int64_t bytes_rcvd, u_int32_t score) {
+    num_flows = 0, tot_sent = tot_rcvd = 0, tot_score = 0, l4_proto = _l4_proto;
+    incFlowStats(c, s, bytes_sent, bytes_rcvd, score);
   }
 
   inline u_int32_t getNumClients() { return(clients.size()); }
@@ -10220,13 +10220,15 @@ public:
   inline u_int32_t getNumFlows()   { return(num_flows);      }
   inline u_int64_t getTotalSent()  { return(tot_sent);       }
   inline u_int64_t getTotalRcvd()  { return(tot_rcvd);       }
+  inline u_int32_t getTotalScore() { return(tot_score);      }
   inline void      incFlowStats(const IpAddress *c, const IpAddress *s,
-				u_int64_t bytes_sent, u_int64_t bytes_rcvd) {
+				u_int64_t bytes_sent, u_int64_t bytes_rcvd,
+				u_int32_t score) {
     char buf_c[48], buf_s[48];
 			  
     clients.insert(std::string(((IpAddress*)c)->get_ip_hex(buf_c, sizeof(buf_c)))),
       servers.insert(std::string(((IpAddress*)s)->get_ip_hex(buf_s, sizeof(buf_s)))),
-      num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd;
+      num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd, tot_score += score;;
   }
 };
 
@@ -10250,13 +10252,15 @@ static bool compute_protocol_flow_stats(GenericHashEntry *node, void *user_data,
   if(it == count->end()) {
     FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 						   f->get_protocol(),
-						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli());
+						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+						   f->getScore());
 
     if(fs != NULL)
       (*count)[key] = fs;
   } else
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli());
+			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+			     f->getScore());
 
   *matched = true;
 
@@ -10306,7 +10310,8 @@ void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
     lua_push_uint32_table_entry(vm, "num_flows",   fs->getNumFlows());
     lua_push_uint64_table_entry(vm, "bytes_sent",  fs->getTotalSent());
     lua_push_uint64_table_entry(vm, "bytes_rcvd",  fs->getTotalRcvd());
-
+    lua_push_uint64_table_entry(vm, "total_score", fs->getTotalScore());
+    
     lua_pushinteger(vm, ++num);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -10337,13 +10342,15 @@ static bool compute_vlan_flow_stats(GenericHashEntry *node, void *user_data, boo
   if(it == count->end()) {
     FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 						   f->get_protocol(),
-						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli());
+						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+						   f->getScore());
 
     if(fs != NULL)
       (*count)[key] = fs;
   } else
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli());
+			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+			     f->getScore());
 
   *matched = true;
 
@@ -10398,6 +10405,7 @@ void NetworkInterface::getVLANFlowsStats(lua_State* vm) {
     lua_push_uint32_table_entry(vm, "num_flows",   fs->getNumFlows());
     lua_push_uint64_table_entry(vm, "bytes_sent",  fs->getTotalSent());
     lua_push_uint64_table_entry(vm, "bytes_rcvd",  fs->getTotalRcvd());
+    lua_push_uint64_table_entry(vm, "total_score", fs->getTotalScore());
 
     lua_pushinteger(vm, ++num);
     lua_insert(vm, -2);

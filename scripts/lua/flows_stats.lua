@@ -201,13 +201,16 @@ if (page == "flows" or page == nil) then
    local is_chart_printed = false
 
    print[[<div class="d-flex m-1">]]
+
    if is_chart_printed then
     print[[<h3 class="m-auto">]]
    else
     print[[<h3 class="me-auto mt-auto mb-auto">]]
    end
+
    print(active_msg)
    print[[</h3>]]
+
    if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"])) then
     is_chart_printed = true
          print [[
@@ -241,6 +244,7 @@ if (page == "flows" or page == nil) then
          </div>
    ]]
    end
+   
    print[[<h6 class="ms-auto mt-auto mb-auto">]]
    print(mini_title)
    print[[</h6>]]
@@ -532,6 +536,8 @@ if (page == "flows" or page == nil) then
       ]])
     end
 else
+   -- Analysis
+   
   local json = require 'dkjson'
   -- Format VLANs dropdown
   local tmp_vlans = {}
