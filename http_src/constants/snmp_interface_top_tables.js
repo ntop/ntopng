@@ -42,31 +42,31 @@ const top_snmp_interface = {
 	    return DataTableUtils.createLinkCallback({ text: label_text, handler });
 	},
     }, {
-	columnName: i18n("page_stats.top.sent"), name: 'sent', data: 'sent', orderable: true,
+	columnName: i18n("page_stats.top.sent"), name: 'sent', className: 'text-end', data: 'sent', orderable: true,
 	render: (data) => {
 	    return bytesToSizeFormatter(data);
 	    //return NtopUtils.bytesToSize(data)
 	},
     }, {
-	columnName: i18n("page_stats.top.received"), name: 'received', data: 'rcvd', orderable: true,
+	columnName: i18n("page_stats.top.received"), name: 'received', className: 'text-end', data: 'rcvd', orderable: true,
 	render: (data) => {
 	    return bytesToSizeFormatter(data);
 	    //return NtopUtils.bytesToSize(data)
 	},
     }, {
-	columnName: i18n("traffic"), name: 'traffic', data: 'total', orderable: true,
+	columnName: i18n("traffic"), name: 'traffic', className: 'text-end', data: 'total', orderable: true,
 	render: (data) => {
 	    return bytesToSizeFormatter(data);
 	    //return NtopUtils.bytesToSize(data)
 	},
     }, {
-	columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage',
+	columnName: i18n("percentage"), name: 'traffic_perc', className: 'text-center', data: 'percentage',
 	render: (data) => {
 	    const percentage = data.toFixed(1);
 	    return NtopUtils.createProgressBar(percentage)
 	}
     }, {
-	columnName: i18n("page_stats.top.throughput"), name: 'throughput', data: 'throughput', orderable: true,
+	columnName: i18n("page_stats.top.throughput"), name: 'throughput', className: 'text-end', data: 'throughput', orderable: true,
 	render: (data) => {
 	    return bpsFormatter(data);
 	    //return NtopUtils.bytesToSize(data)

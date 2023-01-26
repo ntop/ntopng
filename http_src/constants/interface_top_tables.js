@@ -30,13 +30,13 @@ const top_application = {
 		return DataTableUtils.createLinkCallback({ text: data.label, handler });
 	    },
 	}, {
-	    columnName: i18n("traffic"), name: 'traffic', data: 'traffic', orderable: false,
+	    columnName: i18n("traffic"), name: 'traffic', className: 'text-end', data: 'traffic', orderable: false,
 	    render: (data) => {
 	    	return bytesToSizeFormatter(data);
 	    	//return NtopUtils.bytesToSize(data)
 	    },
 	}, {
-	    columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage',
+	    columnName: i18n("percentage"), name: 'traffic_perc', className: 'text-center', data: 'percentage',
 	    render: (data) => {
 		const percentage = data.toFixed(1);
 		return NtopUtils.createProgressBar(percentage)
@@ -99,13 +99,13 @@ const top_categories = {
 		return DataTableUtils.createLinkCallback({ text: data.label, handler });
 	    },
 	}, {
-	    columnName: i18n("traffic"), name: 'traffic', data: 'traffic', orderable: false,
+	    columnName: i18n("traffic"), name: 'traffic', className: 'text-end', data: 'traffic', orderable: false,
 	    render: (data) => {
 	    	return bytesToSizeFormatter(data);
 	    	//return NtopUtils.bytesToSize(data)
 	    },
 	}, {
-	    columnName: i18n("percentage"), name: 'traffic_perc', data: 'percentage',
+	    columnName: i18n("percentage"), name: 'traffic_perc', className: 'text-center', data: 'percentage',
 	    render: (data) => {
 		const percentage = data.toFixed(1);
 		return NtopUtils.createProgressBar(percentage)
@@ -171,7 +171,7 @@ const top_senders = {
 	    return data.label;
 	},
     }, {
-	columnName: i18n("page_stats.top.sent"), name: 'sent', data: 'traffic', orderable: false,
+	columnName: i18n("page_stats.top.sent"), name: 'sent', className: 'text-end', data: 'traffic', orderable: false,
 	render: (data) => {
 	    return bytesToSizeFormatter(data);
 	    //return NtopUtils.bytesToSize(data)
@@ -246,7 +246,7 @@ const top_receivers = {
 	    return data.label;
 	},
     }, {
-	columnName: i18n("page_stats.top.received"), name: 'received', data: 'traffic', orderable: false,
+	columnName: i18n("page_stats.top.received"), name: 'received', className: 'text-end', data: 'traffic', orderable: false,
 	render: (data) => {
 	    return bytesToSizeFormatter(data);
 	    //return NtopUtils.bytesToSize(data)
