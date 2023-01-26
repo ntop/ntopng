@@ -1550,7 +1550,7 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
       return false, err
     end
   end
-
+  
   if not db_found or days_retention ~= nil then
     -- New database or config changed
     days_retention = days_retention or getDatabaseRetentionDays()
@@ -1559,6 +1559,7 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
     if verbose then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Setting retention for " .. dbname .. " ...") end
     local query = makeRetentionPolicyQuery("ALTER", "autogen", dbname, days_retention)
 
+    --tprint(query)
     local res = ntop.httpPost(url .. "/query", "q=" .. query, username, password, timeout, true)
     if not res or (res.RESPONSE_CODE ~= 200) then
       local warning = i18n("prefs.influxdb_retention_error", {db=dbname, msg=getResponseError(res)})
@@ -1699,13 +1700,18 @@ end
 function driver:setup(ts_utils)
   local queries = {}
   local max_batch_size = 25 -- note: each query is about 400 characters
-
+  local retention_changed = ntop.getCache("ntopng.influxdb.retention_changed") or '0'
+  local retention = nil
   -- Clear saved values (e.g., number of exported points) as
   -- we want to start clean and keep values since-ntopng-startup
   del_all_vals()
 
+  if retention_changed == '1' then
+    retention = getDatabaseRetentionDays()
+    ntop.delCache("ntopng.influxdb.retention_changed")
+  end
   -- Ensure that the database exists
-  driver.init(self.db, self.url, nil, self.username, self.password)
+  driver.init(self.db, self.url, retention, self.username, self.password)
 
   if not updateCQRetentionPolicies(self.db, self.url, self.username, self.password) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB setup failed")

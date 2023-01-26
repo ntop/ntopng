@@ -109,7 +109,10 @@ if auth.has_capability(auth.capabilities.preferences) then
       recording_utils.setLicense(_POST["n2disk_license"])
    end
 
-   if _POST["timeseries_driver"] or _POST["data_retention_days"] then
+   if _POST["timeseries_driver"] or _POST["ts_and_stats_data_retention_days"] then
+      if ntop.getPref("ntopng.prefs.timeseries_driver") == 'influxdb' then
+        ntop.setCache("ntopng.influxdb.retention_changed", 1)
+      end
       ts_utils.setupAgain()
    end
 
