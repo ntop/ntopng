@@ -555,7 +555,11 @@ function set_top_table_options(timeseries_groups, status) {
 		table_buttons: [ ],
 		data_url,
 		enable_search: true,
-		table_config: { serverSide: false, order: [[ table_def.default_sorting_columns, 'desc' ]] }
+		table_config: { 
+      serverSide: false, 
+      order: [[ table_def.default_sorting_columns, 'desc' ]],
+      columnDefs: table_def.columnDefs || [],
+    }
 	    };
 	    // it should be here in this instance the vuetify object with its properties
 	    table_config_def.columns_config = table_def.columns.map((column) => {

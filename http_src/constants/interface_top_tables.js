@@ -11,9 +11,11 @@ const top_application = {
     table_value: "interface",
     title: i18n('page_stats.top.top_applications'),
     view: "top_protocols",
-    default_sorting_columns: 2,
+    default_sorting_columns: 1,
     default: true,
-    
+    columnDefs: [
+      { type: "file-size", targets: 1 },
+    ],
     columns: [{
 	    columnName: i18n("application"), name: 'application', data: 'protocol', handlerId: handlerIdAddLink,
 	    render: function(data, type, service) {
@@ -30,13 +32,13 @@ const top_application = {
 		return DataTableUtils.createLinkCallback({ text: data.label, handler });
 	    },
 	}, {
-	    columnName: i18n("traffic"), name: 'traffic', className: 'text-end', data: 'traffic', orderable: false,
+	    columnName: i18n("traffic"), name: 'traffic', className: 'text-end', data: 'traffic', orderable: true,
 	    render: (data) => {
-	    	return bytesToSizeFormatter(data);
-	    	//return NtopUtils.bytesToSize(data)
+	    	//return bytesToSizeFormatter(data);
+	    	return NtopUtils.bytesToSize(data)
 	    },
 	}, {
-	    columnName: i18n("percentage"), name: 'traffic_perc', className: 'text-center', data: 'percentage',
+	    columnName: i18n("percentage"), name: 'traffic_perc', className: 'text-center', data: 'percentage', orderable: false,
 	    render: (data) => {
 		const percentage = data.toFixed(1);
 		return NtopUtils.createProgressBar(percentage)
@@ -82,9 +84,11 @@ const top_categories = {
     title: i18n('page_stats.top.top_categories'),
     view: "top_categories",
     default_sorting_columns: 2,
-    
+    columnDefs: [
+      { type: "file-size", targets: 1 },
+    ],
     columns: [{
-	    columnName: i18n("page_stats.top.category"), name: 'category', data: 'category', handlerId: handlerIdAddLink,
+	    columnName: i18n("category"), name: 'category', data: 'category', handlerId: handlerIdAddLink,
 	    render: function(data, type, service) {
 		let context = this;
 		let handler = {
@@ -99,7 +103,7 @@ const top_categories = {
 		return DataTableUtils.createLinkCallback({ text: data.label, handler });
 	    },
 	}, {
-	    columnName: i18n("traffic"), name: 'traffic', className: 'text-end', data: 'traffic', orderable: false,
+	    columnName: i18n("traffic"), name: 'traffic', className: 'text-end', data: 'traffic', orderable: true,
 	    render: (data) => {
 	    	return bytesToSizeFormatter(data);
 	    	//return NtopUtils.bytesToSize(data)
@@ -151,7 +155,9 @@ const top_senders = {
     title: i18n('page_stats.top.top_senders'),
     view: "top_senders",
     default_sorting_columns: 1,
-    
+    columnDefs: [
+      { type: "file-size", targets: 1 },
+    ],
     columns: [{
 	columnName: i18n("page_stats.top.host_name"), name: 'host_name', data: 'host', handlerId: handlerIdAddLink,
 	render: function(data, type, service) {
@@ -171,7 +177,7 @@ const top_senders = {
 	    return data.label;
 	},
     }, {
-	columnName: i18n("page_stats.top.sent"), name: 'sent', className: 'text-end', data: 'traffic', orderable: false,
+	columnName: i18n("page_stats.top.sent"), name: 'sent', className: 'text-end', data: 'traffic', orderable: true,
 	render: (data) => {
 	    return bytesToSizeFormatter(data);
 	    //return NtopUtils.bytesToSize(data)
@@ -226,7 +232,9 @@ const top_receivers = {
     title: i18n('page_stats.top.top_receivers'),
     view: "top_receivers",
     default_sorting_columns: 1,
-    
+    columnDefs: [
+      { type: "file-size", targets: 1 },
+    ],
     columns: [{
 	columnName: i18n("page_stats.top.host_name"), name: 'host_name', data: 'host', handlerId: handlerIdAddLink,
 	render: function(data, type, service) {
@@ -246,7 +254,7 @@ const top_receivers = {
 	    return data.label;
 	},
     }, {
-	columnName: i18n("page_stats.top.received"), name: 'received', className: 'text-end', data: 'traffic', orderable: false,
+	columnName: i18n("page_stats.top.received"), name: 'received', className: 'text-end', data: 'traffic', orderable: true,
 	render: (data) => {
 	    return bytesToSizeFormatter(data);
 	    //return NtopUtils.bytesToSize(data)

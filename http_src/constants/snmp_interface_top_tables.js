@@ -15,6 +15,11 @@ const top_snmp_interface = {
     title: i18n('page_stats.top.top_interfaces'),
     view: "top_snmp_ifaces",
     default_sorting_columns: 4,
+    columnDefs: [
+      { type: "file-size", targets: 1 },
+      { type: "file-size", targets: 2 },
+      { type: "file-size", targets: 3 },
+    ],
     f_get_label: (ts_group) => {
 	let source_def_array = ts_group.source_type.source_def_array;
 	let source_label;
