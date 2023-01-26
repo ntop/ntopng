@@ -124,6 +124,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     char *msg;
   } customHostAlert;
 
+  struct {
+    bool triggered;
+    u_int8_t score;
+    char *msg;
+  } externalAlert;
+
   Mutex m;
   u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
@@ -645,12 +651,18 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void luaUsedPorts(lua_State* vm) { ; }
   virtual std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(NULL); }
 
+  void triggerCustomHostAlert(u_int8_t score, char *msg);
   inline bool     isCustomHostAlertTriggered()  { return(customHostAlert.alertTriggered);                 }
   inline bool     isCustomHostScriptAlreadyEvaluated()  { return(customHostAlert.hostAlreadyEvaluated);   }
   inline void     setCustomHostScriptAlreadyEvaluated() { customHostAlert.hostAlreadyEvaluated = true;    }
   inline u_int8_t getCustomHostAlertScore()     { return(customHostAlert.score);                          }
   inline char*    getCustomHostAlertMessage()   { return(customHostAlert.msg);                            }
-  void triggerCustomHostAlert(u_int8_t score, char *msg);
+
+  void triggerExternalAlert(u_int8_t score, char *msg);
+  void resetExternalAlert();
+  inline bool     isExternalAlertTriggered()  { return(externalAlert.triggered); }
+  inline u_int8_t getExternalAlertScore()     { return(externalAlert.score);          }
+  inline char*    getExternalAlertMessage()   { return(externalAlert.msg);            }
 
   virtual void setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port)  { ; }
   virtual void setUnidirectionalTCPNoTXIngressFlow(IpAddress *ip, u_int16_t port) { ; }

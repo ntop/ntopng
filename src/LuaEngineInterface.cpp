@@ -4729,6 +4729,43 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_trigger_external_host_alert(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char buf[64], *host_ip;
+  Host *host;
+  VLANid vlan_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  /* Param 1: IP */
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  host = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId));
+
+  if(host) {
+    u_int32_t value;
+    char *msg;
+
+    /* Param 2: Score */
+    if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+    value = (u_int32_t) lua_tointeger(vm, 2);
+
+    /* Param 3: Info */
+    if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+    msg = (char*)lua_tostring(vm, 3);
+
+    host->triggerExternalAlert(value, msg);
+  } else
+    lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static luaL_Reg _ntop_interface_reg[] = {
   { "setActiveInterfaceId",     ntop_set_active_interface_id },
   { "getIfNames",               ntop_get_interface_names },
@@ -4986,6 +5023,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "incTotalHostAlerts",     ntop_interface_inc_total_host_alerts    },
   { "updateIPReassignment",   ntop_interface_update_ip_reassignment   },
   { "triggerTrafficAlert",    ntop_interface_trigger_traffic_alert    },
+  { "triggerExternalHostAlert", ntop_interface_trigger_external_host_alert },
 
   /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },

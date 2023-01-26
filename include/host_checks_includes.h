@@ -27,6 +27,7 @@
 
 #include "host_checks/CountriesContacts.h"
 #include "host_checks/CustomHostLuaScript.h"
+#include "host_checks/ExternalHostScript.h"
 
 #include "host_checks/FlowHits.h"
 #include "host_checks/FlowFlood.h"
