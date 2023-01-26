@@ -1907,7 +1907,20 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        print('<li><a class="dropdown-item active href="')
        application_filter_params["application"] = page_params["application"]
        print(getPageUrl(base_url, application_filter_params))
-       print('">'..page_params["application"]..'</a></li>')
+       local application_split = string.split(application_filter_params["application"], "%.")
+       local application_name = application_filter_params["application"]
+       if application_split and #application_split == 2 then
+        application_name = string.format("%s.%s", 
+         interface.getnDPIProtoName(tonumber(application_split[1])),
+         interface.getnDPIProtoName(tonumber(application_split[2])))
+       else
+         local _application = tonumber(application_filter_params["application"])
+         
+         if(_application) then
+          application_name = interface.getnDPIProtoName(_application)
+         end
+       end
+       print('">'..application_name..'</a></li>')
     else
        -- No application selected in the dropdown. Show all the available applications
        -- as reported in flowstats
@@ -2067,10 +2080,19 @@ function getFlowsTableTitle()
 
    if _GET["application"] then
       local application = _GET["application"]
-
-      if tonumber(application) then
-        application = interface.getnDPIProtoName(tonumber(application))
+      local application_split = string.split(application, "%.")
+      if application_split and #application_split == 2 then
+        application = string.format("%s.%s", 
+        interface.getnDPIProtoName(tonumber(application_split[1])),
+        interface.getnDPIProtoName(tonumber(application_split[2])))
+      else
+        local _application = tonumber(application)
+        
+        if(_application) then
+          application = interface.getnDPIProtoName(_application)
+        end
       end
+
       active_msg = active_msg .. " "..  application
    end
 
