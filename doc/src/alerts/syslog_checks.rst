@@ -35,6 +35,62 @@ Enabled by Default - requires the Syslog Producer configuration for Logs Demulti
 
 *Category: Cybersecurity*
 
+Example of NXLog *nxlog.conf* configuration file:
+
+.. code:: xml
+
+   define ROOT     C:\Program Files\nxlog
+   define CERTDIR  %ROOT%\cert
+   define CONFDIR  %ROOT%\conf
+   define LOGDIR   %ROOT%\data
+   define LOGFILE  %LOGDIR%\nxlog.log
+   LogFile %LOGFILE%
+   
+   Moduledir %ROOT%\modules
+   CacheDir  %ROOT%\data
+   Pidfile   %ROOT%\data\nxlog.pid
+   SpoolDir  %ROOT%\data
+   
+   <Extension _syslog>
+       Module      xm_syslog
+   </Extension>
+   
+   <Extension _charconv>
+       Module      xm_charconv
+       AutodetectCharsets iso8859-2, utf-8, utf-16, utf-32
+   </Extension>
+   
+   <Extension _exec>
+       Module      xm_exec
+   </Extension>
+   
+   <Extension xml>
+       Module  xm_xml
+   </Extension>
+   
+   <Input eventlog>
+       Module im_msvistalog
+        Query <QueryList>\
+                  <Query Id="0">\
+                      <Select Path="Security">*[System[(EventID=4768 or EventID=4769)]]</Select>\
+                  </Query>\
+              </QueryList>  
+   </Input>
+   
+   <Output out>
+       Module      om_tcp
+       Host        ntopng_ip
+       Port        4637
+       <Exec>
+           $EventTime = integer($EventTime);
+           to_xml();
+       </Exec>
+   </Output>
+   
+   <Route 1>
+       Path          eventlog => out
+   </Route>
+
 **OpenVPN**
 ~~~~~~~~~~~~~~~~~~~~~~
 
