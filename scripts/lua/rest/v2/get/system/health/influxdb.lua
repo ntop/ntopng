@@ -20,6 +20,10 @@ if influxdb.getInfluxdbVersion then
   info.points_exported = influxdb:get_exported_points()
   info.exports = influxdb:get_exports()
   info.health = influxdb:get_health()
+  info.status = "UP"
+else
+  info.status = "DISABLED"
 end
+
 
 rest_utils.answer(rest_utils.consts.success.ok, info)
