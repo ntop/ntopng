@@ -422,6 +422,8 @@ local function sampleSeries(schema, cur_points, step, max_points, series)
       end
    end
 
+
+   
    -- new step, new count, new data
    return step * sampled_dp, count
 end
@@ -493,7 +495,7 @@ function driver:query(schema, tstart, tend, tags, options)
    local series = {}
 
    local serie_idx = 0
-   
+
    for name,_ in pairs(fdata) do
       serie_idx = serie_idx + 1  -- the first id is 1
       local name = schema._metrics[serie_idx]
@@ -506,6 +508,7 @@ function driver:query(schema, tstart, tend, tags, options)
       -- unify the format
       for i, v in pairs(serie) do
 	 local v = ts_common.normalizeVal(v, max_val, options)
+
 	 serie[i] = v
 	 count = count + 1
       end
@@ -532,6 +535,8 @@ function driver:query(schema, tstart, tend, tags, options)
    local total_serie = nil
    local stats = nil
 
+   -- tprint("Step: "..fstep.." / unsampled_fstep: "..unsampled_fstep)
+   
    if options.calculate_stats then
       total_serie = makeTotalSerie(series, count)
       stats = ts_common.calculateStatistics(makeTotalSerie(unsampled_series, unsampled_count), unsampled_fstep, tend - tstart, schema.options.metrics_type)
@@ -568,6 +573,18 @@ function driver:query(schema, tstart, tend, tags, options)
       end
    end
 
+
+   for k, v in pairs(series) do
+      local d = v.data
+
+      for i = 0, #d do
+	 if(d[i] ~= nil) then
+	    d[i] = d[i] / fstep
+	 end
+      end
+	    
+   end
+   
    if options.calculate_stats then
       stats = table.merge(stats, ts_common.calculateMinMax(total_serie))
    end

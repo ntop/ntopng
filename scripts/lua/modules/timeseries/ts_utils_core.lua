@@ -310,6 +310,8 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
       return nil
    end
 
+   rv["end"] = tend
+   
    -- Add tags information for consistency with queryTopk
    for _, serie in pairs(rv.series) do
       serie.tags = actual_tags
