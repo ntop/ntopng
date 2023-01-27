@@ -969,6 +969,15 @@ else
          print("</tr>")
       end
 
+      print("<tr><th>")
+      print(i18n("details.server_contacts_tcp_unresponsive"))
+      print("</th><td>")
+      print("<span id=num_contacted_peers_with_tcp_flows_no_response>"..formatContacts(host.num_contacted_peers_with_tcp_flows_no_response) .. "</span> <span id=num_contacted_peers_with_tcp_flows_no_response_trend></span> \n")
+      print("</td><td>")
+      print("<span id=num_incoming_peers_that_sent_tcp_flows_no_response>"..formatContacts(host.num_incoming_peers_that_sent_tcp_flows_no_response) .. "</span> <span id=num_incoming_peers_that_sent_tcp_flows_no_response_trend></span> \n")
+      print("</td>")
+      print("</tr>\n")
+
       print("<tr><th colspan=4></th></tr>\n")
 
       -- ###########################################################
@@ -990,15 +999,6 @@ else
          print("<b>NTP</b>: "..formatContacts(host.server_contacts.ntp));
 	 print("</tr></tr>\n")
       end
-
-      print("<tr><th>")
-      print(i18n("details.server_contacts_tcp_unresponsive"))
-      print("</th><td>")
-      print("<span id=num_contacted_peers_with_tcp_flows_no_response>"..formatContacts(host.num_contacted_peers_with_tcp_flows_no_response) .. "</span> <span id=num_contacted_peers_with_tcp_flows_no_response_trend></span> \n")
-      print("</td><td>")
-      print("<span id=num_incoming_peers_that_sent_tcp_flows_no_response>"..formatContacts(host.num_incoming_peers_that_sent_tcp_flows_no_response) .. "</span> <span id=num_incoming_peers_that_sent_tcp_flows_no_response_trend></span> \n")
-      print("</td>")
-      print("</tr>\n")
 
       if host["tcp.packets.seq_problems"] == true then
          local tcp_seq_label = "TCP: "..i18n("details.retransmissions").." / "..i18n("details.out_of_order").." / "..i18n("details.lost").." / "..i18n("details.keep_alive")
