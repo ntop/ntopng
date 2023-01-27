@@ -13,16 +13,15 @@ This API is based on ntopng's [REST API](https://www.ntop.org/guides/ntopng/api/
 Prerequisites
 -------------
 
-The API is using Pandas for working with time series data.
+The API is using Pandas and NumPy for working with time series data, plotly and fpdf for generating reports in PDF format.
+The examples are using additional modules, including redmail for sending reports by email.
 
 - pandas
-
-Examples are using additional libraries including NumPy for playing with time series data, plotly and fpdf for generating reports in PDF format.
-
 - numpy
 - plotly
 - fpdf
 - kaleido
+- redmail
 
 API Information
 ---------------

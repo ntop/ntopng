@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Interface PDF report creation script using the ntopng Python API
+Sample PDF report creation script using the ntopng Python API to collect traffic information
 """
 
 import os

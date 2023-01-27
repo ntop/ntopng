@@ -13,6 +13,7 @@ class Interface:
     Interface provides information about a Network interface
     
     :param ntopng_obj: The ntopng handle
+    :param ifid: The interface ID
     """
 
     def __init__(self, ntopng_obj, ifid):
@@ -20,7 +21,7 @@ class Interface:
         Construct a new Interface object
         
         :param ntopng_obj: The ntopng handle
-        :type ifid: Ntopng
+        :type ntopng_obj: Ntopng
         :param ifid: The interface ID
         :type ifid: int
         """ 

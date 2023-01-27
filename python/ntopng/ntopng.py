@@ -54,7 +54,10 @@ class Ntopng:
                 raise ValueError("Invalid credentials or URL specified")
         except:
             raise ValueError("Invalid credentials or URL specified")
-       
+
+    def get_url(self):
+        return self.url
+
     def issue_request(self, url, params):
         if(self.debug):
             print("Requesting [GET]: "+url)
