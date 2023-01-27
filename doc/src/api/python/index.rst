@@ -16,17 +16,11 @@ The ntopng class is used to keep information about the ntopng configuration incl
 Prerequisites
 -------------
 
-The API is using Pandas for working with time series data.
+The API is using Pandas and NumPy for working with time series data, plotly and fpdf for generating reports in PDF format, and a few additional libraries.
 
 .. code:: bash
 
-   pip3 install pandas
-
-Examples are using additional libraries including NumPy for playing with time series data, plotly and fpdf for generating reports in PDF format.
-
-.. code:: bash
-
-   pip3 install numpy plotly fpdf kaleido
+   pip3 install pandas numpy plotly fpdf kaleido
 
 Installation
 ------------
