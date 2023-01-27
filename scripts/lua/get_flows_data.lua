@@ -332,7 +332,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
     end
 
    record["column_ndpi"] = app -- can't set the hosts_stats hyperlink for viewed interfaces
-   if((not ifstats.isViewed) and (value["proto.ndpi_id"] ~= -1)) then
+   if(value["proto.ndpi_id"] ~= -1) then
       local l7proto
       
       if((value["proto.ndpi_id"] == value["proto.master_ndpi_id"]) or (value["proto.master_ndpi_id"] == 0)) then
