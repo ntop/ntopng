@@ -2,7 +2,7 @@
 -- (C) 2013-23 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -27,5 +27,10 @@ local rc = rest_utils.consts.success.ok
 local res = cpu_utils.systemHostStats()
 res.epoch = os.time()
 res.storage = storage_utils.storageInfo()
+
+local info = ntop.getInfo()
+if(info.pid ~= nil) then
+   res.pid = info.pid
+end
 
 rest_utils.answer(rc, res)

@@ -100,6 +100,7 @@ function storage_utils.storageInfo(refresh_cache, timeout)
     local if_info = storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_cache, timeout)
     if if_info then
       info.interfaces[ifid] = if_info
+      info.interfaces[ifid]["name"] = name
       info.total = info.total + if_info.total
       if if_info.pcap ~= nil then
         info.pcap_total = info.pcap_total + if_info.pcap

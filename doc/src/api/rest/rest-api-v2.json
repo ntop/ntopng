@@ -28,11 +28,15 @@
 		{
 			"name": "Users",
 			"description": "ntopng users management"
-		 },
-		 {
+		},
+		{
 			"name": "Infrastructures",
 			"description": "Manage infrastructure configurations"
-		 }
+		},
+		{
+			"name": "Health",
+			"description": "Everything about system status"
+		}
 	],
 	"schemes": [
 		"https",
@@ -3340,47 +3344,8 @@
 				}
 			}
 		},
-		"/lua/rest/v2/get/system/stats.lua": {
-			"get": {
-				"tags": [
-					"All"
-				],
-				"summary": "Get system stats",
-				"description": "Get statistics of the system on top of which ntopng is running",
-				"operationId": "get_system_stats",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [],
-				"responses": {
-					"0": {
-						"description": "OK"
-					}
-				}
-			}
-		},
-		"/lua/pro/rest/v2/get/clickhouse/clickhouse_stats.lua": {
-			"get": {
-				"tags": [
-					"System Stats"
-				],
-				"summary": "Get Clickhouse Stats",
-				"description": "Get all the available Clickhouse Statistics",
-				"operationId": "get_clickhouse_stats",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
-					}
-				}
-      }
-    },
+		
+		
 		"/lua/rest/v2/export/all/config.lua": {
 			"get": {
 				"tags": [
@@ -12834,7 +12799,118 @@
 					}
 				}
 			}
-		}
+		},
+		"/lua/rest/v2/get/system/health/stats.lua": {
+			"get": {
+				"tags": [
+					"Health"
+				],
+				"summary": "Get system stats",
+				"description": "Get statistics of the system on top of which ntopng is running",
+				"operationId": "get_system_stats",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+					
+				}
+			}
+		},
+		"/lua/rest/v2/get/system/health/interfaces.lua": {
+			"get": {
+				"tags": [
+					"Health"
+				],
+				"summary": "Get interfaces stats",
+				"description": "Get statistics of every active interfaces",
+				"operationId": "get_interfaces_stats",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/system/health/redis.lua": {
+			"get": {
+				"tags": [
+					"Health"
+				],
+				"summary": "Get Redis Stats",
+				"description": "Get all the available Redis Statistics",
+				"operationId": "get_redis_stats",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+      		}
+    	},
+		"/lua/rest/v2/get/system/health/influxdb.lua": {
+			"get": {
+				"tags": [
+					"Health"
+				],
+				"summary": "Get InfluxDB Stats",
+				"description": "Get all the available InfluxDB Statistics",
+				"operationId": "get_influxdb_stats",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+      		}
+    	},
+		"/lua/pro/rest/v2/get/system/health/clickhouse.lua": {
+			"get": {
+				"tags": [
+					"Health"
+				],
+				"summary": "Get Clickhouse Stats",
+				"description": "Get all the available Clickhouse Statistics",
+				"operationId": "get_clickhouse_stats",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+      		}
+    	}
 	},
 	"definitions": {
 		"Interface": {
