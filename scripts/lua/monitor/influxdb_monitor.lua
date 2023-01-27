@@ -87,7 +87,7 @@ if(page == "overview") then
  };
 
  function refreshInfluxStats() {
-  $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
+  $.get("]] print(ntop.getHttpPrefix()) print[[/lua/rest/v2/get/system/health/influxdb.lua", function(info) {
     const rsp = info.rsp 
     $(".influxdb-info-load").hide();
 

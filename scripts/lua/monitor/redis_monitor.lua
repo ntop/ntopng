@@ -83,7 +83,7 @@ if(page == "overview") then
  };
 
  function refreshRedisStats() {
-  $.get("]] print(ntop.getHttpPrefix()) print[[/lua/rest/v2/get/redis/redis_info.lua", function(info) {
+  $.get("]] print(ntop.getHttpPrefix()) print[[/lua/rest/v2/get/system/health/redis.lua", function(info) {
      $(".redis-info-load").hide();
 
      info = info.rsp;
