@@ -7,6 +7,7 @@ local driver = {}
 local os_utils = require("os_utils")
 local ts_common = require("ts_common")
 local data_retention_utils = require "data_retention_utils"
+local ts_utils = require "ts_utils_core"
 
 require("rrd_paths")
 
@@ -277,7 +278,7 @@ local function update_rrd(schema, rrdfile, timestamp, data)
    local params = { number_to_rrd_string(timestamp, schema), }
 
    -- io.write("update_rrd(".. rrdfile ..")\n")
-   
+
    if isDebugEnabled() then
       traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Going to update %s [%s]", schema.name, rrdfile))
    end
@@ -352,7 +353,7 @@ local function makeTotalSerie(series, count)
 	 local val_is_nan = (val ~= val)
 
 	 if(total[i] == nil) then total[i] = 0 end
-	 
+
 	 if(not val_is_nan) then
 	    total[i] = total[i] + val
 	 end
@@ -423,7 +424,7 @@ local function sampleSeries(schema, cur_points, step, max_points, series)
    end
 
 
-   
+
    -- new step, new count, new data
    return step * sampled_dp, count
 end
@@ -499,7 +500,7 @@ function driver:query(schema, tstart, tend, tags, options)
    for name,_ in pairs(fdata) do
       serie_idx = serie_idx + 1  -- the first id is 1
       local name = schema._metrics[serie_idx]
-      local fdata_name = names[serie_idx]      
+      local fdata_name = names[serie_idx]
       serie = fdata[fdata_name]
 
       local max_val = ts_common.getMaxPointValue(schema, name, tags)
@@ -536,7 +537,7 @@ function driver:query(schema, tstart, tend, tags, options)
    local stats = nil
 
    -- tprint("Step: "..fstep.." / unsampled_fstep: "..unsampled_fstep)
-   
+
    if options.calculate_stats then
       total_serie = makeTotalSerie(series, count)
       stats = ts_common.calculateStatistics(makeTotalSerie(unsampled_series, unsampled_count), unsampled_fstep, tend - tstart, schema.options.metrics_type)
@@ -574,17 +575,22 @@ function driver:query(schema, tstart, tend, tags, options)
    end
 
 
-   for k, v in pairs(series) do
-      local d = v.data
+   -- tprint(rrdfile)
+   --tprint(schema)
+   -- tprint(schema.options.metrics_type)
+      
+   if(schema.options.metrics_type ~= ts_utils.metrics.gauge) then
+      for k, v in pairs(series) do
+	 local d = v.data
 
-      for i = 0, #d do
-	 if(d[i] ~= nil) then
-	    d[i] = d[i] / fstep
+	 for i = 0, #d do
+	    if(d[i] ~= nil) then
+	       d[i] = d[i] / fstep
+	    end
 	 end
       end
-	    
    end
-   
+
    if options.calculate_stats then
       stats = table.merge(stats, ts_common.calculateMinMax(total_serie))
    end
@@ -613,7 +619,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
       traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
       return nil
    end
-  
+
    local wildcard_tag = wildcard_tags[1]
 
    if not wildcard_tag then
@@ -638,7 +644,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 
    -- tprint(base)
    -- tprint(files)
-   
+
    for f in pairs(files or {}) do
       local v = string.split(f, "%.rrd")
       local fpath = base .. "/" .. f
@@ -649,7 +655,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 	 if last_update ~= nil and last_update >= start_time then
 	    local value = v[1]
 	    local toadd = false
-      
+
 	    if wildcard_tag == "if_index" then
 	       -- NOTE: needed to add this crazy exception. Don't now what it is
 	       -- but it's needed, otherwise this function is tricked into thinking
@@ -760,7 +766,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 	 local name = schema._metrics[serie_idx]
 	 local fdata_name = names[serie_idx]
 	 serie = fdata[fdata_name]
-	 	 
+
 	 local max_val = ts_common.getMaxPointValue(schema, name, serie_tags)
 	 partials[name] = 0
 
@@ -864,7 +870,7 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
       local name = schema._metrics[serie_idx]
       local fdata_name = names[serie_idx]
       serie = fdata[fdata_name]
-      
+
       local max_val = ts_common.getMaxPointValue(schema, name, tags)
       local sum = 0
 
