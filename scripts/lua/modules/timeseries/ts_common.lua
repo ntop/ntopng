@@ -52,18 +52,32 @@ end
 function ts_common.calculateMinMax(total_serie)
   local min_val, max_val
   local min_val_pt, max_val_pt
+  local found = false
+  
+  min_val = 0
+  max_val = 0
+  min_val_pt = 1
+  max_val_pt = 1
 
   for idx, val in pairs(total_serie) do
-    -- Exclude NaN points
-    if val == val then
-      if (min_val_pt == nil) or (val < min_val) then
-        min_val = val
-        min_val_pt = idx - 1
+    if(val ~= nan) then
+      if(found == false) then
+          min_val = val
+	  max_val = val
+	  min_val_pt = idx-1
+	  max_val_pt = idx-1
+          found = true
       end
-      if (max_val_pt == nil) or (val > max_val) then
-        max_val = val
-        max_val_pt = idx - 1
-      end
+    end
+
+    if(val < min_val) then
+       min_val = val
+       min_val_pt = idx-1		    
+    end
+
+    if(val > max_val) then
+       max_val = val
+       max_val_pt = idx-1		    
     end
   end
 

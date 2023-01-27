@@ -531,35 +531,28 @@ function driver:query(schema, tstart, tend, tags, options)
    --local returned_tend = fstart + fstep * (count-1)
    --tprint(returned_tend .. " " .. fstart)
 
-   local total_serie = nil
+   local total_series = nil
    local stats = nil
 
    -- tprint("Step: "..fstep.." / unsampled_fstep: "..unsampled_fstep)
    --tprint(unsampled_series)
 
    if options.calculate_stats then
-      total_serie = makeTotalSerie(series, count)
-      -- local unsampled_total_serie = makeTotalSerie(unsampled_series, unsampled_count)
-      -- stats = ts_common.calculateStatistics(unsampled_total_serie, unsampled_fstep, tend - tstart, schema.options.metrics_type)
+      total_series = makeTotalSerie(series, count)
+      -- statistics used in report page
+      local unsampled_total_series = makeTotalSerie(unsampled_series, unsampled_count)
+      stats = ts_common.calculateStatistics(unsampled_total_series, unsampled_fstep, tend - tstart, schema.options.metrics_type)
+      
       stats = stats or {}
       stats.by_serie = {}
 
-      if(false) then
-         -- Also calculate per-serie statistics
-      	 for k, v in pairs(series) do
-	     local s = ts_common.calculateStatistics(v.data, fstep, tend - tstart, schema.options.metrics_type)
-
-	     -- Adding per timeseries min-max stats
- 	     stats.by_serie[k] = table.merge(s, ts_common.calculateMinMax(v.data))
-      	     end
-       end
-
-      -- Also calculate per-serie statistics
+      -- Also calculate per-series statistics
       for k, v in pairs(unsampled_series) do
 	 local s = ts_common.calculateStatistics(v.data, unsampled_fstep, tend - tstart, schema.options.metrics_type)
-
+	 local min_max = ts_common.calculateMinMax(v.data)
+	 
 	 -- Adding per timeseries min-max stats
- 	 stats.by_serie[k] = table.merge(s, ts_common.calculateMinMax(v.data))
+ 	 stats.by_serie[k] = table.merge(s, min_max)
       end
    end
 
@@ -579,9 +572,9 @@ function driver:query(schema, tstart, tend, tags, options)
 
       count = count + 1
 
-      if total_serie then
+      if total_series then
 	 -- recalculate with additional point
-	 total_serie = makeTotalSerie(series, count)
+	 total_series = makeTotalSerie(series, count)
       end
    end
 
@@ -602,7 +595,7 @@ function driver:query(schema, tstart, tend, tags, options)
    end
 
    if options.calculate_stats then
-      stats = table.merge(stats, ts_common.calculateMinMax(total_serie))
+      stats = table.merge(stats, ts_common.calculateMinMax(total_series))
    end
 
    return {
@@ -612,7 +605,7 @@ function driver:query(schema, tstart, tend, tags, options)
       series = series,
       statistics = stats,
       additional_series = {
-	 total = total_serie,
+	 total = total_series,
       },
    }
 end
@@ -739,7 +732,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
    local items = {}
    local tag_2_series = {}
-   local total_serie = {}
+   local total_series = {}
    local total_valid = true
    local step = 0
    local query_start = tstart
@@ -783,7 +776,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 	 -- Remove the last value: RRD seems to give an additional point
 	 serie[#serie] = nil
 
-	 if (#total_serie ~= 0) and #total_serie ~= #serie then
+	 if (#total_series ~= 0) and #total_series ~= #serie then
 	    -- NOTE: even if touchRRD is used, series can still have a different number
 	    -- of points when the tend parameter does not correspond to the current time
 	    -- e.g. when comparing with the past or manually zooming.
@@ -791,9 +784,9 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 	    total_valid = false
 	 end
 
-	 for i=#total_serie + 1, #serie do
+	 for i=#total_series + 1, #serie do
 	    -- init
-	    total_serie[i] = 0
+	    total_series[i] = 0
 	 end
 
 	 for i, v in pairs(serie) do
@@ -802,7 +795,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 	    if type(v) == "number" then
 	       sum = sum + v
 	       partials[name] = partials[name] + v * step
-	       total_serie[i] = total_serie[i] + v
+	       total_series[i] = total_series[i] + v
 	    end
 	 end
       end
@@ -832,22 +825,22 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
    local stats = nil
 
    -- table.clone needed as augumented_total can be modified below (sampleSeries works on it in-place)
-   local augumented_total = table.clone(total_serie)
+   local augumented_total = table.clone(total_series)
 
-   if options.initial_point and total_serie then
+   if options.initial_point and total_series then
       -- remove initial point to avoid stats calculation on it
-      table.remove(total_serie, 1)
+      table.remove(total_series, 1)
    end
 
    local fstep, count = sampleSeries(schema, #augumented_total, step, options.max_num_points, {{data=augumented_total}})
 
    if options.calculate_stats then
-      stats = ts_common.calculateStatistics(total_serie, step, tend - tstart, schema.options.metrics_type)
+      stats = ts_common.calculateStatistics(total_series, step, tend - tstart, schema.options.metrics_type)
       stats = table.merge(stats, ts_common.calculateMinMax(augumented_total))
    end
 
    if not total_valid then
-      total_serie = nil
+      total_series = nil
       augumented_total = nil
    end
 
