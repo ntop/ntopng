@@ -2,6 +2,7 @@ import NtopUtils from "./ntop-utils.js";
 
 const Utils = NtopUtils;
 function get_data_pattern(type) {
+    console.log(Utils.REGEXES["email"]);
     if (type == "text") {
 	return `.*`;
     } else if (type == "vlan") {
@@ -19,9 +20,7 @@ function get_data_pattern(type) {
 	    let ipv4_cidr_vlan = r_ipv4.replace("$", `${network_ipv4}${vlan}$`);
 	    let network_ipv6 = String.raw`(\/(([1-9])|([1-9][0-9])|(1[0-1][0-9])|(12[0-8])))`;
 	    let ipv6_cidr = r_ipv6.replaceAll("$", `${network_ipv6}$`);
-	    console.log(ipv6_cidr);
 	    let ipv6_cidr_vlan = r_ipv6.replaceAll("$", `${network_ipv6}${vlan}$`);
-	    // return `(${ipv4_cidr}|${ipv4_cidr_vlan}|${ipv6_cidr})`;
 	    return `(${ipv4_cidr}|${ipv4_cidr_vlan}|${ipv6_cidr}|${ipv6_cidr_vlan})`;
 	}
 	
