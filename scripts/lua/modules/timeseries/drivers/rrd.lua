@@ -535,17 +535,28 @@ function driver:query(schema, tstart, tend, tags, options)
    local stats = nil
 
    -- tprint("Step: "..fstep.." / unsampled_fstep: "..unsampled_fstep)
+   --tprint(unsampled_series)
 
    if options.calculate_stats then
       total_serie = makeTotalSerie(series, count)
-      unsamples_total_serie = makeTotalSerie(unsampled_series, unsampled_count)
-      -- stats = ts_common.calculateStatistics(unsamples_total_serie, unsampled_fstep, tend - tstart, schema.options.metrics_type)
+      -- local unsampled_total_serie = makeTotalSerie(unsampled_series, unsampled_count)
+      -- stats = ts_common.calculateStatistics(unsampled_total_serie, unsampled_fstep, tend - tstart, schema.options.metrics_type)
       stats = stats or {}
       stats.by_serie = {}
 
+      if(false) then
+         -- Also calculate per-serie statistics
+      	 for k, v in pairs(series) do
+	     local s = ts_common.calculateStatistics(v.data, fstep, tend - tstart, schema.options.metrics_type)
+
+	     -- Adding per timeseries min-max stats
+ 	     stats.by_serie[k] = table.merge(s, ts_common.calculateMinMax(v.data))
+      	     end
+       end
+
       -- Also calculate per-serie statistics
-      for k, v in pairs(series) do
-	 local s = ts_common.calculateStatistics(v.data, fstep, tend - tstart, schema.options.metrics_type)
+      for k, v in pairs(unsampled_series) do
+	 local s = ts_common.calculateStatistics(v.data, unsampled_fstep, tend - tstart, schema.options.metrics_type)
 
 	 -- Adding per timeseries min-max stats
  	 stats.by_serie[k] = table.merge(s, ts_common.calculateMinMax(v.data))

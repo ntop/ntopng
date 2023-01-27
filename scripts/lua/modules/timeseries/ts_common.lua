@@ -80,7 +80,6 @@ end
 function ts_common.calculateStatistics(total_serie, step, notused, data_type)
   local total = 0
 
-tprint(total_serie)
   for idx, val in pairs(total_serie) do
     if val ~= nan then
         total = total + val
