@@ -57,6 +57,7 @@
 <script type="text/javascript">
 import { default as Modal } from "./modal.vue";
 import { default as SelectSearch } from './select-search.vue'
+import regexValidation from "../utilities/regex-validation.js";
 
 export default {
     components: {
@@ -177,14 +178,20 @@ export default {
 	    if (value_type == "text") {
 		this.input_required = false;
 		return `.*`;
-	    } else if (value_type == "ip") {
-		let r_ipv4 = NtopUtils.REGEXES.ipv4;
-		let r_ipv4_vlan = r_ipv4.replace("$", "@[0-9]{0,5}$");
-		let r_ipv6 = NtopUtils.REGEXES.ipv6;
-		let r_ipv6_vlan = r_ipv6.replaceAll("$", "@[0-9]{0,5}$");
-		return `(${r_ipv4})|(${r_ipv4_vlan})|(${r_ipv6})|(${r_ipv6_vlan})`;
 	    }
-	    return NtopUtils.REGEXES[value_type];
+	    return regexValidation.get_data_pattern(value_type);
+
+	    // else if (value_type == "ip") {
+	    // 	let r_ipv4 = NtopUtils.REGEXES.ipv4;
+	    // 	let r_ipv4_vlan = r_ipv4.replace("$", "@[0-9]{0,5}$");
+	    // 	let r_ipv6 = NtopUtils.REGEXES.ipv6;
+	    // 	let r_ipv6_vlan = r_ipv6.replaceAll("$", "@[0-9]{0,5}$");
+	    // 	return `(${r_ipv4})|(${r_ipv4_vlan})|(${r_ipv6})|(${r_ipv6_vlan})`;
+	    // } else if (value_type == "cidr") {
+	    // 	console.log("test");
+	    // }
+	    
+	    // return NtopUtils.REGEXES[value_type];
 	},
 	check_disable_apply: function() {
       let regex = new RegExp(this.data_pattern_selected);
