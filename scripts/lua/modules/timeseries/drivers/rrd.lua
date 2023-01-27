@@ -423,8 +423,6 @@ local function sampleSeries(schema, cur_points, step, max_points, series)
       end
    end
 
-
-
    -- new step, new count, new data
    return step * sampled_dp, count
 end
@@ -540,15 +538,17 @@ function driver:query(schema, tstart, tend, tags, options)
 
    if options.calculate_stats then
       total_serie = makeTotalSerie(series, count)
-      stats = ts_common.calculateStatistics(makeTotalSerie(unsampled_series, unsampled_count), unsampled_fstep, tend - tstart, schema.options.metrics_type)
+      unsamples_total_serie = makeTotalSerie(unsampled_series, unsampled_count)
+      -- stats = ts_common.calculateStatistics(unsamples_total_serie, unsampled_fstep, tend - tstart, schema.options.metrics_type)
       stats = stats or {}
       stats.by_serie = {}
 
       -- Also calculate per-serie statistics
       for k, v in pairs(series) do
-	 local s = ts_common.calculateStatistics(v.data, unsampled_fstep, tend - tstart, schema.options.metrics_type)
+	 local s = ts_common.calculateStatistics(v.data, fstep, tend - tstart, schema.options.metrics_type)
+
 	 -- Adding per timeseries min-max stats
-	 stats.by_serie[k] = table.merge(s, ts_common.calculateMinMax(v.data))
+ 	 stats.by_serie[k] = table.merge(s, ts_common.calculateMinMax(v.data))
       end
    end
 
@@ -574,9 +574,8 @@ function driver:query(schema, tstart, tend, tags, options)
       end
    end
 
-
    -- tprint(rrdfile)
-   --tprint(schema)
+   -- tprint(schema)
    -- tprint(schema.options.metrics_type)
       
    if(schema.options.metrics_type ~= ts_utils.metrics.gauge) then

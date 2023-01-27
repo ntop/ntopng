@@ -77,22 +77,23 @@ end
 
 -- ##############################################
 
-function ts_common.calculateStatistics(total_serie, step, tdiff, data_type)
+function ts_common.calculateStatistics(total_serie, step, notused, data_type)
   local total = 0
-  local pt_sum = 0
 
+tprint(total_serie)
   for idx, val in pairs(total_serie) do
-    if val ~= val then
-      -- Convert NaN to 0
-      val = 0
+    if val ~= nan then
+        total = total + val
     end
-
-    -- integrate
-    total = total + val * step
-    pt_sum = pt_sum + val
   end
 
-  local avg = pt_sum / #total_serie
+  if data_type ~= ts_common.metrics.gauge then
+    total = total * step
+  end
+  
+  --  tprint("num: "..#total_serie .. " / " .. "total: "..total .. " / step: "..step)
+  
+  local avg = total / #total_serie
 
   if data_type == ts_common.metrics.gauge then
     -- no total for gauge values!
