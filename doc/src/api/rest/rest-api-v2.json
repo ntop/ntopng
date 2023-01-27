@@ -12838,6 +12838,9 @@
 				"responses": {
 					"0": {
 						"description": "OK"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
