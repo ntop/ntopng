@@ -7,6 +7,7 @@ The Report class can be used to generate and send a report (e.g. PDF) with infor
 import os
 import sys
 import time
+import uuid
 import getopt
 import pandas as pd
 from fpdf import FPDF
@@ -32,6 +33,9 @@ class Report:
         :param ifid: The interface ID
         :type ifid: int
         """ 
+
+        self.created_files = []
+
         self.ntopng_obj = ntopng_obj
 
         try:
@@ -42,7 +46,18 @@ class Report:
         except ValueError as e:
             print(e)
             os._exit(-1)
-    
+  
+    def gen_tmp_file_name(self, ext):
+        filename = str(uuid.uuid4())
+        path = "/tmp/" + filename + "." + ext
+        self.created_files.append(path)
+        return path
+
+    def clear_cache(self):
+        for file in self.created_files:
+            self.delete_file(file)
+        self.created_files = []
+ 
     def get_alerts_severity(self, epoch_begin, epoch_end):
         """
         Return a dataframe with alerts and severity
@@ -97,8 +112,12 @@ class Report:
         Deletes the table png from the current path
         :param fname: name of png to delete
         """
-        current_dir = os.getcwd()
-        path = current_dir+"/"+fname
+        # Relative path
+        #current_dir = os.getcwd()
+        #path = current_dir + "/" + fname
+
+        # Absolute path
+        path = fname
     
         try:
             os.path.exists(path)
@@ -141,7 +160,6 @@ class Report:
         fig.write_image(output_series_fname, width=1280, height=720)
    
     def generate_interface_report(self, output_file): 
-        created_files = []
      
         actual_ts = int(time.time())
         yesterday = (actual_ts - 86400)
@@ -159,8 +177,7 @@ class Report:
         alerts_df = self.get_alerts_severity(epoch_begin, epoch_end)
         alerts_df.columns = ["Alert Type", "Score", "Alert occurrence %"]
         
-        alerts_df_fname = "alerts_table.png"
-        created_files.append(alerts_df_fname)
+        alerts_df_fname = self.gen_tmp_file_name("png")
         self.df_to_table_png(alerts_df, alerts_df_fname)
         
         #client/server table
@@ -169,8 +186,7 @@ class Report:
         hosts_df = hosts_df[["Host Name", "IP", "Host occurrence %", "Vlan"]]
         hosts_df
         
-        hosts_df_fname = "hosts_table.png"
-        created_files.append(hosts_df_fname)
+        hosts_df_fname = self.gen_tmp_file_name("png")
         self.df_to_table_png(hosts_df, hosts_df_fname)
         
         # Uploaded/Downloaded
@@ -234,13 +250,10 @@ class Report:
         pdf.image(hosts_df_fname, x=10, y=135, w=190, h=65)
         
         # Series plot
-        series_fname = "series.png"
-        created_files.append(series_fname)
+        series_fname = self.gen_tmp_file_name("png")
         self.plot_up_down(series_fname, epoch_begin, epoch_end)
         pdf.image(series_fname, x=10, y=210, w=190, h=85)
         
         pdf.output(f"{output_file}", "F")
         
-        for file in created_files:
-            self.delete_file(file)
-
+        self.clear_cache()
