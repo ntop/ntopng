@@ -16,12 +16,8 @@ Prerequisites
 The API is using Pandas and NumPy for working with time series data, plotly and fpdf for generating reports in PDF format.
 The examples are using additional modules, including redmail for sending reports by email.
 
-- pandas
-- numpy
-- plotly
-- fpdf
-- kaleido
-- redmail
+In order to install prerequisites please do
+- ```pip3 install -r requirements.txt```
 
 API Information
 ---------------
@@ -39,8 +35,7 @@ Installation
 ------------
 
 For you convenience, ntop periodically builds pip packages. You can install the latest available package as:
-
-`pip3 install ntopng`
+- `pip3 install ntopng`
 
 Developing the Python API
 -------------------------
