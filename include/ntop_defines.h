@@ -1297,6 +1297,10 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define CHECKS_IEC_UNEXPECTED_TYPE_ID "ntopng.checks.iec104_unexpected_type_id_enabled"
 #define CHECKS_IEC_INVALID_TRANSITION "ntopng.checks.iec104_invalid_transition_enabled"
 
+#define CUSTOM_FLOW_NDPI_SCRIPT     "scripts/callbacks/checks/flows/custom_flow_protocol_detected_script.lua"
+#define CUSTOM_FLOW_PERIODIC_SCRIPT "scripts/callbacks/checks/flows/custom_flow_periodic_script.lua"
+#define CUSTOM_FLOW_END_SCRIPT      "scripts/callbacks/checks/flows/custom_flow_end_script.lua"
+
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */

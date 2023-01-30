@@ -28,27 +28,22 @@ CustomFlowLuaScript::CustomFlowLuaScript() : FlowCheck(ntopng_edition_community,
 						       false /* All interfaces */,
 						       false /* Don't exclude for nEdge */,
 						       false /* NOT only for nEdge */,
-						       true /* has_protocol_detected */,
-						       false /* has_periodic_update */,
-						       false /* has_flow_end */) {
-  disabled = false;
+						       true  /* has_protocol_detected */,
+						       true  /* has_periodic_update */,
+						       true  /* has_flow_end */) {
+  disabled_proto_detected = disabled_periodic_update = disabled_flow_end = false;
 }
 
 /* ***************************************************** */
 
-LuaEngine* CustomFlowLuaScript::initVM() {
-  const char *script_path = "scripts/callbacks/checks/flows/custom_flow_lua_script.lua";
+LuaEngine* CustomFlowLuaScript::initVM(const char *script_path) {
   char where[256];
   struct stat s;
 
   snprintf(where, sizeof(where), "%s/%s", ntop->get_install_dir(), script_path);
 
   if(stat(where, &s) != 0) {
-    if(!disabled) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unable to find script %s: ignored `Flow User Check Script` flow check", where);
-      disabled = true;
-    }
-    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unable to find script %s: ignored `Flow User Check Script` flow check", where);
     return(NULL);
   } else {
     LuaEngine *lua;
@@ -67,44 +62,96 @@ LuaEngine* CustomFlowLuaScript::initVM() {
 /* ***************************************************** */
 
 CustomFlowLuaScript::~CustomFlowLuaScript() {
-
+  ; /* Nothing to do */
 }
 
 /* ***************************************************** */
 
 void CustomFlowLuaScript::protocolDetected(Flow *f) {
-  LuaEngine *lua;
-
-  if(!f)
+  if((f == NULL) || disabled_proto_detected)
     return;
   else {
-    lua = f->getInterface()->getCustomFlowLuaScript();
+    LuaEngine *lua = f->getInterface()->getCustomFlowLuaScriptProtoDetected();
+    
+    if(lua == NULL) {
+      lua = initVM(CUSTOM_FLOW_NDPI_SCRIPT);
+
+      if(lua == NULL)
+	disabled_proto_detected = true;
+      else
+	f->getInterface()->setCustomFlowLuaScriptProtoDetected(lua);
+    }
+
+    if(lua != NULL)
+      checkFlow(f, lua);
+  }
+}
+
+/* ***************************************************** */
+
+void CustomFlowLuaScript::periodicUpdate(Flow *f) {
+  if((f == NULL) || disabled_periodic_update)
+    return;
+  else {
+    LuaEngine *lua = f->getInterface()->getCustomFlowLuaScriptPeriodic();
 
     if(lua == NULL) {
-      lua = initVM();
-      f->getInterface()->setCustomFlowLuaScript(lua);
+      lua = initVM(CUSTOM_FLOW_PERIODIC_SCRIPT);
+
+      if(lua == NULL)
+	disabled_periodic_update = true;
+      else
+	f->getInterface()->setCustomFlowLuaScriptPeriodic(lua);
     }
+
+    if(lua != NULL)
+      checkFlow(f, lua);
   }
+}
 
-  if(lua != NULL) {
-    if(false) {
-      char buf[128];
+/* ***************************************************** */
 
+void CustomFlowLuaScript::flowEnd(Flow *f) {
+  if((f == NULL) || disabled_flow_end)
+    return;
+  else {
+    LuaEngine *lua = f->getInterface()->getCustomFlowLuaScriptEnd();
+      
+    if(lua == NULL) {
+      lua = initVM(CUSTOM_FLOW_END_SCRIPT);
+
+      if(lua == NULL)
+	disabled_flow_end = true;
+      else
+	f->getInterface()->setCustomFlowLuaScriptEnd(lua);
+    }
+
+    if(lua != NULL)
+      checkFlow(f, lua);
+  }
+}
+
+
+/* ***************************************************** */
+
+void CustomFlowLuaScript::checkFlow(Flow *f, LuaEngine *lua) {
+  if(false) {
+    char buf[128];
+    
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Lua script on %s", f->print(buf, sizeof(buf)));
-    }
-
-    lua->setFlow(f);
-    lua->run_loaded_script(); /* Run script */
-
-    if(f->isCustomFlowAlertTriggered()) {
-      FlowAlertType alert_type = CustomFlowLuaScriptAlert::getClassType();
-      u_int8_t c_score, s_score;
-      risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
-
-      computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
-
-      f->triggerAlertAsync(alert_type, c_score, s_score);
-    }
+  }
+  
+  lua->setFlow(f);
+  lua->run_loaded_script(); /* Run script */
+  
+  if(f->isCustomFlowAlertTriggered()) {
+    FlowAlertType alert_type = CustomFlowLuaScriptAlert::getClassType();
+    u_int8_t c_score, s_score;
+    risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
+    
+    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+    
+    f->triggerAlertAsync(alert_type, c_score, s_score);
   }
 }
 

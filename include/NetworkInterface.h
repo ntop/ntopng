@@ -127,8 +127,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   Condvar dump_condition; /* Condition variable used to wait when no flows have been enqueued for dump */
   
   /* CustomScript VMs */
-  LuaEngine *customFlowLuaScript, *customHostLuaScript;
-  
+  LuaEngine *customFlowLuaScript_proto, /* Called when nDPI has detected the protocol */
+    *customFlowLuaScript_periodic,      /* Called periodically on flows               */
+    *customFlowLuaScript_end;           /* Called when the flow ends                  */
+  LuaEngine *customHostLuaScript;       /* Called periodically on hosts               */
+
   /* Queues for the execution of flow user scripts */
   SPSCQueue<FlowAlert *> *flowAlertsQueue;
   SPSCQueue<HostAlertReleasedPair> *hostAlertsQueue;
@@ -1106,11 +1109,16 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool resetHostTopSites(AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id, u_int16_t observationPointId);
   void localHostsServerPorts(lua_State* vm);
 
-  inline void setCustomFlowLuaScript(LuaEngine *vm)       { customFlowLuaScript = vm; }
-  inline LuaEngine* getCustomFlowLuaScript()              { return(customFlowLuaScript); }
-  inline void setCustomHostLuaScript(LuaEngine *vm)       { customHostLuaScript = vm; }
-  inline LuaEngine* getCustomHostLuaScript()              { return(customHostLuaScript); }
+  inline void setCustomFlowLuaScriptProtoDetected(LuaEngine *vm)  { customFlowLuaScript_proto = vm;       }
+  inline void setCustomFlowLuaScriptPeriodic(LuaEngine *vm   )    { customFlowLuaScript_periodic = vm;    }
+  inline void setCustomFlowLuaScriptEnd(LuaEngine *vm)            { customFlowLuaScript_end = vm;         }
+  inline LuaEngine* getCustomFlowLuaScriptProtoDetected()         { return(customFlowLuaScript_proto);    }
+  inline LuaEngine* getCustomFlowLuaScriptPeriodic()              { return(customFlowLuaScript_periodic); }
+  inline LuaEngine* getCustomFlowLuaScriptEnd()                   { return(customFlowLuaScript_end);      }
 
+  inline void setCustomHostLuaScript(LuaEngine *vm)               { customHostLuaScript = vm;    }
+  inline LuaEngine* getCustomHostLuaScript()                      { return(customHostLuaScript); }
+  
   inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
   void luaUsedPorts(lua_State* vm)                                       { usedPorts.lua(vm, this);                       };
   void getProtocolFlowsStats(lua_State* vm);

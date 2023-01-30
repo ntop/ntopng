@@ -1,0 +1,62 @@
+--
+-- (C) 2013-22 - ntop.org
+--
+
+--
+-- This script is a demo of what ntopng can do when enabling
+-- the 'Custom Script Check' behavioural check under the 'Flows' page
+--
+-- NOTE: this script is called for every flow when ntopng has completed
+--       the protocol detection via nDPI
+--
+
+-- the function below is for *DEBUG ONLY* purposes to test the implementation
+function dump_flow()
+   local dirs = ntop.getDirs()
+   package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+   require "lua_utils"
+
+   local rsp = {}
+
+   rsp.cli                  = flow.cli()
+   rsp.cli_port             = flow.cli_port()
+   rsp.srv                  = flow.srv()
+   rsp.srv_port             = flow.srv_port()
+   rsp.protocol             = flow.protocol()
+   rsp.vlan_id              = flow.vlan_id()
+   rsp.is_oneway            = flow.is_oneway()
+   rsp.is_unicast           = flow.is_unicast()
+   rsp.cli2srv_bytes        = flow.cli2srv_bytes()
+   rsp.srv2cli_bytes        = flow.srv2cli_bytes()
+   rsp.bytes                = flow.bytes()
+   rsp.l7_master_proto      = flow.l7_master_proto()
+   rsp.l7_proto             = flow.l7_proto()
+   rsp.l7_proto_name        = flow.l7_proto_name()
+   rsp.direction            = flow.direction()
+   rsp.http                 = flow.http()
+   rsp.dns                  = flow.dns()
+   rsp.ssh                  = flow.ssh()
+   rsp.tls                  = flow.tls_quic()
+   
+io.write("----------------------------\n")
+   tprint(rsp)
+end
+
+-- the function below returns a string with the flow key
+function flow_key()
+   return "[ ".. flow.protocol() .. " ]" .. flow.cli() .. ":" .. flow.cli_port() .. " <-> ".. flow.srv() .. ":" .. flow.srv_port()
+end
+
+-- the function below shows an example of how an alert is triggered
+function trigger_dummy_alert()
+   local score   = 102
+   local message = "dummy alert message"
+
+   flow.triggerAlert(score, message)
+end
+
+
+--  dump_flow()
+
+-- IMPORTANT: do not forget this return at the end of the script
+return(0)

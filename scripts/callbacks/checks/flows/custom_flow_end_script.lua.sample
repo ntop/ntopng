@@ -6,8 +6,8 @@
 -- This script is a demo of what ntopng can do when enabling
 -- the 'Custom Script Check' behavioural check under the 'Flows' page
 --
--- NOTE: this script is called for every flow when ntopng has completed
---       the protocol detection via nDPI
+-- NOTE: this script is called for every flow when ntopng is about
+--       to purge the flow from memory (flow expire)
 --
 
 -- the function below is for *DEBUG ONLY* purposes to test the implementation
@@ -36,9 +36,9 @@ function dump_flow()
    rsp.http                 = flow.http()
    rsp.dns                  = flow.dns()
    rsp.ssh                  = flow.ssh()
-   rsp.tls                  = flow.tls()
+   rsp.tls                  = flow.tls_quic()
    
-io.write("----------------------------\n")
+   io.write("-- END --------------------------\n")
    tprint(rsp)
 end
 
@@ -56,7 +56,7 @@ function trigger_dummy_alert()
 end
 
 
---  dump_flow()
+ dump_flow()
 
 -- IMPORTANT: do not forget this return at the end of the script
 return(0)

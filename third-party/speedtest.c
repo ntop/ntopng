@@ -270,7 +270,7 @@ static int do_latency(char *p_url)
 
   curl = curl_easy_init();
 
-  sprintf(latency_url, "%s%s", p_url, LATENCY_TXT_URL);
+  snprintf(latency_url, sizeof(latency_url), "%s%s", p_url, LATENCY_TXT_URL);
   snprintf(useragent, sizeof(useragent), "curl/%.02f.0", v);
 
 #ifdef DEBUG_SPEEDTEST
@@ -330,7 +330,7 @@ static void* do_download(void* data)
   double v = (double) (rand() % 1000) / 100;
   
   curl = curl_easy_init();
-  sprintf(useragent, "curl/%.02f.0", v);
+  snprintf(useragent, sizeof(useragent), "curl/%.02f.0", v);
   
 #ifdef DEBUG_SPEEDTEST
   printf("image url = %s\n", p_para->url);

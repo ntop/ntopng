@@ -26,16 +26,21 @@
 
 class CustomFlowLuaScript : public FlowCheck {
  private:
-  LuaEngine* initVM();
-  bool disabled;
+  LuaEngine* initVM(const char* script_path);
+  bool disabled_proto_detected, disabled_periodic_update, disabled_flow_end;
+  void checkFlow(Flow *f, LuaEngine *lua);
   
  public:
   CustomFlowLuaScript();
   ~CustomFlowLuaScript();
   
   bool loadConfiguration(json_object *config);
-  void protocolDetected(Flow *f);
   FlowAlert *buildAlert(Flow *f);
+
+  /* Flow callbacks */
+  inline void protocolDetected(Flow *f);
+  void periodicUpdate(Flow *f);
+  void flowEnd(Flow *f);
   
   std::string getName()          const { return(std::string("custom_lua_script")); }
 };
