@@ -438,7 +438,7 @@ local function add_top_host_timeseries(tags, timeseries)
     local series = ts_utils.listSeries("host:l4protos", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
     if not table.empty(series) then
       for _, serie in pairs(series or {}) do
-        timeseries[#timeseries + 1] = { schema = "top:host:ndpi", group = i18n("graphs.l4_proto"), priority = 2, query = "l4proto:" .. serie.l4proto , label = i18n(serie.l4proto) or serie.l4proto, measure_unit = "bps", scale = i18n('graphs.metric_labels.traffic'), timeseries = { bytes_sent = { label = serie.l4proto .. " " .. i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = serie.l4proto .. " " .. i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }} }
+        timeseries[#timeseries + 1] = { schema = "top:host:l4protos", group = i18n("graphs.l4_proto"), priority = 2, query = "l4proto:" .. serie.l4proto , label = i18n(serie.l4proto) or serie.l4proto, measure_unit = "bps", scale = i18n('graphs.metric_labels.traffic'), timeseries = { bytes_sent = { label = serie.l4proto .. " " .. i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = serie.l4proto .. " " .. i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }} }
       end
     end
   end
