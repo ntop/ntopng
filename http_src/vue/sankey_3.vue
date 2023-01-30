@@ -223,7 +223,7 @@ function get_size() {
 
     emit('update_height');
     let height = props.height
-    if (height == undefined) { height = $(sankey_chart_ref.value).parent().parent().height() - 50; }
+    if (height == undefined) { height = $(sankey_chart_ref.value).parent().parent().height() - 80; }
 
     return { width, height };
 }

@@ -10,13 +10,24 @@
       <div class="card-body">
         <div class="align-items-center justify-content-end mb-3" style="height: 70vh;">
           <div class="d-flex align-items-center mb-2">
-            <div class="d-flex no-wrap">
+            <div class="d-flex no-wrap ms-auto">
+              <div class="m-1">
+                <div style="min-width: 16rem;">
+                  <label class="my-auto me-1">{{ _i18n('hosts') }}: </label>
+                  <SelectSearch
+                    v-model:selected_option="active_hosts_type"
+                    :options="sankey_format_list"
+                    @select_option="update_sankey">
+                  </SelectSearch>
+                </div>
+              </div>
               <div>
-                <SelectSearch
-                  v-model:selected_option="active_hosts_type"
-                  :options="sankey_format_list"
-                  @select_option="update_sankey">
-                </SelectSearch>
+                <label class="my-auto me-1"></label>
+                <div>
+                  <button class="btn btn-link m-1" tabindex="0" type="button" @click="reload">
+                    <span><i class="fas fa-sync"></i></span>
+                  </button>
+                </div>
               </div>
             </div>
 	  </div>
@@ -87,6 +98,10 @@ const update_sankey = function() {
     let entry = active_hosts_type.value;
     ntopng_url_manager.set_key_to_url(entry.filter_name, entry.id);
     set_sankey_data();
+}
+
+const reload = function() {
+  update_sankey()
 }
 
 async function set_sankey_data() {
