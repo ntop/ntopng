@@ -90,12 +90,12 @@ If the bot have to personally send the alarms directly into the private chat the
 
 .. figure:: ../img/telegram_getidsbot_search.png
 
- Otherwise if you want to add the bot to a group chat and send messagges on that group, follow the following steps:
-  - add the bot you previosly created (searching for his name) to your group chat
-  - now add to that group chat `@getidsbot`
-  - copy the id the bot sent on the group chat
+.. figure:: ../img/telegram_getidsbot_get_id.png
 
-.. figure:: ../img/telegram_getidsbot_copy_id_group.png
+Otherwise if you want to add the bot to a group chat and send messagges on that group, follow the following steps:
+  - add the bot you previosly created (searching for his name) to your group chat
+  - call the REST API: `https://api.telegram.org/bot<botToken>/getUpdates` to find out the group chat id
+  - copy the id the REST Response gave to you
 
 Now paste the id into the `Add New Recipient` window of ntopng and click `Add` (click `Test Recipient` to test if the bot is working correctly).
 
