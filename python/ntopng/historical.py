@@ -312,11 +312,16 @@ class Historical:
         return(self.get_alerts("user", epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by))
 
     def timeseries_to_pandas(self, rsp):
-        interval = pd.interval_range(rsp['start'], periods=rsp['count'], freq=rsp['step'])
-        data = {}
-        for serie in rsp['series']:
-            data[serie['label']] = serie['data']
-        return pd.DataFrame(data, index=interval)
+        keys = rsp.keys()
+        if (("start" in keys) and ("count" in keys) and ("step" in keys)):
+            interval = pd.interval_range(rsp['start'], periods=rsp['count'], freq=rsp['step'])
+            data = {}
+            for serie in rsp['series']:
+                data[serie['label']] = serie['data']
+            return pd.DataFrame(data, index=interval)
+        else:
+            return pd.DataFrame([])
+
 
     def get_timeseries(self, ts_schema, ts_query, epoch_begin, epoch_end):
         """
