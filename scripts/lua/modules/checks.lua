@@ -1420,6 +1420,27 @@ end
 
 -- ##############################################
 
+-- Returns true if a script is enabled
+-- Example: checks.isCheckEnabled("host", "external_host_script")
+function checks.isCheckEnabled(entity_name, script_key)
+   local configset = checks.getConfigset()
+   local default_config = checks.getConfig(configset, entity_name)
+
+   local script_config = default_config[script_key]
+
+   if(script_config) then
+      for _, hook in pairs(script_config) do
+	 if(hook.enabled) then
+	    return(true)
+	 end
+      end
+   end
+
+   return(false)
+end
+
+-- ##############################################
+
 -- Returns true if a system script is enabled for some hook
 function checks.isSystemScriptEnabled(script_key)
    -- Verify that the script is currently available
@@ -1440,19 +1461,7 @@ function checks.isSystemScriptEnabled(script_key)
    end
 
    -- Here the configuration is update with the exclusion list for the alerts
-   local configset = checks.getConfigset()
-   local default_config = checks.getConfig(configset, "system")
-   local script_config = default_config[script_key]
-
-   if(script_config) then
-      for _, hook in pairs(script_config) do
-	 if(hook.enabled) then
-	    return(true)
-	 end
-      end
-   end
-
-   return(false)
+   return checks.isCheckEnabled("system", script_key)
 end
 
 -- ##############################################

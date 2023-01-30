@@ -95,6 +95,9 @@ local rest_utils = {
 	 -- nEdge
 	 dhcp_active_leases_not_nedge        = { http_code = 409, rc = -55, str = "DHCP_ACTIVE_LEASES_NOT_NEDGE"},
 	 dhcp_active_leases_not_routing_mode = { http_code = 409, rc = -56, str = "DHCP_ACTIVE_LEASES_NOT_ROUTING_MODE"},
+
+         -- Checks
+         not_enabled                         = { http_code = 400, rc =  -2, str = "NOT_ENABLED"},
       },
    }
 }

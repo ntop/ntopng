@@ -10,6 +10,8 @@ require "lua_utils"
 local auth = require "auth"
 local rest_utils = require "rest_utils"
 local all_alert_store = require "all_alert_store".new()
+local alert_entities = require "alert_entities"
+local checks = require "checks"
 
 --
 -- Trigger a custom host alert
@@ -27,6 +29,11 @@ local info = _POST["info"]
 
 if not auth.has_capability(auth.capabilities.alerts) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
+if not checks.isCheckEnabled("host", "external_host_script") then
+   rest_utils.answer(rest_utils.consts.err.not_enabled)
    return
 end
 
