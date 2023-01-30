@@ -317,7 +317,7 @@ function graph_utils.drawNewGraphs(source_value_object)
 
   -- Checking the available timeseries
   local interface_ts_enabled = ntop.getCache("ntopng.prefs.interface_ndpi_timeseries_creation") == "1"
-  local host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation") == "1"
+  local host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation") ~= nil
   local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
   local l2_ts_enabled = ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1"
   local network_ts_enabled = true -- alwais enabled
@@ -340,9 +340,9 @@ function graph_utils.drawNewGraphs(source_value_object)
   local container_ts_enabled = ifstats.has_seen_containers
   
   -- Checking which top timeseries are available
-  local interface_has_top_protocols = (interface_ts_enabled == "both" or interface_ts_enabled == "per_protocol")
-  local interface_has_top_categories = (interface_ts_enabled == "both" or interface_ts_enabled == "per_category")
-  local host_has_top_protocols = (host_ts_enabled == "both" or host_ts_enabled == "per_protocol")
+  local interface_has_top_protocols = (interface_ts_enabled == "both" or interface_ts_enabled == "per_protocol" or interface_ts_enabled == "full")
+  local interface_has_top_categories = (interface_ts_enabled == "both" or interface_ts_enabled == "per_category" or interface_ts_enabled == "full")
+  local host_has_top_protocols = (host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled == "full")
 
   local sources_types_enabled = {
     interface = interface_ts_enabled,

@@ -171,7 +171,7 @@ const top_senders = {
 		    context.add_ts_group_from_source_value_dict("host", service.tags, schema);
 		},
 	    };
-	    if (context.sources_types_enabled["host"]) {
+	    if (context.sources_types_enabled["host"] && data.is_local) {
 		return DataTableUtils.createLinkCallback({ text: data.label, handler });
 	    }
 	    return data.label;
@@ -248,7 +248,7 @@ const top_receivers = {
 		    context.add_ts_group_from_source_value_dict("host", service.tags, schema);
 		},
 	    };
-	    if (context.sources_types_enabled["host"]) {
+	    if (context.sources_types_enabled["host"] && data.is_local) {
 		return DataTableUtils.createLinkCallback({ text: data.label, handler });
 	    }
 	    return data.label;
