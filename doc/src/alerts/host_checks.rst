@@ -253,6 +253,7 @@ Trigger a host alert based on a custom Lua user script. For further information 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Trigger a host alert from an external script via REST API. For further information please visit :ref:`RESTAPIDocV2 target` and check the *rest/v2/trigger/host/alert.lua* API.
+Please note that the Check must be enabled from the Settings as any other Behavioural Checks before pushing alerts via REST API.
 
 *Category: Network*
 
