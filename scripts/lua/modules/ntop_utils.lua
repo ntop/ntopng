@@ -180,36 +180,54 @@ end
 -- ##############################################
 
 function isIPv4Network(address)
-   local parts = split(address, "/")
+   -- Check for @ VLAN
+   local parts = split(address, "@")
+   if #parts == 2 then
+      address = parts[1]
+   end
 
+   -- Parse CIDR
+   parts = split(address, "/")
    if #parts == 2 then
       local prefix = tonumber(parts[2])
 
       if (prefix == nil) or (math.floor(prefix) ~= prefix) or (prefix < 0) or (prefix > 32) then
          return false
       end
+
+   -- Check empty
    elseif #parts ~= 1 then
       return false
    end
 
+   -- Check IP
    return isIPv4(parts[1])
 end
 
 -- ##############################################
 
 function isIPv6Network(address)
-   local parts = split(address, "/")
+   -- Check for @ VLAN
+   local parts = split(address, "@")
+   if #parts == 2 then
+      address = parts[1]
+   end
 
+   -- Parse CIDR
+   parts = split(address, "/")
    if #parts == 2 then
       local prefix = tonumber(parts[2])
 
       if (prefix == nil) or (math.floor(prefix) ~= prefix) or (prefix < 0) or (prefix > 128) then
          return false
       end
+
+   -- Check empty
    elseif #parts ~= 1 then
       return false
    end
 
+   -- Check IPv6
    return isIPv6(parts[1])
 end
 
