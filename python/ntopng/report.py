@@ -66,6 +66,11 @@ class Report:
         alert_count_severity = self.historical.get_alerts_stats(epoch_begin, epoch_end) 
         alert_severity_df = pd.DataFrame(alert_count_severity[0]["value"])
         alert_severity_df.drop(["key", "title"], axis= 1, inplace=True)
+        alert_severity_df['count'] = alert_severity_df['count'].round(1)
+        alert_severity_df['count'] = alert_severity_df['count'].astype(str) + " %"
+        alert_severity_df = alert_severity_df[["label", "value", "count"]]
+        alert_severity_df.rename(columns={"label": "Alert type", "value": "Score", "count": "Occurence %"}, inplace=True)
+
         return alert_severity_df
     
     def get_top_client_server(self, epoch_begin, epoch_end):
@@ -76,15 +81,23 @@ class Report:
         top_client_server = self.historical.get_flow_alerts_stats(epoch_begin, epoch_end) 
         top_client_server_df = pd.DataFrame(top_client_server[0]["value"])
         top_client_server_df.drop(["key", "value"], axis= 1, inplace=True)
+        top_client_server_df['count'] = top_client_server_df['count'].round(1)
+        top_client_server_df['count'] = top_client_server_df['count'].astype(str) + " %"
+        #reorder top_client_server_df columns
+        top_client_server_df = top_client_server_df[["label", "ip", "count", "vlan"]]
+        #rename top_client_server_df columns
+        top_client_server_df.rename(columns={"label": "Host name", "ip": "IP", "count": "Occurence %", "vlan": "VLAN"}, inplace=True)
+        
+
         return top_client_server_df
    
     def get_upload_download(self, epoch_begin, epoch_end):
         """
         Return a list where => data[0] = uploaded MB, data[1] = downloaded MB for the interface specified in the above script init data
         """
-    
+
         up_down = self.historical.get_interface_timeseries("iface:traffic_rxtx", epoch_begin, epoch_end)
-        data = [(up_down["bytes_sent"].sum()/1000000), (up_down["bytes_rcvd"].sum()/1000000)] 
+        data = [(up_down["bytes_sent"].sum()/1000000)*8, (up_down["bytes_rcvd"].sum()/1000000)*8] 
         
         return data
     
@@ -137,7 +150,7 @@ class Report:
         fig.update_layout(autosize=False, width=1100, height=350)
         fig.write_image(str(fname), scale=2)
     
-    def plot_up_down(self, output_series_fname, epoch_begin, epoch_end):
+    def plot_upload_download(self, output_series_fname, epoch_begin, epoch_end):
         """
         Plots a png of the timeseries
         """
@@ -175,16 +188,11 @@ class Report:
         
         #alerts table
         alerts_df = self.get_alerts_severity(epoch_begin, epoch_end)
-        alerts_df.columns = ["Alert Type", "Score", "Alert occurrence %"]
-        
         alerts_df_fname = self.gen_tmp_file_name("png")
         self.df_to_table_png(alerts_df, alerts_df_fname)
         
         #client/server table
         hosts_df = self.get_top_client_server(epoch_begin, epoch_end)
-        hosts_df.columns = ["Host occurrence %", "Vlan", "IP", "Host Name"]
-        hosts_df = hosts_df[["Host Name", "IP", "Host occurrence %", "Vlan"]]
-        hosts_df
         
         hosts_df_fname = self.gen_tmp_file_name("png")
         self.df_to_table_png(hosts_df, hosts_df_fname)
@@ -251,7 +259,7 @@ class Report:
         
         # Series plot
         series_fname = self.gen_tmp_file_name("png")
-        self.plot_up_down(series_fname, epoch_begin, epoch_end)
+        self.plot_upload_download(series_fname, epoch_begin, epoch_end)
         pdf.image(series_fname, x=10, y=210, w=190, h=85)
         
         pdf.output(f"{output_file}", "F")
