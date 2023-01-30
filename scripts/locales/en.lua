@@ -1634,6 +1634,7 @@ local lang = {
     ["get_proto_talkers"] = "Get Talkers using this application",
     ["historical_data"] = "Historical Flows",
     ["historical_data_explorer"] = "Historical",
+    ["host_data"] = "Host",
     ["historical_flow"] = "Historical Flow",
     ["host_name"] = "Host Name",
     ["host_talkers"] = "%{host} talkers",

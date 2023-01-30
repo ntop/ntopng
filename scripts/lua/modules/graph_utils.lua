@@ -372,7 +372,7 @@ function graph_utils.drawNewGraphs(source_value_object)
   
   local sources_types_top_enabled = {
     interface = {
-      top_protocols = interface_has_top_protocols,
+      top_protocols = interface_has_top_protocols or true,
       top_categories = interface_has_top_categories or true,
       top_senders = topk_heuristic ~= "disabled" or true,
       top_receivers = topk_heuristic ~= "disabled" or true,

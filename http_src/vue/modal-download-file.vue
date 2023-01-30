@@ -24,7 +24,7 @@
 </modal>
 </template>
 
-<script >
+<script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { default as modal } from "./modal.vue";
 
@@ -32,7 +32,9 @@ const modal_id = ref(null);
 const filename = ref("");
 
 //const filename_validation = `[\`~!@#$%^&*_|+-=?;:'",.<>{}[]\\/]`;
-const filename_validation = String.raw`^[^${backtick}~!@#$%^&*|+-=?;:'"\,.<>\/{}()\[\]\s]+$`;
+
+//${backtick}
+const filename_validation = String.raw`^[^~!@#$%^&*|+-=?;:'"\,.<>\/{}()\[\]\s]+$`;
 
 const enable_download = computed(() => {
     let rg_text = filename_validation;

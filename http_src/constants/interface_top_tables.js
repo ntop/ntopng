@@ -194,35 +194,51 @@ const top_senders = {
 		  render_if: function(context) { return context.is_history_enabled },
 		  render: function(data, type, service) {
 		      let context = this;
+          const host = service.host.id;
+          const host_ts_available= service.host.is_local;
 		      const jump_to_historical = {
-			  handlerId: handlerIdJumpHistorical,
-			  onClick: function() {
-			      let status = context.status;
-			      let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}`;
-			      let source_type = context.source_type;
-			      let source_array = context.source_array;
-			      
-			      let params = "";			    
-			      let params_array = [];
-			      for (let key in service.tags) {
-				  let value = service.tags[key];
-				  let p_url = "";
-				  if (key == "ifid") {
-				      p_url = ntopng_url_manager.serialize_param(key, value);
-				  } else if (key == "host") {
-				      p_url = ntopng_url_manager.serialize_param("ip", `${value};eq`);
-				  }
-				  params_array.push(p_url);
-			      }
-			      params = params_array.join("&");
-			      historical_flows_url = `${historical_flows_url}&${params}`;
-			      console.log(historical_flows_url);
-			      window.open(historical_flows_url);
-			  }
-		      };
-		      return DataTableUtils.createActionButtons([
-			  { class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
-		      ]);
+            handlerId: handlerIdJumpHistorical,
+            onClick: function() {
+                let status = context.status;
+                let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}`;
+                let source_type = context.source_type;
+                let source_array = context.source_array;
+                
+                let params = "";			    
+                let params_array = [];
+                for (let key in service.tags) {
+              let value = service.tags[key];
+              let p_url = "";
+              if (key == "ifid") {
+                  p_url = ntopng_url_manager.serialize_param(key, value);
+              } else if (key == "host") {
+                  p_url = ntopng_url_manager.serialize_param("ip", `${value};eq`);
+              }
+              params_array.push(p_url);
+                }
+                params = params_array.join("&");
+                historical_flows_url = `${historical_flows_url}&${params}`;
+                console.log(historical_flows_url);
+                window.open(historical_flows_url);
+            }
+          };
+              
+          const jump_to_host = {
+            handlerId: handlerIdJumpHistorical,
+            onClick: function() {
+                const ifid = ntopng_url_manager.get_url_entry('ifid');
+                const host_url = `${http_prefix}/lua/host_details.lua?host=${host}&page=historical&ts_query=ifid:${ifid},host:${host}&ts_schema=host:details&epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}`;
+                
+                window.open(host_url);
+            }
+          };
+
+          const dropdown = [{ class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical }]
+	        if (context.sources_types_enabled["host"] && host_ts_available) {
+            dropdown.push({ class: 'dropdown-item', href: '#', title: i18n('db_explorer.host_data'), handler: jump_to_host })
+          }
+
+		      return DataTableUtils.createActionButtons(dropdown);
 		  }
 	      },],
 };
@@ -271,6 +287,8 @@ const top_receivers = {
 		  render_if: function(context) { return context.is_history_enabled },
 		  render: function(data, type, service) {
 		      let context = this;
+          const host = service.host.id;
+          const host_ts_available= service.host.is_local;
 		      const jump_to_historical = {
 			  handlerId: handlerIdJumpHistorical,
 			  onClick: function() {
@@ -297,9 +315,23 @@ const top_receivers = {
 			      window.open(historical_flows_url);
 			  }
 		      };
-		      return DataTableUtils.createActionButtons([
-			  { class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
-		      ]);
+              
+          const jump_to_host = {
+            handlerId: handlerIdJumpHistorical,
+            onClick: function() {
+                const ifid = ntopng_url_manager.get_url_entry('ifid');
+                const host_url = `${http_prefix}/lua/host_details.lua?host=${host}&page=historical&ts_query=ifid:${ifid},host:${host}&ts_schema=host:details&epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}`;
+                
+                window.open(host_url);
+            }
+          };
+
+          const dropdown = [{ class: 'dropdown-item', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical }]
+	        if (context.sources_types_enabled["host"] && host_ts_available) {
+            dropdown.push({ class: 'dropdown-item', href: '#', title: i18n('db_explorer.host_data'), handler: jump_to_host })
+          }
+
+		      return DataTableUtils.createActionButtons(dropdown);
 		  },
 	      },],
 };
