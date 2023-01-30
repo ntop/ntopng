@@ -1175,10 +1175,11 @@ export default class NtopUtils {
     if (series === undefined) return;
 
     const serie = series[seriesIndex];
-    if (serie.base_url !== undefined) {
-        const default_url = (serie.start_url || '') 
-        const search = serie.data[dataPointIndex].meta.url_query;
-        location.href = `${serie.base_url}?${default_url}${search}`;
+    const base_url = serie.base_url || series[0]['base_url']
+    const default_url = serie.start_url || series[0]['start_url']
+    if (base_url != null && default_url != null) {
+      const search = serie.data[dataPointIndex].meta.url_query;
+      location.href = `${base_url}?${default_url}${search}`;
     }
   }
   

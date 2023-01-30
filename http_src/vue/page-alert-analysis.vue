@@ -104,7 +104,7 @@ const format_options = function(mode_id) {
       options = option_list;
   })
 
-  /* Add the corract event functions */
+  /* Add the correct event functions */
   if(options && options.chart && options.chart.ntop_events) {
     options.chart.events = options.chart.events || {}
     for(const [event, fun] of Object.entries(options.chart.ntop_events)) {
