@@ -9,11 +9,13 @@ import sys
 import time
 import uuid
 import getopt
+import base64
 import pandas as pd
 from fpdf import FPDF
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 
+from ntopng.logo import *
 from ntopng.host import Host
 from ntopng.historical import Historical
 
@@ -217,7 +219,11 @@ class Report:
         pdf.add_page()
         
         # Logo
-        #pdf.image("img/ntop.png", x=140, y=8, w=68.2, h=17.8)
+        ntop_logo_fname = self.gen_tmp_file_name("png")
+        #ntop_logo_png = base64_decode(ntop_logo_b64);
+        with open(ntop_logo_fname, "wb") as fh:
+            fh.write(base64.b64decode(ntop_logo_b64))
+        pdf.image(ntop_logo_fname, x=140, y=8, w=68.2, h=17.8)
         
         # ntopng host info
         pdf.set_font("Helvetica", "B", 14)

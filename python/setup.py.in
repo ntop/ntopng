@@ -9,5 +9,5 @@ setup(
     author_email='packager@ntop.org',
     license='GPL',
     packages=['ntopng'],
-    install_requires=['requests', 'simplejson' ],
+    install_requires=['requests', 'simplejson', 'numpy', 'pandas', 'kaleido', 'fpdf', 'plotly', 'redmail'],
  )
