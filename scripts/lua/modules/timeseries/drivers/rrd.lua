@@ -526,6 +526,8 @@ function driver:query(schema, tstart, tend, tags, options)
 
    if count > options.max_num_points then
       sampled_fstep, count = sampleSeries(schema, count, fstep, options.max_num_points, series)
+   else
+      sampled_fstep = fstep
    end
 
    --local returned_tend = fstart + fstep * (count-1)
@@ -581,26 +583,16 @@ function driver:query(schema, tstart, tend, tags, options)
    -- tprint(rrdfile)
    -- tprint(schema)
    -- tprint(schema.options.metrics_type)
-      
-   if(schema.options.metrics_type ~= ts_utils.metrics.gauge) then
-      for k, v in pairs(series) do
-	 local d = v.data
 
-	 for i = 0, #d do
-	    if(d[i] ~= nil) then
-	       d[i] = d[i] / fstep
-	    end
-	 end
-      end
-   end
-
+   -- tprint("fstep: "..sampled_fstep.." / ".."count: "..count .. " / tot: ".. (sampled_fstep*count))
+   
    if options.calculate_stats then
       stats = table.merge(stats, ts_common.calculateMinMax(total_series))
    end
 
    return {
       start = fstart,
-      step = fstep,
+      step = sampled_fstep,
       count = count,
       series = series,
       statistics = stats,
