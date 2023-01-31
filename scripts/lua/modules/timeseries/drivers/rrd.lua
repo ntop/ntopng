@@ -525,7 +525,7 @@ function driver:query(schema, tstart, tend, tags, options)
    local unsampled_fstep = fstep
 
    if count > options.max_num_points then
-      fstep, count = sampleSeries(schema, count, fstep, options.max_num_points, series)
+      sampled_fstep, count = sampleSeries(schema, count, fstep, options.max_num_points, series)
    end
 
    --local returned_tend = fstart + fstep * (count-1)
