@@ -67,6 +67,14 @@ local timeseries_id = {
   redis = "redis",
   influxdb = "influxdb",
   active_monitoring = "am",
+  snmp_interface = "snmp_interface",
+  snmp_device = "snmp_device",
+  observation_point = "obs_point",
+  sflow_dev = "sflowdev",
+  sflow_port = "sflowdev_port",
+  flow_dev = "flowdev",
+  flow_port = "flowdev_port",
+  nedge = "nedge",
 }
 
 -- #################################
@@ -527,6 +535,67 @@ local function add_top_interface_timeseries(tags, timeseries)
 end
 
 -- #################################
+
+local function add_top_obs_point_timeseries(tags, timeseries)
+  local top_protocols_pref = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
+  
+  -- Top l7 Protocols
+  if top_protocols_pref == 'both' or top_protocols_pref == 'per_protocol' then
+    local ts_utils = require "ts_utils_core"
+    ts_utils.loadSchemas()
+
+    local series = ts_utils.listSeries("obs_point:ndpi", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    
+    if not table.empty(series) then
+      for _, serie in pairs(series or {}) do
+        timeseries[#timeseries + 1] = { schema = "top:obs_point:ndpi", group = i18n("graphs.l7_proto"), priority = 2, query = "protocol:" .. serie.protocol , label = serie.protocol, measure_unit = "bps", scale = i18n("graphs.metric_labels.traffic"), timeseries = { bytes_sent = { label = serie.protocol .. " " .. i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = serie.protocol .. " " .. i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }} }
+      end
+    end
+  end
+
+  return timeseries
+end
+
+-- #################################
+
+local function add_snmp_interfaces_timeseries(tags, timeseries)
+  local snmp_cached_dev = require "snmp_cached_dev"
+  
+  local cached_device = snmp_cached_dev:get_interfaces(tags.device)
+  
+  if not table.empty(cached_device) and cached_device["interfaces"] then
+    for interface_index, interface_info in pairs(cached_device["interfaces"] or {}) do
+      timeseries[#timeseries + 1] = { schema = "snmp_if:traffic", group = i18n("graphs.interfaces"), priority = 2, query = "if_index:" .. interface_index , label = i18n('graphs.interface_label', { if_name = interface_info.name }), measure_unit = "bps", scale = i18n("graphs.metric_labels.traffic"), timeseries = { bytes_sent  = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { invert_direction = true, label = i18n('graphs.metric_labels.rcvd') } } }
+    end
+  end
+  
+  return timeseries
+end
+
+-- #################################
+
+local function add_top_flow_port_timeseries(tags, timeseries)
+  local top_protocols_pref = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
+  
+  -- Top l7 Protocols
+  if top_protocols_pref == 'both' or top_protocols_pref == 'per_protocol' then
+    local ts_utils = require "ts_utils_core"
+    ts_utils.loadSchemas()
+
+    local series = ts_utils.listSeries("flowdev_port:ndpi", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
+    
+    if not table.empty(series) then
+      for _, serie in pairs(series or {}) do
+        timeseries[#timeseries + 1] = { schema = "top:flowdev_port:ndpi", group = i18n("graphs.l7_proto"), priority = 2, query = "protocol:" .. serie.protocol , label = serie.protocol, measure_unit = "bps", scale = i18n("graphs.metric_labels.traffic"), timeseries = { bytes_sent = { label = serie.protocol .. " " .. i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = serie.protocol .. " " .. i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }} }
+      end
+    end
+  end
+
+  return timeseries
+end
+
+-- #################################
+
 local function add_top_timeseries(tags, prefix, timeseries)
   if prefix == 'iface' then
     -- Add the top interface timeseries
@@ -555,6 +624,15 @@ local function add_top_timeseries(tags, prefix, timeseries)
   elseif prefix == 'subnet' then
     -- Add the active monitoring timeseries
     timeseries = add_top_network_timeseries(tags, timeseries)
+  elseif prefix == timeseries_id.observation_point then
+    -- Add top observation points timeseries
+    timeseries = add_top_obs_point_timeseries(tags, timeseries)
+  elseif prefix == timeseries_id.snmp_device then
+    -- Add the interfaces timeseries
+    timeseries = add_snmp_interfaces_timeseries(tags, timeseries)
+  elseif prefix == timeseries_id.flow_port then
+    -- Add the top interface timeseries
+    timeseries = add_top_flow_port_timeseries(tags, timeseries)
   end
 
   return timeseries
@@ -570,6 +648,7 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
     local timeseries_info_ext = require "timeseries_info_ext"
     local pro_timeseries = timeseries_info_ext.retrieve_pro_timeseries(tags, prefix)
+
     timeseries_list = table.merge(community_timeseries, pro_timeseries)
   end
 
