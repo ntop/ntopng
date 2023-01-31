@@ -32,9 +32,8 @@ const modal_id = ref(null);
 const filename = ref("");
 
 //const filename_validation = `[\`~!@#$%^&*_|+-=?;:'",.<>{}[]\\/]`;
-
-//${backtick}
-const filename_validation = String.raw`^[^~!@#$%^&*|+-=?;:'"\,.<>\/{}()\[\]\s]+$`;
+const backtick = '`';
+const filename_validation = String.raw`^[^~${backtick}!@#$%^&*|+-=?;:'"\\,.<>\/{}()\[\]\s]+$`;
 
 const enable_download = computed(() => {
     let rg_text = filename_validation;
