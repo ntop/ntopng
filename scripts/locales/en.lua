@@ -3440,6 +3440,8 @@ local lang = {
     ["host_unreachable_flows"] = "Total Host Unreachable Flows",
     ["hosts_anomalies"] = "Hosts Anomalies",
     ["http_stats"] = "HTTP Stats",
+    ["interface_label"] = "Interface %{if_name}",
+    ["interfaces"] = "Interfaces",
     ["influxdb_not_responding"] = "Query has been aborted as InfluxDB is not responding. Query timeout can be configured from the <a href=\"%{url}\">%{flask_icon} Preferences</a> .",
     ["intranet_traffic"] = "%{net_1} -> %{net_2}",
     ["l4_proto"] = "Traffic Protocols",

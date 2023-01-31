@@ -162,6 +162,8 @@ const top_senders = {
 	columnName: i18n("page_stats.top.host_name"), name: 'host_name', data: 'host', handlerId: handlerIdAddLink,
 	render: function(data, type, service) {
 	    let context = this;
+      let label = data.label;
+      let host_ref = '';
 	    let handler = {
 		handlerId: handlerIdAddLink,
 		onClick: async function() {
@@ -172,9 +174,13 @@ const top_senders = {
 		},
 	    };
 	    if (context.sources_types_enabled["host"] && data.is_local) {
-		return DataTableUtils.createLinkCallback({ text: data.label, handler });
+        label = DataTableUtils.createLinkCallback({ text: data.label, handler });
 	    }
-	    return data.label;
+      if (data.is_available) {
+        host_ref = ` <a href="/lua/host_details.lua?host=${data.id}" data-bs-toggle="tooltip" title=""><i class="fas fa-laptop"></i></a>`
+      }
+      
+	    return `${label}${host_ref}`;
 	},
     }, {
 	columnName: i18n("page_stats.top.sent"), name: 'sent', className: 'text-end', data: 'traffic', orderable: true,
@@ -255,6 +261,8 @@ const top_receivers = {
 	columnName: i18n("page_stats.top.host_name"), name: 'host_name', data: 'host', handlerId: handlerIdAddLink,
 	render: function(data, type, service) {
 	    let context = this;
+      let label = data.label;
+      let host_ref = '';
 	    let handler = {
 		handlerId: handlerIdAddLink,
 		onClick: async function() {
@@ -265,9 +273,13 @@ const top_receivers = {
 		},
 	    };
 	    if (context.sources_types_enabled["host"] && data.is_local) {
-		return DataTableUtils.createLinkCallback({ text: data.label, handler });
+        label = DataTableUtils.createLinkCallback({ text: data.label, handler });
 	    }
-	    return data.label;
+      if (data.is_available) {
+        host_ref = ` <a href="/lua/host_details.lua?host=${data.id}" data-bs-toggle="tooltip" title=""><i class="fas fa-laptop"></i></a>`
+      }
+      
+	    return `${label}${host_ref}`;
 	},
     }, {
 	columnName: i18n("page_stats.top.received"), name: 'received', className: 'text-end', data: 'traffic', orderable: true,
