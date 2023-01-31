@@ -1636,7 +1636,7 @@ local known_parameters = {
    ["count"]                   = validateSingleWord,            -- Sql count parameter
    ["aggregation"]             = validateAggregation,           -- A mode for graphs aggregation
    ["limit"]                   = validateNumber,                -- To limit results
-   ["all"]                     = validateEmpty,                 -- To remove limit on results
+   ["all"]                     = validateBool,                  -- To remove limit on results
 
 -- NAVIGATION
    ["page"]                    = validateSingleWord,            -- Currently active subpage tab

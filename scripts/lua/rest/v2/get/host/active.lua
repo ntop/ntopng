@@ -110,7 +110,10 @@ elseif mode == "dhcp" then
    dhcp_hosts = true
 end
 
-
+if all ~= nil then
+   perPage = -1
+   currentPage = 0
+end
 
 local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
                           country, os_, tonumber(vlan), tonumber(asn),
@@ -129,11 +132,6 @@ hosts_stats = hosts_stats["hosts"]
 if hosts_stats == nil then
    rest_utils.answer(rest_utils.consts.err.internal_error)
    return
-end
-
-if all ~= nil then
-   perPage = 0
-   currentPage = 0
 end
 
 function get_host_name(h)
@@ -232,6 +230,10 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    record["name"] = name
 
+   record["score"] = {}
+   record["score"]["total"] = value["score"]
+   record["score"]["as_client"] = value["score.as_client"]
+   record["score"]["as_server"] = value["score.as_server"]
    record["thpt"] = {}
    record["thpt"]["pps"] = value["throughput_pps"]
    record["thpt"]["bps"] = value["throughput_bps"]*8
