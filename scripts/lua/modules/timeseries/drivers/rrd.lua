@@ -543,14 +543,14 @@ function driver:query(schema, tstart, tend, tags, options)
       total_series = makeTotalSerie(series, count)
       -- statistics used in report page
       local total_series = makeTotalSerie(series, count)
-      stats = ts_common.calculateStatistics(total_series, fstep, tend - tstart, schema.options.metrics_type)
+      stats = ts_common.calculateStatistics(total_series, sampled_fstep, tend - tstart, schema.options.metrics_type)
       
       stats = stats or {}
       stats.by_serie = {}
 
       -- Also calculate per-series statistics
       for k, v in pairs(series) do
-	 local s = ts_common.calculateStatistics(v.data, fstep, tend - tstart, schema.options.metrics_type)
+	 local s = ts_common.calculateStatistics(v.data, sampled_fstep, tend - tstart, schema.options.metrics_type)
 	 local min_max = ts_common.calculateMinMax(v.data)
 	 
 	 -- Adding per timeseries min-max stats

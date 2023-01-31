@@ -100,14 +100,14 @@ function ts_common.calculateStatistics(total_serie, step, notused, data_type)
     end
   end
 
+  local avg = total / #total_serie
+  
   if data_type ~= ts_common.metrics.gauge then
     total = total * step
-  end
-  
-  --  tprint("num: "..#total_serie .. " / " .. "total: "..total .. " / step: "..step)
-  
-  local avg = total / #total_serie
+  end  
 
+  -- tprint("num: "..#total_serie .. " / " .. "total: "..total .. " / step: "..step .. " / avg: "..avg)
+  
   if data_type == ts_common.metrics.gauge then
     -- no total for gauge values!
     total = nil
