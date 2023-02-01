@@ -78,7 +78,7 @@ class Historical:
                                                                                           "select_clause": select_clause, "where_clause": where_clause,
                                                                                           "maxhits_clause": maxhits, "group_by_clause": group_by, "order_by_clause": order_by }))
     
-    def get_alerts_stats(self, epoch_begin, epoch_end):
+    def get_alerts_stats(self, epoch_begin, epoch_end, host=None):
         """
         Return flow alerts stats
         
@@ -89,7 +89,12 @@ class Historical:
         :return: Flow alert stats
         :rtype: object
         """
-        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/top.lua", { "ifid": self.ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end }))
+        get_data = { "ifid": self.ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end }
+        
+        if host is not None:
+            get_data["ip"] = host + ";eq"
+        
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/top.lua", get_data))
 
     def get_flow_alerts_stats(self, epoch_begin, epoch_end):
         """
@@ -460,9 +465,11 @@ class Historical:
             select_clause = "IPV4_SRC_ADDR,IPV4_DST_ADDR,PROTOCOL,IP_SRC_PORT,IP_DST_PORT,L7_PROTO,L7_PROTO_MASTER"
             where_clause  = "(IP_PROTOCOL_VERSION=4) AND IPV4_SRC_ADDR=(\""+host+"\") AND (PROTOCOL=6) "
             maxhits       = 10 # 10 records max
-            print(self.get_flows( epoch_begin, epoch_end, select_clause, where_clause, maxhits, '', ''))
-            print("----------------------------")
+            print(self.get_flows(epoch_begin, epoch_end, select_clause, where_clause, maxhits, '', ''))
+            print("Top K flows ----------------------------")
             print(self.get_topk_flows(epoch_begin, epoch_end, maxhits, None))
+            print("Host alerts ----------------------------")
+            print(self.get_alerts_stats(epoch_begin, epoch_end, host))
             print("----------------------------")
         except:
             raise ValueError("Invalid interface ID, host or parameters specified")
