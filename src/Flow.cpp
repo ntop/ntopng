@@ -24,7 +24,8 @@
 /* static so default is zero-initialization, let's just define it */
 
 const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
-  NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, NULL };
+						  NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_UNKNOWN,
+						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, NULL };
 // #define DEBUG_DISCOVERY
 // #define DEBUG_UA
 // #define DEBUG_SCORE
@@ -670,9 +671,12 @@ void Flow::processExtraDissectedInformation() {
 	 && (ndpiFlow->protos.tls_quic.server_names != NULL))
 	protos.tls.server_names = strdup(ndpiFlow->protos.tls_quic.server_names);
 
-      if((protos.tls.client_alpn == NULL)
-	 && (ndpiFlow->protos.tls_quic.alpn != NULL))
-	protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic.alpn);
+      if(protos.tls.client_alpn == NULL) {
+	if(ndpiFlow->protos.tls_quic.negotiated_alpn != NULL)
+	  protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic.negotiated_alpn);
+	else if(ndpiFlow->protos.tls_quic.advertised_alpns != NULL)
+	  protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic.advertised_alpns);
+      }
 
       if((protos.tls.client_tls_supported_versions == NULL)
 	 && (ndpiFlow->protos.tls_quic.tls_supported_versions != NULL))
@@ -774,7 +778,7 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
    * be able to guess the protocol. */
 
   proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
-					   ip_packet, ip_len, packet_time);
+					   ip_packet, ip_len, packet_time, NULL);
 
   detected = ndpi_is_protocol_detected(iface->get_ndpi_struct(), proto_id);
 
@@ -857,10 +861,10 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
   /* Instruct nDPI to continue the dissection
      See https://github.com/ntop/ntopng/commit/30f52179d9f7a1eb774534def93d55c77d6070bc#diff-20b1df29540b6de59ceb6c6d2f3afdb5R387
   */
-  ndpiFlow->check_extra_packets = 1, ndpiFlow->max_extra_packets_to_check = 10;
+  ndpiFlow->max_extra_packets_to_check = 10;
 
   proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
-					   ip_packet, ip_len, packet_time);
+					   ip_packet, ip_len, packet_time, NULL);
 
   /*
     A DNS flow won't change to a non-DNS flow. However, this check is
@@ -2381,17 +2385,15 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
 void Flow::lua_confidence(lua_State* vm) {
   switch(getConfidence()) {
-  case NDPI_CONFIDENCE_MATCH_BY_PORT:
-  case NDPI_CONFIDENCE_MATCH_BY_IP:
+  case NDPI_CONFIDENCE_DPI_CACHE:
+  case NDPI_CONFIDENCE_DPI_PARTIAL_CACHE:    
+  case NDPI_CONFIDENCE_DPI:
+  case NDPI_CONFIDENCE_NBPF:
     lua_push_uint32_table_entry(vm, "confidence", (ndpiConfidence) confidence_guessed);
     break;
 
-  case NDPI_CONFIDENCE_DPI_CACHE:
-  case NDPI_CONFIDENCE_DPI:
-    lua_push_uint32_table_entry(vm, "confidence", (ndpiConfidence) confidence_dpi);
-    break;
-
   default:
+    lua_push_uint32_table_entry(vm, "confidence", (ndpiConfidence) confidence_guessed);
     break;
   }
 }
@@ -6205,17 +6207,14 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
 
   if(getConfidence() != NDPI_CONFIDENCE_UNKNOWN) {
     switch(getConfidence()) {
-      case NDPI_CONFIDENCE_MATCH_BY_PORT:
-      case NDPI_CONFIDENCE_MATCH_BY_IP:
-        ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_guessed);
+    case NDPI_CONFIDENCE_DPI_CACHE:
+    case NDPI_CONFIDENCE_DPI:
+    case NDPI_CONFIDENCE_NBPF:
+      ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_dpi);
       break;
 
-      case NDPI_CONFIDENCE_DPI_CACHE:
-      case NDPI_CONFIDENCE_DPI:
-        ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_dpi);
-      break;
-
-      default:
+    default:
+      ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_guessed);
       break;
     }
   }
