@@ -3,168 +3,168 @@
 #### ntopng 5.6 (Febrary 2023)
 
 ## Breakthroughs
- * Added multitenancy
+ * Add XL license
+ * Add support Rocky9
+ * Add support to Kafka
+ * Increased max num of exporters
+ * Introduce nTap support
+ * Introduce support to ClickHouse Cluster
+ * Rework Historical Chart Page
+ * Rework pages using VueJS and moving towards responsive client
 
 ## Improvements
- * Updated rrd calculations
- * Use API to build interface report
- * Improved layout
- * Reworked flow aggregation
- * Enhancement to support NDPI_TCP_ISSUES flow risk
- * Improved host report
- * Improve OPNsense installation instruction
  * Handle allowed networks for unprivileged users
- * Reworking capabilities support
- * Improved Linux OS detection
- * Improved Engaged Time Report in Chart
- * Improved passive DNS hosty resolution
- * Improved alerts reports
- * Various ICMP flow handling improvements
- * Restyle historical chart page
- * Improved source style
- * Improvements for handling Cisco NBAR collection
- * Improved ports formatting
+ * Improve multitenancy support
+ * Improve thread names
+ * Improve mac formatting
+ * Improve top host sites adding reset method
+ * Improve pcap upload
+ * Improve ports formatting
+ * Improve handling for Cisco NBAR collection
+ * Improve source style
+ * Improve Linux OS detection
+ * Improve Engaged Time Report in Chart
+ * Improve passive DNS hosty resolution
+ * Improve alerts reports
+ * Improve OPNsense installation instruction
+ * Improve host report
+ * Improve support to NDPI_TCP_ISSUES flow risk
+ * Improve layout
+ * Improve ICMP flow handling
  * Lowered memory consumption due to alert score
- * Implemented support of host filtering with TX traffic sent
- * Improved top host sites adding reset method
- * Improved pcap upload
- * Reworked lua code
- * Improved thread names
- * Improved mac formatting
- * Introduces nTap support
- * Reworked pro code directories
+ * Rework pro code directories
+ * Rework lua code
+ * Rework flow aggregation
+ * Rework capabilities support
  * Socket code cleanup
+ * Use API to build interface report
+ * Update rrd calculations
  * Update JP localization (courtesy of Yoshihiro Ishikawa)
-
+ 
 ## Changes
- * Add logo to package. Add missing deps
- * Added link to host
- * Update response in service disabled case
+ * Add logo to package
+ * Add missing deps
+ * Add link to host
  * Add options to send report by email
  * Add Report class and example
- * Updated counter scaling (no gauge)
  * Add internal server error on health/interfaces doc api
  * Add support for external (REST) host alerts
+ * Add various help and parameters
+ * Add script to create a pdf report from historical API data
+ * Add NXLOG/Active Directory documentation
+ * Add reload button in various pages
+ * Add third party resources
+ * Add flow exporter ips to observation points
+ * Add support for the python API documentation
+ * Add forced offline variable to mantain the --offline option
+ * Add support for Lua host engaged alerts using timeout
+ * Add observation points ts
+ * Add HTTP server in flow details
+ * Add token-based authentication https://www.ntop.org/guides/ntopng/advanced_features/authentication.html?highlight=token#token-based-authentication
+ * Add Flow Risk (Bitmap) Filter in alerts
+ * Add make targets for pip package Updated package classes
+ * Add L7 information in flow object adding
+ * Add CodeQL workflow for GitHub code scanning
+ * Add modal-download-file component and add export timeseries png picture button
+ * Add critical and emergency status to alerts
+ * Add oneway TCP flows counters
+ * Add support for nDPI network handling in flows
+ * Add -n 4 for name resolution
+ * Add IMAP/POP stats
+ * Add Stratosphere Labs Blacklist support
+ * Add support d3v7
+ * Add Requires for RH9 (redhat-lsb-core is deprecated)
+ * Add interfaces stats api and refactor the others health api
+ * Add support to application protocol and master protocol
+ * Add CIDR support in Historical Flows
+ * Add new Aggregated Flows page
+ * Add new Alerts Analysis page
+ * Add support for estimating the number of TCP contacted servers with no reply
+ * Add new Ports Analysis page
+ * Add detection of periodic flows and exported it as flow risk in both flows and alerts
+ * Add REST API to get DB columns and info
+ * Add ability to query alerts from Python
+ * Add Zoom streams handling
+ * Add various checks
+ * Add IP-in-IP decapsulation
+ * Add Host Rules page (possiblity to trigger alerts based on timeseries)
+ * Add the ability to analyze a pcap without creating a new interface
+ * Add Windows timezone handling
+ * Change table definition
  * Cleanup file names
- * Added various help and parameters
- * Added script to create a pdf report from historical API data
- * Add NXLOG/Active Directory doc. Fix checks refs
  * Disabled host serialization
- * Implemented unresponsive peers host report
- * Implemented count of incoming tx peers with TCP flows unanswered
- * Added reload button in various pages
- * Updated (C)
+ * Enlarged the number of local networks to 1024
+ * Increased upload size to 25 MB
+ * Implement custom script check
+ * Implement support of host filtering with TX traffic sent
+ * Implement unresponsive peers host report
+ * Implement count of incoming tx peers with TCP flows unanswered
+ * Move ts business logic in ts_rest_utils.lua
+ * Patch for handling nicely clock drift at startup
+ * Remove obsolete autogen commands On Linux stay with g++ unless asnitizer is used
+ * Remove REST API v0 (discontinued since ntopng 4.2)
+ * Remove no more used severity
+ * Refactor range-picker query_presets
+ * Rework host packets page and removed dscp page
+ * Rework host ports implementation
  * Rework Historical class
  * Rework OPNsense plugin package build
- * Added third party resources
- * Changed table definition
- * Added flow exporter ips to observation points
  * Self test fixes and improvements
- * Add support for the python API documentation
- * Added forced offline variable to mantain the --offline option
- * Added various api
- * Updated various pages to vuejs
- * Patch for handling nicely clock drift at startup
- * Removed obsolete autogen commands On Linux stay with g++ unless asnitizer is used
- * Add support for Lua host engaged alerts using timeout
- * Enlarged the number of local networks to 1024
- * Added observation points ts
- * Added HTTP server in flow details
- * Added token-based authentication https://www.ntop.org/guides/ntopng/advanced_features/authentication.html?highlight=token#token-based-authentication
- * Add Flow Risk (Bitmap) Filter in alerts
- * Removed REST API v0 (discontinued since ntopng 4.2)
- * Added make targets for pip package Updated package classes
- * Added L7 information in flow object adding
- * Added CodeQL workflow for GitHub code scanning
- * Add modal-download-file component and add export timeseries png picture button
- * Implemented custom script check
- * Increased max num of exporters
- * Reworked host packets page and removed dscp page
- * Move ts business logic in ts_rest_utils.lua
- * Reworked host ports implementation
- * Removed no more used severity
- * Added critical and emergency status to alerts
- * Added oneway TCP flows counters
- * Added support for nDPI network handling in flows
- * Increased upload size to 25 MB
- * Updated bootstrap table css
- * Added -n 4 for name resolution
- * Added xl license
- * Added IMAP/POP stats
- * Added Stratosphere Labs Blacklist support
- * Added d3v7
- * Refactoring range-picker query_presets
- * Add Requires for RH9 (redhat-lsb-core is deprecated)
- * Added Rocky9
- * Add interfaces stats api and refactor the others health api
- * Added support to application protocol and master protocol
- * Add CIDR support in Historical Flows
- * Update doc
- * Added new Aggregated Flows page
- * Added new Alerts Analysis page
- * Added support for estimating the number of TCP contacted servers with no reply
- * Added new Ports Analysis page
- * Added support to ClickHouse cluster
- * Added detection of periodic flows and exported it as flow risk in both flows and alerts
- * Add REST API to get DB columns and info
- * Added ability to query alerts from Python
- * Added Zoom streams handling
- * Added various checks
- * Added IP-in-IP decapsulation
- * Added Host Rules page (possiblity to trigger alerts based on timeseries)
- * Added support to Kafka
- * Added the ability to analyze a pcap without creating a new interface
- * Added Windows timezone handling
+ * Update documentation
+ * Update REST API
+ * Update bootstrap table css
+ * Update various pages to vuejs
+ * Update counter scaling (no gauge)
+ * Update response in service disabled case
 
 ## nEdge
- * Update vlan trunk doc
- * Comment for vlan_trunk mode
- * Fixes netplan configuration error
- * Added support to multi LAN and fixes DHCP service error
- * Added VLAN and multi WAN support to nedge
+ * Add support to multi LAN and fixes DHCP service error
+ * Add VLAN and multi WAN support to nedge
  * Add routing_policy to nedge configuration callback
+ * Fix netplan configuration error
+ * Update vlan trunk doc
 
 ## Fix
- * Fixes host sankey minor issues
- * Fixes hyperlinks to historical charts not working
  * Df columns error management, table export formatted with % and column reordering now working
- * Fixes hyperlinks not working correctly
+ * Fix missing openssl dependency from MacOS
+ * Fix clang
+ * Fix host sankey minor issues
+ * Fix hyperlinks to historical charts not working
+ * Fix hyperlinks not working correctly
  * Fix Regex escape
  * Fix application name resolution on aggregated views
- * Fixed RRD driver for step calaculation
- * Fixes visual bugs with master and app proto
- * Fixes various interface page minor bugs
- * Fixes shortened labels
- * Fixes default sort not working
- * Fixes influxdb retention not updated
- * Fixes name and size of charts
- * Fixes vlan label not mapped
- * Configure fix for FreeBSD
- * Fixes ip resolution not updating the name
- * Fixes discrepancy in Traffic Calculation (Interface Chart)
- * Fixes measurement units not uniform
- * Fixed crash swap
- * Fixed bug that reported wrong DNS information
+ * Fix RRD driver for step calaculation
+ * Fix visual bugs with master and app proto
+ * Fix various interface page minor bugs
+ * Fix shortened labels
+ * Fix default sort not working
+ * Fix influxdb retention not updated
+ * Fix name and size of charts
+ * Fix vlan label not mapped
+ * Fix for FreeBSD configure
+ * Fix ip resolution not updating the name
+ * Fix discrepancy in Traffic Calculation (Interface Chart)
+ * Fix measurement units not uniform
+ * Fix crash swap
+ * Fix bug that reported wrong DNS information
  * Fix build process with opnsense/plugins
  * Fix validators regexps
- * Fixed ICMP emtropy report Improved HTTP flows report
- * Fixes Telegram Reported alerts contain HTML
- * ZMQ encryption key is now reported in hex to avoid escape problems
- * clang fix
- * Fixes multi-series Charts are Unreadable in Dark Mode
- * Initialization crash fix
- * Fixed invalid reverse host resolution that caused hosts to be labelled with wrong symbolic name
+ * Fix ICMP emtropy report Improved HTTP flows report
+ * Fix Telegram Reported alerts contain HTML
+ * Fix multi-series Charts are Unreadable in Dark Mode
+ * Fix invalid reverse host resolution that caused hosts to be labelled with wrong symbolic name
  * Fix delete obsoleted code from page-stats
  * Fix for circular dependency js
- * Fixes overlay not working
+ * Fix overlay not working
  * Fix due to changes to nDPI ALPN handling
- * Fixes CSS Inconsistency Across Browsers
+ * Fix CSS Inconsistency Across Browsers
  * Fix Deep copy also for array of objects
+ * Fix missing modules
+ * Fix NAT handling with nprobe
+ * Fix initialization crash
  * Removed multiple load from tables
- * Fixes missing modules
- * Added missing openssl dependency from MacOS
- * Fixed NAT handling with nprobe
-
+ * ZMQ encryption key is now reported in hex to avoid escape problems
+ 
 #### ntopng 5.4 (July 2022)
 
 ## Breakthroughs
