@@ -111,9 +111,9 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |
                                        | es            Dump in ElasticSearch database
                                        |   Format:
-                                       |   es;<mapping type>;<idx name>;<es URL>;<http auth>
+                                       |   es;<mapping type>;<idx name>;<es URL>;<username>:<password>
                                        |   Example:
-                                       |   es;ntopng;ntopng-%Y.%m.%d;http://localhost:9200/_bulk;
+                                       |   es;ntopng;ntopng-%Y.%m.%d;http://localhost:9200/_bulk;user:pwd
                                        |   Notes:
                                        |   The <idx name> accepts the strftime() format.
                                        |   <mapping type>s have been removed starting at

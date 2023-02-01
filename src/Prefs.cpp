@@ -431,9 +431,9 @@ void usage() {
 #endif
 	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"
-	 "                                    |   es;<mapping type>;<idx name>;<es URL>;<http auth>\n"
+	 "                                    |   es;<mapping type>;<idx name>;<es URL>;<username>:<password>\n"
 	 "                                    |   Example:\n"
-	 "                                    |   es;ntopng;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;\n"
+	 "                                    |   es;ntopng;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;user:pwd\n"
 	 "                                    |   Notes:\n"
 	 "                                    |   The <idx name> accepts the strftime() format.\n"
 	 "                                    |   <mapping type> must be set to ntopng and it is\n"
