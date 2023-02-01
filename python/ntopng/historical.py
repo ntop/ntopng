@@ -459,6 +459,8 @@ class Historical:
             print(self.get_timeseries("host:traffic", "ifid:"+str(self.ifid)+",host:"+host, epoch_begin, epoch_end))
             print("Interface traffic timeseries ----------------------------")
             print(self.get_interface_timeseries("iface:traffic_rxtx", epoch_begin, epoch_end))
+            print("Host traffic timeseries ----------------------------")
+            print(self.get_host_timeseries(host, "host:traffic", epoch_begin, epoch_end))
             print("Interface score timeseries ----------------------------")
             print(self.get_interface_timeseries("iface:score", epoch_begin, epoch_end))
             print("Host flows ----------------------------")
