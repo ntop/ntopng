@@ -52,7 +52,6 @@ const props = defineProps({
 const emit = defineEmits(['delete_ts', 'update:timeseries'])
 
 function update_timeseries() {
-    console.log(props.timeseries);
     emit('update:timeseries', props.timeseries);
 }
 

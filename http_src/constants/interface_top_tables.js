@@ -23,8 +23,8 @@ const top_application = {
 		let handler = {
 		    handlerId: handlerIdAddLink,
 		    onClick: function() {
-			console.log(data);
-			console.log(service);
+			// console.log(data);
+			// console.log(service);
 			let schema = `top:${service.ts_schema}`;
 			context.add_metric_from_metric_schema(schema, service.ts_query)
 		    },
@@ -68,7 +68,7 @@ const top_application = {
 			});
 			params = params_array.join("&");
 			historical_flows_url = `${historical_flows_url}&${params}`;
-			console.log(historical_flows_url);
+			// console.log(historical_flows_url);
 			window.open(historical_flows_url);
 		    }
 		};
@@ -94,8 +94,8 @@ const top_categories = {
 		let handler = {
 		    handlerId: handlerIdAddLink,
 		    onClick: function() {
-			console.log(data);
-			console.log(service);
+			// console.log(data);
+			// console.log(service);
 			let schema = `top:${service.ts_schema}`;
 			context.add_metric_from_metric_schema(schema, service.ts_query)
 		    },
@@ -139,7 +139,7 @@ const top_categories = {
 			});
 			params = params_array.join("&");
 			historical_flows_url = `${historical_flows_url}&${params}`;
-			console.log(historical_flows_url);
+			// console.log(historical_flows_url);
 			window.open(historical_flows_url);
 		    }
 		};
@@ -167,8 +167,8 @@ const top_senders = {
 	    let handler = {
 		handlerId: handlerIdAddLink,
 		onClick: async function() {
-		    console.log(data);
-		    console.log(service);
+		    // console.log(data);
+		    // console.log(service);
 		    let schema = `host:traffic`;
 		    context.add_ts_group_from_source_value_dict("host", service.tags, schema);
 		},
@@ -224,7 +224,7 @@ const top_senders = {
                 }
                 params = params_array.join("&");
                 historical_flows_url = `${historical_flows_url}&${params}`;
-                console.log(historical_flows_url);
+                // console.log(historical_flows_url);
                 window.open(historical_flows_url);
             }
           };
@@ -266,8 +266,8 @@ const top_receivers = {
 	    let handler = {
 		handlerId: handlerIdAddLink,
 		onClick: async function() {
-		    console.log(data);
-		    console.log(service);
+		    // console.log(data);
+		    // console.log(service);
 		    let schema = `host:traffic`;
 		    context.add_ts_group_from_source_value_dict("host", service.tags, schema);
 		},
@@ -323,7 +323,7 @@ const top_receivers = {
 			      }
 			      params = params_array.join("&");
 			      historical_flows_url = `${historical_flows_url}&${params}`;
-			      console.log(historical_flows_url);
+			      // console.log(historical_flows_url);
 			      window.open(historical_flows_url);
 			  }
 		      };
