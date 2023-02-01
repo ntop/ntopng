@@ -51,16 +51,16 @@ export default {
     },
     /** This method is the first method called after html template creation. */
     async mounted() {
-	console.log("Mounted Simple table");
+	// console.log("Mounted Simple table");
     },
     methods: {
 	reloaded_table: function() {
         let fBit =  ntopChartApex.chartOptionsUtility.getApexYFormatter(ntopChartApex.chartOptionsUtility.apexYFormatterTypes.bps.id);
         let fBytes = ntopChartApex.chartOptionsUtility.getApexYFormatter(ntopChartApex.chartOptionsUtility.apexYFormatterTypes.bytes.id);
-	    console.log("reloaded table called");
+	    // console.log("reloaded table called");
 	    //console.log(Object.keys(this.chart_options.statistics));
-        console.log(this.chart_options.statistics.by_serie);
-        console.log("OBJECT KEYS")
+        // console.log(this.chart_options.statistics.by_serie);
+        // console.log("OBJECT KEYS")
         let total = this.chart_options.statistics.total;
         let max_sent = this.chart_options.statistics.by_serie[0].max_val;
         let max_rcvd = this.chart_options.statistics.by_serie[1].max_val;

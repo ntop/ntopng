@@ -336,7 +336,6 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict, formatterDict) {
 	    max = Math.max.apply(Math, values);
 	    scaleFactorIndex = formatterUtils.getScaleFactorIndex(metric.measure_unit, max);
 	}
-	console.log(scaleFactorIndex);
 	if (yaxisSeriesName == null) {
 	    formatterDict[yaxisId] = scaleFactorIndex;
 	    let yaxis = {
@@ -379,9 +378,9 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict, formatterDict) {
 }
 
 const groupsOptionsModesEnum = {
-  '1_chart': { value: "1_chart", label: i18n('page_stats.layout_1_per_all') },
   '1_chart_x_metric': { value: "1_chart_x_metric", label: i18n('page_stats.layout_1_per_1') },
   '1_chart_x_yaxis': { value: "1_chart_x_yaxis", label: i18n('page_stats.layout_1_per_y') },
+  '1_chart': { value: "1_chart", label: i18n('page_stats.layout_1_per_all') },
 }
 
 function getGroupOptionMode(group_id) {

@@ -2,7 +2,6 @@ import NtopUtils from "./ntop-utils.js";
 
 const Utils = NtopUtils;
 function get_data_pattern(type) {
-    console.log(Utils.REGEXES["email"]);
     if (type == "text") {
 	return `.*`;
     } else if (type == "vlan") {
@@ -25,8 +24,8 @@ function get_data_pattern(type) {
 	}
 	
 	return `(${r_ipv4})|(${r_ipv4_vlan})|(${r_ipv6})|(${r_ipv6_vlan})`;
-    } else if (type == "cidr") {
-	
+    } else if (type == "mac") {
+	return Utils.REGEXES["macAddress"];
     }
     return Utils.REGEXES[type];
 }
