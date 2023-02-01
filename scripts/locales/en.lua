@@ -1359,6 +1359,7 @@ local lang = {
     ["add_exclusion"] = "Add Check Exclusion",
     ["alert_type"] = "Exclude Alert",
     ["domain"] = "Domain",
+    ["disable_warn"] = "Alerts are being deleted this may take a while.",
     ["edit_exclusion"] = "Edit Check Exclusion",
     ["exclude_all_alerts"] = "All Alerts",
     ["exclude_all_checks_for"] = "Exclude all checks for",

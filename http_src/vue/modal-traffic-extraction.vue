@@ -120,7 +120,7 @@ export default defineComponent({
 		let href = `<a href="/lua/if_stats.lua?ifid=${ifid}&page=traffic_recording&tab=jobs&job_id=${job_id}">${page_name}</a>`; 
 		alert_text_html = alert_text_html.replace('%{page}', href);
 		alert_text_html = `${alert_text_html} ${job_id}`;
-		ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_GLOBAL_ALERT_INFO, alert_text_html);
+		ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_GLOBAL_ALERT_INFO, { text_html: alert_text_html, type: "alert-success" });
 	    }
 	    this.$refs["modal"].close();
 	},

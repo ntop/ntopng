@@ -36,7 +36,7 @@
       <div class="w-100">
 	<div clas="range-container d-flex flex-wrap">
 	  <div class="range-picker d-flex m-auto flex-wrap" id="rangepicker">
-	  <alert-info id="alert_info" ref="alert_info"></alert-info>
+	  <alert-info id="alert_info" :global="true" ref="alert_info"></alert-info>
 	  <modal-traffic-extraction id="modal_traffic_extraction" ref="modal_traffic_extraction"></modal-traffic-extraction>
 	  <modal-snapshot ref="modal_snapshot"
 	    :csrf="csrf">
@@ -517,7 +517,11 @@
 		};
 		await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
 		let url_params = ntopng_url_manager.get_url_params();
-		setTimeout(() => reloadTable($table, url_params), 1000);
+		setTimeout(() => {
+		  reloadTable($table, url_params);
+		  ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_GLOBAL_ALERT_INFO, { text_html: i18n('check_exclusion.disable_warn'), type: "alert-info", timeout: 2 });
+		  
+		}, 1000);
               } catch(err) {
 	        console.error(err);
               }
