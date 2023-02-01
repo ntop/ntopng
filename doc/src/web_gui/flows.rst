@@ -212,3 +212,24 @@ It is possible, like for the Alerts Page, to navigate throw the flows by filteri
 Multiple filters are available by clicking the various results (e.g. The host `develv5`, to investigate its activities) or by clicking the `+` symbol in the right upper part of the GUI and selecting the wanted filter.
 
 See :ref:`Historical Flow Explorer` for more information.
+
+
+Analysis
+--------
+
+.. figure:: ../img/live_flows_nav_bar.png
+  :align: center
+  :alt: Live Flows navigation bar
+
+  Live Flows navigation bar
+
+By switching tab and clicking the analysis entry, an other view of the flows is going to be displayed, showing the informations aggregated.
+
+.. figure:: ../img/live_flows_analysis.png
+  :align: center
+  :alt: Live Flows Analysis
+
+  Live Flows Analysis
+
+From here it's possible to understand the amount of flows, traffic and hosts having a particular application protocol in order to understand easly if there is some flow (using some protocol) that shouldn't be there.
+By clicking on the protocol, the user is going to jump to the live flow page with the selected protocol filtered. 

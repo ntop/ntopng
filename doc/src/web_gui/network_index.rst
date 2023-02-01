@@ -17,7 +17,7 @@ By changing interface and jumping to the Network Interface some options are goin
     :maxdepth: 2
 
     dashboard
-    checks
+    alerts
     flows
     hosts
     maps

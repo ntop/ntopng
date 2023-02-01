@@ -500,7 +500,7 @@ else
          hidden = only_historical or not ntop.isEnterpriseL(),
          active = page == "flows_sankey",
          page_name = "flows_sankey",
-         label = '<i class="fas fa-draw-polygon" title="'..i18n("local_flows_sankey")..'"></i>',
+         label = '<i class="fas fa-draw-polygon" title="'..i18n("host_flows")..'"></i>',
       },
       {
          hidden = only_historical or host["is_broadcast"] or host["is_multicast"] or not ntop.hasGeoIP(),

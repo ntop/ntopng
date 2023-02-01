@@ -272,14 +272,13 @@ Talkers
 Talkers page provides top talkers having active flows with selected host. Similarly to the Community
 edition dashboard, top talkers are laid out in a Sankey Diagram.
 
-Talks
-^^^^^
+Host Flows
+^^^^^^^^^^
 .. note::
 
    This page is only available with an Enterprise License.
 
-The talks page provides an interactive map that shows the currently active flows of the interested host, its
-peers and protocols.
+The Host Flows page provides an interactive map that shows the currently active flows of the interested host, its peers and protocols.
 
 .. figure:: ../img/web_gui_host_details_sankey.png
   :align: center
