@@ -109,7 +109,7 @@ export default {
     }
     this.$refs["modal"].show();
 	},
-  post_change: function(filter) {
+  post_change: function(filter, value_type) {
     if (filter.id && this.$props.filters_options) {
       /* Filter type selected, e.g. Alert Type, Application, ecc. */
 			this.filter_type_selected = this.$props.filters_options.find((fo) => fo.id == filter.id);
@@ -121,7 +121,7 @@ export default {
       } else {
 		    this.option_selected = [];
         this.input_value = filter.value;
-        this.data_pattern_selected = this.get_data_pattern(filter.value_type);
+        this.data_pattern_selected = this.get_data_pattern(value_type);
       }
     }
     if (filter.operator && this.operators_to_show) {
@@ -144,7 +144,7 @@ export default {
     this.option_selected = null;
     this.input_value = null
     let filters_options = this.$props.filters_options;
-    /* Search the filter selected */
+      /* Search the filter selected */
     let filter = filters_options.find((fo) => fo.id == this.filter_type_selected.id);
     if (filter == null) { 
       return; 
@@ -159,9 +159,9 @@ export default {
         return a.label.toString().localeCompare(b.label.toString());
       });
       if(!this.option_selected)
-        this.option_selected = this.options_to_show[0]
+        this.option_selected = this.options_to_show[0];
     } else {
-      this.options_to_show = null
+      this.options_to_show = null;
       this.data_pattern_selected = this.get_data_pattern(filter.value_type);
     }
 
@@ -170,7 +170,7 @@ export default {
     }
 
     if (selected_filter != null) { 
-      this.post_change(selected_filter); 
+      this.post_change(selected_filter, filter.value_type); 
     }
 	},
 	get_data_pattern: function(value_type) {
