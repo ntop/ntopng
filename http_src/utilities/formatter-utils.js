@@ -110,6 +110,7 @@ function getScaleFactorIndex(type, value) {
 }
 
 function getFormatter(type, absoluteValue, scaleFactorIndex) {
+    console.log(scaleFactorIndex);
     let typeOptions = types[type];
     let maxLenValue = 6; // 000.00
     let maxLenUm = 8; // Mflows/s
@@ -135,7 +136,7 @@ function getFormatter(type, absoluteValue, scaleFactorIndex) {
     value = typeOptions.max_value
   }
 
-	while ((value >= step && i < measures.length) || (scaleFactorIndex != null && i < scaleFactorIndex)) {
+	while ((value >= step && i < measures.length && !scaleFactorIndex) || (scaleFactorIndex != null && i < scaleFactorIndex)) {
     value = value / step;
     i += 1;
 	}

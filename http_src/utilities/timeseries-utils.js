@@ -336,14 +336,15 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict, formatterDict) {
 	    max = Math.max.apply(Math, values);
 	    scaleFactorIndex = formatterUtils.getScaleFactorIndex(metric.measure_unit, max);
 	}
+	console.log(scaleFactorIndex);
 	if (yaxisSeriesName == null) {
-	    formatterDict[yaxisId] = formatterUtils.getFormatter(metric.measure_unit, invertDirection, scaleFactorIndex);
+	    formatterDict[yaxisId] = scaleFactorIndex;
 	    let yaxis = {
 		seriesName: s.name,
 		show: true,
 		//forceNiceScale: true,
 		labels: {
-		    formatter: formatterDict[yaxisId],
+		    // formatter: formatterDict[yaxisId],
 		    // minWidth: 60,
 		     // maxWidth: 75,
 		    // offsetX: -20,
@@ -366,12 +367,14 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict, formatterDict) {
 	    yaxisApex.push({
 		seriesName: yaxisSeriesName,
 		labels: {
-		    formatter: formatterDict[yaxisId],
+		    // formatter: formatterDict[yaxisId],
 		},
 		show: false,
 	    });
 	}
+	formatterDict[yaxisId] = Math.max(formatterDict[yaxisId], scaleFactorIndex);
     });
+    yaxisApex.forEach((y) => y.labels.formatter = formatterUtils.getFormatter(metric.measure_unit, invertDirection, formatterDict[yaxisId]));
     return yaxisApex;
 }
 
