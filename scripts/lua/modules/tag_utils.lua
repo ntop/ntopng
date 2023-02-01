@@ -74,19 +74,19 @@ tag_utils.defined_tags = {
       operators = {'eq','neq'},
    },
    ip = {
-      value_type = 'ip',
+      value_type = 'cidr', -- Set to 'ip' to accept IP only
       i18n_label = i18n('db_search.tags.ip'),
       operators = {'eq', 'neq'},
       bpf_key = 'ip host',
    },
    cli_ip = {
-      value_type = 'ip',
+      value_type = 'cidr', -- Set to 'ip' to accept IP only
       i18n_label = i18n('db_search.tags.cli_ip'),
       operators = {'eq', 'neq'},
       bpf_key = 'ip host',
    },
    srv_ip = {
-      value_type = 'ip',
+      value_type = 'cidr', -- Set to 'ip' to accept IP only
       i18n_label = i18n('db_search.tags.srv_ip'),
       operators = {'eq', 'neq'},
       bpf_key = 'ip host',

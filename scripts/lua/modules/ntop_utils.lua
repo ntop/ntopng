@@ -179,7 +179,9 @@ end
 
 -- ##############################################
 
-function isIPv4Network(address)
+-- Check if address is a CIDR
+-- strict (optional) do not accept subnets without the '/<mask>'
+function isIPv4Network(address, strict)
    -- Check for @ VLAN
    local parts = split(address, "@")
    if #parts == 2 then
@@ -195,6 +197,9 @@ function isIPv4Network(address)
          return false
       end
 
+   elseif #parts == 1 and strict then
+      return false
+
    -- Check empty
    elseif #parts ~= 1 then
       return false
@@ -206,7 +211,9 @@ end
 
 -- ##############################################
 
-function isIPv6Network(address)
+-- Check if address is a CIDR
+-- strict (optional) do not accept subnets without the '/<mask>'
+function isIPv6Network(address, strict)
    -- Check for @ VLAN
    local parts = split(address, "@")
    if #parts == 2 then
@@ -221,6 +228,9 @@ function isIPv6Network(address)
       if (prefix == nil) or (math.floor(prefix) ~= prefix) or (prefix < 0) or (prefix > 128) then
          return false
       end
+
+   elseif #parts == 1 and strict then
+      return false
 
    -- Check empty
    elseif #parts ~= 1 then
