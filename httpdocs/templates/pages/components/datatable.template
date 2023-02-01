@@ -517,7 +517,7 @@
 		};
 		await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
 		let url_params = ntopng_url_manager.get_url_params();
-		setTimeout(() => reloadTable($table, url_params), 300);
+		setTimeout(() => reloadTable($table, url_params), 1000);
               } catch(err) {
 	        console.error(err);
               }
