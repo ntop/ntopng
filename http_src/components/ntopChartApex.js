@@ -396,7 +396,11 @@ const ntopChartApex = function() {
 		},
 		updateChart: function(chartOptions) {
 		    if (_chart == null) { return; }
-		    _chart.updateOptions(chartOptions, true);
+		    _chart.updateOptions(chartOptions, false, false, false);
+		},
+		updateSeries: function(series) {
+		    if (_chart == null) { return; }
+		    _chart.updateSeries(series);
 		},
 		registerEvent: function(eventName, callback, updateChart = false) {
 		    _chartOptions.chart.events[eventName] = callback;

@@ -90,7 +90,10 @@ export default {
 		chart_type = chartApex.typeChart.TS_STACKED;
 	    }
 	    this.chart = chartApex.newChart(chart_type);
-	    this.chart.registerEvent("zoomed", (chart_context, axis) => this.on_zoomed(chart_context, axis));
+	    let me = this;
+	    this.chart.registerEvent("zoomed", function(chart_context, axis) {
+		me.on_zoomed(chart_context, axis);
+	    });
 	    let chart_options = await this.get_chart_options(url_request);
 	    this.chart.drawChart(this.$refs["chart"], chart_options);
 	},
@@ -100,6 +103,10 @@ export default {
 	},
 	update_chart_options: function(chart_options) {
 	    this.chart.updateChart(chart_options);
+	},
+	update_chart_series: function(series) {
+	    if (series == null) { return; }
+	    this.chart.updateSeries(series);
 	},
 	get_chart_options: async function(url_request) {
 	    let chart_options;

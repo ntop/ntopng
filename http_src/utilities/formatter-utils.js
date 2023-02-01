@@ -22,6 +22,7 @@ const types = {
 	step: 1024,
 	decimal: 2,
 	scale_values: null,
+	absolute_value: true,
     },
     bytes_network: {
 	id: "bytes_network",
@@ -29,6 +30,7 @@ const types = {
 	step: 1000,
 	decimal: 2,
 	scale_values: null,
+	absolute_value: true,
     },
     bps: {
 	id: "bps",
@@ -36,6 +38,7 @@ const types = {
 	step: 1000,
 	decimal: 2,
 	scale_values: 8,	
+	absolute_value: true,
     },
     fps: {
 	id: "fps",
@@ -43,6 +46,7 @@ const types = {
 	step: 1000,
 	decimal: 2,
 	scale_values: null,	
+	absolute_value: true,
     },
     pps: {
 	id: "pps",
@@ -50,6 +54,7 @@ const types = {
 	step: 1000,
 	decimal: 2,
 	scale_values: null,	
+	absolute_value: true,
     },
     ms: {
 	id: "ms",
@@ -57,6 +62,7 @@ const types = {
 	step: 1000,
 	decimal: 2,
 	scale_values: null,	
+	absolute_value: true,
     },
     percentage: {
 	id: "percentage",
@@ -64,7 +70,8 @@ const types = {
 	step: 101,
 	decimal: 0,
 	scale_values: null,	
-  max_value: 100,
+	max_value: 100,
+	absolute_value: true,
     },
 };
 
@@ -106,6 +113,7 @@ function getFormatter(type, absoluteValue, scaleFactorIndex) {
     let typeOptions = types[type];
     let maxLenValue = 6; // 000.00
     let maxLenUm = 8; // Mflows/s
+    absoluteValue |= typeOptions.absolute_value; 
     let formatter = function(value) {
 	if (value == null) {
 	    return '';

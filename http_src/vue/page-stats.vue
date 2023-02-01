@@ -13,7 +13,8 @@
       <template v-slot:extra_buttons>
 	<button v-if="enable_snapshots" class="btn btn-link btn-sm" @click="show_modal_snapshot" :title="_i18n('page_stats.manage_snapshots_btn')"><i class="fas fa-lg fa-camera-retro"></i></button>
 	<button v-if="traffic_extraction_permitted" class="btn btn-link btn-sm" @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i class="fas fa-lg fa-download"></i></button>
-	<button  class="btn btn-link btn-sm" @click="show_modal_download_file" :title="_i18n('page_stats.title_modal_download_file')"><i class="fas fa-lg fa-file-image"></i></button>	
+	<button  class="btn btn-link btn-sm" @click="show_modal_download_file" :title="_i18n('page_stats.title_modal_download_file')"><i class="fas fa-lg fa-file-image"></i></button>
+	<button v-if="is_history_enabled" class="btn btn-link btn-sm" @click="jump_to_historical_flows" :title="_i18n('page_stats.historical_flows')"><i class="fas fa-lg fa-table"></i></button>	
       </template>
     </DataTimeRangePicker>
     <!-- select metric -->
@@ -333,7 +334,7 @@ async function load_selected_metric_page_stats_data() {
 
 function epoch_change(new_epoch) {
     let push_custom_metric = selected_metric.value.label == custom_metric.label;
-    load_page_stats_data(last_timeseries_groups_loaded, true, false, true);
+    load_page_stats_data(last_timeseries_groups_loaded, true, false, new_epoch.refresh_data);
     refresh_top_table();
     refresh_metrics(push_custom_metric, true);
 }
@@ -427,7 +428,8 @@ function update_url_params() {
 
 function update_charts(charts_options) {
     charts_options.forEach((options, i) => {
-	charts.value[i].update_chart_options(options);
+	charts.value[i].update_chart_options({ yaxis: options.yaxis });
+	charts.value[i].update_chart_series(options?.series);
     });    
 }
 
@@ -610,7 +612,10 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
     enable_stats_table.value = timeseries_groups.map((ts_group) => !ts_group.source_type.disable_stats).reduce((res, el) => res | el, false);
     if (!enable_stats_table.value) { return; }
     const f_get_total_formatter_type = (type) => {
-	if (type == "bps") { return "bytes_network"; }
+	if (type == "bps") {
+	    return "bytes";
+	    // return "bytes_network";
+	}
 	return type;
     };    
     stats_rows.value = [];
@@ -660,6 +665,14 @@ function print_stats_column(col) {
 function print_stats_row(col, row) {
     let label = row[col.id];
     return label;
+}
+
+function jump_to_historical_flows() {
+    let status = ntopng_status_manager.get_status();
+    let params = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
+    let url_params = ntopng_url_manager.obj_to_url_params(params);
+    const historical_url = `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
+    ntopng_url_manager.go_to_url(historical_url);
 }
 
 const modal_traffic_extraction = ref(null);

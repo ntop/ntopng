@@ -86,7 +86,7 @@ function getYaxisId(metric) {
 
 function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawType, tsCompare) {
     // extract start time and step
-    let startTime = tsOptions.start * 1000;;
+    let startTime = tsOptions.start * 1000;
     let step = tsOptions.step * 1000;
     let seriesApex = [];
     let seriesKeys = Object.keys(tsGroup.metric.timeseries);
@@ -145,8 +145,9 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 		color: sMetadata.color,
 		// stacked: tsGroup.metric.draw_stacked,
 		type: drawType,
-		name: sName,
+		name: sName,		
 		data,
+		invert_direction: sMetadata.invert_direction,
 	    };
 	    seriesApex.push(sApex);
 	}
@@ -158,11 +159,13 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 	    let sApex = {
 		id,
 		colorPalette: 1,
-		color: sMetadata.color,
+		// color: sMetadata.color,
 		type: "line",
 		// stacked: tsGroup.metric.draw_stacked,
 		name: `${sName} ${tsCompare} Ago`,
 		data: fMapData(seriesData),
+		dashed: true,
+		invert_direction: sMetadata.invert_direction,
 	    };
 	    seriesApex.push(sApex);
 	}
@@ -184,10 +187,11 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 		id,
 		name: name,
 		colorPalette: 1,
-		color: sMetadata.color,
+		// color: sMetadata.color,
 		type: 'line',
 		// stacked: tsGroup.metric.draw_stacked,
 		data,
+		invert_direction: sMetadata.invert_direction,
 	    };
 	};
 	// check and add avg serie visibility
@@ -262,14 +266,15 @@ function setMinMaxYaxis(yAxisArray, seriesArray) {
 	let id = y.seriesName;
 	if (yAxisArrayDict[id] == null) {
 	    yAxisArrayDict[id] = [];
-	    minMaxDict[id] = { min: Number.MAX_SAFE_INTEGER, max: Number.MIN_SAFE_INTEGER };
+	    minMaxDict[id] = { min: Number.MAX_SAFE_INTEGER, max: Number.MIN_SAFE_INTEGER, invert_direction: false };
 	}
 	yAxisArrayDict[id].push(y);
 	let minMax = minMaxDict[id];
 	s.data.forEach((d) => {
 	    minMax.max = Math.max(minMax.max, d.y);
 	    minMax.min = Math.min(minMax.min, d.y);
-	});	
+	});
+	minMax.invert_direction |= s.invert_direction;
     }
 
     let fAddOrSubtrac3Perc = (x, isAdd) => {
@@ -290,8 +295,18 @@ function setMinMaxYaxis(yAxisArray, seriesArray) {
 	minMax.max = fAddOrSubtrac3Perc(minMax.max, true);
 	
 	yArray.forEach((y) => {
-	    y.min = minMax.min;
-	    y.max = minMax.max;
+	    let min_abs = Math.abs(minMax.min);
+	    let max_abs = Math.abs(minMax.max);
+	    if (min_abs > max_abs) {
+	    	y.min = minMax.min;
+	    	y.max = min_abs;
+	    } else if (min_abs < max_abs && minMax.invert_direction == true) {
+	    	y.min = -1 * max_abs;
+	    	y.max = minMax.max;
+	    } else {
+		y.min = minMax.min;
+		y.max = minMax.max;
+	    }
 	});
     }
 }
@@ -313,6 +328,7 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict, formatterDict) {
 	let max = 0;
 	let scaleFactorIndex = null;
 	if (s.data != null) {
+	    // calculate scaleFactor of measureUnit
 	     let values = s.data.map((o) => {
 		if (o.y == null) { return 0; }
 		return Math.abs(o.y);
@@ -361,8 +377,8 @@ function getYaxisInApexFormat(seriesApex, tsGroup, yaxisDict, formatterDict) {
 
 const groupsOptionsModesEnum = {
   '1_chart': { value: "1_chart", label: i18n('page_stats.layout_1_per_all') },
-  '1_chart_x_yaxis': { value: "1_chart_x_yaxis", label: i18n('page_stats.layout_1_per_y') },
   '1_chart_x_metric': { value: "1_chart_x_metric", label: i18n('page_stats.layout_1_per_1') },
+  '1_chart_x_yaxis': { value: "1_chart_x_yaxis", label: i18n('page_stats.layout_1_per_y') },
 }
 
 function getGroupOptionMode(group_id) {
@@ -488,10 +504,15 @@ function buildChartOptions(seriesArray, yaxisArray) {
 	// fill: {
 	    
 	// }
+	markers: {
+            size: 1,
+	},
 	stroke: {
 	    show: true,
-	    lineCap: 'butt',
-	    width: 4,
+            curve: 'straight',
+	    // lineCap: 'butt',
+	    width: 3,
+	    dashArray: seriesArray.map((s) => { if (s.dashed) { return 4; } return 0; }),
 	},
 	legend: {
 	    show: true,

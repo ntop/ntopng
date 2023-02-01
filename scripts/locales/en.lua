@@ -5227,6 +5227,7 @@ local lang = {
     ["layout_1_per_y"] = "One Chart per Y-axis",
     ["manage_snapshots_btn"] = "Manage Snapshots",
     ["manage_timeseries_btn"] = "Manage Timeseries",
+    ["historical_flows"] = "Jump to Historical Flows",
     ["max"] = "Max",
     ["metric"] = "Metric",
     ["min"] = "Min",

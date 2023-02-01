@@ -8,7 +8,7 @@
         <select-search v-model:selected_option="selected_time_option"
           :id="'time_preset_range_picker'"
           :options="time_preset_list"
-          @select_option="change_select_time">
+          @select_option="change_select_time(null)">
         </select-search>
         <div class="btn-group ms-2">
             <span class="input-group-text">
@@ -132,9 +132,10 @@ export default {
 		let value = this.selected_time_option?.value;
 		if (this.enable_refresh && value != null && value != "custom") {
 		    this.update_from_interval = true;
-		    this.change_select_time();
+		    this.change_select_time(true);
 		}
-	    }, this.refresh_interval_seconds);
+	    }, this.refresh_interval_seconds * 1000);
+	    // }, 10* 1000);
 	},
 	utc_s_to_server_date: function(utc_seconds) {
 	    let utc = utc_seconds * 1000;
@@ -261,12 +262,12 @@ export default {
 	// 	this.$refs[ref_name].value = date_time.toISOString().substring(0,10);
 	//     }
         // },
-        change_select_time: function() {
+        change_select_time: function(refresh_data) {
             let s_values = this.get_select_values();
             let interval_s = s_values[this.selected_time_option.value];
             let epoch_end = this.get_utc_seconds(Date.now());
             let epoch_begin = epoch_end - interval_s;
-            let status = { epoch_begin: epoch_begin, epoch_end: epoch_end };
+            let status = { epoch_begin: epoch_begin, epoch_end: epoch_end, refresh_data };
             this.emit_epoch_change(status);
         },
         get_select_values: function() {
@@ -377,7 +378,7 @@ export default {
       //status_id: "data-time-range-picker" + this.$props.id,
 	  epoch_status: null,
 	  refresh_interval: null,
-	  refresh_interval_seconds: 60 * 1000,
+	  refresh_interval_seconds: 60,
 	  update_from_interval: false,
 	  history: [],
 	  history_last_status: null,
