@@ -443,13 +443,32 @@ class Historical:
         :return: Top conversations
         :rtype: object
         """
-        get_data = { "ifid": 1, "epoch_begin": epoch_begin, "epoch_end": epoch_end, "query_preset": "top_conversations", "order": "DESC", "start": 0, "length": 10, "sort": "bytes", "visible_columns": "cli_ip,srv_ip,bytes" }
+        get_data = { "ifid": self.ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end, "query_preset": "top_conversations", "order": "DESC", "start": 0, "length": 10, "sort": "bytes", "visible_columns": "cli_ip,srv_ip,bytes" }
         
         if host is not None:
             get_data["ip"] = host + ";eq"
         
         res = self.ntopng_obj.request(self.rest_pro_v2_url + "/get/db/historical_db_search.lua", get_data)
         return(res["records"])
+
+    def get_host_top_protocols(self, host, epoch_begin, epoch_end):
+        """
+        Return Top protocols for an host
+
+        :param host: Host IP address
+        :type host: string
+        :param epoch_begin: Start of the time interval (epoch)
+        :type epoch_begin: int
+        :param epoch_end: End of the time interval (epoch)
+        :type epoch_end: int
+        :return: Top protocols
+        :rtype: object
+        """
+
+        get_data = {  "ts_query": "ifid:" + self.ifid + ",host:" + host, "detail_view": "top_protocols", "epoch_begin": epoch_begin, "epoch_end": epoch_end, "new_charts": "true" }
+
+        res = self.ntopng_obj.request(self.rest_pro_v2_url + "/get/host/top/ts_stats.lua", get_data)
+        return(res)
 
     def self_test(self, host):
         try:
@@ -497,6 +516,8 @@ class Historical:
             print(self.get_alerts_stats(epoch_begin, epoch_end, host))
             print("Host Top conversations ----------------------------")
             print(self.get_top_conversations(epoch_begin, epoch_end, host))
+            print("Host Top protocols ----------------------------")
+            print(self.get_host_top_protocols(host, epoch_begin, epoch_end))
             print("----------------------------")
         except:
             raise ValueError("Invalid interface ID, host or parameters specified")

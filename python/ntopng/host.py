@@ -55,7 +55,6 @@ class Host:
         if(self.vlan is not None):
             params['vlan'] = self.vlan
 
-        print("BBB")
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/l7/stats.lua", params))
 
     def get_dscp_stats(self, direction_rcvd):
