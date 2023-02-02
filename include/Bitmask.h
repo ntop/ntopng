@@ -48,6 +48,7 @@ class Bitmask {
   void bitmask_set(u_int32_t n);
   void bitmask_clr(u_int32_t n);
   bool bitmask_isset(u_int32_t n);
+  void bitmask_clr_all();
 
  public:
   Bitmask(u_int32_t num_tot_elems);
@@ -71,6 +72,11 @@ class Bitmask {
    * @return True if the bit is set, false otherwise.
    */
   inline bool is_set_bit(u_int32_t bit) { return(bitmask_isset(bit) ? true : false); }
+
+  /**
+   * Clears all the bits in the bitmask.
+   */
+  inline void clear_all_bits() { bitmask_clr_all(); }
 
   void print();
 };

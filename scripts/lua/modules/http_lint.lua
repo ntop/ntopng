@@ -135,6 +135,22 @@ local function validateNumber(p)
 end
 http_lint.validateNumber = validateNumber
 
+-- #################################################################
+
+-- FRONT-END VALIDATORS
+
+local function validateVlan(p)
+   -- integer number validation
+   if(validateNumber(p)) then
+      local num = tonumber(p)
+      if(0 <= num and num < 4095 ) then
+         return true
+      end
+   end
+
+   return false
+end
+http_lint.validateVlan = validateVlan
 
 -- ##############################################
 
@@ -1414,7 +1430,11 @@ local function validateListItems(script, conf, key)
    elseif(item_type == "server") then
       item_validator = validateServer
       err_label = "Bad server IP or name"
+   elseif(item_type == "vlan") then
+      item_validator = validateVlan
+      err_label = "Bad VLAN ID (must be a value beetwen 0 and 4094)"
    end
+
 
    if(type(conf_items) == "table") then
       for _, item in ipairs(conf_items) do
