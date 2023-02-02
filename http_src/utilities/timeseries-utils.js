@@ -507,7 +507,7 @@ function buildChartOptions(seriesArray, yaxisArray) {
 	    
 	// }
 	markers: {
-            size: 3,
+            size: 2.5,
 	    strokeWidth: 1,
 	    // fillOpacity: 0,
 	    // strokeColors: '#000',
@@ -518,8 +518,8 @@ function buildChartOptions(seriesArray, yaxisArray) {
 	},
 	stroke: {
 	    show: true,
-            curve: 'straight',
-	    // lineCap: 'butt',
+            // curve: 'straight',
+	    lineCap: 'butt',
 	    width: 3,
 	    dashArray: seriesArray.map((s) => { if (s.dashed) { return 4; } return 0; }),
 	},
