@@ -1,6 +1,6 @@
 # Changelog
 
-#### ntopng 5.6 (Febrary 2023)
+#### ntopng 5.6 (February 2023)
 
 ## Breakthroughs
  * Add XL license
