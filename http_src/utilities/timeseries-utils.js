@@ -507,7 +507,14 @@ function buildChartOptions(seriesArray, yaxisArray) {
 	    
 	// }
 	markers: {
-            size: 1,
+            size: 3,
+	    strokeWidth: 1,
+	    // fillOpacity: 0,
+	    // strokeColors: '#000',
+	    // colors: '#000',
+	    strokeColors: seriesArray.map((s) => s.color),
+	    // colors: null,
+	    // strokeOpacity: 1,
 	},
 	stroke: {
 	    show: true,

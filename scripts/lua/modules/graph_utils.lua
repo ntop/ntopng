@@ -390,8 +390,8 @@ function graph_utils.drawNewGraphs(source_value_object)
     sources_types_enabled = json.encode(sources_types_enabled),
     source_value_object = json.encode(source_value_object),
     sources_types_top_enabled = json.encode(sources_types_top_enabled),
+    is_dark_mode = ntop.getPref("ntopng.user." .. _SESSION["user"] .. ".theme") == "dark",
   }
-  
   template_utils.render("pages/components/historical_interface.template", context)
 end
 

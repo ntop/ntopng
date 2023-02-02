@@ -137,6 +137,7 @@ const props = defineProps({
     enable_snapshots: Boolean,
     is_history_enabled: Boolean,
     traffic_extraction_permitted: Boolean,
+    is_dark_mode: Boolean,
 });
 
 ntopng_utility.check_and_set_default_interval_time();

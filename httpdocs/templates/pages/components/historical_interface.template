@@ -7,7 +7,8 @@
     :is_ntop_pro="is_ntop_pro"
     :enable_snapshots="is_ntop_enterprise_m"
     :is_history_enabled="is_history_enabled"
-    :traffic_extraction_permitted="traffic_extraction_permitted">
+    :traffic_extraction_permitted="traffic_extraction_permitted"
+    :is_dark_mode="is_dark_mode">
   </page-stats>
 </div>
 
@@ -22,6 +23,7 @@
     const source_value_object = {* source_value_object *};
     const sources_types_enabled = {* sources_types_enabled *};
     const sources_types_top_enabled = {* sources_types_top_enabled *};
+    const is_dark_mode = '{* is_dark_mode *}' == 'true';
 
     const vue_options = {
     	components: {
@@ -42,6 +44,7 @@
 	      is_ntop_enterprise_m,
 	      traffic_extraction_permitted,
               is_history_enabled,
+	      is_dark_mode,
 	    };
 	},
 	methods: {},
