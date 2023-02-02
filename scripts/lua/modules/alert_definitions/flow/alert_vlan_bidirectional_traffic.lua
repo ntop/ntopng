@@ -10,6 +10,8 @@ local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
 
+local format_utils = require "format_utils"
+
 -- ##############################################
 
 local alert_vlan_bidirectional_traffic = classes.class(alert)
@@ -36,7 +38,16 @@ end
 -- #######################################################
 
 function alert_vlan_bidirectional_traffic.format(ifid, alert, alert_type_params)
-   
+   local vlan_id = alert["vlan_id"]
+   local tx = format_utils.bytesToSize(alert["cli2srv_bytes"])
+   local rx = format_utils.bytesToSize(alert["srv2cli_bytes"])
+
+   return i18n("alert_messages.vlan_bidirectional_traffic",{
+      vlan = vlan_id,
+      tx = tx,
+      rx = rx
+   })
+
 end
 
 -- #######################################################

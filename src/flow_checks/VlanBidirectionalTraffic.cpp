@@ -100,7 +100,7 @@ bool VlanBidirectionalTraffic::checkVlan(VLANid vlan_id) {
 
 bool VlanBidirectionalTraffic::isServerNotLocal(Flow *f) {
   const IpAddress* srv_ip = f->get_srv_ip_addr();
-  if(srv_ip != NULL) {
+  if(!srv_ip) {
     return !srv_ip->isLocalHost() || srv_ip->isBroadMulticastAddress();
   }
   

@@ -35,7 +35,7 @@ class VlanBidirectionalTraffic : public FlowCheck {
         VlanBidirectionalTraffic() : FlowCheck(ntopng_edition_community,
 			       true /* Packet Interfaces only */, true /* Exclude for nEdge */, false /* Only for nEdge */,
 			       false /* has_protocol_detected */, true /* has_periodic_update */, false /* has_flow_end */) {
-                    vlans = new (std::nothrow) Bitmask(4095);
+                    vlans = new (std::nothrow) Bitmask(4096);
                    };
          ~VlanBidirectionalTraffic() {
             vlans->~Bitmask();
