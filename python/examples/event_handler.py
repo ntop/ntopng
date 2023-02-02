@@ -108,8 +108,7 @@ if alert["entity_id"] == entity_host and alert["alert_id"] == external_host_scri
         log("Invalid credentials or URL specified")
 
     if my_ntopng is not None:
-
-        iface_id = 0
+        iface_id = alert["ifid"]
 
         """
         my_historical = my_ntopng.get_historical_interface(iface_id)

@@ -18,7 +18,7 @@ class Ntopng:
     
     :param ntopng_obj: The ntopng handle
     """
-    def __init__(self, username, password, auth_token, url):
+    def __init__(self, username = None, password = None, auth_token = None, url = "http://localhost:3000"):
         """
         Construct a new Ntopng object
         
@@ -31,12 +31,14 @@ class Ntopng:
         :param url: The ntopng URL (e.g. http://localhost:3000)
         :type url: string
         """
-        self.url        = url
+        self.url             = url
         self.rest_v2_url     = "/lua/rest/v2"
         self.rest_pro_v2_url = "/lua/pro/rest/v2"
 
         if(auth_token != None):
             self.auth_token = auth_token
+            self.username = None
+            self.password = None
         else:
             self.username   = username
             self.password   = password
@@ -109,7 +111,6 @@ class Ntopng:
         response = response.json()
 
         return response['rsp']
-
 
     # internal method used to issue requests
     def post_request(self, url, params):
