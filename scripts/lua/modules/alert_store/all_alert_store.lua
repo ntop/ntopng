@@ -62,9 +62,12 @@ end
 function all_alert_store:__add_alert_stats(alert, alerts_by_entity, alerts_by_entity_flat)
    local entity_id = alert.entity_id
 
-   -- Exclude alerts falling outside requested time ranges
    local tstamp = tonumber(alert.tstamp)
-   if self._epoch_begin and tstamp < self._epoch_begin then return end
+
+   -- Engaged alerts are currently active, ignore begin epoch
+   --if self._epoch_begin and tstamp < self._epoch_begin then return end
+
+   -- Exclude alerts falling outside requested time ranges
    if self._epoch_end and tstamp > self._epoch_end then return end
 
    if not alerts_by_entity[entity_id] then
@@ -111,7 +114,6 @@ end
 --@return Selected engaged alerts, and the total number of engaged alerts
 function all_alert_store:select_engaged(filter)
    -- No filter, get all active interface alerts
-   local alerts
    local alerts_by_entity_flat = {}
    local alerts_by_entity = {}
 
@@ -119,7 +121,8 @@ function all_alert_store:select_engaged(filter)
    local sort_2_col = {}
 
    -- Compute alert stats for this interface
-   alerts = interface.getEngagedAlerts()
+   local alerts = interface.getEngagedAlerts()
+
    for _, alert in pairs(alerts) do
       self:__add_alert_stats(alert, alerts_by_entity, alerts_by_entity_flat)
    end
