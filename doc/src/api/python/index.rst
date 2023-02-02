@@ -20,7 +20,7 @@ The API is using Pandas and NumPy for working with time series data, plotly and 
 
 .. code:: bash
 
-   pip3 install pandas numpy plotly fpdf kaleido
+   pip3 install -r requirements.txt
 
 Installation
 ------------
