@@ -1179,7 +1179,9 @@ function add_historical_flow_explorer_button_ref(extra_params, no_href)
    local base_url = ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?"
 
    for k, v in pairs(extra_params) do
-      base_url = base_url .. k .. "=" .. v["value"] .. ";" .. v["operator"] .. "&"
+      if v["value"] and v["operator"] then
+        base_url = base_url .. k .. "=" .. v["value"] .. ";" .. v["operator"] .. "&"
+      end
    end
 
    base_url = base_url:sub(1, -2)
