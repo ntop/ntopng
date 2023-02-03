@@ -107,7 +107,8 @@ class Interface:
         :return: All active hosts
         :rtype: array
         """
-        return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/active.lua", {"ifid": self.ifid}))
+        rsp = self.ntopng_obj.request(self.rest_v2_url + "/get/host/active.lua", {"ifid": self.ifid, "all": "true"})
+        return rsp["data"]
 
     def get_active_hosts_paginated(self, currentPage, perPage):
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/active.lua", {"ifid": self.ifid, "currentPage": currentPage, "perPage": perPage}))
