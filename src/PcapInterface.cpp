@@ -373,22 +373,35 @@ u_int32_t PcapInterface::getNumDroppedPackets() {
 bool PcapInterface::set_packet_filter(char *filter) {
   struct bpf_program fcode;
   struct in_addr netmask;
+  int rc;
 
   if(!pcap_handle) return(false);
 
   netmask.s_addr = htonl(0xFFFFFF00);
 
-  if((pcap_compile(pcap_handle, &fcode, filter, 1, netmask.s_addr) < 0)
-     || (pcap_setfilter(pcap_handle, &fcode) < 0)) {
+  rc = pcap_compile(pcap_handle, &fcode, filter, 1, netmask.s_addr);
+
+  if (rc < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to compile %s filter %s. Filter ignored.", ifname, filter);
+    return(false);
+  }
+
+  rc = pcap_setfilter(pcap_handle, &fcode);
+
+  pcap_freecode(&fcode);
+
+  if (rc < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set on %s filter %s. Filter ignored.", ifname, filter);
     return(false);
-  } else {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Packet capture filter on %s set to \"%s\"", ifname, filter);
-    /* can't get consistent stats while bpf is set */
-    emulate_traffic_directions = false;
-    return(true);
   }
-};
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Packet capture filter on %s set to \"%s\"", ifname, filter);
+
+  /* can't get consistent stats while bpf is set */
+  emulate_traffic_directions = false;
+
+  return(true);
+}
 
 /* **************************************************** */
 
