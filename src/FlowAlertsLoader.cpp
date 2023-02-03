@@ -78,6 +78,7 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(UnexpectedDNSServerAlert::getClassType(),        UnexpectedDNSServerAlert::getDefaultScore());
   registerAlert(UnexpectedNTPServerAlert::getClassType(),        UnexpectedNTPServerAlert::getDefaultScore());
   registerAlert(UnexpectedSMTPServerAlert::getClassType(),       UnexpectedSMTPServerAlert::getDefaultScore());
+  registerAlert(VlanBidirectionalTrafficAlert::getClassType(),   VlanBidirectionalTrafficAlert::getDefaultScore());
   registerAlert(WebMiningAlert::getClassType(),                  WebMiningAlert::getDefaultScore());
 }
 

@@ -109,3 +109,9 @@ bool Bitmask::bitmask_isset(u_int32_t n) {
 
   return(((bits[idx] & (1 << (n & 0x1F)))) ? true : false);
 }
+
+/* ********************************************************** */
+
+void Bitmask::bitmask_clr_all() {
+    memset(bits, 0, num_elems);
+}
