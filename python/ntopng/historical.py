@@ -349,6 +349,24 @@ class Historical:
         rsp = self.ntopng_obj.post_request(self.rest_v2_url + "/get/timeseries/ts.lua", { "ts_schema": ts_schema, "ts_query": ts_query, "epoch_begin": epoch_begin, "epoch_end": epoch_end })
         return self.timeseries_to_pandas(rsp)
 
+    def get_timeseries_stats(self, ts_schema, ts_query, epoch_begin, epoch_end):
+        """
+        Return stats from timeseries
+        
+        :param ts_schema: The timeseries schema (e.g. 'host:traffic')
+        :type ts_schema: string
+        :param ts_query: The timeseries query (e.g. 'ifid:0,host:10.0.0.1')
+        :type ts_query: string
+        :param epoch_begin: Start of the time interval (epoch)
+        :type epoch_begin: int
+        :param epoch_end: End of the time interval (epoch)
+        :type epoch_end: int
+        :return: Timeseries data
+        :rtype: object (pandas DataFrame)
+        """
+        rsp = self.ntopng_obj.post_request(self.rest_v2_url + "/get/timeseries/ts.lua", { "ts_schema": ts_schema, "ts_query": ts_query, "epoch_begin": epoch_begin, "epoch_end": epoch_end })
+        return rsp['statistics']
+
     def get_timeseries_metadata(self):
         """
         Return timeseries metadata (list all available timeseries)
@@ -375,6 +393,23 @@ class Historical:
         """
         return(self.get_timeseries(ts_schema, "ifid:"+str(self.ifid)+",host:"+host_ip, epoch_begin, epoch_end))
 
+    def get_host_timeseries_stats(self, host_ip, ts_schema, epoch_begin, epoch_end):
+        """
+        Return timeseries statistics
+        
+        :param host_ip: The host IP
+        :type host: string
+        :param ts_schema: The timeseries schema
+        :type ts_schema: string
+        :param epoch_begin: Start of the time interval (epoch)
+        :type epoch_begin: int
+        :param epoch_end: End of the time interval (epoch)
+        :type epoch_end: int
+        :return: Timeseries data
+        :rtype: object (pandas DataFrame)
+        """
+        return(self.get_timeseries_stats(ts_schema, "ifid:"+str(self.ifid)+",host:"+host_ip, epoch_begin, epoch_end))
+
     def get_interface_timeseries(self, ts_schema, epoch_begin, epoch_end):
         """
         Return timeseries data in a pandas DataFrame for a specified interface
@@ -389,6 +424,21 @@ class Historical:
         :rtype: object (pandas DataFrame)
         """
         return(self.get_timeseries(ts_schema, "ifid:"+str(self.ifid), epoch_begin, epoch_end))
+
+    def get_interface_timeseries_stats(self, ts_schema, epoch_begin, epoch_end):
+        """
+        Return timeseries statistics
+        
+        :param ts_schema: The timeseries schema
+        :type ts_schema: string
+        :param epoch_begin: Start of the time interval (epoch)
+        :type epoch_begin: int
+        :param epoch_end: End of the time interval (epoch)
+        :type epoch_end: int
+        :return: Timeseries data
+        :rtype: object (pandas DataFrame)
+        """
+        return(self.get_timeseries_stats(ts_schema, "ifid:"+str(self.ifid), epoch_begin, epoch_end))
 
     def get_flows(self, epoch_begin, epoch_end, select_clause, where_clause, maxhits, group_by, order_by):
         """

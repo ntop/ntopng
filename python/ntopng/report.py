@@ -26,7 +26,7 @@ class Report:
     :param ntopng_obj: The ntopng handle
     """
 
-    def __init__(self, ntopng_obj, ifid):
+    def __init__(self, ntopng_obj, ifid, host=None):
         """
         Construct a new Report object
         
@@ -34,14 +34,17 @@ class Report:
         :type ntopng_obj: Ntopng
         :param ifid: The interface ID
         :type ifid: int
+        :param host: The host IP address (optional)
+        :type host: string
         """ 
 
         self.created_files = []
 
         self.ntopng_obj = ntopng_obj
+        self.ifid = ifid
+        self.host = host
 
         try:
-            self.ifid = ifid
             self.interface = self.ntopng_obj.get_interface(ifid)
             self.historical = self.ntopng_obj.get_historical_interface(ifid)
     
@@ -64,7 +67,7 @@ class Report:
         """
         Return a dataframe with alerts by severity
         """
-        alerts_stats = self.historical.get_alerts_stats(epoch_begin, epoch_end)
+        alerts_stats = self.historical.get_alerts_stats(epoch_begin, epoch_end, self.host)
         for stats in alerts_stats:
             # by severity
             if stats['name'] == 'top_alerts_by_severity':
@@ -82,7 +85,7 @@ class Report:
         """
         Return a dataframe with alerts by count
         """
-        alerts_stats = self.historical.get_alerts_stats(epoch_begin, epoch_end)
+        alerts_stats = self.historical.get_alerts_stats(epoch_begin, epoch_end, self.host)
         for stats in alerts_stats:
             # by count
             if stats['name'] == 'top_alerts_by_count':
@@ -98,35 +101,43 @@ class Report:
 
         return alerts_stats_df
     
-    def get_top_client_server(self, epoch_begin, epoch_end):
+    def get_top_conversations(self, epoch_begin, epoch_end):
         """
         Return a dataframe with top clients and servers seen on the interface specified in the above script init data
         """
         
         try:
-            top_client_server = self.historical.get_flow_alerts_stats(epoch_begin, epoch_end) 
-            top_client_server_df = pd.DataFrame(top_client_server[0]["value"])
-            top_client_server_df.drop(["key", "value"], axis= 1, inplace=True)
-            top_client_server_df['count'] = top_client_server_df['count'].round(1)
-            top_client_server_df['count'] = top_client_server_df['count'].astype(str) + " %"
-            #reorder top_client_server_df columns
-            top_client_server_df = top_client_server_df[["label", "ip", "count"]]
-            #rename top_client_server_df columns
-            top_client_server_df.rename(columns={"label": "Host name", "ip": "IP", "count": "Occurrence %"}, inplace=True)
+            top_conversations = self.historical.get_top_conversations(epoch_begin, epoch_end, self.host) 
+
+            conversations = { 'srv_name': [], 'cli_name': [], 'srv_ip': [], 'cli_ip': [], 'bytes': [] }
+            for conv in top_conversations:
+                conversations['srv_name'].append(conv['srv_name'])
+                conversations['cli_name'].append(conv['cli_name'])
+                conversations['srv_ip'].append(conv['srv_ip']['ip'])
+                conversations['cli_ip'].append(conv['cli_ip']['ip'])
+                conversations['bytes'].append(conv['bytes'])
+                
+            top_conversations_df = pd.DataFrame(conversations)
+            # reorder top_conversations_df columns
+            top_conversations_df = top_conversations_df[["cli_name", "cli_ip", "srv_name", "srv_ip", "bytes"]]
+            # rename top_conversations_df columns
+            top_conversations_df.rename(columns={"cli_name": "Client Name", "cli_ip": "Client IP", "srv_name": "Server Name", "srv_ip": "Server IP", "bytes": "Traffic"}, inplace=True)
         except:
             print("Top Client/Server report not available in community mode")
-            top_client_server_df = pd.DataFrame([])
+            top_conversations_df = pd.DataFrame([])
 
-        return top_client_server_df
+        return top_conversations_df
    
     def get_upload_download(self, epoch_begin, epoch_end):
         """
         Return a list where => data[0] = uploaded MB, data[1] = downloaded MB for the interface specified in the above script init data
         """
 
-        up_down = self.historical.get_interface_timeseries("iface:traffic_rxtx", epoch_begin, epoch_end)
-        data = [(up_down["bytes_sent"].sum()/1000000)*8, (up_down["bytes_rcvd"].sum()/1000000)*8] 
-        
+        if self.host is not None:
+            up_down = self.historical.get_host_timeseries_stats(self.host, "host:traffic", epoch_begin, epoch_end)
+        else:
+            up_down = self.historical.get_interface_timeseries_stats("iface:traffic_rxtx", epoch_begin, epoch_end)
+        data = [up_down["by_serie"][0]["total"]/(1024*1024), up_down["by_serie"][1]["total"]/(1024*1024)] 
         return data
     
     def get_interface_data(self):
@@ -182,7 +193,10 @@ class Report:
         """
         Plots a png of the timeseries
         """
-        up_down = self.historical.get_interface_timeseries("iface:traffic_rxtx", epoch_begin, epoch_end)
+        if self.host is not None:
+            up_down = self.historical.get_host_timeseries(self.host, "host:traffic", epoch_begin, epoch_end)
+        else:
+            up_down = self.historical.get_interface_timeseries("iface:traffic_rxtx", epoch_begin, epoch_end)
         up_down.reset_index(inplace=True)
         up_down['bytes_rcvd'] = up_down['bytes_rcvd'].mul(8)
         up_down['bytes_sent'] = up_down['bytes_sent'].mul(8)
@@ -202,40 +216,35 @@ class Report:
     
         fig.write_image(output_series_fname, width=1280, height=720)
    
-    def generate_interface_report(self, output_file): 
+    def build(self, output_file): 
      
+        # Last 24h interval
         actual_ts = int(time.time())
         yesterday = (actual_ts - 86400)
-
         epoch_begin = yesterday
         epoch_end = actual_ts
   
-        # Data collection
-     
-        interfaces_count = self.get_interfaces_count()
-        data_sent_rcvd = self.get_upload_download(epoch_begin, epoch_end)
-        interface_data = self.get_interface_data()
-        
-        # alerts table (severity)
+        # Alerts table (severity)
         alerts_by_severity_df = self.get_alerts_by_severity(epoch_begin, epoch_end)
         alerts_by_severity_df_fname = self.gen_tmp_file_name("png")
         self.df_to_table_png(alerts_by_severity_df, alerts_by_severity_df_fname, 450, 325)
 
-        # alerts table (count)
+        # Alerts table (count)
         alerts_by_count_df = self.get_alerts_by_count(epoch_begin, epoch_end)
         alerts_by_count_df_fname = self.gen_tmp_file_name("png")
         self.df_to_table_png(alerts_by_count_df, alerts_by_count_df_fname, 450, 325)
         
-        # client/server table
-        hosts_df = self.get_top_client_server(epoch_begin, epoch_end, )
+        # Top hosts table
+        hosts_df = self.get_top_conversations(epoch_begin, epoch_end, )
         hosts_df_fname = self.gen_tmp_file_name("png")
         self.df_to_table_png(hosts_df, hosts_df_fname, 950, 325)
         
-        # Sent/Received
+        # Interface info
+        data_sent_rcvd = self.get_upload_download(epoch_begin, epoch_end)
         sent = data_sent_rcvd[0]
         received = data_sent_rcvd[1]
-        
-        # Interface info
+        interfaces_count = self.get_interfaces_count()
+        interface_data = self.get_interface_data()
         flows = interface_data["num_flows"]
         host_num = interface_data["hosts_count"]
         local_hosts_num = interface_data["local_hosts"]
@@ -261,7 +270,10 @@ class Report:
         pdf.ln(9)
         pdf.set_font("Helvetica", "B", 18)
         pdf.set_text_color(r=0, g=0, b=0)
-        pdf.cell(w=0, h=10, txt="24h Interface Report", ln=1)
+        if self.host is not None:
+            pdf.cell(w=0, h=10, txt=f"Host {self.host} Report (24h)", ln=1)
+        else:
+            pdf.cell(w=0, h=10, txt="Interface Report (24h)", ln=1)
 
         pdf.set_font("Helvetica", "", 11)
         ntopng_url = self.ntopng_obj.get_url()
@@ -284,7 +296,7 @@ class Report:
         # Hosts
         pdf.ln(75)
         pdf.set_font("Helvetica", "B", 14)
-        pdf.cell(w=0, h=10, txt="Top Hosts")
+        pdf.cell(w=0, h=10, txt="Top Contacts")
 
         pdf.image(hosts_df_fname, x=10, y=130, w=190, h=65)
         
