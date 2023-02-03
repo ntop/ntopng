@@ -222,7 +222,7 @@ function host_alert_store:format_record(value, no_html)
 
    local reference_html = nil
 
-   reference_html = hostinfo2detailshref({ip = value["ip"]}, nil, href_icon, "", true)
+   reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
    if reference_html == href_icon then
       reference_html = nil
    end
