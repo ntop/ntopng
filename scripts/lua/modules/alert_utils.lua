@@ -688,7 +688,7 @@ function alert_utils.formatAlertNotification(notif, options)
 
    local msg = string.format("%s%s%s [%s]",
 			     when, ifname, severity,
-			     alert_consts.alertTypeLabel(notif.alert_id, options.nohtml))
+			     alert_consts.alertTypeLabel(notif.alert_id, options.nohtml, notif.entity_id))
 
    -- entity can be hidden for example when one is OK with just the message
    if options.show_entity then
