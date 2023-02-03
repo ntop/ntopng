@@ -851,7 +851,7 @@ local lang = {
     ["scan_detected"] = "%{entity} is a scanner [%{value} &gt; %{threshold} scan attempts]",
     ["score_number_anomaly"] = "%{role} Score: %{score} [Expected Range: %{lower_bound} ... %{upper_bound} <i class='fas fa-question-circle' title='This Behaviour is automatically calculated by ntopng by analyzing the host behavior during time, find more at ntopng guide into `Basic Concept->Alerts->Behaviour Alerts` section'></i>][Cybersecurity Score: %{cat_sec}% | Network Score: %{cat_net}%][Flow Alerts: <a href='%{flow_params}'><i class='fas fa-search-plus fa-lg'></i></a>][Past Host Alerts: <a href='%{host_params_historical}'><i class='fas fa-search-plus fa-lg'></i></a>][Engaged Host Alerts: <a href='%{host_params_engaged}'><i class='fas fa-search-plus fa-lg'></i></a>]",
     ["score_number_anomaly_threshold"] = "%{metric} exceeded by %{entity} [%{value} > %{threshold}]",
-    ["score_threshold"] = "Score exceeded by %{entity} as %{cli_or_srv} [%{value} > %{threshold}]",
+    ["score_threshold"] = "Score exceeded by %{entity} as %{cli_or_srv} [%{value} > %{threshold}] %{flows_info}",
     ["shell_script_executed"] = "Shell script '%{script_exec_comm}' executed in response of an alert: '%{alert_type}'",
     ["slow_periodic_activity"] = "Periodic activity \"%{script}\" running for too long [more than %{max_duration}] or executed too late (blocked in queue).",
     ["slow_purge"] = "<a href=\"%{url}\">Hash table idle entries</a> purging on %{iface} is too slow. This could lead to high memory utilization, data accuracy loss and missing alerts. [%{idle}%% &gt %{max_idle}%%]",
