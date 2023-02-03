@@ -59,20 +59,20 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
    end
    
    local flows_info_href = '(check live:  <a href="' .. ntop.getHttpPrefix().."/lua/flows_stats.lua?host="..host..'" data-placement="bottom" title="Live Flow Explorer"><i class="fas fa-search-plus"></i></a>)'
-   local ifName = ifid
+   
    if ntop.isClickHouseEnabled() then
 
       local extra_params = {
          ifid = {
-            value = ifName,
+            value = ifid,
             operator = "eq"
          },
          epoch_begin = {
-            value = _GET["epoch_begin"],
+            value = alert.tstamp,
             operator = "eq"
          },
          epoch_end = {
-            value = _GET["epoch_end"],
+            value = alert.tstamp_end,
             operator = "eq"
          }
       }
