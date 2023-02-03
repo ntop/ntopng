@@ -5,7 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local ts_utils = require "ts_utils_core"
+local ts_utils = require "ts_utils"
 
 local timeseries_info = {}
 
@@ -307,8 +307,6 @@ end
 local function add_top_vlan_timeseries(tags, timeseries)
   local vlan_ts_enabled = ntop.getCache("ntopng.prefs.vlan_rrd_creation")
   
-  ts_utils.loadSchemas()
-  
   -- Top l7 Protocols
   if vlan_ts_enabled then
     local series = ts_utils.listSeries("vlan:ndpi", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
@@ -325,31 +323,8 @@ end
 
 -- #################################
 
-local function add_top_snmp_timeseries(tags, timeseries)
-  local snmp_ts_enabled = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1"
-  
-  ts_utils.loadSchemas()
-  
-  -- Top l7 Protocols
-  if snmp_ts_enabled then
-    local series = ts_utils.listSeries("top:snmp_if:traffic", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
-    
-    if not table.empty(series) then
-      for _, serie in pairs(series or {}) do
-        --timeseries[#timeseries + 1] = { schema = "top:snmp_if:traffic", group = i18n("graphs.l7_proto"), priority = 2, query = "protocol:" .. serie.protocol , label = serie.protocol, measure_unit = "bps", scale = 0, timeseries = { bytes_sent = { label = serie.protocol .. " " .. i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { label = serie.protocol .. " " .. i18n('graphs.metric_labels.rcvd'), color = timeseries_info.get_timeseries_color('bytes') }} }
-      end
-    end
-  end
-  
-  return timeseries
-end
-
--- #################################
-
 local function add_top_host_pool_timeseries(tags, timeseries)
   local host_pool_ts_enabled = ntop.getCache("ntopng.prefs.host_pools_rrd_creation")
-  
-  ts_utils.loadSchemas()
   
   -- Top l7 Protocols
   if host_pool_ts_enabled then
@@ -369,8 +344,6 @@ end
 
 local function add_top_asn_timeseries(tags, timeseries)
   local asn_ts_enabled = ntop.getCache("ntopng.prefs.asn_rrd_creation")
-  
-  ts_utils.loadSchemas()
   
   -- Top l7 Protocols
   if asn_ts_enabled then
@@ -392,8 +365,6 @@ local function add_top_mac_timeseries(tags, timeseries)
   local mac_ts_enabled = ntop.getCache("ntopng.prefs.l2_device_rrd_creation")
   local mac_top_ts_enabled = ntop.getCache("ntopng.prefs.l2_device_ndpi_timeseries_creation")
   
-  ts_utils.loadSchemas()
-  
   -- Top l7 Categories
   if mac_ts_enabled and mac_top_ts_enabled then
     local series = ts_utils.listSeries("mac:ndpi_categories", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
@@ -413,8 +384,6 @@ end
 
 local function add_top_network_timeseries(tags, timeseries)
   local network_top_ts_enabled = ntop.getPref("ntopng.prefs.intranet_traffic_rrd_creation")
-  
-  ts_utils.loadSchemas()
   
   -- Top l7 Categories
   if network_top_ts_enabled and tags.subnet then
@@ -438,8 +407,6 @@ local function add_top_host_timeseries(tags, timeseries)
   local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
   local has_top_protocols = (host_ts_enabled == "both" or host_ts_enabled == "per_protocol") and (host_ts_creation == "full")
   local has_top_categories = (host_ts_enabled == "both" or host_ts_enabled == "per_category") and (host_ts_creation == "full")
-
-  ts_utils.loadSchemas()
   
   -- L4 Protocols
   if host_ts_creation == "full" then
@@ -483,8 +450,6 @@ local function add_top_interface_timeseries(tags, timeseries)
   local interface_ts_enabled = ntop.getCache("ntopng.prefs.interface_ndpi_timeseries_creation")
   local has_top_protocols = interface_ts_enabled == "both" or interface_ts_enabled == "per_protocol" or interface_ts_enabled ~= "0"
   local has_top_categories = interface_ts_enabled == "both" or interface_ts_enabled == "per_category"
-
-  ts_utils.loadSchemas()
   
   -- Top Traffic Profiles
   if ntop.isPro() then
@@ -524,7 +489,7 @@ local function add_top_interface_timeseries(tags, timeseries)
     local series = ts_utils.listSeries("iface:ndpi_categories", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
     
     if not table.empty(series) then
-      for _, serie in pairs(series) do
+      for _, serie in pairs(series or {}) do
         local category_name = getCategoryLabel(serie.category, interface.getnDPICategoryId(serie.category))
         timeseries[#timeseries + 1] = { schema = "top:iface:ndpi_categories", group = i18n("graphs.category"), priority = 3, query = "category:" .. category_name , label = category_name, measure_unit = "bps", scale = i18n('graphs.metric_labels.traffic'), timeseries = { bytes = { label = category_name, color = timeseries_info.get_timeseries_color('bytes') }} }
       end
@@ -541,9 +506,6 @@ local function add_top_obs_point_timeseries(tags, timeseries)
   
   -- Top l7 Protocols
   if top_protocols_pref == 'both' or top_protocols_pref == 'per_protocol' then
-    local ts_utils = require "ts_utils_core"
-    ts_utils.loadSchemas()
-
     local series = ts_utils.listSeries("obs_point:ndpi", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
     
     if not table.empty(series) then
@@ -562,7 +524,20 @@ local function add_snmp_interfaces_timeseries(tags, timeseries)
   local snmp_cached_dev = require "snmp_cached_dev"
   
   local cached_device = snmp_cached_dev:get_interfaces(tags.device)
-  
+
+  local snmp_dev_ts = {
+    { schema = "snmp_dev:cpu_states",           id = timeseries_id.snmp_device, label = i18n("about.cpu_load"),                   priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.load'), timeseries = { user_pct    = { label = i18n("snmp.cpuUser"),    color = timeseries_info.get_timeseries_color('default') },  system_pct = { label = i18n("snmp.cpuSystem"), color = timeseries_info.get_timeseries_color('default') },  idle_pct    = { label = i18n("snmp.cpuIdle"),    color = timeseries_info.get_timeseries_color('default') } } },
+    { schema = "snmp_dev:avail_memory",         id = timeseries_id.snmp_device, label =i18n("snmp.memAvailReal"),                 priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.memory'), timeseries = { avail_bytes = { label = i18n("snmp.memAvailReal"),    color = timeseries_info.get_timeseries_color('default') } } },
+    { schema = "snmp_dev:swap_memory",          id = timeseries_id.snmp_device, label =i18n("snmp.memTotalReal"),                 priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.memory'), timeseries = { swap_bytes  = { label = i18n("snmp.memTotalReal"),    color = timeseries_info.get_timeseries_color('default') } } },
+    { schema = "snmp_dev:total_memory",         id = timeseries_id.snmp_device, label =i18n("snmp.memTotalSwap"),                 priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.memory'), timeseries = { total_bytes = { label = i18n("snmp.memTotalSwap"),    color = timeseries_info.get_timeseries_color('default') } } },
+  }
+
+  for _, timeserie in pairs(snmp_dev_ts) do
+    if table.len(ts_utils.listSeries(timeserie.schema, table.clone(tags), os.time() - 1800) or {}) > 0 then
+      timeseries[#timeseries + 1] = timeserie
+    end
+  end
+
   if not table.empty(cached_device) and cached_device["interfaces"] then
     for interface_index, interface_info in pairs(cached_device["interfaces"] or {}) do
       timeseries[#timeseries + 1] = { schema = "snmp_if:traffic", group = i18n("graphs.interfaces"), priority = 2, query = "if_index:" .. interface_index , label = i18n('graphs.interface_label', { if_name = interface_info.name }), measure_unit = "bps", scale = i18n("graphs.metric_labels.traffic"), timeseries = { bytes_sent  = { label = i18n('graphs.metric_labels.sent'), color = timeseries_info.get_timeseries_color('bytes') }, bytes_rcvd = { invert_direction = true, label = i18n('graphs.metric_labels.rcvd') } } }
@@ -579,9 +554,6 @@ local function add_top_flow_port_timeseries(tags, timeseries)
   
   -- Top l7 Protocols
   if top_protocols_pref == 'both' or top_protocols_pref == 'per_protocol' then
-    local ts_utils = require "ts_utils_core"
-    ts_utils.loadSchemas()
-
     local series = ts_utils.listSeries("flowdev_port:ndpi", table.clone(tags), os.time() - 1800 --[[ 30 min is the default time ]])
     
     if not table.empty(series) then
@@ -618,9 +590,6 @@ local function add_top_timeseries(tags, prefix, timeseries)
   elseif prefix == 'am' then
     -- Add the active monitoring timeseries
     timeseries = add_active_monitoring_timeseries(tags, timeseries)
-  elseif prefix == 'snmp' then
-    -- Add the active monitoring timeseries
-    timeseries = add_top_snmp_timeseries(tags, timeseries)
   elseif prefix == 'subnet' then
     -- Add the active monitoring timeseries
     timeseries = add_top_network_timeseries(tags, timeseries)
@@ -653,26 +622,24 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
   end
 
   for _, info in pairs(timeseries_list) do
-     if(prefix ~= nil) then
-	-- Check if the schema starts with 'iface:', 
-	-- if not then it's not an interface timeseries, so drop it
-	if info.id ~= prefix then
-	   goto skip
-	end
-	
-	-- Remove from nEdge the timeseries only for ntopng
-	if (info.nedge_exclude) and (ntop.isnEdge()) then
-	   goto skip
-	end
-	
-	-- Remove from ntopng the timeseries only for nEdge
-	if (info.nedge_only) and (not ntop.isnEdge()) then
-	   goto skip
-	end
-     end
-     
-    timeseries[#timeseries + 1] = info
+    if(prefix ~= nil) then
+      if info.id ~= prefix then
+        goto skip
+      end
+      
+      -- Remove from nEdge the timeseries only for ntopng
+      if (info.nedge_exclude) and (ntop.isnEdge()) then
+        goto skip
+      end
+      
+      -- Remove from ntopng the timeseries only for nEdge
+      if (info.nedge_only) and (not ntop.isnEdge()) then
+        goto skip
+      end
 
+      timeseries[#timeseries + 1] = info
+    end
+     
     ::skip::
   end
   
