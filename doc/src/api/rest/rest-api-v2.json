@@ -6762,7 +6762,35 @@
             "in": "query",
             "description": "Maximum number of timeseries points",
             "required": false,
+            "type": "number"
+          },
+          {
+            "name": "initial_point",
+            "in": "query",
+            "description": "A boolean used to return the first point of the timeseries or not",
+            "required": false,
             "type": "boolean"
+          },
+          {
+            "name": "ts_compare",
+            "in": "query",
+            "description": "Choices available: '30m', '1h', '1d'. A string reporting the timeframe of the timeseries to be compared to (e.g. '30m', means to return other then the timeserie requested, the 30 minutes before)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ts_query",
+            "in": "query",
+            "description": "Containing the parameters used to find the timeserie in the following format, parameter:value;parameter:value;... (e.g. 'ifid:1;host:192.168.1.1')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ts_schema",
+            "in": "query",
+            "description": "Contains the timeserie schema (e.g. 'iface:traffic')",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "ts_requests",
@@ -6819,6 +6847,41 @@
             "required": true,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of timeseries points",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "initial_point",
+            "in": "query",
+            "description": "A boolean used to return the first point of the timeseries or not",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "ts_compare",
+            "in": "query",
+            "description": "Choices available: '30m', '1h', '1d'. A string reporting the timeframe of the timeseries to be compared to (e.g. '30m', means to return other then the timeserie requested, the 30 minutes before)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ts_query",
+            "in": "query",
+            "description": "Containing the parameters used to find the timeserie in the following format, parameter:value;parameter:value;... (e.g. 'ifid:1;host:192.168.1.1')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ts_schema",
+            "in": "query",
+            "description": "Contains the timeserie schema (e.g. 'iface:traffic')",
+            "required": false,
+            "type": "string"
           }
 				],
 				"responses": {
