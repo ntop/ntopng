@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local rest_utils = require("rest_utils")
+local ts_utils = require("ts_utils")
 
 --
 -- Read list of active hosts
@@ -22,6 +23,7 @@ local ifid = _GET["ifid"] or interface.getId()
 local host_data   = hostkey2hostinfo(_GET["host"]) -- In case host@vlan is given, create a table with host and vlan data
 local host_ip     = host_data.host 
 local host_vlan   = _GET["vlan"] or host_data.vlan -- Put the correct vlan
+local available_ts = ts_utils.listSeries("host:l4protos", table.clone({ ifid = ifid, host = host_ip, vlan = host_vlan }), os.time() - 1800 --[[ 30 min is the default time ]])
 
 local host = interface.getHostInfo(host_ip, host_vlan)
 if host then 
@@ -60,7 +62,13 @@ if host then
           host_label = host_label .. "@" .. host_vlan
         end
 
-        proto_stats["historical"] = hostinfo2detailshref(host, {page = "historical", ts_schema = "top:host:l4protos", ts_query = "ifid:" .. ifid .. ",host:" .. host_label .. ",l4proto:" .. k, zoom = '1d'}, '<i class="fas fa-chart-area"></i>')
+        if available_ts and table.len(available_ts) > 0 then
+          for _, timeseries_info in pairs(available_ts or {}) do
+            if timeseries_info.l4proto == string.lower(l4_keys[id][1]) then
+              proto_stats["historical"] = hostinfo2detailshref(host, {page = "historical", ts_schema = "top:host:l4protos", ts_query = "ifid:" .. ifid .. ",host:" .. host_label .. ",l4proto:" .. k, zoom = '1d'}, '<i class="fas fa-chart-area"></i>')
+            end
+          end
+        end
       end
 
       if proto_stats["total_bytes"] > 0 then
