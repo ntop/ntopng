@@ -22,10 +22,13 @@ function get_data_pattern(type) {
 	    let ipv6_cidr_vlan = r_ipv6.replaceAll("$", `${network_ipv6}${vlan}$`);
 	    return `(${ipv4_cidr}|${ipv4_cidr_vlan}|${ipv6_cidr}|${ipv6_cidr_vlan})`;
 	}
-	
 	return `(${r_ipv4})|(${r_ipv4_vlan})|(${r_ipv6})|(${r_ipv6_vlan})`;
     } else if (type == "mac") {
 	return Utils.REGEXES["macAddress"];
+    } else if (type == "ip,cidr") {
+	let ip = get_data_pattern("ip");
+	let cidr = get_data_pattern("cidr");
+	return `(${ip})|(${cidr})`;
     }
     return Utils.REGEXES[type];
 }
