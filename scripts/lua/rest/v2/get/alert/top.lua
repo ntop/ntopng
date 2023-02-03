@@ -23,7 +23,7 @@ local rc = rest_utils.consts.success.ok
 local ifid = _GET["ifid"]
 local action = _GET["action"]
 
-if not ntop.isPro() or not auth.has_capability(auth.capabilities.alerts) then
+if not auth.has_capability(auth.capabilities.alerts) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end

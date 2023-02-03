@@ -60,36 +60,62 @@ class Report:
             self.delete_file(file)
         self.created_files = []
  
-    def get_alerts_severity(self, epoch_begin, epoch_end):
+    def get_alerts_by_severity(self, epoch_begin, epoch_end):
         """
-        Return a dataframe with alerts and severity
+        Return a dataframe with alerts by severity
         """
-    
-        alert_count_severity = self.historical.get_alerts_stats(epoch_begin, epoch_end) 
-        alert_severity_df = pd.DataFrame(alert_count_severity[0]["value"])
-        alert_severity_df.drop(["key", "title"], axis= 1, inplace=True)
-        alert_severity_df['count'] = alert_severity_df['count'].round(1)
-        alert_severity_df['count'] = alert_severity_df['count'].astype(str) + " %"
-        alert_severity_df = alert_severity_df[["label", "value", "count"]]
-        alert_severity_df.rename(columns={"label": "Alert type", "value": "Score", "count": "Occurence %"}, inplace=True)
+        alerts_stats = self.historical.get_alerts_stats(epoch_begin, epoch_end)
+        for stats in alerts_stats:
+            # by severity
+            if stats['name'] == 'top_alerts_by_severity':
+                alerts_stats_df = pd.DataFrame(stats["value"])
+                alerts_stats_df.drop(["key", "title"], axis= 1, inplace=True)
+                alerts_stats_df = alerts_stats_df[["label", "severity"]]
+                alerts_stats_df.rename(columns={"label": "Alert type", "severity": "Severity"}, inplace=True)
 
-        return alert_severity_df
+        if alerts_stats_df is None:
+            alerts_stats_df = pd.DataFrame([])
+
+        return alerts_stats_df
+
+    def get_alerts_by_count(self, epoch_begin, epoch_end):
+        """
+        Return a dataframe with alerts by count
+        """
+        alerts_stats = self.historical.get_alerts_stats(epoch_begin, epoch_end)
+        for stats in alerts_stats:
+            # by count
+            if stats['name'] == 'top_alerts_by_count':
+                alerts_stats_df = pd.DataFrame(stats["value"])
+                alerts_stats_df.drop(["key", "title"], axis= 1, inplace=True)
+                alerts_stats_df['count'] = alerts_stats_df['count'].round(1)
+                alerts_stats_df['count'] = alerts_stats_df['count'].astype(str) + " %"
+                alerts_stats_df = alerts_stats_df[["label", "count"]]
+                alerts_stats_df.rename(columns={"label": "Alert type", "count": "Occurence %"}, inplace=True)
+
+        if alerts_stats_df is None:
+            alerts_stats_df = pd.DataFrame([])
+
+        return alerts_stats_df
     
     def get_top_client_server(self, epoch_begin, epoch_end):
         """
         Return a dataframe with top clients and servers seen on the interface specified in the above script init data
         """
-    
-        top_client_server = self.historical.get_flow_alerts_stats(epoch_begin, epoch_end) 
-        top_client_server_df = pd.DataFrame(top_client_server[0]["value"])
-        top_client_server_df.drop(["key", "value"], axis= 1, inplace=True)
-        top_client_server_df['count'] = top_client_server_df['count'].round(1)
-        top_client_server_df['count'] = top_client_server_df['count'].astype(str) + " %"
-        #reorder top_client_server_df columns
-        top_client_server_df = top_client_server_df[["label", "ip", "count", "vlan"]]
-        #rename top_client_server_df columns
-        top_client_server_df.rename(columns={"label": "Host name", "ip": "IP", "count": "Occurence %", "vlan": "VLAN"}, inplace=True)
         
+        try:
+            top_client_server = self.historical.get_flow_alerts_stats(epoch_begin, epoch_end) 
+            top_client_server_df = pd.DataFrame(top_client_server[0]["value"])
+            top_client_server_df.drop(["key", "value"], axis= 1, inplace=True)
+            top_client_server_df['count'] = top_client_server_df['count'].round(1)
+            top_client_server_df['count'] = top_client_server_df['count'].astype(str) + " %"
+            #reorder top_client_server_df columns
+            top_client_server_df = top_client_server_df[["label", "ip", "count", "vlan"]]
+            #rename top_client_server_df columns
+            top_client_server_df.rename(columns={"label": "Host name", "ip": "IP", "count": "Occurence %", "vlan": "VLAN"}, inplace=True)
+        except:
+            print("Top Client/Server report not available in community mode")
+            top_client_server_df = pd.DataFrame([])
 
         return top_client_server_df
    
@@ -142,14 +168,14 @@ class Report:
             print(f"{path} does not exist")
             os._exit(-1)
     
-    def df_to_table_png(self, df, fname):
+    def df_to_table_png(self, df, fname, width, height):
         """
         Creates a png of the df specified with name
         :param df: dataframe to save to png
         :param fname: name of the file to save
         """
         fig = ff.create_table(df, colorscale=[[0, "#f3a114"], [.5, "#d9d9d9"], [1, "#ffffff"]])
-        fig.update_layout(autosize=False, width=1100, height=350)
+        fig.update_layout(autosize=False, width=width, height=height)
         fig.write_image(str(fname), scale=2)
     
     def plot_upload_download(self, output_series_fname, epoch_begin, epoch_end):
@@ -188,16 +214,20 @@ class Report:
         data_sent_rcvd = self.get_upload_download(epoch_begin, epoch_end)
         interface_data = self.get_interface_data()
         
-        #alerts table
-        alerts_df = self.get_alerts_severity(epoch_begin, epoch_end)
-        alerts_df_fname = self.gen_tmp_file_name("png")
-        self.df_to_table_png(alerts_df, alerts_df_fname)
+        # alerts table (severity)
+        alerts_by_severity_df = self.get_alerts_by_severity(epoch_begin, epoch_end)
+        alerts_by_severity_df_fname = self.gen_tmp_file_name("png")
+        self.df_to_table_png(alerts_by_severity_df, alerts_by_severity_df_fname, 450, 325)
+
+        # alerts table (count)
+        alerts_by_count_df = self.get_alerts_by_count(epoch_begin, epoch_end)
+        alerts_by_count_df_fname = self.gen_tmp_file_name("png")
+        self.df_to_table_png(alerts_by_count_df, alerts_by_count_df_fname, 450, 325)
         
-        #client/server table
-        hosts_df = self.get_top_client_server(epoch_begin, epoch_end)
-        
+        # client/server table
+        hosts_df = self.get_top_client_server(epoch_begin, epoch_end, )
         hosts_df_fname = self.gen_tmp_file_name("png")
-        self.df_to_table_png(hosts_df, hosts_df_fname)
+        self.df_to_table_png(hosts_df, hosts_df_fname, 950, 325)
         
         # Uploaded/Downloaded
         uploaded = data_sent_rcvd[0]
@@ -252,16 +282,13 @@ class Report:
         pdf.ln(5)
         pdf.cell(w=(pw/2), h=(ch/4), txt=f"Data Up/Down: {uploaded:.3f}/{downloaded:.3f} MB")
         pdf.ln(5)
-        pdf.cell(w=(pw/2), h=(ch/4), txt=f"Flows errors: {flows_errors}")
-        pdf.ln(5)
-        pdf.cell(w=(pw/2), h=(ch/4), txt=f"Flows warnings: {flows_warnings}")
-        pdf.ln(5)
         
         # Alerts
-        pdf.image(alerts_df_fname, x=10, y=75, w=190, h=65)
+        pdf.image(alerts_by_severity_df_fname, x=10, y=80, w=90, h=65)
+        pdf.image(alerts_by_count_df_fname, x=110, y=80, w=90, h=65)
         
         ## Hosts
-        pdf.image(hosts_df_fname, x=10, y=135, w=190, h=65)
+        pdf.image(hosts_df_fname, x=10, y=150, w=190, h=65)
         
         # Series plot
         series_fname = self.gen_tmp_file_name("png")

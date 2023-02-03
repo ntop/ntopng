@@ -105,8 +105,8 @@ class Ntopng:
         if response.status_code != 200:
             print(api_url)
             print(params)
-            print("Invalid response code " + str(response.status_code))
-            raise Exception("Invalid response code " + str(response.status_code))
+            print("Bad response code " + str(response.status_code))
+            raise Exception("Bad response code " + str(response.status_code))
 
         response = response.json()
 
@@ -124,8 +124,8 @@ class Ntopng:
         if response.status_code != 200:
             print(api_url)
             print(params)
-            print("Invalid response code " + str(response.status_code))
-            raise Exception("Invalid response code " + str(response.status_code))
+            print("Bad response code " + str(response.status_code))
+            raise Exception("Bad response code " + str(response.status_code))
 
         response = response.json()
 
