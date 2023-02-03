@@ -214,6 +214,7 @@ Method :code:`getClassType()` returns an alert key *(6)* that is enumerated insi
 
 The alert key enumerated in Lua is specified as part of the :code:`meta` data of file :code:`alert_flow_blacklisted.lua` *(8)*. This file tells ntopng how to format the alert and its parameters. In particular, :code:`format` is used for the formatting. The third parameter of the function is a Lua table that contains the fields populated in C++. Indeed, method :code:`getAlertJSON` implemented in :code:`BlacklistedFlowAlert.cpp` *(2)* populates fields that are then propagated to the lua :code:`format` with the same names *(9)*. For example, a boolean :code:`cli_blacklisted` is added in C++ and read in Lua to properly format the blacklisted alert.
 
+Finally it's mandatory for flow alerts to add a :code:`registerAlert(BlacklistedFlowAlert::getClassType(),BlacklistedFlowAlert::getDefaultScore());` in :code:`src/FlowAlertsLoader.cpp`.
 
 Checklists
 ==========
@@ -240,6 +241,7 @@ To create a flow alert, say :code:`BadFlowAlert`, check the following items:
     - Place the class declaration file :code:`BadFlowAlert.h` inside :code:`include/flow_alerts/BadFlowAlert.h` 
     - Place the class definition file :code:`BadFlowAlert.cpp` inside :code:`src/flow_alerts/BadFlowAlert.cpp`
     - Add an :code:`#include "flow_alerts/BadFlowAlert.h"` directive in :code:`include/flow_alerts_includes.h`
+    - Add a :code:`registerAlert(BadFlowAlert::getClassType(),BadFlowAlert::getDefaultScore());` in :code:`src/FlowAlertsLoader.cpp`
 
 - Add a unique alert key
 
