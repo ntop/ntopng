@@ -70,8 +70,8 @@ class Report:
             if stats['name'] == 'top_alerts_by_severity':
                 alerts_stats_df = pd.DataFrame(stats["value"])
                 alerts_stats_df.drop(["key", "title"], axis= 1, inplace=True)
-                alerts_stats_df = alerts_stats_df[["label", "severity"]]
-                alerts_stats_df.rename(columns={"label": "Alert type", "severity": "Severity"}, inplace=True)
+                alerts_stats_df = alerts_stats_df[["label", "severity_label"]]
+                alerts_stats_df.rename(columns={"label": "Alert type", "severity_label": "Severity"}, inplace=True)
 
         if alerts_stats_df is None:
             alerts_stats_df = pd.DataFrame([])
@@ -91,7 +91,7 @@ class Report:
                 alerts_stats_df['count'] = alerts_stats_df['count'].round(1)
                 alerts_stats_df['count'] = alerts_stats_df['count'].astype(str) + " %"
                 alerts_stats_df = alerts_stats_df[["label", "count"]]
-                alerts_stats_df.rename(columns={"label": "Alert type", "count": "Occurence %"}, inplace=True)
+                alerts_stats_df.rename(columns={"label": "Alert type", "count": "Occurrence %"}, inplace=True)
 
         if alerts_stats_df is None:
             alerts_stats_df = pd.DataFrame([])
@@ -110,9 +110,9 @@ class Report:
             top_client_server_df['count'] = top_client_server_df['count'].round(1)
             top_client_server_df['count'] = top_client_server_df['count'].astype(str) + " %"
             #reorder top_client_server_df columns
-            top_client_server_df = top_client_server_df[["label", "ip", "count", "vlan"]]
+            top_client_server_df = top_client_server_df[["label", "ip", "count"]]
             #rename top_client_server_df columns
-            top_client_server_df.rename(columns={"label": "Host name", "ip": "IP", "count": "Occurence %", "vlan": "VLAN"}, inplace=True)
+            top_client_server_df.rename(columns={"label": "Host name", "ip": "IP", "count": "Occurrence %"}, inplace=True)
         except:
             print("Top Client/Server report not available in community mode")
             top_client_server_df = pd.DataFrame([])
@@ -178,12 +178,14 @@ class Report:
         fig.update_layout(autosize=False, width=width, height=height)
         fig.write_image(str(fname), scale=2)
     
-    def plot_upload_download(self, output_series_fname, epoch_begin, epoch_end):
+    def plot_traffic_chart(self, output_series_fname, epoch_begin, epoch_end):
         """
         Plots a png of the timeseries
         """
         up_down = self.historical.get_interface_timeseries("iface:traffic_rxtx", epoch_begin, epoch_end)
         up_down.reset_index(inplace=True)
+        up_down['bytes_rcvd'] = up_down['bytes_rcvd'].mul(8)
+        up_down['bytes_sent'] = up_down['bytes_sent'].mul(8)
         up_down['ts'] = up_down['index'].apply(lambda x: x.left)
         up_down['ts'] = pd.to_datetime(up_down['ts'], unit='s')
         
@@ -191,11 +193,11 @@ class Report:
         fig = go.Figure(layout=layout)
         fig.add_trace(go.Scatter(x=up_down["ts"], y=up_down["bytes_rcvd"],
                             mode='lines',
-                            name='Downloaded bytes',
+                            name='Received (bps)',
                             line_color='#f3a114'))
         fig.add_trace(go.Scatter(x=up_down["ts"], y=up_down["bytes_sent"],
                             mode='lines',
-                            name='Uploaded bytes',
+                            name='Sent (bps)',
                             line_color='#000000'))
     
         fig.write_image(output_series_fname, width=1280, height=720)
@@ -229,9 +231,9 @@ class Report:
         hosts_df_fname = self.gen_tmp_file_name("png")
         self.df_to_table_png(hosts_df, hosts_df_fname, 950, 325)
         
-        # Uploaded/Downloaded
-        uploaded = data_sent_rcvd[0]
-        downloaded = data_sent_rcvd[1]
+        # Sent/Received
+        sent = data_sent_rcvd[0]
+        received = data_sent_rcvd[1]
         
         # Interface info
         flows = interface_data["num_flows"]
@@ -242,57 +244,68 @@ class Report:
         
         # PDF creation
         
-        MARGIN = 10
-        pw = 25 - 2*MARGIN
+        margin = 10
+        pw = 25 - 2*margin
         ch = 50
+
         pdf = FPDF()
         pdf.add_page()
         
         # Logo
         ntop_logo_fname = self.gen_tmp_file_name("png")
-        #ntop_logo_png = base64_decode(ntop_logo_b64);
         with open(ntop_logo_fname, "wb") as fh:
             fh.write(base64.b64decode(ntop_logo_b64))
-        pdf.image(ntop_logo_fname, x=140, y=8, w=68.2, h=17.8)
+        pdf.image(ntop_logo_fname, x=140, y=15, w=68.2, h=17.8)
         
         # ntopng host info
-        pdf.set_font("Helvetica", "B", 14)
-        pdf.set_text_color(r= 0, g= 0, b = 0)
         pdf.ln(9)
-        pdf.cell(w=0, h=10, txt="NTOPNG INFO", ln=1)
+        pdf.set_font("Helvetica", "B", 18)
+        pdf.set_text_color(r=0, g=0, b=0)
+        pdf.cell(w=0, h=10, txt="24h Interface Report", ln=1)
+
         pdf.set_font("Helvetica", "", 11)
         ntopng_url = self.ntopng_obj.get_url()
-        pdf.cell(w=0, h=5, txt=f"URL: {ntopng_url}")
+        pdf.cell(w=0, h=5, txt=f"ntopng URL: {ntopng_url}")
         pdf.ln(5)
+
         pdf.cell(w=0, h=5, txt=f"Date: {time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(epoch_end))}")
         pdf.ln(5)
-        pdf.cell(w=0, h=5, txt=f"Number of Interfaces: {interfaces_count}")
-        pdf.ln(7)
-        
-        #  24hr stats
-        pdf.set_font("Helvetica", "B", 14)
-        pdf.cell(w=0, h=10, txt="24h STATS")
-        pdf.ln(5)
-        pdf.set_font("Helvetica", "", 11)
-        pdf.cell(w=(pw/2), h=(ch/4), txt=f"Active Flows: {flows}")
-        pdf.ln(5)
-        pdf.cell(w=(pw/2), h=(ch/4), txt=f"Number of Hosts: {host_num}")
-        pdf.ln(5)
-        pdf.cell(w=(pw/2), h=(ch/4), txt=f"Number of Local Hosts: {local_hosts_num}")
-        pdf.ln(5)
-        pdf.cell(w=(pw/2), h=(ch/4), txt=f"Data Up/Down: {uploaded:.3f}/{downloaded:.3f} MB")
+
+        pdf.cell(w=0, h=5, txt=f"Interface: {self.ifid} (of {interfaces_count} interfaces)")
         pdf.ln(5)
         
         # Alerts
-        pdf.image(alerts_by_severity_df_fname, x=10, y=80, w=90, h=65)
-        pdf.image(alerts_by_count_df_fname, x=110, y=80, w=90, h=65)
+        pdf.set_font("Helvetica", "B", 14)
+        pdf.cell(w=0, h=10, txt="Top Alerts")
+
+        pdf.image(alerts_by_severity_df_fname, x=10, y=55, w=90, h=65)
+        pdf.image(alerts_by_count_df_fname, x=110, y=55, w=90, h=65)
+
+        # Hosts
+        pdf.ln(75)
+        pdf.set_font("Helvetica", "B", 14)
+        pdf.cell(w=0, h=10, txt="Top Hosts")
+
+        pdf.image(hosts_df_fname, x=10, y=130, w=190, h=65)
         
-        ## Hosts
-        pdf.image(hosts_df_fname, x=10, y=150, w=190, h=65)
-        
-        # Series plot
+        #  Traffic stats
+        pdf.ln(77)
+        pdf.set_font("Helvetica", "B", 14)
+        pdf.cell(w=0, h=10, txt="Traffic Summary")
+        pdf.ln(5)
+        pdf.set_font("Helvetica", "", 11)
+        """
+        pdf.cell(w=(pw/2), h=(ch/4), txt=f"{flows} Active Flows")
+        pdf.ln(5)
+        pdf.cell(w=(pw/2), h=(ch/4), txt=f"{host_num} Hosts")
+        pdf.ln(5)
+        pdf.cell(w=(pw/2), h=(ch/4), txt=f"{local_hosts_num} Local Hosts")
+        pdf.ln(5)
+        """
+        pdf.cell(w=(pw/2), h=(ch/4), txt=f"Total Sent/Received: {sent:.2f} / {received:.2f} MB")
+
         series_fname = self.gen_tmp_file_name("png")
-        self.plot_upload_download(series_fname, epoch_begin, epoch_end)
+        self.plot_traffic_chart(series_fname, epoch_begin, epoch_end)
         pdf.image(series_fname, x=10, y=210, w=190, h=85)
         
         pdf.output(f"{output_file}", "F")

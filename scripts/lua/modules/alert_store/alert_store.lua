@@ -1472,12 +1472,12 @@ function alert_store:top_alert_id_historical_by_severity()
    local where_clause = self:build_where_clause()
    local limit = 10
 
-   local q = string.format("SELECT alert_id, max(severity) severity, count(*) count FROM %s WHERE %s GROUP BY alert_id ORDER BY severity, count DESC LIMIT %u",
+   local q = string.format("SELECT alert_id, max(severity) severity, count(*) count FROM %s WHERE %s GROUP BY alert_id ORDER BY severity DESC, count DESC LIMIT %u",
       table_name, where_clause, limit)
 
    if not self._alert_entity then
       -- For the all view alert_entity is read from the database
-      q = string.format("SELECT entity_id, alert_id, max(severity) severity, count(*) count FROM %s WHERE %s GROUP BY entity_id, alert_id ORDER BY severity, count DESC LIMIT %u",
+      q = string.format("SELECT entity_id, alert_id, max(severity) severity, count(*) count FROM %s WHERE %s GROUP BY entity_id, alert_id ORDER BY severity DESC, count DESC LIMIT %u",
          table_name, where_clause, limit)
    end
 
@@ -1541,6 +1541,7 @@ function alert_store:format_top_alerts(stats, count)
       end
       if value.severity then
          alert_info.severity = value.severity
+         alert_info.severity_label = i18n(alert_consts.alertSeverityById(value.severity).i18n_title)
       end
 
       top_alerts[#top_alerts + 1] = alert_info
