@@ -47,14 +47,14 @@ def log(line):
     logfile.write(line + "\n")
 
 # Send report by mail
-def send_report(my_ntopng, iface_id):
+def send_report(my_ntopng, iface_id, host_ip):
     output_file  = "/tmp/report.pdf"
 
-    generator = Report(my_ntopng, iface_id)
+    generator = Report(my_ntopng, iface_id, host_ip)
 
     log("Generating PDF " + output_file + "...")
 
-    generator.generate_interface_report(output_file)
+    generator.build(output_file)
 
     if email_recipient is None:
         return
@@ -109,6 +109,7 @@ if alert["entity_id"] == entity_host and alert["alert_id"] == external_host_scri
 
     if my_ntopng is not None:
         iface_id = alert["ifid"]
+        host_ip = alert["ip"]
 
         """
         my_historical = my_ntopng.get_historical_interface(iface_id)
@@ -123,7 +124,7 @@ if alert["entity_id"] == entity_host and alert["alert_id"] == external_host_scri
         """
 
         # Send a report
-        send_report(my_ntopng, iface_id)
+        send_report(my_ntopng, iface_id, host_ip)
 
 logfile.close()
 os._exit(0)
