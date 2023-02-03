@@ -3332,6 +3332,7 @@ static int ntop_capture_to_pcap(lua_State* vm) {
   char errbuf[PCAP_ERRBUF_SIZE];
   struct bpf_program fcode;
   struct ntopngLuaContext *c;
+  int rc;
 
   if(!ntop->isUserAdministrator(vm)) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
@@ -3369,9 +3370,12 @@ static int ntop_capture_to_pcap(lua_State* vm) {
     if(pcap_compile(c->pkt_capture.pd, &fcode, bpfFilter, 1, 0xFFFFFF00) < 0) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "pcap_compile error: '%s'", pcap_geterr(c->pkt_capture.pd));
     } else {
-      if(pcap_setfilter(c->pkt_capture.pd, &fcode) < 0) {
+      rc = pcap_setfilter(c->pkt_capture.pd, &fcode);
+
+      pcap_freecode(&fcode);
+
+      if (rc < 0)
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "pcap_setfilter error: '%s'", pcap_geterr(c->pkt_capture.pd));
-      }
     }
   }
 
