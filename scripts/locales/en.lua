@@ -877,7 +877,7 @@ local lang = {
     ["too_many_hosts_title"] = "Double Max Hosts",
     ["traffic_volume_alert"] = "[Metric: %{metric}] [Condition: %{value} > %{threshold}] [Check Frequency: %{frequency}]",
     ["unknown_contacted_peers"] = "Too many Peers contacted by %{host} %{host_category}.",
-    ["vlan_bidirectional_traffic"] = "Detected bidirectional traffic flow on vlan %{vlan} [RX : %{rx} > 0 & TX : %{tx}]",
+    ["vlan_bidirectional_traffic"] = "Detected bidirectional traffic flow on VLAN %{vlan} [RX : %{rx} > 0 & TX : %{tx}]",
     ["x_alerts"] = "%{num} alerts",
   },
   ["alerts_analysis_page"] = {
@@ -2409,7 +2409,7 @@ local lang = {
     ["unexpected_ntp_title"] = "Unexpected NTP server",
     ["unexpected_smtp_description"] = "Trigger an alert when not allowed SMTP server is detected",
     ["unexpected_smtp_title"] = "Unexpected SMTP server",
-    ["vlan_inclusion_list"] = "Included VLAN",
+    ["vlan_inclusion_list"] = "Included VLANs",
     ["vlan_inclusion_list_description"] = "Comma separated list of VLAN IDs. This alert won't be triggered for flow of VLANs outside this list (0 value represents untagged packets flows).",
     ["zero_tcp_window_description"] = "Trigger an alert when for TCP flows with window set to zero",
     ["zero_tcp_window_title"] = "TCP Zero Window",

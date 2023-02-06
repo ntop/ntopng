@@ -15,10 +15,14 @@ local script = {
    -- Script category
    category = checks.check_categories.security,
 
+   -- This module is disabled by default
+   default_enabled = false,
+
    -- This script is only for alerts generation
    alert_id = flow_alert_keys.flow_alert_vlan_bidirectional_traffic,
 
    default_value = {
+      items = {},
    },
    
    gui = {
