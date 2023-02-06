@@ -58,8 +58,13 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
       as_cli_or_srv = i18n("server")
       as_cli = false
    end
-   
-   local flows_info_href = '(check live:  <a href="' .. ntop.getHttpPrefix().."/lua/flows_stats.lua?host="..host..'" data-placement="bottom" title="Live Flow Explorer"><i class="fas fa-search-plus"></i></a>)'
+
+   local flows_info_href = ""
+
+   interface.select(ifid)
+   if interface.getHostInfo(alert["ip"],vlan_id) then
+      flows_info_href = '[ Check Live:  <a href="' .. ntop.getHttpPrefix().."/lua/flows_stats.lua?host="..host..'" data-placement="bottom" title="Live Flow Explorer"><i class="fas fa-search-plus"></i></a> ]'
+   end
    
    if ntop.isClickHouseEnabled() then
 
@@ -96,7 +101,7 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
          }
       end
 
-      flows_info_href = flows_info_href..' (check historical: <a href="' .. add_historical_flow_explorer_button_ref(extra_params,true) ..'" data-placement="bottom" title="Historical Flow Explorer"><i class="fas fa-search-plus"></i></a>)' 
+      flows_info_href = flows_info_href..' [ Check Historical: <a href="' .. add_historical_flow_explorer_button_ref(extra_params,true) ..'" data-placement="bottom" title="Historical Flow Explorer"><i class="fas fa-search-plus"></i></a> ]' 
    end
 
    if (tonumber(alert_type_params["value"]) > tonumber(threshold)) and (threshold > 0) then
