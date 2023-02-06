@@ -70,7 +70,6 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
    
    -- Checks if ClickHouse is enabled, in case add link to historical flows on the alert description.
    if ntop.isClickHouseEnabled() then
-
       local extra_params = {
          ifid = {
             value = ifid,
@@ -89,14 +88,19 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
             operator = "gt"
          }
       }
-      if vlan_id > 0 then
-         extra_params.vlan_id = {
-            value = alert["vlan_id"],
-            operator = "eq"
-         }
+      
+      if(alert["vlan_id"] ~= nil) then
+	 local alert_id = tonumber(alert["vlan_id"])
+
+	 if(alert_id > 0) then
+	    extra_params.vlan_id = {
+	       value = alert["vlan_id"],
+	       operator = "eq"
+	    }
+	 end
       end      
 
-      if as_cli then 
+      if(as_cli) then 
          extra_params.cli_ip = {
             value = alert["ip"],
             operator = "eq"
@@ -111,7 +115,7 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
       flows_info_href = flows_info_href..'[ '..i18n("check_historical")..': <a href="' .. add_historical_flow_explorer_button_ref(extra_params,true) ..'" data-placement="bottom" title="Historical Flow Explorer"><i class="fas fa-search-plus"></i></a> ]' 
    end
 
-   if (tonumber(alert_type_params["value"]) > tonumber(threshold)) and (threshold > 0) then
+   if(tonumber(alert_type_params["value"]) > tonumber(threshold)) and (threshold > 0) then
       -- threshold due to threshold crossed
       return i18n("alert_messages.score_threshold", {
          entity = host,
