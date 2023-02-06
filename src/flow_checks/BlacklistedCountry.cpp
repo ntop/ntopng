@@ -67,21 +67,22 @@ void BlacklistedCountry::protocolDetected(Flow *f) {
 FlowAlert *BlacklistedCountry::buildAlert(Flow *f) {
   bool is_server_bl = hasBlacklistedCountry(f->get_srv_host());
   bool is_client_bl = hasBlacklistedCountry(f->get_cli_host());
+  BlacklistedCountryAlert *alert = new (std::nothrow) BlacklistedCountryAlert(this, f, is_server_bl);
 
-  BlacklistedCountryAlert *alert = new BlacklistedCountryAlert(this, f, is_server_bl);
-
-  /*
-    When a BLACKLISTED client contacts a normal host, the client is assumed to be the attacker and the server the victim
-    When a normal client contacts a BLACKLISTED server, both peers are considered to be attackers
-    When both peers are blacklisted, both are considered attackers
-  */
-  if(is_client_bl && !is_server_bl)
-    alert->setCliAttacker(), alert->setSrvVictim();
-  else if(!is_client_bl && is_server_bl)
-    alert->setCliAttacker(), alert->setSrvAttacker();
-  else if(is_client_bl && is_server_bl)
-    alert->setCliAttacker(), alert->setSrvAttacker();
-
+  if(alert) {
+    /*
+      When a BLACKLISTED client contacts a normal host, the client is assumed to be the attacker and the server the victim
+      When a normal client contacts a BLACKLISTED server, both peers are considered to be attackers
+      When both peers are blacklisted, both are considered attackers
+    */
+    if(is_client_bl && !is_server_bl)
+      alert->setCliAttacker(), alert->setSrvVictim();
+    else if(!is_client_bl && is_server_bl)
+      alert->setCliAttacker(), alert->setSrvAttacker();
+    else if(is_client_bl && is_server_bl)
+      alert->setCliAttacker(), alert->setSrvAttacker();
+  }
+  
   return alert;
 }
 

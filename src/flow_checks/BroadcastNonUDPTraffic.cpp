@@ -57,11 +57,13 @@ void BroadcastNonUDPTraffic::flowBegin(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *BroadcastNonUDPTraffic::buildAlert(Flow *f) {
-  BroadcastNonUDPTrafficAlert *alert = new BroadcastNonUDPTrafficAlert(this, f);
+  BroadcastNonUDPTrafficAlert *alert = new (std::nothrow) BroadcastNonUDPTrafficAlert(this, f);
 
-  /* The remote client is considered the attacker. The victim is the local server */
-  alert->setCliAttacker();
-
+  if(alert) {
+    /* The remote client is considered the attacker. The victim is the local server */
+    alert->setCliAttacker();
+  }
+  
   return alert;
 }
 

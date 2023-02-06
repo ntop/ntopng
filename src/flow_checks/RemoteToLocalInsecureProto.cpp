@@ -78,11 +78,13 @@ void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *RemoteToLocalInsecureProto::buildAlert(Flow *f) {
-  RemoteToLocalInsecureProtoAlert *alert = new RemoteToLocalInsecureProtoAlert(this, f);
+  RemoteToLocalInsecureProtoAlert *alert = new (std::nothrow) RemoteToLocalInsecureProtoAlert(this, f);
 
-  /* The remote client is considered the attacker. The victim is the local server */
-  alert->setCliAttacker(), alert->setSrvVictim();
-
+  if(alert) {
+    /* The remote client is considered the attacker. The victim is the local server */
+    alert->setCliAttacker(), alert->setSrvVictim();
+  }
+  
   return alert;
 }
 

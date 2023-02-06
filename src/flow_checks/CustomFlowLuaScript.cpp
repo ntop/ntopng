@@ -158,11 +158,13 @@ void CustomFlowLuaScript::checkFlow(Flow *f, LuaEngine *lua) {
 /* ***************************************************** */
 
 FlowAlert *CustomFlowLuaScript::buildAlert(Flow *f) {
-  CustomFlowLuaScriptAlert *alert = new CustomFlowLuaScriptAlert(this, f);
+  CustomFlowLuaScriptAlert *alert = new (std::nothrow) CustomFlowLuaScriptAlert(this, f);
 
-  alert->setAlertMessage(f->getCustomFlowAlertMessage());
-  alert->setAlertScore(f->getCustomFlowAlertScore());
-
+  if(alert) {
+    alert->setAlertMessage(f->getCustomFlowAlertMessage());
+    alert->setAlertScore(f->getCustomFlowAlertScore());
+  }
+  
   return alert;
 }
 
