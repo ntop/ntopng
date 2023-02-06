@@ -54,6 +54,7 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
    local as_cli = true
    local vlan_id = tonumber(alert["vlan_id"] or 0)
 
+   -- Checks if alerted host is a client or a server.
    if alert_type_params["is_client_alert"] == false then
       as_cli_or_srv = i18n("server")
       as_cli = false
@@ -61,11 +62,13 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
 
    local flows_info_href = ""
 
+   -- Checks if host is still in memory, in case add link to live flows on the alert description.
    interface.select(ifid)
    if interface.getHostInfo(alert["ip"],vlan_id) then
-      flows_info_href = '[ '..i18n("check_live")..':  <a href="' .. ntop.getHttpPrefix().."/lua/flows_stats.lua?host="..host..'" data-placement="bottom" title="Live Flow Explorer"><i class="fas fa-search-plus"></i></a> ]'
+      flows_info_href = '[ '..i18n("check_live")..':  <a href="' .. ntop.getHttpPrefix().."/lua/flows_stats.lua?host="..host..'" data-placement="bottom" title="Live Flow Explorer"><i class="fas fa-search-plus"></i></a> ] '
    end
    
+   -- Checks if ClickHouse is enabled, in case add link to historical flows on the alert description.
    if ntop.isClickHouseEnabled() then
 
       local extra_params = {
@@ -82,7 +85,7 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
             operator = "eq"
          }
       }
-      if vlan_id and vlan_id > 0 then
+      if vlan_id > 0 then
          extra_params.vlan_id = {
             value = alert["vlan_id"],
             operator = "eq"
@@ -101,7 +104,7 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
          }
       end
 
-      flows_info_href = flows_info_href..' [ '..i18n("check_historical")..': <a href="' .. add_historical_flow_explorer_button_ref(extra_params,true) ..'" data-placement="bottom" title="Historical Flow Explorer"><i class="fas fa-search-plus"></i></a> ]' 
+      flows_info_href = flows_info_href..'[ '..i18n("check_historical")..': <a href="' .. add_historical_flow_explorer_button_ref(extra_params,true) ..'" data-placement="bottom" title="Historical Flow Explorer"><i class="fas fa-search-plus"></i></a> ]' 
    end
 
    if (tonumber(alert_type_params["value"]) > tonumber(threshold)) and (threshold > 0) then
