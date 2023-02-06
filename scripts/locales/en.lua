@@ -877,7 +877,7 @@ local lang = {
     ["too_many_hosts_title"] = "Double Max Hosts",
     ["traffic_volume_alert"] = "[Metric: %{metric}] [Condition: %{value} > %{threshold}] [Check Frequency: %{frequency}]",
     ["unknown_contacted_peers"] = "Too many Peers contacted by %{host} %{host_category}.",
-    ["vlan_bidirectional_traffic"] = "Detected bidirectional traffic flow on vlan %{vlan} [RX : %{rx} > 0 & TX : %{tx}]",
+    ["vlan_bidirectional_traffic"] = "Detected bidirectional traffic flow on VLAN %{vlan} [RX : %{rx} > 0 & TX : %{tx}]",
     ["x_alerts"] = "%{num} alerts",
   },
   ["alerts_analysis_page"] = {
