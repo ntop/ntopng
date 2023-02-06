@@ -55,7 +55,7 @@ void VlanBidirectionalTraffic::checkBidirectionalTraffic(Flow *f) {
 
 /* ***************************************************** */
 
-void VlanBidirectionalTraffic::periodicUpdate(Flow *f) {
+void VlanBidirectionalTraffic::protocolDetected(Flow *f) {
   checkBidirectionalTraffic(f);
 }
 
