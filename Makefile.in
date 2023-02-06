@@ -209,7 +209,8 @@ build-rpm-ntopng-data:
 docs:
 	cd doc && doxygen doxygen.conf
 
-dist:
+windows:
+	# Windows dist
 	rm -rf ntopng-@NTOPNG_VERSION@
 	mkdir ntopng-@NTOPNG_VERSION@
 	cd ntopng-@NTOPNG_VERSION@; git clone https://github.com/ntop/ntopng.git; cd ntopng; git clone https://github.com/ntop/nDPI.git; cd ..; find ntopng -name .git | xargs rm -rf ; mv ntopng ntopng-@NTOPNG_VERSION@; tar cvfz ../ntopng-@NTOPNG_VERSION@.tgz ntopng-@NTOPNG_VERSION@
@@ -260,14 +261,12 @@ changelog:
 	git log --since={`curl -s https://github.com/ntop/ntopng/releases | grep datetime | head -n1 | egrep -o "[0-9]+\-[0-9]+\-[0-9]+"`} --name-only --pretty=format:" - %s" > Changelog.latest
 	if [ -d pro ]; then cd pro && git log --since={`curl -s https://github.com/ntop/ntopng/releases | grep datetime | head -n1 | egrep -o "[0-9]+\-[0-9]+\-[0-9]+"`} --name-only --pretty=format:" - %s" >> ../Changelog.latest; fi
 
-http_config:
+dist:
 	npm install
-
-http_dev_build:
-	npm run build:dev
-
-http_build:
 	npm run build
+
+dev-dist:
+	npm run build:dev
 
 pull-deps:
 	echo "Pulling dependencies.."
