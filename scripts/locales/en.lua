@@ -79,6 +79,8 @@ local lang = {
   ["change_number_of_rows"] = "Change the number of rows per page",
   ["change_policy"] = "Change Host Pool Policy",
   ["chart"] = "Chart",
+  ["check_historical"] = "Check Historical",
+  ["check_live"] = "Check Live",
   ["check_mirrored_traffic"] = "RX only traffic detected. Perhaps do you need to activate 'Mirrored Traffic' option in the <a href='/lua/if_stats.lua?ifid=%{id}&page=config'>Interface options</a>?",
   ["cli_port"] = "Cli Port",
   ["click_to_expand"] = "Click to expand",
