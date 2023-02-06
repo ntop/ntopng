@@ -21,10 +21,10 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* VlanBidirectionalTrafficAlert::getAlertJSON(ndpi_serializer* serializer) {
-    if(serializer == NULL)
-        return NULL;
-
-    return serializer;
+ndpi_serializer* VLANBidirectionalTrafficAlert::getAlertJSON(ndpi_serializer* serializer) {
+  if(serializer == NULL)
+    return NULL;
+  
+  return serializer;
 }   
 

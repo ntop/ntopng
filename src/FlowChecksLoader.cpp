@@ -114,7 +114,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new UnexpectedNTPServer()))                         registerCheck(fcb);
   if((fcb = new UnexpectedSMTPServer()))                        registerCheck(fcb);
   if((fcb = new WebMining()))                                   registerCheck(fcb);
-  if((fcb = new VlanBidirectionalTraffic()))                    registerCheck(fcb);
+  if((fcb = new VLANBidirectionalTraffic()))                    registerCheck(fcb);
 
 #ifdef NTOPNG_PRO
   if((fcb = new DataExfiltration()))                            registerCheck(fcb);

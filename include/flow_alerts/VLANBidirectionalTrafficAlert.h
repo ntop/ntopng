@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class VlanBidirectionalTrafficAlert : public FlowAlert {
+class VLANBidirectionalTrafficAlert : public FlowAlert {
  private:
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
@@ -32,8 +32,8 @@ class VlanBidirectionalTrafficAlert : public FlowAlert {
   static FlowAlertType getClassType() { return { flow_alert_vlan_bidirectional_traffic, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
-  VlanBidirectionalTrafficAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) { };
-  ~VlanBidirectionalTrafficAlert() { };
+  VLANBidirectionalTrafficAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) { };
+  ~VLANBidirectionalTrafficAlert() { };
   FlowAlertType getAlertType() const { return getClassType(); }
 
 };

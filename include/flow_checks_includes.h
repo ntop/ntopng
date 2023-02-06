@@ -76,7 +76,7 @@
 #include "flow_checks/UnexpectedNTPServer.h"
 #include "flow_checks/UnexpectedSMTPServer.h"
 #include "flow_checks/WebMining.h"
-#include "flow_checks/VlanBidirectionalTraffic.h"
+#include "flow_checks/VLANBidirectionalTraffic.h"
 
 #ifdef NTOPNG_PRO
 #include "flow_checks/DataExfiltration.h"

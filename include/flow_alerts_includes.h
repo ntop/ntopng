@@ -44,7 +44,7 @@
 #include "flow_alerts/UnexpectedSMTPServerAlert.h"
 #include "flow_alerts/UnexpectedServerAlert.h"
 #include "flow_alerts/WebMiningAlert.h"
-#include "flow_alerts/VlanBidirectionalTrafficAlert.h"
+#include "flow_alerts/VLANBidirectionalTrafficAlert.h"
 #include "flow_alerts/DeviceProtocolNotAllowedAlert.h"
 #include "flow_alerts/FlowRiskBinaryApplicationTransferAlert.h"
 #include "flow_alerts/FlowRiskDNSSuspiciousTrafficAlert.h"
