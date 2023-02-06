@@ -52,6 +52,7 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
    local threshold = alert_type_params["threshold"] or 0
    local as_cli_or_srv = i18n("client")
    local as_cli = true
+   local vlan_id = tonumber(alert["vlan_id"])
 
    if alert_type_params["is_client_alert"] == false then
       as_cli_or_srv = i18n("server")
@@ -76,7 +77,7 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
             operator = "eq"
          }
       }
-      if alert["vlan_id"] ~= 0 then
+      if vlan_id and vlan_id > 0 then
          extra_params.vlan_id = {
             value = alert["vlan_id"],
             operator = "eq"
