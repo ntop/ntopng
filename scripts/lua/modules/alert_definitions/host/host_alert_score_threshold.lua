@@ -77,12 +77,16 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
             operator = "eq"
          },
          epoch_begin = {
-            value = alert.tstamp,
+            value = tonumber(alert.tstamp) - 600,
             operator = "eq"
          },
          epoch_end = {
-            value = alert.tstamp_end,
+            value = tonumber(alert.tstamp_end) + 600,
             operator = "eq"
+         },
+         score = {
+            value = 0,
+            operator = "gt"
          }
       }
       if vlan_id > 0 then
