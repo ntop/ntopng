@@ -107,12 +107,13 @@
 	</div>
       </div>      
     </template> <!-- modal domain_names-->
+    <hr class="separator mt-5" >
      <div class="form-group row">
-      <div class="col-sm-3">
+      <div>
         <label class="col-form-label"><b>{{ _i18n("show_alerts.add_a_comment") }}</b></label>
       </div>
-      <div class="col-sm-9 mt-1">
-        <input id="alert-label" name="label" class="form-control" type="text" v-model="comment" maxlength="450">
+      <div class="mt-1">
+        <textarea id="alert-label" name="label" rows="3" class="form-control" type="text" v-model="comment" maxlength="450"></textarea>
       </div>
     </div>
   </template>
