@@ -28,14 +28,14 @@ Enabled by Default - requires the Syslog Producer configuration for Logs Demulti
 **Kerberos/NXLog**
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Collect Kerberos authentication logs exported by NXLog in XML format. This is mainly used to handle Identity Management (user correlation) when Active Directory is used.
+Collect Kerberos authentication logs exported by NXLog in XML or JSON format. This is mainly used to handle Identity Management (user correlation) when Active Directory is used.
 In order to integrate Kerberos with this plugin, NXLog should be configured to export Kerberos events using syslog and send them to ntopng as described in :ref:`Syslog target`.
 
 Enabled by Default - requires the Syslog Producer configuration for Logs Demultiplexing as described in :ref:`Syslog target`.
 
 *Category: Cybersecurity*
 
-Example of NXLog *nxlog.conf* configuration file:
+Example of NXLog *nxlog.conf* configuration file for XML export:
 
 .. code:: xml
 
