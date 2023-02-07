@@ -152,13 +152,15 @@ local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add
         end
 
         for i=0,table.len(t) do
-          if( type(t[i]) == "table" ) then
-            if(t[i] and t[i].alert_key ~= alert_key) then
-              table.insert(r, t[i])
-            end
-          else
-            if(t[i] ~= alert_key) then
-              table.insert(r, t[i])
+          if (t[i]) then
+            if (type(t[i]) == "table") then
+              if (t[i].alert_key ~= alert_key) then
+                table.insert(r, t[i])
+              end
+            else
+              if (t[i] ~= alert_key) then
+                table.insert(r, t[i])
+              end
             end
           end
         end
@@ -339,15 +341,18 @@ local function _get_exclusions(is_flow_exclusion, alert_key, subject_type)
       else
       
         for i=0,table.len(t) do
-          if type(t[i]) == "table" then
-            if ( t[i]~= nil and t[i].alert_key == alert_key ) then
-              ret[subject_key] = {value = true, comment = t[i].comment} 
-              break
-            end
-          else
-            if t[i] == alert_key then
-              ret[subject_key] = true
-              break
+
+          if (t[i] ~= nil) then
+            if (type(t[i]) == "table") then
+              if (t[i].alert_key == alert_key) then
+                ret[subject_key] = {value = true, comment = t[i].comment} 
+                break
+              end
+            else
+              if t[i] == alert_key then
+                ret[subject_key] = true
+                break
+              end
             end
           end
         end   
