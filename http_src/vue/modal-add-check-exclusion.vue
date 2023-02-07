@@ -107,7 +107,14 @@
 	</div>
       </div>      
     </template> <!-- modal domain_names-->
-
+     <div class="form-group row">
+      <div class="col-sm-3">
+        <label class="col-form-label"><b>{{ _i18n("show_alerts.add_a_comment") }}</b></label>
+      </div>
+      <div class="col-sm-9 mt-1">
+        <input id="alert-label" name="label" class="form-control" type="text" v-model="comment" maxlength="450">
+      </div>
+    </div>
   </template>
   <template v-slot:footer>
     <button type="button" :disabled="check_disable_apply()" @click="add" class="btn btn-primary">{{_i18n('add')}}</button>
@@ -128,6 +135,7 @@ const input_text = ref("");
 const host_selected = ref("");
 const flow_selected = ref("");
 const netmask = ref("");
+const comment = ref(null);
 
 const emit = defineEmits(['add'])
 //s.split(",").every((a) => {return /.+=.+/.test(a)})
@@ -220,6 +228,7 @@ const add = () => {
     } else if (props.alert_exclusions_page == "tls_certificate") {
 	params = { alert_certificate: input_text.value };
     }
+    params.label = comment.value;
     emit('add', params);
     close();
 };
