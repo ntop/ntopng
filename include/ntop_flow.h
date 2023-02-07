@@ -30,6 +30,7 @@
 
 #define UNKNOWN_FLOW_ELEMENT (u_int32_t)-1
 #define UNKNOWN_PEN          (u_int32_t)-1
+
 #define NTOP_PEN     35632
 #define NTOP_BASE_ID 57472
 
@@ -113,6 +114,7 @@
 #define MPLS_LABEL_10   79
 #define IN_DST_MAC   80
 #define OUT_SRC_MAC  81
+#define INTERFACE_NAME 82
 #define APPLICATION_ID   95
 #define PACKET_SECTION_OFFSET   102
 #define SAMPLED_PACKET_SIZE   103
@@ -132,6 +134,8 @@
 #define FLOW_END_NANOSECONDS	157
 #define FLOW_DURATION_MILLISECONDS	161
 #define FLOW_DURATION_MICROSECONDS	162
+#define ICMP_IPV4_TYPE   176
+#define ICMP_IPV4_CODE   177
 #define TCP_SRC_PORT 182
 #define TCP_DST_PORT 183
 #define INITIATOR_OCTETS   231
@@ -231,7 +235,7 @@
 #define PAYLOAD_HASH          NTOP_BASE_ID+438
 #define UPSTREAM_SESSION_ID   NTOP_BASE_ID+446
 #define DOWNSTREAM_SESSION_ID NTOP_BASE_ID+447
-#define SSL_SERVER_NAME       NTOP_BASE_ID+188
+#define TLS_SERVER_NAME       NTOP_BASE_ID+188
 #define BITTORRENT_HASH       NTOP_BASE_ID+189
 #define JA3C_HASH             NTOP_BASE_ID+489
 #define JA3S_HASH             NTOP_BASE_ID+490
@@ -525,6 +529,7 @@
 #define APPLICATION_NAME                       NTOP_BASE_ID+427 /* App-Id */
 #define USER_NAME                              NTOP_BASE_ID+428 /* User-Id */
 
+#define NPROBE_IPV4_ADDRESS   NTOP_BASE_ID+471
 #define L7_PROTO_RISK_NAME    NTOP_BASE_ID+510
 #define TLS_REQUESTED_SNI     NTOP_BASE_ID+511
 #define TLS_SERVER_NAMES      NTOP_BASE_ID+512
@@ -544,7 +549,7 @@
 #define FLOW_RISK             NTOP_BASE_ID+508
 #define SRC_ASN               NTOP_BASE_ID+525
 #define DST_ASN               NTOP_BASE_ID+526
-#define PROBE_IP              NTOP_BASE_ID+527
+#define L7_RISK_SCORE         NTOP_BASE_ID+527
 #define L4_PROTO_NAME         NTOP_BASE_ID+528
 #define L7_CATEGORY_ID        NTOP_BASE_ID+529
 

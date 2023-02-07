@@ -116,7 +116,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("HTTP_RET_CODE", HTTP_RET_CODE, NTOP_PEN);
   addMapping("HTTP_METHOD", HTTP_METHOD, NTOP_PEN);
   addMapping("HTTP_USER_AGENT", HTTP_USER_AGENT, NTOP_PEN);
-  addMapping("SSL_SERVER_NAME", SSL_SERVER_NAME, NTOP_PEN);
+  addMapping("TLS_SERVER_NAME", TLS_SERVER_NAME, NTOP_PEN);
   addMapping("TLS_CIPHER", TLS_CIPHER, NTOP_PEN);
   addMapping("SSL_UNSAFE_CIPHER", SSL_UNSAFE_CIPHER, NTOP_PEN);
   addMapping("JA3C_HASH", JA3C_HASH, NTOP_PEN);
@@ -861,7 +861,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
       flow->http_method = ndpi_http_str2method(value->string, strlen(value->string));
     break;
 
-  case SSL_SERVER_NAME:
+  case TLS_SERVER_NAME:
     if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->tls_server_name) free(flow->tls_server_name);
       flow->tls_server_name = strdup(value->string);
@@ -1070,7 +1070,7 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t fi
   {
     u_int8_t mac[6];
     Utils::parseMac(mac, value->string);
-    return (memcmp(flow->src_mac, mac, sizeof(mac)) == 0);
+    return(memcmp(flow->src_mac, mac, sizeof(mac)) == 0);
   }
 
   case IN_DST_MAC:
@@ -1078,16 +1078,16 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t fi
   {
     u_int8_t mac[6];
     Utils::parseMac(mac, value->string);
-    return (memcmp(flow->dst_mac, mac, sizeof(mac)) == 0);
+    return(memcmp(flow->dst_mac, mac, sizeof(mac)) == 0);
   }
 
   case SRC_TOS:
-    if(value->string) return (flow->src_tos == atoi(value->string));
-    else return (flow->src_tos == value->int_num);
+    if(value->string) return(flow->src_tos == atoi(value->string));
+    else return(flow->src_tos == value->int_num);
 
   case DST_TOS:
-    if(value->string) return (flow->dst_tos == atoi(value->string));
-    else return (flow->dst_tos == value->int_num);
+    if(value->string) return(flow->dst_tos == atoi(value->string));
+    else return(flow->dst_tos == value->int_num);
 
   case IPV4_SRC_ADDR:
   case IPV6_SRC_ADDR:
@@ -1095,14 +1095,14 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t fi
     IpAddress ip;
     if(value->string) ip.set((char *) value->string);
     else ip.set(ntohl(value->int_num));
-    return (flow->src_ip.compare(&ip) == 0);
+    return(flow->src_ip.compare(&ip) == 0);
   }
 
   case IP_PROTOCOL_VERSION:
     if(value->string)
-      return (flow->version == atoi(value->string));
+      return(flow->version == atoi(value->string));
     else
-      return (flow->version == value->int_num);
+      return(flow->version == value->int_num);
 
   case IPV4_DST_ADDR:
   case IPV6_DST_ADDR:
@@ -1110,34 +1110,34 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t fi
     IpAddress ip;
     if(value->string) ip.set((char *) value->string);
     else ip.set(ntohl(value->int_num));
-    return (flow->dst_ip.compare(&ip) == 0);
+    return(flow->dst_ip.compare(&ip) == 0);
   }
 
   case L4_SRC_PORT:
-    if(value->string) return (flow->src_port == htons((u_int32_t) atoi(value->string)));
-    else return (flow->src_port == htons((u_int32_t) value->int_num));
+    if(value->string) return(flow->src_port == htons((u_int32_t) atoi(value->string)));
+    else return(flow->src_port == htons((u_int32_t) value->int_num));
 
   case L4_DST_PORT:
-    if(value->string) return (flow->dst_port == htons((u_int32_t) atoi(value->string)));
-    else return (flow->dst_port == htons((u_int32_t) value->int_num));
+    if(value->string) return(flow->dst_port == htons((u_int32_t) atoi(value->string)));
+    else return(flow->dst_port == htons((u_int32_t) value->int_num));
 
   case SRC_VLAN:
   case DST_VLAN:
   case DOT1Q_SRC_VLAN:
   case DOT1Q_DST_VLAN:
-    if(value->string) return (flow->vlan_id == atoi(value->string));
-    else return (flow->vlan_id == value->int_num);
+    if(value->string) return(flow->vlan_id == atoi(value->string));
+    else return(flow->vlan_id == value->int_num);
 
   case PROTOCOL:
-    if(value->string) return (flow->l4_proto == atoi(value->string));
-    else return (flow->l4_proto == value->int_num);
+    if(value->string) return(flow->l4_proto == atoi(value->string));
+    else return(flow->l4_proto == value->int_num);
 
   case DIRECTION:
-    if(value->string) return (flow->direction == atoi(value->string));
-    else return (flow->direction == value->int_num);
+    if(value->string) return(flow->direction == atoi(value->string));
+    else return(flow->direction == value->int_num);
 
   case EXPORTER_IPV4_ADDRESS:
-    return (flow->device_ip == ntohl(inet_addr(value->string)));
+    return(flow->device_ip == ntohl(inet_addr(value->string)));
 
   case EXPORTER_IPV6_ADDRESS:
     if(value->string != NULL && strlen(value->string) > 0) {
@@ -1146,40 +1146,40 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t fi
       if(inet_pton(AF_INET6, value->string, &ipv6) <= 0)
 
 	return false;
-      return (memcmp(&flow->device_ipv6, &ipv6, sizeof(flow->device_ipv6)) == 0);
+      return(memcmp(&flow->device_ipv6, &ipv6, sizeof(flow->device_ipv6)) == 0);
     }
 
   case INPUT_SNMP:
-    if(value->string) return (flow->inIndex == (u_int32_t)atoi(value->string));
-    else return (flow->inIndex == value->int_num);
+    if(value->string) return(flow->inIndex == (u_int32_t)atoi(value->string));
+    else return(flow->inIndex == value->int_num);
 
   case OUTPUT_SNMP:
-    if(value->string) return (flow->outIndex == (u_int32_t)atoi(value->string));
-    else return (flow->outIndex == value->int_num);
+    if(value->string) return(flow->outIndex == (u_int32_t)atoi(value->string));
+    else return(flow->outIndex == value->int_num);
 
   case OBSERVATION_POINT_ID:
-    if(value->string) return (flow->observationPointId == atoi(value->string));
-    else return (flow->observationPointId == value->int_num);
+    if(value->string) return(flow->observationPointId == atoi(value->string));
+    else return(flow->observationPointId == value->int_num);
 
   case INGRESS_VRFID:
-    if(value->string) return (flow->vrfId == (u_int) atoi(value->string));
-    else return (flow->vrfId == value->int_num);
+    if(value->string) return(flow->vrfId == (u_int) atoi(value->string));
+    else return(flow->vrfId == value->int_num);
 
   case SRC_AS:
-    if(value->string) return (flow->src_as == (u_int32_t) atoi(value->string));
-    else return (flow->src_as == value->int_num);
+    if(value->string) return(flow->src_as == (u_int32_t) atoi(value->string));
+    else return(flow->src_as == value->int_num);
 
   case DST_AS:
-    if(value->string) return (flow->dst_as == (u_int32_t) atoi(value->string));
-    else return (flow->dst_as == value->int_num);
+    if(value->string) return(flow->dst_as == (u_int32_t) atoi(value->string));
+    else return(flow->dst_as == value->int_num);
 
   case BGP_NEXT_ADJACENT_ASN:
-    if(value->string) return (flow->next_adjacent_as == (u_int32_t) atoi(value->string));
-    else return (flow->next_adjacent_as == value->int_num);
+    if(value->string) return(flow->next_adjacent_as == (u_int32_t) atoi(value->string));
+    else return(flow->next_adjacent_as == value->int_num);
 
   case BGP_PREV_ADJACENT_ASN:
-    if(value->string) return (flow->prev_adjacent_as == (u_int32_t) atoi(value->string));
-    else return (flow->prev_adjacent_as == value->int_num);
+    if(value->string) return(flow->prev_adjacent_as == (u_int32_t) atoi(value->string));
+    else return(flow->prev_adjacent_as == value->int_num);
 
   default:
     ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping no-PEN flow fieldId %u", field);
@@ -1214,62 +1214,62 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t fi
     } else {
       l7_proto.app_protocol = value->int_num;
     }
-    return (flow->l7_proto.app_protocol == l7_proto.app_protocol);
+    return(flow->l7_proto.app_protocol == l7_proto.app_protocol);
   }
 
   case L7_PROTO_NAME:
     if(value->string) {
       /* This lookup should be optimized */
       u_int16_t app_protocol = ndpi_get_proto_by_name(get_ndpi_struct(), value->string);
-      return (flow->l7_proto.app_protocol == app_protocol);
+      return(flow->l7_proto.app_protocol == app_protocol);
     } else
       return false;
 
   case L7_INFO:
     if(value->string && flow->l7_info)
-      return (strcmp(flow->l7_info, value->string) == 0);
+      return(strcmp(flow->l7_info, value->string) == 0);
     else
       return false;
 
   case L7_ERROR_CODE:
-    return (flow->l7_error_code == value->int_num);
+    return(flow->l7_error_code == value->int_num);
 
   case DNS_QUERY:
     if(value->string && flow->dns_query)
-      return (strcmp(flow->dns_query, value->string) == 0);
+      return(strcmp(flow->dns_query, value->string) == 0);
     else
       return false;
 
   case DNS_QUERY_TYPE:
-    if(value->string) return (flow->dns_query_type == atoi(value->string));
-    else return (flow->dns_query_type == value->int_num);
+    if(value->string) return(flow->dns_query_type == atoi(value->string));
+    else return(flow->dns_query_type == value->int_num);
 
   case HTTP_URL:
     if(value->string && flow->http_url)
-      return (strcmp(flow->http_url, value->string) == 0);
+      return(strcmp(flow->http_url, value->string) == 0);
     else
       return false;
 
   case HTTP_USER_AGENT:
     if(value->string && flow->http_user_agent)
-      return (strcmp(flow->http_user_agent, value->string) == 0);
+      return(strcmp(flow->http_user_agent, value->string) == 0);
     else
       return false;
 
   case HTTP_SITE:
     if(value->string && flow->http_site)
-      return (strcmp(flow->http_site, value->string) == 0);
+      return(strcmp(flow->http_site, value->string) == 0);
     else
       return false;
 
-  case SSL_SERVER_NAME:
+  case TLS_SERVER_NAME:
     if(value->string && flow->tls_server_name)
-      return (strcmp(flow->tls_server_name, value->string) == 0);
+      return(strcmp(flow->tls_server_name, value->string) == 0);
     else
       return false;
 
   case NPROBE_IPV4_ADDRESS:
-    return (flow->device_ip == ntohl(inet_addr(value->string)));
+    return(flow->device_ip == ntohl(inet_addr(value->string)));
 
   default:
     break;
@@ -1933,7 +1933,7 @@ error:
 /* **************************************************** */
 
 u_int8_t ZMQParserInterface::parseJSONFlow(const char * payload, int payload_size, u_int8_t source_id) {
-  json_object *f;
+  json_object *f = NULL;
   enum json_tokener_error jerr = json_tokener_success;
 
 #if 0

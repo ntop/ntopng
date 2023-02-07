@@ -2905,6 +2905,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
           /* Flow from SyslogParserInterface (Suricata) */
           enum json_tokener_error jerr = json_tokener_success;
           json_object *o = json_tokener_parse_verbose(dequeued->external_alert, &jerr);
+	  
           if(o) flow->setExternalAlert(o);
         }
 
@@ -3066,12 +3067,15 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
     f->update_partial_traffic_stats_db_dump(); /* Checkpoint flow traffic counters for the dump */
 
     /* Prepare the JSON - if requested */
-    if(flows_dump_json)
-      json = f->serialize(flows_dump_json_use_labels);
+    if(flows_dump_json) {
+      json = f->serialize(flows_dump_json_use_labels);   
 
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
+    }
+    
     if(f->get_partial_bytes()) /* Make sure data is not at zero */
       rc = dumper->dumpFlow(when, f, json); /* Finally dump this flow */
-
+    
     if(json) free(json);
 
 #if DEBUG_FLOW_DUMP
@@ -3098,9 +3102,12 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
     f->update_partial_traffic_stats_db_dump(); /* Checkpoint flow traffic counters for the dump */
 
     /* Prepare the JSON - if requested */
-    if(flows_dump_json)
+    if(flows_dump_json) {
       json = f->serialize(flows_dump_json_use_labels);
 
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
+    }
+    
     if(f->get_partial_bytes()) /* Make sure data is not at zero */
       rc = dumper->dumpFlow(when, f, json); /* Finally dump this flow */
 
