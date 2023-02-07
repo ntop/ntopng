@@ -53,7 +53,19 @@
 	</div>
       </div>
     </div>
+
+    <div class="form-group row">
+      <div class="col-sm-3">
+        <label class="col-form-label"><b>{{ _i18n("show_alerts.add_a_comment") }}</b></label>
+      </div>
+      <div class="col-sm-9 mt-1">
+        <input id="alert-label" name="label" class="form-control" type="text" v-model="comment" maxlength="450">
+      </div>
+    </div>
+      <hr v-show="disable_alerts" class="separator" >
+
     <template v-if="radio_selected != 'domain' && radio_selected != 'certificate'">
+
       <div v-show="disable_alerts" class="message alert alert-danger">
 	{{ _i18n("show_alerts.confirm_delete_filtered_alerts") }}
       </div>
@@ -86,6 +98,7 @@ const radio_selected = ref("any");
 const disable_alerts = ref(true);
 const domain = ref(null);
 const tls_certificate = ref(null);
+const comment = ref(null);
 
 const emit = defineEmits(['exclude'])
 
@@ -178,6 +191,8 @@ const exclude = () => {
     let type = get_type();
     let params = {
     	delete_alerts: disable_alerts.value,
+      label: comment.value,
+
 	type,	
     };
     let addr = null;
