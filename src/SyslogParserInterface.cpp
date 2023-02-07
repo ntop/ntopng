@@ -70,6 +70,12 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Raw message: %s", log_line);
 #endif
 
+  /* Check if this is a clean JSON (no Syslog header) */
+  if (strchr(log_line, '{')) {
+    content = log_line;
+    goto detect_producer;
+  }
+
   /*
    * Supported Log Format ({} are used to indicate optional items)
    * {TIMESTAMP;HOST; }<PRIO>{TIMESTAMP DEVICE} APPLICATION{[PID]}{: }CONTENT
@@ -77,7 +83,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
 
   /* Look for <PRIO> */
   prio = strchr(log_line, '<');
-  if (prio == NULL) {
+  if (prio == NULL) {    
     num_malformed++;
     goto exit;
   }
@@ -146,6 +152,8 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
   num_total_events++;
 
   /* Producer Lookup */
+
+ detect_producer:
 
   if (producer_name == NULL && parsed_client_ip != NULL) {
     Utils::stringtolower(parsed_client_ip); /* normalize */
