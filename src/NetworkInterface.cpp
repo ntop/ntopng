@@ -3360,7 +3360,8 @@ void NetworkInterface::startFlowDumping() {
       Use labels for JSON fields when exporting to ElasticSearch or LogStash.
      */
     flows_dump_json_use_labels = ntop->getPrefs()->do_dump_flows_on_es()
-      || ntop->getPrefs()->do_dump_flows_on_syslog();
+      || ntop->getPrefs()->do_dump_flows_on_syslog()
+      || ntop->getPrefs()->do_dump_flows_on_clickhouse();
   }
 
   if(!isViewed()) { /* Do not spawn the dumper thread for viewed interfaces - it's the view interface that has the dumper thread */

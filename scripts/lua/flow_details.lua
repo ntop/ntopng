@@ -1533,18 +1533,37 @@ else
             end
          end
       end
+
+      local function format_custom_field(key, value, snmpdevice) 
+        local formatted_value = handleCustomFlowField(key, value, snmpdevice)
+
+        if((tonumber(formatted_value)) and (math.floor(tonumber(formatted_value)) == 0)) then
+          formatted_value = ''
+        end
+
+        return formatted_value
+      end
       
       local num = 0      
       for key,value in pairsByKeys(info) do
-         if(num == 0) then
-            print("<tr><th colspan=3>"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")
-         end
+        if(num == 0) then
+          print("<tr><th colspan=3>"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")
+        end
 
-         if(value ~= "") then
-            print("<tr><th width=30%>" .. getFlowKey(key) .. "</th><td colspan=2>" .. handleCustomFlowField(key, value, snmpdevice) .. "</td></tr>\n")
-         end
+        if(value ~= "") then
+          if type(value) == "table" then
+            print("<tr><th width=30%>" .. getFlowKey(key) .. "</th>")
+            for _, value in pairs(value or {}) do
+              print("<td colspan=1>" .. format_custom_field(key, value, snmpdevice) .. "</td>")
+            end
+            print("</tr>\n")
+          else
+            print("<tr><th width=30%>" .. getFlowKey(key) .. "</th><td colspan=2>" .. format_custom_field(key, value, snmpdevice) .. "</td></tr>\n")
+          end
 
-         num = num + 1
+        end
+        
+        num = num + 1
       end
    end
 

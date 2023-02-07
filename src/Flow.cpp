@@ -2903,15 +2903,19 @@ char* Flow::serialize(bool use_labels) {
   ntop->getPrefs()->set_json_symbolic_labels_format(use_labels);
 
   my_object = flow2JSON();
+  //ntop->getTrace()->traceEvent(TRACE_WARNING, "Flow Length: %d", json_object_object_length(my_object));
 
   if(my_object != NULL) {
     /* JSON string */
-    rsp = strdup(json_object_to_json_string(my_object));
+    const char *json = json_object_to_json_string(my_object);
+    //ntop->getTrace()->traceEvent(TRACE_WARNING, "Emitting Flow: %s", json);
+    
+    if(json) {
+      rsp = json ? strdup(json) : NULL;
 
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Emitting Flow: %s", rsp);
-
-    /* Free memory */
-    json_object_put(my_object);
+      /* Free memory */
+      json_object_put(my_object);
+    }
   }
 
   return(rsp);

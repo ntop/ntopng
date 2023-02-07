@@ -1592,7 +1592,7 @@ int ZMQParserInterface::parseSingleJSONFlow(json_object *o, u_int8_t source_id) 
     enum json_type type = json_object_get_type(jvalue);
     ParsedValue value = { 0 };
     bool add_to_additional_fields = false;
-
+    
     switch(type) {
     case json_type_int:
       value.int_num = json_object_get_int64(jvalue);
@@ -1601,12 +1601,18 @@ int ZMQParserInterface::parseSingleJSONFlow(json_object *o, u_int8_t source_id) 
     case json_type_double:
       value.double_num = json_object_get_double(jvalue);
       break;
+    case json_type_boolean:
+      value.boolean = json_object_get_boolean(jvalue);
+      break;
     case json_type_string:
       value.string = json_object_get_string(jvalue);
       if(strcmp(key,"json") == 0)
 	additional_o = json_tokener_parse(value.string);
       break;
     case json_type_object:
+      /* This is handled by parseNProbeAgentField or addAdditionalField */
+      break;
+    case json_type_array:
       /* This is handled by parseNProbeAgentField or addAdditionalField */
       break;
     default:
@@ -1935,7 +1941,8 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * payload, int payload_siz
   printf("\n\n%s\n\n", payload);
 #endif
 
-  f = json_tokener_parse_verbose(payload, &jerr);
+  if(payload)
+    f = json_tokener_parse_verbose(payload, &jerr);
 
   if(f != NULL) {
     int n = 0, rc;
