@@ -379,8 +379,7 @@ function hostinfo2detailsurl(host_info, href_params, href_check)
         ntop.getHttpPrefix(),
         hostinfo2url(host_info),
         isEmptyString(url_params) and '' or '&',
-        url_params,
-        href_value)
+        url_params)
     end
   end
 
