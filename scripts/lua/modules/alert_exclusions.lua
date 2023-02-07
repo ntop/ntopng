@@ -157,7 +157,7 @@ local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add
               table.insert(r, t[i])
             end
           else
-            if(t[i] and t[i].alert_key ~= alert_key) then
+            if(t[i] ~= alert_key) then
               table.insert(r, t[i])
             end
           end
