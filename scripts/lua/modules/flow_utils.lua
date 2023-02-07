@@ -1701,7 +1701,12 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
       <ul class="dropdown-menu scrollable-dropdown" role="menu">\
       <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, talking_with_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
          printDropdownEntries(talking_with_list, base_url, talking_with_params, "talking_with", page_params.talking_with)
-         print[[\
+     
+      -- Check if talking_with_list is empty to print \ else is going to didn't call get_flows_data and html crash
+      if #talking_with_list >0 then
+         print[[\]]
+      end
+         print[[
       </ul>\
          </div>\
       ']]
