@@ -891,7 +891,7 @@ end
 
 -- Attempt at retrieving an host label from an host_info, using local caches and DNS resolution.
 -- This can be more expensive if compared to only using information found inside host_info.
-local function hostinfo2label_resolved(host_info, show_vlan, shorten_len)
+local function hostinfo2label_resolved(host_info, show_vlan, shorten_len, skip_resolution)
    local ip = host_info["ip"] or host_info["host"]
    local res
 
@@ -901,15 +901,16 @@ local function hostinfo2label_resolved(host_info, show_vlan, shorten_len)
       res = getHostAltName(host_info["mac"])
    end
 
-   if isEmptyString(res) then
+   -- In case no resolution is requested, directly skip this part
+   if (isEmptyString(res)) and (not skip_resolution) then
       -- Try and get the resolved name
       res = ntop.getResolvedName(ip)
 
       if not isEmptyString(res) then
          res = string.lower(res)
       else
-	 -- Nothing found, just fallback to the IP address
-	 res = ip
+         -- Nothing found, just fallback to the IP address
+         res = ip
       end
    end
 
@@ -928,7 +929,7 @@ end
 -- NOTE: The function attempt at labelling an host only using information found in host_info.
 -- In case host_info is not enough to label the host, then local caches and DNS resolution kick in
 -- to find a label (at the expense of extra time).
-function hostinfo2label(host_info, show_vlan, shorten_len)
+function hostinfo2label(host_info, show_vlan, shorten_len, skip_resolution)
    local alt_name = nil
    local ip = host_info["ip"] or host_info["host"]
 
@@ -945,7 +946,7 @@ function hostinfo2label(host_info, show_vlan, shorten_len)
 	      res = host_info["name"]
 
         if isEmptyString(res) then
-            return hostinfo2label_resolved(host_info, show_vlan, shorten_len)
+            return hostinfo2label_resolved(host_info, show_vlan, shorten_len, skip_resolution)
         end
       end
    end

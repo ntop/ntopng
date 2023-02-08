@@ -812,25 +812,22 @@ function flow_alert_store:format_record(value, no_html)
       blacklisted = value["cli_blacklisted"]
    }
 
-   if no_html then
-      flow_cli_ip["label"] = cli_name_long
-   else
-      if not isEmptyString(value["cli_name"]) and value["cli_name"] ~= flow_cli_ip["value"] then
-         flow_cli_ip["name"] = value["cli_name"]
-      end
-
-      -- Shortened label if necessary for UI purposes
-      flow_cli_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), false --[[ Show VLAN --]], false --[[ Shorten --]])
-      flow_cli_ip["label_long"] = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), false --[[ Show VLAN --]], false)
+   if not isEmptyString(value["cli_name"]) and value["cli_name"] ~= flow_cli_ip["value"] then
+      flow_cli_ip["name"] = value["cli_name"]
    end
 
+   local label = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), false --[[ Show VLAN --]], false --[[ Shorten --]], true --[[ Skip Resolution ]])
+   -- Shortened label if necessary for UI purposes
+   flow_cli_ip["label"] = label
+   flow_cli_ip["label_long"] = label
+   
    -- Format Server
 
    reference_html = ""
    if not no_html then
       reference_html = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
       if reference_html == href_icon then
-	 reference_html = ""
+	      reference_html = ""
       end
    end
 
@@ -852,17 +849,14 @@ function flow_alert_store:format_record(value, no_html)
       blacklisted = value["srv_blacklisted"]
    }
 
-   if no_html then
-      flow_srv_ip["label"] = srv_name_long
-   else
-      if not isEmptyString(value["srv_name"]) and value["srv_name"] ~= flow_srv_ip["value"] then
-         flow_srv_ip["name"] = value["srv_name"]
-      end
-      
-      -- Shortened label if necessary for UI purposes
-      flow_srv_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), false --[[ Show VLAN --]], false --[[ Shorten --]])
-      flow_srv_ip["label_long"] = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), false --[[ Show VLAN --]], false)
+   if not isEmptyString(value["srv_name"]) and value["srv_name"] ~= flow_srv_ip["value"] then
+      flow_srv_ip["name"] = value["srv_name"]
    end
+   
+   label = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), false --[[ Show VLAN --]], false --[[ Shorten --]], true --[[ Skip Resolution ]])
+   -- Shortened label if necessary for UI purposes
+   flow_srv_ip["label"] = label
+   flow_srv_ip["label_long"] = label
 
    local flow_cli_port = value["cli_port"]
    local flow_srv_port = value["srv_port"]
