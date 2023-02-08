@@ -49,7 +49,7 @@ Flow::Flow(NetworkInterface *_iface,
   flow_device.observation_point_id = _observation_point_id;
   cli_host = srv_host = NULL;
   cli_ip_addr = srv_ip_addr = NULL;
-  flow_dropped_counts_increased = 0, vrfId = 0;
+  flow_dropped_counts_increased = 0, vrfId = 0, protocolErrorCode = 0;
   srcAS = dstAS  = prevAdjacentAS = nextAdjacentAS = 0;
   predominant_alert.id = flow_alert_normal, predominant_alert.category = alert_category_other;
   predominant_alert_score = 0;

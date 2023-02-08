@@ -649,7 +649,7 @@ void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout) {
     int numfds;
     fd_set fdset;
     struct timeval tvp;
-    int count, block;
+    int count, block = 0;
     SNMPSession *snmpSession = sessions.at(i);
 
     numfds = 0;

@@ -92,12 +92,14 @@ int TimeseriesExporter::line_protocol_concat_table_fields(lua_State *L, int inde
   lua_pushnil(L);
 
   while(lua_next(L, index) != 0) {
+    const char *s = lua_tostring(L, -1);
+    
     write_ok = false;
 
     if(escape_fn)
-      n = escape_fn(val_buf, sizeof(val_buf), lua_tostring(L, -1));
+      n = escape_fn(val_buf, sizeof(val_buf), s);
     else
-      n = snprintf(val_buf, sizeof(val_buf), "%s", lua_tostring(L, -1));
+      n = snprintf(val_buf, sizeof(val_buf), "%s", s);
 
     if(n > 0 && n < (int)sizeof(val_buf)) {
       n = snprintf(buf + cur_buf_len, buf_len - cur_buf_len,
