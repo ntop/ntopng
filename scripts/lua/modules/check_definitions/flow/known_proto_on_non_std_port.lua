@@ -21,7 +21,7 @@ local script = {
 
 
    gui = {
-      i18n_title = "flow_risk.ndpi_known_protocol_on_non_standard_port",
+      i18n_title = "alerts_dashboard.known_proto_on_non_std_port",
       i18n_description = "flow_risk.ndpi_known_protocol_on_non_standard_port",
    }
 }
