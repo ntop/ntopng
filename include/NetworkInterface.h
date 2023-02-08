@@ -1123,6 +1123,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void luaUsedPorts(lua_State* vm)                                       { usedPorts.lua(vm, this);                       };
   void getProtocolFlowsStats(lua_State* vm);
   void getVLANFlowsStats(lua_State* vm);
+  void getRxOnlyHostsList(lua_State* vm, bool local_host_rx_only, bool list_host_peers);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

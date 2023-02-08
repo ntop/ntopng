@@ -3480,6 +3480,22 @@ static int ntop_get_public_hosts_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_rxonly_hosts_list(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool local_host_rx_only = false, list_host_peers = false;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN) local_host_rx_only = lua_toboolean(vm, 1) ? true : false;
+  if(lua_type(vm, 2) == LUA_TBOOLEAN) list_host_peers    = lua_toboolean(vm, 2) ? true : false;
+    
+  ntop_interface->getRxOnlyHostsList(vm, local_host_rx_only, list_host_peers);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_batched_interface_hosts_info(lua_State* vm) {
   return(ntop_get_batched_interface_hosts(vm, location_all));
 }
@@ -4830,6 +4846,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getRemoteHostsInfo",       ntop_get_interface_remote_hosts_info },
   { "getRemoteHostsInfoNoTX",   ntop_get_interface_remote_hosts_no_tx_info },
   { "getRemoteHostsInfoNoTXTCP",ntop_get_interface_remote_hosts_no_tcp_tx_info },
+  { "getRxOnlyHostsList",          ntop_get_rxonly_hosts_list },
   { "getBroadcastDomainHostsInfo", ntop_get_interface_broadcast_domain_hosts_info },
   { "getPublicHostsInfo",          ntop_get_public_hosts_info },
   { "getBatchedFlowsInfo",         ntop_get_batched_interface_flows_info },

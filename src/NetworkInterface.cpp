@@ -10432,3 +10432,107 @@ void NetworkInterface::getVLANFlowsStats(lua_State* vm) {
     delete it->second;
   }
 }
+
+/* **************************************************** */
+/* **************************************************** */
+
+struct walk_no_tx_hosts_info {
+  lua_State* vm;
+  bool local_host_rx_only, list_host_peers;
+  u_int idx;
+  std::unordered_map<std::string, bool> hosts;
+};
+
+static bool walk_no_tx_hosts(GenericHashEntry *node, void *user_data, bool *matched) {
+  Host *h = (Host*)node;
+
+  if(h->isReceiveOnlyHost()) {  
+    struct walk_no_tx_hosts_info *hosts = static_cast<struct walk_no_tx_hosts_info*>(user_data);
+    bool good = false;
+    
+    if(hosts->local_host_rx_only) {
+      /* retrieve local host (server) with no TX traffic */
+      if(h->isLocalHost())
+	good = true;    
+    } else {
+      /* retrieve remote host (server) with no TX traffic */
+      if(!h->isLocalHost())
+	good = true;   
+    }
+    
+    if(good) {
+      IpAddress *i = h->get_ip();
+      char buf[64];
+      
+      lua_pushstring(hosts->vm, i->print(buf, sizeof(buf)));
+      lua_rawseti(hosts->vm, -2, hosts->idx++);
+    }
+  }
+  
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+  
+static bool walk_no_tx_host_flows(GenericHashEntry *node, void *user_data, bool *matched) {
+  Flow *f = (Flow*)node;
+  Host *c = f->get_cli_host(), *s = f->get_srv_host();
+
+  if(c && s) {
+    struct walk_no_tx_hosts_info *hosts = static_cast<struct walk_no_tx_hosts_info*>(user_data);
+    bool good = false;
+    
+    if(hosts->local_host_rx_only) {
+      /* retrieve local host (server) with no TX traffic */
+      if(s->isLocalHost() && s->isReceiveOnlyHost()) {
+	good = true;
+      }
+    } else {
+      /* retrieve remote host (server) with no TX traffic */
+      if((!s->isLocalHost()) && s->isReceiveOnlyHost()) {
+	good = true;
+      }
+    }
+
+    if(good) {
+      IpAddress *i = c->get_ip();
+      char buf[64], *what = i->print(buf, sizeof(buf));
+      std::string name(what);
+	
+      if(hosts->hosts.find(name) == hosts->hosts.end()) {
+	lua_pushstring(hosts->vm, what);
+	lua_rawseti(hosts->vm, -2, hosts->idx++);
+	hosts->hosts[name] = true; /* Used to avoid duplicates */
+      }
+    }    
+  } 
+  
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+  
+/*
+  local_host_rx_only
+  - true:  retrieve local host (server) with no TX traffic
+  - false: retrieve remote host (server) with no TX traffic 
+
+  list_host_peers
+  - true:  retrieve the peers talking with the hosts with no TX traffic
+  - false: retrieve the host with no TX traffic 
+ */
+void NetworkInterface::getRxOnlyHostsList(lua_State* vm, bool local_host_rx_only, bool list_host_peers) {
+  u_int32_t begin_slot = 0;
+  struct walk_no_tx_hosts_info hosts;
+
+  lua_newtable(vm);
+
+  if(list_host_peers) {
+    hosts.idx = 1, hosts.local_host_rx_only = local_host_rx_only, hosts.list_host_peers = list_host_peers, hosts.vm = vm;    
+    walker(&begin_slot, true /* walk_all */, walker_flows, walk_no_tx_host_flows, &hosts);
+
+  } else {
+    hosts.idx = 1, hosts.local_host_rx_only = local_host_rx_only, hosts.list_host_peers = list_host_peers, hosts.vm = vm;    
+    walker(&begin_slot, true /* walk_all */, walker_hosts, walk_no_tx_hosts, &hosts);
+  }
+}
