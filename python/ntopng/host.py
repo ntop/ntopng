@@ -88,7 +88,7 @@ class Host:
         :return: All active flows
         :rtype: array
         """
-        return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/flow/active.lua", {"ifid": self.ifid, "host": self.ip, "vlan": self.vlan, "currentPage": currentPage, "perPage": perPage}))
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/active.lua", {"ifid": self.ifid, "host": self.ip, "vlan": self.vlan, "currentPage": currentPage, "perPage": perPage}))
 
     def self_test(self):
         try:
