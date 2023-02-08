@@ -53,7 +53,7 @@
 	</div>
       </div>
     </div>
-    <div class="form-group row">
+    <div v-if="radio_selected != 'any'" class="form-group row">
       <div>
         <label class="col-form-label"><b>{{ _i18n("show_alerts.add_a_comment") }}</b></label>
       </div>

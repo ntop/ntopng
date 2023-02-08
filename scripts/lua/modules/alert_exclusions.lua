@@ -16,6 +16,8 @@ local json = require "dkjson"
 
 local alert_exclusions = {}
 
+local exclusion_comment_map = "ntopng.cache.exclusion_alert_comment"
+
 -- ##############################################
 
 local function _get_alert_exclusions_prefix_key()
@@ -133,35 +135,38 @@ local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add
         }
       end
  
+      local exlusion_comment_map_key = ""
+
       if(is_flow_exclusion) then
-        table.insert(exclusions[subject_key].flow_alerts, {alert_key = alert_key, comment = comment})
+        table.insert(exclusions[subject_key].flow_alerts, alert_key)
+        exlusion_comment_map_key = string.format('%s_%s_%s', "flow", subject_key, alert_key)
       else
-        table.insert(exclusions[subject_key].host_alerts, {alert_key = alert_key, comment = comment})
+        table.insert(exclusions[subject_key].host_alerts, alert_key)
+        exlusion_comment_map_key = string.format('%s_%s_%s', "host", subject_key, alert_key)
+
       end
+      
+      ntop.setHashCache(exclusion_comment_map, exlusion_comment_map_key, comment)
 
     else
       -- ip@vlan
       if exclusions[subject_key] then
         local r = {}
         local t = {}
-        
+
+        local exlusion_comment_map_key = ""
+
         if(is_flow_exclusion) then
           t = exclusions[subject_key].flow_alerts
+          exlusion_comment_map_key = string.format('%s_%s_%s', "flow", subject_key, alert_key)
         else
           t = exclusions[subject_key].host_alerts
+          exlusion_comment_map_key = string.format('%s_%s_%s', "host", subject_key, alert_key)
         end
 
         for i=0,table.len(t) do
-          if (t[i]) then
-            if (type(t[i]) == "table") then
-              if (t[i].alert_key ~= alert_key) then
-                table.insert(r, t[i])
-              end
-            else
-              if (t[i] ~= alert_key) then
-                table.insert(r, t[i])
-              end
-            end
+          if(t[i] ~= alert_key) then
+            table.insert(r, t[i])
           end
         end
 	    
@@ -178,6 +183,9 @@ local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add
             table.len(exclusions[subject_key].host_alerts) == 0) then
           exclusions[subject_key] = nil
         end
+
+        ntop.delHashCache(exclusion_comment_map, exlusion_comment_map_key)
+
       end
     end
     _set_configured_alert_exclusions(exclusions)
@@ -256,13 +264,23 @@ local function _enable_all_alerts_by_type(subject_type, host_ip, vlan_id)
         else
           new_exclusions[subject_key] = v
         end
-
+        -- delete all host alert exclusions
+        for k in ipairs(v.host_alerts) do
+          local exlusion_comment_map_key = string.format('%s_%s_%s', "host", subject_key, k)
+          ntop.delHashCache(exclusion_comment_map, exlusion_comment_map_key)
+        end
       -- Enabling all by type
       else
         if v.type == subject_type then
           -- nothing to do (do not add this to the new configuration)
         else
           new_exclusions[subject_key] = v
+        end
+
+        -- delete all flow alert exclusions
+        for k in ipairs(v.flow_alerts) do
+          local exlusion_comment_map_key = string.format('%s_%s_%s', "flow", subject_key, k)
+          ntop.delHashCache(exclusion_comment_map, exlusion_comment_map_key)
         end
       end
     end
@@ -339,21 +357,13 @@ local function _get_exclusions(is_flow_exclusion, alert_key, subject_type)
       if not t then
         traceError(TRACE_INFO,TRACE_CONSOLE, "Failure checking exclusions")
       else
-      
-        for i=0,table.len(t) do
 
-          if (t[i] ~= nil) then
-            if (type(t[i]) == "table") then
-              if (t[i].alert_key == alert_key) then
-                ret[subject_key] = {value = true, comment = t[i].comment} 
-                break
-              end
-            else
-              if t[i] == alert_key then
-                ret[subject_key] = true
-                break
-              end
-            end
+
+        for i=0,table.len(t) do
+          if t[i] == alert_key then
+            ret[subject_key] = true
+            
+            break
           end
         end   
       end
@@ -361,6 +371,13 @@ local function _get_exclusions(is_flow_exclusion, alert_key, subject_type)
   end
   
   return ret
+end
+
+-- ##############################################
+
+function alert_exclusions.get_comment(subject_key, subject_type, alert_key) 
+  local exlusion_comment_map_key = string.format('%s_%s_%s', subject_type, subject_key, alert_key)
+  return ntop.getHashCache(exclusion_comment_map, exlusion_comment_map_key)
 end
 
 -- ##############################################
