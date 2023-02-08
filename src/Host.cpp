@@ -1960,11 +1960,12 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
 
 void Host::refreshDisabledAlerts() {
 #ifdef NTOPNG_PRO
-  AlertExclusions *alert_excl = ntop->getAlertExclusions();
+  AlertExclusions *ntop_alert_exclusions = ntop->getAlertExclusions();
 
-  if(alert_excl && alert_excl->checkChange(&disabled_alerts_tstamp)) {
+  if(ntop_alert_exclusions && 
+     ntop_alert_exclusions->checkChange(&disabled_alerts_tstamp)) {
     /* Set alert exclusion into the host */
-    alert_excl->setDisabledHostAlertsBitmaps(this);
+    ntop_alert_exclusions->setDisabledHostAlertsBitmaps(this);
   }
 #endif
 }
