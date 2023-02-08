@@ -529,7 +529,6 @@
 #define APPLICATION_NAME                       NTOP_BASE_ID+427 /* App-Id */
 #define USER_NAME                              NTOP_BASE_ID+428 /* User-Id */
 
-#define NPROBE_IPV4_ADDRESS   NTOP_BASE_ID+471
 #define L7_PROTO_RISK_NAME    NTOP_BASE_ID+510
 #define TLS_REQUESTED_SNI     NTOP_BASE_ID+511
 #define TLS_SERVER_NAMES      NTOP_BASE_ID+512
@@ -549,8 +548,13 @@
 #define FLOW_RISK             NTOP_BASE_ID+508
 #define SRC_ASN               NTOP_BASE_ID+525
 #define DST_ASN               NTOP_BASE_ID+526
-#define L7_RISK_SCORE         NTOP_BASE_ID+527
+#define PROBE_IP              NTOP_BASE_ID+527
 #define L4_PROTO_NAME         NTOP_BASE_ID+528
 #define L7_CATEGORY_ID        NTOP_BASE_ID+529
+#define NTOPNG_INSTANCE_NAME  NTOP_BASE_ID+530
+#define L7_RISK_SCORE         NTOP_BASE_ID+531
+#define FLOW_TIME             NTOP_BASE_ID+532
+#define PROFILE               NTOP_BASE_ID+533
+#define STATUS                NTOP_BASE_ID+534
 
 #endif /* _NTOP_FLOW_H_ */

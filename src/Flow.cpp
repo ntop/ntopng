@@ -3461,7 +3461,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
 
     if(info)
       json_object_object_add(my_object,
-			     Utils::jsonLabel(INFO, "INFO", jsonbuf, sizeof(jsonbuf)),
+			     Utils::jsonLabel(L7_INFO, "INFO", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(info));
 #endif
 
