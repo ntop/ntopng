@@ -1519,9 +1519,13 @@ bool Utils::postHTTPJsonData(char *bearer_token, char *username, char *password,
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if (bearer_token && bearer_token[0] != '\0') {
+#ifdef CURLAUTH_BEARER
       curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
       curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, bearer_token);
-
+#else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Bearer auth is not supported by curl (%s)", url);
+      return(false);
+#endif
     } else if((username && (username[0] != '\0'))
        || (password && (password[0] != '\0'))) {
       char auth[64];
