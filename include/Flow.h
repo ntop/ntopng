@@ -922,7 +922,8 @@ class Flow : public GenericHashEntry {
   }
 
   inline bool timeToPeriodicDump(u_int sec) {
-    return((sec - get_first_seen()        >= CONST_DB_DUMP_FREQUENCY) &&
+    return((sec - get_first_seen()        >= CONST_DB_DUMP_FREQUENCY)
+	   &&
            (sec - get_partial_last_seen() >= CONST_DB_DUMP_FREQUENCY));
   }
 

@@ -3072,7 +3072,12 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
     }
-    
+
+#ifndef HAVE_NEDGE
+    if(ntop->get_export_interface() && (json != NULL))
+      ntop->get_export_interface()->export_data(json);  
+#endif
+
     if(f->get_partial_bytes()) /* Make sure data is not at zero */
       rc = dumper->dumpFlow(when, f, json); /* Finally dump this flow */
     

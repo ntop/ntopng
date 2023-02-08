@@ -1552,21 +1552,7 @@ bool Flow::dump(time_t t, bool last_dump_before_free) {
 
   /* Add protocol information in the JSON field (if not already set by alerts) */
   setProtocolJSONInfo();
-
   getInterface()->dumpFlow(get_last_seen(), this);
-
-#ifndef HAVE_NEDGE
-  if(ntop->get_export_interface()) {
-    char *json = serialize(false);
-
-    if(json) {
-      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json); */
-
-      ntop->get_export_interface()->export_data(json);
-      free(json);
-    }
-  }
-#endif
 
   return(true);
 }
@@ -2074,6 +2060,7 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
   bool first_partial;
   PartializableFlowTrafficStats partial;
   Host *cli_h = NULL, *srv_h = NULL;
+
   get_partial_traffic_stats(&periodic_stats_update_partial, &partial, &first_partial);
 
   u_int32_t diff_sent_packets = partial.get_cli2srv_packets();
@@ -2160,7 +2147,7 @@ void Flow::dumpCheck(time_t t, bool last_dump_before_free) {
      )
 #ifdef NTOPNG_PRO
      && (getInterface()->isPacketInterface() /* Not a ZMQ interface */
-         || !ntop->getPrefs()->do_dump_flows_direct() /* Direct dump not enabled */ )
+         || (!ntop->getPrefs()->do_dump_flows_direct() /* Direct dump not enabled */))
 #endif
     ) {
     dump(t, last_dump_before_free);
@@ -2827,7 +2814,6 @@ bool Flow::is_hash_entry_state_idle_transition_ready() {
   if(iface->getIfType() == interface_type_ZMQ ||
      iface->getIfType() == interface_type_SYSLOG) {
     ret = is_active_entry_now_idle(iface->getFlowMaxIdle());
-
   } else {
     if(protocol == IPPROTO_TCP) {
       u_int8_t tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;
@@ -3044,7 +3030,6 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
     }
 
     json_object_object_add(my_object, "community_id", json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
-
 
   #ifdef NTOPNG_PRO
   #ifndef HAVE_NEDGE
@@ -3829,7 +3814,6 @@ void Flow::housekeep(time_t t) {
        || (is_swap_requested() && !is_swap_done())) /* Or requested but never performed (no more packets seen) */
       iface->execFlowEndChecks(this);
 
-    update_partial_traffic_stats_db_dump(); /* Checkpoint flow traffic counters for the dump */
     dumpCheck(t, true /* LAST dump before delete */);
 
   #ifdef NTOPNG_PRO
