@@ -1503,7 +1503,7 @@ static void fillcURLProxy(CURL *curl) {
 
 /* **************************************** */
 
-bool Utils::postHTTPJsonData(char *username, char *password, char *url,
+bool Utils::postHTTPJsonData(char *bearer_token, char *username, char *password, char *url,
 			     char *json, int timeout, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = false;
@@ -1518,7 +1518,11 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
-    if((username && (username[0] != '\0'))
+    if (bearer_token && bearer_token[0] != '\0') {
+      curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
+      curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, bearer_token);
+
+    } else if((username && (username[0] != '\0'))
        || (password && (password[0] != '\0'))) {
       char auth[64];
 
@@ -1581,7 +1585,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 
 /* **************************************** */
 
-bool Utils::postHTTPJsonData(char *username, char *password, char *url,
+bool Utils::postHTTPJsonData(char *bearer_token, char *username, char *password, char *url,
                              char *json, int timeout, HTTPTranferStats *stats,
                              char *return_data, int return_data_size, int *response_code) {
   CURL *curl;
@@ -1602,7 +1606,11 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
-    if((username && (username[0] != '\0'))
+    if (bearer_token && bearer_token[0] != '\0') {
+      curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
+      curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, bearer_token);
+
+    } else if((username && (username[0] != '\0'))
        || (password && (password[0] != '\0'))) {
       char auth[64];
 

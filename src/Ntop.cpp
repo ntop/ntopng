@@ -1753,7 +1753,8 @@ bool Ntop::checkUserPassword(const char * user, const char * password, char *gro
       snprintf(postData, postLen, "{\"user\": \"%s\", \"password\": \"%s\"}",
                user, password);
 
-      if(Utils::postHTTPJsonData(NULL, // no digest user
+      if(Utils::postHTTPJsonData(NULL, // no token
+				 NULL, // no digest user
                                  NULL, // no digest password
                                  httpUrl,
                                  postData, 0, &stats,

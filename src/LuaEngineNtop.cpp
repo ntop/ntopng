@@ -2388,7 +2388,7 @@ static int ntop_change_user_pcap_download_permission(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_post_http_json_data(lua_State* vm) {
-  char *username, *password, *url, *json;
+  char *username, *password, *url, *json, *bearer_token = NULL;
   HTTPTranferStats stats;
   int timeout = 0;
 
@@ -2407,7 +2407,10 @@ static int ntop_post_http_json_data(lua_State* vm) {
   /* Optional timeout */
   if(lua_type(vm, 5) == LUA_TNUMBER) timeout = lua_tonumber(vm, 5);
 
-  bool rv = Utils::postHTTPJsonData(username, password, url, json, timeout, &stats);
+  /* Optional timeout */
+  if(lua_type(vm, 6) == LUA_TSTRING) bearer_token = (char*)lua_tostring(vm, 6);
+
+  bool rv = Utils::postHTTPJsonData(bearer_token, username, password, url, json, timeout, &stats);
 
   lua_pushboolean(vm, rv);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));

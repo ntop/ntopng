@@ -194,8 +194,8 @@ void ElasticSearch::indexESdata() {
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "ES: Buffered request with %d flows (%d bytes)", num_flows, len);
 
-      if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
-				  ntop->getPrefs()->get_es_pwd(),
+      if(!Utils::postHTTPJsonData(NULL,
+				  ntop->getPrefs()->get_es_user(), ntop->getPrefs()->get_es_pwd(),
 				  ntop->getPrefs()->get_es_url(),
 				  postbuf, 0, &stats)) {
 	/* Post failure */
@@ -325,8 +325,8 @@ void ElasticSearch::pushEStemplate() {
     template_file.close();            // close file handle
 
   while(max_attempts > 0) {
-    if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
-				ntop->getPrefs()->get_es_pwd(),
+    if(!Utils::postHTTPJsonData(NULL,
+				ntop->getPrefs()->get_es_user(), ntop->getPrefs()->get_es_pwd(),
 				es_template_push_url, postbuf, 0, &stats)) {
       /* Post failure */
       sleep(1);

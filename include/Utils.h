@@ -93,12 +93,11 @@ public:
   static bool purifyHTTPparam(char * const param, bool strict, bool allowURL, bool allowDots);
   static char* stripHTML(const char * str);
   static bool sendTCPData(char *host, int port, char *data, int timeout);
-  static bool postHTTPJsonData(char *username, char *password, char *url,
+  static bool postHTTPJsonData(char *bearer_token, char *username, char *password, char *url,
 			       char *json, int timeout, HTTPTranferStats *stats);
-  static bool postHTTPJsonData(char *username, char *password, char *url,
-			       char *json, int timeout,
-			       HTTPTranferStats *stats, char *return_data,
-			       int return_data_size, int *response_code);
+  static bool postHTTPJsonData(char *bearer_token, char *username, char *password, char *url,
+			       char *json, int timeout, HTTPTranferStats *stats,
+			       char *return_data, int return_data_size, int *response_code);
   static bool sendMail(lua_State* vm, char *from, char *to, char *cc, char *message, char *smtp_server, char *username, char *password);
   static bool postHTTPTextFile(lua_State* vm, char *username, char *password,
 			       char *url, char *path, int timeout, HTTPTranferStats *stats);
