@@ -1129,6 +1129,21 @@ The alert notifies about unidirectional UDP flow.
 
 *Enabled by Default*
 
+**VLAN Bidirectional Flow**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check for bidirectional flow.
+
+In the check preference you can specify (numeric) the enabled VLAN IDs
+that can be observed (the '0' value represents the untagged flows, meaning no VLAN). 
+In case ntopng identifies a bidirectional flow member of one enabled VLAN ID of this list
+with remote server address, an alert is triggered.
+
+
+*Category: Cybersecurity*
+
+*Disabled by Default*
+
 
 **IEC Invalid Command Transition**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
