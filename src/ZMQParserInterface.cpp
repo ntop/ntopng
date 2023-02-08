@@ -23,8 +23,6 @@
 
 #ifndef HAVE_NEDGE
 
-// #define DEBUG_FLOW_DRIFT
-
 /* **************************************************** */
 
 /* IMPORTANT: keep it in sync with flow_fields_description part of flow_utils.lua */
@@ -272,27 +270,6 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
 
     zrs.source_id = source_id;
 
-    if(json_object_object_get_ex(o, "time", &w)) {
-      int32_t time_delta;
-
-      zrs.local_time  = (u_int32_t) time(NULL);
-      zrs.remote_time = (u_int32_t)json_object_get_int64(w);
-
-      time_delta = (int32_t) zrs.local_time - zrs.remote_time;
-
-      /*
-	 Skip the check for the first few seconds
-	 as we might receive old messages from the probe
-      */
-      if((zrs.local_time - polling_start_time) > 5) {
-	if(abs(time_delta) >= 10) {
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remote probe clock drift detected (local: %u remote: %u)",
-				       zrs.local_time, zrs.remote_time);
-	}
-      } else
-	zrs.remote_time = zrs.local_time; /* Avoid clock drift messages during the grace period */
-    }
-
     if(json_object_object_get_ex(o, "bytes", &w))   zrs.remote_bytes = (u_int64_t)json_object_get_int64(w);
     if(json_object_object_get_ex(o, "packets", &w)) zrs.remote_pkts  = (u_int64_t)json_object_get_int64(w);
 
@@ -320,6 +297,27 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
 	snprintf(zrs.remote_probe_edition, sizeof(zrs.remote_probe_edition), "%s", json_object_get_string(z));
       if(json_object_object_get_ex(w, "maintenance", &z))
 	snprintf(zrs.remote_probe_maintenance, sizeof(zrs.remote_probe_maintenance), "%s", json_object_get_string(z));
+    }
+
+    if(json_object_object_get_ex(o, "time", &w)) {
+      int32_t time_delta;
+      
+      zrs.local_time  = (u_int32_t) time(NULL);
+      zrs.remote_time = (u_int32_t)json_object_get_int64(w); /* nProbe remote time */
+
+      time_delta = (int32_t) zrs.local_time - zrs.remote_time;
+
+      /*
+	 Skip the check for the first few seconds
+	 as we might receive old messages from the probe
+      */
+      if((zrs.local_time - polling_start_time) > 5) {
+	if(abs(time_delta) >= 10) {
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remote probe clock drift %u sec detected (local: %u remote: %u [%s])",
+				       abs(time_delta), zrs.local_time, zrs.remote_time, zrs.remote_probe_address);
+	}
+      } else
+	zrs.remote_time = zrs.local_time; /* Avoid clock drift messages during the grace period */
     }
 
     if(json_object_object_get_ex(o, "avg", &w)) {
@@ -1457,7 +1455,7 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
       /* Direction already reliable when the event is an accept or a connect.
          Heuristic is only used in the other cases. */
 #if 0
-      /* Disabled as Flow::setParsedeBPFInfo() now suports directions */
+      /* Disabled as Flow::setParsedeBPFInfo() now supports directions */
       if(flow->event_type != ebpf_event_type_tcp_accept
 	 && flow->event_type != ebpf_event_type_tcp_connect
 	 && ntohs(flow->src_port) < ntohs(flow->dst_port))
@@ -1481,83 +1479,8 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 	 https://github.com/ntop/ntopng/issues/1978 */
       flow->swap();
 
-
     if(flow->pkt_sampling_rate == 0)
       flow->pkt_sampling_rate = 1;
-
-#if 0
-    u_int32_t max_drift, boundary;
-
-    /*
-      Disabled as this causes timestamps to be altered at every run, invalidating
-      first and last switched, as well as throughput data.
-    */
-
-    if(getTimeLastPktRcvdRemote() > 0) {
-      /*
-	Adjust time to make sure time won't break ntopng
-
-	getTimeLastPktRcvdRemote() can be zero at boot so the if()...
-      */
-      max_drift = 2*flow_max_idle;
-      boundary = getTimeLastPktRcvdRemote() - max_drift;
-      if(flow->first_switched < boundary) {
-#ifdef DEBUG_FLOW_DRIFT
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Fixing first_switched [current: %u][max: %u][drift: %u]",
-				     flow->first_switched, boundary, boundary-flow->first_switched);
-#endif
-	flow->first_switched = boundary;
-
-	if(flow->first_switched > flow->last_switched)
-	  flow->last_switched = flow->first_switched;
-      }
-
-      boundary = getTimeLastPktRcvdRemote() + max_drift;
-      if(flow->last_switched > boundary) {
-#ifdef DEBUG_FLOW_DRIFT
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Fixing last_switched [current: %u][max: %u][drift: %u]",
-				     flow->last_switched, boundary, flow->last_switched-boundary);
-#endif
-	flow->last_switched = boundary;
-
-	if(flow->last_switched < flow->first_switched)
-	  flow->last_switched = flow->first_switched;
-      }
-    }
-
-    /* We need to fix the clock drift */
-    time_t now = time(NULL);
-
-    if(getTimeLastPktRcvdRemote() > 0) {
-      int drift = now - getTimeLastPktRcvdRemote();
-
-      if(drift >= 0)
-	flow->last_switched += drift, flow->first_switched += drift;
-      else {
-	u_int32_t d = (u_int32_t)-drift;
-
-	if(d < flow->last_switched || d < flow->first_switched)
-	  flow->last_switched  += drift, flow->first_switched += drift;
-      }
-
-#ifdef DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
-				   flow->first_switched,  flow->last_switched,
-				   flow->last_switched-flow->first_switched, drift,
-				   now, getTimeLastPktRcvdRemote());
-#endif
-    } else {
-      /* Old nProbe */
-
-      if(!getTimeLastPktRcvd())
-	setTimeLastPktRcvd(now);
-
-      /* NOTE: do not set TimeLastPktRcvdRemote here as doing so will trigger the
-       * drift calculation above on next flows, leading to incorrect timestamps.
-       */
-    }
-#endif
 
     /* Process Flow */
     INTERFACE_PROFILING_SECTION_ENTER("processFlow", 30);
@@ -2542,6 +2465,7 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   last_pkt_rcvd_remote = cumulative_zrs->remote_time;
   last_remote_pps = cumulative_zrs->avg_pps;
   last_remote_bps = cumulative_zrs->avg_bps;
+  
   if(cumulative_zrs->flow_collection.sflow_samples > 0)
     is_sampled_traffic = true;
 
@@ -2560,6 +2484,7 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
      || cumulative_zrs->num_flow_exports < zmq_remote_initial_exported_flows) /* nProbe has been restarted */
     zmq_remote_initial_exported_flows = cumulative_zrs->num_flow_exports;
 
+  /* Swap values */
   if(zmq_remote_stats_shadow) free(zmq_remote_stats_shadow);
   zmq_remote_stats_shadow = zmq_remote_stats;
   zmq_remote_stats = cumulative_zrs;
