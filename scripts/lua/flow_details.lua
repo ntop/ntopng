@@ -1536,7 +1536,7 @@ else
 
       local function format_custom_field(key, value, snmpdevice) 
         local formatted_value = handleCustomFlowField(key, value, snmpdevice)
-
+        
         if((tonumber(formatted_value)) and (math.floor(tonumber(formatted_value)) == 0)) then
           formatted_value = ''
         end
@@ -1546,6 +1546,14 @@ else
       
       local num = 0      
       for key,value in pairsByKeys(info) do
+        if tonumber(key) then
+          key = getFlowLabelFromId(key)
+        end
+
+        if fieldAlreadyPresent(key, flow) then
+          goto continue
+        end
+
         if(num == 0) then
           print("<tr><th colspan=3>"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")
         end
@@ -1564,6 +1572,8 @@ else
         end
         
         num = num + 1
+
+        ::continue::
       end
    end
 
