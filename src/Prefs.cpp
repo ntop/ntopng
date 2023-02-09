@@ -1173,7 +1173,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     {
       char *cur_nets = parseLocalNetworks(optarg);
 
-      if(cur_nets) {
+      if(cur_nets && strlen(cur_nets) > 0) {
 
         if (!local_networks_set) {
           free(local_networks);
@@ -1182,25 +1182,17 @@ int Prefs::setOption(int optkey, char *optarg) {
 
         } else {
           
-          /* If local_networks is already set up, the new -m argument is going to be concat (comma separeted) to the old one */
+           /* If local_networks is already set up, the new -m argument is going to be concat (comma separeted) to the old one */
 
-          int size_old_local_networks = strlen(local_networks);
-          int size_cur_nets = strlen(cur_nets);
-          int size_new_old_local_networks = size_old_local_networks + size_cur_nets + 2;
-          
-          char *tmp = (char*) malloc(sizeof(char) * size_old_local_networks);
-          strncpy(tmp,local_networks,size_old_local_networks);
-          
-          local_networks = (char*) realloc(local_networks, sizeof(char)*size_new_old_local_networks);
-          
-          strncpy(local_networks,tmp, size_old_local_networks);
-          local_networks[size_old_local_networks] = ',';
-          strcat(local_networks,cur_nets);
-          local_networks[size_new_old_local_networks - 1] = '\0';
+          int new_local_networks_size = strlen(local_networks) + strlen(cur_nets) + 2;
+          char* new_local_networks = (char*) malloc(sizeof(char)*new_local_networks_size);
+          snprintf(new_local_networks, new_local_networks_size,"%s,%s", local_networks, cur_nets);
+          free(cur_nets);
+          free(local_networks);
+          local_networks = new_local_networks;
 
-          free(tmp);
         }
-      }
+      }      
     }
     break;
 
