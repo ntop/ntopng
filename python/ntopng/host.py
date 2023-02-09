@@ -96,6 +96,8 @@ class Host:
             print(self.get_host_data())
             print("L7 Stats ----------------------------")
             print(self.get_l7_stats())
+            print("Active Flows ----------------------------")
+            print(self.get_active_flows_paginated(1, 10))
             print("DSCP Stats (RX) ----------------------------")
             print(self.get_dscp_stats(True))
             print("DSCP Stats (TX) ----------------------------")
