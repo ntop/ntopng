@@ -799,6 +799,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   Country* getCountry(const char *country_name, bool create_if_not_present, bool is_inline_call);
   virtual Mac*  getMac(u_int8_t _mac[6], bool create_if_not_present, bool is_inline_call);
   virtual Host* getHost(char *host_ip, VLANid vlan_id, u_int16_t observationPointId, bool is_inline_call);
+  virtual Host* getHostByIP(IpAddress *ip, VLANid vlan_id, u_int16_t observationPointId, bool is_inline_call);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id);
   void findPidFlows(lua_State *vm, u_int32_t pid);
   void findProcNameFlows(lua_State *vm, char *proc_name);

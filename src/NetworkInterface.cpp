@@ -4179,6 +4179,19 @@ bool NetworkInterface::restoreHost(char *host_ip, VLANid vlan_id) {
 
 /* **************************************************** */
 
+Host* NetworkInterface::getHostByIP(IpAddress *ip,
+				    VLANid vlan_id,
+				    u_int16_t observation_point_id,
+				    bool isInlineCall) {
+  Host *h;
+  
+  h = hosts_hash ? hosts_hash->get(vlan_id, ip, isInlineCall, observation_point_id) : NULL;
+
+  return(h);
+}
+
+/* **************************************************** */
+
 Host* NetworkInterface::getHost(char *host_ip, VLANid vlan_id,
 				u_int16_t observation_point_id,
 				bool isInlineCall) {
@@ -4208,7 +4221,7 @@ Host* NetworkInterface::getHost(char *host_ip, VLANid vlan_id,
     if(ip) {
       ip->set(host_ip);
 
-      h = hosts_hash ? hosts_hash->get(vlan_id, ip, isInlineCall, observation_point_id) : NULL;
+      h = getHostByIP(ip, vlan_id, isInlineCall, observation_point_id);
 
       delete ip;
     }
@@ -10441,6 +10454,7 @@ struct walk_no_tx_hosts_info {
   bool local_host_rx_only, list_host_peers;
   u_int idx;
   std::unordered_map<std::string, bool> hosts;
+  NetworkInterface *iface;
 };
 
 static bool walk_no_tx_hosts(GenericHashEntry *node, void *user_data, bool *matched) {
@@ -10476,10 +10490,18 @@ static bool walk_no_tx_hosts(GenericHashEntry *node, void *user_data, bool *matc
   
 static bool walk_no_tx_host_flows(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
+  struct walk_no_tx_hosts_info *hosts = static_cast<struct walk_no_tx_hosts_info*>(user_data);
   Host *c = f->get_cli_host(), *s = f->get_srv_host();
 
+  /* View interfaces need this extra step */
+  if(c == NULL)
+    c = hosts->iface->getHostByIP((IpAddress*)f->get_cli_ip_addr(), f->get_vlan_id(),
+				  f->getFlowObservationPointId(), false);
+  if(s == NULL)
+    s = hosts->iface->getHostByIP((IpAddress*)f->get_srv_ip_addr(), f->get_vlan_id(),
+				  f->getFlowObservationPointId(), false);
+  
   if(c && s) {
-    struct walk_no_tx_hosts_info *hosts = static_cast<struct walk_no_tx_hosts_info*>(user_data);
     bool good = false;
     
     if(hosts->local_host_rx_only) {
@@ -10498,7 +10520,9 @@ static bool walk_no_tx_host_flows(GenericHashEntry *node, void *user_data, bool 
       IpAddress *i = c->get_ip();
       char buf[64], *what = i->print(buf, sizeof(buf));
       std::string name(what);
-	
+
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking %s", name.c_str()); */
+      
       if(hosts->hosts.find(name) == hosts->hosts.end()) {
 	lua_pushstring(hosts->vm, what);
 	lua_rawseti(hosts->vm, -2, hosts->idx++);
@@ -10527,12 +10551,13 @@ void NetworkInterface::getRxOnlyHostsList(lua_State* vm, bool local_host_rx_only
 
   lua_newtable(vm);
 
+  hosts.idx = 1, hosts.iface = this;;
+  
   if(list_host_peers) {
-    hosts.idx = 1, hosts.local_host_rx_only = local_host_rx_only, hosts.list_host_peers = list_host_peers, hosts.vm = vm;    
+    hosts.local_host_rx_only = local_host_rx_only, hosts.list_host_peers = list_host_peers, hosts.vm = vm;    
     walker(&begin_slot, true /* walk_all */, walker_flows, walk_no_tx_host_flows, &hosts);
-
   } else {
-    hosts.idx = 1, hosts.local_host_rx_only = local_host_rx_only, hosts.list_host_peers = list_host_peers, hosts.vm = vm;    
+    hosts.local_host_rx_only = local_host_rx_only, hosts.list_host_peers = list_host_peers, hosts.vm = vm;    
     walker(&begin_slot, true /* walk_all */, walker_hosts, walk_no_tx_hosts, &hosts);
   }
 }
