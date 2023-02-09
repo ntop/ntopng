@@ -1174,9 +1174,32 @@ int Prefs::setOption(int optkey, char *optarg) {
       char *cur_nets = parseLocalNetworks(optarg);
 
       if(cur_nets) {
-	free(local_networks);
-	local_networks = cur_nets;
-	local_networks_set = true;
+
+        if (!local_networks_set) {
+          free(local_networks);
+          local_networks = cur_nets;
+          local_networks_set = true;
+
+        } else {
+          
+          /* If local_networks is already set up, the new -m argument is going to be concat (comma separeted) to the old one */
+
+          int size_old_local_networks = strlen(local_networks);
+          int size_cur_nets = strlen(cur_nets);
+          int size_new_old_local_networks = size_old_local_networks + size_cur_nets + 2;
+          
+          char *tmp = (char*) malloc(sizeof(char) * size_old_local_networks);
+          strncpy(tmp,local_networks,size_old_local_networks);
+          
+          local_networks = (char*) realloc(local_networks, sizeof(char)*size_new_old_local_networks);
+          
+          strncpy(local_networks,tmp, size_old_local_networks);
+          local_networks[size_old_local_networks] = ',';
+          strcat(local_networks,cur_nets);
+          local_networks[size_new_old_local_networks - 1] = '\0';
+
+          free(tmp);
+        }
       }
     }
     break;
