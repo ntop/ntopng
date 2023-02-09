@@ -259,7 +259,10 @@ void FlowChecksLoader::loadConfiguration() {
 	  cb->scriptDisable(); 
 	}
       }	else
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find flow check '%s': skipping it", check_key);
+      /* In case of tls_old_protocol_version do not trigger, due to some changes, 
+         it is normal that is going to trigger the warning */
+      if(strcmp(check_key, "tls_old_protocol_version")) 
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find flow check '%s': skipping it", check_key);
     }
 
   next_object:
