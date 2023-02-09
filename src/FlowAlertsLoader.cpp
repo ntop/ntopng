@@ -73,7 +73,6 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(TCPPacketsIssuesAlert::getClassType(),           TCPPacketsIssuesAlert::getDefaultScore());
   registerAlert(TCPNoDataExchangedAlert::getClassType(),         TCPNoDataExchangedAlert::getDefaultScore());
   registerAlert(TCPZeroWindowAlert::getClassType(),              TCPZeroWindowAlert::getDefaultScore());
-  registerAlert(TLSMaliciousSignatureAlert::getClassType(),      TLSMaliciousSignatureAlert::getDefaultScore());
   registerAlert(UnexpectedDHCPServerAlert::getClassType(),       UnexpectedDHCPServerAlert::getDefaultScore());
   registerAlert(UnexpectedDNSServerAlert::getClassType(),        UnexpectedDNSServerAlert::getDefaultScore());
   registerAlert(UnexpectedNTPServerAlert::getClassType(),        UnexpectedNTPServerAlert::getDefaultScore());

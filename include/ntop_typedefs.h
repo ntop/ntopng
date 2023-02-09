@@ -431,7 +431,7 @@ typedef enum {
   flow_alert_external                             = 10,
   flow_alert_longlived                            = 11,
   flow_alert_low_goodput                          = 12,
-  flow_alert_malicious_signature                  = 13,
+  flow_alert_notused_2                            = 13,
   flow_alert_internals                            = 14,
   flow_alert_notused_3                            = 15,
   flow_alert_remote_to_remote                     = 16,

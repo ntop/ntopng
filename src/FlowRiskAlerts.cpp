@@ -60,7 +60,7 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
   { { flow_alert_ndpi_tls_certificate_selfsigned, alert_category_security }, "tls_certificate_selfsigned" },
 
   /* NDPI_TLS_OBSOLETE_VERSION */
-  { { flow_alert_ndpi_tls_old_protocol_version, alert_category_security }, "tls_old_protocol_version" },
+  { { flow_alert_ndpi_tls_old_protocol_version, alert_category_security }, "ndpi_tls_old_protocol_version" },
 
   /* NDPI_TLS_WEAK_CIPHER */
   { { flow_alert_ndpi_tls_unsafe_ciphers, alert_category_security }, "tls_unsafe_ciphers" },

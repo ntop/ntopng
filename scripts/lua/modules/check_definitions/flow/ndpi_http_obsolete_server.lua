@@ -13,14 +13,14 @@ local script = {
    category = checks.check_categories.security,
 
    -- This script is only for alerts generation
-   alert_id = flow_alert_keys.flow_alert_ndpi_risky_asn,
+   alert_id = flow_alert_keys.flow_alert_ndpi_http_obsolete_server,
 
    default_value = {
    },
 
    gui = {
-      i18n_title = "flow_checks_config.risky_asn",
-      i18n_description = "flow_checks_config.risky_asn_description",
+      i18n_title = "flow_checks_config.http_obsolete_server",
+      i18n_description = "flow_checks_config.http_obsolete_server_description",
    }
 }
 

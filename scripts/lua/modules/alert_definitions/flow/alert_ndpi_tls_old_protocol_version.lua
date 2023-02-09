@@ -12,12 +12,12 @@ local alert = require "alert"
 
 -- ##############################################
 
-local alert_tls_old_protocol_version = classes.class(alert)
+local alert_ndpi_tls_old_protocol_version = classes.class(alert)
 
 -- ##############################################
 
-alert_tls_old_protocol_version.meta = {
-   alert_key = flow_alert_keys.flow_alert_tls_old_protocol_version,
+alert_ndpi_tls_old_protocol_version.meta = {
+   alert_key = flow_alert_keys.flow_alert_ndpi_tls_old_protocol_version,
    i18n_title = "flow_details.tls_old_protocol_version",
    icon = "fas fa-fw fa-exclamation",
 }
@@ -27,7 +27,7 @@ alert_tls_old_protocol_version.meta = {
 -- @brief Prepare an alert table used to generate the alert
 -- @param tls_version A number indicating the TLS version detected, or nil when version is not available
 -- @return A table with the alert built
-function alert_tls_old_protocol_version:init()
+function alert_ndpi_tls_old_protocol_version:init()
    -- Call the parent constructor
    self.super:init()
 end
@@ -39,7 +39,7 @@ end
 -- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
-function alert_tls_old_protocol_version.format(ifid, alert, alert_type_params)
+function alert_ndpi_tls_old_protocol_version.format(ifid, alert, alert_type_params)
    local msg = ""
 
    if(alert_type_params and alert_type_params.tls_version) then
@@ -60,4 +60,4 @@ end
 
 -- #######################################################
 
-return alert_tls_old_protocol_version
+return alert_ndpi_tls_old_protocol_version
