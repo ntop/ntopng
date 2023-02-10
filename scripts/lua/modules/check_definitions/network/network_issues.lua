@@ -18,7 +18,7 @@ local script = {
 
   default_value = {
     retransmissions = {
-      default_value = 0, -- 15%,
+      default_value = 15, -- 15%,
       field_min = 0, -- 0%
       field_max = 99, -- 99%
       field_operator = "gt";
@@ -26,7 +26,7 @@ local script = {
       title = i18n('retransmission')
     },
     out_of_orders = {
-      default_value = 0, -- 15%,
+      default_value = 15, -- 15%,
       field_min = 0, -- 0%
       field_max = 99, -- 99%
       field_operator = "gt";
@@ -34,7 +34,7 @@ local script = {
       title = i18n('out_of_order')
     },
     packet_loss = {
-      default_value = 0, -- 15%,
+      default_value = 15, -- 15%,
       field_min = 0, -- 0%
       field_max = 99, -- 99%
       field_operator = "gt";
