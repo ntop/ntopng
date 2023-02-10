@@ -57,6 +57,11 @@ if test -d $HOMEBREW_DIR; then
  LDFLAGS="${LDFLAGS} -L ${HOMEBREW_DIR}/lib"
 fi
 
+if test -f /proc/device-tree/model; then
+  IS_RASPBERRY=`grep Raspberry /proc/device-tree/model|wc -l`
+  CFLAGS="${CFLAGS} -DNTOPNG_EMBEDDED_EDITION"
+  CPPFLAGS="${CPPFLAGS} -DNTOPNG_EMBEDDED_EDITION"
+fi
 
 TODAY=`date +%y%m%d`
 NTOPNG_MAJOR=`echo "${PACKAGE_VERSION}" | cut -d . -f 1`
