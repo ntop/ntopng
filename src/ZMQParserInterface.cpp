@@ -249,7 +249,8 @@ const char* ZMQParserInterface::getKeyDescription(u_int32_t pen, u_int32_t field
 /* **************************************************** */
 
 u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
-					u_int8_t source_id, void *data) {
+					u_int8_t source_id, u_int32_t msg_id,
+					void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
   ZMQ_RemoteStats zrs;
@@ -262,7 +263,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
 
   // payload[payload_size] = '\0';
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id: %u] %s", msg_id, payload);
+  
   o = json_tokener_parse_verbose(payload, &jerr);
 
   if(o) {
@@ -311,7 +313,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
 	 Skip the check for the first few seconds
 	 as we might receive old messages from the probe
       */
-      if((zrs.local_time - polling_start_time) > 5) {
+      if((msg_id != 0) /* Skip message with drops to avoid miscalculations */
+	 || ((zrs.local_time - polling_start_time) > 5)) {
 	if(abs(time_delta) >= 10) {
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remote probe clock drift %u sec detected (local: %u remote: %u [%s])",
 				       abs(time_delta), zrs.local_time, zrs.remote_time, zrs.remote_probe_address);
@@ -1855,7 +1858,7 @@ error:
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseJSONFlow(const char * payload, int payload_size, u_int8_t source_id) {
+u_int8_t ZMQParserInterface::parseJSONFlow(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id) {
   json_object *f = NULL;
   enum json_tokener_error jerr = json_tokener_success;
 
@@ -1910,7 +1913,8 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * payload, int payload_siz
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseTLVFlow(const char * payload, int payload_size, u_int8_t source_id, void *data) {
+u_int8_t ZMQParserInterface::parseTLVFlow(const char * payload, int payload_size, u_int8_t source_id,
+					  u_int32_t msg_id, void *data) {
   ndpi_deserializer deserializer;
   ndpi_serialization_type kt;
   int n = 0, rc;
@@ -1978,7 +1982,8 @@ void ZMQParserInterface::freeContainerInfo(ContainerInfo * const container_info)
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseCounter(const char * payload, int payload_size, u_int8_t source_id, void *data) {
+u_int8_t ZMQParserInterface::parseCounter(const char * payload, int payload_size, u_int8_t source_id,
+					  u_int32_t msg_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
   sFlowInterfaceStats stats;
@@ -2067,7 +2072,8 @@ static std::string mandatory_template_fields[] = {
   "IN_BYTES", "IN_PKTS", "OUT_BYTES", "OUT_PKTS"
 };
 
-u_int8_t ZMQParserInterface::parseTemplate(const char * payload, int payload_size, u_int8_t source_id, void *data) {
+u_int8_t ZMQParserInterface::parseTemplate(const char * payload, int payload_size, u_int8_t source_id,
+					   u_int32_t msg_id, void *data) {
   /* The format that is currently defined for templates is a JSON as follows:
 
      [{"PEN":0,"field":1,"len":4,"format":"formatted_uint","name":"IN_BYTES","descr":"Incoming flow bytes (src->dst)"},{"PEN":0,"field":2,"len":4,"format":"formatted_uint","name":"IN_PKTS","descr":"Incoming flow packets (src->dst)"},]
@@ -2242,7 +2248,7 @@ u_int8_t ZMQParserInterface::parseOptionFieldValueMap(json_object * const w) con
 /* **************************************************** */
 
 u_int8_t ZMQParserInterface::parseListeningPorts(const char * payload, int payload_size,
-						 u_int8_t source_id, void *data) {
+						 u_int8_t source_id, u_int32_t msg_id, void *data) {
   enum json_tokener_error jerr = json_tokener_success;
   json_object *o = json_tokener_parse_verbose(payload, &jerr);
 
@@ -2288,7 +2294,7 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char * payload, int paylo
 /* **************************************************** */
 
 u_int8_t ZMQParserInterface::parseSNMPIntefaces(const char * payload, int payload_size,
-						u_int8_t source_id, void *data) {
+						u_int8_t source_id, u_int32_t msg_id, void *data) {
   enum json_tokener_error jerr = json_tokener_success;
   json_object *f = json_tokener_parse_verbose(payload, &jerr);
 
@@ -2326,7 +2332,7 @@ u_int8_t ZMQParserInterface::parseSNMPIntefaces(const char * payload, int payloa
 /* **************************************************** */
 
 u_int8_t ZMQParserInterface::parseOption(const char * payload, int payload_size,
-					 u_int8_t source_id, void *data) {
+					 u_int8_t source_id, u_int32_t msg_id, void *data) {
   /* The format that is currently defined for options is a JSON as follows:
 
      char opt[] = "

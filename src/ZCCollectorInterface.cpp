@@ -95,7 +95,7 @@ void ZCCollectorInterface::collect_flows() {
       // fprintf(stdout, "+"); fflush(stdout);
 
       if(strncmp((char*)json, master, strlen(master)) == 0) {
-	parseEvent((char*)json, buffer->len, 0, (void*)this);
+	parseEvent((char*)json, buffer->len, 0, 0, (void*)this);
       } else {
 	json[buffer->len] = '\0';
 	parseJSONFlow((char*)json, buffer->len, 0);
