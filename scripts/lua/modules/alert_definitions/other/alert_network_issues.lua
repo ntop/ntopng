@@ -52,7 +52,7 @@ function alert_network_issues.format(ifid, alert, alert_type_params)
   if alert_type_params.lost > alert_type_params.lost_threshold then
     msg = msg.."["..
           i18n("alert_messages.network_issues_packet_loss")..
-          round(alert_type_params.lost,2).."% > "..
+          alert_type_params.lost.."% > "..
           alert_type_params.lost_threshold.."%]"
   end
 
@@ -60,7 +60,7 @@ function alert_network_issues.format(ifid, alert, alert_type_params)
   if alert_type_params.retransmissions > alert_type_params.retransmission_threshold then
     msg = msg .."["..
           i18n("alert_messages.network_issues_retransmissions")..
-          round(alert_type_params.retransmissions,2).."% > "..
+          alert_type_params.retransmissions.."% > "..
           alert_type_params.retransmission_threshold.."%]"
   end
 
@@ -68,7 +68,7 @@ function alert_network_issues.format(ifid, alert, alert_type_params)
   if alert_type_params.out_of_order > alert_type_params.out_of_order_threshold then
     msg = msg.."["..
           i18n("alert_messages.network_issues_out_of_orders")..
-          round(alert_type_params.out_of_order,2).."% > "..
+          alert_type_params.out_of_order.."% > "..
           alert_type_params.out_of_order_threshold.."%]"
   end
 

@@ -19,7 +19,7 @@ local script = {
   default_value = {
     retransmissions = {
       default_value = 15, -- 15%,
-      field_min = 0, -- 0%
+      field_min = 1, -- 1%
       field_max = 99, -- 99%
       field_operator = "gt";
       i18n_fields_unit = checks.field_units.percentage,
@@ -27,7 +27,7 @@ local script = {
     },
     out_of_orders = {
       default_value = 15, -- 15%,
-      field_min = 0, -- 0%
+      field_min = 1, -- 1%
       field_max = 99, -- 99%
       field_operator = "gt";
       i18n_fields_unit = checks.field_units.percentage,
@@ -35,7 +35,7 @@ local script = {
     },
     packet_loss = {
       default_value = 15, -- 15%,
-      field_min = 0, -- 0%
+      field_min = 1, -- 1%
       field_max = 99, -- 99%
       field_operator = "gt";
       i18n_fields_unit = checks.field_units.percentage,
@@ -67,50 +67,34 @@ local function check_network_issues(params)
   -- counting inner traffic tcp packets
   if params.entity_info["tcpPacketStats.inner"] then
 
-    for k,v in pairs(params.entity_info["tcpPacketStats.inner"]) do
-      if k == "retransmissions" then
-        tot_retransmissions = tot_retransmissions + v
-      elseif k == "lost" then
-        tot_lost = tot_lost + v
-      elseif k == "out_of_order" then
-        tot_out_of_order = tot_out_of_order + v
-      end
-    end
-
+    tot_retransmissions = tot_retransmissions + (params.entity_info["tcpPacketStats.inner"].retransmissions or 0)
+    tot_lost = tot_lost + (params.entity_info["tcpPacketStats.inner"].lost or 0)
+    tot_out_of_order = tot_out_of_order + (params.entity_info["tcpPacketStats.inner"].out_of_order or 0)
+    
   end
   
   -- counting egress traffic tcp packets
   if params.entity_info["tcpPacketStats.egress"] then
 
-    for k,v in pairs(params.entity_info["tcpPacketStats.egress"]) do
-      if k == "retransmissions" then
-        tot_retransmissions = tot_retransmissions + v
-      elseif k == "lost" then
-        tot_lost = tot_lost + v
-      elseif k == "out_of_order" then
-        tot_out_of_order = tot_out_of_order + v
-      end
-    end
+    tot_retransmissions = tot_retransmissions + (params.entity_info["tcpPacketStats.egress"].retransmissions or 0)
+    tot_lost = tot_lost + (params.entity_info["tcpPacketStats.egress"].lost or 0)
+    tot_out_of_order = tot_out_of_order + (params.entity_info["tcpPacketStats.egress"].out_of_order or 0)
+    
   end
 
   -- counting ingress traffic tcp packets 
   if params.entity_info["tcpPacketStats.ingress"] then
 
-    for k,v in pairs(params.entity_info["tcpPacketStats.ingress"]) do
-      if k == "retransmissions" then
-        tot_retransmissions = tot_retransmissions + v
-      elseif k == "lost" then
-        tot_lost = tot_lost + v
-      elseif k == "out_of_order" then
-        tot_out_of_order = tot_out_of_order + v
-      end
-    end
+    tot_retransmissions = tot_retransmissions + (params.entity_info["tcpPacketStats.ingress"].retransmissions or 0)
+    tot_lost = tot_lost + (params.entity_info["tcpPacketStats.ingress"].lost or 0)
+    tot_out_of_order = tot_out_of_order + (params.entity_info["tcpPacketStats.ingress"].out_of_order or 0)
+   
   end
 
   -- to percentage
-  local lost = (100 * tot_lost) / tot_packets
-  local out_of_orders = (100 * tot_out_of_order) / tot_packets
-  local retransmissions = (100 * tot_retransmissions) / tot_packets
+  local lost = round((100 * tot_lost) / tot_packets, 1)
+  local out_of_orders = round((100 * tot_out_of_order) / tot_packets, 1)
+  local retransmissions = round((100 * tot_retransmissions) / tot_packets, 1)
 
   -- take thresholds
   local retransmissions_threshold = (params.check_config.retransmissions.threshold or params.check_config.retransmissions.default_value)
