@@ -6723,7 +6723,7 @@
 			}
 		},
 		"/lua/pro/rest/v2/get/timeseries/ts_multi.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Timeseries"
 				],
@@ -6779,23 +6779,9 @@
             "type": "string"
           },
           {
-            "name": "ts_query",
-            "in": "query",
-            "description": "Containing the parameters used to find the timeserie in the following format, parameter:value;parameter:value;... (e.g. 'ifid:1;host:192.168.1.1')",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "ts_schema",
-            "in": "query",
-            "description": "Contains the timeserie schema (e.g. 'iface:traffic')",
-            "required": false,
-            "type": "string"
-          },
-          {
             "name": "ts_requests",
             "in": "query",
-            "description": "An array of timeseries to be returned, containing ts_query, a string composed by the interface id (ifid:1) and an additional parameter, representing the host, asn, ecc. (e.g. [{ts_query: 'ifid:1,asn:199524', ts_schema: 'asn:traffic', tskey: '199524'}])",
+            "description": "An array of timeseries to be returned, containing ts_query, ts_schema and tskey (e.g. [{ts_query: 'ifid:1,asn:199524', ts_schema: 'asn:traffic', tskey: '199524'}]; the explaination of these three parameters can be found into '/lua/rest/v2/get/timeseries/ts.lua' REST)",
             "required": true,
             "type": "array"
           }
@@ -6873,6 +6859,13 @@
             "name": "ts_query",
             "in": "query",
             "description": "Containing the parameters used to find the timeserie in the following format, parameter:value;parameter:value;... (e.g. 'ifid:1;host:192.168.1.1')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tskey",
+            "in": "query",
+            "description": "Containing the timeseries key, whom the timeseries is referred to (e.g. if the timeserie is regarding the interface '7' or the host '192.168.1.1', then tskey is going to be '7' or '192.168.1.1')",
             "required": false,
             "type": "string"
           },
