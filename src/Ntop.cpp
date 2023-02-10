@@ -2727,7 +2727,11 @@ out:
 
 void Ntop::initInterface(NetworkInterface *_if) {
   /* Initialization related to flow-dump */
-  if(ntop->getPrefs()->do_dump_flows()) {
+  if(ntop->getPrefs()->do_dump_flows()
+#ifndef HAVE_NEDGE
+     || ntop->get_export_interface()
+#endif
+     ) {
     if(_if->initFlowDump(num_dump_interfaces))
       num_dump_interfaces++;
     _if->startDBLoop();

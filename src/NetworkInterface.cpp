@@ -3051,14 +3051,17 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
   u_int64_t idle_flows_done = 0, active_flows_done = 0;
   time_t when = time(NULL);
 
-  if(!dumper) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "WARNING: Something is broken with flow dump");
-    return(0);
-  }
+#ifndef HAVE_NEDGE
+  if(ntop->get_export_interface() == NULL)
+#endif
+    if(dumper == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "WARNING: Something is broken with flow dump");
+      return(0);
+    }
 
   /*
     Process high-priority idle flows (they're high priority as an idle flow not dumped is lost)
-   */
+  */
   while(idleFlowsToDump->isNotEmpty()) {
     Flow *f = idleFlowsToDump->dequeue();
     char *json = NULL;
@@ -3078,63 +3081,70 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
       ntop->get_export_interface()->export_data(json);  
 #endif
 
-    if(f->get_partial_bytes()) /* Make sure data is not at zero */
-      rc = dumper->dumpFlow(when, f, json); /* Finally dump this flow */
+    if(dumper != NULL) {
+      if(f->get_partial_bytes()) /* Make sure data is not at zero */
+	rc = dumper->dumpFlow(when, f, json); /* Finally dump this flow */
+    }
     
     if(json) free(json);
 
 #if DEBUG_FLOW_DUMP
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped idle flow");
 #endif
-    if(!rc) incDBNumDroppedFlows(dumper);
+    if(dumper && (!rc))
+      incDBNumDroppedFlows(dumper);
+    
     f->decUses(); /* Job has been done, decrease the reference counter */
     f->set_dump_done();
     // delete f;
     idle_flows_done++;
+    
     if(idle_flows_budget > 0 /* Budget requested */
        && idle_flows_done >= idle_flows_budget /* Budget exceeded */)
       break;
   }
 
-  /*
-    Process low-priority active flows (they're low priority there can still be chances of dumping active flows later)
-  */
-  while(activeFlowsToDump->isNotEmpty()) {
-    Flow *f = activeFlowsToDump->dequeue();
-    char *json = NULL;
-    bool rc = true;
+  if(dumper) {
+    /*
+      Process low-priority active flows (they're low priority there can still be chances of dumping active flows later)
+    */
+    while(activeFlowsToDump->isNotEmpty()) {
+      Flow *f = activeFlowsToDump->dequeue();
+      char *json = NULL;
+      bool rc = true;
 
-    f->update_partial_traffic_stats_db_dump(); /* Checkpoint flow traffic counters for the dump */
+      f->update_partial_traffic_stats_db_dump(); /* Checkpoint flow traffic counters for the dump */
 
-    /* Prepare the JSON - if requested */
-    if(flows_dump_json) {
-      json = f->serialize(flows_dump_json_use_labels);
+      /* Prepare the JSON - if requested */
+      if(flows_dump_json) {
+	json = f->serialize(flows_dump_json_use_labels);
 
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
-    }
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
+      }
     
-    if(f->get_partial_bytes()) /* Make sure data is not at zero */
-      rc = dumper->dumpFlow(when, f, json); /* Finally dump this flow */
+      if(f->get_partial_bytes()) /* Make sure data is not at zero */
+	rc = dumper->dumpFlow(when, f, json); /* Finally dump this flow */
 
-    if(json) free(json);
+      if(json) free(json);
 
 #if DEBUG_FLOW_DUMP
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped active flow");
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped active flow");
 #endif
-    if(!rc) incDBNumDroppedFlows(dumper);
-    f->decUses(); /* Job has been done, decrease the reference counter */
-    f->set_dump_done();
-    active_flows_done++;
-    if(active_flows_budget > 0 /* Budget requested */
-       && active_flows_done >= active_flows_budget /* Budget exceeded */)
-      break;
+      if(!rc) incDBNumDroppedFlows(dumper);
+      f->decUses(); /* Job has been done, decrease the reference counter */
+      f->set_dump_done();
+      active_flows_done++;
+      if(active_flows_budget > 0 /* Budget requested */
+	 && active_flows_done >= active_flows_budget /* Budget exceeded */)
+	break;
+    }
   }
-
+  
   /*
     Wait until there's some work to do.
     Don't wait for viewed interfaces to prevent one viewed interface to block all the other interfaces.
     For viewed interfaces, this method is called sequentially in ViewInterface::dumpFlowLoop
-   */
+  */
   u_int64_t num_done = idle_flows_done + active_flows_done;
 
 #ifndef WIN32
@@ -3143,7 +3153,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
     /*
       Do a timedwait to avoid blocking indefinitely. Failing to do this, for interfaces with no traffic,
       would cause the calling thread to wait and ignore shutdown.
-     */
+    */
     struct timespec dump_wait_expire;
 
     dump_wait_expire.tv_sec = time(NULL) + 2;
@@ -3155,11 +3165,12 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 
 #ifdef NTOPNG_PRO
   /* Flush possibly pending flows (avoids interfaces with almost no traffic
-  to have their flows waiting in dump queues for too long) */
+     to have their flows waiting in dump queues for too long) */
   //flushFlowDump();
 #endif
 
-  dumper->checkIdle(when);
+  if(dumper)
+    dumper->checkIdle(when);
 
   return(num_done);
 }
@@ -8672,9 +8683,9 @@ void NetworkInterface::updateBroadcastDomains(VLANid vlan_id,
 					 cur_cidr);
 #endif
 	} else {
-    if(ntop->getPrefs()->isBroadcastDomainTooLargeEnabled())
-      getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, src, dst, vlan_id);
-  }
+	  if(ntop->getPrefs()->isBroadcastDomainTooLargeEnabled())
+	    getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, src, dst, vlan_id);
+	}
 	break;
       }
     }
