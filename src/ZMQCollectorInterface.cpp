@@ -305,14 +305,14 @@ void ZMQCollectorInterface::collect_flows() {
       u_int32_t msg_id = 0, last_msg_id;
       u_int32_t source_id = 0;
       u_int32_t publisher_version = 0;
-	
+      bool drop_found = false;
+      
       if(items[subscriber_id].revents & ZMQ_POLLIN) {
 	size = zmq_recv(items[subscriber_id].socket, &h0, sizeof(h0), 0);
 
 	if(size == sizeof(struct zmq_msg_hdr_v0)) {
 	  /* Legacy version (msg_id = 0, source_id = 0) */
           publisher_version = h0.version;
-
 	} else {
           /* safety checks */
           if(
@@ -368,6 +368,7 @@ void ZMQCollectorInterface::collect_flows() {
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "ROLLBACK [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u]", 
 				         subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops);
 #endif
+	    drop_found = true;
 	  } else {
             /* Compute delta (this message ID - last message ID) */
 	    int32_t diff = msg_id - last_msg_id;
@@ -376,8 +377,10 @@ void ZMQCollectorInterface::collect_flows() {
               /* Lost message detected */
 	      recvStats.zmq_msg_drops += diff - 1;
 #ifdef MSG_DEBUG
-	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "DROP [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
-					   subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+					   "DROP [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
+					   subscriber_id, msg_id, last_msg_id,
+					   recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
 #endif
 	    }
           }
@@ -385,6 +388,9 @@ void ZMQCollectorInterface::collect_flows() {
 
         /* Store last message ID for the current source ID */	
 	source_id_last_msg_id[source_id] = msg_id;	       
+
+	if(drop_found)
+	  msg_id = 0; /* So parseXXXX knowns that this message could be lost/OOO */
 	
 	/*
           The zmq_recv() function shall return number of bytes in the message if successful.
@@ -449,31 +455,31 @@ void ZMQCollectorInterface::collect_flows() {
           switch(h->url[0]) {
           case 'e': /* event */
             recvStats.num_events++;
-            parseEvent(uncompressed, uncompressed_len, source_id, this);
+            parseEvent(uncompressed, uncompressed_len, source_id, msg_id, this);
             break;
 
           case 'f': /* flow */
             if(tlv_encoding) 
-              recvStats.num_flows += parseTLVFlow(uncompressed, uncompressed_len, subscriber_id, this);
+              recvStats.num_flows += parseTLVFlow(uncompressed, uncompressed_len, subscriber_id, msg_id, this);
             else {
 	      uncompressed[uncompressed_len] = '\0';
-              recvStats.num_flows += parseJSONFlow(uncompressed, uncompressed_len, subscriber_id);
+              recvStats.num_flows += parseJSONFlow(uncompressed, uncompressed_len, subscriber_id, msg_id);
 	    }
             break;
 
           case 'c': /* counter */
             recvStats.num_counters++;
-            parseCounter(uncompressed, uncompressed_len, subscriber_id, this);
+            parseCounter(uncompressed, uncompressed_len, subscriber_id, msg_id, this);
             break;
 
           case 't': /* template */
             recvStats.num_templates++;
-            parseTemplate(uncompressed, uncompressed_len, subscriber_id, this);
+            parseTemplate(uncompressed, uncompressed_len, subscriber_id, msg_id, this);
             break;
 
           case 'o': /* option */
             recvStats.num_options++;
-            parseOption(uncompressed, uncompressed_len, subscriber_id, this);
+            parseOption(uncompressed, uncompressed_len, subscriber_id, msg_id, this);
             break;
 
 	  case 'h': /* hello */
@@ -484,12 +490,12 @@ void ZMQCollectorInterface::collect_flows() {
 
 	  case 'l': /* listening-ports */
 	    recvStats.num_listening_ports++;
-	    parseListeningPorts(uncompressed, uncompressed_len, subscriber_id, this);
+	    parseListeningPorts(uncompressed, uncompressed_len, subscriber_id, msg_id, this);
 	    break;
 
 	  case 's': /* snmp-ifaces */
 	    recvStats.num_snmp_interfaces++;
-	    parseSNMPIntefaces(uncompressed, uncompressed_len, subscriber_id, this);
+	    parseSNMPIntefaces(uncompressed, uncompressed_len, subscriber_id, msg_id, this);
 	    break;
 	  }
 

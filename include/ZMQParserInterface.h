@@ -83,14 +83,14 @@ public:
   const char* getKeyDescription(u_int32_t pen, u_int32_t field) const;
   bool matchField(ParsedFlow * const flow, const char * key, ParsedValue * value);
 
-  u_int8_t parseJSONFlow(const char * payload, int payload_size, u_int8_t source_id);
-  u_int8_t parseTLVFlow(const char * payload, int payload_size, u_int8_t source_id, void *data);
-  u_int8_t parseEvent(const char * payload, int payload_size, u_int8_t source_id, void *data);
-  u_int8_t parseCounter(const char * payload, int payload_size, u_int8_t source_id, void *data);
-  u_int8_t parseTemplate(const char * payload, int payload_size, u_int8_t source_id, void *data);
-  u_int8_t parseOption(const char * payload, int payload_size, u_int8_t source_id, void *data);
-  u_int8_t parseListeningPorts(const char * payload, int payload_size, u_int8_t source_id, void *data);
-  u_int8_t parseSNMPIntefaces(const char * payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseJSONFlow(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id);
+  u_int8_t parseTLVFlow(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseEvent(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseCounter(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseTemplate(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseOption(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseListeningPorts(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseSNMPIntefaces(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
 
   u_int32_t periodicStatsUpdateFrequency() const;
   virtual void setRemoteStats(ZMQ_RemoteStats *zrs);
