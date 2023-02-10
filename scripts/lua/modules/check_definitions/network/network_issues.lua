@@ -133,7 +133,7 @@ local function check_network_issues(params)
   )
   
   alert:set_info(params)
-  alert:set_subtype(params.entity_info.network_key..script.key)
+  alert:set_subtype(params.entity_info.network_key)
 
   -- check for trigger alert
   if( lost > lost_threshold or 
