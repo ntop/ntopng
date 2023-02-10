@@ -106,14 +106,14 @@
           </div>
 	</div>
       </div>      
-    </template> <!-- modal domain_names-->
+    </template> <!-- modal comment-->
     <hr class="separator mt-5" >
      <div class="form-group row">
       <div>
         <label class="col-form-label"><b>{{ _i18n("show_alerts.add_a_comment") }}</b></label>
       </div>
       <div class="mt-1">
-        <textarea id="alert-label" name="label" rows="3" class="form-control" type="text" v-model="comment" maxlength="450"></textarea>
+        <textarea :placeholder=comment_placeholder id="alert-label" name="label" rows="3" class="form-control" type="text" v-model="comment" maxlength="450"></textarea>
       </div>
     </div>
   </template>
@@ -137,6 +137,7 @@ const host_selected = ref("");
 const flow_selected = ref("");
 const netmask = ref("");
 const comment = ref(null);
+const comment_placeholder = i18n("details.comment_placeholder");
 
 const emit = defineEmits(['add'])
 //s.split(",").every((a) => {return /.+=.+/.test(a)})
@@ -206,6 +207,7 @@ const show = () => {
     flow_selected.value = "";
     netmask.value = "";
     input_text.value = "";
+    comment.value = "";
     modal_id.value.show();
 };
 
