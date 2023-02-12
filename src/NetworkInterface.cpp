@@ -10463,7 +10463,6 @@ void NetworkInterface::getVLANFlowsStats(lua_State* vm) {
 struct walk_no_tx_hosts_info {
   lua_State* vm;
   bool local_host_rx_only, list_host_peers;
-  u_int idx;
   std::unordered_map<std::string, bool> hosts;
   NetworkInterface *iface;
 };
@@ -10489,8 +10488,8 @@ static bool walk_no_tx_hosts(GenericHashEntry *node, void *user_data, bool *matc
       IpAddress *i = h->get_ip();
       char buf[64];
       
-      lua_pushstring(hosts->vm, i->print(buf, sizeof(buf)));
-      lua_rawseti(hosts->vm, -2, hosts->idx++);
+      lua_push_uint32_table_entry(hosts->vm, i->print(buf, sizeof(buf)),
+				  h->getNumContactedServerPorts());
     }
   }
   
@@ -10535,8 +10534,8 @@ static bool walk_no_tx_host_flows(GenericHashEntry *node, void *user_data, bool 
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking %s", name.c_str()); */
       
       if(hosts->hosts.find(name) == hosts->hosts.end()) {
-	lua_pushstring(hosts->vm, what);
-	lua_rawseti(hosts->vm, -2, hosts->idx++);
+	lua_push_uint32_table_entry(hosts->vm, what,
+				    c->getNumContactedServerPorts());
 	hosts->hosts[name] = true; /* Used to avoid duplicates */
       }
     }    
@@ -10556,13 +10555,14 @@ static bool walk_no_tx_host_flows(GenericHashEntry *node, void *user_data, bool 
   - true:  retrieve the peers talking with the hosts with no TX traffic
   - false: retrieve the host with no TX traffic 
  */
-void NetworkInterface::getRxOnlyHostsList(lua_State* vm, bool local_host_rx_only, bool list_host_peers) {
+void NetworkInterface::getRxOnlyHostsList(lua_State* vm, bool local_host_rx_only,
+					  bool list_host_peers) {
   u_int32_t begin_slot = 0;
   struct walk_no_tx_hosts_info hosts;
 
   lua_newtable(vm);
 
-  hosts.idx = 1, hosts.iface = this;;
+  hosts.iface = this;;
   
   if(list_host_peers) {
     hosts.local_host_rx_only = local_host_rx_only, hosts.list_host_peers = list_host_peers, hosts.vm = vm;    
@@ -10572,3 +10572,4 @@ void NetworkInterface::getRxOnlyHostsList(lua_State* vm, bool local_host_rx_only
     walker(&begin_slot, true /* walk_all */, walker_hosts, walk_no_tx_hosts, &hosts);
   }
 }
+

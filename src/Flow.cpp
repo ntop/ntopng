@@ -158,7 +158,8 @@ Flow::Flow(NetworkInterface *_iface,
     srv_ip_addr = srv_host->get_ip();
 
     srv_host->incSrvHostContacts(_cli_ip);
-    srv_host->incSrvPortsContacts(_cli_port);
+    srv_host->incSrvPortsContacts(htons(_cli_port));
+    srv_host->setContactedServerPort(htons(_srv_port));
 
     if(srv_host->isLocalHost() && cli_host) {
       cli_host->get_country(country, sizeof(country));

@@ -4846,7 +4846,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getRemoteHostsInfo",       ntop_get_interface_remote_hosts_info },
   { "getRemoteHostsInfoNoTX",   ntop_get_interface_remote_hosts_no_tx_info },
   { "getRemoteHostsInfoNoTXTCP",ntop_get_interface_remote_hosts_no_tcp_tx_info },
-  { "getRxOnlyHostsList",          ntop_get_rxonly_hosts_list },
+  { "getRxOnlyHostsList",          ntop_get_rxonly_hosts_list }, 
   { "getBroadcastDomainHostsInfo", ntop_get_interface_broadcast_domain_hosts_info },
   { "getPublicHostsInfo",          ntop_get_public_hosts_info },
   { "getBatchedFlowsInfo",         ntop_get_batched_interface_flows_info },

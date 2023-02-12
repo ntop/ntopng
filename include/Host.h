@@ -100,6 +100,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     u_int32_t as_client/* this host contacted a blacklisted host */, as_server /* a blacklisted host contacted me */;
     u_int32_t checkpoint_as_client, checkpoint_as_server;
   } num_blacklisted_flows;
+
+  /* Ports of this host that have been contacted by peers */
+  ndpi_bitmap *contacted_ports;
+
   AutonomousSystem *as;
   Country *country;
   VLAN *vlan;
@@ -669,6 +673,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual u_int32_t getNumContactedPeersAsClientTCPNoTX()    { return(0); };
   virtual u_int32_t getNumContactsFromPeersAsServerTCPNoTX() { return(0); };
   
+  inline u_int16_t getNumContactedServerPorts()       { return(contacted_ports ? (u_int16_t)ndpi_bitmap_cardinality(contacted_ports) : 0); }
+  inline void setContactedServerPort(u_int16_t port)  { if(contacted_ports) ndpi_bitmap_set(contacted_ports, port);                        }
 };
 
 #endif /* _HOST_H_ */

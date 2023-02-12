@@ -10538,6 +10538,39 @@
 				}
 			}
 		},
+	         "/lua/pro/rest/v2/get/host/no_tx_peers.lua": {
+			"get": {
+				"tags": [
+					"Peers"
+				],
+				"summary": "Get RX-only host peers",
+				"description": "Get list of host with RX-only traffic (i.e. no TX traffic sent)",
+				"operationId": "no_tx_peers.lua",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+	}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
 		"/lua/pro/rest/v2/get/db/historical_db_search.lua": {
 			"get": {
 				"tags": [

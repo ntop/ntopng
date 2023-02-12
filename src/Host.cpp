@@ -107,7 +107,8 @@ Host::~Host() {
   */
   iface->decPoolNumHosts(get_host_pool(), false /* Host is deleted offline */);
   if(customHostAlert.msg) free(customHostAlert.msg);
-  if(externalAlert.msg) free(externalAlert.msg);
+  if(externalAlert.msg)   free(externalAlert.msg);
+  if(contacted_ports)     ndpi_bitmap_free(contacted_ports);
 }
 
 /* *************************************** */
@@ -336,6 +337,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
 
   memset(&customHostAlert, 0, sizeof(customHostAlert));
   memset(&externalAlert, 0, sizeof(externalAlert));
+  contacted_ports = ndpi_bitmap_alloc();
 }
 
 /* *************************************** */
