@@ -89,21 +89,21 @@ with the following instructions.
 
 1. Create your own CA:
 
-	openssl genrsa -des3 -out ca.key 2048				# create key
-	openssl req -new -x509 -days 365 -key ca.key -out ca.crt 	# create CA self-signed cert
+	- openssl genrsa -des3 -out ca.key 2048				# create key
+	- openssl req -new -x509 -days 365 -key ca.key -out ca.crt 	# create CA self-signed cert
 
-	cat ca.crt >> ntopng/httpdocs/ssl/ntopng-ca.crt			# add cert to trusted CAs
+	- cat ca.crt >> ntopng/httpdocs/ssl/ntopng-ca.crt			# add cert to trusted CAs
 	
 
 2. Create one or more Client Certificates:
 
-	openssl genrsa -des3 -out client.key 2048			# create key
-	openssl req -new -key client.key -out client.csr		# create client cert request
-	openssl x509 -req -days 365 -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt														# create client cert signed by CA
+	- openssl genrsa -des3 -out client.key 2048			# create key
+	- openssl req -new -key client.key -out client.csr		# create client cert request
+	- openssl x509 -req -days 365 -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt														# create client cert signed by CA
 	
 3. Export Client to preferred browser format (usually pkcs12):
 
-	openssl pkcs12 -export -clcerts -in client.crt -inkey client.key -out client.p12
+	- openssl pkcs12 -export -clcerts -in client.crt -inkey client.key -out client.p12
 
 Then import client certificate in the browser and restart ntopng. 
 Remember first to enable HTTPS Client Authentication in the Preferences->User Authetication.
