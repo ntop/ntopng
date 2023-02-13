@@ -58,7 +58,7 @@
         <label class="col-form-label"><b>{{ _i18n("show_alerts.add_a_comment") }}</b></label>
       </div>
       <div class="mt-1">
-        <textarea id="alert-label" name="label" rows="3" class="form-control" type="text" v-model="comment" maxlength="450"></textarea>
+        <textarea :placeholder=comment_placeholder id="alert-label" name="label" rows="3" class="form-control" type="text" v-model="comment" maxlength="450"></textarea>
       </div>
     </div>
       <hr v-show="disable_alerts" class="separator" >
@@ -98,6 +98,8 @@ const disable_alerts = ref(true);
 const domain = ref(null);
 const tls_certificate = ref(null);
 const comment = ref(null);
+const comment_placeholder = i18n("details.comment_placeholder");
+
 
 const emit = defineEmits(['exclude'])
 
@@ -172,6 +174,7 @@ const flow_addr = computed(() => {
 });
 
 const show = () => {
+    comment.value = "";
     modal_id.value.show();
 };
 
