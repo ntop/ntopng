@@ -1586,6 +1586,23 @@ end
 local function printFlowDevicesFilterDropdown(base_url, page_params)
    local snmp_cached_dev = require "snmp_cached_dev"
    local flowdevs = interface.getFlowDevices()
+  
+   local observationPointId = ntop.getUserObservationPointId() or 0
+   
+   if observationPointId ~= 0 then
+      local obs_info = interface.getObsPointsInfo()["ObsPoints"]
+      local exporter_list = {}
+
+      for k,v in ipairs(obs_info) do
+         if (v.obs_point == observationPointId) then
+            exporter_list = v.exporter_list
+            break
+         end
+      end
+      
+      flowdevs = exporter_list
+   end
+
    local ordering_fun = pairsByKeys
 
    if flowdevs == nil then flowdevs = {} end
