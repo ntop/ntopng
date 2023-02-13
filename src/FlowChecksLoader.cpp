@@ -73,13 +73,17 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new ExternalAlertCheck()))                          registerCheck(fcb);
 #endif
   if((fcb = new FlowRiskBinaryApplicationTransfer()))           registerCheck(fcb);
+  if((fcb = new FlowRiskDesktopOrFileSharingSession()))         registerCheck(fcb);
   if((fcb = new FlowRiskDNSSuspiciousTraffic()))                registerCheck(fcb);
   if((fcb = new FlowRiskHTTPNumericIPHost()))                   registerCheck(fcb);
+  if((fcb = new FlowRiskHTTPObsoleteServer()))                  registerCheck(fcb);
   if((fcb = new FlowRiskHTTPSuspiciousHeader()))                registerCheck(fcb);
   if((fcb = new FlowRiskHTTPSuspiciousUserAgent()))             registerCheck(fcb);
   if((fcb = new FlowRiskHTTPSuspiciousURL()))                   registerCheck(fcb);
   if((fcb = new FlowRiskKnownProtocolOnNonStandardPort()))      registerCheck(fcb);
   if((fcb = new FlowRiskMalformedPacket()))                     registerCheck(fcb);
+  if((fcb = new FlowRiskMaliciousJA3()))                        registerCheck(fcb);
+  if((fcb = new FlowRiskMaliciousSHA1Certificate()))            registerCheck(fcb);
   if((fcb = new FlowRiskSMBInsecureVersion()))                  registerCheck(fcb);
   if((fcb = new FlowRiskSSHObsoleteServer()))                   registerCheck(fcb);
   if((fcb = new FlowRiskSSHObsoleteClient()))                   registerCheck(fcb);
@@ -131,7 +135,10 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new FlowRiskTLSCertValidityTooLong()))              registerCheck(fcb);
   if((fcb = new FlowRiskTLSCertificateExpired()))               registerCheck(fcb);
   if((fcb = new FlowRiskTLSCertificateMismatch()))              registerCheck(fcb);
+  if((fcb = new FlowRiskTLSFatal()))                            registerCheck(fcb);
   if((fcb = new FlowRiskTLSOldProtocolVersion()))               registerCheck(fcb);
+  if((fcb = new FlowRiskTLSUncommonALPN()))                     registerCheck(fcb);
+  if((fcb = new FlowRiskTLSSuspiciousExtension()))              registerCheck(fcb);
   if((fcb = new FlowRiskTLSUnsafeCiphers()))                    registerCheck(fcb);
   if((fcb = new FlowRiskTLSCertificateSelfSigned()))            registerCheck(fcb);
   if((fcb = new TLSMaliciousSignature()))                       registerCheck(fcb);
