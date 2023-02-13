@@ -48,7 +48,7 @@ class Ntopng:
         
         # self_test
         try:
-            url = self.url + "/lua/self_test.lua"
+            url = self.url + "/lua/rest/v2/connect/test.lua"
 
             response = self.issue_request(url, None)
                 
