@@ -516,7 +516,8 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
         if(srv_ip->isDnsServer())  srv_host->setDnsServer(NULL);
         if(srv_ip->isSmtpServer()) srv_host->setSmtpServer(f->getFlowServerInfo());
 	if(srv_ip->isImapServer()) srv_host->setImapServer(f->getFlowServerInfo());
-	if(srv_ip->isPopServer())  srv_host->setPopServer(f->getFlowServerInfo()); 
+	if(srv_ip->isPopServer())  srv_host->setPopServer(f->getFlowServerInfo());
+	srv_host->setContactedServerPort(f->get_srv_port());
       }
 
     #ifdef NTOPNG_PRO
