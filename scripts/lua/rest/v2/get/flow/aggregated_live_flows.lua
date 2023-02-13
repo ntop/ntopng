@@ -46,7 +46,7 @@ for _, data in pairs(aggregated_info) do
     bytes_rcvd = bytes_rcvd,
     bytes_sent = bytes_sent,
     tot_traffic = total_bytes,
-    tot_score   = data.total_score,
+    tot_score   = format_high_num_value_for_tables(data, 'total_score'),
     num_servers = format_high_num_value_for_tables(data, 'num_servers'),
     num_clients = format_high_num_value_for_tables(data, 'num_clients'),
     vlan_id = {
