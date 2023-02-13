@@ -183,6 +183,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual ~Host();
 
   virtual bool isLocalHost()  const = 0;
+  virtual bool isLocalUnicastHost()  const = 0;
   virtual bool isSystemHost() const = 0;
   inline  bool isBroadcastDomainHost()   const { return(is_in_broadcast_domain ? true : false); };
   inline  bool serializeByMac()          const { return(isLocalHost() && iface->serializeLbdHostsAsMacs()); }

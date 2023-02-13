@@ -4877,9 +4877,9 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   if(!h || h->idle() || !h->match(r->allowed_hosts) || (h->get_observation_point_id() != r->observationPointId))
     return(false);
 
-  if((r->location == location_local_only            && !h->isLocalHost())                 ||
-     (r->location == location_local_only_no_tx      && ((!h->isLocalHost()) || (!h->isReceiveOnlyHost()))) ||
-     (r->location == location_local_only_no_tcp_tx  && ((!h->isLocalHost()) || (!h->isReceiveOnlyHost()) || (h->getNumBytesTCPSent() > 0) || (h->getNumBytesTCPRcvd() == 0) )) ||
+  if((r->location == location_local_only            && (!h->isLocalUnicastHost()))||
+     (r->location == location_local_only_no_tx      && ((!h->isLocalUnicastHost()) || (!h->isReceiveOnlyHost()))) ||
+     (r->location == location_local_only_no_tcp_tx  && ((!h->isLocalUnicastHost()) || (!h->isReceiveOnlyHost()) || (h->getNumBytesTCPSent() > 0) || (h->getNumBytesTCPRcvd() == 0) )) ||
      (r->location == location_remote_only           && h->isLocalHost())                  ||
      (r->location == location_remote_only_no_tx     && (h->isLocalHost() || (!h->isReceiveOnlyHost()))) ||
      (r->location == location_remote_only_no_tcp_tx && (h->isLocalHost() || (!h->isReceiveOnlyHost()) || (h->getNumBytesTCPSent() > 0) || (h->getNumBytesTCPRcvd() == 0) )) ||

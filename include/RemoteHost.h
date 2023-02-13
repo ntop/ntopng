@@ -36,6 +36,7 @@ class RemoteHost : public Host {
   void set_hash_entry_state_idle();
   virtual int16_t get_local_network_id() const { return(-1);                };
   virtual bool isLocalHost()  const            { return(false);             };
+  virtual bool isLocalUnicastHost()  const     { return(false);             };
   virtual bool isSystemHost() const            { return(false);             };
 };
 
