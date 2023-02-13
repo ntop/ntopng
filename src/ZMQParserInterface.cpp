@@ -314,7 +314,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
 	 as we might receive old messages from the probe
       */
       if((msg_id != 0) /* Skip message with drops to avoid miscalculations */
-	 || ((zrs.local_time - polling_start_time) > 5)) {
+	 && ((zrs.local_time - polling_start_time) > 5)) {
 	if(abs(time_delta) >= 10) {
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remote probe clock drift %u sec detected (local: %u remote: %u [%s])",
 				       abs(time_delta), zrs.local_time, zrs.remote_time, zrs.remote_probe_address);
