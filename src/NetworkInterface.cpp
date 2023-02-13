@@ -366,7 +366,7 @@ void NetworkInterface::init(const char *interface_name) {
 #endif
   customFlowLuaScript_proto = customFlowLuaScript_periodic = customFlowLuaScript_end = NULL;
   customHostLuaScript = NULL;
-  
+
   INTERFACE_PROFILING_INIT();
 }
 
@@ -837,7 +837,7 @@ NetworkInterface::~NetworkInterface() {
   if(customFlowLuaScript_proto)    delete customFlowLuaScript_proto;
   if(customFlowLuaScript_periodic) delete customFlowLuaScript_periodic;
   if(customFlowLuaScript_end)      delete customFlowLuaScript_end;
-  
+
   if(customHostLuaScript)          delete customHostLuaScript;
 
 #if defined(NTOPNG_PRO)
@@ -2905,7 +2905,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
           /* Flow from SyslogParserInterface (Suricata) */
           enum json_tokener_error jerr = json_tokener_success;
           json_object *o = json_tokener_parse_verbose(dequeued->external_alert, &jerr);
-	  
+
           if(o) flow->setExternalAlert(o);
         }
 
@@ -3071,21 +3071,21 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 
     /* Prepare the JSON - if requested */
     if(flows_dump_json) {
-      json = f->serialize(flows_dump_json_use_labels);   
+      json = f->serialize(flows_dump_json_use_labels);
 
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
     }
 
 #ifndef HAVE_NEDGE
     if(ntop->get_export_interface() && (json != NULL))
-      ntop->get_export_interface()->export_data(json);  
+      ntop->get_export_interface()->export_data(json);
 #endif
 
     if(dumper != NULL) {
       if(f->get_partial_bytes()) /* Make sure data is not at zero */
 	rc = dumper->dumpFlow(when, f, json); /* Finally dump this flow */
     }
-    
+
     if(json) free(json);
 
 #if DEBUG_FLOW_DUMP
@@ -3093,12 +3093,12 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 #endif
     if(dumper && (!rc))
       incDBNumDroppedFlows(dumper);
-    
+
     f->decUses(); /* Job has been done, decrease the reference counter */
     f->set_dump_done();
     // delete f;
     idle_flows_done++;
-    
+
     if(idle_flows_budget > 0 /* Budget requested */
        && idle_flows_done >= idle_flows_budget /* Budget exceeded */)
       break;
@@ -3121,7 +3121,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
       }
-    
+
       if(f->get_partial_bytes()) /* Make sure data is not at zero */
 	rc = dumper->dumpFlow(when, f, json); /* Finally dump this flow */
 
@@ -3139,7 +3139,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 	break;
     }
   }
-  
+
   /*
     Wait until there's some work to do.
     Don't wait for viewed interfaces to prevent one viewed interface to block all the other interfaces.
@@ -4195,7 +4195,7 @@ Host* NetworkInterface::getHostByIP(IpAddress *ip,
 				    u_int16_t observation_point_id,
 				    bool isInlineCall) {
   Host *h;
-  
+
   h = hosts_hash ? hosts_hash->get(vlan_id, ip, isInlineCall, observation_point_id) : NULL;
 
   return(h);
@@ -4532,7 +4532,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
       else
 	return(false);
     }
-    
+
     if(retriever->pag
        && retriever->pag->l7categoryFilter(&ndpi_cat)
        && f->get_protocol_category() != ndpi_cat)
@@ -4992,11 +4992,11 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_tcp_unresp_as_client:
     r->elems[r->actNumEntries++].numericValue = h->getNumContactedPeersAsClientTCPNoTX();
     break;
-    
+
   case column_tcp_unresp_as_server:
     r->elems[r->actNumEntries++].numericValue = h->getNumContactsFromPeersAsServerTCPNoTX();
     break;
-    
+
     /* Criteria */
   case column_traffic_sent:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesSent(); break;
   case column_traffic_rcvd:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesRcvd(); break;
@@ -10248,7 +10248,7 @@ private:
   u_int32_t num_flows, tot_score;
   u_int64_t tot_sent, tot_rcvd;
   u_int8_t l4_proto;
-  
+
 public:
   FlowsStats(const IpAddress *c, const IpAddress *s, u_int8_t _l4_proto,
 	     u_int64_t bytes_sent, u_int64_t bytes_rcvd, u_int32_t score) {
@@ -10267,7 +10267,7 @@ public:
 				u_int64_t bytes_sent, u_int64_t bytes_rcvd,
 				u_int32_t score) {
     char buf_c[48], buf_s[48];
-			  
+
     clients.insert(std::string(((IpAddress*)c)->get_ip_hex(buf_c, sizeof(buf_c)))),
       servers.insert(std::string(((IpAddress*)s)->get_ip_hex(buf_s, sizeof(buf_s)))),
       num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd, tot_score += score;;
@@ -10353,7 +10353,7 @@ void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
     lua_push_uint64_table_entry(vm, "bytes_sent",  fs->getTotalSent());
     lua_push_uint64_table_entry(vm, "bytes_rcvd",  fs->getTotalRcvd());
     lua_push_uint64_table_entry(vm, "total_score", fs->getTotalScore());
-    
+
     lua_pushinteger(vm, ++num);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -10470,34 +10470,34 @@ struct walk_no_tx_hosts_info {
 static bool walk_no_tx_hosts(GenericHashEntry *node, void *user_data, bool *matched) {
   Host *h = (Host*)node;
 
-  if(h->isReceiveOnlyHost()) {  
+  if(h->isReceiveOnlyHost() && (!(h->isBroadcastHost() || h->isMulticastHost()))) {
     struct walk_no_tx_hosts_info *hosts = static_cast<struct walk_no_tx_hosts_info*>(user_data);
     bool good = false;
-    
+
     if(hosts->local_host_rx_only) {
       /* retrieve local host (server) with no TX traffic */
       if(h->isLocalHost())
-	good = true;    
+	good = true;
     } else {
       /* retrieve remote host (server) with no TX traffic */
       if(!h->isLocalHost())
-	good = true;   
+	good = true;
     }
-    
+
     if(good) {
       IpAddress *i = h->get_ip();
       char buf[64];
-      
+
       lua_push_uint32_table_entry(hosts->vm, i->print(buf, sizeof(buf)),
 				  h->getNumContactedServerPorts());
     }
   }
-  
+
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
-  
+
 static bool walk_no_tx_host_flows(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
   struct walk_no_tx_hosts_info *hosts = static_cast<struct walk_no_tx_hosts_info*>(user_data);
@@ -10510,50 +10510,52 @@ static bool walk_no_tx_host_flows(GenericHashEntry *node, void *user_data, bool 
   if(s == NULL)
     s = hosts->iface->getHostByIP((IpAddress*)f->get_srv_ip_addr(), f->get_vlan_id(),
 				  f->getFlowObservationPointId(), false);
-  
+
   if(c && s) {
-    bool good = false;
-    
-    if(hosts->local_host_rx_only) {
-      /* retrieve local host (server) with no TX traffic */
-      if(s->isLocalHost() && s->isReceiveOnlyHost()) {
-	good = true;
+    if(!(s->isBroadcastHost() || s->isMulticastHost())) {
+      bool good = false;
+
+      if(hosts->local_host_rx_only) {
+	/* retrieve local host (server) with no TX traffic */
+	if(s->isLocalHost() && s->isReceiveOnlyHost()) {
+	  good = true;
+	}
+      } else {
+	/* retrieve remote host (server) with no TX traffic */
+	if((!s->isLocalHost()) && s->isReceiveOnlyHost()) {
+	  good = true;
+	}
       }
-    } else {
-      /* retrieve remote host (server) with no TX traffic */
-      if((!s->isLocalHost()) && s->isReceiveOnlyHost()) {
-	good = true;
+
+      if(good) {
+	IpAddress *i = c->get_ip();
+	char buf[64], *what = i->print(buf, sizeof(buf));
+	std::string name(what);
+
+	/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking %s", name.c_str()); */
+
+	if(hosts->hosts.find(name) == hosts->hosts.end()) {
+	  lua_push_uint32_table_entry(hosts->vm, what,
+				      c->getNumContactedServerPorts());
+	  hosts->hosts[name] = true; /* Used to avoid duplicates */
+	}
       }
     }
+  }
 
-    if(good) {
-      IpAddress *i = c->get_ip();
-      char buf[64], *what = i->print(buf, sizeof(buf));
-      std::string name(what);
-
-      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking %s", name.c_str()); */
-      
-      if(hosts->hosts.find(name) == hosts->hosts.end()) {
-	lua_push_uint32_table_entry(hosts->vm, what,
-				    c->getNumContactedServerPorts());
-	hosts->hosts[name] = true; /* Used to avoid duplicates */
-      }
-    }    
-  } 
-  
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
-  
+
 /*
   local_host_rx_only
   - true:  retrieve local host (server) with no TX traffic
-  - false: retrieve remote host (server) with no TX traffic 
+  - false: retrieve remote host (server) with no TX traffic
 
   list_host_peers
   - true:  retrieve the peers talking with the hosts with no TX traffic
-  - false: retrieve the host with no TX traffic 
+  - false: retrieve the host with no TX traffic
  */
 void NetworkInterface::getRxOnlyHostsList(lua_State* vm, bool local_host_rx_only,
 					  bool list_host_peers) {
@@ -10563,13 +10565,12 @@ void NetworkInterface::getRxOnlyHostsList(lua_State* vm, bool local_host_rx_only
   lua_newtable(vm);
 
   hosts.iface = this;;
-  
+
   if(list_host_peers) {
-    hosts.local_host_rx_only = local_host_rx_only, hosts.list_host_peers = list_host_peers, hosts.vm = vm;    
+    hosts.local_host_rx_only = local_host_rx_only, hosts.list_host_peers = list_host_peers, hosts.vm = vm;
     walker(&begin_slot, true /* walk_all */, walker_flows, walk_no_tx_host_flows, &hosts);
   } else {
-    hosts.local_host_rx_only = local_host_rx_only, hosts.list_host_peers = list_host_peers, hosts.vm = vm;    
+    hosts.local_host_rx_only = local_host_rx_only, hosts.list_host_peers = list_host_peers, hosts.vm = vm;
     walker(&begin_slot, true /* walk_all */, walker_hosts, walk_no_tx_hosts, &hosts);
   }
 }
-
