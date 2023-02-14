@@ -20,9 +20,9 @@ sendHTTPContentTypeHeader('application/json')
 local ifid  = _GET["ifid"]
 
 if (ifid) and (not isEmptyString(ifid)) then
-  interface.select(ifid)
+   interface.select(ifid)
 else
-  ifid = interface.getId()
+   ifid = interface.getId()
 end
 
 local ifstats = interface.getStats()
@@ -73,7 +73,7 @@ end
 if(flows_stats == nil) then flows_stats = { } end
 
 for key, value in ipairs(flows_stats) do
-  local flows_info = flows_stats[key]
+   local flows_info = flows_stats[key]
    local info = ""
    -- use an italic font to indicate extra information added after sorting
    local italic = true
@@ -100,7 +100,7 @@ for key, value in ipairs(flows_stats) do
 
    if(flows_info["info"] == nil) then
       if(starts(info, "<i class")) then
-      flows_info["info"] = info
+	 flows_info["info"] = info
       else
 	 -- safety checks against injections
 	 info = noHtml(info)
@@ -253,18 +253,18 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       local device_ip = value["device_ip"]
 
       local idx_name_in = i18n("span_with_title", {
-        shorten_name = format_portidx_name(device_ip, value["in_index"], true, true),
-        url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]..'&snmp_port_idx='..value["in_index"]
+				  shorten_name = format_portidx_name(device_ip, value["in_index"], true, true),
+				  url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]..'&snmp_port_idx='..value["in_index"]
       })
 
       local idx_name_out = i18n("span_with_title", {
-        shorten_name = format_portidx_name(device_ip, value["out_index"], true, true),
-        url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]..'&snmp_port_idx='..value["out_index"]
+				   shorten_name = format_portidx_name(device_ip, value["out_index"], true, true),
+				   url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]..'&snmp_port_idx='..value["out_index"]
       })
 
       record["column_device_ip"] = i18n("span_with_title", {
-        shorten_name = getProbeName(value["device_ip"]),
-        url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]
+					   shorten_name = getProbeName(value["device_ip"]),
+					   url = ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevice_details.lua?ip='..value["device_ip"]
       })
 
       record["column_in_index"] = idx_name_in
@@ -315,9 +315,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    if tonumber(value["proto.l4"]) then
-    value["proto.l4"] = l4_proto_to_string(value["proto.l4"]) 
+      value["proto.l4"] = l4_proto_to_string(value["proto.l4"])
    end
-   
+
    column_proto_l4 = value["proto.l4"].." "..column_proto_l4
 
    if(value["verdict.pass"] == false) then
@@ -329,21 +329,21 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    if(value["verdict.pass"] == false) then
       app = "<strike>"..app.."</strike>"
-    end
+   end
 
    record["column_ndpi"] = app -- can't set the hosts_stats hyperlink for viewed interfaces
    if(value["proto.ndpi_id"] ~= -1) then
       local l7proto
-      
+
       if((value["proto.ndpi_id"] == value["proto.master_ndpi_id"]) or (value["proto.master_ndpi_id"] == 0)) then
 	 l7proto = value["proto.ndpi_id"]
       else
 	 l7proto = value["proto.master_ndpi_id"] .. "." .. value["proto.ndpi_id"]
       end
-      
+
       record["column_ndpi"] = "<A HREF='".. ntop.getHttpPrefix().."/lua/flows_stats.lua?application=" .. l7proto .."'&ifid='" .. ifid .. "'>"..app.." " .. formatBreed(value["proto.ndpi_breed"], value["proto.is_encrypted"]) .."</A>"
       record["column_ndpi"] = record["column_ndpi"] .. " " .. format_confidence_badge(value["confidence"])
---      record["column_ndpi"] = record["column_ndpi"] .. " " .. "<a href='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_informative_proto"] .. "' title='" .. i18n("host_details.hosts_using_proto", { proto = interface.getnDPIProtoName(value["proto.ndpi_informative_proto"]) }) .. "'><i class='fa-solid fa-timeline'></i></a>"
+      --      record["column_ndpi"] = record["column_ndpi"] .. " " .. "<a href='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_informative_proto"] .. "' title='" .. i18n("host_details.hosts_using_proto", { proto = interface.getnDPIProtoName(value["proto.ndpi_informative_proto"]) }) .. "'><i class='fa-solid fa-timeline'></i></a>"
    end
    record["column_duration"] = secondsToTime(value["duration"])
    record["column_bytes"] = value["bytes"]
@@ -356,25 +356,26 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       column_thpt = 8 * value["throughput_bps"]
    end
 
-if false then
-   if((value["throughput_trend_"..throughput_type] ~= nil)
-      and (value["throughput_trend_"..throughput_type] > 0)) then
-      if(value["throughput_trend_"..throughput_type] == 1) then
-	 column_thpt = column_thpt.."<i class='fas fa-arrow-up'></i>"
-      elseif(value["throughput_trend_"..throughput_type] == 2) then
-	 column_thpt = column_thpt.."<i class='fas fa-arrow-down'></i>"
-      elseif(value["throughput_trend_"..throughput_type] == 3) then
-	 column_thpt = column_thpt.."<i class='fas fa-minus'></i>"
+   if false then
+      if((value["throughput_trend_"..throughput_type] ~= nil)
+	 and (value["throughput_trend_"..throughput_type] > 0)) then
+	 if(value["throughput_trend_"..throughput_type] == 1) then
+	    column_thpt = column_thpt.."<i class='fas fa-arrow-up'></i>"
+	 elseif(value["throughput_trend_"..throughput_type] == 2) then
+	    column_thpt = column_thpt.."<i class='fas fa-arrow-down'></i>"
+	 elseif(value["throughput_trend_"..throughput_type] == 3) then
+	    column_thpt = column_thpt.."<i class='fas fa-minus'></i>"
+	 end
       end
    end
-end
+
    record["column_thpt"] = column_thpt
 
    local cli2srv = round((value["cli2srv.bytes"] * 100) / value["bytes"], 0)
 
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: " .. cli2srv .."%;'>Client</div><div class='progress-bar bg-success' style='width: " .. (100-cli2srv) .. "%;'>Server</div></div>"
 
-   local info = value["info"]
+   local info = shortenString(value["info"], 32)
 
    if isScoreEnabled() then
       record["column_score"] = format_utils.formatValue(value.score.flow_score)
@@ -391,7 +392,7 @@ end
 	 else
 	    k = value["cli.ip"]
 	 end
-	 
+
 	 info = info .. "&host=".. k .. "&l7proto=".. value["proto.ndpi"]
       end
 
@@ -402,7 +403,7 @@ end
       local span_mode
       local color
       local rcode
-      
+
       if(value["p?rotos.http.last_method"] == "GET") then
 	 span_mode = "success"
       else
@@ -417,9 +418,8 @@ end
 
       rcode = http_utils.getResponseStatusCode(value["protos.http.last_return_code"]) or ''
       info = "<span class='badge bg-"..span_mode.."'>"..value["protos.http.last_method"].."</span> <span class='"..color.."'>"..rcode.."</span> " .. info
-
-
    end
+
    record["column_info"] = info
 
    formatted_res[#formatted_res + 1] = record

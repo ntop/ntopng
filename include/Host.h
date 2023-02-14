@@ -101,14 +101,11 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     u_int32_t checkpoint_as_client, checkpoint_as_server;
   } num_blacklisted_flows;
 
-  /* Ports of this host that have been contacted by peers */
-  ndpi_bitmap *contacted_ports;
-
   AutonomousSystem *as;
   Country *country;
   VLAN *vlan;
   ObservationPoint *obs_point;
-
+  ndpi_bitmap *tcp_contacted_ports_no_tx; /* Ports of this host that have been contacted by peers */
   OperatingSystem *os; /* Pointer to an instance of operating system, used internally to handle operating system statistics    */
   OSType os_type;      /* Operating system type, equivalent to os->get_os_type(), used by operating system setters and getters */
 
@@ -182,9 +179,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   virtual ~Host();
 
-  virtual bool isLocalHost()  const = 0;
-  virtual bool isLocalUnicastHost()  const = 0;
-  virtual bool isSystemHost() const = 0;
+  virtual bool isLocalHost()  const            { return(false); };
+  virtual bool isLocalUnicastHost() const      { return(false); };
+  virtual bool isSystemHost() const            { return(false); };
   inline  bool isBroadcastDomainHost()   const { return(is_in_broadcast_domain ? true : false); };
   inline  bool serializeByMac()          const { return(isLocalHost() && iface->serializeLbdHostsAsMacs()); }
   inline  bool isDHCPHost()              const { return(is_dhcp_host ? true : false); };
@@ -674,8 +671,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual u_int32_t getNumContactedPeersAsClientTCPNoTX()    { return(0); };
   virtual u_int32_t getNumContactsFromPeersAsServerTCPNoTX() { return(0); };
   
-  inline u_int16_t getNumContactedServerPorts()       { return(contacted_ports ? (u_int16_t)ndpi_bitmap_cardinality(contacted_ports) : 0); }
-  inline void setContactedServerPort(u_int16_t port)  { if(contacted_ports) ndpi_bitmap_set(contacted_ports, port);                        }
+  inline u_int16_t getNumContactedTCPServerPortsNoTX()       { return(tcp_contacted_ports_no_tx ? (u_int16_t)ndpi_bitmap_cardinality(tcp_contacted_ports_no_tx) : 0); }
+  inline void setContactedTCPServerPortNoTX(u_int16_t port)  { if(tcp_contacted_ports_no_tx) ndpi_bitmap_set(tcp_contacted_ports_no_tx, port);                        }
 };
 
 #endif /* _HOST_H_ */

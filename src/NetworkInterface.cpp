@@ -10467,10 +10467,38 @@ struct walk_no_tx_hosts_info {
   NetworkInterface *iface;
 };
 
+/* **************************************************** */
+
+static bool setHostNoTXInfo(lua_State *vm, Host *h) {
+  u_int32_t a = h->getNumContactedPeersAsClientTCPNoTX();
+  u_int32_t b = h->getNumContactsFromPeersAsServerTCPNoTX();
+
+  if((a > 0) || (b > 0)) {
+    IpAddress *i = h->get_ip();
+    char buf[64], *label = i->print(buf, sizeof(buf));
+    
+    lua_newtable(vm);
+    
+    lua_push_uint32_table_entry(vm, "tcp_num_contacted_peers_as_client", a);
+    lua_push_uint32_table_entry(vm, "tcp_num_peers_contacts_rcvd_as_server", b);
+    lua_push_uint32_table_entry(vm, "tcp_num_ports_contacted_as_client", h->getNumContactedTCPServerPortsNoTX());
+    
+    lua_pushstring(vm, label);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+
+    return(true);
+  } else
+    return(false);
+}
+
+/* **************************************************** */
+
+
 static bool walk_no_tx_hosts(GenericHashEntry *node, void *user_data, bool *matched) {
   Host *h = (Host*)node;
 
-  if(h->isReceiveOnlyHost() && (!(h->isBroadcastHost() || h->isMulticastHost()))) {
+  if(!(h->isBroadcastHost() || h->isMulticastHost())) {
     struct walk_no_tx_hosts_info *hosts = static_cast<struct walk_no_tx_hosts_info*>(user_data);
     bool good = false;
 
@@ -10484,13 +10512,8 @@ static bool walk_no_tx_hosts(GenericHashEntry *node, void *user_data, bool *matc
 	good = true;
     }
 
-    if(good) {
-      IpAddress *i = h->get_ip();
-      char buf[64];
-
-      lua_push_uint32_table_entry(hosts->vm, i->print(buf, sizeof(buf)),
-				  h->getNumContactedServerPorts());
-    }
+    if(good)
+      setHostNoTXInfo(hosts->vm, h);
   }
 
   return(false); /* false = keep on walking */
@@ -10511,33 +10534,30 @@ static bool walk_no_tx_host_flows(GenericHashEntry *node, void *user_data, bool 
     s = hosts->iface->getHostByIP((IpAddress*)f->get_srv_ip_addr(), f->get_vlan_id(),
 				  f->getFlowObservationPointId(), false);
 
-  if(c && s) {
+  if(c && s && s->isReceiveOnlyHost()) {
     if(!(s->isBroadcastHost() || s->isMulticastHost())) {
       bool good = false;
 
       if(hosts->local_host_rx_only) {
 	/* retrieve local host (server) with no TX traffic */
-	if(s->isLocalHost() && s->isReceiveOnlyHost()) {
-	  good = true;
-	}
+	if(c->isLocalHost())
+	  good = true;       
       } else {
 	/* retrieve remote host (server) with no TX traffic */
-	if((!s->isLocalHost()) && s->isReceiveOnlyHost()) {
-	  good = true;
-	}
+	if(!c->isLocalHost())
+	  good = true;	
       }
 
       if(good) {
 	IpAddress *i = c->get_ip();
 	char buf[64], *what = i->print(buf, sizeof(buf));
 	std::string name(what);
-
+	
 	/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking %s", name.c_str()); */
 
 	if(hosts->hosts.find(name) == hosts->hosts.end()) {
-	  lua_push_uint32_table_entry(hosts->vm, what,
-				      c->getNumContactedServerPorts());
-	  hosts->hosts[name] = true; /* Used to avoid duplicates */
+	  if(setHostNoTXInfo(hosts->vm, c))
+	    hosts->hosts[name] = true; /* Used to avoid duplicates */	  
 	}
       }
     }

@@ -35,7 +35,7 @@ class LocalHost : public Host, public SerializableElement {
   bool router_mac_set;
   UsedPorts usedPorts;
   struct ndpi_hll outgoing_hosts_port_with_no_tx_hll, incoming_hosts_port_with_no_tx_hll;
-  
+
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail;
   bool drop_all_host_traffic;
@@ -48,7 +48,7 @@ class LocalHost : public Host, public SerializableElement {
   char* getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key);
   char* getIpBasedSerializationKey(char *redis_key, size_t size);
   void luaDoHDot(lua_State *vm);
-  
+
  public:
   LocalHost(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId, u_int16_t _observation_point_id, IpAddress *_ip);
   LocalHost(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId, u_int16_t _observation_point_id);
@@ -85,15 +85,15 @@ class LocalHost : public Host, public SerializableElement {
   virtual u_int16_t getNumActiveContactsAsClient() { return stats->getNumActiveContactsAsClient(); };
   virtual u_int16_t getNumActiveContactsAsServer() { return stats->getNumActiveContactsAsServer(); };
   virtual void reloadPrefs();
-  virtual void addContactedDomainName(char* domain_name)    { stats->addContactedDomainName(domain_name);   }         
-  virtual u_int32_t getDomainNamesCardinality()             { return stats->getDomainNamesCardinality();    }      
-  virtual void resetDomainNamesCardinality()                { stats->resetDomainNamesCardinality();         }  
+  virtual void addContactedDomainName(char* domain_name)    { stats->addContactedDomainName(domain_name);   }
+  virtual u_int32_t getDomainNamesCardinality()             { return stats->getDomainNamesCardinality();    }
+  virtual void resetDomainNamesCardinality()                { stats->resetDomainNamesCardinality();         }
 
   virtual void deserialize(json_object *obj);
   virtual void serialize(json_object *obj, DetailsLevel details_level) { return Host::serialize(obj, details_level); };
   virtual char* getSerializationKey(char *buf, uint bufsize);
   char* getRedisKey(char *buf, uint buf_len, bool skip_prefix = false);
-  
+
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
   void custom_periodic_stats_update(const struct timeval *tv) { ; }
@@ -118,7 +118,7 @@ class LocalHost : public Host, public SerializableElement {
   virtual inline u_int32_t getPOPContactCardinality()    { return(stats->getPOPContactCardinality()); }
 
   void setRouterMac(Mac *gw);
-  
+
   inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
   inline void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { usedPorts.setContactedPort(isTCP, port, proto); };
   virtual inline void luaUsedPorts(lua_State* vm)                                         { usedPorts.lua(vm, iface);                     };
@@ -126,8 +126,8 @@ class LocalHost : public Host, public SerializableElement {
 
   void setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port);
   void setUnidirectionalTCPNoTXIngressFlow(IpAddress *ip, u_int16_t port);
-  inline u_int32_t getNumContactedPeersAsClientTCPNoTX()    { return((u_int32_t)ndpi_hll_count(&outgoing_hosts_port_with_no_tx_hll)); };
-  inline u_int32_t getNumContactsFromPeersAsServerTCPNoTX() { return((u_int32_t)ndpi_hll_count(&incoming_hosts_port_with_no_tx_hll)); };
+  u_int32_t getNumContactedPeersAsClientTCPNoTX()    { return((u_int32_t)ndpi_hll_count(&outgoing_hosts_port_with_no_tx_hll)); };
+  u_int32_t getNumContactsFromPeersAsServerTCPNoTX() { return((u_int32_t)ndpi_hll_count(&incoming_hosts_port_with_no_tx_hll)); };
 };
 
 #endif /* _LOCAL_HOST_H_ */

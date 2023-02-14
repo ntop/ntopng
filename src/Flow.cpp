@@ -160,9 +160,6 @@ Flow::Flow(NetworkInterface *_iface,
     srv_host->incSrvHostContacts(_cli_ip);
     srv_host->incSrvPortsContacts(htons(_cli_port));
 
-    if(!(srv_host->isBroadcastHost() || srv_host->isMulticastHost()))
-      srv_host->setContactedServerPort(htons(_srv_port)); /* See also ViewInterface::viewed_flows_walker() */
-
     if(srv_host->isLocalHost() && cli_host) {
       cli_host->get_country(country, sizeof(country));
       if(country[0] != '\0') srv_host->incCountriesContacts(country);
@@ -308,10 +305,7 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-  bool is_oneway_tcp_syn_seen = ((protocol == IPPROTO_TCP)
-				 && (src2dst_tcp_flags == TH_SYN)
-				 && ((dst2src_tcp_flags & TH_SYN) == 0) /* Either no reply or connection refused (e.g. RST) */
-    ) ? true : false;
+  bool is_oneway_tcp_flow = ((protocol == IPPROTO_TCP) && isOneWay()) ? true : false;
 
   if(getUses() != 0 && !ntop->getGlobals()->isShutdown())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]", __FUNCTION__, getUses());
@@ -335,6 +329,18 @@ Flow::~Flow() {
    */
   Host *cli_u = getViewSharedClient(), *srv_u = getViewSharedServer();
 
+#if 0
+  if(is_oneway_tcp_flow) {
+    if(cli_u->getNumContactedPeersAsClientTCPNoTX() > 10 /* threshold */) {
+      if(srv_u->getNumContactedTCPServerPortsNoTX() < 5 /* threshold */) {
+	/* Possible port/service down on srv_u */
+      } else {
+	/* Possible scan on srv_u, cli_u is scanner */
+      }
+    }
+  }
+#endif
+  
   if(getInterface()->isViewed()) /* Score decrements done here for 'viewed' interfaces to avoid races. */
     decAllFlowScores();
 
@@ -342,7 +348,7 @@ Flow::~Flow() {
     cli_u->decUses(); /* Decrease the number of uses */
     cli_u->decNumFlows(get_last_seen(), true);
 
-    if(is_oneway_tcp_syn_seen)
+    if(is_oneway_tcp_flow)
       cli_u->incUnidirectionalEgressFlows();
   }
 
@@ -353,16 +359,19 @@ Flow::~Flow() {
     srv_u->decUses(); /* Decrease the number of uses */
     srv_u->decNumFlows(get_last_seen(), false);
 
-    if(is_oneway_tcp_syn_seen) {
+    if(is_oneway_tcp_flow) {
       srv_u->incUnidirectionalIngressFlows();
 
       if(cli_u) {
-	cli_u->setUnidirectionalTCPNoTXEgressFlow(srv_u->get_ip(), ntohs(srv_port));
+	u_int16_t s_port = ntohs(srv_port);
+	
+	cli_u->setUnidirectionalTCPNoTXEgressFlow(srv_u->get_ip(), s_port);
+	srv_u->setContactedTCPServerPortNoTX(s_port);
 	srv_u->setUnidirectionalTCPNoTXIngressFlow(cli_u->get_ip(), ntohs(srv_port));
       }
     }
   }
-
+  
   if(!srv_host && srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow constructor (viewed interfaces) */
     delete srv_ip_addr;
 

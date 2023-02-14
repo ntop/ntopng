@@ -147,6 +147,7 @@ void LocalHost::initialize() {
 #endif
 
   router_mac_set = false, memset(router_mac, 0, sizeof(router_mac));
+  
   ndpi_hll_init(&outgoing_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
   ndpi_hll_init(&incoming_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
 }

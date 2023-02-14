@@ -54,7 +54,36 @@ Host::~Host() {
      && (!iface->isView() || !ntop->getGlobals()->isShutdownRequested()))
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", getUses());
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
+#if 0
+  if((!isBroadcastHost()) && (!isMulticastHost())) {
+      char buf[64], buf1[64];
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "RX-Only Host %s (%s) [TX: %llu][RX: %llu][num_contacted_ports_no_tx: %u][contacted_peers: as_client=%u/as_server=%u]",
+				   get_ip()->print(buf, sizeof(buf)),
+				   get_name(buf1, sizeof(buf1), false),
+				   (unsigned long long)getNumBytesSent(),
+				   (unsigned long long)getNumBytesRcvd(),
+				   getNumContactedTCPServerPortsNoTX(),
+				   getNumContactedPeersAsClientTCPNoTX(),
+				   getNumContactsFromPeersAsServerTCPNoTX()
+				   );
+
+      if((getNumBytesSent() == 0) && (getNumBytesRcvd() > 0) /* RX-only host */) {
+	if((getNumContactedTCPServerPortsNoTX() > 10 /* Threshold */)
+	   && (getNumContactsFromPeersAsServerTCPNoTX() > 10 /* Threshold */)) {	  
+	  /* Alert */
+	}
+      } else {
+	/* RX/TX Host */
+
+	if(getNumContactedPeersAsClientTCPNoTX() > 10 /* Threshold */) {
+	  /* Alert */
+	}
+      }
+    }
+  }
+#endif
 
   if(mac)           mac->decUses();
   if(as)            as->decUses();
@@ -83,12 +112,12 @@ Host::~Host() {
   if(flow_flood.victim_counter)   delete flow_flood.victim_counter;
   if(icmp_flood.attacker_counter) delete icmp_flood.attacker_counter;
   if(icmp_flood.victim_counter)   delete icmp_flood.victim_counter;
-  if(dns_flood.attacker_counter) delete dns_flood.attacker_counter;
-  if(dns_flood.victim_counter)   delete dns_flood.victim_counter;
+  if(dns_flood.attacker_counter)  delete dns_flood.attacker_counter;
+  if(dns_flood.victim_counter)    delete dns_flood.victim_counter;
   if(snmp_flood.attacker_counter) delete snmp_flood.attacker_counter;
   if(snmp_flood.victim_counter)   delete snmp_flood.victim_counter;
-  if(rst_scan.attacker_counter) delete rst_scan.attacker_counter;
-  if(rst_scan.victim_counter)   delete rst_scan.victim_counter;
+  if(rst_scan.attacker_counter)   delete rst_scan.attacker_counter;
+  if(rst_scan.victim_counter)     delete rst_scan.victim_counter;
 
   if(stats)                       delete stats;
   if(stats_shadow)                delete stats_shadow;
@@ -99,7 +128,7 @@ Host::~Host() {
 #endif
 
   if(blacklist_name)              free(blacklist_name);
-  
+
   /*
     Pool counters are updated both in and outside the datapath.
     So decPoolNumHosts must stay in the destructor to preserve counters
@@ -108,7 +137,7 @@ Host::~Host() {
   iface->decPoolNumHosts(get_host_pool(), false /* Host is deleted offline */);
   if(customHostAlert.msg) free(customHostAlert.msg);
   if(externalAlert.msg)   free(externalAlert.msg);
-  if(contacted_ports)     ndpi_bitmap_free(contacted_ports);
+  if(tcp_contacted_ports_no_tx) ndpi_bitmap_free(tcp_contacted_ports_no_tx);
 }
 
 /* *************************************** */
@@ -337,7 +366,8 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
 
   memset(&customHostAlert, 0, sizeof(customHostAlert));
   memset(&externalAlert, 0, sizeof(externalAlert));
-  contacted_ports = ndpi_bitmap_alloc();
+
+  tcp_contacted_ports_no_tx = ndpi_bitmap_alloc();
 }
 
 /* *************************************** */
@@ -783,7 +813,7 @@ void Host::lua_unidirectional_tcp_flows(lua_State* vm) const {
 
   lua_push_uint32_table_entry(vm, "num_ingress", unidirectionalTCPFlows.numIngressFlows);
   lua_push_uint32_table_entry(vm, "num_egress", unidirectionalTCPFlows.numEgressFlows);
-			      
+
   lua_pushstring(vm, "num_unidirectional_tcp_flows");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -875,13 +905,13 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 			     getNumContactedPeersAsClientTCPNoTX());
   lua_push_int32_table_entry(vm, "num_incoming_peers_that_sent_tcp_flows_no_response",
 			     getNumContactsFromPeersAsServerTCPNoTX());
-  
+
   if(device_ip != 0)
     lua_push_str_table_entry(vm, "device_ip", Utils::intoaV4(device_ip, buf, sizeof(buf)));
 
   if(blacklist_name != NULL)
     lua_push_str_table_entry(vm, "blacklist_name", blacklist_name);
-  
+
   if(more_then_one_device)
     lua_push_bool_table_entry(vm, "more_then_one_device", more_then_one_device);
 
@@ -890,11 +920,11 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   luaICMP(vm, get_ip()->isIPv4(), false);
 
   lua_unidirectional_tcp_flows(vm);
-  
+
   if(host_details) {
     lua_get_score_breakdown(vm);
     lua_blacklisted_flows(vm);
-    
+
     /*
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste
       a lot of time doing activities that are not necessary
@@ -1574,7 +1604,7 @@ void Host::offlineSetSSDPLocation(const char * url) {
 
 void Host::offlineSetMDNSName(const char * mdns_n) {
   if(!isValidHostName(mdns_n))  return;
-  
+
   if(!names.mdns && mdns_n && (names.mdns = Utils::toLowerResolvedNames(mdns_n))) {
 #ifdef NTOPNG_PRO
     ntop->get_am()->setResolvedName(this, label_mdns, names.mdns);
@@ -1596,7 +1626,7 @@ void Host::offlineSetMDNSTXTName(const char * mdns_n_txt) {
 
 void Host::offlineSetNetbiosName(const char * netbios_n) {
   if(!isValidHostName(netbios_n))  return;
-  
+
   if(!names.netbios && netbios_n && (names.netbios = Utils::toLowerResolvedNames(netbios_n))) {
 #ifdef NTOPNG_PRO
     ntop->get_am()->setResolvedName(this, label_netbios, names.netbios);
@@ -1608,7 +1638,7 @@ void Host::offlineSetNetbiosName(const char * netbios_n) {
 
 void Host::offlineSetTLSName(const char * tls_n) {
   if(!isValidHostName(tls_n))  return;
-  
+
   if(!names.tls && tls_n && (names.tls = Utils::toLowerResolvedNames(tls_n))) {
 #ifdef NTOPNG_PRO
     ntop->get_am()->setResolvedName(this, label_tls, names.tls);
@@ -1620,7 +1650,7 @@ void Host::offlineSetTLSName(const char * tls_n) {
 
 void Host::offlineSetHTTPName(const char * http_n) {
   if(!isValidHostName(http_n))  return;
-  
+
   if(!names.http && http_n && (names.http = Utils::toLowerResolvedNames(http_n))) {
 #ifdef NTOPNG_PRO
     ntop->get_am()->setResolvedName(this, label_http, names.http);
@@ -1633,7 +1663,7 @@ void Host::offlineSetHTTPName(const char * http_n) {
 bool Host::isValidHostName(const char *name) {
   /* Make sure we do not use invalid names as strings */
   u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
-  
+
   if((name == NULL)
      || Utils::endsWith(name, ".ip6.arpa")
      || Utils::endsWith(name, "._udp.local")
@@ -1652,15 +1682,15 @@ bool Host::isValidHostName(const char *name) {
 
 void Host::setServerName(const char * server_n) {
   /* Discard invalid strings */
-  
+
   if(!isValidHostName(server_n))
     return;
-  
+
   if(!names.server_name && server_n && (names.server_name = Utils::toLowerResolvedNames(server_n))) {
 #ifdef NTOPNG_PRO
     ntop->get_am()->setResolvedName(this, label_server_name, names.server_name);
 #endif
-  }   
+  }
 }
 
 /* *************************************** */
@@ -1677,7 +1707,7 @@ void Host::setResolvedName(const char * resolved_name) {
       ntop->get_am()->setResolvedName(this, label_resolver, names.resolved);
 #endif
     }
-    
+
     m.unlock(__FILE__, __LINE__);
   }
 }
@@ -1816,7 +1846,7 @@ void Host::checkStatsReset() {
 
   if(statsResetRequested()) {
     HostStats *new_stats = allocateStats();
-    
+
     stats_shadow = stats;
     stats        = new_stats;
     stats_shadow->resetTopSitesData();
@@ -1895,7 +1925,7 @@ char* Host::get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize, bool skip_p
     /* NOTE: it is important to differentiate between v4 and v6 for macs */
     strncat(buf, get_ip()->isIPv4() ? "_v4" : "_v6", bufsize);
   }
-  
+
   return(k);
 }
 
@@ -1964,7 +1994,7 @@ void Host::refreshDisabledAlerts() {
 #ifdef NTOPNG_PRO
   AlertExclusions *ntop_alert_exclusions = ntop->getAlertExclusions();
 
-  if(ntop_alert_exclusions && 
+  if(ntop_alert_exclusions &&
      ntop_alert_exclusions->checkChange(&disabled_alerts_tstamp)) {
     /* Set alert exclusion into the host */
     ntop_alert_exclusions->setDisabledHostAlertsBitmaps(this);
@@ -2111,7 +2141,7 @@ bool Host::triggerAlert(HostAlert *alert) {
 
   alert_type = alert->getAlertType();
 
-  if(ntop->getPrefs()->dontEmitHostAlerts() /* all host alerts disabled */ || 
+  if(ntop->getPrefs()->dontEmitHostAlerts() /* all host alerts disabled */ ||
      isHostAlertDisabled(alert_type) /* alerts disabled for this host and type */) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding disabled alert");
@@ -2193,7 +2223,7 @@ bool Host::storeAlert(HostAlert *alert) {
 
   alert_type = alert->getAlertType();
 
-  if(ntop->getPrefs()->dontEmitHostAlerts() /* all host alerts disabled */ || 
+  if(ntop->getPrefs()->dontEmitHostAlerts() /* all host alerts disabled */ ||
      isHostAlertDisabled(alert_type) /* alerts disabled for this host and type */) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding disabled alert");
@@ -2429,7 +2459,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 void Host::setDhcpServer(char *name) {
   if(!isDhcpServer()) {
     host_services_bitmap |= 1 << HOST_IS_DHCP_SERVER;
-    
+
 #ifdef NTOPNG_PRO
     ntop->get_am()->setServerInfo(this, dhcp_server, name);
 #endif
@@ -2441,7 +2471,7 @@ void Host::setDhcpServer(char *name) {
 void Host::setDnsServer(char *name) {
   if(!isDnsServer()) {
     host_services_bitmap |= 1 << HOST_IS_DNS_SERVER;
-    
+
 #ifdef NTOPNG_PRO
     ntop->get_am()->setServerInfo(this, dns_server, name);
 #endif
@@ -2453,7 +2483,7 @@ void Host::setDnsServer(char *name) {
 void Host::setSmtpServer(char *name) {
   if(!isSmtpServer()) {
     host_services_bitmap |= 1 << HOST_IS_SMTP_SERVER;
-    
+
 #ifdef NTOPNG_PRO
     ntop->get_am()->setServerInfo(this, smtp_server, name);
 #endif
@@ -2465,7 +2495,7 @@ void Host::setSmtpServer(char *name) {
 void Host::setNtpServer(char *name) {
   if(!isNtpServer()) {
     host_services_bitmap |= 1 << HOST_IS_NTP_SERVER;
-    
+
 #ifdef NTOPNG_PRO
     ntop->get_am()->setServerInfo(this, ntp_server, name);
 #endif
@@ -2477,7 +2507,7 @@ void Host::setNtpServer(char *name) {
 void Host::setImapServer(char *name) {
   if(!isImapServer()) {
     host_services_bitmap |= 1 << HOST_IS_IMAP_SERVER;
-    
+
 #ifdef NTOPNG_PRO
     ntop->get_am()->setServerInfo(this, imap_server, name);
 #endif
@@ -2489,7 +2519,7 @@ void Host::setImapServer(char *name) {
 void Host::setPopServer(char *name) {
   if(!isPopServer()) {
     host_services_bitmap |= 1 << HOST_IS_POP_SERVER;
-    
+
 #ifdef NTOPNG_PRO
     ntop->get_am()->setServerInfo(this, pop_server, name);
 #endif
@@ -2509,7 +2539,7 @@ void Host::setBlacklistName(char *name) {
 
 void Host::triggerCustomHostAlert(u_int8_t score, char *msg) {
   customHostAlert.alertTriggered = true, customHostAlert.score = score;
-  
+
   if(customHostAlert.msg) { free(customHostAlert.msg); customHostAlert.msg = NULL; }
 
   if(msg) customHostAlert.msg = strdup(msg);
@@ -2517,9 +2547,9 @@ void Host::triggerCustomHostAlert(u_int8_t score, char *msg) {
 
 /* *************************************** */
 
-/* The alert will be triggered from an external script (e.g. via REST API) 
+/* The alert will be triggered from an external script (e.g. via REST API)
  * and handled by src/host_checks/ExternalHostScript.cpp */
-void Host::triggerExternalAlert(u_int8_t score, char *msg) {  
+void Host::triggerExternalAlert(u_int8_t score, char *msg) {
   if(externalAlert.msg) {
     free(externalAlert.msg);
     externalAlert.msg = NULL;
@@ -2533,7 +2563,7 @@ void Host::triggerExternalAlert(u_int8_t score, char *msg) {
 
 /* *************************************** */
 
-void Host::resetExternalAlert() {  
+void Host::resetExternalAlert() {
   if(externalAlert.msg) {
     free(externalAlert.msg);
     externalAlert.msg = NULL;
@@ -2542,4 +2572,3 @@ void Host::resetExternalAlert() {
 
   externalAlert.triggered = false;
 }
-
