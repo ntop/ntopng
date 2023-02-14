@@ -866,7 +866,7 @@ local lang = {
     ["snmp_flood_victim"] = "%{entity} is under SNMP flood attack [%{value} &gt; %{threshold} server SNMP Flows/sec for ~3 sec]",
     ["speedtest_failed"] = "Host %{host} %{numeric_ip} speedtest execution failed.",
     ["subject_quota_exceeded"] = "Host pool <a href=\"%{url}\">%{pool}</a> exceeded %{subject} quota [%{value} &gt; %{quota}]",
-    ["suspicious_dga_domain"] = "Suspicious DGA Domain %{href}",
+    ["suspicious_dga_domain"] = "Possible risky DGA Domain name detected [url: %{href}]",
     ["syn_flood_attacker"] = "%{entity} is a SYN flooder [%{value} &gt; %{threshold} SYN/sec sent for ~3 sec]",
     ["syn_flood_victim"] = "%{entity} is under SYN flood attack [%{value} &gt; %{threshold} SYN/sec received for ~3 sec]",
     ["syn_scan_attacker"] = "%{entity} is a SYN scan attacker [%{value} &gt; %{threshold} SYN sent]",
