@@ -2961,13 +2961,13 @@ void Flow::formatECSInterface(json_object *my_object) {
 void Flow::formatECSExtraInfo(json_object *my_object) {
   json_object *interface_object;
 
-  if((interface_object = json_object_new_object()) != NULL) {
-    if(ntop->getPrefs()->do_dump_extended_json()) {
+  if(ntop->getPrefs()->do_dump_extended_json()) {
+    if((interface_object = json_object_new_object()) != NULL) {
       json_object_object_add(my_object, "flow_time", json_object_new_int(last_seen));
 
-  #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
       json_object_object_add(my_object, "profile", json_object_new_string(get_profile_name()));
-  #endif
+#endif
 
       json_object_object_add(my_object, "interface", interface_object);
     }
@@ -2978,18 +2978,21 @@ void Flow::formatECSExtraInfo(json_object *my_object) {
 
 void Flow::formatECSAppProto(json_object *my_object) {
   json_object *application_object;
-  if((application_object = json_object_new_object()) != NULL) {
-    if(isDNS() && protos.dns.last_query) {
+
+  if(isDNS() && protos.dns.last_query) {
+    if((application_object = json_object_new_object()) != NULL) {
       json_object_object_add(application_object, "question.name", json_object_new_string(protos.dns.last_query));
       json_object_object_add(my_object, "dns", application_object);
     }
 
-    if(isTLS() && protos.tls.client_requested_server_name) {
+  } else if(isTLS() && protos.tls.client_requested_server_name) {
+    if((application_object = json_object_new_object()) != NULL) {
       json_object_object_add(application_object, "server_name", json_object_new_string(protos.tls.client_requested_server_name));
       json_object_object_add(my_object, "tls", application_object);
     }
 
-    if(isHTTP()) {
+  } else if(isHTTP()) {
+    if((application_object = json_object_new_object()) != NULL) {
       if(protos.http.last_url && protos.http.last_url[0] != '0')
         json_object_object_add(application_object, "request.url", json_object_new_string(protos.http.last_url));
       if(protos.http.last_user_agent && protos.http.last_user_agent[0] != '0')
@@ -3004,7 +3007,8 @@ void Flow::formatECSAppProto(json_object *my_object) {
       json_object_object_add(my_object, "http", application_object);
     }
 
-    if(bt_hash) {
+  } else if(bt_hash) {
+    if((application_object = json_object_new_object()) != NULL) {
       json_object_object_add(application_object, "hash", json_object_new_string(bt_hash));
       json_object_object_add(my_object, "bittorrent", application_object);
     }
