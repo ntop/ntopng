@@ -14,10 +14,19 @@ Enabling Traffic Recording
 
 *ntopng*, since version 3.7, includes support for continuous traffic recording 
 leveraging on *n2disk*, an optimized traffic recording application part of the 
-*ntop* suite available on Linux systems. For this reason, in order to be able to 
-enable this feature, both *ntopng* and *n2disk* need to be installed from packages
-according to your Linux distribution (we assume that you already configured the 
-`ntop repository <http://packages.ntop.org>`_ and have *ntopng* installed).
+*ntop* suite available on Linux systems. 
+
+In order to be able to enable this feature:
+
+1. both *ntopng* and *n2disk* need to be installed from packages.
+
+2. *n2disk* should be licensed according to the required dump speed. There is an ntopng Bundle license that allows you to license both with a single, convenient license.
+
+3. *ntopng* and *n2disk* should be installed and running on the same host to get a copy of the same traffic and be able to interact (access the same file system).
+
+In order to install n2disk (we assume that you already configured the 
+`ntop repository <http://packages.ntop.org>`_ and have *ntopng* installed)
+run the below commands according to your Linux distribution:
 
 *apt*
 
