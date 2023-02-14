@@ -88,6 +88,7 @@ local lang = {
   ["client_alpn"] = "Client ALPN",
   ["client_and_server"] = "Client and Server",
   ["client_requested_server_name"] = "Requested Server Name",
+  ["client_server"] = "Client-Server",
   ["client_signature"] = "Client Signature",
   ["client_tls_supported_versions"] = "Client Supported TLS Protocols",
   ["client_to_server"] = "Client to Server",

@@ -8,8 +8,14 @@
     <div class="card  card-shadow">
       <Loading ref="loading"></Loading>
       <div class="card-body">
+        <div class="inline select2-size me-2 mt-2">
+          <SelectSearch v-model:selected_option="selected_criteria"
+                  :options="criteria_list"
+                  @select_option="update_criteria">
+          </SelectSearch>
+        </div>
         <div id="aggregated_live_flows">          
-          <Datatable ref="table_aggregated_live_flows"
+          <Datatable ref="table_aggregated_live_flows" :key="table_config.data_url"
             :table_buttons="table_config.table_buttons"
             :columns_config="table_config.columns_config"
             :data_url="table_config.data_url"
@@ -29,6 +35,25 @@ import { ref, onMounted, onBeforeMount } from "vue";
 import NtopUtils from "../utilities/ntop-utils";
 import { default as Datatable } from "./datatable.vue";
 import { default as Loading } from "./loading.vue";
+import { default as SelectSearch } from "./select-search.vue";
+
+const _i18n = (t) => i18n(t);
+
+const criteria_list_def = [
+  { label: _i18n("application_proto"), value: 1, param: "application_protocol" },
+  { label: _i18n("client"), value: 2, param: "client" },
+  { label: _i18n("server"), value: 3, param: "server" },
+  { label: _i18n("client_server"), value: 4, param: "client_server" }
+];
+
+const criteria_list = ref(criteria_list_def);
+
+const selected_criteria = ref(criteria_list_def[0]);
+
+function update_criteria() {
+    set_datatable_config();
+};
+
 
 const loading = ref(null)
 const table_config = ref({})
@@ -38,7 +63,6 @@ const props = defineProps({
   ifid: Number,
 });
 
-const _i18n = (t) => i18n(t);
 const url = `${http_prefix}/lua/rest/v2/get/flow/aggregated_live_flows.lua`
 
 const reload_table = () => {
@@ -46,14 +70,17 @@ const reload_table = () => {
 }
     
 onBeforeMount(async () => {
-  await start_datatable();
+  await set_datatable_config();
 });
 
-async function start_datatable() {
+async function set_datatable_config() {
   const datatableButton = [];
+ 
   let params = { 
     ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid,
-    vlan_id: ntopng_url_manager.get_url_entry("vlan_id")
+    vlan_id: ntopng_url_manager.get_url_entry("vlan_id"),
+    aggregation_criteria: selected_criteria.value.param
+
   };
   let url_params = ntopng_url_manager.obj_to_url_params(params);
 
@@ -79,6 +106,8 @@ async function start_datatable() {
         let params = { 
           ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid ,
           vlan_id: value.id,
+          aggregation_criteria: selected_criteria.value.param
+
         };
         ntopng_url_manager.set_key_to_url('vlan_id', value.id);
         table.ajax.url(`${url}?${ntopng_url_manager.obj_to_url_params(params)}`);
@@ -106,14 +135,48 @@ async function start_datatable() {
     }
   };
 
-  let columns = [
-    { 
-      columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-        return `<a href="${http_prefix}/lua/flows_stats.lua?application=${data.id}" target="_blank">${data.label}</a>`
-      } 
-    },
-  ];
+  let columns = [];
+  if (selected_criteria.value.value == 1) {
+    
+    // application protocol case
+    columns.push(
+      { 
+        columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+          return `<a href="${http_prefix}/lua/flows_stats.lua?application=${data.id}" target="_blank">${data.label}</a>`
+        } 
+      })
+  } 
+  else if (selected_criteria.value.value == 2) {
+    
+    // client case
+    columns.push(
+      { 
+        columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+          return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}" target="_blank">${data.label}</a>`
+        } 
+      })
+  } 
+  else if (selected_criteria.value.value == 3) {
+      
+    // server case
+      columns.push(
+        { 
+          columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+            return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}" target="_blank">${data.label}</a>`
+          } 
+        })
+  } 
+  else if (selected_criteria.value.value == 4) {
 
+    // client-server case
+    columns.push(
+      { 
+        columnName: i18n("client_and_server"), targets: 0, name: 'client_and_server', data: 'client_and_server', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+          return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}" target="_blank">${data.label}</a>`
+        } 
+      })
+  }
+  
   if(props.vlans.length > 0) {
     columns.push({ 
       columnName: i18n("vlan"), targets: 0, name: 'vlan_id', data: 'vlan_id', className: 'text-nowrap text-center', responsivePriority: 1, render: (data) => {

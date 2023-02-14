@@ -1812,6 +1812,7 @@ local known_parameters = {
    ["search_flows"]            = validateBool,                  -- When set, a flow search should be performed
    ["custom_column"]           = validateCustomColumn,
    ["criteria"]                = validateCustomColumn,
+   ["aggregation_criteria"]    = validateSingleWord,
    ["row_id"]                  = validateUnquoted,              -- A number used to identify a record in a database
    ["rrd_file"]                = validateUnquoted,              -- A path or special identifier to read an RRD file
    ["port"]                    = validatePort,                  -- An application port
