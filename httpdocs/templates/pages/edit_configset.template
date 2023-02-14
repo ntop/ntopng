@@ -912,53 +912,54 @@ const render_template = () => {
 };
 
 const apply_event = (event) => {
-  // prepare request to save config
-  const data = {};
-  let script_threshold = {}
-  let script_enabled = false;
+   // prepare request to save config
+   const data = {};
+   let script_threshold = {}
+   let script_enabled = false;
+   const hook = (hooks.all === undefined) ? ((hooks["5mins"] === undefined) ? "min" : "5mins") : "all";
 
-  // iterate over granularities
-  $table_editor.find("tr[id]").each(function (index) {
-    const id = $(this).attr("id");
-    const enabled = $(this).find("input[type='checkbox']").is(":checked");
-    const $template = $(this).find(".template");
-    const $error_label = $template.find(`.invalid-feedback`);
+   // iterate over granularities
+   $table_editor.find("tr[id]").each(function (index) {
+      const id = $(this).attr("id");
+      const enabled = $(this).find("input[type='checkbox']").is(":checked");
+      const $template = $(this).find(".template");
+      const $error_label = $template.find(`.invalid-feedback`);
+      
+      let operator = $template.find("select").val();
+      // if operator is undefined it means there isn't any select, so take the value from span
+      if (operator == undefined) {
+         operator = $template.find('span.input-group-text').data('value');
+      }
 
-    let operator = $template.find("select").val();
-    // if operator is undefined it means there isn't any select, so take the value from span
-    if (operator == undefined) {
-        operator = $template.find('span.input-group-text').data('value');
-    }
+      const $input_box = $template.find("input");
 
-    const $input_box = $template.find("input");
+      let threshold = parseInt($input_box.val());
 
-    let threshold = parseInt($input_box.val());
+      // hide before errors
+      $error_label.hide();
 
-    // hide before errors
-    $error_label.hide();
+      // remove class error
+      $input_box.removeClass('is-invalid');
+      // save data into dictonary
+      script_threshold[id] = {
+         'enabled': enabled,
+         'operator': operator,
+         'threshold': parseInt(threshold),
+      }
 
-    // remove class error
-    $input_box.removeClass('is-invalid');
-    // save data into dictonary
-    script_threshold[id] = {
-      'enabled': enabled,
-      'operator': operator,
-      'threshold': parseInt(threshold),
-    }
+      if(script_enabled || enabled) {
+         script_enabled = true
+      } else {
+         script_enabled = false;
+      } 
+   });
 
-    if(script_enabled || enabled) {
-      script_enabled = true
-    } else {
-      script_enabled = false;
-    } 
-  });
+   data[hook] = {
+      'enabled': script_enabled,
+      'script_conf': script_threshold,
+   }
 
-  data['all'] = {
-    'enabled': script_enabled,
-    'script_conf': script_threshold,
-  }
-
-  apply_edits_script(data, check_subdir, script_key);
+   apply_edits_script(data, check_subdir, script_key);
 };
 
 const reset_event = (event) => {

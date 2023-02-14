@@ -51,7 +51,7 @@ local script = {
     i18n_description = "entity_thresholds.network_issue_description",
 
     -- The input builder to use to draw the gui
-    input_builder = "threshold_cross"
+    input_builder = "multi_threshold_cross"
   }
 }
 
@@ -105,6 +105,9 @@ local function check_network_issues(params)
   --tprint("tot_retransmissions: "..retransmissions.."%")
   --tprint("tot_lost: "..lost.."%")
   --tprint("tot_out_of_order: "..out_of_orders.."%")
+  --tprint("retransmissions_threshold: "..retransmissions_threshold.."%")
+  --tprint("lost_threshold: "..lost_threshold.."%")
+  --tprint("out_of_orders_threshold: "..out_of_orders_threshold.."%")
 
   -- istantiate alert
   local alert = alert_consts.alert_types.alert_network_issues.new(
