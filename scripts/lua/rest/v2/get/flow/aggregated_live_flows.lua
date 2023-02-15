@@ -13,7 +13,7 @@ local res = {}
 
 local ifid = _GET["ifid"]
 local vlan = _GET["vlan_id"]
-local criteria = _GET["aggregation_criteria"]
+local criteria = _GET["aggregation_criteria"] or ""
 
 if isEmptyString(ifid) then
   rc = rest_utils.consts.err.invalid_interface
@@ -21,7 +21,7 @@ if isEmptyString(ifid) then
   return
 end
 
-if criteria == "application_protocol" then
+if isEmptyString(criteria) or criteria == "application_protocol" then
 
   interface.select(ifid)
 
