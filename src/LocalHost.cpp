@@ -147,9 +147,6 @@ void LocalHost::initialize() {
 #endif
 
   router_mac_set = false, memset(router_mac, 0, sizeof(router_mac));
-  
-  ndpi_hll_init(&outgoing_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
-  ndpi_hll_init(&incoming_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
 }
 
 /* *************************************** */
@@ -435,9 +432,6 @@ void LocalHost::freeLocalHostData() {
   
   for(std::unordered_map<u_int32_t, DoHDoTStats*>::iterator it = doh_dot_map.begin(); it != doh_dot_map.end(); ++it)
     delete it->second;
-
-  ndpi_hll_destroy(&outgoing_hosts_port_with_no_tx_hll);
-  ndpi_hll_destroy(&incoming_hosts_port_with_no_tx_hll);
 }
 
 /* *************************************** */
@@ -546,24 +540,4 @@ void LocalHost::setRouterMac(Mac *gw) {
     ntop->get_am()->addClientGateway(this, gw);
 #endif
   }
-}
-
-/* *************************************** */
-
-/*
-  Used to estimate the cardinality of <server, server_port> contacted
-  by this host over TCP and with no data received or connection refused
-*/
-void LocalHost::setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port) {
-  ndpi_hll_add_number(&outgoing_hosts_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
-}
-
-/* *************************************** */
-
-/*
-  Used to estimate the cardinality of <client, server_port> that contacted
-  this host over TCP and with no data replied (i.e. this host has not replied them back)
-*/
-void LocalHost::setUnidirectionalTCPNoTXIngressFlow(IpAddress *ip, u_int16_t port) {
-  ndpi_hll_add_number(&incoming_hosts_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
 }

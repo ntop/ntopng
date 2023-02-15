@@ -54,37 +54,6 @@ Host::~Host() {
      && (!iface->isView() || !ntop->getGlobals()->isShutdownRequested()))
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", getUses());
 
-#if 0
-  if((!isBroadcastHost()) && (!isMulticastHost())) {
-      char buf[64], buf1[64];
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "RX-Only Host %s (%s) [TX: %llu][RX: %llu][num_contacted_ports_no_tx: %u][contacted_peers: as_client=%u/as_server=%u]",
-				   get_ip()->print(buf, sizeof(buf)),
-				   get_name(buf1, sizeof(buf1), false),
-				   (unsigned long long)getNumBytesSent(),
-				   (unsigned long long)getNumBytesRcvd(),
-				   getNumContactedTCPServerPortsNoTX(),
-				   getNumContactedPeersAsClientTCPNoTX(),
-				   getNumContactsFromPeersAsServerTCPNoTX()
-				   );
-
-      if((getNumBytesSent() == 0) && (getNumBytesRcvd() > 0) /* RX-only host */) {
-	if((getNumContactedTCPServerPortsNoTX() > 10 /* Threshold */)
-	   && (getNumContactsFromPeersAsServerTCPNoTX() > 10 /* Threshold */)) {	  
-	  /* Alert */
-	}
-      } else {
-	/* RX/TX Host */
-
-	if(getNumContactedPeersAsClientTCPNoTX() > 10 /* Threshold */) {
-	  /* Alert */
-	}
-      }
-    }
-  }
-#endif
-
   if(mac)           mac->decUses();
   if(as)            as->decUses();
   if(os)            os->decUses();
@@ -138,6 +107,9 @@ Host::~Host() {
   if(customHostAlert.msg) free(customHostAlert.msg);
   if(externalAlert.msg)   free(externalAlert.msg);
   if(tcp_contacted_ports_no_tx) ndpi_bitmap_free(tcp_contacted_ports_no_tx);
+
+  ndpi_hll_destroy(&outgoing_hosts_port_with_no_tx_hll);
+  ndpi_hll_destroy(&incoming_hosts_port_with_no_tx_hll);
 }
 
 /* *************************************** */
@@ -368,6 +340,8 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   memset(&externalAlert, 0, sizeof(externalAlert));
 
   tcp_contacted_ports_no_tx = ndpi_bitmap_alloc();
+  ndpi_hll_init(&outgoing_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
+  ndpi_hll_init(&incoming_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
 }
 
 /* *************************************** */
@@ -2571,4 +2545,24 @@ void Host::resetExternalAlert() {
   externalAlert.score = 0;
 
   externalAlert.triggered = false;
+}
+
+/* *************************************** */
+
+/*
+  Used to estimate the cardinality of <server, server_port> contacted
+  by this host over TCP and with no data received or connection refused
+*/
+void Host::setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port) {
+  ndpi_hll_add_number(&outgoing_hosts_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
+}
+
+/* *************************************** */
+
+/*
+  Used to estimate the cardinality of <client, server_port> that contacted
+  this host over TCP and with no data replied (i.e. this host has not replied them back)
+*/
+void Host::setUnidirectionalTCPNoTXIngressFlow(IpAddress *ip, u_int16_t port) {
+  ndpi_hll_add_number(&incoming_hosts_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
 }

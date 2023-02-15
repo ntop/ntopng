@@ -138,6 +138,17 @@ static int ntop_host_is_blacklisted(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_host_is_rx_only(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  lua_pushboolean(vm, h ? h->isReceiveOnlyHost() : false);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static int ntop_host_get_bytes_sent(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
@@ -237,6 +248,48 @@ static int ntop_trigger_host_alert(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_get_num_contacted_peers_as_client_tcp_notx(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h)
+    lua_pushinteger(vm, h->getNumContactedPeersAsClientTCPNoTX());
+  else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_get_num_contacts_from_peers_as_server_tcp_notx(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h)
+    lua_pushinteger(vm, h->getNumContactsFromPeersAsServerTCPNoTX());
+  else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_get_num_contacted_tcp_server_ports_notx(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h)
+    lua_pushinteger(vm, h->getNumContactedTCPServerPortsNoTX());
+  else
+    lua_pushnil(vm);
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+  /* **************************************************************** */
+
 static luaL_Reg _ntop_host_reg[] = {
   { "ip",               ntop_host_get_ip               },
   { "mac",              ntop_host_get_mac              },
@@ -247,6 +300,7 @@ static luaL_Reg _ntop_host_reg[] = {
   { "is_multicast",     ntop_host_is_multicast         },
   { "is_broadcast",     ntop_host_is_broadcast         },
   { "is_blacklisted",   ntop_host_is_blacklisted       },
+  { "is_rx_only",       ntop_host_is_rx_only           },
 
   { "bytes_sent",       ntop_host_get_bytes_sent       },
   { "bytes_rcvd",       ntop_host_get_bytes_rcvd       },
@@ -255,6 +309,10 @@ static luaL_Reg _ntop_host_reg[] = {
 
   { "skipVisitedHost",  ntop_skip_visited_host         },
   { "triggerAlert",     ntop_trigger_host_alert        },
+
+  { "getNumContactedPeersAsClientTCPNoTX",    ntop_get_num_contacted_peers_as_client_tcp_notx     },
+  { "getNumContactsFromPeersAsServerTCPNoTX", ntop_get_num_contacts_from_peers_as_server_tcp_notx },
+  { "getNumContactedTCPServerPortsNoTX",      ntop_get_num_contacted_tcp_server_ports_notx        },
 
   { NULL,               NULL                           }
 };

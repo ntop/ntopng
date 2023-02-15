@@ -46,7 +46,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   time_t last_stats_reset;
   std::atomic<u_int32_t> active_alerted_flows;
   u_int8_t view_interface_mac[6];
-
+  struct ndpi_hll outgoing_hosts_port_with_no_tx_hll, incoming_hosts_port_with_no_tx_hll;
+  
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
     char *mdns /* name from a MDNS reply of any type */,
@@ -666,11 +667,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int8_t getExternalAlertScore()     { return(externalAlert.score);          }
   inline char*    getExternalAlertMessage()   { return(externalAlert.msg);            }
 
-  virtual void setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port)  { ; }
-  virtual void setUnidirectionalTCPNoTXIngressFlow(IpAddress *ip, u_int16_t port) { ; }
-  virtual u_int32_t getNumContactedPeersAsClientTCPNoTX()    { return(0); };
-  virtual u_int32_t getNumContactsFromPeersAsServerTCPNoTX() { return(0); };
-  
+  void setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port);
+  void setUnidirectionalTCPNoTXIngressFlow(IpAddress *ip, u_int16_t port);
+
+  inline u_int32_t getNumContactedPeersAsClientTCPNoTX()    { return((u_int32_t)ndpi_hll_count(&outgoing_hosts_port_with_no_tx_hll)); };
+  inline u_int32_t getNumContactsFromPeersAsServerTCPNoTX() { return((u_int32_t)ndpi_hll_count(&incoming_hosts_port_with_no_tx_hll)); };
+
   inline u_int16_t getNumContactedTCPServerPortsNoTX()       { return(tcp_contacted_ports_no_tx ? (u_int16_t)ndpi_bitmap_cardinality(tcp_contacted_ports_no_tx) : 0); }
   inline void setContactedTCPServerPortNoTX(u_int16_t port)  { if(tcp_contacted_ports_no_tx) ndpi_bitmap_set(tcp_contacted_ports_no_tx, port);                        }
 };
