@@ -26,7 +26,7 @@
         <b>{{_i18n("if_stats_config.target")}}</b>
 	    </label>
 	    <div class="col-sm-8" >
-	      <input ref="host" @input="check_empty_host" class="form-control" type="text" placeholder="A local host IP or '*' for checking all local hosts" required>
+	      <input v-model="host" @input="check_empty_host" class="form-control" type="text" placeholder="A local host IP or '*' for checking all local hosts" required>
 	    </div>
     </div>
 
@@ -193,9 +193,7 @@ const props = defineProps({
 });
 
 function reset_modal_form() {
-    if (host.value)
-      host.value.value = "";
-
+    host.value = "";
     selected_ifid.value = ifid_list.value[0];
     selected_metric.value = metric_list.value[0];
     selected_frequency.value = frequency_list.value[0];
@@ -237,7 +235,7 @@ const change_threshold = () => {
 
 const check_empty_host = () => {
   let regex = new RegExp(regexValidation.get_data_pattern('ip'));
-  disable_add.value = !(regex.test(host.value.value) || host.value.value === '*');
+  disable_add.value = !(regex.test(host.value) || host.value === '*');
 }
 
 const set_active_radio = (selected_radio) => {
@@ -278,7 +276,7 @@ const set_active_radio = (selected_radio) => {
 const add_ = () => {
   let tmp_host = ''
   if(rule_type.value == 'Host')
-    tmp_host = host.value.value;
+    tmp_host = host.value;
 
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_metric.value.id;
