@@ -58,6 +58,8 @@ end
 
 ------------------------------------------------------------------------
 
+-- Store host events
+-- Used by syslog/host_log
 function syslog_utils.handle_event(message, host, priority, level_threshold)
    -- Priority = Facility * 8 + Level
    local facility = math.floor(priority / 8)
@@ -92,7 +94,55 @@ function syslog_utils.handle_event(message, host, priority, level_threshold)
       -- Deliver alert
       type_info:store(entity)
 
-         -- Deliver to companion if any
+      -- Deliver to companion if any
+      local companion_of = companion_interface_utils.getCurrentCompanionOf(interface.getId())
+      local curr_iface = tostring(interface.getId())
+      for _, m in pairs(companion_of) do
+         interface.select(m)
+         type_info:store(entity)
+      end
+      interface.select(curr_iface)
+
+      return true
+   end
+
+   return false
+end
+
+------------------------------------------------------------------------
+
+-- Store system (process) events
+-- Used by syslog/nbox
+function syslog_utils.handle_system_event(host, service, event, message, priority, level_threshold)
+   -- Priority = Facility * 8 + Level
+   local facility = math.floor(priority / 8)
+   local level = priority - (facility * 8)
+
+   local facility_name = syslog_facility[facility] or ""
+   local level_name = syslog_level[level] or ""
+
+   -- Discard info messages
+   if level_threshold and level <= level_threshold then
+
+      local score = 10
+      if level <= 3 then
+         score = 100
+      elseif level <= 4 then
+         score = 50
+      end
+
+      local entity_value = service
+      local entity_info = alerts_api.systemEntity(entity_value)
+
+      local type_info = alert_consts.alert_types.alert_process_notification.new(
+         event,
+         message
+      )
+
+      type_info:set_score(score)
+      type_info:store(entity_info)
+
+      -- Deliver to companion if any
       local companion_of = companion_interface_utils.getCurrentCompanionOf(interface.getId())
       local curr_iface = tostring(interface.getId())
       for _, m in pairs(companion_of) do

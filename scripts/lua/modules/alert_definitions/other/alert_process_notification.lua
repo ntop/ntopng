@@ -51,6 +51,8 @@ function alert_process_notification.format(ifid, alert, alert_type_params)
     return string.format("%s %s", i18n("alert_messages.ntopng_stop"), alert_type_params.msg_details)
   elseif alert_type_params.event_type == "update" then
     return string.format("%s %s", i18n("alert_messages.ntopng_update"), alert_type_params.msg_details)
+  elseif alert_type_params.event_type == "failure" then
+    return string.format("%s %s", i18n("alert_messages.ntopng_died"), alert_type_params.msg_details)
   elseif alert_type_params.event_type == "anomalous_termination" then
      return string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), alert_type_params.msg_details)
   end
