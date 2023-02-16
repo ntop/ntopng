@@ -91,6 +91,16 @@ Example of NXLog *nxlog.conf* configuration file for XML export:
        Path          eventlog => out
    </Route>
 
+
+**nBox**
+~~~~~~~~~~~~~~~~~~~~~~
+
+Collects syslog logs from nBox appliances. This is used to get notifications about services (start, stop, failures, crashes).
+
+Enabled by Default - requires the Syslog Producer configuration for Logs Demultiplexing as described in :ref:`Syslog target`.
+
+*Category: Cybersecurity*
+
 **OpenVPN**
 ~~~~~~~~~~~~~~~~~~~~~~
 
