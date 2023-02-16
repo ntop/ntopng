@@ -3047,21 +3047,20 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
 
     json_object_object_add(my_object, "community_id", json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
 
-
-  #ifdef NTOPNG_PRO
-  #ifndef HAVE_NEDGE
+#ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
     // Traffic profile information, if any
     if(trafficProfile && trafficProfile->getName())
       json_object_object_add(network_object, "profile", json_object_new_string(trafficProfile->getName()));
-  #endif
-  #endif
+#endif
+#endif
 
-  #ifdef HAVE_NEDGE
+#ifdef HAVE_NEDGE
     if(iface && iface->is_bridge_interface())
       json_object_object_add(my_object, "verdict.pass", json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
-  #else
+#else
     if(!passVerdict) json_object_object_add(my_object, "pass_verdict", json_object_new_boolean((json_bool)0));
-  #endif
+#endif
 
     if(addr)
       json_object_object_add(network_object, Utils::jsonLabel(IP_PROTOCOL_VERSION, "type", jsonbuf, sizeof(jsonbuf)), json_object_new_string(addr->isIPv4() ? "ipv4" : "ipv6"));
@@ -3831,7 +3830,7 @@ void Flow::housekeep(time_t t) {
 
     dumpCheck(t, true /* LAST dump before delete */);
 
-  #ifdef NTOPNG_PRO
+#ifdef NTOPNG_PRO
     if(cli_host && srv_host) {
       u_int16_t cli_net_id = cli_host->get_local_network_id(), srv_net_id = srv_host->get_local_network_id();
 
@@ -3842,12 +3841,12 @@ void Flow::housekeep(time_t t) {
 
         if(cli_network_stats) cli_network_stats->incTrafficBetweenNets(srv_net_id, get_bytes_cli2srv(), get_bytes_srv2cli());
         if(srv_network_stats) srv_network_stats->incTrafficBetweenNets(cli_net_id, get_bytes_srv2cli(), get_bytes_cli2srv());
-      #ifdef DEBUG
+#ifdef DEBUG
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cli Network ID: %u | Srv Network ID: %u | Bytes: %lu | Num Loc Nets: %u", cli_net_id, srv_net_id, get_bytes(), ntop->getNumLocalNetworks());
-      #endif
+#endif
       }
     }
-  #endif
+#endif
 
     /*
       Score decrements MUST be performed here as this is the same thread of checks execution where
