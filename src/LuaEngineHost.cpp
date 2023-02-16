@@ -49,7 +49,7 @@ static int ntop_host_get_mac(lua_State* vm) {
 
   if(h) {
     Mac *cur_mac = h->getMac();
-    const u_int8_t *mac = cur_mac ? cur_mac->get_mac() : NULL;    
+    const u_int8_t *mac = cur_mac ? cur_mac->get_mac() : NULL;
     char buf[64];
 
     lua_pushstring(vm, Utils::formatMac(mac ? mac : NULL, buf, sizeof(buf)));
@@ -95,7 +95,7 @@ static int ntop_host_is_unicast(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
   IpAddress *ip = h ? h->get_ip() : NULL;
-  
+
   lua_pushboolean(vm, ip ? (!ip->isBroadMulticastAddress()) : true);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -107,7 +107,7 @@ static int ntop_host_is_multicast(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
   IpAddress *ip = h ? h->get_ip() : NULL;
-  
+
   lua_pushboolean(vm, ip ? ip->isMulticastAddress() : false);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -119,7 +119,7 @@ static int ntop_host_is_broadcast(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
   IpAddress *ip = h ? h->get_ip() : NULL;
-  
+
   lua_pushboolean(vm, ip ? ip->isBroadcastAddress() : false);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -217,7 +217,7 @@ static int ntop_skip_visited_host(lua_State* vm) {
 
   if(h)
     h->setCustomHostScriptAlreadyEvaluated();
-  
+
   lua_pushnil(vm);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -256,7 +256,21 @@ static int ntop_get_num_contacted_peers_as_client_tcp_notx(lua_State* vm) {
     lua_pushinteger(vm, h->getNumContactedPeersAsClientTCPNoTX());
   else
     lua_pushnil(vm);
-  
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_get_unidirectional_tcp_flow_stats(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h)
+    h->lua_unidirectional_tcp_flows(vm);
+  else
+    lua_pushnil(vm);
+
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -270,7 +284,7 @@ static int ntop_get_num_contacts_from_peers_as_server_tcp_notx(lua_State* vm) {
     lua_pushinteger(vm, h->getNumContactsFromPeersAsServerTCPNoTX());
   else
     lua_pushnil(vm);
-  
+
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -284,7 +298,7 @@ static int ntop_get_num_contacted_tcp_server_ports_notx(lua_State* vm) {
     lua_pushinteger(vm, h->getNumContactedTCPServerPortsNoTX());
   else
     lua_pushnil(vm);
-  
+
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -310,6 +324,7 @@ static luaL_Reg _ntop_host_reg[] = {
   { "skipVisitedHost",  ntop_skip_visited_host         },
   { "triggerAlert",     ntop_trigger_host_alert        },
 
+  { "getUndirectionalTCPFlowsStats",          ntop_get_unidirectional_tcp_flow_stats              },
   { "getNumContactedPeersAsClientTCPNoTX",    ntop_get_num_contacted_peers_as_client_tcp_notx     },
   { "getNumContactsFromPeersAsServerTCPNoTX", ntop_get_num_contacts_from_peers_as_server_tcp_notx },
   { "getNumContactedTCPServerPortsNoTX",      ntop_get_num_contacted_tcp_server_ports_notx        },
