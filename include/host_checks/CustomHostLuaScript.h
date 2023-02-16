@@ -41,7 +41,7 @@ private:
 
  public:
   CustomHostLuaScript();
-  ~CustomHostLuaScript() {};
+  ~CustomHostLuaScript();
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
   bool loadConfiguration(json_object *config);  

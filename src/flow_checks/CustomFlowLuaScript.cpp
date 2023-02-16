@@ -62,7 +62,38 @@ LuaEngine* CustomFlowLuaScript::initVM(const char *script_path) {
 /* ***************************************************** */
 
 CustomFlowLuaScript::~CustomFlowLuaScript() {
-  ; /* Nothing to do */
+  for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
+    NetworkInterface *iface;
+    
+    if((iface = ntop->getInterface(i)) != NULL) {
+      LuaEngine* vm;
+
+      vm = iface->getCustomFlowLuaScriptProtoDetected();
+
+      if(vm != NULL) {
+	iface->setCustomFlowLuaScriptProtoDetected(NULL /* remove VM */);
+	delete vm;
+      }
+
+      /* ********************************* */
+      
+      vm = iface->getCustomFlowLuaScriptPeriodic();
+
+      if(vm != NULL) {
+	iface->setCustomFlowLuaScriptPeriodic(NULL /* remove VM */);
+	delete vm;
+      }
+
+      /* ********************************* */
+      
+      vm = iface->getCustomFlowLuaScriptEnd();
+
+      if(vm != NULL) {
+	iface->setCustomFlowLuaScriptEnd(NULL /* remove VM */);
+	delete vm;
+      }
+    }
+  }
 }
 
 /* ***************************************************** */
@@ -130,7 +161,6 @@ void CustomFlowLuaScript::flowEnd(Flow *f) {
       checkFlow(f, lua);
   }
 }
-
 
 /* ***************************************************** */
 

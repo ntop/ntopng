@@ -34,6 +34,23 @@ CustomHostLuaScript::CustomHostLuaScript() : HostCheck(ntopng_edition_community,
 
 /* ***************************************************** */
 
+CustomHostLuaScript::~CustomHostLuaScript() {
+  for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
+    NetworkInterface *iface;
+    
+    if((iface = ntop->getInterface(i)) != NULL) {
+      LuaEngine* vm = iface->getCustomHostLuaScript();
+
+      if(vm != NULL) {
+	iface->setCustomHostLuaScript(NULL /* remove VM */);
+	delete vm;
+      }
+    }
+  }
+}
+
+/* ***************************************************** */
+
 LuaEngine* CustomHostLuaScript::initVM() {
   const char *script_path = "scripts/callbacks/checks/hosts/custom_host_lua_script.lua";
   char where[256];
