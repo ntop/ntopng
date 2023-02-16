@@ -71,7 +71,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
 #endif
 
   /* Check if this is a clean JSON (no Syslog header) */
-  if (strchr(log_line, '{')) {
+  if (log_line[0] == '{') {
     content = log_line;
     goto detect_producer;
   }
