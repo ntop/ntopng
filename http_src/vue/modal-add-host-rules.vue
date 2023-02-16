@@ -26,7 +26,7 @@
         <b>{{_i18n("if_stats_config.target")}}</b>
 	    </label>
 	    <div class="col-sm-8" >
-	      <input v-model="host" @input="check_empty_host" class="form-control" type="text" placeholder="A local host IP or '*' for checking all local hosts" required>
+	      <input v-model="host" @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
 	    </div>
     </div>
 
@@ -135,6 +135,7 @@ const input_trigger_alerts = ref("");
 const modal_id = ref(null);
 const emit = defineEmits(['add'])
 const title = i18n('if_stats_config.add_host_rules_title')
+const host_placeholder = i18n('if_stats_config.host_placeholder')
 const metrics_ready = ref(false)
 const _i18n = (t) => i18n(t);
 const metric_list = ref([])

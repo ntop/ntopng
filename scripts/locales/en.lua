@@ -4147,6 +4147,7 @@ local lang = {
   },
   ["if_stats_config"] = {
     ["add_host_rules_title"] = "Add Rule",
+    ["host_placeholder"] = "A local host IP or '*' for checking all local hosts",
     ["add_rules_type"] = "Rule type",
     ["add_rules_type_host"] = "Host",
     ["add_rules_type_interface"] = "Interface",
