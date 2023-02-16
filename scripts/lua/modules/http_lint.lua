@@ -1851,6 +1851,7 @@ local known_parameters = {
    ["metric_type"]             = validateSingleWord,
    ["rule_id"]                 = validateSingleWord,
    ["extra_metric"]            = validateSingleWord,
+   ["rule_type"]               = validateSingleWord,
 
    ["bytes"]                   = validateListOfTypeInline(validateFilters(validateNumber)),
    ["packets"]                 = validateListOfTypeInline(validateFilters(validateNumber)),
