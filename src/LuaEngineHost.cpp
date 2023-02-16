@@ -324,7 +324,7 @@ static luaL_Reg _ntop_host_reg[] = {
   { "skipVisitedHost",  ntop_skip_visited_host         },
   { "triggerAlert",     ntop_trigger_host_alert        },
 
-  { "getUndirectionalTCPFlowsStats",          ntop_get_unidirectional_tcp_flow_stats              },
+  { "getUnidirectionalTCPFlowsStats",         ntop_get_unidirectional_tcp_flow_stats              },
   { "getNumContactedPeersAsClientTCPNoTX",    ntop_get_num_contacted_peers_as_client_tcp_notx     },
   { "getNumContactsFromPeersAsServerTCPNoTX", ntop_get_num_contacts_from_peers_as_server_tcp_notx },
   { "getNumContactedTCPServerPortsNoTX",      ntop_get_num_contacted_tcp_server_ports_notx        },
