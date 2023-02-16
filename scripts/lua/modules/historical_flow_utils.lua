@@ -351,15 +351,15 @@ end
 local function dt_format_l7_proto(l7_proto, record)
   
    if not isEmptyString(l7_proto) then
-    local title = interface.getnDPIProtoName(tonumber(l7_proto))
-    local confidence = format_confidence_from_json(record)
+      local title = interface.getnDPIProtoName(tonumber(l7_proto))
+      local confidence = format_confidence_from_json(record)
 
-    l7_proto = {
-      confidence = confidence,
-      title = title,
-      label = shortenString(title, 12),
-      value = tonumber(l7_proto),
-    } 
+      l7_proto = {
+         confidence = confidence,
+         title = title,
+         label = shortenString(title, 12),
+         value = tonumber(l7_proto),
+      } 
   end
    
    return l7_proto
@@ -922,7 +922,7 @@ local flow_columns = {
    ['DST_LABEL'] =            { tag = "srv_name" },
    ['SRC_MAC'] =              { tag = "cli_mac", dt_func = dt_format_mac },
    ['DST_MAC'] =              { tag = "srv_mac", dt_func = dt_format_mac },
-   ['COMMUNITY_ID'] =         { format_func = format_flow_info, i18n = i18n("flow_fields_description.community_id"), order = 10 },
+   ['COMMUNITY_ID'] =         { tag = "community_id", format_func = format_flow_info, i18n = i18n("flow_fields_description.community_id"), order = 10 },
    ['SRC_ASN'] =              { tag = "cli_asn", simple_dt_func = simple_format_src_asn },
    ['DST_ASN'] =              { tag = "srv_asn", simple_dt_func = simple_format_dst_asn },
    ['PROBE_IP'] =             { tag = "probe_ip",     dt_func = dt_format_probe, select_func = "IPv4NumToString", where_func = "IPv4StringToNum" },
@@ -1019,6 +1019,7 @@ historical_flow_utils.extra_where_tags = {
    ["cli_country"] = "SRC_COUNTRY_CODE",
    ["srv_country"] = "DST_COUNTRY_CODE",
    ["vlan_id"] = "VLAN_ID",
+   ["community_id"] = "COMMUNITY_ID",
 }
 
 historical_flow_utils.topk_tags_v4 = {
@@ -1497,6 +1498,21 @@ end
 
 -- #####################################
 
+local function build_datatable_js_column_community_id(name, data_name, label, order, hide)
+   return {
+      i18n = label,
+      order = order,
+      visible_by_default = not hide,
+      js = [[
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+         if (type !== 'display') return ]] .. name .. [[;
+        if (]] .. name .. [[ !== undefined) {
+          return `<a class='tag-filter' data-tag-value='${]] .. name .. [[}' title='${]] .. name .. [[}' href='#'>${]] .. name .. [[}</a>`;
+      }}}]] }
+end
+
+-- #####################################
+
 local function build_datatable_js_column_packets(name, data_name, label, order, hide)
    return {
       i18n = label,
@@ -1769,6 +1785,7 @@ local all_datatable_js_columns_by_tag = {
    ["output_snmp"] = build_datatable_js_column_snmp_interface("output_snmp", "output_snmp", i18n("db_search.tags.output_snmp"), 33),
    ['cli_country'] = build_datatable_js_column_country('cli_country', 'cli_country', i18n("db_search.tags.cli_country"), 34, true),
    ['srv_country'] = build_datatable_js_column_country('srv_country', 'srv_country', i18n("db_search.tags.srv_country"), 35, true),
+   ['community_id'] = build_datatable_js_column_community_id('community_id', 'community_id', i18n("db_search.tags.community_id"), 36, true),
 }
 
 -- #####################################
@@ -1817,6 +1834,7 @@ local function get_js_columns_to_display()
    js_columns["srv_country"] = historical_flow_utils.get_datatable_js_columns_by_tag("srv_country")
    js_columns["input_snmp"]  = historical_flow_utils.get_datatable_js_columns_by_tag("input_snmp")
    js_columns["output_snmp"] = historical_flow_utils.get_datatable_js_columns_by_tag("output_snmp")
+   js_columns["community_id"] = historical_flow_utils.get_datatable_js_columns_by_tag("community_id")
 
    local ifstats = interface.getStats()
    if ifstats.has_seen_ebpf_events then

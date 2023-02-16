@@ -23,6 +23,8 @@
     {responsivePriority: 4, name: 'description', data: 'description', width: '100%', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatMessage},
     /* Additional alerts */
     {responsivePriority: 4, name: 'additional_alerts', data: 'additional_alerts',  orderable: false, className: 'none', render: DataTableRenders.formatMessage},
+    /* Community ID */
+    {responsivePriority: 5, name: 'community_id', data: 'community_id',  orderable: false, className: 'text-nowrap', render: DataTableRenders.getFormatGenericField('community_id')},
     /* Flow related info */
     {responsivePriority: 5, name: 'info', data: 'info',  orderable: true, className: 'none', render: DataTableRenders.formatMessage},
     /* Flow related info */

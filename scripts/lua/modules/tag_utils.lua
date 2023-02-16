@@ -334,6 +334,11 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.confidence'),
       operators = {'eq', 'neq'},
    },
+   community_id = {
+      value_type = 'text',
+      i18n_label = i18n('db_search.tags.community_id'),
+      operators = {'eq', 'neq', 'in', 'nin'},
+   },
    cli_location = {
       value_type = 'location',
       i18n_label = i18n('db_search.tags.cli_location'),

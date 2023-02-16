@@ -1777,6 +1777,7 @@ local known_parameters = {
    ["l7_error_id"]             = validateListOfTypeInline(validateFilters(validateNumber)), -- client/server
    ["confidence"]              = validateListOfTypeInline(validateFilters(validateNumber)), -- client/server
    ["acknowledged"]            = validateListOfTypeInline(validateFilters(validateSingleWord)), -- acknowledged
+   ["community_id"]            = validateListOfTypeInline(validateFilters(validateSingleWord)), -- Community ID
    ["asn"]                     = validateNumber,                -- An ASN number
    ["country_id"]              = validateNumber,                -- A Country Code
    ["module"]                  = validateTopModule,             -- A top script module

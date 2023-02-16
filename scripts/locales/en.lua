@@ -1790,6 +1790,7 @@ local lang = {
       ["cli_user_name"] = "Client User",
       ["confidence"] = "Confidence",
       ["country"] = "Country",
+      ["community_id"] = "Community ID",
       ["dscp_id"] = "DSCP ID",
       ["dst2src_dscp"] = "Server DSCP",
       ["dst2src_tcp_flags"] = "Srv TCP Flags",

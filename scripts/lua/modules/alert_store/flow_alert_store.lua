@@ -515,6 +515,7 @@ function flow_alert_store:_add_additional_request_filters()
    
    local error_code = _GET["l7_error_id"]
    local confidence = _GET["confidence"]
+   local community_id = _GET["community_id"]
    
    self:format_traffic_direction(_GET["traffic_direction"])
    
@@ -545,6 +546,7 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('input_snmp', input_snmp)
    self:add_filter_condition_list('output_snmp', output_snmp)
    self:add_filter_condition_list('snmp_interface', snmp_interface)
+   self:add_filter_condition_list('community_id', community_id)
 
    self:add_filter_condition_list(self:format_query_json_value('proto.l7_error_code'), error_code, 'string')
    self:add_filter_condition_list(self:format_query_json_value('proto.confidence'), confidence, 'string')
@@ -578,6 +580,7 @@ function flow_alert_store:_get_additional_available_filters()
 
       l7_error_id       = tag_utils.defined_tags.l7_error_id,
       confidence        = tag_utils.defined_tags.confidence,
+      community_id      = tag_utils.defined_tags.community_id,
       traffic_direction = tag_utils.defined_tags.traffic_direction,
 
       probe_ip = tag_utils.defined_tags.probe_ip,
@@ -803,6 +806,11 @@ function flow_alert_store:format_record(value, no_html)
          country = host_info["country"] or ""
       end
    end
+
+   record["community_id"] = {
+      value = value["community_id"],
+      name = value["community_id"]
+   }
   
    local flow_cli_ip = {
       value = cli_ip,
