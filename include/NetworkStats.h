@@ -36,6 +36,7 @@ class NetworkStats : public InterfaceMemberAlertableEntity, public GenericTraffi
   AlertCounter syn_flood_victim_alert;
   AlertCounter flow_flood_victim_alert;
   u_int32_t syn_recvd_last_min, synack_sent_last_min; /* syn scan counters (victim) */
+  u_int32_t round_trip_time;
 
 #if defined(NTOPNG_PRO)
   InOutTraffic *network_matrix;
@@ -116,6 +117,7 @@ class NetworkStats : public InterfaceMemberAlertableEntity, public GenericTraffi
 
   void updateSynAlertsCounter(time_t when, bool syn_sent);
   void updateSynAckAlertsCounter(time_t when, bool synack_sent);
+  void updateRoundTripTime(u_int32_t rtt_msecs);
   void incNumFlows(time_t t, bool as_client);
 };
 

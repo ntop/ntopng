@@ -28,6 +28,7 @@ NetworkStats::NetworkStats(NetworkInterface *iface, u_int16_t _network_id) : Int
   network_id = _network_id;
   numHosts = 0, alerted_flows_as_client = alerted_flows_as_server = 0;
   syn_recvd_last_min = synack_sent_last_min = 0;
+  round_trip_time = 0;
 
 #ifdef NTOPNG_PRO
   network_matrix = (InOutTraffic *) calloc(ntop->getNumLocalNetworks(), sizeof(InOutTraffic));
@@ -91,6 +92,7 @@ void NetworkStats::lua(lua_State* vm, bool diff) {
   lua_push_uint64_table_entry(vm, "network_id", network_id);
   lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
   lua_push_uint64_table_entry(vm, "engaged_alerts", getNumEngagedAlerts());
+  lua_push_uint64_table_entry(vm, "round_trip_time", round_trip_time);
 
   lua_push_uint64_table_entry(vm, "ingress", ingress.getNumBytes());
   lua_push_uint64_table_entry(vm, "egress", egress.getNumBytes());
@@ -174,6 +176,28 @@ void NetworkStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "ingress", &obj)) ingress.incStats(now, 0, json_object_get_int(obj));
   if(json_object_object_get_ex(o, "egress", &obj)) egress.incStats(now, 0, json_object_get_int(obj));
   if(json_object_object_get_ex(o, "inner", &obj)) inner.incStats(now, 0, json_object_get_int(obj));
+}
+
+/* *************************************** */
+
+void NetworkStats::updateRoundTripTime(u_int32_t rtt_msecs) {
+  /* EWMA formula is EWMA(n) = (alpha_percent * sample + (100 - alpha_percent) * EWMA(n-1)) / 100
+
+     We read the EWMA alpha_percent from the preferences
+  */
+  u_int8_t ewma_alpha_percent = ntop->getPrefs()->get_ewma_alpha_percent();
+
+#ifdef AS_RTT_DEBUG
+  u_int32_t old_rtt = round_trip_time;
+#endif
+  if(round_trip_time)
+    Utils::update_ewma(rtt_msecs, &round_trip_time, ewma_alpha_percent);
+  else
+    round_trip_time = rtt_msecs;
+#ifdef AS_RTT_DEBUG
+  printf("Updating rtt EWMA: [asn: %u][sample msecs: %u][old rtt: %u][new rtt: %u][alpha percent: %u]\n",
+	 asn, rtt_msecs, old_rtt, round_trip_time, ewma_alpha_percent);
+#endif
 }
 
 /* *************************************** */

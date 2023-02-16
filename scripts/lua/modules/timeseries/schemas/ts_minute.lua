@@ -106,6 +106,15 @@ if ntop.isPro() then
   schema:addMetric("bytes_rcvd")        
 end
 
+-- ##############################################
+
+schema = ts_utils.newSchema("subnet:rtt", {step=300, rrd_fname="num_ms_rtt", metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("subnet")
+schema:addMetric("millis_rtt")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("subnet:traffic", {step=60, rrd_fname="bytes"})
 schema:addTag("ifid")
 schema:addTag("subnet")

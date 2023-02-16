@@ -431,8 +431,11 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void updateSNMPAlertsCounter(time_t when, bool snmp_sent);
   void updateSynAckAlertsCounter(time_t when, bool synack_sent);
   void updateFinAckAlertsCounter(time_t when, bool finack_sent);
+  
+  virtual void updateNetworkRTT(u_int32_t rtt_msecs) { return ; }
   inline void updateRoundTripTime(u_int32_t rtt_msecs) {
     if(as) as->updateRoundTripTime(rtt_msecs);
+    updateNetworkRTT(rtt_msecs);
   }
 
   inline u_int16_t icmp_flood_victim_hits()   const { return icmp_flood.victim_counter ? icmp_flood.victim_counter->hits() : 0;     };

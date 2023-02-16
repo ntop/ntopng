@@ -83,6 +83,13 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
       end
     end
 
+    -- Save ASN RTT stats
+    if not ifstats.isViewed and not ifstats.isView then
+      ts_utils.append("subnet:rtt",
+        {ifid=ifstats.id, subnet=subnet,
+        millis_rtt=sstats["round_trip_time"]}, when)
+    end
+
     ts_utils.append("subnet:traffic",
         {ifid=ifstats.id, subnet=subnet,
         bytes_ingress=sstats["ingress"], bytes_egress=sstats["egress"],
@@ -98,7 +105,7 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
         score=sstats["score"], scoreAsClient=sstats["score.as_client"], scoreAsServer=sstats["score.as_server"]}, when)
 
     if not ifstats.isSampledTraffic then
-       ts_utils.append("subnet:tcp_retransmissions",
+      ts_utils.append("subnet:tcp_retransmissions",
 		       {ifid=ifstats.id, subnet=subnet,
 			packets_ingress=sstats["tcpPacketStats.ingress"]["retransmissions"],
 			packets_egress=sstats["tcpPacketStats.egress"]["retransmissions"],

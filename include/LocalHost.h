@@ -59,6 +59,11 @@ class LocalHost : public Host, public SerializableElement {
   virtual bool isLocalUnicastHost()  const     { return(!(isBroadcastHost() || isMulticastHost()));  };
   virtual bool isSystemHost() const            { return(systemHost);        };
 
+  virtual void updateNetworkRTT(u_int32_t rtt_msecs) { 
+    NetworkStats* network = iface->getNetworkStats(get_local_network_id());
+    if(network) network->updateRoundTripTime(rtt_msecs);
+  }
+
   virtual NetworkStats* getNetworkStats(int16_t networkId) {
     return(iface->getNetworkStats(networkId));
   };
