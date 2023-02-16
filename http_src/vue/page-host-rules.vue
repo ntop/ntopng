@@ -66,6 +66,7 @@ const modal_add_host_rule = ref(null)
 const _i18n = (t) => i18n(t);
 const row_to_delete = ref({})
 const metric_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua`
+const ifid_url = `${http_prefix}/lua/rest/v2/get/ntopng/interfaces.lua`
 const data_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_data.lua`
 const add_rule_url = `${http_prefix}/lua/pro/rest/v2/add/interface/host_rules/add_host_rule.lua`
 const remove_rule_url = `${http_prefix}/lua/pro/rest/v2/delete/interface/host_rules/delete_host_rule.lua`
@@ -85,6 +86,7 @@ let host_rules_table_config = {}
 let title_delete = _i18n('if_stats_config.delete_host_rules_title')
 let body_delete = _i18n('if_stats_config.delete_host_rules_description')
 let metric_list = []
+let ifid_list = []
 const frequency_list = [
   { title: i18n('show_alerts.5_min'), label: i18n('show_alerts.5_min'), id: '5min' },
   { title: i18n('show_alerts.hourly'), label: i18n('show_alerts.hourly'), id: 'hour' },
@@ -173,6 +175,8 @@ const format_threshold = function(data, rowData) {
     formatted_data = NtopUtils.bitsToSize(data * 8)
   } else if((rowData.metric_type) && (rowData.metric_type == 'volume')) {
     formatted_data = NtopUtils.bytesToSize(data);
+  } else if((rowData.metric_type) && (rowData.metric_type == 'percentage')){
+    formatted_data = NtopUtils.fpercent(data);
   } else {
     formatted_data = data
   }
@@ -185,6 +189,14 @@ const get_metric_list = async function() {
 
   await $.get(url, function(rsp, status){
     metric_list = rsp.rsp;
+  });
+}
+
+const get_ifid_list = async function() {
+  const url = NtopUtils.buildURL(ifid_url, rest_params)
+
+  await $.get(url, function(rsp, status){
+    ifid_list = rsp.rsp;
   });
 }
 
@@ -209,10 +221,11 @@ const start_datatable = function() {
   const columns = [
     { columnName: _i18n("id"), visible: false, targets: 0, name: 'id', data: 'id', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: _i18n("if_stats_config.target"), targets: 1, width: '20', name: 'target', data: 'target', className: 'text-nowrap', responsivePriority: 1 },
-    { columnName: _i18n("if_stats_config.metric"), targets: 2, width: '10', name: 'metric', data: 'metric', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) { return format_metric(data, rowData) } },
-    { columnName: _i18n("if_stats_config.frequency"), targets: 3, width: '10', name: 'frequency', data: 'frequency', className: 'text-nowrap', responsivePriority: 1, render: function(data) { return format_frequency(data) } },
-    { columnName: _i18n("if_stats_config.threshold"), targets: 4, width: '10', name: 'threshold', data: 'threshold', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) { return format_threshold(data, rowData) } },
-    { columnName: _i18n("metric_type"), visible: false, targets: 5, name: 'metric_type', data: 'metric_type', className: 'text-nowrap', responsivePriority: 1 },
+    { columnName: _i18n("if_stats_config.rule_type"), targets: 2, width: '20', name: 'rule_type', data: 'rule_type', className: 'text-nowrap', responsivePriority: 1 },
+    { columnName: _i18n("if_stats_config.metric"), targets: 3, width: '10', name: 'metric', data: 'metric', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) { return format_metric(data, rowData) } },
+    { columnName: _i18n("if_stats_config.frequency"), targets: 4, width: '10', name: 'frequency', data: 'frequency', className: 'text-nowrap', responsivePriority: 1, render: function(data) { return format_frequency(data) } },
+    { columnName: _i18n("if_stats_config.threshold"), targets: 5, width: '10', name: 'threshold', data: 'threshold', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) { return format_threshold(data, rowData) } },
+    { columnName: _i18n("metric_type"), visible: false, targets: 6, name: 'metric_type', data: 'metric_type', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: _i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) { return add_action_column(rowData) } }
   ];
 
@@ -235,7 +248,8 @@ const start_datatable = function() {
 onBeforeMount(async () => {
   start_datatable();
   await get_metric_list();
-  modal_add_host_rule.value.metricsLoaded(metric_list);
+  await get_ifid_list();
+  modal_add_host_rule.value.metricsLoaded(metric_list, ifid_list);
 })
 
 onUnmounted(() => {

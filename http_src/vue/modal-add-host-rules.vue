@@ -4,7 +4,24 @@
   <template v-slot:title>{{title}}</template>
   <template v-slot:body>
     <!-- Target information, here an IP is put -->
-    <div class="form-group ms-2 me-2 mt-3 row">
+  <div class="form-group ms-2 me-2 mt-3 row">
+
+  <label class="col-form-label col-sm-4">
+    <b>{{ _i18n("if_stats_config.add_rules_type") }}</b>
+  </label>
+    <div class="col-sm-8">
+	  <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
+	    <label :class="{'active': rule_type == 'hosts'}" class="btn btn-secondary">
+	      <input  class="btn-check" type="radio" name="rule_type" value="hosts" @click="set_rule_type('Host')"> {{ _i18n("if_stats_config.add_rules_type_host") }}
+	    </label>
+	    <label :class="{'active': rule_type == 'interface'}" class="btn btn-secondary">
+	      <input @click="set_rule_type('Interface')" class="btn-check"  type="radio" name="rule_type" value="interface"> {{ _i18n("if_stats_config.add_rules_type_interface") }}
+	    </label>
+	  </div>
+	</div>
+  </div>
+
+    <div v-if="rule_type == 'Host'" class="form-group ms-2 me-2 mt-3 row">
 	    <label class="col-form-label col-sm-4" >
         <b>{{_i18n("if_stats_config.target")}}</b>
 	    </label>
@@ -12,6 +29,19 @@
 	      <input ref="host" @input="check_empty_host" class="form-control" type="text" placeholder="A local host IP or '*' for checking all local hosts" required>
 	    </div>
     </div>
+
+    <div v-if="rule_type == 'Interface'" class="form-group ms-2 me-2 mt-3 row">
+	    <label class="col-form-label col-sm-4" >
+        <b>{{_i18n("if_stats_config.target_interface")}}</b>
+	    </label>
+      <div class="col-8">
+        
+        <SelectSearch v-model:selected_option="selected_ifid"
+              :options="ifid_list">
+        </SelectSearch> 
+      </div> 
+    </div>
+
 
     <!-- Metric information, here a metric is selected (e.g. DNS traffic) -->
     <div v-if="metrics_ready" class="form-group ms-2 me-2 mt-3 row">
@@ -54,24 +84,40 @@
             <template v-if="metric_type.id == 'throughput'" v-for="measure in throughput_threshold_list" >
               <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_measure" name="threshold_measure">
               <label class="btn " :id="measure.id" @click="set_active_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
-            </template> 
-            <template v-else v-for="measure in volume_threshold_list" >
+            </template>
+            <template v-if="metric_type.id == 'percentage'" v-for="measure in percentage_threshold_list">
               <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_measure" name="threshold_measure">
               <label class="btn " :id="measure.id" @click="set_active_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
             </template>
-          </div>
+            <template v-if="metric_type.id == 'volume'" v-for="measure in volume_threshold_list" >
+              <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_measure" name="threshold_measure">
+              <label class="btn " :id="measure.id" @click="set_active_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
+            </template>
+          </div>  
         </div>
+        
       </template>
       <div :class="[ visible ? 'col-2' : 'col-8']">
-        <input value="1" ref="threshold" type="number" name="threshold" class="form-control" max="1023" min="1" required>
+        <template v-if = "metric_type.id == 'percentage'" >
+          <input value="1" ref="threshold" type="number" name="threshold" class="form-control" max="100" min="1" required>
+        </template> 
+        <template v-else> 
+          <input value="1" ref="threshold" type="number" name="threshold" class="form-control" max="1023" min="1" required>
+        </template>
       </div>
+
+      <template v-if="metric_type.id == 'percentage'">
+        <div class="message alert alert-warning mt-3">
+          {{ _i18n("show_alerts.host_rules_percentage") }}
+        </div>
+      </template>
     </div>
   </template>
   <template v-slot:footer>
     <NoteList
     :note_list="note_list">
     </NoteList>
-    <button type="button" @click="add_" class="btn btn-primary" :class="[ disable_add ? 'disabled' : '' ]">{{_i18n('add')}}</button>
+    <button type="button" @click="add_" class="btn btn-primary"  :disabled="disable_add && rule_type == 'Host'">{{_i18n('add')}}</button>
   </template>
 </modal>
 </template>
@@ -92,13 +138,18 @@ const title = i18n('if_stats_config.add_host_rules_title')
 const metrics_ready = ref(false)
 const _i18n = (t) => i18n(t);
 const metric_list = ref([])
+const ifid_list = ref([])
 const frequency_list = ref([])
 const threshold_measure = ref(null)
 const selected_metric = ref({})
 const selected_frequency = ref({})
+const selected_ifid = ref({})
 const disable_add = ref(true)
 const metric_type = ref({})
 const visible = ref(true)
+const rule_type = ref("hosts");
+
+
 const note_list = [
   _i18n('if_stats_config.note_1'),
   _i18n('if_stats_config.note_2'),
@@ -109,6 +160,7 @@ const note_list = [
 const metric_type_list = [
   { title: _i18n('volume'), label: _i18n('volume'), id: 'volume', active: true },
   { title: _i18n('throughput'), label: _i18n('throughput'), id: 'throughput', active: false },
+  { title: _i18n('percentage'), label: _i18n('percentage'), id: 'percentage', acrive: false },
 ]
 
 const volume_threshold_list = [
@@ -123,6 +175,11 @@ const throughput_threshold_list = [
   { title: _i18n('gbps'), label: _i18n('gbps'), id: 'gbps', value: 1000000000, active: true },
 ]
 
+const percentage_threshold_list = [
+  { title: "+", label: "+%", id: 'plus', value: 1, active: false },
+  { title: "-", label: "-%", id: 'minus', value: -1, active: true },
+]
+
 
 const host = ref(null)
 const threshold = ref(null)
@@ -131,11 +188,15 @@ const showed = () => {};
 
 const props = defineProps({
   metric_list: Array,
+  ifid_list: Array,
   frequency_list: Array,
 });
 
 function reset_modal_form() {
-    host.value.value = "";
+    if (host.value)
+      host.value.value = "";
+
+    selected_ifid.value = ifid_list.value[0];
     selected_metric.value = metric_list.value[0];
     selected_frequency.value = frequency_list.value[0];
     metric_type.value = metric_type_list[0];
@@ -152,7 +213,17 @@ function reset_modal_form() {
     throughput_threshold_list.forEach((t) => t.active = false);
     throughput_threshold_list[throughput_threshold_list.length - 1].active = true;
 
+    // reset percentage_threshold_list 
+    percentage_threshold_list.forEach((t) => t.active = false);
+    percentage_threshold_list[percentage_threshold_list.length - 1].active = true;
+
+    rule_type.value = "Host";
+
     threshold.value.value = 1;
+}
+
+const set_rule_type = (type) => {
+    rule_type.value = type;
 }
 
 const show = () => {
@@ -176,8 +247,12 @@ const set_active_radio = (selected_radio) => {
     throughput_threshold_list.forEach((measure) => {
       (measure.id === id) ? measure.active = true : measure.active = false;
     })
-  } else {
+  } else if (metric_type.value.id == 'volume') {
     volume_threshold_list.forEach((measure) => {
+      (measure.id === id) ? measure.active = true : measure.active = false;
+    })
+  } else {
+    percentage_threshold_list.forEach((measure) => {
       (measure.id === id) ? measure.active = true : measure.active = false;
     })
   }
@@ -198,11 +273,17 @@ const set_active_radio = (selected_radio) => {
   })
 }
 
+
+
 const add_ = () => {
-  debugger;
-  const tmp_host = host.value.value;
+  let tmp_host = ''
+  if(rule_type.value == 'Host')
+    tmp_host = host.value.value;
+
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_metric.value.id;
+  const tmp_rule_type = rule_type.value;
+  const tmp_interface = selected_ifid.value.label;
   let tmp_metric_type = metric_type.value.id;
   let tmp_extra_metric = (selected_metric.value.extra_metric) ? selected_metric.value.extra_metric : null
   let basic_value;
@@ -220,16 +301,31 @@ const add_ = () => {
   } else if(tmp_metric_type == 'volume') {
     volume_threshold_list.forEach((measure) => { if(measure.active) basic_value = measure.value; })
     tmp_threshold = basic_value * parseInt(threshold.value.value);
+  } else if(tmp_metric_type == 'percentage') {
+    percentage_threshold_list.forEach((measure) => { if(measure.active) basic_value = measure.value; })
+    tmp_threshold = basic_value * parseInt(threshold.value.value);
   }
+  if (rule_type.value == 'Host')
+    emit('add', { 
+      host: tmp_host, 
+      frequency: tmp_frequency, 
+      metric: tmp_metric,
+      threshold: tmp_threshold,
+      metric_type: tmp_metric_type,
+      extra_metric: tmp_extra_metric,
+      rule_type: tmp_rule_type,
+    });
+  else
+    emit('add', { 
+      frequency: tmp_frequency, 
+      metric: tmp_metric,
+      threshold: tmp_threshold,
+      metric_type: tmp_metric_type,
+      extra_metric: tmp_extra_metric,
+      rule_type: tmp_rule_type,
+      interface: tmp_interface
+    });
 
-  emit('add', { 
-    host: tmp_host, 
-    frequency: tmp_frequency, 
-    metric: tmp_metric,
-    threshold: tmp_threshold,
-    metric_type: tmp_metric_type,
-    extra_metric: tmp_extra_metric,
-  });
   close();
 };
 
@@ -237,13 +333,25 @@ const close = () => {
   modal_id.value.close();
 };
 
-const metricsLoaded = (_metric_list) => {
+const format_ifid_list = function(data) {
+  let _ifid_list = []
+  data.forEach((ifid) => {
+    let item = {id: ifid.ifid, label: ifid.name};
+    _ifid_list.push(item);
+  }) 
+  return _ifid_list
+}
+
+const metricsLoaded = (_metric_list, _ifid_list) => {
   metrics_ready.value = true;
   metric_list.value = _metric_list;
+  ifid_list.value = format_ifid_list(_ifid_list);
   frequency_list.value = props.frequency_list;
   selected_frequency.value = frequency_list.value[0];
   selected_metric.value = metric_list.value[0];
+  selected_ifid.value = ifid_list.value[0];
 }
+
 
 onBeforeMount(() => {
   metric_type.value = metric_type_list[0]
