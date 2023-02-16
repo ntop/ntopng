@@ -114,7 +114,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("HTTP_RET_CODE", HTTP_RET_CODE, NTOP_PEN);
   addMapping("HTTP_METHOD", HTTP_METHOD, NTOP_PEN);
   addMapping("HTTP_USER_AGENT", HTTP_USER_AGENT, NTOP_PEN);
-  addMapping("SSL_SERVER_NAME", SSL_SERVER_NAME, NTOP_PEN);
+  addMapping("TLS_SERVER_NAME", TLS_SERVER_NAME, NTOP_PEN);
   addMapping("TLS_CIPHER", TLS_CIPHER, NTOP_PEN);
   addMapping("SSL_UNSAFE_CIPHER", SSL_UNSAFE_CIPHER, NTOP_PEN);
   addMapping("JA3C_HASH", JA3C_HASH, NTOP_PEN);
@@ -863,7 +863,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
       flow->http_method = ndpi_http_str2method(value->string, strlen(value->string));
     break;
 
-  case SSL_SERVER_NAME:
+  case TLS_SERVER_NAME:
     if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->tls_server_name) free(flow->tls_server_name);
       flow->tls_server_name = strdup(value->string);
@@ -1264,7 +1264,7 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t fi
     else
       return false;
 
-  case SSL_SERVER_NAME:
+  case TLS_SERVER_NAME:
     if(value->string && flow->tls_server_name)
       return (strcmp(flow->tls_server_name, value->string) == 0);
     else
@@ -1528,12 +1528,18 @@ int ZMQParserInterface::parseSingleJSONFlow(json_object *o, u_int8_t source_id) 
     case json_type_double:
       value.double_num = json_object_get_double(jvalue);
       break;
+    case json_type_boolean:
+      value.boolean = json_object_get_boolean(jvalue);
+      break;
     case json_type_string:
       value.string = json_object_get_string(jvalue);
       if(strcmp(key,"json") == 0)
 	additional_o = json_tokener_parse(value.string);
       break;
     case json_type_object:
+      /* This is handled by parseNProbeAgentField or addAdditionalField */
+      break;
+    case json_type_array:
       /* This is handled by parseNProbeAgentField or addAdditionalField */
       break;
     default:
@@ -1862,7 +1868,8 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * payload, int payload_siz
   printf("\n\n%s\n\n", payload);
 #endif
 
-  f = json_tokener_parse_verbose(payload, &jerr);
+  if(payload)
+    f = json_tokener_parse_verbose(payload, &jerr);
 
   if(f != NULL) {
     int n = 0, rc;

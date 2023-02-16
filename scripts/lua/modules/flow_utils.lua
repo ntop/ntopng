@@ -22,6 +22,15 @@ end
 
 -- #######################
 
+-- The same base id of the ntop_flow.h file
+local ntop_base_id = 57472
+
+-- Keep in sync with the defines in ntop_flow.h, 
+-- otherwise it could happen that some fields are not mapped
+local flow_label_id = {
+  [tostring(ntop_base_id + 524)] = 'COMMUNITY_ID',
+}
+
 local flow_verdict_mapping = {
    "Unknown", -- 0
    "Pass", -- 1
@@ -33,6 +42,31 @@ local flow_verdict_icon = {
    '<i class="fas fa-check"></i>',
    '<i class="fas fa-ban"></i>',
 }
+
+-- #######################
+
+function getFlowLabelFromId(id)
+  local label = flow_label_id[tostring(id)]
+
+  if label == nil then
+    label = id
+  end
+
+  return label
+end
+
+-- #######################
+
+-- Given a field and a flow, checks if the flow already has a non empty field
+function fieldAlreadyPresent(field, flow)
+  field = string.lower(field)
+
+  if (flow[field]) and (not isEmptyString(flow[field])) then
+    return true
+  end
+
+  return false
+end
 
 -- #######################
 
@@ -761,6 +795,10 @@ end
 -- #######################
 
 function getFlowKey(name)
+   if tonumber(name) then
+      name = getFlowLabelFromId(name)
+   end
+   
    local s = flow_consts.flow_fields_description[name]
 
    if(s == nil) then

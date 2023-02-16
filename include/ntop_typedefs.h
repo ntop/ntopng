@@ -45,6 +45,7 @@ typedef struct {
   const char *string;
   int64_t int_num;
   double double_num;
+  bool boolean;
 } ParsedValue;
 
 typedef enum {

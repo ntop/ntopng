@@ -2906,12 +2906,15 @@ char* Flow::serialize(bool use_labels) {
 
   if(my_object != NULL) {
     /* JSON string */
-    rsp = strdup(json_object_to_json_string(my_object));
+    const char *json = json_object_to_json_string(my_object);
+    //ntop->getTrace()->traceEvent(TRACE_WARNING, "Emitting Flow: %s", json);
 
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Emitting Flow: %s", rsp);
+    if(json) {
+      rsp = json ? strdup(json) : NULL;
 
-    /* Free memory */
-    json_object_put(my_object);
+      /* Free memory */
+      json_object_put(my_object);
+    }
   }
 
   return(rsp);
@@ -3032,8 +3035,8 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
     if(protocol == IPPROTO_TCP)
       json_object_object_add(network_object, Utils::jsonLabel(TCP_FLAGS, "tcp_flags", jsonbuf, sizeof(jsonbuf)), json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
 
-    json_object_object_add(network_object, Utils::jsonLabel(FIRST_SWITCHED, "first_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int((u_int32_t)get_partial_first_seen()));
-    json_object_object_add(network_object, Utils::jsonLabel(LAST_SWITCHED, "last_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int((u_int32_t)get_partial_last_seen()));
+    json_object_object_add(network_object, Utils::jsonLabel(FIRST_SWITCHED, "first_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int(get_partial_first_seen()));
+    json_object_object_add(network_object, Utils::jsonLabel(LAST_SWITCHED, "last_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int(get_partial_last_seen()));
 
     json_object *category_object;
     if((category_object = json_object_new_object()) != NULL) {
@@ -3212,7 +3215,10 @@ void Flow::formatSyslogFlow(json_object *my_object) {
 /* *************************************** */
 
 void Flow::formatGenericFlow(json_object *my_object) {
-  char buf[64], jsonbuf[64], *c;
+    char buf[64], jsonbuf[64];
+#ifdef FULL_SERIALIZATION
+  char *c;
+#endif
   u_char community_id[200];
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
@@ -3224,7 +3230,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
       json_object_object_add(my_object, Utils::jsonLabel(IPV6_SRC_ADDR, "IPV6_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(cli_ip->print(buf, sizeof(buf))));
     }
-
+#ifdef FULL_SERIALIZATION
     /* Custom information elements not supported (yet) by nProbe */
     json_object_object_add(my_object, Utils::jsonLabel(SRC_ADDR_LOCAL, "SRC_ADDR_LOCAL", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_boolean(cli_ip->isLocalHost()));
@@ -3237,6 +3243,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
       json_object_object_add(my_object, Utils::jsonLabel(SRC_NAME, "SRC_NAME", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(get_cli_host()->get_visual_name(buf, sizeof(buf))));
     }
+#endif
   }
 
   if(srv_ip) {
@@ -3247,7 +3254,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
       json_object_object_add(my_object, Utils::jsonLabel(IPV6_DST_ADDR, "IPV6_DST_ADDR", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(srv_ip->print(buf, sizeof(buf))));
     }
-
+#ifdef FULL_SERIALIZATION
     /* Custom information elements not supported (yet) by nProbe */
     json_object_object_add(my_object, Utils::jsonLabel(DST_ADDR_LOCAL, "DST_ADDR_LOCAL", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_boolean(srv_ip->isLocalHost()));
@@ -3260,6 +3267,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
       json_object_object_add(my_object, Utils::jsonLabel(SRC_NAME, "DST_NAME", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(get_srv_host()->get_visual_name(buf, sizeof(buf))));
     }
+#endif
   }
 
   json_object_object_add(my_object, Utils::jsonLabel(SRC_TOS, "SRC_TOS", jsonbuf, sizeof(jsonbuf)),
@@ -3282,6 +3290,9 @@ void Flow::formatGenericFlow(json_object *my_object) {
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO_NAME, "L7_PROTO_NAME", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
   }
+
+  json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO_RISK, "L7_PROTO_RISK", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int64((u_int64_t)ndpi_flow_risk_bitmap));
 
   if(protocol == IPPROTO_TCP) {
     json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
@@ -3311,10 +3322,10 @@ void Flow::formatGenericFlow(json_object *my_object) {
   json_object_object_add(my_object, Utils::jsonLabel(OUT_BYTES, "OUT_BYTES", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int64(get_partial_bytes_srv2cli()));
 
-  json_object_object_add(my_object, Utils::jsonLabel(FIRST_SWITCHED, "FIRST_SWITCHED", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int((u_int32_t)get_partial_first_seen()));
-  json_object_object_add(my_object, Utils::jsonLabel(LAST_SWITCHED, "LAST_SWITCHED", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int((u_int32_t)get_partial_last_seen()));
+  json_object_object_add(my_object, Utils::jsonLabel(FIRST_SWITCHED, "FIRST_SWITCHED", jsonbuf, sizeof(jsonbuf)), 
+      json_object_new_int(get_partial_first_seen()));
+  json_object_object_add(my_object, Utils::jsonLabel(LAST_SWITCHED, "LAST_SWITCHED", jsonbuf, sizeof(jsonbuf)),   
+      json_object_new_int(get_partial_last_seen()));
 
   if(json_info && json_object_object_length(json_info) > 0)
     json_object_object_add(my_object, "json", json_object_get(json_info));
@@ -3330,110 +3341,110 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			   json_object_new_double(toMs(&serverNwLatency)));
   }
 
-  c = cli_host ? cli_host->get_country(buf, sizeof(buf)) : NULL;
-  if(c) {
-    json_object *location = json_object_new_array();
-
-    json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(c));
-    if(location && cli_host) {
-      float latitude, longitude;
-
-      cli_host->get_geocoordinates(&latitude, &longitude);
-      json_object_array_add(location, json_object_new_double(longitude));
-      json_object_array_add(location, json_object_new_double(latitude));
-      json_object_object_add(my_object, "SRC_IP_LOCATION", location);
-    }
-  }
-
-  c = srv_host ? srv_host->get_country(buf, sizeof(buf)) : NULL;
-  if(c) {
-    json_object *location = json_object_new_array();
-
-    json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(c));
-    if(location && srv_host) {
-      float latitude, longitude;
-
-      srv_host->get_geocoordinates(&latitude, &longitude);
-      json_object_array_add(location, json_object_new_double(longitude));
-      json_object_array_add(location, json_object_new_double(latitude));
-      json_object_object_add(my_object, "DST_IP_LOCATION", location);
-    }
-  }
-
-#ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
-  // Traffic profile information, if any
-  if(trafficProfile && trafficProfile->getName())
-    json_object_object_add(my_object, "PROFILE", json_object_new_string(trafficProfile->getName()));
-#endif
-#endif
+#ifdef FULL_SERIALIZATION
   if(ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
-    json_object_object_add(my_object, "NTOPNG_INSTANCE_NAME",
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(NTOPNG_INSTANCE_NAME, "NTOPNG_INSTANCE_NAME", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_string(ntop->getPrefs()->get_instance_name()));
+
   if(iface && iface->get_name())
-    json_object_object_add(my_object, "INTERFACE", json_object_new_string(iface->get_name()));
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(INTERFACE_NAME, "INTERFACE_NAME", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(iface->get_name()));
+#endif
 
   if(isDNS() && protos.dns.last_query)
-    json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(protos.dns.last_query));
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(DNS_QUERY, "DNS_QUERY", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(protos.dns.last_query));
 
-  json_object_object_add(my_object, "COMMUNITY_ID", json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
+  json_object_object_add(my_object,
+			 Utils::jsonLabel(COMMUNITY_ID, "COMMUNITY_ID", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
+
+  json_object_object_add(my_object,
+			 Utils::jsonLabel(L7_RISK_SCORE, "L7_RISK_SCORE", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int(getScore()));
+
 
   if(isHTTP()) {
-    if(host_server_name && host_server_name[0] != '\0')
-      json_object_object_add(my_object, "HTTP_HOST", json_object_new_string(host_server_name));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(HTTP_HOST, "HTTP_HOST", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(host_server_name));
 
     if(protos.http.last_url && protos.http.last_url[0] != '0')
-      json_object_object_add(my_object, "HTTP_URL", json_object_new_string(protos.http.last_url));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(HTTP_URL, "HTTP_URL", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(protos.http.last_url));
 
     if(protos.http.last_user_agent && protos.http.last_user_agent[0] != '0')
-      json_object_object_add(my_object, "HTTP_USER_AGENT", json_object_new_string(protos.http.last_user_agent));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(HTTP_USER_AGENT, "HTTP_USER_AGENT", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(protos.http.last_user_agent));
 
     if(protos.http.last_server && protos.http.last_server[0] != '0')
-      json_object_object_add(my_object, "HTTP_SERVER", json_object_new_string(protos.http.last_server));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(HTTP_SITE, "HTTP_SITE", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(protos.http.last_server));
 
     if(protos.http.last_method != NDPI_HTTP_METHOD_UNKNOWN)
-      json_object_object_add(my_object, "HTTP_METHOD", json_object_new_string(ndpi_http_method2str(protos.http.last_method)));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(HTTP_METHOD, "HTTP_METHOD", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(ndpi_http_method2str(protos.http.last_method)));
 
     if(protos.http.last_return_code > 0)
-      json_object_object_add(my_object, "HTTP_RET_CODE", json_object_new_int((u_int32_t)protos.http.last_return_code));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(HTTP_RET_CODE, "HTTP_RET_CODE", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_int((u_int32_t)protos.http.last_return_code));
   }
 
   if(protocol == IPPROTO_ICMP) {
-    json_object_object_add(my_object, "ICMP_IPV4_TYPE",
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(ICMP_IPV4_TYPE, "ICMP_IPV4_TYPE", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int((u_int32_t)protos.icmp.cli2srv.icmp_type));
-    json_object_object_add(my_object, "ICMP_IPV$_CODE",
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(ICMP_IPV4_CODE, "ICMP_IPV4_CODE", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int((u_int32_t)protos.icmp.cli2srv.icmp_type));
   }
 
   if(flow_device.device_ip)
-    json_object_object_add(my_object, "EXPORTER_IPV4_ADDRESS",
-         json_object_new_string(intoaV4(flow_device.device_ip, buf, sizeof(buf))));
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(EXPORTER_IPV4_ADDRESS, "EXPORTER_IPV4_ADDRESS", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(intoaV4(flow_device.device_ip, buf, sizeof(buf))));
 
   if(bt_hash)
-    json_object_object_add(my_object, "BITTORRENT_HASH", json_object_new_string(bt_hash));
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(BITTORRENT_HASH, "BITTORRENT_HASH", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(bt_hash));
 
+#ifdef FULL_SERIALIZATION
   if(isTLS() && protos.tls.client_requested_server_name)
-    json_object_object_add(my_object, "TLS_SERVER_NAME",
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(TLS_SERVER_NAME, "TLS_SERVER_NAME", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_string(protos.tls.client_requested_server_name));
+#endif
 
 #ifdef HAVE_NEDGE
   if(iface && iface->is_bridge_interface())
-    json_object_object_add(my_object, "verdict.pass",
+    json_object_object_add(my_object, "verdict.pass",  /* TODO: convert to Utils::jsonLabel(..) */
 			   json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
 #else
-  if(!passVerdict) json_object_object_add(my_object, "verdict.pass", json_object_new_boolean((json_bool)0));
+  if(!passVerdict)
+    json_object_object_add(my_object, "verdict.pass", /* TODO: convert to Utils::jsonLabel(..) */
+			   json_object_new_boolean((json_bool)0));
 #endif
 
   if(ebpf) ebpf->getJSONObject(my_object);
 
   if(ntop->getPrefs()->do_dump_extended_json()) {
+#ifdef FULL_SERIALIZATION
     const char *info;
     char buf[64];
 
-    /* Add items usually dumped on nIndex (useful for debugging) */
-
-    json_object_object_add(my_object, "FLOW_TIME", json_object_new_int(last_seen));
-
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(FLOW_TIME, "FLOW_TIME", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int(last_seen));
+#endif
     if(cli_ip) {
       if(cli_ip->isIPv4()) {
         json_object_object_add(my_object,
@@ -3445,20 +3456,33 @@ void Flow::formatGenericFlow(json_object *my_object) {
           json_object_new_int(6));
       }
     }
-
+#ifdef FULL_SERIALIZATION
     info = getFlowInfo(buf, sizeof(buf), false);
 
     if(info)
-      json_object_object_add(my_object, "INFO", json_object_new_string(info));
-
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-    json_object_object_add(my_object, "PROFILE", json_object_new_string(get_profile_name()));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(INFO, "INFO", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(info));
 #endif
 
-    json_object_object_add(my_object, "INTERFACE_ID", json_object_new_int(iface->get_id()));
-    json_object_object_add(my_object, "STATUS", json_object_new_int((u_int8_t)getPredominantAlert().id));
-  }
+#ifdef FULL_SERIALIZATION
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(PROFILE, "PROFILE", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(get_profile_name()));
+#endif
+#endif
 
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(INTERFACE_ID, "INTERFACE_ID", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int(iface->get_id()));
+
+#ifdef FULL_SERIALIZATION
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(STATUS, "STATUS", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int((u_int8_t)getPredominantAlert().id));
+#endif
+  }
 }
 
 /* *************************************** */
