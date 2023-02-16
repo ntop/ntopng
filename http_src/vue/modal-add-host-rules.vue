@@ -12,16 +12,16 @@
     <div class="col-sm-8">
 	  <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
 	    <label :class="{'active': rule_type == 'hosts'}" class="btn btn-secondary">
-	      <input  class="btn-check" type="radio" name="rule_type" value="hosts" @click="set_rule_type('hosts')"> {{ _i18n("if_stats_config.add_rules_type_host") }}
+	      <input  class="btn-check" type="radio" name="rule_type" value="hosts" @click="set_rule_type('Host')"> {{ _i18n("if_stats_config.add_rules_type_host") }}
 	    </label>
 	    <label :class="{'active': rule_type == 'interface'}" class="btn btn-secondary">
-	      <input @click="set_rule_type('interface')" class="btn-check"  type="radio" name="rule_type" value="interface"> {{ _i18n("if_stats_config.add_rules_type_interface") }}
+	      <input @click="set_rule_type('Interface')" class="btn-check"  type="radio" name="rule_type" value="interface"> {{ _i18n("if_stats_config.add_rules_type_interface") }}
 	    </label>
 	  </div>
 	</div>
   </div>
 
-    <div v-if="rule_type == 'hosts'" class="form-group ms-2 me-2 mt-3 row">
+    <div v-if="rule_type == 'Host'" class="form-group ms-2 me-2 mt-3 row">
 	    <label class="col-form-label col-sm-4" >
         <b>{{_i18n("if_stats_config.target")}}</b>
 	    </label>
@@ -30,7 +30,7 @@
 	    </div>
     </div>
 
-    <div v-if="rule_type == 'interface'" class="form-group ms-2 me-2 mt-3 row">
+    <div v-if="rule_type == 'Interface'" class="form-group ms-2 me-2 mt-3 row">
 	    <label class="col-form-label col-sm-4" >
         <b>{{_i18n("if_stats_config.target_interface")}}</b>
 	    </label>
@@ -117,7 +117,7 @@
     <NoteList
     :note_list="note_list">
     </NoteList>
-    <button type="button" @click="add_" class="btn btn-primary"  :class="[ (disable_add && rule_type == 'hosts') ? 'disabled' : '' ]">{{_i18n('add')}}</button>
+    <button type="button" @click="add_" class="btn btn-primary"  :disabled="disable_add && rule_type == 'Host'">{{_i18n('add')}}</button>
   </template>
 </modal>
 </template>
@@ -193,7 +193,9 @@ const props = defineProps({
 });
 
 function reset_modal_form() {
-    host.value.value = "";
+    if (host.value)
+      host.value.value = "";
+
     selected_ifid.value = ifid_list.value[0];
     selected_metric.value = metric_list.value[0];
     selected_frequency.value = frequency_list.value[0];
@@ -215,7 +217,7 @@ function reset_modal_form() {
     percentage_threshold_list.forEach((t) => t.active = false);
     percentage_threshold_list[percentage_threshold_list.length - 1].active = true;
 
-    rule_type.value = "hosts";
+    rule_type.value = "Host";
 
     threshold.value.value = 1;
 }
@@ -234,7 +236,6 @@ const change_threshold = () => {
 }
 
 const check_empty_host = () => {
-  debugger;
   let regex = new RegExp(regexValidation.get_data_pattern('ip'));
   disable_add.value = !(regex.test(host.value.value) || host.value.value === '*');
 }
@@ -276,7 +277,7 @@ const set_active_radio = (selected_radio) => {
 
 const add_ = () => {
   let tmp_host = ''
-  if(rule_type.value == 'hosts')
+  if(rule_type.value == 'Host')
     tmp_host = host.value.value;
 
   const tmp_frequency = selected_frequency.value.id;
@@ -304,7 +305,7 @@ const add_ = () => {
     percentage_threshold_list.forEach((measure) => { if(measure.active) basic_value = measure.value; })
     tmp_threshold = basic_value * parseInt(threshold.value.value);
   }
-  if (rule_type.value == 'hosts')
+  if (rule_type.value == 'Host')
     emit('add', { 
       host: tmp_host, 
       frequency: tmp_frequency, 
