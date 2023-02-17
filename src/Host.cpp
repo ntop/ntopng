@@ -281,7 +281,6 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   is_dhcp_host = 0;
   is_crawler_bot_scanner = 0;
   is_in_broadcast_domain = 0;
-  hidden_from_top = 0;
   more_then_one_device = false;
   device_ip = 0;
 
@@ -329,7 +328,7 @@ void Host::deferredInitialization() {
   is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
 
   reloadHostBlacklist();
-  is_blacklisted = ip.isBlacklistedAddress();
+  is_blacklisted = ip.isBlacklistedAddress();   
   
   if(ip.getVersion() /* IP is set */) {
     char country_name[64];
@@ -616,6 +615,7 @@ void Host::lua_get_min_info(lua_State *vm) {
   lua_push_bool_table_entry(vm, "dhcpHost", isDHCPHost());
   lua_push_bool_table_entry(vm, "crawlerBotScannerHost", isCrawlerBotScannerHost());
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
+  lua_push_bool_table_entry(vm, "is_blackhole", is_blackhole);
   lua_push_bool_table_entry(vm, "is_broadcast", isBroadcastHost());
   lua_push_bool_table_entry(vm, "is_multicast", isMulticastHost());
   lua_push_int32_table_entry(vm, "host_services_bitmap", host_services_bitmap);
@@ -854,7 +854,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
   lua_push_uint32_table_entry(vm, "observation_point_id", get_observation_point_id());
   lua_push_bool_table_entry(vm, "serialize_by_mac", serializeByMac());
-
   lua_push_uint64_table_entry(vm, "ipkey", ip.key());
   lua_push_str_table_entry(vm, "iphex", ip.get_ip_hex(buf_id, sizeof(buf_id)));
   lua_push_str_table_entry(vm, "tskey", get_tskey(buf_id, sizeof(buf_id)));
@@ -1305,6 +1304,7 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));
     json_object_object_add(my_object, "broadcastDomainHost", json_object_new_boolean(isBroadcastDomainHost()));
     json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
+    json_object_object_add(my_object, "is_blackhole", json_object_new_boolean(is_blackhole ? true : false));
     json_object_object_add(my_object, "host_services_bitmap", json_object_new_int(host_services_bitmap));
 
     /* Generic Host */

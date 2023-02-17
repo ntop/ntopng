@@ -286,7 +286,6 @@ void NetworkInterface::init(const char *interface_name) {
 
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
-  hide_from_top = hide_from_top_shadow = NULL;
 
   gettimeofday(&last_periodic_stats_update, NULL);
   num_live_captures = 0;
@@ -861,8 +860,6 @@ NetworkInterface::~NetworkInterface() {
   if(custom_app_stats)      delete custom_app_stats;
   if(flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
-  if(hide_from_top)         delete(hide_from_top);
-  if(hide_from_top_shadow)  delete(hide_from_top_shadow);
   if(influxdb_ts_exporter)  delete influxdb_ts_exporter;
   if(rrd_ts_exporter)       delete rrd_ts_exporter;
   if(dhcp_ranges)           delete[] dhcp_ranges;
@@ -4408,7 +4405,6 @@ struct flowHostRetriever {
   bool blacklistedHosts;      /* Not used in flow_search_walker */
   bool anomalousOnly;         /* Not used in flow_search_walker */
   bool dhcpOnly;              /* Not used in flow_search_walker */
-  bool hideTopHidden;         /* Not used in flow_search_walker */
   const AddressTree * cidr_filter; /* Not used in flow_search_walker */
   VLANid vlan_id;
   OSType osFilter;
@@ -5706,7 +5702,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				VLANid vlan_id, OSType osFilter,
 				u_int32_t asnFilter, int16_t networkFilter,
 				u_int16_t pool_filter, bool filtered_hosts,
-				bool blacklisted_hosts, bool hide_top_hidden,
+				bool blacklisted_hosts,
 				bool anomalousOnly, bool dhcpOnly,
 				const AddressTree * const cidr_filter,
 				u_int8_t ipver_filter, int proto_filter,
@@ -5737,7 +5733,6 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
     retriever->anomalousOnly = anomalousOnly,
     retriever->dhcpOnly = dhcpOnly,
     retriever->cidr_filter = cidr_filter,
-    retriever->hideTopHidden = hide_top_hidden,
     retriever->ndpi_proto = proto_filter,
     retriever->traffic_type = traffic_type_filter,
     retriever->device_ip = device_ip,
@@ -6035,7 +6030,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 VLANid vlan_id, OSType osFilter,
 					 u_int32_t asnFilter, int16_t networkFilter,
 					 u_int16_t pool_filter, bool filtered_hosts,
-					 bool blacklisted_hosts, bool hide_top_hidden,
+					 bool blacklisted_hosts,
 					 u_int8_t ipver_filter, int proto_filter,
 					 TrafficType traffic_type_filter, u_int32_t device_ip,
 					 bool tsLua, bool anomalousOnly, bool dhcpOnly,
@@ -6058,7 +6053,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       allowed_hosts, host_details, location,
 	       countryFilter, mac_filter, vlan_id, osFilter,
 	       asnFilter, networkFilter, pool_filter,
-	       filtered_hosts, blacklisted_hosts, hide_top_hidden,
+	       filtered_hosts, blacklisted_hosts,
 	       anomalousOnly, dhcpOnly,
 	       cidr_filter,
 	       ipver_filter, proto_filter,

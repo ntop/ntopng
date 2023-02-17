@@ -144,8 +144,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   TrafficShaper **host_traffic_shapers;
   bool has_blocking_quota, has_blocking_shaper;
 #endif
-  u_int8_t hidden_from_top:1, is_in_broadcast_domain:1, is_dhcp_host:1, is_crawler_bot_scanner:1,
-    is_blacklisted:1, is_blackhole:1, _notused:2;
+  u_int8_t is_in_broadcast_domain:1, is_dhcp_host:1, is_crawler_bot_scanner:1,
+    is_blacklisted:1, is_blackhole:1, _notused:3;
 
   /* Alert exclusion handling */
 #ifdef NTOPNG_PRO

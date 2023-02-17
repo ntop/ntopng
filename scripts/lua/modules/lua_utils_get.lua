@@ -352,7 +352,7 @@ function getDeviceName(device_mac, skip_manufacturer)
    if name == device_mac then
       -- Not found, try with first host
       local info = interface.getHostsInfo(false, nil, 1, 0, nil, nil, nil, tonumber(vlan), nil,
-               nil, device_mac)
+					  nil, device_mac)
 
       if (info ~= nil) then
          for x, host in pairs(info.hosts) do

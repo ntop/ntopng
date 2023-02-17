@@ -1445,7 +1445,7 @@ static int ntop_get_interface_hosts(lua_State* vm) {
 
 static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy location, bool tsLua=false) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool show_details = true, filtered_hosts = false, blacklisted_hosts = false, hide_top_hidden = false;
+  bool show_details = true, filtered_hosts = false, blacklisted_hosts = false;
   char *sortColumn = (char*)"column_ip", *country = NULL, *mac_filter = NULL;
   OSType os_filter = os_any;
   bool a2zSortOrder = true;
@@ -1480,7 +1480,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 					   show_details, location,
 					   country, mac_filter,
 					   vlan_filter, os_filter, asn_filter,
-					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
+					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts,
 					   ipver_filter, proto_filter,
 					   traffic_type_filter,
 					   0 /* probe ip */, tsLua /* host->tsLua | host->lua */,
@@ -1512,7 +1512,6 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm, LocationPolicy locat
   u_int32_t device_ip = 0;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
-  bool hide_top_hidden = false;
   bool anomalousOnly = false;
   bool dhcpOnly = false, cidr_filter_enabled = false;
   AddressTree cidr_filter;
@@ -1536,11 +1535,10 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm, LocationPolicy locat
   if(lua_type(vm,15) == LUA_TNUMBER)  traffic_type_filter  = (TrafficType)lua_tointeger(vm, 15);
   if(lua_type(vm,16) == LUA_TBOOLEAN) filtered_hosts       = lua_toboolean(vm, 16);
   if(lua_type(vm,17) == LUA_TBOOLEAN) blacklisted_hosts    = lua_toboolean(vm, 17);
-  if(lua_type(vm,18) == LUA_TBOOLEAN) hide_top_hidden      = lua_toboolean(vm, 18);
-  if(lua_type(vm,19) == LUA_TBOOLEAN) anomalousOnly        = lua_toboolean(vm, 19);
-  if(lua_type(vm,20) == LUA_TBOOLEAN) dhcpOnly             = lua_toboolean(vm, 20);
-  if(lua_type(vm,21) == LUA_TSTRING)  cidr_filter.addAddress(lua_tostring(vm, 21)), cidr_filter_enabled = true;
-  if(lua_type(vm,22) == LUA_TSTRING)  device_ip            = ntohl(inet_addr(lua_tostring(vm, 22)));
+  if(lua_type(vm,18) == LUA_TBOOLEAN) anomalousOnly        = lua_toboolean(vm, 18);
+  if(lua_type(vm,19) == LUA_TBOOLEAN) dhcpOnly             = lua_toboolean(vm, 19);
+  if(lua_type(vm,20) == LUA_TSTRING)  cidr_filter.addAddress(lua_tostring(vm, 20)), cidr_filter_enabled = true;
+  if(lua_type(vm,21) == LUA_TSTRING)  device_ip            = ntohl(inet_addr(lua_tostring(vm, 21)));
 
   if((!ntop_interface)
      || ntop_interface->getActiveHostsList(vm,
@@ -1551,7 +1549,7 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm, LocationPolicy locat
 					   country, mac_filter,
 					   vlan_filter, os_filter, asn_filter,
 					   network_filter, pool_filter,
-					   filtered_hosts, blacklisted_hosts, hide_top_hidden,
+					   filtered_hosts, blacklisted_hosts,
 					   ipver_filter, proto_filter,
 					   traffic_type_filter,
 					   device_ip, false /* host->lua */,

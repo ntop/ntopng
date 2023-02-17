@@ -402,7 +402,7 @@ function format_utils.formatFullAddressCategory(host)
          addr_category = addr_category .. ' <i class=\"fas fa-bolt\" title=\"'..i18n("details.label_dhcp")..'\"></i>'
       end
    end
-
+   
    return addr_category
 end
 
@@ -429,6 +429,10 @@ function format_utils.formatMainAddressCategory(host)
          addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_local_host") ..'\"><span class="badge bg-success">'..i18n("details.label_short_local_host")..'</span></abbr>'
       else 
          addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_remote") ..'\"><span class="badge bg-secondary">'..i18n("details.label_short_remote")..'</span></abbr>'
+      end
+
+      if(host.is_blackhole == true) then
+	 addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_blackhole") ..'\"><span class="badge bg-info">'..i18n("details.label_short_blackhole")..'</span></abbr>'
       end
    end
 

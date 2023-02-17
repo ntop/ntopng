@@ -757,8 +757,6 @@ else
          print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "engaged-alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").." <span id=alerts_trend></span></td></tr>\n")
       end
 
-
-
       -- Active monitoring
       if am_utils and am_utils.isMeasurementAvailable('icmp') then
          local icmp = isIPv6(host["ip"]) and 'icmp6' or 'icmp'
