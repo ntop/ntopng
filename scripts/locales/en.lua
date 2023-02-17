@@ -3686,7 +3686,6 @@ local lang = {
   ["host_config"] = {
     ["active_monitor_enable"] = "Active Monitoring is currently disabled. It can be enabled <a href=\"%{url}\">here</a>.",
     ["drop_all_host_traffic"] = "Drop All Host Traffic",
-    ["hide_from_top"] = "Hide From Top Talkers",
     ["hide_host_from_top_descr"] = "Do not account host %{host} in top talkers computation",
     ["host_alias"] = "Host Alias",
     ["host_pool"] = "Host Pool",
@@ -4166,8 +4165,6 @@ local lang = {
     ["gw_macs"] = "MAC Address Based Traffic Directions",
     ["gw_macs_description"] = "This is used to compute traffic direction (ingress or egress) based on the provided MAC address(es) (comma-separated list) as in some case (when capturing traffic from a traffic mirror or PCAP) it is not possible to know the traffic direction. Traffic directed to the configured MAC address(es) is considered as egress traffic.<br><b>Note:</b><br>In case no MAC address is configured, the traffic direction is set using local vs remote hosts traffic (-m).",
     ["gw_macs_example"] = "e.g. %{example}",
-    ["hide_from_top_networks"] = "Hide from Top Networks",
-    ["hide_from_top_networks_descr"] = "e.g. %{example}",
     ["host_rules"] = "Local Hosts Traffic Rules",
     ["host_threshold_rules"] = "JSON Host Rules",
     ["interface_network_discovery"] = "Periodic Interface Network Discovery",

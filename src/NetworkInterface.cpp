@@ -222,8 +222,6 @@ NetworkInterface::NetworkInterface(const char *name,
 
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
 
-  reloadHideFromTop(false);
-
   updateTrafficMirrored();
   updateDynIfaceTrafficPolicy();
   updateFlowDumpDisabled();
@@ -4899,7 +4897,6 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->anomalousOnly && !h->hasAnomalies())         ||
      (r->dhcpOnly && !h->isDHCPHost())                ||
      (r->cidr_filter && !h->match(r->cidr_filter))    ||
-     (r->hideTopHidden && h->isHiddenFromTop())       ||
      (r->traffic_type == traffic_type_unidirectional && !h->isUnidirectionalTraffic())         ||
      (r->traffic_type == traffic_type_bidirectional && !h->isBidirectionalTraffic())  ||
      (r->device_ip && h->getLastDeviceIp() && (r->device_ip != h->getLastDeviceIp())) ||
@@ -7838,72 +7835,6 @@ void NetworkInterface::reloadGwMacs() {
   if(macs) free(macs);
 
   gw_macs_reload_requested = false;
-}
-
-/* **************************************** */
-
-static bool host_reload_hide_from_top(GenericHashEntry *host, void *user_data, bool *matched) {
-  Host *h = (Host*)host;
-
-  h->reloadHideFromTop();
-
-  return(false); /* false = keep on walking */
-}
-
-void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
-  char kname[64];
-  char **networks = NULL;
-  VLANAddressTree *new_tree;
-
-  if(!ntop->getRedis()) return;
-
-  if((new_tree = new (std::nothrow) VLANAddressTree) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
-    return;
-  }
-
-  snprintf(kname, sizeof(kname), CONST_IFACE_HIDE_FROM_TOP_PREFS, id);
-
-  int num_nets = ntop->getRedis()->smembers(kname, &networks);
-  char *at;
-  VLANid vlan_id;
-
-  for(int i=0; i<num_nets; i++) {
-    char *net = networks[i];
-    if(!net) continue;
-
-    if((at = strchr(net, '@'))) {
-      vlan_id = atoi(at + 1);
-      *at = '\0';
-    } else
-      vlan_id = 0;
-
-    new_tree->addAddress(vlan_id, net, 1);
-    free(net);
-  }
-
-  if(networks) free(networks);
-
-  if(hide_from_top_shadow) delete(hide_from_top_shadow);
-  hide_from_top_shadow = hide_from_top;
-  hide_from_top = new_tree;
-
-  if(refreshHosts) {
-    /* Reload existing hosts */
-    u_int32_t begin_slot = 0;
-    bool walk_all = true;
-    walker(&begin_slot, walk_all,  walker_hosts, host_reload_hide_from_top, NULL);
-  }
-}
-
-/* **************************************** */
-
-bool NetworkInterface::isHiddenFromTop(Host *host) {
-  VLANAddressTree *vlan_addrtree = hide_from_top;
-
-  if(!vlan_addrtree) return false;
-
-  return(host->get_ip()->findAddress(vlan_addrtree->getAddressTree(host->get_vlan_id())));
 }
 
 /* **************************************** */

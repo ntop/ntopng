@@ -2167,8 +2167,6 @@ elseif (page == "config") then
       return
    end
 
-   local top_hiddens = ntop.getMembersCache(getHideFromTopSet(ifId) or {})
-   local is_top_hidden = swapKeysValues(top_hiddens)[hostkey_compact] ~= nil
    local host_key = hostinfo2hostkey(host_info, nil, true --[[show vlan]])
 
    if _SERVER["REQUEST_METHOD"] == "POST" then
@@ -2184,22 +2182,6 @@ elseif (page == "config") then
 
          interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
       end
-
-      local new_top_hidden = (_POST["top_hidden"] == "1")
-
-      if new_top_hidden ~= is_top_hidden then
-         local set_name = getHideFromTopSet(ifId)
-
-         if new_top_hidden then
-            ntop.setMembersCache(set_name, hostkey_compact)
-         else
-            ntop.delMembersCache(set_name, hostkey_compact)
-         end
-
-         is_top_hidden = new_top_hidden
-         interface.reloadHideFromTop()
-      end
-
    end
 
    -- NOTE: this only configures the alias associated to the IP address, not to the MAC
@@ -2238,16 +2220,6 @@ elseif (page == "config") then
    if host_pool_id ~= nil then
       graph_utils.printPoolChangeDropdown(ifId, host_pool_id.."", have_nedge)
    end
-
-   print [[<tr>
-         <th>]] print(i18n("host_config.hide_from_top")) print[[</th>
-         <td>]]
-
-   print(template.gen("on_off_switch.html", {
-     id = "top_hidden",
-     label = i18n("host_config.hide_host_from_top_descr", {host=host_label}),
-     checked = is_top_hidden,
-   }))
 
    print[[</td>
       </tr>]]

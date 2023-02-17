@@ -905,7 +905,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
 
   virtual void reloadCompanions() {};
-  void reloadHideFromTop(bool refreshHosts=true);
   void requestGwMacsReload() { gw_macs_reload_requested = true; };
   void reloadGwMacs();
 
@@ -915,7 +914,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void reloadHostsBlacklist();
   void checkNetworksAlerts(vector<ScriptPeriodicity> *p, lua_State* vm);
   void checkInterfaceAlerts(vector<ScriptPeriodicity> *p, lua_State* vm);
-  bool isHiddenFromTop(Host *host);
   virtual bool areTrafficDirectionsSupported() { return(true); };
 
   inline bool isView()                const { return is_view;             };

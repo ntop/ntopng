@@ -3226,19 +3226,6 @@ static int ntop_load_scaling_factor_prefs(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_reload_hide_from_top(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop_interface) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  ntop_interface->reloadHideFromTop();
-
-  lua_pushnil(vm);
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
 static int ntop_reload_gw_macs(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4901,7 +4888,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "setInterfaceIdleState",            ntop_interface_set_idle },
   { "name2id",                          ntop_interface_name2id },
   { "loadScalingFactorPrefs",           ntop_load_scaling_factor_prefs },
-  { "reloadHideFromTop",                ntop_reload_hide_from_top },
   { "reloadGwMacs",                     ntop_reload_gw_macs },
   { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
   { "reloadHostPrefs",                  ntop_reload_host_prefs },

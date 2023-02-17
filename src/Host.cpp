@@ -326,7 +326,6 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
 
   inlineSetOS(os_unknown);
 
-  reloadHideFromTop();
   reloadDhcpHost();
   setEntityValue(get_hostkey(buf, sizeof(buf), true));
 
@@ -846,7 +845,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
   lua_push_uint32_table_entry(vm, "observation_point_id", get_observation_point_id());
   lua_push_bool_table_entry(vm, "serialize_by_mac", serializeByMac());
-  lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
 
   lua_push_uint64_table_entry(vm, "ipkey", ip.key());
   lua_push_str_table_entry(vm, "iphex", ip.get_ip_hex(buf_id, sizeof(buf_id)));

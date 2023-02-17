@@ -521,9 +521,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   char* get_city(char *buf, u_int buf_len);
   void get_geocoordinates(float *latitude, float *longitude);
   void serialize_geocoordinates(ndpi_serializer *s, const char *prefix);
-  inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this) ? 1 : 0; }
   inline void reloadDhcpHost()    { is_dhcp_host = iface->isInDhcpRange(get_ip()) ? 1 : 0; }
-  inline bool isHiddenFromTop()   { return(hidden_from_top ? true : false); }
   bool isUnidirectionalTraffic() const;
   bool isBidirectionalTraffic()  const;
   virtual void lua_get_timeseries(lua_State* vm)        { lua_pushnil(vm); };

@@ -329,6 +329,11 @@ void ZMQCollectorInterface::collect_flows() {
 	    continue; /* skip message */
           }
 
+#if 0
+          printf(".");
+          fflush(stdout);
+#endif
+
 #ifdef ZMQ_DEBUG
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[version: %u]", h->version);
 #endif
@@ -356,7 +361,7 @@ void ZMQCollectorInterface::collect_flows() {
 	if(source_id_last_msg_id.find(source_id) != source_id_last_msg_id.end()) {
 	  last_msg_id = source_id_last_msg_id[source_id];
 	
-#ifdef MSG_DEBUG
+#if 0
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[subscriber_id: %u][message source: %u]"
 				       "[msg_id: %u][last_msg_id: %u][lost: %i]",
 				       subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
