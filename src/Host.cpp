@@ -236,7 +236,6 @@ void Host::housekeep(time_t t) {
 /* *************************************** */
 
 void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id) {
-  char buf[64];
   u_int16_t masked_vlanId = filterVLANid(_vlanId); /* Cleanup any possible junk */
 
   stats = NULL; /* it will be instantiated by specialized classes */
@@ -279,11 +278,9 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   asn = 0, asname = NULL;
   as = NULL, country = NULL, obs_point = NULL;
   os = NULL, os_type = os_unknown;
-  reloadHostBlacklist();
   is_dhcp_host = 0;
   is_crawler_bot_scanner = 0;
   is_in_broadcast_domain = 0;
-  hidden_from_top = 0;
   more_then_one_device = false;
   device_ip = 0;
 
@@ -296,16 +293,43 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   icmp_flood.victim_counter   = new (std::nothrow) AlertCounter();
   dns_flood.attacker_counter  = new (std::nothrow) AlertCounter();
   dns_flood.victim_counter    = new (std::nothrow) AlertCounter();
-  snmp_flood.attacker_counter  = new (std::nothrow) AlertCounter();
-  snmp_flood.victim_counter    = new (std::nothrow) AlertCounter();
-  rst_scan.attacker_counter = new (std::nothrow) AlertCounter();
-  rst_scan.victim_counter   = new (std::nothrow) AlertCounter();
+  snmp_flood.attacker_counter = new (std::nothrow) AlertCounter();
+  snmp_flood.victim_counter   = new (std::nothrow) AlertCounter();
+  rst_scan.attacker_counter   = new (std::nothrow) AlertCounter();
+  rst_scan.victim_counter     = new (std::nothrow) AlertCounter();
   syn_scan.syn_sent_last_min  = syn_scan.synack_recvd_last_min = 0;
   syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min  = 0;
   fin_scan.fin_sent_last_min  = fin_scan.finack_recvd_last_min = 0;
   fin_scan.fin_recvd_last_min = fin_scan.finack_sent_last_min  = 0;
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 17);
 
+  memset(&unidirectionalTCPFlows, 0, sizeof(unidirectionalTCPFlows));
+  memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
+  blacklist_name = NULL;
+
+  memset(&customHostAlert, 0, sizeof(customHostAlert));
+  memset(&externalAlert, 0, sizeof(externalAlert));
+
+  tcp_contacted_ports_no_tx = ndpi_bitmap_alloc();
+  ndpi_hll_init(&outgoing_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
+  ndpi_hll_init(&incoming_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
+
+  deferredInitialization(); /* TODO To be called asynchronously for improving performance */
+}
+
+/* *************************************** */
+
+void Host::deferredInitialization() {
+  char buf[64];
+  
+  inlineSetOS(os_unknown);
+  setEntityValue(get_hostkey(buf, sizeof(buf), true));
+
+  is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
+
+  reloadHostBlacklist();
+  is_blacklisted = ip.isBlacklistedAddress();   
+  
   if(ip.getVersion() /* IP is set */) {
     char country_name[64];
 
@@ -320,28 +344,11 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
     if((country = iface->getCountry(country_name, true /* Create if missing */, true /* Inline call */ )) != NULL)
       country->incUses();
 
-    if((obs_point = iface->getObsPoint(observation_point_id, true /* Create if missing */, true /* Inline call */ )) != NULL)
+    if((obs_point = iface->getObsPoint(observationPointId, true /* Create if missing */, true /* Inline call */ )) != NULL)
       obs_point->incUses();
   }
 
-  inlineSetOS(os_unknown);
-
-  reloadHideFromTop();
   reloadDhcpHost();
-  setEntityValue(get_hostkey(buf, sizeof(buf), true));
-
-  is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
-
-  memset(&unidirectionalTCPFlows, 0, sizeof(unidirectionalTCPFlows));
-  memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
-  blacklist_name = NULL, is_blacklisted = ip.isBlacklistedAddress();
-
-  memset(&customHostAlert, 0, sizeof(customHostAlert));
-  memset(&externalAlert, 0, sizeof(externalAlert));
-
-  tcp_contacted_ports_no_tx = ndpi_bitmap_alloc();
-  ndpi_hll_init(&outgoing_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
-  ndpi_hll_init(&incoming_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
 }
 
 /* *************************************** */
@@ -608,6 +615,7 @@ void Host::lua_get_min_info(lua_State *vm) {
   lua_push_bool_table_entry(vm, "dhcpHost", isDHCPHost());
   lua_push_bool_table_entry(vm, "crawlerBotScannerHost", isCrawlerBotScannerHost());
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
+  lua_push_bool_table_entry(vm, "is_blackhole", is_blackhole);
   lua_push_bool_table_entry(vm, "is_broadcast", isBroadcastHost());
   lua_push_bool_table_entry(vm, "is_multicast", isMulticastHost());
   lua_push_int32_table_entry(vm, "host_services_bitmap", host_services_bitmap);
@@ -846,8 +854,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
   lua_push_uint32_table_entry(vm, "observation_point_id", get_observation_point_id());
   lua_push_bool_table_entry(vm, "serialize_by_mac", serializeByMac());
-  lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
-
   lua_push_uint64_table_entry(vm, "ipkey", ip.key());
   lua_push_str_table_entry(vm, "iphex", ip.get_ip_hex(buf_id, sizeof(buf_id)));
   lua_push_str_table_entry(vm, "tskey", get_tskey(buf_id, sizeof(buf_id)));
@@ -1267,7 +1273,7 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto,
 		      sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
 		      rcvd_bytes, rcvd_goodput_bytes, peer_is_unicast);
 
-    updateSeen();
+    updateSeen(when);
   }
 }
 
@@ -1298,6 +1304,7 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));
     json_object_object_add(my_object, "broadcastDomainHost", json_object_new_boolean(isBroadcastDomainHost()));
     json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
+    json_object_object_add(my_object, "is_blackhole", json_object_new_boolean(is_blackhole ? true : false));
     json_object_object_add(my_object, "host_services_bitmap", json_object_new_int(host_services_bitmap));
 
     /* Generic Host */

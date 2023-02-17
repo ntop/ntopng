@@ -160,27 +160,6 @@ if (isAdministrator()) then
          ntop.setCache(ifspeed_cache, _POST["ifSpeed"])
       end
 
-      local hide_set = getHideFromTopSet(ifstats.id)
-      ntop.delCache(hide_set)
-
-      for _, net in pairs(split(_POST["hide_from_top"] or "", ",")) do
-         net = trimSpace(net)
-
-         if not isEmptyString(net) then
-            local address, prefix, vlan = splitNetworkWithVLANPrefix(net)
-
-            if isIPv6(address) and prefix == "128" then
-               net = address
-            elseif isIPv4(address) and prefix == "32" then
-               net = address
-            end
-
-            ntop.setMembersCache(hide_set, net)
-         end
-      end
-
-      interface.reloadHideFromTop()
-
       if is_packet_interface then
          if _POST["gw_macs"] ~= nil then
             -- Gw MAC addresses - used to compute traffic direction
@@ -1708,28 +1687,6 @@ elseif(page == "config") then
            <th width="30%">]] print(i18n("prefs.toggle_host_tskey_title")) print[[ <i class="fas fa-question-circle " title="]] print(i18n("prefs.toggle_host_tskey_description")) print[["></i></th>
            <td>]]
       inline_select_form("lbd_hosts_as_macs", {i18n("ip_address"), i18n("mac_address")}, {"0", "1"}, serialize_by_mac)
-        print[[
-           </td>
-        </tr>]]
-
-   -- Hidden from top
-   local rv = ntop.getMembersCache(getHideFromTopSet(ifstats.id)) or {}
-   local members = {}
-
-   -- impose sort order
-   for _, net in pairsByValues(rv, asc) do
-      members[#members + 1] = net
-   end
-
-   local hide_top = table.concat(members, ",")
-
-      print[[
-        <tr>
-           <th>]] print(i18n("if_stats_config.hide_from_top_networks")) print[[</th>
-           <td>]]
-
-        print('<input style="width:36em;" class="form-control" name="hide_from_top" placeholder="'..i18n("if_stats_config.hide_from_top_networks_descr", {example="192.168.1.1,192.168.100.0/24"})..'" value="' .. hide_top .. '">')
-
         print[[
            </td>
         </tr>]]

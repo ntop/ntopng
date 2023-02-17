@@ -112,7 +112,7 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
 	nextdot = strchr(&firstdot[1], '.');
 
       top_sites->incrVisitedData(nextdot ? &firstdot[1] : hostname, 1);
-      iface->incrVisitedWebSite(nextdot ? &firstdot[1] : hostname);
+      host->getInterface()->incrVisitedWebSite(nextdot ? &firstdot[1] : hostname);
     }
   }
 }
@@ -282,7 +282,7 @@ void LocalHostStats::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "tcpPacketStats.sent", &obj))  tcp_packet_stats_sent.deserialize(obj);
   if(json_object_object_get_ex(o, "tcpPacketStats.recv", &obj))  tcp_packet_stats_rcvd.deserialize(obj);
 
-  GenericTrafficElement::deserialize(o, iface);
+  GenericTrafficElement::deserialize(o, host->getInterface());
 
   if(json_object_object_get_ex(o, "total_activity_time", &obj))  total_activity_time = json_object_get_int(obj);
 
@@ -315,7 +315,7 @@ void LocalHostStats::deserialize(json_object *o) {
 /* *************************************** */
 
 void LocalHostStats::lua_get_timeseries(lua_State* vm) {
-  luaStats(vm, iface, true /* host details */, true /* verbose */, true /* tsLua */);
+  luaStats(vm, host->getInterface(), true /* host details */, true /* verbose */, true /* tsLua */);
 
   tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
   tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");

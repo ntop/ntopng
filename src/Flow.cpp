@@ -4161,7 +4161,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   bool update_iat = true;
 
   payload_len *= iface->getScalingFactor();
-  updateSeen();
+  updateSeen(when->tv_sec);
 
   if(fragment_extra_overhead) {
     /* Add artificial packet overhead */

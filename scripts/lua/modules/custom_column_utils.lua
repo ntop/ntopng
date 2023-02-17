@@ -69,6 +69,7 @@ function custom_column_utils.hostToScoreValue(host_stats)
    end
    return(val)
 end
+
 -- ###########################################
 
 function custom_column_utils.hostStatsToColumnValue(host_stats, column, formatted)

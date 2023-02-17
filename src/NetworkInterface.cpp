@@ -222,8 +222,6 @@ NetworkInterface::NetworkInterface(const char *name,
 
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
 
-  reloadHideFromTop(false);
-
   updateTrafficMirrored();
   updateDynIfaceTrafficPolicy();
   updateFlowDumpDisabled();
@@ -288,7 +286,6 @@ void NetworkInterface::init(const char *interface_name) {
 
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
-  hide_from_top = hide_from_top_shadow = NULL;
 
   gettimeofday(&last_periodic_stats_update, NULL);
   num_live_captures = 0;
@@ -863,8 +860,6 @@ NetworkInterface::~NetworkInterface() {
   if(custom_app_stats)      delete custom_app_stats;
   if(flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
-  if(hide_from_top)         delete(hide_from_top);
-  if(hide_from_top_shadow)  delete(hide_from_top_shadow);
   if(influxdb_ts_exporter)  delete influxdb_ts_exporter;
   if(rrd_ts_exporter)       delete rrd_ts_exporter;
   if(dhcp_ranges)           delete[] dhcp_ranges;
@@ -1214,7 +1209,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				    dstMac, dst_ip, dst_port,
 				    icmp_info,
 				    first_seen, last_seen,
-            view_cli_mac, view_srv_mac);
+				    view_cli_mac, view_srv_mac);
       INTERFACE_PROFILING_SECTION_EXIT(2);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
@@ -4410,7 +4405,6 @@ struct flowHostRetriever {
   bool blacklistedHosts;      /* Not used in flow_search_walker */
   bool anomalousOnly;         /* Not used in flow_search_walker */
   bool dhcpOnly;              /* Not used in flow_search_walker */
-  bool hideTopHidden;         /* Not used in flow_search_walker */
   const AddressTree * cidr_filter; /* Not used in flow_search_walker */
   VLANid vlan_id;
   OSType osFilter;
@@ -4899,7 +4893,6 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->anomalousOnly && !h->hasAnomalies())         ||
      (r->dhcpOnly && !h->isDHCPHost())                ||
      (r->cidr_filter && !h->match(r->cidr_filter))    ||
-     (r->hideTopHidden && h->isHiddenFromTop())       ||
      (r->traffic_type == traffic_type_unidirectional && !h->isUnidirectionalTraffic())         ||
      (r->traffic_type == traffic_type_bidirectional && !h->isBidirectionalTraffic())  ||
      (r->device_ip && h->getLastDeviceIp() && (r->device_ip != h->getLastDeviceIp())) ||
@@ -5709,7 +5702,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				VLANid vlan_id, OSType osFilter,
 				u_int32_t asnFilter, int16_t networkFilter,
 				u_int16_t pool_filter, bool filtered_hosts,
-				bool blacklisted_hosts, bool hide_top_hidden,
+				bool blacklisted_hosts,
 				bool anomalousOnly, bool dhcpOnly,
 				const AddressTree * const cidr_filter,
 				u_int8_t ipver_filter, int proto_filter,
@@ -5740,7 +5733,6 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
     retriever->anomalousOnly = anomalousOnly,
     retriever->dhcpOnly = dhcpOnly,
     retriever->cidr_filter = cidr_filter,
-    retriever->hideTopHidden = hide_top_hidden,
     retriever->ndpi_proto = proto_filter,
     retriever->traffic_type = traffic_type_filter,
     retriever->device_ip = device_ip,
@@ -6038,7 +6030,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 VLANid vlan_id, OSType osFilter,
 					 u_int32_t asnFilter, int16_t networkFilter,
 					 u_int16_t pool_filter, bool filtered_hosts,
-					 bool blacklisted_hosts, bool hide_top_hidden,
+					 bool blacklisted_hosts,
 					 u_int8_t ipver_filter, int proto_filter,
 					 TrafficType traffic_type_filter, u_int32_t device_ip,
 					 bool tsLua, bool anomalousOnly, bool dhcpOnly,
@@ -6061,7 +6053,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       allowed_hosts, host_details, location,
 	       countryFilter, mac_filter, vlan_id, osFilter,
 	       asnFilter, networkFilter, pool_filter,
-	       filtered_hosts, blacklisted_hosts, hide_top_hidden,
+	       filtered_hosts, blacklisted_hosts,
 	       anomalousOnly, dhcpOnly,
 	       cidr_filter,
 	       ipver_filter, proto_filter,
@@ -7838,72 +7830,6 @@ void NetworkInterface::reloadGwMacs() {
   if(macs) free(macs);
 
   gw_macs_reload_requested = false;
-}
-
-/* **************************************** */
-
-static bool host_reload_hide_from_top(GenericHashEntry *host, void *user_data, bool *matched) {
-  Host *h = (Host*)host;
-
-  h->reloadHideFromTop();
-
-  return(false); /* false = keep on walking */
-}
-
-void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
-  char kname[64];
-  char **networks = NULL;
-  VLANAddressTree *new_tree;
-
-  if(!ntop->getRedis()) return;
-
-  if((new_tree = new (std::nothrow) VLANAddressTree) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
-    return;
-  }
-
-  snprintf(kname, sizeof(kname), CONST_IFACE_HIDE_FROM_TOP_PREFS, id);
-
-  int num_nets = ntop->getRedis()->smembers(kname, &networks);
-  char *at;
-  VLANid vlan_id;
-
-  for(int i=0; i<num_nets; i++) {
-    char *net = networks[i];
-    if(!net) continue;
-
-    if((at = strchr(net, '@'))) {
-      vlan_id = atoi(at + 1);
-      *at = '\0';
-    } else
-      vlan_id = 0;
-
-    new_tree->addAddress(vlan_id, net, 1);
-    free(net);
-  }
-
-  if(networks) free(networks);
-
-  if(hide_from_top_shadow) delete(hide_from_top_shadow);
-  hide_from_top_shadow = hide_from_top;
-  hide_from_top = new_tree;
-
-  if(refreshHosts) {
-    /* Reload existing hosts */
-    u_int32_t begin_slot = 0;
-    bool walk_all = true;
-    walker(&begin_slot, walk_all,  walker_hosts, host_reload_hide_from_top, NULL);
-  }
-}
-
-/* **************************************** */
-
-bool NetworkInterface::isHiddenFromTop(Host *host) {
-  VLANAddressTree *vlan_addrtree = hide_from_top;
-
-  if(!vlan_addrtree) return false;
-
-  return(host->get_ip()->findAddress(vlan_addrtree->getAddressTree(host->get_vlan_id())));
 }
 
 /* **************************************** */
@@ -9975,6 +9901,7 @@ void NetworkInterface::execProtocolDetectedChecks(Flow *f) {
 void NetworkInterface::execPeriodicUpdateChecks(Flow *f) {
   if(flow_checks_executor) {
     FlowAlert *alert = flow_checks_executor->execChecks(f, flow_check_periodic_update);
+    
     if(alert)
       enqueueFlowAlert(alert);
   }
@@ -9985,6 +9912,7 @@ void NetworkInterface::execPeriodicUpdateChecks(Flow *f) {
 void NetworkInterface::execFlowEndChecks(Flow *f) {
   if(flow_checks_executor) {
     FlowAlert *alert = flow_checks_executor->execChecks(f, flow_check_flow_end);
+    
     if(alert)
       enqueueFlowAlert(alert);
   }
@@ -9995,6 +9923,7 @@ void NetworkInterface::execFlowEndChecks(Flow *f) {
 void NetworkInterface::execFlowBeginChecks(Flow *f) {
   if(flow_checks_executor) {
     FlowAlert *alert = flow_checks_executor->execChecks(f, flow_check_flow_begin);
+    
     if(alert)
       enqueueFlowAlert(alert);
   }

@@ -43,7 +43,6 @@ local pool         = _GET["pool"]
 local country      = _GET["country"]
 local os_          = tonumber(_GET["os"])
 local mac          = _GET["mac"]
-local top_hidden   = ternary(_GET["top_hidden"] == "1", true, nil)
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface
@@ -120,7 +119,7 @@ local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sO
                           tonumber(network), mac,
                           tonumber(pool), tonumber(ipversion),
                           tonumber(protocol), traffic_type_filter,
-                          filtered_hosts, blacklisted_hosts, top_hidden, anomalous, dhcp_hosts, cidr)
+                          filtered_hosts, blacklisted_hosts, anomalous, dhcp_hosts, cidr)
 
 if hosts_stats == nil then
    rest_utils.answer(rest_utils.consts.err.not_found)

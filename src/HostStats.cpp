@@ -25,7 +25,6 @@
 
 HostStats::HostStats(Host *_host) : GenericTrafficElement() {
   host = _host;
-  iface = _host->getInterface();
 
   alerted_flows_as_client = alerted_flows_as_server = 0;
   unreachable_flows_as_client = unreachable_flows_as_server = 0;
@@ -53,6 +52,11 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
 #endif
 
   memset(&checkpoints, 0, sizeof(checkpoints));
+
+  if(host->isBroadcastHost() || host->isMulticastHost())
+    ;
+  else
+    host->isBlackhole(); /* No traffic sent */
 }
 
 /* *************************************** */
@@ -89,7 +93,7 @@ void HostStats::updateStats(const struct timeval *tv) {
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[ANOMALY] %s [%s][client flows] [value: %u]",
 				   host->get_ip()->print(buf, sizeof(buf)),
-				   iface->get_name(),
+				   host->getInterface()->get_name(),
 				   host->getNumOutgoingFlows());
       num_anomalies++;
       client_flows_anomaly = 1;
@@ -101,7 +105,7 @@ void HostStats::updateStats(const struct timeval *tv) {
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[ANOMALY] %s [%s][server flows] [value: %u]",
 				   host->get_ip()->print(buf, sizeof(buf)),
-				   iface->get_name(),
+				   host->getInterface()->get_name(),
 				   host->getNumIncomingFlows());
       num_anomalies++;
       server_flows_anomaly = 1;
@@ -113,7 +117,7 @@ void HostStats::updateStats(const struct timeval *tv) {
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[ANOMALY] %s [%s][client score] [value: %u]",
 				   host->get_ip()->print(buf, sizeof(buf)),
-				   iface->get_name(),
+				   host->getInterface()->get_name(),
 				   host->getScoreAsClient());
       num_anomalies++;
       client_score_anomaly = 1;
@@ -125,7 +129,7 @@ void HostStats::updateStats(const struct timeval *tv) {
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[ANOMALY] %s [%s][server score] [value: %u]",
 				   host->get_ip()->print(buf, sizeof(buf)),
-				   iface->get_name(),
+				   host->getInterface()->get_name(),
 				   host->getScoreAsServer());
       num_anomalies++;
       server_score_anomaly = 1;
@@ -134,9 +138,9 @@ void HostStats::updateStats(const struct timeval *tv) {
 
     if(num_anomalies > 0) {
       if(host->isLocalHost())
-	iface->incHostAnomalies(num_anomalies, 0);
+	host->getInterface()->incHostAnomalies(num_anomalies, 0);
       else
-	iface->incHostAnomalies(0, num_anomalies);
+	host->getInterface()->incHostAnomalies(0, num_anomalies);
     }
 
     periodicUpdate = tv->tv_sec + HOST_SITES_REFRESH; /* 5 min */
@@ -182,7 +186,7 @@ void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
 
 void HostStats::luaNdpiStats(lua_State* vm) {
   if(ndpiStats)
-    ndpiStats->lua(iface, vm, true, false);
+    ndpiStats->lua(host->getInterface(), vm, true, false);
   else
     lua_pushnil(vm);
 }
@@ -267,7 +271,7 @@ void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level
     json_object_object_add(my_object, "host_unreachable_flows.as_server", json_object_new_int(host_unreachable_flows_as_server));
 
     json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
-    GenericTrafficElement::getJSONObject(my_object, iface);
+    GenericTrafficElement::getJSONObject(my_object, host->getInterface());
 
     /* TCP stats */
     if(tcp_packet_stats_sent.seqIssues())
@@ -343,7 +347,7 @@ void HostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level) {
 
   if(details_level >= details_high) {
     ((GenericTrafficElement*)this)->lua(vm, details_level >= details_higher);
-    luaStats(vm, iface, details_level >= details_higher, details_level >= details_max, false);
+    luaStats(vm, host->getInterface(), details_level >= details_higher, details_level >= details_max, false);
   }
 }
 
@@ -363,8 +367,11 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto,
       that used to be rcvdOnly and that has now sent traffic
     */
     
-    iface->decNumSentRcvdHosts(host->isLocalHost());
+    host->getInterface()->decNumSentRcvdHosts(host->isLocalHost());
   }
+
+  if(host->isBlackhole() && (sent_packets > 0))
+    host->blackholeHost(false /* no longer a blackhole */);
   
   sent.incStats(when, sent_packets, sent_bytes),
     rcvd.incStats(when, rcvd_packets, rcvd_bytes);
@@ -376,7 +383,7 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto,
 
 #ifdef NTOPNG_PRO
   if(custom_app.pen
-     && (custom_app_stats || (custom_app_stats = new(std::nothrow) CustomAppStats(iface)))) {
+     && (custom_app_stats || (custom_app_stats = new(std::nothrow) CustomAppStats(host->getInterface())))) {
     custom_app_stats->incStats(custom_app.remapped_app_id, sent_bytes + rcvd_bytes);
   }
 #endif
@@ -394,7 +401,7 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto,
 
 void HostStats::allocateQuotaEnforcementStats() {
   if(!quota_enforcement_stats) {
-    quota_enforcement_stats = new (std::nothrow) HostPoolStats(iface);
+    quota_enforcement_stats = new (std::nothrow) HostPoolStats(host->getInterface());
 
 #ifdef HOST_POOLS_DEBUG
     char buf[128];

@@ -290,7 +290,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   StatsManager  *statsManager;
   AlertStore *alertStore;
   HostPools *host_pools;
-  VLANAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp_addresses;
   bool has_seen_pods, has_seen_containers, has_external_alerts;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
@@ -330,7 +329,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		VLANid vlan_id, OSType osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
-		bool blacklisted_hosts, bool hide_top_hidden,
+		bool blacklisted_hosts,
 		bool anomalousOnly, bool dhcpOnly,
 		const AddressTree * const cidr_filter,
 		u_int8_t ipver_filter, int proto_filter,
@@ -692,7 +691,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 			 VLANid vlan_id, OSType osFilter,
 			 u_int32_t asnFilter, int16_t networkFilter,
 			 u_int16_t pool_filter, bool filtered_hosts,
-			 bool blacklisted_hosts, bool hide_top_hidden,
+			 bool blacklisted_hosts,
 			 u_int8_t ipver_filter, int proto_filter,
 			 TrafficType traffic_type_filter,
        u_int32_t device_ip,bool tsLua,
@@ -905,7 +904,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
 
   virtual void reloadCompanions() {};
-  void reloadHideFromTop(bool refreshHosts=true);
   void requestGwMacsReload() { gw_macs_reload_requested = true; };
   void reloadGwMacs();
 
@@ -915,7 +913,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void reloadHostsBlacklist();
   void checkNetworksAlerts(vector<ScriptPeriodicity> *p, lua_State* vm);
   void checkInterfaceAlerts(vector<ScriptPeriodicity> *p, lua_State* vm);
-  bool isHiddenFromTop(Host *host);
   virtual bool areTrafficDirectionsSupported() { return(true); };
 
   inline bool isView()                const { return is_view;             };

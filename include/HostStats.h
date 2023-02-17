@@ -26,7 +26,6 @@ class Host;
 
 class HostStats: public GenericTrafficElement {
  protected:
-  NetworkInterface *iface;
   Host *host;
 
   u_int8_t client_flows_anomaly:1, server_flows_anomaly:1, client_score_anomaly:1, server_score_anomaly:1, _notused:4;

@@ -38,7 +38,6 @@ local pool         = _GET["pool"]
 local country      = _GET["country"]
 local os_          = tonumber(_GET["os"])
 local mac          = _GET["mac"]
-local top_hidden   = ternary(_GET["top_hidden"] == "1", true, nil)
 
 function update_host_name(h)
    if(h["name"] == nil) then
@@ -141,7 +140,8 @@ local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sO
 					 tonumber(network), mac,
 					 tonumber(pool), tonumber(ipversion),
 					 tonumber(protocol), traffic_type_filter,
-					 filtered_hosts, blacklisted_hosts, top_hidden, anomalous, dhcp_hosts, cidr, device_ip)
+					 filtered_hosts, blacklisted_hosts,
+					 anomalous, dhcp_hosts, cidr, device_ip)
 
 if(hosts_stats == nil) then total = 0 else total = hosts_stats["numHosts"] end
 hosts_stats = hosts_stats["hosts"]
