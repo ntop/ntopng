@@ -89,6 +89,11 @@ def top_flow_alerts(my_historical, epoch_begin, epoch_end):
     rsp = my_historical.get_flow_alerts_stats(epoch_begin, epoch_end)
     format_rsp(rsp)
 
+def flow_alerts(my_historical, epoch_begin, epoch_end, where_clause):
+    
+    rsp = my_historical.get_flow_alerts(epoch_begin, epoch_end, '*', where_clause, 10, '', '')
+    print(rsp)
+
 ##########
 
 try:
@@ -106,7 +111,8 @@ try:
     top_alerts(my_historical, epoch_begin, epoch_end)
     print("\n==========================\nTop Flow Alerts")
     top_flow_alerts(my_historical, epoch_begin, epoch_end)
-
+    print("\n==========================\nFlow Alerts (alert type != 15)")
+    flow_alerts(my_historical, epoch_begin, epoch_end, "alert_id != 15")
     
 except ValueError as e:
     print(e)
