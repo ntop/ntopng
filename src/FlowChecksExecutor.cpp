@@ -57,8 +57,6 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
   u_int64_t t1, t2;
 #endif
 
-  return(NULL); // FIX
-  
   switch (c) {
     case flow_check_protocol_detected:
       checks = protocol_detected;
