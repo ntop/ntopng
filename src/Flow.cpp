@@ -2995,9 +2995,9 @@ void Flow::formatECSAppProto(json_object *my_object) {
 
   } else if(isHTTP()) {
     if((application_object = json_object_new_object()) != NULL) {
-      if(protos.http.last_url && protos.http.last_url[0] != '0')
+      if(protos.http.last_url && protos.http.last_url[0] != '\0')
         json_object_object_add(application_object, "request.url", json_object_new_string(protos.http.last_url));
-      if(protos.http.last_user_agent && protos.http.last_user_agent[0] != '0')
+      if(protos.http.last_user_agent && protos.http.last_user_agent[0] != '\0')
         json_object_object_add(application_object, "user_agent", json_object_new_string(protos.http.last_user_agent));
       if(protos.http.last_method != NDPI_HTTP_METHOD_UNKNOWN)
         json_object_object_add(application_object, "request.method", json_object_new_string(ndpi_http_method2str(protos.http.last_method)));
@@ -3370,17 +3370,17 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			     Utils::jsonLabel(HTTP_HOST, "HTTP_HOST", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(host_server_name));
 
-    if(protos.http.last_url && protos.http.last_url[0] != '0')
+    if(protos.http.last_url && protos.http.last_url[0] != '\0')
       json_object_object_add(my_object,
 			     Utils::jsonLabel(HTTP_URL, "HTTP_URL", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(protos.http.last_url));
 
-    if(protos.http.last_user_agent && protos.http.last_user_agent[0] != '0')
+    if(protos.http.last_user_agent && protos.http.last_user_agent[0] != '\0')
       json_object_object_add(my_object,
 			     Utils::jsonLabel(HTTP_USER_AGENT, "HTTP_USER_AGENT", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(protos.http.last_user_agent));
 
-    if(protos.http.last_server && protos.http.last_server[0] != '0')
+    if(protos.http.last_server && protos.http.last_server[0] != '\0')
       json_object_object_add(my_object,
 			     Utils::jsonLabel(HTTP_SITE, "HTTP_SITE", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(protos.http.last_server));
