@@ -305,6 +305,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline bool isIPv6()                        const { return ip.isIPv6();            };
   void set_mac(Mac  *m);
   inline bool isBlacklisted()                 const { return(is_blacklisted);        };
+  inline void blacklistHost()                       { is_blacklisted = true;         };
   void reloadHostBlacklist();
   inline const u_int8_t* const get_mac() const { return(mac ? mac->get_mac() : NULL);}
   inline Mac* getMac() const                   { return(mac);              }

@@ -166,6 +166,19 @@ static int ntop_host_blackhole(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_host_blacklist(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h) h->blacklistHost();
+  
+  lua_pushboolean(vm, h ? true : false);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static int ntop_host_is_rx_only(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
@@ -351,6 +364,7 @@ static luaL_Reg _ntop_host_reg[] = {
   { "l7",               ntop_host_get_l7_stats         },
 
   { "blackholeHost",    ntop_host_blackhole            },
+  { "blacklistHost",    ntop_host_blacklist            },
     
   { "skipVisitedHost",  ntop_skip_visited_host         },
   { "triggerAlert",     ntop_trigger_host_alert        },
