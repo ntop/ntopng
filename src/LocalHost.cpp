@@ -389,7 +389,7 @@ void LocalHost::lua_get_timeseries(lua_State* vm) {
   }
   
   Host::lua_blacklisted_flows(vm);
-  lua_unidirectional_tcp_flows(vm);
+  lua_unidirectional_tcp_flows(vm, true);
   
   /* NOTE: the following data is *not* exported for the initial_point */
   lua_push_uint64_table_entry(vm, "active_flows.as_client", getNumOutgoingFlows());
