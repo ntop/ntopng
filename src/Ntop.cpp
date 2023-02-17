@@ -286,6 +286,10 @@ Ntop::~Ntop() {
   if(purgeLoop_started)
     pthread_join(purgeLoop, NULL);
 
+  /* The free below must be called before deleting the interface */
+  if(flow_checks_loader)     delete flow_checks_loader;
+  if(host_checks_loader)     delete host_checks_loader;  
+
   for(int i = 0; i < num_defined_interfaces; i++) {
     if(iface[i]) {
       delete iface[i];
@@ -341,9 +345,6 @@ Ntop::~Ntop() {
   if(redis)   { delete redis; redis = NULL;     }
   if(prefs)   { delete prefs; prefs = NULL;     }
   if(globals) { delete globals; globals = NULL; }
-
-  if(flow_checks_loader)     delete flow_checks_loader;
-  if(host_checks_loader)     delete host_checks_loader;
 
   if(myTZname) free(myTZname);
 
