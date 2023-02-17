@@ -74,24 +74,12 @@ void GenericHashEntry::set_state(HashEntryState s) {
 
 /* ***************************************** */
 
-HashEntryState GenericHashEntry::get_state() const {
-  return hash_entry_state;
-};
-
-/* ***************************************** */
-
 void GenericHashEntry::periodic_stats_update(const struct timeval *tv)  {
   GenericTrafficElement *elem;
 
   if((elem = dynamic_cast<GenericTrafficElement*>(this)))
     elem->updateStats(tv);
 }
-
-/* ***************************************** */
-
-bool GenericHashEntry::idle() const {
-  return(get_state() > hash_entry_state_active);
-};
 
 /* ***************************************** */
 

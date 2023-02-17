@@ -1212,7 +1212,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				    dstMac, dst_ip, dst_port,
 				    icmp_info,
 				    first_seen, last_seen,
-            view_cli_mac, view_srv_mac);
+				    view_cli_mac, view_srv_mac);
       INTERFACE_PROFILING_SECTION_EXIT(2);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
@@ -9906,6 +9906,7 @@ void NetworkInterface::execProtocolDetectedChecks(Flow *f) {
 void NetworkInterface::execPeriodicUpdateChecks(Flow *f) {
   if(flow_checks_executor) {
     FlowAlert *alert = flow_checks_executor->execChecks(f, flow_check_periodic_update);
+    
     if(alert)
       enqueueFlowAlert(alert);
   }
@@ -9916,6 +9917,7 @@ void NetworkInterface::execPeriodicUpdateChecks(Flow *f) {
 void NetworkInterface::execFlowEndChecks(Flow *f) {
   if(flow_checks_executor) {
     FlowAlert *alert = flow_checks_executor->execChecks(f, flow_check_flow_end);
+    
     if(alert)
       enqueueFlowAlert(alert);
   }
@@ -9926,6 +9928,7 @@ void NetworkInterface::execFlowEndChecks(Flow *f) {
 void NetworkInterface::execFlowBeginChecks(Flow *f) {
   if(flow_checks_executor) {
     FlowAlert *alert = flow_checks_executor->execChecks(f, flow_check_flow_begin);
+    
     if(alert)
       enqueueFlowAlert(alert);
   }

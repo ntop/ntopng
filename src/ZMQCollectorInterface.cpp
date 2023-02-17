@@ -22,6 +22,7 @@
 #include "ntop_includes.h"
 
 // #define MSG_DEBUG
+// #define MSG_ID_DEBUG
 
 #ifndef HAVE_NEDGE
 
@@ -94,7 +95,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
     val = 8388608; /* 8M default: cat /proc/sys/net/core/rmem_max */
     if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_RCVBUF, &val, sizeof(val)) != 0)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enlarge ZMQ buffer size");
-
+    
     if(!strncmp(e, (char*)"tcp://", 6)) {
       val = DEFAULT_ZMQ_TCP_KEEPALIVE;
       if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE, &val, sizeof(val)) != 0)
@@ -366,27 +367,40 @@ void ZMQCollectorInterface::collect_flows() {
 				       "[msg_id: %u][last_msg_id: %u][lost: %i]",
 				       subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
 #endif
-	
-	  if(msg_id < last_msg_id) {
-            /* Start over (just reset source_id_last_msg_id) */
-#ifdef MSG_DEBUG
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "ROLLBACK [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u]", 
-				         subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops);
+
+#if 0
+	  fprintf(stdout, "."); fflush(stdout);
 #endif
-	    drop_found = true;
-	  } else {
-            /* Compute delta (this message ID - last message ID) */
-	    int32_t diff = msg_id - last_msg_id;
 	  
-	    if(diff > 1) {
-              /* Lost message detected */
-	      recvStats.zmq_msg_drops += diff - 1;
-#ifdef MSG_DEBUG
-	      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-					   "DROP [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
-					   subscriber_id, msg_id, last_msg_id,
-					   recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
+	  if(msg_id == (last_msg_id + 1)) {
+	    /* No drop */
+	  } else {
+	    drop_found = true;
+
+#ifdef MSG_ID_DEBUG
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "DROP [msg_id: %u][last_msg_id: %u]", msg_id, last_msg_id);
 #endif
+	    
+	    if(msg_id < last_msg_id) {
+	      /* Start over (just reset source_id_last_msg_id) */
+#ifdef MSG_ID_DEBUG
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "ROLLBACK [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u]", 
+					   subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops);
+#endif
+	    } else {
+	      /* Compute delta (this message ID - last message ID) */
+	      int32_t diff = msg_id - last_msg_id;
+	  
+	      if(diff > 1) {
+		/* Lost message detected */
+		recvStats.zmq_msg_drops += diff - 1;
+#ifdef MSG_ID_DEBUG
+		ntop->getTrace()->traceEvent(TRACE_NORMAL,
+					     "DROP [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
+					     subscriber_id, msg_id, last_msg_id,
+					     recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
+#endif
+	      }
 	    }
           }
 	}
@@ -394,8 +408,15 @@ void ZMQCollectorInterface::collect_flows() {
         /* Store last message ID for the current source ID */	
 	source_id_last_msg_id[source_id] = msg_id;	       
 
-	if(drop_found)
+	if(recvStats.zmq_msg_drops > 0) {
+	  /*
+	    As soon as flows are stuck in buffer, it does not make
+	    sense to check the clock drift as flows can stay in
+	    cache for a while. So we use this trick to avoid
+	    silly clock drift errors that instead are not an error
+	  */
 	  msg_id = 0; /* So parseXXXX knowns that this message could be lost/OOO */
+	}
 	
 	/*
           The zmq_recv() function shall return number of bytes in the message if successful.

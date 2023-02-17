@@ -174,7 +174,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void deleteHostData();
   char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize, bool skip_prefix = false);
   bool isValidHostName(const char *name);
-
+  void deferredInitialization();
+  
  public:
   Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId, u_int16_t observation_point_id);
   Host(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id, IpAddress *_ip);
