@@ -354,7 +354,7 @@ export default class NtopUtils {
 		if (typeof (value) === "undefined")
 			return "-";
 
-		return Math.round(value * 100) / 100 + "%";
+		return Math.round(value * 100) / 100 + " %";
 	}
 
 	static fdate(when) {

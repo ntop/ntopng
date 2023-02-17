@@ -171,17 +171,34 @@ const format_frequency = function(data) {
 
 const format_threshold = function(data, rowData) {
   let formatted_data = parseInt(data);
+  let threshold_sign = "> ";
+
+  if((rowData.threshold_sign) && (rowData.threshold_sign == '-1'))
+    threshold_sign = "< "
+
   if((rowData.metric_type) && (rowData.metric_type == 'throughput')) {
-    formatted_data = NtopUtils.bitsToSize(data * 8)
+    formatted_data = threshold_sign + NtopUtils.bitsToSize(data * 8)
   } else if((rowData.metric_type) && (rowData.metric_type == 'volume')) {
-    formatted_data = NtopUtils.bytesToSize(data);
+    formatted_data = threshold_sign + NtopUtils.bytesToSize(data);
   } else if((rowData.metric_type) && (rowData.metric_type == 'percentage')){
-    formatted_data = NtopUtils.fpercent(data);
+    if (data < 0) {
+      data = data * (-1);
+    }
+    formatted_data = threshold_sign + NtopUtils.fpercent(data);
   } else {
     formatted_data = data
   }
-  
+
   return formatted_data
+}
+const format_rule_type = function(data, rowData) {
+  let formatted_data = '';
+  if ((rowData.rule_type) && (rowData.rule_type == 'Interface') ) {
+    formatted_data = "<span class='badge bg-secondary'>Interface <i class='fas fa-ethernet'></i></span>"
+  } else {
+    formatted_data = "<span class='badge bg-secondary'>Host <i class='fas fa-laptop'></i></span>"
+  }
+  return formatted_data;
 }
 
 const get_metric_list = async function() {
@@ -221,10 +238,10 @@ const start_datatable = function() {
   const columns = [
     { columnName: _i18n("id"), visible: false, targets: 0, name: 'id', data: 'id', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: _i18n("if_stats_config.target"), targets: 1, width: '20', name: 'target', data: 'target', className: 'text-nowrap', responsivePriority: 1 },
-    { columnName: _i18n("if_stats_config.rule_type"), targets: 2, width: '20', name: 'rule_type', data: 'rule_type', className: 'text-nowrap', responsivePriority: 1 },
-    { columnName: _i18n("if_stats_config.metric"), targets: 3, width: '10', name: 'metric', data: 'metric', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) { return format_metric(data, rowData) } },
-    { columnName: _i18n("if_stats_config.frequency"), targets: 4, width: '10', name: 'frequency', data: 'frequency', className: 'text-nowrap', responsivePriority: 1, render: function(data) { return format_frequency(data) } },
-    { columnName: _i18n("if_stats_config.threshold"), targets: 5, width: '10', name: 'threshold', data: 'threshold', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) { return format_threshold(data, rowData) } },
+    { columnName: _i18n("if_stats_config.rule_type"), targets: 2, width: '20', name: 'rule_type', data: 'rule_type', className: 'text-center', responsivePriority: 1, render: function(data, _, rowData) {return format_rule_type(data, rowData) } },
+    { columnName: _i18n("if_stats_config.metric"), targets: 3, width: '10', name: 'metric', data: 'metric', className: 'text-center', responsivePriority: 1, render: function(data, _, rowData) { return format_metric(data, rowData) } },
+    { columnName: _i18n("if_stats_config.frequency"), targets: 4, width: '10', name: 'frequency', data: 'frequency', className: 'text-center', responsivePriority: 1, render: function(data) { return format_frequency(data) } },
+    { columnName: _i18n("if_stats_config.threshold"), targets: 5, width: '10', name: 'threshold', data: 'threshold', className: 'text-end', responsivePriority: 1, render: function(data, _, rowData) { return format_threshold(data, rowData) } },
     { columnName: _i18n("metric_type"), visible: false, targets: 6, name: 'metric_type', data: 'metric_type', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: _i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) { return add_action_column(rowData) } }
   ];
