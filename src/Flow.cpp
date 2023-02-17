@@ -1006,7 +1006,6 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
       ntop->incBlacklisHits(std::string(get_custom_category_file()));
     }
   }
-
 }
 
 /* *************************************** */

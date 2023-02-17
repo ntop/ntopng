@@ -138,6 +138,34 @@ static int ntop_host_is_blacklisted(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_host_is_blackhole(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  lua_pushboolean(vm, h ? h->isBlackhole() : false);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_host_blackhole(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+  bool do_blackhole = true;
+  
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    do_blackhole = lua_toboolean(vm, 1) ? true : false;
+
+  if(h) h->blackholeHost(do_blackhole);
+  
+  lua_pushboolean(vm, h ? true : false);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static int ntop_host_is_rx_only(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
@@ -314,6 +342,7 @@ static luaL_Reg _ntop_host_reg[] = {
   { "is_multicast",     ntop_host_is_multicast         },
   { "is_broadcast",     ntop_host_is_broadcast         },
   { "is_blacklisted",   ntop_host_is_blacklisted       },
+  { "is_blackhole",     ntop_host_is_blackhole         },
   { "is_rx_only",       ntop_host_is_rx_only           },
 
   { "bytes_sent",       ntop_host_get_bytes_sent       },
@@ -321,6 +350,8 @@ static luaL_Reg _ntop_host_reg[] = {
   { "bytes",            ntop_host_get_bytes_total      },
   { "l7",               ntop_host_get_l7_stats         },
 
+  { "blackholeHost",    ntop_host_blackhole            },
+    
   { "skipVisitedHost",  ntop_skip_visited_host         },
   { "triggerAlert",     ntop_trigger_host_alert        },
 

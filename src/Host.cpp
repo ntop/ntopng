@@ -334,7 +334,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
 
   memset(&unidirectionalTCPFlows, 0, sizeof(unidirectionalTCPFlows));
   memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
-  blacklist_name = NULL;
+  blacklist_name = NULL, is_blacklisted = ip.isBlacklistedAddress();
 
   memset(&customHostAlert, 0, sizeof(customHostAlert));
   memset(&externalAlert, 0, sizeof(externalAlert));
@@ -886,6 +886,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(blacklist_name != NULL)
     lua_push_str_table_entry(vm, "blacklist_name", blacklist_name);
 
+  lua_push_bool_table_entry(vm, "is_blackhole", is_blackhole);
+  
   if(more_then_one_device)
     lua_push_bool_table_entry(vm, "more_then_one_device", more_then_one_device);
 

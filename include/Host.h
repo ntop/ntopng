@@ -144,7 +144,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   TrafficShaper **host_traffic_shapers;
   bool has_blocking_quota, has_blocking_shaper;
 #endif
-  u_int8_t hidden_from_top:1, is_in_broadcast_domain:1, is_dhcp_host:1, is_crawler_bot_scanner:1, _notused:4;
+  u_int8_t hidden_from_top:1, is_in_broadcast_domain:1, is_dhcp_host:1, is_crawler_bot_scanner:1,
+    is_blacklisted:1, is_blackhole:1, _notused:2;
 
   /* Alert exclusion handling */
 #ifdef NTOPNG_PRO
@@ -302,7 +303,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline bool isIPv4()                        const { return ip.isIPv4();            };
   inline bool isIPv6()                        const { return ip.isIPv6();            };
   void set_mac(Mac  *m);
-  inline bool isBlacklisted()                 const { return(ip.isBlacklistedAddress()); };
+  inline bool isBlacklisted()                 const { return(is_blacklisted);        };
   void reloadHostBlacklist();
   inline const u_int8_t* const get_mac() const { return(mac ? mac->get_mac() : NULL);}
   inline Mac* getMac() const                   { return(mac);              }
@@ -646,7 +647,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   }
 
   inline HostStats* getStats()    { return(stats); }
-  void setBlacklistName(char*);
+  void setBlacklistName(char *name);
+  inline void blacklistHost(char *blacklist_name) { setBlacklistName(blacklist_name), is_blacklisted = 1; }
+  inline void blackholeHost(bool set_it = true)   { is_blackhole = set_it;                                }
+  inline bool isBlackhole()                       { return(is_blackhole ? true : false);                  }
   inline bool resetHostTopSites() { if(stats) { stats->resetTopSitesData(); return(true); } else return(false);     }
   inline bool isReceiveOnlyHost() { return(stats->isReceiveOnly() && (!isBroadcastHost()) && (!isMulticastHost())); }
   inline void incUnidirectionalIngressFlows() { unidirectionalTCPFlows.numIngressFlows++; }
