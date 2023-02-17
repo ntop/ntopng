@@ -73,6 +73,12 @@ else
    return
 end
 
+if isEmptyString(epoch_begin) or isEmptyString(epoch_end) then
+   rc = rest_utils.consts.err.invalid_args
+   rest_utils.answer(rc)
+   return
+end
+
 local sql = "SELECT " .. select_clause .. " FROM " .. table_name
 
 sql = sql .. " WHERE (tstamp >= "..epoch_begin..") AND (tstamp_end <= "..epoch_end..") AND (interface_id == " .. ifid .. ")"
@@ -91,11 +97,6 @@ end
 
 sql = sql .. " LIMIT "..maxhits
 
---tprint(_GET)
--- tprint(sql)
-
 res = interface.alert_store_query(sql)
-
---tprint(res)
 
 rest_utils.answer(rc, res)
