@@ -308,7 +308,7 @@ static int ntop_get_unidirectional_tcp_flows_stats(lua_State* vm) {
   Host *h = c ? c->host : NULL;
 
   if(h)
-    h->lua_unidirectional_tcp_flows(vm);
+    h->lua_unidirectional_tcp_flows(vm, false);
   else
     lua_pushnil(vm);
 

@@ -408,7 +408,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void lua_get_fingerprints(lua_State *vm);
   void lua_get_geoloc(lua_State *vm);
   void lua_blacklisted_flows(lua_State* vm) const;
-  void lua_unidirectional_tcp_flows(lua_State* vm) const;
+  void lua_unidirectional_tcp_flows(lua_State* vm, bool as_subtable) const;
   void lua_get_listening_ports(lua_State *vm);
 
   void resolveHostName();

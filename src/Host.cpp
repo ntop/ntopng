@@ -790,15 +790,17 @@ void Host::lua_get_fingerprints(lua_State* vm) {
 
 /* ***************************************************** */
 
-void Host::lua_unidirectional_tcp_flows(lua_State* vm) const {
+void Host::lua_unidirectional_tcp_flows(lua_State* vm, bool as_subtable) const {
   lua_newtable(vm);
 
   lua_push_uint32_table_entry(vm, "num_ingress", unidirectionalTCPFlows.numIngressFlows);
   lua_push_uint32_table_entry(vm, "num_egress", unidirectionalTCPFlows.numEgressFlows);
 
-  lua_pushstring(vm, "num_unidirectional_tcp_flows");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+  if(as_subtable) {
+    lua_pushstring(vm, "num_unidirectional_tcp_flows");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 }
 
 /* ***************************************************** */
@@ -901,7 +903,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   luaTCP(vm);
   luaICMP(vm, get_ip()->isIPv4(), false);
 
-  lua_unidirectional_tcp_flows(vm);
+  lua_unidirectional_tcp_flows(vm, true);
 
   if(host_details) {
     lua_get_score_breakdown(vm);
