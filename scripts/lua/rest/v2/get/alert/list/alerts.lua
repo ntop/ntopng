@@ -83,15 +83,15 @@ local sql = "SELECT " .. select_clause .. " FROM " .. table_name
 
 sql = sql .. " WHERE (tstamp >= "..epoch_begin..") AND (tstamp_end <= "..epoch_end..") AND (interface_id == " .. ifid .. ")"
 
-if(where_clause ~= nil) then
-   sql = sql .. " AND " .. where_clause
+if not isEmptyString(where_clause) then
+   sql = sql .. " AND (" .. where_clause .. ")"
 end
 
-if(group_by ~= nil) then
+if not isEmptyString(group_by) then
    sql = sql .. " GROUP BY " .. group_by
 end
 
-if(order_by ~= nil) then
+if not isEmptyString(order_by) then
    sql = sql .. " ORDER BY " .. order_by
 end
 
