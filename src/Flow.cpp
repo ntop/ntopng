@@ -3367,6 +3367,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
 
 
   if(isHTTP()) {
+    if(host_server_name && host_server_name[0] != '0')
       json_object_object_add(my_object,
 			     Utils::jsonLabel(HTTP_HOST, "HTTP_HOST", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(host_server_name));
