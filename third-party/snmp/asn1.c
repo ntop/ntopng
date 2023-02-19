@@ -309,10 +309,11 @@ static void *read_oid(void *src, char **oid, int size)
     
   *oid = (char*)malloc(len+1);
   p = *oid;
-  p += sprintf(p, "%lu", (unsigned long)parts[0]);
+  p += snprintf(p, len, "%lu", (unsigned long)parts[0]);
+  
   for (i =1; i < num_parts; i++)
     {
-      p += sprintf(p, ".%lu", (unsigned long)parts[i]);
+      p += snprintf(p, len, ".%lu", (unsigned long)parts[i]);
     }
     
   return src;

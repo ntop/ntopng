@@ -498,7 +498,7 @@ static double test_download(char *p_url, int num_thread, int dsize, char init)
     //int error;
 
     memset(&paras[i], 0, sizeof(struct thread_para));
-    sprintf(paras[i].url, "%s/speedtest/random%dx%d.jpg", p_url, dsize, dsize);
+    snprintf(paras[i].url, sizeof(paras[i].url), "%s/speedtest/random%dx%d.jpg", p_url, dsize, dsize);
     paras[i].result = 0;
 
     //error = 
@@ -595,7 +595,7 @@ static void* do_upload(void *p) {
     loop = (size / UPLOAD_CHRUNK_SIZE_MAX) + 1;
 
   curl = curl_easy_init();
-  sprintf(useragent, "curl/%.02f.0", v);
+  snprintf(useragent, sizeof(useragent), "curl/%.02f.0", v);
   
   curl_easy_setopt(curl, CURLOPT_URL, para->url);
   curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_data);
@@ -654,7 +654,7 @@ static double test_upload(char *p_url, int num_thread, long size,
 
   for ( i = 0; i < num_thread; i++) {
     memset(&paras[i], 0, sizeof(struct thread_para));
-    sprintf(paras[i].url, "%s/speedtest/upload.%s", p_url, p_ext);
+    snprintf(paras[i].url, sizeof(paras[i].url), "%s/speedtest/upload.%s", p_url, p_ext);
     paras[i].result = 0;
     paras[i].finish = 0;
     paras[i].upload_size = size/num_thread;
@@ -838,7 +838,7 @@ static int get_closest_server()
   double v = (double) (rand() % 1000) / 100;
   
   memset(&web, 0, sizeof(web));
-  sprintf(useragent, "curl/%.02f.0", v);
+  snprintf(useragent, sizeof(useragent), "curl/%.02f.0", v);
   
   curl = curl_easy_init();
 
