@@ -91,6 +91,17 @@ static int ntop_host_get_vlan_id(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_host_is_local(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  lua_pushboolean(vm, h ? h->isLocalHost() : false);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static int ntop_host_is_unicast(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
@@ -351,6 +362,7 @@ static luaL_Reg _ntop_host_reg[] = {
   { "name",             ntop_host_get_name             },
   { "vlan_id",          ntop_host_get_vlan_id          },
 
+  { "is_local",         ntop_host_is_local             },
   { "is_unicast",       ntop_host_is_unicast           },
   { "is_multicast",     ntop_host_is_multicast         },
   { "is_broadcast",     ntop_host_is_broadcast         },

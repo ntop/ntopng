@@ -46,6 +46,22 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress,
 /* *************************************** */
 
 LocalHost::~LocalHost() {
+  if(!isLocalUnicastHost()) {
+    char keybuf[64], hostbuf[64], *member, seenbuf[16];
+    
+    snprintf(keybuf, sizeof(keybuf), HASHKEY_IFACE_RECEIVE_ONLY_HOSTS, iface->get_id());
+    member = get_hostkey(hostbuf, sizeof(hostbuf));
+    snprintf(seenbuf, sizeof(seenbuf), "%u", (u_int32_t)get_last_seen());
+    
+    if(isReceiveOnlyHost()) {
+      /* Add this host to the hash of RX-only local hosts */
+      ntop->getRedis()->hashSet(keybuf, member, seenbuf);
+    } else {
+      /* Delete the key in case it was present */
+      ntop->getRedis()->hashDel(keybuf, member);
+    }
+  }
+  
   if(initial_ts_point) delete(initial_ts_point);
   freeLocalHostData();
 }
