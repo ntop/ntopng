@@ -1482,9 +1482,9 @@ static void fillcURLProxy(CURL *curl) {
     if (!http_proxy_port) http_proxy_port = getenv("http_proxy_port");
 
     if(http_proxy_port)
-      sprintf(proxy, "%s:%s", http_proxy, http_proxy_port);
+      snprintf(proxy, sizeof(proxy), "%s:%s", http_proxy, http_proxy_port);
     else
-      sprintf(proxy, "%s", http_proxy);
+      snprintf(proxy, sizeof(proxy), "%s", http_proxy);
 
     curl_easy_setopt(curl, CURLOPT_PROXY, proxy);
     curl_easy_setopt(curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
@@ -1495,7 +1495,7 @@ static void fillcURLProxy(CURL *curl) {
     if(no_proxy) {
       char no_proxy_buf[1024];
 
-      sprintf(no_proxy_buf, "%s", no_proxy);
+      snprintf(no_proxy_buf, sizeof(no_proxy_buf), "%s", no_proxy);
       curl_easy_setopt(curl, CURLOPT_NOPROXY, no_proxy_buf);
     }
   }
@@ -3840,7 +3840,7 @@ u_int32_t Utils::findInterfaceGatewayIPv4(const char* ifname) {
   char cmd[128];
   FILE *fp;
 
-  sprintf(cmd, "netstat -rn | grep '%s' | grep 'UG' | awk '{print $2}'", ifname);
+  snprintf(cmd, sizeof(cmd), "netstat -rn | grep '%s' | grep 'UG' | awk '{print $2}'", ifname);
 
   if((fp = popen(cmd, "r")) != NULL) {
     char line[256];
