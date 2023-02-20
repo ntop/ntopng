@@ -36,6 +36,7 @@ import { default as Datatable } from "./datatable.vue";
 import { default as NetworkMap } from "./network-map.vue";
 import { default as DateTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as PageNavbar } from "./page-navbar.vue";
+import { default as PageTestTable } from "./page-test-table.vue";
 import { default as RangePicker } from "./range-picker.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
@@ -79,6 +80,7 @@ let ntopVue = {
     PageHostMap: PageHostMap,
 
     PageVLANPortsFlowSankey:PageVLANPortsSankey,
+    PageTestTable: PageTestTable,
 
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,
