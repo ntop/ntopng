@@ -11,12 +11,12 @@
   </label>
     <div class="col-sm-10">
 	  <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
-	    <label :class="{'active': rule_type == 'hosts'}" class="btn btn-secondary">
+	    <label :class="{'active': rule_type == 'Host'}" class="btn btn-secondary">
 	      <input  class="btn-check" type="radio" name="rule_type" value="hosts" @click="set_rule_type('Host')"> {{ _i18n("if_stats_config.add_rules_type_host") }}
 	    </label>
-	    <!--<label :class="{'active': rule_type == 'interface'}" class="btn btn-secondary">
+	    <label :class="{'active': rule_type == 'Interface'}" class="btn btn-secondary">
 	      <input @click="set_rule_type('Interface')" class="btn-check"  type="radio" name="rule_type" value="interface"> {{ _i18n("if_stats_config.add_rules_type_interface") }}
-	    </label>-->
+	    </label>
 	  </div>
 	</div>
   </div>
@@ -48,12 +48,22 @@
 	    <label class="col-form-label col-sm-2" >
         <b>{{_i18n("if_stats_config.metric")}}</b>
 	    </label>
-      <div class="col-10">
-        <SelectSearch v-model:selected_option="selected_metric"
-          @select_option="change_threshold()"
-          :options="metric_list">
-        </SelectSearch>
-      </div>
+      <template v-if="rule_type == 'Host'">
+        <div class="col-10">
+          <SelectSearch v-model:selected_option="selected_metric"
+            @select_option="change_threshold()"
+            :options="metric_list">
+          </SelectSearch>
+        </div>
+      </template>
+      <template v-else>
+        <div class="col-10">
+          <SelectSearch v-model:selected_option="selected_metric"
+            @select_option="change_interface_threshold()"
+            :options="interface_metric_list">
+          </SelectSearch>
+        </div>
+      </template>
     </div>
 
     <!-- Frequency information, a frequency of 1 day, 5 minute or 1 hour for example -->
@@ -148,12 +158,14 @@ const metrics_ready = ref(false)
 const _i18n = (t) => i18n(t);
 const metric_list = ref([])
 const ifid_list = ref([])
+const interface_metric_list = ref([])
 const frequency_list = ref([])
 const threshold_measure = ref(null)
 const threshold_sign = ref(null)
 const selected_metric = ref({})
 const selected_frequency = ref({})
 const selected_ifid = ref({})
+const selected_interface_metric = ref({})
 const disable_add = ref(true)
 const metric_type = ref({})
 const visible = ref(true)
@@ -174,22 +186,22 @@ const metric_type_list = [
   { title: _i18n('percentage'), label: _i18n('percentage'), id: 'percentage', acrive: false },
 ]
 
-const volume_threshold_list = [
+const volume_threshold_list = ref([
   { title: _i18n('kb'), label: _i18n('kb'), id: 'kb', value: 1024, active: false },
   { title: _i18n('mb'), label: _i18n('mb'), id: 'mb', value: 1048576, active: false },
-  { title: _i18n('gb'), label: _i18n('gb'), id: 'gb', value: 1073741824, active: true },
-]
+  { title: _i18n('gb'), label: _i18n('gb'), id: 'gb', value: 1073741824, active: true, default_active: true},
+]);
 
-const throughput_threshold_list = [
+const throughput_threshold_list = ref([
   { title: _i18n('kbps'), label: _i18n('kbps'), id: 'kbps', value: 1000, active: false },
   { title: _i18n('mbps'), label: _i18n('mbps'), id: 'mbps', value: 1000000, active: false },
-  { title: _i18n('gbps'), label: _i18n('gbps'), id: 'gbps', value: 1000000000, active: true },
-]
+  { title: _i18n('gbps'), label: _i18n('gbps'), id: 'gbps', value: 1000000000, active: true, default_active: true},
+]);
 
-const sign_threshold_list = [
+const sign_threshold_list = ref([
   { title: "+", label: ">", id: 'plus', value: 1, active: false },
-  { title: "-", label: "<", id: 'minus', value: -1, active: true },
-]
+  { title: "-", label: "<", id: 'minus', value: -1, active: true, default_active: true },
+]);
 
 const percentage_threshold_list = [
   { title: "+", label: "%", id: 'plus', value: 1, active: true },
@@ -204,35 +216,30 @@ const showed = () => {};
 const props = defineProps({
   metric_list: Array,
   ifid_list: Array,
+  interface_metric_list: Array,
   frequency_list: Array,
 });
+
+function reset_radio_selection(radio_array) {
+
+  radio_array.forEach((item) => item.active = item.default_active == true );
+}
 
 function reset_modal_form() {
     host.value = "";
     selected_ifid.value = ifid_list.value[0];
     selected_metric.value = metric_list.value[0];
+    selected_interface_metric.value = interface_metric_list.value[0];
     selected_frequency.value = frequency_list.value[0];
     metric_type.value = metric_type_list[0];
 
     // reset metric_type_list
     metric_type_list.forEach((t) => t.active = false);
     metric_type_list[0].active = true;
-    
-    // reset volume_threshold_list
-    volume_threshold_list.forEach((t) => t.active = false);
-    volume_threshold_list[volume_threshold_list.length - 1].active = true;
-    
-    // reset throughput_threshold_list 
-    throughput_threshold_list.forEach((t) => t.active = false);
-    throughput_threshold_list[throughput_threshold_list.length - 1].active = true;
 
-    // reset percentage_threshold_list 
-    percentage_threshold_list.forEach((t) => t.active = false);
-    percentage_threshold_list[percentage_threshold_list.length - 1].active = true;
-
-    // reset percentage_threshold_list 
-    sign_threshold_list.forEach((t) => t.active = false);
-    sign_threshold_list[sign_threshold_list.length - 1].active = true;
+    reset_radio_selection(volume_threshold_list.value);
+    reset_radio_selection(throughput_threshold_list.value);
+    reset_radio_selection(sign_threshold_list.value);
 
     rule_type.value = "Host";
 
@@ -254,6 +261,10 @@ const change_threshold = () => {
   (selected_metric.value.show_volume == true) ? visible.value = true : visible.value = false
 }
 
+const change_interface_threshold = () => {
+  (selected_interface_metric.value.show_volume == true) ? visible.value = true : visible.value = false
+}
+
 const check_empty_host = () => {
   let regex = new RegExp(regexValidation.get_data_pattern('ip'));
   disable_add.value = !(regex.test(host.value) || host.value === '*');
@@ -261,23 +272,8 @@ const check_empty_host = () => {
 
 const set_active_sign_radio = (selected_radio) => {
   const id = selected_radio.target.id;
-  sign_threshold_list.forEach((measure) => {
+  sign_threshold_list.value.forEach((measure) => {
     (measure.id === id) ? measure.active = true : measure.active = false;
-  })
-
-  Array.from(selected_radio.target.parentElement.children).forEach((element) => {
-      /* Check if it's label */
-    if(element.tagName == 'LABEL') {
-      if(element.id == id) {
-        element.classList.remove('btn-secondary')
-        element.classList.add('btn-primary')
-        element.classList.add('active')
-      } else {
-        element.classList.add('btn-secondary')
-        element.classList.remove('btn-primary')
-        element.classList.remove('active')
-      }
-    }
   })
 
 }
@@ -286,11 +282,11 @@ const set_active_radio = (selected_radio) => {
   const id = selected_radio.target.id;
 
   if(metric_type.value.id == 'throughput') {
-    throughput_threshold_list.forEach((measure) => {
+    throughput_threshold_list.value.forEach((measure) => {
       (measure.id === id) ? measure.active = true : measure.active = false;
     })
   } else if (metric_type.value.id == 'volume') {
-    volume_threshold_list.forEach((measure) => {
+    volume_threshold_list.value.forEach((measure) => {
       (measure.id === id) ? measure.active = true : measure.active = false;
     })
   } else if (metric_type.value.id == 'percentage'){
@@ -300,21 +296,6 @@ const set_active_radio = (selected_radio) => {
   } 
   
   
-  
-  Array.from(selected_radio.target.parentElement.children).forEach((element) => {
-    /* Check if it's label */
-    if(element.tagName == 'LABEL') {
-      if(element.id == id) {
-        element.classList.remove('btn-secondary')
-        element.classList.add('btn-primary')
-        element.classList.add('active')
-      } else {
-        element.classList.add('btn-secondary')
-        element.classList.remove('btn-primary')
-        element.classList.remove('active')
-      }
-    }
-  })
 }
 
 
@@ -326,8 +307,10 @@ const add_ = () => {
 
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_metric.value.id;
+  const tmp_interface_metric = selected_interface_metric.value.id;
   const tmp_rule_type = rule_type.value;
-  const tmp_interface = selected_ifid.value.label;
+  const tmp_interface = selected_ifid.value.id;
+  const tmp_interface_name = selected_ifid.value.label;
   let tmp_metric_type = metric_type.value.id;
   let tmp_extra_metric = (selected_metric.value.extra_metric) ? selected_metric.value.extra_metric : null
   let basic_value;
@@ -343,18 +326,18 @@ const add_ = () => {
   
 
   if(tmp_metric_type == 'throughput') {
-    sign_threshold_list.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
+    sign_threshold_list.value.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
     tmp_sign_value = parseInt(basic_sign_value);
-    throughput_threshold_list.forEach((measure) => { if(measure.active) basic_value = measure.value; })
+    throughput_threshold_list.value.forEach((measure) => { if(measure.active) basic_value = measure.value; })
     tmp_threshold = basic_value * parseInt(threshold.value.value) / 8;
     /* The throughput is in bit, the volume in Bytes!! */
   } else if(tmp_metric_type == 'volume') {
-    sign_threshold_list.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
+    sign_threshold_list.value.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
     tmp_sign_value = parseInt(basic_sign_value);
-    volume_threshold_list.forEach((measure) => { if(measure.active) basic_value = measure.value; })
+    volume_threshold_list.value.forEach((measure) => { if(measure.active) basic_value = measure.value; })
     tmp_threshold = basic_value * parseInt(threshold.value.value);
   } else if(tmp_metric_type == 'percentage') {
-    sign_threshold_list.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
+    sign_threshold_list.value.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
     tmp_sign_value = parseInt(basic_sign_value);
     tmp_threshold = tmp_sign_value * parseInt(threshold.value.value);
   } else {
@@ -375,12 +358,13 @@ const add_ = () => {
   else
     emit('add', { 
       frequency: tmp_frequency, 
-      metric: tmp_metric,
+      metric: tmp_interface_metric,
       threshold: tmp_threshold,
       metric_type: tmp_metric_type,
       extra_metric: tmp_extra_metric,
       rule_type: tmp_rule_type,
       interface: tmp_interface,
+      ifname: tmp_interface_name,
       rule_threshold_sign: tmp_sign_value
     });
 
@@ -400,9 +384,10 @@ const format_ifid_list = function(data) {
   return _ifid_list
 }
 
-const metricsLoaded = (_metric_list, _ifid_list) => {
+const metricsLoaded = (_metric_list, _ifid_list, _interface_metric_list) => {
   metrics_ready.value = true;
   metric_list.value = _metric_list;
+  interface_metric_list.value = _interface_metric_list;
   ifid_list.value = format_ifid_list(_ifid_list);
   frequency_list.value = props.frequency_list;
   selected_frequency.value = frequency_list.value[0];

@@ -651,31 +651,60 @@ end
 
 -- #################################
 
-function timeseries_info.get_host_rules_schema()
-  local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
-  local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~= "0"
-  local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
+function timeseries_info.get_host_rules_schema(is_interface)
+  if not is_interface then
+    local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
+    local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~= "0"
+    local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
 
-  local metric_list = {
-    { title = i18n('traffic'), group = i18n('generic_data'), label = i18n('traffic'), id = 'host:traffic' --[[ here the ID is the schema ]], show_volume = true },
-    { title = i18n('score'),  group = i18n('generic_data'), label = i18n('score'), id = 'host:score' --[[ here the ID is the schema ]], show_volume = false },
-  } 
+    local metric_list = {
+      { title = i18n('traffic'), group = i18n('generic_data'), label = i18n('traffic'), id = 'host:traffic' --[[ here the ID is the schema ]], show_volume = true },
+      { title = i18n('score'),  group = i18n('generic_data'), label = i18n('score'), id = 'host:score' --[[ here the ID is the schema ]], show_volume = false },
+    } 
 
-  if has_top_protocols then
-    local application_list = interface.getnDPIProtocols()
-    for application, _ in pairsByKeys(application_list or {}, asc) do 
-      metric_list[#metric_list + 1] = { label = application, group = i18n('applications_long'), title = application, id = 'top:host:ndpi', extra_metric = 'protocol:' .. application --[[ here the schema is the ID ]], show_volume = true }
+    if has_top_protocols then
+      local application_list = interface.getnDPIProtocols()
+      for application, _ in pairsByKeys(application_list or {}, asc) do 
+        metric_list[#metric_list + 1] = { label = application, group = i18n('applications_long'), title = application, id = 'top:host:ndpi', extra_metric = 'protocol:' .. application --[[ here the schema is the ID ]], show_volume = true }
+      end
     end
-  end
 
-  if has_top_categories then
-    local category_list = interface.getnDPICategories()
-    for category, _ in pairsByKeys(category_list or {}, asc) do 
-      metric_list[#metric_list + 1] = { label = category, group = i18n('categories'), title = category, id = 'top:host:ndpi_categories', extra_metric = 'category:' .. category --[[ here the schema is the ID ]], show_volume = true }
+    if has_top_categories then
+      local category_list = interface.getnDPICategories()
+      for category, _ in pairsByKeys(category_list or {}, asc) do 
+        metric_list[#metric_list + 1] = { label = category, group = i18n('categories'), title = category, id = 'top:host:ndpi_categories', extra_metric = 'category:' .. category --[[ here the schema is the ID ]], show_volume = true }
+      end
     end
-  end
 
-  return metric_list
+
+    return metric_list
+  else 
+    local ifname_ts_enabled = ntop.getCache("ntopng.prefs.ifname_ndpi_timeseries_creation")
+    local has_top_protocols = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_protocol" or ifname_ts_enabled ~= "0"
+    local has_top_categories = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_category"
+
+    local metric_list = {
+      { title = i18n('traffic'), group = i18n('generic_data'), label = i18n('traffic'), id = 'iface:traffic' --[[ here the ID is the schema ]], show_volume = true },
+      { title = i18n('score'),  group = i18n('generic_data'), label = i18n('score'), id = 'iface:score' --[[ here the ID is the schema ]], show_volume = false },
+    } 
+
+    if has_top_protocols then
+      local application_list = interface.getnDPIProtocols()
+      for application, _ in pairsByKeys(application_list or {}, asc) do 
+        metric_list[#metric_list + 1] = { label = application, group = i18n('applications_long'), title = application, id = 'top:iface:ndpi', extra_metric = 'protocol:' .. application --[[ here the schema is the ID ]], show_volume = true }
+      end
+    end
+
+    if has_top_categories then
+      local category_list = interface.getnDPICategories()
+      for category, _ in pairsByKeys(category_list or {}, asc) do 
+        metric_list[#metric_list + 1] = { label = category, group = i18n('categories'), title = category, id = 'top:iface:ndpi_categories', extra_metric = 'category:' .. category --[[ here the schema is the ID ]], show_volume = true }
+      end
+    end
+
+
+    return metric_list
+  end
 end
 
 -- #################################
