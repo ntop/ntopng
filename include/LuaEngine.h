@@ -200,6 +200,6 @@ int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type);
 extern int ntop_lua_return_value(lua_State* vm, const char *function_name, int val);
 
 extern void get_host_vlan_info(char* lua_ip, char** host_ip,
-			VLANid* vlan_id, char *buf, u_int buf_len);
+			u_int16_t* vlan_id, char *buf, u_int buf_len);
 
 #endif /* _LUA_H_ */

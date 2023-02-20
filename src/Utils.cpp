@@ -5207,7 +5207,7 @@ const char* Utils::get_state_label(ThreadedActivityState ta_state) {
 
 /* ******************************************* */
 
-void Utils::splitAddressAndVlan(char *addr, VLANid *vlan_id) {
+void Utils::splitAddressAndVlan(char *addr, u_int16_t *vlan_id) {
 	char *at = NULL;
 
   if((at = strchr(addr, '@'))) {

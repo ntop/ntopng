@@ -96,7 +96,7 @@ class ViewInterface : public NetworkInterface {
 
   virtual u_int32_t getFlowsHashSize();
   virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts);
-  virtual Flow* findFlowByTuple(VLANid vlan_id,
+  virtual Flow* findFlowByTuple(u_int16_t vlan_id,
 				u_int16_t observation_domain_id,
 				u_int32_t private_flow_id,
   				IpAddress *src_ip,  IpAddress *dst_ip,

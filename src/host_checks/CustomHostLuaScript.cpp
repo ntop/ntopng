@@ -111,7 +111,8 @@ void CustomHostLuaScript::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     
     lua->setHost(h);
     lua->run_loaded_script(); /* Run script */
-     
+    h->setCustomHostScriptAlreadyRun(); /* This host executed this script at least once */
+    
     if(h->isCustomHostAlertTriggered()) {
       HostAlert *alert = engaged_alert;
     

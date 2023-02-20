@@ -607,7 +607,7 @@ static int ntop_interface_live_capture(lua_State* vm) {
     Host *h;
     char host_ip[64];
     char *key;
-    VLANid vlan_id = 0;
+    u_int16_t vlan_id = 0;
 
     get_host_vlan_info(host, &key, &vlan_id, host_ip, sizeof(host_ip));
 
@@ -737,7 +737,7 @@ static int ntop_interface_reset_host_stats(lua_State* vm, bool delete_data) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64], *host_ip;
   Host *host;
-  VLANid vlan_id;
+  u_int16_t vlan_id;
   bool reset_blacklisted = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1219,7 +1219,7 @@ static int ntop_get_host_used_quotas_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   Host *h;
   char *host_ip;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   char buf[128];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1696,7 +1696,7 @@ static int ntop_get_interface_mac_hosts(lua_State* vm) {
 static int ntop_set_host_operating_system(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip = NULL, buf[64];
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   OSType os = os_unknown;
   Host *host;
 
@@ -1725,7 +1725,7 @@ static int ntop_set_host_operating_system(lua_State* vm) {
 static int ntop_set_host_resolved_name(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip = NULL, buf[64];
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   char *host_name = NULL;
   Host *host;
 
@@ -2172,7 +2172,7 @@ static int ntop_get_interface_os_info(lua_State* vm) {
 
 static int ntop_get_interface_vlan_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  VLANid vlan_id;
+  u_int16_t vlan_id;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   vlan_id = (u_int16_t)lua_tonumber(vm, 1);
@@ -2220,7 +2220,7 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64];
   char *host_ip = NULL, *talking_with_ip = NULL;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   Host *host = NULL, *talking_with_host = NULL;
   Paginator *p = NULL;
   u_int32_t begin_slot = 0;
@@ -2393,7 +2393,7 @@ static int ntop_get_interface_network_stats(lua_State* vm) {
 static int ntop_get_interface_host_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   char buf[64];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -2415,7 +2415,7 @@ static int ntop_get_interface_host_info(lua_State* vm) {
 static int ntop_reset_interface_host_top_sites(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   char buf[64];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -2441,7 +2441,7 @@ static int ntop_reset_interface_host_top_sites(lua_State* vm) {
 static int ntop_get_interface_host_country(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   char buf[64];
   Host* h = NULL;
 
@@ -2698,7 +2698,7 @@ static int ntop_getsflowdeviceinfo(lua_State* vm) {
 static int ntop_restore_interface_host(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   char buf[64];
   AddressTree *ptree = get_allowed_nets(vm);
 
@@ -2727,7 +2727,7 @@ static int ntop_get_interface_flow_key(lua_State* vm) {
   u_int16_t cli_port = 0;
   char *srv_name = NULL;
   u_int16_t srv_port = 0;
-  VLANid cli_vlan = 0, srv_vlan = 0;
+  u_int16_t cli_vlan = 0, srv_vlan = 0;
   u_int16_t protocol;
   char cli_buf[256], srv_buf[256];
 
@@ -2809,7 +2809,7 @@ static int ntop_get_interface_find_flow_by_key_and_hash_id(lua_State* vm) {
 static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress src_ip_addr, dst_ip_addr;
-  VLANid vlan_id, src_port, dst_port;
+  u_int16_t vlan_id, src_port, dst_port;
   u_int8_t l4_proto;
   u_int32_t private_flow_id = 0 /* FIX */;
   char *src_ip, *dst_ip;
@@ -3112,7 +3112,7 @@ static int ntop_update_flows_only_interface(lua_State* vm) {
 static int ntop_update_host_traffic_policy(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   char buf[64];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -3254,7 +3254,7 @@ static int ntop_reload_host_prefs(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64], *host_ip;
   Host *host;
-  VLANid vlan_id;
+  u_int16_t vlan_id;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if(!ntop_interface) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -3681,7 +3681,7 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
   nDPIStats ndpi_stats;
   FlowStats stats;
   char *host_ip = NULL, *talking_with_ip = NULL, *tmp = NULL;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   char buf[64];
   bool only_traffic_stats = false;
   Host *host = NULL, *talking_with_host = NULL;
@@ -3810,7 +3810,7 @@ static int ntop_checkpoint_host_talker(lua_State* vm) {
   int ifid;
   NetworkInterface *iface = NULL;
   char *host_ip;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   char buf[64];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -3862,7 +3862,7 @@ static int ntop_reset_pools_quotas(lua_State *vm) {
 static int ntop_find_member_pool(lua_State *vm) {
   NetworkInterface *ntop_interface;
   char *address;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   bool is_mac;
   ndpi_patricia_node_t *target_node = NULL;
   u_int16_t pool_id = 0;
@@ -4083,7 +4083,7 @@ static int ntop_interface_release_engaged_alerts(lua_State* vm) {
 
 static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
 #ifdef UNUSED
   AlertType alert_type;
 #endif
@@ -4420,7 +4420,7 @@ static int ntop_get_address_info(lua_State* vm) {
 static int ntop_get_ndpi_host_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   char buf[64];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -4446,7 +4446,7 @@ static int ntop_get_ndpi_host_stats(lua_State* vm) {
 static int ntop_get_interface_get_host_min_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   char buf[64];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -4738,7 +4738,7 @@ static int ntop_interface_trigger_external_host_alert(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64], *host_ip;
   Host *host;
-  VLANid vlan_id;
+  u_int16_t vlan_id;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 

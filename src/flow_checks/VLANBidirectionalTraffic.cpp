@@ -47,7 +47,7 @@ void VLANBidirectionalTraffic::checkBidirectionalTraffic(Flow *f) {
 
   if(isServerNotLocal(f)) {
     /* alert should not be triggered for flow with local server (except multicast and broadcast) */
-    VLANid vlan_id = f->get_vlan_id();
+    u_int16_t vlan_id = f->get_vlan_id();
 
     if(checkVLAN(vlan_id)) {
       /* the flow vlan_id must be one of the vlans set up by the user  */
@@ -108,7 +108,7 @@ bool VLANBidirectionalTraffic::loadConfiguration(json_object *config) {
 
 /* ***************************************************** */
 
-bool VLANBidirectionalTraffic::checkVLAN(VLANid vlan_id) {
+bool VLANBidirectionalTraffic::checkVLAN(u_int16_t vlan_id) {
   return(vlans ? vlans->is_set_bit(vlan_id) : false);
 }
 

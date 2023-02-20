@@ -182,7 +182,7 @@ bool ICMPinfo::equal(const ICMPinfo * const _icmp_info) const {
 /* *************************************** */
 
 void ICMPinfo::lua(lua_State* vm, AddressTree * ptree,
-		   NetworkInterface *iface, VLANid vlan_id) const {
+		   NetworkInterface *iface, u_int16_t vlan_id) const {
   char buf[64];
 
   if(vm && unreach) {

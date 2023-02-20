@@ -34,7 +34,7 @@ const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN, /* mast
 /* *************************************** */
 
 Flow::Flow(NetworkInterface *_iface,
-	   VLANid _vlanId, u_int16_t _observation_point_id,
+	   u_int16_t _vlanId, u_int16_t _observation_point_id,
 	   u_int32_t _private_flow_id, u_int8_t _protocol,
 	   Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
@@ -108,7 +108,8 @@ Flow::Flow(NetworkInterface *_iface,
   flow_score = 0, rtp_stream_type = rtp_unknown;
 
   INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
-  iface->findFlowHosts(_vlanId, _observation_point_id, _private_flow_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
+  iface->findFlowHosts(_vlanId, _observation_point_id, _private_flow_id,
+		       _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 7);
 
   if(_observation_point_id)
@@ -1650,7 +1651,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       /* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least
 	 two hosts exists for that vlan and that any purge attempt will be prevented. */
 #ifdef VLAN_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing VLAN %u stats", vlanId);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing VLAN %u stats", u_int16_t);
 #endif
       vl->incStats(tv->tv_sec, stats_protocol,
 		   partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
@@ -2247,7 +2248,7 @@ void Flow::update_pools_stats(NetworkInterface *iface,
 
 bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 		 u_int16_t _cli_port, u_int16_t _srv_port,
-		 VLANid _vlanId, u_int16_t _observation_point_id,
+		 u_int16_t _u_int16_t, u_int16_t _observation_point_id,
 		 u_int32_t _private_flow_id, u_int8_t _protocol,
 		 const ICMPinfo * const _icmp_info,
 		 bool *src2srv_direction) const {
@@ -2265,7 +2266,7 @@ bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
   if(getPrivateFlowId() != _private_flow_id)
     return(false);
 
-  if((get_vlan_id() != _vlanId)
+  if((get_vlan_id() != _u_int16_t)
 #ifdef MAKE_OBSERVATION_POINT_KEY
      /*
        Uncomment the line below if you want the same host
@@ -2782,7 +2783,7 @@ u_int32_t Flow::key() {
 
 u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 		    Host *_srv, u_int16_t _srv_port,
-		    VLANid _vlan_id, u_int16_t _observation_point_id,
+		    u_int16_t _vlan_id, u_int16_t _observation_point_id,
 		    u_int16_t _protocol) {
   u_int32_t k = _cli_port + _srv_port + _vlan_id + _protocol;
 

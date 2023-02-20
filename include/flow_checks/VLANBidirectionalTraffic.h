@@ -29,7 +29,7 @@ private:
   Bitmask *vlans;
 
   void checkBidirectionalTraffic(Flow *f);
-  bool checkVLAN(VLANid vlan_id);
+  bool checkVLAN(u_int16_t vlan_id);
   bool isServerNotLocal(Flow *f);
 
 public:

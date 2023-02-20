@@ -1143,7 +1143,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 /* **************************************************** */
 
 Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
-				VLANid vlan_id, u_int16_t observation_domain_id,
+				u_int16_t vlan_id, u_int16_t observation_domain_id,
 				u_int32_t private_flow_id,
 				u_int32_t deviceIP,
 				u_int32_t inIndex,  u_int32_t outIndex,
@@ -1163,7 +1163,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
   if(!flows_hash)
     return(NULL);
 
-  if(filterVLANid(vlan_id) != 0)
+  if(vlan_id != 0)
     setSeenVLANTaggedPackets();
 
   if((srcMac && Utils::macHash(srcMac->get_mac()) != 0)
@@ -1426,7 +1426,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     const struct bpf_timeval *when,
 				     const u_int64_t packet_time,
 				     struct ndpi_ethhdr *eth,
-				     VLANid vlan_id,
+				     u_int16_t vlan_id,
 				     struct ndpi_iphdr *iph,
 				     struct ndpi_ipv6hdr *ip6,
 				     u_int16_t ip_offset,
@@ -2620,7 +2620,7 @@ datalink_check:
 	vlan_id = 0;
       if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
 	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] +
-		   ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) % 0xFF;
+		   ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) & 0xFFF;
 
       if(ntop->getPrefs()->do_ignore_macs())
 	ethernet = &dummy_ethernet;
@@ -3474,7 +3474,7 @@ void NetworkInterface::cleanup() {
 
 /* **************************************************** */
 
-void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain_id,
+void NetworkInterface::findFlowHosts(u_int16_t vlan_id, u_int16_t observation_domain_id,
 				     u_int32_t private_flow_id,
 				     Mac *src_mac, IpAddress *_src_ip, Host **src,
 				     Mac *dst_mac, IpAddress *_dst_ip, Host **dst) {
@@ -3485,7 +3485,7 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
 
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
   /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
-  (*src) = hosts_hash->get(vlanId, _src_ip, true /* Inline call */, observation_domain_id);
+  (*src) = hosts_hash->get(vlan_id, _src_ip, true /* Inline call */, observation_domain_id);
   INTERFACE_PROFILING_SECTION_EXIT(3);
 
   if((*src) == NULL) {
@@ -3498,11 +3498,11 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
     if(_src_ip
        && (_src_ip->isLocalHost() || _src_ip->isLocalInterfaceAddress())) {
       INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
-      (*src) = new (std::nothrow) LocalHost(this, src_mac, vlanId, observation_domain_id, _src_ip);
+      (*src) = new (std::nothrow) LocalHost(this, src_mac, vlan_id, observation_domain_id, _src_ip);
       INTERFACE_PROFILING_SECTION_EXIT(4);
     } else {
       INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
-      (*src) = new (std::nothrow) RemoteHost(this, src_mac, vlanId, observation_domain_id, _src_ip);
+      (*src) = new (std::nothrow) RemoteHost(this, src_mac, vlan_id, observation_domain_id, _src_ip);
       INTERFACE_PROFILING_SECTION_EXIT(5);
     }
 
@@ -3526,7 +3526,7 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
   /* ***************************** */
 
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
-  (*dst) = hosts_hash->get(vlanId, _dst_ip, true /* Inline call */, observation_domain_id);
+  (*dst) = hosts_hash->get(vlan_id, _dst_ip, true /* Inline call */, observation_domain_id);
   INTERFACE_PROFILING_SECTION_EXIT(3);
 
   if((*dst) == NULL) {
@@ -3539,11 +3539,11 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
     if(_dst_ip
        && (_dst_ip->isLocalHost() || _dst_ip->isLocalInterfaceAddress())) {
       INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
-      (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlanId, observation_domain_id, _dst_ip);
+      (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlan_id, observation_domain_id, _dst_ip);
       INTERFACE_PROFILING_SECTION_EXIT(4);
     } else {
       INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
-      (*dst) = new (std::nothrow) RemoteHost(this, dst_mac, vlanId, observation_domain_id, _dst_ip);
+      (*dst) = new (std::nothrow) RemoteHost(this, dst_mac, vlan_id, observation_domain_id, _dst_ip);
       INTERFACE_PROFILING_SECTION_EXIT(5);
     }
 
@@ -4002,7 +4002,7 @@ void NetworkInterface::resetPoolsStats(u_int16_t pool_filter) {
 
 struct host_find_info {
   char *host_to_find;
-  VLANid vlan_id;
+  u_int16_t vlan_id;
   u_int16_t observationPointId;
   Host *h;
 };
@@ -4031,7 +4031,7 @@ struct os_find_info {
 /* **************************************************** */
 
 struct vlan_find_info {
-  VLANid vlan_id;
+  u_int16_t vlan_id;
   VLAN *vl;
 };
 
@@ -4046,7 +4046,7 @@ struct country_find_info {
 
 struct mac_find_info {
   u_int8_t mac[6];
-  VLANid vlan_id;
+  u_int16_t vlan_id;
   Mac *m;
   DeviceType dtype;
   lua_State *vm;
@@ -4172,7 +4172,7 @@ static bool find_vlan_by_vlan_id(GenericHashEntry *he, void *user_data, bool *ma
 
 /* Enqueues an host restore request on the interface. The checkHostsToRestore
  * function, in the datapath, will take care of restoring the host. */
-bool NetworkInterface::restoreHost(char *host_ip, VLANid vlan_id) {
+bool NetworkInterface::restoreHost(char *host_ip, u_int16_t vlan_id) {
   char buf[64];
   bool rv;
 
@@ -4186,7 +4186,7 @@ bool NetworkInterface::restoreHost(char *host_ip, VLANid vlan_id) {
 /* **************************************************** */
 
 Host* NetworkInterface::getHostByIP(IpAddress *ip,
-				    VLANid vlan_id,
+				    u_int16_t vlan_id,
 				    u_int16_t observation_point_id,
 				    bool isInlineCall) {
   Host *h;
@@ -4198,7 +4198,7 @@ Host* NetworkInterface::getHostByIP(IpAddress *ip,
 
 /* **************************************************** */
 
-Host* NetworkInterface::getHost(char *host_ip, VLANid vlan_id,
+Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id,
 				u_int16_t observation_point_id,
 				bool isInlineCall) {
   struct in_addr  a4;
@@ -4283,7 +4283,7 @@ void NetworkInterface::updateFlowProfiles() {
 
 bool NetworkInterface::getHostInfo(lua_State* vm,
 				   AddressTree *allowed_hosts,
-				   char *host_ip, VLANid vlan_id) {
+				   char *host_ip, u_int16_t vlan_id) {
   Host *h;
   bool ret;
 
@@ -4302,7 +4302,7 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
 bool NetworkInterface::getHostMinInfo(lua_State* vm,
 				      AddressTree *allowed_hosts,
-				      char *host_ip, VLANid vlan_id,
+				      char *host_ip, u_int16_t vlan_id,
 				      bool only_ndpi_stats) {
   Host *h;
   bool ret;
@@ -4338,7 +4338,7 @@ void NetworkInterface::checkReloadHostsBroadcastDomain() {
 
 /* **************************************************** */
 
-void NetworkInterface::checkPointHostTalker(lua_State* vm, char *host_ip, VLANid vlan_id) {
+void NetworkInterface::checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id) {
   Host *h;
 
   if(host_ip && (h = getHost(host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */)))
@@ -4350,7 +4350,7 @@ void NetworkInterface::checkPointHostTalker(lua_State* vm, char *host_ip, VLANid
 /* **************************************************** */
 
 Host* NetworkInterface::findHostByIP(AddressTree *allowed_hosts,
-				     char *host_ip, VLANid vlan_id,
+				     char *host_ip, u_int16_t vlan_id,
 				     u_int16_t observationPointId) {
   Host *h = NULL;
 
@@ -4406,7 +4406,7 @@ struct flowHostRetriever {
   bool anomalousOnly;         /* Not used in flow_search_walker */
   bool dhcpOnly;              /* Not used in flow_search_walker */
   const AddressTree * cidr_filter; /* Not used in flow_search_walker */
-  VLANid vlan_id;
+  u_int16_t vlan_id;
   OSType osFilter;
   u_int32_t device_ip;
   u_int32_t asnFilter;
@@ -4437,7 +4437,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   int ndpi_proto_master_proto, ndpi_proto_app_proto, ndpi_cat;
   u_int16_t port;
   int16_t local_network_id;
-  VLANid vlan_id = 0;
+  u_int16_t vlan_id = 0;
   u_int16_t cli_pool, srv_pool, pool_filter;
   AlertLevelGroup flow_status_severity_filter = alert_level_group_none;
   ndpi_patricia_node_t *srv_target_node = NULL, *cli_target_node = NULL;
@@ -4654,7 +4654,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     }
 
     if(retriever->pag
-       && retriever->pag->vlanIdFilter(&vlan_id)
+       && retriever->pag->u_int16_tFilter(&vlan_id)
        && (f->get_vlan_id() != vlan_id))
       return(false);
 
@@ -5699,7 +5699,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				bool host_details,
 				LocationPolicy location,
 				char *countryFilter, char *mac_filter,
-				VLANid vlan_id, OSType osFilter,
+				u_int16_t vlan_id, OSType osFilter,
 				u_int32_t asnFilter, int16_t networkFilter,
 				u_int16_t pool_filter, bool filtered_hosts,
 				bool blacklisted_hosts,
@@ -6027,7 +6027,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 AddressTree *allowed_hosts,
 					 bool host_details, LocationPolicy location,
 					 char *countryFilter, char *mac_filter,
-					 VLANid vlan_id, OSType osFilter,
+					 u_int16_t vlan_id, OSType osFilter,
 					 u_int32_t asnFilter, int16_t networkFilter,
 					 u_int16_t pool_filter, bool filtered_hosts,
 					 bool blacklisted_hosts,
@@ -6878,12 +6878,12 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool create_if_not_present, bool
 
 /* **************************************************** */
 
-VLAN* NetworkInterface::getVLAN(VLANid vlanId, bool create_if_not_present, bool isInlineCall) {
+VLAN* NetworkInterface::getVLAN(u_int16_t u_int16_t, bool create_if_not_present, bool isInlineCall) {
   VLAN *ret = NULL;
 
   if(!vlans_hash) return(NULL);
 
-  ret = vlans_hash->get(vlanId, isInlineCall);
+  ret = vlans_hash->get(u_int16_t, isInlineCall);
 
   if((ret == NULL) && create_if_not_present) {
 
@@ -6891,7 +6891,7 @@ VLAN* NetworkInterface::getVLAN(VLANid vlanId, bool create_if_not_present, bool 
       return(NULL);
 
     try {
-      if((ret = new VLAN(this, vlanId)) != NULL) {
+      if((ret = new VLAN(this, u_int16_t)) != NULL) {
 	if(!vlans_hash->add(ret,
 			    !isInlineCall /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
           /* Note: this should never happen as we are checking hasEmptyRoom() */
@@ -7123,7 +7123,7 @@ Flow* NetworkInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, Add
 
 /* **************************************************** */
 
-Flow* NetworkInterface::findFlowByTuple(VLANid vlan_id,
+Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
 					u_int16_t observation_domain_id,
 					u_int32_t private_flow_id,
 					IpAddress *src_ip,  IpAddress *dst_ip,
@@ -8430,7 +8430,7 @@ bool NetworkInterface::getCountryInfo(lua_State* vm, const char *country) {
 
 /* **************************************** */
 
-bool NetworkInterface::getVLANInfo(lua_State* vm, VLANid vlan_id) {
+bool NetworkInterface::getVLANInfo(lua_State* vm, u_int16_t vlan_id) {
   struct vlan_find_info info;
   bool ret;
   u_int32_t begin_slot = 0;
@@ -8516,7 +8516,7 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 
 /* *************************************** */
 
-void NetworkInterface::checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, VLANid vlan_id) {
+void NetworkInterface::checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id) {
   if(!hasConfiguredDhcpRanges())
     return;
 
@@ -8543,7 +8543,7 @@ void NetworkInterface::checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhc
   - `src` and `dst` are read inside ARP sender protocol address (spa) and target protocol address (tpa)
   - `src` and `dst` are read from an IP packet with broadcast destination MAC (FF:FF:FF:FF:FF:FF)
  */
-void NetworkInterface::updateBroadcastDomains(VLANid vlan_id,
+void NetworkInterface::updateBroadcastDomains(u_int16_t vlan_id,
 					      const u_int8_t *src_mac, const u_int8_t *dst_mac,
 					      u_int32_t src, u_int32_t dst) {
   u_int32_t net = src & dst;
@@ -9393,7 +9393,7 @@ void NetworkInterface::walkAlertables(AlertEntity alert_entity, const char *enti
     } else {
       /* Specific host */
       char *host_ip = NULL;
-      VLANid vlan_id = 0;
+      u_int16_t vlan_id = 0;
       char buf[64];
       Host *host;
 
@@ -9707,7 +9707,7 @@ void NetworkInterface::checkHostsToRestore() {
     char *ip, *d;
     Host *h;
     Mac *mac = NULL;
-    VLANid vlan_id;
+    u_int16_t vlan_id;
     IpAddress ipa;
 
     if(hosts_to_restore->empty())
@@ -10159,7 +10159,7 @@ void NetworkInterface::decNumHosts(bool local, bool recvdOnlyHost) {
 /* **************************************************** */
 
 bool NetworkInterface::resetHostTopSites(AddressTree *allowed_hosts,
-					 char *host_ip, VLANid vlan_id,
+					 char *host_ip, u_int16_t vlan_id,
 					 u_int16_t observationPointId) {
   Host *h = findHostByIP(allowed_hosts, host_ip, vlan_id, observationPointId);
 
@@ -10213,7 +10213,7 @@ static bool compute_protocol_flow_stats(GenericHashEntry *node, void *user_data,
   u_int64_t vlan_id = f->get_vlan_id();
   std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
 
-  /* <0 (16 bit)><vlanId (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
+  /* <0 (16 bit)><u_int16_t (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
   key = ((u_int64_t)vlan_id << 32)
     + (((u_int64_t)detected_protocol.app_protocol) << 16)
     + (u_int64_t)detected_protocol.master_protocol;
@@ -10242,7 +10242,7 @@ static bool compute_protocol_flow_stats(GenericHashEntry *node, void *user_data,
 
 void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
   u_int32_t begin_slot = 0;
-  std::unordered_map<u_int64_t /* vlanId + l7 proto */, FlowsStats*> count;
+  std::unordered_map<u_int64_t /* u_int16_t + l7 proto */, FlowsStats*> count;
   std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
   u_int num = 0;
 
@@ -10301,7 +10301,7 @@ static bool compute_vlan_flow_stats(GenericHashEntry *node, void *user_data, boo
   u_int64_t vlan_id = f->get_vlan_id();
   std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
 
-  /* <0 (16 bit)><vlanId (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
+  /* <0 (16 bit)><u_int16_t (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
   key =
     (((u_int64_t)f->get_srv_port()) << 48)
     + (((u_int64_t)vlan_id) << 32)
@@ -10332,7 +10332,7 @@ static bool compute_vlan_flow_stats(GenericHashEntry *node, void *user_data, boo
 
 void NetworkInterface::getVLANFlowsStats(lua_State* vm) {
   u_int32_t begin_slot = 0;
-  std::unordered_map<u_int64_t /* vlanId + l7 proto */, FlowsStats*> count;
+  std::unordered_map<u_int64_t /* u_int16_t + l7 proto */, FlowsStats*> count;
   std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
   u_int num = 0;
 

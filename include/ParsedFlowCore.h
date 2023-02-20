@@ -38,7 +38,7 @@ class ParsedFlowCore {
   u_int16_t src_port, dst_port;
   u_int32_t inIndex, outIndex;
   ndpi_proto l7_proto;
-  VLANid vlan_id;
+  u_int16_t vlan_id;
   u_int16_t pkt_sampling_rate;
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
   u_int32_t in_fragments, out_fragments;

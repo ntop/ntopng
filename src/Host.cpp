@@ -23,16 +23,16 @@
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId, u_int16_t observation_point_id)
+Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _u_int16_t, u_int16_t observation_point_id)
   : GenericHashEntry(_iface), HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostChecksStatus() {
   ip.set(ipAddress);
-  initialize(NULL, _vlanId, observation_point_id);
+  initialize(NULL, _u_int16_t, observation_point_id);
 }
 
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, Mac *_mac,
-	   VLANid _vlanId, u_int16_t observation_point_id, IpAddress *_ip)
+	   u_int16_t _u_int16_t, u_int16_t observation_point_id, IpAddress *_ip)
   : GenericHashEntry(_iface), HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostChecksStatus() {
   ip.set(_ip);
 
@@ -43,7 +43,7 @@ Host::Host(NetworkInterface *_iface, Mac *_mac,
 			       ip.print(buf, sizeof(buf)), isBroadcastHost() ? 1 : 0);
 #endif
 
-  initialize(_mac, _vlanId, observation_point_id);
+  initialize(_mac, _u_int16_t, observation_point_id);
 }
 
 /* *************************************** */
@@ -235,8 +235,8 @@ void Host::housekeep(time_t t) {
 
 /* *************************************** */
 
-void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id) {
-  u_int16_t masked_vlanId = filterVLANid(_vlanId); /* Cleanup any possible junk */
+void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_id) {
+  u_int16_t masked_vlanId = _vlanId & 0xFFF; /* Cleanup any possible junk */
 
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
@@ -246,7 +246,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
   os = NULL, os_type = os_unknown;
-  prefs_loaded = false;
+  prefs_loaded = false, is_blackhole = true;
   host_services_bitmap = 0;
   disabled_alerts_tstamp = 0;
   num_remote_access = 0;
@@ -1512,8 +1512,8 @@ void Host::luaUsedQuotas(lua_State* vm) {
 
 /* *************************************** */
 
-/* Splits a string in the format hostip@vlanid: *buf=hostip, *vlan_id=vlanid */
-void Host::splitHostVLAN(const char *at_sign_str, char*buf, int bufsize, VLANid *vlan_id) {
+/* Splits a string in the format hostip@u_int16_t: *buf=hostip, *vlan_id=u_int16_t */
+void Host::splitHostVLAN(const char *at_sign_str, char*buf, int bufsize, u_int16_t *vlan_id) {
   int size;
   const char *vlan_ptr = strchr(at_sign_str, '@');
 

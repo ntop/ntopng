@@ -27,11 +27,11 @@
 class DoHDoTStats {
 private:
   IpAddress ip;
-  VLANid vlan_id;
+  u_int16_t vlan_id;
   u_int32_t num_uses;
   
 public:
-  DoHDoTStats(IpAddress i, VLANid id) { ip = i, vlan_id = id, num_uses = 0; }
+  DoHDoTStats(IpAddress i, u_int16_t id) { ip = i, vlan_id = id, num_uses = 0; }
 
   inline void incUses() { num_uses++; }
 
