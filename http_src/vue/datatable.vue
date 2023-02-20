@@ -5,7 +5,6 @@
 </div>
 <div>
   <table ref="table_id" class="table w-100 table-striped table-hover table-bordered">
-    asdasd
   <thead>
     <tr>
       <th class="text-center" v-for="item in columns_config">{{ item.columnName }}</th>
