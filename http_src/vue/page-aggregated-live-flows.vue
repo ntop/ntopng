@@ -8,20 +8,25 @@
     <div class="card  card-shadow">
       <Loading ref="loading"></Loading>
       <div class="card-body">
-        <div class="inline select2-size me-2 mt-2">
-          <SelectSearch v-model:selected_option="selected_criteria"
-                  :options="criteria_list"
-                  @select_option="update_criteria">
-          </SelectSearch>
-        </div>
         <div id="aggregated_live_flows">          
           <Datatable ref="table_aggregated_live_flows" :key="table_config.data_url"
-            :table_buttons="table_config.table_buttons"
-            :columns_config="table_config.columns_config"
-            :data_url="table_config.data_url"
-            :filter_buttons="table_config.table_filters"
-            :enable_search="table_config.enable_search"
-            :table_config="table_config.table_config">
+		     :table_buttons="table_config.table_buttons"
+		     :columns_config="table_config.columns_config"
+		     :data_url="table_config.data_url"
+		     :filter_buttons="table_config.table_filters"
+		     :enable_search="table_config.enable_search"
+		     :table_config="table_config.table_config">
+	    <template v-slot:menu>
+	      <div class="d-flex align-items-center">
+		<div class="d-flex no-wrap ms-auto" style="text-align:left;margin-right:1rem">
+		  <SelectSearch v-model:selected_option="selected_criteria"
+				:options="criteria_list"
+				@select_option="update_criteria">
+		  </SelectSearch>
+		</div>
+	      </div>
+	      
+	    </template>
           </Datatable>
         </div>
       </div>
