@@ -111,7 +111,7 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
    dnl> CXX=clang++ -fsanitize=address -fsanitize-address-use-after-scope
    OSXV=`sw_vers -productVersion`
    if test $SYSTEM = "Darwin"; then
-     OS="MacOSX $OSXV"
+     OS="macOS $OSXV"
    else
      OS=`uname -or | cut -d '-' -f 1`
    fi
