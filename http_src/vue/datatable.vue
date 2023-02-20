@@ -16,10 +16,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services";
 import { useSlots, render, getCurrentInstance } from 'vue';
 import { render_component } from "./ntop_utils.js";
+
+const instance = getCurrentInstance();
 
 const slots = useSlots();
 const props = defineProps({
@@ -153,8 +155,17 @@ onMounted(() => {
     loadDatatable()
 });
 
+function get_menu_html() {
+    if (table == null) { return; }
+    let table_wrapper = $(table.context[0].nTableWrapper);
+    return $($(".row .text-end", table_wrapper).children()[0]);;
+}
+
+let table_default_menu = null;
 function load_table_menu() {
-    let instance = getCurrentInstance();
+    if (table_default_menu == null) {
+	table_default_menu = get_table_default_menu();
+    }
     if (slots == null || slots.menu == null) { return; }
     let menu_array = slots.menu();
     if (menu_array == null || menu_array.length == 0) { return; }
@@ -191,7 +202,13 @@ const destroy_table = () => {
     });
 };
 
-defineExpose({ reload, delete_button_handlers, destroy_table, update_url });
+const refresh_menu = () => {
+    let table_wrapper = $(table.context[0].nTableWrapper);
+    $($(".row .text-end", table_wrapper).children()[0]).html("");
+    load_table_menu();
+};
+
+defineExpose({ reload, delete_button_handlers, destroy_table, update_url, refresh_menu });
 
 onBeforeUnmount(() => {
     if (is_destroyed == true) { return; }
