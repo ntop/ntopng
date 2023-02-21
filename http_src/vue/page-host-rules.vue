@@ -150,29 +150,35 @@ const add_action_column = function (rowData) {
 
 const format_metric = function(data, rowData) {
   let metric_label = data  
-  if (rowData.rule_type != 'interface') {
-    metric_list.forEach((metric) => {
-    if(metric.id == data) {
-      if(rowData.extra_metric) {
-        if(rowData.extra_metric == metric.extra_metric)
-          metric_label = metric.label
-      } else {
-        metric_label = metric.label
-      }
-      }
-    })
+
+  if (rowData.metric_label) {
+    metric_label = rowData.metric_label;
   } else {
-    interface_metric_list.forEach((metric) => {
-    if(metric.id == data) {
-      if(rowData.extra_metric) {
-        if(rowData.extra_metric == metric.extra_metric)
+    if (rowData.rule_type != 'interface') {
+      metric_list.forEach((metric) => {
+      if(metric.id == data) {
+        if(rowData.extra_metric) {
+          if(rowData.extra_metric == metric.extra_metric)
+            metric_label = metric.label
+        } else {
           metric_label = metric.label
-      } else {
-        metric_label = metric.label
-      }
-      }
-    })
+        }
+        }
+      })
+    } else {
+      interface_metric_list.forEach((metric) => {
+      if(metric.id == data) {
+        if(rowData.extra_metric) {
+          if(rowData.extra_metric == metric.extra_metric)
+            metric_label = metric.label
+        } else {
+          metric_label = metric.label
+        }
+        }
+      })
+    }
   }
+  
   
   return metric_label
 }

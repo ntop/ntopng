@@ -307,6 +307,7 @@ const add_ = () => {
 
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_metric.value.id;
+  const tmp_metric_label = selected_metric.value.label;
   const tmp_interface_metric = selected_interface_metric.value.id;
   const tmp_rule_type = rule_type.value;
   const tmp_interface = selected_ifid.value.id;
@@ -349,6 +350,7 @@ const add_ = () => {
       host: tmp_host, 
       frequency: tmp_frequency, 
       metric: tmp_metric,
+      metric_label: tmp_metric_label,
       threshold: tmp_threshold,
       metric_type: tmp_metric_type,
       extra_metric: tmp_extra_metric,
@@ -359,6 +361,7 @@ const add_ = () => {
     emit('add', { 
       frequency: tmp_frequency, 
       metric: tmp_interface_metric,
+      metric_label: tmp_metric_label,
       threshold: tmp_threshold,
       metric_type: tmp_metric_type,
       extra_metric: tmp_extra_metric,

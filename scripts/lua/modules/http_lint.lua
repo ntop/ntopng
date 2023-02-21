@@ -1854,6 +1854,7 @@ local known_parameters = {
    ["rule_type"]               = validateSingleWord,
    ["rule_threshold_sign"]     = validateNumber,
    ["is_ifname"]               = validateBool,
+   ["metric_label"]             = validateSingleWord,
 
    ["bytes"]                   = validateListOfTypeInline(validateFilters(validateNumber)),
    ["packets"]                 = validateListOfTypeInline(validateFilters(validateNumber)),
