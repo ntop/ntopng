@@ -11,6 +11,7 @@ local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
 local alert_entities = require "alert_entities"
+local format_utils = require "format_utils"
 
 -- ##############################################
 
@@ -28,7 +29,7 @@ alert_network_rule_threshold_cross.meta = {
 
 -- ##############################################
 
-function alert_network_rule_threshold_cross:init(ifid, ifname ,metric, frequency, threshold, value, threshold_sign)
+function alert_network_rule_threshold_cross:init(ifid, ifname ,metric, frequency, threshold, value, threshold_sign, metric_type)
    -- Call the parent constructor
    self.super:init()
 
@@ -39,7 +40,8 @@ function alert_network_rule_threshold_cross:init(ifid, ifname ,metric, frequency
       frequency = frequency,
       threshold = threshold,
       value = value,
-      threshold_sign = threshold_sign
+      threshold_sign = threshold_sign,
+      metric_type = metric_type
    }
 end
 
@@ -58,6 +60,19 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
       alert_type_params.frequency = i18n("edit_check.hooks_name.hour")
    else
       alert_type_params.frequency = i18n("edit_check.hooks_name.day")
+   end
+
+   if(alert_type_params.metric == "iface:traffic") then
+      if(alert_type_params.metric_type == "volume") then
+         alert_type_params.value = bytesToSize(alert_type_params.value)
+         alert_type_params.threshold = bytesToSize(alert_type_params.threshold)
+      elseif(alert_type_params.metric_type == "throughput") then
+         alert_type_params.value = bitsToSize(alert_type_params.value)
+         alert_type_params.threshold = bitsToSize(alert_type_params.threshold)
+      else
+         alert_type_params.value = string.format("%s",tostring(round(alert_type_params.value, 2))) .. "%"
+         alert_type_params.threshold = string.format("%s",tostring(alert_type_params.threshold)).. "%"
+      end
    end
    
    return(i18n("alert_messages.traffic_interface_volume_alert", {
