@@ -155,7 +155,7 @@ onMounted(() => {
     loadDatatable()
 });
 
-function get_menu_html() {
+function get_table_default_menu() {
     if (table == null) { return; }
     let table_wrapper = $(table.context[0].nTableWrapper);
     return $($(".row .text-end", table_wrapper).children()[0]);;
