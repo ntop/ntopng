@@ -39,7 +39,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   bool stats_reset_requested, name_reset_requested, data_delete_requested;
   u_int16_t host_pool_id, host_services_bitmap;
-  VLANid vlan_id;
+  u_int16_t vlan_id;
   u_int16_t observationPointId;
   u_int8_t num_remote_access;
   HostStats *stats, *stats_shadow;
@@ -121,7 +121,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   u_int32_t num_incomplete_flows;
 
   struct {
-    bool alertTriggered, hostAlreadyEvaluated;
+    u_int8_t alertTriggered:1, hostAlreadyEvaluated:1, checkAlreadyExecutedOnce:1, _not_used:7;
     u_int8_t score;
     char *msg;
   } customHostAlert;
@@ -157,7 +157,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   ListeningPorts *listening_ports, *listening_ports_shadow;
 #endif
 
-  void initialize(Mac *_mac, VLANid _vlan_id, u_int16_t observation_point_id);
+  void initialize(Mac *_mac, u_int16_t _vlan_id, u_int16_t observation_point_id);
   void inlineSetOS(OSType _os);
   bool statsResetRequested();
   void checkStatsReset();
@@ -177,8 +177,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void deferredInitialization();
   
  public:
-  Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId, u_int16_t observation_point_id);
-  Host(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id, IpAddress *_ip);
+  Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _u_int16_t, u_int16_t observation_point_id);
+  Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _u_int16_t, u_int16_t observation_point_id, IpAddress *_ip);
 
   virtual ~Host();
 
@@ -263,8 +263,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
 
   inline u_int16_t get_host_pool()         const { return(host_pool_id);                      };
-  inline VLANid get_raw_vlan_id()          const { return(vlan_id);                           }; /* vlanId + observationPointId */
-  inline VLANid get_vlan_id()              const { return(filterVLANid(vlan_id));             };
+  inline u_int16_t get_raw_vlan_id()          const { return(vlan_id);                           }; /* u_int16_t + observationPointId */
+  inline u_int16_t get_vlan_id()              const { return(vlan_id);            };
   inline u_int16_t get_observation_point_id() const { return(observationPointId); };
 
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
@@ -518,7 +518,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t getTotalNumUnreachableIncomingFlows() const { return stats->getTotalUnreachableNumFlowsAsServer(); };
   inline u_int32_t getTotalNumHostUnreachableOutgoingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsClient(); };
   inline u_int32_t getTotalNumHostUnreachableIncomingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsServer(); };
-  void splitHostVLAN(const char *at_sign_str, char *buf, int bufsize, VLANid *vlan_id);
+  void splitHostVLAN(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
   char* get_country(char *buf, u_int buf_len);
   char* get_city(char *buf, u_int buf_len);
   void get_geocoordinates(float *latitude, float *longitude);
@@ -662,11 +662,13 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(NULL); }
 
   void triggerCustomHostAlert(u_int8_t score, char *msg);
-  inline bool     isCustomHostAlertTriggered()  { return(customHostAlert.alertTriggered);                 }
-  inline bool     isCustomHostScriptAlreadyEvaluated()  { return(customHostAlert.hostAlreadyEvaluated);   }
-  inline void     setCustomHostScriptAlreadyEvaluated() { customHostAlert.hostAlreadyEvaluated = true;    }
-  inline u_int8_t getCustomHostAlertScore()     { return(customHostAlert.score);                          }
-  inline char*    getCustomHostAlertMessage()   { return(customHostAlert.msg);                            }
+  inline bool     isCustomHostAlertTriggered()          { return(customHostAlert.alertTriggered ? false : true);           }
+  inline bool     isCustomHostScriptAlreadyEvaluated()  { return(customHostAlert.hostAlreadyEvaluated ? false : true);     }
+  inline bool     isCustomHostScriptFirstRun()          { return(customHostAlert.checkAlreadyExecutedOnce ? false : true); }
+  inline void     setCustomHostScriptAlreadyEvaluated() { customHostAlert.hostAlreadyEvaluated = 1;                        }
+  inline void     setCustomHostScriptAlreadyRun()       { customHostAlert.checkAlreadyExecutedOnce = 1;                    }
+  inline u_int8_t getCustomHostAlertScore()             { return(customHostAlert.score);                                   }
+  inline char*    getCustomHostAlertMessage()           { return(customHostAlert.msg);                                     }
 
   void triggerExternalAlert(u_int8_t score, char *msg);
   void resetExternalAlert();

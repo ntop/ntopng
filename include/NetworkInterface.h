@@ -305,7 +305,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void deleteDataStructures();
 
   NetworkInterface* getDynInterface(u_int64_t criteria, bool parser_interface);
-  Flow* getFlow(Mac *srcMac, Mac *dstMac, VLANid vlan_id,
+  Flow* getFlow(Mac *srcMac, Mac *dstMac, u_int16_t vlan_id,
 		u_int16_t observation_domain_id,
 		u_int32_t private_flow_id,
 		u_int32_t deviceIP, u_int32_t inIndex, u_int32_t outIndex,
@@ -326,7 +326,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		bool host_details,
 		LocationPolicy location,
 		char *countryFilter, char *mac_filter,
-		VLANid vlan_id, OSType osFilter,
+		u_int16_t vlan_id, OSType osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
 		bool blacklisted_hosts,
@@ -372,7 +372,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool checkPeriodicStatsUpdateTime(const struct timeval *tv);
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4, Mac *host_mac);
-  void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, VLANid vlan_id);
+  void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);
   void pollQueuedeCompanionEvents();
   bool getInterfaceBooleanPref(const char *pref_key, bool default_pref_value) const;
   virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
@@ -419,7 +419,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   virtual u_int32_t getFlowsHashSize();
 
   void updateSitesStats();
-  void updateBroadcastDomains(VLANid vlan_id,
+  void updateBroadcastDomains(u_int16_t vlan_id,
 			      const u_int8_t *src_mac, const u_int8_t *dst_mac,
 			      u_int32_t src, u_int32_t dst);
 
@@ -507,7 +507,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void setSeenExternalAlerts()          { has_external_alerts = true;   }
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
-  bool getHostMinInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id, bool only_ndpi_stats);
+  bool getHostMinInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id, bool only_ndpi_stats);
 
   /* Enqueue alert to a queue for processing and later delivery to recipients */
   bool enqueueFlowAlert(FlowAlert *alert);
@@ -521,7 +521,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #ifdef NTOPNG_PRO
   void flushFlowDump();
 #endif
-  void checkPointHostTalker(lua_State* vm, char *host_ip, VLANid vlan_id);
+  void checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id);
   int dumpLocalHosts2redis(bool disable_purge);
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num);      };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);       };
@@ -603,15 +603,15 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void updateLbdIdentifier();
   void updateDiscardProbingTraffic();
   void updateFlowsOnlyInterface();
-  bool restoreHost(char *host_ip, VLANid vlan_id);
+  bool restoreHost(char *host_ip, u_int16_t vlan_id);
   void checkHostsToRestore();
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
-  void findFlowHosts(VLANid vlan_id, u_int16_t observation_domain_id,
+  void findFlowHosts(u_int16_t vlan_id, u_int16_t observation_domain_id,
 		     u_int32_t private_flow_id,
 		     Mac *src_mac, IpAddress *_src_ip, Host **src,
 		     Mac *dst_mac, IpAddress *_dst_ip, Host **dst);
   virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts);
-  virtual Flow* findFlowByTuple(VLANid vlan_id,
+  virtual Flow* findFlowByTuple(u_int16_t vlan_id,
 				u_int16_t observation_domain_id,
 				u_int32_t private_flow_id,
 				IpAddress *src_ip,  IpAddress *dst_ip,
@@ -633,7 +633,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		     const struct bpf_timeval *when,
 		     const u_int64_t time,
 		     struct ndpi_ethhdr *eth,
-		     VLANid vlan_id,
+		     u_int16_t vlan_id,
 		     struct ndpi_iphdr *iph,
 		     struct ndpi_ipv6hdr *ip6,
 		     u_int16_t ip_offset,
@@ -688,7 +688,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 			 AddressTree *allowed_hosts,
 			 bool host_details, LocationPolicy location,
 			 char *countryFilter, char *mac_filter,
-			 VLANid vlan_id, OSType osFilter,
+			 u_int16_t vlan_id, OSType osFilter,
 			 u_int32_t asnFilter, int16_t networkFilter,
 			 u_int16_t pool_filter, bool filtered_hosts,
 			 bool blacklisted_hosts,
@@ -789,7 +789,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   virtual void runHousekeepingTasks();
   void runShutdownTasks();
-  VLAN* getVLAN(VLANid vlanId, bool create_if_not_present, bool is_inline_call);
+  VLAN* getVLAN(u_int16_t u_int16_t, bool create_if_not_present, bool is_inline_call);
   AutonomousSystem *getAS(IpAddress *ipa, bool create_if_not_present, bool is_inline_call);
   ObservationPoint *getObsPoint(u_int16_t obs_point, bool create_if_not_present, bool is_inline_call);
   bool deleteObsPoint(u_int16_t obs_point);
@@ -797,9 +797,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   OperatingSystem *getOS(OSType os, bool create_if_not_present, bool is_inline_call);
   Country* getCountry(const char *country_name, bool create_if_not_present, bool is_inline_call);
   virtual Mac*  getMac(u_int8_t _mac[6], bool create_if_not_present, bool is_inline_call);
-  virtual Host* getHost(char *host_ip, VLANid vlan_id, u_int16_t observationPointId, bool is_inline_call);
-  virtual Host* getHostByIP(IpAddress *ip, VLANid vlan_id, u_int16_t observationPointId, bool is_inline_call);
-  bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id);
+  virtual Host* getHost(char *host_ip, u_int16_t vlan_id, u_int16_t observationPointId, bool is_inline_call);
+  virtual Host* getHostByIP(IpAddress *ip, u_int16_t vlan_id, u_int16_t observationPointId, bool is_inline_call);
+  bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void findPidFlows(lua_State *vm, u_int32_t pid);
   void findProcNameFlows(lua_State *vm, char *proc_name);
   void addAllAvailableInterfaces();
@@ -936,7 +936,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool getObsPointInfo(lua_State* vm, u_int16_t obs_point);
   bool getOSInfo(lua_State* vm, OSType os_type);
   bool getCountryInfo(lua_State* vm, const char *country);
-  bool getVLANInfo(lua_State* vm, VLANid vlan_id);
+  bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
   void incNumHosts(bool local, bool recvdOnlyHost);
   void decNumHosts(bool local, bool recvdOnlyHost);
   inline void incNumL2Devices()       { numL2Devices++; }
@@ -981,7 +981,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void decPoolNumL2Devices(u_int16_t id, bool is_inline_call) {
     if (host_pools) host_pools->decNumL2Devices(id, is_inline_call);
   };
-  Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id, u_int16_t observationPointId);
+  Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id, u_int16_t observationPointId);
   TimeseriesExporter* getInfluxDBTSExporter();
   TimeseriesExporter* getRRDTSExporter();
 
@@ -1104,7 +1104,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int16_t   getnDPIProtoByName(const char *name);
   inline void decNumSentRcvdHosts(bool isLocal)           { if(isLocal) numLocalRcvdOnlyHosts--; numTotalRcvdOnlyHosts--; }
   inline u_int32_t getNewFlowSerial()                     { return(flow_serial++); }
-  bool resetHostTopSites(AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id, u_int16_t observationPointId);
+  bool resetHostTopSites(AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id, u_int16_t observationPointId);
   void localHostsServerPorts(lua_State* vm);
 
   inline void setCustomFlowLuaScriptProtoDetected(LuaEngine *vm)  { customFlowLuaScript_proto = vm;       }

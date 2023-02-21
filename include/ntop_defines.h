@@ -523,7 +523,7 @@
 #define HASHKEY_IFACE_TOP_OS                              "ntopng.cache.top_os"
 #define HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED             "ntopng.cache.top_os_hour_done"
 #define HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED              "ntopng.cache.top_os_day_done"
-#define HASHKEY_IFACE_RECEIVE_ONLY_HOSTS                  "ntopng.ifid_%u.rx_only_hosts"
+#define HASHKEY_IFACE_RECEIVE_ONLY_HOSTS                  "ntopng.cache.rx_only_hosts"
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"

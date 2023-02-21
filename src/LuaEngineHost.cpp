@@ -354,7 +354,18 @@ static int ntop_get_num_contacted_tcp_server_ports_notx(lua_State* vm) {
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
-  /* **************************************************************** */
+/* **************************************************************** */
+
+static int ntop_is_first_check_run(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  lua_pushboolean(vm, h ? h->isCustomHostScriptFirstRun() : false);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
 
 static luaL_Reg _ntop_host_reg[] = {
   { "ip",               ntop_host_get_ip               },
@@ -381,6 +392,7 @@ static luaL_Reg _ntop_host_reg[] = {
   { "skipVisitedHost",  ntop_skip_visited_host         },
   { "triggerAlert",     ntop_trigger_host_alert        },
 
+  { "isFirstCheckRun",                        ntop_is_first_check_run                             },
   { "getUnidirectionalTCPFlowsStats",         ntop_get_unidirectional_tcp_flows_stats             },
   { "getNumContactedPeersAsClientTCPNoTX",    ntop_get_num_contacted_peers_as_client_tcp_notx     },
   { "getNumContactsFromPeersAsServerTCPNoTX", ntop_get_num_contacts_from_peers_as_server_tcp_notx },

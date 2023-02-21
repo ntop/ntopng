@@ -24,20 +24,6 @@
 
 class AddressTree;
 
-/*
-typedef struct {
-  // u_int32_t vlan_id:16, observation_point_id:16;
-} VLANid; 
-*/
-
-/*
-  VLANId is 12 bits but in order to avoid breaking bytes
-  boundaries we assign 16 bits each
-*/
-typedef u_int16_t VLANid;
-
-/* Make sure we won't exceed 12 bites for vlanId */
-inline u_int16_t filterVLANid(VLANid id)             { return((u_int16_t)(id & 0xFFF)); }
 
 class VLANAddressTree {
  protected:
@@ -47,15 +33,15 @@ class VLANAddressTree {
   VLANAddressTree();
   ~VLANAddressTree();
 
-  bool addAddress(VLANid vlan_id, char *_net, const int16_t user_data = -1);
-  bool addAddresses(VLANid vlan_id, char *net, const int16_t user_data = -1);
+  bool addAddress(u_int16_t vlan_id, char *_net, const int16_t user_data = -1);
+  bool addAddresses(u_int16_t vlan_id, char *net, const int16_t user_data = -1);
 
-  int16_t findAddress(VLANid vlan_id, int family, void *addr, u_int8_t *network_mask_bits = NULL);
-  int16_t findMac(VLANid vlan_id, const u_int8_t addr[]);
-  void *findAndGetData(VLANid vlan_id, const IpAddress * const ipa) const;
-  bool addVLANAddressAndData(VLANid vlan_id, const char *_what, void *user_data);
+  int16_t findAddress(u_int16_t vlan_id, int family, void *addr, u_int8_t *network_mask_bits = NULL);
+  int16_t findMac(u_int16_t vlan_id, const u_int8_t addr[]);
+  void *findAndGetData(u_int16_t vlan_id, const IpAddress * const ipa) const;
+  bool addVLANAddressAndData(u_int16_t vlan_id, const char *_what, void *user_data);
 
-  inline AddressTree *getAddressTree(VLANid vlan_id) { return tree[vlan_id]; };
+  inline AddressTree *getAddressTree(u_int16_t vlan_id) { return tree[vlan_id]; };
 };
 
 #endif
