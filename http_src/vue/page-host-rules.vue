@@ -150,7 +150,7 @@ const add_action_column = function (rowData) {
 
 const format_metric = function(data, rowData) {
   let metric_label = data  
-  if (rowData.rule_type == 'Hosts') {
+  if (rowData.rule_type != 'interface') {
     metric_list.forEach((metric) => {
     if(metric.id == data) {
       if(rowData.extra_metric) {
@@ -211,7 +211,7 @@ const format_threshold = function(data, rowData) {
 }
 const format_rule_type = function(data, rowData) {
   let formatted_data = '';
-  if ((rowData.rule_type) && (rowData.rule_type == 'Interface') ) {
+  if ((rowData.rule_type) && (rowData.rule_type == 'interface') ) {
     formatted_data = "<span class='badge bg-secondary'>Interface <i class='fas fa-ethernet'></i></span>"
   } else {
     formatted_data = "<span class='badge bg-secondary'>Host <i class='fas fa-laptop'></i></span>"
@@ -221,7 +221,7 @@ const format_rule_type = function(data, rowData) {
 
 const format_target = function(data, rowData) {
   let formatted_data = '';
-  if ((rowData.rule_type) && (rowData.rule_type == 'Interface') ) {
+  if ((rowData.rule_type) && (rowData.rule_type == 'interface') ) {
     formatted_data = rowData.selected_iface;
   } else {
     formatted_data = rowData.target;

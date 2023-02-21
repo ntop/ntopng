@@ -14,8 +14,8 @@
 	    <label :class="{'active': rule_type == 'Host'}" class="btn btn-secondary">
 	      <input  class="btn-check" type="radio" name="rule_type" value="hosts" @click="set_rule_type('Host')"> {{ _i18n("if_stats_config.add_rules_type_host") }}
 	    </label>
-	    <label :class="{'active': rule_type == 'Interface'}" class="btn btn-secondary">
-	      <input @click="set_rule_type('Interface')" class="btn-check"  type="radio" name="rule_type" value="interface"> {{ _i18n("if_stats_config.add_rules_type_interface") }}
+	    <label :class="{'active': rule_type == 'interface'}" class="btn btn-secondary">
+	      <input @click="set_rule_type('interface')" class="btn-check"  type="radio" name="rule_type" value="interface"> {{ _i18n("if_stats_config.add_rules_type_interface") }}
 	    </label>
 	  </div>
 	</div>
@@ -30,7 +30,7 @@
 	    </div>
     </div>
 
-    <div v-if="rule_type == 'Interface'" class="form-group ms-2 me-2 mt-3 row">
+    <div v-if="rule_type == 'interface'" class="form-group ms-2 me-2 mt-3 row">
 	    <label class="col-form-label col-sm-2" >
         <b>{{_i18n("if_stats_config.target_interface")}}</b>
 	    </label>
