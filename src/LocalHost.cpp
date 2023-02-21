@@ -147,6 +147,7 @@ void LocalHost::initialize() {
 #endif
 
   router_mac_set = false, memset(router_mac, 0, sizeof(router_mac));
+  setRxOnlyHost(true);
 }
 
 /* *************************************** */

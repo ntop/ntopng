@@ -246,7 +246,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
   os = NULL, os_type = os_unknown;
-  prefs_loaded = false, is_rx_only = true;
+  prefs_loaded = false;
+  setRxOnlyHost(true);
   host_services_bitmap = 0;
   disabled_alerts_tstamp = 0;
   num_remote_access = 0;
