@@ -51,6 +51,15 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_params)
+   
+   if(alert_type_params.frequency == "5min") then
+      alert_type_params.frequency = i18n("edit_check.hooks_name.5mins")
+   elseif(alert_type_params.frequency == "hour") then
+      alert_type_params.frequency = i18n("edit_check.hooks_name.hour")
+   else
+      alert_type_params.frequency = i18n("edit_check.hooks_name.day")
+   end
+   
    return(i18n("alert_messages.traffic_interface_volume_alert", {
     url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. alert_type_params.ifid,
     iface = alert_type_params.ifname,

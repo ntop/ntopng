@@ -380,7 +380,7 @@ page_utils.add_menubar_section({
       },
       {
          hidden = not ntop.isEnterprise() or not isAdministrator(),
-         entry = page_utils.menu_entries.iface_traffic_rules,
+         entry = page_utils.menu_entries.host_rules,
          url = '/lua/pro/host_rules.lua',
       },
   }

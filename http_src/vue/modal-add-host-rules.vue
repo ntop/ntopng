@@ -58,7 +58,7 @@
       </template>
       <template v-else>
         <div class="col-10">
-          <SelectSearch v-model:selected_option="selected_metric"
+          <SelectSearch v-model:selected_option="selected_interface_metric"
             @select_option="change_interface_threshold()"
             :options="interface_metric_list">
           </SelectSearch>
