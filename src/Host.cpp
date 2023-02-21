@@ -246,7 +246,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
   os = NULL, os_type = os_unknown;
-  prefs_loaded = false, is_blackhole = true;
+  prefs_loaded = false, is_rx_only = true;
   host_services_bitmap = 0;
   disabled_alerts_tstamp = 0;
   num_remote_access = 0;
@@ -615,7 +615,7 @@ void Host::lua_get_min_info(lua_State *vm) {
   lua_push_bool_table_entry(vm, "dhcpHost", isDHCPHost());
   lua_push_bool_table_entry(vm, "crawlerBotScannerHost", isCrawlerBotScannerHost());
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
-  lua_push_bool_table_entry(vm, "is_blackhole", is_blackhole);
+  lua_push_bool_table_entry(vm, "is_rx_only", is_rx_only);
   lua_push_bool_table_entry(vm, "is_broadcast", isBroadcastHost());
   lua_push_bool_table_entry(vm, "is_multicast", isMulticastHost());
   lua_push_int32_table_entry(vm, "host_services_bitmap", host_services_bitmap);
@@ -894,7 +894,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(blacklist_name != NULL)
     lua_push_str_table_entry(vm, "blacklist_name", blacklist_name);
 
-  lua_push_bool_table_entry(vm, "is_blackhole", is_blackhole);
+  lua_push_bool_table_entry(vm, "is_rx_only", is_rx_only);
   
   if(more_then_one_device)
     lua_push_bool_table_entry(vm, "more_then_one_device", more_then_one_device);
@@ -1306,7 +1306,7 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));
     json_object_object_add(my_object, "broadcastDomainHost", json_object_new_boolean(isBroadcastDomainHost()));
     json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
-    json_object_object_add(my_object, "is_blackhole", json_object_new_boolean(is_blackhole ? true : false));
+    json_object_object_add(my_object, "is_rx_only", json_object_new_boolean(is_rx_only ? true : false));
     json_object_object_add(my_object, "host_services_bitmap", json_object_new_int(host_services_bitmap));
 
     /* Generic Host */
@@ -2553,8 +2553,8 @@ void Host::resetExternalAlert() {
     free(externalAlert.msg);
     externalAlert.msg = NULL;
   }
+  
   externalAlert.score = 0;
-
   externalAlert.triggered = false;
 }
 
@@ -2577,3 +2577,4 @@ void Host::setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port) {
 void Host::setUnidirectionalTCPNoTXIngressFlow(IpAddress *ip, u_int16_t port) {
   ndpi_hll_add_number(&incoming_hosts_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
 }
+

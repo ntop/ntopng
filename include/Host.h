@@ -145,7 +145,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   bool has_blocking_quota, has_blocking_shaper;
 #endif
   u_int8_t is_in_broadcast_domain:1, is_dhcp_host:1, is_crawler_bot_scanner:1,
-    is_blacklisted:1, is_blackhole:1, _notused:3;
+    is_blacklisted:1, is_rx_only:1, _notused:3;
 
   /* Alert exclusion handling */
 #ifdef NTOPNG_PRO
@@ -649,12 +649,11 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline HostStats* getStats()    { return(stats); }
   void setBlacklistName(char *name);
   inline void blacklistHost(char *blacklist_name) { setBlacklistName(blacklist_name), is_blacklisted = 1; }
-  inline void blackholeHost(bool set_it = true)   { is_blackhole = set_it;                                }
-  inline bool isBlackhole()                       { return(is_blackhole ? true : false);                  }
-  inline bool resetHostTopSites() { if(stats) { stats->resetTopSitesData(); return(true); } else return(false);     }
-  inline bool isReceiveOnlyHost() { return(stats->isReceiveOnly() && (!isBroadcastHost()) && (!isMulticastHost())); }
-  inline void incUnidirectionalIngressFlows() { unidirectionalTCPFlows.numIngressFlows++; }
-  inline void incUnidirectionalEgressFlows()  { unidirectionalTCPFlows.numEgressFlows++;  }
+  virtual void setRxOnlyHost(bool set_it)         { is_rx_only = set_it; };
+  inline bool resetHostTopSites()                 { if(stats) { stats->resetTopSitesData(); return(true); } else return(false);     }
+  inline bool isRxOnlyHost()                      { return(is_rx_only && (!isBroadcastHost()) && (!isMulticastHost())); }
+  inline void incUnidirectionalIngressFlows()     { unidirectionalTCPFlows.numIngressFlows++; }
+  inline void incUnidirectionalEgressFlows()      { unidirectionalTCPFlows.numEgressFlows++;  }
 
   virtual void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { ; };
   virtual void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { ; };

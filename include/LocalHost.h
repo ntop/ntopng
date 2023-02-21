@@ -64,6 +64,7 @@ class LocalHost : public Host, public SerializableElement {
     if(network) network->updateRoundTripTime(rtt_msecs);
   }
 
+  void setRxOnlyHost(bool set_it);
   virtual NetworkStats* getNetworkStats(int16_t networkId) {
     return(iface->getNetworkStats(networkId));
   };

@@ -239,8 +239,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   bool flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices,
-    totalNumHosts, numTotalRcvdOnlyHosts /* subset of numTotalRcvdOnlyHosts that have received but never sent any traffic */,
-    numLocalHosts, numLocalRcvdOnlyHosts /* subset of numLocalHosts that have received but never sent any traffic */,
+    totalNumHosts, numTotalRxOnlyHosts /* subset of numTotalRxOnlyHosts that have received but never sent any traffic */,
+    numLocalHosts, numLocalRxOnlyHosts /* subset of numLocalHosts that have received but never sent any traffic */,
     scalingFactor;
   /* Those will hold counters at checkpoints */
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount, checkpointDroppedAlertsCount;
@@ -770,8 +770,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline u_int      getNumL2Devices()          { return(numL2Devices);          };
   inline u_int      getNumHosts()              { return(totalNumHosts);         };
   inline u_int      getNumLocalHosts()         { return(numLocalHosts);         };
-  inline u_int      getNumRcvdOnlyHosts()      { return(numTotalRcvdOnlyHosts); };
-  inline u_int      getNumLocalRcvdOnlyHosts() { return(numLocalRcvdOnlyHosts); };
+  inline u_int      getNumRxOnlyHosts()      { return(numTotalRxOnlyHosts); };
+  inline u_int      getNumLocalRxOnlyHosts() { return(numLocalRxOnlyHosts); };
   
   u_int             getNumMacs();
   u_int             getNumHTTPHosts();
@@ -937,8 +937,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool getOSInfo(lua_State* vm, OSType os_type);
   bool getCountryInfo(lua_State* vm, const char *country);
   bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
-  void incNumHosts(bool local, bool recvdOnlyHost);
-  void decNumHosts(bool local, bool recvdOnlyHost);
+  void incNumHosts(bool local, bool rxOnlyHost);
+  void decNumHosts(bool local, bool rxOnlyHost);
   inline void incNumL2Devices()       { numL2Devices++; }
   inline void decNumL2Devices()       { numL2Devices--; }
   inline u_int32_t getScalingFactor()       const { return(scalingFactor); }
@@ -1102,7 +1102,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline bool needsnDPICleanup()                          { return(ndpi_cleanup_needed); }
   inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
   u_int16_t   getnDPIProtoByName(const char *name);
-  inline void decNumSentRcvdHosts(bool isLocal)           { if(isLocal) numLocalRcvdOnlyHosts--; numTotalRcvdOnlyHosts--; }
+  inline void decNumSentRcvdHosts(bool isLocal)           { if(isLocal) numLocalRxOnlyHosts--; numTotalRxOnlyHosts--; }
   inline u_int32_t getNewFlowSerial()                     { return(flow_serial++); }
   bool resetHostTopSites(AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id, u_int16_t observationPointId);
   void localHostsServerPorts(lua_State* vm);

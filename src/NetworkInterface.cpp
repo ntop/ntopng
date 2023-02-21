@@ -255,7 +255,7 @@ void NetworkInterface::init(const char *interface_name) {
     inline_interface = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = false,
     flow_dump_disabled = false,
-    numL2Devices = 0, totalNumHosts = numTotalRcvdOnlyHosts = numLocalHosts = numLocalRcvdOnlyHosts = 0,
+    numL2Devices = 0, totalNumHosts = numTotalRxOnlyHosts = numLocalHosts = numLocalRxOnlyHosts = 0,
     arp_requests = arp_replies = 0,
     has_mac_addresses = false,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = checkpointDroppedAlertsCount = 0,
@@ -4872,11 +4872,11 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     return(false);
 
   if((r->location == location_local_only            && (!h->isLocalUnicastHost()))||
-     (r->location == location_local_only_no_tx      && ((!h->isLocalUnicastHost()) || (!h->isReceiveOnlyHost()))) ||
-     (r->location == location_local_only_no_tcp_tx  && ((!h->isLocalUnicastHost()) || (!h->isReceiveOnlyHost()) || (h->getNumBytesTCPSent() > 0) || (h->getNumBytesTCPRcvd() == 0) )) ||
+     (r->location == location_local_only_no_tx      && ((!h->isLocalUnicastHost()) || (!h->isRxOnlyHost()))) ||
+     (r->location == location_local_only_no_tcp_tx  && ((!h->isLocalUnicastHost()) || (!h->isRxOnlyHost()) || (h->getNumBytesTCPSent() > 0) || (h->getNumBytesTCPRcvd() == 0) )) ||
      (r->location == location_remote_only           && h->isLocalHost())                  ||
-     (r->location == location_remote_only_no_tx     && (h->isLocalHost() || (!h->isReceiveOnlyHost()))) ||
-     (r->location == location_remote_only_no_tcp_tx && (h->isLocalHost() || (!h->isReceiveOnlyHost()) || (h->getNumBytesTCPSent() > 0) || (h->getNumBytesTCPRcvd() == 0) )) ||
+     (r->location == location_remote_only_no_tx     && (h->isLocalHost() || (!h->isRxOnlyHost()))) ||
+     (r->location == location_remote_only_no_tcp_tx && (h->isLocalHost() || (!h->isRxOnlyHost()) || (h->getNumBytesTCPSent() > 0) || (h->getNumBytesTCPRcvd() == 0) )) ||
      (r->location == location_broadcast_domain_only && !h->isBroadcastDomainHost())       ||
      (r->location == location_private_only && !h->isPrivateHost())                        ||
      (r->location == location_public_only && h->isPrivateHost())                          ||
@@ -6650,9 +6650,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "bytes",        getNumBytes());
   lua_push_uint64_table_entry(vm, "flows",        getNumFlows());
   lua_push_uint64_table_entry(vm, "hosts",        getNumHosts());
-  lua_push_uint64_table_entry(vm, "hosts_rcvd_only", getNumRcvdOnlyHosts());
+  lua_push_uint64_table_entry(vm, "hosts_rcvd_only", getNumRxOnlyHosts());
   lua_push_uint64_table_entry(vm, "local_hosts",  getNumLocalHosts());
-  lua_push_uint64_table_entry(vm, "local_rcvd_only_hosts", getNumLocalRcvdOnlyHosts());
+  lua_push_uint64_table_entry(vm, "local_rcvd_only_hosts", getNumLocalRxOnlyHosts());
   lua_push_uint64_table_entry(vm, "http_hosts",   getNumHTTPHosts());
   lua_push_uint64_table_entry(vm, "drops",        getNumPacketDrops());
   lua_push_uint64_table_entry(vm, "new_flows",    getNumNewFlows());
@@ -10140,19 +10140,19 @@ void NetworkInterface::checkDHCPStorm(time_t when, u_int32_t num_pkts) {
 
 /* *************************************** */
 
-void NetworkInterface::incNumHosts(bool local, bool recvdOnlyHost) {
+void NetworkInterface::incNumHosts(bool local, bool rxOnlyHost) {
   if(local) numLocalHosts++;
-  if(local && recvdOnlyHost) numLocalRcvdOnlyHosts++;
-  if(recvdOnlyHost) numTotalRcvdOnlyHosts++;
+  if(local && rxOnlyHost) numLocalRxOnlyHosts++;
+  if(rxOnlyHost) numTotalRxOnlyHosts++;
   totalNumHosts++;
 };
 
 /* *************************************** */
 
-void NetworkInterface::decNumHosts(bool local, bool recvdOnlyHost) {
+void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
   if(local) numLocalHosts--;
-  if(local &&recvdOnlyHost) numLocalRcvdOnlyHosts--;
-  if(recvdOnlyHost)numTotalRcvdOnlyHosts--;
+  if(local && rxOnlyHost) numLocalRxOnlyHosts--;
+  if(rxOnlyHost) numTotalRxOnlyHosts--;
   totalNumHosts--;
 };
 
@@ -10463,7 +10463,7 @@ static bool walk_no_tx_host_flows(GenericHashEntry *node, void *user_data, bool 
     s = hosts->iface->getHostByIP((IpAddress*)f->get_srv_ip_addr(), f->get_vlan_id(),
 				  f->getFlowObservationPointId(), false);
 
-  if(c && s && s->isReceiveOnlyHost()) {
+  if(c && s && s->isRxOnlyHost()) {
     if(!(s->isBroadcastHost() || s->isMulticastHost())) {
       bool good = false;
 

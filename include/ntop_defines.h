@@ -203,7 +203,7 @@
 #define MIN_NUM_VISITED_ENTRIES  1024
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
-#define NTOP_COPYRIGHT          "(C) 1998-22 ntop.org"
+#define NTOP_COPYRIGHT          "(C) 1998-23 ntop.org"
 #define DEFAULT_PID_PATH        "/var/run/ntopng.pid"
 #define SYSTEM_INTERFACE_NAME   "__system__"
 #define SYSTEM_INTERFACE_ID     -1
@@ -255,14 +255,14 @@
 #define NTOPNG_CACHE_PREFIX        "ntopng.cache"
 #define NTOPNG_USER_PREFIX         "ntopng.user"
 #define NTOPNG_API_TOKEN_PREFIX    "ntopng.api_tokens"
-#define MAC_CUSTOM_DEVICE_TYPE     NTOPNG_PREFS_PREFIX".device_types.%s"
-#define NTOP_HOSTS_SERIAL          "ntopng.host_serial"
+#define MAC_CUSTOM_DEVICE_TYPE          NTOPNG_PREFS_PREFIX".device_types.%s"
+#define NTOP_HOSTS_SERIAL               "ntopng.host_serial"
 #define MAX_NUM_INTERFACE_IDS           256
 #define DUMMY_BRIDGE_INTERFACE_ID       1 /* Anything but zero */
 #define MAX_FAILED_LOGIN_ATTEMPTS       5
 #define FAILED_LOGIN_ATTEMPTS_INTERVAL  300 /* seconds */
 #define CONST_STR_FAILED_LOGIN_KEY     "ntopng.cache.failed_logins.%s"
-#define CONST_STR_RELOAD_LISTS  "ntopng.cache.reload_lists_utils" /* sync with lists_utils.lua */
+#define CONST_STR_RELOAD_LISTS          "ntopng.cache.reload_lists_utils" /* sync with lists_utils.lua */
 #define NTOP_NOLOGIN_USER	"nologin"
 #define NTOP_DEFAULT_USER_LANG  "en"
 #define MAX_OPTIONS             24
@@ -515,6 +515,7 @@
 #define CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT       5
 #define CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED 0
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
+
 #define HASHKEY_TOP_SITES_SERIALIZATION_KEY               ".serialized_current_top_sites."
 #define HASHKEY_TOP_OS_SERIALIZATION_KEY                  ".serialized_current_top_os."
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS                "ntopng.cache.top_sites"
@@ -523,7 +524,8 @@
 #define HASHKEY_IFACE_TOP_OS                              "ntopng.cache.top_os"
 #define HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED             "ntopng.cache.top_os_hour_done"
 #define HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED              "ntopng.cache.top_os_day_done"
-#define HASHKEY_IFACE_RECEIVE_ONLY_HOSTS                  "ntopng.cache.rx_only_hosts"
+#define HASHKEY_LOCALHOST_RX_ONLY                         "ntopng.cache.localhost_host_rx_only"
+
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"

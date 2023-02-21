@@ -306,7 +306,6 @@ void ZMQCollectorInterface::collect_flows() {
       u_int32_t msg_id = 0, last_msg_id;
       u_int32_t source_id = 0;
       u_int32_t publisher_version = 0;
-      bool drop_found = false;
       
       if(items[subscriber_id].revents & ZMQ_POLLIN) {
 	size = zmq_recv(items[subscriber_id].socket, &h0, sizeof(h0), 0);
@@ -375,8 +374,6 @@ void ZMQCollectorInterface::collect_flows() {
 	  if(msg_id == (last_msg_id + 1)) {
 	    /* No drop */
 	  } else {
-	    drop_found = true;
-
 #ifdef MSG_ID_DEBUG
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "DROP [msg_id: %u][last_msg_id: %u]", msg_id, last_msg_id);
 #endif

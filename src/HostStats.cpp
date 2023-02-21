@@ -52,11 +52,6 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
 #endif
 
   memset(&checkpoints, 0, sizeof(checkpoints));
-
-  if(host->isBroadcastHost() || host->isMulticastHost())
-    ;
-  else
-    host->isBlackhole(); /* No traffic sent */
 }
 
 /* *************************************** */
@@ -368,10 +363,8 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto,
     */
     
     host->getInterface()->decNumSentRcvdHosts(host->isLocalHost());
+    host->setRxOnlyHost(false /* no longer RX-only */);
   }
-
-  if(host->isBlackhole() && (sent_packets > 0))
-    host->blackholeHost(false /* no longer a blackhole */);
   
   sent.incStats(when, sent_packets, sent_bytes),
     rcvd.incStats(when, rcvd_packets, rcvd_bytes);

@@ -45,23 +45,7 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress,
 
 /* *************************************** */
 
-LocalHost::~LocalHost() {
-  if(!isLocalUnicastHost()) {
-    char keybuf[64], hostbuf[64], *member, seenbuf[16];
-    
-    snprintf(keybuf, sizeof(keybuf), HASHKEY_IFACE_RECEIVE_ONLY_HOSTS, iface->get_id());
-    member = get_hostkey(hostbuf, sizeof(hostbuf));
-    snprintf(seenbuf, sizeof(seenbuf), "%u", (u_int32_t)get_last_seen());
-    
-    if(isReceiveOnlyHost()) {
-      /* Add this host to the hash of RX-only local hosts */
-      ntop->getRedis()->hashSet(keybuf, member, seenbuf);
-    } else {
-      /* Delete the key in case it was present */
-      ntop->getRedis()->hashDel(keybuf, member);
-    }
-  }
-  
+LocalHost::~LocalHost() {  
   if(initial_ts_point) delete(initial_ts_point);
   freeLocalHostData();
 }
@@ -97,7 +81,7 @@ void LocalHost::set_hash_entry_state_idle() {
     }
   }
 
-  iface->decNumHosts(true /* A local host */, isReceiveOnlyHost());
+  iface->decNumHosts(true /* A local host */, isRxOnlyHost());
   
   if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
     ns->decNumHosts();
@@ -152,7 +136,7 @@ void LocalHost::initialize() {
   updateHostTrafficPolicy(host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 18);
 
-  iface->incNumHosts(true /* Local Host */, isReceiveOnlyHost());
+  iface->incNumHosts(true /* Local Host */, isRxOnlyHost());
   if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
     ns->incNumHosts();
   
@@ -555,5 +539,28 @@ void LocalHost::setRouterMac(Mac *gw) {
 #ifdef NTOPNG_PRO
     ntop->get_am()->addClientGateway(this, gw);
 #endif
+  }
+}
+
+/* *************************************** */
+
+void LocalHost::setRxOnlyHost(bool set_it) {
+  is_rx_only = set_it;
+
+  if(isLocalUnicastHost()) {
+    char hostbuf[64], *member;
+    
+    member = get_hostkey(hostbuf, sizeof(hostbuf));
+    
+    if(is_rx_only) {
+      /* Add this host to the hash of RX-only local hosts */
+      char seenbuf[16];
+      
+      snprintf(seenbuf, sizeof(seenbuf), "%u", (u_int32_t)get_last_seen());
+      ntop->getRedis()->hashSet(HASHKEY_LOCALHOST_RX_ONLY, member, seenbuf);
+    } else {
+      /* Delete the key in case it was present */
+      ntop->getRedis()->hashDel(HASHKEY_LOCALHOST_RX_ONLY, member);
+    }
   }
 }
