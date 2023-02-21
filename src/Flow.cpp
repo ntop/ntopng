@@ -184,7 +184,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   memset(&custom_app, 0, sizeof(custom_app));
 
-#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
   HostPools *hp = iface->getHostPools();
 
   routing_table_id = DEFAULT_ROUTING_TABLE_ID;
@@ -4298,12 +4298,12 @@ void Flow::addFlowStats(bool new_flow,
   callFlowUpdate(last_seen);
 
   if(cli2srv_direction) {
-    stats.incStats(true, in_pkts, in_bytes, in_goodput_bytes);
-    stats.incStats(false, out_pkts, out_bytes, out_goodput_bytes);
+    if(in_pkts)  stats.incStats(true, in_pkts, in_bytes, in_goodput_bytes);
+    if(out_pkts) stats.incStats(false, out_pkts, out_bytes, out_goodput_bytes);
     ip_stats_s2d.pktFrag += in_fragments, ip_stats_d2s.pktFrag += out_fragments;
   } else {
-    stats.incStats(true, out_pkts, out_bytes, out_goodput_bytes);
-    stats.incStats(false, in_pkts, in_bytes, in_goodput_bytes);
+    if(out_pkts) stats.incStats(true, out_pkts, out_bytes, out_goodput_bytes);
+    if(in_pkts)  stats.incStats(false, in_pkts, in_bytes, in_goodput_bytes);
     ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments;
   }
 

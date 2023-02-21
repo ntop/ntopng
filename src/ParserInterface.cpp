@@ -65,7 +65,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     zflow->vlan_id = 0;
 
   if((zflow->vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
-    zflow->vlan_id = rand() % 0xFF;
+    zflow->vlan_id = rand() % 0xFFF;
 
   if(discardProbingTraffic()) {
     if(isProbingFlow(zflow)) {
@@ -291,7 +291,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   flow->setTOS(zflow->src_tos, true), flow->setTOS(zflow->dst_tos, false);
   flow->setRtt();
 
-  if(src2dst_direction)
+  if(src2dst_direction && (zflow->tcp.applLatencyMsec != 0))
     flow->setFlowApplLatency(zflow->tcp.applLatencyMsec);
 
   /* Update process and container info */

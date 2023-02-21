@@ -547,6 +547,9 @@ bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id,
   if(!tree || !(cur_tree = tree))
     return(false);
 
+  if(vlan_id > 4095)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%%%% CRASHING %%%%");
+  
   *found_node = (ndpi_patricia_node_t*)ip->findAddress(cur_tree->getAddressTree(vlan_id));
 
   if(*found_node) {

@@ -1166,10 +1166,12 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
   if(vlan_id != 0)
     setSeenVLANTaggedPackets();
 
-  if((srcMac && Utils::macHash(srcMac->get_mac()) != 0)
-     || (dstMac && Utils::macHash(dstMac->get_mac()) != 0))
-    setSeenMacAddresses();
-
+  if(!hasSeenMacAddresses()) {
+    if((srcMac && Utils::macHash(srcMac->get_mac()) != 0)
+       || (dstMac && Utils::macHash(dstMac->get_mac()) != 0))
+      setSeenMacAddresses();
+  }
+  
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 1);
   ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
 			 vlan_id, observation_domain_id,

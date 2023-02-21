@@ -236,7 +236,9 @@ void Host::housekeep(time_t t) {
 /* *************************************** */
 
 void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_id) {
-  u_int16_t masked_vlanId = _vlanId & 0xFFF; /* Cleanup any possible junk */
+  if(_vlanId == (u_int16_t)-1) _vlanId = 0;
+  
+  vlan_id = _vlanId & 0xFFF; /* Cleanup any possible junk */
 
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
@@ -266,7 +268,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_
 
   observationPointId = observation_point_id;
 
-  if((vlan = iface->getVLAN(masked_vlanId, true, true /* Inline call */)) != NULL)
+  if((vlan = iface->getVLAN(vlan_id, true, true /* Inline call */)) != NULL)
     vlan->incUses();
 
   num_resolve_attempts = 0, ssdpLocation = NULL;
@@ -274,7 +276,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_
   active_alerted_flows = 0;
 
   nextResolveAttempt = 0;
-  vlan_id = _vlanId;
   memset(&names, 0, sizeof(names));
   asn = 0, asname = NULL;
   as = NULL, country = NULL, obs_point = NULL;

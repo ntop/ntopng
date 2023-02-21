@@ -65,9 +65,9 @@ void RemoteHost::initialize() {
   updateHostPool(true /* inline with packet processing */, true /* first inc */);
 
   if(ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
-  /* Just ask ntopng to resolve the name. Actual name will be grabbed once needed
-     using the getter.
-   */    
+    /* Just ask ntopng to resolve the name. Actual name will be grabbed once needed
+       using the getter.
+    */
     ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true);
   }
 
