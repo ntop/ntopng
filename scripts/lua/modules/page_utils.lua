@@ -99,7 +99,6 @@ page_utils.menu_entries = {
     countries             = {key = "countries", i18n_title = "countries", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#countries"},
     operating_systems     = {key = "operating_systems", i18n_title = "operating_systems", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#operating-systems"},
     http_servers          = {key = "http_servers", i18n_title = "http_servers_stats.local_http_servers", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#http-servers-local"},
-    host_rules            = {key = "host_rules", i18n_title = "if_stats_config.host_rules", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/host_rules.html"},
     top_hosts             = {key = "top_hosts", i18n_title = "processes_stats.top_hosts", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#top-hosts-local"},
     hosts_treemap         = {key = "hosts_treemap", i18n_title = "tree_map.hosts_treemap", section = "hosts"},
     containers            = {key = "containers", i18n_title = "containers_stats.containers", section = "hosts"},
@@ -108,7 +107,8 @@ page_utils.menu_entries = {
     -- Interface
     interface             = {key = "interface", i18n_title = "interface_details", section = "if_stats"},
     ports_analysis        = {key = "ports_analysis", i18n_title = "ports_analysis.server_ports", section = "if_stats"},
-    
+    host_rules            = {key = "host_rules", i18n_title = "if_stats_config.traffic_rules", section = "if_stats", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/host_rules.html"},
+
     -- Pollers
     snmp                  = {key = "snmp", i18n_title = "prefs.snmp", section = "pollers"},
     infrastructure_dashboard = {key = "infrastructure_dashboard", i18n_title = "infrastructure_dashboard.infrastructure_dashboard", section = "pollers"},
