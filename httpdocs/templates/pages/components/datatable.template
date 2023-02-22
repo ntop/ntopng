@@ -2,6 +2,18 @@
     (C) 2021 - ntop.org    
     Base template for datatables.
 #}
+<style>
+.table.dataTable th {
+    white-space: nowrap;
+    overflow: hidden;
+}
+ 
+.table.dataTable td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+</style>
 <!-- vue3 -->
 <!-- <script src="{* ntop.getHttpPrefix() *}/vue/vue-dev.js?{* ntop.getStaticFileEpoch() *}"></script> 
 <script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js?{* ntop.getStaticFileEpoch() *}"></script>
@@ -154,6 +166,8 @@
   let $table;
   let RANGEPICKER_APP;
   let CHART_APP;
+  let datatable_columns;
+  const datatableButton = {* (datatable.buttons or '[]') *};
   const ifid = {{ ifid }}
   const local_storage_order_key = "{* datatable.name *}_column" + ifid
   const local_storage_order_asc_desc = "{* datatable.name *}_order" + ifid
@@ -414,6 +428,52 @@
         return columns;
     }
 
+  function setUserColumnsDefWidths() {
+    let userColumnDef;
+    /* Get the settings for this table from localStorage */
+    let userColumnDefs = JSON.parse(localStorage.getItem('{{ datatable.name }}')) || [];
+
+    if (userColumnDefs.length === 0 ) return;
+    datatable_columns.forEach( function(columnDef, index) {
+      // Check if there is a width specified for this column
+      userColumnDef = userColumnDefs.find( function(column) {
+        return column.targets === index /* Column target */;
+      });
+
+      // If there is, set the width of this columnDef in px
+      if ( userColumnDef ) {
+        columnDef.width = userColumnDef.width + 'px';
+      }
+    });
+  }
+
+
+  function saveColumnSettings() {
+    let userColumnDefs = JSON.parse(localStorage.getItem('{{ datatable.name }}')) || [];
+    let width, header, existingSetting; 
+
+    $table.columns().every( function ( targets ) {
+      // Check if there is a setting for this column in localStorage
+      existingSetting = userColumnDefs.findIndex( function(column) { return column.targets === targets;});
+      // Get the width of this column
+      header = this.header();
+      width = $(header).width();
+
+      if ( existingSetting !== -1 ) {
+        // Update the width
+        userColumnDefs[existingSetting].width = width;
+      } else {
+        // Add the width for this column
+        userColumnDefs.push({
+          targets: targets,
+          width:  width,
+        });
+      }
+    });
+
+    // Save (or update) the settings in localStorage
+    localStorage.setItem('{{ datatable.name }}', JSON.stringify(userColumnDefs));
+  }
 
   function refreshTime() {
       let epoch_status = ntopng_status_manager.get_status();
@@ -617,7 +677,6 @@
         CHART_APP = start_chart();
       }
       RANGEPICKER_APP = start_range_picker();
-    const datatableButton = {* (datatable.buttons or '[]') *};
     datatableButton.push({
         text: '<i class="fas fa-sync"></i>',
         action: async function (e, dt, node, config) {
@@ -625,10 +684,10 @@
         }
     });
     
-    const columns = loadColumns();
+    datatable_columns = loadColumns();
     const column_order_name = "{{ datatable.order_name }}";
     let column_order_id = 1;
-    columns.forEach((element, index) => {
+    datatable_columns.forEach((element, index) => {
         if(element.data && element.data == column_order_name) {
             column_order_id = index;
         }
@@ -646,88 +705,112 @@
     length_array.splice(index, 1);
     length_array.unshift(INITIAL_ROWS_LENGTH);
     
-    let url_params = ntopng_url_manager.get_url_params();
-    let config = DataTableUtils.getStdDatatableConfig(datatableButton);
-    config = DataTableUtils.extendConfig(config, {
-        serverSide: true,
-        searching: false,
-        info: false,
-        order: [[ column_order_id,  column_order_sorting]],
-        pagingType: '{{ datatable.pagination }}',
-        columnDefs: {},
-        autoWidth: false,
-        ajax: {
-            method: 'get',
-            url: '{* datatable.datasource.name *}?' + url_params,
-            dataSrc: 'rsp.records',
-            data: (data, settings) => {
+    function loadDataTable() {
+      setUserColumnsDefWidths();
 
-                const tableApi = settings.oInstance.api();
-                const orderColumnIndex = data.order[0].column;
-                const orderColumnName = tableApi.column(orderColumnIndex).name() || undefined;
+      let url_params = ntopng_url_manager.get_url_params();
+      let config = DataTableUtils.getStdDatatableConfig(datatableButton);
+      config = DataTableUtils.extendConfig(config, {
+          serverSide: true,
+          searching: false,
+          info: false,
+          order: [[ column_order_id,  column_order_sorting]],
+          pagingType: '{{ datatable.pagination }}',
+          autoWidth: false,
+          destroy: true,
+          responsive: false,
+          scrollX: true,
+          scrollCollapse: true,
+          scroller: true,
+          ajax: {
+              method: 'get',
+              url: '{* datatable.datasource.name *}?' + url_params,
+              dataSrc: 'rsp.records',
+              data: (data, settings) => {
+
+                  const tableApi = settings.oInstance.api();
+                  const orderColumnIndex = data.order[0].column;
+                  const orderColumnName = tableApi.column(orderColumnIndex).name() || undefined;
+                  
+                  if (data.order) {
+                      data.order = data.order[0].dir;
+                      data.sort = orderColumnName;
+                      localStorage.setItem(local_storage_order_key, orderColumnIndex);
+                      localStorage.setItem(local_storage_order_asc_desc, data.order || "{* datatable.order_sorting *}")
+                  }
+
+                  if (data.columns !== undefined) {
+                      delete data.columns;
+                  }
+
+                  if (data.search !== undefined) {
+                      delete data.search;
+                  }
                 
-                if (data.order) {
-                    data.order = data.order[0].dir;
-                    data.sort = orderColumnName;
-                    localStorage.setItem(local_storage_order_key, orderColumnIndex);
-                    localStorage.setItem(local_storage_order_asc_desc, data.order || "{* datatable.order_sorting *}")
-                }
+                  data.visible_columns = getVisibleColumns(tableApi).join(',');
+                  return data;
+              },
+              beforeSend: function() {
+                NtopUtils.showOverlays();
+              },
+              complete: function() {
+                NtopUtils.hideOverlays();
+              }
+          },
+          drawCallback: () => {
+              updateDownloadButton();
+          },
+          lengthMenu: [length_array, length_array],
+          pageLength: INITIAL_ROWS_LENGTH,
+          columns: datatable_columns,
+      });
 
-                if (data.columns !== undefined) {
-                    delete data.columns;
-                }
+      $table = $(`#{{ datatable.name }}`).DataTable(config);
+      {% if datatable.refresh_rate and datatable.refresh_rate > 0 then %}
+      intervalId = setInterval(function() {
+    refreshTime();
+      }, {{ datatable.refresh_rate }});
+      {% end %}
 
-                if (data.search !== undefined) {
-                    delete data.search;
-                }
-               
-                data.visible_columns = getVisibleColumns(tableApi).join(',');
-                return data;
-            },
-            beforeSend: function() {
-              NtopUtils.showOverlays();
-            },
-            complete: function() {
-              NtopUtils.hideOverlays();
-            }
-        },
-        drawCallback: () => {
-            updateDownloadButton();
-        },
-        lengthMenu: [length_array, length_array],
-        pageLength: INITIAL_ROWS_LENGTH,
-        columns: loadColumns(),
-    });
+      let toggleColumnsDropdownAlreadyAdded = false;
+      $table.on("draw", () => {
+      if (toggleColumnsDropdownAlreadyAdded == true) { return; }
+          DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
+              $table.ajax.reload();
+          });
+    toggleColumnsDropdownAlreadyAdded = true;
+      });
 
-    $table = $(`#{{ datatable.name }}`).DataTable(config);
+    // on ajax request
+      $table.on('preXhr', function() {
+        $(this).css('table-layout', 'fixed')
+      });
 
-    {% if datatable.refresh_rate and datatable.refresh_rate > 0 then %}
-    intervalId = setInterval(function() {
-	refreshTime();
-    }, {{ datatable.refresh_rate }});
-    {% end %}
+      // on ajax request complete then print the query time
+      $table.on('xhr', function() {
+        printQueryTime($table);
+        $(this).css('table-layout', 'fixed')
+      });
 
-    let toggleColumnsDropdownAlreadyAdded = false;
-    $table.on("draw", () => {
-    if (toggleColumnsDropdownAlreadyAdded == true) { return; }
-        DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
-            $table.ajax.reload();
-        });
-	toggleColumnsDropdownAlreadyAdded = true;
-    });
+      $table.on('click', `a.tag-filter`, async function (e) {
+          addFilter(e, $(this), $table);
+      });
+    }
 
-  // on ajax request
-    $table.on('preXhr', function() {
-      $(this).css('table-layout', 'auto')
-    });
-
-    // on ajax request complete then print the query time
-    $table.on('xhr', function() {
-      printQueryTime($table);
-    });
-
-    $table.on('click', `a.tag-filter`, async function (e) {
-        addFilter(e, $(this), $table);
+    loadDataTable();
+    
+    $('table th').resizable({
+      handles: 'e',
+      minWidth: 5,
+      stop: function() {
+        // User has stopped dragging the column
+        //Call your own function to save the widths of each column - localStorage is a good choice
+        saveColumnSettings();
+ 
+        loadDataTable();
+        reloadTable();
+        updateCardStats('overview');
+      }
     });
 
     /* Top Host and Top Alerts filters */
