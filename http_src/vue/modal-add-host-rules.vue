@@ -26,7 +26,7 @@
         <b>{{_i18n("if_stats_config.target")}}</b>
 	    </label>
 	    <div class="col-sm-10" >
-	      <input v-model="host" @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
+	      <input v-model="host"  @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
 	    </div>
     </div>
 
@@ -135,7 +135,12 @@
     <NoteList
     :note_list="note_list">
     </NoteList>
+    <template v-if="is_edit_page == false">
     <button type="button" @click="add_" class="btn btn-primary"  :disabled="disable_add && rule_type == 'Host'">{{_i18n('add')}}</button>
+    </template>
+    <template v-else>
+    <button type="button" @click="edit_" class="btn btn-primary"  :disabled="disable_add && rule_type == 'Host'">{{_i18n('edit')}}</button>
+    </template>
   </template>
 </modal>
 </template>
@@ -157,6 +162,8 @@ const host_placeholder = i18n('if_stats_config.host_placeholder')
 const metrics_ready = ref(false)
 const _i18n = (t) => i18n(t);
 const metric_list = ref([])
+const init_func = ref(null);
+const delete_row = ref(null);
 const ifid_list = ref([])
 const interface_metric_list = ref([])
 const frequency_list = ref([])
@@ -170,6 +177,8 @@ const disable_add = ref(true)
 const metric_type = ref({})
 const visible = ref(true)
 const rule_type = ref("hosts");
+const is_edit_page = ref(false)
+
 
 
 const note_list = [
@@ -180,11 +189,11 @@ const note_list = [
   _i18n('if_stats_config.note_5')
 ]
 
-const metric_type_list = [
+const metric_type_list = ref([
   { title: _i18n('volume'), label: _i18n('volume'), id: 'volume', active: true },
   { title: _i18n('throughput'), label: _i18n('throughput'), id: 'throughput', active: false },
   { title: _i18n('percentage'), label: _i18n('percentage'), id: 'percentage', acrive: false },
-]
+])
 
 const volume_threshold_list = ref([
   { title: _i18n('kb'), label: _i18n('kb'), id: 'kb', value: 1024, active: false },
@@ -218,6 +227,7 @@ const props = defineProps({
   ifid_list: Array,
   interface_metric_list: Array,
   frequency_list: Array,
+  init_func: Function,
 });
 
 function reset_radio_selection(radio_array) {
@@ -231,11 +241,11 @@ function reset_modal_form() {
     selected_metric.value = metric_list.value[0];
     selected_interface_metric.value = interface_metric_list.value[0];
     selected_frequency.value = frequency_list.value[0];
-    metric_type.value = metric_type_list[0];
+    metric_type.value = metric_type_list.value[0];
 
     // reset metric_type_list
-    metric_type_list.forEach((t) => t.active = false);
-    metric_type_list[0].active = true;
+    metric_type_list.value.forEach((t) => t.active = false);
+    metric_type_list.value[0].active = true;
 
     reset_radio_selection(volume_threshold_list.value);
     reset_radio_selection(throughput_threshold_list.value);
@@ -252,8 +262,117 @@ const set_rule_type = (type) => {
     rule_type.value = type;
 }
 
+const set_row_to_edit = () => {
+  let row = init_func.value();
+
+  if(row != null) {
+    is_edit_page.value = true;
+
+    disable_add.value = false;
+
+    // set threshold sign
+    sign_threshold_list.value.forEach((t) => {
+      t.active = (t.value == row.threshold_sign)
+    })
+
+    // set metric_type
+    metric_type_list.value.forEach((t) => {
+      if(t.id == row.metric_type) {
+        t.active = true;
+        metric_type.value = t;
+      } else {
+        t.active = false;
+      }
+    })
+
+    // set threshold
+    if(row.metric_type == 'volume')
+      volume_threshold_list.value.forEach((t) => {
+        if ( (row.threshold % t.value) == 0 ) {
+          let row_threshold_value = row.threshold / t.value;
+          if( row_threshold_value < 1024) {
+            t.active = true;
+            threshold.value.value = row_threshold_value == 0 ? 1 : row_threshold_value;
+          } else {
+            t.active = false;
+          }
+        } else {
+          t.active = false;
+        }
+      })
+    else if(row.metric_type == 'throughput') {
+      row.threshold = row.threshold * 8;
+      throughput_threshold_list.value.forEach((t) => {
+          if ( (row.threshold % t.value) == 0 ) {
+            let row_threshold_value = row.threshold / t.value;
+            if( row_threshold_value < 1000) {
+              t.active = true;
+              threshold.value.value = row_threshold_value == 0 ? 1 : row_threshold_value;
+            } else {
+              t.active = false;
+            }
+          } else {
+            t.active = false;
+          }
+      })
+    } else {
+
+      //percentage case
+      threshold.value.value = row.threshold;
+    }
+
+    // set rule_type
+    rule_type.value = row.rule_type;
+    
+    if(rule_type.value == 'interface') {
+      
+      // set ifid
+      ifid_list.value.forEach((t) => {
+        if(t.id == row.target)
+          selected_ifid.value = t;
+      })
+      
+      // set metric
+      if(row.extra_metric != null) {
+        interface_metric_list.value.forEach((t) => {
+          if(t.id == row.metric && t.extra_metric == row.extra_metric) {
+            selected_interface_metric.value = t;
+          }
+        })
+
+      } else {
+        interface_metric_list.value.forEach((t) => {
+          if(t.id == row.metric) {
+            selected_interface_metric.value = t;
+          }
+        })
+      }
+    } else {
+
+      //set host
+      host.value = row.target;
+      
+      //set metric
+      if(row.extra_metric != null) {
+        metric_list.value.forEach((t) => {
+          if(t.id == row.metric && t.extra_metric == row.extra_metric)
+            selected_metric.value = t;
+          })
+      } else {
+        metric_list.value.forEach((t) => {
+          if(t.id == row.metric)
+            selected_metric.value = t;  
+        })
+      }
+    }
+  }
+}
+
 const show = () => {
-    reset_modal_form();
+  reset_modal_form();
+  if(init_func != null && init_func.value != null) {
+    set_row_to_edit();
+  }
   modal_id.value.show();
 };
 
@@ -307,13 +426,13 @@ const add_ = () => {
 
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_metric.value.id;
-  const tmp_metric_label = selected_metric.value.label;
+  const tmp_metric_label = (rule_type.value == 'Host')? selected_metric.value.label : selected_interface_metric.value.label;
   const tmp_interface_metric = selected_interface_metric.value.id;
   const tmp_rule_type = rule_type.value;
   const tmp_interface = selected_ifid.value.id;
   const tmp_interface_name = selected_ifid.value.label;
   let tmp_metric_type = metric_type.value.id;
-  let tmp_extra_metric = (selected_metric.value.extra_metric) ? selected_metric.value.extra_metric : null
+  let tmp_extra_metric = (rule_type.value == 'Host')? ((selected_metric.value.extra_metric) ? selected_metric.value.extra_metric : null ) : ((selected_interface_metric.value.extra_metric) ? selected_interface_metric.value.extra_metric : null )
   let basic_value;
   let basic_sign_value;
   let tmp_threshold;
@@ -374,6 +493,12 @@ const add_ = () => {
   close();
 };
 
+
+const edit_ = () => {
+  delete_row.value();
+  add_();
+}
+
 const close = () => {
   modal_id.value.close();
 };
@@ -387,7 +512,7 @@ const format_ifid_list = function(data) {
   return _ifid_list
 }
 
-const metricsLoaded = (_metric_list, _ifid_list, _interface_metric_list) => {
+const metricsLoaded = (_metric_list, _ifid_list, _interface_metric_list, _init_func, _delete_row) => {
   metrics_ready.value = true;
   metric_list.value = _metric_list;
   interface_metric_list.value = _interface_metric_list;
@@ -396,11 +521,24 @@ const metricsLoaded = (_metric_list, _ifid_list, _interface_metric_list) => {
   selected_frequency.value = frequency_list.value[0];
   selected_metric.value = metric_list.value[0];
   selected_ifid.value = ifid_list.value[0];
+  if(_init_func) {
+    init_func.value = _init_func;
+  }
+
+  if(_delete_row) {
+    delete_row.value = _delete_row;
+  }
+  
 }
 
 
 onBeforeMount(() => {
-  metric_type.value = metric_type_list[0]
+  metric_type_list.value.forEach((t) => {
+    if(t.active) {
+      metric_type.value = t;
+    }
+
+  })
 })
 
 defineExpose({ show, close, metricsLoaded });

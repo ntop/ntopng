@@ -4160,6 +4160,7 @@ local lang = {
     ["delete_host_rules_title"] = "Delete Rule",
     ["discard_probing_traffic"] = "Discard Probing Traffic",
     ["dump_flows_to_database"] = "Dump Flows to Database",
+    ["edit_local_network_rules"] = "Edit Rule",
     ["frequency"] = "Check Frequency",
     ["generic_notes_1"] = "Trigger an alert when a local host exceeds the specified traffic amount",
     ["generic_notes_2"] = "To add a new rule, click the '+' symbol on the right side above the table (next to the search)",

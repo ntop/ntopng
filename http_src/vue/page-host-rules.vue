@@ -27,8 +27,10 @@
             :metric_list="metric_list"
             :interface_metric_list="interface_metric_list"
             :frequency_list="frequency_list"
+            :init_func="init_edit"
             @add="add_host_rule">
           </ModalAddHostRules>
+          
           <Datatable ref="table_host_rules"
             :table_buttons="host_rules_table_config.table_buttons"
             :columns_config="host_rules_table_config.columns_config"
@@ -66,6 +68,9 @@ const modal_delete_confirm = ref(null)
 const modal_add_host_rule = ref(null)
 const _i18n = (t) => i18n(t);
 const row_to_delete = ref({})
+const row_to_edit = ref({})
+
+
 const metric_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua`
 const metric_ifname_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?is_ifname=true`
 const ifid_url = `${http_prefix}/lua/rest/v2/get/ntopng/interfaces.lua`
@@ -86,10 +91,13 @@ const rest_params = {
 
 let host_rules_table_config = {}
 let title_delete = _i18n('if_stats_config.delete_host_rules_title')
+let title_edit = _i18n('if_stats_config.edit_local_network_rules')
 let body_delete = _i18n('if_stats_config.delete_host_rules_description')
 let metric_list = []
 let interface_metric_list = []
 let ifid_list = []
+
+
 const frequency_list = [
   { title: i18n('show_alerts.5_min'), label: i18n('show_alerts.5_min'), id: '5min' },
   { title: i18n('show_alerts.hourly'), label: i18n('show_alerts.hourly'), id: 'hour' },
@@ -99,6 +107,22 @@ const frequency_list = [
 const show_delete_dialog = function(row) {
   row_to_delete.value = row;
   modal_delete_confirm.value.show();
+}
+
+const load_selected_field = function(row) {
+  row_to_edit.value = row;
+  
+  row_to_delete.value = row;
+
+  modal_add_host_rule.value.metricsLoaded(metric_list, ifid_list, interface_metric_list, init_edit, delete_row);
+  modal_add_host_rule.value.show();
+
+}
+
+const init_edit = function() {
+  const row = row_to_edit.value;
+  row_to_edit.value = null;
+  return row;
 }
 
 const destroy_table = function() {
@@ -135,6 +159,7 @@ const add_host_rule = async function(params) {
   });
 }
 
+
 const add_action_column = function (rowData) {
   let delete_handler = {
 	  handlerId: "delete_host",	  
@@ -142,8 +167,16 @@ const add_action_column = function (rowData) {
       show_delete_dialog(rowData);
 	  },
 	};
+
+  let edit_handler = {
+    handlerId: "edit_rule",
+    onClick: () => {
+      load_selected_field(rowData);
+    },
+  }
   
   return DataTableUtils.createActionButtons([
+    { class: `btn-secondary`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit'), class: "pointer" },
 	  { class: `btn-danger`, handler: delete_handler, icon: 'fa-trash', title: i18n('delete'), class: "pointer" },
 	]);
 }
