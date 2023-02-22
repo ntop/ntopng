@@ -37,7 +37,7 @@ local SIXH_DOWNLOAD_INTERVAL        = 21600
 local MAX_TOTAL_IP_RULES = 1000000
 -- Domain rules are the most expensive.
 -- On average they take ~7.5 KB/domain. 40k rules are loaded in about 7 seconds.
-local MAX_TOTAL_DOMAIN_RULES = 90000
+local MAX_TOTAL_DOMAIN_RULES = 200000
 -- JA3 rules use hash tables, so they are fast to load
 local MAX_TOTAL_JA3_RULES = 200000
 
