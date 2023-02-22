@@ -11,10 +11,10 @@
   </label>
     <div class="col-sm-10">
 	  <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
-	    <label :class="{'active': rule_type == 'Host'}" class="btn btn-secondary">
+	    <label class="btn " :class="[rule_type == 'Host'?'btn-primary active':'btn-secondary']">
 	      <input  class="btn-check" type="radio" name="rule_type" value="hosts" @click="set_rule_type('Host')"> {{ _i18n("if_stats_config.add_rules_type_host") }}
 	    </label>
-	    <label :class="{'active': rule_type == 'interface'}" class="btn btn-secondary">
+	    <label class="btn " :class="[rule_type == 'interface'?'btn-primary active':'btn-secondary']">
 	      <input @click="set_rule_type('interface')" class="btn-check"  type="radio" name="rule_type" value="interface"> {{ _i18n("if_stats_config.add_rules_type_interface") }}
 	    </label>
 	  </div>
