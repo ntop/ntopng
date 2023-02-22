@@ -65,7 +65,7 @@ local function parse_lists_from_dir(where)
       local path = where .. "/" .. f
       local content = file_utils.read_file(path)
       local j = json.decode(content)
-
+      
       if(j == nil) then
 	 traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path..": parse error")
       else
@@ -74,13 +74,17 @@ local function parse_lists_from_dir(where)
 
         if(j.category == nil) then
           traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": no category")
-          skip = true        
-        elseif(j.category == "mining")        then j.category = CUSTOM_CATEGORY_MINING
-        elseif(j.category == "malware")       then j.category = CUSTOM_CATEGORY_MALWARE
-        elseif(j.category == "advertisement") then j.category = CUSTOM_CATEGORY_ADVERTISEMENT
-        else
-          traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": invalid category ".. j.category)
-          skip = true
+          skip = true   
+
+        else 
+         local category = string.lower(tostring(j.category))
+         if(category == "mining")        then j.category = CUSTOM_CATEGORY_MINING
+         elseif(category == "malware")       then j.category = CUSTOM_CATEGORY_MALWARE
+         elseif(category == "advertisement") then j.category = CUSTOM_CATEGORY_ADVERTISEMENT
+         else
+            traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": invalid category ".. j.category)
+            skip = true
+         end
         end
 
         if(not(skip) and (j.name == nil)) then
