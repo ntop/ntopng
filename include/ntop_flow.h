@@ -557,4 +557,22 @@
 #define PROFILE               NTOP_BASE_ID+533
 #define STATUS                NTOP_BASE_ID+534
 
+/* sFlow Counter Fields */
+#define SFLOW_DEVICE_IP			0
+#define SFLOW_SAMPLES_GENERATED		1
+#define SFLOW_IF_INDEX			2
+#define SFLOW_IF_NAME			3
+#define SFLOW_IF_TYPE			4
+#define SFLOW_IF_SPEED			5
+#define SFLOW_IF_DIRECTION		6
+#define SFLOW_IF_ADMIN_STATUS		7
+#define SFLOW_IF_OPER_STATUS		8
+#define SFLOW_IF_IN_OCTETS		9
+#define SFLOW_IF_IN_PACKETS		10
+#define SFLOW_IF_IN_ERRORS		11
+#define SFLOW_IF_OUT_OCTETS		12
+#define SFLOW_IF_OUT_PACKETS		13
+#define SFLOW_IF_OUT_ERRORS		14
+#define SFLOW_IF_PROMISCUOUS_MODE	15
+
 #endif /* _NTOP_FLOW_H_ */

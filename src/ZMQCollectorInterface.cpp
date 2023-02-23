@@ -491,8 +491,11 @@ void ZMQCollectorInterface::collect_flows() {
             break;
 
           case 'c': /* counter */
+            if(tlv_encoding) 
+              parseTLVCounter(uncompressed, uncompressed_len);
+            else
+              parseJSONCounter(uncompressed, uncompressed_len);
             recvStats.num_counters++;
-            parseCounter(uncompressed, uncompressed_len, subscriber_id, msg_id, this);
             break;
 
           case 't': /* template */

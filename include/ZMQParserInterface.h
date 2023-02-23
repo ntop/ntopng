@@ -29,7 +29,9 @@ class ZMQParserInterface : public ParserInterface {
   typedef std::pair<u_int32_t, u_int32_t> pen_value_t;
   typedef std::map<string, pen_value_t> labels_map_t;
   typedef std::map<pen_value_t, string> descriptions_map_t;
+  typedef std::map<string, u_int32_t> counters_map_t;
   labels_map_t labels_map; /* Contains mappings between labels and integer IDs (PEN and ID) */
+  counters_map_t counters_map; /* Contains mappings between sFlow counter field labels and integer IDs */
   descriptions_map_t descriptions_map; /* Contains mappings between integer IDs and descriptions */
   u_int32_t polling_start_time;
   bool once, is_sampled_traffic;
@@ -47,6 +49,7 @@ class ZMQParserInterface : public ParserInterface {
 
   bool preprocessFlow(ParsedFlow *flow);
   void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0, const char *descr = NULL);
+  void addCounterMapping(const char *sym, u_int32_t id);
   bool parsePENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
   bool parsePENNtopField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
   bool matchPENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
@@ -83,10 +86,13 @@ public:
   const char* getKeyDescription(u_int32_t pen, u_int32_t field) const;
   bool matchField(ParsedFlow * const flow, const char * key, ParsedValue * value);
 
+  bool getCounterId(char *sym, u_int32_t sym_len, u_int32_t *id) const;
+
   u_int8_t parseJSONFlow(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id);
   u_int8_t parseTLVFlow(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
   u_int8_t parseEvent(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
-  u_int8_t parseCounter(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseTLVCounter(const char * payload, int payload_size);
+  u_int8_t parseJSONCounter(const char * payload, int payload_size);
   u_int8_t parseTemplate(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
   u_int8_t parseOption(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
   u_int8_t parseListeningPorts(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
