@@ -2051,7 +2051,7 @@ u_int8_t ZMQParserInterface::parseJSONCounter(const char * payload, int payload_
       const char *value = json_object_get_string(v);
 
       if((key != NULL) && (value != NULL)) {
-	if(!strcmp(key, "deviceIP")) stats.deviceIP = ntohl(inet_addr(value));
+	if(!strcmp(key, "deviceIP")) stats.deviceIP = (u_int32_t)json_object_get_int64(v); //ntohl(inet_addr(value));
 	else if(!strcmp(key, "samplesGenerated")) stats.samplesGenerated = (u_int32_t)json_object_get_int64(v);
 	else if(!strcmp(key, "ifIndex")) stats.ifIndex = (u_int32_t)json_object_get_int64(v);
 	else if(!strcmp(key, "ifName")) stats.ifName = (char*)json_object_get_string(v);
@@ -2066,7 +2066,7 @@ u_int8_t ZMQParserInterface::parseJSONCounter(const char * payload, int payload_
 	else if(!strcmp(key, "ifOutOctets")) stats.ifOutOctets = json_object_get_int64(v);
 	else if(!strcmp(key, "ifOutPackets")) stats.ifOutPackets = json_object_get_int64(v);
 	else if(!strcmp(key, "ifOutErrors")) stats.ifOutErrors = json_object_get_int64(v);
-	else if(!strcmp(key, "ifPromiscuousMode")) stats.ifPromiscuousMode = (!strcmp(value, "1")) ? true : false;
+	else if(!strcmp(key, "ifPromiscuousMode")) stats.ifPromiscuousMode = (((u_int32_t)json_object_get_int64(v)) == 1) ? true : false;
 	else if(strlen(key) >= 9 && !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
 	  if(parseContainerInfo(v, &stats.container_info))
 	    stats.container_info_set = true;
@@ -2149,8 +2149,12 @@ u_int8_t ZMQParserInterface::parseTLVCounter(const char * payload, int payload_s
       u_int8_t kbkp = key.str[key.str_len];
       key.str[key.str_len] = '\0';
       bool found = getCounterId(key.str, key.str_len, &key_id);
+      if (!found) {
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported Counter %s\n", key.str);
+        key.str[key.str_len] = kbkp;
+        goto error;
+      }
       key.str[key.str_len] = kbkp;
-      if (!found) goto error;
     }
 
     /* Value */
@@ -2192,7 +2196,10 @@ u_int8_t ZMQParserInterface::parseTLVCounter(const char * payload, int payload_s
 
     switch (key_id) {
       case SFLOW_DEVICE_IP:
-	stats.deviceIP = ntohl(inet_addr((char *) value.string));
+        if (value_is_string)
+  	  stats.deviceIP = ntohl(inet_addr((char *) value.string));
+        else
+          stats.deviceIP = (u_int32_t) value.int_num;
       break;
       case SFLOW_SAMPLES_GENERATED:
 	stats.samplesGenerated = (u_int32_t) value.int_num;
@@ -2201,7 +2208,7 @@ u_int8_t ZMQParserInterface::parseTLVCounter(const char * payload, int payload_s
 	stats.ifIndex = (u_int32_t) value.int_num;
       break;
       case SFLOW_IF_NAME:
-	stats.ifName = (char*) value.string;
+	stats.ifName = strdup((char*) value.string);
       break;
       case SFLOW_IF_TYPE:
 	stats.ifType = (u_int32_t) value.int_num;
@@ -2237,7 +2244,7 @@ u_int8_t ZMQParserInterface::parseTLVCounter(const char * payload, int payload_s
 	stats.ifOutErrors = value.int_num;
       break;
       case SFLOW_IF_PROMISCUOUS_MODE:
-	stats.ifPromiscuousMode = (!strcmp(value.string, "1")) ? true : false;
+	stats.ifPromiscuousMode = (value.int_num == 1) ? true : false;
       break;
       default:
         ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported Counter %u\n", key_id);
@@ -2253,6 +2260,9 @@ u_int8_t ZMQParserInterface::parseTLVCounter(const char * payload, int payload_s
   /* Process Flow */
   processInterfaceStats(&stats);
   ret = 0;
+
+  if (stats.ifName)
+    free(stats.ifName);
 
 error:
   return ret;
