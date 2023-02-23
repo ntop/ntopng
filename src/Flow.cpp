@@ -100,7 +100,7 @@ Flow::Flow(NetworkInterface *_iface,
   next_call_periodic_update = 0;
 
   last_db_dump.partial = NULL;
-  last_db_dump.first_seen = last_db_dump.last_seen = 0;
+  last_db_dump.first_seen = last_db_dump.last_seen = last_db_dump.last_thpt_update = 0;
   last_db_dump.in_progress = false;
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
@@ -4280,19 +4280,7 @@ void Flow::addFlowStats(bool new_flow,
     thp_delta_time = difftime(last_seen, first_seen);
   else
     /* Average of the latest update, that is between the new and the previous last_seen */
-    thp_delta_time = difftime(last_seen, get_last_seen());
-
-#if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first: %u][last: %u][get_last_seen: %u][%u][%u][in_bytes: %u][out_bytes: %u][bytes : %u][thpt: %.2f]",
-			       first_seen, last_seen,
-			       get_last_seen(),
-			       last_seen - first_seen,
-			       last_seen - get_last_seen(),
-			       in_bytes,
-			       out_bytes,
-			       in_bytes + out_bytes,
-			       ((in_bytes + out_bytes) / thp_delta_time) / 1024 / 1024 * 8);
-#endif
+    thp_delta_time = difftime(last_seen, get_last_thpt_update());
 
   updateSeen(last_seen);
   callFlowUpdate(last_seen);
@@ -4306,32 +4294,27 @@ void Flow::addFlowStats(bool new_flow,
     if(in_pkts)  stats.incStats(false, in_pkts, in_bytes, in_goodput_bytes);
     ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments;
   }
-
-  /*
-    The throughput is updated roughly by estimating
-    the average throughput. This prevents
-    having flows with seemingly zero throughput.
-  */
-  if((!new_flow) || (thp_delta_time <= 5) /* msec */) {
-    /*
-       If here, delta time is too small to enable meaningful throughput calculations
-       using only bytes/packets delta. In this case, totals are used and averaged
-       using the overall flow lifetime.
-     */
-    if(cli2srv_direction)
-      updateThroughputStats(get_duration() * 1000,
-			    get_packets_cli2srv(), get_bytes_cli2srv(), 0,
-			    get_packets_srv2cli(), get_bytes_srv2cli(), 0);
-    else
-      updateThroughputStats(get_duration() * 1000,
-			    get_packets_srv2cli(), get_bytes_srv2cli(), 0,
-			    get_packets_cli2srv(), get_bytes_cli2srv(), 0);
-  } else {
+#if 0
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[New flow: %s][first: %u][last: %u][thpt_delta: %u][get_last_seen: %u][%u][%u][in_bytes: %u][out_bytes: %u][bytes : %u][thpt: %.2f]",
+             (new_flow ? "YES" : "NO"),
+			       first_seen, last_seen, thp_delta_time,
+			       get_last_seen(),
+			       last_seen - first_seen,
+			       last_seen - get_last_seen(),
+			       in_bytes,
+			       out_bytes,
+			       in_bytes + out_bytes,
+			       ((in_bytes + out_bytes) / thp_delta_time) / 1024 / 1024 * 8);
+#endif
+  /* New flow or old flow updated at least 1 sec ago */
+  if(new_flow || thp_delta_time >= 1000) {
     /*
       If here, delta time is enough to enable throughput estimations using
       bytes/packets delta. In this case, we can give throughput values
       that are averaged using the time delta, and not the overall flow lifetime.
     */
+    update_last_thpt(last_seen);
+
     if(cli2srv_direction)
       updateThroughputStats(thp_delta_time * 1000, in_pkts, in_bytes, 0, out_pkts, out_bytes, 0);
     else
