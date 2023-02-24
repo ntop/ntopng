@@ -110,9 +110,19 @@ end
 
 -- NOTE: on index based tables using #table is much more performant
 function table.len(tbl)
- local count = 0
+  local count = 0
 
-  if(tbl == nil) then return(0) end
+  if tbl == nil then
+    io.write("ERROR: table expected, got nil\n")
+    io.write(debug.traceback().."\n")
+    return 0
+  end
+
+  if type(tbl) ~= "table" then
+    io.write("ERROR: table expected, got " .. type(tbl) .. "\n")
+    io.write(debug.traceback().."\n")
+    return 0
+  end
 
   for k,v in pairs(tbl) do
     count = count + 1
