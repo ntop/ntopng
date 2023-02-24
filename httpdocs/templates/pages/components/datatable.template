@@ -3,17 +3,25 @@
     Base template for datatables.
 #}
 <style>
+.table.dataTable {
+  padding: 0;
+}
+
+.table.dataTable td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+</style>
+<!--
 .table.dataTable th {
     white-space: nowrap;
     overflow: hidden;
 }
  
-.table.dataTable td {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-</style>
+
+-->
 <!-- vue3 -->
 <!-- <script src="{* ntop.getHttpPrefix() *}/vue/vue-dev.js?{* ntop.getStaticFileEpoch() *}"></script> 
 <script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js?{* ntop.getStaticFileEpoch() *}"></script>
@@ -705,8 +713,8 @@
     length_array.splice(index, 1);
     length_array.unshift(INITIAL_ROWS_LENGTH);
     
-    function loadDataTable() {
-      setUserColumnsDefWidths();
+    //function loadDataTable() {
+      //setUserColumnsDefWidths();
 
       let url_params = ntopng_url_manager.get_url_params();
       let config = DataTableUtils.getStdDatatableConfig(datatableButton);
@@ -717,11 +725,11 @@
           order: [[ column_order_id,  column_order_sorting]],
           pagingType: '{{ datatable.pagination }}',
           autoWidth: false,
-          destroy: true,
-          responsive: false,
-          scrollX: true,
-          //scrollCollapse: true,
-          //scroller: true,
+          destroy: false,
+          responsive: true,
+          scrollX: false,
+          scrollCollapse: false,
+          scroller: false,
           ajax: {
               method: 'get',
               url: '{* datatable.datasource.name *}?' + url_params,
@@ -783,22 +791,22 @@
 
     // on ajax request
       $table.on('preXhr', function() {
-        $(this).css('table-layout', 'fixed')
+        $(this).css('table-layout', 'auto')
       });
 
       // on ajax request complete then print the query time
       $table.on('xhr', function() {
         printQueryTime($table);
-        $(this).css('table-layout', 'fixed')
+        $(this).css('table-layout', 'auto')
       });
 
       $table.on('click', `a.tag-filter`, async function (e) {
           addFilter(e, $(this), $table);
       });
-    }
+    //}
 
+    /*
     loadDataTable();
-    
     $('table th').resizable({
       handles: 'e',
       minWidth: 5,
@@ -811,7 +819,7 @@
         reloadTable();
         updateCardStats('overview');
       }
-    });
+    });*/
 
     /* Top Host and Top Alerts filters */
     {% if show_cards then %}
