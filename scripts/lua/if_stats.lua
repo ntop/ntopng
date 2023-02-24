@@ -303,7 +303,7 @@ page_utils.print_navbar(title, url,
                                  label = i18n("arp"),
                },
                {
-                  hidden = (table.len(sites_granularities) == 0),
+                  hidden = (sites_granularities == nil or table.len(sites_granularities) == 0),
                   active = page == "sites",
                   page_name = "sites",
                   label = i18n("sites_page.sites"),
