@@ -113,8 +113,8 @@ function table.len(tbl)
   local count = 0
 
   if tbl == nil then
-    io.write("ERROR: table expected, got nil\n")
-    io.write(debug.traceback().."\n")
+    --io.write("ERROR: table expected, got nil\n")
+    --io.write(debug.traceback().."\n")
     return 0
   end
 
