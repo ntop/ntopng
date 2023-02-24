@@ -26,7 +26,7 @@
 
 class Score;
 
-class Country : public GenericHashEntry, public GenericTrafficElement, public SerializableElement, public Score {
+class Country : public GenericHashEntry, public GenericTrafficElement, public Score {
  private:
   /* Note: country name can be more then 2 chars, see
    * https://www.iso.org/iso-3166-country-codes.html

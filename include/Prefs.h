@@ -71,7 +71,7 @@ class Prefs {
   u_int32_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
   u_int32_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
   u_int32_t housekeeping_frequency;
-  bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache,
+  bool disable_alerts, enable_top_talkers,
     enable_active_local_hosts_cache;
   bool enable_flow_device_port_rrd_creation, enable_observation_points_rrd_creation, enable_intranet_traffic_rrd_creation;
   bool enable_tiny_flows_export;
@@ -405,7 +405,6 @@ class Prefs {
   inline u_int32_t get_pkt_ifaces_flow_max_idle()       { return(pkt_ifaces_flow_max_idle);    };
   inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
   inline bool  flow_table_duration_or_last_seen()       { return(flow_table_time);     };
-  inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };
   inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };
 
   inline bool is_tiny_flows_export_enabled()             { return(enable_tiny_flows_export);            };

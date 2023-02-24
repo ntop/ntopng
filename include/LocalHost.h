@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class LocalHost : public Host, public SerializableElement {
+class LocalHost : public Host {
  protected:
   int16_t local_network_id;
   bool systemHost;

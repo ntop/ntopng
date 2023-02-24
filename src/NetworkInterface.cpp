@@ -1018,10 +1018,8 @@ void NetworkInterface::flushFlowDump() {
 static bool local_hosts_2_redis_walker(GenericHashEntry *h, void *user_data, bool *matched) {
   Host *host = (Host*)h;
 
-  if(host && (host->isLocalHost() || host->isSystemHost())) {
-    ((LocalHost*)host)->serializeToRedis();
-    *matched = true;
-  }
+  if(host && (host->isLocalHost() || host->isSystemHost()))
+    *matched = true;  
 
   return(false); /* false = keep on walking */
 }

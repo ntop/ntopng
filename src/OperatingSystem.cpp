@@ -32,16 +32,12 @@ OperatingSystem::OperatingSystem(NetworkInterface *_iface, OSType _os_type)
 #ifdef AS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Operating System %u", os_type);
 #endif
-
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-    deserializeFromRedis();
 }
 
 /* *************************************** */
 
 void OperatingSystem::set_hash_entry_state_idle() {
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-    serializeToRedis();
+  ; /* Nothing to do */
 }
 
 /* *************************************** */

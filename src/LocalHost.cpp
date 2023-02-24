@@ -53,18 +53,10 @@ LocalHost::~LocalHost() {
 /* *************************************** */
 
 void LocalHost::set_hash_entry_state_idle() {
-  /* Serialization is performed, inline, as soon as the LocalHost becomes idle, and
-     not when it is deleted. This guarantees that, if the same host becomes active again,
-     its counters will be consistent even if its other instance has still to be deleted. */
-  if(data_delete_requested)
-    deleteRedisSerialization();
-  else if((ntop->getPrefs()->is_idle_local_host_cache_enabled()
-      || ntop->getPrefs()->is_active_local_host_cache_enabled())
-     && (!ip.isEmpty())) {
+  if(ntop->getPrefs()->is_active_local_host_cache_enabled() && (!ip.isEmpty())) {
     Mac *mac = getMac();
 
     checkStatsReset();
-    serializeToRedis();
 
     /* For LBD hosts in the DHCP range, also save the IP -> MAC
      * association. This allows us to both search the host by IP and to
@@ -105,13 +97,6 @@ void LocalHost::initialize() {
   ip.isLocalHost(&local_network_id);
 
   systemHost = ip.isLocalInterfaceAddress();
-
-  INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: local_host_cache", 16);
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled()) {
-    if(!deserializeFromRedis())
-      deleteRedisSerialization();
-  }
-  INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 16);
 
   /* Clone the initial point. It will be written to the timeseries DB to
    * address the first point problem (https://github.com/ntop/ntopng/issues/2184). */

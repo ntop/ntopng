@@ -29,15 +29,12 @@ Country::Country(NetworkInterface *_iface, const char *country) : GenericHashEnt
 #ifdef COUNTRY_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Country %s", country_name);
 #endif
-
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-    deserializeFromRedis();
 }
+
 /* *************************************** */
 
 void Country::set_hash_entry_state_idle() {
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-    serializeToRedis();
+  ; /* Nothing to do */
 }
 
 /* *************************************** */

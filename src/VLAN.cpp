@@ -29,15 +29,12 @@ VLAN::VLAN(NetworkInterface *_iface, u_int16_t _vlan_id) : GenericHashEntry(_ifa
 #ifdef VLAN_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created VLAN %u", vlan_id);
 #endif
-
-  deserializeFromRedis();
 }
 
 /* *************************************** */
 
 void VLAN::set_hash_entry_state_idle() {
-if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-  serializeToRedis();
+  ; /* Nothing to do */
 }
 
 /* *************************************** */

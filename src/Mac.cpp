@@ -42,9 +42,6 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6]) : GenericHashEntry(_iface) 
   stats_shadow = NULL;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
 
-  char redis_key[64], buf1[64], rsp[8];
-  char *mac_ptr = Utils::formatMac(mac, buf1, sizeof(buf1));
-
   if(ntop->getMacManufacturers()) {
     manuf = ntop->getMacManufacturers()->getManufacturer(mac);
     if(manuf) checkDeviceTypeFromManufacturer();
@@ -65,17 +62,6 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6]) : GenericHashEntry(_iface) 
 			       Utils::formatMac(mac, buf, sizeof(buf)),
 			       iface->getNumL2Devices());
 #endif
-
-  if(!special_mac && ntop->getPrefs()->is_idle_local_host_cache_enabled()) {
-    deserializeFromRedis();
-
-    // Load the user defined device type, if available
-    snprintf(redis_key, sizeof(redis_key), MAC_CUSTOM_DEVICE_TYPE, mac_ptr);
-    if((ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) == 0) && rsp[0])
-      forceDeviceType((DeviceType)atoi(rsp));
-
-    readDHCPCache();
-  }
 
   updateHostPool(true /* inline with packet processing */, true /* first inc */);
 }
@@ -109,13 +95,6 @@ Mac::~Mac() {
 void Mac::set_hash_entry_state_idle() {
   if(source_mac)
     iface->decNumL2Devices();
-
-  if(!special_mac) {
-    if(data_delete_requested)
-      deleteRedisSerialization();
-    else if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-      serializeToRedis();
-  }
 
   /* Pool counters are updated both in and outside the datapath.
      So decPoolNumHosts must stay in the destructor to preserve counters

@@ -48,16 +48,12 @@ AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : G
 #ifdef AS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Autonomous System %u", asn);
 #endif
-
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-    deserializeFromRedis();
 }
 
 /* *************************************** */
 
 void AutonomousSystem::set_hash_entry_state_idle() {
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-    serializeToRedis();
+  ; /* Nothing to do */
 }
 
 /* *************************************** */

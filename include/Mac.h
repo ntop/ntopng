@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class Mac : public GenericHashEntry, public SerializableElement {
+class Mac : public GenericHashEntry {
  private:
   Mutex m;
   u_int8_t mac[6];

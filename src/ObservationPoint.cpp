@@ -33,16 +33,12 @@ ObservationPoint::ObservationPoint(NetworkInterface *_iface, u_int16_t _obs_poin
 #ifdef OBS_POINT_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Observation Point %s", obs_point);
 #endif
-
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-    deserializeFromRedis();
 }
 
 /* *************************************** */
 
 void ObservationPoint::set_hash_entry_state_idle() {
-  if((ntop->getPrefs()->is_idle_local_host_cache_enabled()) && (!delete_requested))
-    serializeToRedis();
+  ; /* Nothing to do */
 }
 
 /* *************************************** */

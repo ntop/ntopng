@@ -286,7 +286,6 @@ using namespace std;
 #include "HostPools.h"
 #include "Fingerprint.h"
 #include "Prefs.h"
-#include "SerializableElement.h"
 #include "DnsStats.h"
 #include "SNMP.h"
 #include "NetworkDiscovery.h"
