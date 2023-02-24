@@ -434,8 +434,13 @@ if test $SYSTEM = "Linux"; then
        DEBIAN_VERSION=`cat /etc/debian_version`
        OSNAME="Debian $DEBIAN_VERSION"
     else
-      OSNAME=`./config.guess`
-    fi
+        if test -f /etc/redhat-release; then
+          OSNAME=`cat /etc/redhat-release | cut -d '(' -f 1`
+        else
+          OSNAME=`./config.guess`
+        fi
+
+   fi
   fi
 else
 dnl> wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
