@@ -815,35 +815,33 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool limit_rows = true;  // honour the limit by default
   bool wait_for_db_created = true;
+  char *sql;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+  if(!ntop_interface)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  if((sql = (char*)lua_tostring(vm, 1)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+  if(lua_type(vm, 2) == LUA_TBOOLEAN) {
+    limit_rows = lua_toboolean(vm, 2) ? true : false;
+  }
+
+  if(lua_type(vm, 3) == LUA_TBOOLEAN) {
+    wait_for_db_created = lua_toboolean(vm, 3) ? true : false;
+  }
+
   if (!ntop->hasCapability(vm, capability_historical_flows)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "User is not allowed to run queries");
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "User is not allowed to run query: %s", sql);
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   }
 
-  if(!ntop_interface)
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  else {
-    char *sql;
+  if(ntop_interface->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) < 0)
+    lua_pushnil(vm);
 
-    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-    if((sql = (char*)lua_tostring(vm, 1)) == NULL)  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-
-    if(lua_type(vm, 2) == LUA_TBOOLEAN) {
-      limit_rows = lua_toboolean(vm, 2) ? true : false;
-    }
-
-    if(lua_type(vm, 3) == LUA_TBOOLEAN) {
-      wait_for_db_created = lua_toboolean(vm, 3) ? true : false;
-    }
-
-    if(ntop_interface->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) < 0)
-      lua_pushnil(vm);
-
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-  }
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
 /* ****************************************** */
