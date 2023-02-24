@@ -43,6 +43,7 @@ class LuaEngine {
  protected:
   lua_State *L; /**< The LuaEngine state. */
   char *loaded_script_path;
+  bool is_system_vm; /* Executed by callbacks */
   
   void lua_register_classes(lua_State *L, bool http_mode);
 
@@ -104,6 +105,9 @@ class LuaEngine {
 
   bool switchInterface(struct lua_State *vm, const char *ifid, const char *observation_point_id, const char *user, const char * group, const char *session);
   void setInterface(const char * user, char * const ifname, u_int16_t ifname_len, bool * const is_allowed) const;
+
+  inline void setAsSystemVM() { is_system_vm = true;  }
+  inline bool isSystemVM()    { return(is_system_vm); }
 };
 
 /**

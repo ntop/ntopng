@@ -551,9 +551,12 @@ int LuaEngine::load_script(char *script_path, NetworkInterface *iface) {
       lua_settop(L, lua_gettop(L)); /* Reset the stack */
 
     if(iface) {
-      /* Select the specified inteface */
+      /* Select the specified interface */
       getLuaVMUservalue(L, iface) = iface;
     }
+
+    if(isSystemVM())
+      getLuaVMUservalue(L, capabilities) = (u_int64_t)-1; /* All set */
 
 #ifdef NTOPNG_PRO
     if(ntop->getPro()->has_valid_license())
