@@ -293,7 +293,8 @@ void ThreadedActivity::runScript(time_t now, char *script_name, NetworkInterface
 				 iface->get_name(), activityPath(),
 				 script_name);
     return;
-  }
+  } else
+    l->setAsSystemVM(); /* Privileged VM used by the ntpng engine (no GUI) */
 
   /* Set the deadline and the threaded activity in the vm so they can be accessed */
   l->setThreadedActivityData(this, thstats, deadline);
