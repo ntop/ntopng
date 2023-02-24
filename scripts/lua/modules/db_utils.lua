@@ -773,8 +773,9 @@ end
 
 -- ########################################################
 
-function db_utils.clickhouseDeleteOldPartitions(mysql_retention)
-   local day_aligned_retention = mysql_retention - (mysql_retention % 86400)
+-- Delete partitions older than data_retention (epoch)
+function db_utils.clickhouseDeleteOldPartitions(data_retention)
+   local day_aligned_retention = data_retention - (data_retention % 86400)
    -- Create a string that identifies the PARTITIONs name of the most recent partition that will be deleted
    local retention_yyyymmdd = os.date("%Y%m%d", day_aligned_retention)
 
@@ -791,6 +792,7 @@ function db_utils.clickhouseDeleteOldPartitions(mysql_retention)
       for _, partition_info in ipairs(partitions_res) do
 	 local delete_partition_q = string.format("ALTER TABLE %s.%s DROP PARTITION '%s'",
 						  partition_info["database"], partition_info["table"], partition_info["drop_part"])
+
 	 local delete_partition_res = interface.execSQLQuery(delete_partition_q)
       end
    end
