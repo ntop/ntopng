@@ -6,13 +6,6 @@
 .table.dataTable {
   padding: 0;
 }
-
-.table.dataTable td {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 </style>
 <!--
 .table.dataTable th {
@@ -21,6 +14,11 @@
 }
  
 
+.table.dataTable td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 -->
 <!-- vue3 -->
 <!-- <script src="{* ntop.getHttpPrefix() *}/vue/vue-dev.js?{* ntop.getStaticFileEpoch() *}"></script> 
@@ -724,12 +722,9 @@
           info: false,
           order: [[ column_order_id,  column_order_sorting]],
           pagingType: '{{ datatable.pagination }}',
-          autoWidth: false,
+          autoWidth: true,
           destroy: false,
           responsive: true,
-          scrollX: false,
-          scrollCollapse: false,
-          scroller: false,
           ajax: {
               method: 'get',
               url: '{* datatable.datasource.name *}?' + url_params,

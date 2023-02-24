@@ -1866,7 +1866,7 @@ end
 function addHTTPInfoToAlertDescr(msg, alert_json, url_only)
    if ((alert_json)
       and (table.len(alert_json["proto"] or {}) > 0)
-      and (table.len(alert_json["proto"]["http"]) > 0)) then
+      and (table.len(alert_json["proto"]["http"] or {}) > 0)) then
 
       local http_info = format_http_info({ http_info = alert_json["proto"]["http"]["last_method"],
                                             last_return_code = alert_json["proto"]["http"]["last_return_code"],
