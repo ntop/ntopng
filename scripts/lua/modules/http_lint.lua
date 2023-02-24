@@ -2603,7 +2603,7 @@ local function clearNotAllowedParams()
       -- a proper redirect
       local allowed_params = {referer = 1,}
 
-      if (table.len(_GET) > 0 or table.len(_POST) > 0) and _SERVER["URI"] then
+      if ((_GET and table.len(_GET) > 0) or (_POST and table.len(_POST) > 0)) and _SERVER["URI"] then
 	 for _, uri in pairs(not_allowed_uris) do
 	    if string.ends(uri, _SERVER["URI"]) then
 	       local param_tables = {_GET or {}, _POST or {}}
