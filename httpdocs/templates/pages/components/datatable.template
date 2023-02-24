@@ -720,8 +720,8 @@
           destroy: true,
           responsive: false,
           scrollX: true,
-          scrollCollapse: true,
-          scroller: true,
+          //scrollCollapse: true,
+          //scroller: true,
           ajax: {
               method: 'get',
               url: '{* datatable.datasource.name *}?' + url_params,
