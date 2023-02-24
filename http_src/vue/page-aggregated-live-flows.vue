@@ -46,9 +46,9 @@ const _i18n = (t) => i18n(t);
 
 const criteria_list_def = [
   { label: _i18n("application_proto"), value: 1, param: "application_protocol" },
-  { label: _i18n("client"), value: 2, param: "client" },
+  /*{ label: _i18n("client"), value: 2, param: "client" },
   { label: _i18n("server"), value: 3, param: "server" },
-  { label: _i18n("client_server"), value: 4, param: "client_server" }
+  { label: _i18n("client_server"), value: 4, param: "client_server" }*/
 ];
 
 const criteria_list = ref(criteria_list_def);
@@ -108,17 +108,19 @@ async function set_datatable_config() {
       columnIndex: 0,
       removeAllEntry: true,
       callbackFunction: (table, value) => {
-        let params = { 
-          ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid ,
-          vlan_id: value.id,
-          aggregation_criteria: selected_criteria.value.param
-
-        };
-        ntopng_url_manager.set_key_to_url('vlan_id', value.id);
-        table.ajax.url(`${url}?${ntopng_url_manager.obj_to_url_params(params)}`);
-        loading.value.show_loading();
-        table.ajax.reload();
-        loading.value.hide_loading();
+        if(value.id != 0) {
+          let params = { 
+            ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid,
+            vlan_id: value.id,
+            aggregation_criteria: selected_criteria.value.param
+          };
+          ntopng_url_manager.set_key_to_url('vlan_id', value.id);
+          table.ajax.url(`${url}?${ntopng_url_manager.obj_to_url_params(params)}`);
+          loading.value.show_loading();
+          table.ajax.reload();
+          loading.value.hide_loading();
+        }
+        
       }
     })
   }
