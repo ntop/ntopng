@@ -91,6 +91,20 @@ static int ntop_host_get_vlan_id(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_host_get_score(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h)
+    lua_pushinteger(vm, h->getScore());
+  else
+    lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static int ntop_host_is_local(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
@@ -356,7 +370,8 @@ static luaL_Reg _ntop_host_reg[] = {
   { "bytes_rcvd",       ntop_host_get_bytes_rcvd       },
   { "bytes",            ntop_host_get_bytes_total      },
   { "l7",               ntop_host_get_l7_stats         },
-
+  { "score",            ntop_host_get_score            },
+  
   { "blacklistHost",    ntop_host_blacklist            },
     
   { "skipVisitedHost",  ntop_skip_visited_host         },
