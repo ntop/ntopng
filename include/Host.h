@@ -668,8 +668,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(NULL); }
 
   void triggerCustomHostAlert(u_int8_t score, char *msg);
-  inline bool     isCustomHostAlertTriggered()          { return(customHostAlert.alertTriggered ? false : true);           }
-  inline bool     isCustomHostScriptAlreadyEvaluated()  { return(customHostAlert.hostAlreadyEvaluated ? false : true);     }
+  inline bool     isCustomHostAlertTriggered()          { return(customHostAlert.alertTriggered ? true : false);           }
+  inline bool     isCustomHostScriptAlreadyEvaluated()  { return(customHostAlert.hostAlreadyEvaluated ? true : false);     }
   inline bool     isCustomHostScriptFirstRun()          { return(customHostAlert.checkAlreadyExecutedOnce ? false : true); }
   inline void     setCustomHostScriptAlreadyEvaluated() { customHostAlert.hostAlreadyEvaluated = 1;                        }
   inline void     setCustomHostScriptAlreadyRun()       { customHostAlert.checkAlreadyExecutedOnce = 1;                    }

@@ -80,6 +80,7 @@ LuaEngine* CustomHostLuaScript::initVM() {
     return(lua);
   }
 }
+
 /* ***************************************************** */
 
 void CustomHostLuaScript::periodicUpdate(Host *h, HostAlert *engaged_alert) {
