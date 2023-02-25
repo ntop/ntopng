@@ -3334,8 +3334,8 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "pid",       getpid());
 #endif
 
-  snprintf(rsp, sizeof(rsp), "%s [%s][%s]",
-	   PACKAGE_OSNAME, PACKAGE_MACHINE, PACKAGE_OS);
+  snprintf(rsp, sizeof(rsp), "%s [%s]",
+	   PACKAGE_OS, PACKAGE_MACHINE);
   lua_push_str_table_entry(vm, "platform", rsp);
   lua_push_str_table_entry(vm, "OS",
 #ifdef WIN32
