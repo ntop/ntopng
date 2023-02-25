@@ -57,6 +57,11 @@ if test -d $HOMEBREW_DIR; then
  LDFLAGS="${LDFLAGS} -L ${HOMEBREW_DIR}/lib"
 fi
 
+if test -f /proc/device-tree/model; then
+  IS_RASPBERRY=`grep Raspberry /proc/device-tree/model|wc -l`
+  CFLAGS="${CFLAGS} -DNTOPNG_EMBEDDED_EDITION"
+  CPPFLAGS="${CPPFLAGS} -DNTOPNG_EMBEDDED_EDITION"
+fi
 
 TODAY=`date +%y%m%d`
 NTOPNG_MAJOR=`echo "${PACKAGE_VERSION}" | cut -d . -f 1`
@@ -65,12 +70,6 @@ NTOPNG_PATCH=`echo "${PACKAGE_VERSION}" | cut -d . -f 3`
 #NTOPNG_SHORT_VERSION="$NTOPNG_MAJOR.$NTOPNG_MINOR.$NTOPNG_PATCH"
 NTOPNG_SHORT_VERSION="$NTOPNG_MAJOR.$NTOPNG_MINOR"
 NTOPNG_VERSION="$NTOPNG_SHORT_VERSION.$TODAY"
-
-if test -f /proc/device-tree/model; then
-  IS_RASPBERRY=`grep Raspberry /proc/device-tree/model|wc -l`
-  CFLAGS="${CFLAGS} -DNTOPNG_EMBEDDED_EDITION"
-  CPPFLAGS="${CPPFLAGS} -DNTOPNG_EMBEDDED_EDITION"
-fi
 
 MACHINE=`uname -m`
 SYSTEM=`uname -s`
@@ -112,7 +111,7 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
    dnl> CXX=clang++ -fsanitize=address -fsanitize-address-use-after-scope
    OSXV=`sw_vers -productVersion`
    if test $SYSTEM = "Darwin"; then
-     OS="MacOSX $OSXV"
+     OS="macOS $OSXV"
    else
      OS=`uname -or | cut -d '-' -f 1`
    fi
@@ -123,22 +122,6 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
             CFLAGS="-fno-color-diagnostics $CFLAGS"
       fi
    fi
-dnl> else
-dnl>   if test $SYSTEM = "Linux"; then
-dnl>     if [ test -f /usr/bin/clang++ ]; then
-dnl>       CC=clang
-dnl>       CXX="clang++ -fpie -fno-color-diagnostics $CLANG_STDLIB"
-dnl>       AC_MSG_RESULT(Using clang++ compiler)
-dnl>     fi
-dnl> 
-dnl>     if [ test -f /etc/redhat-release ]; then
-dnl>       OS=`cat /etc/redhat-release`
-dnl>     else
-dnl>       if [ test -f /usr/bin/lsb_release ]; then
-dnl>         OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
-dnl>       fi
-dnl>     fi
-dnl>   fi
 fi
 
 dnl> Remove spaces
@@ -320,10 +303,10 @@ else
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
     SSL_INC="-I/usr/local/opt/openssl/include"
     SSL_LIB="-L/usr/local/opt/openssl/lib -lssl -lcrypto"
-  elif test -d "/opt/homebrew"; then
+  elif test -d "/opt/homebrew/Cellar/openssl@1.1"; then
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
-    SSL_INC="-I/opt/homebrew/include"
-    SSL_LIB="-L/opt/homebrew/lib -lssl -lcrypto"
+    SSL_INC="-I/opt/homebrew/Cellar/openssl@1.1/include"
+    SSL_LIB="-L/opt/homebrew/Cellar/openssl@1.1/lib -lssl -lcrypto"
   dnl Workaround for FreeBSD
   elif test -f "/usr/lib/libssl.so"; then
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
@@ -398,7 +381,7 @@ AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${PRO_GIT_DATE}", [ntopng professional 
 DUMMY=`cd ./pro; ${MAKE} build`
 PRO_INCS="${PRO_INCS} -I${HERE}/pro -I${HERE}/pro/utils -I${HERE}/pro/third-party/libb64-1.2.1/include"
 
-if test -r "../license/systemId.c"; then :
+if test -r "../license/license.h"; then :
   LICENSEDIR="`pwd`/../license"
   LICENSELIBS="-L${LICENSEDIR} -llicense"
   AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
@@ -435,8 +418,12 @@ if test $SYSTEM = "Linux"; then
        DEBIAN_VERSION=`cat /etc/debian_version`
        OSNAME="Debian $DEBIAN_VERSION"
     else
-      OSNAME=`./config.guess`
-    fi
+        if test -f /etc/redhat-release; then
+          OS=`cat /etc/redhat-release | cut -d '(' -f 1 | awk '{$1=$1};1'`
+        else
+          OS=`./config.guess`
+        fi
+   fi
   fi
 else
 dnl> wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
@@ -446,7 +433,6 @@ dnl> wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=bl
     OSNAME=`./config.guess`
   fi
 fi
-AC_DEFINE_UNQUOTED(PACKAGE_OSNAME, "${OSNAME}", [OS name])
 
 if test $MACHINE = "x86_64"; then
   EXTN="amd64"
