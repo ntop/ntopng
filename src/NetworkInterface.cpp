@@ -4982,12 +4982,12 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     r->elems[r->actNumEntries++].numericValue = h->get_host_pool();
     break;
 
-  case column_tcp_unresp_as_client:
-    r->elems[r->actNumEntries++].numericValue = h->getNumContactedPeersAsClientTCPNoTX();
+  case column_tcp_udp_unresp_as_client:
+    r->elems[r->actNumEntries++].numericValue = h->getNumContactedPeersAsClientTCPUDPNoTX();
     break;
 
-  case column_tcp_unresp_as_server:
-    r->elems[r->actNumEntries++].numericValue = h->getNumContactsFromPeersAsServerTCPNoTX();
+  case column_tcp_udp_unresp_as_server:
+    r->elems[r->actNumEntries++].numericValue = h->getNumContactsFromPeersAsServerTCPUDPNoTX();
     break;
 
     /* Criteria */
@@ -5776,8 +5776,8 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_score_as_client")) retriever->sorter = column_score_as_client, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_score_as_server")) retriever->sorter = column_score_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_pool_id")) retriever->sorter = column_pool_id, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_tcp_unresp_as_client")) retriever->sorter = column_tcp_unresp_as_client, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_tcp_unresp_as_server")) retriever->sorter = column_tcp_unresp_as_server, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_tcp_unresp_as_client")) retriever->sorter = column_tcp_udp_unresp_as_client, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_tcp_unresp_as_server")) retriever->sorter = column_tcp_udp_unresp_as_server, sorter = numericSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
     retriever->sorter = column_traffic, sorter = numericSorter;
@@ -10399,8 +10399,8 @@ struct walk_no_tx_hosts_info {
 /* **************************************************** */
 
 static bool setHostNoTXInfo(lua_State *vm, Host *h) {
-  u_int32_t a = h->getNumContactedPeersAsClientTCPNoTX();
-  u_int32_t b = h->getNumContactsFromPeersAsServerTCPNoTX();
+  u_int32_t a = h->getNumContactedPeersAsClientTCPUDPNoTX();
+  u_int32_t b = h->getNumContactsFromPeersAsServerTCPUDPNoTX();
 
   if((a > 0) || (b > 0)) {
     IpAddress *i = h->get_ip();
@@ -10410,7 +10410,7 @@ static bool setHostNoTXInfo(lua_State *vm, Host *h) {
     
     lua_push_uint32_table_entry(vm, "tcp_num_contacted_peers_as_client", a);
     lua_push_uint32_table_entry(vm, "tcp_num_peers_contacts_rcvd_as_server", b);
-    lua_push_uint32_table_entry(vm, "tcp_num_ports_contacted_as_client", h->getNumContactedTCPServerPortsNoTX());
+    lua_push_uint32_table_entry(vm, "tcp_num_ports_contacted_as_client", h->getNumContactedTCPUDPServerPortsNoTX());
     
     lua_pushstring(vm, label);
     lua_insert(vm, -2);

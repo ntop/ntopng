@@ -46,7 +46,14 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   time_t last_stats_reset;
   std::atomic<u_int32_t> active_alerted_flows;
   u_int8_t view_interface_mac[6];
-  struct ndpi_hll outgoing_hosts_port_with_no_tx_hll, incoming_hosts_port_with_no_tx_hll;
+
+  /*
+    The check below makes sense for TCP as with UDP unidirectional flows
+    (e.g. RTP or syslog) could be legitimate. However in general UDP flows
+    have to be bidirectional too and thus setting a higher (than TCP) threshold
+    should also spot scanners
+  */
+  struct ndpi_hll outgoing_hosts_tcp_udp_port_with_no_tx_hll, incoming_hosts_tcp_udp_port_with_no_tx_hll;
   
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
@@ -106,13 +113,13 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   Country *country;
   VLAN *vlan;
   ObservationPoint *obs_point;
-  ndpi_bitmap *tcp_contacted_ports_no_tx; /* Ports of this host that have been contacted by peers */
+  ndpi_bitmap *tcp_udp_contacted_ports_no_tx; /* Ports of this host that have been contacted by peers */
   OperatingSystem *os; /* Pointer to an instance of operating system, used internally to handle operating system statistics    */
   OSType os_type;      /* Operating system type, equivalent to os->get_os_type(), used by operating system setters and getters */
 
   struct {
     u_int32_t numIngressFlows, numEgressFlows;
-  } unidirectionalTCPFlows;
+  } unidirectionalTCPUDPFlows;
 
   /*
     TCP flows with SYN only, resets or unidirectional UDP flows not sent to broad/multicast addresees
@@ -408,7 +415,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void lua_get_fingerprints(lua_State *vm);
   void lua_get_geoloc(lua_State *vm);
   void lua_blacklisted_flows(lua_State* vm) const;
-  void lua_unidirectional_tcp_flows(lua_State* vm, bool as_subtable) const;
+  void lua_unidirectional_tcp_udp_flows(lua_State* vm, bool as_subtable) const;
   void lua_get_listening_ports(lua_State *vm);
 
   void resolveHostName();
@@ -652,8 +659,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void setRxOnlyHost(bool set_it)         { is_rx_only = set_it; };
   inline bool resetHostTopSites()                 { if(stats) { stats->resetTopSitesData(); return(true); } else return(false);     }
   inline bool isRxOnlyHost()                      { return(is_rx_only && (!isBroadcastHost()) && (!isMulticastHost())); }
-  inline void incUnidirectionalIngressFlows()     { unidirectionalTCPFlows.numIngressFlows++; }
-  inline void incUnidirectionalEgressFlows()      { unidirectionalTCPFlows.numEgressFlows++;  }
+  inline void incUnidirectionalIngressTCPUDPFlows()     { unidirectionalTCPUDPFlows.numIngressFlows++; }
+  inline void incUnidirectionalEgressTCPUDPFlows()      { unidirectionalTCPUDPFlows.numEgressFlows++;  }
 
   virtual void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { ; };
   virtual void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { ; };
@@ -675,14 +682,14 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int8_t getExternalAlertScore()     { return(externalAlert.score);          }
   inline char*    getExternalAlertMessage()   { return(externalAlert.msg);            }
 
-  void setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port);
-  void setUnidirectionalTCPNoTXIngressFlow(IpAddress *ip, u_int16_t port);
+  void setUnidirectionalTCPUDPNoTXEgressFlow(IpAddress *ip, u_int16_t port);
+  void setUnidirectionalTCPUDPNoTXIngressFlow(IpAddress *ip, u_int16_t port);
 
-  inline u_int32_t getNumContactedPeersAsClientTCPNoTX()    { return((u_int32_t)ndpi_hll_count(&outgoing_hosts_port_with_no_tx_hll)); };
-  inline u_int32_t getNumContactsFromPeersAsServerTCPNoTX() { return((u_int32_t)ndpi_hll_count(&incoming_hosts_port_with_no_tx_hll)); };
+  inline u_int32_t getNumContactedPeersAsClientTCPUDPNoTX()    { return((u_int32_t)ndpi_hll_count(&outgoing_hosts_tcp_udp_port_with_no_tx_hll)); };
+  inline u_int32_t getNumContactsFromPeersAsServerTCPUDPNoTX() { return((u_int32_t)ndpi_hll_count(&incoming_hosts_tcp_udp_port_with_no_tx_hll)); };
 
-  inline u_int16_t getNumContactedTCPServerPortsNoTX()       { return(tcp_contacted_ports_no_tx ? (u_int16_t)ndpi_bitmap_cardinality(tcp_contacted_ports_no_tx) : 0); }
-  inline void setContactedTCPServerPortNoTX(u_int16_t port)  { if(tcp_contacted_ports_no_tx) ndpi_bitmap_set(tcp_contacted_ports_no_tx, port);                        }
+  inline u_int16_t getNumContactedTCPUDPServerPortsNoTX()       { return(tcp_udp_contacted_ports_no_tx ? (u_int16_t)ndpi_bitmap_cardinality(tcp_udp_contacted_ports_no_tx) : 0); }
+  inline void setContactedTCPUDPServerPortNoTX(u_int16_t port)  { if(tcp_udp_contacted_ports_no_tx) ndpi_bitmap_set(tcp_udp_contacted_ports_no_tx, port);                        }
 };
 
 #endif /* _HOST_H_ */

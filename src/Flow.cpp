@@ -306,7 +306,7 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-  bool is_oneway_tcp_flow = ((protocol == IPPROTO_TCP) && isOneWay()) ? true : false;
+  bool is_oneway_tcp_udp_flow = (((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) && isOneWay()) ? true : false;
 
   if(getUses() != 0 && !ntop->getGlobals()->isShutdown())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]", __FUNCTION__, getUses());
@@ -330,18 +330,6 @@ Flow::~Flow() {
    */
   Host *cli_u = getViewSharedClient(), *srv_u = getViewSharedServer();
 
-#if 0
-  if(is_oneway_tcp_flow) {
-    if(cli_u->getNumContactedPeersAsClientTCPNoTX() > 10 /* threshold */) {
-      if(srv_u->getNumContactedTCPServerPortsNoTX() < 5 /* threshold */) {
-	/* Possible port/service down on srv_u */
-      } else {
-	/* Possible scan on srv_u, cli_u is scanner */
-      }
-    }
-  }
-#endif
-  
   if(getInterface()->isViewed()) /* Score decrements done here for 'viewed' interfaces to avoid races. */
     decAllFlowScores();
 
@@ -349,8 +337,8 @@ Flow::~Flow() {
     cli_u->decUses(); /* Decrease the number of uses */
     cli_u->decNumFlows(get_last_seen(), true);
 
-    if(is_oneway_tcp_flow)
-      cli_u->incUnidirectionalEgressFlows();
+    if(is_oneway_tcp_udp_flow)
+      cli_u->incUnidirectionalEgressTCPUDPFlows();
   }
 
   if(!cli_host && cli_ip_addr) /* Dynamically allocated only when cli_host was NULL in Flow constructor (viewed interfaces) */
@@ -360,15 +348,15 @@ Flow::~Flow() {
     srv_u->decUses(); /* Decrease the number of uses */
     srv_u->decNumFlows(get_last_seen(), false);
 
-    if(is_oneway_tcp_flow) {
-      srv_u->incUnidirectionalIngressFlows();
+    if(is_oneway_tcp_udp_flow) {
+      srv_u->incUnidirectionalIngressTCPUDPFlows();
 
       if(cli_u) {
 	u_int16_t s_port = ntohs(srv_port);
 	
-	cli_u->setUnidirectionalTCPNoTXEgressFlow(srv_u->get_ip(), s_port);
-	srv_u->setContactedTCPServerPortNoTX(s_port);
-	srv_u->setUnidirectionalTCPNoTXIngressFlow(cli_u->get_ip(), ntohs(srv_port));
+	cli_u->setUnidirectionalTCPUDPNoTXEgressFlow(srv_u->get_ip(), s_port);
+	srv_u->setContactedTCPUDPServerPortNoTX(s_port);
+	srv_u->setUnidirectionalTCPUDPNoTXIngressFlow(cli_u->get_ip(), ntohs(srv_port));
       }
     }
   }

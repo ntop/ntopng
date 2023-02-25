@@ -106,10 +106,10 @@ Host::~Host() {
   iface->decPoolNumHosts(get_host_pool(), false /* Host is deleted offline */);
   if(customHostAlert.msg) free(customHostAlert.msg);
   if(externalAlert.msg)   free(externalAlert.msg);
-  if(tcp_contacted_ports_no_tx) ndpi_bitmap_free(tcp_contacted_ports_no_tx);
+  if(tcp_udp_contacted_ports_no_tx) ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
 
-  ndpi_hll_destroy(&outgoing_hosts_port_with_no_tx_hll);
-  ndpi_hll_destroy(&incoming_hosts_port_with_no_tx_hll);
+  ndpi_hll_destroy(&outgoing_hosts_tcp_udp_port_with_no_tx_hll);
+  ndpi_hll_destroy(&incoming_hosts_tcp_udp_port_with_no_tx_hll);
 }
 
 /* *************************************** */
@@ -305,16 +305,16 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_
   fin_scan.fin_recvd_last_min = fin_scan.finack_sent_last_min  = 0;
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 17);
 
-  memset(&unidirectionalTCPFlows, 0, sizeof(unidirectionalTCPFlows));
+  memset(&unidirectionalTCPUDPFlows, 0, sizeof(unidirectionalTCPUDPFlows));
   memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
   blacklist_name = NULL;
 
   memset(&customHostAlert, 0, sizeof(customHostAlert));
   memset(&externalAlert, 0, sizeof(externalAlert));
 
-  tcp_contacted_ports_no_tx = ndpi_bitmap_alloc();
-  ndpi_hll_init(&outgoing_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
-  ndpi_hll_init(&incoming_hosts_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
+  tcp_udp_contacted_ports_no_tx = ndpi_bitmap_alloc();
+  ndpi_hll_init(&outgoing_hosts_tcp_udp_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
+  ndpi_hll_init(&incoming_hosts_tcp_udp_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
 
   deferredInitialization(); /* TODO To be called asynchronously for improving performance */
 }
@@ -792,11 +792,11 @@ void Host::lua_get_fingerprints(lua_State* vm) {
 
 /* ***************************************************** */
 
-void Host::lua_unidirectional_tcp_flows(lua_State* vm, bool as_subtable) const {
+void Host::lua_unidirectional_tcp_udp_flows(lua_State* vm, bool as_subtable) const {
   lua_newtable(vm);
 
-  lua_push_uint32_table_entry(vm, "num_ingress", unidirectionalTCPFlows.numIngressFlows);
-  lua_push_uint32_table_entry(vm, "num_egress", unidirectionalTCPFlows.numEgressFlows);
+  lua_push_uint32_table_entry(vm, "num_ingress", unidirectionalTCPUDPFlows.numIngressFlows);
+  lua_push_uint32_table_entry(vm, "num_egress", unidirectionalTCPUDPFlows.numEgressFlows);
 
   if(as_subtable) {
     lua_pushstring(vm, "num_unidirectional_tcp_flows");
@@ -885,10 +885,10 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_float_table_entry(vm, "bytes_ratio", ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()));
   lua_push_float_table_entry(vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
 
-  lua_push_int32_table_entry(vm, "num_contacted_peers_with_tcp_flows_no_response",
-			     getNumContactedPeersAsClientTCPNoTX());
-  lua_push_int32_table_entry(vm, "num_incoming_peers_that_sent_tcp_flows_no_response",
-			     getNumContactsFromPeersAsServerTCPNoTX());
+  lua_push_int32_table_entry(vm, "num_contacted_peers_with_tcp_udp_flows_no_response",
+			     getNumContactedPeersAsClientTCPUDPNoTX());
+  lua_push_int32_table_entry(vm, "num_incoming_peers_that_sent_tcp_udp_flows_no_response",
+			     getNumContactsFromPeersAsServerTCPUDPNoTX());
 
   if(device_ip != 0)
     lua_push_str_table_entry(vm, "device_ip", Utils::intoaV4(device_ip, buf, sizeof(buf)));
@@ -905,7 +905,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   luaTCP(vm);
   luaICMP(vm, get_ip()->isIPv4(), false);
 
-  lua_unidirectional_tcp_flows(vm, true);
+  lua_unidirectional_tcp_udp_flows(vm, true);
 
   if(host_details) {
     lua_get_score_breakdown(vm);
@@ -2430,12 +2430,12 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
     break;
 
   case HOSTS_TCP_FLOWS_UNIDIRECTIONAL:
-    tot = unidirectionalTCPFlows.numIngressFlows + unidirectionalTCPFlows.numEgressFlows;
+    tot = unidirectionalTCPUDPFlows.numIngressFlows + unidirectionalTCPUDPFlows.numEgressFlows;
 
     if(tot > 0)
       v->push_back(ActiveHostWalkerInfo(key, label,
-					unidirectionalTCPFlows.numEgressFlows,
-					unidirectionalTCPFlows.numIngressFlows,
+					unidirectionalTCPUDPFlows.numEgressFlows,
+					unidirectionalTCPUDPFlows.numIngressFlows,
 					tot));
     break;
   }
@@ -2564,19 +2564,19 @@ void Host::resetExternalAlert() {
 
 /*
   Used to estimate the cardinality of <server, server_port> contacted
-  by this host over TCP and with no data received or connection refused
+  by this host over TCP or UDP and with no data received or connection refused
 */
-void Host::setUnidirectionalTCPNoTXEgressFlow(IpAddress *ip, u_int16_t port) {
-  ndpi_hll_add_number(&outgoing_hosts_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
+void Host::setUnidirectionalTCPUDPNoTXEgressFlow(IpAddress *ip, u_int16_t port) {
+  ndpi_hll_add_number(&outgoing_hosts_tcp_udp_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
 }
 
 /* *************************************** */
 
 /*
   Used to estimate the cardinality of <client, server_port> that contacted
-  this host over TCP and with no data replied (i.e. this host has not replied them back)
+  this host over TCP or UDP and with no data replied (i.e. this host has not replied them back)
 */
-void Host::setUnidirectionalTCPNoTXIngressFlow(IpAddress *ip, u_int16_t port) {
-  ndpi_hll_add_number(&incoming_hosts_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
+void Host::setUnidirectionalTCPUDPNoTXIngressFlow(IpAddress *ip, u_int16_t port) {
+  ndpi_hll_add_number(&incoming_hosts_tcp_udp_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
 }
 

@@ -286,12 +286,12 @@ static int ntop_trigger_host_alert(lua_State* vm) {
 
 /* **************************************************************** */
 
-static int ntop_get_num_contacted_peers_as_client_tcp_notx(lua_State* vm) {
+static int ntop_get_num_contacted_peers_as_client_tcp_udp_notx(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if(h)
-    lua_pushinteger(vm, h->getNumContactedPeersAsClientTCPNoTX());
+    lua_pushinteger(vm, h->getNumContactedPeersAsClientTCPUDPNoTX());
   else
     lua_pushnil(vm);
 
@@ -300,12 +300,12 @@ static int ntop_get_num_contacted_peers_as_client_tcp_notx(lua_State* vm) {
 
 /* **************************************************************** */
 
-static int ntop_get_unidirectional_tcp_flows_stats(lua_State* vm) {
+static int ntop_get_unidirectional_tcp_udp_flows_stats(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if(h)
-    h->lua_unidirectional_tcp_flows(vm, false);
+    h->lua_unidirectional_tcp_udp_flows(vm, false);
   else
     lua_pushnil(vm);
 
@@ -314,12 +314,12 @@ static int ntop_get_unidirectional_tcp_flows_stats(lua_State* vm) {
 
 /* **************************************************************** */
 
-static int ntop_get_num_contacts_from_peers_as_server_tcp_notx(lua_State* vm) {
+static int ntop_get_num_contacts_from_peers_as_server_tcp_udp_notx(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if(h)
-    lua_pushinteger(vm, h->getNumContactsFromPeersAsServerTCPNoTX());
+    lua_pushinteger(vm, h->getNumContactsFromPeersAsServerTCPUDPNoTX());
   else
     lua_pushnil(vm);
 
@@ -328,12 +328,12 @@ static int ntop_get_num_contacts_from_peers_as_server_tcp_notx(lua_State* vm) {
 
 /* **************************************************************** */
 
-static int ntop_get_num_contacted_tcp_server_ports_notx(lua_State* vm) {
+static int ntop_get_num_contacted_tcp_udp_server_ports_notx(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if(h)
-    lua_pushinteger(vm, h->getNumContactedTCPServerPortsNoTX());
+    lua_pushinteger(vm, h->getNumContactedTCPUDPServerPortsNoTX());
   else
     lua_pushnil(vm);
 
@@ -377,11 +377,11 @@ static luaL_Reg _ntop_host_reg[] = {
   { "skipVisitedHost",  ntop_skip_visited_host         },
   { "triggerAlert",     ntop_trigger_host_alert        },
 
-  { "isFirstCheckRun",                        ntop_is_first_check_run                             },
-  { "getUnidirectionalTCPFlowsStats",         ntop_get_unidirectional_tcp_flows_stats             },
-  { "getNumContactedPeersAsClientTCPNoTX",    ntop_get_num_contacted_peers_as_client_tcp_notx     },
-  { "getNumContactsFromPeersAsServerTCPNoTX", ntop_get_num_contacts_from_peers_as_server_tcp_notx },
-  { "getNumContactedTCPServerPortsNoTX",      ntop_get_num_contacted_tcp_server_ports_notx        },
+  { "isFirstCheckRun",                           ntop_is_first_check_run                                 },
+  { "getUnidirectionalTCPUDPFlowsStats",         ntop_get_unidirectional_tcp_udp_flows_stats             },
+  { "getNumContactedPeersAsClientTCPUDPNoTX",    ntop_get_num_contacted_peers_as_client_tcp_udp_notx     },
+  { "getNumContactsFromPeersAsServerTCPUDPNoTX", ntop_get_num_contacts_from_peers_as_server_tcp_udp_notx },
+  { "getNumContactedTCPUDPServerPortsNoTX",      ntop_get_num_contacted_tcp_udp_server_ports_notx        },
 
   { NULL,               NULL                           }
 };
