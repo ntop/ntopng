@@ -122,22 +122,6 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
             CFLAGS="-fno-color-diagnostics $CFLAGS"
       fi
    fi
-dnl> else
-dnl>   if test $SYSTEM = "Linux"; then
-dnl>     if [ test -f /usr/bin/clang++ ]; then
-dnl>       CC=clang
-dnl>       CXX="clang++ -fpie -fno-color-diagnostics $CLANG_STDLIB"
-dnl>       AC_MSG_RESULT(Using clang++ compiler)
-dnl>     fi
-dnl> 
-dnl>     if [ test -f /etc/redhat-release ]; then
-dnl>       OS=`cat /etc/redhat-release`
-dnl>     else
-dnl>       if [ test -f /usr/bin/lsb_release ]; then
-dnl>         OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
-dnl>       fi
-dnl>     fi
-dnl>   fi
 fi
 
 dnl> Remove spaces
@@ -435,11 +419,10 @@ if test $SYSTEM = "Linux"; then
        OSNAME="Debian $DEBIAN_VERSION"
     else
         if test -f /etc/redhat-release; then
-          OSNAME=`cat /etc/redhat-release | cut -d '(' -f 1`
+          OS=`cat /etc/redhat-release | cut -d '(' -f 1 | awk '{$1=$1};1'`
         else
-          OSNAME=`./config.guess`
+          OS=`./config.guess`
         fi
-
    fi
   fi
 else
@@ -450,7 +433,6 @@ dnl> wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=bl
     OSNAME=`./config.guess`
   fi
 fi
-AC_DEFINE_UNQUOTED(PACKAGE_OSNAME, "${OSNAME}", [OS name])
 
 if test $MACHINE = "x86_64"; then
   EXTN="amd64"
