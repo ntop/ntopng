@@ -104,6 +104,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* Need atomic as inc/dec done on different threads */
   u_int32_t asn;
+
   struct {
     u_int32_t as_client/* this host contacted a blacklisted host */, as_server /* a blacklisted host contacted me */;
     u_int32_t checkpoint_as_client, checkpoint_as_server;
@@ -671,7 +672,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline bool     isCustomHostAlertTriggered()          { return(customHostAlert.alertTriggered ? true : false);           }
   inline bool     isCustomHostScriptAlreadyEvaluated()  { return(customHostAlert.hostAlreadyEvaluated ? true : false);     }
   inline bool     isCustomHostScriptFirstRun()          { return(customHostAlert.checkAlreadyExecutedOnce ? false : true); }
-  inline void     setCustomHostScriptAlreadyEvaluated() { customHostAlert.hostAlreadyEvaluated = 1;                        }
+  inline void     setCustomHostScriptAlreadyEvaluated(bool s) { customHostAlert.hostAlreadyEvaluated = s ? 1 : 0;          }
   inline void     setCustomHostScriptAlreadyRun()       { customHostAlert.checkAlreadyExecutedOnce = 1;                    }
   inline u_int8_t getCustomHostAlertScore()             { return(customHostAlert.score);                                   }
   inline char*    getCustomHostAlertMessage()           { return(customHostAlert.msg);                                     }
@@ -690,6 +691,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   inline u_int16_t getNumContactedTCPUDPServerPortsNoTX()       { return(tcp_udp_contacted_ports_no_tx ? (u_int16_t)ndpi_bitmap_cardinality(tcp_udp_contacted_ports_no_tx) : 0); }
   inline void setContactedTCPUDPServerPortNoTX(u_int16_t port)  { if(tcp_udp_contacted_ports_no_tx) ndpi_bitmap_set(tcp_udp_contacted_ports_no_tx, port);                        }
+
+  void resetHostContacts();
 };
 
 #endif /* _HOST_H_ */

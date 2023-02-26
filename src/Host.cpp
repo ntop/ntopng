@@ -2580,3 +2580,10 @@ void Host::setUnidirectionalTCPUDPNoTXIngressFlow(IpAddress *ip, u_int16_t port)
   ndpi_hll_add_number(&incoming_hosts_tcp_udp_port_with_no_tx_hll, ip->key() + (port << 8)); // Simple hash
 }
 
+/* *************************************** */
+
+void Host::resetHostContacts() {
+  ndpi_hll_reset(&outgoing_hosts_tcp_udp_port_with_no_tx_hll);
+  ndpi_hll_reset(&incoming_hosts_tcp_udp_port_with_no_tx_hll);
+  ndpi_bitmap_clear(tcp_udp_contacted_ports_no_tx);  
+}

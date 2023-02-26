@@ -253,9 +253,15 @@ static int ntop_skip_visited_host(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
-  if(h)
-    h->setCustomHostScriptAlreadyEvaluated();
-
+  if(h) {
+    bool skip_host = false;
+    
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) == CONST_LUA_OK)
+      skip_host = (bool)lua_toboolean(vm, 1);
+    
+    h->setCustomHostScriptAlreadyEvaluated(skip_host);
+  }
+  
   lua_pushnil(vm);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -342,6 +348,20 @@ static int ntop_get_num_contacted_tcp_udp_server_ports_notx(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ntop_reset_host_contacts(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *h = c ? c->host : NULL;
+
+  if(h)
+    h->resetHostContacts();
+
+  lua_pushnil(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static int ntop_is_first_check_run(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
@@ -382,7 +402,7 @@ static luaL_Reg _ntop_host_reg[] = {
   { "getNumContactedPeersAsClientTCPUDPNoTX",    ntop_get_num_contacted_peers_as_client_tcp_udp_notx     },
   { "getNumContactsFromPeersAsServerTCPUDPNoTX", ntop_get_num_contacts_from_peers_as_server_tcp_udp_notx },
   { "getNumContactedTCPUDPServerPortsNoTX",      ntop_get_num_contacted_tcp_udp_server_ports_notx        },
-
+  { "resetHostContacts",                         ntop_reset_host_contacts                                },
   { NULL,               NULL                           }
 };
 
