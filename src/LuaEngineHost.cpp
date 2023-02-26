@@ -255,11 +255,17 @@ static int ntop_skip_visited_host(lua_State* vm) {
 
   if(h) {
     bool skip_host = false;
-    
-    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) == CONST_LUA_OK)
+    u_int32_t skip_until = (u_int32_t)-1; /* Forever */;
+
+    /* Optional arguments */
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) == CONST_LUA_OK) {
       skip_host = (bool)lua_toboolean(vm, 1);
     
-    h->setCustomHostScriptAlreadyEvaluated(skip_host);
+      if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) == CONST_LUA_OK)
+	skip_until = (u_int32_t)lua_tonumber(vm, 2);
+    }
+    
+    h->setCustomHostScriptAlreadyEvaluated(skip_host, skip_until);
   }
   
   lua_pushnil(vm);

@@ -131,6 +131,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   struct {
     u_int8_t alertTriggered:1, hostAlreadyEvaluated:1, checkAlreadyExecutedOnce:1, _not_used:7;
     u_int8_t score;
+    u_int32_t skip_until_epoch;
     char *msg;
   } customHostAlert;
 
@@ -670,9 +671,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   void triggerCustomHostAlert(u_int8_t score, char *msg);
   inline bool     isCustomHostAlertTriggered()          { return(customHostAlert.alertTriggered ? true : false);           }
-  inline bool     isCustomHostScriptAlreadyEvaluated()  { return(customHostAlert.hostAlreadyEvaluated ? true : false);     }
+  inline bool     isCustomHostScriptAlreadyEvaluated(time_t when)  {
+    return((customHostAlert.hostAlreadyEvaluated && (customHostAlert.skip_until_epoch < when)) ? true : false);
+  }
   inline bool     isCustomHostScriptFirstRun()          { return(customHostAlert.checkAlreadyExecutedOnce ? false : true); }
-  inline void     setCustomHostScriptAlreadyEvaluated(bool s) { customHostAlert.hostAlreadyEvaluated = s ? 1 : 0;          }
+  inline void     setCustomHostScriptAlreadyEvaluated(bool s, u_int32_t skip_until) {
+    customHostAlert.hostAlreadyEvaluated = s ? 1 : 0, customHostAlert.skip_until_epoch = skip_until; }
   inline void     setCustomHostScriptAlreadyRun()       { customHostAlert.checkAlreadyExecutedOnce = 1;                    }
   inline u_int8_t getCustomHostAlertScore()             { return(customHostAlert.score);                                   }
   inline char*    getCustomHostAlertMessage()           { return(customHostAlert.msg);                                     }

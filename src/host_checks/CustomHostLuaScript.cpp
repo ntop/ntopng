@@ -90,7 +90,7 @@ void CustomHostLuaScript::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     return;
   else {
     /* Ignore host for which this script has been already visited */
-    if(h->isCustomHostScriptAlreadyEvaluated())
+    if(h->isCustomHostScriptAlreadyEvaluated(h->getInterface()->getTimeLastPktRcvd()))
       return;
 
     lua = h->getInterface()->getCustomHostLuaScript();

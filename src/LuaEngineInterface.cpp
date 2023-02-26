@@ -1046,13 +1046,13 @@ static int ntop_interface_alert_store_query(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   /* Query */
-  if (lua_type(vm, 1) == LUA_TSTRING) {
-    query = (char*)lua_tostring(vm, 1);
-  }
+  if (lua_type(vm, 1) == LUA_TSTRING)
+    query = (char*)lua_tostring(vm, 1);  
 
   /* Optional: interface id */
   if (lua_type(vm, 2) == LUA_TNUMBER) {
     int ifid = lua_tointeger(vm, 2);
+    
     iface = ntop->getInterfaceById(ifid);
   }
 
