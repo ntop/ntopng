@@ -32,18 +32,20 @@ class AddressTree {
   ndpi_patricia_tree_t* getPatricia(char* what);
   ndpi_patricia_tree_t *ptree_v4, *ptree_v6;
   std::map<u_int64_t, int16_t> macs;
+  ndpi_void_fn_t free_func;
+
   void removePrefix(bool isV4, ndpi_prefix_t* prefix);
   static void walk(ndpi_patricia_tree_t *ptree, ndpi_void_fn3_t func, void * const user_data);
   static bool removePrefix(ndpi_patricia_tree_t *ptree, ndpi_prefix_t* prefix);
+  void cleanup(ndpi_void_fn_t free_func);
 
  public:
-  AddressTree(bool handleIPv6 = true);
-  AddressTree(const AddressTree &at);
+  AddressTree(bool handleIPv6 = true, ndpi_void_fn_t data_free_func = NULL);
+  AddressTree(const AddressTree &at, ndpi_void_fn_t data_free_func = NULL);
   virtual ~AddressTree();
 
   void init(bool handleIPv6);
   void cleanup();
-  void cleanup(ndpi_void_fn_t free_func);
 
   inline u_int32_t getNumAddresses()     const { return(numAddresses);     }
   inline u_int32_t getNumAddressesIPv4() const { return(numAddressesIPv4); }

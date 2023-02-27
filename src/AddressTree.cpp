@@ -23,11 +23,29 @@
 
 /* **************************************** */
 
-AddressTree::AddressTree(bool handleIPv6) { init(handleIPv6); }
+static void free_ptree_data(void *data) {
+  if(data) free(data);
+}
 
 /* **************************************** */
 
-AddressTree::AddressTree(const AddressTree &at) {
+AddressTree::AddressTree(bool handleIPv6, ndpi_void_fn_t data_free_func) {
+  if (data_free_func)
+    free_func = data_free_func;
+  else
+    free_func = free_ptree_data;
+
+  init(handleIPv6);
+}
+
+/* **************************************** */
+
+AddressTree::AddressTree(const AddressTree &at, ndpi_void_fn_t data_free_func) {
+  if (data_free_func)
+    free_func = data_free_func;
+  else
+    free_func = free_ptree_data;
+
   ptree_v4 = ndpi_patricia_clone(at.ptree_v4);
 
   if(at.ptree_v6)
@@ -39,12 +57,6 @@ AddressTree::AddressTree(const AddressTree &at) {
   numAddresses = at.numAddresses;
   numAddressesIPv4 = at.numAddressesIPv4;
   numAddressesIPv6 = at.numAddressesIPv6;
-}
-
-/* **************************************** */
-
-static void free_ptree_data(void *data) {
-  if(data) free(data);
 }
 
 /* **************************************** */
@@ -484,14 +496,14 @@ void AddressTree::dump() {
 
 /* **************************************************** */
 
-void AddressTree::cleanup(ndpi_void_fn_t free_func) {
+void AddressTree::cleanup(ndpi_void_fn_t _free_func) {
   if(ptree_v4) {
-    ndpi_patricia_destroy(ptree_v4, free_func);
+    ndpi_patricia_destroy(ptree_v4, _free_func);
     ptree_v4 = NULL;
   }
 
   if(ptree_v6) {
-    ndpi_patricia_destroy(ptree_v6, free_func);
+    ndpi_patricia_destroy(ptree_v6, _free_func);
     ptree_v6 = NULL;
   }
 
@@ -501,7 +513,7 @@ void AddressTree::cleanup(ndpi_void_fn_t free_func) {
 /* **************************************************** */
 
 void AddressTree::cleanup() {
-  cleanup(free_ptree_data);
+  cleanup(free_func);
 }
 
 /* **************************************************** */

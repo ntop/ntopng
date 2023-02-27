@@ -42,9 +42,10 @@ inline u_int16_t filterVLANid(VLANid id)             { return((u_int16_t)(id & 0
 class VLANAddressTree {
  protected:
   AddressTree **tree;
+  ndpi_void_fn_t free_func;
 
  public:
-  VLANAddressTree();
+  VLANAddressTree(ndpi_void_fn_t data_free_func = NULL);
   ~VLANAddressTree();
 
   bool addAddress(VLANid vlan_id, char *_net, const int16_t user_data = -1);
