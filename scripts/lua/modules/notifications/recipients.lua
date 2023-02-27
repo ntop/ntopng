@@ -10,9 +10,6 @@ local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local alert_entities = require "alert_entities"
 local checks = require "checks"
-
-local host_pools = require "host_pools":create()
-
 local endpoints = require("endpoints")
 local last_error_notification = 0
 local MIN_ERROR_DELAY = 60 -- 1 minute
@@ -65,6 +62,7 @@ function recipients.initialize()
       all_entities[#all_entities + 1] = entity_info.entity_id
    end
 
+   local host_pools = require "host_pools":create()
    -- Add host pools
    local all_host_pools = {}
    local pools = host_pools:get_all_pools()
@@ -616,6 +614,7 @@ function recipients.get_recipient(recipient_id, include_stats)
 
          -- Add host pools
          if not recipient_details["host_pools"] then
+            local host_pools = require "host_pools":create()
             local pools = host_pools:get_all_pools()
 
             if(recipient_details["host_pools"] == nil) then
