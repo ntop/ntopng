@@ -58,7 +58,7 @@ if test -d $HOMEBREW_DIR; then
 fi
 
 if test -f /proc/device-tree/model; then
-  IS_RASPBERRY=`grep Raspberry /proc/device-tree/model|wc -l`
+  IS_RASPBERRY=`cat /proc/device-tree/model | grep -a -e "Orange Pi" -e Raspberry | wc -l`
   
   if test "$IS_RASPBERRY" = "1"; then
     CFLAGS="${CFLAGS} -DNTOPNG_EMBEDDED_EDITION"
