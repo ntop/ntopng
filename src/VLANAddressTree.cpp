@@ -23,7 +23,8 @@
 
 /* **************************************** */
 
-VLANAddressTree::VLANAddressTree() {
+VLANAddressTree::VLANAddressTree(ndpi_void_fn_t data_free_func) {
+  free_func = data_free_func;
   tree = new (std::nothrow) AddressTree*[MAX_NUM_VLAN];
   memset(tree, 0, sizeof(AddressTree*) * MAX_NUM_VLAN);
 }
@@ -43,7 +44,7 @@ VLANAddressTree::~VLANAddressTree() {
 bool VLANAddressTree::addAddress(u_int16_t vlan_id, char *_net, const int16_t user_data) {
   vlan_id &= 0xFFF; /* Make sure we use 12 bits */
   
-  if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree()))
+  if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree(true, free_func)))
     return tree[vlan_id]->addAddress(_net, user_data);
 
   return false;
@@ -54,7 +55,7 @@ bool VLANAddressTree::addAddress(u_int16_t vlan_id, char *_net, const int16_t us
 bool VLANAddressTree::addVLANAddressAndData(u_int16_t vlan_id, const char *_what, void *user_data) {
   vlan_id &= 0xFFF; /* Make sure we use 12 bits */
   
-  if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree()))
+  if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree(true, free_func)))
     return tree[vlan_id]->addAddressAndData(_what, user_data);
 
   return false;
@@ -65,7 +66,7 @@ bool VLANAddressTree::addVLANAddressAndData(u_int16_t vlan_id, const char *_what
 bool VLANAddressTree::addAddresses(u_int16_t vlan_id, char *net, const int16_t user_data) {
   vlan_id &= 0xFFF; /* Make sure we use 12 bits */
   
-  if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree()))
+  if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree(true, free_func)))
     return tree[vlan_id]->addAddresses(net, user_data);
 
   return false;

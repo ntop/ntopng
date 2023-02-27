@@ -28,9 +28,10 @@ class AddressTree;
 class VLANAddressTree {
  protected:
   AddressTree **tree;
+  ndpi_void_fn_t free_func;
 
  public:
-  VLANAddressTree();
+  VLANAddressTree(ndpi_void_fn_t data_free_func = NULL);
   ~VLANAddressTree();
 
   bool addAddress(u_int16_t vlan_id, char *_net, const int16_t user_data = -1);
