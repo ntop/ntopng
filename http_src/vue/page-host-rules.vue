@@ -28,7 +28,8 @@
             :interface_metric_list="interface_metric_list"
             :frequency_list="frequency_list"
             :init_func="init_edit"
-            @add="add_host_rule">
+            @add="add_host_rule"
+            @edit="edit">
           </ModalAddHostRules>
           
           <Datatable ref="table_host_rules"
@@ -114,9 +115,15 @@ const load_selected_field = function(row) {
   
   row_to_delete.value = row;
 
-  modal_add_host_rule.value.metricsLoaded(metric_list, ifid_list, interface_metric_list, init_edit, delete_row);
-  modal_add_host_rule.value.show();
+  //modal_add_host_rule.value.metricsLoaded(metric_list, ifid_list, interface_metric_list, init_edit, delete_row);
+  modal_add_host_rule.value.show(row);
 
+}
+
+async function edit(params) {
+  await delete_row();
+
+  await add_host_rule(params);
 }
 
 const init_edit = function() {
@@ -176,7 +183,7 @@ const add_action_column = function (rowData) {
   }
   
   return DataTableUtils.createActionButtons([
-    { class: `btn-secondary`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit') },
+    { class: `btn`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit') },
 	  { class: `btn-danger`, handler: delete_handler, icon: 'fa-trash', title: i18n('delete') },
 	]);
 }
