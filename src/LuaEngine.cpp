@@ -92,6 +92,7 @@ LuaEngine::LuaEngine(lua_State *vm) {
   void *ctx;
 
   loaded_script_path = NULL;
+  is_system_vm = false;
 
   L = luaL_newstate();
 
