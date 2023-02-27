@@ -53,6 +53,7 @@ LuaEngine* CustomFlowLuaScript::initVM(const char *script_path) {
       lua->load_script((char*)where, NULL /* NetworkInterface filled later via lua->setFlow(f); */);
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loaded custom user script %s", where);
     } catch(std::bad_alloc& ba) {
+      lua = NULL;
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start Lua interpreter.");
     }
 
