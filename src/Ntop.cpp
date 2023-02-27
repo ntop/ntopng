@@ -1401,7 +1401,7 @@ void Ntop::getUserGroupLocal(const char * user, char *group) const {
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
 
-  strncpy(group, ((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : NTOP_UNKNOWN_GROUP), NTOP_GROUP_MAXLEN);
+  strncpy(group, ((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : NTOP_UNKNOWN_GROUP), NTOP_GROUP_MAXLEN-1);
   group[NTOP_GROUP_MAXLEN - 1] = '\0';
 }
 

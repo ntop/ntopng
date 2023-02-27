@@ -2265,7 +2265,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 
   setTimeLastPktRcvd(h->ts.tv_sec);
 
-  if(last_purge_idle != h->ts.tv_sec) {
+  if(last_purge_idle != (u_int32_t)h->ts.tv_sec) {
     if(!read_from_pcap_dump())
       purgeIdle(h->ts.tv_sec);
     last_purge_idle = h->ts.tv_sec;
@@ -8783,7 +8783,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 
       num_found++;
 
-      if((c->live_capture.capture_until < h->ts.tv_sec) || c->live_capture.stopped)
+      if((c->live_capture.capture_until < (u_int32_t)h->ts.tv_sec) || c->live_capture.stopped)
 	http_client_disconnected = true, disconnect_stage = 1;
 
 #ifdef TRACE_DOWNLOAD
@@ -10115,7 +10115,7 @@ int NetworkInterface::walkActiveHosts(lua_State* vm,
 
 #ifdef NTOPNG_PRO
 void NetworkInterface::checkDHCPStorm(time_t when, u_int32_t num_pkts) {
-  if(last_sec_epoch == when)
+  if(last_sec_epoch == (u_int32_t)when)
     dhcp_last_sec_pkts += num_pkts;
   else {
     if(dhcp_last_sec_pkts > DHCP_STORM_PPS_THSHOLD) {
