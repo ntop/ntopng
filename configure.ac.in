@@ -59,8 +59,12 @@ fi
 
 if test -f /proc/device-tree/model; then
   IS_RASPBERRY=`grep Raspberry /proc/device-tree/model|wc -l`
-  CFLAGS="${CFLAGS} -DNTOPNG_EMBEDDED_EDITION"
-  CPPFLAGS="${CPPFLAGS} -DNTOPNG_EMBEDDED_EDITION"
+  
+  if test "$IS_RASPBERRY" = "1"; then
+    CFLAGS="${CFLAGS} -DNTOPNG_EMBEDDED_EDITION"
+    CPPFLAGS="${CPPFLAGS} -DNTOPNG_EMBEDDED_EDITION"
+    AC_DEFINE(HAVE_RASPBERRY, 1, [rPI detected])
+  fi
 fi
 
 TODAY=`date +%y%m%d`

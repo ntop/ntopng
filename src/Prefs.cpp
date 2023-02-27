@@ -1095,7 +1095,13 @@ static void printVersionInformation() {
 
 #ifdef NTOPNG_PRO
     printf("Pro rev:\t%s\n", NTOPNG_PRO_GIT_RELEASE);
-    printf("Built on:\t%s\n", PACKAGE_OS);
+    printf("Built on:\t%s%s\n", PACKAGE_OS,
+#ifdef HAVE_RASPBERRY
+	   " [Raspberry]"
+#else
+	   ""
+#endif
+	   );
 
     printf("System Id:\t%s\n", ntop->getPro()->get_system_id());
     printf("Platform:\t%s\n", PACKAGE_MACHINE);
