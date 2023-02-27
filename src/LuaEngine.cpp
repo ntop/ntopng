@@ -91,6 +91,7 @@ LuaEngine::LuaEngine(lua_State *vm) {
   std::bad_alloc bax;
   void *ctx;
 
+  is_system_vm = false;
   loaded_script_path = NULL;
 
   L = luaL_newstate();
