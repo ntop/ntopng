@@ -858,14 +858,14 @@ local function label2formattedlabel(alt_name, host_info, show_vlan, shorten_len)
 
       -- Special shorting function for IP addresses
       if res ~= ip then
-	 if shorten_len == false then
-	    -- Don't touch the string, requested as-is without shortening
-	 elseif tonumber(shorten_len) then
-	    -- Shorten according to the specified length
-	    res = shortenString(res, shorten_len)
-	 else
-	    -- Use the default system-wide setting for the shortening
-	    res = shortenString(res, shorten_len)
+         if (not shorten_len) or (shorten_len == false) then
+            -- Don't touch the string, requested as-is without shortening
+         elseif tonumber(shorten_len) then
+            -- Shorten according to the specified length
+            res = shortenString(res, shorten_len)
+         else
+            -- Use the default system-wide setting for the shortening
+            res = shortenString(res)
          end
       end
 

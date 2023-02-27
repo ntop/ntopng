@@ -402,6 +402,12 @@ function shortenString(name, max_len)
       if(max_len == nil) then max_len = 24 end
    end
 
+   -- Error, max_len is not a number, print an error and return the name
+   if not tonumber(max_len) then
+      traceError(TRACE_DEBUG, TRACE_CONSOLE, "Length parameter is not a number.")
+      tprint(debug.traceback())
+      return name
+   end
    if(string.len(name) < max_len + 1 --[[ The space taken by the ellipsis --]]) then
       return(name)
    else
