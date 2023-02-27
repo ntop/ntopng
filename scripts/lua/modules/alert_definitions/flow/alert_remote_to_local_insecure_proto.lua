@@ -42,10 +42,25 @@ end
 -- #######################################################
 
 function alert_remote_to_local_insecure_proto.format(ifid, alert, alert_type_params)
-   return i18n("alert_messages.remote_to_local_insecure_proto", {
-		  ndpi_breed = formatBreed(alert_type_params.ndpi_breed_name),
-		  ndpi_category = alert_type_params.ndpi_category_name,
-   })
+   
+   local alert_message = i18n("alert_messages.remote_to_local_insecure_proto")
+   local ndpi_breed = formatBreed(alert_type_params.ndpi_breed_name)
+   local ndpi_cateogory = alert_type_params.ndpi_category_name;
+
+   if(not isEmptyString(ndpi_cateogory)) then
+      alert_message = alert_message .. i18n("alert_messages.remote_to_local_insecure_proto_category_info", {
+         ndpi_category = ndpi_cateogory
+      })
+   end
+
+   if(not isEmptyString(ndpi_breed)) then
+      alert_message = alert_message .. i18n("alert_messages.remote_to_local_insecure_proto_breed_info", {
+         ndpi_breed = ndpi_breed
+      })
+   end
+
+   return alert_message
+   
 end
 
 -- #######################################################
