@@ -1898,6 +1898,16 @@ local lang = {
     ["reset_alert_database"] = "Flush Alerts Data",
     ["reset_alert_database_message"] = "Diese Handlung entfert alle Alarme in Bezug der Daten, einschlietlsich<ul><li>Runtime alerts status</li><li>Alerts configuration</li><li>Persistent alerts SQLite storage</li></ul><br>Do you really want to proceed",
     ["startup"] = "Startup",
+    ["presets"] = {
+      ["day"] = "Letzte Tag",
+      ["hour"] = "Letzte Stunlang.",
+      ["month"] = "Letzte Monat",
+      ["week"] = "Letzte Woche",
+      ["year"] = "Letzte Jahr",
+      ["30_min"] = "Letzte 30 Minuten",
+      ["5_min"] = "Letzte 5 Minuten",
+      ["custom"] = "Custom",
+    }
   },
   ["snmp"] = {
     ["bound_interface_description"] = "Eine Verbingung zwischen eine Netzwerk interface und eine SNMP interface ist nützlich um den durch ntopng überwachten Netzwerkverkehr mit dem von SNMP gemeldeteten Netzwerkverkehr zu vergleichen",
