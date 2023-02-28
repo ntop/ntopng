@@ -26,7 +26,7 @@ if influxdb_export_api.isInfluxdbEnabled() then
         )
 
         alert_type:set_score_error()
-        alert_type:set_granularity(alert_consts.alerts_granularities.min)
+        alert_type:set_granularity("min")
 
         alert_type:store(alerts_api.systemEntity())
     end
