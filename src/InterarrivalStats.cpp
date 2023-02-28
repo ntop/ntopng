@@ -21,11 +21,18 @@
 
 #include "ntop_includes.h"
 
+/* ******************************************** */
+
 InterarrivalStats::InterarrivalStats() {
   memset(&lastTime, 0, sizeof(lastTime));
   ndpi_init_data_analysis(&delta_ms, 0);
 }
 
+/* ******************************************** */
+
+InterarrivalStats::~InterarrivalStats() {
+  ndpi_free_data_analysis(&delta_ms, 0);
+}
 /* ******************************************** */
 
 void InterarrivalStats::updatePacketStats(struct timeval* when,

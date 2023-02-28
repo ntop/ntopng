@@ -31,6 +31,7 @@ private:
 
 public:
   InterarrivalStats();
+  ~InterarrivalStats();
 
   void updatePacketStats(struct timeval *when, bool update_iat);
 
