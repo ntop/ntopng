@@ -744,6 +744,9 @@ local function dt_format_flow(processed_record, record)
    local srv = processed_record["srv_ip"]
    local vlan_id = processed_record["vlan_id"]
 
+   local cli_ip_alias = getHostAltName({host = cli["ip"], vlan = vlan_id})
+   local srv_ip_alias = getHostAltName({host = srv["ip"], vlan = vlan_id})
+
    if cli and srv and _GET["visible_columns"] and string.find(_GET["visible_columns"], "flow") then
       -- Add flow info to the processed_record, in place of cli_ip/srv_ip
       local flow = {}
@@ -753,10 +756,10 @@ local function dt_format_flow(processed_record, record)
 
       -- Converting to the same format used for alert flows (see DataTableRenders.formatFlowTuple)
 
-      cli_ip["value"]      = cli["ip"]    -- IP address
-      cli_ip["name"]       = cli["name"]  -- Host name
-      cli_ip["label"]      = cli["label"] -- Label - This can be shortened if required
-      cli_ip["label_long"] = cli["title"] -- Label - This is not shortened
+      cli_ip["value"]      = cli["ip"]                                                        -- IP address
+      cli_ip["name"]       = cli["name"]                                                      -- Host name
+      cli_ip["label"]      = ternary(isEmptyString(cli_ip_alias), cli["label"], cli_ip_alias) -- Label - This can be shortened if required
+      cli_ip["label_long"] = cli["title"]                                                     -- Label - This is not shortened
       cli_ip["reference"]  = cli["reference"]
       cli_ip["location"]   = dt_format_location(record["CLIENT_LOCATION"])
 
@@ -766,7 +769,7 @@ local function dt_format_flow(processed_record, record)
 
       srv_ip["value"]      = srv["ip"]
       srv_ip["name"]       = srv["name"]
-      srv_ip["label"]      = srv["label"]
+      srv_ip["label"]      = ternary(isEmptyString(srv_ip_alias), srv["label"], srv_ip_alias)
       srv_ip["label_long"] = srv["title"]
       srv_ip["reference"]  = srv["reference"]
       srv_ip["location"]   = dt_format_location(record["SERVER_LOCATION"])
