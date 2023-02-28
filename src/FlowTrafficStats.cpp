@@ -38,6 +38,8 @@ FlowTrafficStats::FlowTrafficStats(const FlowTrafficStats &fts) : PartializableF
 /* *************************************** */
 
 FlowTrafficStats::~FlowTrafficStats() {
+  ndpi_free_data_analysis(&cli2srv_bytes_stats, 0),
+    ndpi_free_data_analysis(&srv2cli_bytes_stats, 0);
 }
 
 /* *************************************** */

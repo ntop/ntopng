@@ -4178,6 +4178,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
     update_iat = false;
 
   if((protocol == IPPROTO_ICMP)
+     && (get_packets() < 10) /* Compute only on the first few flow packets */
      && ((protos.icmp.cli2srv.icmp_type == 0) || (protos.icmp.cli2srv.icmp_type == 8)) /* Echo Request or Reply */
      && cli2srv_direction
      && (payload != NULL)
@@ -4217,6 +4218,8 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 				 protos.icmp.client_to_server.min_entropy,
 				 protos.icmp.client_to_server.max_entropy);
 #endif
+    
+    ndpi_free_data_analysis(&e, 0);
   }
 
   updatePacketStats(cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats(), when, update_iat);
