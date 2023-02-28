@@ -546,6 +546,17 @@ local function validatePolicyPreset(mode)
    return validateChoice(modes, mode)
 end
 
+local function validatePolicy(p)   
+   local policies = {"accept", "deny"}
+
+   if validateNumber(p) or validateChoice(policies, p) then
+      return true
+   end
+
+   return false
+end
+http_lint.validatePolicy = validatePolicy
+
 local function validateAssetFamily(mode)
    local modes = { "gateway", "dns", "ntp", "imap", "smtp", "pop" }
 
@@ -2211,7 +2222,7 @@ local known_parameters = {
    ["safe_search"]             = validateBool,                  -- users
    ["device_protocols_policing"] = validateBool,                -- users
    ["forge_global_dns"]        = validateBool,                  -- users
-   ["default_policy"]          = validateNumber,                -- users
+   ["default_policy"]          = validatePolicy,                -- users, nedge policies
    ["asset_family"]            = validateAssetFamily,           -- network_maps.lua
    ["lan_interfaces"]          = validateListOfTypeInline(validateNetworkInterface),
    ["wan_interfaces"]          = validateListOfTypeInline(validateNetworkInterface),
