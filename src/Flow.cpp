@@ -2842,7 +2842,7 @@ bool Flow::is_hash_entry_state_idle_transition_ready() {
 	      && !isThreeWayHandshakeOK()))
 	 /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
 	 && (iface->getTimeLastPktRcvd() > doNotExpireBefore)
-	 && is_active_entry_now_idle(MAX_TCP_FLOW_IDLE)) {
+	 && is_active_entry_now_idle(iface->getFlowMaxIdle())) {
 	/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
 	ret = true;
       }
