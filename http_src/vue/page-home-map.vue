@@ -201,9 +201,11 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
       },
       /* Method used to switch active table tab */
       click_item: function(item) {
-        this.navbar_context.items_table.forEach((i) => i.active = false);
-        item.active = true;
-        ntopng_events_manager.emit_custom_event(change_map_event, item);
+        if(item.id != this.active_tab || item.page != this.page) {
+          this.navbar_context.items_table.forEach((i) => i.active = false);
+          item.active = true;
+          ntopng_events_manager.emit_custom_event(change_map_event, item);
+        }
       },
     },
   }  

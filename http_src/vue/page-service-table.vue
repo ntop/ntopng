@@ -101,14 +101,15 @@ export default {
    * First method called when the component is created.
    */
   created() {
+    debugger;
+    this.service_table_tab = ntopng_url_manager.get_url_entry('view') || 'centrality';
+    this.tab_list.forEach((i) => {
+      if(this.service_table_tab == i.id)
+        i.active = true;
+    });
     start_datatable(this);
   },
   mounted() {
-    this.service_table_tab = this.$props.url_params.view
-    this.tab_list.forEach((i) => {
-      this.service_table_tab == i.id ? i.active = true : i.active = false
-    });
-
     ntopng_events_manager.on_custom_event("page_service_table", ntopng_custom_events.DATATABLE_LOADED, () => {
       if(ntopng_url_manager.get_url_entry('host'))
         this.hide_dropdowns();

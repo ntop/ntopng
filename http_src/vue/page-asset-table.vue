@@ -81,14 +81,16 @@ export default {
    * First method called when the component is created.
    */
   created() {
+    this.asset_table_tab = ntopng_url_manager.get_url_entry('view') || 'centrality';
+    this.tab_list.forEach((i) => {
+      if(this.asset_table_tab == i.id)
+        i.active = true;
+    });
+
     ntopng_url_manager.set_key_to_url('asset_family', this.$props.url_params.asset_family);
     start_datatable(this);
   },
   mounted() {
-    this.asset_table_tab = ntopng_url_manager.get_url_entry("view") || 'standard'
-    this.tab_list.forEach((i) => {
-      this.asset_table_tab == i.id ? i.active = true : i.active = false
-    });
     ntopng_events_manager.on_custom_event("page_asset_table", ntopng_custom_events.DATATABLE_LOADED, () => {
       if(ntopng_url_manager.get_url_entry('host'))
         this.hide_dropdowns();
