@@ -546,27 +546,6 @@ local function validatePolicyPreset(mode)
    return validateChoice(modes, mode)
 end
 
-local function validatePolicy(p)   
-   local policies = {"accept", "deny"}
-
-   if validateNumber(p) or validateChoice(policies, p) then
-      return true
-   end
-
-   return false
-end
-http_lint.validatePolicy = validatePolicy
-
-local function validatePolicyValue(p)
-   if validateNetwork(p) or
-      validateSingleWord(p) then
-      return true
-   end
-
-   return false
-end
-http_lint.validatePolicyValue = validatePolicyValue
-
 local function validateAssetFamily(mode)
    local modes = { "gateway", "dns", "ntp", "imap", "smtp", "pop" }
 
@@ -1096,6 +1075,29 @@ local function validateMac(p)
       return false
    end
 end
+
+-- ##############################################
+
+local function validatePolicy(p)   
+   local policies = {"accept", "deny"}
+
+   if validateNumber(p) or validateChoice(policies, p) then
+      return true
+   end
+
+   return false
+end
+http_lint.validatePolicy = validatePolicy
+
+local function validatePolicyValue(p)
+   if validateNetwork(p) or
+      validateSingleWord(p) then
+      return true
+   end
+
+   return false
+end
+http_lint.validatePolicyValue = validatePolicyValue
 
 -- ##############################################
 
