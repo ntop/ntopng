@@ -156,7 +156,7 @@ const input_mac_list = ref("");
 const input_trigger_alerts = ref("");
 
 const modal_id = ref(null);
-const emit = defineEmits(['add'])
+const emit = defineEmits(['add','edit']);
 const title = i18n('if_stats_config.add_host_rules_title')
 const host_placeholder = i18n('if_stats_config.host_placeholder')
 const metrics_ready = ref(false)
@@ -262,8 +262,7 @@ const set_rule_type = (type) => {
     rule_type.value = type;
 }
 
-const set_row_to_edit = () => {
-  let row = init_func.value();
+const set_row_to_edit = (row) => {
 
   if(row != null) {
     is_edit_page.value = true;
@@ -368,11 +367,11 @@ const set_row_to_edit = () => {
   }
 }
 
-const show = () => {
+const show = (row) => {
   reset_modal_form();
-  if(init_func != null && init_func.value != null) {
-    set_row_to_edit();
-  }
+  if(row != null)
+    set_row_to_edit(row);
+  
   modal_id.value.show();
 };
 
@@ -419,7 +418,7 @@ const set_active_radio = (selected_radio) => {
 
 
 
-const add_ = () => {
+const add_ = (is_edit) => {
   let tmp_host = ''
   if(rule_type.value == 'Host')
     tmp_host = host.value;
@@ -463,9 +462,13 @@ const add_ = () => {
   } else {
     tmp_sign_value = 1;
   }
+  let emit_name = 'add';
+
+  if(is_edit == true) 
+    emit_name = 'edit';
 
   if (rule_type.value == 'Host')
-    emit('add', { 
+    emit(emit_name, { 
       host: tmp_host, 
       frequency: tmp_frequency, 
       metric: tmp_metric,
@@ -477,7 +480,7 @@ const add_ = () => {
       rule_threshold_sign: tmp_sign_value
     });
   else
-    emit('add', { 
+    emit(emit_name, { 
       frequency: tmp_frequency, 
       metric: tmp_interface_metric,
       metric_label: tmp_metric_label,
@@ -495,8 +498,7 @@ const add_ = () => {
 
 
 const edit_ = () => {
-  delete_row.value();
-  add_();
+  add_(true);
 }
 
 const close = () => {
