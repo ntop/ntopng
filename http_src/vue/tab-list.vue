@@ -43,24 +43,21 @@ export default defineComponent({
   },
   /** This method is the first method called after html template creation. */
   mounted() {
-    let tmp
-    this.tab_list.forEach(function(tab) {
+    let tmp = null;
+    this.$props.tab_list.forEach(function(tab) {
       if(tab.active) {
         tmp = tab
       }
     })
+    this.old_tab = tmp || this.$props.tab_list[0];
 
-    if(tmp == undefined)
-      tmp = this.tab_list[0]
-
-    this.old_tab = tmp.id || tmp.name
     ntopng_sync.ready(this.$props["id"]);
   },
   methods: {
     change_tab: function(tab) {
-      if((!tab.id || this.old_tab != tab.id) &&
-         (!tab.name || this.old_tab != tab.name)) {
-        this.old_tab = tab.id || tab.name
+      if((tab.id != null && this.old_tab.id != tab.id) ||
+         (tab.name != null && this.old_tab.name != tab.name)) {
+        this.old_tab = tab
         this.$emit('click_item', tab)
       }
     }

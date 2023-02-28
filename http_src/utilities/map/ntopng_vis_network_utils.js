@@ -51,8 +51,8 @@ const defaultOptions = {
       printer: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\uf02f",
+          face: 'FontAwesome',
+          code: '\uf02f',
           size: 50,
           weight: 700,
         },
@@ -61,8 +61,8 @@ const defaultOptions = {
       video: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\uf03d",
+          face: 'FontAwesome',
+          code: '\uf03d',
           size: 50,
           weight: 700,
         },
@@ -71,8 +71,8 @@ const defaultOptions = {
       workstation: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\uf109",
+          face: 'FontAwesome',
+          code: '\uf109',
           size: 50,
           weight: 700,
         },
@@ -81,8 +81,8 @@ const defaultOptions = {
       laptop: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\uf109",
+          face: 'FontAwesome',
+          code: '\uf109',
           size: 50,
           weight: 700,
         },
@@ -91,8 +91,8 @@ const defaultOptions = {
       tablet: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\uf10a",
+          face: 'FontAwesome',
+          code: '\uf10a',
           size: 50,
           weight: 700,
         },
@@ -101,8 +101,8 @@ const defaultOptions = {
       phone: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\uf10b",
+          face: 'FontAwesome',
+          code: '\uf10b',
           size: 50,
           weight: 700,
         },
@@ -111,8 +111,8 @@ const defaultOptions = {
       tv: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\uf26c",
+          face: 'FontAwesome',
+          code: '\uf26c',
           size: 50,
           weight: 700,
         },
@@ -121,8 +121,8 @@ const defaultOptions = {
       networking: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\uf0b2",
+          face: 'FontAwesome',
+          code: '\uf0b2',
           size: 50,
           weight: 700,
         },
@@ -131,8 +131,8 @@ const defaultOptions = {
       wifi: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\uf1eb",
+          face: 'FontAwesome',
+          code: '\uf1eb',
           size: 50,
           weight: 700,
         },
@@ -141,8 +141,8 @@ const defaultOptions = {
       nas: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\uf1c0",
+          face: 'FontAwesome',
+          code: '\uf1c0',
           size: 50,
           weight: 700,
         },
@@ -151,8 +151,8 @@ const defaultOptions = {
       multimedia: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\uf001",
+          face: 'FontAwesome',
+          code: '\uf001',
           size: 50,
           weight: 700,
         },
@@ -161,8 +161,8 @@ const defaultOptions = {
       iot: {
         shape: "icon",
         icon: {
-          face: "'FontAwesome'",
-          code: "\ue012",
+          face: 'FontAwesome',
+          code: '\ue012',
           size: 50,
           weight: 700,
         },
