@@ -557,6 +557,16 @@ local function validatePolicy(p)
 end
 http_lint.validatePolicy = validatePolicy
 
+local function validatePolicyValue(p)
+   if validateNetwork(p) or
+      validateSingleWord(p) then
+      return true
+   end
+
+   return false
+end
+http_lint.validatePolicyValue = validatePolicyValue
+
 local function validateAssetFamily(mode)
    local modes = { "gateway", "dns", "ntp", "imap", "smtp", "pop" }
 
@@ -2222,7 +2232,6 @@ local known_parameters = {
    ["safe_search"]             = validateBool,                  -- users
    ["device_protocols_policing"] = validateBool,                -- users
    ["forge_global_dns"]        = validateBool,                  -- users
-   ["default_policy"]          = validatePolicy,                -- users, nedge policies
    ["asset_family"]            = validateAssetFamily,           -- network_maps.lua
    ["lan_interfaces"]          = validateListOfTypeInline(validateNetworkInterface),
    ["wan_interfaces"]          = validateListOfTypeInline(validateNetworkInterface),
@@ -2329,6 +2338,15 @@ local known_parameters = {
    ["old_syslog_producer_host"]= validateSingleWord,
    ["query_preset"]            = validateEmptyOr(validateSingleWord),
    ["new_charts"]              = validateBool,
+
+   -- nEdge policy
+   ["default_policy"]          = validatePolicy,                -- users, nedge policies
+   ["policy"]                  = validatePolicy,                -- nedge policies
+   ["src_type"]                = validateSingleWord,
+   ["dst_type"]                = validateSingleWord,
+   ["src_value"]               = validatePolicyValue,
+   ["dst_value"]               = validatePolicyValue,
+   ["bidirectional"]           = validateBool,
 
    -- Containers
    ["pod"]                     = validateSingleWord,
