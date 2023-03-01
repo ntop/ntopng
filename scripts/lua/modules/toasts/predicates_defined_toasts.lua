@@ -21,7 +21,7 @@ local prefs = ntop.getPrefs()
 local ToastLevel = toast_ui.ToastLevels
 
 -- Constants
-local ALARM_THRESHOLD_LOW = 60
+local ALARM_THRESHOLD_LOW = 80
 local ALARM_THRESHOLD_HIGH = 90
 local IS_ADMIN = isAdministrator()
 local IS_SYSTEM_INTERFACE = page_utils.is_system_view()
