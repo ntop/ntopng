@@ -83,6 +83,7 @@ export default {
   created() {
     ntopng_url_manager.set_key_to_url('asset_family', this.$props.url_params.asset_family);
     this.asset_table_tab = ntopng_url_manager.get_url_entry('view') || 'centrality';
+    ntopng_url_manager.set_key_to_url('view', this.service_table_tab);
     this.tab_list.forEach((i) => {
       if(this.asset_table_tab == i.id)
         i.active = true;

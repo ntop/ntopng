@@ -290,7 +290,11 @@ export default {
         className: 'text-nowrap text-center',
         responsivePriority: 1,
         render: function(rowData, type, script) {
-          return rowData.data
+          if(rowData.timestamp == 0) {
+            return ''
+          } else {
+            return rowData.data
+          }
         }
       }, {
         columnName: i18n('last_seen'),
@@ -301,7 +305,11 @@ export default {
         className: 'text-nowrap text-center',
         responsivePriority: 1,
         render: function(rowData, type, script) {
-          return rowData.data
+          if(rowData.timestamp == 0) {
+            return ''
+          } else {
+            return rowData.data
+          }
         }
       }, {
         columnName: i18n('edit_check.device_status'),
