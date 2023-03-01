@@ -25,7 +25,7 @@ Prerequisites
 On Ubuntu/Debian
 ~~~~~~~~~~~~~~~~
 
-apt-get install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf pkg-config automake autogen redis-server wget libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev libreadline-dev libjson-c-dev libldap2-dev rename libsnmp-dev libexpat1-dev libsnmp-dev libmaxminddb-dev libradcli-dev libjson-c-dev libzmq3-dev
+apt-get install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf pkg-config automake autogen redis-server wget libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev libreadline-dev libjson-c-dev libldap2-dev rename libsnmp-dev libexpat1-dev libmaxminddb-dev libradcli-dev libjson-c-dev libzmq3-dev
 
 
 If you plan to manipulate javascript you also need to do
@@ -56,7 +56,6 @@ On Ubuntu22
 
 You need to do "apt-get install libmariadb-dev"
 
-
 On Debian 9/10
 ~~~~~~~~~~~~~~
 
@@ -83,7 +82,7 @@ dnf config-manager --set-enabled remi
 dnf group install "Development Tools"
 dnf clean all
 dnf update
-dnf install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect hiredis-devel readline-devel expat-devel npm
+dnf install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect hiredis-devel readline-devel expat-devel npm net-snmp-devel
 npm install -g uglify-es
 
 On CentOS/Rocky 8
@@ -97,7 +96,7 @@ yum install http://rpms.remirepo.net/enterprise/remi-release-8.rpm
 yum config-manager --set-enabled remi
 yum clean all
 yum update
-yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect expat-devel npm
+yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect expat-devel npm net-snmp-devel
 npm install -g uglify-es
 
 Then list the streams which provide Redis (dnf module list redis) and install it. For example, to install it from stream 5 run: sudo dnf module install redis:5
@@ -113,7 +112,7 @@ yum install http://rpms.remirepo.net/enterprise/remi-release-9.rpm
 yum config-manager --set-enabled remi
 dnf config-manager --set-enabled crb
 yum clean all
-yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect expat-devel npm numactl-devel
+yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect expat-devel npm numactl-devel net-snmp-devel
 yum update
 npm install -g uglify-es
 
@@ -124,14 +123,14 @@ On Fedora 30/31/32
 dnf install libtool m4
 dnf install autoconf automake
 dnf group install "Development Tools"
-dnf install libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mariadb-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect readline-devel
+dnf install libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mariadb-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect readline-devel net-snmp-devel
 dnf install redis
 
 On (Older) Fedora/CentOS 6-7
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 yum groupinstall "Development tools"
-yum install git autoconf automake autogen bison flex libpcap-devel libmaxminddb-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter_queue-devel zlib-devel which libcap-devel readline-devel zeromq-devel json-c-devel 
+yum install git autoconf automake autogen bison flex libpcap-devel libmaxminddb-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter_queue-devel zlib-devel which libcap-devel readline-devel zeromq-devel json-c-devel net-snmp-devel
 
 On MacOS
 ~~~~~~~~
@@ -148,11 +147,6 @@ On FreeBSD
 ~~~~~~~~~~
 
 sudo pkg install gcc git autoconf automake libtool pkgconf gmake sudo libmaxminddb libsodium mysql56-client rrdtool lua53 zip json-c libzmq4 sqlite3 libgcrypt librdkafka bison flex libpcap rename cmake redis hiredis
-
-On Cubro EXA8
-~~~~~~~~~~~~~
-
-apt-get install libmysqlclient-dev
 
 On OpenSuse
 ~~~~~~~~~~~
