@@ -765,6 +765,10 @@ if test $GIT_BRANCH != "dev"; then
   STABLE_SUFFIX="-stable"
 fi
 
+if test $SYSTEM = "Darwin"; then
+   MYSQL_LIB=`echo $MYSQL_LIB | sed 's/openssl@1.1/openssl@3/g'`
+fi
+
 CPP=$CXX
 CXXFLAGS=$CPPFLAGS
 
