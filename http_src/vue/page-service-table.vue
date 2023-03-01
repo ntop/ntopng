@@ -101,7 +101,6 @@ export default {
    * First method called when the component is created.
    */
   created() {
-    debugger;
     this.service_table_tab = ntopng_url_manager.get_url_entry('view') || 'centrality';
     this.tab_list.forEach((i) => {
       if(this.service_table_tab == i.id)
