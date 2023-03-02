@@ -722,9 +722,10 @@
           info: false,
           order: [[ column_order_id,  column_order_sorting]],
           pagingType: '{{ datatable.pagination }}',
-          autoWidth: true,
+          autoWidth: false,
           destroy: false,
-          responsive: true,
+          responsive: false,
+          scrollX: true,
           ajax: {
               method: 'get',
               url: '{* datatable.datasource.name *}?' + url_params,
