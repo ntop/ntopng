@@ -75,7 +75,7 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
   { { flow_alert_ndpi_http_suspicious_user_agent, alert_category_security }, "ndpi_http_suspicious_user_agent" },
 
   /* NDPI_NUMERIC_IP_HOST */
-  { { flow_alert_ndpi_numeric_ip_host, alert_category_security }, "ndpi_http_numeric_ip_host" },
+  { { flow_alert_ndpi_numeric_ip_host, alert_category_security }, "ndpi_numeric_ip_host" },
 
   /* NDPI_HTTP_SUSPICIOUS_URL */
   { { flow_alert_ndpi_http_suspicious_url, alert_category_security }, "ndpi_http_suspicious_url" },

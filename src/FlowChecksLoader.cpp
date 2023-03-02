@@ -259,9 +259,11 @@ void FlowChecksLoader::loadConfiguration() {
 	  cb->scriptDisable(); 
 	}
       }	else
-      /* In case of tls_old_protocol_version do not trigger, due to some changes, 
+      /* In case of these alerts do not trigger, due to some changes, 
          it is normal that is going to trigger the warning */
-      if(strcmp(check_key, "tls_old_protocol_version")) 
+      if(strcmp(check_key, "tls_old_protocol_version") &&
+          strcmp(check_key, "tls_malicious_signature") &&
+          strcmp(check_key, "ndpi_http_numeric_ip_host"))
 	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find flow check '%s': skipping it", check_key);
     }
 
