@@ -33,6 +33,8 @@
     {responsivePriority: 4, name: 'cli_host_pool_id', data: 'cli_host_pool_id',  orderable: false, className: 'text-nowrap', render: DataTableRenders.getFormatGenericField('cli_host_pool_id')},
     /* Server Host Pool Id */
     {responsivePriority: 4, name: 'srv_host_pool_id', data: 'srv_host_pool_id',  orderable: false, className: 'text-nowrap', render: DataTableRenders.getFormatGenericField('srv_host_pool_id')},
+    /* JA3 */
+    {responsivePriority: 5, name: 'ja3', data: 'ja3',  orderable: false, className: 'text-nowrap', render: DataTableRenders.getFormatGenericField('ja3')},
     /* Client Network */
     {responsivePriority: 4, name: 'cli_network', data: 'cli_network',  orderable: false, className: 'text-nowrap', render: DataTableRenders.getFormatGenericField('cli_network')},
     /* Server Network */

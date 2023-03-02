@@ -1800,6 +1800,7 @@ local known_parameters = {
    ["confidence"]              = validateListOfTypeInline(validateFilters(validateNumber)), -- client/server
    ["acknowledged"]            = validateListOfTypeInline(validateFilters(validateSingleWord)), -- acknowledged
    ["community_id"]            = validateListOfTypeInline(validateFilters(validateSingleWord)), -- Community ID
+   ["ja3"]                     = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["asn"]                     = validateNumber,                -- An ASN number
    ["country_id"]              = validateNumber,                -- A Country Code
    ["module"]                  = validateTopModule,             -- A top script module

@@ -11,6 +11,7 @@
 <th style="text-align: center;">{{ i18n("alerts_dashboard.flow_related_info") }}</th>
 <th style="text-align: center;">{{ i18n("db_search.tags.cli_host_pool_id") }}</th>
 <th style="text-align: center;">{{ i18n("db_search.tags.srv_host_pool_id") }}</th>
+<th style="text-align: center;">{{ i18n("db_search.tags.ja3") }}</th>
 <th style="text-align: center;">{{ i18n("db_search.tags.cli_network") }}</th>
 <th style="text-align: center;">{{ i18n("db_search.tags.srv_network") }}</th>
 <th style="text-align: center;">{{ i18n("db_search.tags.probe_ip") }}</th>
