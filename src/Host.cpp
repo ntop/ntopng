@@ -1377,7 +1377,13 @@ bool Host::addIfMatching(lua_State* vm, u_int8_t *_mac) {
 /* *************************************** */
 
 void Host::incNumFlows(time_t t, bool as_client) {
+  /* Called every time a new flow appear */
+  NetworkStats *ns = getNetworkStats(get_local_network_id());
   AlertCounter *counter;
+
+  /* Increase network flows */
+  if(ns)
+    ns->incNumFlows(last_seen, as_client);
 
   if(as_client) {
     counter = flow_flood.attacker_counter;

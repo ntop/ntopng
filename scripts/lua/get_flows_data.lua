@@ -347,7 +347,6 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
    record["column_duration"] = secondsToTime(value["duration"])
    record["column_bytes"] = value["bytes"]
-   -- record["column_serial"] = value["flow_serial"]
 
    local column_thpt = ''
    if(throughput_type == "pps") then

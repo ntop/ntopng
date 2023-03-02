@@ -46,7 +46,6 @@ Flow::Flow(NetworkInterface *_iface,
   periodic_stats_update_partial = NULL;
   viewFlowStats = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
-  flow_device.observation_point_id = _observation_point_id;
   cli_host = srv_host = NULL;
   cli_ip_addr = srv_ip_addr = NULL;
   flow_dropped_counts_increased = 0, vrfId = 0, protocolErrorCode = 0;
@@ -66,12 +65,15 @@ Flow::Flow(NetworkInterface *_iface,
   is_periodic_flow = 0;
   extra_dissection_completed = 0;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
+  /*
+  This is not required, there is already the preference for expiration time
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
-  periodic_update_ctr = 0, cli2srv_tos = srv2cli_tos = 0, iec104 = NULL;
+  */
+  cli2srv_tos = srv2cli_tos = 0, iec104 = NULL;
   suspicious_dga_domain = NULL;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
   swap_done = swap_requested = 0;
-  flowCreationTime = iface->getTimeLastPktRcvd();
+  flowCreationTime = iface->getTimeLastPktRcvd(); /* Is this really needed? */
 
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
@@ -86,14 +88,12 @@ Flow::Flow(NetworkInterface *_iface,
   bt_hash = NULL;
   flow_payload = NULL, flow_payload_len = 0;
   flow_verdict = 0;
-  flow_serial = _iface->getNewFlowSerial();
   operating_system = os_unknown;
-  src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
-    top_bytes_thpt = 0, top_pkts_thpt = 0;
+  src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0;
   bytes_thpt_cli2srv  = 0, goodput_bytes_thpt_cli2srv = 0;
   bytes_thpt_srv2cli  = 0, goodput_bytes_thpt_srv2cli = 0;
   pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
-  top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
+  top_bytes_thpt = 0, top_pkts_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
   external_alert.json = NULL;
   external_alert.source = NULL;
   trigger_immediate_periodic_update = false;
@@ -104,6 +104,8 @@ Flow::Flow(NetworkInterface *_iface,
   last_db_dump.in_progress = false;
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
+  
+  flow_device.observation_point_id = _observation_point_id;
 
   flow_score = 0, rtp_stream_type = rtp_unknown;
 
@@ -127,47 +129,39 @@ Flow::Flow(NetworkInterface *_iface,
   }
 
   if(cli_host) {
-    NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
-
     cli_host->incUses(), cli_host->incNumFlows(last_seen, true);
-    if(network_stats) network_stats->incNumFlows(last_seen, true);
-    cli_ip_addr = cli_host->get_ip();
     cli_host->incCliContactedPorts(_srv_port);
-
+    cli_ip_addr = cli_host->get_ip();
+    
     if(cli_host->isLocalHost() && srv_host) {
       srv_host->get_country(country, sizeof(country));
-      if(country[0] != '\0') cli_host->incCountriesContacts(country);
+      if(country[0] != '\0') 
+        cli_host->incCountriesContacts(country);
 
+      /* Add client gateway */
       if(_srv_mac && (!srv_host->isLocalHost())) {
-	LocalHost *lh = (LocalHost*)cli_host;
-
-	lh->setRouterMac(_srv_mac);
+        LocalHost *lh = (LocalHost*)cli_host;
+        lh->setRouterMac(_srv_mac);
       }
     }
   } else {
     /* Client host has not been allocated, let's keep the info in an IpAddress */
-
     if((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
       cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
   }
 
   if(srv_host) {
-    NetworkStats *network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
-
     srv_host->incUses(), srv_host->incNumFlows(last_seen, false);
-    if(network_stats) network_stats->incNumFlows(last_seen, false);
-    srv_ip_addr = srv_host->get_ip();
-
-    srv_host->incSrvHostContacts(_cli_ip);
     srv_host->incSrvPortsContacts(htons(_cli_port));
-
+    srv_host->incSrvHostContacts(_cli_ip);
+    srv_ip_addr = srv_host->get_ip();
+    
     if(srv_host->isLocalHost() && cli_host) {
       cli_host->get_country(country, sizeof(country));
       if(country[0] != '\0') srv_host->incCountriesContacts(country);
     }
   } else {
     /* Server host has not been allocated, let's keep the info in an IpAddress */
-
     if((srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip)))
       srv_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
   }
@@ -204,7 +198,6 @@ Flow::Flow(NetworkInterface *_iface,
   if(_first_seen > _last_seen) _first_seen = _last_seen;
   first_seen = _first_seen, last_seen = _last_seen;
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
-  //bytes_rate = new TimeSeries<float>(4096);
 
   synTime.tv_sec = synTime.tv_usec = 0,
     ackTime.tv_sec = ackTime.tv_usec = 0,
@@ -216,14 +209,15 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&tcp_seq_s2d, 0, sizeof(tcp_seq_s2d)), memset(&tcp_seq_d2s, 0, sizeof(tcp_seq_d2s));
   memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency));
 
+  memset(&customFlowAlert, 0, sizeof(customFlowAlert));
+
   if(iface->isPacketInterface() && !iface->isSampledTraffic()) {
     cli2srvPktTime = new (std::nothrow) InterarrivalStats();
     srv2cliPktTime = new (std::nothrow) InterarrivalStats();
     initial_bytes_entropy.c2s = ndpi_alloc_data_analysis(256);
     initial_bytes_entropy.s2c = ndpi_alloc_data_analysis(256);
   } else {
-    cli2srvPktTime = NULL;
-    srv2cliPktTime = NULL;
+    cli2srvPktTime = srv2cliPktTime = NULL;
     initial_bytes_entropy.c2s = initial_bytes_entropy.s2c = NULL;
   }
 
@@ -283,8 +277,8 @@ Flow::Flow(NetworkInterface *_iface,
     if(cli_host) cli_host->inc_num_blacklisted_flows(true);
   }
 
+  /* Is it necessary to do the checks here? */
   iface->execFlowBeginChecks(this);
-  memset(&customFlowAlert, 0, sizeof(customFlowAlert));
 }
 
 /* *************************************** */

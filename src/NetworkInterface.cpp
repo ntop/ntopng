@@ -4772,9 +4772,6 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
     retriever->totBytesRcvd += f->get_bytes_srv2cli();
 
     switch(retriever->sorter) {
-    case column_serial:
-      retriever->elems[retriever->actNumEntries++].numericValue = f->getFlowSerial();
-      break;
     case column_client:
       if(f->getInterface()->isViewed())
 	retriever->elems[retriever->actNumEntries++].ipValue = (IpAddress*)f->get_cli_ip_addr();
@@ -5416,7 +5413,6 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   }
 
   if(!strcmp(sortColumn, "column_client")) retriever->sorter = column_client, sorter = (isViewed() || isView()) ? ipSorter : hostSorter;
-  else if(!strcmp(sortColumn, "column_key")) retriever->sorter = column_serial, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_vlan")) retriever->sorter = column_vlan, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_server")) retriever->sorter = column_server, sorter = (isViewed() || isView()) ? ipSorter : hostSorter;
   else if(!strcmp(sortColumn, "column_proto_l4")) retriever->sorter = column_proto_l4, sorter = numericSorter;

@@ -44,7 +44,7 @@ class Flow : public GenericHashEntry {
   u_int8_t cli2srv_tos, srv2cli_tos; /* RFC 2474, 3168 */
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
-  u_int32_t vrfId, flow_serial;
+  u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
   u_int32_t protocolErrorCode;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags, flow_verdict;
@@ -128,8 +128,7 @@ class Flow : public GenericHashEntry {
   } external_alert;
   bool trigger_immediate_periodic_update; /* needed to process external alerts */
   time_t next_call_periodic_update; /* The time at which the periodic lua script on this flow shall be called */
-  u_int32_t periodic_update_ctr;
-
+  
   /* Flow payload */
   u_int16_t flow_payload_len;
   char *flow_payload;
@@ -959,8 +958,7 @@ class Flow : public GenericHashEntry {
     else if(srv_host && srv_host->isLocalHost()) return 1; // Local host
     else return 0; // Remote host
   }
-  inline u_int32_t getFlowSerial() { return(flow_serial); }
-
+  
   inline u_int32_t getPrivateFlowId() const { return(privateFlowId); }
 
   inline bool isCustomFlowAlertTriggered()       { return(customFlowAlert.alertTriggered);   }
