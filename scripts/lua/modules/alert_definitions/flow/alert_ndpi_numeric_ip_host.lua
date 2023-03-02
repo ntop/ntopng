@@ -12,12 +12,12 @@ local alert = require "alert"
 
 -- ##############################################
 
-local alert_ndpi_http_numeric_ip_host = classes.class(alert)
+local alert_ndpi_numeric_ip_host = classes.class(alert)
 
 -- ##############################################
 
-alert_ndpi_http_numeric_ip_host.meta = {
-   alert_key  = flow_alert_keys.flow_alert_ndpi_http_numeric_ip_host,
+alert_ndpi_numeric_ip_host.meta = {
+   alert_key  = flow_alert_keys.flow_alert_ndpi_numeric_ip_host,
    i18n_title = "alerts_dashboard.ndpi_http_numeric_ip_host_title",
    icon = "fas fa-fw fa-exclamation",
 
@@ -29,17 +29,17 @@ alert_ndpi_http_numeric_ip_host.meta = {
 
 -- @brief Prepare an alert table used to generate the alert
 -- @return A table with the alert built
-function alert_ndpi_http_numeric_ip_host:init()
+function alert_ndpi_numeric_ip_host:init()
    -- Call the parent constructor
    self.super:init()
 end
 
 -- #######################################################
 
-function alert_ndpi_http_numeric_ip_host.format(ifid, alert, alert_type_params)
+function alert_ndpi_numeric_ip_host.format(ifid, alert, alert_type_params)
    return
 end
 
 -- #######################################################
 
-return alert_ndpi_http_numeric_ip_host
+return alert_ndpi_numeric_ip_host

@@ -461,7 +461,7 @@ typedef enum {
   flow_alert_ndpi_url_possible_sql_injection      = 40,
   flow_alert_ndpi_url_possible_rce_injection      = 41,
   flow_alert_ndpi_http_suspicious_user_agent      = 42,
-  flow_alert_ndpi_http_numeric_ip_host            = 43,
+  flow_alert_ndpi_numeric_ip_host                 = 43,
   flow_alert_ndpi_http_suspicious_url             = 44,
   flow_alert_ndpi_http_suspicious_header          = 45,
   flow_alert_ndpi_tls_not_carrying_https          = 46,

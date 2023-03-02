@@ -49,7 +49,7 @@
 #include "flow_alerts/FlowRiskBinaryApplicationTransferAlert.h"
 #include "flow_alerts/FlowRiskDesktopOrFileSharingSessionAlert.h"
 #include "flow_alerts/FlowRiskDNSSuspiciousTrafficAlert.h"
-#include "flow_alerts/FlowRiskHTTPNumericIPHostAlert.h"
+#include "flow_alerts/FlowRiskNumericIPHostAlert.h"
 #include "flow_alerts/FlowRiskHTTPObsoleteServerAlert.h"
 #include "flow_alerts/FlowRiskHTTPSuspiciousHeaderAlert.h"
 #include "flow_alerts/FlowRiskHTTPSuspiciousURLAlert.h"

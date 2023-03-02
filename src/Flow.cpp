@@ -1826,7 +1826,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     /* Don't break, let's process also HTTP_PROXY */
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(srv_host) {
-      if(!Utils::isIPAddress(host_server_name) && hasRisk(NDPI_HTTP_NUMERIC_IP_HOST)) {
+      if(!Utils::isIPAddress(host_server_name) && hasRisk(NDPI_NUMERIC_IP_HOST)) {
         srv_host->offlineSetHTTPName(host_server_name);
       }
 

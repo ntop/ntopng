@@ -19,29 +19,29 @@
  *
  */
 
-#ifndef _FLOW_RISK_NDPI_HTTP_NUMERIC_IP_HOST_H_
-#define _FLOW_RISK_NDPI_HTTP_NUMERIC_IP_HOST_H_
+#ifndef _FLOW_RISK_NDPI_NUMERIC_IP_HOST_H_
+#define _FLOW_RISK_NDPI_NUMERIC_IP_HOST_H_
 
 #include "ntop_includes.h"
 
-class FlowRiskHTTPNumericIPHost : public FlowRisk {
+class FlowRiskNumericIPHost : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskHTTPNumericIPHostAlert::getClassType(); };
+  FlowAlertType getAlertType() const { return FlowRiskNumericIPHostAlert::getClassType(); };
 
  public:
-  FlowRiskHTTPNumericIPHost() : FlowRisk() {};
-  ~FlowRiskHTTPNumericIPHost() {};
+  FlowRiskNumericIPHost() : FlowRisk() {};
+  ~FlowRiskNumericIPHost() {};
 
   FlowAlert *buildAlert(Flow *f) {
-    FlowRiskHTTPNumericIPHostAlert *alert = new FlowRiskHTTPNumericIPHostAlert(this, f);
+    FlowRiskNumericIPHostAlert *alert = new FlowRiskNumericIPHostAlert(this, f);
 
     alert->setCliAttacker(), alert->setSrvVictim();
 
     return alert;
   }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskHTTPNumericIPHostAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskHTTPNumericIPHostAlert::getClassRisk(); };
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskNumericIPHostAlert::getClassRisk())); }
+  ndpi_risk_enum handledRisk()       { return FlowRiskNumericIPHostAlert::getClassRisk(); };
 };
 
 #endif

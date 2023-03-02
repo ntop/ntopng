@@ -19,23 +19,23 @@
  *
  */
 
-#ifndef _FR_HTTP_NUMERIC_IP_HOST_ALERT_H_
-#define _FR_HTTP_NUMERIC_IP_HOST_ALERT_H_
+#ifndef _FR_NUMERIC_IP_HOST_ALERT_H_
+#define _FR_NUMERIC_IP_HOST_ALERT_H_
 
 #include "ntop_includes.h"
 
-class FlowRiskHTTPNumericIPHostAlert : public FlowRiskAlert {
+class FlowRiskNumericIPHostAlert : public FlowRiskAlert {
  public:
-  static ndpi_risk_enum getClassRisk() { return NDPI_HTTP_NUMERIC_IP_HOST; }
+  static ndpi_risk_enum getClassRisk() { return NDPI_NUMERIC_IP_HOST; }
   static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskHTTPNumericIPHostAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
-  ~FlowRiskHTTPNumericIPHostAlert() { };
+ FlowRiskNumericIPHostAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
+  ~FlowRiskNumericIPHostAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
   u_int8_t       getAlertScore() const { return getDefaultScore(); }
 };
 
-#endif /* _FR_HTTP_NUMERIC_IP_HOST_ALERT_H_ */
+#endif /* _FR_NUMERIC_IP_HOST_ALERT_H_ */

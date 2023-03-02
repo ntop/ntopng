@@ -75,7 +75,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new FlowRiskBinaryApplicationTransfer()))           registerCheck(fcb);
   if((fcb = new FlowRiskDesktopOrFileSharingSession()))         registerCheck(fcb);
   if((fcb = new FlowRiskDNSSuspiciousTraffic()))                registerCheck(fcb);
-  if((fcb = new FlowRiskHTTPNumericIPHost()))                   registerCheck(fcb);
+  if((fcb = new FlowRiskNumericIPHost()))                       registerCheck(fcb);
   if((fcb = new FlowRiskHTTPObsoleteServer()))                  registerCheck(fcb);
   if((fcb = new FlowRiskHTTPSuspiciousHeader()))                registerCheck(fcb);
   if((fcb = new FlowRiskHTTPSuspiciousUserAgent()))             registerCheck(fcb);

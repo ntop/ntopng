@@ -35,7 +35,7 @@
 #include "flow_checks/FlowRiskBinaryApplicationTransfer.h"
 #include "flow_checks/FlowRiskDesktopOrFileSharingSession.h"
 #include "flow_checks/FlowRiskDNSSuspiciousTraffic.h"
-#include "flow_checks/FlowRiskHTTPNumericIPHost.h"
+#include "flow_checks/FlowRiskNumericIPHost.h"
 #include "flow_checks/FlowRiskHTTPObsoleteServer.h"
 #include "flow_checks/FlowRiskHTTPSuspiciousHeader.h"
 #include "flow_checks/FlowRiskHTTPSuspiciousUserAgent.h"
