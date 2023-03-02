@@ -10173,6 +10173,9 @@ private:
   u_int32_t num_flows, tot_score;
   u_int64_t tot_sent, tot_rcvd;
   u_int8_t l4_proto;
+  char cli_ip[128];
+  char srv_ip[128];
+  u_int16_t vlan_id;
 
 public:
   FlowsStats(const IpAddress *c, const IpAddress *s, u_int8_t _l4_proto,
@@ -10188,6 +10191,20 @@ public:
   inline u_int64_t getTotalSent()  { return(tot_sent);       }
   inline u_int64_t getTotalRcvd()  { return(tot_rcvd);       }
   inline u_int32_t getTotalScore() { return(tot_score);      }
+  inline void setCliIp(const IpAddress* _cli_ip) { 
+    char buf[128];
+    char * ip = _cli_ip->print(buf,sizeof(buf));
+    snprintf(cli_ip, sizeof(cli_ip), "%s", ip); 
+  }
+  inline char* getCliIp() { return(cli_ip); }
+  inline void setSrvIp(const IpAddress* _srv_ip) { 
+    char buf[128];
+    char * ip = _srv_ip->print(buf,sizeof(buf));
+    snprintf(srv_ip, sizeof(srv_ip), "%s", ip); 
+  }
+  inline char* getSrvIp() { return(srv_ip); }
+  inline void setVlanId(u_int16_t _vlan_id) { vlan_id = _vlan_id; }
+  inline u_int16_t getVlanId() { return vlan_id; }
   inline void      incFlowStats(const IpAddress *c, const IpAddress *s,
 				u_int64_t bytes_sent, u_int64_t bytes_rcvd,
 				u_int32_t score) {
@@ -10236,6 +10253,179 @@ static bool compute_protocol_flow_stats(GenericHashEntry *node, void *user_data,
 
 /* **************************************************** */
 
+static bool compute_client_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
+  Flow *f = (Flow*)node;
+  std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
+
+  u_int64_t vlan_id = f->get_vlan_id();
+  std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
+
+  u_int64_t key = 0;
+
+  key = (((u_int64_t)f->get_cli_ip_addr()->key()) << 16)
+        + ((u_int64_t)vlan_id);
+
+  it = count->find(key);
+
+  if(it == count->end()) {
+    FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+						   f->get_protocol(),
+						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+						   f->getScore());
+    fs->setCliIp(f->get_cli_ip_addr());
+    fs->setVlanId(f->get_vlan_id());
+    
+    if(fs != NULL) 
+      (*count)[key] = fs; 
+  } else 
+    it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+			     f->getScore());
+  
+  *matched = true;
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
+  Flow *f = (Flow*)node;
+  std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
+
+  u_int64_t vlan_id = f->get_vlan_id();
+  std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
+
+  u_int64_t key = 0;
+
+  key = (((u_int64_t)f->get_srv_ip_addr()->key()) << 16)
+        + ((u_int64_t)vlan_id);
+
+  it = count->find(key);
+
+  if(it == count->end()) {
+    FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+						   f->get_protocol(),
+						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+						   f->getScore());
+    fs->setSrvIp(f->get_srv_ip_addr());
+    fs->setVlanId(f->get_vlan_id());
+    
+    if(fs != NULL) 
+      (*count)[key] = fs; 
+  } else 
+    it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+			     f->getScore());
+  
+  *matched = true;
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+static bool compute_client_server_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
+  Flow *f = (Flow*)node;
+  std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
+
+  u_int64_t vlan_id = f->get_vlan_id();
+  std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
+
+  u_int64_t key = 0;
+
+  key = (((u_int64_t)f->get_cli_ip_addr()->key()) << 16)
+        + (((u_int64_t)f->get_srv_ip_addr()->key()) << 16)
+        + ((u_int64_t)vlan_id);
+
+  it = count->find(key);
+
+  if(it == count->end()) {
+    FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+						   f->get_protocol(),
+						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+						   f->getScore());
+    fs->setCliIp(f->get_cli_ip_addr());
+    fs->setSrvIp(f->get_srv_ip_addr());
+    fs->setVlanId(f->get_vlan_id());
+    
+    if(fs != NULL) 
+      (*count)[key] = fs; 
+  } else 
+    it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+			     f->getScore());
+  
+  *matched = true;
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+void NetworkInterface::getHostFlowsStats(lua_State* vm) {
+  u_int32_t begin_slot = 0;
+  std::unordered_map<u_int64_t, FlowsStats*> count;
+  std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
+  u_int num = 0;
+
+  u_int filter_type = lua_tonumber(vm, 1);
+
+  switch ( filter_type ) {
+    case 2:
+      /* client criteria flows stats case */
+      walker(&begin_slot, true /* walk_all */, walker_flows, compute_client_flow_stats, &count);
+        break;
+    case 3:
+      /* server criteria flows stats case */
+      walker(&begin_slot, true /* walk_all */, walker_flows, compute_server_flow_stats, &count);
+        break;
+    case 4:
+      /* client server criteria flows stats case */
+      walker(&begin_slot, true /* walk_all */, walker_flows, compute_client_server_flow_stats, &count);
+        break;
+    default: 
+      /* client criteria flows stats case */
+      walker(&begin_slot, true /* walk_all */, walker_flows, compute_client_flow_stats, &count);
+        break;
+  }
+  lua_newtable(vm);
+
+  for(it = count.begin(); it != count.end(); ++it) {
+    FlowsStats *fs = it->second;
+
+    lua_newtable(vm);
+    switch ( filter_type ) {
+      case 2:
+        lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
+          break;
+      case 3:
+        lua_push_str_table_entry(vm,    "server_ip",   fs->getSrvIp());
+          break;
+      case 4: {
+          lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
+          lua_push_str_table_entry(vm,    "server_ip",   fs->getSrvIp());
+        } break;
+      default: 
+        lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
+          break;
+    }
+    lua_push_uint64_table_entry(vm, "vlan_id",    (u_int64_t)fs->getVlanId());
+    lua_push_uint32_table_entry(vm, "l4_proto",    fs->getL4Protocol());
+    lua_push_uint32_table_entry(vm, "num_clients", fs->getNumClients());
+    lua_push_uint32_table_entry(vm, "num_servers", fs->getNumServers());
+    lua_push_uint32_table_entry(vm, "num_flows",   fs->getNumFlows());
+    lua_push_uint64_table_entry(vm, "bytes_sent",  fs->getTotalSent());
+    lua_push_uint64_table_entry(vm, "bytes_rcvd",  fs->getTotalRcvd());
+    lua_push_uint64_table_entry(vm, "total_score", fs->getTotalScore());
+
+    lua_pushinteger(vm, ++num);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+
+    delete it->second;
+  }
+}
+
+/* **************************************************** */
+
 void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
   u_int32_t begin_slot = 0;
   std::unordered_map<u_int64_t /* u_int16_t + l7 proto */, FlowsStats*> count;
@@ -10245,7 +10435,6 @@ void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
   walker(&begin_slot, true /* walk_all */, walker_flows, compute_protocol_flow_stats, &count);
 
   lua_newtable(vm);
-
   for(it = count.begin(); it != count.end(); ++it) {
     FlowsStats *fs = it->second;
     ndpi_protocol detected_protocol;
@@ -10282,7 +10471,6 @@ void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
     lua_pushinteger(vm, ++num);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
-
     delete it->second;
   }
 }

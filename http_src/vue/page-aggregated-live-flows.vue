@@ -46,9 +46,9 @@ const _i18n = (t) => i18n(t);
 
 const criteria_list_def = [
   { label: _i18n("application_proto"), value: 1, param: "application_protocol" },
-  /*{ label: _i18n("client"), value: 2, param: "client" },
+  { label: _i18n("client"), value: 2, param: "client" },
   { label: _i18n("server"), value: 3, param: "server" },
-  { label: _i18n("client_server"), value: 4, param: "client_server" }*/
+  { label: _i18n("client_server"), value: 4, param: "client_server" }
 ];
 
 const criteria_list = ref(criteria_list_def);
@@ -67,6 +67,12 @@ const props = defineProps({
   vlans: Array,
   ifid: Number,
 });
+
+const format_client_server = function(data, rowData) {
+  let formatted_data = `<a href="${http_prefix}/lua/host_details.lua?host=`+rowData.client.id+`" target="_blank">`+rowData.client.label+`</a> - <a href="${http_prefix}/lua/host_details.lua?host=`+rowData.server.id+`" target="_blank">`+rowData.server.label+`</a>`;
+  
+  return formatted_data;
+}
 
 const url = `${http_prefix}/lua/rest/v2/get/flow/aggregated_live_flows.lua`
 
@@ -178,9 +184,7 @@ async function set_datatable_config() {
     // client-server case
     columns.push(
       { 
-        columnName: i18n("client_and_server"), targets: 0, name: 'client_and_server', data: 'client_and_server', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-          return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}" target="_blank">${data.label}</a>`
-        } 
+        columnName: i18n("client_and_server"), targets: 0, name: 'client_and_server', data: 'client_and_server', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) {return format_client_server(data, rowData) } 
       })
   }
   
