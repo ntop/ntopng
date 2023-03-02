@@ -473,10 +473,13 @@ void SNMP::send_snmp_request(char *agent_host,
 	  if(!strcasecmp(level, "authPriv")) {
 	    snmpSession->session.securityLevel = SNMP_SEC_LEVEL_AUTHPRIV;
 
+#ifndef NETSNMP_DISABLE_DES
 	    if(!strcasecmp(privacy_protocol, "DES")) {
 	      snmpSession->session.securityPrivProto = snmp_duplicate_objid(usmDESPrivProtocol, USM_PRIV_PROTO_DES_LEN);
 	      snmpSession->session.securityPrivProtoLen = USM_PRIV_PROTO_DES_LEN;
-	    } else if(!strncasecmp(privacy_protocol, "AES", 3)) {
+	    } else
+#endif
+	      if(!strncasecmp(privacy_protocol, "AES", 3)) {
 	      snmpSession->session.securityPrivProto = snmp_duplicate_objid(usmAESPrivProtocol, USM_PRIV_PROTO_AES_LEN);
 	      snmpSession->session.securityPrivProtoLen = USM_PRIV_PROTO_AES_LEN;
 	    }
