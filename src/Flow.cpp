@@ -2464,8 +2464,6 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_int32_table_entry(vm, "cli.devtype", (cli_host && cli_host->getMac()) ? cli_host->getMac()->getDeviceType() : device_unknown);
     lua_push_int32_table_entry(vm, "srv.devtype", (srv_host && srv_host->getMac()) ? srv_host->getMac()->getDeviceType() : device_unknown);
 
-    lua_push_int32_table_entry(vm, "flow_serial", flow_serial);
-
 #ifdef HAVE_NEDGE
     if(iface->is_bridge_interface())
       lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? 1 : 0);
