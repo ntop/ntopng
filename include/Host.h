@@ -37,7 +37,6 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     Fingerprint hassh;
   } fingerprints;
 
-  bool stats_reset_requested, name_reset_requested, data_delete_requested;
   u_int16_t host_pool_id, host_services_bitmap;
   u_int16_t vlan_id;
   u_int16_t observationPointId;
@@ -68,7 +67,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   } names;
 
   char *ssdpLocation;
-  bool prefs_loaded;
+  
   /* END Host data: */
 
   /* Counters used by host alerts */
@@ -146,16 +145,16 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt;
 
-  bool more_then_one_device;
   u_int32_t device_ip;
 
 #ifdef NTOPNG_PRO
   TrafficShaper **host_traffic_shapers;
   bool has_blocking_quota, has_blocking_shaper;
 #endif
-  u_int8_t is_in_broadcast_domain:1, is_dhcp_host:1, is_crawler_bot_scanner:1,
-    is_blacklisted:1, is_rx_only:1, _notused:3;
-
+  u_int16_t is_in_broadcast_domain:1, is_dhcp_host:1, is_crawler_bot_scanner:1,
+    is_blacklisted:1, is_rx_only:1, more_then_one_device:1, stats_reset_requested:1, 
+    name_reset_requested:1, data_delete_requested:1, prefs_loaded:1, _notused:6;
+  
   /* Alert exclusion handling */
 #ifdef NTOPNG_PRO
   AlertExclusionsInfo alert_exclusions;
@@ -542,9 +541,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   virtual void serialize(json_object *obj, DetailsLevel details_level);
 
-  inline void requestStatsReset()                        { stats_reset_requested = true; };
-  inline void requestNameReset()                         { name_reset_requested = true; };
-  inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); };
+  inline void requestStatsReset()                        { stats_reset_requested = 1; };
+  inline void requestNameReset()                         { name_reset_requested = 1; };
+  inline void requestDataReset()                         { data_delete_requested = 1; requestStatsReset(); };
   void checkNameReset();
   void checkDataReset();
   void checkBroadcastDomain();
@@ -564,12 +563,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline Fingerprint* getJA3Fingerprint()   { return(&fingerprints.ja3);   }
   inline Fingerprint* getHASSHFingerprint() { return(&fingerprints.hassh); }
 
-  void setPrefsChanged()                   { prefs_loaded = false;  }
+  void setPrefsChanged()                   { prefs_loaded = 0; }
   virtual void reloadPrefs()               {}
   inline void checkReloadPrefs()           {
     if(!prefs_loaded) {
       reloadPrefs();
-      prefs_loaded = true;
+      prefs_loaded = 1;
     }
   }
 

@@ -91,7 +91,6 @@ void LocalHost::initialize() {
   updateHostPool(true /* inline with packet processing */, true /* first inc */);
 
   local_network_id = -1;
-  drop_all_host_traffic = false;
   os_detail = NULL;
 
   ip.isLocalHost(&local_network_id);
@@ -131,8 +130,12 @@ void LocalHost::initialize() {
 			       isSystemHost() ? "systemHost" : "", this);
 #endif
 
-  router_mac_set = false, memset(router_mac, 0, sizeof(router_mac));
+  router_mac_set = 0, memset(router_mac, 0, sizeof(router_mac));
   setRxOnlyHost(true);
+  
+#ifdef HAVE_NEDGE
+  drop_all_host_traffic = 0
+#endif
 }
 
 /* *************************************** */
@@ -214,9 +217,9 @@ void LocalHost::updateHostTrafficPolicy(char *key) {
   if(iface->isPacketInterface()) {
     if((ntop->getRedis()->hashGet((char*)DROP_HOST_TRAFFIC, host, buf, sizeof(buf)) == -1)
        || (strcmp(buf, "true") != 0))
-      drop_all_host_traffic = false;
+      drop_all_host_traffic = 0;
     else
-      drop_all_host_traffic = true;
+      drop_all_host_traffic = 1;
 
   }
 #endif

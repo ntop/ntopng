@@ -240,23 +240,32 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_
   
   vlan_id = _vlanId & 0xFFF; /* Cleanup any possible junk */
 
-  stats = NULL; /* it will be instantiated by specialized classes */
+  /* stats = NULL; useless initi, it will be instantiated by specialized classes */
   stats_shadow = NULL;
 #ifndef HAVE_NEDGE
   listening_ports = listening_ports_shadow = NULL;
 #endif
-  data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
-  last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
-  os = NULL, os_type = os_unknown;
-  prefs_loaded = false;
-  setRxOnlyHost(true);
-  host_services_bitmap = 0;
-  disabled_alerts_tstamp = 0;
-  num_remote_access = 0;
-  memset(view_interface_mac, 0, sizeof(view_interface_mac));
-  num_incomplete_flows = 0;
+  data_delete_requested = 0, stats_reset_requested = 0, name_reset_requested = 0, prefs_loaded = 0;
+  host_services_bitmap = 0, disabled_alerts_tstamp = 0, num_remote_access = 0, num_incomplete_flows = 0;
+  
+  num_resolve_attempts = 0, nextResolveAttempt = 0, num_active_flows_as_client = 0,
+  num_active_flows_as_server = 0, active_alerted_flows = 0;
 
-  // readStats(); - Commented as if put here it's too early and the key is not yet set
+  is_dhcp_host = 0, is_crawler_bot_scanner = 0, is_in_broadcast_domain = 0,
+  more_then_one_device = 0, device_ip = 0;
+
+  last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
+  asn = 0, asname = NULL, obs_point = NULL, os = NULL, os_type = os_unknown;
+  ssdpLocation = NULL, blacklist_name = NULL;
+
+  memset(&names, 0, sizeof(names));
+  memset(view_interface_mac, 0, sizeof(view_interface_mac));
+  memset(&unidirectionalTCPUDPFlows, 0, sizeof(unidirectionalTCPUDPFlows));
+  memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
+  memset(&customHostAlert, 0, sizeof(customHostAlert));
+  memset(&externalAlert, 0, sizeof(externalAlert));
+
+  setRxOnlyHost(true);
 
 #ifdef NTOPNG_PRO
   host_traffic_shapers = NULL;
@@ -270,21 +279,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_
 
   if((vlan = iface->getVLAN(vlan_id, true, true /* Inline call */)) != NULL)
     vlan->incUses();
-
-  num_resolve_attempts = 0, ssdpLocation = NULL;
-  num_active_flows_as_client = num_active_flows_as_server = 0;
-  active_alerted_flows = 0;
-
-  nextResolveAttempt = 0;
-  memset(&names, 0, sizeof(names));
-  asn = 0, asname = NULL;
-  as = NULL, country = NULL, obs_point = NULL;
-  os = NULL, os_type = os_unknown;
-  is_dhcp_host = 0;
-  is_crawler_bot_scanner = 0;
-  is_in_broadcast_domain = 0;
-  more_then_one_device = false;
-  device_ip = 0;
 
   INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "Host::initialize: new AlertCounter", 17);
   syn_flood.attacker_counter  = new (std::nothrow) AlertCounter();
@@ -304,13 +298,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_
   fin_scan.fin_sent_last_min  = fin_scan.finack_recvd_last_min = 0;
   fin_scan.fin_recvd_last_min = fin_scan.finack_sent_last_min  = 0;
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 17);
-
-  memset(&unidirectionalTCPUDPFlows, 0, sizeof(unidirectionalTCPUDPFlows));
-  memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
-  blacklist_name = NULL;
-
-  memset(&customHostAlert, 0, sizeof(customHostAlert));
-  memset(&externalAlert, 0, sizeof(externalAlert));
 
   tcp_udp_contacted_ports_no_tx = ndpi_bitmap_alloc();
   ndpi_hll_init(&outgoing_hosts_tcp_udp_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
@@ -335,6 +322,10 @@ void Host::deferredInitialization() {
   if(ip.getVersion() /* IP is set */) {
     char country_name[64];
 
+    /* 
+     * IMPORTANT: as and country are defined here, in case the initialization 
+     * is postponed, remember to initialize these values to NULL in the init
+     */
     if((as = iface->getAS(&ip, true /* Create if missing */, true /* Inline call */)) != NULL) {
       as->incUses();
       asn = as->get_asn();
@@ -890,7 +881,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_int32_table_entry(vm, "num_incoming_peers_that_sent_tcp_udp_flows_no_response",
 			     getNumContactsFromPeersAsServerTCPUDPNoTX());
 
-  if(device_ip != 0)
+  if(device_ip)
     lua_push_str_table_entry(vm, "device_ip", Utils::intoaV4(device_ip, buf, sizeof(buf)));
 
   if(blacklist_name != NULL)
@@ -1851,7 +1842,7 @@ void Host::checkStatsReset() {
 #endif
 
     last_stats_reset = ntop->getLastStatsReset();
-    stats_reset_requested = false;
+    stats_reset_requested = 0;
   }
 }
 
@@ -1889,7 +1880,7 @@ void Host::resetHostNames() {
 void Host::checkNameReset() {
   if(name_reset_requested) {
     resetHostNames();
-    name_reset_requested = false;
+    name_reset_requested = 0;
   }
 }
 
@@ -1905,7 +1896,7 @@ void Host::deleteHostData() {
 void Host::checkDataReset() {
   if(data_delete_requested) {
     deleteHostData();
-    data_delete_requested = false;
+    data_delete_requested = 0;
   }
 }
 
