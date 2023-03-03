@@ -1120,6 +1120,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
   void luaUsedPorts(lua_State* vm)                                       { usedPorts.lua(vm, this);                       };
   void getProtocolFlowsStats(lua_State* vm);
+  void getHostFlowsStats(lua_State* vm);
   void getVLANFlowsStats(lua_State* vm);
   void getRxOnlyHostsList(lua_State* vm, bool local_host_rx_only, bool list_host_peers);
 };
