@@ -1522,8 +1522,9 @@ else
       end
 
       if(snmpdevice ~= nil) then
+         local exporter_info_url = ntop.getHttpPrefix().."/lua/pro/enterprise/flowdevice_details.lua?ip="..snmpdevice
          print("<tr><th>"..i18n("details.flow_exporter").."</th>")
-         print("<td colspan=\"2\">"..snmpdevice.."</td></tr>")
+         print("<td colspan=\"2\">".."<a href="..exporter_info_url..">"..snmpdevice.."</a></td></tr>")
 
          if(flow["in_index"] or flow["out_index"]) then
             if((flow["in_index"] == flow["out_index"]) and (flow["in_index"] == 0)) then
