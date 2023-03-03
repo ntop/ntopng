@@ -40,7 +40,7 @@ class Flow : public GenericHashEntry {
   Host *cli_host, *srv_host;
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
-  u_int32_t flowCreationTime, privateFlowId /* Used to store specific flow info such as DNS TransactionId */;
+  u_int32_t privateFlowId /* Used to store specific flow info such as DNS TransactionId */;
   u_int8_t cli2srv_tos, srv2cli_tos; /* RFC 2474, 3168 */
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
@@ -214,10 +214,6 @@ class Flow : public GenericHashEntry {
   TCPSeqNum tcp_seq_s2d, tcp_seq_d2s;
   u_int16_t cli2srv_window, srv2cli_window;
 
-  time_t doNotExpireBefore; /*
-			      Used for collected flows via ZMQ to make sure that they are not immediately
-			      expired if their last seen time is back in time with respect to ntopng
-			    */
   struct timeval synTime, synAckTime, ackTime; /* network Latency (3-way handshake) */
   struct timeval clientNwLatency; /* The RTT/2 between the client and nprobe */
   struct timeval serverNwLatency; /* The RTT/2 between nprobe and the server */
@@ -265,6 +261,8 @@ class Flow : public GenericHashEntry {
      if you add a new 'directional' field such as cliX and serverX
      you need to handle it in the Flow::swap() method
   */
+
+  void deferredInitialization();
   char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
   void allocDPIMemory();
   bool checkTor(char *hostname);

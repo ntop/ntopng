@@ -41,52 +41,34 @@ Flow::Flow(NetworkInterface *_iface,
 	   const ICMPinfo * const _icmp_info,
 	   time_t _first_seen, time_t _last_seen,
 	   u_int8_t *_view_cli_mac, u_int8_t *_view_srv_mac) : GenericHashEntry(_iface) {
-  char country[64];
-
-  periodic_stats_update_partial = NULL;
-  viewFlowStats = NULL;
-  vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
-  cli_host = srv_host = NULL;
-  cli_ip_addr = srv_ip_addr = NULL;
+  vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port, privateFlowId = _private_flow_id;
   flow_dropped_counts_increased = 0, vrfId = 0, protocolErrorCode = 0;
-  srcAS = dstAS  = prevAdjacentAS = nextAdjacentAS = 0;
-  predominant_alert.id = flow_alert_normal, predominant_alert.category = alert_category_other;
-  predominant_alert_score = 0;
-  predominant_alert_info.is_cli_attacker = 0;
-  predominant_alert_info.is_cli_victim = 0;
-  predominant_alert_info.is_srv_attacker = 0;
-  predominant_alert_info.is_srv_victim = 0;
-  json_protocol_info = NULL, riskInfo = NULL, ndpiAddressFamilyProtocol = NULL;
-  privateFlowId = _private_flow_id;
+  srcAS = dstAS = prevAdjacentAS = nextAdjacentAS = 0;
+  predominant_alert.id = flow_alert_normal, predominant_alert.category = alert_category_other, predominant_alert_score = 0;
+  predominant_alert_info.is_cli_attacker = predominant_alert_info.is_cli_victim =
+  predominant_alert_info.is_srv_attacker = predominant_alert_info.is_srv_victim = 0;
+  ndpiAddressFamilyProtocol = NULL;
   clearRisks();
-  detection_completed = 0;
-  non_zero_payload_observed = 0;
   /* Note is_periodic_flow is updated by the updateFlowPeriodicity() call */
-  is_periodic_flow = 0;
-  extra_dissection_completed = 0;
+  detection_completed = 0, non_zero_payload_observed = 0, is_periodic_flow = 0, extra_dissection_completed = 0,
+  has_malicious_cli_signature = has_malicious_srv_signature = 0;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
-  /*
-  This is not required, there is already the preference for expiration time
-  doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
-  */
-  cli2srv_tos = srv2cli_tos = 0, iec104 = NULL;
-  suspicious_dga_domain = NULL;
+  cli2srv_tos = srv2cli_tos = 0;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
   swap_done = swap_requested = 0;
-  flowCreationTime = iface->getTimeLastPktRcvd(); /* Is this really needed? */
-
+  
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
 #endif
 
+  host_server_name = NULL;
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
   ndpiFlow = NULL, confidence = NDPI_CONFIDENCE_UNKNOWN;
-  ebpf = NULL;
-  json_info = NULL, tlv_info = NULL, twh_over = twh_ok = 0,
-    dissect_next_http_packet = 0, host_server_name = NULL;
-  bt_hash = NULL;
-  flow_payload = NULL, flow_payload_len = 0;
+  json_info = NULL, tlv_info = NULL, twh_over = twh_ok = 0, dissect_next_http_packet = 0;
+  periodic_stats_update_partial = NULL;
+  bt_hash = NULL, ebpf = NULL, iec104 = NULL;
+    
   flow_verdict = 0;
   operating_system = os_unknown;
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0;
@@ -94,28 +76,35 @@ Flow::Flow(NetworkInterface *_iface,
   bytes_thpt_srv2cli  = 0, goodput_bytes_thpt_srv2cli = 0;
   pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
   top_bytes_thpt = 0, top_pkts_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
-  external_alert.json = NULL;
-  external_alert.source = NULL;
+  external_alert.json = NULL, external_alert.source = NULL;
   trigger_immediate_periodic_update = false;
   next_call_periodic_update = 0;
+  
+  riskInfo = NULL, json_protocol_info = NULL;
+  viewFlowStats = NULL, suspicious_dga_domain = NULL;
+  flow_payload = NULL, flow_payload_len = 0;
 
   last_db_dump.partial = NULL;
   last_db_dump.first_seen = last_db_dump.last_seen = last_db_dump.last_thpt_update = 0;
   last_db_dump.in_progress = false;
+
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
-  
-  flow_device.observation_point_id = _observation_point_id;
 
   flow_score = 0, rtp_stream_type = rtp_unknown;
 
+  cli_ip_addr = srv_ip_addr = NULL;
+  cli_host = srv_host = NULL;
+  
   INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _observation_point_id, _private_flow_id,
 		       _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 7);
 
-  if(_observation_point_id)
+  if(_observation_point_id) {
     iface->incObservationPointIdFlows(_observation_point_id);
+    flow_device.observation_point_id = _observation_point_id;
+  }
 
   if(_iface->isViewed()) {
     memset(view_cli_mac, 0, sizeof(view_cli_mac));
@@ -128,22 +117,11 @@ Flow::Flow(NetworkInterface *_iface,
       memcpy(view_srv_mac, _view_srv_mac, sizeof(view_srv_mac));
   }
 
+  /* Increase the hosts counter or Init the IP Addresses in case hosts are null */
   if(cli_host) {
     cli_host->incUses(), cli_host->incNumFlows(last_seen, true);
     cli_host->incCliContactedPorts(_srv_port);
-    cli_ip_addr = cli_host->get_ip();
-    
-    if(cli_host->isLocalHost() && srv_host) {
-      srv_host->get_country(country, sizeof(country));
-      if(country[0] != '\0') 
-        cli_host->incCountriesContacts(country);
-
-      /* Add client gateway */
-      if(_srv_mac && (!srv_host->isLocalHost())) {
-        LocalHost *lh = (LocalHost*)cli_host;
-        lh->setRouterMac(_srv_mac);
-      }
-    }
+    cli_ip_addr = cli_host->get_ip();    
   } else {
     /* Client host has not been allocated, let's keep the info in an IpAddress */
     if((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
@@ -155,11 +133,6 @@ Flow::Flow(NetworkInterface *_iface,
     srv_host->incSrvPortsContacts(htons(_cli_port));
     srv_host->incSrvHostContacts(_cli_ip);
     srv_ip_addr = srv_host->get_ip();
-    
-    if(srv_host->isLocalHost() && cli_host) {
-      cli_host->get_country(country, sizeof(country));
-      if(country[0] != '\0') srv_host->incCountriesContacts(country);
-    }
   } else {
     /* Server host has not been allocated, let's keep the info in an IpAddress */
     if((srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip)))
@@ -179,6 +152,7 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&custom_app, 0, sizeof(custom_app));
 
 #ifdef HAVE_NEDGE
+  quota_exceeded = 0;
   HostPools *hp = iface->getHostPools();
 
   routing_table_id = DEFAULT_ROUTING_TABLE_ID;
@@ -190,12 +164,13 @@ Flow::Flow(NetworkInterface *_iface,
   }
 #endif
 
-  passVerdict = 1, quota_exceeded = 0;
-  has_malicious_cli_signature = has_malicious_srv_signature = 0;
+  passVerdict = 1;
 #ifdef ALERTED_FLOWS_DEBUG
   iface_alert_inc = iface_alert_dec = false;
 #endif
-  if(_first_seen > _last_seen) _first_seen = _last_seen;
+  if(_first_seen > _last_seen) 
+    _first_seen = _last_seen;
+
   first_seen = _first_seen, last_seen = _last_seen;
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
 
@@ -208,7 +183,6 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&ip_stats_s2d, 0, sizeof(ip_stats_s2d)), memset(&ip_stats_d2s, 0, sizeof(ip_stats_d2s));
   memset(&tcp_seq_s2d, 0, sizeof(tcp_seq_s2d)), memset(&tcp_seq_d2s, 0, sizeof(tcp_seq_d2s));
   memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency));
-
   memset(&customFlowAlert, 0, sizeof(customFlowAlert));
 
   if(iface->isPacketInterface() && !iface->isSampledTraffic()) {
@@ -270,6 +244,38 @@ Flow::Flow(NetworkInterface *_iface,
 						       NULL, protocol, 0, 0, 0, 0));
     break;
   }
+  
+  deferredInitialization();
+}
+
+/* *************************************** */
+
+ /* 
+  * This function is used to initialize those info
+  * that are not really necessary at the creation of the flow
+  */
+void Flow::deferredInitialization() {
+  if(cli_host && srv_host) {
+    char country[64];
+
+    if(cli_host->isLocalHost()) {
+      srv_host->get_country(country, sizeof(country));
+      if(country[0] != '\0') 
+        cli_host->incCountriesContacts(country);
+
+      Mac *srv_mac = srv_host->getMac();
+      /* Add client gateway */
+      if(srv_mac && (!srv_host->isLocalHost())) {
+        LocalHost *lh = (LocalHost*)cli_host;
+        lh->setRouterMac(srv_mac);
+      }
+    }
+        
+    if(srv_host->isLocalHost()) {
+      cli_host->get_country(country, sizeof(country));
+      if(country[0] != '\0') srv_host->incCountriesContacts(country);
+    }
+  }
 
   if(isBlacklistedClient()) {
     if(srv_host) srv_host->inc_num_blacklisted_flows(false);
@@ -277,7 +283,6 @@ Flow::Flow(NetworkInterface *_iface,
     if(cli_host) cli_host->inc_num_blacklisted_flows(true);
   }
 
-  /* Is it necessary to do the checks here? */
   iface->execFlowBeginChecks(this);
 }
 
@@ -584,7 +589,7 @@ void Flow::processDetectedProtocolData() {
   if((l7proto != NDPI_PROTOCOL_DNS)
      && (l7proto != NDPI_PROTOCOL_DHCP) /* host_server_name in DHCP is for the client name, not the server */
      && (ndpiFlow->host_server_name[0] != '\0')
-     && (host_server_name == NULL)) {
+     && (!host_server_name)) {
     Utils::sanitizeHostName((char*)ndpiFlow->host_server_name);
 
     if(ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)) {
@@ -601,7 +606,7 @@ void Flow::processDetectedProtocolData() {
 
   switch(l7proto) {
   case NDPI_PROTOCOL_BITTORRENT:
-    if(bt_hash == NULL)
+    if(!bt_hash)
       setBittorrentHash((char*)ndpiFlow->protos.bittorrent.hash);
     break;
 
@@ -1102,7 +1107,7 @@ void Flow::processIEC60870Packet(bool tx_direction,
      || (payload_len < 6))
     return;
 
-  if(iec104 == NULL)
+  if(!iec104)
     iec104 = new (std::nothrow) IEC104Stats();
 
   if(iec104)
@@ -2810,20 +2815,19 @@ bool Flow::is_hash_entry_state_idle_transition_ready() {
     if(protocol == IPPROTO_TCP) {
       u_int8_t tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;
 
-      /* The flow is considered idle after a MAX_TCP_FLOW_IDLE
-	 when RST/FIN are set or when the TWH is not completed.
-	 This prevents finalized/reset flows, or flows with an imcomplete
-	 TWH from staying in memory for too long. */
+      /* 
+       * The flow is considered idle after a MAX_TCP_FLOW_IDLE
+       * when RST/FIN are set or when the TWH is not completed.
+       * This prevents finalized/reset flows, or flows with an imcomplete
+       * TWH from staying in memory for too long. 
+       */
       if((tcp_flags & TH_FIN
-	  || tcp_flags & TH_RST
-	  || ((iface->isPacketInterface()
-	       || tcp_flags /* If not a packet interfaces, we expect flags to be set to be sure they've been exported */)
-	      && !isThreeWayHandshakeOK()))
-	 /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
-	 && (iface->getTimeLastPktRcvd() > doNotExpireBefore)
-	 && is_active_entry_now_idle(iface->getFlowMaxIdle())) {
-	/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
-	ret = true;
+          || tcp_flags & TH_RST
+          || ((iface->isPacketInterface()
+          || tcp_flags /* If not a packet interfaces, we expect flags to be set to be sure they've been exported */)
+          && !isThreeWayHandshakeOK()))
+        && is_active_entry_now_idle(iface->getFlowMaxIdle())) {
+        ret = true;
       }
     }
 
@@ -2840,14 +2844,6 @@ bool Flow::is_hash_entry_state_idle_transition_ready() {
   if(ret)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Idle flow found", iface->get_name());
 #endif
-
-  if(ret && ((iface->getTimeLastPktRcvd()-flowCreationTime) < 10 /* sec */)) {
-    /*
-      Trick to keep flows a minimum amount of time in memory
-      and thus avoid quick purging
-    */
-    ret = false;
-  }
 
   return(ret);
 }
@@ -6684,7 +6680,7 @@ void Flow::setPredominantAlertInfo(FlowAlert *alert) {
   if(alert_json_serializer)
     alert_json = ndpi_serializer_get_buffer(alert_json_serializer, &alert_json_len);
 
-  if (json_protocol_info != NULL) free(json_protocol_info);
+  if (json_protocol_info) free(json_protocol_info);
   json_protocol_info = strdup(alert_json ? alert_json : "");
 
   if(alert_json_serializer) {
@@ -6919,7 +6915,7 @@ void Flow::setJSONRiskInfo(char *r) {
   if(!r)
     return;
 
-  if(riskInfo)
+  if(riskInfo) 
     free(riskInfo);
 
   // ntop->getTrace()->traceEvent(TRACE_INFO, "[%s]", r);
