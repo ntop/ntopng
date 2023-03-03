@@ -602,7 +602,9 @@ int LuaEngine::run_loaded_script() {
   if(lua_pcall(L, 0, LUA_MULTRET /* Allow the script to be called multiple times */, 0) != 0) {
     if(lua_type(L, -1) == LUA_TSTRING) {
       const char *err = lua_tostring(L, -1);
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", loaded_script_path, err ? err : "");
+      if(!loaded_script_path && !err)
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", loaded_script_path, err);
+
     }
 
     rv = -2;
