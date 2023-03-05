@@ -134,7 +134,7 @@ void LocalHost::initialize() {
   setRxOnlyHost(true);
   
 #ifdef HAVE_NEDGE
-  drop_all_host_traffic = 0
+  drop_all_host_traffic = 0;
 #endif
 }
 
