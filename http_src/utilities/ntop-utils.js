@@ -844,14 +844,14 @@ export default class NtopUtils {
 					        const key = $(`input[name='configuration']:checked`).val();
 
 					        const body = (key == 'all')
-					                ? i18n_ext.manage_configurations.messagges.import_all_success
-							: i18n_ext.manage_configurations.messagges.import_success;
+					                ? i18n("manage_configurations.messages.import_all_success")
+							: i18n("manage_configurations.messages.import_success");
 
 						// show a success alert message
 						ToastUtils.showToast({
 							id: 'import-configuration-alert',
 							level: 'success',
-							title: i18n_ext.success,
+							title: i18n("success"),
 							body: body,
 							delay: 2000
 						});
