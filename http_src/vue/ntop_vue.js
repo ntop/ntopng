@@ -28,6 +28,8 @@ import { default as PageAlertAnalysis } from "./page-alert-analysis.vue";
 import { default as PageHostMap } from "./page-host-map.vue";
 import { default as PageVLANPortsSankey } from "./page-vlan-ports-sankey.vue";
 import { default as PageAggregatedLiveFlows } from "./page-aggregated-live-flows.vue";
+import { default as PageTestTable } from "./page-test-table.vue";
+import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -36,7 +38,6 @@ import { default as Datatable } from "./datatable.vue";
 import { default as NetworkMap } from "./network-map.vue";
 import { default as DateTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as PageNavbar } from "./page-navbar.vue";
-import { default as PageTestTable } from "./page-test-table.vue";
 import { default as RangePicker } from "./range-picker.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
@@ -81,6 +82,7 @@ let ntopVue = {
 
     PageVLANPortsFlowSankey:PageVLANPortsSankey,
     PageTestTable: PageTestTable,
+    NedgeRulesConfig: NedgeRulesConfig,
 
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,
