@@ -735,7 +735,7 @@ else
 
          if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
                print(' <A class="ntopng-external-link" href="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><small>VirusTotal</small> <i class=\"fas fa-external-link-alt\"></i></A>')
-               print(' <A class="ntopng-external-link" href="https://www.greynoise.io/viz/ip/'.. host["ip"] ..'" target=_blank><small>GreyNoise</small> <i class=\"fas fa-external-link-alt\"></i></A>')
+               print(' <A class="ntopng-external-link" href="https://www.abuseipdb.com/check/'.. host["ip"] ..'" target=_blank><small>AbuseIP DB</small> <i class=\"fas fa-external-link-alt\"></i></A>')
          end
 
          print("</td>\n")
