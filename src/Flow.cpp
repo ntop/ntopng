@@ -911,11 +911,20 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
   /* Note: do not call endProtocolDissection before ndpi_detection_process_packet. In case of
    * early giveup (e.g. sampled traffic), nDPI should process at least one packet in order to
    * be able to guess the protocol. */
-
+  
   proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
 					   ip_packet, ip_len, packet_time,
 					   NULL);
 
+  if((ndpi_flow_risk_bitmap != 0) && (ndpiFlow->risk == 0)) {
+    /*
+      Probably an exception has cleared the risk that was previously
+      stored in ntopng so we need to rollback also the risk in ntopng
+    */
+    
+    ndpi_flow_risk_bitmap = 0;
+  }
+  
   detected = ndpi_is_protocol_detected(iface->get_ndpi_struct(), proto_id);
 
   if(!detected && hasDissectedTooManyPackets()) {

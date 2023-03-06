@@ -358,6 +358,7 @@ void NetworkInterface::init(const char *interface_name) {
   ndpi_struct_shadow = NULL;
   ndpi_struct = initnDPIStruct();
   ndpi_finalize_initialization(ndpi_struct);
+
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
   kafka = NULL;
 #endif
@@ -413,7 +414,8 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
 #ifdef NTOPNG_PRO
   if(ifname && strcmp(ifname, SYSTEM_INTERFACE_NAME)) {
     AlertExclusions *excl = ntop->getAlertExclusions();
-    if (excl)
+    
+    if(excl)
       excl->loadnDPIExclusions(ndpi_s);
   }
 #endif
