@@ -390,9 +390,9 @@ tag_utils.confidence = {
 -- #####################################
 
 tag_utils.location = {
-   { label = i18n("details.label_short_remote"),  id = 0 },
-   { label = i18n("details.label_short_local_host"), id = 1 },
-   { label = i18n("short_multicast"), id = 2 },
+   { label = i18n("details.label_remote"),  id = 0 },
+   { label = i18n("details.label_local_host"), id = 1 },
+   { label = i18n("multicast"), id = 2 },
 }
 
 -- #####################################
