@@ -56,7 +56,7 @@ function loadDatatable() {
 	searching: props.enable_search,
 	order: [[0, "asc"]],
 	pagingType: 'full_numbers',
-	columnDefs: props.columns_config,
+	//columnDefs: props.columns_config,
 	columns: props.columns_config,
 	autoWidth: false,
 	responsive: true,
