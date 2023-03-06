@@ -104,28 +104,28 @@ export default {
       chart_options: [
         {
           title: i18n('graphs.top_10_ndpi_protocols'),
-          type: ntopChartApex.typeChart.PIE,
+          type: ntopChartApex.typeChart.DONUT,
           url: `${http_prefix}/lua/rest/v2/get/host/l7/proto_data.lua`,
           tab: `applications`,
           id: `top_applications`,
         },
         {
           title: i18n('graphs.top_breed'),
-          type: ntopChartApex.typeChart.PIE,
+          type: ntopChartApex.typeChart.DONUT,
           url: `${http_prefix}/lua/rest/v2/get/host/l7/breed_data.lua`,
           tab: `applications`,
           id: `top_breed`,
         },
         {
           title: i18n('graphs.top_10_ndpi_categories'),
-          type: ntopChartApex.typeChart.PIE,
+          type: ntopChartApex.typeChart.DONUT,
           url: `${http_prefix}/lua/rest/v2/get/host/l7/cat_data.lua`,
           tab: `categories`,
           id: `top_categories`,
         },
         {
           title: i18n('graphs.top_breed'),
-          type: ntopChartApex.typeChart.PIE,
+          type: ntopChartApex.typeChart.DONUT,
           url: `${http_prefix}/lua/rest/v2/get/host/l7/breed_data.lua`,
           tab: `categories`,
           id: `top_breed`,

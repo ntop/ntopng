@@ -84,19 +84,19 @@ onUnmounted(async () => {
 const chart_options = [
   {
     title: i18n('graphs.l4_proto'),
-    type: ntopChartApex.typeChart.PIE,
+    type: ntopChartApex.typeChart.DONUT,
     url: `${http_prefix}/lua/rest/v2/get/host/l4/proto_data.lua`,
     id: `traffic_protos`,
   },
   {
     title: i18n('graphs.contacted_hosts'),
-    type: ntopChartApex.typeChart.PIE,
+    type: ntopChartApex.typeChart.DONUT,
     url: `${http_prefix}/lua/rest/v2/get/host/l4/contacted_hosts_data.lua`,
     id: `contacted_hosts`,
   },
   {
     title: i18n('graphs.traffic'),
-    type: ntopChartApex.typeChart.PIE,
+    type: ntopChartApex.typeChart.DONUT,
     url: `${http_prefix}/lua/rest/v2/get/host/l4/traffic_data.lua`,
     id: `traffic`,
   },
