@@ -50,7 +50,7 @@ const types = {
     },
     ms: {
 	id: "ms",
-	um: ["ms", "Kms", "Mms", "Gms", "Tms"],
+	um: ["ms", "s"],
 	step: 1000,
 	decimal: 2,
 	scale_values: null,	

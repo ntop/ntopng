@@ -173,7 +173,7 @@ const ntopChartApex = function() {
       let TS_STACKED_ChartOptions = {
         chart: {
           stacked: true,
-          type: "polarArea",
+          type: "pie",
           height: 400
         },
         yaxis: {
@@ -208,6 +208,90 @@ const ntopChartApex = function() {
 	ntopng_utility.copy_object_keys(TS_STACKED_ChartOptions, chartOptions, true);
 	return chartOptions;
     }();
+
+// define default chartOptions for area chart type.
+const _default_TS_DONUT_ChartOptions = function() {
+  let chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
+  let TS_STACKED_ChartOptions = {
+    chart: {
+      stacked: true,
+      type: "donut",
+      height: 400
+    },
+    yaxis: {
+      show: true,
+      labels: {
+        formatter: NtopUtils.bytesToSize
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: function (val, opts) {
+        return (val ? `${val.toFixed(1)}%` : `0%`)
+      },
+    },
+    legend: {
+      enabled: true,
+      position: 'bottom',
+    },
+    stroke: {
+      show: false,
+      curve: "smooth"
+    },
+    fill: {
+      type: "solid"
+    },
+    tooltip: {
+      y: {
+        formatter: NtopUtils.bytesToSize
+      },
+    },
+  };
+ntopng_utility.copy_object_keys(TS_STACKED_ChartOptions, chartOptions, true);
+return chartOptions;
+}();
+
+// define default chartOptions for area chart type.
+const _default_TS_POLAR_ChartOptions = function() {
+  let chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
+  let TS_STACKED_ChartOptions = {
+    chart: {
+      stacked: true,
+      type: "polarArea",
+      height: 400
+    },
+    yaxis: {
+      show: true,
+      labels: {
+        formatter: NtopUtils.bytesToSize
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: function (val, opts) {
+        return (val ? `${val.toFixed(1)}%` : `0%`)
+      },
+    },
+    legend: {
+      enabled: true,
+      position: 'bottom',
+    },
+    stroke: {
+      show: false,
+      curve: "smooth"
+    },
+    fill: {
+      type: "solid"
+    },
+    tooltip: {
+      y: {
+        formatter: NtopUtils.bytesToSize
+      },
+    },
+  };
+ntopng_utility.copy_object_keys(TS_STACKED_ChartOptions, chartOptions, true);
+return chartOptions;
+}();
 
     // define default chartOptions for line chart type.
     const _default_TS_LINE_ChartOptions = function() {
@@ -341,6 +425,8 @@ const ntopChartApex = function() {
 	    TS_STACKED: "TS_STACKED",
 	    TS_COLUMN: "TS_COLUMN",
 	    PIE: "PIE",
+	    DONUT: "DONUT",
+	    POLAR: "POLAR",
       BUBBLE: "BUBBLE",
 	    BASE: "BASE",
 	},
@@ -360,6 +446,10 @@ const ntopChartApex = function() {
         _setXTimeFormatter(_chartOptions);
 	    } else if (type == this.typeChart.PIE) {
         _chartOptions = ntopng_utility.clone(_default_TS_PIE_ChartOptions);
+	    } else if (type == this.typeChart.DONUT) {
+        _chartOptions = ntopng_utility.clone(_default_TS_DONUT_ChartOptions);
+	    } else if (type == this.typeChart.POLAR) {
+        _chartOptions = ntopng_utility.clone(_default_TS_POLAR_ChartOptions);
       } else if (type == this.typeChart.BUBBLE) {
         _chartOptions = ntopng_utility.clone(_default_TS_BUBBLE_ChartOptions);
       }  else if (type == this.typeChart.BASE) {

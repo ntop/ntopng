@@ -48,25 +48,25 @@ const _i18n = (t) => i18n(t);
 const chart_options = [
   {
     title: i18n('graphs.packets_sent'),
-    type: ntopChartApex.typeChart.PIE,
+    type: ntopChartApex.typeChart.DONUT,
     url: `${http_prefix}/lua/rest/v2/get/host/packets/sent_data.lua`,
     id: `packets_sent`,
   },
   {
     title: i18n('graphs.packets_rcvd'),
-    type: ntopChartApex.typeChart.PIE,
+    type: ntopChartApex.typeChart.DONUT,
     url: `${http_prefix}/lua/rest/v2/get/host/packets/rcvd_data.lua`,
     id: `packets_rcvd`,
   },
   {
     title: i18n('graphs.tcp_flags'),
-    type: ntopChartApex.typeChart.PIE,
+    type: ntopChartApex.typeChart.DONUT,
     url: `${http_prefix}/lua/rest/v2/get/host/packets/tcp_flags_data.lua`,
     id: `tcp_flags`,
   },
   {
     title: i18n('graphs.arp_distribution'),
-    type: ntopChartApex.typeChart.PIE,
+    type: ntopChartApex.typeChart.DONUT,
     url: `${http_prefix}/lua/rest/v2/get/host/packets/arp_data.lua`,
     id: `arp_requests`,
   },
