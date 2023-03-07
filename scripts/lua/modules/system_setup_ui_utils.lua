@@ -138,13 +138,13 @@ function system_setup_ui_utils.printConfigChange(sys_config, warnings)
       print[[<button style="visibility:hidden;">&nbsp;</button>]]
       print[[<div style="display: inline-block; float: right;">]]
 
-   if config_changed then
-     print[[<form name="modifyNedgeConfig" class="form-inline" style="display:inline;" method="POST">
+      if config_changed then
+        print[[<form name="modifyNedgeConfig" class="form-inline" style="display:inline;" method="POST">
     <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [["/>
     <input type="hidden" name="nedge_config_action" value="discard">
     <button type="submit" class="btn btn-secondary">]] print(i18n("nedge.setup_discard")) print[[</button>
   </form>]]
-  end
+      end
 
       print[[
 <form id="applyNedgeConfig" name="modifyNedgeConfig" class="form-inline" style="display:inline;" method="POST">
