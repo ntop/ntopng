@@ -926,6 +926,7 @@ local flow_columns = {
    ['SRC_MAC'] =              { tag = "cli_mac", dt_func = dt_format_mac },
    ['DST_MAC'] =              { tag = "srv_mac", dt_func = dt_format_mac },
    ['COMMUNITY_ID'] =         { tag = "community_id", format_func = format_flow_info, i18n = i18n("flow_fields_description.community_id"), order = 10 },
+   ['JA3'] =                  { tag = "ja3", format_func = format_flow_info, i18n = i18n("flow_fields_description.ja3"), order = 10 },
    ['SRC_ASN'] =              { tag = "cli_asn", simple_dt_func = simple_format_src_asn },
    ['DST_ASN'] =              { tag = "srv_asn", simple_dt_func = simple_format_dst_asn },
    ['PROBE_IP'] =             { tag = "probe_ip",     dt_func = dt_format_probe, select_func = "IPv4NumToString", where_func = "IPv4StringToNum" },
@@ -1023,6 +1024,7 @@ historical_flow_utils.extra_where_tags = {
    ["srv_country"] = "DST_COUNTRY_CODE",
    ["vlan_id"] = "VLAN_ID",
    ["community_id"] = "COMMUNITY_ID",
+
 }
 
 historical_flow_utils.topk_tags_v4 = {
@@ -1119,6 +1121,7 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["snmp_interface"] = tag_utils.defined_tags["snmp_interface"]
    flow_defined_tags["country"] = tag_utils.defined_tags["country"]
    flow_defined_tags["l7_error_id"] = tag_utils.defined_tags["l7_error_id"]
+   flow_defined_tags["ja3"] = tag_utils.defined_tags["ja3"]
    flow_defined_tags["cli_location"] = tag_utils.defined_tags["cli_location"]
    flow_defined_tags["srv_location"] = tag_utils.defined_tags["srv_location"]
    flow_defined_tags["traffic_direction"] = tag_utils.defined_tags["traffic_direction"]
@@ -1516,6 +1519,21 @@ end
 
 -- #####################################
 
+local function build_datatable_js_column_ja3(name, data_name, label, order, hide)
+   return {
+      i18n = label,
+      order = order,
+      visible_by_default = not hide,
+      js = [[
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+         if (type !== 'display') return ]] .. name .. [[;
+        if (]] .. name .. [[ !== undefined) {
+          return `<a class='tag-filter' data-tag-value='${]] .. name .. [[}' title='${]] .. name .. [[}' href='#'>${]] .. name .. [[}</a>`;
+      }}}]] }
+end
+
+-- #####################################
+
 local function build_datatable_js_column_packets(name, data_name, label, order, hide)
    return {
       i18n = label,
@@ -1789,6 +1807,7 @@ local all_datatable_js_columns_by_tag = {
    ['cli_country'] = build_datatable_js_column_country('cli_country', 'cli_country', i18n("db_search.tags.cli_country"), 34, true),
    ['srv_country'] = build_datatable_js_column_country('srv_country', 'srv_country', i18n("db_search.tags.srv_country"), 35, true),
    ['community_id'] = build_datatable_js_column_community_id('community_id', 'community_id', i18n("db_search.tags.community_id"), 36, true),
+   ['ja3'] = build_datatable_js_column_ja3('ja3','ja3', i18n("db_search.tags.community_id"), 37, true)
 }
 
 -- #####################################
