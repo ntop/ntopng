@@ -1895,7 +1895,7 @@ static int ntop_interface_get_throughput(lua_State* vm) {
 
 static int ntop_get_protocol_flows_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  u_int filter_type;
+  u_int filter_type = 0;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
