@@ -45,7 +45,7 @@
 	  <!-- select -->
 	  <div v-if="source_def.ui_type == ui_types.select" class="form-group mt-2 row">
 	    <label class="col-form-label col-sm-4" >
-              <b>{{source_def.label}}</b>
+              <b>{{source_def.label}} {{source_def_index}}</b>
 	    </label>
 	    <div class="col-sm-8">
 	      <SelectSearch v-model:selected_option="selected_source_array[source_def_index]"
@@ -187,7 +187,7 @@ onBeforeMount(() => {
     sources_types.forEach((source_type) => {
 	let source_type_enabled = props.sources_types_enabled[source_type.id];
 	if (source_type_enabled == null || source_type_enabled == false) {
-	    source_type.disabled = true;
+	    // source_type.disabled = true;
 	}
     });    
 });
@@ -357,7 +357,7 @@ const apply = () => {
 	let ts_group = {
 	    id: ts_group_id,
 	    source_type: selected_source_type.value,
-	    source_array: selected_source_array.value,
+	    source_array: ntopng_utility.clone(selected_source_array.value),
 	    metric: selected_metric.value,
 	    timeseries: ntopng_utility.clone(timeseries_to_add.value),
 	};
