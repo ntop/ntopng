@@ -339,9 +339,14 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.community_id'),
       operators = {'eq', 'neq', 'in', 'nin'},
    },
-   ja3 = {
+   ja3_client = {
       value_type = 'text',
-      i18n_label = i18n('db_search.tags.ja3'),
+      i18n_label = i18n('ja3.client_hash'),
+      operators = {'eq', 'neq', 'in', 'nin'},
+   },
+   ja3_server = {
+      value_type = 'text',
+      i18n_label = i18n('ja3.server_hash'),
       operators = {'eq', 'neq', 'in', 'nin'},
    },
    cli_location = {
