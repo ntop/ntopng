@@ -6903,6 +6903,12 @@ void Flow::lua_entropy(lua_State* vm) {
 /* *************************************** */
 
 void Flow::check_swap() {
+  if(((protocol == IPPROTO_TCP) && ((src2dst_tcp_flags & TH_SYN) == TH_SYN))
+     || (get_cli_port() == 0)
+     || (get_srv_port() == 0)
+     )
+    return;
+
   if(!(get_cli_ip_addr()->isNonEmptyUnicastAddress()
        && (!get_srv_ip_addr()->isNonEmptyUnicastAddress())) /* Everything that is NOT unicast-to-non-unicast needs to be checked */
      /* && get_cli_port() < 1024 // Relax this constraint and also apply to non-well-known ports such as 8080 */
@@ -6952,66 +6958,70 @@ void Flow::triggerCustomFlowAlert(u_int8_t score, char *msg) {
 /* *************************************** */
 
 void Flow::swap() {
-  Host      *h = cli_host;
-  IpAddress *i = cli_ip_addr;
-  u_int8_t   m[6];
-  u_int8_t   f1 = predominant_alert_info.is_cli_attacker, f2 = predominant_alert_info.is_cli_victim;
-  struct ndpi_analyze_struct *s = initial_bytes_entropy.c2s;
-  TCPSeqNum ts;
-  InterarrivalStats *is = cli2srvPktTime;
-  time_t now = time(NULL);
+  if((ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_UNKNOWN) && (ndpiDetectedProtocol.master_protocol == NDPI_PROTOCOL_UNKNOWN))
+    ; /* Don't awap unknown protocols: let's be conservative */
+  else {
+    Host      *h = cli_host;
+    IpAddress *i = cli_ip_addr;
+    u_int8_t   m[6];
+    u_int8_t   f1 = predominant_alert_info.is_cli_attacker, f2 = predominant_alert_info.is_cli_victim;
+    struct ndpi_analyze_struct *s = initial_bytes_entropy.c2s;
+    TCPSeqNum ts;
+    InterarrivalStats *is = cli2srvPktTime;
+    time_t now = time(NULL);
 
 #if 0
-  char buf[128];
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", print(buf, sizeof(buf)));
+    char buf[128];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", print(buf, sizeof(buf)));
 #endif
 
-  if(cli_host && srv_host) {
-    cli_host->decNumFlows(now, true /* as client */), srv_host->decNumFlows(now, false /* as server */);
-    cli_host = srv_host, cli_ip_addr = srv_ip_addr;
-    srv_host = h, srv_ip_addr = i;
-    cli_host->incNumFlows(now, true /* as client */), srv_host->incNumFlows(now, false /* as server */);
-  } else {
-    /* This is probably a view interface */
+    if(cli_host && srv_host) {
+      cli_host->decNumFlows(now, true /* as client */), srv_host->decNumFlows(now, false /* as server */);
+      cli_host = srv_host, cli_ip_addr = srv_ip_addr;
+      srv_host = h, srv_ip_addr = i;
+      cli_host->incNumFlows(now, true /* as client */), srv_host->incNumFlows(now, false /* as server */);
+    } else {
+      /* This is probably a view interface */
 
-    if(cli_ip_addr && srv_ip_addr && (cli_host == NULL) && (srv_host == NULL)) {
-      IpAddress *c = cli_ip_addr;
+      if(cli_ip_addr && srv_ip_addr && (cli_host == NULL) && (srv_host == NULL)) {
+	IpAddress *c = cli_ip_addr;
 
-      cli_ip_addr = srv_ip_addr; srv_ip_addr = c;
+	cli_ip_addr = srv_ip_addr; srv_ip_addr = c;
+      }
     }
-  }
 
-  Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS), Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
-  initial_bytes_entropy.c2s = initial_bytes_entropy.s2c; initial_bytes_entropy.s2c = s;
+    Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS), Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
+    initial_bytes_entropy.c2s = initial_bytes_entropy.s2c; initial_bytes_entropy.s2c = s;
 
-  memcpy(m, view_cli_mac, 6); memcpy(view_cli_mac, view_srv_mac, 6); memcpy(view_srv_mac, m, 6);
+    memcpy(m, view_cli_mac, 6); memcpy(view_cli_mac, view_srv_mac, 6); memcpy(view_srv_mac, m, 6);
 
-  predominant_alert_info.is_cli_attacker = predominant_alert_info.is_srv_attacker, predominant_alert_info.is_cli_victim = predominant_alert_info.is_srv_victim;
-  predominant_alert_info.is_srv_attacker = f1, predominant_alert_info.is_srv_victim = f2;
+    predominant_alert_info.is_cli_attacker = predominant_alert_info.is_srv_attacker, predominant_alert_info.is_cli_victim = predominant_alert_info.is_srv_victim;
+    predominant_alert_info.is_srv_attacker = f1, predominant_alert_info.is_srv_victim = f2;
 
-  memcpy(&ts, &tcp_seq_s2d, sizeof(TCPSeqNum));
-  memcpy(&tcp_seq_d2s, &tcp_seq_s2d, sizeof(TCPSeqNum));
-  memcpy(&tcp_seq_s2d, &ts, sizeof(TCPSeqNum));
-  Utils::swap16(&cli2srv_window, &srv2cli_window);
+    memcpy(&ts, &tcp_seq_s2d, sizeof(TCPSeqNum));
+    memcpy(&tcp_seq_d2s, &tcp_seq_s2d, sizeof(TCPSeqNum));
+    memcpy(&tcp_seq_s2d, &ts, sizeof(TCPSeqNum));
+    Utils::swap16(&cli2srv_window, &srv2cli_window);
 
-  cli2srvPktTime = srv2cliPktTime; srv2cliPktTime = is;
+    cli2srvPktTime = srv2cliPktTime; srv2cliPktTime = is;
 
 #ifdef HAVE_NEDGE
-  TrafficShaper *s1 = flowShaperIds.cli2srv.ingress;
-  TrafficShaper *s2 = flowShaperIds.srv2cli.egress;
+    TrafficShaper *s1 = flowShaperIds.cli2srv.ingress;
+    TrafficShaper *s2 = flowShaperIds.srv2cli.egress;
 
-  flowShaperIds.cli2srv.ingress = flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress = flowShaperIds.cli2srv.egress;
-  flowShaperIds.srv2cli.ingress = s1, flowShaperIds.cli2srv.egress = s2;
+    flowShaperIds.cli2srv.ingress = flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress = flowShaperIds.cli2srv.egress;
+    flowShaperIds.srv2cli.ingress = s1, flowShaperIds.cli2srv.egress = s2;
 #endif
 
-  Utils::swapfloat(&bytes_thpt_cli2srv, &bytes_thpt_srv2cli);
-  Utils::swapfloat(&goodput_bytes_thpt_cli2srv, &goodput_bytes_thpt_srv2cli);
-  Utils::swapfloat(&pkts_thpt_cli2srv, &pkts_thpt_srv2cli);
+    Utils::swapfloat(&bytes_thpt_cli2srv, &bytes_thpt_srv2cli);
+    Utils::swapfloat(&goodput_bytes_thpt_cli2srv, &goodput_bytes_thpt_srv2cli);
+    Utils::swapfloat(&pkts_thpt_cli2srv, &pkts_thpt_srv2cli);
 
-  /*
-    We do not swap L7 info as if it direction was wrong they were not computed
-    Same applies with latency counters
-  */
-
-  swap_done = 1, swap_requested = 0;
+    /*
+      We do not swap L7 info as if it direction was wrong they were not computed
+      Same applies with latency counters
+    */ 
+  }
+  
+  swap_done = 1, swap_requested = 0;  
 }
