@@ -85,7 +85,7 @@ Flow::Flow(NetworkInterface *_iface,
   flow_payload = NULL, flow_payload_len = 0;
 
   last_db_dump.partial = NULL;
-  last_db_dump.first_seen = last_db_dump.last_seen = last_db_dump.last_thpt_update = 0;
+  last_db_dump.first_seen = last_db_dump.last_seen = 0;
   last_db_dump.in_progress = false;
 
   memset(&protos, 0, sizeof(protos));
@@ -186,8 +186,10 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&customFlowAlert, 0, sizeof(customFlowAlert));
 
   if(iface->isPacketInterface() && !iface->isSampledTraffic()) {
+    /* Is this necessary? */
     cli2srvPktTime = new (std::nothrow) InterarrivalStats();
     srv2cliPktTime = new (std::nothrow) InterarrivalStats();
+
     initial_bytes_entropy.c2s = ndpi_alloc_data_analysis(256);
     initial_bytes_entropy.s2c = ndpi_alloc_data_analysis(256);
   } else {
@@ -2064,7 +2066,13 @@ void Flow::updateThroughputStats(float tdiff_msec,
 
 /* *************************************** */
 
+/* This function is called every second by the purgeIdle function */
 void Flow::periodic_stats_update(const struct timeval *tv) {
+  
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Periodic flow update");
+#endif
+
   bool first_partial;
   PartializableFlowTrafficStats partial;
   Host *cli_h = NULL, *srv_h = NULL;
@@ -2129,15 +2137,13 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
   } /* Closes if(cli_h && srv_h) */
 
 #ifndef HAVE_NEDGE /* For nEdge check Flow::setPacketsBytes */
-  /* Non-Packet interfaces (e.g., ZMQ) have flow throughput stats updated as soon as the flow is received.
-     This makes throughput more precise as it is averaged on a timespan which is last-first switched. */
-  if(iface->isPacketInterface() && last_update_time.tv_sec > 0) {
+  /* Update throughput */
+  if(last_update_time.tv_sec > 0) {
     float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
 
     updateThroughputStats(tdiff_msec,
 			  diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 			  diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
-
   }
 #endif
 
@@ -4257,18 +4263,9 @@ void Flow::addFlowStats(bool new_flow,
 			u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes,
 			u_int in_fragments, u_int out_fragments,
 			time_t first_seen, time_t last_seen) {
-  double thp_delta_time;
-
   /* Don't update seen if no traffic has been observed */
   if(!(in_bytes || out_bytes || in_pkts || out_pkts))
     return;
-
-  if(new_flow)
-    /* Average between last and first seen */
-    thp_delta_time = difftime(last_seen, first_seen);
-  else
-    /* Average of the latest update, that is between the new and the previous last_seen */
-    thp_delta_time = difftime(last_seen, get_last_thpt_update());
 
   updateSeen(last_seen);
   callFlowUpdate(last_seen);
@@ -4283,30 +4280,23 @@ void Flow::addFlowStats(bool new_flow,
     ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments;
   }
 #if 0
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[New flow: %s][first: %u][last: %u][thpt_delta: %u][get_last_seen: %u][%u][%u][in_bytes: %u][out_bytes: %u][bytes : %u][thpt: %.2f]",
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[New flow: %s][first: %u][last: %u][get_last_seen: %u][%u][%u][in_bytes: %u][out_bytes: %u][bytes : %u][thpt: %.2f]",
              (new_flow ? "YES" : "NO"),
-			       first_seen, last_seen, thp_delta_time,
+			       first_seen, last_seen,
 			       get_last_seen(),
 			       last_seen - first_seen,
 			       last_seen - get_last_seen(),
 			       in_bytes,
 			       out_bytes,
 			       in_bytes + out_bytes,
-			       ((in_bytes + out_bytes) / thp_delta_time) / 1024 / 1024 * 8);
+			       ((in_bytes + out_bytes) / difftime(last_seen, first_seen)) / 1024 / 1024 * 8);
 #endif
-  /* New flow or old flow updated at least 1 sec ago */
-  if(new_flow || thp_delta_time >= 1000) {
-    /*
-      If here, delta time is enough to enable throughput estimations using
-      bytes/packets delta. In this case, we can give throughput values
-      that are averaged using the time delta, and not the overall flow lifetime.
-    */
-    update_last_thpt(last_seen);
-
+  /* New flow, update throughput, otherwise update it in the periodic update */
+  if(new_flow) {
     if(cli2srv_direction)
-      updateThroughputStats(thp_delta_time * 1000, in_pkts, in_bytes, 0, out_pkts, out_bytes, 0);
+      updateThroughputStats(difftime(last_seen, first_seen), in_pkts, in_bytes, 0, out_pkts, out_bytes, 0);
     else
-      updateThroughputStats(thp_delta_time * 1000, out_pkts, out_bytes, 0, in_pkts, in_bytes, 0);
+      updateThroughputStats(difftime(last_seen, first_seen), out_pkts, out_bytes, 0, in_pkts, in_bytes, 0);
   }
 }
 

@@ -226,7 +226,7 @@ class Flow : public GenericHashEntry {
   struct {
     PartializableFlowTrafficStats *partial;
     PartializableFlowTrafficStats delta;
-    time_t first_seen, last_seen, last_thpt_update;
+    time_t first_seen, last_seen;
     bool in_progress; /* Set to true when the flow is enqueued to be dumped */
   } last_db_dump;
 
@@ -575,8 +575,6 @@ class Flow : public GenericHashEntry {
   inline float get_goodput_ratio()       const { return((float)(100*get_goodput_bytes()) / ((float)get_bytes() + 1)); };
   inline time_t get_partial_first_seen() const { return(last_db_dump.first_seen); };
   inline time_t get_partial_last_seen()  const { return(last_db_dump.last_seen);  };
-  inline time_t get_last_thpt_update()   const { return(last_db_dump.last_thpt_update); };
-  inline void update_last_thpt(time_t last_update)   { last_db_dump.last_thpt_update = last_update; };
   inline u_int32_t get_duration()        const { return((u_int32_t)(get_last_seen() - get_first_seen())); };
   inline char* get_protocol_name()       const { return(Utils::l4proto2name(protocol));   };
 

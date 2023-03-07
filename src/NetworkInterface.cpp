@@ -6318,8 +6318,8 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle, bool full_scan) {
 
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i]",
-				 ifname, id, flows_hash->getNumEntries());
+				 "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i] [full scan: %s]",
+				 ifname, id, flows_hash->getNumEntries(), full_scan ? "True" : "False");
 #endif
     n = (flows_hash ? flows_hash->purgeIdle(&tv, force_idle, full_scan) : 0);
 
