@@ -24,7 +24,7 @@
 /* ************************************ */
 
 GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
-                         u_int _max_hash_size, const char *_name) {
+	                 u_int _max_hash_size, const char *_name) {
   num_hashes = _num_hashes;
   current_size = 0;
   /* Allow the total number of entries (that is, active and those idle but still not yet purged)
