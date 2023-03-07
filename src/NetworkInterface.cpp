@@ -10177,7 +10177,11 @@ private:
   u_int8_t l4_proto;
   char cli_ip[128];
   char srv_ip[128];
+  char cli_name[128];
+  char srv_name[128];
   u_int16_t vlan_id;
+  char* proto_name;
+  u_int64_t key;
 
 public:
   FlowsStats(const IpAddress *c, const IpAddress *s, u_int8_t _l4_proto,
@@ -10207,6 +10211,24 @@ public:
   inline char* getSrvIp() { return(srv_ip); }
   inline void setVlanId(u_int16_t _vlan_id) { vlan_id = _vlan_id; }
   inline u_int16_t getVlanId() { return vlan_id; }
+  inline void setProtoName(char* _proto_name) { proto_name = _proto_name; }
+  inline char* getProtoName() { return proto_name; }
+  inline void setKey(u_int64_t _key) { key = _key; }
+  inline u_int64_t getKey() { return key; }
+  inline void setCliName(Host* cli_host) {
+    char buf[128];
+    char *name = cli_host->get_name(buf, sizeof(buf), false);
+    snprintf(cli_name, sizeof(cli_name), "%s", name); 
+  }
+  inline char* getCliName() { return cli_name; }
+  inline void setSrvName(Host* srv_host) {
+    char buf[128];
+    char *name = srv_host->get_name(buf, sizeof(buf), false);
+    snprintf(srv_name, sizeof(srv_name), "%s", name); 
+
+  }
+  inline char* getSrvName() { return srv_name; }
+
   inline void      incFlowStats(const IpAddress *c, const IpAddress *s,
 				u_int64_t bytes_sent, u_int64_t bytes_rcvd,
 				u_int32_t score) {
@@ -10240,8 +10262,9 @@ static bool compute_protocol_flow_stats(GenericHashEntry *node, void *user_data,
 						   f->get_protocol(),
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
 						   f->getScore());
+    fs->setKey(key);
 
-    if(fs != NULL)
+    if(fs != NULL) 
       (*count)[key] = fs;
   } else
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
@@ -10275,7 +10298,9 @@ static bool compute_client_flow_stats(GenericHashEntry *node, void *user_data, b
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
 						   f->getScore());
     fs->setCliIp(f->get_cli_ip_addr());
+    fs->setCliName(f->get_cli_host());
     fs->setVlanId(f->get_vlan_id());
+    fs->setKey(key);
     
     if(fs != NULL) 
       (*count)[key] = fs; 
@@ -10310,7 +10335,9 @@ static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data, b
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
 						   f->getScore());
     fs->setSrvIp(f->get_srv_ip_addr());
+    fs->setSrvName(f->get_srv_host());
     fs->setVlanId(f->get_vlan_id());
+    fs->setKey(key);
     
     if(fs != NULL) 
       (*count)[key] = fs; 
@@ -10347,7 +10374,10 @@ static bool compute_client_server_flow_stats(GenericHashEntry *node, void *user_
 						   f->getScore());
     fs->setCliIp(f->get_cli_ip_addr());
     fs->setSrvIp(f->get_srv_ip_addr());
+    fs->setCliName(f->get_cli_host());
+    fs->setSrvName(f->get_srv_host());
     fs->setVlanId(f->get_vlan_id());
+    fs->setKey(key);
     
     if(fs != NULL) 
       (*count)[key] = fs; 
@@ -10360,26 +10390,253 @@ static bool compute_client_server_flow_stats(GenericHashEntry *node, void *user_
   return(false); /* false = keep on walking */
 }
 
+
+/* **************************************************** */
+/* Sort compare functions */
+
+bool asc_str_cmp( FlowsStats* a, FlowsStats* b)
+{
+    return strcmp(a->getProtoName(),b->getProtoName()) < 0;
+}
+
+bool asc_key_cmp( FlowsStats* a, FlowsStats* b) {
+  return a->getKey() < b->getKey();
+}
+
+bool asc_flownum_cmp( FlowsStats* a, FlowsStats* b) {
+  return a->getNumFlows() < b->getNumFlows();
+}
+
+bool asc_totalscore_cmp( FlowsStats* a, FlowsStats* b) {
+  return a->getTotalScore() < b->getTotalScore();
+}
+
+bool asc_numclients_cmp( FlowsStats* a, FlowsStats* b) {
+  return a->getNumClients() < b->getNumClients();
+}
+
+bool asc_numservers_cmp( FlowsStats* a, FlowsStats* b) {
+  return a->getNumServers() < b->getNumServers() ;
+}
+
+bool asc_totalsent_cmp( FlowsStats* a, FlowsStats* b) {
+  return a->getTotalSent() < b->getTotalSent() ;
+}
+
+bool asc_totalrcvd_cmp( FlowsStats* a, FlowsStats* b) {
+  return a->getTotalRcvd() < b->getTotalRcvd() ;
+}
+
+bool asc_totaltraffic_cmp( FlowsStats* a, FlowsStats* b) {
+  return (a->getTotalRcvd() + a->getTotalSent()) < (b->getTotalRcvd() + b->getTotalSent()) ;
+}
+
+/* **************************************************** */
+/* Analysis Flows Stats Lua response builders */
+
+u_int build_lua_rsp(lua_State *vm, FlowsStats *fs, u_int filter_type, u_int32_t size, u_int num) {
+  lua_newtable(vm);
+  switch ( filter_type ) {
+    case 2:{
+      lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
+      lua_push_str_table_entry(vm,    "client_name",   fs->getCliName());
+    } break;
+    case 3: {
+      lua_push_str_table_entry(vm,    "server_ip",   fs->getSrvIp());
+      lua_push_str_table_entry(vm,    "server_name",   fs->getSrvName());
+    } break;
+    case 4: {
+      lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
+      lua_push_str_table_entry(vm,    "server_ip",   fs->getSrvIp());
+      lua_push_str_table_entry(vm,    "client_name",   fs->getCliName());
+      lua_push_str_table_entry(vm,    "server_name",   fs->getSrvName());
+    } break;
+    default: {
+      lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
+      lua_push_str_table_entry(vm,    "client_name",   fs->getCliName());
+    } break;
+  }
+  lua_push_uint64_table_entry(vm, "vlan_id",    (u_int64_t)fs->getVlanId());
+  lua_push_uint32_table_entry(vm, "l4_proto",    fs->getL4Protocol());
+  lua_push_uint32_table_entry(vm, "num_clients", fs->getNumClients());
+  lua_push_uint32_table_entry(vm, "num_servers", fs->getNumServers());
+  lua_push_uint32_table_entry(vm, "num_flows",   fs->getNumFlows());
+  lua_push_uint64_table_entry(vm, "bytes_sent",  fs->getTotalSent());
+  lua_push_uint64_table_entry(vm, "bytes_rcvd",  fs->getTotalRcvd());
+  lua_push_uint64_table_entry(vm, "total_score", fs->getTotalScore());
+  lua_push_uint32_table_entry(vm, "num_entries", size);
+
+  lua_pushinteger(vm, ++num);
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+  return num;
+}
+
+u_int build_protocol_flow_stats_lua_rsp(NetworkInterface *iface ,lua_State* vm, FlowsStats* fs, u_int32_t size, u_int num) {
+  ndpi_protocol detected_protocol;
+  char buf[64], proto[16];
+  u_int16_t vlan_id;
+  u_int64_t key = fs->getKey();
+
+  detected_protocol.master_protocol = (u_int16_t)(key & 0x00000000000FFFF);
+  detected_protocol.app_protocol    = (u_int16_t)((key >> 16) & 0x000000000000FFFF);
+  vlan_id                           = (u_int16_t)((key >> 32) & 0x000000000000FFFF);
+
+  lua_newtable(vm);
+
+  if(detected_protocol.master_protocol == detected_protocol.app_protocol)
+    snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
+  else if(detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+    snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
+  else if(detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
+    snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
+  else
+    snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
+  /* Currently it is not supported the possibily to add double filter on master and app proto */
+
+  lua_push_uint32_table_entry(vm, "vlan_id",     vlan_id);
+  lua_push_str_table_entry(vm,    "proto_id",    proto);
+  lua_push_str_table_entry(vm,    "proto_name",  iface->get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
+  lua_push_uint32_table_entry(vm, "l4_proto",    fs->getL4Protocol());
+  lua_push_uint32_table_entry(vm, "num_clients", fs->getNumClients());
+  lua_push_uint32_table_entry(vm, "num_servers", fs->getNumServers());
+  lua_push_uint32_table_entry(vm, "num_flows",   fs->getNumFlows());
+  lua_push_uint64_table_entry(vm, "bytes_sent",  fs->getTotalSent());
+  lua_push_uint64_table_entry(vm, "bytes_rcvd",  fs->getTotalRcvd());
+  lua_push_uint64_table_entry(vm, "total_score", fs->getTotalScore());
+  lua_push_uint32_table_entry(vm, "num_entries", size);
+
+  lua_pushinteger(vm, ++num);
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+  return num;
+}
+
 /* **************************************************** */
 
-void NetworkInterface::getHostFlowsStats(lua_State* vm) {
+/* Analysis Flows Stats sorter function */
+void sort_flow_stats(NetworkInterface *iface, lua_State* vm, std::unordered_map<u_int64_t, FlowsStats*> *count, u_int filter_type) {
+
+  std::vector<FlowsStats*> vector; 
+  std::vector<FlowsStats*>::iterator vector_it;
+
+  std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
+
+  char *sortColumn = (char*)lua_tostring(vm, 3);
+  char *sortOrder = (char*)lua_tostring(vm, 4);
+  u_int start = lua_tonumber(vm, 5);
+  u_int length = lua_tonumber(vm, 6);
+  u_int num = 0;
+
+  bool is_asc = !strcmp(sortOrder,"asc");
+
+  bool (*sorter)(FlowsStats*, FlowsStats*) = &asc_totalsent_cmp;
+
+  if(filter_type != AnalysisCriteria::application_criteria) {
+
+    // other criteria case
+    for(it = count->begin(); it != count->end(); ++it) {   
+      vector.push_back(it->second);
+    }
+
+    if(!strcmp(sortColumn, "client") || !strcmp(sortColumn, "server") || !strcmp(sortColumn, "client_and_server"))
+      sorter = &asc_key_cmp;
+    
+  } else {
+
+    // application_protocol case
+    for(it = count->begin(); it != count->end(); ++it) {   
+      ndpi_protocol detected_protocol;
+      char buf[64];
+      detected_protocol.master_protocol = (u_int16_t)(it->first & 0x00000000000FFFF);
+      detected_protocol.app_protocol    = (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
+
+      char* proto_name = iface->get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf));
+      it->second->setProtoName(proto_name);
+      vector.push_back(it->second);
+    
+    }
+
+    if(!strcmp(sortColumn,"application"))
+      sorter = &asc_str_cmp;
+  }
+    
+  if(!strcmp(sortColumn, "flows")) {
+    sorter = &asc_flownum_cmp;
+  } else if(!strcmp(sortColumn, "score")) {
+    sorter = &asc_totalscore_cmp;
+  } else if(!strcmp(sortColumn, "num_clients")) {
+    sorter = &asc_numclients_cmp;
+  } else if(!strcmp(sortColumn, "num_servers")) {
+    sorter = &asc_numservers_cmp;
+  } else if(!strcmp(sortColumn, "bytes_sent")) {
+    sorter = &asc_totalsent_cmp;
+  } else if(!strcmp(sortColumn, "bytes_rcvd")) {
+    sorter = &asc_totalrcvd_cmp;
+  } else if(!strcmp(sortColumn, "tot_traffic")) {
+    sorter = &asc_totaltraffic_cmp;
+  }
+  
+  std::sort(vector.begin(), vector.end(), sorter);
+
+  if(!is_asc)
+    std::reverse(vector.begin(),vector.end());
+
+  const u_int32_t size = vector.size();
+  
+  lua_newtable(vm);
+  if (start + length > size ) {
+    for(vector_it = vector.begin() + start; vector_it != vector.end(); ++vector_it) {
+      FlowsStats *fs = *vector_it;
+      if(fs) {
+        if(filter_type!=1)
+          num = build_lua_rsp(vm, fs, filter_type, size, num);
+        else
+          num = build_protocol_flow_stats_lua_rsp(iface, vm, fs, size, num);
+      }
+    }
+  } else {
+    for(vector_it = vector.begin() + start; vector_it != (vector.begin() + start + length); ++vector_it) {
+      FlowsStats *fs = *vector_it;
+      if(fs) {
+        if(filter_type!=1)
+          num = build_lua_rsp(vm, fs, filter_type, size, num);
+        else
+          num = build_protocol_flow_stats_lua_rsp(iface, vm, fs, size, num);
+      }
+    }
+  }
+
+  for(vector_it = vector.begin(); vector_it != vector.end(); ++vector_it) {
+    if(*vector_it != NULL)
+      delete *vector_it;
+  }
+}
+
+/* **************************************************** */
+
+void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
   u_int32_t begin_slot = 0;
+  
   std::unordered_map<u_int64_t, FlowsStats*> count;
   std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
-  u_int num = 0;
 
   u_int filter_type = lua_tonumber(vm, 1);
 
   switch ( filter_type ) {
-    case 2:
+    case AnalysisCriteria::application_criteria :
+      /* application protocol criteria flows stats case */
+      walker(&begin_slot, true /* walk_all */, walker_flows, compute_protocol_flow_stats, &count);
+        break;
+    case AnalysisCriteria::client_criteria :
       /* client criteria flows stats case */
       walker(&begin_slot, true /* walk_all */, walker_flows, compute_client_flow_stats, &count);
         break;
-    case 3:
+    case AnalysisCriteria::server_criteria :
       /* server criteria flows stats case */
       walker(&begin_slot, true /* walk_all */, walker_flows, compute_server_flow_stats, &count);
         break;
-    case 4:
+    case AnalysisCriteria::client_server_criteria :
       /* client server criteria flows stats case */
       walker(&begin_slot, true /* walk_all */, walker_flows, compute_client_server_flow_stats, &count);
         break;
@@ -10388,93 +10645,9 @@ void NetworkInterface::getHostFlowsStats(lua_State* vm) {
       walker(&begin_slot, true /* walk_all */, walker_flows, compute_client_flow_stats, &count);
         break;
   }
-  lua_newtable(vm);
 
-  for(it = count.begin(); it != count.end(); ++it) {
-    FlowsStats *fs = it->second;
-
-    lua_newtable(vm);
-    switch ( filter_type ) {
-      case 2:
-        lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
-          break;
-      case 3:
-        lua_push_str_table_entry(vm,    "server_ip",   fs->getSrvIp());
-          break;
-      case 4: {
-          lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
-          lua_push_str_table_entry(vm,    "server_ip",   fs->getSrvIp());
-        } break;
-      default: 
-        lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
-          break;
-    }
-    lua_push_uint64_table_entry(vm, "vlan_id",    (u_int64_t)fs->getVlanId());
-    lua_push_uint32_table_entry(vm, "l4_proto",    fs->getL4Protocol());
-    lua_push_uint32_table_entry(vm, "num_clients", fs->getNumClients());
-    lua_push_uint32_table_entry(vm, "num_servers", fs->getNumServers());
-    lua_push_uint32_table_entry(vm, "num_flows",   fs->getNumFlows());
-    lua_push_uint64_table_entry(vm, "bytes_sent",  fs->getTotalSent());
-    lua_push_uint64_table_entry(vm, "bytes_rcvd",  fs->getTotalRcvd());
-    lua_push_uint64_table_entry(vm, "total_score", fs->getTotalScore());
-
-    lua_pushinteger(vm, ++num);
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-
-    delete it->second;
-  }
-}
-
-/* **************************************************** */
-
-void NetworkInterface::getProtocolFlowsStats(lua_State* vm) {
-  u_int32_t begin_slot = 0;
-  std::unordered_map<u_int64_t /* u_int16_t + l7 proto */, FlowsStats*> count;
-  std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
-  u_int num = 0;
-
-  walker(&begin_slot, true /* walk_all */, walker_flows, compute_protocol_flow_stats, &count);
-
-  lua_newtable(vm);
-  for(it = count.begin(); it != count.end(); ++it) {
-    FlowsStats *fs = it->second;
-    ndpi_protocol detected_protocol;
-    char buf[64], proto[16];
-    u_int16_t vlan_id;
-
-    detected_protocol.master_protocol = (u_int16_t)(it->first & 0x00000000000FFFF);
-    detected_protocol.app_protocol    = (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
-    vlan_id                           = (u_int16_t)((it->first >> 32) & 0x000000000000FFFF);
-
-    lua_newtable(vm);
-
-    if(detected_protocol.master_protocol == detected_protocol.app_protocol)
-      snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-    else if(detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-      snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-    else if(detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
-      snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
-    else
-      snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
-    /* Currently it is not supported the possibily to add double filter on master and app proto */
-
-    lua_push_uint32_table_entry(vm, "vlan_id",     vlan_id);
-    lua_push_str_table_entry(vm,    "proto_id",    proto);
-    lua_push_str_table_entry(vm,    "proto_name",  get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
-    lua_push_uint32_table_entry(vm, "l4_proto",    fs->getL4Protocol());
-    lua_push_uint32_table_entry(vm, "num_clients", fs->getNumClients());
-    lua_push_uint32_table_entry(vm, "num_servers", fs->getNumServers());
-    lua_push_uint32_table_entry(vm, "num_flows",   fs->getNumFlows());
-    lua_push_uint64_table_entry(vm, "bytes_sent",  fs->getTotalSent());
-    lua_push_uint64_table_entry(vm, "bytes_rcvd",  fs->getTotalRcvd());
-    lua_push_uint64_table_entry(vm, "total_score", fs->getTotalScore());
-
-    lua_pushinteger(vm, ++num);
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-    delete it->second;
-  }
+  sort_flow_stats(this ,vm, &count, filter_type);
+  
 }
 
 /* **************************************************** */
