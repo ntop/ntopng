@@ -40,7 +40,7 @@ import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../se
 
 const _i18n = (t) => i18n(t);
 
-const timeout_delete = 1 * 1000;
+const timeout_delete = 1 * 500;
 
 const props = defineProps({
     url: String,
@@ -126,7 +126,8 @@ function set_datatable_config() {
 	text: '<i class="fas fa-sync"></i>',
 	className: 'btn-link',
 	action: function (e, dt, node, config) {
-            table_rules.value.reload();
+	    refresh_table();
+            // table_rules.value.reload();
 	}
     }, {
 	text: '<i class="fas fa-plus"></i>',
@@ -208,7 +209,8 @@ async function delete_rule(rule) {
 
 function refresh_table() {
     setTimeout(() => {
-	table_rules.value.reload();
+	ntopng_url_manager.reload_url();
+ 	// table_rules.value.reload();
     }, timeout_delete);
 }
 </script>
