@@ -1,0 +1,22 @@
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+	<b>{{ i18n("notification_endpoint.mattermost.url") }}</b>
+    </label>
+    <div class="col-sm-5">
+	<input
+	data-validation-message="{{ i18n('notification_endpoint.mattermost.validation.invalid_url') }}"
+	data-validation-empty-message="{{ i18n('notification_endpoint.mattermost.validation.empty_url') }}"
+	data-pattern="https" name="mattermost_url" type="text" class="form-control" required />
+    </div>
+</div>
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.mattermost.api_token") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input data-validation-message="{{ i18n('notification_endpoint.mattermost.validation.invalid_token') }}"
+            data-validation-empty-message="{{ i18n('notification_endpoint.mattermost.validation.empty_token') }}"
+            data-pattern="[0-9a-z].*" name="mattermost_token" type="text" class="form-control" required />
+    </div>
+</div>
+<small>{* i18n('notification_endpoint.mattermost.webhook_description') *}</small>

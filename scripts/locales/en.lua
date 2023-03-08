@@ -5213,6 +5213,17 @@ local lang = {
         ["invalid_jail"] = "Invalid Fail2Ban jail.",
       },
     },
+    ["mattermost"] = {
+      ["api_token"] = "API Token",
+      ["url"] = "Server URL",
+      ["username"] = "Username",
+      ["validation"] = {
+        ["empty_url"] = "Server URL cannot be empty.",
+        ["empty_token"] = "Token cannot be empty.",
+        ["invalid_url"] = "Invalid Server URL.",
+        ["invalid_token"] = "Invalid token. Token can only contain lowecase characters and digits.",
+      },
+    },
     ["shell"] = {
       ["shell_options"] = "Options",
       ["shell_script"] = "Script PATH",
