@@ -1524,6 +1524,12 @@ local known_parameters = {
    ["webhook_username"]        = validateEmptyOr(validateSingleWord),
    ["webhook_password"]        = validateEmptyOr(validateSingleWord),
 
+
+   ["mattermost_url"] = { http_lint.webhookCleanup, http_lint.validateUnquoted },
+   ["mattermost_token"] =  { validateMattermostBearerToken,http_lint.validateSingleWord },
+   ["mattermost_channelname"] = http_lint.validateSingleWord,
+
+
    -- DB
    ["select_clause"]           = validateUnquoted,
    ["select_keys_clause"]      = validateUnquoted,
@@ -1721,6 +1727,9 @@ local known_parameters = {
 
    ["shell_script"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
    ["shell_script_options"] = http_lint.validateEmptyOr(http_lint.validateUnquoted),
+
+
+   ["mattermost_bearer_token"] = validateMattermostBearerToken,
 
    ["syslog_alert_format"] = http_lint.validateEmptyOr(http_lint.validateSyslogFormat),
    ["syslog_protocol"]  = http_lint.validateEmptyOr(http_lint.validateChoiceInline({"tcp", "udp", ""})),
