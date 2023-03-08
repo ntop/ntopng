@@ -347,6 +347,7 @@ using namespace std;
 #endif
 #include "UsedPorts.h"
 #include "ObservationPointIdTrafficStats.h"
+#include "FlowsStats.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"

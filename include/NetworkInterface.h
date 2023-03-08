@@ -354,12 +354,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 	       const char *manufacturer,
 	       char *sortColumn, u_int16_t pool_filter, u_int8_t devtype_filter,
 	       u_int8_t location_filter, time_t min_first_seen);
-  int sortFlows(u_int32_t *begin_slot,
-		bool walk_all,
+  int sortFlows(u_int32_t *begin_slot, bool walk_all,
 		struct flowHostRetriever *retriever,
 		AddressTree *allowed_hosts,
-		Host *host,
-		Paginator *p,
+		Host *host, Paginator *p,
 		const char *sortColumn);
 
   void addRedisSitesKey();
@@ -394,7 +392,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #ifdef NTOPNG_PRO
   void checkDHCPStorm(time_t when, u_int32_t num_pkts);
 #endif
-  
+  void sort_flow_stats(lua_State* vm, std::unordered_map<u_int64_t, FlowsStats*> *count, u_int filter_type);
+
+  void build_lua_rsp(lua_State *vm, FlowsStats *fs, u_int filter_type, u_int32_t size, u_int *num);
+  void build_protocol_flow_stats_lua_rsp(lua_State* vm, FlowsStats* fs, u_int32_t size, u_int *num);
+    
  public:
   /**
   * @brief A Constructor
