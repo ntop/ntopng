@@ -1402,6 +1402,18 @@ function validateToken(token)
    return true
 end
 
+
+-- #################################################################
+
+local function validateMattermostBearerToken(token)
+
+   if (not token) then return false end
+   if (string.len(token) ~= 26) then return false end
+   -- iterate over each byte of the string
+   
+   return true
+end
+
 -- #################################################################
 
 local function validateFieldAlias(key_value_pair)
@@ -1523,6 +1535,12 @@ local known_parameters = {
    ["webhook_sharedsecret"]    = validateEmptyOr(validateSingleWord),
    ["webhook_username"]        = validateEmptyOr(validateSingleWord),
    ["webhook_password"]        = validateEmptyOr(validateSingleWord),
+
+
+   ["mattermost_url"] = { http_lint.webhookCleanup, http_lint.validateUnquoted },
+   ["mattermost_token"] =  { validateMattermostBearerToken,http_lint.validateSingleWord },
+   ["mattermost_channelname"] = http_lint.validateSingleWord,
+
 
    -- DB
    ["select_clause"]           = validateUnquoted,
