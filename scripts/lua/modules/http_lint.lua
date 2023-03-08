@@ -1402,6 +1402,18 @@ function validateToken(token)
    return true
 end
 
+
+-- #################################################################
+
+local function validateMattermostBearerToken(token)
+
+   if (not token) then return false end
+   if (string.len(token) ~= 26) then return false end
+   -- iterate over each byte of the string
+   
+   return true
+end
+
 -- #################################################################
 
 local function validateFieldAlias(key_value_pair)
@@ -1727,9 +1739,6 @@ local known_parameters = {
 
    ["shell_script"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
    ["shell_script_options"] = http_lint.validateEmptyOr(http_lint.validateUnquoted),
-
-
-   ["mattermost_bearer_token"] = validateMattermostBearerToken,
 
    ["syslog_alert_format"] = http_lint.validateEmptyOr(http_lint.validateSyslogFormat),
    ["syslog_protocol"]  = http_lint.validateEmptyOr(http_lint.validateChoiceInline({"tcp", "udp", ""})),
