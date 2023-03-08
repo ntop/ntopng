@@ -22,7 +22,7 @@
 	    </SelectSearch>
 	  </div>
 	  <div v-else>	    
-            <input type="text" class="form-control" :pattern="source_regex" required v-model="source">
+            <input type="text" class="form-control" :pattern="source_regex"  v-model="source">
 	  </div>
 	</div>
       </div>
@@ -44,7 +44,7 @@
 	    </SelectSearch>
 	  </div>
 	  <div v-else>	    
-            <input type="text" class="form-control" :pattern="dest_regex" required v-model="dest">
+            <input type="text" class="form-control" :pattern="dest_regex" v-model="dest">
 	  </div>
 	</div>
       </div>
@@ -102,7 +102,7 @@ const type_array = [
     { label: _i18n("interface"), value: "interface" },
 ];
 
-let default_direction_value = "bidirectional";
+let default_direction_value = "source_to_dest";
 const directions = [
     { label: _i18n("nedge.page_rules_config.bidirectional"), value: "bidirectional", bidirectional: true, },
     { label: _i18n("nedge.page_rules_config.source_to_dest"), value: "source_to_dest", bidirectional: false, },
@@ -169,7 +169,7 @@ function init(row, default_action) {
 	selected_source_type.value = default_type;
 	selected_dest_type.value = default_type;
 	selected_direction.value = directions.find((d) => d.value == default_direction_value);
-	selected_action.value = actions.find((a) => a.value == default_action_value);
+	selected_action.value = actions.find((a) => a.value != default_action_value);
     }
     change_source_type(row);
     change_dest_type(row);
@@ -234,7 +234,7 @@ async function set_interface_array() {
 	    interface_list = ntopng_utility.http_request(interface_list_url);
 	}
 	let res_interface_list = await interface_list;
-	interface_array.value = res_interface_list.map((i) => {
+	interface_array.value = res_interface_list.filter((i) => i.role == "lan").map((i) => {
 	    return {
 		label: i.ifname,
 		value: i.ifname,
