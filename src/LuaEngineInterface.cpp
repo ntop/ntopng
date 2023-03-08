@@ -1895,24 +1895,13 @@ static int ntop_interface_get_throughput(lua_State* vm) {
 
 static int ntop_get_protocol_flows_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  u_int filter_type = 0;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop_interface)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK) {
-    filter_type = lua_tonumber(vm, 1);
-  }
-
-  if(filter_type == 1) {
-    /* application protocol criteria flows stats case */
-    ntop_interface->getProtocolFlowsStats(vm);
-  } else {
-    /* others criteria flows stats case */
-    ntop_interface->getHostFlowsStats(vm);
-  }
+  
+  ntop_interface->getFilteredLiveFlowsStats(vm);
   
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }

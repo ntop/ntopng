@@ -1192,4 +1192,11 @@ typedef struct {
   u_int32_t bytes_rcvd;
 } InOutTraffic;
 
+typedef enum {
+  application_criteria = 1,
+  client_criteria,
+  server_criteria,
+  client_server_criteria
+} AnalysisCriteria;
+
 #endif /* _NTOP_TYPEDEFS_H_ */
