@@ -16,7 +16,7 @@
     "click": null,
     "select": null,
   }
-
+  var fromAfterSelect = false;
   /* Temporary override the typeahead click callback */
   for (var callback_name in _typeahead_overridden_callbacks) {
     /* Dump original callback */
@@ -57,14 +57,14 @@
               links.forEach((l) => {
                   let icon = "fa fas fa-link";
                   if (l.icon != null) {
-                      icon = `fa fas fa-${l.icon}`;                      
+                      icon = `fa fas fa-${l.icon}`;
                   }
                   if (l.url == null) {
                       l.url = "";
                   }
                   let title = "";
                   if (l.title != null) {
-                      title = `title='${l.title}'`
+                      title = `title='${l.title}'`;
                   }
                   let b = `<button ${title} type="button" class="btn btn-sm btn-link" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
                   if (l.url == "") {
@@ -191,10 +191,10 @@ ${label}
           me.queryInProcess = false;
           // $.get("{*typeahead.query_url*}", _get, function (data) {
           // });
-      }, afterSelect: function(item) {
-          if (isButtonLinkClicked == true) {
-              return;
-          }
+          }, afterSelect: function(item) {
+              if (isButtonLinkClicked == true) {
+                 return;
+              }
           if (! item.no_results) {
             if (item.type)
               $("#{{typeahead.base_id}}_query").val(item[item.type])
@@ -204,25 +204,24 @@ ${label}
             var form = $("#{{typeahead.base_id}}_query")
               .closest("form");
 
-            if ({*typeahead.before_submit or "$.noop"*}(form, item) !== "false")
-              form.submit();
+              if ({*typeahead.before_submit or "$.noop"*}(form, item) !== "false") {
+		  fromAfterSelect = true;
+		  form.submit();
+	      }
           }
       }, addItem: {name:"", no_results:true},
   });
 
-  function typeaheadSubmit(e) {
+async function typeaheadSubmit(e) {
+    if (fromAfterSelect == false) {
+	e.preventDefault();
+    }
+    fromAfterSelect = false;
     if ($('#{{typeahead.base_id}}_query').val() === '') {
+        //e.preventDefault();
       /* No typeahead result has been selected by the user */
-      /*
-      if($('#{{typeahead.base_id}}_search_field').val() === '' || "${{typeahead.allow_partial}}" !== "true") {
-        // Do not submit if also the typeahead content is empty 
-        // or if we do not allow partial inputs
-        e.preventDefault();
-      } else */
-      {
         /* Populate the search field with the user submitted values */
         $("#{{typeahead.base_id}}_query").val($('#{{typeahead.base_id}}_search_field').val());
-      }
     }
   }
 
