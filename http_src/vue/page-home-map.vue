@@ -187,11 +187,14 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
         ]
 
         if(data.selected_host && data.selected_host.id != '') {
+          const host_name = data.selected_host.label;
+          const ip = NtopUtils.removeVlan(data.selected_host.id);
           this.navbar_context.secondary_title_list[0]['href'] = `${http_prefix}/lua/pro/enterprise/network_maps.lua?map=${this.active_tab}&page=${this.page}&ifid=${this.$props.ifid}`
           this.navbar_context.secondary_title_list.push({
-            label: NtopUtils.shortenLabel(`${data.selected_host.label}`, 16, '.'),
+            label: `${NtopUtils.formatNameValue(host_name, ip)}`, // Adding the laptop icon
             title: `${data.selected_host.label}`,
-            href: data.selected_host.is_active ? `${http_prefix}/lua/host_details.lua?host=${data.selected_host.id}` : null,
+            href: data.selected_host.is_active ? `${http_prefix}/lua/host_details.lua?host=${ip}` : null,
+            icon: "fa-solid fa-laptop",
             target_blank: "true",
           })
         }  

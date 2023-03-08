@@ -1118,6 +1118,39 @@ export default class NtopUtils {
     return 0;
   }
 
+  /* This function, given a name and a value, return a string
+   * formatted in the following way:
+   * name [value]
+	* If max_name_len is different from 0, then it's going to cut the name string
+	* to max_name_len
+   */
+	static formatNameValue(name, value, max_name_len) {
+		let label = name;
+		if(name != value) {
+			if(max_name_len && typeof(max_name_len) == 'number')
+				label = shortenLabel(label, max_name_len, '.');
+
+			label = `${label} [${value}]` 
+		}
+		return label
+	}
+
+	/* This function, remove from a string the VLAN 0
+	 * name@0 -> name
+	 */
+	static removeVlan(name) {
+		let label = name
+		const vlan_index = label.lastIndexOf('@');
+		if(vlan_index != -1) {
+			const vlan =  label.slice(vlan_index + 1);
+			if(vlan == 0) {
+				label = label.slice(0, vlan_index);
+			}
+		}
+
+		return label
+	}
+
   static createProgressBar(percentage) {
     return `<div class="d-flex flex-row align-items-center">
               <div class="col-9 progress">

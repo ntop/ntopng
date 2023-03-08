@@ -5,7 +5,10 @@
     <a v-if="main_title.href" :href="main_title.href" :title="main_title.title"> {{main_title.label}}</a>  
     <span v-else :title="main_title.title"> {{main_title.label}}</span>    
     <template v-for="item in secondary_title_list"> / 
-      <a v-if="item.href" :href="item.href" :title="item.title">{{item.label}}</a>  
+      <a v-if="item.href" :href="item.href" :title="item.title">
+        {{item.label}}
+        <i v-if="item.icon" :class="item.icon"></i>
+      </a>  
       <span v-else :title="item.title">{{item.label}}</span>
     </template>
   </span>

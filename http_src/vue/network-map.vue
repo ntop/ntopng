@@ -52,7 +52,6 @@ onMounted(async () => {
     const datasets = {nodes: nodes_dataset, edges: edges_dataset};
     empty_network(datasets);
     network = new vis.Network(container, datasets, ntopng_map_manager.get_default_options());
-    debugger;
     save_topology_view();
     set_event_listener();
     ntopng_events_manager.emit_custom_event(ntopng_custom_events.VIS_DATA_LOADED);
