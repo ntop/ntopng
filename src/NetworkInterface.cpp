@@ -10175,10 +10175,11 @@ private:
   u_int32_t num_flows, tot_score;
   u_int64_t tot_sent, tot_rcvd;
   u_int8_t l4_proto;
-  char cli_ip[128];
-  char srv_ip[128];
-  char cli_name[128];
-  char srv_name[128];
+  const IpAddress* cli_ip;
+  Host* cli_host;
+  const IpAddress* srv_ip;
+  Host* srv_host;
+
   u_int16_t vlan_id;
   char* proto_name;
   u_int64_t key;
@@ -10198,36 +10199,43 @@ public:
   inline u_int64_t getTotalRcvd()  { return(tot_rcvd);       }
   inline u_int32_t getTotalScore() { return(tot_score);      }
   inline void setCliIp(const IpAddress* _cli_ip) { 
-    char buf[128];
-    char * ip = _cli_ip->print(buf,sizeof(buf));
-    snprintf(cli_ip, sizeof(cli_ip), "%s", ip); 
+    cli_ip = _cli_ip;
   }
-  inline char* getCliIp() { return(cli_ip); }
+  inline void getCliIp(char* cli_ip_str) { 
+    char buf[128];
+    char * ip = cli_ip->print(buf,sizeof(buf));
+    sprintf(cli_ip_str, "%s", ip); 
+  }
   inline void setSrvIp(const IpAddress* _srv_ip) { 
-    char buf[128];
-    char * ip = _srv_ip->print(buf,sizeof(buf));
-    snprintf(srv_ip, sizeof(srv_ip), "%s", ip); 
+    srv_ip = _srv_ip;
   }
-  inline char* getSrvIp() { return(srv_ip); }
+  inline void getSrvIp(char* srv_ip_str) { 
+    char buf[128];
+    char * ip = srv_ip->print(buf,sizeof(buf));
+    sprintf(srv_ip_str, "%s", ip); 
+  }
   inline void setVlanId(u_int16_t _vlan_id) { vlan_id = _vlan_id; }
   inline u_int16_t getVlanId() { return vlan_id; }
   inline void setProtoName(char* _proto_name) { proto_name = _proto_name; }
   inline char* getProtoName() { return proto_name; }
   inline void setKey(u_int64_t _key) { key = _key; }
   inline u_int64_t getKey() { return key; }
-  inline void setCliName(Host* cli_host) {
+  inline void setCliName(Host* _cli_host) {
+    cli_host = _cli_host;
+  }
+  inline void getCliName(char* cli_name) { 
     char buf[128];
     char *name = cli_host->get_name(buf, sizeof(buf), false);
-    snprintf(cli_name, sizeof(cli_name), "%s", name); 
+    sprintf(cli_name, "%s", name); 
   }
-  inline char* getCliName() { return cli_name; }
-  inline void setSrvName(Host* srv_host) {
+  inline void setSrvName(Host* _srv_host) {
+    srv_host = _srv_host;
+  }
+  inline void getSrvName(char* srv_name) { 
     char buf[128];
     char *name = srv_host->get_name(buf, sizeof(buf), false);
-    snprintf(srv_name, sizeof(srv_name), "%s", name); 
-
+    sprintf(srv_name, "%s", name); 
   }
-  inline char* getSrvName() { return srv_name; }
 
   inline void      incFlowStats(const IpAddress *c, const IpAddress *s,
 				u_int64_t bytes_sent, u_int64_t bytes_rcvd,
@@ -10438,22 +10446,46 @@ u_int build_lua_rsp(lua_State *vm, FlowsStats *fs, u_int filter_type, u_int32_t 
   lua_newtable(vm);
   switch ( filter_type ) {
     case 2:{
-      lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
-      lua_push_str_table_entry(vm,    "client_name",   fs->getCliName());
+      char cli_ip[128];
+      char cli_name[128];
+      fs->getCliIp(cli_ip);
+      fs->getCliName(cli_name);
+
+      lua_push_str_table_entry(vm,    "client_ip",   cli_ip);
+      lua_push_str_table_entry(vm,    "client_name",   cli_name);
     } break;
     case 3: {
-      lua_push_str_table_entry(vm,    "server_ip",   fs->getSrvIp());
-      lua_push_str_table_entry(vm,    "server_name",   fs->getSrvName());
+      char srv_ip[128];
+      char srv_name[128];
+      fs->getSrvIp(srv_ip);
+      fs->getSrvName(srv_name);
+
+      lua_push_str_table_entry(vm,    "server_ip",   srv_ip);
+      lua_push_str_table_entry(vm,    "server_name",   srv_name);
     } break;
     case 4: {
-      lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
-      lua_push_str_table_entry(vm,    "server_ip",   fs->getSrvIp());
-      lua_push_str_table_entry(vm,    "client_name",   fs->getCliName());
-      lua_push_str_table_entry(vm,    "server_name",   fs->getSrvName());
+      char srv_ip[128];
+      char srv_name[128];
+      char cli_ip[128];
+      char cli_name[128];
+      fs->getCliIp(cli_ip);
+      fs->getCliName(cli_name);
+      fs->getSrvIp(srv_ip);
+      fs->getSrvName(srv_name);
+
+      lua_push_str_table_entry(vm,    "client_ip",   cli_ip);
+      lua_push_str_table_entry(vm,    "server_ip",   srv_ip);
+      lua_push_str_table_entry(vm,    "client_name",   cli_name);
+      lua_push_str_table_entry(vm,    "server_name",   srv_name);
     } break;
     default: {
-      lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIp());
-      lua_push_str_table_entry(vm,    "client_name",   fs->getCliName());
+      char cli_ip[128];
+      char cli_name[128];
+      fs->getCliIp(cli_ip);
+      fs->getCliName(cli_name);
+
+      lua_push_str_table_entry(vm,    "client_ip",   cli_ip);
+      lua_push_str_table_entry(vm,    "client_name",   cli_name);
     } break;
   }
   lua_push_uint64_table_entry(vm, "vlan_id",    (u_int64_t)fs->getVlanId());
