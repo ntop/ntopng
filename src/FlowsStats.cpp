@@ -44,3 +44,15 @@ char* FlowsStats::getCliName(char* buf, u_int len) {
 char* FlowsStats::getSrvName(char* buf, u_int len) {
   return(srv_host ? srv_host->get_name(buf, len, false) : (char*)"");
 }
+
+/* ************************************************ */
+
+char* FlowsStats::getCliIPHex(char* buf, u_int len) {
+  return(((IpAddress*)cli_ip)->get_ip_hex(buf, len));
+}
+
+/* ************************************************ */
+
+char* FlowsStats::getSrvIPHex(char* buf, u_int len) {             
+  return(((IpAddress*)srv_ip)->get_ip_hex(buf, len)); 
+}

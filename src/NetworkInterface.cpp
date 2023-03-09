@@ -10326,8 +10326,32 @@ bool asc_str_cmp( FlowsStats* a, FlowsStats* b)
   return strcasecmp(a->getProtoName(), b->getProtoName()) < 0;
 }
 
-bool asc_key_cmp( FlowsStats* a, FlowsStats* b) {
-  return a->getKey() < b->getKey();
+bool asc_cli_ip_hex_cmp( FlowsStats* a, FlowsStats* b)
+{
+  char a_buf[48], b_buf[48];
+  return strcmp(a->getCliIPHex(a_buf,sizeof(a_buf)), b->getCliIPHex(b_buf,sizeof(b_buf))) < 0;
+}
+
+bool asc_srv_ip_hex_cmp( FlowsStats* a, FlowsStats* b)
+{                                             
+  char a_buf[48], b_buf[48];                                                                                                                                                                         
+  return strcmp(a->getSrvIPHex(a_buf,sizeof(a_buf)), b->getSrvIPHex(b_buf,sizeof(b_buf))) < 0;
+}
+
+bool asc_srv_cli_ip_hex_cmp( FlowsStats* a, FlowsStats* b)
+{
+  char a_c_buf[48], a_s_buf[48], b_c_buf[48], b_s_buf[48];
+  char a_sc_buf[96], b_sc_buf[96];
+  
+  snprintf(a_sc_buf, sizeof(a_sc_buf),"%s%s",
+	   a->getCliIPHex(a_c_buf,sizeof(a_c_buf)),
+	   a->getSrvIPHex(a_s_buf,sizeof(a_s_buf)));
+  
+  snprintf(b_sc_buf, sizeof(b_sc_buf),"%s%s",
+	   b->getCliIPHex(b_c_buf,sizeof(b_c_buf)),
+	   b->getSrvIPHex(b_s_buf,sizeof(b_s_buf)));
+  return(strcmp(a_sc_buf,b_sc_buf) < 0);
+
 }
 
 bool asc_flownum_cmp( FlowsStats* a, FlowsStats* b) {
@@ -10471,8 +10495,12 @@ void NetworkInterface::sort_flow_stats(lua_State* vm, std::unordered_map<u_int64
       vector.push_back(it->second);
     }
 
-    if(!strcmp(sortColumn, "client") || !strcmp(sortColumn, "server") || !strcmp(sortColumn, "client_and_server"))
-      sorter = &asc_key_cmp;
+    if(!strcmp(sortColumn, "client"))
+      sorter = &asc_cli_ip_hex_cmp;
+    else if(!strcmp(sortColumn, "server"))
+      sorter = &asc_srv_ip_hex_cmp;
+    else if(!strcmp(sortColumn, "client_and_server"))
+      sorter = &asc_srv_cli_ip_hex_cmp;
 
   } else {
     // application_protocol case

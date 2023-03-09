@@ -92,6 +92,8 @@ public:
   char* getSrvIP(char* buf, u_int len);
   char* getCliName(char* buf, u_int len);
   char* getSrvName(char* buf, u_int len);
+  char* getCliIPHex(char* buf, u_int len);
+  char* getSrvIPHex(char* buf, u_int len);
 };
 
 #endif /* _FLOWS_STATS_H_ */
