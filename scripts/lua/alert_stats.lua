@@ -19,6 +19,7 @@ local alert_store_utils = require "alert_store_utils"
 local alert_utils = require "alert_utils"
 local alert_store = require "alert_store"
 local recording_utils = require "recording_utils"
+local datatable_utils = require "datatable_utils"
 
 local ifid = interface.getId()
 local alert_store_instances = alert_store_utils.all_instances_factory()
@@ -360,6 +361,70 @@ local url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?"
 --       subtype = subtype,
 --    })
 -- })
+
+-- ######################################
+
+-- Set visible columns by default (if not set by the user) 
+if page == 'flow' and not datatable_utils.has_saved_column_preferences(page .. "-alerts-table") then
+   local hidden_columns = ''
+   local js_columns_default_hidden = {
+      { 
+         name = tstamp,
+         default_hidden = false,
+      }, {
+         name = score,
+         default_hidden = false,
+      }, {
+         name = l7_proto,
+         default_hidden = false,
+      }, {
+         name = alert,
+         default_hidden = false,
+      }, {
+         name = flow,
+         default_hidden = false,
+      }, {
+         name = count,
+         default_hidden = false,
+      }, {
+         name = description,
+         default_hidden = false,
+      }, {
+         name = community_id,
+         default_hidden = true,
+      }, {
+         name = info,
+         default_hidden = false,
+      }, {
+         name = cli_host_pool_id,
+         default_hidden = true,
+      }, {
+         name = srv_host_pool_id,
+         default_hidden = true,
+      }, {
+         name = cli_network,
+         default_hidden = true,
+      }, {
+         name = srv_network,
+         default_hidden = true,
+      }, {
+         name = probe_ip,
+         default_hidden = true,
+      }
+   }
+   for index, data in pairs(js_columns_default_hidden) do
+      if data.default_hidden then
+         hidden_columns = hidden_columns .. (index - 1) .. ","
+      end
+   end
+
+   if not isEmptyString(hidden_columns) then
+      hidden_columns = hidden_columns:sub(1, -2)
+      datatable_utils.save_column_preferences(page .. "-alerts-table", hidden_columns)
+   end
+end
+
+-- ######################################
 
 local modals = {
    ["delete_alert_dialog"] = template_utils.gen("modal_confirm_dialog_form.template", {
