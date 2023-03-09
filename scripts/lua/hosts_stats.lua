@@ -19,6 +19,7 @@ local page_utils = require("page_utils")
 local custom_column_utils = require("custom_column_utils")
 local discover = require("discover_utils")
 local have_nedge = ntop.isnEdge()
+local wheel = nil
 
 local function generate_map_url(map, map_url, query, icon)
 
@@ -118,7 +119,7 @@ function getPageTitle(protocol_name, traffic_type_title, device_ip_title, networ
         vlan = vlan_title or "",
         vlan_name = vlan_alias or "",
         charts_icon = charts_icon,
-	wheel = wheel
+        wheel = wheel
    })
 end
 
