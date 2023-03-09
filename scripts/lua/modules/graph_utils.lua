@@ -345,7 +345,7 @@ function graph_utils.drawNewGraphs(source_value_object)
   local host_has_top_protocols = (host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled == "full")
 
   local sources_types_enabled = {
-    interface = interface_ts_enabled,
+    interface = true, -- alwais enabled
     host = host_ts_creation,
     mac = l2_ts_enabled,
     network = network_ts_enabled,
