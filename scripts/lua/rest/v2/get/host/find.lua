@@ -588,7 +588,7 @@ if not is_system_interface then
       if hasClickHouseSupport() then
          local label = ""
          local what = ""
-         if isIPv6(query) or isIPv4(query) then
+         if isHostKey(query) then
             what = "ip"
             label = i18n("db_search.find_in_historical", {what=what, query=query})
             query = query .. tag_utils.SEPARATOR .. "eq"

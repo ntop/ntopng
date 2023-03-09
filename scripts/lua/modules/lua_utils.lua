@@ -1105,6 +1105,26 @@ end
 
 -- ##############################################
 
+function isHostKey(key)
+  local info = split(key,"@")
+  -- Check format
+  if not info or #info < 1 or #info > 2 then
+    return false
+  end
+  -- Check IP format
+  if isEmptyString(info[1]) or (not isIPv4(info[1]) and not isIPv6(info[1])) then
+    return false
+  end
+  -- Check VLAN format (if any)
+  if not isEmptyString(info[2]) and tonumber(info[2]) == nil then
+    return false
+  end
+  -- Ok
+  return true
+end
+
+-- ##############################################
+
 --
 -- Analyze the host_info table and return the host key.
 -- Example:
