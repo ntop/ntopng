@@ -10321,64 +10321,61 @@ static bool compute_client_server_flow_stats(GenericHashEntry *node, void *user_
 
 /* Sort compare functions */
 
-bool asc_str_cmp( FlowsStats* a, FlowsStats* b)
-{
+static bool asc_str_cmp(FlowsStats* a, FlowsStats* b) {
   return strcasecmp(a->getProtoName(), b->getProtoName()) < 0;
 }
 
-bool asc_cli_ip_hex_cmp( FlowsStats* a, FlowsStats* b)
-{
+static bool asc_cli_ip_hex_cmp(FlowsStats* a, FlowsStats* b) {
   char a_buf[48], b_buf[48];
   return strcmp(a->getCliIPHex(a_buf,sizeof(a_buf)), b->getCliIPHex(b_buf,sizeof(b_buf))) < 0;
 }
 
-bool asc_srv_ip_hex_cmp( FlowsStats* a, FlowsStats* b)
-{                                             
+static bool asc_srv_ip_hex_cmp(FlowsStats* a, FlowsStats* b) {                                             
   char a_buf[48], b_buf[48];                                                                                                                                                                         
-  return strcmp(a->getSrvIPHex(a_buf,sizeof(a_buf)), b->getSrvIPHex(b_buf,sizeof(b_buf))) < 0;
+  return strcmp(a->getSrvIPHex(a_buf,sizeof(a_buf)),
+		b->getSrvIPHex(b_buf,sizeof(b_buf))) < 0;
 }
 
-bool asc_srv_cli_ip_hex_cmp( FlowsStats* a, FlowsStats* b)
-{
+static bool asc_srv_cli_ip_hex_cmp(FlowsStats* a, FlowsStats* b) {
   char a_c_buf[48], a_s_buf[48], b_c_buf[48], b_s_buf[48];
   char a_sc_buf[96], b_sc_buf[96];
   
   snprintf(a_sc_buf, sizeof(a_sc_buf),"%s%s",
-	   a->getCliIPHex(a_c_buf,sizeof(a_c_buf)),
-	   a->getSrvIPHex(a_s_buf,sizeof(a_s_buf)));
+	   a->getCliIPHex(a_c_buf, sizeof(a_c_buf)),
+	   a->getSrvIPHex(a_s_buf, sizeof(a_s_buf)));
   
   snprintf(b_sc_buf, sizeof(b_sc_buf),"%s%s",
-	   b->getCliIPHex(b_c_buf,sizeof(b_c_buf)),
-	   b->getSrvIPHex(b_s_buf,sizeof(b_s_buf)));
+	   b->getCliIPHex(b_c_buf, sizeof(b_c_buf)),
+	   b->getSrvIPHex(b_s_buf, sizeof(b_s_buf)));
+  
   return(strcmp(a_sc_buf,b_sc_buf) < 0);
-
 }
 
-bool asc_flownum_cmp( FlowsStats* a, FlowsStats* b) {
+static bool asc_flownum_cmp(FlowsStats* a, FlowsStats* b) {
   return a->getNumFlows() < b->getNumFlows();
 }
 
-bool asc_totalscore_cmp( FlowsStats* a, FlowsStats* b) {
+static bool asc_totalscore_cmp(FlowsStats* a, FlowsStats* b) {
   return a->getTotalScore() < b->getTotalScore();
 }
 
-bool asc_numclients_cmp( FlowsStats* a, FlowsStats* b) {
+static bool asc_numclients_cmp(FlowsStats* a, FlowsStats* b) {
   return a->getNumClients() < b->getNumClients();
 }
 
-bool asc_numservers_cmp( FlowsStats* a, FlowsStats* b) {
-  return a->getNumServers() < b->getNumServers() ;
+static bool asc_numservers_cmp(FlowsStats* a, FlowsStats* b) {
+  return a->getNumServers() < b->getNumServers();
 }
 
-bool asc_totalsent_cmp( FlowsStats* a, FlowsStats* b) {
-  return a->getTotalSent() < b->getTotalSent() ;
+static bool asc_totalsent_cmp(FlowsStats* a, FlowsStats* b) {
+  return a->getTotalSent() < b->getTotalSent();
 }
 
-bool asc_totalrcvd_cmp( FlowsStats* a, FlowsStats* b) {
-  return a->getTotalRcvd() < b->getTotalRcvd() ;
+static bool asc_totalrcvd_cmp(FlowsStats* a, FlowsStats* b) {
+  return a->getTotalRcvd() < b->getTotalRcvd();
 }
 
-bool asc_totaltraffic_cmp( FlowsStats* a, FlowsStats* b) {
+static bool asc_totaltraffic_cmp(FlowsStats* a, FlowsStats* b) {
   return (a->getTotalRcvd() + a->getTotalSent()) < (b->getTotalRcvd() + b->getTotalSent()) ;
 }
 
