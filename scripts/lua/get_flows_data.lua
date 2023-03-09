@@ -169,7 +169,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    if value["cli.allowed_host"] and not ifstats.isViewed then
-      local src_name = shortenString(cli_name)
+      local src_name = shortenString(cli_name, 36)
 
       if(value["cli.systemhost"] == true) then src_name = src_name .. "&nbsp;<i class='fas fa-flag'></i>" end
       src_key = hostinfo2detailshref(flow2hostinfo(value, "cli"), nil, src_name, cli_tooltip, false)
@@ -184,7 +184,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       src_process   = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
       src_container = flowinfo2container(value["client_container"])
    else
-      src_key = shortenString(cli_name)
+      src_key = shortenString(cli_name, 36)
 
       if value["cli.port"] > 0 then
 	 src_port = value["cli.port"]..''
@@ -192,7 +192,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    if value["srv.allowed_host"] and not ifstats.isViewed then
-      local dst_name = shortenString(srv_name)
+      local dst_name = shortenString(srv_name, 36)
       if(value["srv.systemhost"] == true) then dst_name = dst_name .. "&nbsp;<i class='fas fa-flag'></i>" end
       dst_key = hostinfo2detailshref(flow2hostinfo(value, "srv"), nil, dst_name, srv_tooltip, false)
 
@@ -216,7 +216,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	 end
       end
    else
-      dst_key = shortenString(srv_name)
+      dst_key = shortenString(srv_name, 36)
 
       if value["srv.port"] > 0 then
 	 dst_port = value["srv.port"]..""
