@@ -34,26 +34,31 @@ function printMacHosts(mac)
   return ''
 end
 
-function getMacHosts(mac)
+function getMacHosts(mac, additional_ip)
   local mac_hosts = interface.getMacHosts(mac)
   local num_hosts = table.len(mac_hosts)
   local url, hosts
 
-  if num_hosts > 0 then
-    local first_host
-
-    for _, h in pairsByKeys(mac_hosts, asc) do
-      first_host = h
-      break
-    end
-
-    url = ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac
-    
-    if num_hosts == 1 then
-       hosts = first_host["ip"]
-    elseif num_hosts > 1 then
-       hosts = i18n("n_more_objects", { label = first_host["ip"], num = num_hosts, object = i18n("hosts")})
-    end
+  if(additional_ip ~= nil) then
+     mac_hosts[additional_ip] = {}
+     mac_hosts[additional_ip]["ip"] = additional_ip
+  end
+  
+  if(num_hosts > 0) then
+     local first_host
+     
+     for _, h in pairsByKeys(mac_hosts, asc) do
+	first_host = h
+	break
+     end
+     
+     url = ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac
+     
+     if num_hosts == 1 then
+	hosts = first_host["ip"]
+     elseif num_hosts > 1 then
+	hosts = i18n("n_more_objects", { label = first_host["ip"], num = num_hosts, object = i18n("hosts")})
+     end
   end
 
   return hosts, url

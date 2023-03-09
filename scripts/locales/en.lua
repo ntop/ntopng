@@ -4563,7 +4563,7 @@ local lang = {
     ["wrong-credentials"] = "Login failed: invalid username or password.",
   },
   ["mac_details"] = {
-    ["and_n_more_hosts"] = "<a href='%{host_url}'>%{host_label}</a> and <a href='%{url}'>%{num} more hosts</a>",
+    ["and_n_more_hosts"] = "<a href='%{host_url}'>%{host_label}</a> and <a href='%{url}'>%{num} more host(s)</a>",
     ["and_one_more_host"] = "<a href='%{host_url}'>%{host_label}</a> and <a href='%{url}'>1 more host</a>",
     ["json_error_inactive"] = "JSON Error: inactive host purged or %{product} terminated?",
     ["mac"] = "MAC",
