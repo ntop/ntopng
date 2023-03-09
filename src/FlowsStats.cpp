@@ -35,14 +35,24 @@ char* FlowsStats::getSrvIP(char* buf, u_int len) {
 
 /* ************************************************ */
 
-char* FlowsStats::getCliName(char* buf, u_int len) {
-  return(cli_host ? cli_host->get_name(buf, len, false) : (char*)"");
+char* FlowsStats::getCliName(char* buf, u_int len, u_int16_t cli_port) {
+  if(cli_host) {
+    return cli_host->get_name(buf, len, false);
+  } else {
+    snprintf(buf, len,"%s:%u",cli_ip->print(buf, len), cli_port);
+    return(buf);
+  }
 }
 
 /* ************************************************ */
 
-char* FlowsStats::getSrvName(char* buf, u_int len) {
-  return(srv_host ? srv_host->get_name(buf, len, false) : (char*)"");
+char* FlowsStats::getSrvName(char* buf, u_int len, u_int16_t srv_port) {
+  if(srv_host) {
+    return srv_host->get_name(buf, len, false);
+  } else {
+    snprintf(buf, len, "%s:%u", srv_ip->print(buf, len), srv_port);
+    return(buf);
+  }
 }
 
 /* ************************************************ */

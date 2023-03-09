@@ -10226,6 +10226,7 @@ static bool compute_client_flow_stats(GenericHashEntry *node, void *user_data, b
 						   f->getScore());
     fs->setCliIP(f->get_cli_ip_addr());
     fs->setCli(f->get_cli_host());
+    fs->setCliPort(f->get_cli_port());
     fs->setVlanId(f->get_vlan_id());
     fs->setKey(key);
 
@@ -10263,6 +10264,7 @@ static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data, b
 						   f->getScore());
     fs->setSrvIP(f->get_srv_ip_addr());
     fs->setSrv(f->get_srv_host());
+    fs->setSrvPort(f->get_srv_port());
     fs->setVlanId(f->get_vlan_id());
     fs->setKey(key);
 
@@ -10303,6 +10305,8 @@ static bool compute_client_server_flow_stats(GenericHashEntry *node, void *user_
     fs->setSrvIP(f->get_srv_ip_addr());
     fs->setCli(f->get_cli_host());
     fs->setSrv(f->get_srv_host());
+    fs->setCliPort(f->get_cli_port());
+    fs->setSrvPort(f->get_srv_port());
     fs->setVlanId(f->get_vlan_id());
     fs->setKey(key);
 
@@ -10406,12 +10410,12 @@ void NetworkInterface::build_lua_rsp(lua_State *vm, FlowsStats *fs,
 
   if(add_client) {
     lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIP(buf, sizeof(buf)));
-    lua_push_str_table_entry(vm,    "client_name", fs->getCliName(buf, sizeof(buf)));
+    lua_push_str_table_entry(vm,    "client_name", fs->getCliName(buf, sizeof(buf), fs->getCliPort()));
   }
 
   if(add_server) {
     lua_push_str_table_entry(vm,    "server_ip",   fs->getSrvIP(buf, sizeof(buf)));
-    lua_push_str_table_entry(vm,    "server_name", fs->getSrvName(buf, sizeof(buf)));
+    lua_push_str_table_entry(vm,    "server_name", fs->getSrvName(buf, sizeof(buf), fs->getSrvPort()));
   }
   
   lua_push_uint64_table_entry(vm, "vlan_id",    (u_int64_t)fs->getVlanId());

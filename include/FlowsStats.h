@@ -36,6 +36,8 @@ private:
   Host* cli_host;
   const IpAddress* srv_ip;
   Host* srv_host;
+  u_int16_t cli_port;
+  u_int16_t srv_port;
 
   u_int16_t vlan_id;
   char* proto_name;
@@ -77,6 +79,11 @@ public:
   inline void setCliIP(const IpAddress* _cli_ip) { cli_ip = _cli_ip;   }
   inline void setSrvIP(const IpAddress* _srv_ip) { srv_ip = _srv_ip;  }
 
+  inline void setCliPort(const u_int16_t port) { cli_port = port; }
+  inline void setSrvPort(const u_int16_t port) { srv_port = port; }
+  
+  inline u_int16_t getCliPort() { return(cli_port); }
+  inline u_int16_t getSrvPort() { return(srv_port); }
 
   inline void incFlowStats(const IpAddress *c, const IpAddress *s,
 			   u_int64_t bytes_sent, u_int64_t bytes_rcvd,
@@ -90,8 +97,8 @@ public:
 
   char* getCliIP(char* buf, u_int len);
   char* getSrvIP(char* buf, u_int len);
-  char* getCliName(char* buf, u_int len);
-  char* getSrvName(char* buf, u_int len);
+  char* getCliName(char* buf, u_int len, u_int16_t cli_port);
+  char* getSrvName(char* buf, u_int len, u_int16_t srv_port);
   char* getCliIPHex(char* buf, u_int len);
   char* getSrvIPHex(char* buf, u_int len);
 };

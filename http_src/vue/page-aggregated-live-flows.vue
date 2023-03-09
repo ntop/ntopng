@@ -19,6 +19,7 @@
 	    <template v-slot:menu>
 	      <div class="d-flex align-items-center">
 		<div class="d-flex no-wrap ms-auto" style="text-align:left;margin-right:1rem">
+      <label class="my-auto me-1">{{ _i18n('criteria_filter') }}: </label>
 		  <SelectSearch v-model:selected_option="selected_criteria"
 				:options="criteria_list"
 				@select_option="update_criteria">
@@ -69,9 +70,30 @@ const props = defineProps({
 });
 
 const format_client_server = function(data, rowData) {
-  let formatted_data = `<a href="${http_prefix}/lua/host_details.lua?host=`+rowData.client.id+`" target="_blank">`+rowData.client.label+`</a> - <a href="${http_prefix}/lua/host_details.lua?host=`+rowData.server.id+`" target="_blank">`+rowData.server.label+`</a>`;
+  let formatted_client = `<a href="${http_prefix}/lua/host_details.lua?host=`+rowData.client.id+`">`+rowData.client.label+`</a>`;
+  let formatted_server =  `<a href="${http_prefix}/lua/host_details.lua?host=`+rowData.server.id+`">`+rowData.server.label+`</a>`;
+  if (rowData.client_name.label.split(":").length > 1) 
+    formatted_client = `<label>${rowData.client.label}</label>`
+  if (rowData.server_name.label.split(":").length > 1)
+    formatted_server = `<label>${rowData.server.label}</label>`;
   
-  return formatted_data;
+  return formatted_client+` - `+formatted_server;
+}
+
+const format_client_name = function(data, rowData) {
+  if (rowData.client_name.label.split(":").length > 1) {
+    return `<label>${rowData.client_name.label }</label>`;
+  } else {
+    return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`;
+  }
+}
+
+const format_server_name = function(data, rowData) {
+  if (rowData.server_name.label.split(":").length > 1) {
+    return `<label>${rowData.server_name.label}</label>`;
+  } else {  
+    return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`;
+  }
 }
 
 const url = `${http_prefix}/lua/rest/v2/get/flow/aggregated_live_flows.lua`
@@ -138,7 +160,9 @@ async function set_datatable_config() {
     enable_search: true,
     table_filters: vlan_filters,
     table_config: { 
-      serverSide: true, 
+      serverSide: true,     
+      responsive: false,
+      scrollX: true,
       order: [[ 8 /* percentage column */, 'desc' ]],
       columnDefs: [
         { type: "file-size", targets: 6 },
@@ -155,7 +179,7 @@ async function set_datatable_config() {
     columns.push(
       { 
         columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-          return `<a href="${http_prefix}/lua/flows_stats.lua?application=${data.id}" target="_blank">${data.label}</a>`
+          return `<a href="${http_prefix}/lua/flows_stats.lua?application=${data.id}">${data.label}</a>`
         } 
       })
   } 
@@ -164,12 +188,14 @@ async function set_datatable_config() {
     // client case
     columns.push(
       { 
-        columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-          return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}" target="_blank">${data.label}</a>`}
+        columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
+          if(rowData.client_name.label.split(":").length>1)
+            return `<label>${data.label}</label>`;
+          else
+            return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`}
       },
       {
-          columnName: i18n("client_name"), sortable: false, targets: 0, name: 'client_name', data: 'client_name', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-          return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}" target="_blank">${data.label}</a>`}  
+          columnName: i18n("client_name"), sortable: false, targets: 0, name: 'client_name', data: 'client_name', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) {return format_client_name(data, rowData)}  
       })
   } 
   else if (selected_criteria.value.value == 3) {
@@ -177,12 +203,14 @@ async function set_datatable_config() {
     // server case
     columns.push(
       { 
-        columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-          return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}" target="_blank">${data.label}</a>`},          
+        columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
+          if(rowData.server_name.label.split(":").length>1)
+            return `<label>${data.label}</label>`;
+          else
+            return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`},          
       },
       { 
-        columnName: i18n("server_name"), targets: 0, sortable: false, name: 'server_name', data: 'server_name', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-        return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}" target="_blank">${data.label}</a>`}   
+        columnName: i18n("server_name"), targets: 0, sortable: false, name: 'server_name', data: 'server_name', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData)  {return format_server_name(data, rowData)}   
       })
   } 
   else if (selected_criteria.value.value == 4) {
@@ -193,12 +221,10 @@ async function set_datatable_config() {
         columnName: i18n("client_and_server"), targets: 0, name: 'client_and_server', data: 'client_and_server', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) {return format_client_server(data, rowData) },
       },
       {
-          columnName: i18n("client_name"), targets: 0, name: 'client_name', sortable: false, data: 'client_name', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-          return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}" target="_blank">${data.label}</a>`}
+          columnName: i18n("client_name"), targets: 0, name: 'client_name', sortable: false, data: 'client_name', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) {return format_client_name(data, rowData)}
       },
       {
-        columnName: i18n("server_name"), targets: 0, name: 'server_name', sortable: false, data: 'server_name', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-          return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}" target="_blank">${data.label}</a>`}
+        columnName: i18n("server_name"), targets: 0, name: 'server_name', sortable: false, data: 'server_name', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) {return format_server_name(data, rowData)}
       })
   }
   
@@ -208,7 +234,7 @@ async function set_datatable_config() {
         if(data.id === 0)
           return ``
         else 
-          return `<a href="${http_prefix}/lua/flows_stats.lua?vlan=${data.id}" target="_blank">${data.label}</a>`
+          return `<a href="${http_prefix}/lua/flows_stats.lua?vlan=${data.id}">${data.label}</a>`
       } 
     })
 

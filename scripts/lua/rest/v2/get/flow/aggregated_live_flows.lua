@@ -86,29 +86,31 @@ local function build_response()
       local bytes_sent = data.bytes_sent
       local bytes_rcvd = data.bytes_rcvd
       local total_bytes = bytes_rcvd + bytes_sent
+
+      local vlan_name = getFullVlanName(data.vlan_id)
       
       
-        res[#res + 1] = {
-          flows = format_high_num_value_for_tables(data, 'num_flows'),
-          application = {
-            label = data.proto_name,
-            id = data.proto_id,
-          },
-          breakdown = {
-            percentage_bytes_sent = (bytes_sent * 100) / total_bytes,
-            percentage_bytes_rcvd = (bytes_rcvd * 100) / total_bytes,
-          },
-          bytes_rcvd = bytes_rcvd,
-          bytes_sent = bytes_sent,
-          tot_traffic = total_bytes,
-          tot_score   = format_high_num_value_for_tables(data, 'total_score'),
-          num_servers = format_high_num_value_for_tables(data, 'num_servers'),
-          num_clients = format_high_num_value_for_tables(data, 'num_clients'),
-          vlan_id = {
-            id = data.vlan_id,
-            label = data.vlan_id
-          }
+      res[#res + 1] = {
+        flows = format_high_num_value_for_tables(data, 'num_flows'),
+        application = {
+          label = data.proto_name,
+          id = data.proto_id,
+        },
+        breakdown = {
+          percentage_bytes_sent = (bytes_sent * 100) / total_bytes,
+          percentage_bytes_rcvd = (bytes_rcvd * 100) / total_bytes,
+        },
+        bytes_rcvd = bytes_rcvd,
+        bytes_sent = bytes_sent,
+        tot_traffic = total_bytes,
+        tot_score   = format_high_num_value_for_tables(data, 'total_score'),
+        num_servers = format_high_num_value_for_tables(data, 'num_servers'),
+        num_clients = format_high_num_value_for_tables(data, 'num_clients'),
+        vlan_id = {
+          id = data.vlan_id,
+          label = vlan_name
         }
+      }
       
       if(debugger and x < 2 and filters["sort_column"] == "application") then 
         tprint("LUA RESP")
@@ -132,15 +134,21 @@ local function build_response()
         goto continue
       end
 
+
+      local vlan_name = getFullVlanName(data.vlan_id)
+
       local client_ip = ternary(tonumber(data.vlan_id) ~= 0, string.format("%s@%s",data.client_ip,data.vlan_id), data.client_ip)
+      local client_ip_label = ternary(tonumber(data.vlan_id) ~= 0, string.format("%s@%s",data.client_ip,vlan_name), data.client_ip)
+
       local server_ip = ternary(tonumber(data.vlan_id) ~= 0, string.format("%s@%s",data.server_ip,data.vlan_id), data.server_ip)
+      local server_ip_label = ternary(tonumber(data.vlan_id) ~= 0, string.format("%s@%s",data.server_ip,vlan_name), data.server_ip)
       
-      local server_name = data.server_name or " "
+      local server_name = data.server_name
       if (not isEmptyString(server_name)) then
         server_name = ternary(server_name ~= server_ip, server_name, "")
       end
       
-      local client_name = data.client_name or " "
+      local client_name = data.client_name
       if (not isEmptyString(client_name)) then
         client_name = ternary(client_name ~= client_ip, client_name, "")
       end
@@ -151,7 +159,7 @@ local function build_response()
       res[#res + 1] = {
         flows = format_high_num_value_for_tables(data, 'num_flows'),
         client = {
-          label = client_ip,
+          label = client_ip_label,
           id = client_ip,
         },
         client_name = {
@@ -159,7 +167,7 @@ local function build_response()
           id = client_ip
         },
         server = {
-          label = server_ip,
+          label = server_ip_label,
           id = server_ip,
         },
         server_name = {
@@ -178,7 +186,7 @@ local function build_response()
         num_clients = format_high_num_value_for_tables(data, 'num_clients'),
         vlan_id = {
           id = data.vlan_id,
-          label = data.vlan_id
+          label = vlan_name
         }
       }
 
@@ -194,6 +202,7 @@ local function build_response()
   }
 
   rest_utils.extended_answer(rc, res, extra_rsp_data)
+
 end
 
 build_response()
