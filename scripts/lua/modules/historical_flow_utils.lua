@@ -387,6 +387,22 @@ end
 
 -- #####################################
 
+local function dt_format_time_with_highlight(time, record)
+   if (time) and (tonumber(time)) then
+      time = format_utils.formatPastEpochShort(time)
+   end
+
+   local severity_id = map_score_to_severity(tonumber(record["SCORE"]) or 0)
+   local severity = alert_consts.alertSeverityById(severity_id)
+
+   return {
+      time = time,
+      highlight = severity.color,
+   }
+end
+
+-- #####################################
+
 local function dt_format_latency_ms(int_num)
    -- Convert microseconds to milliseconds
    return tonumber(int_num) / 1000
@@ -796,11 +812,6 @@ local function dt_format_flow(processed_record, record)
          flow["srv_port"] = processed_record["srv_port"]["value"]
       end
 
-      local severity_id = map_score_to_severity(tonumber(record["SCORE"]) or 0)
-      local severity = alert_consts.alertSeverityById(severity_id)
-
-      flow["highlight"] = severity.color
-
       processed_record["flow"] = flow
 
       processed_record["cli_ip"] = nil
@@ -895,7 +906,7 @@ end
 local flow_columns = {
    ['FLOW_ID'] =              { tag = "rowid" },
    ['IP_PROTOCOL_VERSION'] =  {},
-   ['FIRST_SEEN'] =           { tag = "first_seen",   dt_func = dt_format_time },
+   ['FIRST_SEEN'] =           { tag = "first_seen",   dt_func = dt_format_time_with_highlight },
    ['LAST_SEEN'] =            { tag = "last_seen",    dt_func = dt_format_time },
    ['VLAN_ID'] =              { tag = "vlan_id",      dt_func = dt_format_vlan },
    ['PACKETS'] =              { tag = "packets",      dt_func = dt_format_pkts },
@@ -1403,10 +1414,10 @@ end
 local function build_datatable_js_column_flow(name, data_name, label, order, hide)
    return {
       i18n = label,
-      order = order,
+      order = 5,
       visible_by_default = not hide,
       js = [[
-      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', orderable: false, className: 'text-nowrap', width: '100%', render: DataTableRenders.formatFlowTuple, createdCell: DataTableRenders.applyCellStyle}]] 
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', orderable: false, className: 'text-nowrap', width: '100%', render: DataTableRenders.formatFlowTuple}]] 
    }
 
 end
@@ -1628,78 +1639,82 @@ historical_flow_utils.datatable_js_column_builder_by_type = {
 -- #####################################
 
 local all_datatable_js_columns_by_tag = {
-   ["flow"] = build_datatable_js_column_flow("flow", "flow", i18n("flow"), 0),
+   ['first_seen'] = {
+      i18n = i18n("db_search.first_seen"),
+      order = 0,
+      visible_by_default = true,
+      js = [[
+      {name: 'first_seen', responsivePriority: 0, data: 'first_seen', className: 'no-wrap', createdCell: DataTableRenders.applyCellStyle, render: (first_seen, type) => {
+         if (type !== 'display') return first_seen;
+         if (first_seen !== undefined)
+            return first_seen.time;
+      }}]] },
+   ['last_seen'] = {
+      i18n = i18n("db_search.last_seen"),
+      order = 1,
+      visible_by_default = true,
+      js = [[
+      {name: 'last_seen', responsivePriority: 0, data: 'last_seen', className: 'no-wrap'}]] },
+   ['l4proto'] = {
+      i18n = i18n("db_search.l4proto"),
+      order = 2,
+      visible_by_default = true,
+      js = [[
+      {name: 'l4proto', responsivePriority: 0, data: 'l4proto', className: 'no-wrap', render: (l4proto, type) => {
+         if (type !== 'display') return l4proto;
+         if (l4proto !== undefined)
+            return `<a class='tag-filter' data-tag-value='${l4proto.label}' data-tag-realvalue='${l4proto.value}' title='${l4proto.title}' href='#'>${l4proto.label}</a>`;
+      }}]] },
+   ['l7proto'] = {
+      i18n = i18n("db_search.l7proto"),
+      order = 3,
+      visible_by_default = true,
+      js = [[
+      {name: 'l7proto', responsivePriority: 0, data: 'l7proto', className: 'no-wrap', render: (proto, type, row) => {
+         if (type !== 'display') return proto;
+         if (proto !== undefined) {
+            let confidence = ""
+            if (proto.confidence !== undefined) {
+            (proto.confidence == "DPI") ? confidence = `<span class="badge bg-success">${proto.confidence}</span>` : confidence = `<span class="badge bg-warning">${proto.confidence}</span>` 
+            }
+
+            return `<a class='tag-filter' data-tag-value='${proto.value}' title='${proto.title}' href='#'>${proto.label} ${confidence}</a>`;
+         }
+      }}]] },
+   ['score'] = {
+      i18n = i18n("score"),
+      order = 4,
+      visible_by_default = true,
+      js = [[
+      {name: 'score', responsivePriority: 1, data: 'score', className: 'text-center', render: (score, type) => {
+         if (type !== 'display') return score;
+         if (score !== undefined && score.value != 0)
+            return `<a class='tag-filter' data-tag-value='${score.value}' href='#'><span style='color: ${score.color}'>` + NtopUtils.fint(score.value) + `</span></a>`;
+      }}]] },
+   ["flow"] = build_datatable_js_column_flow("flow", "flow", i18n("flow")),
    ['vlan_id'] = {
       i18n = i18n("db_search.vlan_id"),
-      order = 1,
+      order = 6,
       visible_by_default = interface.hasVLANs(),
       js = [[
-        {name: 'vlan_id', responsivePriority: 2, data: 'vlan_id', visible: ]] ..ternary(interface.hasVLANs(), "true", "false").. [[, className: 'no-wrap', render: (vlan_id, type) => {
+        {name: 'vlan_id', responsivePriority: 0, data: 'vlan_id', visible: ]] ..ternary(interface.hasVLANs(), "true", "false").. [[, className: 'no-wrap', render: (vlan_id, type) => {
             if (type !== 'display') 
                 return vlan_id;
             if (vlan_id !== undefined)
                 return `<a class='tag-filter' data-tag-value='${vlan_id.value}' title='${vlan_id.title}' href='#'>${vlan_id.label}</a>`;
         }}]] },
-   ['cli_ip'] = build_datatable_js_column_ip('cli_ip', 'cli_ip', i18n("db_search.client"), 2),
-   ['srv_ip'] = build_datatable_js_column_ip('srv_ip', 'srv_ip', i18n("db_search.server"), 3),
-   ['cli_port'] = build_datatable_js_column_port('cli_port', 'cli_port', i18n("db_search.cli_port"), 4),
-   ['srv_port'] = build_datatable_js_column_port('srv_port', 'srv_port', i18n("db_search.srv_port"), 5),
-   ['l4proto'] = {
-      i18n = i18n("db_search.l4proto"),
-      order = 6,
-      visible_by_default = true,
-      js = [[
-      {name: 'l4proto', responsivePriority: 2, data: 'l4proto', className: 'no-wrap', render: (l4proto, type) => {
-        if (type !== 'display') return l4proto;
-        if (l4proto !== undefined)
-           return `<a class='tag-filter' data-tag-value='${l4proto.label}' data-tag-realvalue='${l4proto.value}' title='${l4proto.title}' href='#'>${l4proto.label}</a>`;
-      }}]] },
-   ['l7proto'] = {
-      i18n = i18n("db_search.l7proto"),
-      order = 7,
-      visible_by_default = true,
-      js = [[
-      {name: 'l7proto', responsivePriority: 2, data: 'l7proto', className: 'no-wrap', render: (proto, type, row) => {
-        if (type !== 'display') return proto;
-        if (proto !== undefined) {
-          let confidence = ""
-          if (proto.confidence !== undefined) {
-            (proto.confidence == "DPI") ? confidence = `<span class="badge bg-success">${proto.confidence}</span>` : confidence = `<span class="badge bg-warning">${proto.confidence}</span>` 
-          }
-
-           return `<a class='tag-filter' data-tag-value='${proto.value}' title='${proto.title}' href='#'>${proto.label} ${confidence}</a>`;
-        }
-      }}]] },
-   ['score'] = {
-      i18n = i18n("score"),
-      order = 8,
-      visible_by_default = true,
-      js = [[
-      {name: 'score', responsivePriority: 2, data: 'score', className: 'text-center', render: (score, type) => {
-        if (type !== 'display') return score;
-        if (score !== undefined && score.value != 0)
-          return `<a class='tag-filter' data-tag-value='${score.value}' href='#'><span style='color: ${score.color}'>` + NtopUtils.fint(score.value) + `</span></a>`;
-      }}]] },
-   ['packets'] = build_datatable_js_column_packets('packets', 'packets', i18n("db_search.packets"), 9, true),
-   ['bytes'] = build_datatable_js_column_bytes('bytes', 'bytes', i18n("db_search.bytes"), 10),
+   ['cli_ip'] = build_datatable_js_column_ip('cli_ip', 'cli_ip', i18n("db_search.client"), 7),
+   ['srv_ip'] = build_datatable_js_column_ip('srv_ip', 'srv_ip', i18n("db_search.server"), 8),
+   ['cli_port'] = build_datatable_js_column_port('cli_port', 'cli_port', i18n("db_search.cli_port"), 9),
+   ['srv_port'] = build_datatable_js_column_port('srv_port', 'srv_port', i18n("db_search.srv_port"), 10),
+   ['packets'] = build_datatable_js_column_packets('packets', 'packets', i18n("db_search.packets"), 11, false),
+   ['bytes'] = build_datatable_js_column_bytes('bytes', 'bytes', i18n("db_search.bytes"), 12, false),
    ['throughput'] = {
       i18n = i18n("db_search.throughput"),
-      order = 11,
-      visible_by_default = true,
-      js = [[
-      {name: 'throughput', responsivePriority: 2, data: 'throughput', className: 'no-wrap'}]] },
-   ['first_seen'] = {
-      i18n = i18n("db_search.first_seen"),
-      order = 12,
-      visible_by_default = true,
-      js = [[
-      {name: 'first_seen', responsivePriority: 2, data: 'first_seen', className: 'no-wrap'}]] },
-   ['last_seen'] = {
-      i18n = i18n("db_search.last_seen"),
       order = 13,
       visible_by_default = true,
       js = [[
-      {name: 'last_seen', responsivePriority: 2, data: 'last_seen', className: 'no-wrap'}]] },
+      {name: 'throughput', responsivePriority: 2, data: 'throughput', className: 'no-wrap'}]] },
    ['cli_asn'] = build_datatable_js_column_asn('cli_asn', 'cli_asn', i18n("db_search.cli_asn"), 14, true),
    ['srv_asn'] = build_datatable_js_column_asn('srv_asn', 'srv_asn', i18n("db_search.srv_asn"), 15, true),
    ['l7cat'] = {
@@ -1728,7 +1743,7 @@ local all_datatable_js_columns_by_tag = {
    ['flow_risk'] = {
       i18n = i18n("db_search.flow_risk"),
       order = 18,
-      visible_by_default = true,
+      visible_by_default = false,
       js = [[
       {name: 'flow_risk', responsivePriority: 2, data: 'flow_risk', className: 'no-wrap', render: (flow_risks, type) => {
         if (type !== 'display') return flow_risks;
@@ -1787,8 +1802,8 @@ local all_datatable_js_columns_by_tag = {
    ['srv_network'] = build_datatable_js_column_network('srv_network', 'srv_network', i18n("db_search.tags.srv_network"), 29, true),
    ['cli_host_pool_id'] = build_datatable_js_column_pool_id('cli_host_pool_id', 'cli_host_pool_id', i18n("db_search.tags.cli_host_pool_id"), 30, true),
    ['srv_host_pool_id'] = build_datatable_js_column_pool_id('srv_host_pool_id', 'srv_host_pool_id', i18n("db_search.tags.srv_host_pool_id"), 31, true),
-   ["input_snmp"] = build_datatable_js_column_snmp_interface("input_snmp", "input_snmp", i18n("db_search.tags.input_snmp"), 32),
-   ["output_snmp"] = build_datatable_js_column_snmp_interface("output_snmp", "output_snmp", i18n("db_search.tags.output_snmp"), 33),
+   ["input_snmp"] = build_datatable_js_column_snmp_interface("input_snmp", "input_snmp", i18n("db_search.tags.input_snmp"), 32, true),
+   ["output_snmp"] = build_datatable_js_column_snmp_interface("output_snmp", "output_snmp", i18n("db_search.tags.output_snmp"), 33, true),
    ['cli_country'] = build_datatable_js_column_country('cli_country', 'cli_country', i18n("db_search.tags.cli_country"), 34, true),
    ['srv_country'] = build_datatable_js_column_country('srv_country', 'srv_country', i18n("db_search.tags.srv_country"), 35, true),
    ['community_id'] = build_datatable_js_column_community_id('community_id', 'community_id', i18n("db_search.tags.community_id"), 36, true),
@@ -1811,7 +1826,7 @@ local function get_js_columns_to_display()
    -- Display selected columns in the flows table
    local js_columns = {}
 
-   js_columns["flow"]       = build_datatable_js_column_flow("flow", "flow", i18n("flow"), 0)
+   js_columns["flow"]       = build_datatable_js_column_flow("flow", "flow", i18n("flow"))
    js_columns["l4proto"]    = historical_flow_utils.get_datatable_js_columns_by_tag("l4proto")
    js_columns["l7proto"]    = historical_flow_utils.get_datatable_js_columns_by_tag("l7proto")
    js_columns["score"]      = historical_flow_utils.get_datatable_js_columns_by_tag("score")

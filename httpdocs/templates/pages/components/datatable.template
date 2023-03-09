@@ -777,23 +777,16 @@
       {% end %}
 
       let toggleColumnsDropdownAlreadyAdded = false;
-      $table.on("draw", () => {
-      if (toggleColumnsDropdownAlreadyAdded == true) { return; }
-          DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
-              $table.ajax.reload();
-          });
-    toggleColumnsDropdownAlreadyAdded = true;
-      });
-
-    // on ajax request
-      $table.on('preXhr', function() {
-        $(this).css('table-layout', 'auto')
-      });
 
       // on ajax request complete then print the query time
       $table.on('xhr', function() {
         printQueryTime($table);
         $(this).css('table-layout', 'auto')
+        if (toggleColumnsDropdownAlreadyAdded == true) { return; }
+        DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
+          $table.ajax.reload();
+        });
+        toggleColumnsDropdownAlreadyAdded = true;
       });
 
       $table.on('click', `a.tag-filter`, async function (e) {
