@@ -14,11 +14,15 @@ local rest_utils = require("rest_utils")
 
 local debugger = false
 
-local function set_host_info(vlan_id, host_ip, host_name) 
+local function set_host_info(host_vlan_id, host_ip, host_name, is_host_in_mem, flow_vlan_id) 
   local host_info = {}
-  host_info.vlan_name = getFullVlanName(vlan_id)
-  host_info.ip = ternary(tonumber(vlan_id) ~= 0, string.format("%s@%s",host_ip,vlan_id), host_ip)
-  host_info.ip_label = ternary(tonumber(vlan_id) ~= 0, string.format("%s@%s",host_ip, host_info.vlan_name), host_ip)
+  local vlan_id_to_use = host_vlan_id
+  if(not is_host_in_mem) then
+    vlan_id_to_use = flow_vlan_id
+  end
+  host_info.vlan_name = getFullVlanName(vlan_id_to_use)
+  host_info.ip = ternary(tonumber(vlan_id_to_use) ~= 0, string.format("%s@%s",host_ip,vlan_id_to_use), host_ip)
+  host_info.ip_label = ternary(tonumber(vlan_id_to_use) ~= 0, string.format("%s@%s",host_ip, host_info.vlan_name), host_ip)
 
   host_info.name = host_name
   if (not isEmptyString(host_info.name)) then
@@ -168,21 +172,26 @@ local function build_response()
       local server_name = ""
       local server_ip_label = ""
       local server_ip = ""
+      local srv_in_mem = false
       if(criteria_type_id == 3 or criteria_type_id == 4) then
-        local srv_info = set_host_info(data.srv_vlan_id, data.server_ip, data.server_name)
+        local srv_info = set_host_info(data.srv_vlan_id, data.server_ip, data.server_name, data.is_srv_in_mem, data.vlan_id)
         server_ip = srv_info.ip
         server_ip_label = srv_info.ip_label
         server_name = srv_info.name
+        srv_in_mem = data.is_srv_in_mem or interface.getHostInfo(data.server_ip, data.vlan_id or 0) ~= nil
       end
 
       local client_ip = ""
       local client_ip_label = ""
       local client_name = ""
+      local cli_in_mem = false
+
       if(criteria_type_id == 2 or criteria_type_id == 4) then
-        local cli_info = set_host_info(data.cli_vlan_id, data.client_ip, data.client_name)
+        local cli_info = set_host_info(data.cli_vlan_id, data.client_ip, data.client_name, data.is_cli_in_mem, data.vlan_id)
         client_ip = cli_info.ip
         client_ip_label = cli_info.ip_label
         client_name = cli_info.name
+        cli_in_mem = data.is_cli_in_mem or interface.getHostInfo(data.client_ip, data.vlan_id or 0) ~= nil
       end
       
       num_entries = data.num_entries
@@ -193,7 +202,7 @@ local function build_response()
           label = client_ip_label,
           id = client_ip,
         },
-        is_client_in_mem = data.is_cli_in_mem,
+        is_client_in_mem = cli_in_mem,
         client_name = {
           label = client_name,
           id = client_ip
@@ -202,7 +211,7 @@ local function build_response()
           label = server_ip_label,
           id = server_ip,
         },
-        is_server_in_mem = data.is_srv_in_mem,
+        is_server_in_mem = srv_in_mem,
         server_name = {
           label = server_name,
           id = server_ip
