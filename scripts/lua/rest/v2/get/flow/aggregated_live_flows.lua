@@ -22,7 +22,7 @@ local function set_host_info(vlan_id, host_ip, host_name)
 
   host_info.name = host_name
   if (not isEmptyString(host_info.name)) then
-    host_info.name = ternary(host_info.name ~= host_info.ip and host_info.name ~= host_ip, host_info.name, "")
+    host_info.name = ternary(host_info.name ~= host_info.ip and host_info.name ~= host_ip, shortenString(host_info.name), "")
   end
 
   return host_info
