@@ -24,7 +24,7 @@
 
 /* ************************************************ */
 
-char* FlowsHostInfo::getIp(char* buf, u_int len) {
+char* FlowsHostInfo::getIP(char* buf, u_int len) {
   return(ip->print(buf, len));
 }
 

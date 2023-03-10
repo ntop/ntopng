@@ -35,9 +35,8 @@ public:
   FlowsHostInfo(const IpAddress* _ip, Host* _host) {
     ip = _ip, host = _host;
   }
-  ~FlowsHostInfo();
 
-  char* getIp(char* buf, u_int len);
+  char* getIP(char* buf, u_int len);
   char* getHostName(char* buf, u_int len);
   char* getIPHex(char* buf, u_int len);
   bool isHostInMem();

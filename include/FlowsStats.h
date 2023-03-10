@@ -87,8 +87,8 @@ public:
   }
 
       
-  char* getCliIP(char* buf, u_int len)                        { return( client->getIp(buf, len) ); }
-  char* getSrvIP(char* buf, u_int len)                        { return( server->getIp(buf, len) ); }
+  char* getCliIP(char* buf, u_int len)                        { return( client->getIP(buf, len) ); }
+  char* getSrvIP(char* buf, u_int len)                        { return( server->getIP(buf, len) ); }
   char* getCliName(char* buf, u_int len)                      { return( client->getHostName(buf, len) ); }
   char* getSrvName(char* buf, u_int len)                      { return( server->getHostName(buf,len) ); }
   char* getCliIPHex(char* buf, u_int len)                     { return( client->getIPHex(buf, len) ); }
@@ -97,7 +97,6 @@ public:
   u_int16_t getSrvVLANId()                                    { return( server->getVLANId() ); }
   bool isCliInMem()                                           { return( client->isHostInMem() ); }
   bool isSrvInMem()                                           { return( server->isHostInMem() ); }
-
 };
 
 #endif /* _FLOWS_STATS_H_ */
