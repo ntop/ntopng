@@ -21,48 +21,48 @@
 
 #include "ntop_includes.h"
 
+
 /* ************************************************ */
 
-char* FlowsStats::getCliIP(char* buf, u_int len) {
-  return(cli_ip->print(buf, len));
+char* FlowsHostInfo::getIp(char* buf, u_int len) {
+  return(ip->print(buf, len));
 }
 
 /* ************************************************ */
 
-char* FlowsStats::getSrvIP(char* buf, u_int len) {
-  return(srv_ip->print(buf, len));
-}
-
-/* ************************************************ */
-
-char* FlowsStats::getCliName(char* buf, u_int len, u_int16_t cli_port) {
-  if(cli_host) {
-    return cli_host->get_name(buf, len, false);
+char* FlowsHostInfo::getHostName(char* buf, u_int len) {
+  if(host) {
+    return host->get_name(buf, len, false);
   } else {
-    snprintf(buf, len,"%s:%u",cli_ip->print(buf, len), cli_port);
-    return(buf);
+    return((char*)"");
   }
 }
 
 /* ************************************************ */
 
-char* FlowsStats::getSrvName(char* buf, u_int len, u_int16_t srv_port) {
-  if(srv_host) {
-    return srv_host->get_name(buf, len, false);
-  } else {
-    snprintf(buf, len, "%s:%u", srv_ip->print(buf, len), srv_port);
-    return(buf);
-  }
+char* FlowsHostInfo::getIPHex(char* buf, u_int len) {
+  return(((IpAddress*)ip)->get_ip_hex(buf, len));
 }
 
 /* ************************************************ */
 
-char* FlowsStats::getCliIPHex(char* buf, u_int len) {
-  return(((IpAddress*)cli_ip)->get_ip_hex(buf, len));
+bool FlowsHostInfo::isHostInMem() {
+  return(host != NULL);
 }
 
 /* ************************************************ */
 
-char* FlowsStats::getSrvIPHex(char* buf, u_int len) {             
-  return(((IpAddress*)srv_ip)->get_ip_hex(buf, len)); 
+u_int16_t FlowsHostInfo::getVLANId() {
+    u_int16_t v_id = 0;
+    if(host) {
+        u_int16_t vlan = host->get_vlan_id();
+        if(vlan)
+        v_id = vlan;
+        else {
+        vlan = host->get_raw_vlan_id();
+        v_id = vlan ? vlan : 0;
+        }
+    }
+
+    return v_id;
 }

@@ -10224,9 +10224,7 @@ static bool compute_client_flow_stats(GenericHashEntry *node, void *user_data, b
 						   f->get_protocol(),
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
 						   f->getScore());
-    fs->setCliIP(f->get_cli_ip_addr());
-    fs->setCli(f->get_cli_host());
-    fs->setCliPort(f->get_cli_port());
+    fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
     fs->setVlanId(f->get_vlan_id());
     fs->setKey(key);
 
@@ -10262,9 +10260,7 @@ static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data, b
 						   f->get_protocol(),
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
 						   f->getScore());
-    fs->setSrvIP(f->get_srv_ip_addr());
-    fs->setSrv(f->get_srv_host());
-    fs->setSrvPort(f->get_srv_port());
+    fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
     fs->setVlanId(f->get_vlan_id());
     fs->setKey(key);
 
@@ -10301,12 +10297,9 @@ static bool compute_client_server_flow_stats(GenericHashEntry *node, void *user_
 						   f->get_protocol(),
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
 						   f->getScore());
-    fs->setCliIP(f->get_cli_ip_addr());
-    fs->setSrvIP(f->get_srv_ip_addr());
-    fs->setCli(f->get_cli_host());
-    fs->setSrv(f->get_srv_host());
-    fs->setCliPort(f->get_cli_port());
-    fs->setSrvPort(f->get_srv_port());
+    
+    fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
+    fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
     fs->setVlanId(f->get_vlan_id());
     fs->setKey(key);
 
@@ -10409,16 +10402,21 @@ void NetworkInterface::build_lua_rsp(lua_State *vm, FlowsStats *fs,
   }
 
   if(add_client) {
+    lua_push_uint64_table_entry(vm, "cli_vlan_id", (u_int64_t)fs->getCliVLANId());
     lua_push_str_table_entry(vm,    "client_ip",   fs->getCliIP(buf, sizeof(buf)));
-    lua_push_str_table_entry(vm,    "client_name", fs->getCliName(buf, sizeof(buf), fs->getCliPort()));
+    lua_push_str_table_entry(vm,    "client_name", fs->getCliName(buf, sizeof(buf)));
+    lua_push_bool_table_entry(vm, "is_cli_in_mem", fs->isCliInMem());
+
   }
 
   if(add_server) {
+    lua_push_uint64_table_entry(vm, "srv_vlan_id", (u_int64_t)fs->getSrvVLANId());
     lua_push_str_table_entry(vm,    "server_ip",   fs->getSrvIP(buf, sizeof(buf)));
-    lua_push_str_table_entry(vm,    "server_name", fs->getSrvName(buf, sizeof(buf), fs->getSrvPort()));
+    lua_push_str_table_entry(vm,    "server_name", fs->getSrvName(buf, sizeof(buf)));
+    lua_push_bool_table_entry(vm, "is_srv_in_mem", fs->isSrvInMem());
   }
   
-  lua_push_uint64_table_entry(vm, "vlan_id",    (u_int64_t)fs->getVlanId());
+  lua_push_uint64_table_entry(vm, "vlan_id",     (u_int64_t)fs->getVlanId());
   lua_push_uint32_table_entry(vm, "l4_proto",    fs->getL4Protocol());
   lua_push_uint32_table_entry(vm, "num_clients", fs->getNumClients());
   lua_push_uint32_table_entry(vm, "num_servers", fs->getNumServers());

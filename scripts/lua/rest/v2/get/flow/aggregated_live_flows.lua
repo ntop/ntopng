@@ -14,6 +14,21 @@ local rest_utils = require("rest_utils")
 
 local debugger = false
 
+local function set_host_info(vlan_id, host_ip, host_name) 
+  local host_info = {}
+  host_info.vlan_name = getFullVlanName(vlan_id)
+  host_info.ip = ternary(tonumber(vlan_id) ~= 0, string.format("%s@%s",host_ip,vlan_id), host_ip)
+  host_info.ip_label = ternary(tonumber(vlan_id) ~= 0, string.format("%s@%s",host_ip, host_info.vlan_name), host_ip)
+
+  host_info.name = host_name
+  if (not isEmptyString(host_info.name)) then
+    host_info.name = ternary(host_info.name ~= host_info.ip and host_info.name ~= host_ip, host_info.name, "")
+  end
+
+  return host_info
+end
+
+
 local function build_response() 
   
   -- ############################################
@@ -130,31 +145,47 @@ local function build_response()
       local bytes_rcvd = data.bytes_rcvd
       local total_bytes = bytes_rcvd + bytes_sent
 
-      if vlan and not isEmptyString(vlan) and tonumber(vlan) ~= tonumber(data.vlan_id) then
-        goto continue
-      end
-
-
-      local vlan_name = getFullVlanName(data.vlan_id)
-
-      local client_ip = ternary(tonumber(data.vlan_id) ~= 0, string.format("%s@%s",data.client_ip,data.vlan_id), data.client_ip)
-      local client_ip_label = ternary(tonumber(data.vlan_id) ~= 0, string.format("%s@%s",data.client_ip,vlan_name), data.client_ip)
-
-      local server_ip = ternary(tonumber(data.vlan_id) ~= 0, string.format("%s@%s",data.server_ip,data.vlan_id), data.server_ip)
-      local server_ip_label = ternary(tonumber(data.vlan_id) ~= 0, string.format("%s@%s",data.server_ip,vlan_name), data.server_ip)
-      
-      local server_name = data.server_name
-      if (not isEmptyString(server_name)) then
-        server_name = ternary(server_name ~= server_ip, server_name, "")
+      if (criteria_type_id == 2) then
+        if(vlan and not isEmptyString(vlan) and tonumber(vlan) ~= tonumber(data.cli_vlan_id)) then
+          goto continue
+        end
+      elseif (criteria_type_id == 3) then
+        if(vlan and not isEmptyString(vlan) and tonumber(vlan) ~= tonumber(data.srv_vlan_id)) then
+          goto continue
+        end
+      else
+        if(vlan and not isEmptyString(vlan) and 
+          (tonumber(vlan) ~= tonumber(data.srv_vlan_id) and tonumber(vlan) ~= tonumber(data.cli_vlan_id)) 
+          ) then
+          goto continue
+        end
       end
       
-      local client_name = data.client_name
-      if (not isEmptyString(client_name)) then
-        client_name = ternary(client_name ~= client_ip, client_name, "")
+
+
+      local flow_vlan_name = getFullVlanName(data.vlan_id)
+
+      local server_name = ""
+      local server_ip_label = ""
+      local server_ip = ""
+      if(criteria_type_id == 3 or criteria_type_id == 4) then
+        local srv_info = set_host_info(data.srv_vlan_id, data.server_ip, data.server_name)
+        server_ip = srv_info.ip
+        server_ip_label = srv_info.ip_label
+        server_name = srv_info.name
       end
 
+      local client_ip = ""
+      local client_ip_label = ""
+      local client_name = ""
+      if(criteria_type_id == 2 or criteria_type_id == 4) then
+        local cli_info = set_host_info(data.cli_vlan_id, data.client_ip, data.client_name)
+        client_ip = cli_info.ip
+        client_ip_label = cli_info.ip_label
+        client_name = cli_info.name
+      end
+      
       num_entries = data.num_entries
-      
       
       res[#res + 1] = {
         flows = format_high_num_value_for_tables(data, 'num_flows'),
@@ -162,6 +193,7 @@ local function build_response()
           label = client_ip_label,
           id = client_ip,
         },
+        is_client_in_mem = data.is_cli_in_mem,
         client_name = {
           label = client_name,
           id = client_ip
@@ -170,6 +202,7 @@ local function build_response()
           label = server_ip_label,
           id = server_ip,
         },
+        is_server_in_mem = data.is_srv_in_mem,
         server_name = {
           label = server_name,
           id = server_ip
@@ -186,7 +219,7 @@ local function build_response()
         num_clients = format_high_num_value_for_tables(data, 'num_clients'),
         vlan_id = {
           id = data.vlan_id,
-          label = vlan_name
+          label = flow_vlan_name
         }
       }
 

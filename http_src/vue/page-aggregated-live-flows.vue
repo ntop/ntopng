@@ -72,16 +72,16 @@ const props = defineProps({
 const format_client_server = function(data, rowData) {
   let formatted_client = `<a href="${http_prefix}/lua/host_details.lua?host=`+rowData.client.id+`">`+rowData.client.label+`</a>`;
   let formatted_server =  `<a href="${http_prefix}/lua/host_details.lua?host=`+rowData.server.id+`">`+rowData.server.label+`</a>`;
-  if (rowData.client_name.label.split(":").length > 1) 
+  if (!rowData.is_client_in_mem) 
     formatted_client = `<label>${rowData.client.label}</label>`
-  if (rowData.server_name.label.split(":").length > 1)
+  if (!rowData.is_server_in_mem)
     formatted_server = `<label>${rowData.server.label}</label>`;
   
   return formatted_client+` - `+formatted_server;
 }
 
 const format_client_name = function(data, rowData) {
-  if (rowData.client_name.label.split(":").length > 1) {
+  if (!rowData.is_client_in_mem) {
     return `<label>${rowData.client_name.label }</label>`;
   } else {
     return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`;
@@ -89,7 +89,7 @@ const format_client_name = function(data, rowData) {
 }
 
 const format_server_name = function(data, rowData) {
-  if (rowData.server_name.label.split(":").length > 1) {
+  if (!rowData.is_server_in_mem) {
     return `<label>${rowData.server_name.label}</label>`;
   } else {  
     return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`;
@@ -189,7 +189,7 @@ async function set_datatable_config() {
     columns.push(
       { 
         columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
-          if(rowData.client_name.label.split(":").length>1)
+          if(!rowData.is_client_in_mem)
             return `<label>${data.label}</label>`;
           else
             return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`}
@@ -204,7 +204,7 @@ async function set_datatable_config() {
     columns.push(
       { 
         columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
-          if(rowData.server_name.label.split(":").length>1)
+          if(!rowData.is_server_in_mem)
             return `<label>${data.label}</label>`;
           else
             return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`},          

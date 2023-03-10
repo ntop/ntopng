@@ -26,18 +26,16 @@
 
 /* *************************************** */
 
+
+
 class FlowsStats {
 private:
   std::set<std::string> clients, servers;
   u_int32_t num_flows, tot_score;
   u_int64_t tot_sent, tot_rcvd;
   u_int8_t l4_proto;
-  const IpAddress* cli_ip;
-  Host* cli_host;
-  const IpAddress* srv_ip;
-  Host* srv_host;
-  u_int16_t cli_port;
-  u_int16_t srv_port;
+  FlowsHostInfo* client;
+  FlowsHostInfo* server;  
 
   u_int16_t vlan_id;
   char* proto_name;
@@ -73,18 +71,11 @@ public:
   inline void setKey(u_int64_t _key)          { key = _key; }
   inline u_int64_t getKey()                   { return key; }
 
-  inline void setCli(Host* _cli_host)         { cli_host = _cli_host; }
-  inline void setSrv(Host* _srv_host)         { srv_host = _srv_host; }  
+  inline void setClient(const IpAddress* _ip, 
+                        Host* _host)   { client = new (std::nothrow) FlowsHostInfo(_ip, _host); }
+  inline void setServer(const IpAddress* _ip, 
+                        Host* _host)   { server = new (std::nothrow) FlowsHostInfo(_ip, _host); }  
   
-  inline void setCliIP(const IpAddress* _cli_ip) { cli_ip = _cli_ip;   }
-  inline void setSrvIP(const IpAddress* _srv_ip) { srv_ip = _srv_ip;  }
-
-  inline void setCliPort(const u_int16_t port) { cli_port = port; }
-  inline void setSrvPort(const u_int16_t port) { srv_port = port; }
-  
-  inline u_int16_t getCliPort() { return(cli_port); }
-  inline u_int16_t getSrvPort() { return(srv_port); }
-
   inline void incFlowStats(const IpAddress *c, const IpAddress *s,
 			   u_int64_t bytes_sent, u_int64_t bytes_rcvd,
 			   u_int32_t score) {
@@ -95,12 +86,18 @@ public:
       num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd, tot_score += score;;
   }
 
-  char* getCliIP(char* buf, u_int len);
-  char* getSrvIP(char* buf, u_int len);
-  char* getCliName(char* buf, u_int len, u_int16_t cli_port);
-  char* getSrvName(char* buf, u_int len, u_int16_t srv_port);
-  char* getCliIPHex(char* buf, u_int len);
-  char* getSrvIPHex(char* buf, u_int len);
+      
+  char* getCliIP(char* buf, u_int len)                        { return( client->getIp(buf, len) ); }
+  char* getSrvIP(char* buf, u_int len)                        { return( server->getIp(buf, len) ); }
+  char* getCliName(char* buf, u_int len)                      { return( client->getHostName(buf, len) ); }
+  char* getSrvName(char* buf, u_int len)                      { return( server->getHostName(buf,len) ); }
+  char* getCliIPHex(char* buf, u_int len)                     { return( client->getIPHex(buf, len) ); }
+  char* getSrvIPHex(char* buf, u_int len)                     { return( server->getIPHex(buf, len) ); }
+  u_int16_t getCliVLANId()                                    { return( client->getVLANId() ); }
+  u_int16_t getSrvVLANId()                                    { return( server->getVLANId() ); }
+  bool isCliInMem()                                           { return( client->isHostInMem() ); }
+  bool isSrvInMem()                                           { return( server->isHostInMem() ); }
+
 };
 
 #endif /* _FLOWS_STATS_H_ */
