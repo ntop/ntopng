@@ -95,6 +95,7 @@ class Mac : public GenericHashEntry {
   bool isNull() const;
 
   bool equal(const u_int8_t _mac[6]);
+  bool equal(const Mac *m) { return((memcmp(mac, m->mac, 6) == 0) ? true : false); };
 
 #ifdef NTOPNG_PRO
   inline time_t getNotifiedTime()    { return captive_portal_notified;       };

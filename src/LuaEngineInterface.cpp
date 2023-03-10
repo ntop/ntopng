@@ -2839,6 +2839,7 @@ static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
   src_ip_addr.set(src_ip), dst_ip_addr.set(dst_ip);
 
   f = ntop_interface->findFlowByTuple(vlan_id, getLuaVMUservalue(vm, observationPointId), private_flow_id,
+				      NULL, NULL, /* TODO MAC */
 				      &src_ip_addr, &dst_ip_addr, htons(src_port), htons(dst_port), l4_proto, ptree);
 
   if(f == NULL)

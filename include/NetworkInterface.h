@@ -616,6 +616,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   virtual Flow* findFlowByTuple(u_int16_t vlan_id,
 				u_int16_t observation_domain_id,
 				u_int32_t private_flow_id,
+				Mac *src_mac, Mac *dst_mac,
 				IpAddress *src_ip,  IpAddress *dst_ip,
 				u_int16_t src_port, u_int16_t dst_port,
 				u_int8_t l4_proto,

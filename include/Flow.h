@@ -692,7 +692,8 @@ class Flow : public GenericHashEntry {
   void getNetBiosInfo(ndpi_serializer *serializer) const;
   void getSSHInfo(ndpi_serializer *serializer) const;
 
-  bool equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
+  bool equal(const Mac *src_mac, const Mac *dst_mac,
+	     const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _u_int16_t, u_int16_t _observation_point_id,
 	     u_int32_t _private_flow_id,

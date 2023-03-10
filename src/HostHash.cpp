@@ -30,7 +30,8 @@ HostHash::HostHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_
 
 /* ************************************ */
 
-Host* HostHash::get(u_int16_t vlanId, IpAddress *key, bool is_inline_call,
+Host* HostHash::get(u_int16_t vlanId, IpAddress *key,
+		    Mac *mac, bool is_inline_call,
 		    u_int16_t observation_point_id) {
   u_int32_t hash = (key->key() % num_hashes);
 
@@ -49,7 +50,9 @@ Host* HostHash::get(u_int16_t vlanId, IpAddress *key, bool is_inline_call,
 	 && (head->get_vlan_id() == vlanId)
 	 && (head->get_observation_point_id() == observation_point_id)
 	 && (head->get_ip() != NULL)
-	 && (head->get_ip()->compare(key) == 0))
+	 && (head->get_ip()->compare(key) == 0)
+	 && ((mac == NULL) || (mac == head->getMac()))
+	 )
 	break;
       else
 	head = (Host*)head->next();

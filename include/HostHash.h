@@ -33,7 +33,8 @@ class HostHash : public GenericHash {
   HostHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
   /* Search for an host by IP and VLAN */
-  Host* get(u_int16_t vlanId, IpAddress *key, bool is_inline_call, u_int16_t observation_point_id);
+  Host* get(u_int16_t vlanId, IpAddress *key, Mac *mac,
+	    bool is_inline_call, u_int16_t observation_point_id);
 
   void incNumHTTPEntries();  
   void decNumHTTPEntries();

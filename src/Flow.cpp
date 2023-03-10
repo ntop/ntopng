@@ -56,7 +56,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_tos = srv2cli_tos = 0;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
   swap_done = swap_requested = 0;
-  
+
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
@@ -2248,21 +2248,26 @@ void Flow::update_pools_stats(NetworkInterface *iface,
 
 /* *************************************** */
 
-bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
+bool Flow::equal(const Mac *_src_mac, const Mac *_dst_mac,
+		 const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 		 u_int16_t _cli_port, u_int16_t _srv_port,
 		 u_int16_t _u_int16_t, u_int16_t _observation_point_id,
 		 u_int32_t _private_flow_id, u_int8_t _protocol,
 		 const ICMPinfo * const _icmp_info,
 		 bool *src2srv_direction) const {
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
+  const Mac *src_mac, *dst_mac;
 
 #if 0
-  char buf1[64],buf2[64],buf3[64],buf4[64];
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s][%s][%s][%s]",
-			       cli_ip->print(buf1, sizeof(buf1)),
-			       srv_ip->print(buf2, sizeof(buf2)),
-			       _cli_ip->print(buf3, sizeof(buf3)),
-			       _srv_ip->print(buf4, sizeof(buf4)));
+  {
+    char buf1[64],buf2[64],buf3[64],buf4[64];
+    
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s][%s][%s][%s]",
+				 cli_ip->print(buf1, sizeof(buf1)),
+				 srv_ip->print(buf2, sizeof(buf2)),
+				 _cli_ip->print(buf3, sizeof(buf3)),
+				 _srv_ip->print(buf4, sizeof(buf4)));
+  }
 #endif
 
   if(getPrivateFlowId() != _private_flow_id)
@@ -2290,15 +2295,28 @@ bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
   if(cli_ip && cli_ip->equal(_cli_ip)
      && srv_ip && srv_ip->equal(_srv_ip)
      && _cli_port == cli_port && _srv_port == srv_port) {
-    *src2srv_direction = true;
-    return(true);
+    *src2srv_direction = true, src_mac = _src_mac, dst_mac = _dst_mac;
   } else if(srv_ip && srv_ip->equal(_cli_ip)
 	    && cli_ip && cli_ip->equal(_srv_ip)
 	    && _srv_port == cli_port && _cli_port == srv_port) {
-    *src2srv_direction = false;
-    return(true);
-  } else
+    *src2srv_direction = false, src_mac = _dst_mac, dst_mac = _src_mac;
+    cli_ip = get_srv_ip_addr(), srv_ip = get_cli_ip_addr();
+  } else 
     return(false);
+
+  if(cli_host && src_mac) {
+    Mac *cli_mac = cli_host->getMac();
+
+    if(cli_mac != src_mac) return(false);
+  }
+
+  if(srv_host && dst_mac) {
+    Mac *srv_mac = srv_host->getMac();
+
+    if(srv_mac != dst_mac) return(false);
+  }
+
+  return(true);
 }
 
 /* *************************************** */
@@ -6893,7 +6911,7 @@ void Flow::lua_entropy(lua_State* vm) {
 /* *************************************** */
 
 void Flow::check_swap() {
-  if(((protocol == IPPROTO_TCP) && ((src2dst_tcp_flags & TH_SYN) == TH_SYN))
+  if(((protocol == IPPROTO_TCP) && ((src2dst_tcp_flags & TH_SYN) == TH_SYN) /* Ignore in case we have seen a SYN */)
      || (get_cli_port() == 0)
      || (get_srv_port() == 0)
      )
@@ -6901,7 +6919,7 @@ void Flow::check_swap() {
 
   if(!(get_cli_ip_addr()->isNonEmptyUnicastAddress()
        && (!get_srv_ip_addr()->isNonEmptyUnicastAddress())) /* Everything that is NOT unicast-to-non-unicast needs to be checked */
-     /* && get_cli_port() < 1024 // Relax this constraint and also apply to non-well-known ports such as 8080 */
+     // && get_cli_port() < 1024 /* Relax this constraint and also apply to non-well-known ports such as 8080 */
      && (get_cli_port() < get_srv_port())
      ) {
 

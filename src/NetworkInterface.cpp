@@ -1142,7 +1142,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 
 /* **************************************************** */
 
-Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
+Flow* NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac,
 				u_int16_t vlan_id, u_int16_t observation_domain_id,
 				u_int32_t private_flow_id,
 				u_int32_t deviceIP,
@@ -1167,13 +1167,13 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
     setSeenVLANTaggedPackets();
 
   if(!hasSeenMacAddresses()) {
-    if((srcMac && Utils::macHash(srcMac->get_mac()) != 0)
-       || (dstMac && Utils::macHash(dstMac->get_mac()) != 0))
+    if((src_mac && Utils::macHash(src_mac->get_mac()) != 0)
+       || (dst_mac && Utils::macHash(dst_mac->get_mac()) != 0))
       setSeenMacAddresses();
   }
 
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 1);
-  ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
+  ret = flows_hash->find(src_mac, dst_mac, src_ip, dst_ip, src_port, dst_port,
 			 vlan_id, observation_domain_id,
 			 private_flow_id,
 			 l4_proto, icmp_info, src2dst_direction,
@@ -1207,8 +1207,8 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
       INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 2);
       ret = new (std::nothrow) Flow(this, vlan_id, observation_domain_id,
 				    private_flow_id, l4_proto,
-				    srcMac, src_ip, src_port,
-				    dstMac, dst_ip, dst_port,
+				    src_mac, src_ip, src_port,
+				    dst_mac, dst_ip, dst_port,
 				    icmp_info,
 				    first_seen, last_seen,
 				    view_cli_mac, view_srv_mac);
@@ -1239,14 +1239,14 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
     has_too_many_flows = false;
   }
 
-  if(srcMac) {
+  if(src_mac) {
     if((srcHost = (*src2dst_direction) ? ret->get_cli_host() : ret->get_srv_host())) {
-      if((!srcMac->isSpecialMac()) && (primary_mac = srcHost->getMac()) && primary_mac != srcMac) {
+      if((!src_mac->isSpecialMac()) && (primary_mac = srcHost->getMac()) && primary_mac != src_mac) {
 #ifdef MAC_DEBUG
 	char buf[32], bufm1[32], bufm2[32];
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "Detected mac address [%s] [host: %s][primary mac: %s]",
-				     Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
+				     Utils::formatMac(src_mac->get_mac(), bufm1, sizeof(bufm1)),
 				     srcHost->get_ip()->print(buf, sizeof(buf)),
 				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
 #endif
@@ -1262,29 +1262,29 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 	    /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
 #ifndef HAVE_NEDGE
 	    if(ret->get_packets_cli2srv() == 1 /* first packet */)
-	      srcMac->incRcvdStats(getTimeLastPktRcvd(), 1, ret->get_bytes_cli2srv() /* size of the last packet */);
+	      src_mac->incRcvdStats(getTimeLastPktRcvd(), 1, ret->get_bytes_cli2srv() /* size of the last packet */);
 #endif
 	  }
 	}
 
-	srcHost->set_mac(srcMac);
+	srcHost->set_mac(src_mac);
 	srcHost->updateHostPool(true /* Inline */);
       }
     }
   }
 
-  if(dstMac) {
+  if(dst_mac) {
     if((dstHost = (*src2dst_direction) ? ret->get_srv_host() : ret->get_cli_host())) {
-      if((!dstMac->isSpecialMac()) && (primary_mac = dstHost->getMac()) && primary_mac != dstMac) {
+      if((!dst_mac->isSpecialMac()) && (primary_mac = dstHost->getMac()) && primary_mac != dst_mac) {
 #ifdef MAC_DEBUG
 	char buf[32], bufm1[32], bufm2[32];
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "Detected mac address [%s] [host: %s][primary mac: %s]",
-				     Utils::formatMac(dstMac->get_mac(), bufm1, sizeof(bufm1)),
+				     Utils::formatMac(dst_mac->get_mac(), bufm1, sizeof(bufm1)),
 				     dstHost->get_ip()->print(buf, sizeof(buf)),
 				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
 #endif
-	dstHost->set_mac(dstMac);
+	dstHost->set_mac(dst_mac);
 	dstHost->updateHostPool(true /* Inline */);
       }
     }
@@ -3487,7 +3487,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlan_id, u_int16_t observation_do
 
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
   /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
-  (*src) = hosts_hash->get(vlan_id, _src_ip, true /* Inline call */, observation_domain_id);
+  (*src) = hosts_hash->get(vlan_id, _src_ip, src_mac, true /* Inline call */, observation_domain_id);
   INTERFACE_PROFILING_SECTION_EXIT(3);
 
   if((*src) == NULL) {
@@ -3528,7 +3528,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlan_id, u_int16_t observation_do
   /* ***************************** */
 
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
-  (*dst) = hosts_hash->get(vlan_id, _dst_ip, true /* Inline call */, observation_domain_id);
+  (*dst) = hosts_hash->get(vlan_id, _dst_ip, dst_mac, true /* Inline call */, observation_domain_id);
   INTERFACE_PROFILING_SECTION_EXIT(3);
 
   if((*dst) == NULL) {
@@ -4193,7 +4193,7 @@ Host* NetworkInterface::getHostByIP(IpAddress *ip,
 				    bool isInlineCall) {
   Host *h;
 
-  h = hosts_hash ? hosts_hash->get(vlan_id, ip, isInlineCall, observation_point_id) : NULL;
+  h = hosts_hash ? hosts_hash->get(vlan_id, ip, NULL, isInlineCall, observation_point_id) : NULL;
 
   return(h);
 }
@@ -6846,7 +6846,6 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool create_if_not_present, bool
   ret = macs_hash->get(_mac, isInlineCall);
 
   if((ret == NULL) && create_if_not_present) {
-
     if(!macs_hash->hasEmptyRoom())
       return(NULL);
 
@@ -7124,6 +7123,7 @@ Flow* NetworkInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, Add
 Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
 					u_int16_t observation_domain_id,
 					u_int32_t private_flow_id,
+					Mac *src_mac, Mac *dst_mac,
 					IpAddress *src_ip,  IpAddress *dst_ip,
 					u_int16_t src_port, u_int16_t dst_port,
 					u_int8_t l4_proto,
@@ -7134,7 +7134,8 @@ Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
   if(!flows_hash)
     return(NULL);
 
-  f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id,
+  f = (Flow*)flows_hash->find(src_mac, dst_mac,
+			      src_ip, dst_ip, src_port, dst_port, vlan_id,
 			      observation_domain_id, private_flow_id,
 			      l4_proto, NULL, &src2dst,
 			      false /* Not an inline call */, &unswapped_flow);
@@ -10297,7 +10298,7 @@ static bool compute_client_server_flow_stats(GenericHashEntry *node, void *user_
 						   f->get_protocol(),
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
 						   f->getScore());
-    
+
     fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
     fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
     fs->setVlanId(f->get_vlan_id());
@@ -10327,8 +10328,8 @@ static bool asc_cli_ip_hex_cmp(FlowsStats* a, FlowsStats* b) {
   return strcmp(a->getCliIPHex(a_buf,sizeof(a_buf)), b->getCliIPHex(b_buf,sizeof(b_buf))) < 0;
 }
 
-static bool asc_srv_ip_hex_cmp(FlowsStats* a, FlowsStats* b) {                                             
-  char a_buf[48], b_buf[48];                                                                                                                                                                         
+static bool asc_srv_ip_hex_cmp(FlowsStats* a, FlowsStats* b) {
+  char a_buf[48], b_buf[48];
   return strcmp(a->getSrvIPHex(a_buf,sizeof(a_buf)),
 		b->getSrvIPHex(b_buf,sizeof(b_buf))) < 0;
 }
@@ -10336,15 +10337,15 @@ static bool asc_srv_ip_hex_cmp(FlowsStats* a, FlowsStats* b) {
 static bool asc_srv_cli_ip_hex_cmp(FlowsStats* a, FlowsStats* b) {
   char a_c_buf[48], a_s_buf[48], b_c_buf[48], b_s_buf[48];
   char a_sc_buf[96], b_sc_buf[96];
-  
+
   snprintf(a_sc_buf, sizeof(a_sc_buf),"%s%s",
 	   a->getCliIPHex(a_c_buf, sizeof(a_c_buf)),
 	   a->getSrvIPHex(a_s_buf, sizeof(a_s_buf)));
-  
+
   snprintf(b_sc_buf, sizeof(b_sc_buf),"%s%s",
 	   b->getCliIPHex(b_c_buf, sizeof(b_c_buf)),
 	   b->getSrvIPHex(b_s_buf, sizeof(b_s_buf)));
-  
+
   return(strcmp(a_sc_buf,b_sc_buf) < 0);
 }
 
@@ -10384,18 +10385,18 @@ void NetworkInterface::build_lua_rsp(lua_State *vm, FlowsStats *fs,
 				     u_int filter_type, u_int32_t size, u_int *num) {
   char buf[128];
   bool add_client = false, add_server = false;
-  
+
   lua_newtable(vm);
 
   switch(filter_type) {
   case 3:
     add_server = true;
     break;
-    
+
   case 4:
-    add_client = add_server = true;    
+    add_client = add_server = true;
     break;
-    
+
   default:
     add_client = true;
     break;
@@ -10415,7 +10416,7 @@ void NetworkInterface::build_lua_rsp(lua_State *vm, FlowsStats *fs,
     lua_push_str_table_entry(vm,    "server_name", fs->getSrvName(buf, sizeof(buf)));
     lua_push_bool_table_entry(vm, "is_srv_in_mem", fs->isSrvInMem());
   }
-  
+
   lua_push_uint64_table_entry(vm, "vlan_id",     (u_int64_t)fs->getVlanId());
   lua_push_uint32_table_entry(vm, "l4_proto",    fs->getL4Protocol());
   lua_push_uint32_table_entry(vm, "num_clients", fs->getNumClients());
@@ -10438,7 +10439,7 @@ void NetworkInterface::build_protocol_flow_stats_lua_rsp(lua_State* vm, FlowsSta
   char buf[64], proto[16];
   u_int16_t vlan_id;
   u_int64_t key = fs->getKey();
-  
+
   detected_protocol.master_protocol = (u_int16_t)(key & 0x00000000000FFFF);
   detected_protocol.app_protocol    = (u_int16_t)((key >> 16) & 0x000000000000FFFF);
   vlan_id                           = (u_int16_t)((key >> 32) & 0x000000000000FFFF);
@@ -10453,7 +10454,7 @@ void NetworkInterface::build_protocol_flow_stats_lua_rsp(lua_State* vm, FlowsSta
     snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
   else
     snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
-  
+
   /* Currently it is not supported the possibily to add double filter on master and app proto */
   lua_push_uint32_table_entry(vm, "vlan_id",     vlan_id);
   lua_push_str_table_entry(vm,    "proto_id",    proto);
@@ -10506,7 +10507,7 @@ void NetworkInterface::sort_flow_stats(lua_State* vm, std::unordered_map<u_int64
     for(it = count->begin(); it != count->end(); ++it) {
       ndpi_protocol detected_protocol;
       char buf[64];
-      
+
       detected_protocol.master_protocol = (u_int16_t)(it->first & 0x00000000000FFFF);
       detected_protocol.app_protocol    = (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
 
@@ -10546,7 +10547,7 @@ void NetworkInterface::sort_flow_stats(lua_State* vm, std::unordered_map<u_int64
   if (start + length > size ) {
     for(vector_it = vector.begin() + start; vector_it != vector.end(); ++vector_it) {
       FlowsStats *fs = *vector_it;
-      
+
       if(fs) {
         if(filter_type != 1)
           build_lua_rsp(vm, fs, filter_type, size, &num);
@@ -10557,7 +10558,7 @@ void NetworkInterface::sort_flow_stats(lua_State* vm, std::unordered_map<u_int64
   } else {
     for(vector_it = vector.begin() + start; vector_it != (vector.begin() + start + length); ++vector_it) {
       FlowsStats *fs = *vector_it;
-      
+
       if(fs) {
         if(filter_type != 1)
           build_lua_rsp(vm, fs, filter_type, size, &num);
