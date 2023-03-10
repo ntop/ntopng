@@ -1,47 +1,45 @@
 require "lua_utils"
 local json = require "dkjson"
 local alert_utils = require "alert_utils"
+
 local endpoint_key = "mattermost"
+
 local mattermost = {
   name = "Mattermost",
   endpoint_params = {
     -- Define here the endpoint parameters used in the endpoint GUI
-    { param_name = "mattermost_url",param_name = "mattermost_token" },
+    { param_name = "mattermost_url" },
+    { param_name = "mattermost_token" },
   },
   endpoint_template = {
     script_key = endpoint_key, -- Unique string key
-
-  -- Filename of the GUI block for this endpoint
-  -- relative pathname to discord_alert_endpoint/templates/discord_endpoint.template
     template_name = "mattermost_endpoint.template" 
   },
   recipient_params = {
-	{ param_name = "mattermost_channelname"}
+    { param_name = "mattermost_channelname" }
   },
   recipient_template = {
     script_key = endpoint_key,
     template_name = "mattermost_recipient.template"
   }
 }
--- email.dequeueRecipientAlerts will be invoked every 60 seconds
+
+-- dequeueRecipientAlerts will be invoked every 60 seconds
 mattermost.EXPORT_FREQUENCY = 60
 mattermost.prio = 500
 
 -- ##############################################
 
-
 local function readSettings(recipient)
   local settings = {
     -- Endpoint
     url = recipient.endpoint_conf.mattermost_url,
-    mattermost_token = recipient.endpoint_conf.mattermost_token, -- this information is coming from the endpoint configuration recipient.endpoint_conf. ...
+    mattermost_token = recipient.endpoint_conf.mattermost_token, -- this information is coming from the endpoint configuration recipient.endpoint_conf.
     -- Recipient
-    mattermost_channel = recipient.recipient_params.mattermost_channelname -- (**) this information is coming from the recipient configuration recipient.recipient_params. ...
+    mattermost_channel = recipient.recipient_params.mattermost_channelname -- (**) this information is coming from the recipient configuration recipient.recipient_params.
   }
   return settings
 end
-
-
 
 -- ##############################################
 
@@ -71,7 +69,7 @@ function mattermost.sendMattermost(message_body,settings)
     if (body.message.alert_type ~= nil) 
     then
       -- Only if a custom alert is thrown this script will be run
-      local post_rc = ntop.postHTTPJsonData(settings.mattermost_token,"","",settings.url,body)
+      local post_rc = ntop.postHTTPJsonData(settings.mattermost_token, "", "", settings.url, body)
       if post_rc 
       then
         if post_rc.RESPONSE_CODE == 204 
@@ -156,5 +154,6 @@ function mattermost.dequeueRecipientAlerts(recipient, budget)
   return {success = true, more_available = more_available}
 end
 
-return mattermost
 -- ##############################################
+
+return mattermost

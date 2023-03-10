@@ -236,20 +236,20 @@ function endpoints.add_config(endpoint_key, endpoint_conf_name, endpoint_params)
    -- Is the config already existing?
    local is_existing, existing_conf = is_endpoint_config_existing(endpoint_conf_name)
    if is_existing then
-      return {status = "failed",
-	      endpoint_id = existing_conf.endpoint_id,
-	      endpoint_conf_name = existing_conf.endpoint_conf_name,
+      return {
+         status = "failed",
+	 endpoint_id = existing_conf.endpoint_id,
+	 endpoint_conf_name = existing_conf.endpoint_conf_name,
 
-	      error = {
-		 type = "endpoint_config_already_existing",
-		 endpoint_conf_name = existing_conf.endpoint_conf_name,
-	      }
+	 error = {
+            type = "endpoint_config_already_existing",
+            endpoint_conf_name = existing_conf.endpoint_conf_name,
+         }
       }
    end
 
    -- Are the submitted params those expected by the endpoint?
    ok, status = check_endpoint_config_params(endpoint_key, endpoint_params)
-
    if not ok then
       return status
    end

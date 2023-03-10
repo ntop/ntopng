@@ -1402,7 +1402,6 @@ function validateToken(token)
    return true
 end
 
-
 -- #################################################################
 
 local function validateMattermostBearerToken(token)
@@ -1536,11 +1535,9 @@ local known_parameters = {
    ["webhook_username"]        = validateEmptyOr(validateSingleWord),
    ["webhook_password"]        = validateEmptyOr(validateSingleWord),
 
-
-   ["mattermost_url"] = { http_lint.webhookCleanup, http_lint.validateUnquoted },
-   ["mattermost_token"] =  { validateMattermostBearerToken,http_lint.validateSingleWord },
-   ["mattermost_channelname"] = http_lint.validateSingleWord,
-
+   ["mattermost_url"]          = { http_lint.webhookCleanup, http_lint.validateUnquoted },
+   ["mattermost_token"]        = validateMattermostBearerToken,
+   ["mattermost_channelname"]  = http_lint.validateSingleWord,
 
    -- DB
    ["select_clause"]           = validateUnquoted,
