@@ -31,24 +31,21 @@ char* FlowsHostInfo::getIP(char* buf, u_int len) {
 /* ************************************************ */
 
 char* FlowsHostInfo::getHostName(char* buf, u_int len) {
+  char symIP[64];
+  char *ip_addr = ip->print(buf, len);
   
   if(host) {
     char* name = host->get_name(buf, len, false);
+    
     if(name && strcmp(name,"") != 0 && strcmp(name," ") != 0)
       return(name);
   }
-  char symIP[64];
-
-  memset(symIP, 0 ,sizeof(symIP));
-  memset(buf, 0, len);
-  char *ip_addr = ip->print(buf, len);
 
   if(ip_addr) {
     ntop->resolveHostName(ip_addr, symIP, sizeof(symIP));
-    if(symIP && strcmp(symIP, ip_addr) != 0) {
-      
-      memset(buf, 0, len);
+    if(strcmp(symIP, ip_addr) != 0) {
       snprintf(buf, len, "%s", symIP);
+      
       return(buf ? buf : (char*)"");
     } else 
       return((char*) "");
