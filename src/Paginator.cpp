@@ -196,7 +196,7 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  port_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "LocalNetworkFilter"))
 	  local_network_filter = lua_tointeger(L, -1);
-	else if(!strcmp(key, "u_int16_tFilter"))
+	else if(!strcmp(key, "vlanIdFilter"))
 	  vlan_id_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "inIndexFilter"))
 	  inIndex = lua_tointeger(L, -1);

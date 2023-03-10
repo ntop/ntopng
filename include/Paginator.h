@@ -117,7 +117,7 @@ class Paginator {
     if(local_network_filter <= CONST_MAX_NUM_NETWORKS) { (*f) = local_network_filter; return true; } return false;
   }
 
-  inline bool u_int16_tFilter(u_int16_t *f) const {
+  inline bool vlanIdFilter(u_int16_t *f) const {
     if(vlan_id_filter != (u_int16_t)-1) { (*f) = vlan_id_filter; return true; } return false;
   }
   

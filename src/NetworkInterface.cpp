@@ -4656,7 +4656,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     }
 
     if(retriever->pag
-       && retriever->pag->u_int16_tFilter(&vlan_id)
+       && retriever->pag->vlanIdFilter(&vlan_id)
        && (f->get_vlan_id() != vlan_id))
       return(false);
 
