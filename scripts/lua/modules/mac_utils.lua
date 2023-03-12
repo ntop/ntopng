@@ -6,6 +6,8 @@ local throughput_type = getThroughputType()
 
 local now = os.time()
 
+-- ################################################
+
 function printMacHosts(mac)
   local mac_hosts = interface.getMacHosts(mac)
   local num_hosts = table.len(mac_hosts)
@@ -14,25 +16,27 @@ function printMacHosts(mac)
      local first_host
 
      for _, h in pairsByKeys(mac_hosts, asc) do
-  first_host = h
-  break
+	first_host = h
+	break
      end
 
      local url = ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac
      local host_url = hostinfo2detailsurl(first_host)
      local host_label = first_host["ip"]
-
+     
      if num_hosts > 2 then
-  return i18n("mac_details.and_n_more_hosts", {host_url = host_url, host_label = host_label, url = url, num = num_hosts})
+	return i18n("mac_details.and_n_more_hosts", {host_url = host_url, host_label = host_label, url = url, num = num_hosts})
      elseif num_hosts > 1 then
-  return i18n("mac_details.and_one_more_host", {host_url = host_url, host_label = host_label, url = url})
+	return i18n("mac_details.and_one_more_host", {host_url = host_url, host_label = host_label, url = url})
      else
-  return i18n("mac_details.mac_host", {host_url = host_url, host_label = host_label})
+	return i18n("mac_details.mac_host", {host_url = host_url, host_label = host_label})
      end
   end
-
+  
   return ''
 end
+
+-- ################################################
 
 function getMacHosts(mac, additional_ip)
   local mac_hosts = interface.getMacHosts(mac)
