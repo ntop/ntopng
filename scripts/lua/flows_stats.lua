@@ -322,20 +322,6 @@ if (page == "flows" or page == nil) then
             }
          },
    ]]
-   
-   if(ifstats.vlan) then
-      print [[
-         {
-           title: "]] print(i18n("vlan")) print[[",
-           field: "column_vlan",
-           sortable: true,
-           css: {
-              textAlign: 'center',
-              whiteSpace: 'nowrap'
-           }
-         },
-      ]]
-   end
 
    print[[
          {

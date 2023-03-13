@@ -2218,7 +2218,7 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64];
   char *host_ip = NULL, *talking_with_ip = NULL;
-  u_int16_t vlan_id = 0;
+  u_int16_t vlan_id = (u_int16_t) -1;
   Host *host = NULL, *talking_with_host = NULL;
   Paginator *p = NULL;
   u_int32_t begin_slot = 0;
