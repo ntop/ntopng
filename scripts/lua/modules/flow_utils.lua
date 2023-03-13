@@ -1563,9 +1563,8 @@ function printL4ProtoDropdown(base_url, page_params, l4_proto)
 
    print[[\
       <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.l4_protocol")) print[[]] print(l4proto_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
-         <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, l4proto_params_non_tcp)) print[[">]] print(i18n("flows_page.all_l4_protocols")) print[[</a></li>]]
-
+      <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">]]
+      print('<li><a class="dropdown-item') print(l4proto == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, l4proto_params_non_tcp)) print[[">]] print(i18n("flows_page.all_l4_protocols")) print[[</a></li>]]
     if l4_proto then
        for key, value in pairsByKeys(l4_proto, asc) do
 	  local num_proto = tonumber(key)
@@ -1634,7 +1633,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
    print[[, '<div class="btn-group float-right">\
       <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
-	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
+      ]]print('<li><a class="dropdown-item') print(cur_dev == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
    for dev_ip, dev_resolved_name in pairsByValues(devips, asc) do
       local dev_name = dev_ip
       local dev_name_full = dev_ip
@@ -1669,7 +1668,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 	    print[[, '<div class="btn-group float-right">\
       <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page."..direction)) print[[]] print(cur_if_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
-	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page.all_"..direction)) print[[</a></li>\]]
+      ]]print('<li><a class="dropdown-item') print(cur_if == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page.all_"..direction)) print[[</a></li>\]]
 
 	    for portidx, _ in pairsByKeys(ports, asc) do
          if_params[direction] = portidx
@@ -1727,7 +1726,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        <div class="btn-group">\
 	  <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.hosts")) print(getParamFilter(page_params, "flowhosts_type")) print[[<span class="caret"></span></button>\
 	  <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
-	     <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
+     ]]print('<li><a class="dropdown-item') print(page_params.flowhosts_type == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
        printDropdownEntries({
           {"local_only", i18n("flows_page.local_only")},
           {"remote_only", i18n("flows_page.remote_only")},
@@ -1758,7 +1757,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
          <div class="btn-group">\
       <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.talking_with")) print(getParamFilter(page_params, "talking_with")) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu scrollable-dropdown" role="menu">\
-      <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, talking_with_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
+      ]]print('<li><a class="dropdown-item') print(page_params.talking_with == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, talking_with_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
          printDropdownEntries(talking_with_list, base_url, talking_with_params, "talking_with", page_params.talking_with)
      
       -- Check if talking_with_list is empty to print \ else is going to didn't call get_flows_data and html crash
@@ -1780,7 +1779,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        <div class="btn-group">\
 	  <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("status")) print(getParamFilter(page_params, "alert_type")) print[[<span class="caret"></span></button>\
 	  <ul class="dropdown-menu scrollable-dropdown" role="menu">\
-	  <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, alert_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
+	  ]]print('<li><a class="dropdown-item') print(page_params.alert_type == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, alert_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 
        local entries = {
 	  {"normal", i18n("flows_page.normal")},
@@ -1827,7 +1826,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        <div class="btn-group">\
 	  <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.alert_type_severity")) print(getParamFilter(page_params, "alert_type_severity")) print[[<span class="caret"></span></button>\
 	  <ul class="dropdown-menu scrollable-dropdown" role="menu">\
-	  <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, alert_type_severity_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>]]
+	  ]]print('<li><a class="dropdown-item') print(page_params.alert_type_severity == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, alert_type_severity_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>]]
 
        local entries
 
@@ -1859,7 +1858,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 	   <div class="btn-group">\
 	      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.tcp_state")) print(getParamFilter(page_params, "tcp_flow_state")) print[[<span class="caret"></span></button>\
 	      <ul class="dropdown-menu scrollable-dropdown" role="menu">\
-	      <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, tcp_state_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
+	      ]]print('<li><a class="dropdown-item') print(page_params.tcp_flow_state == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, tcp_state_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 
 	  local entries = {}
 	  for _, entry in pairs({"established", "connecting", "closed", "reset"}) do
@@ -1882,7 +1881,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 	   <div class="btn-group">\
 	      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.direction")) print(getParamFilter(page_params, "traffic_type")) print[[<span class="caret"></span></button>\
 	      <ul class="dropdown-menu scrollable-dropdown" role="menu">\
-		 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
+         ]]print('<li><a class="dropdown-item') print(page_params.traffic_type == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 	printDropdownEntries({
 	      {"unicast", i18n("flows_page.non_multicast")},
 	      {"broadcast_multicast", i18n("flows_page.multicast")},
@@ -1913,7 +1912,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 		    entries[#entries + 1] = {pod_id, shortenString(pod_id)}
 		end
 
-		print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, pods_params)) print[[">]] print(i18n("containers_stats.all_pods")) print[[</a></li>\]]
+		print('<li><a class="dropdown-item') print(page_params.pod == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, pods_params)) print[[">]] print(i18n("containers_stats.all_pods")) print[[</a></li>\]]
 		printDropdownEntries(entries, base_url, pods_params, "pod", page_params.pod)
 
 		print[[\
@@ -1942,7 +1941,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 		    entries[#entries + 1] = {container_id, format_utils.formatContainer(container.info)}
 		end
 
-		print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, container_params)) print[[">]] print(i18n("containers_stats.all_containers")) print[[</a></li>\]]
+		print('<li><a class="dropdown-item') print(page_params.container == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, container_params)) print[[">]] print(i18n("containers_stats.all_containers")) print[[</a></li>\]]
 		printDropdownEntries(entries, base_url, container_params, "container", page_params.container)
 
 		print[[\
@@ -1955,7 +1954,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
     -- L7 Application
     print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..i18n("report.applications")..' ' .. getParamFilter(page_params, "application") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">')
-    print('<li><a class="dropdown-item" href="')
+    print('<li><a class="dropdown-item') print(page_params.application == nil and ' active' or '') print('" href="')
 
     -- table.clone needed to modify some parameters while keeping the original unchanged
     local application_filter_params = table.clone(page_params)
@@ -2004,7 +2003,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
     -- L7 Application Category
     print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..i18n("users.categories")..' ' .. getParamFilter(page_params, "category") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">')
-    print('<li><a class="dropdown-item" href="')
+    print('<li><a class="dropdown-item') print(page_params.category == nil and ' active' or '') print('" href="')
     -- table.clone needed to modify some parameters while keeping the original unchanged
     local category_filter_params = table.clone(page_params)
     category_filter_params["category"] = nil
@@ -2092,7 +2091,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
       if profiles_defined then
         -- Traffic Profiles
         print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..i18n("traffic_profiles.traffic_profiles")..' ' .. getParamFilter(page_params, "traffic_profile") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">')
-        print('<li><a class="dropdown-item" href="')
+        print('<li><a class="dropdown-item') print(page_params.traffic_profile == nil and ' active' or '') print('" href="')
 	-- table.clone needed to modify some parameters while keeping the original unchanged
         local traffic_profile_filter_params = table.clone(page_params)
         traffic_profile_filter_params["traffic_profile"] = nil
