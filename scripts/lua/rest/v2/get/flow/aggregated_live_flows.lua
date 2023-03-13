@@ -10,6 +10,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local rest_utils = require("rest_utils")
+local format_utils = require("format_utils")
 -- ############################################
 
 local debugger = false
@@ -27,6 +28,7 @@ local function set_host_info(host_vlan_id, host_ip, host_name, is_host_in_mem, f
   host_info.name = host_name
   if (not isEmptyString(host_info.name)) then
     host_info.name = ternary(host_info.name ~= host_info.ip and host_info.name ~= host_ip, shortenString(host_info.name), "")
+    host_info.name = ternary(vlan_id_to_use ~= 0, string.format("%s@%s",host_info.name, host_info.vlan_name),host_info.name )
   end
 
   return host_info
@@ -173,12 +175,15 @@ local function build_response()
       local server_ip_label = ""
       local server_ip = ""
       local srv_in_mem = false
+      local server_host = nil
+
       if(criteria_type_id == 3 or criteria_type_id == 4) then
         local srv_info = set_host_info(data.srv_vlan_id, data.server_ip, data.server_name, data.is_srv_in_mem, data.vlan_id)
         server_ip = srv_info.ip
         server_ip_label = srv_info.ip_label
         server_name = srv_info.name
-        srv_in_mem = data.is_srv_in_mem or interface.getHostInfo(data.server_ip, data.vlan_id or 0) ~= nil
+        server_host = interface.getHostInfo(data.server_ip, data.vlan_id or 0)
+        srv_in_mem = data.is_srv_in_mem or server_host ~= nil
       end
 
       local client_ip = ""
@@ -186,16 +191,21 @@ local function build_response()
       local client_name = ""
       local cli_in_mem = false
 
+      local client_host = nil
+
       if(criteria_type_id == 2 or criteria_type_id == 4) then
         local cli_info = set_host_info(data.cli_vlan_id, data.client_ip, data.client_name, data.is_cli_in_mem, data.vlan_id)
         client_ip = cli_info.ip
         client_ip_label = cli_info.ip_label
         client_name = cli_info.name
-        cli_in_mem = data.is_cli_in_mem or interface.getHostInfo(data.client_ip, data.vlan_id or 0) ~= nil
+        client_host = interface.getHostInfo(data.client_ip, data.vlan_id or 0)
+        cli_in_mem = data.is_cli_in_mem or client_host ~= nil
       end
       
       num_entries = data.num_entries
       
+
+
       res[#res + 1] = {
         flows = format_high_num_value_for_tables(data, 'num_flows'),
         client = {
@@ -205,7 +215,8 @@ local function build_response()
         is_client_in_mem = cli_in_mem,
         client_name = {
           label = client_name,
-          id = client_ip
+          id = client_ip, 
+          complete_label = format_utils.formatFullAddressCategory(client_host)
         },
         server = {
           label = server_ip_label,
@@ -214,7 +225,9 @@ local function build_response()
         is_server_in_mem = srv_in_mem,
         server_name = {
           label = server_name,
-          id = server_ip
+          id = server_ip,
+          complete_label = format_utils.formatFullAddressCategory(server_host)
+
         },
         breakdown = {
           percentage_bytes_sent = (bytes_sent * 100) / total_bytes,

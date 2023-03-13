@@ -69,31 +69,50 @@ const props = defineProps({
   ifid: Number,
 });
 
-const format_client_server = function(data, rowData) {
-  let formatted_client = `<a href="${http_prefix}/lua/host_details.lua?host=`+rowData.client.id+`">`+rowData.client.label+`</a>`;
-  let formatted_server =  `<a href="${http_prefix}/lua/host_details.lua?host=`+rowData.server.id+`">`+rowData.server.label+`</a>`;
-  if (!rowData.is_client_in_mem) 
-    formatted_client = `<label>${rowData.client.label}</label>`
-  if (!rowData.is_server_in_mem)
-    formatted_server = `<label>${rowData.server.label}</label>`;
-  
-  return formatted_client+` - `+formatted_server;
-}
 
 const format_client_name = function(data, rowData) {
-  if (!rowData.is_client_in_mem) {
-    return `<label>${rowData.client_name.label }</label>`;
+
+  if(rowData.client_name.label && rowData.client_name.label != "") {
+
+    if (!rowData.is_client_in_mem) {
+      return `<label>${rowData.client_name.label }</label>`+rowData.client_name.complete_label;
+    } else {
+      return `<a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}">${rowData.client_name.label}</a>`+rowData.client_name.complete_label;
+    }
   } else {
-    return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`;
+    if(!rowData.is_client_in_mem)
+      return `<label>${data.label}</label>`+rowData.client_name.complete_label;
+    else
+      return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`+rowData.client_name.complete_label;
   }
+  
 }
 
 const format_server_name = function(data, rowData) {
-  if (!rowData.is_server_in_mem) {
-    return `<label>${rowData.server_name.label}</label>`;
-  } else {  
-    return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`;
+  if(rowData.server_name.label && rowData.server_name.label != "") {
+    if (!rowData.is_server_in_mem) {
+      return `<label>${rowData.server_name.label }</label>`+rowData.server_name.complete_label;
+    } else {
+      return `<a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}">${rowData.server_name.label}</a>`+rowData.server_name.complete_label;
+    }
+  } else {
+    if(!rowData.is_server_in_mem)
+      return `<label>${data.label}</label>`+rowData.server_name.complete_label;
+    else
+      return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`+rowData.server_name.complete_label;
   }
+}
+
+const format_flows_icon = function(data, rowData) {
+  let url = ``; 
+  if(selected_criteria.value.value == 2)
+    url = `${http_prefix}/lua/host_details.lua?page=flows&host=${rowData.client_name.id}`;
+  else if (selected_criteria.value.value == 3)
+    url = `${http_prefix}/lua/host_details.lua?page=flows&host=${rowData.server_name.id}`;
+  else if (selected_criteria.value.value == 4)
+    url = `${http_prefix}/lua/host_details.lua?page=flows&host=${rowData.client_name.id}&talking_with=${rowData.server_name.id}`;
+  
+  return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
 }
 
 const url = `${http_prefix}/lua/rest/v2/get/flow/aggregated_live_flows.lua`
@@ -183,48 +202,45 @@ async function set_datatable_config() {
         } 
       })
   } 
-  else if (selected_criteria.value.value == 2) {
+  else if (selected_criteria.value.value == 2 ) {
+
     
     // client case
     columns.push(
       { 
+        orderable: false, targets: 0, name: 'flows_icon', data: 'client', className: 'text-center', responsivePriority: 1, render: (data,_,rowData) => { 
+        return format_flows_icon(data, rowData)}
+      }
+      ,{ 
         columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
-          if(!rowData.is_client_in_mem)
-            return `<label>${data.label}</label>`;
-          else
-            return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`}
-      },
-      {
-          columnName: i18n("client_name"), sortable: false, targets: 0, name: 'client_name', data: 'client_name', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) {return format_client_name(data, rowData)}  
+          
+          return format_client_name(data, rowData)}
       })
   } 
-  else if (selected_criteria.value.value == 3) {
-      
+  else if (selected_criteria.value.value == 3 ) {
     // server case
     columns.push(
       { 
+        orderable: false, targets: 0, name: 'flows_icon', data: 'client', className: 'text-nowrap text-center', responsivePriority: 1, render: (data,_,rowData) => { 
+        return format_flows_icon(data, rowData)}
+      }
+      ,{ 
         columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
-          if(!rowData.is_server_in_mem)
-            return `<label>${data.label}</label>`;
-          else
-            return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`},          
-      },
-      { 
-        columnName: i18n("server_name"), targets: 0, sortable: false, name: 'server_name', data: 'server_name', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData)  {return format_server_name(data, rowData)}   
+        return format_server_name(data, rowData)}         
       })
   } 
-  else if (selected_criteria.value.value == 4) {
-
-    // client-server case
+  else if(selected_criteria.value.value == 4) {
     columns.push(
       { 
-        columnName: i18n("client_and_server"), targets: 0, name: 'client_and_server', data: 'client_and_server', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) {return format_client_server(data, rowData) },
-      },
-      {
-          columnName: i18n("client_name"), targets: 0, name: 'client_name', sortable: false, data: 'client_name', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) {return format_client_name(data, rowData)}
-      },
-      {
-        columnName: i18n("server_name"), targets: 0, name: 'server_name', sortable: false, data: 'server_name', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) {return format_server_name(data, rowData)}
+        orderable: false, targets: 0, name: 'flows_icon', data: 'client', className: 'text-nowrap text-center', responsivePriority: 1, render: (data,_,rowData) => { 
+        return format_flows_icon(data, rowData)}
+      }
+      ,{ 
+        columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
+        return format_client_name(data, rowData)}
+      },{ 
+        columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
+        return format_server_name(data, rowData)}         
       })
   }
   
@@ -249,7 +265,7 @@ async function set_datatable_config() {
   columns.push({ 
     columnName: i18n("flows"), targets: 0, name: 'flows', data: 'flows', className: 'text-nowrap text-center', responsivePriority: 1
   }, { 
-    columnName: i18n("score"), targets: 0, name: 'score', data: 'tot_score', className: 'text-nowrap text-center', responsivePriority: 1
+    columnName: i18n("total_score"), targets: 0, name: 'score', data: 'tot_score', className: 'text-nowrap text-center', responsivePriority: 1
   }, { 
     columnName: i18n("clients"), targets: 0, name: 'num_clients', data: 'num_clients', className: 'text-nowrap text-center', responsivePriority: 1
   }, { 
