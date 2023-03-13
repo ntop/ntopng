@@ -121,11 +121,6 @@
     <button type="button" :disabled="check_disable_apply()" @click="add" class="btn btn-primary">{{_i18n('add')}}</button>
   </template>
 </modal>
-<ModalDeleteConfirm ref="modal_delete_confirm"
-  :title="title_delete"
-  :body="body_delete"
-  @delete="delete_row">
-</ModalDeleteConfirm>
 </template>
 
 <script setup>
