@@ -121,13 +121,20 @@
     <button type="button" :disabled="check_disable_apply()" @click="add" class="btn btn-primary">{{_i18n('add')}}</button>
   </template>
 </modal>
+<ModalDeleteConfirm ref="modal_delete_confirm"
+  :title="title_delete"
+  :body="body_delete"
+  @delete="delete_row">
+</ModalDeleteConfirm>
 </template>
 
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { default as modal } from "./modal.vue";
+import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 
 const modal_id = ref(null);
+const modal_delete_confirm = ref(null);
 const exclude_type = ref("ip");
 const input_ip = ref("");
 const input_network = ref("");
@@ -138,6 +145,8 @@ const flow_selected = ref("");
 const netmask = ref("");
 const comment = ref(null);
 const comment_placeholder = i18n("details.comment_placeholder");
+const is_edit = ref(null);
+const row_to_delete = ref(null);
 
 const emit = defineEmits(['add'])
 //s.split(",").every((a) => {return /.+=.+/.test(a)})
@@ -198,16 +207,65 @@ const check_disable_apply = () => {
 
 const showed = () => {};
 
-const show = () => {
-    exclude_type.value = "ip";
-    input_ip.value = "";
-    input_network.value = "";
-    input_vlan.value = 0;
-    host_selected.value = "";
-    flow_selected.value = "";
-    netmask.value = "";
-    input_text.value = "";
-    comment.value = "";
+const show = (row) => {
+    //debugger;
+    if(row) {
+      is_edit.value = true;
+      row_to_delete.value = row;
+
+      comment.value = row.label;
+      
+      if(row.type == 'host') {
+        let network_details = row.alert_addr.split("/");
+        let vlan_split = row.alert_addr.split("@");
+
+        if(network_details.length > 1) {
+          exclude_type.value = "network";
+          input_network.value = network_details[0];
+          netmask.value = network_details[1];
+          input_ip.value = "";
+        } else {
+          exclude_type.value = "ip";
+          input_ip.value = vlan_split[0];
+          input_network.value = "";
+          netmask.value = "";
+        } 
+
+        if(vlan_split.length > 1 ) {
+          input_vlan.value = vlan_split[1];
+        } else {
+          input_vlan.value = 0;
+        }
+
+        if(row.host_alert_key != null) 
+          host_selected.value = ''+row.host_alert_key;
+        else 
+          host_selected.value = "";
+      
+        if(row.flow_alert_key != null) 
+          flow_selected.value = ''+row.flow_alert_key;
+        else 
+          flow_selected.value = "";
+
+      } else if(row.type == 'domain') {
+        input_text.value = row.alert_domain;
+      } else {
+        input_text.value = row.alert_certificate;
+      }
+            
+    } else {
+
+      exclude_type.value = "ip";
+      input_ip.value = "";
+      input_network.value = "";
+      input_vlan.value = 0;
+      host_selected.value = "";
+      flow_selected.value = "";
+      netmask.value = "";
+      input_text.value = "";
+      comment.value = "";
+    }
+
     modal_id.value.show();
 };
 
@@ -232,8 +290,18 @@ const add = () => {
 	params = { alert_certificate: input_text.value };
     }
     params.label = comment.value;
+    if(is_edit.value) {
+      params.old_type = row_to_delete.value.type;
+      params.old_subdir = row_to_delete.value.subdir;
+      params.old_alert_domain = row_to_delete.value.alert_domain;
+      params.old_alert_certificate = row_to_delete.value.alert_certificate;
+      params.old_alert_addr = row_to_delete.value.alert_addr;
+      params.old_flow_alert_key = row_to_delete.value.flow_alert_key;
+      params.old_host_alert_key = row_to_delete.value.host_alert_key;
+    }
     emit('add', params);
     close();
+ 
 };
 
 defineExpose({ show, close });
