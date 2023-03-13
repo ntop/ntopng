@@ -8,45 +8,31 @@ Currently available Endpoints/Recipients and license required are:
 +----------------+-----------+-----+--------------+--------------+
 |                | Community | Pro | Enterprise M | Enterprise L |
 +================+===========+=====+==============+==============+
-| e-mail         | x         | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
 | Discord        | x         | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
-| Telegram       | x         | x   | x            | x            |
+| Elasticsearch  |           | x   | x            | x            |
++----------------+-----------+-----+--------------+--------------+
+| e-mail         | x         | x   | x            | x            |
++----------------+-----------+-----+--------------+--------------+
+| Fail2Ban       |           | x   | x            | x            |
++----------------+-----------+-----+--------------+--------------+
+| Mattermost     | x         | x   | x            | x            |
++----------------+-----------+-----+--------------+--------------+
+| MS Teams       |           | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
 | Shell Script   | x         | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| Webhook        | x         | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
 | Slack          | x         | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
 | Syslog         | x         | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
-| Fail2Ban       |           | x   | x            | x            |
+| Telegram       | x         | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
-| Elasticsearch  |           | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| MS Teams       |           | x   | x            | x            |
+| Webhook        | x         | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
 
 Below a guide on how to configure each Endpoint/Recipient.
 
-Email
------
-
-One can create the email endpoint as follows
-
-.. figure:: ../img/alerts_email_endpoint.png
-  :align: center
-  :alt: Email Endpoint Configuration
-
-Then, one can create multiple email recipients sharing the same
-endpoint but each one with a different destination email address:
-
-
-.. figure:: ../img/alerts_email_recipient.png
-  :align: center
-  :alt: Email Endpoint Configuration
 
 Discord
 -------
@@ -62,110 +48,6 @@ Done this you can create a recipient for this endpoint. You can optionally speci
 .. figure:: ../img/discord_alerts.png
 
 The above picture shows sample alerts delivered to a discord server.
-
-
-Telegram
---------
-
-First of all navigate from the Web GUI into the section Notification->Endpoints; after that, click on the `+` on the right corner of the Endpoint window, this way it will add a new Endpoint for the notification system. Select inside the `Type` window `Telegram`. Then open Telegram, search for `@BotFather` and start a new conversion with it.
-
-.. figure:: ../img/telegram_new_conversation_botfather.png
-
-After that, send the following messages in this order:
-  - :code:`/newbot`
-  - :code:`bot_name` (the name that's going to have the bot, e.g. `ntopng_telegram_script`)
-  - :code:`bot_username` (the username that's going to have the bot, e.g. `ntopng_telegram_script_bot`)
-
-.. figure:: ../img/telegram_full_conversation_botfather.png
-
-Now @BotFather will give a token, useful to enable ntopng to talk with the bot actually created; copy this token and paste it into the `Add New Endpoint` window of ntopng previously opened, name the Endpoint (e.g. `telegram_endpoint`) and click `Add`.
-
-After that navigate to Notification->Recipients and, just like before, click on the `+` simbol on the right high corner of the Recipient window. Now select into the Endpoint section of `Add New Recipient` the endpoint previously created, name it (e.g. telegram_recipient_mychat), select the Minimum Severity of the notifications and the Category of the notification desired.
-
-Then go back to Telegram. 
-If the bot have to personally send the alarms directly into the private chat then follow these steps:
-  - start a conversation with the ntopng bot in Telegram (a bot can't initiate conversation with a user!)
-  - search for `@getidsbot` and start a conversation with it
-  - copy the id `@getidsbot` gave to you
-
-.. figure:: ../img/telegram_getidsbot_search.png
-
-.. figure:: ../img/telegram_getidsbot_get_id.png
-
-Otherwise if you want to add the bot to a group chat and send messagges on that group, follow the following steps:
-  - add the bot you previosly created (searching for his name) to your group chat
-  - call the REST API: `https://api.telegram.org/bot<botToken>/getUpdates` to find out the group chat id
-  - copy the id the REST Response gave to you
-
-Now paste the id into the `Add New Recipient` window of ntopng and click `Add` (click `Test Recipient` to test if the bot is working correctly).
-
-Now add to the relative Pool the Telegram recipient you just created and it's done!
-
-.. figure:: ../img/telegram_alerts.png
-
-Shell Script
-------
-
-Create the script you want to execute each time the alert is triggered and put it inside the directory :code:`/usr/share/ntopng/scripts/shell/`.
-
-.. note::
-
-        The script must be a shell script (.sh extention) with execution permission.
-
-The full alert information are provided to the script through the standard input in JSON format.
-
-A new Endpoint should be created, by selecting the script that has been created.
-
-.. figure:: ../img/shell_endpoint.png
-
-After that, a new recipient should be created, associated with the new endpoint just created.
-
-.. figure:: ../img/shell_recipient.png
-
-Example of simple shell script reading the alert information from the standard input and logging them to file:
-
-.. code:: bash
-
-   #!/bin/bash
-   cat - >> /tmp/shell-script.log
-
-Fail2Ban
-------
-
-First of all, install Fail2Ban, for infos about the download check `Fail2Ban <https://www.fail2ban.org/wiki/index.php/Downloads>`_.
-After that you will be able to see the Fail2Ban Endpoint.
-
-After creating the endpoint, create a new recipient to associate with the new endpoint just created and put inside the JAIL option the JAIL that's going to be used to ban the dangerous IP (to have more infos about the JAIL check `here <https://www.fail2ban.org/wiki/index.php/MANUAL_0_8#Jails>`_).
-
-.. figure:: ../img/f2b_recipient.png
-
-.. note::
-
-        If the Recipient Check isn't succesfull, be sure that ntopng has sudo privileges and that the JAIL added is a correct one.
-
-        Fail2Ban Endpoint isn't going to be called for each alert but only for those that supports it, in the specific case only those with the Attacker available; check the specific user guide section for more infos :ref:`Alert Summary`.
-
-Webhook
--------
-
-Webhooks can be used to deliver alert information to a HTTP endpoint by configuring the URL in ntopng. Alert information are provided to the webhook in JSON format by means of POST requests.
-
-A Shared Secret can be configured in ntopng, which is an arbitrary string included in all JSON messages.
-
-A Username and Password can also be used to use HTTP Basic authentication.
-
-.. _Microsoft Teams:
-MS Teams
--------
-
-Like for the Webhook, Microsoft Teams endpoint can be used to deliver alert information to a MS Teams Channel configuring a Connector in MS Teams and the URL in ntopng. Alert information are provided to MS Teams in Message Card (Specific MS Teams JSON format) by means of POST requests.
-
-To Configure MS Teams to be used by ntopng as an endpoint first it's needed to enable the selected Channel Connector. Go into the Channel Settings and click onto `Connectors`.
-Add `Incoming Webhook` to MS Teams Connectors and then click on `Configure` and then on `Create`. Take the URL given by MS Teams and paste into ntopng endpoint (`Connector`).
-
-Official guide to MS Teams Webhook can be found `Here <https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook>`_
-
-.. figure:: ../img/teams_webhook.png
 
 .. _ElasticsearchAlerts:
 Elasticsearch
@@ -289,6 +171,83 @@ Alerts are sent to Elasticsearch in JSON format, following the ECS format (more 
      "@timestamp": "2020-11-23T14:20:56.0Z"
    }
 
+Email
+-----
+
+One can create the email endpoint as follows
+
+.. figure:: ../img/alerts_email_endpoint.png
+  :align: center
+  :alt: Email Endpoint Configuration
+
+Then, one can create multiple email recipients sharing the same
+endpoint but each one with a different destination email address:
+
+
+.. figure:: ../img/alerts_email_recipient.png
+  :align: center
+  :alt: Email Endpoint Configuration
+
+Fail2Ban
+------
+
+First of all, install Fail2Ban, for infos about the download check `Fail2Ban <https://www.fail2ban.org/wiki/index.php/Downloads>`_.
+After that you will be able to see the Fail2Ban Endpoint.
+
+After creating the endpoint, create a new recipient to associate with the new endpoint just created and put inside the JAIL option the JAIL that's going to be used to ban the dangerous IP (to have more infos about the JAIL check `here <https://www.fail2ban.org/wiki/index.php/MANUAL_0_8#Jails>`_).
+
+.. figure:: ../img/f2b_recipient.png
+
+.. note::
+
+        If the Recipient Check isn't succesfull, be sure that ntopng has sudo privileges and that the JAIL added is a correct one.
+
+        Fail2Ban Endpoint isn't going to be called for each alert but only for those that supports it, in the specific case only those with the Attacker available; check the specific user guide section for more infos :ref:`Alert Summary`.
+
+Mattermost
+-----
+
+Mattermost (https://mattermost.com) is an Open Source, self-hostable online chat service designed as an internal chat for organisations and companies.
+
+
+.. _Microsoft Teams:
+MS Teams
+-------
+
+Like for the Webhook, Microsoft Teams endpoint can be used to deliver alert information to a MS Teams Channel configuring a Connector in MS Teams and the URL in ntopng. Alert information are provided to MS Teams in Message Card (Specific MS Teams JSON format) by means of POST requests.
+
+To Configure MS Teams to be used by ntopng as an endpoint first it's needed to enable the selected Channel Connector. Go into the Channel Settings and click onto `Connectors`.
+Add `Incoming Webhook` to MS Teams Connectors and then click on `Configure` and then on `Create`. Take the URL given by MS Teams and paste into ntopng endpoint (`Connector`).
+
+Official guide to MS Teams Webhook can be found `Here <https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook>`_
+
+.. figure:: ../img/teams_webhook.png
+
+Shell Script
+------
+
+Create the script you want to execute each time the alert is triggered and put it inside the directory :code:`/usr/share/ntopng/scripts/shell/`.
+
+.. note::
+
+        The script must be a shell script (.sh extention) with execution permission.
+
+The full alert information are provided to the script through the standard input in JSON format.
+
+A new Endpoint should be created, by selecting the script that has been created.
+
+.. figure:: ../img/shell_endpoint.png
+
+After that, a new recipient should be created, associated with the new endpoint just created.
+
+.. figure:: ../img/shell_recipient.png
+
+Example of simple shell script reading the alert information from the standard input and logging them to file:
+
+.. code:: bash
+
+   #!/bin/bash
+   cat - >> /tmp/shell-script.log
 
 Slack
 -----
@@ -389,6 +348,51 @@ Examples of JSON alerts sent to syslog are
 
    develv ntopng: {"entity_value":"ntopng","ifid":1,"action":"store","tstamp":1536245738,"type":"process_notification","entity_type":"host","message":"[<tstamp>]][Process] Stopped ntopng v.3.7.180906 (CentOS Linux release 7.5.1804 (Core) ) [pid: 4783][options: --interface \"eno1\" --interface \"lo\" --dump-flows \"[hidden]\" --https-port \"4433\" --dont-change-user ]","severity":"info"}
    devel ntopng: {"message":"[<tstamp>][Threshold Cross][Engaged] Minute traffic crossed by interface eno1 [891.58 KB > 1 Byte]","entity_value":"iface_0","ifid":0,"alert_key":"min_bytes","tstamp":1536247320,"type":"threshold_cross","action":"engage","severity":"error","entity_type":"interface"}
-   
 
+Telegram
+--------
 
+First of all navigate from the Web GUI into the section Notification->Endpoints; after that, click on the `+` on the right corner of the Endpoint window, this way it will add a new Endpoint for the notification system. Select inside the `Type` window `Telegram`. Then open Telegram, search for `@BotFather` and start a new conversion with it.
+
+.. figure:: ../img/telegram_new_conversation_botfather.png
+
+After that, send the following messages in this order:
+  - :code:`/newbot`
+  - :code:`bot_name` (the name that's going to have the bot, e.g. `ntopng_telegram_script`)
+  - :code:`bot_username` (the username that's going to have the bot, e.g. `ntopng_telegram_script_bot`)
+
+.. figure:: ../img/telegram_full_conversation_botfather.png
+
+Now @BotFather will give a token, useful to enable ntopng to talk with the bot actually created; copy this token and paste it into the `Add New Endpoint` window of ntopng previously opened, name the Endpoint (e.g. `telegram_endpoint`) and click `Add`.
+
+After that navigate to Notification->Recipients and, just like before, click on the `+` simbol on the right high corner of the Recipient window. Now select into the Endpoint section of `Add New Recipient` the endpoint previously created, name it (e.g. telegram_recipient_mychat), select the Minimum Severity of the notifications and the Category of the notification desired.
+
+Then go back to Telegram. 
+If the bot have to personally send the alarms directly into the private chat then follow these steps:
+  - start a conversation with the ntopng bot in Telegram (a bot can't initiate conversation with a user!)
+  - search for `@getidsbot` and start a conversation with it
+  - copy the id `@getidsbot` gave to you
+
+.. figure:: ../img/telegram_getidsbot_search.png
+
+.. figure:: ../img/telegram_getidsbot_get_id.png
+
+Otherwise if you want to add the bot to a group chat and send messagges on that group, follow the following steps:
+  - add the bot you previosly created (searching for his name) to your group chat
+  - call the REST API: `https://api.telegram.org/bot<botToken>/getUpdates` to find out the group chat id
+  - copy the id the REST Response gave to you
+
+Now paste the id into the `Add New Recipient` window of ntopng and click `Add` (click `Test Recipient` to test if the bot is working correctly).
+
+Now add to the relative Pool the Telegram recipient you just created and it's done!
+
+.. figure:: ../img/telegram_alerts.png
+
+Webhook
+-------
+
+Webhooks can be used to deliver alert information to a HTTP endpoint by configuring the URL in ntopng. Alert information are provided to the webhook in JSON format by means of POST requests.
+
+A Shared Secret can be configured in ntopng, which is an arbitrary string included in all JSON messages.
+
+A Username and Password can also be used to use HTTP Basic authentication.
