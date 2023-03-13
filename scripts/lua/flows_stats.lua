@@ -61,6 +61,15 @@ local dscp_filter = _GET["dscp"]
 local host_pool = _GET["host_pool_id"]
 local traffic_profile = _GET["traffic_profile"]
 
+
+local aggregation_criteria = _GET["aggregation_criteria"] or "application_protocol"
+
+local draw = _GET["draw"] or 0
+local sort = _GET["sort"] or "bytes_rcvd"
+local order = _GET["order"] or "asc"
+local start = _GET["start"] or 0
+local length = _GET["length"] or 10
+
 -- remote exporters address and interfaces
 local deviceIP = _GET["deviceIP"]
 local inIfIdx  = _GET["inIfIdx"]
@@ -86,7 +95,7 @@ flows_filter.statusFilter = nil -- remove the filter, otherwise no menu entries 
 local flowstats = interface.getActiveFlowsStats(host, flows_filter)
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
-local page_params = { ifid = interface.getId() }
+local page_params = { ifid = interface.getId(), client = flows_filter["client"], server = flows_filter["server"] }
 local mini_title = i18n("flow_details.purge_time", { purge_time = ntop.getPref("ntopng.prefs.flow_max_idle"), prefs_url = ntop.getHttpPrefix().. '/lua/admin/prefs.lua?tab=in_memory' })
 
 page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {
@@ -96,7 +105,7 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {
     label = "<i class=\"fas fa-lg fa-home\"></i>",
   },
   {
-    url = base_url .. "?vlan_id=0&page=analysis",
+    url = base_url .. "?vlan_id=0&page=analysis&aggregation_criteria="..aggregation_criteria.."&draw="..draw.."&sort="..sort.."&order="..order.."&start="..start.."&length="..length,
     active = page == "analysis",
     page_name = "analysis",
     label = i18n("analysis"),
@@ -559,6 +568,12 @@ else
   template.render("pages/aggregated_live_flows.template", { 
     ifid = ifId,
     vlans = json.encode(vlans),
+    aggregation_criteria = aggregation_criteria,
+    draw = draw,
+    sort = sort,
+    order = order,
+    start = start,
+    length = length
   })
 end
 

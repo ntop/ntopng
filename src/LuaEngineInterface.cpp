@@ -2217,9 +2217,9 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64];
-  char *host_ip = NULL, *talking_with_ip = NULL;
+  char *host_ip = NULL, *talking_with_ip = NULL, *server_ip = NULL, *client_ip = NULL;
   u_int16_t vlan_id = (u_int16_t) -1;
-  Host *host = NULL, *talking_with_host = NULL;
+  Host *host = NULL, *talking_with_host = NULL, *client = NULL, *server = NULL;
   Paginator *p = NULL;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -2249,9 +2249,25 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 						false /* Not an inline call */);
   }
 
-  if(ntop_interface
-     && (!host_ip || host))
-    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, talking_with_host, p);
+  if(lua_type(vm, 4) == LUA_TSTRING) {
+    get_host_vlan_info((char*)lua_tostring(vm, 4), &client_ip, &vlan_id, buf, sizeof(buf));
+    client = ntop_interface->getHost(client_ip, vlan_id,
+						getLuaVMUservalue(vm, observationPointId),
+						false /* Not an inline call */);
+  }
+
+  if(lua_type(vm, 5) == LUA_TSTRING) {
+    get_host_vlan_info((char*)lua_tostring(vm, 5), &server_ip, &vlan_id, buf, sizeof(buf));
+    server = ntop_interface->getHost(server_ip, vlan_id,
+						getLuaVMUservalue(vm, observationPointId),
+						false /* Not an inline call */);
+  }
+
+  
+
+  if((ntop_interface)
+    && (!host_ip || host))
+    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, talking_with_host, client, server, p);
   else
     lua_pushnil(vm);
 
@@ -2282,7 +2298,7 @@ static int ntop_get_batched_interface_flows_info(lua_State* vm) {
     p->readOptions(vm, 2);
 
   if(ntop_interface)
-    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), NULL, NULL, p);
+    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), NULL, NULL, NULL, NULL, p);
   else
     lua_pushnil(vm);
 

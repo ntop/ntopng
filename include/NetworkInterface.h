@@ -741,6 +741,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 	       AddressTree *allowed_hosts,
 	       Host *host,
 	       Host *talking_with_host,
+         Host *client,
+         Host *server,
          Paginator *p);
   int getFlowsTraffic(lua_State* vm,
 	       u_int32_t *begin_slot,

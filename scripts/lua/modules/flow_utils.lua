@@ -181,6 +181,8 @@ function getFlowsFilter()
    local asn          = _GET["asn"]
    local tcp_state    = _GET["tcp_flow_state"]
    local talking_with = _GET["talking_with"]
+   local client       = _GET["client"]
+   local server       = _GET["server"]
 
    if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
       sortColumn = getDefaultTableSort("flows")
@@ -367,6 +369,14 @@ function getFlowsFilter()
 
    if not isEmptyString(tcp_state) then
       pageinfo["tcpFlowStateFilter"] = tcp_state
+   end
+
+   if not isEmptyString(client) then
+      pageinfo["client"] = client
+   end
+
+   if not isEmptyString(server) then
+      pageinfo["server"] = server
    end
 
    return pageinfo
@@ -2178,6 +2188,19 @@ function getFlowsTableTitle()
    if(_GET["host"] ~= nil) then
       active_msg = active_msg .. i18n("flows_page.host", {host=_GET["host"]})
    end
+
+   if(_GET["client"] ~= nil) then 
+      if(_GET["server"] ~= nil) then
+         active_msg = active_msg .. i18n("flows_page.client_to_server", {client=_GET["client"], server=_GET["server"]})
+      else
+         active_msg = active_msg .. i18n("flows_page.client", {client=_GET["client"]})
+      end
+   else 
+      if(_GET["server"] ~= nil) then
+         active_msg = active_msg .. i18n("flows_page.server", {server=_GET["server"]})
+      end
+   end
+
 
    if(_GET["port"] ~= nil) then
       active_msg = active_msg .. i18n("flows_page.port", {port=_GET["port"]})

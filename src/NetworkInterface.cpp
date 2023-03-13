@@ -4390,7 +4390,7 @@ struct flowHostRetrieveList {
 struct flowHostRetriever {
   /* Search criteria */
   AddressTree *allowed_hosts;
-  Host *host, *talking_with_host;
+  Host *host, *talking_with_host, *server, *client;
   u_int16_t observationPointId;
   u_int8_t *mac, bridge_iface_idx;
   char *manufacturer;
@@ -4479,6 +4479,28 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
       if(!(retriever->talking_with_host->get_ip()->equal(f->get_cli_ip_addr()) && retriever->talking_with_host->get_vlan_id() == f->get_vlan_id())
 	 &&!(retriever->talking_with_host->get_ip()->equal(f->get_srv_ip_addr()) && retriever->talking_with_host->get_vlan_id() == f->get_vlan_id()))
         return(false);
+    }
+  }
+
+  if(retriever->server) {
+    if(!f->getInterface()->isViewed()) {
+      if(retriever->server != f->get_srv_host()) {
+	return(false);
+      }
+    } else {
+      if(!(retriever->server->get_ip()->equal(f->get_srv_ip_addr()) && retriever->server->get_vlan_id() == f->get_vlan_id()))
+	      return(false);
+    }
+  }
+
+  if(retriever->client) {
+    if(!f->getInterface()->isViewed()) {
+      if(retriever->client != f->get_cli_host()) {
+	return(false);
+      }
+    } else {
+      if(!(retriever->client->get_ip()->equal(f->get_cli_ip_addr()) && retriever->client->get_vlan_id() == f->get_vlan_id()))
+	      return(false);
     }
   }
 
@@ -5534,6 +5556,8 @@ int NetworkInterface::getFlows(lua_State* vm,
 			       AddressTree *allowed_hosts,
 			       Host *host,
 			       Host *talking_with_host,
+             Host *client,
+             Host *server,
 			       Paginator *p) {
   struct flowHostRetriever retriever;
   char sortColumn[32];
@@ -5556,6 +5580,8 @@ int NetworkInterface::getFlows(lua_State* vm,
 
   retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
   retriever.talking_with_host = talking_with_host;
+  retriever.client = client;
+  retriever.server = server;
 
   if(sortFlows(begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0)
     return(-1);

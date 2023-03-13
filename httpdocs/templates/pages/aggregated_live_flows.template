@@ -7,13 +7,27 @@
 <div id="aggregated-live-flows">
   <page-aggregated-live-flows
   :ifid="ifid"
-  :vlans="vlans">
+  :vlans="vlans"
+  :aggregation_criteria="aggregation_criteria"
+  :draw="draw"
+  :sort="sort"
+  :order="order"
+  :start="start"
+  :length="length">
   </page-aggregated-live-flows>
 </div>
   
 <script type="text/javascript">  
   const ifid = {* ifid *}
   const vlans = {* vlans *}
+  const aggregation_criteria = "{* aggregation_criteria *}"
+  const draw = {* draw *}
+  const sort = "{* sort *}"
+  const order = "{* order *}"
+  const start = {* start *}
+  const length = {* length *}
+
+
   
   function start_vue() {
     let vue_options = {
@@ -30,6 +44,12 @@
         return {
           vlans: vlans,
           ifid: ifid,
+          aggregation_criteria: aggregation_criteria,
+          draw: draw,
+          sort: sort,
+          order: order,
+          start: start,
+          length: length
         };
       },
       methods: { },

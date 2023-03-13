@@ -38,6 +38,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeMount } from "vue";
+import { ntopng_custom_events, ntopng_url_manager } from "../services/context/ntopng_globals_services";
 import NtopUtils from "../utilities/ntop-utils";
 import { default as Datatable } from "./datatable.vue";
 import { default as Loading } from "./loading.vue";
@@ -57,16 +58,28 @@ const criteria_list = ref(criteria_list_def);
 const selected_criteria = ref(criteria_list_def[0]);
 
 function update_criteria() {
-    set_datatable_config();
+  ntopng_url_manager.set_key_to_url("aggregation_criteria", selected_criteria.value.param);
+  url_params.aggregation_criteria = selected_criteria.value.param;
+  set_datatable_config(url_params);
+
 };
 
 
 const loading = ref(null)
 const table_config = ref({})
 const table_aggregated_live_flows = ref(null);
+let url_params = {};
+
 const props = defineProps({
   vlans: Array,
   ifid: Number,
+  aggregation_criteria: String,
+  page: Number,
+  sort: String,
+  order: String,
+  start: Number,
+  length: Number
+
 });
 
 
@@ -104,13 +117,14 @@ const format_server_name = function(data, rowData) {
 }
 
 const format_flows_icon = function(data, rowData) {
+
   let url = ``; 
   if(selected_criteria.value.value == 2)
-    url = `${http_prefix}/lua/host_details.lua?page=flows&host=${rowData.client_name.id}`;
+    url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}`;
   else if (selected_criteria.value.value == 3)
-    url = `${http_prefix}/lua/host_details.lua?page=flows&host=${rowData.server_name.id}`;
+    url = `${http_prefix}/lua/flows_stats.lua?server=${rowData.server_name.id}`;
   else if (selected_criteria.value.value == 4)
-    url = `${http_prefix}/lua/host_details.lua?page=flows&host=${rowData.client_name.id}&talking_with=${rowData.server_name.id}`;
+    url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}&server=${rowData.server_name.id}`;
   
   return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
 }
@@ -122,19 +136,43 @@ const reload_table = () => {
 }
     
 onBeforeMount(async () => {
-  await set_datatable_config();
+  url_params = set_init_url_params();
+  await set_datatable_config(url_params);
+  update_url_params();
 });
 
-async function set_datatable_config() {
-  const datatableButton = [];
- 
-  let params = { 
-    ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid,
-    vlan_id: ntopng_url_manager.get_url_entry("vlan_id"),
-    aggregation_criteria: selected_criteria.value.param
+function set_init_url_params() {
 
-  };
-  let url_params = ntopng_url_manager.obj_to_url_params(params);
+  let actual_params = {
+    ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid,
+    vlan_id: ntopng_url_manager.get_url_entry("vlan_id") || props.vlans ,
+    aggregation_criteria: ntopng_url_manager.get_url_entry("aggregation_criteria") || selected_criteria.value.param,
+    page: ntopng_url_manager.get_url_entry("page") || props.page,
+    sort: ntopng_url_manager.get_url_entry("sort") || props.sort,
+    order: ntopng_url_manager.get_url_entry("order") || props.order,
+    start: ntopng_url_manager.get_url_entry("start") || props.start,
+    length: ntopng_url_manager.get_url_entry("length") || props.length
+  }
+
+  selected_criteria.value = criteria_list_def.find((c) => c.param == actual_params.aggregation_criteria );
+
+  for(const key in actual_params) {
+    ntopng_url_manager.set_key_to_url(key, actual_params[key]);
+  }  
+  return actual_params;
+
+}
+
+function update_url_params() {
+  for(const key in url_params) {
+    ntopng_url_manager.set_key_to_url(key, url_params[key]);
+  }  
+}
+
+async function set_datatable_config(params) {
+  const datatableButton = [];
+
+  let url_params_string = ntopng_url_manager.obj_to_url_params(params);
 
   /* Manage the buttons close to the search box */
   datatableButton.push({
@@ -175,7 +213,7 @@ async function set_datatable_config() {
   
   let defaultDatatableConfig = {
     table_buttons: datatableButton,
-    data_url: `${url}?${url_params}`,
+    data_url: `${url}?${url_params_string}`,
     enable_search: true,
     table_filters: vlan_filters,
     table_config: { 

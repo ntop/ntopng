@@ -41,7 +41,7 @@ local total = 0
 -- flows_filter["detailsLevel"] = "high"
 
 if not flows_to_update then
-   flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter, flows_filter["talkingWith"])
+   flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter, flows_filter["talkingWith"] ,flows_filter["client"],flows_filter["server"])
 
    if(flows_stats == nil) then
       flows_stats = {}
@@ -161,8 +161,8 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    -- Print labels.
-   local srv_name = hostinfo2label(info_cli, true, 36)
-   local cli_name = hostinfo2label(info_srv, true, 36)
+   local cli_name = hostinfo2label(info_cli, true, 36)
+   local srv_name = hostinfo2label(info_srv, true, 36)
 
    local src_port, dst_port = '', ''
    local src_process, dst_process = '', ''
