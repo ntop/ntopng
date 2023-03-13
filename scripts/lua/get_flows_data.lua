@@ -147,18 +147,15 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local info_srv = interface.getHostMinInfo(value["srv.ip"], value["srv.vlan"])
 
    -- Print labels. VLAN is not printed in the label as there is a dedicated column that already carries this information
-   local srv_name = hostinfo2label(flow2hostinfo(value, "srv"))
-   local cli_name = hostinfo2label(flow2hostinfo(value, "cli"))
+   local srv_name = hostinfo2label(info_cli, true, 36)
+   local cli_name = hostinfo2label(info_srv, true, 36)
 
    local src_port, dst_port = '', ''
    local src_process, dst_process = '', ''
    local src_container, dst_container = '', ''
 
-   if(cli_name == nil) then cli_name = "???" end
-   if(srv_name == nil) then srv_name = "???" end
-
-   local cli_tooltip = cli_name:gsub("'","&#39;")
-   local srv_tooltip = srv_name:gsub("'","&#39;")
+   local cli_tooltip = hostinfo2label({ label = info_cli.ip, vlan = info_cli.vlan }, true)
+   local srv_tooltip = hostinfo2label({ label = info_srv.ip, vlan = info_srv.vlan }, true)
 
    if((value["tcp.nw_latency.client"] ~= nil) and (value["tcp.nw_latency.client"] > 0)) then
       cli_tooltip = cli_tooltip.."&#10;nw latency: "..string.format("%.3f", value["tcp.nw_latency.client"]).." ms"
