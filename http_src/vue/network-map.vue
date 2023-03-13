@@ -54,7 +54,6 @@ onMounted(async () => {
     network = new vis.Network(container, datasets, ntopng_map_manager.get_default_options());
     save_topology_view();
     set_event_listener();
-    ntopng_events_manager.emit_custom_event(ntopng_custom_events.VIS_DATA_LOADED);
 	});
 })
 
@@ -118,6 +117,10 @@ const set_event_listener = () => {
   network.on("dragEnd", function(e) {
     drag()
   });
+
+  network.on("afterDrawing", function(e) {
+    ntopng_events_manager.emit_custom_event(ntopng_custom_events.VIS_DATA_LOADED);
+  })
 
   /* Given event listeners */
   for (const item in (props.event_listeners || {})) {
@@ -188,7 +191,9 @@ const drag = () => {
 }
 
 const destroy = () => {
-  network.destroy(true);
+  if(network)
+    network.destroy(true);
+
   is_destroyed = true
 }
 
@@ -201,7 +206,6 @@ const update_url_params = (new_url_params) => {
 }
 
 const reload = async () => {
-  console.log(url_params)
   const url = NtopUtils.buildURL(props.url, url_params); 
   await $.get(url, dataRequest, function(response) {
     const {nodes, edges, max_entry_reached} = response.rsp;
@@ -213,7 +217,6 @@ const reload = async () => {
     if(network)
       network.setData(datasets);
     
-    ntopng_events_manager.emit_custom_event(ntopng_custom_events.VIS_DATA_LOADED);
 	  save_topology_view();
   });
 }

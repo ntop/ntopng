@@ -121,6 +121,7 @@ export default {
       } else {
         $(`#max-entries-reached`).attr('hidden', 'hidden')
       }
+      NtopUtils.hideOverlays();
     });
 
     /* Remove invalid filters */
@@ -134,8 +135,6 @@ export default {
     $(`#reload-graph`).click(function(e){
       reload_map();
     });
-    
-    setTimeout(() => NtopUtils.hideOverlays(), 0);
 
     $("#btn-delete-all").click(() => this.show_delete_all_dialog());
     $("#autolayout").click(() => this.show_autolayout_dialog());
@@ -178,14 +177,12 @@ export default {
       NtopUtils.showOverlays();
       let map = this.get_map();
       await map.reload();
-      NtopUtils.hideOverlays();
     },
     update_and_reload_map: async function() {
       let map = this.get_map();
       NtopUtils.showOverlays();
       map.update_url_params(this.url_params)
       await map.reload();
-      NtopUtils.hideOverlays();
     },
     autolayout: function() {
       let map = this.get_map();

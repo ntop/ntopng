@@ -129,13 +129,12 @@ export default {
       } else {
         $(`#max-entries-reached`).attr('hidden', 'hidden')
       }
+      NtopUtils.hideOverlays();
     });
     
     $(`#reload-graph`).click(function(e){
       reload_map();
     });
-    
-    setTimeout(() => NtopUtils.hideOverlays(), 0);
 
     $("#btn-delete-all").click(() => this.show_delete_all_dialog());
     $("#autolayout").click(() => this.show_autolayout_dialog());
@@ -179,7 +178,6 @@ export default {
       NtopUtils.showOverlays();
       let map = this.get_map();
       await map.reload();
-      NtopUtils.hideOverlays();
     },
     hide_dropdowns: function() {
       $(`#network_dropdown`).attr('hidden', 'hidden')
@@ -190,7 +188,6 @@ export default {
       NtopUtils.showOverlays();
       map.update_url_params(this.updated_url_params)
       await map.reload();
-      NtopUtils.hideOverlays();
     },
     autolayout: function() {
       let map = this.get_map();
