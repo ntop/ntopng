@@ -31,6 +31,7 @@ sendHTTPContentTypeHeader('text/html')
 local check_subdir = _GET["subdir"]
 local script_filter = _GET["check"]
 local search_filter = _GET["search_script"]
+local ifid = _GET["ifid"]
 
 local configset = checks.getConfigset()
 
@@ -140,7 +141,8 @@ local context = {
    },
    check_categories = checks.check_categories,
    info = ntop.getInfo(),
-   json = json
+   json = json,
+   ifid = ifid or interface.getId()
 }
 
 -- print config_list.html template
