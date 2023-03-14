@@ -674,18 +674,40 @@ end
 
 -- ##############################################
 
+function system_config:_getNetworkInterfaceConfig(iface, if_type)
+  local network_config = self.config.interfaces.configuration 
+
+  local if_config = network_config[iface]
+  if not if_config then
+    return {}
+  end
+
+  if if_type and if_type == 'lan' then
+    -- LAN interfaces are nor supposed to have gateway/nameserver
+    -- removing before dumping the interface/netplan configuration
+    -- in case they have been detected from an old configuration
+    if if_config.network and if_config.network.gateway then
+      if_config.network.gateway = nil
+    end
+    if if_config.network and if_config.network.nameservers then
+       if_config.network.nameservers = nil
+    end
+  end
+
+  return if_config
+end
+
 function system_config:_writeNetworkInterfaceConfig(f, iface, network_conf, bridge_ifaces)
   local dns_config = self:getDnsConfig()
   self.conf_handler.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, bridge_ifaces)
 end
 
 function system_config:_writeBridgeModeNetworkConfig(f)
-  local network_config = self.config.interfaces.configuration
   local mode_config = self.config.globals.available_modes["bridging"]
+  local br_name = mode_config.name
+  local br_config = self:_getNetworkInterfaceConfig(br_name)
 
   if ntop.isIoTBridge() then
-    local br_name = mode_config.name
-    local br_config = network_config[br_name]
 
     package.path = dirs.installdir .. "/scripts/lua/modules/conf_handlers/?.lua;" .. package.path
     local wireless = require("wireless")
@@ -719,47 +741,47 @@ function system_config:_writeBridgeModeNetworkConfig(f)
     end
 
     -- Bridge interface
-    local br_name = mode_config.name
-    local br_config = network_config[br_name]
     self:_writeNetworkInterfaceConfig(f, br_name, br_config.network, bridge_ifaces)
   end
 end
 
 function system_config:_writeRoutingModeNetworkConfig(f)
-  local network_config = self.config.interfaces.configuration
   local mode_config = self.config.globals.available_modes["routing"].interfaces
 
   -- Lan interface
   for _, iface in ipairs(mode_config.lan) do
-    self:_writeNetworkInterfaceConfig(f, iface, network_config[iface].network)
+    local if_config = self:_getNetworkInterfaceConfig(iface, 'lan')
+    self:_writeNetworkInterfaceConfig(f, iface, if_config.network)
   end
 
   -- Wan interfaces
   for _, iface in ipairs(mode_config.wan) do
-    self:_writeNetworkInterfaceConfig(f, iface, network_config[iface].network)
+    local if_config = self:_getNetworkInterfaceConfig(iface, 'wan')
+    self:_writeNetworkInterfaceConfig(f, iface, if_config.network)
   end
 end
 
 function system_config:_writeSinglePortModeInterfaces(f)
-  local network_config = self.config.interfaces.configuration
   local mode_config = self.config.globals.available_modes["single_port_router"]
 
   -- Lan interface
   local lan_iface = self:getLanInterface()
-  self:_writeNetworkInterfaceConfig(f, lan_iface, network_config[lan_iface].network)
+  local lan_if_config = self:_getNetworkInterfaceConfig(lan_iface, 'lan')
+  self:_writeNetworkInterfaceConfig(f, lan_iface, lan_if_config.network)
 
   -- Wan interface
   local wan_iface = mode_config.interfaces.wan[1]
-  self:_writeNetworkInterfaceConfig(f, wan_iface, network_config[wan_iface].network)
+  local wan_if_config = self:_getNetworkInterfaceConfig(wan_iface, 'wan')
+  self:_writeNetworkInterfaceConfig(f, wan_iface, wan_if_config.network)
 end
 
 function system_config:_writePassiveModeNetworkConfig(f)
-  local network_config = self.config.interfaces.configuration
   local mode_config = self.config.globals.available_modes["passive"]
 
   -- Lan interface
   local lan_iface = mode_config.interfaces.lan[1]
-  self:_writeNetworkInterfaceConfig(f, lan_iface, network_config[lan_iface].network)
+  local lan_if_config = self:_getNetworkInterfaceConfig(lan_iface, 'lan')
+  self:_writeNetworkInterfaceConfig(f, lan_iface, lan_if_config.network)
 end
 
 function system_config:_getRecoveryInterface()
