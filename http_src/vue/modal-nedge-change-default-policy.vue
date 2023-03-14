@@ -44,17 +44,17 @@ const actions = [
 ];
 const selected_action = ref({});
 
-const showed = () => {};
+const showed = () => {
+};
 
 const show = (policy) => {
-    selected_action.value = actions.find((a) => a.value == policy);
+    selected_action.value = actions.find((a) => a.value == policy.value);
     modal_id.value.show();
 };
 
 const close = () => {
     modal_id.value.close();
 };
-
 
 function apply() {
     emit('apply', selected_action.value.value);
