@@ -159,7 +159,7 @@ end
 
 -- ################################################################
 
-function config._writeInterfacesConfig(f, interfaces)
+function config._dumpInterfacesConfig(f, interfaces)
   for iface, if_config in pairs(interfaces) do
     f:write("    ".. iface ..":\n")
 
@@ -204,23 +204,23 @@ end
 
 -- ################################################################
 
-function config._writeNetworkInterfaceConfig(f)
+function config._dumpNetworkInterfaceConfig(f)
   f:write("network:\n")
   f:write("  version: " .. netplan_config.version .. "\n")
 
   if netplan_config.ethernets then
     f:write("  ethernets:\n")
-    config._writeInterfacesConfig(f, netplan_config.ethernets)
+    config._dumpInterfacesConfig(f, netplan_config.ethernets)
   end
 
   if netplan_config.bridges then
     f:write("  bridges:\n")
-    config._writeInterfacesConfig(f, netplan_config.bridges)
+    config._dumpInterfacesConfig(f, netplan_config.bridges)
   end
   
   if netplan_config.vlans then
     f:write("  vlans:\n")
-    config._writeInterfacesConfig(f, netplan_config.vlans)
+    config._dumpInterfacesConfig(f, netplan_config.vlans)
   end
 end
 
@@ -228,7 +228,7 @@ end
 
 function config.closeNetworkInterfacesConfigFile(f)
 
-  config._writeNetworkInterfaceConfig(f)
+  config._dumpNetworkInterfaceConfig(f)
 
   f:close()
 
