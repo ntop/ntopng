@@ -183,7 +183,7 @@ local function build_response()
         server_ip_label = srv_info.ip_label
         server_name = srv_info.name
         server_host = interface.getHostInfo(data.server_ip, data.vlan_id or 0)
-        srv_in_mem = data.is_srv_in_mem or server_host ~= nil
+        srv_in_mem = server_host ~= nil
       end
 
       local client_ip = ""
@@ -199,7 +199,7 @@ local function build_response()
         client_ip_label = cli_info.ip_label
         client_name = cli_info.name
         client_host = interface.getHostInfo(data.client_ip, data.vlan_id or 0)
-        cli_in_mem = data.is_cli_in_mem or client_host ~= nil
+        cli_in_mem = client_host ~= nil
       end
       
       num_entries = data.num_entries

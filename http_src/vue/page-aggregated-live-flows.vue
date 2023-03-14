@@ -210,6 +210,45 @@ async function set_datatable_config(params) {
     })
   }
   
+  let sortby = 8 // default column: Traffic rcvd
+  const column_sort = params.sort;
+  
+  switch (column_sort) {
+    case "client" : 
+      sortby = 1;
+      break;
+    case "server" : 
+      sortby = 1;
+      break;
+    case "flows":
+      sortby = 2;
+      break;
+    case "score":
+      sortby = 3;
+      break;
+    case "clients":
+      sortby = 4;
+      break;
+    case "servers":
+      sortby = 5;
+      break;
+    case "bytes_sent":
+      sortby = 7;
+      break;
+    case "bytes_rcvd":
+      sortby = 8;
+      break;
+    case "tot_traffic":
+      sortby = 9;
+      break;
+    
+  }
+
+  if ( selected_criteria.value.value == 4 && column_sort != "client" )
+    sortby = sortby + 1;
+  
+  if( selected_criteria.value.value == 1 )
+    sortby = sortby - 1;
   
   let defaultDatatableConfig = {
     table_buttons: datatableButton,
@@ -220,7 +259,7 @@ async function set_datatable_config(params) {
       serverSide: true,     
       responsive: false,
       scrollX: true,
-      order: [[ 8 /* percentage column */, 'desc' ]],
+      order: [[ sortby /* percentage column */, params.order]],
       columnDefs: [
         { type: "file-size", targets: 6 },
         { type: "file-size", targets: 7 },
@@ -292,7 +331,9 @@ async function set_datatable_config(params) {
       } 
     })
 
-    defaultDatatableConfig.table_config.order = [[ 8 /* percentage column */, 'desc' ]];
+    if(sortby > 1)
+      sortby = sortby + 1
+    defaultDatatableConfig.table_config.order = [[ sortby /* percentage column */, params.order ]];
     defaultDatatableConfig.table_config.columnDefs = [
       { type: "file-size", targets: 7 },
       { type: "file-size", targets: 8 },
