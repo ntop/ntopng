@@ -257,7 +257,34 @@ function setSeriesColors2(seriesArray) {
     });
 }
 
-function setMinMaxYaxis(yAxisArray, seriesArray) {
+function setMinMaxYaxisStacked(yAxisArray, seriesArray) {
+    let minMax = { min: 0, max: Number.MIN_SAFE_INTEGER, invert_direction: false };
+    let sumSeriesData = [];
+    seriesArray.forEach((s) => {
+	s.data.forEach((d, i) => {
+	    if (sumSeriesData.length <= i) {
+		sumSeriesData.push(0);
+	    }
+	    sumSeriesData[i] += d.y;
+	});
+    });
+    sumSeriesData.forEach((v) => {
+	minMax.max = Math.max(minMax.max, v);
+	minMax.min = Math.min(minMax.min, v);
+    });
+    
+    yAxisArray.forEach((yAxis) => {
+	yAxis.min = minMax.min;
+	yAxis.max = minMax.max;
+    });
+}
+
+
+function setMinMaxYaxis(yAxisArray, seriesArray, stacked) {
+    if (stacked == true) {
+	setMinMaxYaxisStacked(yAxisArray, seriesArray);
+	return;
+    }
     let yAxisArrayDict = {};
     let minMaxDict = {};
     for (let i = 0; i < seriesArray.length; i+= 1) {
@@ -266,7 +293,8 @@ function setMinMaxYaxis(yAxisArray, seriesArray) {
 	let id = y.seriesName;
 	if (yAxisArrayDict[id] == null) {
 	    yAxisArrayDict[id] = [];
-	    minMaxDict[id] = { min: Number.MAX_SAFE_INTEGER, max: Number.MIN_SAFE_INTEGER, invert_direction: false };
+	    minMaxDict[id] = { min: 0, max: Number.MIN_SAFE_INTEGER, invert_direction: false };
+	    // minMaxDict[id] = { min: 0, max: 0, invert_direction: false };
 	}
 	yAxisArrayDict[id].push(y);
 	let minMax = minMaxDict[id];
@@ -287,7 +315,7 @@ function setMinMaxYaxis(yAxisArray, seriesArray) {
 	} else {
 	    return x - onePerc;
 	}
-    }
+    };
     for (let sName in yAxisArrayDict) {
 	let yArray = yAxisArrayDict[sName];
 	let minMax = minMaxDict[sName];
@@ -385,10 +413,46 @@ const groupsOptionsModesEnum = {
 
 function getGroupOptionMode(group_id) {
   return groupsOptionsModesEnum[group_id] || null;
-};  
+};
 
 function tsArrayToApexOptionsArray(tsOptionsArray, tsGrpupsArray, groupsOptionsMode, tsCompare) {
-    if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart"].value) {	
+    if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart_x_metric"].value) {
+	return tsArrayToApexOptionsArrayRaw(tsOptionsArray, tsGrpupsArray, groupsOptionsMode, tsCompare);	
+    }
+    let splittedTsArray = splitTsArrayStacked(tsOptionsArray, tsGrpupsArray);
+    let apexOptionsStacked = tsArrayToApexOptionsArrayRaw(splittedTsArray.stacked.tsOptionsArray, splittedTsArray.stacked.tsGroupsArray, groupsOptionsModesEnum["1_chart_x_metric"], tsCompare);
+    let apexOptionsNotStacked = tsArrayToApexOptionsArrayRaw(splittedTsArray.not_stacked.tsOptionsArray, splittedTsArray.not_stacked.tsGroupsArray, groupsOptionsMode, tsCompare);
+    return [...apexOptionsStacked, ...apexOptionsNotStacked];
+}
+
+function splitTsArrayStacked(tsOptionsArray, tsGrpupsArray) {
+    let tsOptionsArrayStacked = [];
+    let tsGroupsArrayStacked = [];
+    let tsOptionsArrayNotStacked = [];
+    let tsGroupsArrayNotStacked = [];
+    tsGrpupsArray.forEach((tsGroup, i) => {
+	if (tsGroup.metric.draw_stacked == true) {
+	    tsOptionsArrayStacked.push(tsOptionsArray[i]);
+	    tsGroupsArrayStacked.push(tsGroup);
+	} else {
+	    tsOptionsArrayNotStacked.push(tsOptionsArray[i]);
+	    tsGroupsArrayNotStacked.push(tsGroup);
+	}
+    });
+    return {
+	stacked: {
+	    tsOptionsArray: tsOptionsArrayStacked,
+	    tsGroupsArray: tsGroupsArrayStacked,
+	},
+	not_stacked: {
+	    tsOptionsArray: tsOptionsArrayNotStacked,
+	    tsGroupsArray: tsGroupsArrayNotStacked,
+	},
+    };
+}
+
+function tsArrayToApexOptionsArrayRaw(tsOptionsArray, tsGrpupsArray, groupsOptionsMode, tsCompare) {    
+    if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart"].value) {
 	let apexOptions = tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare);
 	let apexOptionsArray = [apexOptions];
 	setLeftPadding(apexOptionsArray);
@@ -456,12 +520,14 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare) {
     let formatterDict = {};
     let addSeriesNameSource = getAddSeriesNameSource(tsGrpupsArray);
     let forceDrawType = null;
+    let stacked = false;
     tsOptionsArray.forEach((tsOptions, i) => {
 	let tsGroup = tsGrpupsArray[i];
 
 	if (i > 0) {
 	    forceDrawType = "line";
 	}
+	stacked |= tsGroup.metric.draw_stacked;
 	// get seriesData
 	let seriesApex = getSeriesInApexFormat(tsOptions, tsGroup, true, forceDrawType, tsCompare);
 
@@ -474,17 +540,18 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare) {
 
     // set colors in series
     setSeriesColors2(seriesArray);
-    setMinMaxYaxis(yaxisArray, seriesArray);
+    setMinMaxYaxis(yaxisArray, seriesArray, stacked);
     
-    let chartOptions = buildChartOptions(seriesArray, yaxisArray);    
+    let chartOptions = buildChartOptions(seriesArray, yaxisArray, stacked);
     return chartOptions;
 }
 
 
-function buildChartOptions(seriesArray, yaxisArray) {
+function buildChartOptions(seriesArray, yaxisArray, stacked) {
     return {
 	chart: {
 	    id: ntopng_utility.get_random_string(),
+	    stacked,
 	    group: "timeseries",
 	    // height: 300,
 	},

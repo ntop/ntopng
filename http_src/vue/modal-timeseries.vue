@@ -279,6 +279,7 @@ async function set_metrics() {
     metrics.value = await metricsManager.get_metrics(http_prefix, selected_source_type.value, selected_source_array.value);
     metrics.value.sort(NtopUtils.sortAlphabetically);
     selected_metric.value = metricsManager.get_default_metric(metrics.value);
+    update_timeseries_to_add(false);    
 }
 
 async function init() {
