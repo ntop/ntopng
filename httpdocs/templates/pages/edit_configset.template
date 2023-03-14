@@ -2008,7 +2008,7 @@ const $script_table = $("#scripts-config").DataTable({
    },
    lengthChange: false,
    ajax: {
-      url: `${http_prefix}/lua/get_checks.lua?check_subdir=${check_subdir}`,
+      url: `${http_prefix}/lua/get_checks.lua?check_subdir=${check_subdir}&ifid={{ifid}}`,
       type: 'get',
       dataSrc: ''
    },

@@ -21,7 +21,7 @@ sendHTTPContentTypeHeader('application/json')
 
 local subdirs = {}
 local subdir = _GET["check_subdir"]
-
+local ifid = tonumber(_GET["ifid"] or getSystemInterfaceId())
 
 -- If subdir is the meta-subdir 'all', then all the available subdirs are returned.
 -- Otherwise, only checks for the specific subdir are chosen.
@@ -46,8 +46,7 @@ for _, subdir in ipairs(subdirs) do
 
    -- ################################################
 
-   local scripts = checks.load(getSystemInterfaceId(), script_type, subdir, {return_all = true})
-
+  local scripts = checks.load(ifid, script_type, subdir, {return_all = true})
 
   for script_name, script in pairs(scripts.modules) do
     if script.gui and script.gui.i18n_title and script.gui.i18n_description then
@@ -73,6 +72,12 @@ for _, subdir in ipairs(subdirs) do
           key = hook,
           label = label,
         }
+      end
+
+      if script.packet_interface_only == true then
+        if not interface.isPacketInterface() then
+          goto continue
+        end 
       end
 
       if subdir == 'flow' and script.alert_id then
@@ -108,6 +113,8 @@ for _, subdir in ipairs(subdirs) do
         subdir_title = i18n("config_scripts.granularities."..subdir),
 	    }
     end
+    
+    ::continue::
   end
 end
 
