@@ -4,7 +4,10 @@
 
 <template>
 <div class="mb-2">
-  <h4 class="d-inline-block">{{_i18n("nedge.page_rules_config.default policy")}}
+  
+  <h2>{{ _i18n("nedge.rules_config_title") }}</h2>
+  <br />
+  <h5 class="d-inline-block">{{_i18n("nedge.page_rules_config.default policy")}}
     <span v-if="default_policy?.value == 'accept'" style="color:green;">
       {{ default_policy?.label }}
     </span>
@@ -13,7 +16,7 @@
     </span>
 
     <small><a href="javascript:void(0)" style="margin-left: 0.5rem;" @click="show_modal_change_policy"><i class="fas fa-cog"></i></a></small>
-  </h4>
+  </h5>
 </div>
 
 <div id="aggregated_live_flows">
