@@ -117,6 +117,9 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 	    let time = startTime;
 	    let res = data.map((d) => {
 		let d2 = { x: time, y: d * scalar };
+		if (d == null) {
+		    let d2.y = null;
+		}
 		time += step;
 		return d2;
 	    });
