@@ -1971,15 +1971,15 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
       label = label .. ":" ..historical_flow_utils.get_historical_url(info.cli_port.label, "cli_port", info.cli_port.value, add_hyperlinks)
    end
 
-   if info.IS_CLI_ATTACKER and info.IS_CLI_ATTACKER == '1' then
+   if info.is_cli_attacker and info.is_cli_attacker == '1' then
     label = label .. ' <i class="fas fa-skull" title="' .. i18n('db_explorer.is_attacker') .. '"></i> '
    end
    
-   if info.IS_CLI_VICTIM and info.IS_CLI_VICTM == '1' then
+   if info.is_cli_victim and info.is_cli_victim == '1' then
     label = label .. ' <i class="fas fa-sad-tear" title="' .. i18n('db_explorer.is_victim') .. '"></i> '
    end
    
-   if info.IS_CLI_BLACKLISTED and info.IS_CLI_BLACKLISTED == '1' then
+   if info.is_cli_blacklisted and info.is_cli_blacklisted == '1' then
     label = label .. ' <i class="fas fa-ban fa-sm" title="' .. i18n('db_explorer.is_blacklisted') .. '"></i> '
    end
    
@@ -2015,15 +2015,15 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
       label = label .. ":" ..historical_flow_utils.get_historical_url(info.srv_port.label, "srv_port", info.srv_port.value, add_hyperlinks)
    end
 
-   if info.IS_SRV_ATTACKER and info.IS_SRV_ATTACKER == '1' then
+   if info.is_srv_attacker and info.is_srv_attacker == '1' then
     label = label .. ' <i class="fas fa-skull" title="' .. i18n('db_explorer.is_attacker') .. '"></i> '
    end
    
-   if info.IS_SRV_VICTIM and info.IS_SRV_VICTIM == '1' then
+   if info.is_srv_victim and info.is_srv_victim == '1' then
     label = label .. ' <i class="fas fa-sad-tear" title="' .. i18n('db_explorer.is_victim') .. '"></i> '
    end
    
-   if info.IS_SRV_BLACKLISTED and info.IS_SRV_BLACKLISTED == '1' then
+   if info.is_srv_blacklisted and info.is_srv_blacklisted == '1' then
     label = label .. ' <i class="fas fa-ban fa-sm" title="' .. i18n('db_explorer.is_blacklisted') .. '"></i> '
    end
 
