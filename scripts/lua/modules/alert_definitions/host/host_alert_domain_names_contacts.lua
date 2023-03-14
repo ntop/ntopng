@@ -19,7 +19,7 @@ local host_alert_domain_names_contacts = classes.class(alert)
 
 host_alert_domain_names_contacts.meta = {
 alert_key = host_alert_keys.host_alert_domain_names_contacts,
-i18n_title =  "alerts_dashboard.threashold_cross",
+i18n_title =  "alerts_thresholds_config.domain_names_contacts_title",
 icon = "fas fa-fw fa-arrow-circle-up",
 
 }

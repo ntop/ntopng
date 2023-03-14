@@ -18,7 +18,7 @@ local alert_ndpi_smb_insecure_version = classes.class(alert)
 
 alert_ndpi_smb_insecure_version.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_smb_insecure_version,
-   i18n_title = "alerts_dashboard.ndpi_smb_insecure_version_title",
+   i18n_title = "flow_risk.ndpi_smb_insecure_version",
    icon = "fas fa-fw fa-exclamation",
 }
 

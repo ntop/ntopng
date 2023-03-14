@@ -19,7 +19,7 @@ local alert_binary_application_transfer = classes.class(alert)
 
 alert_binary_application_transfer.meta = {
    alert_key = flow_alert_keys.flow_alert_binary_application_transfer,
-   i18n_title = "alerts_dashboard.binary_application_transfer",
+   i18n_title = "flow_risk.ndpi_binary_application_transfer",
    icon = "fas fa-fw fa-file-download",
 
    has_victim = true,

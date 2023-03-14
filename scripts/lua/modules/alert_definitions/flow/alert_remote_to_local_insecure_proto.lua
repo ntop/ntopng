@@ -21,7 +21,7 @@ local alert_remote_to_local_insecure_proto = classes.class(alert)
 
 alert_remote_to_local_insecure_proto.meta = {
    alert_key = flow_alert_keys.flow_alert_remote_to_local_insecure_proto,
-   i18n_title = "alerts_dashboard.remote_to_local_insecure_proto",
+   i18n_title = "flow_checks_config.remote_to_local_insecure_proto_title",
    icon = "fas fa-fw fa-exclamation",
 
    has_victim = true,

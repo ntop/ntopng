@@ -18,7 +18,7 @@ local alert_ndpi_tls_not_carrying_https = classes.class(alert)
 
 alert_ndpi_tls_not_carrying_https.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_tls_not_carrying_https,
-   i18n_title = "alerts_dashboard.ndpi_tls_not_carrying_https_title",
+   i18n_title = "flow_risk.ndpi_tls_not_carrying_https",
    icon = "fas fa-fw fa-exclamation",
 }
 

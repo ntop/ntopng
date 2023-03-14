@@ -21,7 +21,7 @@ local alert_iec_unexpected_type_id = classes.class(alert)
 
 alert_iec_unexpected_type_id.meta = {
    alert_key = flow_alert_keys.flow_alert_iec_unexpected_type_id,
-   i18n_title = "alerts_dashboard.iec_unexpected_type_id",
+   i18n_title = "flow_checks.iec104_unexpected_type_id_title",
    icon = "fas fa-fw fa-subway",
 }
 

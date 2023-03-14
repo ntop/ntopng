@@ -19,7 +19,7 @@ local alert_flow_blacklisted = classes.class(alert)
 
 alert_flow_blacklisted.meta = {
    alert_key = flow_alert_keys.flow_alert_blacklisted,
-   i18n_title = "alerts_dashboard.blacklisted_flow",
+   i18n_title = "flow_checks_config.blacklisted",
    icon = "fas fa-fw fa-exclamation",
 
    has_victim = true,

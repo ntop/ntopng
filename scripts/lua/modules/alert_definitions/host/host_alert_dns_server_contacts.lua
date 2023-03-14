@@ -21,7 +21,7 @@ local host_alert_dns_server_contacts = classes.class(alert)
 
 host_alert_dns_server_contacts.meta = {
   alert_key = host_alert_keys.host_alert_dns_server_contacts,
-  i18n_title = "alerts_dashboard.host_alert_dns_server_contacts",
+  i18n_title = "alerts_thresholds_config.dns_traffic",
   icon = "fas fa-fw fa-life-ring",
   has_victim = true,
 }

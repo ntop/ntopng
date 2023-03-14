@@ -20,7 +20,7 @@ local script = {
    },
 
    gui = {
-      i18n_title = "flow_risk.ndpi_url_possible_sql_injection",
+      i18n_title = "alerts_dashboard.ndpi_url_possible_sql_injection_title",
       i18n_description = "flow_risk.ndpi_url_possible_sql_injection",
    }
 }

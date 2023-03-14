@@ -22,7 +22,7 @@ local script = {
 
    gui = {
       i18n_title = "flow_risk.ndpi_tls_missing_sni",
-      i18n_description = "flow_risk.ndpi_tls_missing_sni",
+      i18n_description = "flow_risk.ndpi_tls_missing_sni_descr",
    }
 }
 

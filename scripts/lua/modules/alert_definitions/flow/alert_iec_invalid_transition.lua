@@ -21,7 +21,7 @@ local alert_iec_invalid_transition = classes.class(alert)
 
 alert_iec_invalid_transition.meta = {
    alert_key = flow_alert_keys.flow_alert_iec_invalid_transition,
-   i18n_title = "alerts_dashboard.iec_invalid_transition",
+   i18n_title = "flow_checks.iec104_title",
    icon = "fas fa-fw fa-subway",
 }
 

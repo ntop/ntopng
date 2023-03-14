@@ -15,8 +15,8 @@ local script = {
    hooks = {},
 
    gui = {
-      i18n_title = "alerts_dashboard.slow_periodic_activity",
-      i18n_description = "alerts_dashboard.slow_periodic_activity_descr",
+      i18n_title = "alerts_dashboard.interface_slow_periodic_activity",
+      i18n_description = "alerts_dashboard.interface_slow_periodic_activity_descr",
    }
 }
 

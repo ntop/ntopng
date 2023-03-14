@@ -18,7 +18,7 @@ local alert_ndpi_http_suspicious_user_agent = classes.class(alert)
 
 alert_ndpi_http_suspicious_user_agent.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_http_suspicious_user_agent,
-   i18n_title = "alerts_dashboard.ndpi_http_suspicious_user_agent_title",
+   i18n_title = "flow_risk.ndpi_http_suspicious_user_agent",
    icon = "fas fa-fw fa-exclamation",
    
    has_victim = true,

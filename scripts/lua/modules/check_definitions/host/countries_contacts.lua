@@ -22,7 +22,7 @@ local countries_contacts = {
    },
 
    gui = {
-      i18n_title = "alerts_thresholds_config.countries_contacts_title",
+      i18n_title = "alerts_dashboard.host_alert_countries_contacts",
       i18n_description = "alerts_thresholds_config.countries_contacts_description",
       input_builder = "threshold_cross",
       i18n_field_unit = checks.field_units.contacts,

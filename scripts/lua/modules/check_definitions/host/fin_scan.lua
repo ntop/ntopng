@@ -23,7 +23,7 @@ local fin_scan = {
 
    -- Allow user script configuration from the GUI
    gui = {
-      i18n_title = "entity_thresholds.fin_scan_title",
+      i18n_title = "alerts_dashboard.tcp_fin_scan",
       i18n_description = "entity_thresholds.fin_scan_description",
 
       -- The input builder to use to draw the gui

@@ -23,7 +23,7 @@ local script = {
   hooks = {},
 
   gui = {
-    i18n_title = "show_alerts.interface_drops_threshold",
+    i18n_title = "alerts_dashboard.too_many_drops",
     i18n_description = "show_alerts.interface_drops_threshold_descr",
     i18n_field_unit = checks.field_units.percentage,
     input_builder = "threshold_cross",

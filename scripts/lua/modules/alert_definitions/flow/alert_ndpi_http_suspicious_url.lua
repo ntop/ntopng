@@ -18,7 +18,7 @@ local alert_ndpi_http_suspicious_url = classes.class(alert)
 
 alert_ndpi_http_suspicious_url.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_http_suspicious_url,
-   i18n_title = "alerts_dashboard.ndpi_http_suspicious_url_title",
+   i18n_title = "flow_risk.ndpi_http_suspicious_url",
    icon = "fas fa-fw fa-exclamation",
 
    has_victim = true,
