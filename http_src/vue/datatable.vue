@@ -45,12 +45,12 @@ required: false,
 const emit = defineEmits(['drawed'])
 
 /* Add last sorting preferences to the browser cache in order to reload it the next time */
-const save_last_sort = (last_sorting) => {
-	if(props.id) {
+const save_last_sort = (last_sorting, id) => {
+	if(id || props.id) {
 		/* Do not save the sorting if the direction is undefined */
 		if(last_sorting.dir != undefined) {
 			const sorting_pref = [last_sorting.col, last_sorting.dir];
-			const sorting_key = `${props.id}_sorting_preferences`
+			const sorting_key = `${id || props.id}_sorting_preferences`
 			
 			/* Use the local storage for the sorting preferences */
 			localStorage.setItem(sorting_key, sorting_pref);
