@@ -9,13 +9,14 @@
       <Loading ref="loading"></Loading>
       <div class="card-body">
         <div id="aggregated_live_flows">          
-          <Datatable ref="table_aggregated_live_flows" :key="table_config.data_url"
-		     :table_buttons="table_config.table_buttons"
-		     :columns_config="table_config.columns_config"
-		     :data_url="table_config.data_url"
-		     :filter_buttons="table_config.table_filters"
-		     :enable_search="table_config.enable_search"
-		     :table_config="table_config.table_config">
+          <Datatable ref="table_aggregated_live_flows" 
+          :key="table_config.data_url"
+          :table_buttons="table_config.table_buttons"
+          :columns_config="table_config.columns_config"
+          :data_url="table_config.data_url"
+          :filter_buttons="table_config.table_filters"
+          :enable_search="table_config.enable_search"
+          :table_config="table_config.table_config">
 	    <template v-slot:menu>
 	      <div class="d-flex align-items-center">
 		<div class="d-flex no-wrap ms-auto" style="text-align:left;margin-right:1rem">

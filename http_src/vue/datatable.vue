@@ -25,26 +25,62 @@ const instance = getCurrentInstance();
 
 const slots = useSlots();
 const props = defineProps({
-    table_buttons: Array,
-    columns_config: Array,
-    data_url: String,
-    enable_search: Boolean,
-    filter_buttons: {
-	type: Array,
-	required: false,
-    },
-    table_config: {
-	type: Object,
-	required: false,
-    },
-    base_url: String,
-    base_params: Object, 
+	id: String,
+	table_buttons: Array,
+	columns_config: Array,
+	data_url: String,
+	enable_search: Boolean,
+	filter_buttons: {
+type: Array,
+required: false,
+	},
+	table_config: {
+type: Object,
+required: false,
+	},
+	base_url: String,
+	base_params: Object, 
 });
 
 const emit = defineEmits(['drawed'])
 
+/* Add last sorting preferences to the browser cache in order to reload it the next time */
+const save_last_sort = (settings) => {
+	if(props.id) {
+		const last_sorting = settings.aLastSort[0];
+		/* Do not save the sorting if the direction is undefined */
+		if(last_sorting.dir != undefined) {
+			const sorting_pref = [last_sorting.col, last_sorting.dir];
+			const sorting_key = `${props.id}_sorting_preferences`
+			
+			/* Use the local storage for the sorting preferences */
+			localStorage.setItem(sorting_key, sorting_pref);
+		}
+	}
+}
+
+const load_last_sort = () => {
+	let sorting_pref = null;
+	if(props.id) {
+		const sorting_key = `${props.id}_sorting_preferences`
+
+		/* Use the local storage for the sorting preferences */
+		const unformatted_pref = localStorage.getItem(sorting_key);
+		if(unformatted_pref) {
+			const splitted_pref = unformatted_pref.split(',');
+			if(splitted_pref.length == 2) {
+				sorting_pref = [ Number(splitted_pref[0]), splitted_pref[1] ];
+			}
+		}
+	}
+
+	return sorting_pref;
+}
+
 let new_params = props.base_params
 const table_id = ref(null);
+/* In case no sorting is provided use the default_sorting */
+const last_sorting = load_last_sort() || [0, "asc"];
 
 function loadDatatable() {
     let updated = false;
@@ -54,7 +90,7 @@ function loadDatatable() {
 	scrollX: false,
 	destroy: true,
 	searching: props.enable_search,
-	order: [[0, "asc"]],
+	order: [last_sorting],
 	pagingType: 'full_numbers',
 	//columnDefs: props.columns_config,
 	columns: props.columns_config,
@@ -96,7 +132,8 @@ function loadDatatable() {
 	drawCallback: function (settings) {
 	    NtopUtils.hideOverlays();
 	    emit('drawed');
-	    ntopng_events_manager.emit_custom_event(ntopng_custom_events.DATATABLE_LOADED);
+	    ntopng_events_manager.emit_custom_event(ntopng_custom_events.DATATABLE_LOADED);		 
+		 save_last_sort(settings);
 	}
     };
     for (const item in (props.table_config || {})) {
@@ -106,7 +143,7 @@ function loadDatatable() {
     let config = DataTableUtils.getStdDatatableConfig(props.table_buttons);
     config = DataTableUtils.extendConfig(config, extend_config);
     table = $(table_id.value).DataTable(config);
-    load_table_menu();
+	 load_table_menu();
     for (const filter of (props.filter_buttons || [])) {
 	/* Set filters to active if available in the url */
 	const curr_value = ntopng_url_manager.get_url_entry(filter.filterMenuKey)
@@ -208,7 +245,11 @@ const refresh_menu = () => {
     load_table_menu();
 };
 
-defineExpose({ reload, delete_button_handlers, destroy_table, update_url, refresh_menu });
+const is_last_sorting_available = () => {
+	return load_last_sort() != null;
+}
+
+defineExpose({ reload, delete_button_handlers, destroy_table, update_url, refresh_menu, is_last_sorting_available });
 
 onBeforeUnmount(() => {
     if (is_destroyed == true) { return; }
