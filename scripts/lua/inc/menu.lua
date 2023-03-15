@@ -639,7 +639,7 @@ page_utils.add_menubar_section(
          {
             entry = page_utils.menu_entries.scripts_config,
             section = page_utils.menu_sections.checks,
-            hidden = not is_admin or not auth.has_capability(auth.capabilities.checks),
+            hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or (tonumber(getSystemInterfaceId()) == tonumber(interface.getId())), -- disable checks for the system interface
             url = '/lua/admin/edit_configset.lua?subdir=all',
          },
          {
