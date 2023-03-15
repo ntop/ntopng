@@ -10,6 +10,7 @@
       <div class="card-body">
         <div id="aggregated_live_flows">          
           <Datatable ref="table_aggregated_live_flows" 
+          :id="table_config.id"
           :key="table_config.data_url"
           :table_buttons="table_config.table_buttons"
           :columns_config="table_config.columns_config"
@@ -48,10 +49,10 @@ import { default as SelectSearch } from "./select-search.vue";
 const _i18n = (t) => i18n(t);
 
 const criteria_list_def = [
-  { label: _i18n("application_proto"), value: 1, param: "application_protocol" },
-  { label: _i18n("client"), value: 2, param: "client" },
-  { label: _i18n("server"), value: 3, param: "server" },
-  { label: _i18n("client_server"), value: 4, param: "client_server" }
+  { label: _i18n("application_proto"), value: 1, param: "application_protocol", table_id: "aggregated_app_proto" },
+  { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client" },
+  { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server"}, 
+  { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server" }
 ];
 
 const criteria_list = ref(criteria_list_def);
@@ -251,16 +252,18 @@ async function set_datatable_config(params) {
   if( selected_criteria.value.value == 1 )
     sortby = sortby - 1;
   
+  
+  let table_id = selected_criteria.value.table_id;
   let defaultDatatableConfig = {
     table_buttons: datatableButton,
     data_url: `${url}?${url_params_string}`,
     enable_search: true,
     table_filters: vlan_filters,
+    id: table_id,
     table_config: { 
       serverSide: true,     
       responsive: false,
       scrollX: true,
-      order: [[ sortby /* percentage column */, params.order]],
       columnDefs: [
         { type: "file-size", targets: 6 },
         { type: "file-size", targets: 7 },
@@ -268,6 +271,9 @@ async function set_datatable_config(params) {
       ]
     }
   };
+
+  if(table_aggregated_live_flows.value && !table_aggregated_live_flows.value.is_last_sorting_available(table_id))
+    defaultDatatableConfig.table_config.order = [[ sortby /* percentage column */, params.order]];
 
   let columns = [];
   if (selected_criteria.value.value == 1) {
@@ -334,7 +340,10 @@ async function set_datatable_config(params) {
 
     if(sortby > 1)
       sortby = sortby + 1
-    defaultDatatableConfig.table_config.order = [[ sortby /* percentage column */, params.order ]];
+
+    if(table_aggregated_live_flows.value && !table_aggregated_live_flows.value.is_last_sorting_available(table_id))
+      defaultDatatableConfig.table_config.order = [[ sortby /* percentage column */, params.order]];
+    
     defaultDatatableConfig.table_config.columnDefs = [
       { type: "file-size", targets: 7 },
       { type: "file-size", targets: 8 },
