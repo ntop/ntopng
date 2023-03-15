@@ -121,7 +121,9 @@ const format_server_name = function(data, rowData) {
 const format_flows_icon = function(data, rowData) {
 
   let url = ``; 
-  if(selected_criteria.value.value == 2)
+  if(selected_criteria.value.value == 1)
+    url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}`;
+  else if(selected_criteria.value.value == 2)
     url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}`;
   else if (selected_criteria.value.value == 3)
     url = `${http_prefix}/lua/flows_stats.lua?server=${rowData.server_name.id}`;
@@ -213,44 +215,9 @@ async function set_datatable_config(params) {
   }
   
   let sortby = 8 // default column: Traffic rcvd
-  const column_sort = params.sort;
-  
-  switch (column_sort) {
-    case "client" : 
-      sortby = 1;
-      break;
-    case "server" : 
-      sortby = 1;
-      break;
-    case "flows":
-      sortby = 2;
-      break;
-    case "score":
-      sortby = 3;
-      break;
-    case "clients":
-      sortby = 4;
-      break;
-    case "servers":
-      sortby = 5;
-      break;
-    case "bytes_sent":
-      sortby = 7;
-      break;
-    case "bytes_rcvd":
-      sortby = 8;
-      break;
-    case "tot_traffic":
-      sortby = 9;
-      break;
-    
-  }
 
-  if ( selected_criteria.value.value == 4 && column_sort != "client" )
-    sortby = sortby + 1;
-  
-  if( selected_criteria.value.value == 1 )
-    sortby = sortby - 1;
+  if( selected_criteria.value.value != 1 )
+    sortby = 7;
   
   
   let table_id = selected_criteria.value.table_id;
@@ -272,17 +239,24 @@ async function set_datatable_config(params) {
     }
   };
 
-  if(table_aggregated_live_flows.value && !table_aggregated_live_flows.value.is_last_sorting_available(table_id))
+  if(table_aggregated_live_flows.value == null || (table_aggregated_live_flows.value != null && !table_aggregated_live_flows.value.is_last_sorting_available(table_id)))
     defaultDatatableConfig.table_config.order = [[ sortby /* percentage column */, params.order]];
 
   let columns = [];
+
+  columns.push(
+    { 
+      orderable: false, targets: 0, name: 'flows_icon', data: 'client', className: 'text-center', responsivePriority: 1, render: (data,_,rowData) => { 
+      return format_flows_icon(data, rowData)}
+    });
+
   if (selected_criteria.value.value == 1) {
     
     // application protocol case
     columns.push(
       { 
         columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-          return `<a href="${http_prefix}/lua/flows_stats.lua?application=${data.id}">${data.label}</a>`
+          return `<label>${data.label}</label>`
         } 
       })
   } 
@@ -292,10 +266,6 @@ async function set_datatable_config(params) {
     // client case
     columns.push(
       { 
-        orderable: false, targets: 0, name: 'flows_icon', data: 'client', className: 'text-center', responsivePriority: 1, render: (data,_,rowData) => { 
-        return format_flows_icon(data, rowData)}
-      }
-      ,{ 
         columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
           
           return format_client_name(data, rowData)}
@@ -305,10 +275,6 @@ async function set_datatable_config(params) {
     // server case
     columns.push(
       { 
-        orderable: false, targets: 0, name: 'flows_icon', data: 'client', className: 'text-nowrap text-center', responsivePriority: 1, render: (data,_,rowData) => { 
-        return format_flows_icon(data, rowData)}
-      }
-      ,{ 
         columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
         return format_server_name(data, rowData)}         
       })
@@ -316,10 +282,6 @@ async function set_datatable_config(params) {
   else if(selected_criteria.value.value == 4) {
     columns.push(
       { 
-        orderable: false, targets: 0, name: 'flows_icon', data: 'client', className: 'text-nowrap text-center', responsivePriority: 1, render: (data,_,rowData) => { 
-        return format_flows_icon(data, rowData)}
-      }
-      ,{ 
         columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
         return format_client_name(data, rowData)}
       },{ 
@@ -341,7 +303,7 @@ async function set_datatable_config(params) {
     if(sortby > 1)
       sortby = sortby + 1
 
-    if(table_aggregated_live_flows.value && !table_aggregated_live_flows.value.is_last_sorting_available(table_id))
+    if(table_aggregated_live_flows.value == null || (table_aggregated_live_flows.value != null && !table_aggregated_live_flows.value.is_last_sorting_available(table_id)))
       defaultDatatableConfig.table_config.order = [[ sortby /* percentage column */, params.order]];
     
     defaultDatatableConfig.table_config.columnDefs = [
@@ -355,11 +317,15 @@ async function set_datatable_config(params) {
     columnName: i18n("flows"), targets: 0, name: 'flows', data: 'flows', className: 'text-nowrap text-center', responsivePriority: 1
   }, { 
     columnName: i18n("total_score"), targets: 0, name: 'score', data: 'tot_score', className: 'text-nowrap text-center', responsivePriority: 1
-  }, { 
-    columnName: i18n("clients"), targets: 0, name: 'num_clients', data: 'num_clients', className: 'text-nowrap text-center', responsivePriority: 1
-  }, { 
-    columnName: i18n("servers"), targets: 0, name: 'num_servers', data: 'num_servers', className: 'text-nowrap text-center', responsivePriority: 1
-  }, { 
+  });
+  
+  if(selected_criteria.value.value != 2 && selected_criteria.value.value != 4)
+    columns.push({columnName: i18n("clients"), targets: 0, name: 'num_clients', data: 'num_clients', className: 'text-nowrap text-center', responsivePriority: 1});
+  
+  if(selected_criteria.value.value != 3 && selected_criteria.value.value != 4) 
+    columns.push({columnName: i18n("servers"), targets: 0, name: 'num_servers', data: 'num_servers', className: 'text-nowrap text-center', responsivePriority: 1})
+  
+  columns.push({ 
     columnName: i18n("breakdown"), targets: 0, sorting: false, name: 'breakdown', data: 'breakdown', className: 'text-nowrap text-center', responsivePriority: 1, render: (data) => {
       return NtopUtils.createBreakdown(data.percentage_bytes_sent, data.percentage_bytes_rcvd, i18n('sent'), i18n('rcvd'));
     }
@@ -375,7 +341,7 @@ async function set_datatable_config(params) {
     columnName: i18n("total_traffic"), targets: 0, name: 'tot_traffic', data: 'tot_traffic', className: 'text-nowrap text-end', responsivePriority: 1, render: (data) => {
       return NtopUtils.bytesToSize(data);
     }
-  })
+  });
   
   
   defaultDatatableConfig.columns_config = columns;
