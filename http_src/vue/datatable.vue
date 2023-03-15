@@ -45,9 +45,8 @@ required: false,
 const emit = defineEmits(['drawed'])
 
 /* Add last sorting preferences to the browser cache in order to reload it the next time */
-const save_last_sort = (settings) => {
+const save_last_sort = (last_sorting) => {
 	if(props.id) {
-		const last_sorting = settings.aLastSort[0];
 		/* Do not save the sorting if the direction is undefined */
 		if(last_sorting.dir != undefined) {
 			const sorting_pref = [last_sorting.col, last_sorting.dir];
@@ -59,10 +58,10 @@ const save_last_sort = (settings) => {
 	}
 }
 
-const load_last_sort = () => {
+const load_last_sort = (id) => {
 	let sorting_pref = null;
-	if(props.id) {
-		const sorting_key = `${props.id}_sorting_preferences`
+	if(id || props.id) {
+		const sorting_key = `${id || props.id}_sorting_preferences`
 
 		/* Use the local storage for the sorting preferences */
 		const unformatted_pref = localStorage.getItem(sorting_key);
@@ -133,7 +132,7 @@ function loadDatatable() {
 	    NtopUtils.hideOverlays();
 	    emit('drawed');
 	    ntopng_events_manager.emit_custom_event(ntopng_custom_events.DATATABLE_LOADED);		 
-		 save_last_sort(settings);
+		 save_last_sort(settings.aLastSort[0]);
 	}
     };
     for (const item in (props.table_config || {})) {
@@ -249,7 +248,7 @@ const is_last_sorting_available = () => {
 	return load_last_sort() != null;
 }
 
-defineExpose({ reload, delete_button_handlers, destroy_table, update_url, refresh_menu, is_last_sorting_available });
+defineExpose({ reload, delete_button_handlers, destroy_table, update_url, refresh_menu, is_last_sorting_available, load_last_sort, save_last_sort });
 
 onBeforeUnmount(() => {
     if (is_destroyed == true) { return; }
