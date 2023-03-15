@@ -56,7 +56,7 @@ local function format_historical_last_first_seen(flow, info)
   return {
     label = i18n("db_explorer.date_time"),
     content = {
-      [1] = info.first_seen,
+      [1] = info.first_seen.time,
       [2] = info.last_seen,
     }
   }
