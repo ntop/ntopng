@@ -244,8 +244,8 @@ const refresh_menu = () => {
     load_table_menu();
 };
 
-const is_last_sorting_available = () => {
-	return load_last_sort() != null;
+const is_last_sorting_available = (id) => {
+	return load_last_sort(id) != null;
 }
 
 defineExpose({ reload, delete_button_handlers, destroy_table, update_url, refresh_menu, is_last_sorting_available, load_last_sort, save_last_sort });
