@@ -2038,11 +2038,6 @@ function toggle_mirrored_traffic_function_off(){
 
    end
 
-      -- JSON Host Rules
-      print('<tr><th width="30%">'.. i18n("if_stats_config.host_threshold_rules") ..'</th><td><textarea name="host_threshold_rules" rows="8" cols="80">')
-      print(ntop.getCache(host_threshold_rules_key))
-      print("</textarea></td></tr>")
-
 print[[
 </table>
    <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
