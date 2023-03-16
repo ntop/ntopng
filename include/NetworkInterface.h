@@ -357,7 +357,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   int sortFlows(u_int32_t *begin_slot, bool walk_all,
 		struct flowHostRetriever *retriever,
 		AddressTree *allowed_hosts,
-		Host *host, Paginator *p,
+		Host *host, Host* client, Host* server,  Paginator *p,
 		const char *sortColumn);
 
   void addRedisSitesKey();
@@ -647,7 +647,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		     u_int16_t *ndpiProtocol,
 		     Host **srcHost, Host **dstHost, Flow **flow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
-  void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, Host *h, Host *talking_with_host, Paginator *p, lua_State *vm, bool only_traffic_stats);
+  void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, Host *h, Host *talking_with_host, Host *client, Host* server, Paginator *p, lua_State *vm, bool only_traffic_stats);
   virtual u_int32_t periodicStatsUpdateFrequency() const;
   void periodicStatsUpdate();
   u_int64_t purgeQueuedIdleEntries();

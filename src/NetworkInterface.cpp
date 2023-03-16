@@ -4482,27 +4482,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     }
   }
 
-  if(retriever->server) {
-    if(!f->getInterface()->isViewed()) {
-      if(retriever->server != f->get_srv_host()) {
-	return(false);
-      }
-    } else {
-      if(!(retriever->server->get_ip()->equal(f->get_srv_ip_addr()) && retriever->server->get_vlan_id() == f->get_vlan_id()))
-	      return(false);
-    }
-  }
-
-  if(retriever->client) {
-    if(!f->getInterface()->isViewed()) {
-      if(retriever->client != f->get_cli_host()) {
-	return(false);
-      }
-    } else {
-      if(!(retriever->client->get_ip()->equal(f->get_cli_ip_addr()) && retriever->client->get_vlan_id() == f->get_vlan_id()))
-	      return(false);
-    }
-  }
+  
 
   if(f && (!f->idle())) {
     if(f->get_observation_point_id() != retriever->observationPointId) {
@@ -4513,6 +4493,29 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 				   f->get_observation_point_id(), retriever->observationPointId);
 #endif
       return(false);
+    }
+
+    if(retriever->server) {
+      if(!f->getInterface()->isViewed()) {
+        if(retriever->server != f->get_srv_host()) {
+    return(false);
+        }
+      } else {
+        if(!(retriever->server->get_ip()->equal(f->get_srv_ip_addr()) && retriever->server->get_vlan_id() == f->get_vlan_id()))
+          return(false);
+      }
+    }
+
+    if(retriever->client) {
+      if(!f->getInterface()->isViewed()) {
+        if(retriever->client != f->get_cli_host()) {
+         
+    return(false);
+        }
+      } else {
+        if(!(retriever->client->get_ip()->equal(f->get_cli_ip_addr()) && retriever->client->get_vlan_id() == f->get_vlan_id()))
+          return(false);
+      }
     }
 
     if(retriever->host) {
@@ -5416,7 +5419,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
 				bool walk_all,
 				struct flowHostRetriever *retriever,
 				AddressTree *allowed_hosts,
-				Host *host,
+				Host *host, Host *client, Host* server,
 				Paginator *p,
 				const char *sortColumn) {
   int (*sorter)(const void *_a, const void *_b);
@@ -5426,6 +5429,8 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
 
   retriever->pag = p;
   retriever->host = host, retriever->location = location_all;
+  retriever->server = server;
+  retriever->client = client;
   retriever->ndpi_proto = -1;
   retriever->actNumEntries = 0, retriever->maxNumEntries = getFlowsHashSize(), retriever->allowed_hosts = allowed_hosts;
 
@@ -5506,7 +5511,7 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matche
 
 void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *stats,
 					   AddressTree *allowed_hosts,
-					   Host *h, Host *talking_with_host,
+					   Host *h, Host *talking_with_host, Host* client, Host* server,
 					   Paginator *p,
 					   lua_State *vm,
 					   bool only_traffic_stats) {
@@ -5519,6 +5524,8 @@ void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *sta
   retriever.pag = p;
   retriever.host = h;
   retriever.talking_with_host = talking_with_host;
+  retriever.client = client;
+  retriever.server = server;
   retriever.location = location_all;
   retriever.ndpi_proto = -1;
   retriever.actNumEntries = 0;
@@ -5580,10 +5587,8 @@ int NetworkInterface::getFlows(lua_State* vm,
 
   retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
   retriever.talking_with_host = talking_with_host;
-  retriever.client = client;
-  retriever.server = server;
 
-  if(sortFlows(begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0)
+  if(sortFlows(begin_slot, walk_all, &retriever, allowed_hosts, host, client, server, p, sortColumn) < 0)
     return(-1);
 
   lua_newtable(vm);
@@ -5645,7 +5650,7 @@ int NetworkInterface::getFlowsGroup(lua_State* vm,
 
   retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
 
-  if(sortFlows(&begin_slot, walk_all, &retriever, allowed_hosts, NULL, p, groupColumn) < 0) {
+  if(sortFlows(&begin_slot, walk_all, &retriever, allowed_hosts, NULL, NULL, NULL, p, groupColumn) < 0) {
     return(-1);
   }
 
