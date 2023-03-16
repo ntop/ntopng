@@ -27,6 +27,8 @@ else -- ntop.isAppliance()
    sys_config = require("appliance_config"):create(true)
 end
 
+local error_msg = nil
+
 local operating_mode = sys_config:getOperatingMode()
 system_setup_ui_utils.process_apply_discard_config(sys_config)
 
@@ -72,6 +74,15 @@ if table.len(_POST) > 0 then
     end
   end
 
+  if not isEmptyString(_POST["interface_name"]) and not isEmptyString(_POST["old_interface_name"]) then
+    local success = nf_config:renameInterface(_POST["old_interface_name"], _POST["interface_name"]) 
+    if not success then
+      error_msg = i18n("nedge.cannot_rename_interface")
+    else
+      sys_config:save()
+    end
+  end
+
   if config_found then
     sys_config:setDisabledWans(disabled_wans)
     sys_config:setInterfacesConfiguration(interfaces_config)
@@ -84,9 +95,28 @@ end
 
 local disabled_wans = sys_config:getDisabledWans()
 
+local function printInterfaceTitle(if_name, if_alias, if_role)
+  local if_alias = if_name
+
+  local title = 
+    "<span>" .. 
+      i18n("nedge.network_conf_iface_title", {ifrole = i18n("nedge."..if_role), ifname=if_alias .. (if_name and (if_name ~= if_alias) and (" (" .. if_name .. ")") or "") }) .. 
+    '</span>' .. 
+    '<span class="float-right">' ..
+      [[<a class="btn disable-on-dirty" href="#editInterfaceAliasModal" onclick="]] ..
+      [[$('.real_interface_name').val(']] .. if_name .. [['); ]] .. 
+      [[$('.current_interface_name').val(']] .. if_alias .. [['); ]] .. 
+      [[aysResetForm('#editInterfaceAliasForm');" role="button" data-bs-toggle="modal" style="padding-top:0; padding-bottom:0; border:0"><i class="fas fa-lg fa-edit"></i></a>]] ..
+    '</span>'
+
+  printPageSection(title)
+end
+
 -- Static ip configuration
 local function printLanLikeConfig(if_name, if_id, ifconf)
-  printPageSection(i18n("nedge.network_conf_iface_title", {ifname = if_name, ifrole = i18n("nedge.lan")}))
+  local if_alias = if_name
+
+  printInterfaceTitle(if_name, if_alias, 'lan')
 
   print[[<input type="hidden" name="iface_id_]] print(if_id) print[[" value="]] print(if_name) print[[" />]]
 
@@ -268,4 +298,46 @@ else -- operating_mode == "routing"
 end
 
 system_setup_ui_utils.print_setup_page(print_page_body_callback, sys_config)
+
+
+-- Edit interface alias modal
+  local interface_name_pattern = "^[a-zA-Z0-9_]+$"
+  print[[
+  <!-- Modal -->
+  <div id="editInterfaceAliasModal" class="modal fade in" role="dialog">
+    <form method="post" data-bs-toggle="validator" id="editInterfaceAliasForm">
+      <div class="modal-dialog">
+
+	<!-- Modal content-->
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <h5 class="modal-title">]] print(i18n("nedge.edit_interface")) print[[</h3>
+	    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	  </div>
+
+	  <div class="modal-body container-fluid">
+	    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+	    <input type="hidden" name="old_interface_name" class="real_interface_name">
+
+	    <div class="row form-group mb-3 has-feedback">
+	      <label class="form-label">]] print(i18n("nedge.interface_name")) print[[</label>
+	      <input type="text" name="interface_name" class="form-control current_interface_name" pattern="]] print(interface_name_pattern) print[[" required>
+	    </div>
+	  </div>
+
+	  <div class="modal-footer">
+	    <button type="submit" class="btn btn-primary btn-block" disabled="disabled">]] print(i18n("nedge.edit_interface")) print[[</button>
+
+	  </div>
+	</div>
+      </form>
+    </div>
+  </div>
+  <script>
+    $("#editInterfaceAliasModal").on("hidden.bs.modal", function() {
+      $(this).find('[name="interface_name"]').val("");
+      aysResetForm('#editInterfaceAliasForm');
+    })
+  </script>]]
+
 
