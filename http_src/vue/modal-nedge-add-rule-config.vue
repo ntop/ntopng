@@ -236,7 +236,7 @@ async function set_interface_array() {
 	let res_interface_list = await interface_list;
 	interface_array.value = res_interface_list.filter((i) => i.role == "lan").map((i) => {
 	    return {
-		label: i.ifname,
+		label: i.label,
 		value: i.ifname,
 	    };
 	});
