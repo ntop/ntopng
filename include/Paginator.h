@@ -29,7 +29,7 @@ class Paginator {
   u_int16_t max_hits, to_skip;
   bool a2z_sort_order;
   bool detailed_results /* deprecated, use DetailsLevel instead */;
-  char *sort_column, *country_filter, *host_filter;
+  char *sort_column, *country_filter, *host_filter, *client_filter, *server_filter;
   char *container_filter, *pod_filter;
   char *traffic_profile_filter;
   char *username_filter, *pidname_filter;
@@ -74,6 +74,14 @@ class Paginator {
 
   inline bool hostFilter(char **f) const {
     if(host_filter) { (*f) = host_filter; return true; } return false;
+  }
+
+  inline bool clientFilter(char **f) const {
+    if(client_filter) { (*f) = client_filter; return true; } return false;
+  }
+
+  inline bool serverFilter(char **f) const {
+    if(server_filter) { (*f) = server_filter; return true; } return false;
   }
 
   inline bool containerFilter(char **f) const {
