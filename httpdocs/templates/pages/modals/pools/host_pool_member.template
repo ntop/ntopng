@@ -101,7 +101,7 @@
                         {% if modal_type == "add" then %}
                             {{ i18n("add") }}
                         {% else %}
-                            {{ i18n("edit") }}
+                            {{ i18n("apply") }}
                         {% end %}
                     </button>
                 </div>
