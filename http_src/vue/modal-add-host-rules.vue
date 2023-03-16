@@ -139,7 +139,7 @@
     <button type="button" @click="add_" class="btn btn-primary"  :disabled="disable_add && rule_type == 'Host'">{{_i18n('add')}}</button>
     </template>
     <template v-else>
-    <button type="button" @click="edit_" class="btn btn-primary"  :disabled="disable_add && rule_type == 'Host'">{{_i18n('edit')}}</button>
+    <button type="button" @click="edit_" class="btn btn-primary"  :disabled="disable_add && rule_type == 'Host'">{{_i18n('apply')}}</button>
     </template>
   </template>
 </modal>
