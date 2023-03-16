@@ -95,13 +95,13 @@ const format_client_name = function(data, rowData) {
     if (!rowData.is_client_in_mem) {
       return `<label>${rowData.client_name.label }</label>`+rowData.client_name.complete_label;
     } else {
-      return `<a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}">${rowData.client_name.label}</a>`+rowData.client_name.complete_label;
+      return `<a href="${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}">${rowData.client_name.label}</a>`+rowData.client_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
     }
   } else {
     if(!rowData.is_client_in_mem)
       return `<label>${data.label}</label>`+rowData.client_name.complete_label;
     else
-      return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`+rowData.client_name.complete_label;
+      return `<a href="${http_prefix}/lua/flows_stats.lua?client=${data.id}">${data.label}</a>`+rowData.client_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
   }
   
 }
@@ -115,13 +115,13 @@ const format_server_name = function(data, rowData) {
     if (!rowData.is_server_in_mem) {
       return `<label>${rowData.server_name.label }</label>`+rowData.server_name.complete_label;
     } else {
-      return `<a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}">${rowData.server_name.label}</a>`+rowData.server_name.complete_label;
+      return `<a href="${http_prefix}/lua/flows_stats.lua?server=${rowData.server_name.id}">${rowData.server_name.label}</a>`+rowData.server_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
     }
   } else {
     if(!rowData.is_server_in_mem)
       return `<label>${data.label}</label>`+rowData.server_name.complete_label;
     else
-      return `<a href="${http_prefix}/lua/host_details.lua?host=${data.id}">${data.label}</a>`+rowData.server_name.complete_label;
+      return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data.id}">${data.label}</a>`+rowData.server_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
   }
 }
 

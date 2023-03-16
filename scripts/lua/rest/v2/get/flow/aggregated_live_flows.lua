@@ -77,6 +77,8 @@ local function build_response()
 
   interface.select(ifid)
 
+  local isView = interface.isView()
+
   local x = 0
 
   -- retrieve stats
@@ -222,7 +224,7 @@ local function build_response()
           label = client_ip_label,
           id = client_ip,
         },
-        is_client_in_mem = cli_in_mem,
+        is_client_in_mem = isView,
         client_name = {
           label = client_name,
           id = client_ip, 
@@ -233,7 +235,7 @@ local function build_response()
           label = server_ip_label,
           id = server_ip,
         },
-        is_server_in_mem = srv_in_mem,
+        is_server_in_mem = isView,
         server_name = {
           label = server_name,
           id = server_ip,
