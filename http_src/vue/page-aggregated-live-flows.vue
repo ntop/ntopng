@@ -86,7 +86,10 @@ const props = defineProps({
 
 
 const format_client_name = function(data, rowData) {
-
+  
+  if(rowData.client_name.alerted) {
+    rowData.client_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`+rowData.client_name.complete_label;
+  }
   if(rowData.client_name.label && rowData.client_name.label != "") {
 
     if (!rowData.is_client_in_mem) {
@@ -104,6 +107,10 @@ const format_client_name = function(data, rowData) {
 }
 
 const format_server_name = function(data, rowData) {
+
+  if(rowData.server_name.alerted) {
+    rowData.server_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`+rowData.server_name.complete_label;
+  }
   if(rowData.server_name.label && rowData.server_name.label != "") {
     if (!rowData.is_server_in_mem) {
       return `<label>${rowData.server_name.label }</label>`+rowData.server_name.complete_label;

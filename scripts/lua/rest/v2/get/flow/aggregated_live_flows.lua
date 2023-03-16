@@ -177,6 +177,8 @@ local function build_response()
       local srv_in_mem = false
       local server_host = nil
 
+      local is_server_alerted = false
+      
       if(criteria_type_id == 3 or criteria_type_id == 4) then
         local srv_info = set_host_info(data.srv_vlan_id, data.server_ip, data.server_name, data.is_srv_in_mem, data.vlan_id)
         server_ip = srv_info.ip
@@ -184,6 +186,11 @@ local function build_response()
         server_name = srv_info.name
         server_host = interface.getHostInfo(data.server_ip, data.vlan_id or 0)
         srv_in_mem = server_host ~= nil
+
+        srv_in_mem = server_host ~= nil
+        if (srv_in_mem) then
+          is_server_alerted = (server_host["num_alerts"] ~= nil) and (server_host["num_alerts"] > 0)
+        end
       end
 
       local client_ip = ""
@@ -192,6 +199,7 @@ local function build_response()
       local cli_in_mem = false
 
       local client_host = nil
+      local is_client_alerted = false
 
       if(criteria_type_id == 2 or criteria_type_id == 4) then
         local cli_info = set_host_info(data.cli_vlan_id, data.client_ip, data.client_name, data.is_cli_in_mem, data.vlan_id)
@@ -199,13 +207,15 @@ local function build_response()
         client_ip_label = cli_info.ip_label
         client_name = cli_info.name
         client_host = interface.getHostInfo(data.client_ip, data.vlan_id or 0)
+	
         cli_in_mem = client_host ~= nil
+        if (cli_in_mem) then
+          is_client_alerted = (client_host["num_alerts"] ~= nil) and (client_host["num_alerts"] > 0)
+        end
       end
       
       num_entries = data.num_entries
       
-
-
       res[#res + 1] = {
         flows = format_high_num_value_for_tables(data, 'num_flows'),
         client = {
@@ -216,7 +226,8 @@ local function build_response()
         client_name = {
           label = client_name,
           id = client_ip, 
-          complete_label = format_utils.formatFullAddressCategory(client_host)
+          complete_label = format_utils.formatFullAddressCategory(client_host),
+	        alerted = is_client_alerted
         },
         server = {
           label = server_ip_label,
@@ -226,8 +237,8 @@ local function build_response()
         server_name = {
           label = server_name,
           id = server_ip,
-          complete_label = format_utils.formatFullAddressCategory(server_host)
-
+          complete_label = format_utils.formatFullAddressCategory(server_host),
+	        alerted = is_server_alerted
         },
         breakdown = {
           percentage_bytes_sent = (bytes_sent * 100) / total_bytes,
