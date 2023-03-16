@@ -506,10 +506,13 @@ function driver:query(schema, tstart, tend, tags, options)
 
       -- unify the format
       for i, v in pairs(serie) do
-	 local v = ts_common.normalizeVal(v, max_val, options)
-
-	 serie[i] = v
-	 count = count + 1
+         local value = ts_common.normalizeVal(v, max_val, options)
+         if options.keep_nan == true and tostring(v) == '-nan' then
+            value = v
+         end
+         
+         serie[i] = value
+         count = count + 1
       end
 
       -- Remove the last value: RRD seems to give an additional point
@@ -550,11 +553,11 @@ function driver:query(schema, tstart, tend, tags, options)
 
       -- Also calculate per-series statistics
       for k, v in pairs(series) do
-	 local s = ts_common.calculateStatistics(v.data, sampled_fstep, tend - tstart, schema.options.metrics_type)
-	 local min_max = ts_common.calculateMinMax(v.data)
-	 
-	 -- Adding per timeseries min-max stats
- 	 stats.by_serie[k] = table.merge(s, min_max)
+         local s = ts_common.calculateStatistics(v.data, sampled_fstep, tend - tstart, schema.options.metrics_type)
+         local min_max = ts_common.calculateMinMax(v.data)
+         
+         -- Adding per timeseries min-max stats
+         stats.by_serie[k] = table.merge(s, min_max)
       end
    end
 

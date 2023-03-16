@@ -93,14 +93,21 @@ end
 
 function ts_common.calculateStatistics(total_serie, step, notused, data_type)
   local total = 0
+  local counter = 0
 
   for idx, val in pairs(total_serie) do
-    if val ~= nan then
-        total = total + val
+    if tostring(val) ~= '-nan' then
+      counter = counter + 1
+      total = total + val
     end
   end
 
-  local avg = total / #total_serie
+  -- Use counter for excluding nan values
+  local avg = total / counter
+
+  if avg == nan then
+    avg = 0
+  end
   
   if data_type ~= ts_common.metrics.gauge then
     total = total * step
