@@ -977,7 +977,9 @@ end
 function system_config:setInterfaceAlias(if_name, if_alias)
   if self.config.interfaces.configuration[if_name] then
     self.config.interfaces.configuration[if_name].alias = if_alias
+    return true
   end
+  return false
 end
 
 -- ##############################################
