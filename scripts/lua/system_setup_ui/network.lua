@@ -75,7 +75,7 @@ if table.len(_POST) > 0 then
   end
 
   if not isEmptyString(_POST["interface_name"]) and not isEmptyString(_POST["old_interface_name"]) then
-    local success = nf_config:renameInterface(_POST["old_interface_name"], _POST["interface_name"]) 
+    local success = sys_config:setInterfaceAlias(_POST["old_interface_name"], _POST["interface_name"]) 
     if not success then
       error_msg = i18n("nedge.cannot_rename_interface")
     else
@@ -96,8 +96,6 @@ end
 local disabled_wans = sys_config:getDisabledWans()
 
 local function printInterfaceTitle(if_name, if_alias, if_role)
-  local if_alias = if_name
-
   local title = 
     "<span>" .. 
       i18n("nedge.network_conf_iface_title", {ifrole = i18n("nedge."..if_role), ifname=if_alias .. (if_name and (if_name ~= if_alias) and (" (" .. if_name .. ")") or "") }) .. 
@@ -114,7 +112,7 @@ end
 
 -- Static ip configuration
 local function printLanLikeConfig(if_name, if_id, ifconf)
-  local if_alias = if_name
+  local if_alias = sys_config:getInterfaceAlias(if_name)
 
   printInterfaceTitle(if_name, if_alias, 'lan')
 

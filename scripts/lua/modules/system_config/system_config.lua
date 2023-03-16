@@ -966,6 +966,22 @@ end
 
 -- ##############################################
 
+function system_config:getInterfaceAlias(if_name, if_alias)
+  if self.config.interfaces.configuration[if_name] and
+     self.config.interfaces.configuration[if_name].alias then
+    return self.config.interfaces.configuration[if_name].alias
+  end
+  return if_name
+end
+
+function system_config:setInterfaceAlias(if_name, if_alias)
+  if self.config.interfaces.configuration[if_name] then
+    self.config.interfaces.configuration[if_name].alias = if_alias
+  end
+end
+
+-- ##############################################
+
 function system_config:setInterfaceMode(iface, mode)
   local net_config = self.config.interfaces.configuration[iface]
 
