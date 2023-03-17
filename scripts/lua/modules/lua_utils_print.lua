@@ -89,7 +89,7 @@ end
 
 -- ##############################################
 
-function printDSCPDropdown(base_url, page_params, dscp_list)
+function printDSCPDropdown(base_url, page_params, dscp_list, format_utils)
    local dscp = _GET["dscp"]
    local dscp_filter
    if not isEmptyString(dscp) then
@@ -131,7 +131,7 @@ function printDSCPDropdown(base_url, page_params, dscp_list)
 	  dscp_table["dscp"] = value.id
 	  print(getPageUrl(base_url, dscp_table))
 
-	  print[[">]] print(key) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
+	  print[[">]] print(key) print [[ (]] print(format_utils.formatValue(value.count)) print [[)</a></li>]]
    end
 
    print[[</ul>]]
@@ -145,7 +145,7 @@ end
 
 -- ###################################
 
-function printHostPoolDropdown(base_url, page_params, host_pool_list)
+function printHostPoolDropdown(base_url, page_params, host_pool_list, format_utils)
    local host_pools = require "host_pools"
 
    local host_pools_instance = host_pools:create()
@@ -196,7 +196,7 @@ function printHostPoolDropdown(base_url, page_params, host_pool_list)
       host_pool_table["host_pool_id"] = key
       print(getPageUrl(base_url, host_pool_table))
       
-      print[[">]] print(sub_quotes_to_string(host_pools_instance:get_pool_name(key))) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
+      print[[">]] print(sub_quotes_to_string(host_pools_instance:get_pool_name(key))) print [[ (]] print(format_utils.formatValue(value.count)) print [[)</a></li>]]
    end
 
    print[[</ul>]]

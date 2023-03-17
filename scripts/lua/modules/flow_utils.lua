@@ -1587,7 +1587,7 @@ function printL4ProtoDropdown(base_url, page_params, l4_proto)
 	  l4_table["l4proto"] = key
 	  print(getPageUrl(base_url, l4_table))
 
-	  print[[">]] print(l4_proto_to_string(key)) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
+	  print[[">]] print(l4_proto_to_string(key)) print [[ (]] print(string.format("%s",  format_utils.formatValue(value.count))) print [[)</a></li>]]
       end
     end
 
@@ -1758,7 +1758,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
           
           talking_with_list[#talking_with_list + 1] = {
             host,
-            hostinfo2label(hinfo) .. " (" .. tostring(num_flows) .. ")"
+            hostinfo2label(hinfo) .. " (" .. format_utils.formatValue(num_flows) .. ")"
           }
         end
       end
@@ -1789,7 +1789,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
                
                talking_with_list[#talking_with_list + 1] = {
                   host,
-                  hostinfo2label(hinfo) .. " (" .. tostring(num_flows) .. ")"
+                  hostinfo2label(hinfo) .. " (" .. format_utils.formatValue(num_flows) .. ")"
                }
             end
          end
@@ -1819,7 +1819,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
                
                talking_with_list[#talking_with_list + 1] = {
                   host,
-                  hostinfo2label(hinfo) .. " (" .. tostring(num_flows) .. ")"
+                  hostinfo2label(hinfo) .. " (" .. format_utils.formatValue(num_flows) .. ")"
                }
             end
          end
@@ -1876,7 +1876,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 		entries[#entries + 1] = '<li class="dropdown-header" id="alerted-flows-title" style="padding-left: 8px; padding-top: 4px; padding-bottom: 4px">'.. i18n("flow_details.alerted_flows") ..'</li>'
 		first = false
 	     end
-	     entries[#entries + 1] = {string.format("%u", status_key), (status.label) .. " ("..status.count..")"}
+	     entries[#entries + 1] = {string.format("%u", status_key), (status.label) .. " ("..format_utils.formatValue(status.count)..")"}
 	  end
        end
 
@@ -1909,7 +1909,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        for s, severity_details in pairsByField(alert_consts.severity_groups, "severity_group_id", asc) do
 
 	  if severity_stats[s] and severity_stats[s] > 0 then
-	     entries[#entries + 1] = {s, (i18n(severity_details.i18n_title) or s) .." ("..severity_stats[s]..")"}
+	     entries[#entries + 1] = {s, (i18n(severity_details.i18n_title) or s) .." ("..format_utils.formatValue(severity_stats[s])..")"}
 	  end
        end
 
@@ -2103,7 +2103,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     dscp_params["dscp"] = nil
 
     print[[, '<div class="btn-group float-right">]]
-    printDSCPDropdown(base_url, dscp_params, flowstats["dscps"] or {})
+    printDSCPDropdown(base_url, dscp_params, flowstats["dscps"] or {}, format_utils)
     print [[</div>']]
 
     -- Host Pool selector
@@ -2112,7 +2112,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     host_pool_params["host_pool"] = nil
 
     print[[, '<div class="btn-group float-right">]]
-    printHostPoolDropdown(base_url, host_pool_params, flowstats["host_pool_id"] or {})
+    printHostPoolDropdown(base_url, host_pool_params, flowstats["host_pool_id"] or {}, format_utils)
     print [[</div>']]
 
     -- Host Pool selector
