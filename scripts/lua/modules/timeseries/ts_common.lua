@@ -93,7 +93,7 @@ end
 
 function ts_common.calculateStatistics(total_serie, step, notused, data_type)
   local total = 0
-
+  local counter = 0
   for idx, val in pairs(total_serie) do
     if tostring(val) ~= '-nan' then
       counter = counter + 1
