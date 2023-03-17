@@ -522,26 +522,32 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
 
   case NDPI_PROTOCOL_MAIL_SMTPS:
   case NDPI_PROTOCOL_MAIL_SMTP:
-    if(srv_h)
-      srv_h->setSmtpServer(domain_name);
-    else if(srv_ip_addr)
-      srv_ip_addr->setSmtpServer();
+    if(isBidirectional()) {
+      if(srv_h)
+        srv_h->setSmtpServer(domain_name);
+      else if(srv_ip_addr)
+        srv_ip_addr->setSmtpServer();
+    }
     break;
 
   case NDPI_PROTOCOL_MAIL_IMAPS:
   case NDPI_PROTOCOL_MAIL_IMAP:
-    if(srv_h)
-      srv_h->setImapServer(domain_name);
-    else if (srv_ip_addr)
-      srv_ip_addr->setImapServer();
+    if(isBidirectional()) {
+      if(srv_h)
+        srv_h->setImapServer(domain_name);
+      else if (srv_ip_addr)
+        srv_ip_addr->setImapServer();
+    }
     break;
 
   case NDPI_PROTOCOL_MAIL_POPS:
   case NDPI_PROTOCOL_MAIL_POP:
-    if(srv_h)
-      srv_h->setPopServer(domain_name);
-    else if (srv_ip_addr)
-      srv_ip_addr->setPopServer();
+    if(isBidirectional()) {
+      if(srv_h)
+        srv_h->setPopServer(domain_name);
+      else if (srv_ip_addr)
+        srv_ip_addr->setPopServer();
+    }
     break;
 
   case NDPI_PROTOCOL_DNS:

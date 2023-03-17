@@ -503,7 +503,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
       f->hosts_periodic_stats_update(this, cli_host, srv_host, &partials, first_partial, tv);
       
       /* Setting up dhcp/ntp/dns/smtp server bits */
-      if(cli_host) {
+      if(cli_host && partials.get_cli2srv_bytes() > 0) {
         if(cli_ip->isDhcpServer()) cli_host->setDhcpServer(NULL);
         if(cli_ip->isNtpServer())  cli_host->setNtpServer(NULL);
         if(cli_ip->isDnsServer())  cli_host->setDnsServer(NULL);
@@ -512,7 +512,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 	if(cli_ip->isPopServer())  cli_host->setPopServer(f->getFlowServerInfo()); 
       }
       
-      if(srv_host) {
+      if(srv_host && partials.get_srv2cli_bytes() > 0) {
         if(srv_ip->isDhcpServer()) srv_host->setDhcpServer(NULL);
         if(srv_ip->isNtpServer())  srv_host->setNtpServer(NULL);
         if(srv_ip->isDnsServer())  srv_host->setDnsServer(NULL);
