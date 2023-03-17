@@ -460,15 +460,15 @@ u_int16_t Flow::getStatsProtocol() const {
 void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
-  Host *cli_h = NULL, *srv_h = NULL, /* *real_cli_h, */ *real_srv_h;
+  Host *cli_h = NULL, *srv_h = NULL;
   char *domain_name = NULL;
 
   /*
     If peers should be swapped, then pointers are inverted.
     NOTE: only function pointers are inverted, not pointers in the flow.
-   */
+  */
   get_actual_peers(&cli_h, &srv_h);
-
+  
   stats_protocol = getStatsProtocol();
 
   /* Update the active flows stats */
@@ -485,93 +485,22 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
   if(cli_h && domain_name && domain_name[0] != '\0')
     cli_h->addContactedDomainName(domain_name);
 
-  switch(l7proto) {
-  case NDPI_PROTOCOL_DHCP:
-    if(cli_port == htons(67)) {
-      /* Server -> Client */
-      if(cli_host && (!cli_host->isBroadcastHost())) {
-	cli_host->setDhcpServer(domain_name);
-      } else if(cli_ip_addr && !cli_ip_addr->isBroadcastAddress()) {
-        cli_ip_addr->setDhcpServer();
+  /* NOTE: UDP flows are updated when the flow ends */
+  if(protocol == IPPROTO_TCP)
+    updateTCPHostServices(cli_h, srv_h);
+  else {
+    switch(l7proto) {
+    case NDPI_PROTOCOL_NTP:
+      /* Check direction first */
+      if(payload && (payload_len > 1)) {
+	u_int8_t mode = payload[0] & 0x07;
+	
+	if(mode == 2 /* server -> client */)
+	  swap_requested = 1; /* This flow will be swapped */
       }
-    } else {
-      if(srv_host && (!srv_host->isBroadcastHost())) {
-	srv_host->setDhcpServer(domain_name);
-      } else if(srv_ip_addr && !srv_ip_addr->isBroadcastAddress()) {
-        srv_ip_addr->setDhcpServer();
-      }
+      break;
     }
-    break;
-
-  case NDPI_PROTOCOL_NTP:
-    real_srv_h = srv_h /* , real_cli_h = cli_h */;
-
-    /* Check direction first */
-    if(payload && (payload_len > 1)) {
-      u_int8_t mode = payload[0] & 0x07;
-
-      if(mode == 2 /* server -> client */)
-	real_srv_h = cli_h /* , real_cli_h = srv_h */;
-    }
-
-    if(real_srv_h)
-      real_srv_h->setNtpServer(domain_name);
-    else if(srv_ip_addr)
-      srv_ip_addr->setNtpServer();
-    break;
-
-  case NDPI_PROTOCOL_MAIL_SMTPS:
-  case NDPI_PROTOCOL_MAIL_SMTP:
-    if(isBidirectional()) {
-      if(srv_h)
-        srv_h->setSmtpServer(domain_name);
-      else if(srv_ip_addr)
-        srv_ip_addr->setSmtpServer();
-    }
-    break;
-
-  case NDPI_PROTOCOL_MAIL_IMAPS:
-  case NDPI_PROTOCOL_MAIL_IMAP:
-    if(isBidirectional()) {
-      if(srv_h)
-        srv_h->setImapServer(domain_name);
-      else if (srv_ip_addr)
-        srv_ip_addr->setImapServer();
-    }
-    break;
-
-  case NDPI_PROTOCOL_MAIL_POPS:
-  case NDPI_PROTOCOL_MAIL_POP:
-    if(isBidirectional()) {
-      if(srv_h)
-        srv_h->setPopServer(domain_name);
-      else if (srv_ip_addr)
-        srv_ip_addr->setPopServer();
-    }
-    break;
-
-  case NDPI_PROTOCOL_DNS:
-    /*
-      No need to swap as Flow::processDNSPacket()
-      take care of directions
-    */
-    if(srv_h)
-      srv_h->setDnsServer(domain_name);
-    else if (srv_ip_addr)
-      srv_ip_addr->setDnsServer();
-    break;
-
-  case NDPI_PROTOCOL_TOR:
-  case NDPI_PROTOCOL_TLS:
-  case NDPI_PROTOCOL_QUIC:
-    if(ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_DOH_DOT
-       && cli_h && srv_h && cli_h->isLocalHost())
-      cli_h->incDohDoTUses(srv_h);
-    break;
-
-  default:
-    break;
-  } /* switch */
+  }
 }
 
 /* *************************************** */
@@ -1196,6 +1125,18 @@ void Flow::setExtraDissectionCompleted() {
       setAddressFamilyProtocol(p);
     }
   }
+
+  /* 
+     NOTE
+     TCP host services are updated in Flow::processDetectedProtocol
+     UDP sevices are updated here as we need to know if the flow is
+     unidirectional and this can be sorted out only after a few packets
+     as doing it during the flow processing it is too early as nDPI
+     returns immediately the protocol name (e.g. with DNS) without
+     waiting the response to be received
+  */     
+  if(protocol == IPPROTO_UDP)
+    updateUDPHostServices();
 
   processExtraDissectedInformation();
 
@@ -7038,4 +6979,112 @@ void Flow::swap() {
   }
   
   swap_done = 1, swap_requested = 0;  
+}
+
+/* *************************************** */
+
+void Flow::updateTCPHostServices(Host *cli_h, Host *srv_h) {
+  char *domain_name;
+  
+  if(ndpiFlow)
+    domain_name = ndpi_get_flow_name(ndpiFlow);
+  else
+    domain_name = NULL;
+
+  switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
+  case NDPI_PROTOCOL_MAIL_SMTPS:
+  case NDPI_PROTOCOL_MAIL_SMTP:
+    if(isBidirectional()) {
+      if(srv_h)
+        srv_h->setSmtpServer(domain_name);
+      else if(srv_ip_addr)
+        srv_ip_addr->setSmtpServer();
+    }
+    break;
+
+  case NDPI_PROTOCOL_MAIL_IMAPS:
+  case NDPI_PROTOCOL_MAIL_IMAP:
+    if(isBidirectional()) {
+      if(srv_h)
+        srv_h->setImapServer(domain_name);
+      else if (srv_ip_addr)
+        srv_ip_addr->setImapServer();
+    }
+    break;
+
+  case NDPI_PROTOCOL_MAIL_POPS:
+  case NDPI_PROTOCOL_MAIL_POP:
+    if(isBidirectional()) {
+      if(srv_h)
+        srv_h->setPopServer(domain_name);
+      else if (srv_ip_addr)
+        srv_ip_addr->setPopServer();
+    }
+    break;
+
+  default:
+    break;
+  } /* switch */
+}
+
+/* *************************************** */
+
+void Flow::updateUDPHostServices() {
+  Host *cli_h, *srv_h;
+  char *domain_name;
+  
+  if(ndpiFlow)
+    domain_name = ndpi_get_flow_name(ndpiFlow);
+  else
+    domain_name = NULL;
+
+  get_actual_peers(&cli_h, &srv_h);
+  
+  switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
+  case NDPI_PROTOCOL_DHCP:
+    if(cli_port == htons(67)) {
+      /* Server -> Client */
+      if(cli_host && (!cli_host->isBroadcastHost())) {
+	cli_host->setDhcpServer(domain_name);
+      } else if(cli_ip_addr && !cli_ip_addr->isBroadcastAddress()) {
+        cli_ip_addr->setDhcpServer();
+      }
+    } else {
+      if(srv_host && (!srv_host->isBroadcastHost())) {
+	srv_host->setDhcpServer(domain_name);
+      } else if(srv_ip_addr && !srv_ip_addr->isBroadcastAddress()) {
+        srv_ip_addr->setDhcpServer();
+      }
+    }
+    break;
+
+  case NDPI_PROTOCOL_NTP:
+    if(srv_h)
+      srv_h->setNtpServer(domain_name);
+    else if(srv_ip_addr)
+      srv_ip_addr->setNtpServer();
+    break;
+
+  case NDPI_PROTOCOL_DNS:
+    /*
+      No need to swap as Flow::processDNSPacket()
+      takes care of directions
+    */
+    if(srv_h)
+      srv_h->setDnsServer(domain_name);
+    else if (srv_ip_addr)
+      srv_ip_addr->setDnsServer();
+    break;
+
+  case NDPI_PROTOCOL_TOR:
+  case NDPI_PROTOCOL_TLS:
+  case NDPI_PROTOCOL_QUIC:
+    if(ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_DOH_DOT
+       && cli_h && srv_h && cli_h->isLocalHost())
+      cli_h->incDohDoTUses(srv_h);
+    break;
+
+  default:
+    break;
+  } /* switch */
 }
