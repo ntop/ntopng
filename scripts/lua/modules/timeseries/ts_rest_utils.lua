@@ -86,7 +86,7 @@ function ts_rest_utils.get_timeseries(http_context)
       local res
       additional_options = additional_options or {}
       local options = table.merge(options, additional_options)
-
+      options.keep_nan = true  
       if starts(ts_schema, "top:") then
 	 local ts_schema = split(ts_schema, "top:")[2]
 
@@ -203,7 +203,11 @@ function ts_rest_utils.get_timeseries(http_context)
 
       local ts_tot_value = 0
       for _, ts_value in pairs(serie.data or {}) do
-	 ts_tot_value = ts_tot_value + tonumber(ts_value or 0)
+         local value = 0
+         if tostring(ts_value or '-nan') ~= '-nan' then
+             value = tonumber(ts_value or 0)
+         end
+         ts_tot_value = ts_tot_value + tonumber(value)
       end
 
       if ts_tot_value > 0 then

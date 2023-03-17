@@ -506,10 +506,13 @@ function driver:query(schema, tstart, tend, tags, options)
 
       -- unify the format
       for i, v in pairs(serie) do
-	 local v = ts_common.normalizeVal(v, max_val, options)
+         local value = ts_common.normalizeVal(v, max_val, options)
+         if options.keep_nan == true and tostring(v) == '-nan' then
+            value = v
+         end
 
-	 serie[i] = v
-	 count = count + 1
+         serie[i] = value
+         count = count + 1
       end
 
       -- Remove the last value: RRD seems to give an additional point
