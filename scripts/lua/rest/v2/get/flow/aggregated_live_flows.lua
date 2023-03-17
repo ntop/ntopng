@@ -224,7 +224,7 @@ local function build_response()
           label = client_ip_label,
           id = client_ip,
         },
-        is_client_in_mem = isView,
+        is_client_in_mem = isView or cli_in_mem,
         client_name = {
           label = client_name,
           id = client_ip, 
@@ -235,7 +235,7 @@ local function build_response()
           label = server_ip_label,
           id = server_ip,
         },
-        is_server_in_mem = isView,
+        is_server_in_mem = isView or srv_in_mem,
         server_name = {
           label = server_name,
           id = server_ip,

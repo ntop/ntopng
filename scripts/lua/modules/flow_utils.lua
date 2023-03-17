@@ -1780,6 +1780,69 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
       ']]
     end
 
+    if(not(talking_with_params["server"] and talking_with_params["client"])) then
+      if talking_with_params["client"] then
+         local talking_with_list = {}
+         for host, num_flows in pairs(flowstats["talking_with"] or {}) do
+            if talking_with_params["client"] ~= host then
+               local hinfo = hostkey2hostinfo(host)
+               
+               talking_with_list[#talking_with_list + 1] = {
+                  host,
+                  hostinfo2label(hinfo) .. " (" .. tostring(num_flows) .. ")"
+               }
+            end
+         end
+
+         print[[, '\
+            <div class="btn-group">\
+         <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.talking_with")) print(getParamFilter(page_params, "talking_with")) print[[<span class="caret"></span></button>\
+         <ul class="dropdown-menu scrollable-dropdown" role="menu">\
+         ]]print('<li><a class="dropdown-item') print(page_params.talking_with == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, talking_with_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
+            printDropdownEntries(talking_with_list, base_url, talking_with_params, "talking_with", page_params.talking_with)
+      
+         -- Check if talking_with_list is empty to print \ else is going to didn't call get_flows_data and html crash
+         if #talking_with_list >0 then
+            print[[\]]
+         end
+            print[[
+         </ul>\
+            </div>\
+         ']]
+      end
+
+      if talking_with_params["server"] then
+         local talking_with_list = {}
+         for host, num_flows in pairs(flowstats["talking_with"] or {}) do
+            if talking_with_params["server"] ~= host then
+               local hinfo = hostkey2hostinfo(host)
+               
+               talking_with_list[#talking_with_list + 1] = {
+                  host,
+                  hostinfo2label(hinfo) .. " (" .. tostring(num_flows) .. ")"
+               }
+            end
+         end
+
+         print[[, '\
+            <div class="btn-group">\
+         <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.talking_with")) print(getParamFilter(page_params, "talking_with")) print[[<span class="caret"></span></button>\
+         <ul class="dropdown-menu scrollable-dropdown" role="menu">\
+         ]]print('<li><a class="dropdown-item') print(page_params.talking_with == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, talking_with_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
+            printDropdownEntries(talking_with_list, base_url, talking_with_params, "talking_with", page_params.talking_with)
+      
+         -- Check if talking_with_list is empty to print \ else is going to didn't call get_flows_data and html crash
+         if #talking_with_list >0 then
+            print[[\]]
+         end
+            print[[
+         </ul>\
+            </div>\
+         ']]
+      end
+
+    end
+
     -- Status selector
     -- table.clone needed to modify some parameters while keeping the original unchanged
     local alert_type_params = table.clone(page_params)

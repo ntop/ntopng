@@ -3729,12 +3729,12 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
   }
 
   if(lua_type(vm, 5) == LUA_TSTRING) {
-    get_host_vlan_info((char*)lua_tostring(vm, 4), &client_ip, &vlan_id, buf, sizeof(buf));
+    get_host_vlan_info((char*)lua_tostring(vm, 5), &client_ip, &vlan_id, buf, sizeof(buf));
     client = ntop_interface->getHost(client_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */);
   }
 
   if(lua_type(vm, 6) == LUA_TSTRING) {
-    get_host_vlan_info((char*)lua_tostring(vm, 5), &server_ip, &vlan_id, buf, sizeof(buf));
+    get_host_vlan_info((char*)lua_tostring(vm, 6), &server_ip, &vlan_id, buf, sizeof(buf));
     server = ntop_interface->getHost(server_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */);
   }
 
