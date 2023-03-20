@@ -388,6 +388,10 @@
                 {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info'},
                 {% end %}
 
+                {% if actions.show_snmp_info then %}
+                {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_snmp_info'},
+                {% end %}
+
                 {% if actions.show_alerts then %}
                 /* Button to jump to flow alerts within the same time period */
                 {icon: 'fas fa-exclamation-triangle', title: "{{ i18n('show_alerts.flow_alerts') }}", href: '#check_alerts'},
