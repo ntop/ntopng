@@ -1204,6 +1204,7 @@ void Flow::setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_le
 #ifdef BLACKLISTED_FLOWS_DEBUG
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE) {
     char buf[512];
+    
     print(buf, sizeof(buf));
     snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf),
 	     "Malware category detected. [cli_blacklisted: %u][srv_blacklisted: %u][category: %s]",
@@ -2195,7 +2196,7 @@ void Flow::update_pools_stats(NetworkInterface *iface,
 
 /* *************************************** */
 
-bool Flow::equal(const Mac *_src_mac, const Mac *_dst_mac,
+bool Flow::equal(const Mac *_src_pkt_mac, const Mac *_dst_pkt_mac,
 		 const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 		 u_int16_t _cli_port, u_int16_t _srv_port,
 		 u_int16_t _u_int16_t, u_int16_t _observation_point_id,
@@ -2206,7 +2207,7 @@ bool Flow::equal(const Mac *_src_mac, const Mac *_dst_mac,
   const Mac *src_mac, *dst_mac;
 
 #if 0
-  {
+  if(ntohs(_cli_port) == 17446) {
     char buf1[64],buf2[64],buf3[64],buf4[64];
     
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s][%s][%s][%s]",
@@ -2242,11 +2243,11 @@ bool Flow::equal(const Mac *_src_mac, const Mac *_dst_mac,
   if(cli_ip && cli_ip->equal(_cli_ip)
      && srv_ip && srv_ip->equal(_srv_ip)
      && _cli_port == cli_port && _srv_port == srv_port) {
-    *src2srv_direction = true, src_mac = _src_mac, dst_mac = _dst_mac;
+    *src2srv_direction = true, src_mac = _src_pkt_mac, dst_mac = _dst_pkt_mac;
   } else if(srv_ip && srv_ip->equal(_cli_ip)
 	    && cli_ip && cli_ip->equal(_srv_ip)
 	    && _srv_port == cli_port && _cli_port == srv_port) {
-    *src2srv_direction = false, src_mac = _dst_mac, dst_mac = _src_mac;
+    *src2srv_direction = false, src_mac = _dst_pkt_mac, dst_mac = _src_pkt_mac;
     cli_ip = get_srv_ip_addr(), srv_ip = get_cli_ip_addr();
   } else 
     return(false);
@@ -2257,7 +2258,7 @@ bool Flow::equal(const Mac *_src_mac, const Mac *_dst_mac,
     if(cli_mac != src_mac) return(false);
   }
 
-  if(srv_host && dst_mac) {
+  if(src_mac && dst_mac && cli_host && srv_host) {
     Mac *srv_mac = srv_host->getMac();
 
     if(srv_mac != dst_mac) return(false);
