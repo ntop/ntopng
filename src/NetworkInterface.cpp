@@ -1188,6 +1188,7 @@ Flow* NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac,
 
     ret = unswapped_flow; /* 1 - Use the new flow */
     ret->swap();          /* 2 - Swap flow keys   */
+    *src2dst_direction = !src2dst_direction; /* Don't forget to reverse the direction ! */
   }
 
   if(ret == NULL) {
@@ -1244,11 +1245,12 @@ Flow* NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac,
       if((!src_mac->isSpecialMac()) && (primary_mac = srcHost->getMac()) && primary_mac != src_mac) {
 #ifdef MAC_DEBUG
 	char buf[32], bufm1[32], bufm2[32];
+	
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Detected mac address [%s] [host: %s][primary mac: %s]",
+				     "Detected mac address [new MAC: %s] [old host: %s/primary mac: %s][pkts: %u]",
 				     Utils::formatMac(src_mac->get_mac(), bufm1, sizeof(bufm1)),
 				     srcHost->get_ip()->print(buf, sizeof(buf)),
-				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
+				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)), getNumPackets());
 #endif
 
 	if(srcHost->getMac()->isSpecialMac()) {
@@ -1278,12 +1280,14 @@ Flow* NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac,
       if((!dst_mac->isSpecialMac()) && (primary_mac = dstHost->getMac()) && primary_mac != dst_mac) {
 #ifdef MAC_DEBUG
 	char buf[32], bufm1[32], bufm2[32];
+	
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Detected mac address [%s] [host: %s][primary mac: %s]",
+				     "Detected mac address [new MAC: %s] [old host: %s/primary mac: %s]",
 				     Utils::formatMac(dst_mac->get_mac(), bufm1, sizeof(bufm1)),
 				     dstHost->get_ip()->print(buf, sizeof(buf)),
 				     Utils::formatMac(primary_mac->get_mac(), bufm2, sizeof(bufm2)));
 #endif
+
 	dstHost->set_mac(dst_mac);
 	dstHost->updateHostPool(true /* Inline */);
       }
