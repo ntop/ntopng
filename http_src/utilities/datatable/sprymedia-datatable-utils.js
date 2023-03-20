@@ -637,7 +637,17 @@ export class DataTableRenders {
         return seconds;
     }
 
-    static filterize(key, value, label, tag_label, title, html) {
+    static filterize(key, value, label, tag_label, title, html, is_snmp_ip, ip) {
+        if(is_snmp_ip != null) {
+            if(is_snmp_ip) {
+                let url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?host=${value}`);
+                return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${html || label || value}</a> <a href='${url}'data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+
+            } else {
+                let url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${ip}&snmp_port_idx=${value}`);
+                return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${html || label || value}</a> <a href='${url}'data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+            }
+        }
         return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${html || label || value}</a>`;
     }
 
@@ -680,14 +690,14 @@ export class DataTableRenders {
 
     static formatSNMPInterface(obj, type, row) {
         if (type !== "display") return obj.value;
-        let cell = DataTableRenders.filterize('snmp_interface', obj.value, obj.label, obj.label, obj.label);
+        let cell = DataTableRenders.filterize('snmp_interface', obj.value, obj.label, obj.label, obj.label,null,false, row.ip);
         if (obj.color) cell = `<span class='font-weight-bold' style='color: ${obj.color}'>${cell}</span>`;
         return cell;
     }
 
     static formatSNMPIP(obj, type, row) {
         if (type !== "display") return obj;
-        return DataTableRenders.filterize('ip', obj, obj, obj, obj);
+        return DataTableRenders.filterize('ip', obj, obj, obj, obj, null, true);
     }
 
     static formatProbeIP(obj, type, row) {
