@@ -36,10 +36,10 @@ Moreover, it is possible to configure the ability to trigger an alert when an al
 
   Devices Exclusion Add Modal
 
-Other then that, when adding a new allowed MAC address, it is possible to add a list of MAC addresses (one per row) and if an already seen MAC address is added, then, that device, is going to be set to allowed.
+Other then that, when adding a new allowed MAC address, it is possible to add a list of MAC addresses (one per row) and if an already seen MAC address is added, then, that device, is going to be set to denied.
 
 .. note::
 
-  All newly added MAC addresses, using the modal, are going to be set automatically to allowed.
+  All newly added MAC addresses, using the modal, are going to be set automatically to denied.
 
 
