@@ -349,12 +349,12 @@ function flow_alert_store:top_srv_ip_domain()
    local q_res = {}
    if ntop.isClickHouseEnabled() then
       
-      q = string.format("SELECT "..string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")..", vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
-.."),-2,2),'.'), count(*) count FROM %s WHERE %s GROUP BY "..string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")..", vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
+      q = string.format("SELECT "..string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name").." as domain_name, vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
+.."),-2,2),'.') as domain_name_trunc, count(*) count FROM %s WHERE %s GROUP BY "..string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")..", vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
 .."),-2,2),'.') ORDER BY count DESC LIMIT %u",self:get_table_name(), where_clause, self._top_limit)
+   
+      q_res = interface.alert_store_query(q)
    end
-
-   q_res = ternary(q ~= nil, interface.alert_store_query(q), {})
 
    return q_res
 end
