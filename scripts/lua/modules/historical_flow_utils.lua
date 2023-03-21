@@ -1552,7 +1552,11 @@ local function build_datatable_js_column_bytes(name, data_name, label, order, hi
       order = order,
       visible_by_default = not hide,
       js = [[
-      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', className: 'no-wrap'}]] 
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+        if (type !== 'display') return ]] .. name .. [[;
+        if (]] .. name .. [[ !== undefined)
+          return NtopUtils.bytesToVolume(]] .. name .. [[);
+      }}]]
    }
 end
 
@@ -1708,7 +1712,7 @@ local all_datatable_js_columns_by_tag = {
    ['cli_port'] = build_datatable_js_column_port('cli_port', 'cli_port', i18n("db_search.cli_port"), 9),
    ['srv_port'] = build_datatable_js_column_port('srv_port', 'srv_port', i18n("db_search.srv_port"), 10),
    ['packets'] = build_datatable_js_column_packets('packets', 'packets', i18n("db_search.packets"), 11, false),
-   ['bytes'] = build_datatable_js_column_bytes('bytes', 'bytes', i18n("db_search.bytes"), 12, false),
+   ['bytes'] = build_datatable_js_column_default('bytes', 'bytes', i18n("db_search.bytes"), 12, false),
    ['throughput'] = {
       i18n = i18n("db_search.throughput"),
       order = 13,
