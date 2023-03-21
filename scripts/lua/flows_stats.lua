@@ -544,15 +544,7 @@ else
     vlan_list = vlan_list.VLANs
   end
 
-   local currently_active = false
-
-   tmp_vlans[#tmp_vlans+1] = {
-         label = i18n("flows_page.all_vlan_ids"),
-         id = -1,
-         countable = false,
-         key = -1,
-         currently_active = (vlan == -1 or currently_active)
-   }
+   
   for _, vlan_info in pairsByField(vlan_list or {}, 'vlan_id', asc) do
     local label = i18n("hosts_stats.vlan_title", { vlan = getFullVlanName(vlan_info.vlan_id) })
     local currently_active = false
@@ -569,6 +561,17 @@ else
       currently_active = (vlan == vlan_info.vlan_id or currently_active)
     }
   end
+   if(#tmp_vlans >  1) then
+      local currently_active = false
+
+      tmp_vlans[#tmp_vlans+1] = {
+            label = i18n("flows_page.all_vlan_ids"),
+            id = -1,
+            countable = false,
+            key = -1,
+            currently_active = (vlan == -1 or currently_active)
+      }
+   end
 
   -- Order again by name
   for _, vlan in pairsByField(tmp_vlans or {}, 'label', asc_insensitive) do
