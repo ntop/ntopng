@@ -156,6 +156,7 @@ local confidence = _GET["confidence"]
 local traffic_direction = _GET["traffic_direction"]
 local subtype = _GET["subtype"]
 local vlan_id = _GET["vlan_id"]
+local alert_domain = _GET["alert_domain"]
 
 --------------------------------------------------------------
 
@@ -521,6 +522,7 @@ local operators_by_filter = {
    community_id = {'eq','neq', 'in', 'nin'},
    ja3_client = {'eq','neq','in','nin'},
    ja3_server = {'eq','neq','in','nin'},
+   alert_domain = {'eq','neq','in','nin'},
    confidence = {'eq','neq'},
    traffic_direction = {'eq','neq'},
    text = {'eq','neq'},
@@ -571,6 +573,7 @@ local defined_tags = {
       ja3_server = operators_by_filter.ja3_server,
       traffic_direction = operators_by_filter.traffic_direction,
       confidence = operators_by_filter.confidence,
+      alert_domain = operators_by_filter.alert_domain
    },
    ["system"] = {
       alert_id = operators_by_filter.alert_id,
@@ -732,6 +735,7 @@ local datasource_data = {
    community_id = community_id,
    ja3_client = ja3_client,
    ja3_server = ja3_server,
+   alert_domain = alert_domain,
    confidence = confidence,
    traffic_direction = traffic_direction,
    subtype = subtype,

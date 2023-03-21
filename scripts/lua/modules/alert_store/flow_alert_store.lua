@@ -340,6 +340,27 @@ end
 
 -- ##############################################
 
+--@brief Performs a query for the top domain named hosts for suspicious_dga_domain alerts by alert count
+function flow_alert_store:top_srv_ip_domain()
+   -- Preserve all the filters currently set
+   local where_clause = self:build_where_clause().." AND alert_id = 47 "
+   local field_to_search = self:get_column_name('json', false)
+   local q = nil
+   local q_res = {}
+   if ntop.isClickHouseEnabled() then
+      
+      q = string.format("SELECT "..string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")..", vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
+.."),-2,2),'.'), count(*) count FROM %s WHERE %s GROUP BY "..string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")..", vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
+.."),-2,2),'.') ORDER BY count DESC LIMIT %u",self:get_table_name(), where_clause, self._top_limit)
+   end
+
+   q_res = ternary(q ~= nil, interface.alert_store_query(q), {})
+
+   return q_res
+end
+
+-- ##############################################
+
 --@brief Merge top clients and top servers to build a top hosts 
 function flow_alert_store:top_ip_merge(top_cli_ip, top_srv_ip)
    local all_ip = {}
@@ -461,6 +482,7 @@ function flow_alert_store:_get_additional_stats()
    stats.top.srv_network = self:top_srv_network_historical()
    stats.top.network = self:top_network_merge(stats.top.cli_network, stats.top.srv_network)
    stats.top.vlan = self:top_vlan_historical()
+   stats.top.dga_domain = self:top_srv_ip_domain()
    return stats
 end
 
@@ -518,6 +540,7 @@ function flow_alert_store:_add_additional_request_filters()
    local community_id = _GET["community_id"]
    local ja3_client = _GET["ja3_client"]
    local ja3_server = _GET["ja3_server"]
+   local alert_domain = _GET["alert_domain"]
    
    self:format_traffic_direction(_GET["traffic_direction"])
    
@@ -554,6 +577,8 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list(self:format_query_json_value('proto.ja3.client_hash'), ja3_client, 'string')
    self:add_filter_condition_list(self:format_query_json_value('proto.l7_error_code'), error_code, 'string')
    self:add_filter_condition_list(self:format_query_json_value('proto.confidence'), confidence, 'string')
+   self:add_filter_condition_list(self:format_query_json_value('proto.tls.client_requested_server_name'), alert_domain, 'string')
+
 end
 
 -- ##############################################
@@ -588,6 +613,7 @@ function flow_alert_store:_get_additional_available_filters()
       ja3_client        = tag_utils.defined_tags.ja3_client,
       ja3_server        = tag_utils.defined_tags.ja3_server,
       traffic_direction = tag_utils.defined_tags.traffic_direction,
+      alert_domain      = tag_utils.defined_tags.alert_domain,
 
       probe_ip = tag_utils.defined_tags.probe_ip,
       input_snmp = tag_utils.defined_tags.input_snmp,
