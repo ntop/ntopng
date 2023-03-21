@@ -3695,7 +3695,7 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats ndpi_stats;
   FlowStats stats;
-  char *host_ip = NULL, *talking_with_ip = NULL, *tmp = NULL, *server_ip= NULL, *client_ip = NULL;
+  char *host_ip = NULL, *talking_with_ip = NULL, *server_ip= NULL, *client_ip = NULL;
   u_int16_t vlan_id = 0;
   char buf[64];
   bool only_traffic_stats = false;
@@ -3709,8 +3709,11 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
 
   /* Optional host */
   if(lua_type(vm, 1) == LUA_TSTRING) {
-    get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-    host = ntop_interface->getHost(host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */);
+    char *tmp = (char*)lua_tostring(vm, 1);
+    if(strlen(tmp)> 0) {
+      get_host_vlan_info(tmp, &host_ip, &vlan_id, buf, sizeof(buf));
+      host = ntop_interface->getHost(host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */);
+    }
   }
 
   if(lua_type(vm, 2) == LUA_TTABLE)
@@ -3721,7 +3724,7 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
 
   /* Optional talking with host, available only for the host flows */
   if(lua_type(vm, 4) == LUA_TSTRING) {
-    tmp = (char*)lua_tostring(vm, 4);
+    char *tmp = (char*)lua_tostring(vm, 4);
     if(strlen(tmp)> 0) {
       get_host_vlan_info(tmp, &talking_with_ip, &vlan_id, buf, sizeof(buf));
       talking_with_host = ntop_interface->getHost(talking_with_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */);
@@ -3729,13 +3732,19 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
   }
 
   if(lua_type(vm, 5) == LUA_TSTRING) {
-    get_host_vlan_info((char*)lua_tostring(vm, 5), &client_ip, &vlan_id, buf, sizeof(buf));
-    client = ntop_interface->getHost(client_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */);
+    char *tmp = (char*)lua_tostring(vm, 5);
+    if(strlen(tmp)> 0) {
+      get_host_vlan_info(tmp, &client_ip, &vlan_id, buf, sizeof(buf));
+      client = ntop_interface->getHost(client_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */);
+    }
   }
 
   if(lua_type(vm, 6) == LUA_TSTRING) {
-    get_host_vlan_info((char*)lua_tostring(vm, 6), &server_ip, &vlan_id, buf, sizeof(buf));
-    server = ntop_interface->getHost(server_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */);
+    char *tmp = (char*)lua_tostring(vm, 6);
+    if(strlen(tmp)> 0) {
+      get_host_vlan_info(tmp, &server_ip, &vlan_id, buf, sizeof(buf));
+      server = ntop_interface->getHost(server_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */);
+    }
   }
 
 

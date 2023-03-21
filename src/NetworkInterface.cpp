@@ -4472,20 +4472,6 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 #ifdef HAVE_NEDGE
   bool filtered_flows;
 #endif
-
-  if(retriever->talking_with_host) {
-    if(!f->getInterface()->isViewed()) {
-      if(retriever->talking_with_host != f->get_cli_host()
-	 && retriever->talking_with_host != f->get_srv_host()) {
-	return(false);
-      }
-    } else {
-      if(!(retriever->talking_with_host->get_ip()->equal(f->get_cli_ip_addr()) && retriever->talking_with_host->get_vlan_id() == f->get_vlan_id())
-	 &&!(retriever->talking_with_host->get_ip()->equal(f->get_srv_ip_addr()) && retriever->talking_with_host->get_vlan_id() == f->get_vlan_id()))
-        return(false);
-    }
-  }
-
   
 
   if(f && (!f->idle())) {
@@ -4506,6 +4492,19 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
         }
       } else {
         if(!(retriever->server->get_ip()->equal(f->get_srv_ip_addr()) && retriever->server->get_vlan_id() == f->get_vlan_id()))
+          return(false);
+      }
+    }
+    
+    if(retriever->talking_with_host) {
+      if(!f->getInterface()->isViewed()) {
+        if(retriever->talking_with_host != f->get_cli_host()
+    && retriever->talking_with_host != f->get_srv_host()) {
+    return(false);
+        }
+      } else {
+        if(!(retriever->talking_with_host->get_ip()->equal(f->get_cli_ip_addr()) && retriever->talking_with_host->get_vlan_id() == f->get_vlan_id())
+    &&!(retriever->talking_with_host->get_ip()->equal(f->get_srv_ip_addr()) && retriever->talking_with_host->get_vlan_id() == f->get_vlan_id()))
           return(false);
       }
     }
@@ -4530,8 +4529,19 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	  the same pointer also used by the flow to identify its client / server hosts.
 	*/
 	if(retriever->host != f->get_cli_host()
-	   && retriever->host != f->get_srv_host())
+	   && retriever->host != f->get_srv_host()) {
+      #if 0
+        if(f->get_cli_host() && f->get_srv_host()) {
+          char buf[128], buf2[128], buf3[128];
+              ntop->getTrace()->traceEvent(TRACE_WARNING,
+                  "Skipping Host: %s (%p) - %s (%p) / Talking Host: %s",
+                  f->get_cli_host() ? f->get_cli_host()->get_hostkey(buf, sizeof(buf)) : "NULL", f->get_cli_host(),
+                  f->get_srv_host() ? f->get_srv_host()->get_hostkey(buf2, sizeof(buf2)) : "NULL", f->get_srv_host(),
+                  retriever->host ? retriever->host->get_hostkey(buf3, sizeof(buf3)) : "NULL"), ;
+        }
+      #endif
 	  return(false);
+     }
       } else {
 	/*
 	  In case of view interfaces, hosts are in the view interface whereas flows are in
@@ -5439,7 +5449,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   retriever->actNumEntries = 0, retriever->maxNumEntries = getFlowsHashSize(), retriever->allowed_hosts = allowed_hosts;
 
   retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
-
+  
   if(retriever->elems == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
     return(-1);
