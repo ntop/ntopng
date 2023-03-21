@@ -4530,14 +4530,14 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	*/
 	if(retriever->host != f->get_cli_host()
 	   && retriever->host != f->get_srv_host()) {
-      #if 0
+      #if 1
         if(f->get_cli_host() && f->get_srv_host()) {
           char buf[128], buf2[128], buf3[128];
               ntop->getTrace()->traceEvent(TRACE_WARNING,
-                  "Skipping Host: %s (%p) - %s (%p) / Talking Host: %s",
+                  "Skipping Host: %s (%p) - %s (%p) / Talking Host: %s (%p)",
                   f->get_cli_host() ? f->get_cli_host()->get_hostkey(buf, sizeof(buf)) : "NULL", f->get_cli_host(),
                   f->get_srv_host() ? f->get_srv_host()->get_hostkey(buf2, sizeof(buf2)) : "NULL", f->get_srv_host(),
-                  retriever->host ? retriever->host->get_hostkey(buf3, sizeof(buf3)) : "NULL"), ;
+                  retriever->host ? retriever->host->get_hostkey(buf3, sizeof(buf3)) : "NULL", retriever->host);
         }
       #endif
 	  return(false);
