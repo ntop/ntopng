@@ -101,7 +101,7 @@ local function build_response()
     -- application_protocol case
 
       for _, data in pairs(aggregated_info) do
-      if vlan and not isEmptyString(vlan) and tonumber(vlan) ~= tonumber(data.vlan_id) then
+      if vlan and not isEmptyString(vlan) and tonumber(vlan) ~= tonumber(data.vlan_id) and tonumber(vlan) ~= -1 then
         goto continue
       end
       num_entries = data.num_entries
@@ -154,17 +154,16 @@ local function build_response()
       local total_bytes = bytes_rcvd + bytes_sent
 
       if (criteria_type_id == 2) then
-        if(vlan and not isEmptyString(vlan) and tonumber(vlan) ~= tonumber(data.cli_vlan_id)) then
+        if(vlan and not isEmptyString(vlan) and (tonumber(vlan) ~= tonumber(data.cli_vlan_id)  and tonumber(vlan) ~= -1)) then
           goto continue
         end
       elseif (criteria_type_id == 3) then
-        if(vlan and not isEmptyString(vlan) and tonumber(vlan) ~= tonumber(data.srv_vlan_id)) then
+        if(vlan and not isEmptyString(vlan) and (tonumber(vlan) ~= tonumber(data.srv_vlan_id) and tonumber(vlan) ~= -1)) then
           goto continue
         end
       else
         if(vlan and not isEmptyString(vlan) and 
-          (tonumber(vlan) ~= tonumber(data.srv_vlan_id) and tonumber(vlan) ~= tonumber(data.cli_vlan_id)) 
-          ) then
+          tonumber(vlan) ~= tonumber(data.srv_vlan_id) and tonumber(vlan) ~= tonumber(data.cli_vlan_id) and tonumber(vlan) ~= -1) then
           goto continue
         end
       end

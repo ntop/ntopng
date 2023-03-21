@@ -143,7 +143,7 @@ local function validateVlan(p)
    -- integer number validation
    if(validateNumber(p)) then
       local num = tonumber(p)
-      if(0 <= num and num < 4095 ) then
+      if(-1 <= num and num < 4095 ) then
          return true
       end
    end
