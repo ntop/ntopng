@@ -881,7 +881,7 @@ end
 -- ##############################################
 
 -- NOTE parameter 'filter' is ignored
-function alert_store:select_historical(filter, fields)
+function alert_store:select_historical(filter, fields, download --[[ Available only with ClickHouse ]])
    local table_name = self:get_table_name()
    local res = {}
    local where_clause = ''
@@ -938,10 +938,10 @@ function alert_store:select_historical(filter, fields)
 
    if ntop.isClickHouseEnabled() then
       if(group_by_clause == "") then
-	 q = string.format(" SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, toUnixTimestamp(tstamp) as tstamp_epoch, toUnixTimestamp(tstamp_end) as tstamp_end_epoch, %s FROM `%s` WHERE %s %s %s %s",
+	 q = string.format(" SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, toUnixTimestamp(tstamp) as tstamp_epoch, toUnixTimestamp(tstamp_end) as tstamp_end_epoch, %s FROM %s WHERE %s %s %s %s",
 			   self._alert_entity.entity_id, fields, table_name, where_clause, order_by_clause, limit_clause, offset_clause)
       else
-	 q = string.format(" SELECT %s FROM `%s` WHERE %s %s %s %s %s",
+	 q = string.format(" SELECT %s FROM %s WHERE %s %s %s %s %s",
 			   fields, table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
       end
    else
@@ -954,6 +954,10 @@ function alert_store:select_historical(filter, fields)
       end
    end
 
+   if download --[[ Available only with ClickHouse ]] then      
+      interface.clickhouseExecCSVQuery(q)
+      return ""
+   end
    -- tprint(q)
    res = interface.alert_store_query(q)
 
@@ -1612,7 +1616,7 @@ end
 --@param filter A filter on the entity value (no filter by default)
 --@param select_fields The fields to be returned (all by default or in any case for engaged)
 --@return Selected alerts, and the total number of alerts
-function alert_store:select_request(filter, select_fields)
+function alert_store:select_request(filter, select_fields, download --[[ Available only with ClickHouse ]])
 
    -- Add filters
    self:add_request_filters()
@@ -1632,7 +1636,7 @@ function alert_store:select_request(filter, select_fields)
       -- Add limits and sort criteria only after the count has been done
       self:add_request_ranges()
 
-      local res, info = self:select_historical(filter, select_fields)
+      local res, info = self:select_historical(filter, select_fields, download --[[ Available only with ClickHouse ]])
 
       return res, total_row, info
    end

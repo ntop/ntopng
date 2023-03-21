@@ -25,6 +25,11 @@ local format      = _GET["format"] or "json"
 local epoch_begin = _GET["epoch_begin"]
 local epoch_end   = _GET["epoch_end"]
 local no_html     = (format == "txt")
+local download    = false
+
+if ntop.isClickHouseEnabled() and no_html then
+   download = true
+end
 
 if not auth.has_capability(auth.capabilities.alerts) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -39,9 +44,6 @@ end
 
 interface.select(ifid)
 
--- Fetch the results
-local alerts, recordsFiltered
-
 if((epoch_begin ~= nil) and (epoch_end ~= nil)) then
    epoch_begin = tonumber(epoch_begin)
    epoch_end   = tonumber(epoch_end)
@@ -51,24 +53,33 @@ if((epoch_begin ~= nil) and (epoch_end ~= nil)) then
    end
 end
 
-alerts, recordsFiltered, info = flow_alert_store:select_request(nil, "*")
+if not download then
+   local alerts, recordsFiltered, info = flow_alert_store:select_request(nil, "*")
 
-for _, _value in ipairs(alerts or {}) do
-   res[#res + 1] = flow_alert_store:format_record(_value, no_html)
-end
-
-if no_html then
-   res = flow_alert_store:to_csv(res)   
-   rest_utils.vanilla_payload_response(rc, res, "text/csv")
+   for _, _value in ipairs(alerts or {}) do
+      res[#res + 1] = flow_alert_store:format_record(_value, no_html)
+   end
+   
+   if no_html then
+      res = flow_alert_store:to_csv(res)   
+      rest_utils.vanilla_payload_response(rc, res, "text/csv")
+   else
+      local data = {
+         records = res,
+         stats = info,
+      }
+   
+      rest_utils.extended_answer(rc, data, {
+         ["draw"] = tonumber(_GET["draw"]),
+         ["recordsFiltered"] = recordsFiltered,
+         ["recordsTotal"] = #res
+      }, format)
+   end   
 else
-   local data = {
-      records = res,
-      stats = info,
-   }
+   local extra_headers = {}
+   local rsp = "" -- data pushed by the query function clickhouse_utils.query (clickhouse_utils.lua)
 
-   rest_utils.extended_answer(rc, data, {
-      ["draw"] = tonumber(_GET["draw"]),
-      ["recordsFiltered"] = recordsFiltered,
-      ["recordsTotal"] = #res
-   }, format)
+   extra_headers["Content-Disposition"] = "attachment;filename=\"flow_alerts_export_"..os.time()..".csv\""
+   rest_utils.vanilla_payload_response(rest_utils.consts.success.ok, rsp, "application/octet-stream", extra_headers)
+   flow_alert_store:select_request(nil, "*", download)
 end
