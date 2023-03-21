@@ -349,6 +349,11 @@ tag_utils.defined_tags = {
       i18n_label = i18n('ja3.server_hash'),
       operators = {'eq', 'neq', 'in', 'nin'},
    },
+   alert_domain = {
+      value_type = 'text',
+      i18n_label = i18n('db_search.tags.dga_domain_name'),
+      operators = {'eq', 'neq', 'in', 'nin'},
+   },
    cli_location = {
       value_type = 'location',
       i18n_label = i18n('db_search.tags.cli_location'),
