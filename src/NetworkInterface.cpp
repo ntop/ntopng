@@ -4530,7 +4530,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	*/
 	if(retriever->host != f->get_cli_host()
 	   && retriever->host != f->get_srv_host()) {
-      #if 1
+      #if 0
         if(f->get_cli_host() && f->get_srv_host()) {
           char buf[128], buf2[128], buf3[128];
               ntop->getTrace()->traceEvent(TRACE_WARNING,
