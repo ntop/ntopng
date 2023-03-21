@@ -539,6 +539,7 @@ local lang = {
   ["top_src_score"] = "Top Total Score (Clients)",
   ["total"] = "Total",
   ["total_alerts"] = "Total Alerts",
+  ["total_bytes"] = "Total Bytes",
   ["total_incoming_alerted_flows"] = "Total Alerted Flows As Server",
   ["total_incoming_unreachable_flows"] = "Total Incoming Unreach Flows",
   ["total_outgoing_alerted_flows"] = "Total Outgoing Alerted Flows",
