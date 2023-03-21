@@ -585,6 +585,7 @@ if not is_system_interface then
 
    if #results == 0 and not isEmptyString(query) then
       -- No results - add shortcut to search in historical data
+      --tprint(query)
       if hasClickHouseSupport() then
          local label = ""
          local what = ""
@@ -596,11 +597,18 @@ if not is_system_interface then
             what = "mac"
             label = i18n("db_search.find_in_historical", {what=what, query=query})
             query = query .. tag_utils.SEPARATOR .. "eq"
+         elseif isCommunityId(query) then
+         --tprint("HERE")
+            what = "community_id"
+            label = i18n("db_search.find_in_historical", {what=what, query=query})
+            query = query .. tag_utils.SEPARATOR .. "eq"
          else
             what = "hostname"
             label = i18n("db_search.find_in_historical", {what=what, query=query})
             query = query .. tag_utils.SEPARATOR .. "in"
          end
+
+         --tprint(query)
          results[#results + 1] = build_result(label, query, what, nil, nil, "historical")
       end
    end

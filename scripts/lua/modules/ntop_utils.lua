@@ -464,6 +464,18 @@ function isMacAddress(address)
    return false
 end
 
+function isCommunityId(address) 
+   local c
+   if(address == nil) then return false end
+
+   c = string.split(address,":")
+   if(c ~= nil and #c == 2) then
+      return true
+   end
+
+   return false
+end
+
 -- ##############################################
 
 function isEmptyString(str)
