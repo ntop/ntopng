@@ -692,6 +692,10 @@ export default class NtopUtils {
 					NtopUtils._add_find_host_link(form, "mac", data.mac);
 				} else if (data.type == "community_id") {
 					NtopUtils._add_find_host_link(form, "community_id", data.community_id);
+				} else if (data.type == "ja3_client") {
+					NtopUtils._add_find_host_link(form, "ja3_client", data.ja3_client);
+				} else if (data.type == "ja3_server") {
+					NtopUtils._add_find_host_link(form, "ja3_server", data.ja3_server);
 				} else /* "hostname" */ {
 					NtopUtils._add_find_host_link(form, "name", data.hostname ? data.hostname : data.name);
 				}
