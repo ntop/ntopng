@@ -833,7 +833,7 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
     wait_for_db_created = lua_toboolean(vm, 3) ? true : false;
   }
 
-  if (!ntop->hasCapability(vm, capability_historical_flows)) {
+  if(!ntop->hasCapability(vm, capability_historical_flows)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "User is not allowed to run query: %s", sql);
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   }

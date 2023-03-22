@@ -598,6 +598,9 @@ int LuaEngine::run_loaded_script() {
   /* Copy the lua_chunk to be able to possibly run it again next time */
   lua_pushvalue(L, -1);
 
+  if(isSystemVM())
+    getLuaVMUservalue(L, capabilities) = (u_int64_t)-1; /* All set */
+
   /* Perform the actual call */
   if(lua_pcall(L, 0, LUA_MULTRET /* Allow the script to be called multiple times */, 0) != 0) {
     if(lua_type(L, -1) == LUA_TSTRING) {
@@ -1236,7 +1239,6 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     */
     capabilities = (u_int64_t)-1;
     snprintf(allowed_nets, sizeof(allowed_nets), CONST_DEFAULT_ALL_NETS);
-
   } else {
     /*
       Non-administrators only have a subset of capabilities - stored on redis
