@@ -69,6 +69,7 @@
 #include "flow_checks/IECInvalidCommandTransition.h"
 #include "flow_checks/LowGoodputFlow.h"
 #include "flow_checks/NotPurged.h"
+#include "flow_checks/RareDestination.h"
 #include "flow_checks/RemoteAccess.h"
 #include "flow_checks/RemoteToLocalInsecureProto.h"
 #include "flow_checks/RemoteToRemote.h"

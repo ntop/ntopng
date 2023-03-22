@@ -510,6 +510,7 @@ typedef enum {
   flow_alert_ndpi_minor_issues                    = 89,
   flow_alert_ndpi_tcp_issues                      = 90,
   flow_alert_vlan_bidirectional_traffic           = 91,
+  flow_alert_rare_destination                     = 92,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

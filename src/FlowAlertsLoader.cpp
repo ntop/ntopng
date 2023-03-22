@@ -65,6 +65,7 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(LowGoodputFlowAlert::getClassType(),             LowGoodputFlowAlert::getDefaultScore());
   registerAlert(NedgeBlockedFlowAlert::getClassType(),           NedgeBlockedFlowAlert::getDefaultScore());
   registerAlert(NotPurgedAlert::getClassType(),                  NotPurgedAlert::getDefaultScore());
+  registerAlert(RareDestinationAlert::getClassType(),            RareDestinationAlert::getDefaultScore());
   registerAlert(RemoteAccessAlert::getClassType(),               RemoteAccessAlert::getDefaultScore());
   registerAlert(RemoteToLocalInsecureProtoAlert::getClassType(), RemoteToLocalInsecureProtoAlert::getDefaultScore());
   registerAlert(RemoteToRemoteAlert::getClassType(),             RemoteToRemoteAlert::getDefaultScore());

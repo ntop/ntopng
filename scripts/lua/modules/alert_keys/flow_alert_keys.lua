@@ -97,8 +97,9 @@ local flow_alert_keys = {
    flow_alert_ndpi_periodic_flow                   = 88,
    flow_alert_ndpi_minor_issues                    = 89,
    flow_alert_ndpi_tcp_issues                      = 90,
-   flow_alert_vlan_bidirectional_traffic           = 91
-
+   flow_alert_vlan_bidirectional_traffic           = 91,
+   flow_alert_rare_destination                     = 92
+   
    -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
 }
 
