@@ -1522,7 +1522,11 @@ local function build_datatable_js_column_bytes(name, data_name, label, order, hi
       order = order,
       visible_by_default = not hide,
       js = [[
-      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', className: 'no-wrap'}]] 
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+        if (type !== 'display') return ]] .. name .. [[;
+        if (]] .. name .. [[ !== undefined)
+          return NtopUtils.bytesToVolume(]] .. name .. [[);
+      }}]]
    }
 end
 
@@ -1662,7 +1666,7 @@ local all_datatable_js_columns_by_tag = {
           return `<a class='tag-filter' data-tag-value='${score.value}' href='#'><span style='color: ${score.color}'>` + NtopUtils.fint(score.value) + `</span></a>`;
       }}]] },
    ['packets'] = build_datatable_js_column_packets('packets', 'packets', i18n("db_search.packets"), 9, true),
-   ['bytes'] = build_datatable_js_column_bytes('bytes', 'bytes', i18n("db_search.bytes"), 10),
+   ['bytes'] = build_datatable_js_column_default('bytes', 'bytes', i18n("db_search.bytes"), 10),
    ['throughput'] = {
       i18n = i18n("db_search.throughput"),
       order = 11,
