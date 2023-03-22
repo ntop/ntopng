@@ -526,9 +526,9 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score)
       local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
       
       -- Add check info_msg ~= alert.info to avoid duplicated in description msg
-      if (not isEmptyString(info_msg) and info_msg ~= alert.info) then
-         msg = string.format("%s [%s]", msg, info_msg)
-      end
+      --[[if (not isEmptyString(info_msg) and info_msg ~= alert.info) then
+         msg = string.format("%s", msg, info_msg)
+      end--]]
    end
 
    return msg or ""
