@@ -547,7 +547,8 @@ function flow_alert_store:_add_additional_request_filters()
    self:format_traffic_direction(_GET["traffic_direction"])
    
    -- Filter out flows with no alert
-   self:add_filter_condition_list('alert_id', "0"..tag_utils.SEPARATOR.."neq", 'number')
+   -- Any reason we need this?
+   -- self:add_filter_condition_list('alert_id', "0"..tag_utils.SEPARATOR.."neq", 'number')
 
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
    self:add_filter_condition_list('ip_version', ip_version)
