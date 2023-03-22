@@ -2252,18 +2252,38 @@ bool Flow::equal(const Mac *_src_pkt_mac, const Mac *_dst_pkt_mac,
   } else 
     return(false);
 
-  if(cli_host && src_mac) {
-    Mac *cli_mac = cli_host->getMac();
 
-    if(cli_mac != src_mac) return(false);
+  /* Check if MAC address needs to be used in flow key */
+  if(ntop->getPrefs()->useMacAddressInFlowKey()) {
+    if(cli_host && src_mac) {
+      Mac *cli_mac = cli_host->getMac();
+      Mac *srv_mac = srv_host->getMac();
+    
+      if(cli_mac != src_mac) {
+#ifdef DEBUG
+	char buf[64], buf0[64], buf1[64], buf2[64], buf3[64], buf4[64];
+      
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s (%s) <-> %s (%s) [%s / %s]",
+				     cli_ip->print(buf, sizeof(buf)),
+				     cli_mac->print(buf0, sizeof(buf0)),
+				     srv_ip->print(buf1, sizeof(buf1)),
+				     srv_mac->print(buf2, sizeof(buf2)),
+				     ((Mac*)_src_pkt_mac)->print(buf3, sizeof(buf3)),
+				     ((Mac*)_dst_pkt_mac)->print(buf4, sizeof(buf4))
+				     );
+#endif
+	return(false);
+      }
+    }
+
+    if(src_mac && dst_mac && cli_host && srv_host) {
+      Mac *srv_mac = srv_host->getMac();
+
+      if(srv_mac != dst_mac)
+	return(false);
+    }
   }
-
-  if(src_mac && dst_mac && cli_host && srv_host) {
-    Mac *srv_mac = srv_host->getMac();
-
-    if(srv_mac != dst_mac) return(false);
-  }
-
+  
   return(true);
 }
 

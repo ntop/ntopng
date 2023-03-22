@@ -1188,7 +1188,7 @@ Flow* NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac,
 
     ret = unswapped_flow; /* 1 - Use the new flow */
     ret->swap();          /* 2 - Swap flow keys   */
-    *src2dst_direction = !src2dst_direction; /* Don't forget to reverse the direction ! */
+    *src2dst_direction = true; /* Don't forget to reverse the direction ! */
   }
 
   if(ret == NULL) {
@@ -4528,20 +4528,20 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	  Indeed, the retriever->host has been obtained with getHost(), which has returned
 	  the same pointer also used by the flow to identify its client / server hosts.
 	*/
-	if(retriever->host != f->get_cli_host()
-	   && retriever->host != f->get_srv_host()) {
-      #if 0
-        if(f->get_cli_host() && f->get_srv_host()) {
-          char buf[128], buf2[128], buf3[128];
-              ntop->getTrace()->traceEvent(TRACE_WARNING,
-                  "Skipping Host: %s (%p) - %s (%p) / Talking Host: %s (%p)",
-                  f->get_cli_host() ? f->get_cli_host()->get_hostkey(buf, sizeof(buf)) : "NULL", f->get_cli_host(),
-                  f->get_srv_host() ? f->get_srv_host()->get_hostkey(buf2, sizeof(buf2)) : "NULL", f->get_srv_host(),
-                  retriever->host ? retriever->host->get_hostkey(buf3, sizeof(buf3)) : "NULL", retriever->host);
-        }
-      #endif
+	if((retriever->host != f->get_cli_host()) && (retriever->host != f->get_srv_host())) {
+#if 0
+	  if(f->get_cli_host() && f->get_srv_host()) {
+	    char buf[128], buf2[128], buf3[128];
+	    
+	    ntop->getTrace()->traceEvent(TRACE_WARNING,
+					 "Skipping Host: %s (%p) - %s (%p) / Talking Host: %s (%p)",
+					 f->get_cli_host() ? f->get_cli_host()->get_hostkey(buf, sizeof(buf)) : "NULL", f->get_cli_host(),
+					 f->get_srv_host() ? f->get_srv_host()->get_hostkey(buf2, sizeof(buf2)) : "NULL", f->get_srv_host(),
+					 retriever->host ? retriever->host->get_hostkey(buf3, sizeof(buf3)) : "NULL", retriever->host);
+	  }
+#endif
 	  return(false);
-     }
+	}
       } else {
 	/*
 	  In case of view interfaces, hosts are in the view interface whereas flows are in
