@@ -343,7 +343,7 @@ end
 --@brief Performs a query for the top domain named hosts for suspicious_dga_domain alerts by alert count
 function flow_alert_store:top_srv_ip_domain()
    -- Preserve all the filters currently set
-   local where_clause = self:build_where_clause()--.." AND alert_id = 47 "
+   local where_clause = self:build_where_clause().." AND alert_id = 47 "
    local field_to_search = self:get_column_name('json', false)
    local q = nil
    local q_res = {}
