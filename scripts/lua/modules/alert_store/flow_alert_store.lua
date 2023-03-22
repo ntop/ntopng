@@ -343,14 +343,16 @@ end
 --@brief Performs a query for the top domain named hosts for suspicious_dga_domain alerts by alert count
 function flow_alert_store:top_srv_ip_domain()
    -- Preserve all the filters currently set
-   local where_clause = self:build_where_clause().." AND alert_id = 47 "
+   local where_clause = self:build_where_clause()--.." AND alert_id = 47 "
    local field_to_search = self:get_column_name('json', false)
    local q = nil
    local q_res = {}
    if ntop.isClickHouseEnabled() then
       
-      q = string.format("SELECT "..string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name").." as domain_name, vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
-.."),-2,2),'.') as domain_name_trunc, count(*) count FROM %s WHERE %s GROUP BY "..string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")..", vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
+      q = string.format("SELECT '.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
+.."),-2,2),'.') as domain_name_trunc_dot, vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
+.."),-2,2),'.') as domain_name_trunc_star, count(*) count FROM %s WHERE %s GROUP BY vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
+.."),-2,2),'.'), '.' || arrayStringConcat(arraySlice(splitByString('.',"..  string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, "proto.tls.client_requested_server_name")
 .."),-2,2),'.') ORDER BY count DESC LIMIT %u",self:get_table_name(), where_clause, self._top_limit)
    
       q_res = interface.alert_store_query(q)
