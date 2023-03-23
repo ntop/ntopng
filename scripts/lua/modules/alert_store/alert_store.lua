@@ -255,6 +255,16 @@ function alert_store:build_sql_cond(cond, is_write)
          self:get_column_name('l7_master_proto', is_write),
          sql_op, cond.value)
 
+   elseif cond.field == 'alert_id' and tonumber(cond.value) ~= 0 then
+      local alert_id_bit = "bitShiftLeft(toUInt128('1'), "..cond.value..")"
+      sql_cond = string.format(" (%s %s %u %s (%s %s %s) ) ",
+         self:get_column_name('alert_id', is_write),
+         sql_op, cond.value,
+         'OR',
+         "bitAnd("..alert_id_bit..",reinterpretAsUInt128(reverse(unhex(alerts_map))) )",
+         "=",
+         alert_id_bit)
+
    -- Special case: ip (with vlan)
    elseif cond.field == 'ip' or
           cond.field == 'cli_ip' or
