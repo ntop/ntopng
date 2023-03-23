@@ -257,6 +257,7 @@ function alert_store:build_sql_cond(cond, is_write)
 
    elseif cond.field == 'alert_id' and tonumber(cond.value) ~= 0 then
       local alert_id_bit = "bitShiftLeft(toUInt128('1'), "..cond.value..")"
+      local and_cond = 'neq'
       sql_cond = string.format(" (%s %s %u %s (%s %s %s) ) ",
          --[[ 
             filter with the predominant alert_id and also search 
@@ -264,7 +265,7 @@ function alert_store:build_sql_cond(cond, is_write)
          --]]
          self:get_column_name('alert_id', is_write),
          sql_op, cond.value,
-         'OR',
+         ternary(cond.op == and_cond, 'AND', 'OR'),
          "bitAnd("..alert_id_bit..",reinterpretAsUInt128(reverse(unhex(alerts_map))) )",
          sql_op,
          alert_id_bit)
