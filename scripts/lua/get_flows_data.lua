@@ -168,8 +168,8 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local src_process, dst_process = '', ''
    local src_container, dst_container = '', ''
 
-   local cli_tooltip = hostinfo2label({ label = info_cli.ip, vlan = info_cli.vlan }, true)
-   local srv_tooltip = hostinfo2label({ label = info_srv.ip, vlan = info_srv.vlan }, true)
+   local cli_tooltip = hostinfo2label({ label = info_cli.host or info_cli.ip, vlan = info_cli.vlan or 0 }, true)
+   local srv_tooltip = hostinfo2label({ label = info_srv.host or info_srv.ip, vlan = info_srv.vlan or 0 }, true)
 
    if((value["tcp.nw_latency.client"] ~= nil) and (value["tcp.nw_latency.client"] > 0)) then
       cli_tooltip = cli_tooltip.."&#10;nw latency: "..string.format("%.3f", value["tcp.nw_latency.client"]).." ms"
@@ -442,5 +442,6 @@ local result = {
 	 flows_filter["sortOrder"]}
    },
 }
+
 
 print(json.encode(result))
