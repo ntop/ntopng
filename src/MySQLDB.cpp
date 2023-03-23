@@ -821,7 +821,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
     return(db_operational);
   }
   
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Attempting to connect to %s for interface %s...",getEngineName(),
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Attempting to connect to %s for interface %s...", getEngineName(),
 			       iface->get_name());
 
   m.lock(__FILE__, __LINE__);

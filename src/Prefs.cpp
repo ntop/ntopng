@@ -2409,8 +2409,7 @@ bool Prefs::is_enterprise_m_edition() {
   return
 #ifdef NTOPNG_PRO
     ntop->getPro()->has_valid_enterprise_m_license()
-    || ntop->getPro()->has_valid_enterprise_l_license()
-    || ntop->getPro()->has_valid_enterprise_xl_license()
+    || is_enterprise_l_edition() /* L or higher */
 #else
   false
 #endif
@@ -2423,7 +2422,7 @@ bool Prefs::is_enterprise_l_edition() {
   return
 #ifdef NTOPNG_PRO
     ntop->getPro()->has_valid_enterprise_l_license()
-    || ntop->getPro()->has_valid_enterprise_xl_license()
+    || is_enterprise_xl_edition() /* XL or higher */
 #else
   false
 #endif
