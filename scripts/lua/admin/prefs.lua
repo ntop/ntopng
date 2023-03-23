@@ -495,14 +495,20 @@ function printMisc()
   -- ######################
 
   if(isAdministratorOrPrintErr()) then
-     print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("hosts")..'</th></tr></thead>')
+    print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("hosts")..'</th></tr></thead>')
 
-     local h_labels = {i18n("prefs.no_host_mask"), i18n("prefs.local_host_mask"), i18n("prefs.remote_host_mask")}
-     local h_values = {"0", "1", "2"}
+    local h_labels = {i18n("prefs.no_host_mask"), i18n("prefs.local_host_mask"), i18n("prefs.remote_host_mask")}
+    local h_values = {"0", "1", "2"}
 
-     multipleTableButtonPrefs(subpage_active.entries["toggle_host_mask"].title,
-			      subpage_active.entries["toggle_host_mask"].description,
-			      h_labels, h_values, "0", "primary", "toggle_host_mask", "ntopng.prefs.host_mask")
+    multipleTableButtonPrefs(subpage_active.entries["toggle_host_mask"].title,
+          subpage_active.entries["toggle_host_mask"].description,
+          h_labels, h_values, "0", "primary", "toggle_host_mask", "ntopng.prefs.host_mask")
+      
+    prefsToggleButton(subpage_active, {
+      field = "toggle_use_mac_in_flow_key",
+      default = "0",
+      pref = "use_mac_in_flow_key",
+    })
   end
 
   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.flow_table")..'</th></tr></thead>')

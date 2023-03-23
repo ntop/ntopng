@@ -46,7 +46,7 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = sniff_name_responses = sniff_local_name_responses = true;
-  use_promiscuous_mode = true, use_mac_in_flow_key = false;
+  use_promiscuous_mode = true;
   resolve_all_host_ip = false, service_license_check = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   attacker_max_num_flows_per_sec = victim_max_num_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
@@ -71,6 +71,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
   default_l7policy = PASS_ALL_SHAPER_ID;
+  use_mac_in_flow_key = false;
   device_protocol_policies_enabled = false, enable_vlan_trunk_bridge = false;
   max_extracted_pcap_bytes = CONST_DEFAULT_MAX_EXTR_PCAP_BYTES;
   behaviour_analysis_learning_period = CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD;
@@ -680,7 +681,8 @@ void Prefs::reloadPrefsFromRedis() {
   // alert preferences
   enable_access_log     = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
   enable_sql_log        = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SQL_LOG, false);
-
+  use_mac_in_flow_key   = getDefaultPrefsValue(CONST_PREFS_USE_MAC_IN_FLOW_KEY, false);
+  
   // auth session preferences
   auth_session_duration              = getDefaultPrefsValue(CONST_AUTH_SESSION_DURATION_PREFS, HTTP_SESSION_DURATION),
     auth_session_midnight_expiration = getDefaultBoolPrefsValue(CONST_AUTH_SESSION_MIDNIGHT_EXP_PREFS, HTTP_SESSION_MIDNIGHT_EXPIRATION);
@@ -2238,6 +2240,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "auth_session_duration", get_auth_session_duration());
   lua_push_bool_table_entry(vm, "auth_session_midnight_expiration", get_auth_session_midnight_expiration());
 
+  lua_push_uint64_table_entry(vm, "use_mac_in_flow_key", useMacAddressInFlowKey());
   lua_push_uint64_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
   lua_push_uint64_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
   lua_push_uint64_table_entry(vm, "local_host_max_idle", local_host_max_idle);
