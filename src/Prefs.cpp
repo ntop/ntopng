@@ -2492,7 +2492,7 @@ time_t Prefs::pro_edition_demo_ends_at() {
 void Prefs::validate() {
   /* Perform here post-initialization validations */
 
-  if(is_enterprise_m_edition() || is_enterprise_l_edition()) {
+  if(is_enterprise_m_edition() /* M or higher */ ) {
     ; /* All good */
   } else if(dump_flows_on_clickhouse) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "-F clickhouse is available only from Enterprise M and up");
