@@ -685,6 +685,7 @@ local lang = {
     ["traffic_sent_received"] = "Provoz odeslán / přijat",
     ["vlan_id"] = "VLAN ID",
     ["whois_lookup"] = "Whois Lookup",
+    ["ripestat_lookup"] = "RIPEstat Lookup",
   },
   ["device_protocols"] = {
     ["alert"] = "Spustit upozornění",

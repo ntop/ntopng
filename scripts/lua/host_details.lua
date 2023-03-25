@@ -672,7 +672,7 @@ else
          print("<tr><th>"..i18n("asn").."</th><td>")
 
          print("<A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn .."'>"..host.asname.."</A> [ "..i18n("asn").." <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn.."'>".. host.asn.."</A> ]</td>")
-         print('<td><A class="ntopng-external-link" href="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">'..i18n("details.whois_lookup")..' <i class="fas fa-external-link-alt"></i></A></td>')
+         print('<td><A class="ntopng-external-link" href="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">'..i18n("details.whois_lookup")..' <i class="fas fa-external-link-alt"></i></A> <A class="ntopng-external-link" href="https://stat.ripe.net/'.. host["ip"] ..'">'..i18n("details.ripestat_lookup")..' <i class="fas fa-external-link-alt"></i></A></td>')
          print("</td></tr>\n")
       end
 

@@ -1917,6 +1917,7 @@ local lang = {
     ["unidirectional_tcp_flows"] = "Totale dei Flussi TCP Unidirezionali",
     ["vlan_id"] = "VLAN ID",
     ["whois_lookup"] = "Ricerca Whois",
+    ["ripestat_lookup"] = "Ricerca RIPEstat",
   },
   ["developer_section"] = {
     ["datasources_list"] = "Sorgenti",
