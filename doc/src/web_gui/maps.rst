@@ -4,9 +4,10 @@ Maps
 - Geo Map page lays out hosts in a geographic map to give visual insights into the geographical
   locations of seen hosts
 - The Host Map, clusters the active hosts to quickly identify outliers
+- Analysis Maps, used to analyse the network and find possible misconfiguration/intruders 
 
 Geo Map
--------
+=======
 
 The Hosts Geo Map page provides world map where hosts are arranged according to their
 geographical position. :ref:`Geolocation` must be enabled.
@@ -18,7 +19,7 @@ geographical position. :ref:`Geolocation` must be enabled.
   The Hosts Geo Map Summary Page
 
 Host Map
---------
+========
 
 The page shows a bubble chart with visual data clustering, according to a selectable criteria.
 Anomalies can be easily spotted by looking at the groups which are distant from the others.
@@ -28,6 +29,15 @@ Anomalies can be easily spotted by looking at the groups which are distant from 
   :alt: Hosts Map
 
   The Hosts Map page
+
+Analysis Maps
+=============
+
+These maps are accessible from the Analysis entry and there are a total of 3 types of Analysis Maps:
+
+- Service Map
+- Periodicity Map
+- Asset Map
 
 Service Map
 -----------
