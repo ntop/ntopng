@@ -2220,6 +2220,7 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   char *host_ip = NULL, *talking_with_ip = NULL, *server_ip = NULL, *client_ip = NULL;
   u_int16_t vlan_id = (u_int16_t) -1;
   Host *host = NULL, *talking_with_host = NULL, *client = NULL, *server = NULL;
+  char *flow_info = NULL;
   Paginator *p = NULL;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -2263,11 +2264,17 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 						false /* Not an inline call */);
   }
 
+  if(lua_type(vm, 6) == LUA_TSTRING) {
+    char* tmp = ((char*)lua_tostring(vm, 6));
+    if(strlen(tmp) > 0) 
+      flow_info = tmp;
+  }
+
   
 
   if((ntop_interface)
     && (!host_ip || host))
-    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, talking_with_host, client, server, p);
+    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, talking_with_host, client, server, flow_info, p);
   else
     lua_pushnil(vm);
 
@@ -2298,7 +2305,7 @@ static int ntop_get_batched_interface_flows_info(lua_State* vm) {
     p->readOptions(vm, 2);
 
   if(ntop_interface)
-    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), NULL, NULL, NULL, NULL, p);
+    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), NULL, NULL, NULL, NULL, NULL, p);
   else
     lua_pushnil(vm);
 
@@ -3700,6 +3707,7 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
   char buf[64];
   bool only_traffic_stats = false;
   Host *host = NULL, *talking_with_host = NULL, *client = NULL, *server = NULL;
+  char *flow_info = NULL;
   Paginator *p = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -3747,9 +3755,18 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
     }
   }
 
+  if(lua_type(vm, 7) == LUA_TSTRING) {
+    char *tmp = (char*)lua_tostring(vm, 7);
+    if(strlen(tmp) > 0) {
+      flow_info = tmp;
+    }
+  }
+
+
+
 
   if(ntop_interface) {
-    ntop_interface->getActiveFlowsStats(&ndpi_stats, &stats, get_allowed_nets(vm), host, talking_with_host, client, server, p, vm, only_traffic_stats);
+    ntop_interface->getActiveFlowsStats(&ndpi_stats, &stats, get_allowed_nets(vm), host, talking_with_host, client, server, flow_info, p, vm, only_traffic_stats);
   } else
     lua_pushnil(vm);
 

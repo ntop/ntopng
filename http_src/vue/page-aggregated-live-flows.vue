@@ -52,7 +52,9 @@ const criteria_list_def = [
   { label: _i18n("application_proto"), value: 1, param: "application_protocol", table_id: "aggregated_app_proto" },
   { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client" },
   { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server"}, 
-  { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server" }
+  { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server" },
+  { label: _i18n("application_proto_client_server"), value: 5, param: "app_client_server", table_id: "aggregated_app_client_server" },
+  { label: _i18n("info"), value: 6, param: "info", table_id: "aggregated_info"}
 ];
 
 const criteria_list = ref(criteria_list_def);
@@ -136,7 +138,12 @@ const format_flows_icon = function(data, rowData) {
     url = `${http_prefix}/lua/flows_stats.lua?server=${rowData.server_name.id}`;
   else if (selected_criteria.value.value == 4)
     url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}&server=${rowData.server_name.id}`;
+  else if (selected_criteria.value.value == 5)
+    url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}&client=${rowData.client_name.id}&server=${rowData.server_name.id}`;
+  else if (selected_criteria.value.value == 6)
+    url = `${http_prefix}/lua/flows_stats.lua?flow_info=${rowData.info.id}`;
   
+
   return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
 }
 
@@ -226,6 +233,9 @@ async function set_datatable_config(params) {
   if( selected_criteria.value.value != 1 )
     sortby = 7;
   
+  if( selected_criteria.value.value == 5 )
+    sortby = 10;
+  
   
   let table_id = selected_criteria.value.table_id;
   let defaultDatatableConfig = {
@@ -263,11 +273,11 @@ async function set_datatable_config(params) {
     columns.push(
       { 
         columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-          return `<label>${data.label}</label>`
+          return `<label>${data.complete_label}</label>`
         } 
       })
   } 
-  else if (selected_criteria.value.value == 2 ) {
+  else if (selected_criteria.value.value == 2) {
 
     
     // client case
@@ -278,7 +288,7 @@ async function set_datatable_config(params) {
           return format_client_name(data, rowData)}
       })
   } 
-  else if (selected_criteria.value.value == 3 ) {
+  else if (selected_criteria.value.value == 3) {
     // server case
     columns.push(
       { 
@@ -295,6 +305,24 @@ async function set_datatable_config(params) {
         columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
         return format_server_name(data, rowData)}         
       })
+  } else if(selected_criteria.value.value == 5) {
+    columns.push(
+      { 
+        columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+          return `<label>${data.complete_label}</label>`}
+      },{ 
+        columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
+        return format_client_name(data, rowData)}
+      },{ 
+        columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
+        return format_server_name(data, rowData)}         
+      });
+  } else if(selected_criteria.value.value == 6) {
+    columns.push(
+      { 
+        columnName: i18n("info"), targets: 0, name: 'info', data: 'info', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+          return `<label>${data.label}</label>`}
+      });
   }
   
   if(props.vlans.length > 0) {

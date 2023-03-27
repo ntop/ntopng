@@ -357,7 +357,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   int sortFlows(u_int32_t *begin_slot, bool walk_all,
 		struct flowHostRetriever *retriever,
 		AddressTree *allowed_hosts,
-		Host *host, Host* client, Host* server,  Paginator *p,
+		Host *host, Host* client, Host* server, char* flow_info,  Paginator *p,
 		const char *sortColumn);
 
   void addRedisSitesKey();
@@ -392,7 +392,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #ifdef NTOPNG_PRO
   void checkDHCPStorm(time_t when, u_int32_t num_pkts);
 #endif
-  void sort_flow_stats(lua_State* vm, std::unordered_map<u_int64_t, FlowsStats*> *count, u_int filter_type);
+  void sort_flow_stats(lua_State* vm, std::unordered_map<u_int64_t, FlowsStats*> *count, std::unordered_map<string, FlowsStats*> *count_info, u_int filter_type);
 
   void build_lua_rsp(lua_State *vm, FlowsStats *fs, u_int filter_type, u_int32_t size, u_int *num);
   void build_protocol_flow_stats_lua_rsp(lua_State* vm, FlowsStats* fs, u_int32_t size, u_int *num);
@@ -647,7 +647,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		     u_int16_t *ndpiProtocol,
 		     Host **srcHost, Host **dstHost, Flow **flow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
-  void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, Host *h, Host *talking_with_host, Host *client, Host* server, Paginator *p, lua_State *vm, bool only_traffic_stats);
+  void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, Host *h, Host *talking_with_host, Host *client, Host* server, char* flow_info, Paginator *p, lua_State *vm, bool only_traffic_stats);
   virtual u_int32_t periodicStatsUpdateFrequency() const;
   void periodicStatsUpdate();
   u_int64_t purgeQueuedIdleEntries();
@@ -743,6 +743,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 	       Host *talking_with_host,
          Host *client,
          Host *server,
+         char* flow_info,
          Paginator *p);
   int getFlowsTraffic(lua_State* vm,
 	       u_int32_t *begin_slot,

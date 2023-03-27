@@ -41,7 +41,7 @@ local total = 0
 -- flows_filter["detailsLevel"] = "high"
 
 if not flows_to_update then
-   flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter, flows_filter["talkingWith"] ,flows_filter["client"],flows_filter["server"])
+   flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter, flows_filter["talkingWith"] ,flows_filter["client"],flows_filter["server"], flows_filter["flow_info"])
 
    if(flows_stats == nil) then
       flows_stats = {}
