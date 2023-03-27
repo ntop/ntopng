@@ -20,7 +20,7 @@ local custom_column_utils = require("custom_column_utils")
 local discover = require("discover_utils")
 local have_nedge = ntop.isnEdge()
 
-local function generate_map_url(map, map_url, query, icon)
+local function generate_map_url(map, map_type, query, icon)
 
    local url = ""
 
@@ -29,7 +29,7 @@ local function generate_map_url(map, map_url, query, icon)
       local map_available = table.len(map) > 0
 
       if (map_available) then
-         url = "<a class='ms-1' href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/"..map_url.."?" .. query .. "'><i class='".. icon .."'></i></a>"
+         url = "<a class='ms-1' href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/network_maps.lua?" .. query .. "&map=" .. map_type .. "'><i class='".. icon .."'></i></a>"
       end
    end
 
@@ -203,8 +203,8 @@ end
 
 if(vlan ~= nil) then
    
-   local link_service_map = generate_map_url(interface.serviceMap(nil, tonumber(vlan)), "service_map.lua", "vlan=" .. vlan, "fas fa-concierge-bell")
-   local link_periodicity_map = generate_map_url(interface.periodicityMap(nil, tonumber(vlan)), "periodicity_map.lua", "vlan=" .. vlan, "fas fa-clock")
+   local link_service_map = generate_map_url(interface.serviceMap(nil, tonumber(vlan)), "service_map", "vlan=" .. vlan, "fas fa-concierge-bell")
+   local link_periodicity_map = generate_map_url(interface.periodicityMap(nil, tonumber(vlan)), "periodicity_map", "vlan=" .. vlan, "fas fa-clock")
 
    vlan_title = " [".. i18n("hosts_stats.vlan_title", {vlan=vlan}) .."] <A HREF='".. ntop.getHttpPrefix().. "/lua/vlan_details.lua?vlan=".. vlan .."&page=config" .."'><i class='fas fa-cog fa-sm'></i></A>" .. link_service_map .. " " .. link_periodicity_map
    if(vlan==getVlanAlias(vlan)) then
@@ -221,8 +221,8 @@ if(pool ~= nil) then
    local charts_available = areHostPoolsTimeseriesEnabled(ifstats.id)
 
    if (tonumber(pool) ~= host_pools_instance.DEFAULT_POOL_ID) then
-      link_service_map = generate_map_url(interface.serviceMap(nil, nil, tonumber(pool)), "service_map.lua", "host_pool_id=".. pool, "fas fa-concierge-bell")
-      link_periodicity_map = generate_map_url(interface.periodicityMap(nil, nil, tonumber(pool)), "periodicity_map.lua", "host_pool_id=".. pool, "fas fa-clock")
+      link_service_map = generate_map_url(interface.serviceMap(nil, nil, tonumber(pool)), "service_map", "host_pool_id=".. pool, "fas fa-concierge-bell")
+      link_periodicity_map = generate_map_url(interface.periodicityMap(nil, nil, tonumber(pool)), "periodicity_map", "host_pool_id=".. pool, "fas fa-clock")
    end
 
    local pool_edit = ""
