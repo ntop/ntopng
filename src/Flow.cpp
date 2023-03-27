@@ -2257,11 +2257,11 @@ bool Flow::equal(const Mac *_src_pkt_mac, const Mac *_dst_pkt_mac,
   if(ntop->getPrefs()->useMacAddressInFlowKey()) {
     if(cli_host && src_mac) {
       Mac *cli_mac = cli_host->getMac();
-      Mac *srv_mac = srv_host->getMac();
-    
+      
       if(cli_mac != src_mac) {
 #ifdef DEBUG
-	char buf[64], buf0[64], buf1[64], buf2[64], buf3[64], buf4[64];
+	Mac *srv_mac = srv_host->getMac();
+  char buf[64], buf0[64], buf1[64], buf2[64], buf3[64], buf4[64];
       
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s (%s) <-> %s (%s) [%s / %s]",
 				     cli_ip->print(buf, sizeof(buf)),

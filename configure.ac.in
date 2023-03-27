@@ -584,10 +584,12 @@ if test x$cap != x; then
 fi
 
 if test "${with_nedge+set}" != set; then
-  AC_CHECK_LIB([ldap], [ldap_initialize], [LIBS="${LIBS} -lldap -llber"])
-  if test "x$ac_cv_lib_ldap_ldap_initialize" = xyes; then
-    AC_DEFINE_UNQUOTED(HAVE_LDAP, 1, [LDAP support is present])
-  fi
+ if test $SYSTEM != "FreeBSD"; then
+   AC_CHECK_LIB([ldap], [ldap_initialize], [LIBS="${LIBS} -lldap -llber"])
+   if test "x$ac_cv_lib_ldap_ldap_initialize" = xyes; then
+     AC_DEFINE_UNQUOTED(HAVE_LDAP, 1, [LDAP support is present])
+   fi
+ fi
 fi
 
 UGLIFYJS=`which uglifyjs`
