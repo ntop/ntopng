@@ -35,7 +35,7 @@ class RecipientQueue {
   u_int64_t drops;
 
   /* Counters for the number of enqueues */
-  time_t uses;
+  u_int64_t uses;
 
   /* Timestamp of the last dequeue, regardless of queue priority */
   time_t last_use;
