@@ -72,6 +72,10 @@ local function build_response()
     criteria_type_id = 3
   elseif criteria == "client_server" then
     criteria_type_id = 4
+  elseif criteria == "app_client_server" then
+    criteria_type_id = 5
+  elseif criteria == "info" then
+    criteria_type_id = 6
   end
   
 
@@ -88,180 +92,166 @@ local function build_response()
                                                           filters["sort_order"], 
                                                           filters["start"], 
                                                           filters["length"])
+      -- other criteria cases
+  for _, data in pairs(aggregated_info) do
+    
+    local bytes_sent = data.bytes_sent
+    local bytes_rcvd = data.bytes_rcvd
+    local total_bytes = bytes_rcvd + bytes_sent
 
-  
-  if( criteria_type_id == 1) then
-
-    if(debugger and x < 2 and filters["sort_column"] == "application") then 
-      tprint("FROM C++")
-      tprint(aggregated_info)
-      tprint("---------------------------------")
-      x = x + 1
-    end
-    -- application_protocol case
-
-      for _, data in pairs(aggregated_info) do
-      if vlan and not isEmptyString(vlan) and tonumber(vlan) ~= tonumber(data.vlan_id) and tonumber(vlan) ~= -1 then
+    if (criteria_type_id == 1) then
+      if (vlan and not isEmptyString(vlan) and tonumber(vlan) ~= tonumber(data.vlan_id) and tonumber(vlan) ~= -1 )then
         goto continue
       end
-      num_entries = data.num_entries
-
-      local bytes_sent = data.bytes_sent
-      local bytes_rcvd = data.bytes_rcvd
-      local total_bytes = bytes_rcvd + bytes_sent
-
-      local vlan_name = getFullVlanName(data.vlan_id)
-      
-      
-      res[#res + 1] = {
-        flows = format_high_num_value_for_tables(data, 'num_flows'),
-        application = {
-          label = data.proto_name,
-          id = data.proto_id,
-        },
-        breakdown = {
-          percentage_bytes_sent = (bytes_sent * 100) / total_bytes,
-          percentage_bytes_rcvd = (bytes_rcvd * 100) / total_bytes,
-        },
-        bytes_rcvd = bytes_rcvd,
-        bytes_sent = bytes_sent,
-        tot_traffic = total_bytes,
-        tot_score   = format_high_num_value_for_tables(data, 'total_score'),
-        num_servers = format_high_num_value_for_tables(data, 'num_servers'),
-        num_clients = format_high_num_value_for_tables(data, 'num_clients'),
-        vlan_id = {
-          id = data.vlan_id,
-          label = vlan_name
-        }
-      }
-      
-      if(debugger and x < 2 and filters["sort_column"] == "application") then 
-        tprint("LUA RESP")
-        tprint(res)
-        tprint("---------------------------------")
-        x = x + 1
+    elseif (criteria_type_id == 2) then
+      if(vlan and not isEmptyString(vlan) and (tonumber(vlan) ~= tonumber(data.cli_vlan_id)  and tonumber(vlan) ~= -1)) then
+        goto continue
       end
+    elseif (criteria_type_id == 3 or criteria_type_id == 5) then
+      if(vlan and not isEmptyString(vlan) and (tonumber(vlan) ~= tonumber(data.srv_vlan_id) and tonumber(vlan) ~= -1)) then
+        goto continue
+      end
+    else
+        if(vlan and not isEmptyString(vlan) and tonumber(vlan) ~= tonumber(data.vlan_id) and tonumber(vlan) ~= -1 ) then
+          goto continue
+      end
+    end
+    local flow_vlan_name = getFullVlanName(data.vlan_id)
+
+    local server_name = ""
+    local server_ip_label = ""
+    local server_ip = ""
+    local srv_in_mem = false
+    local server_host = nil
+
+    local is_server_alerted = false
+    
+    if(criteria_type_id == 3 or criteria_type_id == 4 or criteria_type_id == 5) then
+      local srv_info = set_host_info(data.srv_vlan_id, data.server_ip, data.server_name, data.is_srv_in_mem, data.vlan_id)
+      server_ip = srv_info.ip
+      server_ip_label = srv_info.ip_label
+      server_name = srv_info.name
+      server_host = interface.getHostInfo(data.server_ip, data.vlan_id or 0)
+      srv_in_mem = server_host ~= nil
+
+      srv_in_mem = server_host ~= nil
+      if (srv_in_mem) then
+        is_server_alerted = (server_host["num_alerts"] ~= nil) and (server_host["num_alerts"] > 0)
+      end
+    end
+
+    local client_ip = ""
+    local client_ip_label = ""
+    local client_name = ""
+    local cli_in_mem = false
+
+    local client_host = nil
+    local is_client_alerted = false
+
+    if(criteria_type_id == 2 or criteria_type_id == 4 or criteria_type_id == 5) then
+      local cli_info = set_host_info(data.cli_vlan_id, data.client_ip, data.client_name, data.is_cli_in_mem, data.vlan_id)
+      client_ip = cli_info.ip
+      client_ip_label = cli_info.ip_label
+      client_name = cli_info.name
+      client_host = interface.getHostInfo(data.client_ip, data.vlan_id or 0)
+
+      cli_in_mem = client_host ~= nil
+      if (cli_in_mem) then
+        is_client_alerted = (client_host["num_alerts"] ~= nil) and (client_host["num_alerts"] > 0)
+      end
+    end
+    
+    num_entries = data.num_entries
+
+    local actual_idx = #res + 1
+    
+    res[actual_idx] = {
+      flows = format_high_num_value_for_tables(data, 'num_flows'),
+      
+      breakdown = {
+        percentage_bytes_sent = (bytes_sent * 100) / total_bytes,
+        percentage_bytes_rcvd = (bytes_rcvd * 100) / total_bytes,
+      },
+      bytes_rcvd = bytes_rcvd,
+      bytes_sent = bytes_sent,
+      tot_traffic = total_bytes,
+      tot_score   = format_high_num_value_for_tables(data, 'total_score'),
+      num_servers = format_high_num_value_for_tables(data, 'num_servers'),
+      num_clients = format_high_num_value_for_tables(data, 'num_clients'),
+      vlan_id = {
+        id = data.vlan_id,
+        label = flow_vlan_name
+      }
+    }
+
+    local add_app_proto = false
+    local add_server = false
+    local add_client = false
+    local add_info = false
+    if (criteria_type_id == 1) then
+      add_app_proto = true
+    elseif (criteria_type_id == 2) then
+      add_client = true
+    elseif (criteria_type_id == 3) then
+      add_server = true
+    elseif (criteria_type_id == 4) then
+      add_client = true
+      add_server = true
+    elseif(criteria_type_id == 5) then
+      add_client = true
+      add_server = true
+      add_app_proto = true
+    elseif(criteria_type_id == 6) then
+      add_info = true
+    end
+    if add_app_proto then
+      res[actual_idx].application = {
+        label = data.proto_name,
+        id = data.proto_id,
+        complete_label = getApplicationLabel(data.proto_name)
+      }
+    end
+
+    if add_client then 
+      res[actual_idx].client = {
+        label = client_ip_label,
+        id = client_ip,
+      }
+      res[actual_idx].client_name = {
+        label = client_name,
+        id = client_ip, 
+        complete_label = format_utils.formatFullAddressCategory(client_host),
+        alerted = is_client_alerted
+      }
+      res[actual_idx].is_client_in_mem = isView or cli_in_mem
+    end
+
+    if add_server then 
+      res[actual_idx].server = {
+        label = server_ip_label,
+        id = server_ip,
+      }
+      res[actual_idx].server_name = {
+        label = server_name,
+        id = server_ip,
+        complete_label = format_utils.formatFullAddressCategory(server_host),
+        alerted = is_server_alerted
+      }
+
+      res[actual_idx].is_server_in_mem = isView or srv_in_mem
+    end
+
+    if add_info then
+      res[actual_idx].info = {
+        label = shortenString(data.info),
+        id = data.info
+      } 
+    end
 
     ::continue::
-    end
-  else 
-    -- other criteria cases
-    for _, data in pairs(aggregated_info) do
-    
 
-      local bytes_sent = data.bytes_sent
-      local bytes_rcvd = data.bytes_rcvd
-      local total_bytes = bytes_rcvd + bytes_sent
-
-      if (criteria_type_id == 2) then
-        if(vlan and not isEmptyString(vlan) and (tonumber(vlan) ~= tonumber(data.cli_vlan_id)  and tonumber(vlan) ~= -1)) then
-          goto continue
-        end
-      elseif (criteria_type_id == 3) then
-        if(vlan and not isEmptyString(vlan) and (tonumber(vlan) ~= tonumber(data.srv_vlan_id) and tonumber(vlan) ~= -1)) then
-          goto continue
-        end
-      else
-        if(vlan and not isEmptyString(vlan) and 
-          tonumber(vlan) ~= tonumber(data.srv_vlan_id) and tonumber(vlan) ~= tonumber(data.cli_vlan_id) and tonumber(vlan) ~= -1) then
-          goto continue
-        end
-      end
-      
-
-
-      local flow_vlan_name = getFullVlanName(data.vlan_id)
-
-      local server_name = ""
-      local server_ip_label = ""
-      local server_ip = ""
-      local srv_in_mem = false
-      local server_host = nil
-
-      local is_server_alerted = false
-      
-      if(criteria_type_id == 3 or criteria_type_id == 4) then
-        local srv_info = set_host_info(data.srv_vlan_id, data.server_ip, data.server_name, data.is_srv_in_mem, data.vlan_id)
-        server_ip = srv_info.ip
-        server_ip_label = srv_info.ip_label
-        server_name = srv_info.name
-        server_host = interface.getHostInfo(data.server_ip, data.vlan_id or 0)
-        srv_in_mem = server_host ~= nil
-
-        srv_in_mem = server_host ~= nil
-        if (srv_in_mem) then
-          is_server_alerted = (server_host["num_alerts"] ~= nil) and (server_host["num_alerts"] > 0)
-        end
-      end
-
-      local client_ip = ""
-      local client_ip_label = ""
-      local client_name = ""
-      local cli_in_mem = false
-
-      local client_host = nil
-      local is_client_alerted = false
-
-      if(criteria_type_id == 2 or criteria_type_id == 4) then
-        local cli_info = set_host_info(data.cli_vlan_id, data.client_ip, data.client_name, data.is_cli_in_mem, data.vlan_id)
-        client_ip = cli_info.ip
-        client_ip_label = cli_info.ip_label
-        client_name = cli_info.name
-        client_host = interface.getHostInfo(data.client_ip, data.vlan_id or 0)
-	
-        cli_in_mem = client_host ~= nil
-        if (cli_in_mem) then
-          is_client_alerted = (client_host["num_alerts"] ~= nil) and (client_host["num_alerts"] > 0)
-        end
-      end
-      
-      num_entries = data.num_entries
-      
-      res[#res + 1] = {
-        flows = format_high_num_value_for_tables(data, 'num_flows'),
-        client = {
-          label = client_ip_label,
-          id = client_ip,
-        },
-        is_client_in_mem = isView or cli_in_mem,
-        client_name = {
-          label = client_name,
-          id = client_ip, 
-          complete_label = format_utils.formatFullAddressCategory(client_host),
-	        alerted = is_client_alerted
-        },
-        server = {
-          label = server_ip_label,
-          id = server_ip,
-        },
-        is_server_in_mem = isView or srv_in_mem,
-        server_name = {
-          label = server_name,
-          id = server_ip,
-          complete_label = format_utils.formatFullAddressCategory(server_host),
-	        alerted = is_server_alerted
-        },
-        breakdown = {
-          percentage_bytes_sent = (bytes_sent * 100) / total_bytes,
-          percentage_bytes_rcvd = (bytes_rcvd * 100) / total_bytes,
-        },
-        bytes_rcvd = bytes_rcvd,
-        bytes_sent = bytes_sent,
-        tot_traffic = total_bytes,
-        tot_score   = format_high_num_value_for_tables(data, 'total_score'),
-        num_servers = format_high_num_value_for_tables(data, 'num_servers'),
-        num_clients = format_high_num_value_for_tables(data, 'num_clients'),
-        vlan_id = {
-          id = data.vlan_id,
-          label = flow_vlan_name
-        }
-      }
-
-      ::continue::
-
-    end
   end
-
+  
   local extra_rsp_data = {
     ["draw"] = tonumber(_GET["draw"]),
     ["recordsFiltered"] = tonumber(num_entries),

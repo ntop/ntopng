@@ -1551,6 +1551,7 @@ local known_parameters = {
    ["begin_time_clause"]       = validateUnquoted,
    ["end_time_clause"]         = validateUnquoted,
    ["flow_clause"]             = validateSingleWord,            -- deprecated (keeping for backward compatibility)
+   ["flow_info"]               = validateSingleWord,
    ["topk_clause"]             = validateSingleWord,
    ["maxhits_clause"]          = validateNumber,
    ["ni_query_type"]           = validatenIndexQueryType,

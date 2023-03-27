@@ -183,6 +183,7 @@ function getFlowsFilter()
    local talking_with = _GET["talking_with"]
    local client       = _GET["client"]
    local server       = _GET["server"]
+   local flow_info    = _GET["flow_info"]
 
    if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
       sortColumn = getDefaultTableSort("flows")
@@ -377,6 +378,10 @@ function getFlowsFilter()
 
    if not isEmptyString(server) then
       pageinfo["server"] = server
+   end
+
+   if not isEmptyString(flow_info) then
+      pageinfo["flow_info"] = flow_info
    end
 
    return pageinfo
@@ -2264,6 +2269,10 @@ function getFlowsTableTitle()
       end
    end
 
+   if(_GET["flow_info"] ~= nil) then
+
+      active_msg = active_msg .. i18n("flows_page.flow_info", {flow_info =_GET["flow_info"]})
+   end
 
    if(_GET["port"] ~= nil) then
       active_msg = active_msg .. i18n("flows_page.port", {port=_GET["port"]})

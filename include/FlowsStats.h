@@ -39,7 +39,9 @@ private:
 
   u_int16_t vlan_id;
   char* proto_name;
+  char* info_key;
   u_int64_t key;
+  u_int64_t proto_key;
 
 public:
   FlowsStats(const IpAddress *c, const IpAddress *s, u_int8_t _l4_proto,
@@ -70,6 +72,15 @@ public:
   inline char* getProtoName()                 { return(proto_name ? proto_name : (char*)""); }
   inline void setKey(u_int64_t _key)          { key = _key; }
   inline u_int64_t getKey()                   { return key; }
+  inline void setProtoKey(u_int64_t _key)          { proto_key = _key; }
+  inline u_int64_t getProtoKey()                   { return proto_key; }
+  inline void setInfoKey(char* _key)          { 
+    info_key = _key;
+  }
+  inline char* getInfoKey()  { 
+    return(info_key ? info_key : (char*)"");
+  }
+  
 
   inline void setClient(const IpAddress* _ip, 
                         Host* _host)   { client = new (std::nothrow) FlowsHostInfo(_ip, _host); }

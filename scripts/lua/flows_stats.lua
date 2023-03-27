@@ -53,6 +53,7 @@ local host = _GET["host"]
 local talking_with = _GET["talkingWith"]
 local client = _GET["client"]
 local server = _GET["server"]
+local flow_info = _GET["flow_info"]
 local vhost = _GET["vhost"]
 local flowhosts_type = _GET["flowhosts_type"]
 local ipversion = _GET["version"]
@@ -95,9 +96,9 @@ local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
 local flows_filter = getFlowsFilter()
 
 flows_filter.statusFilter = nil -- remove the filter, otherwise no menu entries will be shown
-local flowstats = interface.getActiveFlowsStats(host, flows_filter, false, talking_with, client, server)
+local flowstats = interface.getActiveFlowsStats(host, flows_filter, false, talking_with, client, server, flow_info)
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
-local page_params = { ifid = interface.getId(), client = client, server = server }
+local page_params = { ifid = interface.getId(), client = client, server = server, flow_info = flow_info }
 local mini_title = i18n("flow_details.purge_time", { purge_time = ntop.getPref("ntopng.prefs.flow_max_idle"), prefs_url = ntop.getHttpPrefix().. '/lua/admin/prefs.lua?tab=in_memory' })
 
 page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {
