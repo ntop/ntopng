@@ -35,7 +35,12 @@ end
 function Alert:set_info(params)
   local script = params.check
   if(not self.score or self.score == 0) then
-    self.score = ntop.mapSeverityToScore(script.severity.severity_id or 0 --[[ no score ]])
+      if script then 
+         self.score = ntop.mapSeverityToScore(script.severity.severity_id or 0 --[[ no score ]])
+      else
+         -- tprint(debug.traceback())
+         self.score = 0
+      end
   end
   
   if params.entity_info then
