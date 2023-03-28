@@ -27,6 +27,13 @@ function ts_rest_utils.get_timeseries(http_context)
         
         -- Setting host_ip (check that the provided IP matches the provided
         -- mac address as safety check and to avoid security issues)
+        if (ts_schema == "top:snmp_if:traffic") or
+            (ts_schema == "top:flowdev_port:traffic") then
+            -- NOTE: the host here is not required, if added return an empty serie
+            tskey = 0
+            tags.host = nil
+        end
+
         if tags.host then
             local host = hostkey2hostinfo(tags.host)
 
