@@ -35,6 +35,10 @@ Host* HostHash::get(u_int16_t vlanId, IpAddress *key,
 		    u_int16_t observation_point_id) {
   u_int32_t hash = (key->key() % num_hashes);
 
+  /* Check if MAC address needs to be used in host key */
+  if(ntop->getPrefs()->useMacAddressInFlowKey() == false)
+    mac = NULL;
+
   if(table[hash] == NULL) {
     return(NULL);
   } else {
