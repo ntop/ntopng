@@ -28,20 +28,19 @@
 
 class FlowsHostInfo {
 private:
-  const IpAddress* ip;
+  IpAddress* ip;
   Host* host;
 
 public:
-  FlowsHostInfo(const IpAddress* _ip, Host* _host) {
+  FlowsHostInfo(IpAddress* _ip, Host* _host) {
     ip = _ip, host = _host;
   }
 
   char* getIP(char* buf, u_int len);
   char* getHostName(char* buf, u_int len);
   char* getIPHex(char* buf, u_int len);
-  bool isHostInMem();
+  bool  isHostInMem();
   u_int16_t getVLANId(); 
-
 };
 
 

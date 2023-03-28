@@ -582,10 +582,10 @@ class Flow : public GenericHashEntry {
 
   inline Host* get_cli_host()               const { return(cli_host);    };
   inline Host* get_srv_host()               const { return(srv_host);    };
-  inline const IpAddress* get_cli_ip_addr() const { return(cli_ip_addr); };
-  inline const IpAddress* get_srv_ip_addr() const { return(srv_ip_addr); };
-  inline const IpAddress* get_dns_srv_ip_addr() const { return((get_cli_port() == 53) ? get_cli_ip_addr() : get_srv_ip_addr()); };
-  inline const IpAddress* get_dhcp_srv_ip_addr() const { return((get_cli_port() == 67) ? get_cli_ip_addr() : get_srv_ip_addr()); };
+  inline IpAddress* get_cli_ip_addr() const { return(cli_ip_addr); };
+  inline IpAddress* get_srv_ip_addr() const { return(srv_ip_addr); };
+  inline IpAddress* get_dns_srv_ip_addr() const { return((get_cli_port() == 53) ? get_cli_ip_addr() : get_srv_ip_addr()); };
+  inline IpAddress* get_dhcp_srv_ip_addr() const { return((get_cli_port() == 67) ? get_cli_ip_addr() : get_srv_ip_addr()); };
 
   inline json_object* get_json_info()	    const  { return(json_info);                       };
   inline ndpi_serializer* get_tlv_info()	    const  { return(tlv_info);                       };

@@ -930,7 +930,7 @@ bool NetworkInterface::enqueueHostAlert(HostAlert *alert) {
   Host *h = alert->getHost();
   bool ret = false;
 
-  if (!ntop->getPrefs()->dontEmitHostAlerts()
+  if(!ntop->getPrefs()->dontEmitHostAlerts()
       && hostAlertsQueue
       && hostAlertsQueue->enqueue(alert_info, true)) {
 
@@ -1245,7 +1245,7 @@ Flow* NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac,
       if((!src_mac->isSpecialMac()) && (primary_mac = srcHost->getMac()) && primary_mac != src_mac) {
 #ifdef MAC_DEBUG
 	char buf[32], bufm1[32], bufm2[32];
-	
+
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "Detected mac address [new MAC: %s] [old host: %s/primary mac: %s][pkts: %u]",
 				     Utils::formatMac(src_mac->get_mac(), bufm1, sizeof(bufm1)),
@@ -1280,7 +1280,7 @@ Flow* NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac,
       if((!dst_mac->isSpecialMac()) && (primary_mac = dstHost->getMac()) && primary_mac != dst_mac) {
 #ifdef MAC_DEBUG
 	char buf[32], bufm1[32], bufm2[32];
-	
+
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "Detected mac address [new MAC: %s] [old host: %s/primary mac: %s]",
 				     Utils::formatMac(dst_mac->get_mac(), bufm1, sizeof(bufm1)),
@@ -4360,15 +4360,15 @@ Host* NetworkInterface::findHostByIP(AddressTree *allowed_hosts,
 				     u_int16_t observationPointId) {
   Host *h = NULL;
 
-  if (host_ip == NULL)
+  if(host_ip == NULL)
     return(NULL);
 
   h = getHost(host_ip, vlan_id, observationPointId, false /* Not an inline call */);
 
-  if (h == NULL)
+  if(h == NULL)
     return(NULL);
 
-  if (allowed_hosts && !h->match(allowed_hosts))
+  if(allowed_hosts && !h->match(allowed_hosts))
     return(NULL);
 
   return h;
@@ -4473,7 +4473,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 #ifdef HAVE_NEDGE
   bool filtered_flows;
 #endif
-  
+
 
   if(f && (!f->idle())) {
     if(f->get_observation_point_id() != retriever->observationPointId) {
@@ -4496,7 +4496,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
           return(false);
       }
     }
-    
+
     if(retriever->talking_with_host) {
       if(!f->getInterface()->isViewed()) {
         if(retriever->talking_with_host != f->get_cli_host()
@@ -4513,7 +4513,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     if(retriever->client) {
       if(!f->getInterface()->isViewed()) {
         if(retriever->client != f->get_cli_host()) {
-         
+
     return(false);
         }
       } else {
@@ -4524,7 +4524,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->flow_info) {
       char buf[64];
-      if(strcmp(retriever->flow_info, f->getFlowInfo(buf,sizeof(buf),false))) 
+      if(strcmp(retriever->flow_info, f->getFlowInfo(buf,sizeof(buf),false)))
         return(false);
     }
 
@@ -4539,7 +4539,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 #if 0
 	  if(f->get_cli_host() && f->get_srv_host()) {
 	    char buf[128], buf2[128], buf3[128];
-	    
+
 	    ntop->getTrace()->traceEvent(TRACE_WARNING,
 					 "Skipping Host: %s (%p) - %s (%p) / Talking Host: %s (%p)",
 					 f->get_cli_host() ? f->get_cli_host()->get_hostkey(buf, sizeof(buf)) : "NULL", f->get_cli_host(),
@@ -5458,7 +5458,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   retriever->actNumEntries = 0, retriever->maxNumEntries = getFlowsHashSize(), retriever->allowed_hosts = allowed_hosts;
 
   retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
-  
+
   if(retriever->elems == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
     return(-1);
@@ -7614,9 +7614,9 @@ void NetworkInterface::FillObsHash() {
     /* Get all Observation Points keys */
     rc = ntop->getRedis()->keys(pattern, &keys);
 
-    if (rc > 0) {
+    if(rc > 0) {
       for (int i = 0; i < rc; i++) {
-        if (keys[i]) {
+        if(keys[i]) {
           char symbol = '_';
           /* Get last occurrence of _ , because the key is serialized like ntopng.serialized_as.ifid_10_obs_point_1234 */
           /* In this way it's possible to get all the ids of the Obs. Points */
@@ -9701,10 +9701,10 @@ void NetworkInterface::processExternalAlertable(AlertEntity entity,
   if((it = external_alerts.find(key)) != external_alerts.end())
     alertable = it->second;
 
-  if (alertable) {
+  if(alertable) {
     /* Already present */
 
-    if (do_store_alert) {
+    if(do_store_alert) {
       /* Nothing to store - return */
       external_alerts_lock.unlock(__FILE__, __LINE__);
       lua_pushnil(vm);
@@ -9714,7 +9714,7 @@ void NetworkInterface::processExternalAlertable(AlertEntity entity,
   } else {
     /* Not present */
 
-    if (!do_store_alert) {
+    if(!do_store_alert) {
       /* Nothing to release - return */
       external_alerts_lock.unlock(__FILE__, __LINE__);
       lua_pushnil(vm);
@@ -9723,7 +9723,7 @@ void NetworkInterface::processExternalAlertable(AlertEntity entity,
 
     /* Create */
     alertable = new (std::nothrow) InterfaceMemberAlertableEntity(this, entity);
-    if (alertable == NULL) {
+    if(alertable == NULL) {
       external_alerts_lock.unlock(__FILE__, __LINE__);
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
       lua_pushnil(vm);
@@ -10247,12 +10247,11 @@ static bool compute_protocol_flow_stats(GenericHashEntry *node, void *user_data,
 						   f->get_protocol(),
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
 						   f->getScore());
-    fs->setProtoKey(key);
-    fs->setVlanId(vlan_id);
-
-
-    if(fs != NULL)
+    if(fs != NULL) {
+      fs->setProtoKey(key);
+      fs->setVlanId(vlan_id);
       (*count)[key] = fs;
+    }
   } else
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
@@ -10284,12 +10283,13 @@ static bool compute_client_flow_stats(GenericHashEntry *node, void *user_data, b
 						   f->get_protocol(),
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
 						   f->getScore());
-    fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
-    fs->setVlanId(f->get_vlan_id());
-    fs->setKey(key);
 
-    if(fs != NULL)
+    if(fs != NULL) {
+      fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
+      fs->setVlanId(f->get_vlan_id());
+      fs->setKey(key);
       (*count)[key] = fs;
+    }
   } else
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
@@ -10320,12 +10320,12 @@ static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data, b
 						   f->get_protocol(),
 						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
 						   f->getScore());
-    fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
-    fs->setVlanId(f->get_vlan_id());
-    fs->setKey(key);
-
-    if(fs != NULL)
+    if(fs != NULL) {
+      fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
+      fs->setVlanId(f->get_vlan_id());
+      fs->setKey(key);
       (*count)[key] = fs;
+    }
   } else
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
@@ -10339,38 +10339,45 @@ static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data, b
 
 static bool compute_client_server_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
-  std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
+  IpAddress *cli = f->get_cli_ip_addr();
 
-  u_int64_t vlan_id = f->get_vlan_id();
-  std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
+  if(!(cli->isIPv6() && cli->isPrivateAddress())) {
+    /* Skip private IPv6 hosts*/
+    
+    std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
 
-  u_int64_t key = 0;
+    u_int64_t vlan_id = f->get_vlan_id();
+    std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
 
-  key = (((u_int64_t)f->get_cli_ip_addr()->key()) << 16)
-    + (((u_int64_t)f->get_srv_ip_addr()->key()) << 16)
-    + ((u_int64_t)vlan_id);
+    u_int64_t key = 0;
 
-  it = count->find(key);
+    key = (((u_int64_t)f->get_cli_ip_addr()->key()) << 16)
+      + (((u_int64_t)f->get_srv_ip_addr()->key()) << 16)
+      + ((u_int64_t)vlan_id);
 
-  if(it == count->end()) {
-    FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-						   f->get_protocol(),
-						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-						   f->getScore());
+    it = count->find(key);
 
-    fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
-    fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
-    fs->setVlanId(f->get_vlan_id());
-    fs->setKey(key);
+    if(it == count->end()) {
+      FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+						     f->get_protocol(),
+						     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+						     f->getScore());
 
-    if(fs != NULL)
-      (*count)[key] = fs;
-  } else
-    it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-			     f->getScore());
+      if(fs != NULL) {
+	fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
+	fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
+	fs->setVlanId(f->get_vlan_id());
+	fs->setKey(key);
+	(*count)[key] = fs;
+      }
+    } else
+      it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+			       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+			       f->getScore());
 
-  *matched = true;
+    *matched = true;
+  }
+  
   return(false); /* false = keep on walking */
 }
 
@@ -10378,49 +10385,54 @@ static bool compute_client_server_flow_stats(GenericHashEntry *node, void *user_
 
 static bool compute_app_client_server_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
-  ndpi_protocol detected_protocol = f->get_detected_protocol();
+  IpAddress *cli = f->get_cli_ip_addr();
 
-  std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
+  if(!(cli->isIPv6() && cli->isPrivateAddress())) {
+    /* Skip private IPv6 hosts*/
+    
+    ndpi_protocol detected_protocol = f->get_detected_protocol();
+    std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
 
-  u_int64_t vlan_id = f->get_vlan_id();
-  std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
+    u_int64_t vlan_id = f->get_vlan_id();
+    std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
 
-  u_int64_t key = 0;
+    u_int64_t key = 0;
 
-  key =   (((u_int64_t)   f->get_cli_ip_addr()->key()) << 16)
-        + (((u_int64_t)   f->get_srv_ip_addr()->key()) << 16)
-        + ((u_int64_t)    vlan_id << 32)
-        + (((u_int64_t)   detected_protocol.app_protocol) << 16)
-        + (u_int64_t)     detected_protocol.master_protocol;
+    key =   (((u_int64_t)   f->get_cli_ip_addr()->key()) << 16)
+      + (((u_int64_t)   f->get_srv_ip_addr()->key()) << 16)
+      + ((u_int64_t)    vlan_id << 32)
+      + (((u_int64_t)   detected_protocol.app_protocol) << 16)
+      + (u_int64_t)     detected_protocol.master_protocol;
 
-  u_int64_t proto_key = 0;
+    u_int64_t proto_key = 0;
 
-  proto_key =   ((u_int64_t)  vlan_id << 32)
-              + (((u_int64_t) detected_protocol.app_protocol) << 16)
-              + (u_int64_t)   detected_protocol.master_protocol;
+    proto_key =   ((u_int64_t)  vlan_id << 32)
+      + (((u_int64_t) detected_protocol.app_protocol) << 16)
+      + (u_int64_t)   detected_protocol.master_protocol;
 
-  it = count->find(key);
+    it = count->find(key);
 
-  if(it == count->end()) {
-    FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-						   f->get_protocol(),
-						   f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-						   f->getScore());
+    if(it == count->end()) {
+      FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+						     f->get_protocol(),
+						     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+						     f->getScore());
+      if(fs != NULL) {
+	fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
+	fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
+	fs->setVlanId(vlan_id);
+	fs->setKey(key);
+	fs->setProtoKey(proto_key);
+	(*count)[key] = fs;
+      }
+    } else
+      it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+			       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+			       f->getScore());
 
-    fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
-    fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
-    fs->setVlanId(vlan_id);
-    fs->setKey(key);
-    fs->setProtoKey(proto_key);
+    *matched = true;
+  }
 
-    if(fs != NULL)
-      (*count)[key] = fs;
-  } else
-    it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-			     f->getScore());
-
-  *matched = true;
   return(false); /* false = keep on walking */
 }
 
@@ -10442,27 +10454,27 @@ static bool compute_info_flow_stats(GenericHashEntry *node, void *user_data, boo
 
     if(it == count->end()) {
       FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-                f->get_protocol(),
-                f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-                f->getScore());
+						     f->get_protocol(),
+						     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+						     f->getScore());
 
-      fs->setVlanId(vlan_id);
-      fs->setInfoKey(key_char);
-
-      if(fs != NULL) 
+      if(fs != NULL) {
+	fs->setVlanId(vlan_id);
+	fs->setInfoKey(key_char);
         (*count)[key] = fs;
-    } else 
+      }
+    } else
       it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
             f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
             f->getScore());
-  
+
     *matched = true;
     return(false); /* false = keep on walking */
-  } 
+  }
 
   *matched = true;
   return(false);
-  
+
 }
 
 /* **************************************************** */
@@ -10546,11 +10558,11 @@ void NetworkInterface::build_lua_rsp(lua_State *vm, FlowsStats *fs,
   case 1:
     add_app_proto = true;
     break;
-    
+
   case 3:
     add_server = true;
     break;
-    
+
   case 4:
     add_client = add_server = true;
     break;
@@ -10558,7 +10570,7 @@ void NetworkInterface::build_lua_rsp(lua_State *vm, FlowsStats *fs,
   case 5:
     add_app_proto = add_client = add_server = true;
     break;
-  
+
   case 6:
     add_info = true;
     break;
@@ -10588,7 +10600,7 @@ void NetworkInterface::build_lua_rsp(lua_State *vm, FlowsStats *fs,
     /* Currently it is not supported the possibily to add double filter on master and app proto */
     lua_push_str_table_entry(vm,    "proto_id",    proto);
     lua_push_str_table_entry(vm,    "proto_name",  get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
-                                                                                                                                                                                                                                              lua_push_str_table_entry(vm,    "proto_name",  get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf))); 
+                                                                                                                                                                                                                                              lua_push_str_table_entry(vm,    "proto_name",  get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
   }
 
   if(add_client) {
@@ -10629,7 +10641,8 @@ void NetworkInterface::build_lua_rsp(lua_State *vm, FlowsStats *fs,
 /* **************************************************** */
 
 /* Analysis Flows Stats sorter function */
-void NetworkInterface::sort_flow_stats(lua_State* vm, std::unordered_map<u_int64_t, FlowsStats*> *count, std::unordered_map<string, FlowsStats*> *count_info, u_int filter_type) {
+void NetworkInterface::sort_flow_stats(lua_State* vm, std::unordered_map<u_int64_t, FlowsStats*> *count,
+				       std::unordered_map<string, FlowsStats*> *count_info, u_int filter_type) {
   std::vector<FlowsStats*> vector;
   std::vector<FlowsStats*>::iterator vector_it;
 
@@ -10641,7 +10654,7 @@ void NetworkInterface::sort_flow_stats(lua_State* vm, std::unordered_map<u_int64
 
   bool (*sorter)(FlowsStats*, FlowsStats*) = &asc_totalsent_cmp;
 
-  if (filter_type == AnalysisCriteria::application_criteria) {
+  if(filter_type == AnalysisCriteria::application_criteria) {
     std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
     for(it = count->begin(); it != count->end(); ++it) {
       ndpi_protocol detected_protocol;
@@ -10657,7 +10670,7 @@ void NetworkInterface::sort_flow_stats(lua_State* vm, std::unordered_map<u_int64
     if(!strcmp(sortColumn,"application"))
       sorter = &asc_str_cmp;
 
-  } else if (filter_type != AnalysisCriteria::info_criteria) {
+  } else if(filter_type != AnalysisCriteria::info_criteria) {
     std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
 
     for(it = count->begin(); it != count->end(); ++it) {
@@ -10707,7 +10720,8 @@ void NetworkInterface::sort_flow_stats(lua_State* vm, std::unordered_map<u_int64
   u_int num = 0;
 
   lua_newtable(vm);
-  if (start + length > size ) {
+
+  if(start + length > size) {
     for(vector_it = vector.begin() + start; vector_it != vector.end(); ++vector_it) {
       FlowsStats *fs = *vector_it;
 
@@ -10766,7 +10780,7 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
     /* info criteria flows stats case */
     walker(&begin_slot, true /* walk_all */, walker_flows, compute_info_flow_stats, &info_count);
     break;
-    
+
   default:
     /* client criteria flows stats case */
     walker(&begin_slot, true /* walk_all */, walker_flows, compute_client_flow_stats, &count);

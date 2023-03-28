@@ -35,7 +35,7 @@ private:
   u_int64_t tot_sent, tot_rcvd;
   u_int8_t l4_proto;
   FlowsHostInfo* client;
-  FlowsHostInfo* server;  
+  FlowsHostInfo* server;
 
   u_int16_t vlan_id;
   char* proto_name;
@@ -54,7 +54,7 @@ public:
     if(proto_name)
       free(proto_name);
   }
-  
+
   inline u_int32_t getNumClients() { return(clients.size()); }
   inline u_int32_t getNumServers() { return(servers.size()); }
   inline u_int8_t  getL4Protocol() { return(l4_proto);       }
@@ -62,7 +62,7 @@ public:
   inline u_int64_t getTotalSent()  { return(tot_sent);       }
   inline u_int64_t getTotalRcvd()  { return(tot_rcvd);       }
   inline u_int32_t getTotalScore() { return(tot_score);      }
-  
+
   inline void setVlanId(u_int16_t _vlan_id)   { vlan_id = _vlan_id; }
   inline u_int16_t getVlanId()                { return vlan_id; }
   inline void setProtoName(char* _proto_name) {
@@ -74,19 +74,21 @@ public:
   inline u_int64_t getKey()                   { return key; }
   inline void setProtoKey(u_int64_t _key)          { proto_key = _key; }
   inline u_int64_t getProtoKey()                   { return proto_key; }
-  inline void setInfoKey(char* _key)          { 
+  inline void setInfoKey(char* _key)          {
     info_key = _key;
   }
-  inline char* getInfoKey()  { 
+  inline char* getInfoKey()  {
     return(info_key ? info_key : (char*)"");
   }
-  
 
-  inline void setClient(const IpAddress* _ip, 
-                        Host* _host)   { client = new (std::nothrow) FlowsHostInfo(_ip, _host); }
-  inline void setServer(const IpAddress* _ip, 
-                        Host* _host)   { server = new (std::nothrow) FlowsHostInfo(_ip, _host); }  
-  
+
+  inline void setClient(IpAddress* _ip, Host* _host) {
+    client = new (std::nothrow) FlowsHostInfo(_ip, _host);
+  }
+  inline void setServer(IpAddress* _ip, Host* _host) {
+    server = new (std::nothrow) FlowsHostInfo(_ip, _host);
+  }
+
   inline void incFlowStats(const IpAddress *c, const IpAddress *s,
 			   u_int64_t bytes_sent, u_int64_t bytes_rcvd,
 			   u_int32_t score) {
@@ -97,7 +99,7 @@ public:
       num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd, tot_score += score;;
   }
 
-      
+
   char* getCliIP(char* buf, u_int len)                        { return( client->getIP(buf, len) ); }
   char* getSrvIP(char* buf, u_int len)                        { return( server->getIP(buf, len) ); }
   char* getCliName(char* buf, u_int len)                      { return( client->getHostName(buf, len) ); }
