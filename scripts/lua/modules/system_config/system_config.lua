@@ -298,16 +298,28 @@ function system_config:getUnusedInterfaces()
   end
 end
 
--- Get the LAN interface, based on the current operating mode
--- TODO when multiple LAN interfaces will be fully supported, this function will be removed
-function system_config:getLanInterface()
+-- Get the LAN interfaces, based on the current operating mode
+function system_config:getLanInterfaces()
   local mode = self:getOperatingMode()
 
   if mode == "bridging" then
-    return self.config.globals.available_modes.bridging.name
+    return {self.config.globals.available_modes.bridging.name}
   else
-    return self.config.globals.available_modes[mode].interfaces.lan[1]
+    return self.config.globals.available_modes[mode].interfaces.lan
   end
+end
+
+-- Get the first (if many) LAN interface, based on the current operating mode
+function system_config:getFirstLanInterface()
+  local lan_interfaces = self:getLanInterfaces()
+  return lan_interfaces[1]
+end
+
+-- Get the LAN interface, based on the current operating mode
+-- TODO when multiple LAN interfaces will be fully supported, this function will be removed
+function system_config:getLanInterface()
+  local lan_interfaces = self:getLanInterfaces()
+  return lan_interfaces[1]
 end
 
 -- Get all the interfaces, along with their roles
@@ -427,7 +439,7 @@ local function isInterfaceUp(ifname)
 end
 
 -- returns all the IP addresses associated to one interface
-function system_config.getAllInterfaceAddresses(ifname)
+function system_config.getInterfaceAddresses(ifname)
   local res = sys_utils.execShellCmd("ip addr show ".. ifname .." | grep -Po 'inet \\K[\\d.]+/[\\d]+'")
   local rv = {}
 
@@ -451,7 +463,7 @@ end
 -- available excluding the recovery IP
 function system_config:getInterfaceAddress(ifname)
   local recovery_conf = self:getLanRecoveryIpConfig()
-  local addresses = system_config.getAllInterfaceAddresses(ifname)
+  local addresses = system_config.getInterfaceAddresses(ifname)
 
   for _, addr in ipairs(addresses) do
     if addr.ip ~= recovery_conf.ip then
@@ -463,21 +475,35 @@ function system_config:getInterfaceAddress(ifname)
 end
 
 -- Get the LAN address, based on the current operating mode
-function system_config:getLocalIpv4Address(iface)
-  if not iface then
-     iface = self:getLanInterface()
-  end
-  local address = self:getInterfaceAddress(iface)
+function system_config:getLocalIpv4Addresses(ifname)
+  local ifaces = {}
+  local addresses = {}
 
-  if isEmptyString(address) then
-    if not self:isBridgeOverVLANTrunkEnabled() then
-      traceError(TRACE_WARNING, TRACE_CONSOLE, "Cannot get interface " .. iface .. " address")
+  if ifname then
+     ifaces = {ifname}
+  else
+     ifaces = self:getLanInterfaces()
+  end
+
+  for _, iface in ipairs(ifaces) do
+    local address = self:getInterfaceAddress(iface)
+    if not isEmptyString(address) then
+      table.insert(addresses, address)
     end
-    -- This is possibly wrong (e.g. in transparent bridge)
-    address = self.config.interfaces.configuration[iface].network.ip or "192.168.1.1"
   end
 
-  return address
+  if #addresses == 0 then
+    if not self:isBridgeOverVLANTrunkEnabled() then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "Cannot get local IP addresses")
+    end
+    if ifname and self.config.interfaces.configuration[ifname] then
+      -- This is possibly wrong (e.g. in transparent bridge)
+      local address = self.config.interfaces.configuration[ifname].network.ip or "192.168.1.1"
+      table.insert(addresses, address)
+    end
+  end
+
+  return addresses
 end
 
 -- ##############################################
@@ -765,7 +791,7 @@ function system_config:_writeSinglePortModeInterfaces(f)
   local mode_config = self.config.globals.available_modes["single_port_router"]
 
   -- Lan interface
-  local lan_iface = self:getLanInterface()
+  local lan_iface = self:getFirstLanInterface()
   local lan_if_config = self:_getNetworkInterfaceConfig(lan_iface, 'lan')
   self:_writeNetworkInterfaceConfig(f, lan_iface, lan_if_config.network)
 
@@ -785,7 +811,7 @@ function system_config:_writePassiveModeNetworkConfig(f)
 end
 
 function system_config:_getRecoveryInterface()
-  return self:getLanInterface() .. ":2"
+  return self:getFirstLanInterface() .. ":2"
 end
 
 function system_config:_writeNetworkInterfaces()
@@ -1257,11 +1283,14 @@ end
 
 -- Verify that we are the only to manage the network interfaces
 function system_config:verifyNetworkInterfaces()
+  local lan_ifaces_names = self:getLanInterfaces()
   local lan_ifaces = self:getPhysicalLanInterfaces()
   local wan_ifaces = self:getPhysicalWanInterfaces()
-  local lan_iface = self:getLanInterface()
-  local ifaces = {[lan_iface] = 1}
+  local ifaces = {}
 
+  for _, iface in ipairs(lan_ifaces_names) do
+    ifaces[iface] = 1
+  end
   for _, iface in pairs(lan_ifaces) do
     ifaces[iface] = 1
   end
