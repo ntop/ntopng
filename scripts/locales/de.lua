@@ -464,6 +464,7 @@ local lang = {
     ["traffic_sent_received"] = "Gesendeter / erhaltener Datenverkehr",
     ["vlan_id"] = "VLAN ID",
     ["whois_lookup"] = "Whois Lookup",
+    ["ripestat_lookup"] = "RIPEstat Lookup",
   },
   ["device_types"] = {
     ["iot"] = "IoT",

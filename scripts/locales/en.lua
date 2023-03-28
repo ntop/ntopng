@@ -1960,6 +1960,7 @@ local lang = {
     ["unidirectional_tcp_flows"] = "Total Unidirectional TCP/UDP Flows",
     ["vlan_id"] = "VLAN ID",
     ["whois_lookup"] = "Whois Lookup",
+    ["ripestat_lookup"] = "RIPEstat Lookup",
   },
   ["developer_section"] = {
     ["datasources_list"] = "Datasources",

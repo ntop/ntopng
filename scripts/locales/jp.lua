@@ -1614,6 +1614,7 @@ local lang = {
     ["traffic_sent_received"] = "トラフィック 送信 / 受信",
     ["vlan_id"] = "VLAN ID",
     ["whois_lookup"] = "ルックアップは誰か",
+    ["ripestat_lookup"] = "RIPEstat でのルックアップ",
   },
   ["developer_section"] = {
     ["datasources_list"] = "データソース",

@@ -1337,6 +1337,7 @@ local lang = {
     ["traffic_sent_received"] = "发送/接收的流量",
     ["vlan_id"] = "VLAN ID",
     ["whois_lookup"] = "Whois 查询",
+    ["ripestat_lookup"] = "RIPEstat 查询",
   },
   ["developer_section"] = {
     ["datasources_list"] = "数据源",

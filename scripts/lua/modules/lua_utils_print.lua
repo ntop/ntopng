@@ -19,7 +19,7 @@ end
 function printASN(asn, asname)
   asname = asname:gsub('"','')
   if(asn > 0) then
-   return("<A class='ntopng-external-link' href='http://as.robtex.com/as"..asn..".html'>"..asname.." <i class='fas fa-external-link-alt fa-lg'></i></A>")
+   return("<A class='ntopng-external-link' href='https://stat.ripe.net/AS"..asn..".html'>"..asname.." <i class='fas fa-external-link-alt fa-lg'></i></A>")
   else
     return(asname)
   end

@@ -555,6 +555,7 @@ local lang = {
     ["traffic_sent_received"] = "Tráfego enviado / recebido",
     ["vlan_id"] = "ID de VLAN",
     ["whois_lookup"] = "Whois Lookup",
+    ["ripestat_lookup"] = "RIPEstat Lookup",
   },
   ["device_protocols"] = {
     ["alert"] = "Alerta de gatilho",
