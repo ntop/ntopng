@@ -26,6 +26,13 @@ function ts_rest_utils.get_timeseries(http_context)
       -- This can contain a MAC address for local broadcast domain hosts
       local tskey = http_context.tskey
 
+      if (ts_schema == "top:snmp_if:traffic") or
+         (ts_schema == "top:flowdev_port:traffic") then
+         -- NOTE: the host here is not required, if added return an empty serie
+         tskey = 0
+         tags.host = nil
+      end
+      
       -- Setting host_ip (check that the provided IP matches the provided
       -- mac address as safety check and to avoid security issues)
       if tags.host then
@@ -56,7 +63,9 @@ function ts_rest_utils.get_timeseries(http_context)
 	 end
       end
 
-      tags.host = tskey
+      if tskey ~= 0 then
+         tags.host = tskey
+      end
    end
 
    local options = {

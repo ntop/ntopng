@@ -141,7 +141,7 @@ function ts_common.upsampleSerie(serie, num_points)
   local intervals = num_points / #serie;
 
   local lerp = function(v0, v1, t)
-    return (1 - t) * v0 + t * v1
+    return (1 - t) * (v0 or 1) + t * v1
   end
 
   if #serie == 0 then
