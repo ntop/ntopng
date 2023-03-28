@@ -90,14 +90,16 @@ function system_setup_ui_utils.printConfigChange(sys_config, warnings)
         local dhcp_config = sys_config:getDhcpServerConfig()
 
           if dhcp_config.enabled then
+            local warn_dhcp_range = false
             for _, lan_config in pairs(lan_networks) do
               local lan_name = lan_config.iface
               if (not lan_name) or (not dhcp_config["subnet"][lan_name]) then
                 goto continue
               end
 
-              if not sys_config:hasValidDhcpRange(dhcp_config["subnet"][lan_name]["first_ip"], dhcp_config["subnet"][lan_name]["last_ip"]) then
+              if not sys_config:hasValidDhcpRange(dhcp_config["subnet"][lan_name]["first_ip"], dhcp_config["subnet"][lan_name]["last_ip"]) and not warn_dhcp_range then
                 warnings[#warnings + 1] = i18n("nedge.invalid_dhcp_range")
+                warn_dhcp_range = true -- warn once in case of multiple interfaces
               end
               ::continue::
             end
