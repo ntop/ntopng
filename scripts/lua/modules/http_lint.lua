@@ -1898,6 +1898,7 @@ local known_parameters = {
    ["frequency"]               = validateSingleWord,
    ["metric_type"]             = validateSingleWord,
    ["rule_id"]                 = validateSingleWord,
+   ["new_rule_id"]             = validateSingleWord,
    ["extra_metric"]            = validateSingleWord,
    ["rule_type"]               = validateSingleWord,
    ["rule_threshold_sign"]     = validateNumber,

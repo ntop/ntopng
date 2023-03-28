@@ -5,6 +5,15 @@
   <template v-slot:body>
     <div class="container-fluid">
 
+      <!-- Rule ID -->
+      <div class="row form-group mb-3" v-show="!is_open_in_add">
+	<div class="col col-md-12">
+          <label class="form-label">{{_i18n("nedge.page_rules_config.rule_id")}}</label>
+            <input type="text" class="form-control" v-model="new_rule_id">
+            <input type="hidden" class="form-control" v-model="rule_id">
+	</div>
+      </div>
+
       <!-- Source -->
       <div class="row form-group mb-3">
 	<div class="col col-md-6">
@@ -116,6 +125,9 @@ const actions = [
 ];
 const selected_action = ref({});
 
+const rule_id = ref(0);
+const new_rule_id = ref(0);
+
 const selected_source_type = ref({});
 const source_regex = ref("");
 const source = ref("");
@@ -146,22 +158,23 @@ const show = (row, default_action) => {
     modal_id.value.show();
 };
 
-let is_open_in_add = true;
-let rule_id;
+const is_open_in_add = ref(true);
+
 function init(row, default_action) {
-    is_open_in_add = row == null;
+    is_open_in_add.value = row == null;
     if (default_action != null) {
 	default_action_value = default_action.value;
     }
     // check if we need open in edit
-    if (is_open_in_add == false) {
+    if (is_open_in_add.value == false) {
 	title.value = _i18n("nedge.page_rules_config.modal_rule_config.title_edit");
 	button_text.value = _i18n("edit");
 	selected_source_type.value = type_array.find((s) => s.value == row.source.type);
 	selected_dest_type.value = type_array.find((s) => s.value == row.destination.type);
 	selected_direction.value = directions.find((d) => d.bidirectional == row.bidirectional);
 	selected_action.value = actions.find((a) => a.value == row.action);
-	rule_id = row.rule_id;
+	rule_id.value = row.rule_id;
+        new_rule_id.value = row.rule_id;
     } else {
 	title.value = _i18n("nedge.page_rules_config.modal_rule_config.title_add");
 	button_text.value = _i18n("add");
@@ -269,8 +282,9 @@ const apply = () => {
 	bidirectional,
     };
     let event = "add";
-    if (is_open_in_add == false) {
-	obj.rule_id = rule_id;
+    if (is_open_in_add.value == false) {
+	obj.rule_id = rule_id.value;
+	obj.new_rule_id = new_rule_id.value;
 	event = "edit";
     }
     
