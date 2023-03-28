@@ -148,6 +148,8 @@ function set_datatable_config() {
     
     let columns = [
 	{ 
+	    columnName: _i18n("nedge.page_rules_config.rule_id"), targets: 0, name: 'rule_id', data: 'rule_id', className: 'text-nowrap text-center', responsivePriority: 1
+	}, { 
 	    columnName: _i18n("nedge.page_rules_config.source"), targets: 0, name: 'source', data: 'source.value', className: 'text-nowrap text-center', responsivePriority: 1
 	}, { 
 	    columnName: _i18n("nedge.page_rules_config.dest"), targets: 0, name: 'dest', data: 'destination.value', className: 'text-nowrap text-center', responsivePriority: 1

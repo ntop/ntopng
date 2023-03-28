@@ -5157,6 +5157,7 @@ local lang = {
         ["title_add"] = "Add Filter Rule",
         ["title_edit"] = "Edit Filter Rule",
       },
+      ["rule_id"] = "Rule ID",
     },
     ["policy_source_labels"] = {
       ["policy_source_category"] = "Category Policy",
