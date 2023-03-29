@@ -547,7 +547,7 @@ local lang = {
   ["total_outgoing_unreachable_flows"] = "Total Outgoing Unreach Flows",
   ["total_retransmissions_rcvd"] = "Total Retransm Rcvd",
   ["total_retransmissions_sent"] = "Total Retransm Sent",
-  ["total_score"] = "Total Score",
+  ["total_score"] = "Tot. Score",
   ["total_traffic"] = "Total Traffic",
   ["traffic"] = "Traffic",
   ["traffic_cli_to_srv"] = "Client <i class='fas fa-arrow-right'></i> Server",
