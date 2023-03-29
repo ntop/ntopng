@@ -538,11 +538,13 @@ static int getAuthorizedUser(struct mg_connection *conn,
 
 /* ****************************************** */
 
+#ifdef HAVE_NEDGE
 static int isCaptiveConnection(struct mg_connection *conn) {
   return(ntop->getPrefs()->isCaptivePortalEnabled()
 	 && (ntohs(conn->client.lsa.sin.sin_port) == CAPTIVE_PORTAL_PORT)
 	 );
 }
+#endif
 
 /* ****************************************** */
 
@@ -635,8 +637,8 @@ static void redirect_to_login(struct mg_connection *conn,
   char session_id[NTOP_SESSION_ID_LENGTH], session_key[32];
   char buf[128];
   char *referer_enc = NULL, *reason_enc = NULL;
+#ifdef HAVE_NEDGE
   char wispr_captive_data[1024];
-
 
   if(isCaptiveConnection(conn)) {
     const char *wispr_data = ntop->get_HTTPserver()->getWisprCaptiveData(wispr_captive_data, sizeof(wispr_captive_data), ntop->get_HTTPserver()->getCaptiveRedirectAddress());
@@ -657,7 +659,10 @@ static void redirect_to_login(struct mg_connection *conn,
 	      referer ? (char*)"?referer=" : "",
 	      referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"",
               wispr_data);
-  } else {
+  } else 
+#endif
+  {
+
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[LOGIN] [Host: %s][URI: %s]",
 				 mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
@@ -812,7 +817,9 @@ static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
 		      char *username, char *group, bool *localuser) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
+#ifdef HAVE_NEDGE
   bool bad_user_pwd = false;
+#endif
 
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
@@ -837,6 +844,7 @@ static void authorize(struct mg_connection *conn,
     }
   }
 
+#ifdef HAVE_NEDGE
   if(isCaptiveConnection(conn)
      || ntop->isCaptivePortalUser(user)
      || (bad_user_pwd = (!ntop->checkGuiUserPassword(conn, user, password, group, localuser)))) {
@@ -844,7 +852,9 @@ static void authorize(struct mg_connection *conn,
     const char *reason = NULL;
     if (bad_user_pwd) reason = "wrong-credentials";
     redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer, reason);
-  } else {
+  } else 
+#endif
+  {
     /* Referer url must begin with '/' */
     if((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0)) {
       char *r = strchr(referer, '/');
@@ -1264,13 +1274,16 @@ static int handle_lua_request(struct mg_connection *conn) {
       return(redirect_to_error_page(conn, request_info, "enterprise_only", NULL, NULL));
     }
 
+#ifdef HAVE_NEDGE
     if((!whitelisted)
        && isCaptiveConnection(conn)
        && (!isCaptiveURL(request_info->uri))) {
       redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer, NULL);
       if(original_uri) request_info->uri  = original_uri;
       return(0);
-    } else {
+    } else
+#endif
+    {
       if(strncmp(request_info->uri, "/scripts/", 9) == 0)
 	/* TODO: change the path name from scripts to something else, scripts is already used */
 	snprintf(path, sizeof(path), "%s/scripts/%s",
