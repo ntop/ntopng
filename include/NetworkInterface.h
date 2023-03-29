@@ -60,6 +60,7 @@ class HostChecksExecutor;
 class L7Policer;
 class FlowInterfacesStats;
 class TrafficShaper;
+class NetworkInterfacePro;
 #endif
 
 /** @class NetworkInterface
@@ -222,6 +223,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #endif
   CustomAppStats *custom_app_stats;
   FlowInterfacesStats *flow_interfaces_stats;
+  NetworkInterfacePro *network_interface_pro;
 #endif
   EthStats ethStats;
   std::map<u_int32_t, u_int64_t> ip_mac; /* IP (network byte order) <-> MAC association [2 bytes are unused] */

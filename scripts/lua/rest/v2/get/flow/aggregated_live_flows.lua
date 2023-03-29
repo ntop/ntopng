@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/pro/enterprise/modules/?.lua;" .. package.path
 
 -- ############################################
 -- Requires
@@ -11,6 +12,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local rest_utils = require("rest_utils")
 local format_utils = require("format_utils")
+if ntop.isEnterpriseM() then
+  require "aggregate_live_flows"
+end
+
 -- ############################################
 
 local debugger = false
@@ -66,16 +71,14 @@ local function build_response()
   -- Discovery analysis type 
   local criteria_type_id = 1 
   -- by default -> application_protocol
-  if criteria == "client" then
+  if criteria == "application_protocol" then
+    criteria_type_id = 1 
+  elseif criteria == "client" then
     criteria_type_id = 2
   elseif criteria == "server" then
     criteria_type_id = 3
-  elseif criteria == "client_server" then
-    criteria_type_id = 4
-  elseif criteria == "app_client_server" then
-    criteria_type_id = 5
-  elseif criteria == "info" then
-    criteria_type_id = 6
+  elseif ntop.isEnterpriseM() then
+    criteria_type_id = get_criteria_type_id(criteria)
   end
   
 
@@ -187,24 +190,20 @@ local function build_response()
     local add_app_proto = false
     local add_server = false
     local add_client = false
-    local add_info = false
+
+    local response = {}
     if (criteria_type_id == 1) then
       add_app_proto = true
     elseif (criteria_type_id == 2) then
       add_client = true
     elseif (criteria_type_id == 3) then
       add_server = true
-    elseif (criteria_type_id == 4) then
-      add_client = true
-      add_server = true
-    elseif(criteria_type_id == 5) then
-      add_client = true
-      add_server = true
-      add_app_proto = true
-    elseif(criteria_type_id == 6) then
-      add_info = true
+
+    elseif ntop.isEnterpriseM() then
+      response = get_output_flags(criteria_type_id)
     end
-    if add_app_proto then
+    
+    if( add_app_proto or (response ~= {} and response.add_app_proto) )then
       res[actual_idx].application = {
         label = data.proto_name,
         id = data.proto_id,
@@ -212,7 +211,7 @@ local function build_response()
       }
     end
 
-    if add_client then 
+    if( add_client or (response ~= {} and response.add_client) )then 
       res[actual_idx].client = {
         label = client_ip_label,
         id = client_ip,
@@ -226,7 +225,7 @@ local function build_response()
       res[actual_idx].is_client_in_mem = isView or cli_in_mem
     end
 
-    if add_server then 
+    if( add_server or (response ~= {} and response.add_server) )then 
       res[actual_idx].server = {
         label = server_ip_label,
         id = server_ip,
@@ -241,7 +240,7 @@ local function build_response()
       res[actual_idx].is_server_in_mem = isView or srv_in_mem
     end
 
-    if add_info then
+    if( response ~= {} and response.add_info )then
       res[actual_idx].info = {
         label = shortenString(data.info),
         id = data.info

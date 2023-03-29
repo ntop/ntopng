@@ -10337,148 +10337,6 @@ static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data, b
 
 /* **************************************************** */
 
-static bool compute_client_server_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
-  Flow *f = (Flow*)node;
-  IpAddress *cli = f->get_cli_ip_addr();
-
-  if(!(cli->isIPv6() && cli->isPrivateAddress())) {
-    /* Skip private IPv6 hosts*/
-    
-    std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
-
-    u_int64_t vlan_id = f->get_vlan_id();
-    std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
-
-    u_int64_t key = 0;
-
-    key = (((u_int64_t)f->get_cli_ip_addr()->key()) << 16)
-      + (((u_int64_t)f->get_srv_ip_addr()->key()) << 16)
-      + ((u_int64_t)vlan_id);
-
-    it = count->find(key);
-
-    if(it == count->end()) {
-      FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-						     f->get_protocol(),
-						     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-						     f->getScore());
-
-      if(fs != NULL) {
-	fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
-	fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
-	fs->setVlanId(f->get_vlan_id());
-	fs->setKey(key);
-	(*count)[key] = fs;
-      }
-    } else
-      it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-			       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-			       f->getScore());
-
-    *matched = true;
-  }
-  
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool compute_app_client_server_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
-  Flow *f = (Flow*)node;
-  IpAddress *cli = f->get_cli_ip_addr();
-
-  if(!(cli->isIPv6() && cli->isPrivateAddress())) {
-    /* Skip private IPv6 hosts*/
-    
-    ndpi_protocol detected_protocol = f->get_detected_protocol();
-    std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
-
-    u_int64_t vlan_id = f->get_vlan_id();
-    std::unordered_map<u_int64_t, FlowsStats*>::iterator it;
-
-    u_int64_t key = 0;
-
-    key =   (((u_int64_t)   f->get_cli_ip_addr()->key()) << 16)
-      + (((u_int64_t)   f->get_srv_ip_addr()->key()) << 16)
-      + ((u_int64_t)    vlan_id << 32)
-      + (((u_int64_t)   detected_protocol.app_protocol) << 16)
-      + (u_int64_t)     detected_protocol.master_protocol;
-
-    u_int64_t proto_key = 0;
-
-    proto_key =   ((u_int64_t)  vlan_id << 32)
-      + (((u_int64_t) detected_protocol.app_protocol) << 16)
-      + (u_int64_t)   detected_protocol.master_protocol;
-
-    it = count->find(key);
-
-    if(it == count->end()) {
-      FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-						     f->get_protocol(),
-						     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-						     f->getScore());
-      if(fs != NULL) {
-	fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
-	fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
-	fs->setVlanId(vlan_id);
-	fs->setKey(key);
-	fs->setProtoKey(proto_key);
-	(*count)[key] = fs;
-      }
-    } else
-      it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-			       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-			       f->getScore());
-
-    *matched = true;
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool compute_info_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
-  Flow *f = (Flow*)node;
-  std::unordered_map<string, FlowsStats*> *count = static_cast<std::unordered_map<string, FlowsStats*>*>(user_data);
-  u_int64_t vlan_id = f->get_vlan_id();
-  std::unordered_map<string, FlowsStats*>::iterator it;
-  char buf[64];
-  string key = f->getFlowInfo(buf, sizeof(buf), false);
-
-  char * key_char = new char[key.length() + 1];
-  strcpy(key_char,key.c_str());
-
-  if(key.size() > 0) {
-    it = count->find(key);
-
-    if(it == count->end()) {
-      FlowsStats *fs = new (std::nothrow) FlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-						     f->get_protocol(),
-						     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-						     f->getScore());
-
-      if(fs != NULL) {
-	fs->setVlanId(vlan_id);
-	fs->setInfoKey(key_char);
-        (*count)[key] = fs;
-      }
-    } else
-      it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-            f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-            f->getScore());
-
-    *matched = true;
-    return(false); /* false = keep on walking */
-  }
-
-  *matched = true;
-  return(false);
-
-}
-
-/* **************************************************** */
-
 /* Sort compare functions */
 
 static bool asc_str_cmp(FlowsStats* a, FlowsStats* b) {
@@ -10770,15 +10628,20 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
     break;
   case AnalysisCriteria::client_server_criteria :
     /* client server criteria flows stats case */
-    walker(&begin_slot, true /* walk_all */, walker_flows, compute_client_server_flow_stats, &count);
+
+    if (ntop->getPrefs()->is_enterprise_m_edition())
+      walker(&begin_slot, true /* walk_all */, walker_flows, NetworkInterfacePro::compute_client_server_flow_stats, &count);
     break;
   case AnalysisCriteria::app_client_server_criteria :
     /* app client server criteria flows stats case */
-    walker(&begin_slot, true /* walk_all */, walker_flows, compute_app_client_server_flow_stats, &count);
+
+    if (ntop->getPrefs()->is_enterprise_m_edition())
+      walker(&begin_slot, true /* walk_all */, walker_flows, NetworkInterfacePro::compute_app_client_server_flow_stats, &count);
     break;
   case AnalysisCriteria::info_criteria :
     /* info criteria flows stats case */
-    walker(&begin_slot, true /* walk_all */, walker_flows, compute_info_flow_stats, &info_count);
+    if (ntop->getPrefs()->is_enterprise_m_edition())
+      walker(&begin_slot, true /* walk_all */, walker_flows, NetworkInterfacePro::compute_info_flow_stats, &info_count);
     break;
 
   default:
