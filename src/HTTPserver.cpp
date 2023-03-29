@@ -817,9 +817,7 @@ static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
 		      char *username, char *group, bool *localuser) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
-#ifdef HAVE_NEDGE
   bool bad_user_pwd = false;
-#endif
 
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
@@ -844,17 +842,18 @@ static void authorize(struct mg_connection *conn,
     }
   }
 
+  if(
 #ifdef HAVE_NEDGE
-  if(isCaptiveConnection(conn)
+     isCaptiveConnection(conn)
      || ntop->isCaptivePortalUser(user)
-     || (bad_user_pwd = (!ntop->checkGuiUserPassword(conn, user, password, group, localuser)))) {
+     ||
+#endif
+     (bad_user_pwd = (!ntop->checkGuiUserPassword(conn, user, password, group, localuser)))) {
     // Authentication failure, redirect to login
     const char *reason = NULL;
     if (bad_user_pwd) reason = "wrong-credentials";
     redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer, reason);
-  } else 
-#endif
-  {
+  } else {
     /* Referer url must begin with '/' */
     if((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0)) {
       char *r = strchr(referer, '/');
