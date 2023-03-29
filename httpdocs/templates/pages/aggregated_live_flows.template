@@ -6,6 +6,7 @@
 
 <div id="aggregated-live-flows">
   <page-aggregated-live-flows
+  :is_ntop_enterprise_m="is_ntop_enterprise_m"
   :ifid="ifid"
   :vlans="vlans"
   :aggregation_criteria="aggregation_criteria"
@@ -30,6 +31,8 @@
 
   
   function start_vue() {
+    const isNtopEnterpriseM = '{* ntop.isEnterpriseM() *}' == 'true';
+
     let vue_options = {
       components: {	  
         'page-aggregated-live-flows': ntopVue.PageAggregatedLiveFlows,
@@ -42,6 +45,7 @@
       },
       data() {
         return {
+          is_ntop_enterprise_m: isNtopEnterpriseM,
           vlans: vlans,
           ifid: ifid,
           aggregation_criteria: aggregation_criteria,
