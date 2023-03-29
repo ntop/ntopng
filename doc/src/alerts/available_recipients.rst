@@ -209,6 +209,17 @@ Mattermost
 
 Mattermost (https://mattermost.com) is an Open Source, self-hostable online chat service designed as an internal chat for organisations and companies.
 
+After creating the endpoint, create a new recipient with the new endpoint just created and put the channel id for a valid mattermost channel inside of it.
+
+.. figure:: ../img/mattermost_endpoint.png
+
+.. figure:: ../img/mattermost_recipient.png
+
+.. note::
+
+        If the Recipient Check isn't succesfull, be sure that ntopng has sudo privileges and that the Mattermost URL and protocol/port added are correct.
+
+        Mattermost will be called for all alerts that match the criteria specified in the recipient config.
 
 .. _Microsoft Teams:
 MS Teams
