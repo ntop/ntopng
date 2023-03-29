@@ -424,6 +424,7 @@ function page_utils.print_header_minimal(title, addLoginJS)
             margin-top: -5px;
             background:url(]] print(http_prefix) print[[/dist/images/flags.png) no-repeat
           }
+          </style>
           <script type="application/javascript" src="]] print(http_prefix) print("/lua/locale.lua?"..locale_when .. "&user_language=" ..language); print[["> </script>
           <script type="application/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
           <script type="application/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js?]] print(static_file_epoch) print[["></script>
