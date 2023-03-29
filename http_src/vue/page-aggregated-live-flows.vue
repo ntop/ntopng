@@ -20,7 +20,7 @@
           :table_config="table_config.table_config">
 	    <template v-slot:menu>
 	      <div class="d-flex align-items-center">
-		<div class="d-flex no-wrap ms-auto" style="text-align:left;margin-right:1rem">
+		<div class="d-flex no-wrap ms-auto" style="text-align:left;margin-right:1rem;min-width:20rem;">
       <label class="my-auto me-1">{{ _i18n('criteria_filter') }}: </label>
 		  <SelectSearch v-model:selected_option="selected_criteria"
 				:options="criteria_list"

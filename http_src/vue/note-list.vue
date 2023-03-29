@@ -1,4 +1,4 @@
-<!-- (C) 2022 - ntop.org     -->
+<!-- (C) 2022-23 - ntop.org     -->
 
 <template>
   <div id="script-description" class="notes bg-light border" role="alert">
