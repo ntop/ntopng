@@ -35,6 +35,8 @@ typedef struct {
   int id;
 } InterfaceInfo;
 
+typedef std::set<std::string> InterfacesSet;
+
 class Prefs {
  private:
   u_int8_t num_deferred_interfaces_to_register;
@@ -173,7 +175,7 @@ class Prefs {
 #endif
   bool print_version, print_version_json;
 
-  std::set<std::string> lan_interfaces, wan_interfaces;
+  InterfacesSet lan_interfaces, wan_interfaces;
 
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
@@ -379,14 +381,22 @@ class Prefs {
   inline char* get_zmq_encryption_priv_key() { return(zmq_encryption_priv_key); };
   inline bool  is_zmq_encryption_enabled() { return(enable_zmq_encryption); };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
+
   inline const char* get_first_lan_interface() { return(get_num_lan_interfaces() ? lan_interfaces.begin()->c_str() : (char*)""); };
   inline const char* get_first_wan_interface() { return(get_num_wan_interfaces() ? wan_interfaces.begin()->c_str() : (char*)""); };
+
   inline void add_lan_interface(char *iface) { lan_interfaces.insert(iface); };
   inline void add_wan_interface(char *iface) { wan_interfaces.insert(iface); };
+
   inline bool is_lan_interface(char *iface) { return lan_interfaces.find(iface) != lan_interfaces.end(); }
   inline bool is_wan_interface(char *iface) { return wan_interfaces.find(iface) != wan_interfaces.end(); }
+
   inline int get_num_lan_interfaces() { return lan_interfaces.size(); }
   inline int get_num_wan_interfaces() { return wan_interfaces.size(); }
+
+  inline InterfacesSet* get_lan_interfaces() { return &lan_interfaces; }
+  inline InterfacesSet* get_wan_interfaces() { return &wan_interfaces; }
+
   inline bool areMacNdpiStatsEnabled()  { return(enable_mac_ndpi_stats); };
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); };
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; };
