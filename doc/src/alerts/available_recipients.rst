@@ -211,9 +211,9 @@ Mattermost (https://mattermost.com) is an Open Source, self-hostable online chat
 
 After creating the endpoint, create a new recipient with the new endpoint just created and put the channel id for a valid mattermost channel inside of it.
 
-.. figure:: img/mattermost_endpoint.png
+.. figure:: ../img/mattermost_endpoint.png
 
-.. figure:: img/mattermost_recipient.png
+.. figure:: ../img/mattermost_recipient.png
 
 . note::
 
