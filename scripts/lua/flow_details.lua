@@ -982,12 +982,26 @@ else
     end
 
    local flags = flow["cli2srv.tcp_flags"] or flow["srv2cli.tcp_flags"]
+   
+   local json_flags = nil
+   if(flags ~= nil and flags == 0) then
+      json_flags = json.decode(flow["moreinfo.json"])
+      flags = json_flags["CLIENT_TCP_FLAGS"] or json_flags["SERVER_TCP_FLAGS"]
+   end
 
    if((flags ~= nil) and (flags > 0)) then
       print("<tr><th width=30% rowspan=2>"..i18n("tcp_flags").."</th><td nowrap>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server")..": ")
-      printTCPFlags(flow["cli2srv.tcp_flags"])
+      if (json_flags ~= nil) then
+         printTCPFlags(json_flags["CLIENT_TCP_FLAGS"])
+      else
+         printTCPFlags(flow["cli2srv.tcp_flags"])
+      end
       print("</td><td nowrap>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server")..": ")
-      printTCPFlags(flow["srv2cli.tcp_flags"])
+      if(json_flags ~= nil) then
+         printTCPFlags(json_flags["SERVER_TCP_FLAGS"])
+      else
+         printTCPFlags(flow["srv2cli.tcp_flags"])
+      end
       print("</td></tr>\n")
 
       print("<tr><td colspan=2>")
@@ -1559,7 +1573,7 @@ else
           print("<tr><th colspan=3>"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")
         end
 
-        if(value ~= "") then
+        if(value ~= "" and key ~= "CLIENT_TCP_FLAGS" and key ~= "SERVER_TCP_FLAGS") then
           if type(value) == "table" then
             print("<tr><th width=30%>" .. getFlowKey(key) .. "</th>")
             for _, value in pairs(value or {}) do
