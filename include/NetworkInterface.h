@@ -1131,6 +1131,16 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void getFilteredLiveFlowsStats(lua_State* vm);
   void getVLANFlowsStats(lua_State* vm);
   void getRxOnlyHostsList(lua_State* vm, bool local_host_rx_only, bool list_host_peers);
+
+  static bool compute_protocol_flow_stats(GenericHashEntry *node, void *user_data, bool *matched);
+  static bool compute_client_flow_stats(GenericHashEntry *node, void *user_data, bool *matched);
+  static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data, bool *matched);
+  
+#ifdef NTOPNG_PRO
+  static bool compute_client_server_flow_stats(GenericHashEntry *node, void *user_data, bool *matched);
+  static bool compute_app_client_server_flow_stats(GenericHashEntry *node, void *user_data, bool *matched);
+  static bool compute_info_flow_stats(GenericHashEntry *node, void *user_data, bool *matched);
+#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

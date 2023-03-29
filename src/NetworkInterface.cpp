@@ -10227,7 +10227,7 @@ bool NetworkInterface::resetHostTopSites(AddressTree *allowed_hosts,
 
 /* **************************************************** */
 
-static bool compute_protocol_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
+bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
   std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
   u_int64_t key = 0;
@@ -10264,7 +10264,7 @@ static bool compute_protocol_flow_stats(GenericHashEntry *node, void *user_data,
 
 /* **************************************************** */
 
-static bool compute_client_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
+bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
   std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
 
@@ -10301,7 +10301,7 @@ static bool compute_client_flow_stats(GenericHashEntry *node, void *user_data, b
 
 /* **************************************************** */
 
-static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
+bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *f = (Flow*)node;
   std::unordered_map<u_int64_t, FlowsStats*> *count = static_cast<std::unordered_map<u_int64_t, FlowsStats*>*>(user_data);
 
@@ -10613,37 +10613,42 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
 
   u_int filter_type = lua_tonumber(vm, 1);
 
-  switch ( filter_type ) {
-  case AnalysisCriteria::application_criteria :
+  switch(filter_type) {
+  case AnalysisCriteria::application_criteria:
     /* application protocol criteria flows stats case */
     walker(&begin_slot, true /* walk_all */, walker_flows, compute_protocol_flow_stats, &count);
     break;
-  case AnalysisCriteria::client_criteria :
+    
+  case AnalysisCriteria::client_criteria:
     /* client criteria flows stats case */
     walker(&begin_slot, true /* walk_all */, walker_flows, compute_client_flow_stats, &count);
     break;
-  case AnalysisCriteria::server_criteria :
+    
+  case AnalysisCriteria::server_criteria:
     /* server criteria flows stats case */
     walker(&begin_slot, true /* walk_all */, walker_flows, compute_server_flow_stats, &count);
     break;
-  case AnalysisCriteria::client_server_criteria :
+
+#if defined(NTOPNG_PRO)
+  case AnalysisCriteria::client_server_criteria:
     /* client server criteria flows stats case */
-
-    if (ntop->getPrefs()->is_enterprise_m_edition())
-      walker(&begin_slot, true /* walk_all */, walker_flows, NetworkInterfacePro::compute_client_server_flow_stats, &count);
+    if(ntop->getPrefs()->is_enterprise_m_edition())
+      walker(&begin_slot, true /* walk_all */, walker_flows, compute_client_server_flow_stats, &count);
     break;
-  case AnalysisCriteria::app_client_server_criteria :
+    
+  case AnalysisCriteria::app_client_server_criteria:
     /* app client server criteria flows stats case */
-
-    if (ntop->getPrefs()->is_enterprise_m_edition())
-      walker(&begin_slot, true /* walk_all */, walker_flows, NetworkInterfacePro::compute_app_client_server_flow_stats, &count);
+    if(ntop->getPrefs()->is_enterprise_m_edition())
+      walker(&begin_slot, true /* walk_all */, walker_flows, compute_app_client_server_flow_stats, &count);
     break;
-  case AnalysisCriteria::info_criteria :
+    
+  case AnalysisCriteria::info_criteria:
     /* info criteria flows stats case */
-    if (ntop->getPrefs()->is_enterprise_m_edition())
-      walker(&begin_slot, true /* walk_all */, walker_flows, NetworkInterfacePro::compute_info_flow_stats, &info_count);
+    if(ntop->getPrefs()->is_enterprise_m_edition())
+      walker(&begin_slot, true /* walk_all */, walker_flows, compute_info_flow_stats, &info_count);
     break;
-
+#endif
+    
   default:
     /* client criteria flows stats case */
     walker(&begin_slot, true /* walk_all */, walker_flows, compute_client_flow_stats, &count);

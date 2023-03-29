@@ -460,8 +460,4 @@ using namespace std;
 #include "ntoppro_defines.h"
 #endif
 
-#ifdef NTOPNG_PRO
-#include "NetworkInterfacePro.h"
-#endif
-
 #endif /* _NTOP_H_ */
