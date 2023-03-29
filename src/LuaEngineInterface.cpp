@@ -4549,7 +4549,7 @@ static int ntop_get_policy_change_marker(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_set_lan_ip_address(lua_State* vm) {
+static int ntop_add_lan_ip_address(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
@@ -4557,10 +4557,10 @@ static int ntop_set_lan_ip_address(lua_State* vm) {
   const char* ip = lua_tostring(vm, 1);
 
   if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
-    ((NetfilterInterface *)ntop_interface)->setLanIPAddress(inet_addr(ip));
+    ((NetfilterInterface *)ntop_interface)->addLanIPAddress(inet_addr(ip));
 
   if(ntop->get_HTTPserver())
-    ntop->get_HTTPserver()->setCaptiveRedirectAddress(ip);
+    ntop->get_HTTPserver()->addCaptiveRedirectAddress(ip);
 
   lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -5034,7 +5034,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   /* L7 */
   { "reloadL7Rules",                    ntop_reload_l7_rules                   },
   { "reloadShapers",                    ntop_reload_shapers                    },
-  { "setLanIpAddress",                  ntop_set_lan_ip_address                },
+  { "setLanIpAddress",                  ntop_add_lan_ip_address                },
   { "getPolicyChangeMarker",            ntop_get_policy_change_marker          },
   { "updateFlowsShapers",               ntop_update_flows_shapers              },
   { "getl7PolicyInfo",                  ntop_get_l7_policy_info                },

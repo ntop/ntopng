@@ -574,27 +574,21 @@ static bool isStaticResourceUrl(const struct mg_request_info *request_info, u_in
 
 /* ****************************************** */
 
-/* this corresponds to the LAN interface address */
-void HTTPserver::setCaptiveRedirectAddress(const char *addr) {
-#ifdef NTOPNG_PRO
-  size_t max_wispr_size = 1024;
-
+#ifdef HAVE_NEDGE
+/* addr corresponds to the LAN interface address */
+void HTTPserver::addCaptiveRedirectAddress(const char *addr) {
+  //TODO handle multiple LAN/addresses
   if(captive_redirect_addr)
     free(captive_redirect_addr);
   captive_redirect_addr = strdup(addr);
+}
 
-  if(!wispr_captive_data)
-    wispr_captive_data = (char *) malloc(max_wispr_size);
+/* ****************************************** */
 
-  const char *name =
-#ifdef HAVE_NEDGE
-    ntop->getPro()->get_product_name()
-#else
-  "ntopng"
-#endif
-    ;
+const char* HTTPserver::getWisprCaptiveData(char *buf, int buf_size, const char *addr) {
+  const char *name = ntop->getPro()->get_product_name();
 
-  snprintf(wispr_captive_data, max_wispr_size, "<HTML>\n\
+  snprintf(buf, buf_size, "<HTML>\n\
 <!--\n\
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <WISPAccessGatewayParam xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n\
@@ -609,11 +603,14 @@ void HTTPserver::setCaptiveRedirectAddress(const char *addr) {
   </Redirect>\n\
 </WISPAccessGatewayParam>\n\
 -->\n\
-</HTML>", name, name, addr, CAPTIVE_PORTAL_PORT,
-	ntop->getPrefs()->get_http_prefix(),
-	ntop->getPrefs()->getCaptivePortalUrl());
-#endif
+</HTML>", 
+    name, name, addr, CAPTIVE_PORTAL_PORT,
+    ntop->getPrefs()->get_http_prefix(),
+    ntop->getPrefs()->getCaptivePortalUrl());
+
+  return buf;
 }
+#endif
 
 /* ****************************************** */
 
@@ -638,9 +635,11 @@ static void redirect_to_login(struct mg_connection *conn,
   char session_id[NTOP_SESSION_ID_LENGTH], session_key[32];
   char buf[128];
   char *referer_enc = NULL, *reason_enc = NULL;
+  char wispr_captive_data[1024];
+
 
   if(isCaptiveConnection(conn)) {
-    const char *wispr_data = ntop->get_HTTPserver()->getWisprCaptiveData();
+    const char *wispr_data = ntop->get_HTTPserver()->getWisprCaptiveData(wispr_captive_data, sizeof(wispr_captive_data), ntop->get_HTTPserver()->getCaptiveRedirectAddress());
 
     mg_printf(conn, "HTTP/1.1 302 Found\r\n"
 	      "Server: ntopng %s (%s)\r\n"
@@ -1541,8 +1540,6 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   ntop->getPrefs()->get_http_binding_addresses(&http_binding_addr1, &http_binding_addr2);
   ntop->getPrefs()->get_https_binding_addresses(&https_binding_addr1, &https_binding_addr2);
 
-  wispr_captive_data = NULL;
-  captive_redirect_addr = NULL;
   gui_access_restricted = false;
   can_accept_requests = false;
   httpd_v4 = NULL;
@@ -1572,6 +1569,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   ssl_enabled = false;
   httpserver = this;
 #ifdef HAVE_NEDGE
+  captive_redirect_addr = NULL;
   httpd_captive_v4 = NULL;
 #endif
 
@@ -1701,10 +1699,9 @@ HTTPserver::~HTTPserver() {
   if(httpd_v4)         mg_stop(httpd_v4);
 #ifdef HAVE_NEDGE
   if(httpd_captive_v4) mg_stop(httpd_captive_v4);
+  if(captive_redirect_addr) free(captive_redirect_addr);
 #endif
 
-  if(wispr_captive_data) free(wispr_captive_data);
-  if(captive_redirect_addr) free(captive_redirect_addr);
   free(docs_dir), free(scripts_dir);
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server terminated");
 };
