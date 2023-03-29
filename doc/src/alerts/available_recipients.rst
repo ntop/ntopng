@@ -215,7 +215,7 @@ After creating the endpoint, create a new recipient with the new endpoint just c
 
 .. figure:: ../img/mattermost_recipient.png
 
-. note::
+.. note::
 
         If the Recipient Check isn't succesfull, be sure that ntopng has sudo privileges and that the Mattermost URL and protocol/port added are correct.
 
