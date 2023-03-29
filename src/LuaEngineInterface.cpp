@@ -5034,7 +5034,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   /* L7 */
   { "reloadL7Rules",                    ntop_reload_l7_rules                   },
   { "reloadShapers",                    ntop_reload_shapers                    },
-  { "setLanIpAddress",                  ntop_add_lan_ip_address                },
+  { "addLanIpAddress",                  ntop_add_lan_ip_address                },
   { "getPolicyChangeMarker",            ntop_get_policy_change_marker          },
   { "updateFlowsShapers",               ntop_update_flows_shapers              },
   { "getl7PolicyInfo",                  ntop_get_l7_policy_info                },
