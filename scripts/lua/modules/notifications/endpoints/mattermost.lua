@@ -69,7 +69,7 @@ function mattermost.sendMattermost(message_body,settings)
     if (body.message.alert_type ~= nil) 
     then
       -- Only if a custom alert is thrown this script will be run
-      local post_rc = ntop.postHTTPJsonData(settings.mattermost_token, "", "", settings.url, body)
+      local post_rc = ntop.postHTTPJsonData("", "", settings.url, body, nil, settings.mattermost_token)
       if post_rc 
       then
         if post_rc.RESPONSE_CODE == 204 

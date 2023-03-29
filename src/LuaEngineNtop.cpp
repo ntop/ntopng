@@ -2407,7 +2407,7 @@ static int ntop_post_http_json_data(lua_State* vm) {
   /* Optional timeout */
   if(lua_type(vm, 5) == LUA_TNUMBER) timeout = lua_tonumber(vm, 5);
 
-  /* Optional timeout */
+  /* Optional Bearer Token */
   if(lua_type(vm, 6) == LUA_TSTRING) bearer_token = (char*)lua_tostring(vm, 6);
 
   bool rv = Utils::postHTTPJsonData(bearer_token, username, password, url, json, timeout, &stats);
