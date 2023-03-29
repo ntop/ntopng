@@ -4,7 +4,7 @@ The client side of the ntopng frontend is based on html/javascript/css/vue. Part
 Ntopng is currently using npm to compile the frontend code (JS/CSS) under httpdocs/dist.
 Foreach file modified in http_src you must recompile httpdocs/dist.
 
-## Requirements
+## Installation
 To compile the new modern frontend part written in http_src you must have nodejs >= 18.15.0.
 To install nodejs on Ubuntu run these command:
 ```
@@ -22,13 +22,14 @@ tar -xvf node-v18.15.0-linux-x64.tar.xz
 export PATH=$PATH:$(pwd)/node-v18.15.0-linux-x64/bin
 ```
 
-## Quick Start
-
 Install dependencies required for the frontend compilation:
 
 ```
 npm install
 ```
+
+## Quick Start
+
 
 In order to automatically recompile the code (debug mode) whenever a change to the
 frontend source files under http_src/ has been detected:
@@ -43,8 +44,10 @@ In order to compile frontend source files under http_src/ for production (ntopng
 npm run build:ntopngjs
 ```
 
-In order to compile for production (also third party code):
+In order to compile for production (only for third party code or CSS):
 
 ```
 npm run build
 ```
+
+Do not forget to commit your httpdocs/dist files (or send a pull request) !
