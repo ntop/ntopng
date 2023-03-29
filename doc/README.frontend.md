@@ -13,7 +13,7 @@ sudo apt-get install -y nodejs
 ```
 On others Linux distributions to install nodeJs you can:
 - download nodejs from https://nodejs.org/dist/v18.15.0/node-v18.15.0-linux-x64.tar.xz
-- decomprime nodejs tar with:
+- decompress nodejs tar with:
 ```
 tar -xvf node-v18.15.0-linux-x64.tar.xz
 ```
