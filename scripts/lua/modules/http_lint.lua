@@ -1995,6 +1995,7 @@ local known_parameters = {
    ["toggle_email_notification"]                   = validateBool,
    ["toggle_top_sites"]                            = validateBool,
    ["toggle_captive_portal"]                       = validateBool,
+   ["toggle_mdns_repeater"]                        = validateBool,
    ["toggle_informative_captive_portal"]           = validateBool,
    ["toggle_autologout"]                           = validateBool,
    ["toggle_interface_name_only"]                  = validateBool,
