@@ -57,7 +57,7 @@ for key, am_host in pairs(am_hosts) do
        column_last_value = last_update.value
        column_last_ip = last_update.ip
     end
-
+    
     if not isEmptyString(column_last_ip) then
       if string.starts(column_last_ip, 'http') then
         column_last_ip = split(column_last_ip, '//')[2]
@@ -81,6 +81,10 @@ for key, am_host in pairs(am_hosts) do
 
     if(column_last_value == nil) then
       chart = ""
+    else
+      if m_info.value_formatter then
+        column_last_value = m_info.value_formatter(column_last_value)
+      end
     end
 
     if am_utils.hasAlerts(am_host) then

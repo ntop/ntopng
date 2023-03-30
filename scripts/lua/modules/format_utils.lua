@@ -192,6 +192,10 @@ function format_utils.bitsToSize(bits)
    return(bitsToSizeMultiplier(bits, 1000))
 end
 
+function format_utils.bytesToSize(bytes)
+   return(bitsToSizeMultiplier(bytes * 8, 1000))
+end
+
 -- parse a SQL DATETIME date and convert to epoch
 function format_utils.parseDateTime(tstamp)
    if tstamp and not isEmptyString(tstamp) then
