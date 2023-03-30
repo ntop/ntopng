@@ -640,6 +640,7 @@
 #define CONST_PREFS_VLAN_TRUNK_MODE_ENABLED NTOPNG_PREFS_PREFIX".enable_vlan_trunk_bridge"
 #define CONST_PREFS_MAC_CAPTIVE_PORTAL      NTOPNG_PREFS_PREFIX".mac_based_captive_portal"
 #define CONST_PREFS_INFORM_CAPTIVE_PORTAL   NTOPNG_PREFS_PREFIX".enable_informative_captive_portal"
+#define CONST_PREFS_INFORM_URL              NTOPNG_PREFS_PREFIX".informative_captive_portal_url"
 #define CONST_PREFS_DEFAULT_L7_POLICY       NTOPNG_PREFS_PREFIX".default_l7_policy"
 #define CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED NTOPNG_PREFS_PREFIX".global_dns_forging"
 #define HOST_POOL_IDS_KEY                   NTOPNG_PREFS_PREFIX".host_pools.pool_ids"

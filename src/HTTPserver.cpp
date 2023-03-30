@@ -309,10 +309,12 @@ static int isWhitelistedURI(const char * uri) {
   /* URL whitelist */
   if((!strcmp(uri,    LOGIN_URL))
      || (!strcmp(uri, AUTHORIZE_URL))
+#ifdef HAVE_NEDGE
      || (!strcmp(uri, HOTSPOT_DETECT_URL))
      || (!strcmp(uri, HOTSPOT_DETECT_LUA_URL))
      || (!strcmp(uri, ntop->getPrefs()->getCaptivePortalUrl()))
      || (!strcmp(uri, KINDLE_WIFISTUB_URL))
+#endif
      )
     return(1);
   else
@@ -394,6 +396,7 @@ static int getAuthorizedUser(struct mg_connection *conn,
 			       request_info->uri, request_info->query_string ? request_info->query_string : "");
 #endif
 
+#ifdef HAVE_NEDGE
   /*
     iOS / MacOS
     1. HOTSPOT_DETECT_URL        "/hotspot-detect.html"
@@ -439,6 +442,7 @@ static int getAuthorizedUser(struct mg_connection *conn,
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
     return(1);
   }
+#endif
 
 #ifdef NO_SSL_DL
   /* Try to authenticate using client TLS/SSL certificate */
@@ -538,28 +542,37 @@ static int getAuthorizedUser(struct mg_connection *conn,
 
 /* ****************************************** */
 
+static bool isRootURL(char *url) {
+  if (!strcmp(url, "/"))
+    return(true);
+  else
+    return(false);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 static int isCaptiveConnection(struct mg_connection *conn) {
   return(ntop->getPrefs()->isCaptivePortalEnabled()
 	 && (ntohs(conn->client.lsa.sin.sin_port) == CAPTIVE_PORTAL_PORT)
 	 );
 }
-#endif
 
 /* ****************************************** */
 
-static int isCaptiveURL(char *url) {
+static bool isCaptiveURL(char *url) {
   if((!strcmp(url, KINDLE_WIFISTUB_URL))
      || (!strcmp(url, HOTSPOT_DETECT_URL))
      || (!strcmp(url, HOTSPOT_DETECT_LUA_URL))
      || (!strcmp(url, ntop->getPrefs()->getCaptivePortalUrl()))
      || (!strcmp(url, AUTHORIZE_CAPTIVE_LUA_URL))
-     || (!strcmp(url, "/"))
+     || isRootURL(url)
      )
-    return(1);
+    return(true);
   else
-    return(0);
+    return(false);
 }
+#endif
 
 /* ****************************************** */
 
@@ -589,6 +602,19 @@ void HTTPserver::addCaptiveRedirectAddress(const char *addr) {
 
 const char* HTTPserver::getWisprCaptiveData(char *buf, int buf_size, const char *addr) {
   const char *name = ntop->getPro()->get_product_name();
+  char informative_url[512];
+
+  informative_url[0] = '\0';
+
+  /* Check for custom captive portal page */
+  if (ntop->getPrefs()->isInformativeCaptivePortalEnabled())
+    ntop->getRedis()->get((char*)CONST_PREFS_INFORM_URL, informative_url, sizeof(informative_url), true);
+
+  if (informative_url[0] == '\0') {
+    /* Use the default captive portal login page in ntopng */
+    snprintf(informative_url, sizeof(informative_url), "http://%s:%u%s%s",
+      addr, CAPTIVE_PORTAL_PORT, ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl());
+  }
 
   snprintf(buf, buf_size, "<HTML>\n\
 <!--\n\
@@ -599,16 +625,14 @@ const char* HTTPserver::getWisprCaptiveData(char *buf, int buf_size, const char 
     <AccessProcedure>1.0</AccessProcedure>\n\
     <AccessLocation>%s Network</AccessLocation>\n\
     <LocationName>%s</LocationName>\n\
-    <LoginURL>http://%s:%u%s%s</LoginURL>\n\
+    <LoginURL>%s</LoginURL>\n\
     <MessageType>100</MessageType>\n\
     <ResponseCode>0</ResponseCode>\n\
   </Redirect>\n\
 </WISPAccessGatewayParam>\n\
 -->\n\
 </HTML>", 
-    name, name, addr, CAPTIVE_PORTAL_PORT,
-    ntop->getPrefs()->get_http_prefix(),
-    ntop->getPrefs()->getCaptivePortalUrl());
+    name, name, informative_url);
 
   return buf;
 }
@@ -1008,11 +1032,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 #ifndef HAVE_NEDGE
   if(ntop->get_HTTPserver()->is_ssl_enabled()
      && (!request_info->is_ssl)
-     && isCaptiveURL(request_info->uri)
-     && (!strstr(referer, HOTSPOT_DETECT_LUA_URL))
-     && (!strstr(referer, ntop->getPrefs()->getCaptivePortalUrl()))
-     // && ((mg_get_header(conn, "Host") == NULL) || (mg_get_header(conn, "Host")[0] == '\0'))
-     ) {
+     && isRootURL(request_info->uri)) {
     redirect_to_ssl(conn, request_info);
     return(1);
   } else

@@ -2505,14 +2505,14 @@ void Prefs::validate() {
 
 /* *************************************** */
 
+#ifdef HAVE_NEDGE
 const char * Prefs::getCaptivePortalUrl() {
-#ifdef NTOPNG_PRO
   if(isInformativeCaptivePortalEnabled())
     return CAPTIVE_PORTAL_INFO_URL;
   else
-#endif
     return CAPTIVE_PORTAL_URL;
 }
+#endif
 
 /* *************************************** */
 
