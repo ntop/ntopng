@@ -24,6 +24,7 @@
 
 #include "ntop_includes.h"
 
+class MDNSRepeater;
 /** @defgroup Ntop Ntop
  * Main ntopng group.
  */
@@ -102,6 +103,9 @@ class Ntop {
 #ifdef HAVE_KAFKA
   KafkaClient kafkaClient;
 #endif
+#endif
+#ifdef HAVE_NEDGE
+  MDNSRepeater *mdnsRepeater;
 #endif
   
   /* Local network address list */

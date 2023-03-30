@@ -57,6 +57,7 @@ Ntop::Ntop(const char *appName) {
   globals = new (std::nothrow) NtopGlobals();
   extract = new (std::nothrow) TimelineExtract();
   address = new (std::nothrow) AddressResolution();
+
   offline = false;
   forced_offline = false;
   pa = NULL;
@@ -212,6 +213,10 @@ Ntop::Ntop(const char *appName) {
 
   startupLockFile = -1;
 #endif
+
+#ifdef HAVE_NEDGE
+  mdnsRepeater = new (std::nothrow) MDNSRepeater();
+#endif
 }
 
 /* ******************************************* */
@@ -347,6 +352,9 @@ Ntop::~Ntop() {
   if(globals) { delete globals; globals = NULL; }
 
   if(myTZname) free(myTZname);
+#ifdef HAVE_NEDGE
+  delete mdnsRepeater;
+#endif
 
 #ifdef __linux__
   if(inotify_fd > 0)  close(inotify_fd);
@@ -513,6 +521,10 @@ void Ntop::start() {
   loadLocalInterfaceAddress();
 
   address->startResolveAddressLoop();
+#ifdef HAVE_NEDGE
+  mdnsRepeater->start_thread_repeater();
+#endif
+
 
   system_interface->allocateStructures();
 
@@ -3063,6 +3075,10 @@ void Ntop::shutdownAll() {
                                  rc, strerror(errno));
   }
 #endif
+#endif
+
+#ifdef HAVE_NEDGE
+  ntop->mdnsRepeater->stop();
 #endif
 }
 
