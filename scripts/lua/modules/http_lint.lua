@@ -2101,6 +2101,7 @@ local known_parameters = {
    ["safe_search_dns"]                             = validateIPV4,
    ["global_dns"]                                  = validateEmptyOr(validateIPV4),
    ["secondary_dns"]                               = validateEmptyOr(validateIPV4),
+   ["informative_captive_portal_url"]              = validateEmptyOr(validateSingleWord),
    ["redirection_url"]                             = validateEmptyOr(validateSingleWord),
    ["email_sender"]                                = validateSingleWord,
    ["email_recipient"]                             = validateSingleWord,
