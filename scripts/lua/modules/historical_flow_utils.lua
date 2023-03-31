@@ -532,7 +532,7 @@ local function dt_format_l7_category(l7_category)
    } 
 
    if not isEmptyString(l7_category) then
-      local title = interface.getnDPICategoryName(tonumber(l7_category))
+      local title = getCategoryLabel(interface.getnDPICategoryName(tonumber(l7_category)), tonumber(l7_category))
       
       formatted_cat["title"] = title
       formatted_cat["label"] = shortenString(title, 12)
