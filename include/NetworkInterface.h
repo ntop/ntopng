@@ -473,8 +473,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #else
   virtual bool
 #endif
-		      isDiscoverableInterface(){ return(false);                              }
-  inline virtual char* altDiscoverableName()   { return(NULL);                               }
+		      isDiscoverableInterface(){ return(false); }
+  inline virtual const char* altDiscoverableName() { return(NULL); }
   virtual const char* get_type()    const      { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
   virtual InterfaceType getIfType() const      { return(interface_type_UNKNOWN); }
   inline FlowHash *get_flows_hash()            { return flows_hash;     }

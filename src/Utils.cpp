@@ -2571,7 +2571,7 @@ u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
 
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
 
-void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
+void Utils::readMac(const char *_ifname, dump_mac_t mac_addr) {
   char ifname[15];
   macstr_t mac_addr_buf;
   int res;

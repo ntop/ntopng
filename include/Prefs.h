@@ -382,9 +382,6 @@ class Prefs {
   inline bool  is_zmq_encryption_enabled() { return(enable_zmq_encryption); };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
 
-  inline const char* get_first_lan_interface() { return(get_num_lan_interfaces() ? lan_interfaces.begin()->c_str() : (char*)""); };
-  inline const char* get_first_wan_interface() { return(get_num_wan_interfaces() ? wan_interfaces.begin()->c_str() : (char*)""); };
-
   inline void add_lan_interface(char *iface) { lan_interfaces.insert(iface); };
   inline void add_wan_interface(char *iface) { wan_interfaces.insert(iface); };
 

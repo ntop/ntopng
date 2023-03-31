@@ -118,7 +118,7 @@ public:
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
   static u_int64_t macaddr_int(const u_int8_t *mac);
   static char *ifname2devname(const char *ifname, char *devname, int devname_size);
-  static void readMac(char *ifname, dump_mac_t mac_addr);
+  static void readMac(const char *ifname, dump_mac_t mac_addr);
   static u_int32_t readIPv4(char *ifname);
   static bool readIPv6(char *ifname, struct in6_addr *sin);
   static u_int32_t getMaxIfSpeed(const char *ifname);

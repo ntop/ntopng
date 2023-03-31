@@ -27,7 +27,7 @@
 
 NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   char errbuf[PCAP_ERRBUF_SIZE];
-  char *ifname;
+  const char *ifname;
   
   iface = _iface;
   ifname  = iface->altDiscoverableName();
@@ -153,7 +153,7 @@ typedef struct {
   char *mdnsbuf;
   struct arp_packet *arp;
   u_int dns_query_len;
-  char *ifname;
+  const char *ifname;
 } arp_data;
 
 static void arp_scan_hosts(ndpi_patricia_node_t *node, void *data, void *user_data) {
@@ -307,7 +307,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   u_int dns_query_len = 0;
   struct sockaddr_in mdns_dest;
   int fd = -1;
-  char *ifname  = iface->altDiscoverableName();
+  const char *ifname  = iface->altDiscoverableName();
   arp_data arp_d;
 
 #ifndef WIN32
@@ -776,7 +776,7 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   struct timeval tv;
   fd_set fdset;
 
-  char *ifname  = iface->altDiscoverableName();
+  const char *ifname  = iface->altDiscoverableName();
   if(ifname == NULL)
     ifname = iface->get_name();
 
