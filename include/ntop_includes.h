@@ -454,10 +454,11 @@ using namespace std;
 #include "FlowChecksExecutor.h"
 #include "HostChecksLoader.h"
 #include "HostChecksExecutor.h"
-#include "Ntop.h"
 #ifdef HAVE_NEDGE
 #include "MDNSRepeater.h"
 #endif
+#include "Ntop.h"
+
 #ifdef NTOPNG_PRO
 #include "ntoppro_defines.h"
 #endif

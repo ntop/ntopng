@@ -214,9 +214,6 @@ Ntop::Ntop(const char *appName) {
   startupLockFile = -1;
 #endif
 
-#ifdef HAVE_NEDGE
-  mdnsRepeater = new (std::nothrow) MDNSRepeater();
-#endif
 }
 
 /* ******************************************* */
@@ -353,7 +350,7 @@ Ntop::~Ntop() {
 
   if(myTZname) free(myTZname);
 #ifdef HAVE_NEDGE
-  delete mdnsRepeater;
+  if(mdnsRepeater) { delete mdnsRepeater; mdnsRepeater = NULL; }
 #endif
 
 #ifdef __linux__
@@ -521,10 +518,6 @@ void Ntop::start() {
   loadLocalInterfaceAddress();
 
   address->startResolveAddressLoop();
-#ifdef HAVE_NEDGE
-  mdnsRepeater->start_thread_repeater();
-#endif
-
 
   system_interface->allocateStructures();
 
@@ -571,6 +564,26 @@ void Ntop::start() {
   /* TODO: enable start/stop of the captive portal webserver directly from Lua */
   if(get_HTTPserver() && prefs->isCaptivePortalEnabled())
     get_HTTPserver()->startCaptiveServer();
+#endif
+
+#ifdef HAVE_NEDGE
+  char rsp[8];
+  char key[128];
+  bool is_mdns_enabled = false;
+
+  snprintf(key, sizeof(key), PREF_ENABLE_MDNS_REPEATER);
+
+  if(redis->get(key, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
+    is_mdns_enabled = (rsp[0] == '1') ? true : false;
+
+  if(is_mdns_enabled) {
+    mdnsRepeater = new (std::nothrow) MDNSRepeater();
+
+    if(mdnsRepeater == NULL)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error occured instantiating MDNSRepeater");
+    else
+      mdnsRepeater->start();
+  }
 #endif
 
   checkReloadHostPools();

@@ -24,7 +24,6 @@
 
 #include "ntop_includes.h"
 
-class MDNSRepeater;
 /** @defgroup Ntop Ntop
  * Main ntopng group.
  */
