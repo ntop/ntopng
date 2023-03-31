@@ -525,8 +525,8 @@ public:
   inline NetworkInterface* getFirstInterface()  const { return(iface ? iface[0] : NULL); }
   inline NetworkInterface* getInterface(int i)  const { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
   inline NetworkInterface* getSystemInterface() const { return(system_interface); }
-#ifdef NTOPNG_PRO
-  bool addToNotifiedInformativeCaptivePortal(u_int32_t client_ip);
+#ifdef HAVE_NEDGE
+  void addToNotifiedInformativeCaptivePortal(u_int32_t client_ip);
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id, char *label, char *ifname);
 #endif /* NTOPNG_PRO */
   

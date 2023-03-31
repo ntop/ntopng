@@ -280,9 +280,9 @@ static int checkCaptive(const struct mg_connection *conn,
 
 /* ****************************************** */
 
-static int checkInformativeCaptive(const struct mg_connection *conn,
+#ifdef HAVE_NEDGE
+static void checkInformativeCaptive(const struct mg_connection *conn,
 				   const struct mg_request_info *request_info) {
-#ifdef NTOPNG_PRO
 #ifdef DEBUG
   char buf[32];
 
@@ -293,15 +293,9 @@ static int checkInformativeCaptive(const struct mg_connection *conn,
 			       request_info->uri);
 #endif
 
-  if(!ntop->addToNotifiedInformativeCaptivePortal(htonl((unsigned int)conn->request_info.remote_ip)))
-    return(0);
-
-  /* Success */
-  return(1);
-#endif
-
-  return(0);
+  ntop->addToNotifiedInformativeCaptivePortal(htonl((unsigned int)conn->request_info.remote_ip));
 }
+#endif
 
 /* ****************************************** */
 
@@ -415,7 +409,8 @@ static int getAuthorizedUser(struct mg_connection *conn,
       /* If the captive portal is just informative, there's no need to check
 	 any username or password. The request per se means the internet user
 	 has accepted the 'terms of service'. */
-      return(checkInformativeCaptive(conn, request_info));
+      checkInformativeCaptive(conn, request_info);
+      return(1);
     } else {
       /* Here the captive portal is not just informative; it requires authentication.
          For this reason it is necessary to check submitted username and password. */
@@ -600,7 +595,7 @@ void HTTPserver::addCaptiveRedirectAddress(const char *addr) {
 
 /* ****************************************** */
 
-const char* HTTPserver::getCaptiveLoginAddress(char *buf, int buf_size, const char *ip) {
+const char* HTTPserver::getCaptiveLoginAddress(char *buf, int buf_size, const char *ip, bool *custom_url) {
   buf[0] = '\0';
 
   /* Check for custom captive portal page */
@@ -611,6 +606,8 @@ const char* HTTPserver::getCaptiveLoginAddress(char *buf, int buf_size, const ch
     /* Use the default captive portal login page in ntopng */
     snprintf(buf, buf_size, "http://%s:%u%s%s",
       ip, CAPTIVE_PORTAL_PORT, ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl());
+  } else {
+    *custom_url = true;
   }
 
   return buf;
@@ -670,9 +667,18 @@ static void redirect_to_login(struct mg_connection *conn,
   if(isCaptiveConnection(conn)) {
     char wispr_captive_data[1024];
     char url_buf[512];
+    bool has_custom_informative_url = false;
     const char *redirect_addr = ntop->get_HTTPserver()->getCaptiveRedirectAddress(); 
-    const char *captive_login_url = ntop->get_HTTPserver()->getCaptiveLoginAddress(url_buf, sizeof(url_buf), redirect_addr);
+    const char *captive_login_url = ntop->get_HTTPserver()->getCaptiveLoginAddress(url_buf, sizeof(url_buf), redirect_addr, &has_custom_informative_url);
     const char *wispr_data = ntop->get_HTTPserver()->getWisprCaptiveData(wispr_captive_data, sizeof(wispr_captive_data), captive_login_url);
+
+    if (ntop->getPrefs()->isInformativeCaptivePortalEnabled() &&
+        has_custom_informative_url) {
+      /* Custom Login URL for the Informative Captive portal
+       * Set the captive portal as shown to allow the user to navigate
+       * and reach the custom informative URL immediately */
+      checkInformativeCaptive(conn, request_info);
+    }
 
     mg_printf(conn, "HTTP/1.1 302 Found\r\n"
 	      "Server: ntopng %s (%s)\r\n"
