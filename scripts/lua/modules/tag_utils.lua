@@ -507,7 +507,7 @@ tag_utils.formatters = {
    l4proto = function(proto) return l4_proto_to_string(proto) end,
    l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end,
    l7proto  = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end, 
-   l7cat = function(cat) return interface.getnDPICategoryName(tonumber(cat)) end,
+   l7cat = function(cat) return getCategoryLabel(interface.getnDPICategoryName(tonumber(cat)), tonumber(cat)) end,
    severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
    alert_id = function(status) return alert_consts.alertTypeLabel(status, true, alert_entities.flow.entity_id) end,
    role = function(role) return (i18n(role)) end,
@@ -628,9 +628,9 @@ function tag_utils.get_tag_info(id, entity)
    elseif tag.value_type == "l7_category" then
       filter.value_type = 'array'
       filter.options = {}
-      local l7_protocols = interface.getnDPICategories()
-      for name, id in pairsByKeys(l7_protocols, asc) do
-         filter.options[#filter.options+1] = { value = id, label = name }
+      local l7_categories = interface.getnDPICategories()
+      for name, id in pairsByKeys(l7_categories, asc) do
+         filter.options[#filter.options+1] = { value = id, label = getCategoryLabel(name, id) }
       end
 
    elseif tag.value_type == "network_id" then
