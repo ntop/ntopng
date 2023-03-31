@@ -239,10 +239,10 @@ static void get_qsvar(const struct mg_request_info *request_info,
 
 /* ****************************************** */
 
+#ifdef HAVE_NEDGE
 static int checkCaptive(const struct mg_connection *conn,
 			const struct mg_request_info *request_info,
 			char *username, char *password, char *label) {
-#ifdef NTOPNG_PRO
   if(ntop->getPrefs()->isCaptivePortalEnabled()
      && ntop->isCaptivePortalUser(username)) {
     /*
@@ -273,10 +273,10 @@ static int checkCaptive(const struct mg_connection *conn,
     /* Success */
     return(1);
   }
-#endif
 
   return(0);
 }
+#endif
 
 /* ****************************************** */
 
@@ -430,14 +430,18 @@ static int getAuthorizedUser(struct mg_connection *conn,
       }
     }
   }
+#endif
   
-  if((!strcmp(request_info->uri, CAPTIVE_PORTAL_LOGOUT_URL))
-     || (user_login_disabled)) {
+  if(
+#ifdef HAVE_NEDGE
+     (!strcmp(request_info->uri, CAPTIVE_PORTAL_LOGOUT_URL)) ||
+#endif
+     user_login_disabled
+    ) {
     strncpy(username, NTOP_NOLOGIN_USER, NTOP_USERNAME_MAXLEN);
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
     return(1);
   }
-#endif
 
 #ifdef NO_SSL_DL
   /* Try to authenticate using client TLS/SSL certificate */
