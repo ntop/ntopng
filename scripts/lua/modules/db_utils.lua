@@ -14,6 +14,123 @@ local db_utils = {}
 
 -- ########################################################
 
+local extra_tables = {
+   l7_protocols = {
+      populate_table = populate_l7_protocols,
+      flows_col_name = 'L7_PROTO_NAME',
+      flows_col = 'L7_PROTO',
+      alerts_col_name = 'l7_proto_name',
+      alerts_col = 'l7_proto',
+      alias = 'l7_protocols'
+   },
+   l7_categories = {
+      populate_table = populate_l7_categories,
+      flows_col_name = 'L7_CATEGORY_NAME',
+      flows_col = 'L7_CATEGORY',
+      alerts_col_name = 'l7_cat_name',
+      alerts_col = 'l7_cat',
+      alias = 'l7_categories'
+   },
+   l4_protocols = {
+      populate_table = populate_l4_protocols,
+      flows_col_name = 'PROTOCOL_NAME',
+      flows_col = 'PROTOCOL',
+      alerts_col_name = 'proto_name',
+      alerts_col = 'protocol',
+      alias = 'l4_protocols'
+   },
+   flow_risks = {
+      populate_table = populate_flow_risks,
+      flows_col_name = 'FLOW_RISK_NAME',
+      flows_col = 'FLOW_RISK',
+      alerts_col_name = 'flow_risk_name',
+      alerts_col = 'flow_risk',
+      alias = 'flow_risks'
+   },
+   alert_severities = {
+      populate_table = populate_alert_severities,
+      flows_col_name = 'SEVERITY_NAME',
+      flows_col = 'SEVERITY',
+      alerts_col_name = 'severity_name',
+      alerts_col = 'severity',
+      alias = 'alert_severities'
+   }
+}
+
+-- ########################################################
+
+local function populate_l7_protocols()
+   -- Protocols table
+   local list = interface.getnDPIProtocols() or {}
+   local sql = string.format("INSERT INTO ntopng.l7_protocols (*) Values")
+   for proto_name, proto_id in pairs(available_protocols) do
+      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding Protocol: " .. proto_name .. ", ID: " .. proto_id)
+      sql = string.format("%s (%u, '%s')", sql, tonumber(proto_id), proto_name)
+   end
+
+   interface.execSQLQuery(sql)
+end
+
+-- ########################################################
+
+local function populate_l7_categories()
+   -- Categories table
+   list = interface.getnDPICategories() or {}
+   sql = string.format("INSERT INTO ntopng.l7_categories (*) Values")
+   for category_name, category_id in pairs(list) do
+      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding Category: " .. category_name .. ", ID: " .. category_id)
+      sql = string.format("%s (%u, '%s')", sql, tonumber(category_id), category_name)
+   end
+
+   interface.execSQLQuery(sql)
+end
+
+-- ########################################################
+
+local function populate_l4_protocols()
+   -- L4 Protocols table
+   list = l4_proto_list()
+   sql = string.format("INSERT INTO ntopng.l4_protocols (*) Values")
+   for l4_proto_name, l4_proto_id in pairs(list) do
+      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding L4 Protocol: " .. l4_proto_name .. ", ID: " .. l4_proto_id)
+      sql = string.format("%s (%u, '%s')", sql, tonumber(l4_proto_id), l4_proto_name)
+   end
+
+   interface.execSQLQuery(sql)
+end
+
+-- ########################################################
+
+local function populate_flow_risks()
+   -- Flow Risk table
+   list = ntop.getRiskList()
+   sql = string.format("INSERT INTO ntopng.flow_risks (*) Values")
+   for flow_risk_id, flow_risk_name in pairs(list) do
+      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding L4 Protocol: " .. l4_proto_name .. ", ID: " .. l4_proto_id)
+      sql = string.format("%s (%u, '%s')", sql, tonumber(flow_risk_id), flow_risk_name)
+   end
+
+   interface.execSQLQuery(sql)
+end
+
+-- ########################################################
+
+local function populate_alert_severities()
+   -- Alert Severities table
+   list = require('alert_severities')
+   sql = string.format("INSERT INTO ntopng.alert_severities (*) Values")
+   for _, severity in pairs(list) do
+      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding L4 Protocol: " .. l4_proto_name .. ", ID: " .. l4_proto_id)
+      if severity.severity_id and severity.i18n_title then
+         sql = string.format("%s (%u, '%s')", sql, tonumber(severity.severity_id), i18n(severity.i18n_title))
+      end
+   end
+
+   interface.execSQLQuery(sql)
+end
+
+-- ########################################################
+
 local function iptonumber(str)
    local num = 0
    for elem in str:gmatch("%d+") do
@@ -784,7 +901,7 @@ function db_utils.clickhouseDeleteOldPartitions(data_retention)
    -- Query the partitions that need to be deleted. Convert YYYYMMDD strings into integers so that
    -- only relevant partitions can be queried and deleted
    -- The last condition > 999999 prevents old partitions created as YYYMM to be deleted
-   local partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
+   local partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND table!='l7_protocols' AND table!='flow_risks' AND table!='alert_severities' AND table!='l7_categories' AND table!='l4_protocols' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
    local partitions_res = interface.execSQLQuery(partitions_q)
 
    if(partitions_res ~= nil) then
@@ -823,6 +940,26 @@ function db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
       return _harvest_expired_mysql_flows(ifname, mysql_retention, verbose)
    end
 end
+
+-- ########################################################
+
+function db_utils.populateExtraTables()
+   for _, info in pairs(extra_tables) do
+      if info.populate_table then
+         info.populate_table()
+      else
+         traceError(TRACE_NORMAL, TRACE_CONSOLE, "Missing populate_table function")
+      end
+   end
+end
+
+-- ########################################################
+
+function db_utils.getExtraTables()
+   return extra_tables
+end
+
+-- ########################################################
 
 return db_utils
 
