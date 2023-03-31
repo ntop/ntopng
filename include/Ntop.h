@@ -103,6 +103,9 @@ class Ntop {
   KafkaClient kafkaClient;
 #endif
 #endif
+#ifdef HAVE_NEDGE
+  MDNSRepeater *mdnsRepeater;
+#endif
   
   /* Local network address list */
   char *local_network_names[CONST_MAX_NUM_NETWORKS];
