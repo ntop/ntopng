@@ -600,21 +600,26 @@ void HTTPserver::addCaptiveRedirectAddress(const char *addr) {
 
 /* ****************************************** */
 
-const char* HTTPserver::getWisprCaptiveData(char *buf, int buf_size, const char *addr) {
-  const char *name = ntop->getPro()->get_product_name();
-  char informative_url[512];
-
-  informative_url[0] = '\0';
+const char* HTTPserver::getCaptiveLoginAddress(char *buf, int buf_size, const char *ip) {
+  buf[0] = '\0';
 
   /* Check for custom captive portal page */
   if (ntop->getPrefs()->isInformativeCaptivePortalEnabled())
-    ntop->getRedis()->get((char*)CONST_PREFS_INFORM_URL, informative_url, sizeof(informative_url), true);
+    ntop->getRedis()->get((char*)CONST_PREFS_INFORM_URL, buf, buf_size, true);
 
-  if (informative_url[0] == '\0') {
+  if (buf[0] == '\0') {
     /* Use the default captive portal login page in ntopng */
-    snprintf(informative_url, sizeof(informative_url), "http://%s:%u%s%s",
-      addr, CAPTIVE_PORTAL_PORT, ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl());
+    snprintf(buf, buf_size, "http://%s:%u%s%s",
+      ip, CAPTIVE_PORTAL_PORT, ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl());
   }
+
+  return buf;
+}
+
+/* ****************************************** */
+
+const char* HTTPserver::getWisprCaptiveData(char *buf, int buf_size, const char *captive_login_url) {
+  const char *name = ntop->getPro()->get_product_name();
 
   snprintf(buf, buf_size, "<HTML>\n\
 <!--\n\
@@ -632,7 +637,7 @@ const char* HTTPserver::getWisprCaptiveData(char *buf, int buf_size, const char 
 </WISPAccessGatewayParam>\n\
 -->\n\
 </HTML>", 
-    name, name, informative_url);
+    name, name, captive_login_url);
 
   return buf;
 }
@@ -662,10 +667,12 @@ static void redirect_to_login(struct mg_connection *conn,
   char buf[128];
   char *referer_enc = NULL, *reason_enc = NULL;
 #ifdef HAVE_NEDGE
-  char wispr_captive_data[1024];
-
   if(isCaptiveConnection(conn)) {
-    const char *wispr_data = ntop->get_HTTPserver()->getWisprCaptiveData(wispr_captive_data, sizeof(wispr_captive_data), ntop->get_HTTPserver()->getCaptiveRedirectAddress());
+    char wispr_captive_data[1024];
+    char url_buf[512];
+    const char *redirect_addr = ntop->get_HTTPserver()->getCaptiveRedirectAddress(); 
+    const char *captive_login_url = ntop->get_HTTPserver()->getCaptiveLoginAddress(url_buf, sizeof(url_buf), redirect_addr);
+    const char *wispr_data = ntop->get_HTTPserver()->getWisprCaptiveData(wispr_captive_data, sizeof(wispr_captive_data), captive_login_url);
 
     mg_printf(conn, "HTTP/1.1 302 Found\r\n"
 	      "Server: ntopng %s (%s)\r\n"
@@ -674,12 +681,10 @@ static void redirect_to_login(struct mg_connection *conn,
 	      "Pragma: no-cache\r\n"
 	      "Content-Type: text/html; charset=UTF-8\r\n"
 	      "Content-Length: %u\r\n"
-	      "Location: http://%s:%u%s%s%s%s\r\n\r\n%s",
+	      "Location: %s%s%s\r\n\r\n%s",
 	      PACKAGE_VERSION, PACKAGE_MACHINE,
               (unsigned int)strlen(wispr_data),
-              ntop->get_HTTPserver()->getCaptiveRedirectAddress(), // LAN address
-              CAPTIVE_PORTAL_PORT,
-	      ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl(),
+              captive_login_url,
 	      referer ? (char*)"?referer=" : "",
 	      referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"",
               wispr_data);

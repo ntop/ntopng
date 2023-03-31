@@ -72,9 +72,10 @@ class HTTPserver {
   bool accepts_requests();
 
 #ifdef HAVE_NEDGE
-  inline const char* getCaptiveRedirectAddress() { return(captive_redirect_addr ? captive_redirect_addr : ""); }
-  const char* getWisprCaptiveData(char *buf, int buf_size, const char *addr);
   void addCaptiveRedirectAddress(const char*addr);
+  inline const char* getCaptiveRedirectAddress() { return(captive_redirect_addr ? captive_redirect_addr : ""); }
+  const char* getCaptiveLoginAddress(char *buf, int buf_size, const char *ip);
+  const char* getWisprCaptiveData(char *buf, int buf_size, const char *addr);
   void startCaptiveServer();
   void stopCaptiveServer();
 #endif
