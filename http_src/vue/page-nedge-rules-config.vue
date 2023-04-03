@@ -150,9 +150,19 @@ function set_datatable_config() {
 	{ 
 	    columnName: _i18n("nedge.page_rules_config.rule_id"), targets: 0, name: 'rule_id', data: 'rule_id', className: 'text-nowrap text-center', responsivePriority: 1
 	}, { 
-	    columnName: _i18n("nedge.page_rules_config.source"), targets: 0, name: 'source', data: 'source.value', className: 'text-nowrap text-center', responsivePriority: 1
+	    columnName: _i18n("nedge.page_rules_config.source"), targets: 0, name: 'source', data: 'source', className: 'text-nowrap text-center', responsivePriority: 1, render: function(value, type, rowData) {
+		if (value.label != null && value.label != "") {
+		    return value.label;
+		} 
+		return value.value;
+	    }
 	}, { 
-	    columnName: _i18n("nedge.page_rules_config.dest"), targets: 0, name: 'dest', data: 'destination.value', className: 'text-nowrap text-center', responsivePriority: 1
+	    columnName: _i18n("nedge.page_rules_config.dest"), targets: 0, name: 'dest', data: 'destination', className: 'text-nowrap text-center', responsivePriority: 1, render: function(value, type, rowData) {
+		if (value.label != null && value.label != "") {
+		    return value.label;
+		} 
+		return value.value;
+	    }
 	}, { 
 	    columnName: _i18n("nedge.page_rules_config.direction"), targets: 0, name: 'bidirectional', data: 'bidirectional', className: 'text-nowrap text-center', responsivePriority: 1, render: function(value, type, rowData) {
 		if (value == true) {
