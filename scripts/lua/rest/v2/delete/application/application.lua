@@ -12,6 +12,14 @@ local rest_utils = require("rest_utils")
 
 -- ##################################################
 
+-- Checking root privileges
+if not isAdministrator() then
+  rest_utils.answer(rest_utils.consts.err.not_granted)
+  return
+end
+
+-- ##################################################
+
 local rc = rest_utils.consts.success.ok
 local res = {}
 
