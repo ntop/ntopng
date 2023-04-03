@@ -30,6 +30,7 @@ import { default as PageVLANPortsSankey } from "./page-vlan-ports-sankey.vue";
 import { default as PageAggregatedLiveFlows } from "./page-aggregated-live-flows.vue";
 import { default as PageTestTable } from "./page-test-table.vue";
 import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
+import { default as PageEditApplications } from "./page-edit-applications.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -61,6 +62,8 @@ import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAddHostRules } from "./modal-add-host-rules.vue";
+import { default as ModalAddApplication } from "./modal-add-application.vue";
+import { default as ModalDeleteApplication } from "./modal-delete-application.vue";
 
 let ntopVue = {
     // pages
@@ -79,6 +82,8 @@ let ntopVue = {
     PageHostRules: PageHostRules,
     PageAlertAnalysis: PageAlertAnalysis,
     PageHostMap: PageHostMap,
+
+    PageEditApplications: PageEditApplications,
 
     PageVLANPortsFlowSankey:PageVLANPortsSankey,
     PageTestTable: PageTestTable,
@@ -123,6 +128,8 @@ let ntopVue = {
     ModalAddDeviceExclusion: ModalAddDeviceExclusion,
     ModalEditDeviceExclusion: ModalEditDeviceExclusion,
     ModalAddHostRules: ModalAddHostRules,
+    ModalAddApplication: ModalAddApplication,
+    ModalDeleteApplication: ModalDeleteApplication,
 
     Vue: Vue,
 };
