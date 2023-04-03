@@ -13,7 +13,7 @@ window.moment = moment
 window.ApexCharts = ApexCharts
 
 import 'jquery-ui-bundle'
-
+import './scripts/vendors/jquery/jquery.resizableColumns.js';
 /* See https://datatables.net/forums/discussion/comment/103356 */
 import dt from 'datatables.net-dt'
 import 'datatables.net-buttons-dt'
