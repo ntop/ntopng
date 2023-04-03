@@ -29,6 +29,7 @@ import { default as PageHostMap } from "./page-host-map.vue";
 import { default as PageVLANPortsSankey } from "./page-vlan-ports-sankey.vue";
 import { default as PageAggregatedLiveFlows } from "./page-aggregated-live-flows.vue";
 import { default as PageTestTable } from "./page-test-table.vue";
+import { default as PageTestNewTable } from "./page-test-new-table.vue";
 import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
 import { default as PageEditApplications } from "./page-edit-applications.vue";
 
@@ -87,6 +88,7 @@ let ntopVue = {
 
     PageVLANPortsFlowSankey:PageVLANPortsSankey,
     PageTestTable: PageTestTable,
+    PageTestNewTable: PageTestNewTable,
     NedgeRulesConfig: NedgeRulesConfig,
 
     // Host details pages

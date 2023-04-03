@@ -12,7 +12,7 @@
     </label>
   </div>
   <div style="text-align:right;">
-    <button class="btn btn-secondary me-1" type="button" @click="refresh_table">
+    <button class="btn btn-link me-1" type="button" @click="refresh_table">
       <i class="fas fa-refresh"></i>
     </button>
     

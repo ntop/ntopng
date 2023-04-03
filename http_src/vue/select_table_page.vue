@@ -15,7 +15,7 @@
       <ul class="pagination">
 	<li v-show="active_page >= num_page_buttons - 1" class="paginate_button page-item previous">
 	  <a href="javascript:void(0);" @click="change_active_page(0, 0)" aria-controls="default-datatable" data-dt-idx="0" tabindex="0" class="page-link">
-	    &lt;&lt;
+	    «
 	  </a>
 	</li>
 	<li class="paginate_button page-item previous" :class="{ 'disabled': active_page == 0}">
@@ -32,7 +32,7 @@
 	</li>
 	<li v-show="active_page < total_pages - num_page_buttons + 1" class="paginate_button page-item previous">
 	  <a href="javascript:void(0);" @click="change_active_page(total_pages - 1, total_pages - num_page_buttons)" aria-controls="default-datatable" data-dt-idx="0" tabindex="0" class="page-link">
-	    &gt;&gt;
+	    »
 	  </a>
 	</li>
       </ul>
