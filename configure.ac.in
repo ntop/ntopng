@@ -309,8 +309,8 @@ else
     SSL_LIB="-L/usr/local/opt/openssl/lib -lssl -lcrypto"
   elif test -d "/opt/homebrew/Cellar/openssl@3"; then
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
-    SSL_INC="-I/opt/homebrew/Cellar/openssl@3/3.0.8/include"
-    SSL_LIB="-L/opt/homebrew/Cellar/openssl@3/3.0.8/lib -lssl -lcrypto"
+    SSL_INC="-I/opt/homebrew/opt/openssl@3/include"
+    SSL_LIB="-L/opt/homebrew/opt/openssl@3/lib -lssl -lcrypto"
   dnl Workaround for FreeBSD
   elif test -f "/usr/lib/libssl.so"; then
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
