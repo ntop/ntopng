@@ -2043,6 +2043,7 @@ local known_parameters = {
    ["toggle_influx_auth"]                          = validateBool,
    ["toggle_ldap_auth"]                            = validateBool,
    ["toggle_local_auth"]                           = validateBool,
+   ["toggle_radius_accounting"]                    = validateBool,
    ["toggle_radius_auth"]                          = validateBool,
    ["toggle_http_auth"]                            = validateBool,
    ["toggle_ldap_referrals"]                       = validateBool,

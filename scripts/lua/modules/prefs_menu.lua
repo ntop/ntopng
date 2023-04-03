@@ -35,6 +35,10 @@ local menu_subpages = {
       title       = i18n("prefs.toggle_ldap_auth"),
       description = i18n("prefs.toggle_ldap_auth_descr"),
       hidden      = (not hasLdap),
+    }, toggle_radius_accounting = {
+      title       = i18n("prefs.toggle_radius_accounting"),
+      description = i18n("prefs.toggle_radius_accounting_descr", {product=info.product}),
+      hidden      = (not hasRadius or not have_nedge),
     }, toggle_radius_auth = {
       title       = i18n("prefs.toggle_radius_auth"),
       description = i18n("prefs.toggle_radius_auth_descr", {product=info.product}),

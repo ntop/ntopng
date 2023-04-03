@@ -660,16 +660,9 @@ local function printRadiusAuth()
 
   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.radius_auth")..'</th></tr></thead>')
 
-  local elementToSwitch = {"radius_server_address", "radius_secret", "radius_admin_group", "radius_unpriv_capabilties_group"}
+  -- RADIUS server settings (used for both RADIUS auth and accountign)
 
-  prefsToggleButton(subpage_active, {
-	      field = auth_toggles.radius,
-	      pref = "radius.auth_enabled",
-	      default = "0",
-	      to_switch = elementToSwitch,
-	})
-
-  local showElements = (ntop.getPref("ntopng.prefs.radius.auth_enabled") == "1")
+  local showElements = true
 
   prefsInputFieldPrefs(subpage_active.entries["radius_server"].title, subpage_active.entries["radius_server"].description,
     "ntopng.prefs.radius", "radius_server_address", "127.0.0.1:1812", nil, showElements, true, false,
@@ -680,6 +673,19 @@ local function printRadiusAuth()
     "ntopng.prefs.radius", "radius_secret", "", "password", showElements, true, false,
     {attributes={spellcheck="false", maxlength=48, required="required"}})
 
+  -- RADIUS GUI authentication
+
+  local elementToSwitch = {"radius_admin_group", "radius_unpriv_capabilties_group"}
+
+  prefsToggleButton(subpage_active, {
+	      field = auth_toggles.radius,
+	      pref = "radius.auth_enabled",
+	      default = "0",
+	      to_switch = elementToSwitch,
+	})
+
+  local showElements = (ntop.getPref("ntopng.prefs.radius.auth_enabled") == "1")
+
   prefsInputFieldPrefs(subpage_active.entries["radius_admin_group"].title, subpage_active.entries["radius_admin_group"].description,
     "ntopng.prefs.radius", "radius_admin_group", "", nil, showElements, true, false,
     {attributes={spellcheck="false", maxlength=255, pattern="[^\\s]+"}})
@@ -687,6 +693,20 @@ local function printRadiusAuth()
   prefsInputFieldPrefs(subpage_active.entries["radius_unpriv_capabilties_group"].title, subpage_active.entries["radius_unpriv_capabilties_group"].description,
     "ntopng.prefs.radius", "radius_unpriv_capabilties_group", "", nil, showElements, true, false,
     {attributes={spellcheck="false", maxlength=255, pattern="[^\\s]+"}})
+
+  -- RADIUS traffic accounting
+
+  local elementToSwitch = {}
+
+  prefsToggleButton(subpage_active, {
+	      field = "toggle_radius_accounting",
+	      pref = "radius.accounting_enabled",
+	      default = "0",
+	      to_switch = elementToSwitch,
+	})
+
+  local showElements = (ntop.getPref("ntopng.prefs.radius.accounting_enabled") == "1")
+
 end
 
 -- #####################
