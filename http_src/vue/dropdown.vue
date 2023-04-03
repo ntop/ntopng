@@ -14,7 +14,7 @@
 
 <template>
 <div class="dropdown" style="display:inline-block;">
-  <button class="btn btn-secondary dropdown-toggle" type="button" id="id" data-bs-toggle="dropdown" aria-expanded="false">
+  <button class="btn btn-link dropdown-toggle" type="button" id="id" data-bs-toggle="dropdown" aria-expanded="false">
     <slot name="title"></slot>
   </button>
   <ul class="dropdown-menu" aria-labelledby="id" style="overflow:scroll; max-height: 20rem;">
