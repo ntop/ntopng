@@ -5162,6 +5162,8 @@ local lang = {
         ["title_add"] = "Add Filter Rule",
         ["title_edit"] = "Edit Filter Rule",
       },
+      ["note_rules_order"] = "Rules are evaluated top-down sorted by Rule ID (ID 1 has priority over ID 2).",
+      ["note_rules_edit_order"] = "In order to change the order and evaluate rule B before rule A, edit rule B by setting as ID the rule A's ID. Rule A will be shifted down to the next position.",
     },
     ["policy_source_labels"] = {
       ["policy_source_category"] = "Category Policy",
