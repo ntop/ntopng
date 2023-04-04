@@ -744,10 +744,10 @@ local function dt_format_flow(processed_record, record)
    local srv = processed_record["srv_ip"]
    local vlan_id = processed_record["vlan_id"]
 
-   local cli_ip_alias = getHostAltName({host = cli["ip"], vlan = vlan_id})
-   local srv_ip_alias = getHostAltName({host = srv["ip"], vlan = vlan_id})
-
    if cli and srv and _GET["visible_columns"] and string.find(_GET["visible_columns"], "flow") then
+      local cli_ip_alias = getHostAltName({host = cli["ip"], vlan = vlan_id})
+      local srv_ip_alias = getHostAltName({host = srv["ip"], vlan = vlan_id})
+
       -- Add flow info to the processed_record, in place of cli_ip/srv_ip
       local flow = {}
       local cli_ip = {}
