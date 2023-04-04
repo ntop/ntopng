@@ -1099,31 +1099,33 @@ function driver:export()
 
    for cur_ifid, iface in pairs(available_interfaces) do
       for cur_dequeue=1, rrd_queue_max_dequeues_per_interface do
-	 local ts_point = interface.rrd_dequeue(tonumber(cur_ifid))
+         local ts_point = interface.rrd_dequeue(tonumber(cur_ifid))
 
-	 if not ts_point then
-	    break
-	 end
+         if not ts_point then
+            break
+         end
 
-	 local parsed_ts_point = line_protocol_to_tags_and_metrics(ts_point)
+         local parsed_ts_point = line_protocol_to_tags_and_metrics(ts_point)
 
-	 -- No need to do coherence checks on the schema. This queue is 'private' and should
-	 -- only be written with valid data already checked.
-	 local schema = ts_utils.getSchema(parsed_ts_point["schema_name"])
-	 local timestamp = parsed_ts_point["timestamp"]
-	 local tags = parsed_ts_point["tags"]
-	 local metrics = parsed_ts_point["metrics"]
-	 local base, rrd = schema_get_path(schema, tags)
-	 local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+         -- No need to do coherence checks on the schema. This queue is 'private' and should
+         -- only be written with valid data already checked.
+         local schema = ts_utils.getSchema(parsed_ts_point["schema_name"])
+         local timestamp = parsed_ts_point["timestamp"]
+         local tags = parsed_ts_point["tags"]
+         local metrics = parsed_ts_point["metrics"]
+         local base, rrd = schema_get_path(schema, tags)
+         if rrd then
+            local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
-	 if not ntop.notEmptyFile(rrdfile) then
-	    ntop.mkdir(base)
-	    if not create_rrd(schema, rrdfile, timestamp) then
-	       return false
-	    end
-	 end
+            if not ntop.notEmptyFile(rrdfile) then
+               ntop.mkdir(base)
+               if not create_rrd(schema, rrdfile, timestamp) then
+                  return false
+               end
+            end
 
-	 update_rrd(schema, rrdfile, timestamp, metrics)
+            update_rrd(schema, rrdfile, timestamp, metrics)
+         end
       end
    end
 end
