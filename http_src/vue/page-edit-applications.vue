@@ -10,14 +10,13 @@
       </div>
     </div>
   </div>
-  
+
   <div v-show="!hidden" ref="update_message" class="alert alert-info">{{ message }}</div>
 
   <ModalAddApplication ref="modal_add_application"
     :category_list="category_list"
     :page_csrf="page_csrf"
     :ifid="ifid"
-    @edit="_add"
     @add="_add">
   </ModalAddApplication>
   <ModalDeleteApplication ref="modal_delete_application"
