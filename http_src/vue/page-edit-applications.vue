@@ -3,6 +3,16 @@
 -->
 
 <template>    
+  <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+    <div class="text-center">
+      <div class="spinner-border text-primary mt-5" role="status">
+        <span class="sr-only position-absolute">Loading...</span>
+      </div>
+    </div>
+  </div>
+  
+  <div v-show="!hidden" ref="update_message" class="alert alert-info">{{ message }}</div>
+
   <ModalAddApplication ref="modal_add_application"
     :category_list="category_list"
     :page_csrf="page_csrf"
@@ -11,7 +21,7 @@
     @add="_add">
   </ModalAddApplication>
   <ModalDeleteApplication ref="modal_delete_application"
-    @delete="_delete">
+    @remove="_remove">
   </ModalDeleteApplication>
 
   <Datatable ref="applications_table"
@@ -34,10 +44,13 @@ const modal_delete_application = ref(null);
 const modal_add_application = ref(null);
 const config_applications_table = ref({});
 const category_list = ref([]);
+const update_message = ref(null);
+const hidden = ref(true);
+let message = ''
 
 const category_list_url = `${http_prefix}/lua/rest/v2/get/l7/category/consts.lua`
-const add_category_url = `${http_prefix}/lua/rest/v2/edit/application/application.lua`
-const delete_category_url = `${http_prefix}/lua/rest/v2/delete/application/application.lua`
+const add_application_url = `${http_prefix}/lua/rest/v2/edit/application/application.lua`
+const delete_application_url = `${http_prefix}/lua/rest/v2/delete/application/application.lua`
 
 const _i18n = (t) => i18n(t);
 const props = defineProps({
@@ -46,19 +59,19 @@ const props = defineProps({
   has_protos_file: Boolean,
 })
 
-const _delete = async (params) => {  
+const _remove = async (params) => {  
   const url_params = {
     csrf: props.page_csrf,
     ifid: props.ifid
   }
 
-  const url = NtopUtils.buildURL(delete_category_url, {
+  const url = NtopUtils.buildURL(delete_application_url, {
     ...url_params,
     ...params
   })
 
   await $.get(url, function(rsp, status){
-    reload_table();
+    show_message(i18n('custom_categories.succesfully_removed'));
   });
 }
 
@@ -67,23 +80,40 @@ const open_delete_modal = (row) => {
 }
 
 const _add = async (params) => {
+  const is_edit_page = params.is_edit_page;
+  params.is_edit_page = null;
+
   const url_params = {
     csrf: props.page_csrf,
     ifid: props.ifid
   }
 
-  const url = NtopUtils.buildURL(add_category_url, {
+  const url = NtopUtils.buildURL(add_application_url, {
     ...url_params,
     ...params
   })
   
   await $.get(url, function(rsp, status){
-    reload_table();
+    if(status == 'success') {
+      if(is_edit_page)
+        show_message(i18n('custom_categories.succesfully_edited'));
+      else
+        show_message(i18n('custom_categories.succesfully_added'));
+    }
   });
 }
 
 const open_add_modal = (row) => {
   modal_add_application.value.show(row);
+}
+
+const show_message = (_message) => {
+  message = _message;
+  hidden.value = false;
+  setTimeout(() => {
+    hidden.value = true;
+    reload_table();
+  }, 4000);
 }
 
 const destroy = () => {
@@ -164,7 +194,7 @@ function start_datatable() {
     
   let defaultDatatableConfig = {
     table_buttons: datatableButton,
-    data_url: NtopUtils.buildURL(`${http_prefix}/lua/rest/v2/get/ntopng/ndpi_applications.lua`, { ifid: props.ifid }),
+    data_url: NtopUtils.buildURL(`${http_prefix}/lua/rest/v2/get/ntopng/applications.lua`, { ifid: props.ifid }),
     enable_search: true,
     table_config: { 
       serverSide: false, 

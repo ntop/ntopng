@@ -6,10 +6,29 @@ local os_utils = require("os_utils")
 local http_lint = require "http_lint"
 local protos_utils = {}
 
+local proto_key = "ntopng.preferences.protos_list_id"
+local proto_last_id = "ntopng.preferences.protos_last_id"
+local first_proto_id = 1024
+
 -- ##############################################
 
 local function getProtosFile()
   return os_utils.fixPath(ntop.getPrefs().ndpi_proto_file)
+end
+
+-- ##############################################
+
+-- Function used to reload the custom applications (the protocol file, -p option)
+local function reloadApplications()
+  --traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Reloading the custom applications"))
+  if(not ntop.initnDPIReload()) then
+    -- Too early, need to retry later
+    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error while reloading the custom applications"))
+    return(false)
+  end
+  
+  --traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Finalizing the reload of custom applications"))
+  ntop.finalizenDPIReload()
 end
 
 -- ##############################################
@@ -89,7 +108,12 @@ function protos_utils.parseProtosTxt()
     elseif((parts ~= nil) and (#parts == 2)) then
       local proto = parts[2]
       local rules = parts[1]
+      local tmp = string.split(proto, "=")
       rules = string.split(rules, ",") or {rules}
+      
+      if (tmp ~= nil) and (#tmp == 2) then
+        proto = tmp[1]
+      end
 
       for _, rule in ipairs(rules) do
         parts = string.split(rule, ":")
@@ -97,6 +121,7 @@ function protos_utils.parseProtosTxt()
         if((parts ~= nil) and (#parts == 2 or #parts == 3)) then
           local filter = parts[1]
           local value = rule:gsub(filter..":", "")
+
           local is_port_based, port_based_rule = parsePortBasedRule(filter, value, line)
 
           if is_port_based then
@@ -277,17 +302,36 @@ function protos_utils.generateProtosTxt(rules, defined_protos)
   -- Important: iterate by index to ensure that new protocols are always appended
   for _, proto in ipairs(defined_protos) do
     local proto_rules = rules[proto]
+    local proto_name = string.split(proto, "=") or {}
+    
+    if proto_name and #proto_name == 2 then
+      proto_name = proto_name[1]
+    else
+      proto_name = proto
+    end
+
+    local proto_id = ntop.getHashCache(proto_key, proto_name) or ''
+
+    if isEmptyString(proto_id) then
+      proto_id = tonumber(ntop.getCache(proto_last_id)) or 0
+      if proto_id == 0 then
+        proto_id = first_proto_id
+      end
+
+      ntop.setCache(proto_last_id, proto_id + 1)
+      ntop.setHashCache(proto_key, proto_name, proto_id)
+    end
 
     if proto_rules then
-      writeRule(string.format("# %s", proto))
+      writeRule(string.format("# %s", proto_name))
 
       for _, rule in ipairs(proto_rules) do
         if rule.match == "port" then
-          writeRule(string.format("%s@%s", rule.value, proto))
+          writeRule(string.format("%s@%s=%s", rule.value, proto_name, proto_id))
         elseif rule.match == "host" then
-          writeRule(string.format("host:\"%s\"@%s", rule.value, proto))
+          writeRule(string.format("host:\"%s\"@%s=%s", rule.value, proto_name, proto_id))
         elseif rule.match == "ip" then
-          writeRule(string.format("ip:%s@%s", rule.value, proto))
+          writeRule(string.format("ip:%s@%s=%s", rule.value, proto_name, proto_id))
         end
       end
 
@@ -296,6 +340,10 @@ function protos_utils.generateProtosTxt(rules, defined_protos)
   end
 
   f:close()
+
+  -- Reload the application file
+  reloadApplications()
+
   return true
 end
 

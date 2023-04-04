@@ -11,7 +11,7 @@
         <b>{{ _i18n("app_name") }}</b>
       </label>
       <div class="col-8">
-        <input class="form-control" type="text" v-model="application_name" spellcheck="false">
+        <input class="form-control" type="text" v-model="application_name"  @input="check_validation" spellcheck="false">
       </div>
     </div>
     </template>
@@ -33,7 +33,7 @@
         <b>{{ _i18n("category_custom_rule") }}</b>
       </label>
       <div class="col-8">
-        <textarea class="form-control" :placeholder="comment" rows="6" v-model="custom_rule" spellcheck="false"></textarea>
+        <textarea class="form-control"  @input="check_validation" :placeholder="comment" rows="6" v-model="custom_rules" spellcheck="false"></textarea>
       </div>
     </div>
   </template>
@@ -56,18 +56,17 @@ import { ref, onBeforeMount, onMounted } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as NoteList } from "./note-list.vue";
-import regexValidation from "../utilities/regex-validation.js";
 
 const modal_id = ref(null);
-const emit = defineEmits(['add','edit']);
+const emit = defineEmits(['add']);
 const is_edit_page = ref(false)
 const _i18n = (t) => i18n(t);
-const disable_add = ref(false)
+const disable_add = ref(true)
 let title = i18n('add_application');
 const comment = ref(i18n('details.custom_rules_placeholder'));
 const selected_category = ref({});
 const category_list = ref([]);
-const custom_rule = ref('')
+const custom_rules = ref('')
 const application_name = ref('')
 const application_id = ref(null)
 
@@ -90,7 +89,31 @@ const props = defineProps({
 function reset_modal_form() {
   application_name.value = '';
   selected_category.value = category_list.value[0];
-  custom_rule.value = '';
+  custom_rules.value = '';
+}
+
+const check_validation = () => {
+  if(check_application_name() == true && check_custom_rules() == true)
+    disable_add.value = false
+  else
+    disable_add.value = true
+}
+
+const check_application_name = () => {
+  return(/^[A-Za-z0-9]*$/.test(application_name.value));
+}
+
+const check_custom_rules = () => {
+  let check = true
+
+  let rules = custom_rules.value.split("\n");
+  rules.forEach((rule) => {
+    check = check && ((/^((tcp|udp):(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3}))$/.test(rule)) || 
+                      (/^((tcp|udp):(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3})-(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3}))$/.test(rule)) ||
+                      (/^((?!.* ).*)$/.test(rule)) ||
+                      (/^((([0-9][0-9]?|[0-1][0-9][0-9]|[2][0-4][0-9]|[2][5][0-5])\.){3}([0-9][0-9]?|[0-1][0-9][0-9]|[2][0-4][0-9]|[2][5][0-5])|[a-zA-Z0-9]*):(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3})$/.test(rule)));
+  })
+  return check
 }
 
 const populate_modal_form = function(row) {
@@ -98,7 +121,7 @@ const populate_modal_form = function(row) {
     id: row.category_id,
     label: row.category,
   }
-  custom_rule.value = row.custom_rules.replace(',','\n');
+  custom_rules.value = row.custom_rules.replace(',','\n');
   last_application.value = row;
   application_name.value = row.application
 }
@@ -112,7 +135,6 @@ const format_category_list = function(list) {
     let item = { id: category.cat_id, label: category.name };
     _category_list.push(item);
   }) 
-  console.log(_category_list)
   return _category_list
 }
 
@@ -130,27 +152,13 @@ const show = (row) => {
   modal_id.value.show();
 };
 
-const getSanitizedRules = (rules_list) => {
-    const unique_rules = [];
-
-    /* Remove duplicate hosts */
-    $.each(rules_list.val().split("\n"), function(i, rule) {
-      rule = NtopUtils.cleanCustomHostUrl(rule);
-
-      if(($.inArray(rule, unique_rules) === -1) && rule)
-        unique_rules.push(rule);
-    });
-
-    return(unique_rules.join(','));
-  }
-
-
 const add_ = () => {
   emit('add', { 
     l7_proto_id: application_id.value,
     protocol_alias: application_name.value,
     category: selected_category.value.id,
-    custom_rules: custom_rule.value,
+    custom_rules: custom_rules.value,
+    is_edit_page: is_edit_page.value,
   });
     
   close();
