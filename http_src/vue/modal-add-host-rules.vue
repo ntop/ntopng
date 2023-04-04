@@ -645,7 +645,6 @@ const metricsLoaded = (_metric_list, _ifid_list, _interface_metric_list, _flow_e
   metric_list.value = _metric_list;
   interface_metric_list.value = _interface_metric_list;
   ifid_list.value = format_ifid_list(_ifid_list);
-  debugger;
   flow_exporter_devices.value = format_flow_exporter_device_list(_flow_exporter_devices);
   flow_device_metric_list.value = _flow_exporter_devices_metric_list
   frequency_list.value = props.frequency_list;
