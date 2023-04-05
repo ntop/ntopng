@@ -1,6 +1,5 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-  
 <div class="button-group mb-2"> <!-- TableHeader -->
   <div style="float:left;">
     <label>
@@ -31,9 +30,9 @@
 </div>  
 </div> <!-- TableHeader -->
 
-<div class="" style="width: 100%;overflow: scroll;"> <!-- Table SelectTablePage -->
+<div v-if="show_table" ref="table_div" class="" style="width: 100%;overflow: scroll;"> <!-- Table -->
   
-  <table v-if="show_table" ref="table" class="table table-striped table-bordered mb-0"> <!-- Table -->
+  <table ref="table" class="table table-striped table-bordered mb-0" style="table-layout: auto;width: 98%; white-space: nowrap;" :data-resizable-columns-id="id"> <!-- Table -->
     <thead>
       <tr>
 	<template v-for="(col, col_index) in columns_wrap">
@@ -56,7 +55,7 @@
       </tr>
     </tbody>
   </table> <!-- Table -->
-</div> <!-- Table and SelectTablePage -->
+</div> <!-- Table div-->
 
 <div>
   <SelectTablePage :total_rows="total_rows"
@@ -93,24 +92,35 @@ const per_page_options = [10, 20, 40, 50, 80, 100];
 const per_page = ref(10);
 
 onMounted(async () => {
+    if (props.columns != null) {
+	load_table();
+    }
+});
+
+watch(() => props.columns, (cur_value, old_value) => {
+    load_table();
+}, { flush: 'pre'});
+
+async function load_table() {
     set_columns_wrap();
     await set_rows();
     $(table.value).resizableColumns();
     dropdown.value.load_menu();
-});
+}
 
-async function change_columns_visibility(col) {
+const table_div = ref(null);
+async function change_columns_visibility(col) {    
     if (props.paging) {
 	await set_rows();
     }
-    
     show_table.value = false;
     await nextTick();
     show_table.value = true;
     await nextTick();
+    // $(table_div).width('50%');
     setTimeout(async () => {
 	await nextTick();
-	$(table.value).resizableColumns()
+	$(table.value).resizableColumns();
     }, 0);
 }
 
@@ -181,6 +191,8 @@ function set_active_rows() {
     let start_row_index = active_page * per_page.value;
     active_rows.value = rows.slice(start_row_index, start_row_index + per_page.value);
 }
+
+defineExpose({ load_table, refresh_table });
 
 </script>
 
