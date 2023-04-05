@@ -117,6 +117,8 @@ export const ntopng_utility = function() {
 	    }
 	    for (let key in source_obj) {
 	    	if (source_obj[key] == null) { continue; }
+            /* Security check for Prototype pollution vulnerability */
+            if (key === "__proto__" || key === "constructor") { continue; }
 	    	if (recursive_object == true && this.is_object(source_obj[key]) && this.is_object(dest_obj[key])) {
 	    	    this.copy_object_keys(source_obj[key], dest_obj[key], recursive_object);
 	    	} else {
