@@ -150,7 +150,7 @@ function get_data_pattern(value_type) {
 	return NtopUtils.REGEXES.non_quoted_text;
     } else if (value_type == "ip") {
 	let r_ipv4 = NtopUtils.REGEXES.ipv4;
-	let r_ipv4_vlan = r_ipv4.replace("$", "@[0-9]{0,5}$");
+	let r_ipv4_vlan = r_ipv4.replaceAll("$", "@[0-9]{0,5}$");
 	let r_ipv6 = NtopUtils.REGEXES.ipv6;
 	let r_ipv6_vlan = r_ipv6.replaceAll("$", "@[0-9]{0,5}$");
 	return `(${r_ipv4})|(${r_ipv4_vlan})|(${r_ipv6})|(${r_ipv6_vlan})`;
