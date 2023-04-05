@@ -8783,7 +8783,7 @@ bool NetworkInterface::registerLiveCapture(struct ntopngLuaContext * const luact
 
 bool NetworkInterface::deregisterLiveCapture(struct ntopngLuaContext * const luactx) {
   bool ret = false;
-
+  
   active_captures_lock.lock(__FILE__, __LINE__);
 
   for(int i=0; i<MAX_NUM_PCAP_CAPTURES; i++) {

@@ -2620,7 +2620,7 @@ void Utils::readMac(const char *_ifname, dump_mac_t mac_addr) {
 }
 
 #else
-void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
+void Utils::readMac(const char *ifname, dump_mac_t mac_addr) {
   memset(mac_addr, 0, 6);
 }
 #endif
