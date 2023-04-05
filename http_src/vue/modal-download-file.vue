@@ -51,8 +51,8 @@ const emit = defineEmits(["download"]);
 
 const show = (name) => {
     if (name == null) { name = ""; }
-    name = name.replaceAll(/[-=?;:\s]/g, "_");
-    name = name.replaceAll(/[`~!@#$%^&*|+-=?;:'",\.<>\s\/{}\[\]()]/g, "");
+    /* Replace all characters with _ for EXCEPT number and letters */
+    name = name.replaceAll(/[^a-zA-Z0-9]/g, '_');
     filename.value = name;
     modal_id.value.show();
 };
