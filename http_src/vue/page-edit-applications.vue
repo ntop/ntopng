@@ -152,7 +152,7 @@ const add_action_column = function (rowData) {
   }
 
   const actions = [
-    { class: `btn-secondary`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit'), class: "pointer" },
+    { class: `pointer`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit') },
   ]
 
   if(rowData.is_custom) {
@@ -164,7 +164,7 @@ const add_action_column = function (rowData) {
     }
   
     actions.push(    
-      { class: `btn-secondary`, handler: delete_handler, icon: 'fa-trash', title: i18n('delete'), class: "pointer" },
+      { class: `pointer`, handler: delete_handler, icon: 'fa-trash', title: i18n('delete') },
     )
   }
   return DataTableUtils.createActionButtons(actions);
