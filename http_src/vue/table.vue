@@ -32,7 +32,7 @@
 
 <div v-if="show_table" ref="table_div" class="" style="width: 100%;overflow: scroll;"> <!-- Table -->
   
-  <table ref="table" class="table table-striped table-bordered mb-0" style="table-layout: auto;width: 98%; white-space: nowrap;" :data-resizable-columns-id="id"> <!-- Table -->
+  <table ref="table" class="table table-striped table-bordered mb-0" style="table-layout: auto;width: 98.7%; white-space: nowrap;" :data-resizable-columns-id="id"> <!-- Table -->
     <thead>
       <tr>
 	<template v-for="(col, col_index) in columns_wrap">
@@ -105,6 +105,7 @@ async function load_table() {
     set_columns_wrap();
     await set_rows();
     $(table.value).resizableColumns();
+    await nextTick();
     dropdown.value.load_menu();
 }
 
@@ -177,8 +178,10 @@ function refresh_table() {
     set_rows();
 }
 
+let first_get_rows = true;
 async function set_rows() {
-    let res = await props.get_rows(active_page, per_page.value, columns_wrap.value);
+    let res = await props.get_rows(active_page, per_page.value, columns_wrap.value, first_get_rows);
+    first_get_rows = false;
     total_rows.value = res.rows.length;
     if (props.paging == true) {
 	total_rows.value = res.total_rows;
@@ -188,7 +191,10 @@ async function set_rows() {
 }
 
 function set_active_rows() {
-    let start_row_index = active_page * per_page.value;
+    let start_row_index = 0;
+    if (props.paging == false) {
+	start_row_index = active_page * per_page.value;
+    }
     active_rows.value = rows.slice(start_row_index, start_row_index + per_page.value);
 }
 

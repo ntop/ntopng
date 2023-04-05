@@ -13,7 +13,7 @@
   <div v-show="total_pages > 0" class="col-sm-12 col-md-7">
     <div class="dataTables_paginate paging_simple_numbers" style="display:flex; justify-content:flex-end;">
       <ul class="pagination">
-	<li v-show="active_page >= num_page_buttons - 1" class="paginate_button page-item previous">
+	<li v-show="enable_first_page" class="paginate_button page-item previous">
 	  <a href="javascript:void(0);" @click="change_active_page(0, 0)" aria-controls="default-datatable" data-dt-idx="0" tabindex="0" class="page-link">
 	    «
 	  </a>
@@ -23,14 +23,15 @@
 	    &lt;
 	  </a>
 	</li>
-	<li v-for="n in num_page_buttons" @click="change_active_page(start_page_button + n - 1)" :class="{'active': active_page == start_page_button + n - 1 }" class="paginate_button page-item"><a href="javascript:void(0);" aria-controls="default-datatable" data-dt-idx="1" tabindex="0" class="page-link" :key="start_page_button">{{start_page_button + n}}</a>
+	<li v-for="n in num_page_buttons" @click="change_active_page(start_page_button + n - 1)" :class="{'active': active_page == start_page_button + n - 1 }" class="paginate_button page-item"><a href="javascript:void(0);" aria-controls="default-datatable" data-dt-idx="1" tabindex="0" class="page-link" >{{start_page_button + n}}</a>
+	  <!--  :key="total_rows"-->
 	  </li>
 	<li class="paginate_button page-item next" :class="{ 'disabled': active_page == total_pages - 1}" id="default-datatable_next">
 	  <a href="javascript:void(0);" @click="next_page()" aria-controls="default-datatable" data-dt-idx="7" tabindex="0" class="page-link">
 	    &gt;
 	  </a>
 	</li>
-	<li v-show="active_page < total_pages - num_page_buttons + 1" class="paginate_button page-item previous">
+	<li v-show="enable_last_page" class="paginate_button page-item previous">
 	  <a href="javascript:void(0);" @click="change_active_page(total_pages - 1, total_pages - num_page_buttons)" aria-controls="default-datatable" data-dt-idx="0" tabindex="0" class="page-link">
 	    »
 	  </a>
@@ -76,7 +77,9 @@ function calculate_pages() {
     if (props.total_rows == null) { return; }
     let per_page = props.per_page;
     total_pages.value = Number.parseInt((props.total_rows + per_page - 1) / per_page);
-    active_page.value = 0;
+    if (active_page.value >= total_pages.value) {
+	active_page.value = 0;
+    }
 
     num_page_buttons.value = max_page_buttons;
     start_page_button.value = 0;
@@ -85,6 +88,21 @@ function calculate_pages() {
     }
     set_text();
 }
+
+const enable_first_page = computed(() => {
+    if (total_pages.value < max_page_buttons) {
+	return false;
+    }
+    return active_page.value >= num_page_buttons.value - 1;
+});
+
+const enable_last_page = computed(() => {
+    if (total_pages.value < max_page_buttons) {
+	return false;
+    }
+    return active_page.value < total_pages.value - num_page_buttons.value + 1;
+});
+
 
 function next_page() {
     change_active_page(active_page.value + 1);
@@ -96,6 +114,9 @@ function back_page() {
 
 function change_active_page(new_active_page, new_start_page_button) {
     active_page.value = new_active_page;
+    // console.log(`new active page: ${new_active_page}`);
+    // console.log(`new start page button: ${new_start_page_button}`);
+
     if (new_start_page_button != null) {
 	start_page_button.value = new_start_page_button;
     }
@@ -107,6 +128,8 @@ function change_active_page(new_active_page, new_start_page_button) {
     if (active_page.value == end_page_button && total_pages.value - 1 > end_page_button) {
 	start_page_button.value += 1;	
     }
+    // console.log(`active page: ${active_page.value}`);
+    // console.log(`start page button: ${start_page_button.value}`);
     set_text();
     emit('change_active_page', active_page.value);
 }
@@ -115,6 +138,8 @@ function set_text() {
     text.value = text_template.replace("%active_page", format_number(`${active_page.value + 1}`))
 	.replace("%total_pages", format_number(`${total_pages.value}`))
 	.replace("%total_rows", format_number(`${props.total_rows}`));
+    // console.log(text.value);
+    // console.log(active_page.value);
 }
 
 function format_number(s) {
