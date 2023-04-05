@@ -137,7 +137,7 @@ export const ntopng_utility = function() {
 		if (options.headers == null) {
 		    options.headers = {};
 		}
-		if (options != null && options.headers != null && global_http_headers != null) {
+		if (options.headers != null && global_http_headers != null) {
 		    options.headers = {
 			...options.headers,
 			...global_http_headers,

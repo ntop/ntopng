@@ -18,7 +18,6 @@ function PieChart(name, update_url, url_params, units, refresh) {
 	this.url_params = url_params;
 	this.units = units;
 	this.refresh = refresh;
-	this.pieInterval;
 
   let streakerDataAdded = []
   let paths = ""
@@ -413,31 +412,27 @@ function create_pie_chart(name, units) {
 	///////////////////////////////////////////////////////////
 
 	//WHITE CIRCLE BEHIND LABELS
-	var whiteCircle = center_group.append("svg:circle")
+	center_group.append("svg:circle")
 		.attr("fill", "white")
 		.attr("r", ir);
 
-	var totalUnits = null;
-	var totalLabel = null;
-	var totalValue = null;
-
 	if (units) {
 		// "TOTAL" LABEL
-		totalLabel = center_group.append("svg:text")
+		center_group.append("svg:text")
 			.attr("class", "label")
 			.attr("dy", -15)
 			.attr("text-anchor", "middle") // text-align: right
 			.text("TOTAL");
 
 		//TOTAL TRAFFIC VALUE
-		totalValue = center_group.append("svg:text")
+		center_group.append("svg:text")
 			.attr("class", "total")
 			.attr("dy", 7)
 			.attr("text-anchor", "middle") // text-align: right
 			.text("Waiting...");
 
 		//UNITS LABEL
-		totalUnits = center_group.append("svg:text")
+		center_group.append("svg:text")
 			.attr("class", "units")
 			.attr("dy", 21)
 			.attr("text-anchor", "middle") // text-align: right

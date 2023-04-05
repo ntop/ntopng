@@ -11,13 +11,10 @@ const DEFINED_EVENTS = {
     "db_analyze" : function (event, chartContext, config) {
         const { dataPointIndex } = config;
         const { filter } = config.w.config;
-        let value, value_label, label;
+        let value;
 
         if(config.w.config.filtering_labels)
             value = config.w.config.filtering_labels[dataPointIndex];
-
-        if(config.w.config.labels)
-            value_label = config.w.config.labels[dataPointIndex];
 
         if(filter.length == 0 || value === undefined)
             return;

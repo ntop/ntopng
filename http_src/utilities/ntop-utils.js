@@ -790,7 +790,7 @@ export default class NtopUtils {
 	// To be used in conjunction with httpdocs/templates/config_list_components/import_modal.html
 	static importModalHelper(params) {
 
-		if (!params.loadConfigXHR) { throw ("importModalHelper:: Missing 'loadConfigXHR' param"); return; }
+		if (!params.loadConfigXHR) { throw ("importModalHelper:: Missing 'loadConfigXHR' param"); }
 
 		$(`input#import-input`).on('change', function () {
 			const filename = $(this).val().replace("C:\\fakepath\\", "");
@@ -1101,9 +1101,8 @@ export default class NtopUtils {
   static shortenLabel(label, len, last_char) {
     let shortened_label = label
     if(label.length > len + 5) {
-      let last_index = len
       if(last_char) {
-        last_index = label.lastIndexOf(last_char)
+        let last_index = label.lastIndexOf(last_char)
         const requested_label = label.slice(last_index)
         if(len > last_index) 
           len = last_index

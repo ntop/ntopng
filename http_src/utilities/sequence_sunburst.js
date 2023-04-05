@@ -15,7 +15,6 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
   this.url_params = url_params;
   this.units = units;
   this.refresh = refresh;
-  this.sunburstInterval;
 
   var oldPieData = [];
   var filteredPieData = [];
@@ -113,7 +112,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
     if ((last_process.localeCompare(d.name) == 0) && (d.name != "")){
       
       var data = NtopUtils.bytesToVolumeAndLabel(d.value);
-      var value = data[0]
+      var value;
       if (last_byte < d.value) {
         value = data[0]+ ' \uf062';
       }else if (last_byte > d.value) {
@@ -323,7 +322,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
       .attr("transform", "translate(" + (width / 2) + "," + (height / 2) + ")");
 
     // Basic setup of page elements.
-    var trail = initializeBreadcrumbTrail(circle_name,sequence_name,width);
+    var trail = initializeBreadcrumbTrail(circle_name,sequence_name);
 
     var whiteCircle = arc_group.append("svg:circle")
       .attr("fill", "white")

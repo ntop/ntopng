@@ -948,7 +948,7 @@
 							extraMargin = this.tickLabelContainer.offsetHeight;
 						} else {
 							/* Chidren are position absolute, calculate height by finding the max offsetHeight of a child */
-							for (i = 0 ; i < this.tickLabelContainer.childNodes.length; i++) {
+							for (let i = 0 ; i < this.tickLabelContainer.childNodes.length; i++) {
 								if (this.tickLabelContainer.childNodes[i].offsetHeight > extraMargin) {
 									extraMargin = this.tickLabelContainer.childNodes[i].offsetHeight;
 								}

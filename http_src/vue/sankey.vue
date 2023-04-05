@@ -153,9 +153,11 @@ function SankeyChart(data) {
       if(sourceLink && sourceLink[0]) {
         /* Get the node color from the rest */
         if(sourceLink[0].source.id === data.id) {
-          (sourceLink[0].source_color && sourceLink[0].source_color !== '') ? node_color = sourceLink[0].source_color : node_color = node_color;
+          if(sourceLink[0].source_color && sourceLink[0].source_color !== '') 
+            node_color = sourceLink[0].source_color;
         } else if(sourceLink[0].target.id === data.id) {
-          (sourceLink[0].target_color && sourceLink[0].target_color !== '') ? node_color = sourceLink[0].target_color : node_color = node_color;
+          if(sourceLink[0].target_color && sourceLink[0].target_color !== '') 
+            node_color = sourceLink[0].target_color;
         }
       } 
       
