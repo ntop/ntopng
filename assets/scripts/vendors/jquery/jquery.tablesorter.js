@@ -526,7 +526,7 @@
             };
 
             function formatSortingOrder(v) {
-                if (typeof(v) != "Number") {
+                if (typeof(v) != "number") {
                     return (v.toLowerCase() == "desc") ? 1 : 0;
                 } else {
                     return (v == 1) ? 1 : 0;
