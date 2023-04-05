@@ -123,7 +123,7 @@ for _, el in pairs(discovered["devices"]) do
     ..ternary(el["icon"], "&nbsp;" ..(el["icon"] or "").. "&nbsp;", "")
     ..ternary(el["ghost"], " <font color=red>" ..(discover.ghost_icon or "").. "</font>", "")
 
-  rec.mac = [[<a href="]] ..ntop.getHttpPrefix().. [[/lua/mac_details.lua?host=]] ..el["mac"].. [[">]] ..get_symbolic_mac(el["mac"], true).. [[</a>]]
+  rec.mac_address = [[<a href="]] ..ntop.getHttpPrefix().. [[/lua/mac_details.lua?host=]] ..el["mac"].. [[">]] ..get_symbolic_mac(el["mac"], true).. [[</a>]]
   rec.name = el.name
   rec.info = el.info
   rec.device = el["device_label"]

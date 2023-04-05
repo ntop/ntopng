@@ -179,7 +179,7 @@ function start_datatable() {
   let columns = [
     { columnName: i18n("ip_address"), name: 'ip', data: 'ip', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: i18n("name"), name: 'name', data: 'name', className: 'text-nowrap text-center', responsivePriority: 1 },
-    { columnName: i18n("manufacturer"), name: 'manufacturer', data: 'manufacturer', className: 'text-nowrap', responsivePriority: 2 },
+    { columnName: i18n("mac_stats.manufacturer"), name: 'manufacturer', data: 'manufacturer', className: 'text-nowrap', responsivePriority: 2 },
     { columnName: i18n("mac_address"), name: 'mac_address', data: 'mac_address', className: 'text-nowrap', responsivePriority: 2 },
     { columnName: i18n("os"), name: 'os', data: 'os', className: 'text-nowrap text-center', responsivePriority: 2 },
     { columnName: i18n("info"), name: 'info', data: 'info', className: 'text-nowrap', responsivePriority: 2 },
