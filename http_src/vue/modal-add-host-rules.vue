@@ -252,10 +252,6 @@ const percentage_threshold_list = [
 ]
 
 
-const rest_params = {
-  csrf: props.page_csrf
-}
-
 const host = ref(null)
 const threshold = ref(null)
 
@@ -272,11 +268,19 @@ const props = defineProps({
   page_csrf: String,
 });
 
+const rest_params = {
+  csrf: props.page_csrf
+}
+
 function reset_radio_selection(radio_array) {
 
   radio_array.forEach((item) => item.active = item.default_active == true );
 }
 
+/**
+ * 
+ * Reset fields in modal form 
+ */
 const reset_modal_form = async function() {
     host.value = "";
     selected_ifid.value = ifid_list.value[0];
@@ -326,6 +330,10 @@ const set_rule_type = (type) => {
     rule_type.value = type;
 }
 
+/**
+ * 
+ * Set row to edit 
+ */
 const set_row_to_edit = (row) => {
 
   if(row != null) {
@@ -412,7 +420,12 @@ const set_row_to_edit = (row) => {
       }
     } else if (rule_type.value == 'exporter'){
       flow_exporter_devices.value.forEach((item) => {
-
+        if(item == row.target)
+          selected_exporter_device.value = item
+      })
+      flow_exporter_device_ifid_list.value.forEach((item) => {
+        if(item == row.flow_exp_ifid)
+          selected_exporter_device_ifid.value = item
       })
     } else {
 
@@ -464,6 +477,10 @@ const set_active_sign_radio = (selected_radio) => {
 
 }
 
+/**
+ * 
+ * Set the metric type
+ */
 const set_active_radio = (selected_radio) => {
   const id = selected_radio.target.id;
 
@@ -481,11 +498,12 @@ const set_active_radio = (selected_radio) => {
     })
   } 
   
-  
 }
 
 
-
+/**
+ * Function to add rule to rules list
+ */
 const add_ = (is_edit) => {
   let tmp_host = ''
   if(rule_type.value == 'Host')
@@ -611,6 +629,10 @@ const close = () => {
   modal_id.value.close();
 };
 
+/**
+ * 
+ * Function to format ifid list
+ */
 const format_ifid_list = function(data) {
   let _ifid_list = []
   data.forEach((ifid) => {
@@ -620,13 +642,10 @@ const format_ifid_list = function(data) {
   return _ifid_list
 }
 
-const get_flow_exporter_details = async function(dev_details_url, dev) {
-  let item = null;
-  //await $.get(dev_details_url, function(rsp, status){
-  item = {/*ip:dev, details: rsp.rsp*/ id:dev, label:dev};
-  //});
-  return item;
-}
+
+/**
+ * Function to format flow exporter device list 
+ */
 const format_flow_exporter_device_list = function(data) {
   let _f_exp_dev_list = [];
 

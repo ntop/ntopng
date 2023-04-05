@@ -262,14 +262,14 @@ const format_threshold = function(data, rowData) {
 const format_rule_type = function(data, rowData) {
   let formatted_data = '';
   if ((rowData.rule_type) && (rowData.rule_type == 'interface') ) {
-    formatted_data = "<span class='badge bg-secondary'>Interface <i class='fas fa-ethernet'></i></span>"
+    formatted_data = "<span class='badge bg-secondary'>"+_i18n("interface")+" <i class='fas fa-ethernet'></i></span>"
   } else if ((rowData.rule_type) && (rowData.rule_type == 'Host') ) {
-    formatted_data = "<span class='badge bg-secondary'>Host <i class='fas fa-laptop'></i></span>"
+    formatted_data = "<span class='badge bg-secondary'>"+_i18n("about.host_checks_directory")+" <i class='fas fa-laptop'></i></span>"
   } else if ((rowData.rule_type) && (rowData.rule_type == 'exporter') && rowData.metric == "flowdev:traffic") {
-    formatted_data = "<span class='badge bg-secondary'>Flow exporter device <i class='fas fa-laptop'></i></span>"
+    formatted_data = "<span class='badge bg-secondary'>"+_i18n("flow_exporter_device")+" <i class='fas fa-laptop'></i></span>"
 
   } else if((rowData.rule_type) && (rowData.rule_type == 'exporter') && rowData.metric == "flowdev_port:traffic")
-    formatted_data = "<span class='badge bg-secondary'>Interface of flow exporter device <i class='fas fa-ethernet'></i></span>"
+    formatted_data = "<span class='badge bg-secondary'>"+_i18n("interface_flow_exporter_device")+" <i class='fas fa-ethernet'></i></span>"
 
   return formatted_data;
 }
@@ -283,7 +283,7 @@ const format_target = function(data, rowData) {
   } else if (rowData.rule_type && rowData.rule_type == 'exporter' && rowData.metric =="flowdev:traffic") {
     formatted_data = rowData.target;
   } else {
-    formatted_data = rowData.target + " on interface: " + rowData.flow_exp_ifid_name;
+    formatted_data = rowData.target + " "+_i18n("on_interface")+": " + rowData.flow_exp_ifid_name;
   }
   return formatted_data;
 }
