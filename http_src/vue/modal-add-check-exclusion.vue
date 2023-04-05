@@ -155,7 +155,7 @@ function get_data_pattern(value_type) {
 	let r_ipv6_vlan = r_ipv6.replaceAll("$", "@[0-9]{0,5}$");
 	return `(${r_ipv4})|(${r_ipv4_vlan})|(${r_ipv6})|(${r_ipv6_vlan})`;
     } else if (value_type == "hostname") {
-	return `${NtopUtils.REGEXES.singleword}|[a-zA-Z0-9._\-]{3,250}@[0-9]{0,5}$`;
+	return `${NtopUtils.REGEXES.singleword}|[a-zA-Z0-9._-]{3,250}@[0-9]{0,5}$`;
     } else if (value_type == "certificate") {
 	return NtopUtils.REGEXES.tls_certificate;
     }
