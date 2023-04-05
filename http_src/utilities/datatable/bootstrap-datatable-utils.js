@@ -246,7 +246,7 @@ export function datatableInitRefreshRows(table, column_id, refresh_interval, tre
     }
   }
 
-  if(!ids)
+  if(ids == null)
     return(false);
 
   // These parameters will be passed to the refresh endpoint

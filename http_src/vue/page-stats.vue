@@ -241,9 +241,9 @@ async function init() {
 
 let last_push_custom_metric = null;
 async function get_metrics(push_custom_metric, force_refresh) {
+    let metrics = await metricsManager.get_metrics(http_prefix);
     if (!force_refresh && last_push_custom_metric == push_custom_metric) { return metrics.value; }
     
-    let metrics = await metricsManager.get_metrics(http_prefix);
     if (push_custom_metric) {
 	metrics.push(custom_metric);
     }
@@ -637,22 +637,16 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
 		return;
 	    }
 	    let name = timeseriesUtils.getSerieName(s_metadata.label, ts_id, ts_group, extend_serie_name);
-	    let total = null;
 	    let total_formatter_type = f_get_total_formatter_type(ts_group.metric.measure_unit);
 	    let total_formatter = formatterUtils.getFormatter(total_formatter_type);
-	    if (ts_stats.total != null) {
-		let interval = status.epoch_end - status.epoch_begin;
-		total = interval * ts_stats.average;
-	    }
-	    
 	    let row = {
-		metric: name,
-		// total: total_formatter(total),
-		total: total_formatter(ts_stats.total),
-		perc_95: formatter(ts_stats["95th_percentile"]),
-		avg: formatter(ts_stats.average),
-		max: formatter(ts_stats.max_val),
-		min: formatter(ts_stats.min_val),
+            metric: name,
+            // total: total_formatter(total),
+            total: total_formatter(ts_stats.total),
+            perc_95: formatter(ts_stats["95th_percentile"]),
+            avg: formatter(ts_stats.average),
+            max: formatter(ts_stats.max_val),
+            min: formatter(ts_stats.min_val),
 	    };
 	    stats_rows.value.push(row);
 	});

@@ -91,7 +91,6 @@
       </div>
       
       <ListTimeseries
-	id=""
 	:title="_i18n('modal_timeseries.timeseries_list')"
 	v-model:timeseries="timeseries_to_add">
       </ListTimeseries>      

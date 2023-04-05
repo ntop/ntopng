@@ -364,8 +364,8 @@ export default {
           
           return DataTableUtils.createActionButtons([
             { class: `pointer`, handler: jump_to_historical_flow, icon: 'fa-stream', title: i18n('db_explorer.historical_data'), hidden: !isClickhouseEnabled },
-            { class: `btn-secondary`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit'), class: "pointer" },
-            { class: `btn-danger`, handler: delete_handler, icon: 'fa-trash', title: i18n('delete'), class: "pointer" },
+            { class: `pointer`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit') },
+            { class: `pointer`, handler: delete_handler, icon: 'fa-trash', title: i18n('delete') },
           ]);
         },
       }

@@ -75,8 +75,8 @@ const last_application = ref({})
 const note_list = [
   _i18n("custom_categories.each_host_separate_line"),
   _i18n("custom_categories.host_domain_or_port"),
-  _i18n("custom_categories.example_port_range", {example1: "udp:443", example2: "tcp:1230-1235"}),
-  _i18n("custom_categories.domain_names_substrings", {s1: "ntop.org", s2: "mail.ntop.org", s3: "ntop.org.example.com"})
+  _i18n("custom_categories.example_port_range"),
+  _i18n("custom_categories.domain_names_substrings")
 ]
 
 const showed = () => {};
@@ -163,11 +163,6 @@ const add_ = () => {
     
   close();
 };
-
-
-const edit_ = () => {
-  add_(true);
-}
 
 const close = () => {
   modal_id.value.close();

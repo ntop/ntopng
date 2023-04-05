@@ -278,7 +278,7 @@ async function get_sankey_data() {
 	}
     ];
     
-        
+/*
     let data = {
 	// nodes: [
 	//     { index: 0, name: "Liikevaihto", value: 100, hours: "100%" },
@@ -304,7 +304,7 @@ async function get_sankey_data() {
 	    { source: 0, target: 5, value: 15, hours: "+1:40" }
 	]
     };
-
+*/
     data = wrap_graph_rsp(rsp);
 
     debugger;

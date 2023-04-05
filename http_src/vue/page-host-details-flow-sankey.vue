@@ -79,7 +79,7 @@ const sankey_data = ref({});
 onBeforeMount(() => {});
 
 onMounted(() => { 
-    update_sankey(active_hosts_type);
+    update_sankey();
 });
 
 function on_node_click(node) {

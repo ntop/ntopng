@@ -249,8 +249,6 @@ const format_threshold = function(data, rowData) {
       data = data * (-1);
     }
     formatted_data = threshold_sign + NtopUtils.fpercent(data);
-  } else {
-    formatted_data = data
   }
 
   return formatted_data

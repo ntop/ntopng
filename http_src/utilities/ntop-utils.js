@@ -1134,7 +1134,7 @@ export default class NtopUtils {
 		let label = name;
 		if(name != value) {
 			if(max_name_len && typeof(max_name_len) == 'number')
-				label = shortenLabel(label, max_name_len, '.');
+				label = this.shortenLabel(label, max_name_len, '.');
 
 			label = `${label} [${value}]` 
 		}
