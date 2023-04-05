@@ -14,51 +14,6 @@ local db_utils = {}
 
 -- ########################################################
 
-local extra_tables = {
-   l7_protocols = {
-      populate_table = populate_l7_protocols,
-      flows_col_name = 'L7_PROTO_NAME',
-      flows_col = 'L7_PROTO',
-      alerts_col_name = 'l7_proto_name',
-      alerts_col = 'l7_proto',
-      alias = 'l7_protocols'
-   },
-   l7_categories = {
-      populate_table = populate_l7_categories,
-      flows_col_name = 'L7_CATEGORY_NAME',
-      flows_col = 'L7_CATEGORY',
-      alerts_col_name = 'l7_cat_name',
-      alerts_col = 'l7_cat',
-      alias = 'l7_categories'
-   },
-   l4_protocols = {
-      populate_table = populate_l4_protocols,
-      flows_col_name = 'PROTOCOL_NAME',
-      flows_col = 'PROTOCOL',
-      alerts_col_name = 'proto_name',
-      alerts_col = 'protocol',
-      alias = 'l4_protocols'
-   },
-   flow_risks = {
-      populate_table = populate_flow_risks,
-      flows_col_name = 'FLOW_RISK_NAME',
-      flows_col = 'FLOW_RISK',
-      alerts_col_name = 'flow_risk_name',
-      alerts_col = 'flow_risk',
-      alias = 'flow_risks'
-   },
-   alert_severities = {
-      populate_table = populate_alert_severities,
-      flows_col_name = 'SEVERITY_NAME',
-      flows_col = 'SEVERITY',
-      alerts_col_name = 'severity_name',
-      alerts_col = 'severity',
-      alias = 'alert_severities'
-   }
-}
-
--- ########################################################
-
 local function populate_l7_protocols()
    -- Protocols table
    local list = interface.getnDPIProtocols() or {}
@@ -128,6 +83,51 @@ local function populate_alert_severities()
 
    interface.execSQLQuery(sql)
 end
+
+-- ########################################################
+
+local extra_tables = {
+   l7_protocols = {
+      populate_table = populate_l7_protocols,
+      flows_col_name = 'L7_PROTO_NAME',
+      flows_col = 'L7_PROTO',
+      alerts_col_name = 'l7_proto_name',
+      alerts_col = 'l7_proto',
+      alias = 'l7_protocols'
+   },
+   l7_categories = {
+      populate_table = populate_l7_categories,
+      flows_col_name = 'L7_CATEGORY_NAME',
+      flows_col = 'L7_CATEGORY',
+      alerts_col_name = 'l7_cat_name',
+      alerts_col = 'l7_cat',
+      alias = 'l7_categories'
+   },
+   l4_protocols = {
+      populate_table = populate_l4_protocols,
+      flows_col_name = 'PROTOCOL_NAME',
+      flows_col = 'PROTOCOL',
+      alerts_col_name = 'proto_name',
+      alerts_col = 'protocol',
+      alias = 'l4_protocols'
+   },
+   flow_risks = {
+      populate_table = populate_flow_risks,
+      flows_col_name = 'FLOW_RISK_NAME',
+      flows_col = 'FLOW_RISK',
+      alerts_col_name = 'flow_risk_name',
+      alerts_col = 'flow_risk',
+      alias = 'flow_risks'
+   },
+   alert_severities = {
+      populate_table = populate_alert_severities,
+      flows_col_name = 'SEVERITY_NAME',
+      flows_col = 'SEVERITY',
+      alerts_col_name = 'severity_name',
+      alerts_col = 'severity',
+      alias = 'alert_severities'
+   }
+}
 
 -- ########################################################
 
