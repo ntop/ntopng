@@ -28,6 +28,7 @@ import { default as PageAlertAnalysis } from "./page-alert-analysis.vue";
 import { default as PageHostMap } from "./page-host-map.vue";
 import { default as PageVLANPortsSankey } from "./page-vlan-ports-sankey.vue";
 import { default as PageAggregatedLiveFlows } from "./page-aggregated-live-flows.vue";
+import { default as PageAggregatedLiveFlowsV2 } from "./page-aggregated-live-flows-v2.vue";
 import { default as PageTestTable } from "./page-test-table.vue";
 import { default as PageTestNewTable } from "./page-test-new-table.vue";
 import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
@@ -100,6 +101,7 @@ let ntopVue = {
     PageHostDetailsPorts: PageHostDetailsPorts,
 
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
+    PageAggregatedLiveFlowsV2: PageAggregatedLiveFlowsV2,
 
     PageNetworkDiscovery:PageNetworkDiscovery,
 

@@ -3,11 +3,10 @@
 -->
 
 <template>
-  CIAO CIAO
 <div class="row">
   <div class="col-md-12 col-lg-12">
     <div class="card  card-shadow">
-      <Loading ref="loading"></Loading>
+      <!-- <Loading ref="loading"></Loading> -->
       <div class="card-body">
 	<div class="d-flex align-items-center mb-2">
 	  <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem">
@@ -21,27 +20,16 @@
 
 	<div>
 	  <Table
-	    ref="table_v2"
-	    id="page-test"
-	    :columns="table_config_2.columns"
-	    :get_rows="(active_page, per_page, columns_wrap) => table_config_2.get_rows(active_page, per_page, columns_wrap)"
-	    :print_column_name="(col) => table_config_2.print_column_name(col)"
-	    :print_html_row="(col, row) => table_config_2.print_html_row(col, row)"
+	    ref="table_aggregated_live_flows"
+	    id="table_aggregated_live_flows"
+	    :key="table_config.columns"
+	    :columns="table_config.columns"
+	    :get_rows="(active_page, per_page, columns_wrap, first_get_rows) => table_config.get_rows(active_page, per_page, columns_wrap, first_get_rows)"
+	    :print_column_name="(col) => table_config.print_column_name(col)"
+	    :print_html_row="(col, row) => table_config.print_html_row(col, row)"
 	    :paging= "true">
 	  </Table>
 	</div>
-        <div>	  
-          <Datatable ref="table_aggregated_live_flows" 
-          :id="table_config.id"
-          :key="table_config.data_url"
-          :table_buttons="table_config.table_buttons"
-          :columns_config="table_config.columns_config"
-          :data_url="table_config.data_url"
-          :filter_buttons="table_config.table_filters"
-          :enable_search="table_config.enable_search"
-          :table_config="table_config.table_config">
-          </Datatable>
-        </div>
       </div>
     </div>
   </div>
@@ -57,31 +45,6 @@ import { default as Table } from "./table.vue";
 import { default as Loading } from "./loading.vue";
 import { default as SelectSearch } from "./select-search.vue";
 
-const _i18n = (t) => i18n(t);
-
-const criteria_list_def = [
-    { label: _i18n("application_proto"), value: 1, param: "application_protocol", table_id: "aggregated_app_proto" },
-    { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client" },
-    { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server"}, 
-    { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server" }
-];
-
-const criteria_list = ref(criteria_list_def);
-
-const selected_criteria = ref(criteria_list_def[0]);
-
-function update_criteria() {
-    ntopng_url_manager.set_key_to_url("aggregation_criteria", selected_criteria.value.param);
-    url_params.aggregation_criteria = selected_criteria.value.param;
-    set_datatable_config(url_params);
-    
-};
-
-const loading = ref(null)
-const table_config = ref({})
-const table_aggregated_live_flows = ref(null);
-let url_params = {};
-
 const props = defineProps({
     vlans: Array,
     ifid: Number,
@@ -94,26 +57,54 @@ const props = defineProps({
     
 });
 
+const _i18n = (t) => i18n(t);
+
+const criteria_list_def = [
+    { label: _i18n("application_proto"), value: 1, param: "application_protocol", table_id: "aggregated_app_proto" },
+    { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client" },
+    { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server"}, 
+    { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server" }
+];
+
+const loading = ref(null)
+const table_aggregated_live_flows = ref(null);
+
+const criteria_list = ref(criteria_list_def);
+
+const selected_criteria = ref(criteria_list_def[0]);
+const table_config = ref({})
+let default_url_params = {};
+
 onBeforeMount(async () => {
-    url_params = set_init_url_params();
-    await set_datatable_config(url_params);
-    update_url_params();
+    init_selected_criteria();
 });
 
-const table_config_2 = ref({});
-const table_v2 = ref(null);
 onMounted(async () => {
-    table_config_2.value = {
+    load_table();
+});
+
+function init_selected_criteria() {
+    let aggregation_criteria = ntopng_url_manager.get_url_entry("aggregation_criteria");
+    if (aggregation_criteria == null || aggregation_criteria == "") {
+	return;
+    }
+    selected_criteria.value = criteria_list_def.find((c) => c.param == aggregation_criteria );
+}
+
+function update_criteria() {
+    ntopng_url_manager.set_key_to_url("aggregation_criteria", selected_criteria.value.param);
+    load_table();
+};
+
+function load_table() {
+    table_config.value = {
 	columns: get_table_columns_config(),
 	get_rows: get_rows,
 	print_column_name: print_column_name,
 	print_html_row: print_html_row,
 	paging: true,
     };
-    console.log(table_config_2.value);
-    // table_v2.value.hello();
-    // table_v2.value.load_table();    
-});
+}
 
 function print_column_name(col) {
     if (col.columnName == null || col.columnName == "") {
@@ -130,14 +121,49 @@ function print_html_row(col, row) {
     return data;
 }
 
-async function get_rows(active_page, per_page, columns_wrap) {
-    let params = get_url_params(active_page, per_page, columns_wrap);
+async function get_rows(active_page, per_page, columns_wrap, first_get_rows) {
+    // loading.value.show_loading();
+
+    let params = get_url_params(active_page, per_page, columns_wrap, first_get_rows);
+    set_params_in_url(params);
     const url_params = ntopng_url_manager.obj_to_url_params(params);
     const url = `${http_prefix}/lua/rest/v2/get/flow/aggregated_live_flows.lua?${url_params}`;
     let res = await ntopng_utility.http_request(url, null, null, true);
     return { total_rows: res.recordsTotal, rows: res.rsp };
+
+    // loading.value.hide_loading();
 }
 
+function set_params_in_url(params) {
+    ntopng_url_manager.add_obj_to_url(params);
+}
+
+function get_url_params(active_page, per_page, columns_wrap, first_get_rows) {
+    let sort_column = columns_wrap.find((c) => c.sort != 0);
+    
+    let actual_params = {
+	ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid,
+	vlan_id: ntopng_url_manager.get_url_entry("vlan_id") || props.vlans ,
+	aggregation_criteria: ntopng_url_manager.get_url_entry("aggregation_criteria") || selected_criteria.value.param,
+	page: ntopng_url_manager.get_url_entry("page") || props.page,
+	sort: ntopng_url_manager.get_url_entry("sort") || props.sort,
+	order: ntopng_url_manager.get_url_entry("order") || props.order,
+	start: (active_page * per_page),
+	length: per_page,
+    };
+    if (first_get_rows == false) {
+	if (sort_column != null) {
+	    actual_params.sort = sort_column.data.data;
+	    actual_params.order = sort_column.sort == 1 ? "asc" : "desc";
+	}
+	// actual_params.start = (active_page * per_page);
+	// actual_params.length = per_page;
+    }
+    
+    return actual_params;
+}
+
+/// methods to get columns config
 function get_table_columns_config() {
     let columns = [];
     
@@ -227,64 +253,44 @@ function get_table_columns_config() {
     return columns;
 }
 
-
-function get_url_params(active_page, per_page, columns_wrap) {
-	let actual_params = {
-	ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid,
-	vlan_id: ntopng_url_manager.get_url_entry("vlan_id") || props.vlans ,
-	aggregation_criteria: ntopng_url_manager.get_url_entry("aggregation_criteria") || selected_criteria.value.param,
-	page: ntopng_url_manager.get_url_entry("page") || props.page,
-	sort: ntopng_url_manager.get_url_entry("sort") || props.sort,
-	order: ntopng_url_manager.get_url_entry("order") || props.order,
-	start: ntopng_url_manager.get_url_entry("start") || active_page,
-	length: ntopng_url_manager.get_url_entry("length") || per_page,
-    };
-
-    return actual_params;
-}
-
-const format_client_name = function(data, rowData) {
-  
-  if(rowData.client_name.alerted) {
-    rowData.client_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`+rowData.client_name.complete_label;
-  }
-  if(rowData.client_name.label && rowData.client_name.label != "") {
-
-    if (!rowData.is_client_in_mem) {
-      return `<label>${rowData.client_name.label }</label>`+rowData.client_name.complete_label;
-    } else {
-      return `<a href="${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}">${rowData.client_name.label}</a>`+rowData.client_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+const format_client_name = function(data, rowData) {  
+    if(rowData.client_name.alerted) {
+	rowData.client_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`+rowData.client_name.complete_label;
     }
-  } else {
-    if(!rowData.is_client_in_mem)
-      return `<label>${data.label}</label>`+rowData.client_name.complete_label;
-    else
-      return `<a href="${http_prefix}/lua/flows_stats.lua?client=${data.id}">${data.label}</a>`+rowData.client_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
-  }
-  
+    if(rowData.client_name.label && rowData.client_name.label != "") {
+	
+	if (!rowData.is_client_in_mem) {
+	    return `<label>${rowData.client_name.label }</label>`+rowData.client_name.complete_label;
+	} else {
+	    return `<a href="${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}">${rowData.client_name.label}</a>`+rowData.client_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+	}
+    } else {
+	if(!rowData.is_client_in_mem)
+	    return `<label>${data.label}</label>`+rowData.client_name.complete_label;
+	else
+	    return `<a href="${http_prefix}/lua/flows_stats.lua?client=${data.id}">${data.label}</a>`+rowData.client_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+    }  
 }
 
 const format_server_name = function(data, rowData) {
-
-  if(rowData.server_name.alerted) {
-    rowData.server_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`+rowData.server_name.complete_label;
-  }
-  if(rowData.server_name.label && rowData.server_name.label != "") {
-    if (!rowData.is_server_in_mem) {
-      return `<label>${rowData.server_name.label }</label>`+rowData.server_name.complete_label;
-    } else {
-      return `<a href="${http_prefix}/lua/flows_stats.lua?server=${rowData.server_name.id}">${rowData.server_name.label}</a>`+rowData.server_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+    if(rowData.server_name.alerted) {
+	rowData.server_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`+rowData.server_name.complete_label;
     }
-  } else {
-    if(!rowData.is_server_in_mem)
-      return `<label>${data.label}</label>`+rowData.server_name.complete_label;
-    else
-      return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data.id}">${data.label}</a>`+rowData.server_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
-  }
+    if(rowData.server_name.label && rowData.server_name.label != "") {
+	if (!rowData.is_server_in_mem) {
+	    return `<label>${rowData.server_name.label }</label>`+rowData.server_name.complete_label;
+	} else {
+	    return `<a href="${http_prefix}/lua/flows_stats.lua?server=${rowData.server_name.id}">${rowData.server_name.label}</a>`+rowData.server_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+	}
+    } else {
+	if(!rowData.is_server_in_mem)
+	    return `<label>${data.label}</label>`+rowData.server_name.complete_label;
+	else
+	    return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data.id}">${data.label}</a>`+rowData.server_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+    }
 }
 
 const format_flows_icon = function(data, rowData) {
-
   let url = ``; 
   if(selected_criteria.value.value == 1)
     url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}`;
@@ -296,128 +302,6 @@ const format_flows_icon = function(data, rowData) {
     url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}&server=${rowData.server_name.id}`;
   
   return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
-}
-
-const url = `${http_prefix}/lua/rest/v2/get/flow/aggregated_live_flows.lua`
-
-const reload_table = () => {
-  table_aggregated_live_flows.value.reload();
-}
-
-function set_init_url_params() {
-
-  let actual_params = {
-	ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid,
-	vlan_id: ntopng_url_manager.get_url_entry("vlan_id") || props.vlans ,
-	aggregation_criteria: ntopng_url_manager.get_url_entry("aggregation_criteria") || selected_criteria.value.param,
-	page: ntopng_url_manager.get_url_entry("page") || props.page,
-	sort: ntopng_url_manager.get_url_entry("sort") || props.sort,
-	order: ntopng_url_manager.get_url_entry("order") || props.order,
-	start: ntopng_url_manager.get_url_entry("start") || props.start,
-	length: ntopng_url_manager.get_url_entry("length") || props.length
-    };
-
-  selected_criteria.value = criteria_list_def.find((c) => c.param == actual_params.aggregation_criteria );
-
-  for(const key in actual_params) {
-    ntopng_url_manager.set_key_to_url(key, actual_params[key]);
-  }  
-  return actual_params;
-
-}
-
-function update_url_params() {
-  for(const key in url_params) {
-    ntopng_url_manager.set_key_to_url(key, url_params[key]);
-  }  
-}
-
-async function set_datatable_config(params) {
-  const datatableButton = [];
-
-  let url_params_string = ntopng_url_manager.obj_to_url_params(params);
-
-  /* Manage the buttons close to the search box */
-  datatableButton.push({
-    text: '<i class="fas fa-sync"></i>',
-    className: 'btn-link',
-    action: function (e, dt, node, config) {
-      reload_table();
-    }
-  });
-
-  const vlan_filters = []
-  
-  if(props.vlans.length > 0) {
-    vlan_filters.push({
-      filterTitle: _i18n('map_page.vlans'),
-      filters: props.vlans,
-      filterMenuKey: 'vlan_id',
-      columnIndex: 0,
-      removeAllEntry: true,
-      callbackFunction: (table, value) => {
-        if(value.id != 0) {
-          let params = { 
-            ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid,
-            vlan_id: value.id,
-            aggregation_criteria: selected_criteria.value.param
-          };
-          ntopng_url_manager.set_key_to_url('vlan_id', value.id);
-          table.ajax.url(`${url}?${ntopng_url_manager.obj_to_url_params(params)}`);
-          loading.value.show_loading();
-          table.ajax.reload();
-          loading.value.hide_loading();
-        }
-        
-      }
-    })
-  }
-  
-  let sortby = 8 // default column: Traffic rcvd
-
-  if( selected_criteria.value.value != 1 )
-    sortby = 7;
-  
-  
-  let table_id = selected_criteria.value.table_id;
-  let defaultDatatableConfig = {
-    table_buttons: datatableButton,
-    data_url: `${url}?${url_params_string}`,
-    enable_search: true,
-    table_filters: vlan_filters,
-    id: table_id,
-    table_config: { 
-      serverSide: true,     
-      responsive: false,
-      scrollX: true,
-      columnDefs: [
-        { type: "file-size", targets: 6 },
-        { type: "file-size", targets: 7 },
-        { type: "file-size", targets: 8 },
-      ]
-    }
-  };
-
-  if(table_aggregated_live_flows.value == null || (table_aggregated_live_flows.value != null && !table_aggregated_live_flows.value.is_last_sorting_available(table_id)))
-    defaultDatatableConfig.table_config.order = [[ sortby /* percentage column */, params.order]];
-
-    let columns = get_table_columns_config();
-    if(sortby > 1)
-      sortby = sortby + 1
-
-    if(table_aggregated_live_flows.value == null || (table_aggregated_live_flows.value != null && !table_aggregated_live_flows.value.is_last_sorting_available(table_id)))
-      defaultDatatableConfig.table_config.order = [[ sortby /* percentage column */, params.order]];
-    
-    defaultDatatableConfig.table_config.columnDefs = [
-      { type: "file-size", targets: 7 },
-      { type: "file-size", targets: 8 },
-      { type: "file-size", targets: 9 },
-    ];
-
-  
-  
-  defaultDatatableConfig.columns_config = columns;
-  table_config.value = defaultDatatableConfig;
 }
 
 </script>
