@@ -32,6 +32,7 @@ import { default as PageTestTable } from "./page-test-table.vue";
 import { default as PageTestNewTable } from "./page-test-new-table.vue";
 import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
 import { default as PageEditApplications } from "./page-edit-applications.vue";
+import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -99,6 +100,8 @@ let ntopVue = {
     PageHostDetailsPorts: PageHostDetailsPorts,
 
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
+
+    PageNetworkDiscovery:PageNetworkDiscovery,
 
     // components
     AlertInfo: AlertInfo,
