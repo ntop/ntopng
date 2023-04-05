@@ -810,16 +810,6 @@ struct sctphdr {
   u_int32_t checksum; /*  CRC32c algorithm */
 } PACK_OFF;
 
-#ifdef NTOPNG_PRO
-
-typedef struct {
-  char *host_or_mac;
-  time_t lifetime;
-  UT_hash_handle hh; /* makes this structure hashable */
-} volatile_members_t;
-
-#endif
-
 /*
   NOTE:
   Keep in sync with discover.lua (asset_icons)
