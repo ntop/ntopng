@@ -416,7 +416,7 @@
         this.$footer = $("<tfoot></tfoot>");
 
         // loop through the columns
-        for (column in o.columns) {
+        for (let column in o.columns) {
           var $cell = $("<td></td>");
 
           $cell
@@ -1258,7 +1258,7 @@
     // if the server doesn't pass the column property back
     if (!res.columns) res.columns = [];
 
-    for (column in o.columns) {
+    for (let column in o.columns) {
       o.columns[column] = $.extend(
         {},
         o.columns[column],

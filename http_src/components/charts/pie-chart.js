@@ -283,8 +283,8 @@ function PieChart(name, update_url, url_params, units, refresh) {
 	}
 
 	function removePieTween(d, i) {
-		s0 = 2 * Math.PI;
-		e0 = 2 * Math.PI;
+		const s0 = 2 * Math.PI;
+		const e0 = 2 * Math.PI;
 		var i = d3.interpolate({ startAngle: d.startAngle, endAngle: d.endAngle }, { startAngle: s0, endAngle: e0 });
 		return function (t) {
 			var b = i(t);

@@ -8,7 +8,7 @@ function intoSequence(n) {
     } else {
         var arr = Array(n);
 
-        for(i=0; i<n; i++)
+        for(let i=0; i<n; i++)
             arr[i] = i;
 
         return(arr);
@@ -64,7 +64,7 @@ function bollingerBands(data, config) {
         pipSize = _config$pipSize === undefined ? 2 : _config$pipSize;
 
     var vals = (0, _math.takeLast)(data, periods, field);
-    var middle = (0, simpleMovingAverage)(vals, { periods: periods });
+    var middle = (simpleMovingAverage)(vals, { periods: periods });
     var stdDev = (0, _math.stddev)(vals);
     var upper = middle + stdDev * stdDevUp;
     var lower = middle - stdDev * stdDevDown;

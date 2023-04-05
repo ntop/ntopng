@@ -74,10 +74,10 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
 
 
   function update_sequence_sunburst(data) {
-    streakerDataAdded = data;
+    const streakerDataAdded = data;
     // console.log(data);
     oldPieData = filteredPieData;
-    pieData = partition.nodes(streakerDataAdded);
+    const pieData = partition.nodes(streakerDataAdded);
     
     filteredPieData = pieData.filter(function(d) {
       return (d.dx > 0.005); // 0.005 radians = 0.29 degrees
@@ -90,7 +90,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
       // alert("Update");
     }
 
-    paths = arc_group.selectAll("path").data(filteredPieData);
+    let paths = arc_group.selectAll("path").data(filteredPieData);
 
     paths.enter().append("svg:path")
     .attr("display", function(d) { return d.depth ? null : "none"; })
