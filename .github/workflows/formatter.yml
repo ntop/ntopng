@@ -14,10 +14,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run formatter
-      - run: find ./src ./include/ -type f -name '*.cpp' -o -name '*.h' -exec clang-format --style=file -i '{}' \;
+        run: find ./src ./include/ -type f -name '*.cpp' -o -name '*.h' -exec clang-format --style=file -i '{}' \;
       
       - name: Commit
-      - uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_user_name: clang-format-bot
           commit_message: 'Automated commit of clang-format CI changes.'
