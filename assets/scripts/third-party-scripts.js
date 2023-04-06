@@ -15,7 +15,6 @@ import Tagify from './vendors/tagify/tagify.min.js'
 
 import './vendors/datatables/datatable-ipsorting'
 import './vendors/datatables/datatable-macsorting'
-import './vendors/datatables/datatables-colreorder'
 import './vendors/datatables/datatable-colvisibility'
 
 window.nv = nv

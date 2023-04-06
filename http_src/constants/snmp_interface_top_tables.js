@@ -1,13 +1,11 @@
 import { DataTableUtils } from "../utilities/datatable/sprymedia-datatable-utils";
 import formatterUtils from "../utilities/formatter-utils.js";
-import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import NtopUtils from "../utilities/ntop-utils";
 
 
 const bytesToSizeFormatter = formatterUtils.getFormatter(formatterUtils.types.bytes.id);
 const bpsFormatter = formatterUtils.getFormatter(formatterUtils.types.bps.id);
 const handlerIdAddLink = "page-stats-action-link";
-const handlerIdJumpHistorical = "page-stats-action-jump-historical";
 
 const top_snmp_interface = {
     table_value: "snmp",

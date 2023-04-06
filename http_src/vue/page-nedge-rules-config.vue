@@ -52,7 +52,7 @@ const props = defineProps({
     columns_config: Array
 });
 
-const table_config = ref({})
+const table_config = ref({});
 const table_rules = ref(null);
 const modal_add_rule_config = ref(null);
 const modal_change_default_policy = ref(null);

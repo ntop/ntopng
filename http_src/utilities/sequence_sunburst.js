@@ -26,13 +26,10 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
   var arc = rsp[3];
   var arc_group = rsp[4];
   var trail = rsp[5];
-  var whiteCircle = rsp[6];
   var totalLabel = rsp[7];
   var totalValue = rsp[8];
   var totalUnits = rsp[9];
-  var radius = rsp[10];
   var width = rsp[11];
-  var height = rsp[12];
   var b = rsp[13];
 
   var last_process = "";
@@ -53,7 +50,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
         console.log("error");
       }
     });
-  }
+  };
 
   ///////////////////////////////////////////////////////////
   // STREAKER CONNECTION ////////////////////////////////////
@@ -70,7 +67,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
   this.flashUpdate = function (start,end) {
     arc_group.selectAll("path").style("opacity", start)
     .transition().duration(200).style("opacity", end);
-  }
+  };
 
 
   function update_sequence_sunburst(data) {
@@ -359,7 +356,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
     totalValue.text(" ");
     totalLabel.text(" ");
     totalUnits.text("");
-  }
+  };
 
 
 }

@@ -143,7 +143,7 @@ const comment_placeholder = i18n("details.comment_placeholder");
 const is_edit = ref(null);
 const row_to_delete = ref(null);
 
-const emit = defineEmits(['add'])
+const emit = defineEmits(['add']);
 //s.split(",").every((a) => {return /.+=.+/.test(a)})
 function get_data_pattern(value_type) {
     if (value_type == "text") {
@@ -174,7 +174,7 @@ let pattern_certificate = get_data_pattern("certificate");
 
 const set_exclude_type = (type) => {
     exclude_type.value = type;
-}
+};
 
 const check_disable_apply = () => {
     let regex = null;

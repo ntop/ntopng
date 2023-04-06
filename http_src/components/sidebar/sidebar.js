@@ -29,7 +29,6 @@ const fixSubMenuPosition = ($submenu, $hoverButton) => {
 $(window).on('scroll', function(){
 
     const UPPER_LIMIT = 32;
-    const navbarHeight = $(`#n-navbar`).height();
     const windowScrollTop = $(this).scrollTop();
 
     if (windowScrollTop >= UPPER_LIMIT) {

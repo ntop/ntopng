@@ -151,27 +151,6 @@ export function datatableMakeSelectUnique(tr_obj, added_rows_prefix, options) {
    datatableOnAddSelectEntry(select, added_rows_prefix, options.selector_fn);
 }
 
-function datatableOrderedInsert(table, td_idx, to_insert, to_insert_val, cmp_fn) {
-   var cmp_fn = cmp_fn || function(a, b) { return b - a; };
-   var inserted = false;
-
-   datatableForEachRow(table, function() {
-      if(inserted) return;
-
-      var tr = $(this);
-      var cmp_val = parseInt($("td:nth-child(" + td_idx + ")", tr).html());
-
-      if ((! isNaN(cmp_val)) && (cmp_fn(cmp_val, to_insert_val) < 0)) {
-         tr.before(to_insert);
-         inserted = true;
-      }
-   });
-
-   if (! inserted)
-      // default: append
-      $(table).append(to_insert);
-}
-
 export function datatableIsLastPage(table) {
    var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $(table));
    return !((lastpage.length == 1) && (lastpage.hasClass("active") == false));
@@ -245,9 +224,6 @@ export function datatableInitRefreshRows(table, column_id, refresh_interval, tre
       ids.push(data_id);
     }
   }
-
-  if(ids == null)
-    return(false);
 
   // These parameters will be passed to the refresh endpoint
   // the custom_hosts parameter will be passed in the AJAX request and

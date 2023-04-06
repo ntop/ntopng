@@ -96,7 +96,7 @@ import regexValidation from "../utilities/regex-validation.js";
 const _i18n = (t) => i18n(t);
 
 const modal_id = ref(null);
-const emit = defineEmits(['edit', 'add'])
+const emit = defineEmits(['edit', 'add']);
 
 const showed = () => {};
 

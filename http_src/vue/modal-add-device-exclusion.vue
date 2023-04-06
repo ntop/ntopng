@@ -28,14 +28,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted } from "vue";
 import { default as modal } from "./modal.vue";
 
 const input_mac_list = ref("");
 const input_trigger_alerts = ref("");
 
 const modal_id = ref(null);
-const emit = defineEmits(['add'])
+const emit = defineEmits(['add']);
 
 const showed = () => {};
 

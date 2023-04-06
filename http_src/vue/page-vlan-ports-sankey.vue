@@ -161,7 +161,7 @@ function get_sankey_url() {
   if(timeframe == 'none') { timeframe = ''; }
   if(l4proto == 'none') { l4proto = ''; }
   
-  let url_request = ''
+  let url_request = '';
   let params = {
     ifid: ntopng_url_manager.get_url_entry("ifid"),
     vlan: vlan,

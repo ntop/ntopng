@@ -436,7 +436,7 @@ class ModalHandler {
                 // if the submit return a true boolean then close the modal
                 if (success) {
                   if(self.dialog.modal)
-                    self.dialog.modal('hide')
+                    self.dialog.modal('hide');
                   else
                     self.dialog[0].hidden = true;
                 }

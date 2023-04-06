@@ -29,7 +29,7 @@ import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import { default as modal } from "./modal.vue";
 import { default as SelectSearch } from "./select-search.vue";
 
-const emit = defineEmits(['apply'])
+const emit = defineEmits(['apply']);
 
 const modal_id = ref(null);
 

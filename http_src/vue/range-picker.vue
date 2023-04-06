@@ -167,7 +167,6 @@ const load_filters_data = async function() {
 }
 
 function get_filters_object(filters) {
-    if (filters == null) { return {}; }
     let filters_groups = {};
     filters.forEach((f) => {
 	let group = filters_groups[f.id];

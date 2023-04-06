@@ -639,7 +639,6 @@ export default class NtopUtils {
 
 	static hostkey2hostInfo(host_key) {
 		var info;
-		var hostinfo = [];
 
 		host_key = host_key.replace(/____/g, ":");
 		host_key = host_key.replace(/___/g, "/");
@@ -793,7 +792,6 @@ export default class NtopUtils {
 		if (!params.loadConfigXHR) { throw ("importModalHelper:: Missing 'loadConfigXHR' param"); }
 
 		$(`input#import-input`).on('change', function () {
-			const filename = $(this).val().replace("C:\\fakepath\\", "");
 			$(`#btn-confirm-import`).removeAttr("disabled");
 		});
 
@@ -883,7 +881,7 @@ export default class NtopUtils {
 					.always(() => {
 						$button.removeAttr("disabled");
 					});
-			}
+			};
 		});
 	}
 
@@ -922,9 +920,6 @@ export default class NtopUtils {
 
 		const controller = new AbortController()
 		const config = { ...options, signal: controller.signal }
-		const timeout = setTimeout(() => {
-			controller.abort()
-		}, time)
 
 		return fetch(uri, config)
 			.then((response) => {

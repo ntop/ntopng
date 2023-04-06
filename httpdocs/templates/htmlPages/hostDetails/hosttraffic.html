@@ -146,16 +146,7 @@
 
     const $hostTraffic = $("#host-traffic-table").DataTable(dtConfig);
     DataTableUtils.addToggleColumnsDropdown($hostTraffic);
-    const datasource = { 
-      endpoint: `${http_prefix}/lua/rest/v2/get/host/stats/charts/l4_stats.lua?ifid=${ifid}&host=${host}&vlan=${vlan}`,
-      name: `${http_prefix}/lua/rest/v2/get/host/stats/charts/l4_stats.lua`,
-      params: {
-        host: host,
-        vlan: vlan,
-        ifid: ifid
-      }
-    }
-
+  
     /* Loading the Chart */
 
     const req = await fetch(`${http_prefix}/lua/rest/v2/get/host/stats/charts/l4_stats.lua?ifid=${ifid}&host=${host}&vlan=${vlan}`);

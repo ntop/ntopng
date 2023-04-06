@@ -180,7 +180,7 @@ const current_groups_options_mode = ref(init_groups_option_mode());
 
 let last_timeseries_groups_loaded = null;
 
-const custom_metric = { label: i18n('page_stats.custom_metrics'), currently_active: false }
+const custom_metric = { label: i18n('page_stats.custom_metrics'), currently_active: false };
 
 const page_snapshots = "timeseries";
 
@@ -518,9 +518,8 @@ function set_top_table_options(timeseries_groups, status) {
 	let id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array);
 	ts_group_dict[id] = ts_group;
     });
-    let top_table_id_dict = {}
+    let top_table_id_dict = {};
     top_table_options.value = [];
-    let select_options = [];
     for (let id in ts_group_dict) {
 	let ts_group = ts_group_dict[id];
 	let main_source_index = timeseriesUtils.getMainSourceDefIndex(ts_group);

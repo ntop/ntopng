@@ -330,7 +330,7 @@ const get_metric_query_from_ts_query = (ts_query, source_type) => {
 	}
     }
     return null;
-}
+};
 
 const get_default_metric = (metrics, metric_ts_schema, metric_query) => {
     let default_metric;

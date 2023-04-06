@@ -101,7 +101,7 @@ const comment = ref(null);
 const comment_placeholder = i18n("details.comment_placeholder");
 
 
-const emit = defineEmits(['exclude'])
+const emit = defineEmits(['exclude']);
 
 const showed = () => {};
 
@@ -129,7 +129,7 @@ const check_disable_apply = () => {
 	return tls_certificate.value == null || regex_certificate.test(tls_certificate.value) == false;
     }
     return false;
-}
+};
 
 const alert_name = computed(() => props.alert?.alert_name);
 

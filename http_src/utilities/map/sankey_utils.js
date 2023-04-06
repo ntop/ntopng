@@ -5,12 +5,6 @@ import NtopUtils from "../ntop-utils.js";
 
 let d3 = d3v7;
 
-
-function get_d3_color(index) {
-}
-
-
-
 const defaultSankeySettings = {
   align: "justify", // convenience shorthand for nodeAlign
   nodeId: d => d.id, // given d in nodes, returns a unique identifier (string)

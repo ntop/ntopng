@@ -106,8 +106,6 @@ export const ntopng_utility = function() {
 	    }
 	    
 	    let m = moment.tz(utc_ms, ntop_zoneinfo);
-	    let m_local = moment(utc_ms);
-	    let tz_local = m_local.format(format);
 	    let tz_server = m.format(format);
 	    return tz_server;
 	},
@@ -563,5 +561,5 @@ on_custom_event: function(id, event, f_on_event) {
       on_event_change: function(id, event, f_on_event, get_init_notify) {
     on_event(id, event, f_on_event, get_init_notify);
       },
-  }    
+  };
 }();

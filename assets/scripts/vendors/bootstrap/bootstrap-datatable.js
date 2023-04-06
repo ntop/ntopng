@@ -31,7 +31,7 @@
     this.rows = [];
     this.buttons = [];
 
-    const no_results_found = (i18n) ? i18n("no_results_found") : "No Results Found"
+    const no_results_found = (i18n) ? i18n("no_results_found") : "No Results Found";
 
     // this needs to be handled better
     this.localStorageId =
@@ -900,7 +900,7 @@
           })
           .modal();
         return false;
-      })
+      });
     this.buttons.unshift($toggle);
 
     if (o.debug) console.log($toggle);

@@ -365,7 +365,7 @@ const ntopChartApex = function() {
                   </div>
               </div>
           </div>`)
-    }
+    };
 
     // define default chartOptions for line chart type.
     const _default_TS_BUBBLE_ChartOptions = function() {

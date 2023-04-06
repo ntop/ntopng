@@ -12,11 +12,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted } from "vue";
 import { default as modal } from "./modal.vue";
 
 const modal_id = ref(null);
-const emit = defineEmits(['autolayout'])
+const emit = defineEmits(['autolayout']);
 
 const showed = () => {};
 

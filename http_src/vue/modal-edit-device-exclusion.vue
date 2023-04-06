@@ -41,7 +41,7 @@ const input_device_status = ref("");
 const input_trigger_alerts = ref("");
 
 const modal_id = ref(null);
-const emit = defineEmits(['edit'])
+const emit = defineEmits(['edit']);
 
 const showed = () => {};
 

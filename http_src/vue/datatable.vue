@@ -119,7 +119,7 @@ function loadDatatable() {
 		
 		if (data.search !== undefined) {
 		    data.map_search = data.search.value;
-		    delete data.search
+		    delete data.search;
 		}
 		
 		return data;

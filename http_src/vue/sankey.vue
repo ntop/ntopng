@@ -25,7 +25,7 @@ function SankeyChart(data) {
   let settings = {
     ...sankeyUtils.getDefaultSankeySettings(),
     ...props.extra_settings
-  }
+  };
 
   /* Get the links and nodes formatted list */
   const link_source = d3v7.map(data, settings.linkSource).map(intern);
@@ -82,7 +82,7 @@ function SankeyChart(data) {
 
   let deltaX, deltaY;
     
-  const width = settings.width
+  const width = settings.width;
   const link = svg.append("g")
     .attr("fill", "none")
     .attr("stroke-opacity", settings.linkStrokeOpacity)
@@ -163,7 +163,7 @@ function SankeyChart(data) {
       
       return node_color;
     })
-    .append("title").text(({index: i}) => node_title_list[i])
+    .append("title").text(({index: i}) => node_title_list[i]);
 
   svg.append("g")
     .attr("font-family", "sans-serif")

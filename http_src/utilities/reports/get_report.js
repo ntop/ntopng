@@ -20,7 +20,7 @@ page.onError = function(msg, trace) {
 
 var args = system.args;
 if (args.length < 6) {
-  console.log("USAGE: phantomjs get_report.js <port> <output_pdf> <username> <password> <num_hours>")
+  console.log("USAGE: phantomjs get_report.js <port> <output_pdf> <username> <password> <num_hours>");
   phantom.exit(1);
 }
 var port = args[1];
