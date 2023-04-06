@@ -1,6 +1,6 @@
 import { DataTableUtils } from "../utilities/datatable/sprymedia-datatable-utils";
 import formatterUtils from "../utilities/formatter-utils.js";
-import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
+import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import NtopUtils from "../utilities/ntop-utils";
 
 const bytesToSizeFormatter = formatterUtils.getFormatter(formatterUtils.types.bytes.id);

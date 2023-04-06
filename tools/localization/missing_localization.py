@@ -55,7 +55,7 @@ class LocalizationFile(object):
         else:
           self.next_skip = line.endswith("..")
   
-  def close(self)
+  def close(self):
     self.f.close()
 
 # Wrapper to provide len and indexing on the LocalizationFile

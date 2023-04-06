@@ -73,10 +73,6 @@ function getSerieName(name, id, tsGroup, extendSeriesName) {
     return `${prefix} ${name_more_space}(${yaxisName})`;
 }
 
-function getAddSeriesNameSource(tsGrpupsArray) {
-    return tsGrpupsArray[0]?.source?.name != null;
-}
-
 function getYaxisId(metric) {
     return `${metric.measure_unit}_${metric.scale}`;
 }

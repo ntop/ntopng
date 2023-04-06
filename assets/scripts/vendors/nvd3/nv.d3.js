@@ -15195,13 +15195,6 @@ nv.models.pie = function() {
 
             }
 
-
-            // Computes the angle of an arc, converting from radians to degrees.
-            function angle(d) {
-                var a = (d.startAngle + d.endAngle) * 90 / Math.PI - 90;
-                return a > 90 ? a - 180 : a;
-            }
-
             function arcTween(a, idx) {
                 a.endAngle = isNaN(a.endAngle) ? 0 : a.endAngle;
                 a.startAngle = isNaN(a.startAngle) ? 0 : a.startAngle;
@@ -15358,7 +15351,6 @@ nv.models.pieChart = function() {
             var container = d3.select(this);
             nv.utils.initSVG(container);
 
-            var that = this;
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
