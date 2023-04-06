@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Run formatter
         run: find ./src ./include/ -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \;
