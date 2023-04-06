@@ -104,7 +104,6 @@ class CircularDeps(object):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Find cycles in Lua dependencies. Re-run after removing cycles until no other cycle shows up.')
     parser.add_argument('-V', '--version', action='version', version='%(prog)s v' + sys.modules[__name__].__version__)
-    args = parser.parse_args()
 
     tf = CircularDeps()
 
