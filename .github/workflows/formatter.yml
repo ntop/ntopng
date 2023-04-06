@@ -18,14 +18,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
 
       - name: Run formatter
         run: find ./src ./include/ -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \;
       
+      # Commit the changes when pushing to a remote branch
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
+        if: ${{ github.event_name == 'push' }}
         with:
           commit_user_name: clang-format-bot
           commit_message: 'Automated commit of clang-format CI changes.'
+
+      # When in a pull request, just fail the job if it doesn't follow the coding style
+      - name: Check for changes
+        if: ${{ github.event_name == 'pull_request' }}
+        run: git diff --exit-code
