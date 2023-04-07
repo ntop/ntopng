@@ -129,7 +129,6 @@ function redraw_table() {
     table_key.value += 1;
 }
 
-
 function set_columns_wrap() {
     columns_wrap.value = props.columns.map((c, i) => {
 	return {

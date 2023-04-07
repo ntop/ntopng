@@ -46,7 +46,7 @@ import { default as Loading } from "./loading.vue";
 import { default as SelectSearch } from "./select-search.vue";
 
 const props = defineProps({
-	  is_ntop_enterprise_m: Boolean,
+    is_ntop_enterprise_m: Boolean,
     vlans: Array,
     ifid: Number,
     aggregation_criteria: String,
@@ -54,19 +54,18 @@ const props = defineProps({
     sort: String,
     order: String,
     start: Number,
-    length: Number
-    
+    length: Number    
 });
 
 const _i18n = (t) => i18n(t);
 
 const criteria_list_def = [
-  { label: _i18n("application_proto"), value: 1, param: "application_protocol", table_id: "aggregated_app_proto", enterprise_m: false },
-  { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client", enterprise_m: false },
-  { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server", enterprise_m: false}, 
-  { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server", enterprise_m: true },
-  { label: _i18n("application_proto_client_server"), value: 5, param: "app_client_server", table_id: "aggregated_app_client_server" , enterprise_m: true },
-  { label: _i18n("info"), value: 6, param: "info", table_id: "aggregated_info", enterprise_m: true }
+    { label: _i18n("application_proto"), value: 1, param: "application_protocol", table_id: "aggregated_app_proto", enterprise_m: false },
+    { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client", enterprise_m: false },
+    { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server", enterprise_m: false}, 
+    { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server", enterprise_m: true },
+    { label: _i18n("application_proto_client_server"), value: 5, param: "app_client_server", table_id: "aggregated_app_client_server" , enterprise_m: true },
+    { label: _i18n("info"), value: 6, param: "info", table_id: "aggregated_info", enterprise_m: true }
 ];
 
 const loading = ref(null)
@@ -76,25 +75,19 @@ const selected_criteria = ref(criteria_list_def[0]);
 const table_config = ref({})
 let default_url_params = {};
 
-function get_criteria_voices() {
-  if(props.is_ntop_enterprise_m) {
-    return ref(criteria_list_def);
-  }
-  else {
-    let critera_list_def_com = [];
-    criteria_list_def.forEach((c) => {
-      if(!c.enterprise_m)
-        critera_list_def_com.push(c);
-    });
-
-    return ref(critera_list_def_com);
-  }
-}
-
-const criteria_list = get_criteria_voices();
-
-
-
+const criteria_list = function() {
+    if(props.is_ntop_enterprise_m) {
+	return ref(criteria_list_def);
+    }
+    else {
+	let critera_list_def_com = [];
+	criteria_list_def.forEach((c) => {
+	    if(!c.enterprise_m)
+		critera_list_def_com.push(c);
+	});	
+	return ref(critera_list_def_com);
+    }
+}();
 
 onBeforeMount(async () => {
     init_selected_criteria();
@@ -134,7 +127,10 @@ function print_column_name(col) {
     return col.columnName;
 }
 
+let counter = 0;
 function print_html_row(col, row) {
+    // console.log(`counter: ${counter}; col: ${col.data}; row:${row[col.data]}`);
+    counter += 1;
     let data = row[col.data];
     if (col.render != null) {
 	return col.render(data, null, row);
@@ -150,6 +146,8 @@ async function get_rows(active_page, per_page, columns_wrap, first_get_rows) {
     const url_params = ntopng_url_manager.obj_to_url_params(params);
     const url = `${http_prefix}/lua/rest/v2/get/flow/aggregated_live_flows.lua?${url_params}`;
     let res = await ntopng_utility.http_request(url, null, null, true);
+    // if (res.rsp.length > 0) { res.rsp[0].server_name.alerted = true };
+    
     return { total_rows: res.recordsTotal, rows: res.rsp };
 
     // loading.value.hide_loading();
@@ -295,6 +293,7 @@ function get_table_columns_config() {
 }
 
 const format_client_name = function(data, rowData) {  
+    rowData = ntopng_utility.clone(rowData);
     if(rowData.client_name.alerted) {
 	rowData.client_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`+rowData.client_name.complete_label;
     }
@@ -314,6 +313,8 @@ const format_client_name = function(data, rowData) {
 }
 
 const format_server_name = function(data, rowData) {
+    rowData = ntopng_utility.clone(rowData);
+
     if(rowData.server_name.alerted) {
 	rowData.server_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`+rowData.server_name.complete_label;
     }
