@@ -30,7 +30,7 @@
 </div>  
 </div> <!-- TableHeader -->
 
-<div :key="table_key" class="" style="width: 100%;overflow: scroll;"> <!-- Table -->
+<div :key="table_key" class="" style="width: 100%;overflow: auto;"> <!-- Table -->
   
   <table ref="table" class="table table-striped table-bordered mb-0" style="table-layout: auto;width: 100%; white-space: nowrap;" :data-resizable-columns-id="id"> <!-- Table -->
     <thead>
