@@ -1699,6 +1699,8 @@ bool Ntop::checkUserPassword(const char *user, const char *password,
               is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED,
               NTOP_GROUP_MAXLEN);
       group[NTOP_GROUP_MAXLEN - 1] = '\0';
+
+      return true;
     }
   }
 #endif
