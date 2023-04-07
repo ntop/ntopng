@@ -758,7 +758,7 @@ void ParserInterface::reloadCompanions() {
 
       if (!found) {
         // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Removed companion
-        // interface [interface: %s][companion: %s]", 			     get_name(),
+        // interface [interface: %s][companion: %s]", get_name(),
         // companion_interfaces[i]->get_name());
         companion_interfaces[i] = NULL;
         num_companion_interfaces--;
@@ -812,8 +812,8 @@ void ParserInterface::reloadCompanions() {
   if (companions) free(companions);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Companion interface reloaded
-  // [interface: %s][companion: %s]", 			       get_name(), companion_interface ?
-  // companion_interface->get_name() : "NULL");
+  // [interface: %s][companion: %s]", 			       get_name(),
+  // companion_interface ? companion_interface->get_name() : "NULL");
 }
 
 /* **************************************************** */

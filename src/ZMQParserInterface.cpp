@@ -1502,7 +1502,8 @@ bool ZMQParserInterface::parseNProbeAgentField(
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Father Process [pid: %u][uid:
     // %u][gid: %u][path: %s]",
     //					 flow->src_process_info.father_pid,
-    //flow->src_process_info.father_uid, 				 flow->src_process_info.father_gid,
+    // flow->src_process_info.father_uid,
+    // flow->src_process_info.father_gid,
     //				 flow->src_process_info.father_process_name);
   } else if (strlen(key) >= 7 &&
              !strncmp(&key[strlen(key) - 7], "PROCESS", 7)) {
@@ -1529,9 +1530,10 @@ bool ZMQParserInterface::parseNProbeAgentField(
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid:
     // %u][gid: %u][size/peak vm: %u/%u][path: %s]",
-    //				 flow->src_process_info.pid, flow->src_process_info.uid,
-    //flow->src_process_info.gid, 				 flow->src_process_info.actual_memory,
-    //flow->src_process_info.peak_memory, 				 flow->src_process_info.process_name);
+    //				 flow->src_process_info.pid,
+    //flow->src_process_info.uid, flow->src_process_info.gid,
+    // flow->src_process_info.actual_memory, flow->src_process_info.peak_memory,
+    // flow->src_process_info.process_name);
   } else if (strlen(key) >= 9 &&
              !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
     if ((ret = parseContainerInfo(jvalue, &flow->src_container_info)))
@@ -1650,24 +1652,25 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
                ntohs(flow->src_port) < ntohs(flow->dst_port)
                // && flow->in_pkts && flow->out_pkts /* Flows can be
                // mono-directional, so can't use this condition */
-               && (flow->l4_proto !=
-                       IPPROTO_TCP /* Not TCP or TCP but without SYN (See
-                                      https://github.com/ntop/ntopng/issues/5058)
-                                    */
-                   /*
-                     No SYN (cumulative flow->tcp.tcp_flags are NOT checked as
-                     they can contain a SYN but the direction is unknown), do
-                     the swap as it is assumed the beginning of the TCP flow has
-                     not been seen.
+               &&
+               (flow->l4_proto !=
+                    IPPROTO_TCP /* Not TCP or TCP but without SYN (See
+                                   https://github.com/ntop/ntopng/issues/5058)
+                                 */
+                /*
+                  No SYN (cumulative flow->tcp.tcp_flags are NOT checked as
+                  they can contain a SYN but the direction is unknown), do
+                  the swap as it is assumed the beginning of the TCP flow has
+                  not been seen.
 
-                     Swap check is performed for TCP flows for all cases other
-                     than when a SYN is seen from client to server and no other
-                     flag is seen from server to client. Indded, in this case,
-                     the swap should not be performed as the direction is
-                     accurate according to the seen flags.
-                   */
-                   || !(flow->tcp.client_tcp_flags == TH_SYN &&
-                        flow->tcp.server_tcp_flags == 0)))
+                  Swap check is performed for TCP flows for all cases other
+                  than when a SYN is seen from client to server and no other
+                  flag is seen from server to client. Indded, in this case,
+                  the swap should not be performed as the direction is
+                  accurate according to the seen flags.
+                */
+                || !(flow->tcp.client_tcp_flags == TH_SYN &&
+                     flow->tcp.server_tcp_flags == 0)))
       /* Attempt to determine flow client and server using port numbers
          useful when exported flows are mono-directional
          https://github.com/ntop/ntopng/issues/1978 */
@@ -2564,7 +2567,7 @@ u_int8_t ZMQParserInterface::parseTemplate(const char *payload,
         // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Template [PEN: %u][field:
         // %u][format: %s][name: %s][descr: %s]",
         //			     zmq_template.pen, zmq_template.field,
-        //zmq_template.format, zmq_template.name, zmq_template.descr)
+        // zmq_template.format, zmq_template.name, zmq_template.descr)
         ;
       }
 

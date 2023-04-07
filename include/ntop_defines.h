@@ -583,10 +583,11 @@
 #define CONST_LUA_OK 1
 #define CONST_LUA_ERROR 0
 #define CONST_LUA_PARAM_ERROR -1
-#define CONST_MAX_NUM_SYN_PER_SECOND 25 /* keep in sync with alert_utils.lua \
-                                         */
-#define CONST_MAX_NEW_FLOWS_SECOND 25   /* keep in sync with alert_utils.lua */
-#define CONST_ALERT_GRACE_PERIOD 60     /* No more than 1 alert/min */
+#define CONST_MAX_NUM_SYN_PER_SECOND                                       \
+  25                                  /* keep in sync with alert_utils.lua \
+                                       */
+#define CONST_MAX_NEW_FLOWS_SECOND 25 /* keep in sync with alert_utils.lua */
+#define CONST_ALERT_GRACE_PERIOD 60   /* No more than 1 alert/min */
 #define CONST_CONTACTED_BY "contacted_by"
 #define CONST_CONTACTS "contacted_peers" /* Peers contacted by this host */
 
@@ -792,10 +793,10 @@
 #define CONST_RUNTIME_PREFS_LOGGING_LEVEL NTOPNG_PREFS_PREFIX ".logging_level"
 #define CONST_RUNTIME_PREFS_SNMP_PROTO_VERSION \
   NTOPNG_PREFS_PREFIX ".default_snmp_version"
-#define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION         \
-  NTOPNG_PREFS_PREFIX                                     \
-      ".dynamic_flow_collection_mode" /* {"none", "vlan", \
-                                         "probe_ip","ingress_iface_idx"} */
+#define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION     \
+  NTOPNG_PREFS_PREFIX                                 \
+  ".dynamic_flow_collection_mode" /* {"none", "vlan", \
+                                     "probe_ip","ingress_iface_idx"} */
 #define CONST_RUNTIME_PREFS_IGNORED_INTERFACES \
   NTOPNG_PREFS_PREFIX ".ignored_interfaces"
 #define CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS \
@@ -824,7 +825,7 @@
   NTOPNG_PREFS_PREFIX ".auto_assigned_pool_id"
 #define CONST_ALERT_EXCLUSIONS_KEY \
   NTOPNG_PREFS_PREFIX              \
-      ".alert_exclusions" /* Keep in sync with hosts_control.lua */
+  ".alert_exclusions" /* Keep in sync with hosts_control.lua */
 
 #define CONST_MAX_ALERT_MSG_QUEUE_LEN 8192
 #define CONST_MAX_ES_MSG_QUEUE_LEN 8192
@@ -880,8 +881,9 @@
 #define FLOW_LUA_CALL_PERIODIC_UPDATE_SECS 60 /* One minute */
 
 /* Tiny Flows */
-#define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED true /* disabled by default \
-                                                        */
+#define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED \
+  true /* disabled by default                     \
+        */
 #define CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW 3
 #define CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW 64 /* Empty TCP */
 #define CONST_IS_TINY_FLOW_EXPORT_ENABLED \
@@ -1048,9 +1050,10 @@
 
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS 1000000
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS 16384
-#define ALERTS_MAX_SECS_BEFORE_PURGE (365 * 24 * 60 * 60) /* This is seconds! \
-                                                           */
-#define ALERTS_PAGE_REFRESH_RATE (3 * 60)                 /* This is seconds! */
+#define ALERTS_MAX_SECS_BEFORE_PURGE                          \
+  (365 * 24 * 60 * 60)                    /* This is seconds! \
+                                           */
+#define ALERTS_PAGE_REFRESH_RATE (3 * 60) /* This is seconds! */
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME "alerts"
 #define ALERTS_MANAGER_STORE_NAME "alerts_v30.db"
@@ -1237,8 +1240,9 @@
 #define DEFAULT_TIME_SCHEDULE 0xFFFFFFFF
 
 #define CACHED_ENTRIES_THRESHOLD 1024
-#define MAX_CATEGORY_CACHE_DURATION 300 /* Purge entries more than 5 mins old \
-                                         */
+#define MAX_CATEGORY_CACHE_DURATION         \
+  300 /* Purge entries more than 5 mins old \
+       */
 
 #define MARKER_NO_ACTION 0 /* Pass when a verdict is not yet reached */
 #define MARKER_PASS 1

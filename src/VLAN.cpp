@@ -38,7 +38,8 @@ void VLAN::set_hash_entry_state_idle() { ; /* Nothing to do */ }
 
 /* *************************************** */
 
-VLAN::~VLAN() { /* NOTE: ndpiStats is alredy freed by GenericTrafficElement */ }
+VLAN::~VLAN() { /* NOTE: ndpiStats is alredy freed by GenericTrafficElement */
+}
 
 /* *************************************** */
 

@@ -52,7 +52,8 @@ SQLiteAlertStore::SQLiteAlertStore(int interface_id, const char *filename)
 
 /* **************************************************** */
 
-SQLiteAlertStore::~SQLiteAlertStore() { /* Nothing to do so far */ }
+SQLiteAlertStore::~SQLiteAlertStore() { /* Nothing to do so far */
+}
 
 /* **************************************************** */
 

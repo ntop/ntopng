@@ -4278,8 +4278,8 @@ void Flow::decAllFlowScores() {
                              always performed and in the same thread) */
                           /*
                             For viewed interfaces, do the decrement only if previously
-                            incremented.                   A previous increment can fail when the view flows queue
-                            is full and enqueues fail.
+                            incremented.                   A previous increment can fail when the
+                            view flows queue                   is full and enqueues fail.
                           */
         || (getViewInterfaceFlowStats() && getViewInterfaceFlowStats()
                                                ->getPartializableStats()
