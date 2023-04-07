@@ -29,7 +29,7 @@ alert_network_rule_threshold_cross.meta = {
 
 -- ##############################################
 
-function alert_network_rule_threshold_cross:init(ifid, ifname ,metric, frequency, threshold, value, threshold_sign, metric_type)
+function alert_network_rule_threshold_cross:init(ifid, ifname ,metric, frequency, threshold, value, threshold_sign, metric_type, host)
    -- Call the parent constructor
    self.super:init()
 
@@ -41,7 +41,8 @@ function alert_network_rule_threshold_cross:init(ifid, ifname ,metric, frequency
       threshold = threshold,
       value = value,
       threshold_sign = threshold_sign,
-      metric_type = metric_type
+      metric_type = metric_type,
+      host = host
    }
 end
 
@@ -62,7 +63,9 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
       alert_type_params.frequency = i18n("edit_check.hooks_name.day")
    end
 
-   if(alert_type_params.metric == "iface:traffic") then
+   if(alert_type_params.metric == "iface:traffic" 
+      or alert_type_params.metric == "flowdev:traffic"
+      or alert_type_params.metric == "flowdev_port:traffic") then
       if(alert_type_params.metric_type == "volume") then
          alert_type_params.value = bytesToSize(alert_type_params.value)
          alert_type_params.threshold = bytesToSize(alert_type_params.threshold)
@@ -75,15 +78,38 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
       end
    end
    
-   return(i18n("alert_messages.traffic_interface_volume_alert", {
-    url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. alert_type_params.ifid,
-    iface = alert_type_params.ifname,
-    metric = alert_type_params.metric,
-    value = alert_type_params.value,
-    threshold_sign = alert_type_params.threshold_sign,
-    threshold = alert_type_params.threshold,
-    frequency = alert_type_params.frequency
-  }))
+   if( alert_type_params.metric ~= "flowdev:traffic" and alert_type_params.metric ~= "flowdev_port:traffic" )then
+      return(i18n("alert_messages.traffic_interface_volume_alert", {
+         url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. alert_type_params.ifid,
+         iface = alert_type_params.ifname,
+         metric = alert_type_params.metric,
+         value = alert_type_params.value,
+         threshold_sign = alert_type_params.threshold_sign,
+         threshold = alert_type_params.threshold,
+         frequency = alert_type_params.frequency
+      }))
+  elseif (alert_type_params.metric == "flowdev:traffic") then 
+      return(i18n("alert_messages.traffic_flowdev_volume_alert", {
+         url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flowdevice_details.lua?ip=" .. alert_type_params.host,
+         host = alert_type_params.host,
+         metric = alert_type_params.metric,
+         value = alert_type_params.value,
+         threshold_sign = alert_type_params.threshold_sign,
+         threshold = alert_type_params.threshold,
+         frequency = alert_type_params.frequency
+      }))
+  else
+      return(i18n("alert_messages.traffic_flowdev_port_volume_alert", {
+            url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flowdevice_details.lua?ip=" .. alert_type_params.host,
+            iface = alert_type_params.ifname,
+            host = alert_type_params.host,
+            metric = alert_type_params.metric,
+            value = alert_type_params.value,
+            threshold_sign = alert_type_params.threshold_sign,
+            threshold = alert_type_params.threshold,
+            frequency = alert_type_params.frequency
+         }))
+  end
 end
 
 -- #######################################################

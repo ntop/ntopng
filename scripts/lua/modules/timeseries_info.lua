@@ -651,8 +651,8 @@ end
 
 -- #################################
 
-function timeseries_info.get_host_rules_schema(is_interface)
-  if not is_interface then
+function timeseries_info.get_host_rules_schema(rule_type)
+  if rule_type == "host" then
     local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
     local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~= "0"
     local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
@@ -678,7 +678,7 @@ function timeseries_info.get_host_rules_schema(is_interface)
 
 
     return metric_list
-  else 
+  elseif rule_type == "interface" then
     local ifname_ts_enabled = ntop.getCache("ntopng.prefs.ifname_ndpi_timeseries_creation")
     local has_top_protocols = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_protocol" or ifname_ts_enabled ~= "0"
     local has_top_categories = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_category"
@@ -702,9 +702,16 @@ function timeseries_info.get_host_rules_schema(is_interface)
       end
     end
 
+    return metric_list
+  else 
+    local metric_list = {
+      {  title = i18n('traffic'), group = i18n('generic_data'), label = i18n('traffic'), id = 'flowdev:traffic' --[[ here the ID is the schema ]], show_volume = true, type = 'flowdev' },
+      {  title = i18n('traffic'), group = i18n('generic_data'), label = i18n('traffic'), id = 'flowdev_port:traffic' --[[ here the ID is the schema ]], show_volume = true, type = 'flowdev_port' }
+    } 
 
     return metric_list
   end
+
 end
 
 -- #################################

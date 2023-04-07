@@ -72,8 +72,11 @@ const row_to_delete = ref({})
 const row_to_edit = ref({})
 
 
-const metric_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua`
-const metric_ifname_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?is_ifname=true`
+const metric_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=host`
+const metric_ifname_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=interface`
+const metric_flow_exp_device_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=exporter`
+const flow_devices_url = `${http_prefix}/lua/pro/rest/v2/get/flowdevices/stats.lua`
+const flow_devices_details_url = `${http_prefix}/lua/pro/enterprise/flowdevice_details.lua`
 const ifid_url = `${http_prefix}/lua/rest/v2/get/ntopng/interfaces.lua`
 const data_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_data.lua`
 const add_rule_url = `${http_prefix}/lua/pro/rest/v2/add/interface/host_rules/add_host_rule.lua`
@@ -97,6 +100,8 @@ let body_delete = _i18n('if_stats_config.delete_host_rules_description')
 let metric_list = []
 let interface_metric_list = []
 let ifid_list = []
+let flow_exporter_list = []
+let flow_exporter_metric_list = []
 
 
 const frequency_list = [
@@ -115,7 +120,6 @@ const load_selected_field = function(row) {
   
   row_to_delete.value = row;
 
-  //modal_add_host_rule.value.metricsLoaded(metric_list, ifid_list, interface_metric_list, init_edit, delete_row);
   modal_add_host_rule.value.show(row);
 
 }
@@ -256,10 +260,15 @@ const format_threshold = function(data, rowData) {
 const format_rule_type = function(data, rowData) {
   let formatted_data = '';
   if ((rowData.rule_type) && (rowData.rule_type == 'interface') ) {
-    formatted_data = "<span class='badge bg-secondary'>Interface <i class='fas fa-ethernet'></i></span>"
-  } else {
-    formatted_data = "<span class='badge bg-secondary'>Host <i class='fas fa-laptop'></i></span>"
-  }
+    formatted_data = "<span class='badge bg-secondary'>"+_i18n("interface")+" <i class='fas fa-ethernet'></i></span>"
+  } else if ((rowData.rule_type) && (rowData.rule_type == 'Host') ) {
+    formatted_data = "<span class='badge bg-secondary'>"+_i18n("about.host_checks_directory")+" <i class='fas fa-laptop'></i></span>"
+  } else if ((rowData.rule_type) && (rowData.rule_type == 'exporter') && rowData.metric == "flowdev:traffic") {
+    formatted_data = "<span class='badge bg-secondary'>"+_i18n("flow_exporter_device")+" <i class='fas fa-laptop'></i></span>"
+
+  } else if((rowData.rule_type) && (rowData.rule_type == 'exporter') && rowData.metric == "flowdev_port:traffic")
+    formatted_data = "<span class='badge bg-secondary'>"+_i18n("interface_flow_exporter_device")+" <i class='fas fa-ethernet'></i></span>"
+
   return formatted_data;
 }
 
@@ -267,8 +276,12 @@ const format_target = function(data, rowData) {
   let formatted_data = '';
   if ((rowData.rule_type) && (rowData.rule_type == 'interface') ) {
     formatted_data = rowData.selected_iface;
-  } else {
+  } else if(rowData.rule_type && rowData.rule_type == 'Host') {
     formatted_data = rowData.target;
+  } else if (rowData.rule_type && rowData.rule_type == 'exporter' && rowData.metric =="flowdev:traffic") {
+    formatted_data = rowData.target;
+  } else {
+    formatted_data = rowData.target + " "+_i18n("on_interface")+": " + rowData.flow_exp_ifid_name;
   }
   return formatted_data;
 }
@@ -287,6 +300,28 @@ const get_interface_metric_list = async function() {
   await $.get(url, function(rsp, status){
     interface_metric_list = rsp.rsp;
   });
+
+}
+
+const get_flow_exporter_devices_metric_list = async function() {
+  const url = NtopUtils.buildURL(metric_flow_exp_device_url, {
+    ...rest_params
+  })
+
+  await $.get(url, function(rsp, status){
+    flow_exporter_metric_list = rsp.rsp;
+  }); 
+
+}
+
+const get_flow_exporter_devices_list = async function() {
+  const url = NtopUtils.buildURL(flow_devices_url, {
+    ...rest_params
+  })
+
+  await $.get(url, function(rsp, status){
+    flow_exporter_list = rsp.rsp;
+  }); 
 
 }
 
@@ -348,7 +383,9 @@ onBeforeMount(async () => {
   await get_metric_list();
   await get_ifid_list();
   await get_interface_metric_list();
-  modal_add_host_rule.value.metricsLoaded(metric_list, ifid_list, interface_metric_list);
+  await get_flow_exporter_devices_metric_list();
+  await get_flow_exporter_devices_list();
+  modal_add_host_rule.value.metricsLoaded(metric_list, ifid_list, interface_metric_list, flow_exporter_list, flow_exporter_metric_list, props.page_csrf);
 })
 
 onUnmounted(() => {
