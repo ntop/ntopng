@@ -30,9 +30,9 @@
 </div>  
 </div> <!-- TableHeader -->
 
-<div v-if="show_table" ref="table_div" class="" style="width: 100%;overflow: scroll;"> <!-- Table -->
+<div :key="table_key" class="" style="width: 100%;overflow: scroll;"> <!-- Table -->
   
-  <table ref="table" class="table table-striped table-bordered mb-0" style="table-layout: auto;width: 98.7%; white-space: nowrap;" :data-resizable-columns-id="id"> <!-- Table -->
+  <table ref="table" class="table table-striped table-bordered mb-0" style="table-layout: auto;width: 100%; white-space: nowrap;" :data-resizable-columns-id="id"> <!-- Table -->
     <thead>
       <tr>
 	<template v-for="(col, col_index) in columns_wrap">
@@ -104,26 +104,31 @@ watch(() => props.columns, (cur_value, old_value) => {
 async function load_table() {
     set_columns_wrap();
     await set_rows();
-    $(table.value).resizableColumns();
+    set_columns_resizable();
     await nextTick();
     dropdown.value.load_menu();
 }
 
-const table_div = ref(null);
+const table_key = ref(0);
 async function change_columns_visibility(col) {    
     if (props.paging) {
 	await set_rows();
     }
-    show_table.value = false;
+    redraw_table();
     await nextTick();
-    show_table.value = true;
-    await nextTick();
-    // $(table_div).width('50%');
-    setTimeout(async () => {
-	await nextTick();
-	$(table.value).resizableColumns();
-    }, 0);
+    set_columns_resizable();
 }
+
+function set_columns_resizable() {
+    $(table.value).css('width', '90%');
+    $(table.value).resizableColumns();
+    $(table.value).css('width', '100%');
+}
+
+function redraw_table() {
+    table_key.value += 1;
+}
+
 
 function set_columns_wrap() {
     columns_wrap.value = props.columns.map((c, i) => {
