@@ -376,6 +376,10 @@ Ntop::~Ntop() {
   }
 #endif
 
+#ifdef HAVE_RADIUS
+  if (radiusAcc) delete radiusAcc;
+#endif
+
 #ifdef __linux__
   if (inotify_fd > 0) close(inotify_fd);
 #endif
