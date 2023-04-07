@@ -21,6 +21,9 @@
 
 #include "ntop_includes.h"
 
+/* Include the code only if the user has radius */
+#ifdef HAVE_RADIUS
+
 /* *************************************** */
 
 Radius::Radius() {
@@ -268,3 +271,5 @@ bool Radius::stopSession() { return true; }
 bool Radius::updateSession() { return true; }
 
 /* *************************************** */
+
+#endif

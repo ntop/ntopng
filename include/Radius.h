@@ -24,12 +24,14 @@
 
 #include "ntop_includes.h"
 
+#ifdef HAVE_RADIUS
+
 class Radius {
  private:
   int result;
-  char dict_path[MAX_RADIUS_LEN];
   char *radiusServer, *radiusSecret, *authServer, *radiusAdminGroup,
       *radiusUnprivCapabilitiesGroup;
+  char dict_path[MAX_RADIUS_LEN];
 
  public:
   Radius();
@@ -43,5 +45,7 @@ class Radius {
   bool stopSession();
   bool updateSession();
 };
+
+#endif
 
 #endif
