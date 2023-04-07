@@ -25,8 +25,8 @@
 
 Radius::Radius() {
   result = 0;
-  radiusServer = radiusSecret = authServer = 
-    radiusAdminGroup = radiusUnprivCapabilitiesGroup = NULL;
+  radiusServer = radiusSecret = authServer = radiusAdminGroup =
+      radiusUnprivCapabilitiesGroup = NULL;
 
   /* Check if some information are already stored in redis */
   updateLoginInfo();
