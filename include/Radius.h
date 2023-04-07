@@ -25,14 +25,11 @@
 #include "ntop_includes.h"
 
 class Radius {
- private:
-  int result;
-  u_int8_t radius_ret : 1, not_used : 7;
-  char dict_path[MAX_RADIUS_LEN];
-  char *radiusServer, *radiusSecret, *authServer, *radiusAdminGroup,
-      *radiusUnprivCapabilitiesGroup;
-  rc_handle *rh;
-  VALUE_PAIR *send, *received;
+  private:
+    int result;
+    char dict_path[MAX_RADIUS_LEN];
+    char *radiusServer, *radiusSecret, *authServer,
+      *radiusAdminGroup, *radiusUnprivCapabilitiesGroup;
 
  public:
   Radius();

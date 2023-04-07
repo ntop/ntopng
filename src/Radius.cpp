@@ -25,11 +25,8 @@
 
 Radius::Radius() {
   result = 0;
-  radius_ret = 0;
-  radiusServer = radiusSecret = authServer = radiusAdminGroup =
-      radiusUnprivCapabilitiesGroup = NULL;
-  rh = NULL;
-  send = received = NULL;
+  radiusServer = radiusSecret = authServer = 
+    radiusAdminGroup = radiusUnprivCapabilitiesGroup = NULL;
 
   /* Check if some information are already stored in redis */
   updateLoginInfo();
@@ -50,7 +47,9 @@ Radius::~Radius() {
 bool Radius::authenticate(const char *user, const char *password,
                           bool *has_unprivileged_capabilities, bool *is_admin) {
   /* Reset the return */
-  radius_ret = 0;
+  bool radius_ret = false;
+  rc_handle *rh = NULL;
+  VALUE_PAIR *send = NULL, *received = NULL;
 
   if (!radiusServer || !radiusSecret || !authServer ||
       !radiusUnprivCapabilitiesGroup || !radiusAdminGroup) {
@@ -185,7 +184,7 @@ bool Radius::authenticate(const char *user, const char *password,
       }
     }
 
-    radius_ret = 1;
+    radius_ret = true;
   } else {
     /* Do not display messages for user 'admin' */
 
