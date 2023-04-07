@@ -22,19 +22,18 @@
 #ifndef _SERVER_CONTACTS_ALERT_H_
 #define _SERVER_CONTACTS_ALERT_H_
 
-
 #include "ntop_includes.h"
-
 
 class ServerContactsAlert : public HostAlert {
  private:
   u_int64_t contacts, contacts_threshold;
-  
+
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  ServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _syns, u_int64_t _syns_threshold);
-  ~ServerContactsAlert() {};
+  ServerContactsAlert(HostCheck* c, Host* f, risk_percentage cli_pctg,
+                      u_int64_t _syns, u_int64_t _syns_threshold);
+  ~ServerContactsAlert(){};
 
   u_int8_t getAlertScore() const { return SCORE_LEVEL_NOTICE; };
 };

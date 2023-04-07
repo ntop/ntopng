@@ -25,7 +25,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
- 
+
 #ifndef PTHREAD_H
 #define PTHREAD_H
 #endif
@@ -41,7 +41,7 @@
 extern "C" {
 #endif
 #include <getopt.h> /* getopt from: http://www.pwilson.net/sample.html. */
-const char *win_inet_ntop(int af, const void *src, char *dst,socklen_t size);
+const char *win_inet_ntop(int af, const void *src, char *dst, socklen_t size);
 #ifdef __cplusplus
 }
 #endif
@@ -52,10 +52,10 @@ const char *win_inet_ntop(int af, const void *src, char *dst,socklen_t size);
 #define INET_IPV6
 
 /* Values for the second argument to access. These may be OR'd together.  */
-#define R_OK    4       /* Test for read permission.  */
-#define W_OK    2       /* Test for write permission.  */
+#define R_OK 4 /* Test for read permission.  */
+#define W_OK 2 /* Test for write permission.  */
 //#define   X_OK    1       /* execute permission - unsupported in windows*/
-#define F_OK    0       /* Test for existence.  */
+#define F_OK 0 /* Test for existence.  */
 
 // Demo mode
 //#define DEMO_WIN32 1
@@ -66,11 +66,13 @@ const char *win_inet_ntop(int af, const void *src, char *dst,socklen_t size);
 /* Damn XP */
 #define inet_ntop win_inet_ntop
 
-#define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
-#define PCAP_NETMASK_UNKNOWN	0xffffffff
+#define realpath(N, R) _fullpath((R), (N), _MAX_PATH)
+#define PCAP_NETMASK_UNKNOWN 0xffffffff
 
 typedef HANDLE pthread_mutex_t;
-typedef struct { HANDLE signal, broadcast; } pthread_cond_t;
+typedef struct {
+  HANDLE signal, broadcast;
+} pthread_cond_t;
 typedef HANDLE pthread_t;
 typedef int mode_t;
 
@@ -79,23 +81,26 @@ typedef int mode_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern int pthread_create(pthread_t *threadId, void* notUsed, void *(*__start_routine) (void *), void* userParm);
+extern int pthread_create(pthread_t *threadId, void *notUsed,
+                          void *(*__start_routine)(void *), void *userParm);
 extern void pthread_detach(pthread_t *threadId);
 extern int pthread_join(pthread_t thread, void **value_ptr);
 extern int pthread_mutex_lock(pthread_mutex_t *);
 extern int pthread_mutex_unlock(pthread_mutex_t *);
 extern int pthread_mutex_init(pthread_mutex_t *mutex, void *unused);
 extern void pthread_mutex_destroy(pthread_mutex_t *mutex);
-extern int pthread_mutex_timedlock(pthread_mutex_t* mutex, const struct timespec* w);
+extern int pthread_mutex_timedlock(pthread_mutex_t *mutex,
+                                   const struct timespec *w);
 extern int pthread_cond_init(pthread_cond_t *cv, const void *unused);
 extern int pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *mutex);
-extern int pthread_cond_timedwait(pthread_cond_t* cv, pthread_mutex_t* mutex, const struct timespec* abstime);
+extern int pthread_cond_timedwait(pthread_cond_t *cv, pthread_mutex_t *mutex,
+                                  const struct timespec *abstime);
 extern int pthread_cond_signal(pthread_cond_t *cv);
 extern int pthread_cond_broadcast(pthread_cond_t *cv);
 extern int pthread_cond_destroy(pthread_cond_t *cv);
 
-extern int gettimeofday(struct timeval * tp, struct timezone * tzp);
-extern char* strtok_r(char *s, const char *delim, char **save_ptr);
+extern int gettimeofday(struct timeval *tp, struct timezone *tzp);
+extern char *strtok_r(char *s, const char *delim, char **save_ptr);
 extern int win_inet_pton(int af, const char *src, void *dst);
 extern void win_usleep(__int64 usec);
 #ifdef __cplusplus
@@ -104,7 +109,7 @@ extern void win_usleep(__int64 usec);
 
 #define strdup(a) _strdup(a)
 #define strncasecmp _strnicmp
-#define inet_pton(a,b,c) win_inet_pton(a,b,c)
+#define inet_pton(a, b, c) win_inet_pton(a, b, c)
 
 /* mongoose.c */
 #define HAS_POLL
@@ -123,23 +128,22 @@ struct dirent {
 };
 
 #ifndef DT_DIR
-#define DT_UNKNOWN       0
-#define DT_DIR           4
-#define DT_REG			 8
+#define DT_UNKNOWN 0
+#define DT_DIR 4
+#define DT_REG 8
 #endif
 
-
 typedef struct DIR {
-  HANDLE   handle;
+  HANDLE handle;
   WIN32_FIND_DATAW info;
-  struct dirent  result;
+  struct dirent result;
   char dir_path[MAX_PATH];
 } DIR;
 
 extern int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 extern struct dirent *readdir(DIR *dir);
 extern int closedir(DIR *dir);
-extern DIR * opendir(const char *name);
+extern DIR *opendir(const char *name);
 
 extern void get_serial(unsigned long *driveSerial);
 
@@ -147,29 +151,26 @@ extern void get_serial(unsigned long *driveSerial);
 #define __GNU_LIBRARY__ 1
 
 #ifndef __GNUC__
-typedef unsigned char  u_char;
+typedef unsigned char u_char;
 typedef unsigned short u_short;
-typedef unsigned int   uint;
-typedef unsigned long  u_long;
+typedef unsigned int uint;
+typedef unsigned long u_long;
 #endif
 
-typedef u_char  u_int8_t;
+typedef u_char u_int8_t;
 typedef u_short u_int16_t;
-typedef uint   u_int32_t;
-typedef int   int32_t;
+typedef uint u_int32_t;
+typedef int int32_t;
 typedef unsigned __int64 u_int64_t;
 typedef __int64 int64_t;
-
 
 #define _WS2TCPIP_H_ /* Avoid compilation problems */
 #define HAVE_SIN6_LEN
 
 /* IPv6 address */
 /* Already defined in WS2tcpip.h */
-struct win_in6_addr
-{
-  union
-  {
+struct win_in6_addr {
+  union {
     u_int8_t u6_addr8[16];
     u_int16_t u6_addr16[8];
     u_int32_t u6_addr32[4];
@@ -186,9 +187,9 @@ struct win_in6_addr
 #undef s6_addr32
 #endif
 
-#define s6_addr                 in6_u.u6_addr8
-#define s6_addr16               in6_u.u6_addr16
-#define s6_addr32               in6_u.u6_addr32
+#define s6_addr in6_u.u6_addr8
+#define s6_addr16 in6_u.u6_addr16
+#define s6_addr32 in6_u.u6_addr32
 };
 
 #define in6_addr win_in6_addr
@@ -198,41 +199,37 @@ struct win_in6_addr
 #define SSIZE_T ssize_t
 #endif
 
-struct ip6_hdr
-{
-  union
-  {
-    struct ip6_hdrctl
-    {
-      u_int32_t ip6_un1_flow;   /* 4 bits version, 8 bits TC,
-				   20 bits flow-ID */
-      u_int16_t ip6_un1_plen;   /* payload length */
-      u_int8_t  ip6_un1_nxt;    /* next header */
-      u_int8_t  ip6_un1_hlim;   /* hop limit */
+struct ip6_hdr {
+  union {
+    struct ip6_hdrctl {
+      u_int32_t ip6_un1_flow; /* 4 bits version, 8 bits TC,
+                                 20 bits flow-ID */
+      u_int16_t ip6_un1_plen; /* payload length */
+      u_int8_t ip6_un1_nxt;   /* next header */
+      u_int8_t ip6_un1_hlim;  /* hop limit */
     } ip6_un1;
-    u_int8_t ip6_un2_vfc;       /* 4 bits version, top 4 bits tclass */
+    u_int8_t ip6_un2_vfc; /* 4 bits version, top 4 bits tclass */
   } ip6_ctlun;
-  struct in6_addr ip6_src;      /* source address */
-  struct in6_addr ip6_dst;      /* destination address */
+  struct in6_addr ip6_src; /* source address */
+  struct in6_addr ip6_dst; /* destination address */
 };
 
 /* Generic extension header.  */
-struct ip6_ext
-{
-  u_int8_t  ip6e_nxt;		/* next header.  */
-  u_int8_t  ip6e_len;		/* length in units of 8 octets.  */
+struct ip6_ext {
+  u_int8_t ip6e_nxt; /* next header.  */
+  u_int8_t ip6e_len; /* length in units of 8 octets.  */
 };
 
 #ifndef S_ISDIR
-#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
+#define S_ISDIR(mode) (((mode)&S_IFMT) == S_IFDIR)
 #endif
 
 #ifndef S_ISREG
-#define S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
+#define S_ISREG(mode) (((mode)&S_IFMT) == S_IFREG)
 #endif
 
 #ifndef ssize_t
-#define ssize_t                  __int64
+#define ssize_t __int64
 #endif
 
 #define localtime_r(a, b) localtime(a)
@@ -240,14 +237,14 @@ struct ip6_ext
 #ifdef __cplusplus
 extern "C" {
 #endif
-	extern unsigned int sleep(unsigned int seconds);
-	extern void usleep(__int64 usec);
-	extern int inet_aton(const char *cp, struct in_addr *addr);
-	extern char *strndup(const char *string, size_t s);
-	const char *strcasestr(const char *haystack, const char *needle);
-	char* strptime(const char *buf, const char *format, struct tm *tm);
-	//extern int inet_pton(int af, const char *src, void *dst);
-    char* getWindowsTimezone();
+extern unsigned int sleep(unsigned int seconds);
+extern void usleep(__int64 usec);
+extern int inet_aton(const char *cp, struct in_addr *addr);
+extern char *strndup(const char *string, size_t s);
+const char *strcasestr(const char *haystack, const char *needle);
+char *strptime(const char *buf, const char *format, struct tm *tm);
+// extern int inet_pton(int af, const char *src, void *dst);
+char *getWindowsTimezone();
 #ifdef __cplusplus
 };
 #endif
@@ -256,4 +253,3 @@ extern "C" {
 #define strcasecmp _stricmp
 
 #endif /* _NTOP_WIN32_H_ */
-

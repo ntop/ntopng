@@ -30,12 +30,16 @@ class TCPPacketsIssues : public FlowCheck {
   void checkTCPPacketsIssues(Flow *f);
 
  public:
- TCPPacketsIssues() : FlowCheck(ntopng_edition_pro,
-			       false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-			       false /* has_protocol_detected */, true /* has_periodic_update */, true /* has_flow_end */) {
-    retransmission_threshold = out_of_order_threshold = lost_threshold = (u_int64_t)-1 /* No threshold */;
+  TCPPacketsIssues()
+      : FlowCheck(ntopng_edition_pro, false /* All interfaces */,
+                  false /* Don't exclude for nEdge */,
+                  false /* NOT only for nEdge */,
+                  false /* has_protocol_detected */,
+                  true /* has_periodic_update */, true /* has_flow_end */) {
+    retransmission_threshold = out_of_order_threshold = lost_threshold =
+        (u_int64_t)-1 /* No threshold */;
   };
-  ~TCPPacketsIssues() {};
+  ~TCPPacketsIssues(){};
 
   void periodicUpdate(Flow *f);
   void flowEnd(Flow *f);
@@ -43,7 +47,7 @@ class TCPPacketsIssues : public FlowCheck {
   bool loadConfiguration(json_object *config);
   FlowAlert *buildAlert(Flow *f);
 
-  std::string getName()        const { return(std::string("tcp_packets_issues"));  }
+  std::string getName() const { return (std::string("tcp_packets_issues")); }
 };
 
 #endif /* _TCP_PACKETS_ISSUES_FLOW_H_ */

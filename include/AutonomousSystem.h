@@ -26,8 +26,10 @@
 
 #include "ntop_includes.h"
 
-class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement, public Score {
-private:
+class AutonomousSystem : public GenericHashEntry,
+                         public GenericTrafficElement,
+                         public Score {
+ private:
   u_int32_t asn;
   char *asname;
   u_int32_t round_trip_time;
@@ -40,12 +42,12 @@ private:
   BehaviorAnalysis *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
 #endif
 
-  inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
-    if(first_seen == 0) first_seen = t,
-			  last_seen = iface->getTimeLastPktRcvd();
+  inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
+    if (first_seen == 0)
+      first_seen = t, last_seen = iface->getTimeLastPktRcvd();
     sent.incStats(t, num_pkts, num_bytes);
   }
-  inline void incRcvdStats(time_t t,u_int64_t num_pkts, u_int64_t num_bytes) {
+  inline void incRcvdStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
     rcvd.incStats(t, num_pkts, num_bytes);
   }
 
@@ -53,31 +55,38 @@ private:
   void updateBehaviorStats(const struct timeval *tv);
 #endif
 
-public:
+ public:
   AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa);
   ~AutonomousSystem();
 
   void set_hash_entry_state_idle();
 
-  inline u_int16_t getNumHosts()               { return getUses();             }
-  inline u_int32_t key()                       { return(asn);                  }
-  inline u_int32_t get_asn()                   { return(asn);                  }
-  inline char*    get_asname()                 { return(asname ? asname : (char*)""); }
+  inline u_int16_t getNumHosts() { return getUses(); }
+  inline u_int32_t key() { return (asn); }
+  inline u_int32_t get_asn() { return (asn); }
+  inline char *get_asname() { return (asname ? asname : (char *)""); }
 
   bool equal(u_int32_t asn);
 
-  inline void incStats(time_t when, u_int16_t proto_id,
-		       u_int64_t sent_packets, u_int64_t sent_bytes,
-		       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
-    if(ndpiStats || (ndpiStats = new nDPIStats()))
-      ndpiStats->incStats(when, proto_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  inline void incStats(time_t when, u_int16_t proto_id, u_int64_t sent_packets,
+                       u_int64_t sent_bytes, u_int64_t rcvd_packets,
+                       u_int64_t rcvd_bytes) {
+    if (ndpiStats || (ndpiStats = new nDPIStats()))
+      ndpiStats->incStats(when, proto_id, sent_packets, sent_bytes,
+                          rcvd_packets, rcvd_bytes);
     incSentStats(when, sent_packets, sent_bytes);
     incRcvdStats(when, rcvd_packets, rcvd_bytes);
   }
-  inline void incNumAlertedFlows(bool as_client)   { if(as_client) alerted_flows_as_client++; else alerted_flows_as_server++; };
+  inline void incNumAlertedFlows(bool as_client) {
+    if (as_client)
+      alerted_flows_as_client++;
+    else
+      alerted_flows_as_server++;
+  };
 
   void updateRoundTripTime(u_int32_t rtt_msecs);
-  void lua(lua_State* vm, DetailsLevel details_level, bool asListElement, bool diff = false);
+  void lua(lua_State *vm, DetailsLevel details_level, bool asListElement,
+           bool diff = false);
 
   virtual void updateStats(const struct timeval *tv);
 
@@ -89,9 +98,16 @@ public:
     GenericHashEntry::getJSONObject(obj, details_level);
     GenericTrafficElement::getJSONObject(obj, iface);
   }
-  inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), asn); return(buf); }
-  inline u_int32_t getTotalAlertedNumFlowsAsClient() const { return(alerted_flows_as_client);  };
-  inline u_int32_t getTotalAlertedNumFlowsAsServer() const { return(alerted_flows_as_server);  };
+  inline char *getSerializationKey(char *buf, uint bufsize) {
+    snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), asn);
+    return (buf);
+  }
+  inline u_int32_t getTotalAlertedNumFlowsAsClient() const {
+    return (alerted_flows_as_client);
+  };
+  inline u_int32_t getTotalAlertedNumFlowsAsServer() const {
+    return (alerted_flows_as_server);
+  };
 };
 
 #endif /* _AUTONOMOUS_SYSTEM_H_ */

@@ -23,20 +23,22 @@
 
 /* ***************************************************** */
 
-PktThresholdAlert::PktThresholdAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _pkt_count, u_int64_t _pkt_threshold) : HostAlert(c, f, cli_pctg) {
-  pkt_count = _pkt_count,
-    pkt_threshold = _pkt_threshold;
+PktThresholdAlert::PktThresholdAlert(HostCheck* c, Host* f,
+                                     risk_percentage cli_pctg,
+                                     u_int64_t _pkt_count,
+                                     u_int64_t _pkt_threshold)
+    : HostAlert(c, f, cli_pctg) {
+  pkt_count = _pkt_count, pkt_threshold = _pkt_threshold;
 };
 
 /* ***************************************************** */
 
 ndpi_serializer* PktThresholdAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
+  if (serializer == NULL) return NULL;
 
   ndpi_serialize_string_uint64(serializer, "value", pkt_count);
   ndpi_serialize_string_uint64(serializer, "threshold", pkt_threshold);
-  
+
   return serializer;
 }
 

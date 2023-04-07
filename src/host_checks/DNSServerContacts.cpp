@@ -24,8 +24,6 @@
 
 /* ***************************************************** */
 
-DNSServerContacts::DNSServerContacts() : ServerContacts() {
-}
+DNSServerContacts::DNSServerContacts() : ServerContacts() {}
 
 /* ***************************************************** */
-

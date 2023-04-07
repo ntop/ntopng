@@ -25,23 +25,25 @@
 #include "ntop_includes.h"
 
 class P2PTraffic : public HostCheck {
-private:
-  u_int64_t p2p_bytes_threshold;  
+ private:
+  u_int64_t p2p_bytes_threshold;
 
-  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _p2p_bytes, u_int64_t _p2p_bytes_threshold) {
-    return new P2PTrafficAlert(c, f, cli_pctg, _p2p_bytes, _p2p_bytes_threshold);
+  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
+                        u_int64_t _p2p_bytes, u_int64_t _p2p_bytes_threshold) {
+    return new P2PTrafficAlert(c, f, cli_pctg, _p2p_bytes,
+                               _p2p_bytes_threshold);
   };
-  
-public:
+
+ public:
   P2PTraffic();
-  ~P2PTraffic() {};
-  
+  ~P2PTraffic(){};
+
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
-  bool loadConfiguration(json_object *config);  
+  bool loadConfiguration(json_object *config);
 
   HostCheckID getID() const { return host_check_p2p_traffic; }
-  std::string getName()  const { return(std::string("p2p")); }
+  std::string getName() const { return (std::string("p2p")); }
 };
 
 #endif

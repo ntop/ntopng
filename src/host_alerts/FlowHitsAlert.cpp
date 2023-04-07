@@ -23,9 +23,10 @@
 
 /* ***************************************************** */
 
-FlowHitsAlert::FlowHitsAlert(HostCheck *c, Host *h, risk_percentage cli_pctg,
-			     u_int16_t _hits, u_int64_t _threshold, bool _is_attacker)
-  : HostAlert(c, h, cli_pctg) {
+FlowHitsAlert::FlowHitsAlert(HostCheck* c, Host* h, risk_percentage cli_pctg,
+                             u_int16_t _hits, u_int64_t _threshold,
+                             bool _is_attacker)
+    : HostAlert(c, h, cli_pctg) {
   hits = _hits;
   hits_threshold = _threshold;
   is_attacker = _is_attacker;
@@ -34,13 +35,12 @@ FlowHitsAlert::FlowHitsAlert(HostCheck *c, Host *h, risk_percentage cli_pctg,
 /* ***************************************************** */
 
 ndpi_serializer* FlowHitsAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
+  if (serializer == NULL) return NULL;
 
   ndpi_serialize_string_boolean(serializer, "is_attacker", is_attacker);
   ndpi_serialize_string_uint64(serializer, "value", hits);
   ndpi_serialize_string_uint64(serializer, "threshold", hits_threshold);
-  
+
   return serializer;
 }
 

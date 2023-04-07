@@ -31,8 +31,9 @@ ContainerStats::ContainerStats() {
 
 /* *************************************** */
 
-void ContainerStats::accountLatency(double rtt, double rtt_variance, bool as_client) {
-  if(as_client) {
+void ContainerStats::accountLatency(double rtt, double rtt_variance,
+                                    bool as_client) {
+  if (as_client) {
     tot_rtt_as_client += rtt;
     tot_rtt_variance_as_client += rtt_variance;
   } else {
@@ -53,6 +54,8 @@ void ContainerStats::lua(lua_State* vm) {
   /* Latency stats */
   lua_push_float_table_entry(vm, "rtt_as_client", getRttAsClient());
   lua_push_float_table_entry(vm, "rtt_as_server", getRttAsServer());
-  lua_push_float_table_entry(vm, "rtt_variance_as_client", getRttVarianceAsClient());
-  lua_push_float_table_entry(vm, "rtt_variance_as_server", getRttVarianceAsServer());
+  lua_push_float_table_entry(vm, "rtt_variance_as_client",
+                             getRttVarianceAsClient());
+  lua_push_float_table_entry(vm, "rtt_variance_as_server",
+                             getRttVarianceAsServer());
 }

@@ -26,10 +26,8 @@
 
 /* *************************************** */
 
-
-
 class FlowsStats {
-private:
+ private:
   std::set<std::string> clients, servers;
   u_int32_t num_flows, tot_score;
   u_int64_t tot_sent, tot_rcvd;
@@ -43,44 +41,39 @@ private:
   u_int64_t key;
   u_int64_t proto_key;
 
-public:
-  FlowsStats(const IpAddress *c, const IpAddress *s, u_int8_t _l4_proto,
-	     u_int64_t bytes_sent, u_int64_t bytes_rcvd, u_int32_t score) {
-    num_flows = 0, tot_sent = tot_rcvd = 0, tot_score = 0, l4_proto = _l4_proto, proto_name = NULL;
+ public:
+  FlowsStats(const IpAddress* c, const IpAddress* s, u_int8_t _l4_proto,
+             u_int64_t bytes_sent, u_int64_t bytes_rcvd, u_int32_t score) {
+    num_flows = 0, tot_sent = tot_rcvd = 0, tot_score = 0, l4_proto = _l4_proto,
+    proto_name = NULL;
     incFlowStats(c, s, bytes_sent, bytes_rcvd, score);
   }
 
   ~FlowsStats() {
-    if(proto_name)
-      free(proto_name);
+    if (proto_name) free(proto_name);
   }
 
-  inline u_int32_t getNumClients() { return(clients.size()); }
-  inline u_int32_t getNumServers() { return(servers.size()); }
-  inline u_int8_t  getL4Protocol() { return(l4_proto);       }
-  inline u_int32_t getNumFlows()   { return(num_flows);      }
-  inline u_int64_t getTotalSent()  { return(tot_sent);       }
-  inline u_int64_t getTotalRcvd()  { return(tot_rcvd);       }
-  inline u_int32_t getTotalScore() { return(tot_score);      }
+  inline u_int32_t getNumClients() { return (clients.size()); }
+  inline u_int32_t getNumServers() { return (servers.size()); }
+  inline u_int8_t getL4Protocol() { return (l4_proto); }
+  inline u_int32_t getNumFlows() { return (num_flows); }
+  inline u_int64_t getTotalSent() { return (tot_sent); }
+  inline u_int64_t getTotalRcvd() { return (tot_rcvd); }
+  inline u_int32_t getTotalScore() { return (tot_score); }
 
-  inline void setVlanId(u_int16_t _vlan_id)   { vlan_id = _vlan_id; }
-  inline u_int16_t getVlanId()                { return vlan_id; }
+  inline void setVlanId(u_int16_t _vlan_id) { vlan_id = _vlan_id; }
+  inline u_int16_t getVlanId() { return vlan_id; }
   inline void setProtoName(char* _proto_name) {
-    if(proto_name) free(proto_name);
+    if (proto_name) free(proto_name);
     proto_name = strdup(_proto_name);
   }
-  inline char* getProtoName()                 { return(proto_name ? proto_name : (char*)""); }
-  inline void setKey(u_int64_t _key)          { key = _key; }
-  inline u_int64_t getKey()                   { return key; }
-  inline void setProtoKey(u_int64_t _key)          { proto_key = _key; }
-  inline u_int64_t getProtoKey()                   { return proto_key; }
-  inline void setInfoKey(char* _key)          {
-    info_key = _key;
-  }
-  inline char* getInfoKey()  {
-    return(info_key ? info_key : (char*)"");
-  }
-
+  inline char* getProtoName() { return (proto_name ? proto_name : (char*)""); }
+  inline void setKey(u_int64_t _key) { key = _key; }
+  inline u_int64_t getKey() { return key; }
+  inline void setProtoKey(u_int64_t _key) { proto_key = _key; }
+  inline u_int64_t getProtoKey() { return proto_key; }
+  inline void setInfoKey(char* _key) { info_key = _key; }
+  inline char* getInfoKey() { return (info_key ? info_key : (char*)""); }
 
   inline void setClient(IpAddress* _ip, Host* _host) {
     client = new (std::nothrow) FlowsHostInfo(_ip, _host);
@@ -89,27 +82,38 @@ public:
     server = new (std::nothrow) FlowsHostInfo(_ip, _host);
   }
 
-  inline void incFlowStats(const IpAddress *c, const IpAddress *s,
-			   u_int64_t bytes_sent, u_int64_t bytes_rcvd,
-			   u_int32_t score) {
+  inline void incFlowStats(const IpAddress* c, const IpAddress* s,
+                           u_int64_t bytes_sent, u_int64_t bytes_rcvd,
+                           u_int32_t score) {
     char buf_c[48], buf_s[48];
 
-    clients.insert(std::string(((IpAddress*)c)->get_ip_hex(buf_c, sizeof(buf_c)))),
-      servers.insert(std::string(((IpAddress*)s)->get_ip_hex(buf_s, sizeof(buf_s)))),
-      num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd, tot_score += score;;
+    clients.insert(
+        std::string(((IpAddress*)c)->get_ip_hex(buf_c, sizeof(buf_c)))),
+        servers.insert(
+            std::string(((IpAddress*)s)->get_ip_hex(buf_s, sizeof(buf_s)))),
+        num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd,
+        tot_score += score;
+    ;
   }
 
-
-  char* getCliIP(char* buf, u_int len)                        { return( client->getIP(buf, len) ); }
-  char* getSrvIP(char* buf, u_int len)                        { return( server->getIP(buf, len) ); }
-  char* getCliName(char* buf, u_int len)                      { return( client->getHostName(buf, len) ); }
-  char* getSrvName(char* buf, u_int len)                      { return( server->getHostName(buf,len) ); }
-  char* getCliIPHex(char* buf, u_int len)                     { return( client->getIPHex(buf, len) ); }
-  char* getSrvIPHex(char* buf, u_int len)                     { return( server->getIPHex(buf, len) ); }
-  u_int16_t getCliVLANId()                                    { return( client->getVLANId() ); }
-  u_int16_t getSrvVLANId()                                    { return( server->getVLANId() ); }
-  bool isCliInMem()                                           { return( client->isHostInMem() ); }
-  bool isSrvInMem()                                           { return( server->isHostInMem() ); }
+  char* getCliIP(char* buf, u_int len) { return (client->getIP(buf, len)); }
+  char* getSrvIP(char* buf, u_int len) { return (server->getIP(buf, len)); }
+  char* getCliName(char* buf, u_int len) {
+    return (client->getHostName(buf, len));
+  }
+  char* getSrvName(char* buf, u_int len) {
+    return (server->getHostName(buf, len));
+  }
+  char* getCliIPHex(char* buf, u_int len) {
+    return (client->getIPHex(buf, len));
+  }
+  char* getSrvIPHex(char* buf, u_int len) {
+    return (server->getIPHex(buf, len));
+  }
+  u_int16_t getCliVLANId() { return (client->getVLANId()); }
+  u_int16_t getSrvVLANId() { return (server->getVLANId()); }
+  bool isCliInMem() { return (client->isHostInMem()); }
+  bool isSrvInMem() { return (server->isHostInMem()); }
 };
 
 #endif /* _FLOWS_STATS_H_ */

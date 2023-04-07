@@ -25,12 +25,15 @@
 #include "ntop_includes.h"
 
 class ObservationPointIdTrafficStats {
-private:
+ private:
   u_int32_t num_collected_flows;
   u_int64_t total_flow_bytes;
 
-public:
-  ObservationPointIdTrafficStats(u_int32_t num_flows = 0, u_int32_t num_bytes = 0) { num_collected_flows = num_flows, total_flow_bytes = num_bytes; }
+ public:
+  ObservationPointIdTrafficStats(u_int32_t num_flows = 0,
+                                 u_int32_t num_bytes = 0) {
+    num_collected_flows = num_flows, total_flow_bytes = num_bytes;
+  }
 
   inline void inc(u_int32_t num_bytes) {
     num_collected_flows++, total_flow_bytes += num_bytes;
@@ -40,12 +43,12 @@ public:
     num_collected_flows = num_flows, total_flow_bytes = num_bytes;
   }
 
-  inline u_int32_t get_num_collected_flows() { return(num_collected_flows); }
-  inline u_int64_t get_total_flow_bytes()    { return(total_flow_bytes);    }
+  inline u_int32_t get_num_collected_flows() { return (num_collected_flows); }
+  inline u_int64_t get_total_flow_bytes() { return (total_flow_bytes); }
 
   inline void lua(lua_State* vm) {
     lua_push_uint32_table_entry(vm, "num_collected_flows", num_collected_flows);
-    lua_push_uint64_table_entry(vm, "total_flow_bytes",    total_flow_bytes);
+    lua_push_uint64_table_entry(vm, "total_flow_bytes", total_flow_bytes);
   }
 };
 

@@ -38,9 +38,7 @@ Bloom::Bloom(u_int32_t _num_bloom_bits) {
 /**
  * Destructor.
  */
-Bloom::~Bloom() {
-  delete bitmask;
-}
+Bloom::~Bloom() { delete bitmask; }
 
 /* ******************************************************* */
 
@@ -52,9 +50,7 @@ Bloom::~Bloom() {
 u_int32_t Bloom::ntophash(char *str) {
   u_int32_t hash = 0;
 
-  for(u_int32_t i = 0; str[i] != 0; i++)
-    hash += tolower(str[i])*(i+1);
+  for (u_int32_t i = 0; str[i] != 0; i++) hash += tolower(str[i]) * (i + 1);
 
-  return(hash & mask);
+  return (hash & mask);
 }
-

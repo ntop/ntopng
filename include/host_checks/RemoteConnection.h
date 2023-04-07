@@ -25,19 +25,21 @@
 #include "ntop_includes.h"
 
 class RemoteConnection : public HostCheck {
-public:
+ public:
   RemoteConnection();
-  ~RemoteConnection() {};
+  ~RemoteConnection(){};
 
-  RemoteConnectionAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int8_t num_remote_access) {
+  RemoteConnectionAlert *allocAlert(HostCheck *c, Host *h,
+                                    risk_percentage cli_pctg,
+                                    u_int8_t num_remote_access) {
     return new RemoteConnectionAlert(c, h, cli_pctg, num_remote_access);
   };
 
   bool loadConfiguration(json_object *config);
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
-  
+
   HostCheckID getID() const { return host_check_remote_connection; }
-  std::string getName()  const { return(std::string("remote_connection")); }
+  std::string getName() const { return (std::string("remote_connection")); }
 };
 
 #endif

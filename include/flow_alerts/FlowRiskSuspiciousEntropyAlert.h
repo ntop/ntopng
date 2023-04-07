@@ -26,18 +26,21 @@
 
 class FlowRiskSuspiciousEntropyAlert : public FlowRiskAlert {
  private:
-
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_SUSPICIOUS_ENTROPY; }
-  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
-  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
+  static FlowAlertType getClassType() {
+    return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk());
+  }
+  static u_int8_t getDefaultScore() {
+    return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
+  }
 
- FlowRiskSuspiciousEntropyAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
-  ~FlowRiskSuspiciousEntropyAlert() { };
+  FlowRiskSuspiciousEntropyAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
+  ~FlowRiskSuspiciousEntropyAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
-  u_int8_t       getAlertScore() const { return getDefaultScore(); }
+  ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
+  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_SUSPICIOUS_ENTROPY_ALERT_H_ */

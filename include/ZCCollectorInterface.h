@@ -34,18 +34,20 @@ class ZCCollectorInterface : public ZMQParserInterface {
   pfring_zc_buffer_pool *zp;
   pfring_zc_pkt_buff *buffer;
   pfring_zc_stat last_pfring_zc_stat;
-  
+
   u_int32_t getNumDroppedPackets();
 
  public:
   ZCCollectorInterface(const char *name);
   ~ZCCollectorInterface();
 
-  virtual InterfaceType getIfType() const { return(interface_type_ZC_FLOW);       };
-  virtual const char* get_type()    const { return(CONST_INTERFACE_TYPE_ZC_FLOW); };
-  virtual bool is_ndpi_enabled() const    { return(false);      };
-  inline void incrDrops(u_int32_t num)    { num_drops += num;   };
-  virtual bool isPacketInterface() const  { return(false);      };
+  virtual InterfaceType getIfType() const { return (interface_type_ZC_FLOW); };
+  virtual const char *get_type() const {
+    return (CONST_INTERFACE_TYPE_ZC_FLOW);
+  };
+  virtual bool is_ndpi_enabled() const { return (false); };
+  inline void incrDrops(u_int32_t num) { num_drops += num; };
+  virtual bool isPacketInterface() const { return (false); };
   void collect_flows();
 
   void startPacketPolling();
@@ -56,4 +58,3 @@ class ZCCollectorInterface : public ZMQParserInterface {
 #endif
 
 #endif /* _ZC_COLLECTOR_INTERFACE_H_ */
-

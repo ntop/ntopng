@@ -30,11 +30,12 @@ class HostAlert;
 class HostAlertableEntity : public AlertableEntity {
  private:
   HostAlertBitmap engaged_alerts_map;
-  
-  HostAlert *engaged_alerts[NUM_DEFINED_HOST_CHECKS]; /* List of engaged alerts for each check */
+
+  HostAlert *engaged_alerts[NUM_DEFINED_HOST_CHECKS]; /* List of engaged alerts
+                                                         for each check */
 
   void clearEngagedAlerts();
-  void luaAlert(lua_State* vm, HostAlert *alert);
+  void luaAlert(lua_State *vm, HostAlert *alert);
 
  public:
   HostAlertableEntity(NetworkInterface *alert_iface, AlertEntity entity);
@@ -42,15 +43,18 @@ class HostAlertableEntity : public AlertableEntity {
 
   bool addEngagedAlert(HostAlert *a);
   bool removeEngagedAlert(HostAlert *a);
-  inline bool isEngagedAlert(HostAlertType alert_id) { return engaged_alerts_map.isSetBit(alert_id.id); }
+  inline bool isEngagedAlert(HostAlertType alert_id) {
+    return engaged_alerts_map.isSetBit(alert_id.id);
+  }
   bool hasCheckEngagedAlert(HostCheckID check_id);
-  inline HostAlert *getCheckEngagedAlert(HostCheckID t) { return engaged_alerts[t]; }
+  inline HostAlert *getCheckEngagedAlert(HostCheckID t) {
+    return engaged_alerts[t];
+  }
   HostAlert *findEngagedAlert(HostAlertType alert_id, HostCheckID check_id);
 
   void countAlerts(grouped_alerts_counters *counters);
-  void getAlerts(lua_State* vm, ScriptPeriodicity p,
-		 AlertType type_filter, AlertLevel severity_filter, AlertRole role_filter,
-		 u_int *idx);
+  void getAlerts(lua_State *vm, ScriptPeriodicity p, AlertType type_filter,
+                 AlertLevel severity_filter, AlertRole role_filter, u_int *idx);
 };
 
 #endif

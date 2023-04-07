@@ -30,15 +30,15 @@ LocalTrafficStats::LocalTrafficStats() {
 
 /* *************************************** */
 
-void LocalTrafficStats::incStats(u_int num_pkts, u_int pkt_len, 
-				 bool localsender, bool localreceiver) {
-  if(localsender) {
-    if(localreceiver)
+void LocalTrafficStats::incStats(u_int num_pkts, u_int pkt_len,
+                                 bool localsender, bool localreceiver) {
+  if (localsender) {
+    if (localreceiver)
       packets.local2local += num_pkts, bytes.local2local += pkt_len;
     else
-      packets.local2remote += num_pkts, bytes.local2remote += pkt_len; 
+      packets.local2remote += num_pkts, bytes.local2remote += pkt_len;
   } else {
-    if(localreceiver)
+    if (localreceiver)
       packets.remote2local += num_pkts, bytes.remote2local += pkt_len;
     else
       packets.remote2remote += num_pkts, bytes.remote2remote += pkt_len;
@@ -47,14 +47,14 @@ void LocalTrafficStats::incStats(u_int num_pkts, u_int pkt_len,
 
 /* *************************************** */
 
-char* LocalTrafficStats::serialize() {
+char *LocalTrafficStats::serialize() {
   json_object *my_object = getJSONObject();
   char *rsp = strdup(json_object_to_json_string(my_object));
 
   /* Free memory */
   json_object_put(my_object);
 
-  return(rsp);
+  return (rsp);
 }
 
 /* ******************************************* */
@@ -62,58 +62,82 @@ char* LocalTrafficStats::serialize() {
 void LocalTrafficStats::deserialize(json_object *o) {
   json_object *obj, *s;
 
-  if(!o) return;
+  if (!o) return;
 
-  if(json_object_object_get_ex(o, "bytes", &s)) {
-    if(json_object_object_get_ex(s, "local2local", &obj)) bytes.local2local = json_object_get_int64(obj);
-    if(json_object_object_get_ex(s, "local2remote", &obj)) bytes.local2remote = json_object_get_int64(obj);
-    if(json_object_object_get_ex(s, "remote2local", &obj)) bytes.remote2local = json_object_get_int64(obj);
-    if(json_object_object_get_ex(s, "remote2remote", &obj)) bytes.remote2remote = json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "bytes", &s)) {
+    if (json_object_object_get_ex(s, "local2local", &obj))
+      bytes.local2local = json_object_get_int64(obj);
+    if (json_object_object_get_ex(s, "local2remote", &obj))
+      bytes.local2remote = json_object_get_int64(obj);
+    if (json_object_object_get_ex(s, "remote2local", &obj))
+      bytes.remote2local = json_object_get_int64(obj);
+    if (json_object_object_get_ex(s, "remote2remote", &obj))
+      bytes.remote2remote = json_object_get_int64(obj);
   }
 
-  if(json_object_object_get_ex(o, "packets", &s)) {
-    if(json_object_object_get_ex(s, "local2local", &obj)) packets.local2local = json_object_get_int64(obj);
-    if(json_object_object_get_ex(s, "local2remote", &obj)) packets.local2remote = json_object_get_int64(obj);
-    if(json_object_object_get_ex(s, "remote2local", &obj)) packets.remote2local = json_object_get_int64(obj);
-    if(json_object_object_get_ex(s, "remote2remote", &obj)) packets.remote2remote = json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "packets", &s)) {
+    if (json_object_object_get_ex(s, "local2local", &obj))
+      packets.local2local = json_object_get_int64(obj);
+    if (json_object_object_get_ex(s, "local2remote", &obj))
+      packets.local2remote = json_object_get_int64(obj);
+    if (json_object_object_get_ex(s, "remote2local", &obj))
+      packets.remote2local = json_object_get_int64(obj);
+    if (json_object_object_get_ex(s, "remote2remote", &obj))
+      packets.remote2remote = json_object_get_int64(obj);
   }
 }
 
 /* ******************************************* */
 
-json_object* LocalTrafficStats::getJSONObject() {
+json_object *LocalTrafficStats::getJSONObject() {
   json_object *my_object;
   json_object *my_stats;
 
   my_object = json_object_new_object();
 
   my_stats = json_object_new_object();
-  if(packets.local2local > 0) json_object_object_add(my_object, "local2local", json_object_new_int64(packets.local2local));
-  if(packets.local2remote > 0) json_object_object_add(my_object, "local2remote", json_object_new_int64(packets.local2remote));
-  if(packets.remote2local > 0) json_object_object_add(my_object, "remote2local", json_object_new_int64(packets.remote2local));
-  if(packets.remote2remote > 0) json_object_object_add(my_object, "remote2remote", json_object_new_int64(packets.remote2remote));
+  if (packets.local2local > 0)
+    json_object_object_add(my_object, "local2local",
+                           json_object_new_int64(packets.local2local));
+  if (packets.local2remote > 0)
+    json_object_object_add(my_object, "local2remote",
+                           json_object_new_int64(packets.local2remote));
+  if (packets.remote2local > 0)
+    json_object_object_add(my_object, "remote2local",
+                           json_object_new_int64(packets.remote2local));
+  if (packets.remote2remote > 0)
+    json_object_object_add(my_object, "remote2remote",
+                           json_object_new_int64(packets.remote2remote));
   json_object_object_add(my_object, "packets", my_stats);
-  
+
   my_stats = json_object_new_object();
-  if(bytes.local2local > 0) json_object_object_add(my_object, "local2local", json_object_new_int64(bytes.local2local));
-  if(bytes.local2remote > 0) json_object_object_add(my_object, "local2remote", json_object_new_int64(bytes.local2remote));
-  if(bytes.remote2local > 0) json_object_object_add(my_object, "remote2local", json_object_new_int64(bytes.remote2local));
-  if(bytes.remote2remote > 0) json_object_object_add(my_object, "remote2remote", json_object_new_int64(bytes.remote2remote));
+  if (bytes.local2local > 0)
+    json_object_object_add(my_object, "local2local",
+                           json_object_new_int64(bytes.local2local));
+  if (bytes.local2remote > 0)
+    json_object_object_add(my_object, "local2remote",
+                           json_object_new_int64(bytes.local2remote));
+  if (bytes.remote2local > 0)
+    json_object_object_add(my_object, "remote2local",
+                           json_object_new_int64(bytes.remote2local));
+  if (bytes.remote2remote > 0)
+    json_object_object_add(my_object, "remote2remote",
+                           json_object_new_int64(bytes.remote2remote));
   json_object_object_add(my_object, "bytes", my_stats);
-  
-  return(my_object);
+
+  return (my_object);
 }
 
 /* ******************************************* */
 
-void LocalTrafficStats::lua(lua_State* vm) {
+void LocalTrafficStats::lua(lua_State *vm) {
   lua_newtable(vm);
-  
+
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "local2local", packets.local2local);
   lua_push_uint64_table_entry(vm, "local2remote", packets.local2remote);
   lua_push_uint64_table_entry(vm, "remote2local", packets.remote2local);
-  lua_push_uint64_table_entry(vm, "remote2remote", packets.remote2remote);  
+  lua_push_uint64_table_entry(vm, "remote2remote", packets.remote2remote);
   lua_pushstring(vm, "packets");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -122,7 +146,7 @@ void LocalTrafficStats::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "local2local", bytes.local2local);
   lua_push_uint64_table_entry(vm, "local2remote", bytes.local2remote);
   lua_push_uint64_table_entry(vm, "remote2local", bytes.remote2local);
-  lua_push_uint64_table_entry(vm, "remote2remote", bytes.remote2remote);  
+  lua_push_uint64_table_entry(vm, "remote2remote", bytes.remote2remote);
   lua_pushstring(vm, "bytes");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

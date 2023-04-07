@@ -29,14 +29,14 @@ TcpPacketStats::TcpPacketStats() {
 
 /* *************************************** */
 
-char* TcpPacketStats::serialize() {
+char *TcpPacketStats::serialize() {
   json_object *my_object = getJSONObject();
   char *rsp = strdup(json_object_to_json_string(my_object));
 
   /* Free memory */
   json_object_put(my_object);
 
-  return(rsp);
+  return (rsp);
 }
 
 /* ******************************************* */
@@ -44,39 +44,58 @@ char* TcpPacketStats::serialize() {
 void TcpPacketStats::deserialize(json_object *o) {
   json_object *obj;
 
-  if(!o) return;
+  if (!o) return;
 
-  if(json_object_object_get_ex(o, "retransmissions", &obj)) pktRetr = json_object_get_int(obj); else pktRetr = 0;
-  if(json_object_object_get_ex(o, "out_of_order", &obj))    pktOOO = json_object_get_int(obj);  else pktOOO = 0;
-  if(json_object_object_get_ex(o, "lost", &obj))            pktLost = json_object_get_int(obj); else pktLost = 0;
-  if(json_object_object_get_ex(o, "keep_alive", &obj))      pktKeepAlive = json_object_get_int(obj); else pktKeepAlive = 0;
+  if (json_object_object_get_ex(o, "retransmissions", &obj))
+    pktRetr = json_object_get_int(obj);
+  else
+    pktRetr = 0;
+  if (json_object_object_get_ex(o, "out_of_order", &obj))
+    pktOOO = json_object_get_int(obj);
+  else
+    pktOOO = 0;
+  if (json_object_object_get_ex(o, "lost", &obj))
+    pktLost = json_object_get_int(obj);
+  else
+    pktLost = 0;
+  if (json_object_object_get_ex(o, "keep_alive", &obj))
+    pktKeepAlive = json_object_get_int(obj);
+  else
+    pktKeepAlive = 0;
 }
 
 /* ******************************************* */
 
-json_object* TcpPacketStats::getJSONObject() {
+json_object *TcpPacketStats::getJSONObject() {
   json_object *my_object;
 
   my_object = json_object_new_object();
 
-  if(pktRetr)      json_object_object_add(my_object, "retransmissions", json_object_new_int64(pktRetr));
-  if(pktOOO)       json_object_object_add(my_object, "out_of_order", json_object_new_int64(pktOOO));
-  if(pktLost)      json_object_object_add(my_object, "lost", json_object_new_int64(pktLost));
-  if(pktKeepAlive) json_object_object_add(my_object, "keep_alive", json_object_new_int64(pktKeepAlive));
-  
-  return(my_object);
+  if (pktRetr)
+    json_object_object_add(my_object, "retransmissions",
+                           json_object_new_int64(pktRetr));
+  if (pktOOO)
+    json_object_object_add(my_object, "out_of_order",
+                           json_object_new_int64(pktOOO));
+  if (pktLost)
+    json_object_object_add(my_object, "lost", json_object_new_int64(pktLost));
+  if (pktKeepAlive)
+    json_object_object_add(my_object, "keep_alive",
+                           json_object_new_int64(pktKeepAlive));
+
+  return (my_object);
 }
 
 /* ******************************************* */
 
-void TcpPacketStats::lua(lua_State* vm, const char *label) {
+void TcpPacketStats::lua(lua_State *vm, const char *label) {
   lua_newtable(vm);
-  
+
   lua_push_uint64_table_entry(vm, "retransmissions", pktRetr);
   lua_push_uint64_table_entry(vm, "out_of_order", pktOOO);
   lua_push_uint64_table_entry(vm, "lost", pktLost);
   lua_push_uint64_table_entry(vm, "keep_alive", pktKeepAlive);
-  
+
   lua_pushstring(vm, label);
   lua_insert(vm, -2);
   lua_settable(vm, -3);

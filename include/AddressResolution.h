@@ -35,7 +35,8 @@ class AddressResolution {
   ~AddressResolution();
 
   void startResolveAddressLoop();
-  void resolveHostName(const char *numeric_ip, char *rsp = NULL, u_int rsp_len = 0);
+  void resolveHostName(const char *numeric_ip, char *rsp = NULL,
+                       u_int rsp_len = 0);
   bool resolveHost(const char *host, char *rsp, u_int rsp_len, bool v4);
 };
 

@@ -23,7 +23,12 @@
 
 /* *************************************** */
 
-ObservationPoint::ObservationPoint(NetworkInterface *_iface, u_int16_t _obs_point) : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface), dirstats(_iface, 0) {
+ObservationPoint::ObservationPoint(NetworkInterface* _iface,
+                                   u_int16_t _obs_point)
+    : GenericHashEntry(_iface),
+      GenericTrafficElement(),
+      Score(_iface),
+      dirstats(_iface, 0) {
   obs_point = _obs_point;
   num_flows = 0;
   delete_requested = false;
@@ -31,22 +36,20 @@ ObservationPoint::ObservationPoint(NetworkInterface *_iface, u_int16_t _obs_poin
   exporter_list = ndpi_bitmap_alloc();
 
 #ifdef OBS_POINT_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Observation Point %s", obs_point);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Observation Point %s",
+                               obs_point);
 #endif
 }
 
 /* *************************************** */
 
-void ObservationPoint::set_hash_entry_state_idle() {
-  ; /* Nothing to do */
-}
+void ObservationPoint::set_hash_entry_state_idle() { ; /* Nothing to do */ }
 
 /* *************************************** */
 
 bool ObservationPoint::is_hash_entry_state_idle_transition_ready() {
   /* Observation points always stay in memory if no delete is requested */
-  if(!remove_entry)
-    return false;
+  if (!remove_entry) return false;
 
   /* Delete requested, purge stats*/
   return true;
@@ -63,16 +66,16 @@ ObservationPoint::~ObservationPoint() {
 
 /* *************************************** */
 
-void ObservationPoint::updateStats(const struct timeval *tv)  {
-  if(!remove_entry)
-    GenericTrafficElement::updateStats(tv);
+void ObservationPoint::updateStats(const struct timeval* tv) {
+  if (!remove_entry) GenericTrafficElement::updateStats(tv);
 }
 
 /* *************************************** */
 
-void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
+void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level,
+                           bool asListElement) {
   /* Security check done to prevent race conditions */
-  if(remove_entry) {
+  if (remove_entry) {
     lua_pushnil(vm);
     return;
   }
@@ -87,7 +90,7 @@ void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level, bool asLis
   lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
   lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 
-  if(details_level >= details_high) {
+  if (details_level >= details_high) {
     dirstats.lua(vm);
     GenericTrafficElement::lua(vm, true); /* Must stay after dirstats */
     lua_push_uint64_table_entry(vm, "seen.first", first_seen);
@@ -96,7 +99,7 @@ void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level, bool asLis
 
     lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
 
-    if(ndpiStats) ndpiStats->lua(iface, vm);
+    if (ndpiStats) ndpiStats->lua(iface, vm);
   }
 
   Score::lua_get_score(vm);
@@ -106,15 +109,16 @@ void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level, bool asLis
 
   lua_newtable(vm);
   ndpi_bitmap_iterator* iterator = ndpi_bitmap_iterator_alloc(exporter_list);
-  while(ndpi_bitmap_iterator_next(iterator, &exporter_ip)) {
+  while (ndpi_bitmap_iterator_next(iterator, &exporter_ip)) {
     char buf[32];
-    lua_push_uint32_table_entry(vm, Utils::intoaV4(exporter_ip, buf, sizeof(buf)), 1);
+    lua_push_uint32_table_entry(
+        vm, Utils::intoaV4(exporter_ip, buf, sizeof(buf)), 1);
   }
   lua_pushstring(vm, "exporter_list");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  if(asListElement) {
+  if (asListElement) {
     lua_pushinteger(vm, obs_point);
     lua_insert(vm, -2);
     lua_settable(vm, -3);

@@ -32,52 +32,55 @@ class ViewInterface : public NetworkInterface {
   SPSCQueue<Flow *> *viewed_interfaces_queues[MAX_NUM_VIEW_INTERFACES];
 
   virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
-			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
-			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
-			ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats,
-			SyslogStats *_syslogStats, RoundTripStats *_downloadStats,
-         RoundTripStats *_uploadStats) const;
+                        LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
+                        PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
+                        ProtoStats *_discardedProbingStats,
+                        DSCPStats *_dscpStats, SyslogStats *_syslogStats,
+                        RoundTripStats *_downloadStats,
+                        RoundTripStats *_uploadStats) const;
 
   bool addSubinterface(NetworkInterface *iface);
 
  public:
   ViewInterface(const char *_endpoint);
   ~ViewInterface();
-  
-  bool walker(u_int32_t *begin_slot,
-	      bool walk_all,
-	      WalkerType wtype,
-	      bool (*walker)(GenericHashEntry *h, void *user_data, bool *matched),
-	      void *user_data);
+
+  bool walker(u_int32_t *begin_slot, bool walk_all, WalkerType wtype,
+              bool (*walker)(GenericHashEntry *h, void *user_data,
+                             bool *matched),
+              void *user_data);
   void viewed_flows_walker(Flow *f, const struct timeval *tv);
-  /* Enqueues a flow to a queue reserved for viewed interface identified by viewed_interface_id */
+  /* Enqueues a flow to a queue reserved for viewed interface identified by
+   * viewed_interface_id */
   bool viewEnqueue(time_t t, Flow *f, u_int8_t viewed_interface_id);
-  /* Dequeues enqueued flows sequentially for each of the viewed interfaces belonging to this view.
-     The total number of elements dequeued is returned. */
+  /* Dequeues enqueued flows sequentially for each of the viewed interfaces
+     belonging to this view. The total number of elements dequeued is returned.
+   */
   u_int64_t viewDequeue(u_int budget);
-  virtual bool areTrafficDirectionsSupported() { return(true); };
-  virtual InterfaceType getIfType() const { return interface_type_VIEW;           };
-  virtual const char* get_type()    const { return CONST_INTERFACE_TYPE_VIEW;     };
-  virtual bool is_ndpi_enabled()    const { return false;                         };
-  virtual bool isPacketInterface()  const { return is_packet_interface;           };
-  virtual bool isSampledTraffic()   const;
+  virtual bool areTrafficDirectionsSupported() { return (true); };
+  virtual InterfaceType getIfType() const { return interface_type_VIEW; };
+  virtual const char *get_type() const { return CONST_INTERFACE_TYPE_VIEW; };
+  virtual bool is_ndpi_enabled() const { return false; };
+  virtual bool isPacketInterface() const { return is_packet_interface; };
+  virtual bool isSampledTraffic() const;
   virtual u_int32_t periodicStatsUpdateFrequency() const;
   void flowPollLoop();
   void startPacketPolling();
-  bool set_packet_filter(char *filter)    { return false ;                        };
+  bool set_packet_filter(char *filter) { return false; };
 
-  AlertsQueue* getAlertsQueue()     const { return alertsQueue;   };
+  AlertsQueue *getAlertsQueue() const { return alertsQueue; };
 
   virtual u_int64_t getNumPackets();
   virtual u_int64_t getNumDroppedAlerts();
   virtual u_int64_t getNumBytes();
-  virtual u_int     getNumPacketDrops();
+  virtual u_int getNumPacketDrops();
   virtual u_int64_t getNumDiscardedProbingPackets() const;
-  virtual u_int64_t getNumDiscardedProbingBytes()   const;
+  virtual u_int64_t getNumDiscardedProbingBytes() const;
   virtual u_int64_t getNumNewFlows();
-  virtual u_int     getNumFlows();
+  virtual u_int getNumFlows();
   virtual u_int64_t getNumActiveAlertedFlows() const;
-  virtual u_int64_t getNumActiveAlertedFlows(AlertLevelGroup alert_level_group) const;
+  virtual u_int64_t getNumActiveAlertedFlows(
+      AlertLevelGroup alert_level_group) const;
 
   virtual u_int64_t getCheckPointNumPackets();
   virtual u_int64_t getCheckPointDroppedAlerts();
@@ -95,18 +98,17 @@ class ViewInterface : public NetworkInterface {
 #endif
 
   virtual u_int32_t getFlowsHashSize();
-  virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts);
-  virtual Flow* findFlowByTuple(u_int16_t vlan_id,
-				u_int16_t observation_domain_id,
-				u_int32_t private_flow_id,
-				Mac *src_mac, Mac *dst_mac,
-  				IpAddress *src_ip,  IpAddress *dst_ip,
-  				u_int16_t src_port, u_int16_t dst_port,
-				u_int8_t l4_proto,
-				AddressTree *allowed_hosts) const;
+  virtual Flow *findFlowByKeyAndHashId(u_int32_t key, u_int hash_id,
+                                       AddressTree *allowed_hosts);
+  virtual Flow *findFlowByTuple(u_int16_t vlan_id,
+                                u_int16_t observation_domain_id,
+                                u_int32_t private_flow_id, Mac *src_mac,
+                                Mac *dst_mac, IpAddress *src_ip,
+                                IpAddress *dst_ip, u_int16_t src_port,
+                                u_int16_t dst_port, u_int8_t l4_proto,
+                                AddressTree *allowed_hosts) const;
   void dumpFlowLoop();
-  virtual void lua_queues_stats(lua_State* vm);
+  virtual void lua_queues_stats(lua_State *vm);
 };
 
 #endif /* _VIEW_INTERFACE_H_ */
-

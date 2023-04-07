@@ -26,11 +26,12 @@
 
 class FifoSerializerQueue : public FifoQueue<ndpi_serializer*> {
  public:
-  FifoSerializerQueue(u_int32_t queue_size) : FifoQueue<ndpi_serializer*>(queue_size) {}
+  FifoSerializerQueue(u_int32_t queue_size)
+      : FifoQueue<ndpi_serializer*>(queue_size) {}
 
   ~FifoSerializerQueue() {
-    while(!q.empty()) {
-      ndpi_serializer *s = q.front();
+    while (!q.empty()) {
+      ndpi_serializer* s = q.front();
 
       q.pop();
       ndpi_term_serializer(s);
@@ -40,24 +41,24 @@ class FifoSerializerQueue : public FifoQueue<ndpi_serializer*> {
 
   bool enqueue(ndpi_serializer* item) {
     bool rv;
-    
+
     m.lock(__FILE__, __LINE__);
 
-    if(canEnqueue()) {
+    if (canEnqueue()) {
       q.push(item);
       rv = true;
     } else {
       rv = false;
     }
 
-    if(rv)
+    if (rv)
       num_enqueued++;
     else
       num_not_enqueued++;
 
     m.unlock(__FILE__, __LINE__);
-    
-    return(rv);
+
+    return (rv);
   }
 };
 

@@ -25,21 +25,27 @@
 class ViewScoreStats : public ScoreStats {
  private:
   Mutex m;
-  u_int32_t cli_dec[MAX_NUM_SCORE_CATEGORIES], srv_dec[MAX_NUM_SCORE_CATEGORIES];
-  
+  u_int32_t cli_dec[MAX_NUM_SCORE_CATEGORIES],
+      srv_dec[MAX_NUM_SCORE_CATEGORIES];
+
  public:
   ViewScoreStats();
-  ~ViewScoreStats() {};
+  ~ViewScoreStats(){};
 
   /* Total Getters */
-  u_int64_t getClient() const { return(sum(cli_score) - sum(cli_dec)); };
-  u_int64_t getServer() const { return(sum(srv_score) - sum(srv_dec)); };
+  u_int64_t getClient() const { return (sum(cli_score) - sum(cli_dec)); };
+  u_int64_t getServer() const { return (sum(srv_score) - sum(srv_dec)); };
 
   /* Getters by category */
-  u_int32_t getClient(ScoreCategory sc) const { return(cli_score[sc] - cli_dec[sc]); };
-  u_int32_t getServer(ScoreCategory sc) const { return(srv_score[sc] - srv_dec[sc]); };
+  u_int32_t getClient(ScoreCategory sc) const {
+    return (cli_score[sc] - cli_dec[sc]);
+  };
+  u_int32_t getServer(ScoreCategory sc) const {
+    return (srv_score[sc] - srv_dec[sc]);
+  };
 
-  u_int16_t decValue(u_int16_t score, ScoreCategory score_category, bool as_client);
+  u_int16_t decValue(u_int16_t score, ScoreCategory score_category,
+                     bool as_client);
 };
 
 #endif

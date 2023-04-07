@@ -36,13 +36,13 @@ typedef struct {
 class ZMQCollectorInterface : public ZMQParserInterface {
  private:
   void *context;
-  std::map<u_int8_t, u_int32_t>source_id_last_msg_id;
+  std::map<u_int8_t, u_int32_t> source_id_last_msg_id;
   bool is_collector;
   u_int16_t num_subscribers;
   zmq_subscriber subscriber[MAX_ZMQ_SUBSCRIBERS];
   char server_public_key[41], server_secret_key[41];
-    
-#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,1,0)
+
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
   char *generateEncryptionKeys();
 #endif
 
@@ -50,22 +50,23 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   ZMQCollectorInterface(const char *_endpoint);
   ~ZMQCollectorInterface();
 
-  virtual const char* get_type()      const { return(CONST_INTERFACE_TYPE_ZMQ);      };
-  inline char* getEndpoint(u_int8_t id)     { return((id < num_subscribers) ?
-						     subscriber[id].endpoint : (char*)""); };
+  virtual const char *get_type() const { return (CONST_INTERFACE_TYPE_ZMQ); };
+  inline char *getEndpoint(u_int8_t id) {
+    return ((id < num_subscribers) ? subscriber[id].endpoint : (char *)"");
+  };
   virtual void checkPointCounters(bool drops_only);
-  virtual bool isPacketInterface() const  { return(false);      };
+  virtual bool isPacketInterface() const { return (false); };
   void collect_flows();
 
-  virtual void purgeIdle(time_t when, bool force_idle = false, bool full_scan = false);
+  virtual void purgeIdle(time_t when, bool force_idle = false,
+                         bool full_scan = false);
 
   void startPacketPolling();
   bool set_packet_filter(char *filter);
-  virtual void lua(lua_State* vm);
-  virtual bool areTrafficDirectionsSupported() { return(true); };
+  virtual void lua(lua_State *vm);
+  virtual bool areTrafficDirectionsSupported() { return (true); };
 };
 
 #endif /* HAVE_NEDGE */
 
 #endif /* _ZMQ_COLLECTOR_INTERFACE_H_ */
-

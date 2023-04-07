@@ -23,43 +23,44 @@
 
 /* ************************************ */
 
-AutonomousSystemHash::AutonomousSystemHash(NetworkInterface *_iface, u_int _num_hashes,
-					   u_int _max_hash_size) :
-  GenericHash(_iface, _num_hashes, _max_hash_size, "AutonomousSystemHash") {
+AutonomousSystemHash::AutonomousSystemHash(NetworkInterface *_iface,
+                                           u_int _num_hashes,
+                                           u_int _max_hash_size)
+    : GenericHash(_iface, _num_hashes, _max_hash_size, "AutonomousSystemHash") {
   ;
 }
 
 /* ************************************ */
 
-AutonomousSystem* AutonomousSystemHash::get(IpAddress *ipa, bool is_inline_call) {
+AutonomousSystem *AutonomousSystemHash::get(IpAddress *ipa,
+                                            bool is_inline_call) {
   u_int32_t asn, hash;
 
-  ntop->getGeolocation()->getAS(ipa, &asn, NULL /* Don't care about AS name here */);
+  ntop->getGeolocation()->getAS(ipa, &asn,
+                                NULL /* Don't care about AS name here */);
   hash = asn;
-  
+
   hash %= num_hashes;
 
-  if(table[hash] == NULL) {
-    return(NULL);
+  if (table[hash] == NULL) {
+    return (NULL);
   } else {
     AutonomousSystem *head;
 
-    if(!is_inline_call)
-      locks[hash]->rdlock(__FILE__, __LINE__);
+    if (!is_inline_call) locks[hash]->rdlock(__FILE__, __LINE__);
 
-    head = (AutonomousSystem*)table[hash];
+    head = (AutonomousSystem *)table[hash];
 
-    while(head != NULL) {
-      if(!head->idle() && head->equal(asn))
-	break;
+    while (head != NULL) {
+      if (!head->idle() && head->equal(asn))
+        break;
       else
-	head = (AutonomousSystem*)head->next();
+        head = (AutonomousSystem *)head->next();
     }
 
-    if(!is_inline_call)
-      locks[hash]->unlock(__FILE__, __LINE__);
+    if (!is_inline_call) locks[hash]->unlock(__FILE__, __LINE__);
 
-    return(head);
+    return (head);
   }
 }
 
@@ -68,14 +69,13 @@ AutonomousSystem* AutonomousSystemHash::get(IpAddress *ipa, bool is_inline_call)
 #ifdef AS_DEBUG
 
 static bool print_ases(GenericHashEntry *_as, void *user_data) {
-  AutonomousSystem *as = (AutonomousSystem*)_as;
+  AutonomousSystem *as = (AutonomousSystem *)_as;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Autonomous System [asn: %u] [asname: %s] [num_uses: %u]",
-			       as->get_asn(),
-			       as->get_asname(),
-			       as->getNumHosts());
-  
-  return(false); /* false = keep on walking */
+  ntop->getTrace()->traceEvent(
+      TRACE_NORMAL, "Autonomous System [asn: %u] [asname: %s] [num_uses: %u]",
+      as->get_asn(), as->get_asname(), as->getNumHosts());
+
+  return (false); /* false = keep on walking */
 }
 
 /* ************************************ */
@@ -84,7 +84,7 @@ void AutonomousSystemHash::printHash() {
   disablePurge();
 
   walk(print_ases, NULL);
-  
+
   enablePurge();
 }
 

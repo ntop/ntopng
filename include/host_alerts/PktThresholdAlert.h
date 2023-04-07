@@ -22,24 +22,25 @@
 #ifndef _PKT_THRESHOLD_ALERT_H_
 #define _PKT_THRESHOLD_ALERT_H_
 
-
 #include "ntop_includes.h"
-
 
 class PktThresholdAlert : public HostAlert {
  private:
   u_int64_t pkt_count, pkt_threshold;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
-  
- public:
-  static HostAlertType getClassType() { return { host_alert_pkt_threshold, alert_category_network }; }
 
-  PktThresholdAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _pkt_count, u_int64_t _pkt_threshold);
-  ~PktThresholdAlert() {};
-  
+ public:
+  static HostAlertType getClassType() {
+    return {host_alert_pkt_threshold, alert_category_network};
+  }
+
+  PktThresholdAlert(HostCheck* c, Host* f, risk_percentage cli_pctg,
+                    u_int64_t _pkt_count, u_int64_t _pkt_threshold);
+  ~PktThresholdAlert(){};
+
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore()     const { return SCORE_LEVEL_ERROR; };
+  u_int8_t getAlertScore() const { return SCORE_LEVEL_ERROR; };
 };
 
 #endif /* _PKT_THRESHOLD_ALERT_H_ */

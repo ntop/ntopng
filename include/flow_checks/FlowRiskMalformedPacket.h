@@ -26,16 +26,25 @@
 
 class FlowRiskMalformedPacket : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskMalformedPacketAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskMalformedPacketAlert::getClassType();
+  }
 
  public:
-  FlowRiskMalformedPacket() : FlowRisk() {};
-  ~FlowRiskMalformedPacket() {};
+  FlowRiskMalformedPacket() : FlowRisk(){};
+  ~FlowRiskMalformedPacket(){};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskMalformedPacketAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskMalformedPacketAlert(this, f);
+  }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskMalformedPacketAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk() { return FlowRiskMalformedPacketAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskMalformedPacketAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskMalformedPacketAlert::getClassRisk();
+  }
 };
 
 #endif

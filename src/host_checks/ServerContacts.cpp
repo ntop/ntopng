@@ -24,7 +24,10 @@
 
 /* ***************************************************** */
 
-ServerContacts::ServerContacts() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
+ServerContacts::ServerContacts()
+    : HostCheck(ntopng_edition_community, false /* All interfaces */,
+                false /* Don't exclude for nEdge */,
+                false /* NOT only for nEdge */) {
   contacts_threshold = (u_int64_t)5;
 };
 
@@ -34,8 +37,11 @@ void ServerContacts::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
   u_int32_t contacted_servers = 0;
 
-  if(((contacted_servers = getContactedServers(h)) > contacts_threshold) && (!isServer(h))) {
-    if (!alert) alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, contacted_servers, contacts_threshold);
+  if (((contacted_servers = getContactedServers(h)) > contacts_threshold) &&
+      (!isServer(h))) {
+    if (!alert)
+      alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE,
+                         contacted_servers, contacts_threshold);
     if (alert) h->triggerAlert(alert);
   }
 }
@@ -44,16 +50,16 @@ void ServerContacts::periodicUpdate(Host *h, HostAlert *engaged_alert) {
 
 bool ServerContacts::loadConfiguration(json_object *config) {
   json_object *json_threshold;
-  
+
   HostCheck::loadConfiguration(config); /* Parse parameters in common */
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json_object_to_json_string(config));
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s",
+  // json_object_to_json_string(config));
 
-  if(json_object_object_get_ex(config, "threshold", &json_threshold))
+  if (json_object_object_get_ex(config, "threshold", &json_threshold))
     contacts_threshold = json_object_get_int64(json_threshold);
 
-  return(true);
+  return (true);
 }
 
 /* ***************************************************** */
-

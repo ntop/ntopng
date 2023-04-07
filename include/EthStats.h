@@ -26,59 +26,76 @@
 
 class EthStats {
  private:
-  ProtoStats rawIngress, rawEgress, eth_IPv4, eth_IPv6, eth_ARP, eth_MPLS, eth_other;
-  ThroughputStats ingress_bytes_thpt, ingress_pkts_thpt, egress_bytes_thpt, egress_pkts_thpt;
+  ProtoStats rawIngress, rawEgress, eth_IPv4, eth_IPv6, eth_ARP, eth_MPLS,
+      eth_other;
+  ThroughputStats ingress_bytes_thpt, ingress_pkts_thpt, egress_bytes_thpt,
+      egress_pkts_thpt;
 
  public:
   EthStats();
 
-  inline ProtoStats* getIPv4Stats()     { return(&eth_IPv4);  };
-  inline ProtoStats* getIPv6Stats()     { return(&eth_IPv6);  };
-  inline ProtoStats* getARPStats()      { return(&eth_ARP);   };
-  inline ProtoStats* getMPLSStats()     { return(&eth_MPLS);  };
-  inline ProtoStats* getEthOtherStats() { return(&eth_other); };
+  inline ProtoStats* getIPv4Stats() { return (&eth_IPv4); };
+  inline ProtoStats* getIPv6Stats() { return (&eth_IPv6); };
+  inline ProtoStats* getARPStats() { return (&eth_ARP); };
+  inline ProtoStats* getMPLSStats() { return (&eth_MPLS); };
+  inline ProtoStats* getEthOtherStats() { return (&eth_other); };
 
-  void lua(lua_State *vm);
-  void updateStats(const struct timeval *tv);
-  void incStats(bool ingressPacket, u_int32_t num_pkts,
-		u_int32_t num_bytes, u_int pkt_overhead);
-  void incProtoStats(u_int16_t proto, u_int32_t num_pkts,
-		     u_int32_t num_bytes);
+  void lua(lua_State* vm);
+  void updateStats(const struct timeval* tv);
+  void incStats(bool ingressPacket, u_int32_t num_pkts, u_int32_t num_bytes,
+                u_int pkt_overhead);
+  void incProtoStats(u_int16_t proto, u_int32_t num_pkts, u_int32_t num_bytes);
 
-  inline void setNumPackets(bool ingressPacket, u_int64_t v) { 
-    if(ingressPacket) rawIngress.setPkts(v); else rawEgress.setPkts(v);   
+  inline void setNumPackets(bool ingressPacket, u_int64_t v) {
+    if (ingressPacket)
+      rawIngress.setPkts(v);
+    else
+      rawEgress.setPkts(v);
   };
 
   inline void setNumBytes(bool ingressPacket, u_int64_t v) {
-    if(ingressPacket) rawIngress.setBytes(v); else rawEgress.setBytes(v); 
+    if (ingressPacket)
+      rawIngress.setBytes(v);
+    else
+      rawEgress.setBytes(v);
   };
 
   inline void incNumPackets(bool ingressPacket, u_int64_t v) {
-    if(ingressPacket) rawIngress.incPkts(v); else rawEgress.incPkts(v);
+    if (ingressPacket)
+      rawIngress.incPkts(v);
+    else
+      rawEgress.incPkts(v);
   }
 
   inline void incNumBytes(bool ingressPacket, u_int64_t v) {
-    if(ingressPacket) rawIngress.incBytes(v); else rawEgress.incBytes(v);
+    if (ingressPacket)
+      rawIngress.incBytes(v);
+    else
+      rawEgress.incBytes(v);
   }
 
-  inline u_int64_t getNumIngressPackets() { return(rawIngress.getPkts());  };
-  inline u_int64_t getNumEgressPackets()  { return(rawEgress.getPkts());   };
-  inline u_int64_t getNumIngressBytes()   { return(rawIngress.getBytes()); };
-  inline u_int64_t getNumEgressBytes()    { return(rawEgress.getBytes());  };
-  inline float getIngressBytesThpt()      { return(ingress_bytes_thpt.getThpt()); };
-  inline float getEgressBytesThpt()       { return(egress_bytes_thpt.getThpt());  };
+  inline u_int64_t getNumIngressPackets() { return (rawIngress.getPkts()); };
+  inline u_int64_t getNumEgressPackets() { return (rawEgress.getPkts()); };
+  inline u_int64_t getNumIngressBytes() { return (rawIngress.getBytes()); };
+  inline u_int64_t getNumEgressBytes() { return (rawEgress.getBytes()); };
+  inline float getIngressBytesThpt() { return (ingress_bytes_thpt.getThpt()); };
+  inline float getEgressBytesThpt() { return (egress_bytes_thpt.getThpt()); };
 
-  inline u_int64_t getNumPackets() { return(rawIngress.getPkts() + rawEgress.getPkts());  };
-  inline u_int64_t getNumBytes()   { return(rawIngress.getBytes() + rawEgress.getBytes()); };
+  inline u_int64_t getNumPackets() {
+    return (rawIngress.getPkts() + rawEgress.getPkts());
+  };
+  inline u_int64_t getNumBytes() {
+    return (rawIngress.getBytes() + rawEgress.getBytes());
+  };
 
-  inline void sum(EthStats *e) const {
+  inline void sum(EthStats* e) const {
     rawIngress.sum(&e->rawIngress), rawEgress.sum(&e->rawEgress),
-      ingress_bytes_thpt.sum(&e->ingress_bytes_thpt),
-      ingress_pkts_thpt.sum(&e->ingress_pkts_thpt),
-      egress_bytes_thpt.sum(&e->egress_bytes_thpt),
-      egress_pkts_thpt.sum(&e->egress_pkts_thpt),
-      eth_IPv4.sum(&e->eth_IPv4), eth_IPv6.sum(&e->eth_IPv6),
-      eth_ARP.sum(&e->eth_ARP), eth_MPLS.sum(&e->eth_MPLS), eth_other.sum(&e->eth_other);
+        ingress_bytes_thpt.sum(&e->ingress_bytes_thpt),
+        ingress_pkts_thpt.sum(&e->ingress_pkts_thpt),
+        egress_bytes_thpt.sum(&e->egress_bytes_thpt),
+        egress_pkts_thpt.sum(&e->egress_pkts_thpt), eth_IPv4.sum(&e->eth_IPv4),
+        eth_IPv6.sum(&e->eth_IPv6), eth_ARP.sum(&e->eth_ARP),
+        eth_MPLS.sum(&e->eth_MPLS), eth_other.sum(&e->eth_other);
   };
 
   /**

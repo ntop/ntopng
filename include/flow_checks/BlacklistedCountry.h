@@ -31,17 +31,20 @@ class BlacklistedCountry : public FlowCheck {
   bool hasBlacklistedCountry(Host *h) const;
 
  public:
-  BlacklistedCountry() : FlowCheck(ntopng_edition_community,
-				      false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-				      true /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};
-  ~BlacklistedCountry() {};
+  BlacklistedCountry()
+      : FlowCheck(ntopng_edition_community, false /* All interfaces */,
+                  false /* Don't exclude for nEdge */,
+                  false /* NOT only for nEdge */,
+                  true /* has_protocol_detected */,
+                  false /* has_periodic_update */, false /* has_flow_end */){};
+  ~BlacklistedCountry(){};
 
   bool loadConfiguration(json_object *config);
 
   void protocolDetected(Flow *f);
   FlowAlert *buildAlert(Flow *f);
 
-  std::string getName() const { return(std::string("country_check")); }
+  std::string getName() const { return (std::string("country_check")); }
 };
 
 #endif /* _BLACKLISTED_COUNTRY_H_ */

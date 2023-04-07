@@ -28,27 +28,28 @@ void RareDestination::protocolDetected(Flow *f) {
   bool is_rare_destination = false;
 
   /* TODO: check if this is a real rare destination */
-  if(f->getFlowServerInfo() != NULL) {
+  if (f->getFlowServerInfo() != NULL) {
 #ifdef TODO_HERE
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination %s", f->getFlowServerInfo());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination %s",
+                                 f->getFlowServerInfo());
     is_rare_destination = true;
 #endif
   }
-  
-  if(is_rare_destination) {
+
+  if (is_rare_destination) {
     FlowAlertType alert_type = RareDestinationAlert::getClassType();
     u_int8_t c_score, s_score;
-    risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE; 
-    
+    risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
+
     computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
-    
+
     f->triggerAlertAsync(alert_type, c_score, s_score);
   }
 }
 
 /* ***************************************************** */
 
-FlowAlert* RareDestination::buildAlert(Flow *f) {
+FlowAlert *RareDestination::buildAlert(Flow *f) {
   return new RareDestinationAlert(this, f);
 }
 

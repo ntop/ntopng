@@ -26,16 +26,25 @@
 
 class FlowRiskRiskyDomain : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskRiskyDomainAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskRiskyDomainAlert::getClassType();
+  }
 
  public:
-  FlowRiskRiskyDomain() {};
-  ~FlowRiskRiskyDomain() {};
+  FlowRiskRiskyDomain(){};
+  ~FlowRiskRiskyDomain(){};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskRiskyDomainAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskRiskyDomainAlert(this, f);
+  }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskRiskyDomainAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskRiskyDomainAlert::getClassRisk(); }
+  std::string getName() const {
+    return (
+        FlowRiskAlerts::getCheckName(FlowRiskRiskyDomainAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskRiskyDomainAlert::getClassRisk();
+  }
 };
 
 #endif

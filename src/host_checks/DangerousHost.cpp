@@ -26,7 +26,9 @@
 
 /* ***************************************************** */
 
-DangerousHost::DangerousHost() : HostCheck(ntopng_edition_community, false /* All interfaces */, true /* Exclude for nEdge */, false /* NOT only for nEdge */) {
+DangerousHost::DangerousHost()
+    : HostCheck(ntopng_edition_community, false /* All interfaces */,
+                true /* Exclude for nEdge */, false /* NOT only for nEdge */) {
   score_threshold = (u_int64_t)-1;
 };
 
@@ -35,15 +37,17 @@ DangerousHost::DangerousHost() : HostCheck(ntopng_edition_community, false /* Al
 void DangerousHost::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
 
-  if(h->getScore() > score_threshold)
+  if (h->getScore() > score_threshold)
     h->incrConsecutiveHighScore();
   else
     h->resetConsecutiveHighScore();
 
-  if(h->getConsecutiveHighScore() > NUM_CONSECUTIVE_CHECKS_BEFORE_ALERTING) {
-    if(!alert) { /* Alert not already triggered */
-      /* Trigger the alert and add the host to the Default nProbe IPS host pool */
-      alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, h->getScore(), h->getConsecutiveHighScore());
+  if (h->getConsecutiveHighScore() > NUM_CONSECUTIVE_CHECKS_BEFORE_ALERTING) {
+    if (!alert) { /* Alert not already triggered */
+      /* Trigger the alert and add the host to the Default nProbe IPS host pool
+       */
+      alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, h->getScore(),
+                         h->getConsecutiveHighScore());
     }
 
 #ifdef NTOPNG_PRO
@@ -53,10 +57,10 @@ void DangerousHost::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     u_int16_t host_pool_id = h->get_host_pool();
 
     /*
-      Save the host based on if we have to serialize by Mac (DHCP) or by IP. The pool addition
-      is deferred because pools reload is a costly operation 
+      Save the host based on if we have to serialize by Mac (DHCP) or by IP. The
+      pool addition is deferred because pools reload is a costly operation
     */
-    if(h->serializeByMac()) {
+    if (h->serializeByMac()) {
       e = h->getMac()->print(buf, sizeof(buf));
 
       /* The MAC as-is */
@@ -65,40 +69,51 @@ void DangerousHost::periodicUpdate(Host *h, HostAlert *engaged_alert) {
       e = h->get_ip()->print(buf, sizeof(buf));
 
       /* For hosts we need to add a VLAN and a subnet */
-      snprintf(host_buf, sizeof(host_buf), "%s/%u@%u",
-	       e,  h->get_ip()->isIPv4() ? 32 : 128, h->get_vlan_id());
+      snprintf(host_buf, sizeof(host_buf), "%s/%u@%u", e,
+               h->get_ip()->isIPv4() ? 32 : 128, h->get_vlan_id());
     }
 
     /*
-      If the host is not already jailed, ADD it to the queue of hosts that will be added to the jail and save its current pool.
-      NOTE: Add to the queue only if the host is not already jailed to avoid extra unnecessry work.
+      If the host is not already jailed, ADD it to the queue of hosts that will
+      be added to the jail and save its current pool. NOTE: Add to the queue
+      only if the host is not already jailed to avoid extra unnecessry work.
      */
-    if(host_pool_id != DROP_HOST_POOL_ID) {
+    if (host_pool_id != DROP_HOST_POOL_ID) {
       ntop->getRedis()->lpush(DROP_TMP_ADD_HOST_LIST, host_buf, 0);
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pushing to jail %s", host_buf);
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pushing to jail %s",
+      // host_buf);
 
-      if(host_pool_id != NO_HOST_POOL_ID) {
-	/* Save it's current pool so it will be restored once freed from the jail. Don't use a TTL. */
-	snprintf(redis_host_key, sizeof(redis_host_key), DROP_HOST_POOL_PRE_JAIL_POOL, host_buf);
-	ntop->getRedis()->set(redis_host_key, std::to_string(host_pool_id).c_str());
+      if (host_pool_id != NO_HOST_POOL_ID) {
+        /* Save it's current pool so it will be restored once freed from the
+         * jail. Don't use a TTL. */
+        snprintf(redis_host_key, sizeof(redis_host_key),
+                 DROP_HOST_POOL_PRE_JAIL_POOL, host_buf);
+        ntop->getRedis()->set(redis_host_key,
+                              std::to_string(host_pool_id).c_str());
 
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remembering old pool %s", host_buf);
+        // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remembering old pool %s",
+        // host_buf);
       }
     }
 
     /*
       Keep the host in jail, refresh it's TTL!
-      NOTE: Refresh is always done, even if the host is already jailed. This is to make sure it will stay
-      in the jail for at least DROP_HOST_POOL_EXPIRATION_TIME.
+      NOTE: Refresh is always done, even if the host is already jailed. This is
+      to make sure it will stay in the jail for at least
+      DROP_HOST_POOL_EXPIRATION_TIME.
     */
-    snprintf(redis_host_key, sizeof(redis_host_key), DROP_HOST_POOL_HOST_IN_JAIL, host_buf);
-    ntop->getRedis()->set(redis_host_key, "1" /* Just a placeholder, TTL is what matters */,  DROP_HOST_POOL_EXPIRATION_TIME);
+    snprintf(redis_host_key, sizeof(redis_host_key),
+             DROP_HOST_POOL_HOST_IN_JAIL, host_buf);
+    ntop->getRedis()->set(redis_host_key,
+                          "1" /* Just a placeholder, TTL is what matters */,
+                          DROP_HOST_POOL_EXPIRATION_TIME);
 
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refreshing TTL %s", redis_host_key);
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refreshing TTL %s",
+    // redis_host_key);
 #endif
-    
+
     /* Refresh the alert */
-    if(alert) h->triggerAlert(alert);
+    if (alert) h->triggerAlert(alert);
   }
 }
 
@@ -109,13 +124,13 @@ bool DangerousHost::loadConfiguration(json_object *config) {
 
   HostCheck::loadConfiguration(config); /* Parse parameters in common */
 
-  if(json_object_object_get_ex(config, "threshold", &json_threshold))
+  if (json_object_object_get_ex(config, "threshold", &json_threshold))
     score_threshold = json_object_get_int64(json_threshold);
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u", json_object_to_json_string(config), p2p_bytes_threshold);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u",
+  // json_object_to_json_string(config), p2p_bytes_threshold);
 
-  return(true);
+  return (true);
 }
 
 /* ***************************************************** */
-

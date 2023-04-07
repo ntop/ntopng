@@ -30,17 +30,17 @@
 /* **************************************** */
 
 SyslogDump::SyslogDump(NetworkInterface *_iface) : DB(_iface) {
-  openlog(NULL        /* If ident is NULL, the program name is used */,
-	  LOG_PID     /* Include PID with each message */
-	  | LOG_CONS  /* Write directly to system console if there is an error while sending to system logger */,
-	  ntop->getPrefs()->get_flows_syslog_facility());
+  openlog(NULL /* If ident is NULL, the program name is used */,
+          LOG_PID        /* Include PID with each message */
+              | LOG_CONS /* Write directly to system console if there is an
+                            error while sending to system logger */
+          ,
+          ntop->getPrefs()->get_flows_syslog_facility());
 }
 
 /* **************************************** */
 
-SyslogDump::~SyslogDump() {
-  closelog();
-}
+SyslogDump::~SyslogDump() { closelog(); }
 
 /* **************************************** */
 
@@ -49,12 +49,12 @@ bool SyslogDump::dumpFlow(time_t when, Flow *f, char *msg) {
 
   /*
     syslog() returns void, always assumes success.
-    In case of errors when sending to the logger, msg is printed directly to console
-    as LOG_CONS is specified with openlog()
+    In case of errors when sending to the logger, msg is printed directly to
+    console as LOG_CONS is specified with openlog()
   */
   incNumExportedFlows();
 
-  return(true); /* OK */
+  return (true); /* OK */
 }
 
 #endif /* WIN32 */

@@ -26,16 +26,25 @@
 
 class FlowRiskMaliciousSHA1Certificate : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskMaliciousSHA1CertificateAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskMaliciousSHA1CertificateAlert::getClassType();
+  }
 
  public:
-  FlowRiskMaliciousSHA1Certificate() {};
-  ~FlowRiskMaliciousSHA1Certificate() {};
+  FlowRiskMaliciousSHA1Certificate(){};
+  ~FlowRiskMaliciousSHA1Certificate(){};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskMaliciousSHA1CertificateAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskMaliciousSHA1CertificateAlert(this, f);
+  }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskMaliciousSHA1CertificateAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskMaliciousSHA1CertificateAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskMaliciousSHA1CertificateAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskMaliciousSHA1CertificateAlert::getClassRisk();
+  }
 };
 
 #endif /* _FLOW_RISK_MALICIOUS_SHA1_CERTIFICATE_H_ */

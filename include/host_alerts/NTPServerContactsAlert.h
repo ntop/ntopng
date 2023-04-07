@@ -22,19 +22,19 @@
 #ifndef _NTP_SERVER_CONTACTS_ALERT_H_
 #define _NTP_SERVER_CONTACTS_ALERT_H_
 
-
 #include "ntop_includes.h"
 
-
-class NTPServerContactsAlert : public  ServerContactsAlert {
+class NTPServerContactsAlert : public ServerContactsAlert {
  private:
-  
  public:
-  static HostAlertType getClassType() { return { host_alert_ntp_server_contacts, alert_category_security }; }
+  static HostAlertType getClassType() {
+    return {host_alert_ntp_server_contacts, alert_category_security};
+  }
 
-  NTPServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _contacts, u_int64_t _contacts_threshold);
-  ~NTPServerContactsAlert() {};
-  
+  NTPServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
+                         u_int64_t _contacts, u_int64_t _contacts_threshold);
+  ~NTPServerContactsAlert(){};
+
   HostAlertType getAlertType() const { return getClassType(); }
 };
 

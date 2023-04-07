@@ -36,12 +36,12 @@ class Fingerprint {
   std::map<std::string /* fingerprint */, FingerprintStats> fp;
 
   void prune();
-  
+
  public:
   Fingerprint() { ; }
 
   void update(const char *fp, const char *app_name, bool is_malicious);
-  void lua(const char *key, lua_State* vm);
+  void lua(const char *key, lua_State *vm);
 };
 
 #endif /* _FINGERPRINT_H_ */

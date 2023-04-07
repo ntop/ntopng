@@ -23,20 +23,23 @@
 
 /* ***************************************************** */
 
-ServerContactsAlert::ServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _contacts, u_int64_t _contacts_threshold) : HostAlert(c, f, cli_pctg) {
-  contacts = _contacts,
-    contacts_threshold = _contacts_threshold;
+ServerContactsAlert::ServerContactsAlert(HostCheck* c, Host* f,
+                                         risk_percentage cli_pctg,
+                                         u_int64_t _contacts,
+                                         u_int64_t _contacts_threshold)
+    : HostAlert(c, f, cli_pctg) {
+  contacts = _contacts, contacts_threshold = _contacts_threshold;
 };
 
 /* ***************************************************** */
 
-ndpi_serializer* ServerContactsAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
+ndpi_serializer* ServerContactsAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  if (serializer == NULL) return NULL;
 
   ndpi_serialize_string_uint64(serializer, "value", contacts);
   ndpi_serialize_string_uint64(serializer, "threshold", contacts_threshold);
-  
+
   return serializer;
 }
 

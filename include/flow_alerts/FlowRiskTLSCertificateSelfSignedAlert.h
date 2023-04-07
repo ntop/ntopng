@@ -26,19 +26,26 @@
 
 class FlowRiskTLSCertificateSelfSignedAlert : public FlowRiskAlert {
  private:
-  ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
+  ndpi_serializer *getAlertJSON(ndpi_serializer *serializer);
 
  public:
-  static ndpi_risk_enum getClassRisk() { return NDPI_TLS_SELFSIGNED_CERTIFICATE; }
-  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
-  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
+  static ndpi_risk_enum getClassRisk() {
+    return NDPI_TLS_SELFSIGNED_CERTIFICATE;
+  }
+  static FlowAlertType getClassType() {
+    return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk());
+  }
+  static u_int8_t getDefaultScore() {
+    return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
+  }
 
- FlowRiskTLSCertificateSelfSignedAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) {};
-  ~FlowRiskTLSCertificateSelfSignedAlert() { };
+  FlowRiskTLSCertificateSelfSignedAlert(FlowCheck *c, Flow *f)
+      : FlowRiskAlert(c, f){};
+  ~FlowRiskTLSCertificateSelfSignedAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
-  u_int8_t       getAlertScore() const { return getDefaultScore(); }
+  ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
+  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_TLS_CERTIFICATE_SELFSIGNED_ALERT_H_ */

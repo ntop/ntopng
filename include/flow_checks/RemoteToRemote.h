@@ -26,17 +26,19 @@
 
 class RemoteToRemote : public FlowCheck {
  private:
-  
  public:
- RemoteToRemote() : FlowCheck(ntopng_edition_community,
-				 false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-				 true /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};
-  ~RemoteToRemote() {};
+  RemoteToRemote()
+      : FlowCheck(ntopng_edition_community, false /* All interfaces */,
+                  false /* Don't exclude for nEdge */,
+                  false /* NOT only for nEdge */,
+                  true /* has_protocol_detected */,
+                  false /* has_periodic_update */, false /* has_flow_end */){};
+  ~RemoteToRemote(){};
 
   void protocolDetected(Flow *f);
   FlowAlert *buildAlert(Flow *f);
-  
-  std::string getName()        const { return(std::string("remote_to_remote")); }
+
+  std::string getName() const { return (std::string("remote_to_remote")); }
 };
 
 #endif /* _REMOTE_TO_REMOTE_H_ */

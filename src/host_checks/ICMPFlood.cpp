@@ -27,13 +27,15 @@
 void ICMPFlood::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   u_int16_t hits = 0;
 
-  if((hits = h->icmp_flood_attacker_hits()) > threshold) 
-    triggerFlowHitsAlert(h, engaged_alert, true, hits, threshold, CLIENT_FULL_RISK_PERCENTAGE);
-  else if((hits = h->icmp_flood_victim_hits()) > threshold) 
-     triggerFlowHitsAlert(h, engaged_alert, false, hits, threshold, CLIENT_NO_RISK_PERCENTAGE);
+  if ((hits = h->icmp_flood_attacker_hits()) > threshold)
+    triggerFlowHitsAlert(h, engaged_alert, true, hits, threshold,
+                         CLIENT_FULL_RISK_PERCENTAGE);
+  else if ((hits = h->icmp_flood_victim_hits()) > threshold)
+    triggerFlowHitsAlert(h, engaged_alert, false, hits, threshold,
+                         CLIENT_NO_RISK_PERCENTAGE);
 
   /* Reset counters once done */
-  h->reset_icmp_flood_hits();  
+  h->reset_icmp_flood_hits();
 }
 
 /* ***************************************************** */

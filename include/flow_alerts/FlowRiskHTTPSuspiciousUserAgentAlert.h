@@ -26,16 +26,23 @@
 
 class FlowRiskHTTPSuspiciousUserAgentAlert : public FlowRiskAlert {
  public:
-  static ndpi_risk_enum getClassRisk() { return NDPI_HTTP_SUSPICIOUS_USER_AGENT; }
-  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
-  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
+  static ndpi_risk_enum getClassRisk() {
+    return NDPI_HTTP_SUSPICIOUS_USER_AGENT;
+  }
+  static FlowAlertType getClassType() {
+    return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk());
+  }
+  static u_int8_t getDefaultScore() {
+    return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
+  }
 
- FlowRiskHTTPSuspiciousUserAgentAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
-  ~FlowRiskHTTPSuspiciousUserAgentAlert() { };
+  FlowRiskHTTPSuspiciousUserAgentAlert(FlowCheck *c, Flow *f)
+      : FlowRiskAlert(c, f){};
+  ~FlowRiskHTTPSuspiciousUserAgentAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
-  u_int8_t       getAlertScore() const { return getDefaultScore(); }
+  ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
+  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_HTTP_SUSPICIOUS_USER_AGENT_ALERT_H_ */

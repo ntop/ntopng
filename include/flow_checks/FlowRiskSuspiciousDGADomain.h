@@ -26,20 +26,28 @@
 
 class FlowRiskSuspiciousDGADomain : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskSuspiciousDGADomainAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskSuspiciousDGADomainAlert::getClassType();
+  }
 
  public:
-  FlowRiskSuspiciousDGADomain() : FlowRisk() {};
-  ~FlowRiskSuspiciousDGADomain() {};
+  FlowRiskSuspiciousDGADomain() : FlowRisk(){};
+  ~FlowRiskSuspiciousDGADomain(){};
 
-  FlowAlert *buildAlert(Flow *f)  {
-    FlowRiskSuspiciousDGADomainAlert *alert = new FlowRiskSuspiciousDGADomainAlert(this, f);
+  FlowAlert *buildAlert(Flow *f) {
+    FlowRiskSuspiciousDGADomainAlert *alert =
+        new FlowRiskSuspiciousDGADomainAlert(this, f);
     alert->setCliAttacker();
     return alert;
   }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskSuspiciousDGADomainAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskSuspiciousDGADomainAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskSuspiciousDGADomainAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskSuspiciousDGADomainAlert::getClassRisk();
+  }
 };
 
 #endif

@@ -26,18 +26,21 @@
 
 class FlowRiskDNSFragmentedAlert : public FlowRiskAlert {
  private:
-
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_DNS_FRAGMENTED; }
-  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
-  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
+  static FlowAlertType getClassType() {
+    return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk());
+  }
+  static u_int8_t getDefaultScore() {
+    return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
+  }
 
- FlowRiskDNSFragmentedAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
-  ~FlowRiskDNSFragmentedAlert() { };
+  FlowRiskDNSFragmentedAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
+  ~FlowRiskDNSFragmentedAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
-  u_int8_t       getAlertScore() const { return getDefaultScore(); }
+  ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
+  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_DNS_FRAGMENTED_ALERT_H_ */

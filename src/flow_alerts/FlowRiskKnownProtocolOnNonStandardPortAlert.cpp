@@ -21,14 +21,13 @@
 
 #include "flow_alerts_includes.h"
 
-ndpi_serializer* FlowRiskKnownProtocolOnNonStandardPortAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow *f = getFlow();
+ndpi_serializer* FlowRiskKnownProtocolOnNonStandardPortAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow* f = getFlow();
 
-  if(serializer == NULL)
-    return NULL;
+  if (serializer == NULL) return NULL;
 
   f->getInfo(serializer);
 
   return serializer;
 }
-

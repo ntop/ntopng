@@ -24,7 +24,6 @@
 
 /* ***************************************************** */
 
-SMTPServerContacts::SMTPServerContacts() : ServerContacts() {
-}
+SMTPServerContacts::SMTPServerContacts() : ServerContacts() {}
 
 /* ***************************************************** */

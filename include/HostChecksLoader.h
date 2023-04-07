@@ -26,20 +26,21 @@
 
 class HostChecksLoader : public ChecksLoader {
  private:
-  /* These are check instances, that is classes instantiated at runtime each one with a given configuration */
+  /* These are check instances, that is classes instantiated at runtime each one
+   * with a given configuration */
   std::map<std::string, HostCheck*> cb_all; /* All the checks instantiated */
 
   void registerChecks();
   void loadConfiguration();
-  void registerCheck(HostCheck *cb);
-  
+  void registerCheck(HostCheck* cb);
+
  public:
   HostChecksLoader();
   virtual ~HostChecksLoader();
 
   void printChecks();
 
-  std::list<HostCheck*>* getChecks(NetworkInterface *iface);
+  std::list<HostCheck*>* getChecks(NetworkInterface* iface);
   bool luaCheckInfo(lua_State* vm, std::string check_name) const;
 };
 

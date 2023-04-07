@@ -26,53 +26,48 @@
 
 /* NOTE: keep in sync with ParserInterface::processFlow() */
 bool FlowRisk::ignoreRisk(Flow *f, ndpi_risk_enum r) {
-  switch(r) {
-  case NDPI_TLS_SELFSIGNED_CERTIFICATE:
-    {
+  switch (r) {
+    case NDPI_TLS_SELFSIGNED_CERTIFICATE: {
       ndpi_risk_params params[] = {
-	{ NDPI_PARAM_ISSUER_DN, f->getTLSCertificateIssuerDN() }
-      };
-      
-      if(ndpi_check_flow_risk_exceptions(f->getInterface()->get_ndpi_struct(), 1, params))
-	return(true);
-    }
-    break;
+          {NDPI_PARAM_ISSUER_DN, f->getTLSCertificateIssuerDN()}};
 
-  case NDPI_SUSPICIOUS_DGA_DOMAIN:
-    {
-      ndpi_risk_params params[] = {
-	{ NDPI_PARAM_HOSTNAME, f->getDGADomain() }
-      };
-      
-      if(ndpi_check_flow_risk_exceptions(f->getInterface()->get_ndpi_struct(), 1, params))
-	return(true);
-    }
-    break;
-    
-  default:
-    break;
+      if (ndpi_check_flow_risk_exceptions(f->getInterface()->get_ndpi_struct(),
+                                          1, params))
+        return (true);
+    } break;
+
+    case NDPI_SUSPICIOUS_DGA_DOMAIN: {
+      ndpi_risk_params params[] = {{NDPI_PARAM_HOSTNAME, f->getDGADomain()}};
+
+      if (ndpi_check_flow_risk_exceptions(f->getInterface()->get_ndpi_struct(),
+                                          1, params))
+        return (true);
+    } break;
+
+    default:
+      break;
   }
-  
-  return(false);
+
+  return (false);
 }
 
 /* ***************************************************** */
 
 void FlowRisk::protocolDetected(Flow *f) {
   ndpi_risk_enum r = handledRisk();
-  
-  if(f->hasRisk(r)) {
+
+  if (f->hasRisk(r)) {
     u_int16_t cli_score, srv_score;
     ndpi_risk risk_bitmap;
 
     /* Check exceptions for ZMQ-delivered flows */
-    if(f->getInterface()->getIfType() == interface_type_ZMQ) {
-      if(ignoreRisk(f, r)) {
+    if (f->getInterface()->getIfType() == interface_type_ZMQ) {
+      if (ignoreRisk(f, r)) {
         f->clearRisks();
         return;
       }
     }
-    
+
     risk_bitmap = 0;
     NDPI_SET_BIT(risk_bitmap, r);
 

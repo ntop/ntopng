@@ -26,16 +26,25 @@
 
 class FlowRiskDNSLargePacket : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskDNSLargePacketAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskDNSLargePacketAlert::getClassType();
+  }
 
  public:
-  FlowRiskDNSLargePacket() : FlowRisk() {};
-  ~FlowRiskDNSLargePacket() {};
+  FlowRiskDNSLargePacket() : FlowRisk(){};
+  ~FlowRiskDNSLargePacket(){};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskDNSLargePacketAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskDNSLargePacketAlert(this, f);
+  }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskDNSLargePacketAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskDNSLargePacketAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskDNSLargePacketAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskDNSLargePacketAlert::getClassRisk();
+  }
 };
 
 #endif

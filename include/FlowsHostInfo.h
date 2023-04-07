@@ -27,21 +27,18 @@
 /* *************************************** */
 
 class FlowsHostInfo {
-private:
+ private:
   IpAddress* ip;
   Host* host;
 
-public:
-  FlowsHostInfo(IpAddress* _ip, Host* _host) {
-    ip = _ip, host = _host;
-  }
+ public:
+  FlowsHostInfo(IpAddress* _ip, Host* _host) { ip = _ip, host = _host; }
 
   char* getIP(char* buf, u_int len);
   char* getHostName(char* buf, u_int len);
   char* getIPHex(char* buf, u_int len);
-  bool  isHostInMem();
-  u_int16_t getVLANId(); 
+  bool isHostInMem();
+  u_int16_t getVLANId();
 };
-
 
 #endif /* _FLOWS_HOST_INFO_H_ */

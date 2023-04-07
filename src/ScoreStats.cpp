@@ -25,7 +25,7 @@
 
 ScoreStats::ScoreStats() {
   memset(&cli_score, 0, sizeof(cli_score)),
-    memset(&srv_score, 0, sizeof(srv_score));
+      memset(&srv_score, 0, sizeof(srv_score));
 }
 
 /* *************************************** */
@@ -33,8 +33,7 @@ ScoreStats::ScoreStats() {
 u_int64_t ScoreStats::sum(u_int32_t const scores[]) {
   u_int64_t res = 0;
 
-  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++)
-    res += scores[i];
+  for (int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) res += scores[i];
 
   return res;
 };
@@ -42,10 +41,12 @@ u_int64_t ScoreStats::sum(u_int32_t const scores[]) {
 /* *************************************** */
 
 /*
-  Increases a value for the `score_category` score by `score`. Client/server score is increased,
-  according to parameter `as_client`. The actual increment performed is returned by the function.
+  Increases a value for the `score_category` score by `score`. Client/server
+  score is increased, according to parameter `as_client`. The actual increment
+  performed is returned by the function.
 */
-u_int16_t ScoreStats::incValue(u_int32_t scores[], u_int16_t score, ScoreCategory score_category) {
+u_int16_t ScoreStats::incValue(u_int32_t scores[], u_int16_t score,
+                               ScoreCategory score_category) {
   scores[score_category] += score;
 
   return score;
@@ -54,10 +55,12 @@ u_int16_t ScoreStats::incValue(u_int32_t scores[], u_int16_t score, ScoreCategor
 /* *************************************** */
 
 /*
-  Decreases a value for the `score_category` score by `score`. Client/server score is decreased,
-  according to parameter `as_client`. The actual decrement performed is returned by the function.
+  Decreases a value for the `score_category` score by `score`. Client/server
+  score is decreased, according to parameter `as_client`. The actual decrement
+  performed is returned by the function.
 */
-u_int16_t ScoreStats::decValue(u_int32_t scores[], u_int16_t score, ScoreCategory score_category) {
+u_int16_t ScoreStats::decValue(u_int32_t scores[], u_int16_t score,
+                               ScoreCategory score_category) {
   scores[score_category] -= score;
 
   return score;
@@ -65,14 +68,18 @@ u_int16_t ScoreStats::decValue(u_int32_t scores[], u_int16_t score, ScoreCategor
 
 /* *************************************** */
 
-u_int16_t ScoreStats::incValue(u_int16_t score, ScoreCategory score_category, bool as_client) {
-  return as_client ? incValue(cli_score, score, score_category) : incValue(srv_score, score, score_category);
+u_int16_t ScoreStats::incValue(u_int16_t score, ScoreCategory score_category,
+                               bool as_client) {
+  return as_client ? incValue(cli_score, score, score_category)
+                   : incValue(srv_score, score, score_category);
 }
 
 /* *************************************** */
 
-u_int16_t ScoreStats::decValue(u_int16_t score, ScoreCategory score_category, bool as_client) {
-  return as_client ? decValue(cli_score, score, score_category) : decValue(srv_score, score, score_category);
+u_int16_t ScoreStats::decValue(u_int16_t score, ScoreCategory score_category,
+                               bool as_client) {
+  return as_client ? decValue(cli_score, score, score_category)
+                   : decValue(srv_score, score, score_category);
 }
 
 /* *************************************** */
@@ -80,19 +87,22 @@ u_int16_t ScoreStats::decValue(u_int16_t score, ScoreCategory score_category, bo
 void ScoreStats::lua_breakdown(lua_State *vm, bool as_client) {
   u_int32_t total = as_client ? getClient() : getServer();
 
-  if(total == 0) total = 1; /* Prevents zero-division errors */
+  if (total == 0) total = 1; /* Prevents zero-division errors */
 
   lua_newtable(vm);
 
-  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+  for (int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
     ScoreCategory score_category = (ScoreCategory)i;
 
     lua_pushinteger(vm, i); /* The integer category id as key */
-    lua_pushnumber(vm, (as_client ? getClient(score_category) : getServer(score_category)) / (float)total * 100); /* The % as value */
+    lua_pushnumber(vm, (as_client ? getClient(score_category)
+                                  : getServer(score_category)) /
+                           (float)total * 100); /* The % as value */
     lua_settable(vm, -3);
   }
 
-  lua_pushstring(vm, as_client ? "score_breakdown_client" : "score_breakdown_server");
+  lua_pushstring(
+      vm, as_client ? "score_breakdown_client" : "score_breakdown_server");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
@@ -105,7 +115,7 @@ void ScoreStats::lua_breakdown(lua_State *vm, bool as_client) {
 void ScoreStats::lua_breakdown(lua_State *vm) {
   lua_newtable(vm);
 
-  lua_breakdown(vm, true  /* as client */);
+  lua_breakdown(vm, true /* as client */);
   lua_breakdown(vm, false /* as server */);
 
   lua_pushstring(vm, "score_pct");
@@ -119,28 +129,32 @@ void ScoreStats::lua_breakdown(lua_State *vm) {
   Serialize for client and server per-category score breakdown.
   Used by ScoreAnomalyAlert.h
 */
-void ScoreStats::serialize_breakdown(ndpi_serializer* serializer) {
+void ScoreStats::serialize_breakdown(ndpi_serializer *serializer) {
   u_int32_t total = getClient();
 
-  if(total == 0) total = 1; /* Prevents zero-division errors */
+  if (total == 0) total = 1; /* Prevents zero-division errors */
 
   /* Client breakdown score value per category */
-  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+  for (int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
     ScoreCategory score_category = (ScoreCategory)i;
     std::string score_cat = "score_breakdown_client_" + std::to_string(i);
-  
-    ndpi_serialize_string_uint64(serializer, score_cat.c_str(), getClient(score_category) / (float)total * 100);
+
+    ndpi_serialize_string_uint64(
+        serializer, score_cat.c_str(),
+        getClient(score_category) / (float)total * 100);
   }
 
   /* Server breakdown score value per category */
   total = getServer();
 
-  if(total == 0) total = 1; /* Prevents zero-division errors */
+  if (total == 0) total = 1; /* Prevents zero-division errors */
 
-  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+  for (int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
     ScoreCategory score_category = (ScoreCategory)i;
     std::string score_cat = "score_breakdown_server_" + std::to_string(i);
-  
-    ndpi_serialize_string_uint64(serializer, score_cat.c_str(), getServer(score_category) / (float)total * 100);
+
+    ndpi_serialize_string_uint64(
+        serializer, score_cat.c_str(),
+        getServer(score_category) / (float)total * 100);
   }
 }

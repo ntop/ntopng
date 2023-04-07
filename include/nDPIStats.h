@@ -24,7 +24,8 @@
 
 #include "ntop_includes.h"
 
-#define MAX_NDPI_PROTOS       (NDPI_MAX_SUPPORTED_PROTOCOLS + NDPI_MAX_NUM_CUSTOM_PROTOCOLS + 1)
+#define MAX_NDPI_PROTOS \
+  (NDPI_MAX_SUPPORTED_PROTOCOLS + NDPI_MAX_NUM_CUSTOM_PROTOCOLS + 1)
 
 /* *************************************** */
 
@@ -34,13 +35,15 @@ typedef struct {
 
 typedef struct {
   TrafficCounter packets, bytes;
-  u_int32_t duration /* sec */, last_epoch_update; /* useful to avoid multiple updates */
+  u_int32_t duration /* sec */,
+      last_epoch_update; /* useful to avoid multiple updates */
   u_int32_t total_flows;
 } ProtoCounter;
 
 typedef struct {
   TrafficCounter bytes;
-  u_int32_t duration /* sec */, last_epoch_update; /* useful to avoid multiple updates */
+  u_int32_t duration /* sec */,
+      last_epoch_update; /* useful to avoid multiple updates */
 } CategoryCounter;
 
 class NetworkInterface;
@@ -56,60 +59,64 @@ class nDPIStats {
 #endif
   ProtoCounter *counters[MAX_NDPI_PROTOS];
   ThroughputStats **bytes_thpt;
-  /* NOTE: category counters are not dumped to redis right now, they are only used internally */
+  /* NOTE: category counters are not dumped to redis right now, they are only
+   * used internally */
   CategoryCounter cat_counters[NDPI_PROTOCOL_NUM_CATEGORIES];
 
  public:
-  nDPIStats(bool enable_throughput_stats = false, bool enable_behavior_stats = false);
+  nDPIStats(bool enable_throughput_stats = false,
+            bool enable_behavior_stats = false);
   nDPIStats(const nDPIStats &stats);
   ~nDPIStats();
 
   void updateStats(const struct timeval *tv);
 
-  void incStats(u_int32_t when, u_int16_t proto_id,
-		u_int64_t sent_packets, u_int64_t sent_bytes,
-		u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
+  void incStats(u_int32_t when, u_int16_t proto_id, u_int64_t sent_packets,
+                u_int64_t sent_bytes, u_int64_t rcvd_packets,
+                u_int64_t rcvd_bytes);
 
   void incCategoryStats(u_int32_t when, ndpi_protocol_category_t category_id,
-          u_int64_t sent_bytes, u_int64_t rcvd_bytes);
+                        u_int64_t sent_bytes, u_int64_t rcvd_bytes);
 
   void incFlowsStats(u_int16_t proto_id);
 
   void print(NetworkInterface *iface);
-  void lua(NetworkInterface *iface, lua_State* vm, bool with_categories = false, bool tsLua = false, bool diff = false);
-  char* serialize(NetworkInterface *iface);
-  json_object* getJSONObject(NetworkInterface *iface);
+  void lua(NetworkInterface *iface, lua_State *vm, bool with_categories = false,
+           bool tsLua = false, bool diff = false);
+  char *serialize(NetworkInterface *iface);
+  json_object *getJSONObject(NetworkInterface *iface);
   void deserialize(NetworkInterface *iface, json_object *o);
   void sum(nDPIStats *s) const;
 
-  inline u_int64_t getProtoBytes(u_int16_t proto_id) { 
-    if((proto_id < MAX_NDPI_PROTOS) && counters[proto_id]) {
+  inline u_int64_t getProtoBytes(u_int16_t proto_id) {
+    if ((proto_id < MAX_NDPI_PROTOS) && counters[proto_id]) {
       TrafficCounter *tc = &counters[proto_id]->bytes;
 
-      return(tc ? tc->sent+tc->rcvd : 0);
-    } else 
-      return(0); 
+      return (tc ? tc->sent + tc->rcvd : 0);
+    } else
+      return (0);
   }
 
   inline u_int32_t getProtoDuration(u_int16_t proto_id) {
-    if((proto_id < MAX_NDPI_PROTOS) && counters[proto_id])
+    if ((proto_id < MAX_NDPI_PROTOS) && counters[proto_id])
       return counters[proto_id]->duration;
     else
-      return(0);
+      return (0);
   }
 
   inline u_int64_t getCategoryBytes(ndpi_protocol_category_t category_id) {
     if (category_id < NDPI_PROTOCOL_NUM_CATEGORIES)
-      return(cat_counters[category_id].bytes.sent + cat_counters[category_id].bytes.rcvd);
+      return (cat_counters[category_id].bytes.sent +
+              cat_counters[category_id].bytes.rcvd);
     else
-      return(0);
+      return (0);
   }
 
   inline u_int32_t getCategoryDuration(ndpi_protocol_category_t category_id) {
     if (category_id < NDPI_PROTOCOL_NUM_CATEGORIES)
-      return(cat_counters[category_id].duration);
+      return (cat_counters[category_id].duration);
     else
-      return(0);
+      return (0);
   }
 
   void resetStats();

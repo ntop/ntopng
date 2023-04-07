@@ -24,7 +24,10 @@
 
 /* ***************************************************** */
 
-PktThreshold::PktThreshold() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
+PktThreshold::PktThreshold()
+    : HostCheck(ntopng_edition_community, false /* All interfaces */,
+                false /* Don't exclude for nEdge */,
+                false /* NOT only for nEdge */) {
   pkt_threshold = (u_int64_t)-1;
 };
 
@@ -35,9 +38,11 @@ void PktThreshold::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   u_int64_t pkt_total = h->getNumPktsSent() + h->getNumPktsRcvd();
   u_int64_t delta;
 
-  if((delta = h->cb_status_delta_pkt_counter(pkt_total)) > pkt_threshold) {
-    if(!alert) alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, delta, pkt_threshold);
-    if(alert) h->triggerAlert(alert);
+  if ((delta = h->cb_status_delta_pkt_counter(pkt_total)) > pkt_threshold) {
+    if (!alert)
+      alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, delta,
+                         pkt_threshold);
+    if (alert) h->triggerAlert(alert);
   }
 }
 
@@ -48,13 +53,13 @@ bool PktThreshold::loadConfiguration(json_object *config) {
 
   HostCheck::loadConfiguration(config); /* Parse parameters in common */
 
-  if(json_object_object_get_ex(config, "threshold", &json_threshold))
+  if (json_object_object_get_ex(config, "threshold", &json_threshold))
     pkt_threshold = json_object_get_int64(json_threshold);
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u", json_object_to_json_string(config), pkt_threshold);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u",
+  // json_object_to_json_string(config), pkt_threshold);
 
-  return(true);
+  return (true);
 }
 
 /* ***************************************************** */
-

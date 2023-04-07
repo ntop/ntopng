@@ -21,12 +21,13 @@
 
 #include "flow_alerts_includes.h"
 
-ndpi_serializer* RareDestinationAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow *f = getFlow();
-  
-  if(serializer)
-    ndpi_serialize_string_string(serializer, "destination", f->getFlowServerInfo());  
+ndpi_serializer* RareDestinationAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow* f = getFlow();
+
+  if (serializer)
+    ndpi_serialize_string_string(serializer, "destination",
+                                 f->getFlowServerInfo());
 
   return serializer;
 }
-

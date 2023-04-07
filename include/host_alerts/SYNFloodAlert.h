@@ -26,12 +26,15 @@
 
 class SYNFloodAlert : public FlowHitsAlert {
  private:
-  
  public:
-  static HostAlertType getClassType() { return { host_alert_syn_flood, alert_category_security }; }
+  static HostAlertType getClassType() {
+    return {host_alert_syn_flood, alert_category_security};
+  }
 
-  SYNFloodAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int16_t hits, u_int64_t threshold, bool is_attacker) : FlowHitsAlert(c, h, cli_pctg, hits, threshold, is_attacker) {};
-  ~SYNFloodAlert() {};
+  SYNFloodAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int16_t hits,
+                u_int64_t threshold, bool is_attacker)
+      : FlowHitsAlert(c, h, cli_pctg, hits, threshold, is_attacker){};
+  ~SYNFloodAlert(){};
 
   HostAlertType getAlertType() const { return getClassType(); }
 };

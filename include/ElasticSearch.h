@@ -35,23 +35,23 @@ class ElasticSearch : public DB {
   char es_version[2];
   bool es_version_inited;
 
-  const char * get_es_version();
-  const char * get_es_template();
+  const char *get_es_version();
+  const char *get_es_template();
   void shutdown();
-  
+
  public:
   ElasticSearch(NetworkInterface *_iface);
   ~ElasticSearch();
 
   inline bool atleast_version_6() {
-    const char * ver = get_es_version();
-    
+    const char *ver = get_es_version();
+
     return ver && strcmp(ver, "6") >= 0;
   };
 
   inline bool atleast_version_8() {
-    const char * ver = get_es_version();
-    
+    const char *ver = get_es_version();
+
     return ver && strcmp(ver, "8") >= 0;
   };
 
@@ -61,6 +61,5 @@ class ElasticSearch : public DB {
   virtual bool dumpFlow(time_t when, Flow *f, char *json);
   virtual bool startQueryLoop();
 };
-
 
 #endif /* _ELASTIC_SEARCH_H_ */

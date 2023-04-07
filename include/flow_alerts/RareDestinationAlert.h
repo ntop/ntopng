@@ -26,14 +26,16 @@
 
 class RareDestinationAlert : public FlowAlert {
  private:
-  ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
+  ndpi_serializer *getAlertJSON(ndpi_serializer *serializer);
 
  public:
-  static FlowAlertType getClassType()    { return { flow_alert_rare_destination, alert_category_network }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_NOTICE; };
+  static FlowAlertType getClassType() {
+    return {flow_alert_rare_destination, alert_category_network};
+  }
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
- RareDestinationAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) {};
-  ~RareDestinationAlert() {};
+  RareDestinationAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f){};
+  ~RareDestinationAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
 };

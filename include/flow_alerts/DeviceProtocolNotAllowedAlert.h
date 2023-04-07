@@ -29,11 +29,13 @@ class DeviceProtocolNotAllowedAlert : public FlowAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { flow_alert_device_protocol_not_allowed, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_ERROR; };
+  static FlowAlertType getClassType() {
+    return {flow_alert_device_protocol_not_allowed, alert_category_security};
+  }
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
- DeviceProtocolNotAllowedAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) { };
-  ~DeviceProtocolNotAllowedAlert() { };
+  DeviceProtocolNotAllowedAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f){};
+  ~DeviceProtocolNotAllowedAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
 };

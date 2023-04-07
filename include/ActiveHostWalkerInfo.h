@@ -25,22 +25,21 @@
 #include "ntop_includes.h"
 
 class ActiveHostWalkerInfo {
-private:
+ private:
   std::string name, label;
   int64_t x, y;
-  
+
   u_int64_t z;
 
-public:
-  ActiveHostWalkerInfo(char* _name, char* _label,
-		       int64_t _x, int64_t _y,
-		       u_int64_t _z) {
-    name.assign(_name), label.assign(_label), x = _x, y = _y, z = _z;    
+ public:
+  ActiveHostWalkerInfo(char* _name, char* _label, int64_t _x, int64_t _y,
+                       u_int64_t _z) {
+    name.assign(_name), label.assign(_label), x = _x, y = _y, z = _z;
   }
 
-  inline u_int64_t getZ() const { return(z); }
-  
+  inline u_int64_t getZ() const { return (z); }
+
   void lua(lua_State* vm, bool treeMapMode);
 };
-  
+
 #endif /* __ACTIVE_HOST_WALKER_INFO__ */

@@ -30,19 +30,19 @@ void RemoteAccess::protocolDetected(Flow *f) {
   risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
   Host *cli = f->get_cli_host();
 
-  switch(f->get_protocol_category()) {
-  case NDPI_PROTOCOL_CATEGORY_REMOTE_ACCESS:
-  case NDPI_PROTOCOL_CATEGORY_VPN:
-  case NDPI_PROTOCOL_CATEGORY_FILE_SHARING:
-    if(!f->isLocalToLocal()) {
-      if(cli) cli->incrRemoteAccess();
-      
-      computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
-      f->triggerAlertAsync(alert_type, c_score, s_score);
-    }
-    break;
-  default:
-    break;
+  switch (f->get_protocol_category()) {
+    case NDPI_PROTOCOL_CATEGORY_REMOTE_ACCESS:
+    case NDPI_PROTOCOL_CATEGORY_VPN:
+    case NDPI_PROTOCOL_CATEGORY_FILE_SHARING:
+      if (!f->isLocalToLocal()) {
+        if (cli) cli->incrRemoteAccess();
+
+        computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+        f->triggerAlertAsync(alert_type, c_score, s_score);
+      }
+      break;
+    default:
+      break;
   }
 }
 
@@ -50,16 +50,16 @@ void RemoteAccess::protocolDetected(Flow *f) {
 
 void RemoteAccess::flowEnd(Flow *f) {
   Host *cli = f->get_cli_host();
-  
-  switch(f->get_protocol_category()) {
-  case NDPI_PROTOCOL_CATEGORY_REMOTE_ACCESS:
-  case NDPI_PROTOCOL_CATEGORY_VPN:
-  case NDPI_PROTOCOL_CATEGORY_FILE_SHARING:
-    if(cli) cli->decrRemoteAccess();
 
-    break;
-  default:
-    break;
+  switch (f->get_protocol_category()) {
+    case NDPI_PROTOCOL_CATEGORY_REMOTE_ACCESS:
+    case NDPI_PROTOCOL_CATEGORY_VPN:
+    case NDPI_PROTOCOL_CATEGORY_FILE_SHARING:
+      if (cli) cli->decrRemoteAccess();
+
+      break;
+    default:
+      break;
   }
 }
 

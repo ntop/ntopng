@@ -23,7 +23,8 @@
 
 /* **************************************************** */
 
-Check::Check(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only) {
+Check::Check(NtopngEdition _edition, bool _packet_interface_only,
+             bool _nedge_exclude, bool _nedge_only) {
   check_edition = _edition;
   packet_interface_only = _packet_interface_only;
   nedge_exclude = _nedge_exclude;
@@ -33,46 +34,47 @@ Check::Check(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_ex
 
 /* **************************************************** */
 
-Check::~Check() {
-};
+Check::~Check(){};
 
 /* **************************************************** */
 
 bool Check::isCheckCompatibleWithEdition() const {
   /* Check first if the license allows script to be enabled */
-  switch(check_edition) {
-  case ntopng_edition_community:
-    /* Ok */
-    break;
-     
-  case ntopng_edition_pro:
-    if(!ntop->getPrefs()->is_pro_edition() /* includes Pro, Enterprise M/L */)
-      return(false);
-    break;
-     
-  case ntopng_edition_enterprise_m:
-    if(!ntop->getPrefs()->is_enterprise_m_edition() /* includes Enterprise M/L */)
-      return(false);
-    break;
-     
-  case ntopng_edition_enterprise_l:
-    if(!ntop->getPrefs()->is_enterprise_l_edition() /* includes L */)
-      return(false);
-    break;     
+  switch (check_edition) {
+    case ntopng_edition_community:
+      /* Ok */
+      break;
+
+    case ntopng_edition_pro:
+      if (!ntop->getPrefs()
+               ->is_pro_edition() /* includes Pro, Enterprise M/L */)
+        return (false);
+      break;
+
+    case ntopng_edition_enterprise_m:
+      if (!ntop->getPrefs()
+               ->is_enterprise_m_edition() /* includes Enterprise M/L */)
+        return (false);
+      break;
+
+    case ntopng_edition_enterprise_l:
+      if (!ntop->getPrefs()->is_enterprise_l_edition() /* includes L */)
+        return (false);
+      break;
   }
 
-  return(true);
+  return (true);
 }
 
 /* **************************************************** */
 
 bool Check::isCheckCompatibleWithInterface(NetworkInterface *iface) {
   /* Version check, done at runtime as versions can change */
-  if(!isCheckCompatibleWithEdition())                        return(false);
+  if (!isCheckCompatibleWithEdition()) return (false);
 
-  if(packet_interface_only && (!iface->isPacketInterface())) return(false);
-  if(nedge_only && (!ntop->getPrefs()->is_nedge_edition()))  return(false);
-  if(nedge_exclude && ntop->getPrefs()->is_nedge_edition())  return(false);
+  if (packet_interface_only && (!iface->isPacketInterface())) return (false);
+  if (nedge_only && (!ntop->getPrefs()->is_nedge_edition())) return (false);
+  if (nedge_exclude && ntop->getPrefs()->is_nedge_edition()) return (false);
 
-  return(true);
+  return (true);
 }

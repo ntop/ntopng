@@ -19,7 +19,6 @@
  *
  */
 
-
 #ifndef _RECIPIENTS_
 #define _RECIPIENTS_
 
@@ -33,59 +32,70 @@ class Recipients {
 
   AlertLevel default_recipient_minimum_severity;
 
-public:
+ public:
   Recipients();
   ~Recipients();
 
   /**
-  * @brief Dequeues a notification from a `recipient_id` queue, given a certain priority
-  * @param recipient_id An integer recipient identifier
-  * @param notification The dequeued notification
-  *
-  * @return Boolean, true if the dequeue was successful and `notification` is populated correctly, false otherwise
-  */
-  bool dequeue(u_int16_t recipient_id, AlertFifoItem *notification);
+   * @brief Dequeues a notification from a `recipient_id` queue, given a certain
+   * priority
+   * @param recipient_id An integer recipient identifier
+   * @param notification The dequeued notification
+   *
+   * @return Boolean, true if the dequeue was successful and `notification` is
+   * populated correctly, false otherwise
+   */
+  bool dequeue(u_int16_t recipient_id, AlertFifoItem* notification);
 
   /**
-  * @brief Enqueues a notification to a `recipient_id` queue, depending on the priority
-  * @param recipient_id An integer recipient identifier
-  * @param prio The priority of the notification
-  * @param notification The notification to be enqueued
-  *
-  * @return True if the enqueue succeeded, false otherwise
-  */
+   * @brief Enqueues a notification to a `recipient_id` queue, depending on the
+   * priority
+   * @param recipient_id An integer recipient identifier
+   * @param prio The priority of the notification
+   * @param notification The notification to be enqueued
+   *
+   * @return True if the enqueue succeeded, false otherwise
+   */
   bool enqueue(u_int16_t recipient_id, const AlertFifoItem* const notification);
 
   /**
-  * @brief Enqueues a notification to all available recipients
-  * @param notification The notification to be enqueued
-  * @param alert_entity Indicates to enqueue the alert only to recipients responsible for `alert_entity` alerts
-  *
-  * @return True if the enqueue succeeded, false otherwise
-  */
-  bool enqueue(const AlertFifoItem* const notification, AlertEntity alert_entity);
+   * @brief Enqueues a notification to all available recipients
+   * @param notification The notification to be enqueued
+   * @param alert_entity Indicates to enqueue the alert only to recipients
+   * responsible for `alert_entity` alerts
+   *
+   * @return True if the enqueue succeeded, false otherwise
+   */
+  bool enqueue(const AlertFifoItem* const notification,
+               AlertEntity alert_entity);
 
   /**
-  * @brief Registers a recipient identified with `recipient_id` so its notification can be enqueued/dequeued
-  * @param recipient_id An integer recipient identifier
-  * @param minimum_severity The minimum severity for notifications to use this recipient
-  * @param enabled_categories A bitmap of notification categories to use this recipient
-  * @param enabled_host_pools A bitmap of pools to use this recipient
-  * @param enabled_entities A bitmap of notification entities to use this recipient
-  *
-  * @return
-  */
-  void register_recipient(u_int16_t recipient_id, AlertLevel minimum_severity, 
-                          Bitmap128 enabled_categories, Bitmap128 enabled_host_pools, Bitmap128 enabled_entities);
-  
+   * @brief Registers a recipient identified with `recipient_id` so its
+   * notification can be enqueued/dequeued
+   * @param recipient_id An integer recipient identifier
+   * @param minimum_severity The minimum severity for notifications to use this
+   * recipient
+   * @param enabled_categories A bitmap of notification categories to use this
+   * recipient
+   * @param enabled_host_pools A bitmap of pools to use this recipient
+   * @param enabled_entities A bitmap of notification entities to use this
+   * recipient
+   *
+   * @return
+   */
+  void register_recipient(u_int16_t recipient_id, AlertLevel minimum_severity,
+                          Bitmap128 enabled_categories,
+                          Bitmap128 enabled_host_pools,
+                          Bitmap128 enabled_entities);
+
   /**
-  * @brief Marks a recipient as deleted
-  * @param recipient_id An integer recipient identifier
-  *
-  * @return
-  */
+   * @brief Marks a recipient as deleted
+   * @param recipient_id An integer recipient identifier
+   *
+   * @return
+   */
   void delete_recipient(u_int16_t recipient_id);
- 
+
   /**
    * @brief Returns status (drops and uses) of a given recipient
    * @param recipient_id An integer recipient identifier
@@ -94,7 +104,7 @@ public:
    * @return
    */
   void lua(u_int16_t recipient_id, lua_State* vm);
-  
+
   /**
    * @brief Returns the last use (i.e., successful dequeue) of a given recipient
    * @param recipient_id An integer recipient identifier
@@ -102,15 +112,18 @@ public:
    * @return An epoch with the last use, or 0 if never used.
    */
   time_t last_use(u_int16_t recipient_id);
-  
+
   /**
-   * @brief Checks whether there are notifications queued in any of the recipients
+   * @brief Checks whether there are notifications queued in any of the
+   * recipients
    *
    * @return true if there are not notifications enqueued, false otherwise
    */
   bool empty();
-  
-  AlertLevel get_default_recipient_minimum_severity() { return default_recipient_minimum_severity; };
+
+  AlertLevel get_default_recipient_minimum_severity() {
+    return default_recipient_minimum_severity;
+  };
 };
 
 #endif /* _RECIPIENTS_ */

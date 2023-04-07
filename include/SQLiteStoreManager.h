@@ -33,16 +33,15 @@ class SQLiteStoreManager {
   sqlite3 *db;
 
   int init(const char *db_file_full_path);
-  int exec_query(const char * db_query,
-		 int (*callback)(void *, int, char **, char **),
-		 void *payload);
+  int exec_query(const char *db_query,
+                 int (*callback)(void *, int, char **, char **), void *payload);
   int exec_statement(sqlite3_stmt *stmt);
 
  public:
   SQLiteStoreManager(int interface_id);
   virtual ~SQLiteStoreManager();
 
-  NetworkInterface* getNetworkInterface(); 
+  NetworkInterface *getNetworkInterface();
   int optimizeStore();
 };
 

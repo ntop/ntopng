@@ -24,7 +24,6 @@
 
 #include "ntop_includes.h"
 
-
 class TrafficVolumeAlert : public HostAlert {
  private:
   std::string metric;
@@ -33,15 +32,17 @@ class TrafficVolumeAlert : public HostAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static HostAlertType getClassType() { return { host_alert_traffic_volume, alert_category_network }; }
+  static HostAlertType getClassType() {
+    return {host_alert_traffic_volume, alert_category_network};
+  }
 
-  TrafficVolumeAlert(HostCheckID check_id, Host *h, risk_percentage cli_pctg,
-		     std::string _metric, u_int32_t _frequency_sec,
-		     u_int32_t _threshold, u_int32_t _value);
-  ~TrafficVolumeAlert() {};
+  TrafficVolumeAlert(HostCheckID check_id, Host* h, risk_percentage cli_pctg,
+                     std::string _metric, u_int32_t _frequency_sec,
+                     u_int32_t _threshold, u_int32_t _value);
+  ~TrafficVolumeAlert(){};
 
-  HostAlertType getAlertType() const { return getClassType();    };
-  u_int8_t getAlertScore()     const { return SCORE_LEVEL_ERROR; };
+  HostAlertType getAlertType() const { return getClassType(); };
+  u_int8_t getAlertScore() const { return SCORE_LEVEL_ERROR; };
 
   std::string getMetric() { return metric; };
 };

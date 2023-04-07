@@ -29,7 +29,7 @@ class AlertFifoQueue : public FifoQueue<AlertFifoItem> {
   AlertFifoQueue(u_int32_t queue_size) : FifoQueue<AlertFifoItem>(queue_size) {}
 
   ~AlertFifoQueue() {
-    while(!q.empty()) {
+    while (!q.empty()) {
       AlertFifoItem item = q.front();
       q.pop();
       free(item.alert);
@@ -41,7 +41,7 @@ class AlertFifoQueue : public FifoQueue<AlertFifoItem> {
 
     m.lock(__FILE__, __LINE__);
 
-    if(q.empty()) {
+    if (q.empty()) {
       rv.alert_severity = alert_level_none;
       rv.alert = NULL;
     } else {
@@ -51,9 +51,8 @@ class AlertFifoQueue : public FifoQueue<AlertFifoItem> {
     }
     m.unlock(__FILE__, __LINE__);
 
-    return(rv);
+    return (rv);
   }
-
 };
 
 #endif /* _ALERT_FIFO_QUEUE_H */

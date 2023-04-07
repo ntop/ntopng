@@ -25,18 +25,20 @@
 #include "ntop_includes.h"
 
 class FINScan : public FlowHits {
-private:
+ private:
+ public:
+  FINScan() : FlowHits(){};
+  ~FINScan(){};
 
-public:
-  FINScan() : FlowHits() {};
-  ~FINScan() {};
-
-  FlowHitsAlert *allocAlert(Host *h, risk_percentage cli_pctg, u_int16_t hits, u_int64_t threshold, bool attacker) { return new FINScanAlert(this, h, cli_pctg, hits, threshold, attacker); };
+  FlowHitsAlert *allocAlert(Host *h, risk_percentage cli_pctg, u_int16_t hits,
+                            u_int64_t threshold, bool attacker) {
+    return new FINScanAlert(this, h, cli_pctg, hits, threshold, attacker);
+  };
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
   HostCheckID getID() const { return host_check_fin_scan; }
-  std::string getName()        const { return(std::string("fin_scan")); }
+  std::string getName() const { return (std::string("fin_scan")); }
 };
 
 #endif

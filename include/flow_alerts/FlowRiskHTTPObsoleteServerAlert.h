@@ -24,18 +24,23 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskHTTPObsoleteServerAlert : public FlowRiskAlert {  
+class FlowRiskHTTPObsoleteServerAlert : public FlowRiskAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_HTTP_OBSOLETE_SERVER; }
-  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
-  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
+  static FlowAlertType getClassType() {
+    return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk());
+  }
+  static u_int8_t getDefaultScore() {
+    return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
+  }
 
- FlowRiskHTTPObsoleteServerAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
-  ~FlowRiskHTTPObsoleteServerAlert() { };
+  FlowRiskHTTPObsoleteServerAlert(FlowCheck *c, Flow *f)
+      : FlowRiskAlert(c, f){};
+  ~FlowRiskHTTPObsoleteServerAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
-  u_int8_t       getAlertScore() const { return getDefaultScore(); }
+  ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
+  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_HTTP_OBSOLETE_SERVER_ALERT_H_ */

@@ -21,16 +21,20 @@
 
 #include "flow_alerts_includes.h"
 
-ndpi_serializer* RemoteToLocalInsecureProtoAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow *f = getFlow();
+ndpi_serializer* RemoteToLocalInsecureProtoAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow* f = getFlow();
 
   if (serializer) {
-    ndpi_serialize_string_int32(serializer, "ndpi_breed", f->get_protocol_breed());
-    ndpi_serialize_string_string(serializer, "ndpi_breed_name", f->get_protocol_breed_name());
-    ndpi_serialize_string_int32(serializer, "ndpi_category", f->get_protocol_category());
-    ndpi_serialize_string_string(serializer, "ndpi_category_name", f->get_protocol_category_name());
+    ndpi_serialize_string_int32(serializer, "ndpi_breed",
+                                f->get_protocol_breed());
+    ndpi_serialize_string_string(serializer, "ndpi_breed_name",
+                                 f->get_protocol_breed_name());
+    ndpi_serialize_string_int32(serializer, "ndpi_category",
+                                f->get_protocol_category());
+    ndpi_serialize_string_string(serializer, "ndpi_category_name",
+                                 f->get_protocol_category_name());
   }
 
   return serializer;
 }
-

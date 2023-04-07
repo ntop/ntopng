@@ -25,28 +25,28 @@
 #include "ntop_includes.h"
 
 class ExternalHostScript : public HostCheck {
-private:
+ private:
   bool disabled;
-  
-  HostAlert *allocAlert(HostCheck *c, Host *h,  risk_percentage cli_pctg,
-			u_int32_t _score, std::string _msg) {
-    ExternalHostScriptAlert *alert = new ExternalHostScriptAlert(c, h, cli_pctg, _score, _msg);
 
-    if(cli_pctg != CLIENT_NO_RISK_PERCENTAGE)
-      alert->setAttacker();
+  HostAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg,
+                        u_int32_t _score, std::string _msg) {
+    ExternalHostScriptAlert *alert =
+        new ExternalHostScriptAlert(c, h, cli_pctg, _score, _msg);
+
+    if (cli_pctg != CLIENT_NO_RISK_PERCENTAGE) alert->setAttacker();
 
     return alert;
   };
 
  public:
   ExternalHostScript();
-  ~ExternalHostScript() {};
+  ~ExternalHostScript(){};
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
-  bool loadConfiguration(json_object *config);  
+  bool loadConfiguration(json_object *config);
 
-  HostCheckID getID()   const { return host_check_external_script; }
-  std::string getName() const { return(std::string("external_host_script")); }
+  HostCheckID getID() const { return host_check_external_script; }
+  std::string getName() const { return (std::string("external_host_script")); }
 };
 
 #endif

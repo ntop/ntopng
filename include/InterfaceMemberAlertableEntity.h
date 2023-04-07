@@ -28,18 +28,19 @@ class NetworkInterface;
 
 class InterfaceMemberAlertableEntity : public OtherAlertableEntity {
  private:
-
  protected:
-
-public:
-  InterfaceMemberAlertableEntity(NetworkInterface *alert_iface, AlertEntity entity) : OtherAlertableEntity(alert_iface, entity) {};
+ public:
+  InterfaceMemberAlertableEntity(NetworkInterface *alert_iface,
+                                 AlertEntity entity)
+      : OtherAlertableEntity(alert_iface, entity){};
 
   ~InterfaceMemberAlertableEntity() {
     /* Decrease interface number of engaged alerts on the interface */
     std::map<std::string, Alert>::const_iterator alert_it;
     engaged_alerts_lock.wrlock(__FILE__, __LINE__);
-    for(u_int p = 0; p < MAX_NUM_PERIODIC_SCRIPTS; p++)
-      for(alert_it = engaged_alerts[p].begin(); alert_it != engaged_alerts[p].end(); ++alert_it)
+    for (u_int p = 0; p < MAX_NUM_PERIODIC_SCRIPTS; p++)
+      for (alert_it = engaged_alerts[p].begin();
+           alert_it != engaged_alerts[p].end(); ++alert_it)
         decNumAlertsEngaged(Utils::mapScoreToSeverity(alert_it->second.score));
     engaged_alerts_lock.unlock(__FILE__, __LINE__);
   };

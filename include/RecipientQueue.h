@@ -19,7 +19,6 @@
  *
  */
 
-
 #ifndef _RECIPIENT_QUEUES_
 #define _RECIPIENT_QUEUES_
 
@@ -29,7 +28,7 @@ class RecipientQueue {
  private:
   u_int16_t recipient_id;
 
-  AlertFifoQueue *queue;
+  AlertFifoQueue* queue;
 
   /* Counters for the number of drops occurred when enqueuing */
   u_int64_t drops;
@@ -43,11 +42,15 @@ class RecipientQueue {
   /* Minimum severity for notifications enqueued to this recipient */
   AlertLevel minimum_severity;
 
-  /* Only enable enqueue/dequeue for notifications falling into these categories */
-  Bitmap128 enabled_categories; /* MUST be large enough to contain MAX_NUM_SCRIPT_CATEGORIES */
+  /* Only enable enqueue/dequeue for notifications falling into these categories
+   */
+  Bitmap128 enabled_categories; /* MUST be large enough to contain
+                                   MAX_NUM_SCRIPT_CATEGORIES */
 
-  /* Only enable enqueue/dequeue for notifications falling into these entities */
-  Bitmap128 enabled_entities; /* MUST be large enough to contain ALERT_ENTITY_MAX_NUM_ENTITIES */
+  /* Only enable enqueue/dequeue for notifications falling into these entities
+   */
+  Bitmap128 enabled_entities; /* MUST be large enough to contain
+                                 ALERT_ENTITY_MAX_NUM_ENTITIES */
 
   /* MUST be large enough to contain MAX_NUM_HOST_POOLS */
   Bitmap128 enabled_host_pools;
@@ -57,54 +60,67 @@ class RecipientQueue {
   ~RecipientQueue();
 
   /**
-  * @brief Dequeues a notification from a `recipient_id` queue
-  * @param notification The dequeued notification
-  *
-  * @return Boolean, true if the dequeue was successful and `notification` is populated correctly, false otherwise
-  */
-  bool dequeue(AlertFifoItem *notification);
-  
-  /**
-  * @brief Enqueues a notification to a `recipient_id` queue
-  * @param recipient_id An integer recipient identifier
-  * @param notification A string containing the notification
-  *
-  * @return True if the enqueue succeeded, false otherwise
-  */
-  bool enqueue(const AlertFifoItem* const notification, AlertEntity alert_entity);
-  
-  /**
-  * @brief Sets the minimum severity for notifications to use this recipient
-  * @param minimum_severity The minimum severity for notifications to use this recipient
-  *
-  * @return
-  */
-  inline void setMinimumSeverity(AlertLevel _minimum_severity) { minimum_severity = _minimum_severity; };
-  
-  /**
-  * @brief Sets enabled notification categories to use this recipient
-  * @param enabled_categories A bitmap of notification categories to use this recipient
-  *
-  * @return
-  */
-  inline void setEnabledCategories(Bitmap128 _enabled_categories) { enabled_categories = _enabled_categories; };
+   * @brief Dequeues a notification from a `recipient_id` queue
+   * @param notification The dequeued notification
+   *
+   * @return Boolean, true if the dequeue was successful and `notification` is
+   * populated correctly, false otherwise
+   */
+  bool dequeue(AlertFifoItem* notification);
 
   /**
-  * @brief Sets enabled notification entities to use this recipient
-  * @param enabled_entities A bitmap of notification entities to use this recipient
-  *
-  * @return
-  */
-  inline void setEnabledEntities(Bitmap128 _enabled_entities) { enabled_entities = _enabled_entities; };
+   * @brief Enqueues a notification to a `recipient_id` queue
+   * @param recipient_id An integer recipient identifier
+   * @param notification A string containing the notification
+   *
+   * @return True if the enqueue succeeded, false otherwise
+   */
+  bool enqueue(const AlertFifoItem* const notification,
+               AlertEntity alert_entity);
 
   /**
-  * @brief Sets enabled host pools to use this recipient
-  * @param enabled_host_pools
-  *
-  * @return
-  */
-  inline void setEnabledHostPools(Bitmap128 _enabled_pools)       { enabled_host_pools = _enabled_pools; };
-  
+   * @brief Sets the minimum severity for notifications to use this recipient
+   * @param minimum_severity The minimum severity for notifications to use this
+   * recipient
+   *
+   * @return
+   */
+  inline void setMinimumSeverity(AlertLevel _minimum_severity) {
+    minimum_severity = _minimum_severity;
+  };
+
+  /**
+   * @brief Sets enabled notification categories to use this recipient
+   * @param enabled_categories A bitmap of notification categories to use this
+   * recipient
+   *
+   * @return
+   */
+  inline void setEnabledCategories(Bitmap128 _enabled_categories) {
+    enabled_categories = _enabled_categories;
+  };
+
+  /**
+   * @brief Sets enabled notification entities to use this recipient
+   * @param enabled_entities A bitmap of notification entities to use this
+   * recipient
+   *
+   * @return
+   */
+  inline void setEnabledEntities(Bitmap128 _enabled_entities) {
+    enabled_entities = _enabled_entities;
+  };
+
+  /**
+   * @brief Sets enabled host pools to use this recipient
+   * @param enabled_host_pools
+   *
+   * @return
+   */
+  inline void setEnabledHostPools(Bitmap128 _enabled_pools) {
+    enabled_host_pools = _enabled_pools;
+  };
+
   /**
    * @brief Returns queue status (drops and uses)
    * @param vm A Lua VM instance
@@ -112,14 +128,14 @@ class RecipientQueue {
    * @return
    */
   void lua(lua_State* vm);
-  
+
   /**
    * @brief Returns true if the recipient has no notifications enqueued
    *
    * @return A boolean
    */
   bool empty();
-  
+
   /**
    * @brief Returns queue last use
    *

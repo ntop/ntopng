@@ -23,15 +23,16 @@
 #define _COUNTRIES_HASH_H_
 
 #include "ntop_includes.h"
- 
+
 class CountriesHash : public GenericHash {
  private:
   Mutex m;
 
  public:
-  CountriesHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
+  CountriesHash(NetworkInterface *iface, u_int _num_hashes,
+                u_int _max_hash_size);
 
-  Country* get(const char *country_name, bool is_inline_call);
+  Country *get(const char *country_name, bool is_inline_call);
 };
 
 #endif /* _COUNTRIES_HASH_H_ */

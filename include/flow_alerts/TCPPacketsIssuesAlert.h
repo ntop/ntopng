@@ -28,18 +28,22 @@ class TCPPacketsIssuesAlert : public FlowAlert {
  private:
   u_int64_t retransmission, out_of_order, lost;
 
-  ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
+  ndpi_serializer *getAlertJSON(ndpi_serializer *serializer);
 
  public:
-  static FlowAlertType getClassType() { return { flow_alert_tcp_packets_issues, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_ERROR; };
+  static FlowAlertType getClassType() {
+    return {flow_alert_tcp_packets_issues, alert_category_security};
+  }
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
- TCPPacketsIssuesAlert(FlowCheck *c, Flow *f, u_int64_t _retransmission, u_int64_t _out_of_order, u_int64_t _lost) : FlowAlert(c, f) { 
+  TCPPacketsIssuesAlert(FlowCheck *c, Flow *f, u_int64_t _retransmission,
+                        u_int64_t _out_of_order, u_int64_t _lost)
+      : FlowAlert(c, f) {
     retransmission = _retransmission;
     out_of_order = _out_of_order;
     lost = _lost;
   };
-  ~TCPPacketsIssuesAlert() { };
+  ~TCPPacketsIssuesAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
 };

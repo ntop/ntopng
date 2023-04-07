@@ -23,8 +23,10 @@
 
 /* ************************************************** */
 
-VirtualHost::VirtualHost(HostHash *_h, char *_name) : GenericHashEntry(_h->getInterface()) {
-  h = _h, name = strdup(_name), last_num_requests = 0, last_diff = 0, trend = trend_stable;
+VirtualHost::VirtualHost(HostHash *_h, char *_name)
+    : GenericHashEntry(_h->getInterface()) {
+  h = _h, name = strdup(_name), last_num_requests = 0, last_diff = 0,
+  trend = trend_stable;
   vhost_key = Utils::hashString(name);
   h->incNumHTTPEntries();
 }
@@ -33,17 +35,18 @@ VirtualHost::VirtualHost(HostHash *_h, char *_name) : GenericHashEntry(_h->getIn
 
 VirtualHost::~VirtualHost() {
   h->decNumHTTPEntries();
-  if(name) free(name);
+  if (name) free(name);
 }
 
 /* ************************************************** */
 
 void VirtualHost::update_stats() {
-	u_int32_t diff = (u_int32_t)(num_requests.getNumBytes() - last_num_requests);
+  u_int32_t diff = (u_int32_t)(num_requests.getNumBytes() - last_num_requests);
 
-  trend = (diff > last_diff) ? trend_up : ((diff < last_diff) ? trend_down : trend_stable);
+  trend = (diff > last_diff) ? trend_up
+                             : ((diff < last_diff) ? trend_down : trend_stable);
   /*
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s\t%u [%u][%u]", 
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s\t%u [%u][%u]",
      name, diff, num_requests.getNumBytes(), last_num_requests);
   */
   last_num_requests = num_requests.getNumBytes(), last_diff = diff;

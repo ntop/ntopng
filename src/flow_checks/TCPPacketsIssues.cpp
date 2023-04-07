@@ -25,30 +25,44 @@
 /* ***************************************************** */
 
 void TCPPacketsIssues::checkTCPPacketsIssues(Flow *f) {
-  if(f->get_packets() == 0)
+  if (f->get_packets() == 0)
     return;
   else {
     FlowAlertType alert_type = TCPPacketsIssuesAlert::getClassType();
     u_int8_t c_score, s_score;
     risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
-    FlowTrafficStats* stats = f->getTrafficStats();
-    u_int64_t retransmission = stats ? (stats->get_cli2srv_tcp_retr() + stats->get_srv2cli_tcp_retr()) : 0, 
-      out_of_order = stats ? (stats->get_cli2srv_tcp_ooo() + stats->get_srv2cli_tcp_ooo()) : 0, 
-      lost = stats ? (stats->get_cli2srv_tcp_lost() + stats->get_srv2cli_tcp_lost()) : 0;
-  
-    u_int8_t retransmission_pctg = (u_int8_t) retransmission * 100 / f->get_packets();
-    u_int8_t out_of_order_pctg = (u_int8_t) out_of_order * 100 / f->get_packets();
-    u_int8_t lost_pctg = (u_int8_t) lost * 100 / f->get_packets();
-  
-    if(retransmission_pctg <= retransmission_threshold
-       && out_of_order_pctg <= out_of_order_threshold
-       && lost_pctg <= lost_threshold)
+    FlowTrafficStats *stats = f->getTrafficStats();
+    u_int64_t retransmission = stats ? (stats->get_cli2srv_tcp_retr() +
+                                        stats->get_srv2cli_tcp_retr())
+                                     : 0,
+              out_of_order = stats ? (stats->get_cli2srv_tcp_ooo() +
+                                      stats->get_srv2cli_tcp_ooo())
+                                   : 0,
+              lost = stats ? (stats->get_cli2srv_tcp_lost() +
+                              stats->get_srv2cli_tcp_lost())
+                           : 0;
+
+    u_int8_t retransmission_pctg =
+        (u_int8_t)retransmission * 100 / f->get_packets();
+    u_int8_t out_of_order_pctg =
+        (u_int8_t)out_of_order * 100 / f->get_packets();
+    u_int8_t lost_pctg = (u_int8_t)lost * 100 / f->get_packets();
+
+    if (retransmission_pctg <= retransmission_threshold &&
+        out_of_order_pctg <= out_of_order_threshold &&
+        lost_pctg <= lost_threshold)
       return; /* Thresholds not exceeded */
 
 #ifdef DEBUG_PACKETS_ISSUES
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Retransmissions: %u | %u % | Threshold: %u %", retransmission, retransmission_pctg, retransmission_threshold);
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Out of Order: %u | %u % | Threshold: %u %", out_of_order, out_of_order_pctg, out_of_order_threshold);
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loss: %u | %u % | Threshold: %u %", lost, lost_pctg, lost_threshold);
+    ntop->getTrace()->traceEvent(
+        TRACE_NORMAL, "Retransmissions: %u | %u % | Threshold: %u %",
+        retransmission, retransmission_pctg, retransmission_threshold);
+    ntop->getTrace()->traceEvent(
+        TRACE_NORMAL, "Out of Order: %u | %u % | Threshold: %u %", out_of_order,
+        out_of_order_pctg, out_of_order_threshold);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                                 "Loss: %u | %u % | Threshold: %u %", lost,
+                                 lost_pctg, lost_threshold);
 #endif /* DEBUG_PACKETS_ISSUES */
 
     computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
@@ -59,20 +73,17 @@ void TCPPacketsIssues::checkTCPPacketsIssues(Flow *f) {
 
 /* ***************************************************** */
 
-void TCPPacketsIssues::periodicUpdate(Flow *f) {
-  checkTCPPacketsIssues(f);
-}
+void TCPPacketsIssues::periodicUpdate(Flow *f) { checkTCPPacketsIssues(f); }
 
 /* ***************************************************** */
 
-void TCPPacketsIssues::flowEnd(Flow *f) {
-  checkTCPPacketsIssues(f);
-}
+void TCPPacketsIssues::flowEnd(Flow *f) { checkTCPPacketsIssues(f); }
 
 /* ***************************************************** */
 
 FlowAlert *TCPPacketsIssues::buildAlert(Flow *f) {
-  return new TCPPacketsIssuesAlert(this, f, retransmission_threshold, out_of_order_threshold, lost_threshold);
+  return new TCPPacketsIssuesAlert(this, f, retransmission_threshold,
+                                   out_of_order_threshold, lost_threshold);
 }
 
 /* ***************************************************** */
@@ -84,36 +95,36 @@ bool TCPPacketsIssues::loadConfiguration(json_object *config) {
   FlowCheck::loadConfiguration(config); /* Parse parameters in common */
 
   /* Retransmission threshold */
-  if(json_object_object_get_ex(config, "retransmissions", &json_table)) {
-    if(json_object_object_get_ex(json_table, "threshold", &json_bytes))
+  if (json_object_object_get_ex(config, "retransmissions", &json_table)) {
+    if (json_object_object_get_ex(json_table, "threshold", &json_bytes))
       retransmission_threshold = json_object_get_int64(json_bytes);
-    if(json_object_object_get_ex(json_table, "enabled", &json_bytes))
+    if (json_object_object_get_ex(json_table, "enabled", &json_bytes))
       enabled = json_object_get_int64(json_bytes);
 
-    if(!enabled) retransmission_threshold = (u_int64_t) -1;
+    if (!enabled) retransmission_threshold = (u_int64_t)-1;
   }
 
   /* Out of Order threshold */
-  if(json_object_object_get_ex(config, "out_of_orders", &json_table)) {
-    if(json_object_object_get_ex(json_table, "threshold", &json_bytes))
+  if (json_object_object_get_ex(config, "out_of_orders", &json_table)) {
+    if (json_object_object_get_ex(json_table, "threshold", &json_bytes))
       out_of_order_threshold = json_object_get_int64(json_bytes);
-    if(json_object_object_get_ex(json_table, "enabled", &json_bytes))
+    if (json_object_object_get_ex(json_table, "enabled", &json_bytes))
       enabled = json_object_get_int64(json_bytes);
 
-    if(!enabled) out_of_order_threshold = (u_int64_t) -1;
+    if (!enabled) out_of_order_threshold = (u_int64_t)-1;
   }
 
   /* Lost threshold */
-  if(json_object_object_get_ex(config, "packet_loss", &json_table)) {
-    if(json_object_object_get_ex(json_table, "threshold", &json_bytes))
+  if (json_object_object_get_ex(config, "packet_loss", &json_table)) {
+    if (json_object_object_get_ex(json_table, "threshold", &json_bytes))
       lost_threshold = json_object_get_int64(json_bytes);
-    if(json_object_object_get_ex(json_table, "enabled", &json_bytes))
+    if (json_object_object_get_ex(json_table, "enabled", &json_bytes))
       enabled = json_object_get_int64(json_bytes);
 
-    if(!enabled) lost_threshold = (u_int64_t) -1;
+    if (!enabled) lost_threshold = (u_int64_t)-1;
   }
-    
-  return(true);
+
+  return (true);
 }
 
 /* ***************************************************** */

@@ -28,7 +28,8 @@ class ChecksLoader {
  private:
   NtopngEdition checks_edition;
 
-  virtual void registerChecks() = 0; /* Method called at runtime to register checks */
+  virtual void
+  registerChecks() = 0; /* Method called at runtime to register checks */
   virtual void loadConfiguration() = 0;
 
  public:
@@ -36,7 +37,10 @@ class ChecksLoader {
   virtual ~ChecksLoader();
 
   virtual bool luaCheckInfo(lua_State* vm, std::string check_name) const = 0;
-  inline void initialize() { registerChecks(); loadConfiguration();   };
+  inline void initialize() {
+    registerChecks();
+    loadConfiguration();
+  };
   inline NtopngEdition getChecksEdition() { return checks_edition; };
 };
 

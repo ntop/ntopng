@@ -24,31 +24,29 @@
 
 /* ***************************************************** */
 
-ExternalHostScript::ExternalHostScript() : HostCheck(ntopng_edition_community, false /* All interfaces */,
-						       true /* Exclude for nEdge */,
-						       false /* NOT only for nEdge */) {
+ExternalHostScript::ExternalHostScript()
+    : HostCheck(ntopng_edition_community, false /* All interfaces */,
+                true /* Exclude for nEdge */, false /* NOT only for nEdge */) {
   disabled = false;
 };
 
 /* ***************************************************** */
 
 void ExternalHostScript::periodicUpdate(Host *h, HostAlert *engaged_alert) {
-  
-  if(!h)
-    return;
-  
-  if(h->isExternalAlertTriggered()) {
+  if (!h) return;
+
+  if (h->isExternalAlertTriggered()) {
     HostAlert *alert = engaged_alert;
 
-    if(!alert) {
+    if (!alert) {
       /* Alert not already triggered */
-      alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE,
-			 h->getExternalAlertScore(),
-			 h->getExternalAlertMessage());
+      alert =
+          allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE,
+                     h->getExternalAlertScore(), h->getExternalAlertMessage());
     }
-    
+
     /* Refresh the alert */
-    if(alert) h->triggerAlert(alert);
+    if (alert) h->triggerAlert(alert);
 
     /* Cleanup temporary data */
     h->resetExternalAlert();
@@ -60,8 +58,7 @@ void ExternalHostScript::periodicUpdate(Host *h, HostAlert *engaged_alert) {
 bool ExternalHostScript::loadConfiguration(json_object *config) {
   HostCheck::loadConfiguration(config); /* Parse parameters in common */
 
-  return(true);
+  return (true);
 }
 
 /* ***************************************************** */
-

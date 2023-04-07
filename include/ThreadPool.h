@@ -31,36 +31,39 @@ class QueuedThreadData {
   NetworkInterface *iface;
   bool adaptive_pool_size;
   time_t deadline;
-  
-  QueuedThreadData(ThreadedActivity *_j, char *_path, NetworkInterface *_iface, time_t _deadline) {
+
+  QueuedThreadData(ThreadedActivity *_j, char *_path, NetworkInterface *_iface,
+                   time_t _deadline) {
     j = _j, script_path = strdup(_path), iface = _iface;
     deadline = _deadline;
   }
 
-  ~QueuedThreadData() { if(script_path) free(script_path); }
+  ~QueuedThreadData() {
+    if (script_path) free(script_path);
+  }
 };
-	
+
 class ThreadPool {
  private:
   u_int16_t num_threads;
   bool terminating;
   pthread_cond_t condvar;
   Mutex *m;
-  #ifdef __linux__
+#ifdef __linux__
   cpu_set_t affinity_mask;
 #endif
 
-  std::vector <pthread_t> threadsState;
-  std::queue <QueuedThreadData*> threads;
+  std::vector<pthread_t> threadsState;
+  std::queue<QueuedThreadData *> threads;
 
-  QueuedThreadData* dequeueJob(bool waitIfEmpty);
+  QueuedThreadData *dequeueJob(bool waitIfEmpty);
 
   /*
     Creates and starts a new pool thread
    */
   bool spawn();
   bool isQueueable(ThreadedActivityState cur_state);
-  
+
  public:
   ThreadPool(char *comma_separated_affinity_mask = NULL);
   virtual ~ThreadPool();
@@ -69,8 +72,8 @@ class ThreadPool {
   inline bool isTerminating() { return terminating; };
 
   void run();
-  bool queueJob(ThreadedActivity *ta, char *path, NetworkInterface *iface, time_t scheduled_time, time_t deadline);
+  bool queueJob(ThreadedActivity *ta, char *path, NetworkInterface *iface,
+                time_t scheduled_time, time_t deadline);
 };
-
 
 #endif /* _THREAD_POOL_H_ */

@@ -26,22 +26,30 @@
 
 class FlowRiskHTTPSuspiciousUserAgent : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskHTTPSuspiciousUserAgentAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskHTTPSuspiciousUserAgentAlert::getClassType();
+  }
 
  public:
-  FlowRiskHTTPSuspiciousUserAgent() : FlowRisk() {};
-  ~FlowRiskHTTPSuspiciousUserAgent() {};
+  FlowRiskHTTPSuspiciousUserAgent() : FlowRisk(){};
+  ~FlowRiskHTTPSuspiciousUserAgent(){};
 
   FlowAlert *buildAlert(Flow *f) {
-    FlowRiskHTTPSuspiciousUserAgentAlert *alert =  new FlowRiskHTTPSuspiciousUserAgentAlert(this, f);
+    FlowRiskHTTPSuspiciousUserAgentAlert *alert =
+        new FlowRiskHTTPSuspiciousUserAgentAlert(this, f);
 
     alert->setCliAttacker(), alert->setSrvVictim();
 
     return alert;
   }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskHTTPSuspiciousUserAgentAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk() { return FlowRiskHTTPSuspiciousUserAgentAlert::getClassRisk();       }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskHTTPSuspiciousUserAgentAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskHTTPSuspiciousUserAgentAlert::getClassRisk();
+  }
 };
 
 #endif

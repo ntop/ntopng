@@ -31,7 +31,7 @@ IpAddress::IpAddress() {
 
 /* ******************************************* */
 
-IpAddress::IpAddress(const IpAddress& ipa) {
+IpAddress::IpAddress(const IpAddress &ipa) {
   set(&ipa);
   memcpy(&addr, &ipa.addr, sizeof(addr));
   compute_key();
@@ -39,13 +39,13 @@ IpAddress::IpAddress(const IpAddress& ipa) {
 
 /* ******************************************* */
 
-void IpAddress::set(const char* const sym_addr) {
-  if(sym_addr == NULL) return;
-  
-  if(strchr(sym_addr, '.')) {
+void IpAddress::set(const char *const sym_addr) {
+  if (sym_addr == NULL) return;
+
+  if (strchr(sym_addr, '.')) {
     addr.ipVersion = 4, addr.ipType.ipv4 = inet_addr(sym_addr);
   } else {
-    if(inet_pton(AF_INET6, sym_addr, &addr.ipType.ipv6) <= 0) {
+    if (inet_pton(AF_INET6, sym_addr, &addr.ipType.ipv6) <= 0) {
       /* We failed */
       addr.ipVersion = 4, addr.ipType.ipv4 = 0;
     } else {
@@ -59,10 +59,11 @@ void IpAddress::set(const char* const sym_addr) {
 /* ******************************************* */
 
 void IpAddress::set(union usa *ip) {
-  if(ip->sin.sin_family != AF_INET6) {
+  if (ip->sin.sin_family != AF_INET6) {
     addr.ipVersion = 4, addr.ipType.ipv4 = ip->sin.sin_addr.s_addr;
   } else {
-    memcpy(&addr.ipType.ipv6, &ip->sin6.sin6_addr, sizeof(struct ndpi_in6_addr));
+    memcpy(&addr.ipType.ipv6, &ip->sin6.sin6_addr,
+           sizeof(struct ndpi_in6_addr));
     addr.ipVersion = 6;
   }
 
@@ -71,26 +72,30 @@ void IpAddress::set(union usa *ip) {
 
 /* ******************************************* */
 
-void IpAddress::reloadBlacklist(ndpi_detection_module_struct* ndpi_struct) {
+void IpAddress::reloadBlacklist(ndpi_detection_module_struct *ndpi_struct) {
   char ipbuf[64];
   char *ip_str = print(ipbuf, sizeof(ipbuf));
   ndpi_protocol_category_t category;
 
-  if((ndpi_get_custom_category_match(ndpi_struct, ip_str, strlen(ip_str), &category) == 0)
-     && category == CUSTOM_CATEGORY_MALWARE)
+  if ((ndpi_get_custom_category_match(ndpi_struct, ip_str, strlen(ip_str),
+                                      &category) == 0) &&
+      category == CUSTOM_CATEGORY_MALWARE)
     addr.blacklistedIP = true;
 }
 
 /* ******************************************* */
 
 bool IpAddress::isEmpty() const {
-  if((addr.ipVersion == 0)
-     || ((addr.ipVersion == 4) && (addr.ipType.ipv4 == 0))) {
+  if ((addr.ipVersion == 0) ||
+      ((addr.ipVersion == 4) && (addr.ipType.ipv4 == 0))) {
     return true;
-  } else if(addr.ipVersion == 6) {
+  } else if (addr.ipVersion == 6) {
     struct ndpi_in6_addr empty_ipv6;
     memset(&empty_ipv6, 0, sizeof(empty_ipv6));
-    return memcmp((void*)&empty_ipv6, (void*)&addr.ipType.ipv6, sizeof(empty_ipv6)) == 0 ? true : false;
+    return memcmp((void *)&empty_ipv6, (void *)&addr.ipType.ipv6,
+                  sizeof(empty_ipv6)) == 0
+               ? true
+               : false;
   }
 
   return false;
@@ -108,11 +113,12 @@ void IpAddress::checkIP() {
   addr.loopbackIP = false;
   addr.privateIP = false;
   addr.multicastIP = false;
-  addr.broadcastIP = false; 
-  addr.localIP = false; 
+  addr.broadcastIP = false;
+  addr.localIP = false;
 
-  if(addr.ipVersion == 4) {
-    addr.loopbackIP = addr.ipType.ipv4 == 0x0100007F /* 127.0.0.1 */ ? true : false;
+  if (addr.ipVersion == 4) {
+    addr.loopbackIP =
+        addr.ipType.ipv4 == 0x0100007F /* 127.0.0.1 */ ? true : false;
 
     /*
       RFC 1918 - Private Address Space
@@ -127,27 +133,30 @@ void IpAddress::checkIP() {
 
     a = ntohl(addr.ipType.ipv4);
 
-    if(((a & 0xFF000000) == 0x0A000000 /* 10.0.0.0/8 */)
-       || ((a & 0xFFF00000) == 0xAC100000 /* 172.16.0.0/12 */)
-       || ((a & 0xFFFF0000) == 0xC0A80000 /* 192.168.0.0/16 */)
-       || ((a & 0xFF000000) == 0x7F000000 /* 127.0.0.0/8 */)
-       || ((a & 0xFFFF0000) == 0xA9FE0000 /* 169.254.0.0/16 Link-Local communication rfc3927 */)
-       || (a == 0xFFFFFFFF /* 255.255.255.255 */)
-       || (a == 0x0        /* 0.0.0.0 */)
-       )
+    if (((a & 0xFF000000) == 0x0A000000 /* 10.0.0.0/8 */) ||
+        ((a & 0xFFF00000) == 0xAC100000 /* 172.16.0.0/12 */) ||
+        ((a & 0xFFFF0000) == 0xC0A80000 /* 192.168.0.0/16 */) ||
+        ((a & 0xFF000000) == 0x7F000000 /* 127.0.0.0/8 */) ||
+        ((a & 0xFFFF0000) ==
+         0xA9FE0000 /* 169.254.0.0/16 Link-Local communication rfc3927 */) ||
+        (a == 0xFFFFFFFF /* 255.255.255.255 */) || (a == 0x0 /* 0.0.0.0 */))
       addr.privateIP = true;
 
-    if((a & 0xF0000000) == 0xE0000000 /* 224.0.0.0/4 */)
+    if ((a & 0xF0000000) == 0xE0000000 /* 224.0.0.0/4 */)
       addr.multicastIP = true;
-    else if((a == 0xFFFFFFFF) || (a == 0))
+    else if ((a == 0xFFFFFFFF) || (a == 0))
       addr.broadcastIP = true;
-    else if(ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id, &nmask_bits)) {
+    else if (ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id,
+                                  &nmask_bits)) {
       addr.localIP = true;
-      if(nmask_bits > 0 && nmask_bits < 31) { /* /0 no mask, /32 is just an host, /31 is a point-to-point */
+      if (nmask_bits > 0 &&
+          nmask_bits < 31) { /* /0 no mask, /32 is just an host, /31 is a
+                                point-to-point */
         nmask = ~((1 << (32 - nmask_bits)) - 1);
-        if(a == (a | ~nmask)   /* e.g., 10.0.0.0/8 -> matches 10.255.255.255.255 */
-	   || a == (a & nmask) /* e.g., 10.0.0.0/8 -> matches 10.0.0.0 */)
-	  addr.broadcastIP = true;
+        if (a == (a |
+                  ~nmask) /* e.g., 10.0.0.0/8 -> matches 10.255.255.255.255 */
+            || a == (a & nmask) /* e.g., 10.0.0.0/8 -> matches 10.0.0.0 */)
+          addr.broadcastIP = true;
       }
     }
   } else if (addr.ipVersion == 6) {
@@ -156,41 +165,47 @@ void IpAddress::checkIP() {
     /*
       Link-local addresses have the prefix fe80::/10, we mark them as private
     */
-    if((addr.ipType.ipv6.u6_addr.u6_addr8[0] & 0xFF) == 0xFE
-       && (addr.ipType.ipv6.u6_addr.u6_addr8[1] & 0xC0) == 0x80)
+    if ((addr.ipType.ipv6.u6_addr.u6_addr8[0] & 0xFF) == 0xFE &&
+        (addr.ipType.ipv6.u6_addr.u6_addr8[1] & 0xC0) == 0x80)
       addr.privateIP = true;
 
     /*
      * https://tools.ietf.org/html/rfc2373#section-2.7
      *
-     * 11111111 at the start of the address identifies the address as being a multicast address.
+     * 11111111 at the start of the address identifies the address as being a
+     * multicast address.
      */
-    if(addr.ipType.ipv6.u6_addr.u6_addr8[0] == 0xFF)
-      addr.multicastIP = true;
-    
-    if(ntop->isLocalAddress(AF_INET6, (void*)&addr.ipType.ipv6, &local_network_id))
-      addr.localIP = true; 
+    if (addr.ipType.ipv6.u6_addr.u6_addr8[0] == 0xFF) addr.multicastIP = true;
+
+    if (ntop->isLocalAddress(AF_INET6, (void *)&addr.ipType.ipv6,
+                             &local_network_id))
+      addr.localIP = true;
   }
 }
 
 /* ******************************************* */
 
-int IpAddress::compare(const IpAddress * const ip) const {
-  if(ip == NULL) return(-1);
+int IpAddress::compare(const IpAddress *const ip) const {
+  if (ip == NULL) return (-1);
 
-  if(addr.ipVersion < ip->addr.ipVersion) return(-1); else if(addr.ipVersion > ip->addr.ipVersion) return(1);
+  if (addr.ipVersion < ip->addr.ipVersion)
+    return (-1);
+  else if (addr.ipVersion > ip->addr.ipVersion)
+    return (1);
 
-  if(addr.ipVersion == 4) {
+  if (addr.ipVersion == 4) {
 #if 0
     u_int32_t a = ntohl(ip->addr.ipType.ipv4);
     u_int32_t b = ntohl(addr.ipType.ipv4);
 
     if(a < b) return(1); else if(b < a) return(-1); else return(0);
 #else
-    return(memcmp(&addr.ipType.ipv4, &ip->addr.ipType.ipv4, sizeof(u_int32_t)));
+    return (
+        memcmp(&addr.ipType.ipv4, &ip->addr.ipType.ipv4, sizeof(u_int32_t)));
 #endif
   } else
-    return(memcmp(&addr.ipType.ipv6, &ip->addr.ipType.ipv6, sizeof(struct ndpi_in6_addr)));
+    return (memcmp(&addr.ipType.ipv6, &ip->addr.ipType.ipv6,
+                   sizeof(struct ndpi_in6_addr)));
 }
 
 /* ******************************************* */
@@ -198,14 +213,14 @@ int IpAddress::compare(const IpAddress * const ip) const {
 bool IpAddress::isLocalInterfaceAddress() {
   bool systemHost;
 
-  if(addr.ipVersion == 4) {
+  if (addr.ipVersion == 4) {
     systemHost = ntop->isLocalInterfaceAddress(AF_INET, &addr.ipType.ipv4);
-  } else if(addr.ipVersion == 6) {
+  } else if (addr.ipVersion == 6) {
     systemHost = ntop->isLocalInterfaceAddress(AF_INET6, &addr.ipType.ipv6);
   } else
     systemHost = false;
 
-  return(systemHost);
+  return (systemHost);
 }
 
 /* ******************************************* */
@@ -213,49 +228,48 @@ bool IpAddress::isLocalInterfaceAddress() {
 void IpAddress::compute_key() {
   checkIP();
 
-  if(addr.ipVersion == 4) {
+  if (addr.ipVersion == 4) {
     ip_key = ntohl(addr.ipType.ipv4);
-  } else if(addr.ipVersion == 6) {
+  } else if (addr.ipVersion == 6) {
     ip_key = 0;
 
-    for(u_int32_t i=0; i<4; i++)
-      ip_key += addr.ipType.ipv6.u6_addr.u6_addr32[i] << (2*i);
+    for (u_int32_t i = 0; i < 4; i++)
+      ip_key += addr.ipType.ipv6.u6_addr.u6_addr32[i] << (2 * i);
   }
 }
 
 /* ******************************************* */
 
-char* IpAddress::print(char *str, u_int str_len, u_int8_t bitmask) const {
+char *IpAddress::print(char *str, u_int str_len, u_int8_t bitmask) const {
   str[0] = '\0';
-  return(intoa(str, str_len, bitmask));
+  return (intoa(str, str_len, bitmask));
 }
 
 /* ******************************************* */
 
-char* IpAddress::get_ip_hex(char *buf, u_int buf_len) {
-  
-  if(addr.ipVersion == 4)
+char *IpAddress::get_ip_hex(char *buf, u_int buf_len) {
+  if (addr.ipVersion == 4)
     snprintf(buf, buf_len, "%08X", ntohl(addr.ipType.ipv4));
-  else if(addr.ipVersion == 6)
+  else if (addr.ipVersion == 6)
     snprintf(buf, buf_len, "%08X%08X%08X%08X",
-	     ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[0]),
-	     ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[1]),
-	     ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[2]),
-	     ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[3]));
+             ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[0]),
+             ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[1]),
+             ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[2]),
+             ntohl(addr.ipType.ipv6.u6_addr.u6_addr32[3]));
   else
     buf[0] = '\0';
 
-  return(buf);
+  return (buf);
 }
 
 /* ******************************************* */
 
-char* IpAddress::printMask(char *str, u_int str_len, bool isLocalIP) {
-  if(Utils::maskHost(isLocalIP)) {
+char *IpAddress::printMask(char *str, u_int str_len, bool isLocalIP) {
+  if (Utils::maskHost(isLocalIP)) {
     snprintf(str, str_len, (addr.ipVersion == 4) ? "0.0.0.0" : "::");
-    return(str);
+    return (str);
   } else
-    return(intoa(str, str_len, 0xFF /* bitmask */));
+    return (intoa(str, str_len, 0xFF /* bitmask */));
 }
 
 /* ******************************************* */
@@ -269,14 +283,14 @@ bool IpAddress::isLocalHost() const {
 bool IpAddress::isLocalHost(int16_t *network_id) const {
   bool local = false;
 
-  if(addr.multicastIP || addr.broadcastIP)
-    return(true);
-  
-  if(addr.ipVersion == 4) {
-    u_int32_t v = /* htonl */(addr.ipType.ipv4);
-    local = ntop->isLocalAddress(AF_INET, (void*)&v, network_id);
+  if (addr.multicastIP || addr.broadcastIP) return (true);
+
+  if (addr.ipVersion == 4) {
+    u_int32_t v = /* htonl */ (addr.ipType.ipv4);
+    local = ntop->isLocalAddress(AF_INET, (void *)&v, network_id);
   } else {
-    local = ntop->isLocalAddress(AF_INET6, (void*)&addr.ipType.ipv6, network_id);
+    local =
+        ntop->isLocalAddress(AF_INET6, (void *)&addr.ipType.ipv6, network_id);
   }
 
 #if 0 /* Debug */
@@ -291,45 +305,50 @@ bool IpAddress::isLocalHost(int16_t *network_id) const {
 
 /* ******************************************* */
 
-void* IpAddress::findAddress(AddressTree *ptree) {
-  if(ptree == NULL)
-    return(NULL);
+void *IpAddress::findAddress(AddressTree *ptree) {
+  if (ptree == NULL)
+    return (NULL);
   else {
     void *ret;
 
-    if(addr.ipVersion == 4)
-      ret = Utils::ptree_match(ptree->getTree(true), AF_INET, &addr.ipType.ipv4, 32);
+    if (addr.ipVersion == 4)
+      ret = Utils::ptree_match(ptree->getTree(true), AF_INET, &addr.ipType.ipv4,
+                               32);
     else
-      ret = Utils::ptree_match(ptree->getTree(false), AF_INET6, (void*)&addr.ipType.ipv6, 128);
+      ret = Utils::ptree_match(ptree->getTree(false), AF_INET6,
+                               (void *)&addr.ipType.ipv6, 128);
 
-    return(ret);
+    return (ret);
   }
 }
 
 /* ******************************************* */
 
-bool IpAddress::get_sockaddr(struct sockaddr ** const sa, ssize_t * const sa_len) const {
-  if(!sa || !sa_len)
-    return false;
+bool IpAddress::get_sockaddr(struct sockaddr **const sa,
+                             ssize_t *const sa_len) const {
+  if (!sa || !sa_len) return false;
 
-  if(addr.ipVersion == 4) {
-    struct sockaddr_in *in4 = (struct sockaddr_in*)calloc(1, sizeof(struct sockaddr_in));
+  if (addr.ipVersion == 4) {
+    struct sockaddr_in *in4 =
+        (struct sockaddr_in *)calloc(1, sizeof(struct sockaddr_in));
 
-    if(in4) {
+    if (in4) {
       in4->sin_family = AF_INET, in4->sin_addr.s_addr = addr.ipType.ipv4,
-	*sa_len = sizeof(struct sockaddr_in), *sa = (struct sockaddr*)in4;
+      *sa_len = sizeof(struct sockaddr_in), *sa = (struct sockaddr *)in4;
       return true;
     }
 
-  } else if(addr.ipVersion == 6) {
-    struct sockaddr_in6 *in6 = (struct sockaddr_in6*)calloc(1, sizeof(struct sockaddr_in6));
+  } else if (addr.ipVersion == 6) {
+    struct sockaddr_in6 *in6 =
+        (struct sockaddr_in6 *)calloc(1, sizeof(struct sockaddr_in6));
 
-    if(in6) {
-      in6->sin6_family = AF_INET6, memcpy((void*)&in6->sin6_addr, (void*)&addr.ipType.ipv6, sizeof(addr.ipType.ipv6)),
-	*sa_len = sizeof(struct sockaddr_in6), *sa = (struct sockaddr*)in6;
+    if (in6) {
+      in6->sin6_family = AF_INET6,
+      memcpy((void *)&in6->sin6_addr, (void *)&addr.ipType.ipv6,
+             sizeof(addr.ipType.ipv6)),
+      *sa_len = sizeof(struct sockaddr_in6), *sa = (struct sockaddr *)in6;
       return true;
     }
-
   }
 
   return false;
@@ -337,28 +356,30 @@ bool IpAddress::get_sockaddr(struct sockaddr ** const sa, ssize_t * const sa_len
 
 /* ******************************************* */
 
-char* IpAddress::serialize() {
+char *IpAddress::serialize() {
   json_object *my_object = getJSONObject();
   char *rsp = strdup(json_object_to_json_string(my_object));
 
   /* Free memory */
   json_object_put(my_object);
 
-  return(rsp);
+  return (rsp);
 }
 
 /* ******************************************* */
 
-json_object* IpAddress::getJSONObject() {
+json_object *IpAddress::getJSONObject() {
   json_object *my_object;
   char buf[64];
 
   my_object = json_object_new_object();
 
-  json_object_object_add(my_object, "ipVersion", json_object_new_int(addr.ipVersion));
-  json_object_object_add(my_object, "ip", json_object_new_string(print(buf, sizeof(buf))));
+  json_object_object_add(my_object, "ipVersion",
+                         json_object_new_int(addr.ipVersion));
+  json_object_object_add(my_object, "ip",
+                         json_object_new_string(print(buf, sizeof(buf))));
 
-  return(my_object);
+  return (my_object);
 }
 
 /* ******************************************* */
@@ -369,32 +390,34 @@ json_object* IpAddress::getJSONObject() {
  * @param ptree     The hosts allowed to be accessed.
  * @return true if the host matches the tree, false otherwise.
  */
-bool IpAddress::match(const AddressTree * const tree) const {
-  if(tree == NULL)
-    return(true);
+bool IpAddress::match(const AddressTree *const tree) const {
+  if (tree == NULL)
+    return (true);
   else {
-    ndpi_patricia_tree_t *ptree = tree->getTree((addr.ipVersion == 4) ? true : false);
+    ndpi_patricia_tree_t *ptree =
+        tree->getTree((addr.ipVersion == 4) ? true : false);
     ndpi_patricia_node_t *node;
 
-    if(ptree == NULL) return(true);
+    if (ptree == NULL) return (true);
 
-    if(addr.ipVersion == 4)
-      node = Utils::ptree_match(ptree, AF_INET, (void*)&addr.ipType.ipv4, 32);
+    if (addr.ipVersion == 4)
+      node = Utils::ptree_match(ptree, AF_INET, (void *)&addr.ipType.ipv4, 32);
     else
-      node = Utils::ptree_match(ptree, AF_INET6, (void*)&addr.ipType.ipv6, 128);
+      node =
+          Utils::ptree_match(ptree, AF_INET6, (void *)&addr.ipType.ipv6, 128);
 
-    return((node == NULL) ? false : true);
+    return ((node == NULL) ? false : true);
   }
 }
 
 /* ****************************** */
 
-char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) const {
-  if((addr.ipVersion == 4) || (addr.ipVersion == 0 /* Misconfigured */)) {
+char *IpAddress::intoa(char *buf, u_short bufLen, u_int8_t bitmask) const {
+  if ((addr.ipVersion == 4) || (addr.ipVersion == 0 /* Misconfigured */)) {
     bitmask = bitmask <= 32 ? bitmask : 32;
     u_int32_t a = ntohl(addr.ipType.ipv4);
 
-    if(bitmask > 0) {
+    if (bitmask > 0) {
       /* bitmask 0 here causes integer overflow */
       u_int32_t netmask = ~((((u_int32_t)1) << (32 - bitmask)) - 1);
       a &= netmask;
@@ -403,17 +426,17 @@ char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) const {
       a = 0;
     }
 
-    return(Utils::intoaV4(a, buf, bufLen));
+    return (Utils::intoaV4(a, buf, bufLen));
   } else {
     bitmask = bitmask <= 128 ? bitmask : 128;
-    return(Utils::intoaV6(addr.ipType.ipv6, bitmask, buf, bufLen));
+    return (Utils::intoaV6(addr.ipType.ipv6, bitmask, buf, bufLen));
   }
 }
 
 /* ****************************** */
 
 void IpAddress::incCardinality(Cardinality *c) {
-  if(isIPv4())
+  if (isIPv4())
     c->addElement(get_ipv4());
   else
     c->addElement((const char *)get_ipv6(), sizeof(struct ndpi_in6_addr));
@@ -426,11 +449,11 @@ void IpAddress::dump() {
   const char *local, *system;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "-------------------- [ Local ]");
-  local  =  isLocalHost()  ? "Yes" : "No";
+  local = isLocalHost() ? "Yes" : "No";
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "-------------------- [ System ]");
-  system =  isLocalInterfaceAddress() ? "Yes" : "No";
+  system = isLocalInterfaceAddress() ? "Yes" : "No";
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "--------------------");
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Local: %s][SystemHost: %s]",
-			       print(buf, sizeof(buf)), local, system);
+                               print(buf, sizeof(buf)), local, system);
 }

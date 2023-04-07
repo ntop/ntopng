@@ -23,13 +23,13 @@
 #define _MAC_HASH_H_
 
 #include "ntop_includes.h"
- 
+
 class MacHash : public GenericHash {
  private:
   Mutex m;
 
  public:
-  MacHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
+  MacHash(NetworkInterface* iface, u_int _num_hashes, u_int _max_hash_size);
 
   Mac* get(const u_int8_t mac[6], bool is_inline_call);
 };

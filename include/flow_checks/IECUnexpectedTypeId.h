@@ -26,15 +26,20 @@
 
 class IECUnexpectedTypeId : public FlowCheck {
  public:
-  IECUnexpectedTypeId() : FlowCheck(ntopng_edition_community,
-				    true /* Packet Interfaces only */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-				    false /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};
-  ~IECUnexpectedTypeId() {};
+  IECUnexpectedTypeId()
+      : FlowCheck(ntopng_edition_community, true /* Packet Interfaces only */,
+                  false /* Don't exclude for nEdge */,
+                  false /* NOT only for nEdge */,
+                  false /* has_protocol_detected */,
+                  false /* has_periodic_update */, false /* has_flow_end */){};
+  ~IECUnexpectedTypeId(){};
 
   void scriptDisable();
   bool loadConfiguration(json_object *config);
-  
-  std::string getName()        const { return(std::string("iec_unexpected_type_id")); }
+
+  std::string getName() const {
+    return (std::string("iec_unexpected_type_id"));
+  }
 };
 
 #endif /* _IEC_UNEXPECTED_TYPE_ID_H_ */

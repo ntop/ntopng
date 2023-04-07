@@ -31,16 +31,15 @@ typedef struct _activity_descr {
 } activity_descr;
 
 static activity_descr ad[] = {
-  // Script                  Periodicity (s) Max (s) Align  !View  !PCAP
-  { SECOND_SCRIPT_DIR,                    1,     65, false, false, true },
-  { FIVE_SECOND_SCRIPT_DIR,               5,     65, false, false, true },
-  { MINUTE_SCRIPT_DIR,                   60,     60, false, false, true },
-  { FIVE_MINUTES_SCRIPT_DIR,            300,    300, false, false, true },
-  { HOURLY_SCRIPT_DIR,                 3600,    600, false, false, true },
-  { DAILY_SCRIPT_DIR,                 86400,   3600, true,  false, true },
-  
-  { NULL,                                 0,      0, false, false, false }
-};
+    // Script                  Periodicity (s) Max (s) Align  !View  !PCAP
+    {SECOND_SCRIPT_DIR, 1, 65, false, false, true},
+    {FIVE_SECOND_SCRIPT_DIR, 5, 65, false, false, true},
+    {MINUTE_SCRIPT_DIR, 60, 60, false, false, true},
+    {FIVE_MINUTES_SCRIPT_DIR, 300, 300, false, false, true},
+    {HOURLY_SCRIPT_DIR, 3600, 600, false, false, true},
+    {DAILY_SCRIPT_DIR, 86400, 3600, true, false, true},
+
+    {NULL, 0, 0, false, false, false}};
 
 /* ******************************************* */
 
@@ -59,8 +58,9 @@ PeriodicActivities::~PeriodicActivities() {
 
   /* Now it's safe to delete the activities as no other thread is executing
    * their code. */
-  for(u_int16_t i = 0; i < num_activities; i++)
-    delete activities[i]; /* This line calls ThreadedActivity::~ThreadedActivity() */
+  for (u_int16_t i = 0; i < num_activities; i++)
+    delete activities[i]; /* This line calls
+                             ThreadedActivity::~ThreadedActivity() */
 
   num_activities = 0;
 }
@@ -68,56 +68,62 @@ PeriodicActivities::~PeriodicActivities() {
 /* ******************************************* */
 
 void PeriodicActivities::lua(NetworkInterface *iface, lua_State *vm) {
-  for(int i = 0; i < num_activities; i++)
-    activities[i]->lua(iface, vm);
+  for (int i = 0; i < num_activities; i++) activities[i]->lua(iface, vm);
 }
 
 /* **************************************************** */
 
-static void* startActivity(void* ptr)  {
+static void *startActivity(void *ptr) {
   Utils::setThreadName("ntopng-periodic");
 
-  ((PeriodicActivities*)ptr)->run();
+  ((PeriodicActivities *)ptr)->run();
 
-  return(NULL);
+  return (NULL);
 }
-
 
 /* ******************************************* */
 
 /* This is the main infinite loop */
 void PeriodicActivities::run() {
-  while(!(ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown())) {
+  while (!(ntop->getGlobals()->isShutdownRequested() ||
+           ntop->getGlobals()->isShutdown())) {
     u_int32_t now = (u_int32_t)time(NULL);
-    
-    for(u_int16_t i = 0; i < num_activities; i++)
-      activities[i]->schedule(now);
-    
+
+    for (u_int16_t i = 0; i < num_activities; i++) activities[i]->schedule(now);
+
     sleep(1);
   }
 
   thread_running = false;
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated periodic activites...");
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                               "Terminated periodic activites...");
 }
 
-  /* ******************************************* */
+/* ******************************************* */
 
 void PeriodicActivities::startPeriodicActivitiesLoop() {
   struct stat buf;
   ThreadedActivity *startup_activity;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started periodic activities loop...");
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                               "Started periodic activities loop...");
 
-  if(stat(ntop->get_callbacks_dir(), &buf) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read directory %s", ntop->get_callbacks_dir());
+  if (stat(ntop->get_callbacks_dir(), &buf) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read directory %s",
+                                 ntop->get_callbacks_dir());
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Possible cause:\n");
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "The current user cannot access %s.", ntop->get_callbacks_dir());
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Please fix the directory right or add --dont-change-user to");
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                 "The current user cannot access %s.",
+                                 ntop->get_callbacks_dir());
+    ntop->getTrace()->traceEvent(
+        TRACE_ERROR,
+        "Please fix the directory right or add --dont-change-user to");
     ntop->getTrace()->traceEvent(TRACE_ERROR, "the ntopng command line.");
     exit(0);
   }
 
-  if((startup_activity = new (std::nothrow) ThreadedActivity(STARTUP_SCRIPT_PATH))) {
+  if ((startup_activity =
+           new (std::nothrow) ThreadedActivity(STARTUP_SCRIPT_PATH))) {
     /*
       Don't call run() as by the time the script will be run
       the delete below will free the memory
@@ -127,49 +133,45 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     startup_activity = NULL;
   }
 
-  for(u_int i=0; ad[i].path != NULL; i++) {
+  for (u_int i = 0; ad[i].path != NULL; i++) {
     ThreadedActivity *ta;
-    
-    if(ad[i].periodicity == 0) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping %s: 0 periodicity", ad[i].path);
+
+    if (ad[i].periodicity == 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping %s: 0 periodicity",
+                                   ad[i].path);
       continue;
     }
-    
-    ta = new (std::nothrow) ThreadedActivity(ad[i].path,
-					     false, /* Exact */
-					     ad[i].periodicity,
-					     ad[i].max_duration_secs,
-					     ad[i].align_to_localtime,
-					     ad[i].exclude_viewed_interfaces,
-					     ad[i].exclude_pcap_dump_interfaces,
-					     th_pool);
-    if(ta)
-      activities[num_activities++] = ta;
 
-    if(ad[i].periodicity >= 60 /* no delay for sub-minute scripts */) {
+    ta = new (std::nothrow) ThreadedActivity(
+        ad[i].path, false, /* Exact */
+        ad[i].periodicity, ad[i].max_duration_secs, ad[i].align_to_localtime,
+        ad[i].exclude_viewed_interfaces, ad[i].exclude_pcap_dump_interfaces,
+        th_pool);
+    if (ta) activities[num_activities++] = ta;
+
+    if (ad[i].periodicity >= 60 /* no delay for sub-minute scripts */) {
       char script_dir[64];
-      
-      snprintf(script_dir, sizeof(script_dir), "%s%s", ad[i].path, DELAYED_TRAILER);
-      
-      ta = new (std::nothrow) ThreadedActivity(script_dir,
-					       true, /* Delayed */
-					       ad[i].periodicity,
-					       ad[i].max_duration_secs,
-					       ad[i].align_to_localtime,
-					       ad[i].exclude_viewed_interfaces,
-					       ad[i].exclude_pcap_dump_interfaces,
-					       th_pool);
-      if(ta)
-	activities[num_activities++] = ta;      
+
+      snprintf(script_dir, sizeof(script_dir), "%s%s", ad[i].path,
+               DELAYED_TRAILER);
+
+      ta = new (std::nothrow) ThreadedActivity(
+          script_dir, true, /* Delayed */
+          ad[i].periodicity, ad[i].max_duration_secs, ad[i].align_to_localtime,
+          ad[i].exclude_viewed_interfaces, ad[i].exclude_pcap_dump_interfaces,
+          th_pool);
+      if (ta) activities[num_activities++] = ta;
     }
   }
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found %u activities", num_activities);
-  
-  if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0) {
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found %u activities",
+                               num_activities);
+
+  if (pthread_create(&pthreadLoop, NULL, startActivity, (void *)this) == 0) {
     thread_running = true;
 #ifdef __linux__
-    Utils::setThreadAffinityWithMask(pthreadLoop, ntop->getPrefs()->get_other_cpu_affinity_mask());
+    Utils::setThreadAffinityWithMask(
+        pthreadLoop, ntop->getPrefs()->get_other_cpu_affinity_mask());
 #endif
   }
 }

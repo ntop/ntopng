@@ -26,17 +26,21 @@
 
 class RemoteToLocalInsecureProto : public FlowCheck {
  private:
-
  public:
-  RemoteToLocalInsecureProto() : FlowCheck(ntopng_edition_community,
-					      false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-					      true /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};
-  ~RemoteToLocalInsecureProto() {};
+  RemoteToLocalInsecureProto()
+      : FlowCheck(ntopng_edition_community, false /* All interfaces */,
+                  false /* Don't exclude for nEdge */,
+                  false /* NOT only for nEdge */,
+                  true /* has_protocol_detected */,
+                  false /* has_periodic_update */, false /* has_flow_end */){};
+  ~RemoteToLocalInsecureProto(){};
 
   void protocolDetected(Flow *f);
   FlowAlert *buildAlert(Flow *f);
-  
-  std::string getName()        const { return(std::string("remote_to_local_insecure_proto")); }
+
+  std::string getName() const {
+    return (std::string("remote_to_local_insecure_proto"));
+  }
 };
 
 #endif /* _REMOTE_TO_LOCAL_INSECURE_PROTO_H_ */

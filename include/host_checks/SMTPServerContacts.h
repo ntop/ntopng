@@ -25,18 +25,26 @@
 #include "ntop_includes.h"
 
 class SMTPServerContacts : public ServerContacts {
-private:
-  u_int32_t getContactedServers(Host *h) const { return h->getSMTPContactCardinality(); };
-  HostAlertType getAlertType() const { return SMTPServerContactsAlert::getClassType(); };
-  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _contacts, u_int64_t _contacts_threshold) { return new SMTPServerContactsAlert(c, f, cli_pctg, _contacts, _contacts_threshold); };
+ private:
+  u_int32_t getContactedServers(Host *h) const {
+    return h->getSMTPContactCardinality();
+  };
+  HostAlertType getAlertType() const {
+    return SMTPServerContactsAlert::getClassType();
+  };
+  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
+                        u_int64_t _contacts, u_int64_t _contacts_threshold) {
+    return new SMTPServerContactsAlert(c, f, cli_pctg, _contacts,
+                                       _contacts_threshold);
+  };
   bool isServer(Host *h) { return h->isSmtpServer(); };
 
  public:
   SMTPServerContacts();
-  ~SMTPServerContacts() {};
+  ~SMTPServerContacts(){};
 
   HostCheckID getID() const { return host_check_smtp_server_contacts; }
-  std::string getName()        const { return(std::string("smtp_contacts")); }
+  std::string getName() const { return (std::string("smtp_contacts")); }
 };
 
 #endif

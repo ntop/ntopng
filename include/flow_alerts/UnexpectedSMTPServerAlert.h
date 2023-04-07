@@ -25,14 +25,16 @@
 #include "ntop_includes.h"
 
 class UnexpectedSMTPServerAlert : public UnexpectedServerAlert {
- private: 
-
+ private:
  public:
-  static FlowAlertType getClassType() { return { flow_alert_unexpected_smtp_server, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_ERROR; };
+  static FlowAlertType getClassType() {
+    return {flow_alert_unexpected_smtp_server, alert_category_security};
+  }
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
- UnexpectedSMTPServerAlert(FlowCheck *c, Flow *f) : UnexpectedServerAlert(c, f) {};
-  ~UnexpectedSMTPServerAlert() {};
+  UnexpectedSMTPServerAlert(FlowCheck *c, Flow *f)
+      : UnexpectedServerAlert(c, f){};
+  ~UnexpectedSMTPServerAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
 };

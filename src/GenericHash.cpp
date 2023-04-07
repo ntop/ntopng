@@ -24,31 +24,32 @@
 /* ************************************ */
 
 GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
-			 u_int _max_hash_size, const char *_name) {
+                         u_int _max_hash_size, const char *_name) {
   num_hashes = _num_hashes;
   current_size = 0;
-  /* Allow the total number of entries (that is, active and those idle but still not yet purged)
-     to be 30% more than the maximum hash table size specified. This prevents memory from growing
-     indefinitely when for example the purging is slow. */
+  /* Allow the total number of entries (that is, active and those idle but still
+     not yet purged) to be 30% more than the maximum hash table size specified.
+     This prevents memory from growing indefinitely when for example the purging
+     is slow. */
   max_hash_size = _max_hash_size * 1.3;
   upper_num_visited_entries = min_val(200000, (max_hash_size / 10));
   last_entry_id = 0;
   purge_step = max_val(num_hashes / PURGE_FRACTION, 1);
   walk_idle_start_hash_id = 0;
   name = strdup(_name ? _name : "???");
-  memset(&entry_state_transition_counters, 0, sizeof(entry_state_transition_counters));
+  memset(&entry_state_transition_counters, 0,
+         sizeof(entry_state_transition_counters));
 
   iface = _iface;
   idle_entries = idle_entries_shadow = NULL;
 
-  table = new (std::nothrow) GenericHashEntry*[num_hashes];
-  for(u_int i = 0; i < num_hashes; i++)
-    table[i] = NULL;
+  table = new (std::nothrow) GenericHashEntry *[num_hashes];
+  for (u_int i = 0; i < num_hashes; i++) table[i] = NULL;
 
-  locks = new (std::nothrow) RwLock*[num_hashes];
-  for(u_int i = 0; i < num_hashes; i++) locks[i] = new (std::nothrow) RwLock();
+  locks = new (std::nothrow) RwLock *[num_hashes];
+  for (u_int i = 0; i < num_hashes; i++) locks[i] = new (std::nothrow) RwLock();
 
-  idle_entries_in_use = new (std::nothrow) vector<GenericHashEntry*>;
+  idle_entries_in_use = new (std::nothrow) vector<GenericHashEntry *>;
 
   last_purged_hash = _num_hashes - 1;
 
@@ -68,7 +69,7 @@ GenericHash::~GenericHash() {
 
   delete[] table;
 
-  for(u_int i = 0; i < num_hashes; i++) delete(locks[i]);
+  for (u_int i = 0; i < num_hashes; i++) delete (locks[i]);
   delete[] locks;
   free(name);
 }
@@ -76,12 +77,15 @@ GenericHash::~GenericHash() {
 /* ************************************ */
 
 void GenericHash::cleanup() {
-  vector<GenericHashEntry*> **ghvs[] = { &idle_entries, &idle_entries_shadow, &idle_entries_in_use };
+  vector<GenericHashEntry *> **ghvs[] = {&idle_entries, &idle_entries_shadow,
+                                         &idle_entries_in_use};
 
-  for(u_int i = 0; i < sizeof(ghvs) / sizeof(ghvs[0]); i++) {
-    if(*ghvs[i]) {
-      if(!(*ghvs[i])->empty()) {
-        for(vector<GenericHashEntry*>::const_iterator it = (*ghvs[i])->begin(); it != (*ghvs[i])->end(); ++it) {
+  for (u_int i = 0; i < sizeof(ghvs) / sizeof(ghvs[0]); i++) {
+    if (*ghvs[i]) {
+      if (!(*ghvs[i])->empty()) {
+        for (vector<GenericHashEntry *>::const_iterator it =
+                 (*ghvs[i])->begin();
+             it != (*ghvs[i])->end(); ++it) {
           delete *it;
         }
       }
@@ -91,14 +95,14 @@ void GenericHash::cleanup() {
     }
   }
 
-  for(u_int i = 0; i < num_hashes; i++) {
-    if(table[i] != NULL) {
+  for (u_int i = 0; i < num_hashes; i++) {
+    if (table[i] != NULL) {
       GenericHashEntry *head = table[i];
 
-      while(head) {
+      while (head) {
         GenericHashEntry *next = head->next();
 
-        delete(head);
+        delete (head);
         head = next;
       }
 
@@ -112,18 +116,17 @@ void GenericHash::cleanup() {
 /* ************************************ */
 
 bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
-  if(hasEmptyRoom()) {
+  if (hasEmptyRoom()) {
     u_int32_t hash = (h->key() % num_hashes);
     u_int32_t this_entry_id;
-    
+
     /*
       In essence the entryId is:
       [8 bit interfaceId][24 bit flow serial]
     */
     this_entry_id = hash_mask | last_entry_id;
-    
-    if(do_lock)
-      locks[hash]->wrlock(__FILE__, __LINE__);
+
+    if (do_lock) locks[hash]->wrlock(__FILE__, __LINE__);
 
     h->set_hash_table(this);
     h->set_hash_entry_id(this_entry_id);
@@ -132,83 +135,91 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
     current_size++;
 
 #ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                                 "%08X [ifId: %08X][id: %08X]",
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%08X [ifId: %08X][id: %08X]",
                                  this_entry_id, iface->get_id(), last_entry_id);
 #endif
-    
-    if(++last_entry_id == 0x00FFFFFF) /* Limit it to 24 bit */
+
+    if (++last_entry_id == 0x00FFFFFF) /* Limit it to 24 bit */
       last_entry_id = 0;
 
-    if(do_lock)
-      locks[hash]->unlock(__FILE__, __LINE__);
+    if (do_lock) locks[hash]->unlock(__FILE__, __LINE__);
 
-    return(true);
+    return (true);
   } else
-    return(false);
+    return (false);
 }
 
 /* ************************************ */
 
 u_int64_t GenericHash::purgeQueuedIdleEntries() {
-  vector<GenericHashEntry*> *cur_idle = NULL;
+  vector<GenericHashEntry *> *cur_idle = NULL;
   u_int64_t num_purged = entry_state_transition_counters.num_purged;
 
-  if(idle_entries) {
+  if (idle_entries) {
     cur_idle = idle_entries;
     idle_entries = NULL;
   }
 
-  if(cur_idle) {
-    if(!cur_idle->empty()) {      
-      for(vector<GenericHashEntry*>::const_iterator it = cur_idle->begin(); it != cur_idle->end(); ++it) {
+  if (cur_idle) {
+    if (!cur_idle->empty()) {
+      for (vector<GenericHashEntry *>::const_iterator it = cur_idle->begin();
+           it != cur_idle->end(); ++it) {
         /* In case of flow dump the uses number might be increased (0 -> 1) */
-        if((*it)->getUses() == 0) {
+        if ((*it)->getUses() == 0) {
           /*
-            No one is using the idle entry. Safe to execute the walker one last time and delete the entry.
+            No one is using the idle entry. Safe to execute the walker one last
+            time and delete the entry.
            */
           delete *it; /* Delete the entry */
           entry_state_transition_counters.num_purged++;
-          /* https://www.techiedelight.com/remove-elements-vector-inside-loop-cpp/ */
+          /* https://www.techiedelight.com/remove-elements-vector-inside-loop-cpp/
+           */
           /* cur_idle->erase(it--); */
         } else {
           /*
-            Entry is still in use. This can happen for example when there's a very slow
-            hash table walker running, or when the thread in charge of dumping flows
-            still have to process the flow.
+            Entry is still in use. This can happen for example when there's a
+            very slow hash table walker running, or when the thread in charge of
+            dumping flows still have to process the flow.
 
-            In this case, the entry is moved to another vector which is in exclusive use by this thread
+            In this case, the entry is moved to another vector which is in
+            exclusive use by this thread
            */
           idle_entries_in_use->push_back(*it);
 #if DEBUG_FLOW_DUMP
-          ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s][%s] Skipping entry in use [purged: %u]",
-                                       __FUNCTION__, getInterface()->get_name(), name, entry_state_transition_counters.num_purged);
+          ntop->getTrace()->traceEvent(
+              TRACE_NORMAL, "[%s][%s][%s] Skipping entry in use [purged: %u]",
+              __FUNCTION__, getInterface()->get_name(), name,
+              entry_state_transition_counters.num_purged);
 #endif
-          /* This entry will be deleted by the dumper after the dump completed */
+          /* This entry will be deleted by the dumper after the dump completed
+           */
         }
       }
     }
-    
+
     delete cur_idle;
   }
 
   /*
     Try and delete all the entries which were found to be in-use when idle
    */
-  for(vector<GenericHashEntry*>::iterator it = idle_entries_in_use->begin(); it != idle_entries_in_use->end(); ) {
-    if((*it)->getUses() == 0) {
-      delete *it; /* Free the entry memory */
+  for (vector<GenericHashEntry *>::iterator it = idle_entries_in_use->begin();
+       it != idle_entries_in_use->end();) {
+    if ((*it)->getUses() == 0) {
+      delete *it;                     /* Free the entry memory */
       idle_entries_in_use->erase(it); /* Remove the entry from the vector */
       entry_state_transition_counters.num_purged++;
     } else
       ++it;
   }
-  
+
 #ifdef WALK_DEBUG
-  if((num_purged != entry_state_transition_counters.num_purged) && (!strcmp(name, "FlowHash")))
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [%s] [%u purged]",
-                                 __FUNCTION__, iface->get_description(),
-                                 entry_state_transition_counters.num_purged - num_purged);
+  if ((num_purged != entry_state_transition_counters.num_purged) &&
+      (!strcmp(name, "FlowHash")))
+    ntop->getTrace()->traceEvent(
+        TRACE_NORMAL, "%s() [%s] [%u purged]", __FUNCTION__,
+        iface->get_description(),
+        entry_state_transition_counters.num_purged - num_purged);
 #endif
 
   return entry_state_transition_counters.num_purged - num_purged;
@@ -216,38 +227,39 @@ u_int64_t GenericHash::purgeQueuedIdleEntries() {
 
 /* ************************************ */
 
-bool GenericHash::walk(u_int32_t *begin_slot,
-                       bool walk_all,
-                       bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched),
+bool GenericHash::walk(u_int32_t *begin_slot, bool walk_all,
+                       bool (*walker)(GenericHashEntry *h, void *user_data,
+                                      bool *entryMatched),
                        void *user_data) {
   bool found = false;
   u_int16_t tot_matched = 0;
 
-  for(u_int hash_id = *begin_slot; hash_id < num_hashes; hash_id++) {
-    if(table[hash_id] != NULL) {
+  for (u_int hash_id = *begin_slot; hash_id < num_hashes; hash_id++) {
+    if (table[hash_id] != NULL) {
       GenericHashEntry *head;
 
 #ifdef WALK_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Locking %d [%p]", hash_id, locks[hash_id]);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Locking %d [%p]",
+                                   hash_id, locks[hash_id]);
 #endif
 
       locks[hash_id]->rdlock(__FILE__, __LINE__);
       head = table[hash_id];
 
-      while(head) {
+      while (head) {
         GenericHashEntry *next = head->next();
 
         /* FIXX get_state() does not always match idle() as the latter can be
          * overriden (e.g. Flow), leading to walking entries that are actually
          * idle even with walk_idle = false, what about using idle() here? */
 
-        if(!head->idle()) {
+        if (!head->idle()) {
           bool matched = false;
           bool rc = walker(head, user_data, &matched);
 
-          if(matched) tot_matched++;
+          if (matched) tot_matched++;
 
-          if(rc) {
+          if (rc) {
             found = true;
             break;
           }
@@ -257,34 +269,38 @@ bool GenericHash::walk(u_int32_t *begin_slot,
       } /* while */
 
       locks[hash_id]->unlock(__FILE__, __LINE__);
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Unlocked %d", hash_id);
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Unlocked %d",
+      // hash_id);
 
-      if((tot_matched >= MIN_NUM_HASH_WALK_ELEMS) /* At least a few entries have been returned */
-         && (!walk_all)) {
-        u_int32_t next_slot  = (hash_id == (num_hashes-1)) ? 0 /* start over */ : (hash_id+1);
+      if ((tot_matched >= MIN_NUM_HASH_WALK_ELEMS) /* At least a few entries
+                                                      have been returned */
+          && (!walk_all)) {
+        u_int32_t next_slot =
+            (hash_id == (num_hashes - 1)) ? 0 /* start over */ : (hash_id + 1);
 
         *begin_slot = next_slot;
 #ifdef WALK_DEBUG
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Over [nextSlot: %u][hash_id: %u][tot_matched: %u]",
-                                     next_slot, hash_id, tot_matched);
+        ntop->getTrace()->traceEvent(
+            TRACE_NORMAL,
+            "[walk] Over [nextSlot: %u][hash_id: %u][tot_matched: %u]",
+            next_slot, hash_id, tot_matched);
 #endif
 
-        return(found);
+        return (found);
       }
 
-      if(found)
-        break;
+      if (found) break;
     }
   }
 
-  if(!found)
-    *begin_slot = 0 /* start over */;
+  if (!found) *begin_slot = 0 /* start over */;
 
 #ifdef WALK_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Over [tot_matched: %u]", tot_matched);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Over [tot_matched: %u]",
+                               tot_matched);
 #endif
 
-  return(found);
+  return (found);
 }
 
 /* ************************************ */
@@ -295,21 +311,22 @@ bool GenericHash::walk(u_int32_t *begin_slot,
   Active -> Idle -> Ready to be Purged -> Purged
 */
 
-u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle, bool full_scan) {
+u_int GenericHash::purgeIdle(const struct timeval *tv, bool force_idle,
+                             bool full_scan) {
   u_int i, num_detached = 0, buckets_checked = 0;
   time_t now = time(NULL);
   /* Visit all entries when force_idle is true */
   u_int visit_fraction = (!force_idle && !full_scan) ? purge_step : num_hashes;
   size_t idle_entries_shadow_old_size;
-  vector<GenericHashEntry*>::const_iterator it;
+  vector<GenericHashEntry *>::const_iterator it;
 
-  if(!idle_entries) {
+  if (!idle_entries) {
     idle_entries = idle_entries_shadow;
 
     try {
-      idle_entries_shadow = new vector<GenericHashEntry*>;
+      idle_entries_shadow = new vector<GenericHashEntry *>;
 
-    } catch(std::bad_alloc& ba) {
+    } catch (std::bad_alloc &ba) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Memory allocation error");
       return 0;
     }
@@ -318,37 +335,42 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle, bool fu
   idle_entries_shadow_old_size = idle_entries_shadow->size();
 
 #ifdef WALK_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s @ %s] Begin purgeIdle() [begin index: %u][purge step: %u][size: %u][force_idle: %u]",
-                               name, iface->get_name(), last_purged_hash, visit_fraction, getNumEntries(), force_idle ? 1 : 0);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                               "[%s @ %s] Begin purgeIdle() [begin index: "
+                               "%u][purge step: %u][size: %u][force_idle: %u]",
+                               name, iface->get_name(), last_purged_hash,
+                               visit_fraction, getNumEntries(),
+                               force_idle ? 1 : 0);
 #endif
 
-  /* Visit at least MIN_NUM_VISITED_ENTRIES entries at each iteration regardless of the hash size */
+  /* Visit at least MIN_NUM_VISITED_ENTRIES entries at each iteration regardless
+   * of the hash size */
   u_int j;
 
-  for(j = 0; j < num_hashes; j++) {
+  for (j = 0; j < num_hashes; j++) {
     /*
       Initially visit the visit_fraction of the hash, but if we have
       visited too few elements we keep visiting until a minimum number
       of entries is reached
     */
-    if(!full_scan && 
-       (buckets_checked > upper_num_visited_entries || 
-        (j > visit_fraction && buckets_checked > MIN_NUM_VISITED_ENTRIES)))
+    if (!full_scan &&
+        (buckets_checked > upper_num_visited_entries ||
+         (j > visit_fraction && buckets_checked > MIN_NUM_VISITED_ENTRIES)))
       break;
 
-    if(++last_purged_hash == num_hashes) last_purged_hash = 0;
+    if (++last_purged_hash == num_hashes) last_purged_hash = 0;
     i = last_purged_hash;
 
-    if(table[i] != NULL) {
+    if (table[i] != NULL) {
       GenericHashEntry *head, *prev = NULL;
 
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[purge] Locking %d", i);
-      if(!locks[i]->trywrlock(__FILE__, __LINE__))
+      if (!locks[i]->trywrlock(__FILE__, __LINE__))
         continue; /* Busy, will retry next round */
 
       head = table[i];
 
-      while(head) {
+      while (head) {
         HashEntryState head_state = head->get_state();
         GenericHashEntry *next = head->next();
 
@@ -356,55 +378,56 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle, bool fu
 
         buckets_checked++;
 
-        switch(head_state) {
-        case hash_entry_state_idle:
-          /* As an idle entry is always removed immediately from the hash table
-             This walk should never find any such entry */
-          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unexpected state found [%u]", head_state);
-          break;
+        switch (head_state) {
+          case hash_entry_state_idle:
+            /* As an idle entry is always removed immediately from the hash
+               table This walk should never find any such entry */
+            ntop->getTrace()->traceEvent(
+                TRACE_ERROR, "Unexpected state found [%u]", head_state);
+            break;
 
-        case hash_entry_state_allocated:
-          /* TCP flows with 3WH not yet completed (or collected with no TCP flags) fall here */
-          /* Don't break */
-        case hash_entry_state_flow_notyetdetected:
-          /* UDP flows or TCP flows for which the 3WH is completed but protocol hasn't been detected yet */
-          /* Don't break  */
-        case hash_entry_state_flow_protocoldetected:
-          head->housekeep(now);
+          case hash_entry_state_allocated:
+            /* TCP flows with 3WH not yet completed (or collected with no TCP
+             * flags) fall here */
+            /* Don't break */
+          case hash_entry_state_flow_notyetdetected:
+            /* UDP flows or TCP flows for which the 3WH is completed but
+             * protocol hasn't been detected yet */
+            /* Don't break  */
+          case hash_entry_state_flow_protocoldetected:
+            head->housekeep(now);
 
-          if(head_state == hash_entry_state_flow_protocoldetected)
-            /*
-              Transition to active if the protocol is detected
-             */
-            head->set_hash_entry_state_active();
+            if (head_state == hash_entry_state_flow_protocoldetected)
+              /*
+                Transition to active if the protocol is detected
+               */
+              head->set_hash_entry_state_active();
 
-          if(force_idle) goto detach_idle_hash_entry;
-          break;
+            if (force_idle) goto detach_idle_hash_entry;
+            break;
 
-        case hash_entry_state_active:
-          if(
-             force_idle
-             || (
-                 iface->is_purge_idle_interface()
-                 && head->is_hash_entry_state_idle_transition_ready())
-             ) {
-          detach_idle_hash_entry:
-            idle_entries_shadow->push_back(head); /* Found entry to purge */
+          case hash_entry_state_active:
+            if (force_idle ||
+                (iface->is_purge_idle_interface() &&
+                 head->is_hash_entry_state_idle_transition_ready())) {
+            detach_idle_hash_entry:
+              idle_entries_shadow->push_back(head); /* Found entry to purge */
 
-            if(!prev)
-              table[i] = next;
-            else
-              prev->set_next(next);
+              if (!prev)
+                table[i] = next;
+              else
+                prev->set_next(next);
 
-            num_detached++, current_size--;
-            head = next;
-            continue;
-          }
+              num_detached++, current_size--;
+              head = next;
+              continue;
+            }
 
-          /* If there hasn't been an active->idle transition, and thus head hasn't been detached,
-             it is safe to execute housekeep. This function is executed also for idle entries below. */
-          head->housekeep(now);
-          break;
+            /* If there hasn't been an active->idle transition, and thus head
+               hasn't been detached, it is safe to execute housekeep. This
+               function is executed also for idle entries below. */
+            head->housekeep(now);
+            break;
         } /* switch */
 
         prev = head;
@@ -416,49 +439,59 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle, bool fu
   }
 
 #ifdef WALK_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][current_size: %u][visit_fraction: %u/%u (visited %u)][buckets_checked: %u]",
-                               name, current_size, visit_fraction, num_hashes, j, buckets_checked);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                               "[%s][current_size: %u][visit_fraction: %u/%u "
+                               "(visited %u)][buckets_checked: %u]",
+                               name, current_size, visit_fraction, num_hashes,
+                               j, buckets_checked);
 #endif
 
   /* Actual idling can be performed when the hash table is no longer locked. */
-  if(idle_entries_shadow->size() > idle_entries_shadow_old_size) {
+  if (idle_entries_shadow->size() > idle_entries_shadow_old_size) {
     it = idle_entries_shadow->begin();
     advance(it, idle_entries_shadow_old_size);
 
-    for(; it != idle_entries_shadow->end(); it++) {
+    for (; it != idle_entries_shadow->end(); it++) {
       (*it)->set_hash_entry_state_idle();
-      /* Now that the entry has been set to idle, housekeep can executed one last time */
+      /* Now that the entry has been set to idle, housekeep can executed one
+       * last time */
       (*it)->housekeep(now);
       entry_state_transition_counters.num_idle_transitions++;
     }
   }
 
 #ifdef WALK_DEBUG
-  if(/* (num_detached > 0) && */ (!strcmp(name, "FlowHash")))
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                                 "[%s @ %s] purgeIdle() [num_detached: %u][num_checked: %u][end index: %u][current_size: %u][visit_fraction: %u]",
-                                 name, iface->get_name(), num_detached, buckets_checked, last_purged_hash, current_size, visit_fraction);
+  if (/* (num_detached > 0) && */ (!strcmp(name, "FlowHash")))
+    ntop->getTrace()->traceEvent(
+        TRACE_NORMAL,
+        "[%s @ %s] purgeIdle() [num_detached: %u][num_checked: %u][end index: "
+        "%u][current_size: %u][visit_fraction: %u]",
+        name, iface->get_name(), num_detached, buckets_checked,
+        last_purged_hash, current_size, visit_fraction);
 #endif
 
-  return(num_detached);
+  return (num_detached);
 }
 
 /* ************************************ */
 
 u_int32_t GenericHash::getNumIdleEntries() const {
-  return(ndpi_max(0, entry_state_transition_counters.num_idle_transitions - entry_state_transition_counters.num_purged));
+  return (ndpi_max(0, entry_state_transition_counters.num_idle_transitions -
+                          entry_state_transition_counters.num_purged));
 };
 
 /* ************************************ */
 
 bool GenericHash::hasEmptyRoom() {
-  /* The check below has been added to avoid adding entries when the system is under pressure */
+  /* The check below has been added to avoid adding entries when the system is
+   * under pressure */
   if((getNumIdleEntries() > MIN_NUM_IDLE_ENTRIES_IF /* Enable this mechanism when there is a consistent number of idle elements */)
      && (getNumIdleEntries() > getNumEntries())) {
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash full: [idle: %u][active: %u]", getNumIdleEntries(), getNumEntries());    
-    return(false);
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash full: [idle: %u][active:
+    // %u]", getNumIdleEntries(), getNumEntries());
+    return (false);
   } else
-    return((getNumEntries() + getNumIdleEntries() <= max_hash_size));
+    return ((getNumEntries() + getNumIdleEntries() <= max_hash_size));
 };
 
 /* ************************************ */
@@ -484,13 +517,21 @@ void GenericHash::lua(lua_State *vm) {
 #endif
 
   num_idle = getNumIdleEntries();
-  if(num_idle < 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: unexpected number of entries in state [iface: %s][%s][hash_entry_state_idle: %i][num_idle_transitions: %u][num_purged: %u]",
-                                 iface ? iface->get_name(): "", name, num_idle, entry_state_transition_counters.num_idle_transitions, entry_state_transition_counters.num_purged);
+  if (num_idle < 0)
+    ntop->getTrace()->traceEvent(
+        TRACE_ERROR,
+        "Internal error: unexpected number of entries in state [iface: "
+        "%s][%s][hash_entry_state_idle: %i][num_idle_transitions: "
+        "%u][num_purged: %u]",
+        iface ? iface->get_name() : "", name, num_idle,
+        entry_state_transition_counters.num_idle_transitions,
+        entry_state_transition_counters.num_purged);
   else
-    lua_push_uint64_table_entry(vm, "hash_entry_state_idle", (u_int64_t)num_idle);
+    lua_push_uint64_table_entry(vm, "hash_entry_state_idle",
+                                (u_int64_t)num_idle);
 
-  lua_push_uint64_table_entry(vm, "hash_entry_state_active", (u_int64_t)getNumEntries());
+  lua_push_uint64_table_entry(vm, "hash_entry_state_active",
+                              (u_int64_t)getNumEntries());
 
   lua_pushstring(vm, "hash_entry_states");
   lua_insert(vm, -2);

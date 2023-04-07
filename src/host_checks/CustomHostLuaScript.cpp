@@ -26,24 +26,24 @@
 
 /* ***************************************************** */
 
-CustomHostLuaScript::CustomHostLuaScript() : HostCheck(ntopng_edition_community, false /* All interfaces */,
-						       true /* Exclude for nEdge */,
-						       false /* NOT only for nEdge */) {
+CustomHostLuaScript::CustomHostLuaScript()
+    : HostCheck(ntopng_edition_community, false /* All interfaces */,
+                true /* Exclude for nEdge */, false /* NOT only for nEdge */) {
   disabled = false;
 };
 
 /* ***************************************************** */
 
 CustomHostLuaScript::~CustomHostLuaScript() {
-  for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
+  for (int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
     NetworkInterface *iface;
-    
-    if((iface = ntop->getInterface(i)) != NULL) {
-      LuaEngine* vm = iface->getCustomHostLuaScript();
 
-      if(vm != NULL) {
-	iface->setCustomHostLuaScript(NULL /* remove VM */);
-	delete vm;
+    if ((iface = ntop->getInterface(i)) != NULL) {
+      LuaEngine *vm = iface->getCustomHostLuaScript();
+
+      if (vm != NULL) {
+        iface->setCustomHostLuaScript(NULL /* remove VM */);
+        delete vm;
       }
     }
   }
@@ -51,33 +51,40 @@ CustomHostLuaScript::~CustomHostLuaScript() {
 
 /* ***************************************************** */
 
-LuaEngine* CustomHostLuaScript::initVM() {
-  const char *script_path = "scripts/callbacks/checks/hosts/custom_host_lua_script.lua";
+LuaEngine *CustomHostLuaScript::initVM() {
+  const char *script_path =
+      "scripts/callbacks/checks/hosts/custom_host_lua_script.lua";
   char where[256];
   struct stat s;
 
   snprintf(where, sizeof(where), "%s/%s", ntop->get_install_dir(), script_path);
-  
-  if(stat(where, &s) != 0) {
-    if(!disabled) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unable to find script %s: ignored `Host User Check Script` host check", where);
+
+  if (stat(where, &s) != 0) {
+    if (!disabled) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                                   "Unable to find script %s: ignored `Host "
+                                   "User Check Script` host check",
+                                   where);
       disabled = true;
     }
-    
-    return(NULL);
+
+    return (NULL);
   } else {
     LuaEngine *lua;
-    
+
     try {
       lua = new LuaEngine(NULL);
-      lua->load_script((char*)where, NULL /* NetworkInterface filled later below */);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loaded custom user script %s", where);
-    } catch(std::bad_alloc& ba) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start Lua interpreter.");
+      lua->load_script((char *)where,
+                       NULL /* NetworkInterface filled later below */);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loaded custom user script %s",
+                                   where);
+    } catch (std::bad_alloc &ba) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                   "Unable to start Lua interpreter.");
       lua = NULL;
     }
 
-    return(lua);
+    return (lua);
   }
 }
 
@@ -85,47 +92,50 @@ LuaEngine* CustomHostLuaScript::initVM() {
 
 void CustomHostLuaScript::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   LuaEngine *lua;
-  
-  if(!h)
+
+  if (!h)
     return;
   else {
     /* Ignore host for which this script has been already visited */
-    if(h->isCustomHostScriptAlreadyEvaluated(h->getInterface()->getTimeLastPktRcvd()))
+    if (h->isCustomHostScriptAlreadyEvaluated(
+            h->getInterface()->getTimeLastPktRcvd()))
       return;
 
     lua = h->getInterface()->getCustomHostLuaScript();
 
-    if(lua == NULL) {
+    if (lua == NULL) {
       lua = initVM();
       h->getInterface()->setCustomHostLuaScript(lua);
     }
   }
-  
-  if(lua != NULL) {
+
+  if (lua != NULL) {
 #ifdef DEBUG
     {
       char buf[128];
 
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Lua script on %s", h->get_name(buf, sizeof(buf), false));
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Lua script on %s",
+                                   h->get_name(buf, sizeof(buf), false));
     }
 #endif
-    
+
     lua->setHost(h);
-    lua->run_loaded_script(); /* Run script */
-    h->setCustomHostScriptAlreadyRun(); /* This host executed this script at least once */
-    
-    if(h->isCustomHostAlertTriggered()) {
+    lua->run_loaded_script();           /* Run script */
+    h->setCustomHostScriptAlreadyRun(); /* This host executed this script at
+                                           least once */
+
+    if (h->isCustomHostAlertTriggered()) {
       HostAlert *alert = engaged_alert;
-    
-      if(!alert) {
-	/* Alert not already triggered */
-	alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE,
-			   h->getCustomHostAlertScore(),
-			   h->getCustomHostAlertMessage());
+
+      if (!alert) {
+        /* Alert not already triggered */
+        alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE,
+                           h->getCustomHostAlertScore(),
+                           h->getCustomHostAlertMessage());
       }
-    
+
       /* Refresh the alert */
-      if(alert) h->triggerAlert(alert);
+      if (alert) h->triggerAlert(alert);
     }
   }
 }
@@ -135,8 +145,7 @@ void CustomHostLuaScript::periodicUpdate(Host *h, HostAlert *engaged_alert) {
 bool CustomHostLuaScript::loadConfiguration(json_object *config) {
   HostCheck::loadConfiguration(config); /* Parse parameters in common */
 
-  return(true);
+  return (true);
 }
 
 /* ***************************************************** */
-

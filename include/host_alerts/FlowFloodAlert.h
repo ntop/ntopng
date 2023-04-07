@@ -22,18 +22,19 @@
 #ifndef _FLOW_FLOOD_ALERT_H_
 #define _FLOW_FLOOD_ALERT_H_
 
-
 #include "ntop_includes.h"
-
 
 class FlowFloodAlert : public FlowHitsAlert {
  private:
-  
  public:
-  static HostAlertType getClassType() { return { host_alert_flow_flood, alert_category_security }; }
+  static HostAlertType getClassType() {
+    return {host_alert_flow_flood, alert_category_security};
+  }
 
-  FlowFloodAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int16_t hits, u_int64_t threshold, bool is_attacker) : FlowHitsAlert(c, h, cli_pctg, hits, threshold, is_attacker) {};
-  ~FlowFloodAlert() {};
+  FlowFloodAlert(HostCheck *c, Host *h, risk_percentage cli_pctg,
+                 u_int16_t hits, u_int64_t threshold, bool is_attacker)
+      : FlowHitsAlert(c, h, cli_pctg, hits, threshold, is_attacker){};
+  ~FlowFloodAlert(){};
 
   HostAlertType getAlertType() const { return getClassType(); }
 };

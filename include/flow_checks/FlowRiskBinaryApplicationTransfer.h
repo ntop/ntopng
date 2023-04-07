@@ -26,28 +26,36 @@
 
 class FlowRiskBinaryApplicationTransfer : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskBinaryApplicationTransferAlert::getClassType(); };
+  FlowAlertType getAlertType() const {
+    return FlowRiskBinaryApplicationTransferAlert::getClassType();
+  };
 
  public:
-  FlowRiskBinaryApplicationTransfer() : FlowRisk() {};
-  ~FlowRiskBinaryApplicationTransfer() {};
+  FlowRiskBinaryApplicationTransfer() : FlowRisk(){};
+  ~FlowRiskBinaryApplicationTransfer(){};
 
   FlowAlert *buildAlert(Flow *f) {
-    FlowRiskBinaryApplicationTransferAlert *alert = new FlowRiskBinaryApplicationTransferAlert(this, f);
+    FlowRiskBinaryApplicationTransferAlert *alert =
+        new FlowRiskBinaryApplicationTransferAlert(this, f);
 
     /*
-      The client is considered an attacker as it can be an infected host now part of a botnet
-      which fetches a malware executable. The server is considered an attacker as well as it can
-      be a server providing malicious files.
+      The client is considered an attacker as it can be an infected host now
+      part of a botnet which fetches a malware executable. The server is
+      considered an attacker as well as it can be a server providing malicious
+      files.
      */
-    alert->setCliAttacker(),
-      alert->setSrvAttacker();
+    alert->setCliAttacker(), alert->setSrvAttacker();
 
     return alert;
   }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskBinaryApplicationTransferAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskBinaryApplicationTransferAlert::getClassRisk(); };
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskBinaryApplicationTransferAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskBinaryApplicationTransferAlert::getClassRisk();
+  };
 };
 
 #endif

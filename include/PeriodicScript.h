@@ -25,32 +25,31 @@
 #include "ntop_includes.h"
 
 class PeriodicScript {
- private: 
+ private:
   const char *path;
   u_int32_t periodicity;
   u_int32_t max_duration_secs;
   ThreadPool *pool;
-  bool align_to_localtime;  
+  bool align_to_localtime;
   bool exclude_viewed_interfaces;
   bool exclude_pcap_dump_interfaces;
 
  public:
-  PeriodicScript(const char* _path,		   
-		   u_int32_t _periodicity_seconds = 0,
-		   u_int32_t _max_duration_seconds = 0,
-		   bool _align_to_localtime = false,
-		   bool _exclude_viewed_interfaces = false,
-		   bool _exclude_pcap_dump_interfaces = false,
-		   ThreadPool* _pool = NULL);
+  PeriodicScript(const char *_path, u_int32_t _periodicity_seconds = 0,
+                 u_int32_t _max_duration_seconds = 0,
+                 bool _align_to_localtime = false,
+                 bool _exclude_viewed_interfaces = false,
+                 bool _exclude_pcap_dump_interfaces = false,
+                 ThreadPool *_pool = NULL);
   ~PeriodicScript();
 
   inline u_int32_t getPeriodicity() { return (periodicity); };
   inline bool excludeViewedIfaces() { return (exclude_viewed_interfaces); };
-  inline bool excludePcap()         { return (exclude_pcap_dump_interfaces); };
-  inline bool alignToLocalTime()    { return (align_to_localtime); };
-  inline const char *getPath()      { return (path); };
+  inline bool excludePcap() { return (exclude_pcap_dump_interfaces); };
+  inline bool alignToLocalTime() { return (align_to_localtime); };
+  inline const char *getPath() { return (path); };
   inline u_int32_t getMaxDuration() { return (max_duration_secs); };
-  inline ThreadPool *getPool()      { return (pool); };
+  inline ThreadPool *getPool() { return (pool); };
 };
 
 #endif /* _PERIODIC_SCRIPT_H_ */

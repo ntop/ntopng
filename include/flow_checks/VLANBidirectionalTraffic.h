@@ -25,24 +25,25 @@
 #include "ntop_includes.h"
 
 class VLANBidirectionalTraffic : public FlowCheck {
-private:
+ private:
   Bitmask *vlans;
 
   void checkBidirectionalTraffic(Flow *f);
   bool checkVLAN(u_int16_t vlan_id);
   bool isServerNotLocal(Flow *f);
 
-public:
+ public:
   VLANBidirectionalTraffic();
   ~VLANBidirectionalTraffic();
-  
+
   void protocolDetected(Flow *f);
   FlowAlert *buildAlert(Flow *f);
 
   bool loadConfiguration(json_object *config);
 
-  std::string getName() const { return(std::string("vlan_bidirectional_traffic")); }
+  std::string getName() const {
+    return (std::string("vlan_bidirectional_traffic"));
+  }
 };
-
 
 #endif /* _VLAN_BIDIRECTIONAL_TRAFFIC_H_ */

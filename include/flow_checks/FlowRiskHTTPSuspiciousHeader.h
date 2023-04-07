@@ -26,22 +26,30 @@
 
 class FlowRiskHTTPSuspiciousHeader : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskHTTPSuspiciousHeaderAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskHTTPSuspiciousHeaderAlert::getClassType();
+  }
 
  public:
-  FlowRiskHTTPSuspiciousHeader() : FlowRisk() {};
-  ~FlowRiskHTTPSuspiciousHeader() {};
+  FlowRiskHTTPSuspiciousHeader() : FlowRisk(){};
+  ~FlowRiskHTTPSuspiciousHeader(){};
 
   FlowAlert *buildAlert(Flow *f) {
-    FlowRiskHTTPSuspiciousHeaderAlert *alert = new FlowRiskHTTPSuspiciousHeaderAlert(this, f);
+    FlowRiskHTTPSuspiciousHeaderAlert *alert =
+        new FlowRiskHTTPSuspiciousHeaderAlert(this, f);
 
     alert->setCliAttacker(), alert->setSrvVictim();
 
     return alert;
   }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskHTTPSuspiciousHeaderAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskHTTPSuspiciousHeaderAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskHTTPSuspiciousHeaderAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskHTTPSuspiciousHeaderAlert::getClassRisk();
+  }
 };
 
 #endif

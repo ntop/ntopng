@@ -23,12 +23,13 @@
 #define _VIRTUAL_HOST_HASH_H_
 
 #include "ntop_includes.h"
- 
+
 class VirtualHostHash : public GenericHash {
  public:
-  VirtualHostHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
+  VirtualHostHash(NetworkInterface *iface, u_int _num_hashes,
+                  u_int _max_hash_size);
 
-  VirtualHost* get(char *key);
+  VirtualHost *get(char *key);
 };
 
 #endif /* _VIRTUAL_HOST_HASH_H_ */

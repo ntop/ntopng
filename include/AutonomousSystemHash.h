@@ -23,15 +23,16 @@
 #define _AUTONOMOUS_SYSTEM_HASH_H_
 
 #include "ntop_includes.h"
- 
+
 class AutonomousSystemHash : public GenericHash {
  private:
   Mutex m;
 
  public:
-  AutonomousSystemHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
+  AutonomousSystemHash(NetworkInterface *iface, u_int _num_hashes,
+                       u_int _max_hash_size);
 
-  AutonomousSystem* get(IpAddress *ipa, bool is_inline_call);
+  AutonomousSystem *get(IpAddress *ipa, bool is_inline_call);
 
 #ifdef AS_DEBUG
   void printHash();

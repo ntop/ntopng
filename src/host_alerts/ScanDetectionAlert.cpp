@@ -23,22 +23,23 @@
 
 /* ***************************************************** */
 
-ScanDetectionAlert::ScanDetectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
-				       u_int32_t _num_incomplete_flows,
-				       u_int32_t _num_incomplete_flows_threshold) : HostAlert(c, f, cli_pctg) {
+ScanDetectionAlert::ScanDetectionAlert(
+    HostCheck* c, Host* f, risk_percentage cli_pctg,
+    u_int32_t _num_incomplete_flows, u_int32_t _num_incomplete_flows_threshold)
+    : HostAlert(c, f, cli_pctg) {
   num_incomplete_flows = _num_incomplete_flows,
-    num_incomplete_flows_threshold = _num_incomplete_flows_threshold;
+  num_incomplete_flows_threshold = _num_incomplete_flows_threshold;
 };
 
 /* ***************************************************** */
 
 ndpi_serializer* ScanDetectionAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
+  if (serializer == NULL) return NULL;
 
   ndpi_serialize_string_uint64(serializer, "value", num_incomplete_flows);
-  ndpi_serialize_string_uint64(serializer, "threshold", num_incomplete_flows_threshold);
-  
+  ndpi_serialize_string_uint64(serializer, "threshold",
+                               num_incomplete_flows_threshold);
+
   return serializer;
 }
 

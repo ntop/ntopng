@@ -23,17 +23,21 @@
 
 /* ***************************************************** */
 
-ndpi_serializer* PeriodicityChangedAlert::getAlertJSON(ndpi_serializer* serializer) {
+ndpi_serializer* PeriodicityChangedAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
 #ifdef NTOPNG_PRO
-  Flow *f = getFlow();
+  Flow* f = getFlow();
 #endif
-  
-  if(serializer == NULL)
-    return NULL;
+
+  if (serializer == NULL) return NULL;
 
 #ifdef NTOPNG_PRO
-  ndpi_serialize_string_boolean(serializer, "is_periodic", f->getPeriodicity() == periodicity_status_is_periodic);
-  ndpi_serialize_string_boolean(serializer, "is_aperiodic", f->getPeriodicity() == periodicity_status_is_aperiodic);
+  ndpi_serialize_string_boolean(
+      serializer, "is_periodic",
+      f->getPeriodicity() == periodicity_status_is_periodic);
+  ndpi_serialize_string_boolean(
+      serializer, "is_aperiodic",
+      f->getPeriodicity() == periodicity_status_is_aperiodic);
 #endif
 
   return serializer;

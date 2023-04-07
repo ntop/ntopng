@@ -24,47 +24,48 @@
 /* **************************************** */
 
 RoundTripStats::RoundTripStats() {
-    stats_it = ROUND_TRIP_LENGTH - 1; /* Last Item */
-    memset(stats, 0, sizeof(stats));
+  stats_it = ROUND_TRIP_LENGTH - 1; /* Last Item */
+  memset(stats, 0, sizeof(stats));
 }
 
 /* **************************************** */
 
 RoundTripStats::~RoundTripStats() {}
-    
+
 /* **************************************** */
 
-// Add a point to the rt stats 
+// Add a point to the rt stats
 void RoundTripStats::addPoint(u_int32_t data) {
-    stats_it = (stats_it + 1) % ROUND_TRIP_LENGTH; // Max num entry is ROUND_TRIP_LENGTH
-    stats[stats_it] = data;
+  stats_it =
+      (stats_it + 1) % ROUND_TRIP_LENGTH;  // Max num entry is ROUND_TRIP_LENGTH
+  stats[stats_it] = data;
 }
 
 /* **************************************** */
 
-void RoundTripStats::luaRTStats(lua_State* vm, const char *stats_name) {
-    u_int8_t stats_it_shadow = stats_it; // Two threads could access this variable at the same time
+void RoundTripStats::luaRTStats(lua_State *vm, const char *stats_name) {
+  u_int8_t stats_it_shadow =
+      stats_it;  // Two threads could access this variable at the same time
 
-    lua_newtable(vm);
-        
-    for (int i = ROUND_TRIP_LENGTH; i > 0; i--) {
-        int j = (stats_it_shadow + i) % ROUND_TRIP_LENGTH;
-        lua_pushinteger(vm, stats[j]);
-        lua_rawseti(vm, -2, i);
-    }
+  lua_newtable(vm);
 
-    lua_pushstring(vm, stats_name);
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
+  for (int i = ROUND_TRIP_LENGTH; i > 0; i--) {
+    int j = (stats_it_shadow + i) % ROUND_TRIP_LENGTH;
+    lua_pushinteger(vm, stats[j]);
+    lua_rawseti(vm, -2, i);
+  }
+
+  lua_pushstring(vm, stats_name);
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* **************************************** */
 
 void RoundTripStats::sum(RoundTripStats *_stats) {
-    u_int32_t *_viewed_stats = _stats->getStats();
+  u_int32_t *_viewed_stats = _stats->getStats();
 
-    for (int i = 0; i < ROUND_TRIP_LENGTH; i++)
-        _viewed_stats[i] += stats[i];
+  for (int i = 0; i < ROUND_TRIP_LENGTH; i++) _viewed_stats[i] += stats[i];
 }
 
 /* **************************************** */

@@ -26,17 +26,19 @@
 
 class WebMining : public FlowCheck {
  private:
-  
  public:
-  WebMining() : FlowCheck(ntopng_edition_community,
-			     false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-			     true /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};
-  ~WebMining() {};
+  WebMining()
+      : FlowCheck(ntopng_edition_community, false /* All interfaces */,
+                  false /* Don't exclude for nEdge */,
+                  false /* NOT only for nEdge */,
+                  true /* has_protocol_detected */,
+                  false /* has_periodic_update */, false /* has_flow_end */){};
+  ~WebMining(){};
 
   void protocolDetected(Flow *f);
   FlowAlert *buildAlert(Flow *f);
-  
-  std::string getName()        const { return(std::string("web_mining")); }
+
+  std::string getName() const { return (std::string("web_mining")); }
 };
 
 #endif /* _WEBMINING_H_ */

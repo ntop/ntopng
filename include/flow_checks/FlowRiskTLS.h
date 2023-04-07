@@ -26,11 +26,10 @@
 
 class FlowRiskTLS : public FlowRisk {
  private:
-
  public:
- FlowRiskTLS() : FlowRisk() {};
- FlowRiskTLS(NtopngEdition _edition) : FlowRisk(_edition) {};
-  ~FlowRiskTLS() {};
+  FlowRiskTLS() : FlowRisk(){};
+  FlowRiskTLS(NtopngEdition _edition) : FlowRisk(_edition){};
+  ~FlowRiskTLS(){};
 };
 
 #endif

@@ -23,49 +23,43 @@
 
 /* ************************************ */
 
-HostHash::HostHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size)
-  : GenericHash(_iface, _num_hashes, _max_hash_size, "HostHash") {
+HostHash::HostHash(NetworkInterface *_iface, u_int _num_hashes,
+                   u_int _max_hash_size)
+    : GenericHash(_iface, _num_hashes, _max_hash_size, "HostHash") {
   num_http_hosts = 0;
 }
 
 /* ************************************ */
 
-Host* HostHash::get(u_int16_t vlanId, IpAddress *key,
-		    Mac *mac, bool is_inline_call,
-		    u_int16_t observation_point_id) {
+Host *HostHash::get(u_int16_t vlanId, IpAddress *key, Mac *mac,
+                    bool is_inline_call, u_int16_t observation_point_id) {
   u_int32_t hash = (key->key() % num_hashes);
 
   /* Check if MAC address needs to be used in host key */
-  if(ntop->getPrefs()->useMacAddressInFlowKey() == false)
-    mac = NULL;
+  if (ntop->getPrefs()->useMacAddressInFlowKey() == false) mac = NULL;
 
-  if(table[hash] == NULL) {
-    return(NULL);
+  if (table[hash] == NULL) {
+    return (NULL);
   } else {
     Host *head;
 
-    if(!is_inline_call)
-      locks[hash]->rdlock(__FILE__, __LINE__);
+    if (!is_inline_call) locks[hash]->rdlock(__FILE__, __LINE__);
 
-    head = (Host*)table[hash];
-    
-    while(head != NULL) { 
-      if((!head->idle())
-	 && (head->get_vlan_id() == vlanId)
-	 && (head->get_observation_point_id() == observation_point_id)
-	 && (head->get_ip() != NULL)
-	 && (head->get_ip()->compare(key) == 0)
-	 && ((mac == NULL) || (mac == head->getMac()))
-	 )
-	break;
+    head = (Host *)table[hash];
+
+    while (head != NULL) {
+      if ((!head->idle()) && (head->get_vlan_id() == vlanId) &&
+          (head->get_observation_point_id() == observation_point_id) &&
+          (head->get_ip() != NULL) && (head->get_ip()->compare(key) == 0) &&
+          ((mac == NULL) || (mac == head->getMac())))
+        break;
       else
-	head = (Host*)head->next();
+        head = (Host *)head->next();
     }
 
-    if(!is_inline_call)
-      locks[hash]->unlock(__FILE__, __LINE__);
+    if (!is_inline_call) locks[hash]->unlock(__FILE__, __LINE__);
 
-    return(head);
+    return (head);
   }
 }
 
@@ -73,17 +67,18 @@ Host* HostHash::get(u_int16_t vlanId, IpAddress *key,
 
 void HostHash::incNumHTTPEntries() {
   m.lock(__FILE__, __LINE__);
-  num_http_hosts++; 
+  num_http_hosts++;
   m.unlock(__FILE__, __LINE__);
 }
 
 /* ************************************ */
 
-void HostHash::decNumHTTPEntries() { 
+void HostHash::decNumHTTPEntries() {
   m.lock(__FILE__, __LINE__);
-  if(num_http_hosts > 0)
+  if (num_http_hosts > 0)
     num_http_hosts--;
-  else 
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: [num_http_hosts=%u]", num_http_hosts);
+  else
+    ntop->getTrace()->traceEvent(
+        TRACE_WARNING, "Internal error: [num_http_hosts=%u]", num_http_hosts);
   m.unlock(__FILE__, __LINE__);
 }

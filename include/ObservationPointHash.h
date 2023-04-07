@@ -23,13 +23,14 @@
 #define _OBSERVATION_POINT_HASH_H
 
 #include "ntop_includes.h"
- 
+
 class ObservationPointHash : public GenericHash {
  private:
   Mutex m;
 
  public:
-  ObservationPointHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
+  ObservationPointHash(NetworkInterface* iface, u_int _num_hashes,
+                       u_int _max_hash_size);
 
   ObservationPoint* get(u_int16_t _obs_point, bool is_inline_call);
 };

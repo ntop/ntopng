@@ -29,14 +29,14 @@ TcpFlowStats::TcpFlowStats() {
 
 /* *************************************** */
 
-char* TcpFlowStats::serialize() {
+char *TcpFlowStats::serialize() {
   json_object *my_object = getJSONObject();
   char *rsp = strdup(json_object_to_json_string(my_object));
 
   /* Free memory */
   json_object_put(my_object);
 
-  return(rsp);
+  return (rsp);
 }
 
 /* ******************************************* */
@@ -44,39 +44,59 @@ char* TcpFlowStats::serialize() {
 void TcpFlowStats::deserialize(json_object *o) {
   json_object *obj;
 
-  if(!o) return;
+  if (!o) return;
 
-  if(json_object_object_get_ex(o, "numSynFlows", &obj))    numSynFlows = json_object_get_int(obj);   else numSynFlows = 0;
-  if(json_object_object_get_ex(o, "numEstablishedFlows", &obj))    numEstablishedFlows = json_object_get_int(obj);   else numEstablishedFlows = 0;
-  if(json_object_object_get_ex(o, "numResetFlows", &obj))    numResetFlows = json_object_get_int(obj);   else numResetFlows = 0;
-  if(json_object_object_get_ex(o, "numFinFlows", &obj))    numFinFlows = json_object_get_int(obj);   else numFinFlows = 0;
+  if (json_object_object_get_ex(o, "numSynFlows", &obj))
+    numSynFlows = json_object_get_int(obj);
+  else
+    numSynFlows = 0;
+  if (json_object_object_get_ex(o, "numEstablishedFlows", &obj))
+    numEstablishedFlows = json_object_get_int(obj);
+  else
+    numEstablishedFlows = 0;
+  if (json_object_object_get_ex(o, "numResetFlows", &obj))
+    numResetFlows = json_object_get_int(obj);
+  else
+    numResetFlows = 0;
+  if (json_object_object_get_ex(o, "numFinFlows", &obj))
+    numFinFlows = json_object_get_int(obj);
+  else
+    numFinFlows = 0;
 }
 
 /* ******************************************* */
 
-json_object* TcpFlowStats::getJSONObject() {
+json_object *TcpFlowStats::getJSONObject() {
   json_object *my_object;
 
   my_object = json_object_new_object();
 
-  if(numSynFlows > 0) json_object_object_add(my_object, "numSynFlows", json_object_new_int(numSynFlows));
-  if(numEstablishedFlows > 0) json_object_object_add(my_object, "numEstablishedFlows", json_object_new_int(numEstablishedFlows));
-  if(numResetFlows > 0) json_object_object_add(my_object, "numResetFlows", json_object_new_int(numResetFlows));
-  if(numFinFlows > 0) json_object_object_add(my_object, "numFinFlows", json_object_new_int(numFinFlows));
-  
-  return(my_object);
+  if (numSynFlows > 0)
+    json_object_object_add(my_object, "numSynFlows",
+                           json_object_new_int(numSynFlows));
+  if (numEstablishedFlows > 0)
+    json_object_object_add(my_object, "numEstablishedFlows",
+                           json_object_new_int(numEstablishedFlows));
+  if (numResetFlows > 0)
+    json_object_object_add(my_object, "numResetFlows",
+                           json_object_new_int(numResetFlows));
+  if (numFinFlows > 0)
+    json_object_object_add(my_object, "numFinFlows",
+                           json_object_new_int(numFinFlows));
+
+  return (my_object);
 }
 
 /* ******************************************* */
 
-void TcpFlowStats::lua(lua_State* vm, const char *label) {
+void TcpFlowStats::lua(lua_State *vm, const char *label) {
   lua_newtable(vm);
-  
+
   lua_push_uint64_table_entry(vm, "numSynFlows", numSynFlows);
   lua_push_uint64_table_entry(vm, "numEstablishedFlows", numEstablishedFlows);
   lua_push_uint64_table_entry(vm, "numResetFlows", numResetFlows);
   lua_push_uint64_table_entry(vm, "numFinFlows", numFinFlows);
-  
+
   lua_pushstring(vm, label);
   lua_insert(vm, -2);
   lua_settable(vm, -3);

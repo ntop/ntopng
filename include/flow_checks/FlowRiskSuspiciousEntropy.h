@@ -26,16 +26,25 @@
 
 class FlowRiskSuspiciousEntropy : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskSuspiciousEntropyAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskSuspiciousEntropyAlert::getClassType();
+  }
 
  public:
-  FlowRiskSuspiciousEntropy() : FlowRisk() {};
-  ~FlowRiskSuspiciousEntropy() {};
+  FlowRiskSuspiciousEntropy() : FlowRisk(){};
+  ~FlowRiskSuspiciousEntropy(){};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskSuspiciousEntropyAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskSuspiciousEntropyAlert(this, f);
+  }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskSuspiciousEntropyAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskSuspiciousEntropyAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskSuspiciousEntropyAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskSuspiciousEntropyAlert::getClassRisk();
+  }
 };
 
 #endif

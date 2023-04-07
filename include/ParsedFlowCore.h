@@ -59,7 +59,6 @@ class ParsedFlowCore {
   virtual ~ParsedFlowCore();
   void swap();
 
-
   void print();
 };
 

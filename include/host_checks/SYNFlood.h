@@ -26,17 +26,19 @@
 
 class SYNFlood : public FlowHits {
  private:
-
  public:
-  SYNFlood() : FlowHits() {};
-  ~SYNFlood() {};
+  SYNFlood() : FlowHits(){};
+  ~SYNFlood(){};
 
-  FlowHitsAlert *allocAlert(Host *h, risk_percentage cli_pctg, u_int16_t hits, u_int64_t threshold, bool attacker) { return new SYNFloodAlert(this, h, cli_pctg, hits, threshold, attacker); };
+  FlowHitsAlert *allocAlert(Host *h, risk_percentage cli_pctg, u_int16_t hits,
+                            u_int64_t threshold, bool attacker) {
+    return new SYNFloodAlert(this, h, cli_pctg, hits, threshold, attacker);
+  };
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
   HostCheckID getID() const { return host_check_syn_flood; }
-  std::string getName()        const { return(std::string("syn_flood")); }
+  std::string getName() const { return (std::string("syn_flood")); }
 };
 
 #endif

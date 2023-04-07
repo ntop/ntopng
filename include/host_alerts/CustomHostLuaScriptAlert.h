@@ -22,28 +22,28 @@
 #ifndef _CUSTOM_HOST_LUA_SCRIPT_ALERT_H_
 #define _CUSTOM_HOST_LUA_SCRIPT_ALERT_H_
 
-
 #include "ntop_includes.h"
 
-
 class CustomHostLuaScriptAlert : public HostAlert {
-private:
-  u_int8_t   score;
+ private:
+  u_int8_t score;
   std::string msg;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
-  
+
  public:
-  static HostAlertType getClassType() { return { host_alert_custom_lua_script, alert_category_security }; }
+  static HostAlertType getClassType() {
+    return {host_alert_custom_lua_script, alert_category_security};
+  }
 
-  CustomHostLuaScriptAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int32_t _score, std::string _msg);
-  ~CustomHostLuaScriptAlert() {};
-  
-  HostAlertType getAlertType() const    { return getClassType(); }
-  void setAlertMessage(std::string m)   { msg = m;                };
-  void setAlertScore(u_int8_t v)        { score = v;              };
-  virtual u_int8_t getAlertScore()const { return(score);          };
+  CustomHostLuaScriptAlert(HostCheck* c, Host* f, risk_percentage cli_pctg,
+                           u_int32_t _score, std::string _msg);
+  ~CustomHostLuaScriptAlert(){};
 
+  HostAlertType getAlertType() const { return getClassType(); }
+  void setAlertMessage(std::string m) { msg = m; };
+  void setAlertScore(u_int8_t v) { score = v; };
+  virtual u_int8_t getAlertScore() const { return (score); };
 };
 
 #endif /* _CUSTOM_HOST_LUA_SCRIPT_ALERT_H_ */

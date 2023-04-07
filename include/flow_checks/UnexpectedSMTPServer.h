@@ -25,15 +25,17 @@
 #include "ntop_includes.h"
 
 class UnexpectedSMTPServer : public UnexpectedServer {
-private:
-  FlowAlertType getAlertType() const { return UnexpectedSMTPServerAlert::getClassType(); }
+ private:
+  FlowAlertType getAlertType() const {
+    return UnexpectedSMTPServerAlert::getClassType();
+  }
 
-protected:
-  bool isAllowedProto(Flow *f)       { return(f->isSMTP());                  }
-  
+ protected:
+  bool isAllowedProto(Flow *f) { return (f->isSMTP()); }
+
  public:
-  UnexpectedSMTPServer() : UnexpectedServer() {};
-  ~UnexpectedSMTPServer() {};
+  UnexpectedSMTPServer() : UnexpectedServer(){};
+  ~UnexpectedSMTPServer(){};
 
   FlowAlert *buildAlert(Flow *f) {
     UnexpectedSMTPServerAlert *alert = new UnexpectedSMTPServerAlert(this, f);
@@ -41,7 +43,7 @@ protected:
     return alert;
   }
 
-  std::string getName()          const { return(std::string("unexpected_smtp")); }
+  std::string getName() const { return (std::string("unexpected_smtp")); }
 };
 
 #endif /* _UNEXPECTED_SMTP_SERVER_H_ */

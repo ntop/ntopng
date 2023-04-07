@@ -21,19 +21,23 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* BlacklistedFlowAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow *f = getFlow();
+ndpi_serializer* BlacklistedFlowAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow* f = getFlow();
 
-  if(serializer == NULL)
-    return NULL;
+  if (serializer == NULL) return NULL;
 
-  ndpi_serialize_string_boolean(serializer, "cli_blacklisted", f->isBlacklistedClient());
-  ndpi_serialize_string_boolean(serializer, "srv_blacklisted", f->isBlacklistedServer());
-  ndpi_serialize_string_boolean(serializer, "cat_blacklisted", f->get_protocol_category() == CUSTOM_CATEGORY_MALWARE);
+  ndpi_serialize_string_boolean(serializer, "cli_blacklisted",
+                                f->isBlacklistedClient());
+  ndpi_serialize_string_boolean(serializer, "srv_blacklisted",
+                                f->isBlacklistedServer());
+  ndpi_serialize_string_boolean(
+      serializer, "cat_blacklisted",
+      f->get_protocol_category() == CUSTOM_CATEGORY_MALWARE);
 
-  if(f->get_custom_category_file())
-    ndpi_serialize_string_string(serializer, "custom_cat_file", f->get_custom_category_file());
-  
+  if (f->get_custom_category_file())
+    ndpi_serialize_string_string(serializer, "custom_cat_file",
+                                 f->get_custom_category_file());
+
   return serializer;
 }
-

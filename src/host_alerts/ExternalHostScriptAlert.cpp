@@ -23,18 +23,21 @@
 
 /* ***************************************************** */
 
-ExternalHostScriptAlert::ExternalHostScriptAlert(HostCheck *c, Host *h, risk_percentage cli_pctg,
-						 u_int32_t _score, std::string _msg) : HostAlert(c, h, cli_pctg) {
+ExternalHostScriptAlert::ExternalHostScriptAlert(HostCheck* c, Host* h,
+                                                 risk_percentage cli_pctg,
+                                                 u_int32_t _score,
+                                                 std::string _msg)
+    : HostAlert(c, h, cli_pctg) {
   score = _score, msg = _msg;
 };
 
 /* ***************************************************** */
 
-ndpi_serializer* ExternalHostScriptAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
+ndpi_serializer* ExternalHostScriptAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  if (serializer == NULL) return NULL;
 
-  if(msg.size() > 0)
+  if (msg.size() > 0)
     ndpi_serialize_string_string(serializer, "message", msg.c_str());
 
   return serializer;

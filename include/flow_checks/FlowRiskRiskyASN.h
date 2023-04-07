@@ -26,16 +26,21 @@
 
 class FlowRiskRiskyASN : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskRiskyASNAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskRiskyASNAlert::getClassType();
+  }
 
  public:
-  FlowRiskRiskyASN() {};
-  ~FlowRiskRiskyASN() {};
+  FlowRiskRiskyASN(){};
+  ~FlowRiskRiskyASN(){};
 
   FlowAlert *buildAlert(Flow *f) { return new FlowRiskRiskyASNAlert(this, f); }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskRiskyASNAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskRiskyASNAlert::getClassRisk(); }
+  std::string getName() const {
+    return (
+        FlowRiskAlerts::getCheckName(FlowRiskRiskyASNAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() { return FlowRiskRiskyASNAlert::getClassRisk(); }
 };
 
 #endif

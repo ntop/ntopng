@@ -25,21 +25,24 @@
 #include "ntop_includes.h"
 
 class PktThreshold : public HostCheck {
-private:
+ private:
   u_int64_t pkt_threshold;
 
-  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _pkt_count, u_int64_t _pkt_threshold) { return new PktThresholdAlert(c, f, cli_pctg, _pkt_count, _pkt_threshold); };
+  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
+                        u_int64_t _pkt_count, u_int64_t _pkt_threshold) {
+    return new PktThresholdAlert(c, f, cli_pctg, _pkt_count, _pkt_threshold);
+  };
 
  public:
   PktThreshold();
-  ~PktThreshold() {};
+  ~PktThreshold(){};
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
-  bool loadConfiguration(json_object *config);  
+  bool loadConfiguration(json_object *config);
 
   HostCheckID getID() const { return host_check_pkt_threshold; }
-  std::string getName()      const { return(std::string("pkt_threshold")); }
+  std::string getName() const { return (std::string("pkt_threshold")); }
 };
 
 #endif

@@ -27,7 +27,8 @@
 class GenericHashEntry;
 
 /** @defgroup MonitoringData Monitoring Data
- * This is the group that contains all classes and datastructures that handle monitoring data.
+ * This is the group that contains all classes and datastructures that handle
+ * monitoring data.
  */
 
 /** @class GenericHash
@@ -39,30 +40,41 @@ class GenericHashEntry;
  */
 class GenericHash {
  protected:
-  GenericHashEntry **table; /**< Entry table. It is used for maintain an update history */
+  GenericHashEntry *
+      *table; /**< Entry table. It is used for maintain an update history */
   char *name;
-  u_int32_t num_hashes; /**< Number of hash */
-  u_int32_t current_size; /**< Current size of hash (including idle or ready-to-purge elements) */
+  u_int32_t num_hashes;    /**< Number of hash */
+  u_int32_t current_size;  /**< Current size of hash (including idle or
+                              ready-to-purge elements) */
   u_int32_t max_hash_size; /**< Max size of hash */
-  u_int32_t upper_num_visited_entries; /**< Max number of entries to purge per run */
+  u_int32_t
+      upper_num_visited_entries; /**< Max number of entries to purge per run */
   u_int32_t hash_mask;
   RwLock **locks;
-  NetworkInterface *iface; /**< Pointer of network interface for this generic hash */
+  NetworkInterface
+      *iface; /**< Pointer of network interface for this generic hash */
   u_int32_t last_purged_hash; /**< Index of last purged hash */
-  u_int32_t last_entry_id; /**< An uniue identifier assigned to each entry in the hash table */
+  u_int32_t last_entry_id;    /**< An uniue identifier assigned to each entry in
+                                 the hash table */
   u_int purge_step;
-  u_int walk_idle_start_hash_id; /**< The id of the hash bucket from which to start walkIdle hash table walk */
+  u_int walk_idle_start_hash_id; /**< The id of the hash bucket from which to
+                                    start walkIdle hash table walk */
   struct {
     u_int64_t num_idle_transitions;
     u_int64_t num_purged;
   } entry_state_transition_counters;
 
-  vector<GenericHashEntry*> *idle_entries_in_use;   /**< Vector used by the offline thread in charge to hold idle entries but still in use */
-  vector<GenericHashEntry*> *idle_entries;          /**< Vector used by the offline thread in charge of deleting hash table entries */
-  vector<GenericHashEntry*> *idle_entries_shadow;   /**< Vector prepared by the purgeIdle and periodically swapped to idle_entries */
-  
- public:
+  vector<GenericHashEntry *>
+      *idle_entries_in_use; /**< Vector used by the offline thread in charge to
+                               hold idle entries but still in use */
+  vector<GenericHashEntry *>
+      *idle_entries; /**< Vector used by the offline thread in charge of
+                        deleting hash table entries */
+  vector<GenericHashEntry *>
+      *idle_entries_shadow; /**< Vector prepared by the purgeIdle and
+                               periodically swapped to idle_entries */
 
+ public:
   /**
    * @brief A Constructor
    * @details Creating a new GenericHash.
@@ -73,8 +85,8 @@ class GenericHash {
    * @param _name Hash name (debug)
    * @return A new Instance of GenericHash.
    */
-  GenericHash(NetworkInterface *_iface, u_int _num_hashes,
-	      u_int _max_hash_size, const char *_name);
+  GenericHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size,
+              const char *_name);
 
   /**
    * @brief A Destructor
@@ -87,10 +99,11 @@ class GenericHash {
    *
    * @return Current size of hash.
    */
-  inline u_int32_t getNumEntries() { return(current_size); };
+  inline u_int32_t getNumEntries() { return (current_size); };
 
   /**
-   * @brief Get number of idle entries, that is, entries no longer in the hash table but still to be purged.
+   * @brief Get number of idle entries, that is, entries no longer in the hash
+   * table but still to be purged.
    * @details Inline method.
    *
    * @return The number of idle entries.
@@ -99,10 +112,12 @@ class GenericHash {
 
   /**
    * @brief Add new entry to generic hash.
-   * @details If current_size < max_hash_size, this method calculate a new hash key for the new entry, add it and update the current_size value.
+   * @details If current_size < max_hash_size, this method calculate a new hash
+   * key for the new entry, add it and update the current_size value.
    *
    * @param h Pointer of new entry to add.
-   * @param h whether the bucket should be locked before addin the entry to the linked list.
+   * @param h whether the bucket should be locked before addin the entry to the
+   * linked list.
    * @return True if the entry has been added successfully,
    *         False otherwise.
    *
@@ -111,9 +126,10 @@ class GenericHash {
 
   /**
    * @brief Generic hash table walker
-   * @details This method traverses all the non-idle entries of the hash table, calling
-   *          the walker function on each of them. Function idle() is called for each entry
-   *          to evaluate its state, determine if the entry is idle, and possibly call the walker.
+   * @details This method traverses all the non-idle entries of the hash table,
+   * calling the walker function on each of them. Function idle() is called for
+   * each entry to evaluate its state, determine if the entry is idle, and
+   * possibly call the walker.
    *
    * @param begin_slot begin hash slot. Use 0 to walk all slots
    * @param walk_all true = walk all hash, false, walk only one (non NULL) slot
@@ -121,14 +137,17 @@ class GenericHash {
    * @param user_data Value to be compared with the values of hash.
    */
   bool walk(u_int32_t *begin_slot, bool walk_all,
-	    bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data);
+            bool (*walker)(GenericHashEntry *h, void *user_data,
+                           bool *entryMatched),
+            void *user_data);
 
   /**
-   * @brief Purge idle entries that have been previous idled by purgeIdle() via periodic calls
+   * @brief Purge idle entries that have been previous idled by purgeIdle() via
+   * periodic calls
    * @return The number of purged entries
    */
   u_int64_t purgeQueuedIdleEntries();
-  
+
   /**
    * @brief Purge idle hash entries.
    *
@@ -139,7 +158,7 @@ class GenericHash {
    *
    * @return Numbers of purged entry, 0 otherwise.
    */
-  u_int purgeIdle(const struct timeval * tv, bool force_idle, bool full_scan);
+  u_int purgeIdle(const struct timeval *tv, bool force_idle, bool full_scan);
 
   /**
    * @brief Purge all hash entries.
@@ -153,7 +172,7 @@ class GenericHash {
    *
    * @return Pointer of network interface instance.
    */
-  inline NetworkInterface* getInterface() { return(iface); };
+  inline NetworkInterface *getInterface() { return (iface); };
 
   /**
    * @brief Return the name associated with the hash.
@@ -161,7 +180,7 @@ class GenericHash {
    *
    * @return Pointer to the name
    */
-  inline const char* getName() const { return name; };
+  inline const char *getName() const { return name; };
 
   /**
    * @brief Check whether the hash has empty space
@@ -178,8 +197,7 @@ class GenericHash {
    *
    * @return Current size of hash.
    */
-  void lua(lua_State* vm);
-
+  void lua(lua_State *vm);
 };
 
 #endif /* _GENERIC_HASH_H_ */

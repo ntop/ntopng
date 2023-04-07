@@ -24,8 +24,7 @@
 
 #include "config.h"
 
-
-#if defined (__FreeBSD) || defined(__FreeBSD__)
+#if defined(__FreeBSD) || defined(__FreeBSD__)
 #define _XOPEN_SOURCE
 #define _WITH_GETLINE
 #endif
@@ -95,8 +94,8 @@
 #endif
 //#include <libgen.h>
 #if defined(__linux__)
-#include <linux/ethtool.h> // ethtool
-#include <linux/sockios.h> // sockios
+#include <linux/ethtool.h>  // ethtool
+#include <linux/sockios.h>  // sockios
 #include <ifaddrs.h>
 #elif defined(__FreeBSD__) || defined(__APPLE__)
 #include <net/if_dl.h>
@@ -139,7 +138,7 @@ extern "C" {
 #endif
 
 #ifdef WIN32
-/* 
+/*
 See
 https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.blogspot.com%2F2017%2F05%2Fvcpkg.html
 */
@@ -149,7 +148,7 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 
 #ifdef WIN32
 #pragma comment(lib, "crypt32.lib")
-#pragma comment(lib, "wldap32.lib") 
+#pragma comment(lib, "wldap32.lib")
 #endif
 
 #include "third-party/uthash.h"
@@ -173,7 +172,8 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 #include <map>
 #include <unordered_map>
 
-#if !defined(__clang__) && (__GNUC__ <= 4) && (__GNUC_MINOR__ < 8) && !defined(WIN32)
+#if !defined(__clang__) && (__GNUC__ <= 4) && (__GNUC_MINOR__ < 8) && \
+    !defined(WIN32)
 #include <cstdatomic>
 #else
 #include <atomic>

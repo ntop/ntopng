@@ -26,16 +26,23 @@
 
 class FlowRiskTLSCertValidityTooLongAlert : public FlowRiskAlert {
  public:
-  static ndpi_risk_enum getClassRisk() { return NDPI_TLS_CERT_VALIDITY_TOO_LONG; }
-  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
-  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
+  static ndpi_risk_enum getClassRisk() {
+    return NDPI_TLS_CERT_VALIDITY_TOO_LONG;
+  }
+  static FlowAlertType getClassType() {
+    return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk());
+  }
+  static u_int8_t getDefaultScore() {
+    return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
+  }
 
- FlowRiskTLSCertValidityTooLongAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
-  ~FlowRiskTLSCertValidityTooLongAlert() { };
+  FlowRiskTLSCertValidityTooLongAlert(FlowCheck *c, Flow *f)
+      : FlowRiskAlert(c, f){};
+  ~FlowRiskTLSCertValidityTooLongAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
-  u_int8_t       getAlertScore() const { return getDefaultScore(); }
+  ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
+  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_TLS_CERT_VALIDITY_TOO_LONG_ALERT_H_ */

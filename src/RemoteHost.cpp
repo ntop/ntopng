@@ -23,27 +23,29 @@
 
 /* *************************************** */
 
-RemoteHost::RemoteHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _u_int16_t,
-		       u_int16_t _observation_point_id, IpAddress *_ip)
-  : Host(_iface, _mac, _u_int16_t, _observation_point_id, _ip) {
+RemoteHost::RemoteHost(NetworkInterface *_iface, Mac *_mac,
+                       u_int16_t _u_int16_t, u_int16_t _observation_point_id,
+                       IpAddress *_ip)
+    : Host(_iface, _mac, _u_int16_t, _observation_point_id, _ip) {
 #ifdef REMOTEHOST_DEBUG
   char buf[48];
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Instantiating REMOTE host %s", _ip ? _ip->print(buf, sizeof(buf)) : "");
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Instantiating REMOTE host %s",
+                               _ip ? _ip->print(buf, sizeof(buf)) : "");
 #endif
   initialize();
 }
 
 /* *************************************** */
 
-RemoteHost::RemoteHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _u_int16_t, u_int16_t _observation_point_id)
-  : Host(_iface, ipAddress, _u_int16_t, _observation_point_id) {
+RemoteHost::RemoteHost(NetworkInterface *_iface, char *ipAddress,
+                       u_int16_t _u_int16_t, u_int16_t _observation_point_id)
+    : Host(_iface, ipAddress, _u_int16_t, _observation_point_id) {
   initialize();
 }
 
 /* *************************************** */
 
-RemoteHost::~RemoteHost() {
-}
+RemoteHost::~RemoteHost() {}
 
 /* *************************************** */
 
@@ -62,11 +64,12 @@ void RemoteHost::initialize() {
 
   snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
   stats = allocateStats();
-  updateHostPool(true /* inline with packet processing */, true /* first inc */);
+  updateHostPool(true /* inline with packet processing */,
+                 true /* first inc */);
 
-  if(ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
-    /* Just ask ntopng to resolve the name. Actual name will be grabbed once needed
-       using the getter.
+  if (ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
+    /* Just ask ntopng to resolve the name. Actual name will be grabbed once
+       needed using the getter.
     */
     ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true);
   }

@@ -26,22 +26,30 @@
 
 class FlowRiskURLPossibleXSS : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskURLPossibleXSSAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskURLPossibleXSSAlert::getClassType();
+  }
 
  public:
-  FlowRiskURLPossibleXSS() : FlowRisk() {};
-  ~FlowRiskURLPossibleXSS() {};
+  FlowRiskURLPossibleXSS() : FlowRisk(){};
+  ~FlowRiskURLPossibleXSS(){};
 
   FlowAlert *buildAlert(Flow *f) {
-    FlowRiskURLPossibleXSSAlert *alert = new FlowRiskURLPossibleXSSAlert(this, f);
+    FlowRiskURLPossibleXSSAlert *alert =
+        new FlowRiskURLPossibleXSSAlert(this, f);
 
     alert->setCliAttacker(), alert->setSrvVictim();
 
     return alert;
   }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskURLPossibleXSSAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskURLPossibleXSSAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskURLPossibleXSSAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskURLPossibleXSSAlert::getClassRisk();
+  }
 };
 
 #endif

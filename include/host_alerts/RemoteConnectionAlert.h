@@ -29,15 +29,18 @@ class RemoteConnectionAlert : public HostAlert {
   u_int8_t num_remote_access;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
-  
- public:
-  static HostAlertType getClassType() { return { host_alert_remote_connection, alert_category_network }; }
 
-  RemoteConnectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int8_t _num_remote_access);
-  ~RemoteConnectionAlert() {};
-  
+ public:
+  static HostAlertType getClassType() {
+    return {host_alert_remote_connection, alert_category_network};
+  }
+
+  RemoteConnectionAlert(HostCheck* c, Host* f, risk_percentage cli_pctg,
+                        u_int8_t _num_remote_access);
+  ~RemoteConnectionAlert(){};
+
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore()     const { return SCORE_LEVEL_NOTICE; };
+  u_int8_t getAlertScore() const { return SCORE_LEVEL_NOTICE; };
 };
 
 #endif /* _REMOTE_CONNECTION_ALERT_H_ */

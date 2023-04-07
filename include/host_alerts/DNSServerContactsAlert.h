@@ -22,19 +22,19 @@
 #ifndef _DNS_SERVER_CONTACTS_ALERT_H_
 #define _DNS_SERVER_CONTACTS_ALERT_H_
 
-
 #include "ntop_includes.h"
-
 
 class DNSServerContactsAlert : public ServerContactsAlert {
  private:
-  
  public:
-  static HostAlertType getClassType() { return { host_alert_dns_server_contacts, alert_category_security }; }
+  static HostAlertType getClassType() {
+    return {host_alert_dns_server_contacts, alert_category_security};
+  }
 
-  DNSServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _contacts, u_int64_t _contacts_threshold);
-  ~DNSServerContactsAlert() {};
-  
+  DNSServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
+                         u_int64_t _contacts, u_int64_t _contacts_threshold);
+  ~DNSServerContactsAlert(){};
+
   HostAlertType getAlertType() const { return getClassType(); }
 };
 

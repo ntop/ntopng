@@ -25,7 +25,7 @@
 /* ***************************************************** */
 
 DomainNamesContacts::DomainNamesContacts() : ServerContacts() {
-  domain_names_threshold=(u_int16_t)-1;
+  domain_names_threshold = (u_int16_t)-1;
 };
 
 /* ***************************************************** */
@@ -34,14 +34,15 @@ void DomainNamesContacts::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
   u_int32_t num_domain_names = 0;
 
-
-  if((num_domain_names = h->getDomainNamesCardinality()) > domain_names_threshold ) {
-    if (!alert) alert = allocAlert(this, h, CLIENT_FAIR_RISK_PERCENTAGE, num_domain_names,domain_names_threshold);
+  if ((num_domain_names = h->getDomainNamesCardinality()) >
+      domain_names_threshold) {
+    if (!alert)
+      alert = allocAlert(this, h, CLIENT_FAIR_RISK_PERCENTAGE, num_domain_names,
+                         domain_names_threshold);
     if (alert) h->triggerAlert(alert);
   }
 
   h->resetDomainNamesCardinality();
-
 }
 
 bool DomainNamesContacts::loadConfiguration(json_object *config) {
@@ -49,12 +50,13 @@ bool DomainNamesContacts::loadConfiguration(json_object *config) {
 
   HostCheck::loadConfiguration(config); /* Parse parameters in common */
 
-  if(json_object_object_get_ex(config, "threshold", &json_threshold))
+  if (json_object_object_get_ex(config, "threshold", &json_threshold))
     domain_names_threshold = (u_int16_t)json_object_get_int64(json_threshold);
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u", json_object_to_json_string(config), ntp_bytes_threshold);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u",
+  // json_object_to_json_string(config), ntp_bytes_threshold);
 
-  return(true);
+  return (true);
 }
 
 /* ***************************************************** */

@@ -25,16 +25,16 @@
 #include "ntop_includes.h"
 
 class CustomHostLuaScript : public HostCheck {
-private:
-  LuaEngine* initVM();
+ private:
+  LuaEngine *initVM();
   bool disabled;
-  
-  HostAlert *allocAlert(HostCheck *c, Host *h,  risk_percentage cli_pctg,
-			u_int32_t _score, std::string _msg) {
-    CustomHostLuaScriptAlert *alert = new CustomHostLuaScriptAlert(c, h, cli_pctg, _score, _msg);
 
-    if(cli_pctg != CLIENT_NO_RISK_PERCENTAGE)
-      alert->setAttacker();
+  HostAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg,
+                        u_int32_t _score, std::string _msg) {
+    CustomHostLuaScriptAlert *alert =
+        new CustomHostLuaScriptAlert(c, h, cli_pctg, _score, _msg);
+
+    if (cli_pctg != CLIENT_NO_RISK_PERCENTAGE) alert->setAttacker();
 
     return alert;
   };
@@ -44,10 +44,12 @@ private:
   ~CustomHostLuaScript();
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
-  bool loadConfiguration(json_object *config);  
+  bool loadConfiguration(json_object *config);
 
-  HostCheckID getID()   const { return host_check_custom_lua_script; }
-  std::string getName() const { return(std::string("custom_host_lua_script")); }
+  HostCheckID getID() const { return host_check_custom_lua_script; }
+  std::string getName() const {
+    return (std::string("custom_host_lua_script"));
+  }
 };
 
 #endif

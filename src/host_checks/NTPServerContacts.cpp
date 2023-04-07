@@ -24,7 +24,6 @@
 
 /* ***************************************************** */
 
-NTPServerContacts::NTPServerContacts() : ServerContacts() {
-}
+NTPServerContacts::NTPServerContacts() : ServerContacts() {}
 
 /* ***************************************************** */

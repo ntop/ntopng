@@ -23,15 +23,11 @@
 
 /* *************************************** */
 
-UsedPorts::UsedPorts() {
-  ;
-}
+UsedPorts::UsedPorts() { ; }
 
 /* *************************************** */
 
-UsedPorts::~UsedPorts() {
-  ;
-}
+UsedPorts::~UsedPorts() { ; }
 
 /* *************************************** */
 
@@ -42,16 +38,20 @@ void UsedPorts::reset() {
 
 /* *************************************** */
 
-void UsedPorts::setLuaArray(lua_State *vm, NetworkInterface *iface,
-			    bool isTCP, std::unordered_map<u_int16_t, ndpi_protocol> *ports) {
-  if(ports) {
+void UsedPorts::setLuaArray(
+    lua_State *vm, NetworkInterface *iface, bool isTCP,
+    std::unordered_map<u_int16_t, ndpi_protocol> *ports) {
+  if (ports) {
     std::unordered_map<u_int16_t, ndpi_protocol>::iterator it;
-    
-    for(it = ports->begin(); it != ports->end(); ++it) {
+
+    for (it = ports->begin(); it != ports->end(); ++it) {
       char str[32], buf[64];
-      
+
       snprintf(str, sizeof(str), "%s:%u", isTCP ? "tcp" : "udp", it->first);
-      lua_push_str_table_entry(vm, str, ndpi_protocol2name(iface->get_ndpi_struct(), it->second, buf, sizeof(buf)));
+      lua_push_str_table_entry(
+          vm, str,
+          ndpi_protocol2name(iface->get_ndpi_struct(), it->second, buf,
+                             sizeof(buf)));
     }
   }
 }
@@ -65,7 +65,7 @@ void UsedPorts::lua(lua_State *vm, NetworkInterface *iface) {
 
   /* ***************************** */
 
-  setLuaArray(vm, iface, true,  &tcp_server_ports);
+  setLuaArray(vm, iface, true, &tcp_server_ports);
   setLuaArray(vm, iface, false, &udp_server_ports);
 
   lua_pushstring(vm, "local_server_ports");
@@ -76,7 +76,7 @@ void UsedPorts::lua(lua_State *vm, NetworkInterface *iface) {
 
   lua_newtable(vm);
 
-  setLuaArray(vm, iface, true,  &tcp_client_contacted_ports);
+  setLuaArray(vm, iface, true, &tcp_client_contacted_ports);
   setLuaArray(vm, iface, false, &udp_client_contacted_ports);
 
   lua_pushstring(vm, "remote_contacted_ports");
@@ -92,8 +92,9 @@ void UsedPorts::lua(lua_State *vm, NetworkInterface *iface) {
 
 /* *************************************** */
 
-void UsedPorts::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
-  if(isTCP)
+void UsedPorts::setServerPort(bool isTCP, u_int16_t port,
+                              ndpi_protocol *proto) {
+  if (isTCP)
     tcp_server_ports[port] = *proto;
   else
     udp_server_ports[port] = *proto;
@@ -101,8 +102,9 @@ void UsedPorts::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) 
 
 /* *************************************** */
 
-void UsedPorts::setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
-  if(isTCP)
+void UsedPorts::setContactedPort(bool isTCP, u_int16_t port,
+                                 ndpi_protocol *proto) {
+  if (isTCP)
     tcp_client_contacted_ports[port] = *proto;
   else
     udp_client_contacted_ports[port] = *proto;

@@ -27,19 +27,25 @@
 class ThreadedActivity;
 
 typedef struct {
-  ticks  tot_ticks, max_ticks;
-  u_long tot_calls; /* Total number of calls */
-} threaded_activity_timeseries_delta_stats_t; /* Stats periodically reset to keep a most-recent view */
+  ticks tot_ticks, max_ticks;
+  u_long tot_calls;                           /* Total number of calls */
+} threaded_activity_timeseries_delta_stats_t; /* Stats periodically reset to
+                                                 keep a most-recent view */
 
 typedef struct {
   /* Overall totals */
   u_long tot_calls; /* Total number of calls */
-  u_long tot_drops; /* Total number of times timeseries haven't been called because writes are detected to be slow */
+  u_long tot_drops; /* Total number of times timeseries haven't been called
+                       because writes are detected to be slow */
   /* Stats for the last run */
-  float last_max_call_duration_ms; /* Maximum time taken to perform a call during the last run */
-  float last_avg_call_duration_ms; /* Average time taken to perform a call during the last run */
-  bool  last_slow; /* True if slow timeseries updates have been detected during the last run */
-  threaded_activity_timeseries_delta_stats_t last; /* Keep stats for the last run */
+  float last_max_call_duration_ms; /* Maximum time taken to perform a call
+                                      during the last run */
+  float last_avg_call_duration_ms; /* Average time taken to perform a call
+                                      during the last run */
+  bool last_slow; /* True if slow timeseries updates have been detected during
+                     the last run */
+  threaded_activity_timeseries_delta_stats_t
+      last; /* Keep stats for the last run */
 } threaded_activity_timeseries_stats_t;
 
 typedef struct {
@@ -63,23 +69,21 @@ class ThreadedActivityStats {
   static ticks tickspersec;
   bool not_executed, is_slow;
   ThreadedActivityState state;
-  
+
   void updateTimeseriesStats(bool write, ticks cur_ticks);
   void luaTimeseriesStats(lua_State *vm);
-  
+
  public:
   ThreadedActivityStats(const ThreadedActivity *ta);
   ~ThreadedActivityStats();
 
-  inline time_t getLastQueueTime()   const { return(last_queued_time);  }
-  inline time_t getInProgressSince() const { return(in_progress_since); }
-  inline time_t getLastStartTime()   const { return(last_start_time);   }
-  inline time_t getDeadline()        const { return(deadline);          }
+  inline time_t getLastQueueTime() const { return (last_queued_time); }
+  inline time_t getInProgressSince() const { return (in_progress_since); }
+  inline time_t getLastStartTime() const { return (last_start_time); }
+  inline time_t getDeadline() const { return (deadline); }
 
-  inline bool hasAlertsDrops() const {
-    return ta_stats.alerts.has_drops;
-  }
-  
+  inline bool hasAlertsDrops() const { return ta_stats.alerts.has_drops; }
+
   /* Timeseries stats and drops for writes */
   void updateTimeseriesWriteStats(ticks cur_ticks);
   void incTimeseriesWriteDrops(u_long num_drops);
@@ -91,13 +95,15 @@ class ThreadedActivityStats {
   void setNotExecutedActivity(bool _not_executed);
   void setSlowPeriodicActivity(bool _slow);
   inline void setScheduledTime(time_t t) { scheduled_time = t; }
-  inline void setDeadline(time_t t)      { deadline = t; }
-  inline void setCurrentProgress(int _progress) { progress = min(max(_progress, 0), 100); }
-  inline void setAlertsDrops()           { ta_stats.alerts.has_drops = true; }
+  inline void setDeadline(time_t t) { deadline = t; }
+  inline void setCurrentProgress(int _progress) {
+    progress = min(max(_progress, 0), 100);
+  }
+  inline void setAlertsDrops() { ta_stats.alerts.has_drops = true; }
 
   void lua(lua_State *vm);
 
-  inline ThreadedActivityState getState() { return(state); }
+  inline ThreadedActivityState getState() { return (state); }
   void setState(ThreadedActivityState s);
 };
 
