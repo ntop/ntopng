@@ -4,8 +4,6 @@ name: Formatter
 on:
   push:
     branches: [ "dev" ]
-  pull_request:
-    branches: [ "dev" ]
   workflow_dispatch:
 jobs:
   formatter:
@@ -25,12 +23,6 @@ jobs:
       # Commit the changes when pushing to a remote branch
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
-        if: ${{ github.event_name == 'push' }}
         with:
           commit_user_name: clang-format-bot
           commit_message: 'Automated commit of clang-format CI changes.'
-
-      # When in a pull request, just fail the job if it doesn't follow the coding style
-      - name: Check for changes
-        if: ${{ github.event_name == 'pull_request' }}
-        run: git diff --exit-code
