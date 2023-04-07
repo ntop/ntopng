@@ -76,6 +76,11 @@ class Ntop {
 #endif
   ExportInterface *export_interface;
 #endif
+
+#ifdef HAVE_RADIUS
+  Radius *radiusAcc;
+#endif
+
   TimelineExtract *extract;
   PeriodicActivities *pa; /**< Instance of periodical activities. */
   AddressResolution *address;
@@ -643,6 +648,10 @@ class Ntop {
 #ifndef WIN32
   inline ContinuousPing *getContinuousPing() { return (cping); }
   Ping *getPing(char *ifname);
+#endif
+
+#ifdef HAVE_RADIUS
+  inline void updateRadiusLoginInfo()        { radiusAcc->updateLoginInfo(); };
 #endif
 
   inline bool hasDroppedPrivileges() { return (privileges_dropped); }

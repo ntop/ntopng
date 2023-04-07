@@ -457,6 +457,7 @@ using namespace std;
 #ifdef HAVE_NEDGE
 #include "MDNSRepeater.h"
 #endif
+#include "Radius.h"
 #include "Ntop.h"
 
 #ifdef NTOPNG_PRO

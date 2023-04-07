@@ -70,6 +70,15 @@ if auth.has_capability(auth.capabilities.preferences) then
      end
    end
 
+   if(_POST["toggle_radius_auth"] == "1") 
+      and((_POST["radius_server_address"] ~= "ntopng.prefs.radius.radius_server_address")
+        or (_POST["radius_secret"] ~= "ntopng.prefs.radius.radius_secret")
+        or (_POST["radius_admin_group"] ~= "ntopng.prefs.radius.radius_admin_group")
+        or (_POST["radius_unpriv_capabilties_group"] ~= "ntopng.prefs.radius.radius_unpriv_capabilties_group")
+        or (_POST["toggle_radius_accounting"] ~= "ntopng.prefs.radius.accounting_enabled")) then
+    ntop.updateRadiusLoginInfo()
+   end
+
    if(_POST["disable_alerts_generation"] == "1") then
     local alert_utils = require "alert_utils"
       alert_utils.disableAlertsGeneration()
