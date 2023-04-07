@@ -1660,20 +1660,21 @@ bool Ntop::checkUserPassword(const char *user, const char *password,
      the implementation with a public server
   */
 
-  if(ntop->getRedis()->get((char*)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >= 0 && val[0] == '1') {
-    bool is_admin = false, 
-      has_unprivileged_capabilities = false;
+  if (ntop->getRedis()->get((char *)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >=
+          0 &&
+      val[0] == '1') {
+    bool is_admin = false, has_unprivileged_capabilities = false;
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "Checking RADIUS auth");
 
     if (!password || !password[0]) return false;
 
-    if(!radiusAcc)
-      return false;
-      
-    if(radiusAcc->authenticate(user, password, &has_unprivileged_capabilities, &is_admin)) {
+    if (!radiusAcc) return false;
+
+    if (radiusAcc->authenticate(user, password, &has_unprivileged_capabilities,
+                                &is_admin)) {
       /* Check permissions */
-      if(has_unprivileged_capabilities) {
+      if (has_unprivileged_capabilities) {
         changeUserPcapDownloadPermission(user, true, 86400 /* 1 day */);
         changeUserHistoricalFlowPermission(user, true, 86400 /* 1 day */);
         changeUserAlertsPermission(user, true, 86400 /* 1 day */);
@@ -1689,8 +1690,10 @@ bool Ntop::checkUserPassword(const char *user, const char *password,
         snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, user);
         ntop->getRedis()->del(key);
       }
-        
-      strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
+
+      strncpy(group,
+              is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED,
+              NTOP_GROUP_MAXLEN);
       group[NTOP_GROUP_MAXLEN - 1] = '\0';
     }
   }

@@ -6240,16 +6240,17 @@ static int ntop_set_offline(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_update_radius_login_info(lua_State* vm) {
+static int ntop_update_radius_login_info(lua_State *vm) {
   ntop->updateRadiusLoginInfo();
   lua_pushnil(vm);
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Radius: updated radius login informations");
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                               "Radius: updated radius login informations");
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
 /* ****************************************** */
 
-static int ntop_set_online(lua_State* vm) {
+static int ntop_set_online(lua_State *vm) {
   ntop->toggleOffline(false);
   lua_pushnil(vm);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -7163,118 +7164,120 @@ static luaL_Reg _ntop_reg[] = {
 #endif
 #endif
 
-  { "isForcedCommunity",      ntop_is_forced_community },
-  { "isPro",                  ntop_is_pro        },
-  { "isEnterprise",           ntop_is_enterprise_m  },
-  { "isEnterpriseM",          ntop_is_enterprise_m  },
-  { "isEnterpriseL",          ntop_is_enterprise_l  },
-  { "isEnterpriseXL",         ntop_is_enterprise_xl },
-  { "isnEdge",                ntop_is_nedge      },
-  { "isnEdgeEnterprise",      ntop_is_nedge_enterprise },
-  { "isPackage",              ntop_is_package    },
-  { "isAppliance",            ntop_is_appliance  },
-  { "isIoTBridge",            ntop_is_iot_bridge },
+    {"isForcedCommunity", ntop_is_forced_community},
+    {"isPro", ntop_is_pro},
+    {"isEnterprise", ntop_is_enterprise_m},
+    {"isEnterpriseM", ntop_is_enterprise_m},
+    {"isEnterpriseL", ntop_is_enterprise_l},
+    {"isEnterpriseXL", ntop_is_enterprise_xl},
+    {"isnEdge", ntop_is_nedge},
+    {"isnEdgeEnterprise", ntop_is_nedge_enterprise},
+    {"isPackage", ntop_is_package},
+    {"isAppliance", ntop_is_appliance},
+    {"isIoTBridge", ntop_is_iot_bridge},
 
-  /* Historical database */
-  { "insertMinuteSampling",          ntop_stats_insert_minute_sampling },
-  { "insertHourSampling",            ntop_stats_insert_hour_sampling },
-  { "insertDaySampling",             ntop_stats_insert_day_sampling },
-  { "getMinuteSampling",             ntop_stats_get_minute_sampling },
-  { "deleteMinuteStatsOlderThan",    ntop_stats_delete_minute_older_than },
-  { "deleteHourStatsOlderThan",      ntop_stats_delete_hour_older_than },
-  { "deleteDayStatsOlderThan",       ntop_stats_delete_day_older_than },
-  { "getMinuteSamplingsFromEpoch",   ntop_stats_get_samplings_of_minutes_from_epoch },
-  { "getHourSamplingsFromEpoch",     ntop_stats_get_samplings_of_hours_from_epoch },
-  { "getDaySamplingsFromEpoch",      ntop_stats_get_samplings_of_days_from_epoch },
-  { "getMinuteSamplingsInterval",    ntop_stats_get_minute_samplings_interval },
+    /* Historical database */
+    {"insertMinuteSampling", ntop_stats_insert_minute_sampling},
+    {"insertHourSampling", ntop_stats_insert_hour_sampling},
+    {"insertDaySampling", ntop_stats_insert_day_sampling},
+    {"getMinuteSampling", ntop_stats_get_minute_sampling},
+    {"deleteMinuteStatsOlderThan", ntop_stats_delete_minute_older_than},
+    {"deleteHourStatsOlderThan", ntop_stats_delete_hour_older_than},
+    {"deleteDayStatsOlderThan", ntop_stats_delete_day_older_than},
+    {"getMinuteSamplingsFromEpoch",
+     ntop_stats_get_samplings_of_minutes_from_epoch},
+    {"getHourSamplingsFromEpoch", ntop_stats_get_samplings_of_hours_from_epoch},
+    {"getDaySamplingsFromEpoch", ntop_stats_get_samplings_of_days_from_epoch},
+    {"getMinuteSamplingsInterval", ntop_stats_get_minute_samplings_interval},
 
-  { "deleteOldRRDs",     ntop_delete_old_rrd_files },
+    {"deleteOldRRDs", ntop_delete_old_rrd_files},
 
-  /* Time */
-  { "gettimemsec",      ntop_gettimemsec      },
-  { "tzset",            ntop_tzset            },
-  { "roundTime",        ntop_round_time       },
+    /* Time */
+    {"gettimemsec", ntop_gettimemsec},
+    {"tzset", ntop_tzset},
+    {"roundTime", ntop_round_time},
 
-  /* Ticks */
-  { "getticks",         ntop_getticks         },
-  { "gettickspersec",   ntop_gettickspersec   },
+    /* Ticks */
+    {"getticks", ntop_getticks},
+    {"gettickspersec", ntop_gettickspersec},
 
-  /* UDP */
-  { "send_udp_data",    ntop_send_udp_data },
+    /* UDP */
+    {"send_udp_data", ntop_send_udp_data},
 
-  /* TCP */
-  { "send_tcp_data",    ntop_send_tcp_data },
+    /* TCP */
+    {"send_tcp_data", ntop_send_tcp_data},
 
-  /* IP */
-  { "inet_ntoa",        ntop_inet_ntoa },
-  { "networkPrefix",    ntop_network_prefix },
+    /* IP */
+    {"inet_ntoa", ntop_inet_ntoa},
+    {"networkPrefix", ntop_network_prefix},
 
-  /* RRD */
-  { "rrd_create",        ntop_rrd_create        },
-  { "rrd_update",        ntop_rrd_update        },
-  { "rrd_fetch",         ntop_rrd_fetch         },
-  { "rrd_fetch_columns", ntop_rrd_fetch_columns },
-  { "rrd_lastupdate",    ntop_rrd_lastupdate    },
-  { "rrd_tune",          ntop_rrd_tune          },
-  { "rrd_inc_num_drops", ntop_rrd_inc_num_drops },
+    /* RRD */
+    {"rrd_create", ntop_rrd_create},
+    {"rrd_update", ntop_rrd_update},
+    {"rrd_fetch", ntop_rrd_fetch},
+    {"rrd_fetch_columns", ntop_rrd_fetch_columns},
+    {"rrd_lastupdate", ntop_rrd_lastupdate},
+    {"rrd_tune", ntop_rrd_tune},
+    {"rrd_inc_num_drops", ntop_rrd_inc_num_drops},
 
-  /* Prefs */
-  { "getPrefs",          ntop_get_prefs },
+    /* Prefs */
+    {"getPrefs", ntop_get_prefs},
 
-  /* Ping */
-  { "isPingAvailable",	    ntop_is_ping_available       },
-  { "isPingIfaceAvailable", ntop_is_ping_iface_available },
-  { "pingHost",             ntop_ping_host               },
-  { "collectPingResults",   ntop_collect_ping_results    },
+    /* Ping */
+    {"isPingAvailable", ntop_is_ping_available},
+    {"isPingIfaceAvailable", ntop_is_ping_iface_available},
+    {"pingHost", ntop_ping_host},
+    {"collectPingResults", ntop_collect_ping_results},
 
-  /* HTTP utils */
-  { "httpRedirect",         ntop_http_redirect          },
-  { "getHttpPrefix",        ntop_http_get_prefix        },
-  { "getStartupEpoch",      ntop_http_get_startup_epoch },
-  { "getStaticFileEpoch",   ntop_http_get_static_file_epoch },
-  { "httpPurifyParam",      ntop_http_purify_param      },
+    /* HTTP utils */
+    {"httpRedirect", ntop_http_redirect},
+    {"getHttpPrefix", ntop_http_get_prefix},
+    {"getStartupEpoch", ntop_http_get_startup_epoch},
+    {"getStaticFileEpoch", ntop_http_get_static_file_epoch},
+    {"httpPurifyParam", ntop_http_purify_param},
 
-  /* Admin */
-  { "getNologinUser",       ntop_get_nologin_username },
-  { "getUsers",             ntop_get_users },
-  { "isAdministrator",      ntop_is_administrator },
-  { "isPcapDownloadAllowed",ntop_is_pcap_download_allowed },
-  { "getAllowedNetworks",   ntop_get_allowed_networks },
-  { "resetUserPassword",    ntop_reset_user_password },
-  { "changeUserRole",       ntop_change_user_role },
-  { "changeAllowedNets",    ntop_change_allowed_nets },
-  { "changeAllowedIfname",  ntop_change_allowed_ifname },
-  { "changeUserHostPool",   ntop_change_user_host_pool },
-  { "changeUserFullName",   ntop_change_user_full_name },
-  { "changeUserLanguage",   ntop_change_user_language  },
-  { "changePcapDownloadPermission", ntop_change_user_pcap_download_permission },
-  { "changeHistoricalFlowPermission", ntop_change_user_historical_flow_permission },
-  { "changeAlertsPermission", ntop_change_user_alerts_permission },
-  { "addUser",              ntop_add_user },
-  { "deleteUser",           ntop_delete_user },
-  { "createUserSession",    ntop_create_user_session },
-  { "createUserAPIToken",   ntop_create_user_api_token },
-  { "getUserAPIToken",      ntop_get_user_api_token },
-  { "isLoginDisabled",      ntop_is_login_disabled },
-  { "isLoginBlacklisted",   ntop_is_login_blacklisted },
-  { "getNetworkNameById",   ntop_network_name_by_id },
-  { "getNetworkIdByName",   ntop_network_id_by_name },
-  { "getNetworks",          ntop_get_networks },
-  { "isGuiAccessRestricted", ntop_is_gui_access_restricted },
-  { "serviceRestart",       ntop_service_restart },
-  { "getUserObservationPointId", ntop_get_user_observation_point_id },
-  { "updateRadiusLoginInfo", ntop_update_radius_login_info },
+    /* Admin */
+    {"getNologinUser", ntop_get_nologin_username},
+    {"getUsers", ntop_get_users},
+    {"isAdministrator", ntop_is_administrator},
+    {"isPcapDownloadAllowed", ntop_is_pcap_download_allowed},
+    {"getAllowedNetworks", ntop_get_allowed_networks},
+    {"resetUserPassword", ntop_reset_user_password},
+    {"changeUserRole", ntop_change_user_role},
+    {"changeAllowedNets", ntop_change_allowed_nets},
+    {"changeAllowedIfname", ntop_change_allowed_ifname},
+    {"changeUserHostPool", ntop_change_user_host_pool},
+    {"changeUserFullName", ntop_change_user_full_name},
+    {"changeUserLanguage", ntop_change_user_language},
+    {"changePcapDownloadPermission", ntop_change_user_pcap_download_permission},
+    {"changeHistoricalFlowPermission",
+     ntop_change_user_historical_flow_permission},
+    {"changeAlertsPermission", ntop_change_user_alerts_permission},
+    {"addUser", ntop_add_user},
+    {"deleteUser", ntop_delete_user},
+    {"createUserSession", ntop_create_user_session},
+    {"createUserAPIToken", ntop_create_user_api_token},
+    {"getUserAPIToken", ntop_get_user_api_token},
+    {"isLoginDisabled", ntop_is_login_disabled},
+    {"isLoginBlacklisted", ntop_is_login_blacklisted},
+    {"getNetworkNameById", ntop_network_name_by_id},
+    {"getNetworkIdByName", ntop_network_id_by_name},
+    {"getNetworks", ntop_get_networks},
+    {"isGuiAccessRestricted", ntop_is_gui_access_restricted},
+    {"serviceRestart", ntop_service_restart},
+    {"getUserObservationPointId", ntop_get_user_observation_point_id},
+    {"updateRadiusLoginInfo", ntop_update_radius_login_info},
 
-  /* Security */
-  { "getRandomCSRFValue",   ntop_get_csrf_value },
+    /* Security */
+    {"getRandomCSRFValue", ntop_get_csrf_value},
 
-  /* HTTP */
-  { "httpGet",              ntop_http_get            },
-  { "httpGetAuthToken",     ntop_http_get_auth_token },
-  { "httpPost",             ntop_http_post           },
-  { "httpFetch",            ntop_http_fetch          },
-  { "postHTTPJsonData",     ntop_post_http_json_data },
-  { "postHTTPTextFile",     ntop_post_http_text_file },
+    /* HTTP */
+    {"httpGet", ntop_http_get},
+    {"httpGetAuthToken", ntop_http_get_auth_token},
+    {"httpPost", ntop_http_post},
+    {"httpFetch", ntop_http_fetch},
+    {"postHTTPJsonData", ntop_post_http_json_data},
+    {"postHTTPTextFile", ntop_post_http_text_file},
 
 #ifdef HAVE_CURL_SMTP
     /* SMTP */

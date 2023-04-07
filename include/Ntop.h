@@ -651,7 +651,7 @@ class Ntop {
 #endif
 
 #ifdef HAVE_RADIUS
-  inline void updateRadiusLoginInfo()        { radiusAcc->updateLoginInfo(); };
+  inline void updateRadiusLoginInfo() { radiusAcc->updateLoginInfo(); };
 #endif
 
   inline bool hasDroppedPrivileges() { return (privileges_dropped); }
