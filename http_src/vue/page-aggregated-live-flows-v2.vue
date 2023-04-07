@@ -46,6 +46,7 @@ import { default as Loading } from "./loading.vue";
 import { default as SelectSearch } from "./select-search.vue";
 
 const props = defineProps({
+	  is_ntop_enterprise_m: Boolean,
     vlans: Array,
     ifid: Number,
     aggregation_criteria: String,
@@ -60,20 +61,40 @@ const props = defineProps({
 const _i18n = (t) => i18n(t);
 
 const criteria_list_def = [
-    { label: _i18n("application_proto"), value: 1, param: "application_protocol", table_id: "aggregated_app_proto" },
-    { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client" },
-    { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server"}, 
-    { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server" }
+  { label: _i18n("application_proto"), value: 1, param: "application_protocol", table_id: "aggregated_app_proto", enterprise_m: false },
+  { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client", enterprise_m: false },
+  { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server", enterprise_m: false}, 
+  { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server", enterprise_m: true },
+  { label: _i18n("application_proto_client_server"), value: 5, param: "app_client_server", table_id: "aggregated_app_client_server" , enterprise_m: true },
+  { label: _i18n("info"), value: 6, param: "info", table_id: "aggregated_info", enterprise_m: true }
 ];
 
 const loading = ref(null)
 const table_aggregated_live_flows = ref(null);
 
-const criteria_list = ref(criteria_list_def);
-
 const selected_criteria = ref(criteria_list_def[0]);
 const table_config = ref({})
 let default_url_params = {};
+
+function get_criteria_voices() {
+  if(props.is_ntop_enterprise_m) {
+    return ref(criteria_list_def);
+  }
+  else {
+    let critera_list_def_com = [];
+    criteria_list_def.forEach((c) => {
+      if(!c.enterprise_m)
+        critera_list_def_com.push(c);
+    });
+
+    return ref(critera_list_def_com);
+  }
+}
+
+const criteria_list = get_criteria_voices();
+
+
+
 
 onBeforeMount(async () => {
     init_selected_criteria();
@@ -200,16 +221,36 @@ function get_table_columns_config() {
 		    return format_server_name(data, rowData)}         
 	    });
     }
-    else if(selected_criteria.value.value == 4) {
-	columns.push(
-	    { 
-		columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
-		    return format_client_name(data, rowData)}
-	    },{ 
-		columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
-		    return format_server_name(data, rowData)}         
-	    });
+   else if (props.is_ntop_enterprise_m) {
+    if(selected_criteria.value.value == 4) {
+      columns.push(
+        { 
+          columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
+          return format_client_name(data, rowData)}
+        },{ 
+          columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
+          return format_server_name(data, rowData)}         
+        })
+    } else if(selected_criteria.value.value == 5) {
+      columns.push(
+        { 
+          columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+            return `<label>${data.complete_label}</label>`}
+        },{ 
+          columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
+          return format_client_name(data, rowData)}
+        },{ 
+          columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data,_,rowData) => {
+          return format_server_name(data, rowData)}         
+        });
+    } else if(selected_criteria.value.value == 6) {
+      columns.push(
+        { 
+          columnName: i18n("info"), targets: 0, name: 'info', data: 'info', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+            return `<label>${data.label}</label>`}
+        });
     }
+  }
     
     if(props.vlans.length > 0) {
 	columns.push({ 
@@ -300,7 +341,12 @@ const format_flows_icon = function(data, rowData) {
     url = `${http_prefix}/lua/flows_stats.lua?server=${rowData.server_name.id}`;
   else if (selected_criteria.value.value == 4)
     url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}&server=${rowData.server_name.id}`;
+  else if (selected_criteria.value.value == 5)
+    url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}&client=${rowData.client_name.id}&server=${rowData.server_name.id}`;
+  else if (selected_criteria.value.value == 6)
+    url = `${http_prefix}/lua/flows_stats.lua?flow_info=${rowData.info.id}`;
   
+
   return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
 }
 
