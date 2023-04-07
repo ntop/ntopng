@@ -1531,7 +1531,7 @@ bool ZMQParserInterface::parseNProbeAgentField(
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Process [pid: %u][uid:
     // %u][gid: %u][size/peak vm: %u/%u][path: %s]",
     //				 flow->src_process_info.pid,
-    //flow->src_process_info.uid, flow->src_process_info.gid,
+    // flow->src_process_info.uid, flow->src_process_info.gid,
     // flow->src_process_info.actual_memory, flow->src_process_info.peak_memory,
     // flow->src_process_info.process_name);
   } else if (strlen(key) >= 9 &&
