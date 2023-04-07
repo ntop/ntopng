@@ -1,5 +1,7 @@
 name: Build
 on:
+  pull_request:
+    branches: [dev]
   workflow_run:
     workflows: [Formatter]
     types:
