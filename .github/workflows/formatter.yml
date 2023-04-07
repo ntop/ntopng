@@ -1,0 +1,28 @@
+# This workflow uses clang-format to force the right coding style.
+name: Formatter
+
+on:
+  push:
+    branches: [ "dev" ]
+  workflow_dispatch:
+jobs:
+  formatter:
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run formatter
+        run: find ./src ./include/ -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \;
+      
+      # Commit the changes when pushing to a remote branch
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_user_name: clang-format-bot
+          commit_message: 'Automated commit of clang-format CI changes.'
