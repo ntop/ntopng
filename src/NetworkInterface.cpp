@@ -1104,25 +1104,6 @@ static bool local_hosts_2_redis_walker(GenericHashEntry *h, void *user_data,
 
 /* **************************************************** */
 
-int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
-  int rc;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  rc = walker(&begin_slot, walk_all, walker_hosts, local_hosts_2_redis_walker,
-              NULL)
-           ? 0
-           : -1;
-
-#ifdef NTOPNG_PRO
-  if (getHostPools()) getHostPools()->dumpToRedis();
-#endif
-
-  return (rc);
-}
-
-/* **************************************************** */
-
 u_int32_t NetworkInterface::getHostsHashSize() {
   return (hosts_hash ? hosts_hash->getNumEntries() : 0);
 }
@@ -5881,10 +5862,13 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data,
 
 /* **************************************************** */
 
-void NetworkInterface::getActiveFlowsStats(
-    nDPIStats *ndpi_stats, FlowStats *stats, AddressTree *allowed_hosts,
-    Host *h, Host *talking_with_host, Host *client, Host *server,
-    char *flow_info, Paginator *p, lua_State *vm, bool only_traffic_stats) {
+void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *stats,
+					   AddressTree *allowed_hosts,
+					   Host *h, Host *talking_with_host, Host* client, Host* server,
+					   char* flow_info,
+					   Paginator *p,
+					   lua_State *vm,
+					   bool only_traffic_stats) {
   flowHostRetriever retriever;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -7108,7 +7092,6 @@ void NetworkInterface::lua(lua_State *vm) {
   RoundTripStats _downloadStats;
   RoundTripStats _uploadStats;
   LocalTrafficStats _localStats;
-  nDPIStats _ndpiStats;
   PacketStats _pktStats;
   TcpPacketStats _tcpPacketStats;
   ProtoStats _discardedProbingStats;
@@ -7243,9 +7226,9 @@ void NetworkInterface::lua(lua_State *vm) {
   luaAnomalies(vm);
   luaScore(vm);
 
-  sumStats(&_tcpFlowStats, &_ethStats, &_localStats, &_ndpiStats, &_pktStats,
-           &_tcpPacketStats, &_discardedProbingStats, &_dscpStats,
-           &_syslogStats, &_downloadStats, &_uploadStats);
+  sumStats(&_tcpFlowStats, &_ethStats, &_localStats,
+	   NULL, &_pktStats, &_tcpPacketStats, &_discardedProbingStats,
+           &_dscpStats, &_syslogStats, &_downloadStats, &_uploadStats);
 
   _downloadStats.luaRTStats(vm, "download_stats");
   _uploadStats.luaRTStats(vm, "upload_stats");
@@ -7254,7 +7237,7 @@ void NetworkInterface::lua(lua_State *vm) {
   _ethStats.lua(vm);
   _localStats.lua(vm);
   luaNdpiStats(vm);
-  _ndpiStats.lua(this, vm, true);
+
   _pktStats.lua(vm, "pktSizeDistribution");
   _tcpPacketStats.lua(vm, "tcpPacketStats");
   _dscpStats.lua(this, vm);

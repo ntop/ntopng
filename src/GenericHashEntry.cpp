@@ -97,22 +97,7 @@ bool GenericHashEntry::is_active_entry_now_idle(u_int max_idleness) const {
 
 /* ***************************************** */
 
-void GenericHashEntry::deserialize(json_object *o) {
-  json_object *obj;
-
-  if (json_object_object_get_ex(o, "seen.first", &obj))
-    first_seen = json_object_get_int64(obj);
-
-  /* NOTE: do not deserialize the last_seen, as an old timestamp will
-   * make this (fresh) entry idle(). */
-}
-
-/* ***************************************** */
-
-void GenericHashEntry::getJSONObject(json_object *my_object,
-                                     DetailsLevel details_level) {
-  json_object_object_add(my_object, "seen.first",
-                         json_object_new_int64(first_seen));
-  json_object_object_add(my_object, "seen.last",
-                         json_object_new_int64(last_seen));
+void GenericHashEntry::getJSONObject(json_object *my_object, DetailsLevel details_level) {
+  json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
+  json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
 }

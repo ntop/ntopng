@@ -364,18 +364,6 @@ void HTTPstats::lua(lua_State *vm) {
   lua_settable(vm, -3);
 }
 
-/* *************************************** */
-
-char *HTTPstats::serialize() {
-  json_object *my_object = getJSONObject();
-  char *rsp = strdup(json_object_to_json_string(my_object));
-
-  /* Free memory */
-  json_object_put(my_object);
-
-  return (rsp);
-}
-
 /* ******************************************* */
 
 void HTTPstats::JSONObjectAddCounters(json_object *my_object, bool as_sender) {
@@ -425,90 +413,6 @@ void HTTPstats::JSONObjectAddCounters(json_object *my_object, bool as_sender) {
     json_object_object_add(sub_object, "num_5xx",
                            json_object_new_int64(num_5xx));
   json_object_object_add(my_object, "response", sub_object);
-}
-
-/* ******************************************* */
-
-void HTTPstats::deserialize(json_object *my_object) {
-  json_object *obj, *sub_obj, *val;
-  struct timeval tv;
-  struct http_query_stats *q;
-  struct http_response_stats *r;
-  struct http_query_rates *dq;
-  struct http_response_rates *dr;
-
-  if (!my_object) return;
-
-  memset(&query, 0, sizeof(query));
-  memset(&response, 0, sizeof(response));
-  memset(&query_rate, 0, sizeof(query_rate));
-  memset(&response_rate, 0, sizeof(response_rate));
-
-  for (u_int8_t direction = 0; direction < 2; direction++) {
-    u_int8_t d = direction == AS_SENDER ? AS_SENDER : AS_RECEIVER;
-    q = &query[d];
-    r = &response[d];
-    dq = &query_rate[d];
-    dr = &response_rate[d];
-
-    if (json_object_object_get_ex(
-            my_object, direction == AS_SENDER ? "sender" : "receiver", &obj)) {
-      if (json_object_object_get_ex(obj, "query", &sub_obj)) {
-        if (json_object_object_get_ex(sub_obj, "num_get", &val))
-          q->num_get = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "num_post", &val))
-          q->num_post = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "num_head", &val))
-          q->num_head = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "num_put", &val))
-          q->num_put = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "num_other", &val))
-          q->num_other = json_object_get_int64(val);
-      }
-      if (json_object_object_get_ex(obj, "response", &sub_obj)) {
-        if (json_object_object_get_ex(sub_obj, "num_1xx", &val))
-          r->num_1xx = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "num_2xx", &val))
-          r->num_2xx = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "num_3xx", &val))
-          r->num_3xx = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "num_4xx", &val))
-          r->num_4xx = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "num_5xx", &val))
-          r->num_5xx = json_object_get_int64(val);
-      }
-      if (json_object_object_get_ex(obj, "query_rate", &sub_obj)) {
-        if (json_object_object_get_ex(sub_obj, "get", &val))
-          dq->rate_get = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "post", &val))
-          dq->rate_post = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "head", &val))
-          dq->rate_head = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "put", &val))
-          dq->rate_put = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "other", &val))
-          dq->rate_other = json_object_get_int64(val);
-      }
-      if (json_object_object_get_ex(obj, "response_rate", &sub_obj)) {
-        if (json_object_object_get_ex(sub_obj, "1xx", &val))
-          dr->rate_1xx = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "2xx", &val))
-          dr->rate_2xx = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "3xx", &val))
-          dr->rate_3xx = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "4xx", &val))
-          dr->rate_4xx = json_object_get_int64(val);
-        if (json_object_object_get_ex(sub_obj, "5xx", &val))
-          dr->rate_5xx = json_object_get_int64(val);
-      }
-    }
-  }
-
-  memcpy(&last_query_sample, &query, sizeof(query));
-  memcpy(&last_response_sample, &response, sizeof(response));
-
-  gettimeofday(&tv, NULL);
-  memcpy(&last_update_time, &tv, sizeof(struct timeval));
 }
 
 /* ******************************************* */

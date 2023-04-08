@@ -238,10 +238,16 @@ using namespace std;
 #include "NetworkInterfaceAlertableEntity.h"
 #include "InterfaceMemberAlertableEntity.h"
 #include "BehaviouralCounter.h"
+#include "DESCounter.h"
+#include "HWCounter.h"
+#include "RSICounter.h"
 #ifdef NTOPNG_PRO
 #include "BehaviorAnalysis.h"
 #endif
-
+#include "ThroughputStats.h"
+#include "TrafficCounter.h"
+#include "ProtoCounter.h"
+#include "CategoryCounter.h"
 #include "nDPIStats.h"
 #include "InterarrivalStats.h"
 #include "FlowStats.h"
@@ -249,7 +255,6 @@ using namespace std;
 #include "CustomAppMaps.h"
 #include "CustomAppStats.h"
 #endif
-#include "ThroughputStats.h"
 #include "GenericTrafficElement.h"
 #include "BlacklistUsageStats.h"
 #include "BlacklistStats.h"

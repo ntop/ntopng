@@ -249,7 +249,6 @@ class GenericHashEntry {
   void decUses() { num_uses--; }
   int32_t getUses() const { return (num_uses); }
 
-  virtual void deserialize(json_object *obj);
   virtual void getJSONObject(json_object *obj, DetailsLevel details_level);
 };
 

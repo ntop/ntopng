@@ -88,15 +88,6 @@ class ObservationPoint : public GenericHashEntry,
 
   void lua(lua_State *vm, DetailsLevel details_level, bool asListElement);
 
-  inline void deserialize(json_object *obj) {
-    if (!remove_entry) {
-      json_object *o;
-      GenericHashEntry::deserialize(obj);
-      GenericTrafficElement::deserialize(obj, iface);
-      if (json_object_object_get_ex(obj, "flows", &o))
-        num_flows = json_object_get_int64(o);
-    }
-  }
   inline void serialize(json_object *obj, DetailsLevel details_level) {
     if (!remove_entry) {
       GenericHashEntry::getJSONObject(obj, details_level);

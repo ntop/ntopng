@@ -43,17 +43,16 @@ class TcpPacketStats {
   /* TCP Keep-Alive */
   inline void incKeepAlive(u_int32_t num) { pktKeepAlive += num; }
 
-  char* serialize();
-  void deserialize(json_object* o);
   json_object* getJSONObject();
   inline bool seqIssues() const {
     return (pktRetr || pktOOO || pktLost || pktKeepAlive);
   }
   void lua(lua_State* vm, const char* label);
 
-  inline void sum(TcpPacketStats* s) const {
-    s->pktRetr += pktRetr, s->pktOOO += pktOOO, s->pktLost += pktLost,
-        s->pktKeepAlive += pktKeepAlive;
+  char* serialize();
+  inline void sum(TcpPacketStats *s) const {
+    s->pktRetr += pktRetr, s->pktOOO += pktOOO,
+      s->pktLost += pktLost, s->pktKeepAlive += pktKeepAlive;
   }
 
   inline u_int64_t get_retr() const { return pktRetr; };

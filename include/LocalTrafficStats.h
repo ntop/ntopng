@@ -39,13 +39,10 @@ class LocalTrafficStats {
 
  public:
   LocalTrafficStats();
-
-  void incStats(u_int num_pkts, u_int pkt_len, bool localsender,
-                bool localreceiver);
-  char *serialize();
-  void deserialize(json_object *o);
-  json_object *getJSONObject();
-  void lua(lua_State *vm);
+  void incStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver);  
+  char* serialize();
+  json_object* getJSONObject();
+  void lua(lua_State* vm);  
   inline void sum(LocalTrafficStats *l) const {
     _sum(&l->packets, &packets), _sum(&l->bytes, &bytes);
   };

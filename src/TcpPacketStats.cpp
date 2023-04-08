@@ -41,32 +41,7 @@ char *TcpPacketStats::serialize() {
 
 /* ******************************************* */
 
-void TcpPacketStats::deserialize(json_object *o) {
-  json_object *obj;
-
-  if (!o) return;
-
-  if (json_object_object_get_ex(o, "retransmissions", &obj))
-    pktRetr = json_object_get_int(obj);
-  else
-    pktRetr = 0;
-  if (json_object_object_get_ex(o, "out_of_order", &obj))
-    pktOOO = json_object_get_int(obj);
-  else
-    pktOOO = 0;
-  if (json_object_object_get_ex(o, "lost", &obj))
-    pktLost = json_object_get_int(obj);
-  else
-    pktLost = 0;
-  if (json_object_object_get_ex(o, "keep_alive", &obj))
-    pktKeepAlive = json_object_get_int(obj);
-  else
-    pktKeepAlive = 0;
-}
-
-/* ******************************************* */
-
-json_object *TcpPacketStats::getJSONObject() {
+json_object* TcpPacketStats::getJSONObject() {
   json_object *my_object;
 
   my_object = json_object_new_object();

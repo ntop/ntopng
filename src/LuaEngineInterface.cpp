@@ -78,9 +78,9 @@ static int ntop_set_active_interface_id(lua_State *vm) {
 
 bool matches_allowed_ifname(char *allowed_ifname, char *iface) {
   return (
-      ((allowed_ifname == NULL) ||
-       (allowed_ifname[0] == '\0')) /* Periodic script / unrestricted user */
-      || (!strncmp(allowed_ifname, iface, strlen(allowed_ifname))));
+	  ((allowed_ifname == NULL) ||
+	   (allowed_ifname[0] == '\0')) /* Periodic script / unrestricted user */
+	  || (!strncmp(allowed_ifname, iface, strlen(allowed_ifname))));
 }
 
 /* ****************************************** */
@@ -622,8 +622,8 @@ static int ntop_interface_live_capture(lua_State *vm) {
 
     if ((!ntop_interface) ||
         ((h = ntop_interface->findHostByIP(
-              get_allowed_nets(vm), host_ip, vlan_id,
-              getLuaVMUservalue(vm, observationPointId))) == NULL)) {
+					   get_allowed_nets(vm), host_ip, vlan_id,
+					   getLuaVMUservalue(vm, observationPointId))) == NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s",
                                    host_ip);
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -657,8 +657,8 @@ static int ntop_interface_live_capture(lua_State *vm) {
                             0,                      /* optimize */
                             PCAP_NETMASK_UNKNOWN) == -1)
       ntop->getTrace()->traceEvent(
-          TRACE_WARNING, "Unable to set capture filter %s. Filter ignored.",
-          bpf);
+				   TRACE_WARNING, "Unable to set capture filter %s. Filter ignored.",
+				   bpf);
     else
       c->live_capture.bpfFilterSet = true;
   }
@@ -772,8 +772,8 @@ static int ntop_interface_reset_host_stats(lua_State *vm, bool delete_data) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   host =
-      ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
-                                   getLuaVMUservalue(vm, observationPointId));
+    ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+				 getLuaVMUservalue(vm, observationPointId));
 
   if (host) {
     if (reset_blacklisted == true) {
@@ -1123,7 +1123,7 @@ static int ntop_process_flow(lua_State *vm) {
 
   if (lua_type(vm, 1) == LUA_TTABLE) {
     ParserInterface *ntop_parser_interface =
-        dynamic_cast<ParserInterface *>(ntop_interface);
+      dynamic_cast<ParserInterface *>(ntop_interface);
     ParsedFlow flow;
     flow.fromLua(vm, 1);
     ntop_parser_interface->processFlow(&flow);
@@ -1145,7 +1145,7 @@ static int ntop_update_syslog_producers(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   syslog_parser_interface =
-      dynamic_cast<SyslogParserInterface *>(ntop_interface);
+    dynamic_cast<SyslogParserInterface *>(ntop_interface);
   if (!syslog_parser_interface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
@@ -1166,7 +1166,7 @@ static int ntop_get_zmq_flow_field_descr(lua_State *vm) {
 
   if (!ntop_interface ||
       !(zmq_ntop_interface =
-            dynamic_cast<ZMQParserInterface *>(ntop_interface)))
+	dynamic_cast<ZMQParserInterface *>(ntop_interface)))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   if ((ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK))
@@ -1364,7 +1364,7 @@ static int ntop_get_ndpi_full_protocol_name(lua_State *vm) {
 
   if (ntop_interface)
     lua_pushstring(
-        vm, ntop_interface->get_ndpi_full_proto_name(proto, buf, sizeof(buf)));
+		   vm, ntop_interface->get_ndpi_full_proto_name(proto, buf, sizeof(buf)));
   else
     lua_pushnil(vm);
 
@@ -1532,19 +1532,19 @@ static int ntop_get_batched_interface_hosts(lua_State *vm,
      only wants host withs bidirectional traffic */
   if (lua_type(vm, 5) == LUA_TBOOLEAN)
     traffic_type_filter =
-        lua_toboolean(vm, 5) ? traffic_type_all : traffic_type_bidirectional;
+      lua_toboolean(vm, 5) ? traffic_type_all : traffic_type_bidirectional;
 
   if ((!ntop_interface) ||
       ntop_interface->getActiveHostsList(
-          vm, &begin_slot, walk_all,
-          0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
-          get_allowed_nets(vm), show_details, location, country, mac_filter,
-          vlan_filter, os_filter, asn_filter, network_filter, pool_filter,
-          filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
-          traffic_type_filter, 0 /* probe ip */,
-          tsLua /* host->tsLua | host->lua */, anomalousOnly, dhcpOnly,
-          NULL /* cidr filter */, sortColumn, maxHits, toSkip,
-          a2zSortOrder) < 0)
+					 vm, &begin_slot, walk_all,
+					 0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
+					 get_allowed_nets(vm), show_details, location, country, mac_filter,
+					 vlan_filter, os_filter, asn_filter, network_filter, pool_filter,
+					 filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
+					 traffic_type_filter, 0 /* probe ip */,
+					 tsLua /* host->tsLua | host->lua */, anomalousOnly, dhcpOnly,
+					 NULL /* cidr filter */, sortColumn, maxHits, toSkip,
+					 a2zSortOrder) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -1612,14 +1612,14 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
 
   if ((!ntop_interface) ||
       ntop_interface->getActiveHostsList(
-          vm, &begin_slot, walk_all,
-          0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
-          get_allowed_nets(vm), show_details, location, country, mac_filter,
-          vlan_filter, os_filter, asn_filter, network_filter, pool_filter,
-          filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
-          traffic_type_filter, device_ip, false /* host->lua */, anomalousOnly,
-          dhcpOnly, cidr_filter_enabled ? &cidr_filter : NULL, sortColumn,
-          maxHits, toSkip, a2zSortOrder) < 0)
+					 vm, &begin_slot, walk_all,
+					 0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
+					 get_allowed_nets(vm), show_details, location, country, mac_filter,
+					 vlan_filter, os_filter, asn_filter, network_filter, pool_filter,
+					 filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
+					 traffic_type_filter, device_ip, false /* host->lua */, anomalousOnly,
+					 dhcpOnly, cidr_filter_enabled ? &cidr_filter : NULL, sortColumn,
+					 maxHits, toSkip, a2zSortOrder) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -1689,11 +1689,11 @@ static int ntop_get_interface_macs_info(lua_State *vm) {
 
   if (!ntop_interface ||
       ntop_interface->getActiveMacList(
-          vm, &begin_slot, walk_all,
-          0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
-          sourceMacsOnly, manufacturer, sortColumn, maxHits, toSkip,
-          a2zSortOrder, pool_filter, devtype_filter, location_filter,
-          min_first_seen) < 0)
+				       vm, &begin_slot, walk_all,
+				       0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
+				       sourceMacsOnly, manufacturer, sortColumn, maxHits, toSkip,
+				       a2zSortOrder, pool_filter, devtype_filter, location_filter,
+				       min_first_seen) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -1719,11 +1719,11 @@ static int ntop_get_batched_interface_macs_info(lua_State *vm) {
 
   if (!ntop_interface ||
       ntop_interface->getActiveMacList(
-          vm, &begin_slot, walk_all,
-          0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
-          sourceMacsOnly, manufacturer, sortColumn, maxHits, toSkip,
-          a2zSortOrder, pool_filter, devtype_filter, location_filter,
-          min_first_seen) < 0)
+				       vm, &begin_slot, walk_all,
+				       0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
+				       sourceMacsOnly, manufacturer, sortColumn, maxHits, toSkip,
+				       a2zSortOrder, pool_filter, devtype_filter, location_filter,
+				       min_first_seen) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -1777,8 +1777,8 @@ static int ntop_set_host_operating_system(lua_State *vm) {
   os = (OSType)lua_tointeger(vm, 2);
 
   host =
-      ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
-                                   getLuaVMUservalue(vm, observationPointId));
+    ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+				 getLuaVMUservalue(vm, observationPointId));
 
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]", ntop_interface->get_name(), host_ip, vlan_id, host, os);
@@ -1811,8 +1811,8 @@ static int ntop_set_host_resolved_name(lua_State *vm) {
   host_name = (char *)lua_tostring(vm, 2);
 
   host =
-      ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
-                                   getLuaVMUservalue(vm, observationPointId));
+    ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+				 getLuaVMUservalue(vm, observationPointId));
 
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]", ntop_interface->get_name(), host_ip, vlan_id, host, os);
@@ -1886,8 +1886,8 @@ static int ntop_get_mac_device_types(lua_State *vm) {
 
   if ((!ntop_interface) ||
       (ntop_interface->getActiveDeviceTypes(
-           vm, sourceMacsOnly, 0 /* bridge_iface_idx - TODO */, maxHits,
-           manufacturer, location_filter) < 0))
+					    vm, sourceMacsOnly, 0 /* bridge_iface_idx - TODO */, maxHits,
+					    manufacturer, location_filter) < 0))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -2149,8 +2149,8 @@ static int ntop_get_interface_vlans_list(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if ((!ntop_interface) || ntop_interface->getActiveVLANList(
-                               vm, (char *)"column_vlan", CONST_MAX_NUM_HITS, 0,
-                               true, details_normal /* Minimum details */) < 0)
+							     vm, (char *)"column_vlan", CONST_MAX_NUM_HITS, 0,
+							     true, details_normal /* Minimum details */) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -2179,7 +2179,7 @@ static int ntop_get_interface_vlans_info(lua_State *vm) {
 
           if (lua_type(vm, 5) == LUA_TBOOLEAN) {
             details_level =
-                lua_toboolean(vm, 4) ? details_higher : details_high;
+	      lua_toboolean(vm, 4) ? details_higher : details_high;
           }
         }
       }
@@ -2280,8 +2280,8 @@ static int ntop_get_interface_macs_manufacturers(lua_State *vm) {
 
   if (!ntop_interface ||
       ntop_interface->getActiveMacManufacturers(
-          vm, 0, /* bridge_iface_idx - TODO */
-          sourceMacsOnly, maxHits, devtype_filter, location_filter) < 0)
+						vm, 0, /* bridge_iface_idx - TODO */
+						sourceMacsOnly, maxHits, devtype_filter, location_filter) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -2293,7 +2293,7 @@ static int ntop_get_interface_flows_info(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64];
   char *host_ip = NULL, *talking_with_ip = NULL, *server_ip = NULL,
-       *client_ip = NULL;
+    *client_ip = NULL;
   u_int16_t vlan_id = (u_int16_t)-1;
   Host *host = NULL, *talking_with_host = NULL, *client = NULL, *server = NULL;
   char *flow_info = NULL;
@@ -2323,8 +2323,8 @@ static int ntop_get_interface_flows_info(lua_State *vm) {
     get_host_vlan_info((char *)lua_tostring(vm, 3), &talking_with_ip, &vlan_id,
                        buf, sizeof(buf));
     talking_with_host = ntop_interface->getHost(
-        talking_with_ip, vlan_id, getLuaVMUservalue(vm, observationPointId),
-        false /* Not an inline call */);
+						talking_with_ip, vlan_id, getLuaVMUservalue(vm, observationPointId),
+						false /* Not an inline call */);
   }
 
   if (lua_type(vm, 4) == LUA_TSTRING) {
@@ -2531,8 +2531,8 @@ static int ntop_reset_interface_host_top_sites(lua_State *vm) {
   if (lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
   if ((!ntop_interface) || !ntop_interface->resetHostTopSites(
-                               get_allowed_nets(vm), host_ip, vlan_id,
-                               getLuaVMUservalue(vm, observationPointId)))
+							      get_allowed_nets(vm), host_ip, vlan_id,
+							      getLuaVMUservalue(vm, observationPointId)))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   else
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -2556,8 +2556,8 @@ static int ntop_get_interface_host_country(lua_State *vm) {
 
   if ((!ntop_interface) ||
       ((h = ntop_interface->findHostByIP(
-            get_allowed_nets(vm), host_ip, vlan_id,
-            getLuaVMUservalue(vm, observationPointId))) == NULL))
+					 get_allowed_nets(vm), host_ip, vlan_id,
+					 getLuaVMUservalue(vm, observationPointId))) == NULL))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   else {
     lua_pushstring(vm, h->get_country(buf, sizeof(buf)));
@@ -2686,8 +2686,8 @@ static int ntop_arpscan_iface_hosts(lua_State *vm) {
     try {
       NetworkDiscovery *d;
 
-#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && \
-    !defined(HAVE_NEDGE)
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) &&	\
+  !defined(HAVE_NEDGE)
       if (Utils::gainWriteCapabilities() == -1)
         ntop->getTrace()->traceEvent(TRACE_ERROR,
                                      "Unable to enable capabilities");
@@ -2695,8 +2695,8 @@ static int ntop_arpscan_iface_hosts(lua_State *vm) {
 
       d = ntop_interface->getNetworkDiscovery();
 
-#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && \
-    !defined(HAVE_NEDGE)
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) &&	\
+  !defined(HAVE_NEDGE)
       Utils::dropWriteCapabilities();
 #endif
 
@@ -2704,8 +2704,8 @@ static int ntop_arpscan_iface_hosts(lua_State *vm) {
     } catch (...) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
                                    "Unable to perform network scan");
-#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && \
-    !defined(HAVE_NEDGE)
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) &&	\
+  !defined(HAVE_NEDGE)
       Utils::dropWriteCapabilities();
 #endif
     }
@@ -2871,7 +2871,7 @@ static int ntop_get_interface_flow_key(lua_State *vm) {
           CONST_LUA_OK) /* srv port          */
       || (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) !=
           CONST_LUA_OK) /* protocol          */
-  )
+      )
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   get_host_vlan_info((char *)lua_tostring(vm, 1), &cli_name, &cli_vlan, cli_buf,
@@ -2900,8 +2900,8 @@ static int ntop_get_interface_flow_key(lua_State *vm) {
     lua_pushnil(vm);
   } else
     lua_pushinteger(
-        vm, Flow::key(cli, cli_port, srv, srv_port, cli_vlan,
-                      getLuaVMUservalue(vm, observationPointId), protocol));
+		    vm, Flow::key(cli, cli_port, srv, srv_port, cli_vlan,
+				  getLuaVMUservalue(vm, observationPointId), protocol));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
@@ -2990,10 +2990,10 @@ static int ntop_get_interface_find_flow_by_tuple(lua_State *vm) {
   src_ip_addr.set(src_ip), dst_ip_addr.set(dst_ip);
 
   f = ntop_interface->findFlowByTuple(
-      vlan_id, getLuaVMUservalue(vm, observationPointId), private_flow_id, NULL,
-      NULL, /* TODO MAC */
-      &src_ip_addr, &dst_ip_addr, htons(src_port), htons(dst_port), l4_proto,
-      ptree);
+				      vlan_id, getLuaVMUservalue(vm, observationPointId), private_flow_id, NULL,
+				      NULL, /* TODO MAC */
+				      &src_ip_addr, &dst_ip_addr, htons(src_port), htons(dst_port), l4_proto,
+				      ptree);
 
   if (f == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -3067,24 +3067,7 @@ static int ntop_drop_multiple_flows_traffic(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_dump_local_hosts_2_redis(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if (!ntop_interface)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-
-  lua_pushnil(vm);
-  ntop_interface->dumpLocalHosts2redis(
-      true /* must disable purge as we are called from lua */);
-
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
-static int ntop_get_interface_find_pid_flows(lua_State *vm) {
+static int ntop_get_interface_find_pid_flows(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t pid;
 
@@ -3297,7 +3280,7 @@ static int ntop_update_host_traffic_policy(lua_State *vm) {
   if (!ntop_interface) return CONST_LUA_ERROR;
 
   lua_pushboolean(vm, ntop_interface->updateHostTrafficPolicy(
-                          get_allowed_nets(vm), host_ip, vlan_id));
+							      get_allowed_nets(vm), host_ip, vlan_id));
   return CONST_LUA_OK;
 }
 
@@ -3370,7 +3353,7 @@ static int ntop_get_ndpi_categories(lua_State *vm) {
   for (int i = 0; i < NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
     char buf[8];
     const char *cat_name =
-        ntop_interface->get_ndpi_category_name((ndpi_protocol_category_t)i);
+      ntop_interface->get_ndpi_category_name((ndpi_protocol_category_t)i);
 
     if (cat_name && *cat_name) {
       snprintf(buf, sizeof(buf), "%d", i);
@@ -3555,7 +3538,7 @@ static int ntop_capture_to_pcap(lua_State *vm) {
   snprintf(ftemplate, sizeof(ftemplate), "/tmp/ntopng_%s_%u.pcap",
            ntop_interface->get_name(), (unsigned int)time(NULL));
   c->pkt_capture.dumper =
-      pcap_dump_open(pcap_open_dead(DLT_EN10MB, 1514 /* MTU */), ftemplate);
+    pcap_dump_open(pcap_open_dead(DLT_EN10MB, 1514 /* MTU */), ftemplate);
 
   if (c->pkt_capture.dumper == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -3591,9 +3574,9 @@ static int ntop_is_capture_running(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   lua_pushboolean(
-      vm, (c->pkt_capture.pd != NULL /* Another capture is in progress */)
-              ? true
-              : false);
+		  vm, (c->pkt_capture.pd != NULL /* Another capture is in progress */)
+		  ? true
+		  : false);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -3645,12 +3628,12 @@ static int ntop_get_interface_remote_hosts_no_tx_info(lua_State *vm) {
 
 static int ntop_get_interface_remote_hosts_no_tcp_tx_info(lua_State *vm) {
   return (
-      ntop_get_interface_hosts_criteria(vm, location_remote_only_no_tcp_tx));
+	  ntop_get_interface_hosts_criteria(vm, location_remote_only_no_tcp_tx));
 }
 
 static int ntop_get_interface_broadcast_domain_hosts_info(lua_State *vm) {
   return (
-      ntop_get_interface_hosts_criteria(vm, location_broadcast_domain_only));
+	  ntop_get_interface_hosts_criteria(vm, location_broadcast_domain_only));
 }
 
 static int ntop_get_public_hosts_info(lua_State *vm) {
@@ -3787,9 +3770,9 @@ static int ntop_get_secs_to_first_data(lua_State *vm) {
       throughputs) to be calculated
     */
     u_int32_t secs_to_first_data = 0,
-              interface_refresh_rate =
-                  ntop_interface->periodicStatsUpdateFrequency(),
-              secs_since_startup = ntop->getGlobals()->getUptime();
+      interface_refresh_rate =
+      ntop_interface->periodicStatsUpdateFrequency(),
+      secs_since_startup = ntop->getGlobals()->getUptime();
 
     if (interface_refresh_rate * 2 > secs_since_startup)
       secs_to_first_data = (interface_refresh_rate * 2) - secs_since_startup;
@@ -3879,7 +3862,7 @@ static int ntop_get_active_flows_stats(lua_State *vm) {
   nDPIStats ndpi_stats;
   FlowStats stats;
   char *host_ip = NULL, *talking_with_ip = NULL, *server_ip = NULL,
-       *client_ip = NULL;
+    *client_ip = NULL;
   u_int16_t vlan_id = 0;
   char buf[64];
   bool only_traffic_stats = false;
@@ -3914,8 +3897,8 @@ static int ntop_get_active_flows_stats(lua_State *vm) {
     if (strlen(tmp) > 0) {
       get_host_vlan_info(tmp, &talking_with_ip, &vlan_id, buf, sizeof(buf));
       talking_with_host = ntop_interface->getHost(
-          talking_with_ip, vlan_id, getLuaVMUservalue(vm, observationPointId),
-          false /* Not an inline call */);
+						  talking_with_ip, vlan_id, getLuaVMUservalue(vm, observationPointId),
+						  false /* Not an inline call */);
     }
   }
 
@@ -3924,8 +3907,8 @@ static int ntop_get_active_flows_stats(lua_State *vm) {
     if (strlen(tmp) > 0) {
       get_host_vlan_info(tmp, &client_ip, &vlan_id, buf, sizeof(buf));
       client = ntop_interface->getHost(
-          client_ip, vlan_id, getLuaVMUservalue(vm, observationPointId),
-          false /* Not an inline call */);
+				       client_ip, vlan_id, getLuaVMUservalue(vm, observationPointId),
+				       false /* Not an inline call */);
     }
   }
 
@@ -3934,8 +3917,8 @@ static int ntop_get_active_flows_stats(lua_State *vm) {
     if (strlen(tmp) > 0) {
       get_host_vlan_info(tmp, &server_ip, &vlan_id, buf, sizeof(buf));
       server = ntop_interface->getHost(
-          server_ip, vlan_id, getLuaVMUservalue(vm, observationPointId),
-          false /* Not an inline call */);
+				       server_ip, vlan_id, getLuaVMUservalue(vm, observationPointId),
+				       false /* Not an inline call */);
     }
   }
 
@@ -3948,8 +3931,8 @@ static int ntop_get_active_flows_stats(lua_State *vm) {
 
   if (ntop_interface) {
     ntop_interface->getActiveFlowsStats(
-        &ndpi_stats, &stats, get_allowed_nets(vm), host, talking_with_host,
-        client, server, flow_info, p, vm, only_traffic_stats);
+					&ndpi_stats, &stats, get_allowed_nets(vm), host, talking_with_host,
+					client, server, flow_info, p, vm, only_traffic_stats);
   } else
     lua_pushnil(vm);
 
@@ -4135,13 +4118,13 @@ static int ntop_find_member_pool(lua_State *vm) {
       u_int8_t mac_bytes[6];
       Utils::parseMac(mac_bytes, address);
       pool_found =
-          ntop_interface->getHostPools()->findMacPool(mac_bytes, &pool_id);
+	ntop_interface->getHostPools()->findMacPool(mac_bytes, &pool_id);
     } else {
       IpAddress ip;
       ip.set(address);
 
       pool_found = ntop_interface->getHostPools()->findIpPool(
-          &ip, vlan_id, &pool_id, &target_node);
+							      &ip, vlan_id, &pool_id, &target_node);
     }
 
     if (pool_found) {
@@ -4151,12 +4134,12 @@ static int ntop_find_member_pool(lua_State *vm) {
       if (target_node != NULL) {
         ndpi_prefix_t *prefix = ndpi_patricia_get_node_prefix(target_node);
         lua_push_str_table_entry(
-            vm, "matched_prefix",
-            (char *)inet_ntop(prefix->family,
-                              (prefix->family == AF_INET6)
-                                  ? (void *)(&prefix->add.sin6)
-                                  : (void *)(&prefix->add.sin),
-                              buf, sizeof(buf)));
+				 vm, "matched_prefix",
+				 (char *)inet_ntop(prefix->family,
+						   (prefix->family == AF_INET6)
+						   ? (void *)(&prefix->add.sin6)
+						   : (void *)(&prefix->add.sin),
+						   buf, sizeof(buf)));
         lua_push_uint64_table_entry(vm, "matched_bitmask",
                                     ndpi_patricia_get_node_bits(target_node));
       }
@@ -4328,9 +4311,9 @@ static int ntop_interface_check_context(lua_State *vm) {
     /* NOTE: settting a context for a differnt interface is currently not
      * supported */
     ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "Bad context - expected interface %s found %s",
-        entity_val,
-        c->iface == NULL ? "NULL" : c->iface->getEntityValue().c_str());
+				 TRACE_WARNING, "Bad context - expected interface %s found %s",
+				 entity_val,
+				 c->iface == NULL ? "NULL" : c->iface->getEntityValue().c_str());
 
     lua_pushboolean(vm, false);
   } else
@@ -4436,7 +4419,7 @@ static void ntop_get_maps_filters(lua_State *vm, MapsFilters *filters) {
     filters->first_seen = (u_int32_t)lua_tonumber(vm, 5);
   if (lua_type(vm, 6) == LUA_TSTRING)
     filters->ndpi_proto = ndpi_get_protocol_id(
-        ntop_interface->get_ndpi_struct(), (char *)lua_tostring(vm, 6));
+					       ntop_interface->get_ndpi_struct(), (char *)lua_tostring(vm, 6));
 
   if (lua_type(vm, 7) == LUA_TNUMBER)
     filters->network_id = (int16_t)lua_tonumber(vm, 7);
@@ -4463,18 +4446,18 @@ static void ntop_get_maps_filters(lua_State *vm, MapsFilters *filters) {
     filters->standard_view = (bool)lua_toboolean(vm, 15);
 
   switch (direction) {
-    case 0:
-      filters->cli_location = 0, filters->srv_location = 0;
-      break;
-    case 1:
-      filters->cli_location = 1, filters->srv_location = 1;
-      break;
-    case 2:
-      filters->cli_location = 0, filters->srv_location = 1;
-      break;
-    case 3:
-      filters->cli_location = 1, filters->srv_location = 0;
-      break;
+  case 0:
+    filters->cli_location = 0, filters->srv_location = 0;
+    break;
+  case 1:
+    filters->cli_location = 1, filters->srv_location = 1;
+    break;
+  case 2:
+    filters->cli_location = 0, filters->srv_location = 1;
+    break;
+  case 3:
+    filters->cli_location = 1, filters->srv_location = 0;
+    break;
   }
 }
 
@@ -4629,7 +4612,7 @@ static int ntop_interface_service_map_set_multiple_status(lua_State *vm) {
 #if defined(NTOPNG_PRO)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   ServiceAcceptance current_status = service_unknown,
-                    new_status = service_unknown;
+    new_status = service_unknown;
   u_int16_t proto_id = 0xFF;
   char *l7_proto = NULL;
 #endif
@@ -4646,7 +4629,7 @@ static int ntop_interface_service_map_set_multiple_status(lua_State *vm) {
 
     if (l7_proto != NULL)
       proto_id =
-          ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
+	ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
 
     ntop_interface->getServiceMap()->setBatchStatus(proto_id, current_status,
                                                     new_status);
@@ -4682,7 +4665,7 @@ static int ntop_is_behaviour_analysis_available(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   lua_pushboolean(vm, ntop_interface->isPeriodicityMapEnabled() ||
-                          ntop_interface->isServiceMapEnabled());
+		  ntop_interface->isServiceMapEnabled());
 #else
   lua_pushboolean(vm, false);
 #endif
@@ -4792,7 +4775,7 @@ static int ntop_get_policy_change_marker(lua_State *vm) {
   if (ntop_interface &&
       (ntop_interface->getIfType() == interface_type_NETFILTER))
     lua_pushinteger(
-        vm, ((NetfilterInterface *)ntop_interface)->getPolicyChangeMarker());
+		    vm, ((NetfilterInterface *)ntop_interface)->getPolicyChangeMarker());
   else
     lua_pushnil(vm);
 
@@ -4849,24 +4832,24 @@ static int ntop_get_l7_policy_info(lua_State *vm) {
   proto.master_protocol = (u_int16_t)lua_tointeger(vm, 2);
   proto.app_protocol = proto.master_protocol;
   proto.category =
-      NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;  // important for
-                                           // ndpi_get_proto_category below
+    NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;  // important for
+  // ndpi_get_proto_category below
 
   // set appropriate category based on the protocols
   proto.category =
-      ndpi_get_proto_category(ntop_interface->get_ndpi_struct(), proto);
+    ndpi_get_proto_category(ntop_interface->get_ndpi_struct(), proto);
 
   dev_type = (DeviceType)lua_tointeger(vm, 3);
   as_client = lua_toboolean(vm, 4);
 
   if (ntop->getPrefs()->are_device_protocol_policies_enabled() &&
       ((device_proto_status = ntop->getDeviceAllowedProtocolStatus(
-            dev_type, proto, pool_id, as_client)) != device_proto_allowed)) {
+								   dev_type, proto, pool_id, as_client)) != device_proto_allowed)) {
     shaper_id = DROP_ALL_SHAPER_ID;
     policy_source = policy_source_device_protocol;
   } else {
     shaper_id = ntop_interface->getL7Policer()->getShaperIdForPool(
-        pool_id, proto, !as_client, &policy_source);
+								   pool_id, proto, !as_client, &policy_source);
   }
 
   lua_newtable(vm);
@@ -5019,7 +5002,7 @@ static int ntop_interface_trigger_traffic_alert(lua_State *vm) {
       HostAlert *alert;
       time_t now = time(NULL);
       time_t alert_timeout =
-          now + frequency_sec + 120; /* interval + 2 min tolerance */
+	now + frequency_sec + 120; /* interval + 2 min tolerance */
 
       /* FIXX a lock on HostAlertableEntity.engaged_alerts_lock is probably
        * required to handle concurrency with HostChecksExecutor */
@@ -5031,16 +5014,16 @@ static int ntop_interface_trigger_traffic_alert(lua_State *vm) {
         alert->setTimeout(alert_timeout); /* refresh timeout */
 
         /*
-        TrafficVolumeAlert *tvalert = dynamic_cast<TrafficVolumeAlert*>(alert);
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skipping host alert %s@%d
-        (%s), already engaged for %s@%d (%s)", ipaddress, vlan_id, metric,
+	  TrafficVolumeAlert *tvalert = dynamic_cast<TrafficVolumeAlert*>(alert);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skipping host alert %s@%d
+	  (%s), already engaged for %s@%d (%s)", ipaddress, vlan_id, metric,
           ipaddress, vlan_id, tvalert->getMetric().c_str());
         */
       } else {
         /* Build new alert */
         alert = new TrafficVolumeAlert(
-            host_check_traffic_volume, h, CLIENT_FULL_RISK_PERCENTAGE,
-            std::string(metric), frequency_sec, threshold, value);
+				       host_check_traffic_volume, h, CLIENT_FULL_RISK_PERCENTAGE,
+				       std::string(metric), frequency_sec, threshold, value);
         if (alert) {
           /* Specify when the alert will auto-release if not continuously
            * triggered */
@@ -5082,8 +5065,8 @@ static int ntop_interface_trigger_external_host_alert(lua_State *vm) {
                      sizeof(buf));
 
   host =
-      ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
-                                   getLuaVMUservalue(vm, observationPointId));
+    ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+				 getLuaVMUservalue(vm, observationPointId));
 
   if (host) {
     u_int32_t value;
@@ -5109,288 +5092,286 @@ static int ntop_interface_trigger_external_host_alert(lua_State *vm) {
 /* ****************************************** */
 
 static luaL_Reg _ntop_interface_reg[] = {
-    {"setActiveInterfaceId", ntop_set_active_interface_id},
-    {"getIfNames", ntop_get_interface_names},
-    {"getIfMac", ntop_get_interface_mac},
-    {"getFirstInterfaceId", ntop_get_first_interface_id},
-    {"select", ntop_select_interface},
-    {"getId", ntop_get_interface_id},
-    {"getName", ntop_get_interface_name},
-    {"isValidIfId", ntop_is_valid_interface_id},
-    {"getMaxIfSpeed", ntop_get_max_if_speed},
-    {"hasVLANs", ntop_interface_has_vlans},
-    {"hasEBPF", ntop_interface_has_ebpf},
-    {"hasExternalAlerts", ntop_interface_has_external_alerts},
-    {"getStats", ntop_get_interface_stats},
-    {"getStatsUpdateFreq", ntop_get_interface_stats_update_freq},
-    {"getSecsToFirstData", ntop_get_secs_to_first_data},
-    {"updateDirectionStats", ntop_update_interface_direction_stats},
-    {"updateTopSites", ntop_update_interface_top_sites},
-    {"resetCounters", ntop_interface_reset_counters},
-    {"resetHostStats", ntop_interface_reset_host_stats},
-    {"deleteHostData", ntop_interface_delete_host_data},
-    {"resetMacStats", ntop_interface_reset_mac_stats},
-    {"deleteMacData", ntop_interface_delete_mac_data},
+  {"setActiveInterfaceId", ntop_set_active_interface_id},
+  {"getIfNames", ntop_get_interface_names},
+  {"getIfMac", ntop_get_interface_mac},
+  {"getFirstInterfaceId", ntop_get_first_interface_id},
+  {"select", ntop_select_interface},
+  {"getId", ntop_get_interface_id},
+  {"getName", ntop_get_interface_name},
+  {"isValidIfId", ntop_is_valid_interface_id},
+  {"getMaxIfSpeed", ntop_get_max_if_speed},
+  {"hasVLANs", ntop_interface_has_vlans},
+  {"hasEBPF", ntop_interface_has_ebpf},
+  {"hasExternalAlerts", ntop_interface_has_external_alerts},
+  {"getStats", ntop_get_interface_stats},
+  {"getStatsUpdateFreq", ntop_get_interface_stats_update_freq},
+  {"getSecsToFirstData", ntop_get_secs_to_first_data},
+  {"updateDirectionStats", ntop_update_interface_direction_stats},
+  {"updateTopSites", ntop_update_interface_top_sites},
+  {"resetCounters", ntop_interface_reset_counters},
+  {"resetHostStats", ntop_interface_reset_host_stats},
+  {"deleteHostData", ntop_interface_delete_host_data},
+  {"resetMacStats", ntop_interface_reset_mac_stats},
+  {"deleteMacData", ntop_interface_delete_mac_data},
 
-    /* Functions related to the management of per-interface queues */
-    {"getQueuesStats", ntop_get_interface_queues_stats},
+  /* Functions related to the management of per-interface queues */
+  {"getQueuesStats", ntop_get_interface_queues_stats},
 
-    /* Functions related to the management of the internal hash tables */
-    {"getHashTablesStats", ntop_get_interface_hash_tables_stats},
+  /* Functions related to the management of the internal hash tables */
+  {"getHashTablesStats", ntop_get_interface_hash_tables_stats},
 
-    /* Functions to get and reset the duration of periodic threaded activities
-     */
-    {"getPeriodicActivitiesStats",
-     ntop_get_interface_periodic_activities_stats},
-    {"setPeriodicActivityProgress",
-     ntop_set_interface_periodic_activity_progress},
+  /* Functions to get and reset the duration of periodic threaded activities
+   */
+  {"getPeriodicActivitiesStats",
+   ntop_get_interface_periodic_activities_stats},
+  {"setPeriodicActivityProgress",
+   ntop_set_interface_periodic_activity_progress},
 
 #ifndef HAVE_NEDGE
-    {"processFlow", ntop_process_flow},
-    {"updateSyslogProducers", ntop_update_syslog_producers},
-    {"getZMQFlowFieldDescr", ntop_get_zmq_flow_field_descr},
+  {"processFlow", ntop_process_flow},
+  {"updateSyslogProducers", ntop_update_syslog_producers},
+  {"getZMQFlowFieldDescr", ntop_get_zmq_flow_field_descr},
 #endif
 
-    {"getActiveFlowsStats", ntop_get_active_flows_stats},
-    {"getnDPIProtoName", ntop_get_ndpi_protocol_name},
-    {"getnDPIFullProtoName", ntop_get_ndpi_full_protocol_name},
-    {"getnDPIProtoId", ntop_get_ndpi_protocol_id},
-    {"getnDPICategoryId", ntop_get_ndpi_category_id},
-    {"getnDPICategoryName", ntop_get_ndpi_category_name},
-    {"getnDPIFlowsCount", ntop_get_ndpi_interface_flows_count},
-    {"getnDPIStats", ntop_get_ndpi_interface_stats},
-    {"getnDPIHostStats", ntop_get_ndpi_host_stats},
-    {"getFlowsStatus", ntop_get_ndpi_interface_flows_status},
-    {"getnDPIProtoBreed", ntop_get_ndpi_protocol_breed},
-    {"getnDPIProtocols", ntop_get_ndpi_protocols},
-    {"getnDPICategories", ntop_get_ndpi_categories},
-    {"getHostsInfo", ntop_get_interface_hosts_info},
-    {"getLocalHostsInfo", ntop_get_interface_local_hosts_info},
-    {"getLocalHostsInfoNoTX", ntop_get_interface_local_hosts_no_tx_info},
-    {"getLocalHostsInfoNoTXTCP", ntop_get_interface_local_hosts_no_tcp_tx_info},
-    {"getRemoteHostsInfo", ntop_get_interface_remote_hosts_info},
-    {"getRemoteHostsInfoNoTX", ntop_get_interface_remote_hosts_no_tx_info},
-    {"getRemoteHostsInfoNoTXTCP",
-     ntop_get_interface_remote_hosts_no_tcp_tx_info},
-    {"getRxOnlyHostsList", ntop_get_rxonly_hosts_list},
-    {"getBroadcastDomainHostsInfo",
-     ntop_get_interface_broadcast_domain_hosts_info},
-    {"getPublicHostsInfo", ntop_get_public_hosts_info},
-    {"getBatchedFlowsInfo", ntop_get_batched_interface_flows_info},
-    {"getBatchedHostsInfo", ntop_get_batched_interface_hosts_info},
-    {"getBatchedLocalHostsInfo", ntop_get_batched_interface_local_hosts_info},
-    {"getBatchedRemoteHostsInfo", ntop_get_batched_interface_remote_hosts_info},
-    {"getBatchedLocalHostsTs", ntop_get_batched_interface_local_hosts_ts},
-    {"getInterfaceHosts", ntop_get_interface_hosts},
-    {"getHostInfo", ntop_get_interface_host_info},
-    {"getHostMinInfo", ntop_get_interface_get_host_min_info},
-    {"getHostCountry", ntop_get_interface_host_country},
-    {"addMacsIpAddresses", ntop_add_macs_ip_addresses},
-    {"getNetworksStats", ntop_get_interface_networks_stats},
-    {"getLocalServerPorts", ntop_get_local_server_ports},
-    {"getNetworkStats", ntop_get_interface_network_stats},
-    {"restoreHost", ntop_restore_interface_host},
-    {"checkpointHostTalker", ntop_checkpoint_host_talker},
-    {"getFlowsInfo", ntop_get_interface_flows_info},
-    {"getGroupedFlows", ntop_get_interface_get_grouped_flows},
-    {"getFlowsStats", ntop_get_interface_flows_stats},
-    {"getFlowKey", ntop_get_interface_flow_key},
-    {"getScore", ntop_get_interface_score},
-    {"findFlowByKeyAndHashId", ntop_get_interface_find_flow_by_key_and_hash_id},
-    {"findFlowByTuple", ntop_get_interface_find_flow_by_tuple},
-    {"dropFlowTraffic", ntop_drop_flow_traffic},
-    {"dumpLocalHosts2redis", ntop_dump_local_hosts_2_redis},
-    {"dropMultipleFlowsTraffic", ntop_drop_multiple_flows_traffic},
-    {"findPidFlows", ntop_get_interface_find_pid_flows},
-    {"findNameFlows", ntop_get_interface_find_proc_name_flows},
-    {"listHTTPhosts", ntop_list_http_hosts},
-    {"findHost", ntop_get_interface_find_host},
-    {"findHostByMac", ntop_get_interface_find_host_by_mac},
-    {"resetHostTopSites", ntop_reset_interface_host_top_sites},
-    {"updateTrafficMirrored", ntop_update_traffic_mirrored},
-    {"updateDynIfaceTrafficPolicy",
-     ntop_update_dynamic_interface_traffic_policy},
-    {"updateLbdIdentifier", ntop_update_lbd_identifier},
-    {"updateHostTrafficPolicy", ntop_update_host_traffic_policy},
-    {"updateDiscardProbingTraffic", ntop_update_discard_probing_traffic},
-    {"updateFlowsOnlyInterface", ntop_update_flows_only_interface},
-    {"getEndpoint", ntop_get_interface_endpoint},
-    {"isPacketInterface", ntop_interface_is_packet_interface},
-    {"isDiscoverableInterface", ntop_interface_is_discoverable_interface},
-    {"isBridgeInterface", ntop_interface_is_bridge_interface},
-    {"isPcapDumpInterface", ntop_interface_is_pcap_dump_interface},
-    {"isZMQInterface", ntop_interface_is_zmq_interface},
-    {"isView", ntop_interface_is_view},
-    {"isViewed", ntop_interface_is_viewed},
-    {"viewedBy", ntop_interface_viewed_by},
-    {"isLoopback", ntop_interface_is_loopback},
-    {"isRunning", ntop_interface_is_running},
-    {"isIdle", ntop_interface_is_idle},
-    {"setInterfaceIdleState", ntop_interface_set_idle},
-    {"name2id", ntop_interface_name2id},
-    {"loadScalingFactorPrefs", ntop_load_scaling_factor_prefs},
-    {"reloadGwMacs", ntop_reload_gw_macs},
-    {"reloadDhcpRanges", ntop_reload_dhcp_ranges},
-    {"reloadHostPrefs", ntop_reload_host_prefs},
-    {"setHostOperatingSystem", ntop_set_host_operating_system},
-    {"setHostResolvedName", ntop_set_host_resolved_name},
-    {"getNumLocalHosts", ntop_get_num_local_hosts},
-    {"getNumHosts", ntop_get_num_hosts},
-    {"getNumFlows", ntop_get_num_flows},
-    {"periodicityMap", ntop_get_interface_periodicity_map},
-    {"flushPeriodicityMap", ntop_flush_interface_periodicity_map},
-    {"serviceMap", ntop_get_interface_service_map},
-    {"periodicityMapFilterList",
-     ntop_get_interface_periodicity_map_filter_list},
-    {"isBehaviourAnalysisAvailable", ntop_is_behaviour_analysis_available},
-    {"serviceMapFilterList", ntop_get_interface_service_map_filter_list},
-    {"flushServiceMap", ntop_flush_interface_service_map},
-    {"serviceMapLearningStatus", ntop_interface_service_map_learning_status},
-    {"serviceMapSetStatus", ntop_interface_service_map_set_status},
-    {"serviceMapSetMultipleStatus",
-     ntop_interface_service_map_set_multiple_status},
-    {"getThroughput", ntop_interface_get_throughput},
-    {"getProtocolFlowsStats", ntop_get_protocol_flows_stats},
-    {"getVLANFlowsStats", ntop_get_vlan_flows_stats},
+  { "getActiveFlowsStats",      ntop_get_active_flows_stats },
+  { "getnDPIProtoName",         ntop_get_ndpi_protocol_name },
+  { "getnDPIFullProtoName",     ntop_get_ndpi_full_protocol_name },
+  { "getnDPIProtoId",           ntop_get_ndpi_protocol_id },
+  { "getnDPICategoryId",        ntop_get_ndpi_category_id },
+  { "getnDPICategoryName",      ntop_get_ndpi_category_name },
+  { "getnDPIFlowsCount",        ntop_get_ndpi_interface_flows_count },
+  { "getnDPIStats",             ntop_get_ndpi_interface_stats },
+  { "getnDPIHostStats",         ntop_get_ndpi_host_stats },
+  { "getFlowsStatus",           ntop_get_ndpi_interface_flows_status },
+  { "getnDPIProtoBreed",        ntop_get_ndpi_protocol_breed },
+  { "getnDPIProtocols",         ntop_get_ndpi_protocols },
+  { "getnDPICategories",        ntop_get_ndpi_categories },
+  { "getHostsInfo",             ntop_get_interface_hosts_info },
+  { "getLocalHostsInfo",        ntop_get_interface_local_hosts_info },
+  { "getLocalHostsInfoNoTX",    ntop_get_interface_local_hosts_no_tx_info },
+  { "getLocalHostsInfoNoTXTCP", ntop_get_interface_local_hosts_no_tcp_tx_info },
+  { "getRemoteHostsInfo",       ntop_get_interface_remote_hosts_info },
+  { "getRemoteHostsInfoNoTX",   ntop_get_interface_remote_hosts_no_tx_info },
+  { "getRemoteHostsInfoNoTXTCP",ntop_get_interface_remote_hosts_no_tcp_tx_info },
+  { "getRxOnlyHostsList",          ntop_get_rxonly_hosts_list }, 
+  { "getBroadcastDomainHostsInfo", ntop_get_interface_broadcast_domain_hosts_info },
+  { "getPublicHostsInfo",          ntop_get_public_hosts_info },
+  { "getBatchedFlowsInfo",         ntop_get_batched_interface_flows_info },
+  { "getBatchedHostsInfo",         ntop_get_batched_interface_hosts_info },
+  { "getBatchedLocalHostsInfo",    ntop_get_batched_interface_local_hosts_info },
+  { "getBatchedRemoteHostsInfo",   ntop_get_batched_interface_remote_hosts_info },
+  { "getBatchedLocalHostsTs",      ntop_get_batched_interface_local_hosts_ts },
+  { "getInterfaceHosts",        ntop_get_interface_hosts },
+  { "getHostInfo",              ntop_get_interface_host_info },
+  { "getHostMinInfo",           ntop_get_interface_get_host_min_info },
+  { "getHostCountry",           ntop_get_interface_host_country },
+  { "addMacsIpAddresses",       ntop_add_macs_ip_addresses },
+  { "getNetworksStats",         ntop_get_interface_networks_stats       },
+  { "getLocalServerPorts",      ntop_get_local_server_ports             },
+  { "getNetworkStats",          ntop_get_interface_network_stats        },
+  { "restoreHost",              ntop_restore_interface_host             },
+  { "checkpointHostTalker",     ntop_checkpoint_host_talker             },
+  { "getFlowsInfo",             ntop_get_interface_flows_info           },
+  { "getGroupedFlows",          ntop_get_interface_get_grouped_flows    },
+  { "getFlowsStats",            ntop_get_interface_flows_stats          },
+  { "getFlowKey",               ntop_get_interface_flow_key             },
+  { "getScore",                 ntop_get_interface_score                },
+  { "findFlowByKeyAndHashId",   ntop_get_interface_find_flow_by_key_and_hash_id  },
+  { "findFlowByTuple",          ntop_get_interface_find_flow_by_tuple   },
+  { "dropFlowTraffic",          ntop_drop_flow_traffic                  },
+  { "dropMultipleFlowsTraffic", ntop_drop_multiple_flows_traffic        },
+  { "findPidFlows",             ntop_get_interface_find_pid_flows       },
+  { "findNameFlows",            ntop_get_interface_find_proc_name_flows },
+  { "listHTTPhosts",            ntop_list_http_hosts },
+  { "findHost",                 ntop_get_interface_find_host },
+  { "findHostByMac",            ntop_get_interface_find_host_by_mac },
+  { "resetHostTopSites",                ntop_reset_interface_host_top_sites },
+  { "updateTrafficMirrored",            ntop_update_traffic_mirrored                 },
+  { "updateDynIfaceTrafficPolicy",      ntop_update_dynamic_interface_traffic_policy },
+  { "updateLbdIdentifier",              ntop_update_lbd_identifier                   },
+  { "updateHostTrafficPolicy",          ntop_update_host_traffic_policy              },
+  { "updateDiscardProbingTraffic",      ntop_update_discard_probing_traffic          },
+  { "updateFlowsOnlyInterface",         ntop_update_flows_only_interface             },
+  { "getEndpoint",                      ntop_get_interface_endpoint },
+  { "isPacketInterface",                ntop_interface_is_packet_interface },
+  { "isDiscoverableInterface",          ntop_interface_is_discoverable_interface },
+  { "isBridgeInterface",                ntop_interface_is_bridge_interface },
+  { "isPcapDumpInterface",              ntop_interface_is_pcap_dump_interface },
+  { "isZMQInterface",                   ntop_interface_is_zmq_interface },
+  { "isView",                           ntop_interface_is_view },
+  { "isViewed",                         ntop_interface_is_viewed },
+  { "viewedBy",                         ntop_interface_viewed_by },
+  { "isLoopback",                       ntop_interface_is_loopback },
+  { "isRunning",                        ntop_interface_is_running },
+  { "isIdle",                           ntop_interface_is_idle },
+  { "setInterfaceIdleState",            ntop_interface_set_idle },
+  { "name2id",                          ntop_interface_name2id },
+  { "loadScalingFactorPrefs",           ntop_load_scaling_factor_prefs },
+  { "reloadGwMacs",                     ntop_reload_gw_macs },
+  { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
+  { "reloadHostPrefs",                  ntop_reload_host_prefs },
+  { "setHostOperatingSystem",           ntop_set_host_operating_system },
+  { "setHostResolvedName",              ntop_set_host_resolved_name },
+  { "getNumLocalHosts",                 ntop_get_num_local_hosts },
+  { "getNumHosts",                      ntop_get_num_hosts       },
+  { "getNumFlows",                      ntop_get_num_flows       },
+  { "periodicityMap",                   ntop_get_interface_periodicity_map },
+  { "flushPeriodicityMap",              ntop_flush_interface_periodicity_map },
+  { "serviceMap",                       ntop_get_interface_service_map },
+  { "periodicityMapFilterList",         ntop_get_interface_periodicity_map_filter_list },
+  { "isBehaviourAnalysisAvailable",     ntop_is_behaviour_analysis_available },
+  { "serviceMapFilterList",             ntop_get_interface_service_map_filter_list },
+  { "flushServiceMap",                  ntop_flush_interface_service_map },
+  { "serviceMapLearningStatus",         ntop_interface_service_map_learning_status },
+  { "serviceMapSetStatus",              ntop_interface_service_map_set_status },
+  { "serviceMapSetMultipleStatus",      ntop_interface_service_map_set_multiple_status },
+  { "getThroughput",                    ntop_interface_get_throughput },
+  { "getProtocolFlowsStats",            ntop_get_protocol_flows_stats },
+  { "getVLANFlowsStats",                ntop_get_vlan_flows_stats     },
+  
+  /* Addresses */
+  { "getAddressInfo",                   ntop_get_address_info },
 
-    /* Addresses */
-    {"getAddressInfo", ntop_get_address_info},
+  /* Addresses */
+  {"getAddressInfo", ntop_get_address_info},
 
-    /* Mac */
-    {"getMacsInfo", ntop_get_interface_macs_info},
-    {"getBatchedMacsInfo", ntop_get_batched_interface_macs_info},
-    {"getMacInfo", ntop_get_interface_mac_info},
-    {"getMacHosts", ntop_get_interface_mac_hosts},
-    {"getMacManufacturers", ntop_get_interface_macs_manufacturers},
-    {"getMacDeviceTypes", ntop_get_mac_device_types},
-    {"isMulticastMac", ntop_is_multicast_mac},
+  /* Mac */
+  {"getMacsInfo", ntop_get_interface_macs_info},
+  {"getBatchedMacsInfo", ntop_get_batched_interface_macs_info},
+  {"getMacInfo", ntop_get_interface_mac_info},
+  {"getMacHosts", ntop_get_interface_mac_hosts},
+  {"getMacManufacturers", ntop_get_interface_macs_manufacturers},
+  {"getMacDeviceTypes", ntop_get_mac_device_types},
+  {"isMulticastMac", ntop_is_multicast_mac},
 
-    /* Anomalies */
-    {"getAnomalies", ntop_get_interface_anomalies},
+  /* Anomalies */
+  {"getAnomalies", ntop_get_interface_anomalies},
 
-    /* Autonomous Systems */
-    {"getASesInfo", ntop_get_interface_ases_info},
-    {"getASInfo", ntop_get_interface_as_info},
+  /* Autonomous Systems */
+  {"getASesInfo", ntop_get_interface_ases_info},
+  {"getASInfo", ntop_get_interface_as_info},
 
-    /* Autonomous Systems */
-    {"getObsPointsInfo", ntop_get_interface_obs_points_info},
-    {"getObsPointInfo", ntop_get_interface_obs_point_info},
-    {"prepareDeleteObsPoint", ntop_prepare_delete_interface_observation_point},
-    {"deleteObsPoint", ntop_delete_interface_observation_point},
+  /* Autonomous Systems */
+  {"getObsPointsInfo", ntop_get_interface_obs_points_info},
+  {"getObsPointInfo", ntop_get_interface_obs_point_info},
+  {"prepareDeleteObsPoint", ntop_prepare_delete_interface_observation_point},
+  {"deleteObsPoint", ntop_delete_interface_observation_point},
 
-    /* Operating Systems */
-    {"getOSesInfo", ntop_get_interface_oses_info},
-    {"getOSInfo", ntop_get_interface_os_info},
+  /* Operating Systems */
+  {"getOSesInfo", ntop_get_interface_oses_info},
+  {"getOSInfo", ntop_get_interface_os_info},
 
-    /* Countries */
-    {"getCountriesInfo", ntop_get_interface_countries_info},
-    {"getCountryInfo", ntop_get_interface_country_info},
-    {"convertCountryCode2U16", ntop_convert_country_code_to_u16},
-    {"convertCountryU162Code", ntop_convert_country_u16_to_code},
+  /* Countries */
+  {"getCountriesInfo", ntop_get_interface_countries_info},
+  {"getCountryInfo", ntop_get_interface_country_info},
+  {"convertCountryCode2U16", ntop_convert_country_code_to_u16},
+  {"convertCountryU162Code", ntop_convert_country_u16_to_code},
 
-    /* VLANs */
-    {"getVLANsList", ntop_get_interface_vlans_list},
-    {"getVLANsInfo", ntop_get_interface_vlans_info},
-    {"getVLANInfo", ntop_get_interface_vlan_info},
+  /* VLANs */
+  {"getVLANsList", ntop_get_interface_vlans_list},
+  {"getVLANsInfo", ntop_get_interface_vlans_info},
+  {"getVLANInfo", ntop_get_interface_vlan_info},
 
-    /* Host pools */
-    {"findMemberPool", ntop_find_member_pool},
-    {"findMacPool", ntop_find_mac_pool},
-    {"getHostPoolsInfo", ntop_get_host_pools_info},
+  /* Host pools */
+  {"findMemberPool", ntop_find_member_pool},
+  {"findMacPool", ntop_find_mac_pool},
+  {"getHostPoolsInfo", ntop_get_host_pools_info},
 
-    /* InfluxDB */
-    {"appendInfluxDB", ntop_append_influx_db},
+  /* InfluxDB */
+  {"appendInfluxDB", ntop_append_influx_db},
 
-    /* RRD queue */
-    {"rrd_enqueue", ntop_rrd_queue_push},
-    {"rrd_dequeue", ntop_rrd_queue_pop},
-    {"rrd_queue_length", ntop_rrd_queue_length},
+  /* RRD queue */
+  {"rrd_enqueue", ntop_rrd_queue_push},
+  {"rrd_dequeue", ntop_rrd_queue_pop},
+  {"rrd_queue_length", ntop_rrd_queue_length},
 
-    {"getHostPoolsStats", ntop_get_host_pools_interface_stats},
-    {"getHostPoolStats", ntop_get_host_pool_interface_stats},
+  {"getHostPoolsStats", ntop_get_host_pools_interface_stats},
+  {"getHostPoolStats", ntop_get_host_pool_interface_stats},
 #ifdef NTOPNG_PRO
 #ifdef HAVE_NEDGE
-    {"resetPoolsQuotas", ntop_reset_pools_quotas},
+  {"resetPoolsQuotas", ntop_reset_pools_quotas},
 #endif
-    {"getHostUsedQuotasStats", ntop_get_host_used_quotas_stats},
+  {"getHostUsedQuotasStats", ntop_get_host_used_quotas_stats},
 
-    /* SNMP */
-    {"getSNMPStats", ntop_interface_get_snmp_stats},
+  /* SNMP */
+  {"getSNMPStats", ntop_interface_get_snmp_stats},
 
 #ifdef NTOPNG_PRO
-    /* Flow Devices */
-    {"getFlowDevices", ntop_get_flow_devices},
-    {"getFlowDeviceInfo", ntop_get_flow_device_info},
+  /* Flow Devices */
+  {"getFlowDevices", ntop_get_flow_devices},
+  {"getFlowDeviceInfo", ntop_get_flow_device_info},
 #endif
 
 #ifdef HAVE_NEDGE
-    /* L7 */
-    {"reloadL7Rules", ntop_reload_l7_rules},
-    {"reloadShapers", ntop_reload_shapers},
-    {"addLanIPAddress", ntop_add_lan_ip_address},
-    {"getPolicyChangeMarker", ntop_get_policy_change_marker},
-    {"updateFlowsShapers", ntop_update_flows_shapers},
-    {"getl7PolicyInfo", ntop_get_l7_policy_info},
+  /* L7 */
+  {"reloadL7Rules", ntop_reload_l7_rules},
+  {"reloadShapers", ntop_reload_shapers},
+  {"addLanIPAddress", ntop_add_lan_ip_address},
+  {"getPolicyChangeMarker", ntop_get_policy_change_marker},
+  {"updateFlowsShapers", ntop_update_flows_shapers},
+  {"getl7PolicyInfo", ntop_get_l7_policy_info},
 #endif
 #endif
 
-    /* Network Discovery */
-    {"discoverHosts", ntop_discover_iface_hosts},
-    {"arpScanHosts", ntop_arpscan_iface_hosts},
-    {"mdnsQueueNameToResolve", ntop_mdns_queue_name_to_resolve},
-    {"mdnsQueueAnyQuery", ntop_mdns_batch_any_query},
-    {"mdnsReadQueuedResponses", ntop_mdns_read_queued_responses},
+  /* Network Discovery */
+  {"discoverHosts", ntop_discover_iface_hosts},
+  {"arpScanHosts", ntop_arpscan_iface_hosts},
+  {"mdnsQueueNameToResolve", ntop_mdns_queue_name_to_resolve},
+  {"mdnsQueueAnyQuery", ntop_mdns_batch_any_query},
+  {"mdnsReadQueuedResponses", ntop_mdns_read_queued_responses},
 
-    /* DB */
-    {"execSQLQuery", ntop_interface_exec_sql_query},
+  /* DB */
+  {"execSQLQuery", ntop_interface_exec_sql_query},
 
-    /* sFlow */
-    {"getSFlowDevices", ntop_getsflowdevices},
-    {"getSFlowDeviceInfo", ntop_getsflowdeviceinfo},
+  /* sFlow */
+  {"getSFlowDevices", ntop_getsflowdevices},
+  {"getSFlowDeviceInfo", ntop_getsflowdeviceinfo},
 
-    /* Live Capture */
-    {"liveCapture", ntop_interface_live_capture},
-    {"stopLiveCapture", ntop_interface_stop_live_capture},
-    {"dumpLiveCaptures", ntop_interface_dump_live_captures},
+  /* Live Capture */
+  {"liveCapture", ntop_interface_live_capture},
+  {"stopLiveCapture", ntop_interface_stop_live_capture},
+  {"dumpLiveCaptures", ntop_interface_dump_live_captures},
 
-    /* Packet Capture */
-    {"captureToPcap", ntop_capture_to_pcap},
-    {"isCaptureRunning", ntop_is_capture_running},
-    {"stopRunningCapture", ntop_stop_running_capture},
+  /* Packet Capture */
+  {"captureToPcap", ntop_capture_to_pcap},
+  {"isCaptureRunning", ntop_is_capture_running},
+  {"stopRunningCapture", ntop_stop_running_capture},
 
-    /* Alerts */
-    {"alert_store_query", ntop_interface_alert_store_query},
-    {"getCachedAlertValue", ntop_interface_get_cached_alert_value},
-    {"setCachedAlertValue", ntop_interface_set_cached_alert_value},
-    {"storeTriggeredAlert", ntop_interface_store_triggered_alert},
-    {"releaseTriggeredAlert", ntop_interface_release_triggered_alert},
-    {"triggerExternalAlert", ntop_interface_store_external_alert},
-    {"releaseExternalAlert", ntop_interface_release_external_alert},
-    {"checkContext", ntop_interface_check_context},
-    {"getEngagedAlerts", ntop_interface_get_engaged_alerts},
-    {"getAlerts", ntop_interface_get_alerts},
-    {"releaseEngagedAlerts", ntop_interface_release_engaged_alerts},
-    {"incTotalHostAlerts", ntop_interface_inc_total_host_alerts},
-    {"updateIPReassignment", ntop_interface_update_ip_reassignment},
-    {"triggerTrafficAlert", ntop_interface_trigger_traffic_alert},
-    {"triggerExternalHostAlert", ntop_interface_trigger_external_host_alert},
+  /* Alerts */
+  {"alert_store_query", ntop_interface_alert_store_query},
+  {"getCachedAlertValue", ntop_interface_get_cached_alert_value},
+  {"setCachedAlertValue", ntop_interface_set_cached_alert_value},
+  {"storeTriggeredAlert", ntop_interface_store_triggered_alert},
+  {"releaseTriggeredAlert", ntop_interface_release_triggered_alert},
+  {"triggerExternalAlert", ntop_interface_store_external_alert},
+  {"releaseExternalAlert", ntop_interface_release_external_alert},
+  {"checkContext", ntop_interface_check_context},
+  {"getEngagedAlerts", ntop_interface_get_engaged_alerts},
+  {"getAlerts", ntop_interface_get_alerts},
+  {"releaseEngagedAlerts", ntop_interface_release_engaged_alerts},
+  {"incTotalHostAlerts", ntop_interface_inc_total_host_alerts},
+  {"updateIPReassignment", ntop_interface_update_ip_reassignment},
+  {"triggerTrafficAlert", ntop_interface_trigger_traffic_alert},
+  {"triggerExternalHostAlert", ntop_interface_trigger_external_host_alert},
 
-    /* eBPF, Containers and Companion Interfaces */
-    {"getPodsStats", ntop_interface_get_pods_stats},
-    {"getContainersStats", ntop_interface_get_containers_stats},
-    {"reloadCompanions", ntop_interface_reload_companions},
+  /* eBPF, Containers and Companion Interfaces */
+  {"getPodsStats", ntop_interface_get_pods_stats},
+  {"getContainersStats", ntop_interface_get_containers_stats},
+  {"reloadCompanions", ntop_interface_reload_companions},
 
-    /* Syslog */
-    {"isSyslogInterface", ntop_interface_is_syslog_interface},
-    {"incSyslogStats", ntop_interface_inc_syslog_stats},
+  /* Syslog */
+  {"isSyslogInterface", ntop_interface_is_syslog_interface},
+  {"incSyslogStats", ntop_interface_inc_syslog_stats},
 
-    /* SubInterface (disaggregation) */
-    {"isSubInterface", ntop_interface_is_sub_interface},
-    {"getMasterInterfaceId", ntop_get_master_interface_id},
+  /* SubInterface (disaggregation) */
+  {"isSubInterface", ntop_interface_is_sub_interface},
+  {"getMasterInterfaceId", ntop_get_master_interface_id},
 
-    /* ClickHouse */
-    {"clickhouseExecCSVQuery", ntop_clickhouse_exec_csv_query},
+  /* ClickHouse */
+  {"clickhouseExecCSVQuery", ntop_clickhouse_exec_csv_query},
 
-    {NULL, NULL}};
+  {NULL, NULL}
+};
 
 luaL_Reg *ntop_interface_reg = _ntop_interface_reg;

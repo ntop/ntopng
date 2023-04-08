@@ -110,72 +110,7 @@ char *PacketStats::serialize() {
 
 /* ******************************************* */
 
-void PacketStats::deserialize(json_object *o) {
-  json_object *obj;
-
-  if (!o) return;
-
-  if (json_object_object_get_ex(o, "upTo64", &obj))
-    upTo64 = json_object_get_int64(obj);
-  else
-    upTo64 = 0;
-  if (json_object_object_get_ex(o, "upTo128", &obj))
-    upTo128 = json_object_get_int64(obj);
-  else
-    upTo128 = 0;
-  if (json_object_object_get_ex(o, "upTo256", &obj))
-    upTo256 = json_object_get_int64(obj);
-  else
-    upTo256 = 0;
-  if (json_object_object_get_ex(o, "upTo512", &obj))
-    upTo512 = json_object_get_int64(obj);
-  else
-    upTo512 = 0;
-  if (json_object_object_get_ex(o, "upTo1024", &obj))
-    upTo1024 = json_object_get_int64(obj);
-  else
-    upTo1024 = 0;
-  if (json_object_object_get_ex(o, "upTo1518", &obj))
-    upTo1518 = json_object_get_int64(obj);
-  else
-    upTo1518 = 0;
-  if (json_object_object_get_ex(o, "upTo2500", &obj))
-    upTo2500 = json_object_get_int64(obj);
-  else
-    upTo2500 = 0;
-  if (json_object_object_get_ex(o, "upTo6500", &obj))
-    upTo6500 = json_object_get_int64(obj);
-  else
-    upTo6500 = 0;
-  if (json_object_object_get_ex(o, "upTo9000", &obj))
-    upTo9000 = json_object_get_int64(obj);
-  else
-    upTo9000 = 0;
-  if (json_object_object_get_ex(o, "above9000", &obj))
-    above9000 = json_object_get_int64(obj);
-  else
-    above9000 = 0;
-  if (json_object_object_get_ex(o, "syn", &obj))
-    syn = json_object_get_int64(obj);
-  else
-    syn = 0;
-  if (json_object_object_get_ex(o, "synack", &obj))
-    synack = json_object_get_int64(obj);
-  else
-    synack = 0;
-  if (json_object_object_get_ex(o, "finack", &obj))
-    finack = json_object_get_int64(obj);
-  else
-    finack = 0;
-  if (json_object_object_get_ex(o, "rst", &obj))
-    rst = json_object_get_int64(obj);
-  else
-    rst = 0;
-}
-
-/* ******************************************* */
-
-json_object *PacketStats::getJSONObject() {
+json_object* PacketStats::getJSONObject() {
   json_object *my_object;
 
   my_object = json_object_new_object();

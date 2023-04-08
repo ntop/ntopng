@@ -184,20 +184,6 @@ bool NetworkStats::serialize(json_object *my_object) {
 
 /* *************************************** */
 
-void NetworkStats::deserialize(json_object *o) {
-  json_object *obj;
-  time_t now = time(NULL);
-
-  if (json_object_object_get_ex(o, "ingress", &obj))
-    ingress.incStats(now, 0, json_object_get_int(obj));
-  if (json_object_object_get_ex(o, "egress", &obj))
-    egress.incStats(now, 0, json_object_get_int(obj));
-  if (json_object_object_get_ex(o, "inner", &obj))
-    inner.incStats(now, 0, json_object_get_int(obj));
-}
-
-/* *************************************** */
-
 void NetworkStats::updateRoundTripTime(u_int32_t rtt_msecs) {
   /* EWMA formula is EWMA(n) = (alpha_percent * sample + (100 - alpha_percent) *
      EWMA(n-1)) / 100

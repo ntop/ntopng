@@ -73,8 +73,6 @@ HostPools::HostPools(NetworkInterface *_iface) {
 
   reloadPools();
 
-  loadFromRedis();
-
   max_num_pools = MAX_NUM_HOST_POOLS;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Host Pools Available: %u",
@@ -105,9 +103,8 @@ HostPools::~HostPools() {
   if (tree_shadow) delete tree_shadow;
   if (tree) delete tree;
 
-  dumpToRedis();
-  if (stats) deleteStats(&stats);
-  if (stats_shadow) deleteStats(&stats_shadow);
+  if(stats)        deleteStats(&stats);
+  if(stats_shadow) deleteStats(&stats_shadow);
 
 #ifdef NTOPNG_PRO
   if (children_safe) free(children_safe);
@@ -143,67 +140,6 @@ void HostPools::swap(VLANAddressTree *new_trees, HostPoolStats **new_stats) {
 
     tree = new_trees;
   }
-}
-
-/* *************************************** */
-
-void HostPools::dumpToRedis() {
-  char key[128];
-  char buf[32];
-  Redis *redis = ntop->getRedis();
-
-  if ((!redis) || (!stats) || (!iface)) return;
-
-  snprintf(key, sizeof(key), HOST_POOL_SERIALIZED_KEY, iface->get_id());
-
-  for (int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
-    if (stats[i] && !stats[i]->needsReset()) {
-      snprintf(buf, sizeof(buf), "%d", i);
-      char *value = stats[i]->serialize(iface);
-
-      if (value) {
-        redis->hashSet(key, buf, value);
-        free(value);
-      }
-    }
-  }
-}
-
-/* *************************************** */
-
-void HostPools::loadFromRedis() {
-  char key[CONST_MAX_LEN_REDIS_KEY], buf[32], *value;
-  json_object *obj;
-  enum json_tokener_error jerr = json_tokener_success;
-  Redis *redis = ntop->getRedis();
-
-  snprintf(key, sizeof(key), HOST_POOL_SERIALIZED_KEY, iface->get_id());
-
-  if ((!redis) || (!stats) || (!iface)) return;
-
-  if ((value = (char *)malloc(POOL_MAX_SERIALIZED_LEN)) == NULL) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
-    return;
-  }
-
-  for (int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
-    if (stats[i]) {
-      snprintf(buf, sizeof(buf), "%d", i);
-      if (redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) == 0) {
-        if ((obj = json_tokener_parse_verbose(value, &jerr)) == NULL) {
-          ntop->getTrace()->traceEvent(
-              TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
-              json_tokener_error_desc(jerr), key, value);
-        } else {
-          stats[i]->deserialize(iface, obj);
-          json_object_put(obj);
-        }
-      }
-    }
-  }
-
-  free(value);
 }
 
 /* *************************************** */

@@ -67,50 +67,7 @@ char *SyslogStats::serialize() {
 
 /* ******************************************* */
 
-void SyslogStats::deserialize(json_object *o) {
-  json_object *obj;
-
-  if (!o) return;
-
-  if (json_object_object_get_ex(o, "tot_events", &obj))
-    num_total_events = json_object_get_int64(obj);
-  else
-    num_total_events = 0;
-
-  if (json_object_object_get_ex(o, "malformed", &obj))
-    num_malformed = json_object_get_int64(obj);
-  else
-    num_malformed = 0;
-
-  if (json_object_object_get_ex(o, "dispatched", &obj))
-    num_dispatched = json_object_get_int64(obj);
-  else
-    num_dispatched = 0;
-
-  if (json_object_object_get_ex(o, "unhandled", &obj))
-    num_unhandled = json_object_get_int64(obj);
-  else
-    num_unhandled = 0;
-
-  if (json_object_object_get_ex(o, "alerts", &obj))
-    num_alerts = json_object_get_int64(obj);
-  else
-    num_alerts = 0;
-
-  if (json_object_object_get_ex(o, "host_correlations", &obj))
-    num_host_correlations = json_object_get_int64(obj);
-  else
-    num_host_correlations = 0;
-
-  if (json_object_object_get_ex(o, "flows", &obj))
-    num_collected_flows = json_object_get_int64(obj);
-  else
-    num_collected_flows = 0;
-}
-
-/* ******************************************* */
-
-json_object *SyslogStats::getJSONObject() {
+json_object* SyslogStats::getJSONObject() {
   json_object *my_object;
 
   my_object = json_object_new_object();

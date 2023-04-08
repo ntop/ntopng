@@ -118,12 +118,9 @@ class LocalHost : public Host {
     stats->resetDomainNamesCardinality();
   }
 
-  virtual void deserialize(json_object *obj);
-  virtual void serialize(json_object *obj, DetailsLevel details_level) {
-    return Host::serialize(obj, details_level);
-  };
-  virtual char *getSerializationKey(char *buf, uint bufsize);
-  char *getRedisKey(char *buf, uint buf_len, bool skip_prefix = false);
+  virtual void serialize(json_object *obj, DetailsLevel details_level) { return Host::serialize(obj, details_level); };
+  virtual char* getSerializationKey(char *buf, uint bufsize);
+  char* getRedisKey(char *buf, uint buf_len, bool skip_prefix = false);
 
   virtual void lua(lua_State *vm, AddressTree *ptree, bool host_details,
                    bool verbose, bool returnHost, bool asListElement);

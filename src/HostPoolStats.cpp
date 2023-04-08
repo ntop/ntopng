@@ -21,16 +21,17 @@
 
 #include "ntop_includes.h"
 
-HostPoolStats::HostPoolStats(NetworkInterface *iface)
-    : GenericTrafficElement() {
-  ndpiStats = new (std::nothrow) nDPIStats();
-  totalStats = new (std::nothrow) nDPIStats();
-  mustReset = false;
+/* ***************************************** */
 
-  if (iface && iface->getTimeLastPktRcvd() > 0)
-    first_seen = last_seen = iface->getTimeLastPktRcvd();
-  else
-    first_seen = last_seen = time(NULL);
+HostPoolStats::HostPoolStats(NetworkInterface *iface) : GenericTrafficElement() {
+    ndpiStats = new (std::nothrow) nDPIStats();
+    totalStats = new (std::nothrow) nDPIStats();
+    mustReset = false;
+
+    if(iface && iface->getTimeLastPktRcvd() > 0)
+      first_seen = last_seen = iface->getTimeLastPktRcvd();
+    else
+      first_seen = last_seen = time(NULL);
 };
 
 /* ***************************************** */
@@ -74,7 +75,9 @@ void HostPoolStats::lua(lua_State *vm, NetworkInterface *iface) {
   }
 }
 
-json_object *HostPoolStats::getJSONObject(NetworkInterface *iface) {
+/* ***************************************** */
+
+json_object* HostPoolStats::getJSONObject(NetworkInterface *iface) {
   json_object *my_object;
 
   if ((my_object = json_object_new_object()) == NULL) return (NULL);
@@ -89,7 +92,9 @@ json_object *HostPoolStats::getJSONObject(NetworkInterface *iface) {
   return my_object;
 }
 
-char *HostPoolStats::serialize(NetworkInterface *iface) {
+/* ***************************************** */
+
+char* HostPoolStats::serialize(NetworkInterface *iface) {
   json_object *my_object = getJSONObject(iface);
 
   if (!my_object) return NULL;
@@ -100,15 +105,4 @@ char *HostPoolStats::serialize(NetworkInterface *iface) {
   json_object_put(my_object);
 
   return (rsp);
-}
-
-void HostPoolStats::deserialize(NetworkInterface *iface, json_object *o) {
-  json_object *obj;
-
-  if (json_object_object_get_ex(o, "sent", &obj)) sent.deserialize(obj);
-  if (json_object_object_get_ex(o, "rcvd", &obj)) rcvd.deserialize(obj);
-  if (ndpiStats && json_object_object_get_ex(o, "ndpi", &obj))
-    ndpiStats->deserialize(iface, obj);
-  if (totalStats && json_object_object_get_ex(o, "totals", &obj))
-    totalStats->deserialize(iface, obj);
 }

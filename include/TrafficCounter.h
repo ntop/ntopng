@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2016-23 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,29 +19,25 @@
  *
  */
 
-#ifndef _USER_ACTIVITY_STATS_H_
-#define _USER_ACTIVITY_STATS_H_
+#ifndef _TRAFFIC_COUNTER_H_
+#define _TRAFFIC_COUNTER_H_
 
 #include "ntop_includes.h"
 
-typedef struct {
-  u_int64_t up;
-  u_int64_t down;
-  u_int64_t background;
-} UserActivityCounter;
-
-class UserActivityStats {
+class TrafficCounter {
  private:
-  UserActivityCounter counters[UserActivitiesN];
+  u_int64_t sent, rcvd;
 
  public:
-  UserActivityStats();
+  TrafficCounter() { resetStats(); }
 
-  void reset();
-  void incBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes,
-                u_int64_t bgbytes);
-  const UserActivityCounter* getBytes(UserActivityID id);
-  json_object* getJSONObject();
+  inline void resetStats()    { sent = 0, rcvd = 0;  }
+  inline u_int64_t getTotal() { return(sent + rcvd); }
+  inline u_int64_t getSent()  { return(sent);        }
+  inline u_int64_t getRcvd()  { return(rcvd);        }
+  inline void incStats(u_int64_t sent_bytes, u_int64_t rcvd_bytes)  {
+    rcvd += rcvd_bytes, sent += sent_bytes;
+  }
 };
 
-#endif
+#endif /* _TRAFFIC_COUNTER_H_ */

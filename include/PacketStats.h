@@ -46,7 +46,6 @@ class PacketStats {
   void incFlagStats(u_int8_t flags, bool cumulative_flags);
   void incStats(u_int num_pkts, u_int pkt_len);
   char* serialize();
-  void deserialize(json_object* o);
   json_object* getJSONObject();
   void lua(lua_State* vm, const char* label);
 

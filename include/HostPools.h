@@ -56,8 +56,6 @@ class HostPools {
 
   void swap(VLANAddressTree *new_trees, HostPoolStats **new_stats);
 
-  void loadFromRedis();
-
   inline void incNumMembers(u_int16_t pool_id, int32_t *ctr) const {
     if (ctr && pool_id < max_num_pools) ctr[pool_id]++;
   };

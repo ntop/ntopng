@@ -136,19 +136,3 @@ void GenericTrafficElement::getJSONObject(json_object *my_object,
                            ndpiStats->getJSONObject(iface));
 }
 
-/* *************************************** */
-
-void GenericTrafficElement::deserialize(json_object *o,
-                                        NetworkInterface *iface) {
-  json_object *obj;
-
-  if (json_object_object_get_ex(o, "flows.dropped", &obj))
-    total_num_dropped_flows = json_object_get_int(obj);
-  if (json_object_object_get_ex(o, "sent", &obj)) sent.deserialize(obj);
-  if (json_object_object_get_ex(o, "rcvd", &obj)) rcvd.deserialize(obj);
-  if (json_object_object_get_ex(o, "ndpiStats", &obj)) {
-    if (ndpiStats) delete ndpiStats;
-    ndpiStats = new (std::nothrow) nDPIStats();
-    ndpiStats->deserialize(iface, obj);
-  }
-}

@@ -70,3 +70,11 @@ void ThroughputStats::updateStats(const struct timeval *tv, u_int64_t new_val) {
 }
 
 /* *************************************** */
+
+void ThroughputStats::set(ThroughputStats *v) {
+  last_val = v->last_val;
+  thpt = v->thpt, last_thpt = v->last_thpt;
+  thpt_trend = v->thpt_trend;
+  last_update_time.tv_sec = v->last_update_time.tv_sec;
+  last_update_time.tv_usec = v->last_update_time.tv_usec;
+}

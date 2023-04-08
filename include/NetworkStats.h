@@ -135,7 +135,6 @@ class NetworkStats : public InterfaceMemberAlertableEntity,
   bool match(const AddressTree *const tree) const;
   void lua(lua_State *vm, bool diff = false);
   bool serialize(json_object *my_object);
-  void deserialize(json_object *obj);
   void housekeepAlerts(ScriptPeriodicity p);
 
   virtual void updateStats(const struct timeval *tv);

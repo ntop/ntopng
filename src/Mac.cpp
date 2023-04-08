@@ -219,61 +219,9 @@ char *Mac::getSerializationKey(char *buf, uint bufsize) {
 
 /* *************************************** */
 
-void Mac::deserialize(json_object *o) {
-  json_object *obj;
-
-  if (json_object_object_get_ex(o, "seen.first", &obj))
-    first_seen = json_object_get_int64(obj);
-  if (json_object_object_get_ex(o, "seen.last", &obj))
-    last_seen = json_object_get_int64(obj);
-  if (json_object_object_get_ex(o, "last_stats_reset", &obj))
-    last_stats_reset = json_object_get_int64(obj);
-  if (json_object_object_get_ex(o, "devtype", &obj))
-    device_type = (DeviceType)json_object_get_int(obj);
-  if (json_object_object_get_ex(o, "model", &obj))
-    inlineSetModel((char *)json_object_get_string(obj));
-  if (json_object_object_get_ex(o, "ssid", &obj))
-    inlineSetSSID((char *)json_object_get_string(obj));
-  if (json_object_object_get_ex(o, "fingerprint", &obj))
-    inlineSetFingerprint((char *)json_object_get_string(obj));
-
-  stats->deserialize(o);
-
-  checkStatsReset();
-}
-
-/* *************************************** */
-
 bool Mac::statsResetRequested() {
   return (stats_reset_requested ||
           (last_stats_reset < ntop->getLastStatsReset()));
-}
-
-/* *************************************** */
-
-void Mac::serialize(json_object *my_object, DetailsLevel details_level) {
-  char buf[32];
-
-  json_object_object_add(
-      my_object, "mac",
-      json_object_new_string(Utils::formatMac(get_mac(), buf, sizeof(buf))));
-  json_object_object_add(my_object, "seen.first",
-                         json_object_new_int64(first_seen));
-  json_object_object_add(my_object, "seen.last",
-                         json_object_new_int64(last_seen));
-  json_object_object_add(my_object, "last_stats_reset",
-                         json_object_new_int64(last_stats_reset));
-  json_object_object_add(my_object, "devtype",
-                         json_object_new_int(device_type));
-  if (model)
-    json_object_object_add(my_object, "model", json_object_new_string(model));
-  if (ssid)
-    json_object_object_add(my_object, "ssid", json_object_new_string(ssid));
-  if (fingerprint)
-    json_object_object_add(my_object, "fingerprint",
-                           json_object_new_string(fingerprint));
-
-  if (!statsResetRequested()) stats->getJSONObject(my_object);
 }
 
 /* *************************************** */

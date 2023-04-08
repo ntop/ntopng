@@ -43,7 +43,6 @@ class SyslogStats {
                 u_int32_t num_alerts, u_int32_t num_host_correlations,
                 u_int32_t num_collected_flows);
   char* serialize();
-  void deserialize(json_object* o);
   json_object* getJSONObject();
   void lua(lua_State* vm);
   void sum(SyslogStats* s) const;

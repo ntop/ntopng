@@ -59,37 +59,7 @@ char *LocalTrafficStats::serialize() {
 
 /* ******************************************* */
 
-void LocalTrafficStats::deserialize(json_object *o) {
-  json_object *obj, *s;
-
-  if (!o) return;
-
-  if (json_object_object_get_ex(o, "bytes", &s)) {
-    if (json_object_object_get_ex(s, "local2local", &obj))
-      bytes.local2local = json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "local2remote", &obj))
-      bytes.local2remote = json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "remote2local", &obj))
-      bytes.remote2local = json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "remote2remote", &obj))
-      bytes.remote2remote = json_object_get_int64(obj);
-  }
-
-  if (json_object_object_get_ex(o, "packets", &s)) {
-    if (json_object_object_get_ex(s, "local2local", &obj))
-      packets.local2local = json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "local2remote", &obj))
-      packets.local2remote = json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "remote2local", &obj))
-      packets.remote2local = json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "remote2remote", &obj))
-      packets.remote2remote = json_object_get_int64(obj);
-  }
-}
-
-/* ******************************************* */
-
-json_object *LocalTrafficStats::getJSONObject() {
+json_object* LocalTrafficStats::getJSONObject() {
   json_object *my_object;
   json_object *my_stats;
 

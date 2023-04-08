@@ -173,46 +173,6 @@ char *LocalHost::getRedisKey(char *buf, uint buf_len, bool skip_prefix) {
 
 /* *************************************** */
 
-void LocalHost::deserialize(json_object *o) {
-  json_object *obj;
-
-  if ((!isBroadcastHost()) && stats) stats->deserialize(o);
-
-  if (!mac) {
-    u_int8_t mac_buf[6];
-    memset(mac_buf, 0, sizeof(mac_buf));
-
-    if (json_object_object_get_ex(o, "mac_address", &obj))
-      Utils::parseMac(mac_buf, json_object_get_string(obj));
-
-    // sticky hosts enabled, we must bring up the mac address
-    if ((mac = iface->getMac(mac_buf, true /* create if not exists */,
-                             true /* Inline call */)) != NULL)
-      mac->incUses();
-    else
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                   "Internal error: NULL mac. Are you running "
-                                   "out of memory or MAC hash is full?");
-  }
-
-  GenericHashEntry::deserialize(o);
-  if (json_object_object_get_ex(o, "last_stats_reset", &obj))
-    last_stats_reset = json_object_get_int64(obj);
-
-  if (json_object_object_get_ex(o, "os_id", &obj))
-    inlineSetOS((OSType)json_object_get_int(obj));
-
-    /* We commented the line below to avoid strings too long */
-#if 0
-  activityStats.reset();
-  if(json_object_object_get_ex(o, "activityStats", &obj)) activityStats.deserialize(obj);
-#endif
-
-  checkStatsReset();
-}
-
-/* *************************************** */
-
 void LocalHost::updateHostTrafficPolicy(char *key) {
 #ifdef HAVE_NEDGE
   char buf[64], *host;

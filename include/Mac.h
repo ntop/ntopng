@@ -169,9 +169,7 @@ class Mac : public GenericHashEntry {
     stats->incRcvdStats(t, num_pkts, num_bytes);
   }
 
-  void deserialize(json_object *obj);
-  void serialize(json_object *obj, DetailsLevel details_level);
-  char *getSerializationKey(char *buf, uint bufsize);
+  char* getSerializationKey(char *buf, uint bufsize);
 
   inline u_int64_t getNumSentArp() { return (stats->getNumSentArp()); }
   inline u_int64_t getNumRcvdArp() { return (stats->getNumRcvdArp()); }

@@ -116,7 +116,6 @@ class GenericTrafficElement {
   virtual void updateStats(const struct timeval *tv);
   void lua(lua_State *vm, bool host_details);
   void getJSONObject(json_object *my_object, NetworkInterface *iface);
-  void deserialize(json_object *obj, NetworkInterface *iface);
 
   inline nDPIStats *getnDPIStats() { return (ndpiStats); };
   inline DSCPStats *getDSCPStats() { return (dscpStats); };

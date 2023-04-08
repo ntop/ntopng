@@ -61,19 +61,9 @@ class OperatingSystem : public GenericHashEntry, public GenericTrafficElement {
     incRcvdStats(when, rcvd_packets, rcvd_bytes);
   }
 
-  void lua(lua_State *vm, DetailsLevel details_level, bool asListElement);
-
-  inline void deserialize(json_object *obj) {
-    GenericHashEntry::deserialize(obj);
-    GenericTrafficElement::deserialize(obj, iface);
-  }
-  inline void serialize(json_object *obj, DetailsLevel details_level) {
-    GenericHashEntry::getJSONObject(obj, details_level);
-    GenericTrafficElement::getJSONObject(obj, iface);
-  }
-  inline char *getSerializationKey(char *buf, uint bufsize) {
-    snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), os_type);
-    return (buf);
+  void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
+  inline char* getSerializationKey(char *buf, uint bufsize) {
+    snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), os_type); return(buf);
   }
 };
 

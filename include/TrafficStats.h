@@ -49,7 +49,6 @@ class TrafficStats {
     return (numBytes.getAnomalyIndex());
   };
   void printStats();
-
   char* serialize();
   void deserialize(json_object* o);
   json_object* getJSONObject();

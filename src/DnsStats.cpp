@@ -138,69 +138,6 @@ void DnsStats::luaAnomalies(lua_State *vm, time_t when) {
     rcvd_stats.num_replies_error.lua(vm, "dns.rcvd.num_replies_error");
 }
 
-/* *************************************** */
-
-char *DnsStats::serialize() {
-  json_object *my_object = getJSONObject();
-  char *rsp = strdup(json_object_to_json_string(my_object));
-
-  /* Free memory */
-  json_object_put(my_object);
-
-  return (rsp);
-}
-
-/* ******************************************* */
-
-void DnsStats::deserializeStats(json_object *o, struct dns_stats *stats) {
-  json_object *obj, *s;
-
-  if (json_object_object_get_ex(o, "num_queries", &obj))
-    stats->num_queries.setInitialValue(json_object_get_int64(obj));
-  if (json_object_object_get_ex(o, "num_replies_ok", &obj))
-    stats->num_replies_ok.setInitialValue(json_object_get_int64(obj));
-  if (json_object_object_get_ex(o, "num_replies_error", &obj))
-    stats->num_replies_error.setInitialValue(json_object_get_int64(obj));
-
-  memset(&stats->breakdown, 0, sizeof(stats->breakdown));
-  if (json_object_object_get_ex(o, "stats", &s)) {
-    if (json_object_object_get_ex(s, "num_a", &obj))
-      stats->breakdown.num_a = (u_int32_t)json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "num_ns", &obj))
-      stats->breakdown.num_ns = (u_int32_t)json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "num_cname", &obj))
-      stats->breakdown.num_cname = (u_int32_t)json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "num_soa", &obj))
-      stats->breakdown.num_soa = (u_int32_t)json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "num_ptr", &obj))
-      stats->breakdown.num_ptr = (u_int32_t)json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "num_mx", &obj))
-      stats->breakdown.num_mx = (u_int32_t)json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "num_txt", &obj))
-      stats->breakdown.num_txt = (u_int32_t)json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "num_aaaa", &obj))
-      stats->breakdown.num_aaaa = (u_int32_t)json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "num_any", &obj))
-      stats->breakdown.num_any = (u_int32_t)json_object_get_int64(obj);
-    if (json_object_object_get_ex(s, "num_other", &obj))
-      stats->breakdown.num_other = (u_int32_t)json_object_get_int64(obj);
-  }
-}
-
-/* ******************************************* */
-
-void DnsStats::deserialize(json_object *o) {
-  json_object *obj;
-
-  if (!o) return;
-
-  if (json_object_object_get_ex(o, "sent", &obj))
-    deserializeStats(obj, &sent_stats);
-
-  if (json_object_object_get_ex(o, "rcvd", &obj))
-    deserializeStats(obj, &rcvd_stats);
-}
-
 /* ******************************************* */
 
 json_object *DnsStats::getStatsJSONObject(struct dns_stats *stats) {

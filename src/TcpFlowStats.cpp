@@ -41,32 +41,7 @@ char *TcpFlowStats::serialize() {
 
 /* ******************************************* */
 
-void TcpFlowStats::deserialize(json_object *o) {
-  json_object *obj;
-
-  if (!o) return;
-
-  if (json_object_object_get_ex(o, "numSynFlows", &obj))
-    numSynFlows = json_object_get_int(obj);
-  else
-    numSynFlows = 0;
-  if (json_object_object_get_ex(o, "numEstablishedFlows", &obj))
-    numEstablishedFlows = json_object_get_int(obj);
-  else
-    numEstablishedFlows = 0;
-  if (json_object_object_get_ex(o, "numResetFlows", &obj))
-    numResetFlows = json_object_get_int(obj);
-  else
-    numResetFlows = 0;
-  if (json_object_object_get_ex(o, "numFinFlows", &obj))
-    numFinFlows = json_object_get_int(obj);
-  else
-    numFinFlows = 0;
-}
-
-/* ******************************************* */
-
-json_object *TcpFlowStats::getJSONObject() {
+json_object* TcpFlowStats::getJSONObject() {
   json_object *my_object;
 
   my_object = json_object_new_object();

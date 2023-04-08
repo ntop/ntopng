@@ -51,10 +51,9 @@ class HostPoolStats : public GenericTrafficElement {
   void updateSeen(time_t when);
   void updateName(const char *_pool_name);
 
-  void lua(lua_State *vm, NetworkInterface *iface);
-  char *serialize(NetworkInterface *iface);
-  void deserialize(NetworkInterface *iface, json_object *o);
-  json_object *getJSONObject(NetworkInterface *iface);
+  void lua(lua_State* vm, NetworkInterface *iface);
+  char* serialize(NetworkInterface *iface);
+  json_object* getJSONObject(NetworkInterface *iface);
 
   inline void incStats(time_t when, u_int16_t ndpi_proto,
                        u_int64_t sent_packets, u_int64_t sent_bytes,
