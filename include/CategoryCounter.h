@@ -27,19 +27,24 @@
 class CategoryCounter {
  private:
   TrafficCounter bytes;
-  u_int32_t duration /* sec */, last_epoch_update; /* useful to avoid multiple updates */
+  u_int32_t duration /* sec */,
+      last_epoch_update; /* useful to avoid multiple updates */
 
  public:
   CategoryCounter();
   CategoryCounter(const CategoryCounter &c);
 
   void incStats(u_int32_t when, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
-  inline void sum(CategoryCounter c) { bytes = c.bytes, duration += c.duration; };
+  inline void sum(CategoryCounter c) {
+    bytes = c.bytes, duration += c.duration;
+  };
 
-  void lua(NetworkInterface *iface, lua_State* vm, u_int16_t category_id, bool tsLua);
-  void addProtoJson(json_object *my_object, NetworkInterface *iface, ndpi_protocol_category_t category_id);
-  inline u_int64_t getTotalBytes() { return(bytes.getTotal()); }
-  inline u_int32_t getDuration()   { return(duration); }
+  void lua(NetworkInterface *iface, lua_State *vm, u_int16_t category_id,
+           bool tsLua);
+  void addProtoJson(json_object *my_object, NetworkInterface *iface,
+                    ndpi_protocol_category_t category_id);
+  inline u_int64_t getTotalBytes() { return (bytes.getTotal()); }
+  inline u_int32_t getDuration() { return (duration); }
   void resetStats();
 };
 

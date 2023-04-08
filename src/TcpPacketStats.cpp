@@ -41,7 +41,7 @@ char *TcpPacketStats::serialize() {
 
 /* ******************************************* */
 
-json_object* TcpPacketStats::getJSONObject() {
+json_object *TcpPacketStats::getJSONObject() {
   json_object *my_object;
 
   my_object = json_object_new_object();

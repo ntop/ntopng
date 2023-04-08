@@ -110,7 +110,7 @@ char *PacketStats::serialize() {
 
 /* ******************************************* */
 
-json_object* PacketStats::getJSONObject() {
+json_object *PacketStats::getJSONObject() {
   json_object *my_object;
 
   my_object = json_object_new_object();

@@ -135,4 +135,3 @@ void GenericTrafficElement::getJSONObject(json_object *my_object,
     json_object_object_add(my_object, "ndpiStats",
                            ndpiStats->getJSONObject(iface));
 }
-

@@ -275,8 +275,9 @@ void LocalHostStats::luaPeers(lua_State *vm) {
 
 /* *************************************** */
 
-void LocalHostStats::lua_get_timeseries(lua_State* vm) {
-  luaStats(vm, host->getInterface(), true /* host details */, true /* verbose */, true /* tsLua */);
+void LocalHostStats::lua_get_timeseries(lua_State *vm) {
+  luaStats(vm, host->getInterface(), true /* host details */,
+           true /* verbose */, true /* tsLua */);
 
   tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
   tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");

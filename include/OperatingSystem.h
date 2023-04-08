@@ -40,7 +40,7 @@ class OperatingSystem : public GenericHashEntry, public GenericTrafficElement {
   }
 
  public:
-  OperatingSystem(NetworkInterface *_iface, OSType os);
+  OperatingSystem(NetworkInterface* _iface, OSType os);
   ~OperatingSystem();
 
   void set_hash_entry_state_idle();
@@ -62,8 +62,9 @@ class OperatingSystem : public GenericHashEntry, public GenericTrafficElement {
   }
 
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
-  inline char* getSerializationKey(char *buf, uint bufsize) {
-    snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), os_type); return(buf);
+  inline char* getSerializationKey(char* buf, uint bufsize) {
+    snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), os_type);
+    return (buf);
   }
 };
 

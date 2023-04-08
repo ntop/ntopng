@@ -41,7 +41,7 @@ char *TcpFlowStats::serialize() {
 
 /* ******************************************* */
 
-json_object* TcpFlowStats::getJSONObject() {
+json_object *TcpFlowStats::getJSONObject() {
   json_object *my_object;
 
   my_object = json_object_new_object();

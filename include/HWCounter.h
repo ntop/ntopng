@@ -30,26 +30,31 @@ class HWCounter : public BehaviouralCounter {
   struct ndpi_hw_struct hw;
 
  public:
-  HWCounter(u_int16_t num_learning_observations = 1 /* Basically smoothing without seasonality */,
-	    double alpha = 0.7, double beta = 0.7, double gamma = 0.9)
-    : BehaviouralCounter() {
-    if(ndpi_hw_init(&hw, num_learning_observations, 1 /* additive */, alpha, beta, gamma, 0.05 /* 95% */) != 0)
+  HWCounter(u_int16_t num_learning_observations =
+                1 /* Basically smoothing without seasonality */,
+            double alpha = 0.7, double beta = 0.7, double gamma = 0.9)
+      : BehaviouralCounter() {
+    if (ndpi_hw_init(&hw, num_learning_observations, 1 /* additive */, alpha,
+                     beta, gamma, 0.05 /* 95% */) != 0)
       throw "Error while creating HW";
   }
   ~HWCounter() { ndpi_hw_free(&hw); }
 
   bool addObservation(u_int64_t value) {
     double forecast, confidence_band;
-    bool rc = ndpi_hw_add_value(&hw, last_value = value, &forecast, &confidence_band) == 1 ? true : false;
-    double l_forecast = forecast-confidence_band;
-    double h_forecast = forecast+confidence_band;
+    bool rc = ndpi_hw_add_value(&hw, last_value = value, &forecast,
+                                &confidence_band) == 1
+                  ? true
+                  : false;
+    double l_forecast = forecast - confidence_band;
+    double h_forecast = forecast + confidence_band;
 
     last_lower = (u_int64_t)floor(((l_forecast < 0) ? 0 : l_forecast)),
-      last_upper = (u_int64_t)round(h_forecast+0.5), is_anomaly = rc;
-    
-    if(is_anomaly) tot_num_anomalies++;
+    last_upper = (u_int64_t)round(h_forecast + 0.5), is_anomaly = rc;
 
-    return(is_anomaly);
+    if (is_anomaly) tot_num_anomalies++;
+
+    return (is_anomaly);
   }
 
   inline void resetStats() { ndpi_hw_reset(&hw); }

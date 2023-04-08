@@ -23,22 +23,23 @@
 
 /* *********************************************** */
 
-CategoryCounter::CategoryCounter() {
-  duration = 0, last_epoch_update = 0;
-}
+CategoryCounter::CategoryCounter() { duration = 0, last_epoch_update = 0; }
 
 /* *********************************************** */
 
 CategoryCounter::CategoryCounter(const CategoryCounter &c) {
-  bytes = c.bytes, duration = c.duration, last_epoch_update = c.last_epoch_update;
+  bytes = c.bytes, duration = c.duration,
+  last_epoch_update = c.last_epoch_update;
 };
 
 /* *********************************************** */
 
-void CategoryCounter::lua(NetworkInterface *iface, lua_State* vm, u_int16_t category_id, bool tsLua) {
-  const char *name = iface->get_ndpi_category_name((ndpi_protocol_category_t)category_id);
+void CategoryCounter::lua(NetworkInterface *iface, lua_State *vm,
+                          u_int16_t category_id, bool tsLua) {
+  const char *name =
+      iface->get_ndpi_category_name((ndpi_protocol_category_t)category_id);
 
-  if(!tsLua) {
+  if (!tsLua) {
     lua_newtable(vm);
 
     lua_push_uint64_table_entry(vm, "category", category_id);
@@ -53,9 +54,8 @@ void CategoryCounter::lua(NetworkInterface *iface, lua_State* vm, u_int16_t cate
   } else {
     char buf[64];
 
-    snprintf(buf, sizeof(buf), "%llu|%llu",
-	     (unsigned long long)bytes.getSent(),
-	     (unsigned long long)bytes.getRcvd());
+    snprintf(buf, sizeof(buf), "%llu|%llu", (unsigned long long)bytes.getSent(),
+             (unsigned long long)bytes.getRcvd());
 
     lua_push_str_table_entry(vm, name, buf);
   }
@@ -63,29 +63,34 @@ void CategoryCounter::lua(NetworkInterface *iface, lua_State* vm, u_int16_t cate
 
 /* *********************************************** */
 
-void CategoryCounter::incStats(u_int32_t when, u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
+void CategoryCounter::incStats(u_int32_t when, u_int64_t sent_bytes,
+                               u_int64_t rcvd_bytes) {
   bytes.incStats(sent_bytes, rcvd_bytes);
 
-  if((when != 0)
-     && (when - last_epoch_update >= ntop->getPrefs()->get_housekeeping_frequency())) {
+  if ((when != 0) && (when - last_epoch_update >=
+                      ntop->getPrefs()->get_housekeeping_frequency())) {
     duration += ntop->getPrefs()->get_housekeeping_frequency(),
-      last_epoch_update = when;
-  }  
+        last_epoch_update = when;
+  }
 }
 
 /* *********************************************** */
 
-void CategoryCounter::addProtoJson(json_object *my_object, NetworkInterface *iface, ndpi_protocol_category_t category_id) {
+void CategoryCounter::addProtoJson(json_object *my_object,
+                                   NetworkInterface *iface,
+                                   ndpi_protocol_category_t category_id) {
   json_object *inner;
   const char *name = iface->get_ndpi_category_name(category_id);
 
   inner = json_object_new_object();
-  
-  json_object_object_add(inner, "id",         json_object_new_int64(category_id));
-  json_object_object_add(inner, "bytes_sent", json_object_new_int64(bytes.getSent()));
-  json_object_object_add(inner, "bytes_rcvd", json_object_new_int64(bytes.getRcvd()));
-  json_object_object_add(inner, "duration",   json_object_new_int64(duration));
-  
+
+  json_object_object_add(inner, "id", json_object_new_int64(category_id));
+  json_object_object_add(inner, "bytes_sent",
+                         json_object_new_int64(bytes.getSent()));
+  json_object_object_add(inner, "bytes_rcvd",
+                         json_object_new_int64(bytes.getRcvd()));
+  json_object_object_add(inner, "duration", json_object_new_int64(duration));
+
   json_object_object_add(my_object, name, inner);
 }
 

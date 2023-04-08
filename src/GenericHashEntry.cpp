@@ -97,7 +97,10 @@ bool GenericHashEntry::is_active_entry_now_idle(u_int max_idleness) const {
 
 /* ***************************************** */
 
-void GenericHashEntry::getJSONObject(json_object *my_object, DetailsLevel details_level) {
-  json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
-  json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
+void GenericHashEntry::getJSONObject(json_object *my_object,
+                                     DetailsLevel details_level) {
+  json_object_object_add(my_object, "seen.first",
+                         json_object_new_int64(first_seen));
+  json_object_object_add(my_object, "seen.last",
+                         json_object_new_int64(last_seen));
 }

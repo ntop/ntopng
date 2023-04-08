@@ -140,7 +140,7 @@ class IpAddress {
   bool isLocalHost() const;
   bool isLocalHost(int16_t* network_id) const;
   bool isLocalInterfaceAddress();
-  bool get_sockaddr(struct sockaddr ** const sa, ssize_t * const sa_len) const;
+  bool get_sockaddr(struct sockaddr** const sa, ssize_t* const sa_len) const;
 
   json_object* getJSONObject();
   bool match(const AddressTree* const tree) const;

@@ -42,7 +42,7 @@ class VLAN : public GenericHashEntry,
   }
 
  public:
-  VLAN(NetworkInterface *_iface, u_int16_t _vlan_id);
+  VLAN(NetworkInterface* _iface, u_int16_t _vlan_id);
   ~VLAN();
 
   void set_hash_entry_state_idle();
@@ -64,9 +64,14 @@ class VLAN : public GenericHashEntry,
   }
 
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
-  inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, VLAN_SERIALIZED_KEY, iface->get_id(), vlan_id); return(buf); }
-  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
-  void luaUsedPorts(lua_State* vm)                                       { usedPorts.lua(vm, iface);                       };
+  inline char* getSerializationKey(char* buf, uint bufsize) {
+    snprintf(buf, bufsize, VLAN_SERIALIZED_KEY, iface->get_id(), vlan_id);
+    return (buf);
+  }
+  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol* proto) {
+    usedPorts.setServerPort(isTCP, port, proto);
+  };
+  void luaUsedPorts(lua_State* vm) { usedPorts.lua(vm, iface); };
 };
 
 #endif /* _VLAN_H_ */

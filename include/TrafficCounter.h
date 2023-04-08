@@ -31,11 +31,11 @@ class TrafficCounter {
  public:
   TrafficCounter() { resetStats(); }
 
-  inline void resetStats()    { sent = 0, rcvd = 0;  }
-  inline u_int64_t getTotal() { return(sent + rcvd); }
-  inline u_int64_t getSent()  { return(sent);        }
-  inline u_int64_t getRcvd()  { return(rcvd);        }
-  inline void incStats(u_int64_t sent_bytes, u_int64_t rcvd_bytes)  {
+  inline void resetStats() { sent = 0, rcvd = 0; }
+  inline u_int64_t getTotal() { return (sent + rcvd); }
+  inline u_int64_t getSent() { return (sent); }
+  inline u_int64_t getRcvd() { return (rcvd); }
+  inline void incStats(u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
     rcvd += rcvd_bytes, sent += sent_bytes;
   }
 };

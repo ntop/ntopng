@@ -32,8 +32,9 @@ class DESCounter : public BehaviouralCounter {
   struct ndpi_des_struct des;
 
  public:
- DESCounter(double alpha = 0.9, double beta = 0.035, float significance = 0.05) : BehaviouralCounter() {
-    if(ndpi_des_init(&des, alpha, beta, significance) != 0)
+  DESCounter(double alpha = 0.9, double beta = 0.035, float significance = 0.05)
+      : BehaviouralCounter() {
+    if (ndpi_des_init(&des, alpha, beta, significance) != 0)
       throw "Error while creating DES";
   }
 
@@ -43,29 +44,34 @@ class DESCounter : public BehaviouralCounter {
 
   bool addObservation(u_int64_t value) {
     double forecast, confidence_band;
-    bool rc = (ndpi_des_add_value(&des, value, &forecast, &confidence_band) == 1) ? true : false;
-    double l_forecast = forecast-confidence_band;
-    double h_forecast = forecast+confidence_band;
+    bool rc =
+        (ndpi_des_add_value(&des, value, &forecast, &confidence_band) == 1)
+            ? true
+            : false;
+    double l_forecast = forecast - confidence_band;
+    double h_forecast = forecast + confidence_band;
 
     last_value = value;
     last_lower = (u_int64_t)floor(((l_forecast < 0) ? 0 : l_forecast));
-    last_upper = (u_int64_t)round(h_forecast+0.5);
+    last_upper = (u_int64_t)round(h_forecast + 0.5);
 
-    if(rc) {
-      is_anomaly = ((value < last_lower) || (value > last_upper)) ? true : false;
+    if (rc) {
+      is_anomaly =
+          ((value < last_lower) || (value > last_upper)) ? true : false;
 
-      if(is_anomaly)
-        tot_num_anomalies++;
+      if (is_anomaly) tot_num_anomalies++;
 
-      return(is_anomaly);
+      return (is_anomaly);
     }
 
-    return(rc);
+    return (rc);
   }
 
-  inline void resetStats()       { ndpi_des_reset(&des); }
-  inline DESCounter* clone()     { return(new (std::nothrow)DESCounter(&des));             }
-  inline void set(DESCounter *c) {  memcpy(&des, &c->des, sizeof(struct ndpi_des_struct)); }
+  inline void resetStats() { ndpi_des_reset(&des); }
+  inline DESCounter *clone() { return (new (std::nothrow) DESCounter(&des)); }
+  inline void set(DESCounter *c) {
+    memcpy(&des, &c->des, sizeof(struct ndpi_des_struct));
+  }
 };
 
 #endif /* _DES_COUNTER_H_ */

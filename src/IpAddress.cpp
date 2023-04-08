@@ -356,7 +356,7 @@ bool IpAddress::get_sockaddr(struct sockaddr **const sa,
 
 /* ******************************************* */
 
-json_object* IpAddress::getJSONObject() {
+json_object *IpAddress::getJSONObject() {
   json_object *my_object;
   char buf[64];
 

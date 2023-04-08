@@ -107,7 +107,7 @@ class HTTPstats {
   }
 
   void incStats(bool as_client, const FlowHTTPStats *fts);
-  json_object* getJSONObject();
+  json_object *getJSONObject();
 
   u_int32_t getSentNumQueries();
   u_int32_t getSentNumResponses();

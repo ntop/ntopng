@@ -33,11 +33,13 @@ class RSICounter : public BehaviouralCounter {
   u_int8_t lower_pctg, upper_pctg;
 
  public:
-  RSICounter(u_int16_t num_learning_observations = 10, u_int8_t lower_percentage = 25, u_int8_t upper_percentage = 75) : BehaviouralCounter() {
-    if(ndpi_alloc_rsi(&rsi, num_learning_observations) != 0)
+  RSICounter(u_int16_t num_learning_observations = 10,
+             u_int8_t lower_percentage = 25, u_int8_t upper_percentage = 75)
+      : BehaviouralCounter() {
+    if (ndpi_alloc_rsi(&rsi, num_learning_observations) != 0)
       throw "Error while creating RSI";
 
-    if((lower_percentage > upper_percentage) || (upper_percentage > 100))
+    if ((lower_percentage > upper_percentage) || (upper_percentage > 100))
       lower_percentage = 25, upper_percentage = 75; /* Using defaults */
     lower_pctg = lower_percentage, upper_pctg = upper_percentage;
   }
@@ -46,15 +48,15 @@ class RSICounter : public BehaviouralCounter {
   bool addObservation(u_int64_t value) {
     float res = ndpi_rsi_add_value(&rsi, last_value = value);
 
-    if(res == -1)
+    if (res == -1)
       last_lower = last_upper = 0, is_anomaly = false; /* Too early */
     else {
       is_anomaly = ((res < lower_pctg) || (res > upper_pctg)) ? true : false;
       last_lower = (u_int64_t)lower_pctg, last_upper = (u_int64_t)upper_pctg;
-      if(is_anomaly) tot_num_anomalies++;
+      if (is_anomaly) tot_num_anomalies++;
     }
 
-    return(is_anomaly);
+    return (is_anomaly);
   }
 };
 

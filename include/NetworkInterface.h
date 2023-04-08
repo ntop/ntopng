@@ -591,11 +591,15 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #ifdef NTOPNG_PRO
   void flushFlowDump();
 #endif
-  void checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id);
-  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num);      };
-  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);       };
-  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num);      };
-  inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.incKeepAlive(num); };
+  void checkPointHostTalker(lua_State *vm, char *host_ip, u_int16_t vlan_id);
+  inline void incRetransmittedPkts(u_int32_t num) {
+    tcpPacketStats.incRetr(num);
+  };
+  inline void incOOOPkts(u_int32_t num) { tcpPacketStats.incOOO(num); };
+  inline void incLostPkts(u_int32_t num) { tcpPacketStats.incLost(num); };
+  inline void incKeepAlivePkts(u_int32_t num) {
+    tcpPacketStats.incKeepAlive(num);
+  };
 
   virtual void checkPointCounters(bool drops_only);
   bool registerSubInterface(NetworkInterface *sub_iface, u_int64_t criteria);

@@ -5862,13 +5862,10 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data,
 
 /* **************************************************** */
 
-void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *stats,
-					   AddressTree *allowed_hosts,
-					   Host *h, Host *talking_with_host, Host* client, Host* server,
-					   char* flow_info,
-					   Paginator *p,
-					   lua_State *vm,
-					   bool only_traffic_stats) {
+void NetworkInterface::getActiveFlowsStats(
+    nDPIStats *ndpi_stats, FlowStats *stats, AddressTree *allowed_hosts,
+    Host *h, Host *talking_with_host, Host *client, Host *server,
+    char *flow_info, Paginator *p, lua_State *vm, bool only_traffic_stats) {
   flowHostRetriever retriever;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -7226,9 +7223,9 @@ void NetworkInterface::lua(lua_State *vm) {
   luaAnomalies(vm);
   luaScore(vm);
 
-  sumStats(&_tcpFlowStats, &_ethStats, &_localStats,
-	   NULL, &_pktStats, &_tcpPacketStats, &_discardedProbingStats,
-           &_dscpStats, &_syslogStats, &_downloadStats, &_uploadStats);
+  sumStats(&_tcpFlowStats, &_ethStats, &_localStats, NULL, &_pktStats,
+           &_tcpPacketStats, &_discardedProbingStats, &_dscpStats,
+           &_syslogStats, &_downloadStats, &_uploadStats);
 
   _downloadStats.luaRTStats(vm, "download_stats");
   _uploadStats.luaRTStats(vm, "upload_stats");

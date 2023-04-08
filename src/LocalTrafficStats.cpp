@@ -59,7 +59,7 @@ char *LocalTrafficStats::serialize() {
 
 /* ******************************************* */
 
-json_object* LocalTrafficStats::getJSONObject() {
+json_object *LocalTrafficStats::getJSONObject() {
   json_object *my_object;
   json_object *my_stats;
 

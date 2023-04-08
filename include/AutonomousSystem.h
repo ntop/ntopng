@@ -90,9 +90,16 @@ class AutonomousSystem : public GenericHashEntry,
 
   virtual void updateStats(const struct timeval *tv);
 
-  inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), asn); return(buf); }
-  inline u_int32_t getTotalAlertedNumFlowsAsClient() const { return(alerted_flows_as_client);  };
-  inline u_int32_t getTotalAlertedNumFlowsAsServer() const { return(alerted_flows_as_server);  };
+  inline char *getSerializationKey(char *buf, uint bufsize) {
+    snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), asn);
+    return (buf);
+  }
+  inline u_int32_t getTotalAlertedNumFlowsAsClient() const {
+    return (alerted_flows_as_client);
+  };
+  inline u_int32_t getTotalAlertedNumFlowsAsServer() const {
+    return (alerted_flows_as_server);
+  };
 };
 
 #endif /* _AUTONOMOUS_SYSTEM_H_ */

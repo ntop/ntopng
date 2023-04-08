@@ -72,28 +72,28 @@ void L4Stats::luaAnomalies(lua_State *vm) {
 
 /* **************************************************** */
 
-void L4Stats::incStats(time_t when, u_int8_t l4_proto,
-		       u_int64_t rcvd_packets, u_int64_t rcvd_bytes,
-		       u_int64_t sent_packets, u_int64_t sent_bytes) {
-  switch(l4_proto) {
-  case 0:
-    /* Unknown protocol */
-    break;
-  case IPPROTO_UDP:
-    udp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
-      udp_sent.incStats(when, sent_packets, sent_bytes);
-    break;
-  case IPPROTO_TCP:
-    tcp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
-      tcp_sent.incStats(when, sent_packets, sent_bytes);
-    break;
-  case IPPROTO_ICMP:
-    icmp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
-      icmp_sent.incStats(when, sent_packets, sent_bytes);
-    break;
-  default:
-    other_ip_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
-      other_ip_sent.incStats(when, sent_packets, sent_bytes);
-    break;
+void L4Stats::incStats(time_t when, u_int8_t l4_proto, u_int64_t rcvd_packets,
+                       u_int64_t rcvd_bytes, u_int64_t sent_packets,
+                       u_int64_t sent_bytes) {
+  switch (l4_proto) {
+    case 0:
+      /* Unknown protocol */
+      break;
+    case IPPROTO_UDP:
+      udp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
+          udp_sent.incStats(when, sent_packets, sent_bytes);
+      break;
+    case IPPROTO_TCP:
+      tcp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
+          tcp_sent.incStats(when, sent_packets, sent_bytes);
+      break;
+    case IPPROTO_ICMP:
+      icmp_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
+          icmp_sent.incStats(when, sent_packets, sent_bytes);
+      break;
+    default:
+      other_ip_rcvd.incStats(when, rcvd_packets, rcvd_bytes),
+          other_ip_sent.incStats(when, sent_packets, sent_bytes);
+      break;
   }
 }

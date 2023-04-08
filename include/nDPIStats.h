@@ -33,11 +33,12 @@ class nDPIStats {
  private:
   bool enable_throughput_stats, enable_behavior_stats;
   time_t nextMinPeriodicUpdate;
-  std::unordered_map<u_int16_t, ProtoCounter*> counters;
+  std::unordered_map<u_int16_t, ProtoCounter *> counters;
   std::unordered_map<u_int16_t, CategoryCounter> cat_counters;
-  
+
  public:
-  nDPIStats(bool enable_throughput_stats = false, bool enable_behavior_stats = false);
+  nDPIStats(bool enable_throughput_stats = false,
+            bool enable_behavior_stats = false);
   nDPIStats(nDPIStats &stats);
   ~nDPIStats();
 
@@ -51,52 +52,56 @@ class nDPIStats {
                         u_int64_t sent_bytes, u_int64_t rcvd_bytes);
 
   void incFlowsStats(u_int16_t proto_id);
-  void lua(NetworkInterface *iface, lua_State* vm,
-	   bool with_categories = false, bool tsLua = false, bool diff = false);
-  json_object* getJSONObject(NetworkInterface *iface);
+  void lua(NetworkInterface *iface, lua_State *vm, bool with_categories = false,
+           bool tsLua = false, bool diff = false);
+  json_object *getJSONObject(NetworkInterface *iface);
   void sum(nDPIStats *s);
 
   inline u_int64_t getProtoBytes(u_int16_t proto_id) {
-    std::unordered_map<u_int16_t, ProtoCounter *>::iterator pi = counters.find(proto_id);
+    std::unordered_map<u_int16_t, ProtoCounter *>::iterator pi =
+        counters.find(proto_id);
 
-    if(pi != counters.end()) {
+    if (pi != counters.end()) {
       TrafficCounter tc = pi->second->get_bytes();
 
-      return(tc.getTotal());
-    } else 
-      return(0); 
+      return (tc.getTotal());
+    } else
+      return (0);
   }
 
   inline u_int32_t getProtoDuration(u_int16_t proto_id) {
-    std::unordered_map<u_int16_t, ProtoCounter *>::iterator pi = counters.find(proto_id);
+    std::unordered_map<u_int16_t, ProtoCounter *>::iterator pi =
+        counters.find(proto_id);
 
-    if(pi != counters.end())
-      return(pi->second->get_duration());
+    if (pi != counters.end())
+      return (pi->second->get_duration());
     else
       return (0);
   }
 
   inline u_int64_t getCategoryBytes(ndpi_protocol_category_t category_id) {
-    std::unordered_map<u_int16_t, CategoryCounter>::iterator cc = cat_counters.find(category_id);
+    std::unordered_map<u_int16_t, CategoryCounter>::iterator cc =
+        cat_counters.find(category_id);
 
-    if(cc != cat_counters.end())
-      return(cc->second.getTotalBytes());
+    if (cc != cat_counters.end())
+      return (cc->second.getTotalBytes());
     else
       return (0);
   }
 
   inline u_int32_t getCategoryDuration(ndpi_protocol_category_t category_id) {
-    std::unordered_map<u_int16_t, CategoryCounter>::iterator cc = cat_counters.find(category_id);
+    std::unordered_map<u_int16_t, CategoryCounter>::iterator cc =
+        cat_counters.find(category_id);
 
-    if(cc != cat_counters.end())
-      return(cc->second.getDuration());
+    if (cc != cat_counters.end())
+      return (cc->second.getDuration());
     else
       return (0);
   }
 
   void resetStats();
-  char* serialize(NetworkInterface *iface);
-  void  deserialize(NetworkInterface *iface, json_object *o);
+  char *serialize(NetworkInterface *iface);
+  void deserialize(NetworkInterface *iface, json_object *o);
 };
 
 #endif /* _NDPI_STATS_H_ */

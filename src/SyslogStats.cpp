@@ -67,7 +67,7 @@ char *SyslogStats::serialize() {
 
 /* ******************************************* */
 
-json_object* SyslogStats::getJSONObject() {
+json_object *SyslogStats::getJSONObject() {
   json_object *my_object;
 
   my_object = json_object_new_object();

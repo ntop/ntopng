@@ -103,8 +103,8 @@ HostPools::~HostPools() {
   if (tree_shadow) delete tree_shadow;
   if (tree) delete tree;
 
-  if(stats)        deleteStats(&stats);
-  if(stats_shadow) deleteStats(&stats_shadow);
+  if (stats) deleteStats(&stats);
+  if (stats_shadow) deleteStats(&stats_shadow);
 
 #ifdef NTOPNG_PRO
   if (children_safe) free(children_safe);

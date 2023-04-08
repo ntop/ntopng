@@ -23,15 +23,16 @@
 
 /* ***************************************** */
 
-HostPoolStats::HostPoolStats(NetworkInterface *iface) : GenericTrafficElement() {
-    ndpiStats = new (std::nothrow) nDPIStats();
-    totalStats = new (std::nothrow) nDPIStats();
-    mustReset = false;
+HostPoolStats::HostPoolStats(NetworkInterface *iface)
+    : GenericTrafficElement() {
+  ndpiStats = new (std::nothrow) nDPIStats();
+  totalStats = new (std::nothrow) nDPIStats();
+  mustReset = false;
 
-    if(iface && iface->getTimeLastPktRcvd() > 0)
-      first_seen = last_seen = iface->getTimeLastPktRcvd();
-    else
-      first_seen = last_seen = time(NULL);
+  if (iface && iface->getTimeLastPktRcvd() > 0)
+    first_seen = last_seen = iface->getTimeLastPktRcvd();
+  else
+    first_seen = last_seen = time(NULL);
 };
 
 /* ***************************************** */
@@ -77,7 +78,7 @@ void HostPoolStats::lua(lua_State *vm, NetworkInterface *iface) {
 
 /* ***************************************** */
 
-json_object* HostPoolStats::getJSONObject(NetworkInterface *iface) {
+json_object *HostPoolStats::getJSONObject(NetworkInterface *iface) {
   json_object *my_object;
 
   if ((my_object = json_object_new_object()) == NULL) return (NULL);
@@ -94,7 +95,7 @@ json_object* HostPoolStats::getJSONObject(NetworkInterface *iface) {
 
 /* ***************************************** */
 
-char* HostPoolStats::serialize(NetworkInterface *iface) {
+char *HostPoolStats::serialize(NetworkInterface *iface) {
   json_object *my_object = getJSONObject(iface);
 
   if (!my_object) return NULL;

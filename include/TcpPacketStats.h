@@ -50,9 +50,9 @@ class TcpPacketStats {
   void lua(lua_State* vm, const char* label);
 
   char* serialize();
-  inline void sum(TcpPacketStats *s) const {
-    s->pktRetr += pktRetr, s->pktOOO += pktOOO,
-      s->pktLost += pktLost, s->pktKeepAlive += pktKeepAlive;
+  inline void sum(TcpPacketStats* s) const {
+    s->pktRetr += pktRetr, s->pktOOO += pktOOO, s->pktLost += pktLost,
+        s->pktKeepAlive += pktKeepAlive;
   }
 
   inline u_int64_t get_retr() const { return pktRetr; };

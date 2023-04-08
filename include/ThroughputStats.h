@@ -35,7 +35,7 @@ class ThroughputStats {
   ThroughputStats();
   ThroughputStats(const ThroughputStats &thpts);
   void set(ThroughputStats *t);
-  inline float getThpt()       const { return thpt;       };
+  inline float getThpt() const { return thpt; };
 
   inline ValueTrend getTrend() const { return thpt_trend; };
   inline void sum(ThroughputStats *thpts) const {

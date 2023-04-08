@@ -38,8 +38,9 @@ class DnsStats {
  private:
   struct dns_stats sent_stats, rcvd_stats;
 
-  json_object* getStatsJSONObject(struct dns_stats *stats);
-  void luaStats(lua_State *vm, struct dns_stats *stats, const char *label, bool verbose);
+  json_object *getStatsJSONObject(struct dns_stats *stats);
+  void luaStats(lua_State *vm, struct dns_stats *stats, const char *label,
+                bool verbose);
 
  public:
   DnsStats();
@@ -59,7 +60,7 @@ class DnsStats {
     return rcvd_stats.num_replies_error.get();
   }
 
-  json_object* getJSONObject();
+  json_object *getJSONObject();
   void lua(lua_State *vm, bool verbose);
   bool hasAnomalies(time_t when);
   void luaAnomalies(lua_State *vm, time_t when);
