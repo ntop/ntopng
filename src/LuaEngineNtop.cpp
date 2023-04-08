@@ -6241,11 +6241,17 @@ static int ntop_set_offline(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_update_radius_login_info(lua_State *vm) {
+#ifdef HAVE_RADIUS
   ntop->updateRadiusLoginInfo();
+
   lua_pushnil(vm);
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                "Radius: updated radius login informations");
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+#else
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+#endif
 }
 
 /* ****************************************** */
