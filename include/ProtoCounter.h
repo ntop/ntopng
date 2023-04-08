@@ -56,7 +56,11 @@ class ProtoCounter {
     );
   }
   inline bool has_behavior_stats() {
+#ifdef NTOPNG_PRO
     return (behavior_bytes_traffic ? true : false);
+#else
+    return (false);
+#endif
   }
 
   void updateStats(const struct timeval *tv, time_t nextMinPeriodicUpdate);

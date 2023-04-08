@@ -348,7 +348,7 @@ Ntop::~Ntop() {
   if (alert_exclusions_shadow) delete alert_exclusions_shadow;
 #endif
 
-#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+#if defined(NTOPNG_PROT) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   if (clickhouseImport) delete clickhouseImport;
 #endif
 
@@ -464,7 +464,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   /* Now we can enable the periodic activities */
   pa = new (std::nothrow) PeriodicActivities();
 
-#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   if (prefs->do_dump_flows_on_clickhouse())
     clickhouseImport = new (std::nothrow) ClickHouseImport();
   else
@@ -2967,7 +2967,7 @@ void Ntop::checkShutdownWhenDone() {
 
     /* Make sure all flushed flows are also dumped to the database for post
      * analysis (e.g. historical data) */
-#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
     if (clickhouseImport) importClickHouseDumps(true);
 #endif
 
@@ -3058,7 +3058,7 @@ void Ntop::shutdownAll() {
     delete shutdown_activity;
   }
 
-#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   /* Dump flows flushed during shutdown */
   /* Commented out: this is done on restart to speed up the shutdown
   if(clickhouseImport)
@@ -3566,7 +3566,7 @@ bool Ntop::luaFlowCheckInfo(lua_State *vm, std::string check_name) const {
 /* ******************************************* */
 
 void Ntop::luaClickHouseStats(lua_State *vm) const {
-#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   if (clickhouseImport) {
     clickhouseImport->lua(vm);
     return;

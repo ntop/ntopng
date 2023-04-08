@@ -1880,7 +1880,7 @@ static int ntop_clickhouse_enabled(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_clickhouse_import_dumps(lua_State *vm) {
-#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   bool silence_warnings;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK)

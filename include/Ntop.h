@@ -131,7 +131,7 @@ class Ntop {
   bool alertExclusionsReloadInProgress;
   AlertExclusions *alert_exclusions, *alert_exclusions_shadow;
 #endif
-#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   ClickHouseImport *clickhouseImport;
 #endif
 
@@ -743,7 +743,7 @@ class Ntop {
   void luaClickHouseStats(lua_State *vm) const;
   void speedtest(lua_State *vm);
 
-#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   inline u_int importClickHouseDumps(bool silence_warnings) {
     return (clickhouseImport ? clickhouseImport->importDumps(silence_warnings)
                              : 0);

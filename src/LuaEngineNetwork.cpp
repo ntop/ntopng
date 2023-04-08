@@ -188,10 +188,10 @@ static int ntop_network_release_triggered_alert(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_network_reset_traffic_between_nets(lua_State *vm) {
+#ifdef NTOPNG_PRO
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   NetworkStats *ns = c ? c->network : NULL;
 
-#ifdef NTOPNG_PRO
   if (ns) ns->resetTrafficBetweenNets();
 #endif
 
