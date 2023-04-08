@@ -249,7 +249,6 @@ void ProtoCounter::resetStats() {
 
   if (bytes_thpt) bytes_thpt->resetStats();
 
-  memset(&packets, 0, sizeof(packets));
-  memset(&bytes, 0, sizeof(bytes));
+  packets.resetStats(), bytes.resetStats();
   duration = last_epoch_update = total_flows;
 }

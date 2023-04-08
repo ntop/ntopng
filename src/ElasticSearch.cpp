@@ -49,7 +49,7 @@ ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
       !(es_version_query_url = (char *)malloc(MAX_PATH)))
     throw "Not enough memory";
 
-  esThreadLoop = NULL;
+  esThreadLoop = (pthread_t)NULL;
   es_template_push_url[0] = '\0', es_version_query_url[0] = '\0';
   snprintf(es_template_push_url, MAX_PATH, "%s/_template/ntopng_template",
            ntop->getPrefs()->get_es_host());
