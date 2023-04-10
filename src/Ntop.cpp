@@ -759,7 +759,7 @@ void Ntop::getLocalNetworkIp(int16_t local_network_id, IpAddress **network_ip,
   if (network_address) free(network_address);
 };
 
-/* ******************************************* */
+  /* ******************************************* */
 
 #ifdef WIN32
 

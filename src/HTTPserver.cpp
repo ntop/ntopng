@@ -1880,7 +1880,7 @@ HTTPserver::~HTTPserver() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server terminated");
 };
 
-/* ****************************************** */
+  /* ****************************************** */
 
 #ifdef HAVE_NEDGE
 
