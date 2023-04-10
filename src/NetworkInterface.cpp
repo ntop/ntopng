@@ -9650,7 +9650,7 @@ void NetworkInterface::reloadDhcpRanges() {
     }
   }
 
-  if (dhcp_ranges_shadow) delete[](dhcp_ranges_shadow);
+  if (dhcp_ranges_shadow) delete[] (dhcp_ranges_shadow);
 
   dhcp_ranges_shadow = dhcp_ranges;
   dhcp_ranges = new_ranges;
@@ -11143,11 +11143,10 @@ void NetworkInterface::sort_flow_stats(
     std::unordered_map<string, FlowsStats *> *count_info, u_int filter_type) {
   std::vector<FlowsStats *> vector;
   std::vector<FlowsStats *>::iterator vector_it;
-
   char *sortColumn = (char *)lua_tostring(vm, 3);
   char *sortOrder = (char *)lua_tostring(vm, 4);
   u_int start = lua_tonumber(vm, 5);
-  u_int length = lua_tonumber(vm, 6);
+  u_int max_num_rows = lua_tonumber(vm, 6);
   bool is_asc = !strcmp(sortOrder, "asc");
 
   bool (*sorter)(FlowsStats *, FlowsStats *) = &asc_totalsent_cmp;
@@ -11211,30 +11210,24 @@ void NetworkInterface::sort_flow_stats(
 
   std::sort(vector.begin(), vector.end(), sorter);
 
+  /* Reverse order sort */
   if (!is_asc) std::reverse(vector.begin(), vector.end());
 
-  const u_int32_t size = vector.size();
+  const u_int32_t vector_size = vector.size();
   u_int num = 0;
 
   lua_newtable(vm);
 
-  if (start + length > size) {
-    for (vector_it = vector.begin() + start; vector_it != vector.end();
-         ++vector_it) {
+  if (start < vector_size) {
+    for (vector_it = std::next(vector.begin(), start);
+         vector_it != vector.end(); ++vector_it) {
       FlowsStats *fs = *vector_it;
 
       if (fs) {
-        build_lua_rsp(vm, fs, filter_type, size, &num);
+        build_lua_rsp(vm, fs, filter_type, vector_size, &num);
       }
-    }
-  } else {
-    for (vector_it = vector.begin() + start;
-         vector_it != (vector.begin() + start + length); ++vector_it) {
-      FlowsStats *fs = *vector_it;
 
-      if (fs) {
-        build_lua_rsp(vm, fs, filter_type, size, &num);
-      }
+      if (num >= max_num_rows) break;
     }
   }
 
