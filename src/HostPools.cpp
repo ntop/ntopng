@@ -86,7 +86,7 @@ void HostPools::deleteStats(HostPoolStats ***hps) {
     if (*hps) {
       for (int i = 0; i < MAX_NUM_HOST_POOLS; i++)
         if ((*hps)[i]) delete (*hps)[i];
-      delete[] *hps;
+      delete[] * hps;
       *hps = NULL;
     }
   }
@@ -201,7 +201,7 @@ void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id,
   hps->incCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
 };
 
-/* *************************************** */
+  /* *************************************** */
 
 #ifdef NTOPNG_PRO
 

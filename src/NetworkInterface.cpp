@@ -9650,7 +9650,7 @@ void NetworkInterface::reloadDhcpRanges() {
     }
   }
 
-  if (dhcp_ranges_shadow) delete[] (dhcp_ranges_shadow);
+  if (dhcp_ranges_shadow) delete[](dhcp_ranges_shadow);
 
   dhcp_ranges_shadow = dhcp_ranges;
   dhcp_ranges = new_ranges;
