@@ -23,7 +23,7 @@
 
 #ifndef HAVE_NEDGE
 
-//#define SYSLOG_DEBUG
+// #define SYSLOG_DEBUG
 
 /* **************************************************** */
 

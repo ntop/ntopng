@@ -21,7 +21,7 @@
 
 #include "ntop_includes.h"
 
-//#define DEBUG_DISCOVERY
+// #define DEBUG_DISCOVERY
 
 /* ******************************* */
 

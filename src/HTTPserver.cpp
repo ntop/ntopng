@@ -258,7 +258,7 @@ static int checkCaptive(const struct mg_connection *conn,
       This user logged onto ntopng via the captive portal
     */
     u_int16_t host_pool_id;
-    //#ifdef DEBUG
+    // #ifdef DEBUG
     char buf[32];
 
     ntop->getTrace()->traceEvent(
@@ -268,7 +268,7 @@ static int checkCaptive(const struct mg_connection *conn,
         (unsigned int)conn->request_info.remote_ip,
         mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char *)"",
         request_info->uri);
-    //#endif
+    // #endif
 
     char bridge_interface[32];
 
@@ -1880,7 +1880,7 @@ HTTPserver::~HTTPserver() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server terminated");
 };
 
-  /* ****************************************** */
+/* ****************************************** */
 
 #ifdef HAVE_NEDGE
 

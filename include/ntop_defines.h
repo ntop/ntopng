@@ -460,7 +460,7 @@
 #define MAX_PATH 256
 #endif
 
-//#define DEMO_WIN32                   1
+// #define DEMO_WIN32                   1
 #define MAX_NUM_PACKETS 5000
 
 /* Hanldes ad most 4096 interfaces across all sFlow devices.
@@ -1422,7 +1422,7 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
 #define PROFILING_SECTION_LABEL(i) __profiling_sect_label[i]
 #endif
 
-//#define INTERFACE_PROFILING
+// #define INTERFACE_PROFILING
 #if defined(PROFILING) && defined(INTERFACE_PROFILING)
 #define INTERFACE_PROFILING_DECLARE(n) PROFILING_DECLARE(n)
 #define INTERFACE_PROFILING_INIT() PROFILING_INIT()

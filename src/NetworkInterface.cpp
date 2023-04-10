@@ -32,7 +32,7 @@ extern int ntop_lua_check(lua_State *vm, const char *func, int pos,
 
 static bool help_printed = false;
 
-//#define DEBUG_FLOW_CHECKS 1
+// #define DEBUG_FLOW_CHECKS 1
 
 #define IMPLEMENT_SMART_FRAGMENTS
 
@@ -9650,7 +9650,7 @@ void NetworkInterface::reloadDhcpRanges() {
     }
   }
 
-  if (dhcp_ranges_shadow) delete[](dhcp_ranges_shadow);
+  if (dhcp_ranges_shadow) delete[] (dhcp_ranges_shadow);
 
   dhcp_ranges_shadow = dhcp_ranges;
   dhcp_ranges = new_ranges;
