@@ -281,6 +281,10 @@ pull-deps:
 pull-pro:
 	if test -d ./pro; then echo "Pulling ntopng/pro..."; cd pro; git pull --rebase; fi
 
+format:
+	find ./src ./include/ -type f -mtime -2 \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \;
+	if test -d ./pro; then find ./pro/src ./pro/include/ -type f -mtime -2 \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \; ; fi
+
 pull: pull-deps pull-pro
 	echo "Updating ntopng..."
 	git pull --rebase
