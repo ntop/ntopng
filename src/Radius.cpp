@@ -47,7 +47,7 @@ Radius::~Radius() {
 
 /* *************************************** */
 
-bool Radius::buildConfiguration(rc_handle *rh) {
+bool Radius::buildConfiguration(rc_handle **rh) {
   if (!radiusServer || !radiusSecret || !authServer ||
       !radiusUnprivCapabilitiesGroup || !radiusAdminGroup) {
     /* No info currently saved, try to load from redis */
@@ -67,10 +67,10 @@ bool Radius::buildConfiguration(rc_handle *rh) {
   snprintf(authServer, MAX_RADIUS_LEN - 1, "%s:%s", radiusServer, radiusSecret);
 
   /* If the header is NULL try to init it, otherwise fails */
-  if (rh == NULL)
-    rh = rc_new();
+  if (*rh == NULL)
+    *rh = rc_new();
 
-  if (rh == NULL) {
+  if (*rh == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to allocate memory");
     return false;
@@ -78,28 +78,28 @@ bool Radius::buildConfiguration(rc_handle *rh) {
 
   /* rh initialization, initialize the 'Radius Header' with all the key-value
    * required */
-  rh = rc_config_init(rh);
+  *rh = rc_config_init(*rh);
 
-  if (rh == NULL) {
+  if (*rh == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: failed to init configuration");
     return false;
   }
 
   /* RADIUS authorization checks, in case of fail, return false */
-  if (rc_add_config(rh, "auth_order", "radius", "config", 0) != 0) {
+  if (rc_add_config(*rh, "auth_order", "radius", "config", 0) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Unable to set auth_order");
     return false;
   }
 
-  if (rc_add_config(rh, "radius_retries", "3", "config", 0) != 0) {
+  if (rc_add_config(*rh, "radius_retries", "3", "config", 0) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Unable to set retries config");
     return false;
   }
 
-  if (rc_add_config(rh, "radius_timeout", "5", "config", 0) != 0) {
+  if (rc_add_config(*rh, "radius_timeout", "5", "config", 0) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Unable to set timeout config");
     return false;
@@ -107,13 +107,13 @@ bool Radius::buildConfiguration(rc_handle *rh) {
 
   snprintf(dict_path, sizeof(dict_path), "%s/other/radcli_dictionary.txt",
            ntop->getPrefs()->get_docs_dir());
-  if (rc_add_config(rh, "dictionary", dict_path, "config", 0) != 0) {
+  if (rc_add_config(*rh, "dictionary", dict_path, "config", 0) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Unable to set dictionary config");
     return false;
   }
 
-  if (rc_add_config(rh, "authserver", authServer, "config", 0) != 0) {
+  if (rc_add_config(*rh, "authserver", authServer, "config", 0) != 0) {
     ntop->getTrace()->traceEvent(
         TRACE_ERROR, "Radius: Unable to set authserver config: \"%s\"",
         authServer);
@@ -122,13 +122,13 @@ bool Radius::buildConfiguration(rc_handle *rh) {
 
 #ifdef HAVE_RC_TEST_CONFIG
   /* Necessary since radcli release 1.2.10 */
-  if (rc_test_config(rh, "ntopng") != 0) {
+  if (rc_test_config(*rh, "ntopng") != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: rc_test_config failed");
     return false;
   }
 #endif
 
-  if (rc_read_dictionary(rh, rc_conf_str(rh, "dictionary")) != 0) {
+  if (rc_read_dictionary(*rh, rc_conf_str(*rh, "dictionary")) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to read dictionary");
     return false;
@@ -257,7 +257,7 @@ bool Radius::authenticate(const char *user, const char *password,
   rc_handle *rh = NULL;
   VALUE_PAIR *send = NULL, *received = NULL;
 
-  if(!buildConfiguration(rh)) {
+  if(!buildConfiguration(&rh)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Configuration Failed");
     goto radius_auth_out;
   }
@@ -352,7 +352,7 @@ bool Radius::startSession(const char *username, const char *session_id) {
   rc_handle *rh = NULL;
   VALUE_PAIR *send = NULL;
 
-  if(!buildConfiguration(rh)) {
+  if(!buildConfiguration(&rh)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Configuration Failed");
     goto radius_auth_out;
   }
@@ -392,7 +392,7 @@ bool Radius::updateSession(const char *username, const char *session_id, Host *h
   VALUE_PAIR *send = NULL;
 
   /* Init the configuration */
-  if(!buildConfiguration(rh)) {
+  if(!buildConfiguration(&rh)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Configuration Failed");
     goto radius_auth_out;
   }
@@ -445,7 +445,7 @@ bool Radius::stopSession(const char *username, const char *session_id, Host *h) 
   }
 
   /* Init the configuration */
-  if(!buildConfiguration(rh)) {
+  if(!buildConfiguration(&rh)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Configuration Failed");
     goto radius_auth_out;
   }
