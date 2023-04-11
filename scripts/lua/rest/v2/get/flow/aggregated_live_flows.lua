@@ -32,10 +32,10 @@ local function set_host_info(host_vlan_id, host_ip, host_name, is_host_in_mem, f
 
   host_info.name = host_name
   if (not isEmptyString(host_info.name)) then
-    host_info.name = ternary(host_info.name ~= host_info.ip and host_info.name ~= host_ip, shortenString(host_info.name), "")
-    host_info.name = ternary(vlan_id_to_use ~= 0, string.format("%s@%s",host_info.name, host_info.vlan_name),host_info.name )
+    host_info.name = ternary(host_info.name ~= host_info.ip and host_info.name ~= host_ip, host_info.name, "")
+    --host_info.name = ternary(vlan_id_to_use ~= 0, string.format("%s@%s",host_info.name, host_info.vlan_name),host_info.name )
   end
-
+  
   return host_info
 end
 
@@ -124,6 +124,7 @@ local function build_response()
     local server_name = ""
     local server_ip_label = ""
     local server_ip = ""
+    local server_vlan_name = ""
     local srv_in_mem = false
     local server_host = nil
 
@@ -136,6 +137,8 @@ local function build_response()
       server_name = srv_info.name
       server_host = interface.getHostInfo(data.server_ip, data.vlan_id or 0)
       srv_in_mem = server_host ~= nil
+      server_vlan_name = srv_info.vlan_name
+
 
       srv_in_mem = server_host ~= nil
       if (srv_in_mem) then
@@ -146,6 +149,7 @@ local function build_response()
     local client_ip = ""
     local client_ip_label = ""
     local client_name = ""
+    local client_vlan_name = ""
     local cli_in_mem = false
 
     local client_host = nil
@@ -157,6 +161,7 @@ local function build_response()
       client_ip_label = cli_info.ip_label
       client_name = cli_info.name
       client_host = interface.getHostInfo(data.client_ip, data.vlan_id or 0)
+      client_vlan_name = cli_info.vlan_name
 
       cli_in_mem = client_host ~= nil
       if (cli_in_mem) then
@@ -220,7 +225,8 @@ local function build_response()
         label = client_name,
         id = client_ip, 
         complete_label = format_utils.formatFullAddressCategory(client_host),
-        alerted = is_client_alerted
+        alerted = is_client_alerted,
+        vlan = client_vlan_name
       }
       res[actual_idx].is_client_in_mem = isView or cli_in_mem
     end
@@ -234,7 +240,8 @@ local function build_response()
         label = server_name,
         id = server_ip,
         complete_label = format_utils.formatFullAddressCategory(server_host),
-        alerted = is_server_alerted
+        alerted = is_server_alerted,
+        vlan = server_vlan_name
       }
 
       res[actual_idx].is_server_in_mem = isView or srv_in_mem
@@ -242,7 +249,7 @@ local function build_response()
 
     if( response ~= {} and response.add_info )then
       res[actual_idx].info = {
-        label = shortenString(data.info),
+        label = data.info,
         id = data.info
       } 
     end
