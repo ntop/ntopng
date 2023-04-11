@@ -212,6 +212,15 @@ local function isRecordingEnabledInCache(ifid)
   return false
 end
 
+local function isSmartRecordingEnabledInCache(ifid)
+  local enabled = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.smart_traffic_recording.enabled')
+  if not isEmptyString(enabled) and 
+     (enabled == "true" or enabled == "1") then
+     return true
+  end
+  return false
+end
+
 local function getInUseExtInterfaces(current_ifid)
   local inuse_ext_interfaces = {}
   local ntopng_interfaces = interface.getIfNames()
@@ -462,8 +471,6 @@ function recording_utils.createConfig(ifid, params)
     real_ifname = "zc:"..ifname
   end
 
-  local conf_dir = dirs.workingdir.."/n2disk"
-  local filename = conf_dir.."/n2disk-" .. getConfigInterfaceName(ifid) .. ".conf"
   local storage_path = dirs.pcapdir
 
   if isEmptyString(storage_path) then
@@ -572,6 +579,9 @@ function recording_utils.createConfig(ifid, params)
 
   -- Writing configuration file
 
+  local conf_dir = dirs.workingdir.."/n2disk"
+  local filename = conf_dir.."/n2disk-" .. getConfigInterfaceName(ifid) .. ".conf"
+
   local ret = ntop.mkdir(conf_dir)
 
   if not ret then
@@ -646,6 +656,46 @@ function recording_utils.createConfig(ifid, params)
 
   f:close()
 
+  ---
+
+  -- Writing Smart configuration file
+
+  conf_dir = dirs.workingdir.."/disk2disk"
+  filename = conf_dir.."/disk2disk-" .. getConfigInterfaceName(ifid) .. ".conf"
+
+  local ret = ntop.mkdir(conf_dir)
+
+  if not ret then
+    return false
+  end
+
+  local f = io.open(filename, "w")
+
+  if not f then
+    return false
+  end
+
+  local smart_pcap_path = recording_utils.getSmartPcapPath(ifid)
+  local smart_timeline_path = getSmartTimelinePath(ifid)
+
+  -- Input timeline
+  f:write("-t="..timeline_path.."\n")
+
+  -- Output timeline
+  f:write("-o="..smart_pcap_path.."\n")
+  f:write("-O="..smart_timeline_path.."\n")
+
+  -- Disk settings
+  f:write("-l="..config.max_smart_disk_space.."\n")
+  f:write("-p"..config.max_file_size.."\n")
+
+  -- User
+  if not isEmptyString(prefs.user) then
+    f:write("-u="..prefs.user.."\n");
+  end
+
+  f:close()
+
   return true
 end
 
@@ -653,16 +703,22 @@ local function isRecordingEnabled(ifid)
   local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
 
   if cur_provider == "ntopng" then
-    if isRecordingEnabledInCache(ifid) then
-      return true
-    end
+    return isRecordingEnabledInCache(ifid)
   else
     -- if the user has specified a custom provider different than ntopng, it is
     -- assumed that he/she wants the recording so the service is considered enabled
     return true
   end
+end 
 
-  return false
+local function isSmartRecordingEnabled(ifid)
+  local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
+
+  if cur_provider == "ntopng" then
+    return isSmartRecordingEnabledInCache(ifid)
+  else
+    return true
+  end
 end 
 
 --! @brief Check if traffic recording is available and enabled on an interface
@@ -671,6 +727,14 @@ end
 function recording_utils.isEnabled(ifid)
   if recording_utils.isAvailable() then
     return isRecordingEnabled(ifid)
+  end
+
+  return false
+end
+
+function recording_utils.isSmartEnabled(ifid)
+  if recording_utils.isAvailable() then
+    return isSmartRecordingEnabled(ifid)
   end
 
   return false
@@ -814,18 +878,35 @@ end
 
 --! @brief Start (or restart) the traffic recording service
 --! @param ifid the interface identifier 
-function recording_utils.restart(ifid)
+function recording_utils.restart(ifid, config)
   local confifname = getConfigInterfaceName(ifid)
+
+  -- Enable Recording
   os_utils.enableService("n2disk-ntopng", confifname)
   os_utils.restartService("n2disk-ntopng", confifname)
+
+  -- Enable Smart Recording if requested
+  if (config and config.enable_smart_recording) or
+     (recording_utils.isSmartEnabled(ifid)) then
+    os_utils.enableService("disk2disk-ntopng", confifname) 
+    os_utils.restartService("disk2disk-ntopng", confifname)
+  end
 end
 
 --! @brief Stop the traffic recording service
 --! @param ifid the interface identifier 
 function recording_utils.stop(ifid)
   local confifname = getConfigInterfaceName(ifid)
+
+  -- Stop Recording
   os_utils.stopService("n2disk-ntopng", confifname)
   os_utils.disableService("n2disk-ntopng", confifname)
+
+  -- Stop Smart Recording if enabled
+  if recording_utils.isSmartEnabled(ifid) then
+    os_utils.stopService("disk2disk-ntopng", confifname)
+    os_utils.disableService("disk2disk-ntopng", confifname)
+  end
 end
 
 --! @brief Return the log trace of the traffic recording service (n2disk)

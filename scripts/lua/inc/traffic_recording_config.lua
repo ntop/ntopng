@@ -79,7 +79,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
       recording_utils.stop(master_ifid) -- stop before starting as the interface can be changed
     end
     if recording_utils.createConfig(master_ifid, config) then
-      recording_utils.restart(master_ifid)
+      recording_utils.restart(master_ifid, config)
     end
   else
     recording_utils.stop(master_ifid)
