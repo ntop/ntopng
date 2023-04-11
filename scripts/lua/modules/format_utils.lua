@@ -192,7 +192,7 @@ function format_utils.bitsToSize(bits)
    return(bitsToSizeMultiplier(bits, 1000))
 end
 
-function format_utils.bytesToSize(bytes)
+function format_utils.bytesToBPS(bytes)
    return(bitsToSizeMultiplier(bytes * 8, 1000))
 end
 
