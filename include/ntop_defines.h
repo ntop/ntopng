@@ -1479,6 +1479,14 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
 #define CUSTOM_FLOW_END_SCRIPT \
   "scripts/callbacks/checks/flows/custom_flow_end_script.lua"
 
+#ifdef HAVE_RADIUS
+#define RADIUS_ACCT_STATUS_TYPE_START   "Start"
+#define RADIUS_ACCT_STATUS_TYPE_UPDATE  "Interim-Update"
+#define RADIUS_ACCT_STATUS_TYPE_STOP    "Stop"
+
+#define RADIUS_ACCT_SERVICE_TYPE        "Framed-User"
+#endif
+
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */
