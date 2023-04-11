@@ -62,7 +62,7 @@ const num_page_buttons = ref(0);
 const total_pages = ref(0);
 const active_page = ref(0);
 
-const text_template = "Pages %active_page of %total_pages, number of rows %total_rows";
+const text_template = "Showing page %active_page of %total_pages: total %total_rows rows";
 const text = ref("");
 
 onMounted(() => {
@@ -137,7 +137,9 @@ function change_active_page(new_active_page, new_start_page_button) {
 function set_text() {
     text.value = text_template.replace("%active_page", format_number(`${active_page.value + 1}`))
 	.replace("%total_pages", format_number(`${total_pages.value}`))
-	.replace("%total_rows", format_number(`${props.total_rows}`));
+	.replace("%total_rows", format_number(`${props.total_rows}`))
+	.replace("%per_page", format_number(`${props.per_page}`))
+	;
     // console.log(text.value);
     // console.log(active_page.value);
 }
