@@ -156,9 +156,9 @@ var ResizableColumns = (function () {
 		value: function assignPercentageWidths() {
 			var _this2 = this;
 
-			this.$tableHeaders.each(function (_, el) {
+		    this.$tableHeaders.each(function (_, el) {
 				var $el = $(el);
-				_this2.setWidth($el[0], $el.outerWidth() + _this2.options.padding);
+				_this2.setWidth($el[0], $el.width() + _this2.options.padding);
 			});
 		}
 
