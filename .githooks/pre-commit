@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Check coding style
+make -s check-format || (echo 'Please format your code with `make format`' && false)
