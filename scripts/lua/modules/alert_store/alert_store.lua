@@ -1792,6 +1792,10 @@ function alert_store:add_request_ranges()
    local sort_column = _GET["sort"]
    local sort_order = _GET["order"]
 
+   if length then
+      tablePreferences("rows_number", length)
+   end
+
    self:add_limit(length, start)
    self:add_order_by(sort_column, sort_order)
 end
