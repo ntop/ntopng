@@ -712,8 +712,6 @@
     /* Validate index */
     (index >= 0) ? index = index : index = length_array.length - 1; /* Use the last index */
     
-    length_array.splice(index, 1);
-    length_array.unshift(INITIAL_ROWS_LENGTH);
     
     //function loadDataTable() {
       //setUserColumnsDefWidths();
