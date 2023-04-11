@@ -245,9 +245,8 @@ function get_table_columns_config() {
       columns.push(
         { 
           columnName: i18n("info"), targets: 0, name: 'info', data: 'info', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-            let shorten_info = NtopUtils.shortenLabel(data.label, 16, ".");
 
-            return `<label>${shorten_info}</label>`}
+            return `${data.label}`}
         });
     }
   }
@@ -300,16 +299,13 @@ const format_client_name = function(data, rowData) {
 	rowData.client_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`+rowData.client_name.complete_label;
     }
 
-    let client_name_shorten = NtopUtils.shortenLabel(rowData.client_name.label, 16, ".");
-    if((rowData.client_name.vlan != "0" || rowData.client_name.vlan != 0 ) &&  rowData.client_name.vlan != "")
-        client_name_shorten = client_name_shorten + "@" +rowData.client_name.vlan 
     
     if(rowData.client_name.label && rowData.client_name.label != "") {
 	
 	if (!rowData.is_client_in_mem) {
-	    return `<label>${client_name_shorten }</label>`+rowData.client_name.complete_label;
+	    return `<label>${rowData.client_name.label}</label>`+rowData.client_name.complete_label;
 	} else {
-	    return `<a href="${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}">${client_name_shorten}</a>`+rowData.client_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+	    return `<a href="${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}">${rowData.client_name.label}</a>`+rowData.client_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
 	}
     } else {
 	if(!rowData.is_client_in_mem)
@@ -326,15 +322,12 @@ const format_server_name = function(data, rowData) {
 	rowData.server_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`+rowData.server_name.complete_label;
     }
 
-    let server_name_shorten = NtopUtils.shortenLabel(rowData.server_name.label, 16, ".");
-    if((rowData.server_name.vlan != "0" || rowData.server_name.vlan != 0) &&  rowData.server_name.vlan != "")
-        server_name_shorten = server_name_shorten + "@" +rowData.server_name.vlan 
-    
+   
     if(rowData.server_name.label && rowData.server_name.label != "") {
 	if (!rowData.is_server_in_mem) {
-	    return `<label>${server_name_shorten}</label>`+rowData.server_name.complete_label;
+	    return `<label>${rowData.server_name.label}</label>`+rowData.server_name.complete_label;
 	} else {
-	    return `<a href="${http_prefix}/lua/flows_stats.lua?server=${rowData.server_name.id}">${server_name_shorten}</a>`+rowData.server_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+	    return `<a href="${http_prefix}/lua/flows_stats.lua?server=${rowData.server_name.id}">${rowData.server_name.label}</a>`+rowData.server_name.complete_label+` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
 	}
     } else {
 	if(!rowData.is_server_in_mem)

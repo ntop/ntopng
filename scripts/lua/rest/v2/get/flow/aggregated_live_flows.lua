@@ -33,7 +33,7 @@ local function set_host_info(host_vlan_id, host_ip, host_name, is_host_in_mem, f
   host_info.name = host_name
   if (not isEmptyString(host_info.name)) then
     host_info.name = ternary(host_info.name ~= host_info.ip and host_info.name ~= host_ip, host_info.name, "")
-    --host_info.name = ternary(vlan_id_to_use ~= 0, string.format("%s@%s",host_info.name, host_info.vlan_name),host_info.name )
+    host_info.name = ternary(vlan_id_to_use ~= 0, string.format("%s@%s",host_info.name, host_info.vlan_name),host_info.name )
   end
   
   return host_info
@@ -225,8 +225,7 @@ local function build_response()
         label = client_name,
         id = client_ip, 
         complete_label = format_utils.formatFullAddressCategory(client_host),
-        alerted = is_client_alerted,
-        vlan = client_vlan_name
+        alerted = is_client_alerted
       }
       res[actual_idx].is_client_in_mem = isView or cli_in_mem
     end
@@ -240,8 +239,7 @@ local function build_response()
         label = server_name,
         id = server_ip,
         complete_label = format_utils.formatFullAddressCategory(server_host),
-        alerted = is_server_alerted,
-        vlan = server_vlan_name
+        alerted = is_server_alerted
       }
 
       res[actual_idx].is_server_in_mem = isView or srv_in_mem
