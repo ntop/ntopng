@@ -2166,11 +2166,13 @@ local known_parameters = {
 
 -- TRAFFIC RECORDING
    ["disk_space"]                                  = validateNumber,
+   ["smart_disk_space"]                            = validateNumber,
    ["file_id"]                                     = validateNumber,
    ["job_action"]                                  = validateExtractionJobAction,
    ["job_id"]                                      = validateNumber,
    ["n2disk_license"]                              = {licenseCleanup, validateLicense},
    ["record_traffic"]                              = validateBool,
+   ["smart_record_traffic"]                        = validateBool,
    ["max_extracted_pcap_bytes"]                    = validateNumber,
    ["traffic_recording_provider"]                  = validateTrafficRecordingProvider,
    ["dismiss_external_providers_reminder"]         = validateBool,

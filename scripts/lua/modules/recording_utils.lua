@@ -311,6 +311,11 @@ function recording_utils.getPcapPath(ifid)
   return storage_path.."/"..ifid.."/pcap"
 end
 
+function recording_utils.getSmartPcapPath(ifid)
+  local storage_path = dirs.pcapdir
+  return storage_path.."/"..ifid.."/smart-pcap"
+end
+
 local function getPcapExtractionPath(ifid)
   local storage_path = dirs.pcapdir
   return storage_path.."/"..ifid.."/extr_pcap"
@@ -319,6 +324,11 @@ end
 local function getTimelinePath(ifid)
   local storage_path = dirs.pcapdir
   return storage_path.."/"..ifid.."/timeline"
+end
+
+local function getSmartTimelinePath(ifid)
+  local storage_path = dirs.pcapdir
+  return storage_path.."/"..ifid.."/smart-timeline"
 end
 
 local function getPcapFileDir(job_id, ifid)
