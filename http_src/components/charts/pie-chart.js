@@ -30,12 +30,14 @@ function PieChart(name, update_url, url_params, units, refresh) {
 	var filteredPieData = [];
 	var rsp = create_pie_chart(name, units);
 	var arc_group = rsp[0];
-	var donut = rsp[1];
+	var donut = rsp[1];	
 	var totalValue = rsp[2];
+	var totalUnits = rsp[3];
 	var color = rsp[4];
 	var tweenDuration = rsp[5];
 	var arc = rsp[6];
-	var label_group = rsp[7];
+	var label_group = rsp[7];	
+	var center_group = rsp[8];
 	var r = rsp[9];
 	var textOffset = rsp[10];
 
@@ -281,8 +283,8 @@ function PieChart(name, update_url, url_params, units, refresh) {
 	}
 
 	function removePieTween(d, i) {
-		const s0 = 2 * Math.PI;
-		const e0 = 2 * Math.PI;
+		s0 = 2 * Math.PI;
+		e0 = 2 * Math.PI;
 		var i = d3.interpolate({ startAngle: d.startAngle, endAngle: d.endAngle }, { startAngle: s0, endAngle: e0 });
 		return function (t) {
 			var b = i(t);
@@ -414,23 +416,27 @@ function create_pie_chart(name, units) {
 		.attr("fill", "white")
 		.attr("r", ir);
 
+	var totalUnits = null;
+	var totalLabel = null;
+	var totalValue = null;
+	
 	if (units) {
 		// "TOTAL" LABEL
-		center_group.append("svg:text")
+		totalLabel = center_group.append("svg:text")
 			.attr("class", "label")
 			.attr("dy", -15)
 			.attr("text-anchor", "middle") // text-align: right
 			.text("TOTAL");
 
 		//TOTAL TRAFFIC VALUE
-		center_group.append("svg:text")
+		totalValue = center_group.append("svg:text")
 			.attr("class", "total")
 			.attr("dy", 7)
 			.attr("text-anchor", "middle") // text-align: right
 			.text("Waiting...");
 
 		//UNITS LABEL
-		center_group.append("svg:text")
+		totalUnits = center_group.append("svg:text")
 			.attr("class", "units")
 			.attr("dy", 21)
 			.attr("text-anchor", "middle") // text-align: right
