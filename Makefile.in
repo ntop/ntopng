@@ -282,8 +282,15 @@ pull-pro:
 	if test -d ./pro; then echo "Pulling ntopng/pro..."; cd pro; git pull --rebase; fi
 
 format:
-	find ./src ./include/ -type f -mtime -2 \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \;
-	if test -d ./pro; then find ./pro/src ./pro/include/ -type f -mtime -2 \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \; ; fi
+	find ./src ./include -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \;
+	if test -d ./pro; then find ./pro/src ./pro/include -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \; ; fi
+
+fast-format:
+	find ./src ./include -type f -mtime -2 \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \;
+	if test -d ./pro; then find ./pro/src ./pro/include -type f -mtime -2 \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \; ; fi
+
+check-format:
+	git diff --name-only --cached | grep -P '^(src|include)/.*\.(cpp|h)$$' | xargs -n1 clang-format -n --Werror --style=file
 
 pull: pull-deps pull-pro
 	echo "Updating ntopng..."

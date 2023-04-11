@@ -2,10 +2,7 @@ name: Build
 on:
   pull_request:
     branches: [dev]
-  workflow_run:
-    workflows: [Formatter]
-    types:
-     - completed
+  push:
     branches: [dev]
   workflow_dispatch:
 jobs:
