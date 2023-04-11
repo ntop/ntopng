@@ -11194,7 +11194,7 @@ void NetworkInterface::sort_flow_stats(
 
   if (!strcmp(sortColumn, "flows")) {
     sorter = &asc_flownum_cmp;
-  } else if (!strcmp(sortColumn, "score")) {
+  } else if (!strcmp(sortColumn, "tot_score")) {
     sorter = &asc_totalscore_cmp;
   } else if (!strcmp(sortColumn, "num_clients")) {
     sorter = &asc_numclients_cmp;
