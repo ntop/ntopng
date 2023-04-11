@@ -1,5 +1,5 @@
 <!--
-  (C) 2013-22 - ntop.org
+  (C) 2013-23 - ntop.org
 -->
 
 <template>
@@ -9,7 +9,7 @@
       <!-- <Loading ref="loading"></Loading> -->
       <div class="card-body">
 	<div class="d-flex align-items-center mb-2">
-	  <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem">
+	  <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
 	    <label class="my-auto me-1">{{ _i18n('criteria_filter') }}: </label>
 	    <SelectSearch v-model:selected_option="selected_criteria"
 			  :options="criteria_list"
