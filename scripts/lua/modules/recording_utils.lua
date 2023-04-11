@@ -658,6 +658,10 @@ function recording_utils.createConfig(ifid, params)
 
   ---
 
+  if not config.enable_smart_recording then
+    return true
+  end
+
   -- Writing Smart configuration file
 
   conf_dir = dirs.workingdir.."/disk2disk"
