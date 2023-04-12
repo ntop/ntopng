@@ -78,7 +78,7 @@ function calculate_pages() {
     let per_page = props.per_page;
     total_pages.value = Number.parseInt((props.total_rows + per_page - 1) / per_page);
     if (active_page.value >= total_pages.value) {
-	active_page.value = 0;
+	active_page.value = total_pages.value - 1;
     }
 
     num_page_buttons.value = max_page_buttons;
