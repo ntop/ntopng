@@ -242,7 +242,7 @@ Client Criteria
   :align: center
   :alt: Live Flows Analysis Client Criteria
 
-Using the aggregation criteria "Client" it's possible to aggregate the live flows by the clients and undertstand the amount of flows, traffic and hosts having a particular client.
+Using the aggregation criteria "Client" it's possible to aggregate the live flows by the clients and understand the amount of flows, traffic and hosts having a particular client.
 By clicking on the icon at the left of the client, the user is going to jump to the live flow page with the selected client filtered. 
 Instead, by clicking on the client, the user is going to jump to the host_details page of the selected client.
 
@@ -253,7 +253,7 @@ Server Criteria
   :align: center
   :alt: Live Flows Analysis Server Criteria
 
-Using the aggregation criteria "Server" it's possible to aggregate the live flows by the servers and undertstand the amount of flows, traffic and hosts having a particular server.
+Using the aggregation criteria "Server" it's possible to aggregate the live flows by the servers and understand the amount of flows, traffic and hosts having a particular server.
 By clicking on the icon at the left of the server, the user is going to jump to the live flow page with the selected server filtered.
 Instead, by clicking on the server, the user is going to jump to the host_details page of the selected server.
 
@@ -268,7 +268,7 @@ Client / Server Criteria
   :align: center
   :alt: Live Flows Analysis Client / Server Criteria
 
-Using the aggregation criteria "Client / Server" it's possible to aggregate the live flows by the couple client-server and undertstand the amount of flows, traffic and hosts having a particular client-server.
+Using the aggregation criteria "Client / Server" it's possible to aggregate the live flows by the couple client-server and understand the amount of flows, traffic and hosts having a particular client-server.
 By clicking on the icon at the left of the client, the user is going to jump to the live flow page with the selected client and server filtered.
 Instead, by clicking on the client or on the server, the user is going to jump to the host_details page of the selected client or server.
 
@@ -279,7 +279,7 @@ App. Proto / Client / Server Criteria
   :align: center
   :alt: Live Flows Analysis App. Proto / Client / Server Criteria
 
-Using the aggregation criteria "App. Proto / Client / Server" it's possible to aggregate the live flows by the triple application protocol, client and server and undertstand the amount of flows, traffic and hosts having a particular app. proto-client-server.
+Using the aggregation criteria "App. Proto / Client / Server" it's possible to aggregate the live flows by the triple application protocol, client and server and understand the amount of flows, traffic and hosts having a particular app. proto-client-server.
 By clicking on the icon at the left of the client, the user is going to jump to the live flow page with the selected application protocol, client and server filtered.
 Instead, by clicking on the client or on the server, the user is going to jump to the host_details page of the selected client or server.
 
@@ -290,5 +290,5 @@ Info Criteria
   :align: center
   :alt: Live Flows Analysis Info Criteria
 
-Using the aggregation criteria "Info" it's possible to aggregate the live flows by the flow's info and undertstand the amount of flows, traffic and hosts having a particular flow's info.
+Using the aggregation criteria "Info" it's possible to aggregate the live flows by the flow's info and understand the amount of flows, traffic and hosts having a particular flow's info.
 By clicking on the icon at the left of the info column, the user is going to jump to the live flow page with the selected flow's info filtered.
