@@ -25,6 +25,7 @@
 	    :key="table_config.columns"
 	    :columns="table_config.columns"
 	    :get_rows="(active_page, per_page, columns_wrap, first_get_rows) => table_config.get_rows(active_page, per_page, columns_wrap, first_get_rows)"
+	    :get_column_id="(col) => table_config.get_column_id(col)"
 	    :print_column_name="(col) => table_config.print_column_name(col)"
 	    :print_html_row="(col, row) => table_config.print_html_row(col, row)"
 	    :paging= "true">
@@ -114,10 +115,15 @@ function load_table() {
     table_config.value = {
 	columns: get_table_columns_config(),
 	get_rows: get_rows,
+	get_column_id: get_column_id,
 	print_column_name: print_column_name,
 	print_html_row: print_html_row,
 	paging: true,
     };
+}
+
+function get_column_id(col) {
+    return col.data;
 }
 
 function print_column_name(col) {

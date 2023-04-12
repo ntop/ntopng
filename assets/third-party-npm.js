@@ -14,6 +14,10 @@ window.ApexCharts = ApexCharts
 
 import 'jquery-ui-bundle'
 import './scripts/vendors/jquery/jquery.resizableColumns.js';
+
+import * as store from 'store-js';
+window.store = store;
+
 /* See https://datatables.net/forums/discussion/comment/103356 */
 import dt from 'datatables.net-dt'
 import 'datatables.net-buttons-dt'

@@ -12,6 +12,9 @@
     </label>
   </div>
   <div style="text-align:right;">
+    <button class="btn btn-link me-1" type="button" @click="reset_column_size">
+      <i class="fas fa-columns"></i>
+    </button>
     <button class="btn btn-link me-1" type="button" @click="refresh_table">
       <i class="fas fa-refresh"></i>
     </button>
@@ -31,13 +34,13 @@
   </div>
 </div> <!-- TableHeader -->
 
-<div :key="table_key" ref="table_div" class="" style="overflow:auto;width:100%"> <!-- Table -->
+<div :key="table_key" class="" style="overflow:auto;width:100%;"> <!-- Table -->
   
   <table ref="table" class="table table-striped table-bordered ml-0 mr-0 mb-0 " style="table-layout: auto; white-space: nowrap;" data-resizable="true" :data-resizable-columns-id="id"> <!-- Table -->
     <thead>
       <tr>
 	<template v-for="(col, col_index) in columns_wrap">
-	  <th v-if="col.visible" scope="col" style="cursor:pointer;white-space: nowrap;" @click="change_column_sort(col, col_index)">
+	  <th v-if="col.visible" scope="col" style="cursor:pointer;white-space: nowrap;" @click="change_column_sort(col, col_index)" :data-resizable-column-id="get_column_id(col.data)">
 	    <div style="display:flex;">
 	      <span v-html="print_column_name(col.data)" class="wrap-column"></span>
 	      <!-- <i v-show="col.sort == 0" class="fa fa-fw fa-sort"></i> -->
@@ -77,6 +80,7 @@ const props = defineProps({
     id: String,
     columns: Array,
     get_rows: Function, // async (active_page: number, per_page: number, columns_wrap: any[]) => { total_rows: number, rows: any[] }
+    get_column_id: Function,
     print_column_name: Function,
     print_html_row: Function,
     f_sort_rows: Function,
@@ -93,6 +97,7 @@ const active_rows = ref([]);
 const total_rows = ref(0);
 const per_page_options = [10, 20, 40, 50, 80, 100];
 const per_page = ref(10);
+const store = window.store;
 
 onMounted(async () => {
     if (props.columns != null) {
@@ -118,25 +123,31 @@ async function change_columns_visibility(col) {
 	await set_rows();
     }
     redraw_table();
+    await redraw_table_resizable();
+    set_columns_resizable();
+}
+
+async function redraw_table_resizable() {
+    redraw_table();
     await nextTick();
     set_columns_resizable();
 }
 
-const table_div = ref(null);
+function redraw_table() {
+    table_key.value += 1;
+}
+
 function set_columns_resizable() {
     let options = {
 	// selector: table.value,
 	// padding: 0,
+	store: store,
 	minWidth: 32,
 	// padding: -50,
 	// maxWidth: 150,
     };
     $(table.value).resizableColumns(options);
     // $(table.value).css('width', '100%');
-}
-
-function redraw_table() {
-    table_key.value += 1;
 }
 
 function set_columns_wrap() {
@@ -148,6 +159,14 @@ function set_columns_wrap() {
 	    data: c,
 	};
     });
+}
+
+async function reset_column_size() {
+    props.columns.forEach((c) => {
+	let id = `${props.id}-${props.get_column_id(c)}`;
+	store.remove(id);
+    });
+    await redraw_table_resizable();
 }
 
 async function change_active_page(new_active_page) {
