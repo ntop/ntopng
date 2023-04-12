@@ -22,16 +22,54 @@
 #include "ntop_includes.h"
 #include "flow_checks_includes.h"
 
+#define TODO_HERE 1
+
 /* ***************************************************** */
 
 void RareDestination::protocolDetected(Flow *f) {
   bool is_rare_destination = false;
+  
 
   /* TODO: check if this is a real rare destination */
   if(f->getFlowServerInfo() != NULL) {
 #ifdef TODO_HERE
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination %s", f->getFlowServerInfo());
-    is_rare_destination = true;
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination %s", f->getFlowServerInfo());
+
+    if (f->isLocalToLocal())
+    {
+      u_int32_t key = 0;
+      Host * dest = f->get_srv_host();
+
+      if (dest->isDHCPHost())
+      {
+        key = dest->getMac()->key();
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination MAC detected");
+      }
+      
+      if (dest->isIPv6())
+      {
+        const ndpi_in6_addr * destv6 = dest->get_ip()->get_ipv6();
+      }
+
+      if (dest->isIPv4())
+      {
+        key = dest->get_ip()->get_ipv4();
+        
+      }
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination IP %u", key);
+    }
+
+    /*
+      Host * source = f->get_cli_host();
+      Host * dest = f->get_srv_host();
+      source->get_ip()->equal(inet_addr("192.168.43.247"));
+      dest->isDHCPHost()
+      u_int8_t mac = *(dest->get_mac());
+    */
+
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Local Host Json %s", json_object_to_json_string_ext(source->get_ip()->getJSONObject(), JSON_C_TO_STRING_SPACED | JSON_C_TO_STRING_PRETTY));
+    //is_rare_destination = true;
 #endif
   }
   
