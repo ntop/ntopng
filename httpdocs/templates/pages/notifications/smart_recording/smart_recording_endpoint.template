@@ -1,0 +1,6 @@
+<small>
+<ul>
+  <li> {* i18n('notification_endpoint.smart_recording.description') *}</li>
+</ul>
+</small>
+

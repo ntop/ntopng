@@ -5301,6 +5301,9 @@ local lang = {
         ["invalid_port"] = "Invalid Syslog port.",
       },
     },
+    ["smart_recording"] = {
+      ["description"] = "Traffic recorded with continuous recording which is matching alerts delivered to this endpoint will be stored to a second level storage. This requires Smart Recording to be enabled under the Traffic Recording page.",
+    },
     ["teams"] = {
       ["url"] = "Connector",
       ["webhook_description"] = "Instructions:<ul><li>Alerts information are delivered to the configured Microsoft Teams Channel as Message Card<li>Brief explanation: open the settings of the channel you want to add the endpoint, click on `Connectors` then on `Incoming WebHook` (add to M.Teams connectors if not added before) and on `Configure`; from there create a new Connector and paste the Connector URL here<li>The official guide to Microsoft Teams Connectors can be found <a class='ntopng-external-link' href='https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook' target='_blank'>Here <i class='fas fa-external-link-alt'></i></a>",

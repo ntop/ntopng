@@ -440,6 +440,10 @@ local function getConfigInterfaceName(ifid)
   return ifname:gsub("%,", "_")
 end
 
+function recording_utils.getN2diskInstanceName(ifid)
+  return getConfigInterfaceName(ifid)
+end
+
 local function n2disk_service_name(provider)
    -- a service that is started manually by the sysadmin is normally called n2disk
    -- a service that is started and managed by ntopng is called n2disk-ntopng
