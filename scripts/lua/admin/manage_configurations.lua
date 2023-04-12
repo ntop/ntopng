@@ -16,6 +16,26 @@ if not isAdministratorOrPrintErr() then return end
 
 -- The order key is used to set an order for the rendered list in the page
 local configuration_items
+local page         = _GET["page"]
+local base_url = ntop.getHttpPrefix() .. "/lua/admin/manage_configurations.lua"
+
+page_utils.set_active_menu_entry( page_utils.menu_entries.manage_configurations)
+dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
+page_utils.print_navbar(i18n('manage_configurations.manage_configuration'), base_url .. "?", {
+  {
+    active = page == "manage_configurations" or page == nil,
+    page_name = "manage_configurations",
+    label = i18n("manage_configurations.manage_configurations"),
+  },
+  {
+    --url = base_url .. "?vlan_id=0&page=analysis&aggregation_criteria="..aggregation_criteria.."&draw="..draw.."&sort="..sort.."&order="..order.."&start="..start.."&length="..length,
+    active = page == "manage_configurations_backup",
+    page_name = "manage_configurations_backup",
+    label = i18n("manage_configurations.manage_configurations_backup"),
+  },
+})
+
 
 if not ntop.isnEdge() then
    configuration_items = {
@@ -40,27 +60,31 @@ end
 
 local selected_item = (table.has_key(configuration_items, _GET["item"]) and _GET["item"] or "all")
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.manage_configurations)
+--page_utils.set_active_menu_entry(page_utils.menu_entries.manage_configurations)
 
 -- append the menu above the page
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- if the selected page is snmp but we aren't in pro version
 -- then block the user with an alert
 
-page_utils.print_page_title(i18n("manage_configurations.manage_configurations"))
+--page_utils.print_page_title(i18n("manage_configurations.manage_configurations"))
 -- ************************************* ------
 
+if (page == "manage_configurations_backup") then
+   
 
-print(template_utils.gen("pages/manage_configurations.template", {
-    info = ntop.getInfo(),
-    template_utils = template_utils,
-    manage_configurations = {
-        selected_item = selected_item,
-        configuration_items = configuration_items,
-    }
-}))
+   print(template_utils.gen("pages/manage_configurations_backup.template", {}))
 
+else
+   print(template_utils.gen("pages/manage_configurations.template", {
+         info = ntop.getInfo(),
+         template_utils = template_utils,
+         manage_configurations = {
+            selected_item = selected_item,
+            configuration_items = configuration_items,
+         }
+   }))
+end
 -- ************************************* ------
 
 -- append the footer below the page

@@ -34,6 +34,7 @@ import { default as PageTestNewTable } from "./page-test-new-table.vue";
 import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
 import { default as PageEditApplications } from "./page-edit-applications.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
+import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -85,6 +86,7 @@ let ntopVue = {
     PageHostRules: PageHostRules,
     PageAlertAnalysis: PageAlertAnalysis,
     PageHostMap: PageHostMap,
+    PageManageConfigurationBackup: PageManageConfigurationBackup,
 
     PageEditApplications: PageEditApplications,
 
