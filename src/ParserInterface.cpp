@@ -417,9 +417,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
        defined in ntopng will still be applied to the protocols detected by
        nprobe. */
     guessed_protocol = ndpi_guess_undetected_protocol(
-        get_ndpi_struct(), flow->get_ndpi_flow(), flow->get_protocol(),
-        ntohl(flow->get_cli_ip_addr()->get_ipv4()), (flow->get_cli_port()),
-        ntohl(flow->get_srv_ip_addr()->get_ipv4()), (flow->get_srv_port()));
+        get_ndpi_struct(), flow->get_ndpi_flow(), flow->get_protocol());
 
     if (
         /* If nprobe acts is in collector-passthrough mode L7_PROTO is not
