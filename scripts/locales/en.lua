@@ -166,6 +166,7 @@ local lang = {
   ["edit_configuration"] = "Edit Configuration",
   ["egress"] = "Egress",
   ["empty"] = "Empty",
+  ["empty_info"] = "[ Empty ]",
   ["enable"] = "Enable",
   ["enable_auto_refresh"] = "Auto-Refresh",
   ["enable_check_title"] = "Enable Selected Check",
