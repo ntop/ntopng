@@ -1,5 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
+<div>
 <div class="button-group mb-2"> <!-- TableHeader -->
   <div style="float:left;">
     <label>
@@ -27,23 +28,23 @@
 	</div>
       </template>
     </Dropdown> <!-- Dropdown columns -->
-</div>  
+  </div>
 </div> <!-- TableHeader -->
 
-<div :key="table_key" class="" style="width: 100%;overflow: auto;"> <!-- Table -->
+<div :key="table_key" ref="table_div" class="" style="overflow:auto;width:100%"> <!-- Table -->
   
-  <table ref="table" class="table table-striped table-bordered mb-0" style="table-layout: auto;width: 100%; white-space: nowrap;" :data-resizable-columns-id="id"> <!-- Table -->
+  <table ref="table" class="table table-striped table-bordered ml-0 mr-0 mb-0 " style="table-layout: auto; white-space: nowrap;" data-resizable="true" :data-resizable-columns-id="id"> <!-- Table -->
     <thead>
       <tr>
 	<template v-for="(col, col_index) in columns_wrap">
-	  <th v-if="col.visible" scope="col" style="cursor:pointer;" @click="change_column_sort(col, col_index)">
+	  <th v-if="col.visible" scope="col" style="cursor:pointer;white-space: nowrap;" @click="change_column_sort(col, col_index)">
 	    <div style="display:flex;">
 	      <span v-html="print_column_name(col.data)" class="wrap-column"></span>
 	      <!-- <i v-show="col.sort == 0" class="fa fa-fw fa-sort"></i> -->
 	      <i v-show="col.sort == 1" class="fa fa-fw fa-sort-up"></i>
 	      <i v-show="col.sort == 2" class="fa fa-fw fa-sort-down"></i>
 	    </div>
-	</th>
+	  </th>
 	</template>
       </tr>
     </thead>
@@ -62,6 +63,8 @@
 		   :per_page="per_page"
 		   @change_active_page="change_active_page">
   </SelectTablePage>
+</div>
+
 </div>
 </template>
 
@@ -119,10 +122,17 @@ async function change_columns_visibility(col) {
     set_columns_resizable();
 }
 
+const table_div = ref(null);
 function set_columns_resizable() {
-    $(table.value).css('width', '90%');
-    $(table.value).resizableColumns();
-    $(table.value).css('width', '100%');
+    let options = {
+	// selector: table.value,
+	// padding: 0,
+	minWidth: 32,
+	// padding: -50,
+	// maxWidth: 150,
+    };
+    $(table.value).resizableColumns(options);
+    // $(table.value).css('width', '100%');
 }
 
 function redraw_table() {

@@ -317,7 +317,7 @@ var ResizableColumns = (function () {
 				this.setWidth(leftColumn, widthLeft);
 			}
 			if (rightColumn) {
-				this.setWidth(rightColumn, widthRight);
+				//this.setWidth(rightColumn, widthRight);
 			}
 
 			op.newWidths.left = widthLeft;
