@@ -5,7 +5,7 @@
   <div style="float:left;">
     <label>
       Show
-      <select v-model="per_page" @click="refresh_table()">
+      <select v-model="per_page" @change="change_per_page">
 	<option v-for="pp in per_page_options" :value="pp">{{pp}}</option>
       </select>
       Entries
@@ -62,7 +62,8 @@
 </div> <!-- Table div-->
 
 <div>
-  <SelectTablePage :total_rows="total_rows"
+  <SelectTablePage :key="select_pages_key"
+		   :total_rows="total_rows"
 		   :per_page="per_page"
 		   @change_active_page="change_active_page">
   </SelectTablePage>
@@ -117,7 +118,6 @@ async function load_table() {
     dropdown.value.load_menu();
 }
 
-const table_key = ref(0);
 async function change_columns_visibility(col) {    
     if (props.paging) {
 	await set_rows();
@@ -133,6 +133,7 @@ async function redraw_table_resizable() {
     set_columns_resizable();
 }
 
+const table_key = ref(0);
 function redraw_table() {
     table_key.value += 1;
 }
@@ -167,6 +168,16 @@ async function reset_column_size() {
 	store.remove(id);
     });
     await redraw_table_resizable();
+}
+
+function change_per_page() {
+    redraw_select_pages();
+    change_active_page(0);
+}
+
+const select_pages_key = ref(0);
+function redraw_select_pages() {
+    select_pages_key.value += 1;
 }
 
 async function change_active_page(new_active_page) {
