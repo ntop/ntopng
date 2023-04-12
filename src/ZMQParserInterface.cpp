@@ -683,7 +683,10 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
         flow->last_switched = value->int_num;
       break;
     case SAMPLING_INTERVAL:
+#if 0
+      /* Ignore it as nProbe as already implemented upscale */
       flow->pkt_sampling_rate = value->int_num;
+#endif
       break;
     case DIRECTION:
       if (value->string != NULL)
@@ -2514,7 +2517,7 @@ u_int8_t ZMQParserInterface::parseTemplate(const char *payload,
                                            u_int32_t msg_id, void *data) {
   /* The format that is currently defined for templates is a JSON as follows:
 
-     [{"PEN":0,"field":1,"len":4,"format":"formatted_uint","name":"IN_BYTES","descr":"Incoming
+     [{"12/Apr/2023 23:53:04 [util.cPEN":0,"field":1,"len":4,"format":"formatted_uint","name":"IN_BYTES","descr":"Incoming
      flow bytes
      (src->dst)"},{"PEN":0,"field":2,"len":4,"format":"formatted_uint","name":"IN_PKTS","descr":"Incoming
      flow packets (src->dst)"},]
