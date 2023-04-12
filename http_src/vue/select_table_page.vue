@@ -60,7 +60,7 @@ const start_page_button = ref(0);
 const num_page_buttons = ref(0);
 
 const total_pages = ref(0);
-const active_page = ref(0);
+const active_page = ref(1);
 
 const text_template = "Showing page %active_page of %total_pages: total %total_rows rows";
 const text = ref("");
@@ -77,7 +77,7 @@ function calculate_pages() {
     if (props.total_rows == null) { return; }
     let per_page = props.per_page;
     total_pages.value = Number.parseInt((props.total_rows + per_page - 1) / per_page);
-    if (active_page.value >= total_pages.value) {
+    if (active_page.value >= total_pages.value && total_pages.value > 0) {
 	active_page.value = total_pages.value - 1;
     }
 
