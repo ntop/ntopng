@@ -785,6 +785,12 @@ local function validateServer(v)
    return validateIpAddress(v) or validateSingleWord(v)
 end
 
+local function validateColumnsIds(v) 
+   
+   return true
+   --return json.decode(v) ~= nil
+end
+
 local function validateDate(p)
    -- TODO this validation function should be removed and dates should always be passed as timestamp
    if string.find(p, ":") ~= nil then
@@ -2150,6 +2156,11 @@ local known_parameters = {
    ["network_discovery_interval"]                  = validateNumber,
    ["blog_notification_id"]                        = validateNumber,
    ["captive_portal_id_method"]                    = validateChoiceInline({"mac", "ip"}),
+
+   -- Save columns config new tables
+   ["visible_columns_ids"]                         = validateColumnsIds,
+   ["table_id"]                                    = validateSingleWord,
+
 
    -- Error report
    ["message"]                                     = validateSingleWord,
