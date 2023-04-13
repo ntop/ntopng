@@ -695,7 +695,7 @@ function recording_utils.createConfig(ifid, params)
 
   -- Disk settings
   f:write("-l="..config.max_smart_disk_space.."\n")
-  f:write("-p"..config.max_file_size.."\n")
+  f:write("-p="..config.max_file_size.."\n")
 
   -- User
   if not isEmptyString(prefs.user) then
