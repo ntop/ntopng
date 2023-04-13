@@ -786,9 +786,18 @@ local function validateServer(v)
 end
 
 local function validateColumnsIds(v) 
-   
+   -- An Array is composed by a series of string separated by commas
+   -- e.g.     column1,column2,column3
+   -- So split by comma and check each single column with validateSingleWord
+   local columns = string.split(v, ",")
+
+   for _, column_id in pairs(columns) do
+      if not validateSingleWord(column_id) then
+         return false
+      end
+   end
+
    return true
-   --return json.decode(v) ~= nil
 end
 
 local function validateDate(p)
