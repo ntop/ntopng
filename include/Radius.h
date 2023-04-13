@@ -34,7 +34,7 @@ class Radius {
   char dict_path[MAX_RADIUS_LEN];
 
   bool buildConfiguration(rc_handle **rh);
-  bool addBasicConfigurationAcct(rc_handle **rh, VALUE_PAIR **send, const char *status_type, const char *username, const char *session_id);
+  bool addBasicConfigurationAcct(rc_handle **rh, VALUE_PAIR **send, u_int16_t status_type, const char *username, const char *session_id);
   bool addUpdateConfigurationAcct(rc_handle **rh, VALUE_PAIR **send, Host *h);
  public:
   Radius();

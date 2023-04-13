@@ -71,13 +71,15 @@ if auth.has_capability(auth.capabilities.preferences) then
    end
 
    if(_POST["toggle_radius_auth"] == "1") 
-      and((_POST["radius_server_address"] ~= "ntopng.prefs.radius.radius_server_address")
-        or (_POST["radius_secret"] ~= "ntopng.prefs.radius.radius_secret")
-        or (_POST["radius_admin_group"] ~= "ntopng.prefs.radius.radius_admin_group")
-        or (_POST["radius_unpriv_capabilties_group"] ~= "ntopng.prefs.radius.radius_unpriv_capabilties_group")
-        or (_POST["toggle_radius_accounting"] ~= "ntopng.prefs.radius.accounting_enabled")) then
-    ntop.updateRadiusLoginInfo()
-   end
+      and((_POST["radius_server_address"] ~= ntop.getPref("ntopng.prefs.radius.radius_server_address"))
+        or (_POST["radius_secret"] ~= ntop.getPref("ntopng.prefs.radius.radius_secret"))
+        or (_POST["radius_admin_group"] ~= ntop.getPref("ntopng.prefs.radius.radius_admin_group"))
+        or (_POST["radius_unpriv_capabilties_group"] ~= ntop.getPref("ntopng.prefs.radius.radius_unpriv_capabilties_group"))
+        or (_POST["toggle_radius_accounting"] ~= ntop.getPref("ntopng.prefs.radius.accounting_enabled"))) then
+      -- In the minute callback there is a periodic script that in case 
+      -- the auth changed, it's going to update the radius info
+      ntop.setCache('ntopng.prefs.radius_auth_changed', '1')
+    end
 
    if(_POST["disable_alerts_generation"] == "1") then
     local alert_utils = require "alert_utils"

@@ -140,13 +140,15 @@ bool Radius::buildConfiguration(rc_handle **rh) {
 /* *************************************** */
 
 /* Performs the basic configuration for the accounting, Status type, service, username and session id */
-bool Radius::addBasicConfigurationAcct(rc_handle **rh, VALUE_PAIR **send, const char *status_type, const char *username, const char *session_id) {
-  if (rc_avpair_add(*rh, send, PW_ACCT_STATUS_TYPE, status_type, -1, 0) == NULL) {
+bool Radius::addBasicConfigurationAcct(rc_handle **rh, VALUE_PAIR **send, u_int16_t status_type, const char *username, const char *session_id) {
+  u_int16_t service_type = PW_FRAMED;
+
+  if (rc_avpair_add(*rh, send, PW_ACCT_STATUS_TYPE, &status_type, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set Status Type");
     return false;
   }
 
-  if (rc_avpair_add(*rh, send, PW_SERVICE_TYPE, RADIUS_ACCT_SERVICE_TYPE, -1, 0) == NULL) {
+  if (rc_avpair_add(*rh, send, PW_SERVICE_TYPE, &service_type, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set Service Type");
     return false;
   }
@@ -155,7 +157,7 @@ bool Radius::addBasicConfigurationAcct(rc_handle **rh, VALUE_PAIR **send, const 
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set username");
     return false;
   }
-
+  
   if (rc_avpair_add(*rh, send, PW_ACCT_SESSION_ID, session_id, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set Session ID");
     return false;
@@ -357,7 +359,7 @@ bool Radius::startSession(const char *username, const char *session_id) {
     goto radius_auth_out;
   }
 
-  if(!addBasicConfigurationAcct(&rh, &send, RADIUS_ACCT_STATUS_TYPE_START, username, session_id)) {
+  if(!addBasicConfigurationAcct(&rh, &send, PW_STATUS_START, username, session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
   }
@@ -398,7 +400,7 @@ bool Radius::updateSession(const char *username, const char *session_id, Host *h
   }
 
   /* Create the basic configuration, used by the accounting */
-  if(!addBasicConfigurationAcct(&rh, &send, RADIUS_ACCT_STATUS_TYPE_UPDATE, username, session_id)) {
+  if(!addBasicConfigurationAcct(&rh, &send, PW_STATUS_ALIVE, username, session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
   }
@@ -451,7 +453,7 @@ bool Radius::stopSession(const char *username, const char *session_id, Host *h) 
   }
 
   /* Create the basic configuration, used by the accounting */
-  if(!addBasicConfigurationAcct(&rh, &send, RADIUS_ACCT_STATUS_TYPE_STOP, username, session_id)) {
+  if(!addBasicConfigurationAcct(&rh, &send, PW_STATUS_STOP, username, session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
   }
