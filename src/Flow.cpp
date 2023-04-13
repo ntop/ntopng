@@ -258,7 +258,8 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
       break;
 
     default:
-      setDetectedProtocol(ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol));
+      setDetectedProtocol(ndpi_guess_undetected_protocol(
+          iface->get_ndpi_struct(), NULL, protocol));
       break;
   }
 

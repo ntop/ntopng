@@ -652,9 +652,18 @@ class Ntop {
 
 #ifdef HAVE_RADIUS
   inline void updateRadiusLoginInfo() { radiusAcc->updateLoginInfo(); };
-  inline void startRadiusAccounting(const char *username, const char *session_id) { radiusAcc->startSession(username, session_id); };
-  inline void updateRadiusAccounting(const char *username, const char *session_id, Host *h) { radiusAcc->updateSession(username, session_id, h); };
-  inline void stopRadiusAccounting(const char *username, const char *session_id, Host *h) { radiusAcc->stopSession(username, session_id, h); };
+  inline void startRadiusAccounting(const char *username,
+                                    const char *session_id) {
+    radiusAcc->startSession(username, session_id);
+  };
+  inline void updateRadiusAccounting(const char *username,
+                                     const char *session_id, Host *h) {
+    radiusAcc->updateSession(username, session_id, h);
+  };
+  inline void stopRadiusAccounting(const char *username, const char *session_id,
+                                   Host *h) {
+    radiusAcc->stopSession(username, session_id, h);
+  };
 #endif
 
   inline bool hasDroppedPrivileges() { return (privileges_dropped); }
