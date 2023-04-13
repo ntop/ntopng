@@ -2,6 +2,9 @@
 -- (C) 2013-23 - ntop.org
 --
 
+--
+-- This script implements the backup of ntopng configurations
+--
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
@@ -17,7 +20,7 @@ local json = require ("dkjson")
 
 -- ##############################################
 
-local action = _GET["action"]
+local action = nil -- _GET["action"]
 local saved_backup_key = "ntopng.prefs.config_save_backup"
 local backup_config = {}
 
@@ -149,20 +152,21 @@ function backup_config.export_backup(epoch)
     local redis_result = ntop.getCache(backup_to_restore_key)
     local backup_to_restore = json.decode(redis_result) or {}
 
-
     return(json.encode(backup_to_restore.instance, nil))
   end
 end
 
 -- ##############################################
 
-if(action == "save") then
-  backup_config.save_backup()
-  rest_utils.answer(rest_utils.consts.success.ok)
-elseif(action == "export") then
-  backup_config.export_backup()
-elseif(action == "list") then
-  backup_config.list_backup()
+if(action ~= nil) then
+  if(action == "save") then
+    backup_config.save_backup()
+    rest_utils.answer(rest_utils.consts.success.ok)
+  elseif(action == "export") then
+    backup_config.export_backup()
+  elseif(action == "list") then
+     backup_config.list_backup()
+  end
 end
 
 -- ##############################################
