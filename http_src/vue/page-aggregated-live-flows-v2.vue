@@ -204,7 +204,7 @@ function get_table_columns_config() {
 	columns.push(
 	    { 
 		columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-		    return `<label>${data.label}</label>`
+		    return `${data.label}`
 		} 
 	    });
     }
