@@ -1,11 +1,9 @@
 --
 -- (C) 2013-23 - ntop.org
 --
-
 --
 -- This script implements the backup of ntopng configurations
 --
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" .. package.path
@@ -16,153 +14,116 @@ require "lua_utils"
 local all_import_export = require "all_import_export"
 local import_export_rest_utils = require "import_export_rest_utils"
 local rest_utils = require("rest_utils")
-local json = require ("dkjson")
+local json = require("dkjson")
 
 -- ##############################################
 
 local action = nil -- _GET["action"]
-local saved_backup_key = "ntopng.prefs.config_save_backup"
+local backup_hash_key = "ntopng.prefs.config_save_backup"
 local backup_config = {}
 
 local debugger = false
 
-debugger = true
-
 -- ##############################################
 
-local function remove_last(epoch_keys) 
+local function remove_last(epoch_keys)
+    for key, _ in pairsByKeys(epoch_keys or {}, asc) do
+        if debugger then
+            traceError(TRACE_DEBUG, TRACE_CONSOLE, "Removing the key: " .. key)
+        end
 
-  table.sort(epoch_keys, function(a, b) return a[1].split('.')[4] < b[1].split('.')[4] end)
-  if debugger then
-    traceError(TRACE_DEBUG, TRACE_CONSOLE," Epoch Keys: " .. epoch_keys .. "\n")
-  end
-
-  for item in pairs(epoch_keys) do 
-    ntop.delCache(item)
-    break
-  end
-
-end
-
--- ##############################################
-
-local function count_entries(entries) 
-  local count = 0
-  for item in pairs(entries) do
-    count = count + 1
-  end
-  return count
-
+        ntop.delHashCache(backup_hash_key, key)
+        break
+    end
 end
 
 -- ##############################################
 
 -- @brief Save configurations backup.
 function backup_config.save_backup()
-  local instances = {}
-  instances["all"] = all_import_export:create()
-  local backup = import_export_rest_utils.export(instances, false)
-
-  if debugger then
-    traceError(TRACE_DEBUG, TRACE_CONSOLE, "START BACKUP SAVING")
-  end
-  
-  local now = os.time()
-  local last_redis_key = saved_backup_key.."."..tostring(now)
-  local current_saved_backup = ntop.getKeysCache(saved_backup_key..".*") or {}
-  local num_current_saved_backup = count_entries(current_saved_backup)
-
-  -- check actual saved backups
-  if (num_current_saved_backup == 7) then
-    remove_last(current_saved_backup)
-  end
-
-  if debugger then
-    traceError(TRACE_DEBUG, TRACE_CONSOLE, "Total saved backups: " .. num_current_saved_backup .. "\nCurrent Saved Backup: " .. current_saved_backup .. "\n")
-  end
-
-  if (current_saved_backup and num_current_saved_backup > 1) then
-    local last_backup = {}
-    for item in pairs(current_saved_backup) do
-      local redis_item = json.decode(ntop.getCache(item)) or {}
-      if(redis_item and redis_item.last) then
-        last_backup = {key = item, redis = redis_item}
-        break
-      end
+    local instances = {}
+    -- Retrieve the configuration
+    instances["all"] = all_import_export:create()
+    local backup = import_export_rest_utils.export(instances, false, true)
+    if debugger then
+        traceError(TRACE_DEBUG, TRACE_CONSOLE, "START BACKUP SAVING")
     end
 
-    if (last_backup.redis.instance ~= backup) then
+    -- Get all the keys
+    local key = tostring(os.time())
+    local saved_backups_keys = ntop.getHashKeysCache(backup_hash_key) or {}
+    local num_saved_backups = table.len(saved_backups_keys) or 0
 
-      if debugger then
-        traceError(TRACE_DEBUG, TRACE_CONSOLE, "Saving Backup: " .. backup .."\nUsing Redis key: " .. last_redis_key)
-      end 
-      local string_to_save = json.encode({instance = backup, last = true})
-      last_backup.redis.last = false
-      ntop.setCache(last_backup.key, last_backup.redis)
-      ntop.setCache(last_redis_key, string_to_save)
+    -- Check the currently saved backups
+    while (num_saved_backups >= 7) do
+        remove_last(saved_backups_keys)
     end
-  else 
-      if debugger then
-        traceError(TRACE_DEBUG, TRACE_CONSOLE, "Saving Backup: " .. backup .."\nUsing Redis key: " .. last_redis_key)
-      end
-      local string_to_save = json.encode({instance = backup, last = true})
-      ntop.setCache(last_redis_key, string_to_save)  
-  end
 
+    if (saved_backups_keys and num_saved_backups >= 1) then
+        -- Save the configuration on redis only if the configuration has some changes
+        -- between the last saved configuration, using the pairsByKeys just to order the
+        -- keys from the last added to the first one.
+        for item, _ in pairsByKeys(saved_backups_keys, rev) do
+            local last_config = json.decode(ntop.getHashCache(backup_hash_key, item)) or {}
+            -- Check if the last configuration is equal to the current one
+            if not (last_config == backup) then
+                if debugger then
+                    traceError(TRACE_DEBUG, TRACE_CONSOLE, "Saving Backup: " .. backup .. "\nUsing Redis key: " .. key)
+                end
+
+                ntop.setHashCache(backup_hash_key, key, json.encode(backup))
+                break
+            end
+        end
+    else
+        -- Save the backup
+        if debugger then
+            traceError(TRACE_DEBUG, TRACE_CONSOLE, "Saving Backup: " .. backup .. "\nUsing Redis key: " .. key)
+        end
+
+        ntop.setHashCache(backup_hash_key, key, json.encode(backup))
+    end
 end
 
 -- ##############################################
 
 -- @brief List all configurations backup.
 function backup_config.list_backup()
-  local num_current_saved_backup = ntop.getKeysCache(saved_backup_key..".*") or {}
+    local saved_backups_keys = ntop.getHashKeysCache(backup_hash_key) or {}
+    local epoch_list = {}
 
-  local epoch_list = {}
-  
-  if (num_current_saved_backup) then
-    for item in pairs(num_current_saved_backup) do
-      table.insert(epoch_list, {epoch = item})
+    for epoch, _ in pairs(saved_backups_keys) do
+        epoch_list[#epoch_list + 1] = {
+            epoch = epoch
+        }
     end
-  end
 
-  return(epoch_list)
+    return epoch_list
 end
 
 -- ##############################################
 
 -- @brief Export configuration backup.
 function backup_config.export_backup(epoch)
+    if (epoch == nil or isEmptyString(epoch)) then
+        return false, {}
+    end
 
-  if(epoch == nil or isEmptyString(epoch)) then
-    return(-1)
-  end
-
-  local rc = rest_utils.consts.success.ok
-
-  local num_current_saved_backup = ntop.getKeysCache(saved_backup_key..".*") or {}
-
-  if(num_current_saved_backup) then
-    
-    
-    local backup_to_restore_key = saved_backup_key.."."..epoch
-    local redis_result = ntop.getCache(backup_to_restore_key)
-    local backup_to_restore = json.decode(redis_result) or {}
-
-    return(json.encode(backup_to_restore.instance, nil))
-  end
+    local backup_to_restore = json.decode(ntop.getHashCache(backup_hash_key, epoch)) or {}
+    return true, json.encode(backup_to_restore)
 end
 
 -- ##############################################
 
-if(action ~= nil) then
-  if(action == "save") then
-    backup_config.save_backup()
-    rest_utils.answer(rest_utils.consts.success.ok)
-  elseif(action == "export") then
-    backup_config.export_backup()
-  elseif(action == "list") then
-     backup_config.list_backup()
-  end
+if (action ~= nil) then
+    if (action == "save") then
+        backup_config.save_backup()
+        rest_utils.answer(rest_utils.consts.success.ok)
+    elseif (action == "export") then
+        backup_config.export_backup()
+    elseif (action == "list") then
+        backup_config.list_backup()
+    end
 end
 
 -- ##############################################
