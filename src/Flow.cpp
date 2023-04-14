@@ -593,7 +593,13 @@ void Flow::processDetectedProtocolData() {
           cli_h->incrVisitedWebSite(ndpiFlow->host_server_name);
 
         if (cli_h) cli_h->incContactedService(ndpiFlow->host_server_name);
+#if 0
+	/*
+	  Commented out as it will be eventually set below by (***)
+	  This should prevent misclassifying host names
+	*/
         if (srv_h) srv_h->setServerName(host_server_name);
+#endif
       }
       break;
 
@@ -666,10 +672,10 @@ void Flow::processExtraDissectedInformation() {
             (ndpiFlow->host_server_name[0] != '\0')) {
           protos.tls.client_requested_server_name =
 	    strdup(ndpiFlow->host_server_name);
-	  
+
           /* Now some minor cleanup */
           char *c;
-	  
+
           if ((c = strchr(protos.tls.client_requested_server_name, ',')) !=   NULL)
             c[0] = '\0';
           else if ((c = strchr(protos.tls.client_requested_server_name, ' ')) !=
@@ -2092,18 +2098,32 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
       break;
   }
 
-  if (srv_host
-      && (protos.tls.client_requested_server_name != NULL)
-      && isTLS()
-      && (!hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH))
-      && (!Utils::isIPAddress(protos.tls.client_requested_server_name))
-      && (get_packets() >= 20) /*
-				 Avoid micro-flows that might be an indication that
-				 the response page is too short and thus that
-				 it might be a denied page or similar
-			       */
-      ) {
-    srv_host->offlineSetTLSName(protos.tls.client_requested_server_name);
+  if (srv_host && isTLS()) {
+#ifdef DEBUG
+    char buf2[64];
+    
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "$$$ %s <-> %s [pkts: %u][%s]",
+				 get_srv_ip_addr() ? get_srv_ip_addr()->print(buf2, sizeof(buf2)) : "",
+				 protos.tls.client_requested_server_name,
+				 get_packets(),
+				 protos.tls.server_names ? protos.tls.server_names : "");
+#endif
+    
+    if((protos.tls.server_names != NULL)
+       /* Ignore hostnames with wildcard or multiple comma-separated values */
+       && (strchr(protos.tls.server_names, '*') == NULL)
+       && (strchr(protos.tls.server_names, ',') == NULL))
+      srv_host->offlineSetTLSName(protos.tls.server_names);
+    else if((protos.tls.client_requested_server_name != NULL)
+	    && (!hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH))
+	    && (!Utils::isIPAddress(protos.tls.client_requested_server_name))
+	    && (get_packets() >= 20) /*
+				       Avoid micro-flows that might be an indication that
+				       the response page is too short and thus that
+				       it might be a denied page or similar
+				     */
+	    )
+      srv_host->offlineSetTLSName(protos.tls.client_requested_server_name); /* (***) */
   }
 }
 
@@ -2454,7 +2474,7 @@ bool Flow::equal(const Mac *_src_pkt_mac, const Mac *_dst_pkt_mac,
 #if 0
   if(ntohs(_cli_port) == 17446) {
     char buf1[64],buf2[64],buf3[64],buf4[64];
-    
+
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s][%s][%s][%s]",
 				 cli_ip->print(buf1, sizeof(buf1)),
 				 srv_ip->print(buf2, sizeof(buf2)),
