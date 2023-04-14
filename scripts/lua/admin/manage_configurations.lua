@@ -71,19 +71,16 @@ local selected_item = (table.has_key(configuration_items, _GET["item"]) and _GET
 -- ************************************* ------
 
 if (page == "manage_configurations_backup") then
-   
-
-   print(template_utils.gen("pages/manage_configurations_backup.template", {}))
-
+   template_utils.render("pages/manage_configurations_backup.template", {})
 else
-   print(template_utils.gen("pages/manage_configurations.template", {
+   template_utils.render("pages/manage_configurations.template", {
          info = ntop.getInfo(),
          template_utils = template_utils,
          manage_configurations = {
             selected_item = selected_item,
             configuration_items = configuration_items,
          }
-   }))
+   })
 end
 -- ************************************* ------
 
