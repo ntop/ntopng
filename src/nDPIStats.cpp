@@ -50,15 +50,14 @@ nDPIStats::nDPIStats(nDPIStats &stats) {
           counters.find(it->first);
 
       if (cbr == counters.end()) {
-        ProtoCounter *p = cbr->second;
         ProtoCounter *pc =
             new (std::nothrow) ProtoCounter(it->first,
 #ifdef NTOPNG_PRO
-                                            p->has_throughput_stats(),
+                                            enable_throughput_stats,
 #else
                                             false,
 #endif
-                                            p->has_behavior_stats());
+                                            enable_behavior_stats);
 
         if (pc != NULL) {
           pc->set(c);
