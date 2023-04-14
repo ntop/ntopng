@@ -221,7 +221,7 @@ static void set_session_cookie(const struct mg_connection * const conn,
   /* http://en.wikipedia.org/wiki/HTTP_cookie */
   mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
 	    "Server: ntopng %s (%s)\r\n"
-	    "Set-Cookie: %s=%s; path=/; max-age=%u;%s\r\n"  // Session ID
+	    "Set-Cookie: %s=%s; HttpOnly; path=/; max-age=%u;%s\r\n"  // Session ID
 	    "Location: %s\r\n\r\n",
 	    PACKAGE_VERSION, PACKAGE_MACHINE,
 	    session_key, session_id, session_duration,
@@ -672,10 +672,10 @@ static void redirect_to_login(struct mg_connection *conn,
     mg_printf(conn,
 	      "HTTP/1.1 302 Found\r\n"
 	      "Server: ntopng %s (%s)\r\n"
-	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+	      "Set-Cookie: session=%s; HttpOnly; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 #if 0
-	      "Set-Cookie: user=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"
-	      "Set-Cookie: password=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"
+	      "Set-Cookie: user=; HttpOnly; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"
+	      "Set-Cookie: password=; HttpOnly; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"
 #endif
 	      "Location: %s%s%s%s%s%s%s%s\r\n\r\n",
 	      PACKAGE_VERSION, PACKAGE_MACHINE,
@@ -725,7 +725,7 @@ int redirect_to_error_page(struct mg_connection *conn,
   mg_printf(conn,
 	    "HTTP/1.1 302 Found\r\n"
 	    "Server: ntopng %s (%s)\r\n"
-	    "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
+	    "Set-Cookie: session=%s; HttpOnly; path=/;%s\r\n"  // Session ID
 	    "Location: %s%s?message=%s%s%s&error_message=%s\r\n\r\n%s\n\r", /* FIX */
 	    PACKAGE_VERSION, PACKAGE_MACHINE,
 	    session_id,
@@ -793,7 +793,7 @@ static void redirect_to_password_change(struct mg_connection *conn,
   mg_printf(conn,
 	    "HTTP/1.1 302 Found\r\n"
 	    "Server: ntopng %s (%s)\r\n"
-	    "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
+	    "Set-Cookie: session=%s; HttpOnly; path=/;%s\r\n"  // Session ID
 	    "Location: %s%s%s%s\r\n\r\n", /* FIX */
 	    PACKAGE_VERSION, PACKAGE_MACHINE, session_id,
 	    get_secure_cookie_attributes(request_info),
@@ -1171,7 +1171,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 		"HTTP/1.1 403 Forbidden\r\n"
 		"Server: ntopng %s (%s)\r\n"
 		"Content-Type: text/html\r\n"
-		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+		"Set-Cookie: session=%s; HttpOnly; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 		"Connection: close\r\n"
 		"\r\n\r\n%s",
 		PACKAGE_VERSION, PACKAGE_MACHINE,
