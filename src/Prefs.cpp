@@ -537,7 +537,14 @@ void usage() {
       "case-insensitive.\n"
       "                                    |\n"
 #endif
+#ifdef NTOPNG_PRO
+      ,
+      CONST_DEFAULT_DATA_DIR, CONST_LABELS_LOG_FILE
+#endif
+	 );
+
 #if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO)
+  printf(
       "                                    | clickhouse    Dump in ClickHouse "
       "(Enterprise M/L/XL)\n"
       "                                    |   Format:\n"
@@ -564,8 +571,13 @@ void usage() {
       "                                    |   -F "
       "\"clickhouse-cluster;127.0.0.1@%u,%u;ntopng;default;ntop_cluster\"\n"
       "                                    |\n"
+      ,
+      CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT,
+      CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
+  );
 #endif
 
+  printf(
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
       "                                    | kafka   Dump to Kafka (Enterprise "
       "M/L/XL)\n"
@@ -636,8 +648,14 @@ void usage() {
       "[--version-json]                    | Print version and license "
       "information in JSON format, then quit\n"
 #endif
-      "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 "
-      "(debug)]\n"
+      "[--verbose|-v] <level>              | Verbose tracing [range 0 (min).. 6 (max)]\n"
+      "                                    | 0 - Errors only\n"
+      "                                    | 1 - Warning\n"
+      "                                    | 2 - Normal (default value)\n"
+      "                                    | 3 - Informative\n"
+      "                                    | 4 - Future use\n"
+      "                                    | 5 - Future use\n"
+      "                                    | 6 - Debug\n"
       "[--print-ndpi-protocols]            | Print the nDPI protocols list\n"
 #ifndef HAVE_NEDGE
       "[--ignore-macs]                     | Ignore MAC addresses from "
@@ -653,17 +671,8 @@ void usage() {
       "[--simulate-ips] <num>              | Simulate IPs by choosing clients "
       "and servers among <num> random addresses\n"
       "[--help|-h]                         | Help\n"
-#ifdef NTOPNG_PRO
-      ,
-      CONST_DEFAULT_DATA_DIR, CONST_LABELS_LOG_FILE
-#endif
-#if defined(NTOPNG_PROT) && defined(HAVE_CLICKHOUSE)
-      ,
-      CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT,
-      CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
-#endif
-  );
-
+	 );
+  
   printf("\n");
 
   /* Just create an instance of the system interface to print out the available
