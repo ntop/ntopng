@@ -44,6 +44,9 @@ pfring *TimelineExtract::openTimeline(const char *timeline_path, time_t from,
   char *filter;
   struct tm *time_info;
   int rc;
+  char timeline_ifname[MAX_PATH];
+
+  snprintf(timeline_ifname, sizeof(timeline_ifname), "timeline:%s", timeline_path);
 
   handle = pfring_open(timeline_path, 16384, 0);
 
@@ -113,7 +116,7 @@ pfring *TimelineExtract::openTimelineFromInterface(NetworkInterface *iface,
                                                    const char *bpf_filter) {
   char timeline_path[MAX_PATH];
 
-  snprintf(timeline_path, sizeof(timeline_path), "timeline:%s/%d/timeline",
+  snprintf(timeline_path, sizeof(timeline_path), "%s/%d/timeline",
            ntop->getPrefs()->get_pcap_dir(), iface->get_id());
 
   return openTimeline(timeline_path, from, to, bpf_filter);

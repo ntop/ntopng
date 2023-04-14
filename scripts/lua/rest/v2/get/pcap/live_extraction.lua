@@ -49,10 +49,7 @@ if filter == nil then
    filter = ""
 end
 
-local timeline_path
-if recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng" then
-   timeline_path = recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifid)
-end
+local timeline_path = recording_utils.getTimelineByInterval(ifid, time_from, time_to)
 
 local fname = time_from.."-"..time_to..".pcap"
 sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="'..fname..'"')

@@ -3269,6 +3269,8 @@ static int ntop_run_live_extraction(lua_State *vm) {
   time_to = lua_tointeger(vm, 3);
   if ((bpf = (char *)lua_tostring(vm, 4)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+  /* Optional: by default use <id>/timeline as path */
   if (lua_tostring(vm, 5)) timeline_path = (char *)lua_tostring(vm, 5);
 
   iface = ntop->getInterfaceById(ifid);

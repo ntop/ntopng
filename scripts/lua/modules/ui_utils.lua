@@ -145,13 +145,14 @@ function ui_utils.draw_pcap_download_dialog(ifid)
      });
    }
 
-   function pcapDownload(epoch_begin, epoch_end, bpf_filter) {
+   function pcapDownload(epoch_begin, epoch_end, bpf_filter, is_alert) {
      $.ajax({
        type: "GET",
        url: ']] print(ntop.getHttpPrefix().."/lua/check_recording_data.lua") print [[',
        data: {
          epoch_begin: epoch_begin,
-         epoch_end: epoch_end
+         epoch_end: epoch_end,
+         alert_data_only: is_alert
        }, error: function(err) {
          console.error(err);
        }, success: function(data) {

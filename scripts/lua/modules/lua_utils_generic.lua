@@ -221,12 +221,14 @@ end
 -- ###########################################
 
 function toboolean(s)
-  if((s == "true") or (s == true)) then
+  if not isEmptyString(s) and (
+       s == "true" or
+       s == true or
+       s == "1" or
+       s == 1) then
     return true
-  elseif((s == "false") or (s == false)) then
-    return false
   else
-    return nil
+    return false
   end
 end
 
