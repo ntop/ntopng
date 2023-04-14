@@ -217,8 +217,10 @@ void ElasticSearch::indexESdata() {
         incNumDroppedFlows(num_flows);
         sleep(1);
       } else {
-        ntop->getTrace()->traceEvent(TRACE_INFO, "Sent %u flow(s) to ES",
-                                     num_flows);
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Sent %u flow(s) to ES", num_flows);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] [namelookup: %.1f sec][connect: %.1f sec][appconnect: %.1f sec][pretransfer: %.1f sec][redirect: %.1f sec][start: %.1f sec][total: %.1f sec]",
+				     stats.namelookup, stats.connect, stats.appconnect,
+				     stats.pretransfer, stats.redirect, stats.start, stats.total);
         incNumExportedFlows(num_flows);
       }
 
