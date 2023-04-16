@@ -241,31 +241,31 @@
 #define LAST_RESET_TIME "ntopng.prefs.last_reset_time"
 
 #define TRAFFIC_FILTERING_CACHE_DURATION 43200 /* 12 h */
-#define DNS_CACHE_DURATION 3600                /*  1 h */
-#define LOCAL_HOSTS_CACHE_DURATION 3600        /*  1 h */
-#define HOST_LABEL_NAMES_KEY "ntopng.cache.host_labels.%s"
-#define IFACE_DHCP_RANGE_KEY "ntopng.prefs.ifid_%u.dhcp_ranges"
-#define HOST_SERIALIZED_KEY "ntopng.serialized_hosts.ifid_%u__%s@%d"
-#define MAC_SERIALIZED_KEY "ntopng.serialized_macs.ifid_%u__%s"
-#define IP_MAC_ASSOCIATION "ntopng.ip_to_mac.ifid_%u__%s@%d"
-#define HOST_PREF_MUD_RECORDING "ntopng.prefs.iface_%d.mud.recording.%s"
+#define DNS_CACHE_DURATION            3600     /*  1 h */
+#define LOCAL_HOSTS_CACHE_DURATION    3600     /*  1 h */
+#define HOST_LABEL_NAMES_KEY          "ntopng.cache.host_labels.%s"
+#define IFACE_DHCP_RANGE_KEY          "ntopng.prefs.ifid_%u.dhcp_ranges"
+#define HOST_SERIALIZED_KEY           "ntopng.serialized_hosts.ifid_%u_%s@%d"
+#define MAC_SERIALIZED_KEY            "ntopng.serialized_macs.ifid_%u_%s" /* /lua/enterprise/get_inactive_macs_data.lua */
+#define IP_MAC_ASSOCIATION            "ntopng.ip_to_mac.ifid_%u_%s@%d"
+#define HOST_PREF_MUD_RECORDING       "ntopng.prefs.iface_%d.mud.recording.%s"
 #define MUD_RECORDING_GENERAL_PURPOSE "general_purpose"
 #define MUD_RECORDING_SPECIAL_PURPOSE "special_purpose"
-#define MUD_RECORDING_DISABLED "disabled"
-#define MUD_RECORDING_DEFAULT "default"
-#define HOST_BY_MAC_SERIALIZED_KEY "ntopng.serialized_hostsbymac.ifid_%u__%s"
-#define HOST_POOL_SERIALIZED_KEY "ntopng.serialized_host_pools.ifid_%u"
-#define VLAN_SERIALIZED_KEY "ntopng.serialized_vlan.ifid_%u_vlan_%u"
-#define AS_SERIALIZED_KEY "ntopng.serialized_as.ifid_%u_as_%u"
-#define COUNTRY_SERIALIZED_KEY "ntopng.serialized_as.ifid_%u_country_%s"
-#define OBS_POINT_SERIALIZED_KEY "ntopng.serialized_as.ifid_%u_obs_point_%u"
-#define SYSLOG_PRODUCERS_MAP_KEY "ntopng.syslog.ifid_%u.producers_map"
-#define NTOPNG_PREFS_PREFIX "ntopng.prefs"
-#define NTOPNG_CACHE_PREFIX "ntopng.cache"
-#define NTOPNG_USER_PREFIX "ntopng.user"
-#define NTOPNG_API_TOKEN_PREFIX "ntopng.api_tokens"
-#define MAC_CUSTOM_DEVICE_TYPE NTOPNG_PREFS_PREFIX ".device_types.%s"
-#define NTOP_HOSTS_SERIAL "ntopng.host_serial"
+#define MUD_RECORDING_DISABLED         "disabled"
+#define MUD_RECORDING_DEFAULT          "default"
+#define HOST_BY_MAC_SERIALIZED_KEY     "ntopng.serialized_hostsbymac.ifid_%u_%s"
+#define HOST_POOL_SERIALIZED_KEY       "ntopng.serialized_host_pools.ifid_%u"
+#define VLAN_SERIALIZED_KEY            "ntopng.serialized_vlan.ifid_%u_vlan_%u"
+#define AS_SERIALIZED_KEY              "ntopng.serialized_as.ifid_%u_as_%u"
+#define COUNTRY_SERIALIZED_KEY         "ntopng.serialized_as.ifid_%u_country_%s"
+#define OBS_POINT_SERIALIZED_KEY       "ntopng.serialized_as.ifid_%u_obs_point_%u"
+#define SYSLOG_PRODUCERS_MAP_KEY       "ntopng.syslog.ifid_%u.producers_map"
+#define NTOPNG_PREFS_PREFIX            "ntopng.prefs"
+#define NTOPNG_CACHE_PREFIX            "ntopng.cache"
+#define NTOPNG_USER_PREFIX             "ntopng.user"
+#define NTOPNG_API_TOKEN_PREFIX        "ntopng.api_tokens"
+#define MAC_CUSTOM_DEVICE_TYPE         NTOPNG_PREFS_PREFIX ".device_types.%s"
+#define NTOP_HOSTS_SERIAL              "ntopng.host_serial"
 #define MAX_NUM_INTERFACE_IDS 256
 #define DUMMY_BRIDGE_INTERFACE_ID 1 /* Anything but zero */
 #define MAX_FAILED_LOGIN_ATTEMPTS 5

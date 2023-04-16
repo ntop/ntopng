@@ -2291,10 +2291,10 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
     if (diff_sent_bytes || diff_rcvd_bytes) {
       /* Update L2 Device stats */
       if (srv_mac) {
-#ifdef HAVE_NEDGE
+	//#ifdef HAVE_NEDGE
         srv_mac->incSentStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
         srv_mac->incRcvdStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
-#endif
+	//#endif
 
         if (ntop->getPrefs()->areMacNdpiStatsEnabled()) {
           srv_mac->incnDPIStats(tv->tv_sec, get_protocol_category(),
@@ -2305,10 +2305,10 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
       }
 
       if (cli_mac) {
-#ifdef HAVE_NEDGE
+	//#ifdef HAVE_NEDGE
         cli_mac->incSentStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
         cli_mac->incRcvdStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
-#endif
+	//#endif
 
         if (ntop->getPrefs()->areMacNdpiStatsEnabled()) {
           cli_mac->incnDPIStats(tv->tv_sec, get_protocol_category(),

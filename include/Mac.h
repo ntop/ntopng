@@ -57,7 +57,8 @@ class Mac : public GenericHashEntry {
   void deleteMacData();
   bool statsResetRequested();
   void checkStatsReset();
-
+  void dumpToRedis();
+  
  public:
   Mac(NetworkInterface *_iface, u_int8_t _mac[6]);
   ~Mac();

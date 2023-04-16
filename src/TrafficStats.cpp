@@ -78,3 +78,11 @@ json_object *TrafficStats::getJSONObject() {
 
   return (my_object);
 }
+
+/* *************************************** */
+
+void TrafficStats::serialize(ndpi_serializer *s) {
+  ndpi_serialize_string_uint32(s, "packets", numPkts.get());
+  ndpi_serialize_string_uint32(s, "bytes", numBytes.get());
+}
+

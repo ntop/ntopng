@@ -4626,6 +4626,7 @@ local lang = {
     ["layer_2_source_devices"] = "%{device_type} Devices",
     ["manufacturer"] = "Manufacturer",
     ["source_macs"] = "Source Only",
+    ["inactive_macs"] = "Inactive MACs",
   },
   ["manage_configurations"] = {
     ["active_monitoring"] = "Active monitoring",

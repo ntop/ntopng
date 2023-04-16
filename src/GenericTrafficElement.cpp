@@ -135,3 +135,18 @@ void GenericTrafficElement::getJSONObject(json_object *my_object,
     json_object_object_add(my_object, "ndpiStats",
                            ndpiStats->getJSONObject(iface));
 }
+
+/* *************************************** */
+
+void GenericTrafficElement::serialize(ndpi_serializer *s) {
+  if (total_num_dropped_flows)
+    ndpi_serialize_string_uint32(s, "flows.dropped", total_num_dropped_flows);
+
+  ndpi_serialize_start_of_block(s, "sent");
+  sent.serialize(s);
+  ndpi_serialize_end_of_block(s);
+    
+  ndpi_serialize_start_of_block(s, "rcvd");
+  rcvd.serialize(s);
+  ndpi_serialize_end_of_block(s);
+}

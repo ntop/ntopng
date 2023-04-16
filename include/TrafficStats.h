@@ -50,6 +50,7 @@ class TrafficStats {
   };
   void printStats();
   char* serialize();
+  void serialize(ndpi_serializer *s);
   void deserialize(json_object* o);
   json_object* getJSONObject();
 };

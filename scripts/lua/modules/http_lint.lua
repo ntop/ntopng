@@ -648,7 +648,7 @@ local function validateFlowMode(mode)
 end
 
 local function validateDevicesMode(mode)
-   local modes = {"source_macs_only", "dhcp_macs_only"}
+   local modes = {"source_macs_only", "dhcp_macs_only", "inactive_macs_only"}
 
    return validateChoice(modes, mode)
 end

@@ -103,7 +103,11 @@ function mac2record(mac)
    local record = {}
    record["key"] = hostinfo2jqueryid(mac)
 
-   record["column_mac"] = mac2link(mac)
+   if(mac["bytes.sent"] == None) then
+     record["column_mac"] = mac.mac
+   else
+     record["column_mac"] = mac2link(mac)
+   end
 
    if(mac.fingerprint ~= "") then
       record["column_mac"] = record["column_mac"]..' <i class="fas fa-hand-o-up fa-lg" aria-hidden="true" title="DHCP Fingerprinted"></i>'
@@ -120,15 +124,30 @@ function mac2record(mac)
    
    record["column_manufacturer"] = manufacturer
 
-   record["column_arp_total"] = formatValue(mac["arp_requests.sent"]
+   if(mac["arp_requests.sent"] == None) then
+     record["column_arp_total"] = 0
+   else
+     record["column_arp_total"] = formatValue(mac["arp_requests.sent"]
 					       + mac["arp_replies.sent"]
 					       + mac["arp_requests.rcvd"]
 					       + mac["arp_replies.rcvd"])
-
+   end
+  
    record["column_device_type"] = discover.devtype2string(mac["devtype"]).." "..discover.devtype2icon(mac["devtype"])
    record["column_hosts"] = format_high_num_value_for_tables(mac, "num_hosts")
-   record["column_since"] = secondsToTime(now - mac["seen.first"]+1)
 
+   if(mac["seen.first"] ~= None) then
+     record["column_since"] = secondsToTime(now - mac["seen.first"]+1)
+   else
+      record["column_since"] = secondsToTime(now - mac.seen.first+1)
+   end
+
+   if((mac["bytes.sent"] == None) and (mac.sent ~= None)) then
+     mac["bytes.sent"] = mac.sent.bytes
+     mac["bytes.rcvd"] = mac.rcvd.bytes
+     mac["throughput_bps"] = 0
+   end
+   
    local sent2rcvd = round((mac["bytes.sent"] * 100) / (mac["bytes.sent"] + mac["bytes.rcvd"]), 0)
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
       .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"

@@ -57,9 +57,14 @@ print [[
 	 <script>
 	 var url_update = "]]
 
-print(getPageUrl(ntop.getHttpPrefix().."/lua/get_macs_data.lua", page_params))
+if((devices_mode == "inactive_macs_only") and ntop.isEnterpriseL()) then
+  print(getPageUrl(ntop.getHttpPrefix().."/lua/enterprise/get_inactive_macs_data.lua", page_params))
+else
+  print(getPageUrl(ntop.getHttpPrefix().."/lua/get_macs_data.lua", page_params))
+end
 
 print ('";')
+
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/mac_stats_id.inc")
 
 print [[
@@ -76,6 +81,8 @@ if devices_mode == "source_macs_only" then
    else
       title = i18n("mac_stats.layer_2_source_devices", {device_type=""})
    end
+elseif devices_mode == "inactive_macs_only" then
+   title = i18n("mac_stats.inactive_macs")
 else
    if device_type then
       title = i18n("mac_stats.dev_layer_2_devices", {device_type=discover.devtype2string(device_type)})
@@ -118,6 +125,14 @@ print('buttons: [')
    print(getPageUrl(base_url, macs_params))
    print('">'..i18n("mac_stats.source_macs")..'</a></li>')
 
+   -- Inactive MACs only
+   if(ntop.isEnterpriseL()) then
+     print('<li><a class="dropdown-item '.. (devices_mode == "inactive_macs_only" and 'active' or '') ..'" href="')
+     macs_params.devices_mode = "inactive_macs_only"
+     print(getPageUrl(base_url, macs_params))
+     print('">'..i18n("mac_stats.inactive_macs")..'</a></li>')
+   end
+   
    print("</div>'")
 
    -- Filter Manufacturers
