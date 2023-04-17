@@ -1194,7 +1194,6 @@ end
 function alert_store:_prepare_count_by_severity_and_time_series(all_severities, min_slot, max_slot, time_slot_width)
     local res = {}
 
-    tprint(all_severities)
     if table.len(all_severities) == 0 then
         -- No series, add a placeholder series for "no alerts"
         local noalert_res = {}
