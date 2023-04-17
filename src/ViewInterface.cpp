@@ -507,6 +507,10 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
    * true), such stats on the hosts will be lost.
    */
   if (f->get_partial_traffic_stats_view(&partials, &first_partial)) {
+    if((!first_partial)
+       && ((partials.get_cli2srv_packets() == 0) && (partials.get_srv2cli_packets() == 0)))
+      return;
+    
     if (!cli_ip || !srv_ip)
       ntop->getTrace()->traceEvent(
           TRACE_ERROR,
@@ -514,6 +518,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 
     if (cli_ip && srv_ip) {
       Host *cli_host = NULL, *srv_host = NULL;
+      Mac *srcMac = NULL, *dstMac = NULL;
       /* Add MAC Addresses to view interfaces, if NULL the don't add */
 
       /* Important: findFlowHosts can allocate new hosts. The first_partial
@@ -521,12 +526,12 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
        * below, so it is essential that findFlowHosts is called only when
        * first_partial is true. */
       if (first_partial) {
-	Mac *srcMac = NULL, *dstMac = NULL;
-
-#if TODO
+#ifdef HANDLE_VIEW_MACS
 	if(macs_hash != NULL) {
 	  srcMac = getMac(f->getViewCliMac(), true /* Create if missing */, true /* Inline call */);
 	  dstMac = getMac(f->getViewSrvMac(), true /* Create if missing */, true /* Inline call */);
+
+          setSeenMacAddresses();
 	}
 #endif
 	
@@ -542,12 +547,29 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
          * ViewInterface::viewed_flows_walker is called synchronously with the
          * ViewInterface purgeIdle. This also saves some unnecessary hash table
          * lookup time. */
-        cli_host = f->getViewSharedClient();
-        srv_host = f->getViewSharedServer();
+        cli_host = f->getViewSharedClient(), srv_host = f->getViewSharedServer();
+	
+#ifdef HANDLE_VIEW_MACS
+	if(cli_host) srcMac = cli_host->getMac();
+	if(srv_host) dstMac = srv_host->getMac();
+#endif
       }
 
-      f->hosts_periodic_stats_update(this, cli_host, srv_host, &partials,
-                                     first_partial, tv);
+#ifdef HANDLE_VIEW_MACS
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "[pkts: %u/%u][bytes: %u/%u]",
+				   partials.get_cli2srv_packets(), partials.get_srv2cli_packets(),
+				   partials.get_cli2srv_bytes(), partials.get_srv2cli_bytes());
+#endif
+      
+      if(srcMac)
+	srcMac->incSentStats(tv->tv_sec, partials.get_cli2srv_packets(), partials.get_cli2srv_bytes());
+      
+      if(dstMac)
+	dstMac->incRcvdStats(tv->tv_sec, partials.get_srv2cli_packets(), partials.get_srv2cli_bytes());	
+#endif
+      
+      f->hosts_periodic_stats_update(this, cli_host, srv_host, &partials, first_partial, tv);
 
       /* Setting up dhcp/ntp/dns/smtp server bits */
       if (cli_host && partials.get_cli2srv_bytes() > 0) {
