@@ -1173,8 +1173,6 @@
 #define MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN 4096
 #define PREF_NTOP_LOCAL_AUTH NTOPNG_PREFS_PREFIX ".local.auth_enabled"
 
-#define PREF_ENABLE_MDNS_REPEATER NTOPNG_PREFS_PREFIX ".enable_mdns_repeater"
-
 #define NTOP_API_TOKENS "ntopng.api_tokens"
 
 /* Elastic Search */

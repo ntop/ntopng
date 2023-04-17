@@ -111,7 +111,7 @@ class Ntop {
 #endif
 #endif
 #ifdef HAVE_NEDGE
-  MDNSRepeater *mdnsRepeater;
+  std::vector<MulticastForwarder*> multicastForwarders;
 #endif
 
   /* Local network address list */
