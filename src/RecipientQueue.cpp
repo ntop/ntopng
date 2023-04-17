@@ -48,17 +48,18 @@ RecipientQueue::~RecipientQueue() {
 
 /* *************************************** */
 
-bool RecipientQueue::dequeue(AlertFifoItem* notification) {
-  if (!queue || !notification) return false;
+AlertFifoItem *RecipientQueue::dequeue() {
+  AlertFifoItem *notification;
 
-  *notification = queue->dequeue();
+  if (!queue) return NULL;
 
-  if (notification->alert) {
+  notification = queue->dequeue();
+
+  if (notification) {
     last_use = time(NULL);
-    return true;
   }
 
-  return false;
+  return notification;
 }
 
 /* *************************************** */
@@ -67,7 +68,7 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
                              AlertEntity alert_entity) {
   bool res = false;
 
-  if (!notification || !notification->alert ||
+  if (!notification ||
       notification->alert_severity <
           minimum_severity /* Severity too low for this recipient     */
       ||
@@ -104,11 +105,11 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
     /* Other recipients (notifications) */
     if (alert_entity == alert_entity_flow) {
       if (!enabled_host_pools.isSetBit(
-              notification->pools.flow.cli_host_pool) &&
-          !enabled_host_pools.isSetBit(notification->pools.flow.srv_host_pool))
+              notification->flow.cli_host_pool) &&
+          !enabled_host_pools.isSetBit(notification->flow.srv_host_pool))
         return true;
     } else if (alert_entity == alert_entity_host) {
-      if (!enabled_host_pools.isSetBit(notification->pools.host.host_pool))
+      if (!enabled_host_pools.isSetBit(notification->host.host_pool))
         return true;
     }
   }
@@ -121,19 +122,24 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
   }
 
   /* Enqueue the notification (allocate memory for the alert string) */
-  AlertFifoItem q = *notification;
+  AlertFifoItem *new_item = new AlertFifoItem(notification);
+/*
   if ((q.alert = strdup(notification->alert))) {
-    res = queue->enqueue(q);
-  }
+*/
+  if (new_item) {
+    res = queue->enqueue(new_item);
 
-  if (!res) {
-    drops++;
-    if (q.alert) free(q.alert);
-  } else {
-    uses++;
+    if (!res) {
+      drops++;
+      delete new_item;
+    } else {
+      uses++;
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of uses: %u", uses);
 #endif
+    }
+  } else {
+    drops++;
   }
 
   return res;

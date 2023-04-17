@@ -1109,9 +1109,8 @@ bool Ntop::recipient_enqueue(u_int16_t recipient_id,
 
 /* ******************************************* */
 
-bool Ntop::recipient_dequeue(u_int16_t recipient_id,
-                             AlertFifoItem *notification) {
-  return recipients.dequeue(recipient_id, notification);
+AlertFifoItem *Ntop::recipient_dequeue(u_int16_t recipient_id) {
+  return recipients.dequeue(recipient_id);
 }
 
 /* ******************************************* */

@@ -2194,7 +2194,7 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
 bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
   bool rv = false;
   u_int32_t buflen;
-  AlertFifoItem notification;
+  AlertFifoItem *notification;
   ndpi_serializer host_json;
   const char *host_str;
 
@@ -2205,16 +2205,30 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
 
   host_str = ndpi_serializer_get_buffer(&host_json, &buflen);
 
-  notification.alert = (char *)host_str;
-  notification.score = alert->getAlertScore();
-  notification.alert_severity = Utils::mapScoreToSeverity(notification.score);
-  notification.alert_category = alert->getAlertType().category;
-  notification.pools.host.host_pool = get_host_pool();
+  notification = new AlertFifoItem();
 
-  rv = ntop->recipients_enqueue(&notification,
-                                alert_entity_host /* Host recipients */);
+  if (notification) {
+    notification->alert = (char *)host_str;
+    notification->score = alert->getAlertScore();
+    notification->alert_severity = Utils::mapScoreToSeverity(notification->score);
+    notification->alert_category = alert->getAlertType().category;
 
-  if (!rv) getInterface()->incNumDroppedAlerts(alert_entity_host);
+    /* Host pool */
+    notification->host.host_pool = get_host_pool();
+
+    /* Host key metadata */
+    notification->host.vlan_id = vlan_id;
+    notification->host.ip.set(get_ip()); 
+
+    rv = ntop->recipients_enqueue(notification,
+                                  alert_entity_host /* Host recipients */);
+
+    if (!rv)
+      delete notification;
+  }
+
+  if (!rv)
+    getInterface()->incNumDroppedAlerts(alert_entity_host);
 
   ndpi_term_serializer(&host_json);
 

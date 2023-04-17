@@ -4629,7 +4629,7 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
   bool first_alert = isFlowAlerted();
   bool rv = false;
   u_int32_t buflen;
-  AlertFifoItem notification;
+  AlertFifoItem *notification;
   ndpi_serializer flow_json;
   const char *flow_str;
 
@@ -4643,19 +4643,37 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
 
   flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
 
-  notification.alert = (char *)flow_str;
-  notification.score = getPredominantAlertScore();
-  notification.alert_severity = Utils::mapScoreToSeverity(notification.score);
-  notification.alert_category = alert->getAlertType().category;
-  notification.pools.flow.cli_host_pool =
+  notification = new AlertFifoItem();
+
+  if (notification) {
+    notification->alert = flow_str;
+    notification->score = getPredominantAlertScore();
+    notification->alert_severity = Utils::mapScoreToSeverity(notification->score);
+    notification->alert_category = alert->getAlertType().category;
+
+    /* Host pools */
+    notification->flow.cli_host_pool =
       cli_host ? cli_host->get_host_pool() : 0;
-  notification.pools.flow.srv_host_pool =
+    notification->flow.srv_host_pool =
       srv_host ? srv_host->get_host_pool() : 0;
 
-  rv = ntop->recipients_enqueue(&notification,
-                                alert_entity_flow /* Flow recipients */);
+    /* Flow key metadata */
+    notification->flow.vlan_id = vlanId;
+    notification->flow.cli_ip.set(get_cli_ip_addr());
+    notification->flow.srv_ip.set(get_srv_ip_addr());
+    notification->flow.cli_port = cli_port;
+    notification->flow.srv_port = srv_port;
+    notification->flow.protocol = protocol;
 
-  if (!rv) getInterface()->incNumDroppedAlerts(alert_entity_flow);
+    rv = ntop->recipients_enqueue(notification,
+                                  alert_entity_flow /* Flow recipients */);
+
+    if (!rv)
+      delete(notification);
+  }
+
+  if (!rv)
+    getInterface()->incNumDroppedAlerts(alert_entity_flow);
 
   ndpi_term_serializer(&flow_json);
 

@@ -24,27 +24,24 @@
 
 #include "ntop_includes.h"
 
-class AlertFifoQueue : public FifoQueue<AlertFifoItem> {
+class AlertFifoQueue : public FifoQueue<AlertFifoItem *> {
  public:
-  AlertFifoQueue(u_int32_t queue_size) : FifoQueue<AlertFifoItem>(queue_size) {}
+  AlertFifoQueue(u_int32_t queue_size) : FifoQueue<AlertFifoItem *>(queue_size) {}
 
   ~AlertFifoQueue() {
     while (!q.empty()) {
-      AlertFifoItem item = q.front();
+      AlertFifoItem *item = q.front();
       q.pop();
-      free(item.alert);
+      delete item;
     }
   }
 
-  AlertFifoItem dequeue() {
-    AlertFifoItem rv;
+  AlertFifoItem *dequeue() {
+    AlertFifoItem *rv = NULL;
 
     m.lock(__FILE__, __LINE__);
 
-    if (q.empty()) {
-      rv.alert_severity = alert_level_none;
-      rv.alert = NULL;
-    } else {
+    if (!q.empty()) {
       rv = q.front();
       q.pop();
       num_dequeued++;

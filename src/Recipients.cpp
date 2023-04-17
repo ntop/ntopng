@@ -38,10 +38,10 @@ Recipients::~Recipients() {
 
 /* *************************************** */
 
-bool Recipients::dequeue(u_int16_t recipient_id, AlertFifoItem* notification) {
-  bool res = false;
+AlertFifoItem *Recipients::dequeue(u_int16_t recipient_id) {
+  AlertFifoItem *notification = NULL; 
 
-  if (recipient_id >= MAX_NUM_RECIPIENTS || !notification) return false;
+  if (recipient_id >= MAX_NUM_RECIPIENTS) return NULL;
 
   m.lock(__FILE__, __LINE__);
 
@@ -49,12 +49,12 @@ bool Recipients::dequeue(u_int16_t recipient_id, AlertFifoItem* notification) {
     /*
       Dequeue the notification
     */
-    res = recipient_queues[recipient_id]->dequeue(notification);
+    notification = recipient_queues[recipient_id]->dequeue();
   }
 
   m.unlock(__FILE__, __LINE__);
 
-  return res;
+  return notification;
 }
 
 /* *************************************** */
@@ -70,11 +70,19 @@ bool Recipients::enqueue(u_int16_t recipient_id,
   /*
      Perform the actual enqueue
    */
-  if (recipient_queues[recipient_id])
+  if (recipient_queues[recipient_id]) {
     res = recipient_queues[recipient_id]->enqueue(
         notification, alert_entity_other /* TODO */);
+    
+  }
 
   m.unlock(__FILE__, __LINE__);
+
+  if (res) {
+    /* The recipient makes a copy of this as there can be many
+     * delete on success (the caller will delete it on failure) */
+    delete notification;
+  }
 
   return res;
 }
@@ -106,6 +114,12 @@ bool Recipients::enqueue(const AlertFifoItem* const notification,
   }
 
   m.unlock(__FILE__, __LINE__);
+
+  if (res) {
+    /* The recipient makes a copy of this as there can be many,
+     * delete on success (the caller will delete it on failure) */
+    delete notification;
+  }
 
   return res;
 }

@@ -339,6 +339,7 @@ using namespace std;
 #include "SyslogLuaEngine.h"
 #include "FifoQueue.h"
 #include "StringFifoQueue.h"
+#include "AlertFifoItem.h"
 #include "AlertFifoQueue.h"
 #include "FifoSerializerQueue.h"
 #include "RRDTimeseriesExporter.h"

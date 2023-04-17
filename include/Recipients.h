@@ -40,12 +40,10 @@ class Recipients {
    * @brief Dequeues a notification from a `recipient_id` queue, given a certain
    * priority
    * @param recipient_id An integer recipient identifier
-   * @param notification The dequeued notification
    *
-   * @return Boolean, true if the dequeue was successful and `notification` is
-   * populated correctly, false otherwise
+   * @return AlertFifoItem on success, NULL on empty queue
    */
-  bool dequeue(u_int16_t recipient_id, AlertFifoItem* notification);
+   AlertFifoItem *dequeue(u_int16_t recipient_id);
 
   /**
    * @brief Enqueues a notification to a `recipient_id` queue, depending on the

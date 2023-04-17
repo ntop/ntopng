@@ -28,7 +28,7 @@ class RecipientQueue {
  private:
   u_int16_t recipient_id;
 
-  AlertFifoQueue* queue;
+  AlertFifoQueue *queue;
 
   /* Counters for the number of drops occurred when enqueuing */
   u_int64_t drops;
@@ -61,12 +61,10 @@ class RecipientQueue {
 
   /**
    * @brief Dequeues a notification from a `recipient_id` queue
-   * @param notification The dequeued notification
    *
-   * @return Boolean, true if the dequeue was successful and `notification` is
-   * populated correctly, false otherwise
+   * @return AlertFifoItem on success, NULL if queue is empty
    */
-  bool dequeue(AlertFifoItem* notification);
+  AlertFifoItem *dequeue();
 
   /**
    * @brief Enqueues a notification to a `recipient_id` queue

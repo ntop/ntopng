@@ -613,7 +613,7 @@ class Ntop {
   AlertLevel get_default_recipient_minimum_severity();
   bool recipient_enqueue(u_int16_t recipient_id,
                          const AlertFifoItem *const notification);
-  bool recipient_dequeue(u_int16_t recipient_id, AlertFifoItem *notification);
+  AlertFifoItem *recipient_dequeue(u_int16_t recipient_id);
   void recipient_stats(u_int16_t recipient_id, lua_State *vm);
   time_t recipient_last_use(u_int16_t recipient_id);
   void recipient_delete(u_int16_t recipient_id);

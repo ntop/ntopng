@@ -6613,7 +6613,7 @@ static int ntop_recipient_enqueue(lua_State *vm) {
   u_int16_t recipient_id;
   const char *alert;
   bool rv = false;
-  AlertFifoItem notification;
+  AlertFifoItem *notification;
   u_int32_t score;
   AlertCategory alert_category = alert_category_other;
 
@@ -6632,12 +6632,16 @@ static int ntop_recipient_enqueue(lua_State *vm) {
   if (lua_type(vm, 4) == LUA_TNUMBER)
     alert_category = (AlertCategory)lua_tonumber(vm, 4);
 
-  notification.alert = (char *)alert;
-  notification.score = score;
-  notification.alert_severity = Utils::mapScoreToSeverity(score);
-  notification.alert_category = alert_category;
+  notification = new AlertFifoItem();
 
-  rv = ntop->recipient_enqueue(recipient_id, &notification);
+  if (notification) {
+    notification->alert = alert;
+    notification->score = score;
+    notification->alert_severity = Utils::mapScoreToSeverity(score);
+    notification->alert_category = alert_category;
+
+    rv = ntop->recipient_enqueue(recipient_id, notification);
+  }
 
   if (!rv) {
     NetworkInterface *iface = getCurrentInterface(vm);
@@ -6648,6 +6652,8 @@ static int ntop_recipient_enqueue(lua_State *vm) {
       if (ctx->threaded_activity_stats)
         ctx->threaded_activity_stats->setAlertsDrops();
     }
+
+    delete notification;
   }
 
   lua_pushboolean(vm, rv);
@@ -6658,24 +6664,23 @@ static int ntop_recipient_enqueue(lua_State *vm) {
 
 static int ntop_recipient_dequeue(lua_State *vm) {
   u_int16_t recipient_id;
-  AlertFifoItem notification;
-  bool res;
+  AlertFifoItem *notification;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   recipient_id = lua_tointeger(vm, 1);
 
-  res = ntop->recipient_dequeue(recipient_id, &notification);
+  notification = ntop->recipient_dequeue(recipient_id);
 
-  if (res && notification.alert) {
+  if (notification) {
     lua_newtable(vm);
 
-    lua_push_str_table_entry(vm, "alert", notification.alert);
-    lua_push_uint64_table_entry(vm, "score", notification.score);
+    lua_push_str_table_entry(vm, "alert", notification->alert.c_str());
+    lua_push_uint64_table_entry(vm, "score", notification->score);
     lua_push_uint64_table_entry(vm, "alert_severity",
-                                notification.alert_severity);
+                                notification->alert_severity);
 
-    free(notification.alert);
+    delete notification;
   } else
     lua_pushnil(vm);
 
