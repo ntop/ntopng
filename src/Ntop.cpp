@@ -617,8 +617,6 @@ void Ntop::start() {
   char **rsp = NULL;
   char repeater[256];
   char key[128];
-  bool is_mdns_enabled = false;
-
 
   snprintf(key, sizeof(key), "ntopng.prefs.config.repeater.*");
 
@@ -627,16 +625,18 @@ void Ntop::start() {
   memset(key, 0, sizeof(key));
 
   for(int i = 1; i<= counter; i++) {
+    memset(key, 0, sizeof(key));
     snprintf(key, sizeof(key), "ntopng.prefs.config.repeater.%d",i);
 
+    memset(repeater, 0, sizeof(repeater)); 
     redis->get(key, repeater, sizeof(repeater));
 
     char *token = strtok(repeater, "|");
    
     int h = 0;
-    string ip;
-    string port;
-    string interfaces;
+    string ip = "";
+    string port = "";
+    string interfaces = "";
     string type;
     while (token != NULL)
     {
@@ -653,12 +653,16 @@ void Ntop::start() {
         h++;
     }
 
+    if(!strcmp(ip.c_str(),"") || !strcmp(port.c_str(),"") || !strcmp(interfaces.c_str(),""))
+      continue;
 
-    MulticastForwarder *multicastForwarder = new (std::nothrow) MulticastForwarder(!strcmp(type.c_str(),"MDNS") , ip, stoi(port), interfaces);
-    multicastForwarders.push_back(multicastForwarder);
-    
-    memset(key, 0, sizeof(key));
-    memset(repeater, 0, sizeof(repeater));
+
+    MulticastForwarder *multicastForwarder = new (std::nothrow) MulticastForwarder(ip, stoi(port), interfaces);
+
+    if (multicastForwarder) { 
+      multicastForwarders.push_back(multicastForwarder);
+    }
+   
   }
 
   if (multicastForwarders.size() == 0)
