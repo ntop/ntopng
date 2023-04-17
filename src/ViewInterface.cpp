@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+#define HANDLE_VIEW_MACS
+
 /* **************************************************** */
 
 ViewInterface::ViewInterface(const char *_endpoint)
@@ -507,17 +509,19 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
    * true), such stats on the hosts will be lost.
    */
   if (f->get_partial_traffic_stats_view(&partials, &first_partial)) {
-    if((!first_partial)
-       && ((partials.get_cli2srv_packets() == 0) && (partials.get_srv2cli_packets() == 0)))
-      return;
-    
+    /*
+      IMPORTANT
+      
+      Do not skip updates when partials are zero as you need to update the
+      host timers and score
+    */
     if (!cli_ip || !srv_ip)
       ntop->getTrace()->traceEvent(
           TRACE_ERROR,
           "Unable to get flow hosts. Out of memory? Expect issues.");
 
     if (cli_ip && srv_ip) {
-      Host *cli_host = NULL, *srv_host = NULL;
+      Host *cli_host, *srv_host;
       Mac *srcMac = NULL, *dstMac = NULL;
       /* Add MAC Addresses to view interfaces, if NULL the don't add */
 
@@ -550,23 +554,33 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
         cli_host = f->getViewSharedClient(), srv_host = f->getViewSharedServer();
 	
 #ifdef HANDLE_VIEW_MACS
-	if(cli_host) srcMac = cli_host->getMac();
-	if(srv_host) dstMac = srv_host->getMac();
+	if(cli_host) srcMac = cli_host->getMac(); else srcMac = NULL;
+	if(srv_host) dstMac = srv_host->getMac(); else dstMac = NULL;
 #endif
       }
 
 #ifdef HANDLE_VIEW_MACS
 #ifdef DEBUG
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "[pkts: %u/%u][bytes: %u/%u]",
-				   partials.get_cli2srv_packets(), partials.get_srv2cli_packets(),
-				   partials.get_cli2srv_bytes(), partials.get_srv2cli_bytes());
+      if(partials.get_cli2srv_packets() || partials.get_srv2cli_packets()) {
+	char buf_c[64], buf_s[64];
+	
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "%s <-> %s [pkts: %u/%u][bytes: %u/%u]",
+				     cli_ip->print(buf_c, sizeof(buf_c)),
+				     srv_ip->print(buf_s, sizeof(buf_s)),
+				     partials.get_cli2srv_packets(), partials.get_srv2cli_packets(),
+				     partials.get_cli2srv_bytes(), partials.get_srv2cli_bytes());
+      }
 #endif
       
-      if(srcMac)
+      if(srcMac) {
 	srcMac->incSentStats(tv->tv_sec, partials.get_cli2srv_packets(), partials.get_cli2srv_bytes());
+	srcMac->incRcvdStats(tv->tv_sec, partials.get_srv2cli_packets(), partials.get_srv2cli_bytes());
+      }
       
-      if(dstMac)
-	dstMac->incRcvdStats(tv->tv_sec, partials.get_srv2cli_packets(), partials.get_srv2cli_bytes());	
+      if(dstMac) {
+	dstMac->incSentStats(tv->tv_sec, partials.get_srv2cli_packets(), partials.get_srv2cli_bytes());
+	dstMac->incRcvdStats(tv->tv_sec, partials.get_cli2srv_packets(), partials.get_cli2srv_bytes());	
+      }
 #endif
       
       f->hosts_periodic_stats_update(this, cli_host, srv_host, &partials, first_partial, tv);
