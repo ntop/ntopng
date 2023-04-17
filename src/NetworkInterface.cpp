@@ -3634,6 +3634,10 @@ void NetworkInterface::cleanup() {
 
 /* **************************************************** */
 
+/*
+  Used by ViewInterface to find hosts bound to flows
+  in the ViewInterface
+ */
 void NetworkInterface::findFlowHosts(u_int16_t vlan_id,
                                      u_int16_t observation_domain_id,
                                      u_int32_t private_flow_id, Mac *src_mac,

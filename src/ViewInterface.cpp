@@ -102,6 +102,20 @@ ViewInterface::~ViewInterface() {
 
 /* **************************************************** */
 
+/*
+  Queue flows that need to be periodically processesed in the
+  viewInterface
+
+  frame #0: 0x00000001001c6514 ntopng`ViewInterface::viewEnqueue
+  frame #1: 0x0000000100115138 ntopng`NetworkInterface::viewEnqueue
+  frame #2: 0x0000000100040b80 ntopng`Flow::housekeep
+  frame #3: 0x00000001000698d4 ntopng`GenericHash::purgeIdle
+  frame #4: 0x000000010010f124 ntopng`NetworkInterface::purgeIdleFlows
+  frame #5: 0x000000010010eda4 ntopng`NetworkInterface::purgeIdle
+  frame #6: 0x00000001001100b8 ntopng`NetworkInterface::dissectPacket
+  frame #7: 0x000000010017594c ntopng`packetPollLoop			      
+*/
+
 bool ViewInterface::viewEnqueue(time_t t, Flow *f,
                                 u_int8_t viewed_interface_id) {
   /*
@@ -135,6 +149,7 @@ u_int64_t ViewInterface::viewDequeue(u_int budget) {
     while (viewed_interfaces_queues[i]->isNotEmpty()) {
       Flow *f = viewed_interfaces_queues[i]->dequeue();
 
+      /* Process this flows in the view interface */
       viewed_flows_walker(f, &tv);
 
 #if 0
@@ -474,6 +489,7 @@ Flow *ViewInterface::findFlowByTuple(u_int16_t vlan_id,
 
 /* **************************************************** */
 
+/* Update the view interface with this flow coming from a "real" interface */
 void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
   NetworkStats *network_stats;
   PartializableFlowTrafficStats partials;
@@ -505,9 +521,18 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
        * below, so it is essential that findFlowHosts is called only when
        * first_partial is true. */
       if (first_partial) {
+	Mac *srcMac = NULL, *dstMac = NULL;
+
+#if TODO
+	if(macs_hash != NULL) {
+	  srcMac = getMac(f->getViewCliMac(), true /* Create if missing */, true /* Inline call */);
+	  dstMac = getMac(f->getViewSrvMac(), true /* Create if missing */, true /* Inline call */);
+	}
+#endif
+	
         findFlowHosts(f->get_vlan_id(), f->get_observation_point_id(),
-                      f->getPrivateFlowId(), NULL /* Mac Address */,
-                      (IpAddress *)cli_ip, &cli_host, NULL /* Mac Address */,
+                      f->getPrivateFlowId(), srcMac,
+                      (IpAddress *)cli_ip, &cli_host, dstMac,
                       (IpAddress *)srv_ip, &srv_host);
 
         if (cli_host) cli_host->setViewInterfaceMac(f->getViewCliMac());
