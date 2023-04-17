@@ -229,6 +229,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool discard_probing_traffic;
   bool flows_only_interface; /* Only allocates flows for the interface (e.g., no
                                 hosts, ases, etc) */
+  bool is_smart_recording_enabled;
+  char *smart_recording_instance_name;
   ProtoStats discardedProbingStats;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
@@ -677,12 +679,15 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool isRunning() const;
   bool isShuttingDown() const;
   inline bool isTrafficMirrored() const { return is_traffic_mirrored; };
+  inline bool isSmartRecordingEnabled() const { return is_smart_recording_enabled; };
+  inline const char *getSmartRecordingInstance() const { return smart_recording_instance_name; };
   inline bool showDynamicInterfaceTraffic() const {
     return show_dynamic_interface_traffic;
   };
   inline bool discardProbingTraffic() const { return discard_probing_traffic; };
   inline bool flowsOnlyInterface() const { return flows_only_interface; };
   void updateTrafficMirrored();
+  void updateSmartRecording();
   void updateDynIfaceTrafficPolicy();
   void updateFlowDumpDisabled();
   void updateLbdIdentifier();

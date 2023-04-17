@@ -3209,6 +3209,19 @@ static int ntop_update_traffic_mirrored(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_update_smart_recording(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_interface) ntop_interface->updateSmartRecording();
+
+  lua_pushnil(vm);
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_update_dynamic_interface_traffic_policy(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5190,6 +5203,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"findHostByMac", ntop_get_interface_find_host_by_mac},
     {"resetHostTopSites", ntop_reset_interface_host_top_sites},
     {"updateTrafficMirrored", ntop_update_traffic_mirrored},
+    {"updateSmartRecording", ntop_update_smart_recording},
     {"updateDynIfaceTrafficPolicy",
      ntop_update_dynamic_interface_traffic_policy},
     {"updateLbdIdentifier", ntop_update_lbd_identifier},

@@ -226,6 +226,7 @@ NetworkInterface::NetworkInterface(const char *name,
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
 
   updateTrafficMirrored();
+  updateSmartRecording();
   updateDynIfaceTrafficPolicy();
   updateFlowDumpDisabled();
   updateLbdIdentifier();
@@ -244,6 +245,8 @@ void NetworkInterface::init(const char *interface_name) {
   next_idle_flow_purge = next_idle_host_purge = 0, running = false,
   shutting_down = false, customIftype = NULL,
   is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false,
+  is_smart_recording_enabled = false;
+  smart_recording_instance_name = NULL;
   discard_probing_traffic = false;
   flows_only_interface = false;
   numSubInterfaces = 0;
@@ -746,6 +749,38 @@ void NetworkInterface::updateTrafficMirrored() {
 
 /* **************************************************** */
 
+void NetworkInterface::updateSmartRecording() {
+  char redis_key[CONST_MAX_LEN_REDIS_KEY];
+  char redis_val[CONST_MAX_LEN_REDIS_VALUE];
+  char *instance = NULL, *prev_instance;
+  bool enable = false;
+
+  if (!ntop->getRedis()) return;
+
+  enable = getInterfaceBooleanPref(CONST_SMART_RECORDING_PREFS,
+                                   CONST_DEFAULT_SMART_RECORDING);
+
+  if (enable) {
+    snprintf(redis_key, sizeof(redis_key), CONST_SMART_RECORDING_INSTANCE_PREFS, get_id());
+    redis_val[0] = '\0';
+    if (ntop->getRedis()->get(redis_key, redis_val, CONST_MAX_LEN_REDIS_VALUE) == 0 && strlen(redis_val) > 0) {
+      instance = strdup(redis_val);
+    } else {
+      enable = false; /* missing instance name (required) */
+    }
+  }
+
+  /* Update instance name */
+  prev_instance = smart_recording_instance_name;
+  smart_recording_instance_name = instance;
+  if (prev_instance) { usleep(100); free(prev_instance); }
+
+  /* Toggle smart recording */
+  is_smart_recording_enabled = enable;
+}
+
+/* **************************************************** */
+
 void NetworkInterface::updateDynIfaceTrafficPolicy() {
   show_dynamic_interface_traffic = getInterfaceBooleanPref(
       CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS, CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC);
@@ -967,6 +1002,8 @@ NetworkInterface::~NetworkInterface() {
   }
 
   cleanShadownDPI();
+
+  if (smart_recording_instance_name) free(smart_recording_instance_name);
 }
 
 /* **************************************************** */

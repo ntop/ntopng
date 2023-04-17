@@ -4632,6 +4632,7 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
   AlertFifoItem *notification;
   ndpi_serializer flow_json;
   const char *flow_str;
+  const char *instance_name;
 
   ndpi_init_serializer(&flow_json, ndpi_serialization_format_json);
 
@@ -4650,26 +4651,28 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
     notification->score = getPredominantAlertScore();
     notification->alert_severity = Utils::mapScoreToSeverity(notification->score);
     notification->alert_category = alert->getAlertType().category;
-
-    /* Host pools */
     notification->flow.cli_host_pool =
       cli_host ? cli_host->get_host_pool() : 0;
     notification->flow.srv_host_pool =
       srv_host ? srv_host->get_host_pool() : 0;
-
-    /* Flow key metadata */
-    notification->flow.vlan_id = vlanId;
-    notification->flow.cli_ip.set(get_cli_ip_addr());
-    notification->flow.srv_ip.set(get_srv_ip_addr());
-    notification->flow.cli_port = cli_port;
-    notification->flow.srv_port = srv_port;
-    notification->flow.protocol = protocol;
 
     rv = ntop->recipients_enqueue(notification,
                                   alert_entity_flow /* Flow recipients */);
 
     if (!rv)
       delete(notification);
+
+    if (iface->isSmartRecordingEnabled() && (instance_name = iface->getSmartRecordingInstance())) {
+      char key[256], ip_buf[64];
+      int expiration = 30*60; /* 30 min */
+
+      snprintf(key, sizeof(key), "n2disk.%s.filter.tuple.%s,%s,%u,%u,%u", instance_name,
+        get_cli_ip_addr()->print(ip_buf, sizeof(ip_buf)),
+        get_srv_ip_addr()->print(ip_buf, sizeof(ip_buf)),
+        cli_port, srv_port, protocol);
+
+      ntop->getRedis()->set(key, "1", expiration);
+    }
   }
 
   if (!rv)

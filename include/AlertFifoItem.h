@@ -31,28 +31,21 @@ class AlertFifoItem {
   u_int32_t score;
   std::string alert; /* json */
 
-  /* Metadata used for processing the notification */
   struct {
     u_int16_t host_pool;
-    u_int16_t vlan_id;
-    IpAddress ip;
   } host;
 
   struct {
     u_int16_t cli_host_pool;
     u_int16_t srv_host_pool;
-    u_int16_t vlan_id;
-    IpAddress cli_ip;
-    IpAddress srv_ip;
-    u_int16_t cli_port;
-    u_int16_t srv_port;
-    u_int8_t protocol;
   } flow;
 
   AlertFifoItem() {
     alert_severity = alert_level_none;
     alert_category = alert_category_other;
     score = 0;
+    host.host_pool = 0;
+    flow.cli_host_pool = flow.srv_host_pool = 0;
   }
 
   AlertFifoItem(const AlertFifoItem *i) {
@@ -61,16 +54,8 @@ class AlertFifoItem {
     score = i->score;
     alert = i->alert;
     host.host_pool = i->host.host_pool;
-    host.vlan_id = i->host.vlan_id;
-    host.ip.set(&i->host.ip);
     flow.cli_host_pool = i->flow.cli_host_pool;
     flow.srv_host_pool = i->flow.srv_host_pool;
-    flow.vlan_id = i->flow.vlan_id;
-    flow.cli_ip.set(&i->flow.cli_ip);
-    flow.srv_ip.set(&i->flow.srv_ip);
-    flow.cli_port = i->flow.cli_port;
-    flow.srv_port = i->flow.srv_port;
-    flow.protocol = i->flow.protocol;
   }
 
   ~AlertFifoItem() {}

@@ -81,9 +81,7 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
     return true; /* Nothing to enqueue */
   }
 
-#if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "New alert for recipient %d", recipient_id);
-#endif
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "New alert for recipient %d", recipient_id);
 
   if (recipient_id == 0 && /* Default recipient (DB) */
       alert_entity == alert_entity_flow &&
@@ -91,10 +89,8 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
     /* Do not store flow alerts on ClickHouse as they are retrieved using a view
      * on historical flows) */
     /* But still increment the number of uses */
-#if 0
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of flow uses with Clickhouse: %u", uses);
-#endif
     uses++;
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of flow uses with Clickhouse: %u", uses);
     return true;
   }
 
@@ -123,9 +119,7 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
 
   /* Enqueue the notification (allocate memory for the alert string) */
   AlertFifoItem *new_item = new AlertFifoItem(notification);
-/*
-  if ((q.alert = strdup(notification->alert))) {
-*/
+
   if (new_item) {
     res = queue->enqueue(new_item);
 
@@ -134,9 +128,7 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
       delete new_item;
     } else {
       uses++;
-#if 0
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of uses: %u", uses);
-#endif
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of uses: %u", uses);
     }
   } else {
     drops++;

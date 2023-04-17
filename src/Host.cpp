@@ -2197,6 +2197,7 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
   AlertFifoItem *notification;
   ndpi_serializer host_json;
   const char *host_str;
+  const char *instance_name;
 
   ndpi_init_serializer(&host_json, ndpi_serialization_format_json);
 
@@ -2212,19 +2213,23 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
     notification->score = alert->getAlertScore();
     notification->alert_severity = Utils::mapScoreToSeverity(notification->score);
     notification->alert_category = alert->getAlertType().category;
-
-    /* Host pool */
     notification->host.host_pool = get_host_pool();
-
-    /* Host key metadata */
-    notification->host.vlan_id = vlan_id;
-    notification->host.ip.set(get_ip()); 
 
     rv = ntop->recipients_enqueue(notification,
                                   alert_entity_host /* Host recipients */);
 
     if (!rv)
       delete notification;
+
+    if (iface->isSmartRecordingEnabled() && (instance_name = iface->getSmartRecordingInstance())) {
+      char key[256], ip_buf[64];
+      int expiration = 30*60; /* 30 min */
+
+      snprintf(key, sizeof(key), "n2disk.%s.filter.host.%s", instance_name,
+        get_ip()->print(ip_buf, sizeof(ip_buf)));
+
+      ntop->getRedis()->set(key, "1", expiration);
+    }
   }
 
   if (!rv)

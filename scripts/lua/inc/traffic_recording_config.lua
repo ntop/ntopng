@@ -39,10 +39,13 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   local smart_record_traffic = false
   if not isEmptyString(_POST["smart_record_traffic"]) then
     smart_record_traffic = true
+    ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.instance', recording_utils.getN2diskInstanceName(master_ifid))
     ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled', "1")
   else
     ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled')
+    ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.instance')
   end
+  interface.updateSmartRecording()
 
   local smart_disk_space = recording_utils.default_disk_space
   if not isEmptyString(_POST["smart_disk_space"]) then

@@ -623,6 +623,7 @@
 #define CONST_SQL_BATCH_SIZE 32
 #define CONST_MAX_SQL_QUERY_LEN 8192
 #define CONST_DEFAULT_MIRRORED_TRAFFIC false
+#define CONST_DEFAULT_SMART_RECORDING false
 #define CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC false
 #define CONST_DEFAULT_LBD_SERIALIZE_AS_MAC false
 #define CONST_DEFAULT_DISCARD_PROBING_TRAFFIC false
@@ -637,6 +638,10 @@
   NTOPNG_PREFS_PREFIX ".flow_table_probe_order"
 #define CONST_MIRRORED_TRAFFIC_PREFS \
   NTOPNG_PREFS_PREFIX ".ifid_%d.is_traffic_mirrored"
+#define CONST_SMART_RECORDING_PREFS \
+  NTOPNG_PREFS_PREFIX ".ifid_%d.smart_traffic_recording.enabled"
+#define CONST_SMART_RECORDING_INSTANCE_PREFS \
+  NTOPNG_PREFS_PREFIX ".ifid_%d.smart_traffic_recording.instance"
 #define CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS \
   NTOPNG_PREFS_PREFIX ".ifid_%d.show_dynamic_interface_traffic"
 #define CONST_DISABLED_FLOW_DUMP_PREFS \
