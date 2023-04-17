@@ -2410,7 +2410,6 @@ local known_parameters = {
 
    -- nEdge repeaters
    ["repeater_type"]           = validateSingleWord,
-   ["new_repeater_id"]         = validateNumber,
    ["repeater_id"]             = validateNumber,
    ["interfaces"]              = validateSingleWord,
 
