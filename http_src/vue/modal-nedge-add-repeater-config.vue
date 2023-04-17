@@ -27,9 +27,7 @@
 	    <label class="col-form-label col-sm-2" >
         <b>{{_i18n("nedge.page_repeater_config.ip")}}</b>
 	    </label>
-	    <div class="col-sm-10" >
 	      <input v-model="ip"  @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
-	    </div>
     </div>
     
 	</div>
@@ -45,16 +43,17 @@
 	    <label class="col-form-label col-sm-2" >
         <b>{{_i18n("nedge.page_repeater_config.port")}}</b>
 	    </label>
-	    <div class="col-sm-4" >
 	      <input v-model="port"  @input="check_empty_port" class="form-control" type="text" :placeholder="port_placeholder" required>
-	    </div>
     
     </div>
-
-		<label class="col-form-label col-sm-4" >
-        <b>{{_i18n("nedge.page_repeater_config.interface")}}</b>
+		</div>
+      </div>
+<div class="row form-group mb-3">
+	
+	<div class="col col-md-6">
+		<label class="col-form-label col-sm-10" >
+        <b>{{_i18n("nedge.page_repeater_config.interfaces")}}</b>
 	    </label>
-	    <div class="col-sm-10" >
 				<SelectSearch
                           :options="interface_array"
                           :multiple="true"
@@ -62,7 +61,6 @@
                           @unselect_option="remove_interfaces_selected"
                           @change_selected_options="all_criteria">
             </SelectSearch>
-			</div>
 	
 
 	</div>
@@ -85,14 +83,13 @@ import { default as SelectSearch } from "./select-search.vue";
 import regexValidation from "../utilities/regex-validation.js";
 
 const _i18n = (t) => i18n(t);
-const host_placeholder = i18n('if_stats_config.host_placeholder')
+const host_placeholder = i18n('if_stats_config.multicast_ip_placeholder')
 const port_placeholder = i18n('if_stats_config.port_placeholder')
 const modal_id = ref(null);
 const ip = ref(null);
 const port = ref(null);
 const repeater_type = ref({value: "mdns", label: "MDNS" });
 const emit = defineEmits(['edit', 'add'])
-const selectedInterfaces = ref([]);
 
 const showed = () => {};
 
@@ -110,10 +107,7 @@ const check_empty_port = () => {
 	disable_add.value = (port < 1 || port > 65535);
 }
 
- /* Called on interface selected */
-async function onInterfaceSelect(e) {
-	
-}
+
 
 const title = ref("");
 
@@ -127,42 +121,25 @@ const disable_add = ref(true)
 
 const selected_repeater_type = ref({});
 
-const selected_dest_type = ref({});
-const dest_regex = ref("");
-const dest = ref("");
 
 const interface_list_url = `${http_prefix}/lua/rest/v2/get/nedge/interfaces.lua`;
 let interface_list;
 const interface_array = ref([]);
 
-const selected_source_interface = ref({});
 const selected_dest_interface = ref([]);
 
 const button_text = ref("");
 
-function findIface(iface) {
-	interface_array.value.forEach((it) => {
-		if( it.value == iface) 
-			return it;
-	})
-
-}
 const all_criteria = (item) => {
-	debugger;
 	selected_dest_interface.value = item;
-	debugger;
 }
 
 const update_interfaces_selected = (item) => {
-	/*debugger;
-	selected_dest_interface.value.push(findIface(item.value));
-	debugger;*/
+
 }
 
 const remove_interfaces_selected = (item) => {
-	/*debugger;
-	selected_dest_interface.value = selected_dest_interface.value.filter(i => i.value != item.value);
-	debugger;*/
+
 }
 
 const show = (row ) => {
@@ -201,7 +178,6 @@ function init(row) {
 }
 
 async function change_repeater_type(type) {
-	debugger;
 		repeater_type.value = selected_repeater_type.value;
     if (repeater_type.value.value == "custom") {
 			await set_interface_array();
@@ -217,20 +193,15 @@ async function set_interface_array() {
 	    interface_list = ntopng_utility.http_request(interface_list_url);
 	}
 	let res_interface_list = await interface_list;
-	debugger;
 	interface_array.value = res_interface_list.filter(i => i.role != "unused").map((i) => {
 			return {
 		label: i.label,
 		value: i.ifname,
 			};
 	});
-	debugger;
     is_set_interface_array = true;
 }
 
-function set_regex(rg, type) {
-    rg.value = regexValidation.get_data_pattern(type);
-}
 
 const apply = () => {
     let repeater_t = repeater_type.value.label;
@@ -239,7 +210,6 @@ const apply = () => {
 			repeater_type: repeater_t,
     };
 		if (repeater_type.value.value == "custom") {
-			debugger;
 			let ip_t = ip.value;
 			let port_t = port.value;
 			obj = {
@@ -262,7 +232,6 @@ const apply = () => {
 			interfaces +=i.value+",";
 		});
 		obj.interfaces = interfaces;
-    debugger;
     emit(event, obj);
     close();
 };

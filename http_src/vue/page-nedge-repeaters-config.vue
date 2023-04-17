@@ -41,15 +41,12 @@ const props = defineProps({
     columns_config: Array
 });
 
-const table_config = ref({})
+const table_config = ref({});
 const table_rules = ref(null);
 const modal_add_repeater_config = ref(null);
-const modal_change_default_policy = ref(null);
-const default_policy = ref({});
 
 onBeforeMount(async () => {
     set_datatable_config();
-    load_default_policy();
 });
 
 function edit_repeater(repeater) {    
@@ -62,13 +59,6 @@ function add_repeater(repeater) {
     set_rule(repeater, add_url);
 }
 
-async function load_default_policy(policy) {
-    if (policy == null) {
-        const get_policy_url = `${http_prefix}/lua/rest/v2/get/nedge/forwarders.lua`;
-        let policy_res = await ntopng_utility.http_request(get_policy_url);
-        policy = policy_res.default_policy;
-    }
-}
 
 function set_rule(rule, url) {
     let headers = {
@@ -100,7 +90,7 @@ function set_datatable_config() {
 	text: '<i class="fas fa-plus"></i>',
 	className: 'btn-link',
 	action: function () {
-	    modal_add_repeater_config.value.show(null, default_policy.value);
+	    modal_add_repeater_config.value.show(null);
 	}
     });
     

@@ -47,13 +47,7 @@ if table.len(_POST) > 0 then
       changed = true
     end
 
-    local mdns_repeater = _POST["toggle_mdns_repeater"]
-    if mdns_repeater ~= nil then
-       local mdns_repeater_enabled = ternary(mdns_repeater == "1", true, false)
-       sys_config:setMDNSRepeaterEnabled(mdns_repeater_enabled)
-       changed = true
-    end
-
+  
     if changed then
       sys_config:save()
     end
@@ -68,17 +62,7 @@ local function print_page_body()
   local descr = i18n("nedge.lan_recovery_ip_descr", {product=info["product"]}) .. "<br><b>" .. i18n("nedge.lan_recovery_warning") .. "</b>"
   system_setup_ui_utils.printPrivateAddressSelector(i18n("nedge.lan_recovery_ip"), descr, "lan_recovery_ip", "lan_recovery_netmask", lan_recovery.ip, true)
 
-  local mdns_repeater_enabled = sys_config:isMDNSRepeaterEnabled()
-  prefsToggleButton(subpage_active, {
-	title = i18n("prefs.toggle_mdns_repeater_title"),
-	description = i18n("prefs.toggle_mdns_repeater_description"),
-	content = "",
-	field = "toggle_mdns_repeater",
-	default = "0",
-	pref = "",
-	redis_prefix = "",
-	default = ternary(mdns_repeater_enabled, "1", "0"),
-  })
+  
 
   print('<tr><th colspan=2 style="text-align:right;">')
   if is_nedge then
