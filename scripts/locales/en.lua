@@ -5062,8 +5062,8 @@ local lang = {
         ["custom"] = "Custom"
       },
       ["type"] = "Type",
-      ["ip"] = "IP",
-      ["port"] = "Port",
+      ["ip"] = "Multicast IP",
+      ["port"] = "Multicast Port",
       ["interface"] = "Network Interface",
       ["interfaces"] = "Network Interfaces",
       ["repeater_id"] = "Repeater ID",

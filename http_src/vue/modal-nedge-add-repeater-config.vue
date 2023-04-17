@@ -24,7 +24,7 @@
 	<div class="col col-md-6">
 
 		<div v-if="selected_repeater_type.value == 'custom'" >
-	    <label class="col-form-label col-sm-2" >
+	    <label class="col-form-label col-sm-10" >
         <b>{{_i18n("nedge.page_repeater_config.ip")}}</b>
 	    </label>
 	      <input v-model="ip"  @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
@@ -40,7 +40,7 @@
 	<div class="col col-md-6">
 
 		<div v-if="selected_repeater_type.value == 'custom'" >
-	    <label class="col-form-label col-sm-2" >
+	    <label class="col-form-label col-sm-10" >
         <b>{{_i18n("nedge.page_repeater_config.port")}}</b>
 	    </label>
 	      <input v-model="port"  @input="check_empty_port" class="form-control" type="text" :placeholder="port_placeholder" required>
@@ -193,7 +193,7 @@ async function set_interface_array() {
 	    interface_list = ntopng_utility.http_request(interface_list_url);
 	}
 	let res_interface_list = await interface_list;
-	interface_array.value = res_interface_list.filter(i => i.role != "unused").map((i) => {
+	interface_array.value = res_interface_list.filter(i => i.role == "lan").map((i) => {
 			return {
 		label: i.label,
 		value: i.ifname,
