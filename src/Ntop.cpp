@@ -615,7 +615,7 @@ void Ntop::start() {
 
 #ifdef HAVE_NEDGE
   char **rsp = NULL;
-  char repeater[3000];
+  char repeater[256];
   char key[128];
   bool is_mdns_enabled = false;
 
