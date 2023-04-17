@@ -52,11 +52,10 @@ void AlertCounter::inc(time_t when, AlertableEntity *alertable) {
   if (when - time_last_hit > 1) /* Only consecutive hits matter */
     reset_window(when);
 
-  if (when - time_last_hit) { /* If true, difference must be 1 as
-                                 reset_window(when) is called if > 1 */
-    u_int16_t tmp_min =
-        trailing_window[0]; /* Update the minimum value to make sure all the
-                               elements in the window are >= */
+  if (when - time_last_hit) {
+    /* If true, difference must be 1 (different seconds) as reset_window(when) is called if > 1 */
+    u_int16_t tmp_min = trailing_window[0]; /* Update the minimum value to make sure all the
+					       elements in the window are >= */
     for (u_int8_t i = 1; i < ALERT_COUNTER_WINDOW_SECS; i++) {
       if (trailing_window[i] < tmp_min /* New minimum detected */)
         tmp_min = trailing_window[i];
@@ -67,11 +66,8 @@ void AlertCounter::inc(time_t when, AlertableEntity *alertable) {
     if (trailing_window_min > trailing_window_max_since_hits_reset)
       trailing_window_max_since_hits_reset = trailing_window_min;
 
-    trailing_index =
-        (trailing_index + 1) %
-        ALERT_COUNTER_WINDOW_SECS; /* Move to the next element in the array */
-    trailing_window[trailing_index] =
-        0;                /* Reset as it could contain old values */
+    trailing_index = (trailing_index + 1) % ALERT_COUNTER_WINDOW_SECS; /* Move to the next element in the array */
+    trailing_window[trailing_index] = 0; /* Reset as it could contain old values */
     time_last_hit = when; /* Update the last hit */
   }
 
