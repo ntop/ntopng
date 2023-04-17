@@ -594,7 +594,9 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
       flow->last_switched = value->int_num;
     break;
   case SAMPLING_INTERVAL:
+#if 0
     flow->pkt_sampling_rate = value->int_num;
+#endif
     break;
   case DIRECTION:
     if(value->string != NULL)
