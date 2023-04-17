@@ -1,7 +1,6 @@
 --
 -- (C) 2013-23 - ntop.org
 --
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
@@ -14,8 +13,8 @@ local rest_utils = require("rest_utils")
 
 -- Checking root privileges
 if not isAdministrator() then
-  rest_utils.answer(rest_utils.consts.err.not_granted)
-  return
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
 end
 
 -- ##################################################
@@ -35,32 +34,32 @@ local has_protos_file = protos_utils.hasProtosFile()
 -- ##################################################
 
 if isEmptyString(l7_proto_id) and isEmptyString(l7_proto_name) then
-  rc = rest_utils.consts.err.invalid_args
-  rest_utils.answer(rc, res)
-  return
+    rc = rest_utils.consts.err.invalid_args
+    rest_utils.answer(rc, res)
+    return
 end
 
 if has_protos_file then
-  for _, _rule in ipairs(rules) do
-    -- TODO implement match logic on existing rules to avoid duplicates
-    local rule = protos_utils.getProtosTxtRule(_rule)
-    if rule ~= nil then
-      rules_to_add[#rules_to_add + 1] = rule
+    for _, _rule in ipairs(rules) do
+        -- TODO implement match logic on existing rules to avoid duplicates
+        local rule = protos_utils.getProtosTxtRule(_rule)
+        if rule ~= nil then
+            rules_to_add[#rules_to_add + 1] = rule
+        end
     end
-  end
 
-  protos_utils.overwriteAppRules(l7_proto_name, rules_to_add)
+    protos_utils.overwriteAppRules(l7_proto_name, rules_to_add)
 end
 
 if l7_proto_id then
-  l7_proto_id = tonumber(l7_proto_id)
-  local custom_categories = getCustomnDPIProtoCategories()
-  local old_category = ntop.getnDPIProtoCategory(l7_proto_id)
+    l7_proto_id = tonumber(l7_proto_id)
+    local custom_categories = getCustomnDPIProtoCategories()
+    local old_category = ntop.getnDPIProtoCategory(l7_proto_id)
 
-  if old_category.id ~= l7_category then
-    -- io.write("Changing nDPI category for " .. id .. ": " .. old_cat .. " -> " .. new_cat .. "\n")
-    setCustomnDPIProtoCategory(l7_proto_id, l7_category)
-  end
+    if old_category.id ~= l7_category then
+        -- io.write("Changing nDPI category for " .. id .. ": " .. old_cat .. " -> " .. new_cat .. "\n")
+        setCustomnDPIProtoCategory(l7_proto_id, l7_category)
+    end
 end
 
 rest_utils.answer(rc, res)
