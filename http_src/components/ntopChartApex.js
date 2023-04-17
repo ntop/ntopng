@@ -250,7 +250,7 @@ const ntopChartApex = function () {
         text: 'No Data',
         style: {
           color: undefined,
-          fontSize: '22px',
+          fontSize: '24px',
           fontFamily: undefined
         }
       }
