@@ -35,6 +35,7 @@ import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
 import { default as PageEditApplications } from "./page-edit-applications.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
+import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue" 
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -94,6 +95,7 @@ let ntopVue = {
     PageTestTable: PageTestTable,
     PageTestNewTable: PageTestNewTable,
     NedgeRulesConfig: NedgeRulesConfig,
+    NedgeRepeatersConfig: NedgeRepeatersConfig,
 
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,

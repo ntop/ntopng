@@ -370,9 +370,11 @@ Ntop::~Ntop() {
 
   if (myTZname) free(myTZname);
 #ifdef HAVE_NEDGE
-  if (mdnsRepeater) {
-    delete mdnsRepeater;
-    mdnsRepeater = NULL;
+  if (multicastForwarders.size() > 0) {
+    
+    for (auto it = multicastForwarders.begin(); it != multicastForwarders.end(); ++it) {
+      delete (*it);
+    }
   }
 #endif
 
@@ -612,24 +614,62 @@ void Ntop::start() {
 #endif
 
 #ifdef HAVE_NEDGE
-  char rsp[8];
+  char **rsp = NULL;
+  char repeater[3000];
   char key[128];
   bool is_mdns_enabled = false;
 
-  snprintf(key, sizeof(key), PREF_ENABLE_MDNS_REPEATER);
 
-  if (redis->get(key, rsp, sizeof(rsp)) == 0 && rsp[0] != '\0')
-    is_mdns_enabled = (rsp[0] == '1') ? true : false;
+  snprintf(key, sizeof(key), "ntopng.prefs.config.repeater.*");
 
-  if (is_mdns_enabled) {
-    mdnsRepeater = new (std::nothrow) MDNSRepeater();
+  int counter = redis->keys(key, &rsp);
+  
+  memset(key, 0, sizeof(key));
 
-    if (mdnsRepeater == NULL)
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                   "Error occured instantiating MDNSRepeater");
-    else
-      mdnsRepeater->start();
+  for(int i = 1; i<= counter; i++) {
+    snprintf(key, sizeof(key), "ntopng.prefs.config.repeater.%d",i);
+
+    redis->get(key, repeater, sizeof(repeater));
+
+    char *token = strtok(repeater, "|");
+   
+    int h = 0;
+    string ip;
+    string port;
+    string interfaces;
+    string type;
+    while (token != NULL)
+    {
+        if(h == 0) {
+          type = token;
+        } else if (h == 1) {
+          ip = token;
+        } else if (h == 2) {
+          port = token;
+        } else if(h == 3) {
+          interfaces = token;
+        }
+        token = strtok(NULL, "|");
+        h++;
+    }
+
+
+    MulticastForwarder *multicastForwarder = new (std::nothrow) MulticastForwarder(!strcmp(type.c_str(),"MDNS") , ip, stoi(port), interfaces);
+    multicastForwarders.push_back(multicastForwarder);
+    
+    memset(key, 0, sizeof(key));
+    memset(repeater, 0, sizeof(repeater));
   }
+
+  if (multicastForwarders.size() == 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                  "Error occured instantiating MDNSRepeater");
+  else {
+    for (auto it = multicastForwarders.begin(); it != multicastForwarders.end(); ++it) {
+      (*it)->start();
+    }
+  }
+  
 #endif
 
   checkReloadHostPools();
@@ -3088,7 +3128,9 @@ void Ntop::shutdownAll() {
 #endif
 
 #ifdef HAVE_NEDGE
-  ntop->mdnsRepeater->stop();
+  for (auto it = multicastForwarders.begin(); it != multicastForwarders.end(); ++it) {
+    (*it)->stop();
+  }
 #endif
 }
 

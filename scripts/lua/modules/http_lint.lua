@@ -2408,6 +2408,12 @@ local known_parameters = {
    ["dst_value"]               = validatePolicyValue,
    ["bidirectional"]           = validateBool,
 
+   -- nEdge repeaters
+   ["repeater_type"]           = validateSingleWord,
+   ["new_repeater_id"]         = validateNumber,
+   ["repeater_id"]             = validateNumber,
+   ["interfaces"]              = validateSingleWord,
+
    -- Containers
    ["pod"]                     = validateSingleWord,
    ["container"]               = validateSingleWord,

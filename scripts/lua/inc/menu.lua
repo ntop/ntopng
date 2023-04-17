@@ -528,6 +528,11 @@ if is_nedge then
             hidden = not is_admin or not ntop.isRoutingMode(),
             url = '/lua/pro/nedge/admin/rules_config.lua',
          },
+         {
+            entry = page_utils.menu_entries.forwarders_config,
+            hidden = not is_admin or not ntop.isRoutingMode(),
+            url = '/lua/pro/nedge/admin/forwarders_config.lua',
+         },
    }) do
       system_entries[#system_entries + 1] = entry
    end

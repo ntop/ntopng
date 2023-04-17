@@ -461,7 +461,7 @@ using namespace std;
 #include "HostChecksLoader.h"
 #include "HostChecksExecutor.h"
 #ifdef HAVE_NEDGE
-#include "MDNSRepeater.h"
+#include "MulticastForwarder.h"
 #endif
 #include "Radius.h"
 #include "Ntop.h"
