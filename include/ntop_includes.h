@@ -464,9 +464,6 @@ using namespace std;
 #include "MulticastForwarder.h"
 #endif
 #include "Radius.h"
-#ifdef NTOPNG_PRO
-#include "LDAPAuth.h"
-#endif
 #include "Ntop.h"
 
 #ifdef NTOPNG_PRO
