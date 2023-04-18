@@ -34,7 +34,7 @@ class FlowsHostInfo {
  public:
   FlowsHostInfo(IpAddress* _ip, Host* _host) { ip = _ip, host = _host; };
 
-  const char* getHostName(char* buf, u_int16_t buf_len);
+  char* getHostName(char* buf, u_int16_t buf_len);
   const char* getIP(char* buf, u_int16_t buf_len);
   const char* getIPHex(char* buf, u_int16_t buf_len);
   bool isHostInMem();

@@ -200,7 +200,7 @@ function get_table_columns_config() {
         columns.push(
             {
                 columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-                    return `${data.label}`
+                    return `${data.label_with_icons}`
                 }
             });
     }
@@ -239,7 +239,7 @@ function get_table_columns_config() {
             columns.push(
                 {
                     columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-                        return `<label>${data.complete_label}</label>`
+                        return `${data.label_with_icons}`
                     }
                 }, {
                 columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
@@ -304,46 +304,28 @@ function get_table_columns_config() {
 }
 
 const format_client_name = function (data, rowData) {
-    rowData = ntopng_utility.clone(rowData);
-    if (rowData.client_name.alerted) {
-        rowData.client_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>` + rowData.client_name.complete_label;
+    let alert_label = ''
+    if (data.is_alerted) {
+        alert_label = `<i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`;
     }
 
-
-    if (rowData.client_name.label && rowData.client_name.label != "") {
-
-        if (!rowData.is_client_in_mem) {
-            return `<label>${rowData.client_name.label}</label>` + rowData.client_name.complete_label;
-        } else {
-            return `<a href="${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}">${rowData.client_name.label}</a>` + rowData.client_name.complete_label + ` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
-        }
+    if (!data.in_memory) {
+        return `${data.label} ${alert_label} ${data.extra_labels}`;
     } else {
-        if (!rowData.is_client_in_mem)
-            return `<label>${data.label}</label>` + rowData.client_name.complete_label;
-        else
-            return `<a href="${http_prefix}/lua/flows_stats.lua?client=${data.id}">${data.label}</a>` + rowData.client_name.complete_label + ` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.client_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+        return `<a href="${http_prefix}/lua/flows_stats.lua?client=${data.ip}&vlan=${data.vlan_id}">${data.label}</a> ${alert_label} ${data.extra_labels} <a href="${http_prefix}/lua/host_details.lua?host=${data.ip}&vlan=${data.vlan_id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
     }
 }
 
 const format_server_name = function (data, rowData) {
-    rowData = ntopng_utility.clone(rowData);
-
-    if (rowData.server_name.alerted) {
-        rowData.server_name.complete_label = ` <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>` + rowData.server_name.complete_label;
+    let alert_label = ''
+    if (data.is_alerted) {
+        alert_label = `<i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>`;
     }
 
-
-    if (rowData.server_name.label && rowData.server_name.label != "") {
-        if (!rowData.is_server_in_mem) {
-            return `<label>${rowData.server_name.label}</label>` + rowData.server_name.complete_label;
-        } else {
-            return `<a href="${http_prefix}/lua/flows_stats.lua?server=${rowData.server_name.id}">${rowData.server_name.label}</a>` + rowData.server_name.complete_label + ` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
-        }
+    if (!data.in_memory) {
+        return `${data.label} ${alert_label} ${data.extra_labels}`;
     } else {
-        if (!rowData.is_server_in_mem)
-            return `<label>${data.label}</label>` + rowData.server_name.complete_label;
-        else
-            return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data.id}">${data.label}</a>` + rowData.server_name.complete_label + ` <a href="${http_prefix}/lua/host_details.lua?host=${rowData.server_name.id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+        return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data.ip}&vlan=${data.vlan_id}">${data.label}</a> ${alert_label} ${data.extra_labels} <a href="${http_prefix}/lua/host_details.lua?host=${data.ip}&vlan=${data.vlan_id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
     }
 }
 
@@ -352,13 +334,13 @@ const format_flows_icon = function (data, rowData) {
     if (selected_criteria.value.value == 1)
         url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}`;
     else if (selected_criteria.value.value == 2)
-        url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}`;
+        url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client.ip}&vlan=${rowData.client.vlan_id}`;
     else if (selected_criteria.value.value == 3)
-        url = `${http_prefix}/lua/flows_stats.lua?server=${rowData.server_name.id}`;
+        url = `${http_prefix}/lua/flows_stats.lua?server=${rowData.server.ip}&vlan=${rowData.client.vlan_id}`;
     else if (selected_criteria.value.value == 4)
-        url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client_name.id}&server=${rowData.server_name.id}`;
+        url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client.ip}&server=${rowData.server.ip}&vlan=${rowData.vlan_id.id}`;
     else if (selected_criteria.value.value == 5)
-        url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}&client=${rowData.client_name.id}&server=${rowData.server_name.id}`;
+        url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}&client=${rowData.client.ip}&server=${rowData.server.ip}&vlan=${rowData.vlan_id.id}`;
     else if (selected_criteria.value.value == 6)
         url = `${http_prefix}/lua/flows_stats.lua?flow_info=${rowData.info.id}`;
 

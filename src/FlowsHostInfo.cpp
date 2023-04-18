@@ -29,8 +29,8 @@ const char* FlowsHostInfo::getIP(char* buf, u_int16_t buf_len) {
 
 /* ************************************************ */
 
-const char* FlowsHostInfo::getHostName(char* buf, u_int16_t buf_len) {
-  return(host ? host->get_name(buf, buf_len, false) : (char *)"");
+char* FlowsHostInfo::getHostName(char* buf, u_int16_t buf_len) {
+  return(host ? host->get_visual_name(buf, buf_len) : (char *)"");
 }
 
 /* ************************************************ */
@@ -49,4 +49,10 @@ bool FlowsHostInfo::isHostInMem() {
 
 u_int16_t FlowsHostInfo::getVLANId() {
   return (host ? host->get_vlan_id() : 0);
+}
+
+/* ************************************************ */
+
+Host* FlowsHostInfo::getHost() {
+  return (host ? host : NULL);
 }

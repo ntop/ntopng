@@ -38,6 +38,8 @@ AggregatedFlowsStats::AggregatedFlowsStats(const IpAddress* c, const IpAddress* 
 AggregatedFlowsStats::~AggregatedFlowsStats() {
   if (proto_name) free(proto_name);
   if (info_key) free(info_key);
+  if (client) delete client;
+  if (server) delete server;
 }
 
 /* *************************************** */

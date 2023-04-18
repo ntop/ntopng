@@ -77,7 +77,6 @@ class AggregatedFlowsStats {
   };
   inline u_int16_t getCliVLANId() { return (client ? client->getVLANId() : 0); };
   inline u_int16_t getSrvVLANId() { return (server ? server->getVLANId() : 0); };
-  
 
   /* Setters */
   inline void setProtoName(char* _proto_name) {
