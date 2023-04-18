@@ -7000,7 +7000,8 @@ local lang = {
     ["traffic_profiles"] = "Traffic Profiles",
   },
   ["traffic_recording"] = {
-    ["about_to_download_flow"] = "About to extract traffic from <b>%{date_begin}</b> to <b>%{date_end}</b> matching the selected flow. A PCAP file will be downloaded.",
+    ["about_to_download_flow"] = "About to extract and download a PCAP matching the selected traffic from <b>%{date_begin}</b> to <b>%{date_end}</b>. %{extra_info}",
+    ["about_to_download_smart"] = "Traffic will be extracted from the Smart storage, some data may be missing.",
     ["about_to_extract"] = "About to extract traffic from <b>%{date_begin}</b> to <b>%{date_end}</b>",
     ["active_since"] = "Active Since",
     ["archive"] = "Archive",

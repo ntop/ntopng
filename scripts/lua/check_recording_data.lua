@@ -29,4 +29,8 @@ if window_info.epoch_begin and window_info.epoch_end then
    window_info.epoch_end_formatted = format_utils.formatPastEpochShort(window_info.epoch_end)
 end
 
+if window_info.smart then
+   window_info.info = i18n("traffic_recording.about_to_download_smart")
+end
+
 print(json.encode(window_info))

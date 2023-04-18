@@ -971,10 +971,16 @@ end
 --! @brief Parse the configuration file of a manually-started n2disk and returns the timeline if found
 --! @param ifid the interface identifier 
 --! @return true if extraction is possible and false otherwise, along with a check message
-function recording_utils.checkExtraction(ifid)
+function recording_utils.checkExtraction(ifid, use_smart)
    local res = {}
    -- try and open the timeline. Failing to open the timeline would cause failing to do the extractions
-   local timeline_path = recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifid)
+
+   local timeline_path
+   if not use_smart then
+      timeline_path = recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifid)
+   else
+      timeline_path = recording_utils.getCurrentTrafficRecordingProviderSmartTimelinePath(ifid)
+   end
 
    if not timeline_path then
       res = {status = "ERR_MISSING_TIMELINE"}
@@ -1101,14 +1107,17 @@ function recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end)
       if recording_utils.isSmartEnabled(ifid) then
          local stats = recording_utils.smartStats(ifid)
          info = is_data_in_window(stats, epoch_begin, epoch_end)
+         if info.available then
+            info.smart = true
+         end
       end
    end
-
+   
    if recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng" then
-      local extraction_checks_ok, extraction_checks_msg = recording_utils.checkExtraction(ifid)
+      local extraction_checks_ok, extraction_checks_msg = recording_utils.checkExtraction(ifid, info.smart)
 
       if not extraction_checks_ok then
-	 info.available = nil
+	 info.available = false
 	 info.extraction_checks_msg = extraction_checks_msg
       end
    end

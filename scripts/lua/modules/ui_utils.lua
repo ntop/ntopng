@@ -120,7 +120,7 @@ function ui_utils.draw_pcap_download_dialog(ifid)
       return true;
    }
 
-   function pcapShowModal(epoch_begin, epoch_end, bpf_filter) {
+   function pcapShowModal(epoch_begin, epoch_end, bpf_filter, info_msg) {
      var modalID = "]] print(modalID) print [[";
      var date_begin = new Date(epoch_begin * 1000);
      var date_end = new Date(epoch_end * 1000);
@@ -134,6 +134,7 @@ function ui_utils.draw_pcap_download_dialog(ifid)
      $('#'+modalID+'_epoch_end').val(epoch_end);
      $('#'+modalID+'_begin').text(epoch_begin_formatted);
      $('#'+modalID+'_end').text(epoch_end_formatted);
+     $('#'+modalID+'_extra_info').text(info_msg ? info_msg : '');
      $('#'+modalID+'_query_items').html("");
      $('#'+modalID+'_chart_link').val("");
 
@@ -164,8 +165,8 @@ function ui_utils.draw_pcap_download_dialog(ifid)
             $("#no-recording-data").modal("show");
             return;
          }
-      
-         pcapShowModal(epoch_begin, epoch_end, bpf_filter);
+
+         pcapShowModal(epoch_begin, epoch_end, bpf_filter, data.info);
        }
      });
    }
@@ -183,7 +184,7 @@ function ui_utils.draw_pcap_download_dialog(ifid)
   print(template_utils.gen("traffic_extraction_dialog.html", { dialog = {
      id = modalID,
      title = i18n("traffic_recording.pcap_download"),
-     message = i18n("traffic_recording.about_to_download_flow", {date_begin = '<span id="'.. modalID ..'_begin">', date_end = '<span id="'.. modalID ..'_end">'}),
+     message = i18n("traffic_recording.about_to_download_flow", {date_begin = '<span id="'.. modalID ..'_begin">', date_end = '<span id="'.. modalID ..'_end">', extra_info = '<span id="'.. modalID ..'_extra_info">'}),
      submit = i18n("traffic_recording.download"),
      form_method = "post",
      validator_options = "{ custom: { bpf: bpfValidator }, errors: { bpf: '"..i18n("traffic_recording.invalid_bpf").."' } }",

@@ -146,6 +146,7 @@ export default defineComponent({
 	    let desc = i18n('traffic_recording.about_to_download_flow');
 	    desc = desc.replace('%{date_begin}', this.format_date(date_begin));
 	    desc = desc.replace('%{date_end}', this.format_date(date_end));
+	    desc = desc.replace('%{extra_info}', ''));
 	    this.description = desc;
 	    
 	    // let url_params = ntopng_url_manager.get_url_params();
