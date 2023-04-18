@@ -1,5 +1,7 @@
 AC_INIT([ntopng],[@VERSION@])
 
+AC_CONFIG_MACRO_DIR([m4])
+
 HERE=`pwd`
 SYSTEM=`uname -s`
 
@@ -8,18 +10,49 @@ AC_PROG_CXX
 
 AC_ARG_WITH(leak-sanitizer,     [  --with-leak-sanitizer   Build with support for the LLVM address leak and sanitizer])
 AS_IF([test "${with_leak_sanitizer+set}" = set],[
-    CFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
-    CPPFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
+    CFLAGS="${CFLAGS} -g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
+    CXXFLAGS="${CXXFLAGS} -g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
     LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak"
     USE_CLANG=yes
 ])
 
 AC_ARG_WITH(sanitizer,     [  --with-sanitizer   Build with support for the LLVM address sanitizer])
 AS_IF([test "${with_sanitizer+set}" = set],[
-    CFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
-    CPPFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
+    CFLAGS="${CFLAGS} -g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
+    CXXFLAGS="${CXXFLAGS} -g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
     LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment"
     USE_CLANG=yes
+])
+
+AC_ARG_ENABLE(fuzztargets, AS_HELP_STRING([--enable-fuzztargets], [Enable fuzz targets]), [enable_fuzztargets=$enableval], [enable_fuzztargets=no])
+AC_ARG_ENABLE(fuzztargets-local, AS_HELP_STRING([--enable-fuzztargets-local], [Enable fuzz targets for local testing]), [enable_fuzztargets_local=$enableval], [enable_fuzztargets_local=no])
+
+AS_VAR_IF(enable_fuzztargets_local, yes, [enable_fuzztargets="yes" AC_SUBST(FUZZ_LOCAL_TEST, "1")])
+
+FUZZ_MAKEFILE_INC=
+AS_VAR_IF(enable_fuzztargets, yes, [
+    FUZZ_MAKEFILE_INC="include ./fuzz/Makefile"
+    AC_LANG_PUSH(C++)
+    AC_SUBST(LIB_FUZZING_ENGINE)
+
+    dnl> Check that the compiler supports the flags $LIB_FUZZING_ENGINE
+    AX_CHECK_COMPILE_FLAG(
+        $LIB_FUZZING_ENGINE,
+        [AC_SUBST(HAS_FUZZLDFLAGS, "1")],dnl SUCCESS
+        [],dnl FAIL
+        [],
+        [AC_LANG_SOURCE([[
+#include <sys/types.h>
+extern "C" int LLVMFuzzerTestOneInput(const unsigned char *Data, size_t Size);
+extern "C" int LLVMFuzzerTestOneInput(const unsigned char *Data, size_t Size) {
+(void)Data;
+(void)Size;
+return 0;
+}
+        ]])]
+    )
+
+    AC_LANG_POP()
 ])
 
 dnl> CLANG_STDLIB="-stdlib=libc++"
@@ -45,15 +78,15 @@ if test "x$USE_CLANG" = xyes; then
 fi
 
 CFLAGS="${CFLAGS} -I${HERE} -I${HERE}/include"
-CPPFLAGS="${CPPFLAGS} -I${HERE} -I${HERE}/include"
+CXXFLAGS="${CXXFLAGS} -I${HERE} -I${HERE}/include"
 
-CPPFLAGS="${CPPFLAGS} -Wno-address-of-packed-member -Wno-unused-function"
+CXXFLAGS="${CXXFLAGS} -Wno-address-of-packed-member -Wno-unused-function"
 
 dnl> MacOS brew.sh
 HOMEBREW_DIR=/opt/homebrew
 if test -d $HOMEBREW_DIR; then
  CFLAGS="${CFLAGS} -I ${HOMEBREW_DIR}/include"
- CPPFLAGS="${CPPFLAGS} -I ${HOMEBREW_DIR}/include"
+ CXXFLAGS="${CXXFLAGS} -I ${HOMEBREW_DIR}/include"
  LDFLAGS="${LDFLAGS} -L ${HOMEBREW_DIR}/lib"
 fi
 
@@ -62,7 +95,7 @@ if test -f /proc/device-tree/model; then
   
   if test "$IS_RASPBERRY" = "1"; then
     CFLAGS="${CFLAGS} -DNTOPNG_EMBEDDED_EDITION"
-    CPPFLAGS="${CPPFLAGS} -DNTOPNG_EMBEDDED_EDITION"
+    CXXFLAGS="${CXXFLAGS} -DNTOPNG_EMBEDDED_EDITION"
     AC_DEFINE(HAVE_RASPBERRY, 1, [rPI detected])
   fi
 fi
@@ -171,7 +204,7 @@ fi
 
 if test -d "/usr/local/include"; then
   CFLAGS="${CFLAGS} -I/usr/local/include"
-  CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
+  CXXFLAGS="${CXXFLAGS} -I/usr/local/include"
 fi
 
 if test -d "/usr/local/lib"; then
@@ -180,7 +213,7 @@ fi
 
 if test -d /opt/local/include; then :
   CFLAGS="${CFLAGS} -I/opt/local/include"
-  CPPFLAGS="${CPPFLAGS} -I/opt/local/include"
+  CXXFLAGS="${CXXFLAGS} -I/opt/local/include"
 fi
 
 if test -d /opt/local/lib; then :
@@ -190,7 +223,7 @@ fi
 if [ test -f /usr/bin/lsb_release ]; then
   CODENAME=`/usr/bin/lsb_release -c|cut -f 2`
   if test $CODENAME = "wheezy" ; then
-    CPPFLAGS="${CPPFLAGS} -DOLD_NETFILTER_INTERFACE=1"
+    CXXFLAGS="${CXXFLAGS} -DOLD_NETFILTER_INTERFACE=1"
   fi
 fi
 
@@ -486,7 +519,7 @@ if test "${with_nedge+set}" != set; then
      echo "${PF_RING_HOME}/userland/libpcap/libpcap.a"
      if test -f "${PF_RING_HOME}/userland/libpcap/libpcap.a"; then
        LIBS="${LIBS} ${PF_RING_HOME}/userland/lib/libpfring.a -L${PF_RING_HOME}/userland/libpcap/ `${PF_RING_HOME}/userland/lib/pfring_config --libs`"
-       CPPFLAGS="${CPPFLAGS} -I${PF_RING_HOME}/kernel -I${PF_RING_HOME}/userland/lib -I${PF_RING_HOME}/userland/libpcap"
+       CXXFLAGS="${CXXFLAGS} -I${PF_RING_HOME}/kernel -I${PF_RING_HOME}/userland/lib -I${PF_RING_HOME}/userland/libpcap"
        echo "Using PF_RING installed in ${PF_RING_HOME}"
      else
        echo "Found PF_RING but the userland libs have not been compiled"
@@ -497,7 +530,7 @@ if test "${with_nedge+set}" != set; then
        if test -f "/opt/pfring/lib/libpfring.a"; then
          echo "/opt/pfring/lib/libpfring.a"
          LIBS="${LIBS} /opt/pfring/lib/libpfring.a -L/opt/pfring/lib"
-         CPPFLAGS="${CPPFLAGS} -I/opt/pfring/include"
+         CXXFLAGS="${CXXFLAGS} -I/opt/pfring/include"
          echo "Using PF_RING installed in /opt/pfring"
       else
        if test -f "/usr/local/lib/libpfring.a"; then
@@ -771,9 +804,6 @@ if test $SYSTEM = "Darwin"; then
    MYSQL_LIB=`echo $MYSQL_LIB | sed 's/openssl@1.1/openssl@1.1/g'`
 fi
 
-CPP=$CXX
-CXXFLAGS=$CPPFLAGS
-
 
 PWD=${HERE}
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
@@ -790,7 +820,7 @@ AC_SUBST(GIT_RELEASE)
 AC_SUBST(LINK_OPTS)
 AC_SUBST(SQLITE_LIB)
 AC_SUBST(GMAKE)
-AC_SUBST(GPP)
+AC_SUBST(CPP)
 AC_SUBST(CXX)
 AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)
@@ -842,6 +872,7 @@ AC_SUBST(RPM_SIGN_CMD)
 AC_SUBST(LIBRRD_LD_FLAGS)
 AC_SUBST(STABLE_SUFFIX)
 AC_SUBST(LIBS)
+AC_SUBST(FUZZ_MAKEFILE_INC)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
@@ -851,6 +882,7 @@ AC_CONFIG_FILES(packages/OPNsense/package/+MANIFEST)
 AC_CONFIG_FILES(packages/OPNsense/package/+POST_INSTALL)
 AC_CONFIG_FILES(packages/OPNsense/package/Makefile)
 AC_CONFIG_FILES(Makefile)
+AC_CONFIG_FILES(fuzz/Makefile)
 AC_CONFIG_FILES(tools/json2tlv/Makefile)
 AC_CONFIG_FILES(doc/doxygen.conf)
 AC_CONFIG_FILES(httpdocs/misc/ntopng-utils-manage-config)
@@ -882,9 +914,12 @@ fi
 echo "
 This is the ntopng configuration:
 
-Compiler          : ${CXX}
-Preprocessor Flags: ${CPPFLAGS}
+C Compiler        : ${CC}
+C Flags           : ${CFLAGS}
+C++ Compiler      : ${CXX}
 C++ Flags         : ${CXXFLAGS}
+Preprocessor      : ${CPP}
+Preprocessor Flags: ${CPPFLAGS}
 Linker Flags:     : ${LDFLAGS}
 System Libs       : ${LIBS}
 nDPI Lib:         : ${NDPI_LIB}

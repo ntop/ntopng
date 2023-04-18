@@ -1,0 +1,33 @@
+FUZZ_TARGETS := fuzz/fuzz_dissect_packet
+
+FUZZ_LOCAL_TEST := @FUZZ_LOCAL_TEST@
+HAS_FUZZLDFLAGS := @HAS_FUZZLDFLAGS@
+LIB_FUZZING_ENGINE := @LIB_FUZZING_ENGINE@
+
+ifneq ($(HAS_FUZZLDFLAGS),1)
+	CPPFLAGS := $(CPPFLAGS) -DINCLUDE_ONEFILE
+else ifeq ($(FUZZ_LOCAL_TEST),1)
+	CPPFLAGS := $(CPPFLAGS) -DINCLUDE_ONEFILE
+endif
+
+fuzz/proto/%.pb.o: fuzz/%.proto
+	cd fuzz && protoc --cpp_out=proto/ $*.proto
+	$(CXX) -c fuzz/proto/$*.pb.cc -o $@
+
+fuzz/%.o: fuzz/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I/usr/local/include/libprotobuf-mutator -c $< -o $@
+
+fuzz/fuzz_dissect_packet: fuzz/fuzz_dissect_packet.o fuzz/proto/pcap.pb.o $(OBJECTS_NO_MAIN)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LIB_FUZZING_ENGINE) $^ $(LIBS) /usr/local/lib/libprotobuf-mutator-libfuzzer.a /usr/local/lib/libprotobuf-mutator.a -lprotobuf -o $@
+
+fuzz/%: fuzz/%.o $(OBJECTS_NO_MAIN)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LIB_FUZZING_ENGINE) $^ $(LIBS) -o $@
+
+fuzz_test: $(LIB_TARGETS) $(FUZZ_TARGETS)
+	echo "Here be unicorns!"
+	echo $(FUZZ_LOCAL_TEST)
+	echo "---"
+	echo $(HAS_FUZZLDFLAGS)
+	echo "---"
+	echo $(CPPFLAGS)
+	echo "---"
