@@ -336,7 +336,7 @@ const format_flows_icon = function (data, rowData) {
     else if (selected_criteria.value.value == 2)
         url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client.ip}&vlan=${rowData.client.vlan_id}`;
     else if (selected_criteria.value.value == 3)
-        url = `${http_prefix}/lua/flows_stats.lua?server=${rowData.server.ip}&vlan=${rowData.client.vlan_id}`;
+        url = `${http_prefix}/lua/flows_stats.lua?server=${rowData.server.ip}&vlan=${rowData.server.vlan_id}`;
     else if (selected_criteria.value.value == 4)
         url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client.ip}&server=${rowData.server.ip}&vlan=${rowData.vlan_id.id}`;
     else if (selected_criteria.value.value == 5)
