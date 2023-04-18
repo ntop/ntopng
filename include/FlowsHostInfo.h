@@ -39,6 +39,7 @@ class FlowsHostInfo {
   const char* getIPHex(char* buf, u_int16_t buf_len);
   bool isHostInMem();
   u_int16_t getVLANId();
+  Host* getHost();
 };
 
 #endif /* _FLOWS_HOST_INFO_H_ */
