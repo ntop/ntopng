@@ -32,11 +32,11 @@ class FlowsHostInfo {
   Host* host;
 
  public:
-  FlowsHostInfo(IpAddress* _ip, Host* _host) { ip = _ip, host = _host; }
+  FlowsHostInfo(IpAddress* _ip, Host* _host) { ip = _ip, host = _host; };
 
-  char* getIP(char* buf, u_int len);
-  char* getHostName(char* buf, u_int len);
-  char* getIPHex(char* buf, u_int len);
+  const char* getHostName(char* buf, u_int16_t buf_len);
+  const char* getIP(char* buf, u_int16_t buf_len);
+  const char* getIPHex(char* buf, u_int16_t buf_len);
   bool isHostInMem();
   u_int16_t getVLANId();
 };

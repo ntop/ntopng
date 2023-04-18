@@ -416,13 +416,13 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void checkDHCPStorm(time_t when, u_int32_t num_pkts);
 #endif
   void sort_flow_stats(lua_State *vm,
-                       std::unordered_map<u_int64_t, FlowsStats *> *count,
-                       std::unordered_map<string, FlowsStats *> *count_info,
+                       std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count,
+                       std::unordered_map<string, AggregatedFlowsStats *> *count_info,
                        u_int filter_type);
 
-  void build_lua_rsp(lua_State *vm, FlowsStats *fs, u_int filter_type,
+  void build_lua_rsp(lua_State *vm, AggregatedFlowsStats *fs, u_int filter_type,
                      u_int32_t size, u_int *num);
-  void build_protocol_flow_stats_lua_rsp(lua_State *vm, FlowsStats *fs,
+  void build_protocol_flow_stats_lua_rsp(lua_State *vm, AggregatedFlowsStats *fs,
                                          u_int32_t size, u_int *num);
 
  public:

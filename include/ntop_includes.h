@@ -354,7 +354,7 @@ using namespace std;
 #include "UsedPorts.h"
 #include "ObservationPointIdTrafficStats.h"
 #include "FlowsHostInfo.h"
-#include "FlowsStats.h"
+#include "AggregatedFlowsStats.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"
@@ -464,6 +464,9 @@ using namespace std;
 #include "MulticastForwarder.h"
 #endif
 #include "Radius.h"
+#ifdef NTOPNG_PRO
+#include "LDAPAuth.h"
+#endif
 #include "Ntop.h"
 
 #ifdef NTOPNG_PRO

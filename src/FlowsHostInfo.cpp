@@ -23,60 +23,30 @@
 
 /* ************************************************ */
 
-char* FlowsHostInfo::getIP(char* buf, u_int len) {
-  return (ip->print(buf, len));
+const char* FlowsHostInfo::getIP(char* buf, u_int16_t buf_len) {
+  return (ip ? ip->print(buf, buf_len) : (char *)"");
 }
 
 /* ************************************************ */
 
-char* FlowsHostInfo::getHostName(char* buf, u_int len) {
-  char symIP[64];
-  char* ip_addr = ip->print(buf, len);
-
-  if (host) {
-    char* name = host->get_name(buf, len, false);
-
-    if (name && strcmp(name, "") != 0 && strcmp(name, " ") != 0) return (name);
-  }
-
-  if (ip_addr) {
-    ntop->resolveHostName(ip_addr, symIP, sizeof(symIP));
-
-    if (strcmp(symIP, ip_addr) != 0) {
-      snprintf(buf, len, "%s", symIP);
-      return (buf ? buf : (char*)"");
-    } else
-      return ((char*)"");
-  }
-
-  return ((char*)"");
+const char* FlowsHostInfo::getHostName(char* buf, u_int16_t buf_len) {
+  return(host ? host->get_name(buf, buf_len, false) : (char *)"");
 }
 
 /* ************************************************ */
 
-char* FlowsHostInfo::getIPHex(char* buf, u_int len) {
-  return (ip->get_ip_hex(buf, len));
+const char* FlowsHostInfo::getIPHex(char* buf, u_int16_t buf_len) {
+  return (ip ? ip->get_ip_hex(buf, buf_len) : (char *)"");
 }
 
 /* ************************************************ */
 
-bool FlowsHostInfo::isHostInMem() { return (host != NULL); }
+bool FlowsHostInfo::isHostInMem() { 
+  return (host != NULL); 
+}
 
 /* ************************************************ */
 
 u_int16_t FlowsHostInfo::getVLANId() {
-  u_int16_t v_id = 0;
-
-  if (host) {
-    u_int16_t vlan = host->get_vlan_id();
-
-    if (vlan)
-      v_id = vlan;
-    else {
-      vlan = host->get_raw_vlan_id();
-      v_id = vlan ? vlan : 0;
-    }
-  }
-
-  return v_id;
+  return (host ? host->get_vlan_id() : 0);
 }
