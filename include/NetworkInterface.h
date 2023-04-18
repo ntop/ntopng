@@ -1344,6 +1344,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   static bool compute_info_flow_stats(GenericHashEntry *node, void *user_data,
                                       bool *matched);
 #endif
+  void getActiveMacs(lua_State *vm);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

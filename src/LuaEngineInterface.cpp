@@ -1660,6 +1660,19 @@ static u_int8_t str_2_location(const char *s) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_active_macs(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  else {
+    ntop_interface->getActiveMacs(vm);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+  }
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_macs_info(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *sortColumn = (char *)"column_mac";
@@ -5256,6 +5269,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"getAddressInfo", ntop_get_address_info},
 
     /* Mac */
+    {"getActiveMacs", ntop_get_interface_active_macs},
     {"getMacsInfo", ntop_get_interface_macs_info},
     {"getBatchedMacsInfo", ntop_get_batched_interface_macs_info},
     {"getMacInfo", ntop_get_interface_mac_info},

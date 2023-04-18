@@ -11607,3 +11607,36 @@ void NetworkInterface::getRxOnlyHostsList(lua_State *vm,
            &hosts);
   }
 }
+
+/* **************************************************** */
+
+struct LuaArrayEntryStats {
+  lua_State *vm;
+  u_int num;
+};
+  
+static bool active_mac_search_walker(GenericHashEntry *he, void *user_data,
+                              bool *matched) {
+  struct LuaArrayEntryStats *s = (struct LuaArrayEntryStats *)user_data;
+  Mac *m = (Mac *)he;
+  char buf[32];
+
+  lua_pushstring(s->vm, m->print(buf, sizeof(buf)));
+  lua_rawseti(s->vm, -2, s->num + 1); /* Array */
+  s->num++;
+  
+  return (false); /* false = keep on walking */
+}
+    
+/* **************************************************** */
+
+void NetworkInterface::getActiveMacs(lua_State *vm) {
+  struct LuaArrayEntryStats s;
+  u_int32_t begin_slot = 0;
+
+  lua_newtable(vm);
+  
+  s.vm = vm, s.num = 0;
+  walker(&begin_slot, true /* walk_all */, walker_macs,
+	 active_mac_search_walker, (void *)&s);
+}

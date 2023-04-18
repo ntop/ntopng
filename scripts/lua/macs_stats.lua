@@ -57,10 +57,50 @@ print [[
 	 <script>
 	 var url_update = "]]
 
+local manufacturers
+
 if((devices_mode == "inactive_macs_only") and ntop.isEnterpriseL()) then
+  local ifid = interface.getId()
+  local base_key = "ntopng.serialized_macs.ifid_".. ifid .."_"
+  local keys = base_key .."*"
+  local keys_len = string.len(keys)
+  local macs_list = ntop.getKeysCache(keys)
+  local macs_stats = {}
+  local active_macs_stats = interface.getActiveMacs()
+  local active_macs = {}
+
+  for _,item in pairs(active_macs_stats) do
+    active_macs[item] = true
+  end
+
+  manufacturers = {}
+  if(macs_list ~= None) then
+    for item,_ in pairs(macs_list) do
+      local mac = string.sub(item, keys_len)
+
+      if(active_macs[mac] == None) then
+        local m = get_manufacturer_mac(mac)
+
+        if(m ~= "") then
+         if(manufacturers[m] == None) then
+           manufacturers[m] = 1
+         else
+           manufacturers[m] = manufacturers[m] + 1
+	end
+       end
+      end
+    end
+  end
+
+tprint("--------------")
+tprint(manufacturers)
+tprint("==============")
+
+
   print(getPageUrl(ntop.getHttpPrefix().."/lua/enterprise/get_inactive_macs_data.lua", page_params))
 else
   print(getPageUrl(ntop.getHttpPrefix().."/lua/get_macs_data.lua", page_params))
+   manufacturers = interface.getMacManufacturers(nil, nil, device_type)
 end
 
 print ('";')
@@ -146,7 +186,7 @@ print('buttons: [')
           <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">]] print(i18n("mac_stats.all_manufacturers")) print[[</a></li>\
    ]]
 
-for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_type), asc) do
+for manuf, count in pairsByKeys(manufacturers, asc) do
    local _manuf = string.gsub(string.gsub(manuf, "'", "&#39;"), "\"", "&quot;")
       manufacturer_params.manufacturer = manuf
       print('<li><a class="dropdown-item '.. (manufacturer == manuf and 'active' or '') ..'" href="'..getPageUrl(base_url, manufacturer_params)..'">'.._manuf..' ('..count..')'..'</a></li>')
