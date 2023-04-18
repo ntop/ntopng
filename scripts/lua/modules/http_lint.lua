@@ -2197,7 +2197,6 @@ local known_parameters = {
    ["traffic_recording_provider"]                  = validateTrafficRecordingProvider,
    ["dismiss_external_providers_reminder"]         = validateBool,
    ["dismiss_missing_geoip_reminder"]              = validateBool,
-   ["alert_data_only"]                             = validateBool,
 --
 
 -- TOP STATS

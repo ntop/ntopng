@@ -48,7 +48,7 @@ pfring *TimelineExtract::openTimeline(const char *timeline_path, time_t from,
 
   snprintf(timeline_ifname, sizeof(timeline_ifname), "timeline:%s", timeline_path);
 
-  handle = pfring_open(timeline_path, 16384, 0);
+  handle = pfring_open(timeline_ifname, 16384, 0);
 
   if (handle == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open %s",

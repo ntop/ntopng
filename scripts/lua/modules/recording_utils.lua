@@ -948,7 +948,6 @@ end
 
 --! @brief Return the current n2disk timeline, or the "Smart" timeline if active, based on the time interval
 function recording_utils.getTimelineByInterval(ifid, epoch_begin, epoch_end)
-
    if recording_utils.isExtractionEnabled(ifid) then
       local stats = recording_utils.stats(ifid)
       local info = is_data_in_window(stats, epoch_begin, epoch_end)
@@ -957,14 +956,12 @@ function recording_utils.getTimelineByInterval(ifid, epoch_begin, epoch_end)
       end
    end
 
-   if not info.available then
-      -- Check Smart Recording
-      if smart_data and recording_utils.isSmartEnabled() then
-         local stats = recording_utils.smartStats(ifid)
-         info = is_data_in_window(stats, epoch_begin, epoch_end)
-         if info.available then
-            return recording_utils.getCurrentTrafficRecordingProviderSmartTimelinePath(ifid)
-         end
+   -- Check Smart Recording
+   if recording_utils.isSmartEnabled(ifid) then
+      local stats = recording_utils.smartStats(ifid)
+      local info = is_data_in_window(stats, epoch_begin, epoch_end)
+      if info.available then
+         return recording_utils.getCurrentTrafficRecordingProviderSmartTimelinePath(ifid)
       end
    end
 
@@ -1090,7 +1087,7 @@ end
 --! @param epoch_begin the begin time (epoch)
 --! @param epoch_end the end time (epoch)
 --! @return a table with 'available' = true if the specified interval is included in the dump window, 'epoch_begin'/'epoch_end' are also returned with the actual available window.
-function recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end, smart_data)
+function recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end)
    local info = {}
    info.available = false
 
@@ -1101,7 +1098,7 @@ function recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end, smart_dat
 
    if not info.available then
       -- Check Smart Recording
-      if smart_data and recording_utils.isSmartEnabled() then
+      if recording_utils.isSmartEnabled(ifid) then
          local stats = recording_utils.smartStats(ifid)
          info = is_data_in_window(stats, epoch_begin, epoch_end)
       end
