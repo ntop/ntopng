@@ -2225,6 +2225,15 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
       char key[256], ip_buf[64];
       int expiration = 30*60; /* 30 min */
 
+      if (alert->isReleased()) {
+        /* Relased: 30 min expiration to make sure n2disk data is processed */
+        expiration = 30*60;
+      } else {
+        /* Engaged: expiration will be set on release
+         * Note: setting a 24h expiration as upper bound to stay on the safe side */
+        expiration = 24*60*60;
+      }
+
       snprintf(key, sizeof(key), "n2disk.%s.filter.host.%s", instance_name,
         get_ip()->print(ip_buf, sizeof(ip_buf)));
 
