@@ -132,7 +132,7 @@ for _, data in pairs(aggregated_info or {}) do
         application = {
             label = data.proto_name,
             id = data.proto_id,
-            label_with_icons = getApplicationLabel(data.proto_name, 128)
+            label_with_icons = getApplicationLabel(data.proto_name, 256)
         }
     end
 
