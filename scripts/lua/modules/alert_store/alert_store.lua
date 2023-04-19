@@ -899,7 +899,10 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
 
     if ((fields == "*" and not (ntop.isClickHouseEnabled()))) then
         -- SQLite needs BLOB conversion to HEX
-        fields = "*, hex(alerts_map) alerts_map"
+        fields = "*"
+        if table_name == 'flow_alerts' then
+            fields = fields .. ", hex(alerts_map) alerts_map"
+        end
     end
 
     -- Select everything by default
