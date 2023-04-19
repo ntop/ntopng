@@ -954,6 +954,8 @@ end
       if has_traffic_recording_page then
          print("<tr><th colspan=7 nowrap>"..i18n("traffic_recording.traffic_recording").."</th></tr>\n")
 
+         -- Traffic Recording stats
+
          local stats = recording_utils.stats(ifstats.id)
 
          local first_epoch = stats['FirstDumpedEpoch']
@@ -979,6 +981,25 @@ end
             end
             print("</td></tr>\n")
          end
+
+         -- Smart Recording stats
+
+         stats = recording_utils.smartStats(ifstats.id)
+
+         first_epoch = stats['FirstDumpedEpoch']
+         last_epoch = stats['LastDumpedEpoch']
+
+         if first_epoch ~= nil then
+            print("<tr><th>"..i18n("traffic_recording.smart_window").."</th><td colspan=5>")
+            if first_epoch ~= nil and last_epoch ~= nil and 
+               first_epoch > 0 and last_epoch > 0 then
+               print(formatEpoch(first_epoch).." - "..formatEpoch(last_epoch))
+            else
+               print(i18n("traffic_recording.no_file"))
+            end
+            print("</td></tr>\n")
+         end
+
       end
 
       -- Storage utilization
