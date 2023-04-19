@@ -352,7 +352,7 @@ local menu_subpages = {
       description = i18n("prefs.toggle_host_pools_log_description", {product=info["product"]}),
     },
 
-  }}, {id="snmp",          label=i18n("prefs.snmp"),                 advanced=true,  pro_only=true,   hidden=false, nedge_hidden=true, entries={
+  }}, {id="snmp",          label=i18n("prefs.snmp"),                 advanced=true,  pro_only=true,   hidden=false, nedge_hidden=false, entries={
     toggle_snmp_rrds = {
       title       = i18n("prefs.toggle_snmp_rrds_title"),
       description = i18n("prefs.toggle_snmp_rrds_description"),

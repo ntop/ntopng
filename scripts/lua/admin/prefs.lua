@@ -140,20 +140,20 @@ if auth.has_capability(auth.capabilities.preferences) then
       print[[</div>]]
    end
 
-  local show_advanced_prefs = false
+   local show_advanced_prefs = false
 
-  if toboolean(_POST["show_advanced_prefs"]) ~= nil then
-    ntop.setPref(show_advanced_prefs_key, _POST["show_advanced_prefs"])
-    show_advanced_prefs = toboolean(_POST["show_advanced_prefs"])
-    notifyNtopng(show_advanced_prefs_key, _POST["show_advanced_prefs"])
- else
-    show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
-    if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
- end
+   if toboolean(_POST["show_advanced_prefs"]) ~= nil then
+      ntop.setPref(show_advanced_prefs_key, _POST["show_advanced_prefs"])
+      show_advanced_prefs = toboolean(_POST["show_advanced_prefs"])
+      notifyNtopng(show_advanced_prefs_key, _POST["show_advanced_prefs"])
+   else
+      show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
+      if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
+   end
 
- if _GET['show_advanced_prefs'] ~= nil then
-  show_advanced_prefs = (_GET['show_advanced_prefs'] == '1')
- end
+   if _GET['show_advanced_prefs'] ~= nil then
+      show_advanced_prefs = (_GET['show_advanced_prefs'] == '1')
+   end
 
    page_utils.print_page_title(i18n("prefs.runtime_prefs"))
 
@@ -171,7 +171,7 @@ if auth.has_capability(auth.capabilities.preferences) then
     alerts_disabled = true
    end
 
-local subpage_active, tab = prefsGetActiveSubpage(show_advanced_prefs, _GET["tab"])
+   local subpage_active, tab = prefsGetActiveSubpage(show_advanced_prefs, _GET["tab"])
 
 -- ================================================================================
 
