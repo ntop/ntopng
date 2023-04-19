@@ -9,7 +9,7 @@ The `Unexpected Device Connected/Disconnected` alert (check `here <../alerts/int
 
   This feature is available with at least Pro License.
 
-As described below in this page, you can add a list of MAC addresses that are allowed on your network, and instruct ntopng to trigger alerts whenever:
+As described below in this page (left sidebar menu: Settings -> Device/MAC Address Tracking), you can add a list of MAC addresses that are allowed on your network, and instruct ntopng to trigger alerts whenever:
 
   - An unknown MAC (i.e. a device) connects to the network
   - (Optionally) A MAC (i.e. a device) disconnects from the network
