@@ -150,6 +150,12 @@ enabled as described in the previous page, and in the same page it is required t
 
   The Smart Recording Settings
 
+Once Smart Recording has been enabled, when traffic extraction is requested (from
+one of the charts by selecting a time interval, or when downloading the pcap traffic
+for an alert or for a flow), traffic is extracted from the first-level storage if
+it falls inside the first-level storage window, or from the second-level storage
+otherwise (only traffic matching network events will be available in the latter case).
+
 External Traffic Recording Providers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
