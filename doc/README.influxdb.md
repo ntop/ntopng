@@ -3,7 +3,8 @@ Introduction
 This readme explains how to integrate ntopng with http://influxdb.org time series database.
 Influx is populated by ntopng periodically pushing data into it, using the TimeSeriesExporter class.
 
-*** NOTE: ntopng requires influxdb features only available in the latest versions 1.5.x and up . ***
+**NOTE: ntopng requires influxdb features only available in the latest versions 1.5.x and up.**
+
 Please install influxdb from the official packages `https://portal.influxdata.com/downloads`.
 
 Installation
