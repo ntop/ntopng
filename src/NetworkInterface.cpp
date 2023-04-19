@@ -11065,6 +11065,10 @@ static bool asc_numclients_cmp(AggregatedFlowsStats *a, AggregatedFlowsStats *b)
   return a->getNumClients() < b->getNumClients();
 }
 
+static bool asc_vlan_cmp(AggregatedFlowsStats *a, AggregatedFlowsStats *b) {
+  return a->getVlanId() < b->getVlanId();
+}
+
 static bool asc_numservers_cmp(AggregatedFlowsStats *a, AggregatedFlowsStats *b) {
   return a->getNumServers() < b->getNumServers();
 }
@@ -11268,6 +11272,8 @@ void NetworkInterface::sort_flow_stats(
       sorter = &asc_totalrcvd_cmp;
     } else if (!strcmp(sortColumn, "tot_traffic")) {
       sorter = &asc_totaltraffic_cmp;
+    } else if (!strcmp(sortColumn, "vlan_id")) {
+      sorter = &asc_vlan_cmp;
     }
   }
   

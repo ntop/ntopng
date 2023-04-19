@@ -50,9 +50,3 @@ bool FlowsHostInfo::isHostInMem() {
 u_int16_t FlowsHostInfo::getVLANId() {
   return (host ? host->get_vlan_id() : 0);
 }
-
-/* ************************************************ */
-
-Host* FlowsHostInfo::getHost() {
-  return (host ? host : NULL);
-}
