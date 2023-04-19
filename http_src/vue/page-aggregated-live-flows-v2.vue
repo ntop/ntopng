@@ -19,11 +19,14 @@
 
                     <div>
                         <Table ref="table_aggregated_live_flows" id="table_aggregated_live_flows"
-                            :key="table_config.columns" :columns="table_config.columns"
-                            :get_rows="(active_page, per_page, columns_wrap, first_get_rows) => table_config.get_rows(active_page, per_page, columns_wrap, first_get_rows)"
-                            :get_column_id="(col) => table_config.get_column_id(col)"
-                            :print_column_name="(col) => table_config.print_column_name(col)"
-                            :print_html_row="(col, row) => table_config.print_html_row(col, row)" :paging="true">
+                               :key="table_config.columns" :columns="table_config.columns"
+                               :get_rows="(active_page, per_page, columns_wrap, first_get_rows) => table_config.get_rows(active_page, per_page, columns_wrap, first_get_rows)"
+                               :get_column_id="(col) => table_config.get_column_id(col)"
+                               :print_column_name="(col) => table_config.print_column_name(col)"
+			       :print_html_row="(col, row) => table_config.print_html_row(col, row)"
+			       :f_is_column_sortable="is_column_sortable"
+			       :enable_search="true"
+			       :paging="true">
                         </Table>
                     </div>
                 </div>
@@ -139,10 +142,10 @@ function print_html_row(col, row) {
     return data;
 }
 
-async function get_rows(active_page, per_page, columns_wrap, first_get_rows) {
+const get_rows = async (active_page, per_page, columns_wrap, map_search, first_get_rows) => {
     // loading.value.show_loading();
 
-    let params = get_url_params(active_page, per_page, columns_wrap, first_get_rows);
+    let params = get_url_params(active_page, per_page, columns_wrap, map_search, first_get_rows);
     set_params_in_url(params);
     const url_params = ntopng_url_manager.obj_to_url_params(params);
     const url = `${http_prefix}/lua/rest/v2/get/flow/aggregated_live_flows.lua?${url_params}`;
@@ -152,13 +155,13 @@ async function get_rows(active_page, per_page, columns_wrap, first_get_rows) {
     return { total_rows: res.recordsTotal, rows: res.rsp };
 
     // loading.value.hide_loading();
-}
+};
 
 function set_params_in_url(params) {
     ntopng_url_manager.add_obj_to_url(params);
 }
 
-function get_url_params(active_page, per_page, columns_wrap, first_get_rows) {
+function get_url_params(active_page, per_page, columns_wrap, map_search, first_get_rows) {
     let sort_column = columns_wrap.find((c) => c.sort != 0);
 
     let actual_params = {
@@ -170,6 +173,7 @@ function get_url_params(active_page, per_page, columns_wrap, first_get_rows) {
         order: ntopng_url_manager.get_url_entry("order") || props.order,
         start: (active_page * per_page),
         length: per_page,
+	map_search,
     };
     if (first_get_rows == false) {
         if (sort_column != null) {
@@ -182,6 +186,10 @@ function get_url_params(active_page, per_page, columns_wrap, first_get_rows) {
 
     return actual_params;
 }
+
+const is_column_sortable = (col) => {
+    return col.data != "breakdown";
+};
 
 /// methods to get columns config
 function get_table_columns_config() {
