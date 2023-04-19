@@ -2225,7 +2225,7 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
       char key[256], ip_buf[64];
       int expiration = 30*60; /* 30 min */
 
-      if (alert->isReleased()) {
+      if (alert->isReleased() && alert->isLastReleased()) {
         /* Relased: 30 min expiration to make sure n2disk data is processed */
         expiration = 30*60;
       } else {
@@ -2343,6 +2343,10 @@ void Host::releaseAlert(HostAlert *alert) {
   /* Remove from the list of engaged alerts */
   removeEngagedAlert(alert);
 
+  /* Mark this alert as last engaged if there are no more engaged alerts */
+  if (!getNumEngagedAlerts())
+    alert->setLastReleased();
+
   /* Dec score */
   score_category =
       Utils::mapAlertToScoreCategory(alert->getAlertType().category);
@@ -2380,6 +2384,9 @@ bool Host::storeAlert(HostAlert *alert) {
 
   /* Set as released */
   alert->release();
+
+  if (!getNumEngagedAlerts())
+    alert->setLastReleased();
 
   /* Enqueue the released alert to be notified */
   iface->enqueueHostAlert(alert);

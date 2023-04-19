@@ -30,6 +30,7 @@ class HostAlert {
  private:
   Host *host;
   bool released; /* to be released */
+  bool last_released_for_host; /* there no other engaged alert at the time this has been released */
   bool expiring; /* engaged, under re-evaluation */
   HostCheckID check_id;
   std::string check_name;
@@ -103,6 +104,11 @@ class HostAlert {
     release_time = time(NULL);
   }
   inline bool isReleased() { return released; }
+
+  inline void setLastReleased() {
+    last_released_for_host = true;
+  }
+  inline bool isLastReleased() { return last_released_for_host; }
 
   inline time_t getEngageTime() { return engage_time; }
   inline time_t getReleaseTime() { return release_time; }

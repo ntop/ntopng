@@ -34,6 +34,7 @@ void HostAlert::init(HostCheckID _check_id, std::string _check_name, Host *h,
   timeout_time = 0;
   cli_pctg = _cli_pctg;
   is_attacker = is_victim = false;
+  last_released_for_host = false;
 }
 
 /* **************************************************** */
