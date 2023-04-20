@@ -97,10 +97,10 @@ export const ntopng_utility = function() {
 	    // let epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
 	    let epoch_begin = status.epoch_begin;
 	    let epoch_end = status.epoch_end;
-	    if (epoch_begin != null && epoch_end != null) {
+	    if (epoch_begin != null && epoch_end != null && format != null) {
 		let begin = Number.parseInt(epoch_begin);
 		let end = Number.parseInt(epoch_end);
-		if (end - begin <= 300 ) {
+		if (end - begin <= 11000) {
 		    format = "DD/MMM/YYYY HH:mm:ss";
 		}
 	    }
