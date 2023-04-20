@@ -754,6 +754,10 @@ function recording_utils.isEnabled(ifid)
 end
 
 function recording_utils.isSmartEnabled(ifid)
+  if not ntop.isEnterpriseXL() then
+    return false
+  end
+
   if recording_utils.isAvailable() then
     return isSmartRecordingEnabled(ifid)
   end

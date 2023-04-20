@@ -190,6 +190,7 @@ print [[
 ]]
 
 -- Smart Recording Configuration
+if ntop.isEnterpriseXL() then
 print [[
       <tr>
         <th width=30%>]] print(i18n("traffic_recording.smart_traffic_recording")) print [[</th>
@@ -217,6 +218,7 @@ print [[
         <td colspan=2>]] print(recording_utils.getSmartPcapPath(master_ifid)) print [[</td>
       </tr>
 ]]
+end
 
 -- Storage Utilization
 print [[
