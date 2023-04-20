@@ -148,6 +148,8 @@ function format_number(s) {
     return s.replace(/(.)(?=(\d{3})+$)/g,'$1,');
 }
 
+defineExpose({ change_active_page });
+
 </script>
 
 <style scoped>

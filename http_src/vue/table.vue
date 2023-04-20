@@ -68,10 +68,12 @@
 </div> <!-- Table div-->
 
 <div>
-  <SelectTablePage :key="select_pages_key"
-		   :total_rows="total_rows"
-		   :per_page="per_page"
-		   @change_active_page="change_active_page">
+  <SelectTablePage
+    ref="select_table_page"
+    :key="select_pages_key"
+    :total_rows="total_rows"
+    :per_page="per_page"
+    @change_active_page="change_active_page">
   </SelectTablePage>
 </div>
 
@@ -110,6 +112,8 @@ const per_page_options = [10, 20, 40, 50, 80, 100];
 const per_page = ref(10);
 const store = window.store;
 const map_search = ref("");
+
+const select_table_page = ref(null);
 
 onMounted(async () => {
     if (props.columns != null) {
@@ -234,7 +238,7 @@ function get_sort_function() {
 }
 
 function refresh_table() {
-    set_rows();
+    select_table_page.value.change_active_page(0, 0);
 }
 
 let first_get_rows = true;
