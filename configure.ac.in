@@ -30,8 +30,10 @@ AC_ARG_ENABLE(fuzztargets-local, AS_HELP_STRING([--enable-fuzztargets-local], [E
 AS_VAR_IF(enable_fuzztargets_local, yes, [enable_fuzztargets="yes" AC_SUBST(FUZZ_LOCAL_TEST, "1")])
 
 FUZZ_MAKEFILE_INC=
+FUZZ_OBJECTS=
 AS_VAR_IF(enable_fuzztargets, yes, [
     FUZZ_MAKEFILE_INC="include ./fuzz/Makefile"
+    FUZZ_OBJECTS='$(patsubst %.cpp, %.o, $(wildcard fuzz/stub/*.cpp))'
     AC_LANG_PUSH(C++)
     AC_SUBST(LIB_FUZZING_ENGINE)
 
@@ -873,6 +875,7 @@ AC_SUBST(LIBRRD_LD_FLAGS)
 AC_SUBST(STABLE_SUFFIX)
 AC_SUBST(LIBS)
 AC_SUBST(FUZZ_MAKEFILE_INC)
+AC_SUBST(FUZZ_OBJECTS)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
