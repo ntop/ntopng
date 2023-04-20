@@ -282,10 +282,15 @@
 	          let restText = " (" + (cardsData[i].value[j].count).toFixed(1) + "%)";
 	          if(cardsData[i].value[j].count != 0 && cardsData[i].value[j].count < 0.1){restText = " (< 0.1%)";}
 
+		  let operator = "";
+		  if (cardsData[i].value[j].operator != null) {
+		    operator = `  data-tag-operator='${cardsData[i].value[j].operator} `;
+		  }
 	          let a_tag = "<a class='ntopng-truncate tag-filter dropdown-item' data-tag-key='" + cardsData[i].value[j].key + 
 	            "' title='" + ( cardsData[i].value[j].title || cardsData[i].value[j].value) +
 		    "' data-tag-value='" + cardsData[i].value[j].value + 
-		    "' data-tag-label='" + cardsData[i].value[j].label + 
+		    "' data-tag-label='" + cardsData[i].value[j].label +
+		    operator +
 		    "' href='#'>" + cardsData[i].value[j].label + "" + restText + "</a>";
 
                   let itemText = '<li style="max-width:90rem;" class="dropdown-item pointer">' + a_tag + '</li>';
