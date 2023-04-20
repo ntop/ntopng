@@ -114,6 +114,9 @@ of the recording service, statistics about processed traffic, the log trace.
 Smart Recording
 ---------------
 
+.. note::   
+  Smart Recording is available with ntopng Enterprise XL only.
+
 ntopng, since version 5.7, includes support for Smart Recording. 
 
 As described in the previous section, continuous Traffic Recording provides a 
@@ -125,10 +128,10 @@ data retention, overwriting data too early, to make room for new data. In those
 cases it is helpful to prioritize selected traffic which is matching Network events
 (e.g. security alerts), which is more important then the rest of the traffic.
 
-The Smart Recording support creates a second-level storage where implementing
-the Smart Data Retention, which means archiving traffic matching Network events
-to have a longer data retention for that data (which is usually a small subnet
-of the full raw data).
+The Smart Recording support creates a second-level storage implementing the Smart 
+Data Retention, which means archiving traffic matching Network events to have a 
+longer data retention for that data (which is usually a small subset of the full 
+raw data).
 
 .. figure:: ../img/smart_recording_architecture.png
   :align: center
