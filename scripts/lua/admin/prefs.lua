@@ -44,18 +44,18 @@ local auth_toggles = {
 }
 
 if auth.has_capability(auth.capabilities.preferences) then
-  if not table.empty(_POST) then
-    if _GET["tab"] == "auth" then
-      local one_enabled = false
+   if not table.empty(_POST) then
+      if _GET["tab"] == "auth" then
+         local one_enabled = false
 
-      for k, v in pairs(auth_toggles) do
-        if _POST[v] == "1" then
-          one_enabled = true
-          break
-        end
+         for k, v in pairs(auth_toggles) do
+            if _POST[v] == "1" then
+               one_enabled = true
+               break
+            end
+         end
       end
-    end
-  end
+   end
 
    if(_GET["tab"] == "ext_alerts") then
      local available_endpoints = script_manager.getLoadedAlertEndpoints()
@@ -142,9 +142,10 @@ if auth.has_capability(auth.capabilities.preferences) then
 
    local show_advanced_prefs = false
 
-   if toboolean(_POST["show_advanced_prefs"]) ~= nil then
-      ntop.setPref(show_advanced_prefs_key, _POST["show_advanced_prefs"])
+   local show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
+   if _POST["show_advanced_prefs"] then
       show_advanced_prefs = toboolean(_POST["show_advanced_prefs"])
+      ntop.setPref(show_advanced_prefs_key, _POST["show_advanced_prefs"])
       notifyNtopng(show_advanced_prefs_key, _POST["show_advanced_prefs"])
    else
       show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
@@ -168,7 +169,7 @@ if auth.has_capability(auth.capabilities.preferences) then
    end
 
    if hasAlertsDisabled() then
-    alerts_disabled = true
+      alerts_disabled = true
    end
 
    local subpage_active, tab = prefsGetActiveSubpage(show_advanced_prefs, _GET["tab"])
