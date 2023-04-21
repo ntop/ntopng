@@ -9,7 +9,6 @@ local verbose = false
 local prefs = ntop.getPrefs()
 local info = ntop.getInfo()
 local menu_subpages = require "prefs_menu"
-show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
 local have_nedge = ntop.isnEdge()
 local skip_redis = false
 
@@ -53,6 +52,7 @@ DNS_PRESETS = {
 
 function isSubpageAvailable(subpage, show_advanced_prefs)
   if show_advanced_prefs == nil then
+    local show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
     show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
   end
   if (subpage.hidden) or
