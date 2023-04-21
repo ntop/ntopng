@@ -434,7 +434,7 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json)
   local msg
 
   if(alert_json == nil) then
-   alert_json = alert_utils.getAlertInfo(alert)
+     alert_json = alert_utils.getAlertInfo(alert)
   end
 
   msg = alert_json
