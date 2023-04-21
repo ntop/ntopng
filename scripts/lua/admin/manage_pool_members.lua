@@ -12,6 +12,11 @@ local json = require "dkjson"
 
 sendHTTPContentTypeHeader('application/json')
 
+---
+-- DEPRECATED - keeping this for backward compatibility, will be removed soon
+-- This has been replaced by rest/v2/set/pool/members.lua
+--
+
 --[[ 
    Request example:
    curl -u admin:admin -H "Content-Type: application/json" -d '{"associations" : {"DE:AD:BE:EE:FF:FF" : {"group" : "staff", "connectivity" : "pass"},"AB:AB:AB:AB:AB:AB" : {"group" : "guest", "connectivity" : "reject"},"192.168.2.221/32@0" : {"group" : "staff", "connectivity" : "pass"}}}' http://192.168.1.1:3000/lua/admin/manage_pool_members.lua 
