@@ -2190,7 +2190,7 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
 
 /* *************************************** */
 
-/* Enqueue alert to recipients */
+/* Enqueue alert to recipients */ 
 bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
   bool rv = false;
   u_int32_t buflen;

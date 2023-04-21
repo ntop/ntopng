@@ -64,6 +64,9 @@ AlertFifoItem *RecipientQueue::dequeue() {
 
 /* *************************************** */
 
+/* Filter and Enqueue alerts to the recipient
+ * (similar to what recipients.dispatch_notification does in Lua)
+ */
 bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
                              AlertEntity alert_entity) {
   bool res = false;
