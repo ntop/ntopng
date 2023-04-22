@@ -24,6 +24,7 @@ ifeq ($(FUZZ_WITH_PROTOBUF),1)
 endif
 
 fuzz/proto/%.pb.o: fuzz/%.proto
+	mkdir fuzz/proto
 	cd fuzz && protoc --cpp_out=proto/ $*.proto
 	$(CXX) -c fuzz/proto/$*.pb.cc -o $@
 
