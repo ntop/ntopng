@@ -1,9 +1,12 @@
+#ifdef FUZZ_WITH_PROTOBUF
 #include <bits/types/struct_timeval.h>
 #include <src/libfuzzer/libfuzzer_macro.h>
 #include <sys/time.h>
 
-#include "ntop_includes.h"
 #include "proto/pcap.pb.h"
+#endif
+
+#include "ntop_includes.h"
 
 #ifdef INCLUDE_ONEFILE
 #include "onefile.cpp"
@@ -69,7 +72,7 @@ extern "C" int LLVMFuzzerInitialize(int argc, char **argv) {
     new_argv[--c] = new char[]{"-1\0"};
     new_argv[--c] = new char[]{"asd\0"};
     assert(c == 0);
-    
+
     prefs->loadFromCLI(10, new_argv);  // = true;
     ntop->registerPrefs(prefs, false);
 
