@@ -26,8 +26,10 @@ AS_IF([test "${with_sanitizer+set}" = set],[
 
 AC_ARG_ENABLE(fuzztargets, AS_HELP_STRING([--enable-fuzztargets], [Enable fuzz targets]), [enable_fuzztargets=$enableval], [enable_fuzztargets=no])
 AC_ARG_ENABLE(fuzztargets-local, AS_HELP_STRING([--enable-fuzztargets-local], [Enable fuzz targets for local testing]), [enable_fuzztargets_local=$enableval], [enable_fuzztargets_local=no])
+AC_ARG_WITH(fuzz-protobuf, AS_HELP_STRING([--with-fuzz-protobuf], [Build with protobuf mutator support]), [with_fuzz_protobuf=$enableval], [with_fuzz_protobuf=no])
 
 AS_VAR_IF(enable_fuzztargets_local, yes, [enable_fuzztargets="yes" AC_SUBST(FUZZ_LOCAL_TEST, "1")])
+AS_VAR_IF(with_fuzz_protobuf, yes, [AC_SUBST(FUZZ_WITH_PROTOBUF, "1")])
 
 FUZZ_MAKEFILE_INC=
 FUZZ_OBJECTS=

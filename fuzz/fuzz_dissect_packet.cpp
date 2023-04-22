@@ -44,6 +44,7 @@ void testProg(const uint8_t *data, size_t len) {
 
 end:
     fclose(fd);
+    iface->cleanup();
     ntop->getTrace()->traceEvent(TRACE_INFO, "Ending");
 }
 
@@ -71,6 +72,8 @@ extern "C" int LLVMFuzzerInitialize(int argc, char **argv) {
     
     prefs->loadFromCLI(10, new_argv);  // = true;
     ntop->registerPrefs(prefs, false);
+
+    ntop->loadGeolocation();
 
     iface = new NetworkInterface("custom");
     iface->allocateStructures();
