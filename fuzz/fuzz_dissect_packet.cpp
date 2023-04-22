@@ -1,12 +1,6 @@
 #include <bits/types/struct_timeval.h>
-#include <pcap/pcap.h>
-#include <pthread.h>
 #include <src/libfuzzer/libfuzzer_macro.h>
 #include <sys/time.h>
-#include <unistd.h>
-
-#include <cstdio>
-#include <vector>
 
 #include "ntop_includes.h"
 #include "proto/pcap.pb.h"
@@ -20,10 +14,10 @@ NetworkInterface *iface;
 
 constexpr const char *PROG_NAME = "ntopng";
 
-void testProg(uint8_t *data, size_t len) {
+void testProg(const uint8_t *data, size_t len) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Starting");
 
-    FILE *fd = fmemopen(data, len, "r");
+    FILE *fd = fmemopen((void *)data, len, "r");
     if (fd == NULL) {
         ntop->getTrace()->traceEvent(TRACE_ERROR,
                                      "Cannot create the file descriptor");
@@ -53,14 +47,6 @@ end:
     ntop->getTrace()->traceEvent(TRACE_INFO, "Ending");
 }
 
-#if 1
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
-    // testProg(buf, len);
-
-    return 0;
-}
-#endif
-
 extern "C" int LLVMFuzzerInitialize(int argc, char **argv) {
     Prefs *prefs = NULL;
 
@@ -69,27 +55,35 @@ extern "C" int LLVMFuzzerInitialize(int argc, char **argv) {
 
     ntop->getTrace()->set_trace_level(1);
 
-    char *new_argv[2];
-    new_argv[0] = new char[]{"asd\0"};
-    new_argv[1] = new char[]{"--shutdown-when-done\0"};
-    prefs->loadFromCLI(2, new_argv);  // = true;
-    prefs->set_data_dir(new char[]{"./data-dir"});
-    prefs->set_callback_dir(new char[]{"../scripts/callbacks"});
+    int c = 9;
+    char *new_argv[c];
+    // Args are in reversed order
+    new_argv[--c] = new char[]{"./install\0"};
+    new_argv[--c] = new char[]{"-t\0"};
+    new_argv[--c] = new char[]{"data-dir\0"};
+    new_argv[--c] = new char[]{"-d\0"};
+    new_argv[--c] = new char[]{"scripts\0"};
+    new_argv[--c] = new char[]{"-2\0"};
+    new_argv[--c] = new char[]{"docs\0"};
+    new_argv[--c] = new char[]{"-1\0"};
+    new_argv[--c] = new char[]{"asd\0"};
+    assert(c == 0);
+    
+    prefs->loadFromCLI(10, new_argv);  // = true;
     ntop->registerPrefs(prefs, false);
-
 
     iface = new NetworkInterface("custom");
     iface->allocateStructures();
-    std::cout << "ORA" << std::endl;
 
     return 0;
 }
+
+#ifdef FUZZ_WITH_PROTOBUF
 
 template <class Proto>
 using PostProcessor =
     protobuf_mutator::libfuzzer::PostProcessorRegistration<Proto>;
 
-#if 0
 DEFINE_PROTO_FUZZER(const ntopng_fuzz::Pcap &message) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Starting");
 
@@ -117,4 +111,13 @@ DEFINE_PROTO_FUZZER(const ntopng_fuzz::Pcap &message) {
     }
     ntop->getTrace()->traceEvent(TRACE_INFO, "Ending");
 }
+
+#else
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
+    testProg(buf, len);
+
+    return 0;
+}
+
 #endif
