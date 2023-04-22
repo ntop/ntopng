@@ -20,6 +20,18 @@ Additionally there are some options that can be passed to `./configure`
 
 Additional sanitizers can be enabled by passing the specific flags in `CFLAGS` and `CXXFLAGS`
 
+## Runtime configuration
+
+Some of the fuzzing targets require a particular directory structure to run correctly.
+In order to satisfy all the targets it is strongly suggested to create the following
+directories in the same path where the targets are launched:
+
+ - `install`
+ - `data-dir`
+ - `docs`
+ - `scripts`
+ - `scripts/callbacks`
+
 ## Examples
 
 **Remember** to run all the commands from the project root directory
