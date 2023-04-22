@@ -37,11 +37,4 @@ fuzz/fuzz_dissect_packet: fuzz/fuzz_dissect_packet.o $(EXTRA_SOURCES) $(OBJECTS_
 fuzz/%: fuzz/%.o $(OBJECTS_NO_MAIN)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LIB_FUZZING_ENGINE) $^ $(LIBS) -o $@
 
-fuzz_test: $(LIB_TARGETS) $(FUZZ_TARGETS)
-	echo "Here be unicorns!"
-	echo $(FUZZ_LOCAL_TEST)
-	echo "---"
-	echo $(HAS_FUZZLDFLAGS)
-	echo "---"
-	echo $(CPPFLAGS)
-	echo "---"
+fuzz_all: $(LIB_TARGETS) $(FUZZ_TARGETS)

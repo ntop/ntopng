@@ -36,7 +36,7 @@ CC=clang CXX=clang++ CPPFLAGS="-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" \
 	NDPI_HOME=/path/to/nDPI \
 	./configure --enable-fuzztargets --with-fuzz-protobuf
 
-make -j$(nproc) fuzz_test
+make -j$(nproc) fuzz_all
 ```
 
 
@@ -52,7 +52,7 @@ CC=clang CXX=clang++ CPPFLAGS="-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" \
 	NDPI_HOME=/path/to/nDPI \
 	./configure --enable-fuzztargets --with-fuzz-protobuf
 
-make -j$(nproc) fuzz_test
+make -j$(nproc) fuzz_all
 ```
 
 ### AFL++
@@ -65,5 +65,5 @@ CC=afl-clang-fast CXX=afl-clang-fast++ CPPFLAGS="-DFUZZING_BUILD_MODE_UNSAFE_FOR
 	NDPI_HOME=/path/to/nDPI \
 	./configure --enable-fuzztargets-local
 
-make -j$(nproc) fuzz_test
+make -j$(nproc) fuzz_all
 ```
