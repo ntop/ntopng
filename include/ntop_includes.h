@@ -129,7 +129,11 @@ extern "C" {
 #endif
 #include "json.h"
 #include <sqlite3.h>
+
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 #include <hiredis.h>
+#endif
+
 #ifdef HAVE_LDAP
 #include <ldap.h>
 #endif
