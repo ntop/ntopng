@@ -43,7 +43,7 @@ AS_VAR_IF(enable_fuzztargets, yes, [
     AX_CHECK_COMPILE_FLAG(
         $LIB_FUZZING_ENGINE,
         [AC_SUBST(HAS_FUZZLDFLAGS, "1")],dnl SUCCESS
-        [],dnl FAIL
+        [:],dnl FAIL
         [],
         [AC_LANG_SOURCE([[
 #include <sys/types.h>
