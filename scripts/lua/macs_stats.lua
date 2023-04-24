@@ -92,11 +92,6 @@ if((devices_mode == "inactive_macs_only") and ntop.isEnterpriseL()) then
     end
   end
 
-tprint("--------------")
-tprint(manufacturers)
-tprint("==============")
-
-
   print(getPageUrl(ntop.getHttpPrefix().."/lua/enterprise/get_inactive_macs_data.lua", page_params))
 else
   print(getPageUrl(ntop.getHttpPrefix().."/lua/get_macs_data.lua", page_params))
