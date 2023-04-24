@@ -47,7 +47,7 @@ configuration file:
 Syslog Configuration
 ~~~~~~~~~~~~~~~~~~~~
 
-Please check the *Syslog Configuration* paragraph in the `Syslog Log Ingestion`_ section
+Please check the *Syslog Configuration* paragraph in the `Syslog`_ section
 for instructions to configure *rsyslog*.
 
 Run Suricata
