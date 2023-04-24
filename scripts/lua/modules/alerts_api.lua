@@ -155,9 +155,8 @@ end
 --! See also Host::enqueueAlertToRecipients for alerts triggered from C++
 --! @param entity_info data returned by one of the entity_info building functions
 local function pushSmartRecordingFilter(entity_info, ifid)
-
    if entity_info.alert_entity == alert_entities.host and 
-      recording_utils.isSmartEnabled() then
+      recording_utils.isSmartEnabled(ifid) then
 
       local instance = recording_utils.getN2diskInstanceName(ifid)
       local ip = entity_info.entity_val
