@@ -5092,13 +5092,13 @@ static int ntop_get_hash_redis(lua_State *vm) {
 
   if ((rsp = (char *)malloc(json_len)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  lua_pushfstring(
-      vm, "%s",
-      (redis->hashGet(key, member, rsp, CONST_MAX_LEN_REDIS_VALUE) == 0)
-          ? rsp
-          : (char *)"");
+  
+  lua_pushfstring(vm, "%s",
+		  (redis->hashGet(key, member, rsp, json_len-1) == 0)
+		  ? rsp
+		  : (char *)"");
   free(rsp);
-
+  
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
