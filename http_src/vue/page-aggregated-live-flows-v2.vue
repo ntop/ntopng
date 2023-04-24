@@ -188,7 +188,7 @@ function get_url_params(active_page, per_page, columns_wrap, map_search, first_g
 }
 
 const is_column_sortable = (col) => {
-    return col.data != "breakdown";
+    return col.data != "breakdown" && col.name != 'flows_icon' ;
 };
 
 /// methods to get columns config
@@ -282,7 +282,7 @@ function get_table_columns_config() {
     columns.push({
         columnName: i18n("flows"), targets: 0, name: 'flows', data: 'flows', className: 'text-nowrap text-center', responsivePriority: 1
     }, {
-        columnName: i18n("total_score"), targets: 0, name: 'score', data: 'tot_score', className: 'text-nowrap text-center', responsivePriority: 1
+        columnName: i18n("total_score"), targets: 0, name: 'score', data: 'tot_score', className: 'text-center', responsivePriority: 1
     });
 
     if (selected_criteria.value.value != 2 && selected_criteria.value.value != 4)
