@@ -32,7 +32,7 @@ import { default as Loading } from "./loading.vue";
 
 const _i18n = (t) => i18n(t);
 const table_manage_configurations_backup = ref(null);
-const url = `${http_prefix}/lua/rest/v2/get/system/configurations/all_backups.lua`
+const url = `${http_prefix}/lua/rest/v2/get/system/configurations/list_available_backups.lua`
 const table_config = ref({})
 
 
@@ -51,28 +51,26 @@ onBeforeMount(async () => {
   await set_datatable_config();
 });
 
-const load_selected_field = async function(row) {
-  await ntopng_utility.http_request(`${http_prefix}/lua/rest/v2/get/system/configurations/backup.lua?epoch=${row.epoch}&download=true`);
+const trigger_download = function(row) {
+  window.open(`${http_prefix}/lua/rest/v2/get/system/configurations/download_backup.lua?epoch=${row.epoch}&download=true`);
 }
 
 const add_action_column = function (rowData) {
   
-
-  let dowload_backup_handler = {
-    handlerId: "dowload_backup_handler",
+  let download_backup_handler = {
+    handlerId: "download_backup_handler",
     onClick: () => {
-      load_selected_field(rowData);
+      trigger_download(rowData);
     },
   }
-  
+
   return DataTableUtils.createActionButtons([
-    { class: `pointer`, handler: dowload_backup_handler, icon: 'fa-arrow-down', title: i18n('download') },
+    { class: `pointer`, handler: download_backup_handler, icon: 'fas fa-download fa-lg', title: i18n('download') },
 	]);
 }
 
 async function set_datatable_config() {
   const datatableButton = [];
-
 
   /* Manage the buttons close to the search box */
   datatableButton.push({
