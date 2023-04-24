@@ -23,15 +23,17 @@ function pools_alert_utils.get_host_pool_id(entity_info)
 
    -- There's no pool member or the alert entity is invalid
    if not pool_member or not alert_entity or not alert_entity.entity_id then
-      -- tprint(string.format("skipping %s [%s]", pool_member, alert_entity.label or ''))
+      tprint(string.format("skipping %s [%s]", pool_member, alert_entity.label or ''))
       return nil
    end
 
    -- Active Monitoring alert to Host
-   if alert_entity == alert_entities.am_host then
-      local am_host_info = split(pool_member, "@")
-      if #am_host_info == 2 then
-         pool_member = am_host_info[2]
+   -- or Host alert triggered in Lua
+   if alert_entity == alert_entities.am_host or
+      alert_entity == alert_entities.host then
+      local host_info = split(pool_member, "@")
+      if #host_info == 2 then
+         pool_member = host_info[2]
       end
    -- SNMP alert to Host
    elseif alert_entity == alert_entities.snmp_device then
@@ -40,7 +42,7 @@ function pools_alert_utils.get_host_pool_id(entity_info)
          pool_member = snmp_device_info[1]
       end
    else
-      -- Host pool not supported (note: flow and host alerts are set in C)
+   -- Unsupported alert type
       return nil
    end
 
