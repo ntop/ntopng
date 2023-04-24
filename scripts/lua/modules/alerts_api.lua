@@ -11,10 +11,12 @@ package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" ..
 
 local json = require("dkjson")
 local alert_severities = require "alert_severities"
+local alert_entities = require "alert_entities"
 local alert_consts = require("alert_consts")
 local os_utils = require("os_utils")
 local recipients = require "recipients"
 local pools_alert_utils = require "pools_alert_utils"
+local recording_utils = require "recording_utils"
 
 local do_trace = false
 
@@ -149,6 +151,31 @@ end
 
 -- ##############################################
 
+--! @brief Push filter matching the alert to Smart Recording if enabled
+--! See also Host::enqueueAlertToRecipients for alerts triggered from C++
+--! @param entity_info data returned by one of the entity_info building functions
+local function pushSmartRecordingFilter(entity_info, ifid)
+
+   if entity_info.alert_entity == alert_entities.host and 
+      recording_utils.isSmartEnabled() then
+
+      local instance = recording_utils.getN2diskInstanceName(ifid)
+      local ip = entity_info.entity_val
+
+      if not isEmptyString(instance) and
+         not isEmptyString(ip) then
+
+         local filter = string.format("%s", ip)
+
+         local key = string.format("n2disk.%s.filter.host.%s", instance, filter)
+         local expiration = 30*60 -- 30 min
+         ntop.setCache(key, "1", expiration)
+      end
+   end
+end
+
+-- ##############################################
+
 --! @param entity_info data returned by one of the entity_info building functions
 --! @param type_info data returned by one of the type_info building functions
 --! @param when (optional) the time when the release event occurs
@@ -191,7 +218,10 @@ function alerts_api.store(entity_info, type_info, when)
   }
 
   addAlertPoolInfo(entity_info, alert_to_store)
+
   recipients.dispatch_notification(alert_to_store, current_script)
+
+  pushSmartRecordingFilter(entity_info, ifid)
 
   return(true)
 end
@@ -325,8 +355,11 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
     debug_print("Sending notification for alert " .. entity_info.entity_val)
 
     addAlertPoolInfo(entity_info, triggered)
+
     recipients.dispatch_notification(triggered, current_script)
     mark_trigger_notified(triggered)
+
+    pushSmartRecordingFilter(entity_info, ifid)
 
   else
     debug_print("Alert already notified for " .. entity_info.entity_val)
@@ -395,7 +428,9 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   released.action = "release"
 
   addAlertPoolInfo(entity_info, released)
+
   mark_release_notified(released)
+
   recipients.dispatch_notification(released, current_script)
 
   return(true)

@@ -2225,6 +2225,8 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
       char key[256], ip_buf[64];
       int expiration = 30*60; /* 30 min */
 
+      /* Note: see alerts_api.lua: pushSmartRecordingFilter() for alerts triggered from Lua */
+
       if (alert->isReleased() && alert->isLastReleased()) {
         /* Relased: 30 min expiration to make sure n2disk data is processed */
         expiration = 30*60;
