@@ -115,17 +115,4 @@ end
 
 -- ##############################################
 
-if (action ~= nil) then
-    if (action == "save") then
-        backup_config.save_backup()
-        rest_utils.answer(rest_utils.consts.success.ok)
-    elseif (action == "export") then
-        backup_config.export_backup()
-    elseif (action == "list") then
-        backup_config.list_backup()
-    end
-end
-
--- ##############################################
-
 return backup_config

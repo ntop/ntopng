@@ -18,7 +18,12 @@ local rc = rest_utils.consts.success.ok
 local epoch_list = backup_config.list_backup()
 
 if epoch_list then
-  rest_utils.answer(rc, epoch_list)
+  local extra_rsp_data = {
+    ["recordsFiltered"] = tonumber(#epoch_list),
+    ["recordsTotal"] = tonumber(#epoch_list)
+  }
+
+  rest_utils.extended_answer(rc, epoch_list, extra_rsp_data) 
 end
 
 -- ##############################################

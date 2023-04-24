@@ -39,7 +39,7 @@ const table_config = ref({})
 
 const format_flows_icon = function (data) {
   const date = new Date(data * 1000);
-  return `<a href="${http_prefix}/lua/rest/v2/get/system/configurations/backup.lua?epoch=${data}&download=true">${date}</a>`;
+  return `${date}`;
 }
 
 
@@ -51,7 +51,24 @@ onBeforeMount(async () => {
   await set_datatable_config();
 });
 
+const load_selected_field = async function(row) {
+  await ntopng_utility.http_request(`${http_prefix}/lua/rest/v2/get/system/configurations/backup.lua?epoch=${row.epoch}&download=true`);
+}
 
+const add_action_column = function (rowData) {
+  
+
+  let dowload_backup_handler = {
+    handlerId: "dowload_backup_handler",
+    onClick: () => {
+      load_selected_field(rowData);
+    },
+  }
+  
+  return DataTableUtils.createActionButtons([
+    { class: `pointer`, handler: dowload_backup_handler, icon: 'fa-arrow-down', title: i18n('download') },
+	]);
+}
 
 async function set_datatable_config() {
   const datatableButton = [];
@@ -86,10 +103,13 @@ async function set_datatable_config() {
 
   columns.push(
     {
-      columnName: _i18n("backup_date"), orderable: false, targets: 0, name: 'epoch', data: 'epoch', className: 'text-center', responsivePriority: 1, render: (data, _, rowData) => {
+      columnName: _i18n("backup_date"), orderable: false, targets: 0, name: 'epoch', data: 'epoch', className: 'text-left', responsivePriority: 1, render: (data, _, rowData) => {
         return format_flows_icon(data, rowData)
       }
-    });
+      }, {
+      columnName: _i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) { return add_action_column(rowData) } }
+        ,
+    );
 
 
 
