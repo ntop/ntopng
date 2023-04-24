@@ -19,7 +19,7 @@ JSON* format through syslog.
 In order to configure Suricata to export flow metadata to ntopng, please install 
 Suricata according to the `Suricata Documentation <https://suricata.readthedocs.io/en/suricata-4.1.4/install.html>`_
 and configure it to use :code:`syslog` as EVE file type in the :code:`suricata.yaml`
-configuration file (this is usually located under :code:`/usr/local/etc/suricata/suricata.yaml`):
+configuration file (this is usually located under :code:`/etc/suricata/suricata.yaml` or :code:`/usr/local/etc/suricata/suricata.yaml`):
 
 .. code:: text
 
