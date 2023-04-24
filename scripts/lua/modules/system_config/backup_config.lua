@@ -19,7 +19,7 @@ local json = require("dkjson")
 -- ##############################################
 
 local action = nil -- _GET["action"]
-local backup_hash_key = "ntopng.prefs.config_save_backup"
+local backup_hash_key = "ntopng.cache.config_save_backup"
 local backup_config = {}
 
 local debugger = false
@@ -55,7 +55,7 @@ function backup_config.save_backup()
     local num_saved_backups = table.len(saved_backups_keys) or 0
 
     -- Check the currently saved backups
-    while (num_saved_backups >= 7) do
+    if (num_saved_backups >= 7) then
         remove_last(saved_backups_keys)
     end
 
