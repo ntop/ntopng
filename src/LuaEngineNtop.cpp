@@ -3805,6 +3805,26 @@ static int ntop_is_local_address(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_get_address_network(lua_State *vm) {
+  char *ip;
+  IpAddress ipa;
+  int16_t local_network_id = -1;
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  ip = (char *)lua_tostring(vm, 1);
+
+  ipa.set(ip);
+  ipa.isLocalHost(&local_network_id);
+
+  lua_pushinteger(vm, (u_int16_t)local_network_id);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_resolved_address(lua_State *vm) {
   char *key, *tmp, rsp[256], value[280];
   Redis *redis = ntop->getRedis();
@@ -7276,6 +7296,7 @@ static luaL_Reg _ntop_reg[] = {
     {"getNetworkNameById", ntop_network_name_by_id},
     {"getNetworkIdByName", ntop_network_id_by_name},
     {"getNetworks", ntop_get_networks},
+    {"getAddressNetwork", ntop_get_address_network},
     {"isGuiAccessRestricted", ntop_is_gui_access_restricted},
     {"serviceRestart", ntop_service_restart},
     {"getUserObservationPointId", ntop_get_user_observation_point_id},

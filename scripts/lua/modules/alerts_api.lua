@@ -143,9 +143,17 @@ end
 
 --! @brief Adds pool information to the alert
 --! @param entity_info data returned by one of the entity_info building functions
-local function addAlertPoolInfo(entity_info, alert_json)
+local function addAlertPoolAndNetworkInfo(entity_info, alert_json)
+   -- Add Pool ID
    if alert_json then
       alert_json.host_pool_id = pools_alert_utils.get_host_pool_id(entity_info)
+   end
+
+   -- Add Local Network ID
+   if entity_info.alert_entity == alert_entities.host and
+      entity_info.entity_val then
+      local network_id = ntop.getAddressNetwork(entity_info.entity_val)
+      alert_json.network = network_id
    end
 end
 
@@ -216,7 +224,7 @@ function alerts_api.store(entity_info, type_info, when)
     json = alert_json,
   }
 
-  addAlertPoolInfo(entity_info, alert_to_store)
+  addAlertPoolAndNetworkInfo(entity_info, alert_to_store)
 
   recipients.dispatch_notification(alert_to_store, current_script)
 
@@ -353,7 +361,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
     debug_print("Sending notification for alert " .. entity_info.entity_val)
 
-    addAlertPoolInfo(entity_info, triggered)
+    addAlertPoolAndNetworkInfo(entity_info, triggered)
 
     recipients.dispatch_notification(triggered, current_script)
     mark_trigger_notified(triggered)
@@ -426,7 +434,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   released.ifid = ifid
   released.action = "release"
 
-  addAlertPoolInfo(entity_info, released)
+  addAlertPoolAndNetworkInfo(entity_info, released)
 
   mark_release_notified(released)
 
