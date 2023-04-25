@@ -77,15 +77,16 @@ function calculate_pages() {
     if (props.total_rows == null) { return; }
     let per_page = props.per_page;
     total_pages.value = Number.parseInt((props.total_rows + per_page - 1) / per_page);
-    if (active_page.value >= total_pages.value && total_pages.value > 0) {
-	active_page.value = total_pages.value - 1;
-    }
-
     num_page_buttons.value = max_page_buttons;
-    start_page_button.value = 0;
     if (total_pages.value < num_page_buttons.value) {
 	num_page_buttons.value = total_pages.value;
     }
+    if (active_page.value >= total_pages.value && total_pages.value > 0) {
+	total_pages.value = total_pages.value + 1;
+	active_page.value = total_pages.value - 1;
+	start_page_button.value = total_pages.value - num_page_buttons.value;
+    }
+
     set_text();
 }
 
