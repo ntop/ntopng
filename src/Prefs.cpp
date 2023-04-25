@@ -658,10 +658,9 @@ void usage() {
       "                                    | 6 - Debug\n"
       "[--print-ndpi-protocols]            | Print the nDPI protocols list\n"
 #ifndef HAVE_NEDGE
-      "[--ignore-macs]                     | Ignore MAC addresses from "
-      "traffic\n"
+      "[--ignore-macs]                     | Ignore packets MAC addresses\n"
 #endif
-      "[--ignore-vlans]                    | Ignore VLAN tags from traffic\n"
+      "[--ignore-vlans]                    | Ignore packets VLAN tags\n"
       "[--pcap-file-purge-flows]           | Enable flow purge with pcap files "
       "(debug only)\n"
       "[--simulate-vlans]                  | Simulate VLAN traffic (debug "
