@@ -284,14 +284,14 @@
 
 		  let operator = "";
 		  if (cardsData[i].value[j].operator != null) {
-		    operator = `  data-tag-operator='${cardsData[i].value[j].operator} `;
+		    operator = `  data-tag-operator='${cardsData[i].value[j].operator}' `;
 		  }
 	          let a_tag = "<a class='ntopng-truncate tag-filter dropdown-item' data-tag-key='" + cardsData[i].value[j].key + 
 	            "' title='" + ( cardsData[i].value[j].title || cardsData[i].value[j].value) +
 		    "' data-tag-value='" + cardsData[i].value[j].value + 
-		    "' data-tag-label='" + cardsData[i].value[j].label +
+		    "' data-tag-label='" + cardsData[i].value[j].label + "'" +
 		    operator +
-		    "' href='#'>" + cardsData[i].value[j].label + "" + restText + "</a>";
+		    " href='#'>" + cardsData[i].value[j].label + "" + restText + "</a>";
 
                   let itemText = '<li style="max-width:90rem;" class="dropdown-item pointer">' + a_tag + '</li>';
 		  menuOptions.push(itemText);
@@ -848,7 +848,7 @@
             displayValue  = NtopUtils.stripTags(displayValue);
             realValue = ((data.value != undefined) ? data.value : data);
 	}
-
+	
 	// Read tag key and value from the <a> itself if provided
 	if (a.data('tagKey')        != undefined) key          = a.data('tagKey');
 	if (a.data('tagLabel')      != undefined) displayValue = a.data('tagLabel');

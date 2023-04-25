@@ -146,7 +146,7 @@ const render = () => {
 
 function is_item_selected(item) {
     if (!props.multiple) {
-	return item.value == selected_option_2.value;
+	return item.value == selected_option_2.value.value;
     }
     return selected_values.value.find((v) => v == item.value) != null; 
 }
