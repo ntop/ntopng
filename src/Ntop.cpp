@@ -370,11 +370,8 @@ Ntop::~Ntop() {
 
   if (myTZname) free(myTZname);
 #ifdef HAVE_NEDGE
-  if (multicastForwarders.size() > 0) {
-    
-    for (auto it = multicastForwarders.begin(); it != multicastForwarders.end(); ++it) {
-      delete (*it);
-    }
+  for (auto it = multicastForwarders.begin(); it != multicastForwarders.end(); ++it) {
+    delete (*it);
   }
 #endif
 
@@ -656,24 +653,15 @@ void Ntop::start() {
     if(!strcmp(ip.c_str(),"") || !strcmp(port.c_str(),"") || !strcmp(interfaces.c_str(),""))
       continue;
 
-
     MulticastForwarder *multicastForwarder = new (std::nothrow) MulticastForwarder(ip, stoi(port), interfaces);
 
-    if (multicastForwarder) { 
+    if (multicastForwarder) {
+      multicastForwarder->start(); 
       multicastForwarders.push_back(multicastForwarder);
-    }
-   
-  }
-
-  if (multicastForwarders.size() == 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                  "Error occured instantiating MDNSRepeater");
-  else {
-    for (auto it = multicastForwarders.begin(); it != multicastForwarders.end(); ++it) {
-      (*it)->start();
+    } else {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error occured instantiating Multicast Forwarder");
     }
   }
-  
 #endif
 
   checkReloadHostPools();
