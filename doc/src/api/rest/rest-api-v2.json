@@ -36,6 +36,10 @@
 		{
 			"name": "Health",
 			"description": "Everything about system status"
+		}, 
+		{
+			"name": "Configurations",
+			"description": "Everything about system configurations"
 		}
 	],
 	"schemes": [
@@ -12886,6 +12890,55 @@
 					"-3": {
 						"description": "NOT_GRANTED"
 					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/system/configurations/list_availabled_backups.lua": {
+			"get": {
+				"tags": [
+					"Configurations"
+				],
+				"summary": "Get system configurations automatic backups",
+				"description": "Get list of automatic system configurations backups",
+				"operationId": "get_system_backups",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+					
+				}
+			}
+		},
+		"/lua/rest/v2/get/system/configurations/download_backup.lua": {
+			"get": {
+				"tags": [
+					"Configurations"
+				],
+				"summary": "Get system configuration automatic backup",
+				"description": "Get on of the automatic system configurations backups",
+				"operationId": "get_system_backup",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"epoch": "string",
+					"download": "boolean"
+				}],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+					
 				}
 			}
 		},
