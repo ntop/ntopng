@@ -37,9 +37,9 @@ const table_config = ref({})
 
 
 
-const format_flows_icon = function (data) {
-  const date = new Date(data * 1000);
-  return `${date}`;
+const format_flows_icon = function (data, rowData) {
+  const ms_data = data * 1000;
+  return ntopng_utility.from_utc_to_server_date_format(ms_data, rowData.format);
 }
 
 

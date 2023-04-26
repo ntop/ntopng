@@ -88,13 +88,24 @@ end
 -- ##############################################
 
 -- @brief List all configurations backup.
-function backup_config.list_backup()
+function backup_config.list_backup(user)
     local saved_backups_keys = ntop.getHashKeysCache(backup_hash_key) or {}
     local epoch_list = {}
+    local date_format = ntop.getPref("ntopng.user."..user..".date_format")
+
+    local format = ""
+    if(date_format == "little_endian") then
+        format = "DD/MMM/YYYY"
+    elseif(date_format == "middle_endian") then
+        format = "MMM/DD/YYYY"
+    else
+        format = "YYYY/MMM/DD"
+    end
 
     for epoch, _ in pairs(saved_backups_keys) do
         epoch_list[#epoch_list + 1] = {
-            epoch = epoch
+            epoch = epoch,
+            format = format
         }
     end
 

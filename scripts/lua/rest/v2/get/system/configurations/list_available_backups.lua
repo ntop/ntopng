@@ -15,7 +15,7 @@ local rest_utils = require("rest_utils")
 
 local rc = rest_utils.consts.success.ok
 
-local epoch_list = backup_config.list_backup()
+local epoch_list = backup_config.list_backup(_SESSION["user"])
 
 if epoch_list then
   local extra_rsp_data = {
