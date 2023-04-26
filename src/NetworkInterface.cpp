@@ -11092,103 +11092,115 @@ static bool asc_totaltraffic_cmp(AggregatedFlowsStats *a, AggregatedFlowsStats *
 
 void NetworkInterface::build_lua_rsp(lua_State *vm, AggregatedFlowsStats *flow_stats,
                                      u_int filter_type, u_int32_t size,
-                                     u_int *num) {
-  char buf[128];
-  u_int8_t add_client = false, add_server = false, 
-    add_app_proto = false, add_info = false;
+                                     u_int *num, bool set_resp) {
 
-  lua_newtable(vm);
+  if (set_resp) {
+      char buf[128];
+    u_int8_t add_client = false, add_server = false, 
+      add_app_proto = false, add_info = false;
 
-  switch (filter_type) {
-    case 1:
-      add_app_proto = true;
-      break;
+    lua_newtable(vm);
 
-    case 3:
-      add_server = true;
-      break;
+    switch (filter_type) {
+      case 1:
+        add_app_proto = true;
+        break;
 
-    case 4:
-      add_client = add_server = true;
-      break;
+      case 3:
+        add_server = true;
+        break;
 
-    case 5:
-      add_app_proto = add_client = add_server = true;
-      break;
+      case 4:
+        add_client = add_server = true;
+        break;
 
-    case 6:
-      add_info = true;
-      break;
+      case 5:
+        add_app_proto = add_client = add_server = true;
+        break;
 
-    default:
-      add_client = true;
-      break;
+      case 6:
+        add_info = true;
+        break;
+
+      default:
+        add_client = true;
+        break;
+    }
+
+    if (add_app_proto) {
+      ndpi_protocol detected_protocol;
+      char buf[64], proto[16];
+      u_int64_t key = flow_stats->getProtoKey();
+
+      detected_protocol.master_protocol = (u_int16_t)(key & 0x00000000000FFFF);
+      detected_protocol.app_protocol =
+          (u_int16_t)((key >> 16) & 0x000000000000FFFF);
+
+      if (detected_protocol.master_protocol == detected_protocol.app_protocol)
+        snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
+      else if (detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+        snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
+      else if (detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
+        snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
+      else
+        snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
+
+      /* Currently it is not supported the possibily to add double filter on
+      * master and app proto */
+      lua_push_str_table_entry(vm, "proto_id", proto);
+      lua_push_str_table_entry(
+          vm, "proto_name",
+          get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
+      lua_push_str_table_entry(
+          vm, "proto_name",
+          get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
+    }
+
+    if (add_client) {
+      lua_push_uint64_table_entry(vm, "cli_vlan_id",
+                                  (u_int64_t)flow_stats->getCliVLANId());
+      lua_push_str_table_entry(vm, "client_ip", flow_stats->getCliIP(buf, sizeof(buf)));
+      lua_push_str_table_entry(vm, "client_name",
+                              flow_stats->getCliName(buf, sizeof(buf)));
+      lua_push_bool_table_entry(vm, "is_cli_in_mem", flow_stats->isCliInMem());
+    }
+
+    if (add_server) {
+      lua_push_uint64_table_entry(vm, "srv_vlan_id",
+                                  (u_int64_t)flow_stats->getSrvVLANId());
+      lua_push_str_table_entry(vm, "server_ip", flow_stats->getSrvIP(buf, sizeof(buf)));
+      lua_push_str_table_entry(vm, "server_name",
+                              flow_stats->getSrvName(buf, sizeof(buf)));
+      lua_push_bool_table_entry(vm, "is_srv_in_mem", flow_stats->isSrvInMem());
+    }
+
+    if (add_info) {
+      lua_push_str_table_entry(vm, "info", flow_stats->getInfoKey());
+    }
+
+    lua_push_uint64_table_entry(vm, "vlan_id", (u_int64_t)flow_stats->getVlanId());
+    lua_push_uint32_table_entry(vm, "l4_proto", flow_stats->getL4Protocol());
+    lua_push_uint32_table_entry(vm, "num_clients", flow_stats->getNumClients());
+    lua_push_uint32_table_entry(vm, "num_servers", flow_stats->getNumServers());
+    lua_push_uint32_table_entry(vm, "num_flows", flow_stats->getNumFlows());
+    lua_push_uint64_table_entry(vm, "bytes_sent", flow_stats->getTotalSent());
+    lua_push_uint64_table_entry(vm, "bytes_rcvd", flow_stats->getTotalRcvd());
+    lua_push_uint64_table_entry(vm, "total_score", flow_stats->getTotalScore());
+    lua_push_uint32_table_entry(vm, "num_entries", size);
+
+    lua_pushinteger(vm, ++(*num));
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  } else {
+    lua_newtable(vm);
+
+    lua_push_uint32_table_entry(vm, "num_entries", size);
+
+    lua_pushinteger(vm, ++(*num));
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
-
-  if (add_app_proto) {
-    ndpi_protocol detected_protocol;
-    char buf[64], proto[16];
-    u_int64_t key = flow_stats->getProtoKey();
-
-    detected_protocol.master_protocol = (u_int16_t)(key & 0x00000000000FFFF);
-    detected_protocol.app_protocol =
-        (u_int16_t)((key >> 16) & 0x000000000000FFFF);
-
-    if (detected_protocol.master_protocol == detected_protocol.app_protocol)
-      snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-    else if (detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-      snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-    else if (detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
-      snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
-    else
-      snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
-
-    /* Currently it is not supported the possibily to add double filter on
-     * master and app proto */
-    lua_push_str_table_entry(vm, "proto_id", proto);
-    lua_push_str_table_entry(
-        vm, "proto_name",
-        get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
-    lua_push_str_table_entry(
-        vm, "proto_name",
-        get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
-  }
-
-  if (add_client) {
-    lua_push_uint64_table_entry(vm, "cli_vlan_id",
-                                (u_int64_t)flow_stats->getCliVLANId());
-    lua_push_str_table_entry(vm, "client_ip", flow_stats->getCliIP(buf, sizeof(buf)));
-    lua_push_str_table_entry(vm, "client_name",
-                             flow_stats->getCliName(buf, sizeof(buf)));
-    lua_push_bool_table_entry(vm, "is_cli_in_mem", flow_stats->isCliInMem());
-  }
-
-  if (add_server) {
-    lua_push_uint64_table_entry(vm, "srv_vlan_id",
-                                (u_int64_t)flow_stats->getSrvVLANId());
-    lua_push_str_table_entry(vm, "server_ip", flow_stats->getSrvIP(buf, sizeof(buf)));
-    lua_push_str_table_entry(vm, "server_name",
-                             flow_stats->getSrvName(buf, sizeof(buf)));
-    lua_push_bool_table_entry(vm, "is_srv_in_mem", flow_stats->isSrvInMem());
-  }
-
-  if (add_info) {
-    lua_push_str_table_entry(vm, "info", flow_stats->getInfoKey());
-  }
-
-  lua_push_uint64_table_entry(vm, "vlan_id", (u_int64_t)flow_stats->getVlanId());
-  lua_push_uint32_table_entry(vm, "l4_proto", flow_stats->getL4Protocol());
-  lua_push_uint32_table_entry(vm, "num_clients", flow_stats->getNumClients());
-  lua_push_uint32_table_entry(vm, "num_servers", flow_stats->getNumServers());
-  lua_push_uint32_table_entry(vm, "num_flows", flow_stats->getNumFlows());
-  lua_push_uint64_table_entry(vm, "bytes_sent", flow_stats->getTotalSent());
-  lua_push_uint64_table_entry(vm, "bytes_rcvd", flow_stats->getTotalRcvd());
-  lua_push_uint64_table_entry(vm, "total_score", flow_stats->getTotalScore());
-  lua_push_uint32_table_entry(vm, "num_entries", size);
-
-  lua_pushinteger(vm, ++(*num));
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+  
 }
 
 /* **************************************************** */
@@ -11294,11 +11306,14 @@ void NetworkInterface::sort_flow_stats(
       AggregatedFlowsStats *fs = *vector_it;
 
       if (fs) {
-        build_lua_rsp(vm, fs, filter_type, vector_size, &num);
+        build_lua_rsp(vm, fs, filter_type, vector_size, &num, true);
       }
 
       if (num >= max_num_rows) break;
     }
+  } else {
+    build_lua_rsp(vm, NULL, filter_type, vector_size, &num, false);
+
   }
 
   for (vector_it = vector.begin(); vector_it != vector.end(); ++vector_it) {
