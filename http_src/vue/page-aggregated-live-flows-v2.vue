@@ -20,7 +20,7 @@
                     <div>
                         <Table ref="table_aggregated_live_flows" id="table_aggregated_live_flows"
                                :key="table_config.columns" :columns="table_config.columns"
-                               :get_rows="(active_page, per_page, columns_wrap, first_get_rows) => table_config.get_rows(active_page, per_page, columns_wrap, first_get_rows)"
+                               :get_rows="table_config.get_rows"
                                :get_column_id="(col) => table_config.get_column_id(col)"
                                :print_column_name="(col) => table_config.print_column_name(col)"
 			       :print_html_row="(col, row) => table_config.print_html_row(col, row)"
