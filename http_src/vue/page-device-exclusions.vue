@@ -255,7 +255,7 @@ function start_datatable(DatatableVue) {
         if ((data.symbolic_mac) && (data.symbolic_mac != label))
           label = data.symbolic_mac;
 
-        if (alias != null)
+        if ((alias != null) && (alias != label))
           label = `${label} (${alias})`;
 
         if (data.url != null)
