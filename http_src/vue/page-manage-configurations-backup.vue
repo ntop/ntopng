@@ -35,21 +35,18 @@ const table_manage_configurations_backup = ref(null);
 const url = `${http_prefix}/lua/rest/v2/get/system/configurations/list_available_backups.lua`
 const table_config = ref({})
 
-const props = defineProps({
-    date_format: String,
-});
+
 
 
 const format_flows_icon = function (data, rowData) {
   const ms_data = data * 1000;
   let date_format = "HH:MM:SS";
-  if(props.date_format == "little_endian") {
+  if(rowData.date_format == "little_endian") {
     date_format = "DD/MM/YYYY "+date_format;
-  } else if(props.date_format == "middle_endian") {
+  } else if(rowData.date_format == "middle_endian") {
     date_format = "MM/DD/YYYY "+date_format;
   } else {
     date_format = "YYYY/MM/DD "+date_format;
-
   }
   return ntopng_utility.from_utc_to_server_date_format(ms_data, date_format);
 }

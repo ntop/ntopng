@@ -92,9 +92,12 @@ function backup_config.list_backup(user)
     local saved_backups_keys = ntop.getHashKeysCache(backup_hash_key) or {}
     local epoch_list = {}
 
+    local date_format = ntop.getPref("ntopng.user."..user..".date_format")
+
     for epoch, _ in pairs(saved_backups_keys) do
         epoch_list[#epoch_list + 1] = {
-            epoch = epoch
+            epoch = epoch,
+            date_format = date_format
         }
     end
 

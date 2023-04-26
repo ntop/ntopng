@@ -11,11 +11,6 @@
   
 <script type="text/javascript">  
   
-  const user = '{* _SESSION["user"] *}'
-  let redis_date_format_key = "ntopng.user."+user+".date_formate"
-  const date_format = '{* ntop.getPref(redis_date_format_key) *}' 
-
-  
   function start_vue() {
 
     let vue_options = {
@@ -32,7 +27,6 @@
       data() {
 
         return {
-          date_format: date_format,
         };
       },
       methods: { },
