@@ -554,7 +554,7 @@ typedef enum {
   host_alert_custom_lua_script = 24,
   host_alert_rst_scan = 25,
   host_alert_traffic_volume = 26,
-  host_alert_external_script = 27,
+  host_alert_external_script = 27, /* Triggered from Lua (see rest/v2/trigger/host/alert.lua) */
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */
   MAX_HOST_ALERT_TYPE = 32     /* Constrained by HostAlertBitmap */

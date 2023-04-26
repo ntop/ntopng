@@ -53,7 +53,6 @@ void HostChecksLoader::registerChecks() {
 
   if ((fcb = new CountriesContacts())) registerCheck(fcb);
   if ((fcb = new CustomHostLuaScript())) registerCheck(fcb);
-  if ((fcb = new ExternalHostScript())) registerCheck(fcb);
   if ((fcb = new FlowFlood())) registerCheck(fcb);
   if ((fcb = new SYNScan())) registerCheck(fcb);
   if ((fcb = new SYNFlood())) registerCheck(fcb);

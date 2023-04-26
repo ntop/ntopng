@@ -149,12 +149,6 @@ class Host : public GenericHashEntry,
     char *msg;
   } customHostAlert;
 
-  struct {
-    bool triggered;
-    u_int8_t score;
-    char *msg;
-  } externalAlert;
-
   Mutex m;
   u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
@@ -983,12 +977,6 @@ class Host : public GenericHashEntry,
   }
   inline u_int8_t getCustomHostAlertScore() { return (customHostAlert.score); }
   inline char *getCustomHostAlertMessage() { return (customHostAlert.msg); }
-
-  void triggerExternalAlert(u_int8_t score, char *msg);
-  void resetExternalAlert();
-  inline bool isExternalAlertTriggered() { return (externalAlert.triggered); }
-  inline u_int8_t getExternalAlertScore() { return (externalAlert.score); }
-  inline char *getExternalAlertMessage() { return (externalAlert.msg); }
 
   void setUnidirectionalTCPUDPNoTXEgressFlow(IpAddress *ip, u_int16_t port);
   void setUnidirectionalTCPUDPNoTXIngressFlow(IpAddress *ip, u_int16_t port);

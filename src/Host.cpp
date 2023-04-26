@@ -114,7 +114,6 @@ Host::~Host() {
   */
   iface->decPoolNumHosts(get_host_pool(), false /* Host is deleted offline */);
   if (customHostAlert.msg) free(customHostAlert.msg);
-  if (externalAlert.msg) free(externalAlert.msg);
   if (tcp_udp_contacted_ports_no_tx)
     ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
 
@@ -292,7 +291,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
   memset(&unidirectionalTCPUDPFlows, 0, sizeof(unidirectionalTCPUDPFlows));
   memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
   memset(&customHostAlert, 0, sizeof(customHostAlert));
-  memset(&externalAlert, 0, sizeof(externalAlert));
 
   setRxOnlyHost(true);
 
@@ -2675,34 +2673,6 @@ void Host::triggerCustomHostAlert(u_int8_t score, char *msg) {
   }
 
   if (msg) customHostAlert.msg = strdup(msg);
-}
-
-/* *************************************** */
-
-/* The alert will be triggered from an external script (e.g. via REST API)
- * and handled by src/host_checks/ExternalHostScript.cpp */
-void Host::triggerExternalAlert(u_int8_t score, char *msg) {
-  if (externalAlert.msg) {
-    free(externalAlert.msg);
-    externalAlert.msg = NULL;
-  }
-
-  externalAlert.score = score;
-  if (msg) externalAlert.msg = strdup(msg);
-
-  externalAlert.triggered = true;
-}
-
-/* *************************************** */
-
-void Host::resetExternalAlert() {
-  if (externalAlert.msg) {
-    free(externalAlert.msg);
-    externalAlert.msg = NULL;
-  }
-
-  externalAlert.score = 0;
-  externalAlert.triggered = false;
 }
 
 /* *************************************** */

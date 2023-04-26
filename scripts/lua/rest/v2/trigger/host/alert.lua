@@ -55,12 +55,10 @@ interface.select(ifid)
 local host_key = hostinfo2hostkey(hostinfo)
 score = tonumber(score)
 
--- Option 1. Trigger alert through the C check
--- Note: This expects that the host is live, otherwise the alert is not triggered
--- interface.triggerExternalHostAlert(host_key, score, info)
+-- Notes:
+-- - This triggers the alert directly from Lua
+-- - This does not require the host to be live, however some metadata may be missing as it is not augmented with host data from C++
 
--- Option 2. Trigger alert directly from Lua
--- Note: This does not require the host to be live, however some metadata may be missing
 local alert = alert_consts.alert_types.host_alert_external_script.new(info)
 alert:set_score(score)
 alert:set_subtype(host_key)
