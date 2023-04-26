@@ -70,8 +70,13 @@ local selected_item = (table.has_key(configuration_items, _GET["item"]) and _GET
 --page_utils.print_page_title(i18n("manage_configurations.manage_configurations"))
 -- ************************************* ------
 
+local user = _SESSION["user"]
+local date_format = ntop.getPref("ntopng.user."..user..".date_format")
+
 if (page == "manage_configurations_backup") then
-   template_utils.render("pages/manage_configurations_backup.template", {})
+   template_utils.render("pages/manage_configurations_backup.template", {
+      date_format = date_format,
+   })
 else
    template_utils.render("pages/manage_configurations.template", {
          info = ntop.getInfo(),
