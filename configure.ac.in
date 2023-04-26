@@ -947,6 +947,7 @@ Expat Lib         : ${EXPAT_LIB}
 SQLite Lib        : ${SQLITE_LIB}
 MySQL Lib         : ${MYSQL_LIB}
 PCAP Lib          : ${LIBPCAP}
+ZMQ Lib           : ${ZMQ_LIBS}
 Install path      : ${INSTALL_DIR}
 
 You are now ready to compile typing 'make'
