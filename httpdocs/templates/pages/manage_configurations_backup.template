@@ -5,12 +5,12 @@
 
 
 <div id="manage-configurations-backup">
-  <page-manage-configurations-backup>
+  <page-manage-configurations-backup
+  :date_format="date_format">
   </page-manage-configurations-backup>
 </div>
   
 <script type="text/javascript">  
-  debugger;
   const date_format = '{* date_format *}'
   function start_vue() {
 

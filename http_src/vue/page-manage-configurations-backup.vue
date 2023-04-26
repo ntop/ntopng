@@ -41,15 +41,14 @@ const props = defineProps({
 
 
 const format_flows_icon = function (data, rowData) {
-  debugger;
   const ms_data = data * 1000;
   let date_format = "HH:MM:SS";
-  if(props.date_format == "little_endian") {
-    date_format = "DD/MM/YYYY "+date_format;
-  } else if(props.date_format == "middle_endian") {
-    date_format = "MM/DD/YYYY "+date_format;
+  if (props.date_format == "little_endian") {
+    date_format = "DD/MM/YYYY " + date_format;
+  } else if (props.date_format == "middle_endian") {
+    date_format = "MM/DD/YYYY " + date_format;
   } else {
-    date_format = "YYYY/MM/DD "+date_format;
+    date_format = "YYYY/MM/DD " + date_format;
   }
   return ntopng_utility.from_utc_to_server_date_format(ms_data, date_format);
 }
@@ -63,12 +62,12 @@ onBeforeMount(async () => {
   await set_datatable_config();
 });
 
-const trigger_download = function(row) {
+const trigger_download = function (row) {
   window.open(`${http_prefix}/lua/rest/v2/get/system/configurations/download_backup.lua?epoch=${row.epoch}&download=true`);
 }
 
 const add_action_column = function (rowData) {
-  
+
   let download_backup_handler = {
     handlerId: "download_backup_handler",
     onClick: () => {
@@ -78,7 +77,7 @@ const add_action_column = function (rowData) {
 
   return DataTableUtils.createActionButtons([
     { class: `pointer`, handler: download_backup_handler, icon: 'fas fa-download fa-lg', title: i18n('download') },
-	]);
+  ]);
 }
 
 async function set_datatable_config() {
@@ -116,10 +115,11 @@ async function set_datatable_config() {
       columnName: _i18n("backup_date"), orderable: false, targets: 0, name: 'epoch', data: 'epoch', className: 'text-left', responsivePriority: 1, render: (data, _, rowData) => {
         return format_flows_icon(data, rowData)
       }
-      }, {
-      columnName: _i18n("actions"), orderable: false, width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) { return add_action_column(rowData) } }
-        ,
-    );
+    }, {
+    columnName: _i18n("actions"), orderable: false, width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) { return add_action_column(rowData) }
+  }
+    ,
+  );
 
 
 
