@@ -1615,139 +1615,7 @@ bool Ntop::checkUserPassword(const char *user, const char *password,
   if (!user || user[0] == '\0' || !password || password[0] == '\0')
     return (false);
 
-#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
-  if (ntop->getPro()->has_valid_license()) {
-    if (ntop->getRedis()->get((char *)PREF_NTOP_LDAP_AUTH, val, sizeof(val)) >=
-            0 &&
-        val[0] == '1') {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Checking LDAP auth");
-
-      bool ldap_ret = false;
-      bool is_admin;
-      char *ldapServer = NULL, *ldapAccountType = NULL,
-           *ldapAnonymousBind = NULL, *bind_dn = NULL, *bind_pwd = NULL,
-           *user_group = NULL, *search_path = NULL, *admin_group = NULL;
-
-      if (!(ldapServer = (char *)calloc(sizeof(char), MAX_LDAP_LEN)) ||
-          !(ldapAccountType = (char *)calloc(
-                sizeof(char),
-                MAX_LDAP_LEN)) /* either 'posix' or 'samaccount' */
-          || !(ldapAnonymousBind = (char *)calloc(
-                   sizeof(char), MAX_LDAP_LEN)) /* either '1' or '0' */
-          || !(bind_dn = (char *)calloc(sizeof(char), MAX_LDAP_LEN)) ||
-          !(bind_pwd = (char *)calloc(sizeof(char), MAX_LDAP_LEN)) ||
-          !(user_group = (char *)calloc(sizeof(char), MAX_LDAP_LEN)) ||
-          !(search_path = (char *)calloc(sizeof(char), MAX_LDAP_LEN)) ||
-          !(admin_group = (char *)calloc(sizeof(char), MAX_LDAP_LEN))) {
-        static bool ldap_nomem = false;
-
-        if (!ldap_nomem) {
-          ntop->getTrace()->traceEvent(
-              TRACE_ERROR,
-              "Unable to allocate memory for the LDAP authentication");
-          ldap_nomem = true;
-        }
-
-        goto ldap_auth_out;
-      }
-
-      ntop->getRedis()->get((char *)PREF_LDAP_SERVER, ldapServer, MAX_LDAP_LEN);
-      ntop->getRedis()->get((char *)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType,
-                            MAX_LDAP_LEN);
-      ntop->getRedis()->get((char *)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind,
-                            MAX_LDAP_LEN);
-      ntop->getRedis()->get((char *)PREF_LDAP_BIND_DN, bind_dn, MAX_LDAP_LEN);
-      ntop->getRedis()->get((char *)PREF_LDAP_BIND_PWD, bind_pwd, MAX_LDAP_LEN);
-      ntop->getRedis()->get((char *)PREF_LDAP_SEARCH_PATH, search_path,
-                            MAX_LDAP_LEN);
-      ntop->getRedis()->get((char *)PREF_LDAP_USER_GROUP, user_group,
-                            MAX_LDAP_LEN);
-      ntop->getRedis()->get((char *)PREF_LDAP_ADMIN_GROUP, admin_group,
-                            MAX_LDAP_LEN);
-
-      if (ldapServer[0]) {
-        ldap_ret = LdapAuthenticator::validUserLogin(
-            ldapServer, ldapAccountType,
-            (atoi(ldapAnonymousBind) == 0) ? false : true,
-            bind_dn[0] != '\0' ? bind_dn : NULL,
-            bind_pwd[0] != '\0' ? bind_pwd : NULL,
-            search_path[0] != '\0' ? search_path : NULL, user,
-            password[0] != '\0' ? password : NULL,
-            user_group[0] != '\0' ? user_group : NULL,
-            admin_group[0] != '\0' ? admin_group : NULL, &is_admin);
-
-        if (ldap_ret) {
-          strncpy(
-              group,
-              is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED,
-              NTOP_GROUP_MAXLEN);
-          group[NTOP_GROUP_MAXLEN - 1] = '\0';
-        }
-      }
-
-    ldap_auth_out:
-      if (ldapServer) free(ldapServer);
-      if (ldapAnonymousBind) free(ldapAnonymousBind);
-      if (bind_dn) free(bind_dn);
-      if (bind_pwd) free(bind_pwd);
-      if (user_group) free(user_group);
-      if (search_path) free(search_path);
-      if (admin_group) free(admin_group);
-
-      if (ldap_ret) return (true);
-    }
-  }
-#endif
-
-#ifdef HAVE_RADIUS
-  /*
-     NOTE
-
-     Use https://idblender.com/tools/public-radius for testing
-     the implementation with a public server
-  */
-
-  if (ntop->getRedis()->get((char *)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >=
-          0 &&
-      val[0] == '1') {
-    bool is_admin = false, has_unprivileged_capabilities = false;
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Checking RADIUS auth");
-
-    if (!password || !password[0]) return false;
-
-    if (!radiusAcc) return false;
-
-    if (radiusAcc->authenticate(user, password, &has_unprivileged_capabilities,
-                                &is_admin)) {
-      /* Check permissions */
-      if (has_unprivileged_capabilities) {
-        changeUserPcapDownloadPermission(user, true, 86400 /* 1 day */);
-        changeUserHistoricalFlowPermission(user, true, 86400 /* 1 day */);
-        changeUserAlertsPermission(user, true, 86400 /* 1 day */);
-      } else {
-        char key[64];
-
-        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, user);
-        ntop->getRedis()->del(key);
-
-        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, user);
-        ntop->getRedis()->del(key);
-
-        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, user);
-        ntop->getRedis()->del(key);
-      }
-
-      strncpy(group,
-              is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED,
-              NTOP_GROUP_MAXLEN);
-      group[NTOP_GROUP_MAXLEN - 1] = '\0';
-
-      return true;
-    }
-  }
-#endif
-
+  /* First of all let's check the local user authentication */
   if (ntop->getRedis()->get((char *)PREF_NTOP_HTTP_AUTH, val, sizeof(val)) >=
       0) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Checking HTTP auth");
@@ -1849,6 +1717,142 @@ bool Ntop::checkUserPassword(const char *user, const char *password,
     *localuser = true;
     return (true);
   }
+  
+  /* Now let's check the user by using LDAP (if available) */
+#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
+  if (ntop->getPro()->has_valid_license()) {
+    if (ntop->getRedis()->get((char *)PREF_NTOP_LDAP_AUTH, val, sizeof(val)) >=
+            0 &&
+        val[0] == '1') {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Checking LDAP auth");
+
+      bool ldap_ret = false;
+      bool is_admin;
+      char *ldapServer = NULL, *ldapAccountType = NULL,
+           *ldapAnonymousBind = NULL, *bind_dn = NULL, *bind_pwd = NULL,
+           *user_group = NULL, *search_path = NULL, *admin_group = NULL;
+
+      if (!(ldapServer = (char *)calloc(sizeof(char), MAX_LDAP_LEN)) ||
+          !(ldapAccountType = (char *)calloc(
+                sizeof(char),
+                MAX_LDAP_LEN)) /* either 'posix' or 'samaccount' */
+          || !(ldapAnonymousBind = (char *)calloc(
+                   sizeof(char), MAX_LDAP_LEN)) /* either '1' or '0' */
+          || !(bind_dn = (char *)calloc(sizeof(char), MAX_LDAP_LEN)) ||
+          !(bind_pwd = (char *)calloc(sizeof(char), MAX_LDAP_LEN)) ||
+          !(user_group = (char *)calloc(sizeof(char), MAX_LDAP_LEN)) ||
+          !(search_path = (char *)calloc(sizeof(char), MAX_LDAP_LEN)) ||
+          !(admin_group = (char *)calloc(sizeof(char), MAX_LDAP_LEN))) {
+        static bool ldap_nomem = false;
+
+        if (!ldap_nomem) {
+          ntop->getTrace()->traceEvent(
+              TRACE_ERROR,
+              "Unable to allocate memory for the LDAP authentication");
+          ldap_nomem = true;
+        }
+
+        goto ldap_auth_out;
+      }
+
+      ntop->getRedis()->get((char *)PREF_LDAP_SERVER, ldapServer, MAX_LDAP_LEN);
+      ntop->getRedis()->get((char *)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType,
+                            MAX_LDAP_LEN);
+      ntop->getRedis()->get((char *)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind,
+                            MAX_LDAP_LEN);
+      ntop->getRedis()->get((char *)PREF_LDAP_BIND_DN, bind_dn, MAX_LDAP_LEN);
+      ntop->getRedis()->get((char *)PREF_LDAP_BIND_PWD, bind_pwd, MAX_LDAP_LEN);
+      ntop->getRedis()->get((char *)PREF_LDAP_SEARCH_PATH, search_path,
+                            MAX_LDAP_LEN);
+      ntop->getRedis()->get((char *)PREF_LDAP_USER_GROUP, user_group,
+                            MAX_LDAP_LEN);
+      ntop->getRedis()->get((char *)PREF_LDAP_ADMIN_GROUP, admin_group,
+                            MAX_LDAP_LEN);
+
+      if (ldapServer[0]) {
+        ldap_ret = LdapAuthenticator::validUserLogin(
+            ldapServer, ldapAccountType,
+            (atoi(ldapAnonymousBind) == 0) ? false : true,
+            bind_dn[0] != '\0' ? bind_dn : NULL,
+            bind_pwd[0] != '\0' ? bind_pwd : NULL,
+            search_path[0] != '\0' ? search_path : NULL, user,
+            password[0] != '\0' ? password : NULL,
+            user_group[0] != '\0' ? user_group : NULL,
+            admin_group[0] != '\0' ? admin_group : NULL, &is_admin);
+
+        if (ldap_ret) {
+          strncpy(
+              group,
+              is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED,
+              NTOP_GROUP_MAXLEN);
+          group[NTOP_GROUP_MAXLEN - 1] = '\0';
+        }
+      }
+
+    ldap_auth_out:
+      if (ldapServer) free(ldapServer);
+      if (ldapAnonymousBind) free(ldapAnonymousBind);
+      if (bind_dn) free(bind_dn);
+      if (bind_pwd) free(bind_pwd);
+      if (user_group) free(user_group);
+      if (search_path) free(search_path);
+      if (admin_group) free(admin_group);
+
+      if (ldap_ret) return (true);
+    }
+  }
+#endif
+
+/* If the user is not a local user and not LDAP user, 
+    let's check Radius (if available) */
+#ifdef HAVE_RADIUS
+  /*
+     NOTE
+
+     Use https://idblender.com/tools/public-radius for testing
+     the implementation with a public server
+  */
+
+  if (ntop->getRedis()->get((char *)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >=
+          0 &&
+      val[0] == '1') {
+    bool is_admin = false, has_unprivileged_capabilities = false;
+
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Checking RADIUS auth");
+
+    if (!password || !password[0]) return false;
+
+    if (!radiusAcc) return false;
+
+    if (radiusAcc->authenticate(user, password, &has_unprivileged_capabilities,
+                                &is_admin)) {
+      /* Check permissions */
+      if (has_unprivileged_capabilities) {
+        changeUserPcapDownloadPermission(user, true, 86400 /* 1 day */);
+        changeUserHistoricalFlowPermission(user, true, 86400 /* 1 day */);
+        changeUserAlertsPermission(user, true, 86400 /* 1 day */);
+      } else {
+        char key[64];
+
+        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, user);
+        ntop->getRedis()->del(key);
+
+        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, user);
+        ntop->getRedis()->del(key);
+
+        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, user);
+        ntop->getRedis()->del(key);
+      }
+
+      strncpy(group,
+              is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED,
+              NTOP_GROUP_MAXLEN);
+      group[NTOP_GROUP_MAXLEN - 1] = '\0';
+
+      return true;
+    }
+  }
+#endif
 
   return (false);
 }
