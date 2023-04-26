@@ -18,6 +18,8 @@ NetworkInterface *iface;
 constexpr const char *PROG_NAME = "ntopng";
 
 void testProg(const uint8_t *data, size_t len) {
+    if (len == 0) return;
+
     ntop->getTrace()->traceEvent(TRACE_INFO, "Starting");
 
     FILE *fd = fmemopen((void *)data, len, "r");
