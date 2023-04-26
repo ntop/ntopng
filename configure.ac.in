@@ -8,6 +8,8 @@ SYSTEM=`uname -s`
 AC_PROG_CPP
 AC_PROG_CXX
 
+PKG_PROG_PKG_CONFIG
+
 AC_ARG_WITH(leak-sanitizer,     [  --with-leak-sanitizer   Build with support for the LLVM address leak and sanitizer])
 AS_IF([test "${with_leak_sanitizer+set}" = set],[
     CFLAGS="${CFLAGS} -g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
@@ -173,14 +175,17 @@ OS="${OS#"${OS%%[![:space:]]*}"}"
 
 AC_CHECK_LIB([atomic], [__atomic_exchange_8], [LIBS="${LIBS} -latomic"])
 
-AC_CHECK_LIB([zmq], [zmq_socket_monitor])
-if test "x$ac_cv_lib_zmq_zmq_socket_monitor" = xyes; then :
-  LIBS="${LIBS} -lzmq"
-  AC_DEFINE_UNQUOTED(HAVE_ZMQ, 1, [ZMQ is present])
-else
-  echo "ZMQ not present or too old (< v. 3.x)"
-  exit 1
-fi
+AC_ARG_WITH(zmq-static,
+    [  --with-zmq-static       Use static link for the zmq library],
+    [PKG_CHECK_MODULES_STATIC(ZMQ, [libzmq >= 3],
+        [AC_DEFINE_UNQUOTED(HAVE_ZMQ, 1, [ZMQ is present])],
+        [AC_MSG_ERROR(ZMQ not present or too old (< v. 3.x))]
+    )],
+    [PKG_CHECK_MODULES(ZMQ, [libzmq >= 3],
+        [AC_DEFINE_UNQUOTED(HAVE_ZMQ, 1, [ZMQ is present])],
+        [AC_MSG_ERROR(ZMQ not present or too old (< v. 3.x))]
+    )]
+)
 
 AC_CHECK_LIB([sodium], [sodium_init], LIBS="${LIBS} -lsodium")
 AC_CHECK_LIB([rdkafka], [rd_kafka_metadata], AC_DEFINE_UNQUOTED(HAVE_KAFKA, 1, [librdkafka is installed] LIBS="${LIBS} -lrdkafka") LIBS="${LIBS} -lrdkafka")
