@@ -7073,6 +7073,7 @@ local lang = {
         ["smart_storage_dir"] = "Smart Storage Directory",
         ["smart_traffic_recording"] = "Smart Traffic Recording",
         ["smart_traffic_recording_note"] = "Move recorded traffic matching selected events (e.g. alerts) to a secondary storage for longer data retention.",
+        ["smart_window"] = "Smart Window",
         ["start_extraction"] = "Start Extraction",
         ["stop_job"] = "Stop Job",
         ["stop_job_confirm"] = "Do you really want to stop Job %{job_id}?",
