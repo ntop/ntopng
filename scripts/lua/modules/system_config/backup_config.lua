@@ -33,7 +33,7 @@ local function remove_last(epoch_keys)
         end
 
         ntop.delHashCache(backup_hash_key, key)
-        break
+        break -- take the first one
     end
 end
 
@@ -42,9 +42,12 @@ end
 -- @brief Save configurations backup.
 function backup_config.save_backup()
     local instances = {}
+    local to_ignore = { last_poll_time = true, last_poll_duration = true, num_interfaces_with_errors = true, delta_interfaces_with_errors = true }
+
     -- Retrieve the configuration
     instances["all"] = all_import_export:create()
     local backup = import_export_rest_utils.export(instances, false, true)
+
     if debugger then
         traceError(TRACE_DEBUG, TRACE_CONSOLE, "START BACKUP SAVING")
     end
@@ -66,14 +69,19 @@ function backup_config.save_backup()
         for item, _ in pairsByKeys(saved_backups_keys, rev) do
             local last_config = json.decode(ntop.getHashCache(backup_hash_key, item)) or {}
             -- Check if the last configuration is equal to the current one
-            if not (last_config == backup) then
-                if debugger then
-                    traceError(TRACE_DEBUG, TRACE_CONSOLE, "Saving Backup: " .. backup .. "\nUsing Redis key: " .. key)
-                end
 
-                ntop.setHashCache(backup_hash_key, key, json.encode(backup))
-                break
+	    if (not table.is_equal(last_config, backup, to_ignore)) then
+	       -- tprint("CONFIGURATION CHANGED ****")
+	       if debugger then
+		  traceError(TRACE_DEBUG, TRACE_CONSOLE, "Saving Backup: " .. backup .. "\nUsing Redis key: " .. key)
+	       end
+
+	       ntop.setHashCache(backup_hash_key, key, json.encode(backup))
+	    else
+	       -- tprint("CONFIGURATION [ " .. item .."]= ****")
             end
+
+            break -- take the first one
         end
     else
         -- Save the backup
