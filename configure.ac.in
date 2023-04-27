@@ -327,19 +327,11 @@ if test -z "$NDPI_INC" || test -z "$NDPI_LIB" ; then :
 fi
 dnl finish: nDPI handling
 
-if test $SYSTEM = "FreeBSD"; then
-   JSON_LIB=/usr/local/lib/libjson-c.a
-   JSON_INC=`pkg-config --cflags json-c`
-else
-   pkg-config --exists json-c
-   if test "$?" -ne 1; then
-     JSON_INC=`pkg-config --cflags json-c`
-     JSON_LIB=`pkg-config --libs json-c`
-   else
-     echo "Please install libjson-c-dev package prerequisite"
-     exit -1
-   fi
-fi
+AC_ARG_WITH(json-c-static,
+    [  --with-json-c-static       Use static link for the json-c library],
+    [PKG_CHECK_MODULES_STATIC(JSON, json-c, [], [AC_MSG_ERROR(Please install libjson-c-dev package prerequisite)])],
+    [PKG_CHECK_MODULES(JSON, json-c, [], [AC_MSG_ERROR(Please install libjson-c-dev package prerequisite)])]
+)
 
 pkg-config --exists libssl
 if test "$?" -ne 1; then
@@ -870,8 +862,6 @@ AC_SUBST(REVISION)
 AC_SUBST(MYSQL_LIB)
 AC_SUBST(MYSQL_INC)
 AC_SUBST(MYSQL_DEP)
-AC_SUBST(JSON_INC)
-AC_SUBST(JSON_LIB)
 AC_SUBST(SNMP_INC)
 AC_SUBST(SNMP_LIB)
 AC_SUBST(PFRING_GIT_RELEASE)
@@ -940,7 +930,7 @@ Preprocessor Flags: ${CPPFLAGS}
 Linker Flags:     : ${LDFLAGS}
 System Libs       : ${LIBS}
 nDPI Lib:         : ${NDPI_LIB}
-JSON Lib:         : ${JSON_LIB}
+JSON Lib:         : ${JSON_LIBS}
 SSL Lib:          : ${SSL_LIB}
 SNMP Lib          : ${SNMP_LIB}
 Expat Lib         : ${EXPAT_LIB}

@@ -65,8 +65,8 @@ HTTPCLIENT_INC=${PWD}/third-party/http-client-c/src/
 
 ######
 
-JSON_INC=@JSON_INC@
-JSON_LIB=@JSON_LIB@
+JSON_INC=@JSON_CFLAGS@
+JSON_LIB=@JSON_LIBS@
 
 ######
 
