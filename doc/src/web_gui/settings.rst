@@ -105,11 +105,7 @@ All this is available from the *Settings* -> *Configurations* menu, as shown in 
 
   The Manage Configurations Page
 
-Every day an automatic backup of the configurations is made by ntopng.
-They will be available only seven backups on the configurations backup page.
-
-To restore one of the automatic backups, it's possible to download one of them in the configurations backup page and then
-the backup must be import in the manage configurations page.
+Every night, ntopng automatically creates a backup of the whole application configuration. No backup is created if the configuration didn't change since the previous day. Currently the last 7 backups are stored and older ones are automatically discarded. You can download a backup using the Download menu under the Actions colums. This backup can be restored using the Import button on the main configuration page.
 
 .. figure:: ../img/web_gui_manage_configurations_backup.png
   :align: center
