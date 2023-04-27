@@ -51,7 +51,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   if not isEmptyString(_POST["smart_disk_space"]) then
     smart_disk_space = tonumber(_POST["smart_disk_space"])*1024
   end
-  ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.disk_space', tostring(disk_space))
+  ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.disk_space', tostring(smart_disk_space))
 
   if recording_utils.isSupportedZMQInterface(master_ifid) then
     local ext_ifname
@@ -208,7 +208,7 @@ print [[
       <tr>
         <th>]] print(i18n("traffic_recording.smart_disk_space")) print [[</th>
         <td colspan=2>
-          <input type="number" style="width:127px;display:inline;" class="form-control" name="smart_disk_space" placeholder="" min="1" step="1" max="]] print(max_space/1024) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
+          <input type="number" style="width:127px;display:inline;" class="form-control" name="smart_disk_space" placeholder="" min="1" step="1" max="]] print(max_space/1024) print [[" value="]] print(smart_disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
 <small>]] print(i18n("traffic_recording.smart_disk_space_note"))  print[[</small>
         </td>
       </tr>
