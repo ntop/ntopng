@@ -88,7 +88,7 @@ end
 
 if start_time ~= nil then
    print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
-   if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > first_epoch) then
+   if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > (first_epoch + 10)) then
       print(' - <i class="fas fa-exclamation-triangle"></i> ')
       print(i18n("traffic_recording.missing_data_msg"))
    end
