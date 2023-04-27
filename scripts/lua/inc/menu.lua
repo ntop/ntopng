@@ -657,7 +657,7 @@ page_utils.add_menubar_section({
     }, {
         entry = page_utils.menu_entries.alert_exclusions,
         section = page_utils.menu_sections.checks,
-        hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isEnterpriseM(),
+        hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isEnterpriseM() or (tonumber(getSystemInterfaceId()) == tonumber(interface.getId())),
         url = '/lua/pro/admin/edit_alert_exclusions.lua?subdir=host'
     }, {
         entry = page_utils.menu_entries.divider
