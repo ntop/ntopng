@@ -17,7 +17,7 @@ NetworkInterface *iface;
 
 constexpr const char *PROG_NAME = "ntopng\0";
 
-extern "C" int LLVMFuzzerInitialize(int argc, char **argv) {
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
     Prefs *prefs = NULL;
 
     if ((ntop = new (std::nothrow) Ntop(PROG_NAME)) == NULL) _exit(1);

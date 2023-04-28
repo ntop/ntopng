@@ -4,7 +4,7 @@
 #include <cstdlib>
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len);
-extern "C" int LLVMFuzzerInitialize(int argc, char **argv);
+__attribute__((weak)) extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv);
 
 #ifdef IS_AFL
 
