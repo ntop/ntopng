@@ -1,3 +1,4 @@
 stub/*.o
 *.o
 proto
+!corpus/**/*.pcap
