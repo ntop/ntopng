@@ -681,17 +681,23 @@ if test -f "/etc/centos-release"; then
   fi
 fi
 
-AC_CHECK_LIB([maxminddb], [MMDB_lookup_sockaddr])
-AC_CHECK_HEADERS(maxminddb.h)
-if test ".${ac_cv_lib_maxminddb_MMDB_lookup_sockaddr}" = ".yes" &&
-   test ".${ac_cv_header_maxminddb_h}" = ".yes"; then
-   DOWNLOAD_GEOIP=1
-   MAXMINDDB_LIB=-lmaxminddb
-   AC_DEFINE_UNQUOTED(HAVE_MAXMINDDB, 1, [MaxMind DB support])
-else
-   AC_MSG_RESULT(Please install libmaxminddb-dev (https://github.com/maxmind/libmaxminddb) and try again)
-   exit 1
-fi
+AC_ARG_WITH(maxminddb-static,
+    [  --with-maxminddb-static       Use static link for the maxminddb library],
+    [PKG_CHECK_MODULES_STATIC(MAXMINDDB, libmaxminddb,
+        [
+            DOWNLOAD_GEOIP=1
+            AC_DEFINE_UNQUOTED(HAVE_MAXMINDDB, 1, [MaxMind DB support])
+        ],
+        [AC_MSG_ERROR(Please install libmaxminddb-dev (https://github.com/maxmind/libmaxminddb) and try again)]
+    )],
+    [PKG_CHECK_MODULES(MAXMINDDB, libmaxminddb,
+        [
+            DOWNLOAD_GEOIP=1
+            AC_DEFINE_UNQUOTED(HAVE_MAXMINDDB, 1, [MaxMind DB support])
+        ],
+        [AC_MSG_ERROR(Please install libmaxminddb-dev (https://github.com/maxmind/libmaxminddb) and try again)]
+    )]
+)
 
 AC_CHECK_LIB([sqlite3], [sqlite3_open], sqlite=true)
 if test x$sqlite = xtrue; then
@@ -847,7 +853,6 @@ AC_SUBST(NDPI_LIB)
 AC_SUBST(NDPI_LIB_DEP)
 AC_SUBST(HIREDIS_INC)
 AC_SUBST(HIREDIS_LIB)
-AC_SUBST(MAXMINDDB_LIB)
 AC_SUBST(EXPAT_LIB)
 AC_SUBST(RADCLI_LIB)
 AC_SUBST(SSL_INC)
