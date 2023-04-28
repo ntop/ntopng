@@ -15,43 +15,7 @@
 AfterShutdownAction afterShutdownAction = after_shutdown_nop;
 NetworkInterface *iface;
 
-constexpr const char *PROG_NAME = "ntopng";
-
-void testProg(const uint8_t *data, size_t len) {
-    if (len == 0) return;
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Starting");
-
-    FILE *fd = fmemopen((void *)data, len, "r");
-    if (fd == NULL) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                     "Cannot create the file descriptor");
-        _exit(1);
-    }
-
-    char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-    pcap_t *pcap_handle;
-    const u_char *pkt;
-    struct pcap_pkthdr *hdr;
-    u_int16_t p;
-    Host *srcHost = NULL, *dstHost = NULL;
-    Flow *flow = NULL;
-
-    pcap_handle = pcap_fopen_offline(fd, pcap_error_buffer);
-    if (pcap_handle == NULL) goto end;
-    pcap_setnonblock(pcap_handle, 1, pcap_error_buffer);
-
-    while (pcap_next_ex(pcap_handle, &hdr, &pkt) > 0) {
-        iface->dissectPacket(DUMMY_BRIDGE_INTERFACE_ID, true, NULL, hdr, pkt,
-                             &p, &srcHost, &dstHost, &flow);
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "dissecting packet");
-    }
-
-end:
-    fclose(fd);
-    iface->cleanup();
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Ending");
-}
+constexpr const char *PROG_NAME = "ntopng\0";
 
 extern "C" int LLVMFuzzerInitialize(int argc, char **argv) {
     Prefs *prefs = NULL;
@@ -72,7 +36,7 @@ extern "C" int LLVMFuzzerInitialize(int argc, char **argv) {
     new_argv[--c] = new char[]{"-2\0"};
     new_argv[--c] = new char[]{"docs\0"};
     new_argv[--c] = new char[]{"-1\0"};
-    new_argv[--c] = new char[]{"asd\0"};
+    new_argv[--c] = (char *)PROG_NAME;
     assert(c == 0);
 
     prefs->loadFromCLI(10, new_argv);  // = true;
@@ -123,7 +87,34 @@ DEFINE_PROTO_FUZZER(const ntopng_fuzz::Pcap &message) {
 #else
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
-    testProg(buf, len);
+    if (len == 0) return -1;
+
+    FILE *fd = fmemopen((void *)buf, len, "r");
+    if (fd == NULL) {
+        std::cerr << "Cannot create the file descriptor with fmemopen" << std::endl;
+        return -1;
+    }
+
+    char pcap_error_buffer[PCAP_ERRBUF_SIZE];
+    pcap_t *pcap_handle;
+    const u_char *pkt;
+    struct pcap_pkthdr *hdr;
+    u_int16_t p;
+    Host *srcHost = NULL, *dstHost = NULL;
+    Flow *flow = NULL;
+
+    pcap_handle = pcap_fopen_offline(fd, pcap_error_buffer);
+    if (pcap_handle == NULL) goto end;
+    pcap_setnonblock(pcap_handle, 1, pcap_error_buffer);
+
+    while (pcap_next_ex(pcap_handle, &hdr, &pkt) > 0) {
+        iface->dissectPacket(DUMMY_BRIDGE_INTERFACE_ID, true, NULL, hdr, pkt,
+                             &p, &srcHost, &dstHost, &flow);
+    }
+
+end:
+    fclose(fd);
+    iface->cleanup();
 
     return 0;
 }
