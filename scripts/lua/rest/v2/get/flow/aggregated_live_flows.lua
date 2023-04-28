@@ -29,6 +29,7 @@ filters["sort_column"] = _GET["sort"]
 filters["sort_order"] = _GET["order"] or 'asc'
 filters["start"] = tonumber(_GET["start"] or 0)
 filters["length"] = tonumber(_GET["length"] or 10)
+filters["map_search"] = _GET["map_search"]
 if (vlan) and (isEmptyString(vlan) or tonumber(vlan) == -1) then
     vlan = nil
 end
@@ -86,12 +87,12 @@ local x = 0
 
 -- Retrieve the flows
 local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id, filters["page"], filters["sort_column"],
-    filters["sort_order"], filters["start"], filters["length"])
+    filters["sort_order"], filters["start"], filters["length"], filters["map_search"])
 
 -- Formatting the data
 for _, data in pairs(aggregated_info or {}) do
-    local bytes_sent = data.bytes_sent
-    local bytes_rcvd = data.bytes_rcvd
+    local bytes_sent = data.bytes_sent or 0
+    local bytes_rcvd = data.bytes_rcvd or 0
     local total_bytes = bytes_rcvd + bytes_sent
     local add_app_proto = false
     local add_server = false
@@ -182,28 +183,31 @@ for _, data in pairs(aggregated_info or {}) do
 
     -- TODO: remove this data from inside the for
     num_entries = data.num_entries
-    res[#res + 1] = {
-        flows = format_high_num_value_for_tables(data, 'num_flows'),
+    if num_entries > 0 then
+        res[#res + 1] = {
+            flows = format_high_num_value_for_tables(data, 'num_flows'),
 
-        breakdown = {
-            percentage_bytes_sent = (bytes_sent * 100) / total_bytes,
-            percentage_bytes_rcvd = (bytes_rcvd * 100) / total_bytes
-        },
-        bytes_rcvd = bytes_rcvd,
-        bytes_sent = bytes_sent,
-        tot_traffic = total_bytes,
-        tot_score = format_high_num_value_for_tables(data, 'total_score'),
-        num_servers = format_high_num_value_for_tables(data, 'num_servers'),
-        num_clients = format_high_num_value_for_tables(data, 'num_clients'),
-        client = client,
-        server = server,
-        info = info,
-        application = application,
-        vlan_id = {
-            id = data.vlan_id,
-            label = getFullVlanName(data.vlan_id)
+            breakdown = {
+                percentage_bytes_sent = (bytes_sent * 100) / total_bytes,
+                percentage_bytes_rcvd = (bytes_rcvd * 100) / total_bytes
+            },
+            bytes_rcvd = bytes_rcvd,
+            bytes_sent = bytes_sent,
+            tot_traffic = total_bytes,
+            tot_score = format_high_num_value_for_tables(data, 'total_score'),
+            num_servers = format_high_num_value_for_tables(data, 'num_servers'),
+            num_clients = format_high_num_value_for_tables(data, 'num_clients'),
+            client = client,
+            server = server,
+            info = info,
+            application = application,
+            vlan_id = {
+                id = data.vlan_id,
+                label = ternary(data.vlan_id, getFullVlanName(data.vlan_id), "")
+            }
         }
-    }
+
+    end
 
     ::continue::
 end
