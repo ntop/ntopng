@@ -408,7 +408,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if (!flow->isDetectionCompleted()) {
     ndpi_protocol p = Flow::ndpiUnknownProtocol;
     ndpi_protocol guessed_protocol = Flow::ndpiUnknownProtocol;
-
+    
     p.app_protocol = zflow->l7_proto.app_protocol;
     p.master_protocol = zflow->l7_proto.master_protocol;
     p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
@@ -416,21 +416,42 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     /* First, there's an attempt to guess the protocol so that custom protocols
        defined in ntopng will still be applied to the protocols detected by
        nprobe. */
-    guessed_protocol = ndpi_guess_undetected_protocol(
-        get_ndpi_struct(), flow->get_ndpi_flow(), flow->get_protocol());
-
+    if(zflow->src_ip.isIPv4())
+      guessed_protocol = ndpi_guess_undetected_protocol_v4(get_ndpi_struct(),
+							   flow->get_ndpi_flow(),
+							   flow->get_protocol(),
+							   ntohl(zflow->src_ip.get_ipv4()),
+							   ntohs(zflow->src_port),
+							   ntohl(zflow->dst_ip.get_ipv4()),
+							   ntohs(zflow->dst_port)
+							   );
+    else {
+      /* IPv6: use protcol guess only based on ports/protocol */
+      
+      guessed_protocol = ndpi_guess_undetected_protocol_v4(get_ndpi_struct(),
+							   flow->get_ndpi_flow(),
+							   flow->get_protocol(),
+							   0,
+							   ntohs(zflow->src_port),
+							   0,
+							   ntohs(zflow->dst_port)
+							   );
+    }
+    
     if (
         /* If nprobe acts is in collector-passthrough mode L7_PROTO is not
            present, using the protocol guess on the ntopng side is desirable in
            this case */
-        (zflow->l7_proto.app_protocol == NDPI_PROTOCOL_UNKNOWN &&
-         zflow->l7_proto.master_protocol == NDPI_PROTOCOL_UNKNOWN) ||
+        ((zflow->l7_proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+	 && (zflow->l7_proto.master_protocol == NDPI_PROTOCOL_UNKNOWN))
+	||
         /* If the protocol is greater than NDPI_MAX_SUPPORTED_PROTOCOLS, it
            means it is a custom protocol so the application protocol received
            from nprobe can be overridden */
-        (guessed_protocol.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS))
+        (guessed_protocol.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS)) {
       p = guessed_protocol;
-
+    }
+    
     if (zflow->hasParsedeBPF()) {
       /* nProbe Agent does not perform nDPI detection*/
       p.master_protocol = guessed_protocol.master_protocol;
