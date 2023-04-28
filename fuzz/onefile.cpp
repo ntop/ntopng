@@ -35,6 +35,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    if (LLVMFuzzerInitialize)
+        LLVMFuzzerInitialize(&argc, &argv);
+
     FILE *f = fopen(argv[1], "r");
     if (!f) return 1;
 
@@ -46,8 +49,6 @@ int main(int argc, char *argv[]) {
     fread(string, fsize, 1, f);
 
     fclose(f);
-
-    LLVMFuzzerInitialize(argc, argv);
 
     LLVMFuzzerTestOneInput(string, fsize);
 
