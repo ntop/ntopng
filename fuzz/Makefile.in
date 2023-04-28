@@ -1,5 +1,5 @@
 FUZZ_TARGETS := fuzz/fuzz_dissect_packet
-FUZZ_CORPUS := fuzz/fuzz_dissect_packet_corpus.zip
+FUZZ_CORPUS := $(addsuffix _seed_corpus.zip,$(FUZZ_TARGETS))
 
 FUZZ_LOCAL_TEST := @FUZZ_LOCAL_TEST@
 HAS_FUZZLDFLAGS := @HAS_FUZZLDFLAGS@
@@ -44,5 +44,5 @@ fuzz_all: $(LIB_TARGETS) $(FUZZ_TARGETS) fuzz_corpus
 
 .SECONDEXPANSION:
 
-fuzz/fuzz_%_corpus.zip: $$(wildcard fuzz/corpus/fuzz_%/*)
-	zip -j fuzz/fuzz_$*_corpus.zip $^
+fuzz/fuzz_%_seed_corpus.zip: $$(wildcard fuzz/corpus/fuzz_%/*)
+	zip -j $@ $^
