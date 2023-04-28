@@ -1,4 +1,5 @@
 FUZZ_TARGETS := fuzz/fuzz_dissect_packet
+FUZZ_CORPUS := fuzz/fuzz_dissect_packet_corpus.zip
 
 FUZZ_LOCAL_TEST := @FUZZ_LOCAL_TEST@
 HAS_FUZZLDFLAGS := @HAS_FUZZLDFLAGS@
@@ -37,4 +38,11 @@ fuzz/fuzz_dissect_packet: fuzz/fuzz_dissect_packet.o $(EXTRA_SOURCES) $(OBJECTS_
 fuzz/%: fuzz/%.o $(OBJECTS_NO_MAIN)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LIB_FUZZING_ENGINE) $^ $(LIBS) -o $@
 
-fuzz_all: $(LIB_TARGETS) $(FUZZ_TARGETS)
+fuzz_corpus: $(FUZZ_CORPUS)
+
+fuzz_all: $(LIB_TARGETS) $(FUZZ_TARGETS) fuzz_corpus
+
+.SECONDEXPANSION:
+
+fuzz/fuzz_%_corpus.zip: $$(wildcard fuzz/corpus/fuzz_%/*)
+	zip -j fuzz/fuzz_$*_corpus.zip $^
