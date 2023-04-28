@@ -740,8 +740,7 @@ if test $SYSTEM != "FreeBSD"; then
     AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
     AC_CHECK_LIB([wrap], [main])
   else
-    echo "MySQL libraries not found. Please install them as specified in README.compilation"
-    exit 1
+    echo "Building without support for MySQL libraries."
   fi
  fi
 fi
