@@ -11205,125 +11205,110 @@ void NetworkInterface::build_lua_rsp(lua_State *vm, AggregatedFlowsStats *flow_s
 
 /* **************************************************** */
 
-/* Verify function for the map search filter */
-bool NetworkInterface::verify_map_search_filter(AggregatedFlowsStats* fs, char* filter, u_int filter_type) {
-
+/* Verify function for the map search filter client case */
+bool NetworkInterface::verify_map_search_filter_on_client(AggregatedFlowsStats* fs, char* filter) {
   char buf[64];
 
-  if (filter_type == AnalysisCriteria::application_criteria )  {
-
-    if(!strcasecmp(fs->getProtoName(), filter)) {
-      return true;
-    } else {
-
-      if(strstr(fs->getProtoName(), filter) )
-        return true;
-    }
-
-  } else if(filter_type == AnalysisCriteria::info_criteria) {
-    if(!strcasecmp(fs->getInfoKey(), filter))
+  if(!strcmp(fs->getCliIP(buf, sizeof(buf)), filter)) {
+    return true;
+  } else {
+    if (!strcmp(fs->getCliName(buf, sizeof(buf)), filter))
       return true;
     else {
-      if(strstr(fs->getInfoKey(), filter))
+      if(strstr(fs->getCliName(buf, sizeof(buf)), filter))
         return true;
-    }
-
-  } else if(filter_type == AnalysisCriteria::client_criteria) {
-
-
-    if(!strcmp(fs->getCliIP(buf, sizeof(buf)), filter)) {
-      return true;
-    } else {
-      if (!strcmp(fs->getCliName(buf, sizeof(buf)), filter))
-        return true;
-      else {
-        if(strstr(fs->getCliName(buf, sizeof(buf)), filter))
-          return true;
-      }
-    }
-
-  } else if(filter_type == AnalysisCriteria::server_criteria) {
-
-    if(!strcmp(fs->getSrvIP(buf, sizeof(buf)), filter))
-      return true;
-    else {
-      if(!strcmp(fs->getSrvName(buf, sizeof(buf)) ,filter))
-        return true;
-      else {
-        if(strstr(fs->getSrvName(buf, sizeof(buf)), filter))
-          return true;
-      }
-    }
-
-  } else if(filter_type == AnalysisCriteria::client_server_criteria) {
-    // client case
-    if(!strcmp(fs->getCliIP(buf, sizeof(buf)), filter))
-      return true;
-    else {
-      if (!strcmp(fs->getCliName(buf, sizeof(buf)), filter))
-        return true;
-      else {
-        if(strstr(fs->getCliName(buf, sizeof(buf)), filter))
-          return true;
-        else {
-
-          //server case
-          if(!strcmp(fs->getSrvIP(buf, sizeof(buf)), filter))
-            return true;
-          else {
-            if(!strcmp(fs->getSrvName(buf, sizeof(buf)) ,filter))
-              return true;
-            else {
-              if(strstr(fs->getSrvName(buf, sizeof(buf)), filter))
-                return true;
-            }
-          }
-        }
-      }
-    }
-
-  } else if(filter_type == AnalysisCriteria::app_client_server_criteria) {
-
-    // application protocol case
-    if(!strcmp(fs->getProtoName(), filter)) {
-      return true;
-    }
-
-    else {
-
-      if( strstr(fs->getProtoName(), filter))
-        return true;
-      else {
-
-        // client case
-        if(!strcmp(fs->getCliIP(buf, sizeof(buf)), filter))
-          return true;
-        else {
-          if (!strcmp(fs->getCliName(buf, sizeof(buf)), filter))
-            return true;
-          else {
-            if(strstr(fs->getCliName(buf, sizeof(buf)), filter))
-              return true;
-            else {
-
-              //server case
-              if(!strcmp(fs->getSrvIP(buf, sizeof(buf)), filter))
-                return true;
-              else {
-                if(!strcmp(fs->getSrvName(buf, sizeof(buf)) ,filter))
-                  return true;
-                else {
-                  if(strstr(fs->getSrvName(buf, sizeof(buf)), filter))
-                    return true;
-                }
-              }
-            }
-          }
-        }
-      }
     }
   }
 
+  return false;
+}
+
+/* **************************************************** */
+
+/* Verify function for the map search filter server case */
+bool NetworkInterface::verify_map_search_filter_on_server(AggregatedFlowsStats* fs, char* filter) {
+  char buf[64];
+
+  if(!strcmp(fs->getSrvIP(buf, sizeof(buf)), filter))
+    return true;
+  else {
+    if(!strcmp(fs->getSrvName(buf, sizeof(buf)) ,filter))
+      return true;
+    else {
+      if(strstr(fs->getSrvName(buf, sizeof(buf)), filter))
+        return true;
+    }
+  } 
+  return false;
+}
+
+
+/* **************************************************** */
+
+/* Verify function for the map search filter */
+bool NetworkInterface::verify_map_search_filter(AggregatedFlowsStats* fs, char* filter, u_int filter_type) {
+
+  switch (filter_type) {
+    case AnalysisCriteria::application_criteria : {
+      if(!strcasecmp(fs->getProtoName(), filter)) {
+        return true;
+      } else {
+        if(strstr(fs->getProtoName(), filter) )
+          return true;
+      }
+    } break;
+    
+    case AnalysisCriteria::info_criteria : {
+      if(!strcasecmp(fs->getInfoKey(), filter))
+        return true;
+      else {
+        if(strstr(fs->getInfoKey(), filter))
+          return true;
+      }
+    } break;
+    
+    case AnalysisCriteria::client_criteria : {
+      return verify_map_search_filter_on_client(fs, filter);
+    } break;
+  
+    case AnalysisCriteria::server_criteria : {
+      return verify_map_search_filter_on_server(fs, filter);
+    } break;
+  
+    case AnalysisCriteria::client_server_criteria : {
+      // client case
+      if(verify_map_search_filter_on_client(fs, filter)) {
+        return true;
+      } else {
+        
+        // server case
+        return verify_map_search_filter_on_server(fs, filter);
+      }
+    } break;
+
+    case AnalysisCriteria::app_client_server_criteria : {
+      // application protocol case
+      if(!strcmp(fs->getProtoName(), filter)) {
+        return true;
+      }
+      else {
+        if( strstr(fs->getProtoName(), filter))
+          return true;
+        else {
+
+          // client case
+          if(verify_map_search_filter_on_client(fs, filter)) {
+            return true;
+          } else {
+
+            //server case
+            return verify_map_search_filter_on_server(fs, filter);
+          }
+        }
+      }
+    } break;
+    
+  }
   return false;
 }
 
