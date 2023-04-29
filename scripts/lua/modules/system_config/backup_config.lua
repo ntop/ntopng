@@ -102,7 +102,7 @@ function backup_config.list_backup(user)
 
     local date_format = ntop.getPref("ntopng.user."..user..".date_format")
 
-    for epoch, _ in pairs(saved_backups_keys) do
+    for epoch, _ in pairsByKeys(saved_backups_keys, rev) do
         epoch_list[#epoch_list + 1] = {
             epoch = epoch,
             date_format = date_format
