@@ -17,7 +17,8 @@ int main(int argc, char *argv[]) {
 
     uint8_t *buf = __AFL_FUZZ_TESTCASE_BUF;
 
-    LLVMFuzzerInitialize(argc, argv);
+    if (LLVMFuzzerInitialize)
+        LLVMFuzzerInitialize(&argc, &argv);
 
     while (__AFL_LOOP(10000)) {
         int len = __AFL_FUZZ_TESTCASE_LEN;
