@@ -17,7 +17,15 @@ NetworkInterface *iface;
 
 constexpr const char *PROG_NAME = "ntopng\0";
 
+static void cleanup() {
+    if (iface) delete iface;
+    if (ntop) delete ntop;
+}
+
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
+    // Final cleanup
+    atexit(cleanup);
+
     Prefs *prefs = NULL;
 
     if ((ntop = new (std::nothrow) Ntop(PROG_NAME)) == NULL) _exit(1);
@@ -25,21 +33,12 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
 
     ntop->getTrace()->set_trace_level(1);
 
-    int c = 9;
-    char *new_argv[c];
-    // Args are in reversed order
-    new_argv[--c] = new char[]{"./install\0"};
-    new_argv[--c] = new char[]{"-t\0"};
-    new_argv[--c] = new char[]{"data-dir\0"};
-    new_argv[--c] = new char[]{"-d\0"};
-    new_argv[--c] = new char[]{"scripts\0"};
-    new_argv[--c] = new char[]{"-2\0"};
-    new_argv[--c] = new char[]{"docs\0"};
-    new_argv[--c] = new char[]{"-1\0"};
-    new_argv[--c] = (char *)PROG_NAME;
-    assert(c == 0);
+    constexpr int c = 9;
+    constexpr const char *new_argv[c] = {
+        PROG_NAME, "-1\0",       "docs\0", "-2\0",     "scripts\0",
+        "-d\0",    "data-dir\0", "-t\0",   "install\0"};
 
-    prefs->loadFromCLI(10, new_argv);  // = true;
+    prefs->loadFromCLI(c, const_cast<char **>(new_argv));  // = true;
     ntop->registerPrefs(prefs, false);
 
     ntop->loadGeolocation();
@@ -91,7 +90,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
 
     FILE *fd = fmemopen((void *)buf, len, "r");
     if (fd == NULL) {
-        std::cerr << "Cannot create the file descriptor with fmemopen" << std::endl;
+        std::cerr << "Cannot create the file descriptor with fmemopen"
+                  << std::endl;
         return -1;
     }
 
