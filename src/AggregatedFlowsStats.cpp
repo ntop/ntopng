@@ -24,7 +24,7 @@
 /* *************************************** */
 
 AggregatedFlowsStats::AggregatedFlowsStats(const IpAddress* c, const IpAddress* s, u_int8_t _l4_proto,
-             u_int64_t bytes_sent, u_int64_t bytes_rcvd, u_int32_t score) {
+					   u_int64_t bytes_sent, u_int64_t bytes_rcvd, u_int32_t score) {
   num_flows = tot_sent = tot_rcvd = tot_score =
   key = vlan_id = proto_key = 0;
   l4_proto = _l4_proto;
