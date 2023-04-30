@@ -11,17 +11,21 @@ OBJECTS := $(OBJECTS) $(FUZZ_OBJECTS)
 FUZZ_FILTER_OUT := $(FUZZ_OBJECTS:fuzz/stub/%Stub.o=src/%.o)
 OBJECTS_NO_MAIN := $(filter-out src/main.o $(FUZZ_FILTER_OUT),$(OBJECTS))
 
+# Protobuf dependencies
+fuzz_dissect_packet_proto_sources := fuzz/proto/pcap.pb.o
+
 ifneq ($(HAS_FUZZLDFLAGS),1)
 	CPPFLAGS := $(CPPFLAGS) -DINCLUDE_ONEFILE
 else ifeq ($(FUZZ_LOCAL_TEST),1)
 	CPPFLAGS := $(CPPFLAGS) -DINCLUDE_ONEFILE
 endif
 
-EXTRA_SOURCES :=
 ifeq ($(FUZZ_WITH_PROTOBUF),1)
-	EXTRA_SOURCES := fuzz/proto/pcap.pb.o
-	LIBS := $(LIBS) /usr/local/lib/libprotobuf-mutator-libfuzzer.a /usr/local/lib/libprotobuf-mutator.a -lprotobuf
-	CPPFLAGS := $(CPPFLAGS) -I/usr/local/include/libprotobuf-mutator -DFUZZ_WITH_PROTOBUF
+	LIBS := $(LIBS) @LIBPROTOBUF_MUTATOR_LIBS@ @PROTOBUF_LIBS@
+	CXXFLAGS := $(CXXFLAGS) @LIBPROTOBUF_MUTATOR_CFLAGS@ @PROTOBUF_CFLAGS@
+	CPPFLAGS := $(CPPFLAGS) -DFUZZ_WITH_PROTOBUF
+else
+	fuzz_dissect_packet_proto_sources :=
 endif
 
 fuzz/proto/%.pb.o: fuzz/%.proto
@@ -32,7 +36,7 @@ fuzz/proto/%.pb.o: fuzz/%.proto
 fuzz/%.o: fuzz/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
-fuzz/fuzz_dissect_packet: fuzz/fuzz_dissect_packet.o $(EXTRA_SOURCES) $(OBJECTS_NO_MAIN)
+fuzz/fuzz_dissect_packet: fuzz/fuzz_dissect_packet.o $(fuzz_dissect_packet_proto_sources) $(OBJECTS_NO_MAIN)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LIB_FUZZING_ENGINE) $^ $(LIBS) -o $@
 
 fuzz/%: fuzz/%.o $(OBJECTS_NO_MAIN)
