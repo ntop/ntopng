@@ -105,6 +105,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
 
     pcap_handle = pcap_fopen_offline(fd, pcap_error_buffer);
     if (pcap_handle == NULL) goto end;
+    iface->set_datalink(pcap_datalink(pcap_handle));
     pcap_setnonblock(pcap_handle, 1, pcap_error_buffer);
 
     while (pcap_next_ex(pcap_handle, &hdr, &pkt) > 0) {
