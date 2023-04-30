@@ -33,8 +33,8 @@ AC_ARG_WITH(fuzz-protobuf, AS_HELP_STRING([--with-fuzz-protobuf], [Build with pr
 AS_VAR_IF(enable_fuzztargets_local, yes, [enable_fuzztargets="yes" AC_SUBST(FUZZ_LOCAL_TEST, "1")])
 AS_VAR_IF(with_fuzz_protobuf, yes, [
     AC_SUBST(FUZZ_WITH_PROTOBUF, "1")
-    PKG_CHECK_MODULES(LIBPROTOBUF_MUTATOR, libprotobuf-mutator, [], [AC_MSG_ERROR(Could not find libprotobuf-mutator)])
-    PKG_CHECK_MODULES(PROTOBUF, protobuf, [], [AC_MSG_ERROR(Could not find protobuf)])
+    PKG_CHECK_MODULES(LIBPROTOBUF_MUTATOR, libprotobuf-mutator, [], [AC_MSG_ERROR(Could not find libprotobuf-mutator. Perhaps you should set PKG_CONFIG_PATH accordingly)])
+    PKG_CHECK_MODULES(PROTOBUF, protobuf, [], [AC_MSG_ERROR(Could not find protobuf. Perhaps you should set PKG_CONFIG_PATH accordingly)])
 ])
 
 FUZZ_MAKEFILE_INC=
