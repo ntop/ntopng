@@ -34,7 +34,6 @@ class AggregatedFlowsStats {
   u_int8_t l4_proto;
   FlowsHostInfo* client;
   FlowsHostInfo* server;
-
   u_int16_t vlan_id;
   char* proto_name;
   char* info_key;

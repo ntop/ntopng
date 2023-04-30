@@ -415,12 +415,12 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #ifdef NTOPNG_PRO
   void checkDHCPStorm(time_t when, u_int32_t num_pkts);
 #endif
-  void sort_flow_stats(lua_State *vm,
-                       std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count,
-                       std::unordered_map<string, AggregatedFlowsStats *> *count_info,
-                       u_int filter_type);
+  void sort_and_filter_flow_stats(lua_State *vm,
+				  std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count,
+				  std::unordered_map<string, AggregatedFlowsStats *> *count_info,
+				  AnalysisCriteria filter_type);
   
-  bool verify_search_filter(AggregatedFlowsStats* fs, char* filter, u_int filter_type);
+  bool verify_search_filter(AggregatedFlowsStats* fs, char* filter, AnalysisCriteria filter_type);
   bool verify_search_filter_on_client(AggregatedFlowsStats* fs, char* filter);
   bool verify_search_filter_on_server(AggregatedFlowsStats* fs, char* filter);
 

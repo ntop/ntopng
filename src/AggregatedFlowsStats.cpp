@@ -37,27 +37,24 @@ AggregatedFlowsStats::AggregatedFlowsStats(const IpAddress* c, const IpAddress* 
 
 AggregatedFlowsStats::~AggregatedFlowsStats() {
   if (proto_name) free(proto_name);
-  if (info_key) free(info_key);
-  if (client) delete client;
-  if (server) delete server;
+  if (info_key)   free(info_key);
+  if (client)     delete client;
+  if (server)     delete server;
 }
 
 /* *************************************** */
 
-void AggregatedFlowsStats::incFlowStats(const IpAddress* _client, const IpAddress* _server,
-                           u_int64_t bytes_sent, u_int64_t bytes_rcvd,
-                           u_int32_t score) {
+void AggregatedFlowsStats::incFlowStats(const IpAddress* _client,
+					const IpAddress* _server,
+					u_int64_t bytes_sent, u_int64_t bytes_rcvd,
+					u_int32_t score) {
   char buf[128];
 
-  if(_client) {
+  if(_client)
     clients.insert(std::string(((IpAddress*)_client)->get_ip_hex(buf, sizeof(buf))));
-  }
-  if(_server) {
-    servers.insert(std::string(((IpAddress*)_server)->get_ip_hex(buf, sizeof(buf))));
-  }
+  
+  if(_server)
+    servers.insert(std::string(((IpAddress*)_server)->get_ip_hex(buf, sizeof(buf))));  
 
-  num_flows++; 
-  tot_sent += bytes_sent;
-  tot_rcvd += bytes_rcvd;
-  tot_score += score;
+  num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd, tot_score += score;
 }
