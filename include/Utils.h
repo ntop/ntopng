@@ -317,6 +317,7 @@ class Utils {
   static void swap16(u_int16_t *a, u_int16_t *b);
   static void swap32(u_int32_t *a, u_int32_t *b);
   static void swapfloat(float *a, float *b);
+  static char* createRandomString(char *buf, size_t buf_len);
 };
 
 #endif /* _UTILS_H_ */

@@ -28,6 +28,7 @@
 
 class Radius {
  private:
+  bool use_chap;
   int result;
   char *radiusServer, *radiusSecret, *authServer, *radiusAdminGroup,
       *radiusUnprivCapabilitiesGroup;
@@ -40,7 +41,7 @@ class Radius {
   bool addUpdateConfigurationAcct(rc_handle **rh, VALUE_PAIR **send, Host *h);
 
  public:
-  Radius();
+  Radius(bool _use_chap = true);
   ~Radius();
 
   bool updateLoginInfo();

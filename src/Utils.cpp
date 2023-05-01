@@ -5429,18 +5429,36 @@ void Utils::swap8(u_int8_t *a, u_int8_t *b) {
   *a = *b;
   *b = c;
 }
+
 void Utils::swap16(u_int16_t *a, u_int16_t *b) {
   u_int16_t c = *a;
   *a = *b;
   *b = c;
 }
+
 void Utils::swap32(u_int32_t *a, u_int32_t *b) {
   u_int32_t c = *a;
   *a = *b;
   *b = c;
 }
+
 void Utils::swapfloat(float *a, float *b) {
   float c = *a;
   *a = *b;
   *b = c;
 }
+
+/* ******************************************* */
+
+char* Utils::createRandomString(char *buf, size_t buf_len) {
+  const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
+  int charset_len = (int)(sizeof(charset) -1);
+  
+  for (u_int i = 0; i < buf_len; i++)
+    buf[i] = charset[rand() % charset_len];
+
+  buf[buf_len-1] = '\0';
+
+  return(buf);
+}
+

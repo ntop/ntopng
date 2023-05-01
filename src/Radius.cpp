@@ -26,11 +26,15 @@
 
 /* *************************************** */
 
-Radius::Radius() {
-  result = 0;
+Radius::Radius(bool _use_chap) {
+  /*
+    https://it.wikipedia.org/wiki/Password_authentication_protocol
+    https://en.wikipedia.org/wiki/Challenge-Handshake_Authentication_Protocol
+  */
+  result = 0, use_chap = _use_chap; /* true = CHAP, false = PAP */
   radiusServer = radiusSecret = authServer = radiusAdminGroup =
-      radiusUnprivCapabilitiesGroup = NULL;
-
+    radiusUnprivCapabilitiesGroup = NULL;
+  
   /* Check if some information are already stored in redis */
   updateLoginInfo();
 }
@@ -266,6 +270,7 @@ bool Radius::updateLoginInfo() {
 
 /* *************************************** */
 
+
 bool Radius::authenticate(const char *user, const char *password,
                           bool *has_unprivileged_capabilities, bool *is_admin) {
   /* Reset the return */
@@ -288,9 +293,37 @@ bool Radius::authenticate(const char *user, const char *password,
     goto radius_auth_out;
   }
 
-  if (rc_avpair_add(rh, &send, PW_USER_PASSWORD, password, -1, 0) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set password");
-    goto radius_auth_out;
+  if(use_chap) {
+    char buf[64], c_buf[32];
+    const char *challenge;
+    u_int8_t challenge_id = (u_int8_t)time(NULL); /* Random challenge id */
+    char remotemd[256];
+    unsigned char digest[16] = { 0 };
+
+    /* Create random challenge */
+    challenge = Utils::createRandomString(c_buf, sizeof(c_buf)-1);
+    
+    if (rc_avpair_add(rh, &send, PW_CHAP_CHALLENGE, challenge, -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set CHAP challenge");
+      goto radius_auth_out;
+    }
+
+    snprintf(remotemd, sizeof(remotemd), "%c%s%s", challenge_id, password, challenge);
+
+    ndpi_md5((const u_char*)remotemd, strlen(remotemd), digest);
+
+    buf[0] = challenge_id;
+    memcpy(&buf[1], digest, CHAP_VALUE_LENGTH);
+
+    if (rc_avpair_add(rh, &send, PW_CHAP_PASSWORD, buf, CHAP_VALUE_LENGTH+1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set password");
+      goto radius_auth_out;
+    }
+  } else {
+    if (rc_avpair_add(rh, &send, PW_USER_PASSWORD, password, -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set password");
+      goto radius_auth_out;
+    }
   }
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
