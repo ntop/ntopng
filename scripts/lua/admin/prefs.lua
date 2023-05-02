@@ -79,6 +79,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         ((_POST["radius_server_address"] ~= ntop.getPref("ntopng.prefs.radius.radius_server_address")) or
             (_POST["radius_secret"] ~= ntop.getPref("ntopng.prefs.radius.radius_secret")) or
             (_POST["radius_admin_group"] ~= ntop.getPref("ntopng.prefs.radius.radius_admin_group")) or
+            (_POST["radius_auth_proto"] ~= ntop.getPref("ntopng.prefs.radius.radius_auth_proto")) or
             (_POST["radius_unpriv_capabilties_group"] ~=
                 ntop.getPref("ntopng.prefs.radius.radius_unpriv_capabilties_group")) or
             (_POST["toggle_radius_accounting"] ~= ntop.getPref("ntopng.prefs.radius.accounting_enabled"))) then
@@ -86,6 +87,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- the auth changed, it's going to update the radius info
         ntop.setPref("ntopng.prefs.radius.radius_server_address", _POST["radius_server_address"])
         ntop.setPref("ntopng.prefs.radius.radius_secret", _POST["radius_secret"])
+        ntop.setPref("ntopng.prefs.radius.radius_auth_proto", _POST["radius_auth_proto"])
         ntop.setPref("ntopng.prefs.radius.radius_admin_group", _POST["radius_admin_group"])
         ntop.setPref("ntopng.prefs.radius.radius_unpriv_capabilties_group", _POST["radius_unpriv_capabilties_group"])
         ntop.setPref("ntopng.prefs.radius.toggle_radius_accounting", _POST["toggle_radius_accounting"])
@@ -836,8 +838,11 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- RADIUS GUI authentication
 
-        local elementToSwitch = {"radius_admin_group", "radius_unpriv_capabilties_group", "radius_server_address",
-                                 "radius_secret"}
+        local elementToSwitch = {"row_toggle_radius_accounting", "radius_admin_group",
+                                 "radius_unpriv_capabilties_group", "radius_server_address", "radius_secret",
+                                 "row_radius_auth_proto"}
+
+        local showElements = (ntop.getPref("ntopng.prefs.radius.auth_enabled") == "1")
 
         prefsToggleButton(subpage_active, {
             field = auth_toggles.radius,
@@ -848,17 +853,11 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- RADIUS traffic accounting
 
-        local elementToSwitch = {"radius_server_address", "radius_secret"}
-
         prefsToggleButton(subpage_active, {
             field = "toggle_radius_accounting",
             pref = "radius.accounting_enabled",
-            default = "0",
-            to_switch = elementToSwitch
+            default = "0"
         })
-
-        local showElements = (ntop.getPref("ntopng.prefs.radius.auth_enabled") == "1" or
-                                 ntop.getPref("ntopng.prefs.radius.accounting_enabled") == "1")
 
         -- RADIUS server settings (used for both RADIUS auth and accountign)
         prefsInputFieldPrefs(subpage_active.entries["radius_server"].title,
@@ -882,6 +881,13 @@ if auth.has_capability(auth.capabilities.preferences) then
                     required = "required"
                 }
             })
+
+        local labels_auth_protocols = {i18n("prefs.pap"), i18n("prefs.chap")}
+        local values_auth_protocols = {"pap", "chap"}
+        multipleTableButtonPrefs(subpage_active.entries["radius_auth_proto"].title,
+            subpage_active.entries["radius_auth_proto"].description, labels_auth_protocols, values_auth_protocols,
+            "pap", "primary", "radius_auth_proto", "ntopng.prefs.radius.radius_auth_proto", nil, nil, nil, nil,
+            showElements)
 
         prefsInputFieldPrefs(subpage_active.entries["radius_admin_group"].title,
             subpage_active.entries["radius_admin_group"].description, "ntopng.prefs.radius", "radius_admin_group", "",
