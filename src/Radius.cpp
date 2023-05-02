@@ -249,9 +249,12 @@ bool Radius::updateLoginInfo() {
 
   if (!ntop->getRedis()) return false;
 
+  char buf[32];
   /* Allocation failed, do not authenticate */
   ntop->getRedis()->get((char *)PREF_RADIUS_SERVER, radiusServer,
                         MAX_RADIUS_LEN);
+  ntop->getRedis()->get((char *)PREF_RADIUS_AUTH_PROTO, buf,
+                        sizeof(buf));
   ntop->getRedis()->get((char *)PREF_RADIUS_SECRET, radiusSecret,
                         MAX_SECRET_LENGTH + 1);
   ntop->getRedis()->get((char *)PREF_RADIUS_ADMIN_GROUP, radiusAdminGroup,
@@ -259,11 +262,14 @@ bool Radius::updateLoginInfo() {
   ntop->getRedis()->get((char *)PREF_RADIUS_UNPRIV_CAP_GROUP,
                         radiusUnprivCapabilitiesGroup, MAX_RADIUS_LEN);
 
+  if(!strcmp(buf, "chap"))
+    use_chap = true;
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
                                "Radius: server - %s | secret - %s | admin "
-                               "group - %s | capabilities group - %s",
+                               "group - %s | capabilities group - %s | auth. protocol - %s",
                                radiusServer, radiusSecret, radiusAdminGroup,
-                               radiusUnprivCapabilitiesGroup);
+                               radiusUnprivCapabilitiesGroup, buf);
 
   return true;
 }
