@@ -1591,10 +1591,9 @@ bool NetworkInterface::processPacket(
 #ifndef HAVE_NEDGE
     /* Custom disaggregation */
     if (sub_interfaces && (sub_interfaces->getNumSubInterfaces() > 0)) {
-      processed = sub_interfaces->processPacket(
-          bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id, iph,
-          ip6, ip_offset, encapsulation_overhead, len_on_wire, h, packet,
-          ndpiProtocol, srcHost, dstHost, hostFlow);
+      processed = sub_interfaces->processPacket(bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id, iph,
+						ip6, ip_offset, encapsulation_overhead, len_on_wire, h, packet,
+						ndpiProtocol, srcHost, dstHost, hostFlow);
     }
 #endif
 #endif
@@ -1606,10 +1605,9 @@ bool NetworkInterface::processPacket(
 
         if ((vIface = getDynInterface((u_int32_t)vlan_id, false)) != NULL) {
           vIface->setTimeLastPktRcvd(h->ts.tv_sec);
-          pass_verdict = vIface->processPacket(
-              bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id,
-              iph, ip6, ip_offset, encapsulation_overhead, len_on_wire, h,
-              packet, ndpiProtocol, srcHost, dstHost, hostFlow);
+          pass_verdict = vIface->processPacket(bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id,
+					       iph, ip6, ip_offset, encapsulation_overhead, len_on_wire, h,
+					       packet, ndpiProtocol, srcHost, dstHost, hostFlow);
           processed = true;
         }
       }
@@ -1623,6 +1621,12 @@ bool NetworkInterface::processPacket(
     }
   }
 
+  if(eth == NULL) {
+    incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+	     NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
+    return (pass_verdict);
+  }
+  
   if ((srcMac = getMac(eth->h_source, true /* Create if missing */,
                        true /* Inline call */))) {
     /* NOTE: in nEdge, stats are updated into Flow::update_hosts_stats */
