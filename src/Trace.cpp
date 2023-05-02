@@ -125,9 +125,6 @@ void Trace::traceEvent(int eventTraceLevel, const char *_file, const int line,
     char theDate[32], *file = (char *)_file;
     const char *extra_msg = "";
     time_t theTime = time(NULL);
-#ifndef WIN32
-    char *syslogMsg;
-#endif
     char filebuf[MAX_PATH];
     const char *backslash = strrchr(_file,
 #ifdef WIN32
@@ -155,6 +152,8 @@ void Trace::traceEvent(int eventTraceLevel, const char *_file, const int line,
 
     vsnprintf(buf, sizeof(buf) - 1, format, va_ap);
 
+    va_end(va_ap);
+    
     if (eventTraceLevel == 0 /* TRACE_ERROR */)
       extra_msg = "ERROR: ";
     else if (eventTraceLevel == 1 /* TRACE_WARNING */)
@@ -162,39 +161,40 @@ void Trace::traceEvent(int eventTraceLevel, const char *_file, const int line,
 
     while (buf[strlen(buf) - 1] == '\n') buf[strlen(buf) - 1] = '\0';
 
-    snprintf(out_buf, sizeof(out_buf) - 1, "%s [%s:%d] %s%s", theDate, file,
+    snprintf(out_buf, sizeof(out_buf) - 1, "[%s:%d] %s%s", file,
              line, extra_msg, buf);
 
-    if (logFd) {
-      rotate_mutex.lock(
-          __FILE__,
-          __LINE__); /* Need to lock as a rotation may be in progress */
-      numLogLines++;
-      fprintf(logFd, "%s\n", out_buf);
-      fflush(logFd);
-      rotate_logs(false);
-      rotate_mutex.unlock(__FILE__, __LINE__);
-    } else {
-#ifdef WIN32
-      AddToMessageLog(out_buf);
-#else
-      syslogMsg = &out_buf[strlen(theDate) + 1];
-      if (eventTraceLevel == 0 /* TRACE_ERROR */)
-        syslog(LOG_ERR, "%s", syslogMsg);
-      else if (eventTraceLevel == 1 /* TRACE_WARNING */)
-        syslog(LOG_WARNING, "%s", syslogMsg);
-#endif
-    }
-
-    printf("%s\n", out_buf);
+    logEvent(eventTraceLevel, out_buf);
+    printf("%s %s\n", theDate, out_buf);
     fflush(stdout);
 
-    if (traceRedis && traceRedis->isOperational() &&
-        ntop->getRedis()->isOperational())
+    if (traceRedis
+	&& traceRedis->isOperational()
+	&& ntop->getRedis()->isOperational())
       traceRedis->lpush(NTOPNG_TRACE, out_buf, MAX_NUM_NTOPNG_TRACES,
     			false /* Do not re-trace errors, re-tracing would yield a deadlock */);
+  }
+}
 
-    va_end(va_ap);
+/* ******************************* */
+
+void Trace::logEvent(int eventTraceLevel, char *log_line) {
+  if (logFd) {
+    rotate_mutex.lock(__FILE__, __LINE__); /* Need to lock as a rotation may be in progress */
+    numLogLines++;
+    fprintf(logFd, "%s\n", log_line);
+    fflush(logFd);
+    rotate_logs(false);
+    rotate_mutex.unlock(__FILE__, __LINE__);
+  } else {
+#ifdef WIN32
+    AddToMessageLog(log_line);
+#else
+    if (eventTraceLevel == 0 /* TRACE_ERROR */)
+      syslog(LOG_ERR, "%s", log_line);
+    else if (eventTraceLevel == 1 /* TRACE_WARNING */)
+      syslog(LOG_WARNING, "%s", log_line);
+#endif
   }
 }
 

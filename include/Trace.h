@@ -72,6 +72,7 @@ class Trace {
   inline u_int8_t get_trace_level() { return (traceLevel); };
   void traceEvent(int eventTraceLevel, const char *file, const int line,
                   const char *format, ...);
+  void logEvent(int eventTraceLevel, char *log_line);
 };
 
 #endif /* _TRACE_H_ */
