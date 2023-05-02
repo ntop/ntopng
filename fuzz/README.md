@@ -59,11 +59,19 @@ directories in the same path where the targets are launched:
  - `scripts`
  - `scripts/callbacks`
 
-## Examples
+# Examples
+
+## Building examples
+
+You can build the fuzzing targets with different combinations of fuzzing engines (libfuzzer,
+AFL++, honggfuzz, ...) and sanitizers (address, undefined, memory).
+Here you can find some examples on how to build and run some of them.
 
 **Remember** to run all the commands from the project root directory
 
-### Libfuzzer
+**IMPORTANT:** If the project has been compiled before, it might be useful to first execute `make clean`
+
+### Building with Libfuzzer
 
 ```shell
 ./autogen.sh
@@ -73,13 +81,27 @@ CC=clang CXX=clang++ CPPFLAGS="-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" \
 	CXXFLAGS="-O1 -fno-omit-frame-pointer -gline-tables-only -fsanitize=fuzzer-no-link" \
 	LIB_FUZZING_ENGINE="-fsanitize=fuzzer" \
 	NDPI_HOME=/path/to/nDPI \
-	./configure --enable-fuzztargets --with-fuzz-protobuf
+	./configure --enable-fuzztargets
 
 make -j$(nproc) fuzz_all
 ```
 
+### Building with Libfuzzer + address sanitizer
 
-### Libfuzzer + address sanitizer
+```shell
+./autogen.sh
+
+CC=clang CXX=clang++ CPPFLAGS="-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" \
+	CFLAGS="-O1 -fno-omit-frame-pointer -gline-tables-only -fsanitize=address -fsanitize-address-use-after-scope -fsanitize=fuzzer-no-link" \
+	CXXFLAGS="-O1 -fno-omit-frame-pointer -gline-tables-only -fsanitize=address -fsanitize-address-use-after-scope -fsanitize=fuzzer-no-link" \
+	LIB_FUZZING_ENGINE="-fsanitize=fuzzer" \
+	NDPI_HOME=/path/to/nDPI \
+	./configure --enable-fuzztargets
+
+make -j$(nproc) fuzz_all
+```
+
+### Building with Libfuzzer + libprotobuf-mutator + address sanitizer
 
 ```shell
 ./autogen.sh
@@ -94,7 +116,7 @@ CC=clang CXX=clang++ CPPFLAGS="-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" \
 make -j$(nproc) fuzz_all
 ```
 
-### AFL++
+### Building with AFL++
 ```shell
 ./autogen.sh
 
@@ -105,4 +127,43 @@ CC=afl-clang-fast CXX=afl-clang-fast++ CPPFLAGS="-DFUZZING_BUILD_MODE_UNSAFE_FOR
 	./configure --enable-fuzztargets-local
 
 make -j$(nproc) fuzz_all
+```
+
+## Setting up a fuzzing instance
+
+Once you have built the fuzzing targets you have to properly set up an environment.
+Some specific commands might vary depending on the fuzzing engine used in the building process.
+
+First we create a directory in which we place the fuzzing targets, the dictionaries and
+the corpus. Then we set up the required directory structure
+
+```shell
+mkdir fuzzcampaign
+
+# Copy fuzzers
+find fuzz/ -regex 'fuzz/fuzz_[a-z_]*' -exec cp {} fuzzcampaign/ \;
+
+# Copy dictionaries
+cp fuzz/*.dict fuzzcampaign/
+
+# Copy corpus
+cp fuzz/*.zip fuzzcampaign/
+
+# Create the directory structure needed for fuzzing
+mkdir -p fuzzcampaign/install fuzzcampaign/data-dir fuzzcampaign/docs fuzzcampaign/scripts/callbacks
+```
+
+The we can start to fuzz
+
+### For libfuzzer
+
+```shell
+cd fuzzcampaign
+
+# Extract the corpus specific for the fuzzing target
+mkdir input
+unzip fuzz_dissect_packet_seed_corpus.zip -d input/
+
+# Run the fuzzer
+./fuzz_dissect_packet -timeout=25 input/ -dict=fuzz_dissect_packet.dict
 ```
