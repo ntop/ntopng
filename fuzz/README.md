@@ -153,7 +153,7 @@ cp fuzz/*.zip fuzzcampaign/
 mkdir -p fuzzcampaign/install fuzzcampaign/data-dir fuzzcampaign/docs fuzzcampaign/scripts/callbacks
 ```
 
-The we can start to fuzz
+Then we can start to fuzz
 
 ### For libfuzzer
 
