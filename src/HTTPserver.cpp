@@ -143,11 +143,21 @@ bool HTTPserver::authorized_localhost_user_login(
 /* ****************************************** */
 
 void HTTPserver::traceLogin(const char *user, bool authorized) {
+  char val[64], buf[128];
+
   if (ntop->getSystemInterface()
       /* Can be NULL during startup so check is necessary */
       && ntop->getSystemInterface()->getAlertsQueue())
     ntop->getSystemInterface()->getAlertsQueue()->pushLoginTrace(user,
                                                                  authorized);
+
+  if (ntop->getRedis()->get((char *)PREF_NTOP_HTTP_AUTH_LOG, val, sizeof(val)) >=
+      0) {
+
+    sprintf(buf, "%s -- [%s] \"%s\" %d %d \"-\" \"%s\"","IP","date","StatusCode",200,200,"Message");
+    httpserver->trace->logEvent(TRACE_LEVEL_NORMAL, (char*) buf);
+  }
+
 }
 
 /* ****************************************** */
@@ -972,6 +982,7 @@ bool HTTPserver::authorize_noconn(char *username, char *session_id,
                                   u_int session_id_size,
                                   u_int session_duration) {
   char group[NTOP_GROUP_MAXLEN] = {0};
+  char buf[128];
 
   /* Note: we are not checking the user password as the admin
    * or the same (authenticated) user is generating the session */
@@ -985,6 +996,9 @@ bool HTTPserver::authorize_noconn(char *username, char *session_id,
 
     return (true);
   }
+
+  sprintf(buf, "%s -- [%s] \"%s\" %d %d \"-\" \"%s\"","IP","date","StatusCode",200,200,"Message");
+  httpserver->trace->logEvent(TRACE_LEVEL_NORMAL, (char*) buf);
 
   return (false);
 }
@@ -1865,6 +1879,12 @@ void HTTPserver::startHttpServer() {
         https_binding_addr1[0] != '\0' ? https_binding_addr1 : (char *)"",
         https_binding_addr1[0] != '\0' ? (char *)":" : (char *)"",
         ntop->getPrefs()->get_https_port());
+
+  trace = new (std::nothrow) Trace();
+
+  if (trace) {
+    trace->set_log_file("log_file_location"/*PUT HERE path for log file*/);
+  }
 }
 
 /* ****************************************** */
@@ -1877,6 +1897,10 @@ HTTPserver::~HTTPserver() {
 #endif
 
   free(docs_dir), free(scripts_dir);
+  if(trace) {
+    delete trace;
+    trace = NULL;
+  }
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server terminated");
 };
 
