@@ -99,7 +99,7 @@ async function set_datatable_config() {
     enable_search: true,
     id: "manage_configurations_backup",
     table_config: {
-      serverSide: false,
+      serverSide: true,
       responsive: false,
       scrollX: true,
       columnDefs: [
@@ -112,7 +112,7 @@ async function set_datatable_config() {
 
   columns.push(
     {
-      columnName: _i18n("backup_date"), orderable: false, targets: 0, name: 'epoch', data: 'epoch', className: 'text-left', responsivePriority: 1, render: (data, _, rowData) => {
+      columnName: _i18n("backup_date"), orderable: true, targets: 0, name: 'epoch', data: 'epoch', className: 'text-left', responsivePriority: 1, render: (data, _, rowData) => {
         return format_flows_icon(data, rowData)
       }
     }, {

@@ -96,7 +96,7 @@ end
 -- ##############################################
 
 -- @brief List all configurations backup.
-function backup_config.list_backup(user)
+function backup_config.list_backup(user, order)
     local saved_backups_keys = ntop.getHashKeysCache(backup_hash_key) or {}
     local epoch_list = {}
 
@@ -107,6 +107,13 @@ function backup_config.list_backup(user)
             epoch = epoch,
             date_format = date_format
         }
+    end
+
+    if order == "desc" then
+        table.sort(epoch_list, function(x,y) return x.epoch > y.epoch end)
+    else
+        table.sort(epoch_list, function(x,y) return x.epoch < y.epoch end)
+
     end
 
     return epoch_list
