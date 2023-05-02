@@ -7,9 +7,8 @@ LIB_FUZZING_ENGINE := @LIB_FUZZING_ENGINE@
 FUZZ_OBJECTS := @FUZZ_OBJECTS@
 FUZZ_WITH_PROTOBUF := @FUZZ_WITH_PROTOBUF@
 
-OBJECTS := $(OBJECTS) $(FUZZ_OBJECTS)
-FUZZ_FILTER_OUT := $(FUZZ_OBJECTS:fuzz/stub/%Stub.o=src/%.o)
-OBJECTS_NO_MAIN := $(filter-out src/main.o $(FUZZ_FILTER_OUT),$(OBJECTS))
+STUB_FILTER_OUT := $(FUZZ_OBJECTS:fuzz/stub/%Stub.o=src/%.o)
+OBJECTS_FOR_FUZZ := $(filter-out src/main.o $(STUB_FILTER_OUT),$(OBJECTS))
 
 # Protobuf dependencies
 fuzz_dissect_packet_proto_sources := fuzz/proto/pcap.pb.o
@@ -36,10 +35,10 @@ fuzz/proto/%.pb.o: fuzz/%.proto
 fuzz/%.o: fuzz/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
-fuzz/fuzz_dissect_packet: fuzz/fuzz_dissect_packet.o $(fuzz_dissect_packet_proto_sources) $(OBJECTS_NO_MAIN)
+fuzz/fuzz_dissect_packet: fuzz/fuzz_dissect_packet.o $(fuzz_dissect_packet_proto_sources) $(FUZZ_OBJECTS) $(OBJECTS_FOR_FUZZ)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LIB_FUZZING_ENGINE) $^ $(LIBS) -o $@
 
-fuzz/%: fuzz/%.o $(OBJECTS_NO_MAIN)
+fuzz/%: fuzz/%.o $(FUZZ_OBJECTS) $(OBJECTS_FOR_FUZZ)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LIB_FUZZING_ENGINE) $^ $(LIBS) -o $@
 
 fuzz_corpus: $(FUZZ_CORPUS)

@@ -3,7 +3,34 @@
 The targets are meant to be run by google oss-fuzz however you can test it locally by
 configuring all the required flags.
 
-## Flags
+## How to build
+
+In order to build all the targets you need to do the following:
+ - Enable the fuzzing targets either with `--enable-fuzztargets` or `--enable--fuzztargets-local`
+ - Pass to the C++ preprocessor the flag `FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION`
+ - Use the makefile target `fuzz_all`
+
+### Steps
+
+1. Run autoconf with
+
+```shell
+./autogen.sh
+```
+
+2. Run the configure scripts enabling the fuzzing targets (look at [Flags](#flags) for more details)
+
+```shell
+CPPFLAGS="-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" ./configure --enable-fuzztargets-local
+```
+
+3. Build the `fuzz_all` target
+
+```shell
+make -j$(nproc) fuzz_all
+```
+
+### Flags
 
 These are all the flags that can be passed to the C/C++ compiler:
  - [REQUIRED] **FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION**
