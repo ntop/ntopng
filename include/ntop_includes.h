@@ -129,7 +129,11 @@ extern "C" {
 #endif
 #include "json.h"
 #include <sqlite3.h>
+
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 #include <hiredis.h>
+#endif
+
 #ifdef HAVE_LDAP
 #include <ldap.h>
 #endif
@@ -366,7 +370,13 @@ using namespace std;
 #include "VirtualHost.h"
 #include "VirtualHostHash.h"
 #include "HTTPstats.h"
+
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+#include "RedisStub.h"
+#else
 #include "Redis.h"
+#endif
+
 #ifndef HAVE_NEDGE
 #include "ElasticSearch.h"
 #ifndef WIN32

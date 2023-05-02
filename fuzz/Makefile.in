@@ -1,0 +1,52 @@
+FUZZ_TARGETS := fuzz/fuzz_dissect_packet
+FUZZ_CORPUS := $(addsuffix _seed_corpus.zip,$(FUZZ_TARGETS))
+
+FUZZ_LOCAL_TEST := @FUZZ_LOCAL_TEST@
+HAS_FUZZLDFLAGS := @HAS_FUZZLDFLAGS@
+LIB_FUZZING_ENGINE := @LIB_FUZZING_ENGINE@
+FUZZ_OBJECTS := @FUZZ_OBJECTS@
+FUZZ_WITH_PROTOBUF := @FUZZ_WITH_PROTOBUF@
+
+OBJECTS := $(OBJECTS) $(FUZZ_OBJECTS)
+FUZZ_FILTER_OUT := $(FUZZ_OBJECTS:fuzz/stub/%Stub.o=src/%.o)
+OBJECTS_NO_MAIN := $(filter-out src/main.o $(FUZZ_FILTER_OUT),$(OBJECTS))
+
+# Protobuf dependencies
+fuzz_dissect_packet_proto_sources := fuzz/proto/pcap.pb.o
+
+ifneq ($(HAS_FUZZLDFLAGS),1)
+	CPPFLAGS := $(CPPFLAGS) -DINCLUDE_ONEFILE
+else ifeq ($(FUZZ_LOCAL_TEST),1)
+	CPPFLAGS := $(CPPFLAGS) -DINCLUDE_ONEFILE
+endif
+
+ifeq ($(FUZZ_WITH_PROTOBUF),1)
+	LIBS := $(LIBS) @LIBPROTOBUF_MUTATOR_LIBS@ @PROTOBUF_LIBS@
+	CXXFLAGS := $(CXXFLAGS) @LIBPROTOBUF_MUTATOR_CFLAGS@ @PROTOBUF_CFLAGS@
+	CPPFLAGS := $(CPPFLAGS) -DFUZZ_WITH_PROTOBUF
+else
+	fuzz_dissect_packet_proto_sources :=
+endif
+
+fuzz/proto/%.pb.o: fuzz/%.proto
+	mkdir fuzz/proto
+	cd fuzz && protoc --cpp_out=proto/ $*.proto
+	$(CXX) -c fuzz/proto/$*.pb.cc -o $@
+
+fuzz/%.o: fuzz/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+fuzz/fuzz_dissect_packet: fuzz/fuzz_dissect_packet.o $(fuzz_dissect_packet_proto_sources) $(OBJECTS_NO_MAIN)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LIB_FUZZING_ENGINE) $^ $(LIBS) -o $@
+
+fuzz/%: fuzz/%.o $(OBJECTS_NO_MAIN)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LIB_FUZZING_ENGINE) $^ $(LIBS) -o $@
+
+fuzz_corpus: $(FUZZ_CORPUS)
+
+fuzz_all: $(LIB_TARGETS) $(FUZZ_TARGETS) fuzz_corpus
+
+.SECONDEXPANSION:
+
+fuzz/fuzz_%_seed_corpus.zip: $$(wildcard fuzz/corpus/fuzz_%/*)
+	zip -j $@ $^

@@ -80,9 +80,6 @@ git submodule update --remote
 
 # git submodule update --init --recursive
 
-# Enable git hooks
-find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
-
 echo "Wait please..."
 autoreconf -if
 echo ""

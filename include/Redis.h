@@ -87,7 +87,6 @@ class Redis {
               u_int rsp_len);
   int hashDel(const char *key, const char *field);
   int hashSet(const char *key, const char *field, const char *value);
-  int delHash(char *key, char *member);
   inline int set(const char *key, const char *value, u_int expire_secs = 0) {
     return (_set(false, key, value, expire_secs));
   }

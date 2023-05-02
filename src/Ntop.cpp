@@ -460,8 +460,10 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   if (ntop->getRedis()->get((char *)LAST_RESET_TIME, value, sizeof(value)) >= 0)
     last_stats_reset = atol(value);
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
   /* Now we can enable the periodic activities */
   pa = new (std::nothrow) PeriodicActivities();
+#endif
 
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   if (prefs->do_dump_flows_on_clickhouse())
