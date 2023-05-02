@@ -96,7 +96,7 @@ make -j$(nproc) fuzz_all
 
 ### AFL++
 ```shell
-./auogen.sh
+./autogen.sh
 
 CC=afl-clang-fast CXX=afl-clang-fast++ CPPFLAGS="-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -DIS_AFL" \
 	CFLAGS="-O1 -fno-omit-frame-pointer -gline-tables-only" \
