@@ -818,7 +818,8 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (!ntop->hasCapability(vm, capability_historical_flows)) {
+  if (!ntop->hasCapability(vm, capability_historical_flows) 
+      && ntop->getPrefs()->is_users_login_enabled()) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "User is not allowed to run queries");
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   }
