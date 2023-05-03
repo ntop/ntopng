@@ -42,8 +42,11 @@ These are all the env variables that can be passed to the configuration script:
 
 Additionally there are some options that can be passed to `./configure`
  - **--enable-fuzztargets**: Enable all the fuzzing targets. It is used in the ClusterFuzz environment
- - **--enable-fuzztargets-local**: Enable all the fuzzing targets, used for local testing
- - **--with-fuzz-protobuf**: Use libprotobuf-mutator.
+ - **--enable-fuzztargets-local**: Enable all the fuzzing targets, used for local testing.
+	This will define a function `main(int, char **)` making it incompatible with libfuzzer.
+	This is useful in conjuction with `-DIS_AFL` for fuzzing with AFL++ or to build in
+	debug mode with no fuzzzing engine.
+ - **--with-fuzz-protobuf**: Use libprotobuf-mutator. Right now it is compatible only with libfuzzer
 
 Additional sanitizers can be enabled by passing the specific flags in `CFLAGS` and `CXXFLAGS`
 
@@ -129,6 +132,24 @@ CC=afl-clang-fast CXX=afl-clang-fast++ CPPFLAGS="-DFUZZING_BUILD_MODE_UNSAFE_FOR
 make -j$(nproc) fuzz_all
 ```
 
+### Debug build with no fuzzer
+
+This is useful to debug a single test case.
+**Note** that the code is not instrumented for fuzzing.
+
+```shell
+./autogen.sh
+
+CC=clang CXX=clang++ CPPFLAGS="-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" \
+	CFLAGS="-O0 -fno-omit-frame-pointer -g" \
+	CXXFLAGS="-O0 -fno-omit-frame-pointer -g -stdlib=libc++" \
+	NDPI_HOME=/path/to/nDPI \
+	./configure --enable-fuzztargets-local
+
+make -j$(nproc) fuzz_all
+```
+
+
 ## Setting up a fuzzing instance
 
 Once you have built the fuzzing targets you have to properly set up an environment.
@@ -166,4 +187,17 @@ unzip fuzz_dissect_packet_seed_corpus.zip -d input/
 
 # Run the fuzzer
 ./fuzz_dissect_packet -timeout=25 input/ -dict=fuzz_dissect_packet.dict
+```
+
+### For AFL++
+
+```shell
+cd fuzzcampaign
+
+# Extract the corpus specific for the fuzzing target
+mkdir input
+unzip fuzz_dissect_packet_seed_corpus.zip -d input/
+
+# Run the fuzzer
+afl-fuzz -t 2000 -i input -o afl-out -- ./fuzz_dissect_packet
 ```
