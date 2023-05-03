@@ -412,7 +412,7 @@ bool Radius::startSession(const char *username, const char *session_id) {
     goto radius_auth_out;
   }
 
-  if (!addBasicConfigurationAcct(&rh, &send, PW_STATUS_START, username,
+  if (!addBasicConfigurationAcct(&rh, &send, PW_ACCOUNTING_ON, username,
                                  session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
@@ -483,11 +483,11 @@ bool Radius::updateSession(const char *username, const char *session_id,
 
   if (result == OK_RC) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
-                                 "Radius: Accounting start Succedeed");
+                                 "Radius: Accounting Update Succedeed");
     radius_ret = true;
   } else {
     ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Radius: Accounting start failed with result: %d", result);
+        TRACE_ERROR, "Radius: Accounting update failed with result: %d", result);
   }
 
 radius_auth_out:
@@ -518,7 +518,7 @@ bool Radius::stopSession(const char *username, const char *session_id,
   }
 
   /* Create the basic configuration, used by the accounting */
-  if (!addBasicConfigurationAcct(&rh, &send, PW_STATUS_STOP, username,
+  if (!addBasicConfigurationAcct(&rh, &send, PW_ACCOUNTING_OFF, username,
                                  session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
@@ -550,11 +550,11 @@ bool Radius::stopSession(const char *username, const char *session_id,
 
   if (result == OK_RC) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
-                                 "Radius: Accounting start Succedeed");
+                                 "Radius: Accounting stop Succedeed");
     radius_ret = true;
   } else {
     ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Radius: Accounting start failed with result: %d", result);
+        TRACE_ERROR, "Radius: Accounting stop failed with result: %d", result);
   }
 
 radius_auth_out:

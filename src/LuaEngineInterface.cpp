@@ -2012,6 +2012,126 @@ static int ntop_get_vlan_flows_stats(lua_State *vm) {
 
 /* ****************************************** */
 
+/* Function used to start the accounting of an Host */
+static int ntop_radius_accounting_start(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool res = false;
+
+#ifdef HAVE_RADIUS
+  const char *username = NULL, *session_id = NULL; 
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if (lua_type(vm, 1) == LUA_TSTRING)
+    username = (const char *)lua_tostring(vm, 1);
+
+  if (lua_type(vm, 2) == LUA_TSTRING)
+    session_id = (const char *)lua_tostring(vm, 2);
+
+  res = ntop->radiusAccountingStart(username, session_id);
+#endif
+
+  lua_pushboolean(vm, res);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_radius_accounting_stop(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool res = false;
+
+#ifdef HAVE_RADIUS
+  const char *username = NULL, *session_id = NULL;
+  char *host_ip = NULL; 
+  u_int16_t vlan_id = 0;
+  Host *host = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if (lua_type(vm, 1) == LUA_TSTRING)
+    username = (const char *)lua_tostring(vm, 1);
+
+  if (lua_type(vm, 2) == LUA_TSTRING)
+    session_id = (const char *)lua_tostring(vm, 2);
+  
+  if (lua_type(vm, 3) == LUA_TSTRING)
+    host_ip = (char *)lua_tostring(vm, 3);
+  
+  if (lua_type(vm, 4) == LUA_TNUMBER)
+    vlan_id = (u_int16_t)lua_tonumber(vm, 4);
+
+  host = ntop_interface->getHost(host_ip, vlan_id,
+                                   getLuaVMUservalue(vm, observationPointId),
+                                   false /* Not an inline call */);
+
+  if (host)
+    res = ntop->radiusAccountingStop(username, session_id, host);
+
+#endif
+
+  lua_pushboolean(vm, res);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_radius_accounting_update(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool res = false;
+
+#ifdef HAVE_RADIUS
+  const char *username = NULL, *session_id = NULL;
+  char *host_ip = NULL;  
+  u_int16_t vlan_id = 0;
+  Host *host = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if (lua_type(vm, 1) == LUA_TSTRING)
+    username = (const char *)lua_tostring(vm, 1);
+
+  if (lua_type(vm, 2) == LUA_TSTRING)
+    session_id = (const char *)lua_tostring(vm, 2);
+  
+  if (lua_type(vm, 3) == LUA_TSTRING)
+    host_ip = (char *)lua_tostring(vm, 3);
+  
+  if (lua_type(vm, 4) == LUA_TNUMBER)
+    vlan_id = (u_int16_t)lua_tonumber(vm, 4);
+
+  host = ntop_interface->getHost(host_ip, vlan_id,
+                                   getLuaVMUservalue(vm, observationPointId),
+                                   false /* Not an inline call */);
+
+  if (host) {
+    /* The update is strange, you have to first update 
+     * and then authenticate again to be able to check if the user
+     * still able to navigate or not
+     */
+    res = ntop->radiusAccountingUpdate(username, session_id, host);
+    /* TODO: add the authentication */
+  }
+
+#endif
+
+  lua_pushboolean(vm, res);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_anomalies(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5217,6 +5337,9 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"getThroughput", ntop_interface_get_throughput},
     {"getProtocolFlowsStats", ntop_get_protocol_flows_stats},
     {"getVLANFlowsStats", ntop_get_vlan_flows_stats},
+    { "radiusAccountingStart", ntop_radius_accounting_start },
+    { "radiusAccountingStop", ntop_radius_accounting_stop },
+    { "radiusAccountingUpdate", ntop_radius_accounting_update },
 
     /* Addresses */
     {"getAddressInfo", ntop_get_address_info},
