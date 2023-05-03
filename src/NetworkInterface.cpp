@@ -2991,9 +2991,8 @@ decode_packet_eth:
       if (ntop->getPrefs()->do_ignore_macs()) ethernet = &dummy_ethernet;
 
       if (ethernet == NULL) {
-        incStats(ingressPacket, h->ts.tv_sec, eth_type,
-                 NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
-                 len_on_wire, 1);
+        incStats(ingressPacket, h->ts.tv_sec, eth_type, NDPI_PROTOCOL_UNKNOWN,
+                 NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
         goto dissect_packet_end;
       }
 
