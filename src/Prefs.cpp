@@ -1294,11 +1294,10 @@ static void printVersionInformation() {
          "Edge"
 #endif
          ,
-#ifdef NTOPNG_EMBEDDED_EDITION
-         "/Embedded"
-#else
-         ""
+#ifdef NTOPNG_PRO
+         ntop->getPro()->is_embedded_version() ? "/Embedded" :
 #endif
+         ""
   );
   printf("GIT rev:\t%s\n", NTOPNG_GIT_RELEASE);
 
@@ -2238,11 +2237,10 @@ int Prefs::checkOptions() {
              "Edge"
 #endif
              ,
-#ifdef NTOPNG_EMBEDDED_EDITION
-             "/Embedded"
-#else
-             ""
+#ifdef NTOPNG_PRO
+             ntop->getPro()->is_embedded_version() ? "/Embedded" :
 #endif
+             ""
     );
 
     ntop->getTrace()->set_trace_level((u_int8_t)0);
@@ -2820,7 +2818,7 @@ bool Prefs::is_enterprise_xl_edition() {
 
 /* *************************************** */
 
-bool Prefs::is_nedge_edition() {
+bool Prefs::is_nedge_pro_edition() {
   return
 #ifdef HAVE_NEDGE
       ntop->getPro()->has_valid_license()
@@ -2836,6 +2834,18 @@ bool Prefs::is_nedge_enterprise_edition() {
   return
 #ifdef HAVE_NEDGE
       ntop->getPro()->has_valid_nedge_enterprise_license()
+#else
+      false
+#endif
+          ;
+}
+
+/* *************************************** */
+
+bool Prefs::is_embedded_edition() {
+  return
+#if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
+      ntop->getPro()->is_embedded_version()
 #else
       false
 #endif

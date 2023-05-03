@@ -989,10 +989,12 @@ function getNtopngRelease(ntopng_info, verbose)
       release =  "Enterprise"
    elseif(ntopng_info["pro.release"]) then
       release =  "Professional"
-   elseif(ntopng_info["version.embedded_edition"]) then
-      release = "/Embedded"
    else
       release =  "Community"
+   end
+
+   if not isEmptyString(release) and ntopng_info["version.embedded_edition"] then
+      release = release .. " (Embedded)"
    end
 
    -- E.g., ntopng edge v.4.3.210112 (Ubuntu 16.04.6 LTS)

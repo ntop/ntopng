@@ -3103,7 +3103,7 @@ static int ntop_is_enterprise_xl(lua_State *vm) {
 
 static int ntop_is_nedge(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_nedge_edition());
+  lua_pushboolean(vm, ntop->getPrefs()->is_nedge_pro_edition());
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -3133,7 +3133,7 @@ static int ntop_is_iot_bridge(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 #ifndef HAVE_NEDGE
   bool is_supported = false;
-#ifdef NTOPNG_EMBEDDED_EDITION
+#ifdef HAVE_EMBEDDED_SUPPORT
   is_supported = true; /* TODO Restrict this check to supported devices */
 #endif
   lua_pushboolean(vm, ntop->getPrefs()->is_appliance() && is_supported);
@@ -3608,6 +3608,9 @@ static int ntop_get_info(lua_State *vm) {
     lua_push_str_table_entry(vm, "version.geoip", (char *)MMDB_lib_version());
 #endif
     lua_push_str_table_entry(vm, "version.ndpi", ndpi_revision());
+
+    lua_push_bool_table_entry(vm, "pro.release",
+                              ntop->getPrefs()->is_pro_edition());
     lua_push_bool_table_entry(vm, "version.enterprise_edition",
                               ntop->getPrefs()->is_enterprise_m_edition());
     lua_push_bool_table_entry(vm, "version.enterprise_m_edition",
@@ -3616,15 +3619,15 @@ static int ntop_get_info(lua_State *vm) {
                               ntop->getPrefs()->is_enterprise_l_edition());
     lua_push_bool_table_entry(vm, "version.enterprise_xl_edition",
                               ntop->getPrefs()->is_enterprise_xl_edition());
-    lua_push_bool_table_entry(vm, "version.embedded_edition",
-                              ntop->getPrefs()->is_embedded_edition());
+
     lua_push_bool_table_entry(vm, "version.nedge_edition",
-                              ntop->getPrefs()->is_nedge_edition());
+                              ntop->getPrefs()->is_nedge_pro_edition());
     lua_push_bool_table_entry(vm, "version.nedge_enterprise_edition",
                               ntop->getPrefs()->is_nedge_enterprise_edition());
 
-    lua_push_bool_table_entry(vm, "pro.release",
-                              ntop->getPrefs()->is_pro_edition());
+    lua_push_bool_table_entry(vm, "version.embedded_edition",
+                              ntop->getPrefs()->is_embedded_edition());
+
     lua_push_uint64_table_entry(vm, "pro.demo_ends_at",
                                 ntop->getPrefs()->pro_edition_demo_ends_at());
 #ifdef NTOPNG_PRO

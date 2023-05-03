@@ -214,16 +214,12 @@ class Prefs {
   bool is_enterprise_m_edition();
   bool is_enterprise_l_edition();
   bool is_enterprise_xl_edition();
-  bool is_nedge_edition();
+
+  bool is_nedge_pro_edition();
   bool is_nedge_enterprise_edition();
 
-  inline bool is_embedded_edition() {
-#ifdef NTOPNG_EMBEDDED_EDITION
-    return (true);
-#else
-    return (false);
-#endif
-  }
+  bool is_embedded_edition();
+
   time_t pro_edition_demo_ends_at();
   inline char* get_local_networks() {
     if (!local_networks_set) return NULL;

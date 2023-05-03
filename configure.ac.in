@@ -107,8 +107,8 @@ if test -f /proc/device-tree/model; then
   IS_RASPBERRY=`cat /proc/device-tree/model | grep -a -e "Orange Pi" -e Raspberry | wc -l`
   
   if test "$IS_RASPBERRY" = "1"; then
-    CFLAGS="${CFLAGS} -DNTOPNG_EMBEDDED_EDITION"
-    CXXFLAGS="${CXXFLAGS} -DNTOPNG_EMBEDDED_EDITION"
+    CFLAGS="${CFLAGS} -DHAVE_EMBEDDED_SUPPORT"
+    CXXFLAGS="${CXXFLAGS} -DHAVE_EMBEDDED_SUPPORT"
     AC_DEFINE(HAVE_RASPBERRY, 1, [rPI detected])
   fi
 fi

@@ -213,8 +213,7 @@ int main(int argc, char *argv[])
 #endif
       } else if (strstr(ifName, "syslog://")) {
         iface = new (std::nothrow) SyslogCollectorInterface(ifName);
-#if defined(HAVE_PF_RING) && (!defined(NTOPNG_EMBEDDED_EDITION)) && \
-    (!defined(__i686__)) && (!defined(__ARM_ARCH))
+#if defined(HAVE_PF_RING) && (!defined(__i686__)) && (!defined(__ARM_ARCH))
       } else if (strstr(ifName, "zcflow:")) {
         iface = new (std::nothrow) ZCCollectorInterface(ifName);
 #endif

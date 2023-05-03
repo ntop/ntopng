@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-#if defined(HAVE_PF_RING) && (!defined(NTOPNG_EMBEDDED_EDITION))
+#if defined(HAVE_PF_RING) && (!defined(__i686__)) && (!defined(__ARM_ARCH))
 
 class ZCCollectorInterface : public ZMQParserInterface {
  private:

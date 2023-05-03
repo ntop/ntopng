@@ -964,7 +964,7 @@
 
 #if (!defined(__APPLE__)) && \
     (defined(__arm__) || defined(__aarch64__) || defined(__mips__))
-#define NTOPNG_EMBEDDED_EDITION 1
+#define HAVE_EMBEDDED_SUPPORT 1
 #endif
 
 #define NUM_MINUTES_PER_DAY 1440  // == 60 * 24

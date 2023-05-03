@@ -25,13 +25,7 @@
 
 AddressResolution::AddressResolution() {
   num_resolved_addresses = num_resolved_fails = 0;
-  num_resolvers =
-#ifdef NTOPNG_EMBEDDED_EDITION
-      1
-#else
-      CONST_NUM_RESOLVERS
-#endif
-      ;
+  num_resolvers = (ntop->getPrefs() && ntop->getPrefs()->is_embedded_edition()) ? 1 : CONST_NUM_RESOLVERS;
 
   if (!(resolveThreadLoop =
             (pthread_t *)calloc(num_resolvers, sizeof(pthread_t))))

@@ -47,7 +47,7 @@ if ntop.isnEdge() then
          edition = ("nedge_pro")
       end
     end
- else
+else
    if(info["version.embedded_edition"] == true) then
       edition = ("embedded")
    elseif(info["version.enterprise_edition"] == true) then
