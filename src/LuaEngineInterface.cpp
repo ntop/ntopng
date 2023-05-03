@@ -859,7 +859,11 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
     wait_for_db_created = lua_toboolean(vm, 3) ? true : false;
   }
 
-  if (!ntop->hasCapability(vm, capability_historical_flows)) {
+  /* In case the users login is disabled, the users have not the ability to run 
+   * queries, check if the users login is enabled or not
+   */
+  if (!ntop->hasCapability(vm, capability_historical_flows) 
+      && ntop->getPrefs()->is_users_login_enabled()) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
                                  "User is not allowed to run query: %s", sql);
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
