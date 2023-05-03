@@ -86,7 +86,7 @@ end
 
 local isView = interface.isView()
 local x = 0
-
+tprint(filters)
 -- Retrieve the flows
 local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id, filters["page"], filters["sort_column"],
 							filters["sort_order"], filters["start"], filters["length"], filters["map_search"])

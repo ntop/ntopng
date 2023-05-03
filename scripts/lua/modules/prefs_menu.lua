@@ -460,52 +460,33 @@ local menu_subpages = {{
         description = i18n("prefs.iec60870_learning_period_description")
     },
     devices_learning_period = {
-        title = i18n("prefs.devices_learning_period_title"),
-        description = i18n("prefs.devices_learning_period_description")
-    }
-}, {
-    id = "protocols",
-    label = i18n("prefs.protocols"),
-    advanced = false,
-    pro_only = true,
-    hidden = false,
-    entries = {
-        toggle_top_sites = {
-            title = i18n("prefs.toggle_top_sites_title"),
-            description = i18n("prefs.toggle_top_sites_description", {
-                url = "https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf"
-            })
-        }
-    }
-}, {
-    id = "logging",
-    label = i18n("prefs.logging"),
-    advanced = false,
-    pro_only = false,
-    hidden = (prefs.has_cmdl_trace_lvl == true),
-    entries = {
-        toggle_logging_level = {
-            title = i18n("prefs.toggle_logging_level_title"),
-            description = i18n("prefs.toggle_logging_level_description")
-        },
-        toggle_log_to_file = {
-            title = i18n("prefs.toggle_log_to_file_title"),
-            description = i18n("prefs.toggle_log_to_file_description", {
-                product = info["product"]
-            })
-        },
-        toggle_access_log = {
-            title = i18n("prefs.toggle_access_log_title"),
-            description = i18n("prefs.toggle_access_log_description", {
-                product = info["product"]
-            })
-        },
-        toggle_host_pools_log = {
-            title = i18n("prefs.toggle_host_pools_log_title"),
-            description = i18n("prefs.toggle_host_pools_log_description", {
-                product = info["product"]
-            })
-        }
+      title       = i18n("prefs.devices_learning_period_title"),
+      description = i18n("prefs.devices_learning_period_description"),
+    },devices_status_during_learning_period = {
+      title       = i18n("prefs.devices_status_during_learning_period_title"),
+      description = i18n("prefs.devices_status_during_learning_period_description"),
+    },devices_status_post_learning_period = {
+      title       = i18n("prefs.devices_status_post_learning_period_title"),
+      description = i18n("prefs.devices_status_post_learning_period_description"),
+    },
+  }, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=true,  hidden=false, entries={
+    toggle_top_sites = {
+      title       = i18n("prefs.toggle_top_sites_title"),
+      description = i18n("prefs.toggle_top_sites_description", {url="https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf"})},
+  }}, {id="logging",       label=i18n("prefs.logging"),  advanced=false, pro_only=false,  hidden=(prefs.has_cmdl_trace_lvl == true), entries={
+    toggle_logging_level = {
+      title       = i18n("prefs.toggle_logging_level_title"),
+      description = i18n("prefs.toggle_logging_level_description"),
+    }, toggle_log_to_file = {
+      title       = i18n("prefs.toggle_log_to_file_title"),
+      description = i18n("prefs.toggle_log_to_file_description", {product=info["product"]}),
+    }, toggle_access_log = {
+      title       = i18n("prefs.toggle_access_log_title"),
+      description = i18n("prefs.toggle_access_log_description", {product=info["product"]}),
+    }, toggle_host_pools_log = {
+      title       = i18n("prefs.toggle_host_pools_log_title"),
+      description = i18n("prefs.toggle_host_pools_log_description", {product=info["product"]}),
+    },
 
     }
 }, {
