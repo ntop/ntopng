@@ -21,7 +21,6 @@
 
 #include "ntop_includes.h"
 #include "flow_checks_includes.h"
-#include <ctime>
 
 #define rareDestEpoch 100  /* placeholder value */
 
@@ -52,9 +51,8 @@ void RareDestination::protocolDetected(Flow *f) {
 
   if(f->getFlowServerInfo() != NULL) 
   {
-    time_t timeNow = time(nullptr);
+    time_t timeNow = time(nullptr); // in time.h
 
-    /* to check if cardinality does what the right thing here */
     if (!ndpi_bitmap_cardinality(&BMap)) {
       training->ongoing = true;
       training->seen = 0;
@@ -63,9 +61,9 @@ void RareDestination::protocolDetected(Flow *f) {
     if (training->ongoing && training->seen >= training->toSee && timeNow - training->start >= training->duration)
       training->ongoing = false;
 
-    if (!training->ongoing && timeNow - rareDestLastEpoch > rareDestEpoch)
+    if (!training->ongoing && timeNow - rareDestLastEpoch >= rareDestEpoch)
     {
-      if (timeNow - rareDestLastEpoch > 2*rareDestEpoch)
+      if (timeNow - rareDestLastEpoch >= 2*rareDestEpoch)
       {
         ndpi_bitmap_clear(&BMap);
         ndpi_bitmap_clear(&BDirty);
