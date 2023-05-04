@@ -385,7 +385,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
         record["column_ndpi"] = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/flows_stats.lua?application=" .. l7proto ..
                                     "'&ifid='" .. ifid .. "'>" .. app .. " " ..
                                     formatBreed(value["proto.ndpi_breed"], value["proto.is_encrypted"]) .. "</A>"
-        record["column_ndpi"] = record["column_ndpi"] .. " " .. format_confidence_badge(value["confidence"])
+        record["column_ndpi"] = record["column_ndpi"] .. " " .. format_confidence_badge(ternary(value["proto.ndpi_id"] == 0, -1, value["confidence"]))
         --      record["column_ndpi"] = record["column_ndpi"] .. " " .. "<a href='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_informative_proto"] .. "' title='" .. i18n("host_details.hosts_using_proto", { proto = interface.getnDPIProtoName(value["proto.ndpi_informative_proto"]) }) .. "'><i class='fa-solid fa-timeline'></i></a>"
     end
     record["column_duration"] = secondsToTime(value["duration"])
