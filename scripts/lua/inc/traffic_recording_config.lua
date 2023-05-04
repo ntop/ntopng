@@ -170,7 +170,7 @@ print [[
       <tr>
         <th>]] print(i18n("traffic_recording.disk_space")) print [[</th>
         <td colspan=2>
-          <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="]] print(max_space/1024) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
+          <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="]] print(ternary((max_space/1024)>1, (max_space/1024), 1)) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
 <small>]] print(i18n("traffic_recording.disk_space_note") .. ternary(storage_info.if_used > 0, " "..i18n("traffic_recording.disk_space_note_in_use", {in_use=tostring(format_utils.round(storage_info.if_used/(1024*1024*1024), 2))}), "")) print[[</small>
         </td>
       </tr>
@@ -208,7 +208,7 @@ print [[
       <tr>
         <th>]] print(i18n("traffic_recording.smart_disk_space")) print [[</th>
         <td colspan=2>
-          <input type="number" style="width:127px;display:inline;" class="form-control" name="smart_disk_space" placeholder="" min="1" step="1" max="]] print(max_space/1024) print [[" value="]] print(smart_disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
+          <input type="number" style="width:127px;display:inline;" class="form-control" name="smart_disk_space" placeholder="" min="1" step="1" max="]] print(ternary((max_space/1024)>1, (max_space/1024), 1)) print [[" value="]] print(smart_disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
 <small>]] print(i18n("traffic_recording.smart_disk_space_note"))  print[[</small>
         </td>
       </tr>
