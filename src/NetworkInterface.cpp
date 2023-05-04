@@ -10928,8 +10928,8 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
 
   /* <is_not_guessed (16 bit)><vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16
    * bit) */
-  key = ((u_int64_t)vlan_id << 32) +
-        ((u_int64_t) is_not_guessed << 48) +
+  key = ((u_int64_t) is_not_guessed << 48) +
+        ((u_int64_t)vlan_id << 32) +
         (((u_int64_t)detected_protocol.app_protocol) << 16) +
         (u_int64_t)detected_protocol.master_protocol;
 
