@@ -164,7 +164,6 @@ NetworkInterface::NetworkInterface(const char *name,
     next_idle_flow_purge = next_idle_host_purge = next_idle_other_purge = 0;
     cpu_affinity = -1 /* no affinity */,
     has_vlan_packets = has_ebpf_events = false;
-
     running = false, inline_interface = false;
 
     checkIdle();
@@ -254,7 +253,7 @@ void NetworkInterface::init(const char *interface_name) {
   pcap_datalink_type = 0, mtuWarningShown = false,
   purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0,
   last_remote_bps = 0, has_vlan_packets = false,
-  cpu_affinity = -1 /* no affinity */, inline_interface = false,
+  cpu_affinity = -1 /* no affinity */, 
   interfaceStats = NULL, has_too_many_hosts = has_too_many_flows = false,
   flow_dump_disabled = false, numL2Devices = 0,
   totalNumHosts = numTotalRxOnlyHosts = numLocalHosts = numLocalRxOnlyHosts = 0,
