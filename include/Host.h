@@ -76,9 +76,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   struct {
     bool ongoing;
     time_t start;
-    time_t duration = DURATION_TRAINING; //in seconds
+    time_t duration = 600; //sec
     u_int32_t seen;
-    u_int32_t toSee = TO_SEE_TRAINING; //
+    u_int32_t toSee = 100; // # of Flows
   } rareDestTraining;
 
   /* END Host data: */
@@ -726,7 +726,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   inline u_int32_t getSeenRareDestTrainig() const {return(rareDestTraining.seen);}
   inline void clearSeenRareDestTrainig(u_int32_t n) {rareDestTraining.seen = 0;}
-  inline void incrementSeenRareDestTrainig(u_int32_t n) {rareDestTraining.seen = rareDestTrainig.seen++;}
+  inline void incrementSeenRareDestTrainig(u_int32_t n) {rareDestTraining.seen = rareDestTraining.seen++;}
 
   inline u_int32_t getToSeeRareDestTrainig() const {return(rareDestTraining.toSee);}
   /**/
