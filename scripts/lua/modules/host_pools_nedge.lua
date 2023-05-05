@@ -597,11 +597,14 @@ function host_pools_nedge.hostpool2record(ifid, pool_id, pool)
 end
 
 function host_pools_nedge.printQuotas(pool_id, host, page_params)
+  --[[
   local pools_stats = interface.getHostPoolsStats()
   local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
 
   local ndpi_stats = pool_stats.ndpi
   local category_stats = pool_stats.ndpi_categories
+  --]]
+
   -- ifId is a global variable here
   local quota_and_protos = shaper_utils.getPoolProtoShapers(ifId, pool_id)
   local cross_traffic_quota, cross_time_quota = shaper_utils.getCrossApplicationQuotas(ifId, pool_id)

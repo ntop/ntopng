@@ -164,7 +164,6 @@ NetworkInterface::NetworkInterface(const char *name,
     next_idle_flow_purge = next_idle_host_purge = next_idle_other_purge = 0;
     cpu_affinity = -1 /* no affinity */,
     has_vlan_packets = has_ebpf_events = false;
-
     running = false, inline_interface = false;
 
     checkIdle();
@@ -254,7 +253,7 @@ void NetworkInterface::init(const char *interface_name) {
   pcap_datalink_type = 0, mtuWarningShown = false,
   purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0,
   last_remote_bps = 0, has_vlan_packets = false,
-  cpu_affinity = -1 /* no affinity */, inline_interface = false,
+  cpu_affinity = -1 /* no affinity */, 
   interfaceStats = NULL, has_too_many_hosts = has_too_many_flows = false,
   flow_dump_disabled = false, numL2Devices = 0,
   totalNumHosts = numTotalRxOnlyHosts = numLocalHosts = numLocalRxOnlyHosts = 0,
@@ -10924,10 +10923,12 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
   std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count =
       static_cast<std::unordered_map<u_int64_t, AggregatedFlowsStats *> *>(
           user_data);
+  u_int64_t is_not_guessed = (u_int64_t) int(f->isDPIDetectedFlow());
 
-  /* <0 (16 bit)><vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16
+  /* <is_not_guessed (16 bit)><vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16
    * bit) */
-  key = ((u_int64_t)vlan_id << 32) +
+  key = ((u_int64_t) is_not_guessed << 48) +
+        ((u_int64_t)vlan_id << 32) +
         (((u_int64_t)detected_protocol.app_protocol) << 16) +
         (u_int64_t)detected_protocol.master_protocol;
 
@@ -10941,6 +10942,7 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
     if (fs) {
       fs->setProtoKey(key);
       fs->setVlanId(vlan_id);
+      fs->setIsNotGuessed(f->isDPIDetectedFlow());
       (*count)[key] = fs;
     }
   } else {
@@ -11188,6 +11190,7 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
       lua_push_str_table_entry(
           vm, "proto_name",
           get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
+      lua_push_bool_table_entry(vm, "is_not_guessed", flow_stats->isNotGuessed());
     }
 
     if (add_client) {
