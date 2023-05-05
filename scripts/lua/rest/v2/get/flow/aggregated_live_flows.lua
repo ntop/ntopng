@@ -31,6 +31,7 @@ filters["sort_order"] = _GET["order"] or 'asc'
 filters["start"] = tonumber(_GET["start"] or 0)
 filters["length"] = tonumber(_GET["length"] or 10)
 filters["map_search"] = _GET["map_search"]
+filters["host"] = _GET["host"]
 
 if (vlan) and (isEmptyString(vlan) or tonumber(vlan) == -1) then
    vlan = nil
@@ -89,7 +90,7 @@ local x = 0
 
 -- Retrieve the flows
 local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id, filters["page"], filters["sort_column"],
-							filters["sort_order"], filters["start"], filters["length"], filters["map_search"])
+							filters["sort_order"], filters["start"], filters["length"], ternary(not isEmptyString(filters["map_search"]), filters["map_search"], nil) , ternary(filters["host"]~= "", filters["host"], nil))
 
 -- Formatting the data
 for _, data in pairs(aggregated_info or {}) do

@@ -420,9 +420,12 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 				  std::unordered_map<string, AggregatedFlowsStats *> *count_info,
 				  AnalysisCriteria filter_type);
   
+  bool filters_flows(AggregatedFlowsStats *fs, char *search_filter, AnalysisCriteria filter_type, char *host_ip_filter );
   bool verify_search_filter(AggregatedFlowsStats* fs, char* filter, AnalysisCriteria filter_type);
   bool verify_search_filter_on_client(AggregatedFlowsStats* fs, char* filter);
   bool verify_search_filter_on_server(AggregatedFlowsStats* fs, char* filter);
+
+  bool verify_host_ip_filter(AggregatedFlowsStats *fs, char *filter, string vlan);
 
   void build_lua_rsp(lua_State *vm, AggregatedFlowsStats *fs, u_int filter_type,
                      u_int32_t size, u_int *num, bool set_resp);

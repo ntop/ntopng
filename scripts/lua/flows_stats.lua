@@ -634,7 +634,8 @@ else
         sort = sort,
         order = order,
         start = start,
-        length = length
+        length = length,
+        host = ""
     })
 end
 

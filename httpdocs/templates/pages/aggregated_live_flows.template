@@ -14,7 +14,8 @@
   :sort="sort"
   :order="order"
   :start="start"
-  :length="length">
+  :length="length"
+  :host="host">
   </page-aggregated-live-flows>
 </div>
   
@@ -27,6 +28,7 @@
   const order = "{* order *}"
   const start = {* start *}
   const length = {* length *}
+  const host = "{* host *}"
 
 
   
@@ -54,7 +56,8 @@
           sort: sort,
           order: order,
           start: start,
-          length: length
+          length: length,
+          host: host,
         };
       },
       methods: { },
