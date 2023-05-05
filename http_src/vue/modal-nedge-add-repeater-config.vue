@@ -54,8 +54,8 @@
 		<label class="col-form-label col-sm-10" >
         <b>{{_i18n("nedge.page_repeater_config.interfaces")}}</b>
 	    </label>
-				<SelectSearch
-                          :options="interface_array"
+				<SelectSearch ref="interfaces_search"
+													:options="interface_array"
                           :multiple="true"
                           @select_option="update_interfaces_selected"
                           @unselect_option="remove_interfaces_selected"
@@ -90,11 +90,12 @@ const ip = ref(null);
 const port = ref(null);
 const repeater_type = ref({value: "mdns", label: "MDNS" });
 const emit = defineEmits(['edit', 'add'])
+const selected_interfaces = ref([]);
+const interfaces_search = ref(null);
 
 const showed = () => {};
 
-const props = defineProps({
-});
+const props = defineProps({});
 
 const check_empty_host = () => {
   let regex = new RegExp(regexValidation.get_data_pattern('ip'));
@@ -151,7 +152,6 @@ const is_open_in_add = ref(true);
 
 function init(row) {
     is_open_in_add.value = row == null;
-    
 
     // check if we need open in edit
     if (is_open_in_add.value == false) {
@@ -175,6 +175,15 @@ function init(row) {
 			button_text.value = _i18n("add");
 			let default_type = repeater_type_array.find((s) => s.default == true);
     }
+		
+		const row_interfaces = row.interfaces.split(",");
+		row_interfaces.forEach(function(el) {
+			const value = interface_array.value.find(element => element.value == el)
+			if(value != null) {
+				selected_interfaces.value.push(value);
+			}
+		})
+		interfaces_search.value.update_multiple_values(interface_array.value);
 }
 
 async function change_repeater_type(type) {
