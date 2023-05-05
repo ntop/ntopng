@@ -1733,7 +1733,6 @@ local function getParamFilter(page_params, param_name)
 end
 function printTabList(base_url, page_params, active) 
    if(ntop.isEnterpriseM()) then
-      tprint(active)
       print[[
          <div class="col-md-12 col-lg-12">
          <div class="card">
