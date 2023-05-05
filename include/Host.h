@@ -68,6 +68,19 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   char *ssdpLocation;
   
+  /* Host data: update Host::RareDest implementation*/
+  ndpi_bitmap *bMap;
+  ndpi_bitmap *bDirty;
+  time_t lastEpoch;
+
+  struct {
+    bool ongoing;
+    time_t start;
+    time_t duration = DURATION_TRAINING; //in seconds
+    u_int32_t seen;
+    u_int32_t toSee = TO_SEE_TRAINING; //
+  } rareDestTraining;
+
   /* END Host data: */
 
   /* Counters used by host alerts */
@@ -695,6 +708,29 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int16_t getNumContactedTCPUDPServerPortsNoTX()       { return(tcp_udp_contacted_ports_no_tx ? (u_int16_t)ndpi_bitmap_cardinality(tcp_udp_contacted_ports_no_tx) : 0); }
   inline void setContactedTCPUDPServerPortNoTX(u_int16_t port)  { if(tcp_udp_contacted_ports_no_tx) ndpi_bitmap_set(tcp_udp_contacted_ports_no_tx, port);                        }
 
+  /*RareDest Extension method*/
+  //metodi bitmap
+  inline ndpi_bitmap* getBMap() const {return(bMap);}
+  inline ndpi_bitmap* getBDirty() const {return(bDirty);} 
+
+  inline time_t getRareDestLastEpoch() const {return(lastEpoch);}
+  inline void setRareDestLastEpoch(time_t t) {lastEpoch=t;}
+  
+  inline bool isOngoingRareDestTrainig() const {return(rareDestTraining.ongoing);}
+  inline void setOngoingRareDestTrainig(bool b) {rareDestTraining.ongoing = b;}
+
+  inline time_t getStartRareDestTrainig() const {return(rareDestTraining.start);}
+  inline void setStartRareDestTrainig(time_t t) {rareDestTraining.start = t;}
+
+  inline time_t getDurationRareDestTrainig() const {return(rareDestTraining.duration);}
+
+  inline u_int32_t getSeenRareDestTrainig() const {return(rareDestTraining.seen);}
+  inline void clearSeenRareDestTrainig(u_int32_t n) {rareDestTraining.seen = 0;}
+  inline void incrementSeenRareDestTrainig(u_int32_t n) {rareDestTraining.seen = rareDestTrainig.seen++;}
+
+  inline u_int32_t getToSeeRareDestTrainig() const {return(rareDestTraining.toSee);}
+  /**/
+  
   void resetHostContacts();
 };
 

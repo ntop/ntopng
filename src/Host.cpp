@@ -108,6 +108,9 @@ Host::~Host() {
   if(externalAlert.msg)   free(externalAlert.msg);
   if(tcp_udp_contacted_ports_no_tx) ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
 
+  if(bMap) ndpi_bitmap_free(bMap);
+  if(bDirty) ndpi_bitmap_free(bDirty);
+
   ndpi_hll_destroy(&outgoing_hosts_tcp_udp_port_with_no_tx_hll);
   ndpi_hll_destroy(&incoming_hosts_tcp_udp_port_with_no_tx_hll);
 }
@@ -302,6 +305,9 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_
   tcp_udp_contacted_ports_no_tx = ndpi_bitmap_alloc();
   ndpi_hll_init(&outgoing_hosts_tcp_udp_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
   ndpi_hll_init(&incoming_hosts_tcp_udp_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
+
+  bMap = ndpi_bitmap_alloc();
+  bDirty = ndpi_bitmap_alloc();
 
   deferredInitialization(); /* TODO To be called asynchronously for improving performance */
 }
