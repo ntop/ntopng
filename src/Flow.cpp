@@ -2923,20 +2923,12 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 /* *************************************** */
 
 void Flow::lua_confidence(lua_State *vm) {
-  switch (getConfidence()) {
-    case NDPI_CONFIDENCE_DPI_CACHE:
-    case NDPI_CONFIDENCE_DPI_PARTIAL_CACHE:
-    case NDPI_CONFIDENCE_DPI:
-    case NDPI_CONFIDENCE_NBPF:
-      lua_push_uint32_table_entry(vm, "confidence",
-                                  (ndpiConfidence)confidence_dpi);
-      break;
-
-    default:
-      lua_push_uint32_table_entry(vm, "confidence",
-                                  (ndpiConfidence)confidence_guessed);
-      break;
-  }
+  if(isDPIDetectedFlow())
+    lua_push_uint32_table_entry(vm, "confidence",
+				(ndpiConfidence)confidence_dpi);
+  else
+    lua_push_uint32_table_entry(vm, "confidence",
+				(ndpiConfidence)confidence_guessed);
 }
 
 /* *************************************** */
@@ -8111,4 +8103,19 @@ void Flow::updateUDPHostServices() {
     default:
       break;
   } /* switch */
+}
+
+/* *************************************** */
+
+bool Flow::isDPIDetectedFlow() {
+  switch (getConfidence()) {
+  case NDPI_CONFIDENCE_DPI_CACHE:
+  case NDPI_CONFIDENCE_DPI_PARTIAL_CACHE:
+  case NDPI_CONFIDENCE_DPI:
+  case NDPI_CONFIDENCE_NBPF:
+    return(true);
+
+  default:
+    return(false);
+  }
 }

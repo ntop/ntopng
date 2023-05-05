@@ -1321,6 +1321,7 @@ class Flow : public GenericHashEntry {
   inline void setPeriodicFlow() { is_periodic_flow = 1; }
   inline bool isPeriodicFlow() { return (is_periodic_flow ? true : false); }
   void swap();
+  bool isDPIDetectedFlow();
 };
 
 #endif /* _FLOW_H_ */
