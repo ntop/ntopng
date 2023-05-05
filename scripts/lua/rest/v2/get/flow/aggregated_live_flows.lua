@@ -11,6 +11,7 @@ package.path = dirs.installdir .. "/scripts/lua/pro/enterprise/modules/?.lua;" .
 require "lua_utils"
 local rest_utils = require("rest_utils")
 local format_utils = require("format_utils")
+require "lua_utils_get"
 
 if ntop.isEnterpriseM() then
    require "aggregate_live_flows"
@@ -205,6 +206,9 @@ for _, data in pairs(aggregated_info or {}) do
 	 server = server,
 	 info = info,
 	 application = application,
+    app_proto_is_not_guessed = data.is_not_guessed,
+    confidence_name = get_confidence(ternary(application.id == "0", "-1", ternary(data.is_not_guessed, "1", "0"))),
+    confidence = ternary(data.is_not_guessed, 1, 0),
 	 vlan_id = {
 	    id = data.vlan_id,
 	    label = ternary(data.vlan_id, getFullVlanName(data.vlan_id), "")
