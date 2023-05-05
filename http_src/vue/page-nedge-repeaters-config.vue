@@ -70,7 +70,10 @@ function set_rule(rule, url) {
     refresh_table();    
 }
 
-
+const format_interfaces = function(data, rowData) { 
+    let string_without_end = data.replace(/.$/, ''); 
+    return string_without_end;
+}
 function set_datatable_config() {
     const datatableButton = [];
     
@@ -110,9 +113,12 @@ function set_datatable_config() {
      { 
 	    columnName: _i18n("nedge.page_repeater_config.port"), targets: 0, name: 'port', data: 'port', className: 'text-nowrap text-left', responsivePriority: 1
 	},
-     /*{ 
-	    columnName: _i18n("nedge.page_repeater_config.interfaces"), targets: 0, name: 'interfaces', data: 'interfaces', className: 'text-nowrap text-left', responsivePriority: 1
-	},*/
+     { 
+	    columnName: _i18n("nedge.page_repeater_config.interfaces"), targets: 0, name: 'interfaces', data: 'interfaces', className: 'text-nowrap text-left', responsivePriority: 1, render: (data,_,rowData) => {
+		    
+		    return format_interfaces(data, rowData)}
+	    
+	},
     ];
     let wrap_columns_config = columns.map((c) => c);
     // let wrap_columns_config = props.columns_config.map((c) => c);
