@@ -1,15 +1,28 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-  <modal @showed="showed()" ref="modal_id">
-    <template v-slot:title>{{ title }}</template>
-    <template v-slot:body>
+<modal @showed="showed()" ref="modal_id">
+  <template v-slot:title>
+    <template v-if="edit_all == false">
+      {{title}}
+    </template>
+    <template v-else>
+      {{ title_edit_all }}
+    </template>
+    
+  </template>
+  <template v-slot:body>
+      <template v-if="edit_all == false">
+
       <div class="form-group mb-3 row">
         <label class="col-form-label col-sm-4">{{ _i18n('edit_check.device_alias') }}</label>
         <div class="col-sm-7">
           <input type="text" name="custom_name" class="form-control" :placeholder="custom_name_placeholder"
             v-model="input_mac_address_name">
         </div>
+
       </div>
+      </template>
+
       <div class="form-group mb-3 row">
         <label class="col-form-label col-sm-4">{{ _i18n('edit_check.device_status') }}</label>
         <div class="col-sm-7">
@@ -48,19 +61,31 @@ const emit = defineEmits(['edit']);
 const showed = () => { };
 
 const props = defineProps({
-  title: String,
+    title: String,
+    title_edit_all: String,
 });
 
+const edit_all = ref(false);
+
 const show = (row) => {
-  input_device_status.value = row.status;
-  input_mac_address_name.value = row.mac_address_label;
-  input_trigger_alerts.value = row.trigger_alert || false;
-  modal_id.value.show();
+    if(row != null) {
+      input_device_status.value = row.status;
+      input_mac_address_name.value = row.mac_address_label.label;
+      input_trigger_alerts.value = row.trigger_alert || false;
+    } else {
+      edit_all.value = true;
+    }
+    
+    modal_id.value.show();
 };
 
 const edit_ = () => {
-  emit('edit', { mac_alias: input_mac_address_name.value, mac_status: input_device_status.value, trigger_alerts: input_trigger_alerts.value });
-  close();
+    if(edit_all.value == false)
+      emit('edit', { mac_alias: input_mac_address_name.value, mac_status: input_device_status.value, trigger_alerts: input_trigger_alerts.value });
+    else 
+      emit('edit', { mac_status: input_device_status.value, trigger_alerts: input_trigger_alerts.value });
+
+    close();
 };
 
 const close = () => {
