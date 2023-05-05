@@ -39,6 +39,7 @@ class AggregatedFlowsStats {
   char* info_key;
   u_int64_t key;
   u_int64_t proto_key;
+  bool is_not_guessed;
 
  public:
   AggregatedFlowsStats(const IpAddress* c, const IpAddress* s, u_int8_t _l4_proto,
@@ -76,6 +77,7 @@ class AggregatedFlowsStats {
   };
   inline u_int16_t getCliVLANId() { return (client ? client->getVLANId() : 0); };
   inline u_int16_t getSrvVLANId() { return (server ? server->getVLANId() : 0); };
+  inline bool isNotGuessed() { return(is_not_guessed); };
 
   /* Setters */
   inline void setProtoName(char* _proto_name) {
@@ -99,6 +101,7 @@ class AggregatedFlowsStats {
 
   inline bool isCliInMem() { return (client->isHostInMem()); };
   inline bool isSrvInMem() { return (server->isHostInMem()); };
+  inline void setIsNotGuessed(bool isNotGuessed) { is_not_guessed = isNotGuessed; };
 
   void incFlowStats(const IpAddress* _client, const IpAddress* _server,
                            u_int64_t bytes_sent, u_int64_t bytes_rcvd,

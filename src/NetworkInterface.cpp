@@ -10924,10 +10924,12 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
   std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count =
       static_cast<std::unordered_map<u_int64_t, AggregatedFlowsStats *> *>(
           user_data);
+  u_int64_t is_not_guessed = (u_int64_t) int(f->isDPIDetectedFlow());
 
-  /* <0 (16 bit)><vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16
+  /* <is_not_guessed (16 bit)><vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16
    * bit) */
-  key = ((u_int64_t)vlan_id << 32) +
+  key = ((u_int64_t) is_not_guessed << 48) +
+        ((u_int64_t)vlan_id << 32) +
         (((u_int64_t)detected_protocol.app_protocol) << 16) +
         (u_int64_t)detected_protocol.master_protocol;
 
@@ -10941,6 +10943,7 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
     if (fs) {
       fs->setProtoKey(key);
       fs->setVlanId(vlan_id);
+      fs->setIsNotGuessed(f->isDPIDetectedFlow());
       (*count)[key] = fs;
     }
   } else {
@@ -11188,6 +11191,7 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
       lua_push_str_table_entry(
           vm, "proto_name",
           get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
+      lua_push_bool_table_entry(vm, "is_not_guessed", flow_stats->isNotGuessed());
     }
 
     if (add_client) {

@@ -210,7 +210,13 @@ function get_table_columns_config() {
                 columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
                     return `${data.label_with_icons}`
                 }
-            });
+            }, 
+            {
+                columnName: i18n("application_proto_guessed"), targets: 0, name: 'application', data: 'is_not_guessed', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
+                    return format_application_proto_guessed(data, rowData)
+                }
+            }
+            );
     }
     else if (selected_criteria.value.value == 2) {
         // client case
@@ -354,6 +360,15 @@ const format_flows_icon = function (data, rowData) {
 
 
     return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
+}
+
+const format_application_proto_guessed = function (data, rowData) {
+    if(rowData.confidence == 0 )
+        return `<span class=\"badge bg-warning\" title=\" `+ rowData.confidence_name + `\">`+ rowData.confidence_name + ` </span>`
+    else if (rowData.confidence)
+        return `<span class=\"badge bg-success\" title=\"`+ rowData.confidence_name + ` \"> `+ rowData.confidence_name + `</span>`
+    
+        
 }
 
 </script>
