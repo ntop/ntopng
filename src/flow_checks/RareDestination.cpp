@@ -26,49 +26,65 @@
 
 /* ***************************************************** */
 
+bool getDestinationHash(Flow *f, u_int32_t *hash) {
+  Host * dest = f->get_srv_host();
+  if (f->isLocalToLocal())
+  {
+    char buf[64];
+    if (!dest->isMulticastHost() && dest->isDHCPHost())
+    {
+      char *mac = dest->getMac()->print(buf,sizeof(buf));
+      *hash = Utils::hashString(mac);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination MAC %u - %s", *hash, mac); */
+    }
+    
+    if (dest->isIPv6())
+    {
+      char *ipv6 = dest->get_ip()->print(buf,sizeof(buf));
+      *hash = Utils::hashString(ipv6);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6 %u - %s", *hash, ipv6); */
+    }
+
+    if (dest->isIPv4())
+    {
+      char *ipv4 = dest->get_ip()->print(buf,sizeof(buf));
+      *hash = Utils::hashString(ipv4);
+      /* u_int32_t quick_key = ndpi_quick_hash((unsigned char *)ipv4,sizeof(ipv4)); */
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv4 %u - %s", *hash, ipv4); */
+    }
+  }
+
+  if (f->isLocalToRemote())
+  {
+    char name_buf[128];
+    char *domain = dest->get_name(name_buf, sizeof(name_buf), false);
+    *hash = Utils::hashString(domain);
+    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare remote destination %u - %s", *hash, domain); */
+  }
+  
+  if ( *hash == 0 && (!f->isLocalToLocal() || !f->isLocalToRemote()) )
+  {
+    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Destination not hashed: %s", json_object_to_json_string(dest->get_ip()->getJSONObject())); */
+    return (false);
+  }
+
+  return (true);
+}
+
+/* ***************************************************** */
+
 void RareDestination::protocolDetected(Flow *f) {
   bool is_rare_destination = false;
-  
 
   /* TODO: check if this is a real rare destination */
   if(f->getFlowServerInfo() != NULL) {
 #ifdef TODO_HERE
-    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination %s", f->getFlowServerInfo());
+    u_int32_t hash = 0;
+    if(!getDestinationHash(f,&hash)) { return; }
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination hash %u", hash);
 
-    if (f->isLocalToLocal())
-    {
-      u_int32_t key = 0;
-      Host * dest = f->get_srv_host();
 
-      if (dest->isDHCPHost())
-      {
-        key = dest->getMac()->key();
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination MAC detected");
-      }
-      
-      if (dest->isIPv6())
-      {
-        const ndpi_in6_addr * destv6 = dest->get_ip()->get_ipv6();
-      }
 
-      if (dest->isIPv4())
-      {
-        key = dest->get_ip()->get_ipv4();
-        
-      }
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination IP %u", key);
-    }
-
-    /*
-      Host * source = f->get_cli_host();
-      Host * dest = f->get_srv_host();
-      source->get_ip()->equal(inet_addr("192.168.43.247"));
-      dest->isDHCPHost()
-      u_int8_t mac = *(dest->get_mac());
-    */
-
-    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Local Host Json %s", json_object_to_json_string_ext(source->get_ip()->getJSONObject(), JSON_C_TO_STRING_SPACED | JSON_C_TO_STRING_PRETTY));
     //is_rare_destination = true;
 #endif
   }
