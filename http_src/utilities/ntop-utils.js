@@ -357,6 +357,19 @@ export default class NtopUtils {
 		return Math.round(value * 100) / 100 + " %";
 	}
 
+    static percentage(value, total) {
+	if(total > 0) {
+	    var pctg = Math.round((value * 10000) / total)
+	    
+	    if(pctg > 0) {
+		/* Two decimals */
+		return(" [ " + (pctg/100) + " % ] ")
+	    }
+	}
+	
+	return("") 
+    }
+
 	static fdate(when) {
 		var epoch = when * 1000;
 		var d = new Date(epoch);
