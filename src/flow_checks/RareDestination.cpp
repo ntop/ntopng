@@ -25,63 +25,49 @@
 #define rareDestEpoch 100  /* placeholder value */
 
 /* ***************************************************** */
+/*
+  ndpi_bitmap_xor(ndpi_bitmap*, ndpi_bitmap*) defined in ndpi_api.h
+*/
 
 void RareDestination::protocolDetected(Flow *f) {
   bool is_rare_destination = false;
 
-  /* TODO: check if this is a real rare destination */
-
-  /*
-  BMap is hosts bitmap
-  BDirty is dirty bit bitmap of BMap
-  --------
-  time_t rareDestLastEpoch defined in class Host
-  --------
-  struct {
-    bool ongoing;
-    time_t start;
-    time_t duration;
-    u_int32_t seen;
-    u_int32_t toSee;
-
-  } training; -- defined in class host
-  --------
-  ndpi_bitmap_xor(ndpi_bitmap*, ndpi_bitmap*) defined in ndpi_api.h
-  */
-
   if(f->getFlowServerInfo() != NULL) 
   {
-    time_t timeNow = time(nullptr); // in time.h
+    time_t timeNow = time(nullptr);
+    Host *cliHost = f->get_cli_host();
+    ndpi_bitmap *bMap = cliHost->getBMap();
+    ndpi_bitmap *bDirty = cliHost->getBDirty();
 
-    if (!ndpi_bitmap_cardinality(&BMap)) {
-      training->ongoing = true;
-      training->seen = 0;
-      training->start = timeNow;
+    if (!ndpi_bitmap_cardinality(bMap)) {
+      cliHost->setOngoingRareDestTraining(true);
+      cliHost->clearSeenRareDestTraining();
+      cliHost->setStartRareDestTraining(timeNow);
     }
-    if (training->ongoing && training->seen >= training->toSee && timeNow - training->start >= training->duration)
-      training->ongoing = false;
+    if (cliHost->isOngoingRareDestTraining() && cliHost->getSeenRareDestTraining() >= cliHost->getToSeeRareDestTraining() && timeNow - cliHost->getStartRareDestTraining() >= cliHost->getDurationRareDestTraining())
+      cliHost->setOngoingRareDestTraining(false);
 
-    if (!training->ongoing && timeNow - rareDestLastEpoch >= rareDestEpoch)
+    if (!cliHost->isOngoingRareDestTraining() && timeNow - cliHost->getRareDestLastEpoch() >= rareDestEpoch)
     {
-      if (timeNow - rareDestLastEpoch >= 2*rareDestEpoch)
+      if (timeNow - cliHost->getRareDestLastEpoch() >= 2*rareDestEpoch)
       {
-        ndpi_bitmap_clear(&BMap);
-        ndpi_bitmap_clear(&BDirty);
+        ndpi_bitmap_clear(bMap);
+        ndpi_bitmap_clear(bDirty);
       }
       else
       {
-        ndpi_bitmap_xor(&BDirty, &BMap);  // updates BDirty
-        ndpi_bitmap_and(&Bmap, & BDirty); // makes BMap = BDirty
+        ndpi_bitmap_xor(bDirty, bMap);  // updates BDirty
+        ndpi_bitmap_and(bMap, bDirty); // makes BMap = BDirty
       }
-      rareDestLastEpoch = timeNow;
+      cliHost->setRareDestLastEpoch(timeNow);
     }
 
     u_int32_t hash = hashFun(f);  // Yuriy's job
-    if (ndpi_bitmap_isset(&BMap, hash)
-      ndpi_bitmap_unset(&BDirty, hash);
+    if (ndpi_bitmap_isset(bMap, hash)
+      ndpi_bitmap_unset(bDirty, hash);
     else {
-      ndpi_bitmap_set(&BMap, hash);
-      if (!training->ongoing) is_rare_destination = true;
+      ndpi_bitmap_set(bMap, hash);
+      if (!cliHost->isOngoingRareDestTraining()) is_rare_destination = true;
       else training->seen++;
     }
   }
