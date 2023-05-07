@@ -68,7 +68,7 @@ void RareDestination::protocolDetected(Flow *f) {
     else {
       ndpi_bitmap_set(bMap, hash);
       if (!cliHost->isOngoingRareDestTraining()) is_rare_destination = true;
-      else training->seen++;
+      else cliHost->incrementSeenRareDestTrainig();
     }
   }
   
