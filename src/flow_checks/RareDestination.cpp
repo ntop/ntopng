@@ -23,6 +23,7 @@
 #include "flow_checks_includes.h"
 
 #define TODO_HERE 1
+#define rareDestEpoch 100  /* placeholder value */
 
 /* ***************************************************** */
 
@@ -56,6 +57,10 @@ bool getDestinationHash(Flow *f, u_int32_t *hash) {
 
 /* ***************************************************** */
 
+/*
+  ndpi_bitmap_xor(ndpi_bitmap*, ndpi_bitmap*) defined in ndpi_api.h
+*/
+
 void RareDestination::protocolDetected(Flow *f) {
   bool is_rare_destination = false;
 
@@ -66,7 +71,40 @@ void RareDestination::protocolDetected(Flow *f) {
     if(!getDestinationHash(f,&hash)) { return; }
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination hash %u", hash);
 
+    time_t timeNow = time(nullptr);
+    Host *cliHost = f->get_cli_host();
+    ndpi_bitmap *rare_dest = cliHost->getRareDestBMap();
+    ndpi_bitmap *rare_dest_revise = cliHost->getRareDestReviseBMap();
 
+    if (!ndpi_bitmap_cardinality(rare_dest)) {
+      cliHost->setOngoingRareDestTraining(true);
+      cliHost->clearSeenRareDestTraining();
+      cliHost->setStartRareDestTraining(timeNow);
+    }
+    if (cliHost->isOngoingRareDestTraining() && cliHost->getSeenRareDestTraining() >= cliHost->getToSeeRareDestTraining() && timeNow - cliHost->getStartRareDestTraining() >= cliHost->getDurationRareDestTraining())
+      cliHost->setOngoingRareDestTraining(false);
+
+    if (!cliHost->isOngoingRareDestTraining() && timeNow - cliHost->getRareDestLastEpoch() >= rareDestEpoch) {
+      if (timeNow - cliHost->getRareDestLastEpoch() >= 2*rareDestEpoch) {
+        ndpi_bitmap_clear(rare_dest);
+        ndpi_bitmap_clear(rare_dest_revise);
+      } else {
+        ndpi_bitmap_xor(rare_dest_revise, rare_dest);  // updates rare_dest_revise
+        ndpi_bitmap_and(rare_dest, rare_dest_revise); // makes rare_dest = rare_dest_revise
+      }
+      cliHost->setRareDestLastEpoch(timeNow);
+    }
+
+    if (!hash) {
+      if (ndpi_bitmap_isset(rare_dest, hash)
+        ndpi_bitmap_unset(rare_dest_revise, hash);
+      else {
+        ndpi_bitmap_set(rare_dest, hash);
+        if (!cliHost->isOngoingRareDestTraining()) is_rare_destination = true;
+        else cliHost->incrementSeenRareDestTrainig();
+      }
+    }
+    /* error: hashing not possible */
 
     //is_rare_destination = true;
 #endif

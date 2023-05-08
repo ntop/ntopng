@@ -68,6 +68,19 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   char *ssdpLocation;
   
+  /* Host data: update Host::RareDest implementation*/
+  ndpi_bitmap *rare_dest;
+  ndpi_bitmap *rare_dest_revise;
+  time_t last_epoch;
+
+  struct {
+    bool ongoing;
+    time_t start;
+    time_t duration = RARE_DEST_DURATION_TRAINING;
+    u_int32_t seen;
+    u_int32_t toSee = RARE_DEST_FLOWS_TO_SEE_TRAINING;
+  } rareDestTraining;
+
   /* END Host data: */
 
   /* Counters used by host alerts */
@@ -695,6 +708,31 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int16_t getNumContactedTCPUDPServerPortsNoTX()       { return(tcp_udp_contacted_ports_no_tx ? (u_int16_t)ndpi_bitmap_cardinality(tcp_udp_contacted_ports_no_tx) : 0); }
   inline void setContactedTCPUDPServerPortNoTX(u_int16_t port)  { if(tcp_udp_contacted_ports_no_tx) ndpi_bitmap_set(tcp_udp_contacted_ports_no_tx, port);                        }
 
+  /* RareDest Extension methods */
+  
+  inline ndpi_bitmap* getRareDestBMap()       const { return(rare_dest);        }
+  inline ndpi_bitmap* getRareDestReviseBMap() const { return(rare_dest_revise); } 
+
+  inline time_t getRareDestLastEpoch() const { return(last_epoch);  }
+  inline void setRareDestLastEpoch(time_t t) { last_epoch=t;        }
+  
+  inline bool isOngoingRareDestTraining() const  { return(rareDestTraining.ongoing); }
+  inline void setOngoingRareDestTraining(bool b) { rareDestTraining.ongoing = b;     }
+
+  inline time_t getStartRareDestTraining() const { return(rareDestTraining.start); }
+  inline void setStartRareDestTraining(time_t t) { rareDestTraining.start = t;     }
+
+  inline time_t getDurationRareDestTraining() const  { return(rareDestTraining.duration); }
+
+  inline u_int32_t getSeenRareDestTraining() const   { return(rareDestTraining.seen);  }
+  inline void clearSeenRareDestTraining()            { rareDestTraining.seen = 0;      }
+  inline void incrementSeenRareDestTraining()        { rareDestTraining.seen++;        } 
+
+  inline u_int32_t getToSeeRareDestTraining() const  { return(rareDestTraining.toSee); }
+  
+  void dumpRareDestToRedis();
+  bool loadRareDestFromRedis();
+  
   void resetHostContacts();
 };
 
