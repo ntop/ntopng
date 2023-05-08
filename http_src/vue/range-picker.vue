@@ -65,11 +65,11 @@ function get_page(alert_stats_page) {
 async function get_filter_const(is_alert_stats_url, page) {
     let url_request;
     if (is_alert_stats_url) {
-	url_request = `${base_path}/lua/rest/v2/get/alert/filter/consts.lua?page=${page}`;
+	url_request = `${http_prefix}/lua/rest/v2/get/alert/filter/consts.lua?page=${page}`;
     } else {
 	let query_preset = ntopng_url_manager.get_url_entry("query_preset");
 	if (query_preset == null) { query_preset = ""; }
-	url_request = `${base_path}/lua/pro/rest/v2/get/db/filter/consts.lua?page=${page}&query_preset=${query_preset}`;
+	url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/consts.lua?page=${page}&query_preset=${query_preset}`;
     }
     let filter_consts = await ntopng_utility.http_request(url_request);
     return filter_consts;
@@ -187,7 +187,7 @@ function get_filters_object(filters) {
 
 async function set_query_preset(range_picker_vue) {
     let page = range_picker_vue.page;
-    let url_request = `${base_path}/lua/pro/rest/v2/get/db/preset/consts.lua?page=${page}`;
+    let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/preset/consts.lua?page=${page}`;
     let res = await ntopng_utility.http_request(url_request);
     let query_presets = res[0].list.map((el) => {
 	return {
