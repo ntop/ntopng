@@ -1,0 +1,115 @@
+{
+    "id": "alert_flow",
+    "data_url": "lua/rest/v2/get/flow/alert/list.lua",
+    "use_current_page": false,
+    "enable_search": true,
+    "paging": true,
+    "rsp_records_field": "records",
+    "columns": [
+	{
+	    "title_i18n": "show_alerts.alert_datetime",
+	    "data_field": "tstamp",
+	    "sortable": true,
+	    "render_type": "formatValueLabel",
+	    "class": ["text-center", "text-nowrap"]
+	},
+	{
+	    "title_i18n": "score",
+	    "data_field": "score",
+	    "sortable": true,
+	    "render_type": "formatValueLabel",
+	    "class": ["text-center"]
+	},
+	{
+	    "title_i18n": "application",
+	    "data_field": "l7_proto",
+	    "sortable": true,
+	    "class": ["text-center"]
+	},
+	{
+	    "title_i18n": "alerts_dashboard.alert",
+	    "data_field": "msg",
+	    "sortable": false,
+	    "render_type": "formatNameDescription",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "flow",
+	    "data_field": "flow",
+	    "sortable": false,
+	    "render_type": "formatFlowTuple",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "show_alerts.alert_counts",
+	    "data_field": "count",
+	    "sortable": true,
+	    "class": ["text-center"]
+	},
+	{
+	    "title_i18n": "description",
+	    "data_field": "description",
+	    "sortable": false,
+	    "render_type": "formatMessage",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.community_id",
+	    "data_field": "community_id",
+	    "sortable": false,
+	    "render_generic": "community_id",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "datatable.fields.info",
+	    "data_field": "info",
+	    "sortable": true,
+	    "render_type": "formatMessage",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.cli_host_pool_id",
+	    "data_field": "cli_host_pool_id",
+	    "sortable": false,
+	    "render_generic": "cli_host_pool_id",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.srv_host_pool_id",
+	    "data_field": "srv_host_pool_id",
+	    "sortable": false,
+	    "render_generic": "srv_host_pool_id",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.cli_network",
+	    "data_field": "cli_network",
+	    "sortable": false,
+	    "render_generic": "cli_network",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.srv_network",
+	    "data_field": "srv_network",
+	    "sortable": false,
+	    "render_generic": "srv_network",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.probe_ip",
+	    "data_field": "probe_ip",
+	    "sortable": false,
+	    "render_type": "formatProbeIP",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "actions",
+	    "sortable": false,
+	    "class": ["text-nowrap"],
+	    "render_type": "buttons_list",
+	    "buttons_list": [
+		{ "icon": "fas fa fa-search-plus", "title_i18n": "info", "event_id": "click_button_info" }
+	    ]
+	}
+    ]
+}

@@ -13,13 +13,13 @@
 <!--   </Dropdown> <\!-- Dropdown columns -\-> -->
 
 <template>
-<div class="dropdown" style="display:inline-block;">
-  <button class="btn btn-link dropdown-toggle" type="button" id="id" data-bs-toggle="dropdown" aria-expanded="false">
+<div class="dropdown" ref="dropdown" style="display:inline-block;">
+  <button class="btn btn-sm dropdown-toggle" :class="button_class_2" type="button" :id="id" ref="dropdown_button"  @click="open_close" aria-expanded="false" data-bs-toggle="dropdown">
     <slot name="title"></slot>
   </button>
-  <ul class="dropdown-menu" aria-labelledby="id" style="overflow:auto; max-height: 20rem;">
+  <ul class="dropdown-menu" :aria-labelledby="id" style=" max-height: 20rem">
     <!-- <slot name="menu"></slot> -->    
-    <li v-for="(opt, i) in options" :ref="el => { menu[i] = el }"></li>
+    <li class="dropdown-item" v-for="(opt, i) in options" :ref="el => { menu[i] = el }"></li>
   </ul>
 </div>
 </template>
@@ -35,10 +35,41 @@ const slots = useSlots();
 
 const options = ref([]);
 const menu = ref([]);
+const dropdown = ref(null);
+const dropdown_button = ref(null);
 
 const props = defineProps({
     id: String,
+    auto_load: Boolean,
+    button_class: String,
 });
+
+let default_overflow = null;
+onMounted(() => {
+    default_overflow = 	$(dropdown.value).parent().closest('div').css('overflow');
+    if (props.auto_load == true) {
+	run_f(() => load_menu());
+    }
+});
+
+const button_class_2 = computed(() => {
+    if (props.button_class != null) { return props.button_class; }
+    return "btn-link";
+})
+
+function run_f(f) {
+    f();
+}
+
+function open_close() {
+    if (!$(dropdown.value).find('.dropdown-menu').is(":hidden")){
+	$(dropdown_button.value).dropdown('hide');
+	$(dropdown.value).parent().closest('div').css('overflow', "visible");
+	$(dropdown_button.value).dropdown('show');
+    } else {
+	$(dropdown.value).parent().closest('div').css('overflow', default_overflow);
+    }
+}
 
 function load_menu() {
     options.value = [];

@@ -60,7 +60,13 @@
     <tbody>
       <tr v-for="row in active_rows">
 	<template v-for="col in columns_wrap">
-	  <td v-if="col.visible" scope="col"><div class="wrap-column" v-html="print_html_row(col.data, row)"></div></td>
+	  <td v-if="col.visible" scope="col">
+	    <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" class="wrap-column" v-html="print_html_row(col.data, row)">
+	    </div>
+	    <div class="wrap-column">
+	      <VueNode v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
+	    </div>
+	  </td>
 	</template>
       </tr>
     </tbody>
@@ -82,8 +88,19 @@
 
 <script setup>
 import { ref, onMounted, computed, watch, onBeforeUnmount, nextTick } from "vue";
+import { getCurrentInstance, h, render } from 'vue';
+import { render_component } from "./ntop_utils.js";
 import { default as Dropdown } from "./dropdown.vue";
 import { default as SelectTablePage } from "./select_table_page.vue";
+import { default as VueNode } from "./vue_node.vue";
+
+const emit = defineEmits(['custom_event'])
+
+const vue_obj = {
+    emit,
+    h,
+    nextTick,
+};
 
 const props = defineProps({
     id: String,
@@ -92,6 +109,7 @@ const props = defineProps({
     get_column_id: Function,
     print_column_name: Function,
     print_html_row: Function,
+    print_vue_node_row: Function,
     f_is_column_sortable: Function,
     f_sort_rows: Function,
     enable_search: Boolean,
@@ -103,6 +121,7 @@ const _i18n = (t) => i18n(t);
 const show_table = ref(true);
 const table = ref(null);
 const dropdown = ref(null);
+const rows_html_element = ref([]);
 let active_page = 0;
 let rows = [];
 const columns_wrap = ref([]);
@@ -250,7 +269,7 @@ async function set_rows() {
 	total_rows.value = res.total_rows;
     }
     rows = res.rows;
-    set_active_rows();
+    set_active_rows();    
 }
 
 function is_column_sortable(col) {
