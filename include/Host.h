@@ -76,9 +76,11 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   struct {
     bool ongoing;
     time_t start;
-    time_t duration = RARE_DEST_DURATION_TRAINING;
     u_int32_t seen;
+    /* 
+    time_t duration = RARE_DEST_DURATION_TRAINING;
     u_int32_t toSee = RARE_DEST_FLOWS_TO_SEE_TRAINING;
+    */
   } rareDestTraining;
 
   /* END Host data: */
@@ -722,13 +724,14 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline time_t getStartRareDestTraining() const { return(rareDestTraining.start); }
   inline void setStartRareDestTraining(time_t t) { rareDestTraining.start = t;     }
 
-  inline time_t getDurationRareDestTraining() const  { return(rareDestTraining.duration); }
-
   inline u_int32_t getSeenRareDestTraining() const   { return(rareDestTraining.seen);  }
   inline void clearSeenRareDestTraining()            { rareDestTraining.seen = 0;      }
-  inline void incrementSeenRareDestTraining()        { rareDestTraining.seen++;        } 
+  inline void incrementSeenRareDestTraining()        { rareDestTraining.seen++;        }
 
+  /* 
+  inline time_t getDurationRareDestTraining() const  { return(rareDestTraining.duration); }
   inline u_int32_t getToSeeRareDestTraining() const  { return(rareDestTraining.toSee); }
+   */
   
   void dumpRareDestToRedis();
   bool loadRareDestFromRedis();
