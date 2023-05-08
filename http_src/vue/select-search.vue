@@ -111,7 +111,7 @@ const render = () => {
 	    dropdownAutoWidth : true,
 	});
 	$(select2Div).on('select2:select', function (e) {
-	    let data = e.params.data;
+        let data = e.params.data;
 	    let value = data.element._value;
 	    let option = find_option_from_value(value);
 	    if (value != props.selected_option) {
@@ -146,23 +146,27 @@ const render = () => {
 
 function is_item_selected(item) {
     if (!props.multiple) {
-	return item.value == selected_option_2.value.value;
+	    return item.value == selected_option_2.value.value;
     }
     return selected_values.value.find((v) => v == item.value) != null; 
 }
 
-function set_selected_option(selected_option) {
+function set_selected_option(selected_option, push_options) {
     if (selected_option == null && !props.multiple) {
-	selected_option = get_props_selected_option();
+	    selected_option = get_props_selected_option();
     }
     
     selected_option_2.value = selected_option;
     if (selected_option_2.value != null && selected_option_2.value.value == null) {
-	selected_option_2.value.value = selected_option.label;
+        selected_option_2.value.value = selected_option.label;
     }
-    // if (props.multiple == true && selected_option_2.value?.value != null) {
-    // 	selected_values.value.push(selected_option_2.value.value);
-    // }
+
+    if (props.multiple == true && selected_option_2.value?.value != null) {
+     	selected_values.value.push(selected_option_2.value.value);
+        if(push_options == true) {
+	        options_2.value.push(selected_option_2.value);
+        }
+    }
 }
 
 function get_props_selected_option() {
@@ -212,8 +216,16 @@ function find_option_2_from_value(value) {
     }
     return null;
 }
-    
-defineExpose({ render });
+
+function update_multiple_values(values) {
+    selected_values.value = [];
+    options_2.value = [];
+    values.forEach(function(element) {
+        set_selected_option(element, true);
+    })
+}
+
+defineExpose({ render, update_multiple_values });
 
 function destroy() {
     try {

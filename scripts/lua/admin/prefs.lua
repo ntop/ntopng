@@ -1128,18 +1128,42 @@ if auth.has_capability(auth.capabilities.preferences) then
                   '</th></tr></thead>')
         -- Behavior analysis for asn, network and l7proto (iface)
 
-        prefsInputFieldPrefs(subpage_active["devices_learning_period"].title,
-            subpage_active["devices_learning_period"].description, "ntopng.prefs.", "devices_learning_period",
-            prefs.devices_learning_period, "number", nil, nil, nil, {
-                min = 7200,
-                tformat = "hd"
-            })
+  prefsInputFieldPrefs(
+    subpage_active["devices_learning_period"].title, 
+    subpage_active["devices_learning_period"].description,
+    "ntopng.prefs.","devices_learning_period",
+    prefs.devices_learning_period,
+    "number", nil, nil, nil, {min=7200, tformat="hd"})
 
-        -- #####################
+  local is_device_connection_disconnection_analysis_enabled = ntop.isEnterpriseM()
 
-        print(
-            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+  multipleTableButtonPrefs(
+      subpage_active["devices_status_during_learning_period"].title,
+      subpage_active["devices_status_during_learning_period"].description,
+      {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")}, 
+      {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED},
+      LEARNING_STATUS.ALLOWED, -- [default value]
+      "primary", -- [selected color]
+      "devices_status_during_learning",
+      "ntopng.prefs.devices_status_during_learning",  -- [redis key]
+      false, -- [disabled]
+      {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]])
+   
+   multipleTableButtonPrefs(
+      subpage_active["devices_status_post_learning_period"].title,
+      subpage_active["devices_status_post_learning_period"].description,
+      { i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")}, 
+      {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED},
+      LEARNING_STATUS.ALLOWED, -- [default value]
+      "primary",
+      "devices_status_post_learning",
+      "ntopng.prefs.devices_status_post_learning", 
+      false,
+      {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]])
+   
+   -- #####################
+   
+   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
