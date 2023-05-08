@@ -173,7 +173,7 @@ export default {
             params.mac_alias = params.mac_alias.replace(/(?:\t| )/g,'')   
           params.csrf = this.$props.page_csrf
           if(row != null)
-            params.mac = row.mac_address
+            params.mac = row.mac_address.mac
           let url = `${http_prefix}/lua/pro/rest/v2/edit/device/exclusion.lua`;
           try {
             let headers = {
@@ -262,136 +262,134 @@ function start_datatable(DatatableVue) {
     configDevices.table_buttons = defaultDatatableConfig.table_buttons;
     configDevices.data_url = `${configDevices.data_url}`;
     configDevices.columns_config = [
-      {
-        sortable: false,
-        searchable: false,
-        visible: false,
-        data: 'mac_address',
-        type: 'mac-address',
-        responsivePriority: 1,
-      }, {
-        columnName: i18n('edit_check.excluded_device'),
-        data: 'mac_address_label',
-        type: 'mac-address',
-        className: 'text-nowrap',
-        sortable: true,
-        searchable: true,
-        createdCell: DataTableRenders.applyCellStyle,
-        responsivePriority: 1,
-        render: function(rowData, type, script) {
-          let label = rowData.label
-          if(rowData.label !== rowData.mac)
-            label = label + ' [' + rowData.mac + ']'
+    {
+      columnName: i18n('edit_check.device'),
+      sortable: true,
+      searchable: true,
+      visible: true,
+      data: 'mac_address',
+      createdCell: DataTableRenders.applyCellStyle,
+      responsivePriority: 1,
+      render: function (data, _, rowData) {
+        let label = data.mac;
+        let alias = data.alias;
 
-          if(rowData.url)
-            label = `<a href='${rowData.url}' title='${rowData.mac}'>${label}</a>`
+        if ((data.symbolic_mac) && (data.symbolic_mac != label))
+          label = data.symbolic_mac;
 
-          return label
-        }
+        if ((alias != null) && (alias != label))
+          label = `${label} (${alias})`;
+
+        if (data.url != null)
+          label = `<a href='${data.url}' title='${data.mac}'>${label}</a>`;
+
+        return label
       },
-      {
-        columnName: i18n('mac_stats.manufacturer'),
-        data: 'manufacturer',
-        type: 'mac-address',
-        className: 'text-nowrap',
-        sortable: true,
-        searchable: true,
-        createdCell: DataTableRenders.applyCellStyle,
-        responsivePriority: 1,
-        render: function(rowData, type, script) {
-          return `${rowData}`;
+      responsivePriority: 1,
+    }, {
+      columnName: i18n('ip_address'),
+      data: 'last_ip',
+      className: 'text-nowrap',
+      sortable: false,
+      searchable: true,
+      responsivePriority: 1,
+    }, {
+      columnName: i18n('mac_stats.manufacturer'),
+      data: 'manufacturer',
+      className: 'text-nowrap',
+      sortable: true,
+      searchable: true,
+      responsivePriority: 1,
+    }, {
+      columnName: i18n('first_seen'),
+      data: 'first_seen',
+      type: 'time',
+      sortable: true,
+      searchable: true,
+      className: 'text-nowrap text-center',
+      responsivePriority: 1,
+      render: function (rowData, type, script) {
+        if (rowData.timestamp == 0) {
+          return ''
+        } else {
+          return rowData.data
         }
       }
-      , {
-        columnName: i18n('first_seen'),
-        data: 'first_seen',
-        type: 'time',
-        sortable: true,
-        searchable: true,
-        className: 'text-nowrap text-center',
-        responsivePriority: 1,
-        render: function(rowData, type, script) {
-          if(rowData.timestamp == 0) {
-            return ''
-          } else {
-            return rowData.data
-          }
+    }, {
+      columnName: i18n('last_seen'),
+      data: 'last_seen',
+      type: 'time',
+      sortable: true,
+      searchable: true,
+      className: 'text-nowrap text-center',
+      responsivePriority: 1,
+      render: function (rowData, type, script) {
+        if (rowData.timestamp == 0) {
+          return ''
+        } else {
+          return rowData.data
         }
-      }, {
-        columnName: i18n('last_seen'),
-        data: 'last_seen',
-        type: 'time',
-        sortable: true,
-        searchable: true,
-        className: 'text-nowrap text-center',
-        responsivePriority: 1,
-        render: function(rowData, type, script) {
-          if(rowData.timestamp == 0) {
-            return ''
-          } else {
-            return rowData.data
-          }
-        }
-      }, {
-        columnName: i18n('edit_check.device_status'),
-        data: 'status',
-        type: 'status',
-        sortable: true,
-        searchable: true,
-        className: 'text-nowrap text-center',
-        responsivePriority: 1,
-        render: function(rowData, type, script) {
-          return i18n(rowData)
-        }
-      }, {
-        columnName: i18n('edit_check.trigger_alert'),
-        data: 'trigger_alert',
-        type: 'boolean',
-        sortable: true,
-        searchable: true,
-        className: 'text-nowrap text-center',
-        responsivePriority: 1,
-        render: function(rowData, type, script) {
-          return rowData ? `<i class="fas fa-check text-success"></i>` : `<i class="fas fa-times text-danger"></i>`
-        }
-      }, {
-        targets: -1,
-        columnName: i18n("action"),
-        data: null,
-        name: 'actions',
-        className: 'text-center text-nowrap',
-        sortable: false,
-        responsivePriority: 1,
-        render: function (rowData, type, script) {
-          let delete_handler = {
-            handlerId: "delete_device",	  
-            onClick: () => {
-              let body = `${i18n('edit_check.delete_device_exclusion')} ${rowData.mac_address_label.label}`;
-              DatatableVue.show_delete_dialog(i18n('edit_check.device_exclusion'), body, rowData);
-            },
-          };
-          let edit_handler = {
-            handlerId: "edit_device",	  
-            onClick: () => {
-              DatatableVue.show_edit_device_dialog(rowData);
-            },
-          };
-          let jump_to_historical_flow = {
-            onClick: () => {
-              const url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${rowData.first_seen.timestamp}&epoch_end=${rowData.last_seen.timestamp}&mac=${rowData.mac_address};eq`
-              window.open(url, '_blank');
-            },
-          };
-          
-          return DataTableUtils.createActionButtons([
-            { class: `pointer`, handler: jump_to_historical_flow, icon: 'fa-stream', title: i18n('db_explorer.historical_data'), hidden: !isClickhouseEnabled },
-            { class: `pointer`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit') },
-            { class: `pointer`, handler: delete_handler, icon: 'fa-trash', title: i18n('delete') },
-          ]);
-        },
       }
-    ];
-    DatatableVue.config_devices = configDevices;
+    }, {
+      columnName: i18n('edit_check.device_status'),
+      data: 'status',
+      type: 'status',
+      sortable: true,
+      searchable: true,
+      className: 'text-nowrap text-center',
+      responsivePriority: 1,
+      render: function (rowData, type, script) {
+        return i18n(rowData)
+      }
+    }, {
+      columnName: i18n('edit_check.trigger_alert'),
+      data: 'trigger_alert',
+      type: 'boolean',
+      sortable: true,
+      searchable: true,
+      className: 'text-nowrap text-center',
+      responsivePriority: 1,
+      render: function (rowData, type, script) {
+        return rowData ? `<i class="fas fa-check text-success"></i>` : `<i class="fas fa-times text-danger"></i>`
+      }
+    }, {
+      targets: -1,
+      columnName: i18n("action"),
+      data: null,
+      name: 'actions',
+      className: 'text-center text-nowrap',
+      sortable: false,
+      responsivePriority: 1,
+      render: function (rowData, type, script) {
+        let delete_handler = {
+          handlerId: "delete_device",
+          onClick: () => {
+            let body = `${i18n('edit_check.delete_device_exclusion')} ${rowData.mac_address_label}`;
+            DatatableVue.show_delete_dialog(i18n('edit_check.device_exclusion'), body, rowData);
+          },
+        };
+        let edit_handler = {
+          handlerId: "edit_device",
+          onClick: () => {
+            DatatableVue.show_edit_device_dialog(rowData);
+          },
+        };
+        let jump_to_historical_flow = {
+          onClick: () => {
+            const url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${rowData.first_seen.timestamp}&epoch_end=${rowData.last_seen.timestamp}&mac=${rowData.mac_address.mac};eq`
+            window.open(url, '_blank');
+          },
+        };
+
+        return DataTableUtils.createActionButtons([
+          { class: `pointer`, handler: jump_to_historical_flow, icon: 'fa-stream', title: i18n('db_explorer.historical_data'), hidden: !isClickhouseEnabled },
+          { class: `pointer`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit') },
+          { class: `pointer`, handler: delete_handler, icon: 'fa-trash', title: i18n('delete') },
+        ]);
+      },
+    }
+  ];
+  DatatableVue.config_devices = configDevices;
 }
 
 </script>

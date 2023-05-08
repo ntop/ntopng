@@ -2185,6 +2185,7 @@ local lang = {
     ["device_name"] = "Device Name",
     ["device_status"] = "Device Status",
     ["domain_names"] = "Domain Names",
+    ["edit_all_devices_status"] = "Edit All",
     ["edit_device_exclusion"] = "Edit Device",
     ["excluded_device"] = "Excluded Device",
     ["excluded_domain_name"] = "Excluded Domain Name",

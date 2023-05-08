@@ -70,7 +70,7 @@ const edit_all = ref(false);
 const show = (row) => {
     if(row != null) {
       input_device_status.value = row.status;
-      input_mac_address_name.value = row.mac_address_label.label;
+      input_mac_address_name.value = row.mac_address.mac;
       input_trigger_alerts.value = row.trigger_alert || false;
     } else {
       edit_all.value = true;
