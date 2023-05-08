@@ -73,8 +73,7 @@ void RareDestination::protocolDetected(Flow *f) {
         else cliHost->incrementSeenRareDestTrainig();
       }
     }
-    else
-      /* error: hashing not possible */
+    /* error: hashing not possible */
   }
   
   if(is_rare_destination) {
