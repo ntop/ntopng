@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-#  Copyright (C) 1998-22 - ntop.org
+#  Copyright (C) 1998 - ntop.org
 #
 #  http://www.ntop.org/
 #
