@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-#  Copyright (C) 2002-20 - ntop.org
+#  Copyright (C) 2002 - ntop.org
 #
 #  http://www.ntop.org/
 #
@@ -21,7 +21,7 @@ esac
 
 function showHelp {
     {
-	company="(C) 1998-21 ntop.org\n\n"
+	company="(C) 1998 ntop.org\n\n"
 	usage="Usage:\n\tntopng-conf\n\tor\n\tntopng-conf <command line options>\n\nOptions:\n"
 	X_option="[-X] <num>          | Set max number of active flows to <num>\n"
 	x_option="[-x] <num>          | Set max number of active hosts to <num>\n"
