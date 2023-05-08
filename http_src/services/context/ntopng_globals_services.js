@@ -190,13 +190,13 @@ export const ntopng_utility = function() {
 * The status is incapsulated into the url.
 */
 export const ntopng_status_manager = function() {
-    let gloabal_status = {};
+    let global_status = {};
     /** @type {{ [id: string]: (status: object) => void}} */
     let subscribers = {}; // dictionary of { [id: string]: f_on_ntopng_status_change() }
     const clone = (e) => ntopng_utility.clone(e);
 
     const relplace_global_status = function(status) {
-        gloabal_status = status;
+        global_status = status;
     }
 
     /**
@@ -217,8 +217,11 @@ export const ntopng_status_manager = function() {
          * Gets the current global application status.
          * @returns {object}
          */
-        get_status: function() {
-            return clone(gloabal_status);
+        get_status: function(not_clone) {
+	    if (not_clone == true) {
+		return global_status;
+	    }
+            return clone(global_status);
         },
 
         update_subscribers: function() {
