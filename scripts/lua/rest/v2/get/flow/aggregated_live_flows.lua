@@ -189,8 +189,8 @@ for _, data in pairs(aggregated_info or {}) do
 
    -- TODO: remove this data from inside the for
    num_entries = data.num_entries
-   if num_entries > 0 then
-      res[#res + 1] = {
+
+   local item =  {
 	 flows = format_high_num_value_for_tables(data, 'num_flows'),
 
 	 breakdown = {
@@ -207,14 +207,26 @@ for _, data in pairs(aggregated_info or {}) do
 	 server = server,
 	 info = info,
 	 application = application,
-    app_proto_is_not_guessed = data.is_not_guessed,
-    confidence_name = get_confidence(ternary(application.id == "0", "-1", ternary(data.is_not_guessed, "1", "0"))),
-    confidence = ternary(data.is_not_guessed, 1, 0),
-	 vlan_id = {
-	    id = data.vlan_id,
-	    label = ternary(data.vlan_id, getFullVlanName(data.vlan_id), "")
-	 }
+    vlan_id = {
+      id = nil,
+      label = nil
+    }
       }
+
+   if data.vlan_id and data.vlan_id ~= 0 then
+      item.vlan_id = {
+         id = data.vlan_id,
+         label = getFullVlanName(data.vlan_id)
+      }
+   end
+   if criteria_type_id == 1 or criteria_type_id == 5 then 
+      item.app_proto_is_not_guessed = data.is_not_guessed
+      item.confidence_name = get_confidence(ternary(application.id == "0", "-1", ternary(data.is_not_guessed, "1", "0")))
+      item.confidence = ternary(data.is_not_guessed, 1, 0)
+   end   
+   
+   if num_entries > 0 then
+      res[#res + 1] = item
 
    end
 
