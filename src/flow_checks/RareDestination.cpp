@@ -36,10 +36,10 @@ void RareDestination::protocolDetected(Flow *f) {
   {
     time_t timeNow = time(nullptr);
     Host *cliHost = f->get_cli_host();
-    ndpi_bitmap *bMap = cliHost->getBMap();
-    ndpi_bitmap *bDirty = cliHost->getBDirty();
+    ndpi_bitmap *rare_dest = cliHost->getRareDestBMap();
+    ndpi_bitmap *rare_dest_revise = cliHost->getRareDestReviseBMap();
 
-    if (!ndpi_bitmap_cardinality(bMap)) {
+    if (!ndpi_bitmap_cardinality(rare_dest)) {
       cliHost->setOngoingRareDestTraining(true);
       cliHost->clearSeenRareDestTraining();
       cliHost->setStartRareDestTraining(timeNow);
@@ -51,25 +51,30 @@ void RareDestination::protocolDetected(Flow *f) {
     {
       if (timeNow - cliHost->getRareDestLastEpoch() >= 2*rareDestEpoch)
       {
-        ndpi_bitmap_clear(bMap);
-        ndpi_bitmap_clear(bDirty);
+        ndpi_bitmap_clear(rare_dest);
+        ndpi_bitmap_clear(rare_dest_revise);
       }
       else
       {
-        ndpi_bitmap_xor(bDirty, bMap);  // updates BDirty
-        ndpi_bitmap_and(bMap, bDirty); // makes BMap = BDirty
+        ndpi_bitmap_xor(rare_dest_revise, rare_dest);  // updates rare_dest_revise
+        ndpi_bitmap_and(rare_dest, rare_dest_revise); // makes rare_dest = rare_dest_revise
       }
       cliHost->setRareDestLastEpoch(timeNow);
     }
 
-    u_int32_t hash = hashFun(f);  // Yuriy's job
-    if (ndpi_bitmap_isset(bMap, hash)
-      ndpi_bitmap_unset(bDirty, hash);
-    else {
-      ndpi_bitmap_set(bMap, hash);
-      if (!cliHost->isOngoingRareDestTraining()) is_rare_destination = true;
-      else cliHost->incrementSeenRareDestTrainig();
+    u_int32_t hash;
+    if (getDestinationHash(f, &hash))
+    {
+      if (ndpi_bitmap_isset(rare_dest, hash)
+        ndpi_bitmap_unset(rare_dest_revise, hash);
+      else {
+        ndpi_bitmap_set(rare_dest, hash);
+        if (!cliHost->isOngoingRareDestTraining()) is_rare_destination = true;
+        else cliHost->incrementSeenRareDestTrainig();
+      }
     }
+    else
+      /* error: hashing not possible */
   }
   
   if(is_rare_destination) {
