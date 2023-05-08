@@ -53,7 +53,8 @@ const props = defineProps({
     sort: String,
     order: String,
     start: Number,
-    length: Number
+    length: Number,
+    host: String,
 });
 
 const _i18n = (t) => i18n(t);
@@ -171,6 +172,7 @@ function get_url_params(active_page, per_page, columns_wrap, map_search, first_g
         page: ntopng_url_manager.get_url_entry("page") || props.page,
         sort: ntopng_url_manager.get_url_entry("sort") || props.sort,
         order: ntopng_url_manager.get_url_entry("order") || props.order,
+        host: ntopng_url_manager.get_url_entry("host") || props.host,
         start: (active_page * per_page),
         length: per_page,
 	map_search,

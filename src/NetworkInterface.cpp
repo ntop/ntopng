@@ -10942,7 +10942,8 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
     if (fs) {
       fs->setProtoKey(key);
       fs->setVlanId(vlan_id);
-      fs->setIsNotGuessed(f->isDPIDetectedFlow());
+      fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
+      fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
       (*count)[key] = fs;
     }
   } else {
@@ -10984,6 +10985,7 @@ bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node,
 
     if (fs != NULL) {
       fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
+      fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
       fs->setVlanId(f->get_vlan_id());
       fs->setKey(key);
       (*count)[key] = fs;
@@ -11026,6 +11028,7 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
         f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
 
     if (fs != NULL) {
+      fs->setClient(f->get_cli_ip_addr(), f->get_cli_host());
       fs->setServer(f->get_srv_ip_addr(), f->get_srv_host());
       fs->setVlanId(f->get_vlan_id());
       fs->setKey(key);
@@ -11328,6 +11331,77 @@ bool NetworkInterface::verify_search_filter(AggregatedFlowsStats *fs,
 
 /* **************************************************** */
 
+/* Verify function for the host ip filter */
+bool NetworkInterface::verify_host_ip_filter(AggregatedFlowsStats *fs,
+                                            char *filter, string vlan) {
+  char buf[64];
+  u_int64_t vlan_id;
+
+  if (vlan.c_str() != NULL && !strcmp(vlan.c_str(),""))
+    vlan_id = 0;
+  else
+    vlan_id = stoi(vlan);
+
+  if(((!strcmp(fs->getCliIP(buf, sizeof(buf)), filter) && (vlan_id == 0 || vlan_id == fs->getCliVLANId()) )|| 
+     ((!strcmp(fs->getSrvIP(buf, sizeof(buf)), filter)) && (vlan_id == 0 || vlan_id == fs->getSrvVLANId()))) )
+    return true;
+
+  return false;
+}
+
+/* **************************************************** */
+
+/* Function to filter flows with search_filter and host_ip_filter  */
+bool NetworkInterface::filters_flows(AggregatedFlowsStats *fs,
+                                            char *search_filter, AnalysisCriteria filter_type, char *host_ip_filter ) {
+  
+  string ip = "";
+  string vlan = "";
+  if (host_ip_filter != NULL && host_ip_filter[0] != 0) {
+    char *token = strtok(host_ip_filter, "@");
+   
+    int h = 0;
+    while (token != NULL)
+    {
+        if(h == 0) {
+          ip = token;
+        } else if (h == 1) {
+          vlan = token;
+        } 
+        token = strtok(NULL, "|");
+        h++;
+    }
+  }
+  
+  if ((search_filter != NULL) && (search_filter[0] != 0)) {
+
+    if (verify_search_filter(fs, search_filter, filter_type)) {
+              
+      // check host_ip filter
+      if ((host_ip_filter != NULL) && (host_ip_filter[0] != 0)) {
+        if( verify_host_ip_filter(fs, (char*)ip.c_str(), vlan))
+          return(true);
+      } else {
+        return(true);
+      }
+    }     
+  } else {
+
+    // check host_ip filter
+    if ((host_ip_filter != NULL) && (host_ip_filter[0] != 0)) {
+      if( verify_host_ip_filter(fs, (char*)ip.c_str(), vlan))
+        return(true);
+    } else {
+      return(true);
+    }
+  } 
+
+  return(false);
+
+}
+/* **************************************************** */
+
+
 /* Analysis Flows Stats sorter function */
 void NetworkInterface::sort_and_filter_flow_stats(
     lua_State *vm, std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count,
@@ -11335,7 +11409,7 @@ void NetworkInterface::sort_and_filter_flow_stats(
     AnalysisCriteria filter_type) {
   std::vector<AggregatedFlowsStats *> vector;
   std::vector<AggregatedFlowsStats *>::iterator vector_it;
-  char *sortColumn = NULL, *sortOrder = NULL, *search_string = NULL;
+  char *sortColumn = NULL, *sortOrder = NULL, *search_string = NULL, *host_ip = NULL;
   u_int32_t start = 0, max_num_rows = 0;
 
   if (lua_type(vm, 3) == LUA_TSTRING) sortColumn = (char *)lua_tostring(vm, 3);
@@ -11345,6 +11419,8 @@ void NetworkInterface::sort_and_filter_flow_stats(
     max_num_rows = (u_int32_t)lua_tonumber(vm, 6);
   if (lua_type(vm, 7) == LUA_TSTRING)
     search_string = (char *)lua_tostring(vm, 7);
+  if (lua_type(vm, 8) == LUA_TSTRING)
+    host_ip = (char *)lua_tostring(vm, 8); 
 
   bool is_asc = sortOrder ? (!strcmp(sortOrder, "asc")) : true;
   bool (*sorter)(AggregatedFlowsStats *, AggregatedFlowsStats *) =
@@ -11370,13 +11446,12 @@ void NetworkInterface::sort_and_filter_flow_stats(
         it->second->setProtoName(
             get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
 
-        if ((search_string != NULL) && (search_string[0] != 0)) {
-          if (verify_search_filter(it->second, search_string, filter_type))
-            vector.push_back(it->second);
-          else
-            continue;
-        } else
+        // check filters
+        if(filters_flows(it->second, search_string, filter_type, host_ip ))
           vector.push_back(it->second);
+        else
+          continue;
+
       }
 
       if (sortColumn && (!strcmp(sortColumn, "application")))
@@ -11387,13 +11462,12 @@ void NetworkInterface::sort_and_filter_flow_stats(
       std::unordered_map<string, AggregatedFlowsStats *>::iterator it;
 
       for (it = count_info->begin(); it != count_info->end(); ++it) {
-        if ((search_string != NULL) && (search_string[0] != 0)) {
-          if (verify_search_filter(it->second, search_string, filter_type))
-            vector.push_back(it->second);
-          else
-            continue;
-        } else
+        
+        // check filters
+        if(filters_flows(it->second, search_string, filter_type, host_ip ))
           vector.push_back(it->second);
+        else
+          continue;
       }
 
       if (sortColumn && !strcmp(sortColumn, "info")) sorter = &asc_str_info_cmp;
@@ -11421,15 +11495,12 @@ void NetworkInterface::sort_and_filter_flow_stats(
               get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
         }
 
-        if ((search_string != NULL) && (search_string[0] != 0)) {
-          if (verify_search_filter(it->second, search_string, filter_type))
-            vector.push_back(it->second);
-          else
-            continue;
-        } else
+        // check filters
+        if(filters_flows(it->second, search_string, filter_type, host_ip ))
           vector.push_back(it->second);
+        else
+          continue;
 
-        vector.push_back(it->second);
       }
 
       if (sortColumn && !strcmp(sortColumn, "client"))
