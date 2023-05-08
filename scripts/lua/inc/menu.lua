@@ -696,33 +696,35 @@ page_utils.add_menubar_section({
 
 -- Developer
 
-if not info.oem and auth.has_capability(auth.capabilities.developer) and has_developer_enabled then    
+if not info.oem and auth.has_capability(auth.capabilities.developer) then    
 
-    page_utils.add_menubar_section({
-        section = page_utils.menu_sections.dev,
-        entries = {{
-            entry = page_utils.menu_entries.analyze_pcap,
-            url = '/lua/upload_pcap.lua'
-        }, {
-            entry = page_utils.menu_entries.checks_dev,
-            url = '/lua/checks_overview.lua'
-        }, {
-            entry = page_utils.menu_entries.alert_definitions,
-            url = '/lua/defs_overview.lua'
-        }, {
-            entry = page_utils.menu_entries.directories,
-            url = '/lua/directories.lua'
-        }, {
-            entry = page_utils.menu_entries.api,
-            url = 'https://www.ntop.org/guides/ntopng/api/'
-        }}
-    })
+    if  not ntop.isEnterpriseM() or (has_developer_enabled) then
+        page_utils.add_menubar_section({
+            section = page_utils.menu_sections.dev,
+            entries = {{
+                entry = page_utils.menu_entries.analyze_pcap,
+                url = '/lua/upload_pcap.lua'
+            }, {
+                entry = page_utils.menu_entries.checks_dev,
+                url = '/lua/checks_overview.lua'
+            }, {
+                entry = page_utils.menu_entries.alert_definitions,
+                url = '/lua/defs_overview.lua'
+            }, {
+                entry = page_utils.menu_entries.directories,
+                url = '/lua/directories.lua'
+            }, {
+                entry = page_utils.menu_entries.api,
+                url = 'https://www.ntop.org/guides/ntopng/api/'
+            }}
+        })
+    end
 end
 
 -- ##############################################
 
 -- About
-if has_help_enabled then
+if not ntop.isEnterpriseM() or has_help_enabled then
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.about,
         hidden = info.oem,

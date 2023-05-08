@@ -961,18 +961,22 @@ if auth.has_capability(auth.capabilities.preferences) then
     -- #####################
 
     local function printMenuVoicesPrefs()
+        if ntop.isEnterpriseM() then
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.menu_voices") ..
                   '</th></tr></thead>')
-
+        end
        
         prefsToggleButton(subpage_active, {
             field = auth_toggles["menu_voices"]["help"],
             pref = "menu_voices.help",
+            hidden = not ntop.isEnterpriseM(),
             default = "0"
         })
 
         prefsToggleButton(subpage_active, {
             field = auth_toggles["menu_voices"]["developer"],
+            hidden = not ntop.isEnterpriseM(),
+
             pref = "menu_voices.developer",
             default = "0"
         })
