@@ -716,19 +716,19 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline time_t getRareDestLastEpoch() const { return(last_epoch);  }
   inline void setRareDestLastEpoch(time_t t) { last_epoch=t;        }
   
-  inline bool isOngoingRareDestTrainig() const  { return(rareDestTraining.ongoing); }
-  inline void setOngoingRareDestTrainig(bool b) { rareDestTraining.ongoing = b;     }
+  inline bool isOngoingRareDestTraining() const  { return(rareDestTraining.ongoing); }
+  inline void setOngoingRareDestTraining(bool b) { rareDestTraining.ongoing = b;     }
 
-  inline time_t getStartRareDestTrainig() const { return(rareDestTraining.start); }
-  inline void setStartRareDestTrainig(time_t t) { rareDestTraining.start = t;     }
+  inline time_t getStartRareDestTraining() const { return(rareDestTraining.start); }
+  inline void setStartRareDestTraining(time_t t) { rareDestTraining.start = t;     }
 
-  inline time_t getDurationRareDestTrainig() const  { return(rareDestTraining.duration); }
+  inline time_t getDurationRareDestTraining() const  { return(rareDestTraining.duration); }
 
-  inline u_int32_t getSeenRareDestTrainig() const   { return(rareDestTraining.seen);  }
-  inline void clearSeenRareDestTrainig()            { rareDestTraining.seen = 0;      }
-  inline void incrementSeenRareDestTrainig()        { rareDestTraining.seen++;        } 
+  inline u_int32_t getSeenRareDestTraining() const   { return(rareDestTraining.seen);  }
+  inline void clearSeenRareDestTraining()            { rareDestTraining.seen = 0;      }
+  inline void incrementSeenRareDestTraining()        { rareDestTraining.seen++;        } 
 
-  inline u_int32_t getToSeeRareDestTrainig() const  { return(rareDestTraining.toSee); }
+  inline u_int32_t getToSeeRareDestTraining() const  { return(rareDestTraining.toSee); }
   
   void dumpRareDestToRedis();
   bool loadRareDestFromRedis();
