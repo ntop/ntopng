@@ -24,6 +24,9 @@ local is_admin = isAdministrator()
 local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
+local has_help_enabled = (ntop.getPref("ntopng.prefs.menu_voices.help") ~= '0')
+local has_developer_enabled = (ntop.getPref("ntopng.prefs.menu_voices.developer") ~= '0')
+
 local is_system_interface = page_utils.is_system_view()
 local behavior_utils = require("behavior_utils")
 local session_user = _SESSION['user']
@@ -693,7 +696,8 @@ page_utils.add_menubar_section({
 
 -- Developer
 
-if not info.oem and auth.has_capability(auth.capabilities.developer) then
+if not info.oem and auth.has_capability(auth.capabilities.developer) and has_developer_enabled then    
+
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.dev,
         entries = {{
@@ -718,31 +722,34 @@ end
 -- ##############################################
 
 -- About
-page_utils.add_menubar_section({
-    section = page_utils.menu_sections.about,
-    hidden = info.oem,
-    entries = {{
-        entry = page_utils.menu_entries.about,
-        url = '/lua/about.lua'
-    }, {
-        entry = page_utils.menu_entries.blog,
-        url = 'http://blog.ntop.org/'
-    }, {
-        entry = page_utils.menu_entries.telegram,
-        url = 'https://t.me/ntop_community'
-    }, {
-        entry = page_utils.menu_entries.manual,
-        url = 'https://www.ntop.org/guides/ntopng/'
-    }, {
-        entry = page_utils.menu_entries.divider
-    }, {
-        entry = page_utils.menu_entries.report_issue,
-        url = 'https://github.com/ntop/ntopng/issues'
-    }, {
-        entry = page_utils.menu_entries.suggest_feature,
-        url = 'https://www.ntop.org/support/need-help-2/contact-us/'
-    }}
-})
+if has_help_enabled then
+    page_utils.add_menubar_section({
+        section = page_utils.menu_sections.about,
+        hidden = info.oem,
+        entries = {{
+            entry = page_utils.menu_entries.about,
+            url = '/lua/about.lua'
+        }, {
+            entry = page_utils.menu_entries.blog,
+            url = 'http://blog.ntop.org/'
+        }, {
+            entry = page_utils.menu_entries.telegram,
+            url = 'https://t.me/ntop_community'
+        }, {
+            entry = page_utils.menu_entries.manual,
+            url = 'https://www.ntop.org/guides/ntopng/'
+        }, {
+            entry = page_utils.menu_entries.divider
+        }, {
+            entry = page_utils.menu_entries.report_issue,
+            url = 'https://github.com/ntop/ntopng/issues'
+        }, {
+            entry = page_utils.menu_entries.suggest_feature,
+            url = 'https://www.ntop.org/support/need-help-2/contact-us/'
+        }}
+    })
+
+end
 
 -- ##############################################
 

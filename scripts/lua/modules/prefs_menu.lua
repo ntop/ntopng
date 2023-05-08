@@ -69,6 +69,14 @@ local menu_subpages = {{
                 product = info.product
             })
         },
+        toggle_menu_voice_help = {
+            title = i18n("prefs.toggle_menu_voice_help_title"),
+            description = i18n("prefs.toggle_menu_voice_help_description"),
+        },
+        toggle_menu_voice_developer = {
+            title = i18n("prefs.toggle_menu_voice_developer_title"),
+            description = i18n("prefs.toggle_menu_voice_developer_description"),
+        },
         multiple_ldap_account_type = {
             title = i18n("prefs.multiple_ldap_account_type_title"),
             description = i18n("prefs.multiple_ldap_account_type_description"),

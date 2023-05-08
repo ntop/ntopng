@@ -41,8 +41,13 @@ local auth_toggles = {
     ["local"] = "toggle_local_auth",
     ["ldap"] = "toggle_ldap_auth",
     ["http"] = "toggle_http_auth",
-    ["radius"] = "toggle_radius_auth"
+    ["radius"] = "toggle_radius_auth",
+    ["menu_voices"] = {
+        ["help"] = "toggle_menu_voice_help",
+        ["developer"] = "toggle_menu_voice_developer"
+    }
 }
+
 
 if auth.has_capability(auth.capabilities.preferences) then
     if not table.empty(_POST) then
@@ -952,6 +957,27 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
     end
 
+
+    -- #####################
+
+    local function printMenuVoicesPrefs()
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.menu_voices") ..
+                  '</th></tr></thead>')
+
+       
+        prefsToggleButton(subpage_active, {
+            field = auth_toggles["menu_voices"]["help"],
+            pref = "menu_voices.help",
+            default = "0"
+        })
+
+        prefsToggleButton(subpage_active, {
+            field = auth_toggles["menu_voices"]["developer"],
+            pref = "menu_voices.developer",
+            default = "0"
+        })
+
+    end
     -- #####################
 
     function printAuthentication()
@@ -983,6 +1009,8 @@ if auth.has_capability(auth.capabilities.preferences) then
         if not entries.toggle_local_auth.hidden then
             printLocalAuth()
         end
+
+        printMenuVoicesPrefs()
 
         if not ntop.isnEdge() then
             prefsInformativeField(i18n("notes"), i18n("prefs.auth_methods_order"))
