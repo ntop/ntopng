@@ -28,47 +28,30 @@
 
 bool getDestinationHash(Flow *f, u_int32_t *hash) {
   Host * dest = f->get_srv_host();
-  if (f->isLocalToLocal())
-  {
+  if (f->isLocalToLocal()) {
     char buf[64];
-    if (!dest->isMulticastHost() && dest->isDHCPHost())
-    {
+    if (!dest->isMulticastHost() && dest->isDHCPHost()) {
       char *mac = dest->getMac()->print(buf,sizeof(buf));
       *hash = Utils::hashString(mac);
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination MAC %u - %s", *hash, mac); */
+      return (true);
     }
     
-    if (dest->isIPv6())
-    {
-      char *ipv6 = dest->get_ip()->print(buf,sizeof(buf));
-      *hash = Utils::hashString(ipv6);
-      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6 %u - %s", *hash, ipv6); */
-    }
-
-    if (dest->isIPv4())
-    {
-      char *ipv4 = dest->get_ip()->print(buf,sizeof(buf));
-      *hash = Utils::hashString(ipv4);
-      /* u_int32_t quick_key = ndpi_quick_hash((unsigned char *)ipv4,sizeof(ipv4)); */
-      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv4 %u - %s", *hash, ipv4); */
+    if (dest->isIPv6() || dest->isIPv4()) {
+      char *ip = dest->get_ip()->print(buf,sizeof(buf));
+      *hash = Utils::hashString(ip);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6/IPv4 %u - %s", *hash, ip); */
+      return (true);
     }
   }
-
-  if (f->isLocalToRemote())
-  {
+  if (f->isLocalToRemote()) {
     char name_buf[128];
     char *domain = dest->get_name(name_buf, sizeof(name_buf), false);
     *hash = Utils::hashString(domain);
     /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare remote destination %u - %s", *hash, domain); */
+    return (true);
   }
-  
-  if ( *hash == 0 && (!f->isLocalToLocal() || !f->isLocalToRemote()) )
-  {
-    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Destination not hashed: %s", json_object_to_json_string(dest->get_ip()->getJSONObject())); */
-    return (false);
-  }
-
-  return (true);
+  return (false);
 }
 
 /* ***************************************************** */
