@@ -1732,7 +1732,7 @@ local function getParamFilter(page_params, param_name)
     return ''
 end
 function printTabList(base_url, page_params, active) 
-   if(ntop.isEnterpriseM()) then
+   if(ntop.isEnterpriseM() or (ntop.isnEdge() and ntop.isnEdgeEnterprise())) then
       print[[
          <div class="col-md-12 col-lg-12">
          <div class="card">
@@ -1756,18 +1756,6 @@ function printTabList(base_url, page_params, active)
             </div>
          </div>
          </div>
-         </div>
-      ]]
-   else
-      print[[
-         <div class="card-body">
-            <div id="flows_page_type">
-            <div class="card-header mb-2">
-            <ul class="nav nav-tabs card-header-tabs" role="tablist">
-               <li><a class="active nav-item nav-link" href="]]print(getPageUrl(base_url, {host=page_params.host, flows_page_type = "live_flows"}))print[[ ">]]print(i18n("flows_page.live_flows"))print[[</a></li>
-            </ul>
-            </div>
-            </div>
          </div>
       ]]
    end
