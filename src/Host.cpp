@@ -2612,6 +2612,7 @@ void Host::dumpRareDestToRedis() {
     char *encoded_bmap = Utils::base64_encode((unsigned char *)value, size);
     size = strlen(encoded_bmap)+2;
     redis->hashSet(key, buf, encoded_bmap);
+    free(encoded_bmap);
     free(value);
   }
 
@@ -2625,8 +2626,9 @@ void Host::dumpRareDestToRedis() {
   if (value) {
     char *encoded_bmap = Utils::base64_encode((unsigned char *)value, size);
     size = strlen(encoded_bmap)+2;
-    redis->hashSet(key, buf, value);
-	  free(value);
+    redis->hashSet(key, buf, encoded_bmap);
+    free(encoded_bmap);
+    free(value);
   }
 
   snprintf(buf, sizeof(buf), "rare_dest_revise_len");
@@ -2638,6 +2640,7 @@ void Host::dumpRareDestToRedis() {
   snprintf(last_epoch_ser, sizeof(last_epoch_ser), "%ld", last_epoch);
 
   redis->hashSet(key, buf, last_epoch_ser);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dump to redis finished");
 }
 
 bool Host::loadRareDestFromRedis() {
