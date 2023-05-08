@@ -22,9 +22,41 @@
 #include "ntop_includes.h"
 #include "flow_checks_includes.h"
 
+#define TODO_HERE 1
 #define rareDestEpoch 100  /* placeholder value */
 
 /* ***************************************************** */
+
+bool getDestinationHash(Flow *f, u_int32_t *hash) {
+  Host * dest = f->get_srv_host();
+  if (f->isLocalToLocal()) {
+    char buf[64];
+    if (!dest->isMulticastHost() && dest->isDHCPHost()) {
+      char *mac = dest->getMac()->print(buf,sizeof(buf));
+      *hash = Utils::hashString(mac);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination MAC %u - %s", *hash, mac); */
+      return (true);
+    }
+    
+    if (dest->isIPv6() || dest->isIPv4()) {
+      char *ip = dest->get_ip()->print(buf,sizeof(buf));
+      *hash = Utils::hashString(ip);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6/IPv4 %u - %s", *hash, ip); */
+      return (true);
+    }
+  }
+  if (f->isLocalToRemote()) {
+    char name_buf[128];
+    char *domain = dest->get_name(name_buf, sizeof(name_buf), false);
+    *hash = Utils::hashString(domain);
+    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare remote destination %u - %s", *hash, domain); */
+    return (true);
+  }
+  return (false);
+}
+
+/* ***************************************************** */
+
 /*
   ndpi_bitmap_xor(ndpi_bitmap*, ndpi_bitmap*) defined in ndpi_api.h
 */
@@ -32,8 +64,13 @@
 void RareDestination::protocolDetected(Flow *f) {
   bool is_rare_destination = false;
 
-  if(f->getFlowServerInfo() != NULL) 
-  {
+  /* TODO: check if this is a real rare destination */
+  if(f->getFlowServerInfo() != NULL) {
+#ifdef TODO_HERE
+    u_int32_t hash = 0;
+    if(!getDestinationHash(f,&hash)) { return; }
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination hash %u", hash);
+
     time_t timeNow = time(nullptr);
     Host *cliHost = f->get_cli_host();
     ndpi_bitmap *rare_dest = cliHost->getRareDestBMap();
@@ -47,24 +84,18 @@ void RareDestination::protocolDetected(Flow *f) {
     if (cliHost->isOngoingRareDestTraining() && cliHost->getSeenRareDestTraining() >= cliHost->getToSeeRareDestTraining() && timeNow - cliHost->getStartRareDestTraining() >= cliHost->getDurationRareDestTraining())
       cliHost->setOngoingRareDestTraining(false);
 
-    if (!cliHost->isOngoingRareDestTraining() && timeNow - cliHost->getRareDestLastEpoch() >= rareDestEpoch)
-    {
-      if (timeNow - cliHost->getRareDestLastEpoch() >= 2*rareDestEpoch)
-      {
+    if (!cliHost->isOngoingRareDestTraining() && timeNow - cliHost->getRareDestLastEpoch() >= rareDestEpoch) {
+      if (timeNow - cliHost->getRareDestLastEpoch() >= 2*rareDestEpoch) {
         ndpi_bitmap_clear(rare_dest);
         ndpi_bitmap_clear(rare_dest_revise);
-      }
-      else
-      {
+      } else {
         ndpi_bitmap_xor(rare_dest_revise, rare_dest);  // updates rare_dest_revise
         ndpi_bitmap_and(rare_dest, rare_dest_revise); // makes rare_dest = rare_dest_revise
       }
       cliHost->setRareDestLastEpoch(timeNow);
     }
 
-    u_int32_t hash;
-    if (getDestinationHash(f, &hash))
-    {
+    if (!hash) {
       if (ndpi_bitmap_isset(rare_dest, hash)
         ndpi_bitmap_unset(rare_dest_revise, hash);
       else {
@@ -74,6 +105,9 @@ void RareDestination::protocolDetected(Flow *f) {
       }
     }
     /* error: hashing not possible */
+
+    //is_rare_destination = true;
+#endif
   }
   
   if(is_rare_destination) {
