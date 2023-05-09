@@ -1095,7 +1095,7 @@ char *Host::get_name(char *buf, u_int buf_len,
 
   if (rc == 0 && strcmp(addr, name_buf))
     setResolvedName(name_buf);
-  else
+  else if (!skip_resolution)
     addr = ip.print(name_buf, sizeof(name_buf));
 
 out:
