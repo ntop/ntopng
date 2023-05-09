@@ -30,7 +30,10 @@ class ElasticSearch : public DB {
   u_int num_queued_elems;
   struct string_list *head, *tail;
   Mutex listMutex;
+
   bool reportDrops;
+  time_t lastReportedDropsTime;
+
   char *es_template_push_url, *es_version_query_url;
   char es_version[2];
   bool es_version_inited;

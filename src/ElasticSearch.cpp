@@ -43,7 +43,9 @@ ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
   num_queued_elems = 0;
   head = NULL;
   tail = NULL;
+
   reportDrops = false;
+  lastReportedDropsTime = 0;
 
   if (!(es_template_push_url = (char *)malloc(MAX_PATH)) ||
       !(es_version_query_url = (char *)malloc(MAX_PATH)))
@@ -84,6 +86,8 @@ bool ElasticSearch::dumpFlow(time_t when, Flow *f, char *msg) {
   bool rc = true;
 
   if (num_queued_elems >= ES_MAX_QUEUE_LEN) {
+    time_t now = time(NULL);
+
     if (!reportDrops) {
       ntop->getTrace()->traceEvent(
           TRACE_WARNING, "[ES] Export queue too long [%d]: expect drops",
@@ -92,9 +96,13 @@ bool ElasticSearch::dumpFlow(time_t when, Flow *f, char *msg) {
     }
 
     incNumQueueDroppedFlows();
-    ntop->getTrace()->traceEvent(
-        TRACE_INFO, "[ES] Message dropped. Total messages dropped: %lu\n",
-        getNumDroppedFlows());
+
+    if (lastReportedDropsTime < now) {
+      ntop->getTrace()->traceEvent(
+          TRACE_INFO, "[ES] Message dropped. Total messages dropped: %lu\n",
+          getNumDroppedFlows());
+      lastReportedDropsTime = now;
+    }
 
     return (false);
   }
