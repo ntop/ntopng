@@ -163,9 +163,6 @@ function set_selected_option(selected_option, push_options) {
 
     if (props.multiple == true && selected_option_2.value?.value != null) {
      	selected_values.value.push(selected_option_2.value.value);
-        if(push_options == true) {
-	        options_2.value.push(selected_option_2.value);
-        }
     }
 }
 
@@ -221,7 +218,9 @@ function update_multiple_values(values) {
     selected_values.value = [];
     options_2.value = [];
     values.forEach(function(element) {
-        set_selected_option(element, true);
+        options_2.value.push(element);
+        if (element.selected == true)
+            set_selected_option(element);
     })
 }
 

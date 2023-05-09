@@ -90,7 +90,6 @@ const ip = ref(null);
 const port = ref(null);
 const repeater_type = ref({value: "mdns", label: "MDNS" });
 const emit = defineEmits(['edit', 'add'])
-const selected_interfaces = ref([]);
 const interfaces_search = ref(null);
 
 const showed = () => {};
@@ -180,13 +179,16 @@ function init(row) {
 		
 		if (is_open_in_add.value == false) {
 			const row_interfaces = row.interfaces.split(",");
-			row_interfaces.forEach(function(el) {
-				const value = interface_array.value.find(element => element.value == el)
-				if(value != null) {
-					selected_interfaces.value.push(value);
+			let selected_interfaces = [] 
+			interface_array.value.forEach(function(el) {
+				el.selected = false;
+				if(row_interfaces.find(element => element == el.value)) {
+					el.selected = true;
 				}
+				
+				selected_interfaces.push(el);
 			})
-			interfaces_search.value.update_multiple_values(selected_interfaces.value);
+			interfaces_search.value.update_multiple_values(selected_interfaces);
 		}
 }
 
