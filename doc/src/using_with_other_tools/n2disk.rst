@@ -139,6 +139,12 @@ raw data).
 
   The Smart Recording Architecture
 
+For further information please also read the `Smart Recording blog post`_ and
+watch the `Smart Recording video tutorial`_.
+
+.. _`Smart Recording blog post`: https://www.ntop.org/announce/introducing-smart-recording-in-n2disk-combining-cybersecurity-with-packet-to-disk/
+.. _`Smart Recording video tutorial`: https://www.youtube.com/watch?v=R_prNIY5aIg
+
 In order to enable the Smart Recording, continuous Traffic Recording should be
 enabled as described in the previous page, and in the same page it is required to:
 
