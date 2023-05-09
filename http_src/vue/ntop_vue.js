@@ -36,6 +36,7 @@ import { default as PageEditApplications } from "./page-edit-applications.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
 import { default as PageManageConfigurationBackup2 } from "./page-manage-configurations-backup2.vue";
+import { default as PageSNMPDeviceRules} from "./page-snmp-device-rules.vue";
 
 import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue" 
 
@@ -91,6 +92,7 @@ let ntopVue = {
     PageHostMap: PageHostMap,
     PageManageConfigurationBackup: PageManageConfigurationBackup,
     PageManageConfigurationBackup2: PageManageConfigurationBackup2,
+    PageSNMPDeviceRules: PageSNMPDeviceRules,
 
     PageEditApplications: PageEditApplications,
 
@@ -99,6 +101,7 @@ let ntopVue = {
     PageTestNewTable: PageTestNewTable,
     NedgeRulesConfig: NedgeRulesConfig,
     NedgeRepeatersConfig: NedgeRepeatersConfig,
+    
 
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,
