@@ -33,7 +33,7 @@ function upload_check()
 {% end %}
 type="checkbox" class="form-check-input" id="create_new_interface"></span><br><small>{{ i18n("create_new_pcap_iface_descr") }} </small></br></td></tr>
 
-    <tr><td colspan=2><input type="submit" value="{{ i18n("upload_pcap") }}"></td></tr>
+    <tr><td colspan=2><input type="submit" class="btn btn-primary" value="{{ i18n("upload_pcap") }}"></td></tr>
    </form>
 
 </table>
