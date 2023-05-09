@@ -83,7 +83,7 @@ bool ElasticSearch::dumpFlow(time_t when, Flow *f, char *msg) {
   if(num_queued_elems >= ES_MAX_QUEUE_LEN) {
     if(!reportDrops) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "[ES] Export queue too long [%d]: expect drops",
-				   num_queued_elems);
+				   num_queued_elems.load());
       reportDrops = true;
     }
 
@@ -149,8 +149,8 @@ void ElasticSearch::indexESdata() {
   while(!ntop->getGlobals()->isShutdown() && isRunning()) {
     time_t now = time(0);
 
-    if((num_queued_elems >= min_buffered_flows) &&
-       (now >= last_dump + ntop->getPrefs()->get_dump_frequency())) {
+    if ((num_queued_elems >= min_buffered_flows) ||
+        (num_queued_elems > 0 && (now >= last_dump + ntop->getPrefs()->get_dump_frequency()))) {
       u_int len, num_flows;
       char index_name[64], header[256];
       struct tm* tm_info;
