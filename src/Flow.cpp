@@ -6004,9 +6004,13 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     memcpy(&rsp, &payload[i], sizeof(rsp));
     data_len = ntohs(rsp.data_len), rsp_type = ntohs(rsp.rsp_type);
 
+#if 1
+    name = _name;
+#else
     /* Skip lenght for strings >= 32 with head length */
     name = &_name[((data_len <= 32) || (_name[0] >= '0')) ? 0 : 1];
-
+#endif
+    
 #ifdef DEBUG_DISCOVERY
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%u][%s][len=%u]",
                                  ntohs(rsp.rsp_type) & 0xFFFF, name, data_len);
