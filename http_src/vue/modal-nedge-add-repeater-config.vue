@@ -70,7 +70,7 @@
     </div>
   </template>
   <template v-slot:footer>
-    <button type="button" :disabled="disable_add && repeater_type == 'custom'" @click="apply" class="btn btn-primary">{{button_text}}</button>
+    <button type="button" :disabled="invalid_iface_number || disable_add && repeater_type == 'custom'" @click="apply" class="btn btn-primary">{{button_text}}</button>
   </template>
 </modal>
 </template>
@@ -119,6 +119,7 @@ const repeater_type_array = [
 
 const repeater_id = ref(0);
 const disable_add = ref(true)
+const invalid_iface_number = ref(true)
 
 const selected_repeater_type = ref({});
 
@@ -133,6 +134,7 @@ const button_text = ref("");
 
 const all_criteria = (item) => {
 	selected_dest_interface.value = item;
+	invalid_iface_number.value = item.length < 2;
 }
 
 const update_interfaces_selected = (item) => {
@@ -176,14 +178,16 @@ function init(row) {
 			let default_type = repeater_type_array.find((s) => s.default == true);
     }
 		
-		const row_interfaces = row.interfaces.split(",");
-		row_interfaces.forEach(function(el) {
-			const value = interface_array.value.find(element => element.value == el)
-			if(value != null) {
-				selected_interfaces.value.push(value);
-			}
-		})
-		interfaces_search.value.update_multiple_values(interface_array.value);
+		if (is_open_in_add.value == false) {
+			const row_interfaces = row.interfaces.split(",");
+			row_interfaces.forEach(function(el) {
+				const value = interface_array.value.find(element => element.value == el)
+				if(value != null) {
+					selected_interfaces.value.push(value);
+				}
+			})
+			interfaces_search.value.update_multiple_values(selected_interfaces.value);
+		}
 }
 
 async function change_repeater_type(type) {
