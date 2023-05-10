@@ -59,11 +59,6 @@ local function get_pools_serialized_key(ifid)
   return "ntopng.serialized_host_pools.ifid_" .. ifid
 end
 
--- It is safe to call this multiple times
-local function initInterfacePools()
-  host_pools_nedge.createPool(host_pools_nedge.DEFAULT_POOL_ID, host_pools_nedge.DEFAULT_POOL_NAME)
-end
-
 function host_pools_nedge.getPoolDetail(pool_id, detail)
   local details_key = get_pool_details_key(pool_id)
 
@@ -251,70 +246,6 @@ function getMembershipInfo(member_and_vlan)
   return exists, info
 end
 
---
--- Note:
---
--- When strict_host_mode is not set, hosts which have a MAC address will have the
--- MAC address changed instead of the IP address when their MAC address is already bound to
--- a pool.
---
-function host_pools_nedge.changeMemberPool(member_and_vlan, new_pool, info --[[optional]], strict_host_mode --[[optional]])
-  traceHostPoolEvent(TRACE_NORMAL,
-		     string.format("Pool change requested. [member: %s][new_pool: %s][strict_host_mode: %s]",
-				   member_and_vlan, new_pool, tostring(strict_host_mode)))
-
-  if not strict_host_mode then
-    local hostkey, is_network = host_pools_nedge.getMemberKey(member_and_vlan)
-
-    if (not is_network) and (not isMacAddress(member_and_vlan)) then
-      -- this is a single host, try to get the MAC address
-      if info == nil then
-        local hostinfo = hostkey2hostinfo(hostkey)
-        info = interface.getHostInfo(hostinfo["host"], hostinfo["vlan"])
-      end
-
-      if not isEmptyString(info["mac"]) and (info["mac"] ~= "00:00:00:00:00:00") then
-        local mac_has_pool, mac_pool_info = getMembershipInfo(info["mac"])
-
-        -- Two cases:
-        --  1. if we are moving to a well defined pool, we must set the mac pool
-        --  2. if we are moving to the default pool, we must set the mac pool only
-        --     if the mac already has a pool, otherwise we set the ip pool
-        if (new_pool ~= host_pools_nedge.DEFAULT_POOL_ID) or mac_has_pool then
-          -- we must change the MAC address in order to change the host pool
-          member_and_vlan = info["mac"]
-        end
-      end
-    end
-  end
-
-  local member_exists, info = getMembershipInfo(member_and_vlan)
-  local prev_pool
-
-  if member_exists then
-    -- use the normalized key
-    member_and_vlan = info.key
-    prev_pool = info.existing_member_pool
-  else
-    prev_pool = host_pools_nedge.DEFAULT_POOL_ID
-  end
-
-  if prev_pool == new_pool then
-     traceHostPoolEvent(TRACE_ERROR,
-		     string.format("Pool did't change. Exiting. [member: %s][prev_pool: %s][new_pool: %s]",
-				   member_and_vlan, prev_pool, new_pool))
-    return false
-  end
-
-  traceHostPoolEvent(TRACE_NORMAL,
-		     string.format("Pool change prepared. [member: %s][info.key: %s][prev_pool: %s][new_pool: %s]",
-				   member_and_vlan, tostring(info.key), prev_pool, new_pool))
-
-  host_pools_nedge.deletePoolMember(prev_pool, info.key)
-  addMemberToRedisPool(new_pool, info.key)
-  return true
-end
-
 function host_pools_nedge.addPoolMember(pool_id, member_and_vlan)
   traceHostPoolEvent(TRACE_NORMAL,
 		     string.format("Pool member addition requested. [member: %s][pool_id: %s]",
@@ -342,6 +273,10 @@ function host_pools_nedge.deletePoolMember(pool_id, member_and_vlan)
   ntop.delMembersCache(members_key, member_and_vlan)
 end
 
+function host_pools_nedge.initPools()
+  host_pools_nedge.createPool(host_pools_nedge.DEFAULT_POOL_ID, host_pools_nedge.DEFAULT_POOL_NAME)
+end
+
 function host_pools_nedge.getPoolsList(without_info)
   local ids_key = get_pool_ids_key()
   local ids = ntop.getMembersCache(ids_key)
@@ -352,8 +287,7 @@ function host_pools_nedge.getPoolsList(without_info)
   end
 
   local pools = {}
-
-  initInterfacePools()
+                                                                                                                   host_pools_nedge.initPools()
 
   for _, pool_id in pairsByValues(ids, asc) do
     pool_id = tostring(pool_id)
@@ -488,25 +422,6 @@ function host_pools_nedge.emptyPools()
     for _, pool in pairs(pools_list) do
        host_pools_nedge.emptyPool(pool["id"])
     end
-  end
-end
-
-function host_pools_nedge.initPools()
-  for _, ifname in pairs(interface.getIfNames()) do
-    local ifid = getInterfaceId(ifname)
-    local ifstats = interface.getStats()
-
-    -- Note: possible shapers are initialized in shaper_utils::initShapers
-    initInterfacePools()
-  end
-end
-
-function host_pools_nedge.getMacPool(mac_address)
-  local exists, info = getMembershipInfo(mac_address)
-  if exists then
-    return tostring(info.existing_member_pool)
-  else
-    return host_pools_nedge.DEFAULT_POOL_ID
   end
 end
 
