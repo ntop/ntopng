@@ -1,7 +1,7 @@
 <template>
 <div style="width:100%" v-if="show_alert == true" class="alert alert-dismissable" :class="alert_type">
   <span v-html="body"></span>
-<button type="button" @click="close" class="btn-close"  aria-label="Close"></button>
+<button v-if="!no_close_button" type="button" @click="close" class="btn-close"  aria-label="Close"></button>
 </div>
 </template>
 
@@ -12,7 +12,8 @@ export default defineComponent({
     },
     props: {
 	id: String,
-	global: Boolean
+	global: Boolean,
+	no_close_button: Boolean,
     },
     emits: [],
     /** This method is the first method of the component called, it's called before html template creation. */

@@ -7,6 +7,20 @@
     "rsp_records_field": "records",
     "columns": [
 	{
+	    "title_i18n": "actions",
+	    "sortable": false,
+	    "class": ["text-nowrap"],
+	    "render_type": "buttons_list",
+	    "buttons_list": [
+		{ "icon": "fas fa fa-search-plus", "title_i18n": "info", "event_id": "click_button_info" },
+		{ "icon": "fas fa-stream", "title_i18n": "db_explorer.historical_data", "event_id": "click_button_historical_flows" },
+		{ "icon": "fas fa fa-user-check", "title_i18n": "acknowledge", "event_id": "click_button_acknowledge" },
+		{ "icon": "fas fa fa-bell-slash", "title_i18n": "disable", "event_id": "click_button_disable" },
+		{ "icon": "fas fa fa-cog", "title_i18n": "settings", "event_id": "click_button_settings" },
+		{ "icon": "fas fa fa-trash", "title_i18n": "remove", "event_id": "click_button_remove" }
+	    ]
+	},
+	{
 	    "title_i18n": "show_alerts.alert_datetime",
 	    "data_field": "tstamp",
 	    "sortable": true,
@@ -101,15 +115,6 @@
 	    "sortable": false,
 	    "render_type": "formatProbeIP",
 	    "class": ["text-nowrap"]
-	},
-	{
-	    "title_i18n": "actions",
-	    "sortable": false,
-	    "class": ["text-nowrap"],
-	    "render_type": "buttons_list",
-	    "buttons_list": [
-		{ "icon": "fas fa fa-search-plus", "title_i18n": "info", "event_id": "click_button_info" }
-	    ]
 	}
     ]
 }

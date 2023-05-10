@@ -54,15 +54,9 @@
 	             :base_url_request="chart_data_url"
 		     :register_on_status_change="false">
 	      </Chart>
-	      <ModalAlertsFilter
-	        :alert="current_alert"
-		:page="page"
-		@exclude="add_exclude"
-		ref="modal_alerts_filter">
-	      </ModalAlertsFilter>
             </div>
           </div>
-
+	  
 	  <Table ref="table_alerts" id="table_config.id"
                  :key="table_config.columns" :columns="table_config.columns"
                  :get_rows="table_config.get_rows"
@@ -73,7 +67,7 @@
 		 :f_is_column_sortable="table_config.f_is_column_sortable"
 		 :enable_search="table_config.enable_search"
 		 :paging="table_config.paging"
-		 @custom_event="on_table_button_click">
+		 @custom_event="on_table_custom_event">
           </Table>
 	  
 	</div>
@@ -82,11 +76,23 @@
   </div>
   
 </div>
+
+<ModalAcknoledgeAlert ref="modal_acknowledge" :context="context" @acknowledge="refresh_page"></ModalAcknoledgeAlert>
+
+<ModalDeleteAlert ref="modal_delete" :context="context" @delete_alert="refresh_page"></ModalDeleteAlert>
+
+<ModalAlertsFilter
+  :alert="current_alert"
+  :page="page"
+  @exclude="add_exclude"
+  ref="modal_alerts_filter">
+</ModalAlertsFilter>
+
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeMount } from "vue";
-import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager } from "../services/context/ntopng_globals_services";
+import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility } from "../services/context/ntopng_globals_services";
 import NtopUtils from "../utilities/ntop-utils";
 import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
@@ -102,6 +108,8 @@ import { default as Table } from "./table.vue";
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAlertsFilter } from "./modal-alerts-filter.vue";
+import { default as ModalAcknoledgeAlert } from "./modal-acknowledge-alert.vue";
+import { default as ModalDeleteAlert } from "./modal-delete-alert.vue";
 
 const _i18n = (t) => i18n(t);
 
@@ -117,6 +125,8 @@ const modal_snapshot = ref(null);
 const range_picker = ref(null);
 const permanent_link_button = ref(null);
 const modal_alerts_filter = ref(null);
+const modal_acknowledge = ref(null);
+const modal_delete = ref(null);
 
 const current_alert = ref(null);
 const table_config = ref({});
@@ -245,10 +255,77 @@ async function add_exclude(params) {
     }    
 }
 
-function on_table_button_click(event) {
+function refresh_page() {
+    console.log("todo refresh page");
+}
+
+function on_table_custom_event(event) {
+    let events_managed = {
+	"click_button_info": click_button_info,
+	"click_button_historical_flows": click_button_historical_flows,
+	"click_button_acknowledge": click_button_acknowledge,
+	"click_button_disable": click_button_disable,
+	"click_button_settings": click_button_settings,
+	"click_button_remove": click_button_remove,
+    };
     console.log(event);
-    if (event.event_id == "click_button_info") {
+    if (events_managed[event.event_id] == null) {
+	return;
     }
+    events_managed[event.event_id](event);
+}
+
+function click_button_remove(event) {
+    const alert = event.row;
+    let status_view = get_status_view();
+    modal_delete.value.show(alert, status_view);
+}
+
+function click_button_settings(event) {
+    const alert = event.row;
+    const check_settings_href = $(alert.msg.configset_ref).attr('href');
+    window.location.href = check_settings_href;
+}
+
+function click_button_disable(event) {
+    const alert = event.row;
+    show_modal_alerts_filter(alert);
+}
+
+function click_button_acknowledge(event) {
+    const alert = event.row;    
+    modal_acknowledge.value.show(alert, props.context);
+}
+
+function click_button_historical_flows(event) {
+    const alert = event.row;
+    if(alert.link_to_past_flows) {	
+	window.location.href = alert.link_to_past_flows;
+    } else {
+	window.location.href = `${http_prefix}/lua/pro/db_search.lua`;
+    }    
+}
+
+function click_button_info(event) {
+    const alert = event.row;
+    let status_view = get_status_view();
+    let params_obj = {
+	page: page,
+	status: status_view,
+	row_id: alert.row_id,
+	tstamp: alert.tstamp.value,
+    };
+    let url_params = ntopng_url_manager.obj_to_url_params(params_obj);
+    const href = `${http_prefix}/lua/pro/db_flow_details.lua?${url_params}`;
+    window.open(href, "_blank");
+}
+
+function get_status_view() {
+    let status_view = ntopng_url_manager.get_url_entry("status");
+    if (status_view == null || status_view == "") {
+	status_view = "historical";
+    }
+    return status_view;
 }
 
 </script>

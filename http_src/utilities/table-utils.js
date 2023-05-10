@@ -42,16 +42,18 @@ function get_f_print_vue_node_row(table_def) {
 	if (col.render_type != "buttons_list") { return null; }
 	if (return_true_if_def == true) { return true; }
 	
-	const on_click = () => {
-	    let event = {event_id: col.event_id, row, col};
-	    vue_obj.emit('custom_event', event);
+	const on_click = (id) => {
+	    return () => {
+		let event = {event_id: id, row, col};
+		vue_obj.emit('custom_event', event);
+	    }
 	};
 	let render_in_dropdown = col.buttons_list.length > 3;
 	let v_nodes = col.buttons_list.map((b_def) => {
 	    if (render_in_dropdown == false) {
-		return vue_obj.h("button", { class: "btn btn-sm btn-secondary", onClick: on_click }, [ vue_obj.h("span", { class: b_def.icon, style: "margin-right:0.2rem;", title: _i18n(b_def.title_i18n)}), ]);
+		return vue_obj.h("button", { class: "btn btn-sm btn-secondary", style: "margin-right:0.2rem;", onClick: on_click(b_def.event_id) }, [ vue_obj.h("span", { class: b_def.icon, style: "", title: _i18n(b_def.title_i18n)}), ]);
 	    }
-	    return vue_obj.h("a", { onClick: on_click }, [ vue_obj.h("span", { class: b_def.icon, style: "margin-right:0.2rem;cursor:pointer;" }), _i18n(b_def.title_i18n)]);
+	    return vue_obj.h("a", { onClick: on_click(b_def.event_id), style: "cursor:pointer;" }, [ vue_obj.h("span", { class: b_def.icon, style: "margin-right:0.2rem;cursor:pointer;" }), _i18n(b_def.title_i18n)]);
 
 	});
 	if (render_in_dropdown == true) {
