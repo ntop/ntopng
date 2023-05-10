@@ -58,7 +58,6 @@ if ntop.isAppliance() then
    ntop.reloadPreferences()
 end
 
-host_pools_nedge.migrateHostPools()
 if ntop.isnEdge() then
    host_pools_nedge.initPools()
 end
