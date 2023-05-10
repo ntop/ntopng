@@ -776,8 +776,18 @@ label {
   border-color: #3C3C3C;
 }
 
+.select2-selection {
+  color: #D1D1D1 !important;
+  background-color: #0D1117 !important;
+  border-color: #3c3c3c !important;
+}
+
 .select2-selection__rendered {
   border-color: #3C3C3C !important;
+  color: #D1D1D1 !important;
+}
+
+.select2-selection__choice__display {
   color: #D1D1D1 !important;
 }
 
