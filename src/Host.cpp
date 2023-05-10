@@ -308,9 +308,15 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, u_int16_t observation_point_
   ndpi_hll_init(&incoming_hosts_tcp_udp_port_with_no_tx_hll, 5 /* StdError: 18.4% */);
 
   if( !loadRareDestFromRedis() ){
-    last_epoch = 0;
-    rare_dest = ndpi_bitmap_alloc();
-    rare_dest_revise = ndpi_bitmap_alloc();
+    if (!rare_dest)
+      rare_dest = ndpi_bitmap_alloc();
+    else
+      ndpi_bitmap_clear(rare_dest);
+    
+    if (!rare_dest_revise)
+      rare_dest_revise = ndpi_bitmap_alloc();
+    else
+      ndpi_bitmap_clear(rare_dest_revise);
   }
 
   deferredInitialization(); /* TODO To be called asynchronously for improving performance */
@@ -2598,7 +2604,7 @@ void Host::resetHostContacts() {
 /* *************************************** */
 
 void Host::dumpRareDestToRedis() {
-  char key[CONST_MAX_LEN_REDIS_KEY], buf[32], last_epoch_ser[32], size_ser[32], *value;
+  char key[CONST_MAX_LEN_REDIS_KEY], buf[32], param_ser[32], *value;
   Redis *redis = ntop->getRedis();
   size_t size;
 
@@ -2617,8 +2623,8 @@ void Host::dumpRareDestToRedis() {
   }
 
   snprintf(buf, sizeof(buf), "rare_dest_len");
-  snprintf(size_ser, sizeof(size_ser), "%lu", size);
-  redis->hashSet(key, buf, size_ser);
+  snprintf(param_ser, sizeof(param_ser), "%zu", size);
+  redis->hashSet(key, buf, param_ser);
 
   snprintf(buf, sizeof(buf), "rare_dest_revise");
   size = ndpi_bitmap_serialize(rare_dest_revise, &value);
@@ -2632,19 +2638,27 @@ void Host::dumpRareDestToRedis() {
   }
 
   snprintf(buf, sizeof(buf), "rare_dest_revise_len");
-  snprintf(size_ser, sizeof(size_ser), "%lu", size);
-  redis->hashSet(key, buf, size_ser);
+  snprintf(param_ser, sizeof(param_ser), "%zu", size);
+  redis->hashSet(key, buf, param_ser);
 
 
   snprintf(buf, sizeof(buf), "last_epoch");
-  snprintf(last_epoch_ser, sizeof(last_epoch_ser), "%ld", last_epoch);
+  snprintf(param_ser, sizeof(param_ser), "%ld", last_epoch);
+  redis->hashSet(key, buf, param_ser);
 
-  redis->hashSet(key, buf, last_epoch_ser);
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dump to redis finished");
+  snprintf(buf, sizeof(buf), "t_start_training");
+  snprintf(param_ser, sizeof(param_ser), "%ld", rareDestTraining.start);
+  redis->hashSet(key, buf, param_ser);
+
+  snprintf(buf, sizeof(buf), "seen_flows_training");
+  snprintf(param_ser, sizeof(param_ser), "%lu", (unsigned long)rareDestTraining.seen);
+  redis->hashSet(key, buf, param_ser);
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Rare Dest data dumped to redis");
 }
 
 bool Host::loadRareDestFromRedis() {
-  char key[CONST_MAX_LEN_REDIS_KEY], buf[32], last_epoch_str[32], size_str[32], *value;
+  char key[CONST_MAX_LEN_REDIS_KEY], buf[32], param_str[32], *value;
   Redis *redis = ntop->getRedis();
   size_t size;
   
@@ -2653,12 +2667,20 @@ bool Host::loadRareDestFromRedis() {
   snprintf(key, sizeof(key), HOST_RARE_DEST_SERIALIZED_KEY, iface->get_id());
 
   snprintf(buf, sizeof(buf), "last_epoch");
-  if( redis->hashGet(key, buf, last_epoch_str, sizeof(last_epoch_str)) != 0 ) return(false);
-  last_epoch = atol(last_epoch_str);
+  if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) return(false);
+  last_epoch = atol(param_str);
+
+  snprintf(buf, sizeof(buf), "t_start_training");
+  if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) return(false);
+  rareDestTraining.start = atol(param_str);
+
+  snprintf(buf, sizeof(buf), "seen_flows_training");
+  if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) return(false);
+  rareDestTraining.seen = (u_int32_t)strtoul(param_str, NULL, 10);
 
   snprintf(buf, sizeof(buf), "rare_dest_len");
-  if( redis->hashGet(key, buf, size_str, sizeof(size_str)) != 0 ) return(false);
-  size = (size_t)strtoul(size_str, NULL, 10);
+  if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) return(false);
+  size = (size_t)strtoul(param_str, NULL, 10);
   
   if((value = (char *) malloc(size)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
@@ -2666,14 +2688,16 @@ bool Host::loadRareDestFromRedis() {
   }
 
   snprintf(buf, sizeof(buf), "rare_dest");
-  if(redis->hashGet(key, buf, value, size) == 0) {
-    rare_dest = ndpi_bitmap_deserialize((char *)Utils::base64_decode((std::string)value).c_str());
+  if(redis->hashGet(key, buf, value, size) != 0) {
+    free(value);
+    return(false);
   }
+  rare_dest = ndpi_bitmap_deserialize((char *)Utils::base64_decode((std::string)value).c_str());
   free(value);
 
   snprintf(buf, sizeof(buf), "rare_dest_revise_len");
-  if( redis->hashGet(key, buf, size_str, sizeof(size_str)) != 0 ) return(false);
-  size = (size_t)strtoul(size_str, NULL, 10);
+  if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) return(false);
+  size = (size_t)strtoul(param_str, NULL, 10);
 
   if((value = (char *) malloc(size)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
@@ -2681,9 +2705,11 @@ bool Host::loadRareDestFromRedis() {
   }
 
   snprintf(buf, sizeof(buf), "rare_dest_revise");
-  if(redis->hashGet(key, buf, value, size) == 0) {
-    rare_dest_revise = ndpi_bitmap_deserialize((char *)Utils::base64_decode((std::string)value).c_str());
+  if(redis->hashGet(key, buf, value, size) != 0) {
+    free(value);
+    return(false);
   }
+  rare_dest_revise = ndpi_bitmap_deserialize((char *)Utils::base64_decode((std::string)value).c_str());
   free(value);
 
   return(true);
