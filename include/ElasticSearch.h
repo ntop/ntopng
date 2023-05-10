@@ -27,7 +27,7 @@
 class ElasticSearch : public DB {
  private:
   pthread_t esThreadLoop;
-  u_int num_queued_elems;
+  std::atomic<u_int32_t> num_queued_elems;
   struct string_list *head, *tail;
   Mutex listMutex;
 
