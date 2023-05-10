@@ -1,6 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-<div>
+<div ref="table_container" :id="id">
 <div class="button-group mb-2"> <!-- TableHeader -->
   <div style="float:left;margin-top:0.5rem;">
     <label>
@@ -24,7 +24,7 @@
       </label>
     </div>
     
-    <Dropdown :id="id" ref="dropdown"> <!-- Dropdown columns -->
+    <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
       <template v-slot:title>
 	<i class="fas fa-eye"></i>
       </template>
@@ -94,7 +94,7 @@ import { default as Dropdown } from "./dropdown.vue";
 import { default as SelectTablePage } from "./select_table_page.vue";
 import { default as VueNode } from "./vue_node.vue";
 
-const emit = defineEmits(['custom_event'])
+const emit = defineEmits(['custom_event', 'loaded'])
 
 const vue_obj = {
     emit,
@@ -119,6 +119,7 @@ const props = defineProps({
 const _i18n = (t) => i18n(t);
 
 const show_table = ref(true);
+const table_container = ref(null);
 const table = ref(null);
 const dropdown = ref(null);
 const rows_html_element = ref([]);
@@ -150,6 +151,7 @@ async function load_table() {
     set_columns_resizable();
     await nextTick();
     dropdown.value.load_menu();
+    emit("loaded");
 }
 
 async function change_columns_visibility(col) {    

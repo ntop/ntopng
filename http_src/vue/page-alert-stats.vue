@@ -14,13 +14,13 @@
     <div class="mb-2">
       <div class="w-100">
 	<div clas="range-container d-flex flex-wrap">
-	  <div class="range-picker d-flex m-auto flex-wrap" id="rangepicker">
+	  <div class="range-picker d-flex m-auto flex-wrap">
 	    <AlertInfo id="alert_info" :global="true" ref="alert_info"></AlertInfo>
 	    <ModalTrafficExtraction id="modal_traffic_extraction" ref="modal_traffic_extraction"></ModalTrafficExtraction>
 	    <ModalSnapshot ref="modal_snapshot"
 			   :csrf="context.csrf">
 	    </ModalSnapshot>
-	    <RangePicker ref="range-picker-vue" id="id_range_picker">
+	    <RangePicker ref="range_picker" id="range_picker">
 	      <template v-slot:extra_range_buttons>
 		<button v-if="context.show_permalink" class="btn btn-link btn-sm" @click="get_permanent_link" :title="_i18n('graphs.get_permanent_link')" ref="permanent_link_button"><i class="fas fa-lg fa-link"></i></button>
 		<a v-if="context.show_download" class="btn btn-link btn-sm" id="dt-btn-download" :title="_i18n('graphs.download_records')" ><i class="fas fa-lg fa-file"></i></a>
@@ -57,7 +57,8 @@
             </div>
           </div>
 	  
-	  <Table ref="table_alerts" id="table_config.id"
+	  <Table ref="table_alerts"
+		 :id="table_config.id"
                  :key="table_config.columns" :columns="table_config.columns"
                  :get_rows="table_config.get_rows"
                  :get_column_id="table_config.get_column_id"
@@ -67,6 +68,7 @@
 		 :f_is_column_sortable="table_config.f_is_column_sortable"
 		 :enable_search="table_config.enable_search"
 		 :paging="table_config.paging"
+		 @loaded="on_table_loaded"
 		 @custom_event="on_table_custom_event">
           </Table>
 	  
@@ -145,6 +147,12 @@ onBeforeMount(async () => {
 
 onMounted(async () => {
     console.log(props.context);
+    init_url_params();
+    table_config.value = await TableUtils.build_table(http_prefix, table_id, map_table_def_columns, get_extra_params_obj);
+    register_components_on_status_update();
+});
+
+function init_url_params() {
     if (ntopng_url_manager.get_url_entry("ifid") == null) {
 	ntopng_url_manager.set_key_to_url("ifid", default_ifid);
     }
@@ -159,8 +167,30 @@ onMounted(async () => {
       	&& ntopng_url_manager.get_url_entry("status") == "engaged") {
 	ntopng_url_manager.set_key_to_url("status", "historical");
     }
-    table_config.value = await TableUtils.build_table(http_prefix, table_id, map_table_def_columns, get_extra_params_obj);
-});
+}
+
+async function register_components_on_status_update() {
+    await ntopng_sync.on_ready("range_picker");
+    //if (show_chart) {      
+      chart.value.register_status();
+    //}
+    //updateDownloadButton();
+    ntopng_status_manager.on_status_change(page.value, (new_status) => {
+	let url_params = ntopng_url_manager.get_url_params();
+	table_alerts.value.refresh_table();
+    }, false);
+}
+
+function on_table_loaded() {
+    register_table_alerts_events();
+}
+
+function register_table_alerts_events() {
+    let jquery_table_alerts = $(`#${table_config.value.id}`);
+    jquery_table_alerts.on('click', `a.tag-filter`, async function (e) {
+	add_filter(e, $(this));
+    });    
+}
 
 const map_table_def_columns = (columns) => {
     let map_columns = {
@@ -179,15 +209,38 @@ const map_table_def_columns = (columns) => {
     return columns;
 };
 
-const get_extra_params_obj = () => {
-    let status = ntopng_status_manager.get_status(true);
-    return {
-	page,
-	ifid: props.context.ifid,
-	draw: 1,
-	epoch_begin: status.epoch_begin,
-	epoch_end: status.epoch_end,
+const add_filter = (e, a) => {
+    e.preventDefault();
+    
+    let key = undefined;
+    let displayValue = undefined;
+    let realValue = undefined;
+    let operator = 'eq';
+    
+    // Read tag key and value from the <a> itself if provided
+    if (a.data('tagKey')        != undefined) key          = a.data('tagKey');
+    if (a.data('tagRealvalue')  != undefined) realValue    = a.data('tagRealvalue');
+    else if (a.data('tagValue') != undefined) realValue    = a.data('tagValue');
+    if (a.data('tagOperator')   != undefined) operator     = a.data('tagOperator');
+    
+    let filter = {
+	id: key,
+	value: realValue,
+	operator: operator,
     };
+    if (range_picker.value.is_filter_defined(filter)) {
+	ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_MODAL_FILTERS, filter);
+    } else {
+	ntopng_url_manager.set_key_to_url("query_preset", "");
+	ntopng_url_manager.set_key_to_url(filter.id, `${filter.value};${filter.operator}`);
+	ntopng_url_manager.reload_url();
+    }    
+}    
+
+
+const get_extra_params_obj = () => {
+    let extra_params = ntopng_url_manager.get_url_object();
+    return extra_params;
 };
 
 function click_navbar_item(item) {

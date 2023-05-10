@@ -6,6 +6,7 @@ import * as Vue from "vue";
 // window.Vue = Vue;
 
 // pages
+import { default as PageAlertStats } from "./page-alert-stats.vue";
 import { default as PageStats } from "./page-stats.vue";
 import { default as PageAssetTable } from "./page-asset-table.vue";
 import { default as PagePeriodicityTable } from "./page-periodicity-table.vue";
@@ -30,13 +31,13 @@ import { default as PageVLANPortsSankey } from "./page-vlan-ports-sankey.vue";
 import { default as PageAggregatedLiveFlows } from "./page-aggregated-live-flows.vue";
 import { default as PageAggregatedLiveFlowsV2 } from "./page-aggregated-live-flows-v2.vue";
 import { default as PageTestTable } from "./page-test-table.vue";
-import { default as PageTestNewTable } from "./page-test-new-table.vue";
 import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
 import { default as PageEditApplications } from "./page-edit-applications.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
 import { default as PageManageConfigurationBackup2 } from "./page-manage-configurations-backup2.vue";
 import { default as PageSNMPDeviceRules} from "./page-snmp-device-rules.vue";
+import { default as PageSnmpDevicesInterfacesSimilarity } from "./page-snmp-devices-interfaces-similarity.vue";
 
 import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue" 
 
@@ -75,6 +76,7 @@ import { default as ModalDeleteApplication } from "./modal-delete-application.vu
 
 let ntopVue = {
     // pages
+    PageAlertStats: PageAlertStats,
     PageStats: PageStats,
     PageAssetTable: PageAssetTable,
     PagePeriodicityTable: PagePeriodicityTable,
@@ -98,7 +100,8 @@ let ntopVue = {
 
     PageVLANPortsFlowSankey:PageVLANPortsSankey,
     PageTestTable: PageTestTable,
-    PageTestNewTable: PageTestNewTable,
+    PageSnmpDevicesInterfacesSimilarity: PageSnmpDevicesInterfacesSimilarity,
+
     NedgeRulesConfig: NedgeRulesConfig,
     NedgeRepeatersConfig: NedgeRepeatersConfig,
     
