@@ -24,6 +24,7 @@ async function build_table(http_prefix, table_id, f_map_columns, f_get_extra_par
 	print_html_row: get_f_print_html_row(table_def),
 	print_vue_node_row: get_f_print_vue_node_row(table_def),
 	f_is_column_sortable: get_f_is_column_sortable(table_def),
+	f_get_column_classes: get_f_get_column_classes(table_def),
 	enable_search: table_def.enable_search,
 	paging: table_def.paging,
     };
@@ -37,13 +38,22 @@ function get_f_is_column_sortable(table_def) {
     };
 }
 
+function get_f_get_column_classes(table_def) {
+    return (col) => {
+	let classes = col?.class;
+	if (classes != null) { return classes; }
+	return [];
+    };
+}
+
 function get_f_print_vue_node_row(table_def) {
     return (col, row, vue_obj, return_true_if_def) => {
 	if (col.render_type != "buttons_list") { return null; }
 	if (return_true_if_def == true) { return true; }
 	
 	const on_click = (id) => {
-	    return () => {
+	    return (e) => {
+		e.stopPropagation();
 		let event = {event_id: id, row, col};
 		vue_obj.emit('custom_event', event);
 	    }
@@ -53,12 +63,12 @@ function get_f_print_vue_node_row(table_def) {
 	    if (render_in_dropdown == false) {
 		return vue_obj.h("button", { class: "btn btn-sm btn-secondary", style: "margin-right:0.2rem;", onClick: on_click(b_def.event_id) }, [ vue_obj.h("span", { class: b_def.icon, style: "", title: _i18n(b_def.title_i18n)}), ]);
 	    }
-	    return vue_obj.h("a", { onClick: on_click(b_def.event_id), style: "cursor:pointer;" }, [ vue_obj.h("span", { class: b_def.icon, style: "margin-right:0.2rem;cursor:pointer;" }), _i18n(b_def.title_i18n)]);
+	    return vue_obj.h("a", { onClick: on_click(b_def.event_id), style: "cursor:pointer;", }, [ vue_obj.h("span", { class: b_def.icon, style: "margin-right:0.2rem;cursor:pointer;" }), _i18n(b_def.title_i18n)]);
 
 	});
 	if (render_in_dropdown == true) {
 	    let v_title = vue_obj.h("span", { class: "fas fa-align-justify" });
-	    let dropdown =  vue_obj.h(Dropdown, { auto_load: true, button_class: "btn-secondary" }, {
+	    let dropdown =  vue_obj.h(Dropdown, { auto_load: true, button_class: "btn-secondary btn-sm" }, {
 		title: () => v_title,
 		menu: () => v_nodes,
 	    });

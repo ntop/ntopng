@@ -66,10 +66,22 @@
 		 :print_html_row="table_config.print_html_row"
 		 :print_vue_node_row="table_config.print_vue_node_row"
 		 :f_is_column_sortable="table_config.f_is_column_sortable"
+		 :f_get_column_classes="table_config.f_get_column_classes"
 		 :enable_search="table_config.enable_search"
 		 :paging="table_config.paging"
 		 @loaded="on_table_loaded"
 		 @custom_event="on_table_custom_event">
+	    <template v-slot:custom_header>
+	      <Dropdown v-for="(t, t_index) in top_table_array" :f_on_open="get_open_top_table_dropdown(t, t_index)" :ref="el => { top_table_dropdown_array[t_index] = el }"> <!-- Dropdown columns -->
+		<template v-slot:title>
+		  <Spinner :show="t.show_spinner" size="1rem" class="me-1" ></Spinner>
+		  <a class="ntopng-truncate"  :title="t.title">{{t.label}}</a>
+		</template>
+		<template v-slot:menu>
+		    <a v-for="opt in t.options" style="cursor:pointer;" @click="add_top_table_filter(opt, $event)" class="ntopng-truncate tag-filter " :title="opt.value">{{opt.label}}</a>
+		</template>
+	      </Dropdown> <!-- Dropdown columns -->
+	    </template> <!-- custom_header -->
           </Table>
 	  
 	</div>
@@ -79,9 +91,9 @@
   
 </div>
 
-<ModalAcknoledgeAlert ref="modal_acknowledge" :context="context" @acknowledge="refresh_page"></ModalAcknoledgeAlert>
+<ModalAcknoledgeAlert ref="modal_acknowledge" :context="context" @acknowledge="refresh_page_components"></ModalAcknoledgeAlert>
 
-<ModalDeleteAlert ref="modal_delete" :context="context" @delete_alert="refresh_page"></ModalDeleteAlert>
+<ModalDeleteAlert ref="modal_delete" :context="context" @delete_alert="refresh_page_components"></ModalDeleteAlert>
 
 <ModalAlertsFilter
   :alert="current_alert"
@@ -93,7 +105,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount } from "vue";
+import { ref, onMounted, onBeforeMount, nextTick } from "vue";
 import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility } from "../services/context/ntopng_globals_services";
 import NtopUtils from "../utilities/ntop-utils";
 import { ntopChartApex } from "../components/ntopChartApex.js";
@@ -106,6 +118,8 @@ import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
 import { default as RangePicker } from "./range-picker.vue";
 import { default as Table } from "./table.vue";
+import { default as Dropdown } from "./dropdown.vue";
+import { default as Spinner } from "./spinner.vue";
 
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
@@ -137,6 +151,8 @@ let page;
 let table_id;
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
 const chart_type = ntopChartApex.typeChart.TS_COLUMN;
+const top_table_array = ref([]);
+const top_table_dropdown_array = ref([]);
 
 onBeforeMount(async () => {
     page = ntopng_url_manager.get_url_entry("page");
@@ -146,10 +162,10 @@ onBeforeMount(async () => {
 });
 
 onMounted(async () => {
-    console.log(props.context);
     init_url_params();
     table_config.value = await TableUtils.build_table(http_prefix, table_id, map_table_def_columns, get_extra_params_obj);
     register_components_on_status_update();
+    load_top_table_array_overview();
 });
 
 function init_url_params() {
@@ -169,15 +185,57 @@ function init_url_params() {
     }
 }
 
+async function load_top_table_array_overview(action) {
+    if (props.context.show_cards != true) { return; }    
+    top_table_array.value = await load_top_table_array("overview");
+}
+
+async function load_top_table_details(top, top_index) {
+    top.show_spinner = true;
+    await nextTick();
+    if (top.data_loaded == false) {
+	let new_top_array = await load_top_table_array(top.id, top);
+	top.options = new_top_array.find((t) => t.id == top.id).options;
+	await nextTick();
+	let dropdown = top_table_dropdown_array.value[top_index];
+	dropdown.load_menu();
+    }
+    top.show_spinner = false;
+}
+
+async function load_top_table_array(action, top) {
+    // top_table.value = [];
+    const url_params = ntopng_url_manager.get_url_params();
+    const url = `${http_prefix}/lua/pro/rest/v2/get/flow/alert/top.lua?${url_params}&action=${action}`;
+    let res = await ntopng_utility.http_request(url);
+    return res.map((t) => {
+	return {
+	    id: t.name,
+	    label: t.label,	    
+	    title: t.tooltip,
+	    show_spinner: false,
+	    data_loaded: action != 'overview',
+	    options: t.value,
+	};
+    });
+}
+
+const get_open_top_table_dropdown = (top, top_index) => {
+    return (d) => {
+	load_top_table_details(top, top_index);
+    };
+};
+
 async function register_components_on_status_update() {
     await ntopng_sync.on_ready("range_picker");
     //if (show_chart) {      
-      chart.value.register_status();
+    chart.value.register_status();
     //}
     //updateDownloadButton();
     ntopng_status_manager.on_status_change(page.value, (new_status) => {
 	let url_params = ntopng_url_manager.get_url_params();
 	table_alerts.value.refresh_table();
+	load_top_table_overview();
     }, false);
 }
 
@@ -188,7 +246,7 @@ function on_table_loaded() {
 function register_table_alerts_events() {
     let jquery_table_alerts = $(`#${table_config.value.id}`);
     jquery_table_alerts.on('click', `a.tag-filter`, async function (e) {
-	add_filter(e, $(this));
+	add_table_row_filter(e, $(this));
     });    
 }
 
@@ -209,8 +267,8 @@ const map_table_def_columns = (columns) => {
     return columns;
 };
 
-const add_filter = (e, a) => {
-    e.preventDefault();
+const add_table_row_filter = (e, a) => {
+    e.stopPropagation();    
     
     let key = undefined;
     let displayValue = undefined;
@@ -228,6 +286,20 @@ const add_filter = (e, a) => {
 	value: realValue,
 	operator: operator,
     };
+    add_filter(filter);
+}    
+
+function add_top_table_filter(opt, event) {
+    event.stopPropagation();
+    let filter = {
+	id: opt.key,
+	value: opt.value,
+	operator: opt.operator,
+    };
+    add_filter(filter);
+}
+
+function add_filter(filter) {
     if (range_picker.value.is_filter_defined(filter)) {
 	ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_MODAL_FILTERS, filter);
     } else {
@@ -235,8 +307,7 @@ const add_filter = (e, a) => {
 	ntopng_url_manager.set_key_to_url(filter.id, `${filter.value};${filter.operator}`);
 	ntopng_url_manager.reload_url();
     }    
-}    
-
+}
 
 const get_extra_params_obj = () => {
     let extra_params = ntopng_url_manager.get_url_object();
@@ -308,8 +379,13 @@ async function add_exclude(params) {
     }    
 }
 
-function refresh_page() {
-    console.log("todo refresh page");
+function refresh_page_components() {
+    let t = table_alerts.value;
+    let c = chart.value;
+    setTimeout(() => {
+	t.refresh_table();
+	c.update_chart();
+    }, 1 * 1000);
 }
 
 function on_table_custom_event(event) {
@@ -321,7 +397,6 @@ function on_table_custom_event(event) {
 	"click_button_settings": click_button_settings,
 	"click_button_remove": click_button_remove,
     };
-    console.log(event);
     if (events_managed[event.event_id] == null) {
 	return;
     }

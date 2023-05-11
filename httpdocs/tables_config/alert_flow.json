@@ -9,7 +9,7 @@
 	{
 	    "title_i18n": "actions",
 	    "sortable": false,
-	    "class": ["text-nowrap"],
+	    "class": ["text-nowrap", "text-center"],
 	    "render_type": "buttons_list",
 	    "buttons_list": [
 		{ "icon": "fas fa fa-search-plus", "title_i18n": "info", "event_id": "click_button_info" },

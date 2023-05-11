@@ -14,41 +14,52 @@
 
 <template>
 <div class="dropdown" ref="dropdown" style="display:inline-block;">
-  <button class="btn btn-sm dropdown-toggle" :class="button_class_2" type="button" :id="id" ref="dropdown_button"  @click="open_close" aria-expanded="false" data-bs-toggle="dropdown">
+  <button class="btn dropdown-toggle" :class="button_class_2" type="button" :id="id" ref="dropdown_button"  @click="open_close" aria-expanded="false" data-bs-toggle="dropdown">
     <slot name="title"></slot>
   </button>
-  <ul class="dropdown-menu" :aria-labelledby="id" style=" max-height: 20rem">
-    <!-- <slot name="menu"></slot> -->    
-    <li class="dropdown-item" v-for="(opt, i) in options" :ref="el => { menu[i] = el }"></li>
+  <ul class="dropdown-menu" :aria-labelledby="id" style=" max-height: 25rem;overflow:scroll">
+    <!-- <slot name="menu"></slot> -->
+
+    <!-- <li class="dropdown-item" v-for="(opt, i) in options" :ref="el => { menu[i] = el }"> -->
+    <!--   asd -->
+      <!--   </li> -->
+      <li v-for="(opt, i) in menu_options" class="dropdown-item">
+	<VNode :content="opt"></VNode>
+      </li>
   </ul>
 </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch, h } from "vue";
 import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import { useSlots, render, getCurrentInstance, nextTick } from 'vue';
 import { render_component } from "./ntop_utils.js";
+import { default as VNode } from "./vue_node.vue";
 
 const instance = getCurrentInstance();
 const slots = useSlots();
 
 const options = ref([]);
 const menu = ref([]);
+const menu_options = ref([]);
 const dropdown = ref(null);
 const dropdown_button = ref(null);
+
+const emit = defineEmits([])
 
 const props = defineProps({
     id: String,
     auto_load: Boolean,
     button_class: String,
+    f_on_open: Function,
 });
 
 let default_overflow = null;
 onMounted(() => {
     default_overflow = 	$(dropdown.value).parent().closest('div').css('overflow');
     if (props.auto_load == true) {
-	run_f(() => load_menu());
+	load_menu();
     }
 });
 
@@ -57,37 +68,45 @@ const button_class_2 = computed(() => {
     return "btn-link";
 })
 
-function run_f(f) {
-    f();
-}
-
 function open_close() {
+    let el = { dropdown: dropdown.value, dropdown_button: dropdown_button.value };
     if (!$(dropdown.value).find('.dropdown-menu').is(":hidden")){
 	$(dropdown_button.value).dropdown('hide');
 	$(dropdown.value).parent().closest('div').css('overflow', "visible");
 	$(dropdown_button.value).dropdown('show');
+	if (props.f_on_open != null) {
+	    props.f_on_open(el);
+	}
+	emit('open', el);
     } else {
 	$(dropdown.value).parent().closest('div').css('overflow', default_overflow);
+	// emit('close', el);
     }
 }
 
-function load_menu() {
+async function load_menu() {
     options.value = [];
     if (slots == null || slots.menu == null) { return; }
-    let menu_options = slots.menu();
-    if (menu_options == null || menu_options.length == 0) { return; }
-    menu_options.forEach((opt_slot) => {
+    let m_options = slots.menu();
+    if (m_options == null || m_options.length == 0) { return; }
+    if (typeof m_options[0].type === 'symbol') {
+	m_options = m_options[0].children;
+    }
+    menu_options.value = [];
+    m_options.forEach((opt_slot) => {
 	let node = opt_slot;
-	let element = $("<div></div>")[0];
-	const { vNode, el } = render_component(node, { app:  instance?.appContext?.app, element });
-	options.value.push(el);
+	menu_options.value.push(node);
+	// let element = $("<div></div>")[0];
+	// const { vNode, el } = render_component(node, { app:  instance?.appContext?.app, element });
+	// options.value.push(el);
     });
-    nextTick(() => {
-	options.value.forEach((opt, i) => {
-	    let html_element = menu.value[i];
-	    $(html_element).append(opt);
-	});
-    });
+    await nextTick();
+    // nextTick(() => {
+    // 	options.value.forEach((opt, i) => {
+    // 	    let html_element = menu.value[i];
+    // 	    $(html_element).append(opt);
+    // 	});
+    // });
 }
 
 defineExpose({ load_menu });

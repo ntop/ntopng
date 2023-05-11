@@ -12,17 +12,22 @@
     </label>
   </div>
   <div style="text-align:right;" class="form-group ">
+  </div>
+  
+  <div style="text-align:right;" class="form-group ">
+    <slot name="custom_header"></slot>
+
+    <div v-if="enable_search" class="d-inline">
+      <label>{{ _i18n('search') }}:
+	<input type="search" v-model="map_search" @input="on_change_map_search" class="" >
+      </label>
+    </div>
     <button class="btn btn-link me-1" type="button" @click="reset_column_size">
       <i class="fas fa-columns"></i>
     </button>
     <button class="btn btn-link me-1" type="button" @click="refresh_table">
       <i class="fas fa-refresh"></i>
     </button>
-    <div v-if="enable_search" class="d-inline">
-      <label>{{ _i18n('search') }}:
-	<input type="search" v-model="map_search" @input="on_change_map_search" class="" >
-      </label>
-    </div>
     
     <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
       <template v-slot:title>
@@ -30,7 +35,7 @@
       </template>
       <template v-slot:menu>
 	<div v-for="col in columns_wrap" class="form-check form-switch ms-1">
-	  <input class="form-check-input" v-model="col.visible" @click="change_columns_visibility(col)"  checked="" type="checkbox" id="toggle-Begin">
+	  <input class="form-check-input" style="cursor:pointer;" v-model="col.visible" @click="change_columns_visibility(col)"  checked="" type="checkbox" id="toggle-Begin">
           <label class="form-check-label" for="toggle-Begin" v-html="print_column_name(col.data)">
           </label>
 	</div>
@@ -61,10 +66,10 @@
       <tr v-for="row in active_rows">
 	<template v-for="col in columns_wrap">
 	  <td v-if="col.visible" scope="col">
-	    <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" class="wrap-column" v-html="print_html_row(col.data, row)">
+	    <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" v-html="print_html_row(col.data, row)">
 	    </div>
-	    <div class="wrap-column">
-	      <VueNode v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
+	    <div v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :class="col.classes" class="wrap-column">
+	      <VueNode :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
 	    </div>
 	  </td>
 	</template>
@@ -95,7 +100,6 @@ import { default as SelectTablePage } from "./select_table_page.vue";
 import { default as VueNode } from "./vue_node.vue";
 
 const emit = defineEmits(['custom_event', 'loaded'])
-
 const vue_obj = {
     emit,
     h,
@@ -112,6 +116,7 @@ const props = defineProps({
     print_vue_node_row: Function,
     f_is_column_sortable: Function,
     f_sort_rows: Function,
+    f_get_column_classes: Function,
     enable_search: Boolean,
     paging: Boolean,
 });
@@ -189,11 +194,16 @@ function set_columns_resizable() {
 
 function set_columns_wrap() {
     columns_wrap.value = props.columns.map((c, i) => {
+	let classes = [];
+	if (props.f_get_column_classes != null) {
+	    classes = props.f_get_column_classes(c);
+	}
 	return {
 	    visible: true,
 	    sort: 0,
 	    sortable: is_column_sortable(c),
 	    order: i,
+	    classes,
 	    data: c,
 	};
     });
