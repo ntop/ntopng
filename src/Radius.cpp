@@ -262,8 +262,11 @@ bool Radius::updateLoginInfo() {
   ntop->getRedis()->get((char *)PREF_RADIUS_UNPRIV_CAP_GROUP,
                         radiusUnprivCapabilitiesGroup, MAX_RADIUS_LEN);
 
-  if(!strcmp(buf, "chap"))
+  if(!strcmp(buf, "chap")) {
     use_chap = true;
+  } else {
+    use_chap = false;
+  }
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
                                "Radius: server - %s | secret - %s | admin "
