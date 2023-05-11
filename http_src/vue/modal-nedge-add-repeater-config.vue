@@ -240,13 +240,18 @@ const apply = () => {
     }
 
 		let interfaces = "";
-		if(selected_dest_interface.value.length == 0) {
-			interfaces = "enp2s0f1,enp2s0f3";
-		}
+		let details = "";
+		
 		selected_dest_interface.value.forEach((i) => {
 			interfaces +=i.value+",";
+			
+			if(i.value != i.label && !i.label.includes(i.value)) 
+				details += i.label+" ("+i.value+")"+",";
+			else 
+				details += i.label+",";
 		});
 		obj.interfaces = interfaces;
+		obj.interface_details = details;
     emit(event, obj);
     close();
 };

@@ -247,6 +247,7 @@ local function validateSingleWord(w)
 end
 http_lint.validateSingleWord = validateSingleWord
 
+
 -- ##############################################
 
 -- @brief Returns true if inputstr is inside alert, function used to check
@@ -2403,6 +2404,7 @@ local known_parameters = {
     ["repeater_type"] = validateSingleWord,
     ["repeater_id"] = validateNumber,
     ["interfaces"] = validateSingleWord,
+    ["interface_details"] = validateUnquoted,
 
     -- Containers
     ["pod"] = validateSingleWord,

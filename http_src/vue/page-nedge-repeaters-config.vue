@@ -70,9 +70,14 @@ function set_rule(rule, url) {
     refresh_table();    
 }
 
+
+
 const format_interfaces = function(data, rowData) { 
-    let string_without_end = data.replace(/.$/, ''); 
-    return string_without_end;
+    if(data) {
+        let string_without_end = data.replace(/.$/, ''); 
+        return string_without_end;
+    }
+    return data;
 }
 function set_datatable_config() {
     const datatableButton = [];
@@ -114,7 +119,7 @@ function set_datatable_config() {
 	    columnName: _i18n("nedge.page_repeater_config.port"), targets: 0, name: 'port', data: 'port', className: 'text-nowrap text-left', responsivePriority: 1
 	},
      { 
-	    columnName: _i18n("nedge.page_repeater_config.interfaces"), targets: 0, name: 'interfaces', data: 'interfaces', className: 'text-nowrap text-left', responsivePriority: 1, render: (data,_,rowData) => {
+	    columnName: _i18n("nedge.page_repeater_config.interfaces"), targets: 0, name: 'interfaces', data: 'details', className: 'text-nowrap text-left', responsivePriority: 1, render: function (data,_,rowData)  {
 		    
 		    return format_interfaces(data, rowData)}
 	    
