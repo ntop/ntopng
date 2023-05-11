@@ -107,18 +107,21 @@ bool ElasticSearch::dumpFlow(time_t when, Flow *f, char *msg) {
     return (false);
   }
 
-  listMutex.lock(__FILE__, __LINE__);
-
   e = (struct string_list *)calloc(1, sizeof(struct string_list));
   if (e != NULL) {
     e->str = strdup(msg), e->next = head;
 
     if (e->str) {
+
+      listMutex.lock(__FILE__, __LINE__);
+
       if (head) head->prev = e;
       head = e;
       if (tail == NULL) tail = e;
-      num_queued_elems++;
 
+      listMutex.unlock(__FILE__, __LINE__);
+
+      num_queued_elems++;
       rc = true;
     } else {
       /* Out of memory */
@@ -126,8 +129,6 @@ bool ElasticSearch::dumpFlow(time_t when, Flow *f, char *msg) {
       rc = false;
     }
   }
-
-  listMutex.unlock(__FILE__, __LINE__);
 
   return (rc);
 }
@@ -210,8 +211,8 @@ void ElasticSearch::indexESdata() {
       postbuf[len] = '\0';
 
       ntop->getTrace()->traceEvent(
-          TRACE_INFO, "ES: Buffered request with %d flows (%d bytes)",
-          num_flows, len);
+          TRACE_INFO, "[ES] Buffered request with %d flows (%d bytes), %u more flows enqueued",
+          num_flows, len, num_queued_elems.load());
 
       if (!Utils::postHTTPJsonData(NULL, ntop->getPrefs()->get_es_user(),
                                    ntop->getPrefs()->get_es_pwd(),
@@ -219,21 +220,21 @@ void ElasticSearch::indexESdata() {
                                    &stats)) {
         /* Post failure */
         ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "ES: POST request for %d flows (%d bytes) failed",
+            TRACE_ERROR, "[ES] POST request for %d flows (%d bytes) failed",
             num_flows, len);
         incNumDroppedFlows(num_flows);
-        sleep(1);
+        _usleep(100000);
       } else {
-        ntop->getTrace()->traceEvent(TRACE_INFO, "Sent %u flow(s) to ES", num_flows);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] [namelookup: %.1f sec][connect: %.1f sec][appconnect: %.1f sec][pretransfer: %.1f sec][redirect: %.1f sec][start: %.1f sec][total: %.1f sec]",
+	ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] [namelookup: %.1f sec][connect: %.1f sec][appconnect: %.1f sec][pretransfer: %.1f sec][redirect: %.1f sec][start: %.1f sec][total: %.1f sec][sent: %u]",
 				     stats.namelookup, stats.connect, stats.appconnect,
-				     stats.pretransfer, stats.redirect, stats.start, stats.total);
+				     stats.pretransfer, stats.redirect, stats.start, stats.total, num_flows);
         incNumExportedFlows(num_flows);
       }
 
       last_dump = now;
-    } else
-      sleep(1);
+    } else {
+      _usleep(10000);
+    }
   } /* while */
 
   free(postbuf);
@@ -360,7 +361,7 @@ void ElasticSearch::pushEStemplate() {
                                  ntop->getPrefs()->get_es_pwd(),
                                  es_template_push_url, postbuf, 0, &stats)) {
       /* Post failure */
-      sleep(1);
+      _usleep(100000);
     } else {
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                    "ntopng template successfully sent to ES");
