@@ -1407,7 +1407,7 @@ static int curl_post_writefunc(void *ptr, size_t size, size_t nmemb,
                                void *stream) {
   char *str = (char *)ptr;
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "[JSON] %s", str);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "[JSON] %s", str);
   return (size * nmemb);
 }
 
