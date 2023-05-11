@@ -9,6 +9,10 @@ local ntop_info = ntop.getInfo()
 
 local os_utils = require "os_utils"
 
+-- This is an nEdge extension of the host pools
+-- E.g. this is storing pool members in ntopng.prefs.host_pools.members.<pool id>
+-- which is the same used by host_pools.lua
+
 local host_pools_nedge = {}
 host_pools_nedge.DEFAULT_POOL_ID = "0"
 host_pools_nedge.DEFAULT_ROUTING_POLICY_ID = "1"
@@ -16,9 +20,6 @@ host_pools_nedge.FIRST_AVAILABLE_POOL_ID = "2" -- 0 is the default, 1 is the jai
 host_pools_nedge.DEFAULT_POOL_NAME = "Not Assigned"
 host_pools_nedge.MAX_NUM_POOLS = 128 -- Note: keep in sync with C
 
---
--- BEGIN NEDGE specific code
---
 function host_pools_nedge.usernameToPoolId(username)
   local res = ntop.getPref("ntopng.user."..string.lower(username)..".host_pool_id")
   return ternary(not isEmptyString(res), res, nil)
@@ -33,16 +34,15 @@ function host_pools_nedge.getUserUrl(pool_id)
   return ntop.getHttpPrefix() .."/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
     ternary(tostring(pool_id) == host_pools_nedge.DEFAULT_POOL_ID, "", host_pools_nedge.poolIdToUsername(pool_id))
 end
---
--- END NEDGE specific code
---
 
+-- LIMITED_NUMBER_POOL_MEMBERS
 host_pools_nedge.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
--- this takes into account the special pools
+-- LIMITED_NUMBER_TOTAL_HOST_POOLS - this takes into account the special pools
 host_pools_nedge.LIMITED_NUMBER_TOTAL_HOST_POOLS = ntop_info["constants.max_num_host_pools"]
--- this does not take into account the special pools
+-- LIMITED_NUMBER_USER_HOST_POOLS - this does not take into account the special pools
 host_pools_nedge.LIMITED_NUMBER_USER_HOST_POOLS = host_pools_nedge.LIMITED_NUMBER_TOTAL_HOST_POOLS - 1
 
+-- Note: this is the same key used in scripts/lua/modules/pools/host_pools.lua
 local function get_pool_members_key(pool_id)
   return "ntopng.prefs.host_pools.members." .. pool_id
 end
@@ -102,7 +102,9 @@ local function addMemberToRedisPool(pool_id, member_key)
   end
 
   ntop.setMembersCache(members_key, member_key)
+
   traceHostPoolEvent(TRACE_NORMAL, string.format("Member added to pool. [member: %s] [members_key: %s]", member_key, members_key))
+
   return true
 end
 
@@ -123,40 +125,6 @@ function host_pools_nedge.export()
   end
 
   return pools
-end
-
--- Import host pools, in case of conflict (same name) the pool is replaced
-function host_pools_nedge.import(pools)
-  local existing_pools = host_pools_nedge.getPoolsList()
-  local retval = true
-
-  -- Import pools
-  for _,pool in pairs(pools) do
-
-    for k,existing_pool in pairs(existing_pools) do
-      if pool.name == existing_pool.name then
-        -- Same name, delete the old pool and reuse the id
-        pool.id = existing_pool.id
-        host_pools_nedge.emptyPool(existing_pool.id) 
-        host_pools_nedge.deletePool(existing_pool.id)
-      end
-    end
-
-    -- Add pool
-    host_pools_nedge.createPool(pool.id, pool.name, pool.children_safe,
-      pool.enforce_quotas_per_pool_member, pool. enforce_shapers_per_pool_member,
-      true)
-
-    -- Add members
-    for _,member in ipairs(pool.members) do
-      local success = addMemberToRedisPool(pool.id, member)
-      if not success then
-        retval = false
-      end
-    end
-  end
-
-  return retval
 end
 
 --------------------------------------------------------------------------------
@@ -181,7 +149,10 @@ function host_pools_nedge.createPool(pool_id, pool_name, children_safe,
     end
   end
 
+  -- Add pool to the set of pools
   ntop.setMembersCache(ids_key, pool_id)
+
+  -- Add pool details
   ntop.setHashCache(details_key, "name", pool_name)
   ntop.setHashCache(details_key, "children_safe", tostring(children_safe or false))
   ntop.setHashCache(details_key, "enforce_quotas_per_pool_member",  tostring(enforce_quotas_per_pool_member  or false))
@@ -197,7 +168,11 @@ function host_pools_nedge.deletePool(pool_id)
   local members_key = get_pool_members_key(pool_id)
 
   host_pools_nedge.emptyPool(pool_id)
+
+  -- Remove pool from set of pools
   ntop.delMembersCache(ids_key, pool_id)
+
+  -- Delete pool details
   ntop.delCache(details_key)
   ntop.delCache(members_key)
 
@@ -256,10 +231,10 @@ function host_pools_nedge.addPoolMember(pool_id, member_and_vlan)
   if member_exists then
      traceHostPoolEvent(TRACE_NORMAL, string.format("Member already in pool. [pool_id: %d] [member: %s]", pool_id, member_and_vlan))
     return false, info
-  else
-    local rv = addMemberToRedisPool(pool_id, info.key)
-    return rv, info
   end
+
+  local rv = addMemberToRedisPool(pool_id, info.key)
+  return rv, info
 end
 
 function host_pools_nedge.deletePoolMember(pool_id, member_and_vlan)
@@ -287,7 +262,8 @@ function host_pools_nedge.getPoolsList(without_info)
   end
 
   local pools = {}
-                                                                                                                   host_pools_nedge.initPools()
+
+  host_pools_nedge.initPools()
 
   for _, pool_id in pairsByValues(ids, asc) do
     pool_id = tostring(pool_id)

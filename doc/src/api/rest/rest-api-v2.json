@@ -5390,29 +5390,6 @@
 				}
 			}
 		},
-		"/lua/rest/v2/reset/pool/config.lua": {
-			"get": {
-				"tags": [
-					"Pool"
-				],
-				"summary": "Reset Pool configuration",
-				"description": "Reset pool configuration",
-				"operationId": "reset_pool_config",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-3": {
-						"description": "NOT_GRANTED"
-					}
-				}
-			}
-		},
 		"/lua/rest/v2/reset/notifications/config.lua": {
 			"get": {
 				"tags": [
@@ -8637,39 +8614,6 @@
 				}
 			}
 		},
-		"/lua/rest/v2/get/pool/config.lua": {
-			"get": {
-				"tags": [
-					"Pools"
-				],
-				"summary": "Get configurations for all pools (deprecated)",
-				"description": "Get configurations for all pools",
-				"operationId": "get_pool_config",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-3": {
-						"description": "NOT_GRANTED"
-					}
-				}
-			}
-		},
 		"/lua/rest/v2/get/category/list.lua": {
 			"get": {
 				"tags": [
@@ -9316,55 +9260,6 @@
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					}
-				}
-			}
-		},
-		"/lua/rest/v2/set/pool/config.lua": {
-			"get": {
-				"tags": [
-					"Pools"
-				],
-				"summary": "Set pool configuration",
-				"description": "Set pool configuration",
-				"operationId": "set_pool_config",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-				               },
-					       {
-						"name": "JSON",
-						"in": "form",
-						"description": "Pool configuration in JSON",
-						"required": true,
-						"type": "string"
-					}
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
-					},
-				        "-7": {
-						"description": "BAD_FORMAT"
-					},
-					"-8": {
-						"description": "BAD_CONTENT"
 					}
 				}
 			}
