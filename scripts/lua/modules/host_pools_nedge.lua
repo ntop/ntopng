@@ -72,7 +72,9 @@ function host_pools_nedge.setPoolDetail(pool_id, detail, value)
 end
 
 local function traceHostPoolEvent(severity, event)
-    if ntop.getPref("ntopng.prefs.enable_host_pools_log") ~= "1" then
+    local force_debug = false
+
+    if not force_debug and ntop.getPref("ntopng.prefs.enable_host_pools_log") ~= "1" then
        return
     end
 
@@ -85,6 +87,7 @@ local function traceHostPoolEvent(severity, event)
 end
 
 local function addMemberToRedisPool(pool_id, member_key)
+
   if pool_id == host_pools_nedge.DEFAULT_POOL_ID then
     -- avoid adding default pool members explicitly
     traceHostPoolEvent(TRACE_NORMAL,
@@ -158,6 +161,7 @@ function host_pools_nedge.createPool(pool_id, pool_name, children_safe,
   ntop.setHashCache(details_key, "enforce_quotas_per_pool_member",  tostring(enforce_quotas_per_pool_member  or false))
   ntop.setHashCache(details_key, "enforce_shapers_per_pool_member", tostring(enforce_shapers_per_pool_member or false))
   ntop.setHashCache(details_key, "forge_global_dns", "true")
+
   return true
 end
 
@@ -253,6 +257,9 @@ function host_pools_nedge.initPools()
 end
 
 function host_pools_nedge.getPoolsList(without_info)
+  local pools = {}
+
+  --[[ Legacy code
   local ids_key = get_pool_ids_key()
   local ids = ntop.getMembersCache(ids_key)
 
@@ -260,8 +267,6 @@ function host_pools_nedge.getPoolsList(without_info)
   for i, id in pairs(ids) do
      ids[i] = tonumber(id)
   end
-
-  local pools = {}
 
   host_pools_nedge.initPools()
 
@@ -278,6 +283,33 @@ function host_pools_nedge.getPoolsList(without_info)
         children_safe = host_pools_nedge.getChildrenSafe(pool_id),
 	enforce_quotas_per_pool_member  = host_pools_nedge.getEnforceQuotasPerPoolMember(pool_id),
 	enforce_shapers_per_pool_member = host_pools_nedge.getEnforceShapersPerPoolMember(pool_id),
+      }
+    end
+
+    pools[#pools + 1] = pool
+  end
+  --]]
+
+  --[[ New code based on host_pools ]]--
+  local host_pools = require "host_pools"
+  local s = host_pools:create()
+  local list = s:get_all_pools()
+
+  for _, pool_info in pairs(list) do
+    local pool
+
+    if without_info then
+      pool = {
+        id=pool_info.pool_id
+      }
+    else
+      -- Augment pool information with nEdge details
+      pool = {
+        id = pool_info.pool_id,
+        name = host_pools_nedge.getPoolName(pool_info.pool_id),
+        children_safe = host_pools_nedge.getChildrenSafe(pool_info.pool_id),
+	enforce_quotas_per_pool_member  = host_pools_nedge.getEnforceQuotasPerPoolMember(pool_info.pool_id),
+	enforce_shapers_per_pool_member = host_pools_nedge.getEnforceShapersPerPoolMember(pool_info.pool_id),
       }
     end
 
@@ -491,6 +523,9 @@ function host_pools_nedge.printQuotas(pool_id, host, page_params)
 end
 
 function host_pools_nedge.getFirstAvailablePoolId()
+  local host_pool_id = tonumber(host_pools_nedge.FIRST_AVAILABLE_POOL_ID)
+
+  --[[ Legacy code 
   local ids_key = get_pool_ids_key()
   local ids = ntop.getMembersCache(ids_key) or {}
 
@@ -498,14 +533,26 @@ function host_pools_nedge.getFirstAvailablePoolId()
     ids[i] = tonumber(id)
   end
 
-  local host_pool_id = tonumber(host_pools_nedge.FIRST_AVAILABLE_POOL_ID)
-
   for _, pool_id in pairsByValues(ids, asc) do
     if pool_id > host_pool_id then
       break
     end
 
     host_pool_id = math.max(pool_id + 1, host_pool_id)
+  end
+  --]]
+
+  --[[ New code based on host_pools ]]--
+  local host_pools = require "host_pools"
+  local s = host_pools:create()
+  local list = s:get_all_pools()
+
+  for _, pool_info in pairsByField(list, "pool_id", asc) do
+    if pool_info.pool_id > host_pool_id then
+      break
+    end
+
+    host_pool_id = math.max(pool_info.pool_id + 1, host_pool_id)
   end
 
   return tostring(host_pool_id)
