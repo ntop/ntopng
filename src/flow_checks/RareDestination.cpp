@@ -64,7 +64,6 @@ void RareDestination::protocolDetected(Flow *f) {
 
     u_int32_t hash = getDestinationHash(f);
     if(hash == 0) { return; }
-    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination hash %u", hash); */
 
     Host *cli_host = f->get_cli_host();
     ndpi_bitmap *rare_dest = cli_host->getRareDestBMap();
@@ -78,6 +77,7 @@ void RareDestination::protocolDetected(Flow *f) {
     if (!ndpi_bitmap_cardinality(rare_dest)) {
       cli_host->clearSeenRareDestTraining();
       cli_host->setStartRareDestTraining(t_now);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training On at %ld", t_now);
     }
 
     /* if host is training */
@@ -86,6 +86,7 @@ void RareDestination::protocolDetected(Flow *f) {
       if (!ndpi_bitmap_isset(rare_dest, hash)) {
         ndpi_bitmap_set(rare_dest, hash);
         cli_host->incrementSeenRareDestTraining();
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash added for %s", f->getFlowServerInfo());
       }
       /* check if training has to end */
       if (  cli_host->getSeenRareDestTraining() >= RARE_DEST_FLOWS_TO_SEE_TRAINING
@@ -93,8 +94,9 @@ void RareDestination::protocolDetected(Flow *f) {
       {
         cli_host->setStartRareDestTraining(0);
         cli_host->setRareDestLastEpoch(t_now);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training Off at %ld", t_now);
       }
-        
+      cli_host->dumpRareDestToRedis();
       return;
     }
 
@@ -103,11 +105,12 @@ void RareDestination::protocolDetected(Flow *f) {
     if (t_now - cli_host->getRareDestLastEpoch() >= 2*RARE_DEST_EPOCH_DURATION) {
       ndpi_bitmap_clear(rare_dest);
       ndpi_bitmap_clear(rare_dest_revise);
+      cli_host->dumpRareDestToRedis();
       return;
     }
 
     if (t_now - cli_host->getRareDestLastEpoch() >= RARE_DEST_EPOCH_DURATION) {
-      ndpi_bitmap_xor(rare_dest_revise, rare_dest);  // updates rare_dest_revise
+      //ndpi_bitmap_xor(rare_dest_revise, rare_dest);  // updates rare_dest_revise
       ndpi_bitmap_and(rare_dest, rare_dest_revise); // makes rare_dest = rare_dest_revise
       cli_host->setRareDestLastEpoch(t_now);
     }
@@ -120,6 +123,8 @@ void RareDestination::protocolDetected(Flow *f) {
       is_rare_destination = true;
     }
     
+    cli_host->dumpRareDestToRedis();
+
   }
   
   if(is_rare_destination) {
