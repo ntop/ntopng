@@ -1951,6 +1951,10 @@ setInterval(update_icmp_table, 5000);
                 length = 10,
                 csrf = ntop.getRandomCSRFValue()
             })
+            print [[ 
+                         </div>
+
+                </div>]]
         else
         print [[
       <div id="table-flows"></div>
@@ -2197,6 +2201,7 @@ setInterval(update_icmp_table, 5000);
         end
 
         print [[
+            
           </script>
 
       ]]

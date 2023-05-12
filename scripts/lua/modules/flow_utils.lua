@@ -1755,8 +1755,7 @@ function printTabList(base_url, page_params, active)
             </div>
             </div>
          </div>
-         </div>
-         </div>
+         
       ]]
    end
 end
