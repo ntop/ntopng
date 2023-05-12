@@ -24,7 +24,7 @@
 
 /* ***************************************************** */
 
-u_int32_t getDestinationHash(Flow *f) {
+u_int32_t RareDestination::getDestinationHash(Flow *f) {
   u_int32_t hash = 0;
   Host *dest = f->get_srv_host();
   if (f->isLocalToLocal()) {
@@ -45,7 +45,7 @@ u_int32_t getDestinationHash(Flow *f) {
     char name_buf[128];
     char *domain = dest->get_name(name_buf, sizeof(name_buf), false);
     hash = Utils::hashString(domain);
-    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare remote destination %u - %s", *hash, domain); */
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare remote destination %u - %s - %s", hash, domain, dest->getServerName(name_buf, sizeof(name_buf)));
   }
   return hash;
 }
