@@ -68,8 +68,8 @@
 	  <td v-if="col.visible" scope="col">
 	    <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" v-html="print_html_row(col.data, row)">
 	    </div>
-	    <div v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :class="col.classes" class="wrap-column">
-	      <VueNode :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
+	    <div :class="col.classes" class="wrap-column">
+	      <VueNode v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
 	    </div>
 	  </td>
 	</template>
@@ -159,24 +159,24 @@ async function load_table() {
     emit("loaded");
 }
 
-async function change_columns_visibility(col) {    
+async function change_columns_visibility(col) {
     if (props.paging) {
 	await set_rows();
     }
-    redraw_table();
+    // redraw_table();
     await redraw_table_resizable();
-    set_columns_resizable();
+    // set_columns_resizable();
 }
 
 async function redraw_table_resizable() {
-    redraw_table();
-    await nextTick();
+    await redraw_table();
     set_columns_resizable();
 }
 
 const table_key = ref(0);
-function redraw_table() {
+async function redraw_table() {
     table_key.value += 1;
+    await nextTick();
 }
 
 function set_columns_resizable() {
@@ -273,7 +273,7 @@ function refresh_table() {
 }
 
 let first_get_rows = true;
-async function set_rows() {
+async function set_rows() {    
     let res = await props.get_rows(active_page, per_page.value, columns_wrap.value, map_search.value, first_get_rows);
     first_get_rows = false;
     total_rows.value = res.rows.length;

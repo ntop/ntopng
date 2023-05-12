@@ -235,7 +235,7 @@ async function register_components_on_status_update() {
     ntopng_status_manager.on_status_change(page.value, (new_status) => {
 	let url_params = ntopng_url_manager.get_url_params();
 	table_alerts.value.refresh_table();
-	load_top_table_overview();
+	load_top_table_array_overview();
     }, false);
 }
 
