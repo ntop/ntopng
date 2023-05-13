@@ -1,7 +1,6 @@
 --
 -- (C) 2013-23 - ntop.org
 --
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
@@ -10,6 +9,7 @@ require "lua_utils"
 local host_pools = require "host_pools"
 local json = require "dkjson"
 local rest_utils = require("rest_utils")
+local radius_handler = require "radius_handler"
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -53,51 +53,52 @@ local pools_list = {}
 
 -- Table with pool names as keys
 for _, pool in pairs(s:get_all_pools()) do
-   pools_list[pool["name"]] = pool
+    pools_list[pool["name"]] = pool
 end
 
-local res = {associations = _POST["associations"]}
+local res = {
+    associations = _POST["associations"]
+}
 
 for member, info in pairs(_POST["associations"] or {}) do
 
-   if member == nil then
-      res["associations"][member]["status"] = "ERROR"
-      res["associations"][member]["status_msg"] = "Bad member format"
-      goto continue
-   end
+    if member == nil then
+        res["associations"][member]["status"] = "ERROR"
+        res["associations"][member]["status_msg"] = "Bad member format"
+        goto continue
+    end
 
-   local pool = info["group"]
+    local pool = info["group"]
 
-   if pools_list[pool] == nil then
-      res["associations"][member]["status"] = "ERROR"
-      res["associations"][member]["status_msg"] = "Unable to find a group with the specified name"
-      goto continue
-   end
+    if pools_list[pool] == nil then
+        res["associations"][member]["status"] = "ERROR"
+        res["associations"][member]["status_msg"] = "Unable to find a group with the specified name"
+        goto continue
+    end
 
-   local pool_id = pools_list[pool]["pool_id"]
+    local pool_id = pools_list[pool]["pool_id"]
+    local connectivity = info["connectivity"]
+    local username = info["username"]
+    local password = info["password"]
 
-   local connectivity = info["connectivity"]
+    if connectivity == "pass" then
+        if s:bind_member(member, pool_id) == true then
+            res["associations"][member]["status"] = "OK"
+            radius_handler.accountingStart(member, username, password)
+        else
+            res["associations"][member]["status"] = "ERROR"
+            res["associations"][member]["status_msg"] = "Failure adding member, maybe bad member MAC or IP"
+        end
+    elseif info["connectivity"] == "reject" then
+        s:bind_member(member, host_pools.DEFAULT_POOL_ID)
+        res["associations"][member]["status"] = "OK"
+        radius_handler.accountingStop(member)
+    else
+        res["associations"][member]["status"] = "ERROR"
+        res["associations"][member]["status_msg"] = "Unknown association: allowed associations are 'pass' and 'reject'"
+    end
 
-   -- TODO store username and password to be used for Radius accounting
-   local username = info["username"]
-   local password = info["password"]
-
-   if connectivity == "pass" then
-      if s:bind_member(member, pool_id) == true then
-         res["associations"][member]["status"] = "OK"
-      else
-         res["associations"][member]["status"] = "ERROR"
-         res["associations"][member]["status_msg"] = "Failure adding member, maybe bad member MAC or IP"
-      end
-   elseif info["connectivity"] == "reject" then
-      s:bind_member(member, host_pools.DEFAULT_POOL_ID)
-      res["associations"][member]["status"] = "OK"
-   else
-      res["associations"][member]["status"] = "ERROR"
-      res["associations"][member]["status_msg"] = "Unknown association: allowed associations are 'pass' and 'reject'"
-   end
-
-  ::continue::
+    ::continue::
 end
 
 rest_utils.answer(rc, res)

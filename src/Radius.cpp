@@ -182,42 +182,42 @@ bool Radius::addBasicConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
 /* Performs the basic configuration for the accounting, Status type, service,
  * username and session id */
 bool Radius::addUpdateConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
-                                        Host *h) {
+                                        Mac *mac) {
   char data[64];
-  if (!h) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Host NULL");
+  if (!mac) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: MAC not found");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", h->get_last_seen() - h->get_first_seen());
+  snprintf(data, sizeof(data), "%lu", mac->get_last_seen() - mac->get_first_seen());
   if (rc_avpair_add(rh, send, PW_ACCT_SESSION_TIME, data, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Session Time");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", h->getNumPktsRcvd());
+  snprintf(data, sizeof(data), "%lu", mac->getNumPktsRcvd());
   if (rc_avpair_add(rh, send, PW_ACCT_INPUT_PACKETS, data, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Input Packets");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", h->getNumPktsSent());
+  snprintf(data, sizeof(data), "%lu", mac->getNumPktsSent());
   if (rc_avpair_add(rh, send, PW_ACCT_OUTPUT_PACKETS, data, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Output Packets");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", h->getNumBytesRcvd());
+  snprintf(data, sizeof(data), "%lu", mac->getNumBytesRcvd());
   if (rc_avpair_add(rh, send, PW_ACCT_INPUT_OCTETS, data, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Bytes Received");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", h->getNumBytesSent());
+  snprintf(data, sizeof(data), "%lu", mac->getNumBytesSent());
   if (rc_avpair_add(rh, send, PW_ACCT_OUTPUT_OCTETS, data, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Bytes Sent");
@@ -428,9 +428,10 @@ bool Radius::startSession(const char *username, const char *session_id) {
 
   /* Check the accounting */
   result = rc_acct(rh, 0, send);
+  
 
   if (result == OK_RC) {
-    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                  "Radius: Accounting start Succedeed");
     radius_ret = true;
   } else {
@@ -448,7 +449,7 @@ radius_auth_out:
 /* *************************************** */
 
 bool Radius::updateSession(const char *username, const char *session_id,
-                           Host *h) {
+                           Mac *mac) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
@@ -469,7 +470,7 @@ bool Radius::updateSession(const char *username, const char *session_id,
   }
 
   /* Add to the dictionary the interim-update data (needed even in the stop) */
-  if (!addUpdateConfigurationAcct(rh, &send, h)) {
+  if (!addUpdateConfigurationAcct(rh, &send, mac)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
@@ -503,16 +504,11 @@ radius_auth_out:
 /* *************************************** */
 
 bool Radius::stopSession(const char *username, const char *session_id,
-                         Host *h) {
+                         Mac *mac) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
   VALUE_PAIR *send = NULL;
-
-  if (!h) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Host NULL");
-    return false;
-  }
 
   /* Init the configuration */
   if (!buildConfiguration(&rh)) {
@@ -529,7 +525,7 @@ bool Radius::stopSession(const char *username, const char *session_id,
   }
 
   /* Add to the dictionary the interim-update data (needed even in the stop) */
-  if (!addUpdateConfigurationAcct(rh, &send, h)) {
+  if (!addUpdateConfigurationAcct(rh, &send, mac)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
