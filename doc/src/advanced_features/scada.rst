@@ -41,7 +41,7 @@ For the specified duration, ntopng builds a model for each flow in order to unde
 - An unexpected transition is detected
 - The trsnsitions number is invalid (C-C > 10 and M-M/M-C/C-< == 0)
 
-You can read more `her <https://www.ntop.org/ntopconf2022/pdf/Scheu.pdf>`_ for more information,
+You can `read more here <https://www.ntop.org/ntopconf2022/pdf/Scheu.pdf>`_ for more information,
 
 
 
