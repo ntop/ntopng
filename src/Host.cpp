@@ -2697,17 +2697,22 @@ bool Host::loadRareDestFromRedis() {
   free(value);
 
   snprintf(buf, sizeof(buf), "rare_dest_revise_len");
-  if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) return(false);
+  if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) {
+    ndpi_bitmap_free(rare_dest);
+    return(false);
+  }
   size = (size_t)strtoul(param_str, NULL, 10);
 
   if((value = (char *) malloc(size)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
+    ndpi_bitmap_free(rare_dest);
     return(false);
   }
 
   snprintf(buf, sizeof(buf), "rare_dest_revise");
   if(redis->hashGet(key, buf, value, size) != 0) {
     free(value);
+    ndpi_bitmap_free(rare_dest);
     return(false);
   }
   rare_dest_revise = ndpi_bitmap_deserialize((char *)Utils::base64_decode((std::string)value).c_str());
