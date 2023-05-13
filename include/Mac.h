@@ -183,6 +183,10 @@ class Mac : public GenericHashEntry {
   inline u_int64_t getNumBytes() { return (stats->getNumBytes()); }
   inline float getBytesThpt() { return (stats->getBytesThpt()); }
   inline bool isMulticast() { return Utils::isMulticastMac(mac); }
+  inline u_int64_t getNumPktsSent() { return stats ? stats->getNumPktsSent() : 0; }
+  inline u_int64_t getNumPktsRcvd() { return stats ? stats->getNumPktsRcvd() : 0; }
+  inline u_int64_t getNumBytesSent() { return stats ? stats->getNumBytesSent() : 0; }
+  inline u_int64_t getNumBytesRcvd() { return stats ? stats->getNumBytesRcvd() : 0; }
 
   inline bool isBroadcast() { return (broadcast_mac); }
 
