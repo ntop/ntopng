@@ -3,7 +3,7 @@ SNMP
 
 .. note::
 
-	An ntopng Enterprise M license or above is required.
+	A ntopng Enterprise M license or above is required.
 
 `SNMP (Simple Network Management Protocol) <https://en.wikipedia.org/wiki/Simple_Network_Management_Protocol>`_ is a standard used to collect and monitor network infrastructures.
 
@@ -21,5 +21,6 @@ These blog posts explain in detail how SNMP monitoring in ntopng works, and what
 
     configuration
     monitoring
+    similarity
     topology
     alerts
