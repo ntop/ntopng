@@ -30,8 +30,8 @@ class Radius {
  private:
   bool use_chap;
   int result;
-  char *radiusServer, *radiusSecret, *authServer, *radiusAdminGroup,
-      *radiusUnprivCapabilitiesGroup;
+  char *radiusAuthServer, *radiusAcctServer;
+  char *radiusSecret, *authServer, *radiusAdminGroup, *radiusUnprivCapabilitiesGroup;
   char dict_path[MAX_RADIUS_LEN];
 
   bool buildConfiguration(rc_handle **rh);

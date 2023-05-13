@@ -1155,7 +1155,8 @@
   256 /* Keep it in sync with lua preferences file prefs.lua */
 #endif
 #define PREF_NTOP_RADIUS_AUTH NTOPNG_PREFS_PREFIX ".radius.auth_enabled"
-#define PREF_RADIUS_SERVER NTOPNG_PREFS_PREFIX ".radius.radius_server_address"
+#define PREF_RADIUS_AUTH_SERVER NTOPNG_PREFS_PREFIX ".radius.radius_server_address"
+#define PREF_RADIUS_ACCT_SERVER NTOPNG_PREFS_PREFIX ".radius.radius_acct_server_address"
 #define PREF_RADIUS_AUTH_PROTO NTOPNG_PREFS_PREFIX ".radius.radius_auth_proto"
 #define PREF_RADIUS_SECRET NTOPNG_PREFS_PREFIX ".radius.radius_secret"
 #define PREF_RADIUS_ADMIN_GROUP NTOPNG_PREFS_PREFIX ".radius.radius_admin_group"
