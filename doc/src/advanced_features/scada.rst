@@ -33,13 +33,12 @@ and reports in realtime traffic statistics. In addition to this, ntopng learns t
 
 For the specified duration, ntopng builds a model for each flow in order to understand how it behaves overtime. When the learning period for a flow is over, ntopng matches the traffic agains the model and triggers an alert whenever
 
-
 .. figure:: ../img/IEC_Transitions.png
   :align: center
   :alt: IEC Flow Transitions
 
 - An unexpected transition is detected
-- The trsnsitions number is invalid (C-C > 10 and M-M/M-C/C-< == 0)
+- The transitions number is invalid (C-C > 10 and M-M/M-C/C-< == 0)
 
 You can `read more here <https://www.ntop.org/ntopconf2022/pdf/Scheu.pdf>`_ for more information,
 
