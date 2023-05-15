@@ -783,6 +783,8 @@ local function validateColumnsIds(v)
     -- So split by comma and check each single column with validateSingleWord
     local columns = string.split(v, ",")
 
+    if((column == nil) or (type(column) ~= table)) then return false end
+    
     for _, column_id in pairs(columns) do
         if not validateSingleWord(column_id) then
             return false
