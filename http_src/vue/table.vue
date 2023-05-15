@@ -50,7 +50,7 @@
     <thead>
       <tr>
 	<template v-for="(col, col_index) in columns_wrap">
-	  <th v-if="col.visible" scope="col" :class="{'pointer': col.sortable, 'unset': !col.sortable }" style="white-space: nowrap;" @click="change_column_sort(col, col_index)" :data-resizable-column-id="get_column_id(col.data)">
+	  <th v-if="col.visible" scope="col" :class="{'pointer': col.sortable, 'unset': !col.sortable, }" style="white-space: nowrap;" @click="change_column_sort(col, col_index)" :data-resizable-column-id="get_column_id(col.data)">
 	    <div style="display:flex;">
 	      <span v-html="print_column_name(col.data)" class="wrap-column"></span>
 	      <!-- <i v-show="col.sort == 0" class="fa fa-fw fa-sort"></i> -->
@@ -64,8 +64,8 @@
     </thead>
     <tbody>
       <tr v-for="row in active_rows">
-	<template v-for="col in columns_wrap">
-	  <td v-if="col.visible" scope="col">
+	<template v-for="(col, col_index) in columns_wrap">
+	  <td v-if="col.visible" scope="col" >
 	    <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" v-html="print_html_row(col.data, row)">
 	    </div>
 	    <div :class="col.classes" class="wrap-column">
@@ -95,6 +95,7 @@
 import { ref, onMounted, computed, watch, onBeforeUnmount, nextTick } from "vue";
 import { getCurrentInstance, h, render } from 'vue';
 import { render_component } from "./ntop_utils.js";
+import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as Dropdown } from "./dropdown.vue";
 import { default as SelectTablePage } from "./select_table_page.vue";
 import { default as VueNode } from "./vue_node.vue";
@@ -151,7 +152,7 @@ watch(() => props.columns, (cur_value, old_value) => {
 }, { flush: 'pre'});
 
 async function load_table() {
-    set_columns_wrap();
+    await set_columns_wrap();
     await set_rows();
     set_columns_resizable();
     await nextTick();
@@ -192,7 +193,39 @@ function set_columns_resizable() {
     // $(table.value).css('width', '100%');
 }
 
-function set_columns_wrap() {
+async function get_columns_visibility() {
+    const params = { table_id: props.id };
+    const url_params = ntopng_url_manager.obj_to_url_params(params);
+    const url = `${http_prefix}/lua/rest/v2/get/tables/user_columns_config.lua?${url_params}`;
+    let columns_visible = await ntopng_utility.http_request(url);
+    let columns_visible_dict = {};
+    if (columns_visible.length == 0) {
+	console.log("Set columns");
+	await set_columns_visibility()
+	return;
+    }
+    columns_visible.forEach((c) => {
+	columns_visible_dict[c.id] = c;
+    });
+    console.log(columns_visible);
+}
+
+async function set_columns_visibility() {
+    let params = { table_id: props.id, visible_columns_ids: [] };
+    params.visible_columns_ids = props.columns.map((c, i) => {
+	return {
+	    id: props.get_column_id(c),
+	    visible: true,
+	    order: i,
+	};
+    });
+    params.visible_columns_ids = "asd";
+    const url = `${http_prefix}/lua/rest/v2/add/tables/user_columns_config.lua`;
+    await ntopng_utility.http_post_request(url, params);    
+}
+
+async function set_columns_wrap() {
+    await get_columns_visibility();
     columns_wrap.value = props.columns.map((c, i) => {
 	let classes = [];
 	if (props.f_get_column_classes != null) {
@@ -319,6 +352,11 @@ defineExpose({ load_table, refresh_table });
 </script>
 
 <style scoped>
+  .sticky {
+  position: sticky;
+  left: 0;
+  background-color: white;
+  }
 .wrap-column {
   text-overflow: ellipsis;
   white-space: nowrap;

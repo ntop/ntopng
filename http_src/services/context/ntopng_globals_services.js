@@ -127,6 +127,13 @@ export const ntopng_utility = function() {
 	set_http_globals_headers(headers) {
 	    global_http_headers = headers;
 	},
+	http_post_request: async function(url, params, throw_exception, not_unwrap) {
+	    let headers = {
+		'Content-Type': 'application/json'
+	    };
+	    console.log(JSON.stringify(params));
+	    return this.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+	},
 	http_request: async function(url, options, throw_exception, not_unwrap) {
 	    try {
 		if (options == null) {
