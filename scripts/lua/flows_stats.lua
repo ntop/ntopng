@@ -323,9 +323,11 @@ if (page == "flows" or page == nil) then
     print(i18n("serial"))
     print [[",
             field: "column_key", /* This is the serial numebe but called key for placing the flow button pointing to the flow key */
-            sortable: true,
+            sortable: false,
             css: {
-               textAlign: 'center'
+               textAlign: 'center',
+               whiteSpace: 'nowrap'
+
             }
          }, {
             title: "]]
