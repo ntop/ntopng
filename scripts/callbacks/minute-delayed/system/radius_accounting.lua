@@ -10,7 +10,7 @@ local host_pools = require "host_pools"
 
 -- #################################################################
 
-if radius_handler.isAccountingEnabled() then
+if radius_handler.isAccountingEnabled() and ntop.isnEdge() then
     -- Instantiate host pools
     local pool = host_pools:create()
     local pools_list = {}
@@ -20,6 +20,10 @@ if radius_handler.isAccountingEnabled() then
         pools_list[pool_info["name"]] = pool_info
     end
 
+    -- TODO: currently accounting is supported only for an interface
+    --       add the support to multiple interfaces
+    interface.select(tostring(interface.getFirstInterfaceId()))
+
     for _, pool_info in pairs(pools_list) do
         if pool_info.id ~= host_pools.DEFAULT_POOL_ID then
             local members = pool_info.members
@@ -27,11 +31,10 @@ if radius_handler.isAccountingEnabled() then
             for _, member in pairs(members) do
                 local is_mac = isMacAddress(member)
                 if is_mac then
-                    local update_radius = radius_handler.isAccountingRequested(member)
-
-                    if update_radius then
+                    -- Update stats only if the mac is in memory
+                    if interface.getMacInfo(member) then
                         -- In case the update fails, move the member into the default pool
-                        if not radius_handler.accountingUpdate() then
+                        if true then -- not radius_handler.accountingUpdate(member) then
                             pool:bind_member(member, host_pools.DEFAULT_POOL_ID)
                         end
                     end
@@ -39,4 +42,6 @@ if radius_handler.isAccountingEnabled() then
             end
         end
     end
+
+    interface.select("-1") -- System Interface
 end
