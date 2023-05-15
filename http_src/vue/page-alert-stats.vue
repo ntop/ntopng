@@ -68,6 +68,7 @@
 		 :f_is_column_sortable="table_config.f_is_column_sortable"
 		 :f_get_column_classes="table_config.f_get_column_classes"
 		 :enable_search="table_config.enable_search"
+		 :csrf="context.csrf"
 		 :paging="table_config.paging"
 		 @loaded="on_table_loaded"
 		 @custom_event="on_table_custom_event">
@@ -88,7 +89,7 @@
       </div>
     </div>
   </div>
-  
+  <NoteList :note_list="note_list"></NoteList>
 </div>
 
 <ModalAcknoledgeAlert ref="modal_acknowledge" :context="context" @acknowledge="refresh_page_components"></ModalAcknoledgeAlert>
@@ -120,6 +121,7 @@ import { default as RangePicker } from "./range-picker.vue";
 import { default as Table } from "./table.vue";
 import { default as Dropdown } from "./dropdown.vue";
 import { default as Spinner } from "./spinner.vue";
+import { default as NoteList } from "./note-list.vue";
 
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
@@ -153,6 +155,7 @@ let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
 const chart_type = ntopChartApex.typeChart.TS_COLUMN;
 const top_table_array = ref([]);
 const top_table_dropdown_array = ref([]);
+const note_list = ref([_i18n('show_alerts.alerts_info')]);
 
 onBeforeMount(async () => {
     page = ntopng_url_manager.get_url_entry("page");
@@ -362,7 +365,7 @@ function show_modal_snapshot() {
 }
 
 async function add_exclude(params) {
-    params.csrf = context.csrf;
+    params.csrf = props.context.csrf;
     let url = `${http_prefix}/lua/pro/rest/v2/add/alert/exclusion.lua`;
     try {
 	let headers = {

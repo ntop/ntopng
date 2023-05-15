@@ -1,6 +1,7 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
 <div ref="table_container" :id="id">
+  <Loading v-if="loading"></Loading>
 <div class="button-group mb-2"> <!-- TableHeader -->
   <div style="float:left;margin-top:0.5rem;">
     <label>
@@ -99,6 +100,7 @@ import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_g
 import { default as Dropdown } from "./dropdown.vue";
 import { default as SelectTablePage } from "./select_table_page.vue";
 import { default as VueNode } from "./vue_node.vue";
+import { default as Loading } from "./loading.vue";
 
 const emit = defineEmits(['custom_event', 'loaded'])
 const vue_obj = {
@@ -119,6 +121,7 @@ const props = defineProps({
     f_sort_rows: Function,
     f_get_column_classes: Function,
     enable_search: Boolean,
+    csrf: String,
     paging: Boolean,
 });
 
@@ -140,6 +143,7 @@ const store = window.store;
 const map_search = ref("");
 
 const select_table_page = ref(null);
+const loading = ref(false);
 
 onMounted(async () => {
     if (props.columns != null) {
@@ -166,6 +170,7 @@ async function change_columns_visibility(col) {
     }
     // redraw_table();
     await redraw_table_resizable();
+    await set_columns_visibility();
     // set_columns_resizable();
 }
 
@@ -193,53 +198,54 @@ function set_columns_resizable() {
     // $(table.value).css('width', '100%');
 }
 
-async function get_columns_visibility() {
+async function get_columns_visibility_dict() {
+    if (props.csrf == null) { return {}; }
     const params = { table_id: props.id };
     const url_params = ntopng_url_manager.obj_to_url_params(params);
     const url = `${http_prefix}/lua/rest/v2/get/tables/user_columns_config.lua?${url_params}`;
     let columns_visible = await ntopng_utility.http_request(url);
     let columns_visible_dict = {};
-    if (columns_visible.length == 0) {
-	console.log("Set columns");
-	await set_columns_visibility()
-	return;
-    }
     columns_visible.forEach((c) => {
 	columns_visible_dict[c.id] = c;
     });
-    console.log(columns_visible);
+    return columns_visible_dict;
 }
 
 async function set_columns_visibility() {
-    let params = { table_id: props.id, visible_columns_ids: [] };
-    params.visible_columns_ids = props.columns.map((c, i) => {
+    if (props.csrf == null) { return; }
+    let params = { table_id: props.id, visible_columns_ids: [], csrf: props.csrf };
+    params.visible_columns_ids = columns_wrap.value.map((c, i) => {
 	return {
-	    id: props.get_column_id(c),
-	    visible: true,
-	    order: i,
+	    id: c.id,
+	    visible: c.visible,
+	    order: c.order,
+	    sort: c.sort,
 	};
     });
-    params.visible_columns_ids = "asd";
     const url = `${http_prefix}/lua/rest/v2/add/tables/user_columns_config.lua`;
-    await ntopng_utility.http_post_request(url, params);    
+    await ntopng_utility.http_post_request(url, params);
 }
 
 async function set_columns_wrap() {
-    await get_columns_visibility();
+    let cols_visibility_dict = await get_columns_visibility_dict();
     columns_wrap.value = props.columns.map((c, i) => {
 	let classes = [];
 	if (props.f_get_column_classes != null) {
 	    classes = props.f_get_column_classes(c);
 	}
+	let id = props.get_column_id(c);
+	let col_opt = cols_visibility_dict[id];
 	return {
-	    visible: true,
-	    sort: 0,
+	    id,
+	    visible: col_opt?.visible || false,
+	    sort: col_opt?.sort || 0,
 	    sortable: is_column_sortable(c),
-	    order: i,
+	    order: col_opt?.order || i,
 	    classes,
 	    data: c,
 	};
     });
+    await set_columns_visibility();
 }
 
 async function reset_column_size() {
@@ -269,7 +275,7 @@ async function change_active_page(new_active_page) {
     }
 }
 
-function change_column_sort(col, col_index) {
+async function change_column_sort(col, col_index) {
     if (col.sortable == false) {
 	return;
     }
@@ -277,14 +283,15 @@ function change_column_sort(col, col_index) {
     columns_wrap.value.filter((c, i) => i != col_index).forEach((c) => c.sort = 0);
     if (col.sort == 0) { return; }
     if (props.paging) {
-	set_rows();
-	return;
+	await set_rows();
+    } else {
+	let f_sort = get_sort_function();
+	rows = rows.sort((r0, r1) => {
+	    return f_sort(col, r0, r1);
+	});
+	set_active_rows();
     }
-    let f_sort = get_sort_function();
-    rows = rows.sort((r0, r1) => {
-	return f_sort(col, r0, r1);
-    });
-    set_active_rows();
+    await set_columns_visibility();
 }
 
 function get_sort_function() {
@@ -306,7 +313,8 @@ function refresh_table() {
 }
 
 let first_get_rows = true;
-async function set_rows() {    
+async function set_rows() {
+    loading.value = true;
     let res = await props.get_rows(active_page, per_page.value, columns_wrap.value, map_search.value, first_get_rows);
     first_get_rows = false;
     total_rows.value = res.rows.length;
@@ -315,6 +323,7 @@ async function set_rows() {
     }
     rows = res.rows;
     set_active_rows();    
+    loading.value = false;
 }
 
 function is_column_sortable(col) {
