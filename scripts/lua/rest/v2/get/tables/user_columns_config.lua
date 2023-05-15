@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+local json = require "dkjson"
 
 -- #####################################
 
@@ -31,6 +32,8 @@ local function get_column_config()
   local visible_columns = ntop.getCache(redis_key) or {}
   if visible_columns == nil or visible_columns == "" then
      visible_columns = {}
+  else
+     visible_columns = json.decode(visible_columns)
   end
   return(rest_utils.answer(rest_utils.consts.success.ok, visible_columns))
 end

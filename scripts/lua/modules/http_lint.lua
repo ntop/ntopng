@@ -247,6 +247,7 @@ local function validateSingleWord(w)
 end
 http_lint.validateSingleWord = validateSingleWord
 
+
 -- ##############################################
 
 -- @brief Returns true if inputstr is inside alert, function used to check
@@ -777,22 +778,21 @@ local function validateServer(v)
 end
 
 local function validateColumnsIds(v)
+   return validateUnchecked(v)
     -- An Array is composed by a series of string separated by commas
     -- e.g.     column1,column2,column3
     -- So split by comma and check each single column with validateSingleWord
-    local columns = string.split(v, ",")
+    -- local columns = string.split(v, ",")
 
-    if ((column == nil) or (type(column) ~= table)) then
-        return false
-    end
+    -- if((column == nil) or (type(column) ~= table)) then return false end
+    
+    -- for _, column_id in pairs(columns) do
+    --     if not validateSingleWord(column_id) then
+    --         return false
+    --     end
+    -- end
 
-    for _, column_id in pairs(columns) do
-        if not validateSingleWord(column_id) then
-            return false
-        end
-    end
-
-    return true
+    -- return true
 end
 
 local function validateDate(p)
@@ -1912,9 +1912,6 @@ local known_parameters = {
     ["is_ifname"] = validateBool,
     ["metric_label"] = validateSingleWord,
     ["flows_page_type"] = validateSingleWord,
-    ["snmp_device"] = validateDevice,
-    ["snmp_device_port"] = validateNumber,
-    ["snmp_device_port_label"] = validateSingleWord,
 
     ["bytes"] = validateListOfTypeInline(validateFilters(validateNumber)),
     ["packets"] = validateListOfTypeInline(validateFilters(validateNumber)),
@@ -2091,7 +2088,6 @@ local known_parameters = {
     ["google_apis_browser_key"] = validateSingleWord,
     ["ldap_server_address"] = validateSingleWord,
     ["radius_server_address"] = validateSingleWord,
-    ["radius_acct_server_address"] = validateSingleWord,
     ["http_auth_url"] = validateSingleWord,
     ["radius_secret"] = validateUnquoted,
     ["radius_auth_proto"] = validateAuthProto,
