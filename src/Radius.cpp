@@ -264,7 +264,7 @@ bool Radius::updateLoginInfo() {
   ntop->getRedis()->get((char *)PREF_RADIUS_UNPRIV_CAP_GROUP, radiusUnprivCapabilitiesGroup, MAX_RADIUS_LEN);
 
   if((radiusAuthServer[0] == '\0') || (radiusAcctServer[0] == '\0')) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid radius server configuration [Auth: %s][Acct: %s]",
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "No Radius server configured for authentication or accounting [Auth: %s][Acct: %s]",
 				 radiusAuthServer, radiusAcctServer);
     return(false);
   }
