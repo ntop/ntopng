@@ -523,11 +523,7 @@ bool Radius::stopSession(const char *username, const char *session_id,
   }
 
   /* Add to the dictionary the interim-update data (needed even in the stop) */
-  if (!addUpdateConfigurationAcct(rh, &send, mac)) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Radius: Accounting Configuration Failed");
-    goto radius_auth_out;
-  }
+  addUpdateConfigurationAcct(rh, &send, mac);
 
   /* TODO: Change the terminate clause to the correct one */
   if (rc_avpair_add(rh, &send, PW_ACCT_TERMINATE_CAUSE, "No More Allowed", -1,
@@ -537,7 +533,7 @@ bool Radius::stopSession(const char *username, const char *session_id,
     return false;
   }
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Radius: performing accounting stop for: %s", username);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Radius: performing accounting stop for: %s", username);
 
   /* ****************************** */
 

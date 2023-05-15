@@ -10,7 +10,7 @@ require "lua_utils"
 
 local radius_handler = {}
 local session_id_length = 32
-local redis_accounting_key = "ntopng.radius.accounting.%"
+local redis_accounting_key = "ntopng.radius.accounting.%s"
 
 -- ##############################################
 
@@ -20,9 +20,10 @@ local redis_accounting_key = "ntopng.radius.accounting.%"
 ---@param password string, used to login the account to radius
 ---@return boolean, true if the accounting start went well, false otherwise
 function radius_handler.accountingStart(name, username, password)
-    -- if not radius_handler.isAccountingEnabled() then
-    --   return true
-    -- end
+    if not radius_handler.isAccountingEnabled() then
+        return true
+    end
+
     math.randomseed(os.time())
     local session_id = tostring(math.random(10000000000, 99999999999))
     local accounting_started = interface.radiusAccountingStart(name --[[ MAC Address ]] , session_id)
@@ -52,11 +53,6 @@ end
 function radius_handler.accountingStop(name)
     if not radius_handler.isAccountingEnabled() then
         return true
-    end
-
-    local accounting_enabled = ntop.getPref("ntopng.prefs.radius.accounting_enabled")
-    if (not accounting_enabled) or (isEmptyString(accounting_enabled) or (accounting_enabled == "0")) then
-        return false
     end
 
     local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
@@ -105,7 +101,7 @@ function radius_handler.isAccountingRequested(name)
     local key = string.format(redis_accounting_key, name)
     local user_data = ntop.getCache(key)
 
-    if user_data and not isEmptyString(user_data) then
+    if not isEmptyString(user_data) then
         local json = require("dkjson")
 
         return true, json.decode(user_data)

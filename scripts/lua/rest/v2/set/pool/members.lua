@@ -92,7 +92,9 @@ for member, info in pairs(_POST["associations"] or {}) do
     elseif info["connectivity"] == "reject" then
         s:bind_member(member, host_pools.DEFAULT_POOL_ID)
         res["associations"][member]["status"] = "OK"
+        interface.select(tostring(interface.getFirstInterfaceId()))
         radius_handler.accountingStop(member)
+        interface.select("-1") -- System Interface
     else
         res["associations"][member]["status"] = "ERROR"
         res["associations"][member]["status_msg"] = "Unknown association: allowed associations are 'pass' and 'reject'"
