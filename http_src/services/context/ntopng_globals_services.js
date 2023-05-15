@@ -131,7 +131,9 @@ export const ntopng_utility = function() {
 	    let headers = {
 		'Content-Type': 'application/json'
 	    };
-	    console.log(JSON.stringify(params));
+	    if (params.csrf == null) {
+		throw `NULL csrf in ${url} POST request.`;
+	    }
 	    return this.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
 	},
 	http_request: async function(url, options, throw_exception, not_unwrap) {
