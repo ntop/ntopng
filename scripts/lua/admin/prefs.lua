@@ -48,7 +48,6 @@ local auth_toggles = {
     }
 }
 
-
 if auth.has_capability(auth.capabilities.preferences) then
     if not table.empty(_POST) then
         if _GET["tab"] == "auth" then
@@ -82,6 +81,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     if (_POST["toggle_radius_auth"] == "1") and
         ((_POST["radius_server_address"] ~= ntop.getPref("ntopng.prefs.radius.radius_server_address")) or
+            (_POST["radius_acct_server_address"] ~= ntop.getPref("ntopng.prefs.radius.radius_acct_server_address")) or
             (_POST["radius_secret"] ~= ntop.getPref("ntopng.prefs.radius.radius_secret")) or
             (_POST["radius_admin_group"] ~= ntop.getPref("ntopng.prefs.radius.radius_admin_group")) or
             (_POST["radius_auth_proto"] ~= ntop.getPref("ntopng.prefs.radius.radius_auth_proto")) or
@@ -91,6 +91,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- In the minute callback there is a periodic script that in case 
         -- the auth changed, it's going to update the radius info
         ntop.setPref("ntopng.prefs.radius.radius_server_address", _POST["radius_server_address"])
+        ntop.setPref("ntopng.prefs.radius.radius_acct_server_address", _POST["radius_acct_server_address"])
         ntop.setPref("ntopng.prefs.radius.radius_secret", _POST["radius_secret"])
         ntop.setPref("ntopng.prefs.radius.radius_auth_proto", _POST["radius_auth_proto"])
         ntop.setPref("ntopng.prefs.radius.radius_admin_group", _POST["radius_admin_group"])
@@ -857,17 +858,31 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
 
         -- RADIUS traffic accounting
+        local accountingElements = {"radius_acct_server_address"}
 
         prefsToggleButton(subpage_active, {
             field = "toggle_radius_accounting",
             pref = "radius.accounting_enabled",
-            default = "0"
+            default = "0",
+            to_switch = accountingElements
         })
 
         -- RADIUS server settings (used for both RADIUS auth and accountign)
         prefsInputFieldPrefs(subpage_active.entries["radius_server"].title,
             subpage_active.entries["radius_server"].description, "ntopng.prefs.radius", "radius_server_address",
             "127.0.0.1:1812", nil, showElements, true, false, {
+                attributes = {
+                    spellcheck = "false",
+                    maxlength = 255,
+                    required = "required",
+                    pattern = "[0-9.\\-A-Za-z]+:[0-9]+"
+                }
+            })
+
+        -- RADIUS server settings (used for both RADIUS auth and accountign)
+        prefsInputFieldPrefs(subpage_active.entries["radius_accounting_server"].title,
+            subpage_active.entries["radius_accounting_server"].description, "ntopng.prefs.radius",
+            "radius_acct_server_address", "127.0.0.1:1813", nil, showElements, true, false, {
                 attributes = {
                     spellcheck = "false",
                     maxlength = 255,
@@ -957,15 +972,14 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
     end
 
-
     -- #####################
 
     local function printMenuVoicesPrefs()
         if ntop.isEnterpriseM() then
-        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.menu_voices") ..
-                  '</th></tr></thead>')
+            print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.menu_voices") ..
+                      '</th></tr></thead>')
         end
-       
+
         prefsToggleButton(subpage_active, {
             field = auth_toggles["menu_voices"]["help"],
             pref = "menu_voices.help",
@@ -1160,42 +1174,36 @@ if auth.has_capability(auth.capabilities.preferences) then
                   '</th></tr></thead>')
         -- Behavior analysis for asn, network and l7proto (iface)
 
-  prefsInputFieldPrefs(
-    subpage_active["devices_learning_period"].title, 
-    subpage_active["devices_learning_period"].description,
-    "ntopng.prefs.","devices_learning_period",
-    prefs.devices_learning_period,
-    "number", nil, nil, nil, {min=7200, tformat="hd"})
+        prefsInputFieldPrefs(subpage_active["devices_learning_period"].title,
+            subpage_active["devices_learning_period"].description, "ntopng.prefs.", "devices_learning_period",
+            prefs.devices_learning_period, "number", nil, nil, nil, {
+                min = 7200,
+                tformat = "hd"
+            })
 
-  local is_device_connection_disconnection_analysis_enabled = ntop.isEnterpriseM()
+        local is_device_connection_disconnection_analysis_enabled = ntop.isEnterpriseM()
 
-  multipleTableButtonPrefs(
-      subpage_active["devices_status_during_learning_period"].title,
-      subpage_active["devices_status_during_learning_period"].description,
-      {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")}, 
-      {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED},
-      LEARNING_STATUS.ALLOWED, -- [default value]
-      "primary", -- [selected color]
-      "devices_status_during_learning",
-      "ntopng.prefs.devices_status_during_learning",  -- [redis key]
-      false, -- [disabled]
-      {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]])
-   
-   multipleTableButtonPrefs(
-      subpage_active["devices_status_post_learning_period"].title,
-      subpage_active["devices_status_post_learning_period"].description,
-      { i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")}, 
-      {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED},
-      LEARNING_STATUS.ALLOWED, -- [default value]
-      "primary",
-      "devices_status_post_learning",
-      "ntopng.prefs.devices_status_post_learning", 
-      false,
-      {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]])
-   
-   -- #####################
-   
-   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+        multipleTableButtonPrefs(subpage_active["devices_status_during_learning_period"].title,
+            subpage_active["devices_status_during_learning_period"].description,
+            {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
+            {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
+            "primary", -- [selected color]
+            "devices_status_during_learning", "ntopng.prefs.devices_status_during_learning", -- [redis key]
+            false, -- [disabled]
+            {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]] )
+
+        multipleTableButtonPrefs(subpage_active["devices_status_post_learning_period"].title,
+            subpage_active["devices_status_post_learning_period"].description,
+            {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
+            {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
+            "primary", "devices_status_post_learning", "ntopng.prefs.devices_status_post_learning", false, {}, nil, nil,
+            is_device_connection_disconnection_analysis_enabled --[[show]] )
+
+        -- #####################
+
+        print(
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+                i18n("save") .. '</button></th></tr>')
 
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]

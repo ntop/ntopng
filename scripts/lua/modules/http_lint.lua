@@ -247,7 +247,6 @@ local function validateSingleWord(w)
 end
 http_lint.validateSingleWord = validateSingleWord
 
-
 -- ##############################################
 
 -- @brief Returns true if inputstr is inside alert, function used to check
@@ -783,8 +782,10 @@ local function validateColumnsIds(v)
     -- So split by comma and check each single column with validateSingleWord
     local columns = string.split(v, ",")
 
-    if((column == nil) or (type(column) ~= table)) then return false end
-    
+    if ((column == nil) or (type(column) ~= table)) then
+        return false
+    end
+
     for _, column_id in pairs(columns) do
         if not validateSingleWord(column_id) then
             return false
@@ -2087,6 +2088,7 @@ local known_parameters = {
     ["google_apis_browser_key"] = validateSingleWord,
     ["ldap_server_address"] = validateSingleWord,
     ["radius_server_address"] = validateSingleWord,
+    ["radius_acct_server_address"] = validateSingleWord,
     ["http_auth_url"] = validateSingleWord,
     ["radius_secret"] = validateUnquoted,
     ["radius_auth_proto"] = validateAuthProto,
