@@ -15,8 +15,11 @@ local host_pools = require "host_pools"
 -- which is the same used by host_pools.lua
 
 local host_pools_nedge = {}
-host_pools_nedge.DEFAULT_POOL_ID = host_pools.DEFAULT_POOL_ID
-host_pools_nedge.DEFAULT_POOL_NAME = host_pools.DEFAULT_POOL_NAME
+
+-- Keep in sync with pools.lua
+host_pools_nedge.DEFAULT_POOL_ID = 0
+host_pools_nedge.DEFAULT_POOL_NAME = "Not Assigned"
+
 host_pools_nedge.DEFAULT_ROUTING_POLICY_ID = "1"
 
 function host_pools_nedge.usernameToPoolId(username)
@@ -24,7 +27,6 @@ function host_pools_nedge.usernameToPoolId(username)
   local res = ntop.getPref("ntopng.user."..string.lower(username)..".host_pool_id")
 
   -- If not found due to some (should veder happen), do a lookup
-  --[[
   if isEmptyString(res) then
     local s = host_pools:create()
     local list = s:get_all_pools()
@@ -34,7 +36,6 @@ function host_pools_nedge.usernameToPoolId(username)
       end
     end
   end
-  ]]--
 
   if isEmptyString(res) then
     return nil
@@ -133,7 +134,7 @@ function host_pools_nedge.deletePool(pool_id)
   local ts_utils = require "ts_utils"
   for ifid, ifname in pairs(interface.getIfNames()) do
      local serialized_key = get_pools_serialized_key(ifid)
-     ntop.delHashCache(serialized_key, pool_id)
+     ntop.delHashCache(serialized_key, tostring(pool_id))
      ts_utils.delete("host_pool", {ifid = tonumber(ifid), pool = pool_id})
   end
 end

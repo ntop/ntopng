@@ -23,7 +23,7 @@ pools.DEFAULT_POOL_ID = 0           -- Keep in sync with ntop_defines.h NO_HOST_
 pools.DEFAULT_POOL_NAME = "Default" -- Keep in sync with ntop_defines.h DEFAULT_POOL_NAME
 
 if ntop.isnEdge() then
-    pools.DEFAULT_POOL_NAME = "Not Assigned"
+   pools.DEFAULT_POOL_NAME = "Not Assigned"
 end
 
 -- ##############################################
@@ -194,7 +194,6 @@ function pools:_lock()
    local max_lock_duration = 5 -- seconds
 
    if(_use_lock) then
-      -- tprint(debug.traceback()) -- TODO: remove this useless lock
       return ntop.poolsLock(max_lock_duration)
    else
       return true
@@ -616,8 +615,6 @@ function pools:get_available_members()
 
     local res = {}
     for member, member_details in pairs(all_members) do
-        --      tprint("checking.."..member)
-        --      tprint(member)
         if not assigned_members[member] then res[member] = member_details end
     end
 
