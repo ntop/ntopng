@@ -1912,6 +1912,9 @@ local known_parameters = {
     ["is_ifname"] = validateBool,
     ["metric_label"] = validateSingleWord,
     ["flows_page_type"] = validateSingleWord,
+    ["snmp_device"] = validateDevice,
+    ["snmp_device_port"] = validateNumber,
+    ["snmp_device_port_label"] = validateSingleWord,
 
     ["bytes"] = validateListOfTypeInline(validateFilters(validateNumber)),
     ["packets"] = validateListOfTypeInline(validateFilters(validateNumber)),

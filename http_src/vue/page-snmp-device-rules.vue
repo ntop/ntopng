@@ -24,8 +24,6 @@
             @delete="delete_row">
           </ModalDeleteConfirm>
           <ModalAddSNMPRules ref="modal_add_snmp_device_rule"
-            :metric_list="metric_list"
-            :interface_metric_list="interface_metric_list"
             :frequency_list="frequency_list"
             :init_func="init_edit"
             @add="add_host_rule"
@@ -75,10 +73,10 @@ const row_to_edit = ref({})
 const snmp_metric_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/metric/rule_metrics.lua`
 const snmp_devices_url = `${http_prefix}/lua/pro/enterprise/get_snmp_devices_list.lua`
 
-const data_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_data.lua`
-const add_rule_url = `${http_prefix}/lua/pro/rest/v2/add/interface/host_rules/add_host_rule.lua`
-const remove_rule_url = `${http_prefix}/lua/pro/rest/v2/delete/interface/host_rules/delete_host_rule.lua`
-  
+const data_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/device/rules.lua`
+const add_rule_url = `${http_prefix}/lua/pro/rest/v2/add/snmp/device/rule.lua`
+const remove_rule_url = `${http_prefix}/lua/pro/rest/v2/delete/snmp/device/rule.lua`
+
 const note_list = [
   _i18n('if_stats_config.generic_notes_1'),
   _i18n('if_stats_config.generic_notes_2'),
@@ -193,31 +191,7 @@ const format_metric = function(data, rowData) {
 
   if (rowData.metric_label) {
     metric_label = rowData.metric_label;
-  } else {
-    if (rowData.rule_type != 'interface') {
-      metric_list.forEach((metric) => {
-      if(metric.id == data) {
-        if(rowData.extra_metric) {
-          if(rowData.extra_metric == metric.extra_metric)
-            metric_label = metric.label
-        } else {
-          metric_label = metric.label
-        }
-        }
-      })
-    } else {
-      interface_metric_list.forEach((metric) => {
-      if(metric.id == data) {
-        if(rowData.extra_metric) {
-          if(rowData.extra_metric == metric.extra_metric)
-            metric_label = metric.label
-        } else {
-          metric_label = metric.label
-        }
-        }
-      })
-    }
-  }
+  } 
   
   
   return metric_label
@@ -256,22 +230,12 @@ const format_threshold = function(data, rowData) {
 
 
 const format_target = function(data, rowData) {
-  let formatted_data = '';
-  if ((rowData.rule_type) && (rowData.rule_type == 'interface') ) {
-    formatted_data = rowData.selected_iface;
-  } else if(rowData.rule_type && rowData.rule_type == 'Host') {
-    formatted_data = rowData.target;
-  } else if (rowData.rule_type && rowData.rule_type == 'exporter' && rowData.metric =="flowdev:traffic") {
-    formatted_data = rowData.target;
-  } else {
-    formatted_data = rowData.target + " "+_i18n("on_interface")+": " + rowData.flow_exp_ifid_name;
-  }
-  return formatted_data;
+  return data;
 }
 
 const format_interface = function(data, rowData) {
-  
-  return data;
+  debugger; 
+  return rowData.device_port_label;
 }
 
 const get_snmp_metric_list = async function() {
@@ -311,8 +275,8 @@ const start_datatable = function() {
   
   const columns = [
     { columnName: _i18n("id"), visible: false, targets: 0, name: 'id', data: 'id', className: 'text-nowrap', responsivePriority: 1 },
-    { columnName: _i18n("if_stats_config.target"), targets: 1, width: '20', name: 'target', data: 'target', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) {return format_target(data, rowData) } },
-    { columnName: _i18n("if_stats_config.snmp_port"), targets: 2, width: '20', name: 'interface', data: 'interface', className: 'text-center', responsivePriority: 1, render: function(data, _, rowData) {return format_interface(data, rowData) } },
+    { columnName: _i18n("if_stats_config.snmp_device"), targets: 1, width: '20', name: 'device', data: 'device', className: 'text-nowrap', responsivePriority: 1, render: function(data, _, rowData) {return format_target(data, rowData) } },
+    { columnName: _i18n("if_stats_config.snmp_interface"), targets: 2, width: '20', name: 'interface', data: 'interface', className: 'text-center', responsivePriority: 1, render: function(data, _, rowData) {return format_interface(data, rowData) } },
     { columnName: _i18n("if_stats_config.metric"), targets: 3, width: '10', name: 'metric', data: 'metric', className: 'text-center', responsivePriority: 1, render: function(data, _, rowData) { return format_metric(data, rowData) } },
     { columnName: _i18n("if_stats_config.frequency"), targets: 4, width: '10', name: 'frequency', data: 'frequency', className: 'text-center', responsivePriority: 1, render: function(data) { return format_frequency(data) } },
     { columnName: _i18n("if_stats_config.threshold"), targets: 5, width: '10', name: 'threshold', data: 'threshold', className: 'text-end', responsivePriority: 1, render: function(data, _, rowData) { return format_threshold(data, rowData) } },

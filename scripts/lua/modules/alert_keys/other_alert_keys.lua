@@ -95,6 +95,7 @@ local other_alert_keys = {
    alert_local_host_blacklisted         =  OTHER_BASE_KEY + 82,
    alert_network_issues                 =  OTHER_BASE_KEY + 83,
    alert_network_rule_threshold_cross   =  OTHER_BASE_KEY + 84,
+   alert_snmp_interface_threshold_crossed = OTHER_BASE_KEY + 85,
 }
 
 -- ##############################################

@@ -43,13 +43,15 @@
 	    </label>
         <div class="col-10">
           <SelectSearch v-model:selected_option="selected_snmp_device_metric"
+            @select_option="change_active_threshold()"
+
             :options="snmp_metric_list">
           </SelectSearch>
         </div>
     </div>
 
     <!-- Frequency information, a frequency of 1 day, 5 minute or 1 hour for example -->
-    <div v-if="metrics_ready" class="form-group ms-2 me-2 mt-3 row">
+    <div class="form-group ms-2 me-2 mt-3 row">
       <label class="col-form-label col-sm-2" >
         <b>{{_i18n("if_stats_config.frequency")}}</b>
       </label>
@@ -68,7 +70,7 @@
       <template v-if="visible">
         <div class="col-sm-3">
           <SelectSearch v-model:selected_option="metric_type"
-            :options="metric_type_list">
+            :options="metric_type_active_list">
           </SelectSearch>  
         </div>
         <div class="col-3" :class="[ metric_type.id == 'throughput' ? 'p-0' : '']" >
@@ -164,6 +166,7 @@ const visible = ref(true)
 const rule_type = ref("snmp");
 const is_edit_page = ref(false)
 const page_csrf_ = ref(null);
+let metric_type_active_list = ref([]);
 
 
 
@@ -276,14 +279,9 @@ const set_row_to_edit = (row) => {
       t.active = (t.value == row.threshold_sign)
     })
 
-    // set metric_type
-    metric_type_list.value.forEach((t) => {
-      if(t.id == row.metric_type) {
-        t.active = true;
-        metric_type.value = t;
-      } else {
-        t.active = false;
-      }
+    snmp_metric_list.value.forEach((t) => {
+      if(t.label == row.metric)
+        selected_snmp_device_metric.value = t;
     })
 
     // set threshold
@@ -324,57 +322,15 @@ const set_row_to_edit = (row) => {
 
     // set rule_type
     rule_type.value = row.rule_type;
+    debugger;
+    snmp_devices_list.value.forEach((t) => {
+      if(t.label == row.device)
+        selected_snmp_device.value = t;
+    })
+
+    change_interfaces(row.device_port);
+  
     
-    if(rule_type.value == 'interface') {
-      
-      // set ifid
-      ifid_list.value.forEach((t) => {
-        if(t.id == row.target)
-          selected_ifid.value = t;
-      })
-      
-      // set metric
-      if(row.extra_metric != null) {
-        interface_metric_list.value.forEach((t) => {
-          if(t.id == row.metric && t.extra_metric == row.extra_metric) {
-            selected_interface_metric.value = t;
-          }
-        })
-
-      } else {
-        interface_metric_list.value.forEach((t) => {
-          if(t.id == row.metric) {
-            selected_interface_metric.value = t;
-          }
-        })
-      }
-    } else if (rule_type.value == 'exporter'){
-      flow_exporter_devices.value.forEach((item) => {
-        if(item == row.target)
-          selected_exporter_device.value = item
-      })
-      flow_exporter_device_ifid_list.value.forEach((item) => {
-        if(item == row.flow_exp_ifid)
-          selected_exporter_device_ifid.value = item
-      })
-    } else {
-
-      //set host
-      host.value = row.target;
-      
-      //set metric
-      if(row.extra_metric != null) {
-        metric_list.value.forEach((t) => {
-          if(t.id == row.metric && t.extra_metric == row.extra_metric)
-            selected_metric.value = t;
-          })
-      } else {
-        metric_list.value.forEach((t) => {
-          if(t.id == row.metric)
-            selected_metric.value = t;  
-        })
-      }
-    }
   }
 }
 
@@ -419,7 +375,7 @@ const set_active_radio = (selected_radio) => {
 }
 
 
-async function change_interfaces() {
+async function change_interfaces(interface_id) {
   const url = NtopUtils.buildURL(snmp_interfaces_url+"?host="+selected_snmp_device.value.label, rest_params)
   let interfaces_list = []
   await $.get(url, function(rsp, status){
@@ -429,11 +385,38 @@ async function change_interfaces() {
   interfaces_list.forEach(item => {
     item.interfaces.forEach(iface => {
       if(iface.column_port_name != null && iface.column_port_name != "")
-        result_interfaces.push({label: iface.column_port_name})
+        result_interfaces.push({label: iface.column_port_name, id: iface.port_id })
+      else
+        result_interfaces.push({label: iface.port_id, id: iface.port_id})
     })
   })
 
+  if (interface_id != null)
+    result_interfaces.forEach((t) => {
+      if(t.id == interface_id)
+        selected_snmp_interface.value = t;
+    })
+
   snmp_interfaces_list.value = result_interfaces;
+}
+
+function change_active_threshold() {
+  let list_metrics_active = [];
+  if(selected_snmp_device_metric.value.label == 'packets' || selected_snmp_device_metric.value.label == 'errors' ) {
+    metric_type_list.value.forEach((t) => {
+      if(t.id != 'percentage' && t.id != 'throughput')
+        t.active = false;
+      else {
+        list_metrics_active.push(t);
+        t.active = true;
+        metric_type.value = t;
+      }
+    })
+  } else {
+    list_metrics_active = metric_type_list.value;
+  }
+
+  metric_type_active_list.value = list_metrics_active;
 }
 
 
@@ -442,19 +425,18 @@ async function change_interfaces() {
  * Function to add rule to rules list
  */
 const add_ = (is_edit) => {
+  debugger;
   let tmp_host = ''
   if(rule_type.value == 'snmp')
     tmp_host = host.value;
 
   const tmp_frequency = selected_frequency.value.id;
-  const tmp_metric = selected_metric.value.id;
-  const tmp_metric_label = (rule_type.value == 'Host')? selected_metric.value.label : selected_interface_metric.value.label;
-  const tmp_interface_metric = selected_interface_metric.value.id;
-  const tmp_rule_type = rule_type.value;
-  const tmp_interface = selected_ifid.value.id;
-  const tmp_interface_name = selected_ifid.value.label;
+  const tmp_metric = selected_snmp_device_metric.value.label;
+  const tmp_metric_label = tmp_metric;
+  const tmp_device = selected_snmp_device.value.label;
+  const tmp_device_ifid = selected_snmp_interface.value.id;
+  const tmp_device_ifid_label = selected_snmp_interface.value.label;
   let tmp_metric_type = metric_type.value.id;
-  let tmp_extra_metric = (rule_type.value == 'Host')? ((selected_metric.value.extra_metric) ? selected_metric.value.extra_metric : null ) : ((selected_interface_metric.value.extra_metric) ? selected_interface_metric.value.extra_metric : null )
   let basic_value;
   let basic_sign_value;
   let tmp_threshold;
@@ -490,68 +472,18 @@ const add_ = (is_edit) => {
   if(is_edit == true) 
     emit_name = 'edit';
 
+  emit(emit_name, { 
+    frequency: tmp_frequency, 
+    metric: tmp_metric,
+    metric_label: tmp_metric_label,
+    threshold: tmp_threshold,
+    metric_type: tmp_metric_type,
+    snmp_device: tmp_device,
+    snmp_device_port: tmp_device_ifid,
+    snmp_device_port_label: tmp_device_ifid_label,
+    rule_threshold_sign: tmp_sign_value
+  });
   
-
-  if (rule_type.value == 'Host')
-    emit(emit_name, { 
-      host: tmp_host, 
-      frequency: tmp_frequency, 
-      metric: tmp_metric,
-      metric_label: tmp_metric_label,
-      threshold: tmp_threshold,
-      metric_type: tmp_metric_type,
-      extra_metric: tmp_extra_metric,
-      rule_type: tmp_rule_type,
-      rule_threshold_sign: tmp_sign_value
-    });
-  else if(rule_type.value == 'interface')
-    emit(emit_name, { 
-      frequency: tmp_frequency, 
-      metric: tmp_interface_metric,
-      metric_label: tmp_metric_label,
-      threshold: tmp_threshold,
-      metric_type: tmp_metric_type,
-      extra_metric: tmp_extra_metric,
-      rule_type: tmp_rule_type,
-      interface: tmp_interface,
-      ifname: tmp_interface_name,
-      rule_threshold_sign: tmp_sign_value
-    });
-  else {
-    const flow_device_ifindex = selected_exporter_device_ifid.value.id;
-    const flow_device_ifindex_name = selected_exporter_device_ifid.value.label;
-    const flow_device_ip = selected_exporter_device.value.id;
-    let metric_exp;
-    if(flow_device_ifindex != undefined) {
-      flow_device_metric_list.value.forEach((item) => {
-        if(item.id == "flowdev_port:traffic")
-          metric_exp = item;
-      })
-    }
-    
-    else {
-      flow_device_metric_list.value.forEach((item) => {
-        if(item.id == "flowdev:traffic")
-          metric_exp = item;
-      })
-    }
-    
-    
-    let metric_exp_label = metric_exp.label;
-    
-    emit(emit_name, { 
-      host: flow_device_ip,
-      frequency: tmp_frequency, 
-      metric: metric_exp.id,
-      metric_label: metric_exp_label,
-      threshold: tmp_threshold,
-      metric_type: tmp_metric_type,
-      rule_type: tmp_rule_type,
-      interface: flow_device_ifindex,
-      ifname: flow_device_ifindex_name,
-      rule_threshold_sign: tmp_sign_value
-    });
-  }
     
 
   close();
@@ -582,13 +514,7 @@ const metricsLoaded =(_snmp_devices_list, _snmp_metric_list, page_csrf) => {
   selected_frequency.value = frequency_list.value[0];
   selected_metric.value = snmp_metric_list.value[0];
   page_csrf_.value = page_csrf;
-  /*if(_init_func) {
-    init_func.value = _init_func;
-  }
-
-  if(_delete_row) {
-    delete_row.value = _delete_row;
-  }*/
+  
   
 }
 
