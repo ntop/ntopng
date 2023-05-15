@@ -1913,6 +1913,10 @@ local known_parameters = {
     ["metric_label"] = validateSingleWord,
     ["flows_page_type"] = validateSingleWord,
 
+    ["snmp_device"] = validateDevice,
+    ["snmp_device_port"] = validateNumber,
+    ["snmp_device_port_label"] = validateSingleWord,
+
     ["bytes"] = validateListOfTypeInline(validateFilters(validateNumber)),
     ["packets"] = validateListOfTypeInline(validateFilters(validateNumber)),
 
@@ -2088,6 +2092,7 @@ local known_parameters = {
     ["google_apis_browser_key"] = validateSingleWord,
     ["ldap_server_address"] = validateSingleWord,
     ["radius_server_address"] = validateSingleWord,
+    ["radius_acct_server_address"] = validateSingleWord,
     ["http_auth_url"] = validateSingleWord,
     ["radius_secret"] = validateUnquoted,
     ["radius_auth_proto"] = validateAuthProto,
