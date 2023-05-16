@@ -243,14 +243,16 @@ const reset_modal_form = async function() {
     host.value = "";
     selected_metric.value = snmp_metric_list.value[0];
 
+    selected_snmp_device_metric.value = snmp_metric_list.value[2];
+    change_active_threshold()
+    
     selected_frequency.value = frequency_list.value[0];
-    metric_type.value = metric_type_list.value[0];
+    metric_type.value = metric_type_list.value[2];
 
     // reset metric_type_list
     metric_type_list.value.forEach((t) => t.active = false);
-    metric_type_list.value[0].active = true;
-
-
+    metric_type_list.value[2].active = true;
+    
     reset_radio_selection(volume_threshold_list.value);
     reset_radio_selection(throughput_threshold_list.value);
     reset_radio_selection(sign_threshold_list.value);
