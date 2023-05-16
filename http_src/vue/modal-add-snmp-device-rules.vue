@@ -161,8 +161,8 @@ const frequency_list = ref([])
 const threshold_measure = ref(null)
 const threshold_sign = ref(null)
 const selected_metric = ref({})
-const selected_snmp_device = ref({})
-const selected_snmp_interface = ref({})
+const selected_snmp_device = ref(null)
+const selected_snmp_interface = ref(null)
 
 const selected_snmp_device_metric = ref({})
 const selected_frequency = ref({})
@@ -243,8 +243,9 @@ function reset_radio_selection(radio_array) {
 const reset_modal_form = async function() {
     host.value = "";
     selected_metric.value = snmp_metric_list.value[0];
-    selected_snmp_device.value = snmp_devices_list.value[0];
-    change_interfaces();
+    selected_snmp_device.value = null;
+    //selected_snmp_device.value = snmp_devices_list.value[0];
+    //change_interfaces();
 
     selected_snmp_device_metric.value = snmp_metric_list.value[2];
     change_active_threshold()
@@ -524,7 +525,7 @@ const format_snmp_devices_list = function(_snmp_devices_list) {
     .split('.')
     .reduce((acc, byte) => acc + byte.padStart(3, 0), '');
 
-  devices_list.sort((a, b) => ip2int(a.label) - ip2int(b.label));
+  devices_list.sort((a, b) => ip2int(a.label_to_insert) - ip2int(b.label_to_insert));
   return devices_list;
 }
 
