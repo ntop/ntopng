@@ -244,8 +244,8 @@ const reset_modal_form = async function() {
     host.value = "";
     selected_metric.value = snmp_metric_list.value[0];
     selected_snmp_device.value = null;
-    //selected_snmp_device.value = snmp_devices_list.value[0];
-    //change_interfaces();
+    selected_snmp_device.value = snmp_devices_list.value[0];
+    change_interfaces();
 
     selected_snmp_device_metric.value = snmp_metric_list.value[2];
     change_active_threshold()
