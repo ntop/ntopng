@@ -415,7 +415,7 @@ function change_active_threshold() {
   let list_metrics_active = [];
   if(selected_snmp_device_metric.value.label == 'packets' || selected_snmp_device_metric.value.label == 'errors' ) {
     metric_type_list.value.forEach((t) => {
-      if(t.id != 'percentage' && t.id != 'throughput')
+      if(t.id != 'percentage')
         t.active = false;
       else {
         list_metrics_active.push(t);
