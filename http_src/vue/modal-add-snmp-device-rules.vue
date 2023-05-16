@@ -395,9 +395,9 @@ async function change_interfaces(interface_id) {
 
   interfaces_list.forEach(iface => {
     if(iface.name != null && iface.name != "")
-      result_interfaces.push({label: iface.name, id: iface.id })
+      result_interfaces.push({label: iface.name + " ("+iface.id+")", id: iface.id, name: iface.name })
     else
-      result_interfaces.push({label: iface.id, id: iface.id})
+      result_interfaces.push({label: iface.id, id: iface.id,  name: iface.id})
   })
 
   if (interface_id != null)
@@ -434,7 +434,6 @@ function change_active_threshold() {
  * Function to add rule to rules list
  */
 const add_ = (is_edit) => {
-  debugger;
   let tmp_host = ''
   if(rule_type.value == 'snmp')
     tmp_host = host.value;
@@ -445,6 +444,7 @@ const add_ = (is_edit) => {
   const tmp_device = selected_snmp_device.value.label;
   const tmp_device_ifid = selected_snmp_interface.value.id;
   const tmp_device_ifid_label = selected_snmp_interface.value.label;
+  debugger;
   let tmp_metric_type = metric_type.value.id;
   let basic_value;
   let basic_sign_value;
