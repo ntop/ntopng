@@ -252,13 +252,19 @@ function alert_store:build_sql_cond(cond, is_write)
             sql_op, cond.value)
 
     elseif cond.field == 'alert_id' and tonumber(cond.value) ~= 0 then
-        local alert_id_bit = "bitShiftLeft(toUInt128('1'), " .. cond.value .. ")"
-        local and_cond = 'neq'
-        sql_cond = string.format(" (%s %s %u %s (%s %s %s) ) ", --[[ 
-            filter with the predominant alert_id and also search 
-            the alert_id in the alerts_map where the other flow alerts are present.
-         --]] self:get_column_name('alert_id', is_write), sql_op, cond.value, ternary(cond.op == and_cond, 'AND', 'OR'),
-            "bitAnd(" .. alert_id_bit .. ",reinterpretAsUInt128(reverse(unhex(alerts_map))) )", sql_op, alert_id_bit)
+
+        if ntop.isClickHouseEnabled() then
+            -- filter with the predominant alert_id and also search 
+            -- the alert_id in the alerts_map where the other flow alerts are present.
+            local alert_id_bit = "bitShiftLeft(toUInt128('1'), " .. cond.value .. ")"
+            local and_cond = 'neq'
+            sql_cond = string.format(" (%s %s %u %s (%s %s %s) ) ",
+                self:get_column_name('alert_id', is_write), sql_op, cond.value, ternary(cond.op == and_cond, 'AND', 'OR'),
+                "bitAnd(" .. alert_id_bit .. ",reinterpretAsUInt128(reverse(unhex(alerts_map))) )", sql_op, alert_id_bit)
+        else
+            -- TODO implement alerts_map match with sqlite
+            sql_cond = string.format(" (%s %s %u) ", self:get_column_name('alert_id', is_write), sql_op, cond.value)
+        end
 
         -- Special case: ip (with vlan)
     elseif cond.field == 'ip' or cond.field == 'cli_ip' or cond.field == 'srv_ip' then
