@@ -1182,7 +1182,7 @@
 #define NTOP_ES6_TEMPLATE "ntopng_template_elk6.json"
 #define NTOP_ES7_TEMPLATE "ntopng_template_elk7.json"
 #define NTOP_ES8_TEMPLATE "ntopng_template_elk8.json"
-#define ES_MAX_QUEUE_LEN 32768
+#define ES_MAX_QUEUE_LEN 65536
 #define ES_MIN_BUFFERED_FLOWS 8
 #define ES_BULK_BUFFER_SIZE 1 * 1024 * 1024
 #define ES_BULK_MAX_DELAY 120 /* Dump frequency of ELK flows, in seconds */

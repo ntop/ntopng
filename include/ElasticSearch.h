@@ -28,8 +28,7 @@ class ElasticSearch : public DB {
  private:
   pthread_t esThreadLoop;
   std::atomic<u_int32_t> num_queued_elems;
-  struct string_list *head, *tail;
-  Mutex listMutex;
+  SPSCQueue<char *> *export_queue;
 
   bool reportDrops;
   time_t lastReportedDropsTime;
