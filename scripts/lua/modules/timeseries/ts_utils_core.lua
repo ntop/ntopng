@@ -574,8 +574,9 @@ end
 --! @param schema_name the schema identifier.
 --! @param tags_filter a list of filter tags. Tags which are not specified are considered wildcard.
 --! @param start_time time filter. Only timeseries updated after start_time will be returned.
+--! @param end_time time filter. Only timeseries updated before end_time will be returned.
 --! @return a (possibly empty) list of tags values for the matching timeseries on success, nil on error.
-function ts_utils.listSeries(schema_name, tags_filter, start_time)
+function ts_utils.listSeries(schema_name, tags_filter, start_time, end_time)
    local schema = ts_utils.getSchema(schema_name)
    local driver = ts_utils.getQueryDriver()
 
@@ -590,7 +591,7 @@ function ts_utils.listSeries(schema_name, tags_filter, start_time)
 
    local filter_tags, wildcard_tags = getWildcardTags(schema, tags_filter)
 
-   return driver:listSeries(schema, filter_tags, wildcard_tags, start_time)
+   return driver:listSeries(schema, filter_tags, wildcard_tags, start_time, end_time)
 end
 
 -- ##############################################
@@ -644,7 +645,7 @@ function ts_utils.getBatchedListSeriesResult()
       result = {}
 
       for key, item in pairs(pending_listseries_batch) do
-	 result[key] = driver:listSeries(item.schema, item.filter_tags, item.wildcard_tags, item.start_time)
+	 result[key] = driver:listSeries(item.schema, item.filter_tags, item.wildcard_tags, item.start_time, item.end_time or nil)
       end
    else
       result = driver:listSeriesBatched(pending_listseries_batch)

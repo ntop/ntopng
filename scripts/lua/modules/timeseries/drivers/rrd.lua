@@ -610,7 +610,7 @@ end
 -- *Limitation*
 -- tags_filter is expected to contain all the tags of the schema except the last
 -- one. For such tag, a list of available values will be returned.
-function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, end_time)
    if #wildcard_tags > 1 then
       tprint(debug.traceback())
       tprint({schema_name = schema.name, wildcards=wildcard_tags})
@@ -650,7 +650,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
       if((v ~= nil) and (#v == 1)) then
 	 local last_update = ntop.rrd_lastupdate(fpath)
 
-	 if last_update ~= nil and last_update >= start_time then
+	 if last_update ~= nil and last_update >= start_time and ((end_time and last_update <= end_time) or (end_time == nil))  then
 	    local value = v[1]
 	    local toadd = false
 
@@ -696,7 +696,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 
 	 local last_update = ntop.rrd_lastupdate(fpath)
 
-	 if last_update ~= nil and last_update >= start_time then
+	 if last_update ~= nil and last_update >= start_time and ((end_time and last_update <= end_time) or (end_time == nil)) then
 	    res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = f})
 	 end
       end
@@ -720,7 +720,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       return nil
    end
 
-   local series = driver:listSeries(schema, tags, top_tags, tstart)
+   local series = driver:listSeries(schema, tags, top_tags, tstart, tend)
    if not series then
       return nil
    end
