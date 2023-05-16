@@ -177,8 +177,9 @@ let metric_type_active_list = ref([]);
 
 
 const note_list = [
-  _i18n('if_stats_config.note_1'),
-  _i18n('if_stats_config.note_2'),
+  _i18n('if_stats_config.note_snmp_device_rules.note_1'),
+  _i18n('if_stats_config.note_snmp_device_rules.note_2'),
+  _i18n('if_stats_config.note_snmp_device_rules.note_3'),
   _i18n('if_stats_config.note_3'),
   _i18n('if_stats_config.note_4'),
   _i18n('if_stats_config.note_5')
