@@ -22,19 +22,25 @@
 	    <label class="col-form-label col-sm-2" >
         <b>{{_i18n("if_stats_config.snmp_device")}}</b>
 	    </label>
+      <div class="col-10">
+
 	    <SelectSearch v-model:selected_option="selected_snmp_device"
       			  @select_option="change_interfaces()"
               :options="snmp_devices_list">
         </SelectSearch>
+        </div>
     </div>
 
      <div class="form-group ms-2 me-2 mt-3 row">
 	    <label class="col-form-label col-sm-2" >
         <b>{{_i18n("if_stats_config.snmp_interface")}}</b>
 	    </label>
+      <div class="col-10">
+
 	    <SelectSearch v-model:selected_option="selected_snmp_interface"
               :options="snmp_interfaces_list">
         </SelectSearch>
+        </div>
     </div>
 
     <div  class="form-group ms-2 me-2 mt-3 row">
