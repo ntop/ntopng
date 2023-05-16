@@ -234,7 +234,6 @@ const format_target = function(data, rowData) {
 }
 
 const format_interface = function(data, rowData) {
-  debugger; 
   return rowData.device_port_label;
 }
 

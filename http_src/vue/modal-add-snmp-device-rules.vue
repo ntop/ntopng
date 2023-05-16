@@ -149,7 +149,7 @@ const delete_row = ref(null);
 const snmp_metric_list = ref([])
 const snmp_devices_list = ref([])
 let snmp_interfaces_list = ref([])
-const snmp_interfaces_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/device/interfaces.lua`
+const snmp_interfaces_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/device/available_interfaces.lua`
 
 const frequency_list = ref([])
 const threshold_measure = ref(null)
@@ -382,13 +382,11 @@ async function change_interfaces(interface_id) {
     interfaces_list = rsp.rsp;
   });
   let result_interfaces = []
-  interfaces_list.forEach(item => {
-    item.interfaces.forEach(iface => {
-      if(iface.column_port_name != null && iface.column_port_name != "")
-        result_interfaces.push({label: iface.column_port_name, id: iface.port_id })
-      else
-        result_interfaces.push({label: iface.port_id, id: iface.port_id})
-    })
+  interfaces_list.forEach(iface => {
+    if(iface.name != null && iface.name != "")
+      result_interfaces.push({label: iface.name, id: iface.id })
+    else
+      result_interfaces.push({label: iface.id, id: iface.id})
   })
 
   if (interface_id != null)
