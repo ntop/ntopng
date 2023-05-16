@@ -512,6 +512,11 @@ const format_snmp_devices_list = function(_snmp_devices_list) {
   _snmp_devices_list.data.forEach(item => {
     devices_list.push({label : item.column_key});
   })
+  const ip2int = str => str
+    .split('.')
+    .reduce((acc, byte) => acc + byte.padStart(3, 0), '');
+
+  devices_list.sort((a, b) => ip2int(a.label) - ip2int(b.label));
   return devices_list;
 }
 
