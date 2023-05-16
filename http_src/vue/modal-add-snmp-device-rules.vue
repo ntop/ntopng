@@ -396,7 +396,7 @@ async function change_interfaces(interface_id) {
   let result_interfaces = []
 
   interfaces_list.forEach(iface => {
-    if(iface.name != null && iface.name != "")
+    if(iface.name != null && iface.name != "" && iface.name != iface.id)
       result_interfaces.push({label: iface.name + " ("+iface.id+")", id: iface.id, name: iface.name })
     else
       result_interfaces.push({label: iface.id, id: iface.id,  name: iface.id})
