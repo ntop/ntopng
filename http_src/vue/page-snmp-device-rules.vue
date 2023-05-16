@@ -230,7 +230,7 @@ const format_threshold = function(data, rowData) {
 
 
 const format_target = function(data, rowData) {
-  return data;
+  return rowData.device_label;
 }
 
 const format_interface = function(data, rowData) {

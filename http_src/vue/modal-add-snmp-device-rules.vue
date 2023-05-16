@@ -387,7 +387,7 @@ const set_active_radio = (selected_radio) => {
 
 
 async function change_interfaces(interface_id) {
-  const url = NtopUtils.buildURL(snmp_interfaces_url+"?host="+selected_snmp_device.value.label, rest_params)
+  const url = NtopUtils.buildURL(snmp_interfaces_url+"?host="+selected_snmp_device.value.label_to_insert, rest_params)
   let interfaces_list = []
   await $.get(url, function(rsp, status){
     interfaces_list = rsp.rsp;
@@ -442,7 +442,8 @@ const add_ = (is_edit) => {
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_snmp_device_metric.value.label;
   const tmp_metric_label = tmp_metric;
-  const tmp_device = selected_snmp_device.value.label;
+  const tmp_device = selected_snmp_device.value.label_to_insert;
+  const tmp_device_label = selected_snmp_device.value.label;
   const tmp_device_ifid = selected_snmp_interface.value.id;
   const tmp_device_ifid_label = selected_snmp_interface.value.label;
   debugger;
@@ -489,6 +490,7 @@ const add_ = (is_edit) => {
     threshold: tmp_threshold,
     metric_type: tmp_metric_type,
     snmp_device: tmp_device,
+    snmp_device_label: tmp_device_label,
     snmp_device_port: tmp_device_ifid,
     snmp_device_port_label: tmp_device_ifid_label,
     rule_threshold_sign: tmp_sign_value
@@ -511,8 +513,13 @@ const close = () => {
 const format_snmp_devices_list = function(_snmp_devices_list) {
   let devices_list = [];
   _snmp_devices_list.data.forEach(item => {
-    devices_list.push({label : item.column_key});
+    if(item.column_name != null && item.column_name != "")
+      devices_list.push({label : item.column_name + " ("+item.column_key+")" , label_to_insert: item.column_key});
+    else
+      devices_list.push({label : item.column_key, label_to_insert: item.column_key});
+
   })
+  debugger;
   const ip2int = str => str
     .split('.')
     .reduce((acc, byte) => acc + byte.padStart(3, 0), '');

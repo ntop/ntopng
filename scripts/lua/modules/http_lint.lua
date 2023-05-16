@@ -1916,6 +1916,7 @@ local known_parameters = {
     ["snmp_device"] = validateDevice,
     ["snmp_device_port"] = validateNumber,
     ["snmp_device_port_label"] = validateUnquoted,
+    ["snmp_device_label"] = validateUnquoted,   
 
     ["bytes"] = validateListOfTypeInline(validateFilters(validateNumber)),
     ["packets"] = validateListOfTypeInline(validateFilters(validateNumber)),
