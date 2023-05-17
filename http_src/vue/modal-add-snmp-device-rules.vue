@@ -467,14 +467,16 @@ const add_ = (is_edit) => {
 
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_snmp_device_metric.value.id;
-  const tmp_metric_label = selected_snmp_device_metric.value.label;;
+  const tmp_metric_label = selected_snmp_device_metric.value.label;
+  debugger;
   const tmp_device = selected_snmp_device.value.label_to_insert;
   const tmp_device_label = selected_snmp_device.value.label;
   const tmp_device_ifid = selected_snmp_interface.value.id;
   const tmp_device_ifid_label = selected_snmp_interface.value.label;
-  debugger;
+  console.log(threshold)
   let tmp_metric_type = metric_type.value.id;
   let basic_value;
+  let measure_unit_label;
   let basic_sign_value;
   let tmp_threshold;
   let tmp_sign_value;
@@ -484,23 +486,24 @@ const add_ = (is_edit) => {
     tmp_extra_metric = ''
     tmp_threshold = threshold.value.value;
   }
-  
-
+  debugger;
   if(tmp_metric_type == 'throughput') {
+
     sign_threshold_list.value.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
     tmp_sign_value = parseInt(basic_sign_value);
-    throughput_threshold_list.value.forEach((measure) => { if(measure.active) basic_value = measure.value; })
+    throughput_threshold_list.value.forEach((measure) => { if(measure.active) { basic_value = measure.value; measure_unit_label = measure.label; }})
     tmp_threshold = basic_value * parseInt(threshold.value.value) / 8;
     /* The throughput is in bit, the volume in Bytes!! */
   } else if(tmp_metric_type == 'volume') {
     sign_threshold_list.value.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
     tmp_sign_value = parseInt(basic_sign_value);
-    volume_threshold_list.value.forEach((measure) => { if(measure.active) basic_value = measure.value; })
+    volume_threshold_list.value.forEach((measure) => { if(measure.active) {basic_value = measure.value; measure_unit_label = measure.label;} })
     tmp_threshold = basic_value * parseInt(threshold.value.value);
   } else if(tmp_metric_type == 'percentage') {
     sign_threshold_list.value.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
     tmp_sign_value = parseInt(basic_sign_value);
     tmp_threshold = tmp_sign_value * parseInt(threshold.value.value);
+    measure_unit_label = "%";
   } else {
     tmp_sign_value = 1;
   }
@@ -519,7 +522,10 @@ const add_ = (is_edit) => {
     snmp_device_label: tmp_device_label,
     snmp_device_port: tmp_device_ifid,
     snmp_device_port_label: tmp_device_ifid_label,
-    rule_threshold_sign: tmp_sign_value
+    rule_threshold_sign: tmp_sign_value,
+    snmp_threshold_value: threshold.value.value,
+    snmp_threshold_unit: measure_unit_label,
+    snmp_metric_type_label: metric_type.value.title
   });
   
     

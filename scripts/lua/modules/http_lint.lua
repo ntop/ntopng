@@ -1910,13 +1910,16 @@ local known_parameters = {
     ["rule_type"] = validateSingleWord,
     ["rule_threshold_sign"] = validateNumber,
     ["is_ifname"] = validateBool,
-    ["metric_label"] = validateSingleWord,
+    ["metric_label"] = validateUnquoted,
     ["flows_page_type"] = validateSingleWord,
 
     ["snmp_device"] = validateDevice,
     ["snmp_device_port"] = validateNumber,
     ["snmp_device_port_label"] = validateUnquoted,
-    ["snmp_device_label"] = validateUnquoted,   
+    ["snmp_device_label"] = validateUnquoted, 
+    ["snmp_threshold_value"] = validateNumber,
+    ["snmp_threshold_unit"] = validateUnquoted,  
+    ["snmp_metric_type_label"] = validateUnquoted,
 
     ["bytes"] = validateListOfTypeInline(validateFilters(validateNumber)),
     ["packets"] = validateListOfTypeInline(validateFilters(validateNumber)),

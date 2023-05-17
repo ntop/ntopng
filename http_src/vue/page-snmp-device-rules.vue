@@ -188,7 +188,7 @@ const add_action_column = function (rowData) {
 
 const format_metric = function(data, rowData) {
   let metric_label = data  
-
+  debugger;
   if (rowData.metric_label && rowData.metric_label != data && rowData.metric_label != "") {
     metric_label = rowData.metric_label;
   } 

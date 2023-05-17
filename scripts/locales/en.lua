@@ -6749,6 +6749,11 @@ local lang = {
       ["version"] = "SNMP protocol version",
       ["write_community"] = "SNMP v1/v2c write community",
     },
+    ["snmp_devices_rules_metrics"] = {
+      ["bytes"] = "Bytes (RX/TX)",
+      ["errors"] = "Errors (Packets Errors/Packets Discards)",
+      ["packets"] = "Packets (RX/TX)",
+    },
     ["validation"] = {
       ["abort_add_snmp_devices"] = "Abort add new SNMP Device?",
       ["abort_edit_snmp_devices"] = "Abort edit SNMP Device?",
