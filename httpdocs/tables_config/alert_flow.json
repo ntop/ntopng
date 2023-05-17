@@ -9,6 +9,7 @@
 	{
 	    "title_i18n": "actions",
 	    "sortable": false,
+	    "sticky": true,
 	    "class": ["text-nowrap", "text-center"],
 	    "render_type": "buttons_list",
 	    "buttons_list": [
@@ -53,12 +54,6 @@
 	    "sortable": false,
 	    "render_type": "formatFlowTuple",
 	    "class": ["text-nowrap"]
-	},
-	{
-	    "title_i18n": "show_alerts.alert_counts",
-	    "data_field": "count",
-	    "sortable": true,
-	    "class": ["text-center"]
 	},
 	{
 	    "title_i18n": "description",
