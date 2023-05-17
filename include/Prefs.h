@@ -560,9 +560,9 @@ class Prefs {
   inline bool isCaptivePortalEnabled() const {
     return (enable_captive_portal && !enable_vlan_trunk_bridge);
   }
-  inline bool isInformativeCaptivePortalEnabled() const {
-    return (enable_informative_captive_portal && !enable_vlan_trunk_bridge);
-  }
+
+  bool isInformativeCaptivePortalEnabled() const;
+
   inline bool isMacBasedCaptivePortal() const {
     return (mac_based_captive_portal);
   }

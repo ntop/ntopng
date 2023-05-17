@@ -2892,12 +2892,20 @@ void Prefs::validate() {
 
 /* *************************************** */
 
+bool Prefs::isInformativeCaptivePortalEnabled() const {
+  return (enable_informative_captive_portal &&
+          !enable_vlan_trunk_bridge);
+}
+
+/* *************************************** */
+
 #ifdef HAVE_NEDGE
 const char *Prefs::getCaptivePortalUrl() {
-  if (isInformativeCaptivePortalEnabled())
+  if (isInformativeCaptivePortalEnabled()) {
     return CAPTIVE_PORTAL_INFO_URL;
-  else
+  } else {
     return CAPTIVE_PORTAL_URL;
+  }
 }
 #endif
 
