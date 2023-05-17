@@ -1,5 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
+    <slot name="custom_header2"></slot>
 <div ref="table_container" :id="id">
   <Loading v-if="loading"></Loading>
 <div class="button-group mb-2"> <!-- TableHeader -->
@@ -237,7 +238,7 @@ async function set_columns_wrap() {
 	let col_opt = cols_visibility_dict[id];
 	return {
 	    id,
-	    visible: col_opt?.visible || false,
+	    visible: col_opt?.visible == null || col_opt?.visible == true,
 	    sort: col_opt?.sort || 0,
 	    sortable: is_column_sortable(c),
 	    order: col_opt?.order || i,
@@ -377,6 +378,14 @@ defineExpose({ load_table, refresh_table });
 }
 .unset {
   cursor: unset;
+}
+.link-button {
+    color: var(--bs-dropdown-link-color);
+    cursor: pointer;
+}
+.link-disabled {
+    pointer-events: none;
+    color: #ccc;
 }
 /*table {
     table-layout:fixed;

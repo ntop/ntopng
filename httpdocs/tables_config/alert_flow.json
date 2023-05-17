@@ -7,18 +7,19 @@
     "rsp_records_field": "records",
     "columns": [
 	{
+	    "id": "actions",
 	    "title_i18n": "actions",
 	    "sortable": false,
 	    "sticky": true,
 	    "class": ["text-nowrap", "text-center"],
-	    "render_type": "buttons_list",
-	    "buttons_list": [
-		{ "icon": "fas fa fa-search-plus", "title_i18n": "info", "event_id": "click_button_info" },
-		{ "icon": "fas fa-stream", "title_i18n": "db_explorer.historical_data", "event_id": "click_button_historical_flows" },
-		{ "icon": "fas fa fa-user-check", "title_i18n": "acknowledge", "event_id": "click_button_acknowledge" },
-		{ "icon": "fas fa fa-bell-slash", "title_i18n": "disable", "event_id": "click_button_disable" },
-		{ "icon": "fas fa fa-cog", "title_i18n": "settings", "event_id": "click_button_settings" },
-		{ "icon": "fas fa fa-trash", "title_i18n": "remove", "event_id": "click_button_remove" }
+	    "render_v_node_type": "button_list",
+	    "button_def_array": [
+		{ "id": "info", "icon": "fas fa fa-search-plus", "class":["link-button"], "title_i18n": "info", "event_id": "click_button_info" },
+		{ "id": "historical_data", "icon": "fas fa-stream", "title_i18n": "db_explorer.historical_data", "class":["link-button"], "event_id": "click_button_historical_flows" },
+		{ "id": "acknowledge", "icon": "fas fa fa-user-check", "title_i18n": "acknowledge", "class":["link-button"], "event_id": "click_button_acknowledge" },
+		{ "id": "disable", "icon": "fas fa fa-bell-slash", "title_i18n": "disable", "class":["link-button"], "event_id": "click_button_disable" },
+		{ "id": "settings", "icon": "fas fa fa-cog", "title_i18n": "settings", "class":["link-button"], "event_id": "click_button_settings" },
+		{ "id": "remove", "icon": "fas fa fa-trash", "title_i18n": "remove", "class":["link-button"], "event_id": "click_button_remove" }
 	    ]
 	},
 	{
