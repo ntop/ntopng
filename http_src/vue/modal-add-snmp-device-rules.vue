@@ -425,6 +425,8 @@ async function change_interfaces(interface_id) {
       result_interfaces.push({label: iface.id, id: iface.id,  name: iface.id})
   })
 
+  result_interfaces.sort(function(a,b) {return (a.label.toLowerCase() > b.label.toLowerCase() ? 1 : (a.label.toLowerCase() < b.label.toLowerCase()) ? -1 : 0);});
+
   if (interface_id != null)
     result_interfaces.forEach((t) => {
       if(t.id == interface_id)
@@ -548,7 +550,7 @@ const format_snmp_devices_list = function(_snmp_devices_list) {
     .split('.')
     .reduce((acc, byte) => acc + byte.padStart(3, 0), '');
 
-  devices_list.sort((a, b) => ip2int(a.label_to_insert) - ip2int(b.label_to_insert));
+  devices_list.sort(function(a, b) {return (a.label.toLowerCase() > b.label.toLowerCase() ? 1 : (a.label.toLowerCase() < b.label.toLowerCase()) ? -1 : 0);});
   return devices_list;
 }
 

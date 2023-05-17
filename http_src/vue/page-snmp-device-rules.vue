@@ -215,7 +215,7 @@ const format_threshold = function(data, rowData) {
     threshold_sign = "< "
 
   if((rowData.metric_type) && (rowData.metric_type == 'throughput')) {
-    formatted_data = threshold_sign + NtopUtils.bitsToSize(data * 8)
+    formatted_data = threshold_sign + NtopUtils.bitsToSize_no_comma(data * 8)
   } else if((rowData.metric_type) && (rowData.metric_type == 'volume')) {
     formatted_data = threshold_sign + NtopUtils.bytesToSize(data);
   } else if((rowData.metric_type) && (rowData.metric_type == 'percentage')){
