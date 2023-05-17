@@ -352,6 +352,7 @@ local lang = {
   ["noTraffic"] = "No traffic has been reported for the specified date/time selection",
   ["no_attacker_no_victim"] = "No Attacker/Victim",
   ["no_data_available"] = "No Data Available",
+  ["no_external_link_url"] = "<span><button data-to-copy='%{proto}://%{url}' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button>  <a href='%{proto}://%{url}' target='_blank'><i class='fas fa-external-link-alt'></i> %{url_name}</a></span>",
   ["no_flows"] = "No Flows",
   ["no_ports"] = "No Ports",
   ["no_results_found"] = "No results found",
