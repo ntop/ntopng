@@ -148,7 +148,6 @@ const input_trigger_alerts = ref("");
 
 const modal_id = ref(null);
 const emit = defineEmits(['add','edit']);
-const title = i18n('if_stats_config.add_host_rules_title')
 const _i18n = (t) => i18n(t);
 const init_func = ref(null);
 const delete_row = ref(null);
@@ -174,6 +173,7 @@ const is_edit_page = ref(false)
 const page_csrf_ = ref(null);
 let metric_type_active_list = ref([]);
 
+let title =  _i18n('if_stats_config.add_host_rules_title');
 
 
 const note_list = [
@@ -241,6 +241,8 @@ function reset_radio_selection(radio_array) {
  * Reset fields in modal form 
  */
 const reset_modal_form = async function() {
+  if (!is_edit_page.value) {
+
     host.value = "";
     selected_metric.value = snmp_metric_list.value[0];
     selected_snmp_device.value = null;
@@ -266,7 +268,7 @@ const reset_modal_form = async function() {
     disable_add.value = true;
 
     threshold.value.value = 1;
-
+  }
 }
 
 const set_rule_type = (type) => {
@@ -283,8 +285,14 @@ const set_row_to_edit = (row) => {
 
   if(row != null) {
     is_edit_page.value = true;
+    title = _i18n('if_stats_config.edit_host_rules_title');
 
     disable_add.value = false;
+
+    snmp_devices_list.value.forEach((item) => {
+      if(item.label_to_insert == row.device)
+        selected_snmp_device.value = item;
+    } )
 
     // set threshold sign
     sign_threshold_list.value.forEach((t) => {
@@ -292,7 +300,7 @@ const set_row_to_edit = (row) => {
     })
 
     snmp_metric_list.value.forEach((t) => {
-      if(t.label == row.metric)
+      if(t.id == row.metric)
         selected_snmp_device_metric.value = t;
     })
 
@@ -331,6 +339,14 @@ const set_row_to_edit = (row) => {
       //percentage case
       threshold.value.value = row.threshold;
     }
+    change_active_threshold();
+    metric_type_active_list.value.forEach((item) => {
+      if(item.id == row.metric_type) {
+        metric_type.value = item;
+        item.active = true;
+      } else 
+        item.active = false;
+    })
 
     // set rule_type
     rule_type.value = row.rule_type;
@@ -340,6 +356,11 @@ const set_row_to_edit = (row) => {
         selected_snmp_device.value = t;
     })
 
+    frequency_list.value.forEach((item) => {
+      if(item.id == row.frequency)
+        selected_frequency.value = item;
+    });
+
     change_interfaces(row.device_port);
   
     
@@ -347,9 +368,11 @@ const set_row_to_edit = (row) => {
 }
 
 const show = (row) => {
-  reset_modal_form();
   if(row != null)
     set_row_to_edit(row);
+  else
+    reset_modal_form();
+
   
   modal_id.value.show();
 };
@@ -413,7 +436,7 @@ async function change_interfaces(interface_id) {
 
 function change_active_threshold() {
   let list_metrics_active = [];
-  if(selected_snmp_device_metric.value.label == 'packets' || selected_snmp_device_metric.value.label == 'errors' ) {
+  if(selected_snmp_device_metric.value.id == 'packets' || selected_snmp_device_metric.value.id == 'errors' ) {
     metric_type_list.value.forEach((t) => {
       if(t.id != 'percentage')
         t.active = false;
@@ -441,8 +464,8 @@ const add_ = (is_edit) => {
     tmp_host = host.value;
 
   const tmp_frequency = selected_frequency.value.id;
-  const tmp_metric = selected_snmp_device_metric.value.label;
-  const tmp_metric_label = tmp_metric;
+  const tmp_metric = selected_snmp_device_metric.value.id;
+  const tmp_metric_label = selected_snmp_device_metric.value.label;;
   const tmp_device = selected_snmp_device.value.label_to_insert;
   const tmp_device_label = selected_snmp_device.value.label;
   const tmp_device_ifid = selected_snmp_interface.value.id;
