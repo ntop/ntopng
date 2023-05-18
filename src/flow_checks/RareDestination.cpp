@@ -52,67 +52,66 @@ u_int32_t RareDestination::getDestinationHash(Flow *f) {
 
 /* ***************************************************** */
 
-/*
-  ndpi_bitmap_xor(ndpi_bitmap*, ndpi_bitmap*) defined in ndpi_api.h, ndpi_bitmap.c
-*/
-
 void RareDestination::protocolDetected(Flow *f) {
 
   bool is_rare_destination = false;
 
   if(f->getFlowServerInfo() != NULL) {
-
+    if(!f->get_cli_host()->isLocalHost()) return;
+    
     u_int32_t hash = getDestinationHash(f);
-    if(hash == 0) { return; }
+    if(hash == 0) return;
+    
+    LocalHost *cli_lhost = (LocalHost*)f->get_cli_host();
+    ndpi_bitmap *rare_dest = cli_lhost->getRareDestBMap();
+    ndpi_bitmap *rare_dest_revise = cli_lhost->getRareDestReviseBMap();
 
-    Host *cli_host = f->get_cli_host();
-    ndpi_bitmap *rare_dest = cli_host->getRareDestBMap();
-    ndpi_bitmap *rare_dest_revise = cli_host->getRareDestReviseBMap();
-
+    char hostbuf[64], *host_id;
+    host_id = cli_lhost->get_hostkey(hostbuf, sizeof(hostbuf));
     /* TODO: Check if bitmap pointers are valid */
 
     time_t t_now = time(NULL);
 
     /* check if training has to start */
     if (!ndpi_bitmap_cardinality(rare_dest)) {
-      cli_host->clearSeenRareDestTraining();
-      cli_host->setStartRareDestTraining(t_now);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training On at %ld", t_now);
+      cli_lhost->clearSeenRareDestTraining();
+      cli_lhost->setStartRareDestTraining(t_now);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training On at %ld ~ %s", t_now, host_id );
     }
 
     /* if host is training */
-    if (cli_host->getStartRareDestTraining()) {
+    if (cli_lhost->getStartRareDestTraining()) {
       /* update */
       if (!ndpi_bitmap_isset(rare_dest, hash)) {
         ndpi_bitmap_set(rare_dest, hash);
-        cli_host->incrementSeenRareDestTraining();
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash added for %s", f->getFlowServerInfo());
+        cli_lhost->incrementSeenRareDestTraining();
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash %s added ~ %s", f->getFlowServerInfo(), host_id );
       }
       /* check if training has to end */
-      if (  cli_host->getSeenRareDestTraining() >= RARE_DEST_FLOWS_TO_SEE_TRAINING
-            && t_now - cli_host->getStartRareDestTraining() >= RARE_DEST_DURATION_TRAINING )
+      if (  cli_lhost->getSeenRareDestTraining() >= RARE_DEST_FLOWS_TO_SEE_TRAINING
+            && t_now - cli_lhost->getStartRareDestTraining() >= RARE_DEST_DURATION_TRAINING )
       {
-        cli_host->setStartRareDestTraining(0);
-        cli_host->setRareDestLastEpoch(t_now);
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training Off at %ld", t_now);
+        cli_lhost->setStartRareDestTraining(0);
+        cli_lhost->setRareDestLastEpoch(t_now);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training Off at %ld ~ %s", t_now, host_id );
       }
-      cli_host->dumpRareDestToRedis();
+      cli_lhost->dumpRareDestToRedis();
       return;
     }
 
     /* check epoch */
 
-    if (t_now - cli_host->getRareDestLastEpoch() >= 2*RARE_DEST_EPOCH_DURATION) {
+    if (t_now - cli_lhost->getRareDestLastEpoch() >= 2*RARE_DEST_EPOCH_DURATION) {
       ndpi_bitmap_clear(rare_dest);
       ndpi_bitmap_clear(rare_dest_revise);
-      cli_host->dumpRareDestToRedis();
+      cli_lhost->dumpRareDestToRedis();
       return;
     }
 
-    if (t_now - cli_host->getRareDestLastEpoch() >= RARE_DEST_EPOCH_DURATION) {
-      //ndpi_bitmap_xor(rare_dest_revise, rare_dest);  // updates rare_dest_revise
+    if (t_now - cli_lhost->getRareDestLastEpoch() >= RARE_DEST_EPOCH_DURATION) {
+      ndpi_bitmap_xor(rare_dest_revise, rare_dest);  // updates rare_dest_revise
       ndpi_bitmap_and(rare_dest, rare_dest_revise); // makes rare_dest = rare_dest_revise
-      cli_host->setRareDestLastEpoch(t_now);
+      cli_lhost->setRareDestLastEpoch(t_now);
     }
     
     /* update */
@@ -123,7 +122,8 @@ void RareDestination::protocolDetected(Flow *f) {
       is_rare_destination = true;
     }
     
-    cli_host->dumpRareDestToRedis();
+    cli_lhost->dumpRareDestToRedis();
+
   }
 
   if (is_rare_destination) {

@@ -36,6 +36,16 @@ class LocalHost : public Host {
   u_int8_t router_mac_set : 1, drop_all_host_traffic : 1, systemHost : 1,
       _notused : 5;
 
+  /* RareDestination data implementation*/
+  ndpi_bitmap *rare_dest;
+  ndpi_bitmap *rare_dest_revise;
+  time_t last_epoch;
+
+  struct {
+    time_t start;
+    u_int32_t seen;
+  } rareDestTraining;
+
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail;
   /* END Host data: */
@@ -177,18 +187,29 @@ class LocalHost : public Host {
 
   void setRouterMac(Mac *gw);
 
-  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
-    usedPorts.setServerPort(isTCP, port, proto);
-  };
-  inline void setContactedPort(bool isTCP, u_int16_t port,
-                               ndpi_protocol *proto) {
-    usedPorts.setContactedPort(isTCP, port, proto);
-  };
-  virtual inline void luaUsedPorts(lua_State *vm) { usedPorts.lua(vm, iface); };
-  virtual inline std::unordered_map<u_int16_t, ndpi_protocol> *getServerPorts(
-      bool isTCP) {
-    return (usedPorts.getServerPorts(isTCP));
-  };
+  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
+  inline void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { usedPorts.setContactedPort(isTCP, port, proto); };
+  virtual inline void luaUsedPorts(lua_State* vm)                                         { usedPorts.lua(vm, iface);                     };
+  virtual inline std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(usedPorts.getServerPorts(isTCP));      };
+
+  /* RareDest Extension methods */
+  
+  inline ndpi_bitmap* getRareDestBMap()       const { return(rare_dest);        }
+  inline ndpi_bitmap* getRareDestReviseBMap() const { return(rare_dest_revise); } 
+
+  inline time_t getRareDestLastEpoch() const { return(last_epoch);  }
+  inline void setRareDestLastEpoch(time_t t) { last_epoch=t;        }
+
+  inline time_t getStartRareDestTraining() const { return(rareDestTraining.start); }
+  inline void setStartRareDestTraining(time_t t) { rareDestTraining.start = t;     }
+
+  inline u_int32_t getSeenRareDestTraining() const   { return(rareDestTraining.seen);  }
+  inline void clearSeenRareDestTraining()            { rareDestTraining.seen = 0;      }
+  inline void incrementSeenRareDestTraining()        { rareDestTraining.seen++;        }
+  
+  void dumpRareDestToRedis();
+  bool loadRareDestFromRedis();
+  
 };
 
 #endif /* _LOCAL_HOST_H_ */

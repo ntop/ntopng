@@ -1487,7 +1487,7 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
 
 /******************************************************************************/
 
-#define HOST_RARE_DEST_SERIALIZED_KEY "ntopng.serialized_host_rare_dest_fields.ifid_%u"
+#define HOST_RARE_DEST_SERIALIZED_KEY "ntopng.localhost_rare_dest_fields.%s"
 #define RARE_DEST_DURATION_TRAINING 60 /* seconds */
 #define RARE_DEST_FLOWS_TO_SEE_TRAINING 10
 #define RARE_DEST_EPOCH_DURATION 3600  /* seconds */
