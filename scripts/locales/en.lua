@@ -1136,6 +1136,7 @@ local lang = {
     ["potentially_dangerous_protocol"] = "Potentially Dangerous Protocol",
     ["process"] = "Process",
     ["quota_exceeded"] = "Quota Exceeded",
+    ["quota_exceeded_descr"] = "Trigger an alert when a configured quota has been exceeded.",
     ["rare_destination"] = "Rare Destination",
     ["rare_destination_description"] = "Rare Destination '%{destination}' detected",
     ["remote_access_alert_descr"] = "Remote access ended [duration: %{time}]",
