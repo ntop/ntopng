@@ -76,7 +76,7 @@ void RareDestination::protocolDetected(Flow *f) {
     if (!ndpi_bitmap_cardinality(rare_dest)) {
       cli_lhost->clearSeenRareDestTraining();
       cli_lhost->setStartRareDestTraining(t_now);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training On at %ld ~ %s", t_now, host_id );
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training On at %ld ~ %s", t_now, host_id );
     }
 
     /* if host is training */
@@ -85,7 +85,7 @@ void RareDestination::protocolDetected(Flow *f) {
       if (!ndpi_bitmap_isset(rare_dest, hash)) {
         ndpi_bitmap_set(rare_dest, hash);
         cli_lhost->incrementSeenRareDestTraining();
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash %s added ~ %s", f->getFlowServerInfo(), host_id );
+        //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash %s added ~ %s", f->getFlowServerInfo(), host_id );
       }
       /* check if training has to end */
       if (  cli_lhost->getSeenRareDestTraining() >= RARE_DEST_FLOWS_TO_SEE_TRAINING
@@ -93,9 +93,8 @@ void RareDestination::protocolDetected(Flow *f) {
       {
         cli_lhost->setStartRareDestTraining(0);
         cli_lhost->setRareDestLastEpoch(t_now);
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training Off at %ld ~ %s", t_now, host_id );
+        //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training Off at %ld ~ %s", t_now, host_id );
       }
-      cli_lhost->dumpRareDestToRedis();
       return;
     }
 
@@ -104,7 +103,6 @@ void RareDestination::protocolDetected(Flow *f) {
     if (t_now - cli_lhost->getRareDestLastEpoch() >= 2*RARE_DEST_EPOCH_DURATION) {
       ndpi_bitmap_clear(rare_dest);
       ndpi_bitmap_clear(rare_dest_revise);
-      cli_lhost->dumpRareDestToRedis();
       return;
     }
 
@@ -121,8 +119,6 @@ void RareDestination::protocolDetected(Flow *f) {
       ndpi_bitmap_set(rare_dest, hash);
       is_rare_destination = true;
     }
-    
-    cli_lhost->dumpRareDestToRedis();
 
   }
 

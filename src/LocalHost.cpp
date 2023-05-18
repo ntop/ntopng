@@ -598,7 +598,7 @@ void LocalHost::dumpRareDestToRedis() {
   snprintf(param_ser, sizeof(param_ser), "%lu", (unsigned long)rareDestTraining.seen);
   redis->hashSet(key, buf, param_ser);
 
-  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Rare Dest data dumped to redis last_epoch: %ld RareDestTraining.start: %ld rareDestTraining.seen: %lu", last_epoch, rareDestTraining.start, (unsigned long)rareDestTraining.seen);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Rare Dest data dumped for %s", get_hostkey(hostbuf, sizeof(hostbuf)));
 }
 
 bool LocalHost::loadRareDestFromRedis() {
@@ -638,9 +638,6 @@ bool LocalHost::loadRareDestFromRedis() {
     return(false);
   }
 
-  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "rare_dest size %lu", size);
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "rare_dest encoded: %s", value ); */
-
   rare_dest = ndpi_bitmap_deserialize((char *)Utils::base64_decode((std::string)value).c_str());
   free(value);
 
@@ -666,7 +663,7 @@ bool LocalHost::loadRareDestFromRedis() {
   rare_dest_revise = ndpi_bitmap_deserialize((char *)Utils::base64_decode((std::string)value).c_str());
   free(value);
 
-  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Rare Dest data loaded from redis , last_epoch: %ld RareDestTraining.start: %ld RareDestTraining.seen: %lu", last_epoch, rareDestTraining.start, rareDestTraining.seen);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Rare Dest data loaded for %s", get_hostkey(hostbuf, sizeof(hostbuf)));
 
   return(true);
 }
