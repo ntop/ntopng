@@ -194,35 +194,6 @@ end
 
 -- #################################
 
--- A redis set with mac addresses as keys
-function alert_utils.getActiveDevicesHashKey(ifid)
-   return "ntopng.cache.active_devices.ifid_" .. ifid
-end
-
-function alert_utils.deleteActiveDevicesKey(ifid)
-   ntop.delCache(alert_utils.getActiveDevicesHashKey(ifid))
-end
-
--- #################################
-
--- Keys used for Quota Check (see quota_exceeded.lua)
-
--- A redis set with host pools as keys
-function alert_utils.getActivePoolsHashKey()
-   return "ntopng.cache.active_pools"
-end
-
-function alert_utils.deleteActivePoolsKey()
-   ntop.delCache(getActivePoolsHashKey())
-end
-
--- Redis hashe with key=pool and value=list of quota_exceed_items, separated by |
-function alert_utils.getPoolsQuotaExceededItemsKey()
-   return "ntopng.cache.quota_exceeded_pools"
-end
-
--- #################################
-
 function alert_utils.disableAlertsGeneration()
    if not isAdministratorOrPrintErr() then
       return

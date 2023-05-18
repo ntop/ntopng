@@ -82,10 +82,6 @@ local function cleanupIfname(ifname, ifid)
    local alerts_status_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/json/")
    ntop.rmdir(alerts_status_path)
 
-   -- Remove the active devices and pools keys
-   alert_utils.deleteActiveDevicesKey(ifid)
-   alert_utils.deleteActivePoolsKey(ifid)
-
    -- Remove network discovery request on startup
    discover_utils.clearNetworkDiscovery(ifid)
 
