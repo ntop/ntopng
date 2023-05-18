@@ -25,18 +25,27 @@
 class Score {
  private:
   bool view_interface_score;
-  ScoreStats *score; /* A pointer to the score class, which depents on view/non-view interfaces */
-  
+  ScoreStats* score; /* A pointer to the score class, which depents on
+                        view/non-view interfaces */
+
  public:
-  Score(NetworkInterface *_iface);
+  Score(NetworkInterface* _iface);
   virtual ~Score();
 
-  inline u_int32_t getScore()         const { return score ? score->get() : 0; };
-  inline u_int32_t getScoreAsClient() const { return score ? score->getClient() : 0; };
-  inline u_int32_t getScoreAsServer() const { return score ? score->getServer() : 0; };
-  inline void serialize_breakdown(ndpi_serializer* serializer) const { if(score) score->serialize_breakdown(serializer); };
-  u_int16_t incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client);
-  u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
+  inline u_int32_t getScore() const { return score ? score->get() : 0; };
+  inline u_int32_t getScoreAsClient() const {
+    return score ? score->getClient() : 0;
+  };
+  inline u_int32_t getScoreAsServer() const {
+    return score ? score->getServer() : 0;
+  };
+  inline void serialize_breakdown(ndpi_serializer* serializer) const {
+    if (score) score->serialize_breakdown(serializer);
+  };
+  u_int16_t incScoreValue(u_int16_t score_incr, ScoreCategory score_category,
+                          bool as_client);
+  u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category,
+                          bool as_client);
 
   void lua_get_score(lua_State* vm);
   void lua_get_score_breakdown(lua_State* vm);

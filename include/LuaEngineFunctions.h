@@ -23,15 +23,20 @@
 #define _LUA_ENGINE_FUNCTIONS_H_
 
 extern NetworkInterface* getCurrentInterface(lua_State* vm);
-extern int ntop_get_alerts(lua_State* vm, AlertableEntity *entity);
-extern int ntop_store_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, u_int idx);
-extern int ntop_release_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, u_int idx);
-extern AddressTree* get_allowed_nets(lua_State* vm); /* LuaEngineInterface.cpp */
-extern int ntop_get_alerts(lua_State* vm, AlertableEntity *entity);
+extern int ntop_get_alerts(lua_State* vm, AlertableEntity* entity);
+extern int ntop_store_triggered_alert(lua_State* vm,
+                                      OtherAlertableEntity* alertable,
+                                      u_int idx);
+extern int ntop_release_triggered_alert(lua_State* vm,
+                                        OtherAlertableEntity* alertable,
+                                        u_int idx);
+extern AddressTree* get_allowed_nets(
+    lua_State* vm); /* LuaEngineInterface.cpp */
+extern int ntop_get_alerts(lua_State* vm, AlertableEntity* entity);
 extern NetworkInterface* getCurrentInterface(lua_State* vm);
-extern void build_redirect(const char *url, const char * query_string,
-			   char *buf, size_t bufsize);
-extern bool matches_allowed_ifname(char *allowed_ifname, char *iface);
+extern void build_redirect(const char* url, const char* query_string, char* buf,
+                           size_t bufsize);
+extern bool matches_allowed_ifname(char* allowed_ifname, char* iface);
 
 extern struct keyval string_to_replace[];
 

@@ -24,11 +24,10 @@ function ts_rest_utils.get_timeseries(http_context)
     if http_context.tskey then
         -- This can contain a MAC address for local broadcast domain hosts
         local tskey = http_context.tskey
-        
+
         -- Setting host_ip (check that the provided IP matches the provided
         -- mac address as safety check and to avoid security issues)
-        if (ts_schema == "top:snmp_if:traffic") or
-            (ts_schema == "top:flowdev_port:traffic") then
+        if (ts_schema == "top:snmp_if:traffic") or (ts_schema == "top:flowdev_port:traffic") then
             -- NOTE: the host here is not required, if added return an empty serie
             tskey = 0
             tags.host = nil
@@ -206,25 +205,13 @@ function ts_rest_utils.get_timeseries(http_context)
     local filtered_serie = {}
 
     for _, serie in pairs(res.series or {}) do
-
         if not serie.type then
             if layout[serie.label] then
                 serie.type = layout[serie.label]
             end
         end
 
-        local ts_tot_value = 0
-        for _, ts_value in pairs(serie.data or {}) do
-            local value = 0
-            if tostring(ts_value or '-nan') ~= '-nan' then
-                value = tonumber(ts_value or 0)
-            end
-            ts_tot_value = ts_tot_value + tonumber(value)
-        end
-
-        if ts_tot_value > 0 then
-            filtered_serie[#filtered_serie + 1] = serie
-        end
+        filtered_serie[#filtered_serie + 1] = serie
     end
 
     res.series = filtered_serie

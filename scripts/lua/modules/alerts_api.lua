@@ -11,10 +11,12 @@ package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" ..
 
 local json = require("dkjson")
 local alert_severities = require "alert_severities"
+local alert_entities = require "alert_entities"
 local alert_consts = require("alert_consts")
 local os_utils = require("os_utils")
 local recipients = require "recipients"
 local pools_alert_utils = require "pools_alert_utils"
+local recording_utils = require "recording_utils"
 
 local do_trace = false
 
@@ -141,9 +143,41 @@ end
 
 --! @brief Adds pool information to the alert
 --! @param entity_info data returned by one of the entity_info building functions
-local function addAlertPoolInfo(entity_info, alert_json)
+local function addAlertPoolAndNetworkInfo(entity_info, alert_json)
+   -- Add Pool ID
    if alert_json then
       alert_json.host_pool_id = pools_alert_utils.get_host_pool_id(entity_info)
+   end
+
+   -- Add Local Network ID
+   if entity_info.alert_entity == alert_entities.host and
+      entity_info.entity_val then
+      local network_id = ntop.getAddressNetwork(entity_info.entity_val)
+      alert_json.network = network_id
+   end
+end
+
+-- ##############################################
+
+--! @brief Push filter matching the alert to Smart Recording if enabled
+--! See also Host::enqueueAlertToRecipients for alerts triggered from C++
+--! @param entity_info data returned by one of the entity_info building functions
+local function pushSmartRecordingFilter(entity_info, ifid)
+   if entity_info.alert_entity == alert_entities.host and 
+      recording_utils.isSmartEnabled(ifid) then
+
+      local instance = recording_utils.getN2diskInstanceName(ifid)
+      local ip = entity_info.entity_val
+
+      if not isEmptyString(instance) and
+         not isEmptyString(ip) then
+
+         local filter = string.format("%s", ip)
+
+         local key = string.format("n2disk.%s.filter.host.%s", instance, filter)
+         local expiration = 30*60 -- 30 min
+         ntop.setCache(key, "1", expiration)
+      end
    end
 end
 
@@ -190,8 +224,11 @@ function alerts_api.store(entity_info, type_info, when)
     json = alert_json,
   }
 
-  addAlertPoolInfo(entity_info, alert_to_store)
+  addAlertPoolAndNetworkInfo(entity_info, alert_to_store)
+
   recipients.dispatch_notification(alert_to_store, current_script)
+
+  pushSmartRecordingFilter(entity_info, ifid)
 
   return(true)
 end
@@ -324,9 +361,12 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
     debug_print("Sending notification for alert " .. entity_info.entity_val)
 
-    addAlertPoolInfo(entity_info, triggered)
+    addAlertPoolAndNetworkInfo(entity_info, triggered)
+
     recipients.dispatch_notification(triggered, current_script)
     mark_trigger_notified(triggered)
+
+    pushSmartRecordingFilter(entity_info, ifid)
 
   else
     debug_print("Alert already notified for " .. entity_info.entity_val)
@@ -394,8 +434,10 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   released.ifid = ifid
   released.action = "release"
 
-  addAlertPoolInfo(entity_info, released)
+  addAlertPoolAndNetworkInfo(entity_info, released)
+
   mark_release_notified(released)
+
   recipients.dispatch_notification(released, current_script)
 
   return(true)

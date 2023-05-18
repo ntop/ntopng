@@ -28,19 +28,21 @@
 
 class ContinuousPing {
  private:
-  std::map<std::string /* IP */, ContinuousPingStats* /* stats */> v4_results, v6_results;
+  std::map<std::string /* IP */, ContinuousPingStats* /* stats */> v4_results,
+      v6_results;
   std::vector<std::string /* IP */> inactiveHostsV4, inactiveHostsV6;
   std::map<std::string /* IP */, bool> v4_pinged, v6_pinged;
   std::map<std::string /* ifname */, Ping* /* pinger */> if_pinger;
-  Ping *default_pinger;
+  Ping* default_pinger;
   pthread_t poller;
   Mutex m;
   bool started;
-  
+
   void pingAll();
   void readPingResults();
   void cleanupInactiveHosts();
-  void collectProtoResponse(lua_State* vm, std::map<std::string,ContinuousPingStats*> *w);
+  void collectProtoResponse(lua_State* vm,
+                            std::map<std::string, ContinuousPingStats*>* w);
 
  public:
   ContinuousPing();
@@ -48,7 +50,7 @@ class ContinuousPing {
 
   void start();
   void runPingCampaign();
-  void ping(char *_addr, bool use_v6, char *ifname);
+  void ping(char* _addr, bool use_v6, char* ifname);
   void pollResults();
   void collectResponses(lua_State* vm, bool v6);
 };

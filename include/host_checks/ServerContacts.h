@@ -25,23 +25,26 @@
 #include "ntop_includes.h"
 
 class ServerContacts : public HostCheck {
-protected:
+ protected:
   u_int64_t contacts_threshold;
 
-private:
-  /* Methods that must be overridden by subclasses to fetch subclass alert type and subclass valute to be checked against the threshold */
+ private:
+  /* Methods that must be overridden by subclasses to fetch subclass alert type
+   * and subclass valute to be checked against the threshold */
   virtual u_int32_t getContactedServers(Host *h) const = 0;
   virtual HostAlertType getAlertType() const = 0;
-  virtual HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _contacts, u_int64_t _contacts_threshold) = 0;
+  virtual HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
+                                u_int64_t _contacts,
+                                u_int64_t _contacts_threshold) = 0;
   virtual bool isServer(Host *h) { return true; };
 
  public:
   ServerContacts();
-  ~ServerContacts() {};
+  ~ServerContacts(){};
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
-  bool loadConfiguration(json_object *config);  
+  bool loadConfiguration(json_object *config);
 };
 
 #endif

@@ -22,19 +22,19 @@
 #ifndef _SMTP_SERVER_CONTACTS_ALERT_H_
 #define _SMTP_SERVER_CONTACTS_ALERT_H_
 
-
 #include "ntop_includes.h"
-
 
 class SMTPServerContactsAlert : public ServerContactsAlert {
  private:
-  
  public:
-  static HostAlertType getClassType() { return { host_alert_smtp_server_contacts, alert_category_security }; }
+  static HostAlertType getClassType() {
+    return {host_alert_smtp_server_contacts, alert_category_security};
+  }
 
-  SMTPServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _contacts, u_int64_t _contacts_threshold);
-  ~SMTPServerContactsAlert() {};
-  
+  SMTPServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
+                          u_int64_t _contacts, u_int64_t _contacts_threshold);
+  ~SMTPServerContactsAlert(){};
+
   HostAlertType getAlertType() const { return getClassType(); }
 };
 

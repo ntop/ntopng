@@ -27,25 +27,23 @@ FlowAlert::FlowAlert(FlowCheck *c, Flow *f) {
   flow = f;
   cli_attacker = srv_attacker = false;
   cli_victim = srv_victim = false;
-  if(c) check_name = c->getName();
+  if (c) check_name = c->getName();
 }
 
 /* **************************************************** */
 
-FlowAlert::~FlowAlert() {
-}
+FlowAlert::~FlowAlert() {}
 
 /* ***************************************************** */
 
-ndpi_serializer* FlowAlert::getSerializedAlert() {
+ndpi_serializer *FlowAlert::getSerializedAlert() {
   ndpi_serializer *serializer;
 
-  serializer = (ndpi_serializer *) malloc(sizeof(ndpi_serializer));
-  
-  if(serializer == NULL)
-    return NULL;
+  serializer = (ndpi_serializer *)malloc(sizeof(ndpi_serializer));
 
-  if(ndpi_init_serializer(serializer, ndpi_serialization_format_json) == -1) {
+  if (serializer == NULL) return NULL;
+
+  if (ndpi_init_serializer(serializer, ndpi_serialization_format_json) == -1) {
     free(serializer);
     return NULL;
   }
@@ -54,11 +52,13 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
 
   /* Guys used to link the alert back to the active flow */
   ndpi_serialize_string_uint64(serializer, "ntopng.key", flow->key());
-  ndpi_serialize_string_uint64(serializer, "hash_entry_id", flow->get_hash_entry_id());
+  ndpi_serialize_string_uint64(serializer, "hash_entry_id",
+                               flow->get_hash_entry_id());
 
   /* Add information relative to this check */
   ndpi_serialize_start_of_block(serializer, "alert_generation");
-  ndpi_serialize_string_string(serializer, "script_key", getCheckName().c_str());
+  ndpi_serialize_string_string(serializer, "script_key",
+                               getCheckName().c_str());
   ndpi_serialize_string_string(serializer, "subdir", "flow");
   flow->getJSONRiskInfo(serializer);
   ndpi_serialize_end_of_block(serializer);

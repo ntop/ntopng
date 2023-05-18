@@ -24,7 +24,6 @@
 
 class AddressTree;
 
-
 class VLANAddressTree {
  protected:
   AddressTree **tree;
@@ -37,12 +36,16 @@ class VLANAddressTree {
   bool addAddress(u_int16_t vlan_id, char *_net, const int16_t user_data = -1);
   bool addAddresses(u_int16_t vlan_id, char *net, const int16_t user_data = -1);
 
-  int16_t findAddress(u_int16_t vlan_id, int family, void *addr, u_int8_t *network_mask_bits = NULL);
+  int16_t findAddress(u_int16_t vlan_id, int family, void *addr,
+                      u_int8_t *network_mask_bits = NULL);
   int16_t findMac(u_int16_t vlan_id, const u_int8_t addr[]);
-  void *findAndGetData(u_int16_t vlan_id, const IpAddress * const ipa) const;
-  bool addVLANAddressAndData(u_int16_t vlan_id, const char *_what, void *user_data);
+  void *findAndGetData(u_int16_t vlan_id, const IpAddress *const ipa) const;
+  bool addVLANAddressAndData(u_int16_t vlan_id, const char *_what,
+                             void *user_data);
 
-  inline AddressTree *getAddressTree(u_int16_t vlan_id) { return tree[vlan_id]; };
+  inline AddressTree *getAddressTree(u_int16_t vlan_id) {
+    return tree[vlan_id];
+  };
 };
 
 #endif

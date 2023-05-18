@@ -97,14 +97,21 @@ Resetting the configuration to factory defaults is also possible. This is also u
 a configuration and preserving the old one is not required nor wanted (e.g. when adding a set of recipients
 and endpoints without preserving those already present).
 
-All this is available from the *Settings* -> *Manage Configurations* menu, as shown in the below picture.
+All this is available from the *Settings* -> *Configurations* menu, as shown in the below picture.
 
-.. figure:: ../img/web_gui_import_export_page.png
+.. figure:: ../img/web_gui_manage_configurations.png
   :align: center
   :alt: Manage Configurations Page
 
   The Manage Configurations Page
 
+Every night, ntopng automatically creates a backup of the whole application configuration. No backup is created if the configuration didn't change since the previous day. Currently the last 7 backups are stored and older ones are automatically discarded. You can download a backup using the Download menu under the Actions colums. This backup can be restored using the Import button on the main configuration page.
+
+.. figure:: ../img/web_gui_manage_configurations_backup.png
+  :align: center
+  :alt: Manage Configurations Backup Page
+
+  The Configurations Backup Page
 
 Import/Export via API
 ^^^^^^^^^^^^^^^^^^^^^

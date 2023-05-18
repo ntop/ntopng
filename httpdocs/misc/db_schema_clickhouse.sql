@@ -448,3 +448,38 @@ SELECT 7 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, se
 UNION ALL
 SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `system_alerts`
 ;
+
+@
+
+CREATE TABLE IF NOT EXISTS `l7_protocols` (
+  `id` UInt16 NOT NULL,
+  `name` String NOT NULL
+) ENGINE = ReplacingMergeTree() ORDER BY (id);
+
+@
+
+CREATE TABLE IF NOT EXISTS `l7_categories` (
+  `id` UInt16 NOT NULL,
+  `name` String NOT NULL
+) ENGINE = ReplacingMergeTree() ORDER BY (id);
+
+@
+
+CREATE TABLE IF NOT EXISTS `l4_protocols` (
+  `id` UInt16 NOT NULL,
+  `name` String NOT NULL
+) ENGINE = ReplacingMergeTree() ORDER BY (id);
+
+@
+
+CREATE TABLE IF NOT EXISTS `flow_risks` (
+  `id` UInt16 NOT NULL,
+  `name` String NOT NULL
+) ENGINE = ReplacingMergeTree() ORDER BY (id);
+
+@
+
+CREATE TABLE IF NOT EXISTS `alert_severities` (
+  `id` UInt16 NOT NULL,
+  `name` String NOT NULL
+) ENGINE = ReplacingMergeTree() ORDER BY (id);

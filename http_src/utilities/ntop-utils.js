@@ -357,6 +357,19 @@ export default class NtopUtils {
 		return Math.round(value * 100) / 100 + " %";
 	}
 
+    static percentage(value, total) {
+	if(total > 0) {
+	    var pctg = Math.round((value * 10000) / total)
+	    
+	    if(pctg > 0) {
+		/* Two decimals */
+		return(" [ " + (pctg/100) + " % ] ")
+	    }
+	}
+	
+	return("") 
+    }
+
 	static fdate(when) {
 		var epoch = when * 1000;
 		var d = new Date(epoch);
@@ -517,6 +530,16 @@ export default class NtopUtils {
 		return res[0].toFixed(2) + " " + res[1];
 	};
 
+	static bitsToSize_no_comma(bits, factor) {
+		factor = factor || 1000;
+		var sizes = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+		if (bits == 0) return '0 bps';
+		if ((bits > 0) && (bits < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + " bps");
+		var res = NtopUtils.scaleValue(bits, sizes, factor);
+
+		return res[0]+ " " + res[1];
+	};
+
 	static secondsToTime(seconds) {
 
 		if (seconds < 1) {
@@ -639,7 +662,6 @@ export default class NtopUtils {
 
 	static hostkey2hostInfo(host_key) {
 		var info;
-		var hostinfo = [];
 
 		host_key = host_key.replace(/____/g, ":");
 		host_key = host_key.replace(/___/g, "/");
@@ -790,10 +812,9 @@ export default class NtopUtils {
 	// To be used in conjunction with httpdocs/templates/config_list_components/import_modal.html
 	static importModalHelper(params) {
 
-		if (!params.loadConfigXHR) { throw ("importModalHelper:: Missing 'loadConfigXHR' param"); return; }
+		if (!params.loadConfigXHR) { throw ("importModalHelper:: Missing 'loadConfigXHR' param"); }
 
 		$(`input#import-input`).on('change', function () {
-			const filename = $(this).val().replace("C:\\fakepath\\", "");
 			$(`#btn-confirm-import`).removeAttr("disabled");
 		});
 
@@ -883,7 +904,7 @@ export default class NtopUtils {
 					.always(() => {
 						$button.removeAttr("disabled");
 					});
-			}
+			};
 		});
 	}
 
@@ -922,9 +943,6 @@ export default class NtopUtils {
 
 		const controller = new AbortController()
 		const config = { ...options, signal: controller.signal }
-		const timeout = setTimeout(() => {
-			controller.abort()
-		}, time)
 
 		return fetch(uri, config)
 			.then((response) => {
@@ -1101,9 +1119,8 @@ export default class NtopUtils {
   static shortenLabel(label, len, last_char) {
     let shortened_label = label
     if(label.length > len + 5) {
-      let last_index = len
       if(last_char) {
-        last_index = label.lastIndexOf(last_char)
+        let last_index = label.lastIndexOf(last_char)
         const requested_label = label.slice(last_index)
         if(len > last_index) 
           len = last_index
@@ -1134,7 +1151,7 @@ export default class NtopUtils {
 		let label = name;
 		if(name != value) {
 			if(max_name_len && typeof(max_name_len) == 'number')
-				label = shortenLabel(label, max_name_len, '.');
+				label = this.shortenLabel(label, max_name_len, '.');
 
 			label = `${label} [${value}]` 
 		}

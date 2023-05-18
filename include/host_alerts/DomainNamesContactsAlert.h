@@ -26,20 +26,23 @@
 
 class DomainNamesContactsAlert : public ServerContactsAlert {
  private:
-  u_int32_t num_domain_names; 
+  u_int32_t num_domain_names;
   u_int16_t domain_names_threshold;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
-  
- public:
-  static HostAlertType getClassType() { return { host_alert_domain_names_contacts, alert_category_network }; }
 
-  DomainNamesContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int32_t _num_domain_names,u_int16_t _domain_names_threshold);
-  ~DomainNamesContactsAlert() {};
-  
- 
+ public:
+  static HostAlertType getClassType() {
+    return {host_alert_domain_names_contacts, alert_category_network};
+  }
+
+  DomainNamesContactsAlert(HostCheck* c, Host* f, risk_percentage cli_pctg,
+                           u_int32_t _num_domain_names,
+                           u_int16_t _domain_names_threshold);
+  ~DomainNamesContactsAlert(){};
+
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore()     const { return SCORE_LEVEL_NOTICE; };
+  u_int8_t getAlertScore() const { return SCORE_LEVEL_NOTICE; };
 };
 
 #endif /* _DOMAIN_NAMES_CONTACTS_ALERT_H_ */

@@ -21,12 +21,11 @@
 
 #include "flow_alerts_includes.h"
 
-ndpi_serializer* FlowRiskGenericAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
+ndpi_serializer* FlowRiskGenericAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  if (serializer == NULL) return NULL;
 
   ndpi_serialize_string_int32(serializer, "risk_id", risk);
 
   return serializer;
 }
-

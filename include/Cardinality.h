@@ -30,31 +30,24 @@ class Cardinality {
  private:
   struct ndpi_hll hll;
 
-public:
-  Cardinality() {
-    memset(&hll, 0, sizeof(hll));
-  }
-  
-  ~Cardinality() {
-    ndpi_hll_destroy(&hll);
-  }
+ public:
+  Cardinality() { memset(&hll, 0, sizeof(hll)); }
+
+  ~Cardinality() { ndpi_hll_destroy(&hll); }
 
   void init(u_int8_t bits) {
-    if(ndpi_hll_init(&hll, bits))
-      throw "init error";
-  }
-  
-  bool addElement(const char *value, size_t value_len) {
-    return(ndpi_hll_add(&hll, value, value_len) ? true : false);
-  }
-  
-  bool addElement(u_int32_t value) {
-    return(ndpi_hll_add_number(&hll, value) ? true : false);
+    if (ndpi_hll_init(&hll, bits)) throw "init error";
   }
 
-  u_int32_t getEstimate() {
-    return((u_int32_t)ndpi_hll_count(&hll));
+  bool addElement(const char *value, size_t value_len) {
+    return (ndpi_hll_add(&hll, value, value_len) ? true : false);
   }
+
+  bool addElement(u_int32_t value) {
+    return (ndpi_hll_add_number(&hll, value) ? true : false);
+  }
+
+  u_int32_t getEstimate() { return ((u_int32_t)ndpi_hll_count(&hll)); }
 
   void reset() {
     memset(hll.registers, 0, hll.size); /* A lock might help here... */

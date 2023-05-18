@@ -143,19 +143,19 @@ const comment_placeholder = i18n("details.comment_placeholder");
 const is_edit = ref(null);
 const row_to_delete = ref(null);
 
-const emit = defineEmits(['add'])
+const emit = defineEmits(['add']);
 //s.split(",").every((a) => {return /.+=.+/.test(a)})
 function get_data_pattern(value_type) {
     if (value_type == "text") {
 	return NtopUtils.REGEXES.non_quoted_text;
     } else if (value_type == "ip") {
 	let r_ipv4 = NtopUtils.REGEXES.ipv4;
-	let r_ipv4_vlan = r_ipv4.replace("$", "@[0-9]{0,5}$");
+	let r_ipv4_vlan = r_ipv4.replaceAll("$", "@[0-9]{0,5}$");
 	let r_ipv6 = NtopUtils.REGEXES.ipv6;
 	let r_ipv6_vlan = r_ipv6.replaceAll("$", "@[0-9]{0,5}$");
 	return `(${r_ipv4})|(${r_ipv4_vlan})|(${r_ipv6})|(${r_ipv6_vlan})`;
     } else if (value_type == "hostname") {
-	return `${NtopUtils.REGEXES.singleword}|[a-zA-Z0-9._\-]{3,250}@[0-9]{0,5}$`;
+	return `${NtopUtils.REGEXES.singleword}|[a-zA-Z0-9._-]{3,250}@[0-9]{0,5}$`;
     } else if (value_type == "certificate") {
 	return NtopUtils.REGEXES.tls_certificate;
     }
@@ -174,7 +174,7 @@ let pattern_certificate = get_data_pattern("certificate");
 
 const set_exclude_type = (type) => {
     exclude_type.value = type;
-}
+};
 
 const check_disable_apply = () => {
     let regex = null;

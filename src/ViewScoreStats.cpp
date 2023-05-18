@@ -24,21 +24,25 @@
 /* *************************************** */
 
 ViewScoreStats::ViewScoreStats() : ScoreStats() {
-  memset(&cli_dec, 0, sizeof(cli_dec)),
-    memset(&srv_dec, 0, sizeof(srv_dec));
+  memset(&cli_dec, 0, sizeof(cli_dec)), memset(&srv_dec, 0, sizeof(srv_dec));
 }
 
 /* *************************************** */
 
-/* For scores of the viewed hosts, the decrement is done on a separate counter to avoid races. Necessary to lock as score decrements can be performed on the same hosts in parallel by multiple threads */
-u_int16_t ViewScoreStats::decValue(u_int16_t score, ScoreCategory score_category, bool as_client) {
+/* For scores of the viewed hosts, the decrement is done on a separate counter
+ * to avoid races. Necessary to lock as score decrements can be performed on the
+ * same hosts in parallel by multiple threads */
+u_int16_t ViewScoreStats::decValue(u_int16_t score,
+                                   ScoreCategory score_category,
+                                   bool as_client) {
   u_int16_t res = 0;
 
   m.lock(__FILE__, __LINE__);
 
   /* The decValue is actually an INCREMENT on the {cli,srv}_dec counter */
 
-  res = as_client ? ScoreStats::incValue(cli_dec, score, score_category) : ScoreStats::incValue(srv_dec, score, score_category);
+  res = as_client ? ScoreStats::incValue(cli_dec, score, score_category)
+                  : ScoreStats::incValue(srv_dec, score, score_category);
 
   m.unlock(__FILE__, __LINE__);
 

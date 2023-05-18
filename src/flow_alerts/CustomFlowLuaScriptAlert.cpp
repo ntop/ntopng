@@ -21,13 +21,13 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* CustomFlowLuaScriptAlert::getAlertJSON(ndpi_serializer* serializer) {
+ndpi_serializer* CustomFlowLuaScriptAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
   /* Flow *f = getFlow(); */
 
-  if(serializer == NULL)
-    return NULL;
+  if (serializer == NULL) return NULL;
 
-  if(msg.size() > 0)
+  if (msg.size() > 0)
     ndpi_serialize_string_string(serializer, "alert.message", msg.c_str());
 
   return serializer;

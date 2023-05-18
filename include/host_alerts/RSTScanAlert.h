@@ -26,12 +26,15 @@
 
 class RSTScanAlert : public FlowHitsAlert {
  private:
-  
  public:
-  static HostAlertType getClassType() { return { host_alert_rst_scan, alert_category_security }; }
+  static HostAlertType getClassType() {
+    return {host_alert_rst_scan, alert_category_security};
+  }
 
-  RSTScanAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int16_t hits, u_int64_t threshold, bool is_attacker) : FlowHitsAlert(c, h, cli_pctg, hits, threshold, is_attacker) {};
-  ~RSTScanAlert() {};
+  RSTScanAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int16_t hits,
+               u_int64_t threshold, bool is_attacker)
+      : FlowHitsAlert(c, h, cli_pctg, hits, threshold, is_attacker){};
+  ~RSTScanAlert(){};
 
   HostAlertType getAlertType() const { return getClassType(); }
 };

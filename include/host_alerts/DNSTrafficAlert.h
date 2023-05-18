@@ -22,24 +22,25 @@
 #ifndef _DNS_TRAFFIC_ALERT_H_
 #define _DNS_TRAFFIC_ALERT_H_
 
-
 #include "ntop_includes.h"
-
 
 class DNSTrafficAlert : public HostAlert {
  private:
   u_int64_t dns_bytes, dns_bytes_threshold;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
-  
- public:
-  static HostAlertType getClassType() { return { host_alert_dns_traffic, alert_category_network }; }
 
-  DNSTrafficAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _dns_bytes, u_int64_t _dns_bytes_threshold);
-  ~DNSTrafficAlert() {};
-  
+ public:
+  static HostAlertType getClassType() {
+    return {host_alert_dns_traffic, alert_category_network};
+  }
+
+  DNSTrafficAlert(HostCheck* c, Host* f, risk_percentage cli_pctg,
+                  u_int64_t _dns_bytes, u_int64_t _dns_bytes_threshold);
+  ~DNSTrafficAlert(){};
+
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore()     const { return SCORE_LEVEL_ERROR; };
+  u_int8_t getAlertScore() const { return SCORE_LEVEL_ERROR; };
 };
 
 #endif /* _DNS_TRAFFIC_ALERT_H_ */

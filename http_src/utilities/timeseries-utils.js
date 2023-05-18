@@ -3,7 +3,6 @@
 */
 
 import formatterUtils from "./formatter-utils";
-import colorsInterpolation from "./colors-interpolation.js";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 
 function tsToApexOptions(tsOptions, metric) {
@@ -19,8 +18,6 @@ function tsToApexOptions(tsOptions, metric) {
 	    time += step;
 	    return d2;
 	});
-	let yAxis = {
-	};
     });
     tsOptions.xaxis = {
 	labels: {
@@ -74,10 +71,6 @@ function getSerieName(name, id, tsGroup, extendSeriesName) {
     let prefix = `${source.label}`;
     let yaxisName = getYaxisName(tsGroup.metric.measure_unit, tsGroup.metric.scale);
     return `${prefix} ${name_more_space}(${yaxisName})`;
-}
-
-function getAddSeriesNameSource(tsGrpupsArray) {
-    return tsGrpupsArray[0]?.source?.name != null;
 }
 
 function getYaxisId(metric) {
@@ -177,9 +170,7 @@ function getSeriesInApexFormat(tsOptions, tsGroup, extendSeriesName, forceDrawTy
 	let fBuildConstantSerie = (prefix, id, value) => {
 	    if (value == null) { return null; }
 	    let name = `${sName} (${prefix})`;
-	    if (value != null) {
-		value *= scalar;
-	    }
+			value *= scalar;
 	    let time = startTime;
 	    let data = s.data.map((d) => {
 		let d2 = { x: time, y: value };
@@ -231,21 +222,7 @@ const defaultColors = [
     "#8EA4E8", 
 ];
 
-function setSeriesColors(seriesArray) {    
-    let colors = seriesArray.map((s) => {
-	if (s.color != null) {
-	    return s.color;
-	}
-	let hash = ntopng_utility.string_hash_code(s.name);
-	if (hash < 0) { hash *= -1; }
-	let colorIndex = hash % defaultColors.length;
-	return defaultColors[colorIndex];
-    });
-    colors = colorsInterpolation.transformColors(colors);
-    seriesArray.forEach((s, i) => s.color = colors[i]);
-}
-
-function setSeriesColors2(seriesArray) {
+function setSeriesColors(seriesArray) {
     let count0 = 0, count1 = 0;
     let colors0 = defaultColors;
     let colors1 = d3v7.schemeCategory10;
@@ -521,7 +498,6 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare) {
     let yaxisArray = [];
     let yaxisDict = {};
     let formatterDict = {};
-    let addSeriesNameSource = getAddSeriesNameSource(tsGrpupsArray);
     let forceDrawType = null;
     let stacked = false;
     tsOptionsArray.forEach((tsOptions, i) => {
@@ -542,7 +518,7 @@ function tsArrayToApexOptions(tsOptionsArray, tsGrpupsArray, tsCompare) {
     });
 
     // set colors in series
-    setSeriesColors2(seriesArray);
+    setSeriesColors(seriesArray);
     setMinMaxYaxis(yaxisArray, seriesArray, stacked);
     
     let chartOptions = buildChartOptions(seriesArray, yaxisArray, stacked);

@@ -1,0 +1,45 @@
+{#
+  (C) 2023 - ntop.org
+  This template is used by the `Live Flows` page inside the `Host Details`.    
+#}
+
+
+<div id="{* vue_page_name *}">
+  <page-vue :context="context">
+  </page-vue>
+</div>
+  
+<script type="text/javascript">
+  function start_vue() {
+    const context = {* page_context *};
+
+    let vue_options = {
+      components: {
+        'page-vue': ntopVue["{* vue_page_name *}"],
+      },
+      /**
+      * First method called when the component is created.
+      */
+      created() { },
+      mounted() {
+      },
+      data() {
+        return {
+	  context: context,
+        };
+      },
+      methods: { },
+    };
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#{* vue_page_name *}');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>
+

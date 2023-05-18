@@ -60,6 +60,13 @@ html:
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
+.PHONY: pdf
+pdf:
+	cd doxygen; make
+	$(SPHINXBUILD) -b pdf $(ALLSPHINXOPTS) $(BUILDDIR)/pdf
+	@echo
+	@echo "Build finished. The PDF pages are in $(BUILDDIR)/pdf."
+
 .PHONY: release
 release:
 	make clean

@@ -23,20 +23,21 @@
 
 /* ***************************************************** */
 
-DNSTrafficAlert::DNSTrafficAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _dns_bytes, u_int64_t _dns_bytes_threshold) : HostAlert(c, f, cli_pctg) {
-  dns_bytes = _dns_bytes,
-    dns_bytes_threshold = _dns_bytes_threshold;
+DNSTrafficAlert::DNSTrafficAlert(HostCheck* c, Host* f,
+                                 risk_percentage cli_pctg, u_int64_t _dns_bytes,
+                                 u_int64_t _dns_bytes_threshold)
+    : HostAlert(c, f, cli_pctg) {
+  dns_bytes = _dns_bytes, dns_bytes_threshold = _dns_bytes_threshold;
 };
 
 /* ***************************************************** */
 
 ndpi_serializer* DNSTrafficAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
+  if (serializer == NULL) return NULL;
 
   ndpi_serialize_string_uint64(serializer, "value", dns_bytes);
   ndpi_serialize_string_uint64(serializer, "threshold", dns_bytes_threshold);
-  
+
   return serializer;
 }
 

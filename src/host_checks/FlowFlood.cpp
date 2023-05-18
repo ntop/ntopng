@@ -27,14 +27,15 @@
 void FlowFlood::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   u_int16_t flows = 0;
 
-  if((flows = h->flow_flood_attacker_hits()) > threshold)
-    triggerFlowHitsAlert(h, engaged_alert, true, flows, threshold, CLIENT_FULL_RISK_PERCENTAGE);
-  else if((flows = h->flow_flood_victim_hits()) > threshold) 
-    triggerFlowHitsAlert(h, engaged_alert, false, flows, threshold, CLIENT_NO_RISK_PERCENTAGE);
+  if ((flows = h->flow_flood_attacker_hits()) > threshold)
+    triggerFlowHitsAlert(h, engaged_alert, true, flows, threshold,
+                         CLIENT_FULL_RISK_PERCENTAGE);
+  else if ((flows = h->flow_flood_victim_hits()) > threshold)
+    triggerFlowHitsAlert(h, engaged_alert, false, flows, threshold,
+                         CLIENT_NO_RISK_PERCENTAGE);
 
   /* Reset counters once done */
   h->reset_flow_flood_hits();
 }
 
 /* ***************************************************** */
-

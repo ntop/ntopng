@@ -30,48 +30,42 @@ class OperatingSystem : public GenericHashEntry, public GenericTrafficElement {
  private:
   OSType os_type;
 
-  inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
-    if(first_seen == 0) first_seen = t,
-    last_seen = iface->getTimeLastPktRcvd();
+  inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
+    if (first_seen == 0)
+      first_seen = t, last_seen = iface->getTimeLastPktRcvd();
     sent.incStats(t, num_pkts, num_bytes);
   }
-  inline void incRcvdStats(time_t t,u_int64_t num_pkts, u_int64_t num_bytes) {
+  inline void incRcvdStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
     rcvd.incStats(t, num_pkts, num_bytes);
   }
 
  public:
-  OperatingSystem(NetworkInterface *_iface, OSType os);
+  OperatingSystem(NetworkInterface* _iface, OSType os);
   ~OperatingSystem();
 
   void set_hash_entry_state_idle();
 
-  inline u_int16_t getNumHosts()                 { return getUses();           }
-  inline u_int32_t key()                         { return(os_type);            }
-  inline OSType get_os_type()                    { return(os_type);            }
+  inline u_int16_t getNumHosts() { return getUses(); }
+  inline u_int32_t key() { return (os_type); }
+  inline OSType get_os_type() { return (os_type); }
 
   bool equal(OSType os);
 
-  inline void incStats(time_t when, u_int16_t proto_id,
-		       u_int64_t sent_packets, u_int64_t sent_bytes,
-		       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
-    if(ndpiStats || (ndpiStats = new nDPIStats()))
-      ndpiStats->incStats(when, proto_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  inline void incStats(time_t when, u_int16_t proto_id, u_int64_t sent_packets,
+                       u_int64_t sent_bytes, u_int64_t rcvd_packets,
+                       u_int64_t rcvd_bytes) {
+    if (ndpiStats || (ndpiStats = new nDPIStats()))
+      ndpiStats->incStats(when, proto_id, sent_packets, sent_bytes,
+                          rcvd_packets, rcvd_bytes);
     incSentStats(when, sent_packets, sent_bytes);
     incRcvdStats(when, rcvd_packets, rcvd_bytes);
   }
 
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
-
-  inline void deserialize(json_object *obj) {
-    GenericHashEntry::deserialize(obj);
-    GenericTrafficElement::deserialize(obj, iface);
+  inline char* getSerializationKey(char* buf, uint bufsize) {
+    snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), os_type);
+    return (buf);
   }
-  inline void serialize(json_object *obj, DetailsLevel details_level) {
-    GenericHashEntry::getJSONObject(obj, details_level);
-    GenericTrafficElement::getJSONObject(obj, iface);
-  }
-  inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), os_type); return(buf); }
 };
 
 #endif /* _AUTONOMOUS_SYSTEM_H_ */
-

@@ -8,14 +8,14 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. p
 
 require "lua_utils"
 local auth = require "auth"
-local rest_utils = require "rest_utils"
-local all_alert_store = require "all_alert_store".new()
+local alert_consts = require("alert_consts")
 local alert_entities = require "alert_entities"
+local rest_utils = require "rest_utils"
 local checks = require "checks"
 
 --
 -- Trigger a custom host alert
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "host": "192.168.2.134", "vlan": 0, "score": 100, "info": "Custom alert triggered thrugh the REST API"}' http://localhost:3000/lua/rest/v2/trigger/host/alert.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "host": "192.168.2.134", "vlan": 0, "score": 100, "info": "Custom alert triggered through the REST API"}' http://localhost:3000/lua/rest/v2/trigger/host/alert.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
@@ -52,8 +52,20 @@ end
 
 interface.select(ifid)
 
-interface.triggerExternalHostAlert(hostinfo2hostkey(hostinfo), tonumber(score), info)
+local host_key = hostinfo2hostkey(hostinfo)
+score = tonumber(score)
 
-local res = {}
+-- Notes:
+-- - This triggers the alert directly from Lua
+-- - This does not require the host to be live, however some metadata may be missing as it is not augmented with host data from C++
 
-rest_utils.answer(rc, res)
+local alert = alert_consts.alert_types.host_alert_external_script.new(info)
+alert:set_score(score)
+alert:set_subtype(host_key)
+local alert_info = {
+   entity_val = host_key,
+   alert_entity = alert_entities.host
+}
+alert:store(alert_info)
+
+rest_utils.answer(rc, {})

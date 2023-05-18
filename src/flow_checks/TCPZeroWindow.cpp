@@ -23,8 +23,7 @@
 #include "flow_checks_includes.h"
 
 void TCPZeroWindow::checkTCPWindow(Flow *f) {
-  if(f->isTCPZeroWindow()
-     && !f->getInterface()->isSampledTraffic()) {
+  if (f->isTCPZeroWindow() && !f->getInterface()->isSampledTraffic()) {
     FlowAlertType alert_type = TCPZeroWindowAlert::getClassType();
     u_int8_t c_score, s_score;
     risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
@@ -37,15 +36,11 @@ void TCPZeroWindow::checkTCPWindow(Flow *f) {
 
 /* ***************************************************** */
 
-void TCPZeroWindow::periodicUpdate(Flow *f) {
-  checkTCPWindow(f);
-}
+void TCPZeroWindow::periodicUpdate(Flow *f) { checkTCPWindow(f); }
 
 /* ***************************************************** */
 
-void TCPZeroWindow::flowEnd(Flow *f) {
-  checkTCPWindow(f);
-}
+void TCPZeroWindow::flowEnd(Flow *f) { checkTCPWindow(f); }
 
 /* ***************************************************** */
 

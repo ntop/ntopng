@@ -40,7 +40,7 @@ function prefs_dump_utils.build_prefs_dump_table()
 
    for _, pattern in pairs(patterns) do
       -- ntop.getKeysCache returns all the redis keys
-      -- matching the given patter and SKIPS the in-memory
+      -- matching the given pattern and SKIPS the in-memory
       -- cache implemented in class Redis.
       local keys = ntop.getKeysCache(pattern)
 

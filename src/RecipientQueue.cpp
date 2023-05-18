@@ -32,102 +32,109 @@ RecipientQueue::RecipientQueue(u_int16_t _recipient_id) {
   minimum_severity = alert_level_none;
 
   /* All categories enabled by default */
-  for (int i=0; i < MAX_NUM_SCRIPT_CATEGORIES; i++)
+  for (int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++)
     enabled_categories.setBit(i);
 
   /* All entities enabled by default */
-  for (int i=0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++)
+  for (int i = 0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++)
     enabled_entities.setBit(i);
 }
 
 /* *************************************** */
 
 RecipientQueue::~RecipientQueue() {
-  if(queue)
-    delete queue;
+  if (queue) delete queue;
 }
 
 /* *************************************** */
 
-bool RecipientQueue::dequeue(AlertFifoItem *notification) {
-  if(!queue || !notification)
-    return false;
+AlertFifoItem *RecipientQueue::dequeue() {
+  AlertFifoItem *notification;
 
-  *notification = queue->dequeue();
+  if (!queue) return NULL;
 
-  if(notification->alert) {
+  notification = queue->dequeue();
+
+  if (notification) {
     last_use = time(NULL);
-    return true;
   }
 
-  return false;
+  return notification;
 }
 
 /* *************************************** */
 
-bool RecipientQueue::enqueue(const AlertFifoItem* const notification, AlertEntity alert_entity) {
+/* Filter and Enqueue alerts to the recipient
+ * (similar to what recipients.dispatch_notification does in Lua)
+ */
+bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
+                             AlertEntity alert_entity) {
   bool res = false;
 
-  if(!notification
-     || !notification->alert
-     || notification->alert_severity < minimum_severity              /* Severity too low for this recipient     */
-     || !(enabled_categories.isSetBit(notification->alert_category)) /* Category not enabled for this recipient */
-     || !(enabled_entities.isSetBit(alert_entity))                   /* Entity not enabled for this recipient */
-     ) {
+  if (!notification ||
+      notification->alert_severity <
+          minimum_severity /* Severity too low for this recipient     */
+      ||
+      !(enabled_categories.isSetBit(
+          notification
+              ->alert_category)) /* Category not enabled for this recipient */
+      || !(enabled_entities.isSetBit(
+             alert_entity)) /* Entity not enabled for this recipient */
+  ) {
     return true; /* Nothing to enqueue */
   }
 
-#if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "New alert for recipient %d", recipient_id);
-#endif
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "New alert for recipient %d", recipient_id);
 
-  if(recipient_id == 0 && /* Default recipient (DB) */
-     alert_entity == alert_entity_flow &&
-     ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
-    /* Do not store flow alerts on ClickHouse as they are retrieved using a view on historical flows) */
+  if (recipient_id == 0 && /* Default recipient (DB) */
+      alert_entity == alert_entity_flow &&
+      ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
+    /* Do not store flow alerts on ClickHouse as they are retrieved using a view
+     * on historical flows) */
     /* But still increment the number of uses */
-#if 0
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of flow uses with Clickhouse: %u", uses);
-#endif
     uses++;
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of flow uses with Clickhouse: %u", uses);
     return true;
   }
 
-  if(recipient_id == 0) {
-    /* Default recipient (SQLite / ClickHouse DB) - do not filter alerts by host */
-  } else { 
+  if (recipient_id == 0) {
+    /* Default recipient (SQLite / ClickHouse DB) - do not filter alerts by host
+     */
+  } else {
     /* Other recipients (notifications) */
-    if(alert_entity == alert_entity_flow) {
-      if(!enabled_host_pools.isSetBit(notification->pools.flow.cli_host_pool) &&
-         !enabled_host_pools.isSetBit(notification->pools.flow.srv_host_pool))
+    if (alert_entity == alert_entity_flow) {
+      if (!enabled_host_pools.isSetBit(
+              notification->flow.cli_host_pool) &&
+          !enabled_host_pools.isSetBit(notification->flow.srv_host_pool))
         return true;
-    } else if(alert_entity == alert_entity_host) {
-      if(!enabled_host_pools.isSetBit(notification->pools.host.host_pool))
+    } else if (alert_entity == alert_entity_host) {
+      if (!enabled_host_pools.isSetBit(notification->host.host_pool))
         return true;
     }
   }
 
-  if((!queue &&
-       !(queue = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
+  if ((!queue && !(queue = new (nothrow)
+                       AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
     /* Queue not available */
     drops++;
     return false; /* Enqueue failed */
   }
 
   /* Enqueue the notification (allocate memory for the alert string) */
-  AlertFifoItem q = *notification;
-  if((q.alert = strdup(notification->alert))) {
-    res = queue->enqueue(q);
-  }
+  AlertFifoItem *new_item = new AlertFifoItem(notification);
 
-  if(!res) {
-    drops++;
-    if(q.alert) free(q.alert);
+  if (new_item) {
+    res = queue->enqueue(new_item);
+
+    if (!res) {
+      drops++;
+      delete new_item;
+    } else {
+      uses++;
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of uses: %u", uses);
+    }
   } else {
-    uses++;
-#if 0
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of uses: %u", uses);
-#endif
+    drops++;
   }
 
   return res;
@@ -148,10 +155,10 @@ void RecipientQueue::lua(lua_State* vm) {
 bool RecipientQueue::empty() {
   bool res = true;
 
-  if(queue) {
-    if(!queue->empty()) {
+  if (queue) {
+    if (!queue->empty()) {
       res = false;
-    }  
+    }
   }
 
   return res;

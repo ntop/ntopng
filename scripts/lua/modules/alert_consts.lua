@@ -687,7 +687,11 @@ end
 
 function alert_consts.sec2granularity(seconds)
    seconds = tonumber(seconds)
-   return alerts_granularities_seconds_to_key[seconds]
+   local key = alerts_granularities_seconds_to_key[seconds]
+   if not key  then
+      key = alerts_granularities_seconds_to_key[60]
+   end
+   return key
 end
  
 -- Load definitions now

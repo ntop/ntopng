@@ -25,23 +25,25 @@
 #include "ntop_includes.h"
 
 class UnexpectedNTPServer : public UnexpectedServer {
-private:
-  FlowAlertType getAlertType() const { return UnexpectedNTPServerAlert::getClassType(); }
+ private:
+  FlowAlertType getAlertType() const {
+    return UnexpectedNTPServerAlert::getClassType();
+  }
 
-protected:
-  bool isAllowedProto(Flow *f)       { return(f->isNTP());                    }
-  
+ protected:
+  bool isAllowedProto(Flow *f) { return (f->isNTP()); }
+
  public:
-  UnexpectedNTPServer() : UnexpectedServer() {};
-  ~UnexpectedNTPServer() {};
-  
+  UnexpectedNTPServer() : UnexpectedServer(){};
+  ~UnexpectedNTPServer(){};
+
   FlowAlert *buildAlert(Flow *f) {
     UnexpectedNTPServerAlert *alert = new UnexpectedNTPServerAlert(this, f);
     alert->setCliAttacker();
     return alert;
   }
 
-  std::string getName()          const { return(std::string("unexpected_ntp")); }
+  std::string getName() const { return (std::string("unexpected_ntp")); }
 };
 
 #endif /* _UNEXPECTED_NTP_SERVER_H_ */

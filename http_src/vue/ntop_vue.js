@@ -6,6 +6,7 @@ import * as Vue from "vue";
 // window.Vue = Vue;
 
 // pages
+import { default as PageAlertStats } from "./page-alert-stats.vue";
 import { default as PageStats } from "./page-stats.vue";
 import { default as PageAssetTable } from "./page-asset-table.vue";
 import { default as PagePeriodicityTable } from "./page-periodicity-table.vue";
@@ -28,8 +29,17 @@ import { default as PageAlertAnalysis } from "./page-alert-analysis.vue";
 import { default as PageHostMap } from "./page-host-map.vue";
 import { default as PageVLANPortsSankey } from "./page-vlan-ports-sankey.vue";
 import { default as PageAggregatedLiveFlows } from "./page-aggregated-live-flows.vue";
+import { default as PageAggregatedLiveFlowsV2 } from "./page-aggregated-live-flows-v2.vue";
 import { default as PageTestTable } from "./page-test-table.vue";
 import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
+import { default as PageEditApplications } from "./page-edit-applications.vue";
+import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
+import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
+import { default as PageManageConfigurationBackup2 } from "./page-manage-configurations-backup2.vue";
+import { default as PageSNMPDeviceRules} from "./page-snmp-device-rules.vue";
+import { default as PageSnmpDevicesInterfacesSimilarity } from "./page-snmp-devices-interfaces-similarity.vue";
+
+import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue" 
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -61,9 +71,12 @@ import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAddHostRules } from "./modal-add-host-rules.vue";
+import { default as ModalAddApplication } from "./modal-add-application.vue";
+import { default as ModalDeleteApplication } from "./modal-delete-application.vue";
 
 let ntopVue = {
     // pages
+    PageAlertStats: PageAlertStats,
     PageStats: PageStats,
     PageAssetTable: PageAssetTable,
     PagePeriodicityTable: PagePeriodicityTable,
@@ -79,10 +92,19 @@ let ntopVue = {
     PageHostRules: PageHostRules,
     PageAlertAnalysis: PageAlertAnalysis,
     PageHostMap: PageHostMap,
+    PageManageConfigurationBackup: PageManageConfigurationBackup,
+    PageManageConfigurationBackup2: PageManageConfigurationBackup2,
+    PageSNMPDeviceRules: PageSNMPDeviceRules,
+
+    PageEditApplications: PageEditApplications,
 
     PageVLANPortsFlowSankey:PageVLANPortsSankey,
     PageTestTable: PageTestTable,
+    PageSnmpDevicesInterfacesSimilarity: PageSnmpDevicesInterfacesSimilarity,
+
     NedgeRulesConfig: NedgeRulesConfig,
+    NedgeRepeatersConfig: NedgeRepeatersConfig,
+    
 
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,
@@ -92,6 +114,9 @@ let ntopVue = {
     PageHostDetailsPorts: PageHostDetailsPorts,
 
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
+    PageAggregatedLiveFlowsV2: PageAggregatedLiveFlowsV2,
+
+    PageNetworkDiscovery:PageNetworkDiscovery,
 
     // components
     AlertInfo: AlertInfo,
@@ -123,6 +148,8 @@ let ntopVue = {
     ModalAddDeviceExclusion: ModalAddDeviceExclusion,
     ModalEditDeviceExclusion: ModalEditDeviceExclusion,
     ModalAddHostRules: ModalAddHostRules,
+    ModalAddApplication: ModalAddApplication,
+    ModalDeleteApplication: ModalDeleteApplication,
 
     Vue: Vue,
 };

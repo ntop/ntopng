@@ -21,17 +21,18 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* IECInvalidTransitionAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow *f = getFlow();
+ndpi_serializer* IECInvalidTransitionAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow* f = getFlow();
 
   if (serializer) {
     ndpi_serialize_string_uint32(serializer, "timestamp", packet_epoch);
     ndpi_serialize_string_uint32(serializer, "flow_key", f->key());
-    ndpi_serialize_string_uint32(serializer, "flow_hash_entry_id", f->get_hash_entry_id());
+    ndpi_serialize_string_uint32(serializer, "flow_hash_entry_id",
+                                 f->get_hash_entry_id());
     ndpi_serialize_string_uint32(serializer, "from", type_i);
     ndpi_serialize_string_uint32(serializer, "to", type_id);
   }
 
   return serializer;
 }
-

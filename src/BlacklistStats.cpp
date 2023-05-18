@@ -24,9 +24,10 @@
 /* *************************************************** */
 
 void BlacklistStats::incHits(std::string name) {
-  std::unordered_map<std::string, BlacklistUsageStats>::iterator it = stats.find(name);
+  std::unordered_map<std::string, BlacklistUsageStats>::iterator it =
+      stats.find(name);
 
-  if(it == stats.end()) {
+  if (it == stats.end()) {
     BlacklistUsageStats l;
 
     stats[name] = l;
@@ -37,12 +38,13 @@ void BlacklistStats::incHits(std::string name) {
 /* *************************************************** */
 
 u_int32_t BlacklistStats::getNumHits(std::string name) {
-  std::unordered_map<std::string, BlacklistUsageStats>::iterator it = stats.find(name);
+  std::unordered_map<std::string, BlacklistUsageStats>::iterator it =
+      stats.find(name);
 
-  if(it == stats.end())
-    return(0);
+  if (it == stats.end())
+    return (0);
   else
-    return(it->second.getNumHits());
+    return (it->second.getNumHits());
 }
 
 /* *************************************************** */
@@ -50,6 +52,8 @@ u_int32_t BlacklistStats::getNumHits(std::string name) {
 void BlacklistStats::lua(lua_State* vm) {
   lua_newtable(vm);
 
-  for(std::unordered_map<std::string, BlacklistUsageStats>::iterator it = stats.begin(); it != stats.end(); ++it)
+  for (std::unordered_map<std::string, BlacklistUsageStats>::iterator it =
+           stats.begin();
+       it != stats.end(); ++it)
     lua_push_int32_table_entry(vm, it->first.c_str(), it->second.getNumHits());
 }

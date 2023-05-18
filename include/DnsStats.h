@@ -25,9 +25,8 @@
 #include "ntop_includes.h"
 
 struct queries_breakdown {
-  u_int32_t num_a, num_ns, num_cname, num_soa,
-    num_ptr, num_mx, num_txt, num_aaaa,
-    num_any, num_other;
+  u_int32_t num_a, num_ns, num_cname, num_soa, num_ptr, num_mx, num_txt,
+      num_aaaa, num_any, num_other;
 };
 
 struct dns_stats {
@@ -39,30 +38,32 @@ class DnsStats {
  private:
   struct dns_stats sent_stats, rcvd_stats;
 
-  void deserializeStats(json_object *o, struct dns_stats *stats);
-  json_object* getStatsJSONObject(struct dns_stats *stats);
-  void luaStats(lua_State *vm, struct dns_stats *stats, const char *label, bool verbose);
+  json_object *getStatsJSONObject(struct dns_stats *stats);
+  void luaStats(lua_State *vm, struct dns_stats *stats, const char *label,
+                bool verbose);
 
  public:
   DnsStats();
 
   void incStats(bool as_client, const FlowDNSStats *fts);
-  void updateStats(const struct timeval * const tv);
+  void updateStats(const struct timeval *const tv);
 
-  u_int32_t getSentNumQueries()       { return sent_stats.num_queries.get(); }
-  u_int32_t getSentNumRepliesOk()     { return sent_stats.num_replies_ok.get(); }
-  u_int32_t getSentNumRepliesError()  { return sent_stats.num_replies_error.get(); }
+  u_int32_t getSentNumQueries() { return sent_stats.num_queries.get(); }
+  u_int32_t getSentNumRepliesOk() { return sent_stats.num_replies_ok.get(); }
+  u_int32_t getSentNumRepliesError() {
+    return sent_stats.num_replies_error.get();
+  }
 
-  u_int32_t getRcvdNumQueries()       { return rcvd_stats.num_queries.get(); }
-  u_int32_t getRcvdNumRepliesOk()     { return rcvd_stats.num_replies_ok.get(); }
-  u_int32_t getRcvdNumRepliesError()  { return rcvd_stats.num_replies_error.get(); }
+  u_int32_t getRcvdNumQueries() { return rcvd_stats.num_queries.get(); }
+  u_int32_t getRcvdNumRepliesOk() { return rcvd_stats.num_replies_ok.get(); }
+  u_int32_t getRcvdNumRepliesError() {
+    return rcvd_stats.num_replies_error.get();
+  }
 
-  char* serialize();
-  void deserialize(json_object *o);
-  json_object* getJSONObject();
+  json_object *getJSONObject();
   void lua(lua_State *vm, bool verbose);
   bool hasAnomalies(time_t when);
-  void luaAnomalies(lua_State* vm, time_t when);
+  void luaAnomalies(lua_State *vm, time_t when);
 };
 
 #endif /* _STATS_H_ */

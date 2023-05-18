@@ -26,23 +26,27 @@
 
 class UnexpectedDHCPServer : public UnexpectedServer {
  private:
+  FlowAlertType getAlertType() const {
+    return UnexpectedDHCPServerAlert::getClassType();
+  }
 
-  FlowAlertType getAlertType() const { return UnexpectedDHCPServerAlert::getClassType(); }
+ protected:
+  bool isAllowedProto(Flow *f) {
+    return (f->isDHCP() && (f->get_srv_port() == 67 /* Server port */));
+  }
+  const IpAddress *getServerIP(Flow *f) { return (f->get_dhcp_srv_ip_addr()); }
 
-protected:
-  bool isAllowedProto(Flow *f)          { return(f->isDHCP() && (f->get_srv_port() == 67 /* Server port */)); }
-  const IpAddress* getServerIP(Flow *f) { return(f->get_dhcp_srv_ip_addr()); }
-  
  public:
-  UnexpectedDHCPServer() : UnexpectedServer() {};
-  ~UnexpectedDHCPServer() {};
-  
+  UnexpectedDHCPServer() : UnexpectedServer(){};
+  ~UnexpectedDHCPServer(){};
+
   FlowAlert *buildAlert(Flow *f) {
     UnexpectedDHCPServerAlert *alert = new UnexpectedDHCPServerAlert(this, f);
     alert->setCliAttacker();
-    return alert; }
-  
-  std::string getName()          const { return(std::string("unexpected_dhcp")); }
+    return alert;
+  }
+
+  std::string getName() const { return (std::string("unexpected_dhcp")); }
 };
 
 #endif /* _UNEXPECTED_DHCP_SERVER_H_ */

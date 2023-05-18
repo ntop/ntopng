@@ -24,8 +24,10 @@
 
 /* ***************************************************** */
 
-ScanDetection::ScanDetection() : HostCheck(ntopng_edition_community, false /* All interfaces */,
-					   false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
+ScanDetection::ScanDetection()
+    : HostCheck(ntopng_edition_community, false /* All interfaces */,
+                false /* Don't exclude for nEdge */,
+                false /* NOT only for nEdge */) {
   num_incomplete_flows_threshold = (u_int32_t)32;
 };
 
@@ -33,12 +35,16 @@ ScanDetection::ScanDetection() : HostCheck(ntopng_edition_community, false /* Al
 
 void ScanDetection::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
-  u_int32_t delta = h->getAndResetNumIncompleteFlows();;
+  u_int32_t delta = h->getAndResetNumIncompleteFlows();
+  ;
 
-  // ntop->getTrace()->traceEvent(TRACE_ERROR, "-> %u/%u", delta, num_incomplete_flows_threshold);
-  
-  if(delta > num_incomplete_flows_threshold) {
-    if (!alert) alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, delta, num_incomplete_flows_threshold);
+  // ntop->getTrace()->traceEvent(TRACE_ERROR, "-> %u/%u", delta,
+  // num_incomplete_flows_threshold);
+
+  if (delta > num_incomplete_flows_threshold) {
+    if (!alert)
+      alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, delta,
+                         num_incomplete_flows_threshold);
     if (alert) h->triggerAlert(alert);
   }
 }
@@ -50,11 +56,10 @@ bool ScanDetection::loadConfiguration(json_object *config) {
 
   HostCheck::loadConfiguration(config); /* Parse parameters in common */
 
-  if(json_object_object_get_ex(config, "threshold", &json_threshold))
+  if (json_object_object_get_ex(config, "threshold", &json_threshold))
     num_incomplete_flows_threshold = json_object_get_int64(json_threshold);
 
-  return(true);
+  return (true);
 }
 
 /* ***************************************************** */
-

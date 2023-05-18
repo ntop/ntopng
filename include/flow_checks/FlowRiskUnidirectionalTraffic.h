@@ -26,16 +26,25 @@
 
 class FlowRiskUnidirectionalTraffic : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskUnidirectionalTrafficAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskUnidirectionalTrafficAlert::getClassType();
+  }
 
  public:
-  FlowRiskUnidirectionalTraffic() : FlowRisk() {};
-  ~FlowRiskUnidirectionalTraffic() {};
+  FlowRiskUnidirectionalTraffic() : FlowRisk(){};
+  ~FlowRiskUnidirectionalTraffic(){};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskUnidirectionalTrafficAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskUnidirectionalTrafficAlert(this, f);
+  }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskUnidirectionalTrafficAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskUnidirectionalTrafficAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskUnidirectionalTrafficAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskUnidirectionalTrafficAlert::getClassRisk();
+  }
 };
 
 #endif /* _FLOW_RISK_UNIDIRECTIONAL_TRAFFIC_H_ */

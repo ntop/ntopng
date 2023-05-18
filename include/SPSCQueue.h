@@ -26,13 +26,15 @@
 
 /* Lockless fixed-size Single-Producer Single-Consumer queue */
 
-#define QUEUE_WATERMARK      8 /* pow of 2 */
+#define QUEUE_WATERMARK 8 /* pow of 2 */
 #define QUEUE_WATERMARK_MASK (QUEUE_WATERMARK - 1)
 
-template <typename T> class SPSCQueue {
+template <typename T>
+class SPSCQueue {
  private:
   char *name;
-  u_int64_t num_failed_enqueues; /* Counts the number of times the enqueue has failed (queue full) */
+  u_int64_t num_failed_enqueues; /* Counts the number of times the enqueue has
+                                    failed (queue full) */
   u_int64_t shadow_head;
   volatile u_int64_t head;
   volatile u_int64_t tail;
@@ -46,10 +48,10 @@ template <typename T> class SPSCQueue {
    * Constructor
    * @param size The queue size (rounded up to the next power of 2)
    */
-  SPSCQueue(u_int32_t size, const char * _name) {
+  SPSCQueue(u_int32_t size, const char *_name) {
     queue_size = Utils::pow2(size);
     queue.resize(queue_size);
-    tail = shadow_tail = queue_size-1;
+    tail = shadow_tail = queue_size - 1;
     head = shadow_head = 0;
     num_failed_enqueues = 0;
     name = strdup(_name ? _name : "");
@@ -58,13 +60,15 @@ template <typename T> class SPSCQueue {
   /**
    * Destructor
    */
-  ~SPSCQueue() { if(name) free(name); }
+  ~SPSCQueue() {
+    if (name) free(name);
+  }
 
   /**
    * Return true if there is at least one item in the queue
    */
   inline bool isNotEmpty() {
-    u_int32_t next_tail = (shadow_tail + 1) & (queue_size-1);
+    u_int32_t next_tail = (shadow_tail + 1) & (queue_size - 1);
     return next_tail != head;
   }
 
@@ -72,7 +76,7 @@ template <typename T> class SPSCQueue {
    * Return true if the queue is full
    */
   inline bool isFull() {
-    u_int32_t next_head = (shadow_head + 1) & (queue_size-1);
+    u_int32_t next_head = (shadow_head + 1) & (queue_size - 1);
     return tail == next_head;
   }
 
@@ -85,41 +89,38 @@ template <typename T> class SPSCQueue {
    */
   inline T dequeue() {
     u_int32_t next_tail;
-    
-    next_tail = (shadow_tail + 1) & (queue_size-1);
-    if (next_tail == head)
-      throw "Empty queue";
+
+    next_tail = (shadow_tail + 1) & (queue_size - 1);
+    if (next_tail == head) throw "Empty queue";
 
     T item = queue[next_tail];
     shadow_tail = next_tail;
 
-    if ((shadow_tail & QUEUE_WATERMARK_MASK) == 0)
-      tail = shadow_tail;
+    if ((shadow_tail & QUEUE_WATERMARK_MASK) == 0) tail = shadow_tail;
 
     return item;
   }
 
-  inline bool wait() {
-    return((c.wait() < 0) ? false : true);
-  }
+  inline bool wait() { return ((c.wait() < 0) ? false : true); }
 
   /**
    * Push an item to the head
    * @param item The item to add to the queue
-   * @param flush Immediately makes the item available to the consumer, a watermark is used otherwise
-   * Return true on success, false if there is no room
-   */ 
+   * @param flush Immediately makes the item available to the consumer, a
+   * watermark is used otherwise Return true on success, false if there is no
+   * room
+   */
   inline bool enqueue(T item, bool flush) {
     u_int32_t next_head;
 
-    next_head = (shadow_head + 1) & (queue_size-1);
+    next_head = (shadow_head + 1) & (queue_size - 1);
 
     if (tail != next_head) {
       queue[shadow_head] = item;
 
       shadow_head = next_head;
       c.signal();
-      
+
       if (flush || (shadow_head & QUEUE_WATERMARK_MASK) == 0)
         head = shadow_head;
 
@@ -133,15 +134,18 @@ template <typename T> class SPSCQueue {
   /**
    * Return the number of failed enqueue attempts
    */
-  inline u_int64_t get_num_failed_enqueues() const { return num_failed_enqueues; };
+  inline u_int64_t get_num_failed_enqueues() const {
+    return num_failed_enqueues;
+  };
 
   /**
    * Writes queue stats in a table of the vm passed as parameter
    */
   inline void lua(lua_State *vm) const {
-    if(vm) {
+    if (vm) {
       lua_newtable(vm);
-      lua_push_uint64_table_entry(vm, "num_failed_enqueues", num_failed_enqueues);
+      lua_push_uint64_table_entry(vm, "num_failed_enqueues",
+                                  num_failed_enqueues);
       lua_pushstring(vm, name ? name : "");
       lua_insert(vm, -2);
       lua_settable(vm, -3);

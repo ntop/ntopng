@@ -26,16 +26,25 @@
 
 class FlowRiskDesktopOrFileSharingSession : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskDesktopOrFileSharingSessionAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskDesktopOrFileSharingSessionAlert::getClassType();
+  }
 
  public:
-  FlowRiskDesktopOrFileSharingSession() {};
-  ~FlowRiskDesktopOrFileSharingSession() {};
+  FlowRiskDesktopOrFileSharingSession(){};
+  ~FlowRiskDesktopOrFileSharingSession(){};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskDesktopOrFileSharingSessionAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskDesktopOrFileSharingSessionAlert(this, f);
+  }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskDesktopOrFileSharingSessionAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskDesktopOrFileSharingSessionAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskDesktopOrFileSharingSessionAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskDesktopOrFileSharingSessionAlert::getClassRisk();
+  }
 };
 
 #endif /* _FLOW_RISK_DESKTOP_OR_FILE_SHARING_SESSION_H_ */

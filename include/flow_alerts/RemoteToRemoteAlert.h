@@ -26,13 +26,14 @@
 
 class RemoteToRemoteAlert : public FlowAlert {
  private:
-  
  public:
-  static FlowAlertType getClassType() { return { flow_alert_remote_to_remote, alert_category_network }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_NOTICE; };
+  static FlowAlertType getClassType() {
+    return {flow_alert_remote_to_remote, alert_category_network};
+  }
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
- RemoteToRemoteAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) {};
-  ~RemoteToRemoteAlert() {};
+  RemoteToRemoteAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f){};
+  ~RemoteToRemoteAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
 };

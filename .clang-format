@@ -1,0 +1,7 @@
+---
+BasedOnStyle: Google
+---
+Language: Cpp
+IndentWidth: 2
+SortIncludes: Never
+---

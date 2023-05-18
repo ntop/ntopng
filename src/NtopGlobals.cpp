@@ -26,12 +26,15 @@
 NtopGlobals::NtopGlobals() {
   start_time = time(NULL);
   file_id = 0;
-  trace = new (std::nothrow) Trace();  
+  trace = new (std::nothrow) Trace();
   is_shutdown = shutdown_requested = false, do_decode_tunnels = true;
 };
 
 /* **************************************** */
 
 NtopGlobals::~NtopGlobals() {
-  if(trace) { delete trace; trace = NULL; }
+  if (trace) {
+    delete trace;
+    trace = NULL;
+  }
 };

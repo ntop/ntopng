@@ -23,29 +23,27 @@
 
 /* *************************************** */
 
-TrafficStats::TrafficStats() {
-  numPkts.reset(), numBytes.reset();
-}
+TrafficStats::TrafficStats() { numPkts.reset(), numBytes.reset(); }
 
 /* *************************************** */
 
 #ifdef NOTUSED
 void TrafficStats::printStats() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%llu Bytes/%llu Packets",
-				      numBytes, numPkts);
+                               numBytes, numPkts);
 }
 #endif
 
 /* *************************************** */
 
-char* TrafficStats::serialize() {
+char *TrafficStats::serialize() {
   json_object *my_object = getJSONObject();
   char *rsp = strdup(json_object_to_json_string(my_object));
 
   /* Free memory */
   json_object_put(my_object);
 
-  return(rsp);
+  return (rsp);
 }
 
 /* ******************************************* */
@@ -53,14 +51,14 @@ char* TrafficStats::serialize() {
 void TrafficStats::deserialize(json_object *o) {
   json_object *obj;
 
-  if(!o) return;
+  if (!o) return;
 
-  if(json_object_object_get_ex(o, "packets", &obj))
+  if (json_object_object_get_ex(o, "packets", &obj))
     numPkts.setInitialValue(json_object_get_int64(obj));
   else
     numPkts.reset();
-  
-  if(json_object_object_get_ex(o, "bytes", &obj))
+
+  if (json_object_object_get_ex(o, "bytes", &obj))
     numBytes.setInitialValue(json_object_get_int64(obj));
   else
     numBytes.reset();
@@ -68,13 +66,23 @@ void TrafficStats::deserialize(json_object *o) {
 
 /* ******************************************* */
 
-json_object* TrafficStats::getJSONObject() {
+json_object *TrafficStats::getJSONObject() {
   json_object *my_object = json_object_new_object();
-  
-  if(my_object) {
-    json_object_object_add(my_object, "packets", json_object_new_int64(numPkts.get()));
-    json_object_object_add(my_object, "bytes", json_object_new_int64(numBytes.get()));
+
+  if (my_object) {
+    json_object_object_add(my_object, "packets",
+                           json_object_new_int64(numPkts.get()));
+    json_object_object_add(my_object, "bytes",
+                           json_object_new_int64(numBytes.get()));
   }
 
-  return(my_object);
+  return (my_object);
 }
+
+/* *************************************** */
+
+void TrafficStats::serialize(ndpi_serializer *s) {
+  ndpi_serialize_string_uint32(s, "packets", numPkts.get());
+  ndpi_serialize_string_uint32(s, "bytes", numBytes.get());
+}
+

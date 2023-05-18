@@ -22,7 +22,6 @@
 #ifndef _BLACKLIST_STATS_H_
 #define _BLACKLIST_STATS_H_
 
-
 class BlacklistStats {
  private:
   std::unordered_map<std::string, BlacklistUsageStats> stats;
@@ -31,12 +30,13 @@ class BlacklistStats {
   BlacklistStats() { ; }
 
 #ifdef FULL_BL_STATS
-  void inc(std::string name, u_int32_t tp, u_int32_t fp, u_int32_t fn, u_int32_t tn);
+  void inc(std::string name, u_int32_t tp, u_int32_t fp, u_int32_t fn,
+           u_int32_t tn);
 #endif
 
-  void      incHits(std::string name);
+  void incHits(std::string name);
   u_int32_t getNumHits(std::string name);
-  void      lua(lua_State* vm);
+  void lua(lua_State* vm);
 };
 
 #endif /* _BLACKLIST_STATS_H_ */

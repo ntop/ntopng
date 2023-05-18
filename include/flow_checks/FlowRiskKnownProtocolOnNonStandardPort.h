@@ -26,22 +26,26 @@
 
 class FlowRiskKnownProtocolOnNonStandardPort : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskKnownProtocolOnNonStandardPortAlert::getClassType();  }
+  FlowAlertType getAlertType() const {
+    return FlowRiskKnownProtocolOnNonStandardPortAlert::getClassType();
+  }
 
  public:
-  FlowRiskKnownProtocolOnNonStandardPort() : FlowRisk() {};
-  ~FlowRiskKnownProtocolOnNonStandardPort() {};
+  FlowRiskKnownProtocolOnNonStandardPort() : FlowRisk(){};
+  ~FlowRiskKnownProtocolOnNonStandardPort(){};
 
   FlowAlert *buildAlert(Flow *f) {
-    FlowRiskKnownProtocolOnNonStandardPortAlert *alert = new FlowRiskKnownProtocolOnNonStandardPortAlert(this, f);
+    FlowRiskKnownProtocolOnNonStandardPortAlert *alert =
+        new FlowRiskKnownProtocolOnNonStandardPortAlert(this, f);
 
     /* Client is an attacker, trying to use a server on a non-std port */
     alert->setCliAttacker();
 
     /*
-      If the server responds, the server is also an attacker as it is offering a service on a non std-port.
-      NOTE: Currently, we have decided to skip this condition as it may penalize legitimate servers.
-            Discussion at https://github.com/ntop/ntopng/issues/5997.
+      If the server responds, the server is also an attacker as it is offering a
+    service on a non std-port. NOTE: Currently, we have decided to skip this
+    condition as it may penalize legitimate servers. Discussion at
+    https://github.com/ntop/ntopng/issues/5997.
 
     if(f->get_bytes_srv2cli() > 10)
       alert->setSrvAttacker();
@@ -50,8 +54,13 @@ class FlowRiskKnownProtocolOnNonStandardPort : public FlowRisk {
     return alert;
   }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskKnownProtocolOnNonStandardPortAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk() { return FlowRiskKnownProtocolOnNonStandardPortAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskKnownProtocolOnNonStandardPortAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskKnownProtocolOnNonStandardPortAlert::getClassRisk();
+  }
 };
 
 #endif

@@ -25,27 +25,29 @@
 #include "ntop_includes.h"
 
 class ScanDetection : public HostCheck {
-private:
+ private:
   u_int32_t num_incomplete_flows_threshold;
 
   HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
-			u_int32_t _num_incomplete_flows, u_int32_t _num_incomplete_flows_threshold) {
-    return new ScanDetectionAlert(c, f, cli_pctg, _num_incomplete_flows, _num_incomplete_flows_threshold);
+                        u_int32_t _num_incomplete_flows,
+                        u_int32_t _num_incomplete_flows_threshold) {
+    return new ScanDetectionAlert(c, f, cli_pctg, _num_incomplete_flows,
+                                  _num_incomplete_flows_threshold);
   };
 
  public:
   ScanDetection();
-  ~ScanDetection() {};
+  ~ScanDetection(){};
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
-  bool loadConfiguration(json_object *config);  
+  bool loadConfiguration(json_object *config);
 
   /* HostCheckID in ntop_typedefs.h */
-  HostCheckID getID()   const { return(host_check_scan_detection);     }
+  HostCheckID getID() const { return (host_check_scan_detection); }
 
   /* scripts/lua/modules/check_definitions/host/scan_detection.lua */
-  std::string getName() const { return(std::string("scan_detection")); }
+  std::string getName() const { return (std::string("scan_detection")); }
 };
 
 #endif

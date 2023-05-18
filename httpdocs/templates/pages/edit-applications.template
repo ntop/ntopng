@@ -1,0 +1,51 @@
+{#
+  (C) 2022 - ntop.org
+  This template is used by the `Host Details - Packets` page inside the `Host Details`.    
+#}
+
+
+<div id="edit-applications">
+  <page-edit-applications
+  :page_csrf="page_csrf"
+  :ifid="ifid"
+  :has_protos_file="has_protos_file">
+  </page-edit-applications>
+</div>
+  
+<script type="text/javascript">  
+  const pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+  const ifid = "{{ ifid }}"
+  const has_protos_file = "{{ has_protos_file }}"
+  
+  function start_vue() {
+    let vue_options = {
+      components: {	  
+        'page-edit-applications': ntopVue.PageEditApplications,
+      },
+      /**
+      * First method called when the component is created.
+      */
+      created() { },
+      mounted() { },
+      data() {
+        return {
+          page_csrf: pageCsrf,
+          ifid: ifid,
+          has_protos_file: has_protos_file == "true",
+        };
+      },
+      methods: { },
+    };
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#edit-applications');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>
+

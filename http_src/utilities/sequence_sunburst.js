@@ -15,7 +15,6 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
   this.url_params = url_params;
   this.units = units;
   this.refresh = refresh;
-  this.sunburstInterval;
 
   var oldPieData = [];
   var filteredPieData = [];
@@ -27,13 +26,10 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
   var arc = rsp[3];
   var arc_group = rsp[4];
   var trail = rsp[5];
-  var whiteCircle = rsp[6];
   var totalLabel = rsp[7];
   var totalValue = rsp[8];
   var totalUnits = rsp[9];
-  var radius = rsp[10];
   var width = rsp[11];
-  var height = rsp[12];
   var b = rsp[13];
 
   var last_process = "";
@@ -54,7 +50,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
         console.log("error");
       }
     });
-  }
+  };
 
   ///////////////////////////////////////////////////////////
   // STREAKER CONNECTION ////////////////////////////////////
@@ -71,14 +67,14 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
   this.flashUpdate = function (start,end) {
     arc_group.selectAll("path").style("opacity", start)
     .transition().duration(200).style("opacity", end);
-  }
+  };
 
 
   function update_sequence_sunburst(data) {
-    streakerDataAdded = data;
+    const streakerDataAdded = data;
     // console.log(data);
     oldPieData = filteredPieData;
-    pieData = partition.nodes(streakerDataAdded);
+    const pieData = partition.nodes(streakerDataAdded);
     
     filteredPieData = pieData.filter(function(d) {
       return (d.dx > 0.005); // 0.005 radians = 0.29 degrees
@@ -91,7 +87,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
       // alert("Update");
     }
 
-    paths = arc_group.selectAll("path").data(filteredPieData);
+    let paths = arc_group.selectAll("path").data(filteredPieData);
 
     paths.enter().append("svg:path")
     .attr("display", function(d) { return d.depth ? null : "none"; })
@@ -113,7 +109,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
     if ((last_process.localeCompare(d.name) == 0) && (d.name != "")){
       
       var data = NtopUtils.bytesToVolumeAndLabel(d.value);
-      var value = data[0]
+      var value;
       if (last_byte < d.value) {
         value = data[0]+ ' \uf062';
       }else if (last_byte > d.value) {
@@ -323,7 +319,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
       .attr("transform", "translate(" + (width / 2) + "," + (height / 2) + ")");
 
     // Basic setup of page elements.
-    var trail = initializeBreadcrumbTrail(circle_name,sequence_name,width);
+    var trail = initializeBreadcrumbTrail(circle_name,sequence_name);
 
     var whiteCircle = arc_group.append("svg:circle")
       .attr("fill", "white")
@@ -360,7 +356,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
     totalValue.text(" ");
     totalLabel.text(" ");
     totalUnits.text("");
-  }
+  };
 
 
 }

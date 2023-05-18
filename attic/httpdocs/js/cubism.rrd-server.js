@@ -69,7 +69,6 @@ cubism.rrdserver = function(context, resolution) {
 
   /* active and background counters */
   var live_counters = [{},{}];
-  var live_window = [];
   var live_step = -1;
   
   var source = {};
@@ -91,7 +90,6 @@ cubism.rrdserver = function(context, resolution) {
       if (datasize == 0)
         return;
       
-      var datastep = data['step'] * 1000;
       var up = data['up'];
       var down = data['down'];
       var bg = data['bg'];

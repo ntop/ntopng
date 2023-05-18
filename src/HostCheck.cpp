@@ -23,21 +23,23 @@
 
 /* **************************************************** */
 
-HostCheck::HostCheck(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only) : Check(_edition, _packet_interface_only, _nedge_exclude, _nedge_only) {
+HostCheck::HostCheck(NtopngEdition _edition, bool _packet_interface_only,
+                     bool _nedge_exclude, bool _nedge_only)
+    : Check(_edition, _packet_interface_only, _nedge_exclude, _nedge_only) {
   periodicity_secs = 0;
 };
 
 /* **************************************************** */
 
-HostCheck::~HostCheck() {
-};
+HostCheck::~HostCheck(){};
 
 /* **************************************************** */
 
 bool HostCheck::loadConfiguration(json_object *config) {
   bool rc = true;
-  
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() %s", __FUNCTION__, json_object_to_json_string(config));
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() %s", __FUNCTION__,
+  // json_object_to_json_string(config));
 
   /*
     Example of simple configuration without parameters:
@@ -53,7 +55,7 @@ bool HostCheck::loadConfiguration(json_object *config) {
     }
    */
 
-  return(rc);
+  return (rc);
 }
 
 /* **************************************************** */

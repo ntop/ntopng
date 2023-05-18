@@ -24,20 +24,23 @@
 
 #include "ntop_includes.h"
 
-
 class BroadcastNonUDPTraffic : public FlowCheck {
  private:
-
  public:
-  BroadcastNonUDPTraffic() : FlowCheck(ntopng_edition_community,
-                        false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-                        false /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */, true /* has_flow_begin */) {};
-  ~BroadcastNonUDPTraffic() {};
+  BroadcastNonUDPTraffic()
+      : FlowCheck(
+            ntopng_edition_community, false /* All interfaces */,
+            false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
+            false /* has_protocol_detected */, false /* has_periodic_update */,
+            false /* has_flow_end */, true /* has_flow_begin */){};
+  ~BroadcastNonUDPTraffic(){};
 
   void flowBegin(Flow *f);
   FlowAlert *buildAlert(Flow *f);
-  
-  std::string getName()        const { return(std::string("broadcast_non_udp_traffic")); }
+
+  std::string getName() const {
+    return (std::string("broadcast_non_udp_traffic"));
+  }
 };
 
 #endif /* _BROADCAST_NON_UDP_TRAFFIC_H */

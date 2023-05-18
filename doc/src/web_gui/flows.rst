@@ -214,8 +214,8 @@ Multiple filters are available by clicking the various results (e.g. The host `d
 See :ref:`Historical Flow Explorer` for more information.
 
 
-Analysis
---------
+Flow Analysis
+-------------
 
 .. figure:: ../img/live_flows_nav_bar.png
   :align: center
@@ -223,13 +223,65 @@ Analysis
 
   Live Flows navigation bar
 
-By switching tab and clicking the analysis entry, an other view of the flows is going to be displayed, showing the informations aggregated.
+The flow analysis page allows flows to be analysed in an aggregated fashion instead of the classical 5-tuple. Basic aggregation criteria are available in all ntopng versions, whereas advanced ones only on selected Enterprise editions.
 
-.. figure:: ../img/live_flows_analysis.png
+Application Protocol
+^^^^^^^^^^^^^^^^^^^^
+
+.. figure:: ../img/live_flows_analysis_app_criteria.png
   :align: center
-  :alt: Live Flows Analysis
+  :alt: Live Flows Analysis Application Criteria
 
-  Live Flows Analysis
 
-From here it's possible to understand the amount of flows, traffic and hosts having a particular application protocol in order to understand easly if there is some flow (using some protocol) that shouldn't be there.
-By clicking on the protocol, the user is going to jump to the live flow page with the selected protocol filtered. 
+This criteria allows you to aggregate flows according to the application protocol (e.g. WhatsApp). This is useful for selecting all flows with a specific protocol.
+
+Client
+^^^^^^
+
+.. figure:: ../img/live_flows_analysis_client_criteria.png
+  :align: center
+  :alt: Live Flows Analysis Client Criteria
+
+You can use this aggregation criteria to cluster all flows originated by a specific client. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+
+Server Criteria
+^^^^^^^^^^^^^^^
+
+.. figure:: ../img/live_flows_analysis_server_criteria.png
+  :align: center
+  :alt: Live Flows Analysis Server Criteria
+
+You can use this aggregation criteria to cluster all flows targeting a specific server. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+
+.. note::
+
+  The following aggregation criteria are available only from Enterprise M license or superior.
+
+Client / Server Criteria
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. figure:: ../img/live_flows_analysis_client_server_criteria.png
+  :align: center
+  :alt: Live Flows Analysis Client / Server Criteria
+
+
+You can use this aggregation criteria to cluster all flows wth the same Client/Server. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+
+App. Proto / Client / Server Criteria
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. figure:: ../img/live_flows_analysis_app_client_server_criteria.png
+  :align: center
+  :alt: Live Flows Analysis App. Proto / Client / Server Criteria
+
+You can use this aggregation criteria to cluster all flows wth the same Application Protocol/Client/Server. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+
+Info Criteria
+^^^^^^^^^^^^^
+
+.. figure:: ../img/live_flows_analysis_info_criteria.png
+  :align: center
+  :alt: Live Flows Analysis Info Criteria
+
+You can use this aggregation criteria to cluster all flows wth the same information field (e.g. resolved host name in DNS flows). Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+

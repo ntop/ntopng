@@ -29,11 +29,13 @@ class RemoteAccessAlert : public FlowAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { flow_alert_remote_access, alert_category_network}; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_NOTICE; };
+  static FlowAlertType getClassType() {
+    return {flow_alert_remote_access, alert_category_network};
+  }
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
-  RemoteAccessAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) { };
-  ~RemoteAccessAlert() { };
+  RemoteAccessAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f){};
+  ~RemoteAccessAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
 };

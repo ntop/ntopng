@@ -45,18 +45,15 @@ struct http_query_rates {
   u_int16_t rate_get, rate_post, rate_head, rate_put, rate_other;
 };
 
-enum {
-  AS_SENDER  = 0,
-  AS_RECEIVER
-};
+enum { AS_SENDER = 0, AS_RECEIVER };
 
 class HTTPstats {
  private:
-  struct http_query_stats    query[2];
+  struct http_query_stats query[2];
   struct http_response_stats response[2];
-  struct http_query_rates    query_rate[2];
+  struct http_query_rates query_rate[2];
   struct http_response_rates response_rate[2];
-  struct http_query_stats    last_query_sample[2];
+  struct http_query_stats last_query_sample[2];
   struct http_response_stats last_response_sample[2];
   struct timeval last_update_time;
 
@@ -65,46 +62,52 @@ class HTTPstats {
   bool warning_shown;
   VirtualHostHash *virtualHosts;
 
-  void getRequests(const struct http_query_stats *q,
-		   u_int32_t *num_get, u_int32_t *num_post, u_int32_t *num_head,
-		   u_int32_t *num_put, u_int32_t *num_other);
+  void getRequests(const struct http_query_stats *q, u_int32_t *num_get,
+                   u_int32_t *num_post, u_int32_t *num_head, u_int32_t *num_put,
+                   u_int32_t *num_other);
 
-  void getResponses(const struct http_response_stats *r,
-		   u_int32_t *num_1xx, u_int32_t *num_2xx, u_int32_t *num_3xx,
-		   u_int32_t *num_4xx, u_int32_t *num_5xx);
+  void getResponses(const struct http_response_stats *r, u_int32_t *num_1xx,
+                    u_int32_t *num_2xx, u_int32_t *num_3xx, u_int32_t *num_4xx,
+                    u_int32_t *num_5xx);
 
-  void getRequestsRates(const struct http_query_rates *dq,
-		   u_int16_t *rate_get, u_int16_t *rate_post, u_int16_t *rate_head,
-		   u_int16_t *rate_put, u_int16_t *rate_other);
+  void getRequestsRates(const struct http_query_rates *dq, u_int16_t *rate_get,
+                        u_int16_t *rate_post, u_int16_t *rate_head,
+                        u_int16_t *rate_put, u_int16_t *rate_other);
 
   void getResponsesRates(const struct http_response_rates *dr,
-		   u_int16_t *rate_1xx, u_int16_t *rate_2xx, u_int16_t *rate_3xx,
-		   u_int16_t *rate_4xx, u_int16_t *rate_5xx);
+                         u_int16_t *rate_1xx, u_int16_t *rate_2xx,
+                         u_int16_t *rate_3xx, u_int16_t *rate_4xx,
+                         u_int16_t *rate_5xx);
 
-  void getRequestsDelta(const struct http_query_stats *q0, const struct http_query_stats *q1,
-		   u_int32_t *delta_get, u_int32_t *delta_post, u_int32_t *delta_head,
-		   u_int32_t *delta_put, u_int32_t *delta_other);
+  void getRequestsDelta(const struct http_query_stats *q0,
+                        const struct http_query_stats *q1, u_int32_t *delta_get,
+                        u_int32_t *delta_post, u_int32_t *delta_head,
+                        u_int32_t *delta_put, u_int32_t *delta_other);
 
-  void getResponsesDelta(const struct http_response_stats *r0 , const struct http_response_stats *r1,
-		   u_int32_t *delta_1xx, u_int32_t *delta_2xx, u_int32_t *delta_3xx,
-		   u_int32_t *delta_4xx, u_int32_t *delta_5xx);
+  void getResponsesDelta(const struct http_response_stats *r0,
+                         const struct http_response_stats *r1,
+                         u_int32_t *delta_1xx, u_int32_t *delta_2xx,
+                         u_int32_t *delta_3xx, u_int32_t *delta_4xx,
+                         u_int32_t *delta_5xx);
 
   void luaAddCounters(lua_State *vm, bool as_sender);
   void luaAddRates(lua_State *vm, bool as_sender);
   void JSONObjectAddCounters(json_object *j, bool as_sender);
   void JSONObjectAddRates(json_object *j, bool as_sender);
-  inline u_int16_t makeRate(u_int16_t v, float tdiff) { return((u_int16_t)((((float)v* 1000)/tdiff) + .5f)); }
+  inline u_int16_t makeRate(u_int16_t v, float tdiff) {
+    return ((u_int16_t)((((float)v * 1000) / tdiff) + .5f));
+  }
 
  public:
   HTTPstats(Host *host);
   ~HTTPstats();
 
-  inline u_int32_t get_num_virtual_hosts() { return(virtualHosts ? virtualHosts->getNumEntries() : 0); }
+  inline u_int32_t get_num_virtual_hosts() {
+    return (virtualHosts ? virtualHosts->getNumEntries() : 0);
+  }
 
   void incStats(bool as_client, const FlowHTTPStats *fts);
-  char* serialize();
-  void deserialize(json_object *o);
-  json_object* getJSONObject();
+  json_object *getJSONObject();
 
   u_int32_t getSentNumQueries();
   u_int32_t getSentNumResponses();
@@ -115,11 +118,9 @@ class HTTPstats {
   u_int32_t luaVirtualHosts(lua_State *vm, char *virtual_host, Host *h);
 
   void updateStats(const struct timeval *tv);
-  bool updateHTTPHostRequest(time_t t,
-			     char *virtual_host_name,
-			     u_int32_t num_requests,
-			     u_int32_t bytes_sent,
-			     u_int32_t bytes_rcvd);
+  bool updateHTTPHostRequest(time_t t, char *virtual_host_name,
+                             u_int32_t num_requests, u_int32_t bytes_sent,
+                             u_int32_t bytes_rcvd);
 };
 
 #endif /* _HTTP_STATS_H_ */

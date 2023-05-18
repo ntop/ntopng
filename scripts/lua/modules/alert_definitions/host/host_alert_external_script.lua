@@ -33,11 +33,12 @@ host_alert_external_script.meta = {
 -- @param one_param The first alert param
 -- @param another_param The second alert param
 -- @return A table with the alert built
-function host_alert_external_script:init(metric, value, operator, threshold)
-   -- Call the parent constructor
+function host_alert_external_script:init(message)
    self.super:init()
 
-   self.alert_type_params = alert_creators.createThresholdCross(metric, value, operator, threshold)
+   self.alert_type_params = {
+      message = message
+   }
 end
 
 -- #######################################################

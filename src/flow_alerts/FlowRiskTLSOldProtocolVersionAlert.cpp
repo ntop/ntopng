@@ -21,14 +21,13 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* FlowRiskTLSOldProtocolVersionAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow *f = getFlow();
+ndpi_serializer* FlowRiskTLSOldProtocolVersionAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow* f = getFlow();
 
-  if(serializer == NULL)
-    return NULL;
+  if (serializer == NULL) return NULL;
 
   ndpi_serialize_string_int32(serializer, "tls_version", f->getTLSVersion());
-  
+
   return serializer;
 }
-

@@ -764,9 +764,9 @@ function flow_alert_store:format_record(value, no_html)
    end
 
    record[RNAME.INFO.name] = {
-     descr = format_external_link(value["info"], value["info"], no_html, proto),
-     value = flow_domain, -- Domain name used for alert exclusion
-     issuerdn = flow_tls_issuerdn, -- IssuerDN used for alert exclusion
+      descr = format_external_link(value["info"], value["info"], no_html, proto, "no_external_link_url"),
+      value = flow_domain, -- Domain name used for alert exclusion
+      issuerdn = flow_tls_issuerdn, -- IssuerDN used for alert exclusion
    }
 
    record[RNAME.FLOW_RELATED_INFO.name] = {

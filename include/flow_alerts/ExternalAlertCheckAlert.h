@@ -26,15 +26,17 @@
 
 class ExternalAlertCheckAlert : public FlowAlert {
  private:
-  ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
-  
- public:
-  static FlowAlertType getClassType() { return { flow_alert_external, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_ERROR; };
+  ndpi_serializer *getAlertJSON(ndpi_serializer *serializer);
 
- ExternalAlertCheckAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) {};
-  ~ExternalAlertCheckAlert() {};
-  
+ public:
+  static FlowAlertType getClassType() {
+    return {flow_alert_external, alert_category_security};
+  }
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
+
+  ExternalAlertCheckAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f){};
+  ~ExternalAlertCheckAlert(){};
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

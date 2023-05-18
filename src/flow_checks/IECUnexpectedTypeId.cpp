@@ -46,32 +46,33 @@ bool IECUnexpectedTypeId::loadConfiguration(json_object *config) {
   */
 
   /* Remote to local threshold */
-  if(json_object_object_get_ex(config, "items", &items)) {
+  if (json_object_object_get_ex(config, "items", &items)) {
     char str[512];
     u_int idx = 0;
-    
-    for(u_int i=0; i<(u_int)json_object_array_length(items); i++) {
-      json_object *item = json_object_array_get_idx(items, i);
-      u_int32_t id      = json_object_get_int(item);
-      int rx = snprintf(&str[idx], sizeof(str)-idx-1, "%s%u",
-			(i > 0) ? "," : "", id);
 
-      if(rx > 0)
-	idx += rx;
+    for (u_int i = 0; i < (u_int)json_object_array_length(items); i++) {
+      json_object *item = json_object_array_get_idx(items, i);
+      u_int32_t id = json_object_get_int(item);
+      int rx = snprintf(&str[idx], sizeof(str) - idx - 1, "%s%u",
+                        (i > 0) ? "," : "", id);
+
+      if (rx > 0)
+        idx += rx;
       else
-	break;
+        break;
     } /* for */
 
     str[idx] = '\0';
 
-    ntop->getPrefs()->setIEC104AllowedTypeIDs(str); 
+    ntop->getPrefs()->setIEC104AllowedTypeIDs(str);
   }
 
-  return(true);
+  return (true);
 }
 
 /* *********************************************************** */
 
 void IECUnexpectedTypeId::scriptDisable() {
-  ntop->getPrefs()->setIEC104AllowedTypeIDs("-1"); /* Enable all so no alerts are generated */
+  ntop->getPrefs()->setIEC104AllowedTypeIDs(
+      "-1"); /* Enable all so no alerts are generated */
 }

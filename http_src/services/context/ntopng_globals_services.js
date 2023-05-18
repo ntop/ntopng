@@ -97,17 +97,15 @@ export const ntopng_utility = function() {
 	    // let epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
 	    let epoch_begin = status.epoch_begin;
 	    let epoch_end = status.epoch_end;
-	    if (epoch_begin != null && epoch_end != null) {
+	    if (epoch_begin != null && epoch_end != null && format != null) {
 		let begin = Number.parseInt(epoch_begin);
 		let end = Number.parseInt(epoch_end);
-		if (end - begin <= 300 ) {
+		if (end - begin <= 11000) {
 		    format = "DD/MMM/YYYY HH:mm:ss";
 		}
 	    }
 	    
 	    let m = moment.tz(utc_ms, ntop_zoneinfo);
-	    let m_local = moment(utc_ms);
-	    let tz_local = m_local.format(format);
 	    let tz_server = m.format(format);
 	    return tz_server;
 	},
@@ -117,6 +115,8 @@ export const ntopng_utility = function() {
 	    }
 	    for (let key in source_obj) {
 	    	if (source_obj[key] == null) { continue; }
+            /* Security check for Prototype pollution vulnerability */
+            if (key === "__proto__" || key === "constructor") { continue; }
 	    	if (recursive_object == true && this.is_object(source_obj[key]) && this.is_object(dest_obj[key])) {
 	    	    this.copy_object_keys(source_obj[key], dest_obj[key], recursive_object);
 	    	} else {
@@ -127,6 +127,15 @@ export const ntopng_utility = function() {
 	set_http_globals_headers(headers) {
 	    global_http_headers = headers;
 	},
+	http_post_request: async function(url, params, throw_exception, not_unwrap) {
+	    let headers = {
+		'Content-Type': 'application/json'
+	    };
+	    if (params.csrf == null) {
+		throw `NULL csrf in ${url} POST request.`;
+	    }
+	    return this.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+	},
 	http_request: async function(url, options, throw_exception, not_unwrap) {
 	    try {
 		if (options == null) {
@@ -135,7 +144,7 @@ export const ntopng_utility = function() {
 		if (options.headers == null) {
 		    options.headers = {};
 		}
-		if (options != null && options.headers != null && global_http_headers != null) {
+		if (options.headers != null && global_http_headers != null) {
 		    options.headers = {
 			...options.headers,
 			...global_http_headers,
@@ -190,13 +199,13 @@ export const ntopng_utility = function() {
 * The status is incapsulated into the url.
 */
 export const ntopng_status_manager = function() {
-    let gloabal_status = {};
+    let global_status = {};
     /** @type {{ [id: string]: (status: object) => void}} */
     let subscribers = {}; // dictionary of { [id: string]: f_on_ntopng_status_change() }
     const clone = (e) => ntopng_utility.clone(e);
 
     const relplace_global_status = function(status) {
-        gloabal_status = status;
+        global_status = status;
     }
 
     /**
@@ -217,8 +226,11 @@ export const ntopng_status_manager = function() {
          * Gets the current global application status.
          * @returns {object}
          */
-        get_status: function() {
-            return clone(gloabal_status);
+        get_status: function(not_clone) {
+	    if (not_clone == true) {
+		return global_status;
+	    }
+            return clone(global_status);
         },
 
         update_subscribers: function() {
@@ -561,5 +573,5 @@ on_custom_event: function(id, event, f_on_event) {
       on_event_change: function(id, event, f_on_event, get_init_notify) {
     on_event(id, event, f_on_event, get_init_notify);
       },
-  }    
+  };
 }();

@@ -282,11 +282,16 @@
 	          let restText = " (" + (cardsData[i].value[j].count).toFixed(1) + "%)";
 	          if(cardsData[i].value[j].count != 0 && cardsData[i].value[j].count < 0.1){restText = " (< 0.1%)";}
 
+		  let operator = "";
+		  if (cardsData[i].value[j].operator != null) {
+		    operator = `  data-tag-operator='${cardsData[i].value[j].operator}' `;
+		  }
 	          let a_tag = "<a class='ntopng-truncate tag-filter dropdown-item' data-tag-key='" + cardsData[i].value[j].key + 
 	            "' title='" + ( cardsData[i].value[j].title || cardsData[i].value[j].value) +
 		    "' data-tag-value='" + cardsData[i].value[j].value + 
-		    "' data-tag-label='" + cardsData[i].value[j].label + 
-		    "' href='#'>" + cardsData[i].value[j].label + "" + restText + "</a>";
+		    "' data-tag-label='" + cardsData[i].value[j].label + "'" +
+		    operator +
+		    " href='#'>" + cardsData[i].value[j].label + "" + restText + "</a>";
 
                   let itemText = '<li style="max-width:90rem;" class="dropdown-item pointer">' + a_tag + '</li>';
 		  menuOptions.push(itemText);
@@ -403,7 +408,7 @@
 		{% end %}
 
                 {% if actions.show_historical then %}
-		/* Button to jump to historical nIndex flows */
+		/* Button to jump to historical flows */
                 {icon: 'fa-stream', title: "{{ i18n('db_explorer.historical_data') }}", modal: '#past_flows'},
 		{% end %}
 
@@ -711,12 +716,6 @@
     let index = length_array.indexOf(INITIAL_ROWS_LENGTH);
     /* Validate index */
     (index >= 0) ? index = index : index = length_array.length - 1; /* Use the last index */
-    
-    length_array.splice(index, 1);
-    length_array.unshift(INITIAL_ROWS_LENGTH);
-    
-    //function loadDataTable() {
-      //setUserColumnsDefWidths();
 
       let url_params = ntopng_url_manager.get_url_params();
       let config = DataTableUtils.getStdDatatableConfig(datatableButton);
@@ -796,23 +795,6 @@
       $table.on('click', `a.tag-filter`, async function (e) {
           addFilter(e, $(this), $table);
       });
-    //}
-
-    /*
-    loadDataTable();
-    $('table th').resizable({
-      handles: 'e',
-      minWidth: 5,
-      stop: function() {
-        // User has stopped dragging the column
-        //Call your own function to save the widths of each column - localStorage is a good choice
-        saveColumnSettings();
- 
-        loadDataTable();
-        reloadTable();
-        updateCardStats('overview');
-      }
-    });*/
 
     /* Top Host and Top Alerts filters */
     {% if show_cards then %}
@@ -845,7 +827,7 @@
             displayValue  = NtopUtils.stripTags(displayValue);
             realValue = ((data.value != undefined) ? data.value : data);
 	}
-
+	
 	// Read tag key and value from the <a> itself if provided
 	if (a.data('tagKey')        != undefined) key          = a.data('tagKey');
 	if (a.data('tagLabel')      != undefined) displayValue = a.data('tagLabel');

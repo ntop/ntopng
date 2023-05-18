@@ -180,7 +180,7 @@ const current_groups_options_mode = ref(init_groups_option_mode());
 
 let last_timeseries_groups_loaded = null;
 
-const custom_metric = { label: i18n('page_stats.custom_metrics'), currently_active: false }
+const custom_metric = { label: i18n('page_stats.custom_metrics'), currently_active: false };
 
 const page_snapshots = "timeseries";
 
@@ -241,9 +241,9 @@ async function init() {
 
 let last_push_custom_metric = null;
 async function get_metrics(push_custom_metric, force_refresh) {
+    let metrics = await metricsManager.get_metrics(http_prefix);
     if (!force_refresh && last_push_custom_metric == push_custom_metric) { return metrics.value; }
     
-    let metrics = await metricsManager.get_metrics(http_prefix);
     if (push_custom_metric) {
 	metrics.push(custom_metric);
     }
@@ -518,9 +518,8 @@ function set_top_table_options(timeseries_groups, status) {
 	let id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array);
 	ts_group_dict[id] = ts_group;
     });
-    let top_table_id_dict = {}
+    let top_table_id_dict = {};
     top_table_options.value = [];
-    let select_options = [];
     for (let id in ts_group_dict) {
 	let ts_group = ts_group_dict[id];
 	let main_source_index = timeseriesUtils.getMainSourceDefIndex(ts_group);
@@ -637,22 +636,16 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
 		return;
 	    }
 	    let name = timeseriesUtils.getSerieName(s_metadata.label, ts_id, ts_group, extend_serie_name);
-	    let total = null;
 	    let total_formatter_type = f_get_total_formatter_type(ts_group.metric.measure_unit);
 	    let total_formatter = formatterUtils.getFormatter(total_formatter_type);
-	    if (ts_stats.total != null) {
-		let interval = status.epoch_end - status.epoch_begin;
-		total = interval * ts_stats.average;
-	    }
-	    
 	    let row = {
-		metric: name,
-		// total: total_formatter(total),
-		total: total_formatter(ts_stats.total),
-		perc_95: formatter(ts_stats["95th_percentile"]),
-		avg: formatter(ts_stats.average),
-		max: formatter(ts_stats.max_val),
-		min: formatter(ts_stats.min_val),
+            metric: name,
+            // total: total_formatter(total),
+            total: total_formatter(ts_stats.total),
+            perc_95: formatter(ts_stats["95th_percentile"]),
+            avg: formatter(ts_stats.average),
+            max: formatter(ts_stats.max_val),
+            min: formatter(ts_stats.min_val),
 	    };
 	    stats_rows.value.push(row);
 	});

@@ -480,7 +480,7 @@ function ts_dump.getConfig()
      config.flow_devices_rrd_creation = "0"
   end
 
-  if(tostring(config.snmp_devices_rrd_creation) == "1" and ntop.isEnterpriseM() == false) then
+  if(tostring(config.snmp_devices_rrd_creation) == "1" and not (ntop.isEnterpriseM() or ntop.isnEdgeEnterprise())) then
      config.snmp_devices_rrd_creation = "0"
   end
 

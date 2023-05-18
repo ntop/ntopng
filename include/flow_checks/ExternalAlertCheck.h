@@ -27,18 +27,21 @@
 class ExternalAlertCheck : public FlowCheck {
  private:
   virtual void checkExternalAlert(Flow *f);
-  
+
  public:
-  ExternalAlertCheck() : FlowCheck(ntopng_edition_community,
-				      false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-				      true /* has_protocol_detected */, false /* has_periodic_update */, true /* has_flow_end */) {};
-  ~ExternalAlertCheck() {};
+  ExternalAlertCheck()
+      : FlowCheck(ntopng_edition_community, false /* All interfaces */,
+                  false /* Don't exclude for nEdge */,
+                  false /* NOT only for nEdge */,
+                  true /* has_protocol_detected */,
+                  false /* has_periodic_update */, true /* has_flow_end */){};
+  ~ExternalAlertCheck(){};
 
   void protocolDetected(Flow *f);
   void flowEnd(Flow *f);
   FlowAlert *buildAlert(Flow *f);
-  
-  std::string getName() const { return(std::string("external_alert_check")); }
+
+  std::string getName() const { return (std::string("external_alert_check")); }
 };
 
 #endif /* _EXTERNAL_ALERT_CHECK_H_ */

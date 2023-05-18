@@ -25,23 +25,25 @@
 #include "ntop_includes.h"
 
 class NTPTraffic : public HostCheck {
-private:
-  u_int64_t ntp_bytes_threshold;  
+ private:
+  u_int64_t ntp_bytes_threshold;
 
-  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _ntp_bytes, u_int64_t _ntp_bytes_threshold) {
-    return new NTPTrafficAlert(c, f, cli_pctg, _ntp_bytes, _ntp_bytes_threshold);
+  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
+                        u_int64_t _ntp_bytes, u_int64_t _ntp_bytes_threshold) {
+    return new NTPTrafficAlert(c, f, cli_pctg, _ntp_bytes,
+                               _ntp_bytes_threshold);
   };
-  
-public:
+
+ public:
   NTPTraffic();
-  ~NTPTraffic() {};
-  
+  ~NTPTraffic(){};
+
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
-  bool loadConfiguration(json_object *config);  
+  bool loadConfiguration(json_object *config);
 
   HostCheckID getID() const { return host_check_ntp_traffic; }
-  std::string getName()  const { return(std::string("ntp")); }
+  std::string getName() const { return (std::string("ntp")); }
 };
 
 #endif

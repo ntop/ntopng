@@ -30,17 +30,21 @@ class AlertsQueue {
  private:
   NetworkInterface *iface;
 
-  void pushAlertJson(ndpi_serializer *alert, const char *atype, const char *a_subtype = NULL);
+  void pushAlertJson(ndpi_serializer *alert, const char *atype,
+                     const char *a_subtype = NULL);
 
  public:
   AlertsQueue(NetworkInterface *iface);
 
-  void pushOutsideDhcpRangeAlert(u_int8_t* cli_mac, Mac *sender_mac,
-				 u_int32_t ip, u_int32_t router_ip, u_int16_t vlan_id);
-  void pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_mac, u_int8_t *new_mac, Mac *new_host_mac);
-  void pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac, const u_int8_t *dst_mac,
-					u_int32_t spa, u_int32_t tpa, u_int16_t vlan_id);
-  void pushLoginTrace(const char*user, bool authorized);
+  void pushOutsideDhcpRangeAlert(u_int8_t *cli_mac, Mac *sender_mac,
+                                 u_int32_t ip, u_int32_t router_ip,
+                                 u_int16_t vlan_id);
+  void pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_mac,
+                                        u_int8_t *new_mac, Mac *new_host_mac);
+  void pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac,
+                                        const u_int8_t *dst_mac, u_int32_t spa,
+                                        u_int32_t tpa, u_int16_t vlan_id);
+  void pushLoginTrace(const char *user, bool authorized);
   void pushNfqFlushedAlert(int queue_len, int queue_len_pct, int queue_dropped);
 };
 

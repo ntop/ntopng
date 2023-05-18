@@ -103,8 +103,6 @@ function getScaleFactorIndex(type, value) {
 
 function getFormatter(type, absoluteValue, scaleFactorIndex) {
     let typeOptions = types[type];
-    let maxLenValue = 6; // 000.00
-    let maxLenUm = 8; // Mflows/s
     absoluteValue |= typeOptions.absolute_value; 
     let formatter = function(value) {
 	if (value == null) {
@@ -124,7 +122,7 @@ function getFormatter(type, absoluteValue, scaleFactorIndex) {
 	let measures = typeOptions.um;
 	let i = 0;
   if (typeOptions.max_value != null && value > typeOptions.max_value) {
-    value = typeOptions.max_value
+    value = typeOptions.max_value;
   }
 
 	while ((value >= step && i < measures.length && !scaleFactorIndex) || (scaleFactorIndex != null && i < scaleFactorIndex)) {

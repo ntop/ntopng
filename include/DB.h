@@ -41,30 +41,39 @@ class DB {
 
  public:
   DB(NetworkInterface *_iface);
-  virtual ~DB() {};
+  virtual ~DB(){};
 
-  inline void incNumExportedFlows(u_int64_t num = 1)        { exportedFlows += num;     };
-  inline void incNumDroppedFlows(u_int32_t num = 1)         { droppedFlows += num;      };
-  inline void incNumQueueDroppedFlows(u_int32_t num = 1)    { queueDroppedFlows += num; };
+  inline void incNumExportedFlows(u_int64_t num = 1) { exportedFlows += num; };
+  inline void incNumDroppedFlows(u_int32_t num = 1) { droppedFlows += num; };
+  inline void incNumQueueDroppedFlows(u_int32_t num = 1) {
+    queueDroppedFlows += num;
+  };
 
-  inline u_int64_t getNumExportedFlows() const              { return(exportedFlows); }
-  inline u_int32_t getNumDroppedFlows()  const              { return(queueDroppedFlows + droppedFlows); };
+  inline u_int64_t getNumExportedFlows() const { return (exportedFlows); }
+  inline u_int32_t getNumDroppedFlows() const {
+    return (queueDroppedFlows + droppedFlows);
+  };
   void updateStats(const struct timeval *tv);
   void checkPointCounters(bool drops_only);
 
   /* Pure Virtual Functions of a DB flow exporter */
   virtual bool dumpFlow(time_t when, Flow *f, char *json) = 0;
-  virtual bool startQueryLoop() { return(false); }
+  virtual bool startQueryLoop() { return (false); }
 
-  virtual int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created) { return(-1); }
-  
-  inline void startDBLoop()                                 { if(startQueryLoop()) running = true; };
-  inline int isRunning()                                    { return(running); };
-  virtual bool isDbCreated()                                { return(true); };
+  virtual int exec_sql_query(lua_State *vm, char *sql, bool limitRows,
+                             bool wait_for_db_created) {
+    return (-1);
+  }
+
+  inline void startDBLoop() {
+    if (startQueryLoop()) running = true;
+  };
+  inline int isRunning() { return (running); };
+  virtual bool isDbCreated() { return (true); };
   virtual void shutdown();
-  virtual void flush() {};
-  virtual void lua(lua_State* vm, bool since_last_checkpoint) const;
-  virtual int select_database(char *dbname)                 { return(-1); }
+  virtual void flush(){};
+  virtual void lua(lua_State *vm, bool since_last_checkpoint) const;
+  virtual int select_database(char *dbname) { return (-1); }
   virtual void checkIdle(time_t when) { ; }
 };
 

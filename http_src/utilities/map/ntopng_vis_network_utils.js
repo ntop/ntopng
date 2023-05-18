@@ -26,7 +26,6 @@ const defaultOptions = {
       },
   },
   interaction: {
-      tooltipDelay: 150,
       hideEdgesOnDrag: true,
       hideEdgesOnZoom: true,
       hover: true,

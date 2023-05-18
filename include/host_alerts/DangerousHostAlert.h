@@ -22,24 +22,25 @@
 #ifndef _DANGEROUS_HOST_ALERT_H_
 #define _DANGEROUS_HOST_ALERT_H_
 
-
 #include "ntop_includes.h"
-
 
 class DangerousHostAlert : public HostAlert {
  private:
   u_int64_t score, consecutive_high_score;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
-  
- public:
-  static HostAlertType getClassType() { return { host_alert_dangerous_host, alert_category_security }; }
 
-  DangerousHostAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _score, u_int8_t _consecutive_high_score);
-  ~DangerousHostAlert() {};
-  
+ public:
+  static HostAlertType getClassType() {
+    return {host_alert_dangerous_host, alert_category_security};
+  }
+
+  DangerousHostAlert(HostCheck* c, Host* f, risk_percentage cli_pctg,
+                     u_int64_t _score, u_int8_t _consecutive_high_score);
+  ~DangerousHostAlert(){};
+
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore()     const { return SCORE_LEVEL_ERROR; };
+  u_int8_t getAlertScore() const { return SCORE_LEVEL_ERROR; };
 };
 
 #endif /* _DANGEROUS_HOST_ALERT_H_ */

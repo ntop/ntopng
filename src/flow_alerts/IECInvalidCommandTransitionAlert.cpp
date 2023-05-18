@@ -21,18 +21,22 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* IECInvalidCommandTransitionAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow *f = getFlow();
+ndpi_serializer* IECInvalidCommandTransitionAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow* f = getFlow();
 
   if (serializer) {
     ndpi_serialize_string_uint32(serializer, "timestamp", packet_epoch);
     ndpi_serialize_string_uint32(serializer, "flow_key", f->key());
-    ndpi_serialize_string_uint32(serializer, "flow_hash_entry_id", f->get_hash_entry_id());
-    ndpi_serialize_string_uint32(serializer, "transitions_m_to_c", transitions_m_to_c);
-    ndpi_serialize_string_uint32(serializer, "transitions_c_to_m", transitions_c_to_m);
-    ndpi_serialize_string_uint32(serializer, "transitions_c_to_c", transitions_c_to_c);
+    ndpi_serialize_string_uint32(serializer, "flow_hash_entry_id",
+                                 f->get_hash_entry_id());
+    ndpi_serialize_string_uint32(serializer, "transitions_m_to_c",
+                                 transitions_m_to_c);
+    ndpi_serialize_string_uint32(serializer, "transitions_c_to_m",
+                                 transitions_c_to_m);
+    ndpi_serialize_string_uint32(serializer, "transitions_c_to_c",
+                                 transitions_c_to_c);
   }
 
   return serializer;
 }
-

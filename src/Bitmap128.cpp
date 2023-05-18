@@ -23,9 +23,7 @@
 
 /* ****************************************** */
 
-void Bitmap128::reset() {
-  memset(bitmap, 0, sizeof(bitmap));
-}
+void Bitmap128::reset() { memset(bitmap, 0, sizeof(bitmap)); }
 
 /* ****************************************** */
 
@@ -44,30 +42,30 @@ void Bitmap128::setBits(char *list) {
 /* ****************************************** */
 
 void Bitmap128::setBit(u_int8_t id) {
-  if(id < 64)
+  if (id < 64)
     bitmap[0] = Utils::bitmapSet(bitmap[0], id);
-  else if(id < numBits())
-    bitmap[1] = Utils::bitmapSet(bitmap[1], id-64);
+  else if (id < numBits())
+    bitmap[1] = Utils::bitmapSet(bitmap[1], id - 64);
 }
 
 /* ****************************************** */
 
 void Bitmap128::clearBit(u_int8_t id) {
-  if(id < 64)
+  if (id < 64)
     bitmap[0] = Utils::bitmapClear(bitmap[0], id);
-  else if(id < numBits())
-    bitmap[1] = Utils::bitmapClear(bitmap[1], id-64);
+  else if (id < numBits())
+    bitmap[1] = Utils::bitmapClear(bitmap[1], id - 64);
 }
 
 /* ****************************************** */
 
 bool Bitmap128::isSetBit(u_int8_t id) const {
-  if(id < 64)
-    return(Utils::bitmapIsSet(bitmap[0], id));
-  else if(id < numBits())
-    return(Utils::bitmapIsSet(bitmap[1], id-64));
+  if (id < 64)
+    return (Utils::bitmapIsSet(bitmap[0], id));
+  else if (id < numBits())
+    return (Utils::bitmapIsSet(bitmap[1], id - 64));
   else
-    return(0);
+    return (0);
 }
 
 /* ****************************************** */
@@ -85,18 +83,19 @@ void Bitmap128::set(const Bitmap128 *b) {
 /* ****************************************** */
 
 bool Bitmap128::equal(const Bitmap128 *b) const {
-  return((memcmp(bitmap, b->bitmap, sizeof(bitmap)) == 0) ? true : false);
+  return ((memcmp(bitmap, b->bitmap, sizeof(bitmap)) == 0) ? true : false);
 }
 
 /* ****************************************** */
 
-void Bitmap128::lua(lua_State* vm, const char *label) const {
+void Bitmap128::lua(lua_State *vm, const char *label) const {
   lua_newtable(vm);
 
-  for(u_int i=0; i<numBits(); i++) {
-    if(isSetBit(i)) {
-      lua_pushboolean(vm, true); /* The boolean indicating this risk is set            */
-      lua_pushinteger(vm, i);    /* The integer risk id, used as key of this lua table */
+  for (u_int i = 0; i < numBits(); i++) {
+    if (isSetBit(i)) {
+      lua_pushboolean(vm, true); /* The boolean indicating this risk is set */
+      lua_pushinteger(
+          vm, i); /* The integer risk id, used as key of this lua table */
       lua_insert(vm, -2);
       lua_settable(vm, -3);
     }
@@ -109,23 +108,23 @@ void Bitmap128::lua(lua_State* vm, const char *label) const {
 
 /* ****************************************** */
 
-const char * Bitmap128::toHexString(char *buf, ssize_t buf_len) const {
+const char *Bitmap128::toHexString(char *buf, ssize_t buf_len) const {
   u_int shifts = 0;
 
-  snprintf(buf, buf_len, "%016lX%016lX",
-	   (unsigned long)bitmap[1], (unsigned long)bitmap[0]);
+  snprintf(buf, buf_len, "%016lX%016lX", (unsigned long)bitmap[1],
+           (unsigned long)bitmap[0]);
 
-  /* Remove heading zeroes but keep HEX byte-aligned (SQLite doesn't like heading zeroes when inserting blob literals) */
-  for(u_int pos = 0; pos < strlen(buf) - 2; pos += 2) {
+  /* Remove heading zeroes but keep HEX byte-aligned (SQLite doesn't like
+   * heading zeroes when inserting blob literals) */
+  for (u_int pos = 0; pos < strlen(buf) - 2; pos += 2) {
     uint8_t cur_byte = 0;
-    
+
     sscanf(&buf[pos], "%02hhX", &cur_byte);
-    if(cur_byte > 0) break;
+    if (cur_byte > 0) break;
     shifts += 2;
   }
 
-  if(shifts > 0)
-    memmove(buf, &buf[shifts], buf_len - shifts);
+  if (shifts > 0) memmove(buf, &buf[shifts], buf_len - shifts);
 
   return buf;
 }

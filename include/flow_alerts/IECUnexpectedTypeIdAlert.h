@@ -34,16 +34,21 @@ class IECUnexpectedTypeIdAlert : public FlowAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { flow_alert_iec_unexpected_type_id, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_NOTICE; };
+  static FlowAlertType getClassType() {
+    return {flow_alert_iec_unexpected_type_id, alert_category_security};
+  }
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
-  IECUnexpectedTypeIdAlert(FlowCheck *c, Flow *f, u_int8_t _type_id, u_int16_t _asdu, u_int8_t _cause_tx, u_int8_t _negative) : FlowAlert(c, f) { 
+  IECUnexpectedTypeIdAlert(FlowCheck* c, Flow* f, u_int8_t _type_id,
+                           u_int16_t _asdu, u_int8_t _cause_tx,
+                           u_int8_t _negative)
+      : FlowAlert(c, f) {
     type_id = _type_id;
     asdu = _asdu;
     cause_tx = _cause_tx;
-    negative  = _negative;
+    negative = _negative;
   };
-  ~IECUnexpectedTypeIdAlert() { };
+  ~IECUnexpectedTypeIdAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
 };

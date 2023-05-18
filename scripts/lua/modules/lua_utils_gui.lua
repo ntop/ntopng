@@ -1312,81 +1312,95 @@ end
 -- @brief Given a table of values, if available, it's going to format the values with the standard
 --        info and then return the same table formatted
 function format_dns_query_info(dns_info)
-  if dns_info.last_query_type then
-    dns_info.last_query_type = string.format('<span class="badge bg-info">%s</span>', dns_utils.getQueryType(dns_info.last_query_type))
-  end
+   if dns_info.last_query_type then
+      dns_info.last_query_type = string.format('<span class="badge bg-info">%s</span>', dns_utils.getQueryType(dns_info.last_query_type))
+   else
+      dns_info["last_query_type"] = i18n('empty_info')
+   end
 
-  if dns_info.last_return_code then
-    local badge = get_badge(dns_info.last_return_code)
-    dns_info.last_return_code = string.format('<span class="badge bg-%s">%s</span>', badge, dns_utils.getResponseStatusCode(dns_info.last_return_code))
-  end
+   if dns_info.last_return_code then
+      local badge = get_badge(dns_info.last_return_code)
+      dns_info.last_return_code = string.format('<span class="badge bg-%s">%s</span>', badge, dns_utils.getResponseStatusCode(dns_info.last_return_code))
+   else
+      dns_info["last_return_code"] = i18n('empty_info')
+   end
 
-  if dns_info.last_query then
-    local url = dns_info["last_query"]
-    url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
-    if not string.find(url, '*') then
-      dns_info.last_query = i18n("external_link_url", { proto = 'https', url = url, url_name = dns_info["last_query"] })
-    end
-  end
+   if dns_info.last_query then
+      local url = dns_info["last_query"]
+      url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
+      if not string.find(url, '*') then
+         dns_info.last_query = i18n("external_link_url", { proto = 'https', url = url, url_name = dns_info["last_query"] })
+      end
+   else
+      dns_info["last_query"] = i18n('empty_info')
+   end
 
-  return dns_info
+   return dns_info
 end
 
 -- ##############################################
 
 function format_tls_info(tls_info)
-  if tls_info.notBefore then
-    tls_info.notBefore = formatEpoch(tls_info.notBefore)
-  end
+   if tls_info.notBefore then
+      tls_info.notBefore = formatEpoch(tls_info.notBefore)
+   end
 
-  if tls_info.notAfter then
-    tls_info.notAfter = formatEpoch(tls_info.notAfter)
-  end
+   if tls_info.notAfter then
+      tls_info.notAfter = formatEpoch(tls_info.notAfter)
+   end
 
-  if tls_info.notBefore and tls_info.notAfter then
-    tls_info["tls_certificate_validity"] = string.format("%s - %s", tls_info.notBefore, tls_info.notAfter)
-    tls_info.notBefore = nil
-    tls_info.notAfter = nil
-  end
+   if tls_info.notBefore and tls_info.notAfter then
+      tls_info["tls_certificate_validity"] = string.format("%s - %s", tls_info.notBefore, tls_info.notAfter)
+      tls_info.notBefore = nil
+      tls_info.notAfter = nil
+   else
+      tls_info["tls_certificate_validity"] = i18n('empty_info')
+   end
 
-  if tls_info.tls_version then
-    if tls_info.tls_version > 0 then
+   if (tls_info.tls_version) and (tls_info.tls_version > 0) then
       tls_info["tls_version"] = ntop.getTLSVersionName(tls_info.tls_version)
-    else
-      tls_info["tls_version"] = nil
-    end
-  end
+   else
+      tls_info["tls_version"] = i18n('empty_info')
+   end
 
-  if tls_info.client_requested_server_name then
-    local url = tls_info["client_requested_server_name"]
-    url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
-    if not string.find(url, '*') then
-      tls_info["client_requested_server_name"] = i18n("external_link_url", { proto = 'https', url = url, url_name = url})
-    end
-  end
+   if tls_info.client_requested_server_name then
+      local url = tls_info["client_requested_server_name"]
+      url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
+      if not string.find(url, '*') then
+         tls_info["client_requested_server_name"] = i18n("external_link_url", { proto = 'https', url = url, url_name = url})
+      end
+   else
+      tls_info["client_requested_server_name"] = i18n('empty_info')
+   end
 
-  if tls_info["ja3.server_cipher"] then
-    tls_info["ja3.server_cipher"] = nil
-  end
+   if tls_info["ja3.server_cipher"] then
+      tls_info["ja3.server_cipher"] = nil
+   end
 
-  if tls_info["ja3.server_unsafe_cipher"] then
-    local badge = get_badge(tls_info["ja3.server_unsafe_cipher"] == "safe")
-    tls_info["ja3.server_unsafe_cipher"] = string.format('<span class="badge bg-%s">%s</span>', badge, tls_info["ja3.server_unsafe_cipher"])
-  end
+   if tls_info["ja3.server_unsafe_cipher"] then
+      local badge = get_badge(tls_info["ja3.server_unsafe_cipher"] == "safe")
+      tls_info["ja3.server_unsafe_cipher"] = string.format('<span class="badge bg-%s">%s</span>', badge, tls_info["ja3.server_unsafe_cipher"])
+   end
 
-  if tls_info["ja3.server_hash"] then
-    tls_info["ja3.server_hash"] = i18n("copy_button", { full_name = tls_info["ja3.server_hash"], name = tls_info["ja3.server_hash"] })
-  end
+   if tls_info["ja3.server_hash"] then
+      tls_info["ja3.server_hash"] = i18n("copy_button", { full_name = tls_info["ja3.server_hash"], name = tls_info["ja3.server_hash"] })
+   else
+      tls_info["ja3.server_hash"] = i18n('empty_info')
+   end
 
-  if tls_info["ja3.client_hash"] then
-    tls_info["ja3.client_hash"] = i18n("copy_button", { full_name = tls_info["ja3.client_hash"], name = tls_info["ja3.client_hash"] })
-  end
+   if tls_info["ja3.client_hash"] then
+      tls_info["ja3.client_hash"] = i18n("copy_button", { full_name = tls_info["ja3.client_hash"], name = tls_info["ja3.client_hash"] })
+   else
+      tls_info["ja3.client_hash"] = i18n('empty_info')
+   end
 
-  if tls_info["server_names"] then
-    tls_info["server_names"] = i18n("copy_button", { full_name = tls_info["server_names"], name = shortenString(tls_info["server_names"],128) })
-  end
+   if tls_info["server_names"] then
+      tls_info["server_names"] = i18n("copy_button", { full_name = tls_info["server_names"], name = shortenString(tls_info["server_names"],128) })
+   else
+      tls_info["server_names"] = i18n('empty_info')
+   end
 
-  return tls_info
+   return tls_info
 end
 
 -- ##############################################
@@ -1408,35 +1422,47 @@ end
 -- ##############################################
 
 function format_http_info(http_info)
-  if http_info["last_return_code"] then
-    if http_info["last_return_code"] ~= 0 then
-       local badge = get_badge(http_info.last_return_code < 400)
-       
-      http_info["last_return_code"] = string.format('<span class="badge bg-%s">%s</span>', badge, http_utils.getResponseStatusCode(http_info["last_return_code"]))        
-    else
-      http_info["last_return_code"] = nil
-    end
-  end
+   if http_info["last_return_code"] then
+      if http_info["last_return_code"] ~= 0 then
+         local badge = get_badge(http_info.last_return_code < 400)
+         
+         http_info["last_return_code"] = string.format('<span class="badge bg-%s">%s</span>', badge, http_utils.getResponseStatusCode(http_info["last_return_code"]))        
+      else
+         http_info["last_return_code"] = i18n('empty_info')
+      end
+   else
+      http_info["last_return_code"] = i18n('empty_info')
+   end
 
-  if http_info["last_method"] then
-    http_info["last_method"] = string.format('<span class="badge bg-info">%s</span>', http_info["last_method"])
-  end
+   if http_info["last_method"] then
+      http_info["last_method"] = string.format('<span class="badge bg-info">%s</span>', http_info["last_method"])
+   else
+      http_info["last_method"] = i18n('empty_info')
+   end
 
-  if http_info["last_url"] then
-    local url = http_info["last_url"]
+   if http_info["last_url"] then
+      local url = http_info["last_url"]
 
-    if string.find(http_info["last_url"], '^/') then
-      url = (http_info["server_name"] or "") .. http_info["last_url"]
-    end
-    url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
-    if not string.find(url, '*') then
-      http_info["last_url"] = i18n("external_link_url", { proto = 'http', url = url, url_name = url})
-    end
-  end
+      if string.find(http_info["last_url"], '^/') then
+         url = (http_info["server_name"] or "") .. http_info["last_url"]
+      end
+      url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
+      if not string.find(url, '*') then
+         http_info["last_url"] = i18n("external_link_url", { proto = 'http', url = url, url_name = url})
+      end
+   else
+      http_info["last_url"] = i18n('empty_info')
+   end
 
-  if http_info["server_name"] then
-    http_info["server_name"] = i18n("copy_button", { full_name = http_info["server_name"], name = shortenString(http_info["server_name"], 32)})
-  end
+   if http_info["server_name"] then
+      http_info["server_name"] = i18n("copy_button", { full_name = http_info["server_name"], name = shortenString(http_info["server_name"], 32)})
+   else
+      http_info["server_name"] = i18n('empty_info')
+   end
+
+   if not http_info["last_user_agent"] then
+      http_info["last_user_agent"] = i18n('empty_info')
+   end
 
   return http_info
 end
@@ -1524,14 +1550,15 @@ end
 --         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format),
 --                  false otherwise
 -- @return A string containing the info field formatted
-function format_external_link(url, name, no_html, proto)
+function format_external_link(url, name, no_html, proto, i18n_key)
    local external_field = url
    proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
 
    if no_html == false then
-     if not isEmptyString(url) and not string.find(url, '*') then
-        url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
-            external_field = i18n("external_link_url", { proto = proto, url = url, url_name = name})
+      if not isEmptyString(url) and not string.find(url, '*') then
+	 if(i18n_key == nil) then i18n_key = "external_link_url" end
+	 url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
+	external_field = i18n(i18n_key, { proto = proto, url = url, url_name = name})
      end
    end
 
@@ -1542,9 +1569,8 @@ end
 
 function format_confidence_badge(confidence, shorten_string)
   local badge = ""
-
-  if confidence == 0 then
-    badge = "<span class=\"badge bg-warning\" title=\"" .. get_confidence(confidence) .. "\">" .. get_confidence(confidence, shorten_string) .. "</span>"
+  if confidence == 0 or confidence == -1 then
+    badge = "<span class=\"badge bg-warning\" title=\"" .. get_confidence(confidence) .. "\">"..get_confidence(confidence, shorten_string) .. "</span>"
   elseif confidence then
     badge = "<span class=\"badge bg-success\" title=\"" .. get_confidence(confidence) .. "\">" .. get_confidence(confidence, shorten_string) .. "</span>"
   end

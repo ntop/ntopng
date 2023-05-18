@@ -29,10 +29,10 @@ class Host;
 class HostChecksExecutor { /* One instance per ntopng Interface */
  private:
   NetworkInterface *iface;
-  std::list<HostCheck*> *periodic_host_cb;
+  std::list<HostCheck *> *periodic_host_cb;
   HostCheck *host_cb_arr[NUM_DEFINED_HOST_CHECKS];
 
-  void loadHostChecksAlerts(std::list<HostCheck*> *cb_list);
+  void loadHostChecksAlerts(std::list<HostCheck *> *cb_list);
   void loadHostChecks(HostChecksLoader *fcl);
 
   void releaseAllDisabledAlerts(Host *h);

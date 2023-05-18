@@ -98,6 +98,9 @@ export default {
 	    this.chart.drawChart(this.$refs["chart"], chart_options);
 	},
 	update_chart: async function(url_request) {
+	    if (url_request == null) {
+		url_request = this.get_url_request();
+	    }
 	    let chart_options = await this.get_chart_options(url_request);
 	    this.chart.updateChart(chart_options);
 	},

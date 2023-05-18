@@ -21,16 +21,17 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* BroadcastNonUDPTrafficAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow *f = getFlow();
+ndpi_serializer* BroadcastNonUDPTrafficAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow* f = getFlow();
   char buf[64];
 
-  if(serializer == NULL)
-    return NULL;
+  if (serializer == NULL) return NULL;
 
-  if(f->get_cli_host())
-    ndpi_serialize_string_string(serializer, "cli_mac", Utils::formatMac(f->get_cli_host()->get_mac(), buf, sizeof(buf)));
+  if (f->get_cli_host())
+    ndpi_serialize_string_string(
+        serializer, "cli_mac",
+        Utils::formatMac(f->get_cli_host()->get_mac(), buf, sizeof(buf)));
 
   return serializer;
 }
-

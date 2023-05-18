@@ -23,32 +23,36 @@
 
 /* **************************************************** */
 
-SQLiteAlertStore::SQLiteAlertStore(int interface_id, const char *filename) : SQLiteStoreManager(interface_id) {
-  char filePath[MAX_PATH+256];
+SQLiteAlertStore::SQLiteAlertStore(int interface_id, const char *filename)
+    : SQLiteStoreManager(interface_id) {
+  char filePath[MAX_PATH + 256];
 
   /* Create the directories needed to keep the alerts database */
-  snprintf(filePath, sizeof(filePath), "%s/%d/alerts/", ntop->get_working_dir(), ifid);
+  snprintf(filePath, sizeof(filePath), "%s/%d/alerts/", ntop->get_working_dir(),
+           ifid);
   ntop->fixPath(filePath);
   Utils::mkdir_tree(filePath);
 
   /* Prepare the alert database path */
-  snprintf(filePath, sizeof(filePath), "%s/%d/alerts/%s", ntop->get_working_dir(), ifid, filename);
+  snprintf(filePath, sizeof(filePath), "%s/%d/alerts/%s",
+           ntop->get_working_dir(), ifid, filename);
   ntop->fixPath(filePath);
 
   /* Initialize the alert database */
   store_initialized = init(filePath) == 0 ? true : false;
-  if(!store_initialized)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to initialize store %s", filePath);
+  if (!store_initialized)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to initialize store %s",
+                                 filePath);
 
   store_opened = openStore() == 0 ? true : false;
-  if(!store_opened)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to open store %s", filePath);
+  if (!store_opened)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to open store %s",
+                                 filePath);
 }
 
 /* **************************************************** */
 
-SQLiteAlertStore::~SQLiteAlertStore() {
-  /* Nothing to do so far */
+SQLiteAlertStore::~SQLiteAlertStore() { /* Nothing to do so far */
 }
 
 /* **************************************************** */
@@ -58,34 +62,40 @@ int SQLiteAlertStore::execFile(const char *path) {
   int rc;
 
   /* Read the database schema file */
-  snprintf(schema_path, sizeof(schema_path), "%s/misc/%s", ntop->get_docs_dir(), path);
+  snprintf(schema_path, sizeof(schema_path), "%s/misc/%s", ntop->get_docs_dir(),
+           path);
   ntop->fixPath(schema_path);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Processing %s", schema_path);
-  
+
   std::ifstream schema_file(schema_path);
-  std::string schema_contents((std::istreambuf_iterator<char>(schema_file)), std::istreambuf_iterator<char>());
+  std::string schema_contents((std::istreambuf_iterator<char>(schema_file)),
+                              std::istreambuf_iterator<char>());
 
   /* Make sure the database is accessible */
-  rc = exec_query((char*)"SELECT 1", NULL, NULL);
+  rc = exec_query((char *)"SELECT 1", NULL, NULL);
 
-  if(rc) ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot perform SELECT on the database [%s]", sqlite3_errmsg(db));
+  if (rc)
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                 "Cannot perform SELECT on the database [%s]",
+                                 sqlite3_errmsg(db));
 
   /* Initialize the database with its schema that has just been read */
   rc = exec_query(schema_contents.c_str(), NULL, NULL);
 
-  if(rc) {
+  if (rc) {
     const char *msg = sqlite3_errmsg(db);
-    
-    if(strstr(msg, "duplicate column name"))
+
+    if (strstr(msg, "duplicate column name"))
       rc = 0; /* Silence ALTER TABLE errors */
     else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create database schema [%s]", msg);
+      ntop->getTrace()->traceEvent(
+          TRACE_ERROR, "Unable to create database schema [%s]", msg);
   }
 
-  if(schema_file.is_open()) schema_file.close();
-    
-  return(rc);
+  if (schema_file.is_open()) schema_file.close();
+
+  return (rc);
 }
 
 /* **************************************************** */
@@ -93,14 +103,13 @@ int SQLiteAlertStore::execFile(const char *path) {
 int SQLiteAlertStore::openStore() {
   int rc;
 
-  if(!store_initialized)
-    return 1;
+  if (!store_initialized) return 1;
 
   m.lock(__FILE__, __LINE__);
 
   rc = execFile(ALERTS_STORE_SCHEMA_FILE_NAME);
   rc |= execFile(ALERTS_VIEW_STORE_SCHEMA_FILE_NAME);
-    
+
   m.unlock(__FILE__, __LINE__);
 
   return rc;
@@ -113,14 +122,15 @@ struct alertsRetriever {
   u_int32_t current_offset;
 };
 
-static int getAlertsCallback(void *data, int argc, char **argv, char **azColName){
-  alertsRetriever *ar = (alertsRetriever*)data;
+static int getAlertsCallback(void *data, int argc, char **argv,
+                             char **azColName) {
+  alertsRetriever *ar = (alertsRetriever *)data;
   lua_State *vm = ar->vm;
 
   lua_newtable(vm);
 
-  for(int i = 0; i < argc; i++)
-    lua_push_str_table_entry(vm, azColName[i], argv[i]);  
+  for (int i = 0; i < argc; i++)
+    lua_push_str_table_entry(vm, azColName[i], argv[i]);
 
   lua_pushinteger(vm, ++ar->current_offset);
   lua_insert(vm, -2);
@@ -131,10 +141,10 @@ static int getAlertsCallback(void *data, int argc, char **argv, char **azColName
 
 /* **************************************************** */
 
-bool SQLiteAlertStore::query(lua_State *vm, const char * query) {
+bool SQLiteAlertStore::query(lua_State *vm, const char *query) {
   int rc = SQLITE_ERROR;
 
-  if(!ntop->getPrefs()->are_alerts_disabled()) {
+  if (!ntop->getPrefs()->are_alerts_disabled()) {
     alertsRetriever ar;
     char *zErrMsg = NULL;
 
@@ -143,12 +153,13 @@ bool SQLiteAlertStore::query(lua_State *vm, const char * query) {
     lua_newtable(vm);
 
     ar.vm = vm, ar.current_offset = 0;
-    rc = sqlite3_exec(db, query, getAlertsCallback, (void*)&ar, &zErrMsg);
+    rc = sqlite3_exec(db, query, getAlertsCallback, (void *)&ar, &zErrMsg);
 
     iface->incNumAlertsQueries();
 
-    if(rc != SQLITE_OK){
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s\n%s", zErrMsg, query);
+    if (rc != SQLITE_OK) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s\n%s", zErrMsg,
+                                   query);
       sqlite3_free(zErrMsg);
     }
 

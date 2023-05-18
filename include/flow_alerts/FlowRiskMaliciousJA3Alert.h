@@ -27,15 +27,19 @@
 class FlowRiskMaliciousJA3Alert : public FlowRiskAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_MALICIOUS_JA3; }
-  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
-  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
+  static FlowAlertType getClassType() {
+    return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk());
+  }
+  static u_int8_t getDefaultScore() {
+    return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
+  }
 
- FlowRiskMaliciousJA3Alert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
-  ~FlowRiskMaliciousJA3Alert() { };
+  FlowRiskMaliciousJA3Alert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
+  ~FlowRiskMaliciousJA3Alert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
-  u_int8_t       getAlertScore() const { return getDefaultScore(); }
+  ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
+  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_MALICIOUS_JA3_ALERT_H_ */

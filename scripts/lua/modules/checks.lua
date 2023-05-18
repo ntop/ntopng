@@ -182,7 +182,7 @@ local available_subdirs = {
 	       end,
 	    },
 	 },
-      },     
+      },
    }, {
       id = checks.FLOW_SUBDIR_NAME,
       label = "flows",
@@ -806,7 +806,7 @@ local function get_loadable_checks(script_type, subdir)
             local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
             local full_path = os_utils.fixPath(checks_dir .. "/" .. fname)
             local check_info
-            
+
             -- Getting check info, like edition and key
             if subdir == "host" then
                check_info = ntop.getHostCheckInfo(mod_fname)
@@ -815,7 +815,7 @@ local function get_loadable_checks(script_type, subdir)
             else
                check_info = get_check_info(checks_dir, fname)
             end
-            
+
             -- Add the script to the loadable checks
             loadable_checks[mod_fname] = {full_path = full_path, script = check_info}
 	      end
@@ -884,7 +884,7 @@ function checks.load(ifid, script_type, subdir, options)
       local script = loadable_check.script
 
       -- io.write("Loading "..full_path.."\n")
-     
+
       if(rv.modules[mod_fname]) then
 	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", mod_fname))
 	 goto next_module
@@ -1047,6 +1047,7 @@ end
 
 local function saveConfigset(configset)
    local v = json.encode(configset)
+
    ntop.setCache(CONFIGSET_KEY, v)
 
    -- Reload flow and host callbacks executed in C++
@@ -1098,7 +1099,7 @@ local function filterIsEqual(applied_config, new_filter)
 
    if applied_config == nil then
       applied_config = {}
-      
+
       return ctr
    end
 
@@ -1108,7 +1109,7 @@ local function filterIsEqual(applied_config, new_filter)
       end
 
       ctr = ctr + 1
-   end 
+   end
 
    return ctr
 end
@@ -1197,12 +1198,12 @@ function checks.updateScriptConfig(script_key, subdir, new_config)
 	 end
       end
    end
-   
+
    if table.len(applied_config) > 0 then
       -- Set the new configuration
       config[subdir][script_key] = applied_config
    end
-      
+
    return saveConfigset(configset)
 end
 
@@ -1223,7 +1224,7 @@ local function toggleScriptConfigset(configset, script_key, subdir, enable)
    end
 
    local config = checks.getScriptConfig(configset, script, subdir)
-   
+
    if config then
       for hook, hook_config in pairs(config) do
 	 -- Remember the previous toggle
@@ -1244,7 +1245,7 @@ local function toggleScriptConfigset(configset, script_key, subdir, enable)
    if not configset["config"][subdir][script_key] then
       configset["config"][subdir][script_key] = {}
       configset["config"][subdir][script_key] = config
-   end				    
+   end
 
    return true
 end
@@ -1398,14 +1399,18 @@ function checks.initDefaultConfig()
 	 end
       end
    end
-   
+
    -- This is the new configset with all defaults
    local configset = {
       config = default_conf,
       filters = default_filters,
    }
 
-   saveConfigset(configset)  
+   if(ntop.getCache(CONFIGSET_KEY) == "") then
+      -- save it only if empty to avoid overwriting
+      -- configurations if not necessary
+      saveConfigset(configset)
+   end
 end
 
 -- ##############################################
@@ -1512,7 +1517,7 @@ function checks.getTargetHookConfig(target_config, script, hook)
 
    local conf = script_conf[hook] or default_config
    local default_values = script.default_value or {}
-	
+
    -- Each new default value will be added to the conf.script_conf table
    -- in this way if future values need to be added here there won't be problems
    for key, value in pairs(default_values) do
@@ -1529,7 +1534,7 @@ function checks.getTargetHookConfig(target_config, script, hook)
       conf.script_conf["filter"] = {}
       default_filter_suppression = default_filter_table.default_filter or {}
    end
-   
+
 
    return conf
 end
@@ -1573,7 +1578,7 @@ end
 -- @brief Returns the list of the default filters of a specific alert
 function checks.getFilterPreset(alert, alert_info)
    local alert_generation = alert_info["alert_generation"]
-   
+
    if not alert_generation then
       return ''
    end
@@ -1684,10 +1689,10 @@ function checks.excludeScriptFilters(alert, alert_json, script_key, subdir)
    if not conf then
       return false
    end
-   
+
    local applied_filter_config = {}
    local subdir_id = getSubdirId(subdir)
-   
+
    -- Checking if the script has the field "filter.current_filters"
    if conf["filter"] then
       applied_filter_config = conf["filter"]["current_filters"]
@@ -1696,7 +1701,7 @@ function checks.excludeScriptFilters(alert, alert_json, script_key, subdir)
    if not applied_filter_config then
       return false
    end
-   
+
    -- Cycling through the filters
    for _, values in pairs(applied_filter_config) do
       local done = true
@@ -1712,8 +1717,8 @@ function checks.excludeScriptFilters(alert, alert_json, script_key, subdir)
 	 end
 	 ::continue::
       end
-      
-      -- if 
+
+      -- if
       if done then
 	 return true
       end
@@ -1735,7 +1740,7 @@ function checks.getDefaultFilters(ifid, subdir, script_key)
    filters["current_filters"] = {}
 
    if script["filter"] and script["filter"]["default_filters"] then
-      filters["current_filters"] = script["filter"]["default_filters"] 
+      filters["current_filters"] = script["filter"]["default_filters"]
    end
 
    return filters
@@ -1947,7 +1952,7 @@ local function snmp_device_run_checks(cached_device, checks_var)
    for mod_key, hook_fn in pairs(checks_var.available_modules.hooks["snmpDeviceInterface"] or {}) do
       local script = all_modules[mod_key]
       local conf = checks.getTargetHookConfig(device_conf, script)
-      
+
       -- For each interface of the current device...
       for snmp_interface_index, snmp_interface in pairs(cached_device.interfaces) do
 	 if(script.skip_virtual_interfaces
@@ -2032,7 +2037,7 @@ local function setupSystemChecks(str_granularity, checks_var, do_trace)
 
    interface.select(getSystemInterfaceId())
    checks_var.ifid = getSystemInterfaceId()
-   
+
    checks_var.system_ts_enabled = areSystemTimeseriesEnabled()
 
    -- Load the threshold checking functions
@@ -2052,9 +2057,9 @@ local function setupSNMPChecks(str_granularity, checks_var, do_trace)
    if not ntop.isEnterprise() and not ntop.isnEdgeEnterprise() then
       return false
    end
-   
+
    if do_trace then print("alert.lua:setup("..str_granularity..") called\n") end
-   
+
    checks_var.snmp_device_entity = alert_consts.alert_entities.snmp_device.entity_id
 
    interface.select(getSystemInterfaceId())
@@ -2159,7 +2164,7 @@ end
 
 local function runSystemChecks(granularity, checks_var, do_trace)
    if do_trace then print("system.lua:runScripts("..granularity..") called\n") end
-   
+
    if table.empty(checks_var.available_modules.hooks[granularity]) then
       if(do_trace) then print("system:runScripts("..granularity.."): no modules, skipping\n") end
       return
@@ -2171,11 +2176,11 @@ local function runSystemChecks(granularity, checks_var, do_trace)
 
    local info = interface.getStats()
    local when = os.time()
-  
+
    for mod_key, hook_fn in pairs(checks_var.available_modules.hooks[granularity]) do
       local check = checks_var.available_modules.modules[mod_key]
       local conf = checks.getTargetHookConfig(checks_var.system_config, check, granularity)
-      
+
       if(conf.enabled) then
          alerts_api.invokeScriptHook(
       check, checks_var.configset, hook_fn,
@@ -2220,11 +2225,11 @@ local function runSNMPChecks(granularity, checks_var, do_trace)
 end
 
 -- #################################################################
--- @brief Setup, run and shutdown interface, network, system and 
+-- @brief Setup, run and shutdown interface, network, system and
 --        SNMP checks
 --        The setup, loads the alerts, needs to be done once per VM
 --        The run, cycle all the alerts and execute them
---        The teardown, unloads the alerts from the vm   
+--        The teardown, unloads the alerts from the vm
 -- #################################################################
 
 -- #################################################################

@@ -26,16 +26,25 @@
 
 class FlowRiskPeriodicFlow : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskPeriodicFlowAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskPeriodicFlowAlert::getClassType();
+  }
 
  public:
-  FlowRiskPeriodicFlow() {};
-  ~FlowRiskPeriodicFlow() {};
+  FlowRiskPeriodicFlow(){};
+  ~FlowRiskPeriodicFlow(){};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskPeriodicFlowAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskPeriodicFlowAlert(this, f);
+  }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskPeriodicFlowAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskPeriodicFlowAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskPeriodicFlowAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskPeriodicFlowAlert::getClassRisk();
+  }
 };
 
 #endif /* _FLOW_RISK_PERIODIC_FLOW_H_ */

@@ -46,5 +46,4 @@ class RwLock {
   void unlock(const char *filename, int line);
 };
 
-
 #endif /* _RWLOCK_H_ */

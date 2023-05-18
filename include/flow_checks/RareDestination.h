@@ -24,21 +24,22 @@
 
 #include "ntop_includes.h"
 
-
 class RareDestination : public FlowCheck {
  private:
   u_int32_t getDestinationHash(Flow *f);
   
  public:
-  RareDestination() : FlowCheck(ntopng_edition_community,
-				true /* Packet Interfaces only */, true /* Exclude for nEdge */, false /* Only for nEdge */,
-				true /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};
-  virtual ~RareDestination() {};
+  RareDestination()
+      : FlowCheck(ntopng_edition_community, true /* Packet Interfaces only */,
+                  true /* Exclude for nEdge */, false /* Only for nEdge */,
+                  true /* has_protocol_detected */,
+                  false /* has_periodic_update */, false /* has_flow_end */){};
+  virtual ~RareDestination(){};
 
   void protocolDetected(Flow *f);
   FlowAlert *buildAlert(Flow *f);
 
-  std::string getName()        const { return(std::string("rare_destination")); }
+  std::string getName() const { return (std::string("rare_destination")); }
 };
 
 #endif /* _RARE_DESTINATION_H_ */

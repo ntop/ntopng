@@ -22,25 +22,26 @@
 #ifndef _SCAN_DETECTION_ALERT_H_
 #define _SCAN_DETECTION_ALERT_H_
 
-
 #include "ntop_includes.h"
-
 
 class ScanDetectionAlert : public HostAlert {
  private:
   u_int64_t num_incomplete_flows, num_incomplete_flows_threshold;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
-  
- public:
-  static HostAlertType getClassType() { return { host_alert_scan_detected, alert_category_security }; }
 
-  ScanDetectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
-		     u_int32_t _num_incomplete_flows, u_int32_t _num_incomplete_flows_threshold);
-  ~ScanDetectionAlert() {};
-  
+ public:
+  static HostAlertType getClassType() {
+    return {host_alert_scan_detected, alert_category_security};
+  }
+
+  ScanDetectionAlert(HostCheck* c, Host* f, risk_percentage cli_pctg,
+                     u_int32_t _num_incomplete_flows,
+                     u_int32_t _num_incomplete_flows_threshold);
+  ~ScanDetectionAlert(){};
+
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore()     const { return SCORE_LEVEL_ERROR; };
+  u_int8_t getAlertScore() const { return SCORE_LEVEL_ERROR; };
 };
 
 #endif /* _SCAN_DETECTION_ALERT_H_ */

@@ -118,8 +118,8 @@ if((ifid ~= nil) and (isAdministrator())) then
   else
     local by_pool_name = {}
 
-    for _,pool in pairs(host_pools_nedge.getPoolsList()) do
-      if pool.id ~= host_pools_nedge.DEFAULT_POOL_ID then
+    for _, pool in pairs(host_pools_nedge.getPoolsList()) do
+      if tonumber(pool.id) ~= host_pools_nedge.DEFAULT_POOL_ID then
         by_pool_name[pool.name] = pool
       end
     end

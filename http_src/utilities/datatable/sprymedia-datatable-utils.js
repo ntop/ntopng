@@ -32,8 +32,6 @@ const DataTableHandlers = function() {
     }
 }();
     
-let DataTableButtonClickHandlers = {};
-
 window["_DataTableButtonsOnClick"] = function(handlerId, rowId) {
     let onClick = DataTableHandlers.getHandler(handlerId, rowId);
     if (onClick != null) {
@@ -60,9 +58,8 @@ export class DataTableFiltersMenu {
         this.extraAttributes = extraAttributes;
         this.id = id;
         this.url = url;
-        this.urlParams;
         this.removeAllEntry = removeAllEntry;
-        this.callbackFunction = callbackFunction
+        this.callbackFunction = callbackFunction;
       }
 
     get selectedFilter() {
@@ -102,7 +99,7 @@ export class DataTableFiltersMenu {
         let $entry = $(`<li class='dropdown-item pointer'>${filter.label} </li>`);
         
         if(self.url) {
-          $entry = $(`<li class='dropdown-item pointer'><a href=# class='p-1 standard-color'>${filter.label} </li>`)
+          $entry = $(`<li class='dropdown-item pointer'><a href=# class='p-1 standard-color'>${filter.label} </li>`);
 
           if(filter.currently_active == true) {
             // set active filter title and key
@@ -164,8 +161,7 @@ export class DataTableFiltersMenu {
           } else {
             self.urlParams = window.location.search
             const newUrlParams = new URLSearchParams(self.urlParams)
-            newUrlParams.set(self.filterMenuKey, (typeof(filter.id) != undefined) ? filter.id : '')
-            const newUrl = self.url + '?' + newUrlParams.toString()
+            newUrlParams.set(self.filterMenuKey, (typeof(filter.id) != "undefined") ? filter.id : '')
 
             window.history.pushState('', '', window.location.pathname + '?' + newUrlParams.toString())
             location.reload()
@@ -558,7 +554,7 @@ export class DataTableUtils {
                     col.visible(false);
                 }
 
-                const $checkbox = $(`<input class="form-check-input" ${(toggled ? 'checked' : '')} type="checkbox" id="${id}">`)
+                const $checkbox = $(`<input class="form-check-input" ${(toggled ? 'checked' : '')} type="checkbox" id="${id}">`);
                 const $wrapper = $(`
                     <div class="form-check form-switch">
                         <label class="form-check-label" for="${id}">
@@ -660,7 +656,6 @@ export class DataTableRenders {
 
     static formatMessage(obj, type, row) {
         if (type !== "display") return obj.value;
-        const strip_tags = function(html) { let t = document.createElement("div"); t.innerHTML = html; return t.textContent || t.innerText || ""; }
            
         let cell = obj.descr;
         if (obj.shorten_descr)
@@ -712,7 +707,7 @@ export class DataTableRenders {
         if (type !== "display") return obj;
     	let html_ref = '';
 	if (obj.reference !== undefined)
-	   html_ref = obj.reference
+	   html_ref = obj.reference;
 	let label = "";
 
 	let hostKey, hostValue;
@@ -766,8 +761,6 @@ export class DataTableRenders {
 
     static formatFlowTuple(flow, type, row) {
       let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
-        let vlan = ""
-
         let cliLabel = "";
         if (flow.cli_ip.name) {
           let title = "";

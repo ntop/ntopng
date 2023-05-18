@@ -8,7 +8,7 @@ function intoSequence(n) {
     } else {
         var arr = Array(n);
 
-        for(i=0; i<n; i++)
+        for(let i=0; i<n; i++)
             arr[i] = i;
 
         return(arr);
@@ -64,7 +64,7 @@ function bollingerBands(data, config) {
         pipSize = _config$pipSize === undefined ? 2 : _config$pipSize;
 
     var vals = (0, _math.takeLast)(data, periods, field);
-    var middle = (0, simpleMovingAverage)(vals, { periods: periods });
+    var middle = (simpleMovingAverage)(vals, { periods: periods });
     var stdDev = (0, _math.stddev)(vals);
     var upper = middle + stdDev * stdDevUp;
     var lower = middle - stdDev * stdDevDown;
@@ -75,7 +75,7 @@ function bollingerBands(data, config) {
 function bollingerBandsArray(data, config) {
     var periods = config.periods;
 
-    return (0, intoSequence)(data.length - periods + 1).map(function (x, i) {
+    return (intoSequence)(data.length - periods + 1).map(function (x, i) {
         return bollingerBands(data.slice(i, i + periods), config);
     });
 };
@@ -109,7 +109,7 @@ function exponentialMovingAverageArray(data, config) {
         _config$pipSize = config.pipSize,
         pipSize = _config$pipSize === undefined ? 2 : _config$pipSize;
 
-    return (0, intoSequence)(data.length - periods + 1).map(function (x, i) {
+    return (intoSequence)(data.length - periods + 1).map(function (x, i) {
         return +exponentialMovingAverage(data.slice(i, i + periods), config).toFixed(pipSize);
     });
 };
@@ -210,7 +210,7 @@ function relativeStrengthIndexArray(data, config) {
         pipSize = _config$pipSize === undefined ? 2 : _config$pipSize;
 
     var memoizedDiff = {};
-    return (0, intoSequence)(data.length - periods).map(function (x, i) {
+    return (intoSequence)(data.length - periods).map(function (x, i) {
         return +relativeStrengthIndex(data.slice(0, i + periods + 1), config, memoizedDiff).toFixed(pipSize);
     });
 };
@@ -226,7 +226,7 @@ function simpleMovingAverage(data, config) {
 
     var vals = (0, _math.takeLast)(data, periods, field);
 
-    return (0, _math.sum)(vals) / periods;
+    return (_math.sum)(vals) / periods;
 };
 
 function simpleMovingAverageArray(data, config) {
@@ -234,7 +234,7 @@ function simpleMovingAverageArray(data, config) {
         _config$pipSize = config.pipSize,
         pipSize = _config$pipSize === undefined ? 2 : _config$pipSize;
 
-    return (0, intoSequence)(data.length - periods + 1).map(function (x, i) {
+    return (intoSequence)(data.length - periods + 1).map(function (x, i) {
         return +simpleMovingAverage(data.slice(i, i + periods), config).toFixed(pipSize);
     });
 };

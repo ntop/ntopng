@@ -1,4 +1,4 @@
-import { render, getCurrentInstance, createVNode } from 'vue';
+import { render, createVNode } from 'vue';
 
 export const render_component = function(component, { props, children, element, app } = {}) {
     let el = element

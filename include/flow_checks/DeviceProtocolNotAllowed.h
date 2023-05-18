@@ -24,20 +24,23 @@
 
 #include "ntop_includes.h"
 
-
 class DeviceProtocolNotAllowed : public FlowCheck {
  private:
-
  public:
-  DeviceProtocolNotAllowed() : FlowCheck(ntopng_edition_community,
-					    false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-					    true /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};
-  ~DeviceProtocolNotAllowed() {};
+  DeviceProtocolNotAllowed()
+      : FlowCheck(ntopng_edition_community, false /* All interfaces */,
+                  false /* Don't exclude for nEdge */,
+                  false /* NOT only for nEdge */,
+                  true /* has_protocol_detected */,
+                  false /* has_periodic_update */, false /* has_flow_end */){};
+  ~DeviceProtocolNotAllowed(){};
 
   void protocolDetected(Flow *f);
   FlowAlert *buildAlert(Flow *f);
-  
-  std::string getName()        const { return(std::string("device_protocol_not_allowed")); }
+
+  std::string getName() const {
+    return (std::string("device_protocol_not_allowed"));
+  }
 };
 
 #endif /* _DEVICE_PROTOCOL_NOT_ALLOWED_H_ */

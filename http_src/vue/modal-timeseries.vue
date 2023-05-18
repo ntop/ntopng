@@ -91,7 +91,6 @@
       </div>
       
       <ListTimeseries
-	id=""
 	:title="_i18n('modal_timeseries.timeseries_list')"
 	v-model:timeseries="timeseries_to_add">
       </ListTimeseries>      
@@ -179,7 +178,7 @@ const timeseries_groups_added = ref([]);
 
 const timeseries_to_add = ref([]);
 
-const emit = defineEmits(['apply'])
+const emit = defineEmits(['apply']);
 
 let wait_init = null;
 

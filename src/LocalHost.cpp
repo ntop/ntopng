@@ -23,14 +23,14 @@
 
 /* *************************************** */
 
-LocalHost::LocalHost(NetworkInterface *_iface, Mac *_mac,
-		     u_int16_t _vlanId, u_int16_t _observation_point_id,
-		     IpAddress *_ip) : Host(_iface, _mac, _vlanId, _observation_point_id, _ip) {
+LocalHost::LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId,
+                     u_int16_t _observation_point_id, IpAddress *_ip)
+    : Host(_iface, _mac, _vlanId, _observation_point_id, _ip) {
 #ifdef LOCALHOST_DEBUG
   char buf[48];
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Instantiating local host %s",
-			       _ip ? _ip->print(buf, sizeof(buf)) : "");
+                               _ip ? _ip->print(buf, sizeof(buf)) : "");
 #endif
   initialize();
 }
@@ -38,22 +38,23 @@ LocalHost::LocalHost(NetworkInterface *_iface, Mac *_mac,
 /* *************************************** */
 
 LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress,
-		     u_int16_t _vlanId, u_int16_t _observation_point_id)
-  : Host(_iface, ipAddress, _vlanId, _observation_point_id) {
+                     u_int16_t _vlanId, u_int16_t _observation_point_id)
+    : Host(_iface, ipAddress, _vlanId, _observation_point_id) {
   initialize();
 }
 
 /* *************************************** */
 
-LocalHost::~LocalHost() {  
-  if(initial_ts_point) delete(initial_ts_point);
+LocalHost::~LocalHost() {
+  if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
 }
 
 /* *************************************** */
 
 void LocalHost::set_hash_entry_state_idle() {
-  if(ntop->getPrefs()->is_active_local_host_cache_enabled() && (!ip.isEmpty())) {
+  if (ntop->getPrefs()->is_active_local_host_cache_enabled() &&
+      (!ip.isEmpty())) {
     Mac *mac = getMac();
 
     checkStatsReset();
@@ -61,21 +62,23 @@ void LocalHost::set_hash_entry_state_idle() {
     /* For LBD hosts in the DHCP range, also save the IP -> MAC
      * association. This allows us to both search the host by IP and to
      * bring up the host in memory with the correct stats. */
-    if(mac && serializeByMac()) {
+    if (mac && serializeByMac()) {
       char key[CONST_MAX_LEN_REDIS_KEY];
       char buf[64], mac_buf[32];
 
-      snprintf(key, sizeof(key), IP_MAC_ASSOCIATION, iface->get_id(), ip.print(buf, sizeof(buf)), vlan_id);
+      snprintf(key, sizeof(key), IP_MAC_ASSOCIATION, iface->get_id(),
+               ip.print(buf, sizeof(buf)), vlan_id);
       mac->print(mac_buf, sizeof(mac_buf));
 
       /* IP@VLAN -> MAC */
-      ntop->getRedis()->set(key, mac_buf, ntop->getPrefs()->get_local_host_cache_duration());
+      ntop->getRedis()->set(key, mac_buf,
+                            ntop->getPrefs()->get_local_host_cache_duration());
     }
   }
 
   iface->decNumHosts(true /* A local host */, isRxOnlyHost());
-  
-  if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
+
+  if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
     ns->decNumHosts();
 
   GenericHashEntry::set_hash_entry_state_idle();
@@ -86,9 +89,10 @@ void LocalHost::set_hash_entry_state_idle() {
 /* NOTE: Host::initialize will be called from the Host initializator */
 void LocalHost::initialize() {
   char buf[64], host[96], rsp[256];
-  
+
   stats = allocateStats();
-  updateHostPool(true /* inline with packet processing */, true /* first inc */);
+  updateHostPool(true /* inline with packet processing */,
+                 true /* first inc */);
 
   local_network_id = -1;
   os_detail = NULL;
@@ -98,41 +102,42 @@ void LocalHost::initialize() {
   systemHost = ip.isLocalInterfaceAddress();
 
   /* Clone the initial point. It will be written to the timeseries DB to
-   * address the first point problem (https://github.com/ntop/ntopng/issues/2184). */
-  initial_ts_point = new (std::nothrow) LocalHostStats(*(LocalHostStats *)stats);
+   * address the first point problem
+   * (https://github.com/ntop/ntopng/issues/2184). */
+  initial_ts_point =
+      new (std::nothrow) LocalHostStats(*(LocalHostStats *)stats);
   initialization_time = time(NULL);
 
   char *strIP = ip.print(buf, sizeof(buf));
   snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
 
-  if(ntop->getPrefs()->is_dns_resolution_enabled()) {
-    if(isBroadcastHost() || isMulticastHost()
-       || (isIPv6()
-	   && ((strncmp(strIP, "ff0", 3) == 0)
-	       || (strncmp(strIP, "fe80", 4) == 0)))
-       )
+  if (ntop->getPrefs()->is_dns_resolution_enabled()) {
+    if (isBroadcastHost() || isMulticastHost() ||
+        (isIPv6() &&
+         ((strncmp(strIP, "ff0", 3) == 0) || (strncmp(strIP, "fe80", 4) == 0))))
       ;
     else
       ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true);
   }
-  
-  INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
+
+  INTERFACE_PROFILING_SUB_SECTION_ENTER(
+      iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
   updateHostTrafficPolicy(host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 18);
 
   iface->incNumHosts(true /* Local Host */, isRxOnlyHost());
-  if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
+  if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
     ns->incNumHosts();
-  
+
 #ifdef LOCALHOST_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s [%p]",
-			       ip.print(buf, sizeof(buf)),
-			       isSystemHost() ? "systemHost" : "", this);
+                               ip.print(buf, sizeof(buf)),
+                               isSystemHost() ? "systemHost" : "", this);
 #endif
 
   router_mac_set = 0, memset(router_mac, 0, sizeof(router_mac));
   setRxOnlyHost(true);
-  
+
 #ifdef HAVE_NEDGE
   drop_all_host_traffic = 0;
 #endif
@@ -140,67 +145,30 @@ void LocalHost::initialize() {
 
 /* *************************************** */
 
-char* LocalHost::getSerializationKey(char *redis_key, uint bufsize) {
+char *LocalHost::getSerializationKey(char *redis_key, uint bufsize) {
   Mac *mac = getMac();
 
-  if(mac && serializeByMac()) {
+  if (mac && serializeByMac()) {
     char mac_buf[128];
 
     get_mac_based_tskey(mac, mac_buf, sizeof(mac_buf));
 
-    return(getMacBasedSerializationKey(redis_key, bufsize, mac_buf));
+    return (getMacBasedSerializationKey(redis_key, bufsize, mac_buf));
   }
 
-  return(getIpBasedSerializationKey(redis_key, bufsize));
+  return (getIpBasedSerializationKey(redis_key, bufsize));
 }
 
 /* *************************************** */
 
-char* LocalHost::getRedisKey(char *buf, uint buf_len, bool skip_prefix) {
+char *LocalHost::getRedisKey(char *buf, uint buf_len, bool skip_prefix) {
   Mac *mac = getMac();
 
-  if(mac && serializeByMac()) {
+  if (mac && serializeByMac()) {
     get_mac_based_tskey(mac, buf, buf_len, skip_prefix);
-    return(buf);    
+    return (buf);
   } else
-    return(get_hostkey(buf, buf_len, false));
-}
-
-/* *************************************** */
-
-void LocalHost::deserialize(json_object *o) {
-  json_object *obj;
-
-  if((!isBroadcastHost()) && stats)
-    stats->deserialize(o);
-
-  if(!mac) {
-    u_int8_t mac_buf[6];
-    memset(mac_buf, 0, sizeof(mac_buf));
-
-    if(json_object_object_get_ex(o, "mac_address", &obj)) Utils::parseMac(mac_buf, json_object_get_string(obj));
-
-    // sticky hosts enabled, we must bring up the mac address
-    if((mac = iface->getMac(mac_buf, true /* create if not exists */, true /* Inline call */)) != NULL)
-      mac->incUses();
-    else
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Internal error: NULL mac. Are you running out of memory or MAC hash is full?");
-  }
-
-  GenericHashEntry::deserialize(o);
-  if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
-
-  if(json_object_object_get_ex(o, "os_id", &obj))
-    inlineSetOS((OSType)json_object_get_int(obj));
-
-  /* We commented the line below to avoid strings too long */
-#if 0
-  activityStats.reset();
-  if(json_object_object_get_ex(o, "activityStats", &obj)) activityStats.deserialize(obj);
-#endif
-
-  checkStatsReset();
+    return (get_hostkey(buf, buf_len, false));
 }
 
 /* *************************************** */
@@ -209,26 +177,26 @@ void LocalHost::updateHostTrafficPolicy(char *key) {
 #ifdef HAVE_NEDGE
   char buf[64], *host;
 
-  if(key)
+  if (key)
     host = key;
   else
     host = get_hostkey(buf, sizeof(buf));
 
-  if(iface->isPacketInterface()) {
-    if((ntop->getRedis()->hashGet((char*)DROP_HOST_TRAFFIC, host, buf, sizeof(buf)) == -1)
-       || (strcmp(buf, "true") != 0))
+  if (iface->isPacketInterface()) {
+    if ((ntop->getRedis()->hashGet((char *)DROP_HOST_TRAFFIC, host, buf,
+                                   sizeof(buf)) == -1) ||
+        (strcmp(buf, "true") != 0))
       drop_all_host_traffic = 0;
     else
       drop_all_host_traffic = 1;
-
   }
 #endif
 }
 
 /* ***************************************** */
 
-const char * LocalHost::getOSDetail(char * const buf, ssize_t buf_len) {
-  if(buf && buf_len) {
+const char *LocalHost::getOSDetail(char *const buf, ssize_t buf_len) {
+  if (buf && buf_len) {
     m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_len, "%s", os_detail ? os_detail : "");
     m.unlock(__FILE__, __LINE__);
@@ -240,18 +208,18 @@ const char * LocalHost::getOSDetail(char * const buf, ssize_t buf_len) {
 /* *************************************** */
 
 void LocalHost::lua_contacts_stats(lua_State *vm) const {
-  if(!stats)
-    return;
+  if (!stats) return;
 
   lua_newtable(vm);
 
-  lua_push_uint32_table_entry(vm, "dns",  stats->getDNSContactCardinality());
+  lua_push_uint32_table_entry(vm, "dns", stats->getDNSContactCardinality());
   lua_push_uint32_table_entry(vm, "smtp", stats->getSMTPContactCardinality());
   lua_push_uint32_table_entry(vm, "imap", stats->getIMAPContactCardinality());
-  lua_push_uint32_table_entry(vm, "pop",  stats->getPOPContactCardinality());
-  lua_push_uint32_table_entry(vm, "ntp",  stats->getNTPContactCardinality());
-  lua_push_uint32_table_entry(vm, "domain_names",  stats->getDomainNamesCardinality());
-  
+  lua_push_uint32_table_entry(vm, "pop", stats->getPOPContactCardinality());
+  lua_push_uint32_table_entry(vm, "ntp", stats->getNTPContactCardinality());
+  lua_push_uint32_table_entry(vm, "domain_names",
+                              stats->getDomainNamesCardinality());
+
   lua_pushstring(vm, "server_contacts");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -259,59 +227,55 @@ void LocalHost::lua_contacts_stats(lua_State *vm) const {
 
 /* *************************************** */
 
-void LocalHost::lua(lua_State* vm, AddressTree *ptree,
-		    bool host_details, bool verbose,
-		    bool returnHost, bool asListElement) {
+void LocalHost::lua(lua_State *vm, AddressTree *ptree, bool host_details,
+                    bool verbose, bool returnHost, bool asListElement) {
   char buf_id[64], *host_id = buf_id;
   const char *local_net;
   bool mask_host = Utils::maskHost(isLocalHost());
 #ifdef NTOPNG_PRO
   char asset_key[96];
-#endif  
+#endif
 
-  if((ptree && (!match(ptree))) || mask_host)
-    return;
+  if ((ptree && (!match(ptree))) || mask_host) return;
 
-  Host::lua(vm,
-	    NULL /* ptree already checked */,
-	    host_details, verbose, returnHost,
-	    false /* asListElement possibly handled later */);
+  Host::lua(vm, NULL /* ptree already checked */, host_details, verbose,
+            returnHost, false /* asListElement possibly handled later */);
 
   /* *** */
 
   Host::lua_blacklisted_flows(vm);
   lua_contacts_stats(vm);
   usedPorts.lua(vm, iface);
-  
+
   /* *** */
 
-#ifdef NTOPNG_PRO  
+#ifdef NTOPNG_PRO
   snprintf(asset_key, sizeof(asset_key), ASSET_SERVICE_KEY,
-	   getInterface()->get_id(),
-	   getRedisKey(buf_id, sizeof(buf_id)));
-  
+           getInterface()->get_id(), getRedisKey(buf_id, sizeof(buf_id)));
+
   lua_push_str_table_entry(vm, "asset_key", asset_key);
 #endif
-    
+
   lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
   local_net = ntop->getLocalNetworkName(local_network_id);
 
-  if(local_net == NULL)
+  if (local_net == NULL)
     lua_push_nil_table_entry(vm, "local_network_name");
   else
     lua_push_str_table_entry(vm, "local_network_name", local_net);
 
-  if(router_mac_set) {
+  if (router_mac_set) {
     char router_buf[24];
-    
-    lua_push_str_table_entry(vm, "router",
-			     Utils::formatMac(router_mac, router_buf, sizeof(router_buf)));
+
+    lua_push_str_table_entry(
+        vm, "router",
+        Utils::formatMac(router_mac, router_buf, sizeof(router_buf)));
   }
-  
+
   /* Add new entries before this line! */
 
-  if(asListElement) {
+  if (asListElement) {
     host_id = get_hostkey(buf_id, sizeof(buf_id));
 
     lua_pushstring(vm, host_id);
@@ -326,31 +290,29 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 
 // TODO move into nDPI
 void LocalHost::inlineSetOSDetail(const char *_os_detail) {
-  if((mac == NULL)
-     /*
-       When this happens then this is a (NAT+)router and
-       the OS would be misleading
-     */
-     || (mac->getDeviceType() == device_networking)
-     ) return;
+  if ((mac == NULL)
+      /*
+        When this happens then this is a (NAT+)router and
+        the OS would be misleading
+      */
+      || (mac->getDeviceType() == device_networking))
+    return;
 
-  if(os_detail || !_os_detail)
-    return; /* Already set */
+  if (os_detail || !_os_detail) return; /* Already set */
 
-  if((os_detail = strdup(_os_detail))) {
+  if ((os_detail = strdup(_os_detail))) {
     // TODO set mac device type
     ;
     DeviceType devtype = Utils::getDeviceTypeFromOsDetail(os_detail);
 
-    if(devtype != device_unknown)
-      mac->setDeviceType(devtype);
+    if (devtype != device_unknown) mac->setDeviceType(devtype);
   }
 }
 
 /* *************************************** */
 
-void LocalHost::lua_peers_stats(lua_State* vm) const {
-  if(stats)
+void LocalHost::lua_peers_stats(lua_State *vm) const {
+  if (stats)
     stats->luaPeers(vm);
   else
     lua_pushnil(vm);
@@ -361,9 +323,10 @@ void LocalHost::lua_peers_stats(lua_State* vm) const {
 /*
  *Optimized method to fetch timeseries data for the host. Only returns
  * the ::Lua of the needed fields. Moreover, some fields are represented
- * in a compact way to speedup insertion and lookup (e.g. nDPIStats::lua with tsLua)
+ * in a compact way to speedup insertion and lookup (e.g. nDPIStats::lua with
+ *tsLua)
  */
-void LocalHost::lua_get_timeseries(lua_State* vm) {
+void LocalHost::lua_get_timeseries(lua_State *vm) {
   char buf_id[64], *host_id;
 
   lua_newtable(vm);
@@ -371,20 +334,24 @@ void LocalHost::lua_get_timeseries(lua_State* vm) {
   /* The timeseries point */
   lua_newtable(vm);
 
-  if(stats != NULL) {
-    LocalHostStats *l = (LocalHostStats*)stats;
+  if (stats != NULL) {
+    LocalHostStats *l = (LocalHostStats *)stats;
 
     l->lua_get_timeseries(vm);
   }
-  
+
   Host::lua_blacklisted_flows(vm);
   lua_unidirectional_tcp_udp_flows(vm, true);
-  
+
   /* NOTE: the following data is *not* exported for the initial_point */
-  lua_push_uint64_table_entry(vm, "active_flows.as_client", getNumOutgoingFlows());
-  lua_push_uint64_table_entry(vm, "active_flows.as_server", getNumIncomingFlows());
-  lua_push_uint64_table_entry(vm, "contacts.as_client", getNumActiveContactsAsClient());
-  lua_push_uint64_table_entry(vm, "contacts.as_server", getNumActiveContactsAsServer());
+  lua_push_uint64_table_entry(vm, "active_flows.as_client",
+                              getNumOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "active_flows.as_server",
+                              getNumIncomingFlows());
+  lua_push_uint64_table_entry(vm, "contacts.as_client",
+                              getNumActiveContactsAsClient());
+  lua_push_uint64_table_entry(vm, "contacts.as_server",
+                              getNumActiveContactsAsServer());
   lua_push_uint64_table_entry(vm, "engaged_alerts", getNumEngagedAlerts());
 
   lua_pushstring(vm, "ts_point");
@@ -393,7 +360,7 @@ void LocalHost::lua_get_timeseries(lua_State* vm) {
 
   /* Additional data/metadata */
   lua_push_str_table_entry(vm, "tskey", get_tskey(buf_id, sizeof(buf_id)));
-  if(initial_ts_point) {
+  if (initial_ts_point) {
     lua_push_uint64_table_entry(vm, "initial_point_time", initialization_time);
 
     /* Dump the initial host timeseries */
@@ -403,7 +370,7 @@ void LocalHost::lua_get_timeseries(lua_State* vm) {
     lua_insert(vm, -2);
     lua_settable(vm, -3);
 
-    delete(initial_ts_point);
+    delete (initial_ts_point);
     initial_ts_point = NULL;
   }
 
@@ -416,10 +383,16 @@ void LocalHost::lua_get_timeseries(lua_State* vm) {
 /* *************************************** */
 
 void LocalHost::freeLocalHostData() {
-  /* Better not to use a virtual function as it is called in the destructor as well */
-  if(os_detail) { free(os_detail); os_detail = NULL; }
-  
-  for(std::unordered_map<u_int32_t, DoHDoTStats*>::iterator it = doh_dot_map.begin(); it != doh_dot_map.end(); ++it)
+  /* Better not to use a virtual function as it is called in the destructor as
+   * well */
+  if (os_detail) {
+    free(os_detail);
+    os_detail = NULL;
+  }
+
+  for (std::unordered_map<u_int32_t, DoHDoTStats *>::iterator it =
+           doh_dot_map.begin();
+       it != doh_dot_map.end(); ++it)
     delete it->second;
 }
 
@@ -437,19 +410,22 @@ void LocalHost::deleteHostData() {
 
 /* *************************************** */
 
-char * LocalHost::getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key) {
+char *LocalHost::getMacBasedSerializationKey(char *redis_key, size_t size,
+                                             char *mac_key) {
   /* Serialize both IP and MAC for static hosts */
-  snprintf(redis_key, size, HOST_BY_MAC_SERIALIZED_KEY, iface->get_id(), mac_key);
+  snprintf(redis_key, size, HOST_BY_MAC_SERIALIZED_KEY, iface->get_id(),
+           mac_key);
 
-  return(redis_key);
+  return (redis_key);
 }
 
 /* *************************************** */
 
-char * LocalHost::getIpBasedSerializationKey(char *redis_key, size_t size) {
+char *LocalHost::getIpBasedSerializationKey(char *redis_key, size_t size) {
   char buf[CONST_MAX_LEN_REDIS_KEY];
 
-  snprintf(redis_key, size, HOST_SERIALIZED_KEY, iface->get_id(), ip.print(buf, sizeof(buf)), vlan_id);
+  snprintf(redis_key, size, HOST_SERIALIZED_KEY, iface->get_id(),
+           ip.print(buf, sizeof(buf)), vlan_id);
 
   return redis_key;
 }
@@ -459,28 +435,27 @@ char * LocalHost::getIpBasedSerializationKey(char *redis_key, size_t size) {
 /*
  * Reload non-critical host prefs. Such prefs are not reloaded inline to
  * avoid slowing down the packet capture. The default value (set into the
- * host initializer) will be returned until this delayed method is called. 
+ * host initializer) will be returned until this delayed method is called.
  */
-void LocalHost::reloadPrefs() {
-  Host::reloadPrefs();
-}
+void LocalHost::reloadPrefs() { Host::reloadPrefs(); }
 
 /* *************************************** */
 
 void LocalHost::incDohDoTUses(Host *host) {
   u_int32_t key = host->get_ip()->key() + host->get_vlan_id();
-  std::unordered_map<u_int32_t, DoHDoTStats*>::iterator it;
+  std::unordered_map<u_int32_t, DoHDoTStats *>::iterator it;
 
   m.lock(__FILE__, __LINE__);
   it = doh_dot_map.find(key);
 
-  if(it == doh_dot_map.end()) {
-    if(doh_dot_map.size() < 8 /* Max # entries */) {
-      DoHDoTStats *doh_dot = new (nothrow) DoHDoTStats(*(host->get_ip()), host->get_vlan_id());
+  if (it == doh_dot_map.end()) {
+    if (doh_dot_map.size() < 8 /* Max # entries */) {
+      DoHDoTStats *doh_dot =
+          new (nothrow) DoHDoTStats(*(host->get_ip()), host->get_vlan_id());
 
-      if(doh_dot) {
-	doh_dot->incUses();
-	doh_dot_map[key] = doh_dot;
+      if (doh_dot) {
+        doh_dot->incUses();
+        doh_dot_map[key] = doh_dot;
       }
     }
   } else
@@ -493,27 +468,28 @@ void LocalHost::incDohDoTUses(Host *host) {
 
 void LocalHost::luaDoHDot(lua_State *vm) {
   u_int8_t i = 0;
-  
-  if(doh_dot_map.size() == 0) return;
-  
+
+  if (doh_dot_map.size() == 0) return;
+
   lua_newtable(vm);
 
   m.lock(__FILE__, __LINE__);
-  
-  for(std::unordered_map<u_int32_t, DoHDoTStats*>::iterator it = doh_dot_map.begin();
-      it != doh_dot_map.end(); ++it) {
+
+  for (std::unordered_map<u_int32_t, DoHDoTStats *>::iterator it =
+           doh_dot_map.begin();
+       it != doh_dot_map.end(); ++it) {
     lua_newtable(vm);
-    
+
     it->second->lua(vm);
-    
+
     lua_pushinteger(vm, i);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
     i++;
   }
-  
+
   m.unlock(__FILE__, __LINE__);
-  
+
   lua_pushstring(vm, "DoH_DoT");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -522,7 +498,7 @@ void LocalHost::luaDoHDot(lua_State *vm) {
 /* *************************************** */
 
 void LocalHost::setRouterMac(Mac *gw) {
-  if(!router_mac_set) {
+  if (!router_mac_set) {
     memcpy(router_mac, gw->get_mac(), 6), router_mac_set = true;
 
 #ifdef NTOPNG_PRO
@@ -536,15 +512,15 @@ void LocalHost::setRouterMac(Mac *gw) {
 void LocalHost::setRxOnlyHost(bool set_it) {
   is_rx_only = set_it;
 
-  if(isLocalUnicastHost()) {
+  if (isLocalUnicastHost()) {
     char hostbuf[64], *member;
-    
+
     member = get_hostkey(hostbuf, sizeof(hostbuf));
-    
-    if(is_rx_only) {
+
+    if (is_rx_only) {
       /* Add this host to the hash of RX-only local hosts */
       char seenbuf[16];
-      
+
       snprintf(seenbuf, sizeof(seenbuf), "%u", (u_int32_t)get_last_seen());
       ntop->getRedis()->hashSet(HASHKEY_LOCALHOST_RX_ONLY, member, seenbuf);
     } else {

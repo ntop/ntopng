@@ -1095,6 +1095,16 @@ end
 
 -- ##############################################
 
+function system_config:isMDNSRepeaterEnabled()
+  return self.config.globals.mdns_repeater
+end
+
+function system_config:setMDNSRepeaterEnabled(enabled)
+  self.config.globals.mdns_repeater = ternary(enabled, true, false)
+end
+
+-- ##############################################
+
 -- NOTE: can't rely on the main routing table when having multiple gateways!
 function system_config._interface_get_default_gateway(iface)
   local res = sys_utils.execShellCmd("ip route show | grep \"^default via\" | grep \"" .. iface .. "\"")

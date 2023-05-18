@@ -1,7 +1,7 @@
 ![ntop][ntopng_logo] ![ntop][ntop_logo]
 # ntopng 
 
-[![Build Status](https://travis-ci.org/ntop/ntopng.png?branch=dev)](https://travis-ci.org/ntop/ntopng)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/ntop/ntopng/build.yml?branch=dev&logo=github)](https://github.com/ntop/ntopng/actions?query=workflow%3ABuild)
 
 ### Introduction
 

@@ -1,6 +1,6 @@
 import { DataTableUtils } from "../utilities/datatable/sprymedia-datatable-utils";
 import formatterUtils from "../utilities/formatter-utils.js";
-import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
+import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import NtopUtils from "../utilities/ntop-utils";
 
 const bytesToSizeFormatter = formatterUtils.getFormatter(formatterUtils.types.bytes.id);
@@ -51,7 +51,6 @@ const top_application = {
 		const jump_to_historical = {
 		    handlerId: handlerIdJumpHistorical,
 		    onClick: function() {
-			let status = context.status;
 			let l7_proto = ntopng_url_manager.serialize_param("l7proto", `${service.protocol.id};eq`);
 			let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}&${l7_proto}`;
 			let source_type = context.source_type;
@@ -122,7 +121,6 @@ const top_categories = {
 		const jump_to_historical = {
 		    handlerId: handlerIdJumpHistorical,
 		    onClick: function() {
-			let status = context.status;
 			let category = ntopng_url_manager.serialize_param("l7cat", `${service.category.id};eq`);
 			let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}&${category}`;
 			let source_type = context.source_type;
@@ -205,10 +203,7 @@ const top_senders = {
 		      const jump_to_historical = {
             handlerId: handlerIdJumpHistorical,
             onClick: function() {
-                let status = context.status;
                 let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}`;
-                let source_type = context.source_type;
-                let source_array = context.source_array;
                 
                 let params = "";			    
                 let params_array = [];
@@ -304,10 +299,7 @@ const top_receivers = {
 		      const jump_to_historical = {
 			  handlerId: handlerIdJumpHistorical,
 			  onClick: function() {
-			      let status = context.status;
 			      let historical_flows_url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${context.status.epoch_begin}&epoch_end=${context.status.epoch_end}`;
-			      let source_type = context.source_type;
-			      let source_array = context.source_array;
 			      
 			      let params = "";
 			      let params_array = [];

@@ -103,6 +103,8 @@ local community_timeseries = {
   { schema = "iface:devices",                 id = timeseries_id.iface, label = i18n("graphs.active_devices"),            priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.devices'), timeseries = { num_devices        = { label = i18n('graphs.metric_labels.num_devices'), color = timeseries_info.get_timeseries_color('devices') }}},
   { schema = "iface:http_hosts",              id = timeseries_id.iface, label = i18n("graphs.active_http_servers"),       priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.servers'), timeseries = { num_devices        = { label = i18n('graphs.metric_labels.num_servers'), color = timeseries_info.get_timeseries_color('devices') }},  nedge_exclude = true },
   { schema = "iface:traffic",                 id = timeseries_id.iface, label = i18n("graphs.traffic"),                   priority = 0, measure_unit = "bps",    scale = i18n("graphs.metric_labels.traffic"), timeseries = { bytes              = { label = i18n('graphs.metric_labels.traffic'),     color = timeseries_info.get_timeseries_color('devices') }},  nedge_exclude = true },
+  { schema = "iface:throughput_bps",             id = timeseries_id.iface, label = i18n("graphs.throughput_bps"),         priority = 0, measure_unit = "bps",    scale = i18n("graphs.metric_labels.traffic"), timeseries = { bps                = { label = i18n('graphs.metric_labels.throughput'),  color = timeseries_info.get_timeseries_color('devices') }},  nedge_exclude = true },
+  { schema = "iface:throughput_pps",             id = timeseries_id.iface, label = i18n("graphs.throughput_pps"),         priority = 0, measure_unit = "pps",    scale = i18n("graphs.metric_labels.traffic"), timeseries = { pps                = { label = i18n('graphs.metric_labels.throughput'),  color = timeseries_info.get_timeseries_color('devices') }},  nedge_exclude = true },
   { schema = "iface:score",                   id = timeseries_id.iface, label = i18n("graphs.score"),                     priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.score'), timeseries = { cli_score          = { label = i18n('graphs.cli_score'),                 color = timeseries_info.get_timeseries_color('cli_score') },   srv_score = { label = i18n('graphs.srv_score'), color = timeseries_info.get_timeseries_color('srv_score') }}},
   { schema = "iface:packets_vs_drops",        id = timeseries_id.iface, label = i18n("graphs.packets_vs_drops"),          priority = 0, measure_unit = "number", scale = i18n("graphs.packets_vs_drops"), timeseries = { packets            = { label = i18n('graphs.metric_labels.packets'),     color = timeseries_info.get_timeseries_color('packets') },     drops = { label = i18n('graphs.metric_labels.drops'), draw_type = "line", color = timeseries_info.get_timeseries_color('default') }}},
   { schema = "iface:nfq_pct",                 id = timeseries_id.iface, label = i18n("graphs.num_nfq_pct"),               priority = 0, measure_unit = "percentage", scale = i18n('graphs.metric_labels.load'), timeseries = { num_nfq_pct        = { label = i18n('graphs.num_nfq_pct'),               color = timeseries_info.get_timeseries_color('default') }},  nedge_only = true },
@@ -651,8 +653,8 @@ end
 
 -- #################################
 
-function timeseries_info.get_host_rules_schema(is_interface)
-  if not is_interface then
+function timeseries_info.get_host_rules_schema(rule_type)
+  if rule_type == "host" then
     local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
     local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~= "0"
     local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
@@ -678,7 +680,7 @@ function timeseries_info.get_host_rules_schema(is_interface)
 
 
     return metric_list
-  else 
+  elseif rule_type == "interface" then
     local ifname_ts_enabled = ntop.getCache("ntopng.prefs.ifname_ndpi_timeseries_creation")
     local has_top_protocols = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_protocol" or ifname_ts_enabled ~= "0"
     local has_top_categories = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_category"
@@ -702,9 +704,16 @@ function timeseries_info.get_host_rules_schema(is_interface)
       end
     end
 
+    return metric_list
+  else 
+    local metric_list = {
+      {  title = i18n('traffic'), group = i18n('generic_data'), label = i18n('traffic'), id = 'flowdev:traffic' --[[ here the ID is the schema ]], show_volume = true, type = 'flowdev' },
+      {  title = i18n('traffic'), group = i18n('generic_data'), label = i18n('traffic'), id = 'flowdev_port:traffic' --[[ here the ID is the schema ]], show_volume = true, type = 'flowdev_port' }
+    } 
 
     return metric_list
   end
+
 end
 
 -- #################################

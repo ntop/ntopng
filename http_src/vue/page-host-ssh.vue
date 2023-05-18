@@ -102,7 +102,7 @@ function start_datatable(DatatableVue) {
   let table_config = {
     serverSide: false,
     order: [[ default_sorting_columns, 'desc' ]]
-  }
+  };
   
   let configDevices = ntopng_utility.clone(defaultDatatableConfig);
   configDevices.table_buttons = defaultDatatableConfig.table_buttons;

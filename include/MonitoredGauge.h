@@ -22,31 +22,37 @@
 #ifndef _MONITORED_GAUGE_H_
 #define _MONITORED_GAUGE_H_
 
-
-template <typename METRICTYPE> class MonitoredGauge : public MonitoredMetric<METRICTYPE> {
+template <typename METRICTYPE>
+class MonitoredGauge : public MonitoredMetric<METRICTYPE> {
  public:
   void computeAnomalyIndex(time_t when) {
-    if((when - this->last_update) > 60 /* Do not update more frequently than a minute */) {
+    if ((when - this->last_update) >
+        60 /* Do not update more frequently than a minute */) {
       /* https://en.wikipedia.org/wiki/Relative_strength_index RSI-like index */
-      int64_t delta = ((int64_t)(this->value) - this->last_value) / (when - this->last_update);
+      int64_t delta = ((int64_t)(this->value) - this->last_value) /
+                      (when - this->last_update);
 
       this->updateAnomalyIndex(when, delta);
 
 #ifdef MONITOREDGAUGE_DEBUG
-      if(this->anomaly_index)
-	printf("%s[MonitoredGauge][value: %lu][delta: %ld][RSI: %lu][gains: %lu][losses: %lu]\n",
-	       this->is_misbehaving(when) ? "<<<***>>> Anomaly " : "",
-	       (unsigned long)this->value, (long)delta,
-	       (unsigned long)this->anomaly_index, (unsigned long)this->gains, (unsigned long)this->losses);
+      if (this->anomaly_index)
+        printf(
+            "%s[MonitoredGauge][value: %lu][delta: %ld][RSI: %lu][gains: "
+            "%lu][losses: %lu]\n",
+            this->is_misbehaving(when) ? "<<<***>>> Anomaly " : "",
+            (unsigned long)this->value, (long)delta,
+            (unsigned long)this->anomaly_index, (unsigned long)this->gains,
+            (unsigned long)this->losses);
 #endif
 
       this->last_update = when, this->last_value = this->value;
     }
   }
-  
+
   inline float dec(METRICTYPE v) {
-    /* Don't worry about int/u_int, look at the arithmetics and you will see that is always works */
-    return(this->inc(-v));
+    /* Don't worry about int/u_int, look at the arithmetics and you will see
+     * that is always works */
+    return (this->inc(-v));
   }
 };
 

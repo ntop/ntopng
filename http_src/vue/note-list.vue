@@ -5,7 +5,7 @@
     <b>{{ _i18n('notes') }}</b>
     <ul>
       <template v-for="note in props.note_list">
-        <li>{{ note }}</li>
+        <li v-html="note"></li>
       </template>
     </ul>
   </div>

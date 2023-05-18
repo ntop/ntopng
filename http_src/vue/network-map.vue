@@ -13,11 +13,6 @@ import { ntopng_map_manager } from '../utilities/map/ntopng_vis_network_utils';
 import { ntopng_events_manager, ntopng_url_manager } from '../services/context/ntopng_globals_services';
 
 const MIN_SCALE = 0.15;
-const dataRequest = { 
-  ifid: props.url_params.ifid, 
-  action: 'load_graph', 
-  map: props.url_params.map_id
-};
 
 const props = defineProps({
   empty_message: String,
@@ -27,6 +22,12 @@ const props = defineProps({
   url_params: Object,
   map_id: String,
 });
+
+const dataRequest = { 
+  ifid: props.url_params.ifid, 
+  action: 'load_graph', 
+  map: props.url_params.map_id
+};
 
 let network = null;
 let nodes_dataset = {};

@@ -22,28 +22,34 @@
 #ifndef _MONITORED_COUNTER_H_
 #define _MONITORED_COUNTER_H_
 
-
-template <typename METRICTYPE> class MonitoredCounter : public MonitoredMetric<METRICTYPE> {
+template <typename METRICTYPE>
+class MonitoredCounter : public MonitoredMetric<METRICTYPE> {
  private:
   METRICTYPE last_diff;
 
  public:
   void computeAnomalyIndex(time_t when) {
-    if((when - this->last_update) > 60 /* Do not update more frequently than a minute */) {
+    if ((when - this->last_update) >
+        60 /* Do not update more frequently than a minute */) {
       /* https://en.wikipedia.org/wiki/Relative_strength_index RSI-like index */
       METRICTYPE diff = this->value - this->last_value;
-      int64_t delta = (int64_t)(diff) - last_diff;
+      int64_t delta = (int64_t)(diff)-last_diff;
 
       this->updateAnomalyIndex(when, delta);
 
 #ifdef MONITOREDCOUNTER_DEBUG
-      printf("%s[MonitoredCounter][value: %lu][diff: %lu][last_diff: %lu][delta: %ld][RSI: %lu][gains: %lu][losses: %lu]\n",
-	     this->is_misbehaving(when) ? "<<<***>>> Anomaly " : "",
-             (unsigned long)this->value, (unsigned long)diff, (unsigned long)last_diff, (long)delta,
-	     (unsigned long)this->anomaly_index, (unsigned long)this->gains, (unsigned long)this->losses);
+      printf(
+          "%s[MonitoredCounter][value: %lu][diff: %lu][last_diff: %lu][delta: "
+          "%ld][RSI: %lu][gains: %lu][losses: %lu]\n",
+          this->is_misbehaving(when) ? "<<<***>>> Anomaly " : "",
+          (unsigned long)this->value, (unsigned long)diff,
+          (unsigned long)last_diff, (long)delta,
+          (unsigned long)this->anomaly_index, (unsigned long)this->gains,
+          (unsigned long)this->losses);
 #endif
 
-      this->last_update = when, this->last_value = this->value, this->last_diff = diff;
+      this->last_update = when, this->last_value = this->value,
+      this->last_diff = diff;
     }
   }
 

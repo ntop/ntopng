@@ -19,18 +19,17 @@
  *
  */
 
-
 #ifndef _STRING_FIFO_QUEUE_H
 #define _STRING_FIFO_QUEUE_H
 
 #include "ntop_includes.h"
 
-class StringFifoQueue : public FifoQueue<char*> {
+class StringFifoQueue : public FifoQueue<char *> {
  public:
-  StringFifoQueue(u_int32_t queue_size) : FifoQueue<char*>(queue_size) {}
+  StringFifoQueue(u_int32_t queue_size) : FifoQueue<char *>(queue_size) {}
 
   ~StringFifoQueue() {
-    while(!q.empty()) {
+    while (!q.empty()) {
       char *s = q.front();
 
       q.pop();
@@ -38,31 +37,31 @@ class StringFifoQueue : public FifoQueue<char*> {
     }
   }
 
-  bool enqueue(char* item) {
+  bool enqueue(char *item) {
     bool rv;
-    
+
     m.lock(__FILE__, __LINE__);
 
-    if(canEnqueue()) {
+    if (canEnqueue()) {
       char *d = strdup(item);
 
-      if(d) {
-	q.push(d);
-	rv = true;
+      if (d) {
+        q.push(d);
+        rv = true;
       } else {
-	rv = false;
+        rv = false;
       }
     } else
       rv = false;
 
-    if(rv)
+    if (rv)
       num_enqueued++;
     else
       num_not_enqueued++;
 
     m.unlock(__FILE__, __LINE__);
-    
-    return(rv);
+
+    return (rv);
   }
 };
 

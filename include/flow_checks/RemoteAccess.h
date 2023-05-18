@@ -26,16 +26,19 @@
 
 class RemoteAccess : public FlowCheck {
  public:
- RemoteAccess() : FlowCheck(ntopng_edition_community,
-			    false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-			    true /* has_protocol_detected */, false /* has_periodic_update */, true /* has_flow_end */) {};
-  ~RemoteAccess() {};
+  RemoteAccess()
+      : FlowCheck(ntopng_edition_community, false /* All interfaces */,
+                  false /* Don't exclude for nEdge */,
+                  false /* NOT only for nEdge */,
+                  true /* has_protocol_detected */,
+                  false /* has_periodic_update */, true /* has_flow_end */){};
+  ~RemoteAccess(){};
 
   void protocolDetected(Flow *f);
   void flowEnd(Flow *f);
   FlowAlert *buildAlert(Flow *f);
-  
-  std::string getName()        const { return(std::string("remote_access")); }
+
+  std::string getName() const { return (std::string("remote_access")); }
 };
 
 #endif /* _REMOTE_ACCESS_H_ */

@@ -34,7 +34,7 @@ class Mutex {
   bool locked;
 #ifdef MUTEX_DEBUG
   char last_lock_file[64], last_unlock_file[64];
-  int  last_lock_line, last_unlock_line;
+  int last_lock_line, last_unlock_line;
   u_int num_locks, num_unlocks;
 #endif
   void initialize();
@@ -44,13 +44,15 @@ class Mutex {
   ~Mutex() { pthread_mutex_destroy(&the_mutex); };
 
   bool lock(const char *filename, const int line, bool trace_errors = true);
-  bool lockTimeout(const char *filename, const int line, struct timespec *wait, bool trace_errors = true);
+  bool lockTimeout(const char *filename, const int line, struct timespec *wait,
+                   bool trace_errors = true);
   void unlock(const char *filename, const int line, bool trace_errors = true);
-  inline bool is_locked() { return(locked); };
+  inline bool is_locked() { return (locked); };
 
   /* NOTE: this must be called while locked */
-  inline int cond_wait(pthread_cond_t *condvar) { return pthread_cond_wait(condvar, &the_mutex); };
+  inline int cond_wait(pthread_cond_t *condvar) {
+    return pthread_cond_wait(condvar, &the_mutex);
+  };
 };
-
 
 #endif /* _MUTEX_H_ */

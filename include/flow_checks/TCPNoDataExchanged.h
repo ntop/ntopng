@@ -27,19 +27,22 @@
 class TCPNoDataExchanged : public FlowCheck {
  private:
   void checkTCPNoDataExchanged(Flow *f);
-  
- public:
-  TCPNoDataExchanged() : FlowCheck(ntopng_edition_community,
-				   true /* Packet Interfaces only */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-				   false /* has_protocol_detected */, false /* has_periodic_update */, true /* has_flow_end */) {};
-  ~TCPNoDataExchanged() {};
 
-  bool loadConfiguration(json_object *config1) { return(true); }
+ public:
+  TCPNoDataExchanged()
+      : FlowCheck(ntopng_edition_community, true /* Packet Interfaces only */,
+                  false /* Don't exclude for nEdge */,
+                  false /* NOT only for nEdge */,
+                  false /* has_protocol_detected */,
+                  false /* has_periodic_update */, true /* has_flow_end */){};
+  ~TCPNoDataExchanged(){};
+
+  bool loadConfiguration(json_object *config1) { return (true); }
 
   void flowEnd(Flow *f);
   FlowAlert *buildAlert(Flow *f);
-  
-  std::string getName()          const { return(std::string("tcp_no_data_exchanged")); }
+
+  std::string getName() const { return (std::string("tcp_no_data_exchanged")); }
 };
 
 #endif /* _TCP_NO_DATA_ECHANGED_H_ */

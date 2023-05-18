@@ -17,6 +17,9 @@
 	    <label class="btn " :class="[rule_type == 'interface'?'btn-primary active':'btn-secondary']">
 	      <input @click="set_rule_type('interface')" class="btn-check"  type="radio" name="rule_type" value="interface"> {{ _i18n("if_stats_config.add_rules_type_interface") }}
 	    </label>
+      <label v-if="flow_device_timeseries_available == true" class="btn " :class="[rule_type == 'exporter'?'btn-primary active':'btn-secondary']">
+	      <input @click="set_rule_type('exporter')" class="btn-check"  type="radio" name="rule_type" value="exporter"> {{ _i18n("if_stats_config.add_rules_type_flow_exporter") }}
+	    </label>
 	  </div>
 	</div>
   </div>
@@ -42,9 +45,32 @@
       </div> 
     </div>
 
+    <div v-if="rule_type == 'exporter' && flow_device_timeseries_available == true" class="form-group ms-2 me-2 mt-3 row">
+	    <label class="col-form-label col-sm-2" >
+        <b>{{_i18n("if_stats_config.target_exporter_device")}}</b>
+	    </label>
+      <div class="col-10">
+        
+        <SelectSearch v-model:selected_option="selected_exporter_device"
+              :options="flow_exporter_devices">
+        </SelectSearch> 
+      </div> 
+
+
+      <label class="col-form-label col-sm-2" >
+        <b>{{_i18n("if_stats_config.target_exporter_device_ifid")}}</b>
+	    </label>
+      <div class="col-10">
+        
+        <SelectSearch v-model:selected_option="selected_exporter_device_ifid"
+              :options="flow_exporter_device_ifid_list">
+        </SelectSearch> 
+      </div> 
+    </div>
+
 
     <!-- Metric information, here a metric is selected (e.g. DNS traffic) -->
-    <div v-if="metrics_ready" class="form-group ms-2 me-2 mt-3 row">
+    <div v-if="metrics_ready && rule_type != 'exporter'" class="form-group ms-2 me-2 mt-3 row">
 	    <label class="col-form-label col-sm-2" >
         <b>{{_i18n("if_stats_config.metric")}}</b>
 	    </label>
@@ -151,6 +177,7 @@ import { default as modal } from "./modal.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as NoteList } from "./note-list.vue";
 import regexValidation from "../utilities/regex-validation.js";
+import NtopUtils from "../utilities/ntop-utils";
 
 const input_mac_list = ref("");
 const input_trigger_alerts = ref("");
@@ -165,19 +192,27 @@ const metric_list = ref([])
 const init_func = ref(null);
 const delete_row = ref(null);
 const ifid_list = ref([])
+const flow_exporter_devices = ref([])
+const flow_exporter_device_ifid_list = ref([])
 const interface_metric_list = ref([])
+const flow_device_metric_list = ref([])
 const frequency_list = ref([])
 const threshold_measure = ref(null)
 const threshold_sign = ref(null)
 const selected_metric = ref({})
 const selected_frequency = ref({})
 const selected_ifid = ref({})
+const selected_exporter_device = ref({})
+const selected_exporter_device_ifid = ref({})
 const selected_interface_metric = ref({})
+const selected_flow_device_metric = ref({})
 const disable_add = ref(true)
 const metric_type = ref({})
 const visible = ref(true)
 const rule_type = ref("hosts");
+const flow_device_timeseries_available = ref(false);
 const is_edit_page = ref(false)
+const page_csrf_ = ref(null);
 
 
 
@@ -225,43 +260,80 @@ const showed = () => {};
 const props = defineProps({
   metric_list: Array,
   ifid_list: Array,
+  flow_exporter_devices: Array,
   interface_metric_list: Array,
+  flow_device_metric_list: Array,
   frequency_list: Array,
   init_func: Function,
+  page_csrf: String,
 });
+
+const rest_params = {
+  csrf: props.page_csrf
+}
 
 function reset_radio_selection(radio_array) {
 
   radio_array.forEach((item) => item.active = item.default_active == true );
 }
 
-function reset_modal_form() {
+/**
+ * 
+ * Reset fields in modal form 
+ */
+const reset_modal_form = async function() {
     host.value = "";
     selected_ifid.value = ifid_list.value[0];
     selected_metric.value = metric_list.value[0];
     selected_interface_metric.value = interface_metric_list.value[0];
+    selected_flow_device_metric.value = flow_device_metric_list.value[0];
+
     selected_frequency.value = frequency_list.value[0];
     metric_type.value = metric_type_list.value[0];
+    selected_exporter_device.value = flow_exporter_devices.value[0];
+    rest_params.csrf = page_csrf_.value;
+    const url_device_exporter_details = NtopUtils.buildURL(`${http_prefix}/lua/pro/rest/v2/get/flowdevice/stats.lua?`+selected_exporter_device.value.details.split("?")[1], {
+      ...rest_params
+    })
+
+    let ifids = []
+    let exporter_ifids = []
+    await $.get(url_device_exporter_details, function(rsp, status){
+      ifids = rsp.rsp;
+    });
+    exporter_ifids.push({id: -1, label: "No ifid", timeseries_available: ifids[0].timeseries_available})
+    ifids.forEach((resp) => {
+      exporter_ifids.push({id: resp.ifindex, label: resp.name, timeseries_available: resp.timeseries_available});
+    })
+    flow_exporter_device_ifid_list.value = exporter_ifids;
 
     // reset metric_type_list
     metric_type_list.value.forEach((t) => t.active = false);
     metric_type_list.value[0].active = true;
+
 
     reset_radio_selection(volume_threshold_list.value);
     reset_radio_selection(throughput_threshold_list.value);
     reset_radio_selection(sign_threshold_list.value);
 
     rule_type.value = "Host";
+    flow_device_timeseries_available.value = flow_exporter_device_ifid_list.value[0].timeseries_available;
 
     disable_add.value = true;
 
     threshold.value.value = 1;
+
+
 }
 
 const set_rule_type = (type) => {
     rule_type.value = type;
 }
 
+/**
+ * 
+ * Set row to edit 
+ */
 const set_row_to_edit = (row) => {
 
   if(row != null) {
@@ -346,6 +418,15 @@ const set_row_to_edit = (row) => {
           }
         })
       }
+    } else if (rule_type.value == 'exporter'){
+      flow_exporter_devices.value.forEach((item) => {
+        if(item == row.target)
+          selected_exporter_device.value = item
+      })
+      flow_exporter_device_ifid_list.value.forEach((item) => {
+        if(item == row.flow_exp_ifid)
+          selected_exporter_device_ifid.value = item
+      })
     } else {
 
       //set host
@@ -396,6 +477,10 @@ const set_active_sign_radio = (selected_radio) => {
 
 }
 
+/**
+ * 
+ * Set the metric type
+ */
 const set_active_radio = (selected_radio) => {
   const id = selected_radio.target.id;
 
@@ -413,11 +498,12 @@ const set_active_radio = (selected_radio) => {
     })
   } 
   
-  
 }
 
 
-
+/**
+ * Function to add rule to rules list
+ */
 const add_ = (is_edit) => {
   let tmp_host = ''
   if(rule_type.value == 'Host')
@@ -467,6 +553,8 @@ const add_ = (is_edit) => {
   if(is_edit == true) 
     emit_name = 'edit';
 
+  
+
   if (rule_type.value == 'Host')
     emit(emit_name, { 
       host: tmp_host, 
@@ -479,7 +567,7 @@ const add_ = (is_edit) => {
       rule_type: tmp_rule_type,
       rule_threshold_sign: tmp_sign_value
     });
-  else
+  else if(rule_type.value == 'interface')
     emit(emit_name, { 
       frequency: tmp_frequency, 
       metric: tmp_interface_metric,
@@ -492,6 +580,42 @@ const add_ = (is_edit) => {
       ifname: tmp_interface_name,
       rule_threshold_sign: tmp_sign_value
     });
+  else {
+    const flow_device_ifindex = selected_exporter_device_ifid.value.id;
+    const flow_device_ifindex_name = selected_exporter_device_ifid.value.label;
+    const flow_device_ip = selected_exporter_device.value.id;
+    let metric_exp;
+    if(flow_device_ifindex != undefined) {
+      flow_device_metric_list.value.forEach((item) => {
+        if(item.id == "flowdev_port:traffic")
+          metric_exp = item;
+      })
+    }
+    
+    else {
+      flow_device_metric_list.value.forEach((item) => {
+        if(item.id == "flowdev:traffic")
+          metric_exp = item;
+      })
+    }
+    
+    
+    let metric_exp_label = metric_exp.label;
+    
+    emit(emit_name, { 
+      host: flow_device_ip,
+      frequency: tmp_frequency, 
+      metric: metric_exp.id,
+      metric_label: metric_exp_label,
+      threshold: tmp_threshold,
+      metric_type: tmp_metric_type,
+      rule_type: tmp_rule_type,
+      interface: flow_device_ifindex,
+      ifname: flow_device_ifindex_name,
+      rule_threshold_sign: tmp_sign_value
+    });
+  }
+    
 
   close();
 };
@@ -505,6 +629,10 @@ const close = () => {
   modal_id.value.close();
 };
 
+/**
+ * 
+ * Function to format ifid list
+ */
 const format_ifid_list = function(data) {
   let _ifid_list = []
   data.forEach((ifid) => {
@@ -514,15 +642,35 @@ const format_ifid_list = function(data) {
   return _ifid_list
 }
 
-const metricsLoaded = (_metric_list, _ifid_list, _interface_metric_list, _init_func, _delete_row) => {
+
+/**
+ * Function to format flow exporter device list 
+ */
+const format_flow_exporter_device_list = function(data) {
+  let _f_exp_dev_list = [];
+
+  data.forEach((dev) => {
+
+    let ip = dev.column_ip.split("=")[2].split("&")[0];
+    let details = dev.column_ip.split("'")[1];
+    let item = {id: ip, label: ip, details: details};
+    _f_exp_dev_list.push(item);
+  })
+  return _f_exp_dev_list;
+}
+
+const metricsLoaded = (_metric_list, _ifid_list, _interface_metric_list, _flow_exporter_devices, _flow_exporter_devices_metric_list, page_csrf, _init_func, _delete_row) => {
   metrics_ready.value = true;
   metric_list.value = _metric_list;
   interface_metric_list.value = _interface_metric_list;
   ifid_list.value = format_ifid_list(_ifid_list);
+  flow_exporter_devices.value = format_flow_exporter_device_list(_flow_exporter_devices);
+  flow_device_metric_list.value = _flow_exporter_devices_metric_list;
   frequency_list.value = props.frequency_list;
   selected_frequency.value = frequency_list.value[0];
   selected_metric.value = metric_list.value[0];
   selected_ifid.value = ifid_list.value[0];
+  page_csrf_.value = page_csrf;
   if(_init_func) {
     init_func.value = _init_func;
   }

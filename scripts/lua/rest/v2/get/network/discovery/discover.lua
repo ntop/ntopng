@@ -10,7 +10,7 @@ local json = require "dkjson"
 local discover = require "discover_utils"
 local rest_utils = require "rest_utils"
 
-local ifid = tonumber(_GET["ifid"]) or ""
+local ifid = tostring(_GET["ifid"]) or ""
 local os_filter = tonumber(_GET["operating_system"])
 local devtype_filter = tonumber(_GET["device_type"])
 local manuf_filter = _GET["manufacturer"]
@@ -30,7 +30,7 @@ end
 -- ################################################
 
 if isEmptyString(ifid) then
-  ifid = ifname
+  ifid = interface.getId()
 end
 
 interface.select(ifid)
@@ -119,16 +119,16 @@ for _, el in pairs(discovered["devices"]) do
 
   local rec = {}
   
-  rec.column_ip = ip2detailshref(el["ip"], nil, nil, el["ip"])
+  rec.ip = ip2detailshref(el["ip"], nil, nil, el["ip"])
     ..ternary(el["icon"], "&nbsp;" ..(el["icon"] or "").. "&nbsp;", "")
     ..ternary(el["ghost"], " <font color=red>" ..(discover.ghost_icon or "").. "</font>", "")
 
-  rec.column_mac = [[<a href="]] ..ntop.getHttpPrefix().. [[/lua/mac_details.lua?host=]] ..el["mac"].. [[">]] ..get_symbolic_mac(el["mac"], true).. [[</a>]]
-  rec.column_name = el.name
-  rec.column_info = el.info
-  rec.column_device = el["device_label"]
-  rec.column_manufacturer = el.manufacturer
-  rec.column_os = el.os
+  rec.mac_address = [[<a href="]] ..ntop.getHttpPrefix().. [[/lua/mac_details.lua?host=]] ..el["mac"].. [[">]] ..get_symbolic_mac(el["mac"], true).. [[</a>]]
+  rec.name = el.name
+  rec.info = el.info
+  rec.device = el["device_label"]
+  rec.manufacturer = el.manufacturer
+  rec.os = el.os
 
   res[#res + 1] = rec
 
@@ -141,7 +141,4 @@ end
 
 -- ################################################
 
-rest_utils.extended_answer(rest_utils.consts.success.ok, res, {
-  ["recordsFiltered"] = #res,
-  ["recordsTotal"] = #res
-})
+rest_utils.answer(rest_utils.consts.success.ok, res)

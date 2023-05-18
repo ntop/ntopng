@@ -34,28 +34,35 @@ class FlowCheck : public Check {
 #endif
 
  public:
-  FlowCheck(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only,
-	       bool _has_protocok_detected, bool _has_periodic_update, bool _has_flow_end, bool _has_flow_begin = false);
+  FlowCheck(NtopngEdition _edition, bool _packet_interface_only,
+            bool _nedge_exclude, bool _nedge_only, bool _has_protocok_detected,
+            bool _has_periodic_update, bool _has_flow_end,
+            bool _has_flow_begin = false);
   virtual ~FlowCheck();
-  
+
   /* Check hooks */
-  virtual void protocolDetected(Flow *f) {};
-  virtual void periodicUpdate(Flow *f)   {};
-  virtual void flowEnd(Flow *f)          {};
-  virtual void flowBegin(Flow *f)        {};
+  virtual void protocolDetected(Flow *f){};
+  virtual void periodicUpdate(Flow *f){};
+  virtual void flowEnd(Flow *f){};
+  virtual void flowBegin(Flow *f){};
 
   /* Used to build an alert when triggerAlertAsync is used */
   virtual FlowAlert *buildAlert(Flow *f) { return NULL; };
 
-  void addCheck(std::list<FlowCheck*> *l, NetworkInterface *iface, FlowChecks check);
+  void addCheck(std::list<FlowCheck *> *l, NetworkInterface *iface,
+                FlowChecks check);
   virtual bool loadConfiguration(json_object *config);
-  
-  virtual std::string getName()        const = 0;
 
-  static void computeCliSrvScore(FlowAlertType alert_type, risk_percentage cli_pctg, u_int8_t *cli_score, u_int8_t *srv_score);
+  virtual std::string getName() const = 0;
+
+  static void computeCliSrvScore(FlowAlertType alert_type,
+                                 risk_percentage cli_pctg, u_int8_t *cli_score,
+                                 u_int8_t *srv_score);
 
 #ifdef CHECKS_PROFILING
-  inline void incStats(u_int64_t exec_time) { stats.execution_time += exec_time; };
+  inline void incStats(u_int64_t exec_time) {
+    stats.execution_time += exec_time;
+  };
 #endif
 
   void lua(lua_State *vm);

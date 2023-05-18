@@ -25,18 +25,26 @@
 #include "ntop_includes.h"
 
 class NTPServerContacts : public ServerContacts {
-private:
-  u_int32_t getContactedServers(Host *h) const { return h->getNTPContactCardinality(); };
-  HostAlertType getAlertType() const { return NTPServerContactsAlert::getClassType(); };
-  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _contacts, u_int64_t _contacts_threshold) { return new NTPServerContactsAlert(c, f, cli_pctg, _contacts, _contacts_threshold); };
+ private:
+  u_int32_t getContactedServers(Host *h) const {
+    return h->getNTPContactCardinality();
+  };
+  HostAlertType getAlertType() const {
+    return NTPServerContactsAlert::getClassType();
+  };
+  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
+                        u_int64_t _contacts, u_int64_t _contacts_threshold) {
+    return new NTPServerContactsAlert(c, f, cli_pctg, _contacts,
+                                      _contacts_threshold);
+  };
   bool isServer(Host *h) { return h->isNtpServer(); };
 
  public:
   NTPServerContacts();
-  ~NTPServerContacts() {};
+  ~NTPServerContacts(){};
 
   HostCheckID getID() const { return host_check_ntp_server_contacts; }
-  std::string getName()        const { return(std::string("ntp_contacts")); }
+  std::string getName() const { return (std::string("ntp_contacts")); }
 };
 
 #endif

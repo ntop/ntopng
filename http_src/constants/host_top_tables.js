@@ -1,4 +1,4 @@
-import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
+import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import interfaceTopTables from "./interface_top_tables.js";
 
 let top_application_interface = interfaceTopTables.find((t) => t.view == "top_protocols");

@@ -781,6 +781,9 @@ end
 -- ##############################################
 
 function splitNetworkPrefix(net)
+   if not net then
+      tprint(debug.traceback())
+   end
    local prefix = tonumber(net:match("/(.+)"))
    local address = net:gsub("/.+","")
    return address, prefix

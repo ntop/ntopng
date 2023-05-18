@@ -1,0 +1,48 @@
+{#
+  (C) 2023 - ntop.org
+  This template is used by the `Live Flows` page inside the `Host Details`.    
+#}
+
+
+<div id="manage-configurations-backup">
+  <page-manage-configurations-backup
+  :date_format="date_format">
+  </page-manage-configurations-backup>
+</div>
+  
+<script type="text/javascript">  
+  const date_format = '{* date_format *}'
+  function start_vue() {
+
+    let vue_options = {
+      components: {	  
+        'page-manage-configurations-backup': ntopVue.PageManageConfigurationBackup,
+        //'page-manage-configurations-backup': ntopVue.PageManageConfigurationBackup2,
+      },
+      /**
+      * First method called when the component is created.
+      */
+      created() { },
+      mounted() {
+      },
+      data() {
+
+        return {
+          date_format: date_format
+        };
+      },
+      methods: { },
+    };
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#manage-configurations-backup');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>
+

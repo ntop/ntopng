@@ -32,11 +32,11 @@ SQLiteStoreManager::SQLiteStoreManager(int interface_id) {
 /* **************************************************** */
 
 int SQLiteStoreManager::init(const char *db_file_full_path) {
-  // db_file_full_path = (char*)":memory:"; 
-  
-  if(sqlite3_open(db_file_full_path, &db)) {
+  // db_file_full_path = (char*)":memory:";
+
+  if (sqlite3_open(db_file_full_path, &db)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to open %s: %s",
-				 db_file_full_path, sqlite3_errmsg(db));
+                                 db_file_full_path, sqlite3_errmsg(db));
     db = NULL;
     return -1;
   }
@@ -46,16 +46,15 @@ int SQLiteStoreManager::init(const char *db_file_full_path) {
 
 /* **************************************************** */
 
-NetworkInterface* SQLiteStoreManager::getNetworkInterface() {
-  if(!iface)
-    iface = ntop->getInterfaceById(ifid);
+NetworkInterface *SQLiteStoreManager::getNetworkInterface() {
+  if (!iface) iface = ntop->getInterfaceById(ifid);
   return iface;
 }
 
 /* **************************************************** */
 
 SQLiteStoreManager::~SQLiteStoreManager() {
-  if(db) sqlite3_close(db);
+  if (db) sqlite3_close(db);
 }
 
 /* **************************************************** */
@@ -74,17 +73,18 @@ SQLiteStoreManager::~SQLiteStoreManager() {
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int SQLiteStoreManager::exec_query(const char * db_query,
-				   int (*callback)(void *, int, char **, char **),
-				   void *payload) {
+int SQLiteStoreManager::exec_query(const char *db_query,
+                                   int (*callback)(void *, int, char **,
+                                                   char **),
+                                   void *payload) {
   char *zErrMsg = 0;
 
-  if(!db) {
+  if (!db) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Database not initialized.");
-    return(-1);
+    return (-1);
   }
 
-  if(sqlite3_exec(db, db_query, callback, payload, &zErrMsg)) {
+  if (sqlite3_exec(db, db_query, callback, payload, &zErrMsg)) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: %s", zErrMsg);
     ntop->getTrace()->traceEvent(TRACE_INFO, "Query: %s", db_query);
     sqlite3_free(zErrMsg);
@@ -97,7 +97,8 @@ int SQLiteStoreManager::exec_query(const char * db_query,
 /* **************************************************** */
 /*
   Executes a prepared statements and retries a fixed number of times upon
-  certain errors. This allows some errors to be recovered such as SQLITE_BUSY (5)
+  certain errors. This allows some errors to be recovered such as SQLITE_BUSY
+  (5)
 
   See https://www.sqlite.org/rescode.html
 */
@@ -106,17 +107,17 @@ int SQLiteStoreManager::exec_statement(sqlite3_stmt *stmt) {
   int max_retries = 5;
   bool retry = true;
 
-  for(int cur_retries = 0; cur_retries < max_retries && retry; cur_retries++) {
+  for (int cur_retries = 0; cur_retries < max_retries && retry; cur_retries++) {
     rc = sqlite3_step(stmt);
 
-    switch(rc) {
-    case SQLITE_ERROR:
-    case SQLITE_ROW:
-    case SQLITE_OK:
-    case SQLITE_DONE:
-      /* Stop immediately upon error or completion */
-      retry = false;
-      break;
+    switch (rc) {
+      case SQLITE_ERROR:
+      case SQLITE_ROW:
+      case SQLITE_OK:
+      case SQLITE_DONE:
+        /* Stop immediately upon error or completion */
+        retry = false;
+        break;
     }
   }
 
@@ -126,10 +127,10 @@ int SQLiteStoreManager::exec_statement(sqlite3_stmt *stmt) {
 
     See https://www.sqlite.org/rescode.html#done
   */
-  if(rc != SQLITE_OK && rc != SQLITE_DONE && rc != SQLITE_ROW)
+  if (rc != SQLITE_OK && rc != SQLITE_DONE && rc != SQLITE_ROW)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: [%d][%s (%d)]",
-				 /* sqlite3_errstr(rc), */ rc,
-				 sqlite3_errmsg(db), sqlite3_errcode(db));
+                                 /* sqlite3_errstr(rc), */ rc,
+                                 sqlite3_errmsg(db), sqlite3_errcode(db));
 
   return rc;
 }
@@ -150,19 +151,19 @@ int SQLiteStoreManager::optimizeStore() {
 
   snprintf(query, sizeof(query), "VACUUM");
 
-  if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+  if (sqlite3_prepare_v2(db, query, -1, &stmt, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s",
+                                 sqlite3_errmsg(db));
     goto out;
   }
 
-  if((step = exec_statement(stmt)) != SQLITE_DONE) {
-    if(step != SQLITE_ERROR)
-      rc = true;
+  if ((step = exec_statement(stmt)) != SQLITE_DONE) {
+    if (step != SQLITE_ERROR) rc = true;
   }
 
- out:
-  if(stmt) sqlite3_finalize(stmt);
+out:
+  if (stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
-  return(rc);
+  return (rc);
 }

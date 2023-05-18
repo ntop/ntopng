@@ -23,7 +23,11 @@
 
 /* ***************************************************** */
 
-DangerousHostAlert::DangerousHostAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _score, u_int8_t _consecutive_high_score) : HostAlert(c, f, cli_pctg) {
+DangerousHostAlert::DangerousHostAlert(HostCheck* c, Host* f,
+                                       risk_percentage cli_pctg,
+                                       u_int64_t _score,
+                                       u_int8_t _consecutive_high_score)
+    : HostAlert(c, f, cli_pctg) {
   score = _score;
   consecutive_high_score = _consecutive_high_score;
 };
@@ -31,12 +35,12 @@ DangerousHostAlert::DangerousHostAlert(HostCheck *c, Host *f, risk_percentage cl
 /* ***************************************************** */
 
 ndpi_serializer* DangerousHostAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
+  if (serializer == NULL) return NULL;
 
-  ndpi_serialize_string_uint64(serializer, "consecutive_high_score", consecutive_high_score);
+  ndpi_serialize_string_uint64(serializer, "consecutive_high_score",
+                               consecutive_high_score);
   ndpi_serialize_string_uint64(serializer, "score", score);
-  
+
   return serializer;
 }
 

@@ -1,7 +1,6 @@
 --
 -- (C) 2013-21 - ntop.org
 --
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
@@ -25,24 +24,23 @@ local applications = interface.getnDPIProtocols()
 
 for category, cat_id in pairs(categories) do
 
-   local tmp_app_list = {}
+    local tmp_app_list = {}
 
-   -- Get the list of the current cat_id
+    -- Get the list of the current cat_id
 
-   for tmp_proto_name, tmp_proto_id in pairsByKeys(interface.getnDPIProtocols(tonumber(cat_id)), asc_insensitive) do
-      tmp_app_list[#tmp_app_list + 1] = {
-         name = tmp_proto_name,
-         id   = tmp_proto_id,
-      }
-   end
+    for tmp_proto_name, tmp_proto_id in pairsByKeys(interface.getnDPIProtocols(tonumber(cat_id)), asc_insensitive) do
+        tmp_app_list[#tmp_app_list + 1] = {
+            name = tmp_proto_name,
+            id = tmp_proto_id
+        }
+    end
 
-   -- Create the record for the cat_id
-
-   res[#res + 1] = {
-      name = category, 
-      cat_id = tonumber(cat_id),
-      app_list = tmp_app_list,
-   }
+    -- Create the record for the cat_id
+    res[#res + 1] = {
+        name = getCategoryLabel(category, cat_id),
+        cat_id = tonumber(cat_id),
+        app_list = tmp_app_list
+    }
 end
 
 rest_utils.answer(rc, res)

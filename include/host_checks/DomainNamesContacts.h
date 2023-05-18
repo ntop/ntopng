@@ -25,24 +25,31 @@
 #include "ntop_includes.h"
 
 class DomainNamesContacts : public ServerContacts {
-private:
+ private:
   u_int16_t domain_names_threshold;
-  HostAlertType getAlertType() const { return DomainNamesContactsAlert::getClassType(); };
-  u_int32_t getContactedServers(Host *h) const { return h->getDomainNamesCardinality(); }
-  DomainNamesContactsAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int64_t _num_domain_names, u_int64_t _domain_names_threshold) { 
-    return new DomainNamesContactsAlert(c, h, cli_pctg, _num_domain_names,_domain_names_threshold);
-  }; 
+  HostAlertType getAlertType() const {
+    return DomainNamesContactsAlert::getClassType();
+  };
+  u_int32_t getContactedServers(Host *h) const {
+    return h->getDomainNamesCardinality();
+  }
+  DomainNamesContactsAlert *allocAlert(HostCheck *c, Host *h,
+                                       risk_percentage cli_pctg,
+                                       u_int64_t _num_domain_names,
+                                       u_int64_t _domain_names_threshold) {
+    return new DomainNamesContactsAlert(c, h, cli_pctg, _num_domain_names,
+                                        _domain_names_threshold);
+  };
 
-public:
+ public:
   DomainNamesContacts();
-  ~DomainNamesContacts() {};
+  ~DomainNamesContacts(){};
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
-  bool loadConfiguration(json_object *config); 
+  bool loadConfiguration(json_object *config);
 
   HostCheckID getID() const { return host_check_domain_names_contacts; }
-  std::string getName()  const { return(std::string("domain_names_contacts")); }
-
+  std::string getName() const { return (std::string("domain_names_contacts")); }
 };
 
 #endif /* _DOMAIN_NAMES_CONTACTS_H_ */

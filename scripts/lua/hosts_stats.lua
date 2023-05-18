@@ -233,7 +233,7 @@ if(pool ~= nil) then
    if(tonumber(pool) ~= host_pools_instance.DEFAULT_POOL_ID) or (have_nedge) then
       if have_nedge then
 	 pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
-	 ternary(pool == host_pools_nedge.DEFAULT_POOL_ID, "", host_pools_nedge.poolIdToUsername(pool))
+	 ternary(tonumber(pool) == host_pools_nedge.DEFAULT_POOL_ID, "", host_pools_nedge.poolIdToUsername(pool))
 	 title = i18n("nedge.edit_user")
       else
 	 pool_link = "/lua/admin/manage_host_members.lua?pool="..pool
@@ -515,7 +515,9 @@ if (_GET["page"] ~= "historical") then
 				 field: "column_info",
 				 sortable: false,
 	 	             css: {
-			        textAlign: 'center'
+			        textAlign: 'center',
+                  whiteSpace: 'nowrap'
+
 			     }
          		},{
 			     title: "]] print(i18n("ip_address")) print[[",

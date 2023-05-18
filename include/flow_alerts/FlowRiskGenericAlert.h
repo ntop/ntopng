@@ -28,14 +28,22 @@ class FlowRiskGenericAlert : public FlowRiskAlert {
  private:
   ndpi_risk_enum risk;
 
-  ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);  
- public:
- FlowRiskGenericAlert(FlowCheck *c, Flow *f, ndpi_risk_enum _risk) : FlowRiskAlert(c, f) { risk = _risk; };
-  ~FlowRiskGenericAlert() { };
+  ndpi_serializer *getAlertJSON(ndpi_serializer *serializer);
 
-  FlowAlertType  getAlertType()  const { return FlowRiskAlerts::getFlowRiskAlertType(risk); }
-  ndpi_risk_enum getAlertRisk()  const { return risk;}
-  u_int8_t       getAlertScore() const { return FlowRiskAlerts::getFlowRiskScore(risk); }
+ public:
+  FlowRiskGenericAlert(FlowCheck *c, Flow *f, ndpi_risk_enum _risk)
+      : FlowRiskAlert(c, f) {
+    risk = _risk;
+  };
+  ~FlowRiskGenericAlert(){};
+
+  FlowAlertType getAlertType() const {
+    return FlowRiskAlerts::getFlowRiskAlertType(risk);
+  }
+  ndpi_risk_enum getAlertRisk() const { return risk; }
+  u_int8_t getAlertScore() const {
+    return FlowRiskAlerts::getFlowRiskScore(risk);
+  }
 };
 
 #endif /* _FR_SIMPLE_ALERT_H_ */

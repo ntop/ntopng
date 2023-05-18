@@ -31,22 +31,23 @@ class Check {
   bool enabled;
 
  public:
-  Check(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only);
+  Check(NtopngEdition _edition, bool _packet_interface_only,
+        bool _nedge_exclude, bool _nedge_only);
   virtual ~Check();
 
   /* Compatibility */
   bool isCheckCompatibleWithInterface(NetworkInterface *iface);
   bool isCheckCompatibleWithEdition() const;
-  inline NtopngEdition getEdition()   const { return check_edition; };
- 
+  inline NtopngEdition getEdition() const { return check_edition; };
+
   /* Enable/Disable hooks */
-  virtual void scriptEnable()            {};
-  virtual void scriptDisable()           {};
+  virtual void scriptEnable(){};
+  virtual void scriptDisable(){};
 
-  inline void enable()          { enabled = true; }
-  inline bool isEnabled() const { return(enabled ? true : false); }
+  inline void enable() { enabled = true; }
+  inline bool isEnabled() const { return (enabled ? true : false); }
 
-  virtual std::string getName()       const = 0;
+  virtual std::string getName() const = 0;
 };
 
 #endif /* _CHECK_H_ */

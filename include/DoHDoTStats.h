@@ -25,19 +25,19 @@
 #include "ntop_includes.h"
 
 class DoHDoTStats {
-private:
+ private:
   IpAddress ip;
   u_int16_t vlan_id;
   u_int32_t num_uses;
-  
-public:
+
+ public:
   DoHDoTStats(IpAddress i, u_int16_t id) { ip = i, vlan_id = id, num_uses = 0; }
 
   inline void incUses() { num_uses++; }
 
   void lua(lua_State *vm) {
     char buf[64];
-    
+
     lua_push_str_table_entry(vm, "ip", ip.print(buf, sizeof(buf)));
     lua_push_uint32_table_entry(vm, "vlan_id", vlan_id);
     lua_push_uint32_table_entry(vm, "num_uses", num_uses);

@@ -25,24 +25,25 @@
 #include "ntop_includes.h"
 
 class DNSTraffic : public HostCheck {
-private:
+ private:
   u_int64_t dns_bytes_threshold;
 
   HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg,
-			u_int64_t _dns_bytes, u_int64_t _dns_bytes_threshold) {
-    return new DNSTrafficAlert(c, f, cli_pctg, _dns_bytes, _dns_bytes_threshold);
+                        u_int64_t _dns_bytes, u_int64_t _dns_bytes_threshold) {
+    return new DNSTrafficAlert(c, f, cli_pctg, _dns_bytes,
+                               _dns_bytes_threshold);
   };
 
  public:
   DNSTraffic();
-  ~DNSTraffic() {};
+  ~DNSTraffic(){};
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
-  bool loadConfiguration(json_object *config);  
+  bool loadConfiguration(json_object *config);
 
   HostCheckID getID() const { return host_check_dns_traffic; }
-  std::string getName()      const { return(std::string("dns")); }
+  std::string getName() const { return (std::string("dns")); }
 };
 
 #endif

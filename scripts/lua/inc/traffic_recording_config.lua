@@ -36,6 +36,23 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   end
   ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.disk_space', tostring(disk_space))
 
+  local smart_record_traffic = false
+  if not isEmptyString(_POST["smart_record_traffic"]) then
+    smart_record_traffic = true
+    ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.instance', recording_utils.getN2diskInstanceName(master_ifid))
+    ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled', "1")
+  else
+    ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled')
+    ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.instance')
+  end
+  interface.updateSmartRecording()
+
+  local smart_disk_space = recording_utils.default_disk_space
+  if not isEmptyString(_POST["smart_disk_space"]) then
+    smart_disk_space = tonumber(_POST["smart_disk_space"])*1024
+  end
+  ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.disk_space', tostring(smart_disk_space))
+
   if recording_utils.isSupportedZMQInterface(master_ifid) then
     local ext_ifname
     if not isEmptyString(_POST["custom_name"]) then
@@ -56,12 +73,16 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     local config = {}
     config.max_disk_space = disk_space
     config.bpf_filter = bpf_filter
+    if smart_record_traffic then
+      config.enable_smart_recording = true
+      config.max_smart_disk_space = smart_disk_space
+    end
     if recording_utils.isSupportedZMQInterface(master_ifid) then 
       config.zmq_endpoint = recording_utils.getZMQProbeAddr(master_ifid)
       recording_utils.stop(master_ifid) -- stop before starting as the interface can be changed
     end
     if recording_utils.createConfig(master_ifid, config) then
-      recording_utils.restart(master_ifid)
+      recording_utils.restart(master_ifid, config)
     end
   else
     recording_utils.stop(master_ifid)
@@ -69,21 +90,33 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
 end
 
 local record_traffic = false
+local smart_record_traffic = false
 if ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.enabled') == "1" then
   record_traffic = true
+  if ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled') == "1" then
+    smart_record_traffic = true
+  end
 end
 
 local bpf_filter = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.bpf_filter')
 
 local disk_space = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.disk_space')
+local smart_disk_space = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.disk_space')
 local storage_info = recording_utils.storageInfo(master_ifid)
 local max_space = recording_utils.recommendedSpace(master_ifid, storage_info)
 
+-- Compute suggested max disk space
 max_space = math.floor(max_space/(1024*1024*1024))*1024
-if isEmptyString(disk_space) then
-  disk_space = max_space
+if isEmptyString(disk_space) and isEmptyString(smart_disk_space) then
+  disk_space = max_space/2
+  smart_disk_space = max_space/2
+elseif isEmptyString(disk_space) then
+  disk_space = ternary(max_space > tonumber(smart_disk_space), max_space - tonumber(smart_disk_space), 0)
+elseif isEmptyString(smart_disk_space) then
+  smart_disk_space = ternary(max_space > tonumber(disk_space),  max_space - tonumber(disk_space), 0)
 end
 disk_space = tostring(math.floor(tonumber(disk_space)/1024))
+smart_disk_space = tostring(math.floor(tonumber(smart_disk_space)/1024))
 
 print("<h2>"..i18n("traffic_recording.traffic_recording_settings").."</h2><br>")
 
@@ -119,25 +152,25 @@ if recording_utils.isSupportedZMQInterface(master_ifid) then
   ]]
 end
 
+-- Traffic Recording Configuration
 print [[
       <tr>
         <th width=30%>]] print(i18n("traffic_recording.traffic_recording")) print [[</th>
         <td colspan=2>]]
-
   print(template.gen("on_off_switch.html", {
     id = "record_traffic",
     checked = record_traffic,
     icon = [[<i class="fas fa-hdd fa-lg"></i> ]] .. ternary(recording_utils.isSupportedZMQInterface(master_ifid), i18n("traffic_recording.continuous_recording_and_flows"), i18n("traffic_recording.continuous_recording"))
   }))
-
 print [[
-    </td>
+          <small>]] print(i18n("traffic_recording.traffic_recording_note"))  print[[</small>
+        </td>
       </tr>
 
       <tr>
         <th>]] print(i18n("traffic_recording.disk_space")) print [[</th>
         <td colspan=2>
-          <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="]] print(max_space/1024) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
+          <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="]] print(ternary((max_space/1024)>1, (max_space/1024), 1)) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
 <small>]] print(i18n("traffic_recording.disk_space_note") .. ternary(storage_info.if_used > 0, " "..i18n("traffic_recording.disk_space_note_in_use", {in_use=tostring(format_utils.round(storage_info.if_used/(1024*1024*1024), 2))}), "")) print[[</small>
         </td>
       </tr>
@@ -156,6 +189,38 @@ print [[
       </tr>
 ]]
 
+-- Smart Recording Configuration
+if ntop.isEnterpriseXL() then
+print [[
+      <tr>
+        <th width=30%>]] print(i18n("traffic_recording.smart_traffic_recording")) print [[</th>
+        <td colspan=2>]]
+  print(template.gen("on_off_switch.html", {
+    id = "smart_record_traffic",
+    checked = smart_record_traffic,
+    icon = [[<i class="fas fa-hdd fa-lg"></i> ]] .. i18n("traffic_recording.smart_continuous_recording")
+  }))
+print [[
+          <small>]] print(i18n("traffic_recording.smart_traffic_recording_note"))  print[[</small>
+        </td>
+      </tr>
+
+      <tr>
+        <th>]] print(i18n("traffic_recording.smart_disk_space")) print [[</th>
+        <td colspan=2>
+          <input type="number" style="width:127px;display:inline;" class="form-control" name="smart_disk_space" placeholder="" min="1" step="1" max="]] print(ternary((max_space/1024)>1, (max_space/1024), 1)) print [[" value="]] print(smart_disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
+<small>]] print(i18n("traffic_recording.smart_disk_space_note"))  print[[</small>
+        </td>
+      </tr>
+
+      <tr>
+        <th>]] print(i18n("traffic_recording.smart_storage_dir")) print [[</th>
+        <td colspan=2>]] print(recording_utils.getSmartPcapPath(master_ifid)) print [[</td>
+      </tr>
+]]
+end
+
+-- Storage Utilization
 print [[
       <tr>
         <th>]] print(i18n("traffic_recording.storage_utilization")) print [[</th>

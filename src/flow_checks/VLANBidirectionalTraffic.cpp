@@ -24,43 +24,43 @@
 
 /* ***************************************************** */
 
-VLANBidirectionalTraffic::VLANBidirectionalTraffic() : FlowCheck(ntopng_edition_community,
-								 true /* Packet Interfaces only */,
-								 true /* Exclude for nEdge */,
-								 false /* Only for nEdge */,
-								 true /* has_protocol_detected */,
-								 false /* has_periodic_update */,
-								 false /* has_flow_end */) {
+VLANBidirectionalTraffic::VLANBidirectionalTraffic()
+    : FlowCheck(ntopng_edition_community, true /* Packet Interfaces only */,
+                true /* Exclude for nEdge */, false /* Only for nEdge */,
+                true /* has_protocol_detected */,
+                false /* has_periodic_update */, false /* has_flow_end */) {
   vlans = new (std::nothrow) Bitmask(4096);
 };
 
 /* ***************************************************** */
 
 VLANBidirectionalTraffic::~VLANBidirectionalTraffic() {
-  if(vlans) delete vlans;
+  if (vlans) delete vlans;
 };
 
 /* ***************************************************** */
 
 void VLANBidirectionalTraffic::checkBidirectionalTraffic(Flow *f) {
-  if(!f) return;
+  if (!f) return;
 
-  if(isServerNotLocal(f)) {
-    /* alert should not be triggered for flow with local server (except multicast and broadcast) */
+  if (isServerNotLocal(f)) {
+    /* alert should not be triggered for flow with local server (except
+     * multicast and broadcast) */
     u_int16_t vlan_id = f->get_vlan_id();
 
-    if(checkVLAN(vlan_id)) {
+    if (checkVLAN(vlan_id)) {
       /* the flow vlan_id must be one of the vlans set up by the user  */
 
-      if(f->get_bytes_cli2srv() > 0 && f->get_bytes_srv2cli() > 0) {
-	/* the flow is bidirectional */
-	FlowAlertType alert_type = VLANBidirectionalTrafficAlert::getClassType();
-	u_int8_t c_score, s_score;
-	risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
+      if (f->get_bytes_cli2srv() > 0 && f->get_bytes_srv2cli() > 0) {
+        /* the flow is bidirectional */
+        FlowAlertType alert_type =
+            VLANBidirectionalTrafficAlert::getClassType();
+        u_int8_t c_score, s_score;
+        risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
 
-	computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+        computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
 
-	f->triggerAlertAsync(alert_type, c_score, s_score);
+        f->triggerAlertAsync(alert_type, c_score, s_score);
       }
     }
   }
@@ -75,7 +75,7 @@ void VLANBidirectionalTraffic::protocolDetected(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *VLANBidirectionalTraffic::buildAlert(Flow *f) {
-  return(new VLANBidirectionalTrafficAlert(this, f));
+  return (new VLANBidirectionalTrafficAlert(this, f));
 }
 
 /* ***************************************************** */
@@ -84,41 +84,44 @@ bool VLANBidirectionalTraffic::loadConfiguration(json_object *config) {
   FlowCheck::loadConfiguration(config); /* Parse parameters in common */
   json_object *whitelist_json, *whitelisted_domain_json;
 
-  if(vlans != NULL) {
+  if (vlans != NULL) {
     vlans->clear_all_bits();
 
-    if(json_object_object_get_ex(config, "items", &whitelist_json)) {
-      for(u_int i = 0; i < (u_int)json_object_array_length(whitelist_json); i++) {
-	u_int16_t vlan_id = (u_int16_t) -1;
+    if (json_object_object_get_ex(config, "items", &whitelist_json)) {
+      for (u_int i = 0; i < (u_int)json_object_array_length(whitelist_json);
+           i++) {
+        u_int16_t vlan_id = (u_int16_t)-1;
 
-	whitelisted_domain_json = json_object_array_get_idx(whitelist_json, i);
-	vlan_id = (u_int16_t)json_object_get_int(whitelisted_domain_json);
+        whitelisted_domain_json = json_object_array_get_idx(whitelist_json, i);
+        vlan_id = (u_int16_t)json_object_get_int(whitelisted_domain_json);
 
-	if(vlan_id != (u_int16_t)-1) {
-	  if(!vlans->is_set_bit(vlan_id)) {
-	    vlans->set_bit(vlan_id);
-	  }
-	}
+        if (vlan_id != (u_int16_t)-1) {
+          if (!vlans->is_set_bit(vlan_id)) {
+            vlans->set_bit(vlan_id);
+          }
+        }
       }
     }
   }
 
-  return(true);
+  return (true);
 }
 
 /* ***************************************************** */
 
 bool VLANBidirectionalTraffic::checkVLAN(u_int16_t vlan_id) {
-  return(vlans ? vlans->is_set_bit(vlan_id) : false);
+  return (vlans ? vlans->is_set_bit(vlan_id) : false);
 }
 
 /* ***************************************************** */
 
 bool VLANBidirectionalTraffic::isServerNotLocal(Flow *f) {
-  const IpAddress* srv_ip = f->get_srv_ip_addr();
+  const IpAddress *srv_ip = f->get_srv_ip_addr();
 
-  if(srv_ip == NULL)
-    return(false);
+  if (srv_ip == NULL)
+    return (false);
   else
-    return((srv_ip->isLocalHost() || srv_ip->isBroadMulticastAddress()) ? false : true);
+    return ((srv_ip->isLocalHost() || srv_ip->isBroadMulticastAddress())
+                ? false
+                : true);
 }

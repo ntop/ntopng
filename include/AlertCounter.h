@@ -32,7 +32,7 @@
  *
  */
 
-#define  ALERT_COUNTER_WINDOW_SECS 3
+#define ALERT_COUNTER_WINDOW_SECS 3
 
 class AlertCounter {
  private:
@@ -40,9 +40,9 @@ class AlertCounter {
   u_int16_t trailing_window[ALERT_COUNTER_WINDOW_SECS];
   u_int16_t trailing_window_min;
   u_int16_t trailing_window_max_since_hits_reset;
-  u_int8_t  trailing_index;
+  u_int8_t trailing_index;
   bool hits_reset_req;
-  
+
   void reset_window(time_t when = 0);
 
  public:

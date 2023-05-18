@@ -27,11 +27,13 @@
 class UsedPorts {
  private:
   /* Used for both TCP and UDP */
-  std::unordered_map<u_int16_t, ndpi_protocol> udp_server_ports, tcp_server_ports;
-  std::unordered_map<u_int16_t, ndpi_protocol> udp_client_contacted_ports, tcp_client_contacted_ports;
+  std::unordered_map<u_int16_t, ndpi_protocol> udp_server_ports,
+      tcp_server_ports;
+  std::unordered_map<u_int16_t, ndpi_protocol> udp_client_contacted_ports,
+      tcp_client_contacted_ports;
 
   void setLuaArray(lua_State *vm, NetworkInterface *iface, bool isTCP,
-		   std::unordered_map<u_int16_t, ndpi_protocol> *ports);
+                   std::unordered_map<u_int16_t, ndpi_protocol> *ports);
 
  public:
   UsedPorts();
@@ -44,7 +46,9 @@ class UsedPorts {
   void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto);
   void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto);
 
-  std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(isTCP ? &tcp_server_ports : &udp_server_ports); }
+  std::unordered_map<u_int16_t, ndpi_protocol> *getServerPorts(bool isTCP) {
+    return (isTCP ? &tcp_server_ports : &udp_server_ports);
+  }
 };
 
 #endif /* _USED_PORTS_H_ */

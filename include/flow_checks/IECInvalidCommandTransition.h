@@ -24,24 +24,28 @@
 
 /**
  * IMPORTANT: this is just a stop to avoid the error:
- * 
- * [FlowChecksLoader.cpp:253] WARNING: Unable to find flow check 'iec_invalid_command_transition': skipping it
- * 
+ *
+ * [FlowChecksLoader.cpp:253] WARNING: Unable to find flow check
+ * 'iec_invalid_command_transition': skipping it
+ *
  * cause the check is triggered by the IEC104Stats.cpp:300
  */
 #include "ntop_includes.h"
 
 class IECInvalidCommandTransition : public FlowCheck {
  private:
-  
  public:
-  IECInvalidCommandTransition() : FlowCheck(ntopng_edition_community,
-				   false /* All interfaces */, false /* Don't exclude for nEdge */,
-				   false /* NOT only for nEdge */, false /* has_protocol_detected */,
-				   false /* has_periodic_update */, false /* has_flow_end */) {};
-  ~IECInvalidCommandTransition() {};
-  
-  std::string getName()          const { return(std::string("iec_invalid_command_transition")); }
+  IECInvalidCommandTransition()
+      : FlowCheck(ntopng_edition_community, false /* All interfaces */,
+                  false /* Don't exclude for nEdge */,
+                  false /* NOT only for nEdge */,
+                  false /* has_protocol_detected */,
+                  false /* has_periodic_update */, false /* has_flow_end */){};
+  ~IECInvalidCommandTransition(){};
+
+  std::string getName() const {
+    return (std::string("iec_invalid_command_transition"));
+  }
 };
 
 #endif /* _IEC_INVALID_COMMAND_TRANSITION_H_ */

@@ -24,56 +24,54 @@
 
 #include "ntop_includes.h"
 
-class VLAN : public GenericHashEntry, public GenericTrafficElement, public Score {
+class VLAN : public GenericHashEntry,
+             public GenericTrafficElement,
+             public Score {
  private:
   u_int16_t vlan_id;
   UsedPorts usedPorts;
-  
-  inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
-    if(first_seen == 0) first_seen = t;
+
+  inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
+    if (first_seen == 0) first_seen = t;
     last_seen = iface->getTimeLastPktRcvd();
     sent.incStats(t, num_pkts, num_bytes);
   }
-  
+
   inline void incRcvdStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
     rcvd.incStats(t, num_pkts, num_bytes);
   }
 
  public:
-  VLAN(NetworkInterface *_iface, u_int16_t _vlan_id);
+  VLAN(NetworkInterface* _iface, u_int16_t _vlan_id);
   ~VLAN();
 
   void set_hash_entry_state_idle();
 
-  inline u_int16_t getNumHosts()               { return getUses();            }
-  inline u_int32_t key()                       { return(vlan_id);             }
-  inline u_int16_t    get_vlan_id()               { return(vlan_id);             }
+  inline u_int16_t getNumHosts() { return getUses(); }
+  inline u_int32_t key() { return (vlan_id); }
+  inline u_int16_t get_vlan_id() { return (vlan_id); }
 
   bool equal(u_int16_t _vlan_id);
 
-  inline void incStats(time_t when, u_int16_t proto_id,
-		       u_int64_t sent_packets, u_int64_t sent_bytes,
-		       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
-    if(ndpiStats || (ndpiStats = new nDPIStats()))
-      ndpiStats->incStats(when, proto_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  inline void incStats(time_t when, u_int16_t proto_id, u_int64_t sent_packets,
+                       u_int64_t sent_bytes, u_int64_t rcvd_packets,
+                       u_int64_t rcvd_bytes) {
+    if (ndpiStats || (ndpiStats = new nDPIStats()))
+      ndpiStats->incStats(when, proto_id, sent_packets, sent_bytes,
+                          rcvd_packets, rcvd_bytes);
     incSentStats(when, sent_packets, sent_bytes);
     incRcvdStats(when, rcvd_packets, rcvd_bytes);
   }
 
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
-
-  inline void deserialize(json_object *obj) {
-    GenericHashEntry::deserialize(obj);
-    GenericTrafficElement::deserialize(obj, iface);
+  inline char* getSerializationKey(char* buf, uint bufsize) {
+    snprintf(buf, bufsize, VLAN_SERIALIZED_KEY, iface->get_id(), vlan_id);
+    return (buf);
   }
-  inline void serialize(json_object *obj, DetailsLevel details_level) {
-    GenericHashEntry::getJSONObject(obj, details_level);
-    GenericTrafficElement::getJSONObject(obj, iface);
-  }
-  inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, VLAN_SERIALIZED_KEY, iface->get_id(), vlan_id); return(buf); }
-  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
-  void luaUsedPorts(lua_State* vm)                                       { usedPorts.lua(vm, iface);                       };
+  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol* proto) {
+    usedPorts.setServerPort(isTCP, port, proto);
+  };
+  void luaUsedPorts(lua_State* vm) { usedPorts.lua(vm, iface); };
 };
 
 #endif /* _VLAN_H_ */
-

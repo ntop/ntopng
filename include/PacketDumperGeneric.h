@@ -22,11 +22,6 @@
 #ifndef _PACKET_DUMPER_GENERIC_H_
 #define _PACKET_DUMPER_GENERIC_H_
 
-typedef enum {
-  ATTACK,
-  GUI,
-  UNKNOWN
-}
-dump_reason;
+typedef enum { ATTACK, GUI, UNKNOWN } dump_reason;
 
 #endif /* _PACKET_DUMPER_GENERIC_H_ */

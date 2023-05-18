@@ -24,7 +24,6 @@
 
 #include "host_alerts/CountriesContactsAlert.h"
 #include "host_alerts/CustomHostLuaScriptAlert.h"
-#include "host_alerts/ExternalHostScriptAlert.h"
 #include "host_alerts/FlowHitsAlert.h"
 #include "host_alerts/FlowFloodAlert.h"
 #include "host_alerts/SYNScanAlert.h"

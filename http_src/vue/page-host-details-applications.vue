@@ -274,23 +274,23 @@ function start_datatable(PageVue) {
 
 
   columns = [
-    { columnName: i18n("host_details.category"), targets: 0, width: '20', name: 'category', data: 'category', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+    { columnName: i18n("host_details.category"), targets: 0, name: 'category', data: 'category', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
         return `<a href="${http_prefix}/lua/host_details.lua?host=${PageVue.$props.url_params.host}@${PageVue.$props.url_params.vlan}&ts_schema=host:ndpi_categories&page=historical&category=${data.label}" target="_blank">${data.label}</a>`
       } 
     },
-    { columnName: i18n("host_details.applications"), targets: 0, width: '20', name: 'applications', data: 'applications', orderable: false, className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+    { columnName: i18n("host_details.applications"), targets: 0, name: 'applications', data: 'applications', orderable: false, className: 'text-nowrap', responsivePriority: 1, render: (data) => {
         return `${data.label || ''} <a href="${http_prefix}/${data.href}${data.category_id}">${data.more_protos || ''}</a>`
       } 
     },
-    { columnName: i18n("host_details.duration"), targets: 0, width: '15', name: 'duration', data: 'duration', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+    { columnName: i18n("host_details.duration"), targets: 0, name: 'duration', data: 'duration', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
         return NtopUtils.secondsToTime(data);
       }  
     },
-    { columnName: i18n("host_details.tot_bytes"), targets: 0, width: '20', name: 'tot_bytes', data: 'tot_bytes', className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
+    { columnName: i18n("host_details.tot_bytes"), targets: 0, name: 'tot_bytes', data: 'tot_bytes', className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
         return NtopUtils.bytesToSize(data);
       }  
     },
-    { columnName: i18n("host_details.tot_percentage"), targets: 0, width: '25', name: 'percentage', data: 'percentage', width: '20%', className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
+    { columnName: i18n("host_details.tot_percentage"), targets: 0, name: 'percentage', data: 'percentage', className: 'text-center text-nowrap', responsivePriority: 2, render: (data) => {
         const percentage = data.toFixed(1);
         return NtopUtils.createProgressBar(percentage);
       }  

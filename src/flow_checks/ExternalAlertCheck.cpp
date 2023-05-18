@@ -36,15 +36,11 @@ void ExternalAlertCheck::checkExternalAlert(Flow *f) {
 
 /* ***************************************************** */
 
-void ExternalAlertCheck::protocolDetected(Flow *f) {
-  checkExternalAlert(f);
-}
+void ExternalAlertCheck::protocolDetected(Flow *f) { checkExternalAlert(f); }
 
 /* ***************************************************** */
 
-void ExternalAlertCheck::flowEnd(Flow *f) {
-  checkExternalAlert(f);
-}
+void ExternalAlertCheck::flowEnd(Flow *f) { checkExternalAlert(f); }
 
 /* ***************************************************** */
 

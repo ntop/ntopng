@@ -3,9 +3,9 @@
   <template v-slot:title>{{i18n('traffic_recording.pcap_extract')}}</template>
   <template v-slot:body>
     
-    <div class="alert alert-info" v-html="description"></div>
-    <form style="height:95%;">
-      <div class="tab-content" style="height:100%;">	
+    <div class="alert" :class="{ 'alert-info': data_available != 2, 'alert-warning': data_available == 2 }" v-html="description"></div>
+    <form v-if="data_available == 1" style="height:95%;">
+      <div class="tab-content" style="height:100%;">
         <div class="row">
           <div class="form-group mb-3 col-md-3 has-feedback">
 	    <button class="btn btn-sm btn-secondary" type="button" @click="show_hide_menu">{{i18n('advanced')}}<i :class="{ 'fas fa-caret-down': show_menu, 'fas fa-caret-up': !show_menu}"></i></button>
@@ -22,9 +22,9 @@
 	    <br>
             <label class="form-label">{{i18n('traffic_recording.filter_bpf')}} <a class="ntopng-external-link" href="https://www.ntop.org/guides/n2disk/filters.html"><i class="fas fa-external-link-alt"></i></a></label>
             <div class="input-group">
-              <span class="input-group-addon"><span class="glyphicon glyphicon-filter"></span></span>
-              <input name="bpf_filter" v-model="bpf_filter" class="form-control input-sm" data-bpf="bpf" autocomplete="off" spellcheck="false">
-              <span v-show="invalid_bpf" style="margin: 0px;padding:0;display:block;" class="invalid-feedback ">{{i18n('invalid_value')}}</span>
+	      <span class="input-group-addon"><span class="glyphicon glyphicon-filter"></span></span>
+	      <input name="bpf_filter" v-model="bpf_filter" class="form-control input-sm" data-bpf="bpf" autocomplete="off" spellcheck="false">
+	      <span v-show="invalid_bpf" style="margin: 0px;padding:0;display:block;" class="invalid-feedback ">{{i18n('invalid_value')}}</span>
             </div>
 	    <br>
 	    <label class="form-label">{{i18n('traffic_recording.filter_examples')}}:</label>
@@ -37,12 +37,13 @@
 	    </ul>
           </div>
         </div>
-	
       </div>
     </form>
   </template>
+  
   <template v-slot:footer>
-    <button type="button" @click="apply" class="btn btn-primary">{{i18n('apply')}}</button>
+    <button v-show="data_available != 2" type="button" @click="apply" class="btn btn-primary">{{i18n('apply')}}</button>
+    <button v-show="data_available == 2" type="button" @click="close" class="btn btn-primary">{{i18n('ok')}}</button>
   </template>  
 </modal>  
 </template>
@@ -66,6 +67,7 @@ export default defineComponent({
 	    bpf_filter: "",
 	    extract_now: true,
 	    show_menu: true,
+	    data_available: 0, // 0 == loading, 1 == available, 2 == no data
 	    i18n: (t) => i18n(t),
 	    id_modal: `${this.$props.id}_modal`,
 	};
@@ -122,9 +124,40 @@ export default defineComponent({
 		alert_text_html = `${alert_text_html} ${job_id}`;
 		ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_GLOBAL_ALERT_INFO, { text_html: alert_text_html, type: "alert-success" });
 	    }
+	    this.close();
+	},
+	close: function() {
 	    this.$refs["modal"].close();
+	    setTimeout(() => {
+		this.data_available = 0;
+	    }, 1000);
 	},
 	show: async function(bpf_filter) {
+	    let status = ntopng_status_manager.get_status();
+	    if (status.epoch_begin == null || status.epoch_end == null) {
+		console.error("modal-traffic-extraction: epoch_begin and epoch_end undefined in url");
+		return;
+	    }	    
+	    let params = {
+		epoch_begin: status.epoch_begin,
+		epoch_end: status.epoch_end,
+	    };
+	    let url_params = ntopng_url_manager.obj_to_url_params(params);
+	    let url_request = `${http_prefix}/lua/check_recording_data.lua?${url_params}`;
+	    let res = await ntopng_utility.http_request(url_request, null, null, true);
+	    if (res.available == false) {
+		this.data_available = 2;
+		this.description = i18n('traffic_recording.no_recorded_data');
+		this.$refs["modal"].show();
+		return;
+	    }
+	    let epoch = { epoch_begin: res.epoch_begin, epoch_end: res.epoch_end };
+	    
+	    this.data_available = 1;
+	    let extra_info = "";
+	    if (res.info != null) {
+		extra_info = res.info;
+	    };
 	    if (bpf_filter == null) {
 		let url_params = ntopng_url_manager.get_url_params();
 		let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/bpf.lua?${url_params}`;
@@ -134,19 +167,8 @@ export default defineComponent({
 		    return;
 		}
 		bpf_filter = res.bpf;
+		this.set_descriptions(epoch.epoch_begin, epoch.epoch_end, extra_info);
 	    }
-	    let status = ntopng_status_manager.get_status();
-	    if (status.epoch_begin == null || status.epoch_end == null) {
-		console.error("modal-traffic-extraction: epoch_begin and epoch_end undefined in url");
-		return;
-	    }
-	    let date_begin = new Date(status.epoch_begin * 1000);
-	    let date_end = new Date(status.epoch_end * 1000);
-	    
-	    let desc = i18n('traffic_recording.about_to_download_flow');
-	    desc = desc.replace('%{date_begin}', this.format_date(date_begin));
-	    desc = desc.replace('%{date_end}', this.format_date(date_end));
-	    this.description = desc;
 	    
 	    // let url_params = ntopng_url_manager.get_url_params();
 	    // let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/bpf.lua?${url_params}`;
@@ -154,6 +176,16 @@ export default defineComponent({
 	    // this.bpf_filter = res.bpf;
 	    this.bpf_filter = bpf_filter;
 	    this.$refs["modal"].show();
+	},
+	set_descriptions: function(epoch_begin, epoch_end, info) {
+	    let date_begin = new Date(epoch_begin * 1000);
+	    let date_end = new Date(epoch_end * 1000);
+	    
+	    let desc = i18n('traffic_recording.about_to_download_flow');
+	    desc = desc.replace('%{date_begin}', this.format_date(date_begin));
+	    desc = desc.replace('%{date_end}', this.format_date(date_end));
+	    desc = desc.replace('%{extra_info}', info);
+	    this.description = desc;
 	},
 	show_hide_menu: function() {
 	    this.show_menu = !this.show_menu;

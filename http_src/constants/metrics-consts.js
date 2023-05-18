@@ -1,7 +1,3 @@
-import { DataTableUtils } from "../utilities/datatable/sprymedia-datatable-utils";
-import formatterUtils from "../utilities/formatter-utils.js";
-import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
-import NtopUtils from "../utilities/ntop-utils";
 import interfaceTopTables from "./interface_top_tables.js";
 import hostTopTables from "./host_top_tables.js";
 import snmpInterfaceTopTables from "./snmp_interface_top_tables.js";
@@ -39,13 +35,6 @@ const sources_url_el_to_source = {
 	    value,
 	};
     },
-};
-
-const table_column_render_types = {
-    metric: "metric",
-    text: "text",
-    percentage: "percentage",
-    button_link: "button_link",
 };
 
 const sources_types_tables = {

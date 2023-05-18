@@ -23,7 +23,7 @@
 #include "flow_checks_includes.h"
 
 void DeviceProtocolNotAllowed::protocolDetected(Flow *f) {
-  if(!f->isDeviceAllowedProtocol()) {
+  if (!f->isDeviceAllowedProtocol()) {
     FlowAlertType alert_type = DeviceProtocolNotAllowedAlert::getClassType();
     u_int8_t c_score, s_score;
     risk_percentage cli_score_pctg;
@@ -33,7 +33,7 @@ void DeviceProtocolNotAllowed::protocolDetected(Flow *f) {
     else
       cli_score_pctg = CLIENT_LOW_RISK_PERCENTAGE;
 
-    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score); 
+    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
 
     f->triggerAlertAsync(alert_type, c_score, s_score);
   }
@@ -42,26 +42,29 @@ void DeviceProtocolNotAllowed::protocolDetected(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *DeviceProtocolNotAllowed::buildAlert(Flow *f) {
-  DeviceProtocolNotAllowedAlert *alert = new (std::nothrow) DeviceProtocolNotAllowedAlert(this, f);
+  DeviceProtocolNotAllowedAlert *alert =
+      new (std::nothrow) DeviceProtocolNotAllowedAlert(this, f);
 
-  if(alert) {
+  if (alert) {
     /*
       Only the attacker is known, and it can be either the client or the server.
-      Nothing can be said on the victim as the non-attacker peer can just do legitimate activities.
-      E.g., a client using TOR as protocol not allowed can contact legitimate (non-victim) TOR nodes.
-      
-      As setting attacker/victim is a strong concept, the flow is checked to be unicast to avoid
-      considering multicast/broadcast addresses (see https://github.com/ntop/ntopng/issues/5624)
+      Nothing can be said on the victim as the non-attacker peer can just do
+      legitimate activities. E.g., a client using TOR as protocol not allowed
+      can contact legitimate (non-victim) TOR nodes.
+
+      As setting attacker/victim is a strong concept, the flow is checked to be
+      unicast to avoid considering multicast/broadcast addresses (see
+      https://github.com/ntop/ntopng/issues/5624)
     */
-    
-    if(f->isUnicast()) {
-      if(!f->isCliDeviceAllowedProtocol())
-	alert->setCliAttacker();
+
+    if (f->isUnicast()) {
+      if (!f->isCliDeviceAllowedProtocol())
+        alert->setCliAttacker();
       else
-	alert->setSrvAttacker();
+        alert->setSrvAttacker();
     }
   }
-  
+
   return alert;
 }
 

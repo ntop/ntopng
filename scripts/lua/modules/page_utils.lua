@@ -202,6 +202,7 @@ page_utils.menu_entries = {
    dhcp_active_leases     = {key = "dhcp_active_leases", i18n_title = "nedge.active_dhcp_leases", section = "system_stats"},
    port_forwarding        = {key = "port_forwarding", i18n_title = "nedge.port_forwarding", section = "system_stats"},
    rules_config           = {key = "rules_config", i18n_title = "nedge.rules_config_title", section = "system_stats"},
+   forwarders_config       = {key = "forwarders_config", i18n_title = "nedge.repeaters_config_title", section = "system_stats"}
 }
 
 -- Extend the menu entries with the scripts

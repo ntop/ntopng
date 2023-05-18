@@ -26,24 +26,31 @@
 
 class FlowRiskUnsafeProtocol : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskUnsafeProtocolAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskUnsafeProtocolAlert::getClassType();
+  }
 
  public:
-  FlowRiskUnsafeProtocol() : FlowRisk() {};
-  ~FlowRiskUnsafeProtocol() {};
+  FlowRiskUnsafeProtocol() : FlowRisk(){};
+  ~FlowRiskUnsafeProtocol(){};
 
   FlowAlert *buildAlert(Flow *f) {
-    FlowRiskUnsafeProtocolAlert *alert = new FlowRiskUnsafeProtocolAlert(this, f);
+    FlowRiskUnsafeProtocolAlert *alert =
+        new FlowRiskUnsafeProtocolAlert(this, f);
 
     alert->setCliAttacker();
-    if(f->get_packets_srv2cli() > 10)
-      alert->setSrvAttacker();
+    if (f->get_packets_srv2cli() > 10) alert->setSrvAttacker();
 
     return alert;
   }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskUnsafeProtocolAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskUnsafeProtocolAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskUnsafeProtocolAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskUnsafeProtocolAlert::getClassRisk();
+  }
 };
 
 #endif

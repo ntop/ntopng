@@ -209,8 +209,6 @@ export default {
       let option = filter.options.find((o) => o.value == this.option_selected.value);
       value = option.value;
       value_label = option.value_label || option.label;
-    } else if (value == null) {
-      value = "";
     }
     let params = {
       id: this.filter_type_selected.id,

@@ -23,20 +23,21 @@
 
 /* ***************************************************** */
 
-P2PTrafficAlert::P2PTrafficAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _p2p_bytes, u_int64_t _p2p_bytes_threshold) : HostAlert(c, f, cli_pctg) {
-  p2p_bytes = _p2p_bytes,
-    p2p_bytes_threshold = _p2p_bytes_threshold;
+P2PTrafficAlert::P2PTrafficAlert(HostCheck* c, Host* f,
+                                 risk_percentage cli_pctg, u_int64_t _p2p_bytes,
+                                 u_int64_t _p2p_bytes_threshold)
+    : HostAlert(c, f, cli_pctg) {
+  p2p_bytes = _p2p_bytes, p2p_bytes_threshold = _p2p_bytes_threshold;
 };
 
 /* ***************************************************** */
 
 ndpi_serializer* P2PTrafficAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
+  if (serializer == NULL) return NULL;
 
   ndpi_serialize_string_uint64(serializer, "value", p2p_bytes);
   ndpi_serialize_string_uint64(serializer, "threshold", p2p_bytes_threshold);
-  
+
   return serializer;
 }
 

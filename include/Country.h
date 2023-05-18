@@ -26,7 +26,9 @@
 
 class Score;
 
-class Country : public GenericHashEntry, public GenericTrafficElement, public Score {
+class Country : public GenericHashEntry,
+                public GenericTrafficElement,
+                public Score {
  private:
   /* Note: country name can be more then 2 chars, see
    * https://www.iso.org/iso-3166-country-codes.html
@@ -44,34 +46,41 @@ class Country : public GenericHashEntry, public GenericTrafficElement, public Sc
 
   void set_hash_entry_state_idle();
 
-  inline u_int16_t getNumHosts()               { return getUses();            }
-  inline u_int32_t key()                       { return Utils::stringHash(country_name); }
-  inline char* get_country_name()              { return country_name; }
+  inline u_int16_t getNumHosts() { return getUses(); }
+  inline u_int32_t key() { return Utils::stringHash(country_name); }
+  inline char *get_country_name() { return country_name; }
 
   bool equal(const char *country);
-  inline bool equal(Country *country)          { return equal(country->get_country_name()); }
+  inline bool equal(Country *country) {
+    return equal(country->get_country_name());
+  }
 
-  inline void incEgress(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+  inline void incEgress(time_t t, u_int64_t num_pkts, u_int64_t num_bytes,
+                        bool broadcast) {
     incStats(t, num_pkts, num_bytes);
     dirstats.incEgress(t, num_pkts, num_bytes, broadcast);
   }
 
-  inline void incIngress(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+  inline void incIngress(time_t t, u_int64_t num_pkts, u_int64_t num_bytes,
+                         bool broadcast) {
     incStats(t, num_pkts, num_bytes);
     dirstats.incIngress(t, num_pkts, num_bytes, broadcast);
   }
 
-  inline void incInner(time_t t, u_int64_t num_pkts, u_int64_t num_bytes, bool broadcast) {
+  inline void incInner(time_t t, u_int64_t num_pkts, u_int64_t num_bytes,
+                       bool broadcast) {
     incStats(t, num_pkts, num_bytes);
     dirstats.incInner(t, num_pkts, num_bytes, broadcast);
   }
 
-  void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
+  void lua(lua_State *vm, DetailsLevel details_level, bool asListElement);
 
-  void deserialize(json_object *obj);
   void serialize(json_object *obj, DetailsLevel details_level);
-  inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, COUNTRY_SERIALIZED_KEY, iface->get_id(), country_name); return(buf); }
+  inline char *getSerializationKey(char *buf, uint bufsize) {
+    snprintf(buf, bufsize, COUNTRY_SERIALIZED_KEY, iface->get_id(),
+             country_name);
+    return (buf);
+  }
 };
 
 #endif /* _COUNTRIES_H_ */
-

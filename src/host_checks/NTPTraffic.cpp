@@ -24,7 +24,10 @@
 
 /* ***************************************************** */
 
-NTPTraffic::NTPTraffic() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
+NTPTraffic::NTPTraffic()
+    : HostCheck(ntopng_edition_community, false /* All interfaces */,
+                false /* Don't exclude for nEdge */,
+                false /* NOT only for nEdge */) {
   ntp_bytes_threshold = (u_int64_t)-1;
 };
 
@@ -34,8 +37,11 @@ void NTPTraffic::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
   u_int64_t delta;
 
-  if((delta = h->cb_status_delta_ntp_bytes(h->get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_NTP))) > ntp_bytes_threshold) {
-    if (!alert) alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, delta, ntp_bytes_threshold);
+  if ((delta = h->cb_status_delta_ntp_bytes(h->get_ndpi_stats()->getProtoBytes(
+           NDPI_PROTOCOL_NTP))) > ntp_bytes_threshold) {
+    if (!alert)
+      alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, delta,
+                         ntp_bytes_threshold);
     if (alert) h->triggerAlert(alert);
   }
 }
@@ -47,13 +53,13 @@ bool NTPTraffic::loadConfiguration(json_object *config) {
 
   HostCheck::loadConfiguration(config); /* Parse parameters in common */
 
-  if(json_object_object_get_ex(config, "threshold", &json_threshold))
+  if (json_object_object_get_ex(config, "threshold", &json_threshold))
     ntp_bytes_threshold = json_object_get_int64(json_threshold);
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u", json_object_to_json_string(config), ntp_bytes_threshold);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u",
+  // json_object_to_json_string(config), ntp_bytes_threshold);
 
-  return(true);
+  return (true);
 }
 
 /* ***************************************************** */
-

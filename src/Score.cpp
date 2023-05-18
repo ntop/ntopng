@@ -31,28 +31,34 @@ Score::Score(NetworkInterface *_iface) {
 /* ***************************************************** */
 
 Score::~Score() {
-  if(score) delete score;
+  if (score) delete score;
 };
 
 /* *************************************** */
 
-u_int16_t Score::incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client) {
-  if(score
-     || (score = view_interface_score ? new (std::nothrow) ViewScoreStats() : new (std::nothrow) ScoreStats())) { /* Allocate if necessary */
+u_int16_t Score::incScoreValue(u_int16_t score_incr,
+                               ScoreCategory score_category, bool as_client) {
+  if (score || (score = view_interface_score
+                            ? new (std::nothrow) ViewScoreStats()
+                            : new (std::nothrow)
+                                  ScoreStats())) { /* Allocate if necessary */
     return score->incValue(score_incr, score_category, as_client);
   } else {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Unable to allocate memory for score");
+    ntop->getTrace()->traceEvent(
+        TRACE_ERROR, "Internal error. Unable to allocate memory for score");
     return 0;
   }
 }
 
 /* *************************************** */
 
-u_int16_t Score::decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client) {
-  if(score) {
+u_int16_t Score::decScoreValue(u_int16_t score_decr,
+                               ScoreCategory score_category, bool as_client) {
+  if (score) {
     return score->decValue(score_decr, score_category, as_client);
   } else {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Memory for score not allocated");
+    ntop->getTrace()->traceEvent(
+        TRACE_ERROR, "Internal error. Memory for score not allocated");
     return 0;
   }
 }
@@ -61,14 +67,14 @@ u_int16_t Score::decScoreValue(u_int16_t score_decr, ScoreCategory score_categor
 
 void Score::lua_get_score(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "score", score ? score->get() : 0);
-  lua_push_uint64_table_entry(vm, "score.as_client", score ? score->getClient() : 0);
-  lua_push_uint64_table_entry(vm, "score.as_server", score ? score->getServer() : 0);
+  lua_push_uint64_table_entry(vm, "score.as_client",
+                              score ? score->getClient() : 0);
+  lua_push_uint64_table_entry(vm, "score.as_server",
+                              score ? score->getServer() : 0);
 }
 
 /* ***************************************************** */
 
 void Score::lua_get_score_breakdown(lua_State *vm) {
-  if(score)
-    score->lua_breakdown(vm);
+  if (score) score->lua_breakdown(vm);
 }
-

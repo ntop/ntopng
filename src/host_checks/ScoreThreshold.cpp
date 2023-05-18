@@ -24,7 +24,10 @@
 
 /* ***************************************************** */
 
-ScoreThreshold::ScoreThreshold(u_int32_t threshold) : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
+ScoreThreshold::ScoreThreshold(u_int32_t threshold)
+    : HostCheck(ntopng_edition_community, false /* All interfaces */,
+                false /* Don't exclude for nEdge */,
+                false /* NOT only for nEdge */) {
   threshold = (u_int32_t)-1;
 };
 
@@ -33,20 +36,19 @@ ScoreThreshold::ScoreThreshold(u_int32_t threshold) : HostCheck(ntopng_edition_c
 void ScoreThreshold::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
   risk_percentage cli_pctg = CLIENT_FULL_RISK_PERCENTAGE;
-  u_int32_t cli_score = h->getScoreAsClient(), srv_score = h->getScoreAsServer(), value = 0;
+  u_int32_t cli_score = h->getScoreAsClient(),
+            srv_score = h->getScoreAsServer(), value = 0;
 
-  if(cli_score > threshold)
+  if (cli_score > threshold)
     cli_pctg = CLIENT_FULL_RISK_PERCENTAGE, value = cli_score;
-  else if(srv_score > threshold)
+  else if (srv_score > threshold)
     cli_pctg = CLIENT_NO_RISK_PERCENTAGE, value = srv_score;
 
-  if(value) {
-    if(!alert)
-      alert = allocAlert(this, h, cli_pctg, value, threshold);
+  if (value) {
+    if (!alert) alert = allocAlert(this, h, cli_pctg, value, threshold);
 
     /* Refresh */
-    if(alert)
-      h->triggerAlert(alert);
+    if (alert) h->triggerAlert(alert);
   }
 }
 
@@ -57,12 +59,13 @@ bool ScoreThreshold::loadConfiguration(json_object *config) {
 
   HostCheck::loadConfiguration(config); /* Parse parameters in common */
 
-  if(json_object_object_get_ex(config, "threshold", &json_threshold))
+  if (json_object_object_get_ex(config, "threshold", &json_threshold))
     threshold = json_object_get_int64(json_threshold);
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u", json_object_to_json_string(config), dns_bytes_threshold);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u",
+  // json_object_to_json_string(config), dns_bytes_threshold);
 
-  return(true);
+  return (true);
 }
 
 /* ***************************************************** */

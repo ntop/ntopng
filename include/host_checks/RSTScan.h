@@ -25,18 +25,20 @@
 #include "ntop_includes.h"
 
 class RSTScan : public FlowHits {
-private:
+ private:
+ public:
+  RSTScan() : FlowHits(){};
+  ~RSTScan(){};
 
-public:
-  RSTScan() : FlowHits() {};
-  ~RSTScan() {};
-
-  FlowHitsAlert *allocAlert(Host *h, risk_percentage cli_pctg, u_int16_t hits, u_int64_t threshold, bool attacker) { return new RSTScanAlert(this, h, cli_pctg, hits, threshold, attacker); };
+  FlowHitsAlert *allocAlert(Host *h, risk_percentage cli_pctg, u_int16_t hits,
+                            u_int64_t threshold, bool attacker) {
+    return new RSTScanAlert(this, h, cli_pctg, hits, threshold, attacker);
+  };
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
   HostCheckID getID() const { return host_check_rst_scan; }
-  std::string getName()        const { return(std::string("rst_scan")); }
+  std::string getName() const { return (std::string("rst_scan")); }
 };
 
 #endif

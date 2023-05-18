@@ -38,7 +38,7 @@ const get_timeseries_groups_from_url = async (http_prefix, url_timeseries_groups
 	return null;
     }
     let groups = url_timeseries_groups.split(";;");
-    if (!groups?.length > 0) {
+    if (groups != null && groups.length > 0) {
 	return null;
     }
     let timeseries_groups = Promise.all(groups.map(async (g) => {
@@ -330,7 +330,7 @@ const get_metric_query_from_ts_query = (ts_query, source_type) => {
 	}
     }
     return null;
-}
+};
 
 const get_default_metric = (metrics, metric_ts_schema, metric_query) => {
     let default_metric;

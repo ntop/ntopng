@@ -88,6 +88,15 @@ local host_threshold_rules_key = "ntopng.prefs.ifid_"..tostring(ifid)..".host_th
 
 local charts_available = areInterfaceTimeseriesEnabled(ifid)
 
+function percentage(value, total)
+   if(total > 0) then
+      local pctg = round((value*100)/total, 2)
+      if(pctg > 0) then return(" [ " .. pctg .. " % ] ") end
+   end
+
+   return("") 
+end
+
 function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_class, measure_unit)
    if(can_edit) then
       print('<input style="width:36em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_class or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
@@ -954,6 +963,8 @@ end
       if has_traffic_recording_page then
          print("<tr><th colspan=7 nowrap>"..i18n("traffic_recording.traffic_recording").."</th></tr>\n")
 
+         -- Traffic Recording stats
+
          local stats = recording_utils.stats(ifstats.id)
 
          local first_epoch = stats['FirstDumpedEpoch']
@@ -979,6 +990,25 @@ end
             end
             print("</td></tr>\n")
          end
+
+         -- Smart Recording stats
+
+         stats = recording_utils.smartStats(ifstats.id)
+
+         first_epoch = stats['FirstDumpedEpoch']
+         last_epoch = stats['LastDumpedEpoch']
+
+         if first_epoch ~= nil then
+            print("<tr><th>"..i18n("traffic_recording.smart_window").."</th><td colspan=5>")
+            if first_epoch ~= nil and last_epoch ~= nil and 
+               first_epoch > 0 and last_epoch > 0 then
+               print(formatEpoch(first_epoch).." - "..formatEpoch(last_epoch))
+            else
+               print(i18n("traffic_recording.no_file"))
+            end
+            print("</td></tr>\n")
+         end
+
       end
 
       -- Storage utilization
@@ -1162,9 +1192,10 @@ elseif((page == "packets")) then
    local nedge_hidden = ternary(have_nedge, 'class="hidden"', '')
 
    print [[ <table class="table table-bordered table-striped"> ]]
-   print("<tr " .. nedge_hidden .. "><th width=30% rowspan=3>" .. i18n("packets_page.tcp_packets_analysis") .. "</th><th>" .. i18n("packets_page.retransmissions") .."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
-   print("<tr " .. nedge_hidden .. "></th><th>" .. i18n("packets_page.out_of_order") .. "</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
-   print("<tr " .. nedge_hidden .. "></th><th>" .. i18n("packets_page.lost") .. "</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
+   print("<tr " .. nedge_hidden .. "><th width=30% rowspan=3>" .. i18n("packets_page.tcp_packets_analysis") .. "</th><th>" .. i18n("packets_page.retransmissions") .."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .. percentage(ifstats.tcpPacketStats.retransmissions, ifstats.stats.packets)  .. "</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
+   
+   print("<tr " .. nedge_hidden .. "></th><th>" .. i18n("packets_page.out_of_order") .. "</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .. percentage(ifstats.tcpPacketStats.out_of_order, ifstats.stats.packets) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
+   print("<tr " .. nedge_hidden .. "></th><th>" .. i18n("packets_page.lost") .. "</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost)  .. percentage(ifstats.tcpPacketStats.lost, ifstats.stats.packets) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
 
     if(ifstats.type ~= "zmq") then
       print [[<tr ]] print(nedge_hidden) print[[><th class="text-start">]] print(i18n("packets_page.size_distribution")) print [[</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
@@ -2401,12 +2432,12 @@ print [[
         var last_pkt_ooo =  ]] print(tostring(ifstats.tcpPacketStats.out_of_order)) print [[;
         var last_pkt_lost = ]] print(tostring(ifstats.tcpPacketStats.lost)) print [[;
 
-        $('#pkt_retransmissions').html(NtopUtils.fint(rsp.tcpPacketStats.retransmissions)+" Pkts");
+        $('#pkt_retransmissions').html(NtopUtils.fint(rsp.tcpPacketStats.retransmissions)+" Pkts" + NtopUtils.percentage(rsp.tcpPacketStats.retransmissions, rsp.packets));
         $('#pkt_retransmissions_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.retransmissions, last_pkt_retransmissions));
-        $('#pkt_ooo').html(NtopUtils.fint(rsp.tcpPacketStats.out_of_order)+" Pkts");
+        $('#pkt_ooo').html(NtopUtils.fint(rsp.tcpPacketStats.out_of_order)+" Pkts" + NtopUtils.percentage(rsp.tcpPacketStats.out_of_order, rsp.packets));
         $('#pkt_ooo_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.out_of_order, last_pkt_ooo));
         $('#pkt_lost').html(NtopUtils.fint(rsp.tcpPacketStats.lost)+" Pkts");
-         $('#pkt_lost_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.lost, last_pkt_lost));
+         $('#pkt_lost_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.lost, last_pkt_lost) + NtopUtils.percentage(rsp.tcpPacketStats.lost, rsp.packets));
         last_pkt_retransmissions = rsp.tcpPacketStats.retransmissions;
         last_pkt_ooo = rsp.tcpPacketStats.out_of_order;
         last_pkt_lost = rsp.tcpPacketStats.lost;

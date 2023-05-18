@@ -25,33 +25,34 @@
 
 /* *************************************** */
 
-OperatingSystem::OperatingSystem(NetworkInterface *_iface, OSType _os_type) 
-  : GenericHashEntry(_iface), GenericTrafficElement() {
+OperatingSystem::OperatingSystem(NetworkInterface* _iface, OSType _os_type)
+    : GenericHashEntry(_iface), GenericTrafficElement() {
   os_type = _os_type;
 
 #ifdef AS_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Operating System %u", os_type);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Operating System %u",
+                               os_type);
 #endif
 }
 
 /* *************************************** */
 
-void OperatingSystem::set_hash_entry_state_idle() {
-  ; /* Nothing to do */
-}
+void OperatingSystem::set_hash_entry_state_idle() { ; /* Nothing to do */ }
 
 /* *************************************** */
 
 OperatingSystem::~OperatingSystem() {
   /* TODO: decide if it is useful to dump AS stats to redis */
 #ifdef AS_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Autonomous System %u", os_type);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Autonomous System %u",
+                               os_type);
 #endif
 }
 
 /* *************************************** */
 
-void OperatingSystem::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
+void OperatingSystem::lua(lua_State* vm, DetailsLevel details_level,
+                          bool asListElement) {
   lua_newtable(vm);
 
   lua_push_uint64_table_entry(vm, "os", os_type);
@@ -59,7 +60,7 @@ void OperatingSystem::lua(lua_State* vm, DetailsLevel details_level, bool asList
   lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
   lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 
-  if(details_level >= details_high) {
+  if (details_level >= details_high) {
     ((GenericTrafficElement*)this)->lua(vm, true);
 
     lua_push_uint64_table_entry(vm, "seen.first", first_seen);
@@ -68,14 +69,14 @@ void OperatingSystem::lua(lua_State* vm, DetailsLevel details_level, bool asList
 
     lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
 
-    if(details_level >= details_higher) {
-      if(ndpiStats) ndpiStats->lua(iface, vm);
-        tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
-	      tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
+    if (details_level >= details_higher) {
+      if (ndpiStats) ndpiStats->lua(iface, vm);
+      tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
+      tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
     }
   }
 
-  if(asListElement) {
+  if (asListElement) {
     lua_pushinteger(vm, os_type);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -84,6 +85,4 @@ void OperatingSystem::lua(lua_State* vm, DetailsLevel details_level, bool asList
 
 /* *************************************** */
 
-bool OperatingSystem::equal(OSType _os) {
-  return(os_type == _os);
-}
+bool OperatingSystem::equal(OSType _os) { return (os_type == _os); }

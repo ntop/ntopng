@@ -30,19 +30,19 @@ class TcpFlowStats {
 
  public:
   TcpFlowStats();
-  
-  inline void incSyn()         { numSynFlows++;    }
+
+  inline void incSyn() { numSynFlows++; }
   inline void incEstablished() { numEstablishedFlows++; }
-  inline void incReset()       { numResetFlows++;       }
-  inline void incFin()         { numFinFlows++;         }
+  inline void incReset() { numResetFlows++; }
+  inline void incFin() { numFinFlows++; }
 
   char* serialize();
-  void deserialize(json_object *o);
   json_object* getJSONObject();
-  void lua(lua_State* vm, const char *label);
-  inline void sum(TcpFlowStats *s) const {
-    s->numSynFlows += numSynFlows, s->numEstablishedFlows += numEstablishedFlows,
-      s->numResetFlows += numResetFlows, s->numFinFlows += numFinFlows;
+  void lua(lua_State* vm, const char* label);
+  inline void sum(TcpFlowStats* s) const {
+    s->numSynFlows += numSynFlows,
+        s->numEstablishedFlows += numEstablishedFlows,
+        s->numResetFlows += numResetFlows, s->numFinFlows += numFinFlows;
   };
 };
 

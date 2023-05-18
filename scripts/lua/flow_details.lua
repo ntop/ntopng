@@ -562,7 +562,7 @@ else
       if(flow["verdict.pass"]) then
          print('<form class="form-inline float-right" style="margin-bottom: 0px;" method="post">')
          print('<input type="hidden" name="drop_flow_policy" value="true">')
-         print('<button type="submit" class="btn btn-secondary btn-xs"><i class="fas fa-ban"></i> '..i18n("flow_details.drop_flow_traffic_btn")..'</button>')
+         print('<button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-ban"></i> '..i18n("flow_details.drop_flow_traffic_btn")..'</button>')
          print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
          print('</form>')
       end

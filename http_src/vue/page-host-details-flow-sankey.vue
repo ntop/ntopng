@@ -79,7 +79,7 @@ const sankey_data = ref({});
 onBeforeMount(() => {});
 
 onMounted(() => { 
-    update_sankey(active_hosts_type);
+    update_sankey();
 });
 
 function on_node_click(node) {
@@ -111,6 +111,15 @@ async function set_sankey_data() {
   loading.value.hide_loading();
 }
 
+/*
+function add_fake_circular_link(graph) {
+    const node_id_0 = "node_id_0", node_id_1 = "node_id_1";
+    graph.nodes.push({ node_id: node_id_0, label: node_id_0 });
+    graph.nodes.push({ node_id: node_id_1, label: node_id_1 });
+    graph.links.push({ source_node_id: node_id_0, target_node_id: node_id_1, value: 10, label: `${node_id_0}_${node_id_1}` });
+    graph.links.push({ source_node_id: node_id_1, target_node_id: node_id_0, value: 10, label: `${node_id_1}_${node_id_0}` });
+}
+*/
 
 async function get_sankey_data() {
     const url_request = get_sankey_url();
@@ -374,14 +383,6 @@ function filter_log(elements, f_filter, f_log) {
 	}
 	return take_element;
     });
-}
-
-function add_fake_circular_link(graph) {
-    const node_id_0 = "node_id_0", node_id_1 = "node_id_1";
-    graph.nodes.push({ node_id: node_id_0, label: node_id_0 });
-    graph.nodes.push({ node_id: node_id_1, label: node_id_1 });
-    graph.links.push({ source_node_id: node_id_0, target_node_id: node_id_1, value: 10, label: "${node_id_0}_${node_id_1}" });
-    graph.links.push({ source_node_id: node_id_1, target_node_id: node_id_0, value: 10, label: "${node_id_1}_${node_id_0}" });
 }
 
 function get_link_value(link) {

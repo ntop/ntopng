@@ -10,7 +10,7 @@ $.extend( $.fn.dataTableExt.oSort, {
         var x, xa;
 
         if (!a) {
-            return 0
+            return 0;
         }
 
         a = a.replace(/<[\s\S]*?>/g, "");

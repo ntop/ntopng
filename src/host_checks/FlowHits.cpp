@@ -24,19 +24,23 @@
 
 /* ***************************************************** */
 
-FlowHits::FlowHits() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
+FlowHits::FlowHits()
+    : HostCheck(ntopng_edition_community, false /* All interfaces */,
+                false /* Don't exclude for nEdge */,
+                false /* NOT only for nEdge */) {
   threshold = (u_int64_t)-1;
 };
 
 /* ***************************************************** */
 
 void FlowHits::triggerFlowHitsAlert(Host *h, HostAlert *engaged, bool attacker,
-    u_int16_t hits, u_int64_t threshold, risk_percentage cli_pctg) {
-  FlowHitsAlert *alert = static_cast<FlowHitsAlert*>(engaged);
+                                    u_int16_t hits, u_int64_t threshold,
+                                    risk_percentage cli_pctg) {
+  FlowHitsAlert *alert = static_cast<FlowHitsAlert *>(engaged);
 
   if (!alert) {
     alert = allocAlert(h, cli_pctg, hits, threshold, attacker);
-    if(attacker)
+    if (attacker)
       alert->setAttacker();
     else
       alert->setVictim();
@@ -44,16 +48,15 @@ void FlowHits::triggerFlowHitsAlert(Host *h, HostAlert *engaged, bool attacker,
     /*
       Perform an update only if:
       - The existing alert is attacker an the function is called as attacker
-      - The existing alert is victim and the function is called as victim 
+      - The existing alert is victim and the function is called as victim
     */
-    if(alert->isAttacker() == attacker) { 
+    if (alert->isAttacker() == attacker) {
       /* Update engaged alert */
       alert->setHits(hits);
     }
   }
 
-  if(alert)
-    h->triggerAlert(alert);
+  if (alert) h->triggerAlert(alert);
 }
 
 /* ***************************************************** */
@@ -63,13 +66,13 @@ bool FlowHits::loadConfiguration(json_object *config) {
 
   HostCheck::loadConfiguration(config); /* Parse parameters in common */
 
-  if(json_object_object_get_ex(config, "threshold", &json_threshold))
+  if (json_object_object_get_ex(config, "threshold", &json_threshold))
     threshold = json_object_get_int64(json_threshold);
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json_object_to_json_string(config));
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s",
+  // json_object_to_json_string(config));
 
-  return(true);
+  return (true);
 }
 
 /* ***************************************************** */
-

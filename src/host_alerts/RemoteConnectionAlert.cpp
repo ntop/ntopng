@@ -23,18 +23,21 @@
 
 /* ***************************************************** */
 
-RemoteConnectionAlert::RemoteConnectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int8_t _num_remote_access) : HostAlert(c, f, cli_pctg) {
+RemoteConnectionAlert::RemoteConnectionAlert(HostCheck* c, Host* f,
+                                             risk_percentage cli_pctg,
+                                             u_int8_t _num_remote_access)
+    : HostAlert(c, f, cli_pctg) {
   num_remote_access = _num_remote_access;
 };
 
 /* ***************************************************** */
 
-ndpi_serializer* RemoteConnectionAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
+ndpi_serializer* RemoteConnectionAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  if (serializer == NULL) return NULL;
 
   ndpi_serialize_string_uint32(serializer, "num_flows", num_remote_access);
-  
+
   return serializer;
 }
 

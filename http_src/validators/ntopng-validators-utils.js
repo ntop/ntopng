@@ -119,7 +119,7 @@ export function bpfValidator(filter_field, sync = false) {
       // possibly process the reminder
       finally_check(status.valid);
     }
-  }
+  };
 
   if (sync) {
     sendAjax();

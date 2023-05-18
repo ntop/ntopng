@@ -33,37 +33,39 @@ class MySQLDB : public DB {
   FILE *log_fd;
   u_int32_t mysqlEnqueuedFlows;
   Mutex m;
-  
+
   volatile bool db_created;
   pthread_t queryThreadLoop;
 
   bool connectToDB(MYSQL *conn, bool select_db);
   void open_log();
-  char* get_last_db_error(MYSQL *conn) { return((char*)mysql_error(conn)); }
+  char *get_last_db_error(MYSQL *conn) { return ((char *)mysql_error(conn)); }
   int exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect = true,
-		     bool ignoreErrors = false, bool doLock = true);
+                     bool ignoreErrors = false, bool doLock = true);
   void try_exec_sql_query(MYSQL *conn, char *sql);
   virtual bool createDBSchema();
   bool createNprobeDBView();
-  MYSQL* mysql_try_connect(MYSQL *conn, const char *dbname);
+  MYSQL *mysql_try_connect(MYSQL *conn, const char *dbname);
   int exec_quick_sql_query(char *sql, char *out, u_int out_len);
-  void mysql_result_to_lua(lua_State *vm, MYSQL_RES *result,
-			   int num_fields, bool limitRows);
+  void mysql_result_to_lua(lua_State *vm, MYSQL_RES *result, int num_fields,
+                           bool limitRows);
   const char *getEngineName();
   void printFailure(const char *query, int status);
-    
+
  public:
   MySQLDB(NetworkInterface *_iface);
   virtual ~MySQLDB();
 
-  virtual void* queryLoop();
+  virtual void *queryLoop();
   virtual bool dumpFlow(time_t when, Flow *f, char *json);
 
   void disconnectFromDB(MYSQL *conn);
   virtual bool isDbCreated() { return db_created; };
   char *escapeAphostrophes(const char *unescaped);
-  int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len);
-  int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created);
+  int flow2InsertValues(Flow *f, char *json, char *values_buf,
+                        size_t values_buf_len);
+  int exec_sql_query(lua_State *vm, char *sql, bool limitRows,
+                     bool wait_for_db_created);
   virtual bool startQueryLoop();
   void shutdown();
   int exec_single_query(lua_State *vm, char *sql);

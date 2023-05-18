@@ -27,22 +27,26 @@
 class TimeseriesExporter {
  private:
   static bool is_table_empty(lua_State *L, int index);
-  static int line_protocol_concat_table_fields(lua_State *L, int index, char *buf, int buf_len,
-					       int (*escape_fn)(char *outbuf, int outlen, const char *orig));
+  static int line_protocol_concat_table_fields(
+      lua_State *L, int index, char *buf, int buf_len,
+      int (*escape_fn)(char *outbuf, int outlen, const char *orig));
+
  protected:
   NetworkInterface *iface;
 
   static int escape_spaces(char *buf, int buf_len, const char *unescaped);
 
-  public:
+ public:
   TimeseriesExporter(NetworkInterface *_if);
   virtual ~TimeseriesExporter();
 
-  static int line_protocol_write_line(lua_State* vm, char *dst_line, int dst_line_len,
-				      int (*escape_fn)(char *outbuf, int outlen, const char *orig));
+  static int line_protocol_write_line(lua_State *vm, char *dst_line,
+                                      int dst_line_len,
+                                      int (*escape_fn)(char *outbuf, int outlen,
+                                                       const char *orig));
 
-  virtual bool  enqueueData(lua_State* vm, bool do_lock = true) = 0;
-  virtual char* dequeueData() = 0;
+  virtual bool enqueueData(lua_State *vm, bool do_lock = true) = 0;
+  virtual char *dequeueData() = 0;
   virtual u_int64_t queueLength() const { return 0; };
   virtual void flush() = 0;
 };

@@ -147,7 +147,7 @@ return {
         max_threshold = 10000,
         -- If set, indicates the default threshold value
         default_threshold = nil,
-        value_formatter = format_utils.bytesToSize,
+        value_formatter = format_utils.bytesToBPS,
         -- The raw measurement value is multiplied by this factor before being written into the chart
         chart_scaling_value = 1000000,
         -- A list of additional notes (localization strings) to show into the timeseries charts

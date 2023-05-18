@@ -23,40 +23,40 @@
 
 /* ************************************ */
 
-OperatingSystemHash::OperatingSystemHash(NetworkInterface *_iface, u_int _num_hashes,
-					   u_int _max_hash_size):GenericHash(_iface, _num_hashes, _max_hash_size, "OperatingSystemHash") {
+OperatingSystemHash::OperatingSystemHash(NetworkInterface *_iface,
+                                         u_int _num_hashes,
+                                         u_int _max_hash_size)
+    : GenericHash(_iface, _num_hashes, _max_hash_size, "OperatingSystemHash") {
   ;
 }
 
 /* ************************************ */
 
-OperatingSystem* OperatingSystemHash::get(OSType os_type, bool is_inline_call) {
+OperatingSystem *OperatingSystemHash::get(OSType os_type, bool is_inline_call) {
   u_int32_t hash;
 
   hash = os_type;
-  
+
   hash %= num_hashes;
 
-  if(table[hash] == NULL) {
-    return(NULL);
+  if (table[hash] == NULL) {
+    return (NULL);
   } else {
     OperatingSystem *head;
 
-    if(!is_inline_call)
-      locks[hash]->rdlock(__FILE__, __LINE__);
+    if (!is_inline_call) locks[hash]->rdlock(__FILE__, __LINE__);
 
-    head = (OperatingSystem*)table[hash];
+    head = (OperatingSystem *)table[hash];
 
-    while(head != NULL) {
-      if(!head->idle() && head->equal(os_type))
-	break;
+    while (head != NULL) {
+      if (!head->idle() && head->equal(os_type))
+        break;
       else
-	head = (OperatingSystem*)head->next();
+        head = (OperatingSystem *)head->next();
     }
 
-    if(!is_inline_call)
-      locks[hash]->unlock(__FILE__, __LINE__);
+    if (!is_inline_call) locks[hash]->unlock(__FILE__, __LINE__);
 
-    return(head);
+    return (head);
   }
 }

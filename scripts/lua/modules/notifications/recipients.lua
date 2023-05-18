@@ -740,6 +740,7 @@ end
 -- ##############################################
 
 -- @brief Dispatches a `notification` to all the interested recipients
+-- Note: this is similar to RecipientQueue::enqueue does in C++)
 -- @param notification An alert notification
 -- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
 -- @return nil
@@ -836,7 +837,10 @@ function recipients.dispatch_notification(notification, current_script)
 
             debug_print("> Delivering " .. notification.entity_val .. " alert to recipient " .. recipient.recipient_name)
 
-            ntop.recipient_enqueue(recipient.recipient_id, json_notification, notification.score, notification_category)
+            ntop.recipient_enqueue(recipient.recipient_id, 
+              json_notification --[[ alert --]],
+              notification.score,
+              notification_category)
          end
       end
 

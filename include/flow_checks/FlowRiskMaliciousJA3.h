@@ -26,16 +26,25 @@
 
 class FlowRiskMaliciousJA3 : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskMaliciousJA3Alert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskMaliciousJA3Alert::getClassType();
+  }
 
  public:
-  FlowRiskMaliciousJA3() {};
-  ~FlowRiskMaliciousJA3() {};
+  FlowRiskMaliciousJA3(){};
+  ~FlowRiskMaliciousJA3(){};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskMaliciousJA3Alert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskMaliciousJA3Alert(this, f);
+  }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskMaliciousJA3Alert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskMaliciousJA3Alert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskMaliciousJA3Alert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskMaliciousJA3Alert::getClassRisk();
+  }
 };
 
 #endif /* _FLOW_RISK_MALICIOUS_JA3_H_ */

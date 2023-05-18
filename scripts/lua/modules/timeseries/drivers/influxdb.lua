@@ -690,7 +690,7 @@ function driver:query(schema, tstart, tend, tags, options)
     GROUP BY TIME(60s)
   ]]
   local query = self:_makeSeriesQuery(query_schema, metrics, tags, tstart, tend + unaligned_offset, time_step, schema)
-  
+ 
   local url = self.url
   local data = {}
   local series, count

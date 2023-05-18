@@ -23,9 +23,8 @@
 #include "flow_checks_includes.h"
 
 void TCPNoDataExchanged::checkTCPNoDataExchanged(Flow *f) {
-  if(f->isTCP()
-     && !f->getInterface()->isSampledTraffic()
-     && (f->get_goodput_bytes() == 0) && f->isUnicast()) {
+  if (f->isTCP() && !f->getInterface()->isSampledTraffic() &&
+      (f->get_goodput_bytes() == 0) && f->isUnicast()) {
     FlowAlertType alert_type = TCPNoDataExchangedAlert::getClassType();
     u_int8_t c_score, s_score;
     risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
@@ -38,9 +37,7 @@ void TCPNoDataExchanged::checkTCPNoDataExchanged(Flow *f) {
 
 /* ***************************************************** */
 
-void TCPNoDataExchanged::flowEnd(Flow *f) {
-  checkTCPNoDataExchanged(f);
-}
+void TCPNoDataExchanged::flowEnd(Flow *f) { checkTCPNoDataExchanged(f); }
 
 /* ***************************************************** */
 

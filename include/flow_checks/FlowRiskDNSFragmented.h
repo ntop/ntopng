@@ -26,16 +26,25 @@
 
 class FlowRiskDNSFragmented : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskDNSFragmentedAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskDNSFragmentedAlert::getClassType();
+  }
 
  public:
-  FlowRiskDNSFragmented() : FlowRisk() {};
-  ~FlowRiskDNSFragmented() {};
+  FlowRiskDNSFragmented() : FlowRisk(){};
+  ~FlowRiskDNSFragmented(){};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskDNSFragmentedAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskDNSFragmentedAlert(this, f);
+  }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskDNSFragmentedAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskDNSFragmentedAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskDNSFragmentedAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskDNSFragmentedAlert::getClassRisk();
+  }
 };
 
 #endif

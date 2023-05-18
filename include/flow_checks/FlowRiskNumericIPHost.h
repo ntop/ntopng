@@ -26,11 +26,13 @@
 
 class FlowRiskNumericIPHost : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskNumericIPHostAlert::getClassType(); };
+  FlowAlertType getAlertType() const {
+    return FlowRiskNumericIPHostAlert::getClassType();
+  };
 
  public:
-  FlowRiskNumericIPHost() : FlowRisk() {};
-  ~FlowRiskNumericIPHost() {};
+  FlowRiskNumericIPHost() : FlowRisk(){};
+  ~FlowRiskNumericIPHost(){};
 
   FlowAlert *buildAlert(Flow *f) {
     FlowRiskNumericIPHostAlert *alert = new FlowRiskNumericIPHostAlert(this, f);
@@ -40,8 +42,13 @@ class FlowRiskNumericIPHost : public FlowRisk {
     return alert;
   }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskNumericIPHostAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskNumericIPHostAlert::getClassRisk(); };
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskNumericIPHostAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskNumericIPHostAlert::getClassRisk();
+  };
 };
 
 #endif

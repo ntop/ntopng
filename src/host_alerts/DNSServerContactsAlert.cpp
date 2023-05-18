@@ -23,8 +23,10 @@
 
 /* ***************************************************** */
 
-DNSServerContactsAlert::DNSServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _contacts, u_int64_t _contacts_threshold)
-  : ServerContactsAlert(c, f, cli_pctg, _contacts, _contacts_threshold) {
-};
+DNSServerContactsAlert::DNSServerContactsAlert(HostCheck *c, Host *f,
+                                               risk_percentage cli_pctg,
+                                               u_int64_t _contacts,
+                                               u_int64_t _contacts_threshold)
+    : ServerContactsAlert(c, f, cli_pctg, _contacts, _contacts_threshold){};
 
 /* ***************************************************** */

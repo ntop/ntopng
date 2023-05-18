@@ -26,13 +26,14 @@
 
 class TCPConnectionNoAnswerAlert : public FlowAlert {
  private:
-
  public:
-  static FlowAlertType getClassType() { return { flow_alert_connection_failed, alert_category_network }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_WARNING; };
+  static FlowAlertType getClassType() {
+    return {flow_alert_connection_failed, alert_category_network};
+  }
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_WARNING; };
 
-  TCPConnectionNoAnswerAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) {};
-  ~TCPConnectionNoAnswerAlert() {};
+  TCPConnectionNoAnswerAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f){};
+  ~TCPConnectionNoAnswerAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
 };

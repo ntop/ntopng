@@ -21,7 +21,6 @@
 
 #include "ntop_includes.h"
 
-
 /* ******************************* */
 
 Mutex::Mutex() {
@@ -43,11 +42,11 @@ bool Mutex::lock(const char *filename, const int line, bool trace_errors) {
   rc = pthread_mutex_lock(&the_mutex);
   //~ printf("LOCK %s:%d\n", filename, line);
 
-  if(rc != 0) {
-    if(trace_errors)
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "pthread_mutex_lock() returned %d [%s][errno=%d]",
-				   rc, strerror(rc), errno);
+  if (rc != 0) {
+    if (trace_errors)
+      ntop->getTrace()->traceEvent(
+          TRACE_WARNING, "pthread_mutex_lock() returned %d [%s][errno=%d]", rc,
+          strerror(rc), errno);
   } else
     locked = true;
 
@@ -57,7 +56,7 @@ bool Mutex::lock(const char *filename, const int line, bool trace_errors) {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p)", __FUNCTION__, this);
 #endif
 
-  return(locked);
+  return (locked);
 }
 
 /* ******************************* */
@@ -72,29 +71,30 @@ bool Mutex::lock(const char *filename, const int line, bool trace_errors) {
  * NOTE: Unlike the real McCoy, won't return EOWNERDEAD, EDEADLK
  *       or EOWNERDEAD
  */
-static int pthread_mutex_timedlock(pthread_mutex_t *mutex, struct timespec *abs_timeout) {
+static int pthread_mutex_timedlock(pthread_mutex_t *mutex,
+                                   struct timespec *abs_timeout) {
   int rv;
   struct timespec remaining, slept, ts;
 
   remaining = *abs_timeout;
 
-  while((rv = pthread_mutex_trylock(mutex)) == EBUSY) {
+  while ((rv = pthread_mutex_trylock(mutex)) == EBUSY) {
     ts.tv_sec = 0;
-    ts.tv_nsec = (remaining.tv_sec > 0 ? 10000000 :
-		  (remaining.tv_nsec < 10000000 ? remaining.tv_nsec :
-		   10000000));
+    ts.tv_nsec =
+        (remaining.tv_sec > 0
+             ? 10000000
+             : (remaining.tv_nsec < 10000000 ? remaining.tv_nsec : 10000000));
     nanosleep(&ts, &slept);
     ts.tv_nsec -= slept.tv_nsec;
 
-    if(ts.tv_nsec <= remaining.tv_nsec) {
+    if (ts.tv_nsec <= remaining.tv_nsec) {
       remaining.tv_nsec -= ts.tv_nsec;
     } else {
       remaining.tv_sec--;
       remaining.tv_nsec = (1000000 - (ts.tv_nsec - remaining.tv_nsec));
     }
 
-    if(remaining.tv_sec < 0
-       || (!remaining.tv_sec && remaining.tv_nsec <= 0)) {
+    if (remaining.tv_sec < 0 || (!remaining.tv_sec && remaining.tv_nsec <= 0)) {
       return ETIMEDOUT;
     }
   }
@@ -106,18 +106,19 @@ static int pthread_mutex_timedlock(pthread_mutex_t *mutex, struct timespec *abs_
 
 /* ******************************* */
 
-bool Mutex::lockTimeout(const char *filename, const int line, struct timespec *wait, bool trace_errors) {
+bool Mutex::lockTimeout(const char *filename, const int line,
+                        struct timespec *wait, bool trace_errors) {
   int rc;
 
   errno = 0;
   rc = pthread_mutex_timedlock(&the_mutex, wait);
   //~ printf("LOCK %s:%d\n", filename, line);
 
-  if(rc != 0) {
-    if(trace_errors)
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "pthread_mutex_timedlock() returned %d [%s][errno=%d]",
-				   rc, strerror(rc), errno);
+  if (rc != 0) {
+    if (trace_errors)
+      ntop->getTrace()->traceEvent(
+          TRACE_WARNING, "pthread_mutex_timedlock() returned %d [%s][errno=%d]",
+          rc, strerror(rc), errno);
   } else
     locked = true;
 
@@ -127,7 +128,7 @@ bool Mutex::lockTimeout(const char *filename, const int line, struct timespec *w
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p)", __FUNCTION__, this);
 #endif
 
-  return(locked);
+  return (locked);
 }
 
 /* ******************************* */
@@ -140,11 +141,11 @@ void Mutex::unlock(const char *filename, const int line, bool trace_errors) {
 
   rc = pthread_mutex_unlock(&the_mutex);
 
-  if(rc != 0) {
-    if(trace_errors && (errno != 0))
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "pthread_mutex_unlock() returned %d [%s][errno=%d]",
-				   rc, strerror(rc), errno);
+  if (rc != 0) {
+    if (trace_errors && (errno != 0))
+      ntop->getTrace()->traceEvent(
+          TRACE_WARNING, "pthread_mutex_unlock() returned %d [%s][errno=%d]",
+          rc, strerror(rc), errno);
   }
   locked = false; /* Always unlock */
 

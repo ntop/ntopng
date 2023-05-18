@@ -30,10 +30,12 @@ class PeriodicActivities {
   u_int16_t num_activities;
   ThreadPool *th_pool;
   pthread_t pthreadLoop;
-  bool      thread_running;
-  
-  u_int8_t getNumThreadsPerPool(const char* path, std::vector<char*> *iface_scripts_list, std::vector<char*> *system_scripts_list);
-  
+  bool thread_running;
+
+  u_int8_t getNumThreadsPerPool(const char *path,
+                                std::vector<char *> *iface_scripts_list,
+                                std::vector<char *> *system_scripts_list);
+
  public:
   PeriodicActivities();
   ~PeriodicActivities();
@@ -42,7 +44,7 @@ class PeriodicActivities {
   void lua(NetworkInterface *iface, lua_State *vm);
   void run();
 
-  inline bool isRunning() { return(thread_running); }
+  inline bool isRunning() { return (thread_running); }
 };
 
 #endif /* _PERIODIC_ACTIVITIES_H_ */

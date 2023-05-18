@@ -25,27 +25,28 @@
 #include "ntop_includes.h"
 
 class DangerousHost : public HostCheck {
-private:
+ private:
   u_int64_t score_threshold;
 
-  HostAlert *allocAlert(HostCheck *c, Host *h,  risk_percentage cli_pctg, u_int64_t _score, u_int64_t _consecutive_high_score) {
-    DangerousHostAlert *alert = new DangerousHostAlert(c, h, cli_pctg, _score, _consecutive_high_score);
+  HostAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg,
+                        u_int64_t _score, u_int64_t _consecutive_high_score) {
+    DangerousHostAlert *alert =
+        new DangerousHostAlert(c, h, cli_pctg, _score, _consecutive_high_score);
 
-    if(cli_pctg != CLIENT_NO_RISK_PERCENTAGE)
-      alert->setAttacker();
+    if (cli_pctg != CLIENT_NO_RISK_PERCENTAGE) alert->setAttacker();
 
     return alert;
   };
 
  public:
   DangerousHost();
-  ~DangerousHost() {};
+  ~DangerousHost(){};
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
-  bool loadConfiguration(json_object *config);  
+  bool loadConfiguration(json_object *config);
 
   HostCheckID getID() const { return host_check_dangerous_host; }
-  std::string getName()      const { return(std::string("dangerous_host")); }
+  std::string getName() const { return (std::string("dangerous_host")); }
 };
 
 #endif

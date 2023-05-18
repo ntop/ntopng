@@ -26,16 +26,25 @@
 
 class FlowRiskHTTPObsoleteServer : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskHTTPObsoleteServerAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskHTTPObsoleteServerAlert::getClassType();
+  }
 
  public:
-  FlowRiskHTTPObsoleteServer() {};
-  ~FlowRiskHTTPObsoleteServer() {};
+  FlowRiskHTTPObsoleteServer(){};
+  ~FlowRiskHTTPObsoleteServer(){};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskHTTPObsoleteServerAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskHTTPObsoleteServerAlert(this, f);
+  }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskHTTPObsoleteServerAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskHTTPObsoleteServerAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskHTTPObsoleteServerAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskHTTPObsoleteServerAlert::getClassRisk();
+  }
 };
 
 #endif /* _FLOW_RISK_HTTP_OBSOLETE_SERVER_H_ */

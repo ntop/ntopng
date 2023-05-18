@@ -21,16 +21,17 @@
 
 #include "flow_alerts_includes.h"
 
-ndpi_serializer* UnexpectedServerAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow *f = getFlow();
-  const IpAddress *server = getServerIP(f);
+ndpi_serializer* UnexpectedServerAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow* f = getFlow();
+  const IpAddress* server = getServerIP(f);
 
   if (serializer != NULL && server != NULL) {
     char buf[64];
-    
-    ndpi_serialize_string_string(serializer, "server_ip", server->print(buf, sizeof(buf)));
+
+    ndpi_serialize_string_string(serializer, "server_ip",
+                                 server->print(buf, sizeof(buf)));
   }
 
   return serializer;
 }
-

@@ -25,10 +25,10 @@
 #include "ntop_includes.h"
 
 typedef struct {
-    u_int64_t up;
-    u_int64_t down;
-    u_int64_t background;
-  } UserActivityCounter;
+  u_int64_t up;
+  u_int64_t down;
+  u_int64_t background;
+} UserActivityCounter;
 
 class UserActivityStats {
  private:
@@ -38,10 +38,10 @@ class UserActivityStats {
   UserActivityStats();
 
   void reset();
-  void incBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes);
-  const UserActivityCounter * getBytes(UserActivityID id);
+  void incBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes,
+                u_int64_t bgbytes);
+  const UserActivityCounter* getBytes(UserActivityID id);
   json_object* getJSONObject();
-  void deserialize(json_object *o);
 };
 
 #endif

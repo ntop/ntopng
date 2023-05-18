@@ -25,18 +25,20 @@
 #include "ntop_includes.h"
 
 class SYNScan : public FlowHits {
-private:
+ private:
+ public:
+  SYNScan() : FlowHits(){};
+  ~SYNScan(){};
 
-public:
-  SYNScan() : FlowHits() {};
-  ~SYNScan() {};
-
-  FlowHitsAlert *allocAlert(Host *h, risk_percentage cli_pctg, u_int16_t hits, u_int64_t threshold, bool attacker) { return new SYNScanAlert(this, h, cli_pctg, hits, threshold, attacker); };
+  FlowHitsAlert *allocAlert(Host *h, risk_percentage cli_pctg, u_int16_t hits,
+                            u_int64_t threshold, bool attacker) {
+    return new SYNScanAlert(this, h, cli_pctg, hits, threshold, attacker);
+  };
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
   HostCheckID getID() const { return host_check_syn_scan; }
-  std::string getName()        const { return(std::string("syn_scan")); }
+  std::string getName() const { return (std::string("syn_scan")); }
 };
 
 #endif

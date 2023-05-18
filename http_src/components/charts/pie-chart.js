@@ -18,7 +18,6 @@ function PieChart(name, update_url, url_params, units, refresh) {
 	this.url_params = url_params;
 	this.units = units;
 	this.refresh = refresh;
-	this.pieInterval;
 
   let streakerDataAdded = []
   let paths = ""
@@ -31,13 +30,13 @@ function PieChart(name, update_url, url_params, units, refresh) {
 	var filteredPieData = [];
 	var rsp = create_pie_chart(name, units);
 	var arc_group = rsp[0];
-	var donut = rsp[1];
+	var donut = rsp[1];	
 	var totalValue = rsp[2];
 	var totalUnits = rsp[3];
 	var color = rsp[4];
 	var tweenDuration = rsp[5];
 	var arc = rsp[6];
-	var label_group = rsp[7];
+	var label_group = rsp[7];	
 	var center_group = rsp[8];
 	var r = rsp[9];
 	var textOffset = rsp[10];
@@ -404,7 +403,7 @@ function create_pie_chart(name, units) {
 		.attr("transform", "translate(" + (w / 2) + "," + (h / 2) + ")");
 
 	//PLACEHOLDER GRAY CIRCLE
-	var paths = arc_group.append("svg:circle")
+	arc_group.append("svg:circle")
 		.attr("fill", "#EFEFEF")
 		.attr("r", r);
 
@@ -413,14 +412,14 @@ function create_pie_chart(name, units) {
 	///////////////////////////////////////////////////////////
 
 	//WHITE CIRCLE BEHIND LABELS
-	var whiteCircle = center_group.append("svg:circle")
+	center_group.append("svg:circle")
 		.attr("fill", "white")
 		.attr("r", ir);
 
 	var totalUnits = null;
 	var totalLabel = null;
 	var totalValue = null;
-
+	
 	if (units) {
 		// "TOTAL" LABEL
 		totalLabel = center_group.append("svg:text")

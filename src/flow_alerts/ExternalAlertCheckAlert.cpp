@@ -21,13 +21,14 @@
 
 #include "flow_alerts_includes.h"
 
-ndpi_serializer* ExternalAlertCheckAlert::getAlertJSON(ndpi_serializer* serializer) {
+ndpi_serializer *ExternalAlertCheckAlert::getAlertJSON(
+    ndpi_serializer *serializer) {
   Flow *f = getFlow();
   json_object *json = f->getExternalAlert();
 
   if (serializer != NULL && json != NULL) {
     json_object *alert, *sign, *cat;
-    const char *source, *category, *signature; 
+    const char *source, *category, *signature;
 
     /*
      * JSON Content:
@@ -39,8 +40,7 @@ ndpi_serializer* ExternalAlertCheckAlert::getAlertJSON(ndpi_serializer* serializ
      */
 
     source = f->getExternalSource();
-    if (source)
-      ndpi_serialize_string_string(serializer, "source", source);
+    if (source) ndpi_serialize_string_string(serializer, "source", source);
 
     ndpi_serialize_start_of_block(serializer, "alert");
 
@@ -48,7 +48,7 @@ ndpi_serializer* ExternalAlertCheckAlert::getAlertJSON(ndpi_serializer* serializ
       if (json_object_object_get_ex(alert, "signature", &sign)) {
         signature = json_object_get_string(sign);
         ndpi_serialize_string_string(serializer, "signature", signature);
-      }           
+      }
 
       if (json_object_object_get_ex(alert, "category", &cat)) {
         category = json_object_get_string(cat);
@@ -60,4 +60,4 @@ ndpi_serializer* ExternalAlertCheckAlert::getAlertJSON(ndpi_serializer* serializ
   }
 
   return serializer;
-} 
+}

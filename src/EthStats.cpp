@@ -23,42 +23,39 @@
 
 /* *************************************** */
 
-EthStats::EthStats() {
-  cleanup();
-}
+EthStats::EthStats() { cleanup(); }
 
 /* *************************************** */
 
-void EthStats::incStats(bool ingressPacket,
-			u_int32_t num_pkts,
-			u_int32_t num_bytes, u_int pkt_overhead) {
-  if(ingressPacket)
-    rawIngress.inc(num_pkts, num_bytes+pkt_overhead*num_pkts);
+void EthStats::incStats(bool ingressPacket, u_int32_t num_pkts,
+                        u_int32_t num_bytes, u_int pkt_overhead) {
+  if (ingressPacket)
+    rawIngress.inc(num_pkts, num_bytes + pkt_overhead * num_pkts);
   else
-    rawEgress.inc(num_pkts, num_bytes+pkt_overhead*num_pkts);
+    rawEgress.inc(num_pkts, num_bytes + pkt_overhead * num_pkts);
 };
 
 /* *************************************** */
 
-void EthStats::incProtoStats(u_int16_t proto,
-			     u_int32_t num_pkts, u_int32_t num_bytes) {
-  switch(proto) {
-  case ETHERTYPE_ARP:
-    eth_ARP.inc(num_pkts, num_bytes);
-    break;
-  case ETHERTYPE_IP:
-    eth_IPv4.inc(num_pkts, num_bytes);
-    break;
-  case ETHERTYPE_IPV6:
-    eth_IPv6.inc(num_pkts, num_bytes);
-    break;
-  case ETHERTYPE_MPLS:
-  case ETHERTYPE_MPLS_MULTI:
-    eth_MPLS.inc(num_pkts, num_bytes);
-    break;
-  default:
-    eth_other.inc(num_pkts, num_bytes);
-    break;
+void EthStats::incProtoStats(u_int16_t proto, u_int32_t num_pkts,
+                             u_int32_t num_bytes) {
+  switch (proto) {
+    case ETHERTYPE_ARP:
+      eth_ARP.inc(num_pkts, num_bytes);
+      break;
+    case ETHERTYPE_IP:
+      eth_IPv4.inc(num_pkts, num_bytes);
+      break;
+    case ETHERTYPE_IPV6:
+      eth_IPv6.inc(num_pkts, num_bytes);
+      break;
+    case ETHERTYPE_MPLS:
+    case ETHERTYPE_MPLS_MULTI:
+      eth_MPLS.inc(num_pkts, num_bytes);
+      break;
+    default:
+      eth_other.inc(num_pkts, num_bytes);
+      break;
   }
 };
 
@@ -67,54 +64,64 @@ void EthStats::incProtoStats(u_int16_t proto,
 void EthStats::lua(lua_State *vm) {
   lua_newtable(vm);
 
-  eth_IPv4.lua(vm,  "IPv4_");
-  eth_IPv6.lua(vm,  "IPv6_");
-  eth_ARP.lua(vm,   "ARP_");
-  eth_MPLS.lua(vm,  "MPLS_");
+  eth_IPv4.lua(vm, "IPv4_");
+  eth_IPv6.lua(vm, "IPv6_");
+  eth_ARP.lua(vm, "ARP_");
+  eth_MPLS.lua(vm, "MPLS_");
   eth_other.lua(vm, "other_");
-  lua_push_uint64_table_entry(vm, "bytes",   getNumBytes());
+  lua_push_uint64_table_entry(vm, "bytes", getNumBytes());
   lua_push_uint64_table_entry(vm, "packets", getNumPackets());
 
   lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "bytes",   getNumIngressBytes());  
+  lua_push_uint64_table_entry(vm, "bytes", getNumIngressBytes());
   lua_push_uint64_table_entry(vm, "packets", getNumIngressPackets());
 
   lua_newtable(vm);
   lua_push_float_table_entry(vm, "bps", ingress_bytes_thpt.getThpt());
   lua_push_float_table_entry(vm, "pps", ingress_pkts_thpt.getThpt());
-  lua_pushstring(vm, "throughput"); lua_insert(vm, -2); lua_settable(vm, -3);
+  lua_pushstring(vm, "throughput");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
-  lua_pushstring(vm, "ingress"); lua_insert(vm, -2); lua_settable(vm, -3);
+  lua_pushstring(vm, "ingress");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
   lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "bytes",   getNumEgressBytes());
+  lua_push_uint64_table_entry(vm, "bytes", getNumEgressBytes());
   lua_push_uint64_table_entry(vm, "packets", getNumEgressPackets());
 
-  lua_newtable(vm);  
+  lua_newtable(vm);
   lua_push_float_table_entry(vm, "bps", egress_bytes_thpt.getThpt());
   lua_push_float_table_entry(vm, "pps", egress_pkts_thpt.getThpt());
-  lua_pushstring(vm, "throughput"); lua_insert(vm, -2); lua_settable(vm, -3);
+  lua_pushstring(vm, "throughput");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
-  lua_pushstring(vm, "egress"); lua_insert(vm, -2); lua_settable(vm, -3);
+  lua_pushstring(vm, "egress");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
-  lua_pushstring(vm, "eth"); lua_insert(vm, -2); lua_settable(vm, -3);
+  lua_pushstring(vm, "eth");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 /* *************************************** */
 
 void EthStats::updateStats(const struct timeval *tv) {
   ingress_bytes_thpt.updateStats(tv, getNumIngressBytes()),
-    ingress_pkts_thpt.updateStats(tv, getNumIngressPackets());
+      ingress_pkts_thpt.updateStats(tv, getNumIngressPackets());
   egress_bytes_thpt.updateStats(tv, getNumEgressBytes()),
-    egress_pkts_thpt.updateStats(tv, getNumEgressPackets());
+      egress_pkts_thpt.updateStats(tv, getNumEgressPackets());
 }
 
 /* *************************************** */
 
 void EthStats::print() {
-  eth_IPv4.print ("[IPv4] ");
-  eth_IPv6.print ("[IPv6] ");
-  eth_ARP.print  ("[ARP]  ");
-  eth_MPLS.print ("[MPLS] ");
+  eth_IPv4.print("[IPv4] ");
+  eth_IPv6.print("[IPv6] ");
+  eth_ARP.print("[ARP]  ");
+  eth_MPLS.print("[MPLS] ");
   eth_other.print("[Other]");
 }
 

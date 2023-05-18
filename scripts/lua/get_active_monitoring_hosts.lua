@@ -79,7 +79,7 @@ for key, am_host in pairs(am_hosts) do
       end
     end
 
-    if(column_last_value == nil) then
+    if isEmptyString(column_last_value) then
       chart = ""
     else
       if m_info.value_formatter then

@@ -20,6 +20,28 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:throughput_bps", {
+   step=1,
+   is_critical_ts=true,
+   metrics_type = ts_utils.metrics.gauge,
+   aggregation_function = ts_utils.aggregation.max
+})
+schema:addTag("ifid")
+schema:addMetric("bps")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("iface:throughput_pps", {
+   step=1,
+   is_critical_ts=true,
+   metrics_type = ts_utils.metrics.gauge,
+   aggregation_function = ts_utils.aggregation.max
+})
+schema:addTag("ifid")
+schema:addMetric("pps")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("iface:packets", {step=1, rrd_fname="packets", is_critical_ts=true})
 schema:addTag("ifid")
 schema:addMetric("packets")

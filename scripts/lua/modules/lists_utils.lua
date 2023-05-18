@@ -18,8 +18,8 @@ local file_utils = require "file_utils"
 -- NOTE: metadata and status are handled as separate keys.
 -- Metadata can only be updated by the gui, whereas status can only be
 -- updated by housekeeping. This avoid concurrency issues.
-local METADATA_KEY = "ntopng.prefs.category_lists.metadata"
-local STATUS_KEY = "ntopng.prefs.category_lists.status"
+local METADATA_KEY = "ntopng.cache.category_lists.metadata"
+local STATUS_KEY = "ntopng.cache.category_lists.status"
 
 local trace_level =  TRACE_INFO -- TRACE_NORMAL
 

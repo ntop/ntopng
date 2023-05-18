@@ -36,25 +36,25 @@ struct flowGroupStats {
 };
 
 class FlowGrouper {
-  private:
-    sortField sorter;
-    flowGroupStats stats;
-    int table_index;
+ private:
+  sortField sorter;
+  flowGroupStats stats;
+  int table_index;
 
-    /* group id */
-    u_int16_t app_protocol;
+  /* group id */
+  u_int16_t app_protocol;
 
-  public:
-    FlowGrouper(sortField sf);
-    ~FlowGrouper();
+ public:
+  FlowGrouper(sortField sf);
+  ~FlowGrouper();
 
-  inline u_int32_t getNumEntries(){return stats.num_flows;}
+  inline u_int32_t getNumEntries() { return stats.num_flows; }
 
   bool inGroup(Flow *flow);
   int incStats(Flow *flow);
   int newGroup(Flow *flow);
 
-  void lua(lua_State* vm);
+  void lua(lua_State *vm);
 };
 
 #endif /* _FLOW_GROUPER_H_ */

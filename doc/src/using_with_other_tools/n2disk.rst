@@ -77,7 +77,7 @@ to the *ntopng* configuration file.
 In order to actually start recording traffic, you need to select an interface from 
 the *Interfaces* menu, click on the disk icon, and configure the recording instance:
 
-1. Select "Continuous Traffic Recording"
+1. Toggle " Traffic Recording"
 2. Configure the desired "Max Disk Space" value. This lets you control the maximum 
    disk space to be used for pcap files, which also affects the data retention time
    (when the maximum disk space is exceeded, the oldest pcap file is overwritten).
@@ -110,6 +110,60 @@ of the recording service, statistics about processed traffic, the log trace.
   :alt: Traffic Recording Status
 
   The Traffic Recording Status Page
+
+Smart Recording
+---------------
+
+.. note::   
+  Smart Recording is available with ntopng Enterprise XL only.
+
+ntopng, since version 5.7, includes support for Smart Recording. 
+
+As described in the previous section, continuous Traffic Recording provides a 
+window into network history, that allows you to retrieve and analyse *all* the 
+raw traffic in that period of time. Data retention (the size of the window) 
+depends on the storage size (the configured “Max Disk Space”).
+However at high traffic rate the available disk space may not satisfy the desired 
+data retention, overwriting data too early, to make room for new data. In those
+cases it is helpful to prioritize selected traffic which is matching Network events
+(e.g. security alerts), which is more important then the rest of the traffic.
+
+The Smart Recording support creates a second-level storage implementing the Smart 
+Data Retention, which means archiving traffic matching Network events to have a 
+longer data retention for that data (which is usually a small subset of the full 
+raw data).
+
+.. figure:: ../img/smart_recording_architecture.png
+  :align: center
+  :alt: Smart Recording Architecture
+
+  The Smart Recording Architecture
+
+For further information please also read the `Smart Recording blog post`_ and
+watch the `Smart Recording video tutorial`_.
+
+.. _`Smart Recording blog post`: https://www.ntop.org/announce/introducing-smart-recording-in-n2disk-combining-cybersecurity-with-packet-to-disk/
+.. _`Smart Recording video tutorial`: https://www.youtube.com/watch?v=R_prNIY5aIg
+
+In order to enable the Smart Recording, continuous Traffic Recording should be
+enabled as described in the previous page, and in the same page it is required to:
+
+1. Toggle "Smart Traffic Recording"
+2. Configure the desired "Max Smart Disk Space" to control the maximum disk space 
+   to be used for pcap files in the second level storage (events traffic only).
+3. Press the "Save Settings" button to actually enable it.
+
+.. figure:: ../img/web_gui_interfaces_smart_recording.png
+  :align: center
+  :alt: Smart Traffic Recording
+
+  The Smart Recording Settings
+
+Once Smart Recording has been enabled, when traffic extraction is requested (from
+one of the charts by selecting a time interval, or when downloading the pcap traffic
+for an alert or for a flow), traffic is extracted from the first-level storage if
+it falls inside the first-level storage window, or from the second-level storage
+otherwise (only traffic matching network events will be available in the latter case).
 
 External Traffic Recording Providers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

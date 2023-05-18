@@ -67,6 +67,8 @@ end
 
 print("</td></tr>\n")
 
+-- Traffic Recording stats
+
 local stats = recording_utils.stats(master_ifid)
 
 local first_epoch = stats['FirstDumpedEpoch']
@@ -86,7 +88,7 @@ end
 
 if start_time ~= nil then
    print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
-   if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > first_epoch) then
+   if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > (first_epoch + 10)) then
       print(' - <i class="fas fa-exclamation-triangle"></i> ')
       print(i18n("traffic_recording.missing_data_msg"))
    end
@@ -101,6 +103,26 @@ if stats['Dropped'] ~= nil then
    print("<tr><th nowrap>"..i18n("if_stats_overview.dropped_packets").."</th><td>"..stats['Dropped'].." "..i18n("pkts").."</td></tr>\n")
 end
 
+-- Smart Recording stats
+
+stats = recording_utils.smartStats(master_ifid)
+
+first_epoch = stats['FirstDumpedEpoch']
+last_epoch = stats['LastDumpedEpoch']
+
+if first_epoch ~= nil then
+   print("<tr><th width='15%' nowrap>"..i18n("traffic_recording.smart_window").."</th><td>")
+   if first_epoch ~= nil and last_epoch ~= nil and 
+      first_epoch > 0 and last_epoch > 0 then
+      print(formatEpoch(first_epoch).." - "..formatEpoch(last_epoch))
+   else
+      print(i18n("traffic_recording.no_file"))
+   end
+   print("</td></tr>\n")
+end
+
+-- Custom Provider
+
 if custom_provider and running then
    local warn = ''
 
@@ -110,6 +132,8 @@ if custom_provider and running then
 
    print("<tr><th nowrap>"..i18n("traffic_recording.traffic_extractions").."</th><td>"..warn..extraction_checks_msg.."</td></tr>\n")
 end
+
+-- Logs
 
 print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 

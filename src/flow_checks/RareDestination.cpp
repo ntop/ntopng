@@ -124,23 +124,22 @@ void RareDestination::protocolDetected(Flow *f) {
     }
     
     cli_host->dumpRareDestToRedis();
-
   }
-  
-  if(is_rare_destination) {
+
+  if (is_rare_destination) {
     FlowAlertType alert_type = RareDestinationAlert::getClassType();
     u_int8_t c_score, s_score;
-    risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE; 
-    
+    risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
+
     computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
-    
+
     f->triggerAlertAsync(alert_type, c_score, s_score);
   }
 }
 
 /* ***************************************************** */
 
-FlowAlert* RareDestination::buildAlert(Flow *f) {
+FlowAlert *RareDestination::buildAlert(Flow *f) {
   return new RareDestinationAlert(this, f);
 }
 

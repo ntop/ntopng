@@ -25,17 +25,20 @@
 #include "ntop_includes.h"
 
 class ScoreThreshold : public HostCheck {
-private:
+ private:
   u_int64_t threshold;
 
-public:
+ public:
   ScoreThreshold(u_int32_t threshold = 0);
-  ~ScoreThreshold() {};
+  ~ScoreThreshold(){};
 
-  ScoreThresholdAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int32_t _value, u_int32_t threshold) {
-    ScoreThresholdAlert *alert = new ScoreThresholdAlert(c, h, cli_pctg, _value, threshold);
+  ScoreThresholdAlert *allocAlert(HostCheck *c, Host *h,
+                                  risk_percentage cli_pctg, u_int32_t _value,
+                                  u_int32_t threshold) {
+    ScoreThresholdAlert *alert =
+        new ScoreThresholdAlert(c, h, cli_pctg, _value, threshold);
 
-    if(cli_pctg != CLIENT_NO_RISK_PERCENTAGE)
+    if (cli_pctg != CLIENT_NO_RISK_PERCENTAGE)
       alert->setAttacker();
     else
       alert->setVictim();
@@ -47,7 +50,7 @@ public:
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
   HostCheckID getID() const { return host_check_score_threshold; }
-  std::string getName()        const { return(std::string("score_threshold")); }
+  std::string getName() const { return (std::string("score_threshold")); }
 };
 
 #endif

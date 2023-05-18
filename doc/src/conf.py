@@ -25,7 +25,8 @@ sys.path.append( "breathe/" )
 extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.autodoc',
-    'breathe'
+    'breathe',
+    'rst2pdf.pdfbuilder'
 ]
 
 # Workaround for platforms where swaggerdoc is not available
@@ -291,5 +292,13 @@ texinfo_documents = [
 
 intersphinx_mapping = {'https://docs.python.org/': None}
 
+pdf_documents = [('index', u'ntopng_usersguide', u'ntop Users Guide', u'ntop'),]
+# index - master document
+# rst2pdf - name of the generated pdf
+# Sample rst2pdf doc - title of the pdf
+# Your Name - author name in the pdf
+
+          
 def setup(app):
     app.add_stylesheet('css/ntop.css')
+

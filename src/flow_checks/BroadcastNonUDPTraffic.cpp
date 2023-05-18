@@ -27,21 +27,24 @@
 void BroadcastNonUDPTraffic::flowBegin(Flow *f) {
   const IpAddress *ip_addr = f->get_srv_ip_addr();
   Mac *mac_addr = f->get_srv_host() ? f->get_srv_host()->getMac() : NULL;
-  
-  if(ip_addr || mac_addr) {
+
+  if (ip_addr || mac_addr) {
     bool launch_alert = false;
 
-    if((ip_addr) && (ip_addr->isBroadcastAddress()) && (f->get_protocol() != IPPROTO_UDP /* The protocol MUST not be UDP*/))
+    if ((ip_addr) && (ip_addr->isBroadcastAddress()) &&
+        (f->get_protocol() != IPPROTO_UDP /* The protocol MUST not be UDP*/))
       launch_alert = true;
-    
-    if((mac_addr) && (mac_addr->isBroadcast()) && (f->get_protocol() != IPPROTO_UDP /* The protocol MUST not be UDP*/))
+
+    if ((mac_addr) && (mac_addr->isBroadcast()) &&
+        (f->get_protocol() != IPPROTO_UDP /* The protocol MUST not be UDP*/))
       launch_alert = true;
-    
-    /* 
-     * This alert has to be triggered when we have traffic towards Broadcast addresses
-     * and the l4 protocol is not UDP protocol (possible device scan in a network)
+
+    /*
+     * This alert has to be triggered when we have traffic towards Broadcast
+     * addresses and the l4 protocol is not UDP protocol (possible device scan
+     * in a network)
      */
-    if(launch_alert) {
+    if (launch_alert) {
       FlowAlertType alert_type = BroadcastNonUDPTrafficAlert::getClassType();
       u_int8_t c_score, s_score;
 
@@ -51,19 +54,21 @@ void BroadcastNonUDPTraffic::flowBegin(Flow *f) {
 
       f->triggerAlertAsync(alert_type, c_score, s_score);
     }
-  } 
+  }
 }
 
 /* ***************************************************** */
 
 FlowAlert *BroadcastNonUDPTraffic::buildAlert(Flow *f) {
-  BroadcastNonUDPTrafficAlert *alert = new (std::nothrow) BroadcastNonUDPTrafficAlert(this, f);
+  BroadcastNonUDPTrafficAlert *alert =
+      new (std::nothrow) BroadcastNonUDPTrafficAlert(this, f);
 
-  if(alert) {
-    /* The remote client is considered the attacker. The victim is the local server */
+  if (alert) {
+    /* The remote client is considered the attacker. The victim is the local
+     * server */
     alert->setCliAttacker();
   }
-  
+
   return alert;
 }
 

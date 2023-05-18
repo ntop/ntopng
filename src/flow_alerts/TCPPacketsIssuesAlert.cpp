@@ -21,27 +21,36 @@
 
 #include "flow_alerts_includes.h"
 
-ndpi_serializer* TCPPacketsIssuesAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow *f = getFlow();
+ndpi_serializer* TCPPacketsIssuesAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow* f = getFlow();
   FlowTrafficStats* stats = f->getTrafficStats();
-  u_int64_t retransmission = stats ? (stats->get_cli2srv_tcp_retr() + stats->get_srv2cli_tcp_retr()) : 0, 
-            out_of_order = stats ? (stats->get_cli2srv_tcp_ooo() + stats->get_srv2cli_tcp_ooo()) : 0, 
-            lost = stats ? (stats->get_cli2srv_tcp_lost() + stats->get_srv2cli_tcp_lost()) : 0;
-  
-  u_int8_t retransmission_pctg = (u_int8_t) retransmission * 100 / f->get_packets();
-  u_int8_t out_of_order_pctg = (u_int8_t) out_of_order * 100 / f->get_packets();
-  u_int8_t lost_pctg = (u_int8_t) lost * 100 / f->get_packets();
+  u_int64_t retransmission = stats ? (stats->get_cli2srv_tcp_retr() +
+                                      stats->get_srv2cli_tcp_retr())
+                                   : 0,
+            out_of_order = stats ? (stats->get_cli2srv_tcp_ooo() +
+                                    stats->get_srv2cli_tcp_ooo())
+                                 : 0,
+            lost = stats ? (stats->get_cli2srv_tcp_lost() +
+                            stats->get_srv2cli_tcp_lost())
+                         : 0;
 
-  if(serializer == NULL)
-    return NULL;
+  u_int8_t retransmission_pctg =
+      (u_int8_t)retransmission * 100 / f->get_packets();
+  u_int8_t out_of_order_pctg = (u_int8_t)out_of_order * 100 / f->get_packets();
+  u_int8_t lost_pctg = (u_int8_t)lost * 100 / f->get_packets();
 
-  ndpi_serialize_string_uint64(serializer, "retransmission", retransmission_pctg);
+  if (serializer == NULL) return NULL;
+
+  ndpi_serialize_string_uint64(serializer, "retransmission",
+                               retransmission_pctg);
   ndpi_serialize_string_uint64(serializer, "out_of_order", out_of_order_pctg);
   ndpi_serialize_string_uint64(serializer, "lost", lost_pctg);
-  ndpi_serialize_string_uint64(serializer, "retransmission_threshold", this->retransmission);
-  ndpi_serialize_string_uint64(serializer, "out_of_order_threshold", this->out_of_order);
+  ndpi_serialize_string_uint64(serializer, "retransmission_threshold",
+                               this->retransmission);
+  ndpi_serialize_string_uint64(serializer, "out_of_order_threshold",
+                               this->out_of_order);
   ndpi_serialize_string_uint64(serializer, "lost_threshold", this->lost);
-  
+
   return serializer;
 }
-

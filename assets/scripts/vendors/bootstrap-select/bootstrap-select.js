@@ -3483,7 +3483,7 @@
     }
 
     if (version.major > '4') {
-      Selector.DATA_TOGGLE = 'data-bs-toggle="dropdown"'
+      Selector.DATA_TOGGLE = 'data-bs-toggle="dropdown"';
     }
 
     var value;

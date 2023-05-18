@@ -9,7 +9,6 @@ local verbose = false
 local prefs = ntop.getPrefs()
 local info = ntop.getInfo()
 local menu_subpages = require "prefs_menu"
-show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
 local have_nedge = ntop.isnEdge()
 local skip_redis = false
 
@@ -53,6 +52,7 @@ DNS_PRESETS = {
 
 function isSubpageAvailable(subpage, show_advanced_prefs)
   if show_advanced_prefs == nil then
+    local show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
     show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
   end
   if (subpage.hidden) or
@@ -688,7 +688,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
     end
 
     for nameCount = 1, #array_labels do
-      print('$(`label[for="id_'..submit_field..'_'..array_values[nameCount]..'"`).click(function() {\n')
+      print('$(`label[for="id_'..submit_field..'_'..array_values[nameCount]..'"]`).click(function() {\n')
       print(' var field = $(\'#id-toggle-'..submit_field..'\');\n')
       print(' var oldval = field.val(); ')
       print(' field.val("'..array_values[nameCount]..'").trigger("change");\n')
@@ -701,7 +701,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
           color = selected_color
         end
 
-        print[[ let class_]] print(array_values[indexLabel]) print[[ = $(`label[for="id_]] print(submit_field..'_') print(array_values[indexLabel]) print [["`);
+        print[[ let class_]] print(array_values[indexLabel]) print[[ = $(`label[for="id_]] print(submit_field..'_') print(array_values[indexLabel]) print [["]`);
         class_]] print(array_values[indexLabel]) print[[.removeAttr("class");]]
         if(array_values[indexLabel] == array_values[nameCount]) then
           print[[class_]] print(array_values[indexLabel]) print[[.attr("class", "btn btn-sm btn-]]print(color) print[[ active");]]

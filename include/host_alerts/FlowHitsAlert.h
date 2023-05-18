@@ -30,14 +30,17 @@ class FlowHitsAlert : public HostAlert {
   bool is_attacker; /* attacker or victim */
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
-  
+
  public:
-  FlowHitsAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int16_t hits, u_int64_t threshold, bool is_attacker);
-  ~FlowHitsAlert() {};
+  FlowHitsAlert(HostCheck* c, Host* h, risk_percentage cli_pctg, u_int16_t hits,
+                u_int64_t threshold, bool is_attacker);
+  ~FlowHitsAlert(){};
 
   void toggleAttacker(bool _is_attacker) { is_attacker = _is_attacker; }
-  void setHits(u_int64_t _hits) { hits = _hits;}
-  void setThreshold(u_int64_t _hits_threshold) { hits_threshold = _hits_threshold; }
+  void setHits(u_int64_t _hits) { hits = _hits; }
+  void setThreshold(u_int64_t _hits_threshold) {
+    hits_threshold = _hits_threshold;
+  }
   inline bool isAttacker() const { return is_attacker; }
 
   u_int8_t getAlertScore() const { return SCORE_LEVEL_WARNING; };

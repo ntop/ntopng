@@ -26,22 +26,30 @@
 
 class FlowRiskURLPossibleRCEInjection : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskURLPossibleRCEInjectionAlert::getClassType(); }
+  FlowAlertType getAlertType() const {
+    return FlowRiskURLPossibleRCEInjectionAlert::getClassType();
+  }
 
  public:
-  FlowRiskURLPossibleRCEInjection() : FlowRisk() {};
-  ~FlowRiskURLPossibleRCEInjection() {};
+  FlowRiskURLPossibleRCEInjection() : FlowRisk(){};
+  ~FlowRiskURLPossibleRCEInjection(){};
 
   FlowAlert *buildAlert(Flow *f) {
-    FlowRiskURLPossibleRCEInjectionAlert *alert = new FlowRiskURLPossibleRCEInjectionAlert(this, f);
+    FlowRiskURLPossibleRCEInjectionAlert *alert =
+        new FlowRiskURLPossibleRCEInjectionAlert(this, f);
 
     alert->setCliAttacker(), alert->setSrvVictim();
 
     return alert;
   }
 
-  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskURLPossibleRCEInjectionAlert::getClassRisk())); }
-  ndpi_risk_enum handledRisk()       { return FlowRiskURLPossibleRCEInjectionAlert::getClassRisk(); }
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskURLPossibleRCEInjectionAlert::getClassRisk()));
+  }
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskURLPossibleRCEInjectionAlert::getClassRisk();
+  }
 };
 
 #endif

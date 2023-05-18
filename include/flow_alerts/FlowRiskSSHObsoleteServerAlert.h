@@ -26,19 +26,25 @@
 
 class FlowRiskSSHObsoleteServerAlert : public FlowRiskAlert {
  private:
-  ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
+  ndpi_serializer *getAlertJSON(ndpi_serializer *serializer);
 
  public:
-  static ndpi_risk_enum getClassRisk() { return NDPI_SSH_OBSOLETE_SERVER_VERSION_OR_CIPHER; }
-  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
-  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
+  static ndpi_risk_enum getClassRisk() {
+    return NDPI_SSH_OBSOLETE_SERVER_VERSION_OR_CIPHER;
+  }
+  static FlowAlertType getClassType() {
+    return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk());
+  }
+  static u_int8_t getDefaultScore() {
+    return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
+  }
 
- FlowRiskSSHObsoleteServerAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
-  ~FlowRiskSSHObsoleteServerAlert() { };
+  FlowRiskSSHObsoleteServerAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
+  ~FlowRiskSSHObsoleteServerAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
-  u_int8_t       getAlertScore() const { return getDefaultScore(); }
+  ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
+  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_SSH_OBSOLETE_SERVER_ALERT_H_ */

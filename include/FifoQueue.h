@@ -19,13 +19,13 @@
  *
  */
 
-
 #ifndef _FIFO_QUEUE_H
 #define _FIFO_QUEUE_H
 
 #include "ntop_includes.h"
 
-template <typename T> class FifoQueue {
+template <typename T>
+class FifoQueue {
  protected:
   Mutex m;
   std::queue<T> q;
@@ -38,38 +38,38 @@ template <typename T> class FifoQueue {
     num_enqueued = num_not_enqueued = num_dequeued = 0;
   }
   virtual ~FifoQueue() { ; }
-  
+
   /*
     Subclasses might override this as sometimes the buffer
     needs to be duplicated as for strings
   */
   bool enqueue(T item) {
     bool rv;
-    
+
     m.lock(__FILE__, __LINE__);
 
-    if(canEnqueue()) {
+    if (canEnqueue()) {
       q.push(item);
       rv = true;
     } else
       rv = false;
 
-    if(rv)
+    if (rv)
       num_enqueued++;
     else
       num_not_enqueued++;
 
     m.unlock(__FILE__, __LINE__);
-    
-    return(rv);
+
+    return (rv);
   }
- 
+
   T dequeue() {
     T rv;
 
     m.lock(__FILE__, __LINE__);
 
-    if(q.empty())
+    if (q.empty())
       rv = static_cast<T>(NULL);
     else {
       rv = q.front();
@@ -78,17 +78,22 @@ template <typename T> class FifoQueue {
     }
     m.unlock(__FILE__, __LINE__);
 
-    return(rv);
+    return (rv);
   }
 
-  inline bool canEnqueue()      { return(getLength() < max_size); }
-  inline u_int32_t getLength()  { return(q.size());               }
-  inline bool empty()           { return(q.empty());              }
-  inline u_int8_t fillPct()     { return (num_enqueued - num_dequeued) / (float)(max_size + 1) * 100; };
-  inline void lua(lua_State* vm, const char * table_name) {
+  inline bool canEnqueue() { return (getLength() < max_size); }
+  inline u_int32_t getLength() { return (q.size()); }
+  inline bool empty() { return (q.empty()); }
+  inline u_int8_t fillPct() {
+    return (num_enqueued - num_dequeued) / (float)(max_size + 1) * 100;
+  };
+  inline void lua(lua_State* vm, const char* table_name) {
     lua_newtable(vm);
-    /* The percentage of not enqueued, with reference to the total number of not enqueued plus enqueued */
-    lua_push_uint64_table_entry(vm,  "pct_not_enqueued", num_not_enqueued / (float)(num_not_enqueued + num_enqueued + 1) * 100);
+    /* The percentage of not enqueued, with reference to the total number of not
+     * enqueued plus enqueued */
+    lua_push_uint64_table_entry(
+        vm, "pct_not_enqueued",
+        num_not_enqueued / (float)(num_not_enqueued + num_enqueued + 1) * 100);
 
     lua_pushstring(vm, table_name);
     lua_insert(vm, -2);

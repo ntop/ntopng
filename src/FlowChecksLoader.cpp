@@ -26,8 +26,8 @@
 
 FlowChecksLoader::FlowChecksLoader() : ChecksLoader() {
   /*
-    Assuments all risks as unhanlded. Bits corresponding to risks handled by checks will be set to
-    zero during checks registration.
+    Assuments all risks as unhanlded. Bits corresponding to risks handled by
+    checks will be set to zero during checks registration.
    */
   NDPI_BITMASK_SET_ALL(unhandled_ndpi_risks);
   NDPI_CLR_BIT(unhandled_ndpi_risks, NDPI_NO_RISK);
@@ -36,15 +36,17 @@ FlowChecksLoader::FlowChecksLoader() : ChecksLoader() {
 /* **************************************************** */
 
 FlowChecksLoader::~FlowChecksLoader() {
-  for(std::map<std::string, FlowCheck*>::const_iterator it = cb_all.begin(); it != cb_all.end(); ++it)
+  for (std::map<std::string, FlowCheck *>::const_iterator it = cb_all.begin();
+       it != cb_all.end(); ++it)
     delete it->second;
 }
 
 /* **************************************************** */
 
 void FlowChecksLoader::registerCheck(FlowCheck *cb) {
-  if(cb_all.find(cb->getName()) != cb_all.end()) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Ignoring duplicate flow check %s", cb->getName().c_str());
+  if (cb_all.find(cb->getName()) != cb_all.end()) {
+    ntop->getTrace()->traceEvent(
+        TRACE_ERROR, "Ignoring duplicate flow check %s", cb->getName().c_str());
     delete cb;
     return;
   }
@@ -55,8 +57,8 @@ void FlowChecksLoader::registerCheck(FlowCheck *cb) {
     If this is a check that handles an nDPI flow risk,
     the corresponding risk is cleared in the unhandled risks bitmap
    */
-  FlowRisk *fr = dynamic_cast<FlowRisk*>(cb);
-  if(fr) NDPI_CLR_BIT(unhandled_ndpi_risks, fr->handledRisk());
+  FlowRisk *fr = dynamic_cast<FlowRisk *>(cb);
+  if (fr) NDPI_CLR_BIT(unhandled_ndpi_risks, fr->handledRisk());
 }
 /* **************************************************** */
 
@@ -64,102 +66,102 @@ void FlowChecksLoader::registerChecks() {
   /* TODO: implement dynamic loading */
   FlowCheck *fcb;
 
-  if((fcb = new BlacklistedFlow()))                             registerCheck(fcb);
-  if((fcb = new BlacklistedCountry()))                          registerCheck(fcb);
-  if((fcb = new BroadcastNonUDPTraffic()))                      registerCheck(fcb);
-  if((fcb = new CustomFlowLuaScript()))                         registerCheck(fcb);
-  if((fcb = new DeviceProtocolNotAllowed()))                    registerCheck(fcb);
+  if ((fcb = new BlacklistedFlow())) registerCheck(fcb);
+  if ((fcb = new BlacklistedCountry())) registerCheck(fcb);
+  if ((fcb = new BroadcastNonUDPTraffic())) registerCheck(fcb);
+  if ((fcb = new CustomFlowLuaScript())) registerCheck(fcb);
+  if ((fcb = new DeviceProtocolNotAllowed())) registerCheck(fcb);
 #ifndef NTOPNG_PRO
-  if((fcb = new ExternalAlertCheck()))                          registerCheck(fcb);
+  if ((fcb = new ExternalAlertCheck())) registerCheck(fcb);
 #endif
-  if((fcb = new FlowRiskBinaryApplicationTransfer()))           registerCheck(fcb);
-  if((fcb = new FlowRiskDesktopOrFileSharingSession()))         registerCheck(fcb);
-  if((fcb = new FlowRiskDNSSuspiciousTraffic()))                registerCheck(fcb);
-  if((fcb = new FlowRiskNumericIPHost()))                       registerCheck(fcb);
-  if((fcb = new FlowRiskHTTPObsoleteServer()))                  registerCheck(fcb);
-  if((fcb = new FlowRiskHTTPSuspiciousHeader()))                registerCheck(fcb);
-  if((fcb = new FlowRiskHTTPSuspiciousUserAgent()))             registerCheck(fcb);
-  if((fcb = new FlowRiskHTTPSuspiciousURL()))                   registerCheck(fcb);
-  if((fcb = new FlowRiskKnownProtocolOnNonStandardPort()))      registerCheck(fcb);
-  if((fcb = new FlowRiskMalformedPacket()))                     registerCheck(fcb);
-  if((fcb = new FlowRiskMaliciousJA3()))                        registerCheck(fcb);
-  if((fcb = new FlowRiskMaliciousSHA1Certificate()))            registerCheck(fcb);
-  if((fcb = new FlowRiskPeriodicFlow()))                        registerCheck(fcb);
-  if((fcb = new FlowRiskSMBInsecureVersion()))                  registerCheck(fcb);
-  if((fcb = new FlowRiskSSHObsoleteServer()))                   registerCheck(fcb);
-  if((fcb = new FlowRiskSSHObsoleteClient()))                   registerCheck(fcb);
-  if((fcb = new FlowRiskSuspiciousDGADomain()))                 registerCheck(fcb);
-  if((fcb = new FlowRiskSuspiciousEntropy()))                   registerCheck(fcb);
-  if((fcb = new FlowRiskDNSLargePacket()))                      registerCheck(fcb);
-  if((fcb = new FlowRiskDNSFragmented()))                       registerCheck(fcb);
-  if((fcb = new FlowRiskClearTextCredentials()))                registerCheck(fcb);
-  if((fcb = new FlowRiskTLSMissingSNI()))                       registerCheck(fcb);
-  if((fcb = new FlowRiskRiskyASN()))                            registerCheck(fcb);
-  if((fcb = new FlowRiskRiskyDomain()))                         registerCheck(fcb);
-  if((fcb = new FlowRiskTLSNotCarryingHTTPS()))                 registerCheck(fcb);
-  if((fcb = new FlowRiskTLSSuspiciousESNIUsage()))              registerCheck(fcb);
-  if((fcb = new FlowRiskUnsafeProtocol()))                      registerCheck(fcb);
-  if((fcb = new FlowRiskURLPossibleXSS()))                      registerCheck(fcb);
-  if((fcb = new FlowRiskURLPossibleRCEInjection()))             registerCheck(fcb);
-  if((fcb = new FlowRiskURLPossibleSQLInjection()))             registerCheck(fcb);
-  if((fcb = new FlowRiskUnidirectionalTraffic()))               registerCheck(fcb);
-  if((fcb = new IECUnexpectedTypeId()))                         registerCheck(fcb);
-  if((fcb = new IECInvalidTransition()))                        registerCheck(fcb);
-  if((fcb = new IECInvalidCommandTransition()))                 registerCheck(fcb);
-  if((fcb = new LowGoodputFlow()))                              registerCheck(fcb);
-  if((fcb = new NotPurged()))                                   registerCheck(fcb);  
-  if((fcb = new RemoteAccess()))                                registerCheck(fcb);
-  if((fcb = new RareDestination()))                             registerCheck(fcb);
-  if((fcb = new RemoteToLocalInsecureProto()))                  registerCheck(fcb);
-  if((fcb = new RemoteToRemote()))                              registerCheck(fcb);
-  if((fcb = new TCPZeroWindow()))                               registerCheck(fcb);
-  if((fcb = new TCPNoDataExchanged()))                          registerCheck(fcb);
-  if((fcb = new TCPPacketsIssues()))                            registerCheck(fcb);
-  if((fcb = new UnexpectedDNSServer()))                         registerCheck(fcb);
-  if((fcb = new UnexpectedDHCPServer()))                        registerCheck(fcb);
-  if((fcb = new UnexpectedNTPServer()))                         registerCheck(fcb);
-  if((fcb = new UnexpectedSMTPServer()))                        registerCheck(fcb);
-  if((fcb = new WebMining()))                                   registerCheck(fcb);
-  if((fcb = new VLANBidirectionalTraffic()))                    registerCheck(fcb);
+  if ((fcb = new FlowRiskBinaryApplicationTransfer())) registerCheck(fcb);
+  if ((fcb = new FlowRiskDesktopOrFileSharingSession())) registerCheck(fcb);
+  if ((fcb = new FlowRiskDNSSuspiciousTraffic())) registerCheck(fcb);
+  if ((fcb = new FlowRiskNumericIPHost())) registerCheck(fcb);
+  if ((fcb = new FlowRiskHTTPObsoleteServer())) registerCheck(fcb);
+  if ((fcb = new FlowRiskHTTPSuspiciousHeader())) registerCheck(fcb);
+  if ((fcb = new FlowRiskHTTPSuspiciousUserAgent())) registerCheck(fcb);
+  if ((fcb = new FlowRiskHTTPSuspiciousURL())) registerCheck(fcb);
+  if ((fcb = new FlowRiskKnownProtocolOnNonStandardPort())) registerCheck(fcb);
+  if ((fcb = new FlowRiskMalformedPacket())) registerCheck(fcb);
+  if ((fcb = new FlowRiskMaliciousJA3())) registerCheck(fcb);
+  if ((fcb = new FlowRiskMaliciousSHA1Certificate())) registerCheck(fcb);
+  if ((fcb = new FlowRiskPeriodicFlow())) registerCheck(fcb);
+  if ((fcb = new FlowRiskSMBInsecureVersion())) registerCheck(fcb);
+  if ((fcb = new FlowRiskSSHObsoleteServer())) registerCheck(fcb);
+  if ((fcb = new FlowRiskSSHObsoleteClient())) registerCheck(fcb);
+  if ((fcb = new FlowRiskSuspiciousDGADomain())) registerCheck(fcb);
+  if ((fcb = new FlowRiskSuspiciousEntropy())) registerCheck(fcb);
+  if ((fcb = new FlowRiskDNSLargePacket())) registerCheck(fcb);
+  if ((fcb = new FlowRiskDNSFragmented())) registerCheck(fcb);
+  if ((fcb = new FlowRiskClearTextCredentials())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSMissingSNI())) registerCheck(fcb);
+  if ((fcb = new FlowRiskRiskyASN())) registerCheck(fcb);
+  if ((fcb = new FlowRiskRiskyDomain())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSNotCarryingHTTPS())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSSuspiciousESNIUsage())) registerCheck(fcb);
+  if ((fcb = new FlowRiskUnsafeProtocol())) registerCheck(fcb);
+  if ((fcb = new FlowRiskURLPossibleXSS())) registerCheck(fcb);
+  if ((fcb = new FlowRiskURLPossibleRCEInjection())) registerCheck(fcb);
+  if ((fcb = new FlowRiskURLPossibleSQLInjection())) registerCheck(fcb);
+  if ((fcb = new FlowRiskUnidirectionalTraffic())) registerCheck(fcb);
+  if ((fcb = new IECUnexpectedTypeId())) registerCheck(fcb);
+  if ((fcb = new IECInvalidTransition())) registerCheck(fcb);
+  if ((fcb = new IECInvalidCommandTransition())) registerCheck(fcb);
+  if ((fcb = new LowGoodputFlow())) registerCheck(fcb);
+  if ((fcb = new NotPurged())) registerCheck(fcb);
+  if ((fcb = new RemoteAccess())) registerCheck(fcb);
+  if ((fcb = new RareDestination())) registerCheck(fcb);
+  if ((fcb = new RemoteToLocalInsecureProto())) registerCheck(fcb);
+  if ((fcb = new RemoteToRemote())) registerCheck(fcb);
+  if ((fcb = new TCPZeroWindow())) registerCheck(fcb);
+  if ((fcb = new TCPNoDataExchanged())) registerCheck(fcb);
+  if ((fcb = new TCPPacketsIssues())) registerCheck(fcb);
+  if ((fcb = new UnexpectedDNSServer())) registerCheck(fcb);
+  if ((fcb = new UnexpectedDHCPServer())) registerCheck(fcb);
+  if ((fcb = new UnexpectedNTPServer())) registerCheck(fcb);
+  if ((fcb = new UnexpectedSMTPServer())) registerCheck(fcb);
+  if ((fcb = new WebMining())) registerCheck(fcb);
+  if ((fcb = new VLANBidirectionalTraffic())) registerCheck(fcb);
 
 #ifdef NTOPNG_PRO
-  if((fcb = new DataExfiltration()))                            registerCheck(fcb);
-  if((fcb = new DNSDataExfiltration()))                         registerCheck(fcb);
-  if((fcb = new ElephantFlow()))                                registerCheck(fcb);
-  if((fcb = new ExternalAlertCheckPro()))                       registerCheck(fcb);
-  if((fcb = new InvalidDNSQuery()))                             registerCheck(fcb);
+  if ((fcb = new DataExfiltration())) registerCheck(fcb);
+  if ((fcb = new DNSDataExfiltration())) registerCheck(fcb);
+  if ((fcb = new ElephantFlow())) registerCheck(fcb);
+  if ((fcb = new ExternalAlertCheckPro())) registerCheck(fcb);
+  if ((fcb = new InvalidDNSQuery())) registerCheck(fcb);
 #if !defined(HAVE_NEDGE)
-  if((fcb = new LateralMovement()))                             registerCheck(fcb);
-  if((fcb = new PeriodicityChanged()))                          registerCheck(fcb);
+  if ((fcb = new LateralMovement())) registerCheck(fcb);
+  if ((fcb = new PeriodicityChanged())) registerCheck(fcb);
 #endif
-  if((fcb = new LongLivedFlow()))                               registerCheck(fcb);
-  if((fcb = new TCPConnectionFailed()))                         registerCheck(fcb);
-  if((fcb = new TCPConnectionRefused()))                        registerCheck(fcb);
-  if((fcb = new FlowRiskTLSCertValidityTooLong()))              registerCheck(fcb);
-  if((fcb = new FlowRiskTLSCertificateExpired()))               registerCheck(fcb);
-  if((fcb = new FlowRiskTLSCertificateMismatch()))              registerCheck(fcb);
-  if((fcb = new FlowRiskTLSFatal()))                            registerCheck(fcb);
-  if((fcb = new FlowRiskTLSOldProtocolVersion()))               registerCheck(fcb);
-  if((fcb = new FlowRiskTLSUncommonALPN()))                     registerCheck(fcb);
-  if((fcb = new FlowRiskTLSSuspiciousExtension()))              registerCheck(fcb);
-  if((fcb = new FlowRiskTLSUnsafeCiphers()))                    registerCheck(fcb);
-  if((fcb = new FlowRiskTLSCertificateSelfSigned()))            registerCheck(fcb);
+  if ((fcb = new LongLivedFlow())) registerCheck(fcb);
+  if ((fcb = new TCPConnectionFailed())) registerCheck(fcb);
+  if ((fcb = new TCPConnectionRefused())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSCertValidityTooLong())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSCertificateExpired())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSCertificateMismatch())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSFatal())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSOldProtocolVersion())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSUncommonALPN())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSSuspiciousExtension())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSUnsafeCiphers())) registerCheck(fcb);
+  if ((fcb = new FlowRiskTLSCertificateSelfSigned())) registerCheck(fcb);
 #ifdef HAVE_NEDGE
-  if((fcb = new NedgeBlockedFlow()))                            registerCheck(fcb);
+  if ((fcb = new NedgeBlockedFlow())) registerCheck(fcb);
 #endif
 #endif
 
-  /* Register all the remaining risk-based checks that haven't been already registered with a dedicated class */
-  for(u_int risk_id = 1; risk_id < NDPI_MAX_RISK; risk_id++) {
+  /* Register all the remaining risk-based checks that haven't been already
+   * registered with a dedicated class */
+  for (u_int risk_id = 1; risk_id < NDPI_MAX_RISK; risk_id++) {
     ndpi_risk_enum risk = (ndpi_risk_enum)risk_id;
 
     /* The risk is not handled by any of the above dedicated classes */
-    if(isRiskUnhandled(risk)
-       /* The risk is among those supported by class FlowRiskAlerts */
-       && FlowRiskAlerts::getFlowRiskAlertType(risk).id != flow_alert_normal) {
+    if (isRiskUnhandled(risk)
+        /* The risk is among those supported by class FlowRiskAlerts */
+        && FlowRiskAlerts::getFlowRiskAlertType(risk).id != flow_alert_normal) {
       /* Instantiate a simple risk class to handle it */
-      if((fcb = new FlowRiskGeneric(risk)))
-        registerCheck(fcb);
+      if ((fcb = new FlowRiskGeneric(risk))) registerCheck(fcb);
     }
   }
 
@@ -183,31 +185,37 @@ void FlowChecksLoader::loadConfiguration() {
   char *value = NULL;
   u_int actual_len = ntop->getRedis()->len(CHECKS_CONFIG);
 
-  if((value = (char *) malloc(actual_len + 1)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", CHECKS_CONFIG);
+  if ((value = (char *)malloc(actual_len + 1)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                 "Unable to allocate memory to deserialize %s",
+                                 CHECKS_CONFIG);
     goto out;
   }
 
-  if(ntop->getRedis()->get((char*)CHECKS_CONFIG, value, actual_len + 1) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to find configuration %s", CHECKS_CONFIG);
+  if (ntop->getRedis()->get((char *)CHECKS_CONFIG, value, actual_len + 1) !=
+      0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to find configuration %s",
+                                 CHECKS_CONFIG);
     goto out;
   }
 
-  if((json = json_tokener_parse_verbose(value, &jerr)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "JSON Parse error [%s] %s [len: %u][strlen: %u]",
-				 json_tokener_error_desc(jerr), value, actual_len, strlen(value));
+  if ((json = json_tokener_parse_verbose(value, &jerr)) == NULL) {
+    ntop->getTrace()->traceEvent(
+        TRACE_ERROR, "JSON Parse error [%s] %s [len: %u][strlen: %u]",
+        json_tokener_error_desc(jerr), value, actual_len, strlen(value));
     goto out;
   }
 
-  if(!json_object_object_get_ex(json, "config", &json_config)) {
+  if (!json_object_object_get_ex(json, "config", &json_config)) {
     /* 'config' section inside the JSON */
     ntop->getTrace()->traceEvent(TRACE_ERROR, "'config' not found in JSON");
     goto out;
   }
 
-  if(!json_object_object_get_ex(json_config, "flow", &json_config_flow)) {
+  if (!json_object_object_get_ex(json_config, "flow", &json_config_flow)) {
     /* 'flow' section inside 'config' JSON */
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "'flow' not found in 'config' JSON");
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                 "'flow' not found in 'config' JSON");
     goto out;
   }
 
@@ -217,55 +225,64 @@ void FlowChecksLoader::loadConfiguration() {
   it = json_object_iter_begin(json_config_flow);
   itEnd = json_object_iter_end(json_config_flow);
 
-  while(!json_object_iter_equal(&it, &itEnd)) {
-    const char *check_key   = json_object_iter_peek_name(&it);
+  while (!json_object_iter_equal(&it, &itEnd)) {
+    const char *check_key = json_object_iter_peek_name(&it);
     json_object *check_config = json_object_iter_peek_value(&it);
     json_object *json_script_conf, *json_hook_all;
 
-    if(json_object_object_get_ex(check_config, "all", &json_hook_all)) {
+    if (json_object_object_get_ex(check_config, "all", &json_hook_all)) {
       json_object *json_enabled;
       bool enabled;
 
-      if(cb_all.find(check_key) != cb_all.end()) {
-	FlowCheck *cb = cb_all[check_key];
+      if (cb_all.find(check_key) != cb_all.end()) {
+        FlowCheck *cb = cb_all[check_key];
 
-	if(!cb->isCheckCompatibleWithEdition()) {
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "Check not compatible with current edition [check: %s]", check_key);
-	  goto next_object;
-	}
+        if (!cb->isCheckCompatibleWithEdition()) {
+          ntop->getTrace()->traceEvent(
+              TRACE_INFO,
+              "Check not compatible with current edition [check: %s]",
+              check_key);
+          goto next_object;
+        }
 
-	if(json_object_object_get_ex(json_hook_all, "enabled", &json_enabled))
-	  enabled = json_object_get_boolean(json_enabled);
-	else
-	  enabled = false;
+        if (json_object_object_get_ex(json_hook_all, "enabled", &json_enabled))
+          enabled = json_object_get_boolean(json_enabled);
+        else
+          enabled = false;
 
-	if(!enabled) {
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping check not enabled [check: %s]", check_key);
-	  goto next_object;
-	}
+        if (!enabled) {
+          ntop->getTrace()->traceEvent(
+              TRACE_INFO, "Skipping check not enabled [check: %s]", check_key);
+          goto next_object;
+        }
 
-	/* Script enabled */
-	if(json_object_object_get_ex(json_hook_all, "script_conf", &json_script_conf)) {
-	  if(cb->loadConfiguration(json_script_conf)) {
-	    ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully enabled check %s", check_key);
-	  } else {
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while loading check %s configuration",
-					 check_key);
-	  }
+        /* Script enabled */
+        if (json_object_object_get_ex(json_hook_all, "script_conf",
+                                      &json_script_conf)) {
+          if (cb->loadConfiguration(json_script_conf)) {
+            ntop->getTrace()->traceEvent(
+                TRACE_INFO, "Successfully enabled check %s", check_key);
+          } else {
+            ntop->getTrace()->traceEvent(
+                TRACE_WARNING, "Error while loading check %s configuration",
+                check_key);
+          }
 
-	  cb->enable();
-	  cb->scriptEnable(); 
-	} else {
-	  /* Script disabled */
-	  cb->scriptDisable(); 
-	}
-      }	else
-      /* In case of these alerts do not trigger, due to some changes, 
-         it is normal that is going to trigger the warning */
-      if(strcmp(check_key, "tls_old_protocol_version") &&
-          strcmp(check_key, "tls_malicious_signature") &&
-          strcmp(check_key, "ndpi_http_numeric_ip_host"))
-	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find flow check '%s': skipping it", check_key);
+          cb->enable();
+          cb->scriptEnable();
+        } else {
+          /* Script disabled */
+          cb->scriptDisable();
+        }
+      } else
+        /* In case of these alerts do not trigger, due to some changes,
+           it is normal that is going to trigger the warning */
+        if (strcmp(check_key, "tls_old_protocol_version") &&
+            strcmp(check_key, "tls_malicious_signature") &&
+            strcmp(check_key, "ndpi_http_numeric_ip_host"))
+          ntop->getTrace()->traceEvent(
+              TRACE_WARNING, "Unable to find flow check '%s': skipping it",
+              check_key);
     }
 
   next_object:
@@ -273,10 +290,10 @@ void FlowChecksLoader::loadConfiguration() {
     json_object_iter_next(&it);
   } /* while */
 
- out:
+out:
   /* Free the json */
-  if(json)  json_object_put(json);
-  if(value) free(value);
+  if (json) json_object_put(json);
+  if (value) free(value);
 }
 
 /* **************************************************** */
@@ -284,44 +301,49 @@ void FlowChecksLoader::loadConfiguration() {
 void FlowChecksLoader::printChecks() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Available Checks:");
 
-  for(std::map<std::string, FlowCheck*>::const_iterator it = cb_all.begin(); it != cb_all.end(); ++it)
+  for (std::map<std::string, FlowCheck *>::const_iterator it = cb_all.begin();
+       it != cb_all.end(); ++it)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "\t%s", it->first.c_str());
 
-  if(unhandled_ndpi_risks) {
+  if (unhandled_ndpi_risks) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unhandled Risks:");
 
-    for(int i = 0; i < NDPI_MAX_RISK; i++)
-      if(NDPI_ISSET_BIT(unhandled_ndpi_risks, (ndpi_risk_enum)i))
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "\t%s [%u]", ndpi_risk2str((ndpi_risk_enum)i), i);
+    for (int i = 0; i < NDPI_MAX_RISK; i++)
+      if (NDPI_ISSET_BIT(unhandled_ndpi_risks, (ndpi_risk_enum)i))
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "\t%s [%u]",
+                                     ndpi_risk2str((ndpi_risk_enum)i), i);
   }
 }
 
 /* **************************************************** */
 
-std::list<FlowCheck*>* FlowChecksLoader::getChecks(NetworkInterface *iface, FlowChecks check) {
-  std::list<FlowCheck*> *l = new std::list<FlowCheck*>;
+std::list<FlowCheck *> *FlowChecksLoader::getChecks(NetworkInterface *iface,
+                                                    FlowChecks check) {
+  std::list<FlowCheck *> *l = new std::list<FlowCheck *>;
 
-  for(std::map<std::string, FlowCheck*>::const_iterator it = cb_all.begin(); it != cb_all.end(); ++it) {
+  for (std::map<std::string, FlowCheck *>::const_iterator it = cb_all.begin();
+       it != cb_all.end(); ++it) {
     FlowCheck *cb = it->second;
 
-    if(cb->isEnabled())
-      cb->addCheck(l, iface, check);
+    if (cb->isEnabled()) cb->addCheck(l, iface, check);
   }
 
-  return(l);
+  return (l);
 }
 
 /* **************************************************** */
 
-bool FlowChecksLoader::luaCheckInfo(lua_State* vm, std::string check_name) const {
-  std::map<std::string, FlowCheck*>::const_iterator it = cb_all.find(check_name);
+bool FlowChecksLoader::luaCheckInfo(lua_State *vm,
+                                    std::string check_name) const {
+  std::map<std::string, FlowCheck *>::const_iterator it =
+      cb_all.find(check_name);
 
-  if(it == cb_all.end())
-    return false;
+  if (it == cb_all.end()) return false;
 
   lua_newtable(vm);
-  
-  lua_push_str_table_entry(vm, "edition", Utils::edition2name(it->second->getEdition()));
+
+  lua_push_str_table_entry(vm, "edition",
+                           Utils::edition2name(it->second->getEdition()));
   lua_push_str_table_entry(vm, "key", it->second->getName().c_str());
 
   return true;
@@ -332,7 +354,8 @@ bool FlowChecksLoader::luaCheckInfo(lua_State* vm, std::string check_name) const
 void FlowChecksLoader::lua(lua_State *vm) {
   lua_newtable(vm);
 
-  for(std::map<std::string, FlowCheck*>::const_iterator it = cb_all.begin(); it != cb_all.end(); ++it) {
+  for (std::map<std::string, FlowCheck *>::const_iterator it = cb_all.begin();
+       it != cb_all.end(); ++it) {
     FlowCheck *fc = it->second;
 
     lua_newtable(vm);

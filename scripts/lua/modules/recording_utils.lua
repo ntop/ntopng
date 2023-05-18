@@ -212,6 +212,15 @@ local function isRecordingEnabledInCache(ifid)
   return false
 end
 
+local function isSmartRecordingEnabledInCache(ifid)
+  local enabled = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.smart_traffic_recording.enabled')
+  if not isEmptyString(enabled) and 
+     (enabled == "true" or enabled == "1") then
+     return true
+  end
+  return false
+end
+
 local function getInUseExtInterfaces(current_ifid)
   local inuse_ext_interfaces = {}
   local ntopng_interfaces = interface.getIfNames()
@@ -311,6 +320,11 @@ function recording_utils.getPcapPath(ifid)
   return storage_path.."/"..ifid.."/pcap"
 end
 
+function recording_utils.getSmartPcapPath(ifid)
+  local storage_path = dirs.pcapdir
+  return storage_path.."/"..ifid.."/smart-pcap"
+end
+
 local function getPcapExtractionPath(ifid)
   local storage_path = dirs.pcapdir
   return storage_path.."/"..ifid.."/extr_pcap"
@@ -319,6 +333,11 @@ end
 local function getTimelinePath(ifid)
   local storage_path = dirs.pcapdir
   return storage_path.."/"..ifid.."/timeline"
+end
+
+local function getSmartTimelinePath(ifid)
+  local storage_path = dirs.pcapdir
+  return storage_path.."/"..ifid.."/smart-timeline"
 end
 
 local function getPcapFileDir(job_id, ifid)
@@ -421,10 +440,20 @@ local function getConfigInterfaceName(ifid)
   return ifname:gsub("%,", "_")
 end
 
+function recording_utils.getN2diskInstanceName(ifid)
+  return getConfigInterfaceName(ifid)
+end
+
 local function n2disk_service_name(provider)
    -- a service that is started manually by the sysadmin is normally called n2disk
    -- a service that is started and managed by ntopng is called n2disk-ntopng
    return ternary(provider ~= "ntopng", "n2disk", "n2disk-ntopng")
+end
+
+local function disk2disk_service_name(provider)
+   -- a service that is started manually by the sysadmin is normally called n2disk
+   -- a service that is started and managed by ntopng is called disk2disk-ntopng
+   return ternary(provider ~= "ntopng", "disk2disk", "disk2disk-ntopng")
 end
 
 local function n2diskctl(command, ifid, ...)
@@ -432,6 +461,13 @@ local function n2diskctl(command, ifid, ...)
    local confifname = getConfigInterfaceName(ifid)
 
    return os_utils.ntopctlCmd(n2disk_service_name(cur_provider), command, confifname, ...)
+end
+
+local function disk2diskctl(command, ifid, ...)
+   local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
+   local confifname = getConfigInterfaceName(ifid)
+
+   return os_utils.ntopctlCmd(disk2disk_service_name(cur_provider), command, confifname, ...)
 end
 
 --! @brief Generate a configuration for the traffic recording service (n2disk)
@@ -452,8 +488,6 @@ function recording_utils.createConfig(ifid, params)
     real_ifname = "zc:"..ifname
   end
 
-  local conf_dir = dirs.workingdir.."/n2disk"
-  local filename = conf_dir.."/n2disk-" .. getConfigInterfaceName(ifid) .. ".conf"
   local storage_path = dirs.pcapdir
 
   if isEmptyString(storage_path) then
@@ -562,6 +596,9 @@ function recording_utils.createConfig(ifid, params)
 
   -- Writing configuration file
 
+  local conf_dir = dirs.workingdir.."/n2disk"
+  local filename = conf_dir.."/n2disk-" .. getConfigInterfaceName(ifid) .. ".conf"
+
   local ret = ntop.mkdir(conf_dir)
 
   if not ret then
@@ -636,6 +673,50 @@ function recording_utils.createConfig(ifid, params)
 
   f:close()
 
+  ---
+
+  if not config.enable_smart_recording then
+    return true
+  end
+
+  -- Writing Smart configuration file
+
+  conf_dir = dirs.workingdir.."/disk2disk"
+  filename = conf_dir.."/disk2disk-" .. getConfigInterfaceName(ifid) .. ".conf"
+
+  local ret = ntop.mkdir(conf_dir)
+
+  if not ret then
+    return false
+  end
+
+  local f = io.open(filename, "w")
+
+  if not f then
+    return false
+  end
+
+  local smart_pcap_path = recording_utils.getSmartPcapPath(ifid)
+  local smart_timeline_path = getSmartTimelinePath(ifid)
+
+  -- Input timeline
+  f:write("-t="..timeline_path.."\n")
+
+  -- Output timeline
+  f:write("-o="..smart_pcap_path.."\n")
+  f:write("-O="..smart_timeline_path.."\n")
+
+  -- Disk settings
+  f:write("-l="..config.max_smart_disk_space.."\n")
+  f:write("-p="..config.max_file_size.."\n")
+
+  -- User
+  if not isEmptyString(prefs.user) then
+    f:write("-u="..prefs.user.."\n");
+  end
+
+  f:close()
+
   return true
 end
 
@@ -643,16 +724,22 @@ local function isRecordingEnabled(ifid)
   local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
 
   if cur_provider == "ntopng" then
-    if isRecordingEnabledInCache(ifid) then
-      return true
-    end
+    return isRecordingEnabledInCache(ifid)
   else
     -- if the user has specified a custom provider different than ntopng, it is
     -- assumed that he/she wants the recording so the service is considered enabled
     return true
   end
+end 
 
-  return false
+local function isSmartRecordingEnabled(ifid)
+  local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
+
+  if cur_provider == "ntopng" then
+    return isSmartRecordingEnabledInCache(ifid)
+  else
+    return true
+  end
 end 
 
 --! @brief Check if traffic recording is available and enabled on an interface
@@ -661,6 +748,18 @@ end
 function recording_utils.isEnabled(ifid)
   if recording_utils.isAvailable() then
     return isRecordingEnabled(ifid)
+  end
+
+  return false
+end
+
+function recording_utils.isSmartEnabled(ifid)
+  if not ntop.isEnterpriseXL() then
+    return false
+  end
+
+  if recording_utils.isAvailable() then
+    return isSmartRecordingEnabled(ifid)
   end
 
   return false
@@ -710,6 +809,76 @@ function recording_utils.isExtractionActive(ifid)
    return isRecordingServiceActive(ifid)
 end
 
+--! @brief Return statistics from the traffic recording service (n2disk)
+--! @param ifid the interface identifier
+--! @return the statistics
+local function parse_proc_stats(proc_stats)
+   local stats = {}
+
+   local lines = split(proc_stats, "\n") or {}
+
+   for i = 1, #lines do
+      local pair = split(lines[i], ": ")
+      if pair[1] ~= nil and pair[2] ~= nil then
+	 stats[pair[1]] = trimString(pair[2])
+      end
+   end
+
+   if stats['FirstDumpedEpoch'] ~= nil then
+      stats['FirstDumpedEpoch'] = tonumber(stats['FirstDumpedEpoch'])
+   end
+
+   if stats['LastDumpedEpoch'] ~= nil then
+      stats['LastDumpedEpoch'] = tonumber(stats['LastDumpedEpoch'])
+   end
+
+   if stats['Duration'] ~= nil then
+      local u = split(stats['Duration'], ':');
+      stats['DurationEpoch'] = tonumber(u[1])*24*60*60+tonumber(u[2])*60*60+tonumber(u[3])*60+u[4]
+      stats['StartEpoch'] = os.time() - stats['DurationEpoch']
+   end
+
+   return stats
+end
+
+local function is_data_in_window(stats, epoch_begin, epoch_end)
+   local info = {}
+   info.available = false
+
+   local first_epoch = tonumber(stats['FirstDumpedEpoch'])
+   local last_epoch = tonumber(stats['LastDumpedEpoch'])
+
+   if first_epoch > 0 and last_epoch > 0 and 
+      epoch_end > first_epoch and epoch_begin < last_epoch then
+      info.epoch_begin = epoch_begin
+      info.epoch_end = epoch_end
+      if first_epoch > epoch_begin then
+         info.epoch_begin = first_epoch
+      end
+      if last_epoch < epoch_end then
+         info.epoch_end = last_epoch
+      end
+      info.available = true
+   end
+
+   return info
+end
+
+--! @brief Return statistics from the traffic recording service (n2disk)
+--! @param ifid the interface identifier
+--! @return the statistics
+function recording_utils.stats(ifid)
+   local proc_stats = n2diskctl("stats", ifid)
+   return parse_proc_stats(proc_stats)
+end
+
+--! @brief Return statistics from the traffic recording service (n2disk)
+--! @param ifid the interface identifier
+--! @return the statistics
+function recording_utils.smartStats(ifid)
+   local proc_stats = disk2diskctl("stats", ifid)
+   return parse_proc_stats(proc_stats)
+end
 
 function recording_utils.getAvailableTrafficRecordingProviders()
    local res = {}
@@ -763,25 +932,64 @@ function recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifid)
    else
       local stats = recording_utils.stats(ifid)
       if stats["TimelinePath"] and ntop.exists(stats["TimelinePath"]) then
-	 return "timeline:"..stats["TimelinePath"]
+	 return stats["TimelinePath"]
       end
    end
+end
+
+function recording_utils.getCurrentTrafficRecordingProviderSmartTimelinePath(ifid)
+   local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
+
+   if cur_provider == "ntopng" then
+      return getSmartTimelinePath(ifid)
+   else
+      local stats = recording_utils.smartStats(ifid)
+      if stats["TimelinePath"] and ntop.exists(stats["TimelinePath"]) then
+	 return stats["TimelinePath"]
+      end
+   end
+end
+
+--! @brief Return the current n2disk timeline, or the "Smart" timeline if active, based on the time interval
+function recording_utils.getTimelineByInterval(ifid, epoch_begin, epoch_end)
+   if recording_utils.isExtractionEnabled(ifid) then
+      local stats = recording_utils.stats(ifid)
+      local info = is_data_in_window(stats, epoch_begin, epoch_end)
+      if info.available then
+         return recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifid)
+      end
+   end
+
+   -- Check Smart Recording
+   if recording_utils.isSmartEnabled(ifid) then
+      local stats = recording_utils.smartStats(ifid)
+      local info = is_data_in_window(stats, epoch_begin, epoch_end)
+      if info.available then
+         return recording_utils.getCurrentTrafficRecordingProviderSmartTimelinePath(ifid)
+      end
+   end
+
+   return nil
 end
 
 --! @brief Parse the configuration file of a manually-started n2disk and returns the timeline if found
 --! @param ifid the interface identifier 
 --! @return true if extraction is possible and false otherwise, along with a check message
-function recording_utils.checkExtraction(ifid)
+function recording_utils.checkExtraction(ifid, use_smart)
    local res = {}
    -- try and open the timeline. Failing to open the timeline would cause failing to do the extractions
-   local timeline_path = recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifid)
+
+   local timeline_path
+   if not use_smart then
+      timeline_path = recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifid)
+   else
+      timeline_path = recording_utils.getCurrentTrafficRecordingProviderSmartTimelinePath(ifid)
+   end
 
    if not timeline_path then
       res = {status = "ERR_MISSING_TIMELINE"}
       -- timeline missing from the conf, won't be able to perform any extraction
    else
-      timeline_path = timeline_path:gsub("^timeline:", "")
-
       if not ntop.exists(timeline_path) then
 	 -- unable to read timeline
 	 res = {status = "ERR_TIMELINE_PATH_NOT_EXISTING"}
@@ -804,18 +1012,35 @@ end
 
 --! @brief Start (or restart) the traffic recording service
 --! @param ifid the interface identifier 
-function recording_utils.restart(ifid)
+function recording_utils.restart(ifid, config)
   local confifname = getConfigInterfaceName(ifid)
+
+  -- Enable Recording
   os_utils.enableService("n2disk-ntopng", confifname)
   os_utils.restartService("n2disk-ntopng", confifname)
+
+  -- Enable Smart Recording if requested
+  if (config and config.enable_smart_recording) or
+     (recording_utils.isSmartEnabled(ifid)) then
+    os_utils.enableService("disk2disk-ntopng", confifname) 
+    os_utils.restartService("disk2disk-ntopng", confifname)
+  end
 end
 
 --! @brief Stop the traffic recording service
 --! @param ifid the interface identifier 
 function recording_utils.stop(ifid)
   local confifname = getConfigInterfaceName(ifid)
+
+  -- Stop Recording
   os_utils.stopService("n2disk-ntopng", confifname)
   os_utils.disableService("n2disk-ntopng", confifname)
+
+  -- Stop Smart Recording if enabled
+  if recording_utils.isSmartEnabled(ifid) then
+    os_utils.stopService("disk2disk-ntopng", confifname)
+    os_utils.disableService("disk2disk-ntopng", confifname)
+  end
 end
 
 --! @brief Return the log trace of the traffic recording service (n2disk)
@@ -825,39 +1050,6 @@ end
 --! @return the log trace
 function recording_utils.log(ifid, rows)
    return n2diskctl("log", ifid, "|tail -n", rows, "|tac")
-end
-
---! @brief Return statistics from the traffic recording service (n2disk)
---! @param ifid the interface identifier
---! @return the statistics
-function recording_utils.stats(ifid)
-   local stats = {}
-   local proc_stats = n2diskctl("stats", ifid)
-
-   local lines = split(proc_stats, "\n") or {}
-
-   for i = 1, #lines do
-      local pair = split(lines[i], ": ")
-      if pair[1] ~= nil and pair[2] ~= nil then
-	 stats[pair[1]] = trimString(pair[2])
-      end
-   end
-
-   if stats['FirstDumpedEpoch'] ~= nil then
-      stats['FirstDumpedEpoch'] = tonumber(stats['FirstDumpedEpoch'])
-   end
-
-   if stats['LastDumpedEpoch'] ~= nil then
-      stats['LastDumpedEpoch'] = tonumber(stats['LastDumpedEpoch'])
-   end
-
-   if stats['Duration'] ~= nil then
-      local u = split(stats['Duration'], ':');
-      stats['DurationEpoch'] = tonumber(u[1])*24*60*60+tonumber(u[2])*60*60+tonumber(u[3])*60+u[4]
-      stats['StartEpoch'] = os.time() - stats['DurationEpoch']
-   end
-
-   return stats
 end
 
 -- Read information about used disk space for all ntopng interfaces 
@@ -911,31 +1103,25 @@ function recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end)
 
    if recording_utils.isExtractionEnabled(ifid) then
       local stats = recording_utils.stats(ifid)
-
-      if stats['FirstDumpedEpoch'] ~= nil and stats['LastDumpedEpoch'] ~= nil then
-	 local first_epoch = tonumber(stats['FirstDumpedEpoch'])
-	 local last_epoch = tonumber(stats['LastDumpedEpoch'])
-
-	 if first_epoch > 0 and last_epoch > 0 and 
-              epoch_end > first_epoch and epoch_begin < last_epoch then
-	    info.epoch_begin = epoch_begin
-	    info.epoch_end = epoch_end
-	    if first_epoch > epoch_begin then
-	       info.epoch_begin = first_epoch
-	    end
-	    if last_epoch < epoch_end then
-	       info.epoch_end = last_epoch
-	    end
-	    info.available = true
-	 end
-      end
+      info = is_data_in_window(stats, epoch_begin, epoch_end)
    end
 
+   if not info.available then
+      -- Check Smart Recording
+      if recording_utils.isSmartEnabled(ifid) then
+         local stats = recording_utils.smartStats(ifid)
+         info = is_data_in_window(stats, epoch_begin, epoch_end)
+         if info.available then
+            info.smart = true
+         end
+      end
+   end
+   
    if recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng" then
-      local extraction_checks_ok, extraction_checks_msg = recording_utils.checkExtraction(ifid)
+      local extraction_checks_ok, extraction_checks_msg = recording_utils.checkExtraction(ifid, info.smart)
 
       if not extraction_checks_ok then
-	 info.available = nil
+	 info.available = false
 	 info.extraction_checks_msg = extraction_checks_msg
       end
    end

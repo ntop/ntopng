@@ -25,6 +25,7 @@
 class ListeningPortInfo {
  private:
   std::string process, package;
+
  public:
   ListeningPortInfo() {}
   ListeningPortInfo(const ListeningPortInfo &lpi) {
@@ -39,10 +40,12 @@ class ListeningPortInfo {
 
 class ListeningPorts {
  private:
-  std::map <u_int16_t /* port */, ListeningPortInfo /* info */> tcp4, tcp6, udp4, udp6;
+  std::map<u_int16_t /* port */, ListeningPortInfo /* info */> tcp4, tcp6, udp4,
+      udp6;
 
-  void parsePortInfo(json_object *z, std::map <u_int16_t, ListeningPortInfo> *info);
-  
+  void parsePortInfo(json_object *z,
+                     std::map<u_int16_t, ListeningPortInfo> *info);
+
  public:
   ListeningPorts() {}
 
@@ -56,7 +59,9 @@ class ListeningPorts {
 
   void parsePorts(json_object *z);
 
-  void luaProtocolInfo(lua_State *vm, std::map <u_int16_t, ListeningPortInfo> &info, const char *label);
+  void luaProtocolInfo(lua_State *vm,
+                       std::map<u_int16_t, ListeningPortInfo> &info,
+                       const char *label);
   void lua(lua_State *vm);
 };
 

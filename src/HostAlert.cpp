@@ -23,7 +23,8 @@
 
 /* **************************************************** */
 
-void HostAlert::init(HostCheckID _check_id, std::string _check_name, Host *h, risk_percentage _cli_pctg) {
+void HostAlert::init(HostCheckID _check_id, std::string _check_name, Host *h,
+                     risk_percentage _cli_pctg) {
   host = h;
   expiring = released = false;
   check_id = _check_id;
@@ -33,11 +34,13 @@ void HostAlert::init(HostCheckID _check_id, std::string _check_name, Host *h, ri
   timeout_time = 0;
   cli_pctg = _cli_pctg;
   is_attacker = is_victim = false;
+  last_released_for_host = false;
 }
 
 /* **************************************************** */
 
-HostAlert::HostAlert(HostCheckID _check_id, std::string _check_name, Host *h, risk_percentage _cli_pctg) {
+HostAlert::HostAlert(HostCheckID _check_id, std::string _check_name, Host *h,
+                     risk_percentage _cli_pctg) {
   init(_check_id, _check_name, h, _cli_pctg);
 }
 
@@ -49,19 +52,18 @@ HostAlert::HostAlert(HostCheck *c, Host *h, risk_percentage _cli_pctg) {
 
 /* **************************************************** */
 
-HostAlert::~HostAlert() {
-}
+HostAlert::~HostAlert() {}
 
 /* ***************************************************** */
 
-ndpi_serializer* HostAlert::getSerializedAlert() {
+ndpi_serializer *HostAlert::getSerializedAlert() {
   char buf[64];
-  ndpi_serializer *serializer = (ndpi_serializer *) malloc(sizeof(ndpi_serializer));
-  
-  if(serializer == NULL)
-    return NULL;
+  ndpi_serializer *serializer =
+      (ndpi_serializer *)malloc(sizeof(ndpi_serializer));
 
-  if(ndpi_init_serializer(serializer, ndpi_serialization_format_json) == -1) {
+  if (serializer == NULL) return NULL;
+
+  if (ndpi_init_serializer(serializer, ndpi_serialization_format_json) == -1) {
     free(serializer);
     return NULL;
   }
@@ -70,30 +72,37 @@ ndpi_serializer* HostAlert::getSerializedAlert() {
 
   /* Add information relative to this check */
   ndpi_serialize_start_of_block(serializer, "alert_generation");
-  ndpi_serialize_string_string(serializer, "script_key", getCheckName().c_str());
+  ndpi_serialize_string_string(serializer, "script_key",
+                               getCheckName().c_str());
   ndpi_serialize_string_string(serializer, "subdir", "host");
 
   ndpi_serialize_start_of_block(serializer, "host_info");
-  
-  ndpi_serialize_string_string(serializer, "name", host->get_visual_name(buf, sizeof(buf)));
+
+  ndpi_serialize_string_string(serializer, "name",
+                               host->get_visual_name(buf, sizeof(buf)));
   ndpi_serialize_string_boolean(serializer, "localhost", host->isLocalHost());
   ndpi_serialize_string_boolean(serializer, "systemhost", host->isSystemHost());
-  ndpi_serialize_string_boolean(serializer, "privatehost", host->isPrivateHost());
-  ndpi_serialize_string_boolean(serializer, "broadcast_domain_host", host->isBroadcastDomainHost());
+  ndpi_serialize_string_boolean(serializer, "privatehost",
+                                host->isPrivateHost());
+  ndpi_serialize_string_boolean(serializer, "broadcast_domain_host",
+                                host->isBroadcastDomainHost());
   ndpi_serialize_string_boolean(serializer, "dhcpHost", host->isDHCPHost());
-  ndpi_serialize_string_boolean(serializer, "is_blacklisted", host->isBlacklisted());
-  ndpi_serialize_string_boolean(serializer, "is_broadcast", host->isBroadcastHost());
-  ndpi_serialize_string_boolean(serializer, "is_multicast", host->isMulticastHost());
-  
+  ndpi_serialize_string_boolean(serializer, "is_blacklisted",
+                                host->isBlacklisted());
+  ndpi_serialize_string_boolean(serializer, "is_broadcast",
+                                host->isBroadcastHost());
+  ndpi_serialize_string_boolean(serializer, "is_multicast",
+                                host->isMulticastHost());
+
 #ifdef HAVE_NEDGE
   ndpi_serialize_string_boolean(serializer, "childSafe", host->isChildSafe());
-  ndpi_serialize_string_boolean(serializer, "drop_all_host_traffic", host->dropAllTraffic());
+  ndpi_serialize_string_boolean(serializer, "drop_all_host_traffic",
+                                host->dropAllTraffic());
 #endif
-
 
   ndpi_serialize_end_of_block(serializer); /* host_info        */
   ndpi_serialize_end_of_block(serializer); /* alert_generation */
-  
+
   /* This call adds check-specific information to the serializer */
   getAlertJSON(serializer);
 
@@ -101,4 +110,3 @@ ndpi_serializer* HostAlert::getSerializedAlert() {
 }
 
 /* ***************************************************** */
-

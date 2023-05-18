@@ -30,15 +30,18 @@ class ZMQParserInterface : public ParserInterface {
   typedef std::map<string, pen_value_t> labels_map_t;
   typedef std::map<pen_value_t, string> descriptions_map_t;
   typedef std::map<string, u_int32_t> counters_map_t;
-  labels_map_t labels_map; /* Contains mappings between labels and integer IDs (PEN and ID) */
-  counters_map_t counters_map; /* Contains mappings between sFlow counter field labels and integer IDs */
-  descriptions_map_t descriptions_map; /* Contains mappings between integer IDs and descriptions */
+  labels_map_t labels_map; /* Contains mappings between labels and integer IDs
+                              (PEN and ID) */
+  counters_map_t counters_map; /* Contains mappings between sFlow counter field
+                                  labels and integer IDs */
+  descriptions_map_t descriptions_map; /* Contains mappings between integer IDs
+                                          and descriptions */
   u_int32_t polling_start_time;
   bool once, is_sampled_traffic;
   u_int32_t flow_max_idle, returned_flow_max_idle;
   u_int64_t zmq_initial_bytes, zmq_initial_pkts,
-    zmq_remote_initial_exported_flows;
-  std::map<u_int8_t, ZMQ_RemoteStats*>source_id_last_zmq_remote_stats;
+      zmq_remote_initial_exported_flows;
+  std::map<u_int8_t, ZMQ_RemoteStats *> source_id_last_zmq_remote_stats;
   ZMQ_RemoteStats *zmq_remote_stats, *zmq_remote_stats_shadow;
   u_int32_t remote_lifetime_timeout, remote_idle_timeout;
   struct timeval last_zmq_remote_stats_update;
@@ -48,66 +51,90 @@ class ZMQParserInterface : public ParserInterface {
 #endif
 
   bool preprocessFlow(ParsedFlow *flow);
-  void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0, const char *descr = NULL);
+  void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0,
+                  const char *descr = NULL);
   void addCounterMapping(const char *sym, u_int32_t id);
-  bool parsePENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
-  bool parsePENNtopField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
-  bool matchPENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
-  bool matchPENNtopField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
-  static bool parseContainerInfo(json_object *jo, ContainerInfo * const container_info);
-  static void freeContainerInfo(ContainerInfo * const container_info);
-  bool parseNProbeAgentField(ParsedFlow * const flow, const char * key, ParsedValue *value, json_object * const jvalue) const;
+  bool parsePENZeroField(ParsedFlow *const flow, u_int32_t field,
+                         ParsedValue *value) const;
+  bool parsePENNtopField(ParsedFlow *const flow, u_int32_t field,
+                         ParsedValue *value) const;
+  bool matchPENZeroField(ParsedFlow *const flow, u_int32_t field,
+                         ParsedValue *value) const;
+  bool matchPENNtopField(ParsedFlow *const flow, u_int32_t field,
+                         ParsedValue *value) const;
+  static bool parseContainerInfo(json_object *jo,
+                                 ContainerInfo *const container_info);
+  static void freeContainerInfo(ContainerInfo *const container_info);
+  bool parseNProbeAgentField(ParsedFlow *const flow, const char *key,
+                             ParsedValue *value,
+                             json_object *const jvalue) const;
   int parseSingleJSONFlow(json_object *o, u_int8_t source_id);
   int parseSingleTLVFlow(ndpi_deserializer *deserializer, u_int8_t source_id);
-  void setFieldMap(const ZMQ_FieldMap * const field_map) const;
-  void setFieldValueMap(const ZMQ_FieldValueMap * const field_value_map) const;
+  void setFieldMap(const ZMQ_FieldMap *const field_map) const;
+  void setFieldValueMap(const ZMQ_FieldValueMap *const field_value_map) const;
 
-  u_int8_t parseOptionFieldMap(json_object * const jo) const;
-  u_int8_t parseOptionFieldValueMap(json_object * const jo) const;
+  u_int8_t parseOptionFieldMap(json_object *const jo) const;
+  u_int8_t parseOptionFieldValueMap(json_object *const jo) const;
 
-protected:
+ protected:
   struct {
-    u_int32_t num_flows, /* flows processed */
-      num_dropped_flows, /* flows unhandles (received but no room in the flow hash) */
-      num_events, num_counters, num_hello, num_listening_ports,
-      num_templates, num_options, num_network_events, num_snmp_interfaces,
-      zmq_msg_rcvd, zmq_msg_drops;
+    u_int32_t num_flows,   /* flows processed */
+        num_dropped_flows, /* flows unhandles (received but no room in the flow
+                              hash) */
+        num_events, num_counters, num_hello, num_listening_ports, num_templates,
+        num_options, num_network_events, num_snmp_interfaces, zmq_msg_rcvd,
+        zmq_msg_drops;
   } recvStats, recvStatsCheckpoint;
-  inline void updateFlowMaxIdle() { returned_flow_max_idle = max(remote_idle_timeout, flow_max_idle); }
-  
-public:
-  ZMQParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
+  inline void updateFlowMaxIdle() {
+    returned_flow_max_idle = max(remote_idle_timeout, flow_max_idle);
+  }
+
+ public:
+  ZMQParserInterface(const char *endpoint,
+                     const char *custom_interface_type = NULL);
   ~ZMQParserInterface();
 
-  virtual InterfaceType getIfType() const { return(interface_type_ZMQ); }
-  virtual bool isSampledTraffic()   const { return(is_sampled_traffic); }
+  virtual InterfaceType getIfType() const { return (interface_type_ZMQ); }
+  virtual bool isSampledTraffic() const { return (is_sampled_traffic); }
 
-  bool getKeyId(char *sym, u_int32_t sym_len, u_int32_t * const pen, u_int32_t * const field) const;
-  const char* getKeyDescription(u_int32_t pen, u_int32_t field) const;
-  bool matchField(ParsedFlow * const flow, const char * key, ParsedValue * value);
+  bool getKeyId(char *sym, u_int32_t sym_len, u_int32_t *const pen,
+                u_int32_t *const field) const;
+  const char *getKeyDescription(u_int32_t pen, u_int32_t field) const;
+  bool matchField(ParsedFlow *const flow, const char *key, ParsedValue *value);
 
   bool getCounterId(char *sym, u_int32_t sym_len, u_int32_t *id) const;
 
-  u_int8_t parseJSONFlow(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id);
-  u_int8_t parseTLVFlow(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
-  u_int8_t parseEvent(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
-  u_int8_t parseTLVCounter(const char * payload, int payload_size);
-  u_int8_t parseJSONCounter(const char * payload, int payload_size);
-  u_int8_t parseTemplate(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
-  u_int8_t parseOption(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
-  u_int8_t parseListeningPorts(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
-  u_int8_t parseSNMPIntefaces(const char * payload, int payload_size, u_int8_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseJSONFlow(const char *payload, int payload_size,
+                         u_int8_t source_id, u_int32_t msg_id);
+  u_int8_t parseTLVFlow(const char *payload, int payload_size,
+                        u_int8_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseEvent(const char *payload, int payload_size, u_int8_t source_id,
+                      u_int32_t msg_id, void *data);
+  u_int8_t parseTLVCounter(const char *payload, int payload_size);
+  u_int8_t parseJSONCounter(const char *payload, int payload_size);
+  u_int8_t parseTemplate(const char *payload, int payload_size,
+                         u_int8_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseOption(const char *payload, int payload_size,
+                       u_int8_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseListeningPorts(const char *payload, int payload_size,
+                               u_int8_t source_id, u_int32_t msg_id,
+                               void *data);
+  u_int8_t parseSNMPIntefaces(const char *payload, int payload_size,
+                              u_int8_t source_id, u_int32_t msg_id, void *data);
 
   u_int32_t periodicStatsUpdateFrequency() const;
   virtual void setRemoteStats(ZMQ_RemoteStats *zrs);
 #ifdef NTOPNG_PRO
-  virtual bool getCustomAppDetails(u_int32_t remapped_app_id, u_int32_t *const pen, u_int32_t *const app_field, u_int32_t *const app_id);
+  virtual bool getCustomAppDetails(u_int32_t remapped_app_id,
+                                   u_int32_t *const pen,
+                                   u_int32_t *const app_field,
+                                   u_int32_t *const app_id);
 #endif
-  u_int32_t getNumDroppedPackets() { return zmq_remote_stats ? zmq_remote_stats->sflow_pkt_sample_drops : 0; };
-  virtual void lua(lua_State* vm);
-  inline u_int32_t getFlowMaxIdle() { return(returned_flow_max_idle); }
+  u_int32_t getNumDroppedPackets() {
+    return zmq_remote_stats ? zmq_remote_stats->sflow_pkt_sample_drops : 0;
+  };
+  virtual void lua(lua_State *vm);
+  inline u_int32_t getFlowMaxIdle() { return (returned_flow_max_idle); }
 };
 
 #endif /* _ZMQ_PARSER_INTERFACE_H_ */
-
-

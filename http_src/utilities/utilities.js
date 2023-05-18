@@ -22,7 +22,6 @@ window.datatableGetColumn = datatableGetColumn
 window.datatableGetColumnIndex = datatableGetColumnIndex
 
 import './ebpf-utils'
-import './graph/graph-utils'
 import modalHandler from './modal/modal-utils'
 
 window.$.fn.modalHandler = modalHandler
