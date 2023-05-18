@@ -1000,6 +1000,24 @@ class Host : public GenericHashEntry,
       ndpi_bitmap_set(tcp_udp_contacted_ports_no_tx, port);
   }
 
+  /* RareDest Extension methods */
+  
+  inline ndpi_bitmap* getRareDestBMap()       const { return(rare_dest);        }
+  inline ndpi_bitmap* getRareDestReviseBMap() const { return(rare_dest_revise); } 
+
+  inline time_t getRareDestLastEpoch() const { return(last_epoch);  }
+  inline void setRareDestLastEpoch(time_t t) { last_epoch=t;        }
+
+  inline time_t getStartRareDestTraining() const { return(rareDestTraining.start); }
+  inline void setStartRareDestTraining(time_t t) { rareDestTraining.start = t;     }
+
+  inline u_int32_t getSeenRareDestTraining() const   { return(rareDestTraining.seen);  }
+  inline void clearSeenRareDestTraining()            { rareDestTraining.seen = 0;      }
+  inline void incrementSeenRareDestTraining()        { rareDestTraining.seen++;        }
+  
+  void dumpRareDestToRedis();
+  bool loadRareDestFromRedis();
+  
   void resetHostContacts();
 };
 

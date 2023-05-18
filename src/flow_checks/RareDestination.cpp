@@ -24,16 +24,106 @@
 
 /* ***************************************************** */
 
+u_int32_t RareDestination::getDestinationHash(Flow *f) {
+  u_int32_t hash = 0;
+  Host *dest = f->get_srv_host();
+  if (f->isLocalToLocal()) {
+    char buf[64];
+    if (!dest->isMulticastHost() && dest->isDHCPHost()) {
+      char *mac = dest->getMac()->print(buf,sizeof(buf));
+      hash = Utils::hashString(mac);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination MAC %u - %s", *hash, mac); */
+    }
+    
+    if (dest->isIPv6() || dest->isIPv4()) {
+      char *ip = dest->get_ip()->print(buf,sizeof(buf));
+      hash = Utils::hashString(ip);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6/IPv4 %u - %s", *hash, ip); */
+    }
+  }
+  if (f->isLocalToRemote()) {
+    char name_buf[128];
+    char *domain = dest->get_name(name_buf, sizeof(name_buf), false);
+    hash = Utils::hashString(domain);
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare remote destination %u - %s - %s", hash, domain, dest->getServerName(name_buf, sizeof(name_buf)));
+  }
+  return hash;
+}
+
+/* ***************************************************** */
+
+/*
+  ndpi_bitmap_xor(ndpi_bitmap*, ndpi_bitmap*) defined in ndpi_api.h, ndpi_bitmap.c
+*/
+
 void RareDestination::protocolDetected(Flow *f) {
+
   bool is_rare_destination = false;
 
-  /* TODO: check if this is a real rare destination */
-  if (f->getFlowServerInfo() != NULL) {
-#ifdef TODO_HERE
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare destination %s",
-                                 f->getFlowServerInfo());
-    is_rare_destination = true;
-#endif
+  if(f->getFlowServerInfo() != NULL) {
+
+    u_int32_t hash = getDestinationHash(f);
+    if(hash == 0) { return; }
+
+    Host *cli_host = f->get_cli_host();
+    ndpi_bitmap *rare_dest = cli_host->getRareDestBMap();
+    ndpi_bitmap *rare_dest_revise = cli_host->getRareDestReviseBMap();
+
+    /* TODO: Check if bitmap pointers are valid */
+
+    time_t t_now = time(NULL);
+
+    /* check if training has to start */
+    if (!ndpi_bitmap_cardinality(rare_dest)) {
+      cli_host->clearSeenRareDestTraining();
+      cli_host->setStartRareDestTraining(t_now);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training On at %ld", t_now);
+    }
+
+    /* if host is training */
+    if (cli_host->getStartRareDestTraining()) {
+      /* update */
+      if (!ndpi_bitmap_isset(rare_dest, hash)) {
+        ndpi_bitmap_set(rare_dest, hash);
+        cli_host->incrementSeenRareDestTraining();
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash added for %s", f->getFlowServerInfo());
+      }
+      /* check if training has to end */
+      if (  cli_host->getSeenRareDestTraining() >= RARE_DEST_FLOWS_TO_SEE_TRAINING
+            && t_now - cli_host->getStartRareDestTraining() >= RARE_DEST_DURATION_TRAINING )
+      {
+        cli_host->setStartRareDestTraining(0);
+        cli_host->setRareDestLastEpoch(t_now);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training Off at %ld", t_now);
+      }
+      cli_host->dumpRareDestToRedis();
+      return;
+    }
+
+    /* check epoch */
+
+    if (t_now - cli_host->getRareDestLastEpoch() >= 2*RARE_DEST_EPOCH_DURATION) {
+      ndpi_bitmap_clear(rare_dest);
+      ndpi_bitmap_clear(rare_dest_revise);
+      cli_host->dumpRareDestToRedis();
+      return;
+    }
+
+    if (t_now - cli_host->getRareDestLastEpoch() >= RARE_DEST_EPOCH_DURATION) {
+      //ndpi_bitmap_xor(rare_dest_revise, rare_dest);  // updates rare_dest_revise
+      ndpi_bitmap_and(rare_dest, rare_dest_revise); // makes rare_dest = rare_dest_revise
+      cli_host->setRareDestLastEpoch(t_now);
+    }
+    
+    /* update */
+    if (ndpi_bitmap_isset(rare_dest, hash))
+      ndpi_bitmap_unset(rare_dest_revise, hash);
+    else {
+      ndpi_bitmap_set(rare_dest, hash);
+      is_rare_destination = true;
+    }
+    
+    cli_host->dumpRareDestToRedis();
   }
 
   if (is_rare_destination) {

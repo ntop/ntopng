@@ -25,6 +25,9 @@
 #include "ntop_includes.h"
 
 class RareDestination : public FlowCheck {
+ private:
+  u_int32_t getDestinationHash(Flow *f);
+  
  public:
   RareDestination()
       : FlowCheck(ntopng_edition_community, true /* Packet Interfaces only */,
