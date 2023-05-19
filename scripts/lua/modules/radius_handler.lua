@@ -25,7 +25,7 @@ function radius_handler.accountingStart(name, username, password)
     end
 
     math.randomseed(os.time())
-    local session_id = tostring(math.random(10000000000, 99999999999))
+    local session_id = tostring(math.random(100000000000000000, 999999999999999999))
     local accounting_started = interface.radiusAccountingStart(name --[[ MAC Address ]] , session_id)
 
     if accounting_started then
@@ -38,7 +38,7 @@ function radius_handler.accountingStart(name, username, password)
             password = password,
             session_id = session_id
         }
-
+        
         ntop.setCache(key, json.encode(user_data))
     end
 
@@ -50,7 +50,7 @@ end
 -- @brief Handles the Radius accounting stop request
 ---@param name string, used to check if name is an accounting going on
 ---@return boolean, true if the accounting went well, false otherwise and the stop was called
-function radius_handler.accountingStop(name)
+function radius_handler.accountingStop(name, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
     if not radius_handler.isAccountingEnabled() then
         return true
     end
@@ -58,7 +58,7 @@ function radius_handler.accountingStop(name)
     local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
 
     if is_accounting_on then
-        interface.radiusAccountingStop(name --[[ MAC Address ]] , user_data.session_id)
+        interface.radiusAccountingStop(name --[[ MAC Address ]] , user_data.session_id, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
         ntop.delCache(string.format(redis_accounting_key, name))
     end
 end
@@ -68,7 +68,7 @@ end
 -- @brief Execute the accounting update if the name has to be updated
 ---@param name string, used to check if name is an accounting going on
 ---@return boolean, true if the accounting went well, false otherwise and the stop was called
-function radius_handler.accountingUpdate(name)
+function radius_handler.accountingUpdate(name, info)
     if not radius_handler.isAccountingEnabled() then
         return true
     end
@@ -77,13 +77,19 @@ function radius_handler.accountingUpdate(name)
     local res = true
 
     if is_accounting_on then
+        local bytes_sent = info["bytes.sent"]
+        local bytes_rcvd = info["bytes.rcvd"]
+        local packets_sent = info["packets.sent"]
+        local packets_rcvd = info["packets.rcvd"]
+
         local is_accounting_ok = interface.radiusAccountingUpdate(name, user_data.session_id, user_data.username,
-            user_data.password)
+            user_data.password, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
 
         if not is_accounting_ok then
             -- An accounting stop has to be sent, the allowed data for name
             -- are expired, requesting stop 
-            radius_handler.accountingStop(name)
+            
+            radius_handler.accountingStop(name, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
             res = false
         end
     end
