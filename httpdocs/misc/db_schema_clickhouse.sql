@@ -483,3 +483,26 @@ CREATE TABLE IF NOT EXISTS `alert_severities` (
   `id` UInt16 NOT NULL,
   `name` String NOT NULL
 ) ENGINE = ReplacingMergeTree() ORDER BY (id);
+
+@
+
+CREATE TABLE IF NOT EXISTS `ntopng.aggregated_flows` (
+       FLOW_ID UInt64,
+       IP_PROTOCOL_VERSION UInt8,
+       MIN_FIRST_SEEN DateTime,
+       MAX_LAST_SEEN DateTime,
+       VLAN_ID UInt16,
+       SUM_PACKETS UInt32,
+       SUM_SRC2DST_BYTES UInt64,
+       SUM_DST2SRC_BYTES UInt64,
+       SUM_SCORE UInt16,
+       PROTOCOL UInt8,
+       IPV4_SRC_ADDR UInt32,
+       IPV6_SRC_ADDR IPv6,
+       IPV4_DST_ADDR UInt32,
+       IPV6_DST_ADDR IPv6,
+       IP_DST_PORT UInt16,
+       L7_PROTO UInt16,
+       L7_PROTO_MASTER UInt16,
+       NTOPNG_INSTANCE_NAME String
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(MIN_FIRST_SEEN) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, MIN_FIRST_SEEN);
