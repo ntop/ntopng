@@ -1021,12 +1021,14 @@ if auth.has_capability(auth.capabilities.preferences) then
         if not entries.toggle_radius_auth.hidden then
             printRadiusAuth()
         end
+        
         if not entries.toggle_http_auth.hidden then
             printHttpAuth()
         end
         if not entries.toggle_local_auth.hidden then
             printLocalAuth()
         end
+        
 
         printMenuVoicesPrefs()
 
@@ -1852,7 +1854,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             to_switch = {"max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow"},
             hidden = not showAllElements
         })
-
+        
         local showTinyElements = showAllElements and ntop.getPref("ntopng.prefs.tiny_flows_export_enabled") ~= "0"
 
         prefsInputFieldPrefs(subpage_active.entries["max_num_packets_per_tiny_flow"].title,
@@ -1869,7 +1871,24 @@ if auth.has_capability(auth.capabilities.preferences) then
                 min = 1,
                 max = 2 ^ 32 - 1
             })
+        
+            
+        local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
+        prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_limit"].title,
+            subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
+            "max_aggregated_flows_upperbound", 1, "number", showAggregateFlowsPrefs, false,
+            nil, {
+                min = 1,
+                max = 100000
+            })
 
+        prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_traffic_limit"].title,
+            subpage_active.entries["toggle_flow_aggregated_traffic_limit"].description, "ntopng.prefs.",
+            "max_aggregated_flows_traffic_upperbound", 1, "number", showAggregateFlowsPrefs, false,
+            nil, {
+                min = 1,
+                max = 5000
+            })
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
                 i18n("save") .. '</button></th></tr>')

@@ -259,7 +259,15 @@ local menu_subpages = {{
         max_num_bytes_per_tiny_flow = {
             title = i18n("prefs.max_num_bytes_per_tiny_flow_title"),
             description = i18n("prefs.max_num_bytes_per_tiny_flow_description")
-        }
+        },
+        toggle_flow_aggregated_limit = {
+            title = i18n("prefs.toggle_flow_aggregated_limit_title"),
+            description = i18n("prefs.toggle_flow_aggregated_limit_description")
+        },
+        toggle_flow_aggregated_traffic_limit = {
+            title = i18n("prefs.toggle_flow_aggregated_traffic_limit_title"),
+            description = i18n("prefs.toggle_flow_aggregated_traffic_limit_description")
+        },
     }
 }, {
     id = "on_disk_ts",
