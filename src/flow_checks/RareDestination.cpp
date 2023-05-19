@@ -35,13 +35,13 @@ u_int32_t RareDestination::getDestinationHash(Flow *f) {
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination MAC %u - %s", *hash, mac); */
     }
     
-    if (dest->isIPv6() || dest->isIPv4()) {
+    else if (dest->isIPv6() || dest->isIPv4()) {
       char *ip = dest->get_ip()->print(buf,sizeof(buf));
       hash = Utils::hashString(ip);
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6/IPv4 %u - %s", *hash, ip); */
     }
   }
-  if (f->isLocalToRemote()) {
+  else if (f->isLocalToRemote()) {
     char name_buf[128];
     char *domain = dest->get_name(name_buf, sizeof(name_buf), false);
     hash = Utils::hashString(domain);

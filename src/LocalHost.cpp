@@ -150,9 +150,6 @@ void LocalHost::initialize() {
   if( !loadRareDestFromRedis() ){
     rare_dest = ndpi_bitmap_alloc();
     rare_dest_revise = ndpi_bitmap_alloc();
-    last_epoch = time(NULL);
-    setStartRareDestTraining(time(NULL));
-    clearSeenRareDestTraining();
   }
 
 }
