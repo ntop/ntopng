@@ -59,15 +59,12 @@ void RareDestination::protocolDetected(Flow *f) {
   if(f->getFlowServerInfo() != NULL) {
     if(!f->get_cli_host()->isLocalHost()) return;
     
-    u_int32_t hash = getDestinationHash(f);
-    if(hash == 0) return;
-    
     LocalHost *cli_lhost = (LocalHost*)f->get_cli_host();
     ndpi_bitmap *rare_dest = cli_lhost->getRareDestBMap();
     ndpi_bitmap *rare_dest_revise = cli_lhost->getRareDestReviseBMap();
 
-    char hostbuf[64], *host_id;
-    host_id = cli_lhost->get_hostkey(hostbuf, sizeof(hostbuf));
+    /* char hostbuf[64], *host_id;
+    host_id = cli_lhost->get_hostkey(hostbuf, sizeof(hostbuf)); */
     /* TODO: Check if bitmap pointers are valid */
 
     time_t t_now = time(NULL);
@@ -81,6 +78,8 @@ void RareDestination::protocolDetected(Flow *f) {
 
     /* if host is training */
     if (cli_lhost->getStartRareDestTraining()) {
+      u_int32_t hash = getDestinationHash(f);
+      if(hash == 0) return;
       /* update */
       if (!ndpi_bitmap_isset(rare_dest, hash)) {
         ndpi_bitmap_set(rare_dest, hash);
@@ -88,8 +87,8 @@ void RareDestination::protocolDetected(Flow *f) {
         //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash %s added ~ %s", f->getFlowServerInfo(), host_id );
       }
       /* check if training has to end */
-      if (  cli_lhost->getSeenRareDestTraining() >= RARE_DEST_FLOWS_TO_SEE_TRAINING
-            && t_now - cli_lhost->getStartRareDestTraining() >= RARE_DEST_DURATION_TRAINING )
+      if (  cli_lhost->getSeenRareDestTraining() >= 30
+            && t_now - cli_lhost->getStartRareDestTraining() >= 180 /* RARE_DEST_DURATION_TRAINING */ )
       {
         cli_lhost->setStartRareDestTraining(0);
         cli_lhost->setRareDestLastEpoch(t_now);
@@ -100,18 +99,20 @@ void RareDestination::protocolDetected(Flow *f) {
 
     /* check epoch */
 
-    if (t_now - cli_lhost->getRareDestLastEpoch() >= 2*RARE_DEST_EPOCH_DURATION) {
+    if (t_now - cli_lhost->getRareDestLastEpoch() >= 2*540 /* RARE_DEST_EPOCH_DURATION */) {
       ndpi_bitmap_clear(rare_dest);
       ndpi_bitmap_clear(rare_dest_revise);
       return;
     }
 
-    if (t_now - cli_lhost->getRareDestLastEpoch() >= RARE_DEST_EPOCH_DURATION) {
+    if (t_now - cli_lhost->getRareDestLastEpoch() >= 540 /* RARE_DEST_EPOCH_DURATION */) {
       ndpi_bitmap_xor(rare_dest_revise, rare_dest);  // updates rare_dest_revise
       ndpi_bitmap_and(rare_dest, rare_dest_revise); // makes rare_dest = rare_dest_revise
       cli_lhost->setRareDestLastEpoch(t_now);
     }
     
+    u_int32_t hash = getDestinationHash(f);
+    if(hash == 0) return;
     /* update */
     if (ndpi_bitmap_isset(rare_dest, hash))
       ndpi_bitmap_unset(rare_dest_revise, hash);
