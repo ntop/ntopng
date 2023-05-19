@@ -114,6 +114,7 @@ class Prefs {
       dump_json_flows_on_disk, dump_ext_json;
 #ifdef NTOPNG_PRO
   bool dump_flows_direct;
+  u_int32_t max_aggregated_flows_upperbound, max_aggregated_flows_traffic_upperbound;
   bool is_geo_map_score_enabled, is_geo_map_asname_enabled,
       is_geo_map_alerted_flows_enabled, is_geo_map_blacklisted_flows_enabled,
       is_geo_map_host_name_enabled, is_geo_map_rxtx_data_enabled,

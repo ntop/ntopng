@@ -756,6 +756,10 @@
   NTOPNG_PREFS_PREFIX ".is_interface_name_only"
 #define CONST_RUNTIME_IS_GEO_MAP_SCORE_ENABLED \
   NTOPNG_PREFS_PREFIX ".is_geo_map_score_enabled"
+#define CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND \
+  NTOPNG_PREFS_PREFIX ".max_aggregated_flows_upperbound"
+#define CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND \
+  NTOPNG_PREFS_PREFIX ".max_aggregated_flows_traffic_upperbound"
 #define CONST_RUNTIME_IS_GEO_MAP_ASNAME_ENABLED \
   NTOPNG_PREFS_PREFIX ".is_geo_map_asname_enabled"
 #define CONST_RUNTIME_IS_GEO_MAP_ALERTED_FLOWS_ENABLED \
