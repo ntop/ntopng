@@ -237,11 +237,20 @@ end
 
 function getHostPoolUrl(pool_id)
    if not pool_id then
-      tprint("getHostPoolUrl(nil)")
       tprint(debug.traceback())
       return ""
    end
    return ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?pool=" .. pool_id
+end
+
+-- ##############################################
+
+function getNedgeHostPoolUrl(pool_name)
+   if not pool_name then
+      tprint(debug.traceback())
+      return ""
+   end
+   return ntop.getHttpPrefix() .. "/lua/pro/nedge/admin/nf_edit_user.lua?username=" .. pool_name
 end
 
 -- ##############################################
