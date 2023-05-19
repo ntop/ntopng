@@ -453,7 +453,7 @@ SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, se
 
 @
 
-CREATE TABLE IF NOT EXISTS `ntopng.aggregated_flows` ON CLUSTER '$CLUSTER' (
+CREATE TABLE IF NOT EXISTS `aggregated_flows` ON CLUSTER '$CLUSTER' (
        FLOW_ID UInt64,
        IP_PROTOCOL_VERSION UInt8,
        MIN_FIRST_SEEN DateTime,

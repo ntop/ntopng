@@ -486,7 +486,7 @@ CREATE TABLE IF NOT EXISTS `alert_severities` (
 
 @
 
-CREATE TABLE IF NOT EXISTS `ntopng.aggregated_flows` (
+CREATE TABLE IF NOT EXISTS `aggregated_flows` (
        FLOW_ID UInt64,
        IP_PROTOCOL_VERSION UInt8,
        MIN_FIRST_SEEN DateTime,
