@@ -27,6 +27,8 @@
 #include "proto/pcap.pb.h"
 #endif
 
+#include <unistd.h>
+
 #include "ntop_includes.h"
 
 #ifdef INCLUDE_ONEFILE
@@ -36,11 +38,75 @@
 AfterShutdownAction afterShutdownAction = after_shutdown_nop;
 NetworkInterface *iface;
 
-constexpr const char *PROG_NAME = "ntopng\0";
+constexpr const char *PROG_NAME = "ntopng";
 
 static void cleanup() {
     if (iface) delete iface;
     if (ntop) delete ntop;
+}
+
+/**
+ * Set the CLI args for prefs.
+ *
+ * The function must be called like this:
+ * setCLIArgs(Prefs *prefs, int params, const char * ...)
+ */
+static void setCLIArgs(Prefs *prefs, int params...) {
+    if (params == 0) return;
+
+    va_list args;
+    va_start(args, params);
+
+    // Get path of the binary itself. This is needed to get the absolute path of
+    // the required directories
+    char exePath[MAX_PATH + 1];
+    ssize_t pathLen = readlink("/proc/self/exe", exePath, MAX_PATH);
+    if (pathLen != -1) {
+        exePath[pathLen] = '\0';
+        ssize_t len = pathLen;
+        while (len > 0 && exePath[len] != '/') len--;
+        if (len == 0) {
+            std::cerr << "Error while crafting the command line. Relative path "
+                         "have been used."
+                      << std::endl;
+            exit(1);
+        }
+        exePath[len] = '\0';
+        pathLen = len;
+    } else {
+        std::cerr << "Error while crafting the command line. Failed to "
+                     "retrieve the absolute path of the executable."
+                  << std::endl;
+        exit(1);
+    }
+
+    // Create the new argv
+    char *new_argv[params];
+    for (int i = 0; i < params; ++i) {
+        const char *opt = va_arg(args, const char *);
+
+        if (!strstr(opt, "_PATH_")) {
+            new_argv[i] = strdup(opt);
+        } else {
+            // size = pathLen + / + opt - _PATH_ + \0
+            size_t size = pathLen + 1 + strlen(opt) - 6 + 1;
+            new_argv[i] = (char *)malloc(size);
+            int len = snprintf(new_argv[i], size, "%s/%s", exePath, opt + 6);
+            if (len <= 0) {
+                std::cerr << "Error while crafting the command line. Wrong "
+                             "buffer size."
+                          << std::endl;
+                exit(1);
+            }
+        }
+    }
+
+    prefs->loadFromCLI(params, new_argv);  // = true;
+
+    // Free arguments
+    for (int k = 0; k < params; ++k) free(new_argv[k]);
+
+    va_end(args);
 }
 
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
@@ -54,12 +120,10 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
 
     ntop->getTrace()->set_trace_level(1);
 
-    constexpr int c = 9;
-    constexpr const char *new_argv[c] = {
-        PROG_NAME, "-1\0",       "docs\0", "-2\0",     "scripts\0",
-        "-d\0",    "data-dir\0", "-t\0",   "install\0"};
+    setCLIArgs(prefs, 11, PROG_NAME, "-1", "_PATH_docs", "-2", "_PATH_scripts",
+               "-3", "_PATH_scripts/callbacks", "-d", "_PATH_data-dir", "-t",
+               "_PATH_install");
 
-    prefs->loadFromCLI(c, const_cast<char **>(new_argv));  // = true;
     ntop->registerPrefs(prefs, false);
 
     ntop->loadGeolocation();
