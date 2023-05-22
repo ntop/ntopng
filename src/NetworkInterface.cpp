@@ -2402,7 +2402,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   struct ndpi_ethhdr *ethernet = NULL, dummy_ethernet;
   u_int64_t time;
   u_int16_t eth_type, ip_offset = 0, vlan_id = 0, eth_offset = 0,
-                      encapsulation_overhead = 0;
+    encapsulation_overhead = 0;
   u_int32_t null_type;
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
@@ -2420,7 +2420,9 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   if (getIfType() == interface_type_NETFILTER)
     len_on_wire += sizeof(struct ndpi_ethhdr);
 
-  if (h->len > ifMTU) {
+  if (h->len == 0) {
+    return (false);
+  } else if (h->len > ifMTU) {
     if (!mtuWarningShown) {
 #ifdef __linux__
       ntop->getTrace()->traceEvent(
@@ -2455,6 +2457,9 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 
 datalink_check:
   if (pcap_datalink_type == DLT_NULL) {
+    if (h->caplen < sizeof(u_int32_t))
+      return (false);
+
     memcpy(&null_type, &packet[eth_offset], sizeof(u_int32_t));
 
     switch (null_type) {
@@ -2476,19 +2481,26 @@ datalink_check:
     if (sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ip_offset = 4 + eth_offset;
   } else if (pcap_datalink_type == DLT_EN10MB) {
+    if (h->caplen < sizeof(ndpi_ethhdr))
+      return (false);
+
     ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
   } else if (pcap_datalink_type == 113 /* Linux Cooked Capture */) {
+    if (h->caplen < 16)
+      return (false);
+
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     if (sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     eth_type = (packet[eth_offset + 14] << 8) + packet[eth_offset + 15];
     ip_offset = 16 + eth_offset;
 #ifdef DLT_RAW
-  } else if (pcap_datalink_type ==
-                 DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */
-             || pcap_datalink_type ==
-                    14 /* raw IP DLT_RAW on OpenBSD captures */) {
+  } else if (pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */
+             || pcap_datalink_type == 14 /* raw IP DLT_RAW on OpenBSD captures */) {
+    if (h->caplen < sizeof(u_int32_t))
+      return (false);
+
     switch ((packet[eth_offset] & 0xf0) >> 4) {
       case 4:
         eth_type = ETHERTYPE_IP;
