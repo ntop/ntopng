@@ -7608,6 +7608,40 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
 
     ndpi_serialize_end_of_block(serializer); /* process block */
   }
+
+  if(getTrafficStats()){
+    ndpi_serialize_start_of_block(serializer, "traffic_stats");
+
+    if(getTrafficStats()->get_cli2srv_tcp_retr())
+      // cli2srv.retransmissions
+      ndpi_serialize_string_uint32(serializer, "cli2srv.retransmissions",
+                              getTrafficStats()->get_cli2srv_tcp_retr());
+    if(getTrafficStats()->get_cli2srv_tcp_ooo())
+      // cli2srv.out_of_order
+      ndpi_serialize_string_uint32(serializer, "cli2srv.out_of_order",
+                              getTrafficStats()->get_cli2srv_tcp_ooo());
+    if(getTrafficStats()->get_cli2srv_tcp_lost())
+      // cli2srv.lost
+      ndpi_serialize_string_uint32(serializer, "cli2srv.lost",
+                              getTrafficStats()->get_cli2srv_tcp_lost());
+    if(getTrafficStats()->get_srv2cli_tcp_retr())
+      // srv2cli.retransmissions
+      ndpi_serialize_string_uint32(serializer, "srv2cli.retransmissions",
+                              getTrafficStats()->get_srv2cli_tcp_retr());
+    if(getTrafficStats()->get_srv2cli_tcp_ooo())
+      // srv2cli.out_of_order
+      ndpi_serialize_string_uint32(serializer, "srv2cli.out_of_orders",
+                              getTrafficStats()->get_srv2cli_tcp_ooo());
+    if(getTrafficStats()->get_srv2cli_tcp_lost())
+      // srv2cli.lost
+      ndpi_serialize_string_uint32(serializer, "srv2cli.lost",
+                              getTrafficStats()->get_srv2cli_tcp_lost());
+
+    ndpi_serialize_end_of_block(serializer); /* traffic_stats block */
+
+  }
+
+
 }
 
 /* ***************************************************** */
