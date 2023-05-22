@@ -85,6 +85,11 @@ if isEmptyString(disk_space) then
 end
 disk_space = tostring(math.floor(tonumber(disk_space)/1024))
 
+local max_space_gb = max_space/1024
+if max_space_gb < 1 then
+  max_space_gb = 1
+end
+
 print("<h2>"..i18n("traffic_recording.traffic_recording_settings").."</h2><br>")
 
 print [[
@@ -137,7 +142,7 @@ print [[
       <tr>
         <th>]] print(i18n("traffic_recording.disk_space")) print [[</th>
         <td colspan=2>
-          <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="]] print(max_space/1024) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
+          <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="]] print(max_space_gb) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
 <small>]] print(i18n("traffic_recording.disk_space_note") .. ternary(storage_info.if_used > 0, " "..i18n("traffic_recording.disk_space_note_in_use", {in_use=tostring(format_utils.round(storage_info.if_used/(1024*1024*1024), 2))}), "")) print[[</small>
         </td>
       </tr>
