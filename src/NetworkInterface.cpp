@@ -1553,13 +1553,12 @@ NetworkInterface *NetworkInterface::getDynInterface(u_int64_t criteria,
 
 /* **************************************************** */
 
-bool NetworkInterface::processPacket(
-    u_int32_t bridge_iface_idx, bool ingressPacket,
-    const struct bpf_timeval *when, const u_int64_t packet_time,
-    struct ndpi_ethhdr *eth, u_int16_t vlan_id, struct ndpi_iphdr *iph,
-    struct ndpi_ipv6hdr *ip6, u_int16_t ip_offset,
-    u_int16_t encapsulation_overhead, u_int32_t len_on_wire,
-    const struct pcap_pkthdr *h, const u_char *packet, u_int16_t *ndpiProtocol,
+bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx, bool ingressPacket,
+				     const struct bpf_timeval *when, const u_int64_t packet_time,
+				     struct ndpi_ethhdr *eth, u_int16_t vlan_id, struct ndpi_iphdr *iph,
+				     struct ndpi_ipv6hdr *ip6, u_int16_t ip_offset,
+				     u_int16_t encapsulation_overhead, u_int32_t len_on_wire,
+				     const struct pcap_pkthdr *h, const u_char *packet, u_int16_t *ndpiProtocol,
     Host **srcHost, Host **dstHost, Flow **hostFlow) {
   u_int16_t trusted_ip_len = max_val(0, (int)h->caplen - ip_offset);
   u_int16_t trusted_payload_len = 0;
@@ -1596,10 +1595,9 @@ bool NetworkInterface::processPacket(
 #ifndef HAVE_NEDGE
     /* Custom disaggregation */
     if (sub_interfaces && (sub_interfaces->getNumSubInterfaces() > 0)) {
-      processed = sub_interfaces->processPacket(
-          bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id, iph,
-          ip6, ip_offset, encapsulation_overhead, len_on_wire, h, packet,
-          ndpiProtocol, srcHost, dstHost, hostFlow);
+      processed = sub_interfaces->processPacket(bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id, iph,
+						ip6, ip_offset, encapsulation_overhead, len_on_wire, h, packet,
+						ndpiProtocol, srcHost, dstHost, hostFlow);
     }
 #endif
 #endif
@@ -1611,10 +1609,9 @@ bool NetworkInterface::processPacket(
 
         if ((vIface = getDynInterface((u_int32_t)vlan_id, false)) != NULL) {
           vIface->setTimeLastPktRcvd(h->ts.tv_sec);
-          pass_verdict = vIface->processPacket(
-              bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id,
-              iph, ip6, ip_offset, encapsulation_overhead, len_on_wire, h,
-              packet, ndpiProtocol, srcHost, dstHost, hostFlow);
+          pass_verdict = vIface->processPacket(bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id,
+					       iph, ip6, ip_offset, encapsulation_overhead, len_on_wire, h,
+					       packet, ndpiProtocol, srcHost, dstHost, hostFlow);
           processed = true;
         }
       }
@@ -1682,6 +1679,14 @@ bool NetworkInterface::processPacket(
 
     /* NOTE: ip_tot_len is not trusted as may be forged */
     ip_tot_len = ntohs(iph->tot_len);
+
+    if(ip_tot_len > (h->caplen - ip_offset)) {
+      /* Invalid lenght */
+      incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
+      return (pass_verdict);
+    }
+    
     tos = iph->tos;
 
     /* Use the actual h->len and not the h->caplen to determine
@@ -1749,8 +1754,16 @@ bool NetworkInterface::processPacket(
     tos = ((ntohl(*tos_ptr) & 0xFF00000) >> 20) & 0xFF;
   }
 
-  trusted_l4_packet_len = packet + h->caplen - l4;
-
+  if((packet + h->caplen) > l4)
+    trusted_l4_packet_len = packet + h->caplen - l4;
+  else {
+    /* Invalid lenght */
+    incStats(ingressPacket, when->tv_sec, ETHERTYPE_IPV6,
+	     NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
+	     len_on_wire, 1);
+    return (pass_verdict);
+  }
+  
   if (trusted_l4_packet_len > frame_padding)
     trusted_l4_packet_len -= frame_padding;
 
