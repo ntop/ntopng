@@ -85,6 +85,7 @@ end
 -- ##############################################
 
 function syslog.sendMessage(settings, notif, severity)
+   local do_debug = false
    local syslog_severity = alert_consts.alertLevelToSyslogLevel(severity)
    local syslog_format = settings.syslog_alert_format
    local msg
@@ -152,10 +153,17 @@ function syslog.sendMessage(settings, notif, severity)
          msg = "<"..prio..">"..log_time.." "..host.." "..tag.."["..pid.."]: "..msg
       end
 
+      local success = true
       if settings.protocol == 'tcp' then
-         ntop.send_tcp_data(settings.host, settings.port, msg.."\n", 1 --[[ timeout (msec) --]] )
+         success = ntop.send_tcp_data(settings.host, settings.port, msg.."\n", 1 --[[ timeout (msec) --]] )
       else
          ntop.send_udp_data(settings.host, settings.port, msg)
+      end
+
+      if not success then
+         if do_debug then
+            tprint("[syslog] Failure delivering message")
+         end
       end
    end
 
