@@ -204,8 +204,11 @@ if(ntop.isPro()) then
    end
 end
 
-traceError(TRACE_NORMAL, TRACE_CONSOLE, "Fetching latest ntop blog posts...")
-
-blog_utils.fetchLatestPosts()
+-- Fetch latest ntop blog posts
+if not ntop.isnEdge() then
+  -- Note: On nEdge they are fetched in a dayly/delayed callback as connectivity
+  -- may be not yet up at this stage 
+  blog_utils.fetchLatestPosts()
+end
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")
