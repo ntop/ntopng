@@ -498,11 +498,14 @@ function driver:timeseries_query(options)
     local count = 0
     local series = {}
     local sampled_fstep = fstep
+    local serie_idx = 0
 
     -- Process the series requested, adding statistics if requested (min, max, tot, ...)
     -- and normalize the data if needed
     for serie_name, serie in pairsByKeys(fdata, rev) do
-        local max_val = ts_common.getMaxPointValue(options.schema_info, serie_name, options.tags)
+        serie_idx = serie_idx + 1 -- the first id is 1
+        local name = options.schema_info._metrics[serie_idx]
+        local max_val = ts_common.getMaxPointValue(options.schema_info, name, options.tags)
         local modified_serie = {}
         count = 0
 
@@ -514,9 +517,8 @@ function driver:timeseries_query(options)
 
         series[#series + 1] = {
             data = modified_serie,
-            id = serie_name
+            id = name
         }
-
     end
 
     if count > options.max_num_points then

@@ -195,7 +195,7 @@ function formatSerieProperties(type) {
 		return {
 			fillGraph: false,
 			customBars: false,
-			strokeWidth: 0.5,
+			strokeWidth: 1.5,
 			pointSize: 1.5,
 		}
 	} else {
@@ -347,7 +347,7 @@ function getAxisConfiguration(formatter) {
 	return {
 		axisLabelFormatter: formatter,
 		valueFormatter: formatter,
-		axisLabelWidth: 80,
+		axisLabelWidth: 85,
 	}
 }
 
