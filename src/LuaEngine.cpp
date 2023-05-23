@@ -136,7 +136,6 @@ LuaEngine::~LuaEngine() {
     ctx = getLuaVMContext(L);
 
     if (ctx) {
-#ifndef HAVE_NEDGE
       if (ctx->snmpBatch) delete ctx->snmpBatch;
 
       for (u_int8_t slot_id = 0; slot_id < MAX_NUM_ASYNC_SNMP_ENGINES;
@@ -144,7 +143,6 @@ LuaEngine::~LuaEngine() {
         if (ctx->snmpAsyncEngine[slot_id] != NULL)
           delete ctx->snmpAsyncEngine[slot_id];
       }
-#endif
 
       if (ctx->pkt_capture.end_capture > 0) {
         ctx->pkt_capture.end_capture = 0; /* Force stop */
