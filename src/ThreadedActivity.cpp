@@ -168,10 +168,10 @@ void ThreadedActivity::set_state_queued(NetworkInterface *iface,
   ThreadedActivityStats *s =
       getThreadedActivityStats(iface, script_name, false);
 
-  if (s) {
-    s->setState(threaded_activity_state_queued);
+  set_state(iface, script_name, threaded_activity_state_queued);
+
+  if (s)
     s->updateStatsQueuedTime(time(NULL));
-  }
 }
 
 /* ******************************************* */
