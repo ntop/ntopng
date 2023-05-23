@@ -78,7 +78,7 @@ import 'select2'
 */
 
 /* regeneratorRuntime error, check https://github.com/babel/babel/issues/9849 */
-import regeneratorRuntime from "regenerator-runtime" 
+import regeneratorRuntime from "regenerator-runtime"
 import ToastUtils from '../http_src/utilities/toast-utils'
 import '../http_src/utilities/string-utils'
 
@@ -104,10 +104,12 @@ window.aysRecheckForm = aysRecheckForm
 import * as d3v7 from "d3v7";
 import * as sankey from "d3-sankey";
 import { chord } from "d3-chord";
+import Dygraph from 'dygraphs';
+window.Dygraph = Dygraph;
 
 window.d3v7 = {
-    ...d3v7,
-    ...sankey,
-    ...chord,
+  ...d3v7,
+  ...sankey,
+  ...chord,
 };
 

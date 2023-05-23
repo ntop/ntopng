@@ -132,7 +132,7 @@ local menu_subpages = {{
         radius_accounting_server = {
             title = i18n("prefs.radius_accounting_server_title"),
             description = i18n("prefs.radius_accounting_server_description", {
-                example = "127.0.0.1:1812"
+                example = "127.0.0.1:1813"
             }),
             hidden = (not hasRadius)
         },
