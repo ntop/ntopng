@@ -114,7 +114,7 @@ export default {
       /* Filter type selected, e.g. Alert Type, Application, ecc. */
 			this.filter_type_selected = this.$props.filters_options.find((fo) => fo.id == filter.id);
     }
-    if (filter.value) {
+    if (filter.value != null) {
       /* Filter selected for the type, e.g. DNS, ICMP, ecc. */
       if (this.options_to_show) {
 			  this.option_selected = this.options_to_show.find((fo) => fo.value == filter.value);
@@ -139,7 +139,7 @@ export default {
       this.option_selected = selected_filter
     }
   },  
-  change_filter: function(selected_filter) {
+	change_filter: function(selected_filter) {
     this.options_to_show = null;
     this.option_selected = null;
     this.input_value = null
