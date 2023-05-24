@@ -360,6 +360,12 @@ int StatsManager::insertSampling(const char *sampling, const char *cache_name,
   snprintf(query, sizeof(query), "INSERT INTO %s (TSTAMP, STATS) VALUES(?,?)",
            cache_name);
 
+#ifdef DEBUG_STATS_MANAGER
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats Insert Query: %s", query);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats Insert Data: %s", sampling);
+#endif
+
+
   m.lock(__FILE__, __LINE__);
 
   if (sqlite3_prepare_v2(db, query, -1, &stmt, 0) ||

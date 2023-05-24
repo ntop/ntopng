@@ -106,34 +106,34 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
 
     if not ifstats.isSampledTraffic then
       ts_utils.append("subnet:tcp_retransmissions",
-		       {ifid=ifstats.id, subnet=subnet,
-			packets_ingress=sstats["tcpPacketStats.ingress"]["retransmissions"],
-			packets_egress=sstats["tcpPacketStats.egress"]["retransmissions"],
-			packets_inner=sstats["tcpPacketStats.inner"]["retransmissions"]}, when)
+                       {ifid=ifstats.id, subnet=subnet,
+                        packets_ingress=sstats["tcpPacketStats.ingress"]["retransmissions"],
+                        packets_egress=sstats["tcpPacketStats.egress"]["retransmissions"],
+                        packets_inner=sstats["tcpPacketStats.inner"]["retransmissions"]}, when)
 
        ts_utils.append("subnet:tcp_out_of_order",
-		       {ifid=ifstats.id, subnet=subnet,
-			packets_ingress=sstats["tcpPacketStats.ingress"]["out_of_order"],
-			packets_egress=sstats["tcpPacketStats.egress"]["out_of_order"],
-			packets_inner=sstats["tcpPacketStats.inner"]["out_of_order"]}, when)
+                       {ifid=ifstats.id, subnet=subnet,
+                        packets_ingress=sstats["tcpPacketStats.ingress"]["out_of_order"],
+                        packets_egress=sstats["tcpPacketStats.egress"]["out_of_order"],
+                        packets_inner=sstats["tcpPacketStats.inner"]["out_of_order"]}, when)
 
        ts_utils.append("subnet:tcp_lost",
-		       {ifid=ifstats.id, subnet=subnet,
-			packets_ingress=sstats["tcpPacketStats.ingress"]["lost"],
-			packets_egress=sstats["tcpPacketStats.egress"]["lost"],
-			packets_inner=sstats["tcpPacketStats.inner"]["lost"]}, when)
+                       {ifid=ifstats.id, subnet=subnet,
+                        packets_ingress=sstats["tcpPacketStats.ingress"]["lost"],
+                        packets_egress=sstats["tcpPacketStats.egress"]["lost"],
+                        packets_inner=sstats["tcpPacketStats.inner"]["lost"]}, when)
 
        ts_utils.append("subnet:tcp_keep_alive",
-		       {ifid=ifstats.id, subnet=subnet,
-			packets_ingress=sstats["tcpPacketStats.ingress"]["keep_alive"],
-			packets_egress=sstats["tcpPacketStats.egress"]["keep_alive"],
-			packets_inner=sstats["tcpPacketStats.inner"]["keep_alive"]}, when)
+                       {ifid=ifstats.id, subnet=subnet,
+                        packets_ingress=sstats["tcpPacketStats.ingress"]["keep_alive"],
+                        packets_egress=sstats["tcpPacketStats.egress"]["keep_alive"],
+                        packets_inner=sstats["tcpPacketStats.inner"]["keep_alive"]}, when)
     end
 
     if areAlertsEnabled() then
        ts_utils.append("subnet:engaged_alerts",
-		       {ifid=ifstats.id, subnet=subnet,
-			alerts=sstats["engaged_alerts"]}, when)
+                       {ifid=ifstats.id, subnet=subnet,
+                        alerts=sstats["engaged_alerts"]}, when)
     end
   end
 end
@@ -156,7 +156,7 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
       ts_utils.append("iface:http_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when)
 
       if not ifstats.isView then
-	 ts_utils.append("iface:devices", {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when)
+         ts_utils.append("iface:devices", {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when)
       end
    end
 
@@ -180,12 +180,12 @@ end
 
 function ts_dump.iface_update_flow_dump_stats(when, ifstats, verbose)
    ts_utils.append("iface:dumped_flows",
-		   {
-		      ifid = ifstats.id,
-		      dumped_flows = ifstats.stats.flow_export_count or 0,
-		      dropped_flows = ifstats.stats.flow_export_drops or 0
-		   },
-		   when)
+                   {
+                      ifid = ifstats.id,
+                      dumped_flows = ifstats.stats.flow_export_count or 0,
+                      dropped_flows = ifstats.stats.flow_export_drops or 0
+                   },
+                   when)
 end
 
 function ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
@@ -221,10 +221,10 @@ local function update_internals_hash_tables_stats(when, ifstats, verbose)
 
       if ht_stats["hash_entry_states"] then
          if ht_stats["hash_entry_states"]["hash_entry_state_idle"] then
-	   num_idle = ht_stats["hash_entry_states"]["hash_entry_state_idle"]
+           num_idle = ht_stats["hash_entry_states"]["hash_entry_state_idle"]
          end
          if ht_stats["hash_entry_states"]["hash_entry_state_active"] then
-	   num_active = ht_stats["hash_entry_states"]["hash_entry_state_active"]
+           num_active = ht_stats["hash_entry_states"]["hash_entry_state_active"]
          end
       end
 
@@ -240,53 +240,53 @@ function ts_dump.update_internals_periodic_activities_stats(when, ifstats, verbo
 
    for ps_name, ps_stats in pairs(periodic_scripts_stats) do
       if to_stdout then
-	 local cur_ifid = interface.getId()
-	 local cur_ifname
-	 local rrd_out
+         local cur_ifid = interface.getId()
+         local cur_ifname
+         local rrd_out
 
-	 if tostring(cur_ifid) == getSystemInterfaceId() then
-	    cur_ifname = getSystemInterfaceName()
-	 else
-	    cur_ifname = getInterfaceName(cur_ifid)
-	 end
+         if tostring(cur_ifid) == getSystemInterfaceId() then
+            cur_ifname = getSystemInterfaceName()
+         else
+            cur_ifname = getInterfaceName(cur_ifid)
+         end
 
-	 if ps_stats["timeseries"] and ps_stats["timeseries"]["write"] and  ps_stats["timeseries"]["write"]["last"] then
-	    rrd_out = string.format("[timeseries.write.tot_calls: %i][last_avg_call_duration_ms: %.2f][last_max_call_duration_ms: %.2f][timeseries.write.tot_drops: %u][last_is_slow: %s]",
-				    ps_stats["timeseries"]["write"]["tot_calls"] or 0,
-				    ps_stats["timeseries"]["write"]["last"]["avg_call_duration_ms"] or 0,
-				    ps_stats["timeseries"]["write"]["last"]["max_call_duration_ms"] or 0,
-				    ps_stats["timeseries"]["write"]["tot_drops"] or 0,
-				    tostring(ps_stats["timeseries"]["write"]["last"]["is_slow"]))
-	 end
+         if ps_stats["timeseries"] and ps_stats["timeseries"]["write"] and  ps_stats["timeseries"]["write"]["last"] then
+            rrd_out = string.format("[timeseries.write.tot_calls: %i][last_avg_call_duration_ms: %.2f][last_max_call_duration_ms: %.2f][timeseries.write.tot_drops: %u][last_is_slow: %s]",
+                                    ps_stats["timeseries"]["write"]["tot_calls"] or 0,
+                                    ps_stats["timeseries"]["write"]["last"]["avg_call_duration_ms"] or 0,
+                                    ps_stats["timeseries"]["write"]["last"]["max_call_duration_ms"] or 0,
+                                    ps_stats["timeseries"]["write"]["tot_drops"] or 0,
+                                    tostring(ps_stats["timeseries"]["write"]["last"]["is_slow"]))
+         end
 
-	 if rrd_out then
-	    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("[ifname: %s][ifid: %i][%s]%s", cur_ifname, cur_ifid, ps_name, rrd_out))
-	 end
+         if rrd_out then
+            traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("[ifname: %s][ifid: %i][%s]%s", cur_ifname, cur_ifid, ps_name, rrd_out))
+         end
       end
 
       -- Write info on the script duration
       local num_ms_last = 0
 
       if ps_stats["duration"] then
-	 if ps_stats["duration"]["last_duration_ms"] then
-	   num_ms_last = ps_stats["duration"]["last_duration_ms"]
-	 end
+         if ps_stats["duration"]["last_duration_ms"] then
+           num_ms_last = ps_stats["duration"]["last_duration_ms"]
+         end
       end
 
       ts_utils.append("periodic_script:duration", {ifid = ifstats.id, periodic_script = ps_name, num_ms_last = num_ms_last}, when)
 
       -- Only if RRD is enabled, also total number of writes and dropped points are written
       if ts_utils.getDriverName() == "rrd" then
-	 if ps_stats["timeseries"] and ps_stats["timeseries"]["write"] then
-	    local tot_calls = ps_stats["timeseries"]["write"]["tot_calls"] or 0
-	    local tot_drops = ps_stats["timeseries"]["write"]["tot_drops"] or 0
+         if ps_stats["timeseries"] and ps_stats["timeseries"]["write"] then
+            local tot_calls = ps_stats["timeseries"]["write"]["tot_calls"] or 0
+            local tot_drops = ps_stats["timeseries"]["write"]["tot_drops"] or 0
 
-	    -- Do not generate nor update the timeseries if no point has been written or dropped
-	    -- to prevent generation of empty files and empty timeseries
-	    if tot_calls + tot_drops > 0 then
-	       ts_utils.append("periodic_script:timeseries_writes", {ifid = ifstats.id, periodic_script = ps_name, writes = tot_calls, drops = tot_drops}, when)
-	    end
-	 end
+            -- Do not generate nor update the timeseries if no point has been written or dropped
+            -- to prevent generation of empty files and empty timeseries
+            if tot_calls + tot_drops > 0 then
+               ts_utils.append("periodic_script:timeseries_writes", {ifid = ifstats.id, periodic_script = ps_name, writes = tot_calls, drops = tot_drops}, when)
+            end
+         end
       end
    end
 end
@@ -356,8 +356,8 @@ local function dumpTopTalkers(_ifname, ifstats, verbose)
 
    if talkers then
       if(verbose) then
-	 print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
-	 print(talkers)
+         print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
+         print(talkers)
       end
 
       ntop.insertMinuteSampling(ifstats.id, talkers)
