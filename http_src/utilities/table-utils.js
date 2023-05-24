@@ -64,7 +64,7 @@ function get_f_print_vue_node_row(table_def) {
 
 function get_f_print_html_row(table_def) {
     return (col, row, return_true_if_def) => {
-	if (col.render_type == null && col.render_generic == null && col.render_func == null) { return null; }
+	if (col.render_v_func != null) { return null; }
 	if (return_true_if_def == true) { return true; }
 
 	let data;

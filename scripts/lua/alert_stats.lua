@@ -963,7 +963,7 @@ local context = {
    }
 }
 
-if page == "flow" and true then
+if (page == "flow" or page == "interface" or page == "system" or page == "user" or page == "mac" or page == "host") and true then
    local json_context = json.encode(context_2)
    template_utils.render("pages/vue_page.template", { vue_page_name = "PageAlertStats", page_context = json_context })
 else
