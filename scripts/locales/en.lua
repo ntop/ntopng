@@ -507,6 +507,7 @@ local lang = {
   ["success"] = "Success",
   ["summary"] = "Summary",
   ["suspicious_payload"] = "Suspicious Payload",
+  ["swagger_api"] = "REST API",
   ["switch_new_pcap_interface"] = "View Uploaded pcap",
   ["system"] = "System",
   ["system_alerts_status"] = "Alerts",

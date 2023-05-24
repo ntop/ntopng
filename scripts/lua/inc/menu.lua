@@ -701,7 +701,11 @@ if not info.oem and auth.has_capability(auth.capabilities.developer) then
     if  not ntop.isEnterpriseM() or (has_developer_enabled) then
         page_utils.add_menubar_section({
             section = page_utils.menu_sections.dev,
-            entries = {{
+            entries = {
+	       {
+                entry = page_utils.menu_entries.rest_api,
+                url = '/lua/swagger.lua'
+            }, {
                 entry = page_utils.menu_entries.analyze_pcap,
                 url = '/lua/upload_pcap.lua'
             }, {

@@ -13,12 +13,15 @@ local os_utils = require "os_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-print [[
-  <link rel="stylesheet" type="text/css" href="/dist/swagger-ui.css">
-   <div id="swagger-ui"></div>
+page_utils.set_active_menu_entry(page_utils.menu_entries.about, { product=info.product })
+dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-   <script src="/dist/swagger-ui-bundle.js"></script>
-   <script src="/dist/swagger-ui-standalone-preset.js"></script>
+print [[
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui.css" />
+  <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-bundle.js" crossorigin></script>
+  <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-standalone-preset.js" crossorigin></script>
+
+   <div id="swagger-ui"></div>
 
    <script>
     window.onload = function() {
