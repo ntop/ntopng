@@ -198,7 +198,7 @@ function ts_common.normalizeVal(v, max_val, options)
     -- this was causing missing points in the charts
     -- with ZMQ interface which can actually exceed the nominal value
 
-    if v ~= v then
+    if tostring(v) == '-nan' then
         if not options.keep_nan then
             -- NaN value
             v = options.fill_value
