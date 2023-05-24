@@ -5,15 +5,11 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
-local ts_utils = require("ts_utils")
-local info = ntop.getInfo()
 local page_utils = require("page_utils")
-local format_utils = require("format_utils")
-local os_utils = require "os_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.about, { product=info.product })
+page_utils.set_active_menu_entry(page_utils.menu_entries.rest_api)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print [[
