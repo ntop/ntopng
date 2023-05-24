@@ -69,11 +69,21 @@
 	    </template> <!-- custom_header -->
 	  </TableWithConfig>	  
 	</div>
-      </div>
-    </div>
-  </div>
+      </div> <!-- card body -->
+
+      <div v-show="false" class="card-footer">
+        <button id="dt-btn-acknowledge" :disabled="true" data-bs-target="#dt-acknowledge-modal" data-bs-toggle="modal" class="btn btn-primary me-1">
+          <i class="fas fa fa-user-check"></i> Acknowledge Alerts
+        </button>
+        <button id="dt-btn-delete" :disabled="true" data-bs-target="#dt-delete-modal" data-bs-toggle="modal" class="btn btn-danger">
+          <i class="fas fa fa-trash"></i> Delete Alerts
+        </button>
+      </div> <!-- card footer -->
+    </div>  <!-- card-shadow -->
+    
+    </div> <!-- div col -->
   <NoteList :note_list="note_list"></NoteList>
-</div>
+</div> <!-- div row -->
 
 <ModalAcknoledgeAlert ref="modal_acknowledge" :context="context" @acknowledge="refresh_page_components"></ModalAcknoledgeAlert>
 
@@ -247,6 +257,7 @@ const map_table_def_columns = (columns) => {
     };
     columns.forEach((c) => {
 	c.render_func = map_columns[c.data_field];
+
 	if (c.id == "actions") {
 	    const visible_dict = {
 		info: props.context.actions.show_info,
@@ -262,7 +273,8 @@ const map_table_def_columns = (columns) => {
 		}
 	    });
 	}
-    });
+    })
+    ;
     return columns;
 };
 
@@ -443,7 +455,7 @@ function click_button_info(event) {
 	tstamp: alert.tstamp.value,
     };
     let url_params = ntopng_url_manager.obj_to_url_params(params_obj);
-    const href = `${http_prefix}/lua/pro/db_flow_details.lua?${url_params}`;
+    const href = `${props.context.alert_details_url}?${url_params}`;
     window.open(href, "_blank");
 }
 
