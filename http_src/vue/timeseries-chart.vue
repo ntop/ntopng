@@ -1,5 +1,12 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
+	<div style="width:100%" class="text-end">
+		<label class="form-check-label form-control-sm" v-for="(item, i) in  timeseries_list ">
+			<input type="checkbox" class="form-check-input align-middle mt-0" @click="change_visibility(!item.checked, i)"
+				:checked="item.checked" :style="{ backgroundColor: item.color }">
+			{{ item.name }}
+		</label>
+	</div>
 	<div style="width:100%" ref="chart"></div>
 </template>
 
@@ -24,6 +31,8 @@ export default {
 			chart: null,
 			chart_options: null,
 			from_zoom: false,
+			timeseries_visibility: null,
+			timeseries_list: [],
 			//i18n: (t) => i18n(t),
 		};
 	},
@@ -50,6 +59,12 @@ export default {
 			if (this.chart == null) { return; }
 			let data_uri = await this.chart.to_data_uri();
 			downloadURI(data_uri, file_name);
+		},
+		change_visibility: function (visible, id) {
+			if (this.timeseries_list[id] != null) {
+				this.timeseries_list[id]["checked"] = visible
+				this.chart.setVisibility(id, visible);
+			}
 		},
 		register_status: function (status) {
 			let url_request = this.get_url_request(status);
@@ -85,7 +100,15 @@ export default {
 			const data = chart_options.data || [];
 			chart_options.data = null;
 			chart_options.zoomCallback = this.on_zoomed;
-			console.log(chart_options)
+			this.timeseries_list = [];
+			let visibility = [];
+			let id = 0;
+			for (const key in chart_options.series) {
+				this.timeseries_list.push({ name: key, checked: true, id: id, color: chart_options.colors[id] });
+				id = id + 1;
+				visibility.push(true);
+			}
+			chart_options.visibility = visibility;
 			this.chart = new Dygraph(this.$refs["chart"], data, chart_options);
 		},
 		update_chart: async function (url_request) {

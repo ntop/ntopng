@@ -44,8 +44,8 @@ function getYaxisId(metric) {
 }
 
 const defaultColors = [
-	"#90EE90",
 	"#C6D9FD",
+	"#90EE90",
 	"#EE8434",
 	"#C95D63",
 	"#AE8799",
@@ -347,7 +347,7 @@ function getAxisConfiguration(formatter) {
 	return {
 		axisLabelFormatter: formatter,
 		valueFormatter: formatter,
-		axisLabelWidth: 85,
+		axisLabelWidth: 80,
 	}
 }
 
@@ -368,8 +368,7 @@ function buildChartOptions(series, labels, serie_properties, formatters, colors,
 			highlightCircleSize: 5,
 			highlightSeriesBackgroundAlpha: 0.2,
 		},
-		xLabelHeight: 24,
-		yLabelWidth: 24,
+		axisLabelFontSize: 12,
 		axes: {},
 		colors: colors,
 	};
