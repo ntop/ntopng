@@ -856,7 +856,7 @@ end
 
 function driver:timeseries_query(options)
     local metrics = {}
-
+    
     if (options.tags.host) and tonumber(options.tags.host) then
         options.tags.host = nil
     end
@@ -938,36 +938,20 @@ function driver:timeseries_query(options)
         series = {}
     }
 
-    for _, serie_data in pairs(data.series or {}) do
-        local columns = {}
-        local timeserie = {}
+    for index, serie_data in pairs(series or {}) do
+        local statistics = {}
 
-        for index, column in pairs(serie_data.columns) do
-            if column ~= 'time' then
-                columns[index] = column
-                timeserie[index] = {
-                    id = column,
-                    data = {}
-                }
-            end
+        if options.calculate_stats then
+            statistics = ts_common.calculateStatistics(serie_data.data, time_step,
+                options.epoch_end - options.epoch_begin, data_type)
+            statistics = table.merge(statistics, ts_common.calculateMinMax(serie_data.data))
         end
 
-        for serie_index, serie_point in pairs(serie_data.values) do
-            for index, column in pairs(columns) do
-                timeserie[index].data[serie_index] = serie_point[index]
-            end
-        end
-
-        for _, serie in pairsByKeys(timeserie, rev) do
-            -- Add statistics if requested
-            if options.calculate_stats then
-                serie.statistics = ts_common.calculateStatistics(serie.data, time_step,
-                    options.epoch_end - options.epoch_begin, data_type)
-                serie.statistics = table.merge(serie.statistics, ts_common.calculateMinMax(serie.data))
-            end
-            -- Format correctly the serie to return
-            formatted_serie.series[#formatted_serie.series + 1] = serie
-        end
+        formatted_serie.series[#formatted_serie.series + 1] = {
+            id = serie_data.label,
+            data = serie_data.data,
+            statistics = statistics
+        }
     end
 
     formatted_serie.metadata.epoch_begin = options.epoch_begin
