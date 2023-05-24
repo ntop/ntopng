@@ -984,7 +984,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             field = auth_toggles["menu_voices"]["help"],
             pref = "menu_voices.help",
             hidden = not ntop.isEnterpriseM(),
-            default = "0"
+            default = "1"
         })
 
         prefsToggleButton(subpage_active, {
@@ -992,7 +992,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             hidden = not ntop.isEnterpriseM(),
 
             pref = "menu_voices.developer",
-            default = "0"
+            default = "1"
         })
 
     end
