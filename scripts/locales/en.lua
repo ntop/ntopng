@@ -564,6 +564,7 @@ local lang = {
   ["total_retransmissions_rcvd"] = "Total Retransm Rcvd",
   ["total_retransmissions_sent"] = "Total Retransm Sent",
   ["total_score"] = "Tot. Score",
+  ["total_score_host_page"] = "Total Score",
   ["total_traffic"] = "Total Traffic",
   ["traffic"] = "Traffic",
   ["traffic_cli_to_srv"] = "Client <i class='fas fa-arrow-right'></i> Server",

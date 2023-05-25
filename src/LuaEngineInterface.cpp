@@ -2016,6 +2016,36 @@ static int ntop_get_vlan_flows_stats(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_get_hosts_ports(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  ntop_interface->getHostsPorts(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_get_hosts_by_port(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  ntop_interface->getHostsByPort(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 /* Function used to start the accounting of an Host */
 static int ntop_radius_accounting_start(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -5354,6 +5384,8 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"getThroughput", ntop_interface_get_throughput},
     {"getProtocolFlowsStats", ntop_get_protocol_flows_stats},
     {"getVLANFlowsStats", ntop_get_vlan_flows_stats},
+    {"getHostsPorts", ntop_get_hosts_ports},
+    {"getHostsByPort", ntop_get_hosts_by_port}, 
     { "radiusAccountingStart", ntop_radius_accounting_start },
     { "radiusAccountingStop", ntop_radius_accounting_stop },
     { "radiusAccountingUpdate", ntop_radius_accounting_update },

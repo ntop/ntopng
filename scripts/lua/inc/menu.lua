@@ -365,6 +365,10 @@ else
         }, {
             entry = page_utils.menu_entries.http_servers,
             url = '/lua/http_servers_stats.lua'
+        }, {
+            entry = page_utils.menu_entries.server_ports_analysis,
+            url = '/lua/hosts_ports_analysis.lua',
+            hidden = not ntop.isEnterpriseL()
         }}
     })
 

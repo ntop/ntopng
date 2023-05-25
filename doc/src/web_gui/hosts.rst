@@ -20,7 +20,8 @@ Host-related information pages available have the following content
 - Operating Systems page lists all host operating systems that have been detected. Detection is done
   using passive fingerprinting techniques
 - HTTP Servers (Local) page shows monitored HTTP servers, limited to local hosts only
-- Top Hosts Traffic page presents traffic of top hosts in order to typology selected;
+- Top Hosts Traffic page presents traffic of top hosts in order to typology selected
+- Server Ports Analysis page shows Local Hosts filtered by selected protocol and port. 
 
 Hosts
 -----
@@ -549,3 +550,18 @@ divided in 5-minute bars and goes backwards in time in a right-to-left fashion, 
   :alt: Top Hosts
 
   The Top Hosts Summary Page
+
+Server Ports Analysis
+---------------------
+
+The Server Local Hosts Ports Live Analysis page provides live details of hosts filtered by the selected port and L4 protocol. 
+The page displays host information such as IP, Host Name, MAC Address, number of Total Flows, Total Score, and Total Traffic.
+By clicking on the IP hyperlink, the user can be redirected to the live flows page filtered by the selected server IP and server port.
+By clicking on the Host Name hyperlink, the user can be redirected to the host details page.
+By clicking on the MAC Address hyperlink, the user can be redirected to the MAC details page.
+
+.. figure:: ../img/web_gui_hosts_server_ports_analysis_page.png
+  :align: center
+  :alt: Server Ports Analysis
+
+  Server Ports Analysis Page
