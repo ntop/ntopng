@@ -2441,6 +2441,7 @@ end
 
 local function add_snmp_interfaces_timeseries(tags, timeseries)
     local snmp_cached_dev = require "snmp_cached_dev"
+    local snmp_utils = require "snmp_utils"
 
     local cached_device = snmp_cached_dev:get_interfaces(tags.device)
 
@@ -2520,7 +2521,7 @@ local function add_snmp_interfaces_timeseries(tags, timeseries)
                 priority = 2,
                 query = "if_index:" .. interface_index,
                 label = i18n('graphs.interface_label', {
-                    if_name = interface_info.name
+                    if_name = snmp_utils.get_snmp_interface_label(interface_info)
                 }),
                 measure_unit = "bps",
                 scale = i18n("graphs.metric_labels.traffic"),
