@@ -19,24 +19,24 @@
  *
  */
 
-#ifndef _HOSTS_PORTS_H_
-#define _HOSTS_PORTS_H_
+#ifndef _PORT_DETAILS_H_
+#define _PORT_DETAILS_H_
 
 #include "ntop_includes.h"
 
-class HostsPorts {
-    private:
-        std::unordered_map<u_int16_t, PortDetails*> server_ports;
-    
+class PortDetails {
+    private: 
+        ndpi_protocol protocol;
+        u_int64_t h_count = 1;
     public:
-        HostsPorts(){};
-        ~HostsPorts(){};
+        PortDetails(){};
+        ~PortDetails(){};
 
-        /* Getters */
-        inline std::unordered_map<u_int16_t, PortDetails*> getSrvPort() { return(server_ports); };
+        void inc_h_count() { h_count++;};
+        u_int64_t get_h_count() { return(h_count);};
+        void set_protocol(ndpi_protocol _p) {protocol = _p;};
+        ndpi_protocol get_protocol() {return(protocol);};
 
-        /* Setters */
-        void mergeSrvPorts(std::unordered_map<u_int16_t, ndpi_protocol> *new_server_ports); 
 };
 
-#endif /* _HOSTS_PORTS_H_ */
+#endif /* _PORT_DETAILS_H_ */

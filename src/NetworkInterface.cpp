@@ -11782,7 +11782,7 @@ void NetworkInterface::sort_ports(lua_State *vm,
 				  HostsPorts *count,
           u_int16_t protocol) {
 
-  std::map<u_int16_t, ndpi_protocol> ordered(count->getSrvPort().begin(), count->getSrvPort().end());
+  std::map<u_int16_t, PortDetails*> ordered(count->getSrvPort().begin(), count->getSrvPort().end());
   bool isTCP = protocol == 6;
   
   /* Build up the lua response */
@@ -11799,8 +11799,9 @@ void NetworkInterface::sort_ports(lua_State *vm,
     snprintf(str, sizeof(str), "%s:%u", isTCP ? "tcp" : "udp", it->first);
     lua_push_str_table_entry(
         vm, str,
-        ndpi_protocol2name(get_ndpi_struct(), it->second, buf,
+        ndpi_protocol2name(get_ndpi_struct(), it->second->get_protocol(), buf,
                             sizeof(buf)));
+    lua_push_uint32_table_entry(vm, "num_hosts", (u_int32_t) it->second->get_h_count());
     lua_push_uint32_table_entry(vm, "num_entries", (u_int32_t)size);
     
     lua_pushinteger(vm, ++num);

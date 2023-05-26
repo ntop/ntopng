@@ -355,6 +355,7 @@ using namespace std;
 #include "ServiceMap.h"
 #include "PeriodicityMap.h"
 #endif
+#include "PortDetails.h"
 #include "HostsPorts.h"
 #include "HostDetails.h"
 #include "HostsPortsAnalysis.h"

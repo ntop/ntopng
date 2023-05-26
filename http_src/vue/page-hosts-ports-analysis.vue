@@ -8,9 +8,9 @@
             <div class="card  card-shadow">
                 <!-- <Loading ref="loading"></Loading> -->
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-2">
+                    <div class="d-flex align-items-center ml-2 mb-2">
                         <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
-                            <label class="my-auto me-1">{{ _i18n('protocol') }}: </label>
+                            <label class="my-auto me-4">{{ _i18n('protocol') }}: </label>
                             <SelectSearch v-model:selected_option="selected_criteria" :options="criteria_list"
                                 @select_option="update_criteria">
                             </SelectSearch>
@@ -101,10 +101,14 @@ onBeforeMount(async () => {
 });
 
 onMounted(async () => {
+    init_selected_criteria();
+
     load_table();
 });
 
 function update_port() {
+    ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
+
     ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
     load_table();
 }
@@ -115,17 +119,17 @@ async function init_selected_criteria() {
         return;
     }
     selected_criteria.value = criteria_list_def.find((c) => c.param == aggregation_criteria);
+    ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
     const url = `${http_prefix}/lua/pro/enterprise/get_server_ports.lua?protocol=`+selected_criteria.value.value;
     let res = await ntopng_utility.http_request(url, null, null, true);
     let ports = []
     res.rsp.forEach((item) => {
-        ports.push({label: item.srv_port+" ("+item.l7_proto_name+")", id: item.srv_port})
+        ports.push({label: item.srv_port+"/"+item.l7_proto_name+" ("+item.n_hosts+")", id: item.srv_port})
     })
     port_list.value = ports;
     selected_port.value = port_list.value[0];
-    ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
     ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
-    load_table();
+    //load_table();
 
 }
 
@@ -135,7 +139,7 @@ async function update_criteria() {
     let res = await ntopng_utility.http_request(url, null, null, true);
     let ports = []
     res.rsp.forEach((item) => {
-        ports.push({label: item.srv_port+" ("+item.l7_proto_name+")", id: item.srv_port})
+        ports.push({label: item.srv_port+"/"+item.l7_proto_name+" ("+item.n_hosts+")", id: item.srv_port})
     })
     port_list.value = ports;
     selected_port.value = port_list.value[0];
@@ -183,8 +187,24 @@ const get_rows = async (active_page, per_page, columns_wrap, map_search, first_g
     let params = get_url_params(active_page, per_page, columns_wrap, map_search, first_get_rows);
     set_params_in_url(params);
     const url_params = ntopng_url_manager.obj_to_url_params(params);
-    const url = `${http_prefix}/lua/pro/enterprise/get_hosts_details_by_port.lua?${url_params}&protocol=`+selected_criteria.value.value+`&port=`+selected_port.value.id;
-    let res = await ntopng_utility.http_request(url, null, null, true);
+    ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
+    let url;
+    let res;
+    
+    if (selected_port.value.value == undefined) {
+        url = `${http_prefix}/lua/pro/enterprise/get_server_ports.lua?protocol=`+selected_criteria.value.value;
+        res = await ntopng_utility.http_request(url, null, null, true);
+        let ports = []
+        res.rsp.forEach((item) => {
+            ports.push({label: item.srv_port+"/"+item.l7_proto_name+" ("+item.n_hosts+")", id: item.srv_port})
+        })
+        port_list.value = ports;
+        selected_port.value = port_list.value[0];   
+    }
+     
+    ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
+    url = `${http_prefix}/lua/pro/enterprise/get_hosts_details_by_port.lua?${url_params}&protocol=`+selected_criteria.value.value+`&port=`+selected_port.value.id;
+    res = await ntopng_utility.http_request(url, null, null, true);
     // if (res.rsp.length > 0) { res.rsp[0].server_name.alerted = true };
 
     return { total_rows: res.recordsTotal, rows: res.rsp };
@@ -277,7 +297,7 @@ const format_ip = function(data, rowData) {
 
 const format_mac = function(data, rowData) {
     if (data != null)
-        return `<a href="${http_prefix}/lua/mac_details.lua?host=${rowData.ip}">${data}</a>`;
+        return `<a href="${http_prefix}/lua/mac_details.lua?host=${data}">${data}</a>`;
     return data;
 }
 
