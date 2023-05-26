@@ -2239,6 +2239,30 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
 
       ntop->getRedis()->set(key, "1", expiration);
     }
+
+#if 0
+    { /* Push filters to the "Runtime Manager" in pfring for filtering */
+      char value[64], ip_buf[64], key[64];
+      char *ip_str = get_ip()->print(ip_buf, sizeof(ip_buf));
+
+      snprintf(key, sizeof(key), "pfring.%s.filter.host.queue", iface->get_name());
+
+      if (!alert->isReleased()) {
+        /* Engaged: add host (if not already present) */
+        snprintf(value, sizeof(value), "+%s", ip_str);
+        ntop->getRedis()->rpush(key, value, 1024 /* trim size */);
+
+      } else {
+        /* Released (or Stored) */
+        if (alert->isLastReleased()) {
+          /* No other alerts released: remove host (if any) */
+          snprintf(value, sizeof(value), "-%s", ip_str);
+          ntop->getRedis()->rpush(key, value, 1024 /* trim size */);
+        }
+      }
+    }
+#endif
+
   }
 
   if (!rv)
