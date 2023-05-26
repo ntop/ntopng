@@ -27,7 +27,6 @@ void HostsPorts::mergeSrvPorts(std::unordered_map<u_int16_t, ndpi_protocol> *new
     std::unordered_map<u_int16_t, PortDetails*>::iterator server_ports_it;
 
     for (auto new_server_ports_it = new_server_ports->begin(); new_server_ports_it != new_server_ports->end(); ++new_server_ports_it ) {
-        std::cout<<"IN C++: "<<new_server_ports_it->first<<std::endl;
         server_ports_it = server_ports.find(new_server_ports_it->first);
         if(server_ports_it == server_ports.end()) {
             PortDetails *port_details = new (std::nothrow) PortDetails();

@@ -201,6 +201,7 @@ const get_rows = async (active_page, per_page, columns_wrap, map_search, first_g
         port_list.value = ports;
         selected_port.value = port_list.value[0];   
     }
+    selected_port.value = selected_port.value;
      
     ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
     url = `${http_prefix}/lua/pro/enterprise/get_hosts_details_by_port.lua?${url_params}&protocol=`+selected_criteria.value.value+`&port=`+selected_port.value.id;

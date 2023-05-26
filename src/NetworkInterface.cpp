@@ -11719,6 +11719,12 @@ void NetworkInterface::getHostsPorts(lua_State *vm) {
             get_udp_host_ports, &count);
 
   sort_ports(vm, &count, protocol);
+
+  /* Free memory before leaving */
+  std::unordered_map<u_int16_t, PortDetails*> server_ports = count.getSrvPort();
+  for (auto it = server_ports.begin(); it != server_ports.end(); ++it) {
+    delete it->second;
+  }
   
 }
 
