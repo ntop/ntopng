@@ -223,6 +223,7 @@ NetworkInterface::NetworkInterface(const char *name,
 #endif
 
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
+  reloadHideFromTop(false);
 
   updateTrafficMirrored();
   updateSmartRecording();
@@ -287,6 +288,7 @@ void NetworkInterface::init(const char *interface_name) {
 
   ip_addresses = "", networkStats = NULL, pcap_datalink_type = 0,
   cpu_affinity = -1;
+    hide_from_top = hide_from_top_shadow = NULL;
 
   gettimeofday(&last_periodic_stats_update, NULL);
   num_live_captures = 0;
@@ -977,6 +979,8 @@ NetworkInterface::~NetworkInterface() {
   if (custom_app_stats) delete custom_app_stats;
   if (flow_interfaces_stats) delete flow_interfaces_stats;
 #endif
+  if(hide_from_top)         delete(hide_from_top);
+  if(hide_from_top_shadow)  delete(hide_from_top_shadow);
   if (influxdb_ts_exporter) delete influxdb_ts_exporter;
   if (rrd_ts_exporter) delete rrd_ts_exporter;
   if (dhcp_ranges) delete[] dhcp_ranges;
@@ -4696,6 +4700,7 @@ struct flowHostRetriever {
   u_int16_t poolFilter;
   u_int8_t devtypeFilter;
   u_int8_t locationFilter;
+  bool isTopTalkers;
 
   /* Return values */
   u_int32_t maxNumEntries, actNumEntries;
@@ -5278,7 +5283,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
 #endif
       (r->ipVersionFilter &&
        (((r->ipVersionFilter == 4) && (!h->get_ip()->isIPv4())) ||
-        ((r->ipVersionFilter == 6) && (!h->get_ip()->isIPv6())))))
+        ((r->ipVersionFilter == 6) && (!h->get_ip()->isIPv6())))) 
+        || (r->isTopTalkers && h->isHiddenFromTop()))
     return (false); /* false = keep on walking */
 
   r->elems[r->actNumEntries].hostValue = h;
@@ -6168,7 +6174,7 @@ int NetworkInterface::sortHosts(
     bool blacklisted_hosts, bool anomalousOnly, bool dhcpOnly,
     const AddressTree *const cidr_filter, u_int8_t ipver_filter,
     int proto_filter, TrafficType traffic_type_filter, u_int32_t device_ip,
-    char *sortColumn) {
+    char *sortColumn, bool isTopTalkers) {
   u_int8_t macAddr[6];
   int (*sorter)(const void *_a, const void *_b);
 
@@ -6194,6 +6200,7 @@ int NetworkInterface::sortHosts(
   retriever->traffic_type = traffic_type_filter,
   retriever->device_ip = device_ip,
   retriever->maxNumEntries = getHostsHashSize();
+  retriever->isTopTalkers = isTopTalkers;
   retriever->elems = (struct flowHostRetrieveList *)calloc(
       sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
@@ -6599,7 +6606,7 @@ int NetworkInterface::getActiveHostsList(
     bool blacklisted_hosts, u_int8_t ipver_filter, int proto_filter,
     TrafficType traffic_type_filter, u_int32_t device_ip, bool tsLua,
     bool anomalousOnly, bool dhcpOnly, const AddressTree *const cidr_filter,
-    char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder) {
+    char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder, bool isTopTalkers) {
   struct flowHostRetriever retriever;
 
 #if DEBUG
@@ -6611,13 +6618,13 @@ int NetworkInterface::getActiveHostsList(
 
   memset(&retriever, 0, sizeof(struct flowHostRetriever));
   retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
-
+  retriever.isTopTalkers = isTopTalkers;
   if (sortHosts(begin_slot, walk_all, &retriever, bridge_iface_idx,
                 allowed_hosts, host_details, location, countryFilter,
                 mac_filter, vlan_id, osFilter, asnFilter, networkFilter,
                 pool_filter, filtered_hosts, blacklisted_hosts, anomalousOnly,
                 dhcpOnly, cidr_filter, ipver_filter, proto_filter,
-                traffic_type_filter, device_ip, sortColumn) < 0) {
+                traffic_type_filter, device_ip, sortColumn, isTopTalkers) < 0) {
     return (-1);
   }
 
@@ -6639,7 +6646,7 @@ int NetworkInterface::getActiveHostsList(
          i < (int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
       Host *h = retriever.elems[i].hostValue;
 
-      if (h != NULL) {
+      if ((h != NULL && (isTopTalkers && !h->isHiddenFromTop())) || ( h != NULL && !isTopTalkers)) {
         if (!tsLua)
           h->lua(vm, NULL /* Already checked */, host_details, false, false,
                  true);
@@ -6652,7 +6659,7 @@ int NetworkInterface::getActiveHostsList(
          i >= 0 && num < (int)maxHits; i--, num++) {
       Host *h = retriever.elems[i].hostValue;
 
-      if (h != NULL) {
+      if ((h != NULL && (isTopTalkers && !h->isHiddenFromTop())) || ( h != NULL && !isTopTalkers)) {
         if (!tsLua)
           h->lua(vm, NULL /* Already checked */, host_details, false, false,
                  true);
@@ -8464,6 +8471,73 @@ void NetworkInterface::reloadGwMacs() {
   gw_macs_reload_requested = false;
 }
 
+/* **************************************** */
+
+static bool host_reload_hide_from_top(GenericHashEntry *host, void *user_data, bool *matched) {
+  Host *h = (Host*)host;
+
+  h->reloadHideFromTop();
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************** */
+
+void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
+  char kname[64];
+  char **networks = NULL;
+  VLANAddressTree *new_tree;
+
+  if(!ntop->getRedis()) return;
+
+  if((new_tree = new (std::nothrow) VLANAddressTree) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
+    return;
+  }
+
+  snprintf(kname, sizeof(kname), CONST_IFACE_HIDE_FROM_TOP_PREFS, id);
+
+  int num_nets = ntop->getRedis()->smembers(kname, &networks);
+  char *at;
+  u_int16_t vlan_id;
+
+  for(int i=0; i<num_nets; i++) {
+    char *net = networks[i];
+    if(!net) continue;
+
+    if((at = strchr(net, '@'))) {
+      vlan_id = atoi(at + 1);
+      *at = '\0';
+    } else
+      vlan_id = 0;
+
+    new_tree->addAddress(vlan_id, net, 1);
+    free(net);
+  }
+
+  if(networks) free(networks);
+
+  if(hide_from_top_shadow) delete(hide_from_top_shadow);
+  hide_from_top_shadow = hide_from_top;
+  hide_from_top = new_tree;
+
+  if(refreshHosts) {
+    /* Reload existing hosts */
+    u_int32_t begin_slot = 0;
+    bool walk_all = true;
+    walker(&begin_slot, walk_all,  walker_hosts, host_reload_hide_from_top, NULL);
+  }
+}
+
+/* **************************************** */
+
+bool NetworkInterface::isHiddenFromTop(Host *host) {
+  VLANAddressTree *vlan_addrtree = hide_from_top;
+
+  if(!vlan_addrtree) return false;
+
+  return(host->get_ip()->findAddress(vlan_addrtree->getAddressTree(host->get_vlan_id())));
+}
 /* **************************************** */
 
 int NetworkInterface::getActiveMacList(

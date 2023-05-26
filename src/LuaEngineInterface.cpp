@@ -1548,7 +1548,7 @@ static int ntop_get_batched_interface_hosts(lua_State *vm,
           traffic_type_filter, 0 /* probe ip */,
           tsLua /* host->tsLua | host->lua */, anomalousOnly, dhcpOnly,
           NULL /* cidr filter */, sortColumn, maxHits, toSkip,
-          a2zSortOrder) < 0)
+          a2zSortOrder, false) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -1575,6 +1575,7 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
   u_int32_t begin_slot = 0;
   bool walk_all = true;
   bool anomalousOnly = false;
+  bool is_top_talkers = false;
   bool dhcpOnly = false, cidr_filter_enabled = false;
   AddressTree cidr_filter;
 
@@ -1613,6 +1614,7 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
     cidr_filter.addAddress(lua_tostring(vm, 20)), cidr_filter_enabled = true;
   if (lua_type(vm, 21) == LUA_TSTRING)
     device_ip = ntohl(inet_addr(lua_tostring(vm, 21)));
+  if (lua_type(vm, 22) == LUA_TBOOLEAN) is_top_talkers = lua_toboolean(vm, 22);
 
   if ((!ntop_interface) ||
       ntop_interface->getActiveHostsList(
@@ -1623,7 +1625,7 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
           filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
           traffic_type_filter, device_ip, false /* host->lua */, anomalousOnly,
           dhcpOnly, cidr_filter_enabled ? &cidr_filter : NULL, sortColumn,
-          maxHits, toSkip, a2zSortOrder) < 0)
+          maxHits, toSkip, a2zSortOrder, is_top_talkers) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -3541,6 +3543,19 @@ static int ntop_load_scaling_factor_prefs(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_hide_from_top(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop_interface) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  ntop_interface->reloadHideFromTop();
+
+  lua_pushnil(vm);
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_reload_gw_macs(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5331,6 +5346,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"setInterfaceIdleState", ntop_interface_set_idle},
     {"name2id", ntop_interface_name2id},
     {"loadScalingFactorPrefs", ntop_load_scaling_factor_prefs},
+    {"reloadHideFromTop", ntop_reload_hide_from_top },
     {"reloadGwMacs", ntop_reload_gw_macs},
     {"reloadDhcpRanges", ntop_reload_dhcp_ranges},
     {"reloadHostPrefs", ntop_reload_host_prefs},
