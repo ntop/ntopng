@@ -2240,8 +2240,7 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
       ntop->getRedis()->set(key, "1", expiration);
     }
 
-#if 0
-    { /* Push filters to the "Runtime Manager" in pfring for filtering */
+    if (ntop->getPrefs()->pushHostFilters()) { /* Push filters to the "Runtime Manager" in pfring for filtering */
       char value[64], ip_buf[64], key[64];
       char *ip_str = get_ip()->print(ip_buf, sizeof(ip_buf));
 
@@ -2261,7 +2260,6 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
         }
       }
     }
-#endif
 
   }
 

@@ -2161,6 +2161,7 @@ local known_parameters = {
     ["lbd_hosts_as_macs"] = validateBool,
     ["toggle_emit_flow_alerts"] = validateBool,
     ["toggle_emit_host_alerts"] = validateBool,
+    ["toggle_push_host_filters"] = validateBool,
     ["toggle_date_type"] = validateSingleWord,
 
     -- Other

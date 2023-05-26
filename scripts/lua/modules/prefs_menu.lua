@@ -416,7 +416,11 @@ local menu_subpages = {{
         alert_page_refresh_rate = {
             title = i18n("prefs.alerts_page_refresh_rate__title"),
             description = i18n("prefs.alerts_page_refresh_rate_description")
-        }
+        },
+        toggle_push_host_filters = {
+            title = i18n("prefs.toggle_push_host_filters_title"),
+            description = i18n("prefs.toggle_push_host_filters_description")
+        },
     }
 }, {
     id = "geo_map",

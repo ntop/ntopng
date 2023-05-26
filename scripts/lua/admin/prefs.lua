@@ -247,7 +247,7 @@ if auth.has_capability(auth.capabilities.preferences) then
                   '</th></tr></thead>')
 
         local elementToSwitch = {"row_toggle_emit_flow_alerts", "row_toggle_emit_host_alerts", "max_entity_alerts",
-                                 "max_num_secs_before_delete_alert", "row_alert_page_refresh_rate_enabled"}
+                                 "max_num_secs_before_delete_alert", "row_alert_page_refresh_rate_enabled", "row_toggle_push_host_filters"}
 
         prefsToggleButton(subpage_active, {
             field = "disable_alerts_generation",
@@ -316,6 +316,15 @@ if auth.has_capability(auth.capabilities.preferences) then
                 min = 3,
                 tformat = "m" --[[ TODO check min/max ]]
             })
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_push_host_filters",
+            default = "0",
+            pref = "push_host_filters",
+            on_value = "1",
+            off_value = "0",
+            hidden = not showElements
+        })
 
         print('<tr><th colspan=2 style="text-align:right;">')
         print(
