@@ -254,7 +254,7 @@ void NetworkInterface::init(const char *interface_name) {
   pcap_datalink_type = 0, mtuWarningShown = false,
   purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0,
   last_remote_bps = 0, has_vlan_packets = false,
-  cpu_affinity = -1 /* no affinity */, 
+  cpu_affinity = -1 /* no affinity */,
   interfaceStats = NULL, has_too_many_hosts = has_too_many_flows = false,
   flow_dump_disabled = false, numL2Devices = 0,
   totalNumHosts = numTotalRxOnlyHosts = numLocalHosts = numLocalRxOnlyHosts = 0,
@@ -1690,7 +1690,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx, bool ingressPac
 	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
       return (pass_verdict);
     }
-    
+
     tos = iph->tos;
 
     /* Use the actual h->len and not the h->caplen to determine
@@ -1767,7 +1767,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx, bool ingressPac
 	     len_on_wire, 1);
     return (pass_verdict);
   }
-  
+
   if (trusted_l4_packet_len > frame_padding)
     trusted_l4_packet_len -= frame_padding;
 
@@ -2209,6 +2209,16 @@ pre_get_flow:
                                       (struct timeval *)&h->ts);
         }
         break;
+
+#ifdef NTOPNG_PRO
+      case NDPI_PROTOCOL_MODBUS:
+        if ((trusted_payload_len > 0) && payload) {
+          flow->processModbusPacket((htons(dst_port) == 502) ? true : false,
+				    payload, trusted_payload_len,
+				    (struct timeval *)&h->ts);
+        }
+        break;
+#endif
 
       case NDPI_PROTOCOL_MDNS:
 #ifdef MDNS_TEST
@@ -11441,7 +11451,7 @@ bool NetworkInterface::verify_host_ip_filter(AggregatedFlowsStats *fs,
   else
     vlan_id = stoi(vlan);
 
-  if(((!strcmp(fs->getCliIP(buf, sizeof(buf)), filter) && (vlan_id == 0 || vlan_id == fs->getCliVLANId()) )|| 
+  if(((!strcmp(fs->getCliIP(buf, sizeof(buf)), filter) && (vlan_id == 0 || vlan_id == fs->getCliVLANId()) )||
      ((!strcmp(fs->getSrvIP(buf, sizeof(buf)), filter)) && (vlan_id == 0 || vlan_id == fs->getSrvVLANId()))) )
     return true;
 
@@ -11453,12 +11463,12 @@ bool NetworkInterface::verify_host_ip_filter(AggregatedFlowsStats *fs,
 /* Function to filter flows with search_filter and host_ip_filter  */
 bool NetworkInterface::filters_flows(AggregatedFlowsStats *fs,
                                             char *search_filter, AnalysisCriteria filter_type, char *host_ip_filter ) {
-  
+
   string ip = "";
   string vlan = "";
   if (host_ip_filter != NULL && host_ip_filter[0] != 0) {
     char *token = strtok(host_ip_filter, "@");
-   
+
     int h = 0;
     while (token != NULL)
     {
@@ -11466,16 +11476,16 @@ bool NetworkInterface::filters_flows(AggregatedFlowsStats *fs,
           ip = token;
         } else if (h == 1) {
           vlan = token;
-        } 
+        }
         token = strtok(NULL, "|");
         h++;
     }
   }
-  
+
   if ((search_filter != NULL) && (search_filter[0] != 0)) {
 
     if (verify_search_filter(fs, search_filter, filter_type)) {
-              
+
       // check host_ip filter
       if ((host_ip_filter != NULL) && (host_ip_filter[0] != 0)) {
         if( verify_host_ip_filter(fs, (char*)ip.c_str(), vlan))
@@ -11483,7 +11493,7 @@ bool NetworkInterface::filters_flows(AggregatedFlowsStats *fs,
       } else {
         return(true);
       }
-    }     
+    }
   } else {
 
     // check host_ip filter
@@ -11493,7 +11503,7 @@ bool NetworkInterface::filters_flows(AggregatedFlowsStats *fs,
     } else {
       return(true);
     }
-  } 
+  }
 
   return(false);
 
@@ -11519,7 +11529,7 @@ void NetworkInterface::sort_and_filter_flow_stats(
   if (lua_type(vm, 7) == LUA_TSTRING)
     search_string = (char *)lua_tostring(vm, 7);
   if (lua_type(vm, 8) == LUA_TSTRING)
-    host_ip = (char *)lua_tostring(vm, 8); 
+    host_ip = (char *)lua_tostring(vm, 8);
 
   bool is_asc = sortOrder ? (!strcmp(sortOrder, "asc")) : true;
   bool (*sorter)(AggregatedFlowsStats *, AggregatedFlowsStats *) =
@@ -11561,7 +11571,7 @@ void NetworkInterface::sort_and_filter_flow_stats(
       std::unordered_map<string, AggregatedFlowsStats *>::iterator it;
 
       for (it = count_info->begin(); it != count_info->end(); ++it) {
-        
+
         // check filters
         if(filters_flows(it->second, search_string, filter_type, host_ip ))
           vector.push_back(it->second);

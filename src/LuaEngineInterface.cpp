@@ -2020,10 +2020,10 @@ static int ntop_get_vlan_flows_stats(lua_State *vm) {
 
 /* Function used to start the accounting of an Host */
 static int ntop_radius_accounting_start(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool res = false;
 
 #ifdef HAVE_RADIUS
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL, *session_id = NULL; 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2049,10 +2049,10 @@ static int ntop_radius_accounting_start(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_radius_accounting_stop(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool res = false;
 
 #ifdef HAVE_RADIUS
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL, *session_id = NULL;
   RadiusTraffic traffic_data;
 
@@ -2093,10 +2093,10 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_radius_accounting_update(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool res = false;
 
 #ifdef HAVE_RADIUS
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   const char *username = NULL, *session_id = NULL, *password = NULL;
   char *mac = NULL;  
   RadiusTraffic traffic_data;
