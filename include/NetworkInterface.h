@@ -327,6 +327,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   StatsManager *statsManager;
   AlertStore *alertStore;
   HostPools *host_pools;
+  VLANAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses,
       has_seen_dhcp_addresses;
   bool has_seen_pods, has_seen_containers, has_external_alerts;
@@ -363,7 +364,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                 bool dhcpOnly, const AddressTree *const cidr_filter,
                 u_int8_t ipver_filter, int proto_filter,
                 TrafficType traffic_type_filter, u_int32_t device_ip,
-                char *sortColumn);
+                char *sortColumn, bool isTopTalkers);
   int sortASes(struct flowHostRetriever *retriever, char *sortColumn);
   int sortObsPoints(struct flowHostRetriever *retriever, char *sortColumn);
   int sortOSes(struct flowHostRetriever *retriever, char *sortColumn);
@@ -792,7 +793,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
       bool blacklisted_hosts, u_int8_t ipver_filter, int proto_filter,
       TrafficType traffic_type_filter, u_int32_t device_ip, bool tsLua,
       bool anomalousOnly, bool dhcpOnly, const AddressTree *const cidr_filter,
-      char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder);
+      char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder, bool isTopTalkers);
   int getActiveASList(lua_State *vm, const Paginator *p, bool diff = false);
   int getActiveObsPointsList(lua_State *vm, const Paginator *p);
   int getActiveOSList(lua_State *vm, const Paginator *p);
@@ -1047,6 +1048,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                               u_int16_t host_vlan);
 
   virtual void reloadCompanions(){};
+  void reloadHideFromTop(bool refreshHosts=true);
+  bool isHiddenFromTop(Host *host);
+
   void requestGwMacsReload() { gw_macs_reload_requested = true; };
   void reloadGwMacs();
 

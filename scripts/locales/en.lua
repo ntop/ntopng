@@ -3762,6 +3762,7 @@ local lang = {
   ["host_config"] = {
     ["active_monitor_enable"] = "Active Monitoring is currently disabled. It can be enabled <a href=\"%{url}\">here</a>.",
     ["drop_all_host_traffic"] = "Drop All Host Traffic",
+    ["hide_from_top"] = "Hide From Top Talkers",
     ["hide_host_from_top_descr"] = "Do not account host %{host} in top talkers computation",
     ["host_alias"] = "Host Alias",
     ["host_pool"] = "Host Pool",
@@ -6058,6 +6059,8 @@ local lang = {
     ["toggle_os_rrds_title"] = "Operating Systems",
     ["toggle_pools_rrds_description"] = "Toggle the creation of bytes and applications timeseries for defined host pools.",
     ["toggle_pools_rrds_title"] = "Host Pools",
+    ["toggle_push_host_filters_description"] = "Push the IP addresses for alerted hosts to PF_RING through a Redis queue (pfring.<i>interface</i>.filter.host.queue) to filter and further analyse traffic on third party tools (e.g. IDS).",
+    ["toggle_push_host_filters_title"] = "Push Host Filters to PF_RING",
     ["toggle_radius_accounting"] = "Toggle RADIUS Accounting",
     ["toggle_radius_accounting_descr"] = "Toggle traffic accounting via RADIUS server.",
     ["toggle_radius_auth"] = "Toggle RADIUS Authentication",

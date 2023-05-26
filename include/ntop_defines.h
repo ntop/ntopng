@@ -706,6 +706,7 @@
   NTOPNG_PREFS_PREFIX ".is_client_x509_auth_enabled"
 #define CONST_PREFS_EMIT_FLOW_ALERTS NTOPNG_PREFS_PREFIX ".emit_flow_alerts"
 #define CONST_PREFS_EMIT_HOST_ALERTS NTOPNG_PREFS_PREFIX ".emit_host_alerts"
+#define CONST_PREFS_PUSH_HOST_FILTERS NTOPNG_PREFS_PREFIX ".push_host_filters"
 
 #define CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE \
   NTOPNG_PREFS_PREFIX ".is_broadcast_domain_too_large_enabled"

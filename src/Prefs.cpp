@@ -58,6 +58,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ewma_alpha_percent = CONST_DEFAULT_EWMA_ALPHA_PERCENT;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   emit_flow_alerts = emit_host_alerts = true;
+  push_host_filters = false;
   zmq_publish_events_url = NULL;
   enable_access_log = false, enable_sql_log = false;
   enable_flow_device_port_rrd_creation =
@@ -986,6 +987,8 @@ void Prefs::reloadPrefsFromRedis() {
       getDefaultBoolPrefsValue(CONST_PREFS_EMIT_FLOW_ALERTS, true);
   emit_host_alerts =
       getDefaultBoolPrefsValue(CONST_PREFS_EMIT_HOST_ALERTS, true);
+  push_host_filters =
+      getDefaultBoolPrefsValue(CONST_PREFS_PUSH_HOST_FILTERS, false);
 
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
