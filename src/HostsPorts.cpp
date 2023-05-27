@@ -30,8 +30,10 @@ void HostsPorts::mergeSrvPorts(std::unordered_map<u_int16_t, ndpi_protocol> *new
         server_ports_it = server_ports.find(new_server_ports_it->first);
         if(server_ports_it == server_ports.end()) {
             PortDetails *port_details = new (std::nothrow) PortDetails();
-            port_details->set_protocol(new_server_ports_it->second);
-            server_ports[new_server_ports_it->first] = port_details;
+            if(port_details) {
+                port_details->set_protocol(new_server_ports_it->second);
+                server_ports[new_server_ports_it->first] = port_details;
+            }
         } else {
             server_ports_it->second->inc_h_count();
 
