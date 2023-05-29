@@ -43,6 +43,7 @@ function getYaxisId(metric) {
 	return `${metric.measure_unit}_${metric.scale}`;
 }
 
+/*
 const defaultColors = [
 	"#C6D9FD",
 	"#90EE90",
@@ -57,15 +58,16 @@ const defaultColors = [
 	"#839BE6",
 	"#8EA4E8",
 ];
+*/
 
 function setSeriesColors(palette_list) {
 	let colors_list = [];
 	let count0 = 0, count1 = 0;
-	let colors0 = defaultColors;
+	//let colors0 = defaultColors;
 	let colors1 = d3v7.schemeCategory10;
 	palette_list.forEach((s) => {
 		if (s.palette == 0) {
-			colors_list.push(colors0[count0 % colors0.length]);
+			colors_list.push(s.color);
 			count0 += 1;
 		} else if (s.palette == 1) {
 			colors_list.push(colors1[count1 % colors1.length]);
