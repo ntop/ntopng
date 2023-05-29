@@ -120,7 +120,7 @@ async function init_selected_criteria() {
     }
     selected_criteria.value = criteria_list_def.find((c) => c.param == aggregation_criteria);
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
-    const url = `${http_prefix}/lua/pro/enterprise/get_server_ports.lua?protocol=`+selected_criteria.value.value;
+    const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=`+selected_criteria.value.value;
     let res = await ntopng_utility.http_request(url, null, null, true);
     let ports = []
     res.rsp.forEach((item) => {
@@ -135,7 +135,7 @@ async function init_selected_criteria() {
 
 async function update_criteria() {
 
-    const url = `${http_prefix}/lua/pro/enterprise/get_server_ports.lua?protocol=`+selected_criteria.value.value;
+    const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=`+selected_criteria.value.value;
     let res = await ntopng_utility.http_request(url, null, null, true);
     let ports = []
     res.rsp.forEach((item) => {
@@ -192,7 +192,7 @@ const get_rows = async (active_page, per_page, columns_wrap, map_search, first_g
     let res;
     
     if (selected_port.value.value == undefined) {
-        url = `${http_prefix}/lua/pro/enterprise/get_server_ports.lua?protocol=`+selected_criteria.value.value;
+        url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=`+selected_criteria.value.value;
         res = await ntopng_utility.http_request(url, null, null, true);
         let ports = []
         res.rsp.forEach((item) => {
@@ -204,7 +204,7 @@ const get_rows = async (active_page, per_page, columns_wrap, map_search, first_g
     //selected_port.value = selected_port.value;
      
     ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
-    url = `${http_prefix}/lua/pro/enterprise/get_hosts_details_by_port.lua?${url_params}&protocol=`+selected_criteria.value.value+`&port=`+selected_port.value.id;
+    url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port.lua?${url_params}&protocol=`+selected_criteria.value.value+`&port=`+selected_port.value.id;
     res = await ntopng_utility.http_request(url, null, null, true);
     // if (res.rsp.length > 0) { res.rsp[0].server_name.alerted = true };
 
