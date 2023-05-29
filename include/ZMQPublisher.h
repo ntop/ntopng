@@ -15,7 +15,7 @@
  * @file ZMQExporter.h
  *
  * @brief      ZMQPublisher class implementation.
- * @details    ZMQPublisher exports flows in JSON format using a ZMQ socket.
+ * @details    ZMQPublisher exports events using a ZMQ socket.
  */
 
 #ifndef _ZMQ_PUBLISHER_H_
@@ -31,17 +31,14 @@ class ZMQPublisher {
  private:
   void *context;        /**< ZMQ context */
   void *flow_publisher; /**< ZMQ publisher socket */
-  char *encryption_key; /**< Encryption key */
 
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
   int setEncryptionKey(const char *server_public_key);
 #endif
-  void xor_encdec(u_char *data, int data_len, u_char *key);
   bool sendMessage(const char *topic, char *str);
 
  public:
-  ZMQPublisher(char *endpoint, const char *_encryption_key = NULL,
-               const char *server_public_key = NULL);
+  ZMQPublisher(char *endpoint, const char *server_public_key = NULL);
   ~ZMQPublisher();
 
   inline bool sendIPSMessage(char *msg) { return (sendMessage("ips", msg)); }

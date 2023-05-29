@@ -16,90 +16,90 @@
 /**
  * Constructor: initializes ZMQ sockets.
  * @param endpoint The ZMQ endpoint.
- * @param _encryption_key The encryption key.
  */
-ZMQPublisher::ZMQPublisher(char *endpoint, const char *_encryption_key,
-                           const char *server_public_key) {
+ZMQPublisher::ZMQPublisher(char *endpoint, const char *server_public_key) {
+
   ntop->getTrace()->traceEvent(TRACE_INFO, "Initializing ZMQPublisher with %s",
                                endpoint);
 
-  if (endpoint != NULL) {
-    encryption_key = _encryption_key ? strdup(_encryption_key) : NULL;
+  if (endpoint == NULL)
+    throw("NULL endpoint");
 
-    context = zmq_ctx_new();
+  context = zmq_ctx_new();
 
-    if (context == NULL) {
-      ntop->getTrace()->traceEvent(
-          TRACE_ERROR, "Unable to initialize ZMQ %s (context)", endpoint);
-      throw "Unable to initialize ZMQ (context)";
-    }
+  if (context == NULL) {
+    ntop->getTrace()->traceEvent(
+        TRACE_ERROR, "Unable to initialize ZMQ %s (context)", endpoint);
+    throw "Unable to initialize ZMQ (context)";
+  }
 
-    /* nProbe sends flows to a remote collector */
-    flow_publisher = zmq_socket(context, ZMQ_PUB);
+  /* ntopng publish events to remote collectors (probes) */
+  flow_publisher = zmq_socket(context, ZMQ_PUB);
 
-    if (flow_publisher == NULL) {
-      ntop->getTrace()->traceEvent(
-          TRACE_ERROR, "Unable to initialize ZMQ %s (flow_publisher)",
-          endpoint);
-      throw "Unable to initialize ZMQ (flow_publisher)";
-    }
+  if (flow_publisher == NULL) {
+    ntop->getTrace()->traceEvent(
+        TRACE_ERROR, "Unable to initialize ZMQ %s (flow_publisher)",
+        endpoint);
+    throw "Unable to initialize ZMQ (flow_publisher)";
+  }
 
-    if (server_public_key != NULL)
+  if (server_public_key != NULL)
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
-      if (setEncryptionKey(server_public_key) < 0)
-        throw "Unable to set ZMQ encryption";
+    if (setEncryptionKey(server_public_key) < 0)
+      throw "Unable to set ZMQ encryption";
 #else
-      throw "Unable to set ZMQ encryption, it requires ZMQ >= 4.1";
+    throw "Unable to set ZMQ encryption, it requires ZMQ >= 4.1";
 #endif
 
-    if (zmq_bind(flow_publisher, endpoint) != 0) {
-      zmq_close(flow_publisher);
-      zmq_ctx_destroy(context);
+  if (zmq_bind(flow_publisher, endpoint) != 0) {
+    zmq_close(flow_publisher);
+    zmq_ctx_destroy(context);
+    ntop->getTrace()->traceEvent(
+        TRACE_ERROR, "Unable to connect to ZMQ endpoint %s", endpoint);
+    throw("Unable to connect to the specified ZMQ endpoint");
+  }
+
+  if (strncmp(endpoint, (char *)"tcp://", 6) == 0) {
+    int val = DEFAULT_ZMQ_TCP_KEEPALIVE;
+
+    /* TCP socker optimizations */
+
+    if (zmq_setsockopt(flow_publisher, ZMQ_TCP_KEEPALIVE, &val,
+                       sizeof(val)) != 0)
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                   "Unable to set tcp keepalive");
+    else
+      ntop->getTrace()->traceEvent(TRACE_INFO, "TCP keepalive set");
+
+    val = DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE;
+    if (zmq_setsockopt(flow_publisher, ZMQ_TCP_KEEPALIVE_IDLE, &val,
+                       sizeof(val)) != 0)
       ntop->getTrace()->traceEvent(
-          TRACE_ERROR, "Unable to connect to ZMQ endpoint %s", endpoint);
-      throw("Unable to connect to the specified ZMQ endpoint");
-    }
+          TRACE_ERROR, "Unable to set tcp keepalive idle to %u seconds", val);
+    else
+      ntop->getTrace()->traceEvent(
+          TRACE_INFO, "TCP keepalive idle set to %u seconds", val);
 
-    if (!strncmp(endpoint, (char *)"tcp://", 6)) {
-      int val = DEFAULT_ZMQ_TCP_KEEPALIVE;
-      if (zmq_setsockopt(flow_publisher, ZMQ_TCP_KEEPALIVE, &val,
-                         sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                     "Unable to set tcp keepalive");
-      else
-        ntop->getTrace()->traceEvent(TRACE_INFO, "TCP keepalive set");
+    val = DEFAULT_ZMQ_TCP_KEEPALIVE_CNT;
+    if (zmq_setsockopt(flow_publisher, ZMQ_TCP_KEEPALIVE_CNT, &val,
+                       sizeof(val)) != 0)
+      ntop->getTrace()->traceEvent(
+          TRACE_ERROR, "Unable to set tcp keepalive count to %u", val);
+    else
+      ntop->getTrace()->traceEvent(TRACE_INFO,
+                                   "TCP keepalive count set to %u", val);
 
-      val = DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE;
-      if (zmq_setsockopt(flow_publisher, ZMQ_TCP_KEEPALIVE_IDLE, &val,
-                         sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "Unable to set tcp keepalive idle to %u seconds", val);
-      else
-        ntop->getTrace()->traceEvent(
-            TRACE_INFO, "TCP keepalive idle set to %u seconds", val);
+    val = DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL;
+    if (zmq_setsockopt(flow_publisher, ZMQ_TCP_KEEPALIVE_INTVL, &val,
+                       sizeof(val)) != 0)
+      ntop->getTrace()->traceEvent(
+          TRACE_ERROR, "Unable to set tcp keepalive interval to %u seconds",
+          val);
+    else
+      ntop->getTrace()->traceEvent(
+          TRACE_INFO, "TCP keepalive interval set to %u seconds", val);
+  }
 
-      val = DEFAULT_ZMQ_TCP_KEEPALIVE_CNT;
-      if (zmq_setsockopt(flow_publisher, ZMQ_TCP_KEEPALIVE_CNT, &val,
-                         sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "Unable to set tcp keepalive count to %u", val);
-      else
-        ntop->getTrace()->traceEvent(TRACE_INFO,
-                                     "TCP keepalive count set to %u", val);
-
-      val = DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL;
-      if (zmq_setsockopt(flow_publisher, ZMQ_TCP_KEEPALIVE_INTVL, &val,
-                         sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "Unable to set tcp keepalive interval to %u seconds",
-            val);
-      else
-        ntop->getTrace()->traceEvent(
-            TRACE_INFO, "TCP keepalive interval set to %u seconds", val);
-    }
-
-  } else
-    throw("NULL endpoint");
 };
 
 /* *********************************************************** */
@@ -108,8 +108,6 @@ ZMQPublisher::ZMQPublisher(char *endpoint, const char *_encryption_key,
  * Destructor.
  */
 ZMQPublisher::~ZMQPublisher() {
-  if (encryption_key) free(encryption_key);
-
   zmq_close(flow_publisher);
   zmq_ctx_destroy(context);
 }
@@ -174,23 +172,6 @@ int ZMQPublisher::setEncryptionKey(const char *server_public_key) {
 /* *********************************************************** */
 
 /**
- * Encodes a buffer.
- * @param data The buffer to encode.
- * @param data_len The buffer length.
- * @param key The key for the encoding.
- */
-void ZMQPublisher::xor_encdec(u_char *data, int data_len, u_char *key) {
-  int i, y;
-
-  for (i = 0, y = 0; i < data_len; i++) {
-    data[i] ^= key[y++];
-    if (key[y] == 0) y = 0;
-  }
-}
-
-/* *********************************************************** */
-
-/**
  * Sends a message on ZMQ, encoding and compressing it.
  * @param str The message.
  */
@@ -205,8 +186,6 @@ bool ZMQPublisher::sendMessage(const char *topic, char *str) {
                                topic, str);
 
   snprintf(msg_hdr.url, sizeof(msg_hdr.url), "%s", topic);
-
-  if (encryption_key) xor_encdec((u_char *)str, len, (u_char *)encryption_key);
 
 #ifdef HAVE_ZLIB
   if ((compressed = (char *)malloc(len + 16)) != NULL) {
