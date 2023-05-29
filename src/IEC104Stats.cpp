@@ -417,8 +417,7 @@ void IEC104Stats::lua(lua_State *vm) {
 
   lua_newtable(vm);
 
-  for (std::unordered_map<u_int16_t, u_int32_t>::iterator it =
-           typeid_uses.begin();
+  for (std::unordered_map<u_int16_t, u_int32_t>::iterator it = typeid_uses.begin();
        it != typeid_uses.end(); ++it) {
     char buf[8];
 

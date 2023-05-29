@@ -2913,6 +2913,10 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     if (iec104) iec104->lua(vm);
 
+#ifdef NTOPNG_PRO
+    if (modbus) modbus->lua(vm);
+#endif
+    
     if (!has_json_info) lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 
     if (ebpf) ebpf->lua(vm);
@@ -2942,7 +2946,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     if (getJSONRiskInfo())
       lua_push_str_table_entry(vm, "riskInfo", getJSONRiskInfo());
-  }
+  }     
 
   lua_get_status(vm);
 

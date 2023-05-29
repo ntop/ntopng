@@ -693,6 +693,37 @@ else
       print("</td></tr>\n")
    end
 
+   if(flow.modbus and (table.len(flow.modbus.registers) > 0)) then
+      local rowspan = 2
+
+      if(flow.modbus.num_exceptions > 0) then rowspan = 3 end
+      
+      print("<tr><th rowspan=".. rowspan .. " width=30%><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/Modbus'>Modbus <i class='fas fa-external-link-alt'></i></A></th>")
+      print("<th>"..i18n("flow_details.modbus_function_codes").."</th>")
+      print("<th>"..i18n("flow_details.modbus_registers").."</th></tr>")
+
+      print("<tr><td><table width=100% class=\"table table-bordered table-striped\">")
+      print("<tr><th>"..i18n("flow_details.modbus_function").."</th><th align=right>"..i18n("flow_details.modbus_uses").."</th></tr>\n")
+
+      for k,v in pairsByValues(flow.modbus.function_codes, rev) do
+         print("<tr><th>"..k.."</th><td align=right>"..formatValue(v).."</td></tr>\n")	 
+      end
+
+      print("</table></td><td><table width=100% class=\"table table-bordered table-striped\">")
+      print("<tr><th>"..i18n("flow_details.modbus_register").."</th><th align=right>"..i18n("flow_details.modbus_uses").."</th></tr>\n")
+
+      for k,v in pairsByValues(flow.modbus.registers, rev) do
+         print("<tr><th>"..k.."</th><td align=right>"..formatValue(v).."</td></tr>\n")
+      end
+      print("</table>")
+
+      if(flow.modbus.num_exceptions > 0) then
+	 print("<tr><th>"..i18n("flow_details.modbus_exceptions").."</th><td align=right><font color=red>".. formatValue(flow.modbus.num_exceptions) .."</font></td></tr>\n")
+      end
+
+      print("</tr>")
+   end
+   
    if(flow.iec104 and (table.len(flow.iec104.typeid) > 0)) then
       print("<tr><th rowspan=6 width=30%><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/IEC_60870-5'>IEC 60870-5-104  <i class='fas fa-external-link-alt'></i></A></th><th>"..i18n("flow_details.iec104_mask").."</th><td>")
 
