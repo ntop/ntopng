@@ -4,7 +4,7 @@ IDS Acceleration
 IDS/IPS systems are well known to be CPU bound and require quite some
 resources for signature-matching and other type of analysis.
 
-The `PF_RING documentation <https://www.ntop.org/guides/pf_ring/>`_ framework
+The `PF_RING <https://www.ntop.org/guides/pf_ring/>`_ framework
 can be used to accelerate the packet capture and make more CPU cycles available 
 to those tools as described in the `IDS/IPS Integration <https://www.ntop.org/guides/pf_ring/thirdparty/>`_
 section of the `PF_RING documentation <https://www.ntop.org/guides/pf_ring/>`_. 
