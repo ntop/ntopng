@@ -88,6 +88,9 @@ local function cleanupIfname(ifname, ifid)
    -- Clean old InfluxDB export cache
    local export_dir = os_utils.fixPath(dirs.workingdir .. "/".. ifid .."/ts_export")
    ntop.rmdir(export_dir)
+
+   -- Clean redis queue used to push host filters to pfring
+   ntop.delCache("pfring." .. ifname .. ".filter.host.queue")
 end
 
 -- Remove the json dumps previously needed for alerts generation
