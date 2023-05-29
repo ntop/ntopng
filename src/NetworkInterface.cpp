@@ -11722,7 +11722,8 @@ void NetworkInterface::getHostsPorts(lua_State *vm) {
 
   /* Free memory before leaving */
   std::unordered_map<u_int16_t, PortDetails*> server_ports = count.getSrvPort();
-  for (auto it = server_ports.begin(); it != server_ports.end(); ++it) {
+  std::unordered_map<u_int16_t, PortDetails*>::iterator it;
+  for ( it = server_ports.begin(); it != server_ports.end(); ++it) {
     delete it->second;
   }
   
@@ -11789,6 +11790,7 @@ void NetworkInterface::sort_ports(lua_State *vm,
           u_int16_t protocol) {
 
   std::map<u_int16_t, PortDetails*> ordered(count->getSrvPort().begin(), count->getSrvPort().end());
+  std::map<u_int16_t, PortDetails*>::iterator it;
   bool isTCP = protocol == 6;
   
   /* Build up the lua response */
@@ -11798,7 +11800,7 @@ void NetworkInterface::sort_ports(lua_State *vm,
   u_int num = 0;
   
 
-  for (auto it = ordered.begin(); it != ordered.end(); ++it) {
+  for (it = ordered.begin(); it != ordered.end(); ++it) {
     char str[32], buf[64];
     lua_newtable(vm);
 
@@ -11841,8 +11843,8 @@ bool NetworkInterface::get_tcp_hosts_by_port(GenericHashEntry *node,
     u_int64_t host_key =
       (((u_int64_t)h->get_ip()->key()) << 16) + ((u_int64_t)vlan_id);
 
-    auto it = hostsPortsAnalysis->get_hosts_details();
-    if (it.find(host_key) == hostsPortsAnalysis->get_hosts_details().end() ) {
+    std::unordered_map<u_int64_t, HostDetails*> host_details = hostsPortsAnalysis->get_hosts_details();
+    if (host_details.find(host_key) == host_details.end() ) {
       
       /* Not found in hash the host details */
       char ip_buf[64];
@@ -11897,8 +11899,8 @@ bool NetworkInterface::get_udp_hosts_by_port(GenericHashEntry *node,
     u_int64_t host_key =
       (((u_int64_t)h->get_ip()->key()) << 16) + ((u_int64_t)vlan_id);
 
-    auto it = hostsPortsAnalysis->get_hosts_details();
-    if (it.find(host_key) == hostsPortsAnalysis->get_hosts_details().end() ) {
+    std::unordered_map<u_int64_t, HostDetails*> host_details = hostsPortsAnalysis->get_hosts_details();
+    if (host_details.find(host_key) == host_details.end() ) {
       
       /* Not found in hash the host details */
       char ip_buf[64];
