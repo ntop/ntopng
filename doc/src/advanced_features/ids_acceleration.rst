@@ -22,7 +22,7 @@ further analysing their traffic.
 This can be configured from the *Settings* > *Preferences* > *Alerts* menu,
 where it is possible to toggle the *Push Host Filters to PF_RING* flag.
 
-.. figure:: ../img/opnsense_shell.png
+.. figure:: ../img/alerts_push_host_filters.png
   :align: center
   :alt: Push Alerted Hosts to PF_RING
 
