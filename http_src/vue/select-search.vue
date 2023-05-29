@@ -111,7 +111,7 @@ const render = () => {
 	    dropdownAutoWidth : true,
 	});
 	$(select2Div).on('select2:select', function (e) {
-        let data = e.params.data;
+	    let data = e.params.data;
 	    let value = data.element._value;
 	    let option = find_option_from_value(value);
 	    if (value != props.selected_option) {
@@ -146,24 +146,24 @@ const render = () => {
 
 function is_item_selected(item) {
     if (!props.multiple) {
-	    return item.value == selected_option_2.value.value;
+	const is_zero_value = selected_option_2.value.value == 0 ||selected_option_2.value.value == "0";
+	return item.value == selected_option_2.value.value || (is_zero_value && item.label == selected_option_2.value.label);
     }
     return selected_values.value.find((v) => v == item.value) != null; 
 }
 
-function set_selected_option(selected_option, push_options) {
+function set_selected_option(selected_option) {
     if (selected_option == null && !props.multiple) {
-	    selected_option = get_props_selected_option();
+	selected_option = get_props_selected_option();
     }
     
     selected_option_2.value = selected_option;
     if (selected_option_2.value != null && selected_option_2.value.value == null) {
-        selected_option_2.value.value = selected_option.label;
+	selected_option_2.value.value = selected_option.label;
     }
-
-    if (props.multiple == true && selected_option_2.value?.value != null) {
-     	selected_values.value.push(selected_option_2.value.value);
-    }
+    // if (props.multiple == true && selected_option_2.value?.value != null) {
+    // 	selected_values.value.push(selected_option_2.value.value);
+    // }
 }
 
 function get_props_selected_option() {
@@ -213,18 +213,8 @@ function find_option_2_from_value(value) {
     }
     return null;
 }
-
-function update_multiple_values(values) {
-    selected_values.value = [];
-    options_2.value = [];
-    values.forEach(function(element) {
-        options_2.value.push(element);
-        if (element.selected == true)
-            set_selected_option(element);
-    })
-}
-
-defineExpose({ render, update_multiple_values });
+    
+defineExpose({ render });
 
 function destroy() {
     try {

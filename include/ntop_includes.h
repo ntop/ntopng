@@ -440,6 +440,7 @@ using namespace std;
 #include "RemoteHost.h"
 #ifdef NTOPNG_PRO
 #include "AssetManagement.h"
+#include "ModbusStats.h"
 #endif
 #include "IEC104Stats.h"
 #include "Flow.h"

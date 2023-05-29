@@ -132,7 +132,7 @@ local menu_subpages = {{
         radius_accounting_server = {
             title = i18n("prefs.radius_accounting_server_title"),
             description = i18n("prefs.radius_accounting_server_description", {
-                example = "127.0.0.1:1812"
+                example = "127.0.0.1:1813"
             }),
             hidden = (not hasRadius)
         },
@@ -259,7 +259,15 @@ local menu_subpages = {{
         max_num_bytes_per_tiny_flow = {
             title = i18n("prefs.max_num_bytes_per_tiny_flow_title"),
             description = i18n("prefs.max_num_bytes_per_tiny_flow_description")
-        }
+        },
+        toggle_flow_aggregated_limit = {
+            title = i18n("prefs.toggle_flow_aggregated_limit_title"),
+            description = i18n("prefs.toggle_flow_aggregated_limit_description")
+        },
+        toggle_flow_aggregated_traffic_limit = {
+            title = i18n("prefs.toggle_flow_aggregated_traffic_limit_title"),
+            description = i18n("prefs.toggle_flow_aggregated_traffic_limit_description")
+        },
     }
 }, {
     id = "on_disk_ts",
@@ -408,7 +416,11 @@ local menu_subpages = {{
         alert_page_refresh_rate = {
             title = i18n("prefs.alerts_page_refresh_rate__title"),
             description = i18n("prefs.alerts_page_refresh_rate_description")
-        }
+        },
+        toggle_push_host_filters = {
+            title = i18n("prefs.toggle_push_host_filters_title"),
+            description = i18n("prefs.toggle_push_host_filters_description")
+        },
     }
 }, {
     id = "geo_map",

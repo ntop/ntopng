@@ -188,8 +188,8 @@ const add_action_column = function (rowData) {
 
 const format_metric = function(data, rowData) {
   let metric_label = data  
-
-  if (rowData.metric_label) {
+  debugger;
+  if (rowData.metric_label && rowData.metric_label != data && rowData.metric_label != "") {
     metric_label = rowData.metric_label;
   } 
   
@@ -215,7 +215,7 @@ const format_threshold = function(data, rowData) {
     threshold_sign = "< "
 
   if((rowData.metric_type) && (rowData.metric_type == 'throughput')) {
-    formatted_data = threshold_sign + NtopUtils.bitsToSize(data * 8)
+    formatted_data = threshold_sign + NtopUtils.bitsToSize_no_comma(data * 8)
   } else if((rowData.metric_type) && (rowData.metric_type == 'volume')) {
     formatted_data = threshold_sign + NtopUtils.bytesToSize(data);
   } else if((rowData.metric_type) && (rowData.metric_type == 'percentage')){
@@ -230,11 +230,10 @@ const format_threshold = function(data, rowData) {
 
 
 const format_target = function(data, rowData) {
-  return data;
+  return rowData.device_label;
 }
 
 const format_interface = function(data, rowData) {
-  debugger; 
   return rowData.device_port_label;
 }
 

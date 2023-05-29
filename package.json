@@ -92,6 +92,7 @@
     "datatables.net-dt": "^1.11.5",
     "datatables.net-responsive-dt": "^2.4.0",
     "dc": "^4.2.7",
+    "dygraphs": "^2.2.1",
     "flatpickr": "^4.6.11",
     "jquery": "^3.6.0",
     "jquery-ui-bundle": "^1.12.1-migrate",

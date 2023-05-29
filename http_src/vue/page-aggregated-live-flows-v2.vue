@@ -347,8 +347,13 @@ const format_server_name = function (data, rowData) {
 
 const format_flows_icon = function (data, rowData) {
     let url = ``;
-    if (selected_criteria.value.value == 1)
+    let add_host = false;
+    if(props.host != null && props.host != "" )
+        add_host = true;
+    if (selected_criteria.value.value == 1) {
         url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}`;
+        if (add_host) url = url + `&host=`+props.host;
+    }
     else if (selected_criteria.value.value == 2)
         url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client.ip}&vlan=${rowData.client.vlan_id}`;
     else if (selected_criteria.value.value == 3)
@@ -357,8 +362,11 @@ const format_flows_icon = function (data, rowData) {
         url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client.ip}&server=${rowData.server.ip}&vlan=${rowData.vlan_id.id}`;
     else if (selected_criteria.value.value == 5)
         url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}&client=${rowData.client.ip}&server=${rowData.server.ip}&vlan=${rowData.vlan_id.id}`;
-    else if (selected_criteria.value.value == 6)
+    else if (selected_criteria.value.value == 6) {
         url = `${http_prefix}/lua/flows_stats.lua?flow_info=${rowData.info.id}`;
+        if (add_host) url = url + `&host=`+props.host;
+
+    }
 
 
     return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`

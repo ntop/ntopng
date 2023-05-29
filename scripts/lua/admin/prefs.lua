@@ -247,7 +247,7 @@ if auth.has_capability(auth.capabilities.preferences) then
                   '</th></tr></thead>')
 
         local elementToSwitch = {"row_toggle_emit_flow_alerts", "row_toggle_emit_host_alerts", "max_entity_alerts",
-                                 "max_num_secs_before_delete_alert", "row_alert_page_refresh_rate_enabled"}
+                                 "max_num_secs_before_delete_alert", "row_alert_page_refresh_rate_enabled", "row_toggle_push_host_filters"}
 
         prefsToggleButton(subpage_active, {
             field = "disable_alerts_generation",
@@ -316,6 +316,15 @@ if auth.has_capability(auth.capabilities.preferences) then
                 min = 3,
                 tformat = "m" --[[ TODO check min/max ]]
             })
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_push_host_filters",
+            default = "0",
+            pref = "push_host_filters",
+            on_value = "1",
+            off_value = "0",
+            hidden = not showElements
+        })
 
         print('<tr><th colspan=2 style="text-align:right;">')
         print(
@@ -984,7 +993,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             field = auth_toggles["menu_voices"]["help"],
             pref = "menu_voices.help",
             hidden = not ntop.isEnterpriseM(),
-            default = "0"
+            default = "1"
         })
 
         prefsToggleButton(subpage_active, {
@@ -992,7 +1001,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             hidden = not ntop.isEnterpriseM(),
 
             pref = "menu_voices.developer",
-            default = "0"
+            default = "1"
         })
 
     end
@@ -1021,12 +1030,14 @@ if auth.has_capability(auth.capabilities.preferences) then
         if not entries.toggle_radius_auth.hidden then
             printRadiusAuth()
         end
+        
         if not entries.toggle_http_auth.hidden then
             printHttpAuth()
         end
         if not entries.toggle_local_auth.hidden then
             printLocalAuth()
         end
+        
 
         printMenuVoicesPrefs()
 
@@ -1852,7 +1863,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             to_switch = {"max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow"},
             hidden = not showAllElements
         })
-
+        
         local showTinyElements = showAllElements and ntop.getPref("ntopng.prefs.tiny_flows_export_enabled") ~= "0"
 
         prefsInputFieldPrefs(subpage_active.entries["max_num_packets_per_tiny_flow"].title,
@@ -1869,7 +1880,24 @@ if auth.has_capability(auth.capabilities.preferences) then
                 min = 1,
                 max = 2 ^ 32 - 1
             })
+        
+            
+        local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
+        prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_limit"].title,
+            subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
+            "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound, "number", showAggregateFlowsPrefs, false,
+            nil, {
+                min = 1,
+                max = 100000
+            })
 
+        prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_traffic_limit"].title,
+            subpage_active.entries["toggle_flow_aggregated_traffic_limit"].description, "ntopng.prefs.",
+            "max_aggregated_flows_traffic_upperbound", prefs.max_aggregated_flows_traffic_upperbound, "number", showAggregateFlowsPrefs, false,
+            nil, {
+                min = 1,
+                max = 5000
+            })
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
                 i18n("save") .. '</button></th></tr>')

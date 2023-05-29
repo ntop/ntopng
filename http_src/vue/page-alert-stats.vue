@@ -35,16 +35,9 @@
   </div>
   
   <div class='col-12'>
-    <div class="card card-shadow">
-      <!-- <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100"> -->
-	<!--   <div class="text-center"> -->
-	  <!--     <div class="spinner-border text-primary mt-5" role="status"> -->
-	    <!--       <span class="sr-only position-absolute">Loading...</span> -->
-	    <!--     </div> -->
-	  <!--   </div> -->
-	<!-- </div> -->
-      
-      <div class="card-body">	
+    <div class="card card-shadow">      
+      <div class="card-body">
+	
         <div v-if="context.show_chart" class="row">	  
           <div class="col-12 mb-2" id="chart-vue">
             <div class="card h-100 overflow-hidden">
@@ -56,22 +49,13 @@
 	      </Chart>
             </div>
           </div>
-	  
-	  <Table ref="table_alerts"
-		 :id="table_config.id"
-                 :key="table_config.columns" :columns="table_config.columns"
-                 :get_rows="table_config.get_rows"
-                 :get_column_id="table_config.get_column_id"
-                 :print_column_name="table_config.print_column_name"
-		 :print_html_row="table_config.print_html_row"
-		 :print_vue_node_row="table_config.print_vue_node_row"
-		 :f_is_column_sortable="table_config.f_is_column_sortable"
-		 :f_get_column_classes="table_config.f_get_column_classes"
-		 :enable_search="table_config.enable_search"
-		 :csrf="context.csrf"
-		 :paging="table_config.paging"
-		 @loaded="on_table_loaded"
-		 @custom_event="on_table_custom_event">
+	  <TableWithConfig ref="table_alerts"
+			   :table_id="table_id"
+			   :csrf="context.csrf"
+			   :f_map_columns="map_table_def_columns"
+			   :get_extra_params_obj="get_extra_params_obj"
+			   @loaded="on_table_loaded"
+			   @custom_event="on_table_custom_event">
 	    <template v-slot:custom_header>
 	      <Dropdown v-for="(t, t_index) in top_table_array" :f_on_open="get_open_top_table_dropdown(t, t_index)" :ref="el => { top_table_dropdown_array[t_index] = el }"> <!-- Dropdown columns -->
 		<template v-slot:title>
@@ -79,18 +63,27 @@
 		  <a class="ntopng-truncate"  :title="t.title">{{t.label}}</a>
 		</template>
 		<template v-slot:menu>
-		    <a v-for="opt in t.options" style="cursor:pointer;" @click="add_top_table_filter(opt, $event)" class="ntopng-truncate tag-filter " :title="opt.value">{{opt.label}}</a>
+		  <a v-for="opt in t.options" style="cursor:pointer;" @click="add_top_table_filter(opt, $event)" class="ntopng-truncate tag-filter " :title="opt.value">{{opt.label}}</a>
 		</template>
 	      </Dropdown> <!-- Dropdown columns -->
 	    </template> <!-- custom_header -->
-          </Table>
-	  
+	  </TableWithConfig>	  
 	</div>
-      </div>
-    </div>
-  </div>
+      </div> <!-- card body -->
+
+      <div v-show="true" class="card-footer">
+        <button id="dt-btn-acknowledge" :disabled="true" data-bs-target="#dt-acknowledge-modal" data-bs-toggle="modal" class="btn btn-primary me-1">
+          <i class="fas fa fa-user-check"></i> Acknowledge Alerts
+        </button>
+        <button id="dt-btn-delete" :disabled="true" data-bs-target="#dt-delete-modal" data-bs-toggle="modal" class="btn btn-danger">
+          <i class="fas fa fa-trash"></i> Delete Alerts
+        </button>
+      </div> <!-- card footer -->
+    </div>  <!-- card-shadow -->
+    
+    </div> <!-- div col -->
   <NoteList :note_list="note_list"></NoteList>
-</div>
+</div> <!-- div row -->
 
 <ModalAcknoledgeAlert ref="modal_acknowledge" :context="context" @acknowledge="refresh_page_components"></ModalAcknoledgeAlert>
 
@@ -118,7 +111,7 @@ import { default as Navbar } from "./page-navbar.vue";
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
 import { default as RangePicker } from "./range-picker.vue";
-import { default as Table } from "./table.vue";
+import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as Dropdown } from "./dropdown.vue";
 import { default as Spinner } from "./spinner.vue";
 import { default as NoteList } from "./note-list.vue";
@@ -147,7 +140,6 @@ const modal_acknowledge = ref(null);
 const modal_delete = ref(null);
 
 const current_alert = ref(null);
-const table_config = ref({});
 const default_ifid = props.context.ifid;
 let page;
 let table_id;
@@ -162,11 +154,10 @@ onBeforeMount(async () => {
     if (page == null) { page = "all"; }
     chart_data_url = (page == "snmp_device") ? `${http_prefix}/lua/pro/rest/v2/get/snmp/device/alert/ts.lua` : `${http_prefix}/lua/rest/v2/get/${page}/alert/ts.lua`;
     table_id = `alert_${page}`;
+    init_url_params();
 });
 
 onMounted(async () => {
-    init_url_params();
-    table_config.value = await TableUtils.build_table(http_prefix, table_id, map_table_def_columns, get_extra_params_obj);
     register_components_on_status_update();
     load_top_table_array_overview();
 });
@@ -209,7 +200,7 @@ async function load_top_table_details(top, top_index) {
 async function load_top_table_array(action, top) {
     // top_table.value = [];
     const url_params = ntopng_url_manager.get_url_params();
-    const url = `${http_prefix}/lua/pro/rest/v2/get/flow/alert/top.lua?${url_params}&action=${action}`;
+    const url = `${http_prefix}/lua/pro/rest/v2/get/${page}/alert/top.lua?${url_params}&action=${action}`;
     let res = await ntopng_utility.http_request(url);
     return res.map((t) => {
 	return {
@@ -247,7 +238,7 @@ function on_table_loaded() {
 }
 
 function register_table_alerts_events() {
-    let jquery_table_alerts = $(`#${table_config.value.id}`);
+    let jquery_table_alerts = $(`#${table_id}`);
     jquery_table_alerts.on('click', `a.tag-filter`, async function (e) {
 	add_table_row_filter(e, $(this));
     });    
@@ -266,7 +257,24 @@ const map_table_def_columns = (columns) => {
     };
     columns.forEach((c) => {
 	c.render_func = map_columns[c.data_field];
-    });
+
+	if (c.id == "actions") {
+	    const visible_dict = {
+		info: props.context.actions.show_info,
+		historical_data: props.context.actions.show_historical,
+		acknowledge: props.context.actions.show_acknowledge,
+		disable: props.context.actions.show_disable,
+		settings: props.context.actions.show_settings,
+		remove: props.context.actions.show_delete,
+	    };
+	    c.button_def_array.forEach((b) => {
+		if (!visible_dict[b.id]) {
+		    b.class.push("link-disabled");
+		}
+	    });
+	}
+    })
+    ;
     return columns;
 };
 
@@ -447,7 +455,7 @@ function click_button_info(event) {
 	tstamp: alert.tstamp.value,
     };
     let url_params = ntopng_url_manager.obj_to_url_params(params_obj);
-    const href = `${http_prefix}/lua/pro/db_flow_details.lua?${url_params}`;
+    const href = `${props.context.alert_details_url}?${url_params}`;
     window.open(href, "_blank");
 }
 

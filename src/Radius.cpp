@@ -157,17 +157,9 @@ bool Radius::addBasicConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
                                        u_int16_t status_type,
                                        const char *username,
                                        const char *session_id) {
-  u_int16_t service_type = PW_FRAMED;
-
   if (rc_avpair_add(rh, send, PW_ACCT_STATUS_TYPE, &status_type, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Status Type");
-    return false;
-  }
-
-  if (rc_avpair_add(rh, send, PW_SERVICE_TYPE, &service_type, -1, 0) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Radius: unable to set Service Type");
     return false;
   }
 
@@ -190,43 +182,39 @@ bool Radius::addBasicConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
 /* Performs the basic configuration for the accounting, Status type, service,
  * username and session id */
 bool Radius::addUpdateConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
-                                        Mac *mac) {
-  char data[64];
-  if (!mac) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: MAC not found");
+                                        RadiusTraffic *info) {
+  if (!info) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: info not found");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", mac->get_last_seen() - mac->get_first_seen());
-  if (rc_avpair_add(rh, send, PW_ACCT_SESSION_TIME, data, -1, 0) == NULL) {
+  time_t now = time(NULL);
+
+  if (rc_avpair_add(rh, send, PW_EVENT_TIMESTAMP, &now, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Radius: unable to set Session Time");
+                                 "Radius: unable to set Event Timestamp");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", mac->getNumPktsRcvd());
-  if (rc_avpair_add(rh, send, PW_ACCT_INPUT_PACKETS, data, -1, 0) == NULL) {
+  if (rc_avpair_add(rh, send, PW_ACCT_INPUT_PACKETS, &(info->packets_rcvd), -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Input Packets");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", mac->getNumPktsSent());
-  if (rc_avpair_add(rh, send, PW_ACCT_OUTPUT_PACKETS, data, -1, 0) == NULL) {
+  if (rc_avpair_add(rh, send, PW_ACCT_OUTPUT_PACKETS, &(info->packets_sent), -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Output Packets");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", mac->getNumBytesRcvd());
-  if (rc_avpair_add(rh, send, PW_ACCT_INPUT_OCTETS, data, -1, 0) == NULL) {
+  if (rc_avpair_add(rh, send, PW_ACCT_INPUT_OCTETS, &(info->bytes_rcvd), -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Bytes Received");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", mac->getNumBytesSent());
-  if (rc_avpair_add(rh, send, PW_ACCT_OUTPUT_OCTETS, data, -1, 0) == NULL) {
+  if (rc_avpair_add(rh, send, PW_ACCT_OUTPUT_OCTETS, &(info->bytes_sent), -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Bytes Sent");
     return false;
@@ -366,7 +354,7 @@ bool Radius::authenticate(const char *user, const char *password,
             else if (strcmp(value, radiusUnprivCapabilitiesGroup) == 0)
               *has_unprivileged_capabilities = true;
 
-            break; /* We care only about "Filter-Id" */
+            //break; /* We care only about "Filter-Id" */
           }
         }
 
@@ -449,7 +437,7 @@ bool Radius::startSession(const char *username, const char *session_id) {
 
 /* *************************************** */
 
-bool Radius::updateSession(const char *username, const char *session_id, Mac *mac) {
+bool Radius::updateSession(const char *username, const char *session_id, RadiusTraffic *info) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
@@ -470,7 +458,7 @@ bool Radius::updateSession(const char *username, const char *session_id, Mac *ma
   }
 
   /* Add to the dictionary the interim-update data (needed even in the stop) */
-  if (!addUpdateConfigurationAcct(rh, &send, mac)) {
+  if (!addUpdateConfigurationAcct(rh, &send, info)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
@@ -502,7 +490,7 @@ bool Radius::updateSession(const char *username, const char *session_id, Mac *ma
 /* *************************************** */
 
 bool Radius::stopSession(const char *username, const char *session_id,
-                         Mac *mac) {
+                         RadiusTraffic *info) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
@@ -523,7 +511,7 @@ bool Radius::stopSession(const char *username, const char *session_id,
   }
 
   /* Add to the dictionary the interim-update data (needed even in the stop) */
-  addUpdateConfigurationAcct(rh, &send, mac);
+  addUpdateConfigurationAcct(rh, &send, info);
 
   /* TODO: Change the terminate clause to the correct one */
   if (rc_avpair_add(rh, &send, PW_ACCT_TERMINATE_CAUSE, "No More Allowed", -1,

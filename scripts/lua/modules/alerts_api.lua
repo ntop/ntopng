@@ -720,10 +720,6 @@ end
 
 -- ##############################################
 
-function alerts_api.host_delta_val(metric_name, granularity, curr_val, skip_first)
-  return(delta_val(host --[[ the host Lua reg ]], metric_name, granularity, curr_val, skip_first))
-end
-
 function alerts_api.interface_delta_val(metric_name, granularity, curr_val, skip_first)
   return(delta_val(interface --[[ the interface Lua reg ]], metric_name, granularity, curr_val, skip_first))
 end

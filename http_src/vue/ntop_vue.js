@@ -36,14 +36,15 @@ import { default as PageEditApplications } from "./page-edit-applications.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
 import { default as PageManageConfigurationBackup2 } from "./page-manage-configurations-backup2.vue";
-import { default as PageSNMPDeviceRules} from "./page-snmp-device-rules.vue";
+import { default as PageSNMPDeviceRules } from "./page-snmp-device-rules.vue";
 import { default as PageSnmpDevicesInterfacesSimilarity } from "./page-snmp-devices-interfaces-similarity.vue";
 
-import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue" 
+import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue"
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
+import { default as TimeseriesChart } from "./timeseries-chart.vue";
 import { default as Datatable } from "./datatable.vue";
 import { default as NetworkMap } from "./network-map.vue";
 import { default as DateTimeRangePicker } from "./data-time-range-picker.vue";
@@ -98,13 +99,13 @@ let ntopVue = {
 
     PageEditApplications: PageEditApplications,
 
-    PageVLANPortsFlowSankey:PageVLANPortsSankey,
+    PageVLANPortsFlowSankey: PageVLANPortsSankey,
     PageTestTable: PageTestTable,
     PageSnmpDevicesInterfacesSimilarity: PageSnmpDevicesInterfacesSimilarity,
 
     NedgeRulesConfig: NedgeRulesConfig,
     NedgeRepeatersConfig: NedgeRepeatersConfig,
-    
+
 
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,
@@ -116,11 +117,12 @@ let ntopVue = {
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
     PageAggregatedLiveFlowsV2: PageAggregatedLiveFlowsV2,
 
-    PageNetworkDiscovery:PageNetworkDiscovery,
+    PageNetworkDiscovery: PageNetworkDiscovery,
 
     // components
     AlertInfo: AlertInfo,
     Chart: Chart,
+    TimeseriesChart: TimeseriesChart,
     Datatable: Datatable,
     DateTimeRangePicker: DateTimeRangePicker,
     NetworkMap: NetworkMap,
@@ -132,7 +134,7 @@ let ntopVue = {
     Sankey: Sankey,
     NoteList: NoteList,
     Loading: Loading,
-    
+
     // list
     ListTimeseries: ListTimeseries,
 

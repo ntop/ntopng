@@ -180,6 +180,7 @@ page_utils.menu_entries = {
    analyze_pcap           = {key = "analyze_pcap", i18n_title = "about.analyze_pcap", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/index.html"},
    alert_definitions      = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/scripts/alert_definitions.html"},
    api                    = {key = "api", i18n_title = "lua_c_api", section = "dev"},
+   rest_api               = {key = "rest_api", i18n_title = "swagger_api", section = "dev"},
    
    -- Help
    about                  = {key = "about", i18n_title = "about.about", section = "about", help_link = "https://www.ntop.org/guides/ntopng/web_gui/help_menu.html?#about"},

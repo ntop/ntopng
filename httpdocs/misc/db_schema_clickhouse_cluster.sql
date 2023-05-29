@@ -450,3 +450,26 @@ SELECT 7 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, se
 UNION ALL
 SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `system_alerts`
 ;
+
+@
+
+CREATE TABLE IF NOT EXISTS `aggregated_flows` ON CLUSTER '$CLUSTER' (
+       FLOW_ID UInt64,
+       IP_PROTOCOL_VERSION UInt8,
+       MIN_FIRST_SEEN DateTime,
+       MAX_LAST_SEEN DateTime,
+       VLAN_ID UInt16,
+       SUM_PACKETS UInt32,
+       SUM_SRC2DST_BYTES UInt64,
+       SUM_DST2SRC_BYTES UInt64,
+       SUM_SCORE UInt16,
+       PROTOCOL UInt8,
+       IPV4_SRC_ADDR UInt32,
+       IPV6_SRC_ADDR IPv6,
+       IPV4_DST_ADDR UInt32,
+       IPV6_DST_ADDR IPv6,
+       IP_DST_PORT UInt16,
+       L7_PROTO UInt16,
+       L7_PROTO_MASTER UInt16,
+       NTOPNG_INSTANCE_NAME String
+) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, MIN_FIRST_SEEN);

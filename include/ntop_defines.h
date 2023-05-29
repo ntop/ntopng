@@ -706,6 +706,7 @@
   NTOPNG_PREFS_PREFIX ".is_client_x509_auth_enabled"
 #define CONST_PREFS_EMIT_FLOW_ALERTS NTOPNG_PREFS_PREFIX ".emit_flow_alerts"
 #define CONST_PREFS_EMIT_HOST_ALERTS NTOPNG_PREFS_PREFIX ".emit_host_alerts"
+#define CONST_PREFS_PUSH_HOST_FILTERS NTOPNG_PREFS_PREFIX ".push_host_filters"
 
 #define CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE \
   NTOPNG_PREFS_PREFIX ".is_broadcast_domain_too_large_enabled"
@@ -756,6 +757,10 @@
   NTOPNG_PREFS_PREFIX ".is_interface_name_only"
 #define CONST_RUNTIME_IS_GEO_MAP_SCORE_ENABLED \
   NTOPNG_PREFS_PREFIX ".is_geo_map_score_enabled"
+#define CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND \
+  NTOPNG_PREFS_PREFIX ".max_aggregated_flows_upperbound"
+#define CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND \
+  NTOPNG_PREFS_PREFIX ".max_aggregated_flows_traffic_upperbound"
 #define CONST_RUNTIME_IS_GEO_MAP_ASNAME_ENABLED \
   NTOPNG_PREFS_PREFIX ".is_geo_map_asname_enabled"
 #define CONST_RUNTIME_IS_GEO_MAP_ALERTED_FLOWS_ENABLED \
@@ -1182,7 +1187,7 @@
 #define NTOP_ES6_TEMPLATE "ntopng_template_elk6.json"
 #define NTOP_ES7_TEMPLATE "ntopng_template_elk7.json"
 #define NTOP_ES8_TEMPLATE "ntopng_template_elk8.json"
-#define ES_MAX_QUEUE_LEN 32768
+#define ES_MAX_QUEUE_LEN 65536
 #define ES_MIN_BUFFERED_FLOWS 8
 #define ES_BULK_BUFFER_SIZE 1 * 1024 * 1024
 #define ES_BULK_MAX_DELAY 120 /* Dump frequency of ELK flows, in seconds */

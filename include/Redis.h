@@ -44,8 +44,6 @@ class Redis {
   u_int32_t num_redis_version;
   u_int16_t redis_port;
   u_int8_t redis_db_id;
-  pthread_t esThreadLoop;
-  pthread_t lsThreadLoop;
   bool operational;
   bool initializationCompleted;
   std::map<std::string, StringCache> stringCache;

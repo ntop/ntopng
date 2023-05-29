@@ -41,8 +41,10 @@ ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
   snprintf(es_version, sizeof(es_version), "%c", '0');
   es_version_inited = false;
   num_queued_elems = 0;
-  head = NULL;
-  tail = NULL;
+  
+  export_queue = new (std::nothrow) SPSCQueue<char *>(ES_MAX_QUEUE_LEN, "elk-export-queue"); 
+  if (export_queue == NULL)
+    throw "Not enough memory";
 
   reportDrops = false;
   lastReportedDropsTime = 0;
@@ -65,6 +67,7 @@ ElasticSearch::~ElasticSearch() {
   shutdown();
   if (es_template_push_url) free(es_template_push_url);
   if (es_version_query_url) free(es_version_query_url);
+  delete export_queue;
 }
 
 /* **************************************** */
@@ -82,8 +85,8 @@ void ElasticSearch::shutdown() {
 /* **************************************** */
 
 bool ElasticSearch::dumpFlow(time_t when, Flow *f, char *msg) {
-  struct string_list *e;
-  bool rc = true;
+  char *str;
+  bool rc = false;
 
   if (num_queued_elems >= ES_MAX_QUEUE_LEN) {
     time_t now = time(NULL);
@@ -107,30 +110,19 @@ bool ElasticSearch::dumpFlow(time_t when, Flow *f, char *msg) {
     return (false);
   }
 
-  e = (struct string_list *)calloc(1, sizeof(struct string_list));
-  if (e != NULL) {
-    e->str = strdup(msg), e->next = head;
+  str = strdup(msg);
 
-    if (e->str) {
+  if (str) {
 
-      listMutex.lock(__FILE__, __LINE__);
+    rc = export_queue->enqueue(str, true);
 
-      if (head) head->prev = e;
-      head = e;
-      if (tail == NULL) tail = e;
-
-      listMutex.unlock(__FILE__, __LINE__);
-
+    if (rc)
       num_queued_elems++;
-      rc = true;
-    } else {
-      /* Out of memory */
-      free(e);
-      rc = false;
-    }
+    else
+      free(str); /* queue is full */
   }
 
-  return (rc);
+  return rc;
 }
 
 /* **************************************** */
@@ -150,6 +142,7 @@ bool ElasticSearch::startQueryLoop() {
 void ElasticSearch::indexESdata() {
   time_t last_dump = time(0);
   char *postbuf = (char *)malloc(ES_BULK_BUFFER_SIZE);
+  char *pending_flow = NULL;
 
   if (!postbuf) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot allocate ES bulk buffer");
@@ -160,7 +153,7 @@ void ElasticSearch::indexESdata() {
     time_t now = time(0);
 
     if ((num_queued_elems >= ES_MIN_BUFFERED_FLOWS) ||
-        (num_queued_elems > 0 && (now >= last_dump + ntop->getPrefs()->get_dump_frequency()))) {
+        ((num_queued_elems > 0 || pending_flow) && (now >= last_dump + ntop->getPrefs()->get_dump_frequency()))) {
       u_int len, num_flows;
       char index_name[64], header[256];
       struct tm *tm_info;
@@ -190,24 +183,29 @@ void ElasticSearch::indexESdata() {
 
       len = 0, num_flows = 0;
 
-      listMutex.lock(__FILE__, __LINE__);
-      for (u_int i = 0; (i < num_queued_elems) &&
-                        (len <= ES_BULK_BUFFER_SIZE - strlen(header) -
-                                    strlen(tail->str) - 5);
-           i++) {
-        struct string_list *prev;
-        prev = tail->prev;
+      if (pending_flow) {
         len += snprintf(&postbuf[len], ES_BULK_BUFFER_SIZE - len, "%s\n%s\n",
-                        header, tail->str),
-            num_flows++;
-        free(tail->str);
-        free(tail);
-        tail = prev, num_queued_elems--;
+                        header, pending_flow),
+        num_flows++;
+        free(pending_flow);
+        pending_flow = NULL;
+      }
 
-        if (num_queued_elems == 0) head = NULL;
+      while (export_queue->isNotEmpty()) {
+        char *str = export_queue->dequeue();
+        num_queued_elems--;
+        
+        if (len <= ES_BULK_BUFFER_SIZE - strlen(header) - strlen(str) - 5) {
+          len += snprintf(&postbuf[len], ES_BULK_BUFFER_SIZE - len, "%s\n%s\n",
+                        header, str),
+          num_flows++;
+          free(str);
+        } else {
+          pending_flow = str;
+          break;
+        }
       } /* for */
 
-      listMutex.unlock(__FILE__, __LINE__);
       postbuf[len] = '\0';
 
       ntop->getTrace()->traceEvent(
@@ -225,7 +223,7 @@ void ElasticSearch::indexESdata() {
         incNumDroppedFlows(num_flows);
         _usleep(100000);
       } else {
-	ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] [namelookup: %.1f sec][connect: %.1f sec][appconnect: %.1f sec][pretransfer: %.1f sec][redirect: %.1f sec][start: %.1f sec][total: %.1f sec][sent: %u]",
+	ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] [namelookup: %.2f sec][connect: %.2f sec][appconnect: %.2f sec][pretransfer: %.2f sec][redirect: %.2f sec][start: %.2f sec][total: %.2f sec][flows-sent: %u]",
 				     stats.namelookup, stats.connect, stats.appconnect,
 				     stats.pretransfer, stats.redirect, stats.start, stats.total, num_flows);
         incNumExportedFlows(num_flows);

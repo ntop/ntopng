@@ -82,16 +82,15 @@ local function cleanupIfname(ifname, ifid)
    local alerts_status_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/json/")
    ntop.rmdir(alerts_status_path)
 
-   -- Remove the active devices and pools keys
-   alert_utils.deleteActiveDevicesKey(ifid)
-   alert_utils.deleteActivePoolsKey(ifid)
-
    -- Remove network discovery request on startup
    discover_utils.clearNetworkDiscovery(ifid)
 
    -- Clean old InfluxDB export cache
    local export_dir = os_utils.fixPath(dirs.workingdir .. "/".. ifid .."/ts_export")
    ntop.rmdir(export_dir)
+
+   -- Clean redis queue used to push host filters to pfring
+   ntop.delCache("pfring." .. ifname .. ".filter.host.queue")
 end
 
 -- Remove the json dumps previously needed for alerts generation
@@ -208,8 +207,11 @@ if(ntop.isPro()) then
    end
 end
 
-traceError(TRACE_NORMAL, TRACE_CONSOLE, "Fetching latest ntop blog posts...")
-
-blog_utils.fetchLatestPosts()
+-- Fetch latest ntop blog posts
+if not ntop.isnEdge() then
+  -- Note: On nEdge they are fetched in a dayly/delayed callback as connectivity
+  -- may be not yet up at this stage 
+  blog_utils.fetchLatestPosts()
+end
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")

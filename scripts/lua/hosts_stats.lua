@@ -515,7 +515,9 @@ if (_GET["page"] ~= "historical") then
 				 field: "column_info",
 				 sortable: false,
 	 	             css: {
-			        textAlign: 'center'
+			        textAlign: 'center',
+                  whiteSpace: 'nowrap'
+
 			     }
          		},{
 			     title: "]] print(i18n("ip_address")) print[[",

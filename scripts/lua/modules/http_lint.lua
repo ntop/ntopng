@@ -1910,12 +1910,16 @@ local known_parameters = {
     ["rule_type"] = validateSingleWord,
     ["rule_threshold_sign"] = validateNumber,
     ["is_ifname"] = validateBool,
-    ["metric_label"] = validateSingleWord,
+    ["metric_label"] = validateUnquoted,
     ["flows_page_type"] = validateSingleWord,
 
     ["snmp_device"] = validateDevice,
     ["snmp_device_port"] = validateNumber,
-    ["snmp_device_port_label"] = validateSingleWord,
+    ["snmp_device_port_label"] = validateUnquoted,
+    ["snmp_device_label"] = validateUnquoted, 
+    ["snmp_threshold_value"] = validateNumber,
+    ["snmp_threshold_unit"] = validateUnquoted,  
+    ["snmp_metric_type_label"] = validateUnquoted,
 
     ["bytes"] = validateListOfTypeInline(validateFilters(validateNumber)),
     ["packets"] = validateListOfTypeInline(validateFilters(validateNumber)),
@@ -2157,6 +2161,7 @@ local known_parameters = {
     ["lbd_hosts_as_macs"] = validateBool,
     ["toggle_emit_flow_alerts"] = validateBool,
     ["toggle_emit_host_alerts"] = validateBool,
+    ["toggle_push_host_filters"] = validateBool,
     ["toggle_date_type"] = validateSingleWord,
 
     -- Other

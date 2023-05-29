@@ -1548,7 +1548,7 @@ static int ntop_get_batched_interface_hosts(lua_State *vm,
           traffic_type_filter, 0 /* probe ip */,
           tsLua /* host->tsLua | host->lua */, anomalousOnly, dhcpOnly,
           NULL /* cidr filter */, sortColumn, maxHits, toSkip,
-          a2zSortOrder) < 0)
+          a2zSortOrder, false) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -1575,6 +1575,7 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
   u_int32_t begin_slot = 0;
   bool walk_all = true;
   bool anomalousOnly = false;
+  bool is_top_talkers = false;
   bool dhcpOnly = false, cidr_filter_enabled = false;
   AddressTree cidr_filter;
 
@@ -1613,6 +1614,7 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
     cidr_filter.addAddress(lua_tostring(vm, 20)), cidr_filter_enabled = true;
   if (lua_type(vm, 21) == LUA_TSTRING)
     device_ip = ntohl(inet_addr(lua_tostring(vm, 21)));
+  if (lua_type(vm, 22) == LUA_TBOOLEAN) is_top_talkers = lua_toboolean(vm, 22);
 
   if ((!ntop_interface) ||
       ntop_interface->getActiveHostsList(
@@ -1623,7 +1625,7 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
           filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
           traffic_type_filter, device_ip, false /* host->lua */, anomalousOnly,
           dhcpOnly, cidr_filter_enabled ? &cidr_filter : NULL, sortColumn,
-          maxHits, toSkip, a2zSortOrder) < 0)
+          maxHits, toSkip, a2zSortOrder, is_top_talkers) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -2018,10 +2020,10 @@ static int ntop_get_vlan_flows_stats(lua_State *vm) {
 
 /* Function used to start the accounting of an Host */
 static int ntop_radius_accounting_start(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool res = false;
 
 #ifdef HAVE_RADIUS
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL, *session_id = NULL; 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2047,13 +2049,14 @@ static int ntop_radius_accounting_start(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_radius_accounting_stop(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool res = false;
 
 #ifdef HAVE_RADIUS
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL, *session_id = NULL;
-  Mac *mac_stats = NULL;
-  u_int8_t _mac[6];
+  RadiusTraffic traffic_data;
+
+  memset(&traffic_data, 0, sizeof(traffic_data));
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2066,10 +2069,19 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
   if (lua_type(vm, 2) == LUA_TSTRING)
     session_id = (char *)lua_tostring(vm, 2);
 
-  Utils::parseMac(_mac, mac);
-  mac_stats = ntop_interface->getMac(_mac, false, false);
+  if (lua_type(vm, 3) == LUA_TNUMBER)
+    traffic_data.bytes_sent = (u_int64_t)lua_tonumber(vm, 3);
 
-  res = ntop->radiusAccountingStop(mac, session_id, mac_stats);
+  if (lua_type(vm, 4) == LUA_TNUMBER)
+    traffic_data.bytes_rcvd = (u_int64_t)lua_tonumber(vm, 4);
+
+  if (lua_type(vm, 5) == LUA_TNUMBER)
+    traffic_data.packets_sent = (u_int64_t)lua_tonumber(vm, 5);
+
+  if (lua_type(vm, 6) == LUA_TNUMBER)
+    traffic_data.packets_rcvd = (u_int64_t)lua_tonumber(vm, 6);
+
+  res = ntop->radiusAccountingStop(mac, session_id, &traffic_data);
 
 #endif
 
@@ -2081,14 +2093,15 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_radius_accounting_update(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool res = false;
 
 #ifdef HAVE_RADIUS
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   const char *username = NULL, *session_id = NULL, *password = NULL;
   char *mac = NULL;  
-  Mac *mac_stats = NULL;
-  u_int8_t _mac[6];
+  RadiusTraffic traffic_data;
+
+  memset(&traffic_data, 0, sizeof(traffic_data));
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2108,14 +2121,23 @@ static int ntop_radius_accounting_update(lua_State *vm) {
   if (lua_type(vm, 4) == LUA_TSTRING)
     password = (const char *)lua_tostring(vm, 4);
 
-  Utils::parseMac(_mac, mac);
-  mac_stats = ntop_interface->getMac(_mac, false, false);
+  if (lua_type(vm, 5) == LUA_TNUMBER)
+    traffic_data.bytes_sent = (u_int64_t)lua_tonumber(vm, 5);
+
+  if (lua_type(vm, 6) == LUA_TNUMBER)
+    traffic_data.bytes_rcvd = (u_int64_t)lua_tonumber(vm, 6);
+
+  if (lua_type(vm, 7) == LUA_TNUMBER)
+    traffic_data.packets_sent = (u_int64_t)lua_tonumber(vm, 7);
+
+  if (lua_type(vm, 8) == LUA_TNUMBER)
+    traffic_data.packets_rcvd = (u_int64_t)lua_tonumber(vm, 8);
 
   /* The update is strange, you have to first update 
     * and then authenticate again to be able to check if the user
     * is still able to navigate or not.
     */
-  res = ntop->radiusAccountingUpdate(mac, session_id, mac_stats);
+  res = ntop->radiusAccountingUpdate(mac, session_id, &traffic_data);
   if(res) {
     bool is_admin = false, has_unprivileged_capabilities = false;
     res = ntop->radiusAuthenticate(username, password, &has_unprivileged_capabilities, &is_admin);
@@ -3517,6 +3539,19 @@ static int ntop_load_scaling_factor_prefs(lua_State *vm) {
 
   lua_pushnil(vm);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_reload_hide_from_top(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop_interface) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  ntop_interface->reloadHideFromTop();
+
+  lua_pushnil(vm);
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
 /* ****************************************** */
@@ -5311,6 +5346,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"setInterfaceIdleState", ntop_interface_set_idle},
     {"name2id", ntop_interface_name2id},
     {"loadScalingFactorPrefs", ntop_load_scaling_factor_prefs},
+    {"reloadHideFromTop", ntop_reload_hide_from_top },
     {"reloadGwMacs", ntop_reload_gw_macs},
     {"reloadDhcpRanges", ntop_reload_dhcp_ranges},
     {"reloadHostPrefs", ntop_reload_host_prefs},

@@ -859,6 +859,7 @@ local context_2 = {
    chart = {
        name = CHART_NAME
    },
+   alert_details_url = alert_details_url,
    navbar = page_utils.get_new_navbar_context(i18n("alerts_dashboard.alerts"), url, pages),
    csrf = ntop.getRandomCSRFValue(),
 }
@@ -962,7 +963,7 @@ local context = {
    }
 }
 
-if page == "flow" and false then
+if (page == "flow" or page == "interface" or page == "system" or page == "user" or page == "mac" or page == "host") and true then
    local json_context = json.encode(context_2)
    template_utils.render("pages/vue_page.template", { vue_page_name = "PageAlertStats", page_context = json_context })
 else

@@ -118,6 +118,9 @@ class Flow : public GenericHashEntry {
   ndpi_confidence_t confidence;
   char *host_server_name, *bt_hash;
   IEC104Stats *iec104;
+#ifdef NTOPNG_PRO
+  ModbusStats *modbus;
+#endif
   char *suspicious_dga_domain; /* Stores the suspicious DGA domain for flows
                                   with NDPI_SUSPICIOUS_DGA_DOMAIN */
   OSType operating_system;
@@ -436,6 +439,7 @@ class Flow : public GenericHashEntry {
     return (isProto(NDPI_PROTOCOL_ZOOM) && isProto(NDPI_PROTOCOL_RTP));
   }
   inline bool isIEC60870() const { return (isProto(NDPI_PROTOCOL_IEC60870)); }
+  inline bool isModbus()   const { return (isProto(NDPI_PROTOCOL_MODBUS));   }
   inline bool isMDNS() const { return (isProto(NDPI_PROTOCOL_MDNS)); }
   inline bool isSSDP() const { return (isProto(NDPI_PROTOCOL_SSDP)); }
   inline bool isNetBIOS() const { return (isProto(NDPI_PROTOCOL_NETBIOS)); }
@@ -598,9 +602,11 @@ class Flow : public GenericHashEntry {
   void processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
                         u_int64_t packet_time);
   void processIEC60870Packet(bool tx_direction, const u_char *payload,
-                             u_int16_t payload_len,
-                             struct timeval *packet_time);
-
+                             u_int16_t payload_len, struct timeval *packet_time);
+#ifdef NTOPNG_PRO
+  void processModbusPacket(bool is_query, const u_char *payload,
+			   u_int16_t payload_len, struct timeval *packet_time);
+#endif
   void endProtocolDissection();
   inline void setCustomApp(custom_app_t ca) {
     memcpy(&custom_app, &ca, sizeof(custom_app));

@@ -276,7 +276,8 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
   local input_type = "text"
   if _input_type ~= nil then input_type = _input_type end
-  print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
+  print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..(label or "")..'</strong>')
+  if(comment ~= nil) then print('<p><small>'..comment..'</small></td>') end
 
   local style = {}
   style["text-align"] = "right"

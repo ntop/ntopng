@@ -10,7 +10,7 @@ local host_pools = require "host_pools"
 
 -- #################################################################
 
-if radius_handler.isAccountingEnabled() and ntop.isnEdge() then
+if radius_handler.isAccountingEnabled() then-- and ntop.isnEdge() then
     -- Instantiate host pools
     local pool = host_pools:create()
     local pools_list = {}
@@ -32,9 +32,10 @@ if radius_handler.isAccountingEnabled() and ntop.isnEdge() then
                 local is_mac = isMacAddress(member)
                 if is_mac then
                     -- Update stats only if the mac is in memory
-                    if interface.getMacInfo(member) then
+                    local mac_info = interface.getMacInfo(member)
+                    if mac_info then
                         -- In case the update fails, move the member into the default pool
-                        if true then -- not radius_handler.accountingUpdate(member) then
+                        if not radius_handler.accountingUpdate(member, mac_info) then
                             pool:bind_member(member, host_pools.DEFAULT_POOL_ID)
                         end
                     end

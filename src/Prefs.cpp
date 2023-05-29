@@ -58,6 +58,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ewma_alpha_percent = CONST_DEFAULT_EWMA_ALPHA_PERCENT;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   emit_flow_alerts = emit_host_alerts = true;
+  push_host_filters = false;
   zmq_publish_events_url = NULL;
   enable_access_log = false, enable_sql_log = false;
   enable_flow_device_port_rrd_creation =
@@ -143,6 +144,7 @@ Prefs::Prefs(Ntop *_ntop) {
   global_dns_forging_enabled = false;
 #ifdef NTOPNG_PRO
   dump_flows_direct = false;
+  max_aggregated_flows_upperbound = 1, max_aggregated_flows_traffic_upperbound = 1;
   is_geo_map_score_enabled = is_geo_map_asname_enabled =
       is_geo_map_alerted_flows_enabled = false;
   is_geo_map_blacklisted_flows_enabled = is_geo_map_host_name_enabled = false;
@@ -810,6 +812,10 @@ void Prefs::reloadPrefsFromRedis() {
       getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_SCORE_ENABLED, false);
   is_geo_map_asname_enabled =
       getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_ASNAME_ENABLED, false);
+  max_aggregated_flows_upperbound = 
+      getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND, 1);
+  max_aggregated_flows_traffic_upperbound = 
+      getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND, 1);
   is_geo_map_alerted_flows_enabled = getDefaultPrefsValue(
       CONST_RUNTIME_IS_GEO_MAP_ALERTED_FLOWS_ENABLED, false);
   is_geo_map_blacklisted_flows_enabled = getDefaultPrefsValue(
@@ -981,6 +987,8 @@ void Prefs::reloadPrefsFromRedis() {
       getDefaultBoolPrefsValue(CONST_PREFS_EMIT_FLOW_ALERTS, true);
   emit_host_alerts =
       getDefaultBoolPrefsValue(CONST_PREFS_EMIT_HOST_ALERTS, true);
+  push_host_filters =
+      getDefaultBoolPrefsValue(CONST_PREFS_PUSH_HOST_FILTERS, false);
 
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
@@ -2514,6 +2522,10 @@ void Prefs::lua(lua_State *vm) {
 #ifdef NTOPNG_PRO
   lua_push_bool_table_entry(vm, "is_dump_flows_direct_enabled",
                             do_dump_flows_direct());
+  lua_push_int32_table_entry(vm, "max_aggregated_flows_upperbound",
+                            max_aggregated_flows_upperbound);
+  lua_push_int32_table_entry(vm, "max_aggregated_flows_traffic_upperbound",
+                            max_aggregated_flows_traffic_upperbound);                         
   lua_push_bool_table_entry(vm, "is_geo_map_score_enabled",
                             is_geo_map_score_enabled);
   lua_push_bool_table_entry(vm, "is_geo_map_asname_enabled",
@@ -2892,12 +2904,20 @@ void Prefs::validate() {
 
 /* *************************************** */
 
+bool Prefs::isInformativeCaptivePortalEnabled() const {
+  return (enable_informative_captive_portal &&
+          !enable_vlan_trunk_bridge);
+}
+
+/* *************************************** */
+
 #ifdef HAVE_NEDGE
 const char *Prefs::getCaptivePortalUrl() {
-  if (isInformativeCaptivePortalEnabled())
+  if (isInformativeCaptivePortalEnabled()) {
     return CAPTIVE_PORTAL_INFO_URL;
-  else
+  } else {
     return CAPTIVE_PORTAL_URL;
+  }
 }
 #endif
 

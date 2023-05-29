@@ -58,7 +58,7 @@ class Prefs {
       enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
       enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
       enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
-      dump_flows_on_clickhouse, use_mac_in_flow_key;
+      dump_flows_on_clickhouse, use_mac_in_flow_key, push_host_filters;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, devices_learning_period;
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
@@ -114,6 +114,7 @@ class Prefs {
       dump_json_flows_on_disk, dump_ext_json;
 #ifdef NTOPNG_PRO
   bool dump_flows_direct;
+  u_int32_t max_aggregated_flows_upperbound, max_aggregated_flows_traffic_upperbound;
   bool is_geo_map_score_enabled, is_geo_map_asname_enabled,
       is_geo_map_alerted_flows_enabled, is_geo_map_blacklisted_flows_enabled,
       is_geo_map_host_name_enabled, is_geo_map_rxtx_data_enabled,
@@ -560,9 +561,9 @@ class Prefs {
   inline bool isCaptivePortalEnabled() const {
     return (enable_captive_portal && !enable_vlan_trunk_bridge);
   }
-  inline bool isInformativeCaptivePortalEnabled() const {
-    return (enable_informative_captive_portal && !enable_vlan_trunk_bridge);
-  }
+
+  bool isInformativeCaptivePortalEnabled() const;
+
   inline bool isMacBasedCaptivePortal() const {
     return (mac_based_captive_portal);
   }
@@ -659,6 +660,9 @@ class Prefs {
   };
   inline bool dontEmitHostAlerts() {
     return (disable_alerts || !emit_host_alerts);
+  };
+  inline bool pushHostFilters() {
+    return (!disable_alerts && push_host_filters);
   };
   inline void dontUseClickHouse() {
     dump_flows_on_clickhouse = dump_flows_on_mysql = false;

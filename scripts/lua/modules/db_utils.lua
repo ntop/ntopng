@@ -17,12 +17,11 @@ local db_utils = {}
 local function populate_l7_protocols()
    -- Protocols table
    local list = interface.getnDPIProtocols() or {}
-   local sql = string.format("INSERT INTO ntopng.l7_protocols (*) Values")
-   for proto_name, proto_id in pairs(available_protocols) do
+   local sql = "INSERT INTO ntopng.l7_protocols (*) Values"
+   for proto_name, proto_id in pairs(list) do
       -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding Protocol: " .. proto_name .. ", ID: " .. proto_id)
       sql = string.format("%s (%u, '%s')", sql, tonumber(proto_id), proto_name)
    end
-
    interface.execSQLQuery(sql)
 end
 

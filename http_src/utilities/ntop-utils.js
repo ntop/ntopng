@@ -530,6 +530,16 @@ export default class NtopUtils {
 		return res[0].toFixed(2) + " " + res[1];
 	};
 
+	static bitsToSize_no_comma(bits, factor) {
+		factor = factor || 1000;
+		var sizes = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+		if (bits == 0) return '0 bps';
+		if ((bits > 0) && (bits < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + " bps");
+		var res = NtopUtils.scaleValue(bits, sizes, factor);
+
+		return res[0]+ " " + res[1];
+	};
+
 	static secondsToTime(seconds) {
 
 		if (seconds < 1) {

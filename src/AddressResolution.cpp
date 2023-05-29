@@ -23,9 +23,9 @@
 
 /* **************************************** */
 
-AddressResolution::AddressResolution() {
+AddressResolution::AddressResolution(int _num_resolvers) {
   num_resolved_addresses = num_resolved_fails = 0;
-  num_resolvers = (ntop->getPrefs() && ntop->getPrefs()->is_embedded_edition()) ? 1 : CONST_NUM_RESOLVERS;
+  num_resolvers = _num_resolvers;
 
   if (!(resolveThreadLoop =
             (pthread_t *)calloc(num_resolvers, sizeof(pthread_t))))

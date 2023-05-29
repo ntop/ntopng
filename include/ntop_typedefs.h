@@ -1190,6 +1190,13 @@ typedef struct {
   u_int32_t bytes_rcvd;
 } InOutTraffic;
 
+typedef struct {
+  u_int64_t bytes_sent;
+  u_int64_t bytes_rcvd;
+  u_int64_t packets_sent;
+  u_int64_t packets_rcvd;
+} RadiusTraffic;
+
 typedef enum {
   application_criteria = 1,
   client_criteria,
