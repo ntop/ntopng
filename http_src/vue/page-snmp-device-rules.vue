@@ -188,7 +188,6 @@ const add_action_column = function (rowData) {
 
 const format_metric = function(data, rowData) {
   let metric_label = data  
-  debugger;
   if (rowData.metric_label && rowData.metric_label != data && rowData.metric_label != "") {
     metric_label = rowData.metric_label;
   } 
@@ -252,6 +251,7 @@ const get_snmp_devices_list = async function() {
   await $.get(url, function(rsp, status){
     snmp_devices_list = rsp.rsp;
   });
+  snmp_devices_list.data.push({column_key: "*",column_name: "all" })
 }
 
 const start_datatable = function() {

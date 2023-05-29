@@ -117,6 +117,32 @@ http_lint.validateEmptyOr = validateEmptyOr
 
 -- FRONT-END VALIDATORS
 
+local function validateSNMPIfidNumber(p)
+    -- integer SNMP Ifid validation
+    
+    if p == "*" then
+        return true
+    end
+
+    local num = tonumber(p)
+
+    if (num == nil) then
+        return false
+    end
+
+    if math.floor(num) == num then
+        return true
+    else
+        -- this is a float number
+        return false
+    end
+end
+http_lint.validateSNMPIfidNumber = validateSNMPIfidNumber
+
+-- #################################################################
+
+-- FRONT-END VALIDATORS
+
 local function validateNumber(p)
     -- integer number validation
     local num = tonumber(p)
@@ -1914,7 +1940,7 @@ local known_parameters = {
     ["flows_page_type"] = validateSingleWord,
 
     ["snmp_device"] = validateDevice,
-    ["snmp_device_port"] = validateNumber,
+    ["snmp_device_port"] = validateSNMPIfidNumber,
     ["snmp_device_port_label"] = validateUnquoted,
     ["snmp_device_label"] = validateUnquoted, 
     ["snmp_threshold_value"] = validateNumber,
