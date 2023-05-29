@@ -105,8 +105,9 @@ end
 --! @param tags_filter a list of filter tags.
 --! @param wildcard_tags the remaining tags of the schema which are considered wildcard.
 --! @param start_time time filter. Only timeseries updated after start_time will be returned.
+--! @param end_time time filter. Only timeseries updated before end_time will be returned.
 --! @return a (possibly empty) list of tags values for the matching timeseries on success, nil for non-existing series.
-function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, end_time)
 end
 
 --! @brief Get top k items information.
