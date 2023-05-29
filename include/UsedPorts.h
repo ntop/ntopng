@@ -43,8 +43,14 @@ class UsedPorts {
 
   void lua(lua_State *vm, NetworkInterface *iface);
 
+  inline std::unordered_map<u_int16_t, ndpi_protocol> getUDPServerPorts() { return(udp_server_ports); };
+  inline std::unordered_map<u_int16_t, ndpi_protocol> getTCPServerPorts() { return(tcp_server_ports); };
+
+
   void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto);
   void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto);
+  void setLuaArrayUDPServerPorts(lua_State *vm, NetworkInterface *iface) {setLuaArray(vm, iface, false, &udp_server_ports);};
+  void setLuaArrayTCPServerPorts(lua_State *vm, NetworkInterface *iface) {setLuaArray(vm, iface, true, &tcp_server_ports);};
 
   std::unordered_map<u_int16_t, ndpi_protocol> *getServerPorts(bool isTCP) {
     return (isTCP ? &tcp_server_ports : &udp_server_ports);

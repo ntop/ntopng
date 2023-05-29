@@ -416,6 +416,12 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #ifdef NTOPNG_PRO
   void checkDHCPStorm(time_t when, u_int32_t num_pkts);
 #endif
+  void sort_ports(lua_State *vm,
+				  HostsPorts *count,
+          u_int16_t protocol);
+  void sort_hosts_details(lua_State *vm, 
+                          HostsPortsAnalysis *count,
+                          u_int16_t protocol);
   void sort_and_filter_flow_stats(lua_State *vm,
 				  std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count,
 				  std::unordered_map<string, AggregatedFlowsStats *> *count_info,
@@ -1333,7 +1339,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     usedPorts.setServerPort(isTCP, port, proto);
   };
   void luaUsedPorts(lua_State *vm) { usedPorts.lua(vm, this); };
-
+  
+  void getHostsPorts(lua_State *vm);
+  void getHostsByPort(lua_State *vm);
   void getFilteredLiveFlowsStats(lua_State *vm);
   void getVLANFlowsStats(lua_State *vm);
   void getRxOnlyHostsList(lua_State *vm, bool local_host_rx_only,
@@ -1345,7 +1353,19 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                                         bool *matched);
   static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data,
                                         bool *matched);
-
+  static bool get_udp_host_ports(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched);
+  static bool get_tcp_host_ports(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched);
+  static bool get_tcp_hosts_by_port(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched);
+  static bool get_udp_hosts_by_port(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched);
+                                            
 #ifdef NTOPNG_PRO
   static bool compute_client_server_flow_stats(GenericHashEntry *node,
                                                void *user_data, bool *matched);

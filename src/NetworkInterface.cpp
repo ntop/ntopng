@@ -11155,7 +11155,7 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
 
 /* **************************************************** */
 
-/* Sort compare functions */
+/* Sort aggregated live flows compare functions */
 
 static bool asc_str_cmp(AggregatedFlowsStats *a, AggregatedFlowsStats *b) {
   return strcasecmp(a->getProtoName(), b->getProtoName()) < 0;
@@ -11232,6 +11232,52 @@ static bool asc_totaltraffic_cmp(AggregatedFlowsStats *a,
                                  AggregatedFlowsStats *b) {
   return (a->getTotalRcvd() + a->getTotalSent()) <
          (b->getTotalRcvd() + b->getTotalSent());
+}
+
+/* Sort host ports compare functions */
+
+static bool host_details_asc_total_traffic_cmp(HostDetails *a, 
+                                               HostDetails *b) {
+  return (a->get_total_traffic() < b->get_total_traffic());
+}
+
+static bool host_details_asc_ip_cmp(HostDetails *a, 
+                                    HostDetails *b) {
+  char a_buf[128];
+  char b_buf[128];
+  return strcmp(a->get_ip_hex(a_buf, sizeof(a_buf)),
+                b->get_ip_hex(b_buf, sizeof(b_buf))) < 0;
+}
+
+static bool host_details_asc_mac_cmp(HostDetails *a, 
+                                     HostDetails *b) {
+  char a_buf[128];
+  char b_buf[128];
+  return strcmp(a->get_mac_address(a_buf, sizeof(a_buf)), 
+                b->get_mac_address(b_buf, sizeof(b_buf))) < 0;
+}
+
+static bool host_details_asc_score_cmp(HostDetails *a, 
+                                       HostDetails *b) {
+  return (a->get_score() < b->get_score());
+}
+
+static bool host_details_asc_flows_cmp(HostDetails *a, 
+                                       HostDetails *b) {
+  return (a->get_active_flows_as_server() < b->get_active_flows_as_server());
+}
+
+static bool host_details_asc_vlan_cmp(HostDetails *a, 
+                                       HostDetails *b) {
+  return (a->get_vlan_id() < b->get_vlan_id());
+}
+
+static bool host_details_asc_name_cmp(HostDetails *a, 
+                                     HostDetails *b) {
+  char a_buf[128];
+  char b_buf[128];
+  return strcmp(a->get_name(a_buf, sizeof(a_buf)), 
+                b->get_name(b_buf, sizeof(b_buf))) < 0;
 }
 
 /* **************************************************** */
@@ -11739,6 +11785,349 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
        it2 != info_count.end(); ++it2)
     delete it2->second;
 }
+
+/* **************************************************** */
+
+void NetworkInterface::getHostsPorts(lua_State *vm) {
+  u_int32_t begin_slot = 0;
+  HostsPorts count;
+  u_int32_t protocol = 0;
+  if (lua_type(vm, 1) == LUA_TNUMBER) 
+    protocol = (u_int32_t)lua_tonumber(vm, 1);
+
+  if(protocol == 6)
+    walker(&begin_slot, true, walker_hosts,
+            get_tcp_host_ports, &count);
+  else
+    walker(&begin_slot, true , walker_hosts,
+            get_udp_host_ports, &count);
+
+  sort_ports(vm, &count, protocol);
+
+  /* Free memory before leaving */
+  std::unordered_map<u_int16_t, PortDetails*> server_ports = count.getSrvPort();
+  std::unordered_map<u_int16_t, PortDetails*>::iterator it;
+  for ( it = server_ports.begin(); it != server_ports.end(); ++it) {
+    delete it->second;
+  }
+  
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::get_udp_host_ports(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched) {
+  
+                              
+  Host *h = (Host *)node;
+  if (!h || !h->isLocalHost()) {
+    return false;
+  }
+
+  HostsPorts *hostsPorts = 
+    static_cast< HostsPorts *>(user_data);
+
+  LocalHost *lh = (LocalHost*) h;
+  std::unordered_map<u_int16_t, ndpi_protocol> udp_ports = lh->getUDPServerPorts();
+  
+  hostsPorts->mergeSrvPorts(&udp_ports);
+  
+  *matched = true;
+
+  return (false); /* false = keep on walking */
+
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::get_tcp_host_ports(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched) {
+  
+                              
+  Host *h = (Host *)node;
+  if (!h || !h->isLocalHost()) {
+    return false;
+  }
+
+  HostsPorts *hostsPorts = 
+    static_cast< HostsPorts *>(user_data);
+
+  LocalHost *lh = (LocalHost*) h;
+
+
+  std::unordered_map<u_int16_t, ndpi_protocol> tcp_ports = lh->getTCPServerPorts();
+  
+  hostsPorts->mergeSrvPorts(&tcp_ports);
+  
+  *matched = true;
+
+  return (false); /* false = keep on walking */
+
+}
+
+/* **************************************************** */
+
+void NetworkInterface::sort_ports(lua_State *vm,
+				  HostsPorts *count,
+          u_int16_t protocol) {
+
+  std::map<u_int16_t, PortDetails*> ordered(count->getSrvPort().begin(), count->getSrvPort().end());
+  std::map<u_int16_t, PortDetails*>::iterator it;
+  bool isTCP = protocol == 6;
+  
+  /* Build up the lua response */
+  lua_newtable(vm);
+
+  u_int16_t size = ordered.size();
+  u_int num = 0;
+  
+
+  for (it = ordered.begin(); it != ordered.end(); ++it) {
+    char str[32], buf[64];
+    lua_newtable(vm);
+
+    snprintf(str, sizeof(str), "%s:%u", isTCP ? "tcp" : "udp", it->first);
+    lua_push_str_table_entry(
+        vm, str,
+        ndpi_protocol2name(get_ndpi_struct(), it->second->get_protocol(), buf,
+                            sizeof(buf)));
+    lua_push_uint32_table_entry(vm, "num_hosts", (u_int32_t) it->second->get_h_count());
+    lua_push_uint32_table_entry(vm, "num_entries", (u_int32_t)size);
+    
+    lua_pushinteger(vm, ++num);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);     
+    
+  } 
+    
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::get_tcp_hosts_by_port(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched) {
+  Host *h = (Host *)node;
+  if (!h || !h->isLocalHost()) {
+    return false;
+  }
+
+  HostsPortsAnalysis *hostsPortsAnalysis = 
+    static_cast< HostsPortsAnalysis *>(user_data);
+
+  LocalHost *lh = (LocalHost*) h;
+  std::unordered_map<u_int16_t, ndpi_protocol> tcp_ports = lh->getTCPServerPorts();
+  std::unordered_map<u_int16_t, ndpi_protocol>::iterator port_finder;
+  port_finder = tcp_ports.find(hostsPortsAnalysis->get_port());
+
+  if (port_finder != tcp_ports.end()) {
+    u_int64_t vlan_id = (u_int64_t) h->get_vlan_id();
+    u_int64_t host_key =
+      (((u_int64_t)h->get_ip()->key()) << 16) + ((u_int64_t)vlan_id);
+
+    std::unordered_map<u_int64_t, HostDetails*> host_details = hostsPortsAnalysis->get_hosts_details();
+    if (host_details.find(host_key) == host_details.end() ) {
+      
+      /* Not found in hash the host details */
+      char ip_buf[64];
+      char mac_buf[64];
+      char ip_hex_buf[64];
+      char name[64];
+
+      /* Set up host details */
+      HostDetails *host_details = new (std::nothrow) HostDetails(
+                                                      h->get_ip()->print(ip_buf, sizeof(ip_buf)),
+                                                      h->getMac()->print(mac_buf, sizeof(mac_buf)),
+                                                      h->getNumBytesTCPSent() + h->getNumBytesTCPRcvd(),
+                                                      h->get_ip()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
+                                                      h->get_vlan_id(),
+                                                      h->getScore(),
+                                                      h->getNumIncomingFlows(),
+                                                      h->get_name(name, sizeof(name), false),
+                                                      host_key);
+      
+      if(host_details)
+        hostsPortsAnalysis->add_host_details(host_details);
+    }
+  
+  }
+  
+  *matched = true;
+
+  return (false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::get_udp_hosts_by_port(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched) {
+  Host *h = (Host *)node;
+  if (!h || !h->isLocalHost()) {
+    return false;
+  }
+
+  HostsPortsAnalysis *hostsPortsAnalysis = 
+    static_cast< HostsPortsAnalysis *>(user_data);
+
+  LocalHost *lh = (LocalHost*) h;
+  std::unordered_map<u_int16_t, ndpi_protocol> udp_ports = lh->getUDPServerPorts();
+  std::unordered_map<u_int16_t, ndpi_protocol>::iterator port_finder;
+  port_finder = udp_ports.find(hostsPortsAnalysis->get_port());
+  
+  if (port_finder != udp_ports.end()) {
+
+    u_int64_t vlan_id = (u_int64_t) h->get_vlan_id();
+    u_int64_t host_key =
+      (((u_int64_t)h->get_ip()->key()) << 16) + ((u_int64_t)vlan_id);
+
+    std::unordered_map<u_int64_t, HostDetails*> host_details = hostsPortsAnalysis->get_hosts_details();
+    if (host_details.find(host_key) == host_details.end() ) {
+      
+      /* Not found in hash the host details */
+      char ip_buf[64];
+      char mac_buf[64];
+      char ip_hex_buf[64];
+      char name[64];
+      HostDetails *host_details = new (std::nothrow) HostDetails(
+                                                      h->get_ip()->print(ip_buf, sizeof(ip_buf)),
+                                                      h->getMac()->print(mac_buf, sizeof(mac_buf)),
+                                                      h->getNumBytesUDPSent() + h->getNumBytesUDPRcvd(),
+                                                      h->get_ip()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
+                                                      h->get_vlan_id(),
+                                                      h->getScore(),
+                                                      h->getNumIncomingFlows(),
+                                                      h->get_name(name, sizeof(name), false),
+                                                      host_key);
+      if(host_details)
+        hostsPortsAnalysis->add_host_details(host_details);
+    }
+  
+  }
+  
+  *matched = true;
+
+  return (false);
+}
+
+/* **************************************************** */
+
+void NetworkInterface::getHostsByPort(lua_State *vm) {
+  u_int32_t begin_slot = 0;
+  u_int32_t protocol = 0;
+  u_int16_t port;
+  HostsPortsAnalysis count;
+
+
+  if (lua_type(vm, 1) == LUA_TNUMBER) 
+    protocol = (u_int32_t)lua_tonumber(vm, 1);
+
+  if (lua_type(vm, 2) == LUA_TNUMBER) {
+    port = (u_int16_t)lua_tonumber(vm, 2);
+    count.set_port(port);
+  }
+
+  if(protocol == 6)
+    walker(&begin_slot, true, walker_hosts,
+            get_tcp_hosts_by_port, &count);
+  else
+    walker(&begin_slot, true , walker_hosts,
+            get_udp_hosts_by_port, &count);
+
+  sort_hosts_details(vm, &count, protocol);
+
+}
+
+
+void NetworkInterface::sort_hosts_details(lua_State *vm, 
+                          HostsPortsAnalysis *count,
+                          u_int16_t protocol) {
+
+  std::vector<HostDetails *> vector;
+  std::vector<HostDetails *>::iterator vector_it;
+  char *sortColumn = NULL, *sortOrder = NULL;
+  u_int32_t start = 0, max_num_rows = 0;
+
+  if (lua_type(vm, 3) == LUA_TSTRING) sortColumn = (char *)lua_tostring(vm, 3);
+  if (lua_type(vm, 4) == LUA_TSTRING) sortOrder = (char *)lua_tostring(vm, 4);
+  if (lua_type(vm, 5) == LUA_TNUMBER) start = (u_int32_t)lua_tonumber(vm, 5);
+  if (lua_type(vm, 6) == LUA_TNUMBER)
+    max_num_rows = (u_int32_t)lua_tonumber(vm, 6);
+
+  bool is_asc = sortOrder ? (!strcmp(sortOrder, "asc")) : true;
+  bool (*sorter)(HostDetails *, HostDetails *) =
+      &host_details_asc_ip_cmp;
+  
+  if (sortColumn) {
+    if (!strcmp(sortColumn, "flows")) {
+      sorter = &host_details_asc_flows_cmp;
+    } else if (!strcmp(sortColumn, "score")) {
+      sorter = &host_details_asc_score_cmp;
+    } else if (!strcmp(sortColumn, "mac")) {
+      sorter = &host_details_asc_mac_cmp;
+    } else if (!strcmp(sortColumn, "ip")) {
+      sorter = &host_details_asc_ip_cmp;
+    } else if (!strcmp(sortColumn, "tot_traffic")) {
+      sorter = &host_details_asc_total_traffic_cmp;
+    } else if (!strcmp(sortColumn, "vlan_id")) {
+      sorter = &host_details_asc_vlan_cmp;
+    } else if (!strcmp(sortColumn, "name")) {
+      sorter = &host_details_asc_name_cmp;
+    }
+  }
+  std::unordered_map<u_int64_t, HostDetails *> hosts_map = count->get_hosts_details();
+  std::unordered_map<u_int64_t, HostDetails *>::iterator it;
+
+  for (it = hosts_map.begin(); it != hosts_map.end(); ++it) {
+    vector.push_back(it->second);
+  }
+
+  std::sort(vector.begin(), vector.end(), sorter);
+  if (!is_asc) std::reverse(vector.begin(), vector.end());
+
+  const u_int32_t vector_size = vector.size();
+  u_int num = 0;
+
+  lua_newtable(vm);
+
+  if (start < vector_size) {
+    for (vector_it = std::next(vector.begin(), start);
+         vector_it != vector.end(); ++vector_it) {
+      HostDetails *hd = *vector_it;
+
+      if (hd) {
+        lua_newtable(vm);
+        char buf[128];
+        lua_push_str_table_entry(vm, "ip", hd->get_ip(buf, sizeof(buf)));
+        lua_push_str_table_entry(vm, "mac", hd->get_mac_address(buf, sizeof(buf)));
+        lua_push_str_table_entry(vm, "name", hd->get_name(buf, sizeof(buf)));
+        lua_push_uint64_table_entry(vm, "vlan_id", (u_int64_t)hd->get_vlan_id());
+        lua_push_uint64_table_entry(vm, "flows", (u_int64_t)hd->get_active_flows_as_server());
+        lua_push_uint64_table_entry(vm, "score", (u_int64_t)hd->get_score());
+        lua_push_uint64_table_entry(vm, "tot_traffic", (u_int64_t)hd->get_total_traffic());
+        lua_push_uint32_table_entry(vm, "num_entries", vector_size);
+
+        lua_pushinteger(vm, ++num);
+        lua_insert(vm, -2);
+        lua_settable(vm, -3);
+      }
+
+      if (num >= max_num_rows) break;
+    }
+  } else {
+    lua_newtable(vm);
+
+    lua_push_uint32_table_entry(vm, "num_entries", vector_size);
+
+    lua_pushinteger(vm, ++num);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);  
+  }
+
+}
+
 
 /* **************************************************** */
 

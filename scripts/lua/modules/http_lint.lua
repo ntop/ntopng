@@ -2475,7 +2475,7 @@ local special_parameters = { --[[Suffix validator]] --[[Value Validator]]
 
     -- Protocol to categories match
     ["proto_"] = {validateProtocolIdOrName, validateCategory},
-
+    ["protocol"] = validateNumber,
     --
     ["static_route_address_"] = {validateStaticRouteName, validateIPV4},
     ["static_route_netmask_"] = {validateStaticRouteName, validateIPV4},
