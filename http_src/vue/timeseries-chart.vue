@@ -11,6 +11,7 @@
 </template>
 
 <script>
+//import './canvas.js';
 export default {
 	components: {
 	},
@@ -50,15 +51,8 @@ export default {
 			}
 			await this.draw_chart(url_request);
 		},
-		get_data_uri: async function (options) {
-			if (this.chart == null) { return null; }
-			let data_uri = await this.chart.to_data_uri();
-			return data_uri;
-		},
-		download_chart_png: async function (file_name, options) {
-			if (this.chart == null) { return; }
-			let data_uri = await this.chart.to_data_uri();
-			downloadURI(data_uri, file_name);
+		get_image: function () {
+			return Dygraph.Export.asPNG(this.chart, this.$refs["chart"]);
 		},
 		change_visibility: function (visible, id) {
 			if (this.timeseries_list[id] != null) {

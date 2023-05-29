@@ -683,10 +683,9 @@ function show_modal_download_file() {
 
 async function download_chart_png(filename) {
     let chart_image_array_promise = charts.value.map(async (chart) => {
-        let data_uri = await chart.get_data_uri();
-        return new Promise((resolve, reject) => {
-            let image = new Image();
-            image.src = data_uri;
+        let chart_image = chart.get_image();
+        return new Promise(async (resolve, reject) => {
+            let image = chart_image;
             image.onload = function () {
                 resolve(image);
             };
