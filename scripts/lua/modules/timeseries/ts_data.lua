@@ -8,8 +8,10 @@ local ts_data = {}
 local function addHostInfo(tags)
     -- Checking if the host is in memory
     local host = hostkey2hostinfo(tags.host)
+    local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. tags.ifid ..
+                                                            ".serialize_local_broadcast_hosts_as_macs")) == "1"
 
-    if not isEmptyString(host["host"]) then
+    if not isEmptyString(host["host"]) and serialize_by_mac then
         local host_info = interface.getHostMinInfo(host["host"], host["vlan"])
         if (host_info ~= nil) then
             -- Add the label if available

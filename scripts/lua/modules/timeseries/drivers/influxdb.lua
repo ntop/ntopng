@@ -856,7 +856,7 @@ end
 
 function driver:timeseries_query(options)
     local metrics = {}
-    
+
     if (options.tags.host) and tonumber(options.tags.host) then
         options.tags.host = nil
     end
@@ -1111,7 +1111,7 @@ end
 local min_values_list_series = 2
 
 local function makeListSeriesQuery(schema, tags_filter, wildcard_tags, start_time, end_time)
-  -- NOTE: do not use getQuerySchema here, otherwise we'll miss series
+    -- NOTE: do not use getQuerySchema here, otherwise we'll miss series
 
     -- NOTE: time based query not currently supported on show tags/series, using select
     -- https://github.com/influxdata/influxdb/issues/5668
@@ -1121,17 +1121,17 @@ local function makeListSeriesQuery(schema, tags_filter, wildcard_tags, start_tim
     GROUP BY category
     LIMIT 2
   ]]
-  if end_time ~= nil then
-    return 'SELECT * FROM "' .. schema.name .. '"' .. where_tags(tags_filter) ..
-        " time >= " .. start_time .. "000000000" .. " AND time <= " .. end_time .. "000000000" ..
-        ternary(not table.empty(wildcard_tags), " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
-        " LIMIT " .. min_values_list_series
-  else 
-    return 'SELECT * FROM "' .. schema.name .. '"' .. where_tags(tags_filter) ..
-        " time >= " .. start_time .. "000000000" ..
-        ternary(not table.empty(wildcard_tags), " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
-        " LIMIT " .. min_values_list_series
-  end
+    if end_time ~= nil then
+        return 'SELECT * FROM "' .. schema.name .. '"' .. where_tags(tags_filter) .. " time >= " .. start_time ..
+                   "000000000" .. " AND time <= " .. end_time .. "000000000" ..
+                   ternary(not table.empty(wildcard_tags), " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
+                   " LIMIT " .. min_values_list_series
+    else
+        return 'SELECT * FROM "' .. schema.name .. '"' .. where_tags(tags_filter) .. " time >= " .. start_time ..
+                   "000000000" ..
+                   ternary(not table.empty(wildcard_tags), " GROUP BY " .. table.concat(wildcard_tags, ","), "") ..
+                   " LIMIT " .. min_values_list_series
+    end
 end
 
 local function processListSeriesResult(data, schema, tags_filter, wildcard_tags)
@@ -1188,10 +1188,9 @@ end
 -- ##############################################
 
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, end_time)
-  local query = makeListSeriesQuery(schema, tags_filter, wildcard_tags, start_time, end_time)
-  local url = self.url
-  local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
-
+    local query = makeListSeriesQuery(schema, tags_filter, wildcard_tags, start_time, end_time)
+    local url = self.url
+    local data = influx_query(url .. "/query?db=" .. self.db, query, self.username, self.password)
 
     return processListSeriesResult(data, schema, tags_filter, wildcard_tags)
 end
@@ -1236,7 +1235,8 @@ function driver:listSeriesBatched(batch)
             else
                 local idx = #queries + 1
                 idx_to_batchid[idx] = j
-                queries[idx] = makeListSeriesQuery(cur_query.schema, cur_query.filter_tags, cur_query.wildcard_tags, cur_query.start_time, cur_query.end_time or nil)
+                queries[idx] = makeListSeriesQuery(cur_query.schema, cur_query.filter_tags, cur_query.wildcard_tags,
+                    cur_query.start_time, cur_query.end_time or nil)
 
             end
         end
