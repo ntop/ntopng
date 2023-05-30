@@ -27,10 +27,7 @@
 void HostsPortsAnalysis::add_host_details(HostDetails * host_details_to_insert) {
     if(!host_details_to_insert)
         return;
-    std::unordered_map<u_int64_t, HostDetails *>::iterator it;
 
-    it = hosts_details.find(host_details_to_insert->get_host_key());
-    if (it == hosts_details.end())
-        hosts_details[host_details_to_insert->get_host_key()] = host_details_to_insert;
+    hosts_details->insert({host_details_to_insert->get_host_key(), host_details_to_insert});
         
 }

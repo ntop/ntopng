@@ -11927,8 +11927,8 @@ bool NetworkInterface::get_tcp_hosts_by_port(GenericHashEntry *node,
     u_int64_t host_key =
       (((u_int64_t)h->get_ip()->key()) << 16) + ((u_int64_t)vlan_id);
 
-    std::unordered_map<u_int64_t, HostDetails*> host_details = hostsPortsAnalysis->get_hosts_details();
-    if (host_details.find(host_key) == host_details.end() ) {
+    std::unordered_map<u_int64_t, HostDetails*> *host_details = hostsPortsAnalysis->get_hosts_details();
+    if (host_details && host_details->find(host_key) == host_details->end() ) {
       
       /* Not found in hash the host details */
       char ip_buf[64];
@@ -11937,7 +11937,7 @@ bool NetworkInterface::get_tcp_hosts_by_port(GenericHashEntry *node,
       char name[64];
 
       /* Set up host details */
-      HostDetails *host_details = new (std::nothrow) HostDetails(
+      HostDetails *host_info = new (std::nothrow) HostDetails(
                                                       h->get_ip()->print(ip_buf, sizeof(ip_buf)),
                                                       h->getMac()->print(mac_buf, sizeof(mac_buf)),
                                                       h->getNumBytesTCPSent() + h->getNumBytesTCPRcvd(),
@@ -11947,13 +11947,14 @@ bool NetworkInterface::get_tcp_hosts_by_port(GenericHashEntry *node,
                                                       h->getNumIncomingFlows(),
                                                       h->get_name(name, sizeof(name), false),
                                                       host_key);
-      
-      if(host_details)
-        hostsPortsAnalysis->add_host_details(host_details);
+
+      if(host_info)
+        host_details->insert({host_key, host_info});
     }
   
   }
   
+
   *matched = true;
 
   return (false); /* false = keep on walking */
@@ -11983,15 +11984,15 @@ bool NetworkInterface::get_udp_hosts_by_port(GenericHashEntry *node,
     u_int64_t host_key =
       (((u_int64_t)h->get_ip()->key()) << 16) + ((u_int64_t)vlan_id);
 
-    std::unordered_map<u_int64_t, HostDetails*> host_details = hostsPortsAnalysis->get_hosts_details();
-    if (host_details.find(host_key) == host_details.end() ) {
+    std::unordered_map<u_int64_t, HostDetails*> *host_details = hostsPortsAnalysis->get_hosts_details();
+    if (host_details && host_details->find(host_key) == host_details->end() ) {
       
       /* Not found in hash the host details */
       char ip_buf[64];
       char mac_buf[64];
       char ip_hex_buf[64];
       char name[64];
-      HostDetails *host_details = new (std::nothrow) HostDetails(
+      HostDetails *host_info = new (std::nothrow) HostDetails(
                                                       h->get_ip()->print(ip_buf, sizeof(ip_buf)),
                                                       h->getMac()->print(mac_buf, sizeof(mac_buf)),
                                                       h->getNumBytesUDPSent() + h->getNumBytesUDPRcvd(),
@@ -12001,8 +12002,9 @@ bool NetworkInterface::get_udp_hosts_by_port(GenericHashEntry *node,
                                                       h->getNumIncomingFlows(),
                                                       h->get_name(name, sizeof(name), false),
                                                       host_key);
-      if(host_details)
-        hostsPortsAnalysis->add_host_details(host_details);
+      if(host_info)
+        host_details->insert({host_key, host_info});
+
     }
   
   }
@@ -12046,15 +12048,14 @@ void NetworkInterface::sort_hosts_details(lua_State *vm,
                           u_int16_t protocol) {
 
   std::vector<HostDetails *> vector;
-  std::vector<HostDetails *>::iterator vector_it;
   char *sortColumn = NULL, *sortOrder = NULL;
   u_int32_t start = 0, max_num_rows = 0;
 
-  if (lua_type(vm, 3) == LUA_TSTRING) sortColumn = (char *)lua_tostring(vm, 3);
-  if (lua_type(vm, 4) == LUA_TSTRING) sortOrder = (char *)lua_tostring(vm, 4);
-  if (lua_type(vm, 5) == LUA_TNUMBER) start = (u_int32_t)lua_tonumber(vm, 5);
-  if (lua_type(vm, 6) == LUA_TNUMBER)
-    max_num_rows = (u_int32_t)lua_tonumber(vm, 6);
+  if (lua_type(vm, 4) == LUA_TSTRING) sortColumn = (char *)lua_tostring(vm, 4);
+  if (lua_type(vm, 5) == LUA_TSTRING) sortOrder = (char *)lua_tostring(vm, 5);
+  if (lua_type(vm, 6) == LUA_TNUMBER) start = (u_int32_t)lua_tonumber(vm, 6);
+  if (lua_type(vm, 7) == LUA_TNUMBER)
+    max_num_rows = (u_int32_t)lua_tonumber(vm, 7);
 
   bool is_asc = sortOrder ? (!strcmp(sortOrder, "asc")) : true;
   bool (*sorter)(HostDetails *, HostDetails *) =
@@ -12077,10 +12078,10 @@ void NetworkInterface::sort_hosts_details(lua_State *vm,
       sorter = &host_details_asc_name_cmp;
     }
   }
-  std::unordered_map<u_int64_t, HostDetails *> hosts_map = count->get_hosts_details();
+  std::unordered_map<u_int64_t, HostDetails *> *hosts_map = count->get_hosts_details();
   std::unordered_map<u_int64_t, HostDetails *>::iterator it;
-
-  for (it = hosts_map.begin(); it != hosts_map.end(); ++it) {
+  
+  for (it = hosts_map->begin(); it != hosts_map->end(); ++it) {
     vector.push_back(it->second);
   }
 
@@ -12088,12 +12089,12 @@ void NetworkInterface::sort_hosts_details(lua_State *vm,
   if (!is_asc) std::reverse(vector.begin(), vector.end());
 
   const u_int32_t vector_size = vector.size();
-  u_int num = 0;
+  u_int num = 1;
 
   lua_newtable(vm);
 
   if (start < vector_size) {
-    for (vector_it = std::next(vector.begin(), start);
+    for (std::vector<HostDetails *>::iterator vector_it = std::next(vector.begin(), start);
          vector_it != vector.end(); ++vector_it) {
       HostDetails *hd = *vector_it;
 
@@ -12109,7 +12110,7 @@ void NetworkInterface::sort_hosts_details(lua_State *vm,
         lua_push_uint64_table_entry(vm, "tot_traffic", (u_int64_t)hd->get_total_traffic());
         lua_push_uint32_table_entry(vm, "num_entries", vector_size);
 
-        lua_pushinteger(vm, ++num);
+        lua_pushinteger(vm, num++);
         lua_insert(vm, -2);
         lua_settable(vm, -3);
       }
@@ -12121,7 +12122,7 @@ void NetworkInterface::sort_hosts_details(lua_State *vm,
 
     lua_push_uint32_table_entry(vm, "num_entries", vector_size);
 
-    lua_pushinteger(vm, ++num);
+    lua_pushinteger(vm, num++);
     lua_insert(vm, -2);
     lua_settable(vm, -3);  
   }

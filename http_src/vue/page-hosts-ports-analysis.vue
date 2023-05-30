@@ -109,7 +109,11 @@ onMounted(async () => {
 function update_port() {
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
 
-    ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
+    if( selected_port.value != undefined && 
+        selected_port.value != null &&
+        selected_port.value.id != undefined && 
+        selected_port.value.id != null)
+        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
     load_table();
 }
 
@@ -124,13 +128,16 @@ async function init_selected_criteria() {
     let res = await ntopng_utility.http_request(url, null, null, true);
     let ports = []
     res.rsp.forEach((item) => {
-        debugger;
         let name = item.l7_proto_name.split(".")[0];
         ports.push({label: item.srv_port+"/"+name+" ("+item.n_hosts+")", id: item.srv_port})
     })
     port_list.value = ports;
     selected_port.value = port_list.value[0];
-    ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
+    if( selected_port.value != undefined && 
+        selected_port.value != null &&
+        selected_port.value.id != undefined && 
+        selected_port.value.id != null)        
+        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);    
     //load_table();
 
 }
@@ -141,14 +148,17 @@ async function update_criteria() {
     let res = await ntopng_utility.http_request(url, null, null, true);
     let ports = []
     res.rsp.forEach((item) => {
-        debugger;
         let name = item.l7_proto_name.split(".")[0];
         ports.push({label: item.srv_port+"/"+name+" ("+item.n_hosts+")", id: item.srv_port})
     })
     port_list.value = ports;
     selected_port.value = port_list.value[0];
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
-    ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
+    if( selected_port.value != undefined && 
+        selected_port.value != null &&
+        selected_port.value.id != undefined && 
+        selected_port.value.id != null)        
+        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);    
     load_table();
 };
 
@@ -200,7 +210,6 @@ const get_rows = async (active_page, per_page, columns_wrap, map_search, first_g
         res = await ntopng_utility.http_request(url, null, null, true);
         let ports = []
         res.rsp.forEach((item) => {
-            debugger;
             let name = item.l7_proto_name.split(".")[0];
             ports.push({label: item.srv_port+"/"+name+" ("+item.n_hosts+")", id: item.srv_port})
         })
@@ -209,8 +218,17 @@ const get_rows = async (active_page, per_page, columns_wrap, map_search, first_g
     }
     //selected_port.value = selected_port.value;
      
-    ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
-    url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port.lua?${url_params}&protocol=`+selected_criteria.value.value+`&port=`+selected_port.value.id;
+    if( selected_port.value != undefined && 
+        selected_port.value != null &&
+        selected_port.value.id != undefined && 
+        selected_port.value.id != null) {
+            
+        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
+        url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port.lua?${url_params}&protocol=`+selected_criteria.value.value+`&port=`+selected_port.value.id;
+
+    } else {
+        url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port.lua?${url_params}&protocol=`+selected_criteria.value.value;
+    }       
     res = await ntopng_utility.http_request(url, null, null, true);
     // if (res.rsp.length > 0) { res.rsp[0].server_name.alerted = true };
 
