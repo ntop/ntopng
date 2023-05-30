@@ -246,8 +246,7 @@ Example:
 - Connect to the ntopng web GUI, select the ZMQ interface as in the above picture and copy the value of --zmq-encryption-key '...'
 - Start nprobe as follows:  :code:`nprobe --zmq-encryption-key '<pub key>' --zmq tcp://127.0.0.1:1234`
 
-Note: unless a private key is provided, ntopng generates a public/private keypairs for each interface
-and stores them under /var/lib/ntopng/<interface id>/key.{pub,priv}
+Note: unless a private key is provided, ntopng generates a public/private keypair and stores it under /var/lib/ntopng/key.{pub,priv}
 
 
 Quick Start
