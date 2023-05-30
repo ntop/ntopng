@@ -21,23 +21,22 @@
 Dygraph.Export = {};
 
 Dygraph.Export.DEFAULT_ATTRS = {
-
-  backgroundColor: "transparent",
+  backgroundColor: "white",
 
   //Texts displayed below the chart's x-axis and to the left of the y-axis 
-  titleFont: "bold 18px serif",
+  titleFont: "bold 18px system-ui",
   titleFontColor: "black",
 
   //Texts displayed below the chart's x-axis and to the left of the y-axis 
-  axisLabelFont: "bold 14px serif",
+  axisLabelFont: "bold 12px system-ui",
   axisLabelFontColor: "black",
 
   // Texts for the axis ticks
-  labelFont: "normal 12px serif",
+  labelFont: "normal 12px system-ui",
   labelFontColor: "black",
 
   // Text for the chart legend
-  legendFont: "bold 12px serif",
+  legendFont: "bold 14px system-ui",
   legendFontColor: "black",
 
   // Default position for vertical labels
@@ -49,7 +48,36 @@ Dygraph.Export.DEFAULT_ATTRS = {
   maxlabelsWidth: 0,
   labelTopMargin: 35,
   magicNumbertop: 8
+};
 
+Dygraph.Export.DARK_MODE_DEFAULT_ATTRS = {
+  backgroundColor: "transparent",
+
+  //Texts displayed below the chart's x-axis and to the left of the y-axis 
+  titleFont: "bold 18px system-ui",
+  titleFontColor: "white",
+
+  //Texts displayed below the chart's x-axis and to the left of the y-axis 
+  axisLabelFont: "bold 12px system-ui",
+  axisLabelFontColor: "white",
+
+  // Texts for the axis ticks
+  labelFont: "normal 12px system-ui",
+  labelFontColor: "white",
+
+  // Text for the chart legend
+  legendFont: "bold 14px system-ui",
+  legendFontColor: "white",
+
+  // Default position for vertical labels
+  vLabelLeft: 20,
+
+  legendHeight: 20,    // Height of the legend area
+  legendMargin: 20,
+  lineHeight: 30,
+  maxlabelsWidth: 0,
+  labelTopMargin: 35,
+  magicNumbertop: 8
 };
 
 /**
@@ -91,7 +119,7 @@ Dygraph.Export.asPNG = function (dygraph, img, userOptions) {
  *  userOptions: An object with the user specified options.
  *
  */
-Dygraph.Export.hack_update = function (self, o) {
+Dygraph.Export.update = function (self, o) {
   if (typeof (o) != 'undefined' && o !== null) {
     for (var k in o) {
       if (o.hasOwnProperty(k)) {
@@ -107,8 +135,12 @@ Dygraph.Export.asCanvas = function (dygraph, userOptions) {
   var options = {},
     canvas = document.createElement('canvas');
 
-  Dygraph.Export.hack_update(options, Dygraph.Export.DEFAULT_ATTRS);
-  Dygraph.Export.hack_update(options, userOptions);
+  if (document.getElementsByClassName('body dark').length > 0) {
+    Dygraph.Export.update(options, Dygraph.Export.DARK_MODE_DEFAULT_ATTRS);
+  } else {
+    Dygraph.Export.update(options, Dygraph.Export.DEFAULT_ATTRS);
+  }
+  Dygraph.Export.update(options, userOptions);
 
   canvas.width = dygraph.width_;
   canvas.height = dygraph.height_ + options.legendHeight;
@@ -133,46 +165,44 @@ Dygraph.Export.drawPlot = function (canvas, dygraph, options) {
   // Copy the plot canvas into the context of the new image.
   var plotCanvas = dygraph.hidden_;
 
-  var i = 0;
+  let i = 0;
 
   ctx.drawImage(plotCanvas, 0, 0);
-  /*
-  
-    // Add the x and y axes
-    var axesPluginDict = Dygraph.Export.getPlugin(dygraph, 'Axes Plugin');
-    if (axesPluginDict) {
-      var axesPlugin = axesPluginDict.plugin;
-  
-      for (i = 0; i < axesPlugin.ylabels_.length; i++) {
-        Dygraph.Export.putLabel(ctx, axesPlugin.ylabels_[i], options,
-          options.labelFont, options.labelFontColor);
-      }
-  
-      for (i = 0; i < axesPlugin.xlabels_.length; i++) {
-        Dygraph.Export.putLabel(ctx, axesPlugin.xlabels_[i], options,
-          options.labelFont, options.labelFontColor);
-      }
+
+  // Add the x and y axes
+  var axesPluginDict = Dygraph.Export.getPlugin(dygraph, 'Axes Plugin');
+  if (axesPluginDict) {
+    var axesPlugin = axesPluginDict.plugin;
+
+    for (i = 0; i < axesPlugin.ylabels_.length; i++) {
+      Dygraph.Export.putLabel(ctx, axesPlugin.ylabels_[i], options,
+        options.labelFont, options.labelFontColor);
     }
-  
-    // Title and axis labels
-  
-    var labelsPluginDict = Dygraph.Export.getPlugin(dygraph, 'ChartLabels Plugin');
-    if (labelsPluginDict) {
-      var labelsPlugin = labelsPluginDict.plugin;
-  
-      Dygraph.Export.putLabel(ctx, labelsPlugin.title_div_, options,
-        options.titleFont, options.titleFontColor);
-  
-      Dygraph.Export.putLabel(ctx, labelsPlugin.xlabel_div_, options,
-        options.axisLabelFont, options.axisLabelFontColor);
-  
-      Dygraph.Export.putVerticalLabelY1(ctx, labelsPlugin.ylabel_div_, options,
-        options.axisLabelFont, options.axisLabelFontColor, "center");
-  
-      Dygraph.Export.putVerticalLabelY2(ctx, labelsPlugin.y2label_div_, options,
-        options.axisLabelFont, options.axisLabelFontColor, "center");
-       }
-  */
+
+    for (i = 0; i < axesPlugin.xlabels_.length; i++) {
+      Dygraph.Export.putLabel(ctx, axesPlugin.xlabels_[i], options,
+        options.labelFont, options.labelFontColor);
+    }
+  }
+
+  // Title and axis labels
+
+  var labelsPluginDict = Dygraph.Export.getPlugin(dygraph, 'ChartLabels Plugin');
+  if (labelsPluginDict) {
+    var labelsPlugin = labelsPluginDict.plugin;
+
+    Dygraph.Export.putLabel(ctx, labelsPlugin.title_div_, options,
+      options.titleFont, options.titleFontColor);
+
+    Dygraph.Export.putLabel(ctx, labelsPlugin.xlabel_div_, options,
+      options.axisLabelFont, options.axisLabelFontColor);
+
+    Dygraph.Export.putVerticalLabelY1(ctx, labelsPlugin.ylabel_div_, options,
+      options.axisLabelFont, options.axisLabelFontColor, "center");
+
+    Dygraph.Export.putVerticalLabelY2(ctx, labelsPlugin.y2label_div_, options,
+      options.axisLabelFont, options.axisLabelFontColor, "center");
+  }
 
   for (i = 0; i < dygraph.layout_.annotations.length; i++) {
     Dygraph.Export.putLabelAnn(ctx, dygraph.layout_.annotations[i], options,
@@ -356,7 +386,7 @@ Dygraph.Export.drawLegend = function (canvas, dygraph, options) {
  * If the plugin is not found, it returns null.
  */
 Dygraph.Export.getPlugin = function (dygraph, name) {
-  for (i = 0; i < dygraph.plugins_.length; i++) {
+  for (let i = 0; i < dygraph.plugins_.length; i++) {
     if (dygraph.plugins_[i].plugin.toString() == name) {
       return dygraph.plugins_[i];
     }

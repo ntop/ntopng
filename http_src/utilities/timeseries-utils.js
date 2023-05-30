@@ -354,7 +354,6 @@ function getAxisConfiguration(formatter) {
 }
 
 function buildChartOptions(series, labels, serie_properties, formatters, colors, stacked) {
-	debugger;
 	let is_dark_mode = document.getElementsByClassName('body dark').length > 0;
 	let highlight_color = 'rgb(255, 255, 255)';
 	if (is_dark_mode) {
@@ -371,12 +370,12 @@ function buildChartOptions(series, labels, serie_properties, formatters, colors,
 		connectSeparatedPoints: true,
 		includeZero: true,
 		drawPoints: true,
+		highlightSeriesBackgroundAlpha: 0.7,
+		highlightSeriesBackgroundColor: highlight_color,
 		highlightSeriesOpts: {
 			strokeWidth: 2,
-			strokeBorderWidth: 1,
-			highlightCircleSize: 5,
-			highlightSeriesBackgroundAlpha: 1,
-			highlightSeriesBackgroundColor: highlight_color,
+			pointSize: 3,
+			highlightCircleSize: 6,
 		},
 		axisLabelFontSize: 12,
 		axes: {},

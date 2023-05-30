@@ -683,11 +683,11 @@ function show_modal_download_file() {
 
 async function download_chart_png(filename) {
     let chart_image_array_promise = charts.value.map(async (chart) => {
-        let chart_image = chart.get_image();
+        let canvas = new Image();
+        chart.get_image(canvas);
         return new Promise(async (resolve, reject) => {
-            let image = chart_image;
-            image.onload = function () {
-                resolve(image);
+            canvas.onload = function () {
+                resolve(canvas);
             };
         });
     });
