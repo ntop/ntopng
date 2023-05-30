@@ -124,7 +124,9 @@ async function init_selected_criteria() {
     let res = await ntopng_utility.http_request(url, null, null, true);
     let ports = []
     res.rsp.forEach((item) => {
-        ports.push({label: item.srv_port+"/"+item.l7_proto_name+" ("+item.n_hosts+")", id: item.srv_port})
+        debugger;
+        let name = item.l7_proto_name.split(".")[0];
+        ports.push({label: item.srv_port+"/"+name+" ("+item.n_hosts+")", id: item.srv_port})
     })
     port_list.value = ports;
     selected_port.value = port_list.value[0];
@@ -139,7 +141,9 @@ async function update_criteria() {
     let res = await ntopng_utility.http_request(url, null, null, true);
     let ports = []
     res.rsp.forEach((item) => {
-        ports.push({label: item.srv_port+"/"+item.l7_proto_name+" ("+item.n_hosts+")", id: item.srv_port})
+        debugger;
+        let name = item.l7_proto_name.split(".")[0];
+        ports.push({label: item.srv_port+"/"+name+" ("+item.n_hosts+")", id: item.srv_port})
     })
     port_list.value = ports;
     selected_port.value = port_list.value[0];
@@ -196,7 +200,9 @@ const get_rows = async (active_page, per_page, columns_wrap, map_search, first_g
         res = await ntopng_utility.http_request(url, null, null, true);
         let ports = []
         res.rsp.forEach((item) => {
-            ports.push({label: item.srv_port+"/"+item.l7_proto_name+" ("+item.n_hosts+")", id: item.srv_port})
+            debugger;
+            let name = item.l7_proto_name.split(".")[0];
+            ports.push({label: item.srv_port+"/"+name+" ("+item.n_hosts+")", id: item.srv_port})
         })
         port_list.value = ports;
         selected_port.value = port_list.value[0];   
