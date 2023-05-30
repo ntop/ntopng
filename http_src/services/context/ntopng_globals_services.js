@@ -161,6 +161,7 @@ export const ntopng_utility = function() {
 		return json_res.rsp;
 	    } catch (err) {
 		console.error(err);
+		console.error("URL: " + url);
 		if (throw_exception == true) { throw err; }
 		return null;
 	    }
