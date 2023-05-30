@@ -9,8 +9,6 @@ import { default as Dropdown } from "../vue//dropdown.vue";
 const _i18n = (t) => i18n(t);
 
 async function build_table(http_prefix, table_id, f_map_columns, f_get_extra_params_obj, f_on_get_rows) {
-    console.log(table_id);
-    console.log("---------------------------------");
     let table_def_url = `${http_prefix}/tables_config/${table_id}.json`;
     let table_def = await ntopng_utility.http_request(table_def_url, null, null, true);
     if (f_map_columns != null) {
