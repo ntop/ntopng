@@ -71,7 +71,8 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint)
       if (ntop->getPrefs()->get_zmq_encryption_priv_key() == NULL)
         generateEncryptionKeys();
 
-      secret_key = findEncryptionKeys();
+      secret_key = findInterfaceEncryptionKeys(server_public_key, server_secret_key,
+        sizeof(server_public_key), sizeof(server_secret_key));
 
       if (secret_key != NULL) {
         if (strlen(secret_key) != 40)
@@ -256,7 +257,7 @@ bool ZMQCollectorInterface::readEncryptionKeysFromFile(char *public_key_path, ch
 /* **************************************************** */
 
 void ZMQCollectorInterface::generateEncryptionKeys() {
-  char server_public_key[41], server_secret_key[41];
+  char public_key[41], secret_key[41];
   char public_key_path[PATH_MAX], secret_key_path[PATH_MAX];
   bool rc = -1;
 
@@ -265,19 +266,19 @@ void ZMQCollectorInterface::generateEncryptionKeys() {
   snprintf(secret_key_path, sizeof(secret_key_path), "%s/zmq-key.priv",
            ntop->get_working_dir());
 
-  if (readEncryptionKeysFromFile(public_key_path, secret_key_path, server_public_key, server_secret_key, sizeof(server_public_key), sizeof(server_secret_key))) {
+  if (readEncryptionKeysFromFile(public_key_path, secret_key_path, public_key, secret_key, sizeof(public_key), sizeof(secret_key))) {
     /* Keys already on file */
     rc = 0;
   }
 
   if (rc != 0) {
     /* Keys not found, generate keys */
-    rc = zmq_curve_keypair(server_public_key, server_secret_key);
+    rc = zmq_curve_keypair(public_key, secret_key);
     if (rc == 0) {
-      Utils::file_write(public_key_path, server_public_key,
-                        strlen(server_public_key));
-      Utils::file_write(secret_key_path, server_secret_key,
-                        strlen(server_secret_key));
+      Utils::file_write(public_key_path, public_key,
+                        strlen(public_key));
+      Utils::file_write(secret_key_path, secret_key,
+                        strlen(secret_key));
     }
   }
 
@@ -288,24 +289,15 @@ void ZMQCollectorInterface::generateEncryptionKeys() {
 
 /* **************************************************** */
 
-char *ZMQCollectorInterface::findEncryptionKeys() {
+char *ZMQCollectorInterface::findEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len) {
   char public_key_path[PATH_MAX], secret_key_path[PATH_MAX];
   bool rc = false;
 
   /* Private key from option */
   if (ntop->getPrefs()->get_zmq_encryption_priv_key()) {
-    strncpy(server_secret_key, ntop->getPrefs()->get_zmq_encryption_priv_key(), sizeof(server_secret_key) - 1);
-    server_secret_key[sizeof(server_secret_key) - 1] = '\0';
+    strncpy(secret_key, ntop->getPrefs()->get_zmq_encryption_priv_key(), secret_key_len - 1);
+    secret_key[secret_key_len - 1] = '\0';
     rc = true;
-  }
-
-  if (!rc) {
-    /* Keys from interface datadir (backward compatibility) */
-    snprintf(public_key_path, sizeof(public_key_path), "%s/%d/key.pub",
-             ntop->get_working_dir(), get_id());
-    snprintf(secret_key_path, sizeof(secret_key_path), "%s/%d/key.priv",
-             ntop->get_working_dir(), get_id());
-    rc = readEncryptionKeysFromFile(public_key_path, secret_key_path, server_public_key, server_secret_key, sizeof(server_public_key), sizeof(server_secret_key));
   }
 
   if (!rc) {
@@ -314,7 +306,7 @@ char *ZMQCollectorInterface::findEncryptionKeys() {
              ntop->get_working_dir());
     snprintf(secret_key_path, sizeof(secret_key_path), "%s/zmq-key.priv",
              ntop->get_working_dir());
-    rc = readEncryptionKeysFromFile(public_key_path, secret_key_path, server_public_key, server_secret_key, sizeof(server_public_key), sizeof(server_secret_key));
+    rc = readEncryptionKeysFromFile(public_key_path, secret_key_path, public_key, secret_key, public_key_len, secret_key_len);
   }
 
   if (!rc) {
@@ -323,7 +315,30 @@ char *ZMQCollectorInterface::findEncryptionKeys() {
     return NULL;
   }
 
-  return server_secret_key;
+  return secret_key;
+}
+
+/* **************************************************** */
+
+char *ZMQCollectorInterface::findInterfaceEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len) {
+  char public_key_path[PATH_MAX], secret_key_path[PATH_MAX];
+  bool rc = false;
+
+  /* Keys from interface datadir (backward compatibility) */
+  if (!ntop->getPrefs()->get_zmq_encryption_priv_key()) {
+    snprintf(public_key_path, sizeof(public_key_path), "%s/%d/key.pub",
+             ntop->get_working_dir(), get_id());
+    snprintf(secret_key_path, sizeof(secret_key_path), "%s/%d/key.priv",
+             ntop->get_working_dir(), get_id());
+    rc = readEncryptionKeysFromFile(public_key_path, secret_key_path, public_key, secret_key, public_key_len, secret_key_len);
+  }
+
+  if (!rc) {
+    /* Keys from option or datadir */
+    return findEncryptionKeys(public_key, secret_key, public_key_len, secret_key_len);
+  }
+
+  return secret_key;
 }
 #endif
 

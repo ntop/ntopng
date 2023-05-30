@@ -45,8 +45,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
   static bool readEncryptionKeysFromFile(char *public_key_path, char *secret_key_path,
     char *public_key, char *secret_key, int public_key_len, int secret_key_len);
-
-  char *findEncryptionKeys();
+  char *findInterfaceEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len);
 #endif
 
  public:
@@ -71,6 +70,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
 
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
   static void generateEncryptionKeys();
+  static char *findEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len);
 #endif
 };
 
