@@ -69,6 +69,6 @@
 	    "sortable": false,
 	    "render_generic": "network",
 	    "class": ["none"]
-	},
+	}
     ]
 }
