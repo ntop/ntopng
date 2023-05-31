@@ -390,11 +390,13 @@ ul.navbar-nav li.nav-item.active>a.active {
 }
 
 .table thead th {
+  background-color: #212529 !important;
   border-bottom: 2px solid #2C2C2C;
 }
 
 .table td,
 .table th {
+  background-color: #212529 !important;
   border-top: 1px solid #2C2C2C !important;
   border-right-color: #2C2C2C !important;
   border-top-color: #2C2C2C !important;

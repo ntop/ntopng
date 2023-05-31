@@ -77,7 +77,7 @@
     "@googlemaps/markerclusterer": "^1.0.24",
     "@popperjs/core": "^2.11.2",
     "apexcharts": "^3.33.1",
-    "bootstrap": "^5.3.0-alpha3",
+    "bootstrap": "^5.3.0",
     "bootstrap-loader": "^3.0.4",
     "crossfilter2": "^1.5.4",
     "d3": "^3.5.17",
