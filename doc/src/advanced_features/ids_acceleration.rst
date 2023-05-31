@@ -22,7 +22,7 @@ further analysing their traffic.
 This can be configured from the *Interface* > *Details* > *Settings* menu,
 where it is possible to toggle the *Push Alerted Hosts to PF_RING* flag.
 
-.. figure:: ../img/alerts_push_host_filters.png
+.. figure:: ../img/alerts_push_alerted_hosts_to_pfring.png
   :align: center
   :alt: Push Alerted Hosts to PF_RING
 
