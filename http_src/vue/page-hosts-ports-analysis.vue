@@ -293,13 +293,13 @@ function get_table_columns_config() {
         }
     },
     {
-        columnName: i18n("total_score_host_page"), targets: 0, name: 'score', data: 'score', className: 'text-center', responsivePriority: 1
+        columnName: i18n("total_score_host_page"), targets: 0, name: 'score', data: 'score', className: 'text-nowrap text-center', responsivePriority: 1
     },
     {
-        columnName: i18n("db_explorer.total_flows"), targets: 0, name: 'flows', data: 'flows', className: 'text-nowrap text-center', responsivePriority: 1
+        columnName: i18n("db_explorer.total_flows"), targets: 0, name: 'flows', data: 'flows', className: 'text-nowrap text-end', responsivePriority: 1
     },
     {
-        columnName: i18n("total_traffic"), targets: 0, name: 'tot_traffic', data: 'tot_traffic', className: 'text-nowrap text-center', responsivePriority: 1, render: (data) => {
+        columnName: i18n("total_traffic"), targets: 0, name: 'tot_traffic', data: 'tot_traffic', className:  'text-nowrap text-end', responsivePriority: 1, render: (data) => {
             return NtopUtils.bytesToSize(data);
         }
     },
