@@ -3845,13 +3845,18 @@ void Ntop::setZoneInfo() {
 
 #else
   zoneinfo = getWindowsTimezone();
-
 #endif /* WIN32 */
 
   if (zoneinfo == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
                                  "Unable to find timezone: using UTC");
-    zoneinfo = strdup("Europe/London"); /* UTC */
+    zoneinfo = strdup("UTC");
+  } else {
+    const char *const_zoneinfo = "zoneinfo/";
+    u_int len = strlen(const_zoneinfo);
+
+    if(strncmp(zoneinfo, const_zoneinfo, len) == 0)
+      zoneinfo = &zoneinfo[len];
   }
 
   if (zoneinfo)
