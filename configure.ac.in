@@ -344,14 +344,14 @@ if test "$?" -ne 1; then
   SSL_LIB="`pkg-config --libs libssl` -lssl -lcrypto"
 else
   dnl Workaround for MacOS Brew
-  if test -d "/usr/local/opt/openssl/lib"; then
+  if test -d "/usr/local/Cellar/openssl@1.1"; then
+    AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
+    SSL_INC="-I/usr/local/Cellar/openssl@1.1/include"
+    SSL_LIB="-L/usr/local/Cellar/openssl@1.1 -lssl -lcrypto"
+  elif test -d "/usr/local/opt/openssl/lib"; then
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
     SSL_INC="-I/usr/local/opt/openssl/include"
     SSL_LIB="-L/usr/local/opt/openssl/lib -lssl -lcrypto"
-  elif test -d "/opt/homebrew/Cellar/openssl@1.1"; then
-    AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
-    SSL_INC="-I/opt/homebrew/opt/openssl@1.1/include"
-    SSL_LIB="-L/opt/homebrew/opt/openssl@1.1/lib -lssl -lcrypto"
   dnl Workaround for FreeBSD
   elif test -f "/usr/lib/libssl.so"; then
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
