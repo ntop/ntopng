@@ -31,6 +31,10 @@ local length = _GET["length"] or 10
 
 local page = _GET["page"]
 
+if(isEmptyString(page)) then
+    page = "live"
+end
+
 local ifId = interface.getId()
 
 local base_url = ntop.getHttpPrefix() .. "/lua/hosts_ports_analysis.lua"
