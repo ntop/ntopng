@@ -764,9 +764,13 @@ MYSQL *MySQLDB::mysql_try_connect(MYSQL *conn, const char *dbname) {
   char *host = ntop->getPrefs()->get_mysql_host();
   char *user = ntop->getPrefs()->get_mysql_user();
   u_int port = ntop->getPrefs()->get_mysql_port();
-
+  unsigned int connection_timeout = 5 /* sec */;
+  
   if (!host) return (NULL);
 
+  /* Set the maximum database connection timeout */
+  mysql_options(conn, MYSQL_OPT_CONNECT_TIMEOUT, &connection_timeout);
+  
   if ((!ntop->getPrefs()->do_dump_flows_on_clickhouse()) &&
       (host[0] == '/') /* Use socketD */)
     rc = mysql_real_connect(conn, NULL, /* Host */
@@ -867,14 +871,46 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   rc = mysql_try_connect(conn, dbname);
 
   if (rc == NULL) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Failed to connect to %s: %s [%s@%s:%i]\n",
-        getEngineName(), mysql_error(conn), user, host, port);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to %s: %s [%s@%s:%i]\n",
+				 getEngineName(), mysql_error(conn), user, host, port);
 
     m.unlock(__FILE__, __LINE__);
     return (db_operational);
   }
 
+  if(ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
+    int rc = mysql_query(conn, "SELECT VERSION()");
+    
+    if (rc < 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read ClickHouse version");
+      m.unlock(__FILE__, __LINE__);
+      return (false);
+    } else {
+      MYSQL_RES *result = mysql_store_result(conn);
+      MYSQL_ROW row = result ? mysql_fetch_row(result) : NULL;
+      
+      if(!row) {
+	if(result) mysql_free_result(result);
+	m.unlock(__FILE__, __LINE__);
+	return (false);	
+      } else {
+	int clickhouse_version = atoi(row[0]);
+	int min_clickhouse_version = 22; /* See https://www.ntop.org/guides/ntopng/clickhouse/installation.html */       
+
+	if(clickhouse_version < min_clickhouse_version) {
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Your ClickHouse server v.%s is too old (< %u.X.X.X): please update",
+				       row[0], min_clickhouse_version);
+	  mysql_free_result(result);
+	  m.unlock(__FILE__, __LINE__);
+	  return (false);
+	} else
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "Succesfully connected to ClickHouse server v.%s", row[0]);
+      }
+      
+      mysql_free_result(result);
+    }
+  }
+  
   db_operational = true;
 
   ntop->getTrace()->traceEvent(
@@ -1172,9 +1208,8 @@ int MySQLDB::exec_quick_sql_query(char *sql, char *out, u_int out_len) {
   }
 
   if ((rc != 0) ||
-      (((result = mysql_store_result(&mysql)) == NULL) &&
-       mysql_field_count(&mysql) !=
-           0 /* mysql_store_result() returned nothing; should it have? */)) {
+      (((result = mysql_store_result(&mysql)) == NULL)
+       && mysql_field_count(&mysql) != 0 /* mysql_store_result() returned nothing; should it have? */)) {
     rc = mysql_errno(&mysql);
 
     if (rc) printFailure(sql, rc);
