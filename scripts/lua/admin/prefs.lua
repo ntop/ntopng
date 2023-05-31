@@ -79,6 +79,15 @@ if auth.has_capability(auth.capabilities.preferences) then
         end
     end
 
+    if(_POST["flows_and_alerts_data_retention_days"] and _POST["aggregated_flows_data_retention_days"]) then
+       local aggregated = tonumber(_POST["aggregated_flows_data_retention_days"])
+       local raw        = tonumber(_POST["flows_and_alerts_data_retention_days"])
+
+       if(aggregated <= raw) then
+	  _POST["aggregated_flows_data_retention_days"] = tostring(raw + 1)
+       end
+    end
+    
     if (_POST["toggle_radius_auth"] == "1") and
         ((_POST["radius_server_address"] ~= ntop.getPref("ntopng.prefs.radius.radius_server_address")) or
             (_POST["radius_acct_server_address"] ~= ntop.getPref("ntopng.prefs.radius.radius_acct_server_address")) or
@@ -486,7 +495,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             subpage_active.entries["aggregated_flows_data_retention"].description, "ntopng.prefs.",
             "aggregated_flows_data_retention_days", data_retention_utils.getAggregatedFlowsDataRetention(), "number", nil, nil, nil,
             {
-                min = data_retention_utils.getDefaultRetention()+1,
+                min = 2,
                 max = 365 * 10
             })
 

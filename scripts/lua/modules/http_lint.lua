@@ -164,28 +164,6 @@ http_lint.validateNumber = validateNumber
 
 -- FRONT-END VALIDATORS
 
-local function validateNumberMoreThanFlowsRetention(p)
-    -- integer number validation
-    local num = tonumber(p)
-
-    if (num == nil) then
-        return false
-    end
-
-    local flows_retention = ntop.getPref("ntopng.prefs.flows_and_alerts_data_retention_days")
-    if math.floor(num) == num and num > tonumber(flows_retention) then
-        return true
-    else
-        -- this is a float number
-        return false
-    end
-end
-http_lint.validateNumber = validateNumberMoreThanFlowsRetention
-
--- #################################################################
-
--- FRONT-END VALIDATORS
-
 local function validateVlan(p)
     -- integer number validation
     if (validateNumber(p)) then
@@ -2132,7 +2110,7 @@ local known_parameters = {
     -- Input fields
     ["companion_interface"] = validateEmptyOr(validateInterface),
     ["flows_and_alerts_data_retention_days"] = validateNumber,
-    ["aggregated_flows_data_retention_days"] = validateNumberMoreThanFlowsRetention,
+    ["aggregated_flows_data_retention_days"] = validateNumber,
     ["ts_and_stats_data_retention_days"] = validateNumber,
     ["max_entity_alerts"] = validateNumber,
     ["max_num_secs_before_delete_alert"] = validateNumber,
