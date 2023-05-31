@@ -205,7 +205,7 @@ const get_rows = async (active_page, per_page, columns_wrap, map_search, first_g
     let url;
     let res;
     
-    if (selected_port.value.value == undefined) {
+    if (selected_port.value == null || selected_port.value == undefined || selected_port.value.value == undefined) {
         url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=`+selected_criteria.value.value;
         res = await ntopng_utility.http_request(url, null, null, true);
         let ports = []
