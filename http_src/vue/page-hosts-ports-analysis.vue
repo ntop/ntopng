@@ -34,6 +34,7 @@
                                 :print_column_name="(col) => table_config.print_column_name(col)"
                                 :print_html_row="(col, row) => table_config.print_html_row(col, row)"
                                 :f_is_column_sortable="is_column_sortable"
+                                :f_get_column_classes="get_column_classes"
                                 :enable_search="true"
                                 :paging="true">
                         </Table>
@@ -106,6 +107,9 @@ onMounted(async () => {
     load_table();
 });
 
+const get_column_classes = (col) => {
+    return col.className;
+}
 function update_port() {
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
 
@@ -278,17 +282,17 @@ function get_table_columns_config() {
 
     
     columns.push({
-        columnName: i18n("prefs.ip_order"), targets: 0, name: 'ip', data: 'ip', className: 'text-nowrap text-center', responsivePriority: 1, render: (data,_, rowData) => {
+        columnName: i18n("prefs.ip_order"), targets: 0, name: 'ip', data: 'ip', className: 'text-nowrap', responsivePriority: 1, render: (data,_, rowData) => {
             return format_ip(data, rowData);
         }
     }, 
     {
-        columnName: i18n("db_explorer.host_name"), targets: 0, name: 'name', data: 'name', className: 'text-nowrap text-center', responsivePriority: 1, render: (data,_, rowData) => {
+        columnName: i18n("db_explorer.host_name"), targets: 0, name: 'name', data: 'name', className: 'text-nowrap', responsivePriority: 1, render: (data,_, rowData) => {
             return format_host_name(data, rowData);
         }
     },
     {
-        columnName: i18n("mac_details.mac"), targets: 0, name: 'mac', data: 'mac', className: 'text-nowrap text-center', responsivePriority: 1, render: (data,_, rowData) => {
+        columnName: i18n("mac_details.mac"), targets: 0, name: 'mac', data: 'mac', className: 'text-nowrap', responsivePriority: 1, render: (data,_, rowData) => {
             return format_mac(data, rowData);
         }
     },
