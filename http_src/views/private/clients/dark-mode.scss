@@ -406,7 +406,7 @@ ul.navbar-nav li.nav-item.active>a.active {
 
 .table-hover tbody tr:hover {
   color: #E2E2E2 !important;
-  background-color: #303030 !important;
+  background-color: #1f2226 !important;
 }
 
 .table .thead-light th {
@@ -838,4 +838,8 @@ table.dataTable thead th.sorting::after {
 
 .form-check-label {
   color: #e2e2e2;
+}
+
+li:hover {
+  background-color: #1f2226 !important;
 }
