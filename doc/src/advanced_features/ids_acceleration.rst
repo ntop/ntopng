@@ -19,8 +19,8 @@ used by n2disk.
 In fact ntopng implements Behavioural Checks to detect when a host is misbehaving
 and can be configured to push information about those hosts to external tools for
 further analysing their traffic.
-This can be configured from the *Settings* > *Preferences* > *Alerts* menu,
-where it is possible to toggle the *Push Host Filters to PF_RING* flag.
+This can be configured from the *Interface* > *Details* > *Settings* menu,
+where it is possible to toggle the *Push Alerted Hosts to PF_RING* flag.
 
 .. figure:: ../img/alerts_push_host_filters.png
   :align: center
@@ -34,6 +34,6 @@ to an IDS/IPS (or any other application running on top of PF_RING), which is
 otherwise discarded by default.
 
 The IP addresses to be monitored are notified to PF_RING by means of a Redis queue,
-whose name is *pfring.INTERFACE.filter.host.queue*. Please also read the 
-`PF_RING Runtime Filtering <https://www.ntop.org/guides/pf_ring/filtering/runtime.html>`_ 
+whose name is pfring.*INTERFACE_ID*.filter.host.queue as reported by the GUI. 
+Please also read the `PF_RING Runtime Filtering <https://www.ntop.org/guides/pf_ring/filtering/runtime.html>`_ 
 section for configuring the IDS/IPS.
