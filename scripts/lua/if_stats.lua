@@ -2067,6 +2067,40 @@ function toggle_mirrored_traffic_function_off(){
          </td>
       </tr>]]
 
+      -- Show Push Host Filters to PF_RING toggle
+      local push_host_filters = false
+      local push_host_filters_pref = string.format("ntopng.prefs.ifid_%d.push_host_filters_to_pfring", interface.getId())
+
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+         if _POST["push_host_filters"] == "1" then
+            push_host_filters = true
+         end
+
+         ntop.setPref(push_host_filters_pref, ternary(push_host_filters == true, '1', '0'))
+         interface.updatePushFiltersSettings()
+      else
+         push_host_filters = ternary(ntop.getPref(push_host_filters_pref) == '1', true, false)
+      end
+
+      print [[<tr>
+    <th>
+    ]] print(i18n("if_stats_config.toggle_push_host_filters")) print[[
+       <i class='fas fa-question-circle ' data-bs-toggle="tooltip" data-placement="top" title=']] print(i18n("if_stats_config.toggle_push_host_filters_note")) print[['></i>
+    </th>
+    <td>]]
+
+      local queue = "pfring."..interface.getId()..".filter.host.queue"
+
+      print(template.gen("on_off_switch.html", {
+         id = "push_host_filters",
+         checked = push_host_filters,
+label="<small>"..i18n("if_stats_config.toggle_push_host_filters_queue")..": <i>"..queue.."</i></small>"
+       }))
+
+      print[[
+         </td>
+      </tr>]]
+
    end
 
 print[[

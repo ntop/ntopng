@@ -625,6 +625,7 @@
 #define CONST_DEFAULT_MIRRORED_TRAFFIC false
 #define CONST_DEFAULT_SMART_RECORDING false
 #define CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC false
+#define CONST_DEFAULT_PUSH_HOST_FILTERS false
 #define CONST_DEFAULT_LBD_SERIALIZE_AS_MAC false
 #define CONST_DEFAULT_DISCARD_PROBING_TRAFFIC false
 #define CONST_DEFAULT_FLOWS_ONLY_INTERFACE false
@@ -644,6 +645,8 @@
   NTOPNG_PREFS_PREFIX ".ifid_%d.smart_traffic_recording.instance"
 #define CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS \
   NTOPNG_PREFS_PREFIX ".ifid_%d.show_dynamic_interface_traffic"
+#define CONST_PUSH_HOST_FILTERS_PREFS \
+  NTOPNG_PREFS_PREFIX ".ifid_%d.push_host_filters_to_pfring"
 #define CONST_DISABLED_FLOW_DUMP_PREFS \
   NTOPNG_PREFS_PREFIX ".ifid_%d.is_flow_dump_disabled"
 #define CONST_LBD_SERIALIZATION_PREFS \
@@ -706,7 +709,6 @@
   NTOPNG_PREFS_PREFIX ".is_client_x509_auth_enabled"
 #define CONST_PREFS_EMIT_FLOW_ALERTS NTOPNG_PREFS_PREFIX ".emit_flow_alerts"
 #define CONST_PREFS_EMIT_HOST_ALERTS NTOPNG_PREFS_PREFIX ".emit_host_alerts"
-#define CONST_PREFS_PUSH_HOST_FILTERS NTOPNG_PREFS_PREFIX ".push_host_filters"
 
 #define CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE \
   NTOPNG_PREFS_PREFIX ".is_broadcast_domain_too_large_enabled"

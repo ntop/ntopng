@@ -2219,6 +2219,7 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
     if (!rv)
       delete notification;
 
+    /* Push filters to the Smart Recording service */
     if (iface->isSmartRecordingEnabled() && (instance_name = iface->getSmartRecordingInstance())) {
       char key[256], ip_buf[64];
       int expiration = 30*60; /* 30 min */
@@ -2240,11 +2241,12 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
       ntop->getRedis()->set(key, "1", expiration);
     }
 
-    if (ntop->getPrefs()->pushHostFilters()) { /* Push filters to the "Runtime Manager" in pfring for filtering */
+    /* Push filters to the "Runtime Manager" in pfring for filtering */
+    if (iface->pushHostFilters()) {
       char value[64], ip_buf[64], key[64];
       char *ip_str = get_ip()->print(ip_buf, sizeof(ip_buf));
 
-      snprintf(key, sizeof(key), "pfring.%s.filter.host.queue", iface->get_name());
+      snprintf(key, sizeof(key), "pfring.%d.filter.host.queue", iface->get_id());
 
       if (!alert->isReleased()) {
         /* Engaged: add host (if not already present) */

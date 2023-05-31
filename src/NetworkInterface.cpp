@@ -232,6 +232,7 @@ NetworkInterface::NetworkInterface(const char *name,
   updateLbdIdentifier();
   updateDiscardProbingTraffic();
   updateFlowsOnlyInterface();
+  updatePushFiltersSettings();
 }
 
 /* **************************************************** */
@@ -278,6 +279,7 @@ void NetworkInterface::init(const char *interface_name) {
   dynamic_interface_criteria = 0;
   dynamic_interface_mode = flowhashing_none;
   show_dynamic_interface_traffic = false;
+  push_host_filters = false;
 
   top_sites = NULL;
   top_os = NULL;
@@ -791,6 +793,13 @@ void NetworkInterface::updateSmartRecording() {
 void NetworkInterface::updateDynIfaceTrafficPolicy() {
   show_dynamic_interface_traffic = getInterfaceBooleanPref(
       CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS, CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC);
+}
+
+/* **************************************************** */
+
+void NetworkInterface::updatePushFiltersSettings() {
+  push_host_filters = getInterfaceBooleanPref(
+      CONST_PUSH_HOST_FILTERS_PREFS, CONST_DEFAULT_PUSH_HOST_FILTERS);
 }
 
 /* **************************************************** */

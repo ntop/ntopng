@@ -2004,6 +2004,7 @@ local known_parameters = {
     ["is_mirrored_traffic"] = validateBool,
     ["discard_probing_traffic"] = validateBool,
     ["show_dyn_iface_traffic"] = validateBool,
+    ["push_host_filters"] = validateBool,
     ["interface_network_discovery"] = validateBool,
     ["dynamic_iface_vlan_creation"] = validateBool,
     ["toggle_mysql_check_open_files_limit"] = validateBool,
@@ -2188,7 +2189,6 @@ local known_parameters = {
     ["lbd_hosts_as_macs"] = validateBool,
     ["toggle_emit_flow_alerts"] = validateBool,
     ["toggle_emit_host_alerts"] = validateBool,
-    ["toggle_push_host_filters"] = validateBool,
     ["toggle_date_type"] = validateSingleWord,
 
     -- Other

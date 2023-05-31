@@ -58,7 +58,7 @@ class Prefs {
       enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
       enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
       enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
-      dump_flows_on_clickhouse, use_mac_in_flow_key, push_host_filters;
+      dump_flows_on_clickhouse, use_mac_in_flow_key;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, devices_learning_period;
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
@@ -660,9 +660,6 @@ class Prefs {
   };
   inline bool dontEmitHostAlerts() {
     return (disable_alerts || !emit_host_alerts);
-  };
-  inline bool pushHostFilters() {
-    return (!disable_alerts && push_host_filters);
   };
   inline void dontUseClickHouse() {
     dump_flows_on_clickhouse = dump_flows_on_mysql = false;

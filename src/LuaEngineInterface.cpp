@@ -3417,6 +3417,19 @@ static int ntop_update_dynamic_interface_traffic_policy(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_update_push_filters_settings(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_interface) ntop_interface->updatePushFiltersSettings();
+
+  lua_pushnil(vm);
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_update_lbd_identifier(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5357,6 +5370,8 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"updateSmartRecording", ntop_update_smart_recording},
     {"updateDynIfaceTrafficPolicy",
      ntop_update_dynamic_interface_traffic_policy},
+    {"updatePushFiltersSettings",
+     ntop_update_push_filters_settings},
     {"updateLbdIdentifier", ntop_update_lbd_identifier},
     {"updateHostTrafficPolicy", ntop_update_host_traffic_policy},
     {"updateDiscardProbingTraffic", ntop_update_discard_probing_traffic},

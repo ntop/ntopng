@@ -219,6 +219,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool is_dynamic_interface;           /* Whether this is a dynamic interface */
   bool show_dynamic_interface_traffic; /* Show traffic of this dynamic interface
                                         */
+  bool push_host_filters; /* Push alerted hosts to pf_ring via Redis queue */
   u_int64_t dynamic_interface_criteria; /* Criteria identifying this dynamic
                                            interface */
   FlowHashingEnum
@@ -698,11 +699,13 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline bool showDynamicInterfaceTraffic() const {
     return show_dynamic_interface_traffic;
   };
+  inline bool pushHostFilters() const { return push_host_filters; };
   inline bool discardProbingTraffic() const { return discard_probing_traffic; };
   inline bool flowsOnlyInterface() const { return flows_only_interface; };
   void updateTrafficMirrored();
   void updateSmartRecording();
   void updateDynIfaceTrafficPolicy();
+  void updatePushFiltersSettings();
   void updateFlowDumpDisabled();
   void updateLbdIdentifier();
   void updateDiscardProbingTraffic();
