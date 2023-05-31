@@ -3,7 +3,7 @@
 	<div style="width:100%" class="text-end">
 		<label class="form-check-label form-control-sm" v-for="(item, i) in  timeseries_list ">
 			<input type="checkbox" class="form-check-input align-middle mt-0" @click="change_visibility(!item.checked, i)"
-				:checked="item.checked" :style="{ backgroundColor: item.color }">
+				:checked="item.checked" style="border-color: #0d6efd;" :style="{ backgroundColor: item.color }">
 			{{ item.name }}
 		</label>
 	</div>
@@ -97,7 +97,7 @@ export default {
 			let visibility = [];
 			let id = 0;
 			for (const key in chart_options.series) {
-				this.timeseries_list.push({ name: key, checked: true, id: id, color: chart_options.colors[id] });
+				this.timeseries_list.push({ name: key, checked: true, id: id, color: chart_options.colors[id] + "!important" });
 				id = id + 1;
 				visibility.push(true);
 			}

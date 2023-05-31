@@ -843,7 +843,7 @@ table.dataTable thead th.sorting_asc::after {
   border-color: #a7a6a6;
   border-style: solid;
   border-width: thin;
-  z-index: 80 !important;
+  z-index: var(--bs-dropdown-zindex);
   box-shadow: 2px 2px 5px rgba(0, 0, 0, .3);
   border-radius: 3px;
 }

@@ -3,6 +3,7 @@
 */
 
 import formatterUtils from "./formatter-utils";
+import colorsInterpolation from "./colors-interpolation";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 
 const constant_serie_colors = {
@@ -354,6 +355,7 @@ function getAxisConfiguration(formatter) {
 }
 
 function buildChartOptions(series, labels, serie_properties, formatters, colors, stacked) {
+	const interpolated_colors = colorsInterpolation.transformColors(colors);
 	let is_dark_mode = document.getElementsByClassName('body dark').length > 0;
 	let highlight_color = 'rgb(255, 255, 255)';
 	if (is_dark_mode) {
@@ -379,7 +381,7 @@ function buildChartOptions(series, labels, serie_properties, formatters, colors,
 		},
 		axisLabelFontSize: 12,
 		axes: {},
-		colors: colors,
+		colors: interpolated_colors,
 	};
 
 	if (formatters.length > 1) {
