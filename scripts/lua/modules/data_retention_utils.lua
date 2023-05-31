@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 
 local DEFAULT_DATA_RETENTION_DAYS = 30
+local DEFAULT_AGGREGATED_FLOWS_DATA_RETENTION_DAYS = 60
 local DEFAULT_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.data_retention_days"
 local FLOWS_AND_ALERTS_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.flows_and_alerts_data_retention_days"
 local TS_AND_STATS_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.ts_and_stats_data_retention_days"
@@ -17,6 +18,12 @@ local data_retention_utils = {}
 
 function data_retention_utils.getDefaultRetention()
   return DEFAULT_DATA_RETENTION_DAYS
+end
+
+-- ########################################################
+
+function data_retention_utils.getAggregatedFlowsDataRetention()
+  return DEFAULT_AGGREGATED_FLOWS_DATA_RETENTION_DAYS
 end
 
 -- ########################################################

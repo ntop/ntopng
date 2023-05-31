@@ -618,6 +618,10 @@ local menu_subpages = {{
             title = i18n("prefs.flows_and_alerts_data_retention"),
             description = i18n("prefs.flows_and_alerts_data_retention_descr")
         },
+        aggregated_flows_data_retention = {
+            title = i18n("prefs.aggregated_flows_data_retention_title"),
+            description = i18n("prefs.aggregated_flows_data_retention_descr")
+        },
         ts_data_retention = {
             title = i18n("prefs.ts_and_stats_data_retention"),
             description = i18n("prefs.ts_and_stats_data_retention_descr")
