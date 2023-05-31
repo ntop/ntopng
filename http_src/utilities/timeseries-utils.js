@@ -311,7 +311,7 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 				const serie_point = serie[point];
 				/* If the point is inserted for the first time, add the time before everything else */
 				if (formatted_serie[point] == null) {
-					formatted_serie[point] = [new Date(time * 1000)];
+					formatted_serie[point] = [new Date(ntopng_utility.from_utc_to_server_date_format(time * 1000))];
 				}
 				/* Add the point to the array */
 				if (serie_point != null) {
@@ -369,7 +369,7 @@ function buildChartOptions(series, labels, serie_properties, formatters, colors,
 		labelsSeparateLines: true,
 		legend: "follow",
 		stackedGraph: stacked, /* TODO. add stacked here */
-		connectSeparatedPoints: true,
+		connectSeparatedPoints: false,
 		includeZero: true,
 		drawPoints: true,
 		highlightSeriesBackgroundAlpha: 0.7,
