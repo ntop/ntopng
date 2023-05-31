@@ -118,8 +118,7 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {{
 }})
 
 if (page == "flows" or page == nil) then
-    local active_msg = getFlowsTableTitle()
-
+    local active_msg = getFlowsTableTitle(ntop.getHttpPrefix())
     if (category ~= nil) then
         page_params["category"] = category
     end

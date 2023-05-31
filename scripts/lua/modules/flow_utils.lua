@@ -2256,7 +2256,7 @@ end
 
 -- #######################
 
-function getFlowsTableTitle()
+function getFlowsTableTitle(base_url)
    local active_msg = ""
    local status_type
 
@@ -2323,7 +2323,12 @@ function getFlowsTableTitle()
       end
    else 
       if(_GET["server"] ~= nil) then
-         active_msg = active_msg .. i18n("flows_page.server", {server=_GET["server"]})
+         local server_info = interface.getHostInfo(_GET["server"])
+         local server_name = ""
+         if (server_info) then
+            server_name = server_info.names.resolved
+         end
+         active_msg = active_msg .. i18n("flows_page.server", {server=_GET["server"], base_url = base_url, server_name = ternary(isEmptyString(server_name), _GET["server"], server_name)}) 
       end
    end
 
@@ -2333,7 +2338,7 @@ function getFlowsTableTitle()
    end
 
    if(_GET["port"] ~= nil) then
-      active_msg = active_msg .. i18n("flows_page.port", {port=_GET["port"]})
+      active_msg = active_msg .. i18n("flows_page.port", {port=_GET["port"], base_url = base_url})
    end
 
    if(_GET["inIfIdx"] ~= nil) then
