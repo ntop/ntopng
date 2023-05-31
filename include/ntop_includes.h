@@ -409,6 +409,7 @@ using namespace std;
 #ifndef HAVE_NEDGE
 #include "ParserInterface.h"
 #include "ListeningPorts.h"
+#include "ZMQUtils.h"
 #include "ZMQParserInterface.h"
 #include "ZMQPublisher.h"
 #include "ZMQCollectorInterface.h"

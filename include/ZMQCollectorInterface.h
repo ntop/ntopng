@@ -43,8 +43,6 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   char server_public_key[41], server_secret_key[41];
 
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
-  static bool readEncryptionKeysFromFile(char *public_key_path, char *secret_key_path,
-    char *public_key, char *secret_key, int public_key_len, int secret_key_len);
   char *findInterfaceEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len);
 #endif
 
@@ -67,11 +65,6 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   bool set_packet_filter(char *filter);
   virtual void lua(lua_State *vm);
   virtual bool areTrafficDirectionsSupported() { return (true); };
-
-#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
-  static void generateEncryptionKeys();
-  static char *findEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len);
-#endif
 };
 
 #endif /* HAVE_NEDGE */

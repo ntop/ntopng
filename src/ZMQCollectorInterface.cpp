@@ -69,34 +69,13 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint)
       const char *secret_key;
 
       if (ntop->getPrefs()->get_zmq_encryption_priv_key() == NULL)
-        generateEncryptionKeys();
+        ZMQUtils::generateEncryptionKeys();
 
       secret_key = findInterfaceEncryptionKeys(server_public_key, server_secret_key,
-        sizeof(server_public_key), sizeof(server_secret_key));
+                                               sizeof(server_public_key), sizeof(server_secret_key));
 
-      if (secret_key != NULL) {
-        if (strlen(secret_key) != 40)
-          ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                       "Bad ZMQ secret key len (%lu != 40)",
-                                       strlen(secret_key));
-        else {
-          int val = 1;
-
-          if (zmq_setsockopt(subscriber[num_subscribers].socket,
-                             ZMQ_CURVE_SERVER, &val, sizeof(val)) != 0)
-            ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                         "Unable to set ZMQ_CURVE_SERVER");
-          else {
-            if (zmq_setsockopt(subscriber[num_subscribers].socket,
-                               ZMQ_CURVE_SECRETKEY, secret_key, 41) != 0)
-              ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                           "Unable to set ZMQ_CURVE_SECRETKEY");
-            else
-              ntop->getTrace()->traceEvent(TRACE_INFO,
-                                           "ZMQ CURVE encryption enabled");
-          }
-        }
-      }
+      if (secret_key != NULL)
+        ZMQUtils::setServerEncryptionKeys(subscriber[num_subscribers].socket, secret_key);
 #else
       ntop->getTrace()->traceEvent(
           TRACE_ERROR,
@@ -111,41 +90,8 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint)
                                    "Unable to enlarge ZMQ buffer size");
 
     if (!strncmp(e, (char *)"tcp://", 6)) {
-      val = DEFAULT_ZMQ_TCP_KEEPALIVE;
-      if (zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE,
-                         &val, sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                     "Unable to set tcp keepalive");
-      else
-        ntop->getTrace()->traceEvent(TRACE_INFO, "TCP keepalive set");
-
-      val = DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE;
-      if (zmq_setsockopt(subscriber[num_subscribers].socket,
-                         ZMQ_TCP_KEEPALIVE_IDLE, &val, sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "Unable to set tcp keepalive idle to %u seconds", val);
-      else
-        ntop->getTrace()->traceEvent(
-            TRACE_INFO, "TCP keepalive idle set to %u seconds", val);
-
-      val = DEFAULT_ZMQ_TCP_KEEPALIVE_CNT;
-      if (zmq_setsockopt(subscriber[num_subscribers].socket,
-                         ZMQ_TCP_KEEPALIVE_CNT, &val, sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "Unable to set tcp keepalive count to %u", val);
-      else
-        ntop->getTrace()->traceEvent(TRACE_INFO,
-                                     "TCP keepalive count set to %u", val);
-
-      val = DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL;
-      if (zmq_setsockopt(subscriber[num_subscribers].socket,
-                         ZMQ_TCP_KEEPALIVE_INTVL, &val, sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "Unable to set tcp keepalive interval to %u seconds",
-            val);
-      else
-        ntop->getTrace()->traceEvent(
-            TRACE_INFO, "TCP keepalive interval set to %u seconds", val);
+      /* TCP socket optimizations */
+      ZMQUtils::setKeepalive(subscriber[num_subscribers].socket);
     }
 
     if (last_char == 'c') is_collector = true, e[l] = '\0';
@@ -229,97 +175,6 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
 /* **************************************************** */
 
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
-
-bool ZMQCollectorInterface::readEncryptionKeysFromFile(char *public_key_path, char *secret_key_path,
-    char *public_key,     char *secret_key,
-    int   public_key_len, int   secret_key_len) {
-  char *tmp_public_key = NULL, *tmp_secret_key = NULL;
-  bool rc = false;
-
-  ntop->fixPath(public_key_path);
-  ntop->fixPath(secret_key_path);
-
-  if (Utils::file_read(public_key_path, &tmp_public_key) > 0 &&
-      Utils::file_read(secret_key_path, &tmp_secret_key) > 0) {
-    strncpy(public_key, tmp_public_key, public_key_len - 1);
-    strncpy(secret_key, tmp_secret_key, secret_key_len - 1);
-    public_key[public_key_len - 1] = '\0';
-    secret_key[secret_key_len - 1] = '\0';
-    rc = true;
-  }
-
-  if (tmp_public_key != NULL) free(tmp_public_key);
-  if (tmp_secret_key != NULL) free(tmp_secret_key);
-
-  return rc;
-}
-
-/* **************************************************** */
-
-void ZMQCollectorInterface::generateEncryptionKeys() {
-  char public_key[41], secret_key[41];
-  char public_key_path[PATH_MAX], secret_key_path[PATH_MAX];
-  bool rc = -1;
-
-  snprintf(public_key_path, sizeof(public_key_path), "%s/zmq-key.pub",
-           ntop->get_working_dir());
-  snprintf(secret_key_path, sizeof(secret_key_path), "%s/zmq-key.priv",
-           ntop->get_working_dir());
-
-  if (readEncryptionKeysFromFile(public_key_path, secret_key_path, public_key, secret_key, sizeof(public_key), sizeof(secret_key))) {
-    /* Keys already on file */
-    rc = 0;
-  }
-
-  if (rc != 0) {
-    /* Keys not found, generate keys */
-    rc = zmq_curve_keypair(public_key, secret_key);
-    if (rc == 0) {
-      Utils::file_write(public_key_path, public_key,
-                        strlen(public_key));
-      Utils::file_write(secret_key_path, secret_key,
-                        strlen(secret_key));
-    }
-  }
-
-  if (rc != 0) 
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Unable to generate ZMQ encryption keys");
-}
-
-/* **************************************************** */
-
-char *ZMQCollectorInterface::findEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len) {
-  char public_key_path[PATH_MAX], secret_key_path[PATH_MAX];
-  bool rc = false;
-
-  /* Private key from option */
-  if (ntop->getPrefs()->get_zmq_encryption_priv_key()) {
-    strncpy(secret_key, ntop->getPrefs()->get_zmq_encryption_priv_key(), secret_key_len - 1);
-    secret_key[secret_key_len - 1] = '\0';
-    rc = true;
-  }
-
-  if (!rc) {
-    /* Keys from datadir */
-    snprintf(public_key_path, sizeof(public_key_path), "%s/zmq-key.pub",
-             ntop->get_working_dir());
-    snprintf(secret_key_path, sizeof(secret_key_path), "%s/zmq-key.priv",
-             ntop->get_working_dir());
-    rc = readEncryptionKeysFromFile(public_key_path, secret_key_path, public_key, secret_key, public_key_len, secret_key_len);
-  }
-
-  if (!rc) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Unable to find ZMQ encryption keys");
-    return NULL;
-  }
-
-  return secret_key;
-}
-
-/* **************************************************** */
-
 char *ZMQCollectorInterface::findInterfaceEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len) {
   char public_key_path[PATH_MAX], secret_key_path[PATH_MAX];
   bool rc = false;
@@ -330,12 +185,12 @@ char *ZMQCollectorInterface::findInterfaceEncryptionKeys(char *public_key, char 
              ntop->get_working_dir(), get_id());
     snprintf(secret_key_path, sizeof(secret_key_path), "%s/%d/key.priv",
              ntop->get_working_dir(), get_id());
-    rc = readEncryptionKeysFromFile(public_key_path, secret_key_path, public_key, secret_key, public_key_len, secret_key_len);
+    rc = ZMQUtils::readEncryptionKeysFromFile(public_key_path, secret_key_path, public_key, secret_key, public_key_len, secret_key_len);
   }
 
   if (!rc) {
     /* Keys from option or datadir */
-    return findEncryptionKeys(public_key, secret_key, public_key_len, secret_key_len);
+    return ZMQUtils::findEncryptionKeys(public_key, secret_key, public_key_len, secret_key_len);
   }
 
   return secret_key;

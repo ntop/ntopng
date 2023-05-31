@@ -12,7 +12,7 @@
 #include "ntop_includes.h"
 
 /**
- * @file ZMQExporter.h
+ * @file ZMQPublisher.h
  *
  * @brief      ZMQPublisher class implementation.
  * @details    ZMQPublisher exports events using a ZMQ socket.
@@ -21,24 +21,21 @@
 #ifndef _ZMQ_PUBLISHER_H_
 #define _ZMQ_PUBLISHER_H_
 
-#define DEFAULT_ZMQ_TCP_KEEPALIVE 1       /* Keepalive ON */
-#define DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE 30 /* Keepalive after 30 seconds */
-#define DEFAULT_ZMQ_TCP_KEEPALIVE_CNT 3   /* Keepalive send 3 probes */
-#define DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL \
-  3 /* Keepalive probes sent every 3 seconds */
-
 class ZMQPublisher {
  private:
-  void *context;        /**< ZMQ context */
-  void *flow_publisher; /**< ZMQ publisher socket */
+  void *context; /**< ZMQ context */
+  void *pub_socket; /**< ZMQ publisher socket */
+  char server_public_key[41];
+  char server_secret_key[41];
 
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
-  int setEncryptionKey(const char *server_public_key);
+  int setServerEncryptionKeys(const char *secret_key);
+  int setClientEncryptionKeys(const char *server_public_key);
 #endif
   bool sendMessage(const char *topic, char *str);
 
  public:
-  ZMQPublisher(char *endpoint, const char *server_public_key = NULL);
+  ZMQPublisher(char *endpoint);
   ~ZMQPublisher();
 
   inline bool sendIPSMessage(char *msg) { return (sendMessage("ips", msg)); }

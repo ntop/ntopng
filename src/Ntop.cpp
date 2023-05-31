@@ -3657,10 +3657,8 @@ bool Ntop::broadcastIPSMessage(char *msg) {
   users_m.lock(__FILE__, __LINE__);
 
   if (zmqPublisher == NULL) {
-    char *server_public_key = NULL;
-
     try {
-      zmqPublisher = new ZMQPublisher(prefs->getZMQPublishEventsURL(), server_public_key);
+      zmqPublisher = new ZMQPublisher(prefs->getZMQPublishEventsURL());
     } catch (...) {
       zmqPublisher = NULL;
     }
