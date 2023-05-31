@@ -22,6 +22,8 @@
 #ifndef _HOST_DETAILS_H_
 #define _HOST_DETAILS_H_
 
+#define MAX_STRING_LEN 128
+
 #include "ntop_includes.h"
 
 class HostDetails {
@@ -60,20 +62,20 @@ class HostDetails {
         };
 
         /* Getters */
-        inline char* get_ip(char buf[128], u_int size) { 
-            strncpy(buf, ip, size);
+        inline char* get_ip(char buf[MAX_STRING_LEN]) { 
+            strncpy(buf, ip, MAX_STRING_LEN);
             return(buf); 
         };
-        inline char* get_ip_hex(char buf[128], u_int size) { 
-            strncpy(buf, ip_hex, size);
+        inline char* get_ip_hex(char buf[MAX_STRING_LEN]) { 
+            strncpy(buf, ip_hex, MAX_STRING_LEN);
             return(buf); 
         };
-        inline char* get_mac_address(char buf[128], u_int size) { 
-            strncpy(buf, mac_address, size);
+        inline char* get_mac_address(char buf[MAX_STRING_LEN]) { 
+            strncpy(buf, mac_address, MAX_STRING_LEN);
             return(buf); 
         };
-        inline char* get_name( char buf[128], u_int size) {
-            strncpy(buf, name, size);
+        inline char* get_name( char buf[MAX_STRING_LEN]) {
+            strncpy(buf, name, MAX_STRING_LEN);
             return(buf); 
         }
         inline u_int64_t get_total_traffic() { return(total_traffic); }; 
