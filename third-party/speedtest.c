@@ -31,7 +31,7 @@
 #include "expat.h"
 
 #define URL_LENGTH_MAX         255
-#define THREAD_NUM_MAX           1
+#define THREAD_NUM_MAX           3
 #define UPLOAD_EXT_LENGTH_MAX    5
 #define SPEEDTEST_TIME_MAX      10
 #define CUNTRY_NAME_MAX         64
@@ -503,7 +503,7 @@ static double test_download(char *p_url, int num_thread, int dsize, char init)
 
     //error = 
 #if THREAD_NUM_MAX > 1
-    pthread_mutex_init(paras[i].lock, NULL);
+    pthread_mutex_init(&paras[i].lock, NULL);
 #endif
 
     pthread_create(&paras[i].tid, NULL, do_download, (void*)&paras[i]);
@@ -570,7 +570,7 @@ static size_t read_data(void* ptr, size_t size, size_t nmemb, void *userp)
   para->chunk_size -= length;
 
 #if THREAD_NUM_MAX > 1
-  pthread_mutex_lock(&para);
+  pthread_mutex_lock(&para->lock);
 #endif
   para->now += length;
 #if THREAD_NUM_MAX > 1
