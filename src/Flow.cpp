@@ -4735,9 +4735,11 @@ void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto) {
   ) {
     switch (protocol) {
       case IPPROTO_TCP:
-        if ((src2dst_tcp_flags & TH_SYN) == TH_SYN) {
-          if (vlanId == 0) /* In case the VLAN is 0 set this port to the network
-                              interface */
+        if(((src2dst_tcp_flags & TH_SYN) == TH_SYN)
+	   /* Ignore connections refused */
+	   && ((dst2src_tcp_flags & TH_RST) == 0)
+	   ) {
+          if (vlanId == 0) /* In case the VLAN is 0 set this port to the network interface */
             iface->setServerPort(true, ntohs(srv_port), proto);
           else { /* Otherwise set this port to the right VLAN */
             VLAN *vlan_hash = iface->getVLAN(vlanId, false, false);
