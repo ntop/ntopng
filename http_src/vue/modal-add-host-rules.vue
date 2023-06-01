@@ -184,7 +184,7 @@ const input_trigger_alerts = ref("");
 
 const modal_id = ref(null);
 const emit = defineEmits(['add','edit']);
-const title = i18n('if_stats_config.add_host_rules_title')
+let title = i18n('if_stats_config.add_host_rules_title');
 const host_placeholder = i18n('if_stats_config.host_placeholder')
 const metrics_ready = ref(false)
 const _i18n = (t) => i18n(t);
@@ -283,6 +283,7 @@ function reset_radio_selection(radio_array) {
  */
 const reset_modal_form = async function() {
     host.value = "";
+    rule_type.value = "Host";
     selected_ifid.value = ifid_list.value[0];
     selected_metric.value = metric_list.value[0];
     selected_interface_metric.value = interface_metric_list.value[0];
@@ -291,22 +292,26 @@ const reset_modal_form = async function() {
     selected_frequency.value = frequency_list.value[0];
     metric_type.value = metric_type_list.value[0];
     selected_exporter_device.value = flow_exporter_devices.value[0];
-    rest_params.csrf = page_csrf_.value;
-    const url_device_exporter_details = NtopUtils.buildURL(`${http_prefix}/lua/pro/rest/v2/get/flowdevice/stats.lua?`+selected_exporter_device.value.details.split("?")[1], {
-      ...rest_params
-    })
+    if( selected_exporter_device.value != null) {
+      rest_params.csrf = page_csrf_.value;
+      const url_device_exporter_details = NtopUtils.buildURL(`${http_prefix}/lua/pro/rest/v2/get/flowdevice/stats.lua?`+selected_exporter_device.value.details.split("?")[1], {
+        ...rest_params
+      })
 
-    let ifids = []
-    let exporter_ifids = []
-    await $.get(url_device_exporter_details, function(rsp, status){
-      ifids = rsp.rsp;
-    });
-    exporter_ifids.push({id: -1, label: "No ifid", timeseries_available: ifids[0].timeseries_available})
-    ifids.forEach((resp) => {
-      exporter_ifids.push({id: resp.ifindex, label: resp.name, timeseries_available: resp.timeseries_available});
-    })
-    flow_exporter_device_ifid_list.value = exporter_ifids;
+      let ifids = []
+      let exporter_ifids = []
+      await $.get(url_device_exporter_details, function(rsp, status){
+        ifids = rsp.rsp;
+      });
+      exporter_ifids.push({id: -1, label: "No ifid", timeseries_available: ifids[0].timeseries_available})
+      ifids.forEach((resp) => {
+        exporter_ifids.push({id: resp.ifindex, label: resp.name, timeseries_available: resp.timeseries_available});
+      })
+      flow_exporter_device_ifid_list.value = exporter_ifids;
+      flow_device_timeseries_available.value = flow_exporter_device_ifid_list.value[0].timeseries_available;
 
+    }
+    
     // reset metric_type_list
     metric_type_list.value.forEach((t) => t.active = false);
     metric_type_list.value[0].active = true;
@@ -317,7 +322,6 @@ const reset_modal_form = async function() {
     reset_radio_selection(sign_threshold_list.value);
 
     rule_type.value = "Host";
-    flow_device_timeseries_available.value = flow_exporter_device_ifid_list.value[0].timeseries_available;
 
     disable_add.value = true;
 
@@ -337,6 +341,7 @@ const set_rule_type = (type) => {
 const set_row_to_edit = (row) => {
 
   if(row != null) {
+    title = _i18n('if_stats_config.edit_host_rules_title');
     is_edit_page.value = true;
 
     disable_add.value = false;
@@ -659,13 +664,36 @@ const format_flow_exporter_device_list = function(data) {
   return _f_exp_dev_list;
 }
 
-const metricsLoaded = (_metric_list, _ifid_list, _interface_metric_list, _flow_exporter_devices, _flow_exporter_devices_metric_list, page_csrf, _init_func, _delete_row) => {
+const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _flow_exporter_devices, _flow_exporter_devices_metric_list, page_csrf, _init_func, _delete_row) => {
   metrics_ready.value = true;
   metric_list.value = _metric_list;
   interface_metric_list.value = _interface_metric_list;
   ifid_list.value = format_ifid_list(_ifid_list);
   flow_exporter_devices.value = format_flow_exporter_device_list(_flow_exporter_devices);
   flow_device_metric_list.value = _flow_exporter_devices_metric_list;
+
+
+  selected_exporter_device.value = flow_exporter_devices.value[0];
+  if(selected_exporter_device.value != null) {
+    rest_params.csrf = page_csrf_.value;
+    const url_device_exporter_details = NtopUtils.buildURL(`${http_prefix}/lua/pro/rest/v2/get/flowdevice/stats.lua?`+selected_exporter_device.value.details.split("?")[1], {
+      ...rest_params
+    })
+
+    let ifids = []
+    let exporter_ifids = []
+    await $.get(url_device_exporter_details, function(rsp, status){
+      ifids = rsp.rsp;
+    });
+    exporter_ifids.push({id: -1, label: "No ifid", timeseries_available: ifids[0].timeseries_available})
+    ifids.forEach((resp) => {
+      exporter_ifids.push({id: resp.ifindex, label: resp.name, timeseries_available: resp.timeseries_available});
+    })
+    flow_exporter_device_ifid_list.value = exporter_ifids;
+
+    flow_device_timeseries_available.value = flow_exporter_device_ifid_list.value[0].timeseries_available;
+  }
+  
   frequency_list.value = props.frequency_list;
   selected_frequency.value = frequency_list.value[0];
   selected_metric.value = metric_list.value[0];
