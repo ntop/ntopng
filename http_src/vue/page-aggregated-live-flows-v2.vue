@@ -24,6 +24,7 @@
                                :get_column_id="(col) => table_config.get_column_id(col)"
                                :print_column_name="(col) => table_config.print_column_name(col)"
 			       :print_html_row="(col, row) => table_config.print_html_row(col, row)"
+			       :f_get_column_classes="get_column_classes"
 			       :f_is_column_sortable="is_column_sortable"
 			       :enable_search="true"
 			       :paging="true">
@@ -192,6 +193,13 @@ function get_url_params(active_page, per_page, columns_wrap, map_search, first_g
 const is_column_sortable = (col) => {
     return col.data != "breakdown" && col.name != 'flows_icon' ;
 };
+
+const get_column_classes = (col) => {
+    if (col.className == null || col.className == "") {
+	return [];
+    }
+    return col.className.split(" ");
+}
 
 /// methods to get columns config
 function get_table_columns_config() {
