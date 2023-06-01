@@ -7,6 +7,7 @@ import * as Vue from "vue";
 
 // pages
 import { default as PageAlertStats } from "./page-alert-stats.vue";
+import { default as PageFlowHistorical } from "./page-flow-historical.vue";
 import { default as PageStats } from "./page-stats.vue";
 import { default as PageAssetTable } from "./page-asset-table.vue";
 import { default as PagePeriodicityTable } from "./page-periodicity-table.vue";
@@ -78,6 +79,7 @@ import { default as ModalDeleteApplication } from "./modal-delete-application.vu
 let ntopVue = {
     // pages
     PageAlertStats: PageAlertStats,
+    PageFlowHistorical: PageFlowHistorical,
     PageStats: PageStats,
     PageAssetTable: PageAssetTable,
     PagePeriodicityTable: PagePeriodicityTable,
