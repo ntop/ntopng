@@ -17,7 +17,7 @@
   <button class="btn dropdown-toggle" :class="button_class_2" type="button" :id="id" ref="dropdown_button"  aria-expanded="false" data-bs-toggle="dropdown">
     <slot name="title"></slot>
   </button>
-  <ul class="dropdown-menu" :aria-labelledby="id" style=" max-height: 25rem;overflow:scroll">
+  <ul class="dropdown-menu" :aria-labelledby="id" style=" max-height: 25rem;overflow:auto">
     <!-- <slot name="menu"></slot> -->
 
     <!-- <li class="dropdown-item" v-for="(opt, i) in options" :ref="el => { menu[i] = el }"> -->
