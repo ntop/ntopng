@@ -977,18 +977,36 @@ static int ntop_should_resolve_host(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_set_iec104_allowed_typeids(lua_State *vm) {
-  char *protos;
+  char *typeids;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  if ((protos = (char *)lua_tostring(vm, 1)) == NULL)
+  if ((typeids = (char *)lua_tostring(vm, 1)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
-  ntop->getPrefs()->setIEC104AllowedTypeIDs(protos);
+  ntop->getPrefs()->setIEC104AllowedTypeIDs(typeids);
   lua_pushboolean(vm, true);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
+
+/* ****************************************** */
+
+#ifdef NTOPNG_PRO
+static int ntop_set_modbus_allowed_function_codes(lua_State *vm) {
+  char *function_codes;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  if ((function_codes = (char *)lua_tostring(vm, 1)) == NULL)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+  ntop->getPrefs()->setModbusAllowedFunctionCodes(function_codes);
+  lua_pushboolean(vm, true);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+#endif
 
 /* ****************************************** */
 
@@ -7410,6 +7428,9 @@ static luaL_Reg _ntop_reg[] = {
     {"getHostCheckInfo", ntop_get_host_check_info},
     {"shouldResolveHost", ntop_should_resolve_host},
     {"setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids},
+#ifdef NTOPNG_PRO
+    {"setModbusAllowedFunctionCodes", ntop_set_modbus_allowed_function_codes},
+#endif
     {"getLocalNetworkAlias", ntop_check_local_network_alias},
     {"getLocalNetworkID", ntop_get_local_network_id},
     {"getRiskStr", ntop_get_risk_str},

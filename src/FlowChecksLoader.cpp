@@ -146,6 +146,8 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new FlowRiskTLSSuspiciousExtension())) registerCheck(fcb);
   if ((fcb = new FlowRiskTLSUnsafeCiphers())) registerCheck(fcb);
   if ((fcb = new FlowRiskTLSCertificateSelfSigned())) registerCheck(fcb);
+  if ((fcb = new ModbusUnexpectedFunctionCode())) registerCheck(fcb);
+  if ((fcb = new ModbusTooManyExceptions())) registerCheck(fcb);
 #ifdef HAVE_NEDGE
   if ((fcb = new NedgeBlockedFlow())) registerCheck(fcb);
 #endif

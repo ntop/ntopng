@@ -61,6 +61,10 @@ class Prefs {
       dump_flows_on_clickhouse, use_mac_in_flow_key;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, devices_learning_period;
+#ifdef NTOPNG_PRO
+  ndpi_bitmap* modbus_allowed_function_codes;
+  u_int modbus_too_many_exceptions;
+#endif
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
       behaviour_analysis_learning_status_post_learning;
   TsDriver timeseries_driver;
@@ -647,12 +651,13 @@ class Prefs {
   inline ServiceAcceptance behaviourAnalysisStatusPostLearning() {
     return behaviour_analysis_learning_status_post_learning;
   };
-  inline u_int64_t* getIEC104AllowedTypeIDs() {
-    return (iec104_allowed_typeids);
-  };
-  inline u_int32_t getIEC60870LearingPeriod() {
-    return (iec60870_learning_period);
-  };
+  inline u_int64_t* getIEC104AllowedTypeIDs() { return (iec104_allowed_typeids);   };
+  inline u_int32_t getIEC60870LearingPeriod() { return (iec60870_learning_period); };
+#ifdef NTOPNG_PRO
+  inline ndpi_bitmap* getModbusAllowedFunctionCodes() { return (modbus_allowed_function_codes);  };
+  inline void         setModbusTooManyExceptionsThreshold(u_int v) { modbus_too_many_exceptions = v;     }
+  inline u_int        getModbusTooManyExceptionsThreshold()        { return(modbus_too_many_exceptions); }
+#endif
   inline u_int32_t devicesLearingPeriod() { return (devices_learning_period); };
   inline bool are_alerts_disabled() { return (disable_alerts); };
   inline bool dontEmitFlowAlerts() {
@@ -671,8 +676,9 @@ class Prefs {
   };
 #ifdef NTOPNG_PRO
   inline bool isLabelDumpEnabled() { return (create_labels_logfile); };
+  void setModbusAllowedFunctionCodes(const char *function_codes);
 #endif
-  void setIEC104AllowedTypeIDs(const char* protos);
+  void setIEC104AllowedTypeIDs(const char* type_ids);
   void validate();
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
   char* getKakfaBrokersList() { return (kafka_brokers_list); }

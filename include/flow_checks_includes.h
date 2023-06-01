@@ -93,6 +93,8 @@
 #include "flow_checks/LateralMovement.h"
 #include "flow_checks/PeriodicityChanged.h"
 #include "flow_checks/LongLivedFlow.h"
+#include "flow_checks/ModbusUnexpectedFunctionCode.h"
+#include "flow_checks/ModbusTooManyExceptions.h"
 #include "flow_checks/TCPConnectionFailed.h"
 #include "flow_checks/TCPConnectionRefused.h"
 #include "flow_checks/FlowRiskTLSCertValidityTooLong.h"

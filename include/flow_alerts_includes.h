@@ -92,6 +92,8 @@
 #include "flow_alerts/FlowRiskTLSSuspiciousExtensionAlert.h"
 #include "flow_alerts/FlowRiskTLSUncommonALPNAlert.h"
 #include "flow_alerts/FlowRiskTLSCertificateSelfSignedAlert.h"
+#include "flow_alerts/ModbusUnexpectedFunctionCodeAlert.h"
+#include "flow_alerts/ModbusTooManyExceptionsAlert.h"
 #include "flow_alerts/DataExfiltrationAlert.h"
 #include "flow_alerts/ElephantFlowAlert.h"
 #include "flow_alerts/LateralMovementAlert.h"

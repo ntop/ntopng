@@ -1572,7 +1572,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx, bool ingressPac
 				     struct ndpi_ipv6hdr *ip6, u_int16_t ip_offset,
 				     u_int16_t encapsulation_overhead, u_int32_t len_on_wire,
 				     const struct pcap_pkthdr *h, const u_char *packet, u_int16_t *ndpiProtocol,
-    Host **srcHost, Host **dstHost, Flow **hostFlow) {
+				     Host **srcHost, Host **dstHost, Flow **hostFlow) {
   u_int16_t trusted_ip_len = max_val(0, (int)h->caplen - ip_offset);
   u_int16_t trusted_payload_len = 0;
   u_int32_t private_flow_id = 0;

@@ -204,6 +204,11 @@ Prefs::Prefs(Ntop *_ntop) {
   /* All allowed */
   iec104_allowed_typeids[0] = (u_int64_t)-1,
   iec104_allowed_typeids[1] = (u_int64_t)-1;
+
+#ifdef NTOPNG_PRO
+  modbus_allowed_function_codes = NULL; /* All allowed */
+  modbus_too_many_exceptions = 5;
+#endif
 }
 
 /* ******************************************* */
@@ -272,6 +277,10 @@ Prefs::~Prefs() {
   if (test_pre_script_path) free(test_pre_script_path);
   if (test_runtime_script_path) free(test_runtime_script_path);
   if (test_post_script_path) free(test_post_script_path);
+#ifdef NTOPNG_PRO
+  if(modbus_allowed_function_codes)
+    ndpi_bitmap_free(modbus_allowed_function_codes);
+#endif
 }
 
 /* ******************************************* */
@@ -2920,15 +2929,15 @@ const char *Prefs::getCaptivePortalUrl() {
 
 /* *************************************** */
 
-void Prefs::setIEC104AllowedTypeIDs(const char *protos) {
+void Prefs::setIEC104AllowedTypeIDs(const char *type_ids) {
   char *p, *buf, *tmp;
 
-  if (!protos) return;
+  if (!type_ids) return;
 
-  if ((strcmp(protos, "-1") == 0))
+  if ((strcmp(type_ids, "-1") == 0))
     iec104_allowed_typeids[0] = (u_int64_t)-1,
     iec104_allowed_typeids[1] = (u_int64_t)-1; /* All */
-  else if ((buf = strdup(protos))) {
+  else if ((buf = strdup(type_ids))) {
     iec104_allowed_typeids[0] = (u_int64_t)0,
     iec104_allowed_typeids[1] = (u_int64_t)0;
 
@@ -2949,3 +2958,42 @@ void Prefs::setIEC104AllowedTypeIDs(const char *protos) {
     free(buf);
   }
 }
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+
+void Prefs::setModbusAllowedFunctionCodes(const char *function_codes) {
+  char *p, *buf, *tmp;
+
+  if (!function_codes) return;
+
+  if ((strcmp(function_codes, "-1") == 0)) {
+    if(modbus_allowed_function_codes != NULL) {
+      ndpi_bitmap_free(modbus_allowed_function_codes);
+      modbus_allowed_function_codes = NULL;
+    }
+  } else if ((buf = strdup(function_codes))) {
+    if(modbus_allowed_function_codes == NULL) {
+      if((modbus_allowed_function_codes = ndpi_bitmap_alloc()) == NULL)
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to allocate bitmap memory");
+    }
+    
+    if(modbus_allowed_function_codes) {
+      ndpi_bitmap_clear(modbus_allowed_function_codes);
+      
+      p = strtok_r(buf, ",", &tmp);
+      while (p != NULL) {
+	int f_code = atoi(p);
+	
+	ndpi_bitmap_set(modbus_allowed_function_codes, f_code);
+	
+	p = strtok_r(NULL, ",", &tmp);
+      }
+    }
+    
+    free(buf);
+  }
+}
+
+#endif
