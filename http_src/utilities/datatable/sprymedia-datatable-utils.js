@@ -674,7 +674,7 @@ export class DataTableRenders {
 
     static filterize_2(key, value, label, tag_label, title, html) {
 	if (value == null || (value == 0 && (label == null || label == ""))) { return ""; }
-        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='javscript:void(0)'>${html || label || value}</a>`;
+        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='javascript:void(0)'>${html || label || value}</a>`;
     }
 
     static getFormatGenericField(field, zero_is_null) {	

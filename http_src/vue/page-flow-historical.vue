@@ -251,7 +251,7 @@ const map_table_def_columns = (columns) => {
     let location = '';
     const f_print_asn = (key, asn, row) => {
         if (asn !== undefined && asn.value != 0) {
-            return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${asn.value}' title='${asn.title}' href='javascript:void'>${asn.label}</a>`;
+            return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${asn.value}' title='${asn.title}' href='javascript:void(0)'>${asn.label}</a>`;
 	}
 	return "";
     };
