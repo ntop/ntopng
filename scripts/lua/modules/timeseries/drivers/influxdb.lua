@@ -1562,6 +1562,14 @@ end
 function driver:queryTotal(schema, tstart, tend, tags, options)
     local query_schema, raw_step, data_type = getQuerySchema(schema, tstart, tend, self.db, options)
     local query
+    
+    if tags.epoch_begin then
+        tags.epoch_begin = nil
+    end
+
+    if tags.epoch_end then
+        tags.epoch_end = nil
+    end
 
     if data_type == ts_common.metrics.counter then
         local metrics = {}
