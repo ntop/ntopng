@@ -488,9 +488,8 @@ void ZMQCollectorInterface::collect_flows() {
                     parseTLVFlow(uncompressed, uncompressed_len, subscriber_id,
                                  msg_id, this);
               else {
-                uncompressed[uncompressed_len] = '\0';
-                recvStats.num_flows += parseJSONFlow(
-                    uncompressed, uncompressed_len, subscriber_id, msg_id);
+                uncompressed[uncompressed_len] = '\0';		
+                recvStats.num_flows += parseJSONFlow(uncompressed, uncompressed_len, subscriber_id, msg_id);
               }
               break;
 
