@@ -206,7 +206,7 @@ async function load_top_table_array(action, top) {
     let res = await ntopng_utility.http_request(url);
     return res.map((t) => {
 	return {
-	    id: t.name,
+	    id: t.action || t.name,
 	    label: t.label,	    
 	    title: t.tooltip,
 	    show_spinner: false,
@@ -307,7 +307,7 @@ const map_table_def_columns = (columns) => {
 	    const visible_dict = {
 		info: props.context.actions.show_info,
 		historical_data: props.context.actions.show_historical,
-		flow_alerts: props.context.actions.show_flows && false,
+		flow_alerts: props.context.actions.show_alerts,
 		pcap_download: props.context.actions.show_pcap_download,
 	    };
 	    c.button_def_array.forEach((b) => {
@@ -443,7 +443,7 @@ function refresh_page_components() {
 function on_table_custom_event(event) {
     let events_managed = {
 	"click_button_info": click_button_info,
-	"click_button_flow_alert": click_button_flow_alert,
+	"click_button_flow_alerts": click_button_flow_alerts,
 	"click_button_historical_flows": click_button_historical_flows,
 	"click_button_pcap_download": click_button_pcap_download,
     };
@@ -453,46 +453,39 @@ function on_table_custom_event(event) {
     events_managed[event.event_id](event);
 }
 
+function click_button_info(event) {
+    const flow = event.row;
+    const href = `${http_prefix}/lua/pro/db_flow_details.lua?row_id=${flow.rowid}&tstamp=${flow.tstamp}&instance_name=${flow.NTOPNG_INSTANCE_NAME}`;
+    window.open(href, "_blank");
+}
+
 function click_button_pcap_download(event) {
     const flow = event.row;
     modal_traffic_extraction.value.show(flow?.filter?.bpf);
 }
 
 function click_button_historical_flows(event) {
-    const alert = event.row;
-    if(alert.link_to_past_flows) {	
-	window.location.href = alert.link_to_past_flows;
-    } else {
-	window.location.href = `${http_prefix}/lua/pro/db_search.lua`;
-    }    
+    const flow = event.row;
+    let filters_params_object = {};
+    for (let key in flow) {
+	let filter_key = key;
+	if (flow[key].tag_key != null && flow[key].tag_key != "") {
+            filter_key = flow[key].tag_key;
+	}
+        if (flow[key].value == null && flow[key].value != "") { continue; }
+    	let filter = `${flow[key].value};eq`;
+    	filters_params_object[filter_key] = filter;
+    }
+    ntopng_url_manager.set_key_to_url("query_preset", "");
+    ntopng_url_manager.add_obj_to_url(filters_params_object);
+    ntopng_url_manager.reload_url();
 }
 
-function click_button_flow_alert(event) {
-    const alert = event.row;
-    const alert_tstamp = alert.tstamp.value;
-    const duration = alert.duration;
-    const [epoch_begin, epoch_end] = [alert_tstamp - 300 /* Look a bit before than the timestamp */, alert_tstamp + duration];
-    // const alert_ip = alert.ip.value + "{{ require("tag_utils").SEPARATOR }}eq";
-
-    const flow_alerts_url = new URL(location);
-    const flow_search_params = {epoch_begin: epoch_begin, epoch_end: epoch_end, page: "flow"};
-
-    /*
-        For server alerts, we redirect to the flow alerts having this IP as server. For client alert, the
-        redirection is done on the client.
-     */
-    if(alert.is_server) {
-        flow_search_params["srv_ip"] = alert_ip;
-    } else { /* Client alert or unkown cli/srv role */
-        flow_search_params["cli_ip"] = alert_ip;
+function click_button_flow_alerts(event) {
+    const flow = event.row;
+    if (flow.alerts_url) {
+	ntopng_url_manager.go_to_url(flow.alerts_url);
     }
-
-    if(alert.vlan_id && alert.vlan_id != "") {
-        // flow_search_params["vlan_id"] = alert.vlan_id + "{{ require("tag_utils").SEPARATOR }}eq";
-    }
-
-    flow_alerts_url.search = new URLSearchParams(flow_search_params);
-    window.location.href = flow_alerts_url.href;
 }
 
 function get_status_view() {
