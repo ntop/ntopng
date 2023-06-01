@@ -644,7 +644,7 @@ export class DataTableRenders {
                 return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${html || label || value}</a> <a href='${url}'data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
             }
         }
-        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${html || label || value}</a>`;
+        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='javscript:void(0)'>${html || label || value}</a>`;
     }
 
     static formatValueLabel(obj, type, row) {
@@ -672,13 +672,19 @@ export class DataTableRenders {
         return label; 
     }
 
-    static getFormatGenericField(field) {
+    static filterize_2(key, value, label, tag_label, title, html) {
+	if (value == null || (value == 0 && (label == null || label == ""))) { return ""; }
+        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='javscript:void(0)'>${html || label || value}</a>`;
+    }
+
+    static getFormatGenericField(field, zero_is_null) {	
 	return function(obj, type, row) {
             if (type !== "display") return obj.value;
+	    if (zero_is_null == true && obj?.value == 0) { return ""; }
     	    let html_ref = '';
 	    if (obj.reference !== undefined)
 		html_ref = obj.reference
-            let label = DataTableRenders.filterize(field, row[field].value, row[field].label, row[field].label, row[field].label);
+            let label = DataTableRenders.filterize_2(field, row[field].value, row[field].label, row[field].label, row[field].label);
             return label + ' ' + html_ref;
 	}
     }
