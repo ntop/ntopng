@@ -69,7 +69,11 @@ CRON_CONF=/etc/cron.d/ntopng
 echo "Rebuilding ld cache..."
 /sbin/ldconfig
 
-if [ -f /.dockerenv ]; then exit 0; fi
+# Check if systemd is supported (not a container)
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline)
+if [ ! -z "${CMDLINE##*system*}" ] && [ ! -z "${CMDLINE##*init*}" ]; then
+  exit 0
+fi
 
 # Start service after upgrade/install
 echo "(Re)Starting @APP@..."
