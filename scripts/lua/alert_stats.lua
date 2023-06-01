@@ -848,11 +848,6 @@ local context_2 = {
                traffic_direction = i18n("db_search.tags.traffic_direction"),
           }
        },
-       presets = {
-           five_mins = false,
-           month = false,
-           year = false
-       },
        extra_range_buttons = extra_range_buttons,
        extra_tags_buttons = extra_tags_buttons,
    },
