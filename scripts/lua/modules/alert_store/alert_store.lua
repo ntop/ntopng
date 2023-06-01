@@ -253,7 +253,7 @@ function alert_store:build_sql_cond(cond, is_write)
 
     elseif cond.field == 'alert_id' and tonumber(cond.value) ~= 0 then
 
-        if ntop.isClickHouseEnabled() then
+        if self._alert_entity == alert_entities.flow and ntop.isClickHouseEnabled() then
             -- filter with the predominant alert_id and also search 
             -- the alert_id in the alerts_map where the other flow alerts are present.
             local alert_id_bit = "bitShiftLeft(toUInt128('1'), " .. cond.value .. ")"
