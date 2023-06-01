@@ -332,11 +332,6 @@ ul.navbar-nav li.nav-item.active>a.active {
   color: #A2A2A2;
 }
 
-.dropdown-menu {
-  background-color: #0d1117 !important;
-  color: #EEEEEE;
-}
-
 .blog-section a,
 .blog-section h6,
 .blog-section i,
@@ -838,4 +833,9 @@ table.dataTable thead th.sorting::after {
 
 .form-check-label {
   color: #e2e2e2;
+}
+
+.dropdown-menu {
+  background-color: #565e64;
+  color: #EEEEEE;
 }
