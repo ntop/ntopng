@@ -314,9 +314,7 @@ function add_filter(filter) {
     if (range_picker.value.is_filter_defined(filter)) {
 	ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_MODAL_FILTERS, filter);
     } else {
-	ntopng_url_manager.set_key_to_url("query_preset", "");
-	ntopng_url_manager.set_key_to_url(filter.id, `${filter.value};${filter.operator}`);
-	ntopng_url_manager.reload_url();
+	throw `Filter ${filter.value} not defined`;
     }    
 }
 
