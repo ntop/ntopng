@@ -711,7 +711,7 @@ end
 -- *Limitation*
 -- tags_filter is expected to contain all the tags of the schema except the last
 -- one. For such tag, a list of available values will be returned.
-function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, end_time)
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
     if #wildcard_tags > 1 then
         tprint(debug.traceback())
         tprint({
@@ -728,7 +728,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, end_t
         local full_path = driver.schema_get_full_path(schema, tags_filter)
         local last_update = ntop.rrd_lastupdate(full_path)
 
-        if last_update ~= nil and last_update >= start_time and last_update <= end_time then
+        if last_update ~= nil and last_update >= start_time then
             return {tags_filter}
         else
             return nil
