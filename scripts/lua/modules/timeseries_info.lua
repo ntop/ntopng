@@ -2774,16 +2774,18 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
                 goto skip
             end
 
-            local tot = 0
-            local tot_serie = ts_utils.queryTotal(info.schema, tags.epoch_begin, tags.epoch_end, table.clone(tags))
+            if not (string.sub(info.schema, 1, string.len("top")) == "top") then
+                local tot = 0
+                local tot_serie = ts_utils.queryTotal(info.schema, tags.epoch_begin, tags.epoch_end, table.clone(tags))
 
-            -- Remove serie with no data
-            for _, value in pairs(tot_serie or {}) do
-                tot = tot + tonumber(value)
-            end
+                -- Remove serie with no data
+                for _, value in pairs(tot_serie or {}) do
+                    tot = tot + tonumber(value)
+                end
 
-            if (tot == 0) then
-                goto skip
+                if (tot == 0) then
+                    goto skip
+                end
             end
 
             -- Remove from nEdge the timeseries only for ntopng
