@@ -70,7 +70,7 @@ function get_f_print_html_row(table_def) {
 	    data = row[col.data_field];
 	}
 	if (col.render_generic != null) {
-	    let render = DataTableRenders.getFormatGenericField(col.render_generic);
+	    let render = DataTableRenders.getFormatGenericField(col.render_generic, col.zero_is_null);
 	    return render(data, 'display', row);
 	}
 	if (col.render_func != null) {
