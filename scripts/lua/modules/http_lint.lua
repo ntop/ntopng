@@ -2571,7 +2571,7 @@ local function validateParameter(k, v)
             -- Success, all the table keys have been validated successfully
             return true, "OK", v
         else
-            error("[LINT] Validation error: Unknown key " .. k .. ": missing validation perhaps?\n")
+            error("[LINT] Validation error: Unknown key '" .. k .. "': missing validation perhaps?\n")
             return false, nil
         end
     else
