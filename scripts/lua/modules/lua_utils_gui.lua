@@ -1551,18 +1551,24 @@ end
 --                  false otherwise
 -- @return A string containing the info field formatted
 function format_external_link(url, name, no_html, proto, i18n_key)
-   local external_field = url
-   proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
+   if(string.contains(url, " ")) then
+      -- the string contains spaces, so it's not an URL
+      -- Let's return it as it
+      return(url)
+   else
+      local external_field = url
+      proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
+      
+      if no_html == false then
+	 if not isEmptyString(url) and not string.find(url, '*') then
+	    if(i18n_key == nil) then i18n_key = "external_link_url" end
+	    url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
+	    external_field = i18n(i18n_key, { proto = proto, url = url, url_name = name})
+	 end
+      end
 
-   if no_html == false then
-      if not isEmptyString(url) and not string.find(url, '*') then
-	 if(i18n_key == nil) then i18n_key = "external_link_url" end
-	 url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
-	external_field = i18n(i18n_key, { proto = proto, url = url, url_name = name})
-     end
+      return external_field
    end
-
-   return external_field
 end
 
 -- ##############################################
