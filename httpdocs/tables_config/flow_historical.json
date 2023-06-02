@@ -178,13 +178,6 @@
 	    "class": ["text-nowrap"]
 	},
 	{
-	    "title_i18n": "db_search.probe_ip",
-	    "data_field": "probe_ip",
-	    "sortable": true,
-	    "render_type": "formatProbeIP",
-	    "class": ["text-nowrap"]
-	},
-	{
 	    "title_i18n": "db_search.tags.cli_network",
 	    "data_field": "cli_network",
 	    "sortable": false,
