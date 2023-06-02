@@ -58,7 +58,7 @@ class Prefs {
       enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
       enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
       enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
-      dump_flows_on_clickhouse, use_mac_in_flow_key;
+    dump_flows_on_clickhouse, use_mac_in_flow_key, do_reforge_timestamps;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, devices_learning_period;
 #ifdef NTOPNG_PRO
@@ -685,7 +685,8 @@ class Prefs {
   char* getKafkaTopic() { return (kafka_topic); }
   char* getKafkaOptions() { return (kafka_options); }
 #endif
-  inline bool useMacAddressInFlowKey() { return (use_mac_in_flow_key); }
+  inline bool useMacAddressInFlowKey() { return (use_mac_in_flow_key);  }
+  inline bool doReforgeTimestamps()    { return(do_reforge_timestamps); }
 };
 
 #endif /* _PREFS_H_ */

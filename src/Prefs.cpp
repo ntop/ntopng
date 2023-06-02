@@ -47,7 +47,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = sniff_name_responses =
       sniff_local_name_responses = true;
-  use_promiscuous_mode = true;
+  use_promiscuous_mode = true, do_reforge_timestamps = false;
   resolve_all_host_ip = false, service_license_check = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS,
   max_num_flows = MAX_NUM_INTERFACE_HOSTS;
@@ -484,6 +484,7 @@ void usage() {
       "                                    | (default: %u)\n"
       "[--max-num-hosts|-x] <num>          | Max number of active hosts\n"
       "                                    | (default: %u)\n"
+      "[--pcap-reforge-timestamps|-z]      | Reforge timestamps when reading from file\n"
       "[--users-file] <path>               | Users configuration file path\n"
       "                                    | Default: %s\n"
       "[--original-speed]                  | Reproduce (-i) the pcap file at "
@@ -1539,6 +1540,10 @@ int Prefs::setOption(int optkey, char *optarg) {
       }
       break;
 
+  case 'z':
+    do_reforge_timestamps  = true;
+    break;
+    
     case 'Z':
       if (optarg[0] != '/') {
         ntop->getTrace()->traceEvent(
@@ -2352,7 +2357,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
 #else
            argc, argv,
 #endif
-           "k:eg:hi:w:r:sg:m:n:p:qd:t:x:y:1:2:3:4:5:l:uv:A:B:CD:E:F:N:G:I:O:Q:"
+           "k:eg:hi:w:r:sg:m:n:p:qd:t:x:y:1:2:3:4:5:l:uv:zA:B:CD:E:F:N:G:I:O:Q:"
            "S:TU:X:W:VZ:",
            long_options, NULL)) != '?') {
     if (c == 255) break;
