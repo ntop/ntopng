@@ -32,12 +32,6 @@
 	    "class": ["no-wrap"]
 	},
 	{
-	    "title_i18n": "db_search.last_seen",
-	    "data_field": "last_seen",
-	    "sortable": true,
-	    "class": ["no-wrap"]
-	},
-	{
 	    "title_i18n": "db_search.l4proto",
 	    "data_field": "l4proto",
 	    "sortable": true,
