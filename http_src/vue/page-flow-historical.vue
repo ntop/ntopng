@@ -243,7 +243,7 @@ function register_table_alerts_events() {
     let jquery_table_alerts = $(`#${table_id}`);
     jquery_table_alerts.on('click', `a.tag-filter`, async function (e) {
 	add_table_row_filter(e, $(this));
-    });    
+    });
 }
 
 const map_table_def_columns = (columns) => {
@@ -257,7 +257,7 @@ const map_table_def_columns = (columns) => {
     };
     const f_print_latency = (key, latency, row) => {
 	if (latency == null) { return ""; }
-        return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${latency}' href='javscript:void'>${NtopUtils.msecToTime(latency)}</a>`;
+        return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${latency}' href='javascript:void(0)'>${NtopUtils.msecToTime(latency)}</a>`;
     };
     let map_columns = {
 	"first_seen": (first_seen, row) => {

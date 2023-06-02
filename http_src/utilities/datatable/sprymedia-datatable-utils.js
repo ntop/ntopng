@@ -644,7 +644,7 @@ export class DataTableRenders {
                 return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${html || label || value}</a> <a href='${url}'data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
             }
         }
-        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='javscript:void(0)'>${html || label || value}</a>`;
+        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='javascript:void(0)'>${html || label || value}</a>`;
     }
 
     static formatValueLabel(obj, type, row) {
