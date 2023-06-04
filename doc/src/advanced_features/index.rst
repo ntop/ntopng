@@ -10,7 +10,6 @@ section.
 
     authentication
     icinga2
-    scada
     sflow_collection
     view_interfaces
     dynamic_interfaces_disaggregation
