@@ -60,7 +60,7 @@ local function colorNotZero(v)
    end
 end
 
-local function drawiecgraph(iec, total)
+local function draw_graph(iec, total, mapping)
    local nodes = {}
    local nodes_id = {}
 
@@ -88,8 +88,14 @@ local function drawiecgraph(iec, total)
 ]]
       local i = 1
    for k,_ in pairs(nodes) do
-      local label = iec104_typeids2str(tonumber(k))
+      local label
 
+      if(mapping == nil) then
+	 label = iec104_typeids2str(tonumber(k))
+      else
+	 label = mapping[tonumber(k)]
+      end
+      
       print("{ id: "..i..", label: \""..label.."\" },\n")
       nodes_id[k] = i
       i = i + 1
@@ -697,8 +703,9 @@ else
       local rowspan = 2
 
       if(flow.modbus.num_exceptions > 0) then rowspan = 3 end
-      
+     
       print("<tr><th rowspan=".. rowspan .. " width=30%><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/Modbus'>Modbus <i class='fas fa-external-link-alt'></i></A></th>")
+
       print("<th>"..i18n("flow_details.modbus_function_codes").."</th>")
       print("<th>"..i18n("flow_details.modbus_registers").."</th></tr>")
 
@@ -717,8 +724,25 @@ else
       end
       print("</table>")
 
+            -- #########################
+
+      local _mepping = { }
+      total = 0
+
+      for k,v in pairs(flow.modbus.function_codes_names) do	 
+	 _mepping[tonumber(v)] = k
+         total = total + v
+      end
+
+      print("<tr><th width=100% colspan=2>".. i18n("flow_details.modbus_transitions"))
+      draw_graph(flow.modbus.function_codes_transitions, total, _mepping)
+      print("</th></tr>")
+      
+      -- #########################
+      
+
       if(flow.modbus.num_exceptions > 0) then
-	 print("<tr><th>"..i18n("flow_details.modbus_exceptions").."</th><td align=right><font color=red>".. formatValue(flow.modbus.num_exceptions) .."</font></td></tr>\n")
+	 print("<tr><th>"..i18n("flow_details.modbus_exceptions").."</th><td align=right colspan=2><font color=red>".. formatValue(flow.modbus.num_exceptions) .."</font></td></tr>\n")
       end
 
       print("</tr>")
@@ -751,7 +775,7 @@ else
       end
 
       print("<tr><th>".. i18n("flow_details.iec104_transitions"))
-      drawiecgraph(flow.iec104.typeid_transitions, total)
+      draw_graph(flow.iec104.typeid_transitions, total, nil)
       print("</th><td>")
 
       print("<table border width=100%>")

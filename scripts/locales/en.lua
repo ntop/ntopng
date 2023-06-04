@@ -2693,6 +2693,7 @@ local lang = {
         ["iec104_msg_breakdown"] = "Messages Breakdown",
         ["iec104_msg_loss"] = "Messages Lost / Retransmissions",
         ["iec104_transitions"] = "Type ID Transitions",
+	["modbus_transitions"] = "Function Code Transitions",
         ["imsi"] = "IMSI (International mobile Subscriber Identity)",
         ["io_wait_time_percentage"] = "I/O Wait Time Percentage",
         ["ip_packet_analysis"] = "IP Packet Analysis",
