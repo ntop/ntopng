@@ -273,8 +273,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
             it = type_i_transitions.find(transition);
 
             if (it == type_i_transitions.end()) {
-              if (f->get_duration() >
-                  ntop->getPrefs()->getIEC60870LearingPeriod()) {
+              if (f->get_duration() > ntop->getPrefs()->getIEC60870LearingPeriod()) {
                 FlowAlert *alert = NULL;
                 u_int16_t c_score = 50, s_score = 10;
 

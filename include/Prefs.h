@@ -60,7 +60,8 @@ class Prefs {
       enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
     dump_flows_on_clickhouse, use_mac_in_flow_key, do_reforge_timestamps;
   u_int32_t behaviour_analysis_learning_period;
-  u_int32_t iec60870_learning_period, devices_learning_period;
+  u_int32_t iec60870_learning_period, modbus_learning_period,
+    devices_learning_period;
 #ifdef NTOPNG_PRO
   ndpi_bitmap* modbus_allowed_function_codes;
   u_int modbus_too_many_exceptions;
@@ -653,6 +654,7 @@ class Prefs {
   };
   inline u_int64_t* getIEC104AllowedTypeIDs() { return (iec104_allowed_typeids);   };
   inline u_int32_t getIEC60870LearingPeriod() { return (iec60870_learning_period); };
+  inline u_int32_t getModbusLearingPeriod()   { return (modbus_learning_period); };
 #ifdef NTOPNG_PRO
   inline ndpi_bitmap* getModbusAllowedFunctionCodes() { return (modbus_allowed_function_codes);  };
   inline void         setModbusTooManyExceptionsThreshold(u_int v) { modbus_too_many_exceptions = v;     }

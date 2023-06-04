@@ -118,6 +118,8 @@ FlowAlertsLoader::FlowAlertsLoader() {
                 ModbusUnexpectedFunctionCodeAlert::getDefaultScore());
   registerAlert(ModbusTooManyExceptionsAlert::getClassType(),
                 ModbusTooManyExceptionsAlert::getDefaultScore());
+  registerAlert(ModbusInvalidTransitionAlert::getClassType(),
+                ModbusInvalidTransitionAlert::getDefaultScore());
 }
 
 /* **************************************************** */

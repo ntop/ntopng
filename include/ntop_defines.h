@@ -607,6 +607,7 @@
 
 #define CONST_DEVICES_LEARNING_TIME 7200 /* 2 hours */
 #define CONST_IEC104_LEARNING_TIME 21600 /* 6 hours */
+#define CONST_MODBUS_LEARNING_TIME 3600  /* 1 hour */
 #define CONST_INFLUXDB_KEY_EXPORTED_POINTS \
   "ntopng.cache.influxdb.num_exported_points"
 #define CONST_INFLUXDB_FLUSH_TIME 10         /* sec */
@@ -730,6 +731,8 @@
 
 #define CONST_PREFS_IEC60870_ANALYSIS_LEARNING_PERIOD \
   NTOPNG_PREFS_PREFIX ".iec60870_learning_period"
+#define CONST_PREFS_MODBUS_ANALYSIS_LEARNING_PERIOD \
+  NTOPNG_PREFS_PREFIX ".modbus_learning_period"
 #define CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD \
   NTOPNG_PREFS_PREFIX ".devices_learning_period"
 
@@ -1484,6 +1487,8 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
   "ntopng.checks.iec104_unexpected_type_id_enabled"
 #define CHECKS_IEC_INVALID_TRANSITION \
   "ntopng.checks.iec104_invalid_transition_enabled"
+#define CHECKS_MODBUS_INVALID_TRANSITION \
+  "ntopng.checks.modbus_invalid_transition_enabled"
 
 #define CUSTOM_FLOW_NDPI_SCRIPT \
   "scripts/callbacks/checks/flows/custom_flow_protocol_detected_script.lua"

@@ -507,6 +507,7 @@ typedef enum {
   flow_alert_rare_destination = 92,
   flow_alert_modbus_unexpected_function_code = 93,
   flow_alert_modbus_too_many_exceptions = 94,
+  flow_alert_modbus_invalid_transition = 95,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

@@ -86,6 +86,7 @@ Prefs::Prefs(Ntop *_ntop) {
   behaviour_analysis_learning_status_during_learning = service_allowed;
   behaviour_analysis_learning_status_post_learning = service_allowed;
   iec60870_learning_period = CONST_IEC104_LEARNING_TIME;
+  modbus_learning_period = CONST_MODBUS_LEARNING_TIME;
   devices_learning_period = CONST_DEVICES_LEARNING_TIME;
   auth_session_duration = HTTP_SESSION_DURATION;
   auth_session_midnight_expiration = HTTP_SESSION_MIDNIGHT_EXPIRATION;
@@ -1052,6 +1053,9 @@ void Prefs::refreshBehaviourAnalysis() {
   iec60870_learning_period =
       getDefaultPrefsValue(CONST_PREFS_IEC60870_ANALYSIS_LEARNING_PERIOD,
                            CONST_IEC104_LEARNING_TIME);
+  modbus_learning_period =
+    getDefaultPrefsValue(CONST_PREFS_MODBUS_ANALYSIS_LEARNING_PERIOD,
+			 CONST_MODBUS_LEARNING_TIME);
   devices_learning_period =
       getDefaultPrefsValue(CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD,
                            CONST_DEVICES_LEARNING_TIME);
@@ -2653,6 +2657,8 @@ void Prefs::lua(lua_State *vm) {
                               behaviour_analysis_learning_period);
   lua_push_uint64_table_entry(vm, "iec60870_learning_period",
                               iec60870_learning_period);
+  lua_push_uint64_table_entry(vm, "modbus_learning_period",
+                              modbus_learning_period);
   lua_push_uint64_table_entry(vm, "devices_learning_period",
                               devices_learning_period);
 

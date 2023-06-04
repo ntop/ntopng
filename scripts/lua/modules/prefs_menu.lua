@@ -482,6 +482,10 @@ local menu_subpages = {{
         title = i18n("prefs.iec60870_learning_period_title"),
         description = i18n("prefs.iec60870_learning_period_description")
     },
+    modbus_learning_period = {
+        title = i18n("prefs.modbus_learning_period_title"),
+        description = i18n("prefs.modbus_learning_period_description")
+    },
     devices_learning_period = {
         title = i18n("prefs.devices_learning_period_title"),
         description = i18n("prefs.devices_learning_period_description")

@@ -1187,6 +1187,14 @@ if auth.has_capability(auth.capabilities.preferences) then
                 tformat = "hd"
             })
 
+        prefsInputFieldPrefs(subpage_active["modbus_learning_period"].title,
+            subpage_active["modbus_learning_period"].description, "ntopng.prefs.", "modbus_learning_period",
+            prefs.modbus_learning_period, "number", nil, nil, nil, {
+                min = 3600,
+                tformat = "hd"
+            })
+
+
         -- #####################
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.devices_behaviour") ..

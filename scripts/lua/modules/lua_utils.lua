@@ -346,6 +346,9 @@ end
 -- ##############################################
 
 function truncate(x)
+   if(x == nil) then
+      tprint(debug.traceback())
+   end
    return x<0 and math.ceil(x) or math.floor(x)
 end
 
