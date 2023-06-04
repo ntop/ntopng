@@ -21,10 +21,6 @@ For the specified duration, ntopng builds a model for each flow in order to unde
   :align: center
   :alt: IEC 60870-5-104 Flow Transitions
 
-
-IEC 60870-5-104 Checks
-----------------------
-
 Under the bahevioural checks page, you can enable specific protocol checks.
 
 .. figure:: ../img/IEC.png
