@@ -6289,7 +6289,7 @@ static int ntop_update_radius_login_info(lua_State *vm) {
 
   lua_pushnil(vm);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+  ntop->getTrace()->traceEvent(TRACE_INFO,
                                "Radius: updated radius login informations");
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 #else
