@@ -272,7 +272,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
   data_delete_requested = 0, stats_reset_requested = 0,
   name_reset_requested = 0, prefs_loaded = 0;
   host_services_bitmap = 0, disabled_alerts_tstamp = 0, num_remote_access = 0,
-  num_incomplete_flows = 0;
+  num_incomplete_flows = 0, deferred_init = 0;
 
   num_resolve_attempts = 0, nextResolveAttempt = 0,
   num_active_flows_as_client = 0, num_active_flows_as_server = 0,
@@ -283,8 +283,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
 
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be
                                                    changed by deserialize */
-  asn = 0, asname = NULL, obs_point = NULL, os = NULL, os_type = os_unknown;
-  ssdpLocation = NULL, blacklist_name = NULL;
+  as = NULL, asn = 0, asname = NULL, obs_point = NULL, os = NULL, os_type = os_unknown;
+  ssdpLocation = NULL, blacklist_name = NULL, country = NULL;
 
   memset(&names, 0, sizeof(names));
   memset(view_interface_mac, 0, sizeof(view_interface_mac));
@@ -331,9 +331,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
                 5 /* StdError: 18.4% */);
   ndpi_hll_init(&incoming_hosts_tcp_udp_port_with_no_tx_hll,
                 5 /* StdError: 18.4% */);
-
-  deferredInitialization(); /* TODO To be called asynchronously for improving
-                               performance */
 }
 
 /* *************************************** */
@@ -1277,6 +1274,11 @@ bool Host::is_hash_entry_state_idle_transition_ready() {
 void Host::periodic_stats_update(const struct timeval *tv) {
   Mac *cur_mac = getMac();
   OSType cur_os_type = os_type, cur_os_from_fingerprint = os_unknown;
+
+  if(!deferred_init) {
+    deferred_init = 1;
+    deferredInitialization();
+  }
 
   checkReloadPrefs();
   checkNameReset();

@@ -1497,6 +1497,7 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
 #define CUSTOM_FLOW_END_SCRIPT \
   "scripts/callbacks/checks/flows/custom_flow_end_script.lua"
 
+#define OFFLINE_LOCAL_HOSTS_KEY "ntopng.hosts.offline.ifid_%d"
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */

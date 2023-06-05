@@ -41,6 +41,7 @@ import { default as PageSNMPDeviceRules } from "./page-snmp-device-rules.vue";
 import { default as PageSnmpDevicesInterfacesSimilarity } from "./page-snmp-devices-interfaces-similarity.vue";
 import { default as PageHostsPortsAnalysis } from "./page-hosts-ports-analysis.vue";
 import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue";
+import { default as PageInactiveHosts } from "./page-inactive-hosts.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -99,6 +100,7 @@ let ntopVue = {
     PageManageConfigurationBackup2: PageManageConfigurationBackup2,
     PageSNMPDeviceRules: PageSNMPDeviceRules,
     PageHostsPortsAnalysis: PageHostsPortsAnalysis,
+    PageInactiveHosts: PageInactiveHosts,
 
     PageEditApplications: PageEditApplications,
 
