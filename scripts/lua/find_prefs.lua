@@ -20,7 +20,8 @@ local query = _GET["query"] or ""
 
 local function matchesQuery(value, query)
    if(query == nil) then query = "" end
-  return string.find(string.lower(noHtml(value)), string.lower(query))
+   if(value == nil) then value = "" end
+   return string.find(string.lower(noHtml(value)), string.lower(query))
 end
 
 local function queryResultShorten(result, query, context)
