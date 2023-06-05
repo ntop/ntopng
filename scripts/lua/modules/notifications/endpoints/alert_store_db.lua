@@ -78,12 +78,12 @@ function alert_store_db.dequeueRecipientAlerts(recipient, budget)
       for i=1, budget do
          local notification = ntop.recipient_dequeue(recipient.recipient_id)
 
-	 if(debugme) then tprint(notification) end
-	 
+         if(debugme) then tprint(notification) end
+         
          if notification then
-	    notifications[#notifications + 1] = notification.alert
+            notifications[#notifications + 1] = notification.alert
          else
-	    break
+            break
          end
       end
 
@@ -96,20 +96,20 @@ function alert_store_db.dequeueRecipientAlerts(recipient, budget)
          local alert = json.decode(json_message)
 
          if alert.action ~= "engage" then
-	    -- Do not store alerts engaged - they're are handled only in-memory
+            -- Do not store alerts engaged - they're are handled only in-memory
 
-       if(alert) then
-	       interface.select(string.format("%d", alert.ifid))
+            if(alert) then
+               interface.select(string.format("%d", alert.ifid))
 
                local alert_store = get_alert_store(alert.entity_id)
 
                if alert_store then
                   alert_store:insert(alert)
-		  if(debugme) then io.write("Stored alert in alert.entity_id "..alert.entity_id) end
-	       else
-		  if(debugme) then io.write("Unable to find alert.entity_id "..alert.entity_id) end
+                  if(debugme) then io.write("Stored alert in alert.entity_id "..alert.entity_id) end
+               else
+                  if(debugme) then io.write("Unable to find alert.entity_id "..alert.entity_id) end
                end
-	    end
+            end
    
          end
       end
