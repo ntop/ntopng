@@ -15,5 +15,5 @@ In addition to the above services, specific protocols are supported in detail. T
     :maxdepth: 2
     :numbered:
 
-    modbbus
+    modbus
     IEC60870-5-104
