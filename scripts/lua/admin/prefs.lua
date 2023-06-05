@@ -42,9 +42,9 @@ local auth_toggles = {
     ["ldap"] = "toggle_ldap_auth",
     ["http"] = "toggle_http_auth",
     ["radius"] = "toggle_radius_auth",
-    ["menu_voices"] = {
-        ["help"] = "toggle_menu_voice_help",
-        ["developer"] = "toggle_menu_voice_developer"
+    ["menu_entries"] = {
+        ["help"] = "toggle_menu_entry_help",
+        ["developer"] = "toggle_menu_entry_developer"
     }
 }
 
@@ -509,6 +509,33 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     -- ================================================================================
 
+    -- #####################
+
+    local function printMenuEntriesPrefs()
+        if ntop.isEnterpriseM() then
+            print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.menu_entries") ..
+                      '</th></tr></thead>')
+        end
+
+        prefsToggleButton(subpage_active, {
+            field = auth_toggles["menu_entries"]["help"],
+            pref = "menu_entries.help",
+            hidden = not ntop.isEnterpriseM(),
+            default = "1"
+        })
+
+        prefsToggleButton(subpage_active, {
+            field = auth_toggles["menu_entries"]["developer"],
+            hidden = not ntop.isEnterpriseM(),
+
+            pref = "menu_entries.developer",
+            default = "1"
+        })
+
+    end
+
+    -- #####################
+
     function printGUI()
         print('<form method="post">')
         print('<table class="table">')
@@ -571,6 +598,9 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "0",
             pref = "is_interface_name_only"
         })
+
+        printMenuEntriesPrefs()
+
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
@@ -989,30 +1019,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
     end
 
-    -- #####################
-
-    local function printMenuVoicesPrefs()
-        if ntop.isEnterpriseM() then
-            print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.menu_voices") ..
-                      '</th></tr></thead>')
-        end
-
-        prefsToggleButton(subpage_active, {
-            field = auth_toggles["menu_voices"]["help"],
-            pref = "menu_voices.help",
-            hidden = not ntop.isEnterpriseM(),
-            default = "1"
-        })
-
-        prefsToggleButton(subpage_active, {
-            field = auth_toggles["menu_voices"]["developer"],
-            hidden = not ntop.isEnterpriseM(),
-
-            pref = "menu_voices.developer",
-            default = "1"
-        })
-
-    end
+    
     -- #####################
 
     function printAuthentication()
@@ -1047,7 +1054,6 @@ if auth.has_capability(auth.capabilities.preferences) then
         end
         
 
-        printMenuVoicesPrefs()
 
         if not ntop.isnEdge() then
             prefsInformativeField(i18n("notes"), i18n("prefs.auth_methods_order"))

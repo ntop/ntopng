@@ -2106,8 +2106,8 @@ local known_parameters = {
     ["toggle_internals_rrds"] = validateBool,
     ["toggle_local_hosts_one_way_ts"] = validateBool,
     ["toggle_dark_theme"] = validateBool,
-    ["toggle_menu_voice_help"] = validateBool,
-    ["toggle_menu_voice_developer"] = validateBool,
+    ["toggle_menu_entry_help"] = validateBool,
+    ["toggle_menu_entry_developer"] = validateBool,
 
     -- Input fields
     ["companion_interface"] = validateEmptyOr(validateInterface),
