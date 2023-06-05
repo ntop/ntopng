@@ -486,23 +486,42 @@ CREATE TABLE IF NOT EXISTS `alert_severities` (
 
 @
 
-CREATE TABLE IF NOT EXISTS `aggregated_flows` (
-       FLOW_ID UInt64,
-       IP_PROTOCOL_VERSION UInt8,
-       MIN_FIRST_SEEN DateTime,
-       MAX_LAST_SEEN DateTime,
-       VLAN_ID UInt16,
-       SUM_PACKETS UInt32,
-       SUM_SRC2DST_BYTES UInt64,
-       SUM_DST2SRC_BYTES UInt64,
-       SUM_SCORE UInt16,
-       PROTOCOL UInt8,
-       IPV4_SRC_ADDR UInt32,
-       IPV6_SRC_ADDR IPv6,
-       IPV4_DST_ADDR UInt32,
-       IPV6_DST_ADDR IPv6,
-       IP_DST_PORT UInt16,
-       L7_PROTO UInt16,
-       L7_PROTO_MASTER UInt16,
-       NTOPNG_INSTANCE_NAME String
-) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(MIN_FIRST_SEEN) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, MIN_FIRST_SEEN);
+/* Remove */
+DROP TABLE IF EXISTS `aggregated_flows`;
+
+@
+
+CREATE TABLE IF NOT EXISTS `hourly_flows` (
+       `FLOW_ID` UInt64,
+       `IP_PROTOCOL_VERSION` UInt8,
+       `FIRST_SEEN` DateTime,
+       `LAST_SEEN` DateTime,
+       `VLAN_ID` UInt16,
+       `PACKETS` UInt32,
+       `TOTAL_BYTES` UInt64,
+       `SRC2DST_BYTES` UInt64, /* Total */
+       `DST2SRC_BYTES` UInt64, /* Total */
+       `SCORE` UInt16, /* Total score */
+       `PROTOCOL` UInt8,
+       `IPV4_SRC_ADDR` UInt32,
+       `IPV6_SRC_ADDR` IPv6,
+       `IPV4_DST_ADDR` UInt32,
+       `IPV6_DST_ADDR` IPv6,
+       `IP_DST_PORT` UInt16,
+       `L7_PROTO` UInt16,
+       `L7_PROTO_MASTER` UInt16,
+       `NUM_FLOWS` UInt32, /* Total number of flows that have been aggregated */
+       `FLOW_RISK` UInt64, /* OS of flow risk */
+       `SRC_MAC` UInt64,
+       `DST_MAC` UInt64,
+       `PROBE_IP` UInt32, /* EXPORTER_IPV4_ADDRESS */
+       `NTOPNG_INSTANCE_NAME` String,
+       `SRC_COUNTRY_CODE` UInt16,
+       `DST_COUNTRY_CODE` UInt16,
+       `SRC_ASN` UInt32,
+       `DST_ASN` UInt32,
+       `INPUT_SNMP` UInt32,
+       `OUTPUT_SNMP` UInt32,
+       `SRC_NETWORK_ID` UInt16,
+       `DST_NETWORK_ID` UInt16
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, FIRST_SEEN);
