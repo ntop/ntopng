@@ -37,7 +37,7 @@
       </template>
       <template v-slot:menu>
 	<div v-for="col in columns_wrap" class="form-check form-switch ms-1">
-	  <input class="form-check-input" style="cursor:pointer;" v-model="col.visible" @click="change_columns_visibility(col)"  checked="" type="checkbox" id="toggle-Begin">
+	  <input class="form-check-input" style="cursor:pointer;" v-model="col.visible == true" @click="change_columns_visibility(col)"  checked="" type="checkbox" id="toggle-Begin">
           <label class="form-check-label" for="toggle-Begin" v-html="print_column_name(col.data)">
           </label>
 	</div>
@@ -65,7 +65,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="row in active_rows">
+      <tr v-if="!changing_column_visibility" v-for="row in active_rows">
 	<template v-for="(col, col_index) in columns_wrap">
 	  <td v-if="col.visible" scope="col" >
 	    <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" v-html="print_html_row(col.data, row)">
@@ -165,7 +165,9 @@ async function load_table() {
     emit("loaded");
 }
 
+const changing_column_visibility = ref(false);
 async function change_columns_visibility(col) {
+    changing_column_visibility.value = true;
     if (props.paging) {
 	await set_rows();
     }
@@ -173,6 +175,7 @@ async function change_columns_visibility(col) {
     await redraw_table_resizable();
     await set_columns_visibility();
     // set_columns_resizable();
+    changing_column_visibility.value = false;
 }
 
 async function redraw_table_resizable() {
