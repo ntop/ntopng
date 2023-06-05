@@ -7,7 +7,7 @@ ModbusTCP
 
 `ModbusTCP <https://www.prosoft-technology.com/kb/assets/intro_modbustcp.pdf>`_ is a variant of the original `Modbus <https://en.wikipedia.org/wiki/Modbus>`_ protocol used for communications over TCP/IP.
 
-ntopng detected Modbus flows and dissects them buiding an internal flow representation.
+ntopng detects Modbus flows and dissects them building an internal flow representation.
 
 .. figure:: ../img/modbus_overview.png
   :align: center
@@ -15,11 +15,12 @@ ntopng detected Modbus flows and dissects them buiding an internal flow represen
 
 For each flow, ntopng keeps track of the function codes uses, exceptions and registers accessed.
 
-ntopng also reports the transitions between function Ids and depicts them graphically: the more transistions the ticker is the line of the graph.
+ntopng also reports the transitions between function Ids and depicts them graphically: the more transitions the ticker is the line of the graph.
 
 .. figure:: ../img/modbus_transitions.png
   :align: center
   :alt: ModbusTCP Function Transitions
+
 
 Various behavioural checks are implemented. In particular they trigger an alert when a flow
   - Reports too many (configurable) exceptions that usually indicate issues.
