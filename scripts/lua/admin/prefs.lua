@@ -1896,14 +1896,13 @@ if auth.has_capability(auth.capabilities.preferences) then
                 min = 1,
                 max = 2 ^ 32 - 1
             })
-        
-            
+                    
         local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_limit"].title,
             subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
             "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound, "number", showAggregateFlowsPrefs, false,
             nil, {
-                min = 1,
+                min = 1000,
                 max = 100000
             })
 
@@ -1911,7 +1910,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             subpage_active.entries["toggle_flow_aggregated_traffic_limit"].description, "ntopng.prefs.",
             "max_aggregated_flows_traffic_upperbound", prefs.max_aggregated_flows_traffic_upperbound, "number", showAggregateFlowsPrefs, false,
             nil, {
-                min = 1,
+                min = 5,
                 max = 5000
             })
         print(
