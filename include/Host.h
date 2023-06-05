@@ -164,7 +164,7 @@ class Host : public GenericHashEntry,
       is_crawler_bot_scanner : 1, is_blacklisted : 1, is_rx_only : 1,
       more_then_one_device : 1, stats_reset_requested : 1,
       name_reset_requested : 1, data_delete_requested : 1, prefs_loaded : 1,
-      _notused : 6;
+      deferred_init : 1, _notused : 5;
 
   /* Alert exclusion handling */
 #ifdef NTOPNG_PRO
@@ -198,7 +198,7 @@ class Host : public GenericHashEntry,
   char *get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize,
                             bool skip_prefix = false);
   bool isValidHostName(const char *name);
-  void deferredInitialization();
+  virtual void deferredInitialization();
 
  public:
   Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _u_int16_t,

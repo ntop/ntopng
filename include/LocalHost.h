@@ -41,7 +41,10 @@ class LocalHost : public Host {
   /* END Host data: */
 
   void initialize();
+  void deferredInitialization();
   void freeLocalHostData();
+  void addOfflineData();
+  void removeOfflineData();
   virtual void deleteHostData();
 
   char *getMacBasedSerializationKey(char *redis_key, size_t size,
