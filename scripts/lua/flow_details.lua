@@ -700,11 +700,11 @@ else
    end
 
    if(flow.modbus and (table.len(flow.modbus.registers) > 0)) then
-      local rowspan = 2
+      local rowspan = 3
 
-      if(flow.modbus.num_exceptions > 0) then rowspan = 3 end
+      if(flow.modbus.num_exceptions > 0) then rowspan = 4 end
      
-      print("<tr><th rowspan=".. rowspan .. " width=30%><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/Modbus'>Modbus <i class='fas fa-external-link-alt'></i></A></th>")
+      print("<tr><th rowspan=".. rowspan .. " width=30%><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/Modbus'>ModbusTCP <i class='fas fa-external-link-alt'></i></A></th>")
 
       print("<th>"..i18n("flow_details.modbus_function_codes").."</th>")
       print("<th>"..i18n("flow_details.modbus_registers").."</th></tr>")
@@ -724,7 +724,7 @@ else
       end
       print("</table>")
 
-            -- #########################
+      -- #########################
 
       local _mepping = { }
       total = 0
