@@ -1902,24 +1902,25 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_limit"].title,
-            subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
-            "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound, "number", showAggregateFlowsPrefs,
-            false, nil, {
-                min = 1000,
-                max = 100000
-            })
-
+			     subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
+			     "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound or 1000,
+			     "number", showAggregateFlowsPrefs,
+			     false, nil, {
+				min = 1000,
+				max = 100000
+	})
+	
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_traffic_limit"].title,
-            subpage_active.entries["toggle_flow_aggregated_traffic_limit"].description, "ntopng.prefs.",
-            "max_aggregated_flows_traffic_upperbound", prefs.max_aggregated_flows_traffic_upperbound, "number",
-            showAggregateFlowsPrefs, false, nil, {
-                min = 5,
-                max = 5000
-            })
+			     subpage_active.entries["toggle_flow_aggregated_traffic_limit"].description, "ntopng.prefs.",
+			     "max_aggregated_flows_traffic_upperbound", prefs.max_aggregated_flows_traffic_upperbound or 5, "number",
+			     showAggregateFlowsPrefs, false, nil, {
+				min = 0,
+				max = 5000
+	})
         print(
-            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
-
+	   '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+	   i18n("save") .. '</button></th></tr>')
+	
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />
