@@ -121,10 +121,10 @@ end
 
 -- ##############################################
 
-function alerts_api.addAlertGenerationInfo(alert_json, current_script)
-  if alert_json and current_script then
+function alerts_api.addAlertGenerationInfo(alert_type_params, current_script)
+  if alert_type_params and current_script then
     -- Add information about the script who generated this alert
-    alert_json.alert_generation = {
+    alert_type_params.alert_generation = {
       script_key = current_script.key,
       subdir = current_script.subdir,
     }
@@ -135,8 +135,8 @@ function alerts_api.addAlertGenerationInfo(alert_json, current_script)
   end
 end
 
-local function addAlertGenerationInfo(alert_json)
-  alerts_api.addAlertGenerationInfo(alert_json, current_script)
+local function addAlertGenerationInfo(alert_type_params)
+  alerts_api.addAlertGenerationInfo(alert_type_params, current_script)
 end
 
 -- ##############################################
