@@ -30,7 +30,7 @@ Various behavioural checks are implemented. In particular they trigger an alert 
   :align: center
   :alt: ntopng Checks on ModbusTCP
 
-As with IEC 60870-5-104, inntopng preferences it is possible to specify for how long tranitions of a ModbusTCP flows are observed.
+As with IEC 60870-5-104, in ntopng preferences it is possible to specify for how long transitions of a ModbusTCP flows are observed.
 
 .. figure:: ../img/modbus_learning.png
   :align: center
