@@ -259,7 +259,7 @@ local menu_subpages = {{
         toggle_flow_aggregated_traffic_limit = {
             title = i18n("prefs.toggle_flow_aggregated_traffic_limit_title"),
             description = i18n("prefs.toggle_flow_aggregated_traffic_limit_description")
-        },
+        }
     }
 }, {
     id = "on_disk_ts",
@@ -408,7 +408,7 @@ local menu_subpages = {{
         alert_page_refresh_rate = {
             title = i18n("prefs.alerts_page_refresh_rate__title"),
             description = i18n("prefs.alerts_page_refresh_rate_description")
-        },
+        }
     }
 }, {
     id = "geo_map",
@@ -468,27 +468,27 @@ local menu_subpages = {{
         behaviour_analysis_learning_status_post_learning = {
             title = i18n("prefs.behaviour_analysis_status_post_learning_title"),
             description = i18n("prefs.behaviour_analysis_status_post_learning_description")
+        },
+        iec60870_learning_period = {
+            title = i18n("prefs.iec60870_learning_period_title"),
+            description = i18n("prefs.iec60870_learning_period_description")
+        },
+        modbus_learning_period = {
+            title = i18n("prefs.modbus_learning_period_title"),
+            description = i18n("prefs.modbus_learning_period_description")
+        },
+        devices_learning_period = {
+            title = i18n("prefs.devices_learning_period_title"),
+            description = i18n("prefs.devices_learning_period_description")
+        },
+        devices_status_during_learning_period = {
+            title = i18n("prefs.devices_status_during_learning_period_title"),
+            description = i18n("prefs.devices_status_during_learning_period_description")
+        },
+        devices_status_post_learning_period = {
+            title = i18n("prefs.devices_status_post_learning_period_title"),
+            description = i18n("prefs.devices_status_post_learning_period_description")
         }
-    },
-    iec60870_learning_period = {
-        title = i18n("prefs.iec60870_learning_period_title"),
-        description = i18n("prefs.iec60870_learning_period_description")
-    },
-    modbus_learning_period = {
-        title = i18n("prefs.modbus_learning_period_title"),
-        description = i18n("prefs.modbus_learning_period_description")
-    },
-    devices_learning_period = {
-        title = i18n("prefs.devices_learning_period_title"),
-        description = i18n("prefs.devices_learning_period_description")
-    },
-    devices_status_during_learning_period = {
-        title = i18n("prefs.devices_status_during_learning_period_title"),
-        description = i18n("prefs.devices_status_during_learning_period_description")
-    },
-    devices_status_post_learning_period = {
-        title = i18n("prefs.devices_status_post_learning_period_title"),
-        description = i18n("prefs.devices_status_post_learning_period_description")
     }
 }, {
     id = "protocols",
@@ -652,14 +652,15 @@ local menu_subpages = {{
             description = i18n("prefs.mgmt_acl_description", {
                 product = info.product
             })
-        },toggle_menu_entry_help = {
+        },
+        toggle_menu_entry_help = {
             title = i18n("prefs.toggle_menu_entry_help_title"),
             description = i18n("prefs.toggle_menu_entry_help_description")
         },
         toggle_menu_entry_developer = {
             title = i18n("prefs.toggle_menu_entry_developer_title"),
             description = i18n("prefs.toggle_menu_entry_developer_description")
-        },  
+        }
     }
 }, {
     id = "misc",

@@ -79,15 +79,15 @@ if auth.has_capability(auth.capabilities.preferences) then
         end
     end
 
-    if(_POST["flows_and_alerts_data_retention_days"] and _POST["aggregated_flows_data_retention_days"]) then
-       local aggregated = tonumber(_POST["aggregated_flows_data_retention_days"])
-       local raw        = tonumber(_POST["flows_and_alerts_data_retention_days"])
+    if (_POST["flows_and_alerts_data_retention_days"] and _POST["aggregated_flows_data_retention_days"]) then
+        local aggregated = tonumber(_POST["aggregated_flows_data_retention_days"])
+        local raw = tonumber(_POST["flows_and_alerts_data_retention_days"])
 
-       if(aggregated <= raw) then
-	  _POST["aggregated_flows_data_retention_days"] = tostring(raw + 1)
-       end
+        if (aggregated <= raw) then
+            _POST["aggregated_flows_data_retention_days"] = tostring(raw + 1)
+        end
     end
-    
+
     if (_POST["toggle_radius_auth"] == "1") and
         ((_POST["radius_server_address"] ~= ntop.getPref("ntopng.prefs.radius.radius_server_address")) or
             (_POST["radius_acct_server_address"] ~= ntop.getPref("ntopng.prefs.radius.radius_acct_server_address")) or
@@ -484,8 +484,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         prefsInputFieldPrefs(subpage_active.entries["aggregated_flows_data_retention"].title,
             subpage_active.entries["aggregated_flows_data_retention"].description, "ntopng.prefs.",
-            "aggregated_flows_data_retention_days", data_retention_utils.getAggregatedFlowsDataRetention(), "number", nil, nil, nil,
-            {
+            "aggregated_flows_data_retention_days", data_retention_utils.getAggregatedFlowsDataRetention(), "number",
+            nil, nil, nil, {
                 min = 2,
                 max = 365 * 10
             })
@@ -600,7 +600,6 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
 
         printMenuEntriesPrefs()
-
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
@@ -1019,7 +1018,6 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
     end
 
-    
     -- #####################
 
     function printAuthentication()
@@ -1045,15 +1043,13 @@ if auth.has_capability(auth.capabilities.preferences) then
         if not entries.toggle_radius_auth.hidden then
             printRadiusAuth()
         end
-        
+
         if not entries.toggle_http_auth.hidden then
             printHttpAuth()
         end
         if not entries.toggle_local_auth.hidden then
             printLocalAuth()
         end
-        
-
 
         if not ntop.isnEdge() then
             prefsInformativeField(i18n("notes"), i18n("prefs.auth_methods_order"))
@@ -1186,20 +1182,21 @@ if auth.has_capability(auth.capabilities.preferences) then
             "ntopng.prefs.behaviour_analysis_learning_status_post_learning", false, {}, nil, nil,
             is_behaviour_analysis_enabled --[[show]] )
 
-        prefsInputFieldPrefs(subpage_active["iec60870_learning_period"].title,
-            subpage_active["iec60870_learning_period"].description, "ntopng.prefs.", "iec60870_learning_period",
-            prefs.iec60870_learning_period, "number", nil, nil, nil, {
+        -- By default 1 hour of learning
+        prefsInputFieldPrefs(subpage_active.entries["iec60870_learning_period"].title,
+            subpage_active.entries["iec60870_learning_period"].description, "ntopng.prefs.", "iec60870_learning_period",
+            prefs.iec60870_learning_period or 3600, "number", nil, nil, nil, {
                 min = 21600,
                 tformat = "hd"
             })
 
-        prefsInputFieldPrefs(subpage_active["modbus_learning_period"].title,
-            subpage_active["modbus_learning_period"].description, "ntopng.prefs.", "modbus_learning_period",
-            prefs.modbus_learning_period, "number", nil, nil, nil, {
+        -- By default 6 hours of learning
+        prefsInputFieldPrefs(subpage_active.entries["modbus_learning_period"].title,
+            subpage_active.entries["modbus_learning_period"].description, "ntopng.prefs.", "modbus_learning_period",
+            prefs.modbus_learning_period or 21600, "number", nil, nil, nil, {
                 min = 3600,
                 tformat = "hd"
             })
-
 
         -- #####################
 
@@ -1207,8 +1204,8 @@ if auth.has_capability(auth.capabilities.preferences) then
                   '</th></tr></thead>')
         -- Behavior analysis for asn, network and l7proto (iface)
 
-        prefsInputFieldPrefs(subpage_active["devices_learning_period"].title,
-            subpage_active["devices_learning_period"].description, "ntopng.prefs.", "devices_learning_period",
+        prefsInputFieldPrefs(subpage_active.entries["devices_learning_period"].title,
+            subpage_active.entries["devices_learning_period"].description, "ntopng.prefs.", "devices_learning_period",
             prefs.devices_learning_period, "number", nil, nil, nil, {
                 min = 7200,
                 tformat = "hd"
@@ -1216,8 +1213,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         local is_device_connection_disconnection_analysis_enabled = ntop.isEnterpriseM()
 
-        multipleTableButtonPrefs(subpage_active["devices_status_during_learning_period"].title,
-            subpage_active["devices_status_during_learning_period"].description,
+        multipleTableButtonPrefs(subpage_active.entries["devices_status_during_learning_period"].title,
+            subpage_active.entries["devices_status_during_learning_period"].description,
             {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
             {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
             "primary", -- [selected color]
@@ -1225,8 +1222,8 @@ if auth.has_capability(auth.capabilities.preferences) then
             false, -- [disabled]
             {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]] )
 
-        multipleTableButtonPrefs(subpage_active["devices_status_post_learning_period"].title,
-            subpage_active["devices_status_post_learning_period"].description,
+        multipleTableButtonPrefs(subpage_active.entries["devices_status_post_learning_period"].title,
+            subpage_active.entries["devices_status_post_learning_period"].description,
             {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
             {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
             "primary", "devices_status_post_learning", "ntopng.prefs.devices_status_post_learning", false, {}, nil, nil,
@@ -1885,7 +1882,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             to_switch = {"max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow"},
             hidden = not showAllElements
         })
-        
+
         local showTinyElements = showAllElements and ntop.getPref("ntopng.prefs.tiny_flows_export_enabled") ~= "0"
 
         prefsInputFieldPrefs(subpage_active.entries["max_num_packets_per_tiny_flow"].title,
@@ -1902,20 +1899,20 @@ if auth.has_capability(auth.capabilities.preferences) then
                 min = 1,
                 max = 2 ^ 32 - 1
             })
-                    
+
         local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_limit"].title,
             subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
-            "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound, "number", showAggregateFlowsPrefs, false,
-            nil, {
+            "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound, "number", showAggregateFlowsPrefs,
+            false, nil, {
                 min = 1000,
                 max = 100000
             })
 
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_traffic_limit"].title,
             subpage_active.entries["toggle_flow_aggregated_traffic_limit"].description, "ntopng.prefs.",
-            "max_aggregated_flows_traffic_upperbound", prefs.max_aggregated_flows_traffic_upperbound, "number", showAggregateFlowsPrefs, false,
-            nil, {
+            "max_aggregated_flows_traffic_upperbound", prefs.max_aggregated_flows_traffic_upperbound, "number",
+            showAggregateFlowsPrefs, false, nil, {
                 min = 5,
                 max = 5000
             })
