@@ -79,6 +79,15 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
    end
    
    if( alert_type_params.metric ~= "flowdev:traffic" and alert_type_params.metric ~= "flowdev_port:traffic" )then
+      --[[tprint("HERE")
+      tprint(ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. alert_type_params.ifid)
+      tprint(alert_type_params.ifname)
+      tprint(alert_type_params.metric)
+      tprint(alert_type_params.value)
+      tprint(alert_type_params.threshold_sign)
+      tprint(alert_type_params.threshold)
+      tprint(alert_type_params.frequency)
+      --]]
       return(i18n("alert_messages.traffic_interface_volume_alert", {
          url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. alert_type_params.ifid,
          iface = alert_type_params.ifname,

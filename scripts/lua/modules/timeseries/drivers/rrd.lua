@@ -728,7 +728,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
         local full_path = driver.schema_get_full_path(schema, tags_filter)
         local last_update = ntop.rrd_lastupdate(full_path)
 
-        if last_update ~= nil and last_update >= start_time then
+        if last_update ~= nil and last_update >= start_time and (end_time == nil or last_update <= end_time ) then
             return {tags_filter}
         else
             return nil

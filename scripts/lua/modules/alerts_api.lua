@@ -191,7 +191,7 @@ function alerts_api.store(entity_info, type_info, when)
   if(not areAlertsEnabled()) then
     return(false)
   end
-
+  --tprint("IN ALERTS_API STORE")
   local force = false
   local ifid = interface.getId()
   local granularity_sec = type_info.granularity and type_info.granularity.granularity_seconds or 0
@@ -199,6 +199,7 @@ function alerts_api.store(entity_info, type_info, when)
 
   type_info.alert_type_params = type_info.alert_type_params or {}
   addAlertGenerationInfo(type_info.alert_type_params)
+  --tprint(type_info)
 
   local alert_json = json.encode(type_info.alert_type_params)
   local subtype = type_info.subtype or ""
