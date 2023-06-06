@@ -47,7 +47,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = sniff_name_responses =
       sniff_local_name_responses = true;
-  use_promiscuous_mode = true;
+  use_promiscuous_mode = true, do_reforge_timestamps = false;
   resolve_all_host_ip = false, service_license_check = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS,
   max_num_flows = MAX_NUM_INTERFACE_HOSTS;
@@ -86,6 +86,7 @@ Prefs::Prefs(Ntop *_ntop) {
   behaviour_analysis_learning_status_during_learning = service_allowed;
   behaviour_analysis_learning_status_post_learning = service_allowed;
   iec60870_learning_period = CONST_IEC104_LEARNING_TIME;
+  modbus_learning_period = CONST_MODBUS_LEARNING_TIME;
   devices_learning_period = CONST_DEVICES_LEARNING_TIME;
   auth_session_duration = HTTP_SESSION_DURATION;
   auth_session_midnight_expiration = HTTP_SESSION_MIDNIGHT_EXPIRATION;
@@ -143,6 +144,7 @@ Prefs::Prefs(Ntop *_ntop) {
   global_dns_forging_enabled = false;
 #ifdef NTOPNG_PRO
   dump_flows_direct = false;
+  max_aggregated_flows_upperbound = 1, max_aggregated_flows_traffic_upperbound = 1;
   is_geo_map_score_enabled = is_geo_map_asname_enabled =
       is_geo_map_alerted_flows_enabled = false;
   is_geo_map_blacklisted_flows_enabled = is_geo_map_host_name_enabled = false;
@@ -203,6 +205,11 @@ Prefs::Prefs(Ntop *_ntop) {
   /* All allowed */
   iec104_allowed_typeids[0] = (u_int64_t)-1,
   iec104_allowed_typeids[1] = (u_int64_t)-1;
+
+#ifdef NTOPNG_PRO
+  modbus_allowed_function_codes = NULL; /* All allowed */
+  modbus_too_many_exceptions = 5;
+#endif
 }
 
 /* ******************************************* */
@@ -271,6 +278,10 @@ Prefs::~Prefs() {
   if (test_pre_script_path) free(test_pre_script_path);
   if (test_runtime_script_path) free(test_runtime_script_path);
   if (test_post_script_path) free(test_post_script_path);
+#ifdef NTOPNG_PRO
+  if(modbus_allowed_function_codes)
+    ndpi_bitmap_free(modbus_allowed_function_codes);
+#endif
 }
 
 /* ******************************************* */
@@ -474,6 +485,7 @@ void usage() {
       "                                    | (default: %u)\n"
       "[--max-num-hosts|-x] <num>          | Max number of active hosts\n"
       "                                    | (default: %u)\n"
+      "[--pcap-reforge-timestamps|-z]      | Reforge timestamps when reading from file\n"
       "[--users-file] <path>               | Users configuration file path\n"
       "                                    | Default: %s\n"
       "[--original-speed]                  | Reproduce (-i) the pcap file at "
@@ -810,6 +822,10 @@ void Prefs::reloadPrefsFromRedis() {
       getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_SCORE_ENABLED, false);
   is_geo_map_asname_enabled =
       getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_ASNAME_ENABLED, false);
+  max_aggregated_flows_upperbound = 
+      getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND, 1);
+  max_aggregated_flows_traffic_upperbound = 
+      getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND, 1);
   is_geo_map_alerted_flows_enabled = getDefaultPrefsValue(
       CONST_RUNTIME_IS_GEO_MAP_ALERTED_FLOWS_ENABLED, false);
   is_geo_map_blacklisted_flows_enabled = getDefaultPrefsValue(
@@ -1037,6 +1053,9 @@ void Prefs::refreshBehaviourAnalysis() {
   iec60870_learning_period =
       getDefaultPrefsValue(CONST_PREFS_IEC60870_ANALYSIS_LEARNING_PERIOD,
                            CONST_IEC104_LEARNING_TIME);
+  modbus_learning_period =
+    getDefaultPrefsValue(CONST_PREFS_MODBUS_ANALYSIS_LEARNING_PERIOD,
+			 CONST_MODBUS_LEARNING_TIME);
   devices_learning_period =
       getDefaultPrefsValue(CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD,
                            CONST_DEVICES_LEARNING_TIME);
@@ -1294,11 +1313,10 @@ static void printVersionInformation() {
          "Edge"
 #endif
          ,
-#ifdef NTOPNG_EMBEDDED_EDITION
-         "/Embedded"
-#else
-         ""
+#ifdef NTOPNG_PRO
+         ntop->getPro()->is_embedded_version() ? "/Embedded" :
 #endif
+         ""
   );
   printf("GIT rev:\t%s\n", NTOPNG_GIT_RELEASE);
 
@@ -1526,6 +1544,10 @@ int Prefs::setOption(int optkey, char *optarg) {
       }
       break;
 
+  case 'z':
+    do_reforge_timestamps  = true;
+    break;
+    
     case 'Z':
       if (optarg[0] != '/') {
         ntop->getTrace()->traceEvent(
@@ -2238,11 +2260,10 @@ int Prefs::checkOptions() {
              "Edge"
 #endif
              ,
-#ifdef NTOPNG_EMBEDDED_EDITION
-             "/Embedded"
-#else
-             ""
+#ifdef NTOPNG_PRO
+             ntop->getPro()->is_embedded_version() ? "/Embedded" :
 #endif
+             ""
     );
 
     ntop->getTrace()->set_trace_level((u_int8_t)0);
@@ -2340,7 +2361,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
 #else
            argc, argv,
 #endif
-           "k:eg:hi:w:r:sg:m:n:p:qd:t:x:y:1:2:3:4:5:l:uv:A:B:CD:E:F:N:G:I:O:Q:"
+           "k:eg:hi:w:r:sg:m:n:p:qd:t:x:y:1:2:3:4:5:l:uv:zA:B:CD:E:F:N:G:I:O:Q:"
            "S:TU:X:W:VZ:",
            long_options, NULL)) != '?') {
     if (c == 255) break;
@@ -2516,6 +2537,10 @@ void Prefs::lua(lua_State *vm) {
 #ifdef NTOPNG_PRO
   lua_push_bool_table_entry(vm, "is_dump_flows_direct_enabled",
                             do_dump_flows_direct());
+  lua_push_int32_table_entry(vm, "max_aggregated_flows_upperbound",
+                            max_aggregated_flows_upperbound);
+  lua_push_int32_table_entry(vm, "max_aggregated_flows_traffic_upperbound",
+                            max_aggregated_flows_traffic_upperbound);                         
   lua_push_bool_table_entry(vm, "is_geo_map_score_enabled",
                             is_geo_map_score_enabled);
   lua_push_bool_table_entry(vm, "is_geo_map_asname_enabled",
@@ -2632,6 +2657,8 @@ void Prefs::lua(lua_State *vm) {
                               behaviour_analysis_learning_period);
   lua_push_uint64_table_entry(vm, "iec60870_learning_period",
                               iec60870_learning_period);
+  lua_push_uint64_table_entry(vm, "modbus_learning_period",
+                              modbus_learning_period);
   lua_push_uint64_table_entry(vm, "devices_learning_period",
                               devices_learning_period);
 
@@ -2820,7 +2847,7 @@ bool Prefs::is_enterprise_xl_edition() {
 
 /* *************************************** */
 
-bool Prefs::is_nedge_edition() {
+bool Prefs::is_nedge_pro_edition() {
   return
 #ifdef HAVE_NEDGE
       ntop->getPro()->has_valid_license()
@@ -2836,6 +2863,18 @@ bool Prefs::is_nedge_enterprise_edition() {
   return
 #ifdef HAVE_NEDGE
       ntop->getPro()->has_valid_nedge_enterprise_license()
+#else
+      false
+#endif
+          ;
+}
+
+/* *************************************** */
+
+bool Prefs::is_embedded_edition() {
+  return
+#if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
+      ntop->getPro()->is_embedded_version()
 #else
       false
 #endif
@@ -2882,26 +2921,34 @@ void Prefs::validate() {
 
 /* *************************************** */
 
+bool Prefs::isInformativeCaptivePortalEnabled() const {
+  return (enable_informative_captive_portal &&
+          !enable_vlan_trunk_bridge);
+}
+
+/* *************************************** */
+
 #ifdef HAVE_NEDGE
 const char *Prefs::getCaptivePortalUrl() {
-  if (isInformativeCaptivePortalEnabled())
+  if (isInformativeCaptivePortalEnabled()) {
     return CAPTIVE_PORTAL_INFO_URL;
-  else
+  } else {
     return CAPTIVE_PORTAL_URL;
+  }
 }
 #endif
 
 /* *************************************** */
 
-void Prefs::setIEC104AllowedTypeIDs(const char *protos) {
+void Prefs::setIEC104AllowedTypeIDs(const char *type_ids) {
   char *p, *buf, *tmp;
 
-  if (!protos) return;
+  if (!type_ids) return;
 
-  if ((strcmp(protos, "-1") == 0))
+  if ((strcmp(type_ids, "-1") == 0))
     iec104_allowed_typeids[0] = (u_int64_t)-1,
     iec104_allowed_typeids[1] = (u_int64_t)-1; /* All */
-  else if ((buf = strdup(protos))) {
+  else if ((buf = strdup(type_ids))) {
     iec104_allowed_typeids[0] = (u_int64_t)0,
     iec104_allowed_typeids[1] = (u_int64_t)0;
 
@@ -2922,3 +2969,42 @@ void Prefs::setIEC104AllowedTypeIDs(const char *protos) {
     free(buf);
   }
 }
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+
+void Prefs::setModbusAllowedFunctionCodes(const char *function_codes) {
+  char *p, *buf, *tmp;
+
+  if (!function_codes) return;
+
+  if ((strcmp(function_codes, "-1") == 0)) {
+    if(modbus_allowed_function_codes != NULL) {
+      ndpi_bitmap_free(modbus_allowed_function_codes);
+      modbus_allowed_function_codes = NULL;
+    }
+  } else if ((buf = strdup(function_codes))) {
+    if(modbus_allowed_function_codes == NULL) {
+      if((modbus_allowed_function_codes = ndpi_bitmap_alloc()) == NULL)
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to allocate bitmap memory");
+    }
+    
+    if(modbus_allowed_function_codes) {
+      ndpi_bitmap_clear(modbus_allowed_function_codes);
+      
+      p = strtok_r(buf, ",", &tmp);
+      while (p != NULL) {
+	int f_code = atoi(p);
+	
+	ndpi_bitmap_set(modbus_allowed_function_codes, f_code);
+	
+	p = strtok_r(NULL, ",", &tmp);
+      }
+    }
+    
+    free(buf);
+  }
+}
+
+#endif

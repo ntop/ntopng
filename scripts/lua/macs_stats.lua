@@ -54,8 +54,8 @@ page_utils.print_page_title('Mac List')
 
 print [[
       <div id="table-mac"></div>
-	 <script>
-	 var url_update = "]]
+         <script>
+         var url_update = "]]
 
 local manufacturers
 
@@ -86,7 +86,7 @@ if((devices_mode == "inactive_macs_only") and ntop.isEnterpriseL()) then
            manufacturers[m] = 1
          else
            manufacturers[m] = manufacturers[m] + 1
-	end
+        end
        end
       end
     end
@@ -104,8 +104,8 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/mac_stats_id.inc")
 
 print [[
            $("#table-mac").datatable({
-              title: '',
-			url: url_update ,
+                  title: '',
+                        url: url_update ,
 ]]
 
 local title
@@ -213,108 +213,100 @@ for manuf, count in pairsByKeys(manufacturers, asc) do
 
    print(" ],")
 
-print [[
-	       showPagination: true,
-	        columns: [
-           {
-                                title: "Key",
-                                field: "key",
-                                hidden: true,
-                                css: {
-                                   textAlign: 'center'
-                                }
-           },
-                         {
-			     title: "]] print(i18n("mac_address")) print[[",
-				 field: "column_mac",
-				 sortable: true,
-                             css: {
-			        textAlign: 'left'
-			     }
-				 },
-                         {
-			     title: "]] print(i18n("mac_stats.manufacturer")) print[[",
-				 field: "column_manufacturer",
-				 sortable: true,
-                             css: {
-			        textAlign: 'left'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("details.device_type")) print[[",
-				 field: "column_device_type",
-				 sortable: false,
-				 },{
-			     title: "]] print(i18n("name")) print[[",
-				 field: "column_name",
-				 sortable: false,
-	 	             css: {
-			        textAlign: 'left'
-			     }
-
-				 },{
-			     title: "]] print(i18n("hosts_stats.hosts")) print[[",
-				 field: "column_hosts",
-				 sortable: true,
-                             css: {
-			        textAlign: 'center'
-			     }
-
-				 },
-			     {
-			     title: "]] print(i18n("mac_stats.arp_total")) print[[",
-				 field: "column_arp_total",
-             hidden: ]] print(ternary(have_nedge, "true", "false")) print[[,
-				 sortable: true,
-                             css: {
-			        textAlign: 'center'
-			     }
-
-				 },
-			     {
-			     title: "]] print(i18n("seen_since")) print[[",
-				 field: "column_since",
-				 sortable: true,
-                             css: {
-			        textAlign: 'center'
-			     }
-
-				 },
+   print [[
+               showPagination: true,
+                columns: [
+                             {
+                                 title: "Key",
+                                 field: "key",
+                                 hidden: true,
+                                 css: {
+                                     textAlign: 'center'
+                                 }
+                             },
+                             {
+                                 title: "]] print(i18n("mac_address")) print[[",
+                                 field: "column_mac",
+                                 sortable: true,
+                                 css: {
+                                     textAlign: 'left'
+                                 }
+                             },
+                             {
+                                 title: "]] print(i18n("mac_stats.manufacturer")) print[[",
+                                 field: "column_manufacturer",
+                                 sortable: true,
+                                 css: {
+                                     textAlign: 'left'
+                                 }
+                             },
+                             {
+                                 title: "]] print(i18n("details.device_type")) print[[",
+                                 field: "column_device_type",
+                                 sortable: false,
+                                 },{
+                                 title: "]] print(i18n("name")) print[[",
+                                 field: "column_name",
+                                 sortable: false,
+                                 css: {
+                                     textAlign: 'left'
+                                 }
+                             },
+                             {
+                                 title: "]] print(i18n("hosts_stats.hosts")) print[[",
+                                 field: "column_hosts",
+                                 sortable: true,
+                                 css: {
+                                    textAlign: 'center'
+                                 }
+                             },
+                             {
+                                 title: "]] print(i18n("mac_stats.arp_total")) print[[",
+                                 field: "column_arp_total",
+                                 hidden: ]] print(ternary(have_nedge, "true", "false")) print[[,
+                                 sortable: true,
+                                 css: {
+                                    textAlign: 'center'
+                                 }
+                             },
+                             {
+                                 title: "]] print(i18n("seen_since")) print[[",
+                                 field: "column_since",
+                                 sortable: true,
+                                 css: {
+                                    textAlign: 'center'
+                                 }
+                             },
 ]]
-
-print [[
-			     {
-			     title: "]] print(i18n("breakdown")) print[[",
-				 field: "column_breakdown",
-				 sortable: false,
-	 	             css: {
-			        textAlign: 'center'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("throughput")) print[[",
-				 field: "column_thpt",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'right'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("traffic")) print[[",
-				 field: "column_traffic",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'right'
-			     }
-				 }
-			     ]
-	       });
-
+   print [[
+                             {
+                                 title: "]] print(i18n("breakdown")) print[[",
+                                 field: "column_breakdown",
+                                 sortable: false,
+                                 css: {
+                                    textAlign: 'center'
+                                 }
+                             },
+                             {
+                                 title: "]] print(i18n("throughput")) print[[",
+                                 field: "column_thpt",
+                                 sortable: true,
+                                 css: {
+                                    textAlign: 'right'
+                                 }
+                             },
+                             {
+                                 title: "]] print(i18n("traffic")) print[[",
+                                 field: "column_traffic",
+                                 sortable: true,
+                                 css: {
+                                    textAlign: 'right'
+                                 }
+                             }
+                             ]
+               });
 
        </script>
-
-
-
 ]]
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -24,6 +24,7 @@ section.
     flows_dump
     live_pcap_download
     syslog
+    ids_acceleration
     additional_features
     oem
     snapshots

@@ -11,6 +11,7 @@ package.path = dirs.installdir .. "/scripts/lua/pro/enterprise/modules/?.lua;" .
 require "lua_utils"
 local rest_utils = require("rest_utils")
 local format_utils = require("format_utils")
+require "lua_utils_get"
 
 if ntop.isEnterpriseM() then
    require "aggregate_live_flows"
@@ -31,6 +32,7 @@ filters["sort_order"] = _GET["order"] or 'asc'
 filters["start"] = tonumber(_GET["start"] or 0)
 filters["length"] = tonumber(_GET["length"] or 10)
 filters["map_search"] = _GET["map_search"]
+filters["host"] = _GET["host"]
 
 if (vlan) and (isEmptyString(vlan) or tonumber(vlan) == -1) then
    vlan = nil
@@ -86,10 +88,9 @@ end
 
 local isView = interface.isView()
 local x = 0
-
 -- Retrieve the flows
 local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id, filters["page"], filters["sort_column"],
-							filters["sort_order"], filters["start"], filters["length"], filters["map_search"])
+							filters["sort_order"], filters["start"], filters["length"], ternary(not isEmptyString(filters["map_search"]), filters["map_search"], nil) , ternary(filters["host"]~= "", filters["host"], nil))
 
 -- Formatting the data
 for _, data in pairs(aggregated_info or {}) do
@@ -188,8 +189,8 @@ for _, data in pairs(aggregated_info or {}) do
 
    -- TODO: remove this data from inside the for
    num_entries = data.num_entries
-   if num_entries > 0 then
-      res[#res + 1] = {
+
+   local item =  {
 	 flows = format_high_num_value_for_tables(data, 'num_flows'),
 
 	 breakdown = {
@@ -206,11 +207,26 @@ for _, data in pairs(aggregated_info or {}) do
 	 server = server,
 	 info = info,
 	 application = application,
-	 vlan_id = {
-	    id = data.vlan_id,
-	    label = ternary(data.vlan_id, getFullVlanName(data.vlan_id), "")
-	 }
+    vlan_id = {
+      id = nil,
+      label = nil
+    }
       }
+
+   if data.vlan_id and data.vlan_id ~= 0 then
+      item.vlan_id = {
+         id = data.vlan_id,
+         label = getFullVlanName(data.vlan_id)
+      }
+   end
+   if criteria_type_id == 1 or criteria_type_id == 5 then 
+      item.app_proto_is_not_guessed = data.is_not_guessed
+      item.confidence_name = get_confidence(ternary(application.id == "0", "-1", ternary(data.is_not_guessed, "1", "0")))
+      item.confidence = ternary(data.is_not_guessed, 1, 0)
+   end   
+   
+   if num_entries > 0 then
+      res[#res + 1] = item
 
    end
 

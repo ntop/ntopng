@@ -1390,7 +1390,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
     if (strstr(request_info->uri, "/lua/pro") &&
 #ifdef HAVE_NEDGE
-        !ntop->getPrefs()->is_nedge_edition()
+        !ntop->getPrefs()->is_nedge_pro_edition()
 #else
         !ntop->getPrefs()->is_pro_edition()
 #endif

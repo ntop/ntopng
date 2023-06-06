@@ -2089,6 +2089,14 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char *payload,
   json_object *f = NULL;
   enum json_tokener_error jerr = json_tokener_success;
 
+#ifndef NTOPNG_PRO
+  /*
+    nProbe exports flows in TLV so this code will be removed in the future
+    Leaving here for old nProbes that will be discontinued soon
+  */
+  return(0);
+#endif
+  
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "JSON: '%s' [len=%lu]", payload, strlen(payload));
   printf("\n\n%s\n\n", payload);
@@ -2120,13 +2128,11 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char *payload,
   } else {
     // if o != NULL
     if (!once) {
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING,
-          "Invalid message received: your nProbe sender is outdated, data "
-          "encrypted or invalid JSON?");
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
-          json_tokener_error_desc(jerr), payload_size, payload);
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Invalid message received: your nProbe sender is outdated, data "
+				   "encrypted or invalid JSON?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
+				   json_tokener_error_desc(jerr), payload_size, payload);
     }
 
     once = true;
@@ -2150,8 +2156,7 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char *payload, int payload_size,
 
   if (rc == -1) return 0;
 
-  if (ndpi_deserialize_get_format(&deserializer) !=
-      ndpi_serialization_format_tlv) {
+  if (ndpi_deserialize_get_format(&deserializer) != ndpi_serialization_format_tlv) {
     if (!once) {
       ntop->getTrace()->traceEvent(
           TRACE_WARNING,
@@ -2161,6 +2166,7 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char *payload, int payload_size,
           "version available");
       once = true;
     }
+    
     return 0;
   }
 

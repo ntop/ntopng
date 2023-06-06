@@ -652,17 +652,22 @@ class Ntop {
 
 #ifdef HAVE_RADIUS
   inline void updateRadiusLoginInfo() { radiusAcc->updateLoginInfo(); };
-  inline void startRadiusAccounting(const char *username,
+  inline bool radiusAuthenticate(const char *username, const char *password,  
+                                bool *has_unprivileged_capabilities,
+                                bool *is_admin) {
+    return radiusAcc->authenticate(username, password, has_unprivileged_capabilities, is_admin);
+  };
+  inline bool radiusAccountingStart(const char *username,
                                     const char *session_id) {
-    radiusAcc->startSession(username, session_id);
+    return radiusAcc->startSession(username, session_id);
   };
-  inline void updateRadiusAccounting(const char *username,
-                                     const char *session_id, Host *h) {
-    radiusAcc->updateSession(username, session_id, h);
+  inline bool radiusAccountingUpdate(const char *username,
+                                     const char *session_id, RadiusTraffic *info) {
+    return radiusAcc->updateSession(username, session_id, info);
   };
-  inline void stopRadiusAccounting(const char *username, const char *session_id,
-                                   Host *h) {
-    radiusAcc->stopSession(username, session_id, h);
+  inline bool radiusAccountingStop(const char *username, const char *session_id,
+                                   RadiusTraffic *info) {
+    return radiusAcc->stopSession(username, session_id, info);
   };
 #endif
 

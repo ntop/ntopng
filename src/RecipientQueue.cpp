@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+//#define DEBUG_RECIPIENT_QUEUE
+
 /* *************************************** */
 
 RecipientQueue::RecipientQueue(u_int16_t _recipient_id) {
@@ -71,6 +73,10 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
                              AlertEntity alert_entity) {
   bool res = false;
 
+#ifdef DEBUG_RECIPIENT_QUEUE
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking alert (entity %d) for recipient %d", alert_entity, recipient_id);
+#endif
+
   if (!notification ||
       notification->alert_severity <
           minimum_severity /* Severity too low for this recipient     */
@@ -81,10 +87,11 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
       || !(enabled_entities.isSetBit(
              alert_entity)) /* Entity not enabled for this recipient */
   ) {
+#ifdef DEBUG_RECIPIENT_QUEUE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert filtered out due to filtering policy for recipient %d", recipient_id);
+#endif
     return true; /* Nothing to enqueue */
   }
-
-  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "New alert for recipient %d", recipient_id);
 
   if (recipient_id == 0 && /* Default recipient (DB) */
       alert_entity == alert_entity_flow &&
@@ -93,7 +100,9 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
      * on historical flows) */
     /* But still increment the number of uses */
     uses++;
-    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of flow uses with Clickhouse: %u", uses);
+#ifdef DEBUG_RECIPIENT_QUEUE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow alert (no enqueue - clickhouse uses: %u)", uses);
+#endif
     return true;
   }
 
@@ -129,9 +138,14 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
     if (!res) {
       drops++;
       delete new_item;
+#ifdef DEBUG_RECIPIENT_QUEUE
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert enqueue failed (drop)");
+#endif
     } else {
       uses++;
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of uses: %u", uses);
+#ifdef DEBUG_RECIPIENT_QUEUE
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert enqueued successfully (uses: %u)", uses);
+#endif
     }
   } else {
     drops++;

@@ -118,8 +118,7 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {{
 }})
 
 if (page == "flows" or page == nil) then
-    local active_msg = getFlowsTableTitle()
-
+    local active_msg = getFlowsTableTitle(ntop.getHttpPrefix())
     if (category ~= nil) then
         page_params["category"] = category
     end
@@ -323,9 +322,11 @@ if (page == "flows" or page == nil) then
     print(i18n("serial"))
     print [[",
             field: "column_key", /* This is the serial numebe but called key for placing the flow button pointing to the flow key */
-            sortable: true,
+            sortable: false,
             css: {
-               textAlign: 'center'
+               textAlign: 'center',
+               whiteSpace: 'nowrap'
+
             }
          }, {
             title: "]]
@@ -634,7 +635,8 @@ else
         sort = sort,
         order = order,
         start = start,
-        length = length
+        length = length,
+        host = ""
     })
 end
 

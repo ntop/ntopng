@@ -1296,6 +1296,7 @@ bool Utils::sendTCPData(char *host, int port, char *data,
   int sockfd = -1;
   int retval;
   bool rc = false;
+  static time_t last_warn = 0;
 
   server = gethostbyname(host);
   if (server == NULL) return false;
@@ -1340,8 +1341,12 @@ bool Utils::sendTCPData(char *host, int port, char *data,
   if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0 &&
       (errno == ECONNREFUSED || errno == EALREADY || errno == EAGAIN ||
        errno == ENETUNREACH || errno == ETIMEDOUT)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                 "Could not connect to remote party");
+    time_t now = time(NULL);
+    if (now > last_warn) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                   "Could not connect to remote party");
+      last_warn = now;
+    }
     Utils::closeSocket(sockfd);
     return false;
   }
@@ -1352,8 +1357,12 @@ bool Utils::sendTCPData(char *host, int port, char *data,
   rc = true;
   retval = send(sockfd, data, strlen(data), 0);
   if (retval <= 0) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Send failed: %s (%d)",
-                                 strerror(errno), errno);
+    time_t now = time(NULL);
+    if (now > last_warn) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Send failed: %s (%d)",
+                                   strerror(errno), errno);
+      last_warn = now;
+    }
     rc = false;
   }
 
@@ -1407,7 +1416,7 @@ static int curl_post_writefunc(void *ptr, size_t size, size_t nmemb,
                                void *stream) {
   char *str = (char *)ptr;
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "[JSON] %s", str);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "[JSON] %s", str);
   return (size * nmemb);
 }
 

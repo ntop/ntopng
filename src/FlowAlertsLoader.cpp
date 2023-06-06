@@ -114,6 +114,12 @@ FlowAlertsLoader::FlowAlertsLoader() {
                 VLANBidirectionalTrafficAlert::getDefaultScore());
   registerAlert(WebMiningAlert::getClassType(),
                 WebMiningAlert::getDefaultScore());
+  registerAlert(ModbusUnexpectedFunctionCodeAlert::getClassType(),
+                ModbusUnexpectedFunctionCodeAlert::getDefaultScore());
+  registerAlert(ModbusTooManyExceptionsAlert::getClassType(),
+                ModbusTooManyExceptionsAlert::getDefaultScore());
+  registerAlert(ModbusInvalidTransitionAlert::getClassType(),
+                ModbusInvalidTransitionAlert::getDefaultScore());
 }
 
 /* **************************************************** */

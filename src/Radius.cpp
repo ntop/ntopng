@@ -32,9 +32,9 @@ Radius::Radius(bool _use_chap) {
     https://en.wikipedia.org/wiki/Challenge-Handshake_Authentication_Protocol
   */
   result = 0, use_chap = _use_chap; /* true = CHAP, false = PAP */
-  radiusServer = radiusSecret = authServer = radiusAdminGroup =
+  radiusAuthServer = radiusAcctServer = radiusSecret = radiusAdminGroup =
     radiusUnprivCapabilitiesGroup = NULL;
-  
+
   /* Check if some information are already stored in redis */
   updateLoginInfo();
 }
@@ -44,22 +44,26 @@ Radius::Radius(bool _use_chap) {
 Radius::~Radius() {
   if (radiusAdminGroup) free(radiusAdminGroup);
   if (radiusUnprivCapabilitiesGroup) free(radiusUnprivCapabilitiesGroup);
-  if (radiusServer) free(radiusServer);
+  if (radiusAuthServer) free(radiusAuthServer);
+  if (radiusAcctServer) free(radiusAcctServer);
   if (radiusSecret) free(radiusSecret);
-  if (authServer) free(authServer);
 }
 
 /* *************************************** */
 
 bool Radius::buildConfiguration(rc_handle **rh) {
-  if (!radiusServer || !radiusSecret || !authServer ||
-      !radiusUnprivCapabilitiesGroup || !radiusAdminGroup) {
+  char server[MAX_RADIUS_LEN];
+    
+  if (!radiusAuthServer
+      || !radiusAcctServer
+      || !radiusSecret
+      || !radiusUnprivCapabilitiesGroup || !radiusAdminGroup) {
     /* No info currently saved, try to load from redis */
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Initialization Failed");
     return false;
   }
 
-  if (!radiusServer[0] || !radiusSecret[0]) {
+  if (!radiusAuthServer[0] || !radiusSecret[0]) {
     /* Try to check if the info are */
     if (!updateLoginInfo()) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -67,8 +71,6 @@ bool Radius::buildConfiguration(rc_handle **rh) {
       return false;
     }
   }
-
-  snprintf(authServer, MAX_RADIUS_LEN - 1, "%s:%s", radiusServer, radiusSecret);
 
   /* If the header is NULL try to init it, otherwise fails */
   if (*rh == NULL) *rh = rc_new();
@@ -116,10 +118,17 @@ bool Radius::buildConfiguration(rc_handle **rh) {
     return false;
   }
 
-  if (rc_add_config(*rh, "authserver", authServer, "config", 0) != 0) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Radius: Unable to set authserver config: \"%s\"",
-        authServer);
+  snprintf(server, sizeof(server), "%s:%s", radiusAcctServer, radiusSecret);
+  if (rc_add_config(*rh, "acctserver", server, "config", 0) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set acctserver config: \"%s\"",
+				 radiusAcctServer);
+    return false;
+  }
+
+  snprintf(server, sizeof(server), "%s:%s", radiusAuthServer, radiusSecret);
+  if (rc_add_config(*rh, "authserver", server, "config", 0) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Unable to set authserver config: \"%s\"",
+				 authServer);
     return false;
   }
 
@@ -129,8 +138,8 @@ bool Radius::buildConfiguration(rc_handle **rh) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: rc_test_config failed");
     return false;
   }
-#endif
-
+#endif  
+  
   if (rc_read_dictionary(*rh, rc_conf_str(*rh, "dictionary")) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to read dictionary");
@@ -144,31 +153,22 @@ bool Radius::buildConfiguration(rc_handle **rh) {
 
 /* Performs the basic configuration for the accounting, Status type, service,
  * username and session id */
-bool Radius::addBasicConfigurationAcct(rc_handle **rh, VALUE_PAIR **send,
+bool Radius::addBasicConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
                                        u_int16_t status_type,
                                        const char *username,
                                        const char *session_id) {
-  u_int16_t service_type = PW_FRAMED;
-
-  if (rc_avpair_add(*rh, send, PW_ACCT_STATUS_TYPE, &status_type, -1, 0) ==
-      NULL) {
+  if (rc_avpair_add(rh, send, PW_ACCT_STATUS_TYPE, &status_type, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Status Type");
     return false;
   }
 
-  if (rc_avpair_add(*rh, send, PW_SERVICE_TYPE, &service_type, -1, 0) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Radius: unable to set Service Type");
-    return false;
-  }
-
-  if (rc_avpair_add(*rh, send, PW_USER_NAME, username, -1, 0) == NULL) {
+  if (rc_avpair_add(rh, send, PW_USER_NAME, username, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set username");
     return false;
   }
 
-  if (rc_avpair_add(*rh, send, PW_ACCT_SESSION_ID, session_id, -1, 0) == NULL) {
+  if (rc_avpair_add(rh, send, PW_ACCT_SESSION_ID, session_id, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Session ID");
     return false;
@@ -181,44 +181,40 @@ bool Radius::addBasicConfigurationAcct(rc_handle **rh, VALUE_PAIR **send,
 
 /* Performs the basic configuration for the accounting, Status type, service,
  * username and session id */
-bool Radius::addUpdateConfigurationAcct(rc_handle **rh, VALUE_PAIR **send,
-                                        Host *h) {
-  char data[64];
-  if (!h) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Host NULL");
+bool Radius::addUpdateConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
+                                        RadiusTraffic *info) {
+  if (!info) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: info not found");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", h->get_last_seen() - h->get_first_seen());
-  if (rc_avpair_add(*rh, send, PW_ACCT_SESSION_TIME, data, -1, 0) == NULL) {
+  time_t now = time(NULL);
+
+  if (rc_avpair_add(rh, send, PW_EVENT_TIMESTAMP, &now, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Radius: unable to set Session Time");
+                                 "Radius: unable to set Event Timestamp");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", h->getNumPktsRcvd());
-  if (rc_avpair_add(*rh, send, PW_ACCT_INPUT_PACKETS, data, -1, 0) == NULL) {
+  if (rc_avpair_add(rh, send, PW_ACCT_INPUT_PACKETS, &(info->packets_rcvd), -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Input Packets");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", h->getNumPktsSent());
-  if (rc_avpair_add(*rh, send, PW_ACCT_OUTPUT_PACKETS, data, -1, 0) == NULL) {
+  if (rc_avpair_add(rh, send, PW_ACCT_OUTPUT_PACKETS, &(info->packets_sent), -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Output Packets");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", h->getNumBytesRcvd());
-  if (rc_avpair_add(*rh, send, PW_ACCT_INPUT_OCTETS, data, -1, 0) == NULL) {
+  if (rc_avpair_add(rh, send, PW_ACCT_INPUT_OCTETS, &(info->bytes_rcvd), -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Bytes Received");
     return false;
   }
 
-  snprintf(data, sizeof(data), "%lu", h->getNumBytesSent());
-  if (rc_avpair_add(*rh, send, PW_ACCT_OUTPUT_OCTETS, data, -1, 0) == NULL) {
+  if (rc_avpair_add(rh, send, PW_ACCT_OUTPUT_OCTETS, &(info->bytes_sent), -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Bytes Sent");
     return false;
@@ -231,17 +227,14 @@ bool Radius::addUpdateConfigurationAcct(rc_handle **rh, VALUE_PAIR **send,
 
 bool Radius::updateLoginInfo() {
   /* Allocation failed, do not authenticate, exit */
-  if (((!radiusServer) &&
-       !(radiusServer = (char *)calloc(sizeof(char), MAX_RADIUS_LEN))) ||
-      ((!radiusSecret) &&
-       !(radiusSecret = (char *)calloc(sizeof(char), MAX_SECRET_LENGTH + 1))) ||
-      ((!radiusAdminGroup) &&
-       !(radiusAdminGroup = (char *)calloc(sizeof(char), MAX_RADIUS_LEN))) ||
-      ((!radiusUnprivCapabilitiesGroup) &&
-       !(radiusUnprivCapabilitiesGroup =
-             (char *)calloc(sizeof(char), MAX_RADIUS_LEN))) ||
-      ((!authServer) &&
-       !(authServer = (char *)calloc(sizeof(char), MAX_RADIUS_LEN)))) {
+  if (
+      ((!radiusAuthServer) && !(radiusAuthServer = (char *)calloc(sizeof(char), MAX_RADIUS_LEN))) ||
+      ((!radiusAcctServer) && !(radiusAcctServer = (char *)calloc(sizeof(char), MAX_RADIUS_LEN))) ||
+      ((!radiusSecret) &&     !(radiusSecret = (char *)calloc(sizeof(char), MAX_SECRET_LENGTH + 1))) ||
+      ((!radiusAdminGroup) && !(radiusAdminGroup = (char *)calloc(sizeof(char), MAX_RADIUS_LEN))) ||
+      ((!radiusUnprivCapabilitiesGroup)
+       && !(radiusUnprivCapabilitiesGroup = (char *)calloc(sizeof(char), MAX_RADIUS_LEN))) ||
+      ((!authServer) && !(authServer = (char *)calloc(sizeof(char), MAX_RADIUS_LEN)))) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to allocate memory");
     return false;
@@ -251,31 +244,34 @@ bool Radius::updateLoginInfo() {
 
   char buf[32];
   /* Allocation failed, do not authenticate */
-  ntop->getRedis()->get((char *)PREF_RADIUS_SERVER, radiusServer,
-                        MAX_RADIUS_LEN);
-  ntop->getRedis()->get((char *)PREF_RADIUS_AUTH_PROTO, buf,
-                        sizeof(buf));
-  ntop->getRedis()->get((char *)PREF_RADIUS_SECRET, radiusSecret,
-                        MAX_SECRET_LENGTH + 1);
-  ntop->getRedis()->get((char *)PREF_RADIUS_ADMIN_GROUP, radiusAdminGroup,
-                        MAX_RADIUS_LEN);
-  ntop->getRedis()->get((char *)PREF_RADIUS_UNPRIV_CAP_GROUP,
-                        radiusUnprivCapabilitiesGroup, MAX_RADIUS_LEN);
+  ntop->getRedis()->get((char *)PREF_RADIUS_AUTH_SERVER, radiusAuthServer, MAX_RADIUS_LEN);
+  ntop->getRedis()->get((char *)PREF_RADIUS_ACCT_SERVER, radiusAcctServer, MAX_RADIUS_LEN); 
+  ntop->getRedis()->get((char *)PREF_RADIUS_AUTH_PROTO, buf, sizeof(buf));
+  ntop->getRedis()->get((char *)PREF_RADIUS_SECRET, radiusSecret, MAX_SECRET_LENGTH + 1);
+  ntop->getRedis()->get((char *)PREF_RADIUS_ADMIN_GROUP, radiusAdminGroup, MAX_RADIUS_LEN);
+  ntop->getRedis()->get((char *)PREF_RADIUS_UNPRIV_CAP_GROUP, radiusUnprivCapabilitiesGroup, MAX_RADIUS_LEN);
 
+  if((radiusAuthServer[0] == '\0') || (radiusAcctServer[0] == '\0')) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "No Radius server configured for authentication or accounting [Auth: %s][Acct: %s]",
+				 radiusAuthServer, radiusAcctServer);
+    return(false);
+  }
+    
   if(!strcmp(buf, "chap"))
     use_chap = true;
-
+  else
+    use_chap = false;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
-                               "Radius: server - %s | secret - %s | admin "
+                               "Radius: server - %s/%s | secret - %s | admin "
                                "group - %s | capabilities group - %s | auth. protocol - %s",
-                               radiusServer, radiusSecret, radiusAdminGroup,
+                               radiusAuthServer, radiusAcctServer, radiusSecret, radiusAdminGroup,
                                radiusUnprivCapabilitiesGroup, buf);
 
   return true;
 }
 
 /* *************************************** */
-
 
 bool Radius::authenticate(const char *user, const char *password,
                           bool *has_unprivileged_capabilities, bool *is_admin) {
@@ -308,7 +304,7 @@ bool Radius::authenticate(const char *user, const char *password,
 
     /* Create random challenge */
     challenge = Utils::createRandomString(c_buf, sizeof(c_buf)-1);
-    
+
     if (rc_avpair_add(rh, &send, PW_CHAP_CHALLENGE, challenge, -1, 0) == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set CHAP challenge");
       goto radius_auth_out;
@@ -332,13 +328,12 @@ bool Radius::authenticate(const char *user, const char *password,
     }
   }
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG,
-                               "Radius: performing auth for user %s", user);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Radius: performing auth for user %s", user);
 
   /* ****************************** */
 
   /* Check the authentication */
-  result = rc_auth(rh, 0, send, &received, NULL);
+  result = rc_auth(rh, 0 /* any client */, send, &received, NULL);
 
   if (result == OK_RC) {
     /* Auth is OK */
@@ -359,7 +354,7 @@ bool Radius::authenticate(const char *user, const char *password,
             else if (strcmp(value, radiusUnprivCapabilitiesGroup) == 0)
               *has_unprivileged_capabilities = true;
 
-            break; /* We care only about "Filter-Id" */
+            //break; /* We care only about "Filter-Id" */
           }
         }
 
@@ -373,25 +368,23 @@ bool Radius::authenticate(const char *user, const char *password,
 
     if (strcmp(user, "admin")) {
       switch (result) {
-        case TIMEOUT_RC:
-          ntop->getTrace()->traceEvent(
-              TRACE_WARNING, "Radius Authentication timeout for user \"%s\"",
-              user);
-          break;
-        case REJECT_RC:
-          ntop->getTrace()->traceEvent(
-              TRACE_WARNING, "Radius Authentication rejected for user \"%s\"",
-              user);
-          break;
-        default:
-          ntop->getTrace()->traceEvent(
-              TRACE_WARNING, "Radius Authentication failure[%d]: user \"%s\"",
-              result, user);
+      case TIMEOUT_RC:
+	ntop->getTrace()->traceEvent(
+				     TRACE_WARNING, "Radius Authentication timeout for user \"%s\"",
+				     user);
+	break;
+      case REJECT_RC:
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication rejected for user \"%s\"",
+				     user);
+	break;
+      default:
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Radius Authentication failure[%d]: user \"%s\"",
+				     result, user);
       }
     }
   }
 
-radius_auth_out:
+ radius_auth_out:
   if (rh) rc_destroy(rh);
   if (send) rc_avpair_free(send);
   if (received) rc_avpair_free(received);
@@ -412,30 +405,30 @@ bool Radius::startSession(const char *username, const char *session_id) {
     goto radius_auth_out;
   }
 
-  if (!addBasicConfigurationAcct(&rh, &send, PW_STATUS_START, username,
-                                 session_id)) {
+  if (!addBasicConfigurationAcct(rh, &send, PW_ACCOUNTING_ON, username, session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
   }
-  ntop->getTrace()->traceEvent(
-      TRACE_DEBUG, "Radius: performing accounting start for: %s", username);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+			       "Radius: performing accounting start for: %s", username);
 
   /* ****************************** */
 
   /* Check the accounting */
-  result = rc_acct(rh, 0, send);
+  result = rc_acct(rh, 0 /* any port */, send);
 
   if (result == OK_RC) {
-    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                  "Radius: Accounting start Succedeed");
     radius_ret = true;
   } else {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Radius: Accounting start failed with result: %d", result);
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Radius: Accounting start failed with result: %d", result);
   }
 
-radius_auth_out:
+ radius_auth_out:
   if (rh) rc_destroy(rh);
   if (send) rc_avpair_free(send);
 
@@ -444,8 +437,7 @@ radius_auth_out:
 
 /* *************************************** */
 
-bool Radius::updateSession(const char *username, const char *session_id,
-                           Host *h) {
+bool Radius::updateSession(const char *username, const char *session_id, RadiusTraffic *info) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
@@ -458,7 +450,7 @@ bool Radius::updateSession(const char *username, const char *session_id,
   }
 
   /* Create the basic configuration, used by the accounting */
-  if (!addBasicConfigurationAcct(&rh, &send, PW_STATUS_ALIVE, username,
+  if (!addBasicConfigurationAcct(rh, &send, PW_STATUS_ALIVE, username,
                                  session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
@@ -466,31 +458,29 @@ bool Radius::updateSession(const char *username, const char *session_id,
   }
 
   /* Add to the dictionary the interim-update data (needed even in the stop) */
-  if (!addUpdateConfigurationAcct(&rh, &send, h)) {
+  if (!addUpdateConfigurationAcct(rh, &send, info)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
   }
 
-  ntop->getTrace()->traceEvent(
-      TRACE_DEBUG, "Radius: performing accounting interim-update for: %s",
-      username);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Radius: performing accounting interim-update for: %s",
+			       username);
 
   /* ****************************** */
 
   /* Check the accounting */
-  result = rc_acct(rh, 0, send);
+  result = rc_acct(rh, 0 /* any port */, send);
 
   if (result == OK_RC) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
-                                 "Radius: Accounting start Succedeed");
+                                 "Radius: Accounting Update Succedeed");
     radius_ret = true;
   } else {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Radius: Accounting start failed with result: %d", result);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Accounting update failed with result: %d", result);
   }
 
-radius_auth_out:
+ radius_auth_out:
   if (rh) rc_destroy(rh);
   if (send) rc_avpair_free(send);
 
@@ -500,16 +490,11 @@ radius_auth_out:
 /* *************************************** */
 
 bool Radius::stopSession(const char *username, const char *session_id,
-                         Host *h) {
+                         RadiusTraffic *info) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
   VALUE_PAIR *send = NULL;
-
-  if (!h) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Host NULL");
-    return false;
-  }
 
   /* Init the configuration */
   if (!buildConfiguration(&rh)) {
@@ -518,19 +503,15 @@ bool Radius::stopSession(const char *username, const char *session_id,
   }
 
   /* Create the basic configuration, used by the accounting */
-  if (!addBasicConfigurationAcct(&rh, &send, PW_STATUS_STOP, username,
-                                 session_id)) {
+  if (!addBasicConfigurationAcct(rh, &send, PW_ACCOUNTING_OFF,
+				 username, session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
   }
 
   /* Add to the dictionary the interim-update data (needed even in the stop) */
-  if (!addUpdateConfigurationAcct(&rh, &send, h)) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Radius: Accounting Configuration Failed");
-    goto radius_auth_out;
-  }
+  addUpdateConfigurationAcct(rh, &send, info);
 
   /* TODO: Change the terminate clause to the correct one */
   if (rc_avpair_add(rh, &send, PW_ACCT_TERMINATE_CAUSE, "No More Allowed", -1,
@@ -540,24 +521,21 @@ bool Radius::stopSession(const char *username, const char *session_id,
     return false;
   }
 
-  ntop->getTrace()->traceEvent(
-      TRACE_DEBUG, "Radius: performing accounting stop for: %s", username);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Radius: performing accounting stop for: %s", username);
 
   /* ****************************** */
 
   /* Check the accounting */
-  result = rc_acct(rh, 0, send);
+  result = rc_acct(rh, 0 /* any port */, send);
 
   if (result == OK_RC) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
-                                 "Radius: Accounting start Succedeed");
+                                 "Radius: Accounting stop Succedeed");
     radius_ret = true;
-  } else {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Radius: Accounting start failed with result: %d", result);
-  }
+  } else
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Accounting stop failed with result: %d", result);
 
-radius_auth_out:
+ radius_auth_out:
   if (rh) rc_destroy(rh);
   if (send) rc_avpair_free(send);
 

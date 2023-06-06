@@ -160,11 +160,11 @@ class Host : public GenericHashEntry,
   TrafficShaper **host_traffic_shapers;
   bool has_blocking_quota, has_blocking_shaper;
 #endif
-  u_int16_t is_in_broadcast_domain : 1, is_dhcp_host : 1,
+  u_int16_t hidden_from_top : 1, is_in_broadcast_domain : 1, is_dhcp_host : 1,
       is_crawler_bot_scanner : 1, is_blacklisted : 1, is_rx_only : 1,
       more_then_one_device : 1, stats_reset_requested : 1,
       name_reset_requested : 1, data_delete_requested : 1, prefs_loaded : 1,
-      _notused : 6;
+      deferred_init : 1, _notused : 5;
 
   /* Alert exclusion handling */
 #ifdef NTOPNG_PRO
@@ -198,7 +198,7 @@ class Host : public GenericHashEntry,
   char *get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize,
                             bool skip_prefix = false);
   bool isValidHostName(const char *name);
-  void deferredInitialization();
+  virtual void deferredInitialization();
 
  public:
   Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _u_int16_t,
@@ -278,6 +278,9 @@ class Host : public GenericHashEntry,
 
   inline bool isNtpServer() const {
     return (host_services_bitmap & (1 << HOST_IS_NTP_SERVER));
+  }
+  inline bool isHiddenFromTop() const {
+    return (hidden_from_top == 1);
   }
   void setNtpServer(char *name);
 
@@ -756,6 +759,7 @@ class Host : public GenericHashEntry,
   char *get_city(char *buf, u_int buf_len);
   void get_geocoordinates(float *latitude, float *longitude);
   void serialize_geocoordinates(ndpi_serializer *s, const char *prefix);
+  inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this) ? 1 : 0; }
   inline void reloadDhcpHost() {
     is_dhcp_host = iface->isInDhcpRange(get_ip()) ? 1 : 0;
   }

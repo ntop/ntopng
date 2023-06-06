@@ -58,9 +58,14 @@ class Prefs {
       enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
       enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
       enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
-      dump_flows_on_clickhouse, use_mac_in_flow_key;
+    dump_flows_on_clickhouse, use_mac_in_flow_key, do_reforge_timestamps;
   u_int32_t behaviour_analysis_learning_period;
-  u_int32_t iec60870_learning_period, devices_learning_period;
+  u_int32_t iec60870_learning_period, modbus_learning_period,
+    devices_learning_period;
+#ifdef NTOPNG_PRO
+  ndpi_bitmap* modbus_allowed_function_codes;
+  u_int modbus_too_many_exceptions;
+#endif
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
       behaviour_analysis_learning_status_post_learning;
   TsDriver timeseries_driver;
@@ -114,6 +119,7 @@ class Prefs {
       dump_json_flows_on_disk, dump_ext_json;
 #ifdef NTOPNG_PRO
   bool dump_flows_direct;
+  u_int32_t max_aggregated_flows_upperbound, max_aggregated_flows_traffic_upperbound;
   bool is_geo_map_score_enabled, is_geo_map_asname_enabled,
       is_geo_map_alerted_flows_enabled, is_geo_map_blacklisted_flows_enabled,
       is_geo_map_host_name_enabled, is_geo_map_rxtx_data_enabled,
@@ -214,16 +220,12 @@ class Prefs {
   bool is_enterprise_m_edition();
   bool is_enterprise_l_edition();
   bool is_enterprise_xl_edition();
-  bool is_nedge_edition();
+
+  bool is_nedge_pro_edition();
   bool is_nedge_enterprise_edition();
 
-  inline bool is_embedded_edition() {
-#ifdef NTOPNG_EMBEDDED_EDITION
-    return (true);
-#else
-    return (false);
-#endif
-  }
+  bool is_embedded_edition();
+
   time_t pro_edition_demo_ends_at();
   inline char* get_local_networks() {
     if (!local_networks_set) return NULL;
@@ -564,9 +566,9 @@ class Prefs {
   inline bool isCaptivePortalEnabled() const {
     return (enable_captive_portal && !enable_vlan_trunk_bridge);
   }
-  inline bool isInformativeCaptivePortalEnabled() const {
-    return (enable_informative_captive_portal && !enable_vlan_trunk_bridge);
-  }
+
+  bool isInformativeCaptivePortalEnabled() const;
+
   inline bool isMacBasedCaptivePortal() const {
     return (mac_based_captive_portal);
   }
@@ -650,12 +652,14 @@ class Prefs {
   inline ServiceAcceptance behaviourAnalysisStatusPostLearning() {
     return behaviour_analysis_learning_status_post_learning;
   };
-  inline u_int64_t* getIEC104AllowedTypeIDs() {
-    return (iec104_allowed_typeids);
-  };
-  inline u_int32_t getIEC60870LearingPeriod() {
-    return (iec60870_learning_period);
-  };
+  inline u_int64_t* getIEC104AllowedTypeIDs() { return (iec104_allowed_typeids);   };
+  inline u_int32_t getIEC60870LearingPeriod() { return (iec60870_learning_period); };
+  inline u_int32_t getModbusLearingPeriod()   { return (modbus_learning_period); };
+#ifdef NTOPNG_PRO
+  inline ndpi_bitmap* getModbusAllowedFunctionCodes() { return (modbus_allowed_function_codes);  };
+  inline void         setModbusTooManyExceptionsThreshold(u_int v) { modbus_too_many_exceptions = v;     }
+  inline u_int        getModbusTooManyExceptionsThreshold()        { return(modbus_too_many_exceptions); }
+#endif
   inline u_int32_t devicesLearingPeriod() { return (devices_learning_period); };
   inline bool are_alerts_disabled() { return (disable_alerts); };
   inline bool dontEmitFlowAlerts() {
@@ -674,15 +678,17 @@ class Prefs {
   };
 #ifdef NTOPNG_PRO
   inline bool isLabelDumpEnabled() { return (create_labels_logfile); };
+  void setModbusAllowedFunctionCodes(const char *function_codes);
 #endif
-  void setIEC104AllowedTypeIDs(const char* protos);
+  void setIEC104AllowedTypeIDs(const char* type_ids);
   void validate();
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
   char* getKakfaBrokersList() { return (kafka_brokers_list); }
   char* getKafkaTopic() { return (kafka_topic); }
   char* getKafkaOptions() { return (kafka_options); }
 #endif
-  inline bool useMacAddressInFlowKey() { return (use_mac_in_flow_key); }
+  inline bool useMacAddressInFlowKey() { return (use_mac_in_flow_key);  }
+  inline bool doReforgeTimestamps()    { return(do_reforge_timestamps); }
 };
 
 #endif /* _PREFS_H_ */

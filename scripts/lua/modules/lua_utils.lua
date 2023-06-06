@@ -346,6 +346,9 @@ end
 -- ##############################################
 
 function truncate(x)
+   if(x == nil) then
+      tprint(debug.traceback())
+   end
    return x<0 and math.ceil(x) or math.floor(x)
 end
 
@@ -781,6 +784,9 @@ end
 -- ##############################################
 
 function splitNetworkPrefix(net)
+   if not net then
+      tprint(debug.traceback())
+   end
    local prefix = tonumber(net:match("/(.+)"))
    local address = net:gsub("/.+","")
    return address, prefix

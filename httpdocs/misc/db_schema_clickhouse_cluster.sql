@@ -450,3 +450,44 @@ SELECT 7 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, se
 UNION ALL
 SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `system_alerts`
 ;
+
+@
+
+DROP TABLE IF EXISTS `aggregated_flows`  ON CLUSTER '$CLUSTER';
+
+@
+
+CREATE TABLE IF NOT EXISTS `hourly_flows` ON CLUSTER '$CLUSTER' (
+       `FLOW_ID` UInt64,
+       `IP_PROTOCOL_VERSION` UInt8,
+       `FIRST_SEEN` DateTime,
+       `LAST_SEEN` DateTime,
+       `VLAN_ID` UInt16,
+       `PACKETS` UInt32,
+       `TOTAL_BYTES` UInt64,
+       `SRC2DST_BYTES` UInt64, /* Total */
+       `DST2SRC_BYTES` UInt64, /* Total */
+       `SCORE` UInt16, /* Total score */
+       `PROTOCOL` UInt8,
+       `IPV4_SRC_ADDR` UInt32,
+       `IPV6_SRC_ADDR` IPv6,
+       `IPV4_DST_ADDR` UInt32,
+       `IPV6_DST_ADDR` IPv6,
+       `IP_DST_PORT` UInt16,
+       `L7_PROTO` UInt16,
+       `L7_PROTO_MASTER` UInt16,
+       `NUM_FLOWS` UInt32, /* Total number of flows that have been aggregated */
+       `FLOW_RISK` UInt64, /* OS of flow risk */
+       `SRC_MAC` UInt64,
+       `DST_MAC` UInt64,
+       `PROBE_IP` UInt32, /* EXPORTER_IPV4_ADDRESS */
+       `NTOPNG_INSTANCE_NAME` String,
+       `SRC_COUNTRY_CODE` UInt16,
+       `DST_COUNTRY_CODE` UInt16,
+       `SRC_ASN` UInt32,
+       `DST_ASN` UInt32,
+       `INPUT_SNMP` UInt32,
+       `OUTPUT_SNMP` UInt32,
+       `SRC_NETWORK_ID` UInt16,
+       `DST_NETWORK_ID` UInt16,
+) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, FIRST_SEEN);

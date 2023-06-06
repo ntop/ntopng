@@ -146,7 +146,8 @@ const render = () => {
 
 function is_item_selected(item) {
     if (!props.multiple) {
-	return item.value == selected_option_2.value.value;
+	const is_zero_value = selected_option_2.value.value == 0 ||selected_option_2.value.value == "0";
+	return item.value == selected_option_2.value.value || (is_zero_value && item.label == selected_option_2.value.label);
     }
     return selected_values.value.find((v) => v == item.value) != null; 
 }

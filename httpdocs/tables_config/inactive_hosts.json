@@ -1,0 +1,76 @@
+{
+	"id": "inactive_hosts",
+	"data_url": "lua/rest/v2/get/host/inactive.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": true,
+	"columns": [
+		{
+			"title_i18n": "ip_address",
+			"data_field": "ip_address",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "vlan",
+			"data_field": "vlan",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "mac_address",
+			"data_field": "mac_address",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "name",
+			"data_field": "host_name",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "first_seen",
+			"data_field": "first_seen",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "last_seen",
+			"data_field": "last_seen",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "network",
+			"data_field": "network",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "details.device_type",
+			"data_field": "device_type",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		}
+	]
+}

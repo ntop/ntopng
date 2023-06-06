@@ -23,10 +23,7 @@ pools.DEFAULT_POOL_ID = 0           -- Keep in sync with ntop_defines.h NO_HOST_
 pools.DEFAULT_POOL_NAME = "Default" -- Keep in sync with ntop_defines.h DEFAULT_POOL_NAME
 
 if ntop.isnEdge() then
-    -- Compatibility with nEdge pools
-    local host_pools_nedge = require "host_pools_nedge"
-    pools.DEFAULT_POOL_ID = tonumber(host_pools_nedge.DEFAULT_POOL_ID)
-    pools.DEFAULT_POOL_NAME = host_pools_nedge.DEFAULT_POOL_NAME
+   pools.DEFAULT_POOL_NAME = "Not Assigned"
 end
 
 -- ##############################################
@@ -197,7 +194,6 @@ function pools:_lock()
    local max_lock_duration = 5 -- seconds
 
    if(_use_lock) then
-      -- tprint(debug.traceback()) -- TODO: remove this useless lock
       return ntop.poolsLock(max_lock_duration)
    else
       return true
@@ -619,8 +615,6 @@ function pools:get_available_members()
 
     local res = {}
     for member, member_details in pairs(all_members) do
-        --      tprint("checking.."..member)
-        --      tprint(member)
         if not assigned_members[member] then res[member] = member_details end
     end
 
@@ -666,7 +660,7 @@ end
 -- ##############################################
 
 -- @brief Bind `member` to pool identified with `pool_id`. If the member is already bound to another pool
---        Then the member is first unboud and the bound to `pool_id`.
+--        then the member is first unboud and the bound to `pool_id`.
 function pools:bind_member(member, pool_id)
     local ret, err = false, pools.ERRORS.GENERIC
 

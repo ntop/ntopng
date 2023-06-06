@@ -127,6 +127,15 @@ export const ntopng_utility = function() {
 	set_http_globals_headers(headers) {
 	    global_http_headers = headers;
 	},
+	http_post_request: async function(url, params, throw_exception, not_unwrap) {
+	    let headers = {
+		'Content-Type': 'application/json'
+	    };
+	    if (params.csrf == null) {
+		throw `NULL csrf in ${url} POST request.`;
+	    }
+	    return this.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+	},
 	http_request: async function(url, options, throw_exception, not_unwrap) {
 	    try {
 		if (options == null) {
@@ -152,6 +161,7 @@ export const ntopng_utility = function() {
 		return json_res.rsp;
 	    } catch (err) {
 		console.error(err);
+		console.error("URL: " + url);
 		if (throw_exception == true) { throw err; }
 		return null;
 	    }
@@ -190,13 +200,13 @@ export const ntopng_utility = function() {
 * The status is incapsulated into the url.
 */
 export const ntopng_status_manager = function() {
-    let gloabal_status = {};
+    let global_status = {};
     /** @type {{ [id: string]: (status: object) => void}} */
     let subscribers = {}; // dictionary of { [id: string]: f_on_ntopng_status_change() }
     const clone = (e) => ntopng_utility.clone(e);
 
     const relplace_global_status = function(status) {
-        gloabal_status = status;
+        global_status = status;
     }
 
     /**
@@ -217,8 +227,11 @@ export const ntopng_status_manager = function() {
          * Gets the current global application status.
          * @returns {object}
          */
-        get_status: function() {
-            return clone(gloabal_status);
+        get_status: function(not_clone) {
+	    if (not_clone == true) {
+		return global_status;
+	    }
+            return clone(global_status);
         },
 
         update_subscribers: function() {

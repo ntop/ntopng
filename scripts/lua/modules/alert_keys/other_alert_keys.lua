@@ -18,7 +18,7 @@ local other_alert_keys = {
    alert_gateway_unreachable            =  OTHER_BASE_KEY + 4 ,
    alert_flow_flood                     =  OTHER_BASE_KEY + 5 , -- No longer used, check alert_flow_flood_attacker and alert_flow_flood_victim
    alert_ghost_network                  =  OTHER_BASE_KEY + 6 ,
-   alert_host_pool_connection           =  OTHER_BASE_KEY + 7 ,
+   alert_host_pool_connection           =  OTHER_BASE_KEY + 7 , -- No longer used
    alert_host_pool_disconnection        =  OTHER_BASE_KEY + 8 ,
    alert_influxdb_dropped_points        =  OTHER_BASE_KEY + 9 ,
    alert_influxdb_error                 =  OTHER_BASE_KEY + 10,
@@ -95,6 +95,7 @@ local other_alert_keys = {
    alert_local_host_blacklisted         =  OTHER_BASE_KEY + 82,
    alert_network_issues                 =  OTHER_BASE_KEY + 83,
    alert_network_rule_threshold_cross   =  OTHER_BASE_KEY + 84,
+   alert_snmp_interface_threshold_crossed = OTHER_BASE_KEY + 85,
 }
 
 -- ##############################################

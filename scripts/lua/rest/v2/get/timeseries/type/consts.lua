@@ -1,7 +1,6 @@
 --
 -- (C) 2013-23 - ntop.org
 --
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
@@ -19,27 +18,31 @@ local mac = _GET["mac"]
 local subnet = _GET["subnet"]
 local device = _GET["device"]
 local port = _GET["port"]
+local epoch_begin = _GET["epoch_begin"]
+local epoch_end = _GET["epoch_end"]
 
 local res = {}
 
 if ifid then
-  interface.select(ifid)
+    interface.select(ifid)
 end
 
 if isEmptyString(query) then
-  rest_utils.answer(rest_utils.consts.err.invalid_args)
+    rest_utils.answer(rest_utils.consts.err.invalid_args)
 end
 
 local tags = {
-  ifid = ifid,
-  host = host,
-  asn  = asn,
-  pool = pool,
-  vlan = vlan,
-  mac  = mac,
-  subnet = subnet,
-  device = device,
-  port = port
+    ifid = ifid,
+    host = host,
+    asn = asn,
+    pool = pool,
+    vlan = vlan,
+    mac = mac,
+    subnet = subnet,
+    device = device,
+    port = port,
+    epoch_begin = tonumber(epoch_begin),
+    epoch_end = tonumber(epoch_end)
 }
 
 res = table.merge(res, timeseries_info.retrieve_specific_timeseries(tags, query))

@@ -6,6 +6,8 @@ import * as Vue from "vue";
 // window.Vue = Vue;
 
 // pages
+import { default as PageAlertStats } from "./page-alert-stats.vue";
+import { default as PageFlowHistorical } from "./page-flow-historical.vue";
 import { default as PageStats } from "./page-stats.vue";
 import { default as PageAssetTable } from "./page-asset-table.vue";
 import { default as PagePeriodicityTable } from "./page-periodicity-table.vue";
@@ -30,18 +32,21 @@ import { default as PageVLANPortsSankey } from "./page-vlan-ports-sankey.vue";
 import { default as PageAggregatedLiveFlows } from "./page-aggregated-live-flows.vue";
 import { default as PageAggregatedLiveFlowsV2 } from "./page-aggregated-live-flows-v2.vue";
 import { default as PageTestTable } from "./page-test-table.vue";
-import { default as PageTestNewTable } from "./page-test-new-table.vue";
 import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
 import { default as PageEditApplications } from "./page-edit-applications.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
 import { default as PageManageConfigurationBackup2 } from "./page-manage-configurations-backup2.vue";
-
-import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue" 
+import { default as PageSNMPDeviceRules } from "./page-snmp-device-rules.vue";
+import { default as PageSnmpDevicesInterfacesSimilarity } from "./page-snmp-devices-interfaces-similarity.vue";
+import { default as PageHostsPortsAnalysis } from "./page-hosts-ports-analysis.vue";
+import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue";
+import { default as PageInactiveHosts } from "./page-inactive-hosts.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
+import { default as TimeseriesChart } from "./timeseries-chart.vue";
 import { default as Datatable } from "./datatable.vue";
 import { default as NetworkMap } from "./network-map.vue";
 import { default as DateTimeRangePicker } from "./data-time-range-picker.vue";
@@ -74,6 +79,8 @@ import { default as ModalDeleteApplication } from "./modal-delete-application.vu
 
 let ntopVue = {
     // pages
+    PageAlertStats: PageAlertStats,
+    PageFlowHistorical: PageFlowHistorical,
     PageStats: PageStats,
     PageAssetTable: PageAssetTable,
     PagePeriodicityTable: PagePeriodicityTable,
@@ -91,14 +98,19 @@ let ntopVue = {
     PageHostMap: PageHostMap,
     PageManageConfigurationBackup: PageManageConfigurationBackup,
     PageManageConfigurationBackup2: PageManageConfigurationBackup2,
+    PageSNMPDeviceRules: PageSNMPDeviceRules,
+    PageHostsPortsAnalysis: PageHostsPortsAnalysis,
+    PageInactiveHosts: PageInactiveHosts,
 
     PageEditApplications: PageEditApplications,
 
-    PageVLANPortsFlowSankey:PageVLANPortsSankey,
+    PageVLANPortsFlowSankey: PageVLANPortsSankey,
     PageTestTable: PageTestTable,
-    PageTestNewTable: PageTestNewTable,
+    PageSnmpDevicesInterfacesSimilarity: PageSnmpDevicesInterfacesSimilarity,
+
     NedgeRulesConfig: NedgeRulesConfig,
     NedgeRepeatersConfig: NedgeRepeatersConfig,
+
 
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,
@@ -110,11 +122,12 @@ let ntopVue = {
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
     PageAggregatedLiveFlowsV2: PageAggregatedLiveFlowsV2,
 
-    PageNetworkDiscovery:PageNetworkDiscovery,
+    PageNetworkDiscovery: PageNetworkDiscovery,
 
     // components
     AlertInfo: AlertInfo,
     Chart: Chart,
+    TimeseriesChart: TimeseriesChart,
     Datatable: Datatable,
     DateTimeRangePicker: DateTimeRangePicker,
     NetworkMap: NetworkMap,
@@ -126,7 +139,7 @@ let ntopVue = {
     Sankey: Sankey,
     NoteList: NoteList,
     Loading: Loading,
-    
+
     // list
     ListTimeseries: ListTimeseries,
 

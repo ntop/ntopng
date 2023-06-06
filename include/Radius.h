@@ -30,15 +30,15 @@ class Radius {
  private:
   bool use_chap;
   int result;
-  char *radiusServer, *radiusSecret, *authServer, *radiusAdminGroup,
-      *radiusUnprivCapabilitiesGroup;
+  char *radiusAuthServer, *radiusAcctServer;
+  char *radiusSecret, *authServer, *radiusAdminGroup, *radiusUnprivCapabilitiesGroup;
   char dict_path[MAX_RADIUS_LEN];
 
   bool buildConfiguration(rc_handle **rh);
-  bool addBasicConfigurationAcct(rc_handle **rh, VALUE_PAIR **send,
+  bool addBasicConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
                                  u_int16_t status_type, const char *username,
                                  const char *session_id);
-  bool addUpdateConfigurationAcct(rc_handle **rh, VALUE_PAIR **send, Host *h);
+  bool addUpdateConfigurationAcct(rc_handle *rh, VALUE_PAIR **send, RadiusTraffic *info);
 
  public:
   Radius(bool _use_chap = true);
@@ -49,8 +49,8 @@ class Radius {
   bool authenticate(const char *user, const char *password,
                     bool *has_unprivileged_capabilities, bool *is_admin);
   bool startSession(const char *username, const char *session_id);
-  bool stopSession(const char *username, const char *session_id, Host *h);
-  bool updateSession(const char *username, const char *session_id, Host *h);
+  bool stopSession(const char *username, const char *session_id, RadiusTraffic *info);
+  bool updateSession(const char *username, const char *session_id, RadiusTraffic *info);
 };
 
 #endif

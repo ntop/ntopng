@@ -52,11 +52,12 @@ extern struct keyval string_to_replace[]; /* LuaEngine.cpp */
 /* ******************************************* */
 
 Ntop::Ntop(const char *appName) {
+  int num_resolvers;
+
   // WTF: it's weird why do you want a global instance of ntop.
   ntop = this;
   globals = new (std::nothrow) NtopGlobals();
   extract = new (std::nothrow) TimelineExtract();
-  address = new (std::nothrow) AddressResolution();
 
   offline = false;
   forced_offline = false;
@@ -198,6 +199,13 @@ Ntop::Ntop(const char *appName) {
 #else
   pro = NULL;
 #endif
+
+  num_resolvers = CONST_NUM_RESOLVERS;
+#if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
+  if (pro->is_embedded_version())
+    num_resolvers = 1;
+#endif
+  address = new (std::nothrow) AddressResolution(num_resolvers);
 
 #ifdef __linux__
   inotify_fd = -1;
@@ -460,8 +468,10 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   if (ntop->getRedis()->get((char *)LAST_RESET_TIME, value, sizeof(value)) >= 0)
     last_stats_reset = atol(value);
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
   /* Now we can enable the periodic activities */
   pa = new (std::nothrow) PeriodicActivities();
+#endif
 
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   if (prefs->do_dump_flows_on_clickhouse())
@@ -3835,13 +3845,18 @@ void Ntop::setZoneInfo() {
 
 #else
   zoneinfo = getWindowsTimezone();
-
 #endif /* WIN32 */
 
   if (zoneinfo == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
                                  "Unable to find timezone: using UTC");
-    zoneinfo = strdup("Europe/London"); /* UTC */
+    zoneinfo = strdup("UTC");
+  } else {
+    const char *const_zoneinfo = "zoneinfo/";
+    u_int len = strlen(const_zoneinfo);
+
+    if(strncmp(zoneinfo, const_zoneinfo, len) == 0)
+      zoneinfo = &zoneinfo[len];
   }
 
   if (zoneinfo)

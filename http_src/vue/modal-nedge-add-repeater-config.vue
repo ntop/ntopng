@@ -54,8 +54,8 @@
 		<label class="col-form-label col-sm-10" >
         <b>{{_i18n("nedge.page_repeater_config.interfaces")}}</b>
 	    </label>
-				<SelectSearch
-                          :options="interface_array"
+				<SelectSearch ref="interfaces_search"
+													:options="interface_array"
                           :multiple="true"
                           @select_option="update_interfaces_selected"
                           @unselect_option="remove_interfaces_selected"
@@ -70,7 +70,7 @@
     </div>
   </template>
   <template v-slot:footer>
-    <button type="button" :disabled="disable_add && repeater_type == 'custom'" @click="apply" class="btn btn-primary">{{button_text}}</button>
+    <button type="button" :disabled="invalid_iface_number || disable_add && repeater_type == 'custom'" @click="apply" class="btn btn-primary">{{button_text}}</button>
   </template>
 </modal>
 </template>
@@ -90,11 +90,11 @@ const ip = ref(null);
 const port = ref(null);
 const repeater_type = ref({value: "mdns", label: "MDNS" });
 const emit = defineEmits(['edit', 'add'])
+const interfaces_search = ref(null);
 
 const showed = () => {};
 
-const props = defineProps({
-});
+const props = defineProps({});
 
 const check_empty_host = () => {
   let regex = new RegExp(regexValidation.get_data_pattern('ip'));
@@ -118,6 +118,7 @@ const repeater_type_array = [
 
 const repeater_id = ref(0);
 const disable_add = ref(true)
+const invalid_iface_number = ref(true)
 
 const selected_repeater_type = ref({});
 
@@ -132,6 +133,7 @@ const button_text = ref("");
 
 const all_criteria = (item) => {
 	selected_dest_interface.value = item;
+	invalid_iface_number.value = item.length < 2;
 }
 
 const update_interfaces_selected = (item) => {
@@ -151,7 +153,6 @@ const is_open_in_add = ref(true);
 
 function init(row) {
     is_open_in_add.value = row == null;
-    
 
     // check if we need open in edit
     if (is_open_in_add.value == false) {
@@ -175,6 +176,20 @@ function init(row) {
 			button_text.value = _i18n("add");
 			let default_type = repeater_type_array.find((s) => s.default == true);
     }
+		
+		if (is_open_in_add.value == false) {
+			const row_interfaces = row.interfaces.split(",");
+			let selected_interfaces = [] 
+			interface_array.value.forEach(function(el) {
+				el.selected = false;
+				if(row_interfaces.find(element => element == el.value)) {
+					el.selected = true;
+				}
+				
+				selected_interfaces.push(el);
+			})
+			interfaces_search.value.update_multiple_values(selected_interfaces);
+		}
 }
 
 async function change_repeater_type(type) {
@@ -225,13 +240,18 @@ const apply = () => {
     }
 
 		let interfaces = "";
-		if(selected_dest_interface.value.length == 0) {
-			interfaces = "enp2s0f1,enp2s0f3";
-		}
+		let details = "";
+		
 		selected_dest_interface.value.forEach((i) => {
 			interfaces +=i.value+",";
+			
+			if(i.value != i.label && !i.label.includes(i.value)) 
+				details += i.label+" ("+i.value+")"+",";
+			else 
+				details += i.label+",";
 		});
 		obj.interfaces = interfaces;
+		obj.interface_details = details;
     emit(event, obj);
     close();
 };

@@ -43,7 +43,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   char server_public_key[41], server_secret_key[41];
 
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
-  char *generateEncryptionKeys();
+  char *findInterfaceEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len);
 #endif
 
  public:

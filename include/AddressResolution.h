@@ -31,7 +31,7 @@ class AddressResolution {
   Mutex m;
 
  public:
-  AddressResolution();
+  AddressResolution(int num_resolvers);
   ~AddressResolution();
 
   void startResolveAddressLoop();

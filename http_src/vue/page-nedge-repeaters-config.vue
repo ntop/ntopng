@@ -71,6 +71,14 @@ function set_rule(rule, url) {
 }
 
 
+
+const format_interfaces = function(data, rowData) { 
+    if(data) {
+        let string_without_end = data.replace(/.$/, ''); 
+        return string_without_end;
+    }
+    return data;
+}
 function set_datatable_config() {
     const datatableButton = [];
     
@@ -110,9 +118,12 @@ function set_datatable_config() {
      { 
 	    columnName: _i18n("nedge.page_repeater_config.port"), targets: 0, name: 'port', data: 'port', className: 'text-nowrap text-left', responsivePriority: 1
 	},
-     /*{ 
-	    columnName: _i18n("nedge.page_repeater_config.interfaces"), targets: 0, name: 'interfaces', data: 'interfaces', className: 'text-nowrap text-left', responsivePriority: 1
-	},*/
+     { 
+	    columnName: _i18n("nedge.page_repeater_config.interfaces"), targets: 0, name: 'interfaces', data: 'details', className: 'text-nowrap text-left', responsivePriority: 1, render: function (data,_,rowData)  {
+		    
+		    return format_interfaces(data, rowData)}
+	    
+	},
     ];
     let wrap_columns_config = columns.map((c) => c);
     // let wrap_columns_config = props.columns_config.map((c) => c);
@@ -138,8 +149,8 @@ const add_action_column = function (rowData) {
     }
     
     return DataTableUtils.createActionButtons([
-	{ class: `btn-secondary`, handler: edit_handler, handlerId: "edit_rule", icon: 'fa-edit', title: i18n('edit') },
-	{ class: `btn-danger`, handler: delete_handler, handlerId: "delete_rule", icon: 'fa-trash', title: i18n('delete') },
+	{ class: `pointer`, handler: edit_handler, handlerId: "edit_rule", icon: 'fa-edit', title: i18n('edit') },
+	{ class: `pointer`, handler: delete_handler, handlerId: "delete_rule", icon: 'fa-trash', title: i18n('delete') },
     ]);
 };
 

@@ -73,8 +73,8 @@ bool Check::isCheckCompatibleWithInterface(NetworkInterface *iface) {
   if (!isCheckCompatibleWithEdition()) return (false);
 
   if (packet_interface_only && (!iface->isPacketInterface())) return (false);
-  if (nedge_only && (!ntop->getPrefs()->is_nedge_edition())) return (false);
-  if (nedge_exclude && ntop->getPrefs()->is_nedge_edition()) return (false);
+  if (nedge_only && (!ntop->getPrefs()->is_nedge_pro_edition())) return (false);
+  if (nedge_exclude && ntop->getPrefs()->is_nedge_pro_edition()) return (false);
 
   return (true);
 }

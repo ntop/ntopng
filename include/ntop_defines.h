@@ -607,6 +607,7 @@
 
 #define CONST_DEVICES_LEARNING_TIME 7200 /* 2 hours */
 #define CONST_IEC104_LEARNING_TIME 21600 /* 6 hours */
+#define CONST_MODBUS_LEARNING_TIME 3600  /* 1 hour */
 #define CONST_INFLUXDB_KEY_EXPORTED_POINTS \
   "ntopng.cache.influxdb.num_exported_points"
 #define CONST_INFLUXDB_FLUSH_TIME 10         /* sec */
@@ -625,6 +626,7 @@
 #define CONST_DEFAULT_MIRRORED_TRAFFIC false
 #define CONST_DEFAULT_SMART_RECORDING false
 #define CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC false
+#define CONST_DEFAULT_PUSH_HOST_FILTERS false
 #define CONST_DEFAULT_LBD_SERIALIZE_AS_MAC false
 #define CONST_DEFAULT_DISCARD_PROBING_TRAFFIC false
 #define CONST_DEFAULT_FLOWS_ONLY_INTERFACE false
@@ -644,6 +646,8 @@
   NTOPNG_PREFS_PREFIX ".ifid_%d.smart_traffic_recording.instance"
 #define CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS \
   NTOPNG_PREFS_PREFIX ".ifid_%d.show_dynamic_interface_traffic"
+#define CONST_PUSH_HOST_FILTERS_PREFS \
+  NTOPNG_PREFS_PREFIX ".ifid_%d.push_host_filters_to_pfring"
 #define CONST_DISABLED_FLOW_DUMP_PREFS \
   NTOPNG_PREFS_PREFIX ".ifid_%d.is_flow_dump_disabled"
 #define CONST_LBD_SERIALIZATION_PREFS \
@@ -727,6 +731,8 @@
 
 #define CONST_PREFS_IEC60870_ANALYSIS_LEARNING_PERIOD \
   NTOPNG_PREFS_PREFIX ".iec60870_learning_period"
+#define CONST_PREFS_MODBUS_ANALYSIS_LEARNING_PERIOD \
+  NTOPNG_PREFS_PREFIX ".modbus_learning_period"
 #define CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD \
   NTOPNG_PREFS_PREFIX ".devices_learning_period"
 
@@ -756,6 +762,10 @@
   NTOPNG_PREFS_PREFIX ".is_interface_name_only"
 #define CONST_RUNTIME_IS_GEO_MAP_SCORE_ENABLED \
   NTOPNG_PREFS_PREFIX ".is_geo_map_score_enabled"
+#define CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND \
+  NTOPNG_PREFS_PREFIX ".max_aggregated_flows_upperbound"
+#define CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND \
+  NTOPNG_PREFS_PREFIX ".max_aggregated_flows_traffic_upperbound"
 #define CONST_RUNTIME_IS_GEO_MAP_ASNAME_ENABLED \
   NTOPNG_PREFS_PREFIX ".is_geo_map_asname_enabled"
 #define CONST_RUNTIME_IS_GEO_MAP_ALERTED_FLOWS_ENABLED \
@@ -964,7 +974,7 @@
 
 #if (!defined(__APPLE__)) && \
     (defined(__arm__) || defined(__aarch64__) || defined(__mips__))
-#define NTOPNG_EMBEDDED_EDITION 1
+#define HAVE_EMBEDDED_SUPPORT 1
 #endif
 
 #define NUM_MINUTES_PER_DAY 1440  // == 60 * 24
@@ -1155,7 +1165,8 @@
   256 /* Keep it in sync with lua preferences file prefs.lua */
 #endif
 #define PREF_NTOP_RADIUS_AUTH NTOPNG_PREFS_PREFIX ".radius.auth_enabled"
-#define PREF_RADIUS_SERVER NTOPNG_PREFS_PREFIX ".radius.radius_server_address"
+#define PREF_RADIUS_AUTH_SERVER NTOPNG_PREFS_PREFIX ".radius.radius_server_address"
+#define PREF_RADIUS_ACCT_SERVER NTOPNG_PREFS_PREFIX ".radius.radius_acct_server_address"
 #define PREF_RADIUS_AUTH_PROTO NTOPNG_PREFS_PREFIX ".radius.radius_auth_proto"
 #define PREF_RADIUS_SECRET NTOPNG_PREFS_PREFIX ".radius.radius_secret"
 #define PREF_RADIUS_ADMIN_GROUP NTOPNG_PREFS_PREFIX ".radius.radius_admin_group"
@@ -1183,7 +1194,8 @@
 #define NTOP_ES6_TEMPLATE "ntopng_template_elk6.json"
 #define NTOP_ES7_TEMPLATE "ntopng_template_elk7.json"
 #define NTOP_ES8_TEMPLATE "ntopng_template_elk8.json"
-#define ES_MAX_QUEUE_LEN 32768
+#define ES_MAX_QUEUE_LEN 65536
+#define ES_MIN_BUFFERED_FLOWS 8
 #define ES_BULK_BUFFER_SIZE 1 * 1024 * 1024
 #define ES_BULK_MAX_DELAY 120 /* Dump frequency of ELK flows, in seconds */
 
@@ -1477,6 +1489,8 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
   "ntopng.checks.iec104_unexpected_type_id_enabled"
 #define CHECKS_IEC_INVALID_TRANSITION \
   "ntopng.checks.iec104_invalid_transition_enabled"
+#define CHECKS_MODBUS_INVALID_TRANSITION \
+  "ntopng.checks.modbus_invalid_transition_enabled"
 
 #define CUSTOM_FLOW_NDPI_SCRIPT \
   "scripts/callbacks/checks/flows/custom_flow_protocol_detected_script.lua"
@@ -1485,6 +1499,7 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
 #define CUSTOM_FLOW_END_SCRIPT \
   "scripts/callbacks/checks/flows/custom_flow_end_script.lua"
 
+#define OFFLINE_LOCAL_HOSTS_KEY "ntopng.hosts.offline.ifid_%d"
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */

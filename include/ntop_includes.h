@@ -129,7 +129,11 @@ extern "C" {
 #endif
 #include "json.h"
 #include <sqlite3.h>
+
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 #include <hiredis.h>
+#endif
+
 #ifdef HAVE_LDAP
 #include <ldap.h>
 #endif
@@ -351,6 +355,10 @@ using namespace std;
 #include "ServiceMap.h"
 #include "PeriodicityMap.h"
 #endif
+#include "PortDetails.h"
+#include "HostsPorts.h"
+#include "HostDetails.h"
+#include "HostsPortsAnalysis.h"
 #include "UsedPorts.h"
 #include "ObservationPointIdTrafficStats.h"
 #include "FlowsHostInfo.h"
@@ -366,7 +374,13 @@ using namespace std;
 #include "VirtualHost.h"
 #include "VirtualHostHash.h"
 #include "HTTPstats.h"
+
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+#include "RedisStub.h"
+#else
 #include "Redis.h"
+#endif
+
 #ifndef HAVE_NEDGE
 #include "ElasticSearch.h"
 #ifndef WIN32
@@ -395,6 +409,7 @@ using namespace std;
 #ifndef HAVE_NEDGE
 #include "ParserInterface.h"
 #include "ListeningPorts.h"
+#include "ZMQUtils.h"
 #include "ZMQParserInterface.h"
 #include "ZMQPublisher.h"
 #include "ZMQCollectorInterface.h"
@@ -430,6 +445,7 @@ using namespace std;
 #include "RemoteHost.h"
 #ifdef NTOPNG_PRO
 #include "AssetManagement.h"
+#include "ModbusStats.h"
 #endif
 #include "IEC104Stats.h"
 #include "Flow.h"

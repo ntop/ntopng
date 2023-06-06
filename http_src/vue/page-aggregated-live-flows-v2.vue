@@ -24,6 +24,7 @@
                                :get_column_id="(col) => table_config.get_column_id(col)"
                                :print_column_name="(col) => table_config.print_column_name(col)"
 			       :print_html_row="(col, row) => table_config.print_html_row(col, row)"
+			       :f_get_column_classes="get_column_classes"
 			       :f_is_column_sortable="is_column_sortable"
 			       :enable_search="true"
 			       :paging="true">
@@ -53,7 +54,8 @@ const props = defineProps({
     sort: String,
     order: String,
     start: Number,
-    length: Number
+    length: Number,
+    host: String,
 });
 
 const _i18n = (t) => i18n(t);
@@ -171,6 +173,7 @@ function get_url_params(active_page, per_page, columns_wrap, map_search, first_g
         page: ntopng_url_manager.get_url_entry("page") || props.page,
         sort: ntopng_url_manager.get_url_entry("sort") || props.sort,
         order: ntopng_url_manager.get_url_entry("order") || props.order,
+        host: ntopng_url_manager.get_url_entry("host") || props.host,
         start: (active_page * per_page),
         length: per_page,
 	map_search,
@@ -191,6 +194,13 @@ const is_column_sortable = (col) => {
     return col.data != "breakdown" && col.name != 'flows_icon' ;
 };
 
+const get_column_classes = (col) => {
+    if (col.className == null || col.className == "") {
+	return [];
+    }
+    return col.className.split(" ");
+}
+
 /// methods to get columns config
 function get_table_columns_config() {
     let columns = [];
@@ -210,7 +220,13 @@ function get_table_columns_config() {
                 columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
                     return `${data.label_with_icons}`
                 }
-            });
+            }, 
+            {
+                columnName: i18n("application_proto_guessed"), targets: 0, name: 'application', data: 'is_not_guessed', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
+                    return format_application_proto_guessed(data, rowData)
+                }
+            }
+            );
     }
     else if (selected_criteria.value.value == 2) {
         // client case
@@ -339,8 +355,13 @@ const format_server_name = function (data, rowData) {
 
 const format_flows_icon = function (data, rowData) {
     let url = ``;
-    if (selected_criteria.value.value == 1)
+    let add_host = false;
+    if(props.host != null && props.host != "" )
+        add_host = true;
+    if (selected_criteria.value.value == 1) {
         url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}`;
+        if (add_host) url = url + `&host=`+props.host;
+    }
     else if (selected_criteria.value.value == 2)
         url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client.ip}&vlan=${rowData.client.vlan_id}`;
     else if (selected_criteria.value.value == 3)
@@ -349,11 +370,23 @@ const format_flows_icon = function (data, rowData) {
         url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client.ip}&server=${rowData.server.ip}&vlan=${rowData.vlan_id.id}`;
     else if (selected_criteria.value.value == 5)
         url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}&client=${rowData.client.ip}&server=${rowData.server.ip}&vlan=${rowData.vlan_id.id}`;
-    else if (selected_criteria.value.value == 6)
+    else if (selected_criteria.value.value == 6) {
         url = `${http_prefix}/lua/flows_stats.lua?flow_info=${rowData.info.id}`;
+        if (add_host) url = url + `&host=`+props.host;
+
+    }
 
 
     return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
+}
+
+const format_application_proto_guessed = function (data, rowData) {
+    if(rowData.confidence == 0 )
+        return `<span class=\"badge bg-warning\" title=\" `+ rowData.confidence_name + `\">`+ rowData.confidence_name + ` </span>`
+    else if (rowData.confidence)
+        return `<span class=\"badge bg-success\" title=\"`+ rowData.confidence_name + ` \"> `+ rowData.confidence_name + `</span>`
+    
+        
 }
 
 </script>

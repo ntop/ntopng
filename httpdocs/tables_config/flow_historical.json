@@ -1,0 +1,270 @@
+{
+    "id": "flow_historical",
+    "data_url": "lua/pro/rest/v2/get/db/historical_db_search.lua",
+    "use_current_page": false,
+    "enable_search": true,
+    "paging": true,
+    "rsp_records_field": "records",
+    "columns": [
+	{
+	    "id": "actions",
+	    "title_i18n": "actions",
+	    "sortable": false,
+	    "sticky": true,
+	    "class": ["text-nowrap", "text-center"],
+	    "render_v_node_type": "button_list",
+	    "button_def_array": [
+		{ "id": "info", "icon": "fas fa fa-search-plus", "class":["link-button"], "title_i18n": "info", "event_id": "click_button_info" },
+                { "id": "flow_alerts", "icon": "fas fa-exclamation-triangle", "class":["link-button"], "title_i18n": "show_alerts.flow_alerts", "event_id": "click_button_flow_alerts" },
+                { "id": "pcap_download", "icon": "fas fa-download", "class":["link-button"], "title_i18n": "traffic_recording.pcap_download", "event_id": "click_button_pcap_download"}
+	    ]
+	},
+	{
+	    "title_i18n": "db_search.first_seen",
+	    "data_field": "first_seen",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.last_seen",
+	    "data_field": "last_seen",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.l4proto",
+	    "data_field": "l4proto",
+	    "sortable": true,
+	    "render_generic": "l4proto",
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.l7proto",
+	    "data_field": "l7proto",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "score",
+	    "data_field": "score",
+	    "render_type": "formatValueLabel",
+	    "sortable": true,
+	    "class": ["text-center"]
+	},
+	{
+	    "title_i18n": "flow",
+	    "data_field": "flow",
+	    "render_type": "formatFlowTuple",
+	    "sortable": false,
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.vlan_id",
+	    "data_field": "vlan_id",
+	    "sortable": true,
+	    "render_generic": "vlan_id",
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.packets",
+	    "data_field": "packets",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.bytes",
+	    "data_field": "bytes",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.throughput",
+	    "data_field": "throughput",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.cli_asn",
+	    "data_field": "cli_asn",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.srv_asn",
+	    "data_field": "srv_asn",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.l7cat",
+	    "data_field": "l7cat",
+	    "sortable": true,
+	    "render_generic": "l7cat",
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.alert_id",
+	    "data_field": "alert_id",
+	    "sortable": true,
+	    "render_generic": "alert_id",
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.flow_risk",
+	    "data_field": "flow_risk",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.src2dst_tcp_flags",
+	    "data_field": "src2dst_tcp_flags",
+	    "sortable": true,
+	    "render_generic": "src2dst_tcp_flags",
+	    "zero_is_null": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.dst2src_tcp_flags",
+	    "data_field": "dst2src_tcp_flags",
+	    "sortable": true,
+	    "render_generic": "dst2src_tcp_flags",
+	    "zero_is_null": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.src2dst_dscp",
+	    "data_field": "src2dst_dscp",
+	    "sortable": true,
+	    "render_generic": "src2dst_dscp",
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.dst2src_dscp",
+	    "data_field": "dst2src_dscp",
+	    "sortable": true,
+	    "render_generic": "dst2src_dscp",
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.cli_nw_latency",
+	    "data_field": "cli_nw_latency",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.srv_nw_latency",
+	    "data_field": "srv_nw_latency",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.info",
+	    "data_field": "info",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.observation_point_id",
+	    "data_field": "observation_point_id",
+	    "sortable": true,
+	    "render_generic": "observation_point_id",
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.probe_ip",
+	    "data_field": "probe_ip",
+	    "sortable": true,
+	    "render_type": "formatProbeIP",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.cli_network",
+	    "data_field": "cli_network",
+	    "sortable": false,
+	    "render_generic": "cli_network",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.srv_network",
+	    "data_field": "srv_network",
+	    "sortable": true,
+	    "render_generic": "srv_network",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.cli_host_pool_id",
+	    "data_field": "cli_host_pool_id",
+	    "sortable": true,
+	    "render_generic": "cli_host_pool_id",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.srv_host_pool_id",
+	    "data_field": "srv_host_pool_id",
+	    "sortable": false,
+	    "render_generic": "srv_host_pool_id",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.input_snmp",
+	    "data_field": "input_snmp",
+	    "sortable": false,
+	    "zero_is_null": true,
+	    "render_generic": "input_snmp",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.output_snmp",
+	    "data_field": "output_snmp",
+	    "sortable": false,
+	    "zero_is_null": true,
+	    "render_generic": "output_snmp",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.cli_country",
+	    "data_field": "cli_country",
+	    "sortable": false,
+	    "render_generic": "cli_country",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.srv_country",
+	    "data_field": "srv_country",
+	    "sortable": false,
+	    "render_generic": "srv_country",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.community_id",
+	    "data_field": "community_id",
+	    "sortable": false,
+	    "render_generic": "community_id",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.cli_proc_name",
+	    "data_field": "cli_proc_name",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.srv_proc_name",
+	    "data_field": "srv_proc_name",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.cli_user_name",
+	    "data_field": "cli_user_name",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	},
+	{
+	    "title_i18n": "db_search.tags.srv_user_name",
+	    "data_field": "srv_user_name",
+	    "sortable": true,
+	    "class": ["no-wrap"]
+	}
+    ]
+}

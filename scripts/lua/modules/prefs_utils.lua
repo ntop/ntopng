@@ -144,7 +144,7 @@ function prefsResolutionButtons(fmt, value, fixed_id, format_spec, max_val)
 
   local res = makeResolutionButtons(format_spec or FMT_TO_DATA_TIME, ctrl_id, fmt, value, {classes={"float-right"}}, max_val)
 
-  res.value = truncate(res.value)
+  res.value = truncate(res.value or 1)
 
   print(res.html)
   print("<script>")
@@ -178,7 +178,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
     v_cache = ntop.getPref(k)
     value = v_cache
-    if ((v_cache==nil) or (v_s ~= v_cache)) then
+    if ((v_cache == nil) or (v_s ~= v_cache)) then
       if(v ~= nil and (v > 0) and (v <= 86400)) then
         ntop.setPref(k, tostring(v))
         value = v
@@ -276,7 +276,8 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
   local input_type = "text"
   if _input_type ~= nil then input_type = _input_type end
-  print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
+  print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..(label or "")..'</strong>')
+  if(comment ~= nil) then print('<p><small>'..comment..'</small></td>') end
 
   local style = {}
   style["text-align"] = "right"

@@ -44,8 +44,6 @@ class Redis {
   u_int32_t num_redis_version;
   u_int16_t redis_port;
   u_int8_t redis_db_id;
-  pthread_t esThreadLoop;
-  pthread_t lsThreadLoop;
   bool operational;
   bool initializationCompleted;
   std::map<std::string, StringCache> stringCache;
@@ -87,7 +85,6 @@ class Redis {
               u_int rsp_len);
   int hashDel(const char *key, const char *field);
   int hashSet(const char *key, const char *field, const char *value);
-  int delHash(char *key, char *member);
   inline int set(const char *key, const char *value, u_int expire_secs = 0) {
     return (_set(false, key, value, expire_secs));
   }

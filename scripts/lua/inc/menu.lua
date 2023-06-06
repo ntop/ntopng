@@ -24,6 +24,9 @@ local is_admin = isAdministrator()
 local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
+local has_help_enabled = (ntop.getPref("ntopng.prefs.menu_entries.help") ~= '0')
+local has_developer_enabled = (ntop.getPref("ntopng.prefs.menu_entries.developer") ~= '0')
+
 local is_system_interface = page_utils.is_system_view()
 local behavior_utils = require("behavior_utils")
 local session_user = _SESSION['user']
@@ -304,7 +307,13 @@ else
     })
 
     -- ##############################################
-
+    local checks = require "checks"
+    local interface_config = checks.getConfigset()["config"]["interface"]
+    local devices_exclusion_enabled = false
+    if (interface_config) and (interface_config["device_connection_disconnection"]) and
+        (interface_config["device_connection_disconnection"]["min"]["enabled"]) then
+        devices_exclusion_enabled = true
+    end
     -- Hosts
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.hosts,
@@ -317,6 +326,12 @@ else
             hidden = not ifs.has_macs,
             url = '/lua/macs_stats.lua'
         }, {
+            entry = page_utils.menu_entries.device_exclusions,
+            section = page_utils.menu_sections.device_exclusions,
+            hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isEnterpriseM() or
+                not devices_exclusion_enabled,
+            url = '/lua/pro/admin/edit_device_exclusions.lua'
+        } ,{
             entry = page_utils.menu_entries.networks,
             url = '/lua/network_stats.lua'
         }, {
@@ -350,6 +365,10 @@ else
         }, {
             entry = page_utils.menu_entries.http_servers,
             url = '/lua/http_servers_stats.lua'
+        }, {
+            entry = page_utils.menu_entries.server_ports_analysis,
+            url = '/lua/hosts_ports_analysis.lua',
+            hidden = not ntop.isEnterpriseL()
         }}
     })
 
@@ -607,14 +626,7 @@ page_utils.add_menubar_section({
     url = '/lua/admin/endpoint_notifications_list.lua'
 })
 
-local checks = require "checks"
-local interface_config = checks.getConfigset()["config"]["interface"]
-local devices_exclusion_enabled = false
 
-if (interface_config) and (interface_config["device_connection_disconnection"]) and
-    (interface_config["device_connection_disconnection"]["min"]["enabled"]) then
-    devices_exclusion_enabled = true
-end
 
 page_utils.add_menubar_section({
     section = page_utils.menu_sections.admin,
@@ -640,12 +652,6 @@ page_utils.add_menubar_section({
     }, {
         entry = page_utils.menu_entries.divider,
         hidden = not devices_exclusion_enabled
-    }, {
-        entry = page_utils.menu_entries.device_exclusions,
-        section = page_utils.menu_sections.device_exclusions,
-        hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isPro() or
-            not devices_exclusion_enabled,
-        url = '/lua/pro/admin/edit_device_exclusions.lua'
     }, {
         entry = page_utils.menu_entries.divider
     }, {
@@ -694,56 +700,66 @@ page_utils.add_menubar_section({
 
 -- Developer
 
-if not info.oem and auth.has_capability(auth.capabilities.developer) then
-    page_utils.add_menubar_section({
-        section = page_utils.menu_sections.dev,
-        entries = {{
-            entry = page_utils.menu_entries.analyze_pcap,
-            url = '/lua/upload_pcap.lua'
-        }, {
-            entry = page_utils.menu_entries.checks_dev,
-            url = '/lua/checks_overview.lua'
-        }, {
-            entry = page_utils.menu_entries.alert_definitions,
-            url = '/lua/defs_overview.lua'
-        }, {
-            entry = page_utils.menu_entries.directories,
-            url = '/lua/directories.lua'
-        }, {
-            entry = page_utils.menu_entries.api,
-            url = 'https://www.ntop.org/guides/ntopng/api/'
-        }}
-    })
+if not info.oem and auth.has_capability(auth.capabilities.developer) then    
+
+    if  not ntop.isEnterpriseM() or (has_developer_enabled) then
+        page_utils.add_menubar_section({
+            section = page_utils.menu_sections.dev,
+            entries = {
+	       {
+                entry = page_utils.menu_entries.rest_api,
+                url = '/lua/swagger.lua'
+            }, {
+                entry = page_utils.menu_entries.analyze_pcap,
+                url = '/lua/upload_pcap.lua'
+            }, {
+                entry = page_utils.menu_entries.checks_dev,
+                url = '/lua/checks_overview.lua'
+            }, {
+                entry = page_utils.menu_entries.alert_definitions,
+                url = '/lua/defs_overview.lua'
+            }, {
+                entry = page_utils.menu_entries.directories,
+                url = '/lua/directories.lua'
+            }, {
+                entry = page_utils.menu_entries.api,
+                url = 'https://www.ntop.org/guides/ntopng/api/'
+            }}
+        })
+    end
 end
 
 -- ##############################################
 
 -- About
-page_utils.add_menubar_section({
-    section = page_utils.menu_sections.about,
-    hidden = info.oem,
-    entries = {{
-        entry = page_utils.menu_entries.about,
-        url = '/lua/about.lua'
-    }, {
-        entry = page_utils.menu_entries.blog,
-        url = 'http://blog.ntop.org/'
-    }, {
-        entry = page_utils.menu_entries.telegram,
-        url = 'https://t.me/ntop_community'
-    }, {
-        entry = page_utils.menu_entries.manual,
-        url = 'https://www.ntop.org/guides/ntopng/'
-    }, {
-        entry = page_utils.menu_entries.divider
-    }, {
-        entry = page_utils.menu_entries.report_issue,
-        url = 'https://github.com/ntop/ntopng/issues'
-    }, {
-        entry = page_utils.menu_entries.suggest_feature,
-        url = 'https://www.ntop.org/support/need-help-2/contact-us/'
-    }}
-})
+if not ntop.isEnterpriseM() or has_help_enabled then
+    page_utils.add_menubar_section({
+        section = page_utils.menu_sections.about,
+        hidden = info.oem,
+        entries = {{
+            entry = page_utils.menu_entries.about,
+            url = '/lua/about.lua'
+        }, {
+            entry = page_utils.menu_entries.blog,
+            url = 'http://blog.ntop.org/'
+        }, {
+            entry = page_utils.menu_entries.telegram,
+            url = 'https://t.me/ntop_community'
+        }, {
+            entry = page_utils.menu_entries.manual,
+            url = 'https://www.ntop.org/guides/ntopng/'
+        }, {
+            entry = page_utils.menu_entries.divider
+        }, {
+            entry = page_utils.menu_entries.report_issue,
+            url = 'https://github.com/ntop/ntopng/issues'
+        }, {
+            entry = page_utils.menu_entries.suggest_feature,
+            url = 'https://www.ntop.org/support/need-help-2/contact-us/'
+        }}
+    })
+
+end
 
 -- ##############################################
 

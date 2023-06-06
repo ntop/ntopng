@@ -216,6 +216,7 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
   }
 
 #ifdef NTOPNG_PRO
+  modbus = NULL;
   lateral_movement = false;
   periodicity_status = periodicity_status_unknown;
 #ifndef HAVE_NEDGE
@@ -409,6 +410,10 @@ Flow::~Flow() {
 
   if (host_server_name) free(host_server_name);
   if (iec104) delete iec104;
+#ifdef NTOPNG_PRO
+  if (modbus) delete modbus;
+#endif
+  
   if (suspicious_dga_domain) free(suspicious_dga_domain);
   if (ndpiAddressFamilyProtocol) free(ndpiAddressFamilyProtocol);
   if (ebpf) delete ebpf;
@@ -807,15 +812,17 @@ void Flow::processExtraDissectedInformation() {
         }
 
         /* No break */
-      case NDPI_PROTOCOL_IEC60870:
-        /*
-          Don't free the memory, let the nDPI dissection run for DNS.
-          See Method Flow::processDNSPacket and Flow::processIEC60870Packet
-        */
-        if (getInterface()->isPacketInterface()) free_ndpi_memory = false;
-        break;
-
-      case NDPI_PROTOCOL_HTTP:
+    case NDPI_PROTOCOL_IEC60870:
+    case NDPI_PROTOCOL_MODBUS:
+      /*
+	Don't free the memory, let the nDPI dissection run for DNS.
+	See Method Flow::processDNSPacket, Flow::processIEC60870Packet
+	and Flow::processModbusPacket
+      */
+      if (getInterface()->isPacketInterface()) free_ndpi_memory = false;
+      break;
+      
+    case NDPI_PROTOCOL_HTTP:
         if (protos.http.last_url) {
           ndpi_risk_enum risk = ndpi_validate_url(protos.http.last_url);
 
@@ -991,7 +998,14 @@ void Flow::processPacket(const struct pcap_pkthdr *h, const u_char *ip_packet,
   else if (isIEC60870())
     processIEC60870Packet((htons(src_port) == 2404) ? true : false, payload,
                           payload_len, (struct timeval *)&h->ts);
-
+#ifdef NTOPNG_PRO
+#if 0
+  else if (isModbus())
+    processModbusPacket((htons(src_port) != 502) ? true : false, payload,
+			payload_len, (struct timeval *)&h->ts);
+#endif
+#endif
+  
   if (detection_completed) {
     if (!needsExtraDissection()) {
       setExtraDissectionCompleted();
@@ -1115,6 +1129,28 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
   ntop->getTrace()->traceEvent(TRACE_ERROR, "%s %s", ndpiFlow->host_server_name[0] != '\0' ? ndpiFlow->host_server_name : (unsigned char*)"", print(buf, sizeof(buf)));
 #endif
 }
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+void Flow::processModbusPacket(bool is_query, const u_char *payload,
+				  u_int16_t payload_len,
+			       struct timeval *packet_time) {
+  if(ntop->getPrefs() ->is_enterprise_l_edition()) {
+    /*
+     * Exits if the flow isn't Modbus/TCP or it the interface is not a
+     * packet-interface
+     */
+    if (!isModbus() || (!getInterface()->isPacketInterface()) || (payload_len < 6))
+      return;
+
+    if (!modbus) modbus = new (std::nothrow) ModbusStats();
+
+    if (modbus)
+      modbus->processPacket(this, is_query, payload, payload_len, packet_time);
+  }
+}
+#endif
 
 /* *************************************** */
 
@@ -2877,6 +2913,10 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     if (iec104) iec104->lua(vm);
 
+#ifdef NTOPNG_PRO
+    if (modbus) modbus->lua(vm);
+#endif
+    
     if (!has_json_info) lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 
     if (ebpf) ebpf->lua(vm);
@@ -2906,7 +2946,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     if (getJSONRiskInfo())
       lua_push_str_table_entry(vm, "riskInfo", getJSONRiskInfo());
-  }
+  }     
 
   lua_get_status(vm);
 
@@ -2923,20 +2963,12 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 /* *************************************** */
 
 void Flow::lua_confidence(lua_State *vm) {
-  switch (getConfidence()) {
-    case NDPI_CONFIDENCE_DPI_CACHE:
-    case NDPI_CONFIDENCE_DPI_PARTIAL_CACHE:
-    case NDPI_CONFIDENCE_DPI:
-    case NDPI_CONFIDENCE_NBPF:
-      lua_push_uint32_table_entry(vm, "confidence",
-                                  (ndpiConfidence)confidence_dpi);
-      break;
-
-    default:
-      lua_push_uint32_table_entry(vm, "confidence",
-                                  (ndpiConfidence)confidence_guessed);
-      break;
-  }
+  if(isDPIDetectedFlow())
+    lua_push_uint32_table_entry(vm, "confidence",
+				(ndpiConfidence)confidence_dpi);
+  else
+    lua_push_uint32_table_entry(vm, "confidence",
+				(ndpiConfidence)confidence_guessed);
 }
 
 /* *************************************** */
@@ -4703,9 +4735,11 @@ void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto) {
   ) {
     switch (protocol) {
       case IPPROTO_TCP:
-        if ((src2dst_tcp_flags & TH_SYN) == TH_SYN) {
-          if (vlanId == 0) /* In case the VLAN is 0 set this port to the network
-                              interface */
+        if(((src2dst_tcp_flags & TH_SYN) == TH_SYN)
+	   /* Ignore connections refused */
+	   && ((dst2src_tcp_flags & TH_RST) == 0)
+	   ) {
+          if (vlanId == 0) /* In case the VLAN is 0 set this port to the network interface */
             iface->setServerPort(true, ntohs(srv_port), proto);
           else { /* Otherwise set this port to the right VLAN */
             VLAN *vlan_hash = iface->getVLAN(vlanId, false, false);
@@ -5173,7 +5207,10 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 char *Flow::getFlowInfo(char *buf, u_int buf_len, bool isLuaRequest) {
   if (!isMaskedFlow()) {
     if (iec104) return (iec104->getFlowInfo(buf, buf_len));
-
+#ifdef NTOPNG_PRO
+    if (modbus) return (modbus->getFlowInfo(buf, buf_len));
+#endif
+    
     if (isDNS() && protos.dns.last_query)
       return protos.dns.last_query;
 
@@ -6012,9 +6049,13 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     memcpy(&rsp, &payload[i], sizeof(rsp));
     data_len = ntohs(rsp.data_len), rsp_type = ntohs(rsp.rsp_type);
 
+#if 1
+    name = _name;
+#else
     /* Skip lenght for strings >= 32 with head length */
     name = &_name[((data_len <= 32) || (_name[0] >= '0')) ? 0 : 1];
-
+#endif
+    
 #ifdef DEBUG_DISCOVERY
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%u][%s][len=%u]",
                                  ntohs(rsp.rsp_type) & 0xFFFF, name, data_len);
@@ -7612,6 +7653,40 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
 
     ndpi_serialize_end_of_block(serializer); /* process block */
   }
+
+  if(getTrafficStats()){
+    ndpi_serialize_start_of_block(serializer, "traffic_stats");
+
+    if(getTrafficStats()->get_cli2srv_tcp_retr())
+      // cli2srv.retransmissions
+      ndpi_serialize_string_uint32(serializer, "cli2srv.retransmissions",
+                              getTrafficStats()->get_cli2srv_tcp_retr());
+    if(getTrafficStats()->get_cli2srv_tcp_ooo())
+      // cli2srv.out_of_order
+      ndpi_serialize_string_uint32(serializer, "cli2srv.out_of_order",
+                              getTrafficStats()->get_cli2srv_tcp_ooo());
+    if(getTrafficStats()->get_cli2srv_tcp_lost())
+      // cli2srv.lost
+      ndpi_serialize_string_uint32(serializer, "cli2srv.lost",
+                              getTrafficStats()->get_cli2srv_tcp_lost());
+    if(getTrafficStats()->get_srv2cli_tcp_retr())
+      // srv2cli.retransmissions
+      ndpi_serialize_string_uint32(serializer, "srv2cli.retransmissions",
+                              getTrafficStats()->get_srv2cli_tcp_retr());
+    if(getTrafficStats()->get_srv2cli_tcp_ooo())
+      // srv2cli.out_of_order
+      ndpi_serialize_string_uint32(serializer, "srv2cli.out_of_orders",
+                              getTrafficStats()->get_srv2cli_tcp_ooo());
+    if(getTrafficStats()->get_srv2cli_tcp_lost())
+      // srv2cli.lost
+      ndpi_serialize_string_uint32(serializer, "srv2cli.lost",
+                              getTrafficStats()->get_srv2cli_tcp_lost());
+
+    ndpi_serialize_end_of_block(serializer); /* traffic_stats block */
+
+  }
+
+
 }
 
 /* ***************************************************** */
@@ -8111,4 +8186,19 @@ void Flow::updateUDPHostServices() {
     default:
       break;
   } /* switch */
+}
+
+/* *************************************** */
+
+bool Flow::isDPIDetectedFlow() {
+  switch (getConfidence()) {
+  case NDPI_CONFIDENCE_DPI_CACHE:
+  case NDPI_CONFIDENCE_DPI_PARTIAL_CACHE:
+  case NDPI_CONFIDENCE_DPI:
+  case NDPI_CONFIDENCE_NBPF:
+    return(true);
+
+  default:
+    return(false);
+  }
 }

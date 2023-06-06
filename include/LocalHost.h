@@ -41,7 +41,10 @@ class LocalHost : public Host {
   /* END Host data: */
 
   void initialize();
+  void deferredInitialization();
   void freeLocalHostData();
+  void addOfflineData();
+  void removeOfflineData();
   virtual void deleteHostData();
 
   char *getMacBasedSerializationKey(char *redis_key, size_t size,
@@ -183,8 +186,11 @@ class LocalHost : public Host {
   inline void setContactedPort(bool isTCP, u_int16_t port,
                                ndpi_protocol *proto) {
     usedPorts.setContactedPort(isTCP, port, proto);
-  };
+  };  
   virtual inline void luaUsedPorts(lua_State *vm) { usedPorts.lua(vm, iface); };
+  virtual inline std::unordered_map<u_int16_t, ndpi_protocol> getUDPServerPorts() { return(usedPorts.getUDPServerPorts()); };
+  virtual inline std::unordered_map<u_int16_t, ndpi_protocol> getTCPServerPorts() { return(usedPorts.getTCPServerPorts()); };
+
   virtual inline std::unordered_map<u_int16_t, ndpi_protocol> *getServerPorts(
       bool isTCP) {
     return (usedPorts.getServerPorts(isTCP));

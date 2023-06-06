@@ -398,6 +398,7 @@ tag_utils.traffic_direction = {
 -- #####################################
 
 tag_utils.confidence = {
+   { label = i18n("confidence_unknown"),  id = -1 },
    { label = i18n("confidence_guessed"),  id = 0 },
    { label = i18n("confidence_dpi"), id = 1 },
 }

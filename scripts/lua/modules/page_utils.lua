@@ -99,6 +99,7 @@ page_utils.menu_entries = {
     countries             = {key = "countries", i18n_title = "countries", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#countries"},
     operating_systems     = {key = "operating_systems", i18n_title = "operating_systems", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#operating-systems"},
     http_servers          = {key = "http_servers", i18n_title = "http_servers_stats.local_http_servers", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#http-servers-local"},
+    server_ports_analysis = {key = "server_ports_analysis", i18n_title = "server_ports_analysis", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#http-servers-local"},
     top_hosts             = {key = "top_hosts", i18n_title = "processes_stats.top_hosts", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#top-hosts-local"},
     hosts_treemap         = {key = "hosts_treemap", i18n_title = "tree_map.hosts_treemap", section = "hosts"},
     containers            = {key = "containers", i18n_title = "containers_stats.containers", section = "hosts"},
@@ -180,6 +181,7 @@ page_utils.menu_entries = {
    analyze_pcap           = {key = "analyze_pcap", i18n_title = "about.analyze_pcap", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/index.html"},
    alert_definitions      = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/scripts/alert_definitions.html"},
    api                    = {key = "api", i18n_title = "lua_c_api", section = "dev"},
+   rest_api               = {key = "rest_api", i18n_title = "swagger_api", section = "dev"},
    
    -- Help
    about                  = {key = "about", i18n_title = "about.about", section = "about", help_link = "https://www.ntop.org/guides/ntopng/web_gui/help_menu.html?#about"},

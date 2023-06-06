@@ -46,6 +46,7 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress,
 /* *************************************** */
 
 LocalHost::~LocalHost() {
+  addOfflineData();
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
 }
@@ -141,6 +142,60 @@ void LocalHost::initialize() {
 #ifdef HAVE_NEDGE
   drop_all_host_traffic = 0;
 #endif
+}
+
+/* *************************************** */
+
+void LocalHost::deferredInitialization() {
+  removeOfflineData();
+  Host::deferredInitialization();
+}
+
+/* *************************************** */
+
+void LocalHost::addOfflineData() {
+  /* Remove the key from the hash, used to get the offline hosts */
+  if(!ntop->getRedis())
+    return;
+
+  char buf[64], *json_str = NULL;
+  ndpi_serializer host_json; 
+  u_int32_t json_str_len = 0;
+  Mac *cur_mac = getMac();
+  
+  ndpi_init_serializer(&host_json, ndpi_serialization_format_json);
+  ndpi_serialize_string_string(&host_json, "ip", ip.print(buf, sizeof(buf)));
+
+  ndpi_serialize_string_uint64(&host_json, "first_seen", get_first_seen());
+  ndpi_serialize_string_uint64(&host_json, "last_seen",  get_last_seen());
+  
+  if(cur_mac) { 
+    ndpi_serialize_string_uint32(&host_json, "device_type", getDeviceType());
+    ndpi_serialize_string_string(&host_json, "mac", cur_mac->print(buf, sizeof(buf)));
+  }
+
+  ndpi_serialize_string_uint32(&host_json, "vlan", (u_int16_t) get_vlan_id());
+  ndpi_serialize_string_uint32(&host_json, "network", (u_int16_t) get_local_network_id());
+  ndpi_serialize_string_string(&host_json, "name", get_name(buf, sizeof(buf), false));
+  
+  json_str = ndpi_serializer_get_buffer(&host_json, &json_str_len);
+  if ((json_str != NULL) && (json_str_len > 0)) {
+    char key[128], redis_key[64];
+    snprintf(redis_key, sizeof(redis_key), OFFLINE_LOCAL_HOSTS_KEY, iface->get_id());
+    ntop->getRedis()->hashSet(redis_key, getSerializationKey(key, sizeof(key)), json_str);
+  }
+}
+
+/* *************************************** */
+
+void LocalHost::removeOfflineData() {
+  /* Remove the key from the hash, used to get the offline hosts */
+  if(!ntop->getRedis())
+    return;
+
+  char key[128], redis_key[64];
+  snprintf(redis_key, sizeof(redis_key), OFFLINE_LOCAL_HOSTS_KEY, iface->get_id());
+  ntop->getRedis()->hashDel(redis_key, getSerializationKey(key, sizeof(key)));
 }
 
 /* *************************************** */

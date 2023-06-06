@@ -31,9 +31,6 @@ extern "C" {
 #ifdef HAVE_LIBSNMP
 
 /* ******************************* */
-/* ******************************* */
-
-/* ******************************* */
 
 SNMPSession::SNMPSession() { session_ptr = NULL; }
 
@@ -878,7 +875,9 @@ SNMP::SNMP() {
 
 /* ******************************************* */
 
-SNMP::~SNMP() { Utils::closeSocket(udp_sock); }
+SNMP::~SNMP() {
+  Utils::closeSocket(udp_sock);
+}
 
 /* ******************************************* */
 

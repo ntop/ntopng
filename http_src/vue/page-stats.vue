@@ -1,115 +1,100 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-<div class="col-12 mb-2 mt-2">
-  <AlertInfo></AlertInfo>
-  <div class="card h-100 overflow-hidden">
-    <DataTimeRangePicker style="margin-top:0.5rem;"
-			 :id="id_date_time_picker"
-			 :enable_refresh="true"
-			 ref="date_time_picker"
-			 @epoch_change="epoch_change">
-      <template v-slot:begin>
-      </template>
-      <template v-slot:extra_buttons>
-	<button v-if="enable_snapshots" class="btn btn-link btn-sm" @click="show_modal_snapshot" :title="_i18n('page_stats.manage_snapshots_btn')"><i class="fas fa-lg fa-camera-retro"></i></button>
-	<button v-if="traffic_extraction_permitted" class="btn btn-link btn-sm" @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i class="fas fa-lg fa-download"></i></button>
-	<button  class="btn btn-link btn-sm" @click="show_modal_download_file" :title="_i18n('page_stats.title_modal_download_file')"><i class="fas fa-lg fa-file-image"></i></button>
-	<button v-if="is_history_enabled" class="btn btn-link btn-sm" @click="jump_to_historical_flows" :title="_i18n('page_stats.historical_flows')"><i class="fas fa-lg fa-table"></i></button>	
-      </template>
-    </DataTimeRangePicker>
-    <!-- select metric -->
-    <div v-show="ts_menu_ready" class="form-group ms-1 me-1 mt-1">
-      <div class="inline select2-size me-2 mt-2">
-	<SelectSearch v-model:selected_option="selected_metric"
-		      :options="metrics"
-		      @select_option="select_metric">
-	</SelectSearch>
-      </div>
-      <div class="inline select2-size me-2 mt-2">
-	<SelectSearch v-model:selected_option="current_groups_options_mode"
-		      :options="groups_options_modes"
-		      @select_option="change_groups_options_mode">
-	</SelectSearch>
-      </div>
-      <button type="button" @click="show_manage_timeseries" class="btn btn-sm btn-primary inline" style='vertical-align: super;' v-if="is_ntop_pro">
-      	Manage Timeseries
-      </button>
-      
+    <div class="col-12 mb-2 mt-2">
+        <AlertInfo></AlertInfo>
+        <div class="card h-100 overflow-hidden">
+            <DataTimeRangePicker style="margin-top:0.5rem;" :id="id_date_time_picker" :enable_refresh="true"
+                ref="date_time_picker" @epoch_change="epoch_change">
+                <template v-slot:begin>
+                </template>
+                <template v-slot:extra_buttons>
+                    <button v-if="enable_snapshots" class="btn btn-link btn-sm" @click="show_modal_snapshot"
+                        :title="_i18n('page_stats.manage_snapshots_btn')"><i class="fas fa-lg fa-camera-retro"></i></button>
+                    <button v-if="traffic_extraction_permitted" class="btn btn-link btn-sm"
+                        @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i
+                            class="fas fa-lg fa-download"></i></button>
+                    <button class="btn btn-link btn-sm" @click="show_modal_download_file"
+                        :title="_i18n('page_stats.title_modal_download_file')"><i
+                            class="fas fa-lg fa-file-image"></i></button>
+                    <button v-if="is_history_enabled" class="btn btn-link btn-sm" @click="jump_to_historical_flows"
+                        :title="_i18n('page_stats.historical_flows')"><i class="fas fa-lg fa-table"></i></button>
+                </template>
+            </DataTimeRangePicker>
+            <!-- select metric -->
+            <div v-show="ts_menu_ready" class="form-group ms-1 me-1 mt-1">
+                <div class="inline select2-size me-2 mt-2">
+                    <SelectSearch v-model:selected_option="selected_metric" :options="metrics"
+                        @select_option="select_metric">
+                    </SelectSearch>
+                </div>
+                <div class="inline select2-size me-2 mt-2">
+                    <SelectSearch v-model:selected_option="current_groups_options_mode" :options="groups_options_modes"
+                        @select_option="change_groups_options_mode">
+                    </SelectSearch>
+                </div>
+                <button type="button" @click="show_manage_timeseries" class="btn btn-sm btn-primary inline"
+                    style='vertical-align: super;' v-if="is_ntop_pro">
+                    Manage Timeseries
+                </button>
+
+            </div>
+
+            <template v-for="(item, i) in charts_options_items" :key="item.key">
+                <div class="m-3" style="height:380px;">
+                    <TimeseriesChart :id="id_chart + i" :ref="el => { charts[i] = el }" :chart_type="chart_type"
+                        :register_on_status_change="false" :get_custom_chart_options="get_f_get_custom_chart_options(i)"
+                        @zoom="epoch_change" @chart_reloaded="chart_reloaded">
+                    </TimeseriesChart>
+                </div>
+            </template>
+        </div>
+
+        <div class="mt-4 card card-shadow" v-if="enable_stats_table">
+            <div class="card-body">
+                <BootstrapTable id="page_stats_bootstrap_table" :columns="stats_columns" :rows="stats_rows"
+                    :print_html_column="(col) => print_stats_column(col)"
+                    :print_html_row="(col, row) => print_stats_row(col, row)">
+                </BootstrapTable>
+            </div>
+        </div>
+
+        <div class="mt-4 card card-shadow" v-if="is_ntop_pro">
+            <div class="card-body">
+                <div v-if="selected_top_table?.table_config_def" class="inline select2-size me-2 mt-2">
+                    <SelectSearch v-model:selected_option="selected_top_table" :options="top_table_options">
+                    </SelectSearch>
+                </div>
+                <Datatable v-if="selected_top_table?.table_config_def" :key="selected_top_table?.value" ref="top_table_ref"
+                    :table_buttons="selected_top_table.table_config_def.table_button"
+                    :columns_config="selected_top_table.table_config_def.columns_config"
+                    :data_url="selected_top_table.table_config_def.data_url"
+                    :enable_search="selected_top_table.table_config_def.enable_search"
+                    :table_config="selected_top_table.table_config_def.table_config">
+                </Datatable>
+            </div>
+        </div>
     </div>
-    
-    <template v-for="(item, i) in charts_options_items" :key="item.key">
-      <div class="m-3" style="height:300px;">
-	<Chart :id="id_chart + i" :ref="el => { charts[i] = el }"
-	       :chart_type="chart_type"
-      	       :register_on_status_change="false"
-	       :get_custom_chart_options="get_f_get_custom_chart_options(i)"
-	       @zoom="epoch_change"
-	       @chart_reloaded="chart_reloaded">
-	</Chart>
-      </div>
-    </template>
-  </div>
-  
-  <div class="mt-4 card card-shadow" v-if="enable_stats_table">
-    <div class="card-body">
-      <BootstrapTable
-	id="page_stats_bootstrap_table"
-	:columns="stats_columns"
-	:rows="stats_rows"
-	:print_html_column="(col) => print_stats_column(col)"
-	:print_html_row="(col, row) => print_stats_row(col, row)">
-      </BootstrapTable>
-    </div>
-  </div>
-  
-  <div class="mt-4 card card-shadow" v-if="is_ntop_pro">
-    <div class="card-body">
-      <div v-if="selected_top_table?.table_config_def" class="inline select2-size me-2 mt-2">
-	<SelectSearch v-model:selected_option="selected_top_table"
-		      :options="top_table_options">
-	</SelectSearch>
-      </div>
-      <Datatable v-if="selected_top_table?.table_config_def" :key="selected_top_table?.value" ref="top_table_ref"
-        :table_buttons="selected_top_table.table_config_def.table_button"
-        :columns_config="selected_top_table.table_config_def.columns_config"
-        :data_url="selected_top_table.table_config_def.data_url"
-        :enable_search="selected_top_table.table_config_def.enable_search"
-        :table_config="selected_top_table.table_config_def.table_config">
-      </Datatable>      
-    </div>
-  </div>
-</div>
 
-<ModalSnapshot v-if="enable_snapshots" ref="modal_snapshot"
-	       :csrf="csrf"
-	       :page="page_snapshots"
-	       @added_snapshot="refresh_snapshots"
-	       @deleted_snapshots="refresh_snapshots"
-	       @deleted_all_snapshots="refresh_snapshots">
-</ModalSnapshot>
+    <ModalSnapshot v-if="enable_snapshots" ref="modal_snapshot" :csrf="csrf" :page="page_snapshots"
+        @added_snapshot="refresh_snapshots" @deleted_snapshots="refresh_snapshots"
+        @deleted_all_snapshots="refresh_snapshots">
+    </ModalSnapshot>
 
-<ModalTimeseries v-if="is_ntop_pro"
-		 ref="modal_timeseries"
-		 :sources_types_enabled="sources_types_enabled"
-		 @apply="apply_modal_timeseries">
-</ModalTimeseries>
+    <ModalTimeseries v-if="is_ntop_pro" ref="modal_timeseries" :sources_types_enabled="sources_types_enabled"
+        @apply="apply_modal_timeseries">
+    </ModalTimeseries>
 
-<ModalTrafficExtraction
-  id="page_stats_modal_traffic_extraction"
-  ref="modal_traffic_extraction">
-</ModalTrafficExtraction>
+    <ModalTrafficExtraction id="page_stats_modal_traffic_extraction" ref="modal_traffic_extraction">
+    </ModalTrafficExtraction>
 
-<ModalDownloadFile
-  ref="modal_download_file"
-  :title="_i18n('page_stats.title_modal_download_file')"
-  ext="png"
-  @download="download_chart_png">
-</ModalDownloadFile>
+    <ModalDownloadFile ref="modal_download_file" :title="_i18n('page_stats.title_modal_download_file')" ext="png"
+        @download="download_chart_png">
+    </ModalDownloadFile>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeMount, computed, watch } from "vue";
-import { default as Chart } from "./chart.vue";
+import { default as TimeseriesChart } from "./timeseries-chart.vue";
 import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalTimeseries } from "./modal-timeseries.vue";
@@ -125,7 +110,6 @@ import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../se
 import timeseriesUtils from "../utilities/timeseries-utils.js";
 import metricsManager from "../utilities/metrics-manager.js";
 import formatterUtils from "../utilities/formatter-utils";
-import { DataTableUtils } from "../utilities/datatable/sprymedia-datatable-utils";
 import NtopUtils from "../utilities/ntop-utils";
 
 const props = defineProps({
@@ -158,7 +142,7 @@ const modal_download_file = ref(null);
 
 const metrics = ref([]);
 const selected_metric = ref({});
-const source_type = metricsManager.get_current_page_source_type();    
+const source_type = metricsManager.get_current_page_source_type();
 
 const enable_stats_table = ref(false);
 const enable_top_table = ref(false);
@@ -189,7 +173,7 @@ const ts_menu_ready = ref(false);
 function init_groups_option_mode() {
     let groups_mode = ntopng_url_manager.get_url_entry("timeseries_groups_mode");
     if (groups_mode != null && groups_mode != "") {
-	return timeseriesUtils.getGroupOptionMode(groups_mode);
+        return timeseriesUtils.getGroupOptionMode(groups_mode);
     }
     return groups_options_modes[0];
 }
@@ -207,7 +191,7 @@ onBeforeMount(async () => {
 onMounted(async () => {
     init();
     await Promise.all([
-	ntopng_sync.on_ready(id_date_time_picker),
+        ntopng_sync.on_ready(id_date_time_picker),
     ]);
     // chart.value.register_status();
 });
@@ -219,21 +203,21 @@ async function init() {
     let metric_ts_schema;
     let metric_query;
     if (timeseries_groups == null) {
-	push_custom_metric = false;
-	metric_ts_schema = ntopng_url_manager.get_url_entry("ts_schema");
-	let ts_query = ntopng_url_manager.get_url_entry("ts_query");
-	if (ts_query != null && ts_query != "") {
-	    metric_query = metricsManager.get_metric_query_from_ts_query(ts_query);
-	}
-	if (metric_ts_schema == "") { metric_ts_schema = null; }
-	timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix, metric_ts_schema, metric_query);
+        push_custom_metric = false;
+        metric_ts_schema = ntopng_url_manager.get_url_entry("ts_schema");
+        let ts_query = ntopng_url_manager.get_url_entry("ts_query");
+        if (ts_query != null && ts_query != "") {
+            metric_query = metricsManager.get_metric_query_from_ts_query(ts_query);
+        }
+        if (metric_ts_schema == "") { metric_ts_schema = null; }
+        timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix, metric_ts_schema, metric_query);
     }
     metrics.value = await get_metrics(push_custom_metric);
-    
+
     if (push_custom_metric == true) {
-	selected_metric.value = custom_metric;
+        selected_metric.value = custom_metric;
     } else {
-	selected_metric.value = metricsManager.get_default_metric(metrics.value, metric_ts_schema, metric_query);
+        selected_metric.value = metricsManager.get_default_metric(metrics.value, metric_ts_schema, metric_query);
     }
     ts_menu_ready.value = true;
     await load_page_stats_data(timeseries_groups, true, true);
@@ -243,36 +227,36 @@ let last_push_custom_metric = null;
 async function get_metrics(push_custom_metric, force_refresh) {
     let metrics = await metricsManager.get_metrics(http_prefix);
     if (!force_refresh && last_push_custom_metric == push_custom_metric) { return metrics.value; }
-    
+
     if (push_custom_metric) {
-	metrics.push(custom_metric);
+        metrics.push(custom_metric);
     }
     if (cache_snapshots == null || force_refresh) {
-	cache_snapshots = await get_snapshots_metrics();
+        cache_snapshots = await get_snapshots_metrics();
     }
-    if(props.enable_snapshots) {
-	let snapshots_metrics = cache_snapshots;
-	snapshots_metrics.forEach((sm) => metrics.push(sm));
+    if (props.enable_snapshots) {
+        let snapshots_metrics = cache_snapshots;
+        snapshots_metrics.forEach((sm) => metrics.push(sm));
     }
     /* Order Metrics */
     metrics.sort(NtopUtils.sortAlphabetically);
-    
+
     return metrics;
 }
 
 async function get_snapshots_metrics() {
     if (!props.enable_snapshots) { return; }
     let url = `${http_prefix}/lua/pro/rest/v2/get/filters/snapshots.lua?page=${page_snapshots}`;
-    
+
     let snapshots_obj = await ntopng_utility.http_request(url);
     let snapshots = ntopng_utility.object_to_array(snapshots_obj);
     let metrics_snapshots = snapshots.map((s) => {
-	return {
+        return {
             ...s,
             is_snapshot: true,
             label: `${s.name}`,
-	    group: "Snapshots",
-	};
+            group: "Snapshots",
+        };
     });
     return metrics_snapshots;
 }
@@ -301,8 +285,8 @@ const add_ts_group_from_source_value_dict = async (source_type_id, source_value_
 const add_metric_from_metric_schema = async (metric_schema, metric_query) => {
     let metric = metrics.value.find((m) => m.schema == metric_schema && m.query == metric_query);
     if (metric == null) {
-	console.error(`metric = ${metric_schema}, query = ${metric_query} not found.`);
-	return;
+        console.error(`metric = ${metric_schema}, query = ${metric_query} not found.`);
+        return;
     }
     let timeseries_groups = await get_timeseries_groups_from_metric(metric);
     // modal_timeseries.value.set_timeseries_groups(last_timeseries_groups_loaded);
@@ -317,14 +301,14 @@ function add_ts_group(ts_group) {
 
 async function select_metric(metric) {
     if (metric.is_snapshot == true) {
-	let url_parameters = metric.filters;
-	let timeseries_url_params = ntopng_url_manager.get_url_entry("timeseries_groups", url_parameters);
-	let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix, timeseries_url_params);
-	current_groups_options_mode.value = timeseriesUtils.getGroupOptionMode(ntopng_url_manager.get_url_entry("timeseries_groups_mode", url_parameters));
-	await load_page_stats_data(timeseries_groups, true, false);
+        let url_parameters = metric.filters;
+        let timeseries_url_params = ntopng_url_manager.get_url_entry("timeseries_groups", url_parameters);
+        let timeseries_groups = await metricsManager.get_timeseries_groups_from_url(http_prefix, timeseries_url_params);
+        current_groups_options_mode.value = timeseriesUtils.getGroupOptionMode(ntopng_url_manager.get_url_entry("timeseries_groups_mode", url_parameters));
+        await load_page_stats_data(timeseries_groups, true, false);
     } else {
-	await load_selected_metric_page_stats_data();
-	refresh_metrics(false);
+        await load_selected_metric_page_stats_data();
+        refresh_metrics(false);
     }
 }
 
@@ -357,7 +341,7 @@ function show_manage_timeseries() {
  **/
 function get_f_get_custom_chart_options(chart_index) {
     return async (url) => {
-	return charts_options_items.value[chart_index].chart_options;
+        return charts_options_items.value[chart_index].chart_options;
     }
 }
 
@@ -370,7 +354,7 @@ function refresh_snapshots() {
 async function refresh_metrics(push_custom_metric, force_refresh) {
     metrics.value = await get_metrics(push_custom_metric, force_refresh);
     if (push_custom_metric) {
-	selected_metric.value = custom_metric;
+        selected_metric.value = custom_metric;
     }
 }
 
@@ -384,25 +368,36 @@ function change_groups_options_mode() {
 }
 
 let ts_charts_options;
+/* This function load the chart data and options, doing the request and then setting the options */
 async function load_page_stats_data(timeseries_groups, reload_charts_data, reload_top_table_options, refreshed_time_interval) {
+    /* Get the information necessary for the request, like epoch ecc. */
     let status = ntopng_status_manager.get_status();
     let ts_compare = get_ts_compare(status);
     if (reload_charts_data) {
-	ts_charts_options = await timeseriesUtils.getTsChartsOptions(http_prefix, status, ts_compare, timeseries_groups, props.is_ntop_pro);
+        /* Do the request to the backend; the answer is formatted as
+         *  [  
+         *      {   
+         *          metadata: { ... }       // Containing various info regarding the series returned
+         *          series: { ... }         // Containing the series with the data, labels and statistics
+         *      }
+         *  ]
+         */
+        ts_charts_options = await timeseriesUtils.getTsChartsOptions(http_prefix, status, ts_compare, timeseries_groups, props.is_ntop_pro);
     }
-    
-    // update timeseries_groups source label
+
+    /* Update timeseries label to display */
     set_timeseries_groups_source_label(timeseries_groups, ts_charts_options);
-    
-    let charts_options = timeseriesUtils.tsArrayToApexOptionsArray(ts_charts_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
+
+    /* Format the options for the timeseries library */
+    let charts_options = timeseriesUtils.tsArrayToOptionsArray(ts_charts_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
     if (refreshed_time_interval) {
-	update_charts(charts_options);
+        update_charts(charts_options);
     } else {
-	set_charts_options_items(charts_options);
+        set_charts_options_items(charts_options);
     }
     set_stats_rows(ts_charts_options, timeseries_groups, status);
     if (reload_top_table_options) {
-	set_top_table_options(timeseries_groups, status);
+        set_top_table_options(timeseries_groups, status);
     }
     // set last_timeseries_groupd_loaded
     last_timeseries_groups_loaded = timeseries_groups;
@@ -410,15 +405,18 @@ async function load_page_stats_data(timeseries_groups, reload_charts_data, reloa
     update_url_params();
 }
 
-function set_timeseries_groups_source_label(timeseries_groups, ts_charts_options) {    
+/* This function returns set the label of the timeseries; if available it should be
+ * found in response.metadata.label field
+ */
+function set_timeseries_groups_source_label(timeseries_groups, ts_charts_options) {
     timeseries_groups.forEach((ts_group, i) => {
-	let ts_options = ts_charts_options[i];
-	let label = ts_options?.query?.label;
-	if (label != null) {
-	    let source_index = timeseriesUtils.getMainSourceDefIndex(ts_group);
-	    let source = ts_group.source_array[source_index];
-	    source.label = label;
-	}
+        let ts_options = ts_charts_options[i];
+        let label = ts_options?.metadata?.label;
+        if (label != null) {
+            let source_index = timeseriesUtils.getMainSourceDefIndex(ts_group);
+            let source = ts_group.source_array[source_index];
+            source.label = label;
+        }
     });
 }
 
@@ -429,17 +427,17 @@ function update_url_params() {
 
 function update_charts(charts_options) {
     charts_options.forEach((options, i) => {
-	// charts.value[i].update_chart_options({ yaxis: options.yaxis });
-	charts.value[i].update_chart_series(options?.series);
-    });    
+        // charts.value[i].update_chart_options({ yaxis: options.yaxis });
+        charts.value[i].update_chart_series(options?.series);
+    });
 }
 
 function set_charts_options_items(charts_options) {
     charts_options_items.value = charts_options.map((options, i) => {
-	return {
-	    key: ntopng_utility.get_random_string(),
-	    chart_options: options,
-	};
+        return {
+            key: ntopng_utility.get_random_string(),
+            chart_options: options,
+        };
     });
 }
 
@@ -447,41 +445,41 @@ function get_ts_compare(status) {
     // 5m, 30m, 1h, 1d, 1w, 1M, 1Y
     let r = Number.parseInt((status.epoch_end - status.epoch_begin) / 60);
     if (r <= 5) {
-	return "5m";
+        return "5m";
     } else if (r <= 30) {
-	return "30m";
+        return "30m";
     } else if (r <= 60) {
-	return "1h";
+        return "1h";
     } else if (r <= 60 * 24) {
-	return "1d";
+        return "1d";
     } else if (r <= 60 * 24 * 7) {
-	return "1w";
+        return "1w";
     } else if (r <= 60 * 24 * 30) {
-	return "1M";
+        return "1M";
     } else {
-	return "1Y";
+        return "1Y";
     }
 }
 
 function get_top_table_url(ts_group, table_value, table_view, table_source_def_value_dict, status) {
     if (status == null) {
-	status = ntopng_status_manager.get_status();	
+        status = ntopng_status_manager.get_status();
     }
     let ts_query = timeseriesUtils.getTsQuery(ts_group, true, table_source_def_value_dict);
     let v = table_value;
     let data_url = `${http_prefix}/lua/pro/rest/v2/get/${v}/top/ts_stats.lua`;
     //todo: get ts_query
     let p_obj = {
-	zoom: '5m',
-	ts_query,
-	// ts_query: `ifid:${ntopng_url_manager.get_url_entry('ifid')}`,
-	epoch_begin: `${status.epoch_begin}`,
-	epoch_end: `${status.epoch_end}`,
-	detail_view: `${table_view}`,
-	new_charts: `true`
+        zoom: '5m',
+        ts_query,
+        // ts_query: `ifid:${ntopng_url_manager.get_url_entry('ifid')}`,
+        epoch_begin: `${status.epoch_begin}`,
+        epoch_end: `${status.epoch_end}`,
+        detail_view: `${table_view}`,
+        new_charts: `true`
     };
-    
-    let p_url_request =  ntopng_url_manager.add_obj_to_url(p_obj, '');
+
+    let p_url_request = ntopng_url_manager.add_obj_to_url(p_obj, '');
     return `${data_url}?${p_url_request}`;
 }
 
@@ -494,7 +492,7 @@ async function refresh_top_table() {
     top_table_ref.value.update_url(data_url);
     top_table_ref.value.reload();
     // NtopUtils.hideOverlays();
-    
+
 }
 
 const top_table_options = ref([]);
@@ -502,97 +500,97 @@ const selected_top_table = ref({});
 function set_top_table_options(timeseries_groups, status) {
     if (!props.is_ntop_pro) { return; }
     if (timeseries_groups == null) {
-	timeseries_groups = last_timeseries_groups_loaded;
+        timeseries_groups = last_timeseries_groups_loaded;
     }
     if (status == null) {
-	status = ntopng_status_manager.get_status();
+        status = ntopng_status_manager.get_status();
     }
-    
+
     let sources_types_tables = metricsManager.sources_types_tables;
     let ts_group_dict = {}; // dictionary with 1 ts_group for each (source_type, source_array)
     timeseries_groups.forEach((ts_group) => {
-	let source_type = ts_group.source_type;
-	// let source_type_tables = sources_types_tables[source_type.id];
-	// let table_source_def_value_dict = source_type_tables.table_source_def_value_dict
-	
-	let id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array);
-	ts_group_dict[id] = ts_group;
+        let source_type = ts_group.source_type;
+        // let source_type_tables = sources_types_tables[source_type.id];
+        // let table_source_def_value_dict = source_type_tables.table_source_def_value_dict
+
+        let id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array);
+        ts_group_dict[id] = ts_group;
     });
     let top_table_id_dict = {};
     top_table_options.value = [];
     for (let id in ts_group_dict) {
-	let ts_group = ts_group_dict[id];
-	let main_source_index = timeseriesUtils.getMainSourceDefIndex(ts_group);
-	let main_source = ts_group.source_array[main_source_index];
-	let source_type = ts_group.source_type;
-	let source_type_tables = sources_types_tables[source_type.id];
-	if (source_type_tables == null) { continue; }
-	
-	source_type_tables.forEach((table_def) => {
-	    let enables_table_value = props.sources_types_top_enabled[table_def.table_value];
-	    if (enables_table_value == null) { return; }
-	    let enable_table_def = enables_table_value[table_def.view];
-	    if (!enable_table_def) { return; }
-	    let table_source_def_value_dict = table_def.table_source_def_value_dict
-	    
-	    let data_url = get_top_table_url(ts_group, table_def.table_value, table_def.view, table_source_def_value_dict, status);
-	    let table_id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array, null, table_source_def_value_dict, true);
-	    table_id = `${table_id}_${table_def.view}`;
-	    if (top_table_id_dict[table_id] != null) { return; }
-	    top_table_id_dict[table_id] = true;
-	    
-	    let value = `${table_def.table_value}_${table_def.view}_${table_id}`;
-	    let label;
-	    if (table_def.f_get_label == null) {
-		label = `${table_def.title} - ${source_type.label} ${main_source.label}`;
-	    } else {
-		label = table_def.f_get_label(ts_group)
-	    }
-	    const table_config_def = {
-		ts_group,
-		table_def,
-		// table_value: table_def.table_value,
-		// table_view: table_def.view,
-		
-		table_buttons: [ ],
-		data_url,
-		enable_search: true,
-		table_config: { 
-      serverSide: false, 
-      order: [[ table_def.default_sorting_columns, 'desc' ]],
-      columnDefs: table_def.columnDefs || [],
-    }
-	    };
-	    // it should be here in this instance the vuetify object with its properties
-	    table_config_def.columns_config = table_def.columns.map((column) => {
-		let render_if_context = {
-		    is_history_enabled: props.is_history_enabled
-		};
-		let c = {
-		    visible: !column.render_if || column.render_if(render_if_context),
-		    ...column,
-		};
-		if (c.className == null) { c.className = "text-nowrap"; }
-		if (c.responsivePriority == null) { c.responsivePriority = 1; }
-		c.render = column.render.bind({
-		    add_metric_from_metric_schema,
-		    add_ts_group_from_source_value_dict,
-		    sources_types_enabled: props.sources_types_enabled,
-		    status, source_type,  source_array: ts_group.source_array,
-		});
-		return c;
-	    });
-	    let option = { value, label, table_config_def };
-	    top_table_options.value.push(option);
-	});
+        let ts_group = ts_group_dict[id];
+        let main_source_index = timeseriesUtils.getMainSourceDefIndex(ts_group);
+        let main_source = ts_group.source_array[main_source_index];
+        let source_type = ts_group.source_type;
+        let source_type_tables = sources_types_tables[source_type.id];
+        if (source_type_tables == null) { continue; }
+
+        source_type_tables.forEach((table_def) => {
+            let enables_table_value = props.sources_types_top_enabled[table_def.table_value];
+            if (enables_table_value == null) { return; }
+            let enable_table_def = enables_table_value[table_def.view];
+            if (!enable_table_def) { return; }
+            let table_source_def_value_dict = table_def.table_source_def_value_dict
+
+            let data_url = get_top_table_url(ts_group, table_def.table_value, table_def.view, table_source_def_value_dict, status);
+            let table_id = metricsManager.get_ts_group_id(ts_group.source_type, ts_group.source_array, null, table_source_def_value_dict, true);
+            table_id = `${table_id}_${table_def.view}`;
+            if (top_table_id_dict[table_id] != null) { return; }
+            top_table_id_dict[table_id] = true;
+
+            let value = `${table_def.table_value}_${table_def.view}_${table_id}`;
+            let label;
+            if (table_def.f_get_label == null) {
+                label = `${table_def.title} - ${source_type.label} ${main_source.label}`;
+            } else {
+                label = table_def.f_get_label(ts_group)
+            }
+            const table_config_def = {
+                ts_group,
+                table_def,
+                // table_value: table_def.table_value,
+                // table_view: table_def.view,
+
+                table_buttons: [],
+                data_url,
+                enable_search: true,
+                table_config: {
+                    serverSide: false,
+                    order: [[table_def.default_sorting_columns, 'desc']],
+                    columnDefs: table_def.columnDefs || [],
+                }
+            };
+            // it should be here in this instance the vuetify object with its properties
+            table_config_def.columns_config = table_def.columns.map((column) => {
+                let render_if_context = {
+                    is_history_enabled: props.is_history_enabled
+                };
+                let c = {
+                    visible: !column.render_if || column.render_if(render_if_context),
+                    ...column,
+                };
+                if (c.className == null) { c.className = "text-nowrap"; }
+                if (c.responsivePriority == null) { c.responsivePriority = 1; }
+                c.render = column.render.bind({
+                    add_metric_from_metric_schema,
+                    add_ts_group_from_source_value_dict,
+                    sources_types_enabled: props.sources_types_enabled,
+                    status, source_type, source_array: ts_group.source_array,
+                });
+                return c;
+            });
+            let option = { value, label, table_config_def };
+            top_table_options.value.push(option);
+        });
     }
     if (selected_top_table.value != null && top_table_options.value.find((option) => option.value == selected_top_table.value.value)) {
-	return;
+        return;
     }
-    
+
     selected_top_table.value = top_table_options.value.find((option) => option.table_config_def.default == true);
     if (selected_top_table.value == null) {
-	selected_top_table.value = top_table_options.value[0];
+        selected_top_table.value = top_table_options.value[0];
     }
 }
 
@@ -612,43 +610,45 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
     enable_stats_table.value = timeseries_groups.map((ts_group) => !ts_group.source_type.disable_stats).reduce((res, el) => res | el, false);
     if (!enable_stats_table.value) { return; }
     const f_get_total_formatter_type = (type) => {
-	if (type == "bps") {
-	    return "bytes";
-	    // return "bytes_network";
-	}
-	return type;
-    };    
+        if (type == "bps") {
+            return "bytes";
+            // return "bytes_network";
+        }
+        return type;
+    };
     stats_rows.value = [];
     ts_charts_options.forEach((options, i) => {
-	let ts_group = timeseries_groups[i];
-	if (ts_group.source_type.disable_stats == true) { return; }
-	options.series.forEach((s, j) => {
-	    let ts_id = timeseriesUtils.getSerieId(s);
-	    let s_metadata = ts_group.metric.timeseries[ts_id];
-	    let formatter = formatterUtils.getFormatter(ts_group.metric.measure_unit);
-	    let ts_stats;
-	    if (ts_group.metric.type == "top") {
-		ts_stats = options.statistics;
-	    } else if (options?.statistics?.by_serie?.length > j) {
-		ts_stats = options.statistics.by_serie[j];
-	    }
-	    if (ts_stats == null || (ts_group.metric.type == "top" && j > 0)) {
-		return;
-	    }
-	    let name = timeseriesUtils.getSerieName(s_metadata.label, ts_id, ts_group, extend_serie_name);
-	    let total_formatter_type = f_get_total_formatter_type(ts_group.metric.measure_unit);
-	    let total_formatter = formatterUtils.getFormatter(total_formatter_type);
-	    let row = {
-            metric: name,
-            // total: total_formatter(total),
-            total: total_formatter(ts_stats.total),
-            perc_95: formatter(ts_stats["95th_percentile"]),
-            avg: formatter(ts_stats.average),
-            max: formatter(ts_stats.max_val),
-            min: formatter(ts_stats.min_val),
-	    };
-	    stats_rows.value.push(row);
-	});
+        let ts_group = timeseries_groups[i];
+        if (ts_group.source_type.disable_stats == true) { return; }
+        options.series?.forEach((s, j) => {
+            let ts_id = timeseriesUtils.getSerieId(s);
+            let s_metadata = ts_group.metric.timeseries[ts_id];
+            let formatter = formatterUtils.getFormatter(ts_group.metric.measure_unit);
+            let ts_stats;
+            let name = s_metadata.label
+            if (s?.data.length > j) {
+                ts_stats = s.statistics;
+            }
+            if (ts_stats == null) {
+                return;
+            }
+            if (s.ext_label) {
+                name = s.ext_label
+            }
+            name = timeseriesUtils.getSerieName(name, ts_id, ts_group, extend_serie_name);
+            let total_formatter_type = f_get_total_formatter_type(ts_group.metric.measure_unit);
+            let total_formatter = formatterUtils.getFormatter(total_formatter_type);
+            let row = {
+                metric: name,
+                // total: total_formatter(total),
+                total: total_formatter(ts_stats.total),
+                perc_95: formatter(ts_stats["95th_percentile"]),
+                avg: formatter(ts_stats.average),
+                max: formatter(ts_stats.max_val),
+                min: formatter(ts_stats.min_val),
+            };
+            stats_rows.value.push(row);
+        });
     });
 }
 
@@ -675,7 +675,7 @@ function show_modal_traffic_extraction() {
 }
 
 function show_modal_download_file() {
-    if (!ts_charts_options?.length) { return; } 
+    if (!ts_charts_options?.length) { return; }
     let ts_group = last_timeseries_groups_loaded[0];
     let filename = timeseriesUtils.getSerieName(null, null, ts_group);
     modal_download_file.value.show(filename);
@@ -683,38 +683,38 @@ function show_modal_download_file() {
 
 async function download_chart_png(filename) {
     let chart_image_array_promise = charts.value.map(async (chart) => {
-    	let data_uri = await chart.get_data_uri();
-    	return new Promise((resolve, reject) => {
-    	    let image = new Image();
-    	    image.src = data_uri;
-    	    image.onload = function() {
-    		resolve(image);
-    	    };	    
-    	});
+        let canvas = new Image();
+        chart.get_image(canvas);
+        return new Promise(async (resolve, reject) => {
+            canvas.onload = function () {
+                resolve(canvas);
+            };
+        });
     });
     let height = 0;
     let chart_image_array = await Promise.all(chart_image_array_promise);
     chart_image_array.forEach((image) => {
-    	height += image.height;
-    }); 
+        height += image.height;
+    });
     let canvas = document.createElement('canvas');
     let canvas_context = canvas.getContext('2d');
     canvas.width = chart_image_array[0].width;
     canvas.height = height;
     height = 0;
     chart_image_array.forEach((image) => {
-    	canvas_context.drawImage(image, 0, height, image.width, image.height);
-    	height += image.height;
+        canvas_context.drawImage(image, 0, height, image.width, image.height);
+        height += image.height;
     });
     ntopng_utility.download_URI(canvas.toDataURL(), filename);
 }
 </script>
 
 <style scoped>
-  .inline {
+.inline {
     display: inline-block;
-  }
-  .select2-size {
+}
+
+.select2-size {
     min-width: 18rem;
-  }
+}
 </style>

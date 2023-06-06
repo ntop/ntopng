@@ -357,6 +357,19 @@ export default class NtopUtils {
 		return Math.round(value * 100) / 100 + " %";
 	}
 
+    static percentage(value, total) {
+	if(total > 0) {
+	    var pctg = Math.round((value * 10000) / total)
+	    
+	    if(pctg > 0) {
+		/* Two decimals */
+		return(" [ " + (pctg/100) + " % ] ")
+	    }
+	}
+	
+	return("") 
+    }
+
 	static fdate(when) {
 		var epoch = when * 1000;
 		var d = new Date(epoch);
@@ -515,6 +528,16 @@ export default class NtopUtils {
 		var res = NtopUtils.scaleValue(bits, sizes, factor);
 
 		return res[0].toFixed(2) + " " + res[1];
+	};
+
+	static bitsToSize_no_comma(bits, factor) {
+		factor = factor || 1000;
+		var sizes = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+		if (bits == 0) return '0 bps';
+		if ((bits > 0) && (bits < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + " bps");
+		var res = NtopUtils.scaleValue(bits, sizes, factor);
+
+		return res[0]+ " " + res[1];
 	};
 
 	static secondsToTime(seconds) {

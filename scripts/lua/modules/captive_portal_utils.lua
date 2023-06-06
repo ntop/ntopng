@@ -26,7 +26,7 @@ function captive_portal_utils.is_logged(ip)
    end
 
    local pool_id = host_info.host_pool_id
-   if tonumber(pool_id) == tonumber(host_pools_nedge.DEFAULT_POOL_ID) then
+   if tonumber(pool_id) == host_pools_nedge.DEFAULT_POOL_ID then
       -- already logged out
       return false
    end
@@ -47,7 +47,7 @@ function captive_portal_utils.logout(ip)
 
    local pool_id = host_info.host_pool_id
 
-   if pool_id == host_pools_nedge.DEFAULT_POOL_ID then
+   if tonumber(pool_id) == host_pools_nedge.DEFAULT_POOL_ID then
       -- already logged out
       return
    end
@@ -59,7 +59,7 @@ function captive_portal_utils.logout(ip)
     end
   end
 
-  host_pools_nedge.deletePoolMemberFromAllPools(member)
+  host_pools_nedge.deletePoolMember(member)
   ntop.reloadHostPools()
 end
 

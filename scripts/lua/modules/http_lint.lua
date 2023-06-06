@@ -117,6 +117,32 @@ http_lint.validateEmptyOr = validateEmptyOr
 
 -- FRONT-END VALIDATORS
 
+local function validateSNMPIfidNumber(p)
+    -- integer SNMP Ifid validation
+    
+    if p == "*" then
+        return true
+    end
+
+    local num = tonumber(p)
+
+    if (num == nil) then
+        return false
+    end
+
+    if math.floor(num) == num then
+        return true
+    else
+        -- this is a float number
+        return false
+    end
+end
+http_lint.validateSNMPIfidNumber = validateSNMPIfidNumber
+
+-- #################################################################
+
+-- FRONT-END VALIDATORS
+
 local function validateNumber(p)
     -- integer number validation
     local num = tonumber(p)
@@ -246,6 +272,7 @@ local function validateSingleWord(w)
     end
 end
 http_lint.validateSingleWord = validateSingleWord
+
 
 -- ##############################################
 
@@ -777,18 +804,21 @@ local function validateServer(v)
 end
 
 local function validateColumnsIds(v)
+   return validateUnchecked(v)
     -- An Array is composed by a series of string separated by commas
     -- e.g.     column1,column2,column3
     -- So split by comma and check each single column with validateSingleWord
-    local columns = string.split(v, ",")
+    -- local columns = string.split(v, ",")
 
-    for _, column_id in pairs(columns) do
-        if not validateSingleWord(column_id) then
-            return false
-        end
-    end
+    -- if((column == nil) or (type(column) ~= table)) then return false end
+    
+    -- for _, column_id in pairs(columns) do
+    --     if not validateSingleWord(column_id) then
+    --         return false
+    --     end
+    -- end
 
-    return true
+    -- return true
 end
 
 local function validateDate(p)
@@ -1906,7 +1936,16 @@ local known_parameters = {
     ["rule_type"] = validateSingleWord,
     ["rule_threshold_sign"] = validateNumber,
     ["is_ifname"] = validateBool,
-    ["metric_label"] = validateSingleWord,
+    ["metric_label"] = validateUnquoted,
+    ["flows_page_type"] = validateSingleWord,
+
+    ["snmp_device"] = validateDevice,
+    ["snmp_device_port"] = validateSNMPIfidNumber,
+    ["snmp_device_port_label"] = validateUnquoted,
+    ["snmp_device_label"] = validateUnquoted, 
+    ["snmp_threshold_value"] = validateNumber,
+    ["snmp_threshold_unit"] = validateUnquoted,  
+    ["snmp_metric_type_label"] = validateUnquoted,
 
     ["bytes"] = validateListOfTypeInline(validateFilters(validateNumber)),
     ["packets"] = validateListOfTypeInline(validateFilters(validateNumber)),
@@ -1965,6 +2004,7 @@ local known_parameters = {
     ["is_mirrored_traffic"] = validateBool,
     ["discard_probing_traffic"] = validateBool,
     ["show_dyn_iface_traffic"] = validateBool,
+    ["push_host_filters"] = validateBool,
     ["interface_network_discovery"] = validateBool,
     ["dynamic_iface_vlan_creation"] = validateBool,
     ["toggle_mysql_check_open_files_limit"] = validateBool,
@@ -2036,6 +2076,7 @@ local known_parameters = {
     ["behaviour_analysis_learning_status_during_learning"] = validateNumber,
     ["behaviour_analysis_learning_status_post_learning"] = validateNumber,
     ["iec60870_learning_period"] = validateNumber,
+    ["modbus_learning_period"] = validateNumber,
     ["devices_learning_period"] = validateNumber,
     ["toggle_src_and_dst_using_ports"] = validateBool,
     ["toggle_device_activation_alert"] = validateBool,
@@ -2065,10 +2106,13 @@ local known_parameters = {
     ["toggle_internals_rrds"] = validateBool,
     ["toggle_local_hosts_one_way_ts"] = validateBool,
     ["toggle_dark_theme"] = validateBool,
+    ["toggle_menu_entry_help"] = validateBool,
+    ["toggle_menu_entry_developer"] = validateBool,
 
     -- Input fields
     ["companion_interface"] = validateEmptyOr(validateInterface),
     ["flows_and_alerts_data_retention_days"] = validateNumber,
+    ["aggregated_flows_data_retention_days"] = validateNumber,
     ["ts_and_stats_data_retention_days"] = validateNumber,
     ["max_entity_alerts"] = validateNumber,
     ["max_num_secs_before_delete_alert"] = validateNumber,
@@ -2078,9 +2122,12 @@ local known_parameters = {
     ["max_num_packets_per_tiny_flow"] = validateNumber,
     ["dump_frequency"] = validateNumber,
     ["max_num_bytes_per_tiny_flow"] = validateNumber,
+    ["max_aggregated_flows_traffic_upperbound"] = validateNumber,
+    ["max_aggregated_flows_upperbound"] = validateNumber,
     ["google_apis_browser_key"] = validateSingleWord,
     ["ldap_server_address"] = validateSingleWord,
     ["radius_server_address"] = validateSingleWord,
+    ["radius_acct_server_address"] = validateSingleWord,
     ["http_auth_url"] = validateSingleWord,
     ["radius_secret"] = validateUnquoted,
     ["radius_auth_proto"] = validateAuthProto,
@@ -2400,6 +2447,7 @@ local known_parameters = {
     ["repeater_type"] = validateSingleWord,
     ["repeater_id"] = validateNumber,
     ["interfaces"] = validateSingleWord,
+    ["interface_details"] = validateUnquoted,
 
     -- Containers
     ["pod"] = validateSingleWord,
@@ -2457,7 +2505,7 @@ local special_parameters = { --[[Suffix validator]] --[[Value Validator]]
 
     -- Protocol to categories match
     ["proto_"] = {validateProtocolIdOrName, validateCategory},
-
+    ["protocol"] = validateNumber,
     --
     ["static_route_address_"] = {validateStaticRouteName, validateIPV4},
     ["static_route_netmask_"] = {validateStaticRouteName, validateIPV4},
@@ -2468,6 +2516,8 @@ local special_parameters = { --[[Suffix validator]] --[[Value Validator]]
     ["gateway_address_"] = {validateGatewayName, validateIPV4},
     ["gateway_ping_"] = {validateGatewayName, validateIPV4},
     ["gw_rtt_"] = {validateGatewayName, validateNumber},
+    ["gw_loss_thresh_"] = {validateGatewayName, validateNumber},
+    ["gw_num_attempts_"] = {validateGatewayName, validateNumber},
     ["gw_id_"] = {validateNumber, validateGatewayName},
     ["pol_id_"] = {validateNumber, validateRoutingPolicyName},
     ["routing_"] = {validateRoutingPolicyGateway, validateEmptyOr(validateNumber)}, -- a routing policy
@@ -2524,7 +2574,7 @@ local function validateParameter(k, v)
             -- Success, all the table keys have been validated successfully
             return true, "OK", v
         else
-            error("[LINT] Validation error: Unknown key " .. k .. ": missing validation perhaps?\n")
+            error("[LINT] Validation error: Unknown key '" .. k .. "': missing validation perhaps?\n")
             return false, nil
         end
     else

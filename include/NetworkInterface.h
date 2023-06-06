@@ -219,6 +219,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool is_dynamic_interface;           /* Whether this is a dynamic interface */
   bool show_dynamic_interface_traffic; /* Show traffic of this dynamic interface
                                         */
+  bool push_host_filters; /* Push alerted hosts to pf_ring via Redis queue */
   u_int64_t dynamic_interface_criteria; /* Criteria identifying this dynamic
                                            interface */
   FlowHashingEnum
@@ -327,6 +328,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   StatsManager *statsManager;
   AlertStore *alertStore;
   HostPools *host_pools;
+  VLANAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses,
       has_seen_dhcp_addresses;
   bool has_seen_pods, has_seen_containers, has_external_alerts;
@@ -363,7 +365,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                 bool dhcpOnly, const AddressTree *const cidr_filter,
                 u_int8_t ipver_filter, int proto_filter,
                 TrafficType traffic_type_filter, u_int32_t device_ip,
-                char *sortColumn);
+                char *sortColumn, bool isTopTalkers);
   int sortASes(struct flowHostRetriever *retriever, char *sortColumn);
   int sortObsPoints(struct flowHostRetriever *retriever, char *sortColumn);
   int sortOSes(struct flowHostRetriever *retriever, char *sortColumn);
@@ -415,14 +417,23 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #ifdef NTOPNG_PRO
   void checkDHCPStorm(time_t when, u_int32_t num_pkts);
 #endif
+  void sort_ports(lua_State *vm,
+				  HostsPorts *count,
+          u_int16_t protocol);
+  void sort_hosts_details(lua_State *vm, 
+                          HostsPortsAnalysis *count,
+                          u_int16_t protocol);
   void sort_and_filter_flow_stats(lua_State *vm,
 				  std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count,
 				  std::unordered_map<string, AggregatedFlowsStats *> *count_info,
 				  AnalysisCriteria filter_type);
   
+  bool filters_flows(AggregatedFlowsStats *fs, char *search_filter, AnalysisCriteria filter_type, char *host_ip_filter );
   bool verify_search_filter(AggregatedFlowsStats* fs, char* filter, AnalysisCriteria filter_type);
   bool verify_search_filter_on_client(AggregatedFlowsStats* fs, char* filter);
   bool verify_search_filter_on_server(AggregatedFlowsStats* fs, char* filter);
+
+  bool verify_host_ip_filter(AggregatedFlowsStats *fs, char *filter, string vlan);
 
   void build_lua_rsp(lua_State *vm, AggregatedFlowsStats *fs, u_int filter_type,
                      u_int32_t size, u_int *num, bool set_resp);
@@ -688,11 +699,13 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline bool showDynamicInterfaceTraffic() const {
     return show_dynamic_interface_traffic;
   };
+  inline bool pushHostFilters() const { return push_host_filters; };
   inline bool discardProbingTraffic() const { return discard_probing_traffic; };
   inline bool flowsOnlyInterface() const { return flows_only_interface; };
   void updateTrafficMirrored();
   void updateSmartRecording();
   void updateDynIfaceTrafficPolicy();
+  void updatePushFiltersSettings();
   void updateFlowDumpDisabled();
   void updateLbdIdentifier();
   void updateDiscardProbingTraffic();
@@ -789,7 +802,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
       bool blacklisted_hosts, u_int8_t ipver_filter, int proto_filter,
       TrafficType traffic_type_filter, u_int32_t device_ip, bool tsLua,
       bool anomalousOnly, bool dhcpOnly, const AddressTree *const cidr_filter,
-      char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder);
+      char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder, bool isTopTalkers);
   int getActiveASList(lua_State *vm, const Paginator *p, bool diff = false);
   int getActiveObsPointsList(lua_State *vm, const Paginator *p);
   int getActiveOSList(lua_State *vm, const Paginator *p);
@@ -1044,6 +1057,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                               u_int16_t host_vlan);
 
   virtual void reloadCompanions(){};
+  void reloadHideFromTop(bool refreshHosts=true);
+  bool isHiddenFromTop(Host *host);
+
   void requestGwMacsReload() { gw_macs_reload_requested = true; };
   void reloadGwMacs();
 
@@ -1326,7 +1342,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     usedPorts.setServerPort(isTCP, port, proto);
   };
   void luaUsedPorts(lua_State *vm) { usedPorts.lua(vm, this); };
-
+  
+  void getHostsPorts(lua_State *vm);
+  void getHostsByPort(lua_State *vm);
   void getFilteredLiveFlowsStats(lua_State *vm);
   void getVLANFlowsStats(lua_State *vm);
   void getRxOnlyHostsList(lua_State *vm, bool local_host_rx_only,
@@ -1338,7 +1356,19 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                                         bool *matched);
   static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data,
                                         bool *matched);
-
+  static bool get_udp_host_ports(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched);
+  static bool get_tcp_host_ports(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched);
+  static bool get_tcp_hosts_by_port(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched);
+  static bool get_udp_hosts_by_port(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched);
+                                            
 #ifdef NTOPNG_PRO
   static bool compute_client_server_flow_stats(GenericHashEntry *node,
                                                void *user_data, bool *matched);

@@ -17,5 +17,7 @@ import './vendors/datatables/datatable-ipsorting'
 import './vendors/datatables/datatable-macsorting'
 import './vendors/datatables/datatable-colvisibility'
 
+import './vendors/dygraphs/canvas';
+
 window.nv = nv
 window.Tagify = Tagify

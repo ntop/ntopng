@@ -691,7 +691,7 @@ local filters_context = {
    traffic_direction_list = tag_utils.traffic_direction
 }
 
-template_utils.render("pages/modals/alerts/filters/add.template", filters_context)
+--template_utils.render("pages/modals/alerts/filters/add.template", filters_context)
 
 --------------------------------------------------------------
 
@@ -777,12 +777,93 @@ if(status == "engaged") then
    table.insert(notes, i18n("show_alerts.engaged_notes"))
 end
 
+local context_2 = {
+   ifid = ifid,
+   opsep = tag_utils.SEPARATOR,
+   isPro = ntop.isPro(),
+   is_ntop_enterprise_m = ntop.isEnterpriseM(),
+   notes = notes,
+   show_chart = true,
+   show_cards = (status ~= "engaged") and ntop.isPro(),
+   endpoint_cards = endpoint_cards,
+   -- buttons
+   show_permalink = (page ~= 'all'),
+   show_download = (page ~= 'all'),
+   show_acknowledge_all =  (page ~= 'all') and (status == "historical"),
+   show_delete_all = (page ~= 'all') and (status ~= "engaged"),
+   show_actions = (page ~= 'all'),
+   actions = {
+       show_settings = (page ~= 'system') and isAdministrator(),
+       show_flows = (page == 'host'),
+       show_historical = ((page == 'host') or (page == 'flow')) and ntop.isEnterpriseM() and hasClickHouseSupport(),
+       show_pcap_download = traffic_extraction_available and page == 'flow',
+       show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator() and ntop.isEnterpriseM(),
+       show_acknowledge = (page ~= 'all') and (status == "historical") and isAdministrator(),
+       show_delete = (page ~= 'all') and (status ~= "engaged") and isAdministrator(),
+       show_info = (page == 'flow'),
+       show_snmp_info = (page == 'snmp_device')
+   },
+
+   show_tot_records = true,
+   range_picker = {
+       ifid = ifid,
+       default = status ~= "engaged" and "30min" or "1week",
+       earliest_available_epoch = earliest_available_epoch,
+       epoch_begin = epoch_begin,
+       epoch_end = epoch_end,
+       datasource_params = datasource.params,
+       refresh_enabled = checkbox_checked,
+       opsep = tag_utils.SEPARATOR,
+       dont_refresh_full_page = true,
+       show_auto_refresh = (page ~= 'all'),
+       tags = {
+           enabled = (page ~= 'all'),
+           tag_operators = tag_utils.tag_operators,
+           view_only = true,
+           defined_tags = defined_tags[page],
+           values = initial_tags,
+           i18n = {
+               auto_refresh_descr = i18n("auto_refresh_descr"),
+               enable_auto_refresh = auto_refresh_text,
+               alert_id = i18n("db_search.tags.alert_id"),
+               severity = i18n("db_search.tags.severity"),
+               score = i18n("db_search.tags.score"),
+               l7_proto = i18n("db_search.tags.l7proto"),
+               cli_ip = i18n("db_search.tags.cli_ip"),
+               srv_ip = i18n("db_search.tags.srv_ip"),
+               cli_name = i18n("db_search.tags.cli_name"),
+               srv_name = i18n("db_search.tags.srv_name"),
+               cli_port = i18n("db_search.tags.cli_port"),
+               srv_port = i18n("db_search.tags.srv_port"),
+               ip_version = i18n("db_search.tags.ip_version"),
+               ip = i18n("db_search.tags.ip"),
+               name = i18n("db_search.tags.name"),
+               network_name = i18n("db_search.tags.network_name"),
+               subtype = i18n("alerts_dashboard.element"),
+               role = i18n("db_search.tags.role"),
+               role_cli_srv = i18n("db_search.tags.role_cli_srv"),
+               l7_error_id = i18n("db_search.tags.error_code"),
+               community_id = i18n("db_search.tags.community_id"),
+               confidence = i18n("db_search.tags.confidence"),
+               traffic_direction = i18n("db_search.tags.traffic_direction"),
+          }
+       },
+       extra_range_buttons = extra_range_buttons,
+       extra_tags_buttons = extra_tags_buttons,
+   },
+   chart = {
+       name = CHART_NAME
+   },
+   alert_details_url = alert_details_url,
+   navbar = page_utils.get_new_navbar_context(i18n("alerts_dashboard.alerts"), url, pages),
+   csrf = ntop.getRandomCSRFValue(),
+}
 
 local context = {
    ifid = ifid,
    ui_utils = ui_utils,
    template_utils = template_utils,
-   -- widget_gui_utils = widget_gui_utils,
+   widget_gui_utils = widget_gui_utils,
    json = json,
    opsep = tag_utils.SEPARATOR,
    isPro = ntop.isPro(),
@@ -877,7 +958,11 @@ local context = {
    }
 }
 
-template_utils.render("pages/components/datatable.template", context)
-
+if (page == "flow" or page == "interface" or page == "system" or page == "user" or page == "mac" or page == "host") and true then
+   local json_context = json.encode(context_2)
+   template_utils.render("pages/vue_page.template", { vue_page_name = "PageAlertStats", page_context = json_context })
+else
+   template_utils.render("pages/components/datatable.template", context)
+end
 -- append the menu down below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

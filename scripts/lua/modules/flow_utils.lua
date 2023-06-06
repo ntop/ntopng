@@ -1731,7 +1731,65 @@ local function getParamFilter(page_params, param_name)
 
     return ''
 end
+function printTabList(base_url, page_params, active) 
+   if(ntop.isEnterpriseM() or (ntop.isnEdge() and ntop.isnEdgeEnterprise())) then
+      print[[
+         <div class="col-md-12 col-lg-12">
+         <div class="card">
+         <div class="card-body">
+            <div id="flows_page_type">
+            <div class="card-header mb-2">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+               <li><a id="live_flows" class="]]
+               if active == "live_flows" then
+                  print[[active disabled ]]
+               end
+               
+                print[[nav-item nav-link" href="]] print(getPageUrl(base_url, {host=page_params.host, flows_page_type = "live_flows"})) print[[">]] print(i18n("flows_page.live_flows")) print[[</a></li>
+               <li><a id="aggregated" class=" ]] 
+               if active == "aggregated_flows" then
+                  print[[active disabled ]]
+               end 
+               print[[nav-item nav-link" href="]] print(getPageUrl(base_url, {host=page_params.host, flows_page_type = "aggregated_flows"})) print[[" >]] print(i18n("flows_page.aggregated_live_flows")) print[[</a></li>
+            </ul>
+            </div>
+            </div>
+         </div>
+         
+      ]]
+   end
+end
+function printFlowPagesDropdown(base_url, page_params)
+   local flowhosts_type_params = table.clone(page_params)
+   if(ntop.isEnterpriseM()) then
+   
+      print[[
+         <div class="btn-group">
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.type")) print[[</button>
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_pages_dropdown">
+      ]]printDropdownEntries({
+            {"live_flows", i18n("flows_page.live_flows")},
+            {"aggregated_flows", i18n("flows_page.aggregated_live_flows")},
+         }, base_url, flowhosts_type_params, "flows_page_type", page_params.flowhosts_type)
+      print[[
+      </ul>
+         </div>
+      ]]
 
+   else 
+      print[[
+       <div class="btn-group">
+	  <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.type")) print[[</button>
+	  <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_pages_dropdown">
+     ]]printDropdownEntries({
+          {"live_flows", i18n("flows_page.live_flows")},
+       }, base_url, flowhosts_type_params, "flows_page_type", page_params.flowhosts_type)
+    print[[
+	  </ul>
+       </div>
+    ]]
+   end
+end
 function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_ebpf_flows)
     -- Local / Remote hosts selector
     -- table.clone needed to modify some parameters while keeping the original unchanged
@@ -2198,7 +2256,7 @@ end
 
 -- #######################
 
-function getFlowsTableTitle()
+function getFlowsTableTitle(base_url)
    local active_msg = ""
    local status_type
 
@@ -2265,7 +2323,12 @@ function getFlowsTableTitle()
       end
    else 
       if(_GET["server"] ~= nil) then
-         active_msg = active_msg .. i18n("flows_page.server", {server=_GET["server"]})
+         local server_info = interface.getHostInfo(_GET["server"])
+         local server_name = ""
+         if (server_info) then
+            server_name = server_info.names.resolved
+         end
+         active_msg = active_msg .. i18n("flows_page.server", {server=_GET["server"], base_url = base_url, server_name = ternary(isEmptyString(server_name), _GET["server"], server_name)}) 
       end
    end
 
@@ -2275,7 +2338,7 @@ function getFlowsTableTitle()
    end
 
    if(_GET["port"] ~= nil) then
-      active_msg = active_msg .. i18n("flows_page.port", {port=_GET["port"]})
+      active_msg = active_msg .. i18n("flows_page.port", {port=_GET["port"], base_url = base_url})
    end
 
    if(_GET["inIfIdx"] ~= nil) then

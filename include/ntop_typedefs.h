@@ -505,7 +505,10 @@ typedef enum {
   flow_alert_ndpi_tcp_issues = 90,
   flow_alert_vlan_bidirectional_traffic = 91,
   flow_alert_rare_destination = 92,
-
+  flow_alert_modbus_unexpected_function_code = 93,
+  flow_alert_modbus_too_many_exceptions = 94,
+  flow_alert_modbus_invalid_transition = 95,
+  
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
   MAX_FLOW_ALERT_TYPE =
@@ -1189,6 +1192,13 @@ typedef struct {
   u_int32_t bytes_sent;
   u_int32_t bytes_rcvd;
 } InOutTraffic;
+
+typedef struct {
+  u_int64_t bytes_sent;
+  u_int64_t bytes_rcvd;
+  u_int64_t packets_sent;
+  u_int64_t packets_rcvd;
+} RadiusTraffic;
 
 typedef enum {
   application_criteria = 1,

@@ -55,6 +55,7 @@ checks.field_units = {
   score = "field_units.score",
   per_host_score = "field_units.per_host_score",
   macs = "field_units.macs",
+  exceptions = "field_units.exceptions",
 }
 
 -- ##############################################

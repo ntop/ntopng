@@ -121,6 +121,13 @@ local menu_subpages = {{
             }),
             hidden = (not hasRadius)
         },
+        radius_accounting_server = {
+            title = i18n("prefs.radius_accounting_server_title"),
+            description = i18n("prefs.radius_accounting_server_description", {
+                example = "127.0.0.1:1813"
+            }),
+            hidden = (not hasRadius)
+        },
         radius_secret = {
             title = i18n("prefs.radius_secret_title"),
             description = i18n("prefs.radius_secret_descroption"),
@@ -249,6 +256,14 @@ local menu_subpages = {{
         max_num_bytes_per_tiny_flow = {
             title = i18n("prefs.max_num_bytes_per_tiny_flow_title"),
             description = i18n("prefs.max_num_bytes_per_tiny_flow_description")
+        },
+        toggle_flow_aggregated_limit = {
+            title = i18n("prefs.toggle_flow_aggregated_limit_title"),
+            description = i18n("prefs.toggle_flow_aggregated_limit_description")
+        },
+        toggle_flow_aggregated_traffic_limit = {
+            title = i18n("prefs.toggle_flow_aggregated_traffic_limit_title"),
+            description = i18n("prefs.toggle_flow_aggregated_traffic_limit_description")
         }
     }
 }, {
@@ -458,15 +473,27 @@ local menu_subpages = {{
         behaviour_analysis_learning_status_post_learning = {
             title = i18n("prefs.behaviour_analysis_status_post_learning_title"),
             description = i18n("prefs.behaviour_analysis_status_post_learning_description")
+        },
+        iec60870_learning_period = {
+            title = i18n("prefs.iec60870_learning_period_title"),
+            description = i18n("prefs.iec60870_learning_period_description")
+        },
+        modbus_learning_period = {
+            title = i18n("prefs.modbus_learning_period_title"),
+            description = i18n("prefs.modbus_learning_period_description")
+        },
+        devices_learning_period = {
+            title = i18n("prefs.devices_learning_period_title"),
+            description = i18n("prefs.devices_learning_period_description")
+        },
+        devices_status_during_learning_period = {
+            title = i18n("prefs.devices_status_during_learning_period_title"),
+            description = i18n("prefs.devices_status_during_learning_period_description")
+        },
+        devices_status_post_learning_period = {
+            title = i18n("prefs.devices_status_post_learning_period_title"),
+            description = i18n("prefs.devices_status_post_learning_period_description")
         }
-    },
-    iec60870_learning_period = {
-        title = i18n("prefs.iec60870_learning_period_title"),
-        description = i18n("prefs.iec60870_learning_period_description")
-    },
-    devices_learning_period = {
-        title = i18n("prefs.devices_learning_period_title"),
-        description = i18n("prefs.devices_learning_period_description")
     }
 }, {
     id = "protocols",
@@ -588,6 +615,10 @@ local menu_subpages = {{
             title = i18n("prefs.flows_and_alerts_data_retention"),
             description = i18n("prefs.flows_and_alerts_data_retention_descr")
         },
+        aggregated_flows_data_retention = {
+            title = i18n("prefs.aggregated_flows_data_retention_title"),
+            description = i18n("prefs.aggregated_flows_data_retention_descr")
+        },
         ts_data_retention = {
             title = i18n("prefs.ts_and_stats_data_retention"),
             description = i18n("prefs.ts_and_stats_data_retention_descr")
@@ -626,6 +657,14 @@ local menu_subpages = {{
             description = i18n("prefs.mgmt_acl_description", {
                 product = info.product
             })
+        },
+        toggle_menu_entry_help = {
+            title = i18n("prefs.toggle_menu_entry_help_title"),
+            description = i18n("prefs.toggle_menu_entry_help_description")
+        },
+        toggle_menu_entry_developer = {
+            title = i18n("prefs.toggle_menu_entry_developer_title"),
+            description = i18n("prefs.toggle_menu_entry_developer_description")
         }
     }
 }, {

@@ -1890,7 +1890,72 @@ setInterval(update_icmp_table, 5000);
     elseif (page == "flows") then
 
         require("flow_utils")
+        local flows_page_type = _GET["flows_page_type"] or "live_flows"
 
+        printTabList("host_details.lua?page=flows", {host = hostinfo2hostkey(host)}, flows_page_type)
+        
+        if flows_page_type == "aggregated_flows" then
+            local tmp_vlans = {}
+            local vlans = {}
+            local vlan_list = interface.getVLANsList() or {}
+
+            if table.len(vlan_list) > 0 then
+                vlan_list = vlan_list.VLANs
+            end
+
+            for _, vlan_info in pairsByField(vlan_list or {}, 'vlan_id', asc) do
+                local label = i18n("hosts_stats.vlan_title", {
+                    vlan = getFullVlanName(vlan_info.vlan_id)
+                })
+                local currently_active = false
+
+                if vlan_info.vlan_id == 0 then
+                    label = i18n('no_vlan')
+                end
+
+                tmp_vlans[#tmp_vlans + 1] = {
+                    label = label,
+                    id = vlan_info.vlan_id,
+                    countable = false,
+                    key = vlan_info.vlan_id,
+                    currently_active = (vlan == vlan_info.vlan_id or currently_active)
+                }
+            end
+            if (#tmp_vlans > 1) then
+                local currently_active = false
+
+                tmp_vlans[#tmp_vlans + 1] = {
+                    label = i18n("flows_page.all_vlan_ids"),
+                    id = -1,
+                    countable = false,
+                    key = -1,
+                    currently_active = (vlan == -1 or currently_active)
+                }
+            end
+
+            -- Order again by name
+            for _, vlan in pairsByField(tmp_vlans or {}, 'label', asc_insensitive) do
+                vlans[#vlans + 1] = vlan
+            end
+
+            template.render("pages/aggregated_live_flows.template", {
+                ifid = ifId,
+                host = host_ip,
+                vlans = json.encode(vlans),
+                http_prefix = ntop.getHttpPrefix(),
+                aggregation_criteria = "application_protocol",
+                draw = 0,
+                sort = "bytes_rcvd",
+                order = "asc",
+                start = 0,
+                length = 10,
+                csrf = ntop.getRandomCSRFValue()
+            })
+            print [[ 
+                         </div>
+
+                </div>]]
+        else
         print [[
       <div id="table-flows"></div>
          <script>
@@ -2136,10 +2201,11 @@ setInterval(update_icmp_table, 5000);
         end
 
         print [[
+            
           </script>
 
       ]]
-
+        end
     elseif (page == "flows_sankey") then
         print(template.gen("pages/sankey_host.template", {
             host = host_ip,
@@ -2570,6 +2636,8 @@ setInterval(update_icmp_table, 5000);
             return
         end
 
+        local top_hiddens = ntop.getMembersCache(getHideFromTopSet(ifId) or {})
+        local is_top_hidden = swapKeysValues(top_hiddens)[hostkey_compact] ~= nil
         local host_key = hostinfo2hostkey(host_info, nil, true --[[show vlan]] )
 
         if _SERVER["REQUEST_METHOD"] == "POST" then
@@ -2585,6 +2653,22 @@ setInterval(update_icmp_table, 5000);
 
                 interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
             end
+
+            local new_top_hidden = (_POST["top_hidden"] == "1")
+
+            if new_top_hidden ~= is_top_hidden then
+                local set_name = getHideFromTopSet(ifId)
+
+                if new_top_hidden then
+                    ntop.setMembersCache(set_name, hostkey_compact)
+                else
+                    ntop.delMembersCache(set_name, hostkey_compact)
+                end
+
+                is_top_hidden = new_top_hidden
+                interface.reloadHideFromTop()
+            end
+
         end
 
         -- NOTE: this only configures the alias associated to the IP address, not to the MAC
@@ -2627,6 +2711,20 @@ setInterval(update_icmp_table, 5000);
         if host_pool_id ~= nil then
             graph_utils.printPoolChangeDropdown(ifId, host_pool_id .. "", have_nedge)
         end
+
+        print [[<tr>
+         <th>]]
+        print(i18n("host_config.hide_from_top"))
+        print [[</th>
+         <td>]]
+
+        print(template.gen("on_off_switch.html", {
+            id = "top_hidden",
+            label = i18n("host_config.hide_host_from_top_descr", {
+                host = host_label
+            }),
+            checked = is_top_hidden
+        }))
 
         print [[</td>
       </tr>]]

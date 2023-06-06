@@ -14,12 +14,14 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    adding_a_license/index
    cli_options/index
    web_gui/index
+   snmp/index
    interfaces/index
    alerts/index
    using_with_other_tools/index
    historical_flows
-   containers
+   containers   
    clickhouse/index
+   scada/index
    kafka/index
    advanced_features/index
    operating_ntopng_on_large_networks
