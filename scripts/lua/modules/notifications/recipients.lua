@@ -125,9 +125,9 @@ function recipients.initialize()
    
    for _, recipient in pairs(recipients.get_all_recipients()) do     
       ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, 
-			      table.concat(recipient.check_categories, ','),
-			      table.concat(recipient.host_pools, ','),
-			      table.concat(recipient.check_entities, ',')
+                              table.concat(recipient.check_categories, ','),
+                              table.concat(recipient.host_pools, ','),
+                              table.concat(recipient.check_entities, ',')
       )
    end
 end
@@ -349,11 +349,11 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                -- Persist the configuration
                _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, check_entities, minimum_severity, host_pools_ids, am_hosts_ids, safe_params)
 
-	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
-	       ntop.recipient_register(recipient_id, minimum_severity, 
-				       table.concat(check_categories, ','),
-				       table.concat(host_pools_ids, ','),
-				       table.concat(check_entities, ',')
+               -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
+               ntop.recipient_register(recipient_id, minimum_severity, 
+                                       table.concat(check_categories, ','),
+                                       table.concat(host_pools_ids, ','),
+                                       table.concat(check_entities, ',')
                )
 
                -- Set a flag to indicate that a recipient has been created
@@ -428,12 +428,12 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                   am_hosts_ids,
                   safe_params)
 
-	       -- Finally, register the recipient in C to make sure also the C knows about this edit
-	       -- and periodic scripts can be reloaded
-	       ntop.recipient_register(tonumber(recipient_id), minimum_severity, 
-				       table.concat(check_categories, ','),
-				       table.concat(host_pools_ids, ','),
-				       table.concat(check_entities, ',')
+               -- Finally, register the recipient in C to make sure also the C knows about this edit
+               -- and periodic scripts can be reloaded
+               ntop.recipient_register(tonumber(recipient_id), minimum_severity, 
+                                       table.concat(check_categories, ','),
+                                       table.concat(host_pools_ids, ','),
+                                       table.concat(check_entities, ',')
                )
 
                res = {status = "OK"}
@@ -689,7 +689,7 @@ function recipients.get_recipient_by_name(name)
       local recipient_details = recipients.get_recipient(recipient_id)
 
       if recipient_details and recipient_details["recipient_name"] and recipient_details["recipient_name"] == name then
-	 return recipient_details
+         return recipient_details
       end
    end
 
@@ -835,7 +835,7 @@ function recipients.dispatch_notification(notification, current_script)
          if recipient_ok then
             -- Enqueue alert
 
-            debug_print("> Delivering " .. notification.entity_val .. " alert to recipient " .. recipient.recipient_name)
+            --debug_print("Delivering " .. notification.entity_val .. " alert to recipient " .. recipient.recipient_name)
 
             ntop.recipient_enqueue(recipient.recipient_id, 
               json_notification --[[ alert --]],
@@ -881,29 +881,29 @@ local function process_notifications(ready_recipients, now, deadline, periodic_f
 
          debug_print("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " recipient_id: "..recipient.recipient_id)
 
-	 if last_error_notification == 0 then
-	    last_error_notification = tonumber(ntop.getCache(string.format(ERROR_KEY, recipient.recipient_name))) or 0
-	 end
+         if last_error_notification == 0 then
+            last_error_notification = tonumber(ntop.getCache(string.format(ERROR_KEY, recipient.recipient_name))) or 0
+         end
 
-	 if m.dequeueRecipientAlerts and (now > MIN_ERROR_DELAY + last_error_notification) then
-	    local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter)
+         if m.dequeueRecipientAlerts and (now > MIN_ERROR_DELAY + last_error_notification) then
+            local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter)
 
-	    -- If the recipient has failed (not rv.success) or
-	    -- if it has no more work to do (not rv.more_available)
-	    -- it can be removed from the array of ready recipients.
-	    if not rv.success or not rv.more_available then
-	       table.remove(ready_recipients, i)
+            -- If the recipient has failed (not rv.success) or
+            -- if it has no more work to do (not rv.more_available)
+            -- it can be removed from the array of ready recipients.
+            if not rv.success or not rv.more_available then
+               table.remove(ready_recipients, i)
 
-	       debug_print("Ready recipient done: ".. recipient.recipient_name)
+               debug_print("Ready recipient done: ".. recipient.recipient_name)
 
-	       if not rv.success then
-		  last_error_notification = now
-		  ntop.setCache(string.format(ERROR_KEY, recipient.recipient_name), now)
-		  local msg = rv.error_message or "Unknown Error"
-		  traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. recipient.recipient_name .. " " .. msg)
-	       end
-	    end
-	 end
+               if not rv.success then
+                  last_error_notification = now
+                  ntop.setCache(string.format(ERROR_KEY, recipient.recipient_name), now)
+                  local msg = rv.error_message or "Unknown Error"
+                  traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. recipient.recipient_name .. " " .. msg)
+               end
+            end
+         end
       end
 
       -- Update the total budget
