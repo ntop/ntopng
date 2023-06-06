@@ -1,7 +1,6 @@
 --
 -- (C) 2019-22 - ntop.org
 --
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
@@ -15,8 +14,8 @@ local auth = require "auth"
 -- ################################################
 
 if not auth.has_capability(auth.capabilities.checks) then
-   rest_utils.answer(rest_utils.consts.err.not_granted)
-   return
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
 end
 
 -- ################################################
@@ -28,33 +27,33 @@ local script_key = _POST["script_key"]
 
 -- ################################################
 
-if(_POST["JSON"] == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'JSON' parameter. Bad CSRF?")
-  return
+if (_POST["JSON"] == nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'JSON' parameter. Bad CSRF?")
+    return
 end
 
 local data = json.decode(_POST["JSON"])
 
-if(table.empty(data)) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad JSON in 'JSON' parameter")
-  return
+if (table.empty(data)) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad JSON in 'JSON' parameter")
+    return
 end
 
-if(subdir == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'check_subdir' parameter")
-  return
+if (subdir == nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'check_subdir' parameter")
+    return
 end
 
 local script_type = checks.getScriptType(subdir)
 
-if(script_type == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad subdir: " .. subdir)
-  return
+if (script_type == nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad subdir: " .. subdir)
+    return
 end
 
-if(script_key == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing script_key parameter")
-  return
+if (script_key == nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing script_key parameter")
+    return
 end
 
 -- ################################################
@@ -70,7 +69,7 @@ success, err = checks.updateScriptConfig(script_key, subdir, data)
 result.success = success
 
 if not success then
-  result.error = err
+    result.error = err
 end
 
 -- ################################################
