@@ -34,7 +34,7 @@ alert_snmp_interface_threshold_crossed.meta = {
 -- @param if_index The index of the port that changed
 -- @param interface_name The string with the name of the port that changed
 -- @return A table with the alert built
-function alert_snmp_interface_threshold_crossed:init(device_ip, device_name, if_index, interface_name, value, threshold, threshold_sign, metric, metric_type)
+function alert_snmp_interface_threshold_crossed:init(device_ip, device_name, if_index, interface_name, value, threshold, threshold_sign, metric, metric_type, is_all_devices, is_all_interfaces)
 
   -- Call the parent constructor
   self.super:init()
@@ -44,6 +44,15 @@ function alert_snmp_interface_threshold_crossed:init(device_ip, device_name, if_
     sign = "<"
   end
 
+  if is_all_devices then
+    device_ip = nil
+    device_name = nil
+    if_index = nil
+    interface_name = nil
+  elseif is_all_interfaces then
+    if_index = nil
+    interface_name = nil
+  end
   self.alert_type_params = {
     device = device_ip,
     device_name = device_name,
@@ -53,7 +62,9 @@ function alert_snmp_interface_threshold_crossed:init(device_ip, device_name, if_
     threshold = threshold,
     threshold_sign = sign,
     metric = metric,
-    metric_type = metric_type
+    metric_type = metric_type,
+    is_all_devices = is_all_devices,
+    is_all_interfaces = is_all_interfaces
   }
 end
 
@@ -65,17 +76,37 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_snmp_interface_threshold_crossed.format(ifid, alert, alert_type_params)
+  tprint(alert_type_params)
+  if alert_type_params.is_all_devices then
+    return(i18n("alerts_dashboard.snmp_device_all_devices_threshold_crossed_alert_description", {
+      value = alert_type_params.value,
+      threshold = alert_type_params.threshold,
+      threshold_sign = alert_type_params.threshold_sign,
+      metric = alert_type_params.metric,
+      measure_unit = alert_type_params.metric_type
+    }))
   
-  
-  return(i18n("alerts_dashboard.snmp_device_interface_threshold_crossed_alert_description", {
-    device = alert_type_params.device,
-    interface_name = alert_type_params.interface_name,
-    value = alert_type_params.value,
-    threshold = alert_type_params.threshold,
-    threshold_sign = alert_type_params.threshold_sign,
-    metric = alert_type_params.metric,
-    measure_unit = alert_type_params.metric_type
-  }))
+  elseif alert_type_params.is_all_interfaces then
+    return(i18n("alerts_dashboard.snmp_device_all_interfaces_threshold_crossed_alert_description", {
+      device = alert_type_params.device,
+      value = alert_type_params.value,
+      threshold = alert_type_params.threshold,
+      threshold_sign = alert_type_params.threshold_sign,
+      metric = alert_type_params.metric,
+      measure_unit = alert_type_params.metric_type
+    }))
+  else
+    return(i18n("alerts_dashboard.snmp_device_interface_threshold_crossed_alert_description", {
+      device = alert_type_params.device,
+      interface_name = alert_type_params.interface_name,
+      value = alert_type_params.value,
+      threshold = alert_type_params.threshold,
+      threshold_sign = alert_type_params.threshold_sign,
+      metric = alert_type_params.metric,
+      measure_unit = alert_type_params.metric_type
+    }))
+
+  end
 end
 
 -- #######################################################

@@ -467,6 +467,7 @@ local lang = {
   ["score"] = "Score",
   ["score_as_client"] = "Score As Client",
   ["score_as_server"] = "Score As Server",
+  ["score_average"] = "Average Score",
   ["score_distribution"] = "Score Distribution",
   ["score_not_accounted"] = "Not Accounted",
   ["script_browser"] = "Script Viewer: %{script_name}",
@@ -1166,6 +1167,8 @@ local lang = {
     ["slow_periodic_activity"] = "Slow Periodic Activity",
     ["slow_periodic_activity_descr"] = "Trigger an alert when a periodic activity is taking too long to execute.",
     ["slow_purge"] = "Slow Idle Purging",
+    ["snmp_device_all_devices_threshold_crossed_alert_description"] = "Threshold crossed on all devices. [ Metric: %{metric} ] [ Measure Unit: %{measure_unit} ] [ %{value} %{threshold_sign} %{threshold} ] ",
+    ["snmp_device_all_interfaces_threshold_crossed_alert_description"] = "Threshold crossed on Device %{device}, on all interfaces. [ Metric: %{metric} ] [ Measure Unit: %{measure_unit} ] [ %{value} %{threshold_sign} %{threshold} ] ",
     ["snmp_device_interface_threshold_crossed"] = "SNMP Device Interface Threshold Crossed",
     ["snmp_device_interface_threshold_crossed_alert_description"] = "Threshold crossed on Device %{device}, interface %{interface_name}. [ Metric: %{metric} ] [ Measure Unit: %{measure_unit} ] [ %{value} %{threshold_sign} %{threshold} ] ",
     ["snmp_device_interface_threshold_crossed_description"] = "Trigger an alert when a threshold of SNMP Device Rules is crossed by the interface specified in the rule.",
@@ -4150,6 +4153,8 @@ local lang = {
       ["0"] = {
         ["info"] = "Echo reply",
         ["code"] = {
+          ["abort_add"] = "Abort add Active Monitoring record?",
+          ["abort_edit"] = "Abort edit Active Monitoring record?",
         },
       },
       ["10"] = {
@@ -4168,6 +4173,10 @@ local lang = {
         ["info"] = "Parameter problem",
         ["code"] = {
           ["0"] = "Pointer indicates the error",
+          ["validation"] = {
+            ["abort_add"] = "Abort add Datasource?",
+            ["abort_edit"] = "Abort edit Datasource?",
+          },
         },
       },
       ["13"] = {
