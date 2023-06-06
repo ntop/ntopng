@@ -284,24 +284,9 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.bytes'),
       operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
    },
-   src2dst_bytes = {
-      value_type = 'bytes',
-      i18n_label = i18n('db_search.tags.sum_src2dst_bytes'),
-      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
-   },
-   dst2src_bytes = {
-      value_type = 'bytes',
-      i18n_label = i18n('db_search.tags.sum_dst2src_bytes'),
-      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
-   },
    number = {
       value_type = 'number',
       i18n_label = i18n('db_search.tags.number'),
-      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
-   },
-   flows_number = {
-      value_type = 'number',
-      i18n_label = i18n('db_search.tags.flows_number'),
       operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
    },
    packets = {

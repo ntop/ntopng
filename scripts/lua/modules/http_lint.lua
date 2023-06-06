@@ -1590,7 +1590,6 @@ local known_parameters = {
     ["maxhits_clause"] = validateNumber,
     ["ni_query_type"] = validatenIndexQueryType,
     ["ni_query_filter"] = validateListOfTypeInline(validateSingleWord),
-    ["aggregated"] = validateBool,
 
     -- HOST SPECIFICATION
     ["host"] = validateUnquoted, -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address

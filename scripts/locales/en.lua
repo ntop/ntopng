@@ -467,7 +467,6 @@ local lang = {
   ["score"] = "Score",
   ["score_as_client"] = "Score As Client",
   ["score_as_server"] = "Score As Server",
-  ["score_average"] = "Average Score",
   ["score_distribution"] = "Score Distribution",
   ["score_not_accounted"] = "Not Accounted",
   ["script_browser"] = "Script Viewer: %{script_name}",
@@ -4151,8 +4150,6 @@ local lang = {
       ["0"] = {
         ["info"] = "Echo reply",
         ["code"] = {
-          ["abort_add"] = "Abort add Active Monitoring record?",
-          ["abort_edit"] = "Abort edit Active Monitoring record?",
         },
       },
       ["10"] = {
@@ -4171,10 +4168,6 @@ local lang = {
         ["info"] = "Parameter problem",
         ["code"] = {
           ["0"] = "Pointer indicates the error",
-          ["validation"] = {
-            ["abort_add"] = "Abort add Datasource?",
-            ["abort_edit"] = "Abort edit Datasource?",
-          },
         },
       },
       ["13"] = {

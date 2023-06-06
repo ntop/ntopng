@@ -125,7 +125,7 @@ function Alert:store(entity_info)
    if not self._check_alert_data() then
       return
    end
-   --tprint("HERE IN ALERT STORE")
+
    return alerts_api.store(entity_info, self:_build_type_info())
 end
 

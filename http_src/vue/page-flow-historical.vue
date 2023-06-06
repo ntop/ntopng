@@ -155,7 +155,7 @@ onBeforeMount(async () => {
     page = ntopng_url_manager.get_url_entry("page");
     if (page == null) { page = "overview"; }
     chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
-    table_id = `aggregated_flow`;
+    table_id = `flow_historical`;
     init_url_params();
 });
 
@@ -364,7 +364,6 @@ function add_filter(filter) {
 
 const get_extra_params_obj = () => {
     let extra_params = ntopng_url_manager.get_url_object();
-    extra_params.aggregated = true;
     return extra_params;
 };
 
