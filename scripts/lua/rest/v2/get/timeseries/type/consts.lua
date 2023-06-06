@@ -20,6 +20,7 @@ local device = _GET["device"]
 local port = _GET["port"]
 local epoch_begin = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
+local if_index = _GET["if_index"]
 
 local res = {}
 
@@ -41,6 +42,7 @@ local tags = {
     subnet = subnet,
     device = device,
     port = port,
+    if_index = if_index,
     epoch_begin = tonumber(epoch_begin),
     epoch_end = tonumber(epoch_end)
 }
