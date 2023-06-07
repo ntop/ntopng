@@ -971,7 +971,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   char key[64], ifname[MAX_INTERFACE_NAME_LEN];
   bool is_interface_allowed;
   AddressTree ptree;
-  int rc, post_data_len;
+  int rc, post_data_len = 0;
   const char *content_type;
   u_int8_t valid_csrf = 1;
   char *post_data = NULL;

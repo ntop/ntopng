@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     fseek(f, 0, SEEK_SET); /* same as rewind(f); */
 
     uint8_t *string = (uint8_t *)malloc(fsize + 1);
-    fread(string, fsize, 1, f);
+    size_t l = fread(string, fsize, 1, f);
 
     fclose(f);
 

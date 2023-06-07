@@ -37,7 +37,7 @@ CustomFlowLuaScript::CustomFlowLuaScript()
 /* ***************************************************** */
 
 LuaEngine *CustomFlowLuaScript::initVM(const char *script_path) {
-  char where[256];
+  char where[512];
   struct stat s;
 
   snprintf(where, sizeof(where), "%s/%s", ntop->get_install_dir(), script_path);

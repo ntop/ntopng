@@ -2483,8 +2483,11 @@ datalink_check:
     if (h->caplen < sizeof(u_int32_t))
       return (false);
 
-    memcpy(&null_type, &packet[eth_offset], sizeof(u_int32_t));
-
+    if((eth_offset + sizeof(u_int32_t)) <= h->caplen)
+      memcpy(&null_type, &packet[eth_offset], sizeof(u_int32_t));
+    else
+      return (false);    
+    
     switch (null_type) {
       case BSD_AF_INET:
         eth_type = ETHERTYPE_IP;
@@ -2566,14 +2569,14 @@ datalink_check:
   */
 decode_packet_eth:
 
-  while (true) {
-    if (eth_type == 0x8100 /* VLAN */) {
+  while (ip_offset < h->caplen) {
+    if((eth_type == 0x8100 /* VLAN */) && ((ip_offset + sizeof(Ether80211q)) < h->caplen)) {
       Ether80211q *qType = (Ether80211q *)&packet[ip_offset];
 
       vlan_id = ntohs(qType->vlanId) & 0xFFF;
       eth_type = (packet[ip_offset + 2] << 8) + packet[ip_offset + 3];
       ip_offset += 4;
-    } else if (eth_type == 0x8847 /* MPLS */) {
+    } else if((eth_type == 0x8847 /* MPLS */) && ((unsigned int)(ip_offset + 2) <  h->caplen)) {
       u_int8_t bos; /* bottom_of_stack */
 
       bos = (((u_int8_t)packet[ip_offset + 2]) & 0x1), ip_offset += 4;
