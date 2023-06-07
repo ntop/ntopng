@@ -331,29 +331,14 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
                 5 /* StdError: 18.4% */);
   ndpi_hll_init(&incoming_hosts_tcp_udp_port_with_no_tx_hll,
                 5 /* StdError: 18.4% */);
-}
-
-/* *************************************** */
-
-void Host::deferredInitialization() {
-  char buf[64];
-
-  inlineSetOS(os_unknown);
-  setEntityValue(get_hostkey(buf, sizeof(buf), true));
-
-  is_in_broadcast_domain =
-      iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
-
-  reloadHostBlacklist();
-  is_blacklisted = ip.isBlacklistedAddress();
 
   if (ip.getVersion() /* IP is set */) {
     char country_name[64];
 
-    /*
-     * IMPORTANT: as and country are defined here, in case the initialization
-     * is postponed, remember to initialize these values to NULL in the init
-     */
+    /* Note: moving this to deferredInitialization led to issues
+     * like "Trying to decrement a score which is 0" warnings as
+     * counters were incremented too late (after dec) */
+
     if ((as = iface->getAS(&ip, true /* Create if missing */,
                            true /* Inline call */)) != NULL) {
       as->incUses();
@@ -372,6 +357,21 @@ void Host::deferredInitialization() {
                                         true /* Inline call */)) != NULL)
       obs_point->incUses();
   }
+}
+
+/* *************************************** */
+
+void Host::deferredInitialization() {
+  char buf[64];
+
+  inlineSetOS(os_unknown);
+  setEntityValue(get_hostkey(buf, sizeof(buf), true));
+
+  is_in_broadcast_domain =
+      iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
+
+  reloadHostBlacklist();
+  is_blacklisted = ip.isBlacklistedAddress();
 
   reloadDhcpHost();
 }
