@@ -297,7 +297,7 @@ const get_metrics = async (http_prefix, source_type, source_array) => {
         cache_metrics[key] = ntopng_utility.http_request(url);
     }
     let metrics = await cache_metrics[key];
-    if (metrics == null) { return [{}]; }
+    if (metrics == null || metrics.length == 0) { return [{}]; }
     if (metrics.some((m) => m.default_visible == true) == false) {
         metrics[0].default_visible = true;
     }

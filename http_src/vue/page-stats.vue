@@ -239,7 +239,8 @@ async function get_metrics(push_custom_metric, force_refresh) {
         snapshots_metrics.forEach((sm) => metrics.push(sm));
     }
     /* Order Metrics */
-    metrics.sort(NtopUtils.sortAlphabetically);
+    if (metrics.length > 0)
+        metrics.sort(NtopUtils.sortAlphabetically);
 
     return metrics;
 }
