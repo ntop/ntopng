@@ -42,6 +42,7 @@ import { default as PageSnmpDevicesInterfacesSimilarity } from "./page-snmp-devi
 import { default as PageHostsPortsAnalysis } from "./page-hosts-ports-analysis.vue";
 import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue";
 import { default as PageInactiveHosts } from "./page-inactive-hosts.vue";
+import { default as PageInactiveHostDetails } from "./page-inactive-host-details.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -58,6 +59,7 @@ import { default as TabList } from "./tab-list.vue";
 import { default as Sankey } from "./sankey.vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as Loading } from "./loading.vue";
+import { default as HorizontalTable } from "./horizontal-table.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -101,6 +103,7 @@ let ntopVue = {
     PageSNMPDeviceRules: PageSNMPDeviceRules,
     PageHostsPortsAnalysis: PageHostsPortsAnalysis,
     PageInactiveHosts: PageInactiveHosts,
+    PageInactiveHostDetails: PageInactiveHostDetails,
 
     PageEditApplications: PageEditApplications,
 
@@ -139,6 +142,7 @@ let ntopVue = {
     Sankey: Sankey,
     NoteList: NoteList,
     Loading: Loading,
+    HorizontalTable: HorizontalTable,
 
     // list
     ListTimeseries: ListTimeseries,

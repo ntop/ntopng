@@ -1,6 +1,6 @@
 {
 	"id": "inactive_hosts",
-	"data_url": "lua/rest/v2/get/host/inactive.lua",
+	"data_url": "lua/rest/v2/get/host/inactive_list.lua",
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": true,

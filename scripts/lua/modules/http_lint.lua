@@ -119,7 +119,7 @@ http_lint.validateEmptyOr = validateEmptyOr
 
 local function validateSNMPIfidNumber(p)
     -- integer SNMP Ifid validation
-    
+
     if p == "*" then
         return true
     end
@@ -272,7 +272,6 @@ local function validateSingleWord(w)
     end
 end
 http_lint.validateSingleWord = validateSingleWord
-
 
 -- ##############################################
 
@@ -804,14 +803,14 @@ local function validateServer(v)
 end
 
 local function validateColumnsIds(v)
-   return validateUnchecked(v)
+    return validateUnchecked(v)
     -- An Array is composed by a series of string separated by commas
     -- e.g.     column1,column2,column3
     -- So split by comma and check each single column with validateSingleWord
     -- local columns = string.split(v, ",")
 
     -- if((column == nil) or (type(column) ~= table)) then return false end
-    
+
     -- for _, column_id in pairs(columns) do
     --     if not validateSingleWord(column_id) then
     --         return false
@@ -1943,9 +1942,9 @@ local known_parameters = {
     ["snmp_device"] = validateDevice,
     ["snmp_device_port"] = validateSNMPIfidNumber,
     ["snmp_device_port_label"] = validateUnquoted,
-    ["snmp_device_label"] = validateUnquoted, 
+    ["snmp_device_label"] = validateUnquoted,
     ["snmp_threshold_value"] = validateNumber,
-    ["snmp_threshold_unit"] = validateUnquoted,  
+    ["snmp_threshold_unit"] = validateUnquoted,
     ["snmp_metric_type_label"] = validateUnquoted,
 
     ["bytes"] = validateListOfTypeInline(validateFilters(validateNumber)),
@@ -2166,6 +2165,8 @@ local known_parameters = {
     ["influx_username"] = validateEmptyOr(validateSingleWord),
     ["influx_password"] = validateEmptyOr(validateSingleWord),
     ["influx_query_timeout"] = validateNumber,
+
+    ["serial_key"] = validateSingleWord,
 
     -- Multiple Choice
     ["disaggregation_criterion"] = validateChoiceInline({"none", "vlan", "probe_ip", "iface_idx", "ingress_iface_idx",
