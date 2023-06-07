@@ -529,7 +529,7 @@ local community_timeseries = {{
 {
     schema = "host:traffic",
     id = timeseries_id.host,
-    label = i18n("graphs.traffic"),
+    label = i18n("graphs.traffic_rxtx"),
     priority = 0,
     measure_unit = "bps",
     scale = i18n('graphs.metric_labels.traffic'),
@@ -938,7 +938,7 @@ local community_timeseries = {{
 {
     schema = "mac:traffic",
     id = timeseries_id.mac,
-    label = i18n("graphs.traffic"),
+    label = i18n("graphs.traffic_rxtx"),
     priority = 0,
     measure_unit = "bps",
     scale = i18n('graphs.metric_labels.traffic'),
@@ -1116,7 +1116,7 @@ local community_timeseries = {{
 {
     schema = "asn:traffic",
     id = timeseries_id.asn,
-    label = i18n("graphs.traffic"),
+    label = i18n("graphs.traffic_rxtx"),
     priority = 0,
     measure_unit = "bps",
     scale = i18n('graphs.metric_labels.traffic'),
@@ -1312,7 +1312,7 @@ local community_timeseries = {{
 {
     schema = "os:traffic",
     id = timeseries_id.os,
-    label = i18n("graphs.traffic"),
+    label = i18n("graphs.traffic_rxtx"),
     priority = 0,
     measure_unit = "bps",
     scale = i18n('graphs.metric_labels.traffic'),
@@ -1331,7 +1331,7 @@ local community_timeseries = {{
 {
     schema = "vlan:traffic",
     id = timeseries_id.vlan,
-    label = i18n("graphs.traffic"),
+    label = i18n("graphs.traffic_rxtx"),
     priority = 0,
     measure_unit = "bps",
     scale = i18n('graphs.metric_labels.traffic'),
@@ -1369,7 +1369,7 @@ local community_timeseries = {{
 {
     schema = "host_pool:traffic",
     id = timeseries_id.host_pool,
-    label = i18n("graphs.traffic"),
+    label = i18n("graphs.traffic_rxtx"),
     priority = 0,
     measure_unit = "bps",
     scale = i18n('graphs.metric_labels.traffic'),
@@ -2794,7 +2794,7 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
                 goto skip
             end
 
-            if not (info.schema:find("top", 1, true)) then
+            if not (info.schema:find("top", 1, true)) and not info.alwais_visibile then
                 local tot = 0
                 local tot_serie = ts_utils.queryTotal(info.schema, tags.epoch_begin, tags.epoch_end, table.clone(tags))
 
