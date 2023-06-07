@@ -17,6 +17,7 @@ local lang = {
   ["admin_status_short"] = "Admin. Status",
   ["advanced"] = "Advanced",
   ["advanced_charts_test"] = "Advanced Charts Test",
+  ["aggregated"] = "Aggregated",
   ["aggregation"] = "Aggregation",
   ["alerts_analysis"] = "Flow Alerts Analyser",
   ["alias"] = "Alias",
