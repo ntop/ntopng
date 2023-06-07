@@ -27,16 +27,13 @@
                     </div>
 
                     <div>
-                        <Table ref="table_hosts_ports_analysis" id="table_hosts_ports_analysis"
-                                :key="table_config.columns" :columns="table_config.columns"
-                                :get_rows="table_config.get_rows"
-                                :get_column_id="(col) => table_config.get_column_id(col)"
-                                :print_column_name="(col) => table_config.print_column_name(col)"
-                                :print_html_row="(col, row) => table_config.print_html_row(col, row)"
-                                :f_is_column_sortable="is_column_sortable"
-                                :f_get_column_classes="get_column_classes"
-                                :enable_search="true"
-                                :paging="true">
+                        <Table ref="table_hosts_ports_analysis" id="table_hosts_ports_analysis" :key="table_config.columns"
+                            :columns="table_config.columns" :get_rows="table_config.get_rows"
+                            :get_column_id="(col) => table_config.get_column_id(col)"
+                            :print_column_name="(col) => table_config.print_column_name(col)"
+                            :print_html_row="(col, row) => table_config.print_html_row(col, row)"
+                            :f_is_column_sortable="is_column_sortable" :f_get_column_classes="get_column_classes"
+                            :enable_search="true" :paging="true">
                         </Table>
                     </div>
                 </div>
@@ -97,13 +94,8 @@ const criteria_list = function () {
     }
 }();
 
-onBeforeMount(async () => {
-    init_selected_criteria();
-});
-
 onMounted(async () => {
-    init_selected_criteria();
-
+    await init_selected_criteria();
     load_table();
 });
 
@@ -113,9 +105,9 @@ const get_column_classes = (col) => {
 function update_port() {
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
 
-    if( selected_port.value != undefined && 
+    if (selected_port.value != undefined &&
         selected_port.value != null &&
-        selected_port.value.id != undefined && 
+        selected_port.value.id != undefined &&
         selected_port.value.id != null)
         ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
     load_table();
@@ -128,41 +120,39 @@ async function init_selected_criteria() {
     }
     selected_criteria.value = criteria_list_def.find((c) => c.param == aggregation_criteria);
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
-    const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=`+selected_criteria.value.value;
+    const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=` + selected_criteria.value.value;
     let res = await ntopng_utility.http_request(url, null, null, true);
     let ports = []
     res.rsp.forEach((item) => {
         let name = item.l7_proto_name.split(".")[0];
-        ports.push({label: item.srv_port+"/"+name+" ("+item.n_hosts+")", id: item.srv_port})
+        ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port })
     })
     port_list.value = ports;
     selected_port.value = port_list.value[0];
-    if( selected_port.value != undefined && 
-        selected_port.value != null &&
-        selected_port.value.id != undefined && 
-        selected_port.value.id != null)        
-        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);    
+    if (selected_port.value != null &&
+        selected_port.value.id != null)
+        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
     //load_table();
 
 }
 
 async function update_criteria() {
 
-    const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=`+selected_criteria.value.value;
+    const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=` + selected_criteria.value.value;
     let res = await ntopng_utility.http_request(url, null, null, true);
     let ports = []
     res.rsp.forEach((item) => {
         let name = item.l7_proto_name.split(".")[0];
-        ports.push({label: item.srv_port+"/"+name+" ("+item.n_hosts+")", id: item.srv_port})
+        ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port })
     })
     port_list.value = ports;
     selected_port.value = port_list.value[0];
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
-    if( selected_port.value != undefined && 
+    if (selected_port.value != undefined &&
         selected_port.value != null &&
-        selected_port.value.id != undefined && 
-        selected_port.value.id != null)        
-        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);    
+        selected_port.value.id != undefined &&
+        selected_port.value.id != null)
+        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
     load_table();
 };
 
@@ -208,31 +198,15 @@ const get_rows = async (active_page, per_page, columns_wrap, map_search, first_g
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
     let url;
     let res;
-    
-    if (selected_port.value == null || selected_port.value == undefined || selected_port.value.value == undefined) {
-        url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=`+selected_criteria.value.value;
-        res = await ntopng_utility.http_request(url, null, null, true);
-        let ports = []
-        res.rsp.forEach((item) => {
-            let name = item.l7_proto_name.split(".")[0];
-            ports.push({label: item.srv_port+"/"+name+" ("+item.n_hosts+")", id: item.srv_port})
-        })
-        port_list.value = ports;
-        selected_port.value = port_list.value[0];   
-    }
-    //selected_port.value = selected_port.value;
-     
-    if( selected_port.value != undefined && 
-        selected_port.value != null &&
-        selected_port.value.id != undefined && 
+
+    if (selected_port.value != null &&
         selected_port.value.id != null) {
-            
         ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
-        url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port.lua?${url_params}&protocol=`+selected_criteria.value.value+`&port=`+selected_port.value.id;
+        url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port.lua?${url_params}&protocol=` + selected_criteria.value.value + `&port=` + selected_port.value.id;
 
     } else {
-        url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port.lua?${url_params}&protocol=`+selected_criteria.value.value;
-    }       
+        url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port.lua?${url_params}&protocol=` + selected_criteria.value.value;
+    }
     res = await ntopng_utility.http_request(url, null, null, true);
     // if (res.rsp.length > 0) { res.rsp[0].server_name.alerted = true };
 
@@ -258,7 +232,7 @@ function get_url_params(active_page, per_page, columns_wrap, map_search, first_g
         host: ntopng_url_manager.get_url_entry("host") || props.host,
         start: (active_page * per_page),
         length: per_page,
-	map_search,
+        map_search,
     };
     if (first_get_rows == false) {
         if (sort_column != null) {
@@ -273,71 +247,71 @@ function get_url_params(active_page, per_page, columns_wrap, map_search, first_g
 }
 
 const is_column_sortable = (col) => {
-    return col.data != "breakdown" && col.name != 'flows_icon' ;
+    return col.data != "breakdown" && col.name != 'flows_icon';
 };
 
 /// methods to get columns config
 function get_table_columns_config() {
     let columns = [];
 
-    
+
     columns.push({
-        columnName: i18n("prefs.ip_order"), targets: 0, name: 'ip', data: 'ip', className: 'text-nowrap', responsivePriority: 1, render: (data,_, rowData) => {
+        columnName: i18n("prefs.ip_order"), targets: 0, name: 'ip', data: 'ip', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
             return format_ip(data, rowData);
         }
-    }, 
-    {
-        columnName: i18n("db_explorer.host_name"), targets: 0, name: 'name', data: 'name', className: 'text-nowrap', responsivePriority: 1, render: (data,_, rowData) => {
-            return format_host_name(data, rowData);
-        }
     },
-    {
-        columnName: i18n("mac_details.mac"), targets: 0, name: 'mac', data: 'mac', className: 'text-nowrap', responsivePriority: 1, render: (data,_, rowData) => {
-            return format_mac(data, rowData);
-        }
-    },
-    {
-        columnName: i18n("total_score_host_page"), targets: 0, name: 'score', data: 'score', className: 'text-nowrap text-center', responsivePriority: 1
-    },
-    {
-        columnName: i18n("db_explorer.total_flows"), targets: 0, name: 'flows', data: 'flows', className: 'text-nowrap text-end', responsivePriority: 1
-    },
-    {
-        columnName: i18n("total_traffic"), targets: 0, name: 'tot_traffic', data: 'tot_traffic', className:  'text-nowrap text-end', responsivePriority: 1, render: (data) => {
-            return NtopUtils.bytesToSize(data);
-        }
-    },
+        {
+            columnName: i18n("db_explorer.host_name"), targets: 0, name: 'name', data: 'name', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
+                return format_host_name(data, rowData);
+            }
+        },
+        {
+            columnName: i18n("mac_details.mac"), targets: 0, name: 'mac', data: 'mac', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
+                return format_mac(data, rowData);
+            }
+        },
+        {
+            columnName: i18n("total_score_host_page"), targets: 0, name: 'score', data: 'score', className: 'text-nowrap text-center', responsivePriority: 1
+        },
+        {
+            columnName: i18n("db_explorer.total_flows"), targets: 0, name: 'flows', data: 'flows', className: 'text-nowrap text-end', responsivePriority: 1
+        },
+        {
+            columnName: i18n("total_traffic"), targets: 0, name: 'tot_traffic', data: 'tot_traffic', className: 'text-nowrap text-end', responsivePriority: 1, render: (data) => {
+                return NtopUtils.bytesToSize(data);
+            }
+        },
     );
 
-    
+
     return columns;
 }
 
-const format_ip = function(data, rowData) {
-    if(data != null) {
-        if(rowData.vlan_id != 0)
+const format_ip = function (data, rowData) {
+    if (data != null) {
+        if (rowData.vlan_id != 0)
             return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data}&vlan=${rowData.vlan_id}&port=${selected_port.value.id}">${data}@${rowData.vlan_id}</a>`;
-        else    
+        else
             return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data}&port=${selected_port.value.id}">${data}</a>`;
-    } 
+    }
     return data;
-    
+
 }
 
-const format_mac = function(data, rowData) {
+const format_mac = function (data, rowData) {
     if (data != null)
         return `<a href="${http_prefix}/lua/mac_details.lua?host=${data}">${data}</a>`;
     return data;
 }
 
-const format_host_name = function(data, rowData) {
-    if(data != null) {
-        if(rowData.vlan_id != 0)
+const format_host_name = function (data, rowData) {
+    if (data != null) {
+        if (rowData.vlan_id != 0)
             return `<a href="${http_prefix}/lua/host_details.lua?host=${rowData.ip}&vlan=${rowData.vlan_id}">${data}</a>`
-        else    
+        else
             return `<a href="${http_prefix}/lua/host_details.lua?host=${rowData.ip}">${data}</a>`
     }
-    return data;    
+    return data;
 }
 
 
