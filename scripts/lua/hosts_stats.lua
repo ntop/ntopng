@@ -294,7 +294,7 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     active = page == "inactive_hosts" or page == nil,
     page_name = "inactive_hosts",
     label = i18n('inactive_hosts') ..
-        '<span class="badge rounded-pill bg-dark" style="float: right; margin-bottom: -10px;">' ..
+        '<span class="badge rounded-pill bg-dark" style="float: right; margin-top: -8px;">' ..
         inactive_hosts_utils.getInactiveHostsNumber(ifstats.id) .. '</span>'
 }})
 
