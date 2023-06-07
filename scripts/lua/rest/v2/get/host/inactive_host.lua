@@ -96,10 +96,15 @@ if table.len(host_details) > 0 then
         }}
     }
 
+    local name = host_details["name"]
+    if isEmptyString(name) then
+        name = host_details["ip"]
+    end
+
     rsp["host_info"][#rsp["host_info"] + 1] = {
         name = i18n("name"),
         values = {{
-            name = host_details["name"]
+            name = name
         }}
     }
 end

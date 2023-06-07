@@ -51,7 +51,7 @@ function on_table_custom_event(event) {
 
 function click_button_historical_flows(event) {
   const row = event.row;
-  window.location.href = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${row.epoch_begin}&epoch_end=${row.epoch_end}&ip=${row.ip_address.value || row.ip_address};eq&mac=${row.mac_address.value || row.mac_address};eq`;
+  window.location.href = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${row.epoch_begin - 100}&epoch_end=${row.epoch_end + 100}&ip=${row.ip_address.value || row.ip_address};eq&mac=${row.mac_address.value || row.mac_address};eq`;
 }
 
 const map_table_def_columns = (columns) => {
