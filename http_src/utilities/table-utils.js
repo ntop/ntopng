@@ -24,6 +24,7 @@ async function build_table(http_prefix, table_id, f_map_columns, f_get_extra_par
 	print_vue_node_row: get_f_print_vue_node_row(table_def),
 	f_is_column_sortable: get_f_is_column_sortable(table_def),
 	f_get_column_classes: get_f_get_column_classes(table_def),
+	f_get_column_style: get_f_get_column_style(table_def),
 	enable_search: table_def.enable_search,
 	paging: table_def.paging,
     };
@@ -41,6 +42,14 @@ function get_f_get_column_classes(table_def) {
 	let classes = col?.class;
 	if (classes != null) { return classes; }
 	return [];
+    };
+}
+
+function get_f_get_column_style(table_def) {
+    return (col) => {
+	let style = col?.style;
+	if (style != null) { return style; }
+	return "";
     };
 }
 

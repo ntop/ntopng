@@ -68,7 +68,7 @@
       <tr v-if="!changing_column_visibility" v-for="row in active_rows">
 	<template v-for="(col, col_index) in columns_wrap">
 	  <td v-if="col.visible" scope="col" >
-	    <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" v-html="print_html_row(col.data, row)">
+	    <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" :style="col.style" v-html="print_html_row(col.data, row)">
 	    </div>
 	    <div :class="col.classes" class="wrap-column">
 	      <VueNode v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
@@ -121,6 +121,7 @@ const props = defineProps({
     f_is_column_sortable: Function,
     f_sort_rows: Function,
     f_get_column_classes: Function,
+    f_get_column_style: Function,
     enable_search: Boolean,
     csrf: String,
     paging: Boolean,
@@ -235,8 +236,12 @@ async function set_columns_wrap() {
     let cols_visibility_dict = await get_columns_visibility_dict();
     columns_wrap.value = props.columns.map((c, i) => {
 	let classes = [];
+	let style = "";
 	if (props.f_get_column_classes != null) {
 	    classes = props.f_get_column_classes(c);
+	}
+	if (props.f_get_column_style != null) {
+	    style = props.f_get_column_style(c);
 	}
 	let id = props.get_column_id(c);
 	let col_opt = cols_visibility_dict[id];
@@ -247,6 +252,7 @@ async function set_columns_wrap() {
 	    sortable: is_column_sortable(c),
 	    order: col_opt?.order || i,
 	    classes,
+	    style,
 	    data: c,
 	};
     });
