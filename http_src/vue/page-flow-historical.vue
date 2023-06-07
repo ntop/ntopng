@@ -16,7 +16,23 @@
 	<div clas="range-container d-flex flex-wrap">
 	  <div class="range-picker d-flex m-auto flex-wrap">
 	    <AlertInfo id="alert_info" :global="true" ref="alert_info"></AlertInfo>
-	    <RangePicker ref="range_picker" id="range_picker">
+	    <RangePicker v-if="mount_range_picker" ref="range_picker" id="range_picker">
+	      <template v-slot:begin>
+		<Switch v-model:value="flows_aggregated" class="me-2 mt-1" :change_label_side="true" :label="flow_type_label" style="" @change_value="change_flow_type" ></Switch>
+
+                <select class="me-2 form-select" v-model="selected_query_preset"
+                        @change="update_select_query_presets()">
+                  <template v-for="item in query_presets">
+                    <option v-if="item.builtin == true" :value="item">{{ item.name }}</option>
+                  </template>
+                  <optgroup v-if="page != 'analysis' && !flows_aggregated" :label="_i18n('queries.queries')">
+                    <template v-for="item in query_presets">
+		      
+                      <option v-if="!item.builtin" :value="item">{{ item.name }}</option>
+                    </template>
+                  </optgroup>
+                </select>		
+	      </template>
 	      <template v-slot:extra_range_buttons>
 		<button v-if="context.show_permalink" class="btn btn-link btn-sm" @click="get_permanent_link" :title="_i18n('graphs.get_permanent_link')" ref="permanent_link_button"><i class="fas fa-lg fa-link"></i></button>
 		<a v-if="context.show_download" class="btn btn-link btn-sm" id="dt-btn-download" :title="_i18n('graphs.download_records')" ><i class="fas fa-lg fa-file"></i></a>
@@ -124,6 +140,8 @@ import { default as ModalAlertsFilter } from "./modal-alerts-filter.vue";
 import { default as ModalAcknoledgeAlert } from "./modal-acknowledge-alert.vue";
 import { default as ModalDeleteAlert } from "./modal-delete-alert.vue";
 
+import { default as Switch } from "./switch.vue";
+
 const _i18n = (t) => i18n(t);
 
 const props = defineProps({
@@ -143,26 +161,61 @@ const modal_delete = ref(null);
 
 const current_alert = ref(null);
 const default_ifid = props.context.ifid;
-let page;
-let table_id;
+const page = ref("");
+const table_id = ref("");
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
 const chart_type = ntopChartApex.typeChart.TS_COLUMN;
 const top_table_array = ref([]);
 const top_table_dropdown_array = ref([]);
 const note_list = ref([_i18n('show_alerts.alerts_info')]);
 
+const selected_query_preset = ref({});
+const query_presets = ref([]);
+const mount_range_picker = ref(false);
+
+const flows_aggregated = ref(false);
+const flow_type_label = ref(_i18n("datatable.aggregated"));
+
+
+function change_flow_type() {
+    if (flows_aggregated.value == false) {
+	ntopng_url_manager.set_key_to_url("aggregated", false);
+	table_id.value = "flow_historical";
+    } else {
+	ntopng_url_manager.set_key_to_url("aggregated", true);
+	table_id.value = "flow_historical_aggregated";
+    }
+    refresh_page_components(true);
+    load_top_table_array_overview();
+}
 onBeforeMount(async () => {
-    page = ntopng_url_manager.get_url_entry("page");
-    if (page == null) { page = "overview"; }
-    chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
-    table_id = `flow_historical`;
+    init_params();
     init_url_params();
+    await set_query_presets();
+    mount_range_picker.value = true;
 });
 
 onMounted(async () => {
     register_components_on_status_update();
     load_top_table_array_overview();
 });
+
+function init_params() {
+    page.value = ntopng_url_manager.get_url_entry("page");
+    if (page.value == null) { page.value = "overview"; }
+    chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
+    table_id.value = `flow_historical`;
+    if (page.value == "overview_aggregated") {
+	table_id.value = `flow_historical`;
+    }
+    selected_query_preset.value = {
+	value: ntopng_url_manager.get_url_entry("query_preset"),
+	count: ntopng_url_manager.get_url_entry("count"),
+    };
+    if (selected_query_preset.value.value == null) {
+	selected_query_preset.value.value = "";
+    }
+}
 
 function init_url_params() {
     if (ntopng_url_manager.get_url_entry("ifid") == null) {
@@ -179,6 +232,44 @@ function init_url_params() {
       	&& ntopng_url_manager.get_url_entry("status") == "engaged") {
 	ntopng_url_manager.set_key_to_url("status", "historical");
     }
+}
+
+async function set_query_presets() {
+    let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/preset/consts.lua?page=${page.value}`;
+    let res = await ntopng_utility.http_request(url_request);
+    query_presets.value = res[0].list.map((el) => {
+        return {
+            value: el.id, //== null ? "flow" : el.id,
+            name: el.name,
+            count: el.count,
+            builtin: true,
+        };
+    });
+    if (res.length > 1) {
+        res[1].list.forEach((el) => {
+            let query = {
+                value: el.id,
+                name: el.name,
+                count: el.count,
+            };
+            query_presets.value.push(query);
+        });
+    }
+    if (selected_query_preset.value == null || selected_query_preset.value.value == "") {
+        selected_query_preset.value = query_presets.value[0];
+    } else {
+        let q = query_presets.value.find((i) => i.value == selected_query_preset.value.value);
+        selected_query_preset.value = q || query_presets.value[0];
+    }
+    ntopng_url_manager.set_key_to_url("query_preset", selected_query_preset.value.value);
+    ntopng_url_manager.set_key_to_url("count", selected_query_preset.value.count);
+}
+
+function update_select_query_presets() {
+    let url = ntopng_url_manager.get_url_params();
+    ntopng_url_manager.set_key_to_url("query_preset", selected_query_preset.value.value);
+    ntopng_url_manager.set_key_to_url("count", selected_query_preset.value.count);
+    ntopng_url_manager.reload_url();
 }
 
 async function load_top_table_array_overview(action) {
@@ -240,7 +331,7 @@ function on_table_loaded() {
 }
 
 function register_table_alerts_events() {
-    let jquery_table_alerts = $(`#${table_id}`);
+    let jquery_table_alerts = $(`#${table_id.value}`);
     jquery_table_alerts.on('click', `a.tag-filter`, async function (e) {
 	add_table_row_filter(e, $(this));
     });
@@ -431,11 +522,13 @@ async function add_exclude(params) {
     }    
 }
 
-function refresh_page_components() {
+function refresh_page_components(not_refresh_table) {
     let t = table_alerts.value;
     let c = chart.value;
     setTimeout(() => {
-	t.refresh_table();
+	if (!not_refresh_table) {
+	    t.refresh_table();
+	}
 	c.update_chart();
     }, 1 * 1000);
 }
