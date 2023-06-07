@@ -37,7 +37,7 @@
       </template>
       <template v-slot:menu>
 	<div v-for="col in columns_wrap" class="form-check form-switch ms-1">
-	  <input class="form-check-input" style="cursor:pointer;" :checked="col.visible == true" @click="change_columns_visibility(col)"  checked="" type="checkbox" id="toggle-Begin">
+	  <input class="form-check-input" style="cursor:pointer;" :checked="col.visible == true" @click="change_columns_visibility(col)" type="checkbox" id="toggle-Begin">
           <label class="form-check-label" for="toggle-Begin" v-html="print_column_name(col.data)">
           </label>
 	</div>
