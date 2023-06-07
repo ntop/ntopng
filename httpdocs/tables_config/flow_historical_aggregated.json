@@ -33,6 +33,13 @@
 	    "class": ["no-wrap"]
 	},
 	{
+	    "title_i18n": "flow",
+	    "data_field": "flow",
+	    "render_type": "formatFlowTuple",
+	    "sortable": false,
+	    "class": ["text-nowrap"]
+	},
+	{
 	    "title_i18n": "score_average",
 	    "data_field": "score",
 	    "render_type": "formatValueLabel",
@@ -40,6 +47,12 @@
 	    "sortable": true,
 	    "class": ["text-center"]
 	},
+        {
+        "title_i18n": "db_explorer.total_flows",
+	    "data_field": "NUM_FLOWS",
+	    "sortable": false,
+	    "class": ["text-nowrap text-end"]
+        },
 	{
 	    "title_i18n": "db_search.vlan_id",
 	    "data_field": "vlan_id",
@@ -146,19 +159,6 @@
 	    "data_field": "NTOPNG_INSTANCE_NAME",
 	    "sortable": false,
 	    "class": ["text-nowrap"]
-    },
-    {
-        "title_i18n": "db_explorer.total_flows",
-	    "data_field": "NUM_FLOWS",
-	    "sortable": false,
-	    "class": ["text-nowrap text-end"]
-    },
-	{
-	    "title_i18n": "flow",
-	    "data_field": "flow",
-	    "render_type": "formatFlowTuple",
-	    "sortable": false,
-	    "class": ["text-nowrap"]
-	}
+    }
     ]
 }
