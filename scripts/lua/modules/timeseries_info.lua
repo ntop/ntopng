@@ -15,7 +15,10 @@ local series_extra_info = {
         color = '#2d99bd'
     },
     bytes = {
-        color = '#ffc046'
+        color = '#1f77b4'
+    },
+    packets = {
+        color = '#1f77b4'
     },
     bytes_sent = {
         color = '#c6d9fd'
@@ -225,7 +228,7 @@ local community_timeseries = {{
     timeseries = {
         bytes = {
             label = i18n('graphs.metric_labels.traffic'),
-            color = timeseries_info.get_timeseries_color('devices')
+            color = timeseries_info.get_timeseries_color('bytes')
         }
     },
     nedge_exclude = true
@@ -239,7 +242,7 @@ local community_timeseries = {{
     timeseries = {
         bps = {
             label = i18n('graphs.metric_labels.throughput'),
-            color = timeseries_info.get_timeseries_color('devices')
+            color = timeseries_info.get_timeseries_color('bytes')
         }
     },
     nedge_exclude = true
@@ -253,7 +256,7 @@ local community_timeseries = {{
     timeseries = {
         pps = {
             label = i18n('graphs.metric_labels.throughput'),
-            color = timeseries_info.get_timeseries_color('devices')
+            color = timeseries_info.get_timeseries_color('bytes')
         }
     },
     nedge_exclude = true
@@ -284,7 +287,7 @@ local community_timeseries = {{
     timeseries = {
         packets = {
             label = i18n('graphs.metric_labels.packets'),
-            color = timeseries_info.get_timeseries_color('packets')
+            color = timeseries_info.get_timeseries_color('bytes')
         },
         drops = {
             label = i18n('graphs.metric_labels.drops'),
@@ -890,11 +893,11 @@ local community_timeseries = {{
     timeseries = {
         bytes_sent_unicast = {
             label = i18n('graphs.metric_labels.sent_uni'),
-            color = timeseries_info.get_timeseries_color('bytes')
+            color = timeseries_info.get_timeseries_color('bytes_sent')
         },
         bytes_sent_non_uni = {
             label = i18n('graphs.metric_labels.sent_non_uni'),
-            color = timeseries_info.get_timeseries_color('bytes')
+            color = timeseries_info.get_timeseries_color('bytes_sent')
         }
     }
 }, {
@@ -907,11 +910,11 @@ local community_timeseries = {{
     timeseries = {
         bytes_sent = {
             label = i18n('graphs.metric_labels.sent'),
-            color = timeseries_info.get_timeseries_color('bytes')
+            color = timeseries_info.get_timeseries_color('bytes_sent')
         },
         bytes_rcvd = {
             label = i18n('graphs.metric_labels.rcvd'),
-            color = timeseries_info.get_timeseries_color('bytes')
+            color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     }
 }, {
@@ -960,13 +963,16 @@ local community_timeseries = {{
     scale = i18n('graphs.metric_labels.traffic'),
     timeseries = {
         bytes_egress = {
-            label = i18n('graphs.metrics_suffixes.egress')
+            label = i18n('graphs.metrics_suffixes.egress'),
+            color = timeseries_info.get_timeseries_color('bytes')
         },
         bytes_ingress = {
-            label = i18n('graphs.metrics_suffixes.ingress')
+            label = i18n('graphs.metrics_suffixes.ingress'),
+            color = timeseries_info.get_timeseries_color('bytes')
         },
         bytes_inner = {
-            label = i18n('graphs.metrics_suffixes.inner')
+            label = i18n('graphs.metrics_suffixes.inner'),
+            color = timeseries_info.get_timeseries_color('bytes')
         }
     },
     default_visible = true
@@ -978,13 +984,16 @@ local community_timeseries = {{
     scale = i18n('graphs.metric_labels.traffic'),
     timeseries = {
         bytes_egress = {
-            label = i18n('graphs.metrics_suffixes.egress')
+            label = i18n('graphs.metrics_suffixes.egress'),
+            color = timeseries_info.get_timeseries_color('bytes')
         },
         bytes_ingress = {
-            label = i18n('graphs.metrics_suffixes.ingress')
+            label = i18n('graphs.metrics_suffixes.ingress'),
+            color = timeseries_info.get_timeseries_color('bytes')
         },
         bytes_inner = {
-            label = i18n('graphs.metrics_suffixes.inner')
+            label = i18n('graphs.metrics_suffixes.inner'),
+            color = timeseries_info.get_timeseries_color('bytes')
         }
     }
 }, {
@@ -1057,13 +1066,16 @@ local community_timeseries = {{
     scale = i18n('graphs.metric_labels.packets'),
     timeseries = {
         packets_ingress = {
-            label = i18n('if_stats_overview.ingress_packets')
+            label = i18n('if_stats_overview.ingress_packets'),
+            color = timeseries_info.get_timeseries_color('bytes')
         },
         packets_egress = {
-            label = i18n('if_stats_overview.egress_packets')
+            label = i18n('if_stats_overview.egress_packets'),
+            color = timeseries_info.get_timeseries_color('bytes')
         },
         packets_inner = {
-            label = 'Inner Packets'
+            label = 'Inner Packets',
+            color = timeseries_info.get_timeseries_color('bytes')
         }
     }
 }, {
@@ -1074,13 +1086,16 @@ local community_timeseries = {{
     scale = i18n('graphs.metric_labels.packets'),
     timeseries = {
         packets_ingress = {
-            label = i18n('if_stats_overview.ingress_packets')
+            label = i18n('if_stats_overview.ingress_packets'),
+            color = timeseries_info.get_timeseries_color('bytes')
         },
         packets_egress = {
-            label = i18n('if_stats_overview.egress_packets')
+            label = i18n('if_stats_overview.egress_packets'),
+            color = timeseries_info.get_timeseries_color('bytes')
         },
         packets_inner = {
-            label = 'Inner Packets'
+            label = 'Inner Packets',
+            color = timeseries_info.get_timeseries_color('bytes')
         }
     }
 }, {
@@ -1262,13 +1277,16 @@ local community_timeseries = {{
     scale = i18n('graphs.metric_labels.traffic'),
     timeseries = {
         bytes_egress = {
-            label = i18n('graphs.metrics_suffixes.egress')
+            label = i18n('graphs.metrics_suffixes.egress'),
+            color = timeseries_info.get_timeseries_color('bytes')
         },
         bytes_ingress = {
-            label = i18n('graphs.metrics_suffixes.ingress')
+            label = i18n('graphs.metrics_suffixes.ingress'),
+            color = timeseries_info.get_timeseries_color('bytes')
         },
         bytes_inner = {
-            label = i18n('graphs.metrics_suffixes.inner')
+            label = i18n('graphs.metrics_suffixes.inner'),
+            color = timeseries_info.get_timeseries_color('bytes')
         }
     },
     default_visible = true
@@ -1300,10 +1318,12 @@ local community_timeseries = {{
     scale = i18n('graphs.metric_labels.traffic'),
     timeseries = {
         bytes_egress = {
-            label = i18n('graphs.metrics_suffixes.egress')
+            label = i18n('graphs.metrics_suffixes.egress'),
+            color = timeseries_info.get_timeseries_color('bytes_sent')
         },
         bytes_ingress = {
-            label = i18n('graphs.metrics_suffixes.ingress')
+            label = i18n('graphs.metrics_suffixes.ingress'),
+            color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
     default_visible = true
