@@ -15,18 +15,7 @@
                                 :class="{ 'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged' }">Engaged</a>
                         </div>
                     </div>
-                    <select v-if="enable_query_presets" class="me-2 form-select" v-model="query_preset"
-                        @change="update_select_query_presets()">
-                        <template v-for="item in query_presets">
-                            <option v-if="item.builtin == true" :value="item">{{ item.name }}</option>
-                        </template>
-                        <optgroup v-if="page != 'analysis'" :label="i18n('queries.queries')">
-                            <template v-for="item in query_presets">
-
-                                <option v-if="!item.builtin" :value="item">{{ item.name }}</option>
-                            </template>
-                        </optgroup>
-                    </select>
+		    <slot name="begin"></slot>
                 </template>
                 <template v-slot:extra_buttons>
                     <slot name="extra_range_buttons"></slot>
@@ -92,18 +81,10 @@ let initialTags;
 //let pageHandle = {};
 let TAGIFY;
 let IS_ALERT_STATS_URL = window.location.toString().match(/alert_stats.lua/) != null;
-let QUERY_PRESET = {
-    value: ntopng_url_manager.get_url_entry("query_preset"),
-    count: ntopng_url_manager.get_url_entry("count"),
-};
-if (QUERY_PRESET.value == null) {
-    QUERY_PRESET.value = "";
-}
 let STATUS_VIEW = ntopng_url_manager.get_url_entry("status");
 if (STATUS_VIEW == null || STATUS_VIEW == "") {
     STATUS_VIEW = "historical";
 }
-const ENABLE_QUERY_PRESETS = !IS_ALERT_STATS_URL;
 
 let PAGE = get_page(IS_ALERT_STATS_URL);
 
@@ -245,9 +226,6 @@ export default {
         let modal_filters_mounted = ntopng_sync.on_ready(this.id_modal_filters);
         await dt_range_picker_mounted;
 
-        if (this.enable_query_presets) {
-            await set_query_preset(this);
-        }
         if (this.page != 'all') {
             let filters = await load_filters_data();
 
@@ -268,10 +246,7 @@ export default {
             show_filters: false,
             edit_tag: null,
             is_alert_stats_url: IS_ALERT_STATS_URL,
-            query_presets: [],
-            query_preset: QUERY_PRESET,
             status_view: STATUS_VIEW,
-            enable_query_presets: ENABLE_QUERY_PRESETS,
             page: PAGE,
             modal_data: [],
             last_filters: [],
@@ -283,12 +258,6 @@ export default {
         },
         update_status_view: function (status) {
             ntopng_url_manager.set_key_to_url("status", status);
-            ntopng_url_manager.reload_url();
-        },
-        update_select_query_presets: function () {
-            let url = ntopng_url_manager.get_url_params();
-            ntopng_url_manager.set_key_to_url("query_preset", this.query_preset.value);
-            ntopng_url_manager.set_key_to_url("count", this.query_preset.count);
             ntopng_url_manager.reload_url();
         },
         show_modal_filters: function () {
