@@ -70,4 +70,13 @@ function inactive_hosts_utils.getInactiveHostInfo(ifid, serial_key)
     return nil
 end
 
+-- ##########################################
+
+function inactive_hosts_utils.getInactiveHostsNumber(ifid)
+    local redis_hash = string.format(OFFLINE_LOCAL_HOSTS_KEY, ifid)
+    local available_keys = ntop.getHashKeysCache(redis_hash) or {}
+
+    return table.len(available_keys)
+end
+
 return inactive_hosts_utils

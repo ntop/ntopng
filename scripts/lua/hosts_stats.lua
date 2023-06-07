@@ -18,6 +18,7 @@ local page_utils = require("page_utils")
 local custom_column_utils = require("custom_column_utils")
 local discover = require("discover_utils")
 local template_utils = require("template_utils")
+local inactive_hosts_utils = require("inactive_hosts_utils")
 local have_nedge = ntop.isnEdge()
 local wheel = nil
 
@@ -292,7 +293,9 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
 }, {
     active = page == "inactive_hosts" or page == nil,
     page_name = "inactive_hosts",
-    label = i18n('inactive_hosts')
+    label = i18n('inactive_hosts') ..
+        '<span class="badge rounded-pill bg-dark" style="float: right; margin-bottom: -10px;">' ..
+        inactive_hosts_utils.getInactiveHostsNumber(ifstats.id) .. '</span>'
 }})
 
 if page == 'active_hosts' then

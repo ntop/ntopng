@@ -1,6 +1,6 @@
 <template>
   <!-- Normal table -->
-  <table v-if="!horizontal" class="table table-hover table-borderless mb-0">
+  <table v-if="!(horizontal) || (horizontal == false)" class="table table-hover table-borderless mb-0">
     <thead>
       <tr>
         <th v-for="col in columns" scope="col" v-html="print_html_column(col)"></th>
@@ -13,18 +13,18 @@
     </tbody>
   </table>
   <!-- Horizontal table, with th on the rows -->
-  <table v-else class="table table-hover table-borderless mb-0">
+  <table v-else class="table table-striped table-bordered">
     <tbody>
-      <tr v-for="row in rows">
+      <tr v-for="row in  rows ">
         <th class="col 5" v-html="print_html_title(row.name)"></th>
-        <td v-for="value in row.values" v-html="print_html_row(value)"></td>
+        <td :colspan="[(row.values.length <= 1) ? 2 : 1]" v-for="value in row.values" v-html="print_html_row(value)">
+        </td>
       </tr>
     </tbody>
   </table>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, onBeforeUnmount } from "vue";
 
 const props = defineProps({
   id: String,
@@ -32,7 +32,8 @@ const props = defineProps({
   rows: Array,
   print_html_column: Function,
   print_html_row: Function,
-  horizontal: Boolean,
+  print_html_title: Function,
+  horizontal: Boolean
 });
 
 </script>
