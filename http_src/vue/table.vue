@@ -1,95 +1,103 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-    <slot name="custom_header2"></slot>
+<slot name="custom_header2"></slot>
 <div ref="table_container" :id="id">
   <Loading v-if="loading"></Loading>
-<div class="button-group mb-2"> <!-- TableHeader -->
-  <div style="float:left;margin-top:0.5rem;">
-    <label>
-      Show
-      <select v-model="per_page" @change="change_per_page">
-	<option v-for="pp in per_page_options" :value="pp">{{pp}}</option>
-      </select>
-      Entries
-    </label>
-  </div>
-  <div style="text-align:right;" class="form-group ">
-  </div>
-  
-  <div style="text-align:right;" class="form-group ">
-    <slot name="custom_header"></slot>
-
-    <div v-if="enable_search" class="d-inline">
-      <label>{{ _i18n('search') }}:
-	<input type="search" v-model="map_search" @input="on_change_map_search" class="" >
+  <div class="button-group mb-2"> <!-- TableHeader -->
+    <div style="float:left;margin-top:0.5rem;">
+      <label>
+	Show
+	<select v-model="per_page" @change="change_per_page">
+	  <option v-for="pp in per_page_options" :value="pp">{{pp}}</option>
+	</select>
+	Entries
       </label>
     </div>
-    <button class="btn btn-link me-1" type="button" @click="reset_column_size">
-      <i class="fas fa-columns"></i>
-    </button>
-    <button class="btn btn-link me-1" type="button" @click="refresh_table">
-      <i class="fas fa-refresh"></i>
-    </button>
+    <div style="text-align:right;" class="form-group ">
+    </div>
     
-    <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
-      <template v-slot:title>
-	<i class="fas fa-eye"></i>
-      </template>
-      <template v-slot:menu>
-	<div v-for="col in columns_wrap" class="form-check form-switch ms-1">
-	  <input class="form-check-input" style="cursor:pointer;" :checked="col.visible == true" @click="change_columns_visibility(col)" type="checkbox" id="toggle-Begin">
-          <label class="form-check-label" for="toggle-Begin" v-html="print_column_name(col.data)">
-          </label>
-	</div>
-      </template>
-    </Dropdown> <!-- Dropdown columns -->
-  </div>
-</div> <!-- TableHeader -->
-
-<div :key="table_key" class="" style="overflow:auto;width:100%;"> <!-- Table -->
+    <div style="text-align:right;" class="form-group ">
+      <slot name="custom_header"></slot>
+      
+      <div v-if="enable_search" class="d-inline">
+	<label>{{ _i18n('search') }}:
+	  <input type="search" v-model="map_search" @input="on_change_map_search" class="" >
+	</label>
+      </div>
+      <button class="btn btn-link me-1" type="button" @click="reset_column_size">
+	<i class="fas fa-columns"></i>
+      </button>
+      <button class="btn btn-link me-1" type="button" @click="refresh_table">
+	<i class="fas fa-refresh"></i>
+      </button>
+      
+      <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
+	<template v-slot:title>
+	  <i class="fas fa-eye"></i>
+	</template>
+	<template v-slot:menu>
+	  <div v-for="col in columns_wrap" class="form-check form-switch ms-1">
+	    <input class="form-check-input" style="cursor:pointer;" :checked="col.visible == true" @click="change_columns_visibility(col)" type="checkbox" id="toggle-Begin">
+            <label class="form-check-label" for="toggle-Begin" v-html="print_column_name(col.data)">
+            </label>
+	  </div>
+	</template>
+      </Dropdown> <!-- Dropdown columns -->
+    </div>
+  </div> <!-- TableHeader -->
   
-  <table ref="table" class="table table-striped table-bordered ml-0 mr-0 mb-0 " style="table-layout: auto; white-space: nowrap;" data-resizable="true" :data-resizable-columns-id="id"> <!-- Table -->
-    <thead>
-      <tr>
-	<template v-for="(col, col_index) in columns_wrap">
-	  <th v-if="col.visible" scope="col" :class="{'pointer': col.sortable, 'unset': !col.sortable, }" style="white-space: nowrap;" @click="change_column_sort(col, col_index)" :data-resizable-column-id="get_column_id(col.data)">
-	    <div style="display:flex;">
-	      <span v-html="print_column_name(col.data)" class="wrap-column"></span>
-	      <!-- <i v-show="col.sort == 0" class="fa fa-fw fa-sort"></i> -->
-	      
-	      <i v-show="col.sort == 1 && col.sortable" class="fa fa-fw fa-sort-up"></i>
-	      <i v-show="col.sort == 2 && col.sortable" class="fa fa-fw fa-sort-down"></i>
-	    </div>
-	  </th>
-	</template>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-if="!changing_column_visibility" v-for="row in active_rows">
-	<template v-for="(col, col_index) in columns_wrap">
-	  <td v-if="col.visible" scope="col" >
-	    <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" :style="col.style" v-html="print_html_row(col.data, row)">
-	    </div>
-	    <div :class="col.classes" class="wrap-column">
-	      <VueNode v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
-	    </div>
-	  </td>
-	</template>
-      </tr>
-    </tbody>
-  </table> <!-- Table -->
-</div> <!-- Table div-->
-
-<div>
-  <SelectTablePage
-    ref="select_table_page"
-    :key="select_pages_key"
-    :total_rows="total_rows"
-    :per_page="per_page"
-    @change_active_page="change_active_page">
-  </SelectTablePage>
-</div>
-
+  <div :key="table_key" class="" style="overflow:auto;width:100%;"> <!-- Table -->
+    
+    <table ref="table" class="table table-striped table-bordered ml-0 mr-0 mb-0 " style="table-layout: auto; white-space: nowrap;" data-resizable="true" :data-resizable-columns-id="id"> <!-- Table -->
+      <thead>
+	<tr>
+	  <template v-for="(col, col_index) in columns_wrap">
+	    <th v-if="col.visible" scope="col" :class="{'pointer': col.sortable, 'unset': !col.sortable, }" style="white-space: nowrap;" @click="change_column_sort(col, col_index)" :data-resizable-column-id="get_column_id(col.data)">
+	      <div style="display:flex;">
+		<span v-html="print_column_name(col.data)" class="wrap-column"></span>
+		<!-- <i v-show="col.sort == 0" class="fa fa-fw fa-sort"></i> -->
+		
+		<i v-show="col.sort == 1 && col.sortable" class="fa fa-fw fa-sort-up"></i>
+		<i v-show="col.sort == 2 && col.sortable" class="fa fa-fw fa-sort-down"></i>
+	      </div>
+	    </th>
+	  </template>
+	</tr>
+      </thead>
+      <tbody>
+	<tr v-if="!changing_column_visibility" v-for="row in active_rows">
+	  <template v-for="(col, col_index) in columns_wrap">
+	    <td v-if="col.visible" scope="col" >
+	      <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" :style="col.style" v-html="print_html_row(col.data, row)">
+	      </div>
+	      <div :class="col.classes" class="wrap-column">
+		<VueNode v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
+	      </div>
+	    </td>
+	  </template>
+	</tr>
+      </tbody>
+    </table> <!-- Table -->
+  </div> <!-- Table div-->
+  
+  <div>
+    <SelectTablePage
+      ref="select_table_page"
+      :key="select_pages_key"
+      :total_rows="total_rows"
+      :per_page="per_page"
+      @change_active_page="change_active_page">
+    </SelectTablePage>
+  </div>
+  
+  <div v-if="query_info != null" class="mt-2">
+    <div class="text-end">
+      <small style="" class="query text-end"><span class="records">{{ query_info.num_records_processed }}</span>.</small>
+    </div>
+    <div class="text-start">
+      <small id="historical_flows_table-query-time" style="" class="query">Query performed in <span class="seconds">{{ (query_info.query_duration_msec / 1000).toFixed(3) }}</span> seconds. <span id="historical_flows_table-query" style="cursor: pointer;" class="badge bg-secondary" :title=query_info.query @click="copy_query_into_clipboard" ref="query_info_sql_button" >SQL</span></small>
+    </div>
+  </div>
 </div>
 </template>
 
@@ -113,7 +121,7 @@ const vue_obj = {
 const props = defineProps({
     id: String,
     columns: Array,
-    get_rows: Function, // async (active_page: number, per_page: number, columns_wrap: any[], search_map: string, first_get_rows: boolean) => { total_rows: number, rows: any[] }
+    get_rows: Function, // async (active_page: number, per_page: number, columns_wrap: any[], search_map: string, first_get_rows: boolean) => { total_rows: number, rows: any[], query_info: { query_duration_msec: number, num_records_processed: string, query: string } }
     get_column_id: Function,
     print_column_name: Function,
     print_html_row: Function,
@@ -146,6 +154,8 @@ const map_search = ref("");
 
 const select_table_page = ref(null);
 const loading = ref(false);
+const query_info = ref(null);
+const query_info_sql_button = ref(null);
 
 onMounted(async () => {
     if (props.columns != null) {
@@ -327,6 +337,10 @@ let first_get_rows = true;
 async function set_rows() {
     loading.value = true;
     let res = await props.get_rows(active_page, per_page.value, columns_wrap.value, map_search.value, first_get_rows);
+    query_info.value = null;
+    if (res.query_info != null) {
+	query_info.value = res.query_info;
+    }
     first_get_rows = false;
     total_rows.value = res.rows.length;
     if (props.paging == true) {
@@ -365,6 +379,10 @@ async function on_change_map_search() {
 	map_search_change_timeout = null;
     }, timeout);
     
+}
+
+function copy_query_into_clipboard($event) {
+    NtopUtils.copyToClipboard(query_info.value.query, query_info_sql_button.value);
 }
 
 defineExpose({ load_table, refresh_table });

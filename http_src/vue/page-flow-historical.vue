@@ -94,7 +94,6 @@
     </div>  <!-- card-shadow -->
     
   </div> <!-- div col -->
-  <NoteList :note_list="note_list"></NoteList>
 </div> <!-- div row -->
 
 <ModalTrafficExtraction id="modal_traffic_extraction" ref="modal_traffic_extraction">
@@ -132,7 +131,6 @@ import { default as RangePicker } from "./range-picker.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as Dropdown } from "./dropdown.vue";
 import { default as Spinner } from "./spinner.vue";
-import { default as NoteList } from "./note-list.vue";
 
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
@@ -167,7 +165,6 @@ let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
 const chart_type = ntopChartApex.typeChart.TS_COLUMN;
 const top_table_array = ref([]);
 const top_table_dropdown_array = ref([]);
-const note_list = ref([_i18n('show_alerts.alerts_info')]);
 
 const selected_query_preset = ref({});
 const query_presets = ref([]);

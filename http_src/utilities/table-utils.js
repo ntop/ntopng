@@ -157,11 +157,15 @@ function get_rows_func(table_def, f_get_extra_params_obj, f_on_get_rows) {
 	if (table_def.rsp_records_field != null) {
 	    rows = res.rsp[table_def.rsp_records_field];
 	}
+	let query_info = res.query_info;
+	if (table_def.rsp_query_info_field != null) {
+	    query_info = res.rsp[table_def.rsp_query_info_field];
+	}
 	// fix server rest bug
 	if (res.recordsFiltered > res.recordsTotal) {
 	    res.recordsTotal = res.recordsFiltered;
 	}
-	return { total_rows: res.recordsTotal, rows };
+	return { total_rows: res.recordsTotal, rows, query_info };
     }
 }
 

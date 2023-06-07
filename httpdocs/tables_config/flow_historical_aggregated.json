@@ -5,6 +5,7 @@
     "enable_search": true,
     "paging": true,
     "rsp_records_field": "records",
+    "rsp_query_info_field": "stats",
     "columns": [
 	{
 	    "title_i18n": "db_search.first_seen",
