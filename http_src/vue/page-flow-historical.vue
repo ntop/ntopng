@@ -20,7 +20,7 @@
 	      <template v-slot:begin>
 		<Switch v-model:value="flows_aggregated" class="me-2 mt-1" :change_label_side="true" :label="flow_type_label" style="" @change_value="change_flow_type" ></Switch>
 
-                <select class="me-2 form-select" v-model="selected_query_preset"
+                <select class="me-2 form-select" style="min-width:8rem;" v-model="selected_query_preset"
                         @change="update_select_query_presets()">
                   <template v-for="item in query_presets">
                     <option v-if="item.builtin == true" :value="item">{{ item.name }}</option>
