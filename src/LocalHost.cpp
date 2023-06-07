@@ -155,7 +155,7 @@ void LocalHost::deferredInitialization() {
 
 void LocalHost::addOfflineData() {
   /* Remove the key from the hash, used to get the offline hosts */
-  if(!ntop->getRedis())
+  if(!ntop->getRedis() || !isLocalUnicastHost())
     return;
 
   char buf[64], *json_str = NULL;
@@ -190,7 +190,7 @@ void LocalHost::addOfflineData() {
 
 void LocalHost::removeOfflineData() {
   /* Remove the key from the hash, used to get the offline hosts */
-  if(!ntop->getRedis())
+  if(!ntop->getRedis() || !isLocalUnicastHost())
     return;
 
   char key[128], redis_key[64];

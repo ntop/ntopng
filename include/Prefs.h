@@ -220,6 +220,7 @@ class Prefs {
   bool is_enterprise_m_edition();
   bool is_enterprise_l_edition();
   bool is_enterprise_xl_edition();
+  bool is_cloud_edition();
 
   bool is_nedge_pro_edition();
   bool is_nedge_enterprise_edition();

@@ -11,6 +11,7 @@
 	 :print_vue_node_row="table_config.print_vue_node_row"
 	 :f_is_column_sortable="table_config.f_is_column_sortable"
 	 :f_get_column_classes="table_config.f_get_column_classes"
+	 :f_get_column_style="table_config.f_get_column_style"
 	 :enable_search="table_config.enable_search"
 	 :paging="table_config.paging"
 	 :csrf="csrf"

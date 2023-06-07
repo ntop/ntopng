@@ -835,7 +835,7 @@ function recipients.dispatch_notification(notification, current_script)
          if recipient_ok then
             -- Enqueue alert
 
-            --debug_print("Delivering " .. notification.entity_val .. " alert to recipient " .. recipient.recipient_name)
+            -- debug_print(" ===> Delivering alert for entity value " .. notification.entity_val .. " to recipient " .. recipient.recipient_name)
 
             ntop.recipient_enqueue(recipient.recipient_id, 
               json_notification --[[ alert --]],

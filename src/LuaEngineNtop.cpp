@@ -3637,6 +3637,8 @@ static int ntop_get_info(lua_State *vm) {
                               ntop->getPrefs()->is_enterprise_l_edition());
     lua_push_bool_table_entry(vm, "version.enterprise_xl_edition",
                               ntop->getPrefs()->is_enterprise_xl_edition());
+    lua_push_bool_table_entry(vm, "version.cloud_edition",
+                              ntop->getPrefs()->is_cloud_edition());
 
     lua_push_bool_table_entry(vm, "version.nedge_edition",
                               ntop->getPrefs()->is_nedge_pro_edition());

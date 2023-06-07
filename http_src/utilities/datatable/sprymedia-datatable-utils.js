@@ -634,17 +634,21 @@ export class DataTableRenders {
     }
 
     static filterize(key, value, label, tag_label, title, html, is_snmp_ip, ip) {
+        let content = `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='javascript:void(0)'>${html || label || value}</a>`;
         if(is_snmp_ip != null) {
             if(is_snmp_ip) {
-                let url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?host=${value}`);
-                return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${html || label || value}</a> <a href='${url}'data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
-
+                if (value) {
+                    let url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?host=${value}`);
+                    content += ` <a href='${url}'data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+                }
             } else {
-                let url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${ip}&snmp_port_idx=${value}`);
-                return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${html || label || value}</a> <a href='${url}'data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+                if (ip && value) {
+                    let url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${ip}&snmp_port_idx=${value}`);
+                    content += ` <a href='${url}'data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+                }
             }
         }
-        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='javascript:void(0)'>${html || label || value}</a>`;
+        return content;
     }
 
     static formatValueLabel(obj, type, row) {

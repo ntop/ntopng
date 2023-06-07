@@ -4,23 +4,21 @@
 #}
 
 
-<div id="inactive-hosts">
-  <page-inactive-hosts
+<div id="inactive-host-details">
+  <page-inactive-host-details
   :ifid="ifid"
-  :csrf="csrf"
-  :show_historical="show_historical">
-  </page-inactive-hosts>
+  :csrf="csrf">
+  </page-inactive-host-details>
 </div>
   
 <script type="text/javascript">  
   const ifid = {* ifid *}
   const csrf = "{* csrf *}"
-  const show_historical = "{* show_historical *}" == "true"
   
   function start_vue() {
     let vue_options = {
       components: {	  
-        'page-inactive-hosts': ntopVue.PageInactiveHosts,
+        'page-inactive-host-details': ntopVue.PageInactiveHostDetails,
       },
       /**
       * First method called when the component is created.
@@ -31,14 +29,13 @@
       data() {
         return {
           ifid: ifid,
-          csrf: csrf,
-          show_historical: show_historical,
+          csrf: csrf
         };
       },
       methods: { },
     };
     const _vue = ntopVue.Vue.createApp(vue_options);
-    const vue_app = _vue.mount('#inactive-hosts');
+    const vue_app = _vue.mount('#inactive-host-details');
     return vue_app;
   }
 

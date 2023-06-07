@@ -1,10 +1,32 @@
 {
 	"id": "inactive_hosts",
-	"data_url": "lua/rest/v2/get/host/inactive.lua",
+	"data_url": "lua/rest/v2/get/host/inactive_list.lua",
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": true,
 	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_array",
+			"button_def_array": [
+				{
+					"id": "historical_data",
+					"icon": "fas fa-stream",
+					"title_i18n": "db_explorer.historical_data",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_historical_flows"
+				}
+			]
+		},
 		{
 			"title_i18n": "ip_address",
 			"data_field": "ip_address",

@@ -296,7 +296,7 @@ const map_table_def_columns = (columns) => {
 	"srv_nw_latency": (srv_nw_latency, row) => f_print_latency("srv_nw_latency", srv_nw_latency, row),
 	"info": (info, row) => {
 	    if (info == null) { return ""; }
-            return `<a class='tag-filter' data-tag-value='${info.title}' title='${info.title}' href='#'>${info.label}</a>`;
+            return `<a class='tag-filter' data-tag-key='info' data-tag-value='${info.title}' title='${info.title}' href='javascript:void(0)'>${info.label}</a>`;
 	},
     };
     columns = columns.filter((c) => props.context?.visible_columns[c.data_field] != false);

@@ -137,7 +137,10 @@ var ResizableColumns = (function () {
 				var $current = _this.$tableHeaders.eq(i);
 				var $next = _this.$tableHeaders.eq(i + 1);
 
-				if ($next.length === 0 || $current.is(_constants.SELECTOR_UNRESIZABLE) || $next.is(_constants.SELECTOR_UNRESIZABLE)) {
+				// if ($next.length === 0 || $current.is(_constants.SELECTOR_UNRESIZABLE) || $next.is(_constants.SELECTOR_UNRESIZABLE)) {
+				// 	return;
+				// }
+				if ($current.is(_constants.SELECTOR_UNRESIZABLE) || $next.is(_constants.SELECTOR_UNRESIZABLE)) {
 					return;
 				}
 
@@ -316,9 +319,9 @@ var ResizableColumns = (function () {
 			if (leftColumn) {
 				this.setWidth(leftColumn, widthLeft);
 			}
-			if (rightColumn) {
-				//this.setWidth(rightColumn, widthRight);
-			}
+		    if (rightColumn) {
+			// this.setWidth(rightColumn, widthRight);
+		    }
 
 			op.newWidths.left = widthLeft;
 			op.newWidths.right = widthRight;

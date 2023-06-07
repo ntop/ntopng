@@ -729,7 +729,7 @@ end
 
 -- #####################################
 
-local function dt_add_alerts_url(processed_record, record)
+local function dt_add_alerts_url(processed_record, record, is_aggregated)
 
    if not record["FIRST_SEEN"] or
       not record["LAST_SEEN"] then
@@ -737,6 +737,10 @@ local function dt_add_alerts_url(processed_record, record)
    end
 
    local op_suffix = tag_utils.SEPARATOR .. 'eq'
+   local cli_port = ''
+   if (not is_aggregated and processed_record.cli_port and  processed_record.cli_port.value) then
+      cli_port = processed_record.cli_port.value
+   end
    processed_record["alerts_url"] = string.format('%s/lua/alert_stats.lua?page=flow&status=historical&epoch_begin=%u&epoch_end=%u&%s=%s%s&%s=%s%s&cli_port=%s%s&srv_port=%s%s', -- &l4proto=%s%s',
          ntop.getHttpPrefix(), 
          tonumber(record["FIRST_SEEN"]) - (5*60),
@@ -748,7 +752,7 @@ local function dt_add_alerts_url(processed_record, record)
          -- Always use IP
          "cli_ip", processed_record.cli_ip.ip, op_suffix,
          "srv_ip", processed_record.srv_ip.ip, op_suffix,
-         ternary(processed_record.cli_port and processed_record.cli_port.value, processed_record.cli_port.value, ''), op_suffix,
+         cli_port, op_suffix,
          ternary(processed_record.srv_port and processed_record.srv_port.value, processed_record.srv_port.value, ''), op_suffix)
          --ternary(processed_record.l4proto ~= nil, processed_record.l4proto.value, ''), op_suffix)
 end
@@ -974,7 +978,41 @@ local flow_columns = {
    ['USER_LABEL'] =           { tag = "user_label" },
    ['USER_LABEL_TSTAMP'] =    { tag = "user_label_tstamp" },
 }
+local aggregated_flow_columns = {
+   ['FLOW_ID'] =              { tag = "rowid" },
+   ['IP_PROTOCOL_VERSION'] =  {},
+   ['FIRST_SEEN'] =           { tag = "first_seen",   dt_func = dt_format_time_with_highlight },
+   ['LAST_SEEN'] =            { tag = "last_seen",    dt_func = dt_format_time },
+   ['VLAN_ID'] =              { tag = "vlan_id",      dt_func = dt_format_vlan },
+   ['PACKETS'] =              { tag = "packets",      dt_func = dt_format_pkts },
+   ['TOTAL_BYTES'] =          { tag = "bytes",        dt_func = dt_format_bytes, js_chart_func = "bytesToSize"  },
+   ['SRC2DST_BYTES'] =        { tag = "src2dst_bytes",        dt_func = dt_format_bytes, js_chart_func = "bytesToSize"  },
+   ['DST2SRC_BYTES'] =        { tag = "dst2src_bytes",        dt_func = dt_format_bytes, js_chart_func = "bytesToSize"  },
+   ['PROTOCOL'] =             { tag = "l4proto",      dt_func = dt_format_l4_proto, simple_dt_func = l4_proto_to_string },
+   ['IPV4_SRC_ADDR'] =        { tag = "cli_ip",       dt_func = dt_format_src_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_src_ip },
+   ['IPV6_SRC_ADDR'] =        { tag = "cli_ip",       dt_func = dt_format_src_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_src_ip },
+   ['IPV4_DST_ADDR'] =        { tag = "srv_ip",       dt_func = dt_format_dst_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_dst_ip },
+   ['IPV6_DST_ADDR'] =        { tag = "srv_ip",       dt_func = dt_format_dst_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_dst_ip },
+   ['IP_DST_PORT'] =          { tag = "srv_port",     dt_func = dt_format_port },
+   ['L7_PROTO'] =             { tag = "l7proto",      dt_func = dt_format_l7_proto, simple_dt_func = interface.getnDPIProtoName },
+   ['NTOPNG_INSTANCE_NAME'] = {},
+   ['SCORE'] =                { tag = "score",        dt_func = dt_format_score, format_func = format_flow_score, i18n = i18n("score"), order = 9 },
+   ['L7_PROTO_MASTER'] =      { tag = "l7proto_master", dt_func = dt_format_l7_proto, simple_dt_func = interface.getnDPIProtoName },
+   ['NUM_FLOWS'] =            { tag = "flows_number" },
+   ['FLOW_RISK'] =            { tag = "flow_risk",    dt_func = dt_format_flow_risk },
+   ['SRC_MAC'] =              { tag = "cli_mac", dt_func = dt_format_mac },
+   ['DST_MAC'] =              { tag = "srv_mac", dt_func = dt_format_mac },
+   ['PROBE_IP'] =             { tag = "probe_ip",     dt_func = dt_format_probe, select_func = "IPv4NumToString", where_func = "IPv4StringToNum" },
+   ['SRC_COUNTRY_CODE'] =     { tag = "cli_country", dt_func = dt_format_country },
+   ['DST_COUNTRY_CODE'] =     { tag = "srv_country", dt_func = dt_format_country },
+   ['SRC_ASN'] =              { tag = "cli_asn", simple_dt_func = simple_format_src_asn },
+   ['DST_ASN'] =              { tag = "srv_asn", simple_dt_func = simple_format_dst_asn },
+   ['INPUT_SNMP'] =           { tag = "input_snmp", dt_func = dt_format_snmp_interface },
+   ['OUTPUT_SNMP'] =          { tag = "output_snmp", dt_func = dt_format_snmp_interface },
+   ['SRC_NETWORK_ID'] =       { tag = "cli_network", dt_func = dt_format_network },
+   ['DST_NETWORK_ID'] =       { tag = "srv_network", dt_func = dt_format_network },
 
+}
 -- Extra columns (e.g. result of SQL functions)
 local additional_flow_columns = {
    ['bytes'] =                { tag = "bytes",        dt_func = dt_format_bytes },
@@ -1003,6 +1041,41 @@ historical_flow_utils.min_db_columns = {
    "SERVER_LOCATION",
    "COMMUNITY_ID",
    "NTOPNG_INSTANCE_NAME"
+}
+
+historical_flow_utils.min_aggregated_flow_db_columns = {
+   "FLOW_ID",
+   "FIRST_SEEN",
+   "LAST_SEEN",
+   "VLAN_ID",
+   "PACKETS",
+   "TOTAL_BYTES",
+   "SRC2DST_BYTES",
+   "DST2SRC_BYTES",
+   "SCORE",
+   "PROTOCOL",
+   "IP_PROTOCOL_VERSION",
+   "IPV4_SRC_ADDR",
+   "IPV4_DST_ADDR",
+   "IPV6_SRC_ADDR",
+   "IPV6_DST_ADDR",
+   "IP_DST_PORT",
+   "L7_PROTO",
+   "L7_PROTO_MASTER",
+   "NTOPNG_INSTANCE_NAME",
+   "NUM_FLOWS",
+   "FLOW_RISK",
+   "SRC_MAC",
+   "DST_MAC",
+   "PROBE_IP",
+   "SRC_COUNTRY_CODE",
+   "DST_COUNTRY_CODE",
+   "SRC_ASN",
+   "DST_ASN",
+   "INPUT_SNMP",
+   "OUTPUT_SNMP",
+   "SRC_NETWORK_ID",
+   "DST_NETWORK_ID"
 }
 
 historical_flow_utils.extra_db_columns = {
@@ -1146,12 +1219,20 @@ end
 
 -- #####################################
 
-function historical_flow_utils.get_flow_columns_to_tags()
+function historical_flow_utils.get_flow_columns_to_tags(aggregated)
    local c2t = {}
 
-   for k, v in pairs(flow_columns) do
-      if v.tag then
-         c2t[k] = v.tag
+   if aggregated then
+      for k, v in pairs(aggregated_flow_columns) do
+         if v.tag then
+            c2t[k] = v.tag
+         end
+      end
+   else
+      for k, v in pairs(flow_columns) do
+         if v.tag then
+            c2t[k] = v.tag
+         end
       end
    end
 
@@ -1163,9 +1244,9 @@ end
 -- Return a table with a list of DB columns for each tag
 -- Example:
 -- { ["srv_ip"] = ["IPV4_DST_ADDR"], ["IPV6_DST_ADDR"], .. }
-local function get_flow_tags_to_columns()
+local function get_flow_tags_to_columns(aggregated)
    local t2c = {}
-   local c2t = historical_flow_utils.get_flow_columns_to_tags()
+   local c2t = historical_flow_utils.get_flow_columns_to_tags(aggregated)
 
    for c, t in pairs(c2t) do
       if not t2c[t] then
@@ -1179,8 +1260,8 @@ end
 
 -- Return DB select by tag
 -- Example: 'srv_ip' -> "IPV4_DST_ADDR, IPV6_DST_ADDR"
-function historical_flow_utils.get_flow_select_by_tag(tag)
-   local tags_to_columns = get_flow_tags_to_columns()
+function historical_flow_utils.get_flow_select_by_tag(tag, aggregated)
+   local tags_to_columns = get_flow_tags_to_columns(aggregated)
    local s = ''
 
    ::next::
@@ -1275,7 +1356,7 @@ function historical_flow_utils.format_record(record, csv_format, formatted_recor
       -- NB: Currently we need to add a dt_format_asn
       -- TODO: add this automatically
       dt_format_asn(processed_record, record)
-      dt_add_alerts_url(processed_record, record)
+      dt_add_alerts_url(processed_record, record,false)
       dt_format_flow(processed_record, record)
    end
 
@@ -1284,7 +1365,7 @@ end
 
 -- #####################################
 
-function historical_flow_utils.format_clickhouse_record(record, csv_format, formatted_record)
+function historical_flow_utils.format_clickhouse_record(record, csv_format, formatted_record, is_aggregated)
    local processed_record = {}
 
    ----------------------------------
@@ -1331,7 +1412,7 @@ function historical_flow_utils.format_clickhouse_record(record, csv_format, form
 
       dt_format_asn(processed_record, record)
       dt_unify_l7_proto(processed_record)
-      dt_add_alerts_url(processed_record, record)
+      dt_add_alerts_url(processed_record, record, is_aggregated)
       dt_format_flow(processed_record, record)
    end
 
