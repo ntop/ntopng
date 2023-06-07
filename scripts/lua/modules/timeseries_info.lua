@@ -112,6 +112,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, {
     schema = "iface:flows",
@@ -544,6 +545,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, {
     schema = "host:score",
@@ -953,6 +955,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, -- network_details.lua (SUBNET): --
 {
@@ -1131,6 +1134,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, {
     schema = "asn:rtt",
@@ -1326,6 +1330,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, -- vlan_details.lua (VLAN): --
 {
@@ -1346,6 +1351,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, {
     schema = "vlan:score",
@@ -1384,6 +1390,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, {
     schema = "host_pool:blocked_flows",
