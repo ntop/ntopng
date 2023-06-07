@@ -65,8 +65,9 @@ async function get_filter_const(is_alert_stats_url, page) {
         url_request = `${http_prefix}/lua/rest/v2/get/alert/filter/consts.lua?page=${page}`;
     } else {
         let query_preset = ntopng_url_manager.get_url_entry("query_preset");
+        let aggregated = ntopng_url_manager.get_url_entry("aggregated");
         if (query_preset == null) { query_preset = ""; }
-        url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/consts.lua?page=${page}&query_preset=${query_preset}`;
+        url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/consts.lua?page=${page}&query_preset=${query_preset}&aggregated={aggregated}`;
     }
     let filter_consts = await ntopng_utility.http_request(url_request);
     return filter_consts;
@@ -172,40 +173,6 @@ function get_filters_object(filters) {
         filters_object[f_id] = filter_values;
     }
     return filters_object;
-}
-
-async function set_query_preset(range_picker_vue) {
-    let page = range_picker_vue.page;
-    let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/preset/consts.lua?page=${page}`;
-    let res = await ntopng_utility.http_request(url_request);
-    let query_presets = res[0].list.map((el) => {
-        return {
-            value: el.id, //== null ? "flow" : el.id,
-            name: el.name,
-            count: el.count,
-            builtin: true,
-        };
-    });
-    if (res.length > 1) {
-        res[1].list.forEach((el) => {
-            let query = {
-                value: el.id,
-                name: el.name,
-                count: el.count,
-            };
-            query_presets.push(query);
-        });
-    }
-    if (range_picker_vue.query_preset == null || range_picker_vue.query_preset.value == "") {
-        range_picker_vue.query_preset = query_presets[0];
-    } else {
-        let q = query_presets.find((i) => i.value == range_picker_vue.query_preset.value);
-        range_picker_vue.query_preset = q || query_presets[0];
-    }
-    ntopng_url_manager.set_key_to_url("query_preset", range_picker_vue.query_preset.value);
-    ntopng_url_manager.set_key_to_url("count", range_picker_vue.query_preset.count);
-    range_picker_vue.query_presets = query_presets;
-    return res;
 }
 
 export default {
