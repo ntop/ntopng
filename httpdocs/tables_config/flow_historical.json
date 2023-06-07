@@ -50,6 +50,7 @@
 	    "data_field": "score",
 	    "render_type": "formatValueLabel",
 	    "sortable": true,
+	    "zero_is_null": true,
 	    "class": ["text-center"]
 	},
 	{

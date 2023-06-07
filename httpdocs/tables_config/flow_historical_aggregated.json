@@ -36,6 +36,7 @@
 	    "title_i18n": "score_average",
 	    "data_field": "score",
 	    "render_type": "formatValueLabel",
+	    "zero_is_null": true,
 	    "sortable": true,
 	    "class": ["text-center"]
 	},

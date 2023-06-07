@@ -78,6 +78,9 @@ function get_f_print_html_row(table_def) {
 	if (col.data_field != null) {
 	    data = row[col.data_field];
 	}
+	if (col.zero_is_null != null && data != null && data == 0) {
+	    data = "";
+	}
 	if (col.render_generic != null) {
 	    let render = DataTableRenders.getFormatGenericField(col.render_generic, col.zero_is_null);
 	    return render(data, 'display', row);
@@ -86,7 +89,7 @@ function get_f_print_html_row(table_def) {
 	    return col.render_func(data, row);
 	}
 	if (col.render_type != null) {
-            return DataTableRenders[col.render_type](data, 'display', row);
+            return DataTableRenders[col.render_type](data, 'display', row, col.zero_is_null);
 	}
 	return data;
     };

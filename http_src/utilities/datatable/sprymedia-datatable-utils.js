@@ -619,7 +619,7 @@ export class DataTableRenders {
         return `${DataTableRenders.formatValueLabel(severity, type, alert)} ${DataTableRenders.formatValueLabel(alert.alert_id, type, alert)}`;
     }
 
-    static hideIfZero(obj, type, row) {
+    static hideIfZero(obj, type, row, zero_is_null) {
         let color = (obj.color !== undefined ? obj.color : "#aaa");
         let value = (obj.value !== undefined ? obj.value : obj);
         if (type === "display" && parseInt(value) === 0) color = "#aaa";
@@ -628,7 +628,7 @@ export class DataTableRenders {
         return span;
     }
 
-    static secondsToTime(seconds, type, row) {
+    static secondsToTime(seconds, type, row, zero_is_null) {
         if (type === "display") return NtopUtils.secondsToTime(seconds);
         return seconds;
     }
@@ -651,14 +651,17 @@ export class DataTableRenders {
         return content;
     }
 
-    static formatValueLabel(obj, type, row) {
+    static formatValueLabel(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.value;
         let cell = obj.label;
+	if (zero_is_null == true && obj.value == 0) {
+	    cell = "";
+	}
         if (obj.color) cell = `<span class='font-weight-bold' style='color: ${obj.color}'>${cell}</span>`;
         return cell;
     }
 
-    static formatMessage(obj, type, row) {
+    static formatMessage(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.value;
            
         let cell = obj.descr;
@@ -668,7 +671,7 @@ export class DataTableRenders {
         return cell;
     }
 
-    static formatSubtype(obj, type, row) {
+    static formatSubtype(obj, type, row, zero_is_null) {
         if (type !== "display") return obj;
 
         let label = DataTableRenders.filterize('subtype', obj, obj);
@@ -700,12 +703,12 @@ export class DataTableRenders {
         return cell;
     }
 
-    static formatSNMPIP(obj, type, row) {
+    static formatSNMPIP(obj, type, row, zero_is_null) {
         if (type !== "display") return obj;
         return DataTableRenders.filterize('ip', obj, obj, obj, obj, null, true);
     }
 
-    static formatProbeIP(obj, type, row) {
+    static formatProbeIP(obj, type, row, zero_is_null) {
         if (type !== "display") return obj;
 
 	let label = DataTableRenders.filterize('probe_ip', obj.value, obj.label, obj.label, obj.label_long);
@@ -713,7 +716,7 @@ export class DataTableRenders {
         return label; 
     }
    
-    static formatHost(obj, type, row) {
+    static formatHost(obj, type, row, zero_is_null) {
         if (type !== "display") return obj;
     	let html_ref = '';
 	if (obj.reference !== undefined)
@@ -769,7 +772,7 @@ export class DataTableRenders {
       return DataTableRenders.filterize(key, valueVlan, labelVlan, labelVlan, titleVlan); 
     }
 
-    static formatFlowTuple(flow, type, row) {
+    static formatFlowTuple(flow, type, row, zero_is_null) {
       let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
         let cliLabel = "";
         if (flow.cli_ip.name) {
@@ -827,7 +830,7 @@ export class DataTableRenders {
         return `${active_ref} ${cliLabel}${cliBlacklisted}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvBlacklisted}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
     }
 
-    static formatNameDescription(obj, type, row) {
+    static formatNameDescription(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.name;
         let msg = DataTableRenders.filterize('alert_id', obj.value, obj.name, obj.fullname, obj.fullname);
 
