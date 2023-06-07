@@ -59,7 +59,6 @@ import { default as TabList } from "./tab-list.vue";
 import { default as Sankey } from "./sankey.vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as Loading } from "./loading.vue";
-import { default as HorizontalTable } from "./horizontal-table.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -142,7 +141,6 @@ let ntopVue = {
     Sankey: Sankey,
     NoteList: NoteList,
     Loading: Loading,
-    HorizontalTable: HorizontalTable,
 
     // list
     ListTimeseries: ListTimeseries,

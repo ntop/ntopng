@@ -7,9 +7,9 @@
     <div class="col-md-12 col-lg-12">
       <div class="mt-4 card card-shadow">
         <div class="card-body">
-          <HorizontalTable :id="table_id" :rows="stats_rows" :print_html_title="print_html_title"
+          <BootstrapTable :horizontal="true" :id="table_id" :rows="stats_rows" :print_html_title="print_html_title"
             :print_html_row="print_stats_row">
-          </HorizontalTable>
+          </BootstrapTable>
         </div>
       </div>
     </div>
@@ -18,7 +18,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { default as HorizontalTable } from "./horizontal-table.vue";
+import { default as BootstrapTable } from "./bootstrap-table.vue";
 
 const _i18n = (t) => i18n(t);
 
