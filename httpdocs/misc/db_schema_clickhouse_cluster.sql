@@ -325,7 +325,7 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` ON CLUSTER '$CLUSTER' (
 `alert_status` UInt8 NOT NULL,
 `interface_id` UInt16 NULL,
 `ip` String NOT NULL,
-`port` UInt16,
+`port` UInt32,
 `name` String,
 `port_name` String,
 `tstamp` DateTime NOT NULL,
@@ -339,6 +339,10 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+
+@
+
+ALTER TABLE `snmp_alerts` MODIFY COLUMN `port` UInt32;
 
 @
 
