@@ -179,10 +179,10 @@ const flow_type_label = ref(_i18n("datatable.aggregated"));
 
 function change_flow_type() {
     if (flows_aggregated.value == false) {
-	ntopng_url_manager.set_key_to_url("aggregated", false);
+	ntopng_url_manager.delete_params(["aggregated"]);
 	table_id.value = "flow_historical";
     } else {
-	ntopng_url_manager.set_key_to_url("aggregated", true);
+	ntopng_url_manager.set_key_to_url("aggregated", "true");
 	table_id.value = "flow_historical_aggregated";
     }
     refresh_page_components(true);
@@ -202,12 +202,15 @@ onMounted(async () => {
 
 function init_params() {
     page.value = ntopng_url_manager.get_url_entry("page");
+    table_id.value = `flow_historical`;
+    const aggregated = ntopng_url_manager.get_url_entry("aggregated");
+    if (aggregated == "true") {
+	table_id.value = `flow_historical_aggregated`;
+	flows_aggregated.value = true;
+    }
     if (page.value == null) { page.value = "overview"; }
     chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
-    table_id.value = `flow_historical`;
-    if (page.value == "overview_aggregated") {
-	table_id.value = `flow_historical`;
-    }
+    
     selected_query_preset.value = {
 	value: ntopng_url_manager.get_url_entry("query_preset"),
 	count: ntopng_url_manager.get_url_entry("count"),

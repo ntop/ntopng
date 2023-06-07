@@ -12,21 +12,24 @@ import { ref, onMounted, computed, watch, h } from "vue";
 const emit = defineEmits(['update:value', 'change_value']);
 
 const props = defineProps({
-    checked: Boolean,
+    value: Boolean,
     label: String,
     change_label_side: Boolean,
 });
 
 const value_2 = ref(false);
 
+onMounted(() => {
+    value_2.value = props.value;
+});
+
 watch(() => props.value, (cur_value, old_value) => {
     value_2.value = props.value;
 }, { flush: 'pre'});
 
 function change_value() {
-    value_2.value = !value_2.value;
-    emit('update:value', value_2.value);
-    emit('change_value', value_2.value);
+    emit('update:value', !value_2.value);
+    emit('change_value', !value_2.value);
 }
 
 </script>
