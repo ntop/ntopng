@@ -842,7 +842,8 @@ if page == 'active_hosts' then
 elseif page == "inactive_hosts" then
     template_utils.render("pages/inactive_hosts.template", {
         ifid = ifstats.id,
-        csrf = ntop.getRandomCSRFValue()
+        csrf = ntop.getRandomCSRFValue(),
+        show_historical = ntop.isEnterpriseM() and hasClickHouseSupport()
     })
 end
 

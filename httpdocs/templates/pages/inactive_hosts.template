@@ -7,13 +7,15 @@
 <div id="inactive-hosts">
   <page-inactive-hosts
   :ifid="ifid"
-  :csrf="csrf">
+  :csrf="csrf"
+  :show_historical="show_historical">
   </page-inactive-hosts>
 </div>
   
 <script type="text/javascript">  
   const ifid = {* ifid *}
   const csrf = "{* csrf *}"
+  const show_historical = "{* show_historical *}" == "true"
   
   function start_vue() {
     let vue_options = {
@@ -29,7 +31,8 @@
       data() {
         return {
           ifid: ifid,
-          csrf: csrf
+          csrf: csrf,
+          show_historical: show_historical,
         };
       },
       methods: { },

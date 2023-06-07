@@ -40,6 +40,8 @@ function inactive_hosts_utils.getInactiveHosts(ifid)
                 name = host_info.name,
                 last_seen = host_info.last_seen,
                 first_seen = host_info.first_seen,
+                epoch_end = host_info.last_seen,
+                epoch_begin = host_info.first_seen,
                 device_id = host_info.device_type,
                 device_type = discover.devtype2string(host_info.device_type),
                 network_id = host_info.network,
