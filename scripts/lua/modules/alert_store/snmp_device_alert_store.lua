@@ -115,7 +115,9 @@ function snmp_device_alert_store:_add_additional_request_filters()
    local port = _GET["snmp_interface"]
 
    self:add_filter_condition_list('ip', ip)
-   self:add_filter_condition_list('port', port, 'number')
+
+   --  self:add_filter_condition_list('port', port, 'number')
+   self:add_filter_condition_list('snmp_interface', port)
 end
 
 -- ##############################################

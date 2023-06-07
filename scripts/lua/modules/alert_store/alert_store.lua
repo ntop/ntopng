@@ -334,21 +334,32 @@ function alert_store:build_sql_cond(cond, is_write)
             sql_val = snmp_info[2]
         end
 
-        -- Look for input or output
-        if cond.field == 'snmp_interface' then
-            local input_snmp = self:get_column_name('input_snmp', is_write)
-            local output_snmp = self:get_column_name('output_snmp', is_write)
+        if self._alert_entity == alert_entities.snmp_device then -- snmp entity
+            
+            sql_cond = self:get_column_name('port', is_write) .. sql_op .. sql_val
 
-            sql_cond = input_snmp .. sql_op .. sql_val .. " " .. ternary(cond.op == 'neq', 'AND', 'OR') .. " " ..
-                           output_snmp .. sql_op .. sql_val
-        else
-            local k = self:get_column_name(cond.field, is_write)
-            sql_cond = k .. sql_op .. sql_val
-        end
+            if probe_ip then
+                sql_cond = " (" .. sql_cond .. ")" .. ternary(cond.op == 'neq', 'OR', 'AND') .. " " ..
+                    self:get_column_name('ip', is_write) .. sql_op .. string.format("('%s')", probe_ip)
+            end
 
-        if probe_ip then
-            sql_cond = " (" .. sql_cond .. ")" .. ternary(cond.op == 'neq', 'OR', 'AND') .. " " ..
-                           self:get_column_name('probe_ip', is_write) .. sql_op .. string.format("('%s')", probe_ip)
+        else -- flow or other entities
+            -- Look for input or output
+            if cond.field == 'snmp_interface' then
+                local input_snmp = self:get_column_name('input_snmp', is_write)
+                local output_snmp = self:get_column_name('output_snmp', is_write)
+
+                sql_cond = input_snmp .. sql_op .. sql_val .. " " .. ternary(cond.op == 'neq', 'AND', 'OR') .. " " ..
+                               output_snmp .. sql_op .. sql_val
+            else
+                local k = self:get_column_name(cond.field, is_write)
+                sql_cond = k .. sql_op .. sql_val
+            end
+
+            if probe_ip then
+                sql_cond = " (" .. sql_cond .. ")" .. ternary(cond.op == 'neq', 'OR', 'AND') .. " " ..
+                               self:get_column_name('probe_ip', is_write) .. sql_op .. string.format("('%s')", probe_ip)
+            end
         end
 
         sql_cond = " (" .. sql_cond .. ")"
