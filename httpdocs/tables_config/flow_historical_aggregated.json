@@ -157,7 +157,7 @@
     {
         "title_i18n": "db_search.tags.instance_name",
 	    "data_field": "NTOPNG_INSTANCE_NAME",
-	    "sortable": false,
+	    "sortable": true,
 	    "class": ["text-nowrap"]
     }
     ]
