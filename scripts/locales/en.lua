@@ -6804,7 +6804,7 @@ local lang = {
     },
     ["snmp_devices_rules_metrics"] = {
       ["bytes"] = "Bytes (RX/TX)",
-      ["errors"] = "Errors (Packets Errors/Discards)",
+      ["errors"] = "Errors (Packets Errors + Discards)",
       ["packets"] = "Packets (RX/TX)",
     },
     ["validation"] = {
