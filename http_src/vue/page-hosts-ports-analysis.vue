@@ -19,6 +19,15 @@
 
                     <div class="d-flex align-items-center mb-2">
                         <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
+                            <label class="my-auto me-1">{{ _i18n('application') }}: </label>
+                            <SelectSearch v-model:selected_option="selected_application" :options="application_list"
+                                @select_option="update_port_list">
+                            </SelectSearch>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
                             <label class="my-auto me-1">{{ _i18n('db_search.tags.srv_port') }}: </label>
                             <SelectSearch v-model:selected_option="selected_port" :options="port_list"
                                 @select_option="update_port">
@@ -77,7 +86,9 @@ const table_aggregated_live_flows = ref(null);
 const selected_criteria = ref(criteria_list_def[0]);
 const table_config = ref({})
 const selected_port = ref({});
+const selected_application = ref({});
 let port_list = ref([]);
+let application_list = ref([]);
 let default_url_params = {};
 
 const criteria_list = function () {
@@ -113,6 +124,44 @@ function update_port() {
     load_table();
 }
 
+
+async function update_port_list() {
+    const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=` + selected_criteria.value.value;
+    let res = await ntopng_utility.http_request(url, null, null, true);
+    let ports = []
+    res.rsp.forEach((item) => {
+        let name = item.l7_proto_name.split(".")[0];
+        ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port, application: name, num_hosts: item.n_hosts })
+    })
+
+    let applications = []
+    ports.forEach((item) => {
+        if(applications.indexOf(item.application) == -1)
+            applications.push({label: item.application, id:item.application});
+    })
+    application_list.value = applications;
+
+    let ports_filtered = []
+    ports.forEach((item) => {
+        if(item.application == selected_application.value.label)
+            ports_filtered.push({label: item.id + " ("+item.num_hosts+")", id: item.id});
+    })  
+
+    port_list.value = ports_filtered;
+    selected_port.value = port_list.value[0];
+    ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
+    if (selected_port.value != undefined &&
+        selected_port.value != null &&
+        selected_port.value.id != undefined &&
+        selected_port.value.id != null) {
+            ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
+            ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
+
+        }
+    load_table();
+
+}
+
 async function init_selected_criteria() {
     let aggregation_criteria = ntopng_url_manager.get_url_entry("aggregation_criteria");
     if (aggregation_criteria == null || aggregation_criteria == "") {
@@ -125,13 +174,32 @@ async function init_selected_criteria() {
     let ports = []
     res.rsp.forEach((item) => {
         let name = item.l7_proto_name.split(".")[0];
-        ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port })
+        ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port, application: name, num_hosts: item.n_hosts })
     })
-    port_list.value = ports;
+
+    let applications = []
+    ports.forEach((item) => {
+        if(applications.indexOf(item.application) == -1)
+            applications.push({label: item.application, id:item.application});
+    })
+    application_list.value = applications;
+    selected_application.value = application_list.value[0];
+
+    let ports_filtered = []
+    ports.forEach((item) => {
+        if(item.application == selected_application.value.label)
+            ports_filtered.push({label: item.id + " ("+item.num_hosts+")", id: item.id});
+    })
+
+    port_list.value = ports_filtered;
     selected_port.value = port_list.value[0];
     if (selected_port.value != null &&
-        selected_port.value.id != null)
-        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
+        selected_port.value.id != null) {
+            ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
+            ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
+
+
+        }
     //load_table();
 
 }
@@ -143,16 +211,35 @@ async function update_criteria() {
     let ports = []
     res.rsp.forEach((item) => {
         let name = item.l7_proto_name.split(".")[0];
-        ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port })
+        ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port, application: name, num_hosts: item.n_hosts })
     })
-    port_list.value = ports;
+
+    let applications = []
+    ports.forEach((item) => {
+        if(applications.indexOf(item.application) == -1)
+            applications.push({label: item.application, id:item.application});
+    })
+    application_list.value = applications;
+    selected_application.value = application_list.value[0];
+
+    let ports_filtered = []
+    ports.forEach((item) => {
+        if(item.application == selected_application.value.label)
+            ports_filtered.push({label: item.id + " ("+item.num_hosts+")", id: item.id});
+    })  
+
+    port_list.value = ports_filtered;
     selected_port.value = port_list.value[0];
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
     if (selected_port.value != undefined &&
         selected_port.value != null &&
         selected_port.value.id != undefined &&
-        selected_port.value.id != null)
-        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
+        selected_port.value.id != null) {
+            ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
+            ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
+
+        }
+
     load_table();
 };
 
