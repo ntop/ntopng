@@ -17,7 +17,7 @@
 	  <div class="range-picker d-flex m-auto flex-wrap">
 	    <AlertInfo id="alert_info" :global="true" ref="alert_info"></AlertInfo>
 	    <RangePicker v-if="mount_range_picker" ref="range_picker" id="range_picker">
-	      <template v-slot:begin>
+	      <template v-if="props.context.is_enterprise_xl"  v-slot:begin>
 		<Switch v-model:value="flows_aggregated" class="me-2 mt-1" :change_label_side="true" :label="flow_type_label" style="" @change_value="change_flow_type" ></Switch>
 
                 <select class="me-2 form-select" style="min-width:8rem;" v-model="selected_query_preset"

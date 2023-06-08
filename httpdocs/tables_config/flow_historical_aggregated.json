@@ -50,7 +50,7 @@
         {
         "title_i18n": "db_explorer.total_flows",
 	    "data_field": "NUM_FLOWS",
-	    "sortable": false,
+	    "sortable": true,
 	    "class": ["text-nowrap text-end"]
         },
 	{
@@ -101,7 +101,7 @@
 	{
 	    "title_i18n": "db_search.tags.cli_network",
 	    "data_field": "cli_network",
-	    "sortable": false,
+	    "sortable": true,
 	    "render_generic": "cli_network",
 	    "class": ["text-nowrap"]
 	},
@@ -115,7 +115,7 @@
 	{
 	    "title_i18n": "db_search.tags.input_snmp",
 	    "data_field": "input_snmp",
-	    "sortable": false,
+	    "sortable": true,
 	    "zero_is_null": true,
 	    "render_generic": "input_snmp",
 	    "class": ["text-nowrap"]
@@ -123,7 +123,7 @@
 	{
 	    "title_i18n": "db_search.tags.output_snmp",
 	    "data_field": "output_snmp",
-	    "sortable": false,
+	    "sortable": true,
 	    "zero_is_null": true,
 	    "render_generic": "output_snmp",
 	    "class": ["text-nowrap"]
@@ -131,27 +131,27 @@
 	{
 	    "title_i18n": "db_search.tags.cli_country",
 	    "data_field": "cli_country",
-	    "sortable": false,
+	    "sortable": true,
 	    "render_generic": "cli_country",
 	    "class": ["text-nowrap"]
 	},
 	{
 	    "title_i18n": "db_search.tags.srv_country",
 	    "data_field": "srv_country",
-	    "sortable": false,
+	    "sortable": true,
 	    "render_generic": "srv_country",
 	    "class": ["text-nowrap"]
 	},
     {
         "title_i18n": "db_search.tags.cli_mac",
 	    "data_field": "cli_mac",
-	    "sortable": false,
+	    "sortable": true,
 	    "class": ["text-nowrap"]
     },
     {
         "title_i18n": "db_search.tags.srv_mac",
 	    "data_field": "srv_mac",
-	    "sortable": false,
+	    "sortable": true,
 	    "class": ["text-nowrap"]
     },
     {
