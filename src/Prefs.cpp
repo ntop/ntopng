@@ -469,8 +469,6 @@ void usage() {
       "[--zmq-encryption]                  | Enable ZMQ encryption\n"
       "[--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption "
       "secret key (debug only) \n"
-      "[--zmq-encryption-key <key>]        | ZMQ (export) encryption public "
-      "key (-I only) \n"
 #endif
       "[--zmq-publish-events <URL>]        | Endpoint for publishing events "
       "(e.g. IPS)\n"
@@ -621,6 +619,10 @@ void usage() {
       "endpoint\n"
       "                                    | See https://wp.me/p1LxdS-O5 for a "
       "-I use case.\n"
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
+      "[--zmq-encryption-key <key>]        | ZMQ (export) encryption public "
+      "key (-I only) \n"
+#endif
       "[--hw-timestamp-mode] <mode>        | Enable hw "
       "timestamping/stripping.\n"
       "                                    | Supported TS modes are:\n"

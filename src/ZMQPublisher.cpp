@@ -46,15 +46,34 @@ ZMQPublisher::ZMQPublisher(char *endpoint) {
     throw "Unable to initialize ZMQ (pub_socket)";
   }
 
-  if (ntop->getPrefs()->is_zmq_encryption_enabled()) {
+  if (ntop->getPrefs()->is_zmq_encryption_enabled()
+#ifdef NTOPNG_PRO
+        || ntop->getPro()->enableCloudCollection()
+#endif
+     ) {
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
     const char *secret_key;
 
-    if (ntop->getPrefs()->get_zmq_encryption_priv_key() == NULL)
-      ZMQUtils::generateEncryptionKeys();
+#ifdef NTOPNG_PRO
+    if (ntop->getPro()->enableCloudCollection()) {
+      ntop->getPro()->generateCloudEncryptionKeys();
 
-    secret_key = ZMQUtils::findEncryptionKeys(server_public_key, server_secret_key,
-      sizeof(server_public_key), sizeof(server_secret_key));
+      secret_key = ntop->getPro()->findCloudEncryptionKeys(server_public_key, server_secret_key,
+        sizeof(server_public_key), sizeof(server_secret_key)); 
+
+      if (secret_key == NULL || strlen(secret_key) == 0) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable ZMQ with encryption");
+        throw("Unable to publish events");
+      }
+    } else
+#endif
+    {
+      if (ntop->getPrefs()->get_zmq_encryption_priv_key() == NULL)
+        ZMQUtils::generateEncryptionKeys();
+
+      secret_key = ZMQUtils::findEncryptionKeys(server_public_key, server_secret_key,
+        sizeof(server_public_key), sizeof(server_secret_key));
+    }
 
     if (secret_key != NULL) {
       if (ZMQUtils::setServerEncryptionKeys(pub_socket, secret_key) < 0)
@@ -63,6 +82,10 @@ ZMQPublisher::ZMQPublisher(char *endpoint) {
 #else
     ntop->getTrace()->traceEvent(TRACE_ERROR,
         "Unable to enable ZMQ CURVE encryption, ZMQ >= 4.1 is required");
+#ifdef NTOPNG_PRO
+    if (ntop->getPro()->enableCloudCollection())
+      throw("Unable to collect flows");
+#endif
 #endif
   }
 

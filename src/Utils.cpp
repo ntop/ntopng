@@ -5392,11 +5392,11 @@ const char **Utils::getMessagingTopics() {
 
 /* ******************************************* */
 
-bool Utils::toHex(char *in, u_int in_len, char *out, u_int out_len) {
+char *Utils::toHex(char *in, u_int in_len, char *out, u_int out_len) {
   u_int i, j;
   static const char hex_digits[] = "0123456789ABCDEF";
 
-  if (in_len > (2 * out_len)) return (false);
+  if (in_len > (2 * out_len)) return NULL;
 
   for (i = 0, j = 0; i < in_len; i++) {
     u_char c = (u_char)in[i];
@@ -5407,7 +5407,7 @@ bool Utils::toHex(char *in, u_int in_len, char *out, u_int out_len) {
 
   out[j] = '\0';
 
-  return (true);
+  return out;
 }
 
 /* ******************************************* */
