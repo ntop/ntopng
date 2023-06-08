@@ -93,11 +93,12 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint)
                                                  sizeof(server_public_key), sizeof(server_secret_key));
       }
 
-      if (secret_key != NULL)
-        ZMQUtils::setServerEncryptionKeys(subscriber[num_subscribers].socket, secret_key);
+      if (secret_key != NULL) {
+        if (ZMQUtils::setServerEncryptionKeys(subscriber[num_subscribers].socket, secret_key) != 0)
+          throw("Unable set ZMQ encryption");
+      }
 #else
-      ntop->getTrace()->traceEvent(
-          TRACE_ERROR,
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
           "Unable to enable ZMQ CURVE encryption, ZMQ >= 4.1 is required");
 #ifdef NTOPNG_PRO
       if (ntop->getPro()->enableCloudCollection())

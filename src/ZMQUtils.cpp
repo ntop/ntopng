@@ -67,8 +67,8 @@ bool ZMQUtils::readEncryptionKeysFromFile(char *public_key_path, char *secret_ke
 
   if (Utils::file_read(public_key_path, &tmp_public_key) > 0 &&
       Utils::file_read(secret_key_path, &tmp_secret_key) > 0) {
-    strncpy(public_key, tmp_public_key, public_key_len - 1);
-    strncpy(secret_key, tmp_secret_key, secret_key_len - 1);
+    memcpy(public_key, tmp_public_key, public_key_len - 1);
+    memcpy(secret_key, tmp_secret_key, secret_key_len - 1);
     public_key[public_key_len - 1] = '\0';
     secret_key[secret_key_len - 1] = '\0';
     rc = true;
@@ -143,6 +143,8 @@ char *ZMQUtils::findEncryptionKeys(char *public_key, char *secret_key, int publi
 
   return secret_key;
 }
+
+/* *********************************************************** */
 
 int ZMQUtils::setServerEncryptionKeys(void *zmq_socket, const char *secret_key) {
   int val = 1;
