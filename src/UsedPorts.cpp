@@ -94,9 +94,13 @@ void UsedPorts::lua(lua_State *vm, NetworkInterface *iface) {
 
 void UsedPorts::setServerPort(bool isTCP, u_int16_t port,
                               ndpi_protocol *proto) {
-  if (isTCP)
-    tcp_server_ports[port] = *proto;
-  else
+  if (isTCP) {
+    if((proto->master_protocol == NDPI_PROTOCOL_FTP_DATA)
+       || (proto->app_protocol == NDPI_PROTOCOL_FTP_DATA))
+      ;
+    else
+      tcp_server_ports[port] = *proto;
+  } else
     udp_server_ports[port] = *proto;
 }
 
