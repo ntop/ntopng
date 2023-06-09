@@ -41,6 +41,7 @@ class HTTPserver {
   const char *https_binding_addr1, *https_binding_addr2;
   const char *http_options[32];
   int cur_http_options;
+  Trace *trace;
 
   void addHTTPOption(const char *k, const char *v);
   void startHttpServer();

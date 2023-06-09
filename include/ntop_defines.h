@@ -1181,6 +1181,8 @@
   NTOPNG_PREFS_PREFIX ".http_authenticator.auth_enabled"
 #define PREF_HTTP_AUTHENTICATOR_URL \
   NTOPNG_PREFS_PREFIX ".http_authenticator.http_auth_url"
+#define PREF_NTOP_HTTP_AUTH_LOG \
+  NTOPNG_PREFS_PREFIX ".http_authenticator.log_positive_event_enabled"
 #define MAX_HTTP_AUTHENTICATOR_LEN 256
 #define MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN 4096
 #define PREF_NTOP_LOCAL_AUTH NTOPNG_PREFS_PREFIX ".local.auth_enabled"

@@ -41,6 +41,7 @@ local auth_toggles = {
     ["local"] = "toggle_local_auth",
     ["ldap"] = "toggle_ldap_auth",
     ["http"] = "toggle_http_auth",
+    ["authentication_log"] = "toggle_http_auth_log",
     ["radius"] = "toggle_radius_auth",
     ["menu_entries"] = {
         ["help"] = "toggle_menu_entry_help",
@@ -990,11 +991,32 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "0",
             to_switch = elementToSwitch
         })
+        
+
+        prefsToggleButton(subpage_active, {
+            field = "http_auth_server_log",
+            pref = "http_authenticator.log_positive_event_enabled",
+            default = "0"
+        })
 
         local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.auth_enabled") == "1")
 
         prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title,
             subpage_active.entries["http_auth_server"].description, "ntopng.prefs.http_authenticator", "http_auth_url",
+            "", nil, showElements, true, true --[[ allowUrls ]] , {
+                attributes = {
+                    spellcheck = "false",
+                    maxlength = 255,
+                    required = "required",
+                    pattern = getURLPattern()
+                }
+            })
+
+
+        local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.log_positive_event_enabled") == "1")
+
+        prefsInputFieldPrefs(subpage_active.entries["http_auth_server_log"].title,
+            subpage_active.entries["http_auth_server_log"].description, "ntopng.prefs.http_authenticator.log_positive_event_enabled", "http_auth_url",
             "", nil, showElements, true, true --[[ allowUrls ]] , {
                 attributes = {
                     spellcheck = "false",
