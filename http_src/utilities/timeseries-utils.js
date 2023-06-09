@@ -201,6 +201,13 @@ function formatSerieProperties(type) {
 			strokeWidth: 1.5,
 			pointSize: 1.5,
 		}
+	} else if (type == "bounds") {
+		return {
+			fillGraph: false,
+			strokeWidth: 1.0,
+			pointSize: 1.5,
+			fillAlpha: 0.5
+		}
 	} else {
 		return {
 			fillGraph: true,
@@ -210,6 +217,50 @@ function formatSerieProperties(type) {
 			fillAlpha: 0.5
 		}
 	}
+}
+
+function formatBoundsSerie(series, series_info) {
+	let formatted_serie = [];
+	let color_palette = {};
+	let formatter = null;
+	let serie_name = null;
+	let serie_properties = {}
+	series.forEach((ts_info, j) => {
+		let scalar = 1;
+		let ts_id = timeseriesUtils.getSerieId(ts_info);
+		const serie = ts_info.data || []; /* Safety check */
+		let s_metadata = series_info.metric.timeseries[ts_id];
+
+		if (s_metadata.invert_direction == true) {
+			scalar = -1;
+		}
+
+		if (s_metadata.type == "metric") {
+			let name = s_metadata.label
+			serie_name = getSerieName(name, ts_id, series_info, true)
+			serie_properties = formatSerieProperties('bounds');
+
+			color_palette = { color: s_metadata.color, palette: 0 };
+			formatter = series_info.metric.measure_unit;
+		}
+
+		for (let point = 0; point < serie.length; point++) {
+			const serie_point = serie[point] || NaN;
+			if (formatted_serie[point] == null) {
+				formatted_serie[point] = [NaN, NaN, NaN];
+			}
+
+			if (s_metadata.type == "metric") {
+				formatted_serie[point][1] = serie_point * scalar;
+			} else if (s_metadata.type == "lower_bound") {
+				formatted_serie[point][2] = serie_point * scalar;
+			} else if (s_metadata.type == "upper_bound") {
+				formatted_serie[point][0] = serie_point * scalar;
+			}
+		}
+	})
+
+	return { serie: formatted_serie, color: color_palette, formatter: formatter, serie_name: serie_name, properties: serie_properties };
 }
 
 /* Given an array of timeseries, it compacts them into a single array */
@@ -225,6 +276,7 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 	let colors = [];
 	let colors_palette = [];
 	let serie_properties = {};
+	let customBars = false;
 
 	/* Go throught each serie */
 	tsOptionsArray.forEach((tsOptions, i) => {
@@ -236,113 +288,135 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 		const epoch_begin = tsOptions.metadata.epoch_begin
 		const step = tsOptions.metadata.epoch_step
 		const past_serie = tsOptions.additional_series
+		const bounds = tsGroupsArray[i].metric.bounds || false;
 
 		/* The serie can possibly have multiple timeseries, like for the 
 		 * bytes, we have sent and rcvd, so compact them 
 		 */
-
-		series.forEach((ts_info, j) => {
-			const serie = ts_info.data || []; /* Safety check */
+		if (bounds == true) {
+			/* TODO: add avg, past, ecc. timeseries to the bounds one */
+			customBars = true;
 			let time = epoch_begin;
-
-			let ts_id = timeseriesUtils.getSerieId(ts_info);
-			let s_metadata = tsGroupsArray[i].metric.timeseries[ts_id];
-			let extra_timeseries = tsGroupsArray[i].timeseries[j];
-			let scalar = 1;
-			let name = s_metadata.label
-
-			if (stacked == false) {
-				stacked = tsGroupsArray[i].metric.draw_stacked;
-			}
-
-			if (s_metadata.invert_direction == true) {
-				scalar = -1;
-			}
-			colors_palette.push({ color: s_metadata.color, palette: 0 });
-			/* Search for the formatter in the array, if not found, add it. */
-			const found = formatters.find(el => el == tsGroupsArray[i].metric.measure_unit);
-			if (found == null) {
-				formatters.push(tsGroupsArray[i].metric.measure_unit);
-			}
-
-			if (ts_info.ext_label) {
-				name = ts_info.ext_label
-			}
-
-			const serie_name = getSerieName(name, ts_id, tsGroupsArray[i], true)
-			/* Add the serie label to the array of the labels */
+			const { serie, color, formatter, serie_name, properties } = formatBoundsSerie(series, tsGroupsArray[i]);
+			colors_palette.push(color);
+			const found = formatters.find(el => el == formatter);
+			if (found == null)
+				formatters.push(formatter);
 			serie_labels.push(serie_name);
-
 			serie_properties[serie_name] = {}
-			serie_properties[serie_name] = formatSerieProperties(ts_info.type || 'filled');
-
-			/* ************************************** */
-
-			/* Adding the extra timeseries, 30m ago, avg and 95th */
-			if (extra_timeseries?.avg == true) {
-				/* Add the serie label to the array of the labels */
-				const avg_label = serie_labels.push(getSerieName(name + " Avg", ts_id, tsGroupsArray[i], true));
-
-				serie_properties[avg_label] = {}
-				serie_properties[avg_label] = formatSerieProperties("point");
-				colors_palette.push({ color: constant_serie_colors["avg"], palette: 1 });
-			}
-
-			if (extra_timeseries?.perc_95 == true) {
-				/* Add the serie label to the array of the labels */
-				const perc_label = serie_labels.push(getSerieName(name + " 95th Perc", ts_id, tsGroupsArray[i], true));
-
-				serie_properties[perc_label] = {}
-				serie_properties[perc_label] = formatSerieProperties("point");
-				colors_palette.push({ color: constant_serie_colors["perc_95"], palette: 1 });
-			}
-			if (extra_timeseries?.past == true) {
-				/* Add the serie label to the array of the labels */
-				const past_label = serie_labels.push(getSerieName(name + " " + tsCompare + " Ago", ts_id, tsGroupsArray[i], true));
-
-				serie_properties[past_label] = {}
-				serie_properties[past_label] = formatSerieProperties("line");
-				colors_palette.push({ color: constant_serie_colors["past"], palette: 1 });
-			}
-
-			/* ************************************** */
-
-			for (let point = 0; point < serie.length; point++) {
-				const serie_point = serie[point];
-				/* If the point is inserted for the first time, add the time before everything else */
-				if (formatted_serie[point] == null) {
-					formatted_serie[point] = [ntopng_utility.from_utc_s_to_server_date(time)];
-				}
-				/* Add the point to the array */
-				if (serie_point != null) {
-					formatted_serie[point].push(serie_point * scalar);
-				} else {
-					formatted_serie[point].push(NaN);
-				}
-
-				/* Add extra series, avg, 95th and past timeseries */
-				if (extra_timeseries?.avg == true) {
-					formatted_serie[point].push(ts_info.statistics["average"] * scalar);
-				}
-				if (extra_timeseries?.perc_95 == true) {
-					formatted_serie[point].push(ts_info.statistics["95th_percentile"] * scalar);
-				}
-				if (extra_timeseries?.past == true) {
-					for (const key in past_serie) {
-						if (past_serie[key]?.series[j]?.data[point]) {
-							formatted_serie[point].push(past_serie[key]?.series[j]?.data[point] * scalar);
-						}
-					}
-				}
+			serie_properties[serie_name] = properties;
+			serie.forEach((ts_info, j) => {
+				if (formatted_serie[j] == null)
+					formatted_serie[j] = [ntopng_utility.from_utc_s_to_server_date(time), ts_info];
 
 				/* Increase the time using the step */
 				time = time + step;
-			}
-		})
+			});
+		} else {
+			series.forEach((ts_info, j) => {
+				const serie = ts_info.data || []; /* Safety check */
+				let time = epoch_begin;
+
+				let ts_id = timeseriesUtils.getSerieId(ts_info);
+				let s_metadata = tsGroupsArray[i].metric.timeseries[ts_id];
+				let extra_timeseries = tsGroupsArray[i].timeseries[j];
+				let scalar = 1;
+				let name = s_metadata.label
+
+				if (stacked == false) {
+					stacked = tsGroupsArray[i].metric.draw_stacked;
+				}
+
+				if (s_metadata.invert_direction == true) {
+					scalar = -1;
+				}
+				colors_palette.push({ color: s_metadata.color, palette: 0 });
+				/* Search for the formatter in the array, if not found, add it. */
+				const found = formatters.find(el => el == tsGroupsArray[i].metric.measure_unit);
+				if (found == null) {
+					formatters.push(tsGroupsArray[i].metric.measure_unit);
+				}
+
+				if (ts_info.ext_label) {
+					name = ts_info.ext_label
+				}
+
+				const serie_name = getSerieName(name, ts_id, tsGroupsArray[i], true)
+				/* Add the serie label to the array of the labels */
+				serie_labels.push(serie_name);
+
+				serie_properties[serie_name] = {}
+				serie_properties[serie_name] = formatSerieProperties(ts_info.type || 'filled');
+
+				/* ************************************** */
+
+				/* Adding the extra timeseries, 30m ago, avg and 95th */
+				if (extra_timeseries?.avg == true) {
+					/* Add the serie label to the array of the labels */
+					const avg_label = serie_labels.push(getSerieName(name + " Avg", ts_id, tsGroupsArray[i], true));
+
+					serie_properties[avg_label] = {}
+					serie_properties[avg_label] = formatSerieProperties("point");
+					colors_palette.push({ color: constant_serie_colors["avg"], palette: 1 });
+				}
+
+				if (extra_timeseries?.perc_95 == true) {
+					/* Add the serie label to the array of the labels */
+					const perc_label = serie_labels.push(getSerieName(name + " 95th Perc", ts_id, tsGroupsArray[i], true));
+
+					serie_properties[perc_label] = {}
+					serie_properties[perc_label] = formatSerieProperties("point");
+					colors_palette.push({ color: constant_serie_colors["perc_95"], palette: 1 });
+				}
+				if (extra_timeseries?.past == true) {
+					/* Add the serie label to the array of the labels */
+					const past_label = serie_labels.push(getSerieName(name + " " + tsCompare + " Ago", ts_id, tsGroupsArray[i], true));
+
+					serie_properties[past_label] = {}
+					serie_properties[past_label] = formatSerieProperties("line");
+					colors_palette.push({ color: constant_serie_colors["past"], palette: 1 });
+				}
+
+				/* ************************************** */
+
+				for (let point = 0; point < serie.length; point++) {
+					const serie_point = serie[point];
+					/* If the point is inserted for the first time, add the time before everything else */
+					if (formatted_serie[point] == null) {
+						formatted_serie[point] = [ntopng_utility.from_utc_s_to_server_date(time)];
+					}
+					/* Add the point to the array */
+					if (serie_point != null) {
+						formatted_serie[point].push(serie_point * scalar);
+					} else {
+						formatted_serie[point].push(NaN);
+					}
+
+					/* Add extra series, avg, 95th and past timeseries */
+					if (extra_timeseries?.avg == true) {
+						formatted_serie[point].push(ts_info.statistics["average"] * scalar);
+					}
+					if (extra_timeseries?.perc_95 == true) {
+						formatted_serie[point].push(ts_info.statistics["95th_percentile"] * scalar);
+					}
+					if (extra_timeseries?.past == true) {
+						for (const key in past_serie) {
+							if (past_serie[key]?.series[j]?.data[point]) {
+								formatted_serie[point].push(past_serie[key]?.series[j]?.data[point] * scalar);
+							}
+						}
+					}
+
+					/* Increase the time using the step */
+					time = time + step;
+				}
+			})
+
+		}
 	});
 	colors = setSeriesColors(colors_palette)
 
-	let chartOptions = buildChartOptions(formatted_serie, serie_labels, serie_properties, formatters, colors, stacked);
+	let chartOptions = buildChartOptions(formatted_serie, serie_labels, serie_properties, formatters, colors, stacked, customBars);
 	return chartOptions;
 }
 
@@ -354,7 +428,7 @@ function getAxisConfiguration(formatter) {
 	}
 }
 
-function buildChartOptions(series, labels, serie_properties, formatters, colors, stacked) {
+function buildChartOptions(series, labels, serie_properties, formatters, colors, stacked, customBars) {
 	const interpolated_colors = colorsInterpolation.transformColors(colors);
 	let is_dark_mode = document.getElementsByClassName('body dark').length > 0;
 	let highlight_color = 'rgb(255, 255, 255)';
@@ -363,6 +437,7 @@ function buildChartOptions(series, labels, serie_properties, formatters, colors,
 	}
 
 	let config = {
+		customBars: customBars,
 		labels: labels,
 		series: serie_properties,
 		data: series,
