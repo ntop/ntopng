@@ -325,7 +325,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
   if (o) {
     json_object *w, *z;
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
     ntop->getPro()->handleProbeEvent(o, source_id, msg_id);
 #endif
 

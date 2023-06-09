@@ -65,14 +65,14 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ZMQ socket");
 
     if (ntop->getPrefs()->is_zmq_encryption_enabled()
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
         || ntop->getPro()->enableCloudCollection()
 #endif
        ) {
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
       const char *secret_key;
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
       if (ntop->getPro()->enableCloudCollection()) {
         ntop->getPro()->generateCloudEncryptionKeys();
 
@@ -100,7 +100,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint)
 #else
       ntop->getTrace()->traceEvent(TRACE_ERROR,
           "Unable to enable ZMQ CURVE encryption, ZMQ >= 4.1 is required");
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
       if (ntop->getPro()->enableCloudCollection())
         throw("Unable to collect flows");
 #endif
@@ -541,7 +541,7 @@ void ZMQCollectorInterface::collect_flows() {
               recvStats.num_hello++;
               /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HELLO] %s",
                * uncompressed); */
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
               ntop->getPro()->handleProbeHello(source_id, msg_id);
 #endif
               ntop->askToRefreshIPSRules();
@@ -559,7 +559,7 @@ void ZMQCollectorInterface::collect_flows() {
                                  msg_id, this);
               break;
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
             case 'm': /* (control) message */
               enum json_tokener_error jerr = json_tokener_success;
               json_object *o = json_tokener_parse_verbose(payload, &jerr);
@@ -652,14 +652,14 @@ void ZMQCollectorInterface::lua(lua_State *vm) {
   lua_settable(vm, -3);
 
   if ((ntop->getPrefs()->is_zmq_encryption_enabled() && strlen(server_public_key) > 0)
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
       || ntop->getPro()->enableCloudCollection()
 #endif
      ) {
     char *probe_key;
     char hex_key[83];
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
     if (ntop->getPro()->enableCloudCollection())
       probe_key = ntop->getPro()->getCloudKey();
     else

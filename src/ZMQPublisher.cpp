@@ -47,14 +47,14 @@ ZMQPublisher::ZMQPublisher(char *endpoint) {
   }
 
   if (ntop->getPrefs()->is_zmq_encryption_enabled()
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
         || ntop->getPro()->enableCloudCollection()
 #endif
      ) {
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
     const char *secret_key;
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
     if (ntop->getPro()->enableCloudCollection()) {
       ntop->getPro()->generateCloudEncryptionKeys();
 
@@ -82,7 +82,7 @@ ZMQPublisher::ZMQPublisher(char *endpoint) {
 #else
     ntop->getTrace()->traceEvent(TRACE_ERROR,
         "Unable to enable ZMQ CURVE encryption, ZMQ >= 4.1 is required");
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
     if (ntop->getPro()->enableCloudCollection())
       throw("Unable to collect flows");
 #endif
