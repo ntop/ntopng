@@ -26,13 +26,14 @@
 
 class ParsedFlowCore {
  public:
-  u_int8_t src_mac[6], dst_mac[6], direction, source_id;
+  u_int8_t src_mac[6], dst_mac[6], direction;
   u_int8_t src_tos, dst_tos;
   IpAddress src_ip, dst_ip;
   u_int32_t first_switched, last_switched;
   u_int16_t observationPointId;
   u_int8_t version; /* 0 so far */
   u_int8_t l4_proto;
+  u_int32_t source_id;
   u_int32_t device_ip;
   struct ndpi_in6_addr device_ipv6;
   u_int16_t src_port, dst_port;
