@@ -5741,6 +5741,7 @@ local lang = {
     ["captive_portal_url_description"] = "The URL your clients will be redirected to after a successful captive portal authentication.",
     ["captive_portal_url_title"] = "Redirection URL",
     ["chap"] = "CHAP",
+    ["clickhouse"] = "ClickHouse",
     ["client_x509_auth"] = "HTTPS Client Authentication",
     ["client_x509_auth_descr"] = "Toggle the authentication of clients on the basis of their X.509 certificate. When the client X.509 Common Name (CN) equals one of the %{product} users, then the client is authenticated as the %{product} user. Changes to this setting requires a %{product} restart.",
     ["client_x509_auth_title"] = "Client X.509 Certificate Authentication",

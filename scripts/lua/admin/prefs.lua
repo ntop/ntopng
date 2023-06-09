@@ -483,13 +483,7 @@ if auth.has_capability(auth.capabilities.preferences) then
                 max = 365 * 10
             })
 
-        prefsInputFieldPrefs(subpage_active.entries["aggregated_flows_data_retention"].title,
-            subpage_active.entries["aggregated_flows_data_retention"].description, "ntopng.prefs.",
-            "aggregated_flows_data_retention_days", data_retention_utils.getAggregatedFlowsDataRetention(), "number",
-            nil, nil, nil, {
-                min = 2,
-                max = 365 * 10
-            })
+        
 
         prefsInputFieldPrefs(subpage_active.entries["ts_data_retention"].title,
             subpage_active.entries["ts_data_retention"].description, "ntopng.prefs.",
@@ -1922,7 +1916,33 @@ if auth.has_capability(auth.capabilities.preferences) then
                 max = 2 ^ 32 - 1
             })
 
-        local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
+        
+        print(
+	   '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+	   i18n("save") .. '</button></th></tr>')
+	
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />
+  </form>
+  </table>]]
+    end
+
+    function printClickHouseOptions()
+        print('<form method="post">')
+        print('<table class="table">')
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.clickhouse") ..
+                  '</th></tr></thead>')
+
+    local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
+
+    prefsInputFieldPrefs(subpage_active.entries["aggregated_flows_data_retention"].title,
+            subpage_active.entries["aggregated_flows_data_retention"].description, "ntopng.prefs.",
+            "aggregated_flows_data_retention_days", data_retention_utils.getAggregatedFlowsDataRetention(), "number",
+            showAggregateFlowsPrefs, nil, nil, {
+                min = 2,
+                max = 365 * 10
+            })
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_limit"].title,
 			     subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
 			     "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound or 1000,
@@ -2004,6 +2024,10 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     if (tab == "in_memory") then
         printInMemory()
+    end
+
+    if (tab == "clickhouse") then
+        printClickHouseOptions()
     end
 
     if (tab == "dump_settings") then

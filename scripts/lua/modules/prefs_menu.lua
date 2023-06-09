@@ -271,6 +271,32 @@ local menu_subpages = {{
         }
     }
 }, {
+    id = "clickhouse",
+    label = i18n("prefs.clickhouse"),
+    advanced = true,
+    pro_only = true,
+    hidden = not ntop.isEnterpriseXL(),
+    entries = {
+        
+        aggregated_flows_data_retention = {
+            title = i18n("prefs.aggregated_flows_data_retention_title"),
+            description = i18n("prefs.aggregated_flows_data_retention_descr")
+        },
+        toggle_flow_aggregated_alerted_flows = {
+            title = i18n("prefs.toggle_flow_aggregated_alerted_flows_title"),
+            description = i18n("prefs.toggle_flow_aggregated_alerted_flows_description")
+        },
+        toggle_flow_aggregated_limit = {
+            title = i18n("prefs.toggle_flow_aggregated_limit_title"),
+            description = i18n("prefs.toggle_flow_aggregated_limit_description")
+        },
+        toggle_flow_aggregated_traffic_limit = {
+            title = i18n("prefs.toggle_flow_aggregated_traffic_limit_title"),
+            description = i18n("prefs.toggle_flow_aggregated_traffic_limit_description")
+        }
+    }
+},
+{
     id = "on_disk_ts",
     label = i18n("prefs.timeseries"),
     advanced = false,
@@ -618,10 +644,6 @@ local menu_subpages = {{
         flow_data_retention = {
             title = i18n("prefs.flows_and_alerts_data_retention"),
             description = i18n("prefs.flows_and_alerts_data_retention_descr")
-        },
-        aggregated_flows_data_retention = {
-            title = i18n("prefs.aggregated_flows_data_retention_title"),
-            description = i18n("prefs.aggregated_flows_data_retention_descr")
         },
         ts_data_retention = {
             title = i18n("prefs.ts_and_stats_data_retention"),
