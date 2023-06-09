@@ -499,6 +499,11 @@ void ZMQCollectorInterface::collect_flows() {
                                          uncompressed, msg_id, h->url);
           }
 
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+          if (ntop->getPro()->handleProbeMessage(h, uncompressed, uncompressed_len, source_id, msg_id)) {
+            /* Handled - nothing to do */
+          } else /* Process the message */ 
+#endif
           switch (h->url[0]) {
             case 'e': /* event */
               recvStats.num_events++;
@@ -541,9 +546,6 @@ void ZMQCollectorInterface::collect_flows() {
               recvStats.num_hello++;
               /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HELLO] %s",
                * uncompressed); */
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-              ntop->getPro()->handleProbeHello(source_id, msg_id);
-#endif
               ntop->askToRefreshIPSRules();
               break;
 
@@ -558,18 +560,10 @@ void ZMQCollectorInterface::collect_flows() {
               parseSNMPIntefaces(uncompressed, uncompressed_len, subscriber_id,
                                  msg_id, this);
               break;
-
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-            case 'm': /* (control) message */
-              enum json_tokener_error jerr = json_tokener_success;
-              json_object *o = json_tokener_parse_verbose(payload, &jerr);
-              if (o) ntop->getPro()->handleProbeControlMessage(o, source_id, msg_id);
-              break;
-#endif
           }
 
-            /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h->url,
-             * uncompressed); */
+          /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h->url,
+           * uncompressed); */
 
 #ifdef HAVE_ZLIB
           if (compressed /* only if the traffic was actually compressed */)

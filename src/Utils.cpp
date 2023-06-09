@@ -5384,7 +5384,7 @@ void Utils::closeSocket(int sock) {
 
 static const char *message_topics[] = {
     "flow",  "event",           "counter",     "template", "option",
-    "hello", "listening-ports", "snmp-ifaces", NULL};
+    "hello", "listening-ports", "snmp-ifaces", "message",  NULL};
 
 const char **Utils::getMessagingTopics() {
   return ((const char **)message_topics);
