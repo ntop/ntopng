@@ -285,6 +285,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
                                                    changed by deserialize */
   as = NULL, asn = 0, asname = NULL, obs_point = NULL, os = NULL, os_type = os_unknown;
   ssdpLocation = NULL, blacklist_name = NULL, country = NULL;
+  is_blacklisted = false;
 
   memset(&names, 0, sizeof(names));
   memset(view_interface_mac, 0, sizeof(view_interface_mac));
