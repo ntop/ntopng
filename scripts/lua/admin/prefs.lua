@@ -1917,6 +1917,13 @@ if auth.has_capability(auth.capabilities.preferences) then
 				min = 0,
 				max = 5000
 	})
+
+    prefsToggleButton(subpage_active, {
+        field = "toggle_flow_aggregated_alerted_flows",
+        default = "0",
+        pref = "include_alerted_flows_in_aggregated_flows",
+        hidden = not showAggregateFlowsPrefs
+    })
         print(
 	   '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
 	   i18n("save") .. '</button></th></tr>')

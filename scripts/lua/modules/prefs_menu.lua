@@ -252,6 +252,10 @@ local menu_subpages = {{
             title = i18n("prefs.max_num_bytes_per_tiny_flow_title"),
             description = i18n("prefs.max_num_bytes_per_tiny_flow_description")
         },
+        toggle_flow_aggregated_alerted_flows = {
+            title = i18n("prefs.toggle_flow_aggregated_alerted_flows_title"),
+            description = i18n("prefs.toggle_flow_aggregated_alerted_flows_description")
+        },
         toggle_flow_aggregated_limit = {
             title = i18n("prefs.toggle_flow_aggregated_limit_title"),
             description = i18n("prefs.toggle_flow_aggregated_limit_description")
