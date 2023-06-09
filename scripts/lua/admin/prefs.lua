@@ -1906,8 +1906,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 			     "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound or 1000,
 			     "number", showAggregateFlowsPrefs,
 			     false, nil, {
-				min = 1000,
-				max = 100000
+				min = 10000,
+				max = 10000000
 	})
 	
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_traffic_limit"].title,
