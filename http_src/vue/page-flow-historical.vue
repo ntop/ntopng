@@ -400,6 +400,7 @@ const map_table_def_columns = (columns) => {
 		historical_data: props.context.actions.show_historical,
 		flow_alerts: props.context.actions.show_alerts,
 		pcap_download: props.context.actions.show_pcap_download,
+        row_data: props.context.actions.show_row_data,
 	    };
 	    c.button_def_array.forEach((b) => {
 		if (!visible_dict[b.id]) {
@@ -539,6 +540,7 @@ function on_table_custom_event(event) {
 	"click_button_flow_alerts": click_button_flow_alerts,
 	"click_button_historical_flows": click_button_historical_flows,
 	"click_button_pcap_download": click_button_pcap_download,
+    "click_button_flows": click_button_flows,
     };
     if (events_managed[event.event_id] == null) {
 	return;
@@ -579,6 +581,37 @@ function click_button_flow_alerts(event) {
     if (flow.alerts_url) {
 	ntopng_url_manager.go_to_url(flow.alerts_url);
     }
+}
+
+function click_button_flows(event) {
+    const row_data = event.row;
+    const epoch_begin = row_data.filter.epoch_begin;
+    const epoch_end = row_data.filter.epoch_end;
+    const cli_ip = row_data.flow.cli_ip.value;
+    const srv_ip = row_data.flow.srv_ip.value;
+    const srv_port = row_data.flow.srv_port;
+    const probe_ip = row_data.probe_ip.value;
+    const instance_name = row_data.NTOPNG_INSTANCE_NAME;
+
+    const vlan_id = row_data.vlan_id.value;
+    let as_vlan = vlan_id != 0;
+
+    const output_snmp = row_data.output_snmp.value;
+    let as_output_snmp = output_snmp != 0;
+    const input_snmp = row_data.input_snmp.value;
+    let as_input_snmp = input_snmp != 0;
+
+    let url = `/lua/pro/db_search.lua?aggregated=false&epoch_begin=${epoch_begin};eq&epoch_end=${epoch_end};eq&cli_ip=${cli_ip};eq&srv_ip=${srv_ip};eq&srv_port=${srv_port};eq&probe_ip=${probe_ip};eq&instance_name=${instance_name}`
+    if (as_vlan)
+        url = url+`&vlan_id=${vlan_id};eq`;
+    
+    if (as_input_snmp)
+        url = url + `&input_snmp=${input_snmp};eq`;
+    
+    if (as_output_snmp)
+        url = url + `&output_snmp=${output_snmp};eq`;
+
+    ntopng_url_manager.go_to_url(url);
 }
 
 function get_status_view() {
