@@ -45,19 +45,19 @@ class Prefs {
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
   bool enable_client_x509_auth, reproduce_at_original_speed;
-  char* zmq_publish_events_url;
+  char* zmq_publish_events_url, *http_log_path;
   const char *clickhouse_client, *clickhouse_cluster_name;
   Ntop* ntop;
   bool enable_dns_resolution, sniff_dns_responses, sniff_name_responses,
-      sniff_local_name_responses, pcap_file_purge_hosts_flows,
-      categorization_enabled, resolve_all_host_ip, change_user, daemonize,
-      enable_auto_logout, enable_auto_logout_at_runtime, use_promiscuous_mode,
-      enable_ixia_timestamps, enable_vss_apcon_timestamps,
-      enable_interface_name_only, enable_users_login, disable_localhost_login,
-      service_license_check, enable_sql_log, enable_access_log, log_to_file,
-      enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
-      enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
-      enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
+    sniff_local_name_responses, pcap_file_purge_hosts_flows,
+    categorization_enabled, resolve_all_host_ip, change_user, daemonize,
+    enable_auto_logout, enable_auto_logout_at_runtime, use_promiscuous_mode,
+    enable_ixia_timestamps, enable_vss_apcon_timestamps, 
+    enable_interface_name_only, enable_users_login, disable_localhost_login,
+    service_license_check, enable_sql_log, enable_access_log, log_to_file,
+    enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
+    enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
+    enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
     dump_flows_on_clickhouse, use_mac_in_flow_key, do_reforge_timestamps;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, modbus_learning_period,
@@ -544,6 +544,7 @@ class Prefs {
   inline bool is_observation_points_rrd_creation_enabled() {
     return (enable_observation_points_rrd_creation);
   };
+  inline char* get_http_log_path() { return(http_log_path); };
   inline bool is_intranet_traffic_rrd_creation_enabled() {
     return (enable_intranet_traffic_rrd_creation);
   };

@@ -1031,6 +1031,8 @@ static void send_http_error(struct mg_connection *conn, int status,
 	    "Connection: %s\r\n\r\n", status, reason, len,
 	    suggest_connection_header(conn));
   conn->num_bytes_sent += mg_printf(conn, "%s", buf);
+
+  traceHTTP(conn, (u_int16_t)status);
 }
 
 #if defined(_WIN32) && !defined(__SYMBIAN32__)

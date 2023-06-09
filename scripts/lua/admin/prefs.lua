@@ -987,12 +987,6 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
         
 
-        prefsToggleButton(subpage_active, {
-            field = "http_auth_server_log",
-            pref = "http_authenticator.log_positive_event_enabled",
-            default = "0"
-        })
-
         local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.auth_enabled") == "1")
 
         prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title,
@@ -1009,8 +1003,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.log_positive_event_enabled") == "1")
 
-        prefsInputFieldPrefs(subpage_active.entries["http_auth_server_log"].title,
-            subpage_active.entries["http_auth_server_log"].description, "ntopng.prefs.http_authenticator.log_positive_event_enabled", "http_auth_url",
+        prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title,
+            subpage_active.entries["http_auth_server"].description, "ntopng.prefs.http_authenticator.log_positive_event_enabled", "http_auth_url",
             "", nil, showElements, true, true --[[ allowUrls ]] , {
                 attributes = {
                     spellcheck = "false",

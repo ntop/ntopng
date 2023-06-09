@@ -153,11 +153,6 @@ local menu_subpages = {{
             description = i18n("prefs.http_auth_server_description"),
             hidden = have_nedge
         },
-        http_auth_server_log = {
-            title = i18n("prefs.http_auth_server_log_title"),
-            description = i18n("prefs.http_auth_server_log_description"),
-            hidden = have_nedge
-        },
         toggle_client_x509_auth = {
             title = i18n("prefs.client_x509_auth_title", {
                 product = info.product
