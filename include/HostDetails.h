@@ -62,20 +62,24 @@ class HostDetails {
         };
 
         /* Getters */
-        inline char* get_ip(char buf[MAX_STRING_LEN]) { 
+        inline char* get_ip(char *buf) { 
             strncpy(buf, ip, MAX_STRING_LEN);
+            buf[MAX_STRING_LEN] = '\0';
             return(buf); 
         };
-        inline char* get_ip_hex(char buf[MAX_STRING_LEN]) { 
+        inline char* get_ip_hex(char *buf) { 
             strncpy(buf, ip_hex, MAX_STRING_LEN);
+            buf[MAX_STRING_LEN] = '\0';
             return(buf); 
         };
-        inline char* get_mac_address(char buf[MAX_STRING_LEN]) { 
+        inline char* get_mac_address(char *buf) { 
             strncpy(buf, mac_address, MAX_STRING_LEN);
+            buf[MAX_STRING_LEN] = '\0';
             return(buf); 
         };
-        inline char* get_name( char buf[MAX_STRING_LEN]) {
+        inline char* get_name(char *buf) {
             strncpy(buf, name, MAX_STRING_LEN);
+            buf[MAX_STRING_LEN] = '\0';
             return(buf); 
         }
         inline u_int64_t get_total_traffic() { return(total_traffic); }; 
