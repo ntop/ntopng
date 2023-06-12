@@ -197,6 +197,20 @@ export default {
       }
       return DataTableUtils.createActionButtons([undecidedButton, allowedButton, deniedButton]);
     },
+
+    create_action_button_historical_flow_link: function(_, type, rowData) {
+    let historical_flow_link = {
+      handlerId: "historical_flow_link",
+      onClick: () => {
+        historical_flow(rowData);
+      },
+    }
+
+    return DataTableUtils.createActionButtons([
+      { class: `pointer`, handler: historical_flow_link, icon: 'fas fa-stream', title: i18n('db_explorer.historical_data') },
+    ]);
+    
+    },
     delete_all: async function() {
       let url = `${http_prefix}/lua/pro/enterprise/network_maps.lua`;
       let params = {
@@ -240,6 +254,22 @@ export default {
     },  
   },
 }  
+
+function historical_flow(row) {
+  debugger;
+  const client_ip = row.client.split("host=")[1].split(">")[0];
+  const client = client_ip.substring(0, client_ip.length - 1);
+  const server_ip = row.server.split("host=")[1].split(">")[0];
+  const server = server_ip.substring(0, server_ip.length - 1);
+  const port = row.port;
+
+  const epoch_begin = row.first_seen;
+  const epoch_end = row.last_seen.epoch_end;
+
+  const url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${epoch_begin};eq&epoch_end=${epoch_end};eq&cli_ip=${client};eq&srv_ip=${server};eq&srv_port=${port};eq`
+  ntopng_url_manager.go_to_url(url);
+
+}
 
 function start_datatable(DatatableVue) {
   const datatableButton = [];
@@ -300,7 +330,14 @@ function start_datatable(DatatableVue) {
         return DatatableVue.create_action_buttons(data, type, service);
       }
     });
+
+
   }
+
+  columns.push({ columnName: i18n("actions"), name: 'actions',  className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) {
+        return DatatableVue.create_action_button_historical_flow_link(_, type,rowData);
+      }
+    });
   
   /* Extra table configuration */
   let table_config = {

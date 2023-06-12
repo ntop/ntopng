@@ -159,6 +159,19 @@ export default {
         this.reload_table();  
       }      
     },
+    create_action_button_historical_flow_link: function(_, type, rowData) {
+    let historical_flow_link = {
+      handlerId: "historical_flow_link",
+      onClick: () => {
+        historical_flow(rowData);
+      },
+    }
+
+    return DataTableUtils.createActionButtons([
+      { class: `pointer`, handler: historical_flow_link, icon: 'fas fa-stream', title: i18n('db_explorer.historical_data') },
+    ]);
+    
+    },
     hide_dropdowns: function() {      
       $(`#network_dropdown`).removeClass('d-inline')
       $(`#vlan_id_dropdown`).removeClass('d-inline')
@@ -180,6 +193,17 @@ export default {
   },
 }  
 
+function historical_flow(row) {
+  debugger;
+  const client_ip = row.client.split("host=")[1].split("&")[0];
+  const server_ip = row.server.split("host=")[1].split("&")[0];
+  const epoch_end = row.epoch_end;
+  const epoch_begin = row.epoch_begin;
+
+  debugger;
+  ntopng_url_manager.go_to_url(`/lua/pro/db_search.lua?epoch_end=${epoch_end};eq&epoch_begin=${epoch_begin};eq&cli_ip=${client_ip};eq&srv_ip=${server_ip};eq`);
+
+}
 function start_datatable(DatatableVue) {
   const datatableButton = [];
   let columns = [];
@@ -227,6 +251,10 @@ function start_datatable(DatatableVue) {
     { columnName: i18n("map_page.asset_family"), name: 'family', data: 'family', className: 'text-nowrap', responsivePriority: 2 },
     { columnName: i18n("map_page.last_seen"), name: 'last_seen', data: 'last_seen',  className: 'text-center', responsivePriority: 2 },
   ];
+  columns.push({ columnName: i18n("actions"), name: 'actions',  className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) {
+        return DatatableVue.create_action_button_historical_flow_link(_, type,rowData);
+      }
+    });
   
   let configDevices = ntopng_utility.clone(defaultDatatableConfig);
   configDevices.table_config = { serverSide: false, order: [[ 3 /* Last Seen */, 'desc' ]] }
@@ -246,6 +274,8 @@ function start_datatable(DatatableVue) {
     { columnName: i18n("map_page.asset_in_edges"), name: 'in_edges', data: 'in_edges', className: 'text-nowrap', responsivePriority: 2 },
     { columnName: i18n("map_page.asset_out_edges"), name: 'out_edges', data: 'out_edges',  className: 'text-center', responsivePriority: 2 },
   ];
+
+  
   
   let centralityConfigDevices = ntopng_utility.clone(defaultDatatableConfig);
   centralityConfigDevices.table_config = { serverSide: false, order: [[ 1 /* Total Edges */, 'desc' ]] }
