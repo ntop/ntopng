@@ -557,7 +557,7 @@ void LocalHost::setRouterMac(Mac *gw) {
     memcpy(router_mac, gw->get_mac(), 6), router_mac_set = true;
 
 #ifdef NTOPNG_PRO
-    ntop->get_am()->addClientGateway(this, gw);
+    ntop->get_am()->addClientGateway(this, gw, get_first_seen());
 #endif
   }
 }

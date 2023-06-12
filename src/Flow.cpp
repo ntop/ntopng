@@ -2014,7 +2014,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
         if (cli_host->incDNSContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
           ntop->get_am()->addClientServerUsage(cli_host, srv_host, dns_server,
-                                               NULL /* no DNS server name */);
+                                               NULL /* no DNS server name */,
+					       get_first_seen());
 #endif
         }
       }
@@ -2049,7 +2050,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
         if (cli_host->incNTPContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
           ntop->get_am()->addClientServerUsage(cli_host, srv_host, ntp_server,
-                                               NULL /* no NTP server name */);
+                                               NULL /* no NTP server name */,
+					       get_first_seen());
 #endif
         }
       }
@@ -2100,7 +2102,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
         if (cli_host->incSMTPContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
           ntop->get_am()->addClientServerUsage(cli_host, srv_host, smtp_server,
-                                               getFlowServerInfo());
+                                               getFlowServerInfo(), get_first_seen());
 #endif
         }
       }
@@ -2112,7 +2114,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
         if (cli_host->incIMAPContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
           ntop->get_am()->addClientServerUsage(cli_host, srv_host, imap_server,
-                                               getFlowServerInfo());
+                                               getFlowServerInfo(), get_first_seen());
 #endif
         }
       }
@@ -2124,7 +2126,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
         if (cli_host->incPOPContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
           ntop->get_am()->addClientServerUsage(cli_host, srv_host, pop_server,
-                                               getFlowServerInfo());
+                                               getFlowServerInfo(), get_first_seen());
 #endif
         }
       }
