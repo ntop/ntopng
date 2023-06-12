@@ -717,6 +717,8 @@ class Ntop {
     return flow_checks_loader ? flow_checks_loader->getUnhandledRisks() : 0;
   };
 #ifndef HAVE_NEDGE
+  bool initPublisher();
+  bool broadcastControlMessage(char *msg);
   bool broadcastIPSMessage(char *msg);
   inline void askToRefreshIPSRules() { refresh_ips_rules = true; }
   inline bool timeToRefreshIPSRules() {

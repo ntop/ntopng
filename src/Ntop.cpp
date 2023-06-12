@@ -3648,15 +3648,13 @@ bool Ntop::isDbCreated() {
 
 #ifndef HAVE_NEDGE
 
-bool Ntop::broadcastIPSMessage(char *msg) {
-  bool rc = false;
-
-  if (prefs->getZMQPublishEventsURL() == NULL) return (false);
-
-  /* Jeopardized users_m lock :-) */
-  users_m.lock(__FILE__, __LINE__);
+bool Ntop::initPublisher() {
 
   if (zmqPublisher == NULL) {
+
+    if (prefs->getZMQPublishEventsURL() == NULL)
+      return (false);
+
     try {
       zmqPublisher = new ZMQPublisher(prefs->getZMQPublishEventsURL());
     } catch (...) {
@@ -3664,14 +3662,51 @@ bool Ntop::broadcastIPSMessage(char *msg) {
     }
   }
 
-  if (!zmqPublisher) {
+  if (zmqPublisher == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING,
                                  "Unable to create ZMQ publisher");
+
+  return !!zmqPublisher;
+}
+
+/* ******************************************* */
+
+bool Ntop::broadcastIPSMessage(char *msg) {
+  bool rc = false;
+
+  if (!msg) return (false);
+
+  /* Jeopardized users_m lock :-) */
+  users_m.lock(__FILE__, __LINE__);
+
+  if (!initPublisher()) {
     users_m.unlock(__FILE__, __LINE__);
     return (false);
   }
 
-  if (msg) rc = zmqPublisher->sendIPSMessage(msg);
+  rc = zmqPublisher->sendIPSMessage(msg);
+
+  users_m.unlock(__FILE__, __LINE__);
+
+  return (rc);
+}
+
+/* ******************************************* */
+
+bool Ntop::broadcastControlMessage(char *msg) {
+  bool rc = false;
+
+  if (!msg) return (false);
+
+  /* Jeopardized users_m lock :-) */
+  users_m.lock(__FILE__, __LINE__);
+
+  if (!initPublisher()) {
+    users_m.unlock(__FILE__, __LINE__);
+    return (false);
+  }
+
+  rc = zmqPublisher->sendControlMessage(msg);
 
   users_m.unlock(__FILE__, __LINE__);
 

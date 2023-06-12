@@ -38,7 +38,8 @@ class ZMQPublisher {
   ZMQPublisher(char *endpoint);
   ~ZMQPublisher();
 
-  inline bool sendIPSMessage(char *msg) { return (sendMessage("ips", msg)); }
+  inline bool sendIPSMessage(char *msg)     { return (sendMessage("ips", msg)); }
+  inline bool sendControlMessage(char *msg) { return (sendMessage("message", msg)); }
 };
 
 #endif /* _ZMQ_PUBLISHER_H_ */

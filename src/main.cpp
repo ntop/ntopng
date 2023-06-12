@@ -169,8 +169,8 @@ int main(int argc, char *argv[])
   if (prefs->daemonize_ntopng()) ntop->daemonize();
 
 #ifndef HAVE_NEDGE
-  /* Force ZMQ interface creation */
-  ntop->broadcastIPSMessage(NULL);
+  /* Create publisher ZMQ interface, if required */
+  ntop->initPublisher();
 #endif
 
 #ifdef __linux__
