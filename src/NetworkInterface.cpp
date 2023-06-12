@@ -310,6 +310,7 @@ void NetworkInterface::init(const char *interface_name) {
   tot_num_anomalies.local_hosts = tot_num_anomalies.remote_hosts = 0;
   num_active_alerted_flows_notice = 0, num_active_alerted_flows_warning = 0,
   num_active_alerted_flows_error = 0;
+  num_active_probes = 0;
 
   is_view = false;
   viewed_by = NULL;
@@ -10122,6 +10123,24 @@ u_int64_t NetworkInterface::getNumActiveAlertedFlows() const {
   return num_active_alerted_flows_notice + num_active_alerted_flows_warning +
          num_active_alerted_flows_error;
 };
+
+/* *************************************** */
+
+void NetworkInterface::incNumActiveProbes() {
+  num_active_probes++;
+}
+
+/* *************************************** */
+
+void NetworkInterface::decNumActiveProbes() {
+  num_active_probes--;
+}
+
+/* *************************************** */
+
+u_int64_t NetworkInterface::getNumActiveProbes() const {
+  return num_active_probes;
+}
 
 /* *************************************** */
 

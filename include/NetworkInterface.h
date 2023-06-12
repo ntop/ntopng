@@ -95,6 +95,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   std::atomic<u_int64_t>
       num_active_alerted_flows_error; /* Counts all flow alerts with severity >=
                                          error   */
+  std::atomic<u_int32_t> num_active_probes; /* Count active ZMQ probes */
   u_int32_t num_host_dropped_alerts, num_flow_dropped_alerts,
       num_other_dropped_alerts, last_purge_idle;
   u_int64_t num_written_alerts, num_alerts_queries, score_as_cli, score_as_srv;
@@ -1200,6 +1201,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     INTERFACE_PROFILING_SECTION_EXIT(id);
   };
 #endif
+
+  void incNumActiveProbes();
+  void decNumActiveProbes();
+  u_int64_t getNumActiveProbes() const;
 
   void incNumAlertedFlows(Flow *f, AlertLevel severity);
   void decNumAlertedFlows(Flow *f, AlertLevel severity);

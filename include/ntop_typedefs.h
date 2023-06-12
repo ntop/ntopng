@@ -254,6 +254,16 @@ struct zmq_msg_hdr_v2 {
   u_int32_t msg_id, source_id;
 };
 
+typedef struct {
+  char *endpoint;
+  void *socket;
+} zmq_subscriber;
+
+typedef struct {
+  u_int32_t last_seen;
+  u_int32_t last_msg_id;
+} zmq_probe;
+
 typedef u_int8_t dump_mac_t[DUMP_MAC_SIZE];
 typedef char macstr_t[MACSTR_SIZE];
 

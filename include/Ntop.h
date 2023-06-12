@@ -786,6 +786,7 @@ class Ntop {
     return (kafkaClient.sendMessage(kafka_broker_info, msg, msg_len));
   }
 #endif
+  u_int64_t getNumActiveProbes() const;
 };
 
 extern Ntop *ntop;
