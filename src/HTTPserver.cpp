@@ -49,7 +49,7 @@ static void traceHTTP(const struct mg_connection *const conn, u_int16_t status_c
       time_t theTime = time(NULL);
       struct tm result;
 
-      for(u_int i=0; i<request_info->num_headers; i++) {
+      for(int i=0; i<request_info->num_headers; i++) {
 	if(strcasecmp(request_info->http_headers[i].name, "User-Agent") == 0) {
 	  user_agent = request_info->http_headers[i].value;
 	} else if(strcasecmp(request_info->http_headers[i].name, "Referer") == 0) {
@@ -61,12 +61,12 @@ static void traceHTTP(const struct mg_connection *const conn, u_int16_t status_c
       }
 
       strftime(theDate, 32, "%d/%b/%Y %H:%M:%S", localtime_r(&theTime, &result));
-      fprintf(httpLogAccesFile, "%s - %s [%s] \"%s %s\" %u \"%s\" \"%s\"\n",
+      fprintf(httpLogAccesFile, "%s - %s [%s] \"%s %s HTTP/%s\" %u \"%s\" \"%s\"\n",
 	      Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
 	      request_info->remote_user ? request_info->remote_user : "-",
 	      theDate,
 	      request_info->request_method,
-	      request_info->uri,
+	      request_info->uri, request_info->http_version,
 	      status_code,
 	      referer ? referer : "",
 	      user_agent ? user_agent : "");

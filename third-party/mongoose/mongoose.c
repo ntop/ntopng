@@ -5174,6 +5174,9 @@ static void process_new_connection(struct mg_connection *conn) {
       if (conn->ctx->callbacks.end_request != NULL) {
 	conn->ctx->callbacks.end_request(conn, conn->status_code);
       }
+#if 1 /* NTOP */
+      if(conn->status_code == 200) traceHTTP(conn, conn->status_code);
+#endif
       log_access(conn);
     }
     if (ri->remote_user != NULL) {
