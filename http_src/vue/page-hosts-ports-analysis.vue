@@ -55,9 +55,7 @@
 import { ref, onMounted, onBeforeMount } from "vue";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import NtopUtils from "../utilities/ntop-utils";
-import { default as Datatable } from "./datatable.vue";
 import { default as Table } from "./table.vue";
-import { default as Loading } from "./loading.vue";
 import { default as SelectSearch } from "./select-search.vue";
 
 const props = defineProps({
@@ -89,7 +87,7 @@ const selected_port = ref({});
 const selected_application = ref({});
 let port_list = ref([]);
 let application_list = ref([]);
-let default_url_params = {};
+let counter = 0;
 
 const criteria_list = function () {
     if (props.is_ntop_enterprise_m) {
@@ -113,56 +111,42 @@ onMounted(async () => {
 const get_column_classes = (col) => {
     return col.className;
 }
+
 function update_port() {
-    ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
-
-    if (selected_port.value != undefined &&
-        selected_port.value != null &&
-        selected_port.value.id != undefined &&
-        selected_port.value.id != null) {
-
-        ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
-        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
-        }
-    load_table();
+    ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
 }
-
-
 
 async function update_dropdown_menus(is_application_selected) {
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
     const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=` + selected_criteria.value.value;
     let res = await ntopng_utility.http_request(url, null, null, true);
-    let ports = []
+    let ports = [];
+    application_list.value = [];
+    port_list.value = [];
+
     res.rsp.forEach((item) => {
         let name = item.l7_proto_name.split(".")[0];
         ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port, application: name, num_hosts: item.n_hosts })
     })
 
-    let applications = []
     ports.forEach((item) => {
-        if(applications.indexOf(item.application) == -1)
-            applications.push({label: item.application, id:item.application});
+        if (application_list.value.indexOf(item.application) == -1)
+            application_list.value.push({ label: item.application, id: item.application });
     })
-    application_list.value = applications;
-    if(!is_application_selected)
+
+    ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
+
+    if (!is_application_selected)
         selected_application.value = application_list.value[0];
 
-    let ports_filtered = []
     ports.forEach((item) => {
-        if(item.application == selected_application.value.label)
-            ports_filtered.push({label: item.id + " ("+item.num_hosts+")", id: item.id});
+        if (item.application == selected_application.value.label)
+            port_list.value.push({ label: item.id + " (" + item.num_hosts + ")", id: item.id });
     })
 
-    port_list.value = ports_filtered;
     selected_port.value = port_list.value[0];
-    if (selected_port.value != null &&
-        selected_port.value.id != null) {
-            ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
-            ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
-    }
-    debugger;
 
+    update_port();
 }
 
 async function update_port_list() {
@@ -173,7 +157,6 @@ async function update_port_list() {
 async function init_selected_criteria() {
     selected_criteria.value = criteria_list_def[0];
     await update_dropdown_menus(false);
-    //load_table();
 }
 
 async function update_criteria() {
@@ -203,9 +186,7 @@ function print_column_name(col) {
     return col.columnName;
 }
 
-let counter = 0;
 function print_html_row(col, row) {
-    // console.log(`counter: ${counter}; col: ${col.data}; row:${row[col.data]}`);
     counter += 1;
     let data = row[col.data];
     if (col.render != null) {
@@ -215,14 +196,12 @@ function print_html_row(col, row) {
 }
 
 const get_rows = async (active_page, per_page, columns_wrap, map_search, first_get_rows) => {
-    // loading.value.show_loading();
-
     let params = get_url_params(active_page, per_page, columns_wrap, map_search, first_get_rows);
     set_params_in_url(params);
     const url_params = ntopng_url_manager.obj_to_url_params(params);
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
-    let url;
-    let res;
+    let url = "";
+    let res = "";
 
     if (selected_port.value != null &&
         selected_port.value.id != null) {
@@ -233,11 +212,8 @@ const get_rows = async (active_page, per_page, columns_wrap, map_search, first_g
         url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port.lua?${url_params}&protocol=` + selected_criteria.value.value;
     }
     res = await ntopng_utility.http_request(url, null, null, true);
-    // if (res.rsp.length > 0) { res.rsp[0].server_name.alerted = true };
 
     return { total_rows: res.recordsTotal, rows: res.rsp };
-
-    // loading.value.hide_loading();
 };
 
 function set_params_in_url(params) {
@@ -264,8 +240,6 @@ function get_url_params(active_page, per_page, columns_wrap, map_search, first_g
             actual_params.sort = sort_column.data.data;
             actual_params.order = sort_column.sort == 1 ? "asc" : "desc";
         }
-        // actual_params.start = (active_page * per_page);
-        // actual_params.length = per_page;
     }
 
     return actual_params;
