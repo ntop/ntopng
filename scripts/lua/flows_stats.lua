@@ -550,11 +550,11 @@ if (page == "flows" or page == nil) then
                   request.then((data) => {
                      let throughput_bps_sent = (8 * (data.rsp.totBytesSent - old_totBytesSent)) / refresh_rate;
                      let throughput_bps_rcvd = (8 * (data.rsp.totBytesRcvd - old_totBytesRcvd)) / refresh_rate;
-                     let tot_throughput = (8 * data.rsp.totThpt);
-   
-                     if (tot_throughput < 0)      tot_throughput = 0;
+                     
                      if (throughput_bps_sent < 0) throughput_bps_sent = 0;
                      if (throughput_bps_rcvd < 0) throughput_bps_rcvd = 0;
+                     
+                     let tot_throughput = (throughput_bps_sent + throughput_bps_sent) || 0;
    
                      if ((old_totBytesSent > 0) || (old_totBytesRcvd > 0)) {
                        /* Second iteration or later */
@@ -565,8 +565,8 @@ if (page == "flows" or page == nil) then
                      }
    
                      /* Keep the old value for computing the differnce at the next round */
-                     old_totBytesSent = data.rsp.totBytesSent;
-                     old_totBytesRcvd = data.rsp.totBytesRcvd;
+                     old_totBytesSent = data.rsp.totBytesSent || 0;
+                     old_totBytesRcvd = data.rsp.totBytesRcvd || 0;
                      $('#filtered-flows-tot-bytes-value').html(NtopUtils.bytesToSize(old_totBytesSent + old_totBytesRcvd));
                      $('#filtered-flows-tot-throughput-value').html(NtopUtils.bitsToSize(tot_throughput, 1000));
                   })
