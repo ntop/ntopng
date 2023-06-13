@@ -6011,7 +6011,6 @@ void NetworkInterface::getActiveFlowsStats(
   lua_push_uint64_table_entry(vm, "numFlows", retriever.actNumEntries);
   lua_push_uint64_table_entry(vm, "totBytesSent", retriever.totBytesSent);
   lua_push_uint64_table_entry(vm, "totBytesRcvd", retriever.totBytesRcvd);
-  lua_push_uint64_table_entry(vm, "totThpt", retriever.totThpt);
 
   if (!only_traffic_stats) {
     /* DPI stats */
