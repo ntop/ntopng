@@ -97,6 +97,19 @@ export default {
       $(`#network_dropdown`).removeClass('d-inline')
       $(`#vlan_id_dropdown`).removeClass('d-inline')
     }, 
+    create_action_button_historical_flow_link: function(_, type, rowData) {
+    let historical_flow_link = {
+      handlerId: "historical_flow_link",
+      onClick: () => {
+        historical_flow(rowData);
+      },
+    }
+
+    return DataTableUtils.createActionButtons([
+      { class: `pointer`, handler: historical_flow_link, icon: 'fas fa-stream', title: i18n('db_explorer.historical_data') },
+    ]);
+    
+    },
     delete_all: async function() {
       let url = `${http_prefix}/lua/pro/enterprise/network_maps.lua`;
       let params = {
@@ -134,6 +147,29 @@ export default {
     },  
   },
 }  
+
+function historical_flow(row) {
+  const client_ip = row.client.split("host=")[1].split(">")[0];
+  const client = client_ip.substring(0, client_ip.length - 1);
+  const server_ip = row.server.split("host=")[1].split(">")[0];
+  const server = server_ip.substring(0, server_ip.length - 1);
+  const port = row.port;
+
+  const epoch_begin = row.first_seen;
+  const epoch_end = row.last_seen.epoch_end;
+
+  const params = {
+    epoch_begin: epoch_begin,
+    epoch_end: epoch_end,
+    srv_ip: `${server};eq`,
+    cli_ip: `${client};eq`,
+    srv_port: `${port};eq`,
+  }
+  const url_params = ntopng_url_manager.obj_to_url_params(params);
+  const url = `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
+  ntopng_url_manager.go_to_url(url);
+
+}
 
 function start_datatable(DatatableVue) {
   const datatableButton = [];
@@ -181,12 +217,17 @@ function start_datatable(DatatableVue) {
     { columnName: i18n('map_page.port'), name: 'port', data: 'port',  className: 'text-center', responsivePriority: 4 },
     { columnName: i18n('map_page.protocol'), name: 'l7proto', data: 'protocol', className: 'text-nowrap', responsivePriority: 3 },
     { columnName: i18n('map_page.first_seen'), name: 'first_seen', data: 'first_seen', visible: false, responsivePriority: 3 },
+    { columnName: i18n('duration'), name: 'duration', data: 'duration', className: 'text-center text-nowrap',  responsivePriority: 3, orderable: true,  },
     { columnName: i18n('map_page.observations'), name: 'observations', data: 'observations', className: 'text-center', responsivePriority: 4 },
     { columnName: i18n('map_page.frequency'), name: 'frequency', data: 'frequency', className: 'text-center', orderable: true, responsivePriority: 4, render: ( data, type, row ) => {
         return (type == "sort" || type == 'type') ? data : data + " sec"; 
       }
     },
   ];
+  columns.push({ columnName: i18n("actions"), name: 'actions',  className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) {
+        return DatatableVue.create_action_button_historical_flow_link(_, type,rowData);
+      }
+    });
 
   default_sorting_columns = 6 /* Observation column */
 

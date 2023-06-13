@@ -2014,8 +2014,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
         if (cli_host->incDNSContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
           ntop->get_am()->addClientServerUsage(cli_host, srv_host, dns_server,
-                                               NULL /* no DNS server name */,
-					       get_first_seen());
+                                               NULL /* no DNS server name */, get_first_seen());
 #endif
         }
       }
@@ -2050,8 +2049,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
         if (cli_host->incNTPContactCardinality(srv_host)) {
 #ifdef NTOPNG_PRO
           ntop->get_am()->addClientServerUsage(cli_host, srv_host, ntp_server,
-                                               NULL /* no NTP server name */,
-					       get_first_seen());
+                                               NULL /* no NTP server name */, get_first_seen());
 #endif
         }
       }
