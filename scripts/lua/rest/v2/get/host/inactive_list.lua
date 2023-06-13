@@ -59,12 +59,19 @@ if table.len(hosts) > 0 then
         rsp[key]["device_type"] = discover_utils.devtype2icon(value["device_id"]) .. " " .. value["device_type"]
 
         -- If available, add url and extra info
-        if interface.getMacInfo(value["mac_address"]) then
+        local mac_info = interface.getMacInfo(value["mac_address"])
+        if mac_info then
             rsp[key]["mac_address"] = {
                 name = mac2label(value["mac_address"]),
                 value = value["mac_address"],
                 url = mac2url(value["mac_address"])
             }
+            rsp[key]["mac_address_manufacturer"] = mac_info.manufacturer
+        else 
+            local mac_manufacturer = ntop.getMacManufacturer(value["mac_address"])
+            if mac_manufacturer then
+                rsp[key]["mac_address_manufacturer"] = mac_manufacturer.extended
+            end
         end
 
         if interface.getNetworkStats(rsp[key]["network_id"]) then

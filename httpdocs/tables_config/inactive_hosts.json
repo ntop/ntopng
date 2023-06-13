@@ -53,6 +53,14 @@
 			]
 		},
 		{
+			"title_i18n": "mac_stats.manufacturer",
+			"data_field": "mac_address_manufacturer",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "name",
 			"data_field": "host_name",
 			"sortable": true,
