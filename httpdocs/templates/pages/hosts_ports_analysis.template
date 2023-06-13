@@ -12,8 +12,7 @@
   :sort="sort"
   :order="order"
   :start="start"
-  :length="length"
-  :is_live="is_live">
+  :length="length">
   </page-hosts-ports-analysis>
 </div>
   
@@ -25,13 +24,11 @@
   const start = {* start *}
   const length = {* length *}
   const is_live = "{* is_live *}"
-
-
   
   function start_vue() {
     const isNtopEnterpriseM = '{* ntop.isEnterpriseM() *}' == 'true';
     let vue_options;
-    if(is_live) {
+    if(is_live == "true") {
         vue_options = {
             components: {	  
                 'page-hosts-ports-analysis': ntopVue.PageHostsPortsAnalysis,
