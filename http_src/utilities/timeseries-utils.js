@@ -245,17 +245,19 @@ function formatBoundsSerie(series, series_info) {
 		}
 
 		for (let point = 0; point < serie.length; point++) {
-			const serie_point = serie[point] || NaN;
+			let serie_point = serie[point]
+			if (serie_point == null)
+				serie_point = NaN;
 			if (formatted_serie[point] == null) {
-				formatted_serie[point] = [NaN, NaN, NaN];
+				formatted_serie[point] = [0, NaN, 0];
 			}
 
 			if (s_metadata.type == "metric") {
 				formatted_serie[point][1] = serie_point * scalar;
 			} else if (s_metadata.type == "lower_bound") {
-				formatted_serie[point][2] = serie_point * scalar;
-			} else if (s_metadata.type == "upper_bound") {
 				formatted_serie[point][0] = serie_point * scalar;
+			} else if (s_metadata.type == "upper_bound") {
+				formatted_serie[point][2] = serie_point * scalar;
 			}
 		}
 	})
@@ -302,7 +304,7 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 			const found = formatters.find(el => el == formatter);
 			if (found == null)
 				formatters.push(formatter);
-			serie_labels.push(serie_name);
+			serie_labels.push(`${serie_name} ${i18n('lower_value_upper')}`);
 			serie_properties[serie_name] = {}
 			serie_properties[serie_name] = properties;
 			serie.forEach((ts_info, j) => {
@@ -423,7 +425,19 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 function getAxisConfiguration(formatter) {
 	return {
 		axisLabelFormatter: formatter,
-		valueFormatter: formatter,
+		valueFormatter: function (num_or_millis, opts, seriesName, dygraph, row, col) {
+			const serie_point = dygraph.rawData_[row][col];
+			let data = '';
+			if (typeof (serie_point) == "object") {
+				serie_point.forEach((el) => {
+					data = `${data} / ${formatter(el || 0)}`;
+				})
+				data = data.substring(3); /* Remove the first three characters ' / ' */
+			} else {
+				data = formatter(num_or_millis);
+			}
+			return (data);
+		},
 		axisLabelWidth: 80,
 	}
 }

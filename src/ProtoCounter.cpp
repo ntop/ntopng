@@ -32,22 +32,23 @@ ProtoCounter::ProtoCounter(u_int16_t _proto_id, bool enable_throughput_stats,
     bytes_thpt = new (std::nothrow) ThroughputStats();
   else
     bytes_thpt = NULL;
-
+/*
 #ifdef NTOPNG_PRO
   if (enable_behavior_stats)
     behavior_bytes_traffic = new (std::nothrow) BehaviorAnalysis();
   else
     behavior_bytes_traffic = NULL;
 #endif
-}
+*/}
 
 /* *************************************************/
 
 ProtoCounter::~ProtoCounter() {
+  /*
 #ifdef NTOPNG_PRO
   if (behavior_bytes_traffic) delete behavior_bytes_traffic;
 #endif
-
+*/
   if (bytes_thpt) delete bytes_thpt;
 }
 
@@ -92,14 +93,13 @@ void ProtoCounter::lua(lua_State *vm, NetworkInterface *iface, bool tsLua,
         lua_push_uint64_table_entry(vm, "bytes.rcvd", bytes.getRcvd());
         lua_push_uint64_table_entry(vm, "duration", duration);
         lua_push_uint64_table_entry(vm, "num_flows", total_flows);
-
+/*
 #ifdef NTOPNG_PRO
         if (behavior_bytes_traffic)
           behavior_bytes_traffic->luaBehavior(
-              vm, "l7_traffic_behavior",
-              (diff ? NDPI_TRAFFIC_BEHAVIOR_REFRESH : 0));
+              vm, "l7_traffic_behavior");
 #endif
-
+*/
         if (bytes_thpt) {
           lua_newtable(vm);
 
@@ -131,7 +131,7 @@ void ProtoCounter::lua(lua_State *vm, NetworkInterface *iface, bool tsLua,
 
 void ProtoCounter::set(ProtoCounter *p) {
   proto_id = p->proto_id;
-
+/*
 #ifdef NTOPNG_PRO
   if (behavior_bytes_traffic != NULL) {
     delete behavior_bytes_traffic;
@@ -145,7 +145,7 @@ void ProtoCounter::set(ProtoCounter *p) {
       behavior_bytes_traffic->set(p->behavior_bytes_traffic);
   }
 #endif
-
+*/
   if (bytes_thpt != NULL) {
     delete bytes_thpt;
     bytes_thpt = NULL;
@@ -169,19 +169,20 @@ void ProtoCounter::updateStats(const struct timeval *tv,
 
   if (bytes_thpt)
     bytes_thpt->updateStats(tv, bytes.getSent() + bytes.getRcvd());
-
+/*
 #ifdef NTOPNG_PRO
   if (tv->tv_sec >= nextMinPeriodicUpdate) {
     if (!behavior_bytes_traffic)
       behavior_bytes_traffic = new (std::nothrow)
-          BehaviorAnalysis(0.9 /* Alpha parameter */, 0.1 /* Beta parameter */,
-                           0.05 /* Significance */, true /* Counter */);
-
+          BehaviorAnalysis(0.9 /* Alpha parameter *///, 0.1 /* Beta parameter */,
+                           //0.05 /* Significance */, true /* Counter */);
+/*
     if (behavior_bytes_traffic)
       behavior_bytes_traffic->updateBehavior(
           NULL, bytes.getSent() + bytes.getRcvd(), NULL, false);
   }
 #endif
+*/
 }
 
 /* ************************************************ */
@@ -243,10 +244,11 @@ void ProtoCounter::addProtoJson(json_object *my_object,
 /* ************************************************ */
 
 void ProtoCounter::resetStats() {
+  /*
 #ifdef NTOPNG_PRO
   if (behavior_bytes_traffic) behavior_bytes_traffic->resetStats();
 #endif
-
+*/
   if (bytes_thpt) bytes_thpt->resetStats();
 
   packets.resetStats(), bytes.resetStats();

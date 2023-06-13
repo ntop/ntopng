@@ -125,7 +125,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Logic for detecting packet protocol storms */
   u_int32_t dhcp_last_sec_pkts, last_sec_epoch;
 
-  time_t nextMinPeriodicUpdate;
+  time_t nextMinPeriodicUpdate, next5MinPeriodicUpdate;
   /* Behavioural analysis regarding the interface */
   BehaviorAnalysis *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
 #endif

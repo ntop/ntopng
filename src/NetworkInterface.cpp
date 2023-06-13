@@ -324,14 +324,14 @@ void NetworkInterface::init(const char *interface_name) {
   policer = NULL;
 
   /* Behavior init variables */
-  nextMinPeriodicUpdate = 0;
+  next5MinPeriodicUpdate = nextMinPeriodicUpdate = 0;
   score_behavior = new BehaviorAnalysis();
   traffic_tx_behavior =
       new BehaviorAnalysis(0.9 /* Alpha parameter */, 0.1 /* Beta parameter */,
-                           0.05 /* Significance */, true /* Counter */);
+                           0.05 /* Significance */, true /* Counter */, IFACE_BEHAVIOR_REFRESH);
   traffic_rx_behavior =
       new BehaviorAnalysis(0.9 /* Alpha parameter */, 0.1 /* Beta parameter */,
-                           0.05 /* Significance */, true /* Counter */);
+                           0.05 /* Significance */, true /* Counter */, IFACE_BEHAVIOR_REFRESH);
 #endif
   ndpiStats = NULL;
   dscpStats = NULL;
@@ -3967,14 +3967,17 @@ void NetworkInterface::periodicStatsUpdate() {
 #endif
 
 #ifdef NTOPNG_PRO
-  if (tv.tv_sec >= nextMinPeriodicUpdate) {
+  if(tv.tv_sec >= nextMinPeriodicUpdate) {
+    updateBehaviorStats(&tv);    
+    nextMinPeriodicUpdate = tv.tv_sec + MIN_IFACE_BEHAVIOR_REFRESH;
+  }
+
+  if (tv.tv_sec >= next5MinPeriodicUpdate) {
     /* 5 minute periodic update */
-    if (sMap) sMap->purgeIdle(nextMinPeriodicUpdate);
-    if (pMap) pMap->purgeIdle(nextMinPeriodicUpdate);
+    if (sMap) sMap->purgeIdle(next5MinPeriodicUpdate);
+    if (pMap) pMap->purgeIdle(next5MinPeriodicUpdate);
 
-    updateBehaviorStats(&tv);
-
-    nextMinPeriodicUpdate = tv.tv_sec + IFACE_BEHAVIOR_REFRESH;
+    next5MinPeriodicUpdate = tv.tv_sec + IFACE_BEHAVIOR_REFRESH;
   }
 #endif
 }
@@ -3986,12 +3989,12 @@ void NetworkInterface::periodicStatsUpdate() {
 void NetworkInterface::updateBehaviorStats(const struct timeval *tv) {
   /* 5 Min Update */
   /* Traffic behavior stats update, currently score, traffic rx and tx */
-  score_behavior->updateBehavior(this, score_as_cli + score_as_srv, "", false);
+  score_behavior->updateBehavior(this, score_as_cli + score_as_srv, "score", false);
 
-  traffic_tx_behavior->updateBehavior(this, ethStats.getNumEgressBytes(), "",
+  traffic_tx_behavior->updateBehavior(this, ethStats.getNumEgressBytes(), "traffic_tx_behavior",
                                       false);
 
-  traffic_rx_behavior->updateBehavior(this, ethStats.getNumIngressBytes(), "",
+  traffic_rx_behavior->updateBehavior(this, ethStats.getNumIngressBytes(), "traffic_rx_behavior",
                                       false);
 }
 

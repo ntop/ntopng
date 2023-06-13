@@ -345,6 +345,7 @@
 #define NDPI_TRAFFIC_BEHAVIOR_REFRESH 60 /* 1 min */
 #define HOST_SITES_REFRESH 300           /* 5 min */
 #define IFACE_BEHAVIOR_REFRESH 300       /* 5 min */
+#define MIN_IFACE_BEHAVIOR_REFRESH 60    /* 5 min */
 #define ASES_BEHAVIOR_REFRESH 300        /* 5 min */
 #define NETWORK_BEHAVIOR_REFRESH 300     /* 5 min */
 #define HOST_SITES_TOP_NUMBER 10
