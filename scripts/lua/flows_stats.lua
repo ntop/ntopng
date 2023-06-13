@@ -554,7 +554,7 @@ if (page == "flows" or page == nil) then
                      if (throughput_bps_sent < 0) throughput_bps_sent = 0;
                      if (throughput_bps_rcvd < 0) throughput_bps_rcvd = 0;
                      
-                     let tot_throughput = (throughput_bps_sent + throughput_bps_sent) || 0;
+                     let tot_throughput = (throughput_bps_sent + throughput_bps_rcvd) || 0;
    
                      if ((old_totBytesSent > 0) || (old_totBytesRcvd > 0)) {
                        /* Second iteration or later */
