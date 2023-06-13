@@ -28,15 +28,11 @@
 
 class LuaEngine;
 
-typedef struct {
-  char *endpoint;
-  void *socket;
-} zmq_subscriber;
-
 class ZMQCollectorInterface : public ZMQParserInterface {
  private:
   void *context;
-  std::map<u_int32_t, u_int32_t> source_id_last_msg_id;
+  std::map<u_int32_t /* source_id */, zmq_probe *> active_probes;
+  time_t last_active_probes_check;
   bool is_collector;
   u_int16_t num_subscribers;
   zmq_subscriber subscriber[MAX_ZMQ_SUBSCRIBERS];
@@ -45,6 +41,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
   char *findInterfaceEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len);
 #endif
+  void checkIdleProbes(time_t now);
 
  public:
   ZMQCollectorInterface(const char *_endpoint);

@@ -1,6 +1,6 @@
 <template>
   <!-- Normal table -->
-  <table v-if="!(horizontal) || (horizontal == false)" class="table table-hover table-borderless mb-0">
+  <table v-if="!(horizontal) || (horizontal == false)" class="table table-striped table-bordered">
     <thead>
       <tr>
         <th v-for="col in columns" scope="col" v-html="print_html_column(col)"></th>

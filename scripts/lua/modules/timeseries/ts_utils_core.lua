@@ -681,15 +681,15 @@ end
 
 -- ##############################################
 
---! @brief List all available timeseries for the specified schema, tags and time.
---! @param schema_name the schema identifier.
---! @param tags_filter a list of filter tags. Tags which are not specified are considered wildcard.
---! @param start_time time filter. Only timeseries updated after start_time will be returned.
---! @param end_time time filter. Only timeseries updated before end_time will be returned.
---! @return a (possibly empty) list of tags values for the matching timeseries on success, nil on error.
+-- ! @brief List all available timeseries for the specified schema, tags and time.
+-- ! @param schema_name the schema identifier.
+-- ! @param tags_filter a list of filter tags. Tags which are not specified are considered wildcard.
+-- ! @param start_time time filter. Only timeseries updated after start_time will be returned.
+-- ! @param end_time time filter. Only timeseries updated before end_time will be returned.
+-- ! @return a (possibly empty) list of tags values for the matching timeseries on success, nil on error.
 function ts_utils.listSeries(schema_name, tags_filter, start_time, end_time)
-   local schema = ts_utils.getSchema(schema_name)
-   local driver = ts_utils.getQueryDriver()
+    local schema = ts_utils.getSchema(schema_name)
+    local driver = ts_utils.getQueryDriver()
 
     if (not schema) then
         traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
@@ -702,7 +702,7 @@ function ts_utils.listSeries(schema_name, tags_filter, start_time, end_time)
 
     local filter_tags, wildcard_tags = getWildcardTags(schema, tags_filter)
 
-   return driver:listSeries(schema, filter_tags, wildcard_tags, start_time, end_time)
+    return driver:listSeries(schema, filter_tags, wildcard_tags, start_time, end_time)
 
 end
 
@@ -756,13 +756,13 @@ function ts_utils.getBatchedListSeriesResult()
         -- Do not batch, just call listSeries
         result = {}
 
-      for key, item in pairs(pending_listseries_batch) do
-	 result[key] = driver:listSeries(item.schema, item.filter_tags, item.wildcard_tags, item.start_time, item.end_time or nil)
-      end
-   else
-      result = driver:listSeriesBatched(pending_listseries_batch)
-   end
-
+        for key, item in pairs(pending_listseries_batch) do
+            result[key] = driver:listSeries(item.schema, item.filter_tags, item.wildcard_tags, item.start_time,
+                item.end_time or nil)
+        end
+    else
+        result = driver:listSeriesBatched(pending_listseries_batch)
+    end
 
     pending_listseries_batch = {}
 
@@ -938,12 +938,12 @@ end
 -- ! @note This function should be updated whenever an existng schema is changed
 function ts_utils.getPossiblyChangedSchemas()
     return { -- Interface timeseries
-    "iface:alerted_flows", "iface:score", "iface:score_behavior", "iface:score_anomalies", "iface:traffic_anomalies",
-    "iface:traffic_rx_behavior_v2", "iface:traffic_tx_behavior_v2", "iface:engaged_alerts", "iface:local_hosts",
-    "iface:behavioural_maps", "subnet:score_anomalies", "subnet:traffic_tx_behavior_v2",
-    "subnet:traffic_rx_behavior_v2", "subnet:traffic_anomalies", "subnet:score_behavior", "subnet:intranet_traffic",
-    "subnet:intranet_traffic_min", "asn:score_anomalies", "asn:score_behavior", "asn:traffic_anomalies",
-    "asn:traffic_rx_behavior_v2", "asn:traffic_tx_behavior_v2", -- Host timeseries
+    "iface:alerted_flows", "iface:score", "iface:score_behavior_v2", "iface:score_anomalies_v2",
+    "iface:traffic_anomalies_v2", "iface:traffic_rx_behavior_v4", "iface:traffic_tx_behavior_v4",
+    "iface:engaged_alerts", "iface:local_hosts", "iface:behavioural_maps", "subnet:score_anomalies",
+    "subnet:traffic_tx_behavior_v2", "subnet:traffic_rx_behavior_v2", "subnet:traffic_anomalies",
+    "subnet:score_behavior", "subnet:intranet_traffic", "subnet:intranet_traffic_min", "asn:score_anomalies",
+    "asn:score_behavior", "asn:traffic_anomalies", "asn:traffic_rx_behavior_v2", "asn:traffic_tx_behavior_v2", -- Host timeseries
     "host:contacts", -- split in "as_client" and "as_server"
     "host:score", -- split in "cli_score" and "srv_score"
     "host:contacts_behaviour", "host:cli_active_flows_behaviour", "host:srv_active_flows_behaviour",

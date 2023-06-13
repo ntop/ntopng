@@ -260,6 +260,7 @@ const map_table_def_columns = (columns) => {
 
 	if (c.id == "actions") {
 	    const visible_dict = {
+        snmp_info: props.context.actions.show_snmp_info,
 		info: props.context.actions.show_info,
 		historical_data: props.context.actions.show_historical,
 		acknowledge: props.context.actions.show_acknowledge,
@@ -399,6 +400,7 @@ function refresh_page_components() {
 
 function on_table_custom_event(event) {
     let events_managed = {
+    "click_button_snmp_info": click_button_snmp_info,
 	"click_button_info": click_button_info,
 	"click_button_historical_flows": click_button_historical_flows,
 	"click_button_acknowledge": click_button_acknowledge,
@@ -441,6 +443,12 @@ function click_button_historical_flows(event) {
     } else {
 	window.location.href = `${http_prefix}/lua/pro/db_search.lua`;
     }    
+}
+
+function click_button_snmp_info(event) {
+    const alert = event.row;
+    const href = `${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?host=${alert.ip}&snmp_port_idx=${alert.port.value}`;
+    window.open(href, "_blank");
 }
 
 function click_button_info(event) {

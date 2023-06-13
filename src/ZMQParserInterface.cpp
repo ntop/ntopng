@@ -325,13 +325,6 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
   if (o) {
     json_object *w, *z;
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-    if (ntop->getPro()->handleProbeEvent(o, source_id, msg_id)) {
-      json_object_put(o);
-      return 0;
-    }
-#endif
-
     zrs.source_id = source_id;
 
     if (json_object_object_get_ex(o, "bytes", &w))

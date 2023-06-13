@@ -178,6 +178,8 @@
 #define MAX_ZMQ_SUBSCRIBERS UNLIMITED_MAX_ZMQ_SUBSCRIBERS
 #endif
 
+#define ZMQ_PROBE_EXPIRATION_TIME 10 /* seconds */
+
 #define MAX_INTERFACE_NAME_LEN 512
 #define MAX_USER_NETS_VAL_LEN 255
 #define NUM_HOSTS_RESOLVED_BITS 2 << 19 /* ~1 million */
@@ -343,6 +345,7 @@
 #define NDPI_TRAFFIC_BEHAVIOR_REFRESH 60 /* 1 min */
 #define HOST_SITES_REFRESH 300           /* 5 min */
 #define IFACE_BEHAVIOR_REFRESH 300       /* 5 min */
+#define MIN_IFACE_BEHAVIOR_REFRESH 60    /* 5 min */
 #define ASES_BEHAVIOR_REFRESH 300        /* 5 min */
 #define NETWORK_BEHAVIOR_REFRESH 300     /* 5 min */
 #define HOST_SITES_TOP_NUMBER 10

@@ -3717,6 +3717,17 @@ bool Ntop::broadcastControlMessage(char *msg) {
 
 /* ******************************************* */
 
+u_int64_t Ntop::getNumActiveProbes() const {
+  u_int64_t n = 0;
+
+  for (int i = 0; i < num_defined_interfaces; i++)
+    n += iface[i]->getNumActiveProbes();
+
+  return n;
+}
+
+/* ******************************************* */
+
 #ifndef WIN32
 
 /* ******************************************* */
@@ -4010,3 +4021,6 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
 /* ******************************************* */
 
 void Ntop::incBlacklisHits(std::string listname) { blStats.incHits(listname); }
+
+/* ******************************************* */
+

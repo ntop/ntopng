@@ -32,7 +32,7 @@ AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa)
   alerted_flows_as_client = alerted_flows_as_server = 0;
 #ifdef NTOPNG_PRO
   nextMinPeriodicUpdate = 0;
-
+/*
   score_behavior = NULL;
   traffic_tx_behavior = NULL;
   traffic_rx_behavior = NULL;
@@ -40,12 +40,12 @@ AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa)
   if (ntop->getPrefs()->isASNBehavourAnalysisEnabled()) {
     score_behavior = new BehaviorAnalysis();
     traffic_tx_behavior = new BehaviorAnalysis(
-        0.9 /* Alpha parameter */, 0.1 /* Beta parameter */,
-        0.05 /* Significance */, true /* Counter */);
-    traffic_rx_behavior = new BehaviorAnalysis(
-        0.9 /* Alpha parameter */, 0.1 /* Beta parameter */,
-        0.05 /* Significance */, true /* Counter */);
-  }
+      //  0.9 /* Alpha parameter *///, 0.1 /* Beta parameter */,
+      //  0.05 /* Significance */, true /* Counter */);
+   // traffic_rx_behavior = new BehaviorAnalysis(
+     //   0.9 /* Alpha parameter */, 0.1 /* Beta parameter */,
+       // 0.05 /* Significance */, true /* Counter */);
+//  }
 
 #endif
   ntop->getGeolocation()->getAS(ipa, &asn, &asname);
@@ -65,13 +65,13 @@ void AutonomousSystem::set_hash_entry_state_idle() { ; /* Nothing to do */ }
 AutonomousSystem::~AutonomousSystem() {
   if (asname) free(asname);
     /* TODO: decide if it is useful to dump AS stats to redis */
-
+/*
 #ifdef NTOPNG_PRO
   if (score_behavior) delete (score_behavior);
   if (traffic_tx_behavior) delete (traffic_tx_behavior);
   if (traffic_rx_behavior) delete (traffic_rx_behavior);
 #endif
-
+*/
 #ifdef AS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Autonomous System %u",
                                asn);
@@ -143,17 +143,15 @@ void AutonomousSystem::lua(lua_State *vm, DetailsLevel details_level,
   lua_pushstring(vm, "alerted_flows");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-
+/*
 #ifdef NTOPNG_PRO
   if (traffic_rx_behavior)
-    traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior",
-                                     diff ? ASES_BEHAVIOR_REFRESH : 0);
+    traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior");
   if (traffic_tx_behavior)
-    traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior",
-                                     diff ? ASES_BEHAVIOR_REFRESH : 0);
+    traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior");
   if (score_behavior) score_behavior->luaBehavior(vm, "score_behavior");
 #endif
-
+*/
   Score::lua_get_score(vm);
   Score::lua_get_score_breakdown(vm);
 
@@ -188,7 +186,7 @@ void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
     char score_buf[256], tx_buf[128], rx_buf[128];
 
     /* Traffic behavior stats update, currently score, traffic rx and tx */
-    if (score_behavior) {
+   /* if (score_behavior) {
       snprintf(score_buf, sizeof(score_buf), "AS %d | score", asn);
       score_behavior->updateBehavior(iface, getScore(), score_buf,
                                      (asn ? true : false));
@@ -205,7 +203,7 @@ void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
       traffic_rx_behavior->updateBehavior(iface, getNumBytesRcvd(), rx_buf,
                                           (asn ? true : false));
     }
-
+*/
     nextMinPeriodicUpdate = tv->tv_sec + ASES_BEHAVIOR_REFRESH;
   }
 }

@@ -614,7 +614,13 @@ else
                                   snmp_location.host_has_snmp_location(host["mac"]) and isAllowedSystemInterface()
 
     if ((page == "overview") or (page == nil)) then
-        print("<table class=\"table table-bordered table-striped\">\n")
+        print [[
+  <div class="row">
+  <div class="col-md-12 col-lg-12">
+    <div class="mt-4 card card-shadow">
+      <div class="card-body">
+      ]]
+        print("<table class=\"table table-striped table-bordered\">\n")
         if (host["ip"] ~= nil) then
             if (host["mac"] ~= "00:00:00:00:00:00") then
 
@@ -1311,6 +1317,11 @@ else
         end
 
         print("</table>\n")
+        print [[
+        </div>
+        </div>
+      </div>
+    </div>]]
 
     elseif ((page == "packets")) then
         template.render("pages/hosts/packets_stats.template", {
@@ -1892,8 +1903,10 @@ setInterval(update_icmp_table, 5000);
         require("flow_utils")
         local flows_page_type = _GET["flows_page_type"] or "live_flows"
 
-        printTabList("host_details.lua?page=flows", {host = hostinfo2hostkey(host)}, flows_page_type)
-        
+        printTabList("host_details.lua?page=flows", {
+            host = hostinfo2hostkey(host)
+        }, flows_page_type)
+
         if flows_page_type == "aggregated_flows" then
             local tmp_vlans = {}
             local vlans = {}
@@ -1956,78 +1969,79 @@ setInterval(update_icmp_table, 5000);
 
                 </div>]]
         else
-        print [[
+            print [[
       <div id="table-flows"></div>
          <script>
    var url_update = "]]
 
-        local page_params = {
-            application = _GET["application"],
-            category = _GET["category"],
-            alert_type = _GET["alert_type"],
-            alert_type_severity = _GET["alert_type_severity"],
-            tcp_flow_state = _GET["tcp_flow_state"],
-            flowhosts_type = _GET["flowhosts_type"],
-            traffic_type = _GET["traffic_type"],
-            version = _GET["version"],
-            l4proto = _GET["l4proto"],
-            host = hostinfo2hostkey(host),
-            tskey = _GET["tskey"],
-            host_pool_id = _GET["host_pool_id"],
-            talking_with = _GET["talking_with"]
-        }
+            local page_params = {
+                application = _GET["application"],
+                category = _GET["category"],
+                alert_type = _GET["alert_type"],
+                alert_type_severity = _GET["alert_type_severity"],
+                tcp_flow_state = _GET["tcp_flow_state"],
+                flowhosts_type = _GET["flowhosts_type"],
+                traffic_type = _GET["traffic_type"],
+                version = _GET["version"],
+                l4proto = _GET["l4proto"],
+                host = hostinfo2hostkey(host),
+                tskey = _GET["tskey"],
+                host_pool_id = _GET["host_pool_id"],
+                talking_with = _GET["talking_with"]
+            }
 
-        print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_flows_data.lua", page_params))
+            print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_flows_data.lua", page_params))
 
-        print('";')
+            print('";')
 
-        if (ifstats.vlan) then
-            show_vlan = true
-        else
-            show_vlan = false
-        end
-        local active_flows_msg = i18n("flows_page.active_flows", {
-            filter = ""
-        })
-        if not interface.isPacketInterface() then
-            active_flows_msg = i18n("flows_page.recently_active_flows", {
+            if (ifstats.vlan) then
+                show_vlan = true
+            else
+                show_vlan = false
+            end
+            local active_flows_msg = i18n("flows_page.active_flows", {
                 filter = ""
             })
-        elseif interface.isPcapDumpInterface() then
-            active_flows_msg = i18n("flows")
-        end
+            if not interface.isPacketInterface() then
+                active_flows_msg = i18n("flows_page.recently_active_flows", {
+                    filter = ""
+                })
+            elseif interface.isPcapDumpInterface() then
+                active_flows_msg = i18n("flows")
+            end
 
-        local duration_or_last_seen = prefs.flow_table_time
-        local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
+            local duration_or_last_seen = prefs.flow_table_time
+            local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
 
-        local active_flows_msg = getFlowsTableTitle()
+            local active_flows_msg = getFlowsTableTitle()
 
-        print [[
+            print [[
             $("#table-flows").datatable({
             url: url_update,
             buttons: [ ]]
-        printActiveFlowsDropdown("host_details.lua?page=flows", page_params, interface.getStats(),
-            interface.getActiveFlowsStats(hostinfo2hostkey(host_info), nil, nil, page_params["talking_with"] or nil))
-        print [[ ],
+            printActiveFlowsDropdown("host_details.lua?page=flows", page_params, interface.getStats(),
+                interface.getActiveFlowsStats(hostinfo2hostkey(host_info), nil, nil, page_params["talking_with"] or nil))
+            print [[ ],
             tableCallback: function()  {
                ]]
-        initFlowsRefreshRows()
-        print [[
+            initFlowsRefreshRows()
+            print [[
             },
             showPagination: true,
                   ]]
 
-        print('title: "' .. active_flows_msg .. '",')
+            print('title: "' .. active_flows_msg .. '",')
 
-        -- Set the preference table
-        preference = tablePreferences("rows_number", _GET["perPage"])
-        if (preference ~= "") then
-            print('perPage: ' .. preference .. ",\n")
-        end
+            -- Set the preference table
+            preference = tablePreferences("rows_number", _GET["perPage"])
+            if (preference ~= "") then
+                print('perPage: ' .. preference .. ",\n")
+            end
 
-        print('sort: [ ["' .. getDefaultTableSort("flows") .. '","' .. getDefaultTableSortOrder("flows") .. '"] ],\n')
+            print('sort: [ ["' .. getDefaultTableSort("flows") .. '","' .. getDefaultTableSortOrder("flows") ..
+                      '"] ],\n')
 
-        print [[
+            print [[
       columns: [
          {
             title: "",
@@ -2045,8 +2059,8 @@ setInterval(update_icmp_table, 5000);
             }
          }, {
             title: "]]
-        print(i18n("application"))
-        print [[",
+            print(i18n("application"))
+            print [[",
             field: "column_ndpi",
             sortable: true,
             css: {
@@ -2054,8 +2068,8 @@ setInterval(update_icmp_table, 5000);
             }
          }, {
             title: "]]
-        print(i18n("protocol"))
-        print [[",
+            print(i18n("protocol"))
+            print [[",
             field: "column_proto_l4",
             sortable: true,
             css: {
@@ -2064,9 +2078,9 @@ setInterval(update_icmp_table, 5000);
          },
            ]]
 
-        if (show_vlan) then
-            print('{ title: "' .. i18n("vlan") .. '",\n')
-            print [[
+            if (show_vlan) then
+                print('{ title: "' .. i18n("vlan") .. '",\n')
+                print [[
             field: "column_vlan",
             sortable: true,
                     css: {
@@ -2075,28 +2089,28 @@ setInterval(update_icmp_table, 5000);
 
             },
                    ]]
-        end
-        print [[
+            end
+            print [[
          {
             title: "]]
-        print(i18n("client"))
-        print [[",
+            print(i18n("client"))
+            print [[",
             field: "column_client",
             sortable: true,
          }, {
                  title: "]]
-        print(i18n("server"))
-        print [[",
+            print(i18n("server"))
+            print [[",
             field: "column_server",
             sortable: true,
          },
            ]]
-        if begin_epoch_set == true then
-            print [[
+            if begin_epoch_set == true then
+                print [[
                  {
                     title: "]]
-            print(i18n("first_seen"))
-            print [[",
+                print(i18n("first_seen"))
+                print [[",
                     field: "column_first_seen",
                     sortable: true,
                     css: {
@@ -2105,14 +2119,14 @@ setInterval(update_icmp_table, 5000);
                     }
                  },
               ]]
-        end
+            end
 
-        if duration_or_last_seen == false then
-            print [[
+            if duration_or_last_seen == false then
+                print [[
                  {
                     title: "]]
-            print(i18n("duration"))
-            print [[",
+                print(i18n("duration"))
+                print [[",
                     field: "column_duration",
                     sortable: true,
                     css: {
@@ -2121,12 +2135,12 @@ setInterval(update_icmp_table, 5000);
                     }
                  },
               ]]
-        else
-            print [[
+            else
+                print [[
                  {
                     title: "]]
-            print(i18n("last_seen"))
-            print [[",
+                print(i18n("last_seen"))
+                print [[",
                     field: "column_last_seen",
                     sortable: true,
                     css: {
@@ -2135,16 +2149,16 @@ setInterval(update_icmp_table, 5000);
                     }
                  },
               ]]
-        end
+            end
 
-        print [[{
+            print [[{
         title: "]]
-        print(i18n("score"))
-        print [[",
+            print(i18n("score"))
+            print [[",
             field: "column_score",
             hidden: ]]
-        print(ternary(isScoreEnabled(), "false", "true"))
-        print [[,
+            print(ternary(isScoreEnabled(), "false", "true"))
+            print [[,
             sortable: true,
         css: {
            textAlign: 'center'
@@ -2152,8 +2166,8 @@ setInterval(update_icmp_table, 5000);
           },
         {
         title: "]]
-        print(i18n("breakdown"))
-        print [[",
+            print(i18n("breakdown"))
+            print [[",
             field: "column_breakdown",
             sortable: false,
         css: {
@@ -2162,8 +2176,8 @@ setInterval(update_icmp_table, 5000);
           },
         {
         title: "]]
-        print(i18n("flows_page.actual_throughput"))
-        print [[",
+            print(i18n("flows_page.actual_throughput"))
+            print [[",
             field: "column_thpt",
             sortable: true,
         css: {
@@ -2172,8 +2186,8 @@ setInterval(update_icmp_table, 5000);
             },
         {
         title: "]]
-        print(i18n("flows_page.total_bytes"))
-        print [[",
+            print(i18n("flows_page.total_bytes"))
+            print [[",
             field: "column_bytes",
             sortable: true,
         css: {
@@ -2184,8 +2198,8 @@ setInterval(update_icmp_table, 5000);
             }
         ,{
         title: "]]
-        print(i18n("info"))
-        print [[",
+            print(i18n("info"))
+            print [[",
             field: "column_info",
             sortable: true,
         css: {
@@ -2196,11 +2210,11 @@ setInterval(update_icmp_table, 5000);
            });
            ]]
 
-        if (have_nedge) then
-            printBlockFlowJs()
-        end
+            if (have_nedge) then
+                printBlockFlowJs()
+            end
 
-        print [[
+            print [[
             
           </script>
 
