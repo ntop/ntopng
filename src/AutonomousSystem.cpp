@@ -32,7 +32,8 @@ AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa)
   alerted_flows_as_client = alerted_flows_as_server = 0;
 #ifdef NTOPNG_PRO
   nextMinPeriodicUpdate = 0;
-/*
+
+#if 0
   score_behavior = NULL;
   traffic_tx_behavior = NULL;
   traffic_rx_behavior = NULL;
@@ -40,13 +41,13 @@ AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa)
   if (ntop->getPrefs()->isASNBehavourAnalysisEnabled()) {
     score_behavior = new BehaviorAnalysis();
     traffic_tx_behavior = new BehaviorAnalysis(
-      //  0.9 /* Alpha parameter *///, 0.1 /* Beta parameter */,
-      //  0.05 /* Significance */, true /* Counter */);
-   // traffic_rx_behavior = new BehaviorAnalysis(
-     //   0.9 /* Alpha parameter */, 0.1 /* Beta parameter */,
-       // 0.05 /* Significance */, true /* Counter */);
-//  }
-
+					       0.9 /* Alpha parameter *///, 0.1 /* Beta parameter */,
+					       0.05 /* Significance */, true /* Counter */);
+    traffic_rx_behavior = new BehaviorAnalysis(0.9 /* Alpha parameter */, 0.1 /* Beta parameter */,
+					       0.05 /* Significance */, true /* Counter */);
+  }
+#endif
+					       
 #endif
   ntop->getGeolocation()->getAS(ipa, &asn, &asname);
 
@@ -183,10 +184,11 @@ void AutonomousSystem::updateStats(const struct timeval *tv) {
 void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
   /* 5 Min Update */
   if (tv->tv_sec >= nextMinPeriodicUpdate) {
+#if 0
     char score_buf[256], tx_buf[128], rx_buf[128];
 
     /* Traffic behavior stats update, currently score, traffic rx and tx */
-   /* if (score_behavior) {
+    if (score_behavior) {
       snprintf(score_buf, sizeof(score_buf), "AS %d | score", asn);
       score_behavior->updateBehavior(iface, getScore(), score_buf,
                                      (asn ? true : false));
@@ -203,7 +205,8 @@ void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
       traffic_rx_behavior->updateBehavior(iface, getNumBytesRcvd(), rx_buf,
                                           (asn ? true : false));
     }
-*/
+#endif
+
     nextMinPeriodicUpdate = tv->tv_sec + ASES_BEHAVIOR_REFRESH;
   }
 }

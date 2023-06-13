@@ -169,20 +169,21 @@ void ProtoCounter::updateStats(const struct timeval *tv,
 
   if (bytes_thpt)
     bytes_thpt->updateStats(tv, bytes.getSent() + bytes.getRcvd());
-/*
+
+  
 #ifdef NTOPNG_PRO
+#if 0
   if (tv->tv_sec >= nextMinPeriodicUpdate) {
     if (!behavior_bytes_traffic)
       behavior_bytes_traffic = new (std::nothrow)
-          BehaviorAnalysis(0.9 /* Alpha parameter *///, 0.1 /* Beta parameter */,
-                           //0.05 /* Significance */, true /* Counter */);
-/*
+          BehaviorAnalysis(0.9 /* Alpha parameter */, 0.1 /* Beta parameter */,
+                           0.05 /* Significance */, true /* Counter */);
+    
     if (behavior_bytes_traffic)
-      behavior_bytes_traffic->updateBehavior(
-          NULL, bytes.getSent() + bytes.getRcvd(), NULL, false);
+      behavior_bytes_traffic->updateBehavior(xNULL, bytes.getSent() + bytes.getRcvd(), NULL, false);
   }
 #endif
-*/
+#endif
 }
 
 /* ************************************************ */

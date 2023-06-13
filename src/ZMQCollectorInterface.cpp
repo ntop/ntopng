@@ -28,8 +28,7 @@
 
 /* **************************************************** */
 
-ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint)
-    : ZMQParserInterface(_endpoint) {
+ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserInterface(_endpoint) {
   char *tmp, *e, *t;
   const char **topics = Utils::getMessagingTopics();
 
@@ -246,14 +245,16 @@ void ZMQCollectorInterface::checkIdleProbes(time_t now) {
   map<u_int32_t, zmq_probe *>::iterator p;
 
   /* Loop through active flows to find idle ones to be removed */
-  for (p = active_probes.begin(); p != active_probes.end(); p++) {
+  for (p = active_probes.begin(); p != active_probes.end();) {
     zmq_probe *probe = p->second;
+
     if (now > probe->last_seen + ZMQ_PROBE_EXPIRATION_TIME) {
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Check Idle Probes - expired probe removed");
-      active_probes.erase(p->first); /* expired found - remove */
+      active_probes.erase(p); /* expired found - remove */
       decNumActiveProbes();
       free(probe);
-    }
+    } else
+      p++;
   } 
 }
 
@@ -527,6 +528,7 @@ void ZMQCollectorInterface::collect_flows() {
           /* Allocate probe info if it's the first time we see it */
           if (probe == NULL) {
             probe = (zmq_probe *) calloc(1, sizeof(zmq_probe));
+
             if (probe != NULL) {
               active_probes[source_id] = probe;
               incNumActiveProbes();
@@ -711,8 +713,7 @@ void ZMQCollectorInterface::purgeIdle(time_t when, bool force_idle,
                                       bool full_scan) {
   NetworkInterface::purgeIdle(when, force_idle, full_scan);
 
-  for (std::map<u_int64_t, NetworkInterface *>::iterator it =
-           flowHashing.begin();
+  for (std::map<u_int64_t, NetworkInterface *>::iterator it = flowHashing.begin();
        it != flowHashing.end(); ++it)
     it->second->purgeIdle(when, force_idle, full_scan);
 }

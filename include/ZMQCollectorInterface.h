@@ -32,7 +32,6 @@ class ZMQCollectorInterface : public ZMQParserInterface {
  private:
   void *context;
   std::map<u_int32_t /* source_id */, zmq_probe *> active_probes;
-  time_t last_active_probes_check;
   bool is_collector;
   u_int16_t num_subscribers;
   zmq_subscriber subscriber[MAX_ZMQ_SUBSCRIBERS];
