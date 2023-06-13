@@ -247,7 +247,7 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
         end
 
         -- Score Behaviour
-        ts_utils.append("iface:score_behavior", {
+        ts_utils.append("iface:score_behavior_v2", {
             ifid = ifstats.id,
             value = ifstats["score_behavior"]["value"],
             lower_bound = ifstats["score_behavior"]["lower_bound"],
@@ -260,7 +260,7 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
             anomaly = 1
         end
 
-        ts_utils.append("iface:score_anomalies", {
+        ts_utils.append("iface:score_anomalies_v2", {
             ifid = ifstats.id,
             anomaly = anomaly
         }, when)

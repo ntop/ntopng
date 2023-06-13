@@ -221,6 +221,7 @@ function ts_utils.append(schema_name, tags_and_metrics, timestamp)
     local schema = ts_utils.getSchema(schema_name)
 
     if not schema then
+        tprint(debug.traceback())
         traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
         return false
     end
