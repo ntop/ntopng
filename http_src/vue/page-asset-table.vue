@@ -194,14 +194,19 @@ export default {
 }  
 
 function historical_flow(row) {
-  debugger;
   const client_ip = row.client.split("host=")[1].split("&")[0];
   const server_ip = row.server.split("host=")[1].split("&")[0];
   const epoch_end = row.epoch_end;
   const epoch_begin = row.epoch_begin;
 
-  debugger;
-  ntopng_url_manager.go_to_url(`/lua/pro/db_search.lua?epoch_end=${epoch_end};eq&epoch_begin=${epoch_begin};eq&cli_ip=${client_ip};eq&srv_ip=${server_ip};eq`);
+  const params = {
+    epoch_begin: epoch_begin,
+    epoch_end: epoch_end,
+    srv_ip: `${server_ip};eq`,
+    cli_ip: `${client_ip};eq`,
+  }
+  const url_params = ntopng_url_manager.obj_to_url_params(params)
+  ntopng_url_manager.go_to_url(`${http_prefix}/lua/pro/db_search.lua?${url_params}`);
 
 }
 function start_datatable(DatatableVue) {

@@ -256,7 +256,6 @@ export default {
 }  
 
 function historical_flow(row) {
-  debugger;
   const client_ip = row.client.split("host=")[1].split(">")[0];
   const client = client_ip.substring(0, client_ip.length - 1);
   const server_ip = row.server.split("host=")[1].split(">")[0];
@@ -266,7 +265,15 @@ function historical_flow(row) {
   const epoch_begin = row.first_seen;
   const epoch_end = row.last_seen.epoch_end;
 
-  const url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${epoch_begin};eq&epoch_end=${epoch_end};eq&cli_ip=${client};eq&srv_ip=${server};eq&srv_port=${port};eq`
+  const params = {
+    epoch_begin: epoch_begin,
+    epoch_end: epoch_end,
+    srv_ip: `${server};eq`,
+    cli_ip: `${client};eq`,
+    srv_port: `${port};eq`,
+  }
+  const url_params = ntopng_url_manager.obj_to_url_params(params);
+  const url = `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
   ntopng_url_manager.go_to_url(url);
 
 }
