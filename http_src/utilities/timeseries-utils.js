@@ -355,7 +355,8 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 				/* Adding the extra timeseries, 30m ago, avg and 95th */
 				if (extra_timeseries?.avg == true) {
 					/* Add the serie label to the array of the labels */
-					const avg_label = serie_labels.push(getSerieName(name + " Avg", ts_id, tsGroupsArray[i], true));
+					const avg_label = getSerieName(name + " Avg", ts_id, tsGroupsArray[i], true)
+					serie_labels.push(avg_label);
 
 					serie_properties[avg_label] = {}
 					serie_properties[avg_label] = formatSerieProperties("point");
@@ -364,7 +365,8 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 
 				if (extra_timeseries?.perc_95 == true) {
 					/* Add the serie label to the array of the labels */
-					const perc_label = serie_labels.push(getSerieName(name + " 95th Perc", ts_id, tsGroupsArray[i], true));
+					const perc_label = getSerieName(name + " 95th Perc", ts_id, tsGroupsArray[i], true);
+					serie_labels.push(perc_label);
 
 					serie_properties[perc_label] = {}
 					serie_properties[perc_label] = formatSerieProperties("point");
@@ -372,7 +374,8 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 				}
 				if (extra_timeseries?.past == true) {
 					/* Add the serie label to the array of the labels */
-					const past_label = serie_labels.push(getSerieName(name + " " + tsCompare + " Ago", ts_id, tsGroupsArray[i], true));
+					const past_label = getSerieName(name + " " + tsCompare + " Ago", ts_id, tsGroupsArray[i], true);
+					serie_labels.push(past_label);
 
 					serie_properties[past_label] = {}
 					serie_properties[past_label] = formatSerieProperties("line");

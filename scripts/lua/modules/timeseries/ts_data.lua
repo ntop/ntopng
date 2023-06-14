@@ -162,7 +162,7 @@ function ts_data.get_timeseries(http_context)
         res.metadata = {}
     end
 
-    if not isEmptyString(compare_backward) and (res.metadata.epoch_step ~= nil) and table.len(res.statistics or {}) > 0 then
+    if not isEmptyString(compare_backward) and (res.metadata.epoch_step) then
         res = compareBackward(compare_backward, res, options)
     end
 
