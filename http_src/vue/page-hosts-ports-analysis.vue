@@ -130,8 +130,9 @@ async function update_dropdown_menus(is_application_selected) {
     })
 
     ports.forEach((item) => {
-        if (application_list.value.indexOf(item.application) == -1)
+        if (application_list.value.find(item => item.id.localeCompare(item.application)) == null) {
             application_list.value.push({ label: item.application, id: item.application });
+        }
     })
 
     if (!is_application_selected)
