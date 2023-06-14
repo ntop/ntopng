@@ -502,21 +502,24 @@ function driver:timeseries_query(options)
 
     -- Process the series requested, adding statistics if requested (min, max, tot, ...)
     -- and normalize the data if needed
-    for _, serie_name in pairs(names) do
+    for name, _ in pairs(fdata) do
         serie_idx = serie_idx + 1 -- the first id is 1
-        local max_val = ts_common.getMaxPointValue(options.schema_info, serie_name, options.tags)
+        local name = options.schema_info._metrics[serie_idx]
+        local fdata_name = names[serie_idx]
+        local serie = fdata[fdata_name]
+        local max_val = ts_common.getMaxPointValue(options.schema_info, name, options.tags)
         local modified_serie = {}
         count = 0
 
         -- Normalize the value
-        for i, v in pairs(fdata[serie_name]) do
+        for i, v in pairs(serie) do
             modified_serie[i] = ts_common.normalizeVal(v, max_val, options)
             count = count + 1
         end
 
         series[#series + 1] = {
             data = modified_serie,
-            id = serie_name
+            id = name
         }
     end
 
