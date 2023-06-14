@@ -250,7 +250,7 @@ void ZMQCollectorInterface::checkIdleProbes(time_t now) {
 
     if (now > probe->last_seen + ZMQ_PROBE_EXPIRATION_TIME) {
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Check Idle Probes - expired probe removed");
-      active_probes.erase(p); /* expired found - remove */
+      active_probes.erase(p++); /* expired found - remove */
       decNumActiveProbes();
       free(probe);
     } else
