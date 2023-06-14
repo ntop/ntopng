@@ -562,13 +562,13 @@ if (page == "flows" or page == nil) then
                        pushNewValue(uploadChart, throughput_bps_sent);
                        $('#download-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_rcvd, 1000));                  
                        $('#upload-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_sent, 1000));
-                     }
+                       $('#filtered-flows-tot-throughput-value').html(NtopUtils.bitsToSize(tot_throughput, 1000));
+                    }
    
                      /* Keep the old value for computing the differnce at the next round */
                      old_totBytesSent = data.rsp.totBytesSent || 0;
                      old_totBytesRcvd = data.rsp.totBytesRcvd || 0;
                      $('#filtered-flows-tot-bytes-value').html(NtopUtils.bytesToSize(old_totBytesSent + old_totBytesRcvd));
-                     $('#filtered-flows-tot-throughput-value').html(NtopUtils.bitsToSize(tot_throughput, 1000));
                   })
                }
    
