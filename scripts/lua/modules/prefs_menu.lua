@@ -270,7 +270,7 @@ local menu_subpages = {{
     label = i18n("prefs.clickhouse"),
     advanced = true,
     pro_only = true,
-    hidden = not ntop.isEnterpriseXL(),
+    hidden = not (ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()),
     entries = {
         
         aggregated_flows_data_retention = {
