@@ -134,11 +134,10 @@ async function update_dropdown_menus(is_application_selected) {
             application_list.value.push({ label: item.application, id: item.application });
     })
 
-    ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
-
     if (!is_application_selected)
         selected_application.value = application_list.value[0];
 
+    ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
     ports.forEach((item) => {
         if (item.application == selected_application.value.label)
             port_list.value.push({ label: item.id + " (" + item.num_hosts + ")", id: item.id });
