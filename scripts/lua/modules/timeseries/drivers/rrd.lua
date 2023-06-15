@@ -545,7 +545,7 @@ function driver:timeseries_query(options)
             epoch_begin = options.epoch_begin,
             epoch_end = options.epoch_end,
             epoch_step = sampled_fstep,
-            num_point = count,
+            num_point = count or 0,
             schema = options.schema,
             query = options.tags
         },
@@ -900,6 +900,7 @@ function driver:timeseries_top(options, top_tags)
     end
 
     local top_series = {}
+    local count = 0
 
     for top_item, value in pairsByValues(available_items, rev) do
         if value > 0 then
@@ -909,6 +910,7 @@ function driver:timeseries_top(options, top_tags)
             local ifindex = available_tags[top_item][1].if_index
             local id = shortenString(snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex]), 64)
 
+            count = table.len(available_series[top_item].data)
             top_series[#top_series + 1] = {
                 data = available_series[top_item].data,
                 id = "bytes",
@@ -930,6 +932,7 @@ function driver:timeseries_top(options, top_tags)
             epoch_begin = options.epoch_begin,
             epoch_end = options.epoch_end,
             epoch_step = step,
+            num_point = count,
             schema = options.schema,
             query = options.tags
         },
