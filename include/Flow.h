@@ -436,7 +436,7 @@ class Flow : public GenericHashEntry {
   inline bool isSSH() const { return (isProto(NDPI_PROTOCOL_SSH)); }
   inline bool isDNS() const { return (isProto(NDPI_PROTOCOL_DNS)); }
   inline bool isZoomRTP() const {
-    return (isProto(NDPI_PROTOCOL_ZOOM) && isProto(NDPI_PROTOCOL_RTP));
+    return (isProto(NDPI_PROTOCOL_ZOOM) && (isProto(NDPI_PROTOCOL_RTP) || isProto(NDPI_PROTOCOL_SRTP)) );
   }
   inline bool isIEC60870() const { return (isProto(NDPI_PROTOCOL_IEC60870)); }
   inline bool isModbus()   const { return (isProto(NDPI_PROTOCOL_MODBUS));   }

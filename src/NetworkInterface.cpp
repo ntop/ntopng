@@ -2073,7 +2073,7 @@ pre_get_flow:
     }
   }
 
-  if (flow->isDetectionCompleted() && (!isSampledTraffic())) {
+  if (flow->isDetectionCompleted() && (!isSampledTraffic())) {    
     switch (ndpi_get_lower_proto(flow->get_detected_protocol())) {
       case NDPI_PROTOCOL_DHCP:
         if (*srcHost) {
@@ -2251,15 +2251,17 @@ pre_get_flow:
           discovery->queueMDNSResponse(iph->saddr, payload,
                                        trusted_payload_len);
         break;
-
-      case NDPI_PROTOCOL_RTP:
-
-        if (flow->isZoomRTP()) {
-          // ntop->getTrace()->traceEvent(TRACE_NORMAL, "XXX [%d]", payload[0]);
+      
+    case NDPI_PROTOCOL_RTP:
+    case NDPI_PROTOCOL_SRTP:
+        if (flow->isZoomRTP()) {	  
+	  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "XXX [%d]", payload[0]); */
 
           if (payload[0] == 5 /* RTCP/RTP */) {
             u_int8_t encoding_type = payload[8];
 
+	    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Zoom [%d]", encoding_type); */
+	    
             switch (encoding_type) {
               case 13: /* Screen Share */
               case 30: /* Screen Share */
@@ -2277,8 +2279,7 @@ pre_get_flow:
           }
         } else if (flow->getRTPStreamType() == rtp_unknown) {
           if (flow->get_ndpi_flow() != NULL) {
-            flow->setRTPStreamType(
-                flow->get_ndpi_flow()->protos.rtp.stream_type);
+            flow->setRTPStreamType(flow->get_ndpi_flow()->protos.rtp.stream_type);
           }
         }
         break;

@@ -413,7 +413,7 @@ Flow::~Flow() {
 #ifdef NTOPNG_PRO
   if (modbus) delete modbus;
 #endif
-  
+
   if (suspicious_dga_domain) free(suspicious_dga_domain);
   if (ndpiAddressFamilyProtocol) free(ndpiAddressFamilyProtocol);
   if (ebpf) delete ebpf;
@@ -821,7 +821,7 @@ void Flow::processExtraDissectedInformation() {
       */
       if (getInterface()->isPacketInterface()) free_ndpi_memory = false;
       break;
-      
+
     case NDPI_PROTOCOL_HTTP:
         if (protos.http.last_url) {
           ndpi_risk_enum risk = ndpi_validate_url(protos.http.last_url);
@@ -889,6 +889,28 @@ void Flow::processExtraDissectedInformation() {
 
     flow_payload = f->flow_payload, flow_payload_len = f->flow_payload_len;
     ndpiFlow->flow_payload = NULL; /* ntopng will free this memory not nDPI */
+  }
+
+  /* Read this data before freeing nDPI */
+  if(get_ndpi_flow()
+     && (ndpi_get_upper_proto(get_detected_protocol()) == NDPI_PROTOCOL_SKYPE_TEAMS_CALL)) {
+    switch(get_ndpi_flow()->flow_type) {
+    case ndpi_multimedia_audio_flow:
+      setRTPStreamType(rtp_audio);
+      break;
+
+    case ndpi_multimedia_video_flow:
+      setRTPStreamType(rtp_video);
+      break;
+
+    case ndpi_multimedia_screen_sharing_flow:
+      setRTPStreamType(rtp_screen_share);
+      break;
+
+    default:
+      /* Nothing to do */
+      break;
+    }
   }
 
   /* Free the nDPI memory */
@@ -1005,7 +1027,7 @@ void Flow::processPacket(const struct pcap_pkthdr *h, const u_char *ip_packet,
 			payload_len, (struct timeval *)&h->ts);
 #endif
 #endif
-  
+
   if (detection_completed) {
     if (!needsExtraDissection()) {
       setExtraDissectionCompleted();
@@ -2137,14 +2159,14 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
   if (srv_host && isTLS()) {
 #ifdef DEBUG
     char buf2[64];
-    
+
     ntop->getTrace()->traceEvent(TRACE_WARNING, "$$$ %s <-> %s [pkts: %u][%s]",
 				 get_srv_ip_addr() ? get_srv_ip_addr()->print(buf2, sizeof(buf2)) : "",
 				 protos.tls.client_requested_server_name,
 				 get_packets(),
 				 protos.tls.server_names ? protos.tls.server_names : "");
 #endif
-    
+
     if((protos.tls.server_names != NULL)
        /* Ignore hostnames with wildcard or multiple comma-separated values */
        && (strchr(protos.tls.server_names, '*') == NULL)
@@ -2283,6 +2305,7 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
 
 #if DEBUG_TREND
     u_int64_t diff_pkts = diff_sent_packets + diff_rcvd_packets;
+
     ntop->getTrace()->traceEvent(
         TRACE_NORMAL, "[msec: %.1f][tdiff: %f][pkts: %lu][pkts_thpt: %.2f pps]",
         pkts_msec, tdiff_msec, diff_pkts, get_pkts_thpt());
@@ -2916,7 +2939,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 #ifdef NTOPNG_PRO
     if (modbus) modbus->lua(vm);
 #endif
-    
+
     if (!has_json_info) lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 
     if (ebpf) ebpf->lua(vm);
@@ -2946,7 +2969,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     if (getJSONRiskInfo())
       lua_push_str_table_entry(vm, "riskInfo", getJSONRiskInfo());
-  }     
+  }
 
   lua_get_status(vm);
 
@@ -5210,7 +5233,7 @@ char *Flow::getFlowInfo(char *buf, u_int buf_len, bool isLuaRequest) {
 #ifdef NTOPNG_PRO
     if (modbus) return (modbus->getFlowInfo(buf, buf_len));
 #endif
-    
+
     if (isDNS() && protos.dns.last_query)
       return protos.dns.last_query;
 
@@ -6055,7 +6078,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     /* Skip lenght for strings >= 32 with head length */
     name = &_name[((data_len <= 32) || (_name[0] >= '0')) ? 0 : 1];
 #endif
-    
+
 #ifdef DEBUG_DISCOVERY
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%u][%s][len=%u]",
                                  ntohs(rsp.rsp_type) & 0xFFFF, name, data_len);
@@ -7956,8 +7979,7 @@ void Flow::check_swap() {
       // && get_cli_port() < 1024 /* Relax this constraint and also apply to
       // non-well-known ports such as 8080 */
       && (get_cli_port() < get_srv_port())) {
-    if ((protocol == IPPROTO_UDP) && (get_cli_port() > 32768) &&
-        (get_srv_port() > 32768))
+    if ((protocol == IPPROTO_UDP) && (get_cli_port() > 32768) && (get_srv_port() > 32768))
       ; /* Don't do anything: this might be RTP or similar */
     else
       swap_requested = 1; /* This flow will be swapped */

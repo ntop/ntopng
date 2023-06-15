@@ -1070,13 +1070,15 @@ function getRTPInfo(infoPar)
     end
 
     if (infoPar.rtp_stream_type ~= nil) then
-        if (infoPar.rtp_stream_type == "screen_share") then
-            str = "Screen Sharing"
-        else
-            str = capitalize(infoPar.rtp_stream_type)
-        end
-
-        returnString = returnString .. '<span class="badge bg-secondary">' .. str .. '</span>'
+       if (infoPar.rtp_stream_type == "screen_share") then
+	  returnString = '<i class="fas fa-desktop"></i> <span class="badge bg-secondary">' .. i18n("rtp.screen_share") ..'</span>'
+       elseif (infoPar.rtp_stream_type == "audio") then
+	  returnString = '<i class="fas fa-volume-up"></i> <span class="badge bg-secondary">' .. i18n("rtp.audio") .. '</span>'
+       elseif (infoPar.rtp_stream_type == "video") then
+	  returnString = '<i class="fas fa-video"></i> <span class="badge bg-secondary">' .. i18n("rtp.video") .. '</span>'
+       elseif (infoPar.rtp_stream_type == "audio_video") then
+	  returnString = '<i class="fas fa-video"></i> <span class="badge bg-secondary">' .. i18n("rtp.audio_video") .. '</span>'
+       end
     end
 
     return returnString
