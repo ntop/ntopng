@@ -129,9 +129,9 @@ async function update_dropdown_menus(is_application_selected) {
         ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port, application: name, num_hosts: item.n_hosts })
     })
 
-    ports.forEach((item) => {
-        if (application_list.value.find(item => item.id.localeCompare(item.application)) == null) {
-            application_list.value.push({ label: item.application, id: item.application });
+    ports.forEach((port) => {
+        if (application_list.value.find(item => item.id.localeCompare(port.application) == 0) == undefined) {
+            application_list.value.push({ label: port.application, id: port.application });
         }
     })
 
