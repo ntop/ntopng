@@ -791,6 +791,12 @@ void NetworkInterface::updateSmartRecording() {
 
 /* **************************************************** */
 
+bool NetworkInterface::isSmartRecordingEnabled() const {
+  return is_smart_recording_enabled && ntop->getPrefs()->is_enterprise_xl_edition();
+}
+
+/* **************************************************** */
+
 void NetworkInterface::updateDynIfaceTrafficPolicy() {
   show_dynamic_interface_traffic = getInterfaceBooleanPref(
       CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS, CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC);

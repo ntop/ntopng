@@ -695,7 +695,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool isRunning() const;
   bool isShuttingDown() const;
   inline bool isTrafficMirrored() const { return is_traffic_mirrored; };
-  inline bool isSmartRecordingEnabled() const { return is_smart_recording_enabled; };
+  bool isSmartRecordingEnabled() const;
   inline const char *getSmartRecordingInstance() const { return smart_recording_instance_name; };
   inline bool showDynamicInterfaceTraffic() const {
     return show_dynamic_interface_traffic;
