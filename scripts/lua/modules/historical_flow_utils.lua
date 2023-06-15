@@ -348,6 +348,12 @@ end
 
 -- #####################################
 
+local function dt_format_high_number(value)
+   return formatValue(value)
+end
+
+-- #####################################
+
 local function dt_format_l7_proto(l7_proto, record)
   
    if not isEmptyString(l7_proto) then
@@ -973,6 +979,12 @@ local flow_columns = {
    ['SRC_PROC_USER_NAME'] =   { tag = "cli_user_name" },
    ['DST_PROC_USER_NAME'] =   { tag = "srv_user_name" },
 
+   --[[ TODO: this column is for the aggregated_flow_columns but the parsing Function
+              only parses these columns, so a new logic to parse only the aggregated_flow_columns
+              is needed 
+   ]]
+   ['NUM_FLOWS'] =            { tag = "flows_number", dt_func = dt_format_high_number },
+   
    -- Alert data
    ['ALERT_STATUS'] =         { tag = "alert_status" },
    ['USER_LABEL'] =           { tag = "user_label" },
@@ -998,7 +1010,7 @@ local aggregated_flow_columns = {
    ['NTOPNG_INSTANCE_NAME'] = {},
    ['SCORE'] =                { tag = "score",        dt_func = dt_format_score, format_func = format_flow_score, i18n = i18n("score"), order = 9 },
    ['L7_PROTO_MASTER'] =      { tag = "l7proto_master", dt_func = dt_format_l7_proto, simple_dt_func = interface.getnDPIProtoName },
-   ['NUM_FLOWS'] =            { tag = "flows_number" },
+   ['NUM_FLOWS'] =            { tag = "flows_number", dt_func = dt_format_high_number },
    ['FLOW_RISK'] =            { tag = "flow_risk",    dt_func = dt_format_flow_risk },
    ['SRC_MAC'] =              { tag = "cli_mac", dt_func = dt_format_mac },
    ['DST_MAC'] =              { tag = "srv_mac", dt_func = dt_format_mac },
@@ -1159,11 +1171,17 @@ end
 
 -- #####################################
 
-function historical_flow_utils.get_extended_flow_columns()
+function historical_flow_utils.get_extended_flow_columns(use_aggregated)
    local extended_flow_columns = {}
 
-   for k, v in pairs(flow_columns) do
-      extended_flow_columns[k] = v
+   if (not use_aggregated) or (use_aggregated == false) then
+      for k, v in pairs(flow_columns) do
+         extended_flow_columns[k] = v
+      end
+   else
+      for k, v in pairs(aggregated_flow_columns) do
+         extended_flow_columns[k] = v
+      end
    end
    for k, v in pairs(additional_flow_columns) do
       extended_flow_columns[k] = v
@@ -1341,7 +1359,6 @@ function historical_flow_utils.format_record(record, csv_format, formatted_recor
       for column_name, value in pairs(record) do
          local new_column_name = nil
          local new_value = nil
-
          -- Format the values and pass to the answer
          if extended_flow_columns[column_name] then
             new_column_name = extended_flow_columns[column_name]["tag"]
@@ -1380,8 +1397,8 @@ function historical_flow_utils.format_clickhouse_record(record, csv_format, form
 
       processed_record = string.sub(processed_record, 1, -2)
    else
-      local extended_flow_columns = historical_flow_utils.get_extended_flow_columns()
-
+      local extended_flow_columns = historical_flow_utils.get_extended_flow_columns(is_aggregated)
+      
       dt_add_tstamp(record)
       dt_add_filter(record)
 
