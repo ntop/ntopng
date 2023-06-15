@@ -60,7 +60,7 @@
 	},
         {
         "title_i18n": "db_explorer.total_flows",
-	    "data_field": "NUM_FLOWS",
+	    "data_field": "flows_number",
 	    "sortable": true,
 	    "class": ["text-nowrap text-end"]
         },
