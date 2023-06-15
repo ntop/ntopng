@@ -3,6 +3,7 @@
 	"i18n_name" : "top_clients",
 	"data_source" : "flows",
 	"show_in_page" : "overview",
+	"hourly": true,
 	"visualization_type" : "table",
 	"select" : {
 		"items" : [
@@ -14,9 +15,6 @@
 			},
 			{
 				"name" : "IPV6_SRC_ADDR"
-			},
-			{
-				"name" : "SRC_LABEL"
 			},
 			{
 				"name" : "total_bytes",
@@ -49,9 +47,6 @@
 			},
 			{
 				"name" : "IPV6_SRC_ADDR"
-			},
-			{
-				"name" : "SRC_LABEL"
 			}
 		]
 	},

@@ -3,6 +3,7 @@
 	"i18n_name" : "top_alerted_domains",
 	"data_source" : "flows",
 	"show_in_page" : "overview",
+	"hourly": false,
 	"visualization_type" : "table",
 	"select" : {
 		"items" : [

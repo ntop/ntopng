@@ -4,6 +4,7 @@
 	"data_source" : "flows",
     "show_in_page" : "overview",
 	"visualization_type" : "table",
+	"hourly": true,
 	"select" : {
 		"items" : [
 			{
