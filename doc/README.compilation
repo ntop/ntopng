@@ -56,8 +56,8 @@ On Ubuntu22
 
 You need to do "apt-get install libmariadb-dev"
 
-On Debian 9/10
-~~~~~~~~~~~~~~
+On Debian 9/10/11/12
+~~~~~~~~~~~~~~~~~~~~
 
 You need to do add the `contrib` component to /etc/apt/sources.list entries, then
 
