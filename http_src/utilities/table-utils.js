@@ -12,7 +12,7 @@ async function build_table(http_prefix, table_id, f_map_columns, f_get_extra_par
     let table_def_url = `${http_prefix}/tables_config/${table_id}.json`;
     let table_def = await ntopng_utility.http_request(table_def_url, null, null, true);
     if (f_map_columns != null) {
-	table_def.columns = f_map_columns(table_def.columns);
+	table_def.columns = await f_map_columns(table_def.columns);
     }
     const table_config = {
 	id: table_id,
@@ -25,6 +25,7 @@ async function build_table(http_prefix, table_id, f_map_columns, f_get_extra_par
 	f_is_column_sortable: get_f_is_column_sortable(table_def),
 	f_get_column_classes: get_f_get_column_classes(table_def),
 	f_get_column_style: get_f_get_column_style(table_def),
+	display_empty_rows: table_def.display_empty_rows,
 	enable_search: table_def.enable_search,
 	paging: table_def.paging,
     };
@@ -116,11 +117,11 @@ function get_f_print_v_node_buttons(list_or_array) {
 	    if (list_or_array == false) {
 		return vue_obj.h("button", { class: `btn btn-sm btn-secondary ${_class}`, style: "margin-right:0.2rem;", onClick: on_click(b_def.event_id), ...attributes }, [ vue_obj.h("span", { class: b_def.icon, style: "", title: _i18n(b_def.title_i18n)}), ]);
 	    }
-	    return vue_obj.h("a", { class: `${_class}`, onClick: on_click(b_def.event_id), style: "display:inline;", ...attributes }, [ vue_obj.h("span", { class: b_def.icon, style: "margin-right:0.2rem;cursor:pointer;" }), _i18n(b_def.title_i18n)]);
+	    return vue_obj.h("a", { class: `${_class} btn-sm`, onClick: on_click(b_def.event_id), style: "display:inline;", ...attributes }, [ vue_obj.h("span", { class: b_def.icon, style: "margin-right:0.2rem;cursor:pointer;" }), _i18n(b_def.title_i18n)]);
 	});
 	if (list_or_array == true) {
-	    let v_title = vue_obj.h("span", { class: "fas fa-align-justify" });
-	    let dropdown =  vue_obj.h(Dropdown, { auto_load: true, button_class: "btn-secondary btn-sm" }, {
+	    let v_title = vue_obj.h("span", { class: "fas fa-sm fa-align-justify" });
+	    let dropdown =  vue_obj.h(Dropdown, { auto_load: true, button_style: "", button_class: "btn-secondary btn-sm" }, {
 		title: () => v_title,
 		menu: () => v_nodes,
 	    });
@@ -169,6 +170,7 @@ function get_rows_func(table_def, f_get_extra_params_obj, f_on_get_rows) {
 	    res.recordsTotal = res.recordsFiltered;
 	}
 	return { total_rows: res.recordsTotal, rows, query_info };
+	// return { total_rows: 1, rows: [rows[0]], query_info };
     }
 }
 
@@ -176,6 +178,9 @@ function get_f_print_column_name(table_def) {
     return (col) => {
 	if (col.title_i18n != null) {
             return _i18n(col.title_i18n);
+	}
+	if (col.title != null) {
+	    return col.title;
 	}
 	return "";
     };
@@ -189,19 +194,43 @@ function get_column_id_func(table_def) {
     };
 }
 
-function wrap_datatable_columns_config(datatable_columns) {
-    return function (col) {
-	let name = _i18n(col.name);
-	if (name == null || name == "") {
-	    return "Test";
+/**
+   Get columns in new table format from old datatable format.
+*/
+function get_columns_from_datatable_columns(datatable_columns_title, datatable_columns_js) {
+    let table_columns_config = datatable_columns_js.map((c, index) => {
+	let config = {
+	    data_field: c.data,
+	    title: datatable_columns_title[index],
+	    sortable: c.orderable == null || c.orderable == true,
+	};
+	if (c.className != null) {
+	    config.class = c.className.split(" ");
 	}
-	return `${name}`;
-    }
+	if (c.render != null) {
+	    c.render_func = (data, row) => c.render(data, 'display', row);
+	}
+    });
+    return table_columns_config;
+
 }
 
 const table_utils = {
-    wrap_datatable_columns_config,
+    get_columns_from_datatable_columns,
     build_table,
 };
+
+const render_functions = function() {
+    //     formatValueLabel(obj, type, row, zero_is_null) {
+    //     if (type !== "display") return obj.value;
+    //     let cell = obj.label;
+    // 	if (zero_is_null == true && obj.value == 0) {
+    // 	    cell = "";
+    // 	}
+    //     if (obj.color) cell = `<span class='font-weight-bold' style='color: ${obj.color}'>${cell}</span>`;
+    //     return cell;
+    // }
+
+}();
 
 export default table_utils;
