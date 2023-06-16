@@ -6,35 +6,35 @@
     <div class="row">
         <div class="col-md-12 col-lg-12">
             <div class="card  card-shadow">
-                <!-- <Loading ref="loading"></Loading> -->
                 <div class="card-body">
-                    <div class="d-flex align-items-center ml-2 mb-2">
-                        <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
-                            <label class="my-auto me-4">{{ _i18n('protocol') }}: </label>
-                            <SelectSearch v-model:selected_option="selected_criteria" :options="criteria_list"
-                                @select_option="update_criteria">
-                            </SelectSearch>
+                    <div class="d-flex mb-3">
+                        <div class="d-flex align-items-center ml-2 mb-2">
+                            <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
+                                <label class="my-auto me-1">{{ _i18n('protocol') }}: </label>
+                                <SelectSearch v-model:selected_option="selected_criteria" :options="criteria_list"
+                                    @select_option="update_criteria">
+                                </SelectSearch>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
+                                <label class="my-auto me-1">{{ _i18n('application') }}: </label>
+                                <SelectSearch v-model:selected_option="selected_application" :options="application_list"
+                                    @select_option="update_port_list">
+                                </SelectSearch>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
+                                <label class="my-auto me-1">{{ _i18n('db_search.tags.srv_port') }}: </label>
+                                <SelectSearch v-model:selected_option="selected_port" :options="port_list"
+                                    @select_option="update_port">
+                                </SelectSearch>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
-                            <label class="my-auto me-1">{{ _i18n('application') }}: </label>
-                            <SelectSearch v-model:selected_option="selected_application" :options="application_list"
-                                @select_option="update_port_list">
-                            </SelectSearch>
-                        </div>
-                    </div>
-
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
-                            <label class="my-auto me-1">{{ _i18n('db_search.tags.srv_port') }}: </label>
-                            <SelectSearch v-model:selected_option="selected_port" :options="port_list"
-                                @select_option="update_port">
-                            </SelectSearch>
-                        </div>
-                    </div>
-
                     <div>
                         <Table ref="table_hosts_ports_analysis" id="table_hosts_ports_analysis" :key="table_config.columns"
                             :columns="table_config.columns" :get_rows="table_config.get_rows"
@@ -52,7 +52,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount } from "vue";
+import { ref, onMounted } from "vue";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import NtopUtils from "../utilities/ntop-utils";
 import { default as Table } from "./table.vue";
@@ -104,7 +104,8 @@ const criteria_list = function () {
 }();
 
 onMounted(async () => {
-    await init_selected_criteria();
+    selected_criteria.value = criteria_list_def[0];
+    await update_dropdown_menus(false);
     load_table();
 });
 
@@ -112,7 +113,22 @@ const get_column_classes = (col) => {
     return col.className;
 }
 
+async function update_criteria() {
+    await update_dropdown_menus(false);
+    load_table();
+};
+
+async function update_port_list() {
+    await update_dropdown_menus(true)
+    load_table();
+}
+
 function update_port() {
+    set_port_in_url();
+    load_table();
+}
+
+function set_port_in_url() {
     ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
 }
 
@@ -131,7 +147,7 @@ async function update_dropdown_menus(is_application_selected) {
 
     ports.forEach((port) => {
         if (application_list.value.find(item => item.id.localeCompare(port.application) == 0) == undefined) {
-            application_list.value.push({ label: port.application, id: port.application });
+            application_list.value.push({ label: port.application, id: port.application, value: port.application });
         }
     })
 
@@ -141,28 +157,13 @@ async function update_dropdown_menus(is_application_selected) {
     ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
     ports.forEach((item) => {
         if (item.application == selected_application.value.label)
-            port_list.value.push({ label: item.id + " (" + item.num_hosts + ")", id: item.id });
+            port_list.value.push({ label: item.id + " (" + item.num_hosts + ")", id: item.id, value: item.id });
     })
 
     selected_port.value = port_list.value[0];
 
-    update_port();
+    set_port_in_url();
 }
-
-async function update_port_list() {
-    await update_dropdown_menus(true)
-    load_table();
-}
-
-async function init_selected_criteria() {
-    selected_criteria.value = criteria_list_def[0];
-    await update_dropdown_menus(false);
-}
-
-async function update_criteria() {
-    await update_dropdown_menus(false);
-    load_table();
-};
 
 function load_table() {
     table_config.value = {
