@@ -1481,6 +1481,7 @@ local function build_datatable_column_def_port(name, i18n_label)
       title_i18n = i18n_label,
       sortable = true,
       class = { "no-wrap" },
+      render_generic = name,
    }
 end
 
