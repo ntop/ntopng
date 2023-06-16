@@ -249,7 +249,7 @@ schema:addMetric("scoreAsServer")
 -- INTERFACES SCHEMAS
 -------------------------------------------------------
 
-if ntop.isPro() then
+if ntop.isEnterpriseM() then
 
     -- ##############################################
 

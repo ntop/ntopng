@@ -12,14 +12,17 @@ local behavior_utils = require("behavior_utils")
 
 -- ##############################################
 
-local alert_behavior_anomaly = classes.class(alert)
+local alert_score_behavior_anomaly = classes.class(alert)
 
 -- ##############################################
 
-alert_behavior_anomaly.meta = {
-   alert_key = other_alert_keys.alert_behavior_anomaly,
-   i18n_title = "alerts_dashboard.alert_unexpected_behavior_title",
+alert_score_behavior_anomaly.meta = {
+   alert_key = other_alert_keys.alert_score_behavior_anomaly,
+   i18n_title = "alerts_dashboard.alert_unexpected_score_behavior_title",
    icon = "fas fa-fw fa-exclamation",
+   entities = {
+      alert_entities.interface,
+   },
 }
 
 -- ##############################################
@@ -33,7 +36,7 @@ alert_behavior_anomaly.meta = {
 -- @param entity_id        The entity id of the anomaly (Found into behavior_utils.lua)
 -- @param extra_params     Table of extra parameters used to create the href to the graph (e.g. protocol), pass nil if no extra params is needed
 -- @return A table with the alert built
-function alert_behavior_anomaly:init(entity, type_of_behavior, value, upper_bound, lower_bound, entity_id, timeseries_id, extra_params)
+function alert_score_behavior_anomaly:init(entity, type_of_behavior, value, upper_bound, lower_bound, entity_id, timeseries_id, extra_params)
    -- Call the parent constructor
    self.super:init()
 
@@ -56,7 +59,7 @@ end
 -- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
-function alert_behavior_anomaly.format(ifid, alert, alert_type_params)
+function alert_score_behavior_anomaly.format(ifid, alert, alert_type_params)
    local href = ""
    local type_of_behavior = ""
    
@@ -116,4 +119,4 @@ end
 
 -- #######################################################
 
-return alert_behavior_anomaly
+return alert_score_behavior_anomaly

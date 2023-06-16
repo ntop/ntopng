@@ -240,9 +240,8 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
         }, when)
     end
 
-    if ntop.isPro() then
-        if not ifstats["traffic_rx_behavior"] or not ifstats["traffic_rx_behavior"] or
-            not ifstats["traffic_tx_behavior"] then
+    if ntop.isEnterpriseM() then
+        if not ifstats["score_behavior"] or not ifstats["traffic_rx_behavior"] or not ifstats["traffic_tx_behavior"] then
             goto continue
         end
 
