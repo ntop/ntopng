@@ -5220,6 +5220,10 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data,
         else
           retriever->elems[retriever->actNumEntries++].numericValue = 0;
         break;
+      case column_key:
+        retriever->elems[retriever->actNumEntries++].numericValue =
+            f->get_hash_entry_id();
+        break;
       case column_info: {
         char buf[64];
 
@@ -5930,6 +5934,8 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot, bool walk_all,
     retriever->sorter = column_in_index, sorter = numericSorter;
   else if (!strcmp(sortColumn, "column_out_index"))
     retriever->sorter = column_out_index, sorter = numericSorter;
+  else if (!strcmp(sortColumn, "column_key"))
+    retriever->sorter = column_key, sorter = numericSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s",
                                  sortColumn);
