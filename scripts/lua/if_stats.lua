@@ -552,8 +552,11 @@ end
       if ifstats["timeout.lifetime"] > 0 then
          if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 
-         print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_lifetime")..
-                  " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_timeout_lifetime").."'></i></sup></th><td nowrap>")
+         print("<th width='15%'><details><summary><span class='ntop_notes' data-bs-toggle='tooltip' data-placement='right' title='" .. i18n("click_to_expand") .. "'>")
+         print(i18n("if_stats_overview.probe_timeout_lifetime").." <i class='fas fa-question-circle '></i>")
+         print("</span></summary><small><span>" ..i18n("if_stats_overview.note_lifetime_timeout").. "</span></small></details></th>")
+
+         print("<td>")
 
          if((ifstats["timeout.collected_lifetime"] ~= nil) and (ifstats["timeout.collected_lifetime"] > 0)) then
             -- We're in collector mode on the nProbe side
@@ -608,7 +611,9 @@ end
          local span_class = ' '
 
          if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-         print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></th>")
+         print("<th><details><summary><span class='ntop_notes' data-bs-toggle='tooltip' data-placement='right' title='" .. i18n("click_to_expand") .. "'>")
+         print(i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <i class='fas fa-question-circle '></i>")
+         print("</span></summary><small><span>" ..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").. "</span></small></details></th>")
          print("<td nowrap><span "..span_class.." id=if_zmq_drops_flow_collection_drops>"..formatValue(ifstats["zmq.drops.flow_collection_drops"]).."</span> <span id=if_zmq_drops_flow_collection_drops_trend></span></td>")
          cur_i = cur_i + 1
       end
