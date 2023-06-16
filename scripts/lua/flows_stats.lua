@@ -321,8 +321,8 @@ if (page == "flows" or page == nil) then
             title: "]]
     print(i18n("serial"))
     print [[",
-            field: "column_key", /* This is the serial numebe but called key for placing the flow button pointing to the flow key */
-            sortable: false,
+            field: "column_key", /* This is the serial number but called key for placing the flow button pointing to the flow key */
+            sortable: true,
             css: {
                textAlign: 'center',
                whiteSpace: 'nowrap'
