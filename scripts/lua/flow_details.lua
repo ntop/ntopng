@@ -720,6 +720,9 @@ else
     print("<td nowrap><div id=last_seen>" .. formatEpoch(flow["seen.last"]) .. " [" ..
               secondsToTime(os.time() - flow["seen.last"]) .. " " .. i18n("details.ago") .. "]" .. "</div></td></tr>\n")
 
+    print("<tr><th width=33%>" .. i18n("details.duration") .. "</th><td nowrap colspan=2<div id=duration>" ..
+	  secondsToTime(flow["seen.last"] - flow["seen.first"]) .. "</div></td>\n")
+
     if flow["bytes"] > 0 then
         print("<tr><th width=30% rowspan=3>" .. i18n("details.total_traffic") .. "</th><td>" .. i18n("total") ..
                   ": <span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td>")
@@ -2096,6 +2099,7 @@ print [[
                         var rsp = jQuery.parseJSON(content);
                         $('#first_seen').html(rsp["seen.first"]);
                         $('#last_seen').html(rsp["seen.last"]);
+                        $('#duration').html(rsp["seen.duration"]);
                         $('#volume').html(NtopUtils.bytesToVolume(rsp.bytes));
                         $('#goodput_volume').html(NtopUtils.bytesToVolume(rsp["goodput_bytes"]));
                         pctg = ((rsp["goodput_bytes"]*100)/rsp["bytes"]).toFixed(1);

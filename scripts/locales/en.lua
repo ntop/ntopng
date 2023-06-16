@@ -1956,6 +1956,7 @@ local lang = {
     ["contacts_blacklisted"] = "Total Flows with Blacklisted Hosts",
     ["custom_rules_placeholder"] = "Write the rules here...",
     ["details"] = "Details",
+    ["duration"] = "Flow Duration",
     ["device_port"] = "Device Port",
     ["device_type"] = "Device Type",
     ["dhcp_sent_received"] = "DHCP Sent / Received",
