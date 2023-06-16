@@ -2,7 +2,7 @@
     "id": "flow_historical",
     "data_url": "lua/pro/rest/v2/get/db/historical_db_search.lua",
     "use_current_page": false,
-    "enable_search": true,
+    "enable_search": false,
     "paging": true,
     "rsp_records_field": "records",
     "display_empty_rows": true,

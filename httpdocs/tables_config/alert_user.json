@@ -2,7 +2,7 @@
     "id": "alert_flow",
     "data_url": "lua/rest/v2/get/user/alert/list.lua",
     "use_current_page": false,
-    "enable_search": true,
+    "enable_search": false,
     "paging": true,
     "rsp_records_field": "records",
     "rsp_query_info_field": "stats",
