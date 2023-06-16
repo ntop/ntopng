@@ -67,12 +67,19 @@
       <tbody>
 	<tr v-if="!changing_column_visibility" v-for="row in active_rows">
 	  <template v-for="(col, col_index) in columns_wrap">
-	    <td v-if="col.visible" scope="col" >
+	    <td v-if="col.visible" scope="col" class="">
 	      <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" :style="col.style" v-html="print_html_row(col.data, row)">
 	      </div>
-	      <div :class="col.classes" class="wrap-column">
+	      <div :style="col.style" style="" class="wrap-column margin-sm" :class="col.classes">
 		<VueNode v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
-	      </div>
+	      </div>	      
+	    </td>
+	  </template>
+	</tr>
+	<tr v-if="display_empty_rows && active_rows.length < per_page" v-for="index in (per_page - active_rows.length)">
+	  <template v-for="(col, col_index) in columns_wrap">
+	    <td style="" class="" v-if="col.visible" scope="col" >
+	      <div class="wrap-column"></div>
 	    </td>
 	  </template>
 	</tr>
@@ -119,7 +126,7 @@ const vue_obj = {
 };
 
 const props = defineProps({
-    id: String,
+    id: String,    
     columns: Array,
     get_rows: Function, // async (active_page: number, per_page: number, columns_wrap: any[], search_map: string, first_get_rows: boolean) => { total_rows: number, rows: any[], query_info: { query_duration_msec: number, num_records_processed: string, query: string } }
     get_column_id: Function,
@@ -131,6 +138,7 @@ const props = defineProps({
     f_get_column_classes: Function,
     f_get_column_style: Function,
     enable_search: Boolean,
+    display_empty_rows: Boolean,
     csrf: String,
     paging: Boolean,
 });
@@ -163,7 +171,7 @@ onMounted(async () => {
     }
 });
 
-watch(() => props.columns, (cur_value, old_value) => {
+watch(() => [props.id, props.columns], (cur_value, old_value) => {
     load_table();
 }, { flush: 'pre'});
 
@@ -414,6 +422,13 @@ defineExpose({ load_table, refresh_table });
 .link-disabled {
     pointer-events: none;
     color: #ccc;
+}
+td {
+    height: 2.5rem;
+}
+.margin-sm {
+    margin-bottom: -0.25rem;
+    margin-top: -0.25rem;
 }
 /*table {
     table-layout:fixed;
