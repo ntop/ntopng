@@ -211,6 +211,12 @@ export default {
                     this.select_time_value = "min_30";
                 } else if (this.is_between(begin_utc_s, now - s_values.hour, tolerance)) {
                     this.select_time_value = "hour";
+                } else if (this.is_between(begin_utc_s, now - s_values["2_hours"], tolerance)) {
+                    this.select_time_value = "2_hours";
+                } else if (this.is_between(begin_utc_s, now - s_values["6_hours"], tolerance)) {
+                    this.select_time_value = "6_hours";
+                } else if (this.is_between(begin_utc_s, now - s_values["12_hours"], tolerance)) {
+                    this.select_time_value = "12_hours";
                 } else if (this.is_between(begin_utc_s, now - s_values.day, tolerance)) {
                     this.select_time_value = "day";
                 } else if (this.is_between(begin_utc_s, now - s_values.week, tolerance)) {
@@ -283,6 +289,9 @@ export default {
                 min_5: min * 5,
                 min_30: min * 30,
                 hour: min * 60,
+                "2_hours": 2 * min * 60,
+                "6_hours": 6 * min * 60,
+                "12_hours": 12 * min * 60,
                 day: this.get_last_day_seconds(),
                 week: this.get_last_week_seconds(),
                 month: this.get_last_month_seconds(),
@@ -399,6 +408,9 @@ export default {
                 { value: "min_5", label: i18n('show_alerts.presets.5_min'), currently_active: false },
                 { value: "min_30", label: i18n('show_alerts.presets.30_min'), currently_active: true },
                 { value: "hour", label: i18n('show_alerts.presets.hour'), currently_active: false },
+                { value: "2_hours", label: i18n('show_alerts.presets.2_hours'), currently_active: false },
+                { value: "6_hours", label: i18n('show_alerts.presets.6_hours'), currently_active: false },
+                { value: "12_hours", label: i18n('show_alerts.presets.12_hours'), currently_active: false },
                 { value: "day", label: i18n('show_alerts.presets.day'), currently_active: false },
                 { value: "week", label: i18n('show_alerts.presets.week'), currently_active: false },
                 { value: "month", label: i18n('show_alerts.presets.month'), currently_active: false },
