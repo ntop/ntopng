@@ -11,6 +11,12 @@ const _i18n = (t) => i18n(t);
 async function build_table(http_prefix, table_id, f_map_columns, f_get_extra_params_obj, f_on_get_rows) {
     let table_def_url = `${http_prefix}/tables_config/${table_id}.json`;
     let table_def = await ntopng_utility.http_request(table_def_url, null, null, true);
+    if (table_def == null) {
+	return {
+	    id: table_id,
+	    columns: [],	    
+	}
+    }
     if (f_map_columns != null) {
 	table_def.columns = await f_map_columns(table_def.columns);
     }

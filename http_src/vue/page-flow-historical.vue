@@ -17,8 +17,8 @@
 	  <div class="range-picker d-flex m-auto flex-wrap">
 	    <AlertInfo id="alert_info" :global="true" ref="alert_info"></AlertInfo>
 	    <RangePicker v-if="mount_range_picker" ref="range_picker" id="range_picker">
-	      <template v-if="props.context.is_enterprise_xl"  v-slot:begin>
-		<Switch v-model:value="flows_aggregated" class="me-2 mt-1" :change_label_side="true" :label="flow_type_label" style="" @change_value="change_flow_type" ></Switch>
+	      <template v-slot:begin>
+		<Switch v-if="props.context.is_enterprise_xl" v-model:value="flows_aggregated" class="me-2 mt-1" :change_label_side="true" :label="flow_type_label" style="" @change_value="change_flow_type" ></Switch>
 
                 <select class="me-2 form-select" style="min-width:8rem;" v-model="selected_query_preset"
                         @change="update_select_query_presets()">
@@ -50,8 +50,8 @@
     <div class="card card-shadow">      
       <div class="card-body">
 	
-        <div v-if="context.show_chart" class="row">	  
-          <div class="col-12 mb-2" id="chart-vue">
+        <div class="row">	  
+          <div v-if="context.show_chart" class="col-12 mb-2" id="chart-vue">
             <div class="card h-100 overflow-hidden">
               <Chart ref="chart"
 	             id="chart_0"
@@ -63,6 +63,7 @@
           </div>
 	  <TableWithConfig ref="table_alerts"
 			   :table_id="table_id"
+			   :table_config_id="table_config_id"
 			   :csrf="context.csrf"
 			   :f_map_columns="map_table_def_columns"
 			   :get_extra_params_obj="get_extra_params_obj"
@@ -116,8 +117,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, nextTick } from "vue";
-import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility } from "../services/context/ntopng_globals_services";
+import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
+import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_sync } from "../services/context/ntopng_globals_services";
 import NtopUtils from "../utilities/ntop-utils";
 import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
@@ -146,6 +147,7 @@ const props = defineProps({
     context: Object,
 });
 
+const page_id = "page-flow-historical";
 const alert_info = ref(null);
 const chart = ref(null);
 const table_alerts = ref(null);
@@ -160,7 +162,13 @@ const modal_delete = ref(null);
 const current_alert = ref(null);
 const default_ifid = props.context.ifid;
 const page = ref("");
-const table_id = ref("");
+const table_config_id = ref("");
+const table_id = computed(() => {
+    if (selected_query_preset.value?.value == null) { return table_config_id.value; }
+    let id = `${table_config_id.value}_${selected_query_preset.value.value}`;
+    return id;
+});
+
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
 const chart_type = ntopChartApex.typeChart.TS_COLUMN;
 const top_table_array = ref([]);
@@ -174,17 +182,6 @@ const flows_aggregated = ref(false);
 const flow_type_label = ref(_i18n("datatable.aggregated"));
 
 
-function change_flow_type() {
-    if (flows_aggregated.value == false) {
-	ntopng_url_manager.delete_params(["aggregated"]);
-	table_id.value = "flow_historical";
-    } else {
-	ntopng_url_manager.set_key_to_url("aggregated", "true");
-	table_id.value = "flow_historical_aggregated";
-    }
-    refresh_page_components(true);
-    load_top_table_array_overview();
-}
 onBeforeMount(async () => {
     init_params();
     init_url_params();
@@ -199,12 +196,6 @@ onMounted(async () => {
 
 function init_params() {
     page.value = ntopng_url_manager.get_url_entry("page");
-    table_id.value = `flow_historical`;
-    const aggregated = ntopng_url_manager.get_url_entry("aggregated");
-    if (aggregated == "true") {
-	table_id.value = `flow_historical_aggregated`;
-	flows_aggregated.value = true;
-    }
     if (page.value == null) { page.value = "overview"; }
     chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
     
@@ -214,6 +205,12 @@ function init_params() {
     };
     if (selected_query_preset.value.value == null) {
 	selected_query_preset.value.value = "";
+    }
+    table_config_id.value = `flow_historical`;
+    const aggregated = ntopng_url_manager.get_url_entry("aggregated");
+    if (aggregated == "true") {
+	table_config_id.value = `flow_historical_aggregated`;
+	flows_aggregated.value = true;
     }
 }
 
@@ -251,6 +248,7 @@ async function set_query_presets() {
                 value: el.id,
                 name: el.name,
                 count: el.count,
+		is_preset: true,
             };
             query_presets.value.push(query);
         });
@@ -263,6 +261,27 @@ async function set_query_presets() {
     }
     ntopng_url_manager.set_key_to_url("query_preset", selected_query_preset.value.value);
     ntopng_url_manager.set_key_to_url("count", selected_query_preset.value.count);
+    ntopng_sync.ready(get_query_presets_sync_key());
+}
+
+function change_flow_type() {
+    // if (flows_aggregated.value == false) {
+    // 	ntopng_url_manager.delete_params(["aggregated"]);	
+    // 	table_config_id.value = "flow_historical";
+    // } else {
+    // 	ntopng_url_manager.set_key_to_url("aggregated", "true");
+    // 	table_config_id.value = "flow_historical_aggregated";
+    // }
+    // refresh_page_components(true);
+    // load_top_table_array_overview();
+
+    // currently we can't refresh component without reload the page because we need refresh props.context
+    if (flows_aggregated.value == false) {
+	ntopng_url_manager.delete_params(["aggregated"]);	
+    } else {
+	ntopng_url_manager.set_key_to_url("aggregated", "true");
+    }
+    ntopng_url_manager.reload_url();
 }
 
 function update_select_query_presets() {
@@ -315,9 +334,9 @@ const get_open_top_table_dropdown = (top, top_index) => {
 
 async function register_components_on_status_update() {
     await ntopng_sync.on_ready("range_picker");
-    //if (show_chart) {      
-    chart.value.register_status();
-    //}
+    if (props.context.show_chart) {      
+	chart.value.register_status();
+    }
     //updateDownloadButton();
     ntopng_status_manager.on_status_change(page.value, (new_status) => {
 	let url_params = ntopng_url_manager.get_url_params();
@@ -331,13 +350,14 @@ function on_table_loaded() {
 }
 
 function register_table_alerts_events() {
-    let jquery_table_alerts = $(`#${table_id.value}`);
+    let jquery_table_alerts = $(`#${table_config_id.value}`);
     jquery_table_alerts.on('click', `a.tag-filter`, async function (e) {
 	add_table_row_filter(e, $(this));
     });
 }
 
-const map_table_def_columns = (columns) => {
+const map_table_def_columns = async (columns) => {
+    await ntopng_sync.on_ready(get_query_presets_sync_key());
     let html_ref = '';
     let location = '';
     const f_print_asn = (key, asn, row) => {
@@ -391,6 +411,11 @@ const map_table_def_columns = (columns) => {
 	},
     };
     columns = columns.filter((c) => props.context?.visible_columns[c.data_field] != false);
+    if (selected_query_preset.value.is_preset && columns.length > 0) {
+	// add action button that is the first button
+	columns = [columns[0]].concat(props.context.columns_def);
+    }
+
     columns.forEach((c) => {
 	c.render_func = map_columns[c.data_field];
 	
@@ -400,15 +425,17 @@ const map_table_def_columns = (columns) => {
 		historical_data: props.context.actions.show_historical,
 		flow_alerts: props.context.actions.show_alerts,
 		pcap_download: props.context.actions.show_pcap_download,
-        row_data: props.context.actions.show_row_data,
+		row_data: props.context.is_enterprise_xl && flows_aggregated.value,
 	    };
 	    c.button_def_array.forEach((b) => {
-		if (!visible_dict[b.id]) {
+		// if is not defined is enabled
+		if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
 		    b.class.push("link-disabled");
 		}
 	    });
 	}
     });
+    // console.log(columns);
     return columns;
 };
 
@@ -432,7 +459,7 @@ const add_table_row_filter = (e, a) => {
 	operator: operator,
     };
     add_filter(filter);
-}    
+}
 
 function add_top_table_filter(opt, event) {
     event.stopPropagation();
@@ -461,18 +488,7 @@ const get_extra_params_obj = () => {
 
 function click_navbar_item(item) {
     ntopng_url_manager.set_key_to_url('page', item.page_name);
-    let is_alert_stats_url = window.location.toString().match(/alert_stats.lua/) != null;
-    if (is_alert_stats_url) {
-	remove_filters_from_url();
-    }
     ntopng_url_manager.reload_url();    
-}
-
-function remove_filters_from_url() {
-    let status = ntopng_status_manager.get_status();
-    let filters = status.filters;
-    if (filters == null) { return; }		
-    ntopng_url_manager.delete_params(filters.map((f) => f.id));    
 }
 
 function show_modal_alerts_filter(alert) {
@@ -601,17 +617,24 @@ function click_button_flows(event) {
     const input_snmp = row_data.input_snmp.value;
     let as_input_snmp = input_snmp != 0;
 
-    let url = `/lua/pro/db_search.lua?aggregated=false&epoch_begin=${epoch_begin};eq&epoch_end=${epoch_end};eq&cli_ip=${cli_ip};eq&srv_ip=${srv_ip};eq&srv_port=${srv_port};eq&probe_ip=${probe_ip};eq&instance_name=${instance_name}`
-    if (as_vlan)
+    let url = `${http_prefix}/lua/pro/db_search.lua?aggregated=false&epoch_begin=${epoch_begin}&epoch_end=${epoch_end}&cli_ip=${cli_ip};eq&srv_ip=${srv_ip};eq&srv_port=${srv_port};eq&probe_ip=${probe_ip};eq&instance_name=${instance_name}`;
+    if (as_vlan) {
         url = url+`&vlan_id=${vlan_id};eq`;
+    }
     
-    if (as_input_snmp)
+    if (as_input_snmp) {
         url = url + `&input_snmp=${input_snmp};eq`;
+    }
     
-    if (as_output_snmp)
+    if (as_output_snmp) {
         url = url + `&output_snmp=${output_snmp};eq`;
+    }
 
     ntopng_url_manager.go_to_url(url);
+}
+
+function get_query_presets_sync_key() {
+    return `${page_id}_query_presets`;
 }
 
 function get_status_view() {
