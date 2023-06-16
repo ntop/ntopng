@@ -5,6 +5,7 @@
     "enable_search": true,
     "paging": true,
     "rsp_records_field": "records",
+    "display_empty_rows": true,
     "rsp_query_info_field": "stats",
     "columns": [
 	{
@@ -15,9 +16,9 @@
 	    "class": ["text-nowrap", "text-center"],
 	    "render_v_node_type": "button_list",
 	    "button_def_array": [
-		{ "id": "info", "icon": "fas fa fa-search-plus", "class":["link-button"], "title_i18n": "info", "event_id": "click_button_info" },
-                { "id": "flow_alerts", "icon": "fas fa-exclamation-triangle", "class":["link-button"], "title_i18n": "show_alerts.flow_alerts", "event_id": "click_button_flow_alerts" },
-                { "id": "pcap_download", "icon": "fas fa-download", "class":["link-button"], "title_i18n": "traffic_recording.pcap_download", "event_id": "click_button_pcap_download"}
+		{ "id": "info", "icon": "fas fa-sm fa fa-search-plus", "class":["link-button"], "title_i18n": "info", "event_id": "click_button_info" },
+                { "id": "flow_alerts", "icon": "fas fa-sm fa-exclamation-triangle", "class":["link-button"], "title_i18n": "show_alerts.flow_alerts", "event_id": "click_button_flow_alerts" },
+                { "id": "pcap_download", "icon": "fas fa-sm fa-download", "class":["link-button"], "title_i18n": "traffic_recording.pcap_download", "event_id": "click_button_pcap_download"}
 	    ]
 	},
 	{

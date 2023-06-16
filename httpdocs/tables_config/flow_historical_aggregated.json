@@ -5,18 +5,19 @@
     "enable_search": true,
     "paging": true,
     "rsp_records_field": "records",
+    "display_empty_rows": true,
     "rsp_query_info_field": "stats",
     "columns": [
 	{
-		"id": "actions",
-		"title_i18n": "actions",
-		"sortable": false,
-		"sticky": false,
-		"class": ["text-nowrap", "text-center"],
-		"render_v_node_type": "button_list",
-		"button_def_array": [
-			{ "id": "row_data", "icon": "fas fa-stream", "title_i18n": "flows", "class":["link-button"], "event_id": "click_button_flows" }
-		]
+	    "id": "actions",
+	    "title_i18n": "actions",
+	    "sortable": false,
+	    "sticky": false,
+	    "class": ["text-center"],
+	    "render_v_node_type": "button_list",
+	    "button_def_array": [
+		{ "id": "row_data", "icon": "fas fa-sm fa-stream", "title_i18n": "flows", "class":["link-button"], "event_id": "click_button_flows" }
+	    ]
 	},
 	{
 	    "title_i18n": "db_search.first_seen",
