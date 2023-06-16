@@ -25,7 +25,7 @@
                   <template v-for="item in query_presets">
                     <option v-if="item.builtin == true" :value="item">{{ item.name }}</option>
                   </template>
-                  <optgroup v-if="page != 'analysis' && !flows_aggregated" :label="_i18n('queries.queries')">
+                  <optgroup v-if="page != 'analysis'" :label="_i18n('queries.queries')">
                     <template v-for="item in query_presets">
 		      
                       <option v-if="!item.builtin" :value="item">{{ item.name }}</option>
@@ -235,7 +235,7 @@ function init_url_params() {
 }
 
 async function set_query_presets() {
-    let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/preset/consts.lua?page=${page.value}`;
+    let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/preset/consts.lua?page=${page.value}&aggregated=${flows_aggregated.value}`;
     let res = await ntopng_utility.http_request(url_request);
     query_presets.value = res[0].list.map((el) => {
         return {
