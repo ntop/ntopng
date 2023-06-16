@@ -350,7 +350,7 @@ function on_table_loaded() {
 }
 
 function register_table_alerts_events() {
-    let jquery_table_alerts = $(`#${table_config_id.value}`);
+    let jquery_table_alerts = $(`#${table_id.value}`);
     jquery_table_alerts.on('click', `a.tag-filter`, async function (e) {
 	add_table_row_filter(e, $(this));
     });
