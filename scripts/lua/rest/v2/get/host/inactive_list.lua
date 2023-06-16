@@ -57,6 +57,7 @@ if table.len(hosts) > 0 then
         rsp[key]["last_seen"] = format_utils.formatPastEpochShort(value["last_seen"])
         rsp[key]["first_seen"] = format_utils.formatPastEpochShort(value["first_seen"])
         rsp[key]["device_type"] = discover_utils.devtype2icon(value["device_id"]) .. " " .. value["device_type"]
+        rsp[key]["manufacturer"] = value["manufacturer"]
 
         -- If available, add url and extra info
         local mac_info = interface.getMacInfo(value["mac_address"])
@@ -66,14 +67,8 @@ if table.len(hosts) > 0 then
                 value = value["mac_address"],
                 url = mac2url(value["mac_address"])
             }
-            rsp[key]["mac_address_manufacturer"] = mac_info.manufacturer
-        else 
-            local mac_manufacturer = ntop.getMacManufacturer(value["mac_address"])
-            if mac_manufacturer then
-                rsp[key]["mac_address_manufacturer"] = mac_manufacturer.extended
-            end
         end
-
+        
         if interface.getNetworkStats(rsp[key]["network_id"]) then
             rsp[key]["network"] = {
                 name = rsp[key]["network"],

@@ -53,8 +53,8 @@
 			]
 		},
 		{
-			"title_i18n": "mac_stats.manufacturer",
-			"data_field": "mac_address_manufacturer",
+			"title_i18n": "manufacturer",
+			"data_field": "manufacturer",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
