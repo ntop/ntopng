@@ -49,7 +49,7 @@
 	{
 	    "title_i18n": "score",
 	    "data_field": "score",
-	    "render_type": "formatValueLabel",
+	    "render_type": "formatScore",
 	    "sortable": true,
 	    "zero_is_null": true,
 	    "class": ["text-center"]

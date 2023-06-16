@@ -661,6 +661,16 @@ export class DataTableRenders {
         return cell;
     }
 
+    static formatScore(obj, type, row, zero_is_null) {
+        if (type !== "display") return obj.value;
+        let cell = obj.label;
+        if (zero_is_null == true && obj.value == 0) {
+            cell = "";
+        }
+        if (obj.color) cell = `<span class='font-weight-bold' style='color: ${obj.color}'>${cell}</span>`;
+        return `<a class='tag-filter' data-tag-key='score' title='${obj.label}' data-tag-value='${obj.value}' data-tag-label='${obj.label}' href='javascript:void(0)'>${cell}</a>`;
+    }
+
     static formatMessage(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.value;
            
