@@ -376,8 +376,16 @@ function system_setup_ui_utils.printPrivateAddressSelector(label, comment, ip_ke
           var f_quad3 = form.find('[name="]] print(field_id) print[[_quad_3"]');
           var f_quad4 = form.find('[name="]] print(field_id) print[[_quad_4"]');
           var f_ip = form.find('[name="]] print(ip_key) print[["]');
+]]
+   if extra.net_select ~= false then
+      print[[
+          f_ip.val([f_net.val(), f_quad3.val(), f_quad4.val()].join("."));
+      ]]
+   else   
+      print[[
           f_ip.val([f_quad1.val(), f_quad2.val(), f_quad3.val(), f_quad4.val()].join("."));
-          ]]
+      ]]
+   end
 
    if netmask_key ~= nil then
       print[[
