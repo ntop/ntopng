@@ -6,6 +6,7 @@
     "paging": true,
     "rsp_records_field": "records",
     "rsp_query_info_field": "stats",
+	"display_empty_rows": true,
     "columns": [
 	{
 	    "id": "actions",
