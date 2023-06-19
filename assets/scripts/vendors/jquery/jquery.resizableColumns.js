@@ -178,12 +178,18 @@ var ResizableColumns = (function () {
 
 			$container.width(this.$table.width());
 
-			$container.find('.' + _constants.CLASS_HANDLE).each(function (_, el) {
+		    let $elements = $container.find('.' + _constants.CLASS_HANDLE);
+		    const len = $elements.length;
+
+			$elements.each(function (index, el) {
 				var $el = $(el);
 
 				var height = _this3.options.resizeFromBody ? _this3.$table.height() : _this3.$table.find('thead').height();
 
 				var left = $el.data(_constants.DATA_TH).outerWidth() + ($el.data(_constants.DATA_TH).offset().left - _this3.$handleContainer.offset().left);
+			    if (len - 1 == index) {
+				left -= 4;
+			    }
 
 				$el.css({ left: left, height: height });
 			});
