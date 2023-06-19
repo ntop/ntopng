@@ -569,18 +569,6 @@ end
 
 -- ########################################################
 
-function ts_dump.iface_update_map_stats(when, ifstats, verbose)
-    if ((ifstats.periodicity_map ~= nil) and (ifstats.service_map ~= nil)) and ntop.isEnterpriseL() then
-        ts_utils.append("iface:behavioural_maps", {
-            ifid = ifstats.id,
-            period_map_entries = ifstats.periodicity_map.num_entries,
-            svc_map_entries = ifstats.service_map.num_entries
-        }, when)
-    end
-end
-
--- ########################################################
-
 function ts_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
     dumpTopTalkers(_ifname, ifstats, verbose)
 
@@ -596,7 +584,6 @@ function ts_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
     ts_dump.iface_update_general_stats(when, ifstats, verbose)
     ts_dump.iface_update_l4_stats(when, ifstats, verbose)
     ts_dump.iface_update_anomalies(when, ifstats, verbose)
-    ts_dump.iface_update_map_stats(when, ifstats, verbose)
 
     -- Check both if global flows dump is enabled (config.is_dump_flows_enabled)
     -- and also if flows dump is enabled for the current interface (ifstats.isFlowDumpDisabled)

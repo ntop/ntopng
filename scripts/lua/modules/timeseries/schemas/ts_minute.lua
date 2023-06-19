@@ -568,18 +568,6 @@ schema:addMetric("num_rem_hosts_anom")
 
 -- ##############################################
 
-if ntop.isEnterpriseL() then
-    schema = ts_utils.newSchema("iface:behavioural_maps", {
-        step = 60,
-        metrics_type = ts_utils.metrics.gauge
-    })
-    schema:addTag("ifid")
-    schema:addMetric("period_map_entries")
-    schema:addMetric("svc_map_entries")
-end
-
--- ##############################################
-
 schema = ts_utils.newSchema("am_host:val_min", {
     step = 60,
     metrics_type = ts_utils.metrics.gauge,
