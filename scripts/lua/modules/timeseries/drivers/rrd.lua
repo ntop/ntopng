@@ -1107,7 +1107,7 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
     local totals = {}
 
     local serie_idx = 0
-    for _, _ in pairs(fdata) do
+    for _, _ in pairs(fdata or {}) do
         serie_idx = serie_idx + 1 -- the first id is 1
         local name = schema._metrics[serie_idx]
         local fdata_name = names[serie_idx]
