@@ -1974,7 +1974,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 #else
       ntop->getTrace()->traceEvent(
 				   TRACE_WARNING,
-				   "-F mysql/-F clickhouse is not available (missing MySQL support)");
+				   "-F mysql/-F clickhouse not available: missing MySQL support in ntopng");
 #endif
     }
 #if !defined(WIN32) && !defined(__APPLE__)
