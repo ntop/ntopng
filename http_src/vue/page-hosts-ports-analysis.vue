@@ -151,6 +151,9 @@ async function update_dropdown_menus(is_application_selected) {
         }
     })
 
+    application_list.value.sort((a, b) => {return a.label.localeCompare(b.label.localCompare); })
+    application_list.value.reverse();
+
     if (!is_application_selected)
         selected_application.value = application_list.value[0];
 
