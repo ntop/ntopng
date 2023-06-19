@@ -3,7 +3,7 @@
     <div class="input-group">
         <div class="form-group">
             <div class="controls d-flex flex-wrap">
-                <div class="btn-group me-auto btn-group-sm ms-1">
+                <div class="btn-group me-auto btn-group-sm">
                     <slot name="begin"></slot>
                     <select-search v-model:selected_option="selected_time_option" :id="'time_preset_range_picker'"
                         :options="time_preset_list" @select_option="change_select_time(null)">

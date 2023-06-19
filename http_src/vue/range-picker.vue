@@ -5,7 +5,7 @@
             </modal-filters>
             <data-time-range-picker :id="id_data_time_range_picker">
                 <template v-slot:begin>
-                    <div v-if="is_alert_stats_url" class="d-flex align-items-center me-2">
+                    <div v-if="is_alert_stats_url" style="margin-right:0.1rem;" class="d-flex align-items-center me-2">
                         <div class="btn-group" id="statusSwitch" role="group">
                             <a href="#" @click="update_status_view('historical')" class="btn btn-sm"
                                 :class="{ 'active': status_view == 'historical', 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical' }">Past</a>
