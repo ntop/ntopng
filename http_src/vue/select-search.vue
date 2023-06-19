@@ -24,6 +24,7 @@ const options_2 = ref([]);
 const groups_options_2 = ref([]);
 const selected_option_2 = ref({});
 const selected_values = ref([]); // used only if multiple == true
+const refresh_options = ref(0);
 
 const props = defineProps({
     id: String,
@@ -45,23 +46,16 @@ onMounted(() => {
 watch(() => props.selected_option, (cur_value, old_value) => {
     set_selected_option(cur_value);
     let select2Div = select2.value;
-    let value = get_value_from_selected_option(cur_value);
-    if (!props.multiple) {
-	$(select2Div).val(value);
-	$(select2Div).trigger("change");
-    } else {
-	$(select2Div).val(selected_values.value);
-	$(select2Div).trigger("change");
-    }
+    change_select_2_selected_value();
 }, { flush: 'pre'});
 
-watch([options_2, groups_options_2], (cur_value, old_value) => {
+watch([refresh_options], (cur_value, old_value) => {
     render();
 }, { flush: 'post'});
 
 
 watch(() => props.options, (current_value, old_value) => {
-    if (props.disable_change == true || current_value == null) { return; }    
+    if (props.disable_change == true || current_value == null) { return; }
     set_input();
 }, { flush: 'pre'});
 
@@ -93,7 +87,8 @@ function set_options() {
 	    groups_dict[option.group].options.push(opt_2);
 	}
     });
-    groups_options_2.value = ntopng_utility.object_to_array(groups_dict);    
+    groups_options_2.value = ntopng_utility.object_to_array(groups_dict);
+    refresh_options.value += 1;
 }
 
 
@@ -141,8 +136,20 @@ const render = () => {
     }
     first_time_render = false;
     // this.$forceUpdate();
-    // $(select2Div).val(props.selected_option);
+    change_select_2_selected_value();
 };
+
+function change_select_2_selected_value() {
+    let select2Div = select2.value;
+    if (!props.multiple) {
+	let value = get_value_from_selected_option(props.selected_option);
+	$(select2Div).val(value);
+	$(select2Div).trigger("change");
+    } else {
+	$(select2Div).val(selected_values.value);
+	$(select2Div).trigger("change");
+    }
+}
 
 function is_item_selected(item) {
     if (!props.multiple) {
@@ -156,7 +163,6 @@ function set_selected_option(selected_option) {
     if (selected_option == null && !props.multiple) {
 	selected_option = get_props_selected_option();
     }
-    
     selected_option_2.value = selected_option;
     if (selected_option_2.value != null && selected_option_2.value.value == null) {
 	selected_option_2.value.value = selected_option.label;
