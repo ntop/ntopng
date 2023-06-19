@@ -978,6 +978,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, {
     schema = "subnet:broadcast_traffic",
@@ -1293,6 +1294,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, {
     schema = "country:score",
@@ -1449,6 +1451,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, {
     schema = "pod:num_containers",
@@ -1515,6 +1518,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, {
     schema = "container:rtt",
@@ -1569,6 +1573,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('default')
         }
     },
+    alwais_visibile = true,
     default_visible = true
 }, {
     schema = "ht:state",
@@ -1706,6 +1711,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('default')
         }
     },
+    alwais_visibile = true,
     default_visible = true,
     draw_stacked = true
 }, {
@@ -1720,7 +1726,8 @@ local community_timeseries = {{
             label = i18n('graphs.metric_labels.bytes'),
             color = timeseries_info.get_timeseries_color('bytes')
         }
-    }
+    },
+    alwais_visibile = true,
 }, {
     schema = "process:num_alerts",
     id = timeseries_id.system,
@@ -1759,8 +1766,9 @@ local community_timeseries = {{
             label = i18n('graphs.metric_labels.bytes'),
             color = timeseries_info.get_timeseries_color('bytes')
         }
-    }
-}, -- redis_monitor.lua (Redis): --
+    },
+    alwais_visibile = true,
+},
 {
     schema = "redis:memory",
     id = timeseries_id.redis,
@@ -1773,7 +1781,8 @@ local community_timeseries = {{
             label = i18n('graphs.metric_labels.bytes'),
             color = timeseries_info.get_timeseries_color('bytes')
         }
-    }
+    },
+    alwais_visibile = true,
 }, {
     schema = "redis:keys",
     id = timeseries_id.redis,
@@ -1800,7 +1809,8 @@ local community_timeseries = {{
             label = i18n('graphs.metric_labels.bytes'),
             color = timeseries_info.get_timeseries_color('bytes')
         }
-    }
+    },
+    alwais_visibile = true,
 }, {
     schema = "influxdb:memory_size",
     id = timeseries_id.influxdb,
@@ -2027,7 +2037,7 @@ local function add_top_vlan_timeseries(tags, timeseries)
 
     -- Top l7 Protocols
     if vlan_ts_enabled then
-        local series = ts_utils.listSeries("vlan:ndpi", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("vlan:ndpi", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2075,7 +2085,7 @@ local function add_top_host_pool_timeseries(tags, timeseries)
 
     -- Top l7 Protocols
     if host_pool_ts_enabled then
-        local series = ts_utils.listSeries("host_pool:ndpi", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("host_pool:ndpi", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2123,7 +2133,7 @@ local function add_top_asn_timeseries(tags, timeseries)
 
     -- Top l7 Protocols
     if asn_ts_enabled then
-        local series = ts_utils.listSeries("asn:ndpi", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("asn:ndpi", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2172,7 +2182,7 @@ local function add_top_mac_timeseries(tags, timeseries)
 
     -- Top l7 Categories
     if mac_ts_enabled and mac_top_ts_enabled then
-        local series = ts_utils.listSeries("mac:ndpi_categories", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("mac:ndpi_categories", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2219,32 +2229,34 @@ local function add_top_network_timeseries(tags, timeseries)
     if network_top_ts_enabled and tags.subnet then
         network.select(tonumber(ntop.getLocalNetworkID(tags.subnet)))
         local net_stats = network.getNetworkStats() or {}
-        for second_subnet, _ in pairs(net_stats["intranet_traffic"]) do
-            local label_1 = getFullLocalNetworkName(tags.subnet)
-            local label_2 = getFullLocalNetworkName(second_subnet)
+        if table.len(net_stats) > 0 then
+            for second_subnet, _ in pairs(net_stats["intranet_traffic"]) do
+                local label_1 = getFullLocalNetworkName(tags.subnet)
+                local label_2 = getFullLocalNetworkName(second_subnet)
 
-            timeseries[#timeseries + 1] = {
-                schema = "subnet:intranet_traffic_min",
-                priority = 3,
-                query = "subnet_2:" .. second_subnet,
-                label = i18n("graphs.intranet_traffic", {
-                    net_1 = label_1,
-                    net_2 = label_2
-                }),
-                measure_unit = "bps",
-                scale = i18n('graphs.metric_labels.traffic'),
-                timeseries = {
-                    bytes_sent = {
-                        label = i18n('graphs.metric_labels.sent'),
-                        color = timeseries_info.get_timeseries_color('bytes')
-                    },
-                    bytes_rcvd = {
-                        invert_direction = true,
-                        label = i18n('graphs.metric_labels.rcvd'),
-                        color = timeseries_info.get_timeseries_color('bytes')
+                timeseries[#timeseries + 1] = {
+                    schema = "subnet:intranet_traffic_min",
+                    priority = 3,
+                    query = "subnet_2:" .. second_subnet,
+                    label = i18n("graphs.intranet_traffic", {
+                        net_1 = label_1,
+                        net_2 = label_2
+                    }),
+                    measure_unit = "bps",
+                    scale = i18n('graphs.metric_labels.traffic'),
+                    timeseries = {
+                        bytes_sent = {
+                            label = i18n('graphs.metric_labels.sent'),
+                            color = timeseries_info.get_timeseries_color('bytes')
+                        },
+                        bytes_rcvd = {
+                            invert_direction = true,
+                            label = i18n('graphs.metric_labels.rcvd'),
+                            color = timeseries_info.get_timeseries_color('bytes')
+                        }
                     }
                 }
-            }
+            end
         end
     end
 
@@ -2263,7 +2275,7 @@ local function add_top_host_timeseries(tags, timeseries)
 
     -- L4 Protocols
     if host_ts_creation == "full" then
-        local series = ts_utils.listSeries("host:l4protos", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("host:l4protos", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2303,7 +2315,7 @@ local function add_top_host_timeseries(tags, timeseries)
 
     -- Top l7 Protocols
     if has_top_protocols then
-        local series = ts_utils.listSeries("host:ndpi", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("host:ndpi", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2343,7 +2355,7 @@ local function add_top_host_timeseries(tags, timeseries)
 
     -- Top Categories
     if has_top_categories then
-        local series = ts_utils.listSeries("host:ndpi_categories", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("host:ndpi_categories", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2392,7 +2404,7 @@ local function add_top_interface_timeseries(tags, timeseries)
 
     -- Top Traffic Profiles
     if ntop.isPro() then
-        local series = ts_utils.listSeries("profile:traffic", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("profile:traffic", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2428,7 +2440,7 @@ local function add_top_interface_timeseries(tags, timeseries)
 
     -- L4 Protocols
     if interface_ts_enabled then
-        local series = ts_utils.listSeries("iface:l4protos", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("iface:l4protos", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2464,7 +2476,7 @@ local function add_top_interface_timeseries(tags, timeseries)
 
     -- Top l7 Protocols
     if has_top_protocols then
-        local series = ts_utils.listSeries("iface:ndpi", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("iface:ndpi", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2500,7 +2512,7 @@ local function add_top_interface_timeseries(tags, timeseries)
 
     -- Top Categories
     if has_top_categories then
-        local series = ts_utils.listSeries("iface:ndpi_categories", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("iface:ndpi_categories", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2546,7 +2558,7 @@ local function add_top_obs_point_timeseries(tags, timeseries)
 
     -- Top l7 Protocols
     if top_protocols_pref == 'both' or top_protocols_pref == 'per_protocol' then
-        local series = ts_utils.listSeries("obs_point:ndpi", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("obs_point:ndpi", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
@@ -2699,7 +2711,7 @@ local function add_top_flow_port_timeseries(tags, timeseries)
 
     -- Top l7 Protocols
     if top_protocols_pref == 'both' or top_protocols_pref == 'per_protocol' then
-        local series = ts_utils.listSeries("flowdev_port:ndpi", table.clone(tags), tags.epoch_begin)
+        local series = ts_utils.listSeries("flowdev_port:ndpi", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then

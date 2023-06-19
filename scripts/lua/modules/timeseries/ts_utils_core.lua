@@ -688,7 +688,7 @@ end
 -- ! @param start_time time filter. Only timeseries updated after start_time will be returned.
 -- ! @param end_time time filter. Only timeseries updated before end_time will be returned.
 -- ! @return a (possibly empty) list of tags values for the matching timeseries on success, nil on error.
-function ts_utils.listSeries(schema_name, tags_filter, start_time, end_time)
+function ts_utils.listSeries(schema_name, tags_filter, start_time, end_time, not_print_error)
     local schema = ts_utils.getSchema(schema_name)
     local driver = ts_utils.getQueryDriver()
 
@@ -703,7 +703,7 @@ function ts_utils.listSeries(schema_name, tags_filter, start_time, end_time)
 
     local filter_tags, wildcard_tags = getWildcardTags(schema, tags_filter)
 
-    return driver:listSeries(schema, filter_tags, wildcard_tags, start_time, end_time)
+    return driver:listSeries(schema, filter_tags, wildcard_tags, start_time, end_time, not_print_error)
 
 end
 
@@ -858,11 +858,13 @@ function ts_utils.queryTotal(schema_name, tstart, tend, tags, options)
     if not isUserAccessAllowed(tags) then
         return nil
     end
-
+    
     local schema = ts_utils.getSchema(schema_name)
 
     if not schema then
-        traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+        if print_error then
+            traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+        end
         return nil
     end
 

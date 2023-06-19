@@ -713,14 +713,17 @@ end
 -- *Limitation*
 -- tags_filter is expected to contain all the tags of the schema except the last
 -- one. For such tag, a list of available values will be returned.
-function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, not_print_error)
     if #wildcard_tags > 1 then
-        tprint(debug.traceback())
-        tprint({
-            schema_name = schema.name,
-            wildcards = wildcard_tags
-        })
-        traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
+        if not not_print_error then
+            tprint(debug.traceback())
+            tprint({
+                schema_name = schema.name,
+                wildcards = wildcard_tags
+            })
+            traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
+        end
+
         return nil
     end
 
@@ -1093,7 +1096,7 @@ end
 function driver:queryTotal(schema, tstart, tend, tags, options)
     local rrdfile = driver.schema_get_full_path(schema, tags)
 
-    if not ntop.notEmptyFile(rrdfile) then
+    if not rrdfile or not ntop.notEmptyFile(rrdfile) then
         return nil
     end
 
