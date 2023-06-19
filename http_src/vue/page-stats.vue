@@ -3,7 +3,7 @@
     <div class="col-12 mb-2 mt-2">
         <AlertInfo></AlertInfo>
         <div class="card h-100 overflow-hidden">
-            <DataTimeRangePicker style="margin-top:0.5rem;" :id="id_date_time_picker" :enable_refresh="true"
+            <DataTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker" :enable_refresh="true"
                 ref="date_time_picker" @epoch_change="epoch_change">
                 <template v-slot:begin>
                 </template>
