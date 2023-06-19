@@ -369,6 +369,10 @@ else
             entry = page_utils.menu_entries.server_ports_analysis,
             url = '/lua/hosts_ports_analysis.lua',
             hidden = not ntop.isEnterpriseL()
+        }, {
+            entry = page_utils.menu_entries.host_rules,
+            url = '/lua/pro/host_rules.lua',
+            hidden = not ntop.isEnterprise() or not isAdministrator(),
         }}
     })
 
@@ -437,14 +441,6 @@ page_utils.add_menubar_section({
     }, {
         hidden = not ntop.isEnterprise() or not isAdministrator(),
         entry = page_utils.menu_entries.divider
-    }, {
-        hidden = not ntop.isEnterprise() or not isAdministrator(),
-        entry = page_utils.menu_entries.ports_analysis,
-        url = '/lua/pro/enterprise/ports_analysis.lua'
-    }, {
-        hidden = not ntop.isEnterprise() or not isAdministrator(),
-        entry = page_utils.menu_entries.host_rules,
-        url = '/lua/pro/host_rules.lua'
     }}
 })
 

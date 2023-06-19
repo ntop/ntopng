@@ -104,11 +104,11 @@ page_utils.menu_entries = {
     hosts_treemap         = {key = "hosts_treemap", i18n_title = "tree_map.hosts_treemap", section = "hosts"},
     containers            = {key = "containers", i18n_title = "containers_stats.containers", section = "hosts"},
     pods                  = {key = "pods", i18n_title = "containers_stats.pods", section = "hosts"},
-    
+    host_rules            = {key = "host_rules", i18n_title = "if_stats_config.traffic_rules", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/host_rules.html"},
+
     -- Interface
     interface             = {key = "interface", i18n_title = "interface_details", section = "if_stats"},
     ports_analysis        = {key = "ports_analysis", i18n_title = "ports_analysis.server_ports", section = "if_stats"},
-    host_rules            = {key = "host_rules", i18n_title = "if_stats_config.traffic_rules", section = "if_stats", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/host_rules.html"},
 
     -- Pollers
     snmp                  = {key = "snmp", i18n_title = "prefs.snmp", section = "pollers"},
