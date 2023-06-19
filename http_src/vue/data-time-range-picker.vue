@@ -28,7 +28,7 @@
                         </span>
                     </div>
 
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center ms-2">
                         <button :disabled="!enable_apply || wrong_date" @click="apply" class="btn btn-sm btn-primary">{{
                             i18n('apply') }}</button>
 
