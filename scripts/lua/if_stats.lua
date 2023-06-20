@@ -687,7 +687,37 @@ end
       else
         print("<li>nprobe --zmq "..zmq_endpoint.. probe_mode .." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
       end
-      print("</small></ul></td></tr>\n")
+      print("</small></ul>");
+
+      if ntop.isCloud() then
+        -- Sample configuration file
+        print [[
+        <script type='text/javascript'>
+        function configDownload() {
+          var filename = 'example.conf';
+          var content = "";
+          content += "# Set the capture interface name\n";
+          content += "-i=INTERFACE_NAME\n";
+          content += "# Set the ntopng address properly\n";
+          content += "--zmq=]] print(zmq_endpoint) print [[\n";
+          content += "--zmq-publish-events=]] print(prefs.zmq_publish_events_url) print [[\n";
+          content += "--zmq-probe-mode\n";
+          content += "--zmq-encryption-key=']] print(ifstats.encryption.public_key) print [['\n";
+          content += "# Add more options here...\n";
+          var element = document.createElement('a');
+          element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+          element.setAttribute('download', filename);
+          element.style.display = 'none';
+          document.body.appendChild(element);
+          element.click();
+          document.body.removeChild(element);
+        }
+        </script>
+        <button type="button" class="btn btn-sm btn-secondary" onclick="configDownload();">]] print(i18n("if_stats_overview.zmq_download_conf")) print [[</button>
+        ]]
+      end
+
+      print("</td></tr>\n")
    end
 
    if is_physical_iface and not ifstats.isView then

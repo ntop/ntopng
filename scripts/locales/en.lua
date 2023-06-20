@@ -4435,6 +4435,7 @@ local lang = {
     ["unhandled_flows"] = "Unhandled Flows",
     ["unhandled_logs"] = "Unsupported Events",
     ["zmq_avg_msg_flows"] = "Avg Flows/Msg",
+    ["zmq_download_conf"] = "Download Sample Configuration",
     ["zmq_encryption_alias"] = "******************",
     ["zmq_encryption_public_key"] = "ZMQ Encryption Public Key",
     ["zmq_encryption_public_key_note"] = "Please add --zmq-encryption-key '%{key}' to the nProbe configuration similar to the below (set the ntopng address properly):",
