@@ -117,6 +117,8 @@ ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `IS_ALERT_DEL
 ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `SRC2DST_PACKETS` UInt32
 @
 ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `DST2SRC_PACKETS` UInt32
+@
+ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ALERT_CATEGORY` UInt8
 
 @
 
@@ -171,7 +173,8 @@ ALERTS_MAP AS alerts_map,
 INFO AS info,
 IPv4NumToString(PROBE_IP) AS probe_ip,
 INPUT_SNMP AS input_snmp,
-OUTPUT_SNMP AS output_snmp
+OUTPUT_SNMP AS output_snmp,
+ALERT_CATEGORY as alert_category
 FROM `flows`
 WHERE STATUS != 0 AND IS_ALERT_DELETED != 1;
 
@@ -197,6 +200,8 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime NULL
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -262,6 +267,8 @@ ALTER TABLE `flow_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS probe_i
 ALTER TABLE `flow_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS input_snmp UInt32;
 @
 ALTER TABLE `flow_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS output_snmp UInt32;
+@
+ALTER TABLE `flow_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -294,6 +301,11 @@ ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS host_po
 @
 ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS network UInt16;
 @
+ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `country` String
+@
+ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
+
+@
 
 CREATE TABLE IF NOT EXISTS `mac_alerts` ON CLUSTER '$CLUSTER' (
 `rowid` UUID,
@@ -316,6 +328,8 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -339,10 +353,10 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
-
 @
-
 ALTER TABLE `snmp_alerts` MODIFY COLUMN `port` UInt32;
+@
+ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -365,6 +379,8 @@ CREATE TABLE IF NOT EXISTS `network_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -388,6 +404,8 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -408,6 +426,8 @@ CREATE TABLE IF NOT EXISTS `user_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -429,7 +449,7 @@ CREATE TABLE IF NOT EXISTS `system_alerts` ON CLUSTER '$CLUSTER' (
 `user_label_tstamp` DateTime
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `country` String
+ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -438,7 +458,7 @@ DROP VIEW IF EXISTS `all_alerts_view` ON CLUSTER '$CLUSTER';
 CREATE VIEW IF NOT EXISTS `all_alerts_view` ON CLUSTER '$CLUSTER' AS
 SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `active_monitoring_alerts`
 UNION ALL
-SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, 0 AS alert_status, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
+SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, 0 AS alert_status, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score, ALERT_CATEGORY AS alert_category FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
 UNION ALL
 SELECT 1 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `host_alerts`
 UNION ALL

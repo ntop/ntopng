@@ -115,6 +115,8 @@ ALTER TABLE flows ADD COLUMN IF NOT EXISTS `IS_ALERT_DELETED` UInt8
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `SRC2DST_PACKETS` UInt32
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `DST2SRC_PACKETS` UInt32
+@
+ALTER TABLE flows ADD COLUMN IF NOT EXISTS `ALERT_CATEGORY` UInt8
 
 @
 
@@ -169,7 +171,8 @@ ALERTS_MAP AS alerts_map,
 INFO AS info,
 IPv4NumToString(PROBE_IP) AS probe_ip,
 INPUT_SNMP AS input_snmp,
-OUTPUT_SNMP AS output_snmp
+OUTPUT_SNMP AS output_snmp,
+ALERT_CATEGORY as alert_category
 FROM `flows`
 WHERE STATUS != 0 AND IS_ALERT_DELETED != 1;
 
@@ -195,6 +198,8 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime NULL 
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `active_monitoring_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -260,6 +265,8 @@ ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS probe_ip String;
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS input_snmp UInt32;
 @
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS output_snmp UInt32;
+@
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -292,6 +299,11 @@ ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS host_pool_id UInt16;
 @
 ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS network UInt16;
 @
+ALTER TABLE host_alerts ADD COLUMN IF NOT EXISTS `country` String
+@
+ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
+
+@
 
 CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `rowid` UUID,
@@ -314,6 +326,8 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `mac_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -337,10 +351,10 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
-
 @
-
 ALTER TABLE `snmp_alerts` MODIFY COLUMN `port` UInt32;
+@
+ALTER TABLE `snmp_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -363,6 +377,8 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `network_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -386,6 +402,8 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `interface_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -406,6 +424,8 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `user_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
@@ -427,30 +447,30 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE host_alerts ADD COLUMN IF NOT EXISTS `country` String
+ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
 
 DROP VIEW IF EXISTS `all_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `all_alerts_view` AS
-SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `active_monitoring_alerts`
+SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `active_monitoring_alerts`
 UNION ALL 
-SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, 0 AS alert_status, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
+SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, 0 AS alert_status, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score, ALERT_CATEGORY AS alert_category FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
 UNION ALL
-SELECT 1 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `host_alerts`
+SELECT 1 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `host_alerts`
 UNION ALL
-SELECT 5 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `mac_alerts`
+SELECT 5 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `mac_alerts`
 UNION ALL
-SELECT 3 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `snmp_alerts`
+SELECT 3 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `snmp_alerts`
 UNION ALL
-SELECT 2 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `network_alerts`
+SELECT 2 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `network_alerts`
 UNION ALL
-SELECT 0 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `interface_alerts`
+SELECT 0 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `interface_alerts`
 UNION ALL
-SELECT 7 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `user_alerts`
+SELECT 7 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `user_alerts`
 UNION ALL
-SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `system_alerts`
+SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `system_alerts`
 ;
 
 @
