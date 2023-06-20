@@ -2706,6 +2706,8 @@ void Prefs::lua(lua_State *vm) {
 
   lua_push_str_table_entry(vm, "capture_direction",
                            Utils::captureDirection2Str(captureDirection));
+
+  lua_push_str_table_entry(vm, "zmq_publish_events_url", zmq_publish_events_url);
 }
 
 /* *************************************** */

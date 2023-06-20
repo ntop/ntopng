@@ -676,7 +676,11 @@ end
       print("<input type='hidden' id='hiddenKey' value='"..ifstats.encryption.public_key.."'>")
       print("<button id='copy' class='btn btn-light border ms-1'>".."<i class='fas fa-copy'></i>".." </button>")
       print("<br><small><b>"..i18n("if_stats_overview.note").."</b>:<ul><li> ".. i18n("if_stats_overview.zmq_encryption_public_key_note", {key="&lt;key&gt;"}).."")
-      print("<li>nprobe --zmq "..ifstats.name.." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
+      if ntop.isCloud() then
+        print("<li>nprobe --zmq "..ifstats.name.." --zmq-publish-events " .. prefs.zmq_publish_events_url .. " --zmq-probe-mode --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
+      else
+        print("<li>nprobe --zmq "..ifstats.name.." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
+      end
       print("</small></ul></td></tr>\n")
    end
 

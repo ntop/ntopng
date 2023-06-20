@@ -3119,6 +3119,14 @@ static int ntop_is_enterprise_xl(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_cloud(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getPrefs()->is_cloud_edition());
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_is_nedge(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushboolean(vm, ntop->getPrefs()->is_nedge_pro_edition());
@@ -7226,6 +7234,7 @@ static luaL_Reg _ntop_reg[] = {
     {"isEnterpriseM", ntop_is_enterprise_m},
     {"isEnterpriseL", ntop_is_enterprise_l},
     {"isEnterpriseXL", ntop_is_enterprise_xl},
+    {"isCloud", ntop_is_cloud},
     {"isnEdge", ntop_is_nedge},
     {"isnEdgeEnterprise", ntop_is_nedge_enterprise},
     {"isPackage", ntop_is_package},
