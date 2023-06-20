@@ -676,10 +676,16 @@ end
       print("<input type='hidden' id='hiddenKey' value='"..ifstats.encryption.public_key.."'>")
       print("<button id='copy' class='btn btn-light border ms-1'>".."<i class='fas fa-copy'></i>".." </button>")
       print("<br><small><b>"..i18n("if_stats_overview.note").."</b>:<ul><li> ".. i18n("if_stats_overview.zmq_encryption_public_key_note", {key="&lt;key&gt;"}).."")
+      local zmq_endpoint = ifstats.name
+      local probe_mode = ""
+      if endswith(zmq_endpoint, 'c') then
+         zmq_endpoint = string.sub(zmq_endpoint, 1, -2)
+         probe_mode = " --zmq-probe-mode"
+      end
       if ntop.isCloud() then
-        print("<li>nprobe --zmq "..ifstats.name.." --zmq-publish-events " .. prefs.zmq_publish_events_url .. " --zmq-probe-mode --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
+        print("<li>nprobe --zmq "..zmq_endpoint.." --zmq-publish-events " .. prefs.zmq_publish_events_url .. " --zmq-probe-mode --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
       else
-        print("<li>nprobe --zmq "..ifstats.name.." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
+        print("<li>nprobe --zmq "..zmq_endpoint.. probe_mode .." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
       end
       print("</small></ul></td></tr>\n")
    end

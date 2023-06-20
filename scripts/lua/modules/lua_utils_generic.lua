@@ -30,8 +30,12 @@ function startswith(s, char)
    return string.sub(s, 1, string.len(s)) == char
 end
 
--- strsplit
+-- endswith
+function endswith(s, char)
+   return string.sub(s, -#char) == char
+end
 
+-- strsplit
 function strsplit(s, delimiter)
    result = {};
    for match in (s..delimiter):gmatch("(.-)"..delimiter) do
