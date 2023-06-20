@@ -393,6 +393,16 @@ end
 
 -- #####################################
 
+local function dt_format_duration(time)
+   time = tonumber(time)
+   if time <= 0 then
+      time = 1
+   end
+   return secondsToTime(time)
+end
+
+-- #####################################
+
 local function dt_format_time_with_highlight(time, record)
    if (time) and (tonumber(time)) then
       time = format_utils.formatPastEpochShort(time)
@@ -1030,6 +1040,7 @@ local additional_flow_columns = {
    ['bytes'] =                { tag = "bytes",        dt_func = dt_format_bytes },
    ['packets'] =              { tag = "packets",      dt_func = dt_format_pkts },
    ['THROUGHPUT'] =           { tag = "throughput",   dt_func = dt_format_thpt },
+   ['DURATION'] =             { tag = "duration",     dt_func = dt_format_duration },   
 }
 
 -- #####################################
@@ -1092,6 +1103,7 @@ historical_flow_utils.min_aggregated_flow_db_columns = {
 
 historical_flow_utils.extra_db_columns = {
    ["throughput"] = "ABS(LAST_SEEN - FIRST_SEEN) as TIME_DELTA, (TOTAL_BYTES / (TIME_DELTA + 1)) * 8 as THROUGHPUT",
+   ["duration"] = "ABS(LAST_SEEN - FIRST_SEEN) as DURATION",
    ["alert_json"] = "ALERT_JSON"
 }
 
@@ -1119,6 +1131,7 @@ historical_flow_utils.extra_where_tags = {
    ["srv_country"] = "DST_COUNTRY_CODE",
    ["vlan_id"] = "VLAN_ID",
    ["community_id"] = "COMMUNITY_ID",
+   ["duration"] = "DURATION",
 
 }
 
@@ -1231,6 +1244,7 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["network_cidr"] = tag_utils.defined_tags["network_cidr"]
    flow_defined_tags["srv_network_cidr"] = tag_utils.defined_tags["srv_network_cidr"]
    flow_defined_tags["cli_network_cidr"] = tag_utils.defined_tags["cli_network_cidr"]
+   flow_defined_tags["duration"] = tag_utils.defined_tags["duration"]
 
    return flow_defined_tags
 end

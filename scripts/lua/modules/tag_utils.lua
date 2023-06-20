@@ -144,6 +144,11 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.dst2src_dscp'),
       operators = {'eq', 'neq'}
    },
+   duration = {
+      value_type = 'number',
+      i18n_label = i18n('db_search.duration'),
+      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+   },
    cli_port = {
       value_type = 'port',
       i18n_label = i18n('db_search.tags.cli_port'),

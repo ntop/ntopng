@@ -2221,7 +2221,7 @@ local known_parameters = {
 
     -- LIVE CAPTURE
     ["capture_id"] = validateNumber, -- Live capture id
-    ["duration"] = validateNumber, --
+    ["duration"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))),
     ["bpf_filter"] = validateEmptyOr(validateUnquoted), --
 
     -- TRAFFIC RECORDING
