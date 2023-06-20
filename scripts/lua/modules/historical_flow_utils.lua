@@ -983,7 +983,7 @@ local flow_columns = {
               only parses these columns, so a new logic to parse only the aggregated_flow_columns
               is needed 
    ]]
-   ['NUM_FLOWS'] =            { tag = "flows_number", dt_func = dt_format_high_number },
+   --['NUM_FLOWS'] =            { tag = "flows_number", dt_func = dt_format_high_number },
    
    -- Alert data
    ['ALERT_STATUS'] =         { tag = "alert_status" },
@@ -1305,8 +1305,8 @@ end
 -- Return DB column by tag
 -- First or ip_version-based in case of multiple
 -- nil in case of undefined tag
-function historical_flow_utils.get_flow_column_by_tag(tag, ip_version)
-   local tags_to_columns = get_flow_tags_to_columns()
+function historical_flow_utils.get_flow_column_by_tag(tag, ip_version, aggregated)
+   local tags_to_columns = get_flow_tags_to_columns(aggregated)
 
    if tags_to_columns[tag] then
       if tag:ends('ip') and ip_version and ip_version == 6 then
