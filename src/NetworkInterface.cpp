@@ -11303,6 +11303,14 @@ static bool host_details_asc_mac_cmp(HostDetails *a,
                 b->get_mac_address(b_buf)) < 0;
 }
 
+static bool host_details_asc_mac_manufacturer_cmp(HostDetails *a, 
+                                     HostDetails *b) {
+  char a_buf[128];
+  char b_buf[128];
+  return strcmp(a->get_mac_manufacturer(a_buf), 
+                b->get_mac_manufacturer(b_buf)) < 0;
+}
+
 static bool host_details_asc_score_cmp(HostDetails *a, 
                                        HostDetails *b) {
   return (a->get_score() < b->get_score());
@@ -11986,6 +11994,7 @@ bool NetworkInterface::get_tcp_hosts_by_port(GenericHashEntry *node,
       HostDetails *host_info = new (std::nothrow) HostDetails(
                                                       h->get_ip()->print(ip_buf, sizeof(ip_buf)),
                                                       h->getMac()->print(mac_buf, sizeof(mac_buf)),
+                                                      (char*)h->getMac()->get_manufacturer(),
                                                       h->getNumBytesTCPSent() + h->getNumBytesTCPRcvd(),
                                                       h->get_ip()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
                                                       h->get_vlan_id(),
@@ -12041,6 +12050,7 @@ bool NetworkInterface::get_udp_hosts_by_port(GenericHashEntry *node,
       HostDetails *host_info = new (std::nothrow) HostDetails(
                                                       h->get_ip()->print(ip_buf, sizeof(ip_buf)),
                                                       h->getMac()->print(mac_buf, sizeof(mac_buf)),
+                                                      (char*)h->getMac()->get_manufacturer(),
                                                       h->getNumBytesUDPSent() + h->getNumBytesUDPRcvd(),
                                                       h->get_ip()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
                                                       h->get_vlan_id(),
@@ -12114,6 +12124,8 @@ void NetworkInterface::sort_hosts_details(lua_State *vm,
       sorter = &host_details_asc_score_cmp;
     } else if (!strcmp(sortColumn, "mac")) {
       sorter = &host_details_asc_mac_cmp;
+    } else if (!strcmp(sortColumn, "mac_manufacturer")) {
+      sorter = &host_details_asc_mac_manufacturer_cmp;
     } else if (!strcmp(sortColumn, "ip")) {
       sorter = &host_details_asc_ip_cmp;
     } else if (!strcmp(sortColumn, "tot_traffic")) {
@@ -12149,6 +12161,7 @@ void NetworkInterface::sort_hosts_details(lua_State *vm,
         char buf[128];
         lua_push_str_table_entry(vm, "ip", hd->get_ip(buf));
         lua_push_str_table_entry(vm, "mac", hd->get_mac_address(buf));
+        lua_push_str_table_entry(vm, "mac_manufacturer", hd->get_mac_manufacturer(buf));
         lua_push_str_table_entry(vm, "name", hd->get_name(buf));
         lua_push_uint64_table_entry(vm, "vlan_id", (u_int64_t)hd->get_vlan_id());
         lua_push_uint64_table_entry(vm, "flows", (u_int64_t)hd->get_active_flows_as_server());

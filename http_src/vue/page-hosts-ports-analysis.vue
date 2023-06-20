@@ -274,6 +274,11 @@ function get_table_columns_config() {
             }
         },
         {
+            columnName: i18n("mac_stats.manufacturer"), targets: 0, name: 'mac_manufacturer', data: 'mac_manufacturer', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
+                return data;
+            }
+        },
+        {
             columnName: i18n("total_score_host_page"), targets: 0, name: 'score', data: 'score', className: 'text-nowrap text-center', responsivePriority: 1
         },
         {

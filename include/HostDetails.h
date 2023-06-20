@@ -30,6 +30,7 @@ class HostDetails {
     private:
         char* ip;
         char* mac_address;
+        char* mac_manufacturer;
         char* ip_hex;
         char* name;
         u_int16_t vlan_id;
@@ -39,9 +40,10 @@ class HostDetails {
         u_int64_t host_key;
     
     public:
-        HostDetails(char* _ip, char* _mac_address, u_int64_t _total_traffic, char* _ip_hex, u_int16_t _vlan_id, u_int8_t _score, u_int32_t _flows, char* _name, u_int64_t _host_key) {
+        HostDetails(char* _ip, char* _mac_address, char* _mac_manufacturer, u_int64_t _total_traffic, char* _ip_hex, u_int16_t _vlan_id, u_int8_t _score, u_int32_t _flows, char* _name, u_int64_t _host_key) {
             ip = strdup(_ip);
             mac_address = strdup(_mac_address);
+            mac_manufacturer = strdup(_mac_manufacturer);
             total_traffic = _total_traffic;
             ip_hex = strdup(_ip_hex);
             vlan_id = _vlan_id;
@@ -59,6 +61,8 @@ class HostDetails {
                 free(mac_address);
             if(name)
                 free(name);
+            if(mac_manufacturer)
+                free(mac_manufacturer);
         };
 
         /* Getters */
@@ -73,6 +77,10 @@ class HostDetails {
         };
         inline char* get_mac_address(char *buf) { 
             snprintf(buf, MAX_STRING_LEN, "%s", mac_address);
+            return(buf); 
+        };
+        inline char* get_mac_manufacturer(char *buf) { 
+            snprintf(buf, MAX_STRING_LEN, "%s", mac_manufacturer);
             return(buf); 
         };
         inline char* get_name(char *buf) {
