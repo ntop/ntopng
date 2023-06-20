@@ -2847,8 +2847,7 @@ bool Prefs::is_enterprise_l_edition() {
 bool Prefs::is_enterprise_xl_edition() {
   return
 #ifdef NTOPNG_PRO
-    ntop->getPro()->has_valid_enterprise_xl_license() ||
-    is_cloud_edition() /* Cloud edition unlocks Enterprise XL features */
+    ntop->getPro()->has_valid_enterprise_xl_license()
 #else
     false
 #endif
