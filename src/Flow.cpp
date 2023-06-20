@@ -4152,6 +4152,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_boolean(s, "is_flow_alert", true);
   ndpi_serialize_string_int64(s, "tstamp", now);
   ndpi_serialize_string_int64(s, "alert_id", alert->getAlertType().id);
+  ndpi_serialize_string_int64(s, "alert_category", alert->getAlertType().category);
   ndpi_serialize_string_boolean(s, "is_cli_attacker", alert->isCliAttacker());
   ndpi_serialize_string_boolean(s, "is_cli_victim", alert->isCliVictim());
   ndpi_serialize_string_boolean(s, "is_srv_attacker", alert->isSrvAttacker());

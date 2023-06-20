@@ -2150,6 +2150,7 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   /* See AlertableEntity::luaAlert */
   ndpi_serialize_string_string(s, "action", released ? "release" : "engage");
   ndpi_serialize_string_int32(s, "alert_id", alert->getAlertType().id);
+  ndpi_serialize_string_int32(s, "alert_category", alert->getAlertType().category);
   ndpi_serialize_string_int32(s, "score", alert->getAlertScore());
   ndpi_serialize_string_string(s, "subtype", "" /* No subtype for hosts */);
   ndpi_serialize_string_int32(s, "ip_version", ip.getVersion());
