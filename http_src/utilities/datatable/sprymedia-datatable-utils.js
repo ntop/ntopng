@@ -661,6 +661,15 @@ export class DataTableRenders {
         return cell;
     }
 
+    static formatValueIcon(obj, type, row, zero_is_null) {
+        if (type !== "display") return obj.value;
+        let cell = `<i class="fa fas ${obj.icon}" title="${obj.label}"></i>`;
+	if (zero_is_null == true && obj.value == 0) {
+	    cell = "";
+	}
+        return cell;
+    }
+
     static formatScore(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.value;
         let cell = obj.label;

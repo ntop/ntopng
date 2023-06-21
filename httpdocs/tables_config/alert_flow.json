@@ -39,6 +39,13 @@
 	    "class": ["text-center"]
 	},
 	{
+	    "title_i18n": "db_search.alert_category",
+	    "data_field": "alert_category",
+	    "sortable": true,
+	    "render_type": "formatValueIcon",
+	    "class": ["text-center"]
+	},
+	{
 	    "title_i18n": "application",
 	    "data_field": "l7_proto",
 	    "sortable": true,
