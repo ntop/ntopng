@@ -68,17 +68,19 @@ export const ntopng_utility = function() {
 	    }
 	    return array;
 	},
-	check_and_set_default_interval_time: function(set_status) {
-	    if (ntopng_url_manager.get_url_entry("epoch_begin") == null
-      		|| ntopng_url_manager.get_url_entry("epoch_end") == null) {
-		let default_epoch_begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
-		let default_epoch_end = Number.parseInt(Date.now() / 1000);
-		ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
-		ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
+	//should take a string as parameter that represent time: 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year 
+	check_and_set_default_interval_time: function(time_interval_id) {
+	    let epoch = {
+		begin: ntopng_url_manager.get_url_entry("epoch_begin"),
+		end: ntopng_url_manager.get_url_entry("epoch_end"),
+	    };
+	    if (epoch.begin == null || epoch.end == null) {
+		epoch.begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
+		epoch.end = Number.parseInt(Date.now() / 1000);
+		ntopng_url_manager.set_key_to_url("epoch_begin", epoch.begin);
+		ntopng_url_manager.set_key_to_url("epoch_end", epoch.end);
 	    }
-	    if (set_status == true) {
-		
-	    }
+	    return epoch;
 	},
 	from_utc_s_to_server_date: function(utc_seconds) {
 	    let utc = utc_seconds * 1000;
