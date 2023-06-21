@@ -12,8 +12,8 @@ To give an example, let's consider ntopng is monitoring interface `eth1` with IP
 
 As two different IP addresses are seen, ntopng will create, update and make available through the Web GUI two hosts, namely, `192.168.2.1` and `192.168.2.2`. The whole section :ref:`Hosts` of this guide thoroughly discuss all the information that is available for any host.
 
-Local Hosts
------------
+Local Networks
+--------------
 
 However, not all hosts are handled equally by ntopng. ntopng can be told to treat some hosts with special care. ntopng refers to those hosts as `local hosts`. But why we should tell ntopng to handle some hosts differently from all the others? Basically, to save resources. Indeed, extra work is done by ntopng to collect, extract, and store additional information for local hosts, including visited websites, DNS requests, and historical timeseries of layer-7 application protocols. Therefore, we should avoid letting ntopng do extra work for hosts we do not care with the aim of saving CPU cycles and disk space.
 
@@ -29,6 +29,20 @@ Optionally you can name the local networks in the following way, in order to rem
 
    ntopng --local-networks 10.0.0.0/8=Office,192.168.2.0/24=Home <plus other options>
 
+As the networks list can be quite long, it is a good idea to write a configuration file containing the networks as in the following example:
+
+.. code:: bash
+	  
+   ntopng --local-networks /etc/ntopng/localnetworks.txt
+
+Then make sure that the configuration file /etc/ntopng/localnetworks.txt is readeable by ntopng and ut one network per line. Example:
+
+.. code:: bash
+
+    10.0.0.0/8=Office
+    192.168.2.0/24=Home
+    
+   
 All hosts that are non-local are defined as `remote hosts`.
 Below a table showing which pages and the relative statistics, `remote hosts` don't have in comparison with `local hosts`.
 
