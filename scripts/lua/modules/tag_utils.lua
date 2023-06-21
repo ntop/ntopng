@@ -11,6 +11,7 @@ local alert_consts = require "alert_consts"
 local host_pools = require "host_pools"
 local dscp_consts = require "dscp_consts"
 local country_codes = require "country_codes"
+local checks = require "checks"
 
 local snmp_filter_options_cache
 
@@ -39,6 +40,11 @@ tag_utils.defined_tags = {
    alert_id = {
       value_type = 'alert_id',
       i18n_label = i18n('db_search.tags.alert_id'),
+      operators = {'eq','neq'}
+   },
+   alert_category = {
+      value_type = 'alert_category',
+      i18n_label = i18n('db_search.tags.alert_category'),
       operators = {'eq','neq'}
    },
    l7proto = {
@@ -531,6 +537,7 @@ tag_utils.formatters = {
    l7cat = function(cat) return getCategoryLabel(interface.getnDPICategoryName(tonumber(cat)), tonumber(cat)) end,
    severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
    alert_id = function(status) return alert_consts.alertTypeLabel(status, true, alert_entities.flow.entity_id) end,
+   alert_category = function(category_id) return checks.getCategoryById(category_id) end,
    role = function(role) return (i18n(role)) end,
    role_cli_srv = function(role) return (i18n(role)) end,
    flow_risk = function(risk) 
@@ -577,6 +584,15 @@ function tag_utils.get_tag_info(id, entity)
       local alert_types = alert_consts.getAlertTypesInfo(entity.entity_id)
       for id, info in pairsByField(alert_types, 'label', asc) do
          filter.options[#filter.options+1] = { value = id, label = info.label }
+      end
+
+   elseif tag.value_type == "alert_category" then
+
+      filter.value_type = 'array'
+      filter.options = {}
+      local alert_categories = checks.check_categories
+      for name, info in pairsByField(alert_categories, 'i18n_title', asc) do
+         filter.options[#filter.options+1] = { value = info.id, label = i18n(info.i18n_title) }
       end
 
    elseif tag.value_type == "dscp_type" then

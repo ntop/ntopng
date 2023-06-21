@@ -49,6 +49,8 @@ function system_alert_store:insert(alert)
    local interface_id = self:get_ifid() -- interface.getId()
    interface_id = self:_convert_ifid(interface_id)
 
+tprint(alert)
+
    local insert_stmt = string.format("INSERT INTO %s "..
       "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, name, granularity, json) "..
       "VALUES (%s%u, %d, %u, %u, %u, %u, '%s', %u, '%s'); ",

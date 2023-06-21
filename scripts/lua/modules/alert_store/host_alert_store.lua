@@ -64,9 +64,14 @@ function host_alert_store:insert(alert)
     end
 
     local insert_stmt = string.format("INSERT INTO %s " ..
-                                          "(%salert_id, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, host_pool_id, network, json) " ..
-                                          "VALUES (%s%u, %d, %u, '%s', %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
-        self._table_name, extra_columns, extra_values, alert.alert_id, self:_convert_ifid(interface.getId()),
+        "(%salert_id, alert_category, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, " ..
+        "is_client, is_server, tstamp, tstamp_end, severity, score, granularity, host_pool_id, network, json) " ..
+        "VALUES (%s%u, %d, %u, '%s', %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
+        self._table_name,
+        extra_columns, extra_values, 
+        alert.alert_id, 
+        alert.alert_category,
+        self:_convert_ifid(interface.getId()),
         ip_version, ip, vlan_id or 0, self:_escape(alert.name), alert.country_name, is_attacker, is_victim, is_client,
         is_server, alert.tstamp, alert.tstamp_end, map_score_to_severity(alert.score), alert.score, alert.granularity,
         alert.host_pool_id or 0, alert.network or 0, self:_escape(alert.json or ""))

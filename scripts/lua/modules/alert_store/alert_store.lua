@@ -15,6 +15,7 @@ local alert_severities = require "alert_severities"
 local alert_roles = require "alert_roles"
 local tag_utils = require "tag_utils"
 local alert_entities = require "alert_entities"
+local checks = require "checks"
 
 -- ##############################################
 
@@ -1800,6 +1801,7 @@ function alert_store:add_request_filters(is_write)
     local epoch_begin = tonumber(_GET["epoch_begin"])
     local epoch_end = tonumber(_GET["epoch_end"])
     local alert_id = _GET["alert_id"] or _GET["alert_type"] --[[ compatibility ]] --
+    local alert_category = _GET["alert_category"]
     local alert_severity = _GET["severity"] or _GET["alert_severity"]
     local score = _GET["score"]
     local rowid = _GET["row_id"]
@@ -1820,6 +1822,7 @@ function alert_store:add_request_filters(is_write)
     self:add_time_filter(epoch_begin, epoch_end, is_write)
 
     self:add_filter_condition_list('alert_id', alert_id, 'number')
+    self:add_filter_condition_list('alert_category', alert_category, 'number')
     self:add_filter_condition_list('severity', alert_severity, 'number')
     self:add_filter_condition_list('score', score, 'number')
     self:add_filter_condition_list('tstamp', tstamp, 'number')
@@ -1851,6 +1854,7 @@ function alert_store:get_available_filters()
 
     local filters = {
         alert_id = tag_utils.defined_tags.alert_id,
+        alert_category = tag_utils.defined_tags.alert_category,
         severity = tag_utils.defined_tags.severity,
         score = tag_utils.defined_tags.score
     }
@@ -1899,6 +1903,14 @@ local BASE_RNAME = {
     },
     ALERT_ID = {
         name = "alert_id",
+        export = true
+    },
+    ALERT_CATEGORY = {
+        name = "alert_category",
+        export = true
+    },
+    ALERT_CATEGORY = {
+        name = "alert_category",
         export = true
     },
     SCORE = {
@@ -1952,6 +1964,13 @@ function alert_store:format_json_record_common(value, entity_id)
     record[BASE_RNAME.ALERT_ID.name] = {
         value = value["alert_id"],
         label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), false, entity_id)
+    }
+
+    local category = checks.getCategoryById(tonumber(value["alert_category"]))
+    record[BASE_RNAME.ALERT_CATEGORY.name] = {
+        value = value["alert_category"],
+        label = i18n(category.i18n_title),
+        icon = category.icon
     }
 
     record[BASE_RNAME.SCORE.name] = {

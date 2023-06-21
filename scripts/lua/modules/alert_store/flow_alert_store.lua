@@ -199,7 +199,7 @@ function flow_alert_store:insert(alert)
    -- - tstamp (instead of first_seen) is used in select and for visualization as it's in common to all tables
 
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(%salert_id, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
+      "(%salert_id, alert_category, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
       "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, cli_location, srv_location, "..
       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, "..
@@ -212,6 +212,7 @@ function flow_alert_store:insert(alert)
       extra_columns,
       extra_values,
       alert.alert_id,
+      alert.alert_category,
       self:_convert_ifid(interface.getId()),
       alert.first_seen,
       alert.tstamp,

@@ -1786,6 +1786,7 @@ local lang = {
     ["vlan_id"] = "VLAN Id",
   },
   ["db_search"] = {
+    ["alert_category"] = "Category",
     ["alert_id"] = "Status",
     ["bytes"] = "Bytes",
     ["cli_asn"] = "Cli ASN",
@@ -1840,6 +1841,7 @@ local lang = {
     ["where_note"] = "Use &lt;field&gt; &lt;operator&gt; &lt;value&gt; conditions, where &lt;operator&gt; could be &lt;, &gt;, =, !=. AND/OR operators are also allowed to combine conditions. Please use quotes for string fields (e.g. INFO='www.ntop.org')",
     ["tags"] = {
       ["acknowledged"] = "Acknowledged",
+      ["alert_category"] = "Category",
       ["alert_id"] = "Alert Type",
       ["bytes"] = "Bytes",
       ["cli_asn"] = "Client ASN",

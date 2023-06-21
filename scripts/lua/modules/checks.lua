@@ -327,6 +327,18 @@ end
 
 -- ##############################################
 
+function checks.getCategoryById(id)
+    for cat_k, cat_v in pairs(checks.check_categories) do
+        if cat_v["id"] == id then
+            return cat_v
+        end
+    end
+
+    return checks.check_categories.other
+end
+
+-- ##############################################
+
 -- @brief Given a subdir, returns the corresponding script type
 function checks.getScriptType(search_subdir)
     for _, script_type in pairs(checks.script_types) do
