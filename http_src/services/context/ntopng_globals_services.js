@@ -68,8 +68,8 @@ export const ntopng_utility = function() {
 	    }
 	    return array;
 	},
-	//should take a string as parameter that represent time: 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year 
-	check_and_set_default_interval_time: function(time_interval_id) {
+	//should take a string as parameter that represent time: 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year. ID time_interval_id is null, default must be 30_min
+	check_and_set_default_time_interval: function(time_interval_id) {
 	    let epoch = {
 		begin: ntopng_url_manager.get_url_entry("epoch_begin"),
 		end: ntopng_url_manager.get_url_entry("epoch_end"),

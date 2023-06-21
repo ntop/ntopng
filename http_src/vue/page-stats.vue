@@ -124,7 +124,7 @@ const props = defineProps({
     is_dark_mode: Boolean,
 });
 
-ntopng_utility.check_and_set_default_interval_time();
+ntopng_utility.check_and_set_default_time_interval();
 
 const _i18n = (t) => i18n(t);
 
