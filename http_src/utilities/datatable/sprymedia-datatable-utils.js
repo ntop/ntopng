@@ -661,9 +661,9 @@ export class DataTableRenders {
         return cell;
     }
 
-    static formatValueIcon(obj, type, row, zero_is_null) {
+    static formatCategory(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.value;
-        let cell = `<i class="fa fas ${obj.icon}" title="${obj.label}"></i>`;
+        let cell = `<a class='tag-filter' data-tag-key='alert_category' data-tag-value='${obj.value}' data-tag-label='${obj.label}' href='javascript:void(0)'><i class="fa fas ${obj.icon}" title="${obj.label}"></i></a>`;
 	if (zero_is_null == true && obj.value == 0) {
 	    cell = "";
 	}

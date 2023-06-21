@@ -42,7 +42,7 @@
 	    "title_i18n": "db_search.alert_category",
 	    "data_field": "alert_category",
 	    "sortable": true,
-	    "render_type": "formatValueIcon",
+	    "render_type": "formatCategory",
 	    "class": ["text-center"]
 	},
 	{
