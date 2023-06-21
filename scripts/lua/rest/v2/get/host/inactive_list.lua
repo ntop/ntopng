@@ -18,6 +18,16 @@ end
 -- =============================
 
 local ifid = _GET["ifid"]
+local filters = {
+    vlan = _GET["vlan_id"],
+    network = _GET["network"]
+}
+
+for filter, value in pairs(filters) do
+    if isEmptyString(value) then
+        filters[filter] = nil
+    end
+end
 
 if not isEmptyString(ifid) then
     interface.select(ifid)
@@ -26,7 +36,7 @@ else
 end
 
 local rsp = {}
-local hosts = inactive_hosts_utils.getInactiveHosts(ifid)
+local hosts = inactive_hosts_utils.getInactiveHosts(ifid, filters)
 
 -- Check if at least an host is inactive
 if table.len(hosts) > 0 then
@@ -77,19 +87,24 @@ if table.len(hosts) > 0 then
             }
         end
 
-        if interface.getVLANInfo(rsp[key]["vlan_id"]) then
-            rsp[key]["vlan"] = {
+        rsp[key]["host"] = {
+            ip_address = {
+               name = rsp[key]["ip_address"],
+               value = rsp[key]["ip_address"],
+               url = '/lua/inactive_host_details.lua?serial_key=' .. rsp[key]["serial_key"]
+            },
+        }
+
+        if rsp[key]["vlan_id"] then
+            rsp[key]["host"]["vlan"] = {
                 name = rsp[key]["vlan"],
                 value = rsp[key]["vlan_id"],
-                url = '/lua/hosts_stats.lua?vlan=' .. rsp[key]["vlan_id"]
             }
+            if interface.getVLANInfo(rsp[key]["vlan_id"]) then
+                rsp[key]["host"]["vlan"]["url"] = '/lua/hosts_stats.lua?vlan=' .. rsp[key]["vlan_id"]
+            end
         end
 
-        rsp[key]["ip_address"] = {
-            name = rsp[key]["ip_address"],
-            value = rsp[key]["ip_address"],
-            url = '/lua/inactive_host_details.lua?serial_key=' .. rsp[key]["serial_key"]
-        }
         rsp[key]["device_id"] = nil
         rsp[key]["network_id"] = nil
         rsp[key]["vlan_id"] = nil

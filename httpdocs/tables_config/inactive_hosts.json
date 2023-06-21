@@ -29,16 +29,8 @@
 			]
 		},
 		{
-			"title_i18n": "ip_address",
-			"data_field": "ip_address",
-			"sortable": true,
-			"class": [
-				"text-nowrap"
-			]
-		},
-		{
-			"title_i18n": "vlan",
-			"data_field": "vlan",
+			"title_i18n": "db_explorer.host_data",
+			"data_field": "host",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
@@ -62,7 +54,7 @@
 		},
 		{
 			"title_i18n": "name",
-			"data_field": "host_name",
+			"data_field": "name",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
@@ -83,14 +75,6 @@
 			"sortable": true,
 			"class": [
 				"text-center",
-				"text-nowrap"
-			]
-		},
-		{
-			"title_i18n": "network",
-			"data_field": "network",
-			"sortable": true,
-			"class": [
 				"text-nowrap"
 			]
 		},
