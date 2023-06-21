@@ -844,7 +844,7 @@ function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype, 
             upper_bound = anomaly_table["formatter"](upper_bound)
         end
 
-        local alert = stats[anomaly_type].alert.new(i18n(subtype .. "_id", {
+        local alert = anomaly_table.alert.new(i18n(subtype .. "_id", {
             id = name or id
         }), anomaly_type, value, lower_bound, upper_bound, anomaly_table["entity_id"], id, anomaly_table["extra_params"])
 
