@@ -330,6 +330,7 @@ local lang = {
   ["mac_address_dev_type"] = "MAC Address / Device Type",
   ["main_issue"] = "Main Issue",
   ["malicious"] = "Malicious",
+  ["manufacturer"] = "Manufacturer",
   ["maps"] = "Maps",
   ["max_entries_reached"] = "Warning: The entries of the Maps are too many, limited to 800 flows.",
   ["max_rate"] = "Max Rate",
