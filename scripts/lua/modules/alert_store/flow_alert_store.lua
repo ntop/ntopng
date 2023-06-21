@@ -199,19 +199,20 @@ function flow_alert_store:insert(alert)
    -- - tstamp (instead of first_seen) is used in select and for visualization as it's in common to all tables
 
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(%salert_id, alert_category, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
+      "(%salert_id, alert_status, alert_category, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
       "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, cli_location, srv_location, "..
       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, "..
       "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, probe_ip, input_snmp, output_snmp, "..
       "json, info) "..
-      "VALUES (%s%u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
+      "VALUES (%s%u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
       "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', %u, %u, '%s', '%s'); ",
 
       self:get_write_table_name(),
       extra_columns,
       extra_values,
       alert.alert_id,
+      ternary(alert.acknowledged, alert_consts.alert_status.acknowledged.alert_status_id, 0),
       alert.alert_category,
       self:_convert_ifid(interface.getId()),
       alert.first_seen,
