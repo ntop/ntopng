@@ -53,6 +53,7 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
       predominant_alert_info.is_cli_victim =
           predominant_alert_info.is_srv_attacker =
               predominant_alert_info.is_srv_victim = 0;
+  predominant_alert_info.auto_acknowledge = 0;
   ndpiAddressFamilyProtocol = NULL;
   clearRisks();
   /* Note is_periodic_flow is updated by the updateFlowPeriodicity() call */
@@ -4148,6 +4149,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_string(s, "action", "store");
   ndpi_serialize_string_int64(s, "first_seen", get_first_seen());
   ndpi_serialize_string_int32(s, "score", getScore());
+  ndpi_serialize_string_boolean(s, "acknowledged", alert->autoAck());
 
   ndpi_serialize_string_boolean(s, "is_flow_alert", true);
   ndpi_serialize_string_int64(s, "tstamp", now);
@@ -7726,6 +7728,7 @@ void Flow::setPredominantAlertInfo(FlowAlert *alert) {
   predominant_alert_info.is_cli_victim = alert->isCliVictim();
   predominant_alert_info.is_srv_attacker = alert->isSrvAttacker();
   predominant_alert_info.is_srv_victim = alert->isSrvVictim();
+  predominant_alert_info.auto_acknowledge = alert->autoAck();
 
   /* Serialize alert JSON
    * Note: this will also add protocol information by calling

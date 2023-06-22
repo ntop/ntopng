@@ -66,7 +66,7 @@ class Flow : public GenericHashEntry {
                                         alert */
   struct {
     u_int8_t is_cli_attacker : 1, is_cli_victim : 1, is_srv_attacker : 1,
-        is_srv_victim : 1;
+        is_srv_victim : 1, auto_acknowledge : 1;
   } predominant_alert_info;
 
   char *json_protocol_info, *riskInfo;
@@ -396,6 +396,9 @@ class Flow : public GenericHashEntry {
   };
 
   void setPredominantAlertInfo(FlowAlert *alert);
+  inline bool isPredominantAlertAutoAck() {
+    return !!predominant_alert_info.auto_acknowledge;
+  };
   inline u_int8_t isClientAttacker() {
     return predominant_alert_info.is_cli_attacker;
   };
