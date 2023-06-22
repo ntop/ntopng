@@ -556,7 +556,7 @@ void usage() {
 #endif
 	 );
 
-#if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO)
+#if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
   printf(
 	 "                                    | clickhouse    Dump in ClickHouse "
 	 "(Enterprise M/L/XL)\n"
@@ -1971,16 +1971,14 @@ int Prefs::setOption(int optkey, char *optarg) {
 	      }
 	    }
 	  } else
-	    ntop->getTrace()->traceEvent(
-					 TRACE_WARNING, "Invalid format for -F %s;....",
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F %s;....",
 					 dump_flows_on_clickhouse ? "clickhouse" : "mysql");
 	} /* all_good */
       }
 
       if (dump_flows_on_clickhouse) dump_flows_on_mysql = false;
 #else
-      ntop->getTrace()->traceEvent(
-				   TRACE_WARNING,
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "-F mysql/-F clickhouse not available: missing MySQL support in ntopng");
 #endif
     }
