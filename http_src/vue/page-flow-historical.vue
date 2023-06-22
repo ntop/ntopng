@@ -574,7 +574,8 @@ function click_button_info(event) {
 
 function click_button_pcap_download(event) {
     const flow = event.row;
-    modal_traffic_extraction.value.show(flow?.filter?.bpf);
+    const epoch_interval = { epoch_begin: flow?.filter?.epoch_begin, epoch_end: flow?.filter?.epoch_end };
+    modal_traffic_extraction.value.show(flow?.filter?.bpf, epoch_interval);
 }
 
 function click_button_historical_flows(event) {
