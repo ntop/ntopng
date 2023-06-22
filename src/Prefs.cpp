@@ -1861,13 +1861,6 @@ int Prefs::setOption(int optkey, char *optarg) {
 					 CLICKHOUSE_CLIENT,
 					 CLICKHOUSE_ALT_CLIENT);
 	    all_good = dump_flows_on_clickhouse = false;
-	  } else {
-	    if(!is_enterprise_m_edition()) {
-	      ntop->getTrace()->traceEvent(TRACE_WARNING,
-					   "-F clickhouse is not available "
-					   "(Enterprise M license required)");
-	      all_good = dump_flows_on_clickhouse = false;
-	    }
 	  }
 	}
 

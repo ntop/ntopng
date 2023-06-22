@@ -879,6 +879,12 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   }
 
   if(ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
+    if(!ntop->getPrefs()->is_enterprise_m_edition()) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Enterprise M or better license is required in order to use ClickHouse");      
+      m.unlock(__FILE__, __LINE__);
+      return (db_operational);
+    }
+    
     int rc = mysql_query(conn, "SELECT VERSION()");
     
     if (rc < 0) {
