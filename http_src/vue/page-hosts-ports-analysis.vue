@@ -104,8 +104,33 @@ const criteria_list = function () {
 }();
 
 onMounted(async () => {
-    selected_criteria.value = criteria_list_def[0];
-    await update_dropdown_menus(false);
+
+    let port = ntopng_url_manager.get_url_entry('port');
+    let l4_proto = ntopng_url_manager.get_url_entry('protocol');
+    const app = ntopng_url_manager.get_url_entry('application');
+
+    if (port != null && port.localeCompare("") != 0 &&
+        l4_proto != null && l4_proto.localeCompare("") != 0 &&
+        app != null && app.localeCompare("") != 0 ) {
+            
+        port = Number(port);
+        l4_proto = Number(l4_proto);
+        criteria_list_def.forEach((proto) => {
+            if (proto.value == l4_proto) {
+                selected_criteria.value = proto;
+            }
+        })
+
+        debugger;
+        
+        await update_dropdown_menus(false, app, port);
+
+    } else {
+        selected_criteria.value = criteria_list_def[0];
+        await update_dropdown_menus(false);
+    }
+
+
     load_table();
 });
 
@@ -132,7 +157,7 @@ function set_port_in_url() {
     ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
 }
 
-async function update_dropdown_menus(is_application_selected) {
+async function update_dropdown_menus(is_application_selected, app, port) {
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
     const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=` + selected_criteria.value.value;
     let res = await ntopng_utility.http_request(url, null, null, true);
@@ -154,8 +179,16 @@ async function update_dropdown_menus(is_application_selected) {
     application_list.value.sort((a, b) => {return a.label.localeCompare(b.label.localCompare); })
     application_list.value.reverse();
 
-    if (!is_application_selected)
+    if (!is_application_selected && app == null)
         selected_application.value = application_list.value[0];
+
+    if (!is_application_selected && app != null ) {
+        application_list.value.forEach((item) => {
+            if(item.label == app) {
+                selected_application.value =  item;
+            }
+        })
+    }
 
     ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
     ports.forEach((item) => {
@@ -163,7 +196,15 @@ async function update_dropdown_menus(is_application_selected) {
             port_list.value.push({ label: item.id + " (" + item.num_hosts + ")", id: item.id, value: item.id });
     })
 
-    selected_port.value = port_list.value[0];
+    if (port != null) {
+        port_list.value.forEach((item) => {
+            if (item.id == port) {
+                selected_port.value = item;
+            }
+        })
+    } else {
+        selected_port.value = port_list.value[0];
+    }
 
     set_port_in_url();
 }
@@ -252,17 +293,31 @@ function get_url_params(active_page, per_page, columns_wrap, map_search, first_g
 const is_column_sortable = (col) => {
     return col.data != "breakdown" && col.name != 'flows_icon';
 };
-
+const live_flows = function (data, rowData) {
+    
+    let params = {
+        l4proto: selected_criteria.value.value, 
+        server: data,
+        port: selected_port.value.id
+    };
+    let url_params = ntopng_url_manager.obj_to_url_params(params);
+    const url = `${http_prefix}/lua/flows_stats.lua?${url_params}`;
+    return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
+};
 /// methods to get columns config
 function get_table_columns_config() {
     let columns = [];
+    
 
-
-    columns.push({
+    columns.push(
+        { 
+            columnName: _i18n("flows_page.live_flows"),targets:0, data: 'ip' , name: 'actions', className: 'text-center', orderable: false, responsivePriority: 1, render: function (data, type, rowData) { return live_flows(data,rowData) } 
+        },    
+        {
         columnName: i18n("prefs.ip_order"), targets: 0, name: 'ip', data: 'ip', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
             return format_ip(data, rowData);
         }
-    },
+        },
         {
             columnName: i18n("db_explorer.host_name"), targets: 0, name: 'name', data: 'name', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
                 return format_host_name(data, rowData);
@@ -294,6 +349,20 @@ function get_table_columns_config() {
 
     return columns;
 }
+
+
+
+
+const open_live_flows = function(rowData) {
+    debugger;
+    const params = {
+        protocol: selected_criteria.value.value,
+        //srv_ip = rowData.
+    }
+    ntopng_url_manager.go_to_url(url);
+
+}
+
 
 const format_ip = function (data, rowData) {
     if (data != null) {
