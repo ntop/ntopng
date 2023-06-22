@@ -42,7 +42,7 @@
           <div class="col-12 mb-2" id="chart-vue">
             <div class="card h-100 overflow-hidden">
               <Chart ref="chart"
-	             id="chart_0"
+	             id="chart_alert_stats"
 		     :chart_type="chart_type"
 	             :base_url_request="chart_data_url"
 		     :register_on_status_change="false">
@@ -71,7 +71,7 @@
 	</div>
       </div> <!-- card body -->
 
-      <div v-show="true" class="card-footer">
+      <div v-show="true && page != 'all'" class="card-footer">
         <button id="dt-btn-acknowledge" :disabled="true" data-bs-target="#dt-acknowledge-modal" data-bs-toggle="modal" class="btn btn-primary me-1">
           <i class="fas fa fa-user-check"></i> Acknowledge Alerts
         </button>
