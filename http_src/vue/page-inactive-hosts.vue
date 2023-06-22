@@ -105,7 +105,7 @@ async function load_table_filters_array(action, filter) {
         title: t.tooltip,
         data_loaded: action != 'overview',
         options: t.value,
-        hidden: (t.value.length == 0)
+        hidden: (t.value.length == 1)
     };
   });
 }
