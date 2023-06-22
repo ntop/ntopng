@@ -6,7 +6,7 @@
                 <div class="btn-group me-auto btn-group-sm">
                     <slot name="begin"></slot>
                     <select-search v-model:selected_option="selected_time_option" :id="'time_preset_range_picker'"
-                        :options="time_preset_list" @select_option="change_select_time(null)">
+                        :options="time_preset_list_filtered" @select_option="change_select_time(null)">
                     </select-search>
                     <div class="btn-group ms-2">
                         <span class="input-group-text">
@@ -23,13 +23,13 @@
                             data-id="datetime" ref="end-date">
                         <!-- <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;"> -->
                         <!-- <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input"> -->
-                        <span v-show="wrong_date" :title="i18n('wrong_date_range')" style="margin-left:0.2rem;color:red;">
+                        <span v-show="wrong_date || wrong_min_interval" :title="invalid_date_message" style="margin-left:0.2rem;color:red;">
                             <i class="fas fa-exclamation-circle"></i>
                         </span>
                     </div>
 
                     <div class="d-flex align-items-center ms-2">
-                        <button :disabled="!enable_apply || wrong_date" @click="apply" class="btn btn-sm btn-primary">{{
+                        <button :disabled="!enable_apply || wrong_date || wrong_min_interval" @click="apply" class="btn btn-sm btn-primary">{{
                             i18n('apply') }}</button>
 
                         <div class="btn-group">
@@ -68,6 +68,7 @@
 
 <script>
 import { default as SelectSearch } from "./select-search.vue";
+import { ntopng_utility } from "../services/context/ntopng_globals_services";
 
 export default {
     components: {
@@ -76,6 +77,21 @@ export default {
     props: {
         id: String,
         enable_refresh: Boolean,
+        min_time_interval_id: String,
+    },
+    computed: {
+        // a computed getter
+        invalid_date_message: function () {
+            if (this.wrong_date) {
+                return this.i18n('wrong_date_range');
+            }
+            else if (this.wrong_min_interval) {
+                let msg = this.i18n('wrong_min_interval');
+                msg.replace('%time_interval', this.i18n(`show_alerts.presets.${this.min_time_interval_id}`));
+
+                return msg
+            }
+        }
     },
     watch: {
         "enable_refresh": function (val, oldVal) {
@@ -85,11 +101,28 @@ export default {
                 clearInterval(this.refresh_interval);
                 this.refresh_interval = null;
             }
-        }
+        },
+        "min_time_interval_id": function () {
+          // filtrare preset maggiori del valore passato  
+        },
     },
     emits: ["epoch_change"],
     /** This method is the first method of the component called, it's called before html template creation. */
     created() {
+    },
+    beforeMount() {
+        // filter interval
+        if (this.min_time_interval_id == null) {
+            this.time_preset_list_filtered = this.time_preset_list;
+            return;
+        }
+
+        this.time_preset_list_filtered = this.time_preset_list.filter((elem) => {
+            if (elem.value == "custom") {
+                return true;
+            }
+            return !(ntopng_utility.get_interval_seconds_from_interval_id(elem.value) < ntopng_utility.get_interval_seconds_from_interval_id(this.min_time_interval_id));
+        });
     },
     /** This method is the first method called after html template creation. */
     mounted() {
@@ -116,6 +149,7 @@ export default {
                 onChange: function (selectedDates, dateStr, instance) {
                     me.enable_apply = true;
                     me.wrong_date = me.flat_begin_date.selectedDates[0].getTime() > me.flat_end_date.selectedDates[0].getTime();
+                    me.wrong_min_interval = me.min_time_interval_id && ((me.flat_end_date.selectedDates[0].getTime() - me.flat_begin_date.selectedDates[0].getTime()) / 1000 < ntopng_utility.get_interval_seconds_from_interval_id(me.min_time_interval_id));
                     //me.a[data] = d;
                 },
             });
@@ -205,10 +239,10 @@ export default {
 
 
             if (this.is_between(end_utc_s, now, tolerance)) {
-                if (this.is_between(begin_utc_s, now - s_values.min_5, tolerance)) {
-                    this.select_time_value = "min_5";
-                } else if (this.is_between(begin_utc_s, now - s_values.min_30, tolerance)) {
-                    this.select_time_value = "min_30";
+                if (this.is_between(begin_utc_s, now - s_values["5_min"], tolerance)) {
+                    this.select_time_value = "5_min";
+                } else if (this.is_between(begin_utc_s, now - s_values["30_min"], tolerance)) {
+                    this.select_time_value = "30_min";
                 } else if (this.is_between(begin_utc_s, now - s_values.hour, tolerance)) {
                     this.select_time_value = "hour";
                 } else if (this.is_between(begin_utc_s, now - s_values["2_hours"], tolerance)) {
@@ -232,7 +266,7 @@ export default {
                 this.select_time_value = "custom";
             }
 
-            this.time_preset_list.forEach(element => {
+            this.time_preset_list_filtered.forEach(element => {
                 element.currently_active = false
                 if (element.value == this.select_time_value) {
                     this.selected_time_option = element;
@@ -286,8 +320,8 @@ export default {
         get_select_values: function () {
             let min = 60;
             return {
-                min_5: min * 5,
-                min_30: min * 30,
+                "5_min": min * 5,
+                "30_min": min * 30,
                 hour: min * 60,
                 "2_hours": 2 * min * 60,
                 "6_hours": 6 * min * 60,
@@ -364,6 +398,8 @@ export default {
                 this.wrong_date = true;
                 return;
             }
+            else if (this.min_time_interval_id )
+
             if (id != this.id) {
                 this.on_status_updated(epoch_status);
             }
@@ -399,14 +435,15 @@ export default {
             history: [],
             history_last_status: null,
             enable_apply: false,
-            select_time_value: "min_5",
-            selected_time_option: { value: "min_5", label: i18n('show_alerts.presets.5_min'), currently_active: false },
+            select_time_value: "5_min",
+            selected_time_option: { value: "5_min", label: i18n('show_alerts.presets.5_min'), currently_active: false },
             wrong_date: false,
+            wrong_min_interval: false,
             flat_begin_date: null,
             flat_end_date: null,
             time_preset_list: [
-                { value: "min_5", label: i18n('show_alerts.presets.5_min'), currently_active: false },
-                { value: "min_30", label: i18n('show_alerts.presets.30_min'), currently_active: true },
+                { value: "5_min", label: i18n('show_alerts.presets.5_min'), currently_active: false },
+                { value: "30_min", label: i18n('show_alerts.presets.30_min'), currently_active: true },
                 { value: "hour", label: i18n('show_alerts.presets.hour'), currently_active: false },
                 { value: "2_hours", label: i18n('show_alerts.presets.2_hours'), currently_active: false },
                 { value: "6_hours", label: i18n('show_alerts.presets.6_hours'), currently_active: false },
@@ -416,7 +453,8 @@ export default {
                 { value: "month", label: i18n('show_alerts.presets.month'), currently_active: false },
                 { value: "year", label: i18n('show_alerts.presets.year'), currently_active: false },
                 { value: "custom", label: i18n('show_alerts.presets.custom'), currently_active: false, disabled: true, },
-            ]
+            ],
+            time_preset_list_filtered: [],
         };
     },
 }

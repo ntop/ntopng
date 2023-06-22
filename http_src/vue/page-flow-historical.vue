@@ -16,7 +16,7 @@
 	<div clas="range-container d-flex flex-wrap">
 	  <div class="range-picker d-flex m-auto flex-wrap">
 	    <AlertInfo id="alert_info" :global="true" ref="alert_info"></AlertInfo>
-	    <RangePicker v-if="mount_range_picker" ref="range_picker" id="range_picker">
+	    <RangePicker v-if="mount_range_picker" ref="range_picker" id="range_picker" :min_time_interval_id="min_time_interval_id">
 	      <template v-slot:begin>
 		<Switch v-if="props.context.is_enterprise_xl" v-model:value="flows_aggregated" class="me-2 mt-1" :change_label_side="true" :label="flow_type_label" style="" @change_value="change_flow_type" ></Switch>
 
@@ -176,11 +176,12 @@ const top_table_dropdown_array = ref([]);
 
 const selected_query_preset = ref({});
 const query_presets = ref([]);
+const query_presets_copy = ref([]);
 const mount_range_picker = ref(false);
 
 const flows_aggregated = ref(false);
 const flow_type_label = ref(_i18n("datatable.aggregated"));
-
+const min_time_interval_id = ref(null);
 
 onBeforeMount(async () => {
     init_params();
@@ -210,7 +211,8 @@ function init_params() {
     const aggregated = ntopng_url_manager.get_url_entry("aggregated");
     if (aggregated == "true") {
 	table_config_id.value = `flow_historical_aggregated`;
-	flows_aggregated.value = true;
+    flows_aggregated.value = true;
+    min_time_interval_id.value = "2_hours";
     }
 }
 
@@ -219,12 +221,19 @@ function init_url_params() {
 	ntopng_url_manager.set_key_to_url("ifid", default_ifid);
     }
     // 30 min default
-    debugger;
+    // chiamare set default_time interval
     if (flows_aggregated.value == false) {
         ntopng_utility.check_and_set_default_time_interval();
     }
     else {
-        ntopng_utility.check_and_set_default_time_interval("2_hours");
+        const f_check_last_minute_epoch_end = (epoch) => {
+            // epoch_end is in seconds
+            let now = Date.now() / 1000; // current timestamp in seconds
+            let two_min_ago = (now - 120);
+            
+            return (epoch.epoch_end >= two_min_ago) && (epoch.epoch_end <= now);
+        };
+        ntopng_utility.check_and_set_default_time_interval("2_hours", f_check_last_minute_epoch_end);
     }
             
     if (ntopng_url_manager.get_url_entry("page") == "flow"
@@ -233,9 +242,11 @@ function init_url_params() {
     }
 }
 
+
 async function set_query_presets() {
     let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/preset/consts.lua?page=${page.value}&aggregated=${flows_aggregated.value}`;
     let res = await ntopng_utility.http_request(url_request);
+
     query_presets.value = res[0].list.map((el) => {
         return {
             value: el.id, //== null ? "flow" : el.id,
