@@ -165,6 +165,23 @@ end
 
 -- ##############################################
 
+function alert_store:_build_alert_status_condition(status)
+    local field = 'alert_status'
+
+    field = self:get_column_name(field, is_write)
+
+    if status == "any" then
+        return string.format(" ((%s = %u) OR (%s = %u)) ", 
+            field, alert_consts.alert_status.historical.alert_status_id,
+            field, alert_consts.alert_status.acknowledged.alert_status_id)
+    else
+        return string.format(" %s = %u ",
+            field, alert_consts.alert_status[status].alert_status_id)
+    end
+end
+
+-- ##############################################
+
 -- @brief Add filters on status (engaged, historical, or acknowledged, one of `alert_consts.alert_status`)
 -- @param status A key of `alert_consts.alert_status`
 -- @return True if set is successful, false otherwise
@@ -173,12 +190,10 @@ function alert_store:add_status_filter(status, is_write)
         if alert_consts.alert_status[status] then
             self._status = alert_consts.alert_status[status].alert_status_id
 
-            -- Engaged alerts don't add a database filter as they are in-memory only
-            if status ~= "engaged" then
-                local field = 'alert_status'
-                field = self:get_column_name(field, is_write)
-
-                self:add_filter_condition_raw('alert_status', string.format(" %s = %u ", field, self._status))
+            if status == "engaged" then
+                -- Engaged alerts don't add a database filter as they are in-memory only
+            else
+                self:add_filter_condition_raw('alert_status', self:_build_alert_status_condition(status))
             end
         end
 
@@ -1758,12 +1773,12 @@ function alert_store:get_earliest_available_epoch(status)
         local q
         if ntop.isClickHouseEnabled() then
             q = string.format(
-                " SELECT toUnixTimestamp(tstamp) earliest_epoch FROM `%s` WHERE interface_id = %d AND alert_status = %d ORDER BY tstamp ASC LIMIT 1",
-                table_name, interface.getId(), self._status)
+                " SELECT toUnixTimestamp(tstamp) earliest_epoch FROM `%s` WHERE interface_id = %d AND %s ORDER BY tstamp ASC LIMIT 1",
+                table_name, interface.getId(), self:_build_alert_status_condition(status))
         else
             q = string.format(
-                " SELECT tstamp earliest_epoch FROM `%s` WHERE interface_id = %d AND alert_status = %d ORDER BY tstamp ASC LIMIT 1",
-                table_name, interface.getId(), self._status)
+                " SELECT tstamp earliest_epoch FROM `%s` WHERE interface_id = %d AND %s ORDER BY tstamp ASC LIMIT 1",
+                table_name, interface.getId(), self:_build_alert_status_condition(status))
         end
 
         local res = interface.alert_store_query(q)

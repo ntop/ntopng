@@ -100,21 +100,22 @@ alert_consts.alerts_granularities = {
 
 -- ################################################################################
 
--- This status is written inside SQLite column `alert_status`
+-- This status is written in Clickhouse/SQLite column `alert_status`
 alert_consts.alert_status = {
    ["historical"] = {
-      -- Default for alerts written to the database
+      -- Alerts written to the database that require attention
       alert_status_id = 0,
    },
    ["acknowledged"] = {
-      -- Alerts acknowledged
+      -- Acknowledged (automatically or from the user) alerts written to the database
       alert_status_id = 1,
    },
    ["engaged"] = {
-      -- Not used yet. Will be possibly used when managing engaged alerts inside sqlite
+      -- Engaged (not actually used in the database as engaged alerts are in memory)
       alert_status_id = 2,
    },
    ["any"] = {
+      -- Not actually used in the database (historical | acknowledged)
       alert_status_id = 3,
    },
 }
