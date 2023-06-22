@@ -36,6 +36,8 @@ class UnexpectedSMTPServerAlert : public UnexpectedServerAlert {
       : UnexpectedServerAlert(c, f){};
   ~UnexpectedSMTPServerAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

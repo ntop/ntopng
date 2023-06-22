@@ -46,6 +46,8 @@ class ModbusInvalidTransitionAlert : public FlowAlert {
   };
   ~ModbusInvalidTransitionAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

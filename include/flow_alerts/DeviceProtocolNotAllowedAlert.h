@@ -37,6 +37,8 @@ class DeviceProtocolNotAllowedAlert : public FlowAlert {
   DeviceProtocolNotAllowedAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f){};
   ~DeviceProtocolNotAllowedAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

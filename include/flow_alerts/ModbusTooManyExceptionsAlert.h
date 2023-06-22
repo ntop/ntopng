@@ -40,6 +40,8 @@ class ModbusTooManyExceptionsAlert : public FlowAlert {
     num_exceptions = _num_exceptions;
   };
   ~ModbusTooManyExceptionsAlert(){};
+
+  bool autoAck() const { return false; };
   
   FlowAlertType getAlertType() const { return getClassType(); }
 };

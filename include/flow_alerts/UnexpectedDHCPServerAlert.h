@@ -39,6 +39,8 @@ class UnexpectedDHCPServerAlert : public UnexpectedServerAlert {
       : UnexpectedServerAlert(c, f){};
   ~UnexpectedDHCPServerAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

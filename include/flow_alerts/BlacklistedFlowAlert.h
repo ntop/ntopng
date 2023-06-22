@@ -34,8 +34,10 @@ class BlacklistedFlowAlert : public FlowAlert {
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
-  BlacklistedFlowAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f){};
+  BlacklistedFlowAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f) {};
   ~BlacklistedFlowAlert(){};
+
+  bool autoAck() const { return false; };
 
   FlowAlertType getAlertType() const { return getClassType(); }
 };

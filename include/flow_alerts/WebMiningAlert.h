@@ -35,6 +35,8 @@ class WebMiningAlert : public FlowAlert {
   WebMiningAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f){};
   ~WebMiningAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

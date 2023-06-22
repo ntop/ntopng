@@ -46,6 +46,8 @@ class FlowRiskBinaryApplicationTransferAlert : public FlowRiskAlert {
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
   u_int8_t getAlertScore() const { return getDefaultScore(); }
+
+  bool autoAck() const { return false; };
 };
 
 #endif /* _FR_BINARY_APPLICATION_TRANSFER_ALERT_H_ */

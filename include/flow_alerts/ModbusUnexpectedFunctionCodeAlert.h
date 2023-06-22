@@ -41,6 +41,8 @@ class ModbusUnexpectedFunctionCodeAlert : public FlowAlert {
   };
   ~ModbusUnexpectedFunctionCodeAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

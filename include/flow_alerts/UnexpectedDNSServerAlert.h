@@ -39,6 +39,8 @@ class UnexpectedDNSServerAlert : public UnexpectedServerAlert {
       : UnexpectedServerAlert(c, f){};
   ~UnexpectedDNSServerAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 
