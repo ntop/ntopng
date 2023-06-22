@@ -67,20 +67,45 @@ export const ntopng_utility = function() {
 		array.push(obj[key]);
 	    }
 	    return array;
-	},
-	//should take a string as parameter that represent time: 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year. ID time_interval_id is null, default must be 30_min
-	check_and_set_default_time_interval: function(time_interval_id) {
-	    let epoch = {
-		begin: ntopng_url_manager.get_url_entry("epoch_begin"),
-		end: ntopng_url_manager.get_url_entry("epoch_end"),
-	    };
-	    if (epoch.begin == null || epoch.end == null) {
-		epoch.begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
-		epoch.end = Number.parseInt(Date.now() / 1000);
-		ntopng_url_manager.set_key_to_url("epoch_begin", epoch.begin);
-		ntopng_url_manager.set_key_to_url("epoch_end", epoch.end);
-	    }
-	    return epoch;
+    },
+    // given valid interval string get time in seconds
+    get_interval_seconds_from_interval_id: function (interval_string) {
+            //5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year
+        let timeframes_dict = { "5_min": 300, "30_min": 1800, "2_hours": 7200, "6_hours": 21600, "12_hours": 43200, "day": 86400, "week": 604800, "month": 2592000, "year": 31536000 }
+        
+        // timeframes_dict[interval_string] == null => key is not present
+        if (!(timeframes_dict[interval_string] == null)) {
+            return timeframes_dict[interval_string]
+        }
+
+        throw "Wrong interval passed, valid intervals are: 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year"
+    },
+    // method to set default epoch begin to 30_min ago
+    set_default_time_interval: function (time_interval_id) {
+        let epoch = {
+            begin: ntopng_url_manager.get_url_entry("epoch_begin"),
+            end: ntopng_url_manager.get_url_entry("epoch_end"),
+        };
+
+        let seconds_in_interval = this.get_interval_seconds_from_interval_id(time_interval_id)
+        epoch.begin = Number.parseInt((Date.now() - 1000 * seconds_in_interval) / 1000);
+        epoch.end = Number.parseInt(Date.now() / 1000);
+        ntopng_url_manager.set_key_to_url("epoch_begin", epoch.begin);
+        ntopng_url_manager.set_key_to_url("epoch_end", epoch.end);
+       
+        return epoch
+    },
+    //should take a string as parameter that represent time: 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year. ID time_interval_id is null, default must be 30_min
+    check_and_set_default_time_interval: function (time_interval_id="30_min") {
+        let epoch = {
+            begin: ntopng_url_manager.get_url_entry("epoch_begin"),
+            end: ntopng_url_manager.get_url_entry("epoch_end"),
+        };
+        // if time_interval_id is 30 (default)
+        if (epoch.begin == null || epoch.end == null) {
+            epoch = this.set_default_time_interval(time_interval_id)
+        }
+        return epoch;
 	},
 	from_utc_s_to_server_date: function(utc_seconds) {
 	    let utc = utc_seconds * 1000;

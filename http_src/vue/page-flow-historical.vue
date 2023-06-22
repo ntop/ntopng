@@ -218,13 +218,15 @@ function init_url_params() {
     if (ntopng_url_manager.get_url_entry("ifid") == null) {
 	ntopng_url_manager.set_key_to_url("ifid", default_ifid);
     }
-    if (ntopng_url_manager.get_url_entry("epoch_begin") == null
-      	|| ntopng_url_manager.get_url_entry("epoch_end") == null) {
-	let default_epoch_begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
-	let default_epoch_end = Number.parseInt(Date.now() / 1000);
-	ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
-	ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
+    // 30 min default
+    debugger;
+    if (flows_aggregated.value == false) {
+        ntopng_utility.check_and_set_default_time_interval();
     }
+    else {
+        ntopng_utility.check_and_set_default_time_interval("2_hours");
+    }
+            
     if (ntopng_url_manager.get_url_entry("page") == "flow"
       	&& ntopng_url_manager.get_url_entry("status") == "engaged") {
 	ntopng_url_manager.set_key_to_url("status", "historical");
