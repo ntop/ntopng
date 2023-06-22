@@ -9,7 +9,8 @@ import { default as Dropdown } from "../vue//dropdown.vue";
 const _i18n = (t) => i18n(t);
 
 async function build_table(http_prefix, table_id, f_map_columns, f_get_extra_params_obj, f_on_get_rows) {
-    let table_def_url = `${http_prefix}/tables_config/${table_id}.json`;
+    let epoch_end = Number.parseInt(Date.now() / 1000);
+    let table_def_url = `${http_prefix}/tables_config/${table_id}.json?epoch_end=${epoch_end}`;
     let table_def = await ntopng_utility.http_request(table_def_url, null, null, true);
     if (table_def == null) {
 	return {
