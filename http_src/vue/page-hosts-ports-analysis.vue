@@ -43,6 +43,20 @@
                             :print_html_row="(col, row) => table_config.print_html_row(col, row)"
                             :f_is_column_sortable="is_column_sortable" :f_get_column_classes="get_column_classes"
                             :enable_search="true" :paging="true">
+                            <template v-slot:custom_header>
+
+                            <Dropdown v-for="(t, t_index) in filter_table_array" :f_on_open="get_open_filter_table_dropdown(t, t_index)"
+                            :ref="el => { filter_table_dropdown_array[t_index] = el }" :hidden="t.hidden"> <!-- Dropdown columns -->
+                            <template v-slot:title>
+                                <Spinner :show="t.show_spinner" size="1rem" class="me-1" ></Spinner>
+                                    <a class="ntopng-truncate" :title="t.title">{{ t.label }}</a>
+                            </template>
+                            <template v-slot:menu>
+                                <a v-for="opt in t.options" style="cursor:pointer;" @click="add_table_filter(opt, $event)"
+                                class="ntopng-truncate tag-filter" :title="opt.value">{{ opt.label }}</a>
+                            </template>
+                            </Dropdown>
+                            </template> <!-- Dropdown filters -->
                         </Table>
                     </div>
                 </div>
@@ -52,11 +66,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import NtopUtils from "../utilities/ntop-utils";
 import { default as Table } from "./table.vue";
+import { default as Dropdown } from "./dropdown.vue";
+
 import { default as SelectSearch } from "./select-search.vue";
+const filter_table_array = ref([]);
+const filter_table_dropdown_array = ref([])
 
 const props = defineProps({
     is_ntop_enterprise_m: Boolean,
@@ -85,6 +103,8 @@ const selected_criteria = ref(criteria_list_def[0]);
 const table_config = ref({})
 const selected_port = ref({});
 const selected_application = ref({});
+const table_hosts_ports_analysis = ref();
+
 let port_list = ref([]);
 let application_list = ref([]);
 let counter = 0;
@@ -104,7 +124,7 @@ const criteria_list = function () {
 }();
 
 onMounted(async () => {
-
+    load_table_filters_overview();
     let port = ntopng_url_manager.get_url_entry('port');
     let l4_proto = ntopng_url_manager.get_url_entry('protocol');
     const app = ntopng_url_manager.get_url_entry('application');
@@ -120,8 +140,6 @@ onMounted(async () => {
                 selected_criteria.value = proto;
             }
         })
-
-        debugger;
         
         await update_dropdown_menus(false, app, port);
 
@@ -156,6 +174,70 @@ function update_port() {
 function set_port_in_url() {
     ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
 }
+
+
+async function load_table_filters_array(action, filter) {
+  const url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port_filters.lua?action=${action}`;
+  let res = await ntopng_utility.http_request(url);
+
+  return res.map((t) => {
+    return {
+        id: t.action || t.name,
+        label: t.label,	    
+        title: t.tooltip,
+        data_loaded: action != 'overview',
+        options: t.value,
+        hidden: (t.value.length == 1)
+    };
+  });
+}
+
+const get_open_filter_table_dropdown = (filter, filter_index) => {
+  return (_) => {
+	  load_table_filters(filter, filter_index);
+  };
+};
+
+async function load_table_filters(filter, filter_index) {
+  await nextTick();
+  if (filter.data_loaded == false) {
+    let new_filter_array = await load_table_filters_array(filter.id, filter);
+    filter.options = new_filter_array.find((t) => t.id == filter.id).options;
+    await nextTick();
+    let dropdown = filter_table_dropdown_array.value[filter_index];
+    dropdown.load_menu();
+  }
+}
+
+async function load_table_filters_overview(action) {
+  filter_table_array.value = await load_table_filters_array("overview");
+  set_filter_array_label();
+}
+
+function set_filter_array_label() {
+  filter_table_array.value.forEach((el, index) => {
+    if(el.basic_label == null) {
+      el.basic_label = el.label;
+    }
+
+    const url_entry = ntopng_url_manager.get_url_entry(el.id)
+    if(url_entry != null) {
+      el.options.forEach((option) => {
+        if(option.value.toString() === url_entry) {
+          el.label = `${el.basic_label}: ${option.label || option.value}`
+        }
+      })
+    }
+  })
+}
+
+function add_table_filter(opt, event) {
+  event.stopPropagation();
+	ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
+  set_filter_array_label();
+  table_hosts_ports_analysis.value.refresh_table();
+}
+
 
 async function update_dropdown_menus(is_application_selected, app, port) {
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
@@ -354,7 +436,6 @@ function get_table_columns_config() {
 
 
 const open_live_flows = function(rowData) {
-    debugger;
     const params = {
         protocol: selected_criteria.value.value,
         //srv_ip = rowData.
