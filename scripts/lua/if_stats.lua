@@ -310,13 +310,13 @@ page_utils.print_navbar(title, url,
                                  active = page == "ARP",
                                  page_name = "ARP",
                                  label = i18n("arp"),
-               },
-               {
-                  hidden = (sites_granularities == nil or table.len(sites_granularities) == 0),
-                  active = page == "sites",
-                  page_name = "sites",
-                  label = i18n("sites_page.sites"),
-               },
+                              },
+                              {
+                                 hidden = (sites_granularities == nil or table.len(sites_granularities) == 0),
+                                 active = page == "sites",
+                                 page_name = "sites",
+                                 label = i18n("sites_page.sites"),
+                              },
 			      {
 				 hidden = not charts_available,
 				 active = page == "historical",
@@ -334,12 +334,12 @@ page_utils.print_navbar(title, url,
 				 active = page == "traffic_recording",
 				 page_name = "traffic_recording",
 				 label = "<i class='fas fa-lg fa-hdd' title='"..i18n("traffic_recording.traffic_recording").."'></i>",
-               },
+                              },
                               {
                                  hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
                                  active = page == "alerts",
                                  page_name = "alerts",
-             url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=interface",
+                                 url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=interface",
                                  label = "<i class='fas fa-lg fa-exclamation-triangle' title='"..i18n("alerts_dashboard.alerts").."'></i>",
                               },
                               {
@@ -382,23 +382,21 @@ page_utils.print_navbar(title, url,
                                  active = page == "dhcp",
                                  page_name = "dhcp",
                                  label = "<i class='fas fa-lg fa-bolt' title='"..i18n("dhcp.dhcp").."'></i>",
-               },
-               {
-                  hidden = (not periodicity_map_available),
-                  page_name = "periodicity_map",
-                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=periodicity_map",
-                  label = "<i class=\"fas fa-lg fa-clock\"></i>",
-               },
-               {
-                  hidden = (not service_map_available),
-                  page_name = "service_map",
-                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=service_map",
-                  label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
-               },
-              
+                              },
+                              {
+                                 hidden = (not periodicity_map_available),
+                                 page_name = "periodicity_map",
+                                 url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=periodicity_map",
+                                 label = "<i class=\"fas fa-lg fa-clock\"></i>",
+                              },
+                              {
+                                 hidden = (not service_map_available),
+                                 page_name = "service_map",
+                                 url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=service_map",
+                                 label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
+                              },
                            }
    )
-
 
 print(
       template.gen("modal_confirm_dialog.html", {
