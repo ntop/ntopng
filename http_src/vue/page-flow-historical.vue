@@ -57,7 +57,9 @@
 	             id="chart_0"
 		     :chart_type="chart_type"
 	             :base_url_request="chart_data_url"
-		     :register_on_status_change="false">
+		     :register_on_status_change="false"
+		     :min_time_interval_id="min_time_interval_id"
+		     :round_time="round_time">
 	      </Chart>
             </div>
           </div>
@@ -229,11 +231,8 @@ function init_url_params() {
     }
     else {
         const f_check_last_minute_epoch_end = (epoch) => {
-            // epoch_end is in seconds
-            let now = Date.now() / 1000; // current timestamp in seconds
-            let two_min_ago = (now - 120);
-            
-            return (epoch.epoch_end >= two_min_ago) && (epoch.epoch_end <= now);
+            let min_time_interval = ntopng_utility.get_timeframe_from_timeframe_id(min_time_interval_id.value);            
+            return epoch.epoch_end - epoch.epoch_begin < min_time_interval;
         };
         const epoch_interval = ntopng_utility.check_and_set_default_time_interval(min_time_interval_id.value, f_check_last_minute_epoch_end);
 	if (epoch_interval != null) {

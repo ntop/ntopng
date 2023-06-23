@@ -136,7 +136,7 @@ export default {
         if (epoch_begin != null && epoch_end != null) {
             // update the status
 
-            this.emit_epoch_change({ epoch_begin: Number.parseInt(epoch_begin), epoch_end: Number.parseInt(epoch_end) }, this.$props.id);
+            this.emit_epoch_change({ epoch_begin: Number.parseInt(epoch_begin), epoch_end: Number.parseInt(epoch_end) }, this.$props.id, true);
         }
         let me = this;
         let f_set_picker = (picker, var_name) => {
@@ -362,7 +362,7 @@ export default {
             this.epoch_status.epoch_begin += (this.epoch_status.epoch_end - previous_end);
             this.emit_epoch_change(this.epoch_status);
         },
-        emit_epoch_change: function (epoch_status, id) {
+        emit_epoch_change: function (epoch_status, id, emit_only_global_event) {
             if (epoch_status.epoch_end == null || epoch_status.epoch_begin == null) { return; };
             this.wrong_date = false;
             if (epoch_status.epoch_begin > epoch_status.epoch_end) {
@@ -378,6 +378,9 @@ export default {
                 this.on_status_updated(epoch_status);
             }
             ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_status, this.id);
+	    if (emit_only_global_event) {
+		return;
+	    }
             this.$emit("epoch_change", epoch_status);
         },
 	round_time_by_min_interval: function(ts) {
