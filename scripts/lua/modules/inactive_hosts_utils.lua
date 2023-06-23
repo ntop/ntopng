@@ -295,8 +295,6 @@ end
 function inactive_hosts_utils.deleteAllEntriesSince(ifid, epoch)
     local redis_hash = string.format(OFFLINE_LOCAL_HOSTS_KEY, ifid)
     local available_keys = ntop.getHashKeysCache(redis_hash) or {}
-    tprint("Deleting all entries since " .. epoch)
-    tprint(redis_hash)
 
     for redis_key, _ in pairs(available_keys) do
         local host_info_json = ntop.getHashCache(redis_hash, redis_key)
@@ -459,6 +457,54 @@ function inactive_hosts_utils.formatInactiveHostsJSON(hosts)
     local formatted_hosts = inactive_hosts_utils.formatInactiveHosts(hosts, true --[[ No HTML ]])
 
     return json.encode(formatted_hosts or {})
+end
+
+-- ##########################################
+
+-- Return the distribution of inactive hosts on epoch basis:
+--  - hour
+--  - day
+--  - week
+--  - older
+function inactive_hosts_utils.getInactiveHostsEpochDistribution(ifid)
+    local redis_hash = string.format(OFFLINE_LOCAL_HOSTS_KEY, ifid)
+    local available_keys = ntop.getHashKeysCache(redis_hash) or {}
+    local epoch_list = {
+        last_hour = 0,
+        last_day = 0,
+        last_week = 0,
+        older = 0,
+    }
+    local now = os.time() -- current epoch
+    local one_hour_epoch = now - 3600
+    local one_day_epoch = now - 86400
+    local one_week_epoch = now - 604800
+
+    for redis_key, _ in pairs(available_keys) do
+        local host_info_json = ntop.getHashCache(redis_hash, redis_key)
+        local network_name = ""
+
+        if not isEmptyString(host_info_json) then
+            local host_info = json.decode(host_info_json)
+            local last_seen = host_info.last_seen
+
+            if last_seen >= one_hour_epoch then
+                -- newer then one hour
+                epoch_list.last_hour = epoch_list.last_hour + 1 
+            elseif last_seen >= one_day_epoch then
+                -- newer then one day but older then one hour
+                epoch_list.last_day = epoch_list.last_day + 1
+            elseif last_seen >= one_week_epoch then
+                -- newer then one week but older then one day
+                epoch_list.last_week = epoch_list.last_week + 1
+            else
+                -- Older then one week
+                epoch_list.older = epoch_list.older + 1
+            end
+        end
+    end
+
+    return epoch_list
 end
 
 -- ##########################################

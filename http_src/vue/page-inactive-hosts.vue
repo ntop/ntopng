@@ -8,6 +8,19 @@
       <h2 class="ms-3">{{ title }}</h2>
       <div class="card  card-shadow">
         <div class="card-body">
+          <div class="row mb-4 mt-4" id="host_details_traffic">
+            <template v-for="chart_option in chart_options">
+              <div class="col-4">
+                <h3 class="widget-name">{{ chart_option.title }}</h3>
+                <Chart
+                  :id="chart_option.id"
+                  :chart_type="chart_option.type"
+                  :base_url_request="chart_option.url"
+                  :register_on_status_change="false">
+                </Chart>
+              </div>
+            </template>
+          </div>
           <div>
             <TableWithConfig ref="table_inactive_hosts" :table_id="table_id" :csrf="csrf"
               :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
@@ -47,6 +60,7 @@ import { ref, nextTick, onMounted } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as Dropdown } from "./dropdown.vue";
 import { default as Spinner } from "./spinner.vue";
+import { default as Chart } from "./chart.vue";
 import { default as ModalDeleteInactiveHost } from "./modal-delete-inactive-host.vue";
 import { default as ModalDownloadInactiveHost } from "./modal-download-inactive-host.vue";
 
@@ -68,6 +82,26 @@ const context = ref({
   csrf: props.csrf,
   ifid: props.ifid
 })
+const chart_options = [
+  {
+    title: i18n('active_inactive'),
+    type: ntopChartApex.typeChart.DONUT,
+    url: `${http_prefix}/lua/rest/v2/get/host/inactive/active_inactive.lua`,
+    id: `active_inactive_distro`,
+  },
+  {
+    title: i18n('inactivity_period'),
+    type: ntopChartApex.typeChart.DONUT,
+    url: `${http_prefix}/lua/rest/v2/get/host/inactive/inactivity_period.lua`,
+    id: `inactivity_period`,
+  },
+  {
+    title: i18n('manufacturer'),
+    type: ntopChartApex.typeChart.DONUT,
+    url: `${http_prefix}/lua/rest/v2/get/host/inactive/inactive_manufacturer.lua`,
+    id: `inactive_manufacturer`,
+  },
+]
 
 /* ************************************** */
 
