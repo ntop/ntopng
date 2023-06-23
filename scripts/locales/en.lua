@@ -3619,6 +3619,8 @@ local lang = {
     ["http_stats"] = "HTTP Stats",
     ["influxdb_not_responding"] = "Query has been aborted as InfluxDB is not responding. Query timeout can be configured from the <a href=\"%{url}\">%{flask_icon} Preferences</a> .",
     ["interface_label"] = "Interface %{if_name}",
+    ["interface_label_traffic"] = "%{if_name} Traffic RX/TX",
+    ["interface_label_packets"] = "%{if_name} Packets",
     ["interfaces"] = "Interfaces",
     ["intranet_traffic"] = "%{net_1} -> %{net_2}",
     ["l4_proto"] = "Traffic Protocols",
