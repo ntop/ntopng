@@ -34,17 +34,28 @@ end
 
 local network_filters = {}
 local vlan_filters = {}
+local device_filters = {}
+local manufacturer_filters = {}
 
 network_filters = inactive_hosts_utils.getNetworkFilters(ifid)
 vlan_filters = inactive_hosts_utils.getVLANFilters(ifid)
+device_filters = inactive_hosts_utils.getDeviceFilters(ifid)
+manufacturer_filters = inactive_hosts_utils.getManufacturerFilters(ifid)
 
 local rsp = {
     {
-        action = "vlan_id",
-        label = i18n("vlan"),
-        tooltip = i18n("vlan_filter"),
-        name = "vlan_filter",
-        value = vlan_filters
+        action = "device_type",
+        label = i18n("device"),
+        tooltip = i18n("device_filter"),
+        name = "device_filter",
+        value = device_filters
+    },
+    {
+        action = "manufacturer",
+        label = i18n("manufacturer"),
+        tooltip = i18n("manufacturer_filter"),
+        name = "manufacturer_filter",
+        value = manufacturer_filters
     },
     {
         action = "network",
@@ -52,6 +63,13 @@ local rsp = {
         tooltip = i18n("network_filter"),
         name = "network_filter",
         value = network_filters
+    },
+    {
+        action = "vlan_id",
+        label = i18n("vlan"),
+        tooltip = i18n("vlan_filter"),
+        name = "vlan_filter",
+        value = vlan_filters
     },
 }
 

@@ -649,7 +649,7 @@ local function validateAjaxFormat(mode)
 end
 
 local function validatePrintFormat(mode)
-    local modes = {"txt", "json"}
+    local modes = {"txt", "json", "csv"}
 
     return validateChoice(modes, mode)
 end

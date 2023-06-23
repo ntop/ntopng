@@ -14,23 +14,40 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_array",
+			"render_v_node_type": "button_list",
 			"button_def_array": [
 				{
 					"id": "historical_data",
-					"icon": "fas fa-stream",
+					"icon": "fas fa-search-plus",
 					"title_i18n": "db_explorer.historical_data",
 					"class": [
 						"btn-info",
 						"link-button"
 					],
 					"event_id": "click_button_historical_flows"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa fa-trash",
+					"title_i18n": "delete",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_delete"
 				}
 			]
 		},
 		{
 			"title_i18n": "db_explorer.host_data",
 			"data_field": "host",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "name",
+			"data_field": "name",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
@@ -53,14 +70,6 @@
 			]
 		},
 		{
-			"title_i18n": "name",
-			"data_field": "name",
-			"sortable": true,
-			"class": [
-				"text-nowrap"
-			]
-		},
-		{
 			"title_i18n": "first_seen",
 			"data_field": "first_seen",
 			"sortable": true,
@@ -72,15 +81,6 @@
 		{
 			"title_i18n": "last_seen",
 			"data_field": "last_seen",
-			"sortable": true,
-			"class": [
-				"text-center",
-				"text-nowrap"
-			]
-		},
-		{
-			"title_i18n": "details.device_type",
-			"data_field": "device_type",
 			"sortable": true,
 			"class": [
 				"text-center",
