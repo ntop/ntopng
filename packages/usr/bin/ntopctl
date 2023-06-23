@@ -37,7 +37,7 @@ get_initd_service_start_file() {
 check_interface() {
     local CHECK_IFNAME="$1"
 
-    if [[ "${CHECK_IFNAME}" =~ ^[a-zA-Z0-9:_-]{1,24}$ ]]; then
+    if [[ "${CHECK_IFNAME}" =~ ^[a-zA-Z0-9:_,-]{1,64}$ ]]; then
 	:
     else
 	[ $QUIET = false ] && echo "Invalid interface $CHECK_IFNAME"
