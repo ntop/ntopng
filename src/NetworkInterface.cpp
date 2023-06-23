@@ -11289,26 +11289,17 @@ static bool host_details_asc_total_traffic_cmp(HostDetails *a,
 
 static bool host_details_asc_ip_cmp(HostDetails *a, 
                                     HostDetails *b) {
-  char a_buf[128];
-  char b_buf[128];
-  return strcmp(a->get_ip_hex(a_buf),
-                b->get_ip_hex(b_buf)) < 0;
+  return strcmp(a->get_ip_hex(),  b->get_ip_hex()) < 0;
 }
 
 static bool host_details_asc_mac_cmp(HostDetails *a, 
                                      HostDetails *b) {
-  char a_buf[128];
-  char b_buf[128];
-  return strcmp(a->get_mac_address(a_buf), 
-                b->get_mac_address(b_buf)) < 0;
+  return strcmp(a->get_mac_address(), b->get_mac_address()) < 0;
 }
 
 static bool host_details_asc_mac_manufacturer_cmp(HostDetails *a, 
                                      HostDetails *b) {
-  char a_buf[128];
-  char b_buf[128];
-  return strcmp(a->get_mac_manufacturer(a_buf), 
-                b->get_mac_manufacturer(b_buf)) < 0;
+  return strcmp(a->get_mac_manufacturer(), b->get_mac_manufacturer()) < 0;
 }
 
 static bool host_details_asc_score_cmp(HostDetails *a, 
@@ -11328,10 +11319,7 @@ static bool host_details_asc_vlan_cmp(HostDetails *a,
 
 static bool host_details_asc_name_cmp(HostDetails *a, 
                                      HostDetails *b) {
-  char a_buf[128];
-  char b_buf[128];
-  return strcmp(a->get_name(a_buf), 
-                b->get_name(b_buf)) < 0;
+  return strcmp(a->get_name(), b->get_name()) < 0;
 }
 
 /* **************************************************** */
@@ -12158,11 +12146,11 @@ void NetworkInterface::sort_hosts_details(lua_State *vm,
 
       if (hd) {
         lua_newtable(vm);
-        char buf[128];
-        lua_push_str_table_entry(vm, "ip", hd->get_ip(buf));
-        lua_push_str_table_entry(vm, "mac", hd->get_mac_address(buf));
-        lua_push_str_table_entry(vm, "mac_manufacturer", hd->get_mac_manufacturer(buf));
-        lua_push_str_table_entry(vm, "name", hd->get_name(buf));
+
+        lua_push_str_table_entry(vm, "ip", hd->get_ip());
+        lua_push_str_table_entry(vm, "mac", hd->get_mac_address());
+        lua_push_str_table_entry(vm, "mac_manufacturer", hd->get_mac_manufacturer());
+        lua_push_str_table_entry(vm, "name", hd->get_name());
         lua_push_uint64_table_entry(vm, "vlan_id", (u_int64_t)hd->get_vlan_id());
         lua_push_uint64_table_entry(vm, "flows", (u_int64_t)hd->get_active_flows_as_server());
         lua_push_uint64_table_entry(vm, "score", (u_int64_t)hd->get_score());

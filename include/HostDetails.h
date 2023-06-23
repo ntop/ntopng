@@ -22,76 +22,57 @@
 #ifndef _HOST_DETAILS_H_
 #define _HOST_DETAILS_H_
 
-#define MAX_STRING_LEN 128
-
 #include "ntop_includes.h"
 
 class HostDetails {
-    private:
-        char* ip;
-        char* mac_address;
-        char* mac_manufacturer;
-        char* ip_hex;
-        char* name;
-        u_int16_t vlan_id;
-        u_int64_t total_traffic;
-        u_int8_t score;
-        u_int32_t active_flows_as_server;
-        u_int64_t host_key;
+ private:
+  char* ip;
+  char* mac_address;
+  char* mac_manufacturer;
+  char* ip_hex;
+  char* name;
+  u_int16_t vlan_id;
+  u_int64_t total_traffic;
+  u_int8_t score;
+  u_int32_t active_flows_as_server;
+  u_int64_t host_key;
     
-    public:
-        HostDetails(char* _ip, char* _mac_address, char* _mac_manufacturer, u_int64_t _total_traffic, char* _ip_hex, u_int16_t _vlan_id, u_int8_t _score, u_int32_t _flows, char* _name, u_int64_t _host_key) {
-            ip = strdup(_ip);
-            mac_address = strdup(_mac_address);
-            mac_manufacturer = strdup(_mac_manufacturer);
-            total_traffic = _total_traffic;
-            ip_hex = strdup(_ip_hex);
-            vlan_id = _vlan_id;
-            score = _score;
-            active_flows_as_server = _flows;
-            name = strdup(_name);
-            host_key = _host_key;
-        };
-        ~HostDetails() {
-            if(ip_hex)
-                free(ip_hex);
-            if(ip)
-                free(ip);
-            if(mac_address)
-                free(mac_address);
-            if(name)
-                free(name);
-            if(mac_manufacturer)
-                free(mac_manufacturer);
-        };
+ public:
+  HostDetails(char* _ip, char* _mac_address, char* _mac_manufacturer, u_int64_t _total_traffic,
+	      char* _ip_hex, u_int16_t _vlan_id, u_int8_t _score, u_int32_t _flows,
+	      char* _name, u_int64_t _host_key) {
+    ip = _ip ? strdup(_ip) : NULL;
+    mac_address = _mac_address ? strdup(_mac_address) : NULL;
+    mac_manufacturer = _mac_manufacturer ? strdup(_mac_manufacturer) : NULL;
+    total_traffic = _total_traffic;
+    ip_hex = _ip_hex ? strdup(_ip_hex) : NULL;
+    vlan_id = _vlan_id;
+    score = _score;
+    active_flows_as_server = _flows;
+    name = _name ? strdup(_name) : NULL;
+    host_key = _host_key;
+  };
+  
+  ~HostDetails() {
+    if(ip_hex)      free(ip_hex);
+    if(ip)          free(ip);
+    if(mac_address) free(mac_address);
+    if(name)        free(name);
+    if(mac_manufacturer) free(mac_manufacturer);
+  };
 
-        /* Getters */
-        inline char* get_ip(char *buf) {
-            snprintf(buf, MAX_STRING_LEN, "%s", ip);
-            return(buf); 
-        };
-        inline char* get_ip_hex(char *buf) { 
-            snprintf(buf, MAX_STRING_LEN, "%s", ip_hex);
-
-            return(buf); 
-        };
-        inline char* get_mac_address(char *buf) { 
-            snprintf(buf, MAX_STRING_LEN, "%s", mac_address);
-            return(buf); 
-        };
-        inline char* get_mac_manufacturer(char *buf) { 
-            snprintf(buf, MAX_STRING_LEN, "%s", mac_manufacturer);
-            return(buf); 
-        };
-        inline char* get_name(char *buf) {
-            snprintf(buf, MAX_STRING_LEN, "%s", name);
-            return(buf); 
-        }
-        inline u_int64_t get_total_traffic() { return(total_traffic); }; 
-        inline u_int8_t get_score() { return(score); };
-        inline u_int32_t get_active_flows_as_server() { return(active_flows_as_server); };
-        inline u_int16_t get_vlan_id() { return(vlan_id); };
-        inline u_int64_t get_host_key() { return(host_key); };
+  /* Getters */
+  inline char* get_ip()               { return(ip ? ip : (char*)""); };
+  inline char* get_ip_hex()           { return(ip_hex ? ip_hex : (char*)""); }
+  inline char* get_mac_address()      {  return(mac_address ? mac_address : (char*)""); };
+  inline char* get_mac_manufacturer() {  return(mac_manufacturer ? mac_manufacturer : (char*)""); };  
+  inline char* get_name()             {  return(name ? name : (char*)"");   }
+  
+  inline u_int64_t get_total_traffic() { return(total_traffic); }; 
+  inline u_int8_t  get_score() { return(score); };
+  inline u_int32_t get_active_flows_as_server() { return(active_flows_as_server); };
+  inline u_int16_t get_vlan_id() { return(vlan_id); };
+  inline u_int64_t get_host_key() { return(host_key); };
 
 };
 
