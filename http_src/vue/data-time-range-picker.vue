@@ -68,7 +68,7 @@
 
 <script>
 import { default as SelectSearch } from "./select-search.vue";
-import { ntopng_utility } from "../services/context/ntopng_globals_services";
+import { ntopng_utility, ntopng_url_manager, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 
 export default {
     components: {
@@ -78,6 +78,7 @@ export default {
         id: String,
         enable_refresh: Boolean,
         min_time_interval_id: String,
+	round_time: Boolean, //if min_time_interval_id != null round time by min_time_interval_id
     },
     computed: {
         // a computed getter
@@ -103,7 +104,10 @@ export default {
             }
         },
         "min_time_interval_id": function () {
-          // filtrare preset maggiori del valore passato  
+          // todo
+        },
+        "round_time": function () {
+          // todo
         },
     },
     emits: ["epoch_change"],
@@ -116,12 +120,13 @@ export default {
             this.time_preset_list_filtered = this.time_preset_list;
             return;
         }
-
+	const timeframes_dict = this.get_timeframes_available();
+	const min_time_interval = timeframes_dict[this.min_time_interval_id];
         this.time_preset_list_filtered = this.time_preset_list.filter((elem) => {
             if (elem.value == "custom") {
                 return true;
             }
-            return !(ntopng_utility.get_interval_seconds_from_interval_id(elem.value) < ntopng_utility.get_interval_seconds_from_interval_id(this.min_time_interval_id));
+            return timeframes_dict[elem.value] >= min_time_interval;
         });
     },
     /** This method is the first method called after html template creation. */
@@ -131,7 +136,7 @@ export default {
         if (epoch_begin != null && epoch_end != null) {
             // update the status
 
-            ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, { epoch_begin: Number.parseInt(epoch_begin), epoch_end: Number.parseInt(epoch_end) }, this.$props.id);
+            this.emit_epoch_change({ epoch_begin: Number.parseInt(epoch_begin), epoch_end: Number.parseInt(epoch_end) }, this.$props.id);
         }
         let me = this;
         let f_set_picker = (picker, var_name) => {
@@ -149,7 +154,7 @@ export default {
                 onChange: function (selectedDates, dateStr, instance) {
                     me.enable_apply = true;
                     me.wrong_date = me.flat_begin_date.selectedDates[0].getTime() > me.flat_end_date.selectedDates[0].getTime();
-                    me.wrong_min_interval = me.min_time_interval_id && ((me.flat_end_date.selectedDates[0].getTime() - me.flat_begin_date.selectedDates[0].getTime()) / 1000 < ntopng_utility.get_interval_seconds_from_interval_id(me.min_time_interval_id));
+                    me.wrong_min_interval = me.min_time_interval_id && me.get_utc_seconds((me.flat_end_date.selectedDates[0].getTime() - me.flat_begin_date.selectedDates[0].getTime()) < ntopng_utility.get_timeframe_from_timeframe_id(me.min_time_interval_id));
                     //me.a[data] = d;
                 },
             });
@@ -231,35 +236,23 @@ export default {
             ntopng_url_manager.add_obj_to_url(this.epoch_status);
         },
         set_select_time_value: function (begin_utc, end_utc) {
-            let s_values = this.get_select_values();
+            const timeframes_dict = this.get_timeframes_available();
             const tolerance = 60;
-            const now = this.get_utc_seconds(Date.now());
+            let now = this.get_utc_seconds(Date.now());
+	    if (this.round_time == true && this.min_time_interval_id != null) {
+		now = this.round_time_by_min_interval(now)
+	    }
             const end_utc_s = this.get_utc_seconds(end_utc);
             const begin_utc_s = this.get_utc_seconds(begin_utc);
-
-
+	    
             if (this.is_between(end_utc_s, now, tolerance)) {
-                if (this.is_between(begin_utc_s, now - s_values["5_min"], tolerance)) {
-                    this.select_time_value = "5_min";
-                } else if (this.is_between(begin_utc_s, now - s_values["30_min"], tolerance)) {
-                    this.select_time_value = "30_min";
-                } else if (this.is_between(begin_utc_s, now - s_values.hour, tolerance)) {
-                    this.select_time_value = "hour";
-                } else if (this.is_between(begin_utc_s, now - s_values["2_hours"], tolerance)) {
-                    this.select_time_value = "2_hours";
-                } else if (this.is_between(begin_utc_s, now - s_values["6_hours"], tolerance)) {
-                    this.select_time_value = "6_hours";
-                } else if (this.is_between(begin_utc_s, now - s_values["12_hours"], tolerance)) {
-                    this.select_time_value = "12_hours";
-                } else if (this.is_between(begin_utc_s, now - s_values.day, tolerance)) {
-                    this.select_time_value = "day";
-                } else if (this.is_between(begin_utc_s, now - s_values.week, tolerance)) {
-                    this.select_time_value = "week";
-                } else if (this.is_between(begin_utc_s, now - s_values.month, tolerance)) {
-                    this.select_time_value = "month";
-                } else if (this.is_between(begin_utc_s, now - s_values.year, tolerance)) {
-                    this.select_time_value = "year";
-                } else {
+		this.select_time_value = null;
+		for (let time_id in timeframes_dict) {
+		    if (this.is_between(begin_utc_s, now - timeframes_dict[time_id], tolerance)) {
+			this.select_time_value = time_id;
+		    }
+		}
+                if (this.select_time_value == null) {
                     this.select_time_value = "custom";
                 }
             } else {
@@ -310,49 +303,27 @@ export default {
         //     }
         // },
         change_select_time: function (refresh_data) {
-            let s_values = this.get_select_values();
+            let s_values = this.get_timeframes_available();
             let interval_s = s_values[this.selected_time_option.value];
             let epoch_end = this.get_utc_seconds(Date.now());
             let epoch_begin = epoch_end - interval_s;
             let status = { epoch_begin: epoch_begin, epoch_end: epoch_end, refresh_data };
             this.emit_epoch_change(status);
         },
-        get_select_values: function () {
-            let min = 60;
-            return {
-                "5_min": min * 5,
-                "30_min": min * 30,
-                hour: min * 60,
-                "2_hours": 2 * min * 60,
-                "6_hours": 6 * min * 60,
-                "12_hours": 12 * min * 60,
-                day: this.get_last_day_seconds(),
-                week: this.get_last_week_seconds(),
-                month: this.get_last_month_seconds(),
-                year: this.get_last_year_seconds(),
-            };
+        get_timeframes_available: function () {
+	    const timeframes_dict = ntopng_utility.get_timeframes_dict();
+            const timeframes_ids = this.time_preset_list.map((ts) => ts.value);
+	    let timeframes_available = {};
+	    timeframes_ids.forEach((tf_id) => {
+		timeframes_available[tf_id] = timeframes_dict[tf_id];
+	    });
+	    return timeframes_available;
         },
-        get_utc_seconds: function (utc_ts) {
-            return Number.parseInt(utc_ts / 1000);
+        get_utc_seconds: function (utc_ms) {
+	    return ntopng_utility.get_utc_seconds(utc_ms);
         },
         is_between: function (x, y, tolerance) {
             return x >= y - tolerance && x <= y;
-        },
-        get_last_day_seconds: function () {
-            let t = new Date();
-            return this.get_utc_seconds(Date.now() - t.setDate(t.getDate() - 1));
-        },
-        get_last_week_seconds: function () {
-            let t = new Date();
-            return this.get_utc_seconds(Date.now() - t.setDate(t.getDate() - 7));
-        },
-        get_last_month_seconds: function () {
-            let t = new Date();
-            return this.get_utc_seconds(Date.now() - t.setMonth(t.getMonth() - 1));
-        },
-        get_last_year_seconds: function () {
-            let t = new Date();
-            return this.get_utc_seconds(Date.now() - t.setMonth(t.getMonth() - 12));
         },
         zoom: function (scale) {
             if (this.epoch_status == null) { return; }
@@ -398,7 +369,10 @@ export default {
                 this.wrong_date = true;
                 return;
             }
-            else if (this.min_time_interval_id )
+	    if (this.min_time_interval_id && this.round_time == true) {
+		epoch_status.epoch_begin = this.round_time_by_min_interval(epoch_status.epoch_begin);
+		epoch_status.epoch_end = this.round_time_by_min_interval(epoch_status.epoch_end);
+	    }
 
             if (id != this.id) {
                 this.on_status_updated(epoch_status);
@@ -406,6 +380,9 @@ export default {
             ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_status, this.id);
             this.$emit("epoch_change", epoch_status);
         },
+	round_time_by_min_interval: function(ts) {
+	    return ntopng_utility.round_time_by_timeframe_id(ts, this.min_time_interval_id);
+	},
         add_status_in_history: function (epoch_status) {
             this.history_last_status = this.history[this.history.length - 1];
             if (this.history.length > 5) {

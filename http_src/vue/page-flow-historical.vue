@@ -16,7 +16,7 @@
 	<div clas="range-container d-flex flex-wrap">
 	  <div class="range-picker d-flex m-auto flex-wrap">
 	    <AlertInfo id="alert_info" :global="true" ref="alert_info"></AlertInfo>
-	    <RangePicker v-if="mount_range_picker" ref="range_picker" id="range_picker" :min_time_interval_id="min_time_interval_id">
+	    <RangePicker v-if="mount_range_picker" ref="range_picker" id="range_picker" :min_time_interval_id="min_time_interval_id" :round_time="round_time">
 	      <template v-slot:begin>
 		<Switch v-if="props.context.is_enterprise_xl" v-model:value="flows_aggregated" class="me-2 mt-1" :change_label_side="true" :label="flow_type_label" style="" @change_value="change_flow_type" ></Switch>
 
@@ -182,6 +182,7 @@ const mount_range_picker = ref(false);
 const flows_aggregated = ref(false);
 const flow_type_label = ref(_i18n("datatable.aggregated"));
 const min_time_interval_id = ref(null);
+const round_time = ref(false);
 
 onBeforeMount(async () => {
     init_params();
@@ -211,8 +212,9 @@ function init_params() {
     const aggregated = ntopng_url_manager.get_url_entry("aggregated");
     if (aggregated == "true") {
 	table_config_id.value = `flow_historical_aggregated`;
-    flows_aggregated.value = true;
-    min_time_interval_id.value = "2_hours";
+	flows_aggregated.value = true;
+	min_time_interval_id.value = "hour";
+	round_time.value = true;
     }
 }
 
@@ -233,7 +235,13 @@ function init_url_params() {
             
             return (epoch.epoch_end >= two_min_ago) && (epoch.epoch_end <= now);
         };
-        ntopng_utility.check_and_set_default_time_interval("2_hours", f_check_last_minute_epoch_end);
+        const epoch_interval = ntopng_utility.check_and_set_default_time_interval(min_time_interval_id.value, f_check_last_minute_epoch_end);
+	if (epoch_interval != null) {
+	    epoch_interval.epoch_begin = ntopng_utility.round_time_by_timeframe_id(epoch_interval.epoch_begin, min_time_interval_id.value);
+	    epoch_interval.epoch_end = ntopng_utility.round_time_by_timeframe_id(epoch_interval.epoch_end, min_time_interval_id.value);
+	    ntopng_url_manager.set_key_to_url("epoch_begin", epoch_interval.epoch_begin);
+            ntopng_url_manager.set_key_to_url("epoch_end", epoch_interval.epoch_end);
+	}
     }
             
     if (ntopng_url_manager.get_url_entry("page") == "flow"

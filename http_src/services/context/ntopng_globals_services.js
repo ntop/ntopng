@@ -67,46 +67,71 @@ export const ntopng_utility = function() {
 		array.push(obj[key]);
 	    }
 	    return array;
-    },
-    // given valid interval string get time in seconds
-    get_interval_seconds_from_interval_id: function (interval_string) {
-            //5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year
-        let timeframes_dict = { "5_min": 300, "30_min": 1800, "hour": 3600, "2_hours": 7200, "6_hours": 21600, "12_hours": 43200, "day": 86400, "week": 604800, "month": 2592000, "year": 31536000 }
-        
-        // timeframes_dict[interval_string] == null => key is not present
-        if (!(timeframes_dict[interval_string] == null)) {
-            return timeframes_dict[interval_string]
-        }
+	},
+	get_utc_seconds: function(utc_ms) {
+            return Number.parseInt(utc_ms / 1000);
+	},
+	get_timeframes_dict: function() {
+            const min = 60;
+            let t_day = new Date();
+            let t_week = new Date();
+            let t_month = new Date();
+            let t_year = new Date();
+            return {
+                "5_min": min * 5,
+                "30_min": min * 30,
+                hour: min * 60,
+                "2_hours": 2 * min * 60,
+                "6_hours": 6 * min * 60,
+                "12_hours": 12 * min * 60,
+                day: this.get_utc_seconds(Date.now() - t_day.setDate(t_day.getDate() - 1)),
+                week: this.get_utc_seconds(Date.now() - t_week.setDate(t_week.getDate() - 7)),
+                month: this.get_utc_seconds(Date.now() - t_month.setMonth(t_month.getMonth() - 1)),
+                year: this.get_utc_seconds(Date.now() - t_year.setMonth(t_year.getMonth() - 12)),
+            };
+	},
+	// given valid interval string get time in seconds
+	get_timeframe_from_timeframe_id: function (timeframe_id) {
+            let timeframes_dict = this.get_timeframes_dict();            
+            // timeframes_dict[interval_string] == null => key is not present
+            if (timeframes_dict[timeframe_id] == null) {
+		throw `Wrong timeframe_id passed ${timeframe_id}, valid intervals are: ${Object.keys(timeframes_dict).join(", ")}`;
+            }
+	    return timeframes_dict[timeframe_id];
+	},
+	round_time_by_timeframe_id: function(ts, timeframe_id) {
+	    const timeframe = this.get_timeframe_from_timeframe_id(timeframe_id);
+	    return ts - (ts % timeframe);
+	},
+	// method to set default epoch begin to 30_min ago
+	set_default_time_interval: function (time_interval_id) {
+            let epoch = {
+		epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
+		epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
+            };
+	    const now_s = this.get_utc_seconds(Date.now());
+            let seconds_in_interval = this.get_timeframe_from_timeframe_id(time_interval_id);
+            epoch.epoch_begin = now_s - seconds_in_interval;
+            epoch.epoch_end = now_s;
+            ntopng_url_manager.set_key_to_url("epoch_begin", epoch.epoch_begin);
+            ntopng_url_manager.set_key_to_url("epoch_end", epoch.epoch_end);
+	    
+            return epoch;
+	},
+	//should take a string as parameter that represent time: 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year. ID time_interval_id is null, default must be 30_min
+	// return epoch_interval only if epoch url is set
+	check_and_set_default_time_interval: function (time_interval_id="30_min", f_condition) {
+            let epoch = {
+		epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
+		epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
+            };
 
-        throw "Wrong interval passed, valid intervals are: 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year"
-    },
-    // method to set default epoch begin to 30_min ago
-    set_default_time_interval: function (time_interval_id) {
-        let epoch = {
-            epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
-            epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
-        };
-
-        let seconds_in_interval = this.get_interval_seconds_from_interval_id(time_interval_id)
-        epoch.epoch_begin = Number.parseInt((Date.now() - 1000 * seconds_in_interval) / 1000);
-        epoch.epoch_end = Number.parseInt(Date.now() / 1000);
-        ntopng_url_manager.set_key_to_url("epoch_begin", epoch.epoch_begin);
-        ntopng_url_manager.set_key_to_url("epoch_end", epoch.epoch_end);
-       
-        return epoch
-    },
-    //should take a string as parameter that represent time: 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year. ID time_interval_id is null, default must be 30_min
-    check_and_set_default_time_interval: function (time_interval_id="30_min", f_condition) {
-        let epoch = {
-            epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
-            epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
-        };
-
-        // if time_interval_id is 30 (default)
-        if (epoch.begin == null || epoch.end == null || (f_condition != null && f_condition(epoch) == true))  {
-            epoch = this.set_default_time_interval(time_interval_id)
-        }
-        return epoch;
+            // if time_interval_id is 30 (default)
+            if (epoch.epoch_begin == null || epoch.epoch_end == null || (f_condition != null && f_condition(epoch) == true))  {
+		epoch = this.set_default_time_interval(time_interval_id);
+		return epoch;
+            }
+	    return null;
 	},
 	from_utc_s_to_server_date: function(utc_seconds) {
 	    let utc = utc_seconds * 1000;
@@ -143,8 +168,8 @@ export const ntopng_utility = function() {
 	    }
 	    for (let key in source_obj) {
 	    	if (source_obj[key] == null) { continue; }
-            /* Security check for Prototype pollution vulnerability */
-            if (key === "__proto__" || key === "constructor") { continue; }
+		/* Security check for Prototype pollution vulnerability */
+		if (key === "__proto__" || key === "constructor") { continue; }
 	    	if (recursive_object == true && this.is_object(source_obj[key]) && this.is_object(dest_obj[key])) {
 	    	    this.copy_object_keys(source_obj[key], dest_obj[key], recursive_object);
 	    	} else {

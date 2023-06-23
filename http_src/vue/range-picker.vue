@@ -3,7 +3,7 @@
         <div class="mb-1">
             <modal-filters :filters_options="modal_data" @apply="apply_modal" ref="modal_filters" :id="id_modal_filters">
             </modal-filters>
-            <data-time-range-picker :id="id_data_time_range_picker" :min_time_interval_id="min_time_interval_id">
+            <data-time-range-picker :id="id_data_time_range_picker" :min_time_interval_id="min_time_interval_id" :round_time="round_time">
                 <template v-slot:begin>
                     <div v-if="is_alert_stats_url" style="margin-right:0.1rem;" class="d-flex align-items-center me-2">
                         <div class="btn-group" id="statusSwitch" role="group">
@@ -181,7 +181,7 @@ export default {
     props: {
         id: String,
         min_time_interval_id: String,
-        round_timestamp_second: Number,
+        round_time: Boolean,
     },
     components: {
         'data-time-range-picker': DataTimeRangePicker,
