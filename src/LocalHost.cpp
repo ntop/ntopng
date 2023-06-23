@@ -155,7 +155,8 @@ void LocalHost::deferredInitialization() {
 
 void LocalHost::addOfflineData() {
   /* Remove the key from the hash, used to get the offline hosts */
-  if(!ntop->getRedis() || !isLocalUnicastHost())
+  /* Exclude the multicast/broadcast addresses and private addresses*/
+  if(!ntop->getRedis() || !isLocalUnicastHost() || isPrivateHost())
     return;
 
   char buf[64], *json_str = NULL;
