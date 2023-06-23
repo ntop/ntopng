@@ -123,8 +123,8 @@ if ntop.isEnterpriseXL() then
 else
   -- Compute recommended values for storage only
   disk_space = max_space
-  disk_space = tostring(math.floor(tonumber(disk_space)/1024))
 end
+disk_space = tostring(math.floor(tonumber(disk_space)/1024))
 
 print("<h2>"..i18n("traffic_recording.traffic_recording_settings").."</h2><br>")
 
