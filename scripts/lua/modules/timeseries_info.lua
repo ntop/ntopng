@@ -2682,7 +2682,7 @@ local function add_snmp_interfaces_timeseries(tags, timeseries)
                 group = i18n("graphs.interfaces"),
                 priority = 2,
                 query = "if_index:" .. interface_index,
-                label = i18n('graphs.interface_label', {
+                label = i18n('graphs.interface_label_traffic', {
                     if_name = snmp_utils.get_snmp_interface_label(interface_info)
                 }),
                 measure_unit = "bps",
@@ -2690,11 +2690,41 @@ local function add_snmp_interfaces_timeseries(tags, timeseries)
                 timeseries = {
                     bytes_sent = {
                         label = i18n('graphs.metric_labels.sent'),
-                        color = timeseries_info.get_timeseries_color('bytes')
+                        color = timeseries_info.get_timeseries_color('bytes_sent')
                     },
                     bytes_rcvd = {
                         invert_direction = true,
-                        label = i18n('graphs.metric_labels.rcvd')
+                        label = i18n('graphs.metric_labels.rcvd'),
+                        color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                    }
+                }
+            }
+            timeseries[#timeseries + 1] = {
+                schema = "snmp_if:packets",
+                group = i18n("graphs.interfaces"),
+                query = "if_index:" .. interface_index,
+                label = i18n('graphs.interface_label_packets', {
+                    if_name = snmp_utils.get_snmp_interface_label(interface_info)
+                }),
+                priority = 2,
+                measure_unit = "pps",
+                scale = i18n("graphs.metric_labels.packets"),
+                timeseries = {
+                    ucast_sent = {
+                        label = i18n('graphs.bytes_sent_unicast'),
+                        color = timeseries_info.get_timeseries_color('bytes_sent')
+                    },
+                    nucast_sent = {
+                        label = i18n('graphs.non_unicast_sent'),
+                        color = timeseries_info.get_timeseries_color('bytes_sent')
+                    },
+                    ucast_rcvd = {
+                        label = i18n('graphs.unicast_rcvd'),
+                        color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                    },
+                    nucast_rcvd = {
+                        label = i18n('graphs.non_unicast_rcvd'),
+                        color = timeseries_info.get_timeseries_color('bytes_rcvd')
                     }
                 }
             }
