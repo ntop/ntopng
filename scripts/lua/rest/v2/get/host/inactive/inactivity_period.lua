@@ -15,7 +15,8 @@ local inactive_hosts_utils = require "inactive_hosts_utils"
 
 local ifid        = _GET["ifid"] or interface.getId()
 interface.select(tostring(ifid))
-local inactive_hosts_distribution = inactive_hosts_utils.getInactiveHostsEpochDistribution(ifid)
+local filters = inactive_hosts_utils.getFilters()
+local inactive_hosts_distribution = inactive_hosts_utils.getInactiveHostsEpochDistribution(ifid, filters)
 
 local series = {}
 local labels = {}

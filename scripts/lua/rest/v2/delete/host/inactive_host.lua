@@ -32,7 +32,8 @@ if isEmptyString(ifid) or isEmptyString(serial_key) then
 end
 
 if tonumber(serial_key) then
-   inactive_hosts_utils.deleteAllEntriesSince(ifid, tonumber(serial_key))
+   local epoch = os.time() - tonumber(serial_key)
+   inactive_hosts_utils.deleteAllEntriesSince(ifid, epoch)
 elseif (serial_key == "all") then
    inactive_hosts_utils.deleteAllEntries(ifid)
 else

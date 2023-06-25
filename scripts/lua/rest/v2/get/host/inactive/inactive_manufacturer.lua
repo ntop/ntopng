@@ -16,7 +16,7 @@ local inactive_hosts_utils = require "inactive_hosts_utils"
 local ifid        = _GET["ifid"] or interface.getId()
 interface.select(tostring(ifid))
 
-local inactive_hosts_manufacturer = inactive_hosts_utils.getManufacturerFilters(ifid)
+local inactive_hosts_manufacturer = inactive_hosts_utils.getManufacturerFilters(ifid, inactive_hosts_utils.getFilters())
 local series = {}
 local labels = {}
 local colors = {}

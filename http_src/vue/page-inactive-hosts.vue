@@ -8,18 +8,29 @@
       <h2 class="ms-3">{{ title }}</h2>
       <div class="card  card-shadow">
         <div class="card-body">
-          <div class="row mb-4 mt-4" id="host_details_traffic">
-            <template v-for="chart_option in chart_options">
-              <div class="col-4">
-                <h3 class="widget-name">{{ chart_option.title }}</h3>
-                <Chart
-                  :id="chart_option.id"
-                  :chart_type="chart_option.type"
-                  :base_url_request="chart_option.url"
-                  :register_on_status_change="false">
-                </Chart>
-              </div>
-            </template>
+          <div class="card card-shadow">
+            <div class="card-body p-1">
+              <transition name="fade" mode="out-in">
+                <div key="1" v-if="show_charts == true" class="row mb-4 mt-4" id="host_details_traffic">
+                  <template v-for="chart_option in chart_options">
+                    <div class="col-4">
+                      <h3 class="widget-name">{{ chart_option.title }}</h3>
+                      <Chart
+                        :ref="chart_option.ref"
+                        :id="chart_option.id"
+                        :chart_type="chart_option.type"
+                        :base_url_request="chart_option.url"
+                        :register_on_status_change="true">
+                      </Chart>
+                    </div>
+                  </template>
+                </div>
+              </transition>
+            </div>
+          </div>
+          <div class="text-center" style="cursor: pointer;" @click="change_show_charts">
+            <i v-if="show_charts == false" class="fa-solid fa-angles-down"></i>
+            <i v-else class="fa-solid fa-angles-up"></i>
           </div>
           <div>
             <TableWithConfig ref="table_inactive_hosts" :table_id="table_id" :csrf="csrf"
@@ -44,6 +55,8 @@
           <div class="card-footer mt-3">
             <button type="button" ref="delete_all" @click="delete_all_entries" class="btn btn-danger me-1"><i
                 class='fas fa-trash'></i> {{ _i18n("delete_all_entries") }}</button>
+            <button type="button" ref="delete_older" @click="delete_entries_since" class="btn btn-danger me-1"><i
+                class='fas fa-trash'></i> {{ _i18n("delete_older") }}</button>
             <button type="button" ref="download" @click="download" class="btn btn-primary me-1"><i
                 class='fas fa-download'></i></button>
           </div>
@@ -52,6 +65,7 @@
     </div>
   </div>
   <ModalDeleteInactiveHost ref="modal_delete" :context="context" @delete_host="refresh_table"></ModalDeleteInactiveHost>
+  <ModalDeleteInactiveHostEpoch ref="modal_delete_older" :context="context" @delete_host="refresh_table"></ModalDeleteInactiveHostEpoch>
   <ModalDownloadInactiveHost ref="modal_download" :context="context"></ModalDownloadInactiveHost>
 </template>
 
@@ -62,6 +76,7 @@ import { default as Dropdown } from "./dropdown.vue";
 import { default as Spinner } from "./spinner.vue";
 import { default as Chart } from "./chart.vue";
 import { default as ModalDeleteInactiveHost } from "./modal-delete-inactive-host.vue";
+import { default as ModalDeleteInactiveHostEpoch } from "./modal-delete-inactive-host-epoch.vue";
 import { default as ModalDownloadInactiveHost } from "./modal-download-inactive-host.vue";
 
 const _i18n = (t) => i18n(t);
@@ -73,6 +88,11 @@ const filter_table_dropdown_array = ref([]);
 const table_inactive_hosts = ref();
 const modal_download = ref();
 const modal_delete = ref();
+const modal_delete_older = ref();
+const chart_1 = ref();
+const chart_2 = ref();
+const chart_3 = ref();
+const show_charts = ref(false);
 const props = defineProps({
   ifid: Number,
   csrf: String,
@@ -84,18 +104,21 @@ const context = ref({
 })
 const chart_options = [
   {
+    ref: chart_1,
     title: i18n('active_inactive'),
     type: ntopChartApex.typeChart.DONUT,
     url: `${http_prefix}/lua/rest/v2/get/host/inactive/active_inactive.lua`,
     id: `active_inactive_distro`,
   },
   {
+    ref: chart_2,
     title: i18n('inactivity_period'),
     type: ntopChartApex.typeChart.DONUT,
     url: `${http_prefix}/lua/rest/v2/get/host/inactive/inactivity_period.lua`,
     id: `inactivity_period`,
   },
   {
+    ref: chart_3,
     title: i18n('manufacturer'),
     type: ntopChartApex.typeChart.DONUT,
     url: `${http_prefix}/lua/rest/v2/get/host/inactive/inactive_manufacturer.lua`,
@@ -182,12 +205,23 @@ function add_table_filter(opt, event) {
   ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
   set_filter_array_label();
   table_inactive_hosts.value.refresh_table();
+  if (show_charts.value == true) {
+    chart_options.forEach((el) => {
+      el.ref.value[0].update_chart()
+    })
+  }
 }
 
 /* ************************************** */
 
 function refresh_table() {
   table_inactive_hosts.value.refresh_table();
+}
+
+/* ************************************** */
+
+function change_show_charts() {
+  show_charts.value = !show_charts.value;
 }
 
 /* ************************************** */
@@ -221,6 +255,12 @@ function click_button_delete(event) {
 
 function delete_all_entries() {
   modal_delete.value.show('all', i18n('delete_all_inactive_hosts'));
+}
+
+/* ************************************** */
+
+function delete_entries_since() {
+  modal_delete_older.value.show();
 }
 
 /* ************************************** */

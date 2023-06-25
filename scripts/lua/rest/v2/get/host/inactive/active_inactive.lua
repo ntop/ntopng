@@ -17,7 +17,7 @@ local ifid        = _GET["ifid"] or interface.getId()
 interface.select(tostring(ifid))
 
 local active_hosts = interface.getStats().stats.local_hosts
-local inactive_hosts = inactive_hosts_utils.getInactiveHostsNumber(ifid)
+local inactive_hosts = inactive_hosts_utils.getInactiveHostsNumber(ifid, inactive_hosts_utils.getFilters())
 
 local rsp = {
   series = {},
