@@ -10,7 +10,7 @@
         <div class="card-body">
           <div class="card card-shadow">
             <div class="card-body p-1">
-              <transition name="fade" mode="out-in">
+              <transition name="component-fade" mode="out-in">
                 <div key="1" v-if="show_charts == true" class="row mb-4 mt-4" id="host_details_traffic">
                   <template v-for="chart_option in chart_options">
                     <div class="col-4">
