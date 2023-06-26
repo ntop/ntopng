@@ -258,8 +258,14 @@ async function update_dropdown_menus(is_application_selected, app, port) {
         }
     })
 
-    application_list.value.sort((a, b) => {return a.label.localeCompare(b.label.localCompare); })
-    application_list.value.reverse();
+    application_list.value.sort((a, b) =>   {
+        let x = a.label.toLowerCase();
+        let y = b.label.toLowerCase();
+
+        if (x < y) {return -1;}
+        if (x > y) {return 1;}
+        return 0;
+    })
 
     if (!is_application_selected && app == null)
         selected_application.value = application_list.value[0];
