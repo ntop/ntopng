@@ -158,7 +158,7 @@ onBeforeMount(() => {
   
   if(!bubble_mode) ntopng_url_manager.set_key_to_url('bubble_mode', 0) /* First Entry */
   if(!timeframe) ntopng_url_manager.set_key_to_url('timeframe', 300) /* Default 5 min */
-  if(!vlan) ntopng_url_manager.set_key_to_url('vlan', 0) /* Default no vlan */
+  if(!vlan) ntopng_url_manager.set_key_to_url('vlan', '') /* Default no vlan */
   
   ntopng_url_manager.set_key_to_url('ifid', props.ifid) /* Current interface */
 
