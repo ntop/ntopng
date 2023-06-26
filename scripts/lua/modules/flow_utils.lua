@@ -2620,20 +2620,43 @@ function getFlowsTableTitle(base_url)
     end
 
     if (_GET["host"] ~= nil) then
+        local host_info = interface.getHostInfo(_GET["host"])
+        local host_name = ""
+        if (host_info) then
+            host_name = host_info.names.resolved
+        end
         active_msg = active_msg .. i18n("flows_page.host", {
-            host = _GET["host"]
+            host = _GET["host"],
+            host_name = ternary(isEmptyString(host_name), _GET["host"], host_name),
+            base_url = base_url
         })
     end
 
     if (_GET["client"] ~= nil) then
+        local client_info = interface.getHostInfo(_GET["client"])
+        local client_name = ""
+        if (client_info) then
+            client_name = client_info.names.resolved
+        end
+        
         if (_GET["server"] ~= nil) then
+            local server_info = interface.getHostInfo(_GET["server"])
+            local server_name = ""
+            if (server_info) then
+                server_name = server_info.names.resolved
+            end
             active_msg = active_msg .. i18n("flows_page.client_to_server", {
                 client = _GET["client"],
-                server = _GET["server"]
+                client_name = ternary(isEmptyString(client_name), _GET["client"], client_name),
+                server = _GET["server"],
+                server_name = ternary(isEmptyString(server_name), _GET["server"], server_name),
+                base_url = base_url
             })
         else
             active_msg = active_msg .. i18n("flows_page.client", {
-                client = _GET["client"]
+                client = _GET["client"],
+                client_name = ternary(isEmptyString(client_name), _GET["client"], client_name),
+                base_url = base_url
             })
         end
     else
@@ -2643,6 +2666,7 @@ function getFlowsTableTitle(base_url)
             if (server_info) then
                 server_name = server_info.names.resolved
             end
+
             active_msg = active_msg .. i18n("flows_page.server", {
                 server = _GET["server"],
                 base_url = base_url,
