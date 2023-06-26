@@ -87,7 +87,7 @@ class Flow : public GenericHashEntry {
       dst2src_tcp_zero_window : 1, non_zero_payload_observed : 1,
       is_periodic_flow : 1;
 
-  enum ndpi_rtp_stream_type rtp_stream_type;
+  ndpi_multimedia_flow_type rtp_stream_type;
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
 #endif
@@ -1321,10 +1321,10 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getCustomFlowAlertScore() { return (customFlowAlert.score); }
   inline char *getCustomFlowAlertMessage() { return (customFlowAlert.msg); }
   void triggerCustomFlowAlert(u_int8_t score, char *msg);
-  inline void setRTPStreamType(enum ndpi_rtp_stream_type s) {
+  inline void setRTPStreamType(ndpi_multimedia_flow_type s) {
     rtp_stream_type = s;
   }
-  inline enum ndpi_rtp_stream_type getRTPStreamType() {
+  inline ndpi_multimedia_flow_type getRTPStreamType() {
     return (rtp_stream_type);
   }
   inline void setPeriodicFlow() { is_periodic_flow = 1; }
