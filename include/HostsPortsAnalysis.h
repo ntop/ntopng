@@ -26,31 +26,35 @@
 
 class HostsPortsAnalysis {
 
-    private:
-        u_int16_t port;
-        std::unordered_map<u_int64_t, HostDetails *> *hosts_details;
+private:
+  u_int16_t port;
+  std::unordered_map<u_int64_t, HostDetails *> *hosts_details;
     
-    public:
-        HostsPortsAnalysis(){
-            hosts_details = new (std::nothrow) std::unordered_map<u_int64_t, HostDetails *>;
-        };
-        ~HostsPortsAnalysis() {
-            std::unordered_map<u_int64_t, HostDetails *>::iterator it;
-            for (it = hosts_details->begin(); it != hosts_details->end(); ++it) 
-                delete it->second;
-            if(hosts_details)
-                delete hosts_details;
-        };
+public:
+  HostsPortsAnalysis(){
+    hosts_details = new (std::nothrow) std::unordered_map<u_int64_t, HostDetails *>;
+    port = 0;
+  };
+
+  ~HostsPortsAnalysis() {
+    std::unordered_map<u_int64_t, HostDetails *>::iterator it;
+
+    if(hosts_details) {
+      for (it = hosts_details->begin(); it != hosts_details->end(); ++it) 
+	delete it->second;
+      
+      delete hosts_details;
+    }
+  };
 
 
-        /* Getters */
-        inline u_int16_t get_port() { return(port); };
-        inline std::unordered_map<u_int64_t, HostDetails *>* get_hosts_details() { return(hosts_details); };
+  /* Getters */
+  inline u_int16_t get_port() { return(port); };
+  inline std::unordered_map<u_int64_t, HostDetails *>* get_hosts_details() { return(hosts_details); };
 
-        /* Setters */
-        void add_host_details(HostDetails *host_details);
-        inline void set_port(u_int16_t _port) { port = _port; };
-
+  /* Setters */
+  void add_host_details(HostDetails *host_details);
+  inline void set_port(u_int16_t _port) { port = _port; };
 };
 
 #endif /* _HOSTS_PORTS_ANALYSIS_H_ */
