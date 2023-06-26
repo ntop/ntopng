@@ -423,7 +423,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
           u_int16_t protocol);
   void sort_hosts_details(lua_State *vm, 
                           HostsPortsAnalysis *count,
-                          u_int16_t protocol);
+                          u_int16_t protocol,
+                          bool get_port);
   void sort_and_filter_flow_stats(lua_State *vm,
 				  std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count,
 				  std::unordered_map<string, AggregatedFlowsStats *> *count_info,
@@ -1350,6 +1351,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   
   void getHostsPorts(lua_State *vm);
   void getHostsByPort(lua_State *vm);
+  void getHostsByService(lua_State *vm);
   void getFilteredLiveFlowsStats(lua_State *vm);
   void getVLANFlowsStats(lua_State *vm);
   void getRxOnlyHostsList(lua_State *vm, bool local_host_rx_only,
@@ -1371,6 +1373,12 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                                               void *user_data, 
                                               bool *matched);
   static bool get_udp_hosts_by_port(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched);
+  static bool get_hosts_by_udp_service(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched);
+  static bool get_hosts_by_tcp_service(GenericHashEntry *node, 
                                               void *user_data, 
                                               bool *matched);
                                             

@@ -12082,14 +12082,185 @@ void NetworkInterface::getHostsByPort(lua_State *vm) {
     walker(&begin_slot, true , walker_hosts,
             get_udp_hosts_by_port, &count);
 
-  sort_hosts_details(vm, &count, protocol);
+  sort_hosts_details(vm, &count, protocol, false);
 
 }
 
+/* **************************************************** */
+
+bool NetworkInterface::get_hosts_by_udp_service(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched) {
+  Host *h = (Host *)node;
+  if (!h || !h->isLocalHost()) {
+    return false;
+  }
+
+  HostsPortsAnalysis *hostsPortsAnalysis = 
+    static_cast< HostsPortsAnalysis *>(user_data);
+
+  int l7_proto = hostsPortsAnalysis->get_l7_proto();
+
+  LocalHost *lh = (LocalHost*) h;
+  std::unordered_map<u_int16_t, ndpi_protocol> udp_ports = lh->getUDPServerPorts();
+  std::unordered_map<u_int16_t, ndpi_protocol>::iterator port_finder;
+  
+  u_int16_t port_found = 0;
+  port_finder = udp_ports.begin();
+
+  while (port_finder != udp_ports.end() && port_found == 0) {
+    if(port_finder->second.app_protocol == l7_proto) {
+      port_found = port_finder->first;
+    }
+    ++port_finder;
+  }
+
+  if (port_found != 0) {
+
+    u_int64_t vlan_id = (u_int64_t) h->get_vlan_id();
+    u_int64_t host_key =
+      (((u_int64_t)h->get_ip()->key()) << 16) + ((u_int64_t)vlan_id);
+
+    std::unordered_map<u_int64_t, HostDetails*> *host_details = hostsPortsAnalysis->get_hosts_details();
+    if (host_details && host_details->find(host_key) == host_details->end() ) {
+      
+      /* Not found in hash the host details */
+      char ip_buf[64];
+      char mac_buf[64];
+      char ip_hex_buf[64];
+      char name[64];
+      HostDetails *host_info = new (std::nothrow) HostDetails(
+                                                      h->get_ip()->print(ip_buf, sizeof(ip_buf)),
+                                                      h->getMac()->print(mac_buf, sizeof(mac_buf)),
+                                                      (char*)h->getMac()->get_manufacturer(),
+                                                      h->getNumBytesUDPSent() + h->getNumBytesUDPRcvd(),
+                                                      h->get_ip()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
+                                                      h->get_vlan_id(),
+                                                      h->getScore(),
+                                                      h->getNumIncomingFlows(),
+                                                      h->get_name(name, sizeof(name), false),
+                                                      host_key);
+
+      if(host_info) {
+        host_info->set_port(port_found);
+        host_details->insert({host_key, host_info});
+      }
+
+    }
+  
+  }
+  
+  *matched = true;
+
+  return (false);
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::get_hosts_by_tcp_service(GenericHashEntry *node, 
+                                              void *user_data, 
+                                              bool *matched) {
+  Host *h = (Host *)node;
+  if (!h || !h->isLocalHost()) {
+    return false;
+  }
+
+  HostsPortsAnalysis *hostsPortsAnalysis = 
+    static_cast< HostsPortsAnalysis *>(user_data);
+
+  int l7_proto = hostsPortsAnalysis->get_l7_proto();
+
+  LocalHost *lh = (LocalHost*) h;
+  std::unordered_map<u_int16_t, ndpi_protocol> tcp_ports = lh->getTCPServerPorts();
+  std::unordered_map<u_int16_t, ndpi_protocol>::iterator port_finder;
+
+  u_int16_t port_found = 0;
+  port_finder = tcp_ports.begin();
+  while (port_finder != tcp_ports.end() && port_found == 0) {
+    if(port_finder->second.app_protocol == l7_proto) {
+      port_found = port_finder->first;
+    }
+    ++port_finder;
+  }
+
+  if (port_found != 0) {
+
+    u_int64_t vlan_id = (u_int64_t) h->get_vlan_id();
+    u_int64_t host_key =
+      (((u_int64_t)h->get_ip()->key()) << 16) + ((u_int64_t)vlan_id);
+
+    std::unordered_map<u_int64_t, HostDetails*> *host_details = hostsPortsAnalysis->get_hosts_details();
+    if (host_details && host_details->find(host_key) == host_details->end() ) {
+      
+      /* Not found in hash the host details */
+      char ip_buf[64];
+      char mac_buf[64];
+      char ip_hex_buf[64];
+      char name[64];
+      HostDetails *host_info = new (std::nothrow) HostDetails(
+                                                      h->get_ip()->print(ip_buf, sizeof(ip_buf)),
+                                                      h->getMac()->print(mac_buf, sizeof(mac_buf)),
+                                                      (char*)h->getMac()->get_manufacturer(),
+                                                      h->getNumBytesUDPSent() + h->getNumBytesUDPRcvd(),
+                                                      h->get_ip()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
+                                                      h->get_vlan_id(),
+                                                      h->getScore(),
+                                                      h->getNumIncomingFlows(),
+                                                      h->get_name(name, sizeof(name), false),
+                                                      host_key);
+
+      if(host_info) {
+        host_info->set_port(port_found);
+        host_details->insert({host_key, host_info});
+      }
+
+    }
+  
+  }
+  
+  *matched = true;
+
+  return (false);
+}
+
+
+/* **************************************************** */
+
+void NetworkInterface::getHostsByService(lua_State *vm) {
+  int l7_proto;
+  u_int32_t protocol = 0;
+  u_int32_t begin_slot = 0;
+
+
+  HostsPortsAnalysis count;
+
+  if (lua_type(vm, 2) == LUA_TNUMBER) {
+    l7_proto = (u_int32_t)lua_tonumber(vm, 2);
+    count.set_l7_proto(l7_proto);
+  }
+
+  if (lua_type(vm,3) == LUA_TNUMBER) {
+    protocol = (u_int32_t)lua_tonumber(vm, 3);
+  }
+  
+
+  if(protocol == 6)
+    walker(&begin_slot, true, walker_hosts,
+            get_hosts_by_tcp_service, &count);
+  else
+    walker(&begin_slot, true , walker_hosts,
+            get_hosts_by_udp_service, &count);
+
+  sort_hosts_details(vm, &count, protocol, true);
+
+}
+
+/* **************************************************** */
 
 void NetworkInterface::sort_hosts_details(lua_State *vm, 
                           HostsPortsAnalysis *count,
-                          u_int16_t protocol) {
+                          u_int16_t protocol,
+                          bool get_port) {
 
   std::vector<HostDetails *> vector;
   char *sortColumn = NULL, *sortOrder = NULL;
@@ -12157,12 +12328,16 @@ void NetworkInterface::sort_hosts_details(lua_State *vm,
         lua_push_uint64_table_entry(vm, "tot_traffic", (u_int64_t)hd->get_total_traffic());
         lua_push_uint32_table_entry(vm, "num_entries", vector_size);
 
+        if (get_port) {
+          lua_push_uint32_table_entry(vm, "port", (u_int64_t)hd->get_port());
+        }
+
         lua_pushinteger(vm, num++);
         lua_insert(vm, -2);
         lua_settable(vm, -3);
       }
 
-      if (num >= max_num_rows) break;
+      if ( !get_port && num >= max_num_rows ) break;
     }
   } else {
     lua_newtable(vm);

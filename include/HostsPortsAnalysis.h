@@ -28,6 +28,7 @@ class HostsPortsAnalysis {
 
     private:
         u_int16_t port;
+        int l7_protocol_id;
         std::unordered_map<u_int64_t, HostDetails *> *hosts_details;
     
     public:
@@ -46,10 +47,12 @@ class HostsPortsAnalysis {
         /* Getters */
         inline u_int16_t get_port() { return(port); };
         inline std::unordered_map<u_int64_t, HostDetails *>* get_hosts_details() { return(hosts_details); };
-
+        inline int get_l7_proto() { return(l7_protocol_id); };
+        
         /* Setters */
         void add_host_details(HostDetails *host_details);
         inline void set_port(u_int16_t _port) { port = _port; };
+        inline void set_l7_proto(int l7_proto) { l7_protocol_id = l7_proto; };
 
 };
 
