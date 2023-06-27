@@ -64,7 +64,8 @@ if (page == "live" or page == nil) then
         order = order,
         start = start,
         length = length,
-        is_live = true
+        is_live = true,
+        csrf = ntop.getRandomCSRFValue()
     })
 else
     local page_utils = require("page_utils")

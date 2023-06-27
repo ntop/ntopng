@@ -102,7 +102,7 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
-  flow_score = 0, rtp_stream_type = rtp_unknown;
+  flow_score = 0, rtp_stream_type = ndpi_multimedia_unknown_flow;
 
   cli_ip_addr = srv_ip_addr = NULL;
   cli_host = srv_host = NULL;
@@ -895,17 +895,17 @@ void Flow::processExtraDissectedInformation() {
   /* Read this data before freeing nDPI */
   if(get_ndpi_flow()
      && (ndpi_get_upper_proto(get_detected_protocol()) == NDPI_PROTOCOL_SKYPE_TEAMS_CALL)) {
-    switch(get_ndpi_flow()->flow_type) {
+    switch(get_ndpi_flow()->flow_multimedia_type) {
     case ndpi_multimedia_audio_flow:
-      setRTPStreamType(rtp_audio);
+      setRTPStreamType(ndpi_multimedia_audio_flow);
       break;
 
     case ndpi_multimedia_video_flow:
-      setRTPStreamType(rtp_video);
+      setRTPStreamType(ndpi_multimedia_video_flow);
       break;
 
     case ndpi_multimedia_screen_sharing_flow:
-      setRTPStreamType(rtp_screen_share);
+      setRTPStreamType(ndpi_multimedia_screen_sharing_flow);
       break;
 
     default:
@@ -2877,22 +2877,18 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     lua_push_int32_table_entry(vm, "flow_verdict", flow_verdict);
     lua_push_bool_table_entry(vm, "periodic_flow",
                               is_periodic_flow ? true : false);
-
-    if (rtp_stream_type != rtp_unknown) {
+    
+    if (rtp_stream_type != ndpi_multimedia_unknown_flow) {
       switch (rtp_stream_type) {
-        case rtp_audio:
+        case ndpi_multimedia_audio_flow:
           lua_push_str_table_entry(vm, "rtp_stream_type", "audio");
           break;
 
-        case rtp_video:
+        case ndpi_multimedia_video_flow:
           lua_push_str_table_entry(vm, "rtp_stream_type", "video");
           break;
 
-        case rtp_audio_video:
-          lua_push_str_table_entry(vm, "rtp_stream_type", "audio_video");
-          break;
-
-        case rtp_screen_share:
+        case ndpi_multimedia_screen_sharing_flow:
           lua_push_str_table_entry(vm, "rtp_stream_type", "screen_share");
           break;
 

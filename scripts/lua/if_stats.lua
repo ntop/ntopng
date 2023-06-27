@@ -696,12 +696,15 @@ end
           var content = "";
           content += "# Set the capture interface name\n";
           content += "-i=INTERFACE_NAME\n";
+          content += "\n";
           content += "# Set the ntopng address properly\n";
-          content += "--zmq=]] print(zmq_endpoint) print [[\n";
+          content += "--ntopng=]] print(zmq_endpoint) print [[\n";
           content += "--zmq-publish-events=]] print(prefs.zmq_publish_events_url) print [[\n";
           content += "--zmq-probe-mode\n";
           content += "--zmq-encryption-key=']] print(ifstats.encryption.public_key) print [['\n";
+          content += "\n";
           content += "# Add more options here...\n";
+          content += "\n";
           var element = document.createElement('a');
           element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
           element.setAttribute('download', filename);

@@ -36,28 +36,27 @@
                         </div>
                     </div>
                     <div>
-                        <Table ref="table_hosts_ports_analysis" id="table_hosts_ports_analysis" :key="table_config.columns"
-                            :columns="table_config.columns" :get_rows="table_config.get_rows"
-                            :get_column_id="(col) => table_config.get_column_id(col)"
-                            :print_column_name="(col) => table_config.print_column_name(col)"
-                            :print_html_row="(col, row) => table_config.print_html_row(col, row)"
-                            :f_is_column_sortable="is_column_sortable" :f_get_column_classes="get_column_classes"
-                            :enable_search="true" :paging="true">
+                        <TableWithConfig ref="table_server_ports_analysis" :csrf="csrf" :table_id="table_id"
+                            :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
+                            @custom_event="on_table_custom_event">
                             <template v-slot:custom_header>
 
-                            <Dropdown v-for="(t, t_index) in filter_table_array" :f_on_open="get_open_filter_table_dropdown(t, t_index)"
-                            :ref="el => { filter_table_dropdown_array[t_index] = el }" :hidden="t.hidden"> <!-- Dropdown columns -->
-                            <template v-slot:title>
-                                <Spinner :show="t.show_spinner" size="1rem" class="me-1" ></Spinner>
-                                    <a class="ntopng-truncate" :title="t.title">{{ t.label }}</a>
-                            </template>
-                            <template v-slot:menu>
-                                <a v-for="opt in t.options" style="cursor:pointer;" @click="add_table_filter(opt, $event)"
-                                class="ntopng-truncate tag-filter" :title="opt.value">{{ opt.label }}</a>
-                            </template>
-                            </Dropdown>
+                                <Dropdown v-for="(t, t_index) in filter_table_array"
+                                    :f_on_open="get_open_filter_table_dropdown(t, t_index)"
+                                    :ref="el => { filter_table_dropdown_array[t_index] = el }" :hidden="t.hidden">
+                                    <!-- Dropdown columns -->
+                                    <template v-slot:title>
+                                        <Spinner :show="t.show_spinner" size="1rem" class="me-1"></Spinner>
+                                        <a class="ntopng-truncate" :title="t.title">{{ t.label }}</a>
+                                    </template>
+                                    <template v-slot:menu>
+                                        <a v-for="opt in t.options" style="cursor:pointer;"
+                                            @click="add_table_filter(opt, $event)" class="ntopng-truncate tag-filter"
+                                            :title="opt.value">{{ opt.label }}</a>
+                                    </template>
+                                </Dropdown>
                             </template> <!-- Dropdown filters -->
-                        </Table>
+                        </TableWithConfig>
                     </div>
                 </div>
             </div>
@@ -69,7 +68,9 @@
 import { ref, onMounted, nextTick } from "vue";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import NtopUtils from "../utilities/ntop-utils";
-import { default as Table } from "./table.vue";
+import { default as Spinner } from "./spinner.vue";
+
+import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as Dropdown } from "./dropdown.vue";
 
 import { default as SelectSearch } from "./select-search.vue";
@@ -78,6 +79,7 @@ const filter_table_dropdown_array = ref([])
 
 const props = defineProps({
     is_ntop_enterprise_m: Boolean,
+    csrf: String,
     vlans: Array,
     ifid: Number,
     aggregation_criteria: String,
@@ -88,26 +90,28 @@ const props = defineProps({
     length: Number,
     host: String,
 });
-
+const context = ref({
+    csrf: props.csrf,
+    ifid: props.ifid
+})
 const _i18n = (t) => i18n(t);
 
+/* L4 Protocol List */
 const criteria_list_def = [
     { label: _i18n("udp"), value: 17, param: "udp", table_id: "udp_ports_analysis", enterprise_m: false },
     { label: _i18n("tcp"), value: 6, param: "client", table_id: "tcp_ports_analysis", enterprise_m: false },
 ];
 
-const loading = ref(null)
-const table_aggregated_live_flows = ref(null);
 
+/* Consts */
 const selected_criteria = ref(criteria_list_def[0]);
-const table_config = ref({})
+const table_id = ref('server_ports_analysis');
 const selected_port = ref({});
 const selected_application = ref({});
-const table_hosts_ports_analysis = ref();
+const table_server_ports_analysis = ref();
 
 let port_list = ref([]);
 let application_list = ref([]);
-let counter = 0;
 
 const criteria_list = function () {
     if (props.is_ntop_enterprise_m) {
@@ -131,8 +135,8 @@ onMounted(async () => {
 
     if (port != null && port.localeCompare("") != 0 &&
         l4_proto != null && l4_proto.localeCompare("") != 0 &&
-        app != null && app.localeCompare("") != 0 ) {
-            
+        app != null && app.localeCompare("") != 0) {
+
         port = Number(port);
         l4_proto = Number(l4_proto);
         criteria_list_def.forEach((proto) => {
@@ -140,7 +144,7 @@ onMounted(async () => {
                 selected_criteria.value = proto;
             }
         })
-        
+
         await update_dropdown_menus(false, app, port);
 
     } else {
@@ -148,27 +152,31 @@ onMounted(async () => {
         await update_dropdown_menus(false);
     }
 
-
-    load_table();
 });
 
-const get_column_classes = (col) => {
-    return col.className;
-}
 
-async function update_criteria() {
-    await update_dropdown_menus(false);
-    load_table();
+const get_extra_params_obj = () => {
+    let extra_params = ntopng_url_manager.get_url_object();
+    return extra_params;
 };
 
+/* Function to update L4 Protocol */
+async function update_criteria() {
+    await update_dropdown_menus(false);
+    table_server_ports_analysis.value.refresh_table();
+
+};
+
+/* Function to update Application */
 async function update_port_list() {
     await update_dropdown_menus(true)
-    load_table();
+    table_server_ports_analysis.value.refresh_table();
 }
 
+/* Function to update port */
 function update_port() {
     set_port_in_url();
-    load_table();
+    table_server_ports_analysis.value.refresh_table();
 }
 
 function set_port_in_url() {
@@ -176,69 +184,97 @@ function set_port_in_url() {
 }
 
 
+/* Function to load filters (Just VLANs) */
 async function load_table_filters_array(action, filter) {
-  const url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port_filters.lua?action=${action}`;
-  let res = await ntopng_utility.http_request(url);
+    const url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port_filters.lua?action=${action}`;
+    let res = await ntopng_utility.http_request(url);
 
-  return res.map((t) => {
-    return {
-        id: t.action || t.name,
-        label: t.label,	    
-        title: t.tooltip,
-        data_loaded: action != 'overview',
-        options: t.value,
-        hidden: (t.value.length == 1)
-    };
-  });
+    return res.map((t) => {
+        return {
+            id: t.action || t.name,
+            label: t.label,
+            title: t.tooltip,
+            data_loaded: action != 'overview',
+            options: t.value,
+            hidden: (t.value.length == 1)
+        };
+    });
 }
 
 const get_open_filter_table_dropdown = (filter, filter_index) => {
-  return (_) => {
-	  load_table_filters(filter, filter_index);
-  };
+    return (_) => {
+        load_table_filters(filter, filter_index);
+    };
 };
 
 async function load_table_filters(filter, filter_index) {
-  await nextTick();
-  if (filter.data_loaded == false) {
-    let new_filter_array = await load_table_filters_array(filter.id, filter);
-    filter.options = new_filter_array.find((t) => t.id == filter.id).options;
     await nextTick();
-    let dropdown = filter_table_dropdown_array.value[filter_index];
-    dropdown.load_menu();
-  }
+    if (filter.data_loaded == false) {
+        let new_filter_array = await load_table_filters_array(filter.id, filter);
+        filter.options = new_filter_array.find((t) => t.id == filter.id).options;
+        await nextTick();
+        let dropdown = filter_table_dropdown_array.value[filter_index];
+        dropdown.load_menu();
+    }
 }
 
 async function load_table_filters_overview(action) {
-  filter_table_array.value = await load_table_filters_array("overview");
-  set_filter_array_label();
+    filter_table_array.value = await load_table_filters_array("overview");
+    set_filter_array_label();
 }
 
-function set_filter_array_label() {
-  filter_table_array.value.forEach((el, index) => {
-    if(el.basic_label == null) {
-      el.basic_label = el.label;
+/* Function to handle actions entries */
+function on_table_custom_event(event) {
+    let events_managed = {
+        "click_button_flows": click_button_flows,
+    };
+    if (events_managed[event.event_id] == null) {
+        return;
     }
+    events_managed[event.event_id](event);
+}
 
-    const url_entry = ntopng_url_manager.get_url_entry(el.id)
-    if(url_entry != null) {
-      el.options.forEach((option) => {
-        if(option.value.toString() === url_entry) {
-          el.label = `${el.basic_label}: ${option.label || option.value}`
+function click_button_flows(event) {
+    live_flows(event.row.ip);
+}
+
+const live_flows = function (data) {
+
+    let params = {
+        l4proto: selected_criteria.value.value,
+        server: data,
+        port: selected_port.value.id
+    };
+    let url_params = ntopng_url_manager.obj_to_url_params(params);
+    const url = `${http_prefix}/lua/flows_stats.lua?${url_params}`;
+    return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
+};
+
+function set_filter_array_label() {
+    filter_table_array.value.forEach((el, index) => {
+        if (el.basic_label == null) {
+            el.basic_label = el.label;
         }
-      })
-    }
-  })
+
+        const url_entry = ntopng_url_manager.get_url_entry(el.id)
+        if (url_entry != null) {
+            el.options.forEach((option) => {
+                if (option.value.toString() === url_entry) {
+                    el.label = `${el.basic_label}: ${option.label || option.value}`
+                }
+            })
+        }
+    })
 }
 
 function add_table_filter(opt, event) {
-  event.stopPropagation();
-	ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
-  set_filter_array_label();
-  table_hosts_ports_analysis.value.refresh_table();
+    event.stopPropagation();
+    ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
+    set_filter_array_label();
+    table_server_ports_analysis.value.refresh_table();
 }
 
-
+/* Function to update dropdown menus */
 async function update_dropdown_menus(is_application_selected, app, port) {
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
     const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=` + selected_criteria.value.value;
@@ -258,22 +294,22 @@ async function update_dropdown_menus(is_application_selected, app, port) {
         }
     })
 
-    application_list.value.sort((a, b) =>   {
+    application_list.value.sort((a, b) => {
         let x = a.label.toLowerCase();
         let y = b.label.toLowerCase();
 
-        if (x < y) {return -1;}
-        if (x > y) {return 1;}
+        if (x < y) { return -1; }
+        if (x > y) { return 1; }
         return 0;
     })
 
     if (!is_application_selected && app == null)
         selected_application.value = application_list.value[0];
 
-    if (!is_application_selected && app != null ) {
+    if (!is_application_selected && app != null) {
         application_list.value.forEach((item) => {
-            if(item.label == app) {
-                selected_application.value =  item;
+            if (item.label == app) {
+                selected_application.value = item;
             }
         })
     }
@@ -297,160 +333,39 @@ async function update_dropdown_menus(is_application_selected, app, port) {
     set_port_in_url();
 }
 
-function load_table() {
-    table_config.value = {
-        columns: get_table_columns_config(),
-        get_rows: get_rows,
-        get_column_id: get_column_id,
-        print_column_name: print_column_name,
-        print_html_row: print_html_row,
-        paging: true,
-    };
-}
-
-function get_column_id(col) {
-    return col.data;
-}
-
-function print_column_name(col) {
-    if (col.columnName == null || col.columnName == "") {
-        return "";
-    }
-    return col.columnName;
-}
-
-function print_html_row(col, row) {
-    counter += 1;
-    let data = row[col.data];
-    if (col.render != null) {
-        return col.render(data, null, row);
-    }
-    return data;
-}
-
-const get_rows = async (active_page, per_page, columns_wrap, map_search, first_get_rows) => {
-    let params = get_url_params(active_page, per_page, columns_wrap, map_search, first_get_rows);
-    set_params_in_url(params);
-    const url_params = ntopng_url_manager.obj_to_url_params(params);
-    ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
-    let url = "";
-    let res = "";
-
-    if (selected_port.value != null &&
-        selected_port.value.id != null) {
-        ntopng_url_manager.set_key_to_url("port", selected_port.value.id);
-        url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port.lua?${url_params}&protocol=` + selected_criteria.value.value + `&port=` + selected_port.value.id;
-
-    } else {
-        url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port.lua?${url_params}&protocol=` + selected_criteria.value.value;
-    }
-    res = await ntopng_utility.http_request(url, null, null, true);
-
-    return { total_rows: res.recordsTotal, rows: res.rsp };
-};
-
-function set_params_in_url(params) {
-    ntopng_url_manager.add_obj_to_url(params);
-}
-
-function get_url_params(active_page, per_page, columns_wrap, map_search, first_get_rows) {
-    let sort_column = columns_wrap.find((c) => c.sort != 0);
-
-    let actual_params = {
-        ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid,
-        vlan_id: ntopng_url_manager.get_url_entry("vlan_id") || '-1' /* No filter by default */,
-        aggregation_criteria: ntopng_url_manager.get_url_entry("aggregation_criteria") || selected_criteria.value.param,
-        page: ntopng_url_manager.get_url_entry("page") || props.page,
-        sort: ntopng_url_manager.get_url_entry("sort") || props.sort,
-        order: ntopng_url_manager.get_url_entry("order") || props.order,
-        host: ntopng_url_manager.get_url_entry("host") || props.host,
-        start: (active_page * per_page),
-        length: per_page,
-        map_search,
-    };
-    if (first_get_rows == false) {
-        if (sort_column != null) {
-            actual_params.sort = sort_column.data.data;
-            actual_params.order = sort_column.sort == 1 ? "asc" : "desc";
+/* Function to format data */
+const map_table_def_columns = async (columns) => {
+    let map_columns = {
+        "ip": (ip, row) => {
+            if (ip !== undefined) {
+                return format_ip(ip, row);
+            }
+        },
+        "name": (name, row) => {
+            if (name !== undefined) {
+                return format_host_name(name, row);
+            }
+        },
+        "mac": (mac, row) => {
+            if (mac !== undefined) {
+                return format_mac(mac, row);
+            }
+        },
+        "tot_traffic": (tot_traffic, row) => {
+            if (tot_traffic !== undefined) {
+                return NtopUtils.bytesToSize(tot_traffic);
+            }
         }
     }
 
-    return actual_params;
-}
-
-const is_column_sortable = (col) => {
-    return col.data != "breakdown" && col.name != 'flows_icon';
-};
-const live_flows = function (data, rowData) {
-    
-    let params = {
-        l4proto: selected_criteria.value.value, 
-        server: data,
-        port: selected_port.value.id
-    };
-    let url_params = ntopng_url_manager.obj_to_url_params(params);
-    const url = `${http_prefix}/lua/flows_stats.lua?${url_params}`;
-    return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
-};
-/// methods to get columns config
-function get_table_columns_config() {
-    let columns = [];
-    
-
-    columns.push(
-        { 
-            columnName: _i18n("flows_page.live_flows"),targets:0, data: 'ip' , name: 'actions', className: 'text-center', orderable: false, responsivePriority: 1, render: function (data, type, rowData) { return live_flows(data,rowData) } 
-        },    
-        {
-        columnName: i18n("prefs.ip_order"), targets: 0, name: 'ip', data: 'ip', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
-            return format_ip(data, rowData);
-        }
-        },
-        {
-            columnName: i18n("db_explorer.host_name"), targets: 0, name: 'name', data: 'name', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
-                return format_host_name(data, rowData);
-            }
-        },
-        {
-            columnName: i18n("mac_details.mac"), targets: 0, name: 'mac', data: 'mac', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
-                return format_mac(data, rowData);
-            }
-        },
-        {
-            columnName: i18n("mac_stats.manufacturer"), targets: 0, name: 'mac_manufacturer', data: 'mac_manufacturer', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
-                return data;
-            }
-        },
-        {
-            columnName: i18n("total_score_host_page"), targets: 0, name: 'score', data: 'score', className: 'text-nowrap text-center', responsivePriority: 1
-        },
-        {
-            columnName: i18n("db_explorer.total_flows"), targets: 0, name: 'flows', data: 'flows', className: 'text-nowrap text-end', responsivePriority: 1
-        },
-        {
-            columnName: i18n("total_traffic"), targets: 0, name: 'tot_traffic', data: 'tot_traffic', className: 'text-nowrap text-end', responsivePriority: 1, render: (data) => {
-                return NtopUtils.bytesToSize(data);
-            }
-        },
-    );
-
-
+    columns.forEach((c) => {
+        c.render_func = map_columns[c.data_field];
+    });
+    // console.log(columns);
     return columns;
-}
+};
 
-
-
-
-const open_live_flows = function(rowData) {
-    const params = {
-        protocol: selected_criteria.value.value,
-        //srv_ip = rowData.
-    }
-    ntopng_url_manager.go_to_url(url);
-
-}
-
-
+/* Function to format IP label */
 const format_ip = function (data, rowData) {
     if (data != null) {
         if (rowData.vlan_id != 0)
@@ -462,12 +377,14 @@ const format_ip = function (data, rowData) {
 
 }
 
+/* Function to format MAC Address label */
 const format_mac = function (data, rowData) {
     if (data != null)
         return `<a href="${http_prefix}/lua/mac_details.lua?host=${data}">${data}</a>`;
     return data;
 }
 
+/* Function to format Host Name label */
 const format_host_name = function (data, rowData) {
     if (data != null) {
         if (rowData.vlan_id != 0)
@@ -477,6 +394,5 @@ const format_host_name = function (data, rowData) {
     }
     return data;
 }
-
 
 </script>
