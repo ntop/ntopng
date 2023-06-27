@@ -1,6 +1,6 @@
 {
-	"name" : "Top Servers",
-	"i18n_name" : "top_servers",
+	"name" : "Servers",
+	"i18n_name" : "servers",
 	"data_source" : "flows",
 	"show_in_page" : "overview",
 	"visualization_type" : "table",

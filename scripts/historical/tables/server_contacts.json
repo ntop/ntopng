@@ -1,7 +1,8 @@
 {
-	"name" : "Top Clients",
-	"i18n_name" : "top_clients",
+	"name" : "Server Contacts",
+	"i18n_name" : "server_contacts",
 	"data_source" : "flows",
+	"chart" : [],
 	"show_in_page" : "overview",
 	"hourly": true,
 	"visualization_type" : "table",
@@ -14,7 +15,25 @@
 				"name" : "IPV4_SRC_ADDR"
 			},
 			{
+				"name" : "IPV4_DST_ADDR"
+			},
+			{
 				"name" : "IPV6_SRC_ADDR"
+			},
+			{
+				"name" : "IPV6_DST_ADDR"
+			},
+			{
+				"name" : "PROTOCOL"
+			},
+			{
+				"name" : "IP_DST_PORT"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
 			},
 			{
 				"name" : "total_bytes",
@@ -27,13 +46,16 @@
 	"filters" : {
 		"items" : [
 			{
-				"name": "PROBE_IP"
+				"name": "IPV4_SRC_ADDR"
 			},
 			{
-				"name": "INPUT_SNMP"
+				"name": "IPV4_DST_ADDR"
 			},
 			{
-				"name": "OUTPUT_SNMP"
+				"name" : "IPV6_SRC_ADDR"
+			},
+			{
+				"name" : "IPV6_DST_ADDR"
 			}
 		]
 	},
@@ -46,14 +68,26 @@
 				"name" : "IPV4_SRC_ADDR"
 			},
 			{
+				"name" : "IPV4_DST_ADDR"
+			},
+			{
 				"name" : "IPV6_SRC_ADDR"
+			},
+			{
+				"name" : "IPV6_DST_ADDR"
+			},
+			{
+				"name" : "PROTOCOL"
+			},
+			{
+				"name" : "IP_DST_PORT"
 			}
 		]
 	},
 	"sortby" : {
 		"items" : [
 			{
-				"name" : "total_bytes",
+				"name" : "count",
 				"order" : "DESC"
 			}
 		]

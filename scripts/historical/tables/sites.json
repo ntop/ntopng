@@ -1,5 +1,5 @@
 {
-	"name" : "Top Sites",
+	"name" : "Visited Sites",
 	"i18n_name" : "top_sites",
 	"data_source" : "flows",
 	"show_in_page" : "overview",

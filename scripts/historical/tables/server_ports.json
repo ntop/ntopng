@@ -1,14 +1,17 @@
 {
-	"name" : "Top Alerted Domains",
-	"i18n_name" : "top_alerted_domains",
+	"name" : "Server Ports",
+	"i18n_name" : "server_ports",
 	"data_source" : "flows",
-	"show_in_page" : "overview",
-	"hourly": false,
+    "show_in_page" : "overview",
 	"visualization_type" : "table",
+	"hourly": true,
 	"select" : {
 		"items" : [
 			{
-				"name" : "INFO"
+				"name" : "IP_DST_PORT"
+			},
+			{
+				"name" : "PROTOCOL"
 			},
 			{
 				"name" : "count",
@@ -21,25 +24,30 @@
 	"filters" : {
 		"items" : [
 			{
-				"name": "STATUS",
-				"op": "neq",
+				"name": "IP_DST_PORT",
+				"op": "gt",
 				"value": 0,
 				"value_type": "number",
 				"input": "fixed"
 			},
 			{
-				"name": "INFO",
-				"op": "neq",
-				"value": "",
-				"value_type": "string",
-				"input": "fixed"
+				"name": "PROBE_IP"
+			},
+			{
+				"name": "INPUT_SNMP"
+			},
+			{
+				"name": "OUTPUT_SNMP"
 			}
 		]
 	},
 	"groupby" : {
 		"items" : [
 			{
-				"name" : "INFO"
+				"name" : "IP_DST_PORT"
+			},
+			{
+				"name" : "PROTOCOL"
 			}
 		]
 	},
