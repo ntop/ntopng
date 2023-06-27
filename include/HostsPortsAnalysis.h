@@ -56,7 +56,6 @@ class HostsPortsAnalysis {
         inline void set_port(u_int16_t _port) { port = _port; };
         inline void set_l7_proto(int l7_proto) { l7_protocol_id = l7_proto; };
         inline void set_l4_proto(u_int32_t l4_proto) { l4_protocol_id = l4_proto; };
-
 };
 
 #endif /* _HOSTS_PORTS_ANALYSIS_H_ */

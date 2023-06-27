@@ -5,7 +5,6 @@
 <template>
   <div class="row">
     <div class="col-md-12 col-lg-12">
-      <h2 class="ms-3">{{ title }}</h2>
       <div class="card  card-shadow">
         <div class="card-body">
           <TabList ref="inactive_hosts_tab_list" id="inactive_hosts_tab_list" :tab_list="tab_list"

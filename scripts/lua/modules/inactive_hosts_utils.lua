@@ -27,7 +27,7 @@ function inactive_hosts_utils.getInactiveHosts(ifid, filters)
             local host_info = json.decode(host_info_json)
             local mac_manufacturer = ntop.getMacManufacturer(host_info.mac) or {}
 
-            for filter, value in pairs(filters) do
+            for filter, value in pairs(filters or {}) do
                 if filter == "manufacturer" then
                     if mac_manufacturer.short ~= value then
                         goto skip
@@ -296,10 +296,12 @@ function inactive_hosts_utils.getManufacturerFilters(ifid, filters)
                 end
             end
 
-            if not (manufacturer_list[tmp]) then
-                manufacturer_list[tmp] = 1
-            else
-                manufacturer_list[tmp] = manufacturer_list[tmp] + 1
+            if tmp then
+                if not (manufacturer_list[tmp]) then
+                    manufacturer_list[tmp] = 1
+                else
+                    manufacturer_list[tmp] = manufacturer_list[tmp] + 1
+                end
             end
 
             ::skip::
@@ -534,7 +536,7 @@ function inactive_hosts_utils.getInactiveHostsEpochDistribution(ifid, filters)
             local last_seen = host_info.last_seen
             local mac_manufacturer = ntop.getMacManufacturer(host_info.mac) or {}
 
-            for filter, value in pairs(filters) do
+            for filter, value in pairs(filters or {}) do
                 if filter == "manufacturer" then
                     if mac_manufacturer.short ~= value then
                         goto skip

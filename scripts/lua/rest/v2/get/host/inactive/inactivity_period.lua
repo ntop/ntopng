@@ -33,24 +33,29 @@ local rsp = {
   }
 }
 
-rsp["series"] = {
-  inactive_hosts_distribution.last_hour,
-  inactive_hosts_distribution.last_day,
-  inactive_hosts_distribution.last_week,
-  inactive_hosts_distribution.older
-}
-rsp["labels"] = {
-  i18n("show_alerts.last_hour"),
-  i18n("show_alerts.last_day"),
-  i18n("show_alerts.last_week"),
-  i18n("show_alerts.older_then_a_week")
-}
-rsp["colors"] = {
-  graph_utils.get_html_color(1),
-  graph_utils.get_html_color(2),
-  graph_utils.get_html_color(3),
-  graph_utils.get_html_color(4)
-}
+if (inactive_hosts_distribution.last_hour 
+    + inactive_hosts_distribution.last_day
+    + inactive_hosts_distribution.last_week
+    + inactive_hosts_distribution.older > 0) then
+  rsp["series"] = {
+    inactive_hosts_distribution.last_hour,
+    inactive_hosts_distribution.last_day,
+    inactive_hosts_distribution.last_week,
+    inactive_hosts_distribution.older
+  }
+  rsp["labels"] = {
+    i18n("show_alerts.last_hour"),
+    i18n("show_alerts.last_day"),
+    i18n("show_alerts.last_week"),
+    i18n("show_alerts.older_then_a_week")
+  }
+  rsp["colors"] = {
+    graph_utils.get_html_color(1),
+    graph_utils.get_html_color(2),
+    graph_utils.get_html_color(3),
+    graph_utils.get_html_color(4)
+  }
+end
 
 -- ##################################
 
