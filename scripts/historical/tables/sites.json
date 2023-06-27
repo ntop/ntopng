@@ -14,7 +14,7 @@
 				"name" : "Volume",
 				"func" : "SUM",
 				"param" : "TOTAL_BYTES",
-				"value_type" : "number"
+				"value_type" : "bytes"
 			},
 			{
 				"name" : "Hits",
