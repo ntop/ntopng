@@ -394,6 +394,31 @@ tag_utils.defined_tags = {
         i18n_label = i18n('db_search.tags.user_agent'),
         operators = {'eq', 'neq', 'in', 'nin'}
     },
+    netbios_name = {
+        value_type = 'netbios_name',
+        i18n_label = i18n('db_search.tags.netbios_name'),
+        operators = {'eq', 'neq', 'in', 'nin'}
+    },
+    mdns_answer = {
+        value_type = 'mdns_answer',
+        i18n_label = i18n('db_search.tags.mdns_answer'),
+        operators = {'eq', 'neq', 'in', 'nin'}
+    },
+    mdns_name = {
+        value_type = 'mdns_name',
+        i18n_label = i18n('db_search.tags.mdns_name'),
+        operators = {'eq', 'neq', 'in', 'nin'}
+    },
+    mdns_name_txt = {
+        value_type = 'mdns_name_txt',
+        i18n_label = i18n('db_search.tags.mdns_name_txt'),
+        operators = {'eq', 'neq', 'in', 'nin'}
+    },
+    mdns_ssid = {
+        value_type = 'mdns_ssid',
+        i18n_label = i18n('db_search.tags.mdns_ssid'),
+        operators = {'eq', 'neq', 'in', 'nin'}
+    },
     alert_domain = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.dga_domain_name'),
