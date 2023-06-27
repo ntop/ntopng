@@ -5,6 +5,7 @@ import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_g
 import NtopUtils from "./ntop-utils.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
 import { default as Dropdown } from "../vue//dropdown.vue";
+import FormatterUtils from "./formatter-utils.js";
 
 const _i18n = (t) => i18n(t);
 
@@ -97,7 +98,14 @@ function get_f_print_html_row(table_def) {
 	    return col.render_func(data, row);
 	}
 	if (col.render_type != null) {
-            return DataTableRenders[col.render_type](data, 'display', row, col.zero_is_null);
+	    if (FormatterUtils.types[col.render_type] != null) {
+		col.render_func = FormatterUtils.getFormatter(col.render_type);
+		return col.render_func(data);
+	    } else if (DataTableRenders[col.render_type] != null) {
+		return DataTableRenders[col.render_type](data, 'display', row, col.zero_is_null);
+	    } else {
+		throw `In column ${col.data_field} render_type: ${col.render_type} not found`;
+	    }
 	}
 	return data;
     };
