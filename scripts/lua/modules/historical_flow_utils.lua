@@ -1057,6 +1057,7 @@ historical_flow_utils.min_db_columns = {
    "IPV6_DST_ADDR",
    "IP_SRC_PORT",
    "IP_DST_PORT",
+   "PROTOCOL",
    "PROBE_IP",
    "SRC_LABEL",
    "DST_LABEL",
