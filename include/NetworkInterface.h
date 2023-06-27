@@ -1369,16 +1369,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   static bool get_tcp_host_ports(GenericHashEntry *node, 
                                               void *user_data, 
                                               bool *matched);
-  static bool get_tcp_hosts_by_port(GenericHashEntry *node, 
+  static bool get_hosts_by_port(GenericHashEntry *node, 
                                               void *user_data, 
                                               bool *matched);
-  static bool get_udp_hosts_by_port(GenericHashEntry *node, 
-                                              void *user_data, 
-                                              bool *matched);
-  static bool get_hosts_by_udp_service(GenericHashEntry *node, 
-                                              void *user_data, 
-                                              bool *matched);
-  static bool get_hosts_by_tcp_service(GenericHashEntry *node, 
+  static bool get_hosts_by_service(GenericHashEntry *node, 
                                               void *user_data, 
                                               bool *matched);
                                             
