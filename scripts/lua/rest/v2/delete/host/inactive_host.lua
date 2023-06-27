@@ -31,14 +31,16 @@ if isEmptyString(ifid) or isEmptyString(serial_key) then
    return
 end
 
+local num_hosts_deleted = 0
+
 if tonumber(serial_key) then
    local epoch = os.time() - tonumber(serial_key)
-   inactive_hosts_utils.deleteAllEntriesSince(ifid, epoch)
+   num_hosts_deleted = inactive_hosts_utils.deleteAllEntriesSince(ifid, epoch)
 elseif (serial_key == "all") then
-   inactive_hosts_utils.deleteAllEntries(ifid)
+   num_hosts_deleted = inactive_hosts_utils.deleteAllEntries(ifid)
 else
-   inactive_hosts_utils.deleteSingleEntry(ifid, serial_key)
+   num_hosts_deleted = inactive_hosts_utils.deleteSingleEntry(ifid, serial_key)
 end
 
-rest_utils.answer(rc)
+rest_utils.answer(rc, {deleted_hosts = num_hosts_deleted})
 

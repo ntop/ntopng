@@ -5,9 +5,11 @@
       {{ _i18n("delete_inactive_host_title") }}
     </template>
     <template v-slot:body>
-    {{ message }}
+      {{ message }}
+      <div v-if="show_return_msg" class="text-left">
+        <p class="text-sm-start fs-6 fw-medium pt-3 m-0" :class="(err) ? 'text-danger' : 'text-success'"><small>{{ return_message }}</small></p>
+      </div>
     </template><!-- modal-body -->
-
     <template v-slot:footer>
       <button type="button" @click="delete_host" class="btn btn-primary">{{ _i18n("delete") }}</button>
     </template>
@@ -22,6 +24,9 @@ import { ntopng_utility } from "../services/context/ntopng_globals_services";
 const _i18n = (t) => i18n(t);
 const modal_id = ref(null);
 const message = ref('')
+const return_message = ref('')
+const show_return_msg = ref(false)
+const err = ref(false);
 
 const emit = defineEmits(["delete_host"]);
 const row_id = ref({});
@@ -40,13 +45,25 @@ async function delete_host() {
     serial_key: row_id.value,
   };
 
-  debugger;
   let headers = {
     'Content-Type': 'application/json'
   };
-  await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
-  emit("delete_host");
-  close();
+  const res = await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) }); 
+  if(res) {
+    err.value = false;
+    show_return_msg.value = true;
+    let num_hosts_msg = ''
+    if(res.deleted_hosts > 1) {
+      num_hosts_msg = '. Number hosts deleted: ' + res.deleted_hosts
+    }
+    return_message.value = i18n('succ_del_inactive_hosts') + num_hosts_msg
+    emit("delete_host");
+    close();
+  } else {
+    err.value = true;
+    show_return_msg.value = true;
+    return_message.value = i18n('err_del_inactive_hosts')
+  }
 }
 
 
@@ -57,7 +74,9 @@ const show = (_row_id, _message) => {
 };
 
 const close = () => {
-  modal_id.value.close();
+  setTimeout(() => {
+    modal_id.value.close();
+  }, 3000 /* 3 seconds */)
 };
 
 defineExpose({ show, close });

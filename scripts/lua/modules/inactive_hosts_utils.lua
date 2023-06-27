@@ -331,10 +331,13 @@ end
 function inactive_hosts_utils.deleteAllEntries(ifid)
     local redis_hash = string.format(OFFLINE_LOCAL_HOSTS_KEY, ifid)
     local available_keys = ntop.getHashKeysCache(redis_hash) or {}
+    local num_hosts_deleted = table.len(available_keys)
 
     for redis_key, _ in pairs(available_keys) do
         ntop.delHashCache(redis_hash, redis_key)
     end
+
+    return num_hosts_deleted
 end
 
 -- ##########################################
@@ -342,19 +345,24 @@ end
 function inactive_hosts_utils.deleteAllEntriesSince(ifid, epoch)
     local redis_hash = string.format(OFFLINE_LOCAL_HOSTS_KEY, ifid)
     local available_keys = ntop.getHashKeysCache(redis_hash) or {}
+    local num_hosts_deleted = 0
 
     for redis_key, _ in pairs(available_keys) do
         local host_info_json = ntop.getHashCache(redis_hash, redis_key)
 
         if isEmptyString(host_info_json) then
             ntop.delHashCache(redis_hash, redis_key)
+            num_hosts_deleted = num_hosts_deleted + 1
         end
 
         local host_info = json.decode(host_info_json)
         if host_info.last_seen < epoch then
+            num_hosts_deleted = num_hosts_deleted + 1
             ntop.delHashCache(redis_hash, redis_key)
         end
     end
+    
+    return num_hosts_deleted
 end
 
 -- ##########################################
@@ -362,6 +370,7 @@ end
 function inactive_hosts_utils.deleteSingleEntry(ifid, redis_key)
     local redis_hash = string.format(OFFLINE_LOCAL_HOSTS_KEY, ifid)
     ntop.delHashCache(redis_hash, redis_key)
+    return 1 -- Number of hosts deleted
 end
 
 -- ##########################################

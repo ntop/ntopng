@@ -7,9 +7,12 @@
     <template v-slot:body>
       {{ _i18n("delete_since") }}
       <div class="mt-3" style="max-width: 8rem;">
-      <SelectSearch v-model:selected_option="selected_epoch" :options="epoch_list" @select_option="update_option">
-      </SelectSearch>
-    </div>
+        <SelectSearch v-model:selected_option="selected_epoch" :options="epoch_list" @select_option="update_option">
+        </SelectSearch>
+      </div>
+      <div v-if="show_return_msg" class="text-left">
+        <p class="text-sm-start fs-6 fw-medium pt-3 m-0" :class="(err) ? 'text-danger' : 'text-success'"><small>{{ return_message }}</small></p>
+      </div>
     </template><!-- modal-body -->
 
     <template v-slot:footer>
@@ -27,6 +30,9 @@ import { default as SelectSearch } from "./select-search.vue";
 const _i18n = (t) => i18n(t);
 const format = ref('csv');
 const selected_epoch = ref();
+const return_message = ref('')
+const show_return_msg = ref(false)
+const err = ref(false);
 const epoch_list = [
   { label: _i18n("show_alerts.presets.5_min"), value: 300 },
   { label: _i18n("show_alerts.presets.30_min"), value: 1800 },
@@ -64,9 +70,22 @@ async function delete_host() {
   let headers = {
     'Content-Type': 'application/json'
   };
-  await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
-  emit("delete_host");
-  close();
+  const res = await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+  if(res) {
+    err.value = false;
+    show_return_msg.value = true;
+    let num_hosts_msg = ''
+    if(res.deleted_hosts > 1) {
+      num_hosts_msg = '. Number hosts deleted: ' + res.deleted_hosts
+    }
+    return_message.value = i18n('succ_del_inactive_hosts') + num_hosts_msg
+    emit("delete_host");
+    close();
+  } else {
+    err.value = true;
+    show_return_msg.value = true;
+    return_message.value = i18n('err_del_inactive_hosts')
+  }
 }
 
 const show = () => {
@@ -74,7 +93,9 @@ const show = () => {
 };
 
 const close = () => {
-  modal_id.value.close();
+  setTimeout(() => {
+    modal_id.value.close();
+  }, 3000 /* 3 seconds */)
 };
 
 defineExpose({ show, close });
