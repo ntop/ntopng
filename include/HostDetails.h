@@ -36,6 +36,7 @@ class HostDetails {
   u_int8_t score;
   u_int32_t active_flows_as_server;
   u_int64_t host_key;
+  u_int16_t port;
     
  public:
   HostDetails(char* _ip, char* _mac_address, char* _mac_manufacturer, u_int64_t _total_traffic,
@@ -63,16 +64,20 @@ class HostDetails {
 
   /* Getters */
   inline char* get_ip()               { return(ip ? ip : (char*)""); };
-  inline char* get_ip_hex()           { return(ip_hex ? ip_hex : (char*)""); }
+  inline char* get_ip_hex()           { return(ip_hex ? ip_hex : (char*)""); };
   inline char* get_mac_address()      {  return(mac_address ? mac_address : (char*)""); };
   inline char* get_mac_manufacturer() {  return(mac_manufacturer ? mac_manufacturer : (char*)""); };  
-  inline char* get_name()             {  return(name ? name : (char*)"");   }
-  
+  inline char* get_name()             {  return(name ? name : (char*)"");   };
+
   inline u_int64_t get_total_traffic() { return(total_traffic); }; 
   inline u_int8_t  get_score() { return(score); };
   inline u_int32_t get_active_flows_as_server() { return(active_flows_as_server); };
   inline u_int16_t get_vlan_id() { return(vlan_id); };
   inline u_int64_t get_host_key() { return(host_key); };
+  inline u_int16_t get_port() { return(port); };
+
+  /* Setters */
+  inline void set_port(u_int16_t _port) { port = _port; }; 
 
 };
 

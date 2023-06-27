@@ -2122,6 +2122,21 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_get_hosts_by_service(lua_State *vm) {
+   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  lua_newtable(vm);
+
+  if (!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  ntop_interface->getHostsByService(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_radius_accounting_update(lua_State *vm) {
   bool res = false;
 
@@ -5420,6 +5435,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     { "radiusAccountingStart", ntop_radius_accounting_start },
     { "radiusAccountingStop", ntop_radius_accounting_stop },
     { "radiusAccountingUpdate", ntop_radius_accounting_update },
+    { "getHostsByService", ntop_get_hosts_by_service }, 
 
     /* Addresses */
     {"getAddressInfo", ntop_get_address_info},
