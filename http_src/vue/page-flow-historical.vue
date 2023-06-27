@@ -35,7 +35,7 @@
 	      </template>
 	      <template v-slot:extra_range_buttons>
 		<button v-if="context.show_permalink" class="btn btn-link btn-sm" @click="get_permanent_link" :title="_i18n('graphs.get_permanent_link')" ref="permanent_link_button"><i class="fas fa-lg fa-link"></i></button>
-		<a v-if="context.show_download" class="btn btn-link btn-sm" id="dt-btn-download" :title="_i18n('graphs.download_records')" ><i class="fas fa-lg fa-file"></i></a>
+		<a v-if="context.show_download" class="btn btn-link btn-sm" :title="_i18n('graphs.download_records')" :href="href_download_records"><i class="fas fa-lg fa-file"></i></a>
 		<button v-if="context.show_pcap_download" class="btn btn-link btn-sm" @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i class="fas fa-lg fa-download"></i></button>
 		<button v-if="context.is_ntop_enterprise_m" class="btn btn-link btn-sm" @click="show_modal_snapshot" :title="_i18n('datatable.manage_snapshots')"><i class="fas fa-lg fa-camera-retro"></i></button>
 	      </template>
@@ -169,6 +169,14 @@ const table_id = computed(() => {
     if (selected_query_preset.value?.value == null) { return table_config_id.value; }
     let id = `${table_config_id.value}_${selected_query_preset.value.value}`;
     return id;
+});
+
+const href_download_records = computed(() => {
+    const download_endpoint = props.context.download.endpoint;
+    let params = ntopng_url_manager.get_url_object();
+    params.format = "txt";
+    const url_params = ntopng_url_manager.obj_to_url_params(params);
+    return `${location.origin}/${download_endpoint}?${url_params}`;
 });
 
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
