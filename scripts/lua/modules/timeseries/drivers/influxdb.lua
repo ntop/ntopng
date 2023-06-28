@@ -1491,6 +1491,11 @@ function driver:timeseries_top(options, top_tags)
     local time_step = ts_common.calculateSampledTimeStep(raw_step, options.epoch_begin, options.epoch_end, options)
     local sorted = {}
     local top_series = {}
+    local id = "bytes"
+
+    if ends(options.schema, "packets") then
+        id = "packets"
+    end
 
     for idx in pairsByValues(res, rev) do
         local value = data.values[idx]
@@ -1533,12 +1538,12 @@ function driver:timeseries_top(options, top_tags)
             local snmp_cached_dev = require "snmp_cached_dev"
             local cached_device = snmp_cached_dev:create(options.tags.device)
             local ifindex = query_tag.if_index
-            local id = shortenString(snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex]), 64)
+            local ext_label = shortenString(snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex]), 64)
 
             sorted[#sorted + 1] = {
                 statistics = statistics,
-                id = "bytes",
-                ext_label = id,
+                id = id,
+                ext_label = ext_label,
                 type = "line",
                 data = total_serie
             }
