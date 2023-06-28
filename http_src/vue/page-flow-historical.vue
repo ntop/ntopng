@@ -422,7 +422,7 @@ const map_table_def_columns = async (columns) => {
         },
         "packets": (packets, row) => {
             if (packets !== undefined) {
-                return NtopUtils.formatPackets(packets);
+                return NtopUtils.formatValue(packets);
             }
             return "";
         },

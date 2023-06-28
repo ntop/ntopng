@@ -146,7 +146,7 @@ local function dt_format_info(info)
 
    return ({
       title = info,
-      label = shortenString(info, 32)
+      label = info
    })
 end
 
@@ -433,6 +433,8 @@ local function dt_format_pkts(packets)
       pkts = tonumber(packets)
    end
 
+
+   tprint(pkts)
    return pkts
 end
 
