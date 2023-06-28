@@ -32,7 +32,7 @@
       $(`.btn-primary`).click(function(){   
          let input_text = document.getElementById(`observation_point_alias`).value;
 
-         $.post(`${http_prefix}/lua/rest/v2/set/observation_points/alias.lua`,
+         $.get(`${http_prefix}/lua/rest/v2/set/observation_points/alias.lua`,
          {
             csrf: PAGE_CSRF,
             alias: input_text,
