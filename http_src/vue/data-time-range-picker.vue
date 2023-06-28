@@ -2,12 +2,14 @@
 <template>
     <div class="input-group">
         <div class="form-group">
-            <div class="controls d-flex flex-wrap">
-                <div class="btn-group me-auto btn-group-sm">
+            <div class="controls">
+                <div class="btn-group me-auto btn-group-sm flex-wrap d-flex">
                     <slot name="begin"></slot>
-                    <select-search v-model:selected_option="selected_time_option" :id="'time_preset_range_picker'"
-                        :options="time_preset_list_filtered" @select_option="change_select_time(null)">
-                    </select-search>
+                    <div>
+                        <select-search v-model:selected_option="selected_time_option" :id="'time_preset_range_picker'"
+                            :options="time_preset_list_filtered" @select_option="change_select_time(null)">
+                        </select-search>
+                    </div>
                     <div class="btn-group ms-2">
                         <span class="input-group-text">
                             <i class="fas fa-calendar-alt"></i>
