@@ -5585,6 +5585,7 @@ local lang = {
       ["top_receivers"] = "Top Receivers",
       ["top_senders"] = "Top Senders",
       ["top_traffic"] = "Top Traffic",
+      ["top_packets"] = "Top Packets",
     },
   },
   ["peers_page"] = {

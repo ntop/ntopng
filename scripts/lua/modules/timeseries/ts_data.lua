@@ -37,9 +37,11 @@ local function performQuery(options)
 
     local res = {}
     if starts(options.schema, "top:") then
+        local top_schema = options.schema
         local schema = split(options.schema, "top:")[2]
         options.schema = schema
         res = ts_utils.timeseries_query_top(options)
+        options.schema = top_schema
     else
         res = ts_utils.timeseries_query(options)
     end
@@ -138,7 +140,7 @@ function ts_data.get_timeseries(http_context)
     end
 
     res = performQuery(options) or {}
-
+    
     -- No result found
     if res == nil then
         local ts_utils = require("ts_utils")
