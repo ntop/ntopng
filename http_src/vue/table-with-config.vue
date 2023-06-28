@@ -80,7 +80,12 @@ const refresh_table = () => {
     table.value.refresh_table();
 }
 
-defineExpose({ refresh_table });
+const get_columns_defs = () => {
+    if (table.value == null) { return []; }
+    return table.value.get_columns_defs();
+}
+
+defineExpose({ refresh_table, get_columns_defs });
 
 </script>
 

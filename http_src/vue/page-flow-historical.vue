@@ -67,7 +67,7 @@
                                 </Chart>
                             </div>
                         </div>
-                        <TableWithConfig ref="table_alerts" :table_id="table_id" :table_config_id="table_config_id"
+                        <TableWithConfig ref="table_flows" :table_id="table_id" :table_config_id="table_config_id"
                             :csrf="context.csrf" :f_map_columns="map_table_def_columns"
                             :get_extra_params_obj="get_extra_params_obj" @loaded="on_table_loaded"
                             @custom_event="on_table_custom_event">
@@ -154,7 +154,7 @@ const props = defineProps({
 const page_id = "page-flow-historical";
 const alert_info = ref(null);
 const chart = ref(null);
-const table_alerts = ref(null);
+const table_flows = ref(null);
 const modal_traffic_extraction = ref(null);
 const modal_snapshot = ref(null);
 const range_picker = ref(null);
@@ -174,9 +174,14 @@ const table_id = computed(() => {
 });
 
 const href_download_records = computed(() => {
+    // add impossible if on ref variable to reload this expression every time count_page_components_reloaded.value change
+    if (count_page_components_reloaded.value < 0) { throw "never run"; }
     const download_endpoint = props.context.download.endpoint;
     let params = ntopng_url_manager.get_url_object();
+    let columns = table_flows.value.get_columns_defs();
+    let visible_columns = columns.filter((c) => c.visible).map((c) => c.id).join(",");
     params.format = "txt";
+    params.visible_columns = visible_columns;
     const url_params = ntopng_url_manager.obj_to_url_params(params);
     return `${location.origin}/${download_endpoint}?${url_params}`;
 });
@@ -195,6 +200,7 @@ const flows_aggregated = ref(false);
 const flow_type_label = ref(_i18n("datatable.aggregated"));
 const min_time_interval_id = ref(null);
 const round_time = ref(false);
+const count_page_components_reloaded = ref(0)
 
 onBeforeMount(async () => {
     init_params();
@@ -370,18 +376,19 @@ async function register_components_on_status_update() {
     //updateDownloadButton();
     ntopng_status_manager.on_status_change(page.value, (new_status) => {
         let url_params = ntopng_url_manager.get_url_params();
-        table_alerts.value.refresh_table();
+        table_flows.value.refresh_table();
         load_top_table_array_overview();
+	count_page_components_reloaded.value += 1;
     }, false);
 }
 
 function on_table_loaded() {
-    register_table_alerts_events();
+    register_table_flows_events();
 }
 
-function register_table_alerts_events() {
-    let jquery_table_alerts = $(`#${table_id.value}`);
-    jquery_table_alerts.on('click', `a.tag-filter`, async function (e) {
+function register_table_flows_events() {
+    let jquery_table_flows = $(`#${table_id.value}`);
+    jquery_table_flows.on('click', `a.tag-filter`, async function (e) {
         add_table_row_filter(e, $(this));
     });
 }
@@ -570,7 +577,7 @@ async function add_exclude(params) {
 }
 
 function refresh_page_components(not_refresh_table) {
-    let t = table_alerts.value;
+    let t = table_flows.value;
     let c = chart.value;
     setTimeout(() => {
         if (!not_refresh_table) {

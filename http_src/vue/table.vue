@@ -396,7 +396,11 @@ function copy_query_into_clipboard($event) {
     NtopUtils.copyToClipboard(query_info.value.query, query_info_sql_button.value);
 }
 
-defineExpose({ load_table, refresh_table });
+function get_columns_defs() {
+    return columns_wrap.value;
+}
+
+defineExpose({ load_table, refresh_table, get_columns_defs });
 
 </script>
 
