@@ -51,15 +51,6 @@ When the triggering threshold of an engaged alert is no longer met, the alert be
 
   All Past Alerts Page
 
-
-Important alerts, that is alerts that require human attention, are also placed in the page identified by the eye icon, until they are acknowledged.
-
-.. figure:: ../img/basic_concepts_alerts_important_alerts.png
-  :align: center
-  :alt: Important Past Alerts Page
-
-  Important Past Alerts Page
-
 Alerts associated with events don't have a duration associated. They are triggered *at the time of the event* but any duration is not meaningful for them. For this reason, such alerts are never *engaged*  or *released*, they are just considered *past* as soon as they are detected, and they are placed under the *all* alerts page without any duration indicated.
 
 .. _FlowAlerts:
@@ -69,7 +60,7 @@ Flow Alerts
 
 During its execution, ntopng can detect anomalous or suspicious flows for which it triggers special *flow alerts*. Such alerts not only carry the event that caused the alert to be fired, they also carry all the flow details, including source and destination IP addresses, layer-7 application protocol, and ports.
 
-*Flow alerts* are always associated with events and thus they are never *engaged*  or *released* and are placed in the past alerts directly. Similar to the other families of alerts, flow alerts that require attention and should be manually handled are also placed in the page identified by the eye icon until they are acknowledged.
+*Flow alerts* are always associated with events and thus they are never *engaged*  or *released* and are placed in the past alerts directly. 
 
 .. figure:: ../img/basic_concepts_alerts_flow_alerts.png
   :align: center
@@ -77,6 +68,13 @@ During its execution, ntopng can detect anomalous or suspicious flows for which 
 
   Flow Alerts Page
 
+Alerts that require human attention and should be manually handled (e.g. related to security issues), are also placed in the page identified by the eye icon, until they are acknowledged.
+
+.. figure:: ../img/basic_concepts_alerts_important_alerts.png
+  :align: center
+  :alt: Important Past Alerts Page
+
+  Important Past Alerts Page
 
 Behavior Alerts
 ---------------
