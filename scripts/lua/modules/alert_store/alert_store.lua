@@ -187,6 +187,10 @@ end
 -- @return True if set is successful, false otherwise
 function alert_store:add_status_filter(status, is_write)
     if not self._status then
+        if not status then
+           status = "historical"
+        end
+
         if alert_consts.alert_status[status] then
             self._status = alert_consts.alert_status[status].alert_status_id
 
