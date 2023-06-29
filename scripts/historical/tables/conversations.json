@@ -23,6 +23,12 @@
 				"name" : "IPV6_DST_ADDR"
 			},
 			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			},
+			{
 				"name" : "total_bytes",
 				"func" : "SUM",
 				"param" : "TOTAL_BYTES",
@@ -68,7 +74,7 @@
 	"sortby" : {
 		"items" : [
 			{
-				"name" : "total_bytes",
+				"name" : "count",
 				"order" : "DESC"
 			}
 		]
