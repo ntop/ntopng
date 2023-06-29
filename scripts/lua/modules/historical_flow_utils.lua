@@ -1483,7 +1483,8 @@ local function build_datatable_column_def_number(name, i18n_label)
       data_field = name,
       title_i18n = i18n_label,
       sortable = true,
-      class = { "no-wrap", "text-center" },
+      style = "text-align:right;",
+      class = { "no-wrap" },
       render_type = "number",
    }
 end
@@ -1531,6 +1532,7 @@ local function build_datatable_column_def_nw_latency(name, i18n_label)
       data_field = name,
       title_i18n = i18n_label,
       sortable = true,
+      style = "text-align:right;",
       class = { "no-wrap" },
    }
 end
@@ -1542,7 +1544,7 @@ local function build_datatable_column_def_asn(name, i18n_label)
       data_field = name,
       title_i18n = i18n_label,
       sortable = true,
-      class = { "no-wrap", "text-center" },
+      class = { "no-wrap" },
    }
 end
 
@@ -1626,7 +1628,7 @@ local function build_datatable_column_def_bytes(name, i18n_label)
       title_i18n = i18n_label,
       sortable = true,
       style = "text-align:right;",
-      class = { "no-wrap", "text-center" },
+      class = { "no-wrap" },
       render_type = "bytes",
    }
 end
@@ -1662,6 +1664,7 @@ local function build_datatable_column_def_float(name, i18n_label)
       data_field = name,
       title_i18n = i18n_label,
       sortable = true,
+      style = "text-align:right;",
       class = { "no-wrap", "text-center" },
    }
 end
@@ -1673,7 +1676,8 @@ local function build_datatable_column_def_msec(name, i18n_label)
       data_field = name,
       title_i18n = i18n_label,
       sortable = true,
-      class = { "no-wrap", "text-center" },
+      style = "text-align:right;",
+      class = { "no-wrap" },
       render_type = "ms",
    }
 end
