@@ -78,6 +78,7 @@
 	    "title_i18n": "db_search.packets",
 	    "data_field": "packets",
 	    "sortable": true,
+	    "render_type": "number",
 	    "style": "text-align:right;",
 	    "class": ["no-wrap"]
 	},

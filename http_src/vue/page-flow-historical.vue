@@ -420,12 +420,6 @@ const map_table_def_columns = async (columns) => {
             }
             return DataTableRenders.filterize('l7proto', proto.value, proto.label) + " " + `${confidence}`;
         },
-        "packets": (packets, row) => {
-            if (packets !== undefined) {
-                return NtopUtils.formatValue(packets);
-            }
-            return "";
-        },
         "cli_asn": (cli_asn, row) => f_print_asn("cli_asn", cli_asn, row),
         "srv_asn": (srv_asn, row) => f_print_asn("srv_asn", srv_asn, row),
         "flow_risk": (flow_risks, row) => {
