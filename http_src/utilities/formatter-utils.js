@@ -15,6 +15,13 @@ const types = {
         step: 1000,
         decimal: null,
         scale_values: null,
+    },
+    full_number: {
+        id: "number",
+        um: ["", "K", "M", "G", "T"],
+        step: 1000,
+        decimal: null,
+        scale_values: null,
         thousands_sep: ",", /* Comment this to enable "um" scaled style */
     },
     bytes: {
