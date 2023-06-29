@@ -620,7 +620,9 @@ function alert_utils.formatAlertNotification(notif, options)
         msg = msg .. alert_message
     end
 
-    return msg
+    local alert_title = string.format("[%s]: %s", alert_consts.alertEntityLabel(notif.entity_id),alert_consts.alertTypeLabel(notif.alert_id, options.nohtml, notif.entity_id))
+    local alert_type = alert_consts.alertEntityLabel(notif.entity_id)
+    return msg, alert_title, alert_type
 end
 
 -- ##############################################

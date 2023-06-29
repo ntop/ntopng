@@ -30,6 +30,9 @@ Currently available Endpoints/Recipients and license required are:
 +----------------+-----------+-----+--------------+--------------+
 | Webhook        | x         | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
+| TheHive        |           | x   | x            | x            |
++----------------+-----------+-----+--------------+--------------+
+
 
 Below a guide on how to configure each Endpoint/Recipient.
 
@@ -407,3 +410,24 @@ Webhooks can be used to deliver alert information to a HTTP endpoint by configur
 A Shared Secret can be configured in ntopng, which is an arbitrary string included in all JSON messages.
 
 A Username and Password can also be used to use HTTP Basic authentication.
+
+
+TheHive
+------
+
+First of all, install TheHive. For information about the downloads and installation, please refer to the following link: `TheHive <https://docs.strangebee.com/thehive/setup/installation/step-by-step-guide/#cortex-misp>`_.
+After that, you will be able to see the TheHive Endpoint.
+
+.. figure:: ../img/thehive_endpoint.png
+It is necessary to specify the following: 
+  - the Server URL of your TheHive.
+  - the API Key for a user with the "manageAlert/create" profile.
+  - the observable URl;
+  - the observable email. 
+
+Once you have created the endpoint, proceed to create a new recipient to associate with the newly created endpoint.
+
+
+.. note::
+
+  TheHive recipient is only available in ntopng Enterprise M or above.
