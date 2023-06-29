@@ -10,7 +10,7 @@
                             <a v-if="page != 'flow'" href="#" @click="update_status_view('engaged')" class="btn btn-sm"
                                 :class="{ 'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged' }"><i class="fa-solid fa-hourglass-half" title="Engaged"></i></a>
                             <a href="#" @click="update_status_view('historical')" class="btn btn-sm"
-                                :class="{ 'active': status_view == 'historical', 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical' }"><i class="fa-regular fa-eye" title="Require Attention"></i></a>
+                                :class="{ 'active': status_view == 'historical' || (page == 'flow' && status_view == 'engaged'), 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical' || (page == 'flow' && status_view == 'engaged') }"><i class="fa-regular fa-eye" title="Require Attention"></i></a>
                             <!-- <a href="#" @click="update_status_view('acknowledged')" class="btn btn-sm"
                                 :class="{ 'active': status_view == 'acknowledged', 'btn-seconday': status_view != 'acknowledged', 'btn-primary': status_view == 'acknowledged' }"><i class="fa-solid fa-check-double" title="Acknowledged"></i></a>-->
                             <a href="#" @click="update_status_view('any')" class="btn btn-sm"
