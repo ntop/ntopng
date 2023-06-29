@@ -1483,7 +1483,7 @@ local function build_datatable_column_def_number(name, i18n_label)
       sortable = true,
       style = "text-align:right;",
       class = { "no-wrap" },
-      render_type = "number",
+      render_type = "full_number",
    }
 end
 
@@ -1614,7 +1614,7 @@ local function build_datatable_column_def_packets(name, i18n_label)
       title_i18n = i18n_label,
       sortable = true,
       class = { "no-wrap", "text-center" },
-      render_type = "number",
+      render_type = "full_number",
    }
 end
 
