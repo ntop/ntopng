@@ -249,7 +249,7 @@ const live_flows = function (data) {
     };
     let url_params = ntopng_url_manager.obj_to_url_params(params);
     const url = `${http_prefix}/lua/flows_stats.lua?${url_params}`;
-    return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
+    ntopng_url_manager.go_to_url(`${url}`);
 };
 
 function set_filter_array_label() {
