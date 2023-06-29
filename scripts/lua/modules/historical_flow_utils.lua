@@ -433,8 +433,6 @@ local function dt_format_pkts(packets)
       pkts = tonumber(packets)
    end
 
-
-   tprint(pkts)
    return pkts
 end
 
