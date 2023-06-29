@@ -219,8 +219,8 @@ local function dt_format_vlan(vlan_id)
    }
    if not isEmptyString(vlan_id) then
       vlan["value"] = tonumber(vlan_id)
-      vlan["title"] = getFullVlanName(vlan_id)
-      vlan["label"] = getFullVlanName(vlan_id, true)
+      vlan["title"] = getFullVlanName(vlan_id, false)
+      vlan["label"] = getFullVlanName(vlan_id, false)
    end
 
    return vlan
