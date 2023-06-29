@@ -117,8 +117,12 @@ void LocalHost::initialize() {
         (isIPv6() &&
          ((strncmp(strIP, "ff0", 3) == 0) || (strncmp(strIP, "fe80", 4) == 0))))
       ;
-    else
+    else {
       ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true);
+      if(strcmp(rsp, "")) {
+        setResolvedName(rsp);
+      }
+    }
   }
 
   INTERFACE_PROFILING_SUB_SECTION_ENTER(
