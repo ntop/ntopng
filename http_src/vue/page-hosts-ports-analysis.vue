@@ -150,6 +150,8 @@ onMounted(async () => {
     } else {
         selected_criteria.value = criteria_list_def[0];
         await update_dropdown_menus(false);
+        table_server_ports_analysis.value.refresh_table();
+
     }
 
 });
