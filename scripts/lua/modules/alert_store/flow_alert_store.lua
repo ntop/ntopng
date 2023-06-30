@@ -963,6 +963,10 @@ function flow_alert_store:format_record(value, no_html)
          ternary(show_srv_port, tostring(value["srv_port"]), ''), op_suffix,
          l4_protocol, op_suffix)
 
+      if vlan then
+        href = href .. string.format('&vlan_id=%s%s', vlan.value, op_suffix)
+      end
+
       record[RNAME.LINK_TO_PAST_FLOWS.name] = href
    end
 
