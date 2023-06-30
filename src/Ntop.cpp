@@ -448,7 +448,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   }
 
 #ifdef NTOPNG_PRO
-  pro->init_license();
+  // pro->init_license();
 
   if (!ntop->getPro()->has_unlimited_enterprise_l_license())
     prefs->toggle_dump_flows_direct(false);
