@@ -676,23 +676,31 @@ end
       print("<br><small><b>"..i18n("if_stats_overview.note").."</b>:<ul><li> ".. i18n("if_stats_overview.zmq_encryption_public_key_note", {key="&lt;key&gt;"}).."")
       local zmq_endpoint = ifstats.name
       local probe_mode = ""
+
       if endswith(zmq_endpoint, 'c') then
          zmq_endpoint = string.sub(zmq_endpoint, 1, -2)
          probe_mode = " --zmq-probe-mode"
       end
+      
       if ntop.isCloud() then
-        print("<li>nprobe --zmq "..zmq_endpoint.." --zmq-publish-events " .. prefs.zmq_publish_events_url .. " --zmq-probe-mode --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
+
+	 if(prefs.zmq_publish_events_url == nil) then
+	    print("<p><b><font color=red>Please restart ntopng with --zmq-publish-events &lt;URL&gt;</font></b>")
+	 else	 
+	    print("<li>nprobe --zmq "..zmq_endpoint.." --zmq-publish-events " .. prefs.zmq_publish_events_url .. " --zmq-probe-mode --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
+	 end
       else
         print("<li>nprobe --zmq "..zmq_endpoint.. probe_mode .." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
       end
+      
       print("</small></ul>");
 
-      if ntop.isCloud() then
+      if(ntop.isCloud() and (prefs.zmq_publish_events_url ~= nil)) then
         -- Sample configuration file
         print [[
         <script type='text/javascript'>
         function configDownload() {
-          var filename = 'example.conf';
+          var filename = 'nprobe-example.conf';
           var content = "";
           content += "# Set the capture interface name\n";
           content += "-i=INTERFACE_NAME\n";
