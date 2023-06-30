@@ -210,8 +210,26 @@ end
 -- Fetch latest ntop blog posts
 if not ntop.isnEdge() then
   -- Note: On nEdge they are fetched in a dayly/delayed callback as connectivity
-  -- may be not yet up at this stage 
+  -- may be not yet up at this stage
   blog_utils.fetchLatestPosts()
+end
+
+
+-- Cleanup old influxdb files (if any)
+local influxdb_dir = dirs.workingdir .. "/tmp/influxdb"
+if(ntop.exists(influxdb_dir)) then
+   local files = ntop.readdir(influxdb_dir)
+
+   if(files ~= nil) then
+      for _, name in pairs(files) do
+	 if (ends(name, ".tmp") == true) then
+	    local fname = influxdb_dir .. "/" .. name
+
+	    -- io.write("[InfluxDB] Deleting file "..fname.."\n")
+	    ntop.unlink(fname)
+	 end
+      end
+   end
 end
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")
