@@ -779,16 +779,12 @@ export class DataTableRenders {
     }
 
     static filterizeVlan(flow, row, key, value, label, title) {
-	let valueVlan = value;
-  let labelVlan = label;
-	let titleVlan = title;
-	if (flow.vlan && flow.vlan.value != 0) {
-	    valueVlan = `${value}@${flow.vlan.value}`;
-	    labelVlan = `${label}@${flow.vlan.label}`;
-	    titleVlan = `${title}@${flow.vlan.title}`;
-	}
-      labelVlan = NtopUtils.shortenLabel(labelVlan, 16, ".")
-      return DataTableRenders.filterize(key, valueVlan, labelVlan, labelVlan, titleVlan); 
+        label = NtopUtils.shortenLabel(label, 16, ".")
+        return DataTableRenders.filterize(key, value, label, label, title); 
+    }
+
+    static filterizeFlowHost(flow, row, key, value, label, title) {
+        return DataTableRenders.filterize(key, value, label, label, title);
     }
 
     static formatFlowTuple(flow, type, row, zero_is_null) {
@@ -796,15 +792,18 @@ export class DataTableRenders {
         let cliLabel = "";
         if (flow.cli_ip.name) {
           let title = "";
-            if(flow.cli_ip.label_long) title = flow.cli_ip.value + " [" + flow.cli_ip.label_long + "]";
-            cliLabel = DataTableRenders.filterizeVlan(flow, row, 'cli_name', flow.cli_ip.name, flow.cli_ip.label, title); 
-        } else
-            cliLabel = DataTableRenders.filterizeVlan(flow, row, 'cli_ip', flow.cli_ip.value, flow.cli_ip.label, flow.cli_ip.label_long); 
+          if(flow.cli_ip.label_long) title = flow.cli_ip.value + " [" + flow.cli_ip.label_long + "]";
+          cliLabel = DataTableRenders.filterizeFlowHost(flow, row, 'cli_name', flow.cli_ip.name, flow.cli_ip.label, title); 
+        } else {
+          cliLabel = DataTableRenders.filterizeFlowHost(flow, row, 'cli_ip', flow.cli_ip.value, flow.cli_ip.label, flow.cli_ip.label_long); 
+        }
+        if (flow.vlan && flow.vlan.value != 0)
+          cliLabel += '@' + DataTableRenders.filterizeVlan(flow, row, 'vlan_id', flow.vlan.value, flow.vlan.label, flow.vlan.title); 
 
         let cliFlagLabel= ''
 
         if (flow.cli_ip.country && flow.cli_ip.country !== "nil")
-            cliFlagLabel = DataTableRenders.filterize('cli_country', flow.cli_ip.country, flow.cli_ip.country, flow.cli_ip.country, flow.cli_ip.country, ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + flow.cli_ip.country.toLowerCase() + '"></a> ');
+          cliFlagLabel = DataTableRenders.filterize('cli_country', flow.cli_ip.country, flow.cli_ip.country, flow.cli_ip.country, flow.cli_ip.country, ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + flow.cli_ip.country.toLowerCase() + '"></a> ');
 
         let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
 
@@ -816,9 +815,13 @@ export class DataTableRenders {
         if (flow.srv_ip.name) {
           let title = "";
           if(flow.srv_ip.label_long) title = flow.srv_ip.value + " [" + flow.srv_ip.label_long + "]";
-            srvLabel = DataTableRenders.filterizeVlan(flow, row, 'srv_name', flow.srv_ip.name, flow.srv_ip.label, title);
-        } else
-            srvLabel = DataTableRenders.filterizeVlan(flow, row, 'srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label_long);
+            srvLabel = DataTableRenders.filterizeFlowHost(flow, row, 'srv_name', flow.srv_ip.name, flow.srv_ip.label, title);
+        } else {
+            srvLabel = DataTableRenders.filterizeFlowHost(flow, row, 'srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label_long);
+        }
+        if (flow.vlan && flow.vlan.value != 0)
+          srvLabel += '@' + DataTableRenders.filterizeVlan(flow, row, 'vlan_id', flow.vlan.value, flow.vlan.label, flow.vlan.title); 
+
         let srvPortLabel = ((flow.srv_port && flow.srv_port > 0) ? ":"+DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port) : "");
 
         let srvFlagLabel= ''
@@ -833,17 +836,17 @@ export class DataTableRenders {
         let cliIcons = "";
         let srvIcons = "";
         if (row.cli_role) {
-            if (row.cli_role.value == 'attacker')
-                cliIcons += DataTableRenders.filterize('role', 'attacker', '<i class="fas fa-skull" title="'+row.cli_role.label+'"></i>', row.cli_role.tag_label);
-            else if (row.cli_role.value == 'victim')
-                cliIcons += DataTableRenders.filterize('role', 'victim',  '<i class="fas fa-sad-tear" title="'+row.cli_role.label+'"></i>', row.cli_role.tag_label);
+          if (row.cli_role.value == 'attacker')
+            cliIcons += DataTableRenders.filterize('role', 'attacker', '<i class="fas fa-skull" title="'+row.cli_role.label+'"></i>', row.cli_role.tag_label);
+          else if (row.cli_role.value == 'victim')
+            cliIcons += DataTableRenders.filterize('role', 'victim',  '<i class="fas fa-sad-tear" title="'+row.cli_role.label+'"></i>', row.cli_role.tag_label);
         }
 
         if (row.srv_role) {
-            if (row.srv_role.value == 'attacker')
-                srvIcons += DataTableRenders.filterize('role', 'attacker', '<i class="fas fa-skull" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
-            else if (row.srv_role.value == 'victim')
-                srvIcons += DataTableRenders.filterize('role', 'victim',  '<i class="fas fa-sad-tear" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
+          if (row.srv_role.value == 'attacker')
+            srvIcons += DataTableRenders.filterize('role', 'attacker', '<i class="fas fa-skull" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
+          else if (row.srv_role.value == 'victim')
+            srvIcons += DataTableRenders.filterize('role', 'victim',  '<i class="fas fa-sad-tear" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
         }
 
         return `${active_ref} ${cliLabel}${cliBlacklisted}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvBlacklisted}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
