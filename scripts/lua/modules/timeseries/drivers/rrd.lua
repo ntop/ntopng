@@ -916,7 +916,10 @@ function driver:timeseries_top(options, top_tags)
             local snmp_cached_dev = require "snmp_cached_dev"
             local cached_device = snmp_cached_dev:create(options.tags.device)
             local ifindex = available_tags[top_item][1].if_index
-            local ext_label = shortenString(snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex]), 64)
+            local ext_label = nil
+            if cached_device then
+                ext_label = shortenString(snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex]), 64)
+            end
 
             count = table.len(available_series[top_item].data)
             top_series[#top_series + 1] = {
