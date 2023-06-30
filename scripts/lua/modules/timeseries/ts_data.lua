@@ -52,7 +52,7 @@ end
 local function compareBackward(compare_backward, curr_res, options)
     local graph_common = require "graph_common"
     local ts_common = require("ts_common")
-
+    
     local backward_sec = graph_common.getZoomDuration(compare_backward)
     local start_cmp = curr_res.metadata.epoch_begin - backward_sec
     local end_cmp = start_cmp + curr_res.metadata.epoch_step * (curr_res.metadata.num_point - 1)
@@ -106,7 +106,7 @@ function ts_data.get_timeseries(http_context)
 
         -- Setting host_ip (check that the provided IP matches the provided
         -- mac address as safety check and to avoid security issues)
-        if (options.schema == "top:snmp_if:traffic") or (options.schema == "top:flowdev_port:traffic") then
+        if (options.schema == "top:snmp_if:packets") or (options.schema == "top:snmp_if:traffic") or (options.schema == "top:flowdev_port:traffic") then
             -- NOTE: the host here is not required, if added return an empty serie
             tskey = 0
             options.tags.host = nil

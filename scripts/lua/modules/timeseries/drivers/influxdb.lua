@@ -1492,6 +1492,7 @@ function driver:timeseries_top(options, top_tags)
     local sorted = {}
     local top_series = {}
     local id = "bytes"
+    local num_point = 0
 
     if ends(options.schema, "packets") then
         id = "packets"
@@ -1522,6 +1523,7 @@ function driver:timeseries_top(options, top_tags)
             local total_serie = {}
 
             for _, values in pairs(top_serie.series or {}) do
+                num_point = #values.data
                 for index, serie_point in pairs(values.data or {}) do
                     if not total_serie[index] then
                         total_serie[index] = 0
@@ -1552,6 +1554,7 @@ function driver:timeseries_top(options, top_tags)
 
     return {
         metadata = {
+            num_point = num_point,
             epoch_begin = options.epoch_begin,
             epoch_end = options.epoch_end,
             epoch_step = time_step,
