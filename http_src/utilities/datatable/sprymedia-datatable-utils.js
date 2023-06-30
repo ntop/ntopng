@@ -734,7 +734,12 @@ export class DataTableRenders {
 
         return label; 
     }
-   
+
+   static filterizeVlan(key, value, label, title) {
+        label = NtopUtils.shortenLabel(label, 16, ".")
+        return DataTableRenders.filterize(key, value, label, label, title); 
+    }
+
     static formatHost(obj, type, row, zero_is_null) {
         if (type !== "display") return obj;
     	let html_ref = '';
@@ -755,7 +760,7 @@ export class DataTableRenders {
 	}
 
         if (row.vlan_id && row.vlan_id != "" && row.vlan_id != "0") {
-            label = DataTableRenders.filterize(hostKey, `${hostValue}@${row.vlan_id}`, `${obj.label}@${row.vlan_id}`, `${obj.label}@${row.vlan_id}`, `${obj.label_long}@${row.vlan_id}`);
+            label += '@' + DataTableRenders.filterizeVlan('vlan_id', row.vlan_id, row.vlan_id, row.vlan_id);
 	}
 
         if (obj.country)
@@ -778,11 +783,6 @@ export class DataTableRenders {
         return label + ' ' + html_ref; 
     }
 
-    static filterizeVlan(flow, row, key, value, label, title) {
-        label = NtopUtils.shortenLabel(label, 16, ".")
-        return DataTableRenders.filterize(key, value, label, label, title); 
-    }
-
     static filterizeFlowHost(flow, row, key, value, label, title) {
         return DataTableRenders.filterize(key, value, label, label, title);
     }
@@ -798,7 +798,7 @@ export class DataTableRenders {
           cliLabel = DataTableRenders.filterizeFlowHost(flow, row, 'cli_ip', flow.cli_ip.value, flow.cli_ip.label, flow.cli_ip.label_long); 
         }
         if (flow.vlan && flow.vlan.value != 0)
-          cliLabel += '@' + DataTableRenders.filterizeVlan(flow, row, 'vlan_id', flow.vlan.value, flow.vlan.label, flow.vlan.title); 
+          cliLabel += '@' + DataTableRenders.filterizeVlan('vlan_id', flow.vlan.value, flow.vlan.label, flow.vlan.title); 
 
         let cliFlagLabel= ''
 
@@ -820,7 +820,7 @@ export class DataTableRenders {
             srvLabel = DataTableRenders.filterizeFlowHost(flow, row, 'srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label_long);
         }
         if (flow.vlan && flow.vlan.value != 0)
-          srvLabel += '@' + DataTableRenders.filterizeVlan(flow, row, 'vlan_id', flow.vlan.value, flow.vlan.label, flow.vlan.title); 
+          srvLabel += '@' + DataTableRenders.filterizeVlan('vlan_id', flow.vlan.value, flow.vlan.label, flow.vlan.title); 
 
         let srvPortLabel = ((flow.srv_port && flow.srv_port > 0) ? ":"+DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port) : "");
 
