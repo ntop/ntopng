@@ -1202,7 +1202,7 @@ local lang = {
     ["slow_purge"] = "Slow Idle Purging",
     ["snmp_device_interface_threshold_crossed"] = "Threshold Crossed",
     ["snmp_device_interface_threshold_crossed_alert_description"] = "Metric: %{metric} / Unit: %{measure_unit} / Value: %{value} / Threshold: %{threshold_sign} %{threshold}",
-    ["snmp_device_interface_threshold_crossed_description"] = "Trigger an alert when a threshold of SNMP Device Rules is crossed by the interface specified in the rule.",
+    ["snmp_device_interface_threshold_crossed_description"] = "Trigger an alert when one of the thresholds configured in the SNMP Device Rules page is crossed.",
     ["snmp_device_is_unresponsive"] = "SNMP device <a href=\"%{url}\">%{device}</a> is unresponsive",
     ["snmp_device_reset_script_description"] = "Trigger an alert when a restart for an SNMP device has been detected",
     ["snmp_flood"] = "SNMP Flood",
