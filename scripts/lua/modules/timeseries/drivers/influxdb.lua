@@ -861,6 +861,11 @@ function driver:timeseries_query(options)
         options.tags.host = nil
     end
 
+    -- It seems that host is added when asking for subnet
+    if (starts(options.schema, "subnet")) then
+        options.tags.host = nil
+    end
+
     local retention_policy = getSchemaRetentionPolicy(options.schema_info, options.epoch_begin, options.epoch_end,
         options)
     local query_schema, raw_step, data_type = retentionPolicyToSchema(options.schema_info, retention_policy, self.db)
