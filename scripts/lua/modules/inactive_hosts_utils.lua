@@ -167,7 +167,7 @@ function inactive_hosts_utils.getVLANFilters(ifid)
     table.insert(rsp, 1, {
         key = "vlan_id",
         value = "",
-        label = i18n('flows_page.all_vlan_ids')
+        label = i18n('all')
     })
 
     return rsp
@@ -216,7 +216,7 @@ function inactive_hosts_utils.getNetworkFilters(ifid)
     table.insert(rsp, 1, {
         key = "network",
         value = "",
-        label = i18n('flows_page.all_networks')
+        label = i18n('all')
     })
 
     return rsp
@@ -261,7 +261,7 @@ function inactive_hosts_utils.getDeviceFilters(ifid)
     table.insert(rsp, 1, {
         key = "device_type",
         value = "",
-        label = i18n('all_devices')
+        label = i18n('all')
     })
 
     return rsp
@@ -320,7 +320,7 @@ function inactive_hosts_utils.getManufacturerFilters(ifid, filters)
     table.insert(rsp, 1, {
         key = "manufacturer",
         value = "",
-        label = i18n('all_manufacturer')
+        label = i18n('all')
     })
 
     return rsp

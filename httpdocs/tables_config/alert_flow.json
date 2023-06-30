@@ -83,7 +83,6 @@
 	    "title_i18n": "datatable.fields.info",
 	    "data_field": "info",
 	    "sortable": true,
-	    "render_type": "formatMessage",
 	    "class": ["text-nowrap"]
 	},
 	{
