@@ -149,7 +149,9 @@ const note_list = ref([_i18n('show_alerts.alerts_info')]);
 
 onBeforeMount(async () => {
     page = ntopng_url_manager.get_url_entry("page");
+    const status = ntopng_url_manager.get_url_entry("status");
     if (page == null) { page = "all"; }
+    if (status == 'engaged' && page == "flow") { ntopng_url_manager.set_key_to_url("status", "historical"); }
     chart_data_url = (page == "snmp_device") ? `${http_prefix}/lua/pro/rest/v2/get/snmp/device/alert/ts.lua` : `${http_prefix}/lua/rest/v2/get/${page}/alert/ts.lua`;
     table_id = `alert_${page}`;
     init_url_params();
@@ -253,8 +255,19 @@ const map_table_def_columns = (columns) => {
             return DataTableRenders.filterize('l7proto', proto.value, proto.label) + " " + `${confidence}`;
         },
         "info": (info, row) => {
-            //const copy_button = `<button class="btn btn-light border ms-1" data-placement="bottom" onclick="() => { debugger; navigator.clipboard.writeText('${info.value}') }"><i class="fas fa-copy"></i></button>`
-            return DataTableRenders.filterize('info', info.value, info.label);
+            let copy_button = ''
+            if(info.value) {
+                copy_button = `<button class="btn btn-light btn-sm border ms-1" data-placement="bottom" onclick="
+                    const textArea = document.createElement('textarea');
+                    textArea.value = '${info.value}';    
+                    textArea.style.position = 'absolute';
+                    textArea.style.left = '-999999px';    
+                    document.body.prepend(textArea);
+                    textArea.select();
+                    document.execCommand('copy');"
+                    ><i class="fas fa-copy"></i></button>`
+            }
+            return `${copy_button} ${DataTableRenders.filterize('info', info.value, info.label)}`;
         },
     };
     columns.forEach((c) => {
