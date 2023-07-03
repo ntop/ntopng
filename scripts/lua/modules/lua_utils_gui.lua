@@ -1525,7 +1525,7 @@ function format_external_link(url, name, no_html, proto, i18n_key)
       return(url)
    else
       local external_field = url
-      proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
+      proto = ternary(((proto) and (proto == 'http' or proto == 'HTTP')), 'http', 'https')
       
       if no_html == false then
 	 if not isEmptyString(url) and not string.find(url, '*') then
