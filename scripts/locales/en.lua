@@ -4356,6 +4356,7 @@ local lang = {
     ["interface_speed_popup_msg"] = "Specify the maximum interface speed",
     ["interface_top_talkers_creation"] = "Create Interface Top Talkers",
     ["is_mirrored_traffic"] = "Mirrored Traffic",
+    ["last_measurement"] = "Last Measurement",
     ["metric"] = "Metric",
     ["multicast_ip_placeholder"] = "Multicast IP",
     ["note_1"] = "Target: insert the IP of a Local Host to be analyzed or a * (meaning that all Local Hosts has to be analyzed) or select a local network interface",
