@@ -404,7 +404,7 @@ const map_table_def_columns = async (columns) => {
         return "";
     };
     const f_print_latency = (key, latency, row) => {
-        if (latency == null) { return ""; }
+        if (latency == null || latency == 0) { return ""; }
         return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${latency}' href='javascript:void(0)'>${NtopUtils.msecToTime(latency)}</a>`;
     };
     let map_columns = {
