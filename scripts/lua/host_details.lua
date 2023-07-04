@@ -2464,7 +2464,7 @@ setInterval(update_icmp_table, 5000);
   const show_positions = (current_user_position) => {
       // these are two map providers provided by: https://leaflet-extras.github.io/leaflet-providers/preview/
       const layers = {
-          light: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          light: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
           // dark: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
       };
       // select the right layer
