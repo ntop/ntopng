@@ -1881,6 +1881,16 @@ end
 
 -- ##############################################
 
+function setFlowDevAlias(flowdev_ip, alias)
+   if((flowdev_ip ~= alias) and not isEmptyString(alias)) then
+      ntop.setHashCache(getFlowDevAliasKey(), flowdev_ip, alias)
+   else
+      ntop.delHashCache(getFlowDevAliasKey(), flowdev_ip)
+   end
+end
+
+-- ##############################################
+
 function addScoreToAlertDescr(msg, score)
    return (msg .. string.format(" [%s: %s]",
             i18n("score"),

@@ -396,6 +396,7 @@ local lang = {
   ["num_different_ports"] = "%{num} ports. None doing %{threshold}%%+ of the traffic.",
   ["num_uses"] = "Contacts",
   ["observation_point_alias"] = "Observation Point Alias",
+  ["flowdev_alias"] = "Flow Device Alias",
   ["observation_point_id"] = "Obs. Point ID",
   ["observationpoints"] = "Observation Points",
   ["obsolete_mysql"] = "MySQL support is deprecated",

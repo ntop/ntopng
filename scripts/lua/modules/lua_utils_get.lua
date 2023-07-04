@@ -109,7 +109,14 @@ end
 function getProbeName(exporter_ip, show_vlan, shorten_len)
     local cached_device_name
     local snmp_cached_dev
+    local probe_alias = getFlowDevAlias(exporter_ip, true)
 
+    -- In case an alias is set to the flow exporter, directly use the alias
+    if not isEmptyString(probe_alias) and probe_alias ~= exporter_ip then
+        return probe_alias
+    end
+
+    -- No alias set, let's try with the SNMP
     if ntop.isPro() then
         snmp_cached_dev = require "snmp_cached_dev"
     end
@@ -1211,6 +1218,50 @@ function get_version_update_msg(info, latest_version)
     end
 
     return ""
+end
+
+-- ##############################################
+
+function getFlowDevAliasKey()
+    return "ntopng.flow_dev_aliases"
+end
+
+-- ##############################################
+
+function getFlowDevAlias(flowdev_ip, add_id)
+    local alias = ntop.getHashCache(getFlowDevAliasKey(), flowdev_ip)
+    local ret
+
+    if not isEmptyString(alias) then
+        if (add_id == true) then
+            ret = flowdev_ip .. " [" .. alias .. "]"
+        else
+            ret = alias
+        end
+    else
+        ret = tostring(flowdev_ip)
+    end
+
+    return ret
+end
+
+-- ##############################################
+
+function getFullFlowDevName(flowdev_ip, compact, add_id)
+    local alias = getFlowDevAlias(flowdev_ip, add_id)
+
+    if not isEmptyString(flowdev_ip) then
+        if not isEmptyString(flowdev_ip) and alias ~= tostring(flowdev_ip) then
+            if compact then
+                alias = shortenString(alias)
+                return string.format("%s", alias)
+            else
+                return string.format("%s [%s]", flowdev_ip, alias)
+            end
+        end
+    end
+
+    return flowdev_ip
 end
 
 -- ##############################################

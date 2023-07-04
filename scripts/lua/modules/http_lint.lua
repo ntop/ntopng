@@ -2358,6 +2358,7 @@ local known_parameters = {
     ["old_interface_name"] = validateGatewayName,
     ["delete_gateway"] = validateGatewayName,
     ["ping_address"] = validateIPV4,
+    ["flowdev_ip"] = validateIPV4,
     ["policy_name"] = validateRoutingPolicyName,
     ["old_policy_name"] = validateRoutingPolicyName,
     ["delete_policy"] = validateRoutingPolicyName,
