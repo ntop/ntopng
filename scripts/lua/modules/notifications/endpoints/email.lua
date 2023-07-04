@@ -7,6 +7,7 @@ local email = {
    endpoint_params = {
       { param_name = "smtp_server" },
       { param_name = "email_sender"},
+      { param_name = "smtp_port", optional = true },
       { param_name = "smtp_username", optional = true },
       { param_name = "smtp_password", optional = true },
    },
@@ -47,6 +48,7 @@ end
 local function recipient2sendMessageSettings(recipient)
   local settings = {
     smtp_server = recipient.endpoint_conf.smtp_server,
+    smtp_port = recipient.endpoint_conf.smtp_port,
     from_addr = recipient.endpoint_conf.email_sender,
     to_addr = recipient.recipient_params.email_recipient,
     cc_addr = recipient.recipient_params.cc,
@@ -89,6 +91,7 @@ end
 
 function email.sendEmail(subject, message_body, settings)
   local smtp_server = settings.smtp_server
+  local smtp_port = settings.smtp_port
   local from = settings.from_addr:gsub(".*<(.*)>", "%1")
   local to = settings.to_addr:gsub(".*<(.*)>", "%1")
   local cc = settings.cc_addr:gsub(".*<(.*)>", "%1")
@@ -99,6 +102,11 @@ function email.sendEmail(subject, message_body, settings)
 
   if not string.find(smtp_server, "://") then
     smtp_server = "smtp://" .. smtp_server
+  end
+
+  smtp_port = tonumber(smtp_port)
+  if smtp_port and smtp_port > 0 then
+    smtp_server = smtp_server .. ":"..smtp_port
   end
 
   local parts = string.split(to, "@")

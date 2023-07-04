@@ -2178,6 +2178,7 @@ local known_parameters = {
     ["email_sender"] = validateSingleWord,
     ["email_recipient"] = validateSingleWord,
     ["smtp_server"] = validateServer,
+    ["smtp_port"] = validatePortRange,
     ["smtp_username"] = validateEmptyOr(validateSingleWord),
     ["smtp_password"] = validateEmptyOr(validatePassword),
     ["influx_dbname"] = validateSingleWord,

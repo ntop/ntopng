@@ -14,6 +14,23 @@
         </div>
     </div>
 </div>
+
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.email.smtp_port") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <div class="form-control-with-spinner">
+            <input
+                data-validation-message="{{ i18n('notification_endpoint.email.validation.invalid_SMTP_port') }}"
+                data-validation-empty-message="{{ i18n('notification_endpoint.email.validation.empty_SMTP_port') }}"
+                name="smtp_port" type="number" class="form-control"/>
+            <div class="spinner-border spinner-border-sm" role="status" style="display: none;">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         <b>{{ i18n("notification_endpoint.email.email_sender") }}</b>
