@@ -14,15 +14,15 @@
                         <span class="input-group-text">
                             <i class="fas fa-calendar-alt"></i>
                         </span>
-                        <input class="flatpickr flatpickr-input" type="text" placeholder="Choose a date.."
-                            data-id="datetime" ref="begin-date">
+                        <input class="flatpickr flatpickr-input form-control" type="text" placeholder="Choose a date.."
+                            data-id="datetime" ref="begin-date" style="width:10rem;">
                         <!-- <input ref="begin-date" @change="enable_apply=true" @change="change_begin_date" type="date" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
                         <!-- <input ref="begin-time" @change="enable_apply=true" type="time" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
                         <span class="input-group-text">
                             <i class="fas fa-long-arrow-alt-right"></i>
                         </span>
-                        <input class="flatpickr flatpickr-input" type="text" placeholder="Choose a date.."
-                            data-id="datetime" ref="end-date">
+                        <input class="flatpickr flatpickr-input form-control" type="text" placeholder="Choose a date.."
+                            data-id="datetime" ref="end-date" style="width:10rem;">
                         <!-- <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;"> -->
                         <!-- <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input"> -->
                         <span v-show="wrong_date || wrong_min_interval" :title="invalid_date_message" style="margin-left:0.2rem;color:red;">
