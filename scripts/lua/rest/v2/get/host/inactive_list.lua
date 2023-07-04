@@ -87,7 +87,7 @@ else
         end
         
         -- Formatting the values
-        rsp = inactive_hosts_utils.formatInactiveHosts(hosts)
+        rsp = inactive_hosts_utils.formatInactiveHosts(rsp)
     end
     
     rest_utils.extended_answer(rest_utils.consts.success.ok, rsp, {

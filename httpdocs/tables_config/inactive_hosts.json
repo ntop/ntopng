@@ -21,7 +21,6 @@
 					"icon": "fas fa-search-plus",
 					"title_i18n": "db_explorer.historical_data",
 					"class": [
-						"btn-info",
 						"link-button"
 					],
 					"event_id": "click_button_historical_flows"
