@@ -48,6 +48,7 @@ const updateFlowDevAlias = async function() {
   };
   await ntopng_utility.http_request(update_flowdev_alias_url, { method: 'post', headers, body: JSON.stringify(params) });
   getFlowDevAlias();
+  disabled.value = true;
 }
 
 const checkDisabled = function() {

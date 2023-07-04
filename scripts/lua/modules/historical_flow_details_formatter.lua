@@ -207,8 +207,18 @@ end
 local function format_historical_probe(flow, info)
   local historical_flow_utils = require "historical_flow_utils"
   local format_utils = require "format_utils"
+
+  local alias = getFlowDevAlias(info["probe_ip"]["value"], true)
+  local name
+  
+  if alias == info["probe_ip"]["value"] then
+    name = format_name_value(info["probe_ip"]["value"], info["probe_ip"]["label"], true)
+  else
+    name = alias
+  end
+
   local info_field = {
-    device_ip = historical_flow_utils.get_historical_url(format_name_value(info["probe_ip"]["value"], info["probe_ip"]["label"], true), "probe_ip", info["probe_ip"]["value"], true, info["probe_ip"]["title"])
+    device_ip = historical_flow_utils.get_historical_url(name, "probe_ip", info["probe_ip"]["value"], true, info["probe_ip"]["title"])
   }
 
   if (flow["INPUT_SNMP"]) and (tonumber(flow["INPUT_SNMP"]) ~= 0) then
@@ -239,7 +249,7 @@ end
 local function format_historical_obs_point(flow)
   return {
     label = i18n("db_explorer.observation_point"),
-    content = getFullObsPointName(flow["OBSERVATION_POINT_ID"], nil, true),
+    content = getObsPointAlias(flow["OBSERVATION_POINT_ID"], true, true),
   }
 end
 
