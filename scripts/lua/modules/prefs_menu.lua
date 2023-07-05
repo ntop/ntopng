@@ -169,7 +169,10 @@ local menu_subpages = { {
     pro_only = true,
     hidden = not (ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()),
     entries = {
-        
+        flow_data_retention = {
+            title = i18n("prefs.flows_and_alerts_data_retention"),
+            description = i18n("prefs.flows_and_alerts_data_retention_descr")
+        },
         aggregated_flows_data_retention = {
             title = i18n("prefs.aggregated_flows_data_retention_title"),
             description = i18n("prefs.aggregated_flows_data_retention_descr")
@@ -188,22 +191,6 @@ local menu_subpages = { {
         }
     }
 }, {
-    id = "retention",
-    label = i18n("prefs.data_retention"),
-    advanced = true,
-    pro_only = false,
-    hidden = false,
-    entries = {
-        flow_data_retention = {
-            title = i18n("prefs.flows_and_alerts_data_retention"),
-            description = i18n("prefs.flows_and_alerts_data_retention_descr")
-        },
-        ts_data_retention = {
-            title = i18n("prefs.ts_and_stats_data_retention"),
-            description = i18n("prefs.ts_and_stats_data_retention_descr")
-        }
-    }
-},   {
     id = "dump_settings",
     label = i18n("prefs.dump_settings"),
     advanced = true,
@@ -449,6 +436,10 @@ local menu_subpages = { {
         toggle_system_probes_timeseries = {
             title = i18n("prefs.toggle_system_probes_timeseries_title"),
             description = i18n("prefs.toggle_system_probes_timeseries_description")
+        },
+        ts_data_retention = {
+            title = i18n("prefs.ts_and_stats_data_retention"),
+            description = i18n("prefs.ts_and_stats_data_retention_descr")
         },
         toggle_observation_points_rrd_creation = {
             title = i18n("prefs.toggle_observation_points_rrds_title"),
