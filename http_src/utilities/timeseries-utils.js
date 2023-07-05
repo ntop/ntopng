@@ -279,7 +279,11 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 	let colors_palette = [];
 	let serie_properties = {};
 	let customBars = false;
-
+	let use_full_name = false;
+	if (tsOptionsArray.length > 1) {
+		use_full_name = true;
+	}
+	
 	/* Go throught each serie */
 	tsOptionsArray.forEach((tsOptions, i) => {
 		/* Format the data */
@@ -342,8 +346,7 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 				if (ts_info.ext_label) {
 					name = ts_info.ext_label
 				}
-
-				const serie_name = getSerieName(name, ts_id, tsGroupsArray[i], true)
+				const serie_name = getSerieName(name, ts_id, tsGroupsArray[i], use_full_name)
 				/* Add the serie label to the array of the labels */
 				serie_labels.push(serie_name);
 

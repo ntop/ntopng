@@ -1544,10 +1544,14 @@ function driver:timeseries_top(options, top_tags)
             local snmp_utils = require "snmp_utils"
             local snmp_cached_dev = require "snmp_cached_dev"
             local cached_device = snmp_cached_dev:create(options.tags.device)
-            local ifindex = query_tag.if_index
+            -- In case of flow exporters the data is port, in case of snmp it's if_index
+            local ifindex = query_tag.if_index or query_tag.port
             local ext_label = nil
             if cached_device then
-                ext_label = shortenString(snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex]), 64)
+                ext_label = shortenString(snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex]), 32)
+                if isEmptyString(ext_label) then
+                    ext_label = ifindex
+                end
             end
 
             sorted[#sorted + 1] = {
