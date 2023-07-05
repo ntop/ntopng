@@ -298,7 +298,7 @@ function redraw_select_pages() {
 
 async function change_active_page(new_active_page) {
     active_page = new_active_page;
-    if (props.paging == true) {
+    if (props.paging == true || force_refresh) {
 	await set_rows();
     } else {
 	set_active_rows();
@@ -338,8 +338,12 @@ function get_sort_function() {
     };
 }
 
-function refresh_table() {
+let force_refresh = false;
+async function refresh_table() {
+    force_refresh = true;
     select_table_page.value.change_active_page(0, 0);
+    await nextTick();
+    force_refresh = false;
 }
 
 let first_get_rows = true;
