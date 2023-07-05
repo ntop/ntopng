@@ -485,6 +485,7 @@ local lang = {
   ["save"] = "Save",
   ["save_configuration"] = "Save Configuration",
   ["save_settings"] = "Save Settings",
+  ["scan_hosts"] = "Scan",
   ["score"] = "Score",
   ["score_as_client"] = "Score As Client",
   ["score_as_server"] = "Score As Server",
@@ -3498,7 +3499,7 @@ local lang = {
     ["flows"] = "%{filter} Flows",
     ["flows_as_client"] = "Flows As Client",
     ["flows_as_server"] = "Flows As Server",
-    ["host"] = " [ Host <a href=\"%{base_url}/lua/host_details.lua?host=%{host}\">%{host_name}</a> ]",
+    ["host"] = " [ Host <a href=`${http_prefix}/lua/host_details.lua?host=%{host}`>%{host_name}</a> ]",
     ["host_pool_id"] = "Host Pool %{key}",
     ["hosts"] = "Hosts",
     ["icmp_only"] = "ICMP Only",
@@ -4099,6 +4100,19 @@ local lang = {
     ["user"] = "User %{pool_name}",
     ["user_title"] = "for User %{poolname}",
     ["vlan_title"] = "VLAN %{vlan}",
+    ["page_scan_hosts"] = {
+      ["add_host"] = "Add Host",
+      ["delete_host_description"] = "Are you sure to delete the selected Host?",
+      ["delete_host_title"] = "Delete Host",
+      ["edit_host"] = "Edit Host to Scan",
+      ["last_scan"] = "Last Scan",
+      ["scan_command_param"] = "Scan Parameters",
+      ["scan_type"] = "Scan Type",
+      ["title"] = "Hosts to Scan",
+      ["scan_type_list"] = {
+        ["nmap"] = "nmap",
+      },
+    },
   },
   ["http_info"] = {
     ["methods"] = {
