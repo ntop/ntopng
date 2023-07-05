@@ -40,12 +40,10 @@
             </div>
 
             <template v-for="(item, i) in charts_options_items" :key="item.key">
-                <div class="m-3" style="height:380px;">
-                    <TimeseriesChart :id="id_chart + i" :ref="el => { charts[i] = el }" :chart_type="chart_type"
-                        :register_on_status_change="false" :get_custom_chart_options="get_f_get_custom_chart_options(i)"
-                        @zoom="epoch_change" @chart_reloaded="chart_reloaded">
-                    </TimeseriesChart>
-                </div>
+                <TimeseriesChart :id="id_chart + i" :ref="el => { charts[i] = el }" :chart_type="chart_type"
+                    :register_on_status_change="false" :get_custom_chart_options="get_f_get_custom_chart_options(i)"
+                    @zoom="epoch_change" @chart_reloaded="chart_reloaded">
+                </TimeseriesChart>
             </template>
         </div>
 

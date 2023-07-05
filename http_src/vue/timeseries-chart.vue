@@ -1,13 +1,13 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-	<div style="width:100%" class="text-end">
+	<div style="width:100% height:380px;" class="text-end m-3">
 		<label class="form-check-label form-control-sm" v-for="(item, i) in  timeseries_list ">
 			<input type="checkbox" class="form-check-input align-middle mt-0" @click="change_visibility(!item.checked, i)"
 				:checked="item.checked" style="border-color: #0d6efd;" :style="{ backgroundColor: item.color }">
 			{{ item.name }}
 		</label>
 	</div>
-	<div style="width:100%" ref="chart"></div>
+	<div class="mb-3" style="width:100%" ref="chart"></div>
 </template>
 
 <script>
@@ -95,6 +95,7 @@ export default {
 			chart_options.zoomCallback = this.on_zoomed;
 			this.timeseries_list = [];
 			let visibility = [];
+			let last_point = null;
 			let id = 0;
 			for (const key in chart_options.series) {
 				this.timeseries_list.push({ name: key, checked: true, id: id, color: chart_options.colors[id] + "!important" });
