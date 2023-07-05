@@ -33,7 +33,7 @@ local messages = {
 local interfaces_names = {}
 
 for _, interface in pairs(interface.getIfNames()) do
-  interfaces_names["interface"] = {
+  interfaces_names[interface] = {
     label = getHumanReadableInterfaceName(interface),
     id = getInterfaceId(interface)
   }
