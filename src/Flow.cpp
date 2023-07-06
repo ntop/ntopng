@@ -3670,10 +3670,7 @@ void Flow::formatSyslogFlow(json_object *my_object) {
 /* *************************************** */
 
 void Flow::formatGenericFlow(json_object *my_object) {
-  char buf[64], jsonbuf[64];
-#ifdef FULL_SERIALIZATION
-  char *c;
-#endif
+  char buf[64], jsonbuf[64], *c;
   u_char community_id[200];
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
@@ -3882,6 +3879,36 @@ void Flow::formatGenericFlow(json_object *my_object) {
         json_object_new_double(toMs(&serverNwLatency)));
   }
 
+  c = cli_host ? cli_host->get_country(buf, sizeof(buf)) : NULL;
+  if(c) {
+    json_object *location = json_object_new_array();
+
+    json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(c));
+    if(location && cli_host) {
+      float latitude, longitude;
+
+      cli_host->get_geocoordinates(&latitude, &longitude);
+      json_object_array_add(location, json_object_new_double(longitude));
+      json_object_array_add(location, json_object_new_double(latitude));
+      json_object_object_add(my_object, "SRC_IP_LOCATION", location);
+    }
+  }
+
+  c = srv_host ? srv_host->get_country(buf, sizeof(buf)) : NULL;
+  if(c) {
+    json_object *location = json_object_new_array();
+
+    json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(c));
+    if(location && srv_host) {
+      float latitude, longitude;
+
+      srv_host->get_geocoordinates(&latitude, &longitude);
+      json_object_array_add(location, json_object_new_double(longitude));
+      json_object_array_add(location, json_object_new_double(latitude));
+      json_object_object_add(my_object, "DST_IP_LOCATION", location);
+    }
+  }
+  
 #ifdef FULL_SERIALIZATION
   if (ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
     json_object_object_add(
