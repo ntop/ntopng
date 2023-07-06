@@ -35,6 +35,14 @@ const sources_url_el_to_source = {
 			value,
 		};
 	},
+	device: (device) => {
+		let label = `${device.name}`;
+		let value = `${device.ip}`;
+		return {
+			label,
+			value,
+		};
+	},
 };
 
 const sources_types_tables = {
@@ -301,6 +309,7 @@ const sources_types = [
 		}, {
 			label: i18n("page_stats.source_def.device"),
 			regex_type: "ip",
+			sources_url: "lua/pro/rest/v2/get/snmp/device/list.lua", // url to get sources list
 			value: "device",
 			value_url: "host",
 			ui_type: ui_types.input,
@@ -314,7 +323,6 @@ const sources_types = [
 		}],
 	},
 	{
-		//todo_test
 		id: "snmp_device",
 		id_group: "snmp",
 		// disable_stats: true,
@@ -330,6 +338,7 @@ const sources_types = [
 			main_source_def: true,
 			label: i18n("page_stats.source_def.device"),
 			regex_type: "ip",
+			sources_url: "lua/pro/rest/v2/get/snmp/device/list.lua", // url to get sources list
 			value: "device",
 			value_url: "host",
 			ui_type: ui_types.input,
