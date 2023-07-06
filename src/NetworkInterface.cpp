@@ -11538,7 +11538,7 @@ bool NetworkInterface::verify_host_ip_filter(AggregatedFlowsStats *fs,
     vlan_id = 0;
   else
     vlan_id = stoi(vlan);
-
+  
   if(((!strcmp(fs->getCliIP(buf, sizeof(buf)), filter) && (vlan_id == 0 || vlan_id == fs->getCliVLANId()) )||
      ((!strcmp(fs->getSrvIP(buf, sizeof(buf)), filter)) && (vlan_id == 0 || vlan_id == fs->getSrvVLANId()))) )
     return true;
@@ -11565,7 +11565,7 @@ bool NetworkInterface::filters_flows(AggregatedFlowsStats *fs,
         } else if (h == 1) {
           vlan = token;
         }
-        token = strtok(NULL, "|");
+        token = strtok(NULL, "@");
         h++;
     }
   }
