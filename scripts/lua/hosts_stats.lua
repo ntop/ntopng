@@ -292,6 +292,7 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     label = i18n('active_hosts')
 }, {
     active = page == "inactive_hosts" or page == nil,
+    hidden = inactive_hosts_utils.getInactiveHostsNumber(ifstats.id) == 0,
     page_name = "inactive_hosts",
     label = i18n('inactive_hosts') ..
         '<span class="badge rounded-pill bg-dark" style="float: right; margin-top: -8px;">' ..
