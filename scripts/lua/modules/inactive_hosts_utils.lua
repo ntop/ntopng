@@ -46,6 +46,7 @@ function inactive_hosts_utils.getInactiveHosts(ifid, filters)
             host_list[#host_list + 1] = {
                 ip_address = host_info.ip,
                 mac_address = host_info.mac,
+                host = host_info.ip .. "@" .. host_info.vlan,
                 vlan = getFullVlanName(host_info.vlan),
                 vlan_id = host_info.vlan,
                 name = host_info.name,

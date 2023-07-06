@@ -69,7 +69,7 @@ else
         local length = _GET["length"]
         local order_field = _GET["sort"] or "last_seen"
         local order
-    
+
         if (_GET["order"]) and (_GET["order"] == "asc") then
             order = asc
         else
