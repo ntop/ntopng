@@ -21,7 +21,7 @@
                                         @click="get_permanent_link" :title="_i18n('graphs.get_permanent_link')"
                                         ref="permanent_link_button"><i class="fas fa-lg fa-link"></i></button>
                                     <a v-if="context.show_download" class="btn btn-link btn-sm" id="dt-btn-download"
-                                        :title="_i18n('graphs.download_records')"><i class="fas fa-lg fa-file"></i></a>
+                                        :title="_i18n('graphs.download_records')" :href="href_download_records"><i class="fas fa-lg fa-file"></i></a>
                                     <button v-if="context.show_pcap_download" class="btn btn-link btn-sm"
                                         @click="show_modal_traffic_extraction"
                                         :title="_i18n('traffic_recording.pcap_download')"><i
@@ -97,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, nextTick } from "vue";
+import { ref, onMounted, onBeforeMount,computed, nextTick } from "vue";
 import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility } from "../services/context/ntopng_globals_services";
 import NtopUtils from "../utilities/ntop-utils";
 import { ntopChartApex } from "../components/ntopChartApex.js";
@@ -146,6 +146,19 @@ const chart_type = ntopChartApex.typeChart.TS_COLUMN;
 const top_table_array = ref([]);
 const top_table_dropdown_array = ref([]);
 const note_list = ref([_i18n('show_alerts.alerts_info')]);
+
+const href_download_records = computed(() => {
+    // add impossible if on ref variable to reload this expression every time count_page_components_reloaded.value change
+    //if (count_page_components_reloaded.value < 0) { throw "never run"; }
+    const download_endpoint = props.context.download.endpoint;
+    let params = ntopng_url_manager.get_url_object();
+    /*let columns = table_alerts.value.get_columns_defs();
+    let visible_columns = columns.filter((c) => c.visible).map((c) => c.id).join(",");
+    */params.format = "txt";
+    //params.visible_columns = visible_columns;
+    const url_params = ntopng_url_manager.obj_to_url_params(params);
+    return `${location.origin}/${download_endpoint}?${url_params}`;
+});
 
 onBeforeMount(async () => {
     page = ntopng_url_manager.get_url_entry("page");

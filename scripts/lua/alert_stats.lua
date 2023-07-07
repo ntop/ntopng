@@ -777,6 +777,15 @@ if(status == "engaged") then
    table.insert(notes, i18n("show_alerts.engaged_notes"))
 end
 
+local download_endpoint =  "/lua/rest/v2/get/interface/alert/list.lua"
+
+for _,item in ipairs(pages) do
+   if item.active then
+      download_endpoint = item.endpoint_list
+      break
+   end
+end
+
 local context_2 = {
    ifid = ifid,
    opsep = tag_utils.SEPARATOR,
@@ -792,6 +801,10 @@ local context_2 = {
    show_acknowledge_all =  (page ~= 'all') and (status == "historical"),
    show_delete_all = (page ~= 'all') and (status ~= "engaged"),
    show_actions = (page ~= 'all'),
+
+   download ={
+      endpoint = download_endpoint,
+   },
    actions = {
        show_settings = (page ~= 'system') and isAdministrator(),
        show_flows = (page == 'host'),
