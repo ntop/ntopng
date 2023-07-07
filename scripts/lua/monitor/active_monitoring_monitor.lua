@@ -81,6 +81,10 @@ page_utils.print_navbar(navbar_title, url, {
         page_name = "alerts",
         label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
 	url = ntop.getHttpPrefix().."/lua/alert_stats.lua?&status=engaged&page=am_host"
+    }, {
+        active = page == "scan_hosts",
+        page_name = "scan_hosts",
+        label = i18n("scan_hosts")
     }
 })
 
@@ -127,6 +131,12 @@ if (page == "overview") then
 elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) then
    local host_value = host.host .. ",metric:" .. host.measurement
    graph_utils.drawNewGraphs({ifid = -1, host = host_value})
+elseif (page == "scan_hosts") then
+    local json_context = {
+        csrf = ntop.getRandomCSRFValue()
+    }
+    template.render("pages/vue_page.template", { vue_page_name = "PageHostsToScan", page_context = json.encode(json_context) })
+    
 end
 
 -- #######################################################

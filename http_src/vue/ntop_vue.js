@@ -44,6 +44,7 @@ import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.v
 import { default as PageInactiveHosts } from "./page-inactive-hosts.vue";
 import { default as PageInactiveHostDetails } from "./page-inactive-host-details.vue";
 import { default as PageFlowDeviceDetails } from "./page-flowdevice-config.vue";
+import { default as PageHostsToScan } from "./page-hosts-to-scan.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -104,6 +105,7 @@ let ntopVue = {
     PageHostsPortsAnalysis: PageHostsPortsAnalysis,
     PageInactiveHosts: PageInactiveHosts,
     PageInactiveHostDetails: PageInactiveHostDetails,
+    PageHostsToScan: PageHostsToScan,
 
     PageEditApplications: PageEditApplications,
 
