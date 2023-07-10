@@ -850,10 +850,8 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- RADIUS GUI authentication
 
         local elementToSwitch = {"row_toggle_radius_accounting", "radius_admin_group",
-                                 "radius_unpriv_capabilties_group", "radius_server_address", "radius_secret",
-                                 "row_radius_auth_proto"}
-
-        local showElements = (ntop.getPref("ntopng.prefs.radius.auth_enabled") == "1")
+                                 "radius_unpriv_capabilties_group", "radius_server_address", "radius_acct_server_address",
+                                 "radius_secret", "row_radius_auth_proto"}
 
         prefsToggleButton(subpage_active, {
             field = auth_toggles.radius,
@@ -863,31 +861,11 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
 
         -- RADIUS traffic accounting
-        local accountingElements = {"radius_acct_server_address"}
-
-        prefsToggleButton(subpage_active, {
-            field = "toggle_radius_accounting",
-            pref = "radius.accounting_enabled",
-            default = "0",
-            to_switch = accountingElements
-        })
-
+        local showElements = (ntop.getPref("ntopng.prefs.radius.auth_enabled") == "1")
         -- RADIUS server settings (used for both RADIUS auth and accountign)
         prefsInputFieldPrefs(subpage_active.entries["radius_server"].title,
             subpage_active.entries["radius_server"].description, "ntopng.prefs.radius", "radius_server_address",
             "127.0.0.1:1812", nil, showElements, true, false, {
-                attributes = {
-                    spellcheck = "false",
-                    maxlength = 255,
-                    required = "required",
-                    pattern = "[0-9.\\-A-Za-z]+:[0-9]+"
-                }
-            })
-
-        -- RADIUS server settings (used for both RADIUS auth and accountign)
-        prefsInputFieldPrefs(subpage_active.entries["radius_accounting_server"].title,
-            subpage_active.entries["radius_accounting_server"].description, "ntopng.prefs.radius",
-            "radius_acct_server_address", "127.0.0.1:1813", nil, showElements, true, false, {
                 attributes = {
                     spellcheck = "false",
                     maxlength = 255,
@@ -931,6 +909,29 @@ if auth.has_capability(auth.capabilities.preferences) then
                     spellcheck = "false",
                     maxlength = 255,
                     pattern = "[^\\s]+"
+                }
+            })
+
+        local accountingElements = {"radius_acct_server_address"}
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_radius_accounting",
+            pref = "radius.accounting_enabled",
+            default = "0",
+            to_switch = accountingElements,
+            hidden = not showElements
+        })
+        local showElementsAccounting = (ntop.getPref("ntopng.prefs.radius.accounting_enabled") == "1")
+
+        -- RADIUS server settings (used for both RADIUS auth and accountign)
+        prefsInputFieldPrefs(subpage_active.entries["radius_accounting_server"].title,
+            subpage_active.entries["radius_accounting_server"].description, "ntopng.prefs.radius",
+            "radius_acct_server_address", "127.0.0.1:1813", nil, showElements and showElementsAccounting, true, false, {
+                attributes = {
+                    spellcheck = "false",
+                    maxlength = 255,
+                    required = "required",
+                    pattern = "[0-9.\\-A-Za-z]+:[0-9]+"
                 }
             })
     end
