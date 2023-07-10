@@ -3116,9 +3116,18 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
     while (dequeueFlowFromCompanion(&dequeued)) {
       Flow *flow = NULL;
       bool src2dst_direction, new_flow;
+      u_int32_t private_flow_id = 0;
+
+      /* 
+       * Note: private_flow_id (e.g. DNS transaction ID) and vlan_id need to be
+       * populated in case of flows/alerts coming from external sources as otherwise
+       * correlation does not work. This seems not possible with Suricata as the
+       * DNS transaction ID is not part of the metadata, thus we need another way
+       * to handle it (TODO)
+       */
 
       flow = getFlow(NULL /* srcMac */, NULL /* dstMac */, 0 /* vlan_id */,
-                     0 /* observationPointId */, 0 /* private_flow_id */,
+                     0 /* observationPointId */, private_flow_id,
                      0 /* deviceIP */, 0 /* inIndex */, 1 /* outIndex */,
                      NULL /* ICMPinfo */, &dequeued->src_ip, &dequeued->dst_ip,
                      dequeued->src_port, dequeued->dst_port, dequeued->l4_proto,

@@ -27,6 +27,7 @@
 			       :f_get_column_classes="get_column_classes"
 			       :f_is_column_sortable="is_column_sortable"
 			       :enable_search="true"
+                   :display_empty_rows="true"
 			       :paging="true">
                         </Table>
                     </div>

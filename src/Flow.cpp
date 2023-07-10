@@ -1650,16 +1650,18 @@ bool Flow::dump(time_t t, bool last_dump_before_free) {
 
   if (!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
 #ifdef TINY_FLOWS_DEBUG
+    char buf[256];
     ntop->getTrace()->traceEvent(
         TRACE_NORMAL,
         "Skipping tiny flow dump "
         "[flow key: %u]"
         "[packets current/max: %i/%i] "
-        "[bytes current/max: %i/%i].",
+        "[bytes current/max: %i/%i]"
+        ": %s",
         key(), get_packets(),
         ntop->getPrefs()->get_max_num_packets_per_tiny_flow(), get_bytes(),
-        ntop->getPrefs()->get_max_num_bytes_per_tiny_flow());
-
+        ntop->getPrefs()->get_max_num_bytes_per_tiny_flow(),
+        print(buf, sizeof(buf)));
 #endif
     return (rc);
   }
@@ -4491,8 +4493,9 @@ void Flow::housekeep(time_t t) {
       if (!is_swap_requested() /* Swap not requested */
           || (is_swap_requested() &&
               !is_swap_done())) /* Or requested but never performed (no more
-                                   packets seen) */
+                                   packets seen) */ {
         iface->execFlowEndChecks(this);
+      }
 
       dumpCheck(t, true /* LAST dump before delete */);
 
@@ -7828,7 +7831,8 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc,
   if (async && alerts_map.isSetBit(alert_type.id)) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                                 "Discarding alert (already set)");
+        "[%s] Discarding alert type %u (already set)",
+        iface->get_name(), alert_type.id);
 #endif
     return false;
   }
@@ -7871,13 +7875,14 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc,
      || getPredominantAlertScore() < flow_inc /* The score of the current alerted alert_type is less than the score of this alert_type */) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(
-        TRACE_NORMAL, "Setting predominant with score: %u", flow_inc);
+        TRACE_NORMAL, "[%s] Setting predominant alert (%u) with score %u",
+        iface->get_name(), alert_type.id, flow_inc);
 #endif
     setPredominantAlert(alert_type, flow_inc);
 #ifdef DEBUG_SCORE
   } else {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (score <= %u)",
-                                 getPredominantAlertScore());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Discarding alert (%u) [score %u <= %u]",
+        iface->get_name(), alert_type.id, flow_inc, getPredominantAlertScore());
 #endif
   }
 

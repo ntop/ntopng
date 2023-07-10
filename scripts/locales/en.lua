@@ -946,7 +946,7 @@ local lang = {
     ["traffic_flowdev_port_volume_alert"] = "[Flow Exporter Device: <a href=\"%{url}\">%{host} on %{iface}</a>] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
     ["traffic_flowdev_volume_alert"] = "[Flow Exporter Device: <a href=\"%{url}\">%{host}</a>] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
     ["traffic_interface_volume_alert"] = "[Interface: <a href=\"%{url}\">%{iface}</a>] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
-    ["traffic_volume_alert"] = "[Metric: %{metric}] [Condition: %{value} > %{threshold}] [Check Frequency: %{frequency}]",
+    ["traffic_volume_alert"] = "[Metric: %{metric}] [Condition: %{value} %{sign} %{threshold}] [Check Frequency: %{frequency}]",
     ["unknown_contacted_peers"] = "Too many Peers contacted by %{host} %{host_category}.",
     ["vlan_bidirectional_traffic"] = "Detected bidirectional traffic flow on VLAN %{vlan} [RX : %{rx} > 0 & TX : %{tx}]",
     ["x_alerts"] = "%{num} alerts",
