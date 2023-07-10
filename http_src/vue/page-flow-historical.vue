@@ -528,7 +528,7 @@ function show_modal_alerts_filter(alert) {
 }
 
 function get_permanent_link() {
-    const $this = permanent_link_button.value;
+    const $this = $(permanent_link_button.value);
     const placeholder = document.createElement('input');
     placeholder.value = location.href;
     document.body.appendChild(placeholder);
@@ -537,8 +537,7 @@ function get_permanent_link() {
     // copy the url to the clipboard from the placeholder
     document.execCommand("copy");
     document.body.removeChild(placeholder);
-
-    $this.attr("title", "{{ i18n('copied') }}!")
+    $this.attr("title", `${_i18n('copied')}!`)
         .tooltip("dispose")
         .tooltip()
         .tooltip("show");

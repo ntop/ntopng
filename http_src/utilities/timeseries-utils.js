@@ -279,10 +279,7 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 	let colors_palette = [];
 	let serie_properties = {};
 	let customBars = false;
-	let use_full_name = false;
-	if (tsOptionsArray.length > 1) {
-		use_full_name = true;
-	}
+	let use_full_name = true;
 	
 	/* Go throught each serie */
 	tsOptionsArray.forEach((tsOptions, i) => {
