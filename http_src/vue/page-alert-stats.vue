@@ -136,6 +136,7 @@ const permanent_link_button = ref(null);
 const modal_alerts_filter = ref(null);
 const modal_acknowledge = ref(null);
 const modal_delete = ref(null);
+const count_page_components_reloaded = ref(0);
 
 const current_alert = ref(null);
 const default_ifid = props.context.ifid;
@@ -148,14 +149,17 @@ const top_table_dropdown_array = ref([]);
 const note_list = ref([_i18n('show_alerts.alerts_info')]);
 
 const href_download_records = computed(() => {
+    if (!props.context.show_chart || table_alerts.value == null) {
+        return ``;
+    }
     // add impossible if on ref variable to reload this expression every time count_page_components_reloaded.value change
-    //if (count_page_components_reloaded.value < 0) { throw "never run"; }
+    if (count_page_components_reloaded.value < 0) { throw "never run"; }
     const download_endpoint = props.context.download.endpoint;
     let params = ntopng_url_manager.get_url_object();
-    /*let columns = table_alerts.value.get_columns_defs();
+    let columns = table_alerts.value.get_columns_defs();
     let visible_columns = columns.filter((c) => c.visible).map((c) => c.id).join(",");
-    */params.format = "txt";
-    //params.visible_columns = visible_columns;
+    params.format = "txt";
+    params.visible_columns = visible_columns;
     const url_params = ntopng_url_manager.obj_to_url_params(params);
     return `${location.origin}/${download_endpoint}?${url_params}`;
 });
@@ -374,7 +378,7 @@ function show_modal_alerts_filter(alert) {
 }
 
 function get_permanent_link() {
-    const $this = permanent_link_button.value;
+    const $this = $(permanent_link_button.value);
     const placeholder = document.createElement('input');
     placeholder.value = location.href;
     document.body.appendChild(placeholder);
@@ -383,8 +387,8 @@ function get_permanent_link() {
     // copy the url to the clipboard from the placeholder
     document.execCommand("copy");
     document.body.removeChild(placeholder);
-
-    $this.attr("title", "{{ i18n('copied') }}!")
+    
+    $this.attr("title", `${_i18n('copied')}!`)
         .tooltip("dispose")
         .tooltip()
         .tooltip("show");
