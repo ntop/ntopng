@@ -76,9 +76,7 @@ class IpAddress {
     else
       return (false);
   };
-  inline bool equal(const IpAddress* const _ip) const {
-    return (this->compare(_ip) == 0);
-  };
+  inline bool equal(const IpAddress* const _ip) const { return((this->compare(_ip) == 0) ? true : false); };
   int compare(const IpAddress* const ip) const;
   inline u_int32_t key() const { return (ip_key); };
   inline void set(u_int32_t _ipv4) {

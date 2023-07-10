@@ -8256,3 +8256,18 @@ bool Flow::isDPIDetectedFlow() {
     return(false);
   }
 }
+
+/* **************************************************** */
+
+bool Flow::matchFlowIP(IpAddress *ip, u_int16_t vlan_id) {
+  if(get_vlan_id() != vlan_id) return(false);
+  
+  if((!get_cli_ip_addr()) || (!get_srv_ip_addr()))
+    return(false);
+  
+  if(get_cli_ip_addr()->equal(ip) || get_srv_ip_addr()->equal(ip))
+    return(true);
+  else
+    return(false);
+}
+

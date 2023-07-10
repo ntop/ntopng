@@ -318,6 +318,7 @@ class Utils {
   static void swap32(u_int32_t *a, u_int32_t *b);
   static void swapfloat(float *a, float *b);
   static char* createRandomString(char *buf, size_t buf_len);
+  static IpAddress* parseHostString(char *host_ip, u_int16_t *vlan_id /* out */);
 };
 
 #endif /* _UTILS_H_ */

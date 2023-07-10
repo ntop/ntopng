@@ -5471,3 +5471,35 @@ char* Utils::createRandomString(char *buf, size_t buf_len) {
   return(buf);
 }
 
+/* ******************************************* */
+
+/* IMPORTANT: the returned IpAddress* must be freed by the caller */
+IpAddress* Utils::parseHostString(char *host_ip, u_int16_t *vlan_id /* out */) {
+  IpAddress *ip_addr = NULL;
+  char *ip = NULL, *vlan = NULL;
+  
+  if (host_ip != NULL && host_ip[0] != 0) {
+    char *token = strtok(host_ip, "@");
+    int h = 0;
+
+    while (token != NULL)  {
+      if(h == 0)
+	ip = token;
+      else if (h == 1)
+	vlan = token;
+
+        token = strtok(NULL, "@");
+        h++;
+    }
+  }
+
+  if(ip != NULL) {
+    ip_addr = new IpAddress();
+    if(ip_addr) ip_addr->set(ip);    
+  } else
+    ip_addr = NULL;
+  
+  *vlan_id = vlan ? stoi(vlan) : 0;
+
+  return(ip_addr);
+}

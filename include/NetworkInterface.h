@@ -138,12 +138,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                              been enqueued for dump */
 
   /* CustomScript VMs */
-  LuaEngine *customFlowLuaScript_proto, /* Called when nDPI has detected the
-                                           protocol */
-      *customFlowLuaScript_periodic,    /* Called periodically on flows    */
-      *customFlowLuaScript_end; /* Called when the flow ends                  */
+  LuaEngine *customFlowLuaScript_proto, /* Called when nDPI has detected the protocol */
+    *customFlowLuaScript_periodic, /* Called periodically on flows    */
+    *customFlowLuaScript_end;      /* Called when the flow ends       */
   LuaEngine *customHostLuaScript; /* Called periodically on hosts */
-
+  
   /* Queues for the execution of flow user scripts */
   SPSCQueue<FlowAlert *> *flowAlertsQueue;
   SPSCQueue<HostAlertReleasedPair> *hostAlertsQueue;
@@ -426,17 +425,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                           u_int16_t protocol,
                           bool get_port);
   void sort_and_filter_flow_stats(lua_State *vm,
-				  std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count,
-				  std::unordered_map<string, AggregatedFlowsStats *> *count_info,
+				  struct aggregated_stats *stats,
 				  AnalysisCriteria filter_type);
-  
-  bool filters_flows(AggregatedFlowsStats *fs, char *search_filter, AnalysisCriteria filter_type, char *host_ip_filter );
-  bool verify_search_filter(AggregatedFlowsStats* fs, char* filter, AnalysisCriteria filter_type);
-  bool verify_search_filter_on_client(AggregatedFlowsStats* fs, char* filter);
-  bool verify_search_filter_on_server(AggregatedFlowsStats* fs, char* filter);
-
-  bool verify_host_ip_filter(AggregatedFlowsStats *fs, char *filter, string vlan);
-
   void build_lua_rsp(lua_State *vm, AggregatedFlowsStats *fs, u_int filter_type,
                      u_int32_t size, u_int *num, bool set_resp);
   void build_protocol_flow_stats_lua_rsp(lua_State *vm, AggregatedFlowsStats *fs,

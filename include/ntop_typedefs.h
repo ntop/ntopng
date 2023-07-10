@@ -1212,6 +1212,7 @@ typedef struct {
 } RadiusTraffic;
 
 typedef enum {
+  unknown_criteria,
   application_criteria = 1,
   client_criteria,
   server_criteria,
@@ -1219,5 +1220,6 @@ typedef enum {
   app_client_server_criteria,
   info_criteria
 } AnalysisCriteria;
+
 
 #endif /* _NTOP_TYPEDEFS_H_ */

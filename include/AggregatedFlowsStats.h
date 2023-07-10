@@ -63,6 +63,9 @@ class AggregatedFlowsStats {
   inline char* getInfoKey() { return (info_key ? info_key : (char *)""); };
   inline const char* getCliIP(char* buf, u_int len) { return (client ? client->getIP(buf, len) : (char *)""); };
   inline const char* getSrvIP(char* buf, u_int len) { return (server ? server->getIP(buf, len) : (char *)""); };
+  inline IpAddress* getClientIPaddr() { return(client ? client->getIPaddr() : NULL); }
+  inline IpAddress* getServerIPaddr() { return(server ? server->getIPaddr() : NULL); }
+
   inline const char* getCliName(char* buf, u_int len) {
     return (client ? client->getHostName(buf, len) : (char *)"");
   };
@@ -106,7 +109,13 @@ class AggregatedFlowsStats {
   void incFlowStats(const IpAddress* _client, const IpAddress* _server,
                            u_int64_t bytes_sent, u_int64_t bytes_rcvd,
                            u_int32_t score);
+};
 
+struct aggregated_stats {
+  std::unordered_map<u_int64_t, AggregatedFlowsStats *> count;
+  std::unordered_map<string, AggregatedFlowsStats *> info_count;
+  IpAddress *ip_addr;
+  u_int16_t vlan_id;
 };
 
 #endif /* _FLOWS_STATS_H_ */

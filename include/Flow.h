@@ -919,6 +919,7 @@ class Flow : public GenericHashEntry {
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
   bool dump(time_t t, bool last_dump_before_free);
   bool match(AddressTree *ptree);
+  bool matchFlowIP(IpAddress *ip, u_int16_t vlan_id);
   void dissectHTTP(bool src2dst_direction, char *payload,
                    u_int16_t payload_len);
   void dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_len);
