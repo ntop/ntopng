@@ -38,9 +38,10 @@ const get_timeseries_groups_from_url = async (http_prefix, url_timeseries_groups
         return null;
     }
     let groups = url_timeseries_groups.split(";;");
-    if (groups != null && groups.length > 0) {
-        return null;
-    }
+    groups.map(async (g) => {
+        let ts_group = await get_url_param_from_ts_group(g);
+        return ts_group;
+    });
     let timeseries_groups = Promise.all(groups.map(async (g) => {
         let ts_group = await get_url_param_from_ts_group(g);
         return ts_group;
