@@ -27,6 +27,24 @@
 					"event_id": "click_button_edit_host"
 				},
 				{
+					"id": "scan",
+					"icon": "fas fa-search",
+					"title_i18n": "hosts_stats.page_scan_hosts.schedule_scan",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_scan"
+				},
+				{
+					"id": "download",
+					"icon": "fas fa-lg fa-download",
+					"title_i18n": "hosts_stats.page_scan_hosts.download_last_scan_result",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_download"
+				},
+				{
 					"id": "delete",
 					"icon": "fas fa fa-trash",
 					"title_i18n": "delete",
@@ -34,14 +52,6 @@
 						"link-button"
 					],
 					"event_id": "click_button_delete"
-				}, {
-					"id": "scan",
-					"icon": "fas fa-search",
-					"title_i18n": "scan_hosts",
-					"class": [
-						"link-button"
-					],
-					"event_id": "click_button_scan"
 				}
 			]
 		},
@@ -66,7 +76,6 @@
 			"data_field": "last_scan",
 			"sortable": true,
 			"class": [
-				"text-center",
 				"text-nowrap"
 			]
 		}

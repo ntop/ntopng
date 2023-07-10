@@ -10,7 +10,7 @@ local rest_utils = require "rest_utils"
 local scan_utils = require "scan_utils"
 local debug = false
 
-debug = true
+--debug = true
 
 local function retrieve_host() 
     return scan_utils.retrieve_hosts_to_scan(debug)

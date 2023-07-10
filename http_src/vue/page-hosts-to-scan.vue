@@ -29,7 +29,7 @@
                 class='fas fa-trash'></i> {{ _i18n("delete_all_entries") }}</button>
             
                 <button type="button" ref="scan_all" @click="scan_all_entries" class="btn btn-primary me-1"><i
-                class='fas fa-search'></i> {{ _i18n("scan_all_hosts") }}</button>
+                class='fas fa-search'></i> {{ _i18n("hosts_stats.page_scan_hosts.schedule_all_scan") }}</button>
           
             </div>
         </div>
@@ -61,14 +61,18 @@ const modal_add = ref();
 const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`
 const remove_host_url = `${http_prefix}/lua/rest/v2/delete/host/delete_host_to_scan.lua`
 const scan_host_url = `${http_prefix}/lua/rest/v2/add/host/scan_host.lua`
+const scan_result_url = `${http_prefix}/lua/rest/v2/get/host/scan_result.lua`
 const scan_type_list_url = `${http_prefix}/lua/rest/v2/get/host/scan_type_list.lua`
 
 
 const row_to_delete = ref({})
 const row_to_scan = ref({})
+const row_to_download_result = ref({})
 let scan_type_list = []
 
-
+const props = defineProps({
+  context: Object,
+});
 const rest_params = {
   csrf: props.context.csrf
 }
@@ -84,9 +88,7 @@ const add_host_rest = async function (params) {
 }
 
 const change_applications_tab_event = "change_applications_tab_event";
-const props = defineProps({
-  context: Object,
-});
+
 const context = ref({
   csrf: props.context.csrf,
 })
@@ -116,6 +118,7 @@ function on_table_custom_event(event) {
     "click_button_edit_host": click_button_edit_host,
     "click_button_delete": click_button_delete,
     "click_button_scan": click_button_scan,
+    "click_button_download": click_button_download,
   };
   if (events_managed[event.event_id] == null) {
     return;
@@ -136,6 +139,12 @@ async function click_button_delete(event) {
 async function click_button_scan(event) {
   row_to_scan.value = event.row;
   await scan_row();  
+  refresh_table();
+}
+
+async function click_button_download(event) {
+  row_to_download_result.value = event.row;
+  await download_row_result();  
   refresh_table();
 }
 
@@ -186,6 +195,20 @@ const scan_row = async function() {
   });
 }
 
+const download_row_result = async function() {
+  const row = row_to_download_result.value;
+  const url = NtopUtils.buildURL(scan_result_url, {
+    ...rest_params,
+    ...{
+      host: row.host,
+      scan_type: row.scan_type
+    }
+  })
+  await $.get(url, function(rsp, status){
+    refresh_table();
+  });
+}
+
 
 async function edit(params) {
   await delete_row();
@@ -212,8 +235,31 @@ function click_button_edit_host(event) {
 
 const map_table_def_columns = (columns) => {
   
-
+  let map_columns = {
+    "scan_type" :(scan_type, row) => {
+            if (scan_type !== undefined) {
+              let label = scan_type
+              scan_type_list.forEach((item) => {
+                if(item.id.localeCompare(scan_type) == 0) {
+                  label = item.label;
+                }
+              })
+              return label;
+            }
+      },
+    "last_scan":(last_scan, row) => {
+            if (last_scan !== undefined && last_scan.time!== undefined) {
+              return last_scan.time;
+            } else if(last_scan !== undefined) {
+              return last_scan;
+            } else {
+              return "";
+            }
+      }, 
+  }
   columns.forEach((c) => {
+    c.render_func = map_columns[c.data_field];
+
     if (c.id == "actions") {
       const visible_dict = {
         historical_data: props.show_historical,
@@ -230,7 +276,9 @@ const map_table_def_columns = (columns) => {
 };
 
 const get_scan_type_list = async function() {
-  const url = NtopUtils.buildURL(scan_type_list_url, rest_params)
+  const url = NtopUtils.buildURL(scan_type_list_url, {
+    ...rest_params
+  })
   await $.get(url, function(rsp, status){
     scan_type_list = rsp.rsp;
   });

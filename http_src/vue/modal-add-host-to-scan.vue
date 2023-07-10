@@ -29,9 +29,12 @@
       
     </template>
     <template v-slot:footer>
+      <div class="ms-2 me-2 mt-3">
+
       <NoteList
       :note_list="note_list">
       </NoteList>
+      </div>
       <template v-if="is_edit_page == false">
       <button type="button" @click="add_" class="btn btn-primary"  :disabled="disable_add">{{_i18n('add')}}</button>
       </template>
@@ -43,7 +46,7 @@
   </template>
   
 <script setup>
-import { ref } from "vue";
+import { ref, onBeforeMount } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as NoteList } from "./note-list.vue";
@@ -53,7 +56,7 @@ const modal_id = ref(null);
 const selected_scan_type = ref(null);
 const emit = defineEmits(['add','edit']);
 let title = i18n('hosts_stats.page_scan_hosts.add_host');
-const host_placeholder = i18n('if_stats_config.host_placeholder')
+const host_placeholder = i18n('hosts_stats.page_scan_hosts.host_placeholder')
 const _i18n = (t) => i18n(t);
 
 const disable_add = ref(true)
@@ -62,11 +65,8 @@ const is_edit_page = ref(false)
 
 
 const note_list = [
-  _i18n('if_stats_config.note_1'),
-  _i18n('if_stats_config.note_2'),
-  _i18n('if_stats_config.note_3'),
-  _i18n('if_stats_config.note_4'),
-  _i18n('if_stats_config.note_5')
+  _i18n('hosts_stats.page_scan_hosts.notes.note_1'),
+  _i18n('hosts_stats.page_scan_hosts.notes.note_2')
 ]
 
 const scan_type_list = ref([])
@@ -76,24 +76,16 @@ const host = ref(null)
 const showed = () => {};
 
 const props = defineProps({
-  scan_type_list: Array,
-  page_csrf: String,
+  context: Object,
 });
 
-const rest_params = {
-  csrf: props.page_csrf
-}
-
-function reset_radio_selection(radio_array) {
-
-  radio_array.forEach((item) => item.active = item.default_active == true );
-}
 
 /**
  * 
  * Reset fields in modal form 
  */
-const reset_modal_form = async function() {
+const reset_modal_form = function() {
+    debugger;
     host.value = "";
     selected_scan_type.value = scan_type_list.value[0];
 }
@@ -173,10 +165,14 @@ const edit_ = () => {
 const close = () => {
   modal_id.value.close();
 };
-  
+
+onBeforeMount(async () => {
+  selected_scan_type.value = {}
+});  
+
 const metricsLoaded = async (_scan_type_list ) => {
-  debugger;
   scan_type_list.value = _scan_type_list;
+  selected_scan_type.value = scan_type_list.value[0];
 }
     
 defineExpose({ show, close, metricsLoaded });
