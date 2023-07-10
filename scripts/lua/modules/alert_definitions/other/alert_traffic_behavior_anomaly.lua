@@ -60,9 +60,8 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_traffic_behavior_anomaly.format(ifid, alert, alert_type_params)
-   local href = ""
    local type_of_behavior = ""
-   
+
    -- Name of the behavior type, e.g. Score
    if alert_type_params.type_of_behavior then
       type_of_behavior = i18n("alert_behaviors." .. alert_type_params.type_of_behavior)
@@ -83,27 +82,8 @@ function alert_traffic_behavior_anomaly.format(ifid, alert, alert_type_params)
             end
          end
 
-         local timeseries_table = behavior_utils.get_behavior_timeseries_utils(key or (alert_type_params["family_key"]))
          -- Formatting all the strings used to create the href to the graph
          local timeseries_id = {}
-
-         if timeseries_table["timeseries_id"] then
-            timeseries_id[timeseries_table["timeseries_id"]] = alert_type_params["timeseries_id"]
-         end
-
-         local tmp = {
-            ifid = interface.getId(),
-            page = timeseries_table["page"],
-            ts_schema = timeseries_table["schema_id"] .. "%3A" .. (timeseries_table["type_of_behavior"] or alert_type_params.type_of_behavior),
-            zoom = "30m",
-            epoch_begin = tonumber(alert_time - 600),
-            epoch_end = tonumber(alert_time + 600),
-         }         
-
-         tmp = table.merge(tmp, alert_type_params["extra_params"] or {})
-         tmp = table.merge(tmp, timeseries_id)
-         
-         href = timeseries_table["page_path"] .. "?" .. table.tconcat(tmp, "=", "&")
       end
    end
 
@@ -113,7 +93,6 @@ function alert_traffic_behavior_anomaly.format(ifid, alert, alert_type_params)
       value = alert_type_params.value or 0,
       lower_bound = alert_type_params.lower_bound or 0,
       upper_bound = alert_type_params.upper_bound or 0,
-      href = href,
    }))
 end
 
