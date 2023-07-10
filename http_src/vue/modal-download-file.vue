@@ -34,7 +34,7 @@ const filename = ref("");
 
 //const filename_validation = `[\`~!@#$%^&*_|+-=?;:'",.<>{}[]\\/]`;
 const backtick = '`';
-const filename_validation = String.raw`^[^~${backtick}!@#$%^&*|+\-=?;:'"\\,.<>\/{}()\[\]\s]+$`;
+const filename_validation = String.raw`^[a-zA-Z_\-1-9]*$`;
 
 const enable_download = computed(() => {
   let rg_text = filename_validation;
