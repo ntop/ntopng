@@ -3126,7 +3126,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
        * to handle it (TODO)
        */
 
-      flow = getFlow(NULL /* srcMac */, NULL /* dstMac */, 0 /* vlan_id */,
+      flow = getFlow(NULL /* srcMac */, NULL /* dstMac */, dequeued->vlan_id,
                      0 /* observationPointId */, private_flow_id,
                      0 /* deviceIP */, 0 /* inIndex */, 1 /* outIndex */,
                      NULL /* ICMPinfo */, &dequeued->src_ip, &dequeued->dst_ip,
