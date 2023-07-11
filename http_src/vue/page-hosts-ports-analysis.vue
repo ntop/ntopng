@@ -52,7 +52,11 @@
                                     <template v-slot:menu>
                                         <a v-for="opt in t.options" style="cursor:pointer;"
                                             @click="add_table_filter(opt, $event)" class="ntopng-truncate tag-filter"
-                                            :title="opt.value">{{ opt.label }}</a>
+                                            :title="opt.value">
+
+                                            <template v-if="opt.count == null">{{ opt.label }}</template>
+                                            <template v-else>{{ opt.label + " (" + opt.count + ")" }}</template>
+                                            </a>
                                     </template>
                                 </Dropdown>
                             </template> <!-- Dropdown filters -->
