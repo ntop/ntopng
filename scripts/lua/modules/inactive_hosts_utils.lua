@@ -26,6 +26,7 @@ function inactive_hosts_utils.getInactiveHosts(ifid, filters)
         if not isEmptyString(host_info_json) then
             local host_info = json.decode(host_info_json)
             local mac_manufacturer = ntop.getMacManufacturer(host_info.mac) or {}
+            local mac_manufacturer_label = ""
 
             for filter, value in pairs(filters or {}) do
                 if filter == "manufacturer" then
@@ -41,6 +42,9 @@ function inactive_hosts_utils.getInactiveHosts(ifid, filters)
                 if ns.network_id == tonumber(host_info.network) then
                     network_name = getFullLocalNetworkName(ns.network_key)
                 end
+            end
+            if mac_manufacturer and not isEmptyString(mac_manufacturer.extended) then
+                mac_manufacturer_label = mac_manufacturer.extended
             end
 
             host_list[#host_list + 1] = {
@@ -59,7 +63,7 @@ function inactive_hosts_utils.getInactiveHosts(ifid, filters)
                 network_id = host_info.network,
                 network = network_name,
                 serial_key = redis_key,
-                manufacturer = mac_manufacturer.extended
+                manufacturer = mac_manufacturer_label
             }
         end
 

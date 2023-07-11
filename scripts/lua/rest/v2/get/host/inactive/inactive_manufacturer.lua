@@ -17,7 +17,7 @@ local ifid        = _GET["ifid"] or interface.getId()
 interface.select(tostring(ifid))
 
 local inactive_hosts_manufacturer = inactive_hosts_utils.getManufacturerFilters(ifid)--, inactive_hosts_utils.getFilters())
-local max = 10
+local max = 9
 local other_num = 0
 local series = {}
 local labels = {}
