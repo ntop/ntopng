@@ -39,13 +39,14 @@ if ntop.isPro() then
     end
 end
 
-function formatASN(v)
+function formatASN(v, ip)
     local asn
-
     if (v == 0) then
         asn = "&nbsp;"
-    else
-        asn = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. v .. "\">" .. v .. "</A>"
+    elseif not isEmptyString(ip) then
+        local as_name = ntop.getASName(ip)
+        local label = v .. " (" .. (as_name or "") .. ")"
+        asn = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. v .. "\">" .. label .. "</A>"
     end
 
     print("<td>" .. asn .. "</td>\n")
@@ -1713,8 +1714,8 @@ else
         print("<tr>")
         print("<th width=30%>" .. i18n("flow_details.as_src_dst") .. "</th>")
 
-        formatASN(flow.src_as)
-        formatASN(flow.dst_as)
+        formatASN(flow.src_as, flow["cli.ip"])
+        formatASN(flow.dst_as, flow["srv.ip"])
 
         print("</tr>\n")
     end
