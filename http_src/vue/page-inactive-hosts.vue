@@ -50,7 +50,10 @@
                   </template>
                   <template v-slot:menu>
                     <a v-for="opt in t.options" style="cursor:pointer;" @click="add_table_filter(opt, $event)"
-                      class="ntopng-truncate tag-filter" :title="opt.value">{{ opt.label }}</a>
+                      class="ntopng-truncate tag-filter" :title="opt.value">
+                      <template v-if="opt.count == null">{{ opt.label }}</template>
+                      <template v-else>{{ opt.label + " (" + opt.count + ")" }}</template>
+                    </a>
                   </template>
                 </Dropdown> <!-- Dropdown filters -->
               </template>
@@ -196,6 +199,7 @@ function set_filter_array_label() {
 /* ************************************** */
 
 async function load_table_filters(filter, filter_index) {
+  filter.show_spinner = true;
   await nextTick();
   if (filter.data_loaded == false) {
     let new_filter_array = await load_table_filters_array(filter.id, filter);
@@ -204,6 +208,7 @@ async function load_table_filters(filter, filter_index) {
     let dropdown = filter_table_dropdown_array.value[filter_index];
     dropdown.load_menu();
   }
+  filter.show_spinner = false;
 }
 
 /* ************************************** */
