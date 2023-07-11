@@ -2601,6 +2601,41 @@ end
 
 -- #################################
 
+local function add_flowdev_interfaces_timeseries(tags, timeseries)
+    local snmp_utils = require "snmp_utils"
+
+    local ports = interface.getFlowDeviceInfo(tags.device) or {}
+    for port_idx, _ in pairs(ports) do
+        local ifname = format_portidx_name(tags.device, port_idx, true, true)
+        timeseries[#timeseries + 1] = {
+            schema = "flowdev_port:traffic",
+            group = i18n("graphs.interfaces"),
+            priority = 2,
+            query = "port:" .. port_idx,
+            label = i18n('graphs.interface_label_traffic', {
+                if_name = ifname
+            }),
+            measure_unit = "bps",
+            scale = i18n("graphs.metric_labels.traffic"),
+            timeseries = {
+                bytes_sent = {
+                    label = ifname .. " " .. i18n('graphs.metric_labels.sent'),
+                    color = timeseries_info.get_timeseries_color('bytes_sent')
+                },
+                bytes_rcvd = {
+                    invert_direction = true,
+                    label = ifname .. " " .. i18n('graphs.metric_labels.rcvd'),
+                    color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                }
+            }
+        }
+    end
+    
+    return timeseries
+end
+
+-- #################################
+
 local function add_snmp_interfaces_timeseries(tags, timeseries)
     local snmp_cached_dev = require "snmp_cached_dev"
     local snmp_utils = require "snmp_utils"
@@ -2677,53 +2712,25 @@ local function add_snmp_interfaces_timeseries(tags, timeseries)
 
     if not table.empty(cached_device) and cached_device["interfaces"] then
         for interface_index, interface_info in pairs(cached_device["interfaces"] or {}) do
+            local ifname = snmp_utils.get_snmp_interface_label(interface_info)
             timeseries[#timeseries + 1] = {
                 schema = "snmp_if:traffic",
                 group = i18n("graphs.interfaces"),
                 priority = 2,
                 query = "if_index:" .. interface_index,
                 label = i18n('graphs.interface_label_traffic', {
-                    if_name = snmp_utils.get_snmp_interface_label(interface_info)
+                    if_name = ifname
                 }),
                 measure_unit = "bps",
                 scale = i18n("graphs.metric_labels.traffic"),
                 timeseries = {
                     bytes_sent = {
-                        label = i18n('graphs.metric_labels.sent'),
+                        label = ifname .. " " .. i18n('graphs.metric_labels.sent'),
                         color = timeseries_info.get_timeseries_color('bytes_sent')
                     },
                     bytes_rcvd = {
                         invert_direction = true,
-                        label = i18n('graphs.metric_labels.rcvd'),
-                        color = timeseries_info.get_timeseries_color('bytes_rcvd')
-                    }
-                }
-            }
-            timeseries[#timeseries + 1] = {
-                schema = "snmp_if:packets",
-                group = i18n("graphs.interfaces"),
-                query = "if_index:" .. interface_index,
-                label = i18n('graphs.interface_label_packets', {
-                    if_name = snmp_utils.get_snmp_interface_label(interface_info)
-                }),
-                priority = 2,
-                measure_unit = "pps",
-                scale = i18n("graphs.metric_labels.packets"),
-                timeseries = {
-                    ucast_sent = {
-                        label = i18n('graphs.bytes_sent_unicast'),
-                        color = timeseries_info.get_timeseries_color('bytes_sent')
-                    },
-                    nucast_sent = {
-                        label = i18n('graphs.non_unicast_sent'),
-                        color = timeseries_info.get_timeseries_color('bytes_sent')
-                    },
-                    ucast_rcvd = {
-                        label = i18n('graphs.unicast_rcvd'),
-                        color = timeseries_info.get_timeseries_color('bytes_rcvd')
-                    },
-                    nucast_rcvd = {
-                        label = i18n('graphs.non_unicast_rcvd'),
+                        label = ifname .. " " .. i18n('graphs.metric_labels.rcvd'),
                         color = timeseries_info.get_timeseries_color('bytes_rcvd')
                     }
                 }
@@ -2815,6 +2822,9 @@ local function add_top_timeseries(tags, prefix, timeseries)
     elseif prefix == timeseries_id.snmp_device then
         -- Add the interfaces timeseries
         timeseries = add_snmp_interfaces_timeseries(tags, timeseries)
+    elseif prefix == timeseries_id.flow_dev then
+        -- Add the interfaces timeseries
+        timeseries = add_flowdev_interfaces_timeseries(tags, timeseries)
     elseif prefix == timeseries_id.flow_port then
         -- Add the top interface timeseries
         timeseries = add_top_flow_port_timeseries(tags, timeseries)
