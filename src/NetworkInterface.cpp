@@ -11293,6 +11293,10 @@ static bool asc_totaltraffic_cmp(AggregatedFlowsStats *a,
          (b->getTotalRcvd() + b->getTotalSent());
 }
 
+static bool asc_srv_port_cmp(AggregatedFlowsStats *a, AggregatedFlowsStats *b) {
+  return a->getSrvPort() < b->getSrvPort();
+}
+
 /* Sort host ports compare functions */
 
 static bool host_details_asc_total_traffic_cmp(HostDetails *a,
@@ -11346,7 +11350,7 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
   if (set_resp) {
     char buf[128];
     u_int8_t add_client = false, add_server = false, add_app_proto = false,
-             add_info = false;
+             add_info = false, add_srv_port = false;
 
     lua_newtable(vm);
 
@@ -11369,6 +11373,10 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
 
       case 6:
         add_info = true;
+        break;
+      
+      case 7:
+        add_client = add_server = add_srv_port = true;
         break;
 
       default:
@@ -11424,6 +11432,11 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
       lua_push_str_table_entry(vm, "server_name",
                                flow_stats->getSrvName(buf, sizeof(buf)));
       lua_push_bool_table_entry(vm, "is_srv_in_mem", flow_stats->isSrvInMem());
+    }
+
+    if (add_srv_port) {
+      lua_push_uint64_table_entry(vm, "srv_port",
+                                  (u_int64_t)flow_stats->getSrvPort());
     }
 
     if (add_info) {
@@ -11530,7 +11543,7 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
 
   default:
   {
-    /* Client / Server / Client-Server */
+    /* Client / Server / Client-Server / Client-Server-SrvPort */ 
     std::unordered_map<u_int64_t, AggregatedFlowsStats *>::iterator it;
       
     for (it = stats->count.begin(); it != stats->count.end(); ++it) {
@@ -11556,6 +11569,8 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
       sorter = &asc_srv_ip_hex_cmp;
     else if (sortColumn && !strcmp(sortColumn, "client_and_server"))
       sorter = &asc_srv_cli_ip_hex_cmp;
+    else if (sortColumn && !strcmp(sortColumn, "srv_port"))
+      sorter = &asc_srv_port_cmp;
   }
   break;
   } /* switch */
@@ -11660,6 +11675,13 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
       if (ntop->getPrefs()->is_enterprise_m_edition())
         walker(&begin_slot, true /* walk_all */, walker_flows,
                compute_info_flow_stats, &stats);
+      break;
+
+    case AnalysisCriteria::client_server_srv_port:
+      /* info criteria flows stats case */
+      if (ntop->getPrefs()->is_enterprise_m_edition())
+        walker(&begin_slot, true /* walk_all */, walker_flows,
+               compute_client_server_srv_port_flow_stats, &stats);
       break;
 #endif
 
