@@ -105,7 +105,7 @@ function scan_utils.retrieve_hosts_scan_result(host, scan_type)
         end
     end
 
-    return {}
+    return ""
 end
 
 return scan_utils

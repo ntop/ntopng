@@ -46,29 +46,28 @@
 import { ref, onBeforeMount } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
-
+import { ntopng_utility } from '../services/context/ntopng_globals_services';
 import { default as ModalAddHostToScan } from "./modal-add-host-to-scan.vue"
 
 const _i18n = (t) => i18n(t);
 
 const table_id = ref('hosts_to_scan');
-let title_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_title')
-let body_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_description')
+let title_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_title');
+let body_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_description');
 
 const table_hosts_to_scan = ref();
 const modal_delete_confirm = ref();
 const modal_add = ref();
-const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`
-const remove_host_url = `${http_prefix}/lua/rest/v2/delete/host/delete_host_to_scan.lua`
-const scan_host_url = `${http_prefix}/lua/rest/v2/add/host/scan_host.lua`
-const scan_result_url = `${http_prefix}/lua/rest/v2/get/host/scan_result.lua`
-const scan_type_list_url = `${http_prefix}/lua/rest/v2/get/host/scan_type_list.lua`
+const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
+const remove_host_url = `${http_prefix}/lua/rest/v2/delete/host/delete_host_to_scan.lua`;
+const scan_host_url = `${http_prefix}/lua/rest/v2/add/host/scan_host.lua`;
+const scan_result_url = `${http_prefix}/lua/rest/v2/get/host/scan_result.lua`;
+const scan_type_list_url = `${http_prefix}/lua/rest/v2/get/host/scan_type_list.lua`;
 
 
-const row_to_delete = ref({})
-const row_to_scan = ref({})
-const row_to_download_result = ref({})
-let scan_type_list = []
+const row_to_delete = ref({});
+const row_to_scan = ref({});
+let scan_type_list = [];
 
 const props = defineProps({
   context: Object,
@@ -143,9 +142,14 @@ async function click_button_scan(event) {
 }
 
 async function click_button_download(event) {
-  row_to_download_result.value = event.row;
-  await download_row_result();  
-  refresh_table();
+	let params = {
+    host: event.row.host,
+    scan_type: event.row.scan_type
+  };
+	let url_params = ntopng_url_manager.obj_to_url_params(params);
+
+  let url = `${scan_result_url}?${url_params}`;
+  ntopng_utility.download_URI(url);
 }
 
 /* ************************************** */
@@ -196,7 +200,6 @@ const scan_row = async function() {
 }
 
 const download_row_result = async function() {
-  const row = row_to_download_result.value;
   const url = NtopUtils.buildURL(scan_result_url, {
     ...rest_params,
     ...{
