@@ -53,7 +53,7 @@ bool FlowRisk::ignoreRisk(Flow *f, ndpi_risk_enum r) {
 
 /* ***************************************************** */
 
-void FlowRisk::protocolDetected(Flow *f) {
+void FlowRisk::checkRisk(Flow *f) {
   ndpi_risk_enum r = handledRisk();
 
   if (f->hasRisk(r)) {
@@ -75,6 +75,22 @@ void FlowRisk::protocolDetected(Flow *f) {
 
     f->triggerAlertAsync(getAlertType(), cli_score, srv_score);
   }
+}
+
+/* ***************************************************** */
+
+void FlowRisk::protocolDetected(Flow *f) {
+  /* Handle risks that should be checked as soon as l7 protocol is detected */
+  /* Note: controlled by checkOnFlowEnd() */
+  checkRisk(f);
+}
+
+/* ***************************************************** */
+
+void FlowRisk::flowEnd(Flow *f) { 
+  /* Handle risks that should be checked at flow end (e.g. unidirectional flow) */
+  /* Note: controlled by checkOnFlowEnd() */
+  checkRisk(f);
 }
 
 /* ***************************************************** */
