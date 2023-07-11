@@ -188,7 +188,9 @@ function set_port_in_url() {
 
 /* Function to load filters (Just VLANs) */
 async function load_table_filters_array(action, filter) {
-    const url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port_filters.lua?action=${action}`;
+    let extra_params = get_extra_params_obj();
+    let url_params = ntopng_url_manager.obj_to_url_params(extra_params);
+    const url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port_filters.lua?action=${action}&${url_params}`;
     let res = await ntopng_utility.http_request(url);
 
     return res.map((t) => {
