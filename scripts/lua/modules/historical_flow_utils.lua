@@ -1827,14 +1827,21 @@ end
 
 -- #####################################
 
-function historical_flow_utils.get_historical_url(label, tag, value, add_hyperlink, title)
+function historical_flow_utils.get_historical_url(label, tag, value, add_hyperlink, title, add_copy_button)
    if not add_hyperlink then 
       return label
    else
+      if add_copy_button ~= nil and add_copy_button then
+         return "<span><button data-to-copy='"..value.."' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button> <a href=\"" .. ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?" .. 
+            tag .. "=" .. value .. tag_utils.SEPARATOR .. "eq\" " .. 
+            ternary(title ~= nil, "title=\"" .. (title or "") .."\"", "") .. 
+            " target='_blank'>" .. label .. "</a>"
+      end
       return "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?" .. 
-         tag .. "=" .. value .. tag_utils.SEPARATOR .. "eq\" " .. 
-         ternary(title ~= nil, "title=\"" .. (title or "") .."\"", "") .. 
-         " target='_blank'>" .. label .. "</a>"
+            tag .. "=" .. value .. tag_utils.SEPARATOR .. "eq\" " .. 
+            ternary(title ~= nil, "title=\"" .. (title or "") .."\"", "") .. 
+            " target='_blank'>" .. label .. "</a>"
+      
    end
 end
 
