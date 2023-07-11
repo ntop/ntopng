@@ -66,9 +66,9 @@ const criteria_list_def = [
     { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client", enterprise_m: false },
     { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server", enterprise_m: true },
     { label: _i18n("client_server_srv_port"), value: 7, param: "client_server_srv_port", table_id: "aggregated_client_server_srv_port", enterprise_m: true },
+    { label: _i18n("client_server_application_proto"), value: 5, param: "app_client_server", table_id: "aggregated_app_client_server", enterprise_m: true },
     { label: _i18n("info"), value: 6, param: "info", table_id: "aggregated_info", enterprise_m: true },
     { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server", enterprise_m: false },
-    { label: _i18n("application_proto_client_server"), value: 5, param: "app_client_server", table_id: "aggregated_app_client_server", enterprise_m: true },
 ];
 
 const loading = ref(null)
@@ -263,19 +263,21 @@ function get_table_columns_config() {
             })
         } else if (selected_criteria.value.value == 5) {
             columns.push(
-                {
-                    columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-                        return `${data.label_with_icons}`;
-                    }
-                }, {
-                columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
-                    return format_client_name(data, rowData);
-                }
-            }, {
-                columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
-                    return format_server_name(data, rowData);
-                }
-            });
+		{
+                    columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
+			return format_client_name(data, rowData);                
+		    }
+		},
+		{
+		    columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
+			return format_server_name(data, rowData);
+		    }
+		},
+		{
+		    columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+			return `${data.label_with_icons}`;
+		    }
+		});
         } else if (selected_criteria.value.value == 6) {
             columns.push(
                 {
