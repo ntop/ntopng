@@ -105,7 +105,7 @@ class AggregatedFlowsStats {
   };
   inline void setSrvPort(u_int16_t _srv_port) { srv_port = _srv_port; };
 
-
+  void setFlowIPVLAN(Flow *f);
 
   inline bool isCliInMem() { return (client->isHostInMem()); };
   inline bool isSrvInMem() { return (server->isHostInMem()); };

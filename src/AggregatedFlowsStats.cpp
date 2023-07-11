@@ -58,3 +58,11 @@ void AggregatedFlowsStats::incFlowStats(const IpAddress* _client,
 
   num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd, tot_score += score;
 }
+
+/* *************************************** */
+
+void AggregatedFlowsStats::setFlowIPVLAN(Flow *f) {
+  setClient(f->get_cli_ip_addr(), f->get_cli_host());
+  setServer(f->get_srv_ip_addr(), f->get_srv_host());
+  setVlanId(f->get_vlan_id());
+}
