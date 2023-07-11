@@ -64,10 +64,11 @@ const _i18n = (t) => i18n(t);
 const criteria_list_def = [
     { label: _i18n("application_proto"), value: 1, param: "application_protocol", table_id: "aggregated_app_proto", enterprise_m: false },
     { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client", enterprise_m: false },
-    { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server", enterprise_m: false },
     { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server", enterprise_m: true },
+    { label: _i18n("client_server_srv_port"), value: 7, param: "client_server_srv_port", table_id: "aggregated_client_server_srv_port", enterprise_m: true },
+    { label: _i18n("info"), value: 6, param: "info", table_id: "aggregated_info", enterprise_m: true },
+    { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server", enterprise_m: false },
     { label: _i18n("application_proto_client_server"), value: 5, param: "app_client_server", table_id: "aggregated_app_client_server", enterprise_m: true },
-    { label: _i18n("info"), value: 6, param: "info", table_id: "aggregated_info", enterprise_m: true }
 ];
 
 const loading = ref(null)
@@ -249,7 +250,7 @@ function get_table_columns_config() {
             });
     }
     else if (props.is_ntop_enterprise_m) {
-        if (selected_criteria.value.value == 4) {
+        if (selected_criteria.value.value == 4 || selected_criteria.value.value == 7 ) {
             columns.push(
                 {
                     columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
@@ -257,22 +258,22 @@ function get_table_columns_config() {
                     }
                 }, {
                 columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
-                    return format_server_name(data, rowData)
+                    return format_server_name(data, rowData);
                 }
             })
         } else if (selected_criteria.value.value == 5) {
             columns.push(
                 {
                     columnName: i18n("application_proto"), targets: 0, name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-                        return `${data.label_with_icons}`
+                        return `${data.label_with_icons}`;
                     }
                 }, {
                 columnName: i18n("client"), targets: 0, name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
-                    return format_client_name(data, rowData)
+                    return format_client_name(data, rowData);
                 }
             }, {
                 columnName: i18n("last_server"), targets: 0, name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1, render: (data, _, rowData) => {
-                    return format_server_name(data, rowData)
+                    return format_server_name(data, rowData);
                 }
             });
         } else if (selected_criteria.value.value == 6) {
@@ -305,10 +306,10 @@ function get_table_columns_config() {
         columnName: i18n("total_score"), targets: 0, name: 'score', data: 'tot_score', className: 'text-center', responsivePriority: 1
     });
 
-    if (selected_criteria.value.value != 2 && selected_criteria.value.value != 4)
+    if (selected_criteria.value.value != 2 && selected_criteria.value.value != 4 && selected_criteria.value.value != 7)
         columns.push({ columnName: i18n("clients"), targets: 0, name: 'num_clients', data: 'num_clients', className: 'text-nowrap text-center', responsivePriority: 1 });
 
-    if (selected_criteria.value.value != 3 && selected_criteria.value.value != 4)
+    if (selected_criteria.value.value != 3 && selected_criteria.value.value != 4 && selected_criteria.value.value != 7)
         columns.push({ columnName: i18n("servers"), targets: 0, name: 'num_servers', data: 'num_servers', className: 'text-nowrap text-center', responsivePriority: 1 });
 
     columns.push({
@@ -351,9 +352,19 @@ const format_server_name = function (data, rowData) {
     }
 
     if (!data.in_memory) {
-        return `${data.label} ${alert_label} ${data.extra_labels}`;
+        if (selected_criteria.value.value == 7 && rowData.srv_port != null) {
+            return `${data.label} ${alert_label} ${data.extra_labels}:${rowData.srv_port.label}`;
+        } else {
+            return `${data.label} ${alert_label} ${data.extra_labels}`;
+        }
+
     } else {
-        return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data.ip}&vlan=${data.vlan_id}">${data.label}</a> ${alert_label} ${data.extra_labels} <a href="${http_prefix}/lua/host_details.lua?host=${data.ip}&vlan=${data.vlan_id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+        if (selected_criteria.value.value == 7 &&  rowData.srv_port != null) {
+            return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data.ip}&vlan=${data.vlan_id}">${data.label}</a> ${alert_label} ${data.extra_labels} <a href="${http_prefix}/lua/host_details.lua?host=${data.ip}&vlan=${data.vlan_id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>:<a href="${http_prefix}/lua/flows_stats.lua?srv_port=${rowData.srv_port.id}&vlan=${data.vlan_id}">${rowData.srv_port.label}</a>`;
+        } else {
+            return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data.ip}&vlan=${data.vlan_id}">${data.label}</a> ${alert_label} ${data.extra_labels} <a href="${http_prefix}/lua/host_details.lua?host=${data.ip}&vlan=${data.vlan_id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
+
+        }
     }
 }
 
@@ -377,9 +388,10 @@ const format_flows_icon = function (data, rowData) {
     else if (selected_criteria.value.value == 6) {
         url = `${http_prefix}/lua/flows_stats.lua?flow_info=${rowData.info.id}`;
         if (add_host) url = url + `&host=`+props.host;
-
     }
-
+    else if (selected_criteria.value.value == 7) {
+        url = `${http_prefix}/lua/flows_stats.lua?client=${rowData.client.ip}&server=${rowData.server.ip}&vlan=${rowData.vlan_id.id}&srv_port=${rowData.srv_port.id}`;
+    }
 
     return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
 }

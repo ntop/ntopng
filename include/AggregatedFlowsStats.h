@@ -35,6 +35,7 @@ class AggregatedFlowsStats {
   FlowsHostInfo* client;
   FlowsHostInfo* server;
   u_int16_t vlan_id;
+  u_int16_t srv_port;
   char* proto_name;
   char* info_key;
   u_int64_t key;
@@ -65,6 +66,8 @@ class AggregatedFlowsStats {
   inline const char* getSrvIP(char* buf, u_int len) { return (server ? server->getIP(buf, len) : (char *)""); };
   inline IpAddress* getClientIPaddr() { return(client ? client->getIPaddr() : NULL); }
   inline IpAddress* getServerIPaddr() { return(server ? server->getIPaddr() : NULL); }
+  inline u_int16_t getSrvPort() { return (srv_port); };
+
 
   inline const char* getCliName(char* buf, u_int len) {
     return (client ? client->getHostName(buf, len) : (char *)"");
@@ -100,6 +103,8 @@ class AggregatedFlowsStats {
   inline void setServer(IpAddress* _ip, Host* _host) {
     if(!server) { server = new (std::nothrow) FlowsHostInfo(_ip, _host); }
   };
+  inline void setSrvPort(u_int16_t _srv_port) { srv_port = _srv_port; };
+
 
 
   inline bool isCliInMem() { return (client->isHostInMem()); };

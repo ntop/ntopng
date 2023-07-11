@@ -104,6 +104,7 @@ for _, data in pairs(aggregated_info or {}) do
    local server = nil
    local info = nil
    local application = nil
+   local srv_port = nil
 
    if (vlan) and
       (tonumber(vlan) ~= tonumber(data.vlan_id) or tonumber(vlan) ~= tonumber(data.cli_vlan_id) or tonumber(vlan) ~=
@@ -140,6 +141,13 @@ for _, data in pairs(aggregated_info or {}) do
 	 label = data.proto_name,
 	 id = data.proto_id,
 	 label_with_icons = getApplicationLabel(data.proto_name, 256)
+      }
+   end
+
+   if (response ~= {} and response.add_srv_port) then
+      srv_port = {
+         label = data.srv_port,
+         id = data.srv_port
       }
    end
 
@@ -206,6 +214,7 @@ for _, data in pairs(aggregated_info or {}) do
 	 client = client,
 	 server = server,
 	 info = info,
+    srv_port = srv_port,
 	 application = application,
     vlan_id = {
       id = nil,
