@@ -11529,20 +11529,19 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
       std::unordered_map<u_int64_t, AggregatedFlowsStats *>::iterator it;
 
       for (it = stats->count.begin(); it != stats->count.end(); ++it) {
-	if (filter_type == AnalysisCriteria::app_client_server_criteria) {
-	  ndpi_protocol detected_protocol;
-	  char buf[64];
+	ndpi_protocol detected_protocol;
+	char buf[64], *proto;
+	
+	/* Get from the key, the master and application protocol,
+	 * first 16 bit for the master, second for the application
+	 */
+	detected_protocol.master_protocol = (u_int16_t)(it->second->getProtoKey() & 0x00000000000FFFF);
+	detected_protocol.app_protocol    = (u_int16_t)((it->second->getProtoKey() >> 16) & 0x000000000000FFFF);
+	
+	it->second->setProtoName(proto = get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
 
-	  /* Get from the key, the master and application protocol,
-	   * first 16 bit for the master, second for the application
-	   */
-	  detected_protocol.master_protocol = (u_int16_t)(it->second->getProtoKey() & 0x00000000000FFFF);
-	  detected_protocol.app_protocol    = (u_int16_t)((it->second->getProtoKey() >> 16) & 0x000000000000FFFF);
-
-	  it->second->setProtoName(get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
-	}
-
-	vector.push_back(it->second);
+	if((search_string == NULL) || (strcasestr(proto, search_string) != NULL))	  
+	  vector.push_back(it->second);
       }
     }
     break;
