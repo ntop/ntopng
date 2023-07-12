@@ -12035,7 +12035,7 @@ void NetworkInterface::sort_hosts_details(lua_State *vm,
         lua_insert(vm, -2);
         lua_settable(vm, -3);
       }
-      if ( (!get_port) && ((num-1) >= max_num_rows) ) break;
+      if ( (!get_port) && ((num-1) > max_num_rows) ) break;
     }
   } else {
     lua_newtable(vm);
