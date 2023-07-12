@@ -49,7 +49,7 @@
                     <a class="ntopng-truncate" :title="t.title">{{ t.label }}</a>
                   </template>
                   <template v-slot:menu>
-                    <a v-for="opt in t.options" style="cursor:pointer;" @click="add_table_filter(opt, $event, t, t_index)"
+                    <a v-for="opt in t.options" style="cursor:pointer; display: block;" @click="add_table_filter(opt, $event, t, t_index)"
                       class="ntopng-truncate tag-filter" :title="opt.value">
                       <template v-if="opt.count == null">{{ opt.label }}</template>
                       <template v-else>{{ opt.label + " (" + opt.count + ")" }}</template>
