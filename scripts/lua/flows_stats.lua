@@ -65,8 +65,8 @@ local traffic_profile = _GET["traffic_profile"]
 local aggregation_criteria = _GET["aggregation_criteria"] or "application_protocol"
 
 local draw = _GET["draw"] or 0
-local sort = _GET["sort"] or "bytes_rcvd"
-local order = _GET["order"] or "asc"
+local sort = _GET["sort"] or "flows"
+local order = _GET["order"] or "desc"
 local start = _GET["start"] or 0
 local length = _GET["length"] or 10
 

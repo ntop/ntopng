@@ -1958,8 +1958,8 @@ setInterval(update_icmp_table, 5000);
                 http_prefix = ntop.getHttpPrefix(),
                 aggregation_criteria = "application_protocol",
                 draw = 0,
-                sort = "bytes_rcvd",
-                order = "asc",
+                sort = "flows",
+                order = "desc",
                 start = 0,
                 length = 10,
                 csrf = ntop.getRandomCSRFValue()
