@@ -26,7 +26,7 @@
 			       :print_html_row="(col, row) => table_config.print_html_row(col, row)"
 			       :f_get_column_classes="get_column_classes"
 			       :f_is_column_sortable="is_column_sortable"
-			       :enable_search="true"
+			       :enable_search="selected_criteria.search_enabled == true"
                    :display_empty_rows="true"
 			       :paging="true">
                         </Table>
@@ -62,13 +62,13 @@ const props = defineProps({
 const _i18n = (t) => i18n(t);
 
 const criteria_list_def = [
-    { label: _i18n("application_proto"), value: 1, param: "application_protocol", table_id: "aggregated_app_proto", enterprise_m: false },
-    { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client", enterprise_m: false },
-    { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server", enterprise_m: true },
-    { label: _i18n("client_server_srv_port"), value: 7, param: "client_server_srv_port", table_id: "aggregated_client_server_srv_port", enterprise_m: true },
-    { label: _i18n("client_server_application_proto"), value: 5, param: "app_client_server", table_id: "aggregated_app_client_server", enterprise_m: true },
-    { label: _i18n("info"), value: 6, param: "info", table_id: "aggregated_info", enterprise_m: true },
-    { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server", enterprise_m: false },
+    { label: _i18n("application_proto"), value: 1, param: "application_protocol", table_id: "aggregated_app_proto", enterprise_m: false, search_enabled: true },
+    { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client", enterprise_m: false, search_enabled: false },
+    { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server", enterprise_m: true, search_enabled: false },
+    { label: _i18n("client_server_srv_port"), value: 7, param: "client_server_srv_port", table_id: "aggregated_client_server_srv_port", enterprise_m: true, search_enabled: false },
+    { label: _i18n("client_server_application_proto"), value: 5, param: "app_client_server", table_id: "aggregated_app_client_server", enterprise_m: true, search_enabled: true },
+    { label: _i18n("info"), value: 6, param: "info", table_id: "aggregated_info", enterprise_m: true, search_enabled: true },
+    { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server", enterprise_m: false, search_enabled: false },
 ];
 
 const loading = ref(null)
