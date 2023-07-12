@@ -5488,8 +5488,8 @@ IpAddress* Utils::parseHostString(char *host_ip, u_int16_t *vlan_id /* out */) {
       else if (h == 1)
 	vlan = token;
 
-        token = strtok(NULL, "@");
-        h++;
+      token = strtok(NULL, "@");
+      h++;
     }
   }
 
