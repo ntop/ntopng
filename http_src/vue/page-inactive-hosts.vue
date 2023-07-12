@@ -49,7 +49,7 @@
                     <a class="ntopng-truncate" :title="t.title">{{ t.label }}</a>
                   </template>
                   <template v-slot:menu>
-                    <a v-for="opt in t.options" style="cursor:pointer;" @click="add_table_filter(opt, $event)"
+                    <a v-for="opt in t.options" style="cursor:pointer;" @click="add_table_filter(opt, $event, t, t_index)"
                       class="ntopng-truncate tag-filter" :title="opt.value">
                       <template v-if="opt.count == null">{{ opt.label }}</template>
                       <template v-else>{{ opt.label + " (" + opt.count + ")" }}</template>
@@ -87,6 +87,7 @@ import { default as TabList } from "./tab-list.vue";
 import { default as ModalDeleteInactiveHost } from "./modal-delete-inactive-host.vue";
 import { default as ModalDeleteInactiveHostEpoch } from "./modal-delete-inactive-host-epoch.vue";
 import { default as ModalDownloadInactiveHost } from "./modal-download-inactive-host.vue";
+import { ntopng_url_manager } from "../services/context/ntopng_globals_services";
 
 const _i18n = (t) => i18n(t);
 
@@ -213,8 +214,9 @@ async function load_table_filters(filter, filter_index) {
 
 /* ************************************** */
 
-async function load_table_filters_array(action, filter) {
-  const url = `${http_prefix}/lua/rest/v2/get/host/inactive_filters.lua?action=${action}`;
+async function load_table_filters_array(action) {
+  const params = ntopng_url_manager.get_url_params();
+  const url = `${http_prefix}/lua/rest/v2/get/host/inactive_filters.lua?action=${action}&${params}`;
   let res = await ntopng_utility.http_request(url);
   return res.map((t) => {
     return {
@@ -230,7 +232,7 @@ async function load_table_filters_array(action, filter) {
 
 /* ************************************** */
 
-function add_table_filter(opt, event) {
+function add_table_filter(opt, event, filter, filter_index) {
   event.stopPropagation();
   ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
   set_filter_array_label();
@@ -240,6 +242,7 @@ function add_table_filter(opt, event) {
       el.ref.value[0].update_chart()
     })
   }
+  load_table_filters(filter, filter_index)
 }
 
 /* ************************************** */

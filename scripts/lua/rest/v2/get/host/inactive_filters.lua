@@ -19,8 +19,24 @@ end
 
 local ifid = _GET["ifid"]
 local action = _GET["action"]
-local vlan_id = _GET["vlan_id"]
-local network = _GET["network"]
+
+if isEmptyString(action) then
+    return rest_utils.answer(rest_utils.consts.err.invalid_args)
+end
+
+local filters = {
+    vlan = _GET["vlan_id"],
+    network = _GET["network"],
+    device_type = _GET["device_type"],
+    manufacturer = _GET["manufacturer"],
+}
+
+-- Return the data
+for filter, value in pairs(filters) do
+    if isEmptyString(value) then
+        filters[filter] = nil
+    end
+end
 
 if not isEmptyString(ifid) then
     interface.select(ifid)
@@ -28,19 +44,15 @@ else
     ifid = interface.getId()
 end
 
-if isEmptyString(action) then
-    return rest_utils.answer(rest_utils.consts.err.invalid_args)
-end
-
 local network_filters = {}
 local vlan_filters = {}
 local device_filters = {}
 local manufacturer_filters = {}
 
-network_filters = inactive_hosts_utils.getNetworkFilters(ifid)
-vlan_filters = inactive_hosts_utils.getVLANFilters(ifid)
-device_filters = inactive_hosts_utils.getDeviceFilters(ifid)
-manufacturer_filters = inactive_hosts_utils.getManufacturerFilters(ifid)
+network_filters = inactive_hosts_utils.getNetworkFilters(ifid, filters)
+vlan_filters = inactive_hosts_utils.getVLANFilters(ifid, filters)
+device_filters = inactive_hosts_utils.getDeviceFilters(ifid, filters)
+manufacturer_filters = inactive_hosts_utils.getManufacturerFilters(ifid, filters)
 
 local rsp = {
     {
