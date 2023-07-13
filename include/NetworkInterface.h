@@ -417,6 +417,8 @@ protected:
 #ifdef NTOPNG_PRO
   void checkDHCPStorm(time_t when, u_int32_t num_pkts);
 #endif
+  void vlan_ports_lua_response(lua_State *vm, 
+      HostsPorts *count);
   void sort_ports(lua_State *vm,
 		  HostsPorts *count,
 		  u_int16_t protocol);
@@ -1339,6 +1341,7 @@ public:
   };
   void luaUsedPorts(lua_State *vm) { usedPorts.lua(vm, this); };
 
+  void getVLANHostsPorts(lua_State *vm);
   void getHostsPorts(lua_State *vm);
   void getHostsByPort(lua_State *vm);
   void getHostsByService(lua_State *vm);
@@ -1363,6 +1366,9 @@ public:
 				void *user_data,
 				bool *matched);
   static bool get_hosts_by_service(GenericHashEntry *node,
+				   void *user_data,
+				   bool *matched);
+  static bool get_vlan_host_ports(GenericHashEntry *node,
 				   void *user_data,
 				   bool *matched);
 

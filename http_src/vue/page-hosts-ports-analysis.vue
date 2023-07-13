@@ -196,7 +196,6 @@ async function load_table_filters_array(action, filter) {
     let url_params = ntopng_url_manager.obj_to_url_params(extra_params);
     const url = `${http_prefix}/lua/pro/rest/v2/get/host/hosts_details_by_port_filters.lua?action=${action}&${url_params}`;
     let res = await ntopng_utility.http_request(url);
-
     return res.map((t) => {
         return {
             id: t.action || t.name,
@@ -216,6 +215,7 @@ const get_open_filter_table_dropdown = (filter, filter_index) => {
 };
 
 async function load_table_filters(filter, filter_index) {
+    filter.show_spinner = true;
     await nextTick();
     if (filter.data_loaded == false) {
         let new_filter_array = await load_table_filters_array(filter.id, filter);
@@ -224,6 +224,7 @@ async function load_table_filters(filter, filter_index) {
         let dropdown = filter_table_dropdown_array.value[filter_index];
         dropdown.load_menu();
     }
+    filter.show_spinner = false;
 }
 
 async function load_table_filters_overview(action) {
@@ -293,7 +294,7 @@ async function update_dropdown_menus(is_application_selected, app, port) {
 
     res.rsp.forEach((item) => {
         let name = item.l7_proto_name.split(".")[0];
-        ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port, application: name, num_hosts: item.n_hosts })
+        ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port, application: name, num_hosts: item.n_hosts, vlan_id:item.vlan_id })
     })
 
     ports.forEach((port) => {
@@ -325,7 +326,7 @@ async function update_dropdown_menus(is_application_selected, app, port) {
     ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
     ports.forEach((item) => {
         if (item.application == selected_application.value.label)
-            port_list.value.push({ label: item.id + " (" + item.num_hosts + ")", id: item.id, value: item.id });
+            port_list.value.push({ label: item.id + " (" + item.num_hosts + ")", id: item.id, value: item.id, vlan_id: item.vlan_id, n_hosts: item.num_hosts });
     })
 
     if (port != null) {
@@ -339,6 +340,16 @@ async function update_dropdown_menus(is_application_selected, app, port) {
     }
 
     set_port_in_url();
+}
+
+function get_count_vlan_hosts(vlan_id) {
+    let count_vlan_host = 0;
+    port_list.value.forEach((item) => {
+        if (item.vlan_id == vlan_id) {
+            count_vlan_host = count_vlan_host + item.n_hosts
+        }
+    })
+    return count_vlan_host;
 }
 
 /* Function to format data */

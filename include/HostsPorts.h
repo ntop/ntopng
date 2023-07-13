@@ -27,6 +27,9 @@
 class HostsPorts {
     private:
         std::unordered_map<u_int16_t, PortDetails*> server_ports;
+        /* <vlan, port> -> n_hosts */
+        std::unordered_map<u_int32_t, u_int64_t> vlan_ports;
+        u_int32_t protocol;
     
     public:
         HostsPorts(){};
@@ -34,9 +37,13 @@ class HostsPorts {
 
         /* Getters */
         inline std::unordered_map<u_int16_t, PortDetails*> getSrvPort() { return(server_ports); };
+        inline std::unordered_map<u_int32_t, u_int64_t> getVLANPorts() { return(vlan_ports); };
+        inline u_int32_t get_protocol() { return(protocol); };
 
         /* Setters */
         void mergeSrvPorts(std::unordered_map<u_int16_t, ndpi_protocol> *new_server_ports); 
+        void mergeVLANPorts(std::unordered_map<u_int16_t, ndpi_protocol> *new_server_ports, u_int16_t vlan_id); 
+        void set_protocol(u_int32_t _protocol) { protocol = _protocol; };
 };
 
 #endif /* _HOSTS_PORTS_H_ */

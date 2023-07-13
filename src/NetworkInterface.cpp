@@ -11686,6 +11686,73 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
 
 /* **************************************************** */
 
+void NetworkInterface::getVLANHostsPorts(lua_State *vm) {
+  HostsPorts count;
+  u_int32_t begin_slot = 0;
+  u_int32_t protocol = 0;
+  if (lua_type(vm, 1) == LUA_TNUMBER) {
+    protocol = (u_int32_t)lua_tonumber(vm, 1);
+    count.set_protocol(protocol);
+  }
+
+  walker(&begin_slot, true , walker_hosts,
+    get_vlan_host_ports, &count);
+  
+  vlan_ports_lua_response(vm, &count);
+
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::get_vlan_host_ports(GenericHashEntry *node,
+					  void *user_data,
+					  bool *matched) {
+  Host *h = (Host *)node;
+
+  if (!h || !h->isLocalHost())
+    return false;
+
+  u_int16_t vlan_id = h->get_vlan_id();
+  HostsPorts *hostsPorts = static_cast< HostsPorts *>(user_data);
+  LocalHost *lh = (LocalHost*) h;
+
+
+  std::unordered_map<u_int16_t, ndpi_protocol> ports = (hostsPorts->get_protocol() == 6) ? lh->getTCPServerPorts() : lh->getUDPServerPorts();
+
+  hostsPorts->mergeVLANPorts(&ports,vlan_id);
+
+  *matched = true;
+
+  return (false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+void NetworkInterface::vlan_ports_lua_response(lua_State *vm, 
+    HostsPorts *count) {
+  
+  std::unordered_map<u_int32_t, u_int64_t> vlan_ports = count->getVLANPorts();
+  std::unordered_map<u_int32_t, u_int64_t>::iterator it;
+    
+  lua_newtable(vm);
+  u_int num = 0;
+
+
+  for (it = vlan_ports.begin(); it != vlan_ports.end(); ++it) {
+    lua_newtable(vm);
+
+    lua_push_uint32_table_entry(vm, "vlan_id", (u_int16_t) (it->first & 0x00000000000FFFF));
+    lua_push_uint32_table_entry(vm, "port", (u_int16_t) ((it->first >> 16) & 0x00000000000FFFF));
+    lua_push_uint64_table_entry(vm, "n_hosts", it->second);
+    lua_pushinteger(vm, ++num);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+  
+}
+
+/* **************************************************** */
+
 void NetworkInterface::getHostsPorts(lua_State *vm) {
   u_int32_t begin_slot = 0;
   HostsPorts count;
