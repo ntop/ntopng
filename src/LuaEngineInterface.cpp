@@ -4547,7 +4547,7 @@ static int ntop_interface_check_context(lua_State *vm) {
     /* NOTE: settting a context for a differnt interface is currently not
      * supported */
     ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "Bad context - expected interface %s found %s",
+        TRACE_WARNING, "Bad context - expected interface %s, found %s in context",
         entity_val,
         c->iface == NULL ? "NULL" : c->iface->getEntityValue().c_str());
 

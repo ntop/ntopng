@@ -406,7 +406,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
  
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
      if(interface.checkContext(entity_info.entity_val) == false) then
-	alertErrorTraceback("Invalid interface entity detected "..entity_info.alert_entity.entity_id)
+	alertErrorTraceback("Invalid interface entity value detected for entity id "..entity_info.alert_entity.entity_id)
 	tprint(entity_info)
 	return(false)
      else
@@ -414,7 +414,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
      end
   elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("network")) then
      if(network.checkContext(entity_info.entity_val) == false) then
-	alertErrorTraceback("Invalid network entity detected "..entity_info.alert_entity.entity_id)
+	alertErrorTraceback("Invalid network entity value detected for entity id "..entity_info.alert_entity.entity_id)
 	tprint(entity_info)
 	return(false)
      else 
