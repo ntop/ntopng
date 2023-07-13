@@ -627,17 +627,23 @@ else
         vlans[#vlans + 1] = vlan
     end
 
-    template.render("pages/aggregated_live_flows.template", {
+    local context = {
         ifid = ifId,
         vlans = json.encode(vlans),
         aggregation_criteria = aggregation_criteria,
+        is_ntop_enterprise_m = ntop.isEnterpriseM(),
         draw = draw,
         sort = sort,
         order = order,
         start = start,
         length = length,
-        host = ""
-    })
+        host = "",
+        csrf = ntop.getRandomCSRFValue()
+    }
+
+    local json_context = json.encode(context)
+    template.render("pages/vue_page.template", { vue_page_name = "PageAggregatedLiveFlowsV2", page_context = json_context })
+ 
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
