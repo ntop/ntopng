@@ -28,16 +28,18 @@ u_int32_t RareDestination::getDestinationHash(Flow *f) {
   u_int32_t hash = 0;
   Host *dest = f->get_srv_host();
   if (f->isLocalToLocal()) {
-    char buf[64];
+    /* char buf[64]; */
     if (!dest->isMulticastHost() && dest->isDHCPHost()) {
-      char *mac = dest->getMac()->print(buf,sizeof(buf));
-      hash = Utils::hashString(mac);
+      u_int32_t mac = dest->getMac()->key();
+      hash = mac;
+      /* char *mac = dest->getMac()->print(buf,sizeof(buf));
+      hash = Utils::hashString(mac); */
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination MAC %u - %s", *hash, mac); */
     }
-    
     else if (dest->isIPv6() || dest->isIPv4()) {
-      char *ip = dest->get_ip()->print(buf,sizeof(buf));
-      hash = Utils::hashString(ip);
+      hash = dest->key();
+      /* char *ip = dest->get_ip()->print(buf,sizeof(buf));
+      hash = Utils::hashString(ip); */
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6/IPv4 %u - %s", *hash, ip); */
     }
   }
@@ -88,7 +90,7 @@ void RareDestination::protocolDetected(Flow *f) {
       }
       /* check if training has to end */
       if (  cli_lhost->getSeenRareDestTraining() >= 30
-            && t_now - cli_lhost->getStartRareDestTraining() >= 180 /* RARE_DEST_DURATION_TRAINING */ )
+            && t_now - cli_lhost->getStartRareDestTraining() >= 300 /* RARE_DEST_DURATION_TRAINING */ )
       {
         cli_lhost->setStartRareDestTraining(0);
         cli_lhost->setRareDestLastEpoch(t_now);
@@ -99,13 +101,13 @@ void RareDestination::protocolDetected(Flow *f) {
 
     /* check epoch */
 
-    if (t_now - cli_lhost->getRareDestLastEpoch() >= 2*540 /* RARE_DEST_EPOCH_DURATION */) {
+    if (t_now - cli_lhost->getRareDestLastEpoch() >= 2*600 /* RARE_DEST_EPOCH_DURATION */) {
       ndpi_bitmap_clear(rare_dest);
       ndpi_bitmap_clear(rare_dest_revise);
       return;
     }
 
-    if (t_now - cli_lhost->getRareDestLastEpoch() >= 540 /* RARE_DEST_EPOCH_DURATION */) {
+    if (t_now - cli_lhost->getRareDestLastEpoch() >= 600 /* RARE_DEST_EPOCH_DURATION */) {
       ndpi_bitmap_xor(rare_dest_revise, rare_dest);  // updates rare_dest_revise
       ndpi_bitmap_and(rare_dest, rare_dest_revise); // makes rare_dest = rare_dest_revise
       cli_lhost->setRareDestLastEpoch(t_now);
