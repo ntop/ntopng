@@ -644,7 +644,7 @@ end
 function setCustomnDPIProtoCategory(app_id, new_cat_id)
     ntop.setnDPIProtoCategory(app_id, new_cat_id)
 
-    local key = getCustomnDPIProtoCategoriesKey(ifid)
+    local key = getCustomnDPIProtoCategoriesKey()
 
     -- NOTE: when the ndpi struct changes, the custom associations are
     -- reloaded by Ntop::loadProtocolsAssociations
