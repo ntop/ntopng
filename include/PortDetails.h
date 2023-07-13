@@ -27,9 +27,11 @@
 class PortDetails {
     private: 
         ndpi_protocol protocol;
-        u_int64_t h_count = 1;
+        u_int64_t h_count;
     public:
-        PortDetails(){};
+        PortDetails(){
+            h_count = 1;
+        };
         ~PortDetails(){};
 
         void inc_h_count() { h_count++;};

@@ -1356,10 +1356,7 @@ public:
 					bool *matched);
   static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data,
 					bool *matched);
-  static bool get_udp_host_ports(GenericHashEntry *node,
-				 void *user_data,
-				 bool *matched);
-  static bool get_tcp_host_ports(GenericHashEntry *node,
+  static bool get_host_ports(GenericHashEntry *node,
 				 void *user_data,
 				 bool *matched);
   static bool get_hosts_by_port(GenericHashEntry *node,

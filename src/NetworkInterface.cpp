@@ -11757,15 +11757,13 @@ void NetworkInterface::getHostsPorts(lua_State *vm) {
   u_int32_t begin_slot = 0;
   HostsPorts count;
   u_int32_t protocol = 0;
-  if (lua_type(vm, 1) == LUA_TNUMBER)
+  if (lua_type(vm, 1) == LUA_TNUMBER) {
     protocol = (u_int32_t)lua_tonumber(vm, 1);
+    count.set_protocol(protocol);
+  }
 
-  if(protocol == 6)
-    walker(&begin_slot, true, walker_hosts,
-	   get_tcp_host_ports, &count);
-  else
-    walker(&begin_slot, true , walker_hosts,
-	   get_udp_host_ports, &count);
+  walker(&begin_slot, true , walker_hosts,
+	  get_host_ports, &count);
 
   sort_ports(vm, &count, protocol);
 
@@ -11780,7 +11778,7 @@ void NetworkInterface::getHostsPorts(lua_State *vm) {
 
 /* **************************************************** */
 
-bool NetworkInterface::get_udp_host_ports(GenericHashEntry *node,
+bool NetworkInterface::get_host_ports(GenericHashEntry *node,
 					  void *user_data,
 					  bool *matched) {
   Host *h = (Host *)node;
@@ -11789,31 +11787,11 @@ bool NetworkInterface::get_udp_host_ports(GenericHashEntry *node,
     return false;
 
   HostsPorts *hostsPorts = static_cast< HostsPorts *>(user_data);
+  
   LocalHost *lh = (LocalHost*) h;
-  std::unordered_map<u_int16_t, ndpi_protocol> udp_ports = lh->getUDPServerPorts();
+  std::unordered_map<u_int16_t, ndpi_protocol> ports = (hostsPorts->get_protocol() == 6) ? lh->getTCPServerPorts() : lh->getUDPServerPorts();
 
-  hostsPorts->mergeSrvPorts(&udp_ports);
-
-  *matched = true;
-
-  return (false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::get_tcp_host_ports(GenericHashEntry *node,
-					  void *user_data,
-					  bool *matched) {
-  Host *h = (Host *)node;
-
-  if (!h || !h->isLocalHost())
-    return false;
-
-  HostsPorts *hostsPorts = static_cast< HostsPorts *>(user_data);
-  LocalHost *lh = (LocalHost*) h;
-  std::unordered_map<u_int16_t, ndpi_protocol> tcp_ports = lh->getTCPServerPorts();
-
-  hostsPorts->mergeSrvPorts(&tcp_ports);
+  hostsPorts->mergeSrvPorts(&ports);
 
   *matched = true;
 
