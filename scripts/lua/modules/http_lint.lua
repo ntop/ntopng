@@ -1028,7 +1028,8 @@ end
 -- #################################
 
 local function validateStatus(p)
-    return (p == 'allowed' or p == 'denied')
+    return (p == 'allowed' or p == 'denied' or
+            validateBool(p))
 end
 
 -- #################################
