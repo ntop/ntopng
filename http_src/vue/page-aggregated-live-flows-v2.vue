@@ -18,10 +18,13 @@
                     </div>
 
                     <div>
-                        <TableWithConfig ref="table_aggregated_live_flows"  :csrf="csrf" :table_id="table_id"
-                                :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
-                                
-                                :enable_search="selected_criteria.search_enabled == true">
+                      <TableWithConfig ref="table_aggregated_live_flows"
+				       :csrf="csrf"
+				       :table_id="table_id"
+				       :table_config_id="table_config_id"
+                                       :f_map_columns="map_table_def_columns"
+				       :get_extra_params_obj="get_extra_params_obj"
+                                       :f_map_config="map_config">
                         </TableWithConfig>
                     </div>
                 </div>
@@ -31,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount } from "vue";
+import { ref, onMounted, onBeforeMount, computed } from "vue";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import NtopUtils from "../utilities/ntop-utils";
 import { default as TableWithConfig } from "./table-with-config.vue";
@@ -57,9 +60,13 @@ const criteria_list_def = [
 const loading = ref(null)
 const table_aggregated_live_flows = ref();
 
-let table_id = ref('aggregated_live_flows');
+const table_config_id = ref('aggregated_live_flows');
+const table_id = computed(() => {
+    if (selected_criteria.value?.value == null) { return table_config_id.value; }
+    let id = `${table_config_id.value}_${selected_criteria.value.value}`;
+    return id;
+});
 const selected_criteria = ref(criteria_list_def[0]);
-const table_config = ref({})
 let default_url_params = {};
 
 const criteria_list = function () {
@@ -93,7 +100,6 @@ function init_selected_criteria() {
 
 async function update_criteria() {
     ntopng_url_manager.set_key_to_url("aggregation_criteria", selected_criteria.value.param);
-    table_id = ref('aggregated_live_flows_1');
 };
 
 const get_extra_params_obj = () => {
@@ -106,14 +112,12 @@ const get_extra_params_obj = () => {
 
 
 function get_url_params() {
-
     let actual_params = {
         ifid: ntopng_url_manager.get_url_entry("ifid") || props.context.ifid,
         vlan_id: ntopng_url_manager.get_url_entry("vlan_id") || '-1' /* No filter by default */,
         aggregation_criteria: ntopng_url_manager.get_url_entry("aggregation_criteria") || selected_criteria.value.param,
         host: ntopng_url_manager.get_url_entry("host") || props.context.host,
-    };
-    
+    };    
 
     return actual_params;
 }
@@ -122,11 +126,14 @@ const is_column_sortable = (col) => {
     return col.data != "breakdown" && col.name != 'flows_icon' ;
 };
 
+const map_config = (config) => {
+    config.enable_search = selected_criteria.value.search_enabled == true;
+    return config;
+};
+
 /// methods to get columns config
 const map_table_def_columns = async (columns) => {
     columns = [];
-
-    debugger;
     columns.push(
         {
             sortable: false,  name: 'flows_icon', data_field: 'client', class: ['text-center'], responsivePriority: 1, render_func: (data_field, rowData) => {
@@ -148,7 +155,7 @@ const map_table_def_columns = async (columns) => {
                     return format_application_proto_guessed(data_field, rowData)
                 }
             }
-            );
+        );
     }
     else if (selected_criteria.value.value == 2) {
         // client case
