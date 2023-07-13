@@ -7085,18 +7085,17 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm,
   int i;
   u_int num_supported_protocols =
     ndpi_get_ndpi_num_supported_protocols(get_ndpi_struct());
-  ndpi_proto_defaults_t *proto_defaults =
-    ndpi_get_proto_defaults(get_ndpi_struct());
+  ndpi_proto_defaults_t *proto_defaults = ndpi_get_proto_defaults(get_ndpi_struct());
 
   lua_newtable(vm);
 
   for (i = 0; i < (int)num_supported_protocols; i++) {
     char buf[16];
 
-    if (((filter == NDPI_PROTOCOL_ANY_CATEGORY) ||
-         proto_defaults[i].protoCategory == filter) &&
-        (!skip_critical || !Utils::isCriticalNetworkProtocol(i))) {
-      snprintf(buf, sizeof(buf) - 1, "%d", i);
+    if (((filter == NDPI_PROTOCOL_ANY_CATEGORY) || proto_defaults[i].protoCategory == filter)
+	&& (!skip_critical || !Utils::isCriticalNetworkProtocol(i))) {
+      snprintf(buf, sizeof(buf) - 1, "%d", ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), i));
+      
       if (!proto_defaults[i].protoName)
         ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                      "NULL protoname for index %d!!", i);
