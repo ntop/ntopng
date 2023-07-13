@@ -1028,8 +1028,7 @@ end
 -- #################################
 
 local function validateStatus(p)
-    return (p == 'allowed' or p == 'denied' or
-            validateBool(p))
+    return (p == 'allowed' or p == 'denied')
 end
 
 -- #################################
@@ -1759,8 +1758,8 @@ local known_parameters = {
     ["mac_list"] = validateUnquoted,
     ["mac_alias"] = validateSingleWord,
     ["mac_status"] = validateStatus,
-    ["devices_status_during_learning"] = validateStatus,
-    ["devices_status_post_learning"] = validateStatus,
+    ["devices_status_during_learning"] = validateBool,
+    ["devices_status_post_learning"] = validateBool,
 
     -- UI TOASTS
     ["toast_id"] = validateSingleWord,
