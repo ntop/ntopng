@@ -1188,8 +1188,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         local is_device_connection_disconnection_analysis_enabled = ntop.isEnterpriseM()
 
-        multipleTableButtonPrefs(subpage_active.entries["devices_status_during_learning_period"].title,
-            subpage_active.entries["devices_status_during_learning_period"].description,
+        multipleTableButtonPrefs(subpage_active.entries["devices_status_during_learning"].title,
+            subpage_active.entries["devices_status_during_learning"].description,
             {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
             {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
             "primary", -- [selected color]
@@ -1197,8 +1197,8 @@ if auth.has_capability(auth.capabilities.preferences) then
             false, -- [disabled]
             {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]] )
 
-        multipleTableButtonPrefs(subpage_active.entries["devices_status_post_learning_period"].title,
-            subpage_active.entries["devices_status_post_learning_period"].description,
+        multipleTableButtonPrefs(subpage_active.entries["devices_status_post_learning"].title,
+            subpage_active.entries["devices_status_post_learning"].description,
             {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
             {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
             "primary", "devices_status_post_learning", "ntopng.prefs.devices_status_post_learning", false, {}, nil, nil,

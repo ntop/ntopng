@@ -113,13 +113,13 @@ local menu_subpages = { {
             title = i18n("prefs.devices_learning_period_title"),
             description = i18n("prefs.devices_learning_period_description")
         },
-        devices_status_during_learning_period = {
-            title = i18n("prefs.devices_status_during_learning_period_title"),
-            description = i18n("prefs.devices_status_during_learning_period_description")
+        devices_status_during_learning = {
+            title = i18n("prefs.devices_status_during_learning_title"),
+            description = i18n("prefs.devices_status_during_learning_description")
         },
-        devices_status_post_learning_period = {
-            title = i18n("prefs.devices_status_post_learning_period_title"),
-            description = i18n("prefs.devices_status_post_learning_period_description")
+        devices_status_post_learning = {
+            title = i18n("prefs.devices_status_post_learning_title"),
+            description = i18n("prefs.devices_status_post_learning_description")
         }
     }
 }, {
