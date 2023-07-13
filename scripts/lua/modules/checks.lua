@@ -2321,6 +2321,12 @@ local function runSystemChecks(granularity, checks_var, do_trace)
                 entity_info = info,
                 ts_enabled = checks_var.system_ts_enabled
             })
+
+            -- Safety check
+            if interface.getId() ~= tonumber(getSystemInterfaceId()) then
+               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Script '%s' changed the interface from '%d' to '%d'. Resetting interface.", mod_key, tonumber(getSystemInterfaceId()), interface.getId()))
+               interface.select(getSystemInterfaceId())
+            end
         end
     end
 end
