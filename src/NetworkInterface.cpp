@@ -11757,9 +11757,15 @@ void NetworkInterface::getHostsPorts(lua_State *vm) {
   u_int32_t begin_slot = 0;
   HostsPorts count;
   u_int32_t protocol = 0;
+  u_int16_t vlan_id = 0;
   if (lua_type(vm, 1) == LUA_TNUMBER) {
     protocol = (u_int32_t)lua_tonumber(vm, 1);
     count.set_protocol(protocol);
+  }
+
+  if (lua_type(vm, 2) == LUA_TNUMBER) {
+    vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+    count.set_vlan_id(vlan_id);
   }
 
   walker(&begin_slot, true , walker_hosts,
@@ -11787,8 +11793,15 @@ bool NetworkInterface::get_host_ports(GenericHashEntry *node,
     return false;
 
   HostsPorts *hostsPorts = static_cast< HostsPorts *>(user_data);
+  u_int16_t vlan_id = hostsPorts->get_vlan_id();
   
+  if ( (vlan_id != 0) && (h->get_vlan_id() != vlan_id) ) {
+    *matched = true;
+    return (false); /* false = keep on walking */
+  }
+
   LocalHost *lh = (LocalHost*) h;
+  
   std::unordered_map<u_int16_t, ndpi_protocol> ports = (hostsPorts->get_protocol() == 6) ? lh->getTCPServerPorts() : lh->getUDPServerPorts();
 
   hostsPorts->mergeSrvPorts(&ports);
