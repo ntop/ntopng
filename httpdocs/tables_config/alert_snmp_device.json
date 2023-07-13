@@ -68,12 +68,6 @@
 	    "class": ["text-nowrap"]
 	},
 	{
-	    "title_i18n": "show_alerts.alert_counts",
-	    "data_field": "count",
-	    "sortable": false,
-	    "class": ["text-nowrap"]
-	},
-	{
 	    "title_i18n": "description",
 	    "data_field": "description",
 	    "sortable": false,

@@ -64,13 +64,6 @@
 	    "class": ["text-center"]
 	},
 	{
-	    "title_i18n": "show_alerts.alert_counts",
-	    "data_field": "count",
-	    "sortable": false,
-        "hidden": true,
-	    "class": ["text-center"]
-	},
-	{
 	    "title_i18n": "description",
 	    "data_field": "description",
 	    "sortable": false,
