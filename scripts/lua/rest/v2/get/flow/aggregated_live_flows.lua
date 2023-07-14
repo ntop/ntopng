@@ -92,7 +92,7 @@ local isView = interface.isView()
 local x = 0
 -- Retrieve the flows
 local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id, filters["page"], filters["sort_column"],
-							filters["sort_order"], filters["start"], filters["length"], ternary(not isEmptyString(filters["map_search"]), filters["map_search"], nil) , ternary(filters["host"]~= "", filters["host"], nil))
+							filters["sort_order"], filters["start"], filters["length"], ternary(not isEmptyString(filters["map_search"]), filters["map_search"], nil) , ternary(filters["host"]~= "", filters["host"], nil), vlan)
 
 -- Formatting the data
 for _, data in pairs(aggregated_info or {}) do
@@ -110,8 +110,7 @@ for _, data in pairs(aggregated_info or {}) do
    local srv_port = nil
 
    if (vlan) and
-      (tonumber(vlan) ~= tonumber(data.vlan_id) or tonumber(vlan) ~= tonumber(data.cli_vlan_id) or tonumber(vlan) ~=
-       tonumber(data.srv_vlan_id)) then
+      (tonumber(vlan) ~= tonumber(data.vlan_id) ) then
       goto continue
    end
 
@@ -199,6 +198,14 @@ for _, data in pairs(aggregated_info or {}) do
 	 in_memory = in_memory,
 	 extra_labels = format_utils.formatFullAddressCategory(host or {})
       }
+   end
+
+   if add_server and (tonumber(vlan) ~=
+   tonumber(data.srv_vlan_id)) then
+      goto continue
+   end
+   if add_client and ( tonumber(vlan) ~= tonumber(data.cli_vlan_id)) then
+         goto continue
    end
 
    if (table.len(response) > 0 and response.add_info) then

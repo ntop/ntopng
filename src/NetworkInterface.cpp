@@ -11088,6 +11088,9 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
   if(stats->ip_addr != NULL) {
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
       return(false);
+  } else if(stats->vlan_id != 0) {
+    if(!f->matchFlowVLAN(stats->vlan_id))
+      return(false);
   }
 
   /* <vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
@@ -11137,6 +11140,9 @@ bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node,
   if(stats->ip_addr != NULL) {
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
       return(false);
+  } else if(stats->vlan_id != 0) {
+    if(!f->matchFlowVLAN(stats->vlan_id))
+      return(false);
   }
 
   it = stats->count.find(key);
@@ -11179,6 +11185,9 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
   if(stats->ip_addr != NULL) {
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
       return(false);
+  } else if(stats->vlan_id != 0) {
+    if(!f->matchFlowVLAN(stats->vlan_id))
+      return(false);
   }
 
   it = stats->count.find(key);
@@ -11211,6 +11220,9 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
   
   if(stats->ip_addr != NULL) {
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
+      return(false);
+  } else if(stats->vlan_id != 0) {
+    if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
 
@@ -11655,12 +11667,14 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
   struct aggregated_stats stats;
   AnalysisCriteria filter_type = (AnalysisCriteria)lua_tonumber(vm, 1);
   char *host_ip = NULL;
+  u_int16_t vlan_id = 0;
 
   /* NOTE: parsing of additional Lua parameters in NetworkInterface::sort_and_filter_flow_stats() */
   if (lua_type(vm, 8) == LUA_TSTRING) host_ip = (char *)lua_tostring(vm, 8);
+  if (lua_type(vm, 9) == LUA_TNUMBER) vlan_id = lua_tonumber(vm,9);
 
   stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
-
+  stats.vlan_id = vlan_id;
   switch (filter_type) {
   case AnalysisCriteria::application_criteria:
     /* application protocol criteria flows stats case */

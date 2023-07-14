@@ -8271,3 +8271,10 @@ bool Flow::matchFlowIP(IpAddress *ip, u_int16_t vlan_id) {
     return(false);
 }
 
+
+/* **************************************************** */
+
+bool Flow::matchFlowVLAN(u_int16_t vlan_id) {
+  return(get_vlan_id() == vlan_id ? true : false);
+}
+
