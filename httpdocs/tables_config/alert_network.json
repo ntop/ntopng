@@ -55,6 +55,7 @@
 	    "title_i18n": "network",
 	    "data_field": "network",
 	    "sortable": true,
+	    "render_type": "formatNetwork",
 	    "class": ["text-nowrap"]
 	},
 	{
