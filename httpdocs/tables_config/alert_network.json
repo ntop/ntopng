@@ -17,7 +17,6 @@
 	    "render_v_node_type": "button_list",
 	    "button_def_array": [
 		{ "id": "info", "icon": "fas fa fa-search-plus", "class":["link-button"], "title_i18n": "info", "event_id": "click_button_info" },
-		{ "id": "historical_data", "icon": "fas fa-stream", "title_i18n": "db_explorer.historical_data", "class":["link-button"], "event_id": "click_button_historical_flows" },
 		{ "id": "acknowledge", "icon": "fas fa fa-user-check", "title_i18n": "acknowledge", "class":["link-button"], "event_id": "click_button_acknowledge" },
 		{ "id": "disable", "icon": "fas fa fa-bell-slash", "title_i18n": "disable", "class":["link-button"], "event_id": "click_button_disable" },
 		{ "id": "settings", "icon": "fas fa fa-cog", "title_i18n": "settings", "class":["link-button"], "event_id": "click_button_settings" },
