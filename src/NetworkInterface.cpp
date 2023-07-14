@@ -593,7 +593,7 @@ int NetworkInterface::nDPILoadMaliciousJA3Signatures(const char *file_path) {
 
 ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid) {
   ndpi_protocol proto;
-
+  protoid = ndpi_map_user_proto_id_to_ndpi_id(get_ndpi_struct(), protoid);
   proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
   proto.master_protocol = protoid;
   proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;

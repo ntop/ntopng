@@ -46,7 +46,7 @@ for app_name, app_id in pairs(applications) do
     local record = {}
     local category = ntop.getnDPIProtoCategory(tonumber(app_id))
     record["application_id"] = app_id
-    record["category_id"] = category_id
+    record["category_id"] = category.id
     record["application"] = app_name
     record["num_hosts"] = proto_to_num_rules[app_name] or 0
     record["custom_rules"] = makeApplicationHostsList(app_name)
