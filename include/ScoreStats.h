@@ -25,13 +25,12 @@
 class ScoreStats {
  private:
  protected:
-  u_int32_t cli_score[MAX_NUM_SCORE_CATEGORIES],
-      srv_score[MAX_NUM_SCORE_CATEGORIES];
+  ScoreCounter cli_score[MAX_NUM_SCORE_CATEGORIES], srv_score[MAX_NUM_SCORE_CATEGORIES];
 
-  static u_int64_t sum(u_int32_t const scores[]);
-  static u_int16_t incValue(u_int32_t scores[], u_int16_t score,
+  static u_int64_t sum(ScoreCounter const scores[]);
+  static u_int16_t incValue(ScoreCounter scores[], u_int16_t score,
                             ScoreCategory score_category);
-  static u_int16_t decValue(u_int32_t scores[], u_int16_t score,
+  static u_int16_t decValue(ScoreCounter scores[], u_int16_t score,
                             ScoreCategory score_category);
 
   void lua_breakdown(lua_State *vm, bool as_client);
@@ -51,10 +50,10 @@ class ScoreStats {
 
   /* Getters by category */
   virtual u_int32_t getClient(ScoreCategory sc) const {
-    return (cli_score[sc]);
+    return (cli_score[sc].get());
   };
   virtual u_int32_t getServer(ScoreCategory sc) const {
-    return (srv_score[sc]);
+    return (srv_score[sc].get());
   };
 
   u_int16_t incValue(u_int16_t score, ScoreCategory score_category,

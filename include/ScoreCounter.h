@@ -19,32 +19,30 @@
  *
  */
 
-#ifndef _NTOP_VIEW_SCORE_STATS_H_
-#define _NTOP_VIEW_SCORE_STATS_H_
+#ifndef _SCORE_COUNTER_H_
+#define _SCORE_COUNTER_H_
 
-class ViewScoreStats : public ScoreStats {
+class ScoreCounter {
  private:
-  Mutex m;
-  ScoreCounter cli_dec[MAX_NUM_SCORE_CATEGORIES], srv_dec[MAX_NUM_SCORE_CATEGORIES];
+  u_int32_t value;
 
  public:
-  ViewScoreStats();
-  ~ViewScoreStats(){};
+  ScoreCounter()  { value = 0; }
 
-  /* Total Getters */
-  u_int64_t getClient() const { return (sum(cli_score) - sum(cli_dec)); };
-  u_int64_t getServer() const { return (sum(srv_score) - sum(srv_dec)); };
+  u_int32_t get() const { return(value); } 
 
-  /* Getters by category */
-  u_int32_t getClient(ScoreCategory sc) const {
-    return (cli_score[sc].get() - cli_dec[sc].get() );
-  };
-  u_int32_t getServer(ScoreCategory sc) const {
-    return (srv_score[sc].get()  - srv_dec[sc].get() );
-  };
+  u_int32_t inc(u_int16_t score) { value += score; return(value); }
 
-  u_int16_t decValue(u_int16_t score, ScoreCategory score_category,
-                     bool as_client);
+  u_int32_t dec(u_int16_t score) {
+    if(value >= score)
+      value -= score;
+    else {
+      printf("[ScoreCounter.h] Internal error [%u vs %u]", value, score);
+      value = 0;
+    }
+    
+    return(value);
+  }
 };
 
-#endif
+#endif /* _SCORE_COUNTER_H_ */

@@ -46,7 +46,7 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress,
 /* *************************************** */
 
 LocalHost::~LocalHost() {
-  addOfflineData();
+  addInactiveData();
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
 }
@@ -151,13 +151,13 @@ void LocalHost::initialize() {
 /* *************************************** */
 
 void LocalHost::deferredInitialization() {
-  removeOfflineData();
+  removeInactiveData();
   Host::deferredInitialization();
 }
 
 /* *************************************** */
 
-void LocalHost::addOfflineData() {
+void LocalHost::addInactiveData() {
   /* Remove the key from the hash, used to get the offline hosts */
   /* Exclude the multicast/broadcast addresses and private addresses*/
   if(!ntop->getRedis() || !isLocalUnicastHost() || isPrivateHost())
@@ -182,7 +182,9 @@ void LocalHost::addOfflineData() {
   ndpi_serialize_string_uint32(&host_json, "vlan", (u_int16_t) get_vlan_id());
   ndpi_serialize_string_uint32(&host_json, "network", (u_int16_t) get_local_network_id());
   ndpi_serialize_string_string(&host_json, "name", get_name(buf, sizeof(buf), false));
+  
 
+  
   json_str = ndpi_serializer_get_buffer(&host_json, &json_str_len);
   if ((json_str != NULL) && (json_str_len > 0)) {
     char key[128], redis_key[64];
@@ -193,12 +195,13 @@ void LocalHost::addOfflineData() {
 
 /* *************************************** */
 
-void LocalHost::removeOfflineData() {
+void LocalHost::removeInactiveData() {
+  char key[128], redis_key[64];
+  
   /* Remove the key from the hash, used to get the offline hosts */
   if(!ntop->getRedis() || !isLocalUnicastHost())
     return;
 
-  char key[128], redis_key[64];
   snprintf(redis_key, sizeof(redis_key), OFFLINE_LOCAL_HOSTS_KEY, iface->get_id());
   ntop->getRedis()->hashDel(redis_key, getSerializationKey(key, sizeof(key)));
 }
