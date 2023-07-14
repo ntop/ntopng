@@ -11083,15 +11083,15 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
   ndpi_protocol detected_protocol = f->get_detected_protocol();
   std::unordered_map<u_int64_t, AggregatedFlowsStats *>::iterator it;
   struct aggregated_stats *stats = (struct aggregated_stats*)user_data;
-  u_int64_t is_not_guessed = (u_int64_t) int(f->isDPIDetectedFlow());
+  bool is_not_guessed = f->isDPIDetectedFlow();
 
   if(stats->ip_addr != NULL) {
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
       return(false);
   }
 
-  /* <is_not_guessed (16 bit)><vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
-  key = ((u_int64_t) is_not_guessed << 48) +
+  /* <vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
+  key = 
     ((u_int64_t)vlan_id << 32) +
     (((u_int64_t)detected_protocol.app_protocol) << 16) +
     (u_int64_t)detected_protocol.master_protocol;
@@ -11105,6 +11105,7 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
     if (fs) {
       fs->setProtoKey(key);
       fs->setFlowIPVLAN(f);
+      fs->setIsNotGuessed(is_not_guessed);
       stats->count[key] = fs;
     }
   } else {
@@ -11198,6 +11199,48 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
   }
 
   *matched = true;
+  return (false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntry *node,
+								 void *user_data, bool *matched) {
+  Flow *f = (Flow *)node;
+  struct aggregated_stats *stats = (struct aggregated_stats*)user_data;
+  
+  if(stats->ip_addr != NULL) {
+    if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
+      return(false);
+  }
+
+  u_int64_t vlan_id = f->get_vlan_id();
+  std::unordered_map<u_int64_t, AggregatedFlowsStats *>::iterator it;
+  u_int64_t key = (((u_int64_t)f->get_cli_ip_addr()->key()) << 16) +
+    (((u_int64_t)f->get_srv_ip_addr()->key()) << 16) +
+    (((u_int64_t)f->get_srv_port()) << 32) +
+    ((u_int64_t)vlan_id << 32);
+
+  it = stats->count.find(key);
+
+  if (it == stats->count.end()) {
+    AggregatedFlowsStats *fs =
+      new (std::nothrow) AggregatedFlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
+					      f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
+    
+    if (fs != NULL) {
+      fs->setFlowIPVLAN(f);
+      fs->setSrvPort(f->get_srv_port());
+      fs->setKey(key);
+      stats->count[key] = fs;
+    }
+  } else
+    it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+			     f->getScore());
+  
+  *matched = true;  
+
   return (false); /* false = keep on walking */
 }
 
@@ -11636,6 +11679,11 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
     walker(&begin_slot, true /* walk_all */, walker_flows,
 	   compute_server_flow_stats, &stats);
     break;
+  case AnalysisCriteria::client_server_srv_port:
+    /* info criteria flows stats case */
+    walker(&begin_slot, true /* walk_all */, walker_flows,
+      compute_client_server_srv_port_flow_stats, &stats);
+    break;
 
 #if defined(NTOPNG_PRO)
   case AnalysisCriteria::client_server_criteria:
@@ -11657,13 +11705,6 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
     if (ntop->getPrefs()->is_enterprise_m_edition())
       walker(&begin_slot, true /* walk_all */, walker_flows,
 	     compute_info_flow_stats, &stats);
-    break;
-
-  case AnalysisCriteria::client_server_srv_port:
-    /* info criteria flows stats case */
-    if (ntop->getPrefs()->is_enterprise_m_edition())
-      walker(&begin_slot, true /* walk_all */, walker_flows,
-	     compute_client_server_srv_port_flow_stats, &stats);
     break;
 #endif
 

@@ -1356,6 +1356,9 @@ public:
 					bool *matched);
   static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data,
 					bool *matched);
+  static bool compute_client_server_srv_port_flow_stats(GenericHashEntry *node,
+          void *user_data,
+          bool *matched);
   static bool get_host_ports(GenericHashEntry *node,
 				 void *user_data,
 				 bool *matched);
@@ -1377,9 +1380,6 @@ public:
                                                    bool *matched);
   static bool compute_info_flow_stats(GenericHashEntry *node, void *user_data,
                                       bool *matched);
-  static bool compute_client_server_srv_port_flow_stats(GenericHashEntry *node,
-							void *user_data,
-							bool *matched);
 #endif
   void getActiveMacs(lua_State *vm);
 };

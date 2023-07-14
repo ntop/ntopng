@@ -52,7 +52,7 @@ const criteria_list_def = [
     { label: _i18n("client"), value: 2, param: "client", table_id: "aggregated_client", enterprise_m: false, search_enabled: false },
     { label: _i18n("client_server"), value: 4, param: "client_server", table_id: "aggregated_client_server", enterprise_m: true, search_enabled: false },
     { label: _i18n("client_server_application_proto"), value: 5, param: "app_client_server", table_id: "aggregated_app_client_server", enterprise_m: true, search_enabled: true },
-    { label: _i18n("client_server_srv_port"), value: 7, param: "client_server_srv_port", table_id: "aggregated_client_server_srv_port", enterprise_m: true, search_enabled: false },
+    { label: _i18n("client_server_srv_port"), value: 7, param: "client_server_srv_port", table_id: "aggregated_client_server_srv_port", enterprise_m: false, search_enabled: false },
     { label: _i18n("info"), value: 6, param: "info", table_id: "aggregated_info", enterprise_m: true, search_enabled: true },
     { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server", enterprise_m: false, search_enabled: false },
 ];
@@ -143,15 +143,16 @@ const map_table_def_columns = async (columns) => {
         // application protocol case
         columns.push(
             {
-                title_i18n: "application_proto", sortable: true,  name: 'application', data_field: 'application', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field) => {
-                    return `${data_field.label_with_icons}`
+                title_i18n: "application_proto", sortable: true,  name: 'application', data_field: 'application', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field, rowData) => {
+                    return format_application_proto_guessed(data_field, rowData)
+                    //return `${data_field.label_with_icons}`
                 }
             }, 
-            {
+            /*{
                 title_i18n: "application_proto_guessed",sortable: false, name: 'application', data_field: 'is_not_guessed', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field, rowData) => {
                     return format_application_proto_guessed(data_field, rowData)
                 }
-            }
+            }*/
         );
     }
     else if (selected_criteria.value.value == 2) {
@@ -172,6 +173,18 @@ const map_table_def_columns = async (columns) => {
                     return format_server_name(data_field, rowData)
                 }
             });
+    }
+    else if (selected_criteria.value.value == 7) {
+            columns.push(
+                {
+                    title_i18n: "client", sortable: true, name: 'client', data_field: 'client', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field, rowData) => {
+                        return format_client_name(data_field, rowData)
+                    }
+                }, {
+                title_i18n: "last_server", sortable: true, name: 'server', data_field: 'server', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field, rowData) => {
+                    return format_server_name(data_field, rowData);
+                }
+            })
     }
     else if (props.context.is_ntop_enterprise_m) {
         if (selected_criteria.value.value == 4 || selected_criteria.value.value == 7 ) {
@@ -198,8 +211,9 @@ const map_table_def_columns = async (columns) => {
 		    }
 		},
 		{
-		    title_i18n: "application_proto",sortable: true,  name: 'application', data_field: 'application', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field) => {
-			return `${data_field.label_with_icons}`;
+		    title_i18n: "application_proto",sortable: true,  name: 'application', data_field: 'application', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field, rowData) => {
+                return format_application_proto_guessed(data_field, rowData);
+                    //return `${data_field.label_with_icons}`
 		    }
 		});
         } else if (selected_criteria.value.value == 6) {
@@ -324,9 +338,9 @@ const format_flows_icon = function (data, rowData) {
 
 const format_application_proto_guessed = function (data, rowData) {
     if(rowData.confidence == 0 )
-        return `<span class=\"badge bg-warning\" title=\" `+ rowData.confidence_name + `\">`+ rowData.confidence_name + ` </span>`
+        return `${data.label_with_icons} <span class=\"badge bg-warning\" title=\" `+ rowData.confidence_name + `\">`+ rowData.confidence_name + ` </span>`
     else if (rowData.confidence)
-        return `<span class=\"badge bg-success\" title=\"`+ rowData.confidence_name + ` \"> `+ rowData.confidence_name + `</span>`
+        return `${data.label_with_icons} <span class=\"badge bg-success\" title=\"`+ rowData.confidence_name + ` \"> `+ rowData.confidence_name + `</span>`
     
         
 }

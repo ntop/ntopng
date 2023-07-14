@@ -81,7 +81,9 @@ local criteria_type_id = 1 -- by default application_protocol
 if criteria == "client" then
    criteria_type_id = 2
 elseif criteria == "server" then
-   criteria_type_id = 3
+      criteria_type_id = 3
+elseif criteria == "client_server_srv_port" then
+   criteria_type_id = 7
 elseif ntop.isEnterpriseM() then
    criteria_type_id = get_criteria_type_id(criteria)
 end
@@ -100,6 +102,7 @@ for _, data in pairs(aggregated_info or {}) do
    local add_app_proto = false
    local add_server = false
    local add_client = false
+   local add_server_port = false
    local client = nil
    local server = nil
    local info = nil
@@ -132,6 +135,16 @@ for _, data in pairs(aggregated_info or {}) do
       if(data.server_ip ~= nil) then
 	 add_server = true
       end
+   elseif (criteria_type_id == 7) then
+      if(data.server_ip ~= nil) then
+	 add_server = true
+      end
+      if(data.client_ip ~= nil) then
+   add_client = true
+      end
+      if(data.srv_port ~= nil) then
+   add_server_port = true
+      end
    elseif ntop.isEnterpriseM() then
       response = get_output_flags(criteria_type_id)
    end
@@ -144,7 +157,7 @@ for _, data in pairs(aggregated_info or {}) do
       }
    end
 
-   if (response ~= {} and response.add_srv_port) then
+   if (add_server_port) then
       srv_port = {
          label = data.srv_port,
          id = data.srv_port
