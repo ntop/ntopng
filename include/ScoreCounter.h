@@ -24,25 +24,17 @@
 
 class ScoreCounter {
  private:
-  u_int32_t value;
+  u_int32_t value, decay_time, b;
+  float a;
 
  public:
-  ScoreCounter()  { value = 0; }
+  ScoreCounter()  { value = decay_time = 0; }
 
-  u_int32_t get() const { return(value); } 
+  u_int32_t get();
+  
+  inline u_int32_t inc(u_int16_t score) { value += score, decay_time = 0; return(value); }
 
-  u_int32_t inc(u_int16_t score) { value += score; return(value); }
-
-  u_int32_t dec(u_int16_t score) {
-    if(value >= score)
-      value -= score;
-    else {
-      printf("[ScoreCounter.h] Internal error [%u vs %u]", value, score);
-      value = 0;
-    }
-    
-    return(value);
-  }
+  u_int32_t dec(u_int16_t score);
 };
 
 #endif /* _SCORE_COUNTER_H_ */

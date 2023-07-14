@@ -32,14 +32,14 @@ class ViewScoreStats : public ScoreStats {
   ~ViewScoreStats(){};
 
   /* Total Getters */
-  u_int64_t getClient() const { return (sum(cli_score) - sum(cli_dec)); };
-  u_int64_t getServer() const { return (sum(srv_score) - sum(srv_dec)); };
+  u_int64_t getClient() { return (sum(cli_score) - sum(cli_dec)); };
+  u_int64_t getServer() { return (sum(srv_score) - sum(srv_dec)); };
 
   /* Getters by category */
-  u_int32_t getClient(ScoreCategory sc) const {
+  u_int32_t getClient(ScoreCategory sc) {
     return (cli_score[sc].get() - cli_dec[sc].get() );
   };
-  u_int32_t getServer(ScoreCategory sc) const {
+  u_int32_t getServer(ScoreCategory sc) {
     return (srv_score[sc].get()  - srv_dec[sc].get() );
   };
 

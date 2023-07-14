@@ -30,7 +30,7 @@ ScoreStats::ScoreStats() {
 
 /* *************************************** */
 
-u_int64_t ScoreStats::sum(ScoreCounter const scores[]) {
+u_int64_t ScoreStats::sum(ScoreCounter scores[]) {
   u_int64_t res = 0;
 
   for (int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++)
