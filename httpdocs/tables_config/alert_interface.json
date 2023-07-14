@@ -1,5 +1,5 @@
 {
-    "id": "alert_flow",
+    "id": "alert_interface",
     "data_url": "lua/rest/v2/get/interface/alert/list.lua",
     "use_current_page": false,
     "enable_search": false,

@@ -1,5 +1,3 @@
-
-
 {
     "id": "alert_snmp_device",
     "data_url": "lua/rest/v2/get/snmp/device/alert/list.lua",
