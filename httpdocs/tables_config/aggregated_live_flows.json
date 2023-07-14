@@ -1,10 +1,14 @@
 {
-	"id": "aggregated_live_flows",
-	"data_url": "lua/rest/v2/get/flow/aggregated_live_flows.lua",
-	"use_current_page": false,
-	"paging": true,
-	"display_empty_rows": true,
-	"columns": [
-		
-	]
+    "id": "aggregated_live_flows",
+    "data_url": "lua/rest/v2/get/flow/aggregated_live_flows.lua",
+    "use_current_page": false,
+    "paging": true,
+    "display_empty_rows": true,
+    "default_sort": {
+	"column_id": "flows",
+	"sort": 2
+    },
+    "columns": [
+	
+    ]
 }
