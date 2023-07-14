@@ -122,9 +122,6 @@ function get_url_params() {
     return actual_params;
 }
 
-const is_column_sortable = (col) => {
-    return col.data != "breakdown" && col.name != 'flows_icon' ;
-};
 
 const map_config = (config) => {
     config.enable_search = selected_criteria.value.search_enabled == true;
@@ -216,7 +213,7 @@ const map_table_def_columns = async (columns) => {
         }
     }
 
-    if (props.context.vlans.length > 0) {
+    if (props.context.vlans.length > 2) {
         columns.push({
             title_i18n: "vlan", sortable: true, name: 'vlan_id', data_field: 'vlan_id', class: ['text-nowrap ','text-center'], responsivePriority: 1, render_func: (data_field) => {
                 if (data_field.id === 0 || data_field.id == undefined) {
