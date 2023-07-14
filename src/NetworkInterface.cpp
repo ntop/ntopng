@@ -603,8 +603,9 @@ ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid
 
 /* *************************************** */
 
-void NetworkInterface::setnDPIProtocolCategory(
-					       u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
+void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
+  protoId = ndpi_map_user_proto_id_to_ndpi_id(get_ndpi_struct(), protoId);
+
   ndpi_set_proto_category(get_ndpi_struct(), protoId, protoCategory);
 }
 
@@ -7095,7 +7096,7 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm,
     if (((filter == NDPI_PROTOCOL_ANY_CATEGORY) || proto_defaults[i].protoCategory == filter)
 	&& (!skip_critical || !Utils::isCriticalNetworkProtocol(i))) {
       snprintf(buf, sizeof(buf) - 1, "%d", ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), i));
-      
+
       if (!proto_defaults[i].protoName)
         ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                      "NULL protoname for index %d!!", i);
@@ -11497,7 +11498,7 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
 
 	  proto = get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf));
 	  it->second->setProtoName(proto);
-	  
+
 	  // check filters
 	  if(strcasestr(proto, search_string) != NULL)
 	    do_add_it = true;
@@ -11530,16 +11531,16 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
       for (it = stats->count.begin(); it != stats->count.end(); ++it) {
 	ndpi_protocol detected_protocol;
 	char buf[64], *proto;
-	
+
 	/* Get from the key, the master and application protocol,
 	 * first 16 bit for the master, second for the application
 	 */
 	detected_protocol.master_protocol = (u_int16_t)(it->second->getProtoKey() & 0x00000000000FFFF);
 	detected_protocol.app_protocol    = (u_int16_t)((it->second->getProtoKey() >> 16) & 0x000000000000FFFF);
-	
+
 	it->second->setProtoName(proto = get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
 
-	if((search_string == NULL) || (strcasestr(proto, search_string) != NULL))	  
+	if((search_string == NULL) || (strcasestr(proto, search_string) != NULL))
 	  vector.push_back(it->second);
       }
     }
@@ -11562,19 +11563,19 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
       sorter = &asc_str_info_cmp;
     else if (!strcmp(sortColumn, "flows"))
       sorter = &asc_flow_num_cmp;
-    else if (!strcmp(sortColumn, "tot_score")) 
+    else if (!strcmp(sortColumn, "tot_score"))
       sorter = &asc_total_score_cmp;
-    else if (!strcmp(sortColumn, "num_clients")) 
+    else if (!strcmp(sortColumn, "num_clients"))
       sorter = &asc_numclients_cmp;
-    else if (!strcmp(sortColumn, "num_servers")) 
+    else if (!strcmp(sortColumn, "num_servers"))
       sorter = &asc_num_servers_cmp;
-    else if (!strcmp(sortColumn, "bytes_sent")) 
+    else if (!strcmp(sortColumn, "bytes_sent"))
       sorter = &asc_total_sent_cmp;
-    else if (!strcmp(sortColumn, "bytes_rcvd")) 
+    else if (!strcmp(sortColumn, "bytes_rcvd"))
       sorter = &asc_total_rcvd_cmp;
-    else if (!strcmp(sortColumn, "tot_traffic")) 
+    else if (!strcmp(sortColumn, "tot_traffic"))
       sorter = &asc_total_traffic_cmp;
-    else if (!strcmp(sortColumn, "vlan_id")) 
+    else if (!strcmp(sortColumn, "vlan_id"))
       sorter = &asc_vlan_cmp;
   }
 
@@ -11595,7 +11596,7 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
       AggregatedFlowsStats *fs = *vector_it;
 
       if (fs)
-        build_lua_rsp(vm, fs, filter_type, vector_size, &num, true);      
+        build_lua_rsp(vm, fs, filter_type, vector_size, &num, true);
 
       if (num >= max_num_rows) break;
     }
@@ -11696,7 +11697,7 @@ void NetworkInterface::getVLANHostsPorts(lua_State *vm) {
 
   walker(&begin_slot, true , walker_hosts,
     get_vlan_host_ports, &count);
-  
+
   vlan_ports_lua_response(vm, &count);
 
 }
@@ -11727,12 +11728,12 @@ bool NetworkInterface::get_vlan_host_ports(GenericHashEntry *node,
 
 /* **************************************************** */
 
-void NetworkInterface::vlan_ports_lua_response(lua_State *vm, 
+void NetworkInterface::vlan_ports_lua_response(lua_State *vm,
     HostsPorts *count) {
-  
+
   std::unordered_map<u_int32_t, u_int64_t> vlan_ports = count->getVLANPorts();
   std::unordered_map<u_int32_t, u_int64_t>::iterator it;
-    
+
   lua_newtable(vm);
   u_int num = 0;
 
@@ -11747,7 +11748,7 @@ void NetworkInterface::vlan_ports_lua_response(lua_State *vm,
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
-  
+
 }
 
 /* **************************************************** */
@@ -11793,14 +11794,14 @@ bool NetworkInterface::get_host_ports(GenericHashEntry *node,
 
   HostsPorts *hostsPorts = static_cast< HostsPorts *>(user_data);
   u_int16_t vlan_id = hostsPorts->get_vlan_id();
-  
+
   if ( (vlan_id != 0) && (h->get_vlan_id() != vlan_id) ) {
     *matched = true;
     return (false); /* false = keep on walking */
   }
 
   LocalHost *lh = (LocalHost*) h;
-  
+
   std::unordered_map<u_int16_t, ndpi_protocol> ports = (hostsPorts->get_protocol() == 6) ? lh->getTCPServerPorts() : lh->getUDPServerPorts();
 
   hostsPorts->mergeSrvPorts(&ports);
@@ -11828,7 +11829,7 @@ void NetworkInterface::sort_ports(lua_State *vm,
   for (it = ordered.begin(); it != ordered.end(); ++it) {
     char str[32], buf[64];
     lua_newtable(vm);
-    
+
     snprintf(str, sizeof(str), "%s:%u", isTCP ? "tcp" : "udp", it->first);
     lua_push_str_table_entry(vm, str,
 			     ndpi_protocol2name(get_ndpi_struct(), it->second->get_protocol(), buf, sizeof(buf)));
@@ -12112,7 +12113,7 @@ static bool compute_vlan_flow_stats(GenericHashEntry *node, void *user_data,
   Flow *f = (Flow *)node;
 
   if (!f)
-    return false;  
+    return false;
 
   ndpi_protocol detected_protocol = f->get_detected_protocol();
   u_int64_t vlan_id = f->get_vlan_id();
