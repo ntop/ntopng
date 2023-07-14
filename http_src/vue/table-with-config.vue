@@ -13,6 +13,7 @@
 	 :f_get_column_style="table_config.f_get_column_style"
 	 :display_empty_rows="table_config.display_empty_rows"
 	 :enable_search="table_config.enable_search"
+	 :default_sort="table_config.default_sort"
 	 :paging="table_config.paging"
 	 :csrf="csrf"
 	 @loaded="on_loaded"

@@ -35,6 +35,7 @@ async function build_table(http_prefix, table_id, f_map_columns, f_get_extra_par
 	f_get_column_style: get_f_get_column_style(table_def),
 	display_empty_rows: table_def.display_empty_rows,
 	enable_search: table_def.enable_search,
+	default_sort: table_def.default_sort,
 	paging: table_def.paging,
     };
     return table_config;

@@ -24,12 +24,19 @@
 	  <input type="search" v-model="map_search" @input="on_change_map_search" class="" >
 	</label>
       </div>
+      
       <button class="btn btn-link me-1" type="button" @click="reset_column_size">
 	<i class="fas fa-columns"></i>
       </button>
       <button class="btn btn-link me-1" type="button" @click="refresh_table">
 	<i class="fas fa-refresh"></i>
       </button>
+      <!-- <div class="d-inline-block"> -->
+      <!-- 	<Switch v-model:value="enable_autorefresh" -->
+      <!-- 		class="me-2 mt-1" title="TODO" style="" -->
+      <!-- 		@change_value="update_autorefresh"> -->
+      <!-- 	</Switch> -->
+      <!-- </div> -->
       
       <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
 	<template v-slot:title>
@@ -117,8 +124,9 @@ import { default as Dropdown } from "./dropdown.vue";
 import { default as SelectTablePage } from "./select_table_page.vue";
 import { default as VueNode } from "./vue_node.vue";
 import { default as Loading } from "./loading.vue";
+import { default as Switch } from "./switch.vue";
 
-const emit = defineEmits(['custom_event', 'loaded'])
+const emit = defineEmits(['custom_event', 'loaded']);
 const vue_obj = {
     emit,
     h,
@@ -126,7 +134,7 @@ const vue_obj = {
 };
 
 const props = defineProps({
-    id: String,    
+    id: String,
     columns: Array,
     get_rows: Function, // async (active_page: number, per_page: number, columns_wrap: any[], search_map: string, first_get_rows: boolean) => { total_rows: number, rows: any[], query_info: { query_duration_msec: number, num_records_processed: string, query: string } }
     get_column_id: Function,
@@ -139,6 +147,7 @@ const props = defineProps({
     f_get_column_style: Function,
     enable_search: Boolean,
     display_empty_rows: Boolean,
+    default_sort: Object, // { column_id: string, sort: number (0, 1, 2) }
     csrf: String,
     paging: Boolean,
 });
@@ -166,6 +175,7 @@ const query_info = ref(null);
 const query_info_sql_button = ref(null);
 const changing_column_visibility = ref(false);
 const changing_rows = ref(false);
+const enable_autorefresh = ref(false);
 
 onMounted(async () => {
     if (props.columns != null) {
@@ -185,6 +195,16 @@ async function load_table() {
     dropdown.value.load_menu();
     emit("loaded");
 }
+
+// let autorefresh_interval;
+// function update_autorefresh() {
+//     if (enable_autorefresh.value == true) {
+// 	clearInterval(autorefresh_interval);
+//     }
+//     autorefresh_interval = setInterval(() => {
+// 	change_active_page();
+//     }, 10 * 1000);
+// }
 
 async function change_columns_visibility(col) {
     changing_column_visibility.value = true;
@@ -264,10 +284,16 @@ async function set_columns_wrap() {
 	}
 	let id = props.get_column_id(c);
 	let col_opt = cols_visibility_dict[id];
+	let sort = col_opt?.sort; 
+	if (sort == null && props.default_sort != null && id == props.default_sort.column_id) {
+	    sort = props.default_sort.sort;
+	} else {
+	    sort = 0;
+	}
 	return {
 	    id,
 	    visible: col_opt?.visible == null || col_opt?.visible == true,
-	    sort: col_opt?.sort || 0,
+	    sort: sort,
 	    sortable: is_column_sortable(c),
 	    order: col_opt?.order || i,
 	    classes,
@@ -297,7 +323,12 @@ function redraw_select_pages() {
 }
 
 async function change_active_page(new_active_page) {
-    active_page = new_active_page;
+    if (new_active_page != null) {
+	active_page = new_active_page;
+    }
+    if (active_page == null) {
+	active_page = 0;
+    }
     if (props.paging == true || force_refresh) {
 	await set_rows();
     } else {
@@ -306,7 +337,7 @@ async function change_active_page(new_active_page) {
 }
 
 async function change_column_sort(col, col_index) {
-    if (col.sortable == false) {
+    if (!col.sortable) {
 	return;
     }
     col.sort = (col.sort + 1) % 3;
@@ -348,7 +379,7 @@ async function refresh_table() {
 
 let first_get_rows = true;
 async function set_rows() {
-    changing_rows.value = true;
+    // changing_rows.value = true;
     loading.value = true;
     let res = await props.get_rows(active_page, per_page.value, columns_wrap.value, map_search.value, first_get_rows);
     query_info.value = null;
@@ -363,7 +394,7 @@ async function set_rows() {
     rows = res.rows;
     set_active_rows();    
     loading.value = false;
-    changing_rows.value = false;
+    // changing_rows.value = false;
 }
 
 function is_column_sortable(col) {
