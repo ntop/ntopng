@@ -794,7 +794,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, not_p
                         toadd = true
                     end
                 elseif ((wildcard_tag ~= "protocol") or
-                    ((L4_PROTO_KEYS[value] == nil) and (interface.getnDPIProtoId(value) ~= -1) and interface.getnDPIProtoId(value) ~= 0)) 
+                    ((L4_PROTO_KEYS[value] == nil) and interface.getnDPIProtoId(value) ~= 0)) 
                     and ((wildcard_tag ~= "category") or (interface.getnDPICategoryId(value) ~= -1)) then
                     toadd = true
                 end
