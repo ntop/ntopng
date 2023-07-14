@@ -16,6 +16,7 @@ local alert_roles = require "alert_roles"
 local tag_utils = require "tag_utils"
 local alert_entities = require "alert_entities"
 local checks = require "checks"
+local os_utils = require("os_utils")
 
 -- ##############################################
 

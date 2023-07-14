@@ -59,8 +59,8 @@
 	    "class": ["text-nowrap"]
 	},
 	{
-	    "title_i18n": "information",
-	    "data_field": "msg.description",
+	    "title_i18n": "description",
+	    "data_field": "description",
 	    "sortable": false,
 	    "class": ["text-nowrap"]
 	}
