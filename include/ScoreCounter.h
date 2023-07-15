@@ -24,11 +24,11 @@
 
 class ScoreCounter {
  private:
-  u_int32_t value, decay_time, b;
-  float a;
+  u_int32_t value, decay_time, beta /* Old value before decrease */;
+  float alpha; /* Linear decrease rate */
 
  public:
-  ScoreCounter()  { value = decay_time = 0; }
+  ScoreCounter()  { value = decay_time = 0, alpha = 0, beta = 0; }
 
   u_int32_t get();
   

@@ -21,16 +21,31 @@
 
 #include "ntop_includes.h"
 
-#define DEFAULT_DECAY_TIME 10 /* sec */
+#define DEFAULT_DECAY_TIME 60 /* sec */
+
+/*
+  ScoreCounter impements a linear decay time of DEFAULT_DECAY_TIME
+  so that when decreasing the counter, the new value is not
+  computed immediatelly but decreased over time until the
+  final value is computed.
+
+  If during the decrease, the value is incremented, the decay
+  stops and the new value is immediately computed
+*/
 
 /* **************************************************** */
 
-u_int32_t ScoreCounter::dec(u_int16_t score) {  
+u_int32_t ScoreCounter::dec(u_int16_t score) {
   if(value >= score) {
     u_int32_t old_value = value;
     
     value -= score, decay_time = ntop->get_current_time() + DEFAULT_DECAY_TIME;
-    a = ((float)(old_value - value)) / DEFAULT_DECAY_TIME, b = old_value;
+    alpha = ((float)(old_value - value)) / DEFAULT_DECAY_TIME, beta = old_value;
+
+#ifdef TRACE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ScoreCounter::dec()] [old: %u][new: %u][alpha: %.2f]",
+				 beta, value, alpha);
+#endif
   } else {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error [%u vs %u]", value, score);
     value = 0;
@@ -49,9 +64,15 @@ u_int32_t ScoreCounter::get() {
       decay_time = 0; /* Decay is over */
       return(value);
     } else {
-      u_int32_t tdiff = DEFAULT_DECAY_TIME-(decay_time - ntop->get_current_time());
+       u_int32_t t_diff = decay_time - ntop->get_current_time();
+       u_int32_t t_past = DEFAULT_DECAY_TIME-t_diff;
+       u_int32_t ret = beta - (u_int32_t)(alpha * t_past);
 
-      return(b - (u_int32_t)(a * tdiff));
+#ifdef TRACE
+       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ScoreCounter::get()] [current: %u][old: %u][time past: %u/%u]", ret, b, t_past, DEFAULT_DECAY_TIME);
+#endif
+       
+      return(ret);
     }
   }
 }
