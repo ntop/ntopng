@@ -1,0 +1,63 @@
+{
+	"name" : "Client / Server / Dst Port",
+	"i18n_name" : "contacts_with_port",
+	"select" : {
+		"items" : [
+			{
+				"name" : "vlan_id"
+			},
+			{
+				"name" : "cli_ip"
+			},
+			{
+				"name" : "srv_ip"
+			},
+			{
+				"name" : "srv_port"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "cli_ip"
+			},
+			{
+				"name": "srv_ip"
+			},
+			{
+				"name" : "srv_port"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "vlan_id"
+			},
+			{
+				"name" : "cli_ip"
+			},
+			{
+				"name" : "srv_ip"
+			},
+			{
+				"name" : "srv_port"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}
