@@ -918,7 +918,7 @@ function driver:timeseries_top(options, top_tags)
             local ifindex = available_tags[top_item][1].if_index or available_tags[top_item][1].port
             local ext_label = nil
             if cached_device then
-                ext_label = shortenString(snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex]), 32)
+                ext_label = snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex])
                 if isEmptyString(ext_label) then
                     ext_label = ifindex
                 end

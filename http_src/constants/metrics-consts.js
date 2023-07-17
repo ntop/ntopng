@@ -52,7 +52,7 @@ const sources_types_tables = {
 	snmp_interface: snmpInterfaceTopTables,
 	snmp_device: snmpInterfaceTopTables,
 	flow_device: flowDeviceTopTables,
-	// snmp_interface: [;
+	flow_interface: flowDeviceTopTables,
 };
 
 const sources_types = [
