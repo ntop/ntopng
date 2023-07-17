@@ -13,7 +13,7 @@
 				"name" : "srv_ip"
 			},
 			{
-				"name" : "alert_status"
+				"name" : "alert_id"
 			},
 			{
 				"name" : "count",
@@ -32,7 +32,7 @@
 				"name": "srv_ip"
 			},
 			{
-				"name" : "alert_status"
+				"name" : "alert_id"
 			}
 		]
 	},
@@ -48,7 +48,7 @@
 				"name" : "srv_ip"
 			},
 			{
-				"name" : "alert_status"
+				"name" : "alert_id"
 			}
 		]
 	},

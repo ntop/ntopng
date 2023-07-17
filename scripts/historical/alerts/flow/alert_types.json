@@ -4,7 +4,7 @@
 	"select" : {
 		"items" : [
 			{
-				"name" : "alert_status"
+				"name" : "alert_id"
 			},
 			{
 				"name" : "count",
@@ -17,14 +17,14 @@
 	"filters" : {
 		"items" : [
 			{
-				"name" : "alert_status"
+				"name" : "alert_id"
 			}
 		]
 	},
 	"groupby" : {
 		"items" : [
 			{
-				"name" : "alert_status"
+				"name" : "alert_id"
 			}
 		]
 	},
