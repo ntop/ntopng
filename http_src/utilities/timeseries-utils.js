@@ -15,20 +15,13 @@ function getSerieId(serie) {
 	return `${serie.id}`;
 }
 
-function getYaxisName(measureUnit, scale) {
-	if (measureUnit == "number") {
-		return scale;
-	}
-	return measureUnit;
-}
-
 function getSerieName(name, id, tsGroup, extendSeriesName) {
 	if (name == null) {
 		name = id;
 	}
 	let name_more_space = "";
 	if (name != null) {
-		name_more_space = `${name} `;
+		name_more_space = `${name}`;
 	}
 	if (extendSeriesName == false) {
 		return name;
@@ -36,15 +29,13 @@ function getSerieName(name, id, tsGroup, extendSeriesName) {
 	let source_index = getMainSourceDefIndex(tsGroup);
 	let source = tsGroup.source_array[source_index];
 	let prefix = `${source.label}`;
-	let yaxisName = getYaxisName(tsGroup.metric.measure_unit, tsGroup.metric.scale);
-	return `${prefix} ${name_more_space}(${yaxisName})`;
+	return `${prefix} ${name_more_space}`;
 }
 
 function getYaxisId(metric) {
 	return `${metric.measure_unit}_${metric.scale}`;
 }
 
-/*
 const defaultColors = [
 	"#C6D9FD",
 	"#90EE90",
@@ -59,52 +50,26 @@ const defaultColors = [
 	"#839BE6",
 	"#8EA4E8",
 ];
-*/
 
 function setSeriesColors(palette_list) {
-	let colors_list = [];
+	let colors_list = palette_list;
 	let count0 = 0, count1 = 0;
-	//let colors0 = defaultColors;
+	let colors0 = defaultColors;
 	let colors1 = d3v7.schemeCategory10;
-	palette_list.forEach((s) => {
+	colors_list.forEach((s, index) => {
 		if (s.palette == 0) {
-			colors_list.push(s.color);
+			palette_list[index] = colors0[count0 % colors0.length];
 			count0 += 1;
 		} else if (s.palette == 1) {
-			colors_list.push(colors1[count1 % colors1.length]);
+			palette_list[index] = colors1[count1 % colors1.length];
 			count1 += 1;
 		}
-	});
-
-	return colors_list
-}
-
-function setMinMaxYaxisStacked(yAxisArray, seriesArray) {
-	let minMax = { min: 0, max: Number.MIN_SAFE_INTEGER, invert_direction: false };
-	let sumSeriesData = [];
-	seriesArray.forEach((s) => {
-		s.data.forEach((d, i) => {
-			if (sumSeriesData.length <= i) {
-				sumSeriesData.push(0);
-			}
-			sumSeriesData[i] += d.y;
-		});
-	});
-	sumSeriesData.forEach((v) => {
-		minMax.max = Math.max(minMax.max, v);
-		minMax.min = Math.min(minMax.min, v);
-	});
-
-	yAxisArray.forEach((yAxis) => {
-		yAxis.min = minMax.min;
-		yAxis.max = minMax.max;
 	});
 }
 
 const groupsOptionsModesEnum = {
 	'1_chart_x_metric': { value: "1_chart_x_metric", label: i18n('page_stats.layout_1_per_1') },
 	'1_chart_x_yaxis': { value: "1_chart_x_yaxis", label: i18n('page_stats.layout_1_per_y') },
-	//	'1_chart': { value: "1_chart", label: i18n('page_stats.layout_1_per_all') },
 }
 
 function getGroupOptionMode(group_id) {
@@ -151,11 +116,7 @@ function splitTsArrayStacked(tsOptionsArray, tsGrpupsArray) {
 }
 
 function tsArrayToOptionsArrayRaw(tsOptionsArray, tsGroupsArray, groupsOptionsMode, tsCompare) {
-	/*if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart"].value) {
-		let DygraphOptions = tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare);
-		let DygraphOptionsArray = [DygraphOptions];
-		return DygraphOptionsArray;
-	} else*/ if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart_x_yaxis"].value) {
+	if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart_x_yaxis"].value) {
 		let tsDict = {};
 		tsGroupsArray.forEach((tsGroup, i) => {
 			let yaxisId = getYaxisId(tsGroup.metric);
@@ -251,7 +212,7 @@ function formatBoundsSerie(series, series_info) {
 			if (formatted_serie[point] == null) {
 				formatted_serie[point] = [0, NaN, 0];
 			}
-
+			
 			if (s_metadata.type == "metric") {
 				formatted_serie[point][1] = serie_point * scalar;
 			} else if (s_metadata.type == "lower_bound") {
@@ -300,19 +261,24 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 			/* TODO: add avg, past, ecc. timeseries to the bounds one */
 			customBars = true;
 			let time = epoch_begin;
-			const { serie, color, formatter, serie_name, properties } = formatBoundsSerie(series, tsGroupsArray[i]);
+			const { serie, color, formatter, serie_name, properties } = formatBoundsSerie(series, tsGroupsArray[i], time, step);
 			colors_palette.push(color);
 			const found = formatters.find(el => el == formatter);
 			if (found == null)
 				formatters.push(formatter);
-			serie_labels.push(`${serie_name} ${i18n('lower_value_upper')}`);
-			serie_properties[serie_name] = {}
-			serie_properties[serie_name] = properties;
-			serie.forEach((ts_info, j) => {
-				if (formatted_serie[j] == null)
-					formatted_serie[j] = [ntopng_utility.from_utc_s_to_server_date(time), ts_info];
-
-				/* Increase the time using the step */
+			const formatted_name = `${serie_name} ${i18n('lower_value_upper')}`
+			serie_labels.push(formatted_name);
+			serie_properties[formatted_name] = {}
+			serie_properties[formatted_name] = properties;
+			const serie_keys = Object.keys(serie);
+			serie_keys.forEach((key, j) => {
+				const ts_info = serie[key];
+				if (formatted_serie[time] == null)
+					formatted_serie[time] = [
+						{ value: ntopng_utility.from_utc_s_to_server_date(time), name: "Time" },
+						{ value: ts_info, name: formatted_name }
+					]
+					
 				time = time + step;
 			});
 		} else {
@@ -343,8 +309,14 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 				if (ts_info.ext_label) {
 					name = ts_info.ext_label
 				}
+
+				/* ************************************** */
+
 				const serie_name = getSerieName(name, ts_id, tsGroupsArray[i], use_full_name)
-				/* Add the serie label to the array of the labels */
+				const avg_label = getSerieName(name + " Avg", ts_id, tsGroupsArray[i], use_full_name)
+				const perc_label = getSerieName(name + " 95th Perc", ts_id, tsGroupsArray[i], use_full_name);
+				const past_label = getSerieName(name + " " + tsCompare + " Ago", ts_id, tsGroupsArray[i], use_full_name);
+					/* Add the serie label to the array of the labels */
 				serie_labels.push(serie_name);
 
 				serie_properties[serie_name] = {}
@@ -355,7 +327,6 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 				/* Adding the extra timeseries, 30m ago, avg and 95th */
 				if (extra_timeseries?.avg == true) {
 					/* Add the serie label to the array of the labels */
-					const avg_label = getSerieName(name + " Avg", ts_id, tsGroupsArray[i], use_full_name)
 					serie_labels.push(avg_label);
 
 					serie_properties[avg_label] = {}
@@ -365,7 +336,6 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 
 				if (extra_timeseries?.perc_95 == true) {
 					/* Add the serie label to the array of the labels */
-					const perc_label = getSerieName(name + " 95th Perc", ts_id, tsGroupsArray[i], use_full_name);
 					serie_labels.push(perc_label);
 
 					serie_properties[perc_label] = {}
@@ -374,7 +344,6 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 				}
 				if (extra_timeseries?.past == true) {
 					/* Add the serie label to the array of the labels */
-					const past_label = getSerieName(name + " " + tsCompare + " Ago", ts_id, tsGroupsArray[i], use_full_name);
 					serie_labels.push(past_label);
 
 					serie_properties[past_label] = {}
@@ -387,27 +356,29 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 				for (let point = 0; point < serie.length; point++) {
 					const serie_point = serie[point];
 					/* If the point is inserted for the first time, add the time before everything else */
-					if (formatted_serie[point] == null) {
-						formatted_serie[point] = [ntopng_utility.from_utc_s_to_server_date(time)];
+					if (formatted_serie[time] == null) {
+						formatted_serie[time] = [{ value: ntopng_utility.from_utc_s_to_server_date(time), name: "Time" }];
 					}
 					/* Add the point to the array */
 					if (serie_point != null) {
-						formatted_serie[point].push(serie_point * scalar);
+						formatted_serie[time].push({ value: serie_point * scalar, name: serie_name });
 					} else {
-						formatted_serie[point].push(NaN);
+						formatted_serie[time].push({ value: NaN, name: serie_name });
 					}
 
 					/* Add extra series, avg, 95th and past timeseries */
 					if (extra_timeseries?.avg == true) {
-						formatted_serie[point].push(ts_info.statistics["average"] * scalar);
+						formatted_serie[time].push({ value: ts_info.statistics["average"] * scalar, name: avg_label });
 					}
 					if (extra_timeseries?.perc_95 == true) {
-						formatted_serie[point].push(ts_info.statistics["95th_percentile"] * scalar);
+						formatted_serie[time].push({ value: ts_info.statistics["95th_percentile"] * scalar * scalar, name: perc_label });
 					}
 					if (extra_timeseries?.past == true) {
 						for (const key in past_serie) {
 							if (past_serie[key]?.series[j]?.data[point]) {
-								formatted_serie[point].push(past_serie[key]?.series[j]?.data[point] * scalar);
+								formatted_serie[time].push({ value: past_serie[key]?.series[j]?.data[point] * scalar, name: past_label });
+							} else {
+								formatted_serie[time].push({ value: NaN, name: past_label });
 							}
 						}
 					}
@@ -416,12 +387,34 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 					time = time + step;
 				}
 			})
-
 		}
 	});
-	colors = setSeriesColors(colors_palette)
+	/* Need to finally format the serie as requested by Dygraph, with
+		 NULL as value in case the serie has NOT THAT POINT (e.g. with a 5 minutes frequency, the user
+			is confronting a chart with 1 minute frequency, there are 4 minutes with no existing points)
+	 */
+	let full_serie = [];
+	const serie_keys = Object.keys(formatted_serie);
+	serie_keys.forEach((key, index) => {
+		full_serie[index] = [];
+		/* Iterate the serie and for each label, get the value and set to null in case it does not exists */
+		serie_labels.forEach((label) => {
+			let found = false;
+			for(let j = 0; j < formatted_serie[key].length; j++) {
+				if(formatted_serie[key][j].name == label) {
+					full_serie[index].push(formatted_serie[key][j].value);
+					found = true;
+					break;
+				}
+			}
+			if(found == false) {
+				full_serie[index].push(null);
+			}	
+		})
+	});
+	setSeriesColors(colors_palette)
 
-	let chartOptions = buildChartOptions(formatted_serie, serie_labels, serie_properties, formatters, colors, stacked, customBars);
+	let chartOptions = buildChartOptions(full_serie, serie_labels, serie_properties, formatters, colors_palette, stacked, customBars);
 	return chartOptions;
 }
 
@@ -461,7 +454,7 @@ function buildChartOptions(series, labels, serie_properties, formatters, colors,
 		labelsSeparateLines: true,
 		legend: "follow",
 		stackedGraph: stacked, /* TODO. add stacked here */
-		connectSeparatedPoints: false,
+		connectSeparatedPoints: true,
 		includeZero: true,
 		drawPoints: true,
 		highlightSeriesBackgroundAlpha: 0.7,
@@ -487,70 +480,6 @@ function buildChartOptions(series, labels, serie_properties, formatters, colors,
 	}
 
 	return config;
-	/*	return {
-			chart: {
-				id: ntopng_utility.get_random_string(),
-				stacked,
-				group: "timeseries",
-				// height: 300,
-			},
-			grid: {
-				padding: {
-					// left: -8,
-				},
-				row: {
-					// opacity: 1,
-				}
-			},
-			fill: {
-				opacity: 0.9,
-				type: 'solid',
-				pattern: {
-					strokeWidth: 10,
-				},
-			},
-			// fill: {
-	
-			// }
-			markers: {
-				size: 2.5,
-				strokeWidth: 1,
-				// fillOpacity: 0,
-				// strokeColors: '#000',
-				// colors: '#000',
-				strokeColors: seriesArray.map((s) => s.color),
-				// colors: null,
-				// strokeOpacity: 1,
-			},
-			stroke: {
-				show: true,
-				// curve: 'straight',
-				lineCap: 'butt',
-				width: 3,
-				dashArray: seriesArray.map((s) => { if (s.dashed) { return 4; } return 0; }),
-			},
-			legend: {
-				show: true,
-				showForSingleSeries: true,
-				position: "top",
-				horizontalAlign: "right",
-				onItemClick: {
-					toggleDataSeries: false,
-				},
-			},
-			series: seriesArray,
-			// colors: colorsInterpolation.transformColors(colors),
-			yaxis: yaxisArray,
-			xaxis: {
-				labels: {
-					show: true,
-				},
-				axisTicks: {
-					show: true,
-				},
-			},
-		};
-		*/
 }
 
 function getTsQuery(tsGroup, not_metric_query, enable_source_def_value_dict) {

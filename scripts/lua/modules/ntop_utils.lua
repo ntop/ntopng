@@ -305,13 +305,20 @@ end
 -- @return An iterator
 function pairsByDottedDecimalKeys(t, f)
    local sorter = {}
-
+   
    -- Build a support array for the actual sorting
    for key, value in pairs(t) do
+      local key_sorter = key:split("%.") or {key} -- An array that will be used to sort
+      local splitted = key_sorter[#key_sorter]:split("@") or {}
+      -- This example handles the VLAN, if no VLAN is present, add 0, in case
+      -- a comparison between an host with VLAN and one without is performed
+      key_sorter[#key_sorter] = splitted[1]
+      key_sorter[#key_sorter + 1] = splitted[2] or 0
+
       sorter[#sorter + 1] = {
-	 sorter = key:split("%.") or {key}, -- An array that will be used to sort
-	 key = key, -- Original key
-	 value = value -- Original value
+         sorter = key_sorter,
+         key = key, -- Original key
+         value = value -- Original value
       }
    end
 

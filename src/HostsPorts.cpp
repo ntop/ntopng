@@ -42,3 +42,27 @@ void HostsPorts::mergeSrvPorts(std::unordered_map<u_int16_t, ndpi_protocol> *new
     }
                   
 }
+
+/* *************************************** */
+
+void HostsPorts::mergeVLANPorts(std::unordered_map<u_int16_t, ndpi_protocol> *new_server_ports, u_int16_t vlan_id) {
+    std::unordered_map<u_int32_t, u_int64_t>::iterator vlan_port_it;
+    std::unordered_map<u_int16_t, ndpi_protocol>::iterator new_server_ports_it;
+
+    for (new_server_ports_it = new_server_ports->begin(); new_server_ports_it != new_server_ports->end(); ++new_server_ports_it ) {
+        
+        /* <port (16 bit)> <vlan_id (16 bit)>*/
+
+        u_int32_t key = ((u_int32_t) vlan_id) +
+                        ((u_int32_t) new_server_ports_it->first << 16);
+        vlan_port_it = vlan_ports.find(key);
+        if(vlan_port_it == vlan_ports.end()) {
+            vlan_ports[key] = 1;
+        } else {
+            vlan_port_it->second++;
+        }
+    }
+                  
+}
+
+/* *************************************** */

@@ -277,15 +277,22 @@ void FlowChecksLoader::loadConfiguration() {
           /* Script disabled */
           cb->scriptDisable();
         }
-      } else
+      } else {
         /* In case of these alerts do not trigger, due to some changes,
            it is normal that is going to trigger the warning */
         if (strcmp(check_key, "tls_old_protocol_version") &&
             strcmp(check_key, "tls_malicious_signature") &&
-            strcmp(check_key, "ndpi_http_numeric_ip_host"))
+            strcmp(check_key, "ndpi_http_numeric_ip_host")
+#ifdef HAVE_NEDGE
+            &&
+            strcmp(check_key, "lateral_movement") &&
+            strcmp(check_key, "periodicity_changed")
+#endif
+           )
           ntop->getTrace()->traceEvent(
               TRACE_WARNING, "Unable to find flow check '%s': skipping it",
               check_key);
+      }
     }
 
   next_object:

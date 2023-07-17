@@ -13,6 +13,7 @@
 	 :f_get_column_style="table_config.f_get_column_style"
 	 :display_empty_rows="table_config.display_empty_rows"
 	 :enable_search="table_config.enable_search"
+	 :default_sort="table_config.default_sort"
 	 :paging="table_config.paging"
 	 :csrf="csrf"
 	 @loaded="on_loaded"
@@ -33,6 +34,7 @@ const props = defineProps({
     table_config_id: String, // name of configuration file in httpdocs/tables_config
     table_id: String, // id of table, same table_config_id can have different table_id and then different columuns visible settins
     csrf: String,
+    f_map_config: Function,
     f_map_columns: Function,
     get_extra_params_obj: Function,
 });
@@ -64,6 +66,9 @@ async function load_table() {
 	table_config_id_2 = props.table_id;
     }
     table_config.value = await TableUtils.build_table(http_prefix, table_config_id_2, props.f_map_columns, props.get_extra_params_obj);
+    if (props.f_map_config != null) {
+	table_config.value = props.f_map_config(table_config.value);
+    }
     mount_table.value = true;
     await nextTick();
 }

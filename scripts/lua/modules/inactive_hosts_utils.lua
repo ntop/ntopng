@@ -12,6 +12,30 @@ local inactive_hosts_utils = {}
 
 -- ##########################################
 
+-- Function used to check if the host has to be filtered out or not
+-- return true in case the host is okey, false in case it has to be filtered out
+local function check_filters(host_info, filters)
+    local mac_manufacturer = ntop.getMacManufacturer(host_info.mac) or {}
+    local filters_ok = true
+
+    for filter, value in pairs(filters or {}) do
+        if filter == "manufacturer" then
+            if mac_manufacturer.extended ~= value then
+                filters_ok = false
+                goto skip
+            end
+        elseif tostring(host_info[filter]) ~= tostring(value) then
+            filters_ok = false
+            goto skip
+        end
+    end
+
+    ::skip::
+    return filters_ok
+end
+
+-- ##########################################
+
 -- This function return a list of inactive hosts, with all the informations
 function inactive_hosts_utils.getInactiveHosts(ifid, filters)
     local redis_hash = string.format(OFFLINE_LOCAL_HOSTS_KEY, ifid)
@@ -26,21 +50,19 @@ function inactive_hosts_utils.getInactiveHosts(ifid, filters)
         if not isEmptyString(host_info_json) then
             local host_info = json.decode(host_info_json)
             local mac_manufacturer = ntop.getMacManufacturer(host_info.mac) or {}
+            local mac_manufacturer_label = ""
 
-            for filter, value in pairs(filters or {}) do
-                if filter == "manufacturer" then
-                    if mac_manufacturer.short ~= value then
-                        goto skip
-                    end
-                elseif tostring(host_info[filter]) ~= tostring(value) then
-                    goto skip
-                end
+            if not check_filters(host_info, filters) then
+                goto skip
             end
 
             for n, ns in pairs(networks_stats) do
                 if ns.network_id == tonumber(host_info.network) then
                     network_name = getFullLocalNetworkName(ns.network_key)
                 end
+            end
+            if mac_manufacturer and not isEmptyString(mac_manufacturer.extended) then
+                mac_manufacturer_label = mac_manufacturer.extended
             end
 
             host_list[#host_list + 1] = {
@@ -59,7 +81,7 @@ function inactive_hosts_utils.getInactiveHosts(ifid, filters)
                 network_id = host_info.network,
                 network = network_name,
                 serial_key = redis_key,
-                manufacturer = mac_manufacturer.extended
+                manufacturer = mac_manufacturer_label
             }
         end
 
@@ -87,6 +109,7 @@ end
 
 -- ##########################################
 
+-- Return the inactive host number
 function inactive_hosts_utils.getInactiveHostsNumber(ifid, filters)
     local redis_hash = string.format(OFFLINE_LOCAL_HOSTS_KEY, ifid)
     local available_keys = ntop.getHashKeysCache(redis_hash) or {}
@@ -102,16 +125,10 @@ function inactive_hosts_utils.getInactiveHostsNumber(ifid, filters)
             if not isEmptyString(host_info_json) then
                 local host_info = json.decode(host_info_json)
                 local last_seen = host_info.last_seen
-                local mac_manufacturer = ntop.getMacManufacturer(host_info.mac) or {}
 
-                for filter, value in pairs(filters) do
-                    if filter == "manufacturer" then
-                        if mac_manufacturer.short ~= value then
-                            goto skip
-                        end
-                    elseif tostring(host_info[filter]) ~= tostring(value) then
-                        goto skip
-                    end
+                -- Exclude those that do not follow the filters
+                if not check_filters(host_info, filters) then
+                    goto skip
                 end
 
                 count = count + 1
@@ -128,7 +145,7 @@ end
 -- ##########################################
 
 -- This function return a list of available VLAN filters
-function inactive_hosts_utils.getVLANFilters(ifid)
+function inactive_hosts_utils.getVLANFilters(ifid, filters)
     local redis_hash = string.format(OFFLINE_LOCAL_HOSTS_KEY, ifid)
     local available_keys = ntop.getHashKeysCache(redis_hash) or {}
     local vlan_list = {}
@@ -139,14 +156,23 @@ function inactive_hosts_utils.getVLANFilters(ifid)
 
         if not isEmptyString(host_info_json) then
             local host_info = json.decode(host_info_json)
+
+            -- Exclude those that do not follow the filters
+            if not check_filters(host_info, filters) then
+                goto skip
+            end
+
             if not (vlan_list[host_info.vlan]) then
                 vlan_list[host_info.vlan] = 1
             else
                 vlan_list[host_info.vlan] = vlan_list[host_info.vlan] + 1
             end
+
+            ::skip::
         end
     end
 
+    -- Add the vlan names
     for vlan, count in pairsByKeys(vlan_list) do
         local vlan_name = ''
         if vlan == 0 then
@@ -165,6 +191,7 @@ function inactive_hosts_utils.getVLANFilters(ifid)
         }
     end
 
+    -- Add the "all" entry
     table.insert(rsp, 1, {
         key = "vlan_id",
         value = "",
@@ -177,7 +204,7 @@ end
 -- ##########################################
 
 -- This function return a list of available network filters
-function inactive_hosts_utils.getNetworkFilters(ifid)
+function inactive_hosts_utils.getNetworkFilters(ifid, filters)
     local redis_hash = string.format(OFFLINE_LOCAL_HOSTS_KEY, ifid)
     local available_keys = ntop.getHashKeysCache(redis_hash) or {}
     local networks_stats = interface.getNetworksStats()
@@ -191,14 +218,22 @@ function inactive_hosts_utils.getNetworkFilters(ifid)
         if not isEmptyString(host_info_json) then
             local host_info = json.decode(host_info_json)
 
+            -- Exclude those that do not follow the filters
+            if not check_filters(host_info, filters) then
+                goto skip
+            end
+
             if not (network_list[host_info.network]) then
                 network_list[host_info.network] = 1
             else
                 network_list[host_info.network] = network_list[host_info.network] + 1
             end
+
+            ::skip::
         end
     end
 
+    -- Format the networks name
     for network, count in pairsByKeys(network_list) do
         local network_name
         for n, ns in pairs(networks_stats) do
@@ -214,6 +249,7 @@ function inactive_hosts_utils.getNetworkFilters(ifid)
             label = tostring(network_name or network)
         }
     end
+    -- Add the "all" entry
     table.insert(rsp, 1, {
         key = "network",
         value = "",
@@ -226,7 +262,7 @@ end
 -- ##########################################
 
 -- This function return a list of available device filters
-function inactive_hosts_utils.getDeviceFilters(ifid)
+function inactive_hosts_utils.getDeviceFilters(ifid, filters)
     local discover_utils = require "discover_utils"
     local redis_hash = string.format(OFFLINE_LOCAL_HOSTS_KEY, ifid)
     local available_keys = ntop.getHashKeysCache(redis_hash) or {}
@@ -240,6 +276,11 @@ function inactive_hosts_utils.getDeviceFilters(ifid)
             local host_info = json.decode(host_info_json)
             local dev_name = discover_utils.devtype2string(host_info.device_type)
 
+            -- Exclude those that do not follow the filters
+            if not check_filters(host_info, filters) then
+                goto skip
+            end
+
             if not (device_list[dev_name]) then
                 device_list[dev_name] = {
                     count = 1,
@@ -248,6 +289,8 @@ function inactive_hosts_utils.getDeviceFilters(ifid)
             else
                 device_list[dev_name].count = device_list[dev_name].count + 1
             end
+            
+            ::skip::
         end
     end
 
@@ -259,6 +302,7 @@ function inactive_hosts_utils.getDeviceFilters(ifid)
             label = device
         }
     end
+    -- Add "all" entry
     table.insert(rsp, 1, {
         key = "device_type",
         value = "",
@@ -283,18 +327,15 @@ function inactive_hosts_utils.getManufacturerFilters(ifid, filters)
         if not isEmptyString(host_info_json) then
             local host_info = json.decode(host_info_json)
             local mac_manufacturer = ntop.getMacManufacturer(host_info.mac) or {}
-            local tmp = mac_manufacturer.short
+            local tmp = mac_manufacturer.extended
 
-            if filters then
-                for filter, value in pairs(filters) do
-                    if filter == "manufacturer" then
-                        if mac_manufacturer.short ~= value then
-                            goto skip
-                        end
-                    elseif tostring(host_info[filter]) ~= tostring(value) then
-                        goto skip
-                    end
-                end
+            if isEmptyString(tmp) then
+                tmp = mac_manufacturer.short
+            end
+
+            -- Exclude those that do not follow the filters
+            if not check_filters(host_info, filters) then
+                goto skip
             end
 
             if tmp then
@@ -544,16 +585,10 @@ function inactive_hosts_utils.getInactiveHostsEpochDistribution(ifid, filters)
         if not isEmptyString(host_info_json) then
             local host_info = json.decode(host_info_json)
             local last_seen = host_info.last_seen
-            local mac_manufacturer = ntop.getMacManufacturer(host_info.mac) or {}
 
-            for filter, value in pairs(filters or {}) do
-                if filter == "manufacturer" then
-                    if mac_manufacturer.short ~= value then
-                        goto skip
-                    end
-                elseif tostring(host_info[filter]) ~= tostring(value) then
-                    goto skip
-                end
+            -- Exclude those that do not follow the filters
+            if not check_filters(host_info, filters) then
+                goto skip
             end
 
             if last_seen >= one_hour_epoch then

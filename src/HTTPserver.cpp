@@ -1681,9 +1681,9 @@ void HTTPserver::parseACL(char *const acl, u_int acl_len) {
 
 /* ****************************************** */
 
+#ifdef NO_SSL_DL
 static unsigned char ssl_session_ctx_id[] = PACKAGE_NAME "-" NTOPNG_GIT_RELEASE;
 
-#ifdef NO_SSL_DL
 int handle_ssl_verify(int ok, X509_STORE_CTX *ctx) {
   X509 *cert;
   char buf[256];

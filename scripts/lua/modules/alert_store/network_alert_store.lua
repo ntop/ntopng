@@ -129,6 +129,7 @@ local RNAME = {
    LOCAL_NETWORK_ID = { name = "local_network_id", export = true},
    NETWORK = { name = "network", export = true},
    ALERT_NAME = { name = "alert_name", export = true},
+   DESCRIPTION = { name = "description", export = true},
    MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
 }
 
@@ -158,6 +159,8 @@ function network_alert_store:format_record(value, no_html)
    if no_html then
       msg = noHtml(msg)
    end
+
+   record[RNAME.DESCRIPTION.name] = msg
 
    record[RNAME.MSG.name] = {
      name = noHtml(alert_name),

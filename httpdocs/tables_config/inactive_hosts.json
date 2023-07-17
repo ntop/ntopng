@@ -4,6 +4,7 @@
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": true,
+	"display_empty_rows": true,
 	"columns": [
 		{
 			"id": "actions",

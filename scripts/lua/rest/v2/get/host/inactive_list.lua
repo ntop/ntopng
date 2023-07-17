@@ -68,6 +68,7 @@ else
         local start = _GET["start"]
         local length = _GET["length"]
         local order_field = _GET["sort"] or "last_seen"
+        local count = 1
         local order
 
         if (_GET["order"]) and (_GET["order"] == "asc") then
@@ -77,13 +78,29 @@ else
         end
     
         -- Sorting the table
-        table.sort(hosts, function(x, y)
-            return order(x[order_field], y[order_field])
-        end)
-    
-        -- Cutting down the table
-        for key, value in pairs({table.unpack(hosts, start + 1, start + length)}) do
-            rsp[key] = value
+        if order_field == "host" then
+            -- In case of the column Host, a specific sorting is needed
+            -- handling ip@vlan
+            local tmp_table = {}
+            for _, value in pairs(hosts) do
+                tmp_table[value.host] = value
+            end             
+            for key, value in pairsByDottedDecimalKeys(tmp_table, order) do
+                if count >= start + 1 and count <= start + length then
+                    rsp[#rsp + 1] = value
+                end
+                count = count + 1
+            end             
+        else
+            -- Otherwise use the standard sorting and cutting table
+            table.sort(hosts, function(x, y)
+                return order(x[order_field], y[order_field])
+            end)
+        
+            -- Cutting down the table
+            for key, value in pairs({table.unpack(hosts, start + 1, start + length)}) do
+                rsp[key] = value
+            end
         end
         
         -- Formatting the values

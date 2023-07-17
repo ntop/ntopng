@@ -2018,6 +2018,21 @@ static int ntop_get_vlan_flows_stats(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_get_vlan_hosts_ports(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  ntop_interface->getVLANHostsPorts(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_hosts_ports(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4544,12 +4559,13 @@ static int ntop_interface_check_context(lua_State *vm) {
 
   if ((c->iface == NULL) ||
       (strcmp(c->iface->getEntityValue().c_str(), entity_val)) != 0) {
-    /* NOTE: settting a context for a differnt interface is currently not
+    /* NOTE: setting a context for a differnt interface is currently not
      * supported */
     ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "Bad context - expected interface %s found %s",
+        TRACE_WARNING, "Bad context - expected interface %s, found %s (%s) in context",
         entity_val,
-        c->iface == NULL ? "NULL" : c->iface->getEntityValue().c_str());
+        c->iface == NULL ? "NULL" : c->iface->getEntityValue().c_str(),
+        c->iface == NULL ? "NULL" : c->iface->get_name());
 
     lua_pushboolean(vm, false);
   } else
@@ -5436,6 +5452,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"getProtocolFlowsStats", ntop_get_protocol_flows_stats},
     {"getVLANFlowsStats", ntop_get_vlan_flows_stats},
     {"getHostsPorts", ntop_get_hosts_ports},
+    {"getVLANHostsPorts", ntop_get_vlan_hosts_ports},
     {"getHostsByPort", ntop_get_hosts_by_port}, 
     { "radiusAccountingStart", ntop_radius_accounting_start },
     { "radiusAccountingStop", ntop_radius_accounting_stop },

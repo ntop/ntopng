@@ -25,7 +25,7 @@ local function check_slow_periodic_activity(params)
    local scripts_stats = interface.getPeriodicActivitiesStats()
 
    for ps_name, ps_stats in pairs(scripts_stats) do
-      local delta = alerts_api.interface_delta_val(script.key..ps_name --[[ metric name --]], params.granularity, ps_stats["num_is_slow"] or 0)
+      local delta = alerts_api.interface_delta_val(script.key .. ps_name --[[ metric name --]], params.granularity, ps_stats["num_is_slow"] or 0)
 
       local alert = alert_consts.alert_types.alert_slow_periodic_activity.new(
          ps_name,

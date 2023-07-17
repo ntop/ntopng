@@ -194,7 +194,7 @@ end
 
 local function format_historical_info(flow)
   local historical_flow_utils = require "historical_flow_utils"
-  local info_field = historical_flow_utils.get_historical_url(shortenString(flow["INFO"], 64), "info", flow["INFO"], true, flow["INFO"])
+  local info_field = historical_flow_utils.get_historical_url(shortenString(flow["INFO"], 64), "info", flow["INFO"], true, flow["INFO"], true)
   
   return {
     label = i18n("db_explorer.info"),

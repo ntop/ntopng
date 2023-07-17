@@ -37,6 +37,7 @@ class FlowsHostInfo {
   char* getHostName(char* buf, u_int16_t buf_len);
   const char* getIP(char* buf, u_int16_t buf_len);
   const char* getIPHex(char* buf, u_int16_t buf_len);
+  inline IpAddress* getIPaddr() { return(ip); }
   bool isHostInMem();
   u_int16_t getVLANId();
   Host* getHost();

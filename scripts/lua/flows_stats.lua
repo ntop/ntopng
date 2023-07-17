@@ -65,8 +65,8 @@ local traffic_profile = _GET["traffic_profile"]
 local aggregation_criteria = _GET["aggregation_criteria"] or "application_protocol"
 
 local draw = _GET["draw"] or 0
-local sort = _GET["sort"] or "bytes_rcvd"
-local order = _GET["order"] or "asc"
+local sort = _GET["sort"] or "flows"
+local order = _GET["order"] or "desc"
 local start = _GET["start"] or 0
 local length = _GET["length"] or 10
 
@@ -627,17 +627,23 @@ else
         vlans[#vlans + 1] = vlan
     end
 
-    template.render("pages/aggregated_live_flows.template", {
+    local context = {
         ifid = ifId,
         vlans = json.encode(vlans),
         aggregation_criteria = aggregation_criteria,
+        is_ntop_enterprise_m = ntop.isEnterpriseM(),
         draw = draw,
         sort = sort,
         order = order,
         start = start,
         length = length,
-        host = ""
-    })
+        host = "",
+        csrf = ntop.getRandomCSRFValue()
+    }
+
+    local json_context = json.encode(context)
+    template.render("pages/vue_page.template", { vue_page_name = "PageAggregatedLiveFlowsV2", page_context = json_context })
+ 
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

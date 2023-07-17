@@ -395,6 +395,9 @@ function graph_utils.drawNewGraphs(source_value_object)
         },
         snmp = {
             top_snmp_ifaces = true
+        },
+        flowdevice = {
+            top_flowdev_ifaces = true
         }
     }
 

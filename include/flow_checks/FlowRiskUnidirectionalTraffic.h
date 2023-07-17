@@ -31,7 +31,7 @@ class FlowRiskUnidirectionalTraffic : public FlowRisk {
   }
 
  public:
-  FlowRiskUnidirectionalTraffic() : FlowRisk(){};
+  FlowRiskUnidirectionalTraffic() : FlowRisk(true /* check_on_flow_end */){};
   ~FlowRiskUnidirectionalTraffic(){};
 
   FlowAlert *buildAlert(Flow *f) {

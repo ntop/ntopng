@@ -528,8 +528,7 @@ else
         page_name = "snmp",
         label = i18n("host_details.snmp")
     }, {
-        hidden = only_historical -- or not host["systemhost"]
-        or not interface.hasEBPF(),
+        hidden = only_historical or not interface.hasEBPF(), -- or not host["systemhost"]
         active = page == "processes",
         page_name = "processes",
         label = i18n("user_info.processes")
@@ -1958,8 +1957,8 @@ setInterval(update_icmp_table, 5000);
                 http_prefix = ntop.getHttpPrefix(),
                 aggregation_criteria = "application_protocol",
                 draw = 0,
-                sort = "bytes_rcvd",
-                order = "asc",
+                sort = "flows",
+                order = "desc",
                 start = 0,
                 length = 10,
                 csrf = ntop.getRandomCSRFValue()
