@@ -159,8 +159,12 @@ void LocalHost::deferredInitialization() {
 
 void LocalHost::addInactiveData() {
   /* Remove the key from the hash, used to get the offline hosts */
-  /* Exclude the multicast/broadcast addresses and private addresses*/
-  if(!ntop->getRedis() || !isLocalUnicastHost() || isPrivateHost())
+  /* Exclude the multicast/broadcast addresses */
+  if(!ntop->getRedis() || !isLocalUnicastHost())
+    return;
+
+  /* Exclude local-link fe80::/10, marked as private */
+  if(isIPv6() && isPrivateHost())
     return;
 
   char buf[64], *json_str = NULL;
@@ -168,6 +172,19 @@ void LocalHost::addInactiveData() {
   u_int32_t json_str_len = 0;
   Mac *cur_mac = getMac();
 
+  /* In case the MAC is NULL or the MAC is a special */
+  /* address or a broadcast address do not include it */
+  if(!cur_mac || cur_mac->isSpecialMac() || cur_mac->isBroadcast())
+    return;
+
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, 
+    "Adding Host %s to inactive hosts Interace %d, with MAC: %s",
+    ip.print(buf, sizeof(buf)),
+    iface->get_id(),
+    cur_mac->print(buf, sizeof(buf)));
+#endif                               
+ 
   ndpi_init_serializer(&host_json, ndpi_serialization_format_json);
   ndpi_serialize_string_string(&host_json, "ip", ip.print(buf, sizeof(buf)));
 
