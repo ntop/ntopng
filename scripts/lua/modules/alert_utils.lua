@@ -367,9 +367,13 @@ end
 
 function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score)
     local msg
-    local alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
+    local alert_risk
 
-    if (alert_json == nil) then
+    if tonumber(alert.alert_id) then
+       alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
+    end
+
+    if not alert_json then
         alert_json = alert_utils.getAlertInfo(alert)
     end
 
@@ -391,14 +395,15 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score)
         msg = string.format('%s <small><span class="text-muted">%s</span></small>', msg, alert["user_label"])
     end
 
-    local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
-
     if add_score then
-        msg = alert_utils.format_score(msg, alert_score)
-    end
+       if tonumber(alert.alert_id) then 
+          local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
+          msg = alert_utils.format_score(msg, alert_score)
+       end
+   end
 
     -- Add the link to the documentation
-    if alert_risk > 0 then
+    if alert_risk and alert_risk > 0 then
         msg = string.format("%s %s", msg, flow_risk_utils.get_documentation_link(alert_risk))
         local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
 

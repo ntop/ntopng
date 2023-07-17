@@ -680,19 +680,25 @@ function flow_alert_store:format_record(value, no_html)
    local record = self:format_json_record_common(value, alert_entities.flow.entity_id, no_html)
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true --[[ no_html --]], alert_entities.flow.entity_id)
-   local alert_risk = ntop.getFlowAlertRisk(tonumber(value.alert_id))
-   local l4_protocol = l4_proto_to_string(value["proto"])
-   local l7_protocol =  interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]), tonumber(value["l7_proto"]))
    local show_cli_port = (value["cli_port"] ~= '' and value["cli_port"] ~= '0')
    local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0') 
-   local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info)
+   local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info) -- < --
    local active_url = ""
    local attacker = ""
    local victim = ""
+
+   local alert_json = {}
+   if not isEmptyString(value.json) then
+      alert_json = json.decode(value.json) or {}
+   end
+
    -- Add link to active flow
-   local alert_json = json.decode(value.json)
-  
    local flow_related_info = addExtraFlowInfo(alert_json, value)
+
+   local alert_risk
+   if tonumber(value.alert_id) then
+      alert_risk = ntop.getFlowAlertRisk(tonumber(value.alert_id))
+   end
 
    -- TLS IssuerDN
    local flow_tls_issuerdn = nil
@@ -719,7 +725,9 @@ function flow_alert_store:format_record(value, no_html)
    local other_alerts_by_score = {} -- Table used to keep messages ordered by score
    local additional_alerts = {}
   
-   other_alerts_by_score, additional_alerts = alert_utils.format_other_alerts(value.alerts_map, value['alert_id'])
+   if value.alerts_map then
+      other_alerts_by_score, additional_alerts = alert_utils.format_other_alerts(value.alerts_map, value['alert_id'])
+   end
 
    -- Print additional issues, sorted by score
    record[RNAME.ADDITIONAL_ALERTS.name] = ''
@@ -757,7 +765,8 @@ function flow_alert_store:format_record(value, no_html)
          shorten_descr = shorten_msg,
       }
    end
-   local proto = string.lower(interface.getnDPIProtoName(tonumber(value["l7_master_proto"])))
+
+   -- local proto = string.lower(interface.getnDPIProtoName(tonumber(value["l7_master_proto"])))
 
    local flow_server_name = getExtraFlowInfoServerName(alert_json)
    local flow_domain
@@ -925,9 +934,15 @@ function flow_alert_store:format_record(value, no_html)
    }
 
    record[RNAME.VLAN_ID.name] = value["vlan_id"]
+
+   local l4_protocol
+   if not isEmptyString(value["proto"]) then
+      l4_protocol = l4_proto_to_string(value["proto"])
+   end
+
    record[RNAME.PROTO.name] = {
-      value = value["proto"],
-      label = l4_protocol
+      value = value["proto"] or "",
+      label = l4_protocol or ""
    }
 
    if value["is_cli_victim"]   == "1" then record["cli_role"] = { value = 'victim',   label = i18n("victim"),   tag_label = i18n("victim") } end
@@ -935,23 +950,30 @@ function flow_alert_store:format_record(value, no_html)
    if value["is_srv_victim"]   == "1" then record["srv_role"] = { value = 'victim',   label = i18n("victim"),   tag_label = i18n("victim") } end
    if value["is_srv_attacker"] == "1" then record["srv_role"] = { value = 'attacker', label = i18n("attacker"), tag_label = i18n("attacker") } end
 
+
+   local l7_protocol
+   if tonumber(value["l7_master_proto"]) and tonumber(value["l7_proto"]) then
+      l7_protocol = interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]), tonumber(value["l7_proto"]))
+   end
+
    -- Check the two labels, otherwise an ICMP:ICMP label could be possible
    local proto_label = l7_protocol
 
-   if l4_protocol ~= l7_protocol then
-    proto_label = l4_protocol..":"..l7_protocol
+   if l4_protocol and l7_protocol and l4_protocol ~= l7_protocol then
+      proto_label = l4_protocol..":"..l7_protocol
    end
 
    record[RNAME.L7_PROTO.name] = {
       value = ternary(tonumber(value["l7_proto"]) ~= 0, value["l7_proto"], value["l7_master_proto"]),
-      l4_label = l4_protocol,
-      l7_label = l7_protocol,
-      label = proto_label,
+      l4_label = l4_protocol or "",
+      l7_label = l7_protocol or "",
+      label = proto_label or "",
       confidence = format_confidence_from_json(value)
    }
 
    -- Add link to historical flow
-   if ntop.isEnterpriseM() and hasClickHouseSupport() and not no_html then
+   if ntop.isEnterpriseM() and hasClickHouseSupport() and not no_html 
+      and tonumber(value["tstamp"]) and tonumber(value["tstamp_end"]) then
       local op_suffix = tag_utils.SEPARATOR .. 'eq'
       local href = string.format('%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%s%s',
          ntop.getHttpPrefix(), 
@@ -961,7 +983,7 @@ function flow_alert_store:format_record(value, no_html)
          value["srv_ip"], op_suffix,
          ternary(show_cli_port, tostring(value["cli_port"]), ''), op_suffix,
          ternary(show_srv_port, tostring(value["srv_port"]), ''), op_suffix,
-         l4_protocol, op_suffix)
+         l4_protocol or "", op_suffix)
 
       if vlan then
         href = href .. string.format('&vlan_id=%s%s', vlan.value, op_suffix)
@@ -979,11 +1001,14 @@ function flow_alert_store:format_record(value, no_html)
       rules[#rules+1] = 'port ' .. tostring(value["srv_port"])
    end
 
-   record['filter'] = {
-      epoch_begin = tonumber(value["tstamp"]), 
-      epoch_end = tonumber(value["tstamp_end"]) + 1,
-      bpf = table.concat(rules, " and "),
-   }
+   record['filter'] = {}
+   if #rules > 0 and tonumber(value["tstamp"]) and tonumber(value["tstamp_end"]) then
+      record['filter'] = {
+         epoch_begin = tonumber(value["tstamp"]), 
+         epoch_end = tonumber(value["tstamp_end"]) + 1,
+         bpf = table.concat(rules, " and "),
+      }
+   end
 
    local probe_ip = ''
    local probe_label = ''
