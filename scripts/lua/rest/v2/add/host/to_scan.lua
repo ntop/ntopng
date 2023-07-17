@@ -21,7 +21,6 @@ if isEmptyString(host) or isEmptyString(scan_type) then
     rest_utils.answer(rest_utils.consts.err.bad_content)
 end
 
-tprint(scan_params)
 local function set_host_to_scan(ip, scan_type, scan_params) 
     return scan_utils.save_host_to_scan(scan_type, scan_params, ip)
 end

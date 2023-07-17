@@ -96,6 +96,7 @@ const context = ref({
 
 function add_host() {
   modal_add.value.show();
+  refresh_table();
 }
 /* ************************************** */
 

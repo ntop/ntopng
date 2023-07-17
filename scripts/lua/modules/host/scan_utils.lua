@@ -70,6 +70,7 @@ function scan_utils.save_host_to_scan(scan_type, scan_params, ip, scan_result, t
     saved_hosts[#saved_hosts+1] = new_item
 
     ntop.setCache(host_to_scan_key, json.encode(saved_hosts))
+    return 1
 end
 
 function scan_utils.retrieve_hosts_to_scan(debug) 
