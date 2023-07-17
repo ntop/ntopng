@@ -746,10 +746,6 @@ function flow_alert_store:format_record(value, no_html)
       end
    end
 
-   -- Handle VLAN as a separate field
-   local cli_ip = value["cli_ip"]
-   local srv_ip = value["srv_ip"]
-
    local shorten_msg
 
    record[RNAME.ADDITIONAL_ALERTS.name] = {
@@ -835,9 +831,11 @@ function flow_alert_store:format_record(value, no_html)
 
    -- Format Client  
  
+   local cli_ip = value["cli_ip"]
+
    local reference_html = "" 
-   if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["cli_ip"], value["vlan_id"]}, nil, href_icon, "", true, nil, false)
+   if not isEmptyString(cli_ip) and not no_html then
+      reference_html = hostinfo2detailshref({ip = cli_ip, value["vlan_id"]}, nil, href_icon, "", true, nil, false)
       if reference_html == href_icon then
 	 reference_html = ""
       end
@@ -846,7 +844,7 @@ function flow_alert_store:format_record(value, no_html)
    -- In case no country is found, let's check if the host is in memory and retrieve country info
    local country = value["cli_country"]
 
-   if isEmptyString(country) or country == "nil" then
+   if (isEmptyString(country) or country == "nil") and not isEmptyString(cli_ip) then
       local host_info = interface.getHostMinInfo(cli_ip)
       if host_info then
          country = host_info["country"] or ""
@@ -859,8 +857,8 @@ function flow_alert_store:format_record(value, no_html)
    }
   
    local flow_cli_ip = {
-      value = cli_ip,
-      label = cli_ip,
+      value = cli_ip or "",
+      label = cli_ip or "",
       reference = reference_html,
       country = country,
       blacklisted = value["cli_blacklisted"]
@@ -870,16 +868,25 @@ function flow_alert_store:format_record(value, no_html)
       flow_cli_ip["name"] = value["cli_name"]
    end
 
-   local label = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), false --[[ Show VLAN --]], false --[[ Shorten --]], true --[[ Skip Resolution ]])
-   -- Shortened label if necessary for UI purposes
-   flow_cli_ip["label"] = label
-   flow_cli_ip["label_long"] = label
-   
+   if not isEmptyString(cli_ip) then
+      local label = hostinfo2label(self:_alert2hostinfo(value, 
+         true --[[ As client --]]), 
+         false --[[ Show VLAN --]], 
+         false --[[ Shorten --]], 
+         true --[[ Skip Resolution ]])
+
+      -- Shortened label if necessary for UI purposes
+      flow_cli_ip["label"] = label
+      flow_cli_ip["label_long"] = label
+   end
+
    -- Format Server
 
+   local srv_ip = value["srv_ip"]
+
    reference_html = ""
-   if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
+   if not no_html and not isEmptyString(srv_ip) then
+      reference_html = hostinfo2detailshref({ip = srv_ip, vlan = value["vlan_id"]}, nil, href_icon, "", true)
       if reference_html == href_icon then
 	      reference_html = ""
       end
@@ -888,7 +895,7 @@ function flow_alert_store:format_record(value, no_html)
    -- In case no country is found, let's check if the host is in memory and retrieve country info
    country = value["srv_country"]
 
-   if isEmptyString(country) or country == "nil" then
+   if (isEmptyString(country) or country == "nil") and not isEmptyString(srv_ip) then
       local host_info = interface.getHostMinInfo(srv_ip)
       if host_info then
          country = host_info["country"] or ""
@@ -896,8 +903,8 @@ function flow_alert_store:format_record(value, no_html)
    end
 
    local flow_srv_ip = {
-      value = srv_ip,
-      label = srv_ip,
+      value = srv_ip or "",
+      label = srv_ip or "",
       reference = reference_html,
       country = country,
       blacklisted = value["srv_blacklisted"]
@@ -907,10 +914,17 @@ function flow_alert_store:format_record(value, no_html)
       flow_srv_ip["name"] = value["srv_name"]
    end
    
-   label = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), false --[[ Show VLAN --]], false --[[ Shorten --]], true --[[ Skip Resolution ]])
-   -- Shortened label if necessary for UI purposes
-   flow_srv_ip["label"] = label
-   flow_srv_ip["label_long"] = label
+   if not isEmptyString(srv_ip) then
+      local label = hostinfo2label(self:_alert2hostinfo(value, 
+         false --[[ As server --]]), 
+         false --[[ Show VLAN --]], 
+         false --[[ Shorten --]], 
+         true --[[ Skip Resolution ]])
+
+      -- Shortened label if necessary for UI purposes
+      flow_srv_ip["label"] = label
+      flow_srv_ip["label_long"] = label
+   end
 
    local flow_cli_port = value["cli_port"]
    local flow_srv_port = value["srv_port"]
@@ -949,7 +963,6 @@ function flow_alert_store:format_record(value, no_html)
    if value["is_cli_attacker"] == "1" then record["cli_role"] = { value = 'attacker', label = i18n("attacker"), tag_label = i18n("attacker") } end
    if value["is_srv_victim"]   == "1" then record["srv_role"] = { value = 'victim',   label = i18n("victim"),   tag_label = i18n("victim") } end
    if value["is_srv_attacker"] == "1" then record["srv_role"] = { value = 'attacker', label = i18n("attacker"), tag_label = i18n("attacker") } end
-
 
    local l7_protocol
    if tonumber(value["l7_master_proto"]) and tonumber(value["l7_proto"]) then
@@ -994,10 +1007,16 @@ function flow_alert_store:format_record(value, no_html)
 
    -- Add BPF filter
    local rules = {}
-   rules[#rules+1] = 'host ' .. value["cli_ip"]
-   rules[#rules+1] = 'host ' .. value["srv_ip"]
-   if value["cli_port"] and tonumber(value["cli_port"]) > 0 then
+   if not isEmptyString(value["cli_ip"]) then
+      rules[#rules+1] = 'host ' .. value["cli_ip"]
+   end
+   if not isEmptyString(value["srv_ip"]) then
+      rules[#rules+1] = 'host ' .. value["srv_ip"]
+   end
+   if not isEmptyString(value["cli_port"]) and tonumber(value["cli_port"]) > 0 then
       rules[#rules+1] = 'port ' .. tostring(value["cli_port"])
+   end
+   if not isEmptyString(value["srv_port"]) and tonumber(value["srv_port"]) > 0 then
       rules[#rules+1] = 'port ' .. tostring(value["srv_port"])
    end
 
