@@ -40,24 +40,25 @@ if ntop.isPro() then
 end
 
 function formatASN(v, ip)
-    local asn
-    if (v == 0) then
-        asn = "&nbsp;"
-    elseif not isEmptyString(ip) then
-        local as_name = ntop.getASName(ip)
-        local label = v .. " (" .. (as_name or "") .. ")"
-        asn = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. v .. "\">" .. label .. "</A>"
-    end
+   local asn
 
-    print("<td>" .. asn .. "</td>\n")
+   if((v == nil) or (v == 0)) then
+      asn = "&nbsp;"
+   elseif not isEmptyString(ip) then
+      local as_name = ntop.getASName(ip)
+      local label = v .. " (" .. (as_name or "") .. ")"
+      asn = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. v .. "\">" .. label .. "</A>"
+   end
+   
+   print("<td>" .. asn .. "</td>\n")
 end
 
 local function colorNotZero(v)
-    if (v == 0) then
-        return ("0")
-    else
-        return ('<span style="color: red">' .. formatValue(v) .. "</span>")
-    end
+   if (v == 0) then
+      return ("0")
+   else
+      return ('<span style="color: red">' .. formatValue(v) .. "</span>")
+   end
 end
 
 local function draw_graph(iec, total, mapping)
