@@ -7114,6 +7114,9 @@ local lang = {
       ["tot_calls"] = "Total Calls",
     },
   },
+  ["table"] = {
+     ["autorefresh"] = "Enable table autorefresh each %time seconds"
+  },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",
     ["crash_report_descr"] = "A crash report is sent upon %{product} anomalous termination. Crash report contains %{product} information such as version, build architecture, operating system and startup options. Nothing regarding the monitored traffic is ever sent. Following is an example of a crash report:",

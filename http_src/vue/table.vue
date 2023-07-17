@@ -31,12 +31,12 @@
       <button class="btn btn-link me-1" type="button" @click="refresh_table">
 	<i class="fas fa-refresh"></i>
       </button>
-      <!-- <div class="d-inline-block"> -->
-      <!-- 	<Switch v-model:value="enable_autorefresh" -->
-      <!-- 		class="me-2 mt-1" title="TODO" style="" -->
-      <!-- 		@change_value="update_autorefresh"> -->
-      <!-- 	</Switch> -->
-      <!-- </div> -->
+      <div v-if="show_autorefresh > 0" class="d-inline-block">
+	<Switch v-model:value="enable_autorefresh"
+		class="me-2 mt-1" :title="autorefresh_title" style=""
+		@change_value="update_autorefresh">
+	</Switch>
+      </div>
       
       <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
 	<template v-slot:title>
@@ -147,6 +147,7 @@ const props = defineProps({
     f_get_column_style: Function,
     enable_search: Boolean,
     display_empty_rows: Boolean,
+    show_autorefresh: Number, // autorefresh seconds, if null or 0 autorefresh switch will not showed
     default_sort: Object, // { column_id: string, sort: number (0, 1, 2) }
     csrf: String,
     paging: Boolean,
@@ -183,6 +184,14 @@ onMounted(async () => {
     }
 });
 
+const autorefresh_title = computed(() => {
+    if (props.show_autorefresh == null || props.show_autorefresh <= 0) {
+	return "";
+    }
+    let text = _i18n("table.autorefresh");
+    return text.replace("%time", props.show_autorefresh);
+});
+
 watch(() => [props.id, props.columns], (cur_value, old_value) => {
     load_table();
 }, { flush: 'pre'});
@@ -196,15 +205,16 @@ async function load_table() {
     emit("loaded");
 }
 
-// let autorefresh_interval;
-// function update_autorefresh() {
-//     if (enable_autorefresh.value == true) {
-// 	clearInterval(autorefresh_interval);
-//     }
-//     autorefresh_interval = setInterval(() => {
-// 	change_active_page();
-//     }, 10 * 1000);
-// }
+let autorefresh_interval;
+function update_autorefresh() {
+    if (enable_autorefresh.value == false) {
+	clearInterval(autorefresh_interval);
+	return;
+    }
+    autorefresh_interval = setInterval(() => {
+	change_active_page();
+    }, props.show_autorefresh * 1000);
+}
 
 async function change_columns_visibility(col) {
     changing_column_visibility.value = true;
