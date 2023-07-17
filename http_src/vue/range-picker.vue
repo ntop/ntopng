@@ -281,11 +281,11 @@ function create_tagify(range_picker_vue) {
         templates: {
             tag: function (tagData) {
                 try {
-                    return `<tag title='${tagData.value}' contenteditable='false' spellcheck="false" class='tagify__tag ${tagData.class ? tagData.class : ""}' ${this.getAttributes(tagData)}>
+                    return `<tag title='${tagData.value}' contenteditable='false' spellcheck="false" class='tagify__tag'>
                         <x title='remove tag' class='tagify__tag__removeBtn'></x>
                         <div>
-                            ${tagData.label ? `<b>${tagData.label}</b>&nbsp;` : ``}
-                            ${!VIEW_ONLY_TAGS && tagData.operators ? `<select class='operator'>${tagData.operators.map(op => `<option ${tagData.selectedOperator === op ? 'selected' : ''} value='${op}'>${TAG_OPERATORS[op]}</option>`).join()}</select>` : `<b class='operator'>${tagData.selectedOperator ? TAG_OPERATORS[tagData.selectedOperator] : '='}</b>`}&nbsp;
+                           <b>${tagData.label ? tagData.label : tagData.key}</b>&nbsp;
+                           <b class='operator'>${tagData.selectedOperator ? TAG_OPERATORS[tagData.selectedOperator] : '='}</b>&nbsp;
                             <span class='tagify__tag-text'>${tagData.value}</span>
                         </div>
                     </tag>`
