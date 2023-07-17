@@ -555,11 +555,11 @@ local community_timeseries = {{
     measure_unit = "number",
     scale = i18n('graphs.metric_labels.score'),
     timeseries = {
-        cli_score = {
+        score_as_cli = {
             label = i18n('graphs.cli_score'),
             color = timeseries_info.get_timeseries_color('cli_score')
         },
-        srv_score = {
+        score_as_srv = {
             label = i18n('graphs.srv_score'),
             color = timeseries_info.get_timeseries_color('srv_score')
         }
