@@ -63,12 +63,12 @@ function get_page(alert_stats_page) {
 
 async function get_filter_const(is_alert_stats_url, page) {
     let url_request;
+    let query_preset = ntopng_url_manager.get_url_entry("query_preset");
+    if (query_preset == null) { query_preset = ""; }
     if (is_alert_stats_url) {
-        url_request = `${http_prefix}/lua/rest/v2/get/alert/filter/consts.lua?page=${page}`;
+        url_request = `${http_prefix}/lua/rest/v2/get/alert/filter/consts.lua?page=${page}&query_preset=${query_preset}`;
     } else {
-        let query_preset = ntopng_url_manager.get_url_entry("query_preset");
         let aggregated = ntopng_url_manager.get_url_entry("aggregated");
-        if (query_preset == null) { query_preset = ""; }
         url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/consts.lua?page=${page}&query_preset=${query_preset}&aggregated=${aggregated}`;
     }
     let filter_consts = await ntopng_utility.http_request(url_request);
@@ -90,13 +90,6 @@ if (STATUS_VIEW == null || STATUS_VIEW == "") {
 }
 
 let PAGE = get_page(IS_ALERT_STATS_URL);
-
-const update_select_query_presets = function () {
-    let value = $(`#select-query-presets`).val();
-    let status = ntopng_status_manager.get_status();
-    status['query_preset'] = value;
-    ntopng_utility.replace_url_and_reload(status);
-}
 
 const create_tag_from_filter = function (filter) {
     let f_const = FILTERS_CONST.find((f) => f.id == filter.id);
