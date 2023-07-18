@@ -62,7 +62,7 @@ local dscp_filter = _GET["dscp"]
 local host_pool = _GET["host_pool_id"]
 local traffic_profile = _GET["traffic_profile"]
 
-local aggregation_criteria = _GET["aggregation_criteria"] or "application_protocol"
+local aggregation_criteria = _GET["aggregation_criteria"] or "client_server_srv_port"
 
 local draw = _GET["draw"] or 0
 local sort = _GET["sort"] or "flows"
