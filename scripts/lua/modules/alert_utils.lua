@@ -463,9 +463,11 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
             }
         end
 
+        -- Host alerts could have a custom function to format the url, in case call it
+        -- and then merge the filters
         if alert_consts.alert_types[alert_id].filter_to_past_flows then
             local past_flows_filter = alert_consts.alert_types[alert_id].filter_to_past_flows(ifid, alert, alert_json)
-            table.merge(past_flows_filter, filters)
+            table.merge(filters, past_flows_filter)
         end
 
         for _, tag in pairs(filters) do
