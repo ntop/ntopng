@@ -1744,6 +1744,7 @@ local known_parameters = {
     ["all"] = validateBool, -- To remove limit on results
 
     -- NAVIGATION
+    ["gui"] = validateBool, -- Return data in html format (backward compatibility)
     ["page"] = validateSingleWord, -- Currently active subpage tab
     ["tab"] = validateSingleWord, -- Currently active tab, handled by javascript
     ["system_interface"] = validateBool,
