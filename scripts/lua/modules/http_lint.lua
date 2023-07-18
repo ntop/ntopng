@@ -2473,6 +2473,7 @@ local known_parameters = {
     ["old_syslog_producer_host"] = validateSingleWord,
     ["query_preset"] = validateEmptyOr(validateSingleWord),
     ["new_charts"] = validateBool,
+    ["timeseries_metric_format"] = validateBool,
 
     -- nEdge policy
     ["default_policy"] = validatePolicy, -- users, nedge policies

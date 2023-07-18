@@ -318,6 +318,7 @@ const sources_types = [
 		}, {
 			main_source_def: true,
 			label: i18n("page_stats.source_def.snmp_interface"),
+			source_url: "/lua/pro/rest/v2/get/snmp/device/available_interfaces.lua",
 			regex_type: "text",
 			value: "if_index",
 			value_url: "snmp_port_idx",
