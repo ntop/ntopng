@@ -68,7 +68,7 @@
             </SelectSearch>
           </div>
     </div>
-    <div v-else-if="source_def.label == 'Port'" class="form-group mt-2 row">
+    <div v-else-if="source_def.label == 'Port' || source_def.label == 'SNMP Interface'" class="form-group mt-2 row">
       <label class="col-form-label col-sm-4" >
               <b>{{source_def.label}}</b>
 	    </label>
