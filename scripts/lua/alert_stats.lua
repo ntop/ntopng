@@ -55,8 +55,13 @@ local ALERT_SORTING_COLUMN = "ntopng.cache.alert." .. ifid .. "." .. user .. ".s
 local CHART_NAME = "alert-timeseries"
 
 -- select the default page
-local page = _GET["page"] or 'all'
+local page = _GET["page"]
 local status = _GET["status"]
+
+-- Safety check
+if not page or not alert_entities[page] then
+   page = 'all'
+end
 
 local interface_stats = interface.getStats()
 
