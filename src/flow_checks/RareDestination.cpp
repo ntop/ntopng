@@ -27,28 +27,34 @@
 u_int32_t RareDestination::getDestinationHash(Flow *f) {
   u_int32_t hash = 0;
   Host *dest = f->get_srv_host();
+
   if (f->isLocalToLocal()) {
     /* char buf[64]; */
     if (!dest->isMulticastHost() && dest->isDHCPHost()) {
       u_int32_t mac = dest->getMac()->key();
       hash = mac;
+
       /* char *mac = dest->getMac()->print(buf,sizeof(buf));
       hash = Utils::hashString(mac); */
+
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination MAC %u - %s", *hash, mac); */
     }
     else if (dest->isIPv6() || dest->isIPv4()) {
       hash = dest->key();
+
       /* char *ip = dest->get_ip()->print(buf,sizeof(buf));
       hash = Utils::hashString(ip); */
+
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6/IPv4 %u - %s", *hash, ip); */
     }
-  }
-  else if (f->isLocalToRemote()) {
+  } else if (f->isLocalToRemote()) {
     char name_buf[128];
     char *domain = dest->get_name(name_buf, sizeof(name_buf), false);
     hash = Utils::hashString(domain);
+
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare remote destination %u - %s - %s", hash, domain, dest->getServerName(name_buf, sizeof(name_buf)));
   }
+
   return hash;
 }
 
@@ -64,9 +70,7 @@ void RareDestination::protocolDetected(Flow *f) {
     LocalHost *cli_lhost = (LocalHost*)f->get_cli_host();
     ndpi_bitmap *rare_dest = cli_lhost->getRareDestBMap();
     ndpi_bitmap *rare_dest_revise = cli_lhost->getRareDestReviseBMap();
-
-    /* char hostbuf[64], *host_id;
-    host_id = cli_lhost->get_hostkey(hostbuf, sizeof(hostbuf)); */
+    
     /* TODO: Check if bitmap pointers are valid */
 
     time_t t_now = time(NULL);
@@ -82,6 +86,7 @@ void RareDestination::protocolDetected(Flow *f) {
     if (cli_lhost->getStartRareDestTraining()) {
       u_int32_t hash = getDestinationHash(f);
       if(hash == 0) return;
+
       /* update */
       if (!ndpi_bitmap_isset(rare_dest, hash)) {
         ndpi_bitmap_set(rare_dest, hash);
@@ -96,6 +101,7 @@ void RareDestination::protocolDetected(Flow *f) {
         cli_lhost->setRareDestLastEpoch(t_now);
         //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training Off at %ld ~ %s", t_now, host_id );
       }
+      
       return;
     }
 
