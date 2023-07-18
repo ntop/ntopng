@@ -682,7 +682,7 @@ function flow_alert_store:format_record(value, no_html)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true --[[ no_html --]], alert_entities.flow.entity_id)
    local show_cli_port = (value["cli_port"] ~= '' and value["cli_port"] ~= '0')
    local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0') 
-   local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info) -- < --
+   local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info)
    local active_url = ""
    local attacker = ""
    local victim = ""
