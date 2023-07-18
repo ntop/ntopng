@@ -890,6 +890,7 @@ local context = {
    opsep = tag_utils.SEPARATOR,
    isPro = ntop.isPro(),
    is_ntop_enterprise_m = ntop.isEnterpriseM(),
+   is_ntop_enterprise_l = ntop.isEnterpriseL(),
    notes = notes,
    show_chart = true,
    show_cards = (status ~= "engaged") and ntop.isPro(),

@@ -1831,6 +1831,7 @@ local lang = {
     ["dst2src_dscp"] = "Server DSCP",
     ["dst2src_tcp_flags"] = "Server TCP Flags",
     ["duration"] = "Duration",
+    ["expand_button"] = "Expand",
     ["extract_flow_info"] = "Actions",
     ["find_in_historical"] = "Search '%{what}' '%{query}' in Historical Data",
     ["first_seen"] = "Begin",

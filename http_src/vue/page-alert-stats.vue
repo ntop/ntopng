@@ -18,7 +18,7 @@
                             <RangePicker v-if="mount_range_picker" ref="range_picker" id="range_picker">
                                 <template v-slot:begin>
                                     <div v-if="query_presets.length > 0" class="ms-1 me-2">
-                                        <select class="me-2 form-select" style="min-width:8rem;"
+                                        <select class="me-2 form-select"
                                             v-model="selected_query_preset" @change="update_select_query_presets()">
                                             <template v-for="item in query_presets">
                                                 <option v-if="item.builtin == true" :value="item">{{ item.name }}</option>
@@ -189,7 +189,6 @@ onBeforeMount(async () => {
     init_url_params();
     await set_query_presets();
     mount_range_picker.value = true;
-    console.log(props.context);
 });
 
 onMounted(async () => {
@@ -232,6 +231,9 @@ function init_url_params() {
 }
 
 async function set_query_presets() {
+    if (!props.context.is_ntop_enterprise_l) {
+	return;
+    }
     let url_request = `${http_prefix}/lua/pro/rest/v2/get/alert/preset/consts.lua?page=${page}`;
     let res = await ntopng_utility.http_request(url_request);
     if (res == null || res.length == 0) {
@@ -376,7 +378,8 @@ const map_table_def_columns = async (columns) => {
             return `${copy_button} ${DataTableRenders.filterize('info', info.value, info.label)}`;
         },
     };
-    if (selected_query_preset.value.is_preset && columns.length > 0) {
+    let set_query_preset_columns = selected_query_preset.value.is_preset && columns.length > 0;
+    if (set_query_preset_columns) {
         // add action button that is the first button
         columns = [columns[0]].concat(props.context.columns_def);
     }
@@ -384,6 +387,18 @@ const map_table_def_columns = async (columns) => {
         c.render_func = map_columns[c.data_field];
 	
         if (c.id == "actions") {
+	    if (set_query_preset_columns == true) {
+		c.button_def_array = [
+		    {
+			"id": "expand",
+			"icon": "fas fa fa-search-plus",
+			"class":["link-button"],
+			"title_i18n": "db_search.expand_button",
+			"event_id": "click_button_expand"
+		    },
+		];
+		return;
+	    }
             const visible_dict = {
                 snmp_info: props.context.actions.show_snmp_info,
                 info: props.context.actions.show_info,
@@ -531,11 +546,19 @@ function on_table_custom_event(event) {
         "click_button_disable": click_button_disable,
         "click_button_settings": click_button_settings,
         "click_button_remove": click_button_remove,
+        "click_button_expand": click_button_expand,
     };
     if (events_managed[event.event_id] == null) {
         return;
     }
     events_managed[event.event_id](event);
+}
+
+function click_button_expand(event) {
+    const alert = event.row;
+    ntopng_url_manager.set_key_to_url("query_preset", "");
+    ntopng_url_manager.set_key_to_url("count", "");
+    ntopng_url_manager.reload_url();
 }
 
 function click_button_remove(event) {
