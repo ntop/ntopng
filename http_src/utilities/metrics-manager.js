@@ -305,6 +305,42 @@ const get_metrics = async (http_prefix, source_type, source_array) => {
     return ntopng_utility.clone(metrics);
 };
 
+const get_snmp_devices = async () => {
+    const snmp_devices_url = `${http_prefix}/lua/pro/enterprise/get_snmp_devices_list.lua`;
+    let result = await ntopng_utility.http_request(snmp_devices_url);
+    let snmp_devices = [];
+    result.forEach((item) => {
+        snmp_devices.push({
+            id: item.column_key,
+            label: item.column_name != null && item.column_name != '' ? item.column_name : item.column_key
+        })
+    });
+    return snmp_devices;
+};
+
+const get_snmp_device_ports = async (host) => {
+
+    let params = {
+        host: host
+    };
+
+    const url_params = ntopng_url_manager.obj_to_url_params(params);
+    const snmp_device_port_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/device/available_interfaces.lua?${url_params}`;
+
+
+    let interfaces_list = await ntopng_utility.http_request(snmp_device_port_url);
+    let result_interfaces = []
+
+    interfaces_list.forEach(iface => {
+        if(iface.name != null && iface.name != "" && iface.name != iface.id)
+        result_interfaces.push({label: iface.name + " ("+iface.id+")", id: iface.id, name: iface.name })
+        else
+        result_interfaces.push({label: iface.id, id: iface.id,  name: iface.id})
+    })
+    result_interfaces.sort(function(a,b) {return (a.label.toLowerCase() > b.label.toLowerCase() ? 1 : (a.label.toLowerCase() < b.label.toLowerCase()) ? -1 : 0);});
+    return result_interfaces;
+
+};
 const get_current_page_source_type = () => {
     let pathname = window.location.pathname;
     for (let i = 0; i < sources_types.length; i += 1) {
@@ -375,6 +411,8 @@ const metricsManager = function () {
         get_metric_query_from_ts_query,
         get_default_metric,
 
+        get_snmp_devices,
+        get_snmp_device_ports,
         set_source_value_object_in_url,
 
         ui_types,

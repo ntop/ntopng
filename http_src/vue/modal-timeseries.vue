@@ -56,7 +56,30 @@
 	  </div> <!-- end select -->
 
 	  <!-- input text -->
-	  <div v-if="source_def.ui_type == ui_types.input" class="form-group mt-2 row">
+    <div v-if="source_def.label == 'Host' || source_def.label == 'Device'" class="form-group mt-2 row">
+      <label class="col-form-label col-sm-4" >
+              <b>{{source_def.label}}</b>
+	    </label>
+      <div class="col-sm-8">
+      <SelectSearch ref="select_source_snmp_device"
+	  		  v-model:selected_option="selected_snmp_device"
+          @select_option="change_selected_snmp_device(selected_source_array[source_def_index])"
+	  		  :options="snmp_devices">
+            </SelectSearch>
+          </div>
+    </div>
+    <div v-else-if="source_def.label == 'Port'" class="form-group mt-2 row">
+      <label class="col-form-label col-sm-4" >
+              <b>{{source_def.label}}</b>
+	    </label>
+      <div class="col-sm-8">
+      <SelectSearch ref="select_source_snmp_device_port"
+	  		  v-model:selected_option="selected_snmp_device_port"
+	  		  :options="snmp_device_ports">
+            </SelectSearch>
+          </div>
+    </div>
+	  <div v-else-if="source_def.ui_type == ui_types.input" class="form-group mt-2 row">
 	    <label class="col-form-label col-sm-4" >
               <b>{{source_def.label}}</b>
 	    </label>
@@ -134,6 +157,9 @@ const props = defineProps({
 
 const modal_id = ref(null);
 const select_search_metrics = ref(null);
+const select_source_snmp_device = ref(null);
+const select_source_snmp_device_port = ref(null);
+const snmp_interfaces_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/device/available_interfaces.lua`
 
 const showed = () => {};
 
@@ -172,7 +198,11 @@ const enable_apply_source = computed(() => {
 const hide_sources = ref(false);
 
 const metrics = ref([]);
+const snmp_devices = ref([]);
+const snmp_device_ports = ref([]);
 const selected_metric = ref({});
+const selected_snmp_device = ref({});
+const selected_snmp_device_port = ref({});
 
 const timeseries_groups_added = ref([]);
 
@@ -212,6 +242,7 @@ async function change_source_type() {
     set_hide_sources();
     await set_sources_array();
     await set_metrics();
+    await set_snmp_devices();
 }
 
 function set_hide_sources() {
@@ -239,6 +270,25 @@ async function change_source_array() {
 
 function change_selected_source() {
     is_selected_source_changed.value = true;
+}
+
+/******************************************************************/
+
+/* Function to update the selected_sources_union_label (the disabled one) */
+async function change_selected_snmp_device(source_type) {
+  if (selected_source_type.value.label == "Host") {
+    set_selected_sources_union_label();
+  } else if(selected_source_type.value.label == "SNMP Top Interfaces" || selected_source_type.value.label == "SNMP Interface") {
+    selected_sources_union_label.value = selected_snmp_device.value.label;
+  }
+
+  /* Update the snmp device ports here */
+  await change_interfaces();
+}
+
+/* Function to update snmp device ports */
+async function change_interfaces() {
+  snmp_device_ports.value = await metricsManager.get_snmp_device_ports(selected_snmp_device.value.id);
 }
 
 function set_regex() {
@@ -279,6 +329,29 @@ async function set_metrics() {
     metrics.value.sort(NtopUtils.sortAlphabetically);
     selected_metric.value = metricsManager.get_default_metric(metrics.value);
     update_timeseries_to_add(false);    
+}
+
+/******************************************************************/
+
+/* Function to retrieve and set snmp devices list*/
+async function set_snmp_devices() {
+  snmp_devices.value = await metricsManager.get_snmp_devices();
+  
+  /* In case of source Host on Mount is already set an host 
+  so the first snmp device selected must be the same */
+  let source_label = selected_sources_union_label.value;
+  if (selected_source_type.value.label == "Host") {
+    source_label = source_label.split(" - ")[1];
+  }
+  
+  snmp_devices.value.forEach((item) => {
+    if(item.label == source_label ) {
+      selected_snmp_device.value = item;
+    }
+  });
+
+  if (selected_snmp_device.value != null) 
+    await change_interfaces();
 }
 
 async function init() {
