@@ -1027,29 +1027,47 @@ function flow_alert_store:format_record(value, no_html)
       record[RNAME.LINK_TO_PAST_FLOWS.name] = href
    end
 
-   -- Add BPF filter
+   -- Add BPF filter (for PCAP extractions)
+   -- and Tag filters (e.g. to jump from custom queries to raw alerts)
+
+   record['filter'] = {}
+
    local rules = {}
+   local filters = {}
+   local op_suffix = 'eq'
+
+   if not isEmptyString(value["alert_id"]) and tonumber(value["alert_id"]) > 0 then
+      filters[#filters+1] = { id = "alert_id", value = value["alert_id"], op = op_suffix }
+   end
+   if not isEmptyString(value["vlan_id"]) and tonumber(value["vlan_id"]) > 0 then
+      filters[#filters+1] = { id = "vlan_id", value = value["vlan_id"], op = op_suffix }
+   end
    if not isEmptyString(value["cli_ip"]) then
       rules[#rules+1] = 'host ' .. value["cli_ip"]
+      filters[#filters+1] = { id = "cli_ip", value = value["cli_ip"], op = op_suffix }
    end
    if not isEmptyString(value["srv_ip"]) then
       rules[#rules+1] = 'host ' .. value["srv_ip"]
+      filters[#filters+1] = { id = "srv_ip", value = value["srv_ip"], op = op_suffix }
    end
    if not isEmptyString(value["cli_port"]) and tonumber(value["cli_port"]) > 0 then
       rules[#rules+1] = 'port ' .. tostring(value["cli_port"])
+      filters[#filters+1] = { id = "cli_port", value = value["cli_port"], op = op_suffix }
    end
    if not isEmptyString(value["srv_port"]) and tonumber(value["srv_port"]) > 0 then
       rules[#rules+1] = 'port ' .. tostring(value["srv_port"])
+      filters[#filters+1] = { id = "srv_port", value = value["srv_port"], op = op_suffix }
+   end
+   if not isEmptyString(value["info"]) then
+      filters[#filters+1] = { id = "info", value = value["info"], op = op_suffix }
    end
 
-   record['filter'] = {}
    if #rules > 0 and tonumber(value["tstamp"]) and tonumber(value["tstamp_end"]) then
-      record['filter'] = {
-         epoch_begin = tonumber(value["tstamp"]), 
-         epoch_end = tonumber(value["tstamp_end"]) + 1,
-         bpf = table.concat(rules, " and "),
-      }
+      record['filter'].epoch_begin = tonumber(value["tstamp"])
+      record['filter'].epoch_end = tonumber(value["tstamp_end"]) + 1
+      record['filter'].bpf = table.concat(rules, " and ")
    end
+   record['filter'].tag_filters = filters
 
    local probe_ip = ''
    local probe_label = ''
