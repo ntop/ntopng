@@ -1,0 +1,52 @@
+{
+	"name" : "Info",
+	"i18n_name" : "info",
+	"select" : {
+		"items" : [
+			{
+				"name" : "alert_id"
+			},
+			{
+				"name" : "info"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "info",
+				"op": "neq",
+				"value": "",
+				"value_type": "string",
+				"input": "fixed"
+			},
+			{
+				"name" : "alert_id"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "alert_id"
+			},
+			{
+				"name" : "info"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}
