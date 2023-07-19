@@ -159,7 +159,7 @@ const modal_id = ref(null);
 const select_search_metrics = ref(null);
 const select_source_snmp_device = ref(null);
 const select_source_snmp_device_port = ref(null);
-const snmp_interfaces_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/device/available_interfaces.lua`
+const snmp_interfaces_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/device/available_interfaces.lua`;
 
 const showed = () => {};
 
