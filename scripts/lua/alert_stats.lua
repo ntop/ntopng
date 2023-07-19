@@ -404,12 +404,11 @@ if ntop.isEnterpriseL() then
             local i18n_label = item.name
             local column_def = nil
 
-            --[[
+            -- Hide columns which are already rendered in other columns (e.g. cli_name -> cli_ip)
             if item.name == 'cli_name' or
                item.name == 'srv_name' then
                goto continue
             end
-            --]]
 
             if item.tag then
                column_def = datatable_utils.get_datatable_column_def_by_tag(item.tag)
