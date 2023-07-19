@@ -119,6 +119,7 @@ import NtopUtils from "../utilities/ntop-utils";
 import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
 import TableUtils from "../utilities/table-utils";
+import filtersManager from "../utilities/filters-manager.js";
 
 import { default as SelectSearch } from "./select-search.vue";
 import { default as Navbar } from "./page-navbar.vue";
@@ -558,6 +559,26 @@ function click_button_expand(event) {
     const alert = event.row;
     ntopng_url_manager.set_key_to_url("query_preset", "");
     ntopng_url_manager.set_key_to_url("count", "");
+    let status = ntopng_status_manager.get_status();
+    let filters = status.filters;
+    let row_filters = alert?.filter?.tag_filters;
+    if (row_filters?.length > 0) {
+	row_filters = row_filters.map((f) => {
+	    return {
+		id: f.id,
+		operator: f.op,
+		value: f.value,
+	    };
+	});
+	filters = filters.concat(row_filters);
+    }
+    // remove duplicate filters
+    let filters_dict = {};
+    filters.forEach((f) => filters_dict[`${f.id}_${f.operator}_${f.value}`] = f);
+    filters = ntopng_utility.object_to_array(filters_dict);
+    
+    let filters_object = filtersManager.get_filters_object(filters);
+    ntopng_url_manager.add_obj_to_url(filters_object);
     ntopng_url_manager.reload_url();
 }
 

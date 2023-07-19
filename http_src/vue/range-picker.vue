@@ -48,6 +48,8 @@
 <script type="text/javascript">
 import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as ModalFilters } from "./modal-filters.vue";
+import filtersManager from "../utilities/filters-manager.js";
+
 
 function get_page(alert_stats_page) {
     let page = ntopng_url_manager.get_url_entry("page");
@@ -151,25 +153,6 @@ const load_filters_data = async function () {
     // "l7proto=XXX;eq"
 }
 
-function get_filters_object(filters) {
-    let filters_groups = {};
-    filters.forEach((f) => {
-        let group = filters_groups[f.id];
-        if (group == null) {
-            group = [];
-            filters_groups[f.id] = group;
-        }
-        group.push(f);
-    });
-    let filters_object = {};
-    for (let f_id in filters_groups) {
-        let group = filters_groups[f_id];
-        let filter_values = group.filter((f) => f.value != null && f.operator != null && f.operator != "").map((f) => `${f.value};${f.operator}`).join(",");
-        filters_object[f_id] = filter_values;
-    }
-    return filters_object;
-}
-
 export default {
     props: {
         id: String,
@@ -237,7 +220,7 @@ export default {
             // delete all previous filter
             ntopng_url_manager.delete_params(FILTERS_CONST.map((f) => f.id));
             TAGIFY.tagify.removeAllTags();
-            let filters_object = get_filters_object(filters);
+            let filters_object = filtersManager.get_filters_object(filters);
             ntopng_url_manager.add_obj_to_url(filters_object);
             filters.forEach((f) => {
                 let tag = create_tag_from_filter(f);
