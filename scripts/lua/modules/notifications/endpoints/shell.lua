@@ -8,6 +8,7 @@ local json = require "dkjson"
 local alerts_api = require "alerts_api"
 local alert_consts = require "alert_consts"
 local other_alert_keys = require "other_alert_keys"
+local alert_utils = require "alert_utils"
 
 local endpoint_key = "shell"
 
@@ -142,7 +143,10 @@ function shell.dequeueRecipientAlerts(recipient, budget)
     for i = 1, MAX_ALERTS_PER_REQUEST do
        local notification = ntop.recipient_dequeue(recipient.recipient_id)
        if notification then
+        if alert_utils.filter_notification(notification) then
+
 	  notifications[#notifications + 1] = notification.alert
+        end
        else
 	  break
        end

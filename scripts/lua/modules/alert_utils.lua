@@ -915,6 +915,55 @@ end
 
 -- ##############################################
 
+function alert_utils.filter_notification(notification)
+    local alert_info = json.decode(notification.alert)
+    local alert_key = alert_info.alert_id
+    local entity_id = alert_info.entity_id
+    local entity_val = alert_info.entity_val
+
+
+    local alert_id = alert_consts.getAlertType(alert_key, entity_id)
+
+    return alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_info)
+end
+
+-- ##############################################
+
+function alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_info) 
+    local alert_key = ""
+    local alert_key_fields = {}
+    if alert_consts.alert_types[alert_id].alert_retention_policy_key  then
+        alert_key_fields = alert_consts.alert_types[alert_id].alert_retention_policy_key(alert_info)
+        for _, field in ipairs(alert_key_fields) do
+            alert_key = alert_key .. "."..alert_info[field]
+        end
+    else
+        alert_key_fields = alert_entities[entity_val].alert_key_fields
+        if alert_key_fields then
+            for _, field in ipairs(alert_key_fields) do
+                alert_key = alert_key .. "."..alert_info[field]
+            end
+        else
+            return true
+        end
+    end
+
+    if isEmptyString(alert_key) then
+        return true
+    end
+
+    local redis_key = string.format("ntopng.cache.alert.retention.%s.%s%s",entity_id, alert_id, alert_key)
+    local redis_res = ntop.getCache(redis_key) == ""
+
+    if redis_res then
+        ntop.setCache(redis_key,"1", 3600)
+    end
+    return redis_res
+
+end
+
+-- ##############################################
+
 if (trace_script_duration ~= nil) then
     io.write(debug.getinfo(1, 'S').source .. " executed in " .. (os.clock() - clock_start) * 1000 .. " ms\n")
 end
