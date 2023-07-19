@@ -1,5 +1,5 @@
 {
-	"name" : "Client / Server",
+	"name" : "Cli / Srv",
 	"i18n_name" : "contacts",
 	"select" : {
 		"items" : [
@@ -11,6 +11,12 @@
 			},
 			{
 				"name" : "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
 			},
 			{
 				"name" : "count",
@@ -27,6 +33,12 @@
 			},
 			{
 				"name": "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
 			}
 		]
 	},
@@ -40,6 +52,12 @@
 			},
 			{
 				"name" : "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
 			}
 		]
 	},

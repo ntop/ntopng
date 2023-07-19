@@ -1,5 +1,5 @@
 {
-	"name" : "Client / Server / Dst Port",
+	"name" : "Cli / Srv / Srv Port",
 	"i18n_name" : "contacts_with_port",
 	"select" : {
 		"items" : [
@@ -11,6 +11,12 @@
 			},
 			{
 				"name" : "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
 			},
 			{
 				"name" : "srv_port"
@@ -32,6 +38,12 @@
 				"name": "srv_ip"
 			},
 			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
+			},
+			{
 				"name" : "srv_port"
 			}
 		]
@@ -46,6 +58,12 @@
 			},
 			{
 				"name" : "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
 			},
 			{
 				"name" : "srv_port"

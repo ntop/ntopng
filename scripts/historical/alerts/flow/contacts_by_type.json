@@ -1,5 +1,5 @@
 {
-	"name" : "Client / Server / Alert Type",
+	"name" : "Cli / Srv / Alert Type",
 	"i18n_name" : "contacts_by_type",
 	"select" : {
 		"items" : [
@@ -11,6 +11,12 @@
 			},
 			{
 				"name" : "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
 			},
 			{
 				"name" : "alert_id"
@@ -32,6 +38,12 @@
 				"name": "srv_ip"
 			},
 			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
+			},
+			{
 				"name" : "alert_id"
 			}
 		]
@@ -46,6 +58,12 @@
 			},
 			{
 				"name" : "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
 			},
 			{
 				"name" : "alert_id"

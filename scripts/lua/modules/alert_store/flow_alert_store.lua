@@ -638,10 +638,13 @@ local RNAME = {
    FLOW_RELATED_INFO = { name = "flow_related_info", export = true },
    MSG = { name = "msg", export = true, elements = {"name", "value", "description"}},
    FLOW = { name = "flow", export = true, elements = {"srv_ip.label", "srv_ip.value", "srv_port", "cli_ip.label", "cli_ip.value", "cli_port"}},
+
+   VLAN_ID = { name = "vlan_id", export = true},
    CLI_IP = { name = "cli_ip", export = false},
    SRV_IP = { name = "srv_ip", export = false},
+   CLI_PORT = { name = "cli_port", export = false},
+   SRV_PORT = { name = "srv_port", export = false},
    
-   VLAN_ID = { name = "vlan_id", export = true},
    PROTO = { name = "proto", export = true},
    L7_PROTO = { name = "l7_proto", export = true},
    LINK_TO_PAST_FLOWS = { name = "link_to_past_flows", export = false},
@@ -891,7 +894,7 @@ function flow_alert_store:format_record(value, no_html)
    if not no_html and not isEmptyString(srv_ip) then
       reference_html = hostinfo2detailshref({ip = srv_ip, vlan = value["vlan_id"]}, nil, href_icon, "", true)
       if reference_html == href_icon then
-	      reference_html = ""
+         reference_html = ""
       end
    end
 
@@ -930,10 +933,12 @@ function flow_alert_store:format_record(value, no_html)
       flow_srv_ip["label_long"] = label
    end
 
-   local flow_cli_port = value["cli_port"]
-   local flow_srv_port = value["srv_port"]
+   local vlan = {
+      label = "",
+      title = "",
+      value = 0
+   }
 
-   local vlan 
    if value["vlan_id"] and tonumber(value["vlan_id"]) ~= 0 then
       vlan = {
          label = getFullVlanName(value["vlan_id"], true --[[ Compact --]]),
@@ -942,19 +947,29 @@ function flow_alert_store:format_record(value, no_html)
       }
    end
 
-   record[RNAME.FLOW.name] = {
-      vlan = vlan,
-      cli_ip = flow_cli_ip,
-      srv_ip = flow_srv_ip,
-      cli_port = flow_cli_port,
-      srv_port = flow_srv_port,
-      active_url = active_url,
+   local flow_cli_port = {
+      value = value["cli_port"],
+   }
+   local flow_srv_port = {
+      value = value["srv_port"],
    }
 
    -- Used to render custom queries (compatible with historical flows columns definition)
    record[RNAME.CLI_IP.name] = flow_cli_ip
    record[RNAME.SRV_IP.name] = flow_srv_ip
+   record[RNAME.CLI_PORT.name] = flow_cli_port
+   record[RNAME.SRV_PORT.name] = flow_srv_port
    record[RNAME.VLAN_ID.name] = vlan
+
+   -- Used to render the flow column in raw alerts
+   record[RNAME.FLOW.name] = {
+      vlan = vlan,
+      cli_ip = flow_cli_ip,
+      srv_ip = flow_srv_ip,
+      cli_port = value["cli_port"],
+      srv_port = value["srv_port"],
+      active_url = active_url,
+   }
 
    local l4_protocol
    if not isEmptyString(value["proto"]) then
