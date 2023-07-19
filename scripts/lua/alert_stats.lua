@@ -902,7 +902,7 @@ local context = {
    show_delete_all = (page ~= 'all') and (status ~= "engaged"),
    show_actions = (page ~= 'all'),
 
-   columns_def = dt_columns_def, -- New (TODO handle this in the datatable)
+   columns_def = dt_columns_def,
 
    download ={
       endpoint = download_endpoint_list,

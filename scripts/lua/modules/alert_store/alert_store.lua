@@ -1760,30 +1760,37 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
             )
 
             if query_presets[p] then
+                local preset = query_presets[p]
+
                 -- Select fields
-                if not isEmptyString(query_presets[p].select.sql) then
-                   select_fields = query_presets[p].select.sql
+                if not isEmptyString(preset.select.sql) then
+                   select_fields = preset.select.sql
                 end
 
+		-- Filters
+		if preset.filters and not isEmptyString(preset.filters.sql) then
+		   filter = preset.filters.sql -- append to where
+		end
+
                 -- Group by fields
-                if not isEmptyString(query_presets[p].groupby.sql) then
-                   self:group_by(query_presets[p].groupby.sql)
+                if not isEmptyString(preset.groupby.sql) then
+                   self:group_by(preset.groupby.sql)
                 end
 
                 -- Sort by field
-                if #query_presets[p].sortby.items > 0 then
+                if #preset.sortby.items > 0 then
                    if not self._order_by or 
                       not self._order_by.sort_column or
-                      (not table.contains(query_presets[p].groupby.items, 
+                      (not table.contains(preset.groupby.items, 
                              self._order_by.sort_column, 
                              (function(n) return n.name == self._order_by.sort_column end))
-                       and not table.contains(query_presets[p].select.items, 
+                       and not table.contains(preset.select.items, 
                              self._order_by.sort_column, 
                              (function(n) return n.func and n.name == self._order_by.sort_column end))) then
                         -- No order by column or invalid column, using default from preset
                         self:set_order_by(
-                            query_presets[p].sortby.items[1].name,
-                            query_presets[p].sortby.items[1].order
+                            preset.sortby.items[1].name,
+                            preset.sortby.items[1].order
                         )
                    end
                 end
