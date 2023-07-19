@@ -638,6 +638,8 @@ local RNAME = {
    FLOW_RELATED_INFO = { name = "flow_related_info", export = true },
    MSG = { name = "msg", export = true, elements = {"name", "value", "description"}},
    FLOW = { name = "flow", export = true, elements = {"srv_ip.label", "srv_ip.value", "srv_port", "cli_ip.label", "cli_ip.value", "cli_port"}},
+   CLI_IP = { name = "cli_ip", export = false},
+   SRV_IP = { name = "srv_ip", export = false},
    
    VLAN_ID = { name = "vlan_id", export = true},
    PROTO = { name = "proto", export = true},
@@ -858,6 +860,7 @@ function flow_alert_store:format_record(value, no_html)
   
    local flow_cli_ip = {
       value = cli_ip or "",
+      ip = cli_ip or "",
       label = cli_ip or "",
       reference = reference_html,
       country = country,
@@ -904,6 +907,7 @@ function flow_alert_store:format_record(value, no_html)
 
    local flow_srv_ip = {
       value = srv_ip or "",
+      ip = srv_ip or "",
       label = srv_ip or "",
       reference = reference_html,
       country = country,
@@ -947,7 +951,10 @@ function flow_alert_store:format_record(value, no_html)
       active_url = active_url,
    }
 
-   record[RNAME.VLAN_ID.name] = value["vlan_id"]
+   -- Used to render custom queries (compatible with historical flows columns definition)
+   record[RNAME.CLI_IP.name] = flow_cli_ip
+   record[RNAME.SRV_IP.name] = flow_srv_ip
+   record[RNAME.VLAN_ID.name] = vlan
 
    local l4_protocol
    if not isEmptyString(value["proto"]) then
