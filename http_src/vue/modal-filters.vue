@@ -199,7 +199,7 @@ export default {
 	apply: function() {
 	    let value = this.input_value;
 	    let value_label = this.input_value;
-	    if (value == null || (this.option_selected.value != null)) {
+	    if (value == null || (this.option_selected?.value != null)) {
 		let filter = this.filters_options.find((fo) => fo.id == this.filter_type_selected.id);
 		let option = filter.options.find((o) => o.value == this.option_selected.value);
 		value = option.value;
