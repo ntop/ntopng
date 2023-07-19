@@ -2474,6 +2474,7 @@ local known_parameters = {
     ["query_preset"] = validateEmptyOr(validateSingleWord),
     ["new_charts"] = validateBool,
     ["timeseries_metric_format"] = validateBool,
+    ["rsp_format"] = validateBool,
 
     -- nEdge policy
     ["default_policy"] = validatePolicy, -- users, nedge policies

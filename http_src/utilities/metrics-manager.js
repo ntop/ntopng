@@ -305,8 +305,8 @@ const get_metrics = async (http_prefix, source_type, source_array) => {
     return ntopng_utility.clone(metrics);
 };
 
-const get_snmp_devices = async () => {
-    const snmp_devices_url = `${http_prefix}/lua/pro/enterprise/get_snmp_devices_list.lua`;
+const get_snmp_devices = async (rsp_format) => {
+    const snmp_devices_url = `${http_prefix}/lua/pro/enterprise/get_snmp_devices_list.lua?rsp_format=${rsp_format}`;
     let result = await ntopng_utility.http_request(snmp_devices_url);
     let snmp_devices = [];
     result.forEach((item) => {

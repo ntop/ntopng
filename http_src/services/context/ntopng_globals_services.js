@@ -211,7 +211,7 @@ export const ntopng_utility = function() {
 		}
 		let json_res = await res.json();
 		if (not_unwrap == true) { return json_res; }
-		return json_res.rsp != null ? json_res.rsp: json_res.data;
+		return json_res.rsp;
 	    } catch (err) {
 		console.error(err);
 		console.error("URL: " + url);

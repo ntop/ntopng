@@ -335,7 +335,7 @@ async function set_metrics() {
 
 /* Function to retrieve and set snmp devices list*/
 async function set_snmp_devices() {
-  snmp_devices.value = await metricsManager.get_snmp_devices();
+  snmp_devices.value = await metricsManager.get_snmp_devices(true);
   
   /* In case of source Host on Mount is already set an host 
   so the first snmp device selected must be the same */
