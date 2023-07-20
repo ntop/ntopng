@@ -23,6 +23,7 @@ local checks_var = {
    do_print_benchmark = false
 }
 
+local granularity = "day"
 local do_trace = false
 
 -- #################################################################

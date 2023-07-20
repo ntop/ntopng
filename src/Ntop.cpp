@@ -583,7 +583,7 @@ void Ntop::start() {
 #ifdef __linux__
   inotify_fd = inotify_init();
 
-  if (inotify_fd < 0)
+  if(inotify_fd < 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "inotify_init failed[%d]: %s",
                                  errno, strerror(errno));
   else {
@@ -701,8 +701,7 @@ void Ntop::start() {
   Utils::setThreadName("ntopng-main");
 
   while ((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
-    const u_int32_t nap_usec =
-        ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
+    const u_int32_t nap_usec = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
 
     gettimeofday(&begin, NULL);
 
@@ -3147,9 +3146,12 @@ void Ntop::shutdownAll() {
 /* **************************************************** */
 
 void Ntop::purgeLoopBody() {
-  while (!globals->isShutdown()) {
+  while(!globals->isShutdown()) {
+    current_time = time(NULL);
+    
     for (u_int i = 0; i < get_num_interfaces(); i++) {
       NetworkInterface *cur_iface = getInterface(i);
+      
       if (cur_iface) cur_iface->purgeQueuedIdleEntries();
     }
 

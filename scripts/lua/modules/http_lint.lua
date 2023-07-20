@@ -1744,6 +1744,7 @@ local known_parameters = {
     ["all"] = validateBool, -- To remove limit on results
 
     -- NAVIGATION
+    ["gui"] = validateBool, -- Return data in html format (backward compatibility)
     ["page"] = validateSingleWord, -- Currently active subpage tab
     ["tab"] = validateSingleWord, -- Currently active tab, handled by javascript
     ["system_interface"] = validateBool,
@@ -1789,7 +1790,7 @@ local known_parameters = {
 
     ["syslog_alert_format"] = http_lint.validateEmptyOr(http_lint.validateSyslogFormat),
     ["syslog_protocol"] = http_lint.validateEmptyOr(http_lint.validateChoiceInline({"tcp", "udp", ""})),
-    ["syslog_host"] = http_lint.validateEmptyOr(http_lint.validateHost),
+    ["syslog_host"] = http_lint.validateEmptyOr(validateServer),
     ["syslog_port"] = http_lint.validateEmptyOr(http_lint.validatePort),
 
     ["telegram_channel"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),

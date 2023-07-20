@@ -35,6 +35,11 @@ extern "C" {
 
 static HTTPserver *httpserver;
 
+#if defined(__APPLE__) && defined(__x86_64__)
+/* macOS x64 workaround */
+#undef NO_SSL_DL
+#endif
+
 /* ****************************************** */
 
 static void traceHTTP(const struct mg_connection *const conn, u_int16_t status_code) {
@@ -380,10 +385,9 @@ static int isWhitelistedURI(const char *uri) {
 /* ****************************************** */
 
 #ifdef NO_SSL_DL /* see configure.seed */
-static bool ssl_client_x509_auth(
-    const struct mg_connection *const conn,
-    const struct mg_request_info *const request_info, char *const username,
-    char *const group, bool *const localuser) {
+static bool ssl_client_x509_auth(const struct mg_connection *const conn,
+				 const struct mg_request_info *const request_info, char *const username,
+				 char *const group, bool *const localuser) {
   bool ret = false;
   X509 *cert = NULL;
   X509_NAME *subj = NULL;

@@ -14,6 +14,7 @@
 	 :display_empty_rows="table_config.display_empty_rows"
 	 :enable_search="table_config.enable_search"
 	 :default_sort="table_config.default_sort"
+	 :show_autorefresh="table_config.show_autorefresh"
 	 :paging="table_config.paging"
 	 :csrf="csrf"
 	 @loaded="on_loaded"

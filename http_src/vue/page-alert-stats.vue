@@ -15,7 +15,23 @@
                             </ModalTrafficExtraction>
                             <ModalSnapshot ref="modal_snapshot" :csrf="context.csrf">
                             </ModalSnapshot>
-                            <RangePicker ref="range_picker" id="range_picker">
+                            <RangePicker v-if="mount_range_picker" ref="range_picker" id="range_picker">
+                                <template v-slot:begin>
+                                    <div v-if="query_presets.length > 0" class="ms-1 me-2">
+                                        <select class="me-2 form-select"
+                                            v-model="selected_query_preset" @change="update_select_query_presets()">
+                                            <template v-for="item in query_presets">
+                                                <option v-if="item.builtin == true" :value="item">{{ item.name }}</option>
+                                            </template>
+                                            <optgroup v-if="page != 'analysis'" :label="_i18n('queries.queries')">
+                                                <template v-for="item in query_presets">
+
+                                                    <option v-if="!item.builtin" :value="item">{{ item.name }}</option>
+                                                </template>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                </template>
                                 <template v-slot:extra_range_buttons>
                                     <button v-if="context.show_permalink" class="btn btn-link btn-sm"
                                         @click="get_permanent_link" :title="_i18n('graphs.get_permanent_link')"
@@ -49,7 +65,7 @@
                                 </Chart>
                             </div>
                         </div>
-                        <TableWithConfig ref="table_alerts" :table_id="table_id" :csrf="context.csrf"
+                        <TableWithConfig ref="table_alerts" :table_config_id="table_config_id" :table_id="table_id" :csrf="context.csrf"
                             :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
                             @loaded="on_table_loaded" @custom_event="on_table_custom_event">
                             <template v-slot:custom_header>
@@ -71,12 +87,12 @@
                     </div>
                 </div> <!-- card body -->
 
-                <div v-show="true && page != 'all'" class="card-footer">
-                    <button id="dt-btn-acknowledge" :disabled="true" data-bs-target="#dt-acknowledge-modal"
-                        data-bs-toggle="modal" class="btn btn-primary me-1">
+                <div v-show="page != 'all'" class="card-footer">
+                    <button id="dt-btn-acknowledge" :disabled="true"
+                        class="btn btn-primary me-1">
                         <i class="fas fa fa-user-check"></i> Acknowledge Alerts
                     </button>
-                    <button id="dt-btn-delete" :disabled="true" data-bs-target="#dt-delete-modal" data-bs-toggle="modal"
+                    <button id="dt-btn-delete" :disabled="true" 
                         class="btn btn-danger">
                         <i class="fas fa fa-trash"></i> Delete Alerts
                     </button>
@@ -98,11 +114,12 @@
 
 <script setup>
 import { ref, onMounted, onBeforeMount,computed, nextTick } from "vue";
-import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility } from "../services/context/ntopng_globals_services";
+import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_sync } from "../services/context/ntopng_globals_services";
 import NtopUtils from "../utilities/ntop-utils";
 import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
 import TableUtils from "../utilities/table-utils";
+import filtersManager from "../utilities/filters-manager.js";
 
 import { default as SelectSearch } from "./select-search.vue";
 import { default as Navbar } from "./page-navbar.vue";
@@ -141,12 +158,16 @@ const count_page_components_reloaded = ref(0);
 const current_alert = ref(null);
 const default_ifid = props.context.ifid;
 let page;
-let table_id;
+const table_config_id = ref("");
+const table_id = ref("");
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
 const chart_type = ntopChartApex.typeChart.TS_COLUMN;
 const top_table_array = ref([]);
 const top_table_dropdown_array = ref([]);
 const note_list = ref([_i18n('show_alerts.alerts_info')]);
+const selected_query_preset = ref({});
+const query_presets = ref([]);
+const mount_range_picker = ref(false);
 
 const href_download_records = computed(() => {
     if (!props.context.show_chart || table_alerts.value == null) {
@@ -165,19 +186,33 @@ const href_download_records = computed(() => {
 });
 
 onBeforeMount(async () => {
-    page = ntopng_url_manager.get_url_entry("page");
-    const status = ntopng_url_manager.get_url_entry("status");
-    if (page == null) { page = "all"; }
-    if (status == 'engaged' && page == "flow") { ntopng_url_manager.set_key_to_url("status", "historical"); }
-    chart_data_url = (page == "snmp_device") ? `${http_prefix}/lua/pro/rest/v2/get/snmp/device/alert/ts.lua` : `${http_prefix}/lua/rest/v2/get/${page}/alert/ts.lua`;
-    table_id = `alert_${page}`;
+    init_params();
     init_url_params();
+    await set_query_presets();
+    mount_range_picker.value = true;
 });
 
 onMounted(async () => {
     register_components_on_status_update();
     load_top_table_array_overview();
 });
+
+async function init_params() {
+    page = ntopng_url_manager.get_url_entry("page");
+    const status = ntopng_url_manager.get_url_entry("status");
+    if (page == null) { page = "all"; }
+    if (status == 'engaged' && page == "flow") { ntopng_url_manager.set_key_to_url("status", "historical"); }
+    chart_data_url = (page == "snmp_device") ? `${http_prefix}/lua/pro/rest/v2/get/snmp/device/alert/ts.lua` : `${http_prefix}/lua/rest/v2/get/${page}/alert/ts.lua`;
+    selected_query_preset.value = {
+        value: ntopng_url_manager.get_url_entry("query_preset"),
+        count: ntopng_url_manager.get_url_entry("count"),
+    };
+    if (selected_query_preset.value.value == null) {
+        selected_query_preset.value.value = "";
+    }
+    table_config_id.value = `alert_${page}`;
+    table_id.value = `${table_config_id.value}_${selected_query_preset.value.value}`;    
+}
 
 function init_url_params() {
     if (ntopng_url_manager.get_url_entry("ifid") == null) {
@@ -194,6 +229,55 @@ function init_url_params() {
         && ntopng_url_manager.get_url_entry("status") == "engaged") {
         ntopng_url_manager.set_key_to_url("status", "historical");
     }
+}
+
+async function set_query_presets() {
+    if (!props.context.is_ntop_enterprise_l) {
+	return;
+    }
+    let url_request = `${http_prefix}/lua/pro/rest/v2/get/alert/preset/consts.lua?page=${page}`;
+    let res = await ntopng_utility.http_request(url_request);
+    if (res == null || res.length == 0) {
+	query_presets.value = [];
+	ntopng_url_manager.set_key_to_url("query_preset", "");
+	ntopng_url_manager.set_key_to_url("count", "");
+	ntopng_sync.ready(get_query_presets_sync_key());
+	return;
+    }
+    
+    query_presets.value = res[0].list.map((el) => {
+        return {
+            value: el.id,
+            name: el.name,
+            count: el.count,
+            builtin: true,
+        };
+    });
+    if (res.length > 1) {
+        res[1].list.forEach((el) => {
+            let query = {
+                value: el.id,
+                name: el.name,
+                count: el.count,
+                is_preset: true,
+            };
+            query_presets.value.push(query);
+        });
+    }
+    if (selected_query_preset.value == null || selected_query_preset.value.value == "") {
+        selected_query_preset.value = query_presets.value[0];
+    } else {
+        let q = query_presets.value.find((i) => i.value == selected_query_preset.value.value);
+        selected_query_preset.value = q || query_presets.value[0];
+    }
+    ntopng_url_manager.set_key_to_url("query_preset", selected_query_preset.value.value);
+    ntopng_url_manager.set_key_to_url("count", selected_query_preset.value.count);
+    ntopng_sync.ready(get_query_presets_sync_key());
+}
+
+const page_id = "page-alert-stats";
+function get_query_presets_sync_key() {
+    return `${page_id}_query_presets`;
 }
 
 async function load_top_table_array_overview(action) {
@@ -255,13 +339,21 @@ function on_table_loaded() {
 }
 
 function register_table_alerts_events() {
-    let jquery_table_alerts = $(`#${table_id}`);
+    let jquery_table_alerts = $(`#${table_id.value}`);
     jquery_table_alerts.on('click', `a.tag-filter`, async function (e) {
         add_table_row_filter(e, $(this));
     });
 }
 
-const map_table_def_columns = (columns) => {
+function update_select_query_presets() {
+    let url = ntopng_url_manager.get_url_params();
+    ntopng_url_manager.set_key_to_url("query_preset", selected_query_preset.value.value);
+    ntopng_url_manager.set_key_to_url("count", selected_query_preset.value.count);
+    ntopng_url_manager.reload_url();
+}
+
+const map_table_def_columns = async (columns) => {
+    await ntopng_sync.on_ready(get_query_presets_sync_key());
     let map_columns = {
         "l7_proto": (proto, row) => {
             let confidence = "";
@@ -287,10 +379,27 @@ const map_table_def_columns = (columns) => {
             return `${copy_button} ${DataTableRenders.filterize('info', info.value, info.label)}`;
         },
     };
+    let set_query_preset_columns = selected_query_preset.value.is_preset && columns.length > 0;
+    if (set_query_preset_columns) {
+        // add action button that is the first button
+        columns = [columns[0]].concat(props.context.columns_def);
+    }
     columns.forEach((c) => {
         c.render_func = map_columns[c.data_field];
-
+	
         if (c.id == "actions") {
+	    if (set_query_preset_columns == true) {
+		c.button_def_array = [
+		    {
+			"id": "expand",
+			"icon": "fas fa fa-search-plus",
+			"class":["link-button"],
+			"title_i18n": "db_search.expand_button",
+			"event_id": "click_button_expand"
+		    },
+		];
+		return;
+	    }
             const visible_dict = {
                 snmp_info: props.context.actions.show_snmp_info,
                 info: props.context.actions.show_info,
@@ -306,8 +415,7 @@ const map_table_def_columns = (columns) => {
                 }
             });
         }
-    })
-        ;
+    });
     return columns;
 };
 
@@ -439,11 +547,39 @@ function on_table_custom_event(event) {
         "click_button_disable": click_button_disable,
         "click_button_settings": click_button_settings,
         "click_button_remove": click_button_remove,
+        "click_button_expand": click_button_expand,
     };
     if (events_managed[event.event_id] == null) {
         return;
     }
     events_managed[event.event_id](event);
+}
+
+function click_button_expand(event) {
+    const alert = event.row;
+    ntopng_url_manager.set_key_to_url("query_preset", "");
+    ntopng_url_manager.set_key_to_url("count", "");
+    let status = ntopng_status_manager.get_status();
+    let filters = status.filters;
+    let row_filters = alert?.filter?.tag_filters;
+    if (row_filters?.length > 0) {
+	row_filters = row_filters.map((f) => {
+	    return {
+		id: f.id,
+		operator: f.op,
+		value: f.value,
+	    };
+	});
+	filters = filters.concat(row_filters);
+    }
+    // remove duplicate filters
+    let filters_dict = {};
+    filters.forEach((f) => filters_dict[`${f.id}_${f.operator}_${f.value}`] = f);
+    filters = ntopng_utility.object_to_array(filters_dict);
+    
+    let filters_object = filtersManager.get_filters_object(filters);
+    ntopng_url_manager.add_obj_to_url(filters_object);
+    ntopng_url_manager.reload_url();
 }
 
 function click_button_remove(event) {

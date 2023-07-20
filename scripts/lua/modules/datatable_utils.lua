@@ -56,4 +56,368 @@ function datatable_utils.has_saved_column_preferences(table_name)
    return not isEmptyString(columns)
 end
 
+------------------------------------------------------------------------
+-- DataTable columns definitions (JSON)
+
+-- #####################################
+
+local function build_datatable_column_def_default(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      class = { "no-wrap" },
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_number(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      style = "text-align:right;",
+      class = { "no-wrap" },
+      render_type = "full_number",
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_ip(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      class = { "no-wrap" },
+      render_generic = name,
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_port(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      class = { "no-wrap" },
+      render_generic = name,
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_flow(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = false,
+      class = { "text-nowrap" },
+      render_type = "formatFlowTuple",
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_nw_latency(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      style = "text-align:right;",
+      class = { "no-wrap" },
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_asn(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      class = { "no-wrap" },
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_snmp_interface(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = false,
+      class = { "no-wrap" },
+      render_generic = name,
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_network(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = false,
+      class = { "no-wrap" },
+      render_generic = name,
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_pool_id(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      class = { "no-wrap" },
+      render_generic = name,
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_country(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = false,
+      class = { "no-wrap" },
+      render_generic = name,
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_community_id(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = false,
+      class = { "no-wrap" },
+      render_generic = name,
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_packets(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      class = { "no-wrap", "text-center" },
+      render_type = "full_number",
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_bytes(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      style = "text-align:right;",
+      class = { "no-wrap" },
+      render_type = "bytes",
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_tcp_flags(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      class = { "no-wrap" },
+      render_generic = name,
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_dscp(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      class = { "no-wrap" },
+      render_generic = name,
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_float(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      style = "text-align:right;",
+      class = { "no-wrap", "text-center" },
+   }
+end
+
+-- #####################################
+
+local function build_datatable_column_def_msec(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      style = "text-align:right;",
+      class = { "no-wrap" },
+      render_type = "ms",
+   }
+end
+
+-- #####################################
+
+local all_datatable_columns_def_by_tag = {
+   ['first_seen'] = {
+      title_i18n = "db_search.first_seen",
+      data_field = "first_seen",
+      sortable = true,
+      class = { "no-wrap" },
+   },
+   ['last_seen'] = {
+      title_i18n = "db_search.last_seen",
+      data_field = "last_seen",
+      sortable = true,
+      class = { "no-wrap" },
+   },
+   ['l4proto'] = {
+      title_i18n = "db_search.l4proto",
+      data_field = "l4proto",
+      sortable = true,
+      class = { "no-wrap" },
+      render_generic = "l4proto",
+   },
+   ['l7proto'] = {
+      title_i18n = "db_search.l7proto",
+      data_field = "l7proto",
+      sortable = true,
+      class = { "no-wrap" },
+   },
+   ['score'] = {
+      title_i18n = "score",
+      data_field = "score",
+      sortable = true,
+      class = { "no-wrap" },
+      render_type = "formatValueLabel",
+   },
+   ["flow"] = build_datatable_column_def_flow("flow", "flow"),
+   ['vlan_id'] = {
+      title_i18n = "db_search.vlan_id",
+      data_field = "vlan_id",
+      sortable = true,
+      class = { "no-wrap" },
+      render_generic = "vlan_id",
+   },
+   ['cli_ip'] = build_datatable_column_def_ip('cli_ip', "db_search.client"),
+   ['srv_ip'] = build_datatable_column_def_ip('srv_ip', "db_search.server"),
+   ['cli_port'] = build_datatable_column_def_port('cli_port', "db_search.cli_port"),
+   ['srv_port'] = build_datatable_column_def_port('srv_port', "db_search.srv_port"),
+   ['packets'] = build_datatable_column_def_packets('packets', "db_search.packets"),
+   ['bytes'] = build_datatable_column_def_bytes('bytes', "db_search.bytes"),
+   ['throughput'] = {
+      title_i18n = "db_search.throughput",
+      data_field = "throughput",
+      sortable = true,
+      class = { "no-wrap" },
+   },
+   ['cli_asn'] = build_datatable_column_def_asn('cli_asn', "db_search.cli_asn"),
+   ['srv_asn'] = build_datatable_column_def_asn('srv_asn', "db_search.srv_asn"),
+   ['l7cat'] = {
+      title_i18n = "db_search.l7cat",
+      data_field = "l7cat",
+      sortable = true,
+      class = { "no-wrap" },
+      render_generic = "l7cat",
+   },
+   ['alert_id'] = {
+      title_i18n = "db_search.alert_id",
+      data_field = "alert_id",
+      sortable = true,
+      class = { "no-wrap" },
+      render_generic = "alert_id",
+   },
+   ['flow_risk'] = {
+      title_i18n = "db_search.flow_risk",
+      data_field = "flow_risk",
+      sortable = true,
+      class = { "no-wrap" },
+   },
+   ['src2dst_tcp_flags'] = build_datatable_column_def_tcp_flags('src2dst_tcp_flags', "db_search.src2dst_tcp_flags"),
+   ['dst2src_tcp_flags'] = build_datatable_column_def_tcp_flags('dst2src_tcp_flags', "db_search.dst2src_tcp_flags"),
+   ['src2dst_dscp'] = build_datatable_column_def_dscp('src2dst_dscp', "db_search.src2dst_dscp"),
+   ['dst2src_dscp'] = build_datatable_column_def_dscp('dst2src_dscp', "db_search.dst2src_dscp"),
+   ['cli_nw_latency'] = build_datatable_column_def_nw_latency('cli_nw_latency', "db_search.cli_nw_latency"),
+   ['srv_nw_latency'] = build_datatable_column_def_nw_latency('srv_nw_latency', "db_search.srv_nw_latency"),
+   ['info'] = {
+      title_i18n = "db_search.info",
+      data_field = "info",
+      sortable = true,
+      class = { "no-wrap" },
+   },
+   ['observation_point_id'] = {
+      title_i18n = "db_search.observation_point_id",
+      data_field = "observation_point_id",
+      sortable = true,
+      class = { "no-wrap" },
+      render_generic = "observation_point_id",
+   },
+   ['probe_ip'] = {
+      title_i18n = "db_search.probe_ip",
+      data_field = "probe_ip",
+      sortable = true,
+      class = { "no-wrap" },
+      render_type = "formatProbeIP",
+   },
+   ['cli_network'] = build_datatable_column_def_network('cli_network', "db_search.tags.cli_network"),
+   ['srv_network'] = build_datatable_column_def_network('srv_network', "db_search.tags.srv_network"),
+   ['cli_host_pool_id'] = build_datatable_column_def_pool_id('cli_host_pool_id', "db_search.tags.cli_host_pool_id"),
+   ['srv_host_pool_id'] = build_datatable_column_def_pool_id('srv_host_pool_id', "db_search.tags.srv_host_pool_id"),
+   ["input_snmp"] = build_datatable_column_def_snmp_interface("input_snmp", "db_search.tags.input_snmp"),
+   ["output_snmp"] = build_datatable_column_def_snmp_interface("output_snmp", "db_search.tags.output_snmp"),
+   ['cli_country'] = build_datatable_column_def_country('cli_country', "db_search.tags.cli_country"),
+   ['srv_country'] = build_datatable_column_def_country('srv_country', "db_search.tags.srv_country"),
+   ['community_id'] = build_datatable_column_def_community_id('community_id', "db_search.tags.community_id"),
+}
+
+-- #####################################
+
+datatable_utils.datatable_column_def_builder_by_type = {
+   ['default'] = build_datatable_column_def_default,
+   ['number'] = build_datatable_column_def_number,
+   ['ip'] = build_datatable_column_def_ip,
+   ['port'] = build_datatable_column_def_port,
+   ['asn'] = build_datatable_column_def_asn,
+   ['tcp_flags'] = build_datatable_column_def_tcp_flags,
+   ['dscp'] = build_datatable_column_def_dscp,
+   ['packets'] = build_datatable_column_def_packets,
+   ['bytes'] = build_datatable_column_def_bytes,
+   ['float'] = build_datatable_column_def_float,
+   ['msec'] = build_datatable_column_def_msec,
+   ['network'] = build_datatable_column_def_network,
+   ['pool_id'] = build_datatable_column_def_pool_id,
+   ['country'] = build_datatable_column_def_country,
+   ['snmp_interface'] = build_datatable_column_def_snmp_interface,
+}
+
+-- #####################################
+
+function datatable_utils.get_datatable_column_def_by_tag(tag)
+   if all_datatable_columns_def_by_tag[tag] then
+      return all_datatable_columns_def_by_tag[tag]
+   else
+      return build_datatable_column_def_default(tag, i18n("db_search.tags."..tag) or tag)
+   end
+end
+
 return datatable_utils

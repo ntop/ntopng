@@ -29,7 +29,7 @@ function getSerieName(name, id, tsGroup, extendSeriesName) {
 	let source_index = getMainSourceDefIndex(tsGroup);
 	let source = tsGroup.source_array[source_index];
 	let prefix = `${source.label}`;
-	return `${prefix} ${name_more_space}`;
+	return `${prefix} - ${name_more_space}`;
 }
 
 function getYaxisId(metric) {

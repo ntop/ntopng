@@ -638,8 +638,13 @@ local RNAME = {
    FLOW_RELATED_INFO = { name = "flow_related_info", export = true },
    MSG = { name = "msg", export = true, elements = {"name", "value", "description"}},
    FLOW = { name = "flow", export = true, elements = {"srv_ip.label", "srv_ip.value", "srv_port", "cli_ip.label", "cli_ip.value", "cli_port"}},
-   
+
    VLAN_ID = { name = "vlan_id", export = true},
+   CLI_IP = { name = "cli_ip", export = false},
+   SRV_IP = { name = "srv_ip", export = false},
+   CLI_PORT = { name = "cli_port", export = false},
+   SRV_PORT = { name = "srv_port", export = false},
+   
    PROTO = { name = "proto", export = true},
    L7_PROTO = { name = "l7_proto", export = true},
    LINK_TO_PAST_FLOWS = { name = "link_to_past_flows", export = false},
@@ -680,19 +685,25 @@ function flow_alert_store:format_record(value, no_html)
    local record = self:format_json_record_common(value, alert_entities.flow.entity_id, no_html)
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true --[[ no_html --]], alert_entities.flow.entity_id)
-   local alert_risk = ntop.getFlowAlertRisk(tonumber(value.alert_id))
-   local l4_protocol = l4_proto_to_string(value["proto"])
-   local l7_protocol =  interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]), tonumber(value["l7_proto"]))
    local show_cli_port = (value["cli_port"] ~= '' and value["cli_port"] ~= '0')
    local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0') 
    local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info)
    local active_url = ""
    local attacker = ""
    local victim = ""
+
+   local alert_json = {}
+   if not isEmptyString(value.json) then
+      alert_json = json.decode(value.json) or {}
+   end
+
    -- Add link to active flow
-   local alert_json = json.decode(value.json)
-  
    local flow_related_info = addExtraFlowInfo(alert_json, value)
+
+   local alert_risk
+   if tonumber(value.alert_id) then
+      alert_risk = ntop.getFlowAlertRisk(tonumber(value.alert_id))
+   end
 
    -- TLS IssuerDN
    local flow_tls_issuerdn = nil
@@ -719,7 +730,9 @@ function flow_alert_store:format_record(value, no_html)
    local other_alerts_by_score = {} -- Table used to keep messages ordered by score
    local additional_alerts = {}
   
-   other_alerts_by_score, additional_alerts = alert_utils.format_other_alerts(value.alerts_map, value['alert_id'])
+   if value.alerts_map then
+      other_alerts_by_score, additional_alerts = alert_utils.format_other_alerts(value.alerts_map, value['alert_id'])
+   end
 
    -- Print additional issues, sorted by score
    record[RNAME.ADDITIONAL_ALERTS.name] = ''
@@ -738,10 +751,6 @@ function flow_alert_store:format_record(value, no_html)
       end
    end
 
-   -- Handle VLAN as a separate field
-   local cli_ip = value["cli_ip"]
-   local srv_ip = value["srv_ip"]
-
    local shorten_msg
 
    record[RNAME.ADDITIONAL_ALERTS.name] = {
@@ -757,7 +766,8 @@ function flow_alert_store:format_record(value, no_html)
          shorten_descr = shorten_msg,
       }
    end
-   local proto = string.lower(interface.getnDPIProtoName(tonumber(value["l7_master_proto"])))
+
+   -- local proto = string.lower(interface.getnDPIProtoName(tonumber(value["l7_master_proto"])))
 
    local flow_server_name = getExtraFlowInfoServerName(alert_json)
    local flow_domain
@@ -826,9 +836,11 @@ function flow_alert_store:format_record(value, no_html)
 
    -- Format Client  
  
+   local cli_ip = value["cli_ip"]
+
    local reference_html = "" 
-   if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["cli_ip"], value["vlan_id"]}, nil, href_icon, "", true, nil, false)
+   if not isEmptyString(cli_ip) and not no_html then
+      reference_html = hostinfo2detailshref({ip = cli_ip, value["vlan_id"]}, nil, href_icon, "", true, nil, false)
       if reference_html == href_icon then
 	 reference_html = ""
       end
@@ -837,7 +849,7 @@ function flow_alert_store:format_record(value, no_html)
    -- In case no country is found, let's check if the host is in memory and retrieve country info
    local country = value["cli_country"]
 
-   if isEmptyString(country) or country == "nil" then
+   if (isEmptyString(country) or country == "nil") and not isEmptyString(cli_ip) then
       local host_info = interface.getHostMinInfo(cli_ip)
       if host_info then
          country = host_info["country"] or ""
@@ -850,8 +862,9 @@ function flow_alert_store:format_record(value, no_html)
    }
   
    local flow_cli_ip = {
-      value = cli_ip,
-      label = cli_ip,
+      value = cli_ip or "",
+      ip = cli_ip or "",
+      label = cli_ip or "",
       reference = reference_html,
       country = country,
       blacklisted = value["cli_blacklisted"]
@@ -861,25 +874,34 @@ function flow_alert_store:format_record(value, no_html)
       flow_cli_ip["name"] = value["cli_name"]
    end
 
-   local label = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), false --[[ Show VLAN --]], false --[[ Shorten --]], true --[[ Skip Resolution ]])
-   -- Shortened label if necessary for UI purposes
-   flow_cli_ip["label"] = label
-   flow_cli_ip["label_long"] = label
-   
+   if not isEmptyString(cli_ip) then
+      local label = hostinfo2label(self:_alert2hostinfo(value, 
+         true --[[ As client --]]), 
+         false --[[ Show VLAN --]], 
+         false --[[ Shorten --]], 
+         true --[[ Skip Resolution ]])
+
+      -- Shortened label if necessary for UI purposes
+      flow_cli_ip["label"] = label
+      flow_cli_ip["label_long"] = label
+   end
+
    -- Format Server
 
+   local srv_ip = value["srv_ip"]
+
    reference_html = ""
-   if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
+   if not no_html and not isEmptyString(srv_ip) then
+      reference_html = hostinfo2detailshref({ip = srv_ip, vlan = value["vlan_id"]}, nil, href_icon, "", true)
       if reference_html == href_icon then
-	      reference_html = ""
+         reference_html = ""
       end
    end
 
    -- In case no country is found, let's check if the host is in memory and retrieve country info
    country = value["srv_country"]
 
-   if isEmptyString(country) or country == "nil" then
+   if (isEmptyString(country) or country == "nil") and not isEmptyString(srv_ip) then
       local host_info = interface.getHostMinInfo(srv_ip)
       if host_info then
          country = host_info["country"] or ""
@@ -887,8 +909,9 @@ function flow_alert_store:format_record(value, no_html)
    end
 
    local flow_srv_ip = {
-      value = srv_ip,
-      label = srv_ip,
+      value = srv_ip or "",
+      ip = srv_ip or "",
+      label = srv_ip or "",
       reference = reference_html,
       country = country,
       blacklisted = value["srv_blacklisted"]
@@ -898,15 +921,24 @@ function flow_alert_store:format_record(value, no_html)
       flow_srv_ip["name"] = value["srv_name"]
    end
    
-   label = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), false --[[ Show VLAN --]], false --[[ Shorten --]], true --[[ Skip Resolution ]])
-   -- Shortened label if necessary for UI purposes
-   flow_srv_ip["label"] = label
-   flow_srv_ip["label_long"] = label
+   if not isEmptyString(srv_ip) then
+      local label = hostinfo2label(self:_alert2hostinfo(value, 
+         false --[[ As server --]]), 
+         false --[[ Show VLAN --]], 
+         false --[[ Shorten --]], 
+         true --[[ Skip Resolution ]])
 
-   local flow_cli_port = value["cli_port"]
-   local flow_srv_port = value["srv_port"]
+      -- Shortened label if necessary for UI purposes
+      flow_srv_ip["label"] = label
+      flow_srv_ip["label_long"] = label
+   end
 
-   local vlan 
+   local vlan = {
+      label = "",
+      title = "",
+      value = 0
+   }
+
    if value["vlan_id"] and tonumber(value["vlan_id"]) ~= 0 then
       vlan = {
          label = getFullVlanName(value["vlan_id"], true --[[ Compact --]]),
@@ -915,19 +947,38 @@ function flow_alert_store:format_record(value, no_html)
       }
    end
 
+   local flow_cli_port = {
+      value = value["cli_port"],
+   }
+   local flow_srv_port = {
+      value = value["srv_port"],
+   }
+
+   -- Used to render custom queries (compatible with historical flows columns definition)
+   record[RNAME.CLI_IP.name] = flow_cli_ip
+   record[RNAME.SRV_IP.name] = flow_srv_ip
+   record[RNAME.CLI_PORT.name] = flow_cli_port
+   record[RNAME.SRV_PORT.name] = flow_srv_port
+   record[RNAME.VLAN_ID.name] = vlan
+
+   -- Used to render the flow column in raw alerts
    record[RNAME.FLOW.name] = {
       vlan = vlan,
       cli_ip = flow_cli_ip,
       srv_ip = flow_srv_ip,
-      cli_port = flow_cli_port,
-      srv_port = flow_srv_port,
+      cli_port = value["cli_port"],
+      srv_port = value["srv_port"],
       active_url = active_url,
    }
 
-   record[RNAME.VLAN_ID.name] = value["vlan_id"]
+   local l4_protocol
+   if not isEmptyString(value["proto"]) then
+      l4_protocol = l4_proto_to_string(value["proto"])
+   end
+
    record[RNAME.PROTO.name] = {
-      value = value["proto"],
-      label = l4_protocol
+      value = value["proto"] or "",
+      label = l4_protocol or ""
    }
 
    if value["is_cli_victim"]   == "1" then record["cli_role"] = { value = 'victim',   label = i18n("victim"),   tag_label = i18n("victim") } end
@@ -935,23 +986,29 @@ function flow_alert_store:format_record(value, no_html)
    if value["is_srv_victim"]   == "1" then record["srv_role"] = { value = 'victim',   label = i18n("victim"),   tag_label = i18n("victim") } end
    if value["is_srv_attacker"] == "1" then record["srv_role"] = { value = 'attacker', label = i18n("attacker"), tag_label = i18n("attacker") } end
 
+   local l7_protocol
+   if tonumber(value["l7_master_proto"]) and tonumber(value["l7_proto"]) then
+      l7_protocol = interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]), tonumber(value["l7_proto"]))
+   end
+
    -- Check the two labels, otherwise an ICMP:ICMP label could be possible
    local proto_label = l7_protocol
 
-   if l4_protocol ~= l7_protocol then
-    proto_label = l4_protocol..":"..l7_protocol
+   if l4_protocol and l7_protocol and l4_protocol ~= l7_protocol then
+      proto_label = l4_protocol..":"..l7_protocol
    end
 
    record[RNAME.L7_PROTO.name] = {
       value = ternary(tonumber(value["l7_proto"]) ~= 0, value["l7_proto"], value["l7_master_proto"]),
-      l4_label = l4_protocol,
-      l7_label = l7_protocol,
-      label = proto_label,
+      l4_label = l4_protocol or "",
+      l7_label = l7_protocol or "",
+      label = proto_label or "",
       confidence = format_confidence_from_json(value)
    }
 
    -- Add link to historical flow
-   if ntop.isEnterpriseM() and hasClickHouseSupport() and not no_html then
+   if ntop.isEnterpriseM() and hasClickHouseSupport() and not no_html 
+      and tonumber(value["tstamp"]) and tonumber(value["tstamp_end"]) then
       local op_suffix = tag_utils.SEPARATOR .. 'eq'
       local href = string.format('%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%s%s',
          ntop.getHttpPrefix(), 
@@ -961,7 +1018,7 @@ function flow_alert_store:format_record(value, no_html)
          value["srv_ip"], op_suffix,
          ternary(show_cli_port, tostring(value["cli_port"]), ''), op_suffix,
          ternary(show_srv_port, tostring(value["srv_port"]), ''), op_suffix,
-         l4_protocol, op_suffix)
+         l4_protocol or "", op_suffix)
 
       if vlan then
         href = href .. string.format('&vlan_id=%s%s', vlan.value, op_suffix)
@@ -970,20 +1027,47 @@ function flow_alert_store:format_record(value, no_html)
       record[RNAME.LINK_TO_PAST_FLOWS.name] = href
    end
 
-   -- Add BPF filter
+   -- Add BPF filter (for PCAP extractions)
+   -- and Tag filters (e.g. to jump from custom queries to raw alerts)
+
+   record['filter'] = {}
+
    local rules = {}
-   rules[#rules+1] = 'host ' .. value["cli_ip"]
-   rules[#rules+1] = 'host ' .. value["srv_ip"]
-   if value["cli_port"] and tonumber(value["cli_port"]) > 0 then
+   local filters = {}
+   local op_suffix = 'eq'
+
+   if not isEmptyString(value["alert_id"]) and tonumber(value["alert_id"]) > 0 then
+      filters[#filters+1] = { id = "alert_id", value = value["alert_id"], op = op_suffix }
+   end
+   if not isEmptyString(value["vlan_id"]) and tonumber(value["vlan_id"]) > 0 then
+      filters[#filters+1] = { id = "vlan_id", value = value["vlan_id"], op = op_suffix }
+   end
+   if not isEmptyString(value["cli_ip"]) then
+      rules[#rules+1] = 'host ' .. value["cli_ip"]
+      filters[#filters+1] = { id = "cli_ip", value = value["cli_ip"], op = op_suffix }
+   end
+   if not isEmptyString(value["srv_ip"]) then
+      rules[#rules+1] = 'host ' .. value["srv_ip"]
+      filters[#filters+1] = { id = "srv_ip", value = value["srv_ip"], op = op_suffix }
+   end
+   if not isEmptyString(value["cli_port"]) and tonumber(value["cli_port"]) > 0 then
       rules[#rules+1] = 'port ' .. tostring(value["cli_port"])
+      filters[#filters+1] = { id = "cli_port", value = value["cli_port"], op = op_suffix }
+   end
+   if not isEmptyString(value["srv_port"]) and tonumber(value["srv_port"]) > 0 then
       rules[#rules+1] = 'port ' .. tostring(value["srv_port"])
+      filters[#filters+1] = { id = "srv_port", value = value["srv_port"], op = op_suffix }
+   end
+   if not isEmptyString(value["info"]) then
+      filters[#filters+1] = { id = "info", value = value["info"], op = op_suffix }
    end
 
-   record['filter'] = {
-      epoch_begin = tonumber(value["tstamp"]), 
-      epoch_end = tonumber(value["tstamp_end"]) + 1,
-      bpf = table.concat(rules, " and "),
-   }
+   if #rules > 0 and tonumber(value["tstamp"]) and tonumber(value["tstamp_end"]) then
+      record['filter'].epoch_begin = tonumber(value["tstamp"])
+      record['filter'].epoch_end = tonumber(value["tstamp_end"]) + 1
+      record['filter'].bpf = table.concat(rules, " and ")
+   end
+   record['filter'].tag_filters = filters
 
    local probe_ip = ''
    local probe_label = ''

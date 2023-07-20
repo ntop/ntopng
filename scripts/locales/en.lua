@@ -1831,6 +1831,7 @@ local lang = {
     ["dst2src_dscp"] = "Server DSCP",
     ["dst2src_tcp_flags"] = "Server TCP Flags",
     ["duration"] = "Duration",
+    ["expand_button"] = "Expand",
     ["extract_flow_info"] = "Actions",
     ["find_in_historical"] = "Search '%{what}' '%{query}' in Historical Data",
     ["first_seen"] = "Begin",
@@ -7123,6 +7124,9 @@ local lang = {
       ["top_redis_commands"] = "Top Commands Calls",
       ["tot_calls"] = "Total Calls",
     },
+  },
+  ["table"] = {
+     ["autorefresh"] = "Enable table autorefresh each %time seconds"
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",

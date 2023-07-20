@@ -843,3 +843,16 @@ table.dataTable thead th.sorting::after {
 .btn-info {
   background-color: #0dcaf0 !important;
 }
+
+.link-button {
+  color: rgb(255, 255, 255)!important;
+}
+
+.link-disabled {
+  color: rgb(173, 181, 189)!important;
+}
+
+.dropdown-menu .dropdown-item:hover {
+  color: var(--bs-dropdown-link-hover-color)!important;
+  background-color: #79787C!important;
+}

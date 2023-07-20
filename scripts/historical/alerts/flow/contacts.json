@@ -1,0 +1,72 @@
+{
+	"name" : "Cli / Srv",
+	"i18n_name" : "contacts",
+	"select" : {
+		"items" : [
+			{
+				"name" : "vlan_id"
+			},
+			{
+				"name" : "cli_ip"
+			},
+			{
+				"name" : "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "cli_ip"
+			},
+			{
+				"name": "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "vlan_id"
+			},
+			{
+				"name" : "cli_ip"
+			},
+			{
+				"name" : "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}

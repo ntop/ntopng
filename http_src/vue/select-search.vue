@@ -72,9 +72,6 @@ function set_options() {
     let groups_dict = {};
     props.options.forEach((option) => {
 	let opt_2 = { ...option };
-	if (opt_2.value == 0 || opt_2.value == "0") {
-	    opt_2.value = null;
-	}
 	if (opt_2.value == null) {
 	    opt_2.value = opt_2.label;
 	}
@@ -164,9 +161,6 @@ function set_selected_option(selected_option) {
 	selected_option = get_props_selected_option();
     }
     selected_option_2.value = selected_option;
-    if (selected_option_2.value != null && selected_option_2.value.value == null) {
-	selected_option_2.value.value = selected_option.label;
-    }
     // if (props.multiple == true && selected_option_2.value?.value != null) {
     // 	selected_values.value.push(selected_option_2.value.value);
     // }
@@ -184,7 +178,7 @@ function get_value_from_selected_option(selected_option) {
 	selected_option = get_props_selected_option();
     }
     let value;
-    if (selected_option.value) {
+    if (selected_option.value != null) {
 	value = selected_option.value;
     } else {
 	value = selected_option.label;

@@ -224,6 +224,7 @@ using namespace std;
 #include "BinAnalysis.h"
 #endif
 #include "ntop_typedefs.h"
+#include "ScoreCounter.h"
 #include "ScoreStats.h"
 #include "ViewScoreStats.h"
 #include "Score.h"

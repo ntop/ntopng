@@ -4,6 +4,7 @@
     "use_current_page": false,
     "paging": true,
     "display_empty_rows": true,
+    "show_autorefresh": 10,
     "default_sort": {
 	"column_id": "flows",
 	"sort": 2

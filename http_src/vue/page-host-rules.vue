@@ -90,7 +90,8 @@ const note_list = [
 
 const rest_params = {
   ifid: props.ifid,
-  csrf: props.page_csrf
+  csrf: props.page_csrf,
+  gui: true // Some API requires this to return html content for backward compatibility
 }
 
 let host_rules_table_config = {}

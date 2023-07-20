@@ -68,6 +68,7 @@ class Ntop {
   Redis *redis;         /**< Pointer to the Redis server. */
   Mutex m, users_m, speedtest_m, pools_lock;
   std::map<std::string, bool> cachedCustomLists; /* Cache of lists filenames */
+  u_int32_t current_time; /* Upated by current_time */
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   ZMQPublisher *zmqPublisher;
@@ -776,8 +777,8 @@ class Ntop {
 #ifdef NTOPNG_PRO
   inline AssetManagement *get_am() { return (&am); }
 #endif
-  inline Mutex *get_pools_lock() { return (&pools_lock); }
-
+  inline Mutex *get_pools_lock()      { return (&pools_lock); };
+  inline u_int32_t get_current_time() { return(current_time); };
   bool createPcapInterface(const char *path, int *iface_id);
   void incBlacklisHits(std::string listname);
 #if defined(NTOPNG_PRO) && defined(HAVE_KAFKA)

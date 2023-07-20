@@ -828,6 +828,15 @@ end
 
 -- ##############################################
 
+function alert_store:set_order_by(sort_column, sort_order)
+    self._order_by = {
+        sort_column = sort_column,
+        sort_order = sort_order
+    }
+end
+
+-- ##############################################
+
 -- @brief Specify the sort criteria of the query
 -- @param sort_column The column to be used for sorting
 -- @param sort_order Order, either `asc` or `desc`
@@ -848,10 +857,7 @@ function alert_store:add_order_by(sort_column, sort_order)
     -- Creating the order by if not defined and valid
     if not self._order_by and sort_column and self:_valid_fields(sort_column) and
         (sort_order == "asc" or sort_order == "desc") then
-        self._order_by = {
-            sort_column = sort_column,
-            sort_order = sort_order
-        }
+        self:set_order_by(sort_column, sort_order)        
         return true
     end
 
@@ -1743,6 +1749,54 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
         -- Add limits and sort criteria only after the count has been done
         self:add_request_ranges()
 
+        -- Handle Custom Queries (query_preset)
+        local p = _GET["query_preset"] -- Example: &query_preset=contacts
+        if not isEmptyString(p) and ntop.isEnterpriseL() then
+            package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path 
+            local db_query_presets = require "db_query_presets"
+
+            local query_presets = db_query_presets.get_presets(
+                os_utils.fixPath(dirs.installdir .. "/scripts/historical/alerts/" .. self._alert_entity.alert_store_name)
+            )
+
+            if query_presets[p] then
+                local preset = query_presets[p]
+
+                -- Select fields
+                if not isEmptyString(preset.select.sql) then
+                   select_fields = preset.select.sql
+                end
+
+		-- Filters
+		if preset.filters and not isEmptyString(preset.filters.sql) then
+		   filter = preset.filters.sql -- append to where
+		end
+
+                -- Group by fields
+                if not isEmptyString(preset.groupby.sql) then
+                   self:group_by(preset.groupby.sql)
+                end
+
+                -- Sort by field
+                if #preset.sortby.items > 0 then
+                   if not self._order_by or 
+                      not self._order_by.sort_column or
+                      (not table.contains(preset.groupby.items, 
+                             self._order_by.sort_column, 
+                             (function(n) return n.name == self._order_by.sort_column end))
+                       and not table.contains(preset.select.items, 
+                             self._order_by.sort_column, 
+                             (function(n) return n.func and n.name == self._order_by.sort_column end))) then
+                        -- No order by column or invalid column, using default from preset
+                        self:set_order_by(
+                            preset.sortby.items[1].name,
+                            preset.sortby.items[1].order
+                        )
+                   end
+                end
+            end
+        end
+
         local res, info =
             self:select_historical(filter, select_fields, download --[[ Available only with ClickHouse ]] )
 
@@ -2014,11 +2068,21 @@ function alert_store:format_json_record_common(value, entity_id)
 
     record[BASE_RNAME.USER_LABEL.name] = value["user_label"]
 
-    record[BASE_RNAME.DURATION.name] = tonumber(value["duration"]) or
-                                           (tonumber(value["tstamp_end"]) - tonumber(value["tstamp"]))
+    if tonumber(value["duration"]) then
+        record[BASE_RNAME.DURATION.name] = tonumber(value["duration"])
+    elseif tonumber(value["tstamp_end"]) and tonumber(value["tstamp"]) then
+        record[BASE_RNAME.DURATION.name] = (tonumber(value["tstamp_end"]) - tonumber(value["tstamp"]))
+    else
+        record[BASE_RNAME.DURATION.name] = 0 -- unable to compute
+    end
+
     record[BASE_RNAME.COUNT.name] = tonumber(value["count"]) or 1
 
-    local alert_json = json.decode(value["json"]) or {}
+    local alert_json = {}
+    if not isEmptyString(value["json"]) then
+        alert_json = json.decode(value["json"]) or {}
+    end
+
     record[BASE_RNAME.SCRIPT_KEY.name] = alert_json["alert_generation"] and alert_json["alert_generation"]["script_key"]
 
     return record

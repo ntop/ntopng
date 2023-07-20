@@ -19,32 +19,22 @@
  *
  */
 
-#ifndef _NTOP_VIEW_SCORE_STATS_H_
-#define _NTOP_VIEW_SCORE_STATS_H_
+#ifndef _SCORE_COUNTER_H_
+#define _SCORE_COUNTER_H_
 
-class ViewScoreStats : public ScoreStats {
+class ScoreCounter {
  private:
-  Mutex m;
-  ScoreCounter cli_dec[MAX_NUM_SCORE_CATEGORIES], srv_dec[MAX_NUM_SCORE_CATEGORIES];
+  u_int32_t value, decay_time, beta /* Old value before decrease */;
+  float alpha; /* Linear decrease rate */
 
  public:
-  ViewScoreStats();
-  ~ViewScoreStats(){};
+  ScoreCounter()  { value = decay_time = 0, alpha = 0, beta = 0; }
 
-  /* Total Getters */
-  u_int64_t getClient() { return (sum(cli_score) - sum(cli_dec)); };
-  u_int64_t getServer() { return (sum(srv_score) - sum(srv_dec)); };
+  u_int32_t get();
+  
+  inline u_int32_t inc(u_int16_t score) { value += score, decay_time = 0; return(value); }
 
-  /* Getters by category */
-  u_int32_t getClient(ScoreCategory sc) {
-    return (cli_score[sc].get() - cli_dec[sc].get() );
-  };
-  u_int32_t getServer(ScoreCategory sc) {
-    return (srv_score[sc].get()  - srv_dec[sc].get() );
-  };
-
-  u_int16_t decValue(u_int16_t score, ScoreCategory score_category,
-                     bool as_client);
+  u_int32_t dec(u_int16_t score);
 };
 
-#endif
+#endif /* _SCORE_COUNTER_H_ */

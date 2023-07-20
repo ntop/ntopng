@@ -1,0 +1,39 @@
+{
+	"name" : "Alert Type",
+	"i18n_name" : "alert_types",
+	"select" : {
+		"items" : [
+			{
+				"name" : "alert_id"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name" : "alert_id"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "alert_id"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}

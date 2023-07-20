@@ -25,13 +25,12 @@
 class ScoreStats {
  private:
  protected:
-  u_int32_t cli_score[MAX_NUM_SCORE_CATEGORIES],
-      srv_score[MAX_NUM_SCORE_CATEGORIES];
+  ScoreCounter cli_score[MAX_NUM_SCORE_CATEGORIES], srv_score[MAX_NUM_SCORE_CATEGORIES];
 
-  static u_int64_t sum(u_int32_t const scores[]);
-  static u_int16_t incValue(u_int32_t scores[], u_int16_t score,
+  static u_int64_t sum(ScoreCounter scores[]);
+  static u_int16_t incValue(ScoreCounter scores[], u_int16_t score,
                             ScoreCategory score_category);
-  static u_int16_t decValue(u_int32_t scores[], u_int16_t score,
+  static u_int16_t decValue(ScoreCounter scores[], u_int16_t score,
                             ScoreCategory score_category);
 
   void lua_breakdown(lua_State *vm, bool as_client);
@@ -41,26 +40,16 @@ class ScoreStats {
   virtual ~ScoreStats(){};
 
   /* Total getters */
-  u_int64_t get() const { return (getClient() + getServer()); };
-  virtual u_int64_t getClient() const {
-    return (sum(cli_score /* as client */));
-  };
-  virtual u_int64_t getServer() const {
-    return (sum(srv_score /* as server */));
-  };
+  u_int64_t get() { return (getClient() + getServer()); };
+  virtual u_int64_t getClient() { return (sum(cli_score /* as client */));  };
+  virtual u_int64_t getServer() { return (sum(srv_score /* as server */)); };
 
   /* Getters by category */
-  virtual u_int32_t getClient(ScoreCategory sc) const {
-    return (cli_score[sc]);
-  };
-  virtual u_int32_t getServer(ScoreCategory sc) const {
-    return (srv_score[sc]);
-  };
+  virtual u_int32_t getClient(ScoreCategory sc) { return (cli_score[sc].get()); };
+  virtual u_int32_t getServer(ScoreCategory sc) { return (srv_score[sc].get()); };
 
-  u_int16_t incValue(u_int16_t score, ScoreCategory score_category,
-                     bool as_client);
-  virtual u_int16_t decValue(u_int16_t score, ScoreCategory score_category,
-                             bool as_client);
+  u_int16_t incValue(u_int16_t score, ScoreCategory score_category, bool as_client);
+  virtual u_int16_t decValue(u_int16_t score, ScoreCategory score_category, bool as_client);
 
   void lua_breakdown(lua_State *vm);
   void serialize_breakdown(ndpi_serializer *serializer);

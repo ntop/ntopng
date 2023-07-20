@@ -367,9 +367,13 @@ end
 
 function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score)
     local msg
-    local alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
+    local alert_risk
 
-    if (alert_json == nil) then
+    if tonumber(alert.alert_id) then
+       alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
+    end
+
+    if not alert_json then
         alert_json = alert_utils.getAlertInfo(alert)
     end
 
@@ -391,14 +395,15 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score)
         msg = string.format('%s <small><span class="text-muted">%s</span></small>', msg, alert["user_label"])
     end
 
-    local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
-
     if add_score then
-        msg = alert_utils.format_score(msg, alert_score)
-    end
+       if tonumber(alert.alert_id) then 
+          local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
+          msg = alert_utils.format_score(msg, alert_score)
+       end
+   end
 
     -- Add the link to the documentation
-    if alert_risk > 0 then
+    if alert_risk and alert_risk > 0 then
         msg = string.format("%s %s", msg, flow_risk_utils.get_documentation_link(alert_risk))
         local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
 
@@ -422,117 +427,61 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
     -- Fetch the alert id
     local alert_id = alert_consts.getAlertType(alert.alert_id, alert.entity_id)
     if alert_id then
-        -- If there's a function that generates the filter available for this particular alert,
-        -- then the function is called to fetch the filter for the historical flows
-        if alert_consts.alert_types[alert_id].filter_to_past_flows then
-            if not alert_json then
-                alert_json = alert_utils.getAlertInfo(alert)
+        local final_filter = {}
+        local filters = {}
+        local epoch_begin = alert["tstamp"]
+        local epoch_end = alert["tstamp_end"]
+        -- Look a bit around the epochs
+        epoch_begin = epoch_begin - (5 * 60)
+        epoch_end = epoch_end + (5 * 60)
+
+        -- IP
+        if not isEmptyString(alert["ip"]) then
+            filters[#filters + 1] = {
+                name = "ip",
+                op = "eq",
+                val = alert["ip"]
+            }
+
+            -- Add the hostname here cause it's needed to check if the ip is equal to the name
+            -- Hostname
+            if not isEmptyString(alert["name"]) and (alert["ip"] ~= alert["name"]) then
+                filters[#filters + 1] = {
+                    name = "name",
+                    op = "eq",
+                    val = alert["name"]
+                }
             end
-
-            -- Fetch the filter
-            local past_flows_filter = alert_consts.alert_types[alert_id].filter_to_past_flows(ifid, alert, alert_json)
-            local epoch_begin, epoch_end
-
-            -- Add a default start time, if no start time has been added by the filter-generation function
-            if not past_flows_filter["epoch_begin"] then
-                past_flows_filter["epoch_begin"] = tonumber(alert["tstamp"])
-            end
-            epoch_begin = tonumber(past_flows_filter["epoch_begin"])
-            past_flows_filter["epoch_begin"] = nil
-
-            -- Add a default end time, if not end time has been added by the filter-generation function
-            if not past_flows_filter["epoch_end"] then
-                local duration = tonumber(alert["duration"]) or
-                                     (tonumber(alert["tstamp_end"]) - tonumber(alert["tstamp"]))
-
-                past_flows_filter["epoch_end"] = epoch_begin + duration
-            end
-            epoch_end = tonumber(past_flows_filter["epoch_end"])
-            past_flows_filter["epoch_end"] = nil
-
-            local tags = {}
-            for name, val in pairs(past_flows_filter) do
-                local filter_op, filter_val
-
-                if name == "epoch_end" or name == "epoch_begin" then
-                    -- They are not tags, they will be inserted as-is
-                    goto continue
-                elseif val == true then
-                    -- Assumes > 0
-                    tags[#tags + 1] = {
-                        name = name,
-                        op = "gt",
-                        val = "0"
-                    }
-                elseif string.contains(name, "ip") then
-                    -- Unpack the hostkey into two separate fields, one for the VLAN (if present and positive) and one for the IP
-                    local host_info = hostkey2hostinfo(val)
-
-                    tags[#tags + 1] = {
-                        name = name,
-                        op = "eq",
-                        val = host_info["host"]
-                    }
-                    if host_info["vlan"] > 0 then
-                        tags[#tags + 1] = {
-                            name = "vlan_id",
-                            op = "eq",
-                            val = tostring(host_info["vlan"])
-                        }
-                    end
-                elseif string.contains(name, "tcp_flags") then
-                    -- Assumes IN query
-                    if val >= 0 then
-                        -- Assumes IN
-                        tags[#tags + 1] = {
-                            name = name,
-                            op = "in",
-                            val = tostring(val)
-                        }
-                    else
-                        -- A negative value assumes NOT IN
-                        tags[#tags + 1] = {
-                            name = name,
-                            op = "nin",
-                            val = tostring(-val)
-                        }
-                    end
-                else
-                    -- Fallback, assume equality
-                    tags[#tags + 1] = {
-                        name = name,
-                        op = "eq",
-                        val = tostring(val)
-                    }
-                end
-
-                ::continue::
-            end
-
-            -- Look a bit around the epochs...
-            epoch_begin = epoch_begin - (5 * 60)
-            epoch_end = epoch_end + (5 * 60)
-
-            -- ... but not too much
-            if epoch_end - epoch_begin > 600 then
-                epoch_end = epoch_begin + 600
-            end
-
-            -- Join the TAG filters using the predefined operator
-            local final_filter = {}
-            for _, tag in pairs(tags) do
-                final_filter[tag.name] = string.format("%s%s%s", tag.val, alert_consts.SEPARATOR, tag.op)
-            end
-
-            -- tprint({formatEpoch(epoch_begin), formatEpoch(epoch_end), formatEpoch(tonumber(alert.tstamp)), formatEpoch(tonumber(alert.tstamp_end))})
-
-            -- Return the link augmented with the filter
-            local res = string.format("%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&%s", ntop.getHttpPrefix(),
-                epoch_begin, epoch_end, table.tconcat(final_filter, "=", "&"))
-
-            return res
         end
+
+        -- VLAN ID
+        if not isEmptyString(alert["vlan_id"]) and tonumber(alert["vlan_id"]) > 0 then
+            filters[#filters + 1] = {
+                name = "vlan_id",
+                op = "eq",
+                val = alert["vlan_id"]
+            }
+        end
+
+        -- Host alerts could have a custom function to format the url, in case call it
+        -- and then merge the filters
+        if alert_consts.alert_types[alert_id].filter_to_past_flows then
+            local past_flows_filter = alert_consts.alert_types[alert_id].filter_to_past_flows(ifid, alert, alert_json)
+            table.merge(filters, past_flows_filter)
+        end
+
+        for _, tag in pairs(filters) do
+            final_filter[tag.name] = string.format("%s%s%s", tag.val, alert_consts.SEPARATOR, tag.op)
+        end
+
+        -- Return the link augmented with the filter
+        local res = string.format("%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&%s", ntop.getHttpPrefix(),
+            epoch_begin, epoch_end, table.tconcat(final_filter, "=", "&"))
+
+        return res
     end
+
+    return nil
 end
 
 -- #################################

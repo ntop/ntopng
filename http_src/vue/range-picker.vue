@@ -48,6 +48,8 @@
 <script type="text/javascript">
 import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as ModalFilters } from "./modal-filters.vue";
+import filtersManager from "../utilities/filters-manager.js";
+
 
 function get_page(alert_stats_page) {
     let page = ntopng_url_manager.get_url_entry("page");
@@ -63,12 +65,12 @@ function get_page(alert_stats_page) {
 
 async function get_filter_const(is_alert_stats_url, page) {
     let url_request;
+    let query_preset = ntopng_url_manager.get_url_entry("query_preset");
+    if (query_preset == null) { query_preset = ""; }
     if (is_alert_stats_url) {
-        url_request = `${http_prefix}/lua/rest/v2/get/alert/filter/consts.lua?page=${page}`;
+        url_request = `${http_prefix}/lua/rest/v2/get/alert/filter/consts.lua?page=${page}&query_preset=${query_preset}`;
     } else {
-        let query_preset = ntopng_url_manager.get_url_entry("query_preset");
         let aggregated = ntopng_url_manager.get_url_entry("aggregated");
-        if (query_preset == null) { query_preset = ""; }
         url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/consts.lua?page=${page}&query_preset=${query_preset}&aggregated=${aggregated}`;
     }
     let filter_consts = await ntopng_utility.http_request(url_request);
@@ -90,13 +92,6 @@ if (STATUS_VIEW == null || STATUS_VIEW == "") {
 }
 
 let PAGE = get_page(IS_ALERT_STATS_URL);
-
-const update_select_query_presets = function () {
-    let value = $(`#select-query-presets`).val();
-    let status = ntopng_status_manager.get_status();
-    status['query_preset'] = value;
-    ntopng_utility.replace_url_and_reload(status);
-}
 
 const create_tag_from_filter = function (filter) {
     let f_const = FILTERS_CONST.find((f) => f.id == filter.id);
@@ -156,25 +151,6 @@ const load_filters_data = async function () {
     }
     return filters;
     // "l7proto=XXX;eq"
-}
-
-function get_filters_object(filters) {
-    let filters_groups = {};
-    filters.forEach((f) => {
-        let group = filters_groups[f.id];
-        if (group == null) {
-            group = [];
-            filters_groups[f.id] = group;
-        }
-        group.push(f);
-    });
-    let filters_object = {};
-    for (let f_id in filters_groups) {
-        let group = filters_groups[f_id];
-        let filter_values = group.filter((f) => f.value != null && f.operator != null && f.operator != "").map((f) => `${f.value};${f.operator}`).join(",");
-        filters_object[f_id] = filter_values;
-    }
-    return filters_object;
 }
 
 export default {
@@ -244,7 +220,7 @@ export default {
             // delete all previous filter
             ntopng_url_manager.delete_params(FILTERS_CONST.map((f) => f.id));
             TAGIFY.tagify.removeAllTags();
-            let filters_object = get_filters_object(filters);
+            let filters_object = filtersManager.get_filters_object(filters);
             ntopng_url_manager.add_obj_to_url(filters_object);
             filters.forEach((f) => {
                 let tag = create_tag_from_filter(f);
@@ -281,11 +257,11 @@ function create_tagify(range_picker_vue) {
         templates: {
             tag: function (tagData) {
                 try {
-                    return `<tag title='${tagData.value}' contenteditable='false' spellcheck="false" class='tagify__tag ${tagData.class ? tagData.class : ""}' ${this.getAttributes(tagData)}>
+                    return `<tag title='${tagData.value}' contenteditable='false' spellcheck="false" class='tagify__tag'>
                         <x title='remove tag' class='tagify__tag__removeBtn'></x>
                         <div>
-                            ${tagData.label ? `<b>${tagData.label}</b>&nbsp;` : ``}
-                            ${!VIEW_ONLY_TAGS && tagData.operators ? `<select class='operator'>${tagData.operators.map(op => `<option ${tagData.selectedOperator === op ? 'selected' : ''} value='${op}'>${TAG_OPERATORS[op]}</option>`).join()}</select>` : `<b class='operator'>${tagData.selectedOperator ? TAG_OPERATORS[tagData.selectedOperator] : '='}</b>`}&nbsp;
+                           <b>${tagData.label ? tagData.label : tagData.key}</b>&nbsp;
+                           <b class='operator'>${tagData.selectedOperator ? TAG_OPERATORS[tagData.selectedOperator] : '='}</b>&nbsp;
                             <span class='tagify__tag-text'>${tagData.value}</span>
                         </div>
                     </tag>`

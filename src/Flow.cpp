@@ -2732,6 +2732,15 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
       if (h) {
         lua_push_int32_table_entry(vm, "src_as", h->get_asn());
         lua_push_str_table_entry(vm, "src_as_name", h->get_asname());
+      } else {
+	/* View interfaces */
+	u_int32_t asn;
+	char *asname;
+	
+	ntop->getGeolocation()->getAS(get_cli_ip_addr(), &asn, &asname);
+
+	if(asn != 0) lua_push_int32_table_entry(vm, "src_as", asn);
+        if(asname)   lua_push_str_table_entry(vm, "src_as_name", asname);
       }
     }
 
@@ -2743,6 +2752,14 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
       if (h) {
         lua_push_int32_table_entry(vm, "dst_as", h->get_asn());
         lua_push_str_table_entry(vm, "dst_as_name", h->get_asname());
+      } else {
+	/* View interfaces */
+	u_int32_t asn;
+	char *asname;
+	
+	ntop->getGeolocation()->getAS(get_srv_ip_addr(), &asn, &asname);
+	if(asn != 0) lua_push_int32_table_entry(vm, "dst_as", asn);
+        if(asname)   lua_push_str_table_entry(vm, "dst_as_name", asname);
       }
     }
 
