@@ -1682,7 +1682,7 @@ local known_parameters = {
 
    ["syslog_alert_format"] = http_lint.validateEmptyOr(http_lint.validateSyslogFormat),
    ["syslog_protocol"]  = http_lint.validateEmptyOr(http_lint.validateChoiceInline({"tcp", "udp", ""})),
-   ["syslog_host"]  = http_lint.validateEmptyOr(http_lint.validateHost),
+   ["syslog_host"]  = http_lint.validateEmptyOr(validateServer),
    ["syslog_port"]  = http_lint.validateEmptyOr(http_lint.validatePort),
 
    ["telegram_channel"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
