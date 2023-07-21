@@ -453,7 +453,7 @@ if ntop.isEnterpriseL() then
 
       -- Allow filters defined by the query only
       defined_tags = {}
-      if #preset.filters.items > 0 then
+      if preset.filters and preset.filters.items and #preset.filters.items > 0 then
          for _, item in ipairs(preset.filters.items) do
             if not item.input or item.input ~= "fixed" then
                local tag_key = item.name -- db_columns_to_tags[item.name]
