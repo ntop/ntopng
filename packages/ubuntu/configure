@@ -614,6 +614,7 @@ PACKAGE_URL=''
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+SIGN_CMD
 CUSTOM_NTOPNG_DOT_CONF
 CHOWN
 SUDO
@@ -1900,8 +1901,15 @@ if test -d $LICENSEDIR; then
   fi
 fi
 
+if test -f /usr/bin/debsigs; then
+  SIGN_CMD="debsigs"
+else
+  SIGN_CMD="dpkg-sig"
+fi
+
 DATE=`date -R`
 KERNEL=`uname -r`
+
 
 
 
