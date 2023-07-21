@@ -52,10 +52,23 @@ Select example - list of fields:
 		]
 	}
 
-Select example - SQL:
+Select example - custom SQL (note: list of items still need to be declared to build the datatable structure):
 
 	"select" : {
-		"sql": "IPv4NumToString(IPV4_SRC_ADDR) IPV4_SRC_ADDR, IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR, L7_PROTO, SUM(TOTAL_BYTES) bytes"
+		"sql": "IPv4NumToString(IPV4_SRC_ADDR) IPV4_SRC_ADDR_FORMATTED, IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR_FORMATTED, L7_PROTO, SUM(TOTAL_BYTES) bytes"
+		"items" : [
+			{ 
+				"name" : "IPV4_SRC_ADDR" 
+			},
+			{
+				"name" : "IPV6_SRC_ADDR"
+			},
+			{
+				"name" : "bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			}
+		]
 	}
 
 Filters examples:
