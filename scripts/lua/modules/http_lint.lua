@@ -1972,6 +1972,9 @@ local known_parameters = {
     ["is_ifname"] = validateBool,
     ["metric_label"] = validateUnquoted,
     ["flows_page_type"] = validateSingleWord,
+    ["scan_type"] = validateSingleWord,
+    ["scan_params"] = validateUnquoted,
+    ["scan_single_host"] = validateBool,
 
     ["snmp_device"] = validateDevice,
     ["snmp_device_port"] = validateSNMPIfidNumber,

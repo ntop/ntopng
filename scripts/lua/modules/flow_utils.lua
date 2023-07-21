@@ -2625,6 +2625,9 @@ function getFlowsTableTitle(base_url)
         if (host_info) then
             host_name = host_info.names.resolved
         end
+        if isEmptyString(base_url) then
+            base_url = ntop.getHttpPrefix()
+        end
         active_msg = active_msg .. i18n("flows_page.host", {
             host = _GET["host"],
             host_name = ternary(isEmptyString(host_name), _GET["host"], host_name),
