@@ -84,17 +84,19 @@ end
 -- On error, it leaves the queue unchagned to retry on next round.
 function slack.dequeueRecipientAlerts(recipient, budget)
    local notifications = {}
-   for i = 1, budget do
-      local notification = ntop.recipient_dequeue(recipient.recipient_id)
-      if notification then 
-        if alert_utils.filter_notification(notification, recipient.recipient_id) then
+   local i = 0
+    while i < budget do
+       local notification = ntop.recipient_dequeue(recipient.recipient_id)
+       if notification then 
+         if alert_utils.filter_notification(notification, recipient.recipient_id) then
 
-	 notifications[#notifications + 1] = notification.alert
-        end
-      else
-	 break
-      end
-   end
+	  notifications[#notifications + 1] = notification.alert
+     i = i + 1
+         end
+       else
+	  break
+       end
+    end
 
   if not notifications or #notifications == 0 then
     return {success = true, more_available = false}
