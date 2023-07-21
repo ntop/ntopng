@@ -47,7 +47,7 @@ end
 
 if other_num > 0 then
   series[#series + 1] = other_num
-  labels[#labels + 1] = i18n('others')
+  labels[#labels + 1] = i18n('other')
   colors[#colors + 1] = graph_utils.get_html_color(#colors + 1)
 end
 
