@@ -1153,7 +1153,14 @@ function alert_store:count()
 
     where_clause = self:build_where_clause()
 
-    local q = string.format(" SELECT count(*) as count FROM `%s` WHERE %s", table_name, where_clause)
+    local q
+
+    if isEmptyString(self._group_by) then
+        q = string.format("SELECT count(*) as count FROM `%s` WHERE %s", table_name, where_clause)
+    else
+        q = string.format("SELECT count(*) as count FROM (SELECT 1 FROM `%s` WHERE %s GROUP BY  %s) g", 
+            table_name, where_clause, self._group_by)
+    end
 
     local count_query = interface.alert_store_query(q)
 
@@ -1743,12 +1750,6 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
         return alerts, total_rows, {}
     else -- Historical
 
-        -- Count
-        local total_row = self:count()
-
-        -- Add limits and sort criteria only after the count has been done
-        self:add_request_ranges()
-
         -- Handle Custom Queries (query_preset)
         local p = _GET["query_preset"] -- Example: &query_preset=contacts
         if not isEmptyString(p) and ntop.isEnterpriseL() then
@@ -1796,6 +1797,12 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
                 end
             end
         end
+
+        -- Count
+        local total_row = self:count()
+
+        -- Add limits and sort criteria only after the count has been done
+        self:add_request_ranges()
 
         local res, info =
             self:select_historical(filter, select_fields, download --[[ Available only with ClickHouse ]] )
