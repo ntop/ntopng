@@ -26,6 +26,7 @@ local alert_entities = {
       entity_id = 4,
       i18n_label = "alert_entities.flow",
       alert_store_name = "flow",
+      alert_key_fields = {"cli_ip","srv_ip","srv_port","proto"}
    }, mac = {
       entity_id = 5,
       i18n_label = "alert_entities.mac",

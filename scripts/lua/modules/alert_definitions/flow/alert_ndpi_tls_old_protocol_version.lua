@@ -58,6 +58,10 @@ function alert_ndpi_tls_old_protocol_version.format(ifid, alert, alert_type_para
    return(msg)
 end
 
+function alert_ndpi_tls_old_protocol_version.alert_retention_policy_key(alert_info)
+   return {"srv_ip","srv_port"}
+end
+
 -- #######################################################
 
 return alert_ndpi_tls_old_protocol_version
