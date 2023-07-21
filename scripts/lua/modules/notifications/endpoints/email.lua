@@ -143,16 +143,15 @@ function email.dequeueRecipientAlerts(recipient, budget)
     local notifications = {}
     local i = 0
     while i < MAX_ALERTS_PER_EMAIL do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id)
-       if notification then 
-         if alert_utils.filter_notification(notification, recipient.recipient_id) then
-
-	  notifications[#notifications + 1] = notification.alert
-     i = i + 1
-         end
-       else
-	  break
-       end
+      local notification = ntop.recipient_dequeue(recipient.recipient_id)
+      if notification then 
+        if alert_utils.filter_notification(notification, recipient.recipient_id) then
+          notifications[#notifications + 1] = notification.alert
+          i = i + 1
+        end
+      else
+        break
+      end
     end
 
     if not notifications or #notifications == 0 then

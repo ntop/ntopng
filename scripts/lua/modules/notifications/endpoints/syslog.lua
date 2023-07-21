@@ -106,9 +106,9 @@ function syslog.sendMessage(settings, notif, severity)
       -- prepare a plain text message
       msg = alert_utils.formatAlertNotification(json.decode(notif), {
          nohtml = true,
-	 show_severity = true,
-	 show_entity = true,
-	 timezone = true --[[ Epochs adjusted to the server TZ using ISO 8601 date format --]]
+         show_severity = true,
+         show_entity = true,
+         timezone = true --[[ Epochs adjusted to the server TZ using ISO 8601 date format --]]
       })
    end
 
@@ -179,16 +179,15 @@ function syslog.dequeueRecipientAlerts(recipient, budget)
 
    local i = 0
     while i < budget do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id)
-       if notification then 
-         if alert_utils.filter_notification(notification, recipient.recipient_id) then
-
-	  notifications[#notifications + 1] = notification.alert
-     i = i + 1
-         end
-       else
-	  break
-       end
+      local notification = ntop.recipient_dequeue(recipient.recipient_id)
+      if notification then 
+        if alert_utils.filter_notification(notification, recipient.recipient_id) then
+          notifications[#notifications + 1] = notification.alert
+          i = i + 1
+        end
+      else
+        break
+      end
     end
 
    if not notifications or #notifications == 0 then

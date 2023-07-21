@@ -81,23 +81,23 @@ function discord.sendMessage(message_body, settings)
 
    while retry_attempts > 0 do
       local message = {
-	 username = username,
-	 content  = message_body,
+         username = username,
+         content  = message_body,
       }
 
       local msg = json.encode(message)
       local post_rc = ntop.httpPost(settings.url, msg)
 
       if post_rc then
-	 if post_rc.RESPONSE_CODE == 204 then
-	    -- Success
-	    rc = true
-	    break
-	 elseif post_rc.RESPONSE_CODE == 429 then
-	    -- Too many requests, don't retry as this would cause the situation to worsen
-	    -- https://httpstatuses.com/429
-	    return false, "Too many requests"
-	 end
+         if post_rc.RESPONSE_CODE == 204 then
+            -- Success
+            rc = true
+            break
+         elseif post_rc.RESPONSE_CODE == 429 then
+            -- Too many requests, don't retry as this would cause the situation to worsen
+            -- https://httpstatuses.com/429
+            return false, "Too many requests"
+         end
       end
 
       retry_attempts = retry_attempts - 1
@@ -137,16 +137,15 @@ function discord.dequeueRecipientAlerts(recipient, budget)
     local notifications = {}
     local i = 0
     while i < max_alerts_per_request do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id)
-       if notification then 
-         if alert_utils.filter_notification(notification, recipient.recipient_id) then
-
-	  notifications[#notifications + 1] = notification.alert
-     i = i + 1
-         end
-       else
-	  break
-       end
+      local notification = ntop.recipient_dequeue(recipient.recipient_id)
+      if notification then 
+        if alert_utils.filter_notification(notification, recipient.recipient_id) then
+          notifications[#notifications + 1] = notification.alert
+          i = i + 1
+        end
+      else
+        break
+      end
     end
 
     if not notifications or #notifications == 0 then
