@@ -921,7 +921,6 @@ function alert_utils.filter_notification(notification, recipient_id)
     local entity_id = alert_info.entity_id
     local entity_val = alert_info.entity_val
 
-
     local alert_id = alert_consts.getAlertType(alert_key, entity_id)
 
     return alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_info, recipient_id)
@@ -953,14 +952,15 @@ function alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_i
     end
 
     local redis_key = string.format("ntopng.cache.alert.retention.%s.%s.%s%s",recipient_id, entity_id, alert_id, alert_key)
-    local redis_res = isEmptyString(ntop.getCache(redis_key))
+    local not_set = isEmptyString(ntop.getCache(redis_key))
 
-    if redis_res then
+    if not_set then
+        -- Set key with expiration on redis to filter out the same alert for some time
         -- TODO: 3600 must be update with a user preference
         ntop.setCache(redis_key,"1", 3600)
     end
-    return redis_res
 
+    return not_set -- true to send the alert, false to suppress this alert until the key expires
 end
 
 -- ##############################################
