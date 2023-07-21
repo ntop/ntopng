@@ -46,46 +46,40 @@
   </template>
   
 <script setup>
+/* Imports */
 import { ref, onBeforeMount } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as NoteList } from "./note-list.vue";
 import regexValidation from "../utilities/regex-validation.js";
+/* ****************************************************** */
 
+/* Consts */
 const modal_id = ref(null);
 const selected_scan_type = ref(null);
 const emit = defineEmits(['add','edit']);
 let title = i18n('hosts_stats.page_scan_hosts.add_host');
 const host_placeholder = i18n('hosts_stats.page_scan_hosts.host_placeholder')
 const _i18n = (t) => i18n(t);
-
 const disable_add = ref(true)
 const is_edit_page = ref(false)
-
-
-
 const note_list = [
   _i18n('hosts_stats.page_scan_hosts.notes.note_1'),
   _i18n('hosts_stats.page_scan_hosts.notes.note_2')
 ]
-
 const scan_type_list = ref([])
-
 const host = ref(null)
-
 const showed = () => {};
-
 const props = defineProps({
   context: Object,
 });
-
+/* ****************************************************** */
 
 /**
  * 
  * Reset fields in modal form 
  */
 const reset_modal_form = function() {
-    debugger;
     host.value = "";
     selected_scan_type.value = scan_type_list.value[0];
 }
@@ -134,7 +128,7 @@ const check_empty_host = () => {
 
 
 /**
- * Function to add rule to rules list
+ * Function to add host to scan
  */
 const add_ = (is_edit) => {
   let tmp_host = host.value;
@@ -147,8 +141,6 @@ const add_ = (is_edit) => {
     emit_name = 'edit';
 
   
-    debugger;
-
   emit(emit_name, { 
       host: tmp_host, 
       scan_type: tmp_scan_type, 

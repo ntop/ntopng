@@ -4114,6 +4114,7 @@ local lang = {
       ["host"] = "Host",
       ["host_placeholder"] = "IP",
       ["last_scan"] = "Last Scheduled Scan",
+      ["last_scan_status"] = "Last Scan Scatus",
       ["scan_command_param"] = "Scan Parameters",
       ["scan_type"] = "Scan Type",
       ["schedule_all_scan"] = "Schedule All Scans",
@@ -7126,7 +7127,7 @@ local lang = {
     },
   },
   ["table"] = {
-     ["autorefresh"] = "Enable table autorefresh each %time seconds"
+    ["autorefresh"] = "Enable table autorefresh each %time seconds",
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",

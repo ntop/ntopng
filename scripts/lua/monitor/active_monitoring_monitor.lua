@@ -82,6 +82,7 @@ page_utils.print_navbar(navbar_title, url, {
         label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
 	url = ntop.getHttpPrefix().."/lua/alert_stats.lua?&status=engaged&page=am_host"
     }, {
+        hidden = true,
         active = page == "scan_hosts",
         page_name = "scan_hosts",
         label = i18n("scan_hosts")
