@@ -180,7 +180,7 @@ function syslog.dequeueRecipientAlerts(recipient, budget)
    for i = 1, budget do
       local notification = ntop.recipient_dequeue(recipient.recipient_id)
       if notification then
-         if alert_utils.filter_notification(notification) then
+         if alert_utils.filter_notification(notification, recipient.recipient_id) then
 
          notifications[#notifications + 1] = notification
          end
