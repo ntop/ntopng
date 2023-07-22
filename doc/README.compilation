@@ -61,7 +61,7 @@ On Debian 9/10/11/12
 
 You need to do add the `contrib` component to /etc/apt/sources.list entries, then
 
-apt-get install libpng-dev libzmq5-dev default-libmysqlclient-dev
+apt-get install libpng-dev libzmq5-dev default-libmysqlclient-dev libgcrypt20-dev
 
 On Other Debian
 ~~~~~~~~~~~~~~~
