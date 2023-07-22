@@ -199,12 +199,12 @@ function ts_common.normalizeVal(v, max_val, options)
     -- with ZMQ interface which can actually exceed the nominal value
 
     if tostring(v) == '-nan' then
-        if not options.keep_nan then
-            -- NaN value
-            v = options.fill_value
-        end
+       if not options.keep_nan then
+	  -- NaN value
+	  v = options.fill_value
+       end
     elseif v < options.min_value then
-        v = options.min_value
+       v = options.min_value
     end
 
     return v
