@@ -78,7 +78,7 @@
 	      <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" :style="col.style" v-html="print_html_row(col.data, row)">
 	      </div>
 	      <div :style="col.style" style="" class="wrap-column margin-sm" :class="col.classes" >
-		<VueNode v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)" ></VueNode>
+		<VueNode :key="row.row_id" v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)" ></VueNode>
 	      </div>	      
 	    </td>
 	  </template>
@@ -283,6 +283,10 @@ async function set_columns_visibility() {
 
 async function set_columns_wrap() {
     let cols_visibility_dict = await get_columns_visibility_dict();
+    let is_table_not_sorted = true;
+    for (let id in cols_visibility_dict) {
+	is_table_not_sorted &= (cols_visibility_dict[id]?.sort);
+    }
     columns_wrap.value = props.columns.map((c, i) => {
 	let classes = [];
 	let style = "";
@@ -295,8 +299,10 @@ async function set_columns_wrap() {
 	let id = props.get_column_id(c);
 	let col_opt = cols_visibility_dict[id];
 	let sort = col_opt?.sort; 
-	if (sort == null && props.default_sort != null && id == props.default_sort.column_id) {
+	if (is_table_not_sorted == false && sort == null && props.default_sort != null && id == props.default_sort.column_id) {
 	    sort = props.default_sort.sort;
+	} else if (col_opt?.sort) {
+	    sort = col_opt?.sort;
 	} else {
 	    sort = 0;
 	}
@@ -332,6 +338,11 @@ function redraw_select_pages() {
     select_pages_key.value += 1;
 }
 
+const table_content_id = ref(0);
+function refresh_table_content() {
+    table_content_id.value += 1;
+}
+
 async function change_active_page(new_active_page) {
     if (new_active_page != null) {
 	active_page = new_active_page;
@@ -344,6 +355,7 @@ async function change_active_page(new_active_page) {
     } else {
 	set_active_rows();
     }
+    refresh_table_content()
 }
 
 async function change_column_sort(col, col_index) {
