@@ -405,7 +405,8 @@ if ntop.isEnterpriseL() then
             local column_def = nil
 
             -- Hide columns which are already rendered in other columns (e.g. cli_name -> cli_ip)
-            if item.name == 'cli_name' or
+            if item.name == 'name' or
+               item.name == 'cli_name' or
                item.name == 'srv_name' then
                goto continue
             end

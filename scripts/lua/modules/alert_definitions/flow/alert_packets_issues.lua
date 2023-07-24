@@ -46,12 +46,15 @@ end
 -- @return A human-readable string
 function alert_tcp_packets_issues.format(ifid, alert, alert_type_params)
   local msg = ''
-  
-  if alert_type_params.lost > alert_type_params.lost_threshold then
+ 
+  if alert_type_params.lost and alert_type_params.lost_threshold and 
+     alert_type_params.lost > alert_type_params.lost_threshold then
     msg = i18n("flow_checks_config.tcp_packets_issues_alert", { type = 'loss', value = alert_type_params.lost, threshold = alert_type_params.lost_threshold })
-  elseif alert_type_params.retransmission > alert_type_params.retransmission_threshold then
+  elseif alert_type_params.retransmission and alert_type_params.retransmission_threshold and 
+         alert_type_params.retransmission > alert_type_params.retransmission_threshold then
     msg = i18n("flow_checks_config.tcp_packets_issues_alert", { type = 'retransmission', value = alert_type_params.retransmission, threshold = alert_type_params.retransmission_threshold })
-  elseif alert_type_params.out_of_order > alert_type_params.out_of_order_threshold then
+  elseif alert_type_params.out_of_order and alert_type_params.out_of_order_threshold and 
+         alert_type_params.out_of_order > alert_type_params.out_of_order_threshold then
     msg = i18n("flow_checks_config.tcp_packets_issues_alert", { type = 'out of order', value = alert_type_params.out_of_order, threshold = alert_type_params.out_of_order_threshold })
   end
 

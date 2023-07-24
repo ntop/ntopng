@@ -313,14 +313,14 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json)
         alert_json = alert_utils.getAlertInfo(alert)
     end
 
-    msg = alert_json
     local description = alertTypeDescription(alert.alert_id, alert.entity_id)
 
+    msg = alert_json
     if (type(description) == "string") then
         -- localization string
         msg = i18n(description, msg)
     elseif (type(description) == "function") then
-        msg = description(ifid, alert, msg)
+        msg = description(ifid, alert, alert_json)
     end
 
     if (type(msg) == "table") then
@@ -424,13 +424,15 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
         return
     end
 
+    local epoch_begin = alert["tstamp"]
+    local epoch_end = alert["tstamp_end"]
+
     -- Fetch the alert id
     local alert_id = alert_consts.getAlertType(alert.alert_id, alert.entity_id)
-    if alert_id then
+    if alert_id and epoch_begin and epoch_end then
         local final_filter = {}
         local filters = {}
-        local epoch_begin = alert["tstamp"]
-        local epoch_end = alert["tstamp_end"]
+
         -- Look a bit around the epochs
         epoch_begin = epoch_begin - (5 * 60)
         epoch_end = epoch_end + (5 * 60)

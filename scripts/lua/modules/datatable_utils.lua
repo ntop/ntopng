@@ -319,6 +319,7 @@ local all_datatable_columns_def_by_tag = {
       class = { "no-wrap" },
       render_generic = "vlan_id",
    },
+   ['ip'] = build_datatable_column_def_ip('ip', "db_search.host"),
    ['cli_ip'] = build_datatable_column_def_ip('cli_ip', "db_search.client"),
    ['srv_ip'] = build_datatable_column_def_ip('srv_ip', "db_search.server"),
    ['cli_port'] = build_datatable_column_def_port('cli_port', "db_search.cli_port"),

@@ -384,6 +384,25 @@ function host_alert_store:format_record(value, no_html)
 
     record[RNAME.LINK_TO_PAST_FLOWS.name] = alert_utils.getLinkToPastFlows(ifid, value, alert_info)
 
+   -- Add Tag filters (e.g. to jump from custom queries to raw alerts)
+
+   record['filter'] = {}
+
+   local filters = {}
+   local op_suffix = 'eq'
+
+   if not isEmptyString(value["alert_id"]) and tonumber(value["alert_id"]) > 0 then
+      filters[#filters+1] = { id = "alert_id", value = value["alert_id"], op = op_suffix }
+   end
+   if not isEmptyString(value["vlan_id"]) and tonumber(value["vlan_id"]) > 0 then
+      filters[#filters+1] = { id = "vlan_id", value = value["vlan_id"], op = op_suffix }
+   end
+   if not isEmptyString(value["ip"]) then
+      filters[#filters+1] = { id = "ip", value = value["ip"], op = op_suffix }
+   end
+
+   record['filter'].tag_filters = filters
+
     return record
 end
 

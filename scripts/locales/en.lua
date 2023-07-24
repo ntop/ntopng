@@ -1839,6 +1839,7 @@ local lang = {
     ["find_in_historical"] = "Search '%{what}' '%{query}' in Historical Data",
     ["first_seen"] = "Begin",
     ["flow_risk"] = "Flow Risk",
+    ["host"] = "Host",
     ["info"] = "Info",
     ["l4proto"] = "Protocol",
     ["l7cat"] = "L7 Category",
