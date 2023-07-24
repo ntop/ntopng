@@ -595,11 +595,11 @@ function set_top_table_options(timeseries_groups, status) {
 
 let stats_columns = [
     { id: "metric", label: _i18n("page_stats.metric") },
-    { id: "avg", label: _i18n("page_stats.average") },
-    { id: "perc_95", label: _i18n("page_stats.95_perc") },
-    { id: "max", label: _i18n("page_stats.max") },
-    { id: "min", label: _i18n("page_stats.min") },
-    { id: "total", label: _i18n("page_stats.total") },
+    { id: "avg", label: _i18n("page_stats.average"), class: "text-end" },
+    { id: "perc_95", label: _i18n("page_stats.95_perc"), class: "text-end" },
+    { id: "max", label: _i18n("page_stats.max"), class: "text-end" },
+    { id: "min", label: _i18n("page_stats.min"), class: "text-end" },
+    { id: "total", label: _i18n("page_stats.total"), class: "text-end" },
 ];
 
 const stats_rows = ref([]);

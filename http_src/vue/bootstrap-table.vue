@@ -3,12 +3,12 @@
   <table v-if="!(horizontal) || (horizontal == false)" class="table table-striped table-bordered">
     <thead>
       <tr>
-        <th v-for="col in columns" scope="col" v-html="print_html_column(col)"></th>
+        <th v-for="col in columns" scope="col" :class="col.class" v-html="print_html_column(col)"></th>
       </tr>
     </thead>
     <tbody>
       <tr v-for="row in rows">
-        <td v-for="col in columns" scope="col" v-html="print_html_row(col, row)"></td>
+        <td v-for="col in columns" scope="col" :class="col.class" v-html="print_html_row(col, row)"></td>
       </tr>
     </tbody>
   </table>
