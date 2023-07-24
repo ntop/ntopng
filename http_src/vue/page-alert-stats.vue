@@ -136,6 +136,7 @@ import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAlertsFilter } from "./modal-alerts-filter.vue";
 import { default as ModalAcknoledgeAlert } from "./modal-acknowledge-alert.vue";
 import { default as ModalDeleteAlert } from "./modal-delete-alert.vue";
+// import { default as ModalDeteleAlerts } from "./modal-delete-alerts.vue";
 
 const _i18n = (t) => i18n(t);
 
@@ -190,11 +191,11 @@ onBeforeMount(async () => {
     init_url_params();
     await set_query_presets();
     mount_range_picker.value = true;
+    await load_top_table_array_overview();
 });
 
 onMounted(async () => {
     register_components_on_status_update();
-    load_top_table_array_overview();
 });
 
 async function init_params() {
@@ -233,6 +234,9 @@ function init_url_params() {
 
 async function set_query_presets() {
     if (!props.context.is_ntop_enterprise_l) {
+	return;
+    }
+    if (ntopng_url_manager.get_url_entry("status") == "engaged") {
 	return;
     }
     let url_request = `${http_prefix}/lua/pro/rest/v2/get/alert/preset/consts.lua?page=${page}`;
@@ -281,7 +285,7 @@ function get_query_presets_sync_key() {
 }
 
 async function load_top_table_array_overview(action) {
-    if (props.context.show_cards != true) { return; }
+    if (props.context.show_cards != true || selected_query_preset.value.is_preset == true) { return; }
     top_table_array.value = await load_top_table_array("overview");
 }
 
