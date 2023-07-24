@@ -355,7 +355,7 @@ async function change_active_page(new_active_page) {
     } else {
 	set_active_rows();
     }
-    refresh_table_content()
+    refresh_table_content();
 }
 
 async function change_column_sort(col, col_index) {
