@@ -1779,6 +1779,12 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
                 end
 
                 -- Sort by field
+
+                local sort_column = _GET["sort"]
+                local sort_order = _GET["order"]
+                self:add_order_by(sort_column, sort_order)
+
+                -- Check if the selected sort column is valid, use the preset default otherwise
                 if #preset.sortby.items > 0 then
                    if not self._order_by or 
                       not self._order_by.sort_column or
