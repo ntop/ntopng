@@ -44,6 +44,16 @@ const sources_url_el_to_source = {
 			value,
 		};
 	},
+	if_index: (index) => {
+		console.log(index.device.ip);
+		return '';
+	/*	let label = `${index.name}`;
+		let value = `${index.ip}`;
+		return {
+			label,
+			value,
+		};*/
+	}
 };
 
 const sources_types_tables = {
@@ -318,6 +328,7 @@ const sources_types = [
 		}, {
 			main_source_def: true,
 			label: i18n("page_stats.source_def.snmp_interface"),
+//			sources_url: "lua/pro/rest/v2/get/snmp/device/interfaces.lua",
 			regex_type: "text",
 			value: "if_index",
 			value_url: "snmp_port_idx",
@@ -359,6 +370,7 @@ const sources_types = [
 		}, {
 			main_source_def: true,
 			label: i18n("page_stats.source_def.device"),
+			sources_url: "lua/pro/rest/v2/get/flowdevices/list.lua", // url to get sources list
 			regex_type: "ip",
 			value: "device",
 			value_url: "ip",
