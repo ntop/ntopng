@@ -38,12 +38,12 @@ class LocalHost : public Host {
 
   /* RareDestination data implementation*/
   ndpi_bitmap *rare_dest;
-  ndpi_bitmap *rare_dest_revise;
-  time_t last_epoch;
+  ndpi_bitmap *rare_dest_last;
 
   struct {
     time_t start;
-    u_int32_t seen;
+    time_t last_training;
+    bool training;
   } rareDestTraining;
 
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
@@ -194,18 +194,20 @@ class LocalHost : public Host {
 
   /* RareDest Extension methods */
   
-  inline ndpi_bitmap* getRareDestBMap()       const { return(rare_dest);        }
-  inline ndpi_bitmap* getRareDestReviseBMap() const { return(rare_dest_revise); } 
-
-  inline time_t getRareDestLastEpoch() const { return(last_epoch);  }
-  inline void setRareDestLastEpoch(time_t t) { last_epoch=t;        }
+  inline ndpi_bitmap* getRareDestBitmap() const { return(rare_dest); }
 
   inline time_t getStartRareDestTraining() const { return(rareDestTraining.start); }
   inline void setStartRareDestTraining(time_t t) { rareDestTraining.start = t;     }
 
-  inline u_int32_t getSeenRareDestTraining() const   { return(rareDestTraining.seen);  }
-  inline void clearSeenRareDestTraining()            { rareDestTraining.seen = 0;      }
-  inline void incrementSeenRareDestTraining()        { rareDestTraining.seen++;        }
+  inline time_t getLastRareDestTraining() const { return(rareDestTraining.last_training); }
+  inline void setLastRareDestTraining(time_t t) { rareDestTraining.last_training = t;     }
+
+  inline bool isTrainingRareDest() const  { return(rareDestTraining.training); }
+  inline void startRareDestTraining()     { rareDestTraining.training = true;  }
+  inline void stopRareDestTraining()      { rareDestTraining.training = false; }
+
+  inline void addRareDestBitmaps()    { ndpi_bitmap_or(rare_dest, rare_dest_last); }
+  inline void mergeRareDestBitmaps()  { ndpi_bitmap_cardinality(rare_dest_last) ? ndpi_bitmap_and(rare_dest_last, rare_dest) : ndpi_bitmap_or(rare_dest_last, rare_dest); ndpi_bitmap_clear(rare_dest); }
   
   void dumpRareDestToRedis();
   bool loadRareDestFromRedis();
