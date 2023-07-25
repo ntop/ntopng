@@ -145,7 +145,11 @@ const load_filters_data = async function () {
                 ) {
                     return;
                 }
-                filters.push({ id: filter_def.id, operator: operator, value: value });
+		let value_label = value;
+		if (filter_def.value_type == "array") {
+		    value_label = filter_def?.options?.find((opt) => opt.value == value)?.label;
+		}
+                filters.push({ id: filter_def.id, operator: operator, value: value, label: filter_def.label, value_label });
             });
         }
     }

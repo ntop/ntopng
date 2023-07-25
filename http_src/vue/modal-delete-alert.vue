@@ -30,13 +30,14 @@ let status_view = "historical";
 
 const props = defineProps({
     context: Object,
+    page: String,
 });
 
 onMounted(() => {
 });
 
 async function delete_alert() {
-    const url = `${http_prefix}/lua/rest/v2/delete/flow/alerts.lua`;
+    const url = `${http_prefix}/lua/rest/v2/delete/${props.page}/alerts.lua`;
     const params = {
 	csrf: props.context.csrf,
 	ifid: props.context.ifid,

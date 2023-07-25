@@ -88,13 +88,13 @@
                 </div> <!-- card body -->
 
                 <div v-show="page != 'all'" class="card-footer">
-                    <button id="dt-btn-acknowledge" :disabled="true"
+                    <button v-if="context.show_acknowledge_all" @click="show_modal_acknoledge_alerts"
                         class="btn btn-primary me-1">
-                        <i class="fas fa fa-user-check"></i> Acknowledge Alerts
+                        <i class="fas fa fa-user-check"></i> {{_i18n("acknowledge_alerts")}}
                     </button>
-                    <button id="dt-btn-delete" :disabled="true" 
+                    <button v-if="context.show_delete_all" @click="show_modal_delete_alerts" 
                         class="btn btn-danger">
-                        <i class="fas fa fa-trash"></i> Delete Alerts
+                        <i class="fas fa fa-trash"></i> {{_i18n("delete_alerts")}}
                     </button>
                 </div> <!-- card footer -->
             </div> <!-- card-shadow -->
@@ -103,13 +103,21 @@
         <NoteList :note_list="note_list"></NoteList>
     </div> <!-- div row -->
 
-    <ModalAcknoledgeAlert ref="modal_acknowledge" :context="context" @acknowledge="refresh_page_components">
-    </ModalAcknoledgeAlert>
+    <ModalAcknowledgeAlert ref="modal_acknowledge" :context="context" :page="page" @acknowledge="refresh_page_components">
+    </ModalAcknowledgeAlert>
 
-    <ModalDeleteAlert ref="modal_delete" :context="context" @delete_alert="refresh_page_components"></ModalDeleteAlert>
+    <ModalDeleteAlert ref="modal_delete" :context="context" :page="page" @delete_alert="refresh_page_components"></ModalDeleteAlert>
+
+    <ModalAcknowledgeAlerts ref="modal_acknowledge_alerts" :context="context" :page="page" @acknowledge_alerts="refresh_page_components">
+    </ModalAcknowledgeAlerts>    
+
+    <ModalDeleteAlerts ref="modal_delete_alerts" :context="context" :page="page" @delete_alerts="refresh_page_components">
+    </ModalDeleteAlerts>    
 
     <ModalAlertsFilter :alert="current_alert" :page="page" @exclude="add_exclude" ref="modal_alerts_filter">
     </ModalAlertsFilter>
+
+
 </template>
 
 <script setup>
@@ -134,9 +142,10 @@ import { default as NoteList } from "./note-list.vue";
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAlertsFilter } from "./modal-alerts-filter.vue";
-import { default as ModalAcknoledgeAlert } from "./modal-acknowledge-alert.vue";
+import { default as ModalAcknowledgeAlert } from "./modal-acknowledge-alert.vue";
 import { default as ModalDeleteAlert } from "./modal-delete-alert.vue";
-// import { default as ModalDeteleAlerts } from "./modal-delete-alerts.vue";
+import { default as ModalAcknowledgeAlerts } from "./modal-acknowledge-alerts.vue";
+import { default as ModalDeleteAlerts } from "./modal-delete-alerts.vue";
 
 const _i18n = (t) => i18n(t);
 
@@ -154,6 +163,8 @@ const permanent_link_button = ref(null);
 const modal_alerts_filter = ref(null);
 const modal_acknowledge = ref(null);
 const modal_delete = ref(null);
+const modal_acknowledge_alerts = ref(null);
+const modal_delete_alerts = ref(null);
 const count_page_components_reloaded = ref(0);
 
 const current_alert = ref(null);
@@ -584,6 +595,16 @@ function click_button_expand(event) {
     let filters_object = filtersManager.get_filters_object(filters);
     ntopng_url_manager.add_obj_to_url(filters_object);
     ntopng_url_manager.reload_url();
+}
+
+function show_modal_acknowledge_alerts() {
+    let status = ntopng_status_manager.get_status();
+    modal_acknowledge_alerts.value.show(status);
+}
+
+function show_modal_delete_alerts() {
+    let status = ntopng_status_manager.get_status();
+    modal_delete_alerts.value.show(status);
 }
 
 function click_button_remove(event) {

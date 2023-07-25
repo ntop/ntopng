@@ -18,6 +18,7 @@
 import { ref, onMounted, onBeforeMount, computed, nextTick, watch } from "vue";
 import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as ModalFilters } from "./modal-filters.vue";
+import filtersManager from "../utilities/filters-manager.js";
 
 const _i18n = (t) => i18n(t);
 
@@ -34,16 +35,7 @@ const tagify_ref = ref(null);
 const tags_2 = ref([]);
 let tagify_obj = null;
 
-const tag_operator_label_dict = {
-    "eq": "=",
-    "neq": "!=",
-    "lt": "<",
-    "gt": ">",
-    "gte": ">=",
-    "lte": "<=",
-    "in": "contains",
-    "nin": "does not contain"
-};
+const tag_operator_label_dict = filtersManager.tag_operator_label_dict;
 
 onBeforeMount(async () => {
 });
