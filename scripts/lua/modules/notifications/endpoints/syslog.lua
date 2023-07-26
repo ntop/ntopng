@@ -198,7 +198,7 @@ function syslog.runTest(recipient)
    local now = os.time()
    local notif = {
       tstamp = now,
-      entity_id = alert_consts.alert_entities.test.entity_id,
+      entity_id = alert_consts.alert_entities.flow.entity_id,
       severity = alert_severities.info.severity_id
    }
 
