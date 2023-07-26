@@ -5,8 +5,8 @@
             <div :class="'col-' + c.width" class="widget-box-main-dashboard">
                 <div class="widget-box">
                     <h4>{{ _i18n(c.i18n_name) }}</h4>
-                    <small>Content here
-                      <span v-if="c.component == 'simple-table'">(this is a table)</span>
+                    <small>
+                      <SimpleTable v-if="c.component == 'simple-table'" :i18n_title="c.i18n_name" :params="c.params"></SimpleTable>
                       <span v-if="c.component == 'live-chart'">(this is a live chart)</span>
                       <span v-if="c.component == 'timeseries-chart'">(this is a timeseries chart)</span>
                     </small>
@@ -25,6 +25,7 @@ import TableUtils from "../utilities/table-utils";
 
 import { ntopChartApex } from "../components/ntopChartApex.js";
 
+import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as Navbar } from "./page-navbar.vue";
 import { default as AlertInfo } from "./alert-info.vue";
