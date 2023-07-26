@@ -6,6 +6,7 @@ import * as Vue from "vue";
 // window.Vue = Vue;
 
 // pages
+import { default as PageDashboard } from "./page-dashboard.vue";
 import { default as PageAlertStats } from "./page-alert-stats.vue";
 import { default as PageFlowHistorical } from "./page-flow-historical.vue";
 import { default as PageStats } from "./page-stats.vue";
@@ -55,7 +56,6 @@ import { default as NetworkMap } from "./network-map.vue";
 import { default as DateTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as PageNavbar } from "./page-navbar.vue";
 import { default as RangePicker } from "./range-picker.vue";
-import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as TabList } from "./tab-list.vue";
 import { default as Sankey } from "./sankey.vue";
@@ -82,6 +82,7 @@ import { default as ModalDeleteApplication } from "./modal-delete-application.vu
 
 let ntopVue = {
     // pages
+    PageDashboard: PageDashboard,
     PageAlertStats: PageAlertStats,
     PageFlowHistorical: PageFlowHistorical,
     PageStats: PageStats,
@@ -140,7 +141,6 @@ let ntopVue = {
     NetworkMap: NetworkMap,
     RangePicker: RangePicker,
     PageNavbar: PageNavbar,
-    SimpleTable: SimpleTable,
     SelectSearch: SelectSearch,
     TabList: TabList,
     Sankey: Sankey,

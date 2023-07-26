@@ -1747,6 +1747,7 @@ local known_parameters = {
     ["gui"] = validateBool, -- Return data in html format (backward compatibility)
     ["page"] = validateSingleWord, -- Currently active subpage tab
     ["tab"] = validateSingleWord, -- Currently active tab, handled by javascript
+    ["template"] = validateSingleWord, -- Currently selected template
     ["system_interface"] = validateBool,
 
     -- CONFIGSETS
