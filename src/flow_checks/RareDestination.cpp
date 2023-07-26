@@ -28,33 +28,23 @@ u_int32_t RareDestination::getDestinationHash(Flow *f) {
   u_int32_t hash = 0;
   Host *dest = f->get_srv_host();
 
-  if (f->isLocalToLocal()) {
+  if (f->isLocalToLocal() || f->isLocalToRemote()) {
     char buf[64];
     if (!dest->isMulticastHost() && dest->isDHCPHost()) {
-      /* u_int32_t mac = dest->getMac()->key();
-      hash = mac; */
 
       char *mac = dest->getMac()->print(buf,sizeof(buf));
       hash = Utils::hashString(mac);
 
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination MAC %u - %s", hash, mac);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination MAC %u - %s", *hash, mac); */
     }
-    else if (dest->isIPv6() || dest->isIPv4()) {
-      //hash = dest->key();
+    else /* if (dest->isIPv6() || dest->isIPv4()) */ {
 
       char *ip = dest->get_ip()->print(buf,sizeof(buf));
       hash = Utils::hashString(ip);
 
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6/IPv4 %u - %s", hash, ip);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6/IPv4 %u - %s", *hash, ip); */
     }
-  } else if (f->isLocalToRemote()) {
-    char name_buf[128];
-    char *domain = dest->get_name(name_buf, sizeof(name_buf), false);
-    hash = Utils::hashString(domain);
-
-    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare remote destination %u - %s - %s", hash, domain, dest->getServerName(name_buf, sizeof(name_buf)));
   }
-
   return hash;
 }
 
@@ -82,16 +72,13 @@ void RareDestination::protocolDetected(Flow *f) {
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training On at %ld ~ %s", t_now, host_id );
     }
 
-    /* if host is training */
-    if (cli_lhost->isTrainingRareDest()) {
-      u_int32_t hash = getDestinationHash(f);
-      /* if(hash == 0) return; */
+    u_int32_t hash = getDestinationHash(f);
+    if(hash == 0) return;
 
-      /* update */
-      if ( hash && !ndpi_bitmap_isset(rare_dest, hash)) {
-        ndpi_bitmap_set(rare_dest, hash);
-        //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash %s added ~ %s", f->getFlowServerInfo(), host_id );
-      }
+    /* training */
+    if (cli_lhost->isTrainingRareDest()) {
+      ndpi_bitmap_set(rare_dest, hash);
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash %s added ~ %s", f->getFlowServerInfo(), host_id );
 
       /* check if training has to end */
       if (t_now - cli_lhost->getStartRareDestTraining() >= 300 /* 1h RARE_DEST_DURATION_TRAINING */ )
@@ -99,7 +86,7 @@ void RareDestination::protocolDetected(Flow *f) {
         cli_lhost->stopRareDestTraining();
         cli_lhost->setLastRareDestTraining(t_now);
         
-        cli_lhost->addRareDestBitmaps();
+        //cli_lhost->addRareDestBitmaps();
         //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training Off at %ld ~ %s", t_now, host_id );
       }
       
@@ -108,18 +95,15 @@ void RareDestination::protocolDetected(Flow *f) {
 
     if ( t_now - cli_lhost->getLastRareDestTraining() > 600 /* 10min RARE_DEST_LAST_TRAINING_GAP */ )
     {
-      cli_lhost->mergeRareDestBitmaps();
+      //cli_lhost->mergeRareDestBitmaps();
       cli_lhost->setStartRareDestTraining(0);
+      ndpi_bitmap_clear(rare_dest);
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Merged Bitmaps %s", host_id );
       return;
     }
-    
-    
-    u_int32_t hash = getDestinationHash(f);
-    /* if(hash == 0) return; */
 
     /* update */
-    if (hash && !ndpi_bitmap_isset(rare_dest, hash)){
+    if (!ndpi_bitmap_isset(rare_dest, hash)){
       ndpi_bitmap_set(rare_dest, hash); // Fire an alarm only once
       is_rare_destination = true;
     }

@@ -149,6 +149,8 @@ void LocalHost::initialize() {
 
   if( !loadRareDestFromRedis() ){
     rareDestTraining.start = 0;
+    rareDestTraining.last_training = 0;
+    rareDestTraining.training = false;
     rare_dest = ndpi_bitmap_alloc();
     rare_dest_last = ndpi_bitmap_alloc();
   }
@@ -551,8 +553,8 @@ void LocalHost::dumpRareDestToRedis() {
 
   if((!redis) || (!rare_dest) || (!rare_dest_last)) return;
   
-  getSerializationKey(key, sizeof(key));
-  //snprintf(key, sizeof(key), HOST_RARE_DEST_SERIALIZED_KEY, iface->get_id());
+  char hostbuf[64];
+  snprintf(key, sizeof(key), HOST_RARE_DEST_SERIALIZED_KEY, get_hostkey(hostbuf, sizeof(hostbuf)));
 
   snprintf(buf, sizeof(buf), "rare_dest");
   size = ndpi_bitmap_serialize(rare_dest, &value);
@@ -592,7 +594,7 @@ void LocalHost::dumpRareDestToRedis() {
   redis->hashSet(key, buf, param_ser);
 
   snprintf(buf, sizeof(buf), "training");
-  snprintf(param_ser, sizeof(param_ser), "%d", rareDestTraining.training);	
+  snprintf(param_ser, sizeof(param_ser), "%d", rareDestTraining.training ? 1 : 0);	
   redis->hashSet(key, buf, param_ser);
 
   /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Rare Dest data dumped for %s", get_hostkey(hostbuf, sizeof(hostbuf))); */
@@ -605,8 +607,8 @@ bool LocalHost::loadRareDestFromRedis() {
   
   if((!redis)) return(false);
 
-  getSerializationKey(key, sizeof(key));
-  //snprintf(key, sizeof(key), HOST_RARE_DEST_SERIALIZED_KEY, iface->get_id());
+  char hostbuf[64];
+  snprintf(key, sizeof(key), HOST_RARE_DEST_SERIALIZED_KEY, get_hostkey(hostbuf, sizeof(hostbuf)));
 
   snprintf(buf, sizeof(buf), "t_start_training");
   if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) return(false);
@@ -618,7 +620,9 @@ bool LocalHost::loadRareDestFromRedis() {
 
   snprintf(buf, sizeof(buf), "training");
   if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) return(false);
-  rareDestTraining.training = (bool)atoi(param_str);
+  rareDestTraining.training = atoi(param_str) ? true : false;
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training loaded %d", rareDestTraining.training);
 
   snprintf(buf, sizeof(buf), "rare_dest_len");
   if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) return(false);
