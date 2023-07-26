@@ -622,8 +622,6 @@ bool LocalHost::loadRareDestFromRedis() {
   if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) return(false);
   rareDestTraining.training = atoi(param_str) ? true : false;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training loaded %d", rareDestTraining.training);
-
   snprintf(buf, sizeof(buf), "rare_dest_len");
   if( redis->hashGet(key, buf, param_str, sizeof(param_str)) != 0 ) return(false);
   size = (size_t)strtoul(param_str, NULL, 10);

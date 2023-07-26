@@ -28,7 +28,7 @@ u_int32_t RareDestination::getDestinationHash(Flow *f) {
   u_int32_t hash = 0;
   Host *dest = f->get_srv_host();
 
-  if (f->isLocalToLocal() || f->isLocalToRemote()) {
+  if (f->isLocalToLocal()) {
     char buf[64];
     if (!dest->isMulticastHost() && dest->isDHCPHost()) {
 
@@ -37,14 +37,17 @@ u_int32_t RareDestination::getDestinationHash(Flow *f) {
 
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination MAC %u - %s", *hash, mac); */
     }
-    else /* if (dest->isIPv6() || dest->isIPv4()) */ {
+    else if (dest->isIPv6() || dest->isIPv4()) {
 
       char *ip = dest->get_ip()->print(buf,sizeof(buf));
       hash = Utils::hashString(ip);
 
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6/IPv4 %u - %s", *hash, ip); */
     }
+  } else if (f->isLocalToRemote()){
+    hash = Utils::hashString(f->getFlowServerInfo());
   }
+
   return hash;
 }
 
@@ -54,8 +57,7 @@ void RareDestination::protocolDetected(Flow *f) {
 
   bool is_rare_destination = false;
 
-  if(f->getFlowServerInfo() != NULL) {
-    if(!f->get_cli_host()->isLocalHost()) return;
+  if(f->getFlowServerInfo() != NULL && f->get_cli_host()->isLocalHost()) {
     
     LocalHost *cli_lhost = (LocalHost*)f->get_cli_host();
     ndpi_bitmap *rare_dest = cli_lhost->getRareDestBitmap();
@@ -81,23 +83,26 @@ void RareDestination::protocolDetected(Flow *f) {
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash %s added ~ %s", f->getFlowServerInfo(), host_id );
 
       /* check if training has to end */
-      if (t_now - cli_lhost->getStartRareDestTraining() >= 300 /* 1h RARE_DEST_DURATION_TRAINING */ )
+      if (t_now - cli_lhost->getStartRareDestTraining() >= 300 /* RARE_DEST_DURATION_TRAINING */ )
       {
+        cli_lhost->addRareDestBitmaps();
+
         cli_lhost->stopRareDestTraining();
         cli_lhost->setLastRareDestTraining(t_now);
         
-        //cli_lhost->addRareDestBitmaps();
         //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training Off at %ld ~ %s", t_now, host_id );
       }
       
       return;
     }
 
-    if ( t_now - cli_lhost->getLastRareDestTraining() > 600 /* 10min RARE_DEST_LAST_TRAINING_GAP */ )
+    if ( t_now - cli_lhost->getLastRareDestTraining() > 600 /* RARE_DEST_LAST_TRAINING_GAP */ )
     {
-      //cli_lhost->mergeRareDestBitmaps();
+      cli_lhost->mergeRareDestBitmaps();
+
       cli_lhost->setStartRareDestTraining(0);
       ndpi_bitmap_clear(rare_dest);
+      
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Merged Bitmaps %s", host_id );
       return;
     }
