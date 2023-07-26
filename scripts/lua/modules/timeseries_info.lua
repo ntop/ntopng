@@ -246,7 +246,6 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    nedge_exclude = true
 }, {
     schema = "iface:throughput_pps",
     id = timeseries_id.iface,
@@ -260,7 +259,6 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    nedge_exclude = true
 }, {
     schema = "iface:score",
     id = timeseries_id.iface,
