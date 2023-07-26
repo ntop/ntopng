@@ -65,6 +65,7 @@
                                 </Chart>
                             </div>
                         </div>
+			<div></div>
                         <TableWithConfig ref="table_alerts" :table_config_id="table_config_id" :table_id="table_id" :csrf="context.csrf"
                             :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
                             @loaded="on_table_loaded" @custom_event="on_table_custom_event">
@@ -244,10 +245,8 @@ function init_url_params() {
 }
 
 async function set_query_presets() {
-    if (!props.context.is_ntop_enterprise_l) {
-	return;
-    }
-    if (ntopng_url_manager.get_url_entry("status") == "engaged") {
+    if (!props.context.is_ntop_enterprise_l || ntopng_url_manager.get_url_entry("status") == "engaged") {
+	ntopng_sync.ready(get_query_presets_sync_key());
 	return;
     }
     let url_request = `${http_prefix}/lua/pro/rest/v2/get/alert/preset/consts.lua?page=${page}`;
