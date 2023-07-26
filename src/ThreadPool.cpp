@@ -85,7 +85,9 @@ bool ThreadPool::spawn() {
   pthread_t new_thread;
 
   if (num_threads < CONST_MAX_NUM_THREADED_ACTIVITIES) {
-    if (pthread_create(&new_thread, NULL, doRun, (void *)this) == 0) {
+    int rc;
+
+    if ((rc = pthread_create(&new_thread, NULL, doRun, (void *)this)) == 0) {
       threadsState.push_back(new_thread);
 
 #ifdef __linux__
@@ -100,7 +102,8 @@ bool ThreadPool::spawn() {
 
       return (true);
     } else {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure spawning thread");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure spawning thread [%u thread(s)][rc: %d]",
+          num_threads, rc);
     }
   }
 
