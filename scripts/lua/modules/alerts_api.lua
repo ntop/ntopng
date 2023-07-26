@@ -310,6 +310,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   addAlertGenerationInfo(type_info.alert_type_params)
 
   if(cur_alerts and already_triggered(cur_alerts, type_info.alert_type.alert_key, granularity_sec, subtype, true) == true) then
+     --tprint("Already triggered")
      -- Alert does not belong to an exclusion filter and it is already triggered. There's nothing to do, just return.
      return true
   end
@@ -343,10 +344,10 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   end
 
   if(triggered == nil) then
-    --debug_print("Alert not triggered (already triggered?) @ "..granularity_sec.."] ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
+    --tprint("Alert not triggered (already triggered?) @ "..granularity_sec.."] ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
     return(false)
   else
-    --debug_print("Alert triggered @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
+    --tprint("Alert triggered @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
   end
 
   triggered.ifid = ifid
@@ -395,7 +396,8 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   local subtype = type_info.subtype or ""
 
   if(cur_alerts and (not already_triggered(cur_alerts, type_info.alert_type.alert_key, granularity_sec, subtype, true))) then
-     return(true)
+    --tprint("Alert not triggered @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
+    return(true)
   end
 
   when = when or os.time()
@@ -427,10 +429,10 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   end
 
   if(released == nil) then
-    --debug_print("Alert not released (not triggered?) @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
+    --tprint("Alert not released (not triggered?) @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
     return(false)
   else
-    --debug_print("Alert released @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") 
+    --tprint("Alert released @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") 
   end
 
   released.ifid = ifid

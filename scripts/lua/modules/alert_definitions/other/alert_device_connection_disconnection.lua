@@ -20,7 +20,9 @@ alert_device_connection_disconnection.meta = {
     alert_key = other_alert_keys.alert_device_connection_disconnection,
     i18n_title = "alerts_dashboard.device_connection_disconnection",
     icon = "fas fa-fw fa-sign-in",
-    entities = {alert_entities.mac}
+    entities = {
+        alert_entities.interface
+    }
 }
 
 -- ##############################################

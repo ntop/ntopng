@@ -87,14 +87,14 @@ function alert_score_behavior_anomaly.format(ifid, alert, alert_type_params)
          -- Formatting all the strings used to create the href to the graph
          local timeseries_id = {}
 
-         if timeseries_table["timeseries_id"] then
-            timeseries_id[timeseries_table["timeseries_id"]] = alert_type_params["timeseries_id"]
+         --[[if timeseries_table["timeseries_id"] then
+            timeseries_id[timeseries_table["timeseries_id" = alert_type_params["timeseries_id"]
          end
-
+]]
          local tmp = {
             ifid = interface.getId(),
-            page = timeseries_table["page"],
-            ts_schema = timeseries_table["schema_id"] .. "%3A" .. (timeseries_table["type_of_behavior"] or alert_type_params.type_of_behavior),
+            page = "",
+            ts_schema = "" .. "%3A" .. ("" or alert_type_params.type_of_behavior),
             zoom = "30m",
             epoch_begin = tonumber(alert_time - 600),
             epoch_end = tonumber(alert_time + 600),
@@ -103,7 +103,7 @@ function alert_score_behavior_anomaly.format(ifid, alert, alert_type_params)
          tmp = table.merge(tmp, alert_type_params["extra_params"] or {})
          tmp = table.merge(tmp, timeseries_id)
          
-         href = timeseries_table["page_path"] .. "?" .. table.tconcat(tmp, "=", "&")
+         href = "" .. "?" .. table.tconcat(tmp, "=", "&")
       end
    end
 
