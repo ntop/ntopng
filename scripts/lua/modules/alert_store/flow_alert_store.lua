@@ -90,6 +90,14 @@ function flow_alert_store:get_column_name(field, is_write, value)
             else                      col = 'IPV4_DST_ADDR' end
          end
       else
+
+         -- Convert columns to tags for those who differ
+         if field == 'proto'            then field = 'l4proto'        end
+         if field == 'l7_cat'           then field = 'l7cat'          end
+         if field == 'l7_proto'         then field = 'l7proto'        end
+         if field == 'l7_master_proto'  then field = 'l7proto_master' end
+         if field == 'flow_risk_bitmap' then field = 'flow_risk'      end
+
          col = historical_flow_utils.get_flow_column_by_tag(field)
       end
 

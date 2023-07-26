@@ -166,7 +166,7 @@ end
 
 -- ##############################################
 
-function alert_store:_build_alert_status_condition(status)
+function alert_store:_build_alert_status_condition(status, is_write)
     local field = 'alert_status'
 
     field = self:get_column_name(field, is_write)
@@ -198,7 +198,7 @@ function alert_store:add_status_filter(status, is_write)
             if status == "engaged" then
                 -- Engaged alerts don't add a database filter as they are in-memory only
             else
-                self:add_filter_condition_raw('alert_status', self:_build_alert_status_condition(status))
+                self:add_filter_condition_raw('alert_status', self:_build_alert_status_condition(status, is_write))
             end
         end
 
@@ -279,9 +279,9 @@ function alert_store:build_sql_cond(cond, is_write)
             -- the alert_id in the alerts_map where the other flow alerts are present.
             local alert_id_bit = "bitShiftLeft(toUInt128('1'), " .. cond.value .. ")"
             local and_cond = 'neq'
-            sql_cond = string.format(" (%s %s %u %s (%s %s %s) ) ",
+            sql_cond = string.format(" (%s %s %u %s (bitAnd(%s,reinterpretAsUInt128(reverse(unhex(%s)))) %s %s) ) ",
                 self:get_column_name('alert_id', is_write), sql_op, cond.value, ternary(cond.op == and_cond, 'AND', 'OR'),
-                "bitAnd(" .. alert_id_bit .. ",reinterpretAsUInt128(reverse(unhex(alerts_map))) )", sql_op, alert_id_bit)
+                alert_id_bit, self:get_column_name('alerts_map', is_write), sql_op, alert_id_bit)
         else
             -- TODO implement alerts_map match with sqlite
             sql_cond = string.format(" (%s %s %u) ", self:get_column_name('alert_id', is_write), sql_op, cond.value)
