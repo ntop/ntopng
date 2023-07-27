@@ -27,8 +27,7 @@ const table_id = ref('simple_table');
 const table_rows = ref([]);
 
 const props = defineProps({
-  //ifid: Number,
-  //csrf: String,
+  ifid: Number,
   i18n_title: String,
   params: Object,
 });
@@ -47,6 +46,7 @@ const render_row = function (column, row) {
 
 async function refresh_table() {
   const extra_params = ntopng_url_manager.get_url_object();
+  extra_params['ifid'] = props.ifid;
   const url_params = ntopng_url_manager.obj_to_url_params(extra_params);
   const data = await ntopng_utility.http_request(`${http_prefix}${props.params.url}?${url_params}`);
   table_rows.value = data;
@@ -54,7 +54,6 @@ async function refresh_table() {
 
 onMounted(async () => {
   refresh_table();
-  setTimeout(() => refresh_table(), 5000);
 });
 
 </script>

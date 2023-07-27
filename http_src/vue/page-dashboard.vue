@@ -6,7 +6,10 @@
                 <div class="widget-box">
                     <h4>{{ _i18n(c.i18n_name) }}</h4>
                     <small>
-                      <SimpleTable v-if="c.component == 'simple-table'" :i18n_title="c.i18n_name" :params="c.params"></SimpleTable>
+                      <SimpleTable v-if="c.component == 'simple-table'"
+                        :i18n_title="c.i18n_name"
+                        :ifid="c.ifid ? c.ifid : context.ifid"
+                        :params="c.params"></SimpleTable>
                       <span v-if="c.component == 'live-chart'">(this is a live chart)</span>
                       <span v-if="c.component == 'timeseries-chart'">(this is a timeseries chart)</span>
                     </small>
