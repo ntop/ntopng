@@ -3,18 +3,12 @@
 -->
 
 <template>
-  <div class="row">
-    <div class="col-md-12 col-lg-12">
-      <div class="mt-4 card card-shadow">
-        <div class="card-body">
-          <BootstrapTable :id="table_id" :columns="params.columns" :rows="table_rows"
-            :print_html_column="(col) => render_column(col)"
-            :print_html_row="(col, row) => render_row(col, row)">
-          </BootstrapTable>
-        </div>
-      </div>
-    </div>
-  </div>
+    <BootstrapTable :id="table_id" 
+        :columns="params.columns"
+        :rows="table_rows"
+        :print_html_column="(col) => render_column(col)"
+        :print_html_row="(col, row) => render_row(col, row)">
+    </BootstrapTable>
 </template>
 
 <script setup>
@@ -27,8 +21,10 @@ const table_id = ref('simple_table');
 const table_rows = ref([]);
 
 const props = defineProps({
-  ifid: Number,
   i18n_title: String,
+  ifid: Number,
+  max_width: Number,
+  max_height: Number,
   params: Object,
 });
 
@@ -49,7 +45,9 @@ async function refresh_table() {
   extra_params['ifid'] = props.ifid;
   const url_params = ntopng_url_manager.obj_to_url_params(extra_params);
   const data = await ntopng_utility.http_request(`${http_prefix}${props.params.url}?${url_params}`);
-  table_rows.value = data;
+  const max_rows = props.max_height ? ((props.max_height/4) * 6) : 6;
+  const rows = data.slice(0, max_rows);
+  table_rows.value = rows;
 }
 
 onMounted(async () => {

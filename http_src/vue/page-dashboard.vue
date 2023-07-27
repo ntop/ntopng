@@ -2,17 +2,17 @@
 <template>
     <div class='row'>
         <template v-for="c in components">
-            <div :class="'col-' + c.width" class="widget-box-main-dashboard">
-                <div class="widget-box">
-                    <h4>{{ _i18n(c.i18n_name) }}</h4>
-                    <small>
-                      <SimpleTable v-if="c.component == 'simple-table'"
+            <div     :class="'col-' + (c.width  || 4)" class="widget-box-main-dashboard">
+                <div :class="'row-' + (c.height || 4)" class="widget-box">
+                    <h4 class="dashboard-component-title">{{ _i18n(c.i18n_name) }}</h4>
+                    <SimpleTable v-if="c.component == 'simple-table'"
                         :i18n_title="c.i18n_name"
                         :ifid="c.ifid ? c.ifid : context.ifid"
+                        :max_width="c.width"
+                        :max_height="c.height"
                         :params="c.params"></SimpleTable>
-                      <span v-if="c.component == 'live-chart'">(this is a live chart)</span>
-                      <span v-if="c.component == 'timeseries-chart'">(this is a timeseries chart)</span>
-                    </small>
+                    <span v-if="c.component == 'live-chart'">(this is a live chart)</span>
+                    <span v-if="c.component == 'timeseries-chart'">(this is a timeseries chart)</span>
                 </div>
             </div>
         </template>

@@ -729,6 +729,10 @@ li>a>.fa-external-link-alt {
   padding-top: 0.5rem !important;
 }
 
+.dashboard-component-title {
+  margin-bottom: 1.25rem;
+}
+
 .widget-box-container {
   background-color: #EFF4F7;
 }
@@ -748,6 +752,18 @@ li>a>.fa-external-link-alt {
   padding-left: 0.25rem;
   padding-right: 0.25rem;
   padding-bottom: 0.25rem;
+}
+
+.row-4 {
+  height: 25rem;
+}
+
+.row-8 {
+  height: 45rem;
+}
+
+.row-12 {
+  height: 65rem;
 }
 
 .tagify__input {
