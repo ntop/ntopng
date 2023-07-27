@@ -190,27 +190,27 @@ void PartializableFlowTrafficStats::setFlowAlerted() { is_flow_alerted = true; }
 /* *************************************** */
 
 void PartializableFlowTrafficStats::incStats(bool cli2srv_direction,
-                                             u_int num_pkts, u_int pkt_len,
-                                             u_int payload_len) {
+                                             u_int32_t num_pkts, u_int64_t pkts_bytes,
+                                             u_int64_t payloads_bytes) {
   if (cli2srv_direction)
-    cli2srv_packets += num_pkts, cli2srv_bytes += pkt_len,
-        cli2srv_goodput_bytes += payload_len;
+    cli2srv_packets += num_pkts, cli2srv_bytes += pkts_bytes,
+        cli2srv_goodput_bytes += payloads_bytes;
   else
-    srv2cli_packets += num_pkts, srv2cli_bytes += pkt_len,
-        srv2cli_goodput_bytes += payload_len;
+    srv2cli_packets += num_pkts, srv2cli_bytes += pkts_bytes,
+        srv2cli_goodput_bytes += payloads_bytes;
 }
 
 /* *************************************** */
 
 void PartializableFlowTrafficStats::setStats(bool cli2srv_direction,
-                                             u_int num_pkts, u_int pkt_len,
-                                             u_int payload_len) {
+                                             u_int32_t num_pkts, u_int64_t pkts_bytes,
+                                             u_int64_t payloads_bytes) {
   if (cli2srv_direction)
-    cli2srv_packets = num_pkts, cli2srv_bytes = pkt_len,
-    cli2srv_goodput_bytes = payload_len;
+    cli2srv_packets = num_pkts, cli2srv_bytes = pkts_bytes,
+    cli2srv_goodput_bytes = payloads_bytes;
   else
-    srv2cli_packets = num_pkts, srv2cli_bytes = pkt_len,
-    srv2cli_goodput_bytes = payload_len;
+    srv2cli_packets = num_pkts, srv2cli_bytes = pkts_bytes,
+    srv2cli_goodput_bytes = payloads_bytes;
 }
 
 /* *************************************** */

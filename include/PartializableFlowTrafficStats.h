@@ -69,10 +69,10 @@ class PartializableFlowTrafficStats {
   void incDNSQuery(u_int16_t query_type);
   void incDNSResp(u_int16_t resp_code);
 
-  virtual void incStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len,
-                        u_int payload_len);
-  virtual void setStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len,
-                        u_int payload_len);
+  virtual void incStats(bool cli2srv_direction, u_int32_t num_pkts, u_int64_t pkts_bytes,
+                        u_int64_t payloads_bytes);
+  virtual void setStats(bool cli2srv_direction, u_int32_t num_pkts, u_int64_t pkts_bytes,
+                        u_int64_t payloads_bytes);
 
   void get_partial(PartializableFlowTrafficStats *dst,
                    PartializableFlowTrafficStats *fts) const;
