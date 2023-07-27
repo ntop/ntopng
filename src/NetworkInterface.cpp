@@ -10523,7 +10523,7 @@ void NetworkInterface::processExternalAlertable(AlertEntity entity,
   if (alertable) {
     /* Already present */
 
-    if (do_store_alert) {
+    if (do_store_alert) { /* Trigger, but already present */
       /* Nothing to store - return */
       external_alerts_lock.unlock(__FILE__, __LINE__);
       lua_pushnil(vm);
@@ -10533,14 +10533,14 @@ void NetworkInterface::processExternalAlertable(AlertEntity entity,
   } else {
     /* Not present */
 
-    if (!do_store_alert) {
+    if (!do_store_alert) { /* Release, but not found */
       /* Nothing to release - return */
       external_alerts_lock.unlock(__FILE__, __LINE__);
       lua_pushnil(vm);
       return;
     }
 
-    /* Create */
+    /* Trigger (create) */
     alertable = new (std::nothrow) InterfaceMemberAlertableEntity(this, entity);
     if (alertable == NULL) {
       external_alerts_lock.unlock(__FILE__, __LINE__);
