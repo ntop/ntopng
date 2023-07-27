@@ -67,7 +67,7 @@ async function register_components_on_status_update() {
 }
 
 async function load_components() {
-    let url_request = `${http_prefix}/lua/pro/rest/v2/get/dashboard/template.lua?template=default`;
+    let url_request = `${http_prefix}/lua/pro/rest/v2/get/dashboard/template.lua?template=${props.context.template}`;
     let res = await ntopng_utility.http_request(url_request);
     components.value = res.list;
 }
