@@ -34,10 +34,23 @@ const render_column = function (column) {
 }
 
 const render_row = function (column, row) {
-  if (row[column.id])
+  if (row[column.id]) {
+
+    /* Rendering fields by guessing content (TODO pass rendering function with the data) */
+    if (column.id == 'name' && row['url']) {
+      return `<a href='${row.url}'>${row[column.id]}</a>`;
+    } else if (column.id == 'throughput' && row['throughput_type']) {
+      if (row['throughput_type'] == 'pps') {
+        return NtopUtils.fpackets(row[column.id]);
+      } else if (row['throughput_type'] == 'bps') {
+        return NtopUtils.bitsToSize(row[column.id]);
+      }
+    }
+
     return row[column.id];
-  else
-    return "";
+  }
+
+  return "";
 }
 
 async function refresh_table() {
