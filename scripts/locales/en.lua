@@ -4129,7 +4129,7 @@ local lang = {
         ["note_2"] = "Scan Type: select a specific vulnerability scan type.",
       },
       ["scan_type_list"] = {
-        ["nmap"] = "Nmap",
+        ["cve"] = "CVE (Common Vulnerabilities and Exposures)",
       },
     },
   },

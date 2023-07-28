@@ -335,8 +335,7 @@ int ntop_lua_cli_print(lua_State *vm) {
       break;
 
     default:
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING, "%s(): Lua type %d is not handled", __FUNCTION__, t);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled", __FUNCTION__, t);
       return (CONST_LUA_ERROR);
   }
 

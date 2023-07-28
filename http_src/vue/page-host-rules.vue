@@ -261,7 +261,7 @@ const format_threshold = function(data, rowData) {
 
 const format_last_measurement = function(data, rowData) {
   let formatted_data = parseInt(data);
-  debugger;
+  // debugger;
   if(rowData.target == "*") {
     return "";
   }

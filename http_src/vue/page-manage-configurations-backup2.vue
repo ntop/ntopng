@@ -114,7 +114,7 @@ const get_rows = async (active_page, per_page, columns_wrap, map_search, first_g
     let params = get_url_params(active_page, per_page, columns_wrap, map_search, first_get_rows);
     const url_params = ntopng_url_manager.obj_to_url_params(params);
     const url_ = `${url}?${url_params}`;
-        debugger;
+    // debugger;
 
     let res = await ntopng_utility.http_request(url_, null, null, true);
     // if (res.rsp.length > 0) { res.rsp[0].server_name.alerted = true };

@@ -455,7 +455,7 @@ async function change_interfaces(interface_id) {
         selected_snmp_interface.value = t;
     })
   snmp_interfaces_list.value = result_interfaces;
-  debugger;
+  // debugger;
   if(selected_snmp_device.value.label_to_insert == "all")
     enable_interfaces.value = false;
   else
@@ -518,8 +518,8 @@ const add_ = (is_edit) => {
   const tmp_device_label = selected_snmp_device.value.label;
   const tmp_device_ifid = selected_snmp_interface.value == null ? "*": selected_snmp_interface.value.id;
   const tmp_device_ifid_label = selected_snmp_interface.value == null ? "*":selected_snmp_interface.value.label;
-  debugger;
-  console.log(threshold)
+  // debugger;
+  // console.log(threshold)
   let tmp_metric_type = metric_type.value.id;
   let basic_value;
   let measure_unit_label;

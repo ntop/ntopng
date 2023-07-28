@@ -61,7 +61,7 @@ const modal_add = ref();
 
 const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
 const remove_host_url = `${http_prefix}/lua/rest/v2/delete/host/delete_host_to_scan.lua`;
-const scan_host_url = `${http_prefix}/lua/rest/v2/add/host/exec_vulnerability_scan.lua`;
+const scan_host_url = `${http_prefix}/lua/rest/v2/exec/host/schedule_vulnerability_scan.lua`;
 const scan_result_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_result.lua`;
 const scan_type_list_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_type_list.lua`;
 
@@ -158,7 +158,7 @@ const map_table_def_columns = (columns) => {
     "scan_type": (scan_type, row) => {
       if (scan_type !== undefined) {
         let label = scan_type
-        debugger;
+        // debugger;
         scan_type_list.forEach((item) => {
           if (item.id.localeCompare(scan_type) == 0) {
             label = item.label;
@@ -206,7 +206,7 @@ const map_table_def_columns = (columns) => {
 
 onBeforeMount(async () => {
   await get_scan_type_list();
-  debugger;
+  // debugger;
   modal_add.value.metricsLoaded(scan_type_list);
 })
 

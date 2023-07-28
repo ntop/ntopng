@@ -108,7 +108,7 @@ function SankeyChart(data) {
             .attr("x", event.x + deltaX)
             .attr("y", event.y + deltaY);
 
-      debugger;
+      //debugger;
       sankey = d3v7.sankey().update(sankey)
         link.selectAll("path")
         .data(sankey.links, function(d) { return d; });
