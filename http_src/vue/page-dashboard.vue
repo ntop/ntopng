@@ -48,7 +48,8 @@ onBeforeMount(async () => {
 });
 
 onMounted(async () => {
-    start_dashboard_refresh_loop();
+    if (!props.context.page || props.context.page != 'report')
+        start_dashboard_refresh_loop();
 });
 
 let dasboard_loop_interval;
