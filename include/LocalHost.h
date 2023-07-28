@@ -194,7 +194,8 @@ class LocalHost : public Host {
 
   /* RareDest Extension methods */
   
-  inline ndpi_bitmap* getRareDestBitmap() const { return(rare_dest); }
+  inline ndpi_bitmap* getRareDestBitmap() const     { return(rare_dest); }
+  inline ndpi_bitmap* getRareDestLastBitmap() const { return(rare_dest_last); }
 
   inline time_t getStartRareDestTraining() const { return(rareDestTraining.start); }
   inline void setStartRareDestTraining(time_t t) { rareDestTraining.start = t;     }
@@ -206,8 +207,8 @@ class LocalHost : public Host {
   inline void startRareDestTraining()     { rareDestTraining.training = true;  }
   inline void stopRareDestTraining()      { rareDestTraining.training = false; }
 
-  inline void addRareDestBitmaps()    { ndpi_bitmap_or(rare_dest, rare_dest_last); }
-  inline void mergeRareDestBitmaps()  { ndpi_bitmap_cardinality(rare_dest_last) ? ndpi_bitmap_and(rare_dest_last, rare_dest) : ndpi_bitmap_or(rare_dest_last, rare_dest); ndpi_bitmap_clear(rare_dest); }
+  inline void updateRareDestLastBitmap()  { ndpi_bitmap_clear(rare_dest_last); ndpi_bitmap_or(rare_dest_last, rare_dest); }
+  inline void clearRareDestBitmaps()      { ndpi_bitmap_clear(rare_dest); ndpi_bitmap_clear(rare_dest_last); }
   
   void dumpRareDestToRedis();
   bool loadRareDestFromRedis();
