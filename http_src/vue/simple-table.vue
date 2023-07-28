@@ -3,17 +3,19 @@
 -->
 
 <template>
-    <BootstrapTable :id="table_id" 
-        :columns="params.columns"
-        :rows="table_rows"
-        :print_html_column="(col) => render_column(col)"
-        :print_html_row="(col, row) => render_row(col, row)">
-    </BootstrapTable>
+<BootstrapTable
+  :id="table_id" 
+  :columns="params.columns"
+  :rows="table_rows"
+  :print_html_column="render_column"
+  :print_html_row="render_row">
+</BootstrapTable>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeMount, watch } from "vue";
 import { default as BootstrapTable } from "./bootstrap-table.vue";
+import { ntopng_custom_events, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 
 const _i18n = (t) => i18n(t);
 
@@ -21,15 +23,33 @@ const table_id = ref('simple_table');
 const table_rows = ref([]);
 
 const props = defineProps({
-  i18n_title: String,
-  ifid: Number,
-  max_width: Number,
-  max_height: Number,
-  params: Object,
+    id: String,
+    epoch_begin: Number,
+    epoch_end: Number,
+    i18n_title: String,
+    ifid: Number,
+    max_width: Number,
+    max_height: Number,
+    params: Object,
 });
 
+watch(() => [props.epoch_begin, props.epoch_end], (cur_value, old_value) => {
+    refresh_table();
+}, { flush: 'pre'});
+
+onBeforeMount(() => {
+    init();
+});
+
+onMounted(() => {
+});
+
+function init() {
+    refresh_table();
+}
+
 const render_column = function (column) {
-  if (column.i18n_name) return _i18n(column.i18n_name)
+  if (column.i18n_name) { return _i18n(column.i18n_name); }
   return "";
 }
 
@@ -60,11 +80,6 @@ async function refresh_table() {
   const data = await ntopng_utility.http_request(`${http_prefix}${props.params.url}?${url_params}`);
   const max_rows = props.max_height ? ((props.max_height/4) * 6) : 6;
   const rows = data.slice(0, max_rows);
-  table_rows.value = rows;
+    table_rows.value = rows;
 }
-
-onMounted(async () => {
-  refresh_table();
-});
-
 </script>

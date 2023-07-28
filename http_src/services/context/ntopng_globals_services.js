@@ -69,6 +69,7 @@ export const ntopng_utility = function() {
 	    return array;
 	},
 	get_utc_seconds: function(utc_ms) {
+	    if (utc_ms == null) { utc_ms = Date.now(); }
             return Number.parseInt(utc_ms / 1000);
 	},
 	get_timeframes_dict: function() {
@@ -535,6 +536,7 @@ export const ntopng_custom_events = {
   CHANGE_PAGE_TITLE: "change_page_title", 
     DATATABLE_LOADED: "datatable_loaded",
     GET_INTERFACE_FATA: "get_interface_data", // object returned by /lua/rest/v2/get/interface/data.lua
+    COMPONENT_EPOCH_INTERVAL_CHANGE: "component_epoch_interval_change", // { epoch_begin: number, epoch_end: number }
 };
 
 
@@ -581,32 +583,42 @@ for (let event_name in ntopng_events) {
       status = new_status;
   };
 
+    const get_event_for_single_dest = (event, dest_id) => {
+	return `${event}_${dest_id}`;
+    };
+
   ntopng_status_manager.on_status_change(events_manager_id, on_status_change, true);
 
-  const emit = function(event, params, skip_id) {
-let subscribers = events_subscribers[event];
-if (subscribers == null) { return; }
-notify_subscribers(subscribers, params, skip_id);
-  };
+    const emit = function(event, params, skip_id, dest_id) {
+	if (dest_id != null) {
+	    event = get_event_for_single_dest(event, dest_id);
+	}
+	let subscribers = events_subscribers[event];
+	if (subscribers == null) { return; }
+	notify_subscribers(subscribers, params, skip_id);
+    };
 
-  const on_event = function(id, event, f_on_event, get_init_notify) {
-      if (events_subscribers[event] == null) {
-          events_subscribers[event] = {};        
-      }
-      if (get_init_notify == true) {
-          let status = ntopng_status_manager.get_status();        
-          f_on_event(clone(status));
-      }
-      events_subscribers[event][id] = f_on_event;
-  };
+    const on_event = function(id, event, f_on_event, get_init_notify, is_single_dest_event) {
+	if (is_single_dest_event == true) {
+	    event = get_event_for_single_dest(event, id);
+	}
+	if (events_subscribers[event] == null) {
+            events_subscribers[event] = {};        
+	}
+	if (get_init_notify == true) {
+            let status = ntopng_status_manager.get_status();        
+            f_on_event(clone(status));
+	}
+	events_subscribers[event][id] = f_on_event;
+    };
 
   return {
-emit_custom_event: function(event, params) {
-    emit(event, params);
-},
-on_custom_event: function(id, event, f_on_event) {
-    on_event(id, event, f_on_event);
-},
+      emit_custom_event: function(event, params, dest_id) {
+	  emit(event, params, null, dest_id);
+      },
+      on_custom_event: function(id, event, f_on_event, is_single_dest_event) {
+	  on_event(id, event, f_on_event, null, is_single_dest_event);
+      },
       /**
        * Changes the application status and emits the new status to all subcribers registered to the event. 
        * @param {string} event event name.

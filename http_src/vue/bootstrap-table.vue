@@ -1,3 +1,6 @@
+<!--
+  (C) 2013-22 - ntop.org
+-->
 <template>
   <!-- Normal table -->
   <table v-if="!(horizontal) || (horizontal == false)" class="table table-striped table-bordered">

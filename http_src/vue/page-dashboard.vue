@@ -1,43 +1,33 @@
 <!-- (C) 2023 - ntop.org -->
 <template>
-    <div class='row'>
-        <template v-for="c in components">
-            <div     :class="'col-' + (c.width  || 4)" class="widget-box-main-dashboard">
-                <div :class="'row-' + (c.height || 4)" class="widget-box">
-                    <h4 class="dashboard-component-title">{{ _i18n(c.i18n_name) }}</h4>
-                    <SimpleTable v-if="c.component == 'simple-table'"
-                        :i18n_title="c.i18n_name"
-                        :ifid="c.ifid ? c.ifid : context.ifid"
-                        :max_width="c.width"
-                        :max_height="c.height"
-                        :params="c.params"></SimpleTable>
-                    <span v-if="c.component == 'live-chart'">(this is a live chart)</span>
-                    <span v-if="c.component == 'timeseries-chart'">(this is a timeseries chart)</span>
-                </div>
-            </div>
-        </template>
-    </div> <!-- div row -->
+<div class='row'>
+  <template v-for="c in components">
+    <Box :title="_i18n(c.i18n_name)" :col_width="c.width" :col_height="c.height">
+      <template v-slot:box_content>
+        <component :is="components_dict[c.component]"
+		   :id="c.component_id"
+		   :epoch_begin="c.epoch_begin"
+		   :epoch_end="c.epoch_end"
+                   :i18n_title="c.i18n_name"
+                   :ifid="c.ifid ? c.ifid : context.ifid"
+                   :max_width="c.width"
+                   :max_height="c.height"
+                   :params="c.params">
+	</component>
+      </template>
+    </Box>
+    <!-- <span v-if="c.component == 'live-chart'">(this is a live chart)</span> -->
+    <!-- <span v-if="c.component == 'timeseries-chart'">(this is a timeseries chart)</span> -->
+  </template>
+</div> <!-- div row -->
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
-import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_sync } from "../services/context/ntopng_globals_services";
-
-import NtopUtils from "../utilities/ntop-utils";
-import TableUtils from "../utilities/table-utils";
-
-import { ntopChartApex } from "../components/ntopChartApex.js";
+import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 
 import { default as SimpleTable } from "./simple-table.vue";
-import { default as SelectSearch } from "./select-search.vue";
-import { default as Navbar } from "./page-navbar.vue";
-import { default as AlertInfo } from "./alert-info.vue";
-import { default as Chart } from "./chart.vue";
-import { default as Dropdown } from "./dropdown.vue";
-import { default as Spinner } from "./spinner.vue";
-import { default as Switch } from "./switch.vue";
-
-const components = ref([]);
+import { default as Box } from "./box.vue";
 
 const _i18n = (t) => i18n(t);
 
@@ -45,33 +35,66 @@ const props = defineProps({
     context: Object,
 });
 
+const components_dict = {
+    "simple-table": SimpleTable,
+}
+const components = ref([]);
 const page_id = "page-dashboard";
 const default_ifid = props.context.ifid;
 const page = ref("");
 
 onBeforeMount(async () => {
-    load_components();
+    await load_components();
 });
 
 onMounted(async () => {
-    register_components_on_status_update();
+    start_dashboard_refresh_loop();
 });
 
-async function register_components_on_status_update() {
-    ntopng_status_manager.on_status_change(page.value, (new_status) => {
-        let url_params = ntopng_url_manager.get_url_params();
+let dasboard_loop_interval;
+const loop_interval = 5 * 1000;
+function start_dashboard_refresh_loop() {
+    dasboard_loop_interval = setInterval(() => {
+	set_components_epoch_interval();
+    }, loop_interval);
+}
 
-        //refresh
-
-    }, false);
+function set_components_epoch_interval() {
+    const timeframes_dict = ntopng_utility.get_timeframes_dict();
+    components.value.forEach((c, i) => {
+	update_component_epoch_interval(timeframes_dict, c);
+    });
 }
 
 async function load_components() {
     let url_request = `${http_prefix}/lua/pro/rest/v2/get/dashboard/template.lua?template=${props.context.template}`;
     let res = await ntopng_utility.http_request(url_request);
-    components.value = res.list;
+    const timeframes_dict = ntopng_utility.get_timeframes_dict();
+    components.value = res.list.filter((c) => components_dict[c.component] != null)
+	.map((c, index) => {
+	    let c2 = {
+		component_id: get_component_id(c.id, index),
+		...c
+	    };
+	    update_component_epoch_interval(timeframes_dict, c2);
+	    return c2;
+	});
+    await nextTick();
 }
 
+function update_component_epoch_interval(timeframes_dict, c) {
+    const interval_seconds = timeframes_dict[c.time_window || "5_min"];
+    const utc_offset = timeframes_dict[c.time_offset] || 0;
+    const epoch_end = ntopng_utility.get_utc_seconds() - utc_offset;
+    const epoch_interval = { epoch_begin: epoch_end - interval_seconds, epoch_end };
+    c.epoch_begin = epoch_interval.epoch_begin;
+    c.epoch_end = epoch_interval.epoch_end;
+}
+
+function get_component_id(id, index) {
+    return `${page_id}_${id}_${index}`;
+}
 </script>
 
-<style scoped></style>
+<style scoped>
+</style>
