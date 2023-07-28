@@ -56,7 +56,7 @@ function system_setup_ui_utils.print_page_before()
       return false
    end
 
-   page_utils.set_active_menu_entry(page_utils.menu_entries.system_setup)
+   page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.system_setup)
    active_page = "admin"
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    page_utils.print_page_title(i18n("nedge.system_setup"))

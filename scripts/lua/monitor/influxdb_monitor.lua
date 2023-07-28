@@ -19,7 +19,7 @@ local charts_available = script_manager.systemTimeseriesEnabled()
 local page = _GET["page"] or "overview"
 local url = script_manager.getMonitorUrl("influxdb_monitor.lua") .. "?ifid=" .. interface.getId()
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.influxdb_status)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.influxdb_status)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

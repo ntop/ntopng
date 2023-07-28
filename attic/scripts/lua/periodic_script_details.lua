@@ -21,7 +21,7 @@ local ifId = ifstats.id
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.interface, {ifname = getHumanReadableInterfaceName(ifId)})
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.interface, {ifname = getHumanReadableInterfaceName(ifId)})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

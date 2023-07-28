@@ -19,7 +19,7 @@ local page_params = {}
 sendHTTPContentTypeHeader('text/html')
 
 -- Setting up navbar
-page_utils.set_active_menu_entry(page_utils.menu_entries.network_discovery)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.network_discovery)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_navbar(i18n('discover.network_discovery'), base_url, {
   {

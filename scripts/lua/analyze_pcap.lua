@@ -15,7 +15,7 @@ sendHTTPContentTypeHeader('text/html')
 interface.select(ifname)
 
 local info = ntop.getInfo()
-page_utils.set_active_menu_entry(page_utils.menu_entries.analyze_pcap, {  })
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.analyze_pcap, {  })
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(_POST.create_new_iface == "true") then

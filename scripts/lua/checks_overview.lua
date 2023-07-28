@@ -10,7 +10,7 @@ local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.checks_dev)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.checks_dev)
 
 -- #######################################################
 

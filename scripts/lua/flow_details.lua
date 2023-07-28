@@ -482,7 +482,7 @@ local function displayProc(proc, label)
     end
 end
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.flow_details)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.flow_details)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 printMessageBanners(alert_banners)

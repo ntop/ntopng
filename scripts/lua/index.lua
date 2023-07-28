@@ -58,7 +58,7 @@ end
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.traffic_dashboard)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.traffic_dashboard)
 
 -- NOTE: in the home page, footer.lua checks the ntopng version
 -- so in case we change it, footer.lua must also be updated

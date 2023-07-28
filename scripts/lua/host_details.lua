@@ -284,7 +284,7 @@ if (host == nil) and (not only_historical) then
     -- We need to check if this is an aggregated host
     sendHTTPContentTypeHeader('text/html')
 
-    page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
+    page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.hosts)
     if restoreInProgress then
         dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
         print('<div class=\"alert alert-info\"> ' .. i18n("host_details.host_restore_in_progress", {
@@ -339,7 +339,7 @@ if (host == nil) and (not only_historical) then
 else
     sendHTTPContentTypeHeader('text/html')
 
-    page_utils.set_active_menu_entry(page_utils.menu_entries.hosts, nil, i18n("host", {
+    page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.hosts, nil, i18n("host", {
         host = host_info["host"]
     }))
 

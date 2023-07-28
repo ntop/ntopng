@@ -202,7 +202,7 @@ if (isAdministrator()) then
    end
 end
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.interface, { ifname=getHumanReadableInterfaceName(if_name) })
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.interface, { ifname=getHumanReadableInterfaceName(if_name) })
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

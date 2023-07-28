@@ -58,7 +58,7 @@ local sub_menu_entries = {
 local active_entry = sub_menu_entries[check_subdir].entry or page_utils.menu_entries.endpoint_notifications
 local navbar_menu = {}
 
-page_utils.set_active_menu_entry(active_entry)
+page_utils.print_header_and_set_active_menu_entry(active_entry)
 
 for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
   navbar_menu[#navbar_menu+1] = {

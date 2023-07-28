@@ -219,7 +219,7 @@ end
 
 -- #################################
 
--- NOTE: this function must be called after page_utils.set_active_menu_entry
+-- NOTE: this function must be called after page_utils.print_header_and_set_active_menu_entry
 function page_utils.print_page_title(title, mini_title)
    local help_link = page_utils.menu_entries[active_entry].help_link or ""
    print("<header class='mb-3 d-flex align-items-center'>")
@@ -239,7 +239,7 @@ end
 
 -- NOTE: this function is called by the web pages in order to
 -- set the active entry and section and highlight it into the menu
-function page_utils.set_active_menu_entry(entry, i18n_params, alt_title)
+function page_utils.print_header_and_set_active_menu_entry(entry, i18n_params, alt_title)
    entry = entry or page_utils.menu_entries.traffic_dashboard
 
    active_section = entry.section

@@ -62,7 +62,7 @@ a consistent look, custom pages can use the following template:
   -- Setup up the page header. The "example_script" key below is taken
   -- from the menu_entry "key" as defined in menu.lua.
   sendHTTPContentTypeHeader('text/html')
-  page_utils.set_active_menu_entry(page_utils.menu_entries.example_script)
+  page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.example_script)
   dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
   local subpage = _GET["page"] or "overview"

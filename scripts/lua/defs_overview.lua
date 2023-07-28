@@ -11,7 +11,7 @@ local template = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.alert_definitions)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.alert_definitions)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

@@ -17,7 +17,7 @@ sendHTTPContentTypeHeader('text/html')
 
 local ifid = interface.getId()
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.detected_alerts)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.detected_alerts)
 
 alert_utils.checkDeleteStoredAlerts()
 

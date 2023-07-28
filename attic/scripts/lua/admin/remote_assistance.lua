@@ -55,7 +55,7 @@ end
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.remote_assistance)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.remote_assistance)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

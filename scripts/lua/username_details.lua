@@ -12,7 +12,7 @@ local ebpf_utils = require "ebpf_utils"
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.hosts)
 
 local page = _GET["page"]
 
