@@ -375,7 +375,10 @@ function page_utils.print_header(title, addLoginJS)
     <script type="application/javascript" src="]] print(http_prefix) print("/lua/locale.lua?"..locale_when .. "&user_language=" ..language); print[["> </script>
     <script type="application/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
     <script type="application/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js?]] print(static_file_epoch) print[["></script>
-    <script> var ntop_zoneinfo = ]] print(zoneinfo) print[[;</script>
+    <script>
+    const ntop_zoneinfo = ]] print(zoneinfo) print[[;
+    const http_prefix = "]] print(ntop.getHttpPrefix()) print [[";
+    </script>
     </head>]]
   print([[
      <body class="body ]].. (dark_mode and "dark" or "") ..[[">

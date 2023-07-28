@@ -175,9 +175,6 @@ print [[",
    const systemInterfaceEnabled = ]]
 print(ternary(is_system_interface, "true", "false"))
 print [[;
-   const http_prefix = "]]
-print(ntop.getHttpPrefix())
-print [[";
 
    window.unchangable_pool_names = [
       'Jailed Hosts'

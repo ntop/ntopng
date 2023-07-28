@@ -709,10 +709,6 @@ print[[
 ]]
 end
 
--- ######################################
-
-local http_prefix = ntop.getHttpPrefix()
-
 -- close wrapper
 print[[
       </main>
