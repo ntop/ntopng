@@ -23,16 +23,17 @@ const table_id = ref('simple_table');
 const table_rows = ref([]);
 
 const props = defineProps({
-    id: String,
-    epoch_begin: Number,
-    epoch_end: Number,
-    i18n_title: String,
-    ifid: Number,
-    max_width: Number,
-    max_height: Number,
-    params: Object,
+    id: String,          /* Component ID */
+    i18n_title: String,  /* Title (i18n) */
+    ifid: Number,        /* Interface ID */
+    epoch_begin: Number, /* Time interval begin */
+    epoch_end: Number,   /* Time interval end */
+    max_width: Number,   /* Component Width (4, 8, 12) */
+    max_height: Number,  /* Component Hehght (4, 8, 12)*/
+    params: Object,      /* Component-specific parameters from the JSON template definition */
 });
 
+/* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
 watch(() => [props.epoch_begin, props.epoch_end], (cur_value, old_value) => {
     refresh_table();
 }, { flush: 'pre'});
