@@ -4130,6 +4130,7 @@ local lang = {
       },
       ["scan_type_list"] = {
         ["cve"] = "CVE (Common Vulnerabilities and Exposures)",
+        ["openvas"] = "OpenVAS (Open Vulnerability Assessment Scanner)",
       },
     },
   },
