@@ -210,7 +210,7 @@ class LocalHost : public Host {
   inline void updateRareDestLastBitmap()  { ndpi_bitmap_clear(rare_dest_last); ndpi_bitmap_or(rare_dest_last, rare_dest); }
   inline void clearRareDestBitmap()      { ndpi_bitmap_clear(rare_dest);  }
   inline void clearRareDestLastBitmaps()      { ndpi_bitmap_clear(rare_dest_last);  }
-  inline void clearRareDestBitmaps()      { ndpi_bitmap_clear(rare_dest); ndpi_bitmap_clear(rare_dest_last); }
+  inline void updateRareDestLastBitmap()  { ndpi_bitmap_free(rare_dest_last); rare_dest_last = rare_dest; rare_dest = ndpi_bitmap_alloc(); }
 
   inline void setRareDestBitmap(u_int32_t hash) { if(rare_dest) ndpi_bitmap_set(rare_dest, hash); }
   inline bool isSetRareDestBitmap(u_int32_t hash) const { if(rare_dest) return ndpi_bitmap_isset(rare_dest, hash); return false;}
