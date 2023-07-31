@@ -1,6 +1,11 @@
 <!-- (C) 2023 - ntop.org -->
 <template>
 <div class='row'>
+  <DateTimeRangePicker v-if="enable_date_time_range_picker"
+		       id="dashboard-date-time-picker"
+		       @epoch_change="set_components_epoch_interval">
+  </DateTimeRangePicker>
+  
   <template v-for="c in components">
     <Box :title="_i18n(c.i18n_name)" :col_width="c.width" :col_height="c.height">
       <template v-slot:box_content>
@@ -26,6 +31,7 @@
 import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
 import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 
+import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as Box } from "./box.vue";
 
@@ -43,13 +49,22 @@ const page_id = "page-dashboard";
 const default_ifid = props.context.ifid;
 const page = ref("");
 
+const enable_date_time_range_picker = computed(() => {
+    return props.context.page == "report";
+});
+
 onBeforeMount(async () => {
-    await load_components();
+    let epoch_interval = null;
+    if (props.context.page == "report") {
+	epoch_interval = ntopng_utility.check_and_set_default_time_interval(undefined, undefined, true);
+    }
+    await load_components(epoch_interval);
 });
 
 onMounted(async () => {
-    if (!props.context.page || props.context.page != 'report')
-        start_dashboard_refresh_loop();
+    if (props.context.page == "dashboard") {
+	start_dashboard_refresh_loop();
+    }
 });
 
 let dasboard_loop_interval;
@@ -60,14 +75,14 @@ function start_dashboard_refresh_loop() {
     }, loop_interval);
 }
 
-function set_components_epoch_interval() {
+function set_components_epoch_interval(epoch_interval) {
     const timeframes_dict = ntopng_utility.get_timeframes_dict();
     components.value.forEach((c, i) => {
-	update_component_epoch_interval(timeframes_dict, c);
+	update_component_epoch_interval(timeframes_dict, c, epoch_interval);
     });
 }
 
-async function load_components() {
+async function load_components(epoch_interval) {
     let url_request = `${http_prefix}/lua/pro/rest/v2/get/dashboard/template.lua?template=${props.context.template}`;
     let res = await ntopng_utility.http_request(url_request);
     const timeframes_dict = ntopng_utility.get_timeframes_dict();
@@ -77,19 +92,21 @@ async function load_components() {
 		component_id: get_component_id(c.id, index),
 		...c
 	    };
-	    update_component_epoch_interval(timeframes_dict, c2);
+	    update_component_epoch_interval(timeframes_dict, c2, epoch_interval);
 	    return c2;
 	});
     await nextTick();
 }
 
-function update_component_epoch_interval(timeframes_dict, c) {
+function update_component_epoch_interval(timeframes_dict, c, epoch_interval) {
     const interval_seconds = timeframes_dict[c.time_window || "5_min"];
+    if (epoch_interval == null) {
+	const epoch_end = ntopng_utility.get_utc_seconds();
+	epoch_interval = { epoch_begin: epoch_end - interval_seconds, epoch_end };
+    }
     const utc_offset = timeframes_dict[c.time_offset] || 0;
-    const epoch_end = ntopng_utility.get_utc_seconds() - utc_offset;
-    const epoch_interval = { epoch_begin: epoch_end - interval_seconds, epoch_end };
-    c.epoch_begin = epoch_interval.epoch_begin;
-    c.epoch_end = epoch_interval.epoch_end;
+    c.epoch_begin = epoch_interval.epoch_begin - utc_offset;
+    c.epoch_end = epoch_interval.epoch_end - utc_offset;
 }
 
 function get_component_id(id, index) {

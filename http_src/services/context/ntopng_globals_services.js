@@ -121,18 +121,25 @@ export const ntopng_utility = function() {
 	},
 	//should take a string as parameter that represent time: 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year. ID time_interval_id is null, default must be 30_min
 	// return epoch_interval only if epoch url is set
-	check_and_set_default_time_interval: function (time_interval_id="30_min", f_condition) {
-            let epoch = {
-		epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
-		epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
-            };
+	check_and_set_default_time_interval: function (time_interval_id="30_min", f_condition, get_epoch=false) {
+            let epoch = this.get_url_epoch_interval();
 
             // if time_interval_id is 30 (default)
             if (epoch.epoch_begin == null || epoch.epoch_end == null || (f_condition != null && f_condition(epoch) == true))  {
 		epoch = this.set_default_time_interval(time_interval_id);
 		return epoch;
             }
+	    if (get_epoch == true) {
+		return epoch;
+	    }
 	    return null;
+	},
+	get_url_epoch_interval: function() {
+            let epoch = {
+		epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
+		epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
+            };
+	    return epoch;
 	},
 	from_utc_s_to_server_date: function(utc_seconds) {
 	    let utc = utc_seconds * 1000;
