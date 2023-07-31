@@ -17,6 +17,12 @@
 				"name" : "IPV6_DST_ADDR"
 			},
 			{
+				"name" : "DST_LABEL"
+			},
+			{
+				"name" : "DST_COUNTRY_CODE"
+			},
+			{
 				"name" : "total_bytes",
 				"func" : "SUM",
 				"param" : "TOTAL_BYTES",
@@ -47,6 +53,12 @@
 			},
 			{
 				"name" : "IPV6_DST_ADDR"
+			},
+			{
+				"name" : "DST_LABEL"
+			},
+			{
+				"name" : "DST_COUNTRY_CODE"
 			}
 		]
 	},
