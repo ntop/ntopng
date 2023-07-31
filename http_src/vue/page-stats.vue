@@ -3,7 +3,7 @@
     <div class="col-12 mb-2 mt-2">
         <AlertInfo></AlertInfo>
         <div class="card h-100 overflow-hidden">
-            <DataTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker" :enable_refresh="true"
+            <DateTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker" :enable_refresh="true"
                 ref="date_time_picker" @epoch_change="epoch_change">
                 <template v-slot:begin>
                 </template>
@@ -19,7 +19,7 @@
                     <button v-if="is_history_enabled" class="btn btn-link btn-sm" @click="jump_to_historical_flows"
                         :title="_i18n('page_stats.historical_flows')"><i class="fas fa-lg fa-table"></i></button>
                 </template>
-            </DataTimeRangePicker>
+            </DateTimeRangePicker>
             <!-- select metric -->
             <div v-show="ts_menu_ready" class="form-group ms-1 me-1 mt-1">
                 <div class="inline select2-size me-2 mt-2">
@@ -93,7 +93,7 @@
 <script setup>
 import { ref, onMounted, onBeforeMount, computed, watch } from "vue";
 import { default as TimeseriesChart } from "./timeseries-chart.vue";
-import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
+import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";

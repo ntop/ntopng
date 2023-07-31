@@ -16,7 +16,6 @@
 
 <script setup>
 import { ref, onMounted, onBeforeMount, computed, nextTick, watch } from "vue";
-import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as ModalFilters } from "./modal-filters.vue";
 import filtersManager from "../utilities/filters-manager.js";
 

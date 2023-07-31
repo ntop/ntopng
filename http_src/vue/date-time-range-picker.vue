@@ -409,7 +409,7 @@ export default {
     data() {
         return {
             i18n: (t) => i18n(t),
-            //status_id: "data-time-range-picker" + this.$props.id,
+            //status_id: "date-time-range-picker" + this.$props.id,
             epoch_status: null,
             refresh_interval: null,
             refresh_interval_seconds: 60,

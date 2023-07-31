@@ -3,7 +3,7 @@
         <div class="mb-1">
             <modal-filters :filters_options="modal_data" @apply="apply_modal" ref="modal_filters" :id="id_modal_filters">
             </modal-filters>
-            <data-time-range-picker :id="id_data_time_range_picker" :min_time_interval_id="min_time_interval_id" :round_time="round_time">
+            <date-time-range-picker :id="id_data_time_range_picker" :min_time_interval_id="min_time_interval_id" :round_time="round_time">
                 <template v-slot:begin>
                     <div v-if="is_alert_stats_url" style="margin-right:0.1rem;" class="d-flex align-items-center me-2">
                         <div class="btn-group" id="statusSwitch" role="group">
@@ -22,7 +22,7 @@
                 <template v-slot:extra_buttons>
                     <slot name="extra_range_buttons"></slot>
                 </template>
-            </data-time-range-picker>
+            </date-time-range-picker>
         </div>
 
         <!-- tagify -->
@@ -46,7 +46,7 @@
 </template>
 
 <script type="text/javascript">
-import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
+import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as ModalFilters } from "./modal-filters.vue";
 import filtersManager from "../utilities/filters-manager.js";
 
@@ -164,7 +164,7 @@ export default {
         round_time: Boolean,
     },
     components: {
-        'data-time-range-picker': DataTimeRangePicker,
+        'date-time-range-picker': DateTimeRangePicker,
         'modal-filters': ModalFilters,
     },
     /**
@@ -193,7 +193,7 @@ export default {
         return {
             i18n: i18n,
             id_modal_filters: `${this.$props.id}_modal_filters`,
-            id_data_time_range_picker: `${this.$props.id}_data-time-range-picker`,
+            id_data_time_range_picker: `${this.$props.id}_date-time-range-picker`,
             show_filters: false,
             edit_tag: null,
             is_alert_stats_url: IS_ALERT_STATS_URL,
