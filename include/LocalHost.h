@@ -215,9 +215,9 @@ class LocalHost : public Host {
   inline void clearRareDestLastBitmaps()      { ndpi_bitmap_clear(rare_dest_last);  }
   inline void clearRareDestBitmaps()      { ndpi_bitmap_clear(rare_dest); ndpi_bitmap_clear(rare_dest_last); }
 
-  inline void setRareDestBitmap() { if(rare_dest) ndpi_bitmap_set(rare_dest, hash); }
-  inline bool isSetRareDestBitmap() const { if(rare_dest) return ndpi_bitmap_isset(rare_dest, hash); return false;}
-  inline bool isSetRareDestLastBitmap() const { if(rare_dest_last) return ndpi_bitmap_isset(rare_dest_last, hash); return false;}
+  inline void setRareDestBitmap() { if(rare_dest) ndpi_bitmap_set(rare_dest, rare_dest_hash); }
+  inline bool isSetRareDestBitmap() const { if(rare_dest) return ndpi_bitmap_isset(rare_dest, rare_dest_hash); return false;}
+  inline bool isSetRareDestLastBitmap() const { if(rare_dest_last) return ndpi_bitmap_isset(rare_dest_last, rare_dest_hash); return false;}
   
   void dumpRareDestToRedis();
   bool loadRareDestFromRedis();
