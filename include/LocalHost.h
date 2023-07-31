@@ -39,7 +39,6 @@ class LocalHost : public Host {
   /* RareDestination data implementation*/
   ndpi_bitmap *rare_dest;
   ndpi_bitmap *rare_dest_last;
-  u_int32_t rare_dest_hash;
 
   struct {
     time_t start;
@@ -204,8 +203,6 @@ class LocalHost : public Host {
   inline time_t getLastRareDestTraining() const { return(rareDestTraining.last_training); }
   inline void setLastRareDestTraining(time_t t) { rareDestTraining.last_training = t;     }
 
-  inline void setRareDestHash(u_int32_t hash) { rare_dest_hash = hash;  }
-
   inline bool isTrainingRareDest() const  { return(rareDestTraining.training); }
   inline void startRareDestTraining()     { rareDestTraining.training = true;  }
   inline void stopRareDestTraining()      { rareDestTraining.training = false; }
@@ -215,9 +212,9 @@ class LocalHost : public Host {
   inline void clearRareDestLastBitmaps()      { ndpi_bitmap_clear(rare_dest_last);  }
   inline void clearRareDestBitmaps()      { ndpi_bitmap_clear(rare_dest); ndpi_bitmap_clear(rare_dest_last); }
 
-  inline void setRareDestBitmap() { if(rare_dest) ndpi_bitmap_set(rare_dest, hash); }
-  inline bool isSetRareDestBitmap() const { if(rare_dest) return ndpi_bitmap_isset(rare_dest, hash); return false;}
-  inline bool isSetRareDestLastBitmap() const { if(rare_dest_last) return ndpi_bitmap_isset(rare_dest_last, hash); return false;}
+  inline void setRareDestBitmap(u_int32_t hash) { if(rare_dest) ndpi_bitmap_set(rare_dest, hash); }
+  inline bool isSetRareDestBitmap(u_int32_t hash) const { if(rare_dest) return ndpi_bitmap_isset(rare_dest, hash); return false;}
+  inline bool isSetRareDestLastBitmap(u_int32_t hash) const { if(rare_dest_last) return ndpi_bitmap_isset(rare_dest_last, hash); return false;}
   
   void dumpRareDestToRedis();
   bool loadRareDestFromRedis();

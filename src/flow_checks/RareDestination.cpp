@@ -79,11 +79,10 @@ void RareDestination::protocolDetected(Flow *f) {
 
     u_int32_t hash = getDestinationHash(f);
     if(hash == 0) return;
-    cli_lhost->setRareDestHash(hash);
 
     /* if training */
     if (cli_lhost->isTrainingRareDest()) {
-      cli_lhost->setRareDestBitmap();
+      cli_lhost->setRareDestBitmap(hash);
       //ndpi_bitmap_set(rare_dest, hash);
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash %s added ~ %s", f->getFlowServerInfo(), host_id );
 
@@ -119,10 +118,10 @@ void RareDestination::protocolDetected(Flow *f) {
     }
 
     /* update */
-    if (!cli_lhost->isSetRareDestBitmap()){
+    if (!cli_lhost->isSetRareDestBitmap(hash)){
       //ndpi_bitmap_set(rare_dest, hash);
-      cli_lhost->setRareDestBitmap();
-      if (!cli_lhost->isSetRareDestLastBitmap()) {
+      cli_lhost->setRareDestBitmap(hash);
+      if (!cli_lhost->isSetRareDestLastBitmap(hash)) {
         is_rare_destination = true;
       }
     }
