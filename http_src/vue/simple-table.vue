@@ -16,6 +16,8 @@
 import { ref, onMounted, onBeforeMount, watch } from "vue";
 import { default as BootstrapTable } from "./bootstrap-table.vue";
 import { ntopng_custom_events, ntopng_events_manager } from "../services/context/ntopng_globals_services";
+import formatterUtils from "../utilities/formatter-utils";
+import NtopUtils from "../utilities/ntop-utils";
 
 const _i18n = (t) => i18n(t);
 
@@ -76,9 +78,11 @@ const row_render_functions = {
 
   db_search: function (column, row) {
     if (column.data_type == 'host') {
-      return row[column.id].title; //TODO format
-    } else if (column.data_type == 'volume') {
-      return row[column.id]; //TODO format
+      return NtopUtils.formatHost(row[column.id], row);
+    } else if (formatterUtils.types[column.data_type]) {
+      // 'bytes', 'bps', 'pps', ...
+      let formatter = formatterUtils.getFormatter(column.data_type);
+      return formatter(row[column.id]);
     } else {
       return row[column.id];
     }
