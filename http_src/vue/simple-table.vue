@@ -54,39 +54,72 @@ const render_column = function (column) {
   return "";
 }
 
-const render_throughput_row = function (column, row) {
-  if (row[column.id]) {
-
-    if (column.id == 'name' && row['url']) {
-      return `<a href='${row.url}'>${row[column.id]}</a>`;
-    } else if (column.id == 'throughput' && row['throughput_type']) {
-      if (row['throughput_type'] == 'pps') {
+const row_render_functions = {
+  throughput: function (column, row) {
+    if (column.id == 'name') {
+      if (row['url'])
+        return `<a href='${row.url}'>${row.name}</a>`;
+      else
+        return row.name;
+    } else if (column.id == 'throughput') {
+      if (row['throughput_type'] && row['throughput_type'] == 'pps') {
         return NtopUtils.fpackets(row[column.id]);
-      } else if (row['throughput_type'] == 'bps') {
+      } else if (row['throughput_type'] && row['throughput_type'] == 'bps') {
         return NtopUtils.bitsToSize(row[column.id]);
+      } else {
+        return row['throughput'];
       }
+    } else {
+      return "";
     }
+  },
 
-    return row[column.id];
+  db_search: function (column, row) {
+    if (column.data_type == 'host') {
+      return row[column.id].title; //TODO format
+    } else if (column.data_type == 'volume') {
+      return row[column.id]; //TODO format
+    } else {
+      return row[column.id];
+    }
   }
-
-  return "";
-}
+};
 
 const render_row = function (column, row) {
-  if (props.params && props.params.table_type && props.params.table_type == 'throughput')
-    return render_throughput_row(column, row);
-  else
+  if (props.params && 
+      props.params.table_type && 
+      row_render_functions[props.params.table_type]) {
+    const render_func = row_render_functions[props.params.table_type];
+    return render_func(column, row);
+  } else if (row[column.id]) {
     return row[column.id];
+  } else {
+    return "";
+  }
 }
 
 async function refresh_table() {
-  const extra_params = ntopng_url_manager.get_url_object();
-  extra_params['ifid'] = props.ifid;
-  const url_params = ntopng_url_manager.obj_to_url_params(extra_params);
-  const data = await ntopng_utility.http_request(`${http_prefix}${props.params.url}?${url_params}`);
+  //const params = ntopng_url_manager.get_url_object();
+  const url_params = {
+     ifid: props.ifid,
+     epoch_begin: props.epoch_begin,
+     epoch_end: props.epoch_end,
+     ...props.params.url_params
+  }
+  const query_params = ntopng_url_manager.obj_to_url_params(url_params);
+
+  let data = await ntopng_utility.http_request(`${http_prefix}${props.params.url}?${query_params}`);
+
+  let rows = [];
+  if (props.params.table_type == 'db_search') {
+    rows = data.records;
+  } else {
+    rows = data;
+  }
+
   const max_rows = props.max_height ? ((props.max_height/4) * 6) : 6;
-  const rows = data.slice(0, max_rows);
-    table_rows.value = rows;
+  rows = rows.slice(0, max_rows);
+
+  table_rows.value = rows;
 }
 </script>
