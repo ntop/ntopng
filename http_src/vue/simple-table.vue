@@ -54,10 +54,9 @@ const render_column = function (column) {
   return "";
 }
 
-const render_row = function (column, row) {
+const render_throughput_row = function (column, row) {
   if (row[column.id]) {
 
-    /* Rendering fields by guessing content (TODO pass rendering function with the data) */
     if (column.id == 'name' && row['url']) {
       return `<a href='${row.url}'>${row[column.id]}</a>`;
     } else if (column.id == 'throughput' && row['throughput_type']) {
@@ -72,6 +71,13 @@ const render_row = function (column, row) {
   }
 
   return "";
+}
+
+const render_row = function (column, row) {
+  if (props.params && props.params.table_type && props.params.table_type == 'throughput')
+    return render_throughput_row(column, row);
+  else
+    return row[column.id];
 }
 
 async function refresh_table() {
