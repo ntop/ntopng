@@ -103,7 +103,7 @@ local flow_alert_keys = {
    flow_alert_modbus_too_many_exceptions           = 94,
    flow_alert_modbus_invalid_transition            = 95,
    
-   -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
+   -- NOTE: do not go beyond the size of the alert_map bitmal inside Flow.h (currently 128)
 }
 
 -- ##############################################
