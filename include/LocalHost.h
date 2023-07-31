@@ -210,7 +210,7 @@ class LocalHost : public Host {
   inline void startRareDestTraining()     { rareDestTraining.training = true;  }
   inline void stopRareDestTraining()      { rareDestTraining.training = false; }
 
-  inline void updateRareDestLastBitmap()  { ndpi_bitmap_clear(rare_dest_last); ndpi_bitmap_or(rare_dest_last, rare_dest); }
+  inline void updateRareDestLastBitmap()  { ndpi_bitmap_free(rare_dest_last); rare_dest_last = rare_dest; rare_dest = ndpi_bitmap_alloc(); }
   inline void clearRareDestBitmap()      { ndpi_bitmap_clear(rare_dest);  }
   inline void clearRareDestLastBitmaps()      { ndpi_bitmap_clear(rare_dest_last);  }
   inline void clearRareDestBitmaps()      { ndpi_bitmap_clear(rare_dest); ndpi_bitmap_clear(rare_dest_last); }

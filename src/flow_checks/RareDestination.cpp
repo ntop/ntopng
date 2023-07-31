@@ -110,8 +110,6 @@ void RareDestination::protocolDetected(Flow *f) {
     if ( elapsedFromLastTraining >= 600 /* RARE_DEST_LAST_TRAINING_GAP */ )
     {
       cli_lhost->updateRareDestLastBitmap();
-      cli_lhost->clearRareDestBitmap();
-      //cli_lhost->ndpi_bitmap_clear(rare_dest);
       cli_lhost->setStartRareDestTraining(0);
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Merged Bitmaps %s", host_id );
 
