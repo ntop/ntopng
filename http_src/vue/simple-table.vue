@@ -78,7 +78,7 @@ const row_render_functions = {
 
   db_search: function (column, row) {
     if (column.data_type == 'host') {
-      return NtopUtils.formatHost(row[column.id], row);
+      return NtopUtils.formatHost(row[column.id], row, (column.id == 'cli_ip'));
     } else if (formatterUtils.types[column.data_type]) {
       // 'bytes', 'bps', 'pps', ...
       let formatter = formatterUtils.getFormatter(column.data_type);

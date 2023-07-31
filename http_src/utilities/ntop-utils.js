@@ -1175,11 +1175,11 @@ export default class NtopUtils {
   }
 
   /* Format an host from a column object */
-  static formatHost(obj, row) {
+  static formatHost(obj, row, is_client) {
     let label = "";
 
     /* Link */
-    let host_key = obj.value;
+    let host_key = obj.ip;
     if (row.vlan_id && row.vlan_id.value)
       host_key = host_key + '@' + row.vlan_id.value;
 
@@ -1192,8 +1192,9 @@ export default class NtopUtils {
     label = `<a href="${url}">${label}</a>`;
 
     /* Country */
-    if (obj.country)
-      label += ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + obj.country.toLowerCase() + '"></a> ';
+    let country_obj = is_client ? row.cli_country : row.srv_country;
+    if (country_obj && country_obj.value)
+      label += ` <img src="${http_prefix}/dist/images/blank.gif" class="flag flag-${country_obj.value.toLowerCase()}" title="${country_obj.title}"></a>`;
 
     return label;
   }
