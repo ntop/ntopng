@@ -62,8 +62,8 @@ void RareDestination::protocolDetected(Flow *f) {
   if(f->getFlowServerInfo() != NULL && f->get_cli_host()->isLocalHost()) {
     
     LocalHost   *cli_lhost = (LocalHost*)f->get_cli_host();
-    ndpi_bitmap *rare_dest = cli_lhost->getRareDestBitmap();
-    ndpi_bitmap *rare_dest_last = cli_lhost->getRareDestLastBitmap();
+    //ndpi_bitmap *rare_dest = cli_lhost->getRareDestBitmap();
+    //ndpi_bitmap *rare_dest_last = cli_lhost->getRareDestLastBitmap();
     
     /* char hostbuf[64], *host_id;
     host_id = cli_lhost->get_hostkey(hostbuf, sizeof(hostbuf)); */
@@ -79,10 +79,12 @@ void RareDestination::protocolDetected(Flow *f) {
 
     u_int32_t hash = getDestinationHash(f);
     if(hash == 0) return;
+    cli_lhost->setRareDestHash(hash);
 
     /* if training */
     if (cli_lhost->isTrainingRareDest()) {
-      ndpi_bitmap_set(rare_dest, hash);
+      cli_lhost->setRareDestBitmap();
+      //ndpi_bitmap_set(rare_dest, hash);
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash %s added ~ %s", f->getFlowServerInfo(), host_id );
 
       /* check if training has to end */
@@ -108,7 +110,8 @@ void RareDestination::protocolDetected(Flow *f) {
     if ( elapsedFromLastTraining >= 600 /* RARE_DEST_LAST_TRAINING_GAP */ )
     {
       cli_lhost->updateRareDestLastBitmap();
-      cli_lhost->ndpi_bitmap_clear(rare_dest);
+      cli_lhost->clearRareDestBitmap();
+      //cli_lhost->ndpi_bitmap_clear(rare_dest);
       cli_lhost->setStartRareDestTraining(0);
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Merged Bitmaps %s", host_id );
 
@@ -116,9 +119,10 @@ void RareDestination::protocolDetected(Flow *f) {
     }
 
     /* update */
-    if (!ndpi_bitmap_isset(rare_dest, hash)){
-      ndpi_bitmap_set(rare_dest, hash);
-      if (!ndpi_bitmap_isset(rare_dest_last, hash)) {
+    if (!cli_lhost->isSetRareDestBitmap()){
+      //ndpi_bitmap_set(rare_dest, hash);
+      cli_lhost->setRareDestBitmap();
+      if (!cli_lhost->isSetRareDestLastBitmap()) {
         is_rare_destination = true;
       }
     }
