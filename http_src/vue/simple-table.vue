@@ -57,6 +57,7 @@ const render_column = function (column) {
 }
 
 const row_render_functions = {
+  /* Render function for 'throughput' table type */
   throughput: function (column, row) {
     if (column.id == 'name') {
       if (row['url'])
@@ -76,9 +77,12 @@ const row_render_functions = {
     }
   },
 
+  /* Render function for 'db_search' table type */
   db_search: function (column, row) {
     if (column.data_type == 'host') {
       return NtopUtils.formatHost(row[column.id], row, (column.id == 'cli_ip'));
+    } else if (column.data_type == 'network') {
+      return NtopUtils.formatNetwork(row[column.id], row);
     } else if (formatterUtils.types[column.data_type]) {
       // 'bytes', 'bps', 'pps', ...
       let formatter = formatterUtils.getFormatter(column.data_type);
@@ -103,7 +107,6 @@ const render_row = function (column, row) {
 }
 
 async function refresh_table() {
-  //const params = ntopng_url_manager.get_url_object();
   const url_params = {
      ifid: props.ifid,
      epoch_begin: props.epoch_begin,
@@ -116,9 +119,9 @@ async function refresh_table() {
 
   let rows = [];
   if (props.params.table_type == 'db_search') {
-    rows = data.records;
+    rows = data.records; /* db_search: read data from data.records */
   } else {
-    rows = data;
+    rows = data; /* default: data is the array of records */
   }
 
   const max_rows = props.max_height ? ((props.max_height/4) * 6) : 6;
