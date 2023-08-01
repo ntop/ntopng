@@ -4752,6 +4752,7 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
     notification->score = getPredominantAlertScore();
     notification->alert_severity = Utils::mapScoreToSeverity(notification->score);
     notification->alert_category = alert->getAlertType().category;
+    notification->alert_id = alert->getAlertType().id;
     notification->flow.cli_host_pool =
       cli_host ? cli_host->get_host_pool() : 0;
     notification->flow.srv_host_pool =

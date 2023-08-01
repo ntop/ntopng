@@ -1,16 +1,18 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         <b>{{ i18n("notification_endpoint.webhook.url") }}</b>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#webhook"><i class="fa-regular fa-circle-question"></i></a>
     </label>
-    <div class="col-sm-5">
+    <div class="col-sm-7">
         <input data-pattern="https" name="webhook_url" type="text" class="form-control" required />
     </div>
 </div>
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         {{ i18n("notification_endpoint.webhook.shared_secret") }}
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#webhook"><i class="fa-regular fa-circle-question"></i></a>
     </label>
-    <div class="col-sm-5">
+    <div class="col-sm-7">
         <input name="webhook_sharedsecret" type="text" class="form-control" />
         <small class="text-muted">{{ i18n("notification_endpoint.optional_field") }}</small>
     </div>
@@ -18,8 +20,9 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         {{ i18n("notification_endpoint.webhook.username") }}
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#webhook"><i class="fa-regular fa-circle-question"></i></a>
     </label>
-    <div class="col-sm-5">
+    <div class="col-sm-7">
         <input data-pattern="username" name="webhook_username" type="text" class="form-control" />
         <small class="text-muted">{{ i18n("notification_endpoint.optional_field") }}</small>
     </div>
@@ -27,10 +30,10 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         {{ i18n("notification_endpoint.webhook.password") }}
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#webhook"><i class="fa-regular fa-circle-question"></i></a>
     </label>
-    <div class="col-sm-5">
+    <div class="col-sm-7">
         <input name="webhook_password" type="password" class="form-control" />
         <small class="text-muted">{{ i18n("notification_endpoint.optional_field") }}</small>
     </div>
 </div>
-<small>{* i18n('notification_endpoint.webhook.webhook_description') *}</small>

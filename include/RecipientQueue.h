@@ -55,6 +55,12 @@ class RecipientQueue {
   /* MUST be large enough to contain MAX_NUM_HOST_POOLS */
   Bitmap128 enabled_host_pools;
 
+  Bitmap128 enabled_flow_checks; /* MUST be large enough to contain
+                                 FlowAlertTypeEnum */
+
+  Bitmap128 enabled_host_checks; /* MUST be large enough to contain
+                                 HostCheckID */
+
  public:
   RecipientQueue(u_int16_t recipient_id);
   ~RecipientQueue();
@@ -117,6 +123,26 @@ class RecipientQueue {
    */
   inline void setEnabledHostPools(Bitmap128 _enabled_pools) {
     enabled_host_pools = _enabled_pools;
+  };
+
+  /**
+   * @brief Sets enabled flow checks to use this recipient
+   * @param enabled_flow_checks
+   *
+   * @return
+   */
+  inline void setEnabledFlowChecks(Bitmap128 _enabled_flow_checks) {
+    enabled_flow_checks = _enabled_flow_checks;
+  };
+
+  /**
+   * @brief Sets enabled host checks to use this recipient
+   * @param enabled_host_checks
+   *
+   * @return
+   */
+  inline void setEnabledHostChecks(Bitmap128 _enabled_host_checks) {
+    enabled_host_checks = _enabled_host_checks;
   };
 
   /**

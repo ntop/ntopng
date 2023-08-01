@@ -122,13 +122,28 @@ function recipients.initialize()
       print("WARNING Please factory reset the recipient and endpoint configuration\n")
       alert_store_db_recipient.recipient_id = 0 -- setting it to the default value
    end
-   
-   for _, recipient in pairs(recipients.get_all_recipients()) do     
+   for _, recipient in pairs(recipients.get_all_recipients()) do  
+      local flow_checks = nil
+      local host_checks = nil
+
+      if recipient.checks then
+         flow_checks = ""
+         host_checks = ""
+         if(recipient.checks["flow"]) then
+            flow_checks = table.concat(recipient.checks["flow"], ",")
+         end
+         if(recipient.checks and recipient.checks["host"]) then
+            host_checks = table.concat(recipient.checks["host"], ",")
+         end
+      end
+
       ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, 
                               table.concat(recipient.check_categories, ','),
                               table.concat(recipient.host_pools, ','),
-                              table.concat(recipient.check_entities, ',')
-      )
+                              table.concat(recipient.check_entities, ','),
+                              flow_checks,
+                              host_checks
+      )      
    end
 end
 
@@ -285,12 +300,14 @@ end
 -- @param check_categories A Lua array with already-validated ids as found in `checks.check_categories` or nil to indicate all categories
 -- @param check_entities A Lua array with already-validated ids as found in `checks.check_entities` or nil to indicate all entities
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
+-- @param checks An already-validated integer alert id or nil to indicate filter on the alert ids
 -- @param safe_params A table with endpoint recipient params already sanitized
 -- @return nil
-local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, check_entities, minimum_severity, host_pools_ids, am_hosts_ids, safe_params)
+local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, check_entities, minimum_severity, host_pools_ids, am_hosts_ids, silence_alerts, checks, safe_params)
    -- Write the endpoint recipient config into another hash
    local k = _get_recipient_details_key(recipient_id)
-
+   -- Add the preference to silence the same alerts for a specific recipient, by default is set to true (1)
+   ntop.setCache("ntopng.prefs.silence_multiple_alerts." .. recipient_id, ternary(silence_alerts and silence_alerts == "false", '0', '1'))
    ntop.setCache(k, json.encode({endpoint_id = endpoint_id,
                                  recipient_name = endpoint_recipient_name,
                                  check_categories = check_categories,
@@ -298,9 +315,40 @@ local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoin
                                  minimum_severity = minimum_severity,
                                  host_pools = host_pools_ids,
                                  am_hosts = am_hosts_ids,
+                                 checks = checks,
+                                 silence_alerts = silence_alerts,
                                  recipient_params = safe_params}))
 
    return recipient_id
+end
+
+-- ##############################################
+
+local function format_recipient_checks(checks_list)
+   if isEmptyString(checks_list) then
+      return {}
+   end
+
+   local list = checks_list:split(",") or { checks_list }
+   local formatted_list = {}
+
+   for _, check in pairs(list or {}) do
+      local alert_info = check:split("_")
+
+      if table.len(alert_info) == 2 then
+         local alert_id = alert_info[1]
+         local entity_id = alert_info[2]
+         local entity = alert_consts.alertEntityRaw(entity_id)
+
+         if not formatted_list[entity] then
+            formatted_list[entity] = {}
+         end
+         
+         formatted_list[entity][#formatted_list[entity] + 1] = alert_id
+      end
+   end
+
+   return formatted_list
 end
 
 -- ##############################################
@@ -343,17 +391,33 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
 
             if ok then
                local safe_params = status["safe_params"]
-
+               -- Get the list of checks to deliver the alerts
+               local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
+               local silence_alerts = recipient_params["recipient_silence_multiple_alerts"]
+               local flow_checks = nil
+               local host_checks = nil
+               if checks then
+                  flow_checks = ""
+                  host_checks = ""
+                  if(checks["flow"]) then
+                     flow_checks = table.concat(checks["flow"], ",")
+                  end
+                  if(checks["host"]) then
+                     host_checks = table.concat(checks["host"], ",")
+                  end
+               end
                -- Assign the recipient id
                local recipient_id = _assign_recipient_id()
                -- Persist the configuration
-               _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, check_entities, minimum_severity, host_pools_ids, am_hosts_ids, safe_params)
+               _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, check_entities, minimum_severity, host_pools_ids, am_hosts_ids, silence_alerts, checks, safe_params)
 
                -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
                ntop.recipient_register(recipient_id, minimum_severity, 
                                        table.concat(check_categories, ','),
                                        table.concat(host_pools_ids, ','),
-                                       table.concat(check_entities, ',')
+                                       table.concat(check_entities, ','),
+                                       flow_checks, -- Flow Alerts bitmap
+                                       host_checks  -- Host Alerts bitmap
                )
 
                -- Set a flag to indicate that a recipient has been created
@@ -415,6 +479,20 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                res = status
             else
                local safe_params = status["safe_params"]
+               local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
+               local silence_alerts = recipient_params["recipient_silence_multiple_alerts"]
+               local flow_checks = nil
+               local host_checks = nil
+               if checks then
+                  flow_checks = ""
+                  host_checks = ""
+                  if(checks["flow"]) then
+                     flow_checks = table.concat(checks["flow"], ",")
+                  end
+                  if(checks["host"]) then
+                     host_checks = table.concat(checks["host"], ",")
+                  end
+               end
 
                -- Persist the configuration
                _set_endpoint_recipient_params(
@@ -426,6 +504,8 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                   minimum_severity,
                   host_pools_ids,
                   am_hosts_ids,
+                  silence_alerts,
+                  checks,
                   safe_params)
 
                -- Finally, register the recipient in C to make sure also the C knows about this edit
@@ -433,7 +513,9 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                ntop.recipient_register(tonumber(recipient_id), minimum_severity, 
                                        table.concat(check_categories, ','),
                                        table.concat(host_pools_ids, ','),
-                                       table.concat(check_entities, ',')
+                                       table.concat(check_entities, ','),
+                                       flow_checks,
+                                       host_checks
                )
 
                res = {status = "OK"}
@@ -578,7 +660,6 @@ function recipients.get_recipient(recipient_id, include_stats)
    if recipient_details_key then
       local recipient_details_str = ntop.getCache(recipient_details_key)
       recipient_details = json.decode(recipient_details_str)
-
       if recipient_details then
          -- Add the integer recipient id
          recipient_details["recipient_id"] = tonumber(recipient_id)
@@ -737,6 +818,20 @@ local function get_notification_category(notification, current_script)
    return cur_category_id or checks.check_categories.other.id
 end
 
+function recipients.format_checks_list(recipients)
+   for _, recipient in pairs(recipients or {}) do
+      local check_list = {}
+      for entity, alert_list in pairs(recipient.checks or {}) do
+         for _, alert in pairs(alert_list or {}) do
+            check_list[#check_list + 1] = string.format("%d_%d", alert, alert_entities[entity].entity_id)
+         end
+      end
+      recipient.checks = check_list
+   end
+
+   return recipients
+end
+
 -- ##############################################
 
 -- @brief Dispatches a `notification` to all the interested recipients
@@ -766,7 +861,7 @@ function recipients.dispatch_notification(notification, current_script)
 
       for _, recipient in ipairs(recipients) do
          local recipient_ok = true
-
+         
          -- Check Category
          if recipient_ok and notification_category and recipient.check_categories ~= nil then
             -- Make sure the user script category belongs to the recipient check categories
@@ -807,6 +902,31 @@ function recipients.dispatch_notification(notification, current_script)
             end
          end
 
+         -- Check Alerts List
+         if recipient_ok and notification.alert_id and notification.entity_id ~= nil then
+            -- Apply the filters if available
+            if table.len(recipient["checks"] or {}) > 0 then
+               recipient_ok = false
+               for entity, alert_list in pairs(recipient["checks"] or {}) do
+                  -- First of all check if the entity_id of the alert is the same of the one to filter
+                  if alert_entities[entity].entity_id == notification.entity_id then 
+                     -- Then check the alert_id
+                     for _, alert_id in pairs(alert_list) do
+                        -- Same ID, break the loop and continue, the alert is OK
+                        if tonumber(alert_id) == notification.alert_id then
+                           recipient_ok = true
+                           break
+                        end
+                     end
+                  end
+               end
+
+               if not recipient_ok then
+                  debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to entity selection")
+               end
+            end
+         end
+
          -- Check Pool
          if recipient_ok then
             if notification.host_pool_id then
@@ -835,7 +955,7 @@ function recipients.dispatch_notification(notification, current_script)
          if recipient_ok then
             -- Enqueue alert
 
-            -- debug_print(" ===> Delivering alert for entity value " .. notification.entity_val .. " to recipient " .. recipient.recipient_name)
+            --debug_print(" ===> Delivering alert for entity id " .. notification.entity_id .. " to recipient " .. recipient.recipient_name)
 
             ntop.recipient_enqueue(recipient.recipient_id, 
               json_notification --[[ alert --]],

@@ -1837,6 +1837,31 @@ end
 
 -- ##############################################
 
+-- This function is used to return the list of enabled checks
+function checks.getEnabledChecksList()
+    local result = {}
+    local alert_entities = require "alert_entities"
+
+    for _, entity_info in pairs(alert_entities) do
+        local alert_list = {}
+        for _, alert_info in pairsByField(alert_consts.getAlertTypesInfo(entity_info.entity_id), "label", asc) do
+            alert_list[#alert_list + 1] = {
+                key = alert_info.alert_id,
+                entity_id = entity_info.entity_id,
+                title = alert_info.label,
+            }
+        end
+        result[#result + 1] = {
+            alert_list = alert_list,
+            entity_name = i18n(entity_info.i18n_label)
+        }
+    end
+
+    return result
+end
+
+-- ##############################################
+
 local function printUserScriptsTable()
     local ifid = interface.getId()
     local flow_checks_stats = ntop.getFlowChecksStats() or {}

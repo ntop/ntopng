@@ -25,7 +25,8 @@ end
 
 sendHTTPContentTypeHeader('application/json')
 
-local recipients = recipients.get_all_recipients(false --[[ do NOT exclude builtin recipients --]] ,
+local recipient_list = recipients.get_all_recipients(false --[[ do NOT exclude builtin recipients --]] ,
 						 true --[[ include usage statistics --]])
+recipient_list = recipients.format_checks_list(recipient_list)
 
-print(json.encode(recipients))
+print(json.encode(recipient_list))

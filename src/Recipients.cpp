@@ -130,7 +130,9 @@ void Recipients::register_recipient(u_int16_t recipient_id,
                                     AlertLevel minimum_severity,
                                     Bitmap128 enabled_categories,
                                     Bitmap128 enabled_host_pools,
-                                    Bitmap128 enabled_entities) {
+                                    Bitmap128 enabled_entities,
+                                    Bitmap128 enabled_flow_checks,
+                                    Bitmap128 enabled_host_checks) {
   if (recipient_id >= MAX_NUM_RECIPIENTS) return;
 
   m.lock(__FILE__, __LINE__);
@@ -143,6 +145,8 @@ void Recipients::register_recipient(u_int16_t recipient_id,
     recipient_queues[recipient_id]->setEnabledCategories(enabled_categories);
     recipient_queues[recipient_id]->setEnabledEntities(enabled_entities);
     recipient_queues[recipient_id]->setEnabledHostPools(enabled_host_pools);
+    recipient_queues[recipient_id]->setEnabledFlowChecks(enabled_flow_checks);
+    recipient_queues[recipient_id]->setEnabledHostChecks(enabled_host_checks);
   }
 
   if (recipient_id == 0) /* Default recipient (DB) */

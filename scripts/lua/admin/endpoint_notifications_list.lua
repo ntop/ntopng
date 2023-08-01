@@ -126,6 +126,7 @@ local context = {
     endpoint_list = endpoints.get_configs(true),
     can_create_recipient = can_create_recipient,
     check_categories = checks.check_categories,
+    checks = checks.getEnabledChecksList(),
     check_entities = alert_entities,
     alert_severities = alert_consts.get_printable_severities(),
     endpoints = endpoint_list,

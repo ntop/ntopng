@@ -2216,6 +2216,7 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
     notification->score = alert->getAlertScore();
     notification->alert_severity = Utils::mapScoreToSeverity(notification->score);
     notification->alert_category = alert->getAlertType().category;
+    notification->alert_id = alert->getAlertType().id;
     notification->host.host_pool = get_host_pool();
 
     rv = ntop->recipients_enqueue(notification,

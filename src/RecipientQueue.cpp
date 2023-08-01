@@ -40,6 +40,14 @@ RecipientQueue::RecipientQueue(u_int16_t _recipient_id) {
   /* All entities enabled by default */
   for (int i = 0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++)
     enabled_entities.setBit(i);
+    
+  /* All flow checks enabled by default */
+  for (int i = 0; i < MAX_DEFINED_FLOW_ALERT_TYPE; i++)
+    enabled_flow_checks.setBit(i);
+    
+  /* All host checks enabled by default */
+  for (int i = 0; i < NUM_DEFINED_HOST_CHECKS; i++)
+    enabled_host_checks.setBit(i);
 }
 
 /* *************************************** */
@@ -86,6 +94,10 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
               ->alert_category)) /* Category not enabled for this recipient */
       || !(enabled_entities.isSetBit(
              alert_entity)) /* Entity not enabled for this recipient */
+      ||
+      (alert_entity_flow == alert_entity && !enabled_flow_checks.isSetBit(notification->alert_id))
+      ||
+      (alert_entity_host == alert_entity && !enabled_host_checks.isSetBit(notification->alert_id))
   ) {
 #ifdef DEBUG_RECIPIENT_QUEUE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert filtered out due to filtering policy for recipient %d", recipient_id);

@@ -1,11 +1,11 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
-        {{ i18n("notification_endpoint.discord.username") }}
+        {{ i18n("notification_endpoint.discord.username") }}        
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#discord"><i class="fa-regular fa-circle-question"></i></a>
     </label>
-    <div class="col-sm-5">
+    <div class="col-sm-7">
         <input
 	data-validation-message="{{ i18n('notification_endpoint.discord.validation.invalid_username') }}"
 	data-pattern="username" name="discord_username" type="text" class="form-control" />
-        <small class="text-muted">{{ i18n('notification_endpoint.discord.message_sender') }}</small>
     </div>
 </div>

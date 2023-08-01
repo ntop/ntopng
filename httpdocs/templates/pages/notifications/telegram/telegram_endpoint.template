@@ -1,11 +1,11 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
 	    <b>{{ i18n("notification_endpoint.telegram.telegram_token") }}</b>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#telegram"><i class="fa-regular fa-circle-question"></i></a>
     </label>
-    <div class="col-sm-5">
+    <div class="col-sm-7">
 	    <input
 	data-validation-message="{{ i18n('notification_endpoint.telegram.validation.invalid_token') }}"
 	data-pattern="telegram_token" name="telegram_token" type="text" class="form-control" />
     </div>
 </div>
-<small>{* i18n('notification_endpoint.telegram.webhook_description.token_description') *}</small>
