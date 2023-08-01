@@ -969,6 +969,7 @@ local flow_columns = {
    ['SERVER_NW_LATENCY_US'] = { tag = "srv_nw_latency", dt_func = dt_format_latency_ms,format_func = format_flow_latency, i18n = i18n("db_search.srv_nw_latency"), order = 14 },
    ['CLIENT_LOCATION'] =      { tag = "cli_location", dt_func = dt_format_location },
    ['SERVER_LOCATION'] =      { tag = "srv_location", dt_func = dt_format_location },
+   ['NETWORK_ID'] =           { tag = "network", dt_func = dt_format_network },
    ['SRC_NETWORK_ID'] =       { tag = "cli_network", dt_func = dt_format_network },
    ['DST_NETWORK_ID'] =       { tag = "srv_network", dt_func = dt_format_network },
    ['INPUT_SNMP'] =           { tag = "input_snmp", dt_func = dt_format_snmp_interface },
@@ -1031,6 +1032,7 @@ local aggregated_flow_columns = {
    ['DST_ASN'] =              { tag = "srv_asn", simple_dt_func = simple_format_dst_asn },
    ['INPUT_SNMP'] =           { tag = "input_snmp", dt_func = dt_format_snmp_interface },
    ['OUTPUT_SNMP'] =          { tag = "output_snmp", dt_func = dt_format_snmp_interface },
+   ['NETWORK_ID'] =           { tag = "network", dt_func = dt_format_network },
    ['SRC_NETWORK_ID'] =       { tag = "cli_network", dt_func = dt_format_network },
    ['DST_NETWORK_ID'] =       { tag = "srv_network", dt_func = dt_format_network },
 

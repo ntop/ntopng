@@ -168,6 +168,18 @@ end
 
 -- #####################################
 
+local function build_datatable_column_def_network_id(name, i18n_label)
+   return {
+      data_field = 'network',
+      title_i18n = i18n_label,
+      sortable = false,
+      class = { "no-wrap" },
+      render_generic = 'network',
+   }
+end
+
+-- #####################################
+
 local function build_datatable_column_def_pool_id(name, i18n_label)
    return {
       data_field = name,
@@ -406,6 +418,7 @@ datatable_utils.datatable_column_def_builder_by_type = {
    ['float'] = build_datatable_column_def_float,
    ['msec'] = build_datatable_column_def_msec,
    ['network'] = build_datatable_column_def_network,
+   ['network_id'] = build_datatable_column_def_network_id,
    ['pool_id'] = build_datatable_column_def_pool_id,
    ['country'] = build_datatable_column_def_country,
    ['snmp_interface'] = build_datatable_column_def_snmp_interface,
