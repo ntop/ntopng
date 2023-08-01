@@ -3,6 +3,7 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 require "lua_utils"
 local page_utils = require("page_utils")
@@ -11,6 +12,7 @@ local ui_utils = require("ui_utils")
 local template = require("template_utils")
 local json = require("dkjson")
 local active_monitoring_utils = require "am_utils"
+local vs_utils = require "vs_utils"
 
 local graph_utils = require("graph_utils")
 local auth = require "auth"
@@ -34,6 +36,10 @@ local base_url = script_manager.getMonitorUrl("active_monitoring_monitor.lua") .
 local url = base_url
 local info = ntop.getInfo()
 local measurement_info
+
+local host_result = _GET["host"]
+local scan_type = _GET["scan_type"]
+local scan_date = _GET["scan_date"]
 
 if (not isEmptyString(host) and not isEmptyString(measurement)) then
    host = active_monitoring_utils.getHost(host, measurement)
@@ -63,6 +69,7 @@ end
 
 
 local navbar_title = ui_utils.create_navbar_title(title, host_label, "/lua/monitor/active_monitoring_monitor.lua")
+local scan_modules = vs_utils.list_scan_modules()
 
 page_utils.print_navbar(navbar_title, url, {
     {
@@ -82,7 +89,7 @@ page_utils.print_navbar(navbar_title, url, {
         label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
 	url = ntop.getHttpPrefix().."/lua/alert_stats.lua?&status=engaged&page=am_host"
     }, {
-        hidden = false,
+        hidden = #scan_modules == 0,
         active = page == "scan_hosts",
         page_name = "scan_hosts",
         label = i18n("scan_hosts")
@@ -139,6 +146,16 @@ elseif (page == "scan_hosts") then
     }
     template.render("pages/vue_page.template", { vue_page_name = "PageHostsToScan", page_context = json.encode(json_context) })
     
+elseif (page == "show_result") then 
+    local json_context = {
+        csrf = ntop.getRandomCSRFValue(),
+        ifid = ifid,
+        host = host_result,
+        scan_type = scan_type,
+        date = scan_date
+    }
+    template.render("pages/vue_page.template", { vue_page_name = "PageHostVsResult", page_context = json.encode(json_context) })
+
 end
 
 -- #######################################################

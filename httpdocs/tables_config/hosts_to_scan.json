@@ -28,7 +28,7 @@
 				},
 				{
 					"id": "scan",
-					"icon": "fas fa-search",
+					"icon": "fa-solid fa-clock-rotate-left",
 					"title_i18n": "hosts_stats.page_scan_hosts.schedule_scan",
 					"class": [
 						"link-button"
@@ -46,7 +46,7 @@
 				},
 				{
 					"id": "show_result",
-					"icon": "fas fa-search",
+					"icon": "fa-solid fa-list-ul",
 					"title_i18n": "hosts_stats.page_scan_hosts.show_result",
 					"class": [
 						"link-button"

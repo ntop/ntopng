@@ -1982,6 +1982,7 @@ local known_parameters = {
     ["delete_all_scan_hosts"] = validateBool,
     ["scan_return_result"] = validateBool,
     ["scan_ports_rsp"] = validateBool,
+    ["scan_date"] = validateSingleWord,
 
     ["snmp_device"] = validateDevice,
     ["snmp_device_port"] = validateSNMPIfidNumber,

@@ -46,6 +46,7 @@ import { default as PageInactiveHosts } from "./page-inactive-hosts.vue";
 import { default as PageInactiveHostDetails } from "./page-inactive-host-details.vue";
 import { default as PageFlowDeviceDetails } from "./page-flowdevice-config.vue";
 import { default as PageHostsToScan } from "./page-hosts-to-scan.vue";
+import { default as PageHostVsResult } from "./page-host-vs-result.vue";
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -80,7 +81,6 @@ import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAddHostRules } from "./modal-add-host-rules.vue";
 import { default as ModalAddApplication } from "./modal-add-application.vue";
 import { default as ModalDeleteApplication } from "./modal-delete-application.vue";
-import { default as ModalShowHostVSResult } from "./modal-show-host-vs-result.vue";
 
 let ntopVue = {
     // pages
@@ -109,7 +109,8 @@ let ntopVue = {
     PageInactiveHosts: PageInactiveHosts,
     PageInactiveHostDetails: PageInactiveHostDetails,
     PageHostsToScan: PageHostsToScan,
-
+    PageHostVsResult: PageHostVsResult,
+    
     PageEditApplications: PageEditApplications,
 
     PageVLANPortsFlowSankey: PageVLANPortsSankey,

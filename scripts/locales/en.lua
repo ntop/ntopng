@@ -1687,6 +1687,9 @@ local lang = {
     ["realtime_app_traffic"] = "Top Applications (Realtime)",
     ["realtime_traffic"] = "All Network Interfaces (Realtime)",
     ["slow_dashboard_message"] = "Too much latency in the %{product} response. Consider setting an higher <a href='%{url}'>Realtime Stats Refresh Rate</a>.",
+    ["top_local_talkers"] = "Top Local Talkers",
+    ["top_remote_destinations"] = "Top Remote Destinations",
+    ["traffic_dashboard"] = "Traffic Dashboard",
     ["time_ago"] = {
       ["12_hours"] = "12 Hours Ago",
       ["2_hours"] = "2 Hours Ago",
@@ -1701,9 +1704,6 @@ local lang = {
       ["week"] = "1 Week Ago",
       ["year"] = "1 Year Ago",
     },
-    ["top_local_talkers"] = "Top Local Talkers",
-    ["top_remote_destinations"] = "Top Remote Destinations",
-    ["traffic_dashboard"] = "Traffic Dashboard",
   },
   ["datasources"] = {
     ["alias"] = "Alias",
@@ -4152,11 +4152,11 @@ local lang = {
       ["last_scan"] = "Last Scheduled Scan",
       ["last_scan_status"] = "Last Scan Scatus",
       ["load_nmap_ports"] = "Scan Host Ports",
-      ["load_ports"] = "Load Used Ports",
+      ["load_ports"] = "Load Ports",
       ["not_scanned"] = "Not Scanned",
-      ["not_yet"] = "Not yet scanned",
+      ["not_yet"] = "Not scanned yet",
       ["ports"] = "Ports",
-      ["ports_placeholder"] = "22,233",
+      ["ports_placeholder"] = "22,8080",
       ["scan_command_param"] = "Scan Parameters",
       ["scan_duration"] = "Last Scan Duration",
       ["scan_type"] = "Scan Type",
@@ -4168,7 +4168,7 @@ local lang = {
       ["vs_result"] = "Vulnerability Scan of %{host} at %{date}",
       ["notes"] = {
         ["note_1"] = "Host: host IP to scan.",
-        ["note_2"] = "Ports: comma separated list of Ports.",
+        ["note_2"] = "Ports: a comma-separated list of ports; if empty, all host ports are going to be considered.",
         ["note_3"] = "Scan Type: select a specific vulnerability scan type.",
       },
       ["scan_type_list"] = {

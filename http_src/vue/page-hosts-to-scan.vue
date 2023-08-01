@@ -35,8 +35,6 @@
   </div>
   <ModalAddHostToScan ref="modal_add" :context="context" @add="add_host_rest" @edit="edit">
   </ModalAddHostToScan>
-  <ModalShowHostVSResult ref="modal_vs_result" :context="context">
-  </ModalShowHostVSResult>
 </template>
   
 <script setup>
@@ -47,7 +45,6 @@ import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
 import { default as ModalAddHostToScan } from "./modal-add-host-to-scan.vue";
-import { default as ModalShowHostVSResult } from "./modal-show-host-vs-result.vue";
 
 /* ******************************************************************** */ 
 
@@ -66,8 +63,9 @@ const modal_vs_result = ref();
 const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
 const remove_host_url = `${http_prefix}/lua/rest/v2/delete/host/delete_host_to_scan.lua`;
 const scan_host_url = `${http_prefix}/lua/rest/v2/exec/host/schedule_vulnerability_scan.lua`;
-const scan_result_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_result.lua`;
 const scan_type_list_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_type_list.lua`;
+const active_monitoring_url = `${http_prefix}/lua/monitor/active_monitoring_monitor.lua`
+
 
 const row_to_delete = ref({});
 const row_to_scan = ref({});
@@ -117,8 +115,10 @@ function on_table_custom_event(event) {
     "click_button_download": click_button_download,
     "click_button_show_result": click_button_show_result,
   };
-  if (events_managed[event.event_id] == null) {
-    return;
+  if (event.row.is_ok_last_scan == 4 || event.row.is_ok_last_scan == null) {
+    if (event.event_id == "click_button_show_result" || event.event_id == "click_button_download"  ) {
+      return;
+    }
   }
   events_managed[event.event_id](event);
 }
@@ -333,17 +333,18 @@ async function click_button_show_result(event) {
 
 
   let params = {
-    host: event.row.host,
+    host: host,
     scan_type: event.row.scan_type,
-    scan_return_result: true
+    scan_return_result: true,
+    page: "show_result",
+    scan_date: date
 
   };
   let url_params = ntopng_url_manager.obj_to_url_params(params);
 
-  let url = `${scan_result_url}?${url_params}`;
-  let result = await ntopng_utility.http_request(url)
+  let url = `${active_monitoring_url}?${url_params}`;
+  window.open(url, "_blank");
 
-  modal_vs_result.value.show(host, date, result.rsp);
 }
 
 

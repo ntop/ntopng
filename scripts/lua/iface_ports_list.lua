@@ -93,8 +93,8 @@ if rsp_resp then
          end
          if not already_set then
             res[#res+1] = {
-               key = port_details[2],
-               value = port_details[2]
+               key = tonumber(port_details[2]),
+               value = tonumber(port_details[2])
             }
          end
       end

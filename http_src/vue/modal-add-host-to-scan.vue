@@ -11,7 +11,7 @@
           <b>{{_i18n("hosts_stats.page_scan_hosts.host")}}</b>
           </label>
           <div class="col-sm-10" >
-            <input v-model="host"  @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
+            <input v-model="host" @focusout="load_ports"  @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
           </div>
       </div>
 
@@ -19,21 +19,23 @@
           <label class="col-form-label col-sm-2" >
           <b>{{_i18n("hosts_stats.page_scan_hosts.ports")}}</b>
           </label>
-            <div class="col-sm-4" >
+            <div class="col-sm-10" >
             <input v-model="ports" class="form-control" type="text" :placeholder="ports_placeholder" required>
             </div>
-            <div class="col-sm-3" >
-
-            <button type="button" @click="load_ports" :disabled="disable_add" class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_ports')}}</button>
             
-            </div>
-            <div class="col-sm-3" >
-
-            <button type="button" @click="load_nmap_ports" :disabled="disable_add"  class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_nmap_ports')}}</button>
-            </div>
 
       </div>
-  
+      <div  class="form-group ms-2 me-2 mt-3 row">
+
+      <div class="col-sm-9"></div>
+      <div class="col-sm-3">
+
+        <button type="button"  :disabled="disable_add" class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_ports')}}</button>
+        <Spinner :show="disable_add" size="1rem" class="ms-1"></Spinner>
+            <a class="ntopng-truncate" :title="disable_add"></a>
+
+        </div>
+      </div>
       <div class="form-group ms-2 me-2 mt-3 row">
           <label class="col-form-label col-sm-2" >
           <b>{{_i18n("hosts_stats.page_scan_hosts.scan_type")}}</b>
@@ -45,14 +47,18 @@
           </SelectSearch> 
         </div> 
       </div>
-      
-    </template>
-    <template v-slot:footer>
-      <div class="col-11">
-      <NoteList
-      :note_list="note_list">
-      </NoteList>
+
+      <div class="mt-4">
+        <NoteList
+        :note_list="note_list">
+        </NoteList>
       </div>
+    </template>
+
+      
+
+      <template v-slot:footer>
+
       <template v-if="is_edit_page == false">
       <button type="button" @click="add_" class="btn btn-primary"  :disabled="disable_add">{{_i18n('add')}}</button>
       </template>
@@ -60,6 +66,7 @@
       <button type="button" @click="edit_" class="btn btn-primary"  :disabled="disable_add ">{{_i18n('apply')}}</button>
       </template>
     </template>
+
   </modal>
   </template>
   
@@ -69,6 +76,8 @@ import { ref, onBeforeMount } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as NoteList } from "./note-list.vue";
+import { default as Spinner } from "./spinner.vue";
+
 import regexValidation from "../utilities/regex-validation.js";
 import NtopUtils from "../utilities/ntop-utils";
 /* ****************************************************** */
@@ -218,6 +227,7 @@ const add_ = async (is_edit) => {
 };
 
 async function load_ports() {
+  disable_add.value = true;
   const url = NtopUtils.buildURL(server_ports, {
         host: host.value,
         ifid: ifid.value,
@@ -227,19 +237,27 @@ async function load_ports() {
 
   const result = await ntopng_utility.http_request(url);
   if (result != null) {
-    ports.value = result.map((x) => x.key).join(',');
+    ports.value = result.filter((x) => typeof x.key === "number").map((x) => x.key).join(',');
   } else {
     ports.value = "";
   }
+  disable_add.value = false;
 }
 
 async function load_nmap_ports() {
+  disable_add.value = true;
   const url = NtopUtils.buildURL(nmap_server_ports, {
     host: host.value
   })
 
   const result = await ntopng_utility.http_request(url);
-  ports.value = result.map((x) => x.key).join(',');
+  if (result != null) {
+    ports.value = result.map((x) => x.key).join(',');
+  } else {
+    ports.value = "";
+  }
+  disable_add.value = false;
+
 }
 
 

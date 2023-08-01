@@ -14,7 +14,7 @@ local vs_utils = require "vs_utils"
 local host = _GET["host"]
 
 if isEmptyString(host) then
-    rest_utils.answer(rest_utils.consts.err.invalid_args)
+    rest_utils.answer(rest_utils.consts.err.bad_content)
 end
 
 local result = vs_utils.get_ports(host)
