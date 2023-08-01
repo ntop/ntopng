@@ -26,8 +26,6 @@
 	</component>
       </template>
     </Box>
-    <!-- <span v-if="c.component == 'live-chart'">(this is a live chart)</span> -->
-    <!-- <span v-if="c.component == 'timeseries-chart'">(this is a timeseries chart)</span> -->
   </template>
 </div> <!-- div row -->
 </template>
@@ -107,7 +105,7 @@ function update_component_epoch_interval(timeframes_dict, c, epoch_interval) {
     const interval_seconds = timeframes_dict[c.time_window || "5_min"];
     if (epoch_interval == null) {
 	const epoch_end = ntopng_utility.get_utc_seconds();
-	epoch_interval = { epoch_begin: epoch_end - interval_seconds, epoch_end };
+	epoch_interval = { epoch_begin: epoch_end - interval_seconds, epoch_end: epoch_end };
     }
     const utc_offset = timeframes_dict[c.time_offset] || 0;
     c.epoch_begin = epoch_interval.epoch_begin - utc_offset;

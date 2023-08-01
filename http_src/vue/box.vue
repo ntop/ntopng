@@ -19,7 +19,7 @@ const props = defineProps({
   col_width: Number,
   row_height: Number,
   epoch_begin: Number,
-  epoch_begin: Number,
+  epoch_end: Number,
 });
 
 const col_width_class = computed(() => {
