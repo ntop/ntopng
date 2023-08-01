@@ -1,0 +1,55 @@
+{
+	"name" : "Top Sender Networks",
+	"i18n_name" : "top_sender_networks",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"hourly": true,
+	"sql" : "SELECT VLAN_ID, NETWORK_ID, SUM(BYTES) AS total_bytes FROM (SELECT VLAN_ID,SRC_NETWORK_ID AS NETWORK_ID, SRC2DST_BYTES AS BYTES FROM flows $WHERE$ AND SRC_NETWORK_ID!=65535 UNION ALL SELECT VLAN_ID,DST_NETWORK_ID AS NETWORK_ID, DST2SRC_BYTES AS BYTES FROM flows $WHERE$ AND DST_NETWORK_ID!=65535) AS f $GROUPBY$ $ORDERBY$ $LIMIT$",
+	"select" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "NETWORK_ID",
+				"func" : "",
+				"value_type" : "network_id"
+			},
+			{
+				"name" : "total_bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "SRC_NETWORK_ID",
+				"op": "neq",
+				"value": "DST_NETWORK_ID",
+				"value_type": "number",
+				"input": "fixed"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "NETWORK_ID"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "total_bytes",
+				"order" : "DESC"
+			}
+		]
+	}
+}

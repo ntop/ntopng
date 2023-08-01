@@ -6,7 +6,7 @@
     "hourly": false,
     "visualization_type" : "table",
     "select" : {
-            "sql": "IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR_FORMATTED, IPv6NumToString(IPV6_DST_ADDR) IPV6_DST_ADDR_FORMATTED, COUNT(DISTINCT(IPV4_SRC_ADDR)) AS count4, COUNT(DISTINCT(IPV6_SRC_ADDR)) AS count6, (count4 + count6) AS client_count, COUNT(DISTINCT(IP_SRC_PORT)) AS port_count",
+        "sql": "IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR_FORMATTED, IPv6NumToString(IPV6_DST_ADDR) IPV6_DST_ADDR_FORMATTED, COUNT(DISTINCT(IPV4_SRC_ADDR)) AS count4, COUNT(DISTINCT(IPV6_SRC_ADDR)) AS count6, (count4 + count6) AS client_count, COUNT(DISTINCT(IP_SRC_PORT)) AS port_count",
         "items" : [
             { 
                 "name" : "IPV4_DST_ADDR" 
@@ -16,14 +16,14 @@
             },
             {
                 "name" : "client_count",
-        "func" : "",
-        "value_type" : "number"
+                "func" : "",
+                "value_type" : "number"
             }, 
             {
-				"name" : "port_count",
-        "func" : "",
-        "value_type" : "number"
-			}
+                "name" : "port_count",
+                "func" : "",
+                "value_type" : "number"
+            }
         ]
     },
     "groupby" : {
