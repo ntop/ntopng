@@ -686,8 +686,14 @@ end
 
 	 if(prefs.zmq_publish_events_url == nil) then
 	    print("<p><b><font color=red>Please restart ntopng with --zmq-publish-events &lt;URL&gt;</font></b>")
-	 else	 
-	    print("<li>nprobe --zmq "..zmq_endpoint.." --zmq-publish-events " .. prefs.zmq_publish_events_url .. " --zmq-probe-mode --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
+	 else
+	    local info = ntop.getHostInformation()
+	    local elems = string.split(zmq_endpoint, ":")
+	    local port = elems[3]
+	    
+	    zmq_endpoint = "tcp://"..info.ip..":"..port
+	    
+	    print("<li>nprobe --cloud "..zmq_endpoint.." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
 	 end
       else
         print("<li>nprobe --zmq "..zmq_endpoint.. probe_mode .." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
@@ -703,12 +709,10 @@ end
           var filename = 'nprobe-example.conf';
           var content = "";
           content += "# Set the capture interface name\n";
-          content += "-i=INTERFACE_NAME\n";
+          content += "#-i=INTERFACE_NAME\n";
           content += "\n";
           content += "# Set the ntopng address properly\n";
-          content += "--ntopng=]] print(zmq_endpoint) print [[\n";
-          content += "--zmq-publish-events=]] print(prefs.zmq_publish_events_url) print [[\n";
-          content += "--zmq-probe-mode\n";
+          content += "--cloud=]] print(zmq_endpoint) print [[\n";
           content += "--zmq-encryption-key=']] print(ifstats.encryption.public_key) print [['\n";
           content += "\n";
           content += "# Add more options here...\n";

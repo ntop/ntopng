@@ -468,12 +468,13 @@ void usage() {
 	 "contacting remote sites, including blacklists) \n"
 	 "[--insecure]                        | Allow connections to TLS sites "
 	 "with invalid certificates \n"
-#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
+#if HAVE_ZMQ
+	 "[--cloud|-c] <port>                 | Run ntopng in cloud mode on <port>\n"
 	 "[--zmq-encryption]                  | Enable ZMQ encryption\n"
 	 "[--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption "
 	 "secret key (debug only) \n"
-#endif
 	 "[--zmq-publish-events <URL>]        | Endpoint for publishing events "
+#endif
 	 "(e.g. IPS)\n"
 	 "[--disable-autologout|-q]           | Disable web logout for "
 	 "inactivity\n"
@@ -622,7 +623,7 @@ void usage() {
 	 "endpoint\n"
 	 "                                    | See https://wp.me/p1LxdS-O5 for a "
 	 "-I use case.\n"
-#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
+#if HAVE_ZMQ
 	 "[--zmq-encryption-key <key>]        | ZMQ (export) encryption public "
 	 "key (-I only) \n"
 #endif
@@ -688,7 +689,7 @@ void usage() {
 	 "and servers among <num> random addresses\n"
 	 "[--help|-h]                         | Help\n"
 	 );
-  
+
   printf("\n");
 
   /* Just create an instance of the system interface to print out the available
@@ -827,9 +828,9 @@ void Prefs::reloadPrefsFromRedis() {
     getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_SCORE_ENABLED, false);
   is_geo_map_asname_enabled =
     getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_ASNAME_ENABLED, false);
-  max_aggregated_flows_upperbound = 
+  max_aggregated_flows_upperbound =
     getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND, 1000);
-  max_aggregated_flows_traffic_upperbound = 
+  max_aggregated_flows_traffic_upperbound =
     getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND, 1);
   is_geo_map_alerted_flows_enabled = getDefaultPrefsValue(
 							  CONST_RUNTIME_IS_GEO_MAP_ALERTED_FLOWS_ENABLED, false);
@@ -1086,6 +1087,9 @@ void Prefs::loadInstanceNameDefaults() {
 /* ******************************************* */
 
 static const struct option long_options[] = {
+#if HAVE_ZMQ
+  {"cloud", required_argument, NULL, 'c'},
+#endif
 #ifndef WIN32
   {"data-dir", required_argument, NULL, 'd'},
 #endif
@@ -1136,7 +1140,6 @@ static const struct option long_options[] = {
 #ifdef NTOPNG_PRO
   {"log-labels", no_argument, NULL, 202},
 #endif
-  {"zmq-publish-events", required_argument, NULL, 203},
 #ifdef HAVE_PF_RING
   {"cluster-id", required_argument, NULL, 204},
 #endif
@@ -1152,16 +1155,19 @@ static const struct option long_options[] = {
   {"hw-timestamp-mode", required_argument, NULL, 212},
   {"shutdown-when-done", no_argument, NULL, 213},
   {"simulate-vlans", no_argument, NULL, 214},
-  {"zmq-encrypt-pwd", required_argument, NULL, 215},
 #ifndef HAVE_NEDGE
   {"ignore-macs", no_argument, NULL, 216},
 #endif
   {"ignore-vlans", no_argument, NULL, 217},
   {"test-script", required_argument, NULL, 218},
+#if HAVE_ZMQ
+  {"zmq-publish-events", required_argument, NULL, 203},
+  {"zmq-encrypt-pwd", required_argument, NULL, 215},
   {"zmq-encryption", no_argument, NULL, 219},
   {"zmq-encryption-key-priv", required_argument, NULL, 220},
-  {"simulate-ips", required_argument, NULL, 221},
   {"zmq-encryption-key", required_argument, NULL, 222},
+#endif
+  {"simulate-ips", required_argument, NULL, 221},
 #ifndef HAVE_NEDGE
   {"appliance", no_argument, NULL, 223},
 #endif
@@ -1374,6 +1380,38 @@ int Prefs::setOption(int optkey, char *optarg) {
       packet_filter = strdup(optarg);
     break;
 
+#if HAVE_ZMQ
+  case 'c':
+    {
+      u_int16_t port = atoi(optarg);
+      char buffer[64];
+
+      /*
+	Shortcut for
+	-i tcp://\*:<port>c --zmq-publish-events tcp://\*:5557
+      */
+
+      snprintf(buffer, sizeof(buffer), "tcp://*:%dc", port);
+
+      if(!addDeferredInterfaceToRegister(buffer))
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces specified: ignored %s", buffer);
+      else {
+	u_int32_t mgmt_ip = Utils::getHostManagementIPv4Address();
+	
+	if(zmq_publish_events_url) free(zmq_publish_events_url);
+
+	snprintf(buffer, sizeof(buffer), "tcp://*:%d", port+1);
+	zmq_publish_events_url = strdup(buffer);
+
+#if 0
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Hint: nprobe -i <iface> --cloud tcp://%s:%d",
+				     Utils::intoaV4(ntohl(mgmt_ip), buffer, sizeof(buffer)), port);
+#endif
+      }
+    }
+    break;
+#endif
+
   case 'u':
     use_promiscuous_mode = false;
     break;
@@ -1503,14 +1541,11 @@ int Prefs::setOption(int optkey, char *optarg) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "No interface specified, -i ignored");
     else if (strlen(optarg) > MAX_INTERFACE_NAME_LEN - 1)
-      ntop->getTrace()->traceEvent(
-				   TRACE_ERROR,
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Interface name too long (exceeding %d characters): ignored %s",
 				   MAX_INTERFACE_NAME_LEN - 1, optarg);
     else if (!addDeferredInterfaceToRegister(optarg))
-      ntop->getTrace()->traceEvent(
-				   TRACE_ERROR, "Too many interfaces specified with -i: ignored %s",
-				   optarg);
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces specified with -i: ignored %s", optarg);
     break;
 
   case 'w':
@@ -1552,7 +1587,7 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 'z':
     do_reforge_timestamps  = true;
     break;
-    
+
   case 'Z':
     if (optarg[0] != '/') {
       ntop->getTrace()->traceEvent(
@@ -2368,7 +2403,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
 #else
 			  argc, argv,
 #endif
-			  "k:eg:hi:w:r:sg:m:n:p:qd:t:x:y:1:2:3:4:5:l:L:uv:zA:B:CD:E:F:N:G:I:O:Q:"
+			  "k:eg:hi:w:r:sg:m:n:p:qd:t:x:y:1:2:3:4:5:l:L:uv:zA:B:c:CD:E:F:N:G:I:O:Q:"
 			  "S:TU:X:W:VZ:",
 			  long_options, NULL)) != '?') {
     if (c == 255) break;
@@ -2547,7 +2582,7 @@ void Prefs::lua(lua_State *vm) {
   lua_push_int32_table_entry(vm, "max_aggregated_flows_upperbound",
 			     max_aggregated_flows_upperbound);
   lua_push_int32_table_entry(vm, "max_aggregated_flows_traffic_upperbound",
-			     max_aggregated_flows_traffic_upperbound);                         
+			     max_aggregated_flows_traffic_upperbound);
   lua_push_bool_table_entry(vm, "is_geo_map_score_enabled",
                             is_geo_map_score_enabled);
   lua_push_bool_table_entry(vm, "is_geo_map_asname_enabled",
@@ -3010,20 +3045,20 @@ void Prefs::setModbusAllowedFunctionCodes(const char *function_codes) {
       if((modbus_allowed_function_codes = ndpi_bitmap_alloc()) == NULL)
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to allocate bitmap memory");
     }
-    
+
     if(modbus_allowed_function_codes) {
       ndpi_bitmap_clear(modbus_allowed_function_codes);
-      
+
       p = strtok_r(buf, ",", &tmp);
       while (p != NULL) {
 	int f_code = atoi(p);
-	
+
 	ndpi_bitmap_set(modbus_allowed_function_codes, f_code);
-	
+
 	p = strtok_r(NULL, ",", &tmp);
       }
     }
-    
+
     free(buf);
   }
 }
