@@ -63,7 +63,7 @@
                                 <small class="text-muted">{{ i18n('endpoint_notifications.message_am_hosts') }}</small>
                             </div>
                         </div>
-                        <div class="mb-3 row">
+                        <div class="mb-3 row hide-on-default-recipient">
                             <label class="col-form-label col-sm-3" for="edit-recipient-silence-alerts">
                                 <b>{{ i18n("endpoint_notifications.silence_multiple_alerts") }}</b>
                             </label>

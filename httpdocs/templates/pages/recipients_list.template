@@ -355,8 +355,9 @@
                 data: "silence_alerts",
                 className: "text-center text-nowrap",
                 width: "5%",
-                render: function (data, type) {
-                    if(data && data === "false") {
+                render: function (data, type, row) {
+                    /* The buildin recipient cannot be modified and deliver all alerts */
+                    if(data && data === "false" || row.recipient_id == 0) {
                         return `<i class="fas fa-times text-danger"></i>`
                     } else {
                         return `<i class="fas fa-check text-success"></i>`
