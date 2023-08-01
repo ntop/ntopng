@@ -933,33 +933,42 @@ end
 function alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_info, recipient_id) 
     local alert_key = ""
     local alert_key_fields = {}
-    if alert_consts.alert_types[alert_id].alert_retention_policy_key  then
-        alert_key_fields = alert_consts.alert_types[alert_id].alert_retention_policy_key(alert_info)
-        for _, field in ipairs(alert_key_fields) do
-            alert_key = alert_key .. "."..alert_info[field]
-        end
-    else
-        alert_key_fields = alert_entities[entity_val].alert_key_fields
-        if alert_key_fields then
+    local not_set = true
+    local silence_alerts = ntop.getCache("ntopng.prefs.silence_multiple_alerts." .. recipient_id) or "1"
+    
+    -- In case the alerts have to be silenced for the endpoint then silence them, otherwise skip
+    if silence_alerts == "1" then
+        if alert_consts.alert_types[alert_id].alert_retention_policy_key  then
+            alert_key_fields = alert_consts.alert_types[alert_id].alert_retention_policy_key(alert_info)
             for _, field in ipairs(alert_key_fields) do
                 alert_key = alert_key .. "."..alert_info[field]
             end
         else
-            return true
+            if not alert_entities[entity_val] then
+                entity_val = alert_consts.alertEntityRaw(entity_id)
+            end
+            alert_key_fields = alert_entities[entity_val].alert_key_fields
+            if (alert_key_fields) then
+                for _, field in ipairs(alert_key_fields) do
+                    alert_key = alert_key .. "."..alert_info[field]
+                end
+            else
+                return not_set
+            end
         end
-    end
 
-    if isEmptyString(alert_key) then
-        return true
-    end
+        if isEmptyString(alert_key) then
+            return not_set
+        end
 
-    local redis_key = string.format("ntopng.cache.alert.retention.%s.%s.%s%s",recipient_id, entity_id, alert_id, alert_key)
-    local not_set = isEmptyString(ntop.getCache(redis_key))
-
-    if not_set then
-        -- Set key with expiration on redis to filter out the same alert for some time
-        -- TODO: 3600 must be update with a user preference
-        ntop.setCache(redis_key,"1", 3600)
+        local redis_key = string.format("ntopng.cache.alert.retention.%s.%s.%s%s",recipient_id, entity_id, alert_id, alert_key)
+        not_set = isEmptyString(ntop.getCache(redis_key))
+        
+        if not_set then
+            -- Set key with expiration on redis to filter out the same alert for some time
+            -- TODO: 3600 must be update with a user preference
+            ntop.setCache(redis_key,"1", 3600)
+        end
     end
 
     return not_set -- true to send the alert, false to suppress this alert until the key expires
