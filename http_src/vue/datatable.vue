@@ -197,6 +197,11 @@ function get_table_default_menu() {
     return $($(".row .text-end", table_wrapper).children()[0]);;
 }
 
+function search_value(value_to_search) {
+	if (table == null) { return; }
+	table.search(value_to_search).draw();
+}
+
 let table_default_menu = null;
 function load_table_menu() {
     if (table_default_menu == null) {
@@ -248,7 +253,7 @@ const is_last_sorting_available = (id) => {
 	return load_last_sort(id) != null;
 }
 
-defineExpose({ reload, delete_button_handlers, destroy_table, update_url, refresh_menu, is_last_sorting_available, load_last_sort, save_last_sort });
+defineExpose({ reload, delete_button_handlers, destroy_table, update_url, refresh_menu, is_last_sorting_available, load_last_sort, save_last_sort, search_value });
 
 onBeforeUnmount(() => {
     if (is_destroyed == true) { return; }

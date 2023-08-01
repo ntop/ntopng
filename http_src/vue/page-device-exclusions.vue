@@ -47,7 +47,7 @@
         </div>
       </div>
       <div class="card-footer">
-        <button type="button" id='btn-delete-all-devices' class="btn btn-danger">
+        <button type="button" id='btn-delete-all-devices' class="btn btn-danger me-1">
           <i class='fas fa-trash'></i> {{ i18n("edit_check.delete_all_device_exclusions") }}
         </button>
         <button type="button" id='btn-edit-all-devices-status'  class="btn btn-secondary">
@@ -85,6 +85,11 @@ export default {
 	start_datatable(this);
     },
     mounted() {
+      const mac = ntopng_url_manager.get_url_entry("mac");
+      if(mac) {
+        const table = this.get_active_table();
+        table.search_value(mac)
+      }
       this.learning_status();
       $("#btn-delete-all-devices").click(() => this.show_delete_all_dialog());
       $("#btn-edit-all-devices-status").click(() => this.show_edit_all_dialog());
