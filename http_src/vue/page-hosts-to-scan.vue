@@ -9,7 +9,7 @@
 
         <div class="card-body">
           <div id="hosts_to_scan">
-            <ModalDeleteConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete" @delete="delete_row">
+            <ModalDeleteConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete" @delete="delete_row" @delete_all="delete_all_rows">
             </ModalDeleteConfirm>
             <TableWithConfig ref="table_hosts_to_scan" :table_id="table_id" :csrf="context.csrf"
               :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
@@ -35,6 +35,8 @@
   </div>
   <ModalAddHostToScan ref="modal_add" :context="context" @add="add_host_rest" @edit="edit">
   </ModalAddHostToScan>
+  <ModalShowHostVSResult ref="modal_vs_result" :context="context">
+  </ModalShowHostVSResult>
 </template>
   
 <script setup>
@@ -45,6 +47,7 @@ import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
 import { default as ModalAddHostToScan } from "./modal-add-host-to-scan.vue";
+import { default as ModalShowHostVSResult } from "./modal-show-host-vs-result.vue";
 
 /* ******************************************************************** */ 
 
@@ -58,6 +61,7 @@ let body_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_description');
 const table_hosts_to_scan = ref();
 const modal_delete_confirm = ref();
 const modal_add = ref();
+const modal_vs_result = ref();
 
 const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
 const remove_host_url = `${http_prefix}/lua/rest/v2/delete/host/delete_host_to_scan.lua`;
@@ -77,6 +81,7 @@ const rest_params = {
 };
 const context = ref({
   csrf: props.context.csrf,
+  ifid: props.context.ifid
 });
 
 /* ******************************************************************** */ 
@@ -110,6 +115,7 @@ function on_table_custom_event(event) {
     "click_button_delete": click_button_delete,
     "click_button_scan": click_button_scan,
     "click_button_download": click_button_download,
+    "click_button_show_result": click_button_show_result,
   };
   if (events_managed[event.event_id] == null) {
     return;
@@ -120,7 +126,7 @@ function on_table_custom_event(event) {
 /* Function to handle delete button */
 async function click_button_delete(event) {
   row_to_delete.value = event.row;
-  await delete_row();
+  modal_delete_confirm.value.show("single_row",i18n("delete_vs_host"));  
 }
 
 /* Function to handle scan button */
@@ -140,7 +146,7 @@ function click_button_edit_host(event) {
 
 /* Function to delete all entries */
 function delete_all_entries() {
-  modal_delete.value.show('all', i18n('delete_all_inactive_hosts'));
+  modal_delete_confirm.value.show('all', i18n('delete_all_vs_hosts'));
 }
 
 /* Function to edit host to scan */
@@ -173,15 +179,33 @@ const map_table_def_columns = (columns) => {
       } else if (last_scan !== undefined) {
         return last_scan;
       } else {
-        return "";
+        return i18n("hosts_stats.page_scan_hosts.not_yet");
+      }
+    },
+
+    "duration": (last_scan, row) => {
+      if (row.last_scan !== undefined && row.last_scan.duration !== undefined) {
+        return row.last_scan.duration;
+      } else {
+        return i18n("hosts_stats.page_scan_hosts.not_yet");
       }
     },
     "is_ok_last_scan": (is_ok_last_scan) => {
-      if (is_ok_last_scan) {
-        return `<i class="fas fa-check text-success"></i>`
+      let label = ""
+      if (is_ok_last_scan == 4) {
+        label = i18n("hosts_stats.page_scan_hosts.in_progress");
+        return `<span class="badge bg-warning" title="${label}">${label}</span>`;
+      } else if (is_ok_last_scan == null) {
+        label = i18n("hosts_stats.page_scan_hosts.not_scanned");
+        return `<span class="badge bg-warning" title="${label}">${label}</span>`;
+      } else if (is_ok_last_scan) {
+        label = i18n("hosts_stats.page_scan_hosts.success");
+        return `<span class="badge bg-success" title="${label}">${label}</span>`;
       } else {
-        return `<i class="fas fa-times text-danger"></i>`
+        label = i18n("hosts_stats.page_scan_hosts.error");
+        return `<span class="badge bg-danger" title="${label}">${label}</span>`;
       }
+      
     }
   }
   columns.forEach((c) => {
@@ -207,7 +231,7 @@ const map_table_def_columns = (columns) => {
 onBeforeMount(async () => {
   await get_scan_type_list();
   // debugger;
-  modal_add.value.metricsLoaded(scan_type_list);
+  modal_add.value.metricsLoaded(scan_type_list, context.ifid);
 })
 
 /* ************************** REST Functions ************************** */
@@ -239,6 +263,7 @@ const scan_row = async function () {
     host: row.host,
     scan_type: row.scan_type,
     scan_single_host: true,
+    scan_ports: row.ports,
 
   })
   await ntopng_utility.http_post_request(url, rest_params);
@@ -252,8 +277,20 @@ const delete_row = async function () {
   const url = NtopUtils.buildURL(remove_host_url, {
 
     host: row.host,
-    scan_type: row.scan_type
+    scan_type: row.scan_type,
+    delete_all_scan_hosts: false
 
+  })
+
+  await ntopng_utility.http_post_request(url, rest_params);
+  refresh_table();
+}
+
+
+const delete_all_rows = async function() {
+  const row = row_to_delete.value;
+  const url = NtopUtils.buildURL(remove_host_url, {
+    delete_all_scan_hosts: true
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
@@ -282,6 +319,29 @@ async function click_button_download(event) {
   let url = `${scan_result_url}?${url_params}`;
   ntopng_utility.download_URI(url);
 }
+
+/* ******************************************************************** */ 
+
+/* Function to show last vulnerability scan result */
+async function click_button_show_result(event) {
+  let host = event.row.host;
+  let date = event.row.last_scan.time;
+
+
+  let params = {
+    host: event.row.host,
+    scan_type: event.row.scan_type,
+    scan_return_result: true
+
+  };
+  let url_params = ntopng_url_manager.obj_to_url_params(params);
+
+  let url = `${scan_result_url}?${url_params}`;
+  let result = await ntopng_utility.http_request(url)
+
+  modal_vs_result.value.show(host, date, result.rsp);
+}
+
 
 /* ******************************************************************** */ 
 

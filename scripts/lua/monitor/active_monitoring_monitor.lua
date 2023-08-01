@@ -29,8 +29,8 @@ local host = _GET["am_host"]
 
 local page = _GET["page"] or ('overview')
 local measurement = _GET["measurement"]
-
-local base_url = script_manager.getMonitorUrl("active_monitoring_monitor.lua") .. "?ifid=" .. getInterfaceId(ifname)
+local ifid = getInterfaceId(ifname)
+local base_url = script_manager.getMonitorUrl("active_monitoring_monitor.lua") .. "?ifid=" .. ifid
 local url = base_url
 local info = ntop.getInfo()
 local measurement_info
@@ -134,7 +134,8 @@ elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) 
    graph_utils.drawNewGraphs({ifid = -1, host = host_value})
 elseif (page == "scan_hosts") then
     local json_context = {
-        csrf = ntop.getRandomCSRFValue()
+        csrf = ntop.getRandomCSRFValue(),
+        ifid = ifid
     }
     template.render("pages/vue_page.template", { vue_page_name = "PageHostsToScan", page_context = json.encode(json_context) })
     

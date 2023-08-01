@@ -3,10 +3,7 @@
 <modal @showed="showed()" ref="modal_id">
   <template v-slot:title>{{title}}</template>
   <template v-slot:body>
-    {{body}}
-  </template>
-  <template v-slot:footer>
-    <button type="button" @click="delete_" class="btn btn-danger">{{_i18n('delete')}}</button>
+    <pre><textarea style="width:100%" rows="15" class="mt-3" readonly>{{body}} </textarea></pre>
   </template>
 </modal>
 </template>
@@ -16,7 +13,6 @@ import { ref, onMounted, computed, watch } from "vue";
 import { default as modal } from "./modal.vue";
 
 const modal_id = ref(null);
-const emit = defineEmits(['delete','delete_all']);
 
 const showed = () => {};
 
@@ -26,29 +22,19 @@ const props = defineProps({
 });
 const body = ref('');
 const title = ref('');
-const delete_type = ref('');
+const my_array = ref([]);
 
-const show = (type, value) => {
-    if(type == "all") {
-      title.value = i18n("delete_all_entries");
-      body.value = value;
-      delete_type.value = type
-    } else {
-      title.value = i18n("delete_vs_host_title");
-      body.value = value;
+const show = (host, date, result) => {
+    
+  title.value = i18n("hosts_stats.page_scan_hosts.vs_result").replace("%{host}", host);
+  title.value = title.value.replace("%{date}",date);
 
-    }
-    modal_id.value.show();
+  body.value = result;
+  my_array.value = result.split("|");
+  modal_id.value.show();
 };
 
-const delete_ = () => {
-    if (delete_type.value == "all") {
-      emit('delete_all');
-    } else {
-      emit('delete');
-    }
-    close();
-};
+
 
 const close = () => {
     modal_id.value.close();

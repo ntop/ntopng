@@ -14,6 +14,25 @@
             <input v-model="host"  @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
           </div>
       </div>
+
+      <div  class="form-group ms-2 me-2 mt-3 row">
+          <label class="col-form-label col-sm-2" >
+          <b>{{_i18n("hosts_stats.page_scan_hosts.ports")}}</b>
+          </label>
+            <div class="col-sm-4" >
+            <input v-model="ports" class="form-control" type="text" :placeholder="ports_placeholder" required>
+            </div>
+            <div class="col-sm-3" >
+
+            <button type="button" @click="load_ports" :disabled="disable_add" class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_ports')}}</button>
+            
+            </div>
+            <div class="col-sm-3" >
+
+            <button type="button" @click="load_nmap_ports" :disabled="disable_add"  class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_nmap_ports')}}</button>
+            </div>
+
+      </div>
   
       <div class="form-group ms-2 me-2 mt-3 row">
           <label class="col-form-label col-sm-2" >
@@ -29,8 +48,7 @@
       
     </template>
     <template v-slot:footer>
-      <div class="ms-2 me-2 mt-3">
-
+      <div class="col-11">
       <NoteList
       :note_list="note_list">
       </NoteList>
@@ -52,6 +70,7 @@ import { default as modal } from "./modal.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as NoteList } from "./note-list.vue";
 import regexValidation from "../utilities/regex-validation.js";
+import NtopUtils from "../utilities/ntop-utils";
 /* ****************************************************** */
 
 /* Consts */
@@ -59,16 +78,26 @@ const modal_id = ref(null);
 const selected_scan_type = ref(null);
 const emit = defineEmits(['add','edit']);
 let title = i18n('hosts_stats.page_scan_hosts.add_host');
-const host_placeholder = i18n('hosts_stats.page_scan_hosts.host_placeholder')
+const host_placeholder = i18n('hosts_stats.page_scan_hosts.host_placeholder');
+const ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
+
+const resolve_host_name_url = `${http_prefix}/lua/rest/v2/get/host/resolve_host_name.lua`;
+const server_ports = `${http_prefix}/lua/iface_ports_list.lua`; // ?clisrv=server&ifid=2&host=192.168.2.39
+const nmap_server_ports = `${http_prefix}/lua/rest/v2/get/host/ports_by_nmap.lua`;
+
 const _i18n = (t) => i18n(t);
-const disable_add = ref(true)
-const is_edit_page = ref(false)
+const disable_add = ref(false);
+const is_edit_page = ref(false);
 const note_list = [
   _i18n('hosts_stats.page_scan_hosts.notes.note_1'),
-  _i18n('hosts_stats.page_scan_hosts.notes.note_2')
-]
-const scan_type_list = ref([])
-const host = ref(null)
+  _i18n('hosts_stats.page_scan_hosts.notes.note_2'),
+  _i18n('hosts_stats.page_scan_hosts.notes.note_3')
+
+];
+const scan_type_list = ref([]);
+const ifid = ref(null);
+const host = ref(null);
+const ports = ref(null);
 const showed = () => {};
 const props = defineProps({
   context: Object,
@@ -81,6 +110,7 @@ const props = defineProps({
  */
 const reset_modal_form = function() {
     host.value = "";
+    ports.value = "";
     selected_scan_type.value = scan_type_list.value[0];
 }
 
@@ -98,6 +128,7 @@ const set_row_to_edit = (row) => {
 
       //set host
     host.value = row.host;
+    ports.value = row.ports;
     
     scan_type_list.value.forEach((item) => {
     if (item.id == row.scan_type) {
@@ -119,9 +150,17 @@ const show = (row) => {
 };
 
 
-const check_empty_host = () => {
-  let regex = new RegExp(regexValidation.get_data_pattern('ip'));
-  disable_add.value = !(regex.test(host.value));
+const check_empty_host = async () => {
+   
+}
+
+async function resolve_host_name(host) {
+  const url = NtopUtils.buildURL(resolve_host_name_url, {
+        host: host
+      })
+
+  const result = await ntopng_utility.http_request(url);
+  return result
 }
 
 
@@ -130,8 +169,9 @@ const check_empty_host = () => {
 /**
  * Function to add host to scan
  */
-const add_ = (is_edit) => {
+const add_ = async (is_edit) => {
   let tmp_host = host.value;
+  let tmp_ports = ports.value;
   const tmp_scan_type = selected_scan_type.value.id;
 
   
@@ -140,14 +180,67 @@ const add_ = (is_edit) => {
   if(is_edit == true) 
     emit_name = 'edit';
 
-  
-  emit(emit_name, { 
+
+    // FIX validation
+  let regex = new RegExp(regexValidation.get_data_pattern('ip'));
+
+  let verify_host_name = false;
+  if ((!(regex.test(host.value))) == true) {
+    if (host.value != "") {
+
+      verify_host_name = true;
+      
+    } else {
+      disable_add.value = true;
+    }
+  } else {
+    disable_add.value = false;
+  }
+
+
+  if (verify_host_name) {
+    let result = await resolve_host_name(host.value);
+    console.log(result);
+    disable_add.value = result == "no_success";
+  }
+
+  if (!(disable_add.value)) {
+    emit(emit_name, { 
       host: tmp_host, 
       scan_type: tmp_scan_type, 
-  });
+      scan_ports: tmp_ports,
+    });
+    
+    close();
+  }
+
   
-  close();
 };
+
+async function load_ports() {
+  const url = NtopUtils.buildURL(server_ports, {
+        host: host.value,
+        ifid: ifid.value,
+        scan_ports_rsp: true,
+        clisrv: "server"
+      })
+
+  const result = await ntopng_utility.http_request(url);
+  if (result != null) {
+    ports.value = result.map((x) => x.key).join(',');
+  } else {
+    ports.value = "";
+  }
+}
+
+async function load_nmap_ports() {
+  const url = NtopUtils.buildURL(nmap_server_ports, {
+    host: host.value
+  })
+
+  const result = await ntopng_utility.http_request(url);
+  ports.value = result.map((x) => x.key).join(',');
+}
 
 
 const edit_ = () => {
@@ -162,8 +255,13 @@ onBeforeMount(async () => {
   selected_scan_type.value = {}
 });  
 
-const metricsLoaded = async (_scan_type_list ) => {
+const metricsLoaded = async (_scan_type_list, _ifid ) => {
   scan_type_list.value = _scan_type_list;
+  ifid.value = _ifid;
+
+  let scan_types = scan_type_list.value;
+  scan_types.sort((a,b) => a.label.localeCompare(b.label));
+  scan_type_list.value = scan_types;
   selected_scan_type.value = scan_type_list.value[0];
 }
     
