@@ -9,7 +9,7 @@
 
         <div class="card-body">
           <div id="hosts_to_scan">
-            <ModalDeleteConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete" @delete="delete_row" @delete_all="delete_all_rows">
+            <ModalDeleteConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete" @delete="delete_row" @delete_all="delete_all_rows" @scan_row="scan_row" @scan_all_rows="scan_all_entries">
             </ModalDeleteConfirm>
             <TableWithConfig ref="table_hosts_to_scan" :table_id="table_id" :csrf="context.csrf"
               :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
@@ -25,7 +25,7 @@
             <button type="button" ref="delete_all" @click="delete_all_entries" class="btn btn-danger me-1"><i
                 class='fas fa-trash'></i> {{ _i18n("delete_all_entries") }}</button>
 
-            <button type="button" ref="scan_all" @click="scan_all_entries" class="btn btn-primary me-1"><i
+            <button type="button" ref="scan_all" @click="confirm_scan_all_entries" class="btn btn-primary me-1"><i
                 class='fas fa-search'></i> {{ _i18n("hosts_stats.page_scan_hosts.schedule_all_scan") }}</button>
 
           </div>
@@ -126,13 +126,13 @@ function on_table_custom_event(event) {
 /* Function to handle delete button */
 async function click_button_delete(event) {
   row_to_delete.value = event.row;
-  modal_delete_confirm.value.show("single_row",i18n("delete_vs_host"));  
+  modal_delete_confirm.value.show("delete_single_row",i18n("delete_vs_host"));  
 }
 
 /* Function to handle scan button */
 async function click_button_scan(event) {
   row_to_scan.value = event.row;
-  await scan_row();
+  modal_delete_confirm.value.show("scan_row",i18n("scan_host"));  
 }
 
 /* Function to handle edit button */
@@ -146,7 +146,7 @@ function click_button_edit_host(event) {
 
 /* Function to delete all entries */
 function delete_all_entries() {
-  modal_delete_confirm.value.show('all', i18n('delete_all_vs_hosts'));
+  modal_delete_confirm.value.show('delete_all', i18n('delete_all_vs_hosts'));
 }
 
 /* Function to edit host to scan */
@@ -256,6 +256,12 @@ const get_scan_type_list = async function () {
   scan_type_list = result.rsp;
 }
 
+
+const confirm_scan_all_entries = function() {
+  modal_delete_confirm.value.show("scan_all_rows",i18n("scan_all_hosts"));  
+
+}
+
 /* Function to exec the vulnerability scan of a single host */
 const scan_row = async function () {
   const row = row_to_scan.value;
@@ -264,11 +270,18 @@ const scan_row = async function () {
     scan_type: row.scan_type,
     scan_single_host: true,
     scan_ports: row.ports,
-
   })
   await ntopng_utility.http_post_request(url, rest_params);
   refresh_table();
+}
 
+/* Function to exec a vulnerability scan to all hosts set */
+async function scan_all_entries() {
+  const url = NtopUtils.buildURL(scan_host_url, {
+    scan_single_host: false,
+  })
+  await ntopng_utility.http_post_request(url, rest_params);
+  refresh_table();
 }
 
 /* Function to delete host to scan */
@@ -297,16 +310,7 @@ const delete_all_rows = async function() {
   refresh_table();
 }
 
-/* Function to exec a vulnerability scan to all hosts set */
-async function scan_all_entries() {
-  const url = NtopUtils.buildURL(scan_host_url, {
 
-    scan_single_host: false,
-
-  })
-  await ntopng_utility.http_post_request(url, rest_params);
-  refresh_table();
-}
 
 /* Function to download last vulnerability scan result */
 async function click_button_download(event) {

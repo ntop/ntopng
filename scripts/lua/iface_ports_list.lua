@@ -84,10 +84,19 @@ if rsp_resp then
             port_details[#port_details+1] = str
          end
 
-         res[#res+1] = {
-            key = port_details[2],
-            value = port_details[2]
-         }
+         local already_set = false
+         for _,item in ipairs(res) do 
+            if item == port_details[2] then
+               already_set = true
+               break
+            end
+         end
+         if not already_set then
+            res[#res+1] = {
+               key = port_details[2],
+               value = port_details[2]
+            }
+         end
       end
    
 
