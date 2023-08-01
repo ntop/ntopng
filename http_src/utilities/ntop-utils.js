@@ -1193,6 +1193,7 @@ export default class NtopUtils {
 
     /* Country */
     let country_obj = is_client ? row.cli_country : row.srv_country;
+    if (!country_obj && row.country) country_obj = row.country;
     if (country_obj && country_obj.value)
       label += ` <img src="${http_prefix}/dist/images/blank.gif" class="flag flag-${country_obj.value.toLowerCase()}" title="${country_obj.title}"></a>`;
 

@@ -977,6 +977,7 @@ local flow_columns = {
    ['NTOPNG_INSTANCE_NAME'] = {},
    ['INTERFACE_ID'] =         { tag = "interface_id" },
    ['STATUS'] =               { tag = "alert_id",       dt_func = dt_format_flow_alert_id, format_func = format_flow_alert_id, i18n = i18n("status"), simple_dt_func = format_flow_alert_id , order = 8 },
+   ['COUNTRY_CODE'] =         { tag = "country", dt_func = dt_format_country },
    ['SRC_COUNTRY_CODE'] =     { tag = "cli_country", dt_func = dt_format_country },
    ['DST_COUNTRY_CODE'] =     { tag = "srv_country", dt_func = dt_format_country },
    ['SRC_LABEL'] =            { tag = "cli_name" },
