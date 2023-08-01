@@ -271,7 +271,7 @@ end
 
 -- #####################################
 
-local function dt_format_ip(ip, name, location, prefix, record)
+local function dt_format_ip_common(ip, name, location, prefix, record)
    local vlan_id = tonumber(record["VLAN_ID"] or "0")
 
    -- IP
@@ -299,6 +299,21 @@ end
 
 -- #####################################
 
+local function dt_format_ip(ip, record, column_name)
+   if column_name == 'IPV4_ADDR' and (
+      (record['IP_PROTOCOL_VERSION'] and record['IP_PROTOCOL_VERSION'] ~= '4') or 
+      (record['IP_PROTOCOL_VERSION'] == nil and ip == '0.0.0.0')) 
+      then return nil end
+   if column_name == 'IPV6_ADDR' and (
+      (record['IP_PROTOCOL_VERSION'] and record['IP_PROTOCOL_VERSION'] ~= '6') or 
+      (record['IP_PROTOCOL_VERSION'] == nil and ip == '::')) 
+      then return nil end
+
+   return dt_format_ip_common(ip, record["HOST_LABEL"] or "", record["SERVER_LOCATION"], "srv", record)
+end
+
+-- #####################################
+
 local function dt_format_dst_ip(ip, record, column_name)
    if column_name == 'IPV4_DST_ADDR' and (
       (record['IP_PROTOCOL_VERSION'] and record['IP_PROTOCOL_VERSION'] ~= '4') or 
@@ -309,7 +324,7 @@ local function dt_format_dst_ip(ip, record, column_name)
       (record['IP_PROTOCOL_VERSION'] == nil and ip == '::')) 
       then return nil end
 
-   return dt_format_ip(ip, record["DST_LABEL"] or "", record["SERVER_LOCATION"], "srv", record)
+   return dt_format_ip_common(ip, record["DST_LABEL"] or "", record["SERVER_LOCATION"], "srv", record)
 end
 
 -- #####################################
@@ -324,7 +339,7 @@ local function dt_format_src_ip(ip, record, column_name)
       (record['IP_PROTOCOL_VERSION'] == nil and ip == '::'))
       then return nil end
 
-   return dt_format_ip(ip, record["SRC_LABEL"] or "", record["CLIENT_LOCATION"], "cli", record)
+   return dt_format_ip_common(ip, record["SRC_LABEL"] or "", record["CLIENT_LOCATION"], "cli", record)
 end
 
 -- #####################################
@@ -701,6 +716,14 @@ end
 
 -- #####################################
 
+local function simple_format_ip(value, record)
+   if not isEmptyString(record["HOST_LABEL"]) then
+      record["label"] = shortenString(record["HOST_LABEL"], 12)
+   end
+end
+
+-- #####################################
+
 local function simple_format_src_ip(value, record)
    if not isEmptyString(record["SRC_LABEL"]) then
       record["label"] = shortenString(record["SRC_LABEL"], 12)
@@ -851,17 +874,19 @@ local function dt_add_filter(record)
    local rules = {}
 
    if record["IP_PROTOCOL_VERSION"] and tonumber(record["IP_PROTOCOL_VERSION"]) == 4 then
-      rules[#rules+1] = "host " .. record["IPV4_SRC_ADDR"]
-      rules[#rules+1] = "host " .. record["IPV4_DST_ADDR"]
+      if record["IPV4_SRC_ADDR"] then rules[#rules+1] = "host " .. record["IPV4_SRC_ADDR"] end
+      if record["IPV4_DST_ADDR"] then rules[#rules+1] = "host " .. record["IPV4_DST_ADDR"] end
    elseif record["IP_PROTOCOL_VERSION"] and tonumber(record["IP_PROTOCOL_VERSION"]) == 6 then
-      rules[#rules+1] = "host " .. record["IPV6_SRC_ADDR"]
-      rules[#rules+1] = "host " .. record["IPV6_DST_ADDR"]
+      if record["IPV6_SRC_ADDR"] then rules[#rules+1] = "host " .. record["IPV6_SRC_ADDR"] end
+      if record["IPV6_DST_ADDR"] then rules[#rules+1] = "host " .. record["IPV6_DST_ADDR"] end
    end
 
    if record["IP_SRC_PORT"] and tonumber(record["IP_SRC_PORT"]) > 0 then
       rules[#rules+1] = "port " .. record["IP_SRC_PORT"] 
-      rules[#rules+1] = "port " .. record["IP_DST_PORT"] 
    end 
+   if record["IP_DST_PORT"] and tonumber(record["IP_DST_PORT"]) > 0 then
+      rules[#rules+1] = "port " .. record["IP_DST_PORT"] 
+   end
 
    record["filter"] = {
       epoch_begin = tonumber(record["FIRST_SEEN"] or 0),
@@ -936,6 +961,8 @@ local flow_columns = {
    ['SRC2DST_DSCP'] =         { tag = "src2dst_dscp", dt_func = dt_format_dscp, simple_dt_func = dscp_consts.dscp_class_descr },
    ['DST2SRC_DSCP'] =         { tag = "dst2src_dscp", dt_func = dt_format_dscp, simple_dt_func = dscp_consts.dscp_class_descr },
    ['PROTOCOL'] =             { tag = "l4proto",      dt_func = dt_format_l4_proto, simple_dt_func = l4_proto_to_string },
+   ['IPV4_ADDR'] =            { tag = "ip",           dt_func = dt_format_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_ip },
+   ['IPV6_ADDR'] =            { tag = "ip",           dt_func = dt_format_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_ip },
    ['IPV4_SRC_ADDR'] =        { tag = "cli_ip",       dt_func = dt_format_src_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_src_ip },
    ['IPV6_SRC_ADDR'] =        { tag = "cli_ip",       dt_func = dt_format_src_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_src_ip },
    ['IP_SRC_PORT'] =          { tag = "cli_port",     dt_func = dt_format_port },
@@ -1012,6 +1039,8 @@ local aggregated_flow_columns = {
    ['SRC2DST_BYTES'] =        { tag = "src2dst_bytes",        dt_func = dt_format_bytes, js_chart_func = "bytesToSize"  },
    ['DST2SRC_BYTES'] =        { tag = "dst2src_bytes",        dt_func = dt_format_bytes, js_chart_func = "bytesToSize"  },
    ['PROTOCOL'] =             { tag = "l4proto",      dt_func = dt_format_l4_proto, simple_dt_func = l4_proto_to_string },
+   ['IPV4_ADDR'] =            { tag = "cli_ip",       dt_func = dt_format_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_ip },
+   ['IPV6_ADDR'] =            { tag = "cli_ip",       dt_func = dt_format_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_ip },
    ['IPV4_SRC_ADDR'] =        { tag = "cli_ip",       dt_func = dt_format_src_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_src_ip },
    ['IPV6_SRC_ADDR'] =        { tag = "cli_ip",       dt_func = dt_format_src_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_src_ip },
    ['IPV4_DST_ADDR'] =        { tag = "srv_ip",       dt_func = dt_format_dst_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_dst_ip },
