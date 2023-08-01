@@ -7,7 +7,12 @@
   </DateTimeRangePicker>
   
   <template v-for="c in components">
-    <Box :title="_i18n(c.i18n_name)" :col_width="c.width" :col_height="c.height">
+    <Box :title="_i18n(c.i18n_name)" 
+         :title_gray="c.time_offset ? _i18n('dashboard.time_ago.' + c.time_offset) : ''"
+         :col_width="c.width" 
+         :col_height="c.height"
+         :epoch_begin="c.epoch_begin"
+         :epoch_end="c.epoch_end">
       <template v-slot:box_content>
         <component :is="components_dict[c.component]"
 		   :id="c.component_id"
