@@ -721,9 +721,12 @@ end
 local function loadAndCheckScript(mod_fname, full_path, script, script_type, subdir, return_all, scripts_filter,
     hook_filter)
     local setup_ok = true
-
+    
     -- Recheck the edition as the demo mode may expire
     if script then
+        if (script.setup and script.setup() == false) then
+            return (nil)
+        end
         if (script.edition == "pro" and not ntop.isPro()) or
             ((script.edition == "enterprise_l" or script.edition == "enterprise_m") and not ntop.isEnterpriseM()) or
             (script.edition == "enterprise_l" and not ntop.isEnterpriseL()) then

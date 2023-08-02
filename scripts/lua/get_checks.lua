@@ -47,7 +47,7 @@ for _, subdir in ipairs(subdirs) do
 
    -- ################################################
 
-   local scripts = checks.load(getSystemInterfaceId(), script_type, subdir, {return_all = true})
+   local scripts = checks.load(getSystemInterfaceId(), script_type, subdir, {return_all = false})
 
   for script_name, script in pairs(scripts.modules) do
     if script.gui and script.gui.i18n_title and script.gui.i18n_description then
