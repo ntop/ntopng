@@ -4165,6 +4165,7 @@ local lang = {
       ["show_result"] = "Show Last Result",
       ["success"] = "Success",
       ["title"] = "Hosts to Scan",
+      ["unknown_host"] = "Unknown host.",
       ["vs_result"] = "Vulnerability Scan of %{host} at %{date}",
       ["notes"] = {
         ["note_1"] = "Host: host IP to scan.",

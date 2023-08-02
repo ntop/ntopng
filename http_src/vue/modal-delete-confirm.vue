@@ -36,29 +36,22 @@ const delete_type = ref('');
 
 const show = (type, value) => {
 
-  console.log(type)
   delete_type.value = type
 
     if(type == "delete_all") {
       title.value = i18n("delete_all_entries");
       body.value = value;
-
-      console.log(title.value);
-      console.log(body.value);
     } else if(type == "delete_single_row") {
       title.value = i18n("delete_vs_host_title");
       body.value = value;
-
     } else if(type == "scan_all_rows") {
       title.value = i18n("scan_all_hosts_title");
       body.value = value;
-
     } else if(type == "scan_row") {
       title.value = i18n("scan_host_title");
       body.value = value;
-
-
     }
+    
     modal_id.value.show();
 };
 

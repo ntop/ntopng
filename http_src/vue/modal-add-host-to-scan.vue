@@ -27,14 +27,15 @@
       </div>
       <div  class="form-group ms-2 me-2 mt-3 row">
 
-      <div class="col-sm-9"></div>
-      <div class="col-sm-3">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-3">
 
-        <button type="button"  :disabled="disable_add" class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_ports')}}</button>
-        <Spinner :show="disable_add" size="1rem" class="ms-1"></Spinner>
-            <a class="ntopng-truncate" :title="disable_add"></a>
+          <button type="button" @click="load_ports" :disabled="disable_add" class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_ports')}}</button>
+          <Spinner :show="disable_add" size="1rem" class="ms-1"></Spinner>
+              <a class="ntopng-truncate" :title="disable_add"></a>
 
         </div>
+        <div class="col-sm-3 mt-1">{{ message_feedback }}</div>
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
           <label class="col-form-label col-sm-2" >
@@ -89,6 +90,7 @@ const emit = defineEmits(['add','edit']);
 let title = i18n('hosts_stats.page_scan_hosts.add_host');
 const host_placeholder = i18n('hosts_stats.page_scan_hosts.host_placeholder');
 const ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
+const message_feedback = ref('');
 
 const resolve_host_name_url = `${http_prefix}/lua/rest/v2/get/host/resolve_host_name.lua`;
 const server_ports = `${http_prefix}/lua/iface_ports_list.lua`; // ?clisrv=server&ifid=2&host=192.168.2.39
@@ -209,7 +211,6 @@ const add_ = async (is_edit) => {
 
   if (verify_host_name) {
     let result = await resolve_host_name(host.value);
-    console.log(result);
     disable_add.value = result == "no_success";
   }
 
@@ -238,7 +239,9 @@ async function load_ports() {
   const result = await ntopng_utility.http_request(url);
   if (result != null) {
     ports.value = result.filter((x) => typeof x.key === "number").map((x) => x.key).join(',');
+    message_feedback.value = "";
   } else {
+    message_feedback.value = i18n("hosts_stats.page_scan_hosts.unknown_host");
     ports.value = "";
   }
   disable_add.value = false;

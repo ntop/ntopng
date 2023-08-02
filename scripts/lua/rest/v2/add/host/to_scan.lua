@@ -16,6 +16,7 @@ local scan_ports = _GET["scan_ports"]
 
 if isEmptyString(host) or isEmptyString(scan_type) then
     rest_utils.answer(rest_utils.consts.err.bad_content)
+    return
 end
 
 local result = vs_utils.save_host_to_scan(scan_type, host, nil, nil, nil, 5, scan_ports)
