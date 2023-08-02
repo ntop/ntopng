@@ -60,7 +60,7 @@ const delete_ = () => {
       emit('delete_all');
     } else if ( delete_type.value == "delete_single_row") {
       emit('delete');
-    } else if (delete_type.value == "scan_all") {
+    } else if (delete_type.value == "scan_all_rows") {
       emit('scan_all_rows');
     } else if (delete_type.value == "scan_row") {
       emit('scan_row');

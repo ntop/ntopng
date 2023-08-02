@@ -255,7 +255,6 @@ const add_ = async (is_edit) => {
   if (!(disable_add.value)) {
     
     if(is_enterprise_l) {
-      console.log(selected_automatic_scan_frequency.value);
       const a_scan_frequency = selected_automatic_scan_frequency.value.id;
       emit(emit_name, { 
         host: tmp_host, 
