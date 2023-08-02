@@ -8,7 +8,6 @@
 
 <script setup>
 import { ref, onMounted, onBeforeMount, watch } from "vue";
-import { default as BootstrapTable } from "./bootstrap-table.vue";
 import { ntopng_custom_events, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils";
@@ -45,6 +44,6 @@ function init() {
 }
 
 async function refresh_component() {
-  /* Refresh component */
+    /* Refresh component */
 }
 </script>
