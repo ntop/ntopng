@@ -26,8 +26,8 @@ point for building new queries. Please note that:
 
 - Custom SQL code can be also provided:
   - For sections of the query (e.g. select.sql)
-  - For the full query - in this case $WHERE$, $GROUPBY$, $ORDERBY$, $LIMIT$ 
-    tokens can be used to inject conditions and value built from the engine.
+  - For the full query - in this case $FROM$, $WHERE$, $GROUPBY$, $ORDERBY$, $LIMIT$ 
+    tokens can be used to inject conditions and values built from the engine.
 
 Examples
 --------
@@ -102,5 +102,5 @@ Filters examples:
 
 Full query using Custom SQL example (see top_receiver_networks.json):
 
-	"sql" : "SELECT VLAN_ID, NETWORK_ID, SUM(BYTES) AS total_bytes FROM (SELECT VLAN_ID,SRC_NETWORK_ID AS NETWORK_ID, DST2SRC_BYTES AS BYTES FROM flows $WHERE$ AND SRC_NETWORK_ID!=65535 UNION ALL SELECT VLAN_ID,DST_NETWORK_ID AS NETWORK_ID, SRC2DST_BYTES AS BYTES FROM flows $WHERE$ AND DST_NETWORK_ID!=65535) AS f $GROUPBY$ $ORDERBY$ $LIMIT$"
+	"sql" : "SELECT VLAN_ID, NETWORK_ID, SUM(BYTES) AS total_bytes FROM (SELECT VLAN_ID,SRC_NETWORK_ID AS NETWORK_ID, DST2SRC_BYTES AS BYTES $FROM$ $WHERE$ AND SRC_NETWORK_ID!=65535 UNION ALL SELECT VLAN_ID,DST_NETWORK_ID AS NETWORK_ID, SRC2DST_BYTES AS BYTES $FROM$ $WHERE$ AND DST_NETWORK_ID!=65535) AS f $GROUPBY$ $ORDERBY$ $LIMIT$"
 
