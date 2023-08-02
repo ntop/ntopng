@@ -49,10 +49,32 @@
         </div> 
       </div>
 
+      <template v-if="is_enterprise_l == true">
+      <div class="form-group ms-2 me-2 mt-3 row">
+          <label class="col-form-label col-sm-2" >
+          <b>{{_i18n("hosts_stats.page_scan_hosts.automatic_scan")}}</b>
+          </label>
+        <div class="col-10 mt-2">
+          <SelectSearch v-model:selected_option="selected_automatic_scan_frequency"
+                :options="automatic_scan_frequencies_list">
+          </SelectSearch> 
+        </div> 
+      </div>
+
+    </template>
+
+
       <div class="mt-4">
-        <NoteList
-        :note_list="note_list">
-        </NoteList>
+        <template v-if="is_enterprise_l == false">
+          <NoteList
+          :note_list="note_list">
+          </NoteList>
+        </template>
+        <template v-else>
+          <NoteList
+          :note_list="enterprise_note_list">
+          </NoteList>
+        </template>
       </div>
     </template>
 
@@ -103,8 +125,20 @@ const note_list = [
   _i18n('hosts_stats.page_scan_hosts.notes.note_1'),
   _i18n('hosts_stats.page_scan_hosts.notes.note_2'),
   _i18n('hosts_stats.page_scan_hosts.notes.note_3')
-
 ];
+
+const enterprise_note_list = [
+  _i18n('hosts_stats.page_scan_hosts.notes.note_1'),
+  _i18n('hosts_stats.page_scan_hosts.notes.note_2'),
+  _i18n('hosts_stats.page_scan_hosts.notes.note_3'),
+  _i18n('hosts_stats.page_scan_hosts.notes.note_4')
+];
+
+const automatic_scan_frequencies_list = ref([
+  { id: "1day", label:i18n('hosts_stats.page_scan_hosts.every_night')},
+  { id: "1week", label:i18n('hosts_stats.page_scan_hosts.every_week')},
+]);
+const selected_automatic_scan_frequency = ref(automatic_scan_frequencies_list.value[0]);
 const scan_type_list = ref([]);
 const ifid = ref(null);
 const host = ref(null);
@@ -113,6 +147,8 @@ const showed = () => {};
 const props = defineProps({
   context: Object,
 });
+
+const is_enterprise_l = ref(null);
 /* ****************************************************** */
 
 /**
@@ -184,7 +220,6 @@ const add_ = async (is_edit) => {
   let tmp_host = host.value;
   let tmp_ports = ports.value;
   const tmp_scan_type = selected_scan_type.value.id;
-
   
   let emit_name = 'add';
 
@@ -215,11 +250,23 @@ const add_ = async (is_edit) => {
   }
 
   if (!(disable_add.value)) {
-    emit(emit_name, { 
-      host: tmp_host, 
-      scan_type: tmp_scan_type, 
-      scan_ports: tmp_ports,
-    });
+    
+    if(is_enterprise_l) {
+      console.log(selected_automatic_scan_frequency.value);
+      const a_scan_frequency = selected_automatic_scan_frequency.value.id;
+      emit(emit_name, { 
+        host: tmp_host, 
+        scan_type: tmp_scan_type, 
+        scan_ports: tmp_ports,
+        auto_scan_frequency: a_scan_frequency
+      });
+    } else {
+      emit(emit_name, { 
+        host: tmp_host, 
+        scan_type: tmp_scan_type, 
+        scan_ports: tmp_ports,
+      });
+    }
     
     close();
   }
@@ -276,9 +323,10 @@ onBeforeMount(async () => {
   selected_scan_type.value = {}
 });  
 
-const metricsLoaded = async (_scan_type_list, _ifid ) => {
+const metricsLoaded = async (_scan_type_list, _ifid, _is_enterprise_l ) => {
   scan_type_list.value = _scan_type_list;
   ifid.value = _ifid;
+  is_enterprise_l.value = _is_enterprise_l;
 
   let scan_types = scan_type_list.value;
   scan_types.sort((a,b) => a.label.localeCompare(b.label));

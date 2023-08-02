@@ -79,7 +79,8 @@ const rest_params = {
 };
 const context = ref({
   csrf: props.context.csrf,
-  ifid: props.context.ifid
+  ifid: props.context.ifid,
+  is_enterprise_l: props.context.is_enterprise_l
 });
 
 /* ******************************************************************** */ 
@@ -231,7 +232,7 @@ const map_table_def_columns = (columns) => {
 onBeforeMount(async () => {
   await get_scan_type_list();
   // debugger;
-  modal_add.value.metricsLoaded(scan_type_list, context.ifid);
+  modal_add.value.metricsLoaded(scan_type_list, context.ifid, props.context.is_enterprise_l);
 })
 
 /* ************************** REST Functions ************************** */
