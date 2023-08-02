@@ -10,8 +10,13 @@
           <label class="col-form-label col-sm-2" >
           <b>{{_i18n("hosts_stats.page_scan_hosts.host")}}</b>
           </label>
-          <div class="col-sm-10" >
+          <div class="col-sm-8" >
             <input v-model="host" @focusout="load_ports"  @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
+          </div>
+          <div class="col-sm-2" >
+            <SelectSearch v-model:selected_option="selected_cidr"
+                :options="cidr_options_list">
+            </SelectSearch> 
           </div>
       </div>
 
@@ -139,6 +144,15 @@ const automatic_scan_frequencies_list = ref([
   { id: "1day", label:i18n('hosts_stats.page_scan_hosts.every_night')},
   { id: "1week", label:i18n('hosts_stats.page_scan_hosts.every_week')},
 ]);
+
+const cidr_options_list = ref([
+  { id: "24", label:"/24"},
+  { id: "32", label:"/32"},
+  { id: "128", label:"/128"},
+])
+
+const selected_cidr = ref(cidr_options_list.value[0]);
+
 const selected_automatic_scan_frequency = ref(automatic_scan_frequencies_list.value[0]);
 const scan_type_list = ref([]);
 const ifid = ref(null);
@@ -179,11 +193,26 @@ const set_row_to_edit = (row) => {
       //set host
     host.value = row.host;
     ports.value = row.ports;
+
     
     scan_type_list.value.forEach((item) => {
     if (item.id == row.scan_type) {
         selected_scan_type.value = item;
     }
+    })
+
+    if (is_enterprise_l) {
+      automatic_scan_frequencies_list.value.forEach((item) => {
+        if (item.id == row.auto_scan_frequency) {
+          selected_automatic_scan_frequency.value = item;
+        }
+      })
+    }
+
+    cidr_options_list.value.forEach((item) => {
+      if (item.id == row.cidr) {
+        selected_cidr.value = item;
+      }
     })
       
       
@@ -260,6 +289,7 @@ const add_ = async (is_edit) => {
         host: tmp_host, 
         scan_type: tmp_scan_type, 
         scan_ports: tmp_ports,
+        cidr: selected_cidr.value.id,
         auto_scan_frequency: a_scan_frequency
       });
     } else {
@@ -267,6 +297,7 @@ const add_ = async (is_edit) => {
         host: tmp_host, 
         scan_type: tmp_scan_type, 
         scan_ports: tmp_ports,
+        cidr: selected_cidr.value.id,
       });
     }
     
