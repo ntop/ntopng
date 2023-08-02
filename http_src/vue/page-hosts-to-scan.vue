@@ -64,8 +64,8 @@ const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
 const remove_host_url = `${http_prefix}/lua/rest/v2/delete/host/delete_host_to_scan.lua`;
 const scan_host_url = `${http_prefix}/lua/rest/v2/exec/host/schedule_vulnerability_scan.lua`;
 const scan_type_list_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_type_list.lua`;
-const active_monitoring_url = `${http_prefix}/lua/monitor/active_monitoring_monitor.lua`
-
+const active_monitoring_url = `${http_prefix}/lua/monitor/active_monitoring_monitor.lua`;
+const scan_result_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_result.lua`;
 
 const row_to_delete = ref({});
 const row_to_scan = ref({});
@@ -116,11 +116,9 @@ function on_table_custom_event(event) {
     "click_button_download": click_button_download,
     "click_button_show_result": click_button_show_result,
   };
-  if (event.row.is_ok_last_scan == 4 || event.row.is_ok_last_scan == null) {
-    if (event.event_id == "click_button_show_result" || event.event_id == "click_button_download"  ) {
-      return;
+  if (events_managed[event.event_id] == null) {
+        return;
     }
-  }
   events_managed[event.event_id](event);
 }
 
@@ -244,7 +242,6 @@ const add_host_rest = async function (params) {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
-  modal_add.value.close();
   refresh_table();
 }
 
@@ -330,8 +327,9 @@ async function click_button_download(event) {
 
 /* Function to show last vulnerability scan result */
 async function click_button_show_result(event) {
+  console.log(event.row);
   let host = event.row.host;
-  let date = event.row.last_scan.time;
+  let date = "PIPPO";//event.row.last_scan.time;
 
 
   let params = {
