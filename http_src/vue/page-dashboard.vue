@@ -36,6 +36,7 @@ import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng
 
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as SimpleTable } from "./simple-table.vue";
+import { default as EmptyComponent } from "./empty-component.vue";
 import { default as Box } from "./box.vue";
 
 const _i18n = (t) => i18n(t);
@@ -46,6 +47,7 @@ const props = defineProps({
 
 const components_dict = {
     "simple-table": SimpleTable,
+    "empty": EmptyComponent,
 }
 const components = ref([]);
 const page_id = "page-dashboard";

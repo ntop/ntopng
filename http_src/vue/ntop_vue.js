@@ -63,6 +63,7 @@ import { default as Sankey } from "./sankey.vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as Loading } from "./loading.vue";
 import { default as SimpleTable } from "./simple-table.vue";
+import { default as EmptyComponent } from "./empty-component.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -150,6 +151,7 @@ let ntopVue = {
     NoteList: NoteList,
     Loading: Loading,
     SimpleTable: SimpleTable,
+    EmptyComponent: EmptyComponent,
 
     // list
     ListTimeseries: ListTimeseries,
