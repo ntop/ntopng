@@ -18,7 +18,7 @@
                                 <th>{{ i18n('endpoint_notifications.time_since_last_use') }}</th>
                                 <th>{{ i18n('endpoint_notifications.num_uses') }}</th>
                                 <th>{{ i18n('endpoint_notifications.num_drops') }}</th>
-				<th>{{ i18n('endpoint_notifications.fill_pct') }}</th>
+				                <th>{{ i18n('endpoint_notifications.fill_pct') }}</th>
                                 <th>{{ i18n('endpoint_notifications.categories') }}</th>
                                 <th>{{ i18n('endpoint_notifications.entities') }}</th>
                                 <th>{{ i18n('endpoint_notifications.alerts') }}</th>
@@ -462,7 +462,15 @@
             if ($cloned) {
                 $(`#add-recipient-modal form .recipient-template-container`).empty().append($(`<hr>`), $cloned).show();
             }
-
+            $('#add_recipient_alert_select').select2({
+                width: '100%',
+                height: '500px',
+                theme: 'bootstrap-5',
+                dropdownParent: $('#add_recipient_alert_select').parent(),
+                dropdownAutoWidth : true,
+                maximumSelectionLength: 10,
+                placeholder: "{{ i18n('endpoint_notifications.select_alert') }}" 
+            });
         },
         onModalShow: () => {
             // load the template of the selected endpoint
@@ -512,6 +520,15 @@
         onModalInit: function (recipient) {
             $(`#edit-recipient-modal .test-feedback`).hide();
 
+            $('#edit_recipient_alert_select').select2({
+                width: '100%',
+                height: '500px',
+                theme: 'bootstrap-5',
+                dropdownParent: $('#edit_recipient_alert_select').parent(),
+                dropdownAutoWidth : true,
+                maximumSelectionLength: 10,
+                placeholder: "{{ i18n('endpoint_notifications.select_alert') }}"
+            });
             // if there are no recipients params it means there are no inputs except the recipient's name
             if (recipient.recipient_params.length === undefined) {
                 /* load the template from templates inside the page */
@@ -551,8 +568,8 @@
             $(`#edit-recipient-modal form [name='recipient_am_hosts']`).val(recipient.am_hosts);
             $(`#edit-recipient-modal form [name='recipient_am_hosts']`).selectpicker('refresh');
 
-            $(`#edit-recipient-modal form [name='recipient_alerts']`).val(recipient.checks);
-            $(`#edit-recipient-modal form [name='recipient_alerts']`).selectpicker('refresh');
+            const checks_array = recipient.checks || [];
+            $(`#edit_recipient_alert_select`).val(checks_array).trigger('change');
 
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
                 $(this).val(recipient.recipient_params[$(this).attr('name')]);

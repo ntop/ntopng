@@ -1,6 +1,6 @@
 <div class="modal fade" id="edit-recipient-modal" tabindex="-1" role="dialog" aria-labelledby="edit-recipient-modal-title"
     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="edit-recipient-modal-title">{{ i18n("endpoint_notifications.edit_recipient") }}: <span id="edit-recipient-name"></span></h5>
@@ -85,7 +85,7 @@
                                 </li>
                             </ul>
                         </div>
-                        <div id="edit_generic_recipient">
+                        <div id="edit_generic_recipient" style="min-height: 12rem;">
                         <div class="mb-3 row">
                             <label class="col-form-label col-sm-3" for="edit-recipient-severity-select">
                                 <b>{{ i18n("endpoint_notifications.recipient_severity") }}</b>
@@ -126,20 +126,22 @@
                             </div>
                         </div>
                         </div>
-                        <div id="edit_per_alerts_recipient" hidden>
+                        <div id="edit_per_alerts_recipient" style="min-height: 12rem;" hidden>
                             <div class="mb-3 row">
                                 <label class="col-form-label col-sm-3" for="edit_recipient_alert_select">
                                     <b>{{ i18n("endpoint_notifications.alerts") }}</b>
                                 </label>
                                 <div class="col-sm-7">
-                                    <select multiple name="recipient_alerts" class="selectpicker col-sm-12" id="edit_recipient_alert_select">
+                                    <select multiple name="recipient_alerts"  class="select2 form-select" id="edit_recipient_alert_select">
                                         {% for _, entities in pairsByField(checks, "entity_name", asc) do 
-                                            if not table.empty(entities.alert_list) then
+                                             if not table.empty(entities.alert_list) then
                                         %}
-                                            <option disabled aria-disabled="true" tabindex="-1" style="font-size : 12px;">{{ entities.entity_name }}</option>
+                                            <optgroup label="{{ entities.entity_name }}">
                                             {%  for _, alert in pairs(entities.alert_list) do %}
                                             <option value="{{ alert.key .. '_' .. alert.entity_id }}">{{ alert.title }}</option>
-                                            {% end
+                                            {% end %}
+                                            </optgroup>
+                                            {%
                                             end
                                            end 
                                         %}

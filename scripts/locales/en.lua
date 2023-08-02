@@ -2371,6 +2371,7 @@ local lang = {
     ["remove_recipient"] = "Delete Recipient",
     ["remove_recipient_message"] = "Do you really want to delete '%{recipient}' recipient?",
     ["select_type"] = "Select an Endpoint Type",
+    ["select_alert"] = "Select at least an Alert",
     ["server_error"] = "Something went wrong. Try later.",
     ["silence_mul_alerts"] = "Silence Mul. Alerts",
     ["silence_multiple_alerts"] = "Silence Multiple Alerts",
