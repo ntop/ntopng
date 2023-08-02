@@ -31,7 +31,7 @@
         <div class="col-sm-3">
 
           <button type="button" @click="load_ports" :disabled="disable_add" class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_ports')}}</button>
-          <Spinner :show="disable_add" size="1rem" class="ms-1"></Spinner>
+          <Spinner :show="activate_spinner" size="1rem" class="ms-1"></Spinner>
               <a class="ntopng-truncate" :title="disable_add"></a>
 
         </div>
@@ -120,6 +120,7 @@ const nmap_server_ports = `${http_prefix}/lua/rest/v2/get/host/ports_by_nmap.lua
 
 const _i18n = (t) => i18n(t);
 const disable_add = ref(false);
+const activate_spinner = ref(false);
 const is_edit_page = ref(false);
 const note_list = [
   _i18n('hosts_stats.page_scan_hosts.notes.note_1'),
@@ -158,6 +159,8 @@ const is_enterprise_l = ref(null);
 const reset_modal_form = function() {
     host.value = "";
     ports.value = "";
+    disable_add.value = true;
+    activate_spinner.value = false;
     selected_scan_type.value = scan_type_list.value[0];
 }
 
@@ -275,6 +278,7 @@ const add_ = async (is_edit) => {
 };
 
 async function load_ports() {
+  activate_spinner.value = true;
   disable_add.value = true;
   const url = NtopUtils.buildURL(server_ports, {
         host: host.value,
@@ -291,6 +295,7 @@ async function load_ports() {
     message_feedback.value = i18n("hosts_stats.page_scan_hosts.unknown_host");
     ports.value = "";
   }
+  activate_spinner.value = false;
   disable_add.value = false;
 }
 
@@ -307,6 +312,7 @@ async function load_nmap_ports() {
     ports.value = "";
   }
   disable_add.value = false;
+  
 
 }
 
@@ -320,7 +326,8 @@ const close = () => {
 };
 
 onBeforeMount(async () => {
-  selected_scan_type.value = {}
+  disable_add.value = true;
+  selected_scan_type.value = {};
 });  
 
 const metricsLoaded = async (_scan_type_list, _ifid, _is_enterprise_l ) => {
