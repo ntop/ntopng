@@ -13,7 +13,7 @@
           <div class="col-sm-8" >
             <input v-model="host" @focusout="load_ports"  @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
           </div>
-          <div class="col-sm-2" >
+          <div class="col-sm-2" @focusout="load_ports" @focusin="load_ports">
             <SelectSearch v-model:selected_option="selected_cidr"
                 :options="cidr_options_list">
             </SelectSearch> 
@@ -35,7 +35,7 @@
         <div class="col-sm-2"></div>
         <div class="col-sm-3">
 
-          <button type="button" @click="load_ports" :disabled="disable_add" class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_ports')}}</button>
+          <button type="button" @click="load_ports" :disabled="disable_add || disable_load_ports" class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_ports')}}</button>
           <Spinner :show="activate_spinner" size="1rem" class="ms-1"></Spinner>
               <a class="ntopng-truncate" :title="disable_add"></a>
 
@@ -88,11 +88,19 @@
       <template v-slot:footer>
 
       <template v-if="is_edit_page == false">
+      <div>
       <button type="button" @click="add_" class="btn btn-primary"  :disabled="disable_add">{{_i18n('add')}}</button>
-      </template>
+      <Spinner :show="activate_add_spinner" size="1rem" class="ms-1"></Spinner>
+              <a class="ntopng-truncate" :title="disable_add"></a>
+      </div>  
+    </template>
       <template v-else>
+      <div>
       <button type="button" @click="edit_" class="btn btn-primary"  :disabled="disable_add ">{{_i18n('apply')}}</button>
-      </template>
+      <Spinner :show="activate_add_spinner" size="1rem" class="ms-1"></Spinner>
+              <a class="ntopng-truncate" :title="disable_add"></a>
+    </div>
+    </template>
     </template>
 
   </modal>
@@ -125,6 +133,9 @@ const nmap_server_ports = `${http_prefix}/lua/rest/v2/get/host/ports_by_nmap.lua
 
 const _i18n = (t) => i18n(t);
 const disable_add = ref(false);
+const disable_load_ports = ref(false);
+const activate_add_spinner = ref(false);
+
 const activate_spinner = ref(false);
 const is_edit_page = ref(false);
 const note_list = [
@@ -175,6 +186,9 @@ const reset_modal_form = function() {
     ports.value = "";
     disable_add.value = true;
     activate_spinner.value = false;
+    activate_add_spinner.value = false;
+    message_feedback.value = "";
+
     selected_scan_type.value = scan_type_list.value[0];
 }
 
@@ -300,33 +314,47 @@ const add_ = async (is_edit) => {
         cidr: selected_cidr.value.id,
       });
     }
+
+    activate_add_spinner.value = true;
+    disable_add.value = true;
     
-    close();
   }
 
   
 };
 
 async function load_ports() {
-  activate_spinner.value = true;
-  disable_add.value = true;
-  const url = NtopUtils.buildURL(server_ports, {
-        host: host.value,
-        ifid: ifid.value,
-        scan_ports_rsp: true,
-        clisrv: "server"
-      })
 
-  const result = await ntopng_utility.http_request(url);
-  if (result != null) {
-    ports.value = result.filter((x) => typeof x.key === "number").map((x) => x.key).join(',');
-    message_feedback.value = "";
+  if (selected_cidr.value.id != "24") {
+    disable_load_ports.value = false;
+
+    activate_spinner.value = true;
+    disable_add.value = true;
+    const url = NtopUtils.buildURL(server_ports, {
+          host: host.value,
+          ifid: ifid.value,
+          scan_ports_rsp: true,
+          clisrv: "server"
+        })
+
+    const result = await ntopng_utility.http_request(url);
+    if (result != null) {
+      ports.value = result.filter((x) => typeof x.key === "number").map((x) => x.key).join(',');
+      message_feedback.value = "";
+    } else {
+      if (selected_cidr.value.id != "24") {
+        message_feedback.value = i18n("hosts_stats.page_scan_hosts.unknown_host");
+      }
+      ports.value = "";
+    }
+    activate_spinner.value = false;
+    disable_add.value = false;
   } else {
-    message_feedback.value = i18n("hosts_stats.page_scan_hosts.unknown_host");
-    ports.value = "";
+    disable_load_ports.value = true;
+    disable_add.value = false;
+    message_feedback.value = "";
   }
-  activate_spinner.value = false;
-  disable_add.value = false;
+  
 }
 
 async function load_nmap_ports() {

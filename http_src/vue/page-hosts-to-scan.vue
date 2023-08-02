@@ -244,6 +244,7 @@ const add_host_rest = async function (params) {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
+  modal_add.value.close();
   refresh_table();
 }
 
