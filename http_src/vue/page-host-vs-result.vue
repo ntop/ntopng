@@ -1,15 +1,14 @@
 <template>
   <div class="mb-4">{{ title }}</div>
-  <div class="row">
-        <div class="col-md-12 col-lg-12">
-            <div class="card  card-shadow">
+    <div class="row">
+      <div class="col-md-12 col-lg-12">
+        <div class="card  card-shadow">
                 <!-- <Loading ref="loading"></Loading> -->
-                <div class="card-body">
-                <pre>{{ body }}</pre>
-                </div>
-                </div>
-                </div>
-                </div>
+          <div class="card-body" v-html="message_html">
+        </div>
+      </div>
+    </div>
+  </div>
   
 </template>
 
@@ -23,7 +22,9 @@ const modal_id = ref(null);
 const props = defineProps({
   context: Object,
 }); 
-const body = ref('');
+const message = ref('');
+const message_html = ref('');
+
 const title = ref('');
 const my_array = ref([]);
 
@@ -41,7 +42,8 @@ async function get_result(host, scan_type, date) {
 
   let url = `${scan_result_url}?${url_params}`;
   let result = await ntopng_utility.http_request(url);
-  body.value = result.rsp;
+  message.value = result.rsp;
+  message_html.value = `<pre>${message.value}</pre>`;
   title.value = i18n("hosts_stats.page_scan_hosts.vs_result").replace("%{host}", host);
   title.value = title.value.replace("%{date}",date);
 

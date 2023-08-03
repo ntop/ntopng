@@ -4,6 +4,7 @@
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": false,
+	"show_autorefresh": 10,
 	"display_empty_rows": true,
 	"columns": [
 		{
@@ -76,6 +77,25 @@
 			"title_i18n": "hosts_stats.page_scan_hosts.scan_type",
 			"data_field": "scan_type",
 			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
+			"data_field": "num_vulnerabilities_found",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.num_open_ports",
+			"data_field": "num_open_ports",
+			"sortable": true,
+			
 			"class": [
 				"text-nowrap"
 			]

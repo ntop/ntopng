@@ -117,8 +117,8 @@ function on_table_custom_event(event) {
     "click_button_show_result": click_button_show_result,
   };
   if (events_managed[event.event_id] == null) {
-        return;
-    }
+    return;
+  }
   events_managed[event.event_id](event);
 }
 
@@ -242,6 +242,7 @@ const add_host_rest = async function (params) {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
+  modal_add.value.close();
   refresh_table();
 }
 
@@ -327,10 +328,9 @@ async function click_button_download(event) {
 
 /* Function to show last vulnerability scan result */
 async function click_button_show_result(event) {
-  console.log(event.row);
   let host = event.row.host;
-  let date = "PIPPO";//event.row.last_scan.time;
-
+  console.log(event.row);
+  let date = event.row.last_scan.time;
 
   let params = {
     host: host,

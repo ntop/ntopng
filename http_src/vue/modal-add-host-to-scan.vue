@@ -96,7 +96,7 @@
     </template>
       <template v-else>
       <div>
-      <button type="button" @click="edit_" class="btn btn-primary"  :disabled="disable_add ">{{_i18n('apply')}}</button>
+      <button type="button" @click="edit_" class="btn btn-primary"  :disabled="disable_add">{{_i18n('apply')}}</button>
       <Spinner :show="activate_add_spinner" size="1rem" class="ms-1"></Spinner>
               <a class="ntopng-truncate" :title="disable_add"></a>
     </div>
@@ -124,7 +124,7 @@ const selected_scan_type = ref(null);
 const emit = defineEmits(['add','edit']);
 let title = i18n('hosts_stats.page_scan_hosts.add_host');
 const host_placeholder = i18n('hosts_stats.page_scan_hosts.host_placeholder');
-const ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
+let ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
 const message_feedback = ref('');
 
 const resolve_host_name_url = `${http_prefix}/lua/rest/v2/get/host/resolve_host_name.lua`;
@@ -132,7 +132,7 @@ const server_ports = `${http_prefix}/lua/iface_ports_list.lua`; // ?clisrv=serve
 const nmap_server_ports = `${http_prefix}/lua/rest/v2/get/host/ports_by_nmap.lua`;
 
 const _i18n = (t) => i18n(t);
-const disable_add = ref(false);
+const disable_add = ref(true);
 const disable_load_ports = ref(false);
 const activate_add_spinner = ref(false);
 
@@ -188,6 +188,8 @@ const reset_modal_form = function() {
     activate_spinner.value = false;
     activate_add_spinner.value = false;
     message_feedback.value = "";
+    ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
+
 
     selected_scan_type.value = scan_type_list.value[0];
 }
@@ -244,7 +246,24 @@ const show = (row) => {
 
 
 const check_empty_host = async () => {
-   
+
+  let ipv4_regex = /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$/gm;   
+  let ipv6_regex = /^(?:(?:[a-fA-F\d]{1,4}:){7}(?:[a-fA-F\d]{1,4}|:)|(?:[a-fA-F\d]{1,4}:){6}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|:[a-fA-F\d]{1,4}|:)|(?:[a-fA-F\d]{1,4}:){5}(?::(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,2}|:)|(?:[a-fA-F\d]{1,4}:){4}(?:(?::[a-fA-F\d]{1,4}){0,1}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,3}|:)|(?:[a-fA-F\d]{1,4}:){3}(?:(?::[a-fA-F\d]{1,4}){0,2}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,4}|:)|(?:[a-fA-F\d]{1,4}:){2}(?:(?::[a-fA-F\d]{1,4}){0,3}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,5}|:)|(?:[a-fA-F\d]{1,4}:){1}(?:(?::[a-fA-F\d]{1,4}){0,4}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,6}|:)|(?::(?:(?::[a-fA-F\d]{1,4}){0,5}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,7}|:)))(?:%[0-9a-zA-Z]{1,})?$/gm;     
+
+  if (ipv4_regex.test(host.value)) {
+    const ip_parts = host.value.split(".");
+    const last_part = ip_parts[3];
+
+    if (last_part != "0") {
+      selected_cidr.value = cidr_options_list.value[1];
+    }
+    disable_add.value = false;
+  } else if (ipv6_regex.test(host.value)) {
+    selected_cidr.value = cidr_options_list.value[2];
+    disable_add.value = false;
+
+  } 
+  
 }
 
 async function resolve_host_name(host) {
@@ -271,7 +290,6 @@ const add_ = async (is_edit) => {
 
   if(is_edit == true) 
     emit_name = 'edit';
-
 
     // FIX validation
   let regex = new RegExp(regexValidation.get_data_pattern('ip'));
@@ -325,11 +343,15 @@ const add_ = async (is_edit) => {
 
 async function load_ports() {
 
+  if (host.value != "")
+    ports_placeholder = "";
+  else 
+    ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
+
   if (selected_cidr.value.id != "24") {
     disable_load_ports.value = false;
 
     activate_spinner.value = true;
-    disable_add.value = true;
     const url = NtopUtils.buildURL(server_ports, {
           host: host.value,
           ifid: ifid.value,
@@ -348,31 +370,14 @@ async function load_ports() {
       ports.value = "";
     }
     activate_spinner.value = false;
-    disable_add.value = false;
   } else {
     disable_load_ports.value = true;
-    disable_add.value = false;
     message_feedback.value = "";
   }
   
 }
 
-async function load_nmap_ports() {
-  disable_add.value = true;
-  const url = NtopUtils.buildURL(nmap_server_ports, {
-    host: host.value
-  })
 
-  const result = await ntopng_utility.http_request(url);
-  if (result != null) {
-    ports.value = result.map((x) => x.key).join(',');
-  } else {
-    ports.value = "";
-  }
-  disable_add.value = false;
-  
-
-}
 
 
 const edit_ = () => {
@@ -384,7 +389,6 @@ const close = () => {
 };
 
 onBeforeMount(async () => {
-  disable_add.value = true;
   selected_scan_type.value = {};
 });  
 

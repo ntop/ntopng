@@ -756,6 +756,203 @@
         }
       }
     },
+    "/lua/rest/v2/add/host/to_scan.lua" : {
+      "post": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Add host to vulnerability scan hosts list",
+        "description": "Add Host to Scan",
+        "operationId": "add_host_to_scan",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "formData",
+            "description": "Host address",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "scan_type",
+            "in": "formData",
+            "description": "Vulnerability Scan Type",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "scan_ports",
+            "in": "formData",
+            "description": "Comma separeted ports list",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "scan_frequency",
+            "in": "formData",
+            "description": "Automatic Vulnerability Scan Frequency",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          },
+          "-8": {
+            "description": "BAD_CONTENT"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/to_scan_list.lua" : {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Retrieves vulnerability scan hosts list",
+        "description": "Get Hosts to Scan",
+        "operationId": "get_hosts_to_scan",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          },
+          "-8": {
+            "description": "BAD_CONTENT"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/vulnerability_scan_type_list.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Retrieves vulnerability scan types list",
+        "description": "Get Scan Types List",
+        "operationId": "get_scan_types_list",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/exec/host/schedule_vulnerability_scan.lua": {
+      "post": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Delete host from vulnerability scan hosts list",
+        "description": "Delete Host to Scan",
+        "operationId": "delete_host_to_scan",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "formData",
+            "description": "Host address",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "scan_type",
+            "in": "formData",
+            "description": "Vulnerability Scan Type",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "scan_ports",
+            "in": "formData",
+            "description": "Comma separeted ports list",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name":"scan_single_host",
+            "in": "formData",
+            "description": "Boolean to a single or all hosts",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          },
+          "-8": {
+            "description": "BAD_CONTENT"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/host/delete_host_to_scan.lua": {
+      "post": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Delete host from vulnerability scan hosts list",
+        "description": "Delete Host to Scan",
+        "operationId": "delete_host_to_scan",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "formData",
+            "description": "Host address",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "scan_type",
+            "in": "formData",
+            "description": "Vulnerability Scan Type",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name":"delete_all_scan_hosts",
+            "in": "formData",
+            "description": "Boolean to delete all hosts to scan",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          },
+          "-8": {
+            "description": "BAD_CONTENT"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/trigger/host/alert.lua": {
       "get": {
         "tags": [
