@@ -7,6 +7,10 @@
     <div class="col-md-12 col-lg-12">
       <div class="card  card-shadow">
         <div class="card-body">
+          <div v-if="autorefresh" class="alert alert-info alert-dismissable">
+            <span class="spinner-border spinner-border-sm text-info me-1"></span> 
+            <span> {{ _i18n('scan_in_progress') }}</span>
+          </div>
           <div id="hosts_to_scan">
             <ModalDeleteConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete" @delete="delete_row" @delete_all="delete_all_rows" @scan_row="scan_row" @scan_all_rows="scan_all_entries">
             </ModalDeleteConfirm>
@@ -51,7 +55,7 @@ import { default as ModalAddHostToScan } from "./modal-add-host-to-scan.vue";
 /* Consts */ 
 const _i18n = (t) => i18n(t);
 
-let autorefresh = false;
+let autorefresh = ref(false);
 
 const table_id = ref('hosts_to_scan');
 let title_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_title');
@@ -100,7 +104,7 @@ function refresh_table() {
   /* It's important to set autorefresh to false, in this way when refreshed 
      all the entries are going to be checked and if all of them are not scanning it stays false
    */
-  autorefresh = false;
+  autorefresh.value = false;
     
   table_hosts_to_scan.value.refresh_table();
 }
@@ -212,7 +216,7 @@ async function edit(params) {
 }
 
 function check_autorefresh() {
-  if(autorefresh == true) {
+  if(autorefresh.value == true) {
     refresh_table();
   }
 }
@@ -264,18 +268,18 @@ const map_table_def_columns = (columns) => {
     "is_ok_last_scan": (is_ok_last_scan) => {
       let label = ""
       if (is_ok_last_scan == 4) {
-        autorefresh = true;
+        autorefresh.value = true;
         label = i18n("hosts_stats.page_scan_hosts.in_progress");
         return `<span class="badge bg-info" title="${label}">${label}</span>`;
       } else if (is_ok_last_scan == null) {
         label = i18n("hosts_stats.page_scan_hosts.not_scanned");
         return `<span class="badge bg-primary" title="${label}">${label}</span>`;
       } else if (is_ok_last_scan) {
-        autorefresh = autorefresh || false;
+        autorefresh.value = autorefresh.value || false;
         label = i18n("hosts_stats.page_scan_hosts.success");
         return `<span class="badge bg-success" title="${label}">${label}</span>`;
       } else {
-        autorefresh = autorefresh || false;
+        autorefresh.value = autorefresh.value || false;
         label = i18n("hosts_stats.page_scan_hosts.error");
         return `<span class="badge bg-danger" title="${label}">${label}</span>`;
       }
@@ -346,7 +350,7 @@ const scan_row = async function () {
     scan_ports: row.ports,
   })
   await ntopng_utility.http_post_request(url, rest_params);
-  autorefresh = false;
+  autorefresh.value = false;
   refresh_table();
 }
 
@@ -356,7 +360,7 @@ async function scan_all_entries() {
     scan_single_host: false,
   })
   await ntopng_utility.http_post_request(url, rest_params);
-  autorefresh = false;
+  autorefresh.value = false;
   refresh_table();
 }
 

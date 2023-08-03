@@ -500,6 +500,7 @@ local lang = {
   ["scan_all_hosts_title"] = "Scan All Hosts",
   ["scan_host"] = "Do you really want to scan the selected host?",
   ["scan_host_title"] = "Scan Selected Host",
+  ["scan_in_progress"] = "Vulnerability scan in progress",
   ["scan_hosts"] = "Vulnerability Scan",
   ["score"] = "Score",
   ["score_as_client"] = "Score As Client",
