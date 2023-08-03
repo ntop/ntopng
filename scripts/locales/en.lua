@@ -4143,7 +4143,7 @@ local lang = {
     ["vlan_title"] = "VLAN %{vlan}",
     ["page_scan_hosts"] = {
       ["add_host"] = "Add Host to Scan",
-      ["automatic_scan"] = "Scan Frequency",
+      ["automatic_scan"] = "Frequency",
       ["delete_host_description"] = "Are you sure to delete the selected Host?",
       ["delete_host_title"] = "Delete Host",
       ["disabled"] = "Disabled",
@@ -4180,7 +4180,7 @@ local lang = {
         ["note_1"] = "Host: host IP to scan.",
         ["note_2"] = "Ports: a comma-separated list of ports; if empty, all host ports are going to be considered.",
         ["note_3"] = "Scan Type: select a specific vulnerability scan type.",
-        ["note_4"] = "Scan Frequency: select the automatic scan frequency.",
+        ["note_4"] = "Frequency: select the automatic scan frequency.",
       },
       ["scan_type_list"] = {
         ["cve"] = "CVE (Common Vulnerabilities and Exposures)",
