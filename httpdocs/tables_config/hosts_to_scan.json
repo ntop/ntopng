@@ -86,7 +86,8 @@
 			"data_field": "num_vulnerabilities_found",
 			"sortable": true,
 			"class": [
-				"text-nowrap"
+				"text-nowrap",
+				"text-end"
 			]
 		},
 
@@ -96,7 +97,8 @@
 			"sortable": true,
 			
 			"class": [
-				"text-nowrap"
+				"text-nowrap",
+				"text-end"
 			]
 		},
 		{
