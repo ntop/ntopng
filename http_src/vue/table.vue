@@ -78,8 +78,8 @@
 	      <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" :style="col.style" v-html="print_html_row(col.data, row)">
 	      </div>
 	      <div :style="col.style" style="" class="wrap-column margin-sm" :class="col.classes" >
-		<VueNode :key="row.row_id" v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)" ></VueNode>
-	      </div>	      
+		<VueNode :key="row" v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)" ></VueNode>
+	      </div>
 	    </td>
 	  </template>
 	</tr>
