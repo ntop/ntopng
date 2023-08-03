@@ -6,7 +6,6 @@
   <div class="row">
     <div class="col-md-12 col-lg-12">
       <div class="card  card-shadow">
-
         <div class="card-body">
           <div id="hosts_to_scan">
             <ModalDeleteConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete" @delete="delete_row" @delete_all="delete_all_rows" @scan_row="scan_row" @scan_all_rows="scan_all_entries">
@@ -50,6 +49,8 @@ import { default as ModalAddHostToScan } from "./modal-add-host-to-scan.vue";
 
 /* Consts */ 
 const _i18n = (t) => i18n(t);
+
+let autorefresh = false;
 
 const table_id = ref('hosts_to_scan');
 let title_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_title');
@@ -95,6 +96,11 @@ function add_host() {
 /* Function to refresh table */ 
 
 function refresh_table() {
+  /* It's important to set autorefresh to false, in this way when refreshed 
+     all the entries are going to be checked and if all of them are not scanning it stays false
+   */
+  autorefresh = false;
+    
   table_hosts_to_scan.value.refresh_table();
 }
 
@@ -146,13 +152,22 @@ function click_button_edit_host(event) {
 /* Function to delete all entries */
 function delete_all_entries() {
   modal_delete_confirm.value.show('delete_all', i18n('delete_all_vs_hosts'));
-}
+0}
 
 /* Function to edit host to scan */
 async function edit(params) {
   await delete_row();
   await add_host_rest(params);
 }
+
+function check_autorefresh() {
+  if(autorefresh == true) {
+    refresh_table();
+  }
+}
+
+/* Every 10 second check if the autorefresh is enabled or not, if it is refresh the table */
+setInterval(check_autorefresh, 10000);
 
 /* ******************************************************************** */ 
 
@@ -163,7 +178,6 @@ const map_table_def_columns = (columns) => {
     "scan_type": (scan_type, row) => {
       if (scan_type !== undefined) {
         let label = scan_type
-        // debugger;
         scan_type_list.forEach((item) => {
           if (item.id.localeCompare(scan_type) == 0) {
             label = item.label;
@@ -192,15 +206,18 @@ const map_table_def_columns = (columns) => {
     "is_ok_last_scan": (is_ok_last_scan) => {
       let label = ""
       if (is_ok_last_scan == 4) {
+        autorefresh = true;
         label = i18n("hosts_stats.page_scan_hosts.in_progress");
         return `<span class="badge bg-warning" title="${label}">${label}</span>`;
       } else if (is_ok_last_scan == null) {
         label = i18n("hosts_stats.page_scan_hosts.not_scanned");
         return `<span class="badge bg-warning" title="${label}">${label}</span>`;
       } else if (is_ok_last_scan) {
+        autorefresh = autorefresh || false;
         label = i18n("hosts_stats.page_scan_hosts.success");
         return `<span class="badge bg-success" title="${label}">${label}</span>`;
       } else {
+        autorefresh = autorefresh || false;
         label = i18n("hosts_stats.page_scan_hosts.error");
         return `<span class="badge bg-danger" title="${label}">${label}</span>`;
       }
@@ -229,7 +246,6 @@ const map_table_def_columns = (columns) => {
 
 onBeforeMount(async () => {
   await get_scan_type_list();
-  // debugger;
   modal_add.value.metricsLoaded(scan_type_list, context.ifid, props.context.is_enterprise_l);
 })
 
@@ -272,6 +288,7 @@ const scan_row = async function () {
     scan_ports: row.ports,
   })
   await ntopng_utility.http_post_request(url, rest_params);
+  autorefresh = false;
   refresh_table();
 }
 
@@ -281,6 +298,7 @@ async function scan_all_entries() {
     scan_single_host: false,
   })
   await ntopng_utility.http_post_request(url, rest_params);
+  autorefresh = false;
   refresh_table();
 }
 
