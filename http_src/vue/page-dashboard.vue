@@ -9,6 +9,7 @@
   <template v-for="c in components">
     <Box :title="_i18n(c.i18n_name)" 
          :title_gray="c.time_offset ? _i18n('dashboard.time_ago.' + c.time_offset) : ''"
+         :color="c.color"
          :col_width="c.width" 
          :col_height="c.height"
          :epoch_begin="c.epoch_begin"

@@ -18,6 +18,7 @@ import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng
 const props = defineProps({
   title: String,
   title_gray: String,
+  color: String,
   col_width: Number,
   row_height: Number,
   epoch_begin: Number,
@@ -29,7 +30,14 @@ const col_width_class = computed(() => {
 });
 
 const row_height_class = computed(() => {
-    return `row-${props.row_height || 4}`;
+    let color_class = ``;
+
+    if (props.color) {
+        /* Accepted colors: primary, secondary, success, danger, warning, info, light, dark, white */
+        color_class = `bg-${props.color}`;
+    }
+
+    return `row-${props.row_height || 4} ${color_class}`;
 });
 </script>
 
