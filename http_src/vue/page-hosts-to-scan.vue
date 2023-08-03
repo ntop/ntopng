@@ -20,7 +20,9 @@
             </TableWithConfig>
 
           </div>
-          <div class="card-footer mt-3">
+          
+        </div>
+        <div class="card-footer mt-3">
             <button type="button" ref="delete_all" @click="delete_all_entries" class="btn btn-danger me-1"><i
                 class='fas fa-trash'></i> {{ _i18n("delete_all_entries") }}</button>
 
@@ -28,7 +30,6 @@
                 class='fas fa-search'></i> {{ _i18n("hosts_stats.page_scan_hosts.schedule_all_scan") }}</button>
 
           </div>
-        </div>
       </div>
     </div>
   </div>
