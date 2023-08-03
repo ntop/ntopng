@@ -152,6 +152,7 @@ const enterprise_note_list = [
 ];
 
 const automatic_scan_frequencies_list = ref([
+  { id: "disabled", label:i18n('hosts_stats.page_scan_hosts.disabled')},
   { id: "1day", label:i18n('hosts_stats.page_scan_hosts.every_night')},
   { id: "1week", label:i18n('hosts_stats.page_scan_hosts.every_week')},
 ]);

@@ -4146,6 +4146,7 @@ local lang = {
       ["automatic_scan"] = "Scan Frequency",
       ["delete_host_description"] = "Are you sure to delete the selected Host?",
       ["delete_host_title"] = "Delete Host",
+      ["disabled"] = "Disabled",
       ["download_last_scan_result"] = "Download Last Result",
       ["edit_host"] = "Edit Host",
       ["edit_host_title"] = "Edit Host to Scan",
