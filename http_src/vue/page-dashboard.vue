@@ -88,7 +88,7 @@ function set_components_epoch_interval(epoch_interval) {
 }
 
 async function load_components(epoch_interval) {
-    let url_request = `${http_prefix}/lua/pro/rest/v2/get/dashboard/template.lua?template=${props.context.template}`;
+    let url_request = `${http_prefix}/lua/pro/rest/v2/get/dashboard/template.lua?page=${props.context.page}&template=${props.context.template}`;
     let res = await ntopng_utility.http_request(url_request);
     const timeframes_dict = ntopng_utility.get_timeframes_dict();
     components.value = res.list.filter((c) => components_dict[c.component] != null)
