@@ -2917,10 +2917,9 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
       }
     }
 
-    if (flow_payload != NULL) {
-      flow_payload[flow_payload_len] = '\0';
-      lua_push_str_table_entry(vm, "flow_payload", flow_payload);
-    }
+    if (flow_payload != NULL)
+      lua_push_str_len_table_entry(vm, "flow_payload",
+				   flow_payload, flow_payload_len);
 
     if (get_json_info()) {
       lua_push_str_table_entry(vm, "moreinfo.json",

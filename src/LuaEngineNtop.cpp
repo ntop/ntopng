@@ -2956,6 +2956,30 @@ void lua_push_str_table_entry(lua_State *L, const char *key,
 
 /* ****************************************** */
 
+void lua_push_str_len_table_entry(lua_State *L, const char *key,
+				  const char *value,
+				  const unsigned int len) {
+  if (L) {
+    char *v = (char*)malloc(len+1);;
+
+    if(v != NULL) {
+      memcpy(v, value, len);
+      v[len] = 0;
+    }
+    
+    lua_pushstring(L, key);
+    if(v != NULL) {
+      lua_pushstring(L, v);
+      free(v);
+    } else
+      lua_pushstring(L, value);
+    
+    lua_settable(L, -3);
+  }
+}
+
+/* ****************************************** */
+
 void lua_push_nil_table_entry(lua_State *L, const char *key) {
   if (L) {
     lua_pushstring(L, key);
