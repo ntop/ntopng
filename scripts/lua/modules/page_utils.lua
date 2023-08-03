@@ -38,7 +38,7 @@ end
 -- #################################
 
 page_utils.menu_sections = {
-   shortcuts     = {key = "shortcut", i18n_title = "shortcuts", icon = "fas fa-fast-forward"},
+   shortcuts     = {key = "shortcuts", i18n_title = "shortcuts", icon = "fas fa-fast-forward"},
    dashboard     = {key = "dashboard", i18n_title = "index_page.dashboard", icon = "fas fa-tachometer-alt"},
    alerts        = {key = "alerts", i18n_title = "details.alerts", icon = "fas fa-exclamation-triangle"},
    flows         = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
@@ -68,7 +68,7 @@ page_utils.menu_sections = {
 
 page_utils.menu_entries = {
    -- Shortcuts
-   active_monitoring = {key = "active_monitor", i18n_title = "active_monitoring_stats.active_monitoring"},
+    active_monitoring     = {key = "active_monitoring", i18n_title = "active_monitoring_stats.active_monitoring", section = "shortcuts" },
 
    -- Dashboard
     traffic_dashboard     = {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard", help_link = "https://www.ntop.org/guides/ntopng/web_gui/dashboard.html"},
