@@ -12,7 +12,7 @@
             </ModalDeleteConfirm>
             <TableWithConfig ref="table_hosts_to_scan" :table_id="table_id" :csrf="context.csrf"
               :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
-              @custom_event="on_table_custom_event">
+              :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event">
               <template v-slot:custom_header>
                 <button class="btn btn-link" type="button" ref="add_host" @click="add_host"><i
                     class='fas fa-plus'></i></button>
@@ -129,6 +129,56 @@ function on_table_custom_event(event) {
   events_managed[event.event_id](event);
 }
 
+function columns_sorting(col, r0, r1) {
+  let r0_col = r0[col.data.data_field];
+  let r1_col = r1[col.data.data_field];
+  if(col.id == "host") {
+    r0_col = NtopUtils.convertIPAddress(r0_col);
+    r1_col = NtopUtils.convertIPAddress(r1_col);
+    if (col.sort == 1) {
+      return r0_col.localeCompare(r1_col);
+    }
+    return r1_col.localeCompare(r0_col);
+  } else if(col.id == "num_vulnerabilities_found") {
+    /* It's an array */
+    r0_col = r0_col.length;
+    r1_col = r1_col.length;
+    if (col.sort == 1) {
+      return r0_col - r1_col;
+    }
+    return r1_col - r0_col; 
+  } else if(col.id == "num_open_ports") {
+    if (col.sort == 1) {
+      return r0_col - r1_col;
+    }
+    return r1_col - r0_col; 
+  } else if(col.id == "duration") {
+    r0_col = r0["last_scan"][col.data.data_field];
+    r1_col = r1["last_scan"][col.data.data_field];
+    if (col.sort == 1) {
+      return r0_col.localeCompare(r1_col);
+    }
+    return r1_col.localeCompare(r0_col);
+  } else if(col.id == "last_scan") {
+    r0_col = r0["last_scan"]["time"];
+    r1_col = r1["last_scan"]["time"];
+    if (col.sort == 1) {
+      return r0_col.localeCompare(r1_col);
+    }
+    return r1_col.localeCompare(r0_col);
+  } else if(col.id == "num_open_ports") {
+    if (col.sort == 1) {
+      return r0_col - r1_col;
+    }
+    return r1_col - r0_col; 
+  } else {
+    if (col.sort == 1) {
+      return r0_col.localeCompare(r1_col);
+    }
+    return r1_col.localeCompare(r0_col);
+  }	
+}
+
 /* Function to handle delete button */
 async function click_button_delete(event) {
   row_to_delete.value = event.row;
@@ -176,6 +226,13 @@ setInterval(check_autorefresh, 10000);
 const map_table_def_columns = (columns) => {
 
   let map_columns = {
+    "num_vulnerabilities_found": (num_vulnerabilities_found, row) => {
+      if(num_vulnerabilities_found && num_vulnerabilities_found.length > 0) {
+        return num_vulnerabilities_found.length.toString();
+      } else {
+        return ''
+      }
+    },
     "scan_type": (scan_type, row) => {
       if (scan_type !== undefined) {
         let label = scan_type
