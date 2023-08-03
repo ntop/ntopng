@@ -4,7 +4,6 @@
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": false,
-	"show_autorefresh": 10,
 	"display_empty_rows": true,
 	"columns": [
 		{
