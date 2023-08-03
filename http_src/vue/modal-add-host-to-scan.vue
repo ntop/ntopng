@@ -25,7 +25,7 @@
           <b>{{_i18n("hosts_stats.page_scan_hosts.ports")}}</b>
           </label>
             <div class="col-sm-10" >
-            <input v-model="ports" class="form-control" type="text" :placeholder="ports_placeholder" required>
+            <input v-model="ports" @focusout="check_ports" class="form-control" type="text" :placeholder="ports_placeholder" required>
             </div>
             
 
@@ -163,7 +163,7 @@ const cidr_options_list = ref([
   { id: "128", label:"/128"},
 ])
 
-const selected_cidr = ref(cidr_options_list.value[0]);
+const selected_cidr = ref(cidr_options_list.value[1]);
 
 const selected_automatic_scan_frequency = ref(automatic_scan_frequencies_list.value[0]);
 const scan_type_list = ref([]);
@@ -265,6 +265,20 @@ const check_empty_host = async () => {
 
   } 
   
+}
+
+const check_ports = () => {
+  let comma_separted_port_regex = /^(\d{1,5})(,\s*\d{1,5})*$/;
+
+  console.log(comma_separted_port_regex.test(ports.value));
+  if ( !comma_separted_port_regex.test(ports.value)) {
+
+    disable_add.value = true; 
+  } else {
+    disable_add.value = false;
+  }
+
+
 }
 
 async function resolve_host_name(host) {
