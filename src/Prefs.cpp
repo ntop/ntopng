@@ -1396,14 +1396,14 @@ int Prefs::setOption(int optkey, char *optarg) {
       if(!addDeferredInterfaceToRegister(buffer))
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces specified: ignored %s", buffer);
       else {
-	u_int32_t mgmt_ip = Utils::getHostManagementIPv4Address();
-	
 	if(zmq_publish_events_url) free(zmq_publish_events_url);
 
 	snprintf(buffer, sizeof(buffer), "tcp://*:%d", port+1);
 	zmq_publish_events_url = strdup(buffer);
 
 #if 0
+	u_int32_t mgmt_ip = Utils::getHostManagementIPv4Address();
+	
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Hint: nprobe -i <iface> --cloud tcp://%s:%d",
 				     Utils::intoaV4(ntohl(mgmt_ip), buffer, sizeof(buffer)), port);
 #endif
