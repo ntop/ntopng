@@ -12,6 +12,7 @@
 	 :f_get_column_classes="table_config.f_get_column_classes"
 	 :f_get_column_style="table_config.f_get_column_style"
 	 :display_empty_rows="table_config.display_empty_rows"
+	 :f_sort_rows="f_sort_rows"
 	 :enable_search="table_config.enable_search"
 	 :default_sort="table_config.default_sort"
 	 :show_autorefresh="table_config.show_autorefresh"
@@ -37,6 +38,7 @@ const props = defineProps({
     csrf: String,
     f_map_config: Function,
     f_map_columns: Function,
+    f_sort_rows: Function,
     get_extra_params_obj: Function,
 });
 
