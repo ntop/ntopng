@@ -453,49 +453,56 @@ end
 
 -- #####################################
 
+local function dt_format_asn_common(ip, asn)
+   local asn_obj = {
+      title = "",
+      label = "No ASN",
+      value = 0
+   }
+
+   if asn ~= "0" then
+      asn_obj["value"] = tonumber(asn)
+      asn_obj["label"] = asn_obj["value"]
+      local as_name = nil
+      if ip then
+         as_name = ntop.getASName(ip)
+         asn_obj["label"] = asn_obj["label"].. " (" .. (as_name or "") .. ")"
+      end
+      asn_obj["title"] = as_name or asn_obj["value"]
+   end
+
+   return asn_obj
+end
+
+-- #####################################
+
 local function dt_format_asn(processed_record, record)
+
    -- Client
    if not isEmptyString(record["SRC_ASN"]) then
-      local cli_asn = {
-         title = "",
-         label = "No ASN",
-         value = 0
-      }
-
-      if record["SRC_ASN"] ~= "0" then
-         cli_asn["value"] = tonumber(record["SRC_ASN"])
-         cli_asn["label"] = cli_asn["value"]
-         local as_name = nil
-         if processed_record["cli_ip"]  then
-            as_name = ntop.getASName(processed_record["cli_ip"]["ip"])
-            cli_asn["label"] = cli_asn["label"].. " (" .. (as_name or "") .. ")"
-         end
-         cli_asn["title"] = as_name or cli_asn["value"]
+      local ip
+      if processed_record["cli_ip"] and processed_record["cli_ip"]["ip"] then
+         ip = processed_record["cli_ip"]["ip"]
       end
-
-      processed_record["cli_asn"] = cli_asn
+      processed_record["cli_asn"] = dt_format_asn_common(ip, record["SRC_ASN"])
    end
    
    -- Server
    if not isEmptyString(record["DST_ASN"]) then
-      local srv_asn = {
-         title = "",
-         label = "No ASN",
-         value = 0
-      }
-
-      if (record["DST_ASN"] ~= "0") then
-         srv_asn["value"] = tonumber(record["DST_ASN"])
-         srv_asn["label"] = srv_asn["value"]
-         local as_name = nil
-         if processed_record["srv_ip"]  then
-            as_name = ntop.getASName(processed_record["srv_ip"]["ip"])
-            srv_asn["label"] = srv_asn["label"] .. " (" .. (as_name or "") .. ")"
-         end
-         srv_asn["title"] = as_name or srv_asn["value"]
+      local ip
+      if processed_record["srv_ip"] and processed_record["srv_ip"]["ip"] then
+         ip = processed_record["srv_ip"]["ip"]
       end
+      processed_record["srv_asn"] = dt_format_asn_common(ip, record["DST_ASN"])
+   end
 
-      processed_record["srv_asn"] = srv_asn
+   -- Any (from queries)
+   if not isEmptyString(record["ASN"]) then
+      local ip
+      if processed_record["ip"] and processed_record["ip"]["ip"] then
+         ip = processed_record["ip"]["ip"]
+      end
+      processed_record["asn"] = dt_format_asn_common(ip, record["ASN"])
    end
 end
 
@@ -735,6 +742,20 @@ end
 local function simple_format_dst_ip(value, record)
    if not isEmptyString(record["DST_LABEL"]) then
       record["label"] = shortenString(record["DST_LABEL"], 12)
+   end
+end
+
+-- #####################################
+
+local function simple_format_asn(value, record)
+   local ip = record["IPV4_ADDR"] or record["IPV6_ADDR"]
+
+   if not isEmptyString(ip) then
+      if tonumber(value) == 0 then 
+         record["label"] = "No ASN"
+      else
+         record["label"] = shortenString(ntop.getASName(ip), 12)
+      end
    end
 end
 
@@ -985,6 +1006,7 @@ local flow_columns = {
    ['SRC_MAC'] =              { tag = "cli_mac", dt_func = dt_format_mac },
    ['DST_MAC'] =              { tag = "srv_mac", dt_func = dt_format_mac },
    ['COMMUNITY_ID'] =         { tag = "community_id", format_func = format_flow_info, i18n = i18n("flow_fields_description.community_id"), order = 10 },
+   ['ASN'] =                  { tag = "asn", simple_dt_func = simple_format_asn },
    ['SRC_ASN'] =              { tag = "cli_asn", simple_dt_func = simple_format_src_asn },
    ['DST_ASN'] =              { tag = "srv_asn", simple_dt_func = simple_format_dst_asn },
    ['PROBE_IP'] =             { tag = "probe_ip",     dt_func = dt_format_probe, select_func = "IPv4NumToString", where_func = "IPv4StringToNum" },
@@ -1058,6 +1080,7 @@ local aggregated_flow_columns = {
    ['PROBE_IP'] =             { tag = "probe_ip",     dt_func = dt_format_probe, select_func = "IPv4NumToString", where_func = "IPv4StringToNum" },
    ['SRC_COUNTRY_CODE'] =     { tag = "cli_country", dt_func = dt_format_country },
    ['DST_COUNTRY_CODE'] =     { tag = "srv_country", dt_func = dt_format_country },
+   ['ASN'] =                  { tag = "asn", simple_dt_func = simple_format_asn },
    ['SRC_ASN'] =              { tag = "cli_asn", simple_dt_func = simple_format_src_asn },
    ['DST_ASN'] =              { tag = "srv_asn", simple_dt_func = simple_format_dst_asn },
    ['INPUT_SNMP'] =           { tag = "input_snmp", dt_func = dt_format_snmp_interface },

@@ -181,6 +181,11 @@ tag_utils.defined_tags = {
         i18n_label = i18n('db_search.tags.srv_country'),
         operators = {'eq', 'neq'}
     },
+    asn = {
+        value_type = 'asn',
+        i18n_label = i18n('db_search.tags.asn'),
+        operators = {'eq', 'neq'}
+    },
     cli_asn = {
         value_type = 'asn',
         i18n_label = i18n('db_search.tags.cli_asn'),

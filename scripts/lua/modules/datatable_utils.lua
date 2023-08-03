@@ -168,18 +168,6 @@ end
 
 -- #####################################
 
-local function build_datatable_column_def_network_id(name, i18n_label)
-   return {
-      data_field = 'network',
-      title_i18n = i18n_label,
-      sortable = false,
-      class = { "no-wrap" },
-      render_generic = 'network',
-   }
-end
-
--- #####################################
-
 local function build_datatable_column_def_pool_id(name, i18n_label)
    return {
       data_field = name,
@@ -344,6 +332,7 @@ local all_datatable_columns_def_by_tag = {
       sortable = true,
       class = { "no-wrap" },
    },
+   ['asn'] = build_datatable_column_def_asn('asn', "db_search.asn"),
    ['cli_asn'] = build_datatable_column_def_asn('cli_asn', "db_search.cli_asn"),
    ['srv_asn'] = build_datatable_column_def_asn('srv_asn', "db_search.srv_asn"),
    ['l7cat'] = {
@@ -392,6 +381,7 @@ local all_datatable_columns_def_by_tag = {
       class = { "no-wrap" },
       render_type = "formatProbeIP",
    },
+   ['network'] = build_datatable_column_def_network('network', "db_search.tags.network"),
    ['cli_network'] = build_datatable_column_def_network('cli_network', "db_search.tags.cli_network"),
    ['srv_network'] = build_datatable_column_def_network('srv_network', "db_search.tags.srv_network"),
    ['cli_host_pool_id'] = build_datatable_column_def_pool_id('cli_host_pool_id', "db_search.tags.cli_host_pool_id"),
@@ -418,7 +408,6 @@ datatable_utils.datatable_column_def_builder_by_type = {
    ['float'] = build_datatable_column_def_float,
    ['msec'] = build_datatable_column_def_msec,
    ['network'] = build_datatable_column_def_network,
-   ['network_id'] = build_datatable_column_def_network_id,
    ['pool_id'] = build_datatable_column_def_pool_id,
    ['country'] = build_datatable_column_def_country,
    ['snmp_interface'] = build_datatable_column_def_snmp_interface,
