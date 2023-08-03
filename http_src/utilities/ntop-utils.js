@@ -1218,6 +1218,22 @@ export default class NtopUtils {
     return label;
   }
 
+  /* Format an AS from a column object */
+  static formatASN(obj, row) {
+    let label = "";
+
+    /* Link */
+    let asn_key = obj.value;
+
+    /* Label */
+    label = obj.label ? obj.label : obj.value;
+
+    const url = NtopUtils.buildURL(`${http_prefix}/lua/hosts_stats.lua`, { asn: asn_key});
+    label = `<a href="${url}">${label}</a>`;
+
+    return label;
+  }
+
   static createProgressBar(percentage) {
     return `<div class="d-flex flex-row align-items-center">
               <div class="col-9 progress">

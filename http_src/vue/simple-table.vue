@@ -83,6 +83,8 @@ const row_render_functions = {
       return NtopUtils.formatHost(row[column.id], row, (column.id == 'cli_ip'));
     } else if (column.data_type == 'network') {
       return NtopUtils.formatNetwork(row[column.id], row);
+    } else if (column.data_type == 'asn') {
+      return NtopUtils.formatASN(row[column.id], row);
     } else if (formatterUtils.types[column.data_type]) {
       // 'bytes', 'bps', 'pps', ...
       let formatter = formatterUtils.getFormatter(column.data_type);
