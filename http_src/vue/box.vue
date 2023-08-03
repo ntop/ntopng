@@ -4,7 +4,7 @@
 <template>
     <div :class="col_width_class" class="widget-box-main-dashboard">
       <div :class="row_height_class" class="widget-box">
-        <h4 class="dashboard-component-title" 
+        <h4 v-if="title" class="dashboard-component-title" 
             :title="ntopng_utility.from_utc_to_server_date_format(epoch_begin * 1000, 'DD/MM/YYYY HH:mm') + ' - ' + ntopng_utility.from_utc_to_server_date_format(epoch_end * 1000, 'DD/MM/YYYY HH:mm')">{{ title }} <span style="color: gray">{{ title_gray }}</span></h4>
 	<slot name="box_content"></slot>
       </div>
