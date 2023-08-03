@@ -209,10 +209,10 @@ const map_table_def_columns = (columns) => {
       if (is_ok_last_scan == 4) {
         autorefresh = true;
         label = i18n("hosts_stats.page_scan_hosts.in_progress");
-        return `<span class="badge bg-warning" title="${label}">${label}</span>`;
+        return `<span class="badge bg-info" title="${label}">${label}</span>`;
       } else if (is_ok_last_scan == null) {
         label = i18n("hosts_stats.page_scan_hosts.not_scanned");
-        return `<span class="badge bg-warning" title="${label}">${label}</span>`;
+        return `<span class="badge bg-primary" title="${label}">${label}</span>`;
       } else if (is_ok_last_scan) {
         autorefresh = autorefresh || false;
         label = i18n("hosts_stats.page_scan_hosts.success");
