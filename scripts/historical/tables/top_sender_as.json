@@ -1,0 +1,49 @@
+{
+	"name" : "Top Sender AS",
+	"i18n_name" : "top_sender_as",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"hourly": true,
+	"sql" : "SELECT ASN, IPv4NumToString(any(IPV4_ADDR)) IPV4_ADDR, IPv6NumToString(any(IPV6_ADDR)) IPV6_ADDR, SUM(BYTES) AS total_bytes FROM (SELECT SRC_ASN AS ASN, IPV4_SRC_ADDR AS IPV4_ADDR, IPV6_SRC_ADDR AS IPV6_ADDR, SRC2DST_BYTES AS BYTES $FROM$ $WHERE$ AND SRC_ASN!=0 UNION ALL SELECT DST_ASN AS ASN, IPV4_DST_ADDR AS IPV4_ADDR, IPV6_DST_ADDR AS IPV6_ADDR, DST2SRC_BYTES AS BYTES $FROM$ $WHERE$ AND DST_ASN!=0) AS f $GROUPBY$ $ORDERBY$ $LIMIT$",
+	"select" : {
+		"items" : [
+			{
+				"name" : "ASN",
+				"func" : "",
+				"value_type" : "asn"
+			},
+			{
+				"name" : "total_bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "SRC_ASN",
+				"op": "neq",
+				"value": "DST_ASN",
+				"value_type": "number",
+				"input": "fixed"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "ASN"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "total_bytes",
+				"order" : "DESC"
+			}
+		]
+	}
+}
