@@ -104,7 +104,10 @@ onMounted(async () => {
 });
 
 let dasboard_loop_interval;
-const loop_interval = 5 * 1000;
+
+/* Dashboard update interval/frequency */
+const loop_interval = 10 * 1000;
+
 function start_dashboard_refresh_loop() {
     dasboard_loop_interval = setInterval(() => {
         set_components_epoch_interval();
