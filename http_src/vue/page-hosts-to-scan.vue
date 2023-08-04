@@ -228,13 +228,6 @@ setInterval(check_autorefresh, 10000);
 const map_table_def_columns = (columns) => {
 
   let map_columns = {
-    "num_vulnerabilities_found": (num_vulnerabilities_found, row) => {
-      if(num_vulnerabilities_found && num_vulnerabilities_found > 0) {
-        return num_vulnerabilities_found.toString();
-      } else {
-        return ''
-      }
-    },
     "scan_type": (scan_type, row) => {
       if (scan_type !== undefined) {
         let label = scan_type

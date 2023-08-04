@@ -9,8 +9,22 @@ require "lua_utils"
 local rest_utils = require "rest_utils"
 local vs_utils = require "vs_utils"
 
-local function retrieve_host() 
-    return vs_utils.retrieve_hosts_to_scan()
+local function format_result(result) 
+    local rsp = {}
+    for _,value in ipairs(result) do
+        rsp[#rsp+1] = value
+        rsp[#rsp].num_vulnerabilities_found = format_high_num_value_for_tables(value, "num_vulnerabilities_found")
+        rsp[#rsp].num_open_ports = format_high_num_value_for_tables(value, "num_open_ports")
+    end
+    return rsp 
 end
+
+local function retrieve_host() 
+    local result =  vs_utils.retrieve_hosts_to_scan()
+
+    return format_result(result)
+end
+
+
 
 rest_utils.answer(rest_utils.consts.success.ok, retrieve_host())
