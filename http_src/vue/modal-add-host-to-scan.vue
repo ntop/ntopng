@@ -13,7 +13,7 @@
           <div class="col-sm-8" >
             <input v-model="host" @focusout="load_ports"  @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
           </div>
-          <div class="col-sm-2" @focusout="load_ports" @focusin="load_ports">
+          <div class="col-sm-2" >
             <SelectSearch v-model:selected_option="selected_cidr"
                 :options="cidr_options_list">
             </SelectSearch> 
@@ -365,32 +365,35 @@ async function load_ports() {
   else 
     ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
 
-  if (selected_cidr.value.id != "24") {
-    disable_load_ports.value = false;
+  if (ports.value == null || ports.value == "") {
+    if (selected_cidr.value.id != "24") {
+      disable_load_ports.value = false;
 
-    activate_spinner.value = true;
-    const url = NtopUtils.buildURL(server_ports, {
-          host: host.value,
-          ifid: ifid.value,
-          scan_ports_rsp: true,
-          clisrv: "server"
-        })
+      activate_spinner.value = true;
+      const url = NtopUtils.buildURL(server_ports, {
+            host: host.value,
+            ifid: ifid.value,
+            scan_ports_rsp: true,
+            clisrv: "server"
+          })
 
-    const result = await ntopng_utility.http_request(url);
-    if (result != null) {
-      ports.value = result.filter((x) => typeof x.key === "number").map((x) => x.key).join(',');
-      message_feedback.value = "";
-    } else {
-      if (selected_cidr.value.id != "24") {
-        message_feedback.value = i18n("hosts_stats.page_scan_hosts.unknown_host");
+      const result = await ntopng_utility.http_request(url);
+      if (result != null) {
+        ports.value = result.filter((x) => typeof x.key === "number").map((x) => x.key).join(',');
+        message_feedback.value = "";
+      } else {
+        if (selected_cidr.value.id != "24") {
+          message_feedback.value = i18n("hosts_stats.page_scan_hosts.unknown_host");
+        }
+        ports.value = "";
       }
-      ports.value = "";
+      activate_spinner.value = false;
+    } else {
+      disable_load_ports.value = true;
+      message_feedback.value = "";
     }
-    activate_spinner.value = false;
-  } else {
-    disable_load_ports.value = true;
-    message_feedback.value = "";
   }
+  
   
 }
 
