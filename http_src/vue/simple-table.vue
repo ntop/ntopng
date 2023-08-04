@@ -122,6 +122,7 @@ const render_row = function (column, row) {
   }
 }
 
+let rest_result = null;
 async function refresh_table() {
   const url_params = {
      ifid: props.ifid,
@@ -130,8 +131,9 @@ async function refresh_table() {
      ...props.params.url_params
   }
   const query_params = ntopng_url_manager.obj_to_url_params(url_params);
-
-  let data = await ntopng_utility.http_request(`${http_prefix}${props.params.url}?${query_params}`);
+  if (rest_result != null) { await rest_result; }
+  rest_result = ntopng_utility.http_request(`${http_prefix}${props.params.url}?${query_params}`);
+  let data = await rest_result;
 
   let rows = [];
   if (props.params.table_type == 'db_search') {
@@ -149,7 +151,7 @@ async function refresh_table() {
 
 <style>
 .first-col-width {
-    max-width: 100% !important;
+    /* max-width: 100% !important; */
 }
 
 @media print and (max-width: 210mm) {
