@@ -72,6 +72,7 @@ const scan_host_url = `${http_prefix}/lua/rest/v2/exec/host/schedule_vulnerabili
 const scan_type_list_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_type_list.lua`;
 const active_monitoring_url = `${http_prefix}/lua/monitor/active_monitoring_monitor.lua`;
 const scan_result_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_result.lua`;
+const check_status_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_status.lua`;
 
 const row_to_delete = ref({});
 const row_to_scan = ref({});
@@ -100,13 +101,15 @@ function add_host() {
 
 /* Function to refresh table */ 
 
-function refresh_table() {
+function refresh_table(ok) {
   /* It's important to set autorefresh to false, in this way when refreshed 
      all the entries are going to be checked and if all of them are not scanning it stays false
    */
-  autorefresh.value = false;
-    
-  table_hosts_to_scan.value.refresh_table();
+  if(! ok)
+    autorefresh.value = false;
+  
+  if (ok)
+    table_hosts_to_scan.value.refresh_table();
 }
 
 /* ******************************************************************** */ 
@@ -242,9 +245,13 @@ async function edit(params) {
   await add_host_rest(params);
 }
 
-function check_autorefresh() {
+async function check_autorefresh() {
+
+  await check_in_progress_status();
   if(autorefresh.value == true) {
-    refresh_table();
+    refresh_table(true);
+  } else {
+    refresh_table(false)
   }
 }
 
@@ -288,18 +295,18 @@ const map_table_def_columns = (columns) => {
     "is_ok_last_scan": (is_ok_last_scan) => {
       let label = ""
       if (is_ok_last_scan == 4) {
-        autorefresh.value = true;
+        //autorefresh.value = true;
         label = i18n("hosts_stats.page_scan_hosts.in_progress");
         return `<span class="badge bg-info" title="${label}">${label}</span>`;
       } else if (is_ok_last_scan == null) {
         label = i18n("hosts_stats.page_scan_hosts.not_scanned");
         return `<span class="badge bg-primary" title="${label}">${label}</span>`;
       } else if (is_ok_last_scan) {
-        autorefresh.value = autorefresh.value || false;
+        //autorefresh.value = autorefresh.value || false;
         label = i18n("hosts_stats.page_scan_hosts.success");
         return `<span class="badge bg-success" title="${label}">${label}</span>`;
       } else {
-        autorefresh.value = autorefresh.value || false;
+        //autorefresh.value = autorefresh.value || false;
         label = i18n("hosts_stats.page_scan_hosts.error");
         return `<span class="badge bg-danger" title="${label}">${label}</span>`;
       }
@@ -328,6 +335,7 @@ const map_table_def_columns = (columns) => {
 
 onBeforeMount(async () => {
   await get_scan_type_list();
+  await check_in_progress_status();
   modal_add.value.metricsLoaded(scan_type_list, context.ifid, props.context.is_enterprise_l);
 })
 
@@ -352,6 +360,16 @@ const get_scan_type_list = async function () {
 
   const result = await ntopng_utility.http_request(url);
   scan_type_list = result.rsp;
+}
+
+/* Function to check if there is a scan in progress */
+const check_in_progress_status = async function () {
+  const url = NtopUtils.buildURL(check_status_url, {
+    ...rest_params
+  })
+
+  const result = await ntopng_utility.http_request(url);
+  autorefresh.value = result.rsp;
 }
 
 
