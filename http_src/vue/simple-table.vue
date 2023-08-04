@@ -3,17 +3,20 @@
 -->
 
 <template>
-<BootstrapTable
-  :id="table_id" 
-  :columns="params.columns"
-  :rows="table_rows"
-  :print_html_column="render_column"
-  :print_html_row="render_row">
-</BootstrapTable>
+<div class="table-responsive" style="margin-left:-1rem;margin-right:-1rem;">
+  <BootstrapTable
+    :id="table_id" 
+    :columns="columns"
+    :rows="table_rows"
+    :print_html_column="render_column"
+    :print_html_row="render_row"
+    :wrap_columns="true">
+  </BootstrapTable>
+</div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, watch } from "vue";
+import { ref, onMounted, onBeforeMount, watch, computed } from "vue";
 import { default as BootstrapTable } from "./bootstrap-table.vue";
 import { ntopng_custom_events, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 import formatterUtils from "../utilities/formatter-utils";
@@ -34,6 +37,17 @@ const props = defineProps({
     max_height: Number,  /* Component Hehght (4, 8, 12)*/
     params: Object,      /* Component-specific parameters from the JSON template definition */
 });
+
+const columns = computed(() => {
+    let columns = props.params.columns.map((c) => {
+	return {
+	    ...c,
+	};
+    });
+    columns[0].class = "first-col-width";
+    return columns;
+});
+
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
 watch(() => [props.epoch_begin, props.epoch_end], (cur_value, old_value) => {
@@ -132,3 +146,24 @@ async function refresh_table() {
   table_rows.value = rows;
 }
 </script>
+
+<style>
+.first-col-width {
+    max-width: 100% !important;
+}
+
+@media print and (max-width: 210mm) {
+    td.first-col-width {
+	max-width: 55mm !important;
+    }
+}
+@media print and (min-width: 211mm) {
+    td.first-col-width {
+	max-width: 95mm !important;
+    }
+}
+
+/* @media print and (max-width: 148mm){ */
+/* } */
+
+</style>

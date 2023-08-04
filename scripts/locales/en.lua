@@ -1685,6 +1685,7 @@ local lang = {
     ["gateways_users"] = "Gateways and Users",
     ["lastday_app_traffic"] = "Top Applications (Last Day)",
     ["lastday_traffic"] = "All Network Interfaces (Last Day)",
+    ["print"] = "Print Report",
     ["realtime_app_traffic"] = "Top Applications (Realtime)",
     ["realtime_traffic"] = "All Network Interfaces (Realtime)",
     ["slow_dashboard_message"] = "Too much latency in the %{product} response. Consider setting an higher <a href='%{url}'>Realtime Stats Refresh Rate</a>.",

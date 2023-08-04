@@ -1,12 +1,20 @@
 <!--
   (C) 2013-22 - ntop.org
+ntopng_utility.from_utc_to_server_date_format(epoch_begin * 1000, 'DD/MM/YYYY HH:mm') + ' - ' + ntopng_utility.from_utc_to_server_date_format(epoch_end * 1000, 'DD/MM/YYYY HH:mm')
 -->
 <template>
     <div :class="col_width_class" class="widget-box-main-dashboard">
-      <div :class="row_height_class" class="widget-box">
-        <h4 v-if="title" class="dashboard-component-title" 
-            :title="ntopng_utility.from_utc_to_server_date_format(epoch_begin * 1000, 'DD/MM/YYYY HH:mm') + ' - ' + ntopng_utility.from_utc_to_server_date_format(epoch_end * 1000, 'DD/MM/YYYY HH:mm')">{{ title }} <span style="color: gray">{{ title_gray }}</span></h4>
-	<slot name="box_content"></slot>
+      <div :class="row_height_class" class="widget-box" style="position:relative;">
+	
+	<!-- title -->
+	<div class="dashboard-component-title">
+	  <slot name="box_title"></slot>
+
+	<!-- content and footer-->  
+	</div>
+	  <slot name="box_content"></slot>
+	  <!-- footer -->
+	  <div class="mb-1 me-3" style="position:absolute;bottom:0px;right:0px;"> <slot name="box_footer"></slot> </div>
       </div>
     </div>
 </template>
@@ -16,13 +24,9 @@ import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
 import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_events_manager } from "../services/context/ntopng_globals_services";
   
 const props = defineProps({
-  title: String,
-  title_gray: String,
   color: String,
   col_width: Number,
   row_height: Number,
-  epoch_begin: Number,
-  epoch_end: Number,
 });
 
 const col_width_class = computed(() => {
