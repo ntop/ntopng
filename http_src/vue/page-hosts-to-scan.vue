@@ -145,40 +145,69 @@ function columns_sorting(col, r0, r1) {
     return r1_col.localeCompare(r0_col);
   } else if(col.id == "num_vulnerabilities_found") {
     /* It's an array */
+    r0_col = format_num_for_sort(r0_col);
+    r1_col = format_num_for_sort(r1_col);
     if (col.sort == 1) {
       return r0_col - r1_col;
     }
     return r1_col - r0_col; 
   } else if(col.id == "num_open_ports") {
+    r0_col = format_num_for_sort(r0_col);
+    r1_col = format_num_for_sort(r1_col);
     if (col.sort == 1) {
       return r0_col - r1_col;
     }
     return r1_col - r0_col; 
   } else if(col.id == "duration") {
-    r0_col = r0["last_scan"][col.data.data_field];
-    r1_col = r1["last_scan"][col.data.data_field];
+    r0_col = r0["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r0["last_scan"][col.data.data_field];
+    r1_col = r1["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r1["last_scan"][col.data.data_field];
     if (col.sort == 1) {
       return r0_col.localeCompare(r1_col);
     }
     return r1_col.localeCompare(r0_col);
   } else if(col.id == "last_scan") {
-    r0_col = r0["last_scan"]["time"];
-    r1_col = r1["last_scan"]["time"];
+    r0_col = r0["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r0["last_scan"]["time"];
+    r1_col = r1["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r1["last_scan"]["time"];
     if (col.sort == 1) {
       return r0_col.localeCompare(r1_col);
     }
     return r1_col.localeCompare(r0_col);
-  } else if(col.id == "num_open_ports") {
+  } else if (col.id == "is_ok_last_scan") {
+    r0_col = get_scan_status_value(r0_col);
+    r1_col = get_scan_status_value(r1_col);
     if (col.sort == 1) {
-      return r0_col - r1_col;
+      return r0_col.localeCompare(r1_col);
     }
-    return r1_col - r0_col; 
+    return r1_col.localeCompare(r0_col);
   } else {
     if (col.sort == 1) {
       return r0_col.localeCompare(r1_col);
     }
     return r1_col.localeCompare(r0_col);
   }	
+}
+
+function get_scan_status_value(is_ok_last_scan) {
+  if (is_ok_last_scan == 4) {
+    return i18n("hosts_stats.page_scan_hosts.in_progress");
+  } else if (is_ok_last_scan == null) {
+    return i18n("hosts_stats.page_scan_hosts.not_scanned");
+  } else if (is_ok_last_scan) {
+    return i18n("hosts_stats.page_scan_hosts.success");
+  } else {
+    return i18n("hosts_stats.page_scan_hosts.error");
+  }
+}
+
+function format_num_for_sort(num) {
+  if (num === "" || num === null || num === NaN || num === undefined) {
+    num = 0;
+  } else {
+    num = num.split(',').join("")
+    num = parseInt(num);
+  }
+
+  return num;
 }
 
 /* Function to handle delete button */
@@ -400,7 +429,6 @@ async function click_button_download(event) {
 /* Function to show last vulnerability scan result */
 async function click_button_show_result(event) {
   let host = event.row.host;
-  console.log(event.row);
   let date = event.row.last_scan.time;
 
   let params = {

@@ -119,7 +119,7 @@
 		{
 			"title_i18n": "hosts_stats.page_scan_hosts.last_scan_status",
 			"data_field": "is_ok_last_scan",
-			"sortable": false,
+			"sortable": true,
 			"class": [
 				"text-nowrap",
 				"text-center"
