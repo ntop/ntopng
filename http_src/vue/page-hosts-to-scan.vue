@@ -145,8 +145,6 @@ function columns_sorting(col, r0, r1) {
     return r1_col.localeCompare(r0_col);
   } else if(col.id == "num_vulnerabilities_found") {
     /* It's an array */
-    r0_col = r0_col.length;
-    r1_col = r1_col.length;
     if (col.sort == 1) {
       return r0_col - r1_col;
     }
@@ -231,8 +229,8 @@ const map_table_def_columns = (columns) => {
 
   let map_columns = {
     "num_vulnerabilities_found": (num_vulnerabilities_found, row) => {
-      if(num_vulnerabilities_found && num_vulnerabilities_found.length > 0) {
-        return num_vulnerabilities_found.length.toString();
+      if(num_vulnerabilities_found && num_vulnerabilities_found > 0) {
+        return num_vulnerabilities_found.toString();
       } else {
         return ''
       }
