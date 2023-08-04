@@ -3,20 +3,22 @@
 ntopng_utility.from_utc_to_server_date_format(epoch_begin * 1000, 'DD/MM/YYYY HH:mm') + ' - ' + ntopng_utility.from_utc_to_server_date_format(epoch_end * 1000, 'DD/MM/YYYY HH:mm')
 -->
 <template>
-    <div :class="col_width_class" class="widget-box-main-dashboard">
-      <div :class="row_height_class" class="widget-box" style="position:relative;">
-	
-	<!-- title -->
-	<div class="dashboard-component-title">
-	  <slot name="box_title"></slot>
+  <div :class="col_width_class" class="widget-box-main-dashboard">
+    <div :class="row_height_class" class="widget-box" style="position:relative;">
+        
+      <!-- title -->
+      <slot name="box_title"></slot>
 
-	<!-- content and footer-->  
-	</div>
-	  <slot name="box_content"></slot>
-	  <!-- footer -->
-	  <div class="mb-1 me-3" style="position:absolute;bottom:0px;right:0px;"> <slot name="box_footer"></slot> </div>
+      <!-- content -->  
+      <slot name="box_content"></slot>
+
+      <!-- footer -->
+      <div class="mb-1 me-3" style="position:absolute;bottom:0px;right:0px;">
+        <slot name="box_footer"></slot>
       </div>
+
     </div>
+  </div>
 </template>
 
 <script setup>
