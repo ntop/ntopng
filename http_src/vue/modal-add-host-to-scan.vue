@@ -263,7 +263,9 @@ const check_empty_host = async () => {
     selected_cidr.value = cidr_options_list.value[2];
     disable_add.value = false;
 
-  } 
+  } else if (host.value != null && host.value != "") {
+    disable_add.value = false;
+  }
   
 }
 
