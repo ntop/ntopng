@@ -3,8 +3,8 @@
 ntopng_utility.from_utc_to_server_date_format(epoch_begin * 1000, 'DD/MM/YYYY HH:mm') + ' - ' + ntopng_utility.from_utc_to_server_date_format(epoch_end * 1000, 'DD/MM/YYYY HH:mm')
 -->
 <template>
-  <div :class="col_width_class" class="widget-box-main-dashboard">
-    <div :class="row_height_class" class="widget-box" style="position:relative;">
+  <div :class="width_class" class="widget-box-main-dashboard">
+    <div :class="height_class" class="widget-box" style="position:relative;">
         
       <!-- title -->
       <slot name="box_title"></slot>
@@ -27,15 +27,15 @@ import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng
   
 const props = defineProps({
   color: String,
-  col_width: Number,
-  row_height: Number,
+  width: Number,
+  height: Number,
 });
 
-const col_width_class = computed(() => {
-    return `col-${props.col_width || 4}`;
+const width_class = computed(() => {
+    return `col-${props.width || 4}`;
 });
 
-const row_height_class = computed(() => {
+const height_class = computed(() => {
     let color_class = ``;
 
     if (props.color) {
@@ -43,7 +43,7 @@ const row_height_class = computed(() => {
         color_class = `bg-${props.color}`;
     }
 
-    return `row-${props.row_height || 4} ${color_class}`;
+    return `row-${props.height || 4} ${color_class}`;
 });
 </script>
 

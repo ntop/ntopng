@@ -16,8 +16,8 @@
     <template v-for="c in components">
       <Box style="min-width:20rem;"
            :color="c.color"
-           :col_width="c.width" 
-           :col_height="c.height">
+           :width="c.width" 
+           :height="c.height">
         <template v-slot:box_title>
           <div v-if="c.i18n_name" class="dashboard-component-title">
             <h4>
