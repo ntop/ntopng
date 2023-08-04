@@ -14,6 +14,7 @@ window.ApexCharts = ApexCharts
 
 import 'jquery-ui-bundle'
 import './scripts/vendors/jquery/jquery.resizableColumns.js';
+import './scripts/vendors/jquery/jquery-print.min.js';
 
 import * as store from 'store-js';
 window.store = store;
