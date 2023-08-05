@@ -38,7 +38,7 @@ else
     del_result = delete_all_hosts_to_scan()
 end
 
-if del_result == 1 then
+if del_result then
     rest_utils.answer(rest_utils.consts.success.ok)
 else
     rest_utils.answer(rest_utils.consts.err.internal_error)

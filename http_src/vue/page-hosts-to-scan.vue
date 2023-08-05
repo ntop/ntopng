@@ -108,7 +108,7 @@ function refresh_table(ok) {
   if(! ok)
     autorefresh.value = false;
   
-  if (ok)
+  if (ok === null || ok)
     table_hosts_to_scan.value.refresh_table();
 }
 
@@ -375,6 +375,7 @@ const check_in_progress_status = async function () {
 
 const confirm_scan_all_entries = function() {
   modal_delete_confirm.value.show("scan_all_rows",i18n("scan_all_hosts"));  
+  autorefresh.value = true;
 
 }
 
@@ -388,7 +389,7 @@ const scan_row = async function () {
     scan_ports: row.ports,
   })
   await ntopng_utility.http_post_request(url, rest_params);
-  autorefresh.value = false;
+  autorefresh.value = true;
   refresh_table();
 }
 
