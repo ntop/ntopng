@@ -11,10 +11,12 @@ local vs_utils = require "vs_utils"
 
 local function format_result(result) 
     local rsp = {}
-    for _,value in ipairs(result) do
-        rsp[#rsp+1] = value
-        rsp[#rsp].num_vulnerabilities_found = format_high_num_value_for_tables(value, "num_vulnerabilities_found")
-        rsp[#rsp].num_open_ports = format_high_num_value_for_tables(value, "num_open_ports")
+    if result then
+        for _,value in ipairs(result) do
+            rsp[#rsp+1] = value
+            rsp[#rsp].num_vulnerabilities_found = format_high_num_value_for_tables(value, "num_vulnerabilities_found")
+            rsp[#rsp].num_open_ports = format_high_num_value_for_tables(value, "num_open_ports")
+        end
     end
     return rsp 
 end
