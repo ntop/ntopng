@@ -1013,7 +1013,10 @@ class Flow : public GenericHashEntry {
   }
   inline void setHTTPURL(char *v) {
     if (isHTTP()) {
-      if (!protos.http.last_url) protos.http.last_url = v;
+      if (!protos.http.last_url)
+	protos.http.last_url = v;
+      else
+	free(v);
     } else {
       if (v) free(v);
     }
@@ -1023,7 +1026,10 @@ class Flow : public GenericHashEntry {
   }
   inline void setHTTPUserAgent(char *v) {
     if (isHTTP()) {
-      if (!protos.http.last_user_agent) protos.http.last_user_agent = v;
+      if (!protos.http.last_user_agent)
+	protos.http.last_user_agent = v;
+      else
+	free(v);
     } else {
       if (v) free(v);
     }

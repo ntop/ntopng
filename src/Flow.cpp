@@ -2736,7 +2736,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 	/* View interfaces */
 	u_int32_t asn;
 	char *asname;
-	
+
 	ntop->getGeolocation()->getAS(get_cli_ip_addr(), &asn, &asname);
 
 	if(asn != 0) lua_push_int32_table_entry(vm, "src_as", asn);
@@ -2756,7 +2756,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 	/* View interfaces */
 	u_int32_t asn;
 	char *asname;
-	
+
 	ntop->getGeolocation()->getAS(get_srv_ip_addr(), &asn, &asname);
 	if(asn != 0) lua_push_int32_table_entry(vm, "dst_as", asn);
         if(asname)   lua_push_str_table_entry(vm, "dst_as_name", asname);
@@ -2896,7 +2896,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     lua_push_int32_table_entry(vm, "flow_verdict", flow_verdict);
     lua_push_bool_table_entry(vm, "periodic_flow",
                               is_periodic_flow ? true : false);
-    
+
     if (rtp_stream_type != ndpi_multimedia_unknown_flow) {
       switch (rtp_stream_type) {
         case ndpi_multimedia_audio_flow:
@@ -3926,7 +3926,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
       json_object_object_add(my_object, "DST_IP_LOCATION", location);
     }
   }
-  
+
 #ifdef FULL_SERIALIZATION
   if (ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
     json_object_object_add(
@@ -5659,20 +5659,22 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
 bool Flow::setDNSQuery(char *v) {
   if (isDNS()) {
     time_t last_pkt_rcvd = getInterface()->getTimeLastPktRcvd();
-
+    
     if (!protos.dns.last_query_shadow /* The first time the swap is done */
         ||
         protos.dns.last_query_update_time + 1 <
-            last_pkt_rcvd /* Latest swap occurred at least one second ago */) {
+	last_pkt_rcvd /* Latest swap occurred at least one second ago */) {
       if (protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
       protos.dns.last_query_shadow = protos.dns.last_query;
       protos.dns.last_query = v;
       protos.dns.last_query_update_time = last_pkt_rcvd;
-
+      
       return true; /* Swap successful */
     }
   }
 
+  free(v); /* v was allocated but not used */
+  
   /* Unable to set the DNS query. Too early or not a DNS flow. */
   return false;
 }
@@ -5731,18 +5733,18 @@ void Flow::dissectDNS(bool src2dst_direction, char *payload,
 void Flow::updateHTTP(ParsedFlow *zflow) {
   if (isHTTP()) {
     if (zflow->getHTTPurl())
-      setHTTPURL(strdup(zflow->getHTTPurl()));    
+      setHTTPURL(zflow->getHTTPurl(true));
 
     if (zflow->getHTTPuserAgent())
-      setHTTPUserAgent(zflow->getHTTPuserAgent(true));    
+      setHTTPUserAgent(zflow->getHTTPuserAgent(true));
 
     if (zflow->getHTTPsite())
-      setServerName(zflow->getHTTPsite(true));    
+      setServerName(zflow->getHTTPsite(true));
 
     if (zflow->getHTTPMethod() != NDPI_HTTP_METHOD_UNKNOWN) {
       setHTTPMethod(zflow->getHTTPMethod());
       const char *http_method = getHTTPMethod();
-      
+
       if (http_method && http_method[0] && http_method[1]) {
         switch (http_method[0]) {
           case 'P':
@@ -8259,10 +8261,10 @@ bool Flow::isDPIDetectedFlow() {
 
 bool Flow::matchFlowIP(IpAddress *ip, u_int16_t vlan_id) {
   if(get_vlan_id() != vlan_id) return(false);
-  
+
   if((!get_cli_ip_addr()) || (!get_srv_ip_addr()))
     return(false);
-  
+
   if(get_cli_ip_addr()->equal(ip) || get_srv_ip_addr()->equal(ip))
     return(true);
   else
@@ -8275,4 +8277,3 @@ bool Flow::matchFlowIP(IpAddress *ip, u_int16_t vlan_id) {
 bool Flow::matchFlowVLAN(u_int16_t vlan_id) {
   return(get_vlan_id() == vlan_id ? true : false);
 }
-
