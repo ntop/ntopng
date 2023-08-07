@@ -97,7 +97,7 @@ const context = ref({
 
 function add_host() {
   modal_add.value.show();
-  refresh_table();
+  //refresh_table(true);
 }
 
 /* Function to refresh table */ 
@@ -108,8 +108,7 @@ function refresh_table(ok) {
    */
   if(! ok)
     autorefresh.value = false;
-  
-  if (ok === null || ok)
+  else
     table_hosts_to_scan.value.refresh_table();
 }
 
@@ -350,7 +349,7 @@ const add_host_rest = async function (params) {
 
   await ntopng_utility.http_post_request(url, rest_params);
   modal_add.value.close();
-  refresh_table();
+  refresh_table(true);
 }
 
 /* Function to retrieve scan types list */
@@ -391,7 +390,7 @@ const scan_row = async function () {
   })
   await ntopng_utility.http_post_request(url, rest_params);
   autorefresh.value = true;
-  refresh_table();
+  refresh_table(true);
 }
 
 /* Function to exec a vulnerability scan to all hosts set */
@@ -401,7 +400,7 @@ async function scan_all_entries() {
   })
   await ntopng_utility.http_post_request(url, rest_params);
   autorefresh.value = false;
-  refresh_table();
+  refresh_table(true);
 }
 
 /* Function to delete host to scan */
@@ -416,7 +415,7 @@ const delete_row = async function () {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
-  refresh_table();
+  refresh_table(true);
 }
 
 
@@ -427,7 +426,7 @@ const delete_all_rows = async function() {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
-  refresh_table();
+  refresh_table(true);
 }
 
 
