@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/pro/enterprise/modules/?.lua;" .
 
 require "lua_utils"
 local rest_utils = require "rest_utils"
+local format_utils = require("format_utils")
+require "lua_utils_get"
 
 if not isAdministratorOrPrintErr() then
     rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -20,17 +22,24 @@ if ntop.isEnterpriseM() then
 
 -- =============================
 
-local ifid = _GET["ifid"]
-local action = _GET["action"]
-local vlan_id = _GET["vlan_id"]
-
 
 local ifid = _GET["ifid"]
 local vlan = tonumber(_GET["vlan_id"] or -1)
 local criteria = _GET["aggregation_criteria"] or ""
 local rc = rest_utils.consts.success.ok
 local filters = {}
+
+if (vlan) and (isEmptyString(vlan) or tonumber(vlan) == -1) then
+    vlan = nil
+end
+
+if isEmptyString(ifid) then
+    ifid = interface.getId()
+end
+
 interface.select(ifid)
+
+
 filters["page"] = tonumber(_GET["draw"] or 0)
 filters["sort_column"] = _GET["sort"] or 'flows'
 filters["sort_order"] = _GET["order"] or 'desc'
@@ -38,7 +47,6 @@ filters["start"] = tonumber(_GET["start"] or 0)
 filters["length"] = tonumber(_GET["length"] or 10)
 filters["map_search"] = _GET["map_search"]
 filters["host"] = _GET["host"]
-interface.select(ifid)
 -- Aggregation criteria 
 local criteria_type_id = 1 -- by default application_protocol
 if criteria == "client" then
@@ -76,7 +84,7 @@ for _, data in pairs(aggregated_info or {}) do
         local vlan_name = i18n('no_vlan')
 
         if data.vlan_id ~= 0 then
-            vlan_name = getFullVlanName(data.vlan_id)
+            vlan_name = getFullVlanName(data.vlan_id, true)
         end
         local vlan = {
             count = 1,
@@ -94,11 +102,6 @@ table.insert(formatted_vlan_filters, 1, {
     label = i18n('all'),
     value =""
 })
-if not isEmptyString(ifid) then
-    interface.select(ifid)
-else
-    ifid = interface.getId()
-end
 
 
 local rsp = {
