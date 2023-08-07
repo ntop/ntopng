@@ -379,9 +379,9 @@ const start_datatable = function() {
     { columnName: _i18n("if_stats_config.rule_type"), targets: 2, width: '20', name: 'rule_type', data: 'rule_type', className: 'text-center', responsivePriority: 1, render: function(data, _, rowData) {return format_rule_type(data, rowData) } },
     { columnName: _i18n("if_stats_config.metric"), targets: 3, width: '10', name: 'metric', data: 'metric', className: 'text-center', responsivePriority: 1, render: function(data, _, rowData) { return format_metric(data, rowData) } },
     { columnName: _i18n("if_stats_config.frequency"), targets: 4, width: '10', name: 'frequency', data: 'frequency', className: 'text-center', responsivePriority: 1, render: function(data) { return format_frequency(data) } },
-    { columnName: _i18n("if_stats_config.last_measurement"), targets: 4, width: '10', name: 'last_measurement', data: 'last_measurement', className: 'text-center', responsivePriority: 1, render: function(data, _, rowData) { return format_last_measurement(data, rowData) } },
-    { columnName: _i18n("if_stats_config.threshold"), targets: 5, width: '10', name: 'threshold', data: 'threshold', className: 'text-end', responsivePriority: 1, render: function(data, _, rowData) { return format_threshold(data, rowData) } },
-    { columnName: _i18n("metric_type"), visible: false, targets: 6, name: 'metric_type', data: 'metric_type', className: 'text-nowrap', responsivePriority: 1 },
+    { columnName: _i18n("if_stats_config.last_measurement"), targets: 5, width: '10', name: 'last_measurement', data: 'last_measurement', className: 'text-center', responsivePriority: 1, render: function(data, _, rowData) { return format_last_measurement(data, rowData) } },
+    { columnName: _i18n("if_stats_config.threshold"), targets: 6, width: '10', name: 'threshold', data: 'threshold', className: 'text-end', responsivePriority: 1, render: function(data, _, rowData) { return format_threshold(data, rowData) } },
+    { columnName: _i18n("metric_type"), visible: false, targets: 7, name: 'metric_type', data: 'metric_type', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: _i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) { return add_action_column(rowData) } }
   ];
 
