@@ -12,8 +12,8 @@
             <span> {{ _i18n('scan_in_progress') }}</span>
           </div>
           <div id="hosts_to_scan">
-            <ModalDeleteConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete" @delete="delete_row" @delete_all="delete_all_rows" @scan_row="scan_row" @scan_all_rows="scan_all_entries">
-            </ModalDeleteConfirm>
+            <ModalDeleteScanConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete" @delete="delete_row" @delete_all="delete_all_rows" @scan_row="scan_row" @scan_all_rows="scan_all_entries">
+            </ModalDeleteScanConfirm>
             <TableWithConfig ref="table_hosts_to_scan" :table_id="table_id" :csrf="context.csrf"
               :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
               :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event">
@@ -46,7 +46,8 @@
 /* Imports */ 
 import { ref, onBeforeMount } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
-import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
+
+import { default as ModalDeleteScanConfirm } from "./modal-delete-scan-confirm.vue";
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
 import { default as ModalAddHostToScan } from "./modal-add-host-to-scan.vue";
 

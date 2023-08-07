@@ -72,6 +72,7 @@ import { default as ListTimeseries } from "./list-timeseries.vue";
 // modals
 import { default as Modal } from "./modal.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
+import { default as ModalDeleteScanConfirm } from "./modal-delete-scan-confirm.vue";
 import { default as ModalAddCheckExclusion } from "./modal-add-check-exclusion.vue";
 import { default as ModalAddDeviceExclusion } from "./modal-add-device-exclusion.vue";
 import { default as ModalEditDeviceExclusion } from "./modal-edit-device-exclusion.vue";
