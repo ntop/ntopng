@@ -327,7 +327,6 @@ const map_table_def_columns = (columns) => {
   columns.forEach((c) => {
     c.render_func = map_columns[c.data_field];
 
-    console.log(c.data_field)
     if (c.id == "actions") {
             
       c.button_def_array.forEach((b) => {
