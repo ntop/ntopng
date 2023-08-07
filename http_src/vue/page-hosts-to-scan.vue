@@ -262,7 +262,7 @@ async function check_autorefresh() {
 }
 
 /* Every 10 second check if the autorefresh is enabled or not, if it is refresh the table */
-//setInterval(check_autorefresh, 10000);
+setInterval(check_autorefresh, 10000);
 
 /* ******************************************************************** */ 
 
