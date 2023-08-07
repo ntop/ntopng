@@ -353,7 +353,7 @@ async function change_active_page(new_active_page) {
     if (props.paging == true || force_refresh) {
 	await set_rows();
     } else {
-	set_active_rows(true);
+	set_active_rows();
     }
     refresh_table_content();
 }
@@ -368,7 +368,7 @@ async function change_column_sort(col, col_index) {
     if (props.paging) {
 	await set_rows();
     } else {
-	set_active_rows(true);
+	set_active_rows();
     }
     await set_columns_visibility();
 }
@@ -425,12 +425,12 @@ function is_column_sortable(col) {
     return true;
 }
 
-function set_active_rows(use_sort_function) {
+function set_active_rows() {
     let start_row_index = 0;
     if (props.paging == false) {
 	start_row_index = active_page * per_page.value;
     }
-    if (use_sort_function == true) {
+    if (props.paging == false) {
 	let f_sort = get_sort_function();
 	let col_to_sort = get_column_to_sort();
 	rows = rows.sort((r0, r1) => {
