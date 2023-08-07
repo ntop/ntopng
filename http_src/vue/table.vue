@@ -353,7 +353,7 @@ async function change_active_page(new_active_page) {
     if (props.paging == true || force_refresh) {
 	await set_rows();
     } else {
-	set_active_rows();
+	set_active_rows(true);
     }
     refresh_table_content();
 }
@@ -368,11 +368,7 @@ async function change_column_sort(col, col_index) {
     if (props.paging) {
 	await set_rows();
     } else {
-	let f_sort = get_sort_function();
-	rows = rows.sort((r0, r1) => {
-	    return f_sort(col, r0, r1);
-	});
-	set_active_rows();
+	set_active_rows(true);
     }
     await set_columns_visibility();
 }
@@ -429,12 +425,24 @@ function is_column_sortable(col) {
     return true;
 }
 
-function set_active_rows() {
+function set_active_rows(use_sort_function) {
     let start_row_index = 0;
     if (props.paging == false) {
 	start_row_index = active_page * per_page.value;
     }
+    if (use_sort_function == true) {
+	let f_sort = get_sort_function();
+	let col_to_sort = get_column_to_sort();
+	rows = rows.sort((r0, r1) => {
+	    return f_sort(col_to_sort, r0, r1);
+	});
+    }
     active_rows.value = rows.slice(start_row_index, start_row_index + per_page.value);
+}
+
+function get_column_to_sort() {
+    let col_to_sort = columns_wrap.value.find((c) => c.sort != 0);
+    return col_to_sort;
 }
 
 let map_search_change_timeout;
