@@ -5684,16 +5684,12 @@ bool Flow::setDNSQuery(char *v) {
  */
 void Flow::updateDNS(ParsedFlow *zflow) {
   if (isDNS()) {
-    if (zflow->dns_query) {
-      if (setDNSQuery(zflow->dns_query)) {
+    if (zflow->getDNSQuery()) {
+      if (setDNSQuery(zflow->getDNSQuery(true))) {
         /* Set successful, query will be freed in the destructor */
-        setDNSQueryType(zflow->dns_query_type);
-        setDNSRetCode(zflow->dns_ret_code);
-      } else
-        /* Set error, query must be freed now */
-        free(zflow->dns_query);
-
-      zflow->dns_query = NULL;
+        setDNSQueryType(zflow->getDNSQueryType());
+        setDNSRetCode(zflow->getDNSRetCode());
+      }
     }
 
     stats.incDNSQuery(getLastQueryType());
@@ -5707,20 +5703,10 @@ void Flow::updateDNS(ParsedFlow *zflow) {
   @brief Update TLS stats for flows received via ZMQ
  */
 void Flow::updateTLS(ParsedFlow *zflow) {
-  if (zflow->tls_server_name) {
-    if (isTLS()) {
-      if (!protos.tls.client_requested_server_name)
-        protos.tls.client_requested_server_name = zflow->tls_server_name;
-      else
-        /* Already set, can be freed */
-        free(zflow->tls_server_name);
-    } else {
-      /* Not TLS, free the server name */
-      free(zflow->tls_server_name);
-    }
-
-    zflow->tls_server_name = NULL;
-  }
+  if (zflow->getTLSserverName()
+      && isTLS()
+      && (!protos.tls.client_requested_server_name))
+    protos.tls.client_requested_server_name = zflow->getTLSserverName(true);
 }
 
 /* *************************************** */
@@ -5744,24 +5730,19 @@ void Flow::dissectDNS(bool src2dst_direction, char *payload,
 
 void Flow::updateHTTP(ParsedFlow *zflow) {
   if (isHTTP()) {
-    if (zflow->http_url) {
-      setHTTPURL(zflow->http_url);
-      zflow->http_url = NULL;
-    }
+    if (zflow->getHTTPurl())
+      setHTTPURL(strdup(zflow->getHTTPurl()));    
 
-    if (zflow->http_user_agent) {
-      setHTTPUserAgent(zflow->http_user_agent);
-      zflow->http_user_agent = NULL;
-    }
+    if (zflow->getHTTPuserAgent())
+      setHTTPUserAgent(zflow->getHTTPuserAgent(true));    
 
-    if (zflow->http_site) {
-      setServerName(zflow->http_site);
-      zflow->http_site = NULL;
-    }
+    if (zflow->getHTTPsite())
+      setServerName(zflow->getHTTPsite(true));    
 
-    if (zflow->http_method != NDPI_HTTP_METHOD_UNKNOWN) {
-      setHTTPMethod(zflow->http_method);
+    if (zflow->getHTTPMethod() != NDPI_HTTP_METHOD_UNKNOWN) {
+      setHTTPMethod(zflow->getHTTPMethod());
       const char *http_method = getHTTPMethod();
+      
       if (http_method && http_method[0] && http_method[1]) {
         switch (http_method[0]) {
           case 'P':
@@ -5791,7 +5772,7 @@ void Flow::updateHTTP(ParsedFlow *zflow) {
         stats.incHTTPReqOhter();
     }
 
-    setHTTPRetCode(zflow->http_ret_code);
+    setHTTPRetCode(zflow->getHTTPRetCode());
     u_int16_t ret_code = getHTTPRetCode();
     while (ret_code > 9) ret_code /= 10; /* Take the first digit */
     switch (ret_code) {
@@ -6612,7 +6593,7 @@ void Flow::updateHASSH(bool as_client) {
 
 /* ***************************************************** */
 
-void Flow::fillZmqFlowCategory(const ParsedFlow *zflow,
+void Flow::fillZmqFlowCategory(ParsedFlow *zflow,
                                ndpi_protocol *res) const {
   struct ndpi_detection_module_struct *ndpi_struct = iface->get_ndpi_struct();
   const char *dst_name = NULL;
@@ -6626,14 +6607,14 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow,
 
   switch (ndpi_get_lower_proto(*res)) {
     case NDPI_PROTOCOL_DNS:
-      dst_name = zflow->dns_query;
+      dst_name = zflow->getDNSQuery();
       break;
     case NDPI_PROTOCOL_HTTP_PROXY:
     case NDPI_PROTOCOL_HTTP:
-      dst_name = zflow->http_site;
+      dst_name = zflow->getHTTPsite();
       break;
     case NDPI_PROTOCOL_TLS:
-      dst_name = zflow->tls_server_name;
+      dst_name = zflow->getTLSserverName();
       break;
     default:
       break;

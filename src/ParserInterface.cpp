@@ -81,7 +81,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
     /* Deliver eBPF info to companion queues */
     if (zflow->process_info_set || zflow->container_info_set ||
-        zflow->tcp_info_set || zflow->external_alert ||
+        zflow->tcp_info_set || zflow->getExternalAlert() ||
         zflow->getAdditionalFieldsJSON()) {
       deliverFlowToCompanions(zflow);
     }
@@ -305,9 +305,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if (zflow->tcp.out_window)
     flow->setFlowTcpWindow(zflow->tcp.out_window, !src2dst_direction);
 
-  if (zflow->flow_verdict == 2 /* DROP */) flow->setDropVerdict();
+  if (zflow->getFlowVerdict() == 2 /* DROP */) flow->setDropVerdict();
 
-  flow->setRisk(zflow->ndpi_flow_risk_bitmap);
+  flow->setRisk(zflow->getRisk());
   flow->setTOS(zflow->src_tos, true), flow->setTOS(zflow->dst_tos, false);
   flow->setRtt();
 
@@ -498,7 +498,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 #endif
 
-  flow->setFlowVerdict(zflow->flow_verdict);
+  flow->setFlowVerdict(zflow->getFlowVerdict());
   flow->setJSONInfo(zflow->getAdditionalFieldsJSON());
   flow->setTLVInfo(zflow->getAdditionalFieldsTLV());
 
@@ -515,61 +515,45 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     - When nProbe has plugins enabled, plugin data is taken
     - When nProbe has no plugins enabled, then nDPI data is taken
   */
-  if (zflow->l7_info && zflow->l7_info[0]) {
-    if (flow->isDNS() && !zflow->dns_query)
-      zflow->dns_query = zflow->l7_info;
-    else if (flow->isHTTP() && !zflow->http_site) {
-      zflow->http_site = zflow->l7_info;
+  if (zflow->getL7Info() && zflow->getL7Info()[0]) {
+    if (flow->isDNS() && !zflow->getDNSQuery())
+      zflow->setDNSQuery(zflow->getL7Info());
+    else if (flow->isHTTP() && !zflow->getHTTPsite()) {
+      zflow->setHTTPsite(zflow->getL7Info());
       if (flow->get_cli_host())
-        flow->get_cli_host()->incrVisitedWebSite(zflow->http_site);
-    } else if (flow->isTLS() && !zflow->tls_server_name) {
-      zflow->tls_server_name = zflow->l7_info;
+        flow->get_cli_host()->incrVisitedWebSite(zflow->getHTTPsite());
+    } else if (flow->isTLS() && !zflow->getTLSserverName()) {
+      zflow->setTLSserverName(zflow->getL7Info());
       if (flow->get_cli_host())
-        flow->get_cli_host()->incrVisitedWebSite(zflow->tls_server_name);
-    } else
-      free(zflow->l7_info);
-
-    zflow->l7_info = NULL;
-
-#if 0
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s][%s][%s][%s]",
-				 zflow->dns_query ? zflow->dns_query : "",
-				 zflow->http_url ? zflow->http_url : "",
-				 zflow->http_site ? zflow->http_site : "",
-				 zflow->tls_server_name ? zflow->tls_server_name : "");
-#endif
+        flow->get_cli_host()->incrVisitedWebSite(zflow->getTLSserverName());
+    }
   }
 
-  flow->setErrorCode(zflow->l7_error_code);
-  flow->setConfidence(zflow->confidence);
+  flow->setErrorCode(zflow->getL7ErrorCode());
+  flow->setConfidence(zflow->getConfidence());
 
-  if (flow->isDNS()) flow->updateDNS(zflow);
-
+  if (flow->isDNS())  flow->updateDNS(zflow);
   if (flow->isHTTP()) flow->updateHTTP(zflow);
+  if (flow->isTLS())  flow->updateTLS(zflow);
 
-  if (flow->isTLS()) flow->updateTLS(zflow);
+  if (zflow->getBittorrentHash())
+    flow->setBTHash(zflow->getBittorrentHash(true));
 
-  if (zflow->bittorrent_hash) {
-    flow->setBTHash(zflow->bittorrent_hash);
-    zflow->bittorrent_hash = NULL;
-  }
-
-  if (zflow->vrfId) flow->setVRFid(zflow->vrfId);
-
+  if (zflow->vrfId)  flow->setVRFid(zflow->vrfId);
   if (zflow->src_as) flow->setSrcAS(zflow->src_as);
   if (zflow->dst_as) flow->setDstAS(zflow->dst_as);
 
   if (zflow->prev_adjacent_as) flow->setPrevAdjacentAS(zflow->prev_adjacent_as);
   if (zflow->next_adjacent_as) flow->setNextAdjacentAS(zflow->next_adjacent_as);
 
-  if (zflow->ja3c_hash) flow->updateJA3C(zflow->ja3c_hash);
-  if (zflow->ja3s_hash) flow->updateJA3S(zflow->ja3s_hash);
+  if (zflow->getJA3cHash()) flow->updateJA3C(zflow->getJA3cHash());
+  if (zflow->getJA3sHash()) flow->updateJA3S(zflow->getJA3sHash());
 
-  if (zflow->flow_risk_info) {
+  if (zflow->getRiskInfo()) {
     json_object *o, *obj;
     enum json_tokener_error jerr = json_tokener_success;
 
-    flow->setJSONRiskInfo(zflow->flow_risk_info);
+    flow->setJSONRiskInfo(zflow->getRiskInfo());
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]",
     // zflow->flow_risk_info);
@@ -578,7 +562,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       We use riskInfo to grab some flow attributes
       to enrich the memory flor representation
     */
-    if ((o = json_tokener_parse_verbose(zflow->flow_risk_info, &jerr)) !=
+    if ((o = json_tokener_parse_verbose(zflow->getRiskInfo(), &jerr)) !=
         NULL) {
       /* NOTE: keep in sync with  FlowRisk::ignoreRisk() */
       if (json_object_object_get_ex(
@@ -598,21 +582,21 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 
 #ifdef NTOPNG_PRO
-  if (zflow->custom_app.pen) {
-    flow->setCustomApp(zflow->custom_app);
+  if (zflow->getCustomApp().pen) {
+    flow->setCustomApp(zflow->getCustomApp());
 
     if (custom_app_stats ||
         (custom_app_stats = new (std::nothrow) CustomAppStats(this))) {
       custom_app_stats->incStats(
-          zflow->custom_app.remapped_app_id,
+	zflow->getCustomApp().remapped_app_id,
           zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
     }
   }
 #endif
 
-  if (zflow->external_alert) {
+  if (zflow->getExternalAlert()) {
     enum json_tokener_error jerr = json_tokener_success;
-    json_object *o = json_tokener_parse_verbose(zflow->external_alert, &jerr);
+    json_object *o = json_tokener_parse_verbose(zflow->getExternalAlert(), &jerr);
 
     if (o) flow->setExternalAlert(o);
   }

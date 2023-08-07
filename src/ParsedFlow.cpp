@@ -236,26 +236,33 @@ void ParsedFlow::fromLua(lua_State *L, int index) {
 /* *************************************** */
 
 ParsedFlow::~ParsedFlow() {
+  freeMemory();
+}
+
+/* *************************************** */
+
+void ParsedFlow::freeMemory() {
   if (additional_fields_json) json_object_put(additional_fields_json);
 
   if (additional_fields_tlv) {
     ndpi_term_serializer(additional_fields_tlv);
     free(additional_fields_tlv);
+    additional_fields_tlv = NULL;
   }
 
-  if (l7_info) free(l7_info);
-  if (http_url) free(http_url);
-  if (http_site) free(http_site);
-  if (http_user_agent) free(http_user_agent);
-  if (dns_query) free(dns_query);
-  if (tls_server_name) free(tls_server_name);
-  if (bittorrent_hash) free(bittorrent_hash);
-  if (ja3c_hash) free(ja3c_hash);
-  if (ja3s_hash) free(ja3s_hash);
-  if (external_alert) free(external_alert);
-  if (flow_risk_info) free(flow_risk_info);
+  if (l7_info)         { free(l7_info); l7_info = NULL; }
+  if (http_url)        { free(http_url); http_url = NULL; }
+  if (http_site)       { free(http_site); http_site = NULL; }
+  if (http_user_agent) { free(http_user_agent); http_user_agent = NULL; }
+  if (dns_query)       { free(dns_query); dns_query = NULL; }
+  if (tls_server_name) { free(tls_server_name); tls_server_name = NULL; }
+  if (bittorrent_hash) { free(bittorrent_hash); bittorrent_hash = NULL; }
+  if (ja3c_hash)       { free(ja3c_hash); ja3c_hash = NULL; }
+  if (ja3s_hash)       { free(ja3s_hash); ja3s_hash = NULL; }
+  if (external_alert)  { free(external_alert); external_alert = NULL; }
+  if (flow_risk_info)  { free(flow_risk_info); flow_risk_info = NULL; }
 }
-
+    
 /* *************************************** */
 
 void ParsedFlow::swap() {

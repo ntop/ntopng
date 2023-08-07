@@ -3149,11 +3149,10 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
           flow->setJSONInfo(dequeued->getAdditionalFieldsJSON());
         }
 
-        if (dequeued->external_alert) {
+        if (dequeued->getExternalAlert()) {
           /* Flow from SyslogParserInterface (Suricata) */
           enum json_tokener_error jerr = json_tokener_success;
-          json_object *o =
-	    json_tokener_parse_verbose(dequeued->external_alert, &jerr);
+          json_object *o = json_tokener_parse_verbose(dequeued->getExternalAlert(), &jerr);
 
           if (o) flow->setExternalAlert(o);
         }

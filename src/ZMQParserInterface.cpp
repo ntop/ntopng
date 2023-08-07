@@ -829,21 +829,18 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
       break;
 
     case L7_INFO:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->l7_info) free(flow->l7_info);
-        flow->l7_info = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+	flow->setL7Info(value->string);
       break;
 
     case L7_CONFIDENCE:
-      flow->confidence =
-          (ndpi_confidence_t)((value->int_num < NDPI_CONFIDENCE_MAX)
-                                  ? value->int_num
-                                  : NDPI_CONFIDENCE_UNKNOWN);
+      flow->setConfidence((ndpi_confidence_t)((value->int_num < NDPI_CONFIDENCE_MAX)
+					      ? value->int_num
+					      : NDPI_CONFIDENCE_UNKNOWN));
       break;
 
     case L7_ERROR_CODE:
-      flow->l7_error_code = value->int_num;
+      flow->setL7ErrorCode(value->int_num);
       break;
 
     case OOORDER_IN_PKTS:
@@ -903,109 +900,81 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
       break;
 
     case DNS_QUERY:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->dns_query) free(flow->dns_query);
-        flow->dns_query = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+        flow->setDNSQuery(value->string);
       break;
 
     case DNS_QUERY_TYPE:
-      if (value->string)
-        flow->dns_query_type = atoi(value->string);
-      else
-        flow->dns_query_type = value->int_num;
+      flow->setDNSQueryType(value->string ? atoi(value->string) : value->int_num);
       break;
 
     case DNS_RET_CODE:
-      if (value->string)
-        flow->dns_ret_code = atoi(value->string);
-      else
-        flow->dns_ret_code = value->int_num;
+      flow->setDNSRetCode(value->string ? atoi(value->string) : value->int_num);
       break;
 
     case HTTP_URL:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->http_url) free(flow->http_url);
-        flow->http_url = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+	flow->setHTTPurl(value->string);
       break;
 
     case HTTP_USER_AGENT:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->http_user_agent) free(flow->http_user_agent);
-        flow->http_user_agent = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n') 
+	flow->setHTTPuserAgent(value->string);
       break;
 
     case HTTP_SITE:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->http_site) free(flow->http_site);
-        flow->http_site = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+	flow->setHTTPsite(value->string);
       break;
 
     case HTTP_RET_CODE:
-      if (value->string)
-        flow->http_ret_code = atoi(value->string);
-      else
-        flow->http_ret_code = value->int_num;
+      flow->setHTTPRetCode(value->string ? atoi(value->string) : value->int_num);
       break;
 
     case HTTP_METHOD:
       if (value->string && value->string[0] && value->string[0] != '\n')
-        flow->http_method =
-            ndpi_http_str2method(value->string, strlen(value->string));
+        flow->setHTTPMethod(ndpi_http_str2method(value->string, strlen(value->string)));
       break;
 
     case TLS_SERVER_NAME:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->tls_server_name) free(flow->tls_server_name);
-        flow->tls_server_name = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+	flow->setTLSserverName(value->string);
       break;
 
     case JA3C_HASH:
-      if (value->string && value->string[0]) {
-        if (flow->ja3c_hash) free(flow->ja3c_hash);
-        flow->ja3c_hash = strdup(value->string);
-      }
+      if (value->string && value->string[0])
+	flow->setJA3cHash(value->string);
       break;
 
     case JA3S_HASH:
-      if (value->string && value->string[0]) {
-        if (flow->ja3s_hash) free(flow->ja3s_hash);
-        flow->ja3s_hash = strdup(value->string);
-      }
+      if (value->string && value->string[0])
+	flow->setJA3sHash(value->string);
       break;
 
     case TLS_CIPHER:
-      flow->tls_cipher = value->int_num;
+      flow->setTLSCipher(value->int_num);
       break;
 
     case SSL_UNSAFE_CIPHER:
-      flow->tls_unsafe_cipher = value->int_num;
+      flow->setTLSUnsafeCipher(value->int_num);
       break;
 
     case L7_PROTO_RISK:
-      flow->ndpi_flow_risk_bitmap = (ndpi_risk)value->int_num;
+      flow->setRisk((ndpi_risk)value->int_num);
       break;
 
     case FLOW_VERDICT:
-      flow->flow_verdict = value->int_num;
+      flow->setFlowVerdict(value->int_num);
       break;
 
     case L7_RISK_INFO:
-      if (value->string && value->string[0]) {
-        if (flow->flow_risk_info) free(flow->flow_risk_info);
-        flow->flow_risk_info = strdup(value->string);
-      }
+      if (value->string && value->string[0])
+	flow->setRiskInfo(value->string);
       break;
 
     case BITTORRENT_HASH:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->bittorrent_hash) free(flow->bittorrent_hash);
-        flow->bittorrent_hash = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+	flow->setBittorrentHash(value->string);
       break;
 
     case NPROBE_IPV4_ADDRESS:
@@ -1358,47 +1327,47 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow *const flow,
         return false;
 
     case L7_INFO:
-      if (value->string && flow->l7_info)
-        return (strcmp(flow->l7_info, value->string) == 0);
+      if (value->string && flow->getL7Info())
+        return (strcmp(flow->getL7Info(), value->string) == 0);
       else
         return false;
 
     case L7_ERROR_CODE:
-      return (flow->l7_error_code == value->int_num);
+      return (flow->getL7ErrorCode() == value->int_num);
 
     case DNS_QUERY:
-      if (value->string && flow->dns_query)
-        return (strcmp(flow->dns_query, value->string) == 0);
+      if (value->string && flow->getDNSQuery())
+        return (strcmp(flow->getDNSQuery(), value->string) == 0);
       else
         return false;
 
     case DNS_QUERY_TYPE:
       if (value->string)
-        return (flow->dns_query_type == atoi(value->string));
+        return (flow->getDNSQueryType() == atoi(value->string));
       else
-        return (flow->dns_query_type == value->int_num);
+        return (flow->getDNSQueryType() == value->int_num);
 
     case HTTP_URL:
-      if (value->string && flow->http_url)
-        return (strcmp(flow->http_url, value->string) == 0);
+      if (value->string && flow->getHTTPurl())
+        return (strcmp(flow->getHTTPurl(), value->string) == 0);
       else
         return false;
 
     case HTTP_USER_AGENT:
-      if (value->string && flow->http_user_agent)
-        return (strcmp(flow->http_user_agent, value->string) == 0);
+      if (value->string && flow->getHTTPuserAgent())
+        return (strcmp(flow->getHTTPuserAgent(), value->string) == 0);
       else
         return false;
 
     case HTTP_SITE:
-      if (value->string && flow->http_site)
-        return (strcmp(flow->http_site, value->string) == 0);
+      if (value->string && flow->getHTTPsite())
+        return (strcmp(flow->getHTTPsite(), value->string) == 0);
       else
         return false;
 
     case TLS_SERVER_NAME:
-      if (value->string && flow->tls_server_name)
-        return (strcmp(flow->tls_server_name, value->string) == 0);
+      if (value->string && flow->getTLSserverName())
+        return (strcmp(flow->getTLSserverName(), value->string) == 0);
       else
         return false;
 
@@ -2027,7 +1996,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 	/* Attempt to parse it as an nProbe mini field */
 	if(parseNProbeAgentField(&flow, key_str, &value)) {
 	  if(!flow.hasParsedeBPF()) {
-	    flow.setParsedeBPF();
+	    flow->setParsedeBPF();
 	    flow.absolute_packet_octet_counters = true;
 	  }
 	  break;
