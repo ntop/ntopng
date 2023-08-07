@@ -127,6 +127,9 @@ function get_f_print_v_node_buttons(list_or_array) {
 	    if (b_def.attributes != null) {
 		attributes = b_def.attributes;
 	    }
+	    if (b_def.f_map_class != null) {
+		b_def.class = b_def.f_map_class(b_def.class, row);
+	    }
 	    let _class = "";
 	    if (b_def.class != null && b_def.class.length > 0) {
 		_class = b_def.class.join(" ");
