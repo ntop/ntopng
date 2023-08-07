@@ -105,14 +105,17 @@ function add_host() {
 
 /* Function to refresh table */ 
 
-function refresh_table(ok) {
+function refresh_table(ok, disable_loading) {
   /* It's important to set autorefresh to false, in this way when refreshed 
      all the entries are going to be checked and if all of them are not scanning it stays false
    */
   if(! ok)
     autorefresh.value = false;
+  else if(disable_loading == true)
+    table_hosts_to_scan.value.refresh_table(disable_loading);
   else
     table_hosts_to_scan.value.refresh_table();
+
 }
 
 /* ******************************************************************** */ 
@@ -252,14 +255,14 @@ async function check_autorefresh() {
 
   await check_in_progress_status();
   if(autorefresh.value == true) {
-    refresh_table(true);
+    refresh_table(true, true);
   } else {
-    refresh_table(false)
+    refresh_table(false,false)
   }
 }
 
 /* Every 10 second check if the autorefresh is enabled or not, if it is refresh the table */
-setInterval(check_autorefresh, 10000);
+//setInterval(check_autorefresh, 10000);
 
 /* ******************************************************************** */ 
 
@@ -352,7 +355,7 @@ const add_host_rest = async function (params) {
 
   await ntopng_utility.http_post_request(url, rest_params);
   modal_add.value.close();
-  refresh_table(true);
+  refresh_table(true,false);
 }
 
 /* Function to retrieve scan types list */
@@ -393,7 +396,7 @@ const scan_row = async function () {
   })
   await ntopng_utility.http_post_request(url, rest_params);
   autorefresh.value = true;
-  refresh_table(true);
+  refresh_table(true,false);
 }
 
 /* Function to exec a vulnerability scan to all hosts set */
@@ -403,7 +406,7 @@ async function scan_all_entries() {
   })
   await ntopng_utility.http_post_request(url, rest_params);
   autorefresh.value = false;
-  refresh_table(true);
+  refresh_table(true,false);
 }
 
 /* Function to delete host to scan */
@@ -418,7 +421,7 @@ const delete_row = async function () {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
-  refresh_table(true);
+  refresh_table(true,false);
 }
 
 
@@ -429,7 +432,7 @@ const delete_all_rows = async function() {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
-  refresh_table(true);
+  refresh_table(true,false);
 }
 
 

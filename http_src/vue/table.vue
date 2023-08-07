@@ -28,7 +28,7 @@
       <button class="btn btn-link me-1" type="button" @click="reset_column_size">
 	<i class="fas fa-columns"></i>
       </button>
-      <button class="btn btn-link me-1" type="button" @click="refresh_table">
+      <button class="btn btn-link me-1" type="button" @click="refresh_table()">
 	<i class="fas fa-refresh"></i>
       </button>
       <div v-if="show_autorefresh > 0" class="d-inline-block">
