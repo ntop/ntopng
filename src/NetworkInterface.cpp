@@ -11538,22 +11538,22 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
 
       for (it = stats->count.begin(); it != stats->count.end(); ++it) {
 	bool do_add_it = false;
+  ndpi_protocol detected_protocol;
+
+  char buf[64], *proto;
+  /* Get from the key, the master and application protocol,
+  * first 16 bit for the master, second for the application
+  */
+  detected_protocol.master_protocol = (u_int16_t)(it->first & 0x00000000000FFFF);
+  detected_protocol.app_protocol    = (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
+
+  proto = get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf));
+  
+  it->second->setProtoName(proto);
 
 	if(search_string == NULL)
 	  do_add_it = true;
 	else {
-	  ndpi_protocol detected_protocol;
-	  char buf[64], *proto;
-
-	  /* Get from the key, the master and application protocol,
-	   * first 16 bit for the master, second for the application
-	   */
-	  detected_protocol.master_protocol = (u_int16_t)(it->first & 0x00000000000FFFF);
-	  detected_protocol.app_protocol    = (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
-
-	  proto = get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf));
-	  it->second->setProtoName(proto);
-
 	  // check filters
 	  if(strcasestr(proto, search_string) != NULL)
 	    do_add_it = true;
