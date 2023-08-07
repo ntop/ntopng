@@ -416,7 +416,11 @@ export default class NtopUtils {
                 var terabyte = gigabyte * 1024;
 
                 if ((bytes >= 0) && (bytes < kilobyte))
-                        return parseFloat(bytes.toFixed(precision)) + " Bytes";
+                        if(bytes != 0)        
+                                return parseFloat(bytes.toFixed(precision)) + " Bytes";
+                        else
+                                return parseFloat(bytes) + " Bytes";
+  
                 else if ((bytes >= kilobyte) && (bytes < megabyte))
                         return parseFloat((bytes / kilobyte).toFixed(precision)) + ' KB';
                 else if ((bytes >= megabyte) && (bytes < gigabyte))

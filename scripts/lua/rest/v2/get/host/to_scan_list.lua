@@ -21,12 +21,11 @@ local function format_result(result)
     return rsp 
 end
 
-local function retrieve_host() 
-    local result =  vs_utils.retrieve_hosts_to_scan()
+local function retrieve_host(host) 
+    local result = vs_utils.retrieve_hosts_to_scan()
 
     return format_result(result)
 end
 
-
-
 rest_utils.answer(rest_utils.consts.success.ok, retrieve_host())
+

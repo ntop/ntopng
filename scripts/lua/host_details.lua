@@ -4,12 +4,15 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 local snmp_utils
 local snmp_location
 local host_sites_update
 local sites_granularities = {}
 local auth = require "auth"
+
+local vs_utils = require "vs_utils"
 
 if (ntop.isPro()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -1314,6 +1317,43 @@ else
                 "<tr><th><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)<i class=\"fas fa-external-link-alt fa-lg\"></i></A></th><td colspan=2> <A HREF='" ..
                     host["ssdp"] .. "'>" .. host["ssdp"] .. "<A></td></tr>\n")
         end
+
+        local hosts_vs_details = vs_utils.retrieve_hosts_to_scan(host["ip"])
+        
+        local host_vs_details = {}
+        for _,value in ipairs(hosts_vs_details) do
+            if value.host == host["ip"] then
+                host_vs_details = value
+                break
+            end
+        end
+
+        if next(host_vs_details) ~= nil and host_vs_details.num_vulnerabilities_found and host_vs_details.num_vulnerabilities_found > 0 then
+            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
+            print("<td colspan=2>")
+            local i = 0
+            for _,vs in ipairs(host_vs_details.cve) do
+                if (i<5) then
+                    print('<a href="' .. ntop.getHttpPrefix() ..'/lua/rest/v2/get/host/vulnerability_scan_result.lua?host='..host_vs_details.host..'&scan_type='..host_vs_details.scan_type..'">'.. vs..'</a> ')
+                else
+                    print('...')
+                    break 
+                end
+                i = i + 1
+            end
+
+        elseif (next(host_vs_details) ~= nil and (host_vs_details.num_vulnerabilities_found == nil or host_vs_details.num_vulnerabilities_found == 0)) then
+            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
+            print("<td colspan=2>")
+            print(i18n("hosts_stats.page_scan_hosts.no_cves_detected"))
+            
+        elseif (next(host_vs_details) == nil) then
+            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
+            print("<td colspan=2>")
+            print('<a href="' .. ntop.getHttpPrefix() ..'/lua/monitor/active_monitoring_monitor.lua?page=scan_hosts&host='..host["ip"]..'&ifid='..ifId..'">'.. i18n("hosts_stats.page_scan_hosts.add_to_scan_list")..'</a> ')
+        end
+
+        print("<tr><th colspan=4></th></tr>\n")
 
         print("</table>\n")
         print [[

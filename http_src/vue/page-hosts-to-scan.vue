@@ -96,7 +96,10 @@ const context = ref({
 /* Function to add a new host to scan */ 
 
 function add_host() {
-  modal_add.value.show();
+  if (props.context.host != null && props.context.host != "")
+    modal_add.value.show(null, props.context.host);
+  else
+    modal_add.value.show();
   //refresh_table(true);
 }
 

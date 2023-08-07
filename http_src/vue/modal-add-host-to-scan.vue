@@ -237,10 +237,15 @@ const set_row_to_edit = (row) => {
   }
 }
 
-const show = (row) => {
+const show = (row, _host) => {
   reset_modal_form();
   if(row != null)
     set_row_to_edit(row);
+  
+  if(_host!=null && _host!="") {
+    host.value = _host;
+    disable_add.value = false;
+  }
   
   modal_id.value.show();
 };
@@ -327,6 +332,7 @@ const add_ = async (is_edit) => {
 
   if (verify_host_name) {
     let result = await resolve_host_name(host.value);
+    console.log(result)
     disable_add.value = result == "no_success";
   }
 

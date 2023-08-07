@@ -143,7 +143,8 @@ elseif (page == "scan_hosts") then
     local json_context = {
         csrf = ntop.getRandomCSRFValue(),
         ifid = ifid,
-        is_enterprise_l = ntop.isEnterpriseL()
+        is_enterprise_l = ntop.isEnterpriseL(),
+        host = host_result
     }
     template.render("pages/vue_page.template", { vue_page_name = "PageHostsToScan", page_context = json.encode(json_context) })
     
