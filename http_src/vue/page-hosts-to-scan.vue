@@ -129,6 +129,7 @@ const get_extra_params_obj = () => {
 
 /* Function to handle all buttons */
 function on_table_custom_event(event) {
+  
   let events_managed = {
     "click_button_edit_host": click_button_edit_host,
     "click_button_delete": click_button_delete,
@@ -243,7 +244,7 @@ function click_button_edit_host(event) {
 /* Function to delete all entries */
 function delete_all_entries() {
   modal_delete_confirm.value.show('delete_all', i18n('delete_all_vs_hosts'));
-0}
+}
 
 /* Function to edit host to scan */
 async function edit(params) {
@@ -268,7 +269,10 @@ setInterval(check_autorefresh, 10000);
 
 /* Function to map columns data */
 const map_table_def_columns = (columns) => {
-
+  const visible_dict = {
+        download: true,
+        show_result: true
+      };
   let map_columns = {
     "scan_type": (scan_type, row) => {
       if (scan_type !== undefined) {
@@ -318,22 +322,27 @@ const map_table_def_columns = (columns) => {
       }
       
     }
-  }
+  };
+
   columns.forEach((c) => {
     c.render_func = map_columns[c.data_field];
 
+    console.log(c.data_field)
     if (c.id == "actions") {
-      const visible_dict = {
-        historical_data: props.show_historical,
-      };
+            
       c.button_def_array.forEach((b) => {
-        if (!visible_dict[b.id]) {
-          b.class.push("disabled");
+          
+        b.f_map_class = (current_class, row) => { 
+          current_class = current_class.filter((class_item) => class_item != "link-disabled");
+          if((row.is_ok_last_scan == 4 || row.is_ok_last_scan == null) && visible_dict[b.id]) {
+            current_class.push("link-disabled"); 
+          }
+          return current_class;
         }
       });
     }
   });
-
+  
   return columns;
 };
 
