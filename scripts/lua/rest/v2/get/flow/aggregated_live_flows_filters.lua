@@ -97,13 +97,14 @@ for _, data in pairs(aggregated_info or {}) do
 end
 
 
+
+
+table.sort(formatted_vlan_filters, function(a,b) return a.value < b.value end)
 table.insert(formatted_vlan_filters, 1, {
     key = "vlan_id",
     label = i18n('all'),
-    value =""
+    value = ""
 })
-
-
 local rsp = {
     {
         action = "vlan_id",
