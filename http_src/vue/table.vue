@@ -392,17 +392,20 @@ function get_sort_function() {
 }
 
 let force_refresh = false;
-async function refresh_table() {
+let force_disable_loading = false;
+async function refresh_table(disable_loading) {
     force_refresh = true;
+    force_disable_loading = disable_loading || false;
     select_table_page.value.change_active_page(0, 0);
     await nextTick();
     force_refresh = false;
+    force_disable_loading = false;
 }
 
 let first_get_rows = true;
 async function set_rows() {
     // changing_rows.value = true;
-    loading.value = true;
+    loading.value = true && !force_disable_loading;
     let res = await props.get_rows(active_page, per_page.value, columns_wrap.value, map_search.value, first_get_rows);
     query_info.value = null;
     if (res.query_info != null) {
