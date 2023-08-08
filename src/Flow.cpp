@@ -1086,7 +1086,8 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
           cli_host->incrVisitedWebSite((char *)ndpiFlow->host_server_name);
         }
 
-	setDNSQuery((const char *)ndpiFlow->host_server_name);
+	setDNSQuery(ndpiFlow->host_server_name);
+	
         if (ndpiFlow->protos.dns.query_type != 0)
           protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
 
