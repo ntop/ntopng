@@ -1086,12 +1086,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
           cli_host->incrVisitedWebSite((char *)ndpiFlow->host_server_name);
         }
 
-        char *q = strdup((const char *)ndpiFlow->host_server_name);
-        if (q) {
-          if (!setDNSQuery(q))
-            /* Unable to set the DNS query, must free the memory */
-            free(q);
-        }
+	setDNSQuery((const char *)ndpiFlow->host_server_name);
         if (ndpiFlow->protos.dns.query_type != 0)
           protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
 
@@ -5657,7 +5652,7 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
   more than one query per second for the same DNS flow.
  */
 bool Flow::setDNSQuery(char *v) {
-  if (isDNS()) {
+  if ((v != NULL) && isDNS()) {
     time_t last_pkt_rcvd = getInterface()->getTimeLastPktRcvd();
     
     if (!protos.dns.last_query_shadow /* The first time the swap is done */
@@ -5666,14 +5661,12 @@ bool Flow::setDNSQuery(char *v) {
 	last_pkt_rcvd /* Latest swap occurred at least one second ago */) {
       if (protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
       protos.dns.last_query_shadow = protos.dns.last_query;
-      protos.dns.last_query = v;
+      protos.dns.last_query = strdup(v);
       protos.dns.last_query_update_time = last_pkt_rcvd;
       
       return true; /* Swap successful */
     }
   }
-
-  free(v); /* v was allocated but not used */
   
   /* Unable to set the DNS query. Too early or not a DNS flow. */
   return false;
