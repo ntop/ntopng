@@ -755,9 +755,9 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getLastQueryType()       { return(isDNS() ? protos.dns.last_query_type : 0); }
   inline u_int16_t getDNSRetCode()          { return(isDNS() ? protos.dns.last_return_code : 0); }
   inline char* getHTTPURL()                 { return(isHTTP() ? protos.http.last_url : (char*)"");   }
-  inline void  setHTTPURL(char *v)          { if(isHTTP()) { if(!protos.http.last_url) protos.http.last_url = v; } else { if(v) free(v); } }
+  inline void  setHTTPURL(char *v)          { if(isHTTP()) { if(!protos.http.last_url) protos.http.last_url = v; else { if(v) free(v); } } else { if(v) free(v); } }
   inline char* getHTTPUserAgent()           { return(isHTTP() ? protos.http.last_user_agent : (char*)"");   }
-  inline void  setHTTPUserAgent(char *v)    { if(isHTTP()) { if(!protos.http.last_user_agent) protos.http.last_user_agent = v; } else { if(v) free(v); } }
+  inline void  setHTTPUserAgent(char *v)    { if(isHTTP()) { if(!protos.http.last_user_agent) protos.http.last_user_agent = v;  else { if(v) free(v); } } else { if(v) free(v); } }
   void setHTTPMethod(const char* method, ssize_t method_len);
   void setHTTPMethod(ndpi_http_method m);
   inline void  setHTTPRetCode(u_int16_t c)  { if(isHTTP()) { protos.http.last_return_code = c; } }
