@@ -105,14 +105,18 @@ table.insert(formatted_vlan_filters, 1, {
     label = i18n('all'),
     value = ""
 })
-local rsp = {
-    {
-        action = "vlan_id",
-        label = i18n("vlan"),
-        tooltip = i18n("vlan_filter"),
-        name = "vlan_filter",
-        value = formatted_vlan_filters
+
+local rsp = {}
+if (#formatted_vlan_filters > 2) then
+    rsp = {
+        {
+            action = "vlan_id",
+            label = i18n("vlan"),
+            tooltip = i18n("vlan_filter"),
+            name = "vlan_filter",
+            value = formatted_vlan_filters
+        }
     }
-}
+end
 
 rest_utils.answer(rest_utils.consts.success.ok, rsp)
