@@ -246,7 +246,7 @@ const format_threshold = function(data, rowData) {
     threshold_sign = "< "
 
   if((rowData.metric_type) && (rowData.metric_type == 'throughput')) {
-    formatted_data = threshold_sign + NtopUtils.bitsToSize(data * 8)
+    formatted_data = threshold_sign + NtopUtils.bitsToSize(data )
   } else if((rowData.metric_type) && (rowData.metric_type == 'volume')) {
     formatted_data = threshold_sign + NtopUtils.bytesToSize(data);
   } else if((rowData.metric_type) && (rowData.metric_type == 'percentage')){
@@ -266,6 +266,9 @@ const format_last_measurement = function(data, rowData) {
     return "";
   }
 
+  if (data == null) {
+    return "";
+  }
   if((rowData.metric_type) && (rowData.metric_type == 'throughput')) {
     formatted_data = NtopUtils.bitsToSize(data * 8)
   } else if((rowData.metric_type) && (rowData.metric_type == 'volume')) {

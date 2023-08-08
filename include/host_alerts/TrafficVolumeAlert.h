@@ -26,8 +26,8 @@
 
 class TrafficVolumeAlert : public HostAlert {
  private:
-  std::string metric;
-  u_int32_t frequency_sec, threshold, value;
+  std::string metric, threshold, value;
+  u_int32_t frequency_sec;
   bool sign;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
@@ -39,7 +39,7 @@ class TrafficVolumeAlert : public HostAlert {
 
   TrafficVolumeAlert(HostCheckID check_id, Host* h, risk_percentage cli_pctg,
                      std::string _metric, u_int32_t _frequency_sec,
-                     u_int32_t _threshold, u_int32_t _value, bool t_sign);
+                     std::string _threshold, std::string _value, bool t_sign);
   ~TrafficVolumeAlert(){};
 
   HostAlertType getAlertType() const { return getClassType(); };

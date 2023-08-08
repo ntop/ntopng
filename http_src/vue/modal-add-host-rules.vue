@@ -376,8 +376,9 @@ const set_row_to_edit = (row) => {
           t.active = false;
         }
       })
-    else if(row.metric_type == 'throughput') {
-      row.threshold = row.threshold * 8;
+    else
+     if(row.metric_type == 'throughput') {
+      //row.threshold = row.threshold * 8;
       throughput_threshold_list.value.forEach((t) => {
           if ( (row.threshold % t.value) == 0 ) {
             let row_threshold_value = row.threshold / t.value;
@@ -539,7 +540,7 @@ const add_ = (is_edit) => {
     sign_threshold_list.value.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
     tmp_sign_value = parseInt(basic_sign_value);
     throughput_threshold_list.value.forEach((measure) => { if(measure.active) basic_value = measure.value; })
-    tmp_threshold = basic_value * parseInt(threshold.value.value) / 8;
+    tmp_threshold = basic_value * parseInt(threshold.value.value) ;
     /* The throughput is in bit, the volume in Bytes!! */
   } else if(tmp_metric_type == 'volume') {
     sign_threshold_list.value.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })

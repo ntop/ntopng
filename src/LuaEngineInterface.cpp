@@ -5199,9 +5199,9 @@ static int ntop_interface_update_ip_reassignment(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_interface_trigger_traffic_alert(lua_State *vm) {
-  u_int32_t frequency_sec, threshold, value;
+  u_int32_t frequency_sec;
   bool t_sign = true;
-  char *metric, *ipaddress, ip_buf[64], *host_ip, *tmp;
+  char *metric, *ipaddress, ip_buf[64], *host_ip, *tmp, *value, *threshold;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rc = false;
 
@@ -5217,13 +5217,13 @@ static int ntop_interface_trigger_traffic_alert(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   frequency_sec = (u_int32_t)lua_tointeger(vm, 3);
 
-  if (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK)
+  if (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  threshold = (u_int32_t)lua_tointeger(vm, 4);
+  threshold = (char *)lua_tostring(vm, 4);
 
-  if (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK)
+  if (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  value = (u_int32_t)lua_tointeger(vm, 5);
+  value = (char *)lua_tostring(vm, 5);
 
   if (ntop_lua_check(vm, __FUNCTION__, 6, LUA_TBOOLEAN) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));

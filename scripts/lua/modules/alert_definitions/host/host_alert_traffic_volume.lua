@@ -51,10 +51,20 @@ end
 function host_alert_traffic_volume.format(ifid, alert, alert_type_params)
   local alert_consts = require "alert_consts"
 
-  if(alert_type_params.metric ~=  "host:score") then
+  --[[if(alert_type_params.metric ~=  "host:score") then
+      tprint("VALUE ON ALERT: "..alert_type_params.value)
+      tprint("THRESHOLD ON ALERT: "..alert_type_params.threshold)
+
      alert_type_params.value     = format_utils.bytesToSize(alert_type_params.value)
      alert_type_params.threshold = format_utils.bytesToSize(alert_type_params.threshold)
+     tprint("BYTES VALUE ON ALERT: "..alert_type_params.value)
+      tprint("BYTES THRESHOLD ON ALERT: "..alert_type_params.threshold)
   end
+  --]]
+
+  tprint("VALUE IN ALERT: "..alert_type_params.value)
+  tprint("THRESHOLD IN ALERT: "..alert_type_params.threshold)
+
 
   if(alert_type_params.frequency == 300) then
      alert_type_params.frequency = i18n("edit_check.hooks_name.5mins")
