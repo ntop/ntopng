@@ -1,5 +1,5 @@
 {
-	"id": "hosts_to_scan",
+	"id": "inactive_hosts",
 	"data_url": "lua/rest/v2/get/host/to_scan_list.lua",
 	"use_current_page": false,
 	"enable_search": false,

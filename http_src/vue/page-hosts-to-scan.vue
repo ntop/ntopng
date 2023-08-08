@@ -331,13 +331,13 @@ const map_table_def_columns = (columns) => {
             
       c.button_def_array.forEach((b) => {
           
-        b.f_map_class = (current_class, row) => { 
+        /*b.f_map_class = (current_class, row) => { 
           current_class = current_class.filter((class_item) => class_item != "link-disabled");
           if((row.is_ok_last_scan == 4 || row.is_ok_last_scan == null) && visible_dict[b.id]) {
             current_class.push("link-disabled"); 
           }
           return current_class;
-        }
+        }*/
       });
     }
   });
