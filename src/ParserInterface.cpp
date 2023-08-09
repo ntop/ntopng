@@ -413,9 +413,11 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     p.master_protocol = zflow->l7_proto.master_protocol;
     p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
 
-    /* First, there's an attempt to guess the protocol so that custom protocols
-       defined in ntopng will still be applied to the protocols detected by
-       nprobe. */
+    /*
+      First, there's an attempt to guess the protocol so that custom protocols
+      defined in ntopng will still be applied to the protocols detected by
+      nprobe.
+    */
     if(zflow->src_ip.isIPv4())
       guessed_protocol = ndpi_guess_undetected_protocol_v4(get_ndpi_struct(),
 							   flow->get_ndpi_flow(),
@@ -438,36 +440,6 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 							   );
     }
     
-    if (
-        /* If nprobe acts is in collector-passthrough mode L7_PROTO is not
-           present, using the protocol guess on the ntopng side is desirable in
-           this case */
-        ((zflow->l7_proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-	 && (zflow->l7_proto.master_protocol == NDPI_PROTOCOL_UNKNOWN))
-	||
-        /* If the protocol is greater than NDPI_MAX_SUPPORTED_PROTOCOLS, it
-           means it is a custom protocol so the application protocol received
-           from nprobe can be overridden */
-        (guessed_protocol.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS)) {
-      p = guessed_protocol;
-    }
-    
-    if (zflow->hasParsedeBPF()) {
-      /* nProbe Agent does not perform nDPI detection*/
-      p.master_protocol = guessed_protocol.master_protocol;
-      p.app_protocol = guessed_protocol.app_protocol;
-    }
-
-    /* Now, depending on the q and on the zflow, there's an additional check
-       to possibly override the category, according to the rules specified
-       in ntopng */
-    flow->fillZmqFlowCategory(zflow, &p);
-
-    /* Here everything is setup and it is possible to set the actual protocol to
-     * the flow */
-    flow->setDetectedProtocol(p);
-  }
-
 #ifdef NTOPNG_PRO
   if (zflow->device_ip) {
     // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() &&
@@ -602,6 +574,36 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 
   flow->updateSuspiciousDGADomain();
+
+    if (
+        /* If nprobe acts is in collector-passthrough mode L7_PROTO is not
+           present, using the protocol guess on the ntopng side is desirable in
+           this case */
+        ((zflow->l7_proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+	 && (zflow->l7_proto.master_protocol == NDPI_PROTOCOL_UNKNOWN))
+	||
+        /* If the protocol is greater than NDPI_MAX_SUPPORTED_PROTOCOLS, it
+           means it is a custom protocol so the application protocol received
+           from nprobe can be overridden */
+        (guessed_protocol.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS)) {
+      p = guessed_protocol;
+    }
+    
+    if (zflow->hasParsedeBPF()) {
+      /* nProbe Agent does not perform nDPI detection*/
+      p.master_protocol = guessed_protocol.master_protocol;
+      p.app_protocol = guessed_protocol.app_protocol;
+    }
+
+    /* Now, depending on the q and on the zflow, there's an additional check
+       to possibly override the category, according to the rules specified
+       in ntopng */
+    flow->fillZMQFlowCategory(&p);
+
+    /* Here everything is setup and it is possible to set the actual protocol to
+     * the flow */
+    flow->setDetectedProtocol(p);
+  }
 
   /* Do not put incStats before guessing the flow protocol */
   u_int16_t eth_type = srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6;

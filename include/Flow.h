@@ -930,7 +930,7 @@ class Flow : public GenericHashEntry {
   void dissectMDNS(u_int8_t *payload, u_int16_t payload_len);
   void dissectNetBIOS(u_int8_t *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
-  void fillZmqFlowCategory(ParsedFlow *zflow, ndpi_protocol *res) const;
+  void fillZMQFlowCategory(ndpi_protocol *res);
   inline void setICMP(bool src2dst_direction, u_int8_t icmp_type,
                       u_int8_t icmp_code, u_int8_t *icmpdata) {
     if (isICMP()) {

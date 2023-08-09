@@ -5662,7 +5662,7 @@ bool Flow::setDNSQuery(char *v) {
 	last_pkt_rcvd /* Latest swap occurred at least one second ago */) {
       if (protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
       protos.dns.last_query_shadow = protos.dns.last_query;
-      protos.dns.last_query = strdup(v);
+      protos.dns.last_query = v; /* No need to strdup */
       protos.dns.last_query_update_time = last_pkt_rcvd;
       
       return true; /* Swap successful */
@@ -6589,8 +6589,7 @@ void Flow::updateHASSH(bool as_client) {
 
 /* ***************************************************** */
 
-void Flow::fillZmqFlowCategory(ParsedFlow *zflow,
-                               ndpi_protocol *res) const {
+void Flow::fillZMQFlowCategory(ndpi_protocol *res) {
   struct ndpi_detection_module_struct *ndpi_struct = iface->get_ndpi_struct();
   const char *dst_name = NULL;
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
@@ -6603,14 +6602,14 @@ void Flow::fillZmqFlowCategory(ParsedFlow *zflow,
 
   switch (ndpi_get_lower_proto(*res)) {
     case NDPI_PROTOCOL_DNS:
-      dst_name = zflow->getDNSQuery();
+      dst_name = getDNSQuery();
       break;
     case NDPI_PROTOCOL_HTTP_PROXY:
     case NDPI_PROTOCOL_HTTP:
-      dst_name = zflow->getHTTPsite();
+      dst_name = getFlowServerInfo();
       break;
     case NDPI_PROTOCOL_TLS:
-      dst_name = zflow->getTLSserverName();
+      dst_name = protos.tls.client_requested_server_name;
       break;
     default:
       break;
