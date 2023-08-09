@@ -289,6 +289,9 @@ const reset_modal_form = async function() {
     selected_interface_metric.value = interface_metric_list.value[0];
     selected_flow_device_metric.value = flow_device_metric_list.value[0];
 
+    is_edit_page.value = false;
+    title = i18n('if_stats_config.add_host_rules_title');
+
     selected_frequency.value = frequency_list.value[0];
     metric_type.value = metric_type_list.value[0];
     selected_exporter_device.value = flow_exporter_devices.value[0];
@@ -632,6 +635,7 @@ const edit_ = () => {
 }
 
 const close = () => {
+  is_edit_page.value = false;
   modal_id.value.close();
 };
 
