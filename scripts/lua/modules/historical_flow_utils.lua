@@ -982,8 +982,6 @@ local flow_columns = {
    ['SRC2DST_DSCP'] =         { tag = "src2dst_dscp", dt_func = dt_format_dscp, simple_dt_func = dscp_consts.dscp_class_descr },
    ['DST2SRC_DSCP'] =         { tag = "dst2src_dscp", dt_func = dt_format_dscp, simple_dt_func = dscp_consts.dscp_class_descr },
    ['PROTOCOL'] =             { tag = "l4proto",      dt_func = dt_format_l4_proto, simple_dt_func = l4_proto_to_string },
-   ['IPV4_ADDR'] =            { tag = "ip",           dt_func = dt_format_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_ip },
-   ['IPV6_ADDR'] =            { tag = "ip",           dt_func = dt_format_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_ip },
    ['IPV4_SRC_ADDR'] =        { tag = "cli_ip",       dt_func = dt_format_src_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_src_ip },
    ['IPV6_SRC_ADDR'] =        { tag = "cli_ip",       dt_func = dt_format_src_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_src_ip },
    ['IP_SRC_PORT'] =          { tag = "cli_port",     dt_func = dt_format_port },
@@ -998,7 +996,6 @@ local flow_columns = {
    ['NTOPNG_INSTANCE_NAME'] = {},
    ['INTERFACE_ID'] =         { tag = "interface_id" },
    ['STATUS'] =               { tag = "alert_id",       dt_func = dt_format_flow_alert_id, format_func = format_flow_alert_id, i18n = i18n("status"), simple_dt_func = format_flow_alert_id , order = 8 },
-   ['COUNTRY_CODE'] =         { tag = "country", dt_func = dt_format_country },
    ['SRC_COUNTRY_CODE'] =     { tag = "cli_country", dt_func = dt_format_country },
    ['DST_COUNTRY_CODE'] =     { tag = "srv_country", dt_func = dt_format_country },
    ['SRC_LABEL'] =            { tag = "cli_name" },
@@ -1006,7 +1003,6 @@ local flow_columns = {
    ['SRC_MAC'] =              { tag = "cli_mac", dt_func = dt_format_mac },
    ['DST_MAC'] =              { tag = "srv_mac", dt_func = dt_format_mac },
    ['COMMUNITY_ID'] =         { tag = "community_id", format_func = format_flow_info, i18n = i18n("flow_fields_description.community_id"), order = 10 },
-   ['ASN'] =                  { tag = "asn", simple_dt_func = simple_format_asn },
    ['SRC_ASN'] =              { tag = "cli_asn", simple_dt_func = simple_format_src_asn },
    ['DST_ASN'] =              { tag = "srv_asn", simple_dt_func = simple_format_dst_asn },
    ['PROBE_IP'] =             { tag = "probe_ip",     dt_func = dt_format_probe, select_func = "IPv4NumToString", where_func = "IPv4StringToNum" },
@@ -1019,7 +1015,6 @@ local flow_columns = {
    ['SERVER_NW_LATENCY_US'] = { tag = "srv_nw_latency", dt_func = dt_format_latency_ms,format_func = format_flow_latency, i18n = i18n("db_search.srv_nw_latency"), order = 14 },
    ['CLIENT_LOCATION'] =      { tag = "cli_location", dt_func = dt_format_location },
    ['SERVER_LOCATION'] =      { tag = "srv_location", dt_func = dt_format_location },
-   ['NETWORK_ID'] =           { tag = "network", dt_func = dt_format_network },
    ['SRC_NETWORK_ID'] =       { tag = "cli_network", dt_func = dt_format_network },
    ['DST_NETWORK_ID'] =       { tag = "srv_network", dt_func = dt_format_network },
    ['INPUT_SNMP'] =           { tag = "input_snmp", dt_func = dt_format_snmp_interface },
@@ -1062,8 +1057,6 @@ local aggregated_flow_columns = {
    ['SRC2DST_BYTES'] =        { tag = "src2dst_bytes",        dt_func = dt_format_bytes, js_chart_func = "bytesToSize"  },
    ['DST2SRC_BYTES'] =        { tag = "dst2src_bytes",        dt_func = dt_format_bytes, js_chart_func = "bytesToSize"  },
    ['PROTOCOL'] =             { tag = "l4proto",      dt_func = dt_format_l4_proto, simple_dt_func = l4_proto_to_string },
-   ['IPV4_ADDR'] =            { tag = "cli_ip",       dt_func = dt_format_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_ip },
-   ['IPV6_ADDR'] =            { tag = "cli_ip",       dt_func = dt_format_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_ip },
    ['IPV4_SRC_ADDR'] =        { tag = "cli_ip",       dt_func = dt_format_src_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_src_ip },
    ['IPV6_SRC_ADDR'] =        { tag = "cli_ip",       dt_func = dt_format_src_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_src_ip },
    ['IPV4_DST_ADDR'] =        { tag = "srv_ip",       dt_func = dt_format_dst_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_dst_ip },
@@ -1080,12 +1073,10 @@ local aggregated_flow_columns = {
    ['PROBE_IP'] =             { tag = "probe_ip",     dt_func = dt_format_probe, select_func = "IPv4NumToString", where_func = "IPv4StringToNum" },
    ['SRC_COUNTRY_CODE'] =     { tag = "cli_country", dt_func = dt_format_country },
    ['DST_COUNTRY_CODE'] =     { tag = "srv_country", dt_func = dt_format_country },
-   ['ASN'] =                  { tag = "asn", simple_dt_func = simple_format_asn },
    ['SRC_ASN'] =              { tag = "cli_asn", simple_dt_func = simple_format_src_asn },
    ['DST_ASN'] =              { tag = "srv_asn", simple_dt_func = simple_format_dst_asn },
    ['INPUT_SNMP'] =           { tag = "input_snmp", dt_func = dt_format_snmp_interface },
    ['OUTPUT_SNMP'] =          { tag = "output_snmp", dt_func = dt_format_snmp_interface },
-   ['NETWORK_ID'] =           { tag = "network", dt_func = dt_format_network },
    ['SRC_NETWORK_ID'] =       { tag = "cli_network", dt_func = dt_format_network },
    ['DST_NETWORK_ID'] =       { tag = "srv_network", dt_func = dt_format_network },
 
@@ -1096,6 +1087,11 @@ local additional_flow_columns = {
    ['packets'] =              { tag = "packets",      dt_func = dt_format_pkts },
    ['THROUGHPUT'] =           { tag = "throughput",   dt_func = dt_format_thpt },
    ['DURATION'] =             { tag = "duration",     dt_func = dt_format_duration },   
+   ['IPV4_ADDR'] =            { tag = "ip",           dt_func = dt_format_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_ip },
+   -- ['IPV6_ADDR'] =            { tag = "ip",           dt_func = dt_format_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_ip },
+   ['NETWORK_ID'] =           { tag = "network", dt_func = dt_format_network },
+   ['ASN'] =                  { tag = "asn", simple_dt_func = simple_format_asn },
+   ['COUNTRY_CODE'] =         { tag = "country", dt_func = dt_format_country },
 }
 
 -- #####################################
@@ -1318,17 +1314,29 @@ end
 
 function historical_flow_utils.get_flow_columns_to_tags(aggregated)
    local c2t = {}
+   local t2c = {}
 
    if aggregated then
       for k, v in pairs(aggregated_flow_columns) do
          if v.tag then
             c2t[k] = v.tag
+            t2c[v.tag] = k
          end
       end
    else
       for k, v in pairs(flow_columns) do
          if v.tag then
             c2t[k] = v.tag
+            t2c[v.tag] = k
+         end
+      end
+   end
+
+   for k, v in pairs(additional_flow_columns) do
+      if v.tag then 
+         if not t2c[v.tag] then -- tag not already defined in real columns
+            c2t[k] = v.tag
+            t2c[v.tag] = k
          end
       end
    end
