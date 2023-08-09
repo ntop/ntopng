@@ -17,6 +17,9 @@
           <div id="hosts_to_scan">
             <ModalDeleteScanConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete" @delete="delete_row" @delete_all="delete_all_rows" @scan_row="scan_row" @scan_all_rows="scan_all_entries">
             </ModalDeleteScanConfirm>
+            <ModalUpdatePeriodicityScan
+              ref="modal_update_perioditicy_scan" :title="title_update_periodicity_scan" @update="update_all_scan_frequencies">
+            </ModalUpdatePeriodicityScan>
             <TableWithConfig ref="table_hosts_to_scan" :table_id="table_id" :csrf="context.csrf"
               :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
               :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event">
@@ -34,9 +37,13 @@
                 class='fas fa-trash'></i> {{ _i18n("delete_all_entries") }}</button>
 
             <button type="button" ref="scan_all" @click="confirm_scan_all_entries" class="btn btn-primary me-1"><i
-                class='fas fa-search'></i> {{ _i18n("hosts_stats.page_scan_hosts.schedule_all_scan") }}</button>
+                class='fas fa-clock-rotate-left'></i> {{ _i18n("hosts_stats.page_scan_hosts.schedule_all_scan") }}</button>
+            <template v-if="props.context.is_enterprise_l">
 
-          </div>
+            <button type="button" ref="update_all" @click="update_all_periodicity" class="btn btn-secondary me-1">{{ _i18n("hosts_stats.page_scan_hosts.update_periodicity_title") }}</button>          
+            </template>
+            </div>
+
       </div>
     </div>
   </div>
@@ -51,6 +58,7 @@ import { ref, onBeforeMount } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 
 import { default as ModalDeleteScanConfirm } from "./modal-delete-scan-confirm.vue";
+import { default as ModalUpdatePeriodicityScan } from "./modal-update-periodicity-scan.vue";
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
 import { default as ModalAddHostToScan } from "./modal-add-host-to-scan.vue";
 
@@ -68,12 +76,16 @@ const table_id = ref('hosts_to_scan');
 let title_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_title');
 let body_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_description');
 
+let title_update_periodicity_scan = _i18n('hosts_stats.page_scan_hosts.update_periodicity_title');
+
 const table_hosts_to_scan = ref();
 const modal_delete_confirm = ref();
 const modal_add = ref();
 const modal_vs_result = ref();
+const modal_update_perioditicy_scan = ref();
 
 const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
+const edit_host_url = `${http_prefix}/lua/rest/v2/edit/host/update_va_scan_period.lua`;
 const remove_host_url = `${http_prefix}/lua/rest/v2/delete/host/delete_host_to_scan.lua`;
 const scan_host_url = `${http_prefix}/lua/rest/v2/exec/host/schedule_vulnerability_scan.lua`;
 const scan_type_list_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_type_list.lua`;
@@ -365,13 +377,13 @@ const map_table_def_columns = (columns) => {
             
       c.button_def_array.forEach((b) => {
           
-        /*b.f_map_class = (current_class, row) => { 
+        b.f_map_class = (current_class, row) => { 
           current_class = current_class.filter((class_item) => class_item != "link-disabled");
           if((row.is_ok_last_scan == 4 || row.is_ok_last_scan == null) && visible_dict[b.id]) {
             current_class.push("link-disabled"); 
           }
           return current_class;
-        }*/
+        }
       });
     }
   });
@@ -400,6 +412,15 @@ const add_host_rest = async function (params) {
   refresh_table(true,false);
 }
 
+const update_all_scan_frequencies = async function(params) {
+  const url = NtopUtils.buildURL(edit_host_url, {
+    ...params
+  })
+
+  await ntopng_utility.http_post_request(url, rest_params);  
+  refresh_table(true,false);
+}
+
 /* Function to retrieve scan types list */
 const get_scan_type_list = async function () {
   const url = NtopUtils.buildURL(scan_type_list_url, {
@@ -420,13 +441,16 @@ const check_in_progress_status = async function () {
   autorefresh.value = result.rsp;
 }
 
-
+/* Function to confirm to start all scan */
 const confirm_scan_all_entries = function() {
   modal_delete_confirm.value.show("scan_all_rows",i18n("scan_all_hosts"));  
   autorefresh.value = true;
   refresh_table(true,false);
+}
 
-
+/* Function to update all scan  frequencies*/
+const update_all_periodicity = function() {
+  modal_update_perioditicy_scan.value.show();
 }
 
 /* Function to exec the vulnerability scan of a single host */

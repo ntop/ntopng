@@ -84,6 +84,7 @@ import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAddHostRules } from "./modal-add-host-rules.vue";
 import { default as ModalAddApplication } from "./modal-add-application.vue";
 import { default as ModalDeleteApplication } from "./modal-delete-application.vue";
+import { default as ModalUpdatePeriodicityScan } from "./modal-update-periodicity-scan.vue";
 
 let ntopVue = {
     // pages
