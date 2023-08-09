@@ -189,12 +189,28 @@ function columns_sorting(col, r0, r1) {
       return r0_col.localeCompare(r1_col);
     }
     return r1_col.localeCompare(r0_col);
-  } else {
+  } else if(col.id == "scan_frequency") {
+    r0_col = get_scan_frequency(r0_col);
+    r1_col = get_scan_frequency(r1_col);
+    if (col.sort == 1) {
+      return r0_col.localeCompare(r1_col);
+    }
+    return r1_col.localeCompare(r0_col);  } else {
     if (col.sort == 1) {
       return r0_col.localeCompare(r1_col);
     }
     return r1_col.localeCompare(r0_col);
   }	
+}
+
+function get_scan_frequency(scan_frequency) {
+  if (scan_frequency == "1day") {
+    return i18n("hosts_stats.page_scan_hosts.daily");
+  } else if (scan_frequency == "1week") {
+    return i18n("hosts_stats.page_scan_hosts.weekly");
+  } else {
+    return "";
+  }
 }
 
 function get_scan_status_value(is_ok_last_scan) {
@@ -302,6 +318,18 @@ const map_table_def_columns = (columns) => {
         return i18n("hosts_stats.page_scan_hosts.not_yet");
       }
     },
+    "scan_frequency" : (scan_frequency) => {
+      let label = "";
+      if (scan_frequency == null) {
+        return "";
+      } else if (scan_frequency == "1day") {
+        label =  i18n("hosts_stats.page_scan_hosts.daily");
+      } else {
+        label =  i18n("hosts_stats.page_scan_hosts.weekly");
+      }
+      return `<span class="badge bg-secondary" title="${label}">${label}</span>`;
+
+    }, 
     "is_ok_last_scan": (is_ok_last_scan) => {
       let label = ""
       if (is_ok_last_scan == 4) {
