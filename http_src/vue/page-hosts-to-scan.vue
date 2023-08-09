@@ -3,6 +3,9 @@
 -->
 
 <template>
+  <header class="mb-3 d-flex align-items-center">
+  <h2 class="d-inline-block" v-html="title_html"></h2>
+  </header>
   <div class="row">
     <div class="col-md-12 col-lg-12">
       <div class="card  card-shadow">
@@ -58,6 +61,9 @@ const _i18n = (t) => i18n(t);
 
 let autorefresh = ref(false);
 
+const title_html = ref(i18n("scan_hosts"));
+
+
 const table_id = ref('hosts_to_scan');
 let title_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_title');
 let body_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_description');
@@ -71,7 +77,7 @@ const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
 const remove_host_url = `${http_prefix}/lua/rest/v2/delete/host/delete_host_to_scan.lua`;
 const scan_host_url = `${http_prefix}/lua/rest/v2/exec/host/schedule_vulnerability_scan.lua`;
 const scan_type_list_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_type_list.lua`;
-const active_monitoring_url = `${http_prefix}/lua/monitor/active_monitoring_monitor.lua`;
+const active_monitoring_url = `${http_prefix}/lua/vulnerability_scan.lua`;
 const scan_result_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_result.lua`;
 const check_status_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_status.lua`;
 
@@ -418,6 +424,8 @@ const check_in_progress_status = async function () {
 const confirm_scan_all_entries = function() {
   modal_delete_confirm.value.show("scan_all_rows",i18n("scan_all_hosts"));  
   autorefresh.value = true;
+  refresh_table(true,false);
+
 
 }
 

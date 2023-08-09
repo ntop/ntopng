@@ -3,7 +3,6 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 require "lua_utils"
 local page_utils = require("page_utils")
@@ -12,7 +11,6 @@ local ui_utils = require("ui_utils")
 local template = require("template_utils")
 local json = require("dkjson")
 local active_monitoring_utils = require "am_utils"
-local vs_utils = require "vs_utils"
 
 local graph_utils = require("graph_utils")
 local auth = require "auth"
@@ -37,9 +35,6 @@ local url = base_url
 local info = ntop.getInfo()
 local measurement_info
 
-local host_result = _GET["host"]
-local scan_type = _GET["scan_type"]
-local scan_date = _GET["scan_date"]
 
 if (not isEmptyString(host) and not isEmptyString(measurement)) then
    host = active_monitoring_utils.getHost(host, measurement)
@@ -69,7 +64,6 @@ end
 
 
 local navbar_title = ui_utils.create_navbar_title(title, host_label, "/lua/monitor/active_monitoring_monitor.lua")
-local scan_modules = vs_utils.list_scan_modules()
 
 page_utils.print_navbar(navbar_title, url, {
     {
@@ -88,11 +82,6 @@ page_utils.print_navbar(navbar_title, url, {
         page_name = "alerts",
         label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
 	url = ntop.getHttpPrefix().."/lua/alert_stats.lua?&status=engaged&page=am_host"
-    }, {
-        hidden = #scan_modules == 0,
-        active = page == "scan_hosts",
-        page_name = "scan_hosts",
-        label = i18n("scan_hosts")
     }
 })
 
@@ -139,24 +128,6 @@ if (page == "overview") then
 elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) then
    local host_value = host.host .. ",metric:" .. host.measurement
    graph_utils.drawNewGraphs({ifid = -1, host = host_value})
-elseif (page == "scan_hosts") then
-    local json_context = {
-        csrf = ntop.getRandomCSRFValue(),
-        ifid = ifid,
-        is_enterprise_l = ntop.isEnterpriseL(),
-        host = host_result
-    }
-    template.render("pages/vue_page.template", { vue_page_name = "PageHostsToScan", page_context = json.encode(json_context) })
-    
-elseif (page == "show_result") then 
-    local json_context = {
-        csrf = ntop.getRandomCSRFValue(),
-        ifid = ifid,
-        host = host_result,
-        scan_type = scan_type,
-        date = scan_date
-    }
-    template.render("pages/vue_page.template", { vue_page_name = "PageHostVsResult", page_context = json.encode(json_context) })
 
 end
 

@@ -5,6 +5,8 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/toasts/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+
 
 if ((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then
     package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path
@@ -26,6 +28,7 @@ local info = ntop.getInfo()
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
 local has_help_enabled = (ntop.getPref("ntopng.prefs.menu_entries.help") ~= '0')
 local has_developer_enabled = (ntop.getPref("ntopng.prefs.menu_entries.developer") ~= '0')
+local vs_utils = require "vs_utils"
 
 local is_system_interface = page_utils.is_system_view()
 local behavior_utils = require("behavior_utils")
@@ -219,6 +222,7 @@ if is_nedge then
     dofile(dirs.installdir .. "/pro/scripts/lua/nedge/inc/menubar.lua")
 else
     -- ##############################################
+    local scan_modules = vs_utils.list_scan_modules()
 
     -- Shortcuts
     -- The Shortcuts entry are used to go to the System interface pages
@@ -247,6 +251,10 @@ else
             entry = page_utils.menu_sections.notifications,
             hidden = not is_admin,
             url = '/lua/admin/endpoint_notifications_list.lua'
+        }, {
+            entry = page_utils.menu_entries.vulnerability_scan,
+            url = '/lua/vulnerability_scan.lua',
+            hidden = #scan_modules == 0
         }}
     })
 
