@@ -127,12 +127,13 @@ function get_f_print_v_node_buttons(list_or_array) {
 	    if (b_def.attributes != null) {
 		attributes = b_def.attributes;
 	    }
+	    let class_array = ntopng_utility.clone(b_def.class);
 	    if (b_def.f_map_class != null) {
-		b_def.class = b_def.f_map_class(b_def.class, row);
+		class_array = b_def.f_map_class(class_array, row);
 	    }
 	    let _class = "";
-	    if (b_def.class != null && b_def.class.length > 0) {
-		_class = b_def.class.join(" ");
+	    if (class_array != null && class_array.length > 0) {
+		_class = class_array.join(" ");
 	    }
 	    if (list_or_array == false) {
 		return vue_obj.h("button", { class: `btn btn-sm btn-secondary ${_class}`, style: "margin-right:0.2rem;", onClick: on_click(b_def.event_id), ...attributes }, [ vue_obj.h("span", { class: b_def.icon, style: "", title: _i18n(b_def.title_i18n)}), ]);
