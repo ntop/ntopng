@@ -991,7 +991,7 @@ class Flow : public GenericHashEntry {
   inline char *getDNSQuery() const {
     return (isDNS() ? protos.dns.last_query : (char *)"");
   }
-  bool setDNSQuery(char *v);
+  bool setDNSQuery(char *v, bool copy_memory);
   inline void setDNSQueryType(u_int16_t t) {
     if (isDNS()) {
       protos.dns.last_query_type = t;

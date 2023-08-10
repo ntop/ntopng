@@ -1086,7 +1086,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
           cli_host->incrVisitedWebSite((char *)ndpiFlow->host_server_name);
         }
 
-	setDNSQuery(ndpiFlow->host_server_name);
+	setDNSQuery(ndpiFlow->host_server_name, true);
 	
         if (ndpiFlow->protos.dns.query_type != 0)
           protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
@@ -5652,7 +5652,7 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
   handle concurrency issues. This is safe in general as it is unlikely to see
   more than one query per second for the same DNS flow.
  */
-bool Flow::setDNSQuery(char *v) {
+bool Flow::setDNSQuery(char *v, bool copy_memory) {
   if ((v != NULL) && isDNS()) {
     time_t last_pkt_rcvd = getInterface()->getTimeLastPktRcvd();
     
@@ -5662,7 +5662,7 @@ bool Flow::setDNSQuery(char *v) {
 	last_pkt_rcvd /* Latest swap occurred at least one second ago */) {
       if (protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
       protos.dns.last_query_shadow = protos.dns.last_query;
-      protos.dns.last_query = v; /* No need to strdup */
+      protos.dns.last_query = copy_memory ? strdup(v) : v;
       protos.dns.last_query_update_time = last_pkt_rcvd;
       
       return true; /* Swap successful */
@@ -5681,7 +5681,7 @@ bool Flow::setDNSQuery(char *v) {
 void Flow::updateDNS(ParsedFlow *zflow) {
   if (isDNS()) {
     if (zflow->getDNSQuery()) {
-      if (setDNSQuery(zflow->getDNSQuery(true))) {
+      if (setDNSQuery(zflow->getDNSQuery(true), false /* No need to allocate memory */)) {
         /* Set successful, query will be freed in the destructor */
         setDNSQueryType(zflow->getDNSQueryType());
         setDNSRetCode(zflow->getDNSRetCode());
