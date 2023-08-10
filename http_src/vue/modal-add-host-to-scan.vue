@@ -277,7 +277,7 @@ const check_empty_host = async () => {
 const check_ports = () => {
   let comma_separted_port_regex = /^(\d{1,5})(,\s*\d{1,5})*$/;
 
-  console.log(comma_separted_port_regex.test(ports.value));
+  //console.log(comma_separted_port_regex.test(ports.value));
   if ( !comma_separted_port_regex.test(ports.value)) {
 
     disable_add.value = true; 
@@ -332,7 +332,7 @@ const add_ = async (is_edit) => {
 
   if (verify_host_name) {
     let result = await resolve_host_name(host.value);
-    console.log(result)
+    //console.log(result)
     disable_add.value = result == "no_success";
   }
 
