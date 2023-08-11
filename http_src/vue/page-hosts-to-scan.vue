@@ -269,7 +269,7 @@ async function click_button_scan(event) {
 /* Function to handle edit button */
 function click_button_edit_host(event) {
   const row = event.row;
-  row_to_delete.value = row;
+  //row_to_delete.value = row;
   modal_add.value.show(row);
 }
 
@@ -282,7 +282,7 @@ function delete_all_entries() {
 
 /* Function to edit host to scan */
 async function edit(params) {
-  await delete_row();
+  //await delete_row();
   await add_host_rest(params);
 }
 
@@ -338,7 +338,7 @@ const map_table_def_columns = (columns) => {
     },
     "scan_frequency" : (scan_frequency) => {
       let label = "";
-      if (scan_frequency == null) {
+      if (scan_frequency == null || scan_frequency == "disabled") {
         return "";
       } else if (scan_frequency == "1day") {
         label =  i18n("hosts_stats.page_scan_hosts.daily");
@@ -461,6 +461,7 @@ const scan_row = async function () {
     scan_type: row.scan_type,
     scan_single_host: true,
     scan_ports: row.ports,
+    scan_id: row.id
   })
   await ntopng_utility.http_post_request(url, rest_params);
   autorefresh.value = true;
@@ -484,7 +485,8 @@ const delete_row = async function () {
 
     host: row.host,
     scan_type: row.scan_type,
-    delete_all_scan_hosts: false
+    delete_all_scan_hosts: false,
+    scan_id: row.id
 
   })
 

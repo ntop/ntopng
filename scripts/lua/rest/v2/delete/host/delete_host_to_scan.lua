@@ -24,7 +24,7 @@ end
 
 
 local function delete_host_to_scan(ip, scan_type) 
-    return vs_utils.delete_host_to_scan(ip, scan_type) 
+    return vs_utils.delete_host_to_scan(ip, scan_type, false) 
 end
 
 local function delete_all_hosts_to_scan()

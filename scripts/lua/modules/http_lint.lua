@@ -1985,6 +1985,7 @@ local known_parameters = {
     ["scan_ports_rsp"] = validateBool,
     ["scan_date"] = validateSingleWord,
     ["auto_scan_frequency"] = validateSingleWord,
+    ["scan_id"] = validateSingleWord,
 
     ["snmp_device"] = validateDevice,
     ["snmp_device_port"] = validateSNMPIfidNumber,

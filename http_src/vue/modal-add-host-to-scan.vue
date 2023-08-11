@@ -127,6 +127,8 @@ const host_placeholder = i18n('hosts_stats.page_scan_hosts.host_placeholder');
 let ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
 const message_feedback = ref('');
 
+const row_to_edit_id = ref('');
+
 const resolve_host_name_url = `${http_prefix}/lua/rest/v2/get/host/resolve_host_name.lua`;
 const server_ports = `${http_prefix}/lua/iface_ports_list.lua`; // ?clisrv=server&ifid=2&host=192.168.2.39
 const nmap_server_ports = `${http_prefix}/lua/rest/v2/get/host/ports_by_nmap.lua`;
@@ -189,10 +191,13 @@ const reset_modal_form = function() {
     activate_spinner.value = false;
     activate_add_spinner.value = false;
     message_feedback.value = "";
+    row_to_edit_id.value = null;
+    
     ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
 
 
     selected_scan_type.value = scan_type_list.value[0];
+    selected_cidr.value = cidr_options_list.value[1];
 }
 
 /**
@@ -210,6 +215,8 @@ const set_row_to_edit = (row) => {
       //set host
     host.value = row.host;
     ports.value = row.ports;
+
+    row_to_edit_id.value = row.id;
 
     automatic_scan_frequencies_list.value.forEach((item) => {
       if(item.id == row.scan_frequency) {
@@ -247,6 +254,7 @@ const show = (row, _host) => {
   if(row != null)
     set_row_to_edit(row);
   
+  
   if(_host!=null && _host!="") {
     host.value = _host;
     disable_add.value = false;
@@ -282,7 +290,6 @@ const check_empty_host = async () => {
 const check_ports = () => {
   let comma_separted_port_regex = /^(\d{1,5})(,\s*\d{1,5})*$/;
 
-  //console.log(comma_separted_port_regex.test(ports.value));
   if ( !comma_separted_port_regex.test(ports.value)) {
 
     disable_add.value = true; 
@@ -315,8 +322,15 @@ const add_ = async (is_edit) => {
   
   let emit_name = 'add';
 
-  if(is_edit == true) 
+  let tmp_row_id = "";
+  if(is_edit == true) {
     emit_name = 'edit';
+    tmp_row_id = row_to_edit_id.value;
+
+  } else {
+    tmp_row_id = null;
+  }
+
 
     // FIX validation
   let regex = new RegExp(regexValidation.get_data_pattern('ip'));
@@ -337,7 +351,6 @@ const add_ = async (is_edit) => {
 
   if (verify_host_name) {
     let result = await resolve_host_name(host.value);
-    //console.log(result)
     disable_add.value = result == "no_success";
   }
 
@@ -350,7 +363,9 @@ const add_ = async (is_edit) => {
         scan_type: tmp_scan_type, 
         scan_ports: tmp_ports,
         cidr: selected_cidr.value.id,
-        auto_scan_frequency: a_scan_frequency
+        auto_scan_frequency: a_scan_frequency,
+        scan_id: tmp_row_id
+
       });
     } else {
       emit(emit_name, { 
@@ -358,6 +373,7 @@ const add_ = async (is_edit) => {
         scan_type: tmp_scan_type, 
         scan_ports: tmp_ports,
         cidr: selected_cidr.value.id,
+        scan_id: tmp_row_id
       });
     }
 
