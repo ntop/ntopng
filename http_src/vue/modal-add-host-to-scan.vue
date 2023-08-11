@@ -211,6 +211,11 @@ const set_row_to_edit = (row) => {
     host.value = row.host;
     ports.value = row.ports;
 
+    automatic_scan_frequencies_list.value.forEach((item) => {
+      if(item.id == row.scan_frequency) {
+        selected_automatic_scan_frequency.value = item;
+      }
+    });
     
     scan_type_list.value.forEach((item) => {
     if (item.id == row.scan_type) {
