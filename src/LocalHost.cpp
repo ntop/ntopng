@@ -208,6 +208,8 @@ void LocalHost::addInactiveData() {
     snprintf(redis_key, sizeof(redis_key), OFFLINE_LOCAL_HOSTS_KEY, iface->get_id());
     ntop->getRedis()->hashSet(redis_key, getSerializationKey(key, sizeof(key)), json_str);
   }
+
+  ndpi_term_serializer(&host_json);
 }
 
 /* *************************************** */

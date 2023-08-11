@@ -2723,6 +2723,15 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
       } else if (ntop->getGlobals()->decode_tunnels() &&
 		 (iph->protocol == IPPROTO_UDP) &&
 		 ((frag_off & 0x3FFF /* IP_MF | IP_OFFSET */) == 0)) {
+
+	if(ip_offset + ip_len + sizeof(struct ndpi_udphdr) > h->caplen) {
+	  incStats(ingressPacket, h->ts.tv_sec, 0,
+		   NDPI_PROTOCOL_UNKNOWN,
+		   NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire,
+		   1);
+	  goto dissect_packet_end;
+        }
+
 	struct ndpi_udphdr *udp =
 	  (struct ndpi_udphdr *)&packet[ip_offset + ip_len];
 	u_int16_t sport = ntohs(udp->source), dport = ntohs(udp->dest);

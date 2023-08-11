@@ -335,7 +335,8 @@ void HostPools::reloadPools() {
   /* Keys are pool ids */
   if ((num_pools = redis->smembers(kname, &pools)) == -1) {
     delete new_tree;
-    delete new_stats;
+    delete new_stats[0];
+    delete [] new_stats;
     return; /* Something went wrong with redis? */
   }
   

@@ -433,6 +433,9 @@ Flow::~Flow() {
     if (protos.http.last_url) free(protos.http.last_url);
     if (protos.http.last_user_agent) free(protos.http.last_user_agent);
     if (protos.http.last_server) free(protos.http.last_server);
+  } else if (isHTTP_PROXY()) {
+    if (protos.http.last_url) free(protos.http.last_url);
+    if (protos.http.last_user_agent) free(protos.http.last_user_agent);
   } else if (isDNS()) {
     if (protos.dns.last_query) free(protos.dns.last_query);
     if (protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);

@@ -453,6 +453,7 @@ class Flow : public GenericHashEntry {
             isProto(NDPI_PROTOCOL_MAIL_SMTPS));
   }
   inline bool isHTTP() const { return (isProto(NDPI_PROTOCOL_HTTP)); }
+  inline bool isHTTP_PROXY() const { return (isProto(NDPI_PROTOCOL_HTTP_PROXY)); }
   inline bool isICMP() const {
     return (isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6));
   }
