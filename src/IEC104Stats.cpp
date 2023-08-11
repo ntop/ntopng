@@ -241,7 +241,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
           offset += len + 2 /* magic and len */;
 
-          if (len >= 6)
+          if((len >= 6) && ((offset + 6) <= payload_len))
             asdu = /* ntohs */ (*((u_int16_t *)&payload[4 + offset]));
           else
             asdu = 0;
