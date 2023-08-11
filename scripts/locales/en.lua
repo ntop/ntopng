@@ -5548,6 +5548,13 @@ local lang = {
         ["invalid_url"] = "Invalid Server URL.",
       },
     },
+    ["pagerduty"] = {
+      ["integreation_key"] = "Integration Key",
+      ["pagerduty_send_error"] = "Error sending message to PagerDuty.",
+      ["validation"] = {
+        ["empty_int_key"] = "Integration Key cannot be empty.",
+      },
+    },
     ["shell"] = {
       ["shell_options"] = "Options",
       ["shell_script"] = "Script PATH",

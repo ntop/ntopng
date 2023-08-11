@@ -1798,13 +1798,14 @@ local known_parameters = {
 
     ["telegram_channel"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
     ["telegram_token"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
+
     ["thehive_token"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
     ["thehive_url"] = {http_lint.webhookCleanup, http_lint.validateUnquoted},
     ["thehive_org_name"] = http_lint.validateSingleWord,
     ["thehive_obs_mail"] = http_lint.validateSingleWord,
     ["thehive_obs_url"] = {http_lint.webhookCleanup, http_lint.validateUnquoted},
 
-
+    ["pagerduty_integration_key"] = http_lint.validateSingleWord,
 
     ["fail2ban_jail"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
 

@@ -18,7 +18,9 @@ Currently available Endpoints/Recipients and license required are:
 +----------------+-----------+-----+--------------+--------------+
 | Mattermost     | x         | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
-| MS Teams       |           | x   | x            | x            |
+| MS Teams       |           |     |              | x            |
++----------------+-----------+-----+--------------+--------------+
+| PagerDuty      |           |     |              | x            |
 +----------------+-----------+-----+--------------+--------------+
 | Shell Script   | x         | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
@@ -32,7 +34,6 @@ Currently available Endpoints/Recipients and license required are:
 +----------------+-----------+-----+--------------+--------------+
 | TheHive        |           | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
-
 
 Below a guide on how to configure each Endpoint/Recipient.
 
@@ -237,8 +238,29 @@ Official guide to MS Teams Webhook can be found `Here <https://docs.microsoft.co
 
 .. figure:: ../img/teams_webhook.png
 
+.. note::
+
+  MS Teams recipient is only available in ntopng Enterprise L or above.
+
+PagerDuty
+---------
+
+First of all, create a PagerDuty account. For information about the PagerDuty account, please refer to the following link: `PagerDuty <https://developer.pagerduty.com/sign-up/>`_. 
+After that, you will be able to see the PagerDuty Endpoint.
+
+.. figure:: ../img/pagerduty_endpoint.png
+It is necessary to specify the `Integration Key` known also as `routing_key <https://developer.pagerduty.com/docs/ZG9jOjExMDI5NTgx-send-an-alert-event>`_.
+To obtain the Integration Key, it is necessary to create a new App and, within it, a new Service under the new PagerDuty account.
+
+Once you have created the endpoint, proceed to create a new recipient to associate with the newly created endpoint.
+
+.. note::
+
+  PagerDuty recipient is only available in ntopng Enterprise L or above.
+
+
 Shell Script
-------
+------------
 
 Create the script you want to execute each time the alert is triggered and put it inside the directory :code:`/usr/share/ntopng/scripts/shell/`.
 
