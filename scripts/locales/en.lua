@@ -4185,6 +4185,7 @@ local lang = {
       ["show_result"] = "Show Last Scan Report",
       ["success"] = "Success",
       ["title"] = "Hosts to Scan",
+      ["title_hosts_page"] = "Vulnerabilities",
       ["unknown_host"] = "Unknown host",
       ["update_all"] = "Update All",
       ["update_periodicity_title"] = "Batch Edit",
