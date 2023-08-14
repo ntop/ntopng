@@ -5,11 +5,12 @@
 <template>
 <div>
     <Chart
+        ref="chart"
         :id="id"
         :chart_type="chart_type"
-        :base_url_request="params_url"
-        :register_on_status_change="false"
-        @chart_reloaded="chart_done">
+        :base_url_request="get_url"
+        :get_params_url_request="get_url_params"
+        :register_on_status_change="false">
     </Chart>
 </div>
 </template>
@@ -24,6 +25,7 @@ import { default as Chart } from "./chart.vue";
 const _i18n = (t) => i18n(t);
 
 const chart_type = ref(ntopChartApex.typeChart.DONUT);
+const chart = ref(null);
 
 const props = defineProps({
     id: String,          /* Component ID */
@@ -36,7 +38,11 @@ const props = defineProps({
     params: Object,      /* Component-specific parameters from the JSON template definition */
 });
 
-const params_url = computed(() => {
+const get_url = computed(() => {
+  return `${http_prefix}${props.params.url}`;
+});
+
+const get_url_params = () => {
   const url_params = {
      ifid: props.ifid,
      epoch_begin: props.epoch_begin,
@@ -48,8 +54,8 @@ const params_url = computed(() => {
   /* Push ifid to the parameters (e.g. "ts_query=ifid:$IFID$" */
   query_params = query_params.replaceAll("%24IFID%24" /* $IFID$ */, props.ifid);
 
-  return `${http_prefix}${props.params.url}?${query_params}&`;
-});
+  return query_params;
+}
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
 watch(() => [props.epoch_begin, props.epoch_end], (cur_value, old_value) => {
@@ -64,17 +70,13 @@ onMounted(() => {
 });
 
 function init() {
-    refresh_chart();
+    //refresh_chart();
 }
 
 async function refresh_chart() {
-    //TODO 
-}
-
-function chart_done(data, tmp, tmp2) {
+    chart.value.update_chart();
 }
 </script>
 
 <style>
-
 </style>
