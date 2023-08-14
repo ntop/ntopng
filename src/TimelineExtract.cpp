@@ -43,7 +43,7 @@ pfring *TimelineExtract::openTimeline(const char *timeline_path, time_t from,
   pfring *handle = NULL;
   char *filter;
   struct tm *time_info;
-  int rc;
+  int rc;, len
   char timeline_ifname[MAX_PATH];
 
   snprintf(timeline_ifname, sizeof(timeline_ifname), "timeline:%s", timeline_path);
@@ -57,7 +57,8 @@ pfring *TimelineExtract::openTimeline(const char *timeline_path, time_t from,
     goto error;
   }
 
-  filter = (char *)malloc(64 + (bpf_filter ? strlen(bpf_filter) : 0));
+  len = 64 + (bpf_filter ? strlen(bpf_filter) : 0);
+  filter = (char *)malloc(len);
 
   if (filter == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory");
@@ -73,7 +74,7 @@ pfring *TimelineExtract::openTimeline(const char *timeline_path, time_t from,
   time_info = localtime(&to);
   strftime(to_buff, sizeof(to_buff), "%Y-%m-%d %H:%M:%S", time_info);
 
-  sprintf(filter, "start %s and end %s", from_buff, to_buff);
+  snprintf(filter, len, "start %s and end %s", from_buff, to_buff);
 
   if (bpf_filter && strlen(bpf_filter) > 0)
     sprintf(&filter[strlen(filter)], " and %s", bpf_filter);
