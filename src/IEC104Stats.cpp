@@ -46,7 +46,7 @@ IEC104Stats::IEC104Stats() {
 
 /* *************************************** */
 
-IEC104Stats::~IEC104Stats() { ndpi_free_data_analysis(i_s_apdu, 0); }
+IEC104Stats::~IEC104Stats() { ndpi_free_data_analysis(i_s_apdu, 1); }
 
 /* *************************************** */
 
