@@ -65,6 +65,7 @@ import { default as Loading } from "./loading.vue";
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as EmptyComponent } from "./empty-component.vue";
 import { default as Badge } from "./badge.vue";
+import { default as Pie } from "./pie.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -156,6 +157,7 @@ let ntopVue = {
     SimpleTable: SimpleTable,
     EmptyComponent: EmptyComponent,
     Badge: Badge,
+    Pie: Pie,
 
     // list
     ListTimeseries: ListTimeseries,
