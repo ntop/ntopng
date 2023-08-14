@@ -46,6 +46,25 @@
     }
   },
   {
+    "component" : "pie",
+    "id" : "top_l7_proto",
+    "i18n_name" : "top_l7_proto",
+    "width" : 4,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/rest/v2/get/db/charts/top_l7_proto.lua",
+      "url_params" : {
+        "chart_id" : "top_l7_proto",
+        "detail_view" : "flows",
+        "ts_query" : "ifid:$IFID$",
+        "ts_schema" : "host:traffic",
+        "query_preset" : "protos",
+        "version" : 4,
+        "length" : 10
+      }
+    }
+  },
+  {
     "component" : "simple-table",
     "id" : "top_clients",
     "i18n_name" : "db_search.top_clients",
@@ -65,6 +84,47 @@
           { "id" : "cli_ip",      "data_type" : "host",  "i18n_name" : "host_details.host" },
           { "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
        ]
+    }
+  },
+  {
+    "component" : "simple-table",
+    "id" : "top_servers",
+    "i18n_name" : "db_search.top_servers",
+    "width" : 4,
+    "height" : 4,
+    "time_window" : "day",
+    "time_offset" : "",
+    "params" : {
+       "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
+       "url_params" : {
+          "query_preset" : "servers",
+          "start" : 0,
+          "length" : 20
+       },
+       "table_type" : "db_search",
+       "columns" : [
+          { "id" : "srv_ip",      "data_type" : "host",   "i18n_name" : "host_details.host" },
+          { "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
+       ]
+    }
+  },
+  {
+    "component" : "pie",
+    "id" : "top_l7_categories",
+    "i18n_name" : "top_l7_cat",
+    "width" : 4,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/rest/v2/get/db/charts/top_l7_categories.lua",
+      "url_params" : {
+        "query_preset" : "protos",
+        "ts_schema" : "host:traffic",
+        "chart_id" : "top_l7_categories",
+        "ts_query" : "ifid:$IFID$",
+        "detail_view" : "flows",
+        "version" : 4,
+        "length" : 10
+      }
     }
   },
   {
@@ -114,25 +174,12 @@
     }
   },
   {
-    "component" : "simple-table",
-    "id" : "top_servers",
-    "i18n_name" : "db_search.top_servers",
+    "component" : "empty",
+    "id" : "empty",
+    "i18n_name" : "",
     "width" : 4,
     "height" : 4,
-    "time_window" : "day",
-    "time_offset" : "",
     "params" : {
-       "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
-       "url_params" : {
-          "query_preset" : "servers",
-          "start" : 0,
-          "length" : 20
-       },
-       "table_type" : "db_search",
-       "columns" : [
-          { "id" : "srv_ip",      "data_type" : "host",   "i18n_name" : "host_details.host" },
-          { "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
-       ]
     }
   },
   {
@@ -179,6 +226,15 @@
           { "id" : "asn",         "data_type" : "asn",   "i18n_name" : "as" },
           { "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
        }
+    }
+  },
+  {
+    "component" : "empty",
+    "id" : "empty",
+    "i18n_name" : "",
+    "width" : 4,
+    "height" : 4,
+    "params" : {
     }
   }
   ]

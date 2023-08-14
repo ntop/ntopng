@@ -48,7 +48,7 @@ const params_url = computed(() => {
   /* Push ifid to the parameters (e.g. "ts_query=ifid:$IFID$" */
   query_params = query_params.replaceAll("%24IFID%24" /* $IFID$ */, props.ifid);
 
-  return `${http_prefix}${props.params.url}?${query_params}`;
+  return `${http_prefix}${props.params.url}?${query_params}&`;
 });
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
