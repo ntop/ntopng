@@ -47,6 +47,7 @@ const get_url_params = () => {
      ifid: props.ifid,
      epoch_begin: props.epoch_begin,
      epoch_end: props.epoch_end,
+     new_charts: true,
      ...props.params.url_params
   }
   let query_params = ntopng_url_manager.obj_to_url_params(url_params);
