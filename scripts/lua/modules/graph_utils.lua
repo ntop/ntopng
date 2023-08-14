@@ -1380,4 +1380,41 @@ end
 
 -- #################################################
 
+-- Convert to the format accepted by the vue Chart/Pie component
+-- js_formatter: render function (e.g. 'format_bytes')
+function graph_utils.convert_pie_data(res, new_charts, js_formatter)
+   if not new_charts then
+      return res
+   end
+
+   local labels = {}
+   local series = {}
+   local colors = {}
+
+   for _, v in ipairs(res) do
+      labels[#labels+1] = v.label
+      series[#series+1] = v.value
+      colors[#colors + 1] = graph_utils.get_html_color(#colors)
+   end
+
+   res = {
+      labels = labels,
+      series = series,
+      colors = colors,
+      yaxis = {
+         show=false
+      },
+      tooltip = {
+         y = {
+            formatter = js_formatter
+         }
+      },
+      extra_x_tooltip_label = 'None'
+   }
+
+   return res
+end
+
+-- #################################################
+
 return graph_utils
