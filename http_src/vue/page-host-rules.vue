@@ -14,6 +14,8 @@
         </div>
       </div>
       <div class="card-body">
+
+        
         <div class="mb-4">
           <h4>{{ _i18n('if_stats_config.traffic_rules') }}</h4>
         </div>
@@ -70,6 +72,7 @@ const modal_add_host_rule = ref(null)
 const _i18n = (t) => i18n(t);
 const row_to_delete = ref({})
 const row_to_edit = ref({})
+const invalid_add = ref(false);
 
 
 const metric_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=host`
@@ -126,7 +129,7 @@ const load_selected_field = function(row) {
 }
 
 async function edit(params) {
-  await delete_row();
+  //await delete_row();
 
   await add_host_rule(params);
 }
@@ -162,13 +165,20 @@ const delete_row = async function() {
 
 const add_host_rule = async function(params) {
   const url = NtopUtils.buildURL(add_rule_url, {
-    ...rest_params,
     ...params
   })
   
-  await $.post(url, function(rsp, status){
+  const rsp = await ntopng_utility.http_post_request(url, rest_params);
+
+  invalid_add.value = rsp.rsp;
+
+  if(invalid_add.value == false) {
+    modal_add_host_rule.value.close();
     reload_table();
-  });
+  } else {
+    modal_add_host_rule.value.invalidAdd();
+  }
+  
 }
 
 

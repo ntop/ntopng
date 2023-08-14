@@ -3,6 +3,11 @@
 <modal @showed="showed()" ref="modal_id">
   <template v-slot:title>{{title}}</template>
   <template v-slot:body>
+
+    <div v-if="invalid_add" class="alert alert-info alert-dismissable">
+            <span class="text-info me-1"></span> 
+            <span> {{ _i18n('rule_already_present') }}</span>
+        </div>
     <!-- Target information, here an IP is put -->
   <div class="form-group ms-2 me-2 mt-3 row">
 
@@ -213,6 +218,8 @@ const rule_type = ref("hosts");
 const flow_device_timeseries_available = ref(false);
 const is_edit_page = ref(false)
 const page_csrf_ = ref(null);
+const row_to_edit_id = ref(null);
+const invalid_add = ref(false);
 
 
 
@@ -282,6 +289,7 @@ function reset_radio_selection(radio_array) {
  * Reset fields in modal form 
  */
 const reset_modal_form = async function() {
+    invalid_add.value = false;
     host.value = "";
     rule_type.value = "Host";
     selected_ifid.value = ifid_list.value[0];
@@ -330,6 +338,8 @@ const reset_modal_form = async function() {
 
     threshold.value.value = 1;
 
+    row_to_edit_id.value = null;
+
 
 }
 
@@ -346,6 +356,8 @@ const set_row_to_edit = (row) => {
   if(row != null) {
     title = _i18n('if_stats_config.edit_host_rules_title');
     is_edit_page.value = true;
+
+    row_to_edit_id.value = row.row_id;
 
     disable_add.value = false;
 
@@ -532,6 +544,8 @@ const add_ = (is_edit) => {
   let tmp_threshold;
   let tmp_sign_value;
 
+  let tmp_edit_row_id = (is_edit) ? row_to_edit_id.value : null;
+
   if(visible.value === false) {
     tmp_metric_type = ''
     tmp_extra_metric = ''
@@ -562,7 +576,6 @@ const add_ = (is_edit) => {
   if(is_edit == true) 
     emit_name = 'edit';
 
-  
 
   if (rule_type.value == 'Host')
     emit(emit_name, { 
@@ -574,7 +587,9 @@ const add_ = (is_edit) => {
       metric_type: tmp_metric_type,
       extra_metric: tmp_extra_metric,
       rule_type: tmp_rule_type,
-      rule_threshold_sign: tmp_sign_value
+      rule_threshold_sign: tmp_sign_value,
+      rule_id: tmp_edit_row_id
+
     });
   else if(rule_type.value == 'interface')
     emit(emit_name, { 
@@ -587,7 +602,9 @@ const add_ = (is_edit) => {
       rule_type: tmp_rule_type,
       interface: tmp_interface,
       ifname: tmp_interface_name,
-      rule_threshold_sign: tmp_sign_value
+      rule_threshold_sign: tmp_sign_value,
+      rule_id: tmp_edit_row_id
+
     });
   else {
     const flow_device_ifindex = selected_exporter_device_ifid.value.id;
@@ -621,12 +638,13 @@ const add_ = (is_edit) => {
       rule_type: tmp_rule_type,
       interface: flow_device_ifindex,
       ifname: flow_device_ifindex_name,
-      rule_threshold_sign: tmp_sign_value
+      rule_threshold_sign: tmp_sign_value,
+      rule_id: tmp_edit_row_id
+
     });
   }
     
 
-  close();
 };
 
 
@@ -637,6 +655,10 @@ const edit_ = () => {
 const close = () => {
   is_edit_page.value = false;
   modal_id.value.close();
+};
+
+const invalidAdd = () => {
+  invalid_add.value = true;
 };
 
 /**
@@ -724,7 +746,7 @@ onBeforeMount(() => {
   })
 })
 
-defineExpose({ show, close, metricsLoaded });
+defineExpose({ show, close, metricsLoaded, invalidAdd });
 
 
 </script>

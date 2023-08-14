@@ -492,6 +492,7 @@ local lang = {
   ["retransmissions"] = "Retransmissions",
   ["retry"] = "Retry",
   ["role"] = "Role",
+  ["rule_already_present"] = "The rule has already been inserted!",
   ["running"] = "Running",
   ["save"] = "Save",
   ["save_configuration"] = "Save Configuration",
