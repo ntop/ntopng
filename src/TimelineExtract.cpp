@@ -43,7 +43,7 @@ pfring *TimelineExtract::openTimeline(const char *timeline_path, time_t from,
   pfring *handle = NULL;
   char *filter;
   struct tm *time_info;
-  int rc;, len
+  int rc, len;
   char timeline_ifname[MAX_PATH];
 
   snprintf(timeline_ifname, sizeof(timeline_ifname), "timeline:%s", timeline_path);

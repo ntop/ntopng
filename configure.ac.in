@@ -76,7 +76,9 @@ if test "x$USE_CLANG" = xyes; then
         CC=clang
         CXX="clang++ -fno-color-diagnostics -fPIE -stdlib=libc++"
     else
-       if test -x "/usr/bin/clang-13"; then
+       if test -x "/usr/bin/clang-10"; then
+           CLANG_VERSION=10
+       elif test -x "/usr/bin/clang-13"; then
            CLANG_VERSION=13
        elif test -x "/usr/bin/clang-14"; then
            CLANG_VERSION=14
