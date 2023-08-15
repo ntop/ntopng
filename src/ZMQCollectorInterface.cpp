@@ -169,6 +169,8 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
 /* **************************************************** */
 
 ZMQCollectorInterface::~ZMQCollectorInterface() {
+  map<u_int32_t, zmq_probe *>::iterator p;
+  
 #ifdef INTERFACE_PROFILING
   u_int64_t n = recvStats.num_flows;
 
@@ -192,6 +194,12 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
     zmq_close(subscriber[i].socket);
   }
 
+  for (p = active_probes.begin(); p != active_probes.end(); p++) {
+    zmq_probe *probe = p->second;
+    
+    free(probe);
+  }
+  
   zmq_ctx_destroy(context);
 }
 

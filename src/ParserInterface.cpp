@@ -537,13 +537,11 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     if ((o = json_tokener_parse_verbose(zflow->getRiskInfo(), &jerr)) !=
         NULL) {
       /* NOTE: keep in sync with  FlowRisk::ignoreRisk() */
-      if (json_object_object_get_ex(
-              o, "6" /* NDPI_TLS_SELFSIGNED_CERTIFICATE */, &obj)) {
+      if (json_object_object_get_ex(o, "6" /* NDPI_TLS_SELFSIGNED_CERTIFICATE */, &obj)) {
         const char *issuerDN = json_object_get_string(obj);
 
-        flow->setTLSCertificateIssuerDN((char *)issuerDN);
-      } else if (json_object_object_get_ex(
-                     o, "16" /* NDPI_SUSPICIOUS_DGA_DOMAIN */, &obj)) {
+        if(flow->isTLS()) flow->setTLSCertificateIssuerDN((char *)issuerDN);
+      } else if (json_object_object_get_ex(o, "16" /* NDPI_SUSPICIOUS_DGA_DOMAIN */, &obj)) {
         const char *dgaDomain = json_object_get_string(obj);
 
         flow->setDGADomain((char *)dgaDomain);
