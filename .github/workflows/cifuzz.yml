@@ -9,20 +9,26 @@ jobs:
         sanitizer: [address]
     steps:
     - name: Build Fuzzers - ${{ matrix.sanitizer }}
-      id: build
       uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
       with:
         oss-fuzz-project-name: 'ntopng'
+        dry-run: false
         sanitizer: ${{ matrix.sanitizer }}
     - name: Run Fuzzers - ${{ matrix.sanitizer }}
       uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master
       with:
         oss-fuzz-project-name: 'ntopng'
+        fuzz-seconds: 2200
+        dry-run: false
         sanitizer: ${{ matrix.sanitizer }}
-        fuzz-seconds: 1200
+    - name: Check Crash (fails when a crash is detected)
+      # Run Fuzzers return success even when setting dry-run to false.
+      # A temporal workaround is to trigger failure manually if we fing crash files.
+      run: |
+        exit $(ls out/artifacts |wc -l)
     - name: Upload Crash
-      uses: actions/upload-artifact@v3
-      if: failure() && steps.build.outcome == 'success'
+      uses: actions/upload-artifact@v1
+      if: failure()
       with:
         name: ${{ matrix.sanitizer }}-artifacts
         path: ./out/artifacts
