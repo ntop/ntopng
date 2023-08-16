@@ -126,13 +126,13 @@ function recipients.initialize()
       local flow_checks = nil
       local host_checks = nil
 
-      if recipient.checks then
+      if recipient.checks and table.len(recipient.checks) > 0 then
          flow_checks = ""
          host_checks = ""
          if(recipient.checks["flow"]) then
             flow_checks = table.concat(recipient.checks["flow"], ",")
          end
-         if(recipient.checks and recipient.checks["host"]) then
+         if(recipient.checks["host"]) then
             host_checks = table.concat(recipient.checks["host"], ",")
          end
       end
@@ -326,11 +326,12 @@ end
 
 local function format_recipient_checks(checks_list)
    if isEmptyString(checks_list) then
-      return {}
+      return nil
    end
 
    local list = checks_list:split(",") or { checks_list }
    local formatted_list = {}
+   local num_alerts = 0
 
    for _, check in pairs(list or {}) do
       local alert_info = check:split("_")
@@ -345,7 +346,12 @@ local function format_recipient_checks(checks_list)
          end
          
          formatted_list[entity][#formatted_list[entity] + 1] = alert_id
+         num_alerts = num_alerts + 1
       end
+   end
+
+   if num_alerts == 0 then
+      return nil
    end
 
    return formatted_list
@@ -396,7 +402,7 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                local silence_alerts = recipient_params["recipient_silence_multiple_alerts"]
                local flow_checks = nil
                local host_checks = nil
-               if checks then
+               if checks and table.len(checks) > 0 then
                   flow_checks = ""
                   host_checks = ""
                   if(checks["flow"]) then
@@ -483,7 +489,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                local silence_alerts = recipient_params["recipient_silence_multiple_alerts"]
                local flow_checks = nil
                local host_checks = nil
-               if checks then
+               if checks and table.len(checks) > 0 then
                   flow_checks = ""
                   host_checks = ""
                   if(checks["flow"]) then
