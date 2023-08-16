@@ -13,7 +13,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local rest_utils = require("rest_utils")
-local ts_rest_utils = require("ts_rest_utils")
+local ts_data = require("ts_data")
 
 local tags = tsQueryToTags(_GET["ts_query"])
 
@@ -57,6 +57,6 @@ local http_context = {
 -- As timeseries epochs are always written adjusted to UTC, there is no need to do any extra processing to the received epochs.
 -- They are valid from any timezone, provided they are sent in the _GET as UTC adjusted.
 
-local res1 = ts_rest_utils.get_timeseries(http_context)
+local res1 = ts_data.get_timeseries(http_context)
 
 rest_utils.answer(rest_utils.consts.success.ok, res1)
