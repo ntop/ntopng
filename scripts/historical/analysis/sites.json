@@ -16,7 +16,7 @@
 		"dataPointSelection" : "db_analyze"
 	    },
 	    "chart_gui_filter" : "l7proto", // Filter displayed in the GUI
-	    "chart_sql_query" : "SELECT INFO,SUM(TOTAL_BYTES) AS total_bytes FROM flows WHERE ($WHERE) AND (INFO <> '') GROUP BY INFO ORDER BY total_bytes DESC LIMIT 15",
+	    "chart_sql_query" : "SELECT INFO,SUM(TOTAL_BYTES) AS total_bytes FROM flows WHERE ($WHERE$) AND (INFO <> '') GROUP BY INFO ORDER BY total_bytes DESC LIMIT 15",
 	    "chart_type" : "bar_apex_chart",
 	    "chart_i18n_extra_x_label" : "volume",
 	    "chart_record_value" : "total_bytes",
@@ -37,7 +37,7 @@
 		"dataPointSelection" : "db_analyze"
 	    },
 	    "chart_gui_filter" : "l7proto", // Filter displayed in the GUI
-	    "chart_sql_query" : "SELECT INFO,COUNT(*) AS total_hits FROM flows WHERE ($WHERE) AND (INFO <> '') GROUP BY INFO ORDER BY total_hits DESC LIMIT 15",
+	    "chart_sql_query" : "SELECT INFO,COUNT(*) AS total_hits FROM flows WHERE ($WHERE$) AND (INFO <> '') GROUP BY INFO ORDER BY total_hits DESC LIMIT 15",
 	    "chart_type" : "bar_apex_chart",
 	    "chart_i18n_extra_x_label" : "hits",
 	    "chart_record_value" : "total_hits",

@@ -15,7 +15,7 @@
             "min-height" : "49rem",
         },
         "chart_gui_filter" : "status", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT STATUS, IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED, any(DST_LABEL) DST_LABEL_FORMATTED,IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED, any(SRC_LABEL) SRC_LABEL_FORMATTED, COUNT(*) as flows FROM flows WHERE ($WHERE) GROUP BY STATUS, IPV4_DST_ADDR_FORMATTED, IPV4_SRC_ADDR_FORMATTED",
+        "chart_sql_query" : "SELECT STATUS, IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED, any(DST_LABEL) DST_LABEL_FORMATTED,IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED, any(SRC_LABEL) SRC_LABEL_FORMATTED, COUNT(*) as flows FROM flows WHERE ($WHERE$) GROUP BY STATUS, IPV4_DST_ADDR_FORMATTED, IPV4_SRC_ADDR_FORMATTED",
         "chart_type" : "geomap",
         "chart_record_value" : "flows",
           "chart_record_label" : [ "STATUS", "ADDR" ],
