@@ -27,6 +27,7 @@
 
 HostPools::HostPools(NetworkInterface *_iface) {
   tree = tree_shadow = NULL;
+  stats = stats_shadow = NULL;
 #ifdef NTOPNG_PRO
   children_safe = forge_global_dns = NULL;
   routing_policy_id = NULL;
@@ -56,8 +57,6 @@ HostPools::HostPools(NetworkInterface *_iface) {
            (bool *)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
 #endif
-
-  stats = stats_shadow = NULL;
 
   if ((num_active_hosts_inline =
            (int32_t *)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL ||
@@ -335,7 +334,8 @@ void HostPools::reloadPools() {
   /* Keys are pool ids */
   if ((num_pools = redis->smembers(kname, &pools)) == -1) {
     delete new_tree;
-    delete new_stats[0];
+    if (new_stats[0])
+      delete new_stats[0];
     delete [] new_stats;
     return; /* Something went wrong with redis? */
   }
