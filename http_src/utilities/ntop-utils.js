@@ -1178,6 +1178,20 @@ export default class NtopUtils {
                 return label
   }
 
+  /* Format an object with label and value from a column row */
+  static formatGenericObj(obj, row) {
+    let label = obj.label ? obj.label : obj.value;
+    let key = obj.value;
+    return label;
+  }
+
+  /* Format a country from a column object */
+  static formatCountry(obj, row) {
+    let country_code = obj.value;
+    let label = obj.label ? obj.label : obj.value;
+    return `${label} <img src="/dist/images/blank.gif" class="flag flag-${country_code.toLowerCase()}">`;
+  }
+
   /* Format an host from a column object */
   static formatHost(obj, row, is_client) {
     let label = "";

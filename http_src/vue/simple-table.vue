@@ -99,10 +99,14 @@ const row_render_functions = {
       return NtopUtils.formatNetwork(row[column.id], row);
     } else if (column.data_type == 'asn') {
       return NtopUtils.formatASN(row[column.id], row);
+    } else if (column.data_type == 'country') {
+      return NtopUtils.formatCountry(row[column.id], row);
     } else if (formatterUtils.types[column.data_type]) {
       // 'bytes', 'bps', 'pps', ...
       let formatter = formatterUtils.getFormatter(column.data_type);
       return formatter(row[column.id]);
+    } else if (typeof row[column.id] === 'object') {
+      return NtopUtils.formatGenericObj(row[column.id], row);
     } else {
       return row[column.id];
     }
