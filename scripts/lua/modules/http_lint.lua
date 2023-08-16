@@ -657,7 +657,7 @@ local function validateFavouriteType(mode)
 end
 
 local function validateAjaxFormat(mode)
-    local modes = {"d3"}
+    local modes = {"d3","pie"}
 
     return validateChoice(modes, mode)
 end
