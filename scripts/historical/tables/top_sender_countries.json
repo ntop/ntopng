@@ -1,0 +1,49 @@
+{
+	"name" : "Top Sender Countries",
+	"i18n_name" : "top_sender_countries",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"hourly": true,
+	"sql" : "SELECT COUNTRY_CODE, SUM(BYTES) AS total_bytes FROM (SELECT SRC_COUNTRY_CODE AS COUNTRY_CODE, SRC2DST_BYTES AS BYTES $FROM$ $WHERE$ AND SRC_COUNTRY_CODE!=0 UNION ALL SELECT DST_COUNTRY_CODE AS COUNTRY_CODE, DST2SRC_BYTES AS BYTES $FROM$ $WHERE$ AND DST_COUNTRY_CODE!=0) AS f $GROUPBY$ $ORDERBY$ $LIMIT$",
+	"select" : {
+		"items" : [
+			{
+				"name" : "COUNTRY_CODE",
+				"func" : "",
+				"value_type" : "country"
+			},
+			{
+				"name" : "total_bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "SRC_COUNTRY_CODE",
+				"op": "neq",
+				"value": "DST_COUNTRY_CODE",
+				"value_type": "number",
+				"input": "fixed"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "COUNTRY_CODE"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "total_bytes",
+				"order" : "DESC"
+			}
+		]
+	}
+}
