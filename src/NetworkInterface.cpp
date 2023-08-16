@@ -180,8 +180,7 @@ NetworkInterface::NetworkInterface(const char *name,
   policer = NULL; /* possibly instantiated by subclass PacketBridge */
 #ifndef HAVE_NEDGE
   flow_profiles = ntop->getPro()->has_valid_license() ? new (std::nothrow)
-    FlowProfiles(id)
-    : NULL;
+    FlowProfiles(id) : NULL;
   if (flow_profiles) flow_profiles->loadProfiles();
   shadow_flow_profiles = NULL;
 #endif
@@ -197,7 +196,7 @@ NetworkInterface::NetworkInterface(const char *name,
   ndpiStats = NULL;
   dscpStats = NULL;
 
-  host_pools = new (std::nothrow) HostPools(this);
+  host_pools    = new (std::nothrow) HostPools(this);
   bcast_domains = new (std::nothrow) BroadcastDomains(this);
 
 #ifdef __linux__
@@ -294,8 +293,7 @@ void NetworkInterface::init(const char *interface_name) {
 
   gettimeofday(&last_periodic_stats_update, NULL);
   num_live_captures = 0;
-  num_host_dropped_alerts = num_flow_dropped_alerts = num_other_dropped_alerts =
-    0;
+  num_host_dropped_alerts = num_flow_dropped_alerts = num_other_dropped_alerts = 0;
   num_written_alerts = num_alerts_queries = 0;
   score_as_cli = score_as_srv = 0;
   memset(live_captures, 0, sizeof(live_captures));
@@ -8293,15 +8291,11 @@ void NetworkInterface::allocateStructures() {
 	  hosts_hash = new HostHash(this, num_hashes,
 				    ntop->getPrefs()->get_max_num_hosts());
 	  /* The number of ASes cannot be greater than the number of hosts */
-	  ases_hash =
-            new AutonomousSystemHash(this, ndpi_min(num_hashes, 4096), 32768);
+	  ases_hash = new AutonomousSystemHash(this, ndpi_min(num_hashes, 4096), 32768);
 	  if (!isPacketInterface())
-	    obs_hash =
-              new ObservationPointHash(this, ndpi_min(num_hashes, 4096), 32768);
-	  oses_hash =
-            new OperatingSystemHash(this, ndpi_min(num_hashes, 1024), 32768);
-	  countries_hash =
-            new CountriesHash(this, ndpi_min(num_hashes, 1024), 32768);
+	    obs_hash = new ObservationPointHash(this, ndpi_min(num_hashes, 4096), 32768);
+	  oses_hash =  new OperatingSystemHash(this, ndpi_min(num_hashes, 1024), 32768);
+	  countries_hash = new CountriesHash(this, ndpi_min(num_hashes, 1024), 32768);
 	  vlans_hash = new VLANHash(this, 1024, 2048);
 	  macs_hash = new MacHash(this, ndpi_min(num_hashes, 8192), 32768);
 	}
@@ -8311,9 +8305,8 @@ void NetworkInterface::allocateStructures() {
 
     networkStats = new NetworkStats *[numNetworks];
     statsManager = new StatsManager(id, STATS_MANAGER_STORE_NAME);
-    ndpiStats =
-      new nDPIStats(true /* Enable throughput calculation */,
-		    ntop->getPrefs()->isIfaceL7BehavourAnalysisEnabled());
+    ndpiStats    = new nDPIStats(true /* Enable throughput calculation */,
+				 ntop->getPrefs()->isIfaceL7BehavourAnalysisEnabled());
     dscpStats = new DSCPStats();
 
     download_stats = new RoundTripStats();
