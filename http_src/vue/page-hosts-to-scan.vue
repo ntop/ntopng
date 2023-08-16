@@ -83,6 +83,7 @@ const modal_delete_confirm = ref();
 const modal_add = ref();
 const modal_vs_result = ref();
 const modal_update_perioditicy_scan = ref();
+let old_auto_refresh = ref(null);
 
 const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
 const edit_host_url = `${http_prefix}/lua/rest/v2/edit/host/update_va_scan_period.lua`;
@@ -127,8 +128,13 @@ function refresh_table(ok, disable_loading) {
   /* It's important to set autorefresh to false, in this way when refreshed 
      all the entries are going to be checked and if all of them are not scanning it stays false
    */
-  if(! ok)
+  if(! ok) {
     autorefresh.value = false;
+    if (old_auto_refresh.value == true) {
+      table_hosts_to_scan.value.refresh_table();
+      old_auto_refresh.value = null;
+    }
+  }
   else if(disable_loading == true)
     table_hosts_to_scan.value.refresh_table(disable_loading);
   else
@@ -441,6 +447,7 @@ const check_in_progress_status = async function () {
   })
 
   const result = await ntopng_utility.http_request(url);
+  old_auto_refresh.value = autorefresh.value;
   autorefresh.value = result.rsp;
 }
 
