@@ -162,63 +162,66 @@ function on_table_custom_event(event) {
 }
 
 function columns_sorting(col, r0, r1) {
-  let r0_col = r0[col.data.data_field];
-  let r1_col = r1[col.data.data_field];
-  if(col.id == "host") {
-    r0_col = NtopUtils.convertIPAddress(r0_col);
-    r1_col = NtopUtils.convertIPAddress(r1_col);
-    if (col.sort == 1) {
-      return r0_col.localeCompare(r1_col);
-    }
-    return r1_col.localeCompare(r0_col);
-  } else if(col.id == "num_vulnerabilities_found") {
-    /* It's an array */
-    r0_col = format_num_for_sort(r0_col);
-    r1_col = format_num_for_sort(r1_col);
-    if (col.sort == 1) {
-      return r0_col - r1_col;
-    }
-    return r1_col - r0_col; 
-  } else if(col.id == "num_open_ports") {
-    r0_col = format_num_for_sort(r0_col);
-    r1_col = format_num_for_sort(r1_col);
-    if (col.sort == 1) {
-      return r0_col - r1_col;
-    }
-    return r1_col - r0_col; 
-  } else if(col.id == "duration") {
-    r0_col = r0["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r0["last_scan"][col.data.data_field];
-    r1_col = r1["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r1["last_scan"][col.data.data_field];
-    if (col.sort == 1) {
-      return r0_col.localeCompare(r1_col);
-    }
-    return r1_col.localeCompare(r0_col);
-  } else if(col.id == "last_scan") {
-    r0_col = r0["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r0["last_scan"]["time"];
-    r1_col = r1["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r1["last_scan"]["time"];
-    if (col.sort == 1) {
-      return r0_col.localeCompare(r1_col);
-    }
-    return r1_col.localeCompare(r0_col);
-  } else if (col.id == "is_ok_last_scan") {
-    r0_col = get_scan_status_value(r0_col);
-    r1_col = get_scan_status_value(r1_col);
-    if (col.sort == 1) {
-      return r0_col.localeCompare(r1_col);
-    }
-    return r1_col.localeCompare(r0_col);
-  } else if(col.id == "scan_frequency") {
-    r0_col = get_scan_frequency(r0_col);
-    r1_col = get_scan_frequency(r1_col);
-    if (col.sort == 1) {
-      return r0_col.localeCompare(r1_col);
-    }
-    return r1_col.localeCompare(r0_col);  } else {
-    if (col.sort == 1) {
-      return r0_col.localeCompare(r1_col);
-    }
-    return r1_col.localeCompare(r0_col);
-  }	
+  if (col != null) {
+    let r0_col = r0[col.data.data_field];
+    let r1_col = r1[col.data.data_field];
+    if(col.id == "host") {
+      r0_col = NtopUtils.convertIPAddress(r0_col);
+      r1_col = NtopUtils.convertIPAddress(r1_col);
+      if (col.sort == 1) {
+        return r0_col.localeCompare(r1_col);
+      }
+      return r1_col.localeCompare(r0_col);
+    } else if(col.id == "num_vulnerabilities_found") {
+      /* It's an array */
+      r0_col = format_num_for_sort(r0_col);
+      r1_col = format_num_for_sort(r1_col);
+      if (col.sort == 1) {
+        return r0_col - r1_col;
+      }
+      return r1_col - r0_col; 
+    } else if(col.id == "num_open_ports") {
+      r0_col = format_num_for_sort(r0_col);
+      r1_col = format_num_for_sort(r1_col);
+      if (col.sort == 1) {
+        return r0_col - r1_col;
+      }
+      return r1_col - r0_col; 
+    } else if(col.id == "duration") {
+      r0_col = r0["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r0["last_scan"][col.data.data_field];
+      r1_col = r1["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r1["last_scan"][col.data.data_field];
+      if (col.sort == 1) {
+        return r0_col.localeCompare(r1_col);
+      }
+      return r1_col.localeCompare(r0_col);
+    } else if(col.id == "last_scan") {
+      r0_col = r0["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r0["last_scan"]["time"];
+      r1_col = r1["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r1["last_scan"]["time"];
+      if (col.sort == 1) {
+        return r0_col.localeCompare(r1_col);
+      }
+      return r1_col.localeCompare(r0_col);
+    } else if (col.id == "is_ok_last_scan") {
+      r0_col = get_scan_status_value(r0_col);
+      r1_col = get_scan_status_value(r1_col);
+      if (col.sort == 1) {
+        return r0_col.localeCompare(r1_col);
+      }
+      return r1_col.localeCompare(r0_col);
+    } else if(col.id == "scan_frequency") {
+      r0_col = get_scan_frequency(r0_col);
+      r1_col = get_scan_frequency(r1_col);
+      if (col.sort == 1) {
+        return r0_col.localeCompare(r1_col);
+      }
+      return r1_col.localeCompare(r0_col);  } else {
+      if (col.sort == 1) {
+        return r0_col.localeCompare(r1_col);
+      }
+      return r1_col.localeCompare(r0_col);
+    }	
+  }
+  
 }
 
 function get_scan_frequency(scan_frequency) {
