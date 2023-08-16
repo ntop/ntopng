@@ -177,10 +177,9 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
       memcpy(&last_i_apdu, packet_time, sizeof(struct timeval));
       stats.type_i++;
 
-      if (len >= 6 /* Ignore 4 bytes APDUs */) {
+      if(((offset + 6) < payload_len) && (len >= 6 /* Ignore 4 bytes APDUs */)) {
         u_int16_t rx_value, tx_value;
-        bool initial_run =
-            ((rx_seq_num == 0) && (tx_seq_num == 0)) ? true : false;
+        bool initial_run = ((rx_seq_num == 0) && (tx_seq_num == 0)) ? true : false;
 
         tx_value = ((((u_int16_t)payload[offset + 2]) << 8) + payload[offset + 1]) >> 1;
         rx_value = ((((u_int16_t)payload[offset + 4]) << 8) + payload[offset + 3]) >> 1;
