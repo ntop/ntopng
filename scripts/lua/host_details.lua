@@ -1334,7 +1334,7 @@ else
             local i = 0
             for _,vs in ipairs(host_vs_details.cve) do
                 if (i<5) then
-                    print('<a href="' .. ntop.getHttpPrefix() ..'/lua/rest/v2/get/host/vulnerability_scan_result.lua?host='..host_vs_details.host..'&scan_type='..host_vs_details.scan_type..'">'.. vs..'</a> ')
+                    print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=show_result&scan_date='..host_vs_details.last_scan.time..'&host='..host_vs_details.host..'&scan_type='..host_vs_details.scan_type..'"><span class="badge bg-secondary" title="'..vs..'">'..vs..'</span></a> ')
                 else
                     print('...')
                     break 
@@ -1350,7 +1350,7 @@ else
         elseif (next(host_vs_details) == nil) then
             print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
             print("<td colspan=2>")
-            print('<a href="' .. ntop.getHttpPrefix() ..'/lua/monitor/active_monitoring_monitor.lua?page=scan_hosts&host='..host["ip"]..'&ifid='..ifId..'">'.. i18n("hosts_stats.page_scan_hosts.add_to_scan_list")..'</a> ')
+            print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=scan_hosts&host='..host["ip"]..'&ifid='..ifId..'">'.. i18n("hosts_stats.page_scan_hosts.add_to_scan_list")..'</a> ')
         end
 
         print("<tr><th colspan=4></th></tr>\n")
