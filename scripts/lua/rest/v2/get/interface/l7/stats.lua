@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local rest_utils = require("rest_utils")
 local stats_utils = require("stats_utils")
+local graph_utils = require "graph_utils"
 
 --
 -- Read statistics about nDPI application protocols on an interface
@@ -26,6 +27,7 @@ local ndpi_category = _GET["ndpi_category"]
 local get_all_values = (_GET["all_values"] or "false")
 local collapse_stats = (_GET["collapse_stats"] or "true")
 local max_values = tonumber(_GET["max_values"] or 5)
+local new_charts = toboolean(_GET["new_charts"])
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface
@@ -113,7 +115,7 @@ if(ndpistats_mode == "count") then
     }
   end
 
-  rest_utils.answer(rc, res)
+  rest_utils.answer(rc, graph_utils.convert_pie_data(res, new_charts, 'format_value'))
   return
 end
 
@@ -132,4 +134,4 @@ if collapse_stats == "true" then
   res = stats_utils.collapse_stats(res, 1, 3 --[[ threshold ]])
 end
 
-rest_utils.answer(rc, res)
+rest_utils.answer(rc, graph_utils.convert_pie_data(res, new_charts, 'format_value'))

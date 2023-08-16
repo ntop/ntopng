@@ -92,6 +92,7 @@ local lang = {
   ["check_historical"] = "Check Historical",
   ["check_live"] = "Check Live",
   ["check_mirrored_traffic"] = "RX only traffic detected. Perhaps do you need to activate 'Mirrored Traffic' option in the <a href='/lua/if_stats.lua?ifid=%{id}&page=config'>Interface options</a>?",
+  ["classification"] = "Traffic Classification",
   ["cli_port"] = "Cli Port",
   ["click_to_expand"] = "Click to expand",
   ["client"] = "Client",

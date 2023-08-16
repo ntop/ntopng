@@ -87,12 +87,17 @@
     }
   },
   {
-    "component" : "empty",
-    "id" : "empty",
-    "i18n_name" : "",
+    "component" : "pie",
+    "id" : "top_l7_proto",
+    "i18n_name" : "top_l7_proto",
     "width" : 4,
     "height" : 4,
     "params" : {
+      "url" : "/lua/rest/v2/get/interface/l7/stats.lua",
+      "url_params" : {
+        "breed" : "true",
+        "ndpistats_mode" : "count"
+      }
     }
   },
   {
@@ -137,6 +142,20 @@
           { "id" : "ip",          "data_type" : "host",  "i18n_name" : "host_details.host" },
           { "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
        ]
+    }
+  },
+  {
+    "component" : "pie",
+    "id" : "traffic_classification",
+    "i18n_name" : "classification",
+    "width" : 4,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/rest/v2/get/interface/l7/stats.lua",
+      "url_params" : {
+        "breed" : "true",
+        "ndpistats_mode" : "sinceStartup"
+      }
     }
   }
   ]
