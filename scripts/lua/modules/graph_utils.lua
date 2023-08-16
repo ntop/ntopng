@@ -1393,7 +1393,12 @@ function graph_utils.convert_pie_data(res, new_charts, js_formatter)
 
    for _, v in ipairs(res) do
       labels[#labels+1] = v.label
-      series[#series+1] = v.value
+
+      local value = 0
+      if v.count then value = v.count
+      elseif v.value then value = v.value end
+      series[#series+1] = value
+
       colors[#colors + 1] = graph_utils.get_html_color(#colors)
    end
 
