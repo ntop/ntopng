@@ -639,6 +639,22 @@ static int ntop_is_freebsd(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_linux(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm,
+#ifdef __linux__
+                  1
+#else
+                  0
+#endif
+  );
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_initnDPIReload(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -7451,9 +7467,10 @@ static luaL_Reg _ntop_reg[] = {
     {"snmpReadResponses", ntop_snmp_read_responses},
 
     /* Runtime */
-    {"hasGeoIP", ntop_has_geoip},
+    {"hasGeoIP",  ntop_has_geoip},
     {"isWindows", ntop_is_windows},
     {"isFreeBSD", ntop_is_freebsd},
+    {"isLinux",   ntop_is_linux},
     {"elasticsearchConnection", ntop_elasticsearch_connection},
     {"getInstanceName", ntop_get_instance_name},
 

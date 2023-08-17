@@ -25,6 +25,13 @@ if ! grep -q ntopng /etc/group; then
     /usr/sbin/groupadd -r ntopng
 fi
 
+# Enable nmap scan capabilities [https://secwiki.org/w/Running_nmap_as_an_unprivileged_user]
+if [ -x /usr/bin/nmap ]; then
+    setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip /usr/bin/nmap
+fi
+
+nmap --privileged -sVU --script=vulscan/vulscan.nse --script-args vulscandb=cve.csv 127.0.0.1 -p 53
+
 if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
     echo "Creating ntopng user..."
     /usr/sbin/useradd -M -N -g ntopng -r -s /bin/false ntopng
