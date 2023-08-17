@@ -2987,7 +2987,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
         end
 
         return metric_list
-    else
+    elseif rule_type == "exporter" then
         local metric_list = {{
             title = i18n('traffic'),
             group = i18n('generic_data'),
@@ -3005,6 +3005,27 @@ function timeseries_info.get_host_rules_schema(rule_type)
         }}
 
         return metric_list
+    elseif rule_type == "host_pool" then
+        local metric_list = {}
+        for _,item in ipairs(community_timeseries) do
+            if(item.id == timeseries_id.host_pool) then
+                
+                metric_list[#metric_list+1] = item
+            end
+        end
+
+        return metric_list
+    elseif rule_type == "CIDR" then
+        local metric_list = {}
+        for _,item in ipairs(community_timeseries) do
+            if(item.id == timeseries_id.network) then
+                
+                metric_list[#metric_list+1] = item
+            end
+        end
+
+        return metric_list
+
     end
 
 end

@@ -2327,6 +2327,7 @@ local known_parameters = {
     ["to_delete"] = validateLocalGlobal, -- alert_utils.lua, set if alert configuration should be dropped
     ["SaveAlerts"] = validateEmpty, -- alert_utils.lua, set if alert configuration should change
     ["host_pool_id"] = validateNumber, -- change_user_prefs, new pool id for host
+    ["host_pool_label"] = validateSingleWord,
     ["old_host_pool_id"] = validateNumber, -- change_user_prefs, old pool id for host
     ["del_l7_proto"] = validateShapedElement, -- if_stats.lua, ID of the protocol to delete from rule
     ["target_pool"] = validateNumber, -- if_stats.lua, ID of the pool to perform the action on

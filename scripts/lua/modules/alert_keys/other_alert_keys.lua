@@ -99,6 +99,8 @@ local other_alert_keys = {
    alert_score_behavior_anomaly         = OTHER_BASE_KEY + 86,
    alert_traffic_behavior_anomaly       = OTHER_BASE_KEY + 87,
    alert_vulnerability_scan             = OTHER_BASE_KEY + 88,
+   alert_host_pool_rule_threshold_crossed = OTHER_BASE_KEY + 89,
+   alert_cidr_rule_threshold_crossed    = OTHER_BASE_KEY + 90
 }
 
 -- ##############################################

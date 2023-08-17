@@ -25,6 +25,12 @@
       <label v-if="flow_device_timeseries_available == true" class="btn " :class="[rule_type == 'exporter'?'btn-primary active':'btn-secondary']">
 	      <input @click="set_rule_type('exporter')" class="btn-check"  type="radio" name="rule_type" value="exporter"> {{ _i18n("if_stats_config.add_rules_type_flow_exporter") }}
 	    </label>
+      <label class="btn " :class="[rule_type == 'host_pool'?'btn-primary active':'btn-secondary']">
+	      <input @click="set_rule_type('host_pool')" class="btn-check"  type="radio" name="rule_type" value="host_pool"> {{ _i18n("if_stats_config.add_rules_type_host_pool") }}
+	    </label>
+      <label class="btn " :class="[rule_type == 'CIDR'?'btn-primary active':'btn-secondary']">
+	      <input @click="set_rule_type('CIDR')" class="btn-check"  type="radio" name="rule_type" value="CIDR"> {{ _i18n("if_stats_config.add_rules_type_cidr") }}
+	    </label>
 	  </div>
 	</div>
   </div>
@@ -38,6 +44,29 @@
 	    </div>
     </div>
 
+    <div v-if="rule_type == 'CIDR'" class="form-group ms-2 me-2 mt-3 row">
+	    <label class="col-form-label col-sm-2" >
+        <b>{{_i18n("if_stats_config.target")}}</b>
+	    </label>
+
+      <div class="col-sm-10" >
+            <SelectSearch v-model:selected_option="selected_network"
+                :options="network_list">
+            </SelectSearch> 
+          </div>
+    </div>
+
+    <div v-if="rule_type == 'host_pool'" class="form-group ms-2 me-2 mt-3 row">
+	    <label class="col-form-label col-sm-2" >
+        <b>{{_i18n("if_stats_config.target")}}</b>
+	    </label>
+
+	    <div class="col-sm-10" >
+            <SelectSearch v-model:selected_option="selected_host_pool"
+                :options="host_pool_list">
+            </SelectSearch> 
+          </div>
+    </div>
     <div v-if="rule_type == 'interface'" class="form-group ms-2 me-2 mt-3 row">
 	    <label class="col-form-label col-sm-2" >
         <b>{{_i18n("if_stats_config.target_interface")}}</b>
@@ -87,11 +116,36 @@
           </SelectSearch>
         </div>
       </template>
-      <template v-else>
+      <template v-else-if="rule_type == 'interface'">
         <div class="col-10">
           <SelectSearch v-model:selected_option="selected_interface_metric"
             @select_option="change_interface_threshold()"
             :options="interface_metric_list">
+          </SelectSearch>
+        </div>
+      </template>
+      <template v-else-if="rule_type == 'exporter'">
+        <div class="col-10">
+          <SelectSearch v-model:selected_option="selected_flow_device_metric"
+            :options="flow_device_metric_list">
+          </SelectSearch>
+        </div>
+      </template>
+      <template v-else-if="rule_type == 'host_pool'">
+        <div class="col-10">
+          <SelectSearch v-model:selected_option="selected_host_pool_metric"
+            @select_option="change_metric_type_hp()"
+            :options="host_pool_metric_list">
+          </SelectSearch>
+        </div>
+      </template>
+
+      <template v-else-if="rule_type == 'CIDR'">
+        <div class="col-10">
+          <SelectSearch v-model:selected_option="selected_network_metric"
+            @select_option="change_metric_type_hp()"
+
+            :options="network_metric_list">
           </SelectSearch>
         </div>
       </template>
@@ -117,7 +171,7 @@
       <template v-if="visible">
         <div class="col-sm-3">
           <SelectSearch v-model:selected_option="metric_type"
-            :options="metric_type_list">
+            :options="active_metric_type_list">
           </SelectSearch>  
         </div>
         <div class="col-3" :class="[ metric_type.id == 'throughput' ? 'p-0' : '']" >
@@ -191,6 +245,7 @@ const modal_id = ref(null);
 const emit = defineEmits(['add','edit']);
 let title = i18n('if_stats_config.add_host_rules_title');
 const host_placeholder = i18n('if_stats_config.host_placeholder')
+
 const metrics_ready = ref(false)
 const _i18n = (t) => i18n(t);
 const metric_list = ref([])
@@ -200,6 +255,7 @@ const ifid_list = ref([])
 const flow_exporter_devices = ref([])
 const flow_exporter_device_ifid_list = ref([])
 const interface_metric_list = ref([])
+const host_pool_metric_list = ref([])
 const flow_device_metric_list = ref([])
 const frequency_list = ref([])
 const threshold_measure = ref(null)
@@ -210,6 +266,7 @@ const selected_ifid = ref({})
 const selected_exporter_device = ref({})
 const selected_exporter_device_ifid = ref({})
 const selected_interface_metric = ref({})
+const selected_host_pool_metric = ref({})
 const selected_flow_device_metric = ref({})
 const disable_add = ref(true)
 const metric_type = ref({})
@@ -220,7 +277,13 @@ const is_edit_page = ref(false)
 const page_csrf_ = ref(null);
 const row_to_edit_id = ref(null);
 const invalid_add = ref(false);
-
+const host_pool_list = ref(null);
+const network_list = ref(null);
+const selected_host_pool = ref({});
+const selected_network = ref({});
+const selected_network_metric = ref({});
+const network_metric_list = ref(null);
+let active_metric_type_list = ref([]);
 
 
 const note_list = [
@@ -234,7 +297,14 @@ const note_list = [
 const metric_type_list = ref([
   { title: _i18n('volume'), label: _i18n('volume'), id: 'volume', active: true },
   { title: _i18n('throughput'), label: _i18n('throughput'), id: 'throughput', active: false },
-  { title: _i18n('percentage'), label: _i18n('percentage'), id: 'percentage', acrive: false },
+  { title: _i18n('percentage'), label: _i18n('percentage'), id: 'percentage', active: false },
+])
+
+const pool_metric_type_list = ref([
+  { title: _i18n('volume'), label: _i18n('volume'), id: 'volume', active: true, measure_unit: 'bps'  },
+  { title: _i18n('throughput'), label: _i18n('throughput'), id: 'throughput', active: false, measure_unit: 'bps' },
+  { title: _i18n('percentage'), label: _i18n('percentage'), id: 'percentage', active: false, measure_unit: 'number' },
+  { title: _i18n('value'), label: _i18n('value'), id: 'value', active: false, measure_unit: 'number' }
 ])
 
 const volume_threshold_list = ref([
@@ -257,7 +327,6 @@ const sign_threshold_list = ref([
 const percentage_threshold_list = [
   { title: "+", label: "%", id: 'plus', value: 1, active: true },
 ]
-
 
 const host = ref(null)
 const threshold = ref(null)
@@ -327,6 +396,12 @@ const reset_modal_form = async function() {
     metric_type_list.value.forEach((t) => t.active = false);
     metric_type_list.value[0].active = true;
 
+    selected_host_pool.value = host_pool_list.value[0];
+    selected_host_pool_metric.value = host_pool_metric_list.value[0];
+
+    selected_network.value = network_list.value[0];
+    selected_network_metric.value = network_metric_list.value[0];
+
 
     reset_radio_selection(volume_threshold_list.value);
     reset_radio_selection(throughput_threshold_list.value);
@@ -340,12 +415,68 @@ const reset_modal_form = async function() {
 
     row_to_edit_id.value = null;
 
+    active_metric_type_list.value = metric_type_list.value;
+
+    if (rule_type == 'Host' || rule_type == 'interface') {
+      metric_type.vale = metric_type_list.value[0];
+    } else {
+      metric_type.value = active_metric_type_list.value[0];
+    }
 
 }
 
 const set_rule_type = (type) => {
     rule_type.value = type;
+
+    active_metric_type_list.value = metric_type_list.value;
+
+    if(type == "host_pool" || type == "CIDR") {
+      change_metric_type_hp();    
+      
+      if (type == "host_pool")
+        metric_type.value = active_metric_type_list.value[1];
+      else 
+        metric_type.value = active_metric_type_list.value[0];
+
+
+    } else {
+      metric_type.value = metric_type_list.value[0];
+
+    }
+
+    
+
 }
+
+
+const change_metric_type_hp = (set_active_one) => {
+  let tmp_metric_type_list = [];
+  if( (rule_type.value == "host_pool" && selected_host_pool_metric.value.measure_unit != "bps") || (rule_type.value == "CIDR" && selected_network_metric.value.measure_unit != "bps") ) {
+
+    pool_metric_type_list.value.forEach((item) => {
+      if(item.measure_unit == 'number') {
+        tmp_metric_type_list.push(item);
+      }
+    })
+
+    active_metric_type_list.value = tmp_metric_type_list;
+
+  } else {
+
+    pool_metric_type_list.value.forEach((item) => {
+      if(item.id != 'value') {
+        tmp_metric_type_list.push(item);
+      }
+    })
+    active_metric_type_list.value = tmp_metric_type_list;
+
+  }
+  if(set_active_one != null || set_active_one == false) {
+    metric_type.value = active_metric_type_list.value[0];
+  }
+
+}
+
 
 /**
  * 
@@ -407,10 +538,12 @@ const set_row_to_edit = (row) => {
             t.active = false;
           }
       })
-    } else {
+    } else if (row.metric_type == 'percentage'){
 
       //percentage case
       threshold.value.value = row.threshold;
+    } else if (row.metric_type == 'value') {
+      threshold.value.value = row.threshold * (row.threshold_sign);
     }
 
     // set rule_type
@@ -448,7 +581,7 @@ const set_row_to_edit = (row) => {
         if(item == row.flow_exp_ifid)
           selected_exporter_device_ifid.value = item
       })
-    } else {
+    } else if (rule_type.value == 'Host'){
 
       //set host
       host.value = row.target;
@@ -465,6 +598,49 @@ const set_row_to_edit = (row) => {
             selected_metric.value = t;  
         })
       }
+    } else if(rule_type.value == 'CIDR') {
+      debugger;
+      network_list.value.forEach((item) => {
+        if (item.id == row.target) {
+          selected_network.value = item;
+        }
+      })
+
+      network_metric_list.value.forEach((item) => {
+        if (item.label == row.metric_label) {
+          selected_network_metric.value = item;
+        }
+      })
+      
+      change_metric_type_hp(true);
+
+      active_metric_type_list.value.forEach((item) => {
+        if (item.id == row.metric_type) {
+          metric_type.value = item;
+        }
+      })
+
+      
+    } else if(rule_type.value == 'host_pool') {
+      host_pool_list.value.forEach((item) => {
+        if (item.id == row.target) {
+          selected_host_pool.value = item;
+        }
+      })
+
+      host_pool_metric_list.value.forEach((item) => {
+        if (item.label == row.label) {
+          selected_host_pool_metric.value = item;
+        }
+      })
+      change_metric_type_hp();
+
+      active_metric_type_list.value.forEach((item) => {
+        if (item.id == row.metric_type) {
+          metric_type.value = item;
+        }
+      })
+
     }
   }
 }
@@ -526,13 +702,26 @@ const set_active_radio = (selected_radio) => {
  * Function to add rule to rules list
  */
 const add_ = (is_edit) => {
+  debugger;
   let tmp_host = ''
-  if(rule_type.value == 'Host')
+  if(rule_type.value != 'interface')
     tmp_host = host.value;
 
   const tmp_frequency = selected_frequency.value.id;
-  const tmp_metric = selected_metric.value.id;
-  const tmp_metric_label = (rule_type.value == 'Host')? selected_metric.value.label : selected_interface_metric.value.label;
+  let tmp_metric = selected_metric.value.id;
+  let tmp_metric_label = selected_metric.value.label ;
+
+  if(rule_type.value == "interface") {
+    tmp_metric = selected_interface_metric.value.id
+    tmp_metric_label = selected_interface_metric.value.label;
+  } else if(rule_type.value == "host_pool") {
+    console.log(selected_host_pool_metric.value);
+    tmp_metric = selected_host_pool_metric.value.schema;
+    tmp_metric_label = selected_host_pool_metric.value.label;
+  } else if(rule_type.value == "CIDR") {
+    tmp_metric = selected_network_metric.value.schema;
+    tmp_metric_label = selected_network_metric.value.label;
+  }
   const tmp_interface_metric = selected_interface_metric.value.id;
   const tmp_rule_type = rule_type.value;
   const tmp_interface = selected_ifid.value.id;
@@ -550,6 +739,7 @@ const add_ = (is_edit) => {
     tmp_metric_type = ''
     tmp_extra_metric = ''
     tmp_threshold = threshold.value.value;
+    debugger;
   }
   
 
@@ -568,8 +758,10 @@ const add_ = (is_edit) => {
     sign_threshold_list.value.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
     tmp_sign_value = parseInt(basic_sign_value);
     tmp_threshold = tmp_sign_value * parseInt(threshold.value.value);
-  } else {
-    tmp_sign_value = 1;
+  } else if(tmp_metric_type == 'value'){
+    sign_threshold_list.value.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
+    tmp_sign_value = parseInt(basic_sign_value);
+    tmp_threshold = tmp_sign_value * parseInt(threshold.value.value);
   }
   let emit_name = 'add';
 
@@ -606,7 +798,7 @@ const add_ = (is_edit) => {
       rule_id: tmp_edit_row_id
 
     });
-  else {
+  else if(rule_type.value == "exporter") {
     const flow_device_ifindex = selected_exporter_device_ifid.value.id;
     const flow_device_ifindex_name = selected_exporter_device_ifid.value.label;
     const flow_device_ip = selected_exporter_device.value.id;
@@ -642,8 +834,43 @@ const add_ = (is_edit) => {
       rule_id: tmp_edit_row_id
 
     });
-  }
+  } else if (rule_type.value == "CIDR") {
+    tmp_host = selected_network.value.id;
+    const network_id = selected_network.value.network_id;
+    emit(emit_name, { 
+      host: tmp_host, 
+      frequency: tmp_frequency, 
+      metric: tmp_metric,
+      metric_label: tmp_metric_label,
+      threshold: tmp_threshold,
+      metric_type: tmp_metric_type,
+      extra_metric: tmp_extra_metric,
+      rule_type: tmp_rule_type,
+      rule_threshold_sign: tmp_sign_value,
+      rule_id: tmp_edit_row_id,
+      network: network_id
+
+    });
+  } else if (rule_type.value == "host_pool") {
+    const tmp_host_pool_id = selected_host_pool.value.id;
+    const tmp_host_pool_label = selected_host_pool.value.label;
+
+    emit(emit_name, { 
+      host_pool_id: tmp_host_pool_id,
+      host_pool_label: tmp_host_pool_label,
+      frequency: tmp_frequency, 
+      metric: tmp_metric,
+      metric_label: tmp_metric_label,
+      threshold: tmp_threshold,
+      metric_type: tmp_metric_type,
+      extra_metric: tmp_extra_metric,
+      rule_type: tmp_rule_type,
+      rule_threshold_sign: tmp_sign_value,
+      rule_id: tmp_edit_row_id
+
+    });
     
+  }
 
 };
 
@@ -691,16 +918,23 @@ const format_flow_exporter_device_list = function(data) {
   return _f_exp_dev_list;
 }
 
-const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _flow_exporter_devices, _flow_exporter_devices_metric_list, page_csrf, _init_func, _delete_row) => {
+const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _flow_exporter_devices, _flow_exporter_devices_metric_list, page_csrf, _init_func, _delete_row, _host_pool_list, _network_list, _host_pool_metric_list, _network_metric_list) => {
   metrics_ready.value = true;
   metric_list.value = _metric_list;
   interface_metric_list.value = _interface_metric_list;
   ifid_list.value = format_ifid_list(_ifid_list);
+  console.log(_flow_exporter_devices);
   flow_exporter_devices.value = format_flow_exporter_device_list(_flow_exporter_devices);
+
+  host_pool_list.value = _host_pool_list;
+  host_pool_metric_list.value = _host_pool_metric_list;
+  network_list.value = _network_list;
+  network_metric_list.value = _network_metric_list;
   flow_device_metric_list.value = _flow_exporter_devices_metric_list;
 
 
   selected_exporter_device.value = flow_exporter_devices.value[0];
+  console.log(selected_exporter_device.value);
   if(selected_exporter_device.value != null) {
     rest_params.csrf = page_csrf_.value;
     const url_device_exporter_details = NtopUtils.buildURL(`${http_prefix}/lua/pro/rest/v2/get/flowdevice/stats.lua?`+selected_exporter_device.value.details.split("?")[1], {
@@ -719,6 +953,8 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
     flow_exporter_device_ifid_list.value = exporter_ifids;
 
     flow_device_timeseries_available.value = flow_exporter_device_ifid_list.value[0].timeseries_available;
+
+    console.log(flow_device_timeseries_available.value);
   }
   
   frequency_list.value = props.frequency_list;
