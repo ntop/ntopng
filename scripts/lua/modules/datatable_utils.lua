@@ -388,6 +388,7 @@ local all_datatable_columns_def_by_tag = {
    ['srv_host_pool_id'] = build_datatable_column_def_pool_id('srv_host_pool_id', "db_search.tags.srv_host_pool_id"),
    ["input_snmp"] = build_datatable_column_def_snmp_interface("input_snmp", "db_search.tags.input_snmp"),
    ["output_snmp"] = build_datatable_column_def_snmp_interface("output_snmp", "db_search.tags.output_snmp"),
+   ['country'] = build_datatable_column_def_country('country', "db_search.tags.country"),
    ['cli_country'] = build_datatable_column_def_country('cli_country', "db_search.tags.cli_country"),
    ['srv_country'] = build_datatable_column_def_country('srv_country', "db_search.tags.srv_country"),
    ['community_id'] = build_datatable_column_def_community_id('community_id', "db_search.tags.community_id"),
