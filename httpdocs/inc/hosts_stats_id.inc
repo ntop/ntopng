@@ -23,6 +23,7 @@ function host_table_setID (row) {
 
   // hosts_stats_top
   row.find("td").eq(index++).attr('id', host_key+"_num_flows");
+  row.find("td").eq(index++).attr('id', host_key+"_num_vulnerabilities");
   row.find("td").eq(index++).attr('id', host_key+"_num_dropped_flows");
   row.find("td").eq(index++).attr('id', host_key+"_custom");
   row.find("td").eq(index++).attr('id', host_key+"_name");
@@ -60,6 +61,7 @@ function row_update(host_key, data) {
   $('td[id="'+host_key+'_throughput"]').html(data.column_thpt);
   $('td[id="'+host_key+'_traffic"]').html(data.column_traffic);
   $('td[id="'+host_key+'_num_flows"]').html(data.column_num_flows);
+  $('td[id="'+host_key+'_num_vulnerabilities"]').html(data.column_num_vulnerabilities);
   $('td[id="'+host_key+'_num_dropped_flows"]').html(data.column_num_dropped_flows);
   $('td[id="'+host_key+'_custom"]').html(data.column_custom);
 }
