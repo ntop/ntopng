@@ -13,9 +13,9 @@
     <tbody>
       <tr v-for="row in rows" class="">	
         <td v-if="wrap_columns == true" v-for="col in columns" scope="col" style="height:2.5rem;" :class="col.class">
-	  <div class="wrap-column" v-html="print_html_row(col, row)"></div>
+	  <div class="wrap-column" :style="col.style" v-html="print_html_row(col, row)"></div>
 	</td>
-        <td v-else v-for="col in columns" scope="col" :class="col.class" class="wrap_column" v-html="print_html_row(col, row)">
+        <td v-else v-for="col in columns" scope="col" :class="col.class" class="wrap_column" :style="col.style" v-html="print_html_row(col, row)">
 	</td>
       </tr>
     </tbody>

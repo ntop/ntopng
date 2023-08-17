@@ -40,11 +40,20 @@ const props = defineProps({
 
 const columns = computed(() => {
     let columns = props.params.columns.map((c) => {
+        if (!c.style && c.data_type) {
+            if (c.data_type == "bytes") {
+                c.style = "text-align: right";
+            }
+        }
+
 	return {
 	    ...c,
 	};
     });
-    columns[0].class = "first-col-width";
+
+    columns[0].class = (columns[0].class ? (columns[0].class + " ") : "") 
+      + "first-col-width";
+
     return columns;
 });
 
