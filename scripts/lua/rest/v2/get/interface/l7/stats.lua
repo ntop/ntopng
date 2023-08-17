@@ -59,11 +59,15 @@ end
 local stats
 local tot = 0
 
+local js_formatter
+
 if ndpistats_mode == "sinceStartup" then
    stats = interface.getStats()
    tot = stats.stats.bytes
+   js_formatter = "bytesToSize"
 elseif ndpistats_mode == "count" then
    stats = interface.getnDPIFlowsCount()
+   js_formatter = "formatValue"
 else
    rest_utils.answer(rest_utils.consts.err.invalid_args)
    return
@@ -115,7 +119,7 @@ if(ndpistats_mode == "count") then
     }
   end
 
-  rest_utils.answer(rc, graph_utils.convert_pie_data(res, new_charts, 'format_value'))
+  rest_utils.answer(rc, graph_utils.convert_pie_data(res, new_charts, js_formatter))
   return
 end
 
@@ -134,4 +138,4 @@ if collapse_stats == "true" then
   res = stats_utils.collapse_stats(res, 1, 3 --[[ threshold ]])
 end
 
-rest_utils.answer(rc, graph_utils.convert_pie_data(res, new_charts, 'format_value'))
+rest_utils.answer(rc, graph_utils.convert_pie_data(res, new_charts, js_formatter))

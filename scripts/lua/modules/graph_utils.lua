@@ -1407,7 +1407,10 @@ function graph_utils.convert_pie_data(res, new_charts, js_formatter)
       series = series,
       colors = colors,
       yaxis = {
-         show=false
+         show = false,
+         labels = {
+            formatter = js_formatter
+         }
       },
       tooltip = {
          y = {
