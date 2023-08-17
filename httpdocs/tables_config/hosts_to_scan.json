@@ -73,6 +73,14 @@
 			]
 		},
 		{
+			"title_i18n": "db_explorer.host_name",
+			"data_field": "host_name",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "hosts_stats.page_scan_hosts.scan_type",
 			"data_field": "scan_type",
 			"sortable": true,

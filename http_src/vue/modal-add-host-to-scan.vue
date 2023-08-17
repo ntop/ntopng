@@ -352,6 +352,9 @@ const add_ = async (is_edit) => {
   if (verify_host_name) {
     let result = await resolve_host_name(host.value);
     disable_add.value = result == "no_success";
+    if (!disable_add.value) {
+      tmp_host = result;
+    }
   }
 
   if (!(disable_add.value)) {

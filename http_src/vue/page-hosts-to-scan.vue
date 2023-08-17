@@ -178,7 +178,13 @@ function columns_sorting(col, r0, r1) {
         return r0_col.localeCompare(r1_col);
       }
       return r1_col.localeCompare(r0_col);
-    } else if(col.id == "num_vulnerabilities_found") {
+    } else if(col.id == "host_name") {
+      if (col.sort == 1) {
+        return r0_col.localeCompare(r1_col);
+      }
+      return r1_col.localeCompare(r0_col);
+    }
+    else if(col.id == "num_vulnerabilities_found") {
       /* It's an array */
       r0_col = format_num_for_sort(r0_col);
       r1_col = format_num_for_sort(r1_col);
