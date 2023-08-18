@@ -28,6 +28,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    third_party_integrations/index
    faq
    performances/index
+   vulnerability_scan/index
 
 .. toctree::
    :caption: Developer's Guide
