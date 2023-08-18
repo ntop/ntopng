@@ -1,16 +1,10 @@
 <template>
-  <header class="mb-3 d-flex align-items-center">
-  <h2 class="d-inline-block" v-html="title_html"></h2>
-  </header>
-
-    <div class="row">
-      <div class="col-md-12 col-lg-12">
-        <div class="card  card-shadow">
-          <Loading v-if="loading"></Loading>
-
-                <!-- <Loading ref="loading"></Loading> -->
-          <div class="card-body" v-html="message_html">
-        </div>
+  <div class="row">
+    <div class="col-md-12 col-lg-12">
+      <div class="card  card-shadow">
+        <h3 class="d-inline-block pt-3 ps-3" v-html="title_html"></h3>
+        <Loading v-if="loading"></Loading>
+        <div class="card-body" v-html="message_html"></div>
       </div>
     </div>
   </div>

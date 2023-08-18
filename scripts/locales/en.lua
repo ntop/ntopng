@@ -504,6 +504,7 @@ local lang = {
   ["scan_host"] = "Do you really want to scan the selected host?",
   ["scan_host_title"] = "Scan Selected Host",
   ["scan_hosts"] = "Vulnerability Scan",
+  ["scan_details"] = "Scan Details",
   ["scan_in_progress"] = "Vulnerability scan in progress, it may take a while...",
   ["score"] = "Score",
   ["score_as_client"] = "Score As Client",

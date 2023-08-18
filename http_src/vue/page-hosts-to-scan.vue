@@ -3,9 +3,6 @@
 -->
 
 <template>
-  <header class="mb-3 d-flex align-items-center">
-  <h2 class="d-inline-block" v-html="title_html"></h2>
-  </header>
   <div class="row">
     <div class="col-md-12 col-lg-12">
       <div class="card  card-shadow">
