@@ -6148,13 +6148,14 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
         if (!protos.mdns.name) protos.mdns.name = strdup(name);
 
         if ((rsp_type == 0x10 /* TXT */) && (data_len > 0)) {
-          char *txt = (char *)&payload[i + sizeof(rsp)], txt_buf[256];
+	  u_int16_t base_off = i + sizeof(rsp);
+          char *txt = (char *)&payload[base_off], txt_buf[256];
           u_int16_t off = 0;
 
-          while (off < data_len) {
+          while((off < data_len) && ((off+base_off) < payload_len)) {
             u_int8_t txt_len = (u_int8_t)txt[off];
 
-            if (txt_len < data_len) {
+            if(txt_len < data_len) {
               txt_len = min_val(data_len - off, txt_len);
 
               off++;
