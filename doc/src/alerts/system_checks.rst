@@ -58,3 +58,15 @@ The Alert is sent when unusual logged events are detected.
 
 *Not Enabled by Default*
 
+**Vulnerability Scan Changes**
+~~~~~~~~~~~~~~~~~~~~~~
+Checks for Vulnerability scans.
+
+Ntopng notifies when a host, previosly scanned, has changes both on the number of open ports and on the CVEs found.
+
+The Alert is sent when at least one of these two has changed.
+
+*Category: CyberSecurity*
+
+*Enabled by Default*
+
