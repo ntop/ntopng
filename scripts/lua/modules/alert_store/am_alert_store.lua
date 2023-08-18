@@ -53,7 +53,7 @@ function am_alert_store:insert(alert)
          resolved_ip = am_json.ip
          if am_json.host then
             resolved_name = am_json.host.host
-	    measurement = am_json.host.measurement
+	         measurement = am_json.host.measurement or am_json.measurement
          end
          measure_threshold = am_json.threshold
          measure_value = am_json.value
@@ -126,15 +126,15 @@ function am_alert_store:format_record(value, no_html)
    local alert_fullname = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true, alert_entities.am_host.entity_id)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
 
-   if alert_info.threshold > 0 then
+   if alert_info.threshold and alert_info.threshold > 0 then
       record[RNAME.MEASURE_THRESHOLD.name] = format_utils.formatValue(alert_info.threshold)
    end
 
-   if alert_info.value > 0 then
+   if alert_info.value and alert_info.value > 0 then
       record[RNAME.MEASURE_VALUE.name] = alert_info.value
    end
 
-   local measurement_info = am_utils.getMeasurementInfo(alert_info.host.measurement)
+   local measurement_info = am_utils.getMeasurementInfo(alert_info.host.measurement or alert_info.measurement)
    record[RNAME.MEASUREMENT.name] = i18n(measurement_info.i18n_label)
 
    record[RNAME.ALERT_NAME.name] = alert_name

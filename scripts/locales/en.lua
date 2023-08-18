@@ -784,6 +784,7 @@ local lang = {
     ["speedtest"] = "Speedtest",
     ["throughput"] = "Throughput",
     ["upload_speed"] = "Upload Speed",
+    ["vulnerability_scan"] = "Vulnerability Scan",
     ["validation"] = {
       ["abort_add"] = "Abort add Active Monitoring record?",
       ["abort_edit"] = "Abort edit Active Monitoring record?",
