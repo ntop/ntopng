@@ -53,7 +53,7 @@
 /* Imports */ 
 import { ref, onBeforeMount } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
-
+import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as ModalDeleteScanConfirm } from "./modal-delete-scan-confirm.vue";
 import { default as ModalUpdatePeriodicityScan } from "./modal-update-periodicity-scan.vue";
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
@@ -540,8 +540,7 @@ async function click_button_show_result(event) {
   let url_params = ntopng_url_manager.obj_to_url_params(params);
 
   let url = `${active_monitoring_url}?${url_params}`;
-  window.open(url, "_blank");
-
+  ntopng_url_manager.go_to_url(url);
 }
 
 
