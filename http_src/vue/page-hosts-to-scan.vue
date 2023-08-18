@@ -83,7 +83,6 @@ const modal_delete_confirm = ref();
 const modal_add = ref();
 const modal_vs_result = ref();
 const modal_update_perioditicy_scan = ref();
-let old_auto_refresh = ref(null);
 
 const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
 const edit_host_url = `${http_prefix}/lua/rest/v2/edit/host/update_va_scan_period.lua`;
@@ -128,14 +127,7 @@ function refresh_table(ok, disable_loading) {
   /* It's important to set autorefresh to false, in this way when refreshed 
      all the entries are going to be checked and if all of them are not scanning it stays false
    */
-  if(! ok) {
-    autorefresh.value = false;
-    if (old_auto_refresh.value == true) {
-      table_hosts_to_scan.value.refresh_table();
-      old_auto_refresh.value = null;
-    }
-  }
-  else if(disable_loading == true)
+  if(disable_loading == true)
     table_hosts_to_scan.value.refresh_table(disable_loading);
   else
     table_hosts_to_scan.value.refresh_table();
@@ -301,18 +293,17 @@ async function edit(params) {
   await add_host_rest(params);
 }
 
-async function check_autorefresh() {
-
-  await check_in_progress_status();
-  if(autorefresh.value == true) {
-    refresh_table(true, true);
-  } else {
-    refresh_table(false,false)
-  }
+/* Every 10 second check if the autorefresh is enabled or not, if it is refresh the table */
+function set_autorefresh() {
+debugger;
+  if(autorefresh.value == true)
+    setTimeout(check_autorefresh, 10000);
 }
 
-/* Every 10 second check if the autorefresh is enabled or not, if it is refresh the table */
-setInterval(check_autorefresh, 10000);
+async function check_autorefresh() {
+  await check_in_progress_status();
+  set_autorefresh();
+}
 
 /* ******************************************************************** */ 
 
@@ -366,18 +357,15 @@ const map_table_def_columns = (columns) => {
     "is_ok_last_scan": (is_ok_last_scan) => {
       let label = ""
       if (is_ok_last_scan == 4) {
-        //autorefresh.value = true;
         label = i18n("hosts_stats.page_scan_hosts.in_progress");
         return `<span class="badge bg-info" title="${label}">${label}</span>`;
       } else if (is_ok_last_scan == null) {
         label = i18n("hosts_stats.page_scan_hosts.not_scanned");
         return `<span class="badge bg-primary" title="${label}">${label}</span>`;
       } else if (is_ok_last_scan) {
-        //autorefresh.value = autorefresh.value || false;
         label = i18n("hosts_stats.page_scan_hosts.success");
         return `<span class="badge bg-success" title="${label}">${label}</span>`;
       } else {
-        //autorefresh.value = autorefresh.value || false;
         label = i18n("hosts_stats.page_scan_hosts.error");
         return `<span class="badge bg-danger" title="${label}">${label}</span>`;
       }
@@ -424,7 +412,7 @@ const add_host_rest = async function (params) {
 
   await ntopng_utility.http_post_request(url, rest_params);
   modal_add.value.close();
-  refresh_table(true,false);
+  refresh_table(false);
 }
 
 const update_all_scan_frequencies = async function(params) {
@@ -433,7 +421,7 @@ const update_all_scan_frequencies = async function(params) {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);  
-  refresh_table(true,false);
+  refresh_table(false);
 }
 
 /* Function to retrieve scan types list */
@@ -453,15 +441,17 @@ const check_in_progress_status = async function () {
   })
 
   const result = await ntopng_utility.http_request(url);
-  old_auto_refresh.value = autorefresh.value;
   autorefresh.value = result.rsp;
+  if(autorefresh.value == false) 
+    setTimeout(table_hosts_to_scan.value.refresh_table, 1000)
 }
 
 /* Function to confirm to start all scan */
 const confirm_scan_all_entries = function() {
   modal_delete_confirm.value.show("scan_all_rows",i18n("scan_all_hosts"));  
   autorefresh.value = true;
-  refresh_table(true,false);
+  check_autorefresh();
+  refresh_table(false);
 }
 
 /* Function to update all scan  frequencies*/
@@ -480,8 +470,8 @@ const scan_row = async function () {
     scan_id: row.id
   })
   await ntopng_utility.http_post_request(url, rest_params);
-  autorefresh.value = true;
-  refresh_table(true,false);
+  check_autorefresh();
+  refresh_table(false);
 }
 
 /* Function to exec a vulnerability scan to all hosts set */
@@ -490,8 +480,8 @@ async function scan_all_entries() {
     scan_single_host: false,
   })
   await ntopng_utility.http_post_request(url, rest_params);
-  autorefresh.value = false;
-  refresh_table(true,false);
+  check_autorefresh();
+  refresh_table(false);
 }
 
 /* Function to delete host to scan */
@@ -507,7 +497,7 @@ const delete_row = async function () {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
-  refresh_table(true,false);
+  refresh_table(false);
 }
 
 
@@ -518,7 +508,7 @@ const delete_all_rows = async function() {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
-  refresh_table(true,false);
+  refresh_table(false);
 }
 
 
