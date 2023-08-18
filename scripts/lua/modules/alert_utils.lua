@@ -269,7 +269,7 @@ function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]] 
         local info = alert_json.alert_generation or (alert_json.alert_info and alert_json.alert_info.alert_generation)
         if alert_entity and alert_entity == alert_entities.am_host.entity_id then
             local host = alert_json.host.host or alert_json.host
-            local measurement = host.measurement or alert_json.measurement
+            local measurement = alert_json.host.measurement or alert_json.measurement
             if host then
                 return ' <a href="' .. ntop.getHttpPrefix() .. '/lua/monitor/active_monitoring_monitor.lua?am_host=' ..
                            host .. '&measurement=' .. measurement ..
