@@ -11,12 +11,12 @@
             <span class="spinner-border spinner-border-sm text-info me-1"></span> 
             <span> {{ _i18n('scan_in_progress') }}</span>
           </div>
-          <div v-if="insert_with_success" class="alert bg-success text-white alert-dismissable">
-            <span class="text-white me-1"></span> 
+          <div v-if="insert_with_success" class="alert alert-success alert-dismissable">
+            <span class="text-success me-1"></span> 
             <span> {{ insert_text }}</span>
           </div>
-          <div v-if="already_inserted" class="alert bg-danger text-white alert-dismissable">
-            <span class="text-white me-1"></span> 
+          <div v-if="already_inserted" class="alert alert-danger alert-dismissable">
+            <span class="text-danger me-1"></span> 
             <span> {{ already_insert_text }}</span>
           </div>
           
@@ -95,9 +95,6 @@ const modal_delete_confirm = ref();
 const modal_add = ref();
 const modal_vs_result = ref();
 const modal_update_perioditicy_scan = ref();
-let old_auto_refresh = ref(null);
-let old_inserted = ref(null);
-let old_already_inserted = ref(null);
 
 const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
 const edit_host_url = `${http_prefix}/lua/rest/v2/edit/host/update_va_scan_period.lua`;
@@ -147,7 +144,6 @@ function refresh_table(ok, disable_loading) {
     table_hosts_to_scan.value.refresh_table(disable_loading);
   else
     table_hosts_to_scan.value.refresh_table(false);
-
   
 }
 
@@ -280,12 +276,18 @@ function format_num_for_sort(num) {
 
 /* Function to handle delete button */
 async function click_button_delete(event) {
+
+  insert_with_success.value = false;
+  already_inserted.value = false;
   row_to_delete.value = event.row;
   modal_delete_confirm.value.show("delete_single_row",i18n("delete_vs_host"));  
 }
 
 /* Function to handle scan button */
 async function click_button_scan(event) {
+
+  insert_with_success.value = false;
+  already_inserted.value = false;
   row_to_scan.value = event.row;
   modal_delete_confirm.value.show("scan_row",i18n("scan_host"));  
 }
@@ -301,6 +303,8 @@ function click_button_edit_host(event) {
 
 /* Function to delete all entries */
 function delete_all_entries() {
+  insert_with_success.value = false;
+  already_inserted.value = false;
   modal_delete_confirm.value.show('delete_all', i18n('delete_all_vs_hosts'));
 }
 
@@ -316,16 +320,19 @@ function set_autorefresh() {
     setTimeout(check_autorefresh, 10000);
 }
 
+/* Every 10 second check to disable feedbacks */
+async function set_already_insert_or_insert_with_success() {
+  console.log("PLUTO");
+  if(insert_with_success.value == true)
+    insert_with_success.value = false;
+  
+  if(already_inserted.value == true) 
+    already_inserted.value = false;
+}
+
+/* Every 10 second check to disable autorefresh */
 async function check_autorefresh() {
   await check_in_progress_status();
-
-  /*if(insert_with_success.value == true || old_inserted.value == true) {
-    refresh_table(false);
-  }
-
-  if(already_inserted.value == true || old_already_inserted.value == true) {
-    refresh_table(false);
-  }*/
   set_autorefresh();
 }
 
@@ -436,11 +443,44 @@ const add_host_rest = async function (params) {
 
   const result = await ntopng_utility.http_post_request(url, rest_params);
   modal_add.value.close();
+  if (result.rsp == true) {
+    
+    if (params.cidr != null) {
+      insert_text.value = insert_text.value.replace("%{host}", `${params.host}/${params.cidr}`);
+    } else {
+      insert_text.value = insert_text.value.replace("%{host}", `${params.host}`);
+    }
+    insert_with_success.value = true;
+    already_inserted.value = false;
 
-  
-  refresh_table(false);
-  //setTimeout(refresh_table(false), 60000);
-  //setTimeout(refresh_table(false), 6000);
+    setTimeout(set_already_insert_or_insert_with_success,10000);
+
+    refresh_table(false);
+    
+  } else {
+    if (params.cidr != null) {
+      already_insert_text.value = already_insert_text.value.replace("%{host}", `${params.host}/${params.cidr}`);
+    } else {
+      already_insert_text.value = already_insert_text.value.replace("%{host}", `${params.host}`);
+    }
+
+    let scan_type_label = "";
+
+    scan_type_list.forEach((item) => {
+      if(item.id == params.scan_type) {
+        scan_type_label = item.label;
+      }
+    });
+
+    already_insert_text.value = already_insert_text.value.replace("%{scan_type}", `${scan_type_label}`);
+
+
+    already_inserted.value = true;
+    insert_with_success.value = false;
+    setTimeout(set_already_insert_or_insert_with_success,10000);
+
+    
+  }
 
 }
 
@@ -450,6 +490,9 @@ const update_all_scan_frequencies = async function(params) {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);  
+
+  insert_with_success.value = false;
+  already_inserted.value = false;
   refresh_table(false);
 }
 
@@ -471,6 +514,9 @@ const check_in_progress_status = async function () {
 
   const result = await ntopng_utility.http_request(url);
   autorefresh.value = result.rsp;
+
+  insert_with_success.value = false;
+  already_inserted.value = false;
   if(autorefresh.value == false) 
     setTimeout(table_hosts_to_scan.value.refresh_table, 1000)
 }
