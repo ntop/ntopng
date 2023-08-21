@@ -111,6 +111,8 @@ function getScaleFactorIndex(type, value) {
 
 function getFormatter(type, absoluteValue, scaleFactorIndex) {
     let typeOptions = types[type];
+    if (typeOptions == null) { return null; }
+    
     absoluteValue |= typeOptions.absolute_value; 
     let formatter = function(value) {
         if (value == null) {

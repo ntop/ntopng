@@ -3,6 +3,7 @@
 */
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
 import NtopUtils from "../utilities/ntop-utils";
+import FormatterUtils from "../utilities/formatter-utils.js";
 
 const ntopChartApex = function () {
   // define default chartOptions for all chart type.
@@ -243,7 +244,7 @@ const ntopChartApex = function () {
       },
       tooltip: {
         y: {
-          formatter: NtopUtils.formatValue
+            formatter: FormatterUtils.getFormatter("number"),
         },
       },
       noData: {
@@ -560,19 +561,26 @@ const ntopChartApex = function () {
       } else {
         throw `ntopChartApex::newChart: chart type = ${type} unsupported`;
       }
-
-      return {
-        drawChart: function (htmlElement, chartOptions) {
-          // add/replace chartOptions fields in _chartOptions
-          if (chartOptions.yaxis && chartOptions.yaxis.labels && chartOptions.yaxis.labels.formatter) {
-            const formatter = chartOptions.yaxis.labels.formatter
-            if (formatter == "formatValue") {
-              chartOptions.yaxis.labels.formatter = NtopUtils.formatValue
-            }
-            else if (formatter == "bytesToSize") {
-              chartOptions.yaxis.labels.formatter = NtopUtils.bytesToSize
-            }
+        const setYaxisFormatter = (chartOptions) => {
+            if (chartOptions.yaxis && chartOptions.yaxis.labels && chartOptions.yaxis.labels.formatter) {
+              const formatter = chartOptions.yaxis.labels.formatter;
+              let chartFormatter = FormatterUtils.getFormatter(formatter);
+              if (chartFormatter != null) {
+                  chartOptions.yaxis.labels.formatter = chartFormatter;
+              } else {
+                  if (formatter == "formatValue") {
+                      chartOptions.yaxis.labels.formatter = FormatterUtils.getFormatter("number");
+                  }
+                  else if (formatter == "bytesToSize") {
+                      chartOptions.yaxis.labels.formatter = FormatterUtils.getFormatter("bytes");
+                  }
+              }
           }          
+        };
+      return {
+          drawChart: function (htmlElement, chartOptions) {
+          // add/replace chartOptions fields in _chartOptions
+              setYaxisFormatter(chartOptions);
           ntopng_utility.copy_object_keys(chartOptions, _chartOptions, true);
           _chart = new ApexCharts(htmlElement, _chartOptions);
           _chartHtmlElement = htmlElement;
@@ -589,6 +597,7 @@ const ntopChartApex = function () {
         },
         updateChart: function (chartOptions) {
           if (_chart == null) { return; }
+            setYaxisFormatter(chartOptions);
           _chart.updateOptions(chartOptions, false, false, false);
         },
         updateSeries: function (series) {
