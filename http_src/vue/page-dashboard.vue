@@ -160,8 +160,24 @@ function print_report() {
 }
 
 /* Callback to request REST data from components */
-const get_component_data = (url, url_params) => {
-    return ntopng_utility.http_request(`${http_prefix}${url}?${url_params}`);
+let components_data = {};
+const get_component_data = async (url, url_params) => {
+    const data_url = `${url}?${url_params}`;
+
+    /* Check if there is already a promise for the same request */
+    /* TODO here is where we can cache and relaod the data to handle report backups*/
+    let info = {};
+    if (components_data[data_url]) {
+      info = components_data[data_url];
+      if (info.data) {
+         await info.data; /* wait in case of previous pending requests */
+      }
+    }
+    info.data = ntopng_utility.http_request(`${http_prefix}${data_url}`);
+
+    components_data[data_url] = info;
+
+    return info.data;
 }
 
 </script>
