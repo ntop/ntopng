@@ -1639,11 +1639,13 @@ setInterval(update_icmp_table, 5000);
 
 ]]
     elseif ((page == "ndpi")) then
+        tprint(host["localhost"])
         template.render("pages/hosts/l7_stats.template", {
             view = "applications",
             host_ip = host_ip,
             vlan = host_vlan,
-            ifid = ifId
+            ifid = ifId,
+            is_locale = ternary(host["localhost"],"1","0")
         })
     elseif (page == "assets") then
         if (ntop.isEnterpriseL()) then

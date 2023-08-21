@@ -76,6 +76,7 @@ export default {
     url_params: Object,
     view: String,
     is_ch_enabled: Boolean,
+    is_locale: String
   },
   /**
    * First method called when the component is created.
@@ -227,7 +228,10 @@ function start_datatable(PageVue) {
 
   let columns = [
     { columnName: i18n("host_details.application"), targets: 0, width: '20', name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+      if (is_locale == "1")
         return `<a href="${http_prefix}/lua/host_details.lua?host=${PageVue.$props.url_params.host}@${PageVue.$props.url_params.vlan}&ts_schema=host:ndpi&page=historical&protocol=${data.label}" target="_blank">${data.label}</a>`
+      else
+        return `${data.label}`;
       } 
     },
     { columnName: i18n("host_details.duration"), targets: 1, width: '10', name: 'duration', data: 'duration', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
@@ -275,11 +279,17 @@ function start_datatable(PageVue) {
 
   columns = [
     { columnName: i18n("host_details.category"), targets: 0, name: 'category', data: 'category', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
+      if (is_locale == "1")
         return `<a href="${http_prefix}/lua/host_details.lua?host=${PageVue.$props.url_params.host}@${PageVue.$props.url_params.vlan}&ts_schema=host:ndpi_categories&page=historical&category=${data.label}" target="_blank">${data.label}</a>`
+      else
+        return `${data.label}`;
       } 
     },
     { columnName: i18n("host_details.applications"), targets: 0, name: 'applications', data: 'applications', orderable: false, className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-        return `${data.label || ''} <a href="${http_prefix}/${data.href}${data.category_id}">${data.more_protos || ''}</a>`
+        if(is_locale == "1")
+          return `${data.label || ''} <a href="${http_prefix}/${data.href}${data.category_id}">${data.more_protos || ''}</a>`
+        else
+          return `${data.label || ''}`;
       } 
     },
     { columnName: i18n("host_details.duration"), targets: 0, name: 'duration', data: 'duration', className: 'text-nowrap', responsivePriority: 1, render: (data) => {

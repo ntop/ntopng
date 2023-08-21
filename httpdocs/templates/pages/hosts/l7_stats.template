@@ -9,18 +9,20 @@
   :page_csrf="page_csrf"
   :url_params="url_params"
   :is_ch_enabled="is_ch_enabled"
-  :view="view">
+  :view="view"
+  :is_locale="is_locale">  
   </page-host-details-applications>
 </div>
   
 <script type="text/javascript">  
   const pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
   const is_ch_enabled = ("{{ ntop.isClickHouseEnabled() }}" == "true")
+  const is_locale = "{{ is_locale }}"
   const url_params = {
     view: "{{ view or 'applications' }}",
     host: "{{ host_ip }}",
     vlan: "{{ vlan }}",
-    ifid: "{{ ifid }}",
+    ifid: "{{ ifid }}"
   }
   
   function start_vue() {
@@ -40,6 +42,7 @@
           url_params: url_params,
           view: url_params.view,
           is_ch_enabled: is_ch_enabled,
+          is_locale: is_locale,
         };
       },
       methods: { },
