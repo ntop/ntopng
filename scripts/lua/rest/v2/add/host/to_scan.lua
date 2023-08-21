@@ -36,7 +36,12 @@ else
 end
 
 if result == 1 then
-    rest_utils.answer(rest_utils.consts.success.ok)
+    -- ok
+    rest_utils.answer(rest_utils.consts.success.ok, {rsp= true})
+elseif result == 2 then
+    --already inserted case
+    rest_utils.answer(rest_utils.consts.success.ok, {rsp= false})
+
 else
     rest_utils.answer(rest_utils.consts.err.internal_error)
 end

@@ -11,6 +11,15 @@
             <span class="spinner-border spinner-border-sm text-info me-1"></span> 
             <span> {{ _i18n('scan_in_progress') }}</span>
           </div>
+          <div v-if="insert_with_success" class="alert bg-success text-white alert-dismissable">
+            <span class="text-white me-1"></span> 
+            <span> {{ insert_text }}</span>
+          </div>
+          <div v-if="already_inserted" class="alert bg-danger text-white alert-dismissable">
+            <span class="text-white me-1"></span> 
+            <span> {{ already_insert_text }}</span>
+          </div>
+          
           <div id="hosts_to_scan">
             <ModalDeleteScanConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete" @delete="delete_row" @delete_all="delete_all_rows" @scan_row="scan_row" @scan_all_rows="scan_all_entries">
             </ModalDeleteScanConfirm>
@@ -65,6 +74,12 @@ import { default as ModalAddHostToScan } from "./modal-add-host-to-scan.vue";
 const _i18n = (t) => i18n(t);
 
 let autorefresh = ref(false);
+let insert_with_success = ref(false);
+let already_inserted = ref(false);
+
+
+let insert_text = ref(i18n('scan_host_inserted'));
+let already_insert_text = ref(i18n('scan_host_already_inserted'));
 
 const title_html = ref(i18n("scan_hosts"));
 
@@ -80,6 +95,9 @@ const modal_delete_confirm = ref();
 const modal_add = ref();
 const modal_vs_result = ref();
 const modal_update_perioditicy_scan = ref();
+let old_auto_refresh = ref(null);
+let old_inserted = ref(null);
+let old_already_inserted = ref(null);
 
 const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
 const edit_host_url = `${http_prefix}/lua/rest/v2/edit/host/update_va_scan_period.lua`;
@@ -116,6 +134,7 @@ function add_host() {
   else
     modal_add.value.show();
   //refresh_table(true);
+
 }
 
 /* Function to refresh table */ 
@@ -127,8 +146,9 @@ function refresh_table(ok, disable_loading) {
   if(disable_loading == true)
     table_hosts_to_scan.value.refresh_table(disable_loading);
   else
-    table_hosts_to_scan.value.refresh_table();
+    table_hosts_to_scan.value.refresh_table(false);
 
+  
 }
 
 /* ******************************************************************** */ 
@@ -292,13 +312,20 @@ async function edit(params) {
 
 /* Every 10 second check if the autorefresh is enabled or not, if it is refresh the table */
 function set_autorefresh() {
-debugger;
   if(autorefresh.value == true)
     setTimeout(check_autorefresh, 10000);
 }
 
 async function check_autorefresh() {
   await check_in_progress_status();
+
+  /*if(insert_with_success.value == true || old_inserted.value == true) {
+    refresh_table(false);
+  }
+
+  if(already_inserted.value == true || old_already_inserted.value == true) {
+    refresh_table(false);
+  }*/
   set_autorefresh();
 }
 
@@ -379,7 +406,7 @@ const map_table_def_columns = (columns) => {
           
         b.f_map_class = (current_class, row) => { 
           current_class = current_class.filter((class_item) => class_item != "link-disabled");
-          if((row.is_ok_last_scan == 4 || row.is_ok_last_scan == null) && visible_dict[b.id]) {
+          if((row.is_ok_last_scan == 4 || row.is_ok_last_scan == null || row.num_open_ports < 1) && visible_dict[b.id]) {
             current_class.push("link-disabled"); 
           }
           return current_class;
@@ -407,9 +434,14 @@ const add_host_rest = async function (params) {
     ...params
   })
 
-  await ntopng_utility.http_post_request(url, rest_params);
+  const result = await ntopng_utility.http_post_request(url, rest_params);
   modal_add.value.close();
+
+  
   refresh_table(false);
+  //setTimeout(refresh_table(false), 60000);
+  //setTimeout(refresh_table(false), 6000);
+
 }
 
 const update_all_scan_frequencies = async function(params) {
@@ -446,9 +478,9 @@ const check_in_progress_status = async function () {
 /* Function to confirm to start all scan */
 const confirm_scan_all_entries = function() {
   modal_delete_confirm.value.show("scan_all_rows",i18n("scan_all_hosts"));  
-  autorefresh.value = true;
-  check_autorefresh();
-  refresh_table(false);
+  //autorefresh.value = true;
+  refresh_table(true,false);
+
 }
 
 /* Function to update all scan  frequencies*/
