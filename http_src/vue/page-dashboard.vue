@@ -38,7 +38,7 @@
                      :max_width="c.width"
                      :max_height="c.height"
                      :params="c.params"
-                     :get_component_data="get_component_data">
+                     :get_component_data="get_component_data_func(c)">
           </component>
         </template>
         <template v-slot:box_footer>
@@ -161,23 +161,26 @@ function print_report() {
 
 /* Callback to request REST data from components */
 let components_data = {};
-const get_component_data = async (url, url_params) => {
-    const data_url = `${url}?${url_params}`;
+function get_component_data_func(component) {
+    const get_component_data = async (url, url_params) => {
+        const data_url = `${url}?${url_params}`;
+        
+        /* Check if there is already a promise for the same request */
+        /* TODO here is where we can cache and relaod the data to handle report backups*/
+        let info = {};
+        if (components_data[component.component_id]) {
+            info = components_data[component.component_id];
+            if (info.data) {
+                await info.data; /* wait in case of previous pending requests */
+            }
+        }
+        info.data = ntopng_utility.http_request(`${data_url}`);
+        
+        components_data[component.component_id] = info;
 
-    /* Check if there is already a promise for the same request */
-    /* TODO here is where we can cache and relaod the data to handle report backups*/
-    let info = {};
-    if (components_data[data_url]) {
-      info = components_data[data_url];
-      if (info.data) {
-         await info.data; /* wait in case of previous pending requests */
-      }
-    }
-    info.data = ntopng_utility.http_request(`${http_prefix}${data_url}`);
-
-    components_data[data_url] = info;
-
-    return info.data;
+        return info.data;
+    };
+    return get_component_data;
 }
 
 </script>

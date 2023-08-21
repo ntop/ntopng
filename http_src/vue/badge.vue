@@ -78,7 +78,7 @@ async function refresh_component() {
     const query_params = ntopng_url_manager.obj_to_url_params(url_params);
 
     // let data = await ntopng_utility.http_request(`${http_prefix}${props.params.url}?${query_params}`);
-    let data = await props.get_component_data(props.params.url, query_params);
+    let data = await props.get_component_data(`${http_prefix}${props.params.url}`, query_params);
 
     /* TODO handle dot-separated path for non-flat json */
     counter.value = data[props.params.counter_path];

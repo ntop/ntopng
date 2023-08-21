@@ -1,17 +1,18 @@
 <!--
   (C) 2013-22 - ntop.org
 -->
+      <!-- :get_params_url_request="get_url_params" -->
 
 <template>
 <div>
-    <Chart
-        ref="chart"
-        :id="id"
-        :chart_type="chart_type"
-        :base_url_request="get_url"
-        :get_params_url_request="get_url_params"
-        :register_on_status_change="false">
-    </Chart>
+  <Chart
+    ref="chart"
+    :id="id"
+    :chart_type="chart_type"
+    :base_url_request="base_url"
+    :get_custom_chart_options="get_chart_options"
+    :register_on_status_change="false">
+  </Chart>
 </div>
 </template>
 
@@ -39,7 +40,7 @@ const props = defineProps({
     get_component_data: Function /* TODO use thsi callback to request data (REST) */
 });
 
-const get_url = computed(() => {
+const base_url = computed(() => {
   return `${http_prefix}${props.params.url}`;
 });
 
@@ -57,6 +58,12 @@ const get_url_params = () => {
   query_params = query_params.replaceAll("%24IFID%24" /* $IFID$ */, props.ifid);
 
   return query_params;
+}
+
+function get_chart_options() {
+    const url = base_url.value;
+    const url_params = get_url_params();
+    return props.get_component_data(url, url_params);
 }
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
