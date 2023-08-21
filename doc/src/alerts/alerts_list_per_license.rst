@@ -1,7 +1,7 @@
 Alerts List per License
 =======================
 
-some ntopng alerts are available with a specific license :ref:`WebUIUserScripts`. Here a list of all the alerts divided by family and their availability depending on the license.
+some ntopng alerts are available with a specific license. Here a list of all the alerts divided by family and their availability depending on the license.
 
 **Host Behavioural Checks**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
