@@ -279,6 +279,8 @@ async function click_button_delete(event) {
 
   insert_with_success.value = false;
   already_inserted.value = false;
+  
+  refresh_feedback_messages();
   row_to_delete.value = event.row;
   modal_delete_confirm.value.show("delete_single_row",i18n("delete_vs_host"));  
 }
@@ -288,6 +290,7 @@ async function click_button_scan(event) {
 
   insert_with_success.value = false;
   already_inserted.value = false;
+  refresh_feedback_messages();
   row_to_scan.value = event.row;
   modal_delete_confirm.value.show("scan_row",i18n("scan_host"));  
 }
@@ -305,6 +308,7 @@ function click_button_edit_host(event) {
 function delete_all_entries() {
   insert_with_success.value = false;
   already_inserted.value = false;
+  refresh_feedback_messages();
   modal_delete_confirm.value.show('delete_all', i18n('delete_all_vs_hosts'));
 }
 
@@ -322,12 +326,15 @@ function set_autorefresh() {
 
 /* Every 10 second check to disable feedbacks */
 async function set_already_insert_or_insert_with_success() {
-  console.log("PLUTO");
-  if(insert_with_success.value == true)
+  if(insert_with_success.value == true) {
     insert_with_success.value = false;
-  
-  if(already_inserted.value == true) 
+    insert_text.value = i18n('scan_host_inserted');
+  }
+
+  if(already_inserted.value == true) {
+    already_insert_text.value = i18n('scan_host_already_inserted');  
     already_inserted.value = false;
+  }
 }
 
 /* Every 10 second check to disable autorefresh */
@@ -452,6 +459,7 @@ const add_host_rest = async function (params) {
     }
     insert_with_success.value = true;
     already_inserted.value = false;
+    already_insert_text.value = i18n('scan_host_already_inserted');  
 
     setTimeout(set_already_insert_or_insert_with_success,10000);
 
@@ -479,8 +487,15 @@ const add_host_rest = async function (params) {
     insert_with_success.value = false;
     setTimeout(set_already_insert_or_insert_with_success,10000);
 
-    
+    insert_text.value = i18n('scan_host_inserted');
+
   }
+
+}
+
+const refresh_feedback_messages = function () {
+  already_insert_text.value = i18n('scan_host_already_inserted');  
+  insert_text.value = i18n('scan_host_inserted');
 
 }
 
@@ -493,6 +508,7 @@ const update_all_scan_frequencies = async function(params) {
 
   insert_with_success.value = false;
   already_inserted.value = false;
+  refresh_feedback_messages();
   refresh_table(false);
 }
 
@@ -517,6 +533,8 @@ const check_in_progress_status = async function () {
 
   insert_with_success.value = false;
   already_inserted.value = false;
+  refresh_feedback_messages();
+
   if(autorefresh.value == false) 
     setTimeout(table_hosts_to_scan.value.refresh_table, 1000)
 }
