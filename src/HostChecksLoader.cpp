@@ -77,7 +77,6 @@ void HostChecksLoader::registerChecks() {
   if ((fcb = new DNSFlood())) registerCheck(fcb);
   if ((fcb = new SNMPFlood())) registerCheck(fcb);
   if ((fcb = new FlowAnomaly())) registerCheck(fcb);
-  if ((fcb = new HostMACReassociation())) registerCheck(fcb);
 #endif
 
   // printChecks();
