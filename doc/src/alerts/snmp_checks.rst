@@ -6,7 +6,7 @@ These checks are executed after a periodic SNMP poll session, in order to detect
 ____________________
 
 **Duplex Status Change**
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Check for Duplex Status.
 
@@ -22,10 +22,10 @@ The alert is sent when Duplex status is changed.
 *Enabled by Default*
 
 
-**Interface Errors**
-~~~~~~~~~~~~~~~~~~~~
+**High Interface Discards/Errors**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Checks for Interface Errors.
+Checks for Interface Discards and Errors.
  
 An interface discard happens when the device has decided to discard a packet for some reasons. It could be a corrupt packet, the device is busy, buffer overflows, packet size issues, or other issues.
 
@@ -36,8 +36,22 @@ The alert is sent when an interface error is seen.
 *Enabled by Default*
 
 
-**Interface Load Threshold Alerts**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Interface Errors Exceeded**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for Interface Errors.
+ 
+An high rate of errors in comparison with packets could represent many issues on a device.
+
+The alert is sent when the errors counter of an interface exceed 5% of packets.
+
+*Category: SNMP*
+
+*Enabled by Default*
+
+
+**Interface Load Threshold**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks if the threshold for port load is respected.
 
@@ -67,6 +81,20 @@ Alert is sent when changes in the SNMP network topology are discovered.
 *Enabled by Default*
 
 
+**MAC Detection**
+~~~~~~~~~~~~~~~~~
+
+Checks if a MAC has disappeared/appeared on an interface or device.
+
+To detect and locate possible unwanted MACs on a device/network.
+
+Alert is sent when a MAC address appear or disapper from an interface or device.
+
+*Category: SNMP*
+
+*Enabled by Default*
+
+
 **MAC Port Changed**
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -74,7 +102,7 @@ Checks if a MAC has been moved between interfaces or devices.
 
 If a MAC address is continuously moved between the two interfaces, Layer 2 loops might occur. To detect and locate loops, you can view the MAC address move information. To display the MAC address move records after the device is started, use the display mac-address mac-move command.
 
-Alert is sent when MAc address moved between interfaces.
+Alert is sent when MAC address moved between interfaces.
 
 *Category: SNMP*
 
@@ -82,7 +110,7 @@ Alert is sent when MAc address moved between interfaces.
 
 
 **Oper. Status Change**
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks if the operational state of an interface has been changed.
 
@@ -117,6 +145,46 @@ An SNMP device is a device that is managed using SNMP. Most common network devic
 When an SNMP agent restarts (for example, after a reboot of the network device), it generally resets all counter variables to zero, and afterwards it may show incorrect values. 
 
 Alert is sent when a restart for an SNMP device has been seen. 
+
+*Category: SNMP*
+
+*Enabled by Default*
+
+
+**Threshold Crossed**
+~~~~~~~~~~~~~~~~~~~~~
+
+Checks for threshold configured in the SNMP Device Rules page.
+
+Alert is sent when a threshold from one of the devices configured is exceeded. 
+
+*Category: SNMP*
+
+*Enabled by Default*
+
+
+**Too Many MACs on Non-Trunk**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks the number of MACs on a Non-Trunk port.
+
+An higher number of MACs on a Non-Trunk port could possibly mean that an unwanted MAC connected to the port. 
+
+Alert is sent when the number of MACs detected on a non-trunk port exceeds the configured threshold. 
+
+*Category: SNMP*
+
+*Enabled by Default*
+
+
+**Traffic Change Detected**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks the traffic from an SNMP device.
+
+No more traffic from an SNMP device could mean that the device is down or some problem arose (likewise a device that abruptly starts sending traffic). 
+
+Alert is sent when a device starts/stops sending traffic. 
 
 *Category: SNMP*
 

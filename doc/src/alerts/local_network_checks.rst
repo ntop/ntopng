@@ -6,7 +6,7 @@ These checks are performed on local networks (see -m command line option).
 ____________________
 
 **Broadcast Domain Too Large**
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks broadcast domains.
 
@@ -21,8 +21,8 @@ The Alert is sent when the broadcast domain is too large.
 
 
 
-**Egress Traffic Alert**
-~~~~~~~~~~~~~~~~~~~~~~~~
+**Egress Traffic**
+~~~~~~~~~~~~~~~~~~
 
 Checks for Egress Traffic Bytes exceed.
 
@@ -36,8 +36,8 @@ The alert is sent when the egress traffic bytes exceeds.
 
 
 
-**Flow Flood Victim Alert**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Flow Flood Victim**
+~~~~~~~~~~~~~~~~~~~~~
 
 Checks for Flow Flood.
 
@@ -52,7 +52,7 @@ The alert is sent in case of server flow flood.
 
 
 **High Network Score**
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for High Network Score.
 
@@ -66,8 +66,8 @@ The alert is sent when the high network score is detected.
 *Not Enabled by Default*
 
 
-**Ingress Traffic Alert**
-~~~~~~~~~~~~~~~~~~~~~~~~~
+**Ingress Traffic**
+~~~~~~~~~~~~~~~~~~~
 
 Checks for Ingress Traffic.
 
@@ -80,12 +80,36 @@ The alert is sent when the ingress bytes exceed the threshold.
 *Not Enabled by Default*
 
 
-**Inner Traffic Alert**
-~~~~~~~~~~~~~~~~~~~~~~~
+**Inner Traffic**
+~~~~~~~~~~~~~~~~~
+
+Checks for Inner Traffic.
+
+Inner traffic is a network traffic originated from internal networks and destined for other internal networks. When the Inner Bytes delta exceeds the threshold the system detects the change.
+
+The alert is sent when the inner bytes exceed the threshold.
+
+*Category: Network*
+
+*Not Enabled by Default*
 
 
-**Network Discovery Detected**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**IP/MAC Reassoc/Spoofing**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for IP or MAC Reassociation/Spoofing.
+
+This alert might indicate an ARP spoof attempt. 
+
+The alert is sent when an IP address, previously seen with a MAC address, is now seen with another MAC address. Only works for the builtin alert recipient.
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+**Network Discovery**
+~~~~~~~~~~~~~~~~~~~~~
 
 Checks for Network Discovery.
 
@@ -98,8 +122,36 @@ The alert is sent when a network discovery is detected.
 *Enabled by Default*
 
 
-**SYN Flood Victim Alert**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Network Issues**
+~~~~~~~~~~~~~~~~~~~~~
+
+Checks for Network Discovery.
+
+Network issues, like packets loss, could identify an issue in the network.
+
+The alert is sent when network issues (retransmissions, high number of fragments and packet loss) are identified.
+
+*Category: Network*
+
+*Enabled by Default*
+
+
+**Network Score per Host**
+~~~~~~~~~~~~~~~~~~~~~
+
+Checks for the score of the hosts in a network.
+
+An high score (as average per host) on many hosts of a network could mean a possible issue with the network itself.
+
+The alert is sent when the average score per host of a network is higher then a threshold.
+
+*Category: Network*
+
+*Enabled by Default*
+
+
+**SYN Flood Victim**
+~~~~~~~~~~~~~~~~~~~~
 
 Checks for SYN Flood.
 
@@ -112,8 +164,8 @@ The alert is sent when the number of received SYN exceeds the threshold.
 *Not Enabled by Default*
 
 
-**SYN Scan Victim Alert**
-~~~~~~~~~~~~~~~~~~~~~~~~~
+**SYN Scan Victim**
+~~~~~~~~~~~~~~~~~~~
 
 Checks for SYN Scan.
 

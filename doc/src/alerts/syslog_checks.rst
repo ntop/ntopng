@@ -1,20 +1,21 @@
 .. _SyslogChecks target:
 
-Syslog Checks
-#############
+Syslog Behavioural Checks
+#########################
 
 Syslog checks are called whenever ntopng collects logs as described in :ref:`Syslog target`. They are not real checks but rather are triggered whenever a syslog event is received. Below you can find the various syslog families.
 
 ____________________
 
 **Fortinet**
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~
 
 Collects syslog logs from Fortinet devices. This is mainly used to implement Identity Management, to track all connection/disconnection events logged by the Fortined VPN server and associate traffic to users.
 
 Enabled by Default - requires the Syslog Producer configuration for Logs Demultiplexing as described in :ref:`Syslog target`.
 
 *Category: Cybersecurity*
+
 
 **Host Log**
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -24,6 +25,7 @@ Collects syslog logs from hosts. This is used to integrate all logs exported by 
 Enabled by Default - requires the Syslog Producer configuration for Logs Demultiplexing as described in :ref:`Syslog target`.
 
 *Category: Cybersecurity*
+
 
 **Kerberos/NXLog**
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -101,6 +103,7 @@ Enabled by Default - requires the Syslog Producer configuration for Logs Demulti
 
 *Category: Cybersecurity*
 
+
 **OpenVPN**
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -109,6 +112,7 @@ Collects syslog logs from devices running OpenVPN. This is mainly used to implem
 Enabled by Default - requires the Syslog Producer configuration for Logs Demultiplexing as described in :ref:`Syslog target`.
 
 *Category: Cybersecurity*
+
 
 **OPNsense**
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -119,6 +123,7 @@ Enabled by Default - requires the Syslog Producer configuration for Logs Demulti
 
 *Category: Cybersecurity*
 
+
 **SonicWALL**
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -128,6 +133,7 @@ Enabled by Default - requires the Syslog Producer configuration for Logs Demulti
 
 *Category: Cybersecurity*
 
+
 **Sophos**
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -136,6 +142,7 @@ Collects syslog logs from Sophos devices. This is mainly used to implement Ident
 Enabled by Default - requires the Syslog Producer configuration for Logs Demultiplexing as described in :ref:`Syslog target`.
 
 *Category: Cybersecurity*
+
 
 **Suricata**
 ~~~~~~~~~~~~~~~~~~~~~~

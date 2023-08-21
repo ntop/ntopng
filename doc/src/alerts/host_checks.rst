@@ -7,13 +7,14 @@ Host checks are performed on active hosts.
 
 ____________________
 
-**DNS Server Contacts Alert**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Checks for DNS Server Contacts.
 
-DNS servers are sensitive to all network-based attacks. There are many ways attackers can cause a large amount of network traffic to the DNS servers, such as TCP/UDP/ICMP floods, rendering the service unavailable to other network users by saturating the network connection to the DNS servers.
+**Countries Contacts**
+~~~~~~~~~~~~~~~~~~~~~~
+Checks for Countries Contacts.
 
-The alert is sent when number of different DNS servers contacted exceeds the threshold.
+The endpoint sends too many requests to different countries - the recognition is based on IP location, overcoming the threshold > 100 Contacts (Minute).
+
+The alert is sent when the threshold is exceeded.
 
 
 *Category: Cybersecurity*
@@ -36,14 +37,124 @@ The alert is sent when a dangerous host is detected.
 *Not Enabled by Default*
 
 
-**Score Anomaly**
-~~~~~~~~~~~~~~~~~
+**DNS Flood**
+~~~~~~~~~~~~~
 
-Checks for score anomaly.
+Checks for DNS Flood.
 
-Anomalies score represents how abnormal the behavior of the host is, based on its past behavior.
+DNS Flood Alert
+
+DNS flood is a type of DDoS attack in which the attacker targets one or more DNS servers, attempting to hamper resolution of resource records of that zone and its sub-zones.
+
+The alert is sent when the number of sent/received SYNs/sec exceeds the threshold.
 
 *Category: Cybersecurity*
+
+*Not Enabled by Default*
+
+
+**DNS Server Contacts**
+~~~~~~~~~~~~~~~~~~~~~~~
+Checks for DNS Server Contacts.
+
+DNS servers are sensitive to all network-based attacks. There are many ways attackers can cause a large amount of network traffic to the DNS servers, such as TCP/UDP/ICMP floods, rendering the service unavailable to other network users by saturating the network connection to the DNS servers.
+
+The alert is sent when number of different DNS servers contacted exceeds the threshold.
+
+
+*Category: Cybersecurity*
+
+*Not Enabled by Default*
+
+
+**DNS Traffic**
+~~~~~~~~~~~~~~~~~~~~~~
+Checks for DNS Traffic.
+
+DNS traffic exceeds the threshold >  (1 MB) 
+
+The alert is sent when the threshold is exceeded.
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+**Domain Name Contacts**
+~~~~~~~~~~~~~~~~~~~~~~~
+Checks for Domain Names Contacts.
+
+The alert is sent when the number of different Domain Names contacted from an host exceeds the threshold.
+
+*Category: Cybersecurity*
+
+*Not Enabled by Default*
+
+
+**Flow Flood**
+~~~~~~~~~~~~~
+
+Checks for Flow Flood.
+
+Flow Flood alert.
+
+Flow flood is a type of DDoS attack in which the attacker targets one or more hosts by sending a huge amout of flows towards them.
+
+The alert is sent when the number of flows/sec exceeds the threshold.
+
+*Category: Cybersecurity*
+
+*Not Enabled by Default*
+
+
+**Flows Anomaly**
+~~~~~~~~~~~~~~~~~
+
+Checks for a Flow Anomaly
+
+Flow-based anomaly detection centers around the concept of the network flow. A flow record is an indicator that a certain network flow took place and that two network endpoints have communicated with each other.
+
+The alert is sent when the system detects anomalies in active flows number.
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+**Host External Check (REST)**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Trigger a host alert from an external script via REST API. For further information please visit :ref:`RESTAPIDocV2 target` and check the *rest/v2/trigger/host/alert.lua* API.
+Please note that the Check must be enabled from the Settings as any other Behavioural Checks before pushing alerts via REST API.
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+**Host User Check Script**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Trigger a host alert based on a custom Lua user script. For further information please visit :ref:`ApiHostChecks target`
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+**ICMP Flood**
+~~~~~~~~~~~~~~~~~~~~
+
+Checks for ICMP Flood.
+
+The ICMP flood, is a common Denial of Service (DoS) attack in which an attacker takes down a victim’s computer by overwhelming it with ICMP echo requests, also known as pings.
+The attack involves flooding the victim’s network with request packets, knowing that the network will respond with an equal number of reply packets. 
+
+
+The alert is sent when the number of sent/received ICMP Flows/sec exceeds the threshold.
+
+
+*Category: Network*
 
 *Not Enabled by Default*
 
@@ -62,14 +173,55 @@ The alert is sent when the number of different NTP servers contacted exceeds the
 *Not Enabled by Default*
 
 
-**DNS Server Contacts Alert**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**NTP Traffic**
+~~~~~~~~~~~~~~~~~~~~~
+Checks for  NTP Traffic. 
 
-Checks for DNS Server Contacts.
+Network Time Protocol (NTP) server, could be flooded with traffic (DDoS attack). When NTP traffic exceeds the threshold 	> (1 MB) the alert is triggered.
 
-DDoS attacks typically occur with a botnet. The attacker uses a network of malware-infected computers to send large amounts of traffic to a target, such as a server. The goal is to overload the target and slow or crash it.
+The alert is sent when the threshold is crossed.
 
-The alert is sent when the number of different DNS servers contacted exceeds the threshold. 
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+**P2P Traffic**
+~~~~~~~~~~~~~~~~~~~~~
+
+Checks for P2P Traffic.
+
+
+As P2P traffic continues to grow. This growth in traffic causes network congestion, performance deterioration.When P2P traffic exceeds the threshold the alert is triggered.
+
+The alert is sent when the threshold is crossed.
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+**Packets**
+~~~~~~~~~~~~~~~~~
+
+Checks for Packets.
+
+Detects and reports on packets based on behavior characteristics of the sender or characteristics of the packets. Foresees possible attack vectors by packet-per-second or percentage-increase-over-time thresholds.
+
+The alert is sent when the packet delta (sent + received) exceeds the threshold.
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+**Score Anomaly**
+~~~~~~~~~~~~~~~~~
+
+Checks for score anomaly.
+
+Anomalies score represents how abnormal the behavior of the host is, based on its past behavior.
 
 *Category: Cybersecurity*
 
@@ -105,37 +257,6 @@ The alert is sent when the number of sent/received SYNs/min exceeds the threshol
 *Not Enabled by Default*
 
 
-**ICMP Flood Alert**
-~~~~~~~~~~~~~~~~~~~~
-
-Checks for ICMP Flood.
-
-The ICMP flood, is a common Denial of Service (DoS) attack in which an attacker takes down a victim’s computer by overwhelming it with ICMP echo requests, also known as pings.
-The attack involves flooding the victim’s network with request packets, knowing that the network will respond with an equal number of reply packets. 
-
-
-The alert is sent when the number of sent/received ICMP Flows/sec exceeds the threshold.
-
-
-*Category: Network*
-
-*Not Enabled by Default*
-
-
-**Packets Alert**
-~~~~~~~~~~~~~~~~~
-
-Checks for Packets.
-
-Detects and reports on packets based on behavior characteristics of the sender or characteristics of the packets. Foresees possible attack vectors by packet-per-second or percentage-increase-over-time thresholds.
-
-The alert is sent when the packet delta (sent + received) exceeds the threshold.
-
-*Category: Network*
-
-*Not Enabled by Default*
-
-
 **Remote Connection**
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -146,32 +267,6 @@ In RDP protocol has been found some critical vulnerabilities. RDP is a complex p
 The alert is sent whenever an host has at least one active flow using a remote access protocol.
 
 *Category: Network*
-
-*Not Enabled by Default*
-
-**DNS Traffic Alert**
-~~~~~~~~~~~~~~~~~~~~~~
-Checks for DNS Traffic.
-
-DNS traffic exceeds the threshold >  (1 MB) 
-
-The alert is sent when the threshold is exceeded.
-
-*Category: Network*
-
-*Not Enabled by Default*
-
-
-**Countries Contacts Alert**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Checks for Countries Contacts.
-
-The endpoint sends too many requests to different countries - the recognition is based on IP location, overcoming the threshold > 100 Contacts (Minute).
-
-The alert is sent when the threshold is exceeded.
-
-
-*Category: Cybersecurity*
 
 *Not Enabled by Default*
 
@@ -195,67 +290,6 @@ Each host has a numerical non-negative value used to store the score value. This
 The alert is sent when the threshold is passed.
 
 *Category: Cybersecurity*
-
-*Not Enabled by Default*
-
-
-**NTP Traffic Alert**
-~~~~~~~~~~~~~~~~~~~~~
-Checks for  NTP Traffic. 
-
-Network Time Protocol (NTP) server, could be flooded with traffic (DDoS attack). When NTP traffic exceeds the threshold 	> (1 MB) the alert is triggered.
-
-The alert is sent when the threshold is crossed.
-
-
-*Category: Network*
-
-*Not Enabled by Default*
-
-
-**P2P Traffic Alert**
-~~~~~~~~~~~~~~~~~~~~~
-
-Checks for P2P Traffic.
-
-
-As P2P traffic continues to grow. This growth in traffic causes network congestion, performance deterioration.When P2P traffic exceeds the threshold the alert is triggered.
-
-The alert is sent when the threshold is crossed.
-
-*Category: Network*
-
-*Not Enabled by Default*
-
-**Flows Anomaly**
-~~~~~~~~~~~~~~~~~
-
-Checks for a Flow Anomaly
-
-Flow-based anomaly detection centers around the concept of the network flow. A flow record is an indicator that a certain network flow took place and that two network endpoints have communicated with each other.
-
-The alert is sent when the system detects anomalies in active flows number.
-
-*Category: Network*
-
-*Not Enabled by Default*
-
-**Host User Check Script**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Trigger a host alert based on a custom Lua user script. For further information please visit :ref:`ApiHostChecks target`
-
-*Category: Network*
-
-*Not Enabled by Default*
-
-**Host External Check (REST)**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Trigger a host alert from an external script via REST API. For further information please visit :ref:`RESTAPIDocV2 target` and check the *rest/v2/trigger/host/alert.lua* API.
-Please note that the Check must be enabled from the Settings as any other Behavioural Checks before pushing alerts via REST API.
-
-*Category: Network*
 
 *Not Enabled by Default*
 
