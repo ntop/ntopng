@@ -37,7 +37,8 @@
                      :ifid="c.ifid ? c.ifid : context.ifid"
                      :max_width="c.width"
                      :max_height="c.height"
-                     :params="c.params">
+                     :params="c.params"
+                     :get_component_data="get_component_data">
           </component>
         </template>
         <template v-slot:box_footer>
@@ -156,6 +157,11 @@ function get_component_id(id, index) {
 
 function print_report() {
     $(report_box.value).print();
+}
+
+/* Callback to request REST data from components */
+const get_component_data = (url, url_params) => {
+    return ntopng_utility.http_request(`${http_prefix}${url}?${url_params}`);
 }
 
 </script>

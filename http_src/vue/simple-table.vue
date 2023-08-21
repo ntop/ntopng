@@ -36,6 +36,7 @@ const props = defineProps({
     max_width: Number,   /* Component Width (4, 8, 12) */
     max_height: Number,  /* Component Hehght (4, 8, 12)*/
     params: Object,      /* Component-specific parameters from the JSON template definition */
+    get_component_data: Function /* Callback to request data (REST) */
 });
 
 const columns = computed(() => {
@@ -145,7 +146,10 @@ async function refresh_table() {
   }
   const query_params = ntopng_url_manager.obj_to_url_params(url_params);
   if (rest_result != null) { await rest_result; }
-  rest_result = ntopng_utility.http_request(`${http_prefix}${props.params.url}?${query_params}`);
+ 
+  //rest_result = ntopng_utility.http_request(`${http_prefix}${props.params.url}?${query_params}`);
+  rest_result = props.get_component_data(props.params.url, query_params);
+
   let data = await rest_result;
 
   let rows = [];

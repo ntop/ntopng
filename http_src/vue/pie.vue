@@ -36,6 +36,7 @@ const props = defineProps({
     max_width: Number,   /* Component Width (4, 8, 12) */
     max_height: Number,  /* Component Hehght (4, 8, 12)*/
     params: Object,      /* Component-specific parameters from the JSON template definition */
+    get_component_data: Function /* TODO use thsi callback to request data (REST) */
 });
 
 const get_url = computed(() => {

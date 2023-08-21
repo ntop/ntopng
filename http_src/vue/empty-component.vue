@@ -25,6 +25,7 @@ const props = defineProps({
     max_width: Number,   /* Component Width (4, 8, 12) */
     max_height: Number,  /* Component Hehght (4, 8, 12)*/
     params: Object,      /* Component-specific parameters from the JSON template definition */
+    get_component_data: Function /* Callback to request data (REST) */
 });
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
