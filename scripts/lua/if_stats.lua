@@ -317,23 +317,23 @@ page_utils.print_navbar(title, url,
                                  page_name = "sites",
                                  label = i18n("sites_page.sites"),
                               },
-			      {
-				 hidden = not charts_available,
-				 active = page == "historical",
-				 page_name = "historical",
-				 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
-			      },
-			      {
-				 hidden = have_nedge or not ifstats or table.empty(ifstats.profiles),
-				 active = page == "trafficprofiles",
-				 page_name = "trafficprofiles",
-				 label = "<i class=\"fas fa-lg fa-user-md\"></i>",
-			      },
-			      {
-				 hidden = not has_traffic_recording_page,
-				 active = page == "traffic_recording",
-				 page_name = "traffic_recording",
-				 label = "<i class='fas fa-lg fa-hdd' title='"..i18n("traffic_recording.traffic_recording").."'></i>",
+                              {
+                                 hidden = not charts_available,
+                                 active = page == "historical",
+                                 page_name = "historical",
+                                 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
+                              },
+                              {
+                                 hidden = have_nedge or not ifstats or table.empty(ifstats.profiles),
+                                 active = page == "trafficprofiles",
+                                 page_name = "trafficprofiles",
+                                 label = "<i class=\"fas fa-lg fa-user-md\"></i>",
+                              },
+                              {
+                                 hidden = not has_traffic_recording_page,
+                                 active = page == "traffic_recording",
+                                 page_name = "traffic_recording",
+                                 label = "<i class='fas fa-lg fa-hdd' title='"..i18n("traffic_recording.traffic_recording").."'></i>",
                               },
                               {
                                  hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
@@ -396,7 +396,7 @@ page_utils.print_navbar(title, url,
                                  label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
                               },
                            }
-   )
+)
 
 print(
       template.gen("modal_confirm_dialog.html", {
@@ -529,7 +529,7 @@ if((page == "overview") or (page == nil)) then
       print("</li></ol></td>\n")
 
       print("</tr>")
-end
+   end
 
    if cur_num_nprobes > 0 then
       local max_items_per_row = 3
@@ -684,17 +684,17 @@ end
       
       if ntop.isCloud() then
 
-	 if(prefs.zmq_publish_events_url == nil) then
-	    print("<p><b><font color=red>Please restart ntopng with --zmq-publish-events &lt;URL&gt;</font></b>")
-	 else
-	    local info = ntop.getHostInformation()
-	    local elems = string.split(zmq_endpoint, ":")
-	    local port = elems[3]
-	    
-	    zmq_endpoint = "tcp://"..info.ip..":"..port
-	    
-	    print("<li>nprobe --cloud "..zmq_endpoint.." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
-	 end
+         if(prefs.zmq_publish_events_url == nil) then
+            print("<p><b><font color=red>Please restart ntopng with --zmq-publish-events &lt;URL&gt;</font></b>")
+         else
+            local info = ntop.getHostInformation()
+            local elems = string.split(zmq_endpoint, ":")
+            local port = elems[3]
+            
+            zmq_endpoint = "tcp://"..info.ip..":"..port
+            
+            print("<li>nprobe --cloud "..zmq_endpoint.." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
+         end
       else
         print("<li>nprobe --zmq "..zmq_endpoint.. probe_mode .." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
       end
