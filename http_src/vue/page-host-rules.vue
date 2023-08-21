@@ -311,8 +311,14 @@ const format_rule_type = function(data, rowData) {
   let formatted_data = '';
   if ((rowData.rule_type) && (rowData.rule_type == 'interface') ) {
     formatted_data = "<span class='badge bg-secondary'>"+_i18n("interface")+" <i class='fas fa-ethernet'></i></span>"
-  } else if ((rowData.rule_type) && (rowData.rule_type == 'Host' ||  rowData.rule_type == 'CIDR' || rowData.rule_type == 'host_pool') ) {
+  } else if ((rowData.rule_type) && (rowData.rule_type == 'Host' ) ) {
     formatted_data = "<span class='badge bg-secondary'>"+_i18n("about.host_checks_directory")+" <i class='fas fa-laptop'></i></span>"
+  } else if ((rowData.rule_type) && rowData.rule_type == 'host_pool') {
+    formatted_data = "<span class='badge bg-secondary'>"+_i18n("alert_entities.host_pool")+" <i class='fas fa-laptop'></i></span>"
+
+  } else if ((rowData.rule_type) && rowData.rule_type == 'CIDR') {
+    formatted_data = "<span class='badge bg-secondary'>"+_i18n("network")+" <i class='fas fa-laptop'></i></span>"
+
   } else if ((rowData.rule_type) && (rowData.rule_type == 'exporter') && rowData.metric == "flowdev:traffic") {
     formatted_data = "<span class='badge bg-secondary'>"+_i18n("flow_exporter_device")+" <i class='fas fa-laptop'></i></span>"
 
