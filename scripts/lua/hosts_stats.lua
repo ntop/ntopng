@@ -101,6 +101,8 @@ function getPageTitle(protocol_name, traffic_type_title, device_ip_title, networ
         mode_label = i18n("hosts_stats.blacklisted")
     elseif mode == "dhcp" then
         mode_label = i18n("nedge.network_conf_dhcp")
+    elseif mode == "broadcast_multicast" then
+       mode_label = i18n("hosts_stats.broadcast_and_multicast")
     end
 
     if (network == nil) then
@@ -560,6 +562,12 @@ if page == 'active_hosts' then
             print(getPageUrl(base_url, hosts_filter_params))
             print('">' .. i18n("hosts_stats.filtered_hosts_only") .. '</a></li>')
         end
+
+        hosts_filter_params.mode = "broadcast_multicast"
+        print('<li ')
+        print('"><a class="dropdown-item ' .. ternary(mode == "broadcast_multicast", "active", "") .. '" href="')
+        print(getPageUrl(base_url, hosts_filter_params))
+        print('">' .. i18n("hosts_stats.broadcast_and_multicast") .. '</a></li>')
 
         -- Host pools
         if not ifstats.isView then

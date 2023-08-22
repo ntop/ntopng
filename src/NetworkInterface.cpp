@@ -5307,6 +5307,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
       (r->location == location_private_only && !h->isPrivateHost()) ||
       (r->location == location_public_only && h->isPrivateHost()) ||
       (r->location == location_public_only && h->isPrivateHost()) ||
+      (r->location == location_broadcat_multicast_only && !h->isBroadcastHost() && !h->isMulticastHost()) ||
       ((r->vlan_id != ((u_int16_t)-1)) && (r->vlan_id != h->get_vlan_id())) ||
       ((r->ndpi_proto != -1) &&
        (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0)) ||

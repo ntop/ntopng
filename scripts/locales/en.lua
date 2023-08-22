@@ -4122,6 +4122,7 @@ local lang = {
     ["blacklisted_hosts_only"] = "Blacklisted Hosts Only",
     ["blocking_traffic_policy_popup_msg"] = "Host traffic is affected by a blocking Traffic Policy",
     ["broadcast_domain_hosts_only"] = "Broadcast Domain Hosts Only",
+    ["broadcast_and_multicast"] = "Broadcast or Multicast Hosts Only",
     ["country_title"] = "for Country %{country}",
     ["crawler_bot_scanner"] = "Crawler/Bot/Scanner",
     ["filter_hosts"] = "Filter Hosts",

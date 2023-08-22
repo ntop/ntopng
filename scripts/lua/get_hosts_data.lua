@@ -130,6 +130,8 @@ elseif mode == "remote_no_tcp_tx" then
    hosts_retrv_function = interface.getRemoteHostsInfoNoTXTCP
 elseif mode == "broadcast_domain" then
    hosts_retrv_function = interface.getBroadcastDomainHostsInfo
+elseif mode == "broadcast_multicast" then
+   hosts_retrv_function = interface.getBroadcastMulticastHostsInfo
 elseif mode == "filtered" then
    filtered_hosts = true
 elseif mode == "blacklisted" then

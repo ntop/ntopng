@@ -410,7 +410,7 @@ end
 local function validateMode(mode)
     local modes = {"all", "local", "local_no_tx", "local_no_tcp_tx", "remote", "remote_no_tx", "remote_no_tcp_tx",
                    "broadcast_domain", "filtered", "blacklisted", "dhcp", "restore", "client_duration",
-                   "server_duration", "client_frequency", "server_frequency"}
+                   "server_duration", "client_frequency", "server_frequency", "broadcast_multicast"}
 
     return validateChoice(modes, mode)
 end

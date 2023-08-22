@@ -139,6 +139,7 @@ typedef enum {
   location_private_only, /* Only 192.168.0.0/16 and other private */
   location_public_only,  /* Only non-private */
   location_all,
+  location_broadcat_multicast_only
 } LocationPolicy;
 
 typedef enum {

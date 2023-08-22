@@ -3887,6 +3887,11 @@ static int ntop_get_interface_broadcast_domain_hosts_info(lua_State *vm) {
       ntop_get_interface_hosts_criteria(vm, location_broadcast_domain_only));
 }
 
+static int ntop_get_interface_broadcast_multicast_hosts_info (lua_State *vm) {
+  return (
+      ntop_get_interface_hosts_criteria(vm, location_broadcat_multicast_only));
+}
+
 static int ntop_get_public_hosts_info(lua_State *vm) {
   return (ntop_get_interface_hosts_criteria(vm, location_public_only));
 }
@@ -5371,6 +5376,8 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"getRxOnlyHostsList", ntop_get_rxonly_hosts_list},
     {"getBroadcastDomainHostsInfo",
      ntop_get_interface_broadcast_domain_hosts_info},
+    {"getBroadcastMulticastHostsInfo", 
+     ntop_get_interface_broadcast_multicast_hosts_info},
     {"getPublicHostsInfo", ntop_get_public_hosts_info},
     {"getBatchedFlowsInfo", ntop_get_batched_interface_flows_info},
     {"getBatchedHostsInfo", ntop_get_batched_interface_hosts_info},
