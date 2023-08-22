@@ -116,7 +116,7 @@ Alert is sent when periodic activity is taking too long to execute.
 *Enabled by Default*
 
 
-**Throughput**
+**Throughput Exceeded**
 ~~~~~~~~~~~~~~~~~~~~
 
 Checks for throughput rate.

@@ -202,7 +202,7 @@ The alert is sent when the threshold is crossed.
 *Not Enabled by Default*
 
 
-**Packets**
+**Packets Exceeded**
 ~~~~~~~~~~~~~~~~~
 
 Checks for Packets.
