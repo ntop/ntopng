@@ -1220,11 +1220,63 @@ bool Utils::isPrintableChar(u_char c) {
 
 /* ************************************************************ */
 
+/*
+  The method below does basic UTF-8 validation without chacing
+  for UTF-8 sequences validation
+ */
+bool Utils:: isValidUTF8(const u_char *param, size_t length) {
+  size_t i = 0;
+
+  while(i < length) {
+    uint8_t byte = param[i];
+
+    if(byte < 0x80) {
+      // 1-byte character (ASCII)
+      i++;
+    } else if((byte >> 5) == 0b110) {
+      // 2-byte character
+      if(((i + 1) >= length) || ((param[i + 1] >> 6) != 0b10)) {
+	return(false);  // Invalid continuation byte
+      }
+      i += 2;
+    } else if((byte >> 4) == 0b1110) {
+      // 3-byte character
+      if(i + 2 >= length || (param[i + 1] >> 6) != 0b10 || (param[i + 2] >> 6) != 0b10) {
+	return(false);  // Invalid continuation byte
+      }
+      i += 3;
+    } else if((byte >> 3) == 0b11110) {
+      // 4-byte character
+      if(((i + 3) >= length)
+	 || ((param[i + 1] >> 6) != 0b10)
+	 || ((param[i + 2] >> 6) != 0b10)
+	 || ((param[i + 3] >> 6) != 0b10)) {
+	return(false);  // Invalid continuation byte
+      }
+      i += 4;
+    } else {
+      return(false);  // Invalid UTF-8 sequence start byte
+    }
+  }
+
+  return(true);
+}
+
+/* ************************************************************ */
+
 bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
                             bool allowDots) {
-  if (strict) {
-    for (int i = 0; xssAttempts[i] != NULL; i++) {
-      if (strstr(param, xssAttempts[i])) {
+  if(((u_char)param[0]) >= 0x80) {
+    /* UTF8 string */
+    bool ret = Utils::isValidUTF8((const u_char*)param, strlen(param));
+
+    if(ret)
+      return(true);
+  }
+  
+  if(strict) {
+    for(int i = 0; xssAttempts[i] != NULL; i++) {
+      if(strstr(param, xssAttempts[i])) {
         ntop->getTrace()->traceEvent(TRACE_WARNING,
                                      "Found possible XSS attempt: %s [%s]",
                                      param, xssAttempts[i]);
@@ -1234,10 +1286,10 @@ bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
     }
   }
 
-  for (int i = 0; param[i] != '\0'; i++) {
+  for(int i = 0; param[i] != '\0'; i++) {
     bool is_good;
 
-    if (strict) {
+    if(strict) {
       is_good = ((param[i] >= 'a') && (param[i] <= 'z')) ||
                 ((param[i] >= 'A') && (param[i] <= 'Z')) ||
                 ((param[i] >= '0') && (param[i] <= '9'))
@@ -1253,7 +1305,7 @@ bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
       char c;
       int new_i;
 
-      if ((u_char)param[i] == 0xC3) {
+      if((u_char)param[i] == 0xC3) {
         /* Latin-1 within UTF-8 - Align to ASCII encoding */
         c = param[i + 1] | 0x40;
         new_i = i + 1; /* We are actually validating two bytes */
@@ -1266,15 +1318,15 @@ bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
                 (c != '"'); /* Prevents injections - single quotes are allowed
                                and will be validated in http_lint.lua */
 
-      if (is_good) i = new_i;
+      if(is_good) i = new_i;
     }
 
-    if (is_good)
+    if(is_good)
       ; /* Good: we're on the whitelist */
     else
       param[i] = '_'; /* Invalid char: we discard it */
 
-    if ((i > 0) &&
+    if((i > 0) &&
         (((!allowDots) && (param[i] == '.') && (param[i - 1] == '.')) ||
          ((!allowURL) && ((param[i] == '/') && (param[i - 1] == '/'))) ||
          ((param[i] == '\\') && (param[i - 1] == '\\')))) {
@@ -1283,8 +1335,8 @@ bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
       param[i - 1] = '_', param[i] = '_'; /* Invalidate the path */
     }
   }
-
-  return (false);
+  
+  return(false);
 }
 
 /* ************************************************************ */

@@ -99,6 +99,7 @@ class Utils {
   static char *stringtolower(char *str);
   static char *sanitizeHostName(char *str);
   static char *urlDecode(const char *src, char *dst, u_int dst_len);
+  static bool isValidUTF8(const u_char *param, size_t length);
   static bool purifyHTTPparam(char *const param, bool strict, bool allowURL,
                               bool allowDots);
   static char *stripHTML(const char *str);
