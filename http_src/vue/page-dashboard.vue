@@ -1,10 +1,34 @@
 <!-- (C) 2023 - ntop.org -->
 <template>
 <div class='row'>
+
+  <ModalSave ref="modal_store_report"
+             :get_suggested_file_name="get_suggested_report_name"
+             :store_file="store_report"
+             :csrf="context.csrf"
+             :title="_i18n('dashboard.store')">
+  </ModalSave>
+  <ModalOpen ref="modal_open_report"
+             :list_files="list_reports"
+             :open_file="open_report"
+             :delete_file="delete_report"
+             :csrf="context.csrf"
+             :title="_i18n('dashboard.open')"
+             :file_title="_i18n('report.report_name')">
+  </ModalOpen>
+
   <DateTimeRangePicker v-if="enable_date_time_range_picker"
                        id="dashboard-date-time-picker"
                        @epoch_change="set_components_epoch_interval">
     <template v-slot:extra_buttons>
+      <button class="btn btn-link btn-sm"
+              @click="show_store_report_modal" :title="_i18n('dashboard.store')">
+        <i class="fa-solid fa-floppy-disk"></i>
+      </button>
+      <button class="btn btn-link btn-sm"
+              @click="show_open_report_modal" :title="_i18n('dashboard.open')">
+        <i class="fa-solid fa-folder-open"></i>
+      </button>
       <button class="btn btn-link btn-sm"
               @click="print_report" :title="_i18n('dashboard.print')">
         <i class="fas fa-print"></i>
@@ -57,6 +81,10 @@ import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
 import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
+
+import { default as ModalSave } from "./modal-save.vue";
+import { default as ModalOpen } from "./modal-open.vue";
+
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as EmptyComponent } from "./empty-component.vue";
 import { default as Badge } from "./badge.vue";
@@ -64,6 +92,7 @@ import { default as Pie } from "./pie.vue";
 import { default as Box } from "./box.vue";
 
 const _i18n = (t) => i18n(t);
+const timeframes_dict = ntopng_utility.get_timeframes_dict();
 
 const props = defineProps({
     context: Object,
@@ -79,6 +108,11 @@ const components = ref([]);
 const page_id = "page-dashboard";
 const default_ifid = props.context.ifid;
 const report_box = ref(null);
+
+const modal_store_report = ref(null);
+const modal_open_report = ref(null);
+
+const main_epoch_interval = ref(null);
 
 const enable_date_time_range_picker = computed(() => {
     return props.context.page == "report";
@@ -96,6 +130,7 @@ onBeforeMount(async () => {
     let epoch_interval = null;
     if (props.context.page == "report") {
         epoch_interval = ntopng_utility.check_and_set_default_time_interval(undefined, undefined, true);
+        main_epoch_interval.value = epoch_interval;
     }
     await load_components(epoch_interval);
 });
@@ -118,29 +153,31 @@ function start_dashboard_refresh_loop() {
 }
 
 function set_components_epoch_interval(epoch_interval) {
-    const timeframes_dict = ntopng_utility.get_timeframes_dict();
+    if (epoch_interval) {
+        main_epoch_interval.value = epoch_interval;
+    }
+
     components.value.forEach((c, i) => {
-        update_component_epoch_interval(timeframes_dict, c, epoch_interval);
+        update_component_epoch_interval(c, epoch_interval);
     });
 }
 
 async function load_components(epoch_interval) {
-    let url_request = `${http_prefix}/lua/pro/rest/v2/get/dashboard/template.lua?page=${props.context.page}&template=${props.context.template}`;
+    let url_request = `${http_prefix}/lua/pro/rest/v2/get/${props.context.page}/template.lua?template=${props.context.template}`;
     let res = await ntopng_utility.http_request(url_request);
-    const timeframes_dict = ntopng_utility.get_timeframes_dict();
     components.value = res.list.filter((c) => components_dict[c.component] != null)
         .map((c, index) => {
-            let c2 = {
+            let c_ext = {
                 component_id: get_component_id(c.id, index),
                 ...c
             };
-            update_component_epoch_interval(timeframes_dict, c2, epoch_interval);
-            return c2;
+            update_component_epoch_interval(c_ext, epoch_interval);
+            return c_ext;
         });
     await nextTick();
 }
 
-function update_component_epoch_interval(timeframes_dict, c, epoch_interval) {
+function update_component_epoch_interval(c, epoch_interval) {
     const interval_seconds = timeframes_dict[c.time_window || "5_min"];
     if (epoch_interval == null) {
         const epoch_end = ntopng_utility.get_utc_seconds();
@@ -153,6 +190,93 @@ function update_component_epoch_interval(timeframes_dict, c, epoch_interval) {
 
 function get_component_id(id, index) {
     return `${page_id}_${id}_${index}`;
+}
+
+function show_store_report_modal() {
+    modal_store_report.value.show();
+}
+
+function show_open_report_modal() {
+    modal_open_report.value.show();
+}
+
+function get_suggested_report_name() {
+    return ntopng_utility.from_utc_to_server_date_format(main_epoch_interval.value.epoch_end * 1000, 'DD-MM-YYYY');
+}
+
+const list_reports = async () => {
+    let files = [];
+
+    //TODO
+
+    /*
+    let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/list.lua`;
+    let files_obj = await ntopng_utility.http_request(url);
+    let files = ntopng_utility.object_to_array(files_obj);
+    */
+
+    /* Return array of [{ name: String, epoch: Number }, ...] */
+
+    return files;
+}
+
+const open_report = async (file_name) => {
+    //TODO
+
+    /*
+    ntopng_url_manager.replace_url_and_reload(filters);
+    */
+}
+
+const delete_report = async (file_name) => {
+    let success = false;
+
+    //TODO
+
+    /*
+    let params = {
+    	file_name: file_name
+    };
+    params.csrf = props.csrf;
+    let url = `${http_prefix}/lua/pro/rest/v2/delete/report/backup/file.lua`;
+    try {
+    	let headers = {
+    	    'Content-Type': 'application/json'
+    	};
+    	await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+        success = true;
+    } catch(err) {
+    	console.error(err);
+    }
+    */
+
+    return success;
+}
+
+const store_report = async (file_name) => {
+    let success = false;
+
+    //TODO
+
+    /*
+    let params = {
+	name: file_name,
+    };
+    
+    params.csrf = props.csrf;
+    let url = `${http_prefix}/lua/pro/rest/v2/add/report/backup/file.lua`;
+    try {
+	let headers = {
+	    'Content-Type': 'application/json'
+	};
+	await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+        success = true;
+    } catch(err) {
+	console.error(err);
+    }
+    */
+
+    return success;
 }
 
 function print_report() {

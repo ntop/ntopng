@@ -153,9 +153,9 @@ export const ntopng_utility = function() {
 	},
 	from_utc_to_server_date_format: function(utc_ms, format) {
 	    if (format == null) { format = "DD/MMM/YYYY HH:mm"; }
+
+            /* This looks like an hack, please avoid it as creates issues
 	    let status = ntopng_status_manager.get_status();
-	    // let epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
-	    // let epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
 	    let epoch_begin = status.epoch_begin;
 	    let epoch_end = status.epoch_end;
 	    if (epoch_begin != null && epoch_end != null && format != null) {
@@ -165,7 +165,8 @@ export const ntopng_utility = function() {
 		    format = "DD/MMM/YYYY HH:mm:ss";
 		}
 	    }
-	    
+	    */
+
 	    let m = moment.tz(utc_ms, ntop_zoneinfo);
 	    let tz_server = m.format(format);
 	    return tz_server;
