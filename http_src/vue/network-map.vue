@@ -46,12 +46,13 @@ async function check_layout(network) {
   try {
     for (const [node1, position1] of Object.entries(positions)) {
       for (const [node2, position2] of Object.entries(positions)) {
-        if((position1.x == position2.x
-            || position1.x == position2.x + 1 
-            || position1.x == position2.x - 1)
-          && (position1.y == position2.y
-            ||position1.y == position2.y + 1 
-            || position1.y == position2.y - 1)) {
+        /* The x and y of the node1 is +-2 the x and y of the node2 */
+        /* In order to not have too close nodes */
+        if((node1 != node2)
+          && ((position2.x - 2) <= position1.x && position1.x <= (position2.x + 2))
+          && ((position2.y - 2) <= position1.y && position1.y <= (position2.y + 2))) {
+          console.log(position1);
+          console.log(position2);
           refresh_layout = true;
           break;
         }
