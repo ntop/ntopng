@@ -91,13 +91,9 @@ function sort_files_by() {
     last_order_by = order_by.value;    
 }
 
-let load_files = true;
 async function init() {
     file_name.value = "";
-    if (load_files) {
-	load_files = false;
-        files.value = await props.list_files();
-    }
+    files.value = await props.list_files();
     sort_files_by();
     if (files.value.length > 0) {
 	file_selected.value = files.value[0];
@@ -113,7 +109,6 @@ const delete_file = async (delete_all) => {
     let name = file_selected.value.name;
     if (delete_all == true) { name = "*"; }
     if (props.delete_file(name)) {
-        load_files = true;
         emit('file_deleted', name);
     }
     close();
