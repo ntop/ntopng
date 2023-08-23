@@ -1842,6 +1842,7 @@ local known_parameters = {
     ["flow_hash_id"] = validateNumber, -- The ID uniquely identifying the flow in the hash table
     ["user"] = validateSingleWord, -- The user ID
     ["snapshot_name"] = validateSingleWord, -- The user ID
+    ["report_name"] = validateSingleWord, -- The report name
     ["pool"] = validateNumber, -- A pool ID
     ["pool_id"] = validateNumber, -- A pool ID
     ["direction"] = validateDirection, -- Sent or Received direction
@@ -2515,6 +2516,7 @@ local known_parameters = {
     ["payload"] = {jsonCleanup, validateJSON},
     ["JSON"] = {jsonCleanup, validateJSON},
     ["host_threshold_rules"] = {jsonCleanup, validateJSON},
+    ["content"] = {jsonCleanup, validateJSON},
 
     -- POST pcap
     ["pcap"] = validatePcap,

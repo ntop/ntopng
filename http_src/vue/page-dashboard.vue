@@ -104,7 +104,7 @@ const components_dict = {
     "pie": Pie,
     "simple-table": SimpleTable,
 }
-const components = ref([]);
+
 const page_id = "page-dashboard";
 const default_ifid = props.context.ifid;
 const report_box = ref(null);
@@ -113,6 +113,10 @@ const modal_store_report = ref(null);
 const modal_open_report = ref(null);
 
 const main_epoch_interval = ref(null);
+
+const components = ref([]);
+
+let components_info = {};
 
 const enable_date_time_range_picker = computed(() => {
     return props.context.page == "report";
@@ -237,7 +241,7 @@ const delete_report = async (file_name) => {
     let params = {
     	file_name: file_name
     };
-    params.csrf = props.csrf;
+    params.csrf = props.context.csrf;
     let url = `${http_prefix}/lua/pro/rest/v2/delete/report/backup/file.lua`;
     try {
     	let headers = {
@@ -256,25 +260,33 @@ const delete_report = async (file_name) => {
 const store_report = async (file_name) => {
     let success = false;
 
-    //TODO
+    let components_data = {};
+    for (var key in components_info) {
+        components_data[key] = await components_info[key].data;
+    }
 
-    /*
-    let params = {
-	name: file_name,
+    let content = {
+        template: components.value,
+        data: components_data
     };
-    
-    params.csrf = props.csrf;
+
+    let data = {
+        csrf: props.context.csrf,
+        ifid: props.context.ifid,
+	report_name: file_name,
+        content: JSON.stringify(content)
+    };
+
     let url = `${http_prefix}/lua/pro/rest/v2/add/report/backup/file.lua`;
     try {
 	let headers = {
 	    'Content-Type': 'application/json'
 	};
-	await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+	await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(data) });
         success = true;
     } catch(err) {
 	console.error(err);
     }
-    */
 
     return success;
 }
@@ -284,7 +296,6 @@ function print_report() {
 }
 
 /* Callback to request REST data from components */
-let components_data = {};
 function get_component_data_func(component) {
     const get_component_data = async (url, url_params) => {
         const data_url = `${url}?${url_params}`;
@@ -292,15 +303,15 @@ function get_component_data_func(component) {
         /* Check if there is already a promise for the same request */
         /* TODO here is where we can cache and relaod the data to handle report backups*/
         let info = {};
-        if (components_data[component.component_id]) {
-            info = components_data[component.component_id];
+        if (components_info[component.component_id]) {
+            info = components_info[component.component_id];
             if (info.data) {
                 await info.data; /* wait in case of previous pending requests */
             }
         }
         info.data = ntopng_utility.http_request(`${data_url}`);
         
-        components_data[component.component_id] = info;
+        components_info[component.component_id] = info;
 
         return info.data;
     };
