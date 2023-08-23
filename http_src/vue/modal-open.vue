@@ -106,7 +106,7 @@ async function init() {
 
 const select_file = () => {
     close();
-    props.open_file(file_selected.value);
+    props.open_file(file_selected.value.name);
 }
 
 const delete_file = async (delete_all) => {
