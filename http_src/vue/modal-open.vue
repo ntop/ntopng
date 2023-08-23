@@ -10,7 +10,7 @@
           <b>{{ _i18n("order_by") }}</b>
         </label>
         <div class="col-sm-8">
-          <select class="form-select" @click="sort_files_by()" v-model="order_by">
+          <select class="form-select" @change="sort_files_by()" v-model="order_by">
             <option value="name">{{_i18n("name")}}</option>
             <option value="date">{{_i18n("date")}}</option>
           </select>
@@ -75,20 +75,17 @@ function display_name(file) {
     return `${file.name} (${date})`
 }
 
-let last_order_by = null;
 function sort_files_by() {
-    if (last_order_by == order_by.value) { return; }
-    
-    files.value.sort((a, b) => {
+    files.value = files.value.sort((a, b) => {
 	if (order_by.value == "name") {
 	    return a.name.localeCompare(b.name);
-	}
-	return a.epoch - b.epoch;
+	} else {
+	    return b.epoch - a.epoch;
+        }
     });
     if (files.value.length > 0) {
 	file_selected.value = files.value[0];
     }
-    last_order_by = order_by.value;    
 }
 
 async function init() {
