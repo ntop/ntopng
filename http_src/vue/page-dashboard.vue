@@ -209,15 +209,9 @@ function get_suggested_report_name() {
 }
 
 const list_reports = async () => {
-    let files = [];
-
-    //TODO
-
-    /*
-    let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/list.lua`;
+    let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/list.lua?ifid=${props.context.ifid}`;
     let files_obj = await ntopng_utility.http_request(url);
     let files = ntopng_utility.object_to_array(files_obj);
-    */
 
     /* Return array of [{ name: String, epoch: Number }, ...] */
 
@@ -266,6 +260,9 @@ const store_report = async (file_name) => {
     }
 
     let content = {
+        name: file_name,
+        epoch_begin: main_epoch_interval.value.epoch_begin,
+        epoch_end: main_epoch_interval.value.epoch_end,
         template: components.value,
         data: components_data
     };
