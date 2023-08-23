@@ -194,6 +194,18 @@ Historical flows data can be accessed from the `Historical Charts`_ .
   :align: center
   :alt: Historical Flows Top L7 Contacts
 
+
+By clicking on the |drilldown_icon| icon, it's possible to explode a particular communication
+or host and analyze the raw flows.
+
+.. figure:: img/historical_flows_raw_flows.png
+  :align: center
+  :alt: Raw Flows
+
+The picture above, for example, shows the raw flows between `PC local` and
+`17.248.146.148` having the `AppleiCloud` protocol.
+
+
 Here is an overview of the currently available flows views:
 
   - Flows (Bytes Chart): Displays the flows view with a bytes chart
@@ -219,15 +231,94 @@ Here is an overview of the currently available flows views:
   - Top Sender Networks: Displays the top networks with the most sent traffic
   - Visited Sites: Shows the most visited domains
 
-By clicking on the |drilldown_icon| icon, it's possible to explode a particular communication
-or host and analyze the raw flows.
 
-.. figure:: img/historical_flows_raw_flows.png
-  :align: center
-  :alt: Raw Flows
+The corresponding definitions of the flow views are available on the filesystem as JSON files under /usr/share/ntopng/scripts/historical/tables/*.json.
 
-The picture above, for example, shows the raw flows between `PC local` and
-`17.248.146.148` having the `AppleiCloud` protocol.
+Adding a new flow view is as simple as placing one more JSON file within the same folder.
+
+Here is an example JSON file for the Clients flow view.
+
+.. code:: json
+
+  {
+    "name" : "Clients",
+    "i18n_name" : "clients",
+    "data_source" : "flows",
+    "show_in_page" : "overview",
+    "hourly": true,
+    "visualization_type" : "table",
+    "select" : {
+      "items" : [
+        {
+          "name" : "VLAN_ID"
+        },
+        {
+          "name" : "IPV4_SRC_ADDR"
+        },
+        {
+          "name" : "IPV6_SRC_ADDR"
+        },
+        {
+          "name" : "SRC_LABEL"
+        },
+        {
+          "name" : "SRC_COUNTRY_CODE"
+        },
+        {
+          "name" : "total_bytes",
+          "func" : "SUM",
+          "param" : "TOTAL_BYTES",
+          "value_type" : "bytes"
+        }
+      ]
+    },
+    "filters" : {
+      "items" : [
+        {
+          "name": "PROBE_IP"
+        },
+        {
+          "name": "INPUT_SNMP"
+        },
+        {
+          "name": "OUTPUT_SNMP"
+        }
+      ]
+    },
+    "groupby" : {
+      "items" : [
+        {
+          "name" : "VLAN_ID"
+        },
+        {
+          "name" : "IPV4_SRC_ADDR"
+        },
+        {
+          "name" : "IPV6_SRC_ADDR"
+        },
+        {
+          "name" : "SRC_LABEL"
+        },
+        {
+          "name" : "SRC_COUNTRY_CODE"
+        }
+      ]
+    },
+    "sortby" : {
+      "items" : [
+        {
+          "name" : "total_bytes",
+          "order" : "DESC"
+        }
+      ]
+    }
+  }
+
+
+The JSON format is self-explanatory. It is possible to define the columns to be shown under the select tree, the columns on which the group-by is applied under the groupby tree, and the default column on which sorting is applied under the sortby tree. Aggregation functions can also be defined, such as the 'sum' item in the example. 
+For more complicated examples, it is recommended to take a look at the built-in query definitions available in the same folders.
+
+The complete list of columns is available in the database schema located at /usr/share/ntopng/httpdocs/misc/db_schema_clickhouse.sql
 
 Exporting Flows
 ---------------
