@@ -37,7 +37,7 @@
   </DateTimeRangePicker>
   
   <div ref="report_box" class="row">
-    <template v-for="c in components">
+    <template v-for="c in components" >
       <Box style="min-width:20rem;"
            :color="c.color"
            :width="c.width" 
@@ -223,7 +223,7 @@ const open_report = async (file_name) => {
     let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/file.lua?ifid=${props.context.ifid}&report_name=${file_name}`;
     let content = await ntopng_utility.http_request(url);
 
-console.log(content);
+    // console.log(content);
 
     let tmp_name = content.name;
     let tmp_epoch_interval = {
@@ -234,9 +234,10 @@ console.log(content);
     let tmp_components_data = content.data;
 
     let tmp_components_info = {};
-    for (var key in tmp_components_data) {
-        let info = {};
-        info.data = tmp_components_data[key];
+    for (let key in tmp_components_data) {
+        let info = {
+            data: tmp_components_data[key],
+        };
         tmp_components_info[key] = info;
     }
 
@@ -248,7 +249,6 @@ console.log(content);
 
     /* Change the components (template) from the backup */
     components.value = tmp_template;
-    await nextTick();
 
     /* Change the time interval on components */
     set_components_epoch_interval(tmp_epoch_interval);
@@ -329,7 +329,12 @@ function get_component_data_func(component) {
                 console.log("No data for " + component.component_id);
                 info.data = {};
             } else {
+                // console.log("-------------------------");
+                // console.log(_i18n(component.i18n_name));
+                // console.log(component);
                 info = components_info[component.component_id];
+                // console.log(info.data);
+                // console.log("-------------------------");
             }
         } else {
             const data_url = `${url}?${url_params}`;
