@@ -1916,6 +1916,7 @@ local lang = {
     ["throughput"] = "Thpt",
     ["time_range"] = "Time Range",
     ["top_clients"] = "Top Clients",
+    ["top_contacted_servers"] = "Top Contacted Servers",
     ["top_hosts"] = "Top Hosts",
     ["top_info"] = "Top Info",
     ["top_l7proto"] = "Top Applications",
