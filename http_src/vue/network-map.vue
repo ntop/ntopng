@@ -43,6 +43,7 @@ async function check_layout(network) {
   // get all nodes position
   const positions = network.getPositions(network.body.data.nodes.map(x => x.id));
   let refresh_layout = false;
+  console.log(positions);
   try {
     for (const [node1, position1] of Object.entries(positions)) {
       for (const [node2, position2] of Object.entries(positions)) {
