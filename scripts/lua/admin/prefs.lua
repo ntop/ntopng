@@ -1168,42 +1168,43 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- By default 6 hours of learning
         prefsInputFieldPrefs(subpage_active.entries["modbus_learning_period"].title,
             subpage_active.entries["modbus_learning_period"].description, "ntopng.prefs.", "modbus_learning_period",
-            prefs.modbus_learning_period or 21600, "number", nil, nil, nil, {
+            prefs.modbus_learning_period or 21600, "number", is_behaviour_analysis_enabled, nil, nil, {
                 min = 3600,
                 tformat = "hd"
             })
 
         -- #####################
 
-        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.devices_behaviour") ..
-                  '</th></tr></thead>')
-        -- Behavior analysis for asn, network and l7proto (iface)
-
-        prefsInputFieldPrefs(subpage_active.entries["devices_learning_period"].title,
-            subpage_active.entries["devices_learning_period"].description, "ntopng.prefs.", "devices_learning_period",
-            prefs.devices_learning_period, "number", nil, nil, nil, {
-                min = 7200,
-                tformat = "hd"
-            })
-
         local is_device_connection_disconnection_analysis_enabled = ntop.isEnterpriseM()
+        
+        if is_device_connection_disconnection_analysis_enabled then
+            print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.devices_behaviour") ..
+            '</th></tr></thead>')
+            -- Behavior analysis for asn, network and l7proto (iface)
 
-        multipleTableButtonPrefs(subpage_active.entries["devices_status_during_learning"].title,
-            subpage_active.entries["devices_status_during_learning"].description,
-            {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
-            {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
-            "primary", -- [selected color]
-            "devices_status_during_learning", "ntopng.prefs.devices_status_during_learning", -- [redis key]
-            false, -- [disabled]
-            {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]] )
+            prefsInputFieldPrefs(subpage_active.entries["devices_learning_period"].title,
+                subpage_active.entries["devices_learning_period"].description, "ntopng.prefs.", "devices_learning_period",
+                prefs.devices_learning_period, "number", is_device_connection_disconnection_analysis_enabled, nil, nil, {
+                    min = 7200,
+                    tformat = "hd"
+                })
 
-        multipleTableButtonPrefs(subpage_active.entries["devices_status_post_learning"].title,
-            subpage_active.entries["devices_status_post_learning"].description,
-            {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
-            {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
-            "primary", "devices_status_post_learning", "ntopng.prefs.devices_status_post_learning", false, {}, nil, nil,
-            is_device_connection_disconnection_analysis_enabled --[[show]] )
+            multipleTableButtonPrefs(subpage_active.entries["devices_status_during_learning"].title,
+                subpage_active.entries["devices_status_during_learning"].description,
+                {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
+                {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
+                "primary", -- [selected color]
+                "devices_status_during_learning", "ntopng.prefs.devices_status_during_learning", -- [redis key]
+                false, -- [disabled]
+                {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]] )
 
+            multipleTableButtonPrefs(subpage_active.entries["devices_status_post_learning"].title,
+                subpage_active.entries["devices_status_post_learning"].description,
+                {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
+                {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
+                "primary", "devices_status_post_learning", "ntopng.prefs.devices_status_post_learning", false, {}, nil, nil,
+                is_device_connection_disconnection_analysis_enabled --[[show]] )
+        end
         -- #####################
 
         print(

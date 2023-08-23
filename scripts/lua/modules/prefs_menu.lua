@@ -82,7 +82,6 @@ local menu_subpages = { {
     id = "traffic_behaviour",
     label = i18n("prefs.behaviour"),
     advanced = true,
-    enterprise_l_only = true,
     hidden = false,
     entries = {
         toggle_behaviour_analysis = {
