@@ -9,6 +9,7 @@ local lang = {
   ["active_flows"] = "Live",
   ["active_hosts"] = "Active",
   ["active_inactive"] = "Active/Inactive Hosts",
+  ["active_monitoring"] = "Active Monitoring",
   ["active_ports"] = "Server Ports Analysis",
   ["activities"] = "Activities",
   ["activity"] = "Activity",
@@ -1605,6 +1606,7 @@ local lang = {
       ["snmp_device"] = "SNMP Device",
       ["syslog"] = "Syslog",
       ["system"] = "System",
+      ["active_monitoring"] = "Active Monitoring",
     },
   },
   ["configsets"] = {

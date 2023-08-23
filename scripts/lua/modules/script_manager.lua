@@ -92,6 +92,7 @@ local RUNTIME_PATHS = {
   syslog = os_utils.fixPath(runtime_path .. "/callbacks/system/syslog"),
   snmp_scripts = os_utils.fixPath(runtime_path .. "/callbacks/system/snmp_device"),
   system_scripts = os_utils.fixPath(runtime_path .. "/callbacks/system/system"),
+  active_monitoring_scripts = os_utils.fixPath(runtime_path .. "/callbacks/system/active_monitoring"),
 }
 
 -- ##############################################

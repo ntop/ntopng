@@ -71,8 +71,12 @@ local sub_menu_entries = {
      order = 6,
      entry = page_utils.menu_entries.scripts_config_system
   },
-  ['syslog'] = {
+  ['active_monitoring'] = {
      order = 7,
+     entry = page_utils.menu_entries.scripts_config_active_monitoring
+  },
+  ['syslog'] = {
+     order = 8,
      entry = page_utils.menu_entries.scripts_config_syslog
   }
 }

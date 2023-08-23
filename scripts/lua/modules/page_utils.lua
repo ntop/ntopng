@@ -146,6 +146,7 @@ page_utils.menu_entries = {
    scripts_config_flows   = {key = "scripts_config", subkey="flows", i18n_title = alert_entities.flow.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_system  = {key = "scripts_config", subkey="system", i18n_title = alert_entities.system.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_syslog  = {key = "scripts_config", subkey="syslog", i18n_title = "syslog.syslog", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
+   scripts_config_active_monitoring  = {key = "scripts_config", subkey="active_monitoring", i18n_title = "active_monitoring", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    device_exclusions      = {key = "device_exclusions", i18n_title = "edit_check.device_exclusion", section = "device_exclusions"},
    alert_exclusions       = {key = "alert_exclusions", i18n_title = "edit_check.exclusion_list", section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    alert_exclusions_hosts = {key = "alert_exclusions", subkey="hosts", i18n_title = alert_entities.host.i18n_label, section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
