@@ -8,7 +8,7 @@
     "width" : 4,
     "height" : 4,
     "params" : {
-      "url" : "/lua/rest/v2/get/db/charts/top_l7_categories.lua",
+      "url" : "/lua/pro/rest/v2/get/db/charts/top_l7_categories.lua",
       "url_params" : {
         "query_preset" : "protos",
         "ts_schema" : "host:traffic",
@@ -27,7 +27,7 @@
     "width" : 4,
     "height" : 4,
     "params" : {
-      "url" : "/lua/rest/v2/get/db/charts/top_l7_proto.lua",
+      "url" : "/lua/pro/rest/v2/get/db/charts/top_l7_proto.lua",
       "url_params" : {
         "chart_id" : "top_l7_proto",
         "detail_view" : "flows",
@@ -46,7 +46,7 @@
     "width" : 4,
     "height" : 4,
     "params" : {
-      "url" : "/lua/rest/v2/get/db/charts/top_l4_proto.lua",
+      "url" : "/lua/pro/rest/v2/get/db/charts/top_l4_proto.lua",
       "url_params" : {
         "chart_id" : "top_l4_proto",
         "detail_view" : "flows",
