@@ -372,6 +372,7 @@ local lang = {
   ["mirrored_traffic"] = "Mirrored Traffic",
   ["missing_x_parameter"] = "Missing \"%{param}\" parameter",
   ["model"] = "Model",
+  ["monitoring"] = "Monitoring",
   ["month"] = "Month",
   ["mtu"] = "MTU",
   ["multicast"] = "Multicast",
