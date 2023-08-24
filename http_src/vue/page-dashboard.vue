@@ -125,9 +125,19 @@ const enable_date_time_range_picker = computed(() => {
 
 const component_interval = computed(() => {
     return (c) => {
-        const begin = ntopng_utility.from_utc_to_server_date_format(c.epoch_begin * 1000, 'DD/MM/YYYY HH:mm:ss');
-        const end = ntopng_utility.from_utc_to_server_date_format(c.epoch_end * 1000, 'DD/MM/YYYY HH:mm:ss');
-        return  `${begin} - ${end}`;
+        const epoch_begin_msec = c.epoch_begin * 1000;
+        const epoch_end_msec = c.epoch_end * 1000;
+
+        const begin_date = ntopng_utility.from_utc_to_server_date_format(epoch_begin_msec, 'DD/MM/YYYY');
+        const begin_time = ntopng_utility.from_utc_to_server_date_format(epoch_begin_msec, 'HH:mm:ss');
+
+        const end_date = ntopng_utility.from_utc_to_server_date_format(epoch_end_msec, 'DD/MM/YYYY');
+        const end_time = ntopng_utility.from_utc_to_server_date_format(epoch_end_msec, 'HH:mm:ss');
+
+        const begin = `${begin_date} ${begin_time}`;
+        const end = (begin_date == end_date) ? `${end_time}` : `${end_date} ${end_time}`;
+
+        return `${begin} - ${end}`;
     };
 });
 
