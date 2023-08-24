@@ -296,6 +296,7 @@ const store_report = async (file_name) => {
     }
 
     let content = {
+        version: "1.0", /* Report dump version */
         name: file_name,
         epoch_begin: main_epoch_interval.value.epoch_begin,
         epoch_end: main_epoch_interval.value.epoch_end,
