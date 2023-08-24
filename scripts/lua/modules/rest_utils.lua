@@ -102,6 +102,17 @@ local rest_utils = {
    }
 }
 
+-- Configure the module to return the REST answer locally
+-- by setting a variable (rest_answer) rather than on HTTP
+function rest_utils.enable_direct_mode()
+   rest_utils.direct_mode = true
+end
+
+-- Return the REST answer locally (direct_mode)
+function rest_utils.get_answer()
+   return rest_utils.rest_answer
+end
+
 function rest_utils.rc(ret_const, payload, additional_response_param, format)
    local ret_code = ret_const.rc
    local rc_str   = ret_const.str  -- String associated to the return code
@@ -117,11 +128,14 @@ function rest_utils.rc(ret_const, payload, additional_response_param, format)
       rsp = payload or {}
    }
 
-   if (additional_response_param ~= nil) then
+   if additional_response_param ~= nil then
       client_rsp = table.merge(additional_response_param, client_rsp)
    end
 
-   if (format) and (format == 'txt') then
+   if rest_utils.direct_mode then
+      rest_utils.rest_answer = client_rsp
+      return nil
+   elseif format and format == 'txt' then
       return client_rsp
    else
       return json.encode(client_rsp)
@@ -129,19 +143,31 @@ function rest_utils.rc(ret_const, payload, additional_response_param, format)
 end
 
 function rest_utils.answer(ret_const, payload, extra_headers)
-   sendHTTPHeader('application/json', nil, extra_headers, ret_const.http_code)
-   print(rest_utils.rc(ret_const, payload))
+   if not rest_utils.direct_mode then
+      sendHTTPHeader('application/json', nil, extra_headers, ret_const.http_code)
+   end
+
+   local rsp = rest_utils.rc(ret_const, payload)
+
+   if rsp then
+      print(rsp)
+   end
 end
 
 function rest_utils.extended_answer(ret_const, payload, additional_response_param, extra_headers, format)
-   local rsp_format = 'application/json'
-
-   if (format) and (format == 'txt') then
-      rsp_format = 'text/plain'
+   if not rest_utils.direct_mode then
+      local rsp_format = 'application/json'
+      if format and format == 'txt' then
+         rsp_format = 'text/plain'
+      end
+      sendHTTPHeader(rsp_format, nil, extra_headers, ret_const.http_code)
    end
-   
-   sendHTTPHeader(rsp_format, nil, extra_headers, ret_const.http_code)
-   print(rest_utils.rc(ret_const, payload, additional_response_param, format))
+
+   local rsp = rest_utils.rc(ret_const, payload, additional_response_param, format)
+
+   if rsp then
+      print(rsp)
+   end
 end
 
 function rest_utils.vanilla_payload_response(ret_const, payload, content_type, extra_headers)
