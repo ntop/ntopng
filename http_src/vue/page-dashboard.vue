@@ -270,7 +270,7 @@ const delete_report = async (file_name) => {
     let params = {
         csrf: props.context.csrf,
         ifid: props.context.ifid,
-    	file_name: file_name
+    	report_name: file_name
     };
 
     let url = `${http_prefix}/lua/pro/rest/v2/delete/report/backup/file.lua`;
