@@ -27,6 +27,7 @@
 class RecipientQueue {
  private:
   u_int16_t recipient_id;
+  bool skip_alerts;
 
   AlertFifoQueue *queue;
 
@@ -143,6 +144,16 @@ class RecipientQueue {
    */
   inline void setEnabledHostChecks(Bitmap128 _enabled_host_checks) {
     enabled_host_checks = _enabled_host_checks;
+  };
+
+  /**
+   * @brief Sets enabled host checks to use this recipient
+   * @param enabled_host_checks
+   *
+   * @return
+   */
+  inline void setSkipAlerts(bool _skip_alerts) {
+    skip_alerts = _skip_alerts;
   };
 
   /**

@@ -1778,6 +1778,7 @@ local known_parameters = {
     ["recipient_minimum_severity"] = validateNumber,
     ["recipient_silence_multiple_alerts"] = validateBool,
     ["recipient_checks"] = validateEmptyOr(validateListOfTypeInline(validateUnquoted)),
+    ["recipient_notifications_type"] = validateEmptyOr(validateSingleWord),
     ["endpoint_conf_name"] = validateUnquoted,
     ["endpoint_id"] = validateNumberOrUnquoted,
     ["endpoint_conf_type"] = validateUnquoted,

@@ -30,6 +30,16 @@ recipients.MAX_NUM_RECIPIENTS = 64 -- Keep in sync with ntop_defines.h MAX_NUM_R
 recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY = "ntopng.prefs.endpoint_hints.recipient_created"
 
 local default_builtin_minimum_severity = alert_severities.notice.severity_id -- minimum severity is notice (to avoid flooding) (*****)
+local notification_types = {
+   alerts = i18n('endpoint_notifications.alerts'),
+--   vulnerability_scans = i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports'),
+}
+
+-- ##############################################
+
+function recipients.get_notification_types()
+   return notification_types
+end
 
 -- ##############################################
 
@@ -125,6 +135,7 @@ function recipients.initialize()
    for _, recipient in pairs(recipients.get_all_recipients()) do  
       local flow_checks = nil
       local host_checks = nil
+      local notifications_type = recipient.notifications_type or "alerts"
 
       if recipient.checks and table.len(recipient.checks) > 0 then
          flow_checks = ""
@@ -142,7 +153,8 @@ function recipients.initialize()
                               table.concat(recipient.host_pools, ','),
                               table.concat(recipient.check_entities, ','),
                               flow_checks,
-                              host_checks
+                              host_checks,
+                              ternary((notifications_type ~= "alerts"), true --[[skip alerts]], false --[[dont skip alerts]])
       )      
    end
 end
@@ -303,23 +315,24 @@ end
 -- @param checks An already-validated integer alert id or nil to indicate filter on the alert ids
 -- @param safe_params A table with endpoint recipient params already sanitized
 -- @return nil
-local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, check_entities, minimum_severity, host_pools_ids, am_hosts_ids, silence_alerts, checks, safe_params)
+local function _set_endpoint_recipient_params(recipient_data, safe_params)
    -- Write the endpoint recipient config into another hash
-   local k = _get_recipient_details_key(recipient_id)
+   local k = _get_recipient_details_key(recipient_data.recipient_id)
    -- Add the preference to silence the same alerts for a specific recipient, by default is set to true (1)
-   ntop.setCache("ntopng.prefs.silence_multiple_alerts." .. recipient_id, ternary(silence_alerts and silence_alerts == "false", '0', '1'))
-   ntop.setCache(k, json.encode({endpoint_id = endpoint_id,
-                                 recipient_name = endpoint_recipient_name,
-                                 check_categories = check_categories,
-                                 check_entities = check_entities,
-                                 minimum_severity = minimum_severity,
-                                 host_pools = host_pools_ids,
-                                 am_hosts = am_hosts_ids,
-                                 checks = checks,
-                                 silence_alerts = silence_alerts,
+   ntop.setCache("ntopng.prefs.silence_multiple_alerts." .. recipient_data.recipient_id, ternary(recipient_data.silence_alerts and recipient_data.silence_alerts == "false", '0', '1'))
+   ntop.setCache(k, json.encode({endpoint_id = recipient_data.endpoint_id,
+                                 recipient_name = recipient_data.endpoint_recipient_name,
+                                 check_categories = recipient_data.check_categories,
+                                 check_entities = recipient_data.check_entities,
+                                 minimum_severity = recipient_data.minimum_severity,
+                                 host_pools = recipient_data.host_pools_ids,
+                                 am_hosts = recipient_data.am_hosts_ids,
+                                 checks = recipient_data.checks,
+                                 silence_alerts = recipient_data.silence_alerts,
+                                 notifications_type = recipient_data.notifications_type,
                                  recipient_params = safe_params}))
 
-   return recipient_id
+   return recipient_data.recipient_id
 end
 
 -- ##############################################
@@ -400,6 +413,7 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                -- Get the list of checks to deliver the alerts
                local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
                local silence_alerts = recipient_params["recipient_silence_multiple_alerts"]
+               local notifications_type = recipient_params["recipient_notifications_type"] or "alerts"
                local flow_checks = nil
                local host_checks = nil
                if checks and table.len(checks) > 0 then
@@ -415,7 +429,19 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                -- Assign the recipient id
                local recipient_id = _assign_recipient_id()
                -- Persist the configuration
-               _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, check_entities, minimum_severity, host_pools_ids, am_hosts_ids, silence_alerts, checks, safe_params)
+               _set_endpoint_recipient_params({
+                  endpoint_id = endpoint_id, 
+                  recipient_id = recipient_id, 
+                  endpoint_recipient_name = endpoint_recipient_name, 
+                  check_categories = check_categories, 
+                  check_entities = check_entities, 
+                  minimum_severity = minimum_severity, 
+                  host_pools_ids = host_pools_ids, 
+                  am_hosts_ids = am_hosts_ids, 
+                  silence_alerts = silence_alerts, 
+                  checks = checks,
+                  notifications_type = notifications_type}, 
+                  safe_params)
 
                -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
                ntop.recipient_register(recipient_id, minimum_severity, 
@@ -423,7 +449,8 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                                        table.concat(host_pools_ids, ','),
                                        table.concat(check_entities, ','),
                                        flow_checks, -- Flow Alerts bitmap
-                                       host_checks  -- Host Alerts bitmap
+                                       host_checks, -- Host Alerts bitmap
+                                       ternary((notifications_type ~= "alerts"), true --[[skip alerts]], false --[[dont skip alerts]])
                )
 
                -- Set a flag to indicate that a recipient has been created
@@ -487,6 +514,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                local safe_params = status["safe_params"]
                local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
                local silence_alerts = recipient_params["recipient_silence_multiple_alerts"]
+               local notifications_type = recipient_params["recipient_notifications_type"] or "alerts"
                local flow_checks = nil
                local host_checks = nil
                if checks and table.len(checks) > 0 then
@@ -500,18 +528,18 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                   end
                end
 
-               -- Persist the configuration
-               _set_endpoint_recipient_params(
-                  rc["endpoint_id"],
-                  recipient_id,
-                  endpoint_recipient_name,
-                  check_categories,
-                  check_entities,
-                  minimum_severity,
-                  host_pools_ids,
-                  am_hosts_ids,
-                  silence_alerts,
-                  checks,
+               _set_endpoint_recipient_params({
+                  endpoint_id = rc["endpoint_id"], 
+                  recipient_id = recipient_id, 
+                  endpoint_recipient_name = endpoint_recipient_name, 
+                  check_categories = check_categories, 
+                  check_entities = check_entities, 
+                  minimum_severity = minimum_severity, 
+                  host_pools_ids = host_pools_ids, 
+                  am_hosts_ids = am_hosts_ids, 
+                  silence_alerts = silence_alerts, 
+                  checks = checks,
+                  notifications_type = notifications_type}, 
                   safe_params)
 
                -- Finally, register the recipient in C to make sure also the C knows about this edit
@@ -521,7 +549,8 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                                        table.concat(host_pools_ids, ','),
                                        table.concat(check_entities, ','),
                                        flow_checks,
-                                       host_checks
+                                       host_checks,
+                                       ternary((notifications_type ~= "alerts"), true --[[skip alerts]], false --[[dont skip alerts]])
                )
 
                res = {status = "OK"}
@@ -840,12 +869,22 @@ end
 
 -- ##############################################
 
+local function skip_alerts(notifications_type)
+   -- If it's null consider like NOT skipping alerts
+   if notifications_type and notifications_type ~= "alerts" then
+      return true -- Skip alerts
+   end
+   return false
+end
+
+-- ##############################################
+
 -- @brief Dispatches a `notification` to all the interested recipients
 -- Note: this is similar to RecipientQueue::enqueue does in C++)
 -- @param notification An alert notification
 -- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
 -- @return nil
-function recipients.dispatch_notification(notification, current_script)
+function recipients.dispatch_notification(notification, current_script, notification_type)
    if not notification then
       -- traceError(TRACE_ERROR, TRACE_CONSOLE, "Internal error. Empty notification")
       -- tprint(debug.traceback())
@@ -866,7 +905,21 @@ function recipients.dispatch_notification(notification, current_script)
       end
 
       for _, recipient in ipairs(recipients) do
-         local recipient_ok = true
+         local recipient_ok = true      
+
+         -- In case notification_type is nil, do not skip the alerts
+         if notification_type and notification_type ~= "alerts" then
+            if skip_alerts(recipient.notifications_type) then
+               if notification_type == recipient.notifications_type then
+                  local checks = require "checks"
+                  notification.score = 0
+                  notification_category = checks.check_categories.other.id
+                  goto skip_filters
+               end
+            end
+
+            recipient_ok = false
+         end
          
          -- Check Category
          if recipient_ok and notification_category and recipient.check_categories ~= nil then
@@ -958,11 +1011,11 @@ function recipients.dispatch_notification(notification, current_script)
             end
          end
 
+         ::skip_filters::
+
          if recipient_ok then
             -- Enqueue alert
-
             --debug_print(" ===> Delivering alert for entity id " .. notification.entity_id .. " to recipient " .. recipient.recipient_name)
-
             ntop.recipient_enqueue(recipient.recipient_id, 
               json_notification --[[ alert --]],
               notification.score,

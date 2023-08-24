@@ -17,6 +17,7 @@ local alert_entities = require "alert_entities"
 local am_utils = require "am_utils"
 local alert_consts = require "alert_consts"
 local host_pools = require "host_pools":create()
+local recipients = require "recipients"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -132,6 +133,7 @@ local context = {
     endpoints = endpoint_list,
     endpoints_info = get_max_configs_available(),
     am_hosts = am_hosts_list,
+    notification_types = recipients.get_notification_types(),
     filters = {
         endpoint_types = endpoint_type_filters
     },

@@ -1184,11 +1184,12 @@ void Ntop::recipient_register(u_int16_t recipient_id,
                               Bitmap128 enabled_host_pools,
                               Bitmap128 enabled_entities,
                               Bitmap128 enabled_flow_checks,
-                              Bitmap128 enabled_host_checks) {
+                              Bitmap128 enabled_host_checks,
+                              bool skip_alerts) {
   recipients.register_recipient(recipient_id, minimum_severity,
                                 enabled_categories, enabled_host_pools,
                                 enabled_entities, enabled_flow_checks,
-                                enabled_host_checks);
+                                enabled_host_checks, skip_alerts);
 }
 
 /* ******************************************* */

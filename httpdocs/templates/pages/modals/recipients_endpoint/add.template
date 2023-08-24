@@ -45,6 +45,21 @@
 
                     </div>
                     <hr>
+                    <div class="mb-3 row">
+                        <label class="col-form-label col-sm-3" for="add-recipient-notifications-type">
+                            <b>{{ i18n("endpoint_notifications.notifications_type") }}</b>
+                        </label>
+                        <div class="col-sm-7">
+                            <select required name="recipient_notifications_type" class="form-select" id="add-recipient-notifications-type">
+                                {% for id, title in pairsByValues(notification_types, asc) do %}
+                                    <option {{ternary((id == alerts), 'selected', '')}} value="{{ id }}">{{ title }}</option>
+                                {% end %}
+                            </select>
+                            <small>{{ i18n('endpoint_notifications.notifications_type_notes') }}</small>
+                        </div>
+                    </div>
+                    <div id="alert_filters">
+                        <hr>
                         <div class="mb-3 row">
                             <label class="col-form-label col-sm-3" for="add-recipient-host-pools-select">
                                 <b>{{ i18n("host_pools.host_pools") }}</b>
@@ -55,7 +70,7 @@
                                         <option selected value="{{ pool.pool_id }}">{{ pool.name }}</option>
                                     {% end %}
                                 </select>
-                                <small class="text-muted">{{ i18n('endpoint_notifications.message_host_pools') }}</small>
+                                <small>{{ i18n('endpoint_notifications.message_host_pools') }}</small>
                             </div>
                         </div>
                         <div class="mb-3 row">
@@ -68,7 +83,7 @@
                                         <option selected value="{{ host.id }}">{{ host.name }}</option>
                                     {% end %}
                                 </select>
-                                <small class="text-muted">{{ i18n('endpoint_notifications.message_am_hosts') }}</small>
+                                <small>{{ i18n('endpoint_notifications.message_am_hosts') }}</small>
                             </div>
                         </div>
                         <div class="mb-3 row">
@@ -80,7 +95,7 @@
                                     <option selected value="true">{{ i18n("yes") }}</option>
                                     <option value="false">{{ i18n("no") }}</option>
                                 </select>
-                                <small class="text-muted">{{ i18n('endpoint_notifications.silence_multiple_alerts_notes') }}</small>
+                                <small>{{ i18n('endpoint_notifications.silence_multiple_alerts_notes') }}</small>
                             </div>
                         </div>
                         <div class="mb-3 d-flex">
@@ -156,6 +171,7 @@
                                 </div>
                             </div>                            
                         </div>
+                    </div>
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">

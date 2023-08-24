@@ -501,6 +501,12 @@ end
 --
 -- Returns a summary of the alert as readable text
 function alert_utils.formatAlertNotification(notif, options)
+    -- In case just a msg is needed, return directly the msg, this is used for reports
+    if not notif.score and notif.msg then
+        return notif.msg
+    end
+
+    -- Otherwise format the alert
     local defaults = {
         nohtml = false,
         show_severity = true
@@ -923,6 +929,10 @@ function alert_utils.filter_notification(notification, recipient_id)
     local alert_key = alert_info.alert_id
     local entity_id = alert_info.entity_id
     local entity_val = alert_info.entity_val
+
+    if notification.score == 0 then
+        return true
+    end
 
     local alert_id = alert_consts.getAlertType(alert_key, entity_id)
 

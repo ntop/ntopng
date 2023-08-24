@@ -623,7 +623,8 @@ class Ntop {
                           Bitmap128 enabled_host_pools,
                           Bitmap128 enabled_entities,
                           Bitmap128 enabled_flow_checks,
-                          Bitmap128 enabled_host_checks);
+                          Bitmap128 enabled_host_checks,
+                          bool skip_alerts);
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return (last_stats_reset); }

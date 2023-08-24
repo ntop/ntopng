@@ -6731,7 +6731,9 @@ static int ntop_recipient_enqueue(lua_State *vm) {
     notification->alert_severity = Utils::mapScoreToSeverity(score);
     notification->alert_category = alert_category;
     /* TODO: add the alert_id to the AlertFifoItem instance */
-
+/*
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enqueing alert: %s", alert);
+*/
     rv = ntop->recipient_enqueue(recipient_id, notification);
   }
 
@@ -6830,6 +6832,7 @@ static int ntop_recipient_register(lua_State *vm) {
   AlertLevel minimum_severity = alert_level_none;
   char *str_categories, *str_host_pools, *str_entities,
     *str_flow_checks, *str_host_checks;
+  bool skip_alerts = false;
   Bitmap128 enabled_categories, enabled_host_pools, enabled_entities,
     enabled_flow_checks, enabled_host_checks;
     
@@ -6881,8 +6884,13 @@ static int ntop_recipient_register(lua_State *vm) {
       enabled_host_checks.setBits(str_host_checks);
   }
 
+  /* In case it's nil, all alerts are accepted */
+  if (lua_type(vm, 8) == LUA_TBOOLEAN)
+    skip_alerts = (bool)lua_toboolean(vm, 8);
+
   /*
   char bitmap_buf[64];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skip alerts: %s", skip_alerts ? "true" : "false");
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Recipient ID = %u", recipient_id);
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Categories bitmap: %s",
   enabled_categories.toHexString(bitmap_buf, sizeof(bitmap_buf)));
@@ -6898,7 +6906,7 @@ static int ntop_recipient_register(lua_State *vm) {
 
   ntop->recipient_register(recipient_id, minimum_severity, enabled_categories,
                            enabled_host_pools, enabled_entities, enabled_flow_checks,
-                           enabled_host_checks);
+                           enabled_host_checks, skip_alerts);
 
   lua_pushnil(vm);
 
