@@ -9,7 +9,7 @@
         <div class="card-body">
           <div v-if="autorefresh" class="alert alert-info alert-dismissable">
             <span class="spinner-border spinner-border-sm text-info me-1"></span> 
-            <span> {{ _i18n('scan_in_progress') }}</span>
+            <span> {{ in_progress_scan_text }}</span>
           </div>
           <div v-if="insert_with_success" class="alert alert-success alert-dismissable">
             <span class="text-success me-1"></span> 
@@ -78,9 +78,11 @@ let insert_with_success = ref(false);
 let already_inserted = ref(false);
 
 
-let insert_text = ref(i18n('scan_host_inserted'));
-let already_insert_text = ref(i18n('scan_host_already_inserted'));
+let insert_text = ref(_i18n('scan_host_inserted'));
+let already_insert_text = ref(_i18n('scan_host_already_inserted'));
+let in_progress_scan_text = ref(_i18n('scan_in_progress'));
 
+let in_progress_number = ref(0);
 const title_html = ref(i18n("scan_hosts"));
 
 
@@ -136,14 +138,15 @@ function add_host() {
 
 /* Function to refresh table */ 
 
-function refresh_table(ok, disable_loading) {
+function refresh_table( disable_loading) {
   /* It's important to set autorefresh to false, in this way when refreshed 
      all the entries are going to be checked and if all of them are not scanning it stays false
    */
-  if(disable_loading == true)
+  if(disable_loading != null)
     table_hosts_to_scan.value.refresh_table(disable_loading);
   else
-    table_hosts_to_scan.value.refresh_table(false);
+    table_hosts_to_scan.value.refresh_table(true);
+
   
 }
 
@@ -219,8 +222,8 @@ function columns_sorting(col, r0, r1) {
       }
       return r1_col.localeCompare(r0_col);
     } else if (col.id == "is_ok_last_scan") {
-      r0_col = get_scan_status_value(r0_col);
-      r1_col = get_scan_status_value(r1_col);
+      r0_col = get_scan_status_value(r0_col, r0);
+      r1_col = get_scan_status_value(r1_col, r1);
       if (col.sort == 1) {
         return r0_col.localeCompare(r1_col);
       }
@@ -251,16 +254,18 @@ function get_scan_frequency(scan_frequency) {
   }
 }
 
-function get_scan_status_value(is_ok_last_scan) {
-  if (is_ok_last_scan == 4) {
-    return i18n("hosts_stats.page_scan_hosts.in_progress");
-  } else if (is_ok_last_scan == null) {
-    return i18n("hosts_stats.page_scan_hosts.not_scanned");
-  } else if (is_ok_last_scan) {
-    return i18n("hosts_stats.page_scan_hosts.success");
+function get_scan_status_value(is_ok_last_scan, r) {
+  let status = "";
+  if (is_ok_last_scan == 2) {
+    status = i18n("hosts_stats.page_scan_hosts.in_progress");
+  } else if (is_ok_last_scan == 3 || is_ok_last_scan == null) {
+    status = i18n("hosts_stats.page_scan_hosts.not_scanned");
+  } else if (is_ok_last_scan == 1) {
+    status = i18n("hosts_stats.page_scan_hosts.success");
   } else {
-    return i18n("hosts_stats.page_scan_hosts.error");
+    status = i18n("hosts_stats.page_scan_hosts.error");
   }
+  return status + r.id;
 }
 
 function format_num_for_sort(num) {
@@ -394,19 +399,23 @@ const map_table_def_columns = (columns) => {
     }, 
     "is_ok_last_scan": (is_ok_last_scan) => {
       let label = ""
-      if (is_ok_last_scan == 4) {
+      if (is_ok_last_scan == 2) {
+        // in progress
         label = i18n("hosts_stats.page_scan_hosts.in_progress");
         return `<span class="badge bg-info" title="${label}">${label}</span>`;
-      } else if (is_ok_last_scan == null) {
+      } else if (is_ok_last_scan == 3 || is_ok_last_scan == null) {
+        // not scanned
         label = i18n("hosts_stats.page_scan_hosts.not_scanned");
         return `<span class="badge bg-primary" title="${label}">${label}</span>`;
-      } else if (is_ok_last_scan) {
+      } else if (is_ok_last_scan == 1) {
+        // success
         label = i18n("hosts_stats.page_scan_hosts.success");
         return `<span class="badge bg-success" title="${label}">${label}</span>`;
-      } else {
+      } else if (is_ok_last_scan == 0) {
+        // error
         label = i18n("hosts_stats.page_scan_hosts.error");
         return `<span class="badge bg-danger" title="${label}">${label}</span>`;
-      }
+      } 
       
     }
   };
@@ -493,9 +502,19 @@ const add_host_rest = async function (params) {
 
 }
 
-const refresh_feedback_messages = function () {
+const refresh_feedback_messages = function (in_progress) {
   already_insert_text.value = i18n('scan_host_already_inserted');  
   insert_text.value = i18n('scan_host_inserted');
+  if (in_progress != null && in_progress != 0) {
+    if (in_progress_scan_text.value.includes("total"))
+      in_progress_scan_text.value = in_progress_scan_text.value.replace("total",`${in_progress}`);
+    else {
+
+      in_progress_scan_text.value = _i18n('scan_in_progress');
+      in_progress_scan_text.value = in_progress_scan_text.value.replace("total",`${in_progress}`);
+
+    }
+  }
 
 }
 
@@ -529,21 +548,32 @@ const check_in_progress_status = async function () {
   })
 
   const result = await ntopng_utility.http_request(url);
-  autorefresh.value = result.rsp;
-
   insert_with_success.value = false;
   already_inserted.value = false;
-  refresh_feedback_messages();
+  refresh_feedback_messages(result.rsp.total_in_progress);
+  autorefresh.value = result.rsp.total_in_progress > 0 ;
+  
 
-  if(autorefresh.value == false) 
+  if (in_progress_number.value == 0) {
+    in_progress_number.value = result.rsp.total_in_progress;
+    refresh_table(true);
+  } else {
+    if (in_progress_number.value != result.rsp.total_in_progress) {
+      refresh_table(true);
+      in_progress_number.value = result.rsp.total_in_progress;
+    }
+  }
+  if(autorefresh.value == false) {
     setTimeout(table_hosts_to_scan.value.refresh_table, 1000)
+    in_progress_number.value = 0;
+  }
 }
 
 /* Function to confirm to start all scan */
 const confirm_scan_all_entries = function() {
   modal_delete_confirm.value.show("scan_all_rows",i18n("scan_all_hosts"));  
   //autorefresh.value = true;
-  refresh_table(true,false);
+  refresh_table(false);
 
 }
 
@@ -601,6 +631,7 @@ const delete_all_rows = async function() {
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
+  autorefresh.value = false;
   refresh_table(false);
 }
 

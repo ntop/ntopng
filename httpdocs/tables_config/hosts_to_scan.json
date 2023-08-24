@@ -85,7 +85,8 @@
 			"data_field": "scan_type",
 			"sortable": true,
 			"class": [
-				"text-nowrap"
+				"text-nowrap",
+				"text-center"
 			]
 		},
 
