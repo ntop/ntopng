@@ -538,7 +538,7 @@ end
 --                With user:  ntopng.pref.user_name
 --                Without:    ntopng.pref
 function getRedisPrefix(str)
-    if not (isEmptyString(_SESSION["user"])) then
+    if _SESSION and not (isEmptyString(_SESSION["user"])) then
         -- Login enabled
         return (str .. '.' .. _SESSION["user"])
     else

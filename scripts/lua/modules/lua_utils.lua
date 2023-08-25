@@ -1298,6 +1298,11 @@ end
 -- ##############################################
 
 function tablePreferences(key, value, force_set)
+  if not _SESSION then
+    -- Not in a user session, ignore preferences
+    return
+  end
+
   table_key = getRedisPrefix("ntopng.sort.table")
 
   if((value == nil) or (value == "")) and (force_set ~= true) then

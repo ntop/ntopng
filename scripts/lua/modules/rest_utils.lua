@@ -106,6 +106,7 @@ local rest_utils = {
 -- by setting a variable (rest_answer) rather than on HTTP
 function rest_utils.enable_direct_mode()
    rest_utils.direct_mode = true
+   rest_utils.rest_answer = nil
 end
 
 -- Return the REST answer locally (direct_mode)
