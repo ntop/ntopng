@@ -82,8 +82,8 @@ import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng
 
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 
-import { default as ModalSave } from "./modal-save.vue";
-import { default as ModalOpen } from "./modal-open.vue";
+import { default as ModalSave } from "./modal-file-save.vue";
+import { default as ModalOpen } from "./modal-file-open.vue";
 
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as EmptyComponent } from "./empty-component.vue";
@@ -216,7 +216,7 @@ function show_open_report_modal() {
 }
 
 function get_suggested_report_name() {
-    return ntopng_utility.from_utc_to_server_date_format(main_epoch_interval.value.epoch_end * 1000, 'DD-MM-YYYY');
+    return "report-" + ntopng_utility.from_utc_to_server_date_format(main_epoch_interval.value.epoch_end * 1000, 'DD-MM-YYYY');
 }
 
 const list_reports = async () => {
@@ -287,29 +287,34 @@ const delete_report = async (file_name) => {
     return success;
 }
 
-const store_report = async (file_name) => {
-    let success = false;
+/* Dump report content - keep in sync with dashboard_utils.build_report (lua) */
+const serialize_report = async (name) => {
 
     let components_data = {};
     for (var key in components_info) {
         components_data[key] = await components_info[key].data;
     }
 
-    /* Dump content - keep in sync with dashboard_utils.build_report (lua) */
     let content = {
-        version: "1.0", /* Report dump version */
-        name: file_name,
+        version: "1.0", // Report dump version
+        name: name,
         epoch_begin: main_epoch_interval.value.epoch_begin,
         epoch_end: main_epoch_interval.value.epoch_end,
         template: components.value,
         data: components_data
     };
 
+    return JSON.stringify(content);
+}
+
+const store_report = async (file_name) => {
+    let success = false;
+
     let data = {
         csrf: props.context.csrf,
         ifid: props.context.ifid,
 	report_name: file_name,
-        content: JSON.stringify(content)
+        content: await serialize_report(file_name)
     };
 
     let url = `${http_prefix}/lua/pro/rest/v2/add/report/backup/file.lua`;
