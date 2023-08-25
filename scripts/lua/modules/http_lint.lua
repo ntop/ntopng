@@ -2050,6 +2050,7 @@ local known_parameters = {
     ["interface_rrd_creation"] = validateBool,
     ["interface_one_way_hosts_rrd_creation"] = validateBool,
     ["interface_top_talkers_creation"] = validateBool,
+    ["automatic_reports_creation"] = validateBool,
     ["interface_flow_dump"] = validateBool,
     ["is_mirrored_traffic"] = validateBool,
     ["discard_probing_traffic"] = validateBool,

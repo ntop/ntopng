@@ -1780,6 +1780,34 @@ elseif(page == "config") then
            </td>
         </tr>]]
 
+   -- Automatic Reports
+   if isAdministrator() and ntop.isEnterpriseL() then
+      package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+      local dashboard_utils = require "dashboard_utils"
+      
+      local automatic_reports_creation
+
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+         automatic_reports_creation = toboolean(_POST["automatic_reports_creation"])
+         dashboard_utils.toggle_automatic_reports(ifid, automatic_reports_creation)
+      else
+         automatic_reports_creation = dashboard_utils.automatic_reports_enabled(ifid)
+      end
+
+      print [[<tr>
+         <th>]] print(i18n("if_stats_config.automatic_reports_creation")) print[[</th>
+         <td>]]
+
+      print(template.gen("on_off_switch.html", {
+         id = "automatic_reports_creation",
+         checked = automatic_reports_creation,
+       }))
+
+      print[[
+            </td>
+      </tr>]]
+   end
+
    -- per-interface Top-Talkers generation
    local interface_top_talkers_creation = true
 
