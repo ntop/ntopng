@@ -2305,7 +2305,7 @@ static bool allowLocalUserManagement(lua_State *vm) {
 
 static int ntop_reset_user_password(lua_State *vm) {
   char *who, *username, *old_password, *new_password;
-  bool is_admin = ntop->isUserAdministrator(vm);
+  bool is_admin = ntop->isUserAdministrator(vm), ret;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2342,8 +2342,9 @@ static int ntop_reset_user_password(lua_State *vm) {
   if ((old_password[0] == '\0') && !is_admin)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
-  lua_pushboolean(
-      vm, ntop->resetUserPassword(username, old_password, new_password));
+  ret = ntop->resetUserPassword(username, old_password, new_password);
+  
+  lua_pushboolean(vm, ret);
   return CONST_LUA_OK;
 }
 
@@ -2866,8 +2867,8 @@ static int ntop_create_user_session(lua_State *vm) {
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
 
-  ntop->get_HTTPserver()->authorize_noconn(
-      username, session_id, sizeof(session_id), session_duration);
+  ntop->get_HTTPserver()->authorize_noconn(username, session_id,
+					   sizeof(session_id), session_duration);
 
   lua_pushstring(vm, session_id);
   return CONST_LUA_OK;
