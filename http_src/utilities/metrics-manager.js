@@ -132,7 +132,7 @@ function get_timeseries(timeseries_url, metric) {
     ts_url_array.forEach((ts_url) => {
 	let values = r.exec(ts_url);
 	let id = values[1];
-	let label = metric.timeseries[id].label;
+	let label = metric?.timeseries[id]?.label || id;
 	let raw = JSON.parse(values[2]);
 	let past = JSON.parse(values[3]);
 	let avg = JSON.parse(values[4]);
