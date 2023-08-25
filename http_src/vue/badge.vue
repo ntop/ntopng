@@ -6,7 +6,7 @@
 <div class="d-flex align-items-center justify-content-between">
     <div>
         <h4 class="fw-normal text-white">{{ counter }}</h4>
-        <p class="subtitle text-white text-sm text mb-0">{{ name }}</p>
+        <p class="subtitle text-white text-sm text mb-0 h5">{{ name }}</p>
     </div>
     <div class="flex-shrink-0 ms-3">
         <i class="text-white" :class="icon"></i>
