@@ -501,11 +501,6 @@ end
 --
 -- Returns a summary of the alert as readable text
 function alert_utils.formatAlertNotification(notif, options)
-    -- In case just a msg is needed, return directly the msg, this is used for reports
-    if not notif.score and notif.msg then
-        return notif.msg
-    end
-
     -- Otherwise format the alert
     local defaults = {
         nohtml = false,

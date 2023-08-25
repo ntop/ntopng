@@ -454,6 +454,34 @@ function format_utils.formatHostNameAndAddress(hostname, address)
 
    return res
 end
+
+-- ######################################################
+
+-- This is a basic function used to format notifications
+local function format_notification(notification, options)
+   local message = notification.message or ""
+   -- TODO: add the support to options 
+   return message
+end
+
+-- ######################################################
+
+-- This function is used to format alerts/message from recipients
+-- so it's going to convert a table into a message delivered to the
+-- various recipients.
+-- Currently there are two types of messages, alerts and notifications
+function format_utils.formatMessage(notification, options)
+   if not notification.score or notification.score == 0 then
+      -- In case it is just a message/report (so no score), format like a normal msg
+      return format_notification(notification, options)
+   else
+      -- In case it is an alert, format it by using the standard function
+      local alert_utils = require "alert_utils"
+      return alert_utils.formatAlertNotification(notification, options)
+   end
+end
+
+-- ######################################################
    
 if(trace_script_duration ~= nil) then
    io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")

@@ -104,7 +104,7 @@ function syslog.sendMessage(settings, notif, severity)
      end
    else -- syslog_format == "plaintext" or "plaintextrfc"
       -- prepare a plain text message
-      msg = alert_utils.formatAlertNotification(json.decode(notif), {
+      msg = format_utils.formatMessage(json.decode(notif), {
          nohtml = true,
          show_severity = true,
          show_entity = true,

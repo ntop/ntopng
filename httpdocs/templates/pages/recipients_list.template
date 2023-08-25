@@ -20,12 +20,12 @@
                                 <th>{{ i18n('endpoint_notifications.num_uses') }}</th>
                                 <th>{{ i18n('endpoint_notifications.num_drops') }}</th>
 				                <th>{{ i18n('endpoint_notifications.fill_pct') }}</th>
+                                <th>{{ i18n('endpoint_notifications.notifications_type_abbr') }}</th>
                                 <th>{{ i18n('endpoint_notifications.categories') }}</th>
                                 <th>{{ i18n('endpoint_notifications.entities') }}</th>
                                 <th>{{ i18n('endpoint_notifications.alerts') }}</th>
                                 <th>{{ i18n('endpoint_notifications.min_severity') }}</th>
                                 <th>{{ i18n('endpoint_notifications.silence_mul_alerts') }}</th>
-                                <th>{{ i18n('endpoint_notifications.notifications_type_abbr') }}</th>
                             </tr>
                         </thead>
                     </table>
@@ -248,7 +248,7 @@
 
                     return DataTableUtils.createActionButtons([
                         //{ class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa fa-users', modal: '#users-recipient-modal', title: `${i18n_ext.recipient}` },
-                        { class: 'btn-info' /* Builtins are editable to change theis severity */, icon: 'fa-edit', modal: '#edit-recipient-modal', title: `${i18n_ext.edit}` },
+                        { class: '' /* Builtins are editable to change theis severity */, icon: 'fa-edit', modal: '#edit-recipient-modal', title: `${i18n_ext.edit}` },
                         { class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-recipient-modal', title: `${i18n_ext.delete}` },
                     ]);
                 }
@@ -330,11 +330,27 @@
                 }
             },
             {
+                data: "notifications_type",
+                className: "text-center text-nowrap",
+                width: "5%",
+                render: function (data, type, row) {
+                    if(data && data === "vulnerability_scans") {
+                        return `<i class="fa-solid fa-clipboard" title="${i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports')}"></i>`;
+                    } else {
+                        return `<i class="fas fa-lg fa-exclamation-triangle text-warning" title="${i18n('endpoint_notifications.alerts')}"></i>`
+                    }
+                }  
+            },
+            {
                 data: "check_categories",
                 className: "text-right",
                 width: "5%",
-                render: function (data, type) {
-                    if (data.length == 0)
+                render: function (data, type, row) {
+                    /* In case no the notification type is not alerts, this data has no meaning */
+                    if ((row.notifications_type && row.notifications_type != "alerts")
+                        || (row.checks.length > 0))
+                        return "-"
+                    else if (data.length == 0)
                         return `<i class='text-danger fas fa-exclamation-triangle'></i> ` + data.length;
                     else
                         return data.length;
@@ -344,8 +360,11 @@
                 data: "check_entities",
                 className: "text-right",
                 width: "5%",
-                render: function (data, type) {
-                    if (data.length == 0)
+                render: function (data, type, row) {
+                    if ((row.notifications_type && row.notifications_type != "alerts")
+                        || (row.checks.length > 0))
+                        return "-"
+                    else if (data.length == 0)
                         return `<i class='text-danger fas fa-exclamation-triangle'></i> ` + data.length;
                     else
                         return data.length;
@@ -366,9 +385,14 @@
                 data: "minimum_severity",
                 className: "text-right text-nowrap",
                 width: "5%",
-                render: function (data, type) {
-                    const min_sev_key = SEVERITIES[data - 1];
-                    return `${i18n_ext.endpoint_severities[min_sev_key]}`;
+                render: function (data, type, row) {
+                    if ((row.notifications_type && row.notifications_type != "alerts") 
+                        || (row.checks.length > 0)) {
+                        return "-"
+                    } else { 
+                        const min_sev_key = SEVERITIES[data - 1];
+                        return `${i18n_ext.endpoint_severities[min_sev_key]}`;
+                    }
                 }  
             },
             {
@@ -377,24 +401,12 @@
                 width: "5%",
                 render: function (data, type, row) {
                     /* The buildin recipient cannot be modified and deliver all alerts */
-                    if(data && data === "false" || row.recipient_id == 0) {
+                    if (row.notifications_type && row.notifications_type != "alerts")
+                        return "-"
+                    else if(data && data === "false" || row.recipient_id == 0) {
                         return `<i class="fas fa-times text-danger"></i>`
                     } else {
                         return `<i class="fas fa-check text-success"></i>`
-                    }
-                }  
-            },
-            {
-                data: "notifications_type",
-                className: "text-center text-nowrap",
-                width: "5%",
-                render: function (data, type, row) {
-                    if(data && data === "all") {
-                        return `${i18n("all")}`;
-                    } else if(data && data === "vulnerability_scans") {
-                        return `<i class="fa-regular fa-clipboard text-warning" title="${i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports')}"></i>`;
-                    } else {
-                        return `<i class="fas fa-lg fa-exclamation-triangle text-warning" title="${i18n('endpoint_notifications.alerts')}"></i>`
                     }
                 }  
             },

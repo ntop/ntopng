@@ -1,6 +1,7 @@
 require "lua_utils"
 local json = require "dkjson"
 local alert_utils = require "alert_utils"
+local format_utils = require "format_utils"
 
 local endpoint_key = "mattermost"
 
@@ -97,7 +98,7 @@ function mattermost.sendMattermost(message_body,settings)
 end
 
 local function formatMattermostMessage(alert)
-  local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true, emoji=true, show_entity=true})
+  local msg = format_utils.formatMessage(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true, emoji=true, show_entity=true})
   
   return(msg)
 end
