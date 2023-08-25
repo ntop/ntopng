@@ -222,28 +222,6 @@ if is_nedge then
     dofile(dirs.installdir .. "/pro/scripts/lua/nedge/inc/menubar.lua")
 else
     -- ##############################################
-    local scan_modules = vs_utils.list_scan_modules()
-
-    -- Monitoring
-    -- The Monitoring entry are used to go to the System interface pages
-    -- without using the Interface dropdown. The section is hidden
-    -- in system interface.
-    page_utils.add_menubar_section({
-        section = page_utils.menu_sections.monitoring,
-        hidden = is_system_interface or not is_admin,
-        entries = {{
-            entry = page_utils.menu_entries.snmp,
-            hidden = (not ntop.isEnterpriseM() and not ntop.isnEdgeEnterprise()),
-            url = "/lua/pro/enterprise/snmpdevices_stats.lua"
-        }, {
-            entry = page_utils.menu_entries.active_monitoring,
-            url = "/lua/monitor/active_monitoring_monitor.lua"
-        }, {
-            entry = page_utils.menu_entries.vulnerability_scan,
-            url = '/lua/vulnerability_scan.lua',
-            hidden = #scan_modules == 0
-        }}
-    })
 
     -- Dashboard
     page_utils.add_menubar_section({
@@ -262,6 +240,30 @@ else
             entry = page_utils.menu_entries.traffic_report,
             hidden = not ntop.isPro(),
             url = "/lua/pro/report.lua"
+        }}
+    })
+
+    -- ##############################################
+
+    -- Active Monitoring
+    -- The Monitoring entry are used to go to the System interface pages
+    -- without using the Interface dropdown. The section is hidden
+    -- in system interface.
+    local scan_modules = vs_utils.list_scan_modules()
+    page_utils.add_menubar_section({
+        section = page_utils.menu_sections.monitoring,
+        hidden = is_system_interface or not is_admin,
+        entries = {{
+            entry = page_utils.menu_entries.snmp,
+            hidden = (not ntop.isEnterpriseM() and not ntop.isnEdgeEnterprise()),
+            url = "/lua/pro/enterprise/snmpdevices_stats.lua"
+        }, {
+            entry = page_utils.menu_entries.active_monitoring,
+            url = "/lua/monitor/active_monitoring_monitor.lua"
+        }, {
+            entry = page_utils.menu_entries.vulnerability_scan,
+            url = '/lua/vulnerability_scan.lua',
+            hidden = #scan_modules == 0
         }}
     })
 
