@@ -6471,6 +6471,7 @@ local lang = {
     ["begin_date_time"] = "Begin Date/Time",
     ["date"] = "%{month}-%{day}-%{year}",
     ["end_date_time"] = "End Date/Time",
+    ["file"] = "Report File",
     ["filter_report"] = "Filter Report",
     ["generate"] = "Generate",
     ["invalid_begin"] = "Invalid Begin",

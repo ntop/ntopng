@@ -16,6 +16,11 @@
              :title="_i18n('dashboard.open')"
              :file_title="_i18n('report.report_name')">
   </ModalOpen>
+  <ModalUpload ref="modal_upload_report"
+             :upload_file="upload_report"
+             :title="_i18n('upload')"
+             :file_title="_i18n('report.file')">
+  </ModalUpload>
 
   <DateTimeRangePicker v-if="enable_date_time_range_picker"
                        id="dashboard-date-time-picker"
@@ -28,6 +33,14 @@
       <button class="btn btn-link btn-sm"
               @click="show_open_report_modal" :title="_i18n('dashboard.open')">
         <i class="fa-solid fa-folder-open"></i>
+      </button>
+      <button class="btn btn-link btn-sm"
+              @click="download_report" :title="_i18n('download')">
+        <i class="fa-solid fa-file-arrow-down"></i>
+      </button>
+      <button class="btn btn-link btn-sm"
+              @click="show_upload_report_modal" :title="_i18n('upload')">
+        <i class="fa-solid fa-file-arrow-up"></i>
       </button>
       <button class="btn btn-link btn-sm"
               @click="print_report" :title="_i18n('dashboard.print')">
@@ -84,6 +97,7 @@ import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 
 import { default as ModalSave } from "./modal-file-save.vue";
 import { default as ModalOpen } from "./modal-file-open.vue";
+import { default as ModalUpload } from "./modal-file-upload.vue";
 
 import { default as SimpleTable } from "./simple-table.vue";
 import { default as EmptyComponent } from "./empty-component.vue";
@@ -111,6 +125,7 @@ const report_box = ref(null);
 
 const modal_store_report = ref(null);
 const modal_open_report = ref(null);
+const modal_upload_report = ref(null);
 
 const main_epoch_interval = ref(null);
 
@@ -215,8 +230,16 @@ function show_open_report_modal() {
     modal_open_report.value.show();
 }
 
+function show_upload_report_modal() {
+    modal_upload_report.value.show();
+}
+
 function get_suggested_report_name() {
     return "report-" + ntopng_utility.from_utc_to_server_date_format(main_epoch_interval.value.epoch_end * 1000, 'DD-MM-YYYY');
+}
+
+const upload_report = async (content) => {
+    load_report(JSON.parse(content));
 }
 
 const list_reports = async () => {
@@ -229,11 +252,9 @@ const list_reports = async () => {
     return files;
 }
 
-const open_report = async (file_name) => {
-    let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/file.lua?ifid=${props.context.ifid}&report_name=${file_name}`;
-    let content = await ntopng_utility.http_request(url);
+const load_report = async (content) => {
 
-    // console.log(content);
+    /* TODO print report name in dashboard header */
 
     let tmp_name = content.name;
     let tmp_epoch_interval = {
@@ -262,6 +283,13 @@ const open_report = async (file_name) => {
 
     /* Change the time interval on components */
     set_components_epoch_interval(tmp_epoch_interval);
+}
+
+const open_report = async (file_name) => {
+    let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/file.lua?ifid=${props.context.ifid}&report_name=${file_name}`;
+    let content = await ntopng_utility.http_request(url);
+
+    load_report(content);
 }
 
 const delete_report = async (file_name) => {
@@ -330,6 +358,20 @@ const store_report = async (file_name) => {
 
     return success;
 }
+
+async function download_report() {
+    var name = get_suggested_report_name();
+    var filename = name + '.json';
+    var content = await serialize_report(name);
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
+
 
 function print_report() {
     $(report_box.value).print();
