@@ -295,6 +295,7 @@ const store_report = async (file_name) => {
         components_data[key] = await components_info[key].data;
     }
 
+    /* Dump content - keep in sync with dashboard_utils.build_report (lua) */
     let content = {
         version: "1.0", /* Report dump version */
         name: file_name,
