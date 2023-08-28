@@ -22,9 +22,6 @@ function ts_rest_utils.get_timeseries(http_context)
     tstart = tonumber(tstart) or (os.time() - 3600)
     tend = tonumber(tend) or os.time()
 
-    if ntop.getCache('ntopng.debug_timeseries') == '1' then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE, "Checking data")
-    end
     if http_context.tskey then
         -- This can contain a MAC address for local broadcast domain hosts
         local tskey = http_context.tskey
@@ -38,9 +35,6 @@ function ts_rest_utils.get_timeseries(http_context)
         -- Setting host_ip (check that the provided IP matches the provided
         -- mac address as safety check and to avoid security issues)
         if tags.host then
-            if ntop.getCache('ntopng.debug_timeseries') == '1' then
-               traceError(TRACE_NORMAL, TRACE_CONSOLE, "Checking host data")
-            end
             local host = hostkey2hostinfo(tags.host)
 
             if not isEmptyString(host["host"]) then
@@ -81,10 +75,7 @@ function ts_rest_utils.get_timeseries(http_context)
         target_aggregation = ts_aggregation or "raw"
     }
     
-   if ntop.getCache('ntopng.debug_timeseries') == '1' then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Defined options")
-   end
-
+   
     if (no_fill == 1) then
         options.fill_value = 0 / 0 -- NaN
     end
@@ -101,9 +92,6 @@ function ts_rest_utils.get_timeseries(http_context)
 
     local function performQuery(tstart, tend, keep_total, additional_options)
       
-         if ntop.getCache('ntopng.debug_timeseries') == '1' then
-            traceError(TRACE_NORMAL, TRACE_CONSOLE, "Running query: " .. ts_schema)
-         end
         local res
         additional_options = additional_options or {}
         local options = table.merge(options, additional_options)
@@ -121,10 +109,6 @@ function ts_rest_utils.get_timeseries(http_context)
             end
         end
 
-        if ntop.getCache('ntopng.debug_timeseries') == '1' then
-            traceError(TRACE_NORMAL, TRACE_CONSOLE, "Query executed")
-            tprint(res)
-         end
         return res
     end
 
@@ -148,20 +132,13 @@ function ts_rest_utils.get_timeseries(http_context)
                                                                 ".serialize_local_broadcast_hosts_as_macs")) == "1"
         local tmp = split(ts_schema, ":")
         
-   if ntop.getCache('ntopng.debug_timeseries') == '1' then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Serialized by Mac")
-   end
-
+   
         if (serialize_by_mac) and (tags.mac) then
             ts_schema = "host:" .. tmp[2]
             tags.host = tags.mac .. "_v4"
         end
 
         res = performQuery(tstart, tend) or {}
-        if ntop.getCache('ntopng.debug_timeseries') == '1' then
-           traceError(TRACE_NORMAL, TRACE_CONSOLE, "Performed second query")
-           tprint(res)
-        end
         -- end
     end
 
@@ -185,18 +162,12 @@ function ts_rest_utils.get_timeseries(http_context)
     res.max_points = options.max_num_points
 
     
-   if ntop.getCache('ntopng.debug_timeseries') == '1' then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Comparing backward")
-   end
-
+   
     if not isEmptyString(compare_backward) and compare_backward ~= "1Y" and (res.step ~= nil) then
         local backward_sec = graph_common.getZoomDuration(compare_backward)
         local tstart_cmp = res.start - backward_sec
         local tend_cmp = tstart_cmp + res.step * (res.count - 1)
 
-        if ntop.getCache('ntopng.debug_timeseries') == '1' then
-         traceError(TRACE_NORMAL, TRACE_CONSOLE, "Performing backward query")
-      end
         -- Try to use the same aggregation as the original query
         local res_cmp = performQuery(tstart_cmp, tend_cmp, true, {
             target_aggregation = res.source_aggregation
@@ -223,10 +194,7 @@ function ts_rest_utils.get_timeseries(http_context)
     -- TODO make a script parameter?
     local extend_labels = true
     
-   if ntop.getCache('ntopng.debug_timeseries') == '1' then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Extending Label")
-   end
-
+   
     if extend_labels and graph_utils.extendLabels then
         graph_utils.extendLabels(res)
     end
@@ -240,9 +208,6 @@ function ts_rest_utils.get_timeseries(http_context)
     end
 
     
-   if ntop.getCache('ntopng.debug_timeseries') == '1' then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Getting Layout")
-   end
     -- Add layout information
     local layout = graph_utils.get_timeseries_layout(ts_schema)
     local filtered_serie = {}
@@ -273,9 +238,6 @@ function ts_rest_utils.get_timeseries(http_context)
 
     if extended_times then
       
-   if ntop.getCache('ntopng.debug_timeseries') == '1' then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Extended time")
-   end
         if res.series and res.step then
             for k, serie in pairs(res.series) do
                 serie.data = ts_common.serieWithTimestamp(serie.data, tstart, res.step)
