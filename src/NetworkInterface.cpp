@@ -560,8 +560,7 @@ bool NetworkInterface::nDPILoadIPCategory(char *what,
 
 /* *************************************** */
 
-bool NetworkInterface::nDPILoadHostnameCategory(
-						char *what, ndpi_protocol_category_t id, char *list_name /* NOT used */) {
+bool NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name /* NOT used */) {
   bool success = true;
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__,
