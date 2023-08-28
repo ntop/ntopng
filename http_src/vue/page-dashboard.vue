@@ -162,7 +162,14 @@ onBeforeMount(async () => {
         epoch_interval = ntopng_utility.check_and_set_default_time_interval(undefined, undefined, true);
         main_epoch_interval.value = epoch_interval;
     }
-    await load_components(epoch_interval);
+
+    if (props.context.report_name) {
+        /* Report name provided - open a report backup */
+        await open_report(props.context.report_name);
+    } else {
+        /* Load a template and build a new report */
+        await load_components(epoch_interval);
+    }
 });
 
 onMounted(async () => {
