@@ -1611,7 +1611,7 @@ local known_parameters = {
     ["mac"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))), -- a MAC address
     ["cli_mac"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))), -- a MAC address
     ["srv_mac"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))), -- a MAC address
-    ["tskey"] = validateSingleWord, -- host identifier for timeseries
+    ["tskey"] = validateUnquoted, -- timeseries name
     ["peer1"] = validateHost, -- a Peer in a connection
     ["peer2"] = validateHost, -- another Peer in a connection
     ["origin"] = validateHost, -- the source of the alert
@@ -2617,6 +2617,13 @@ local special_parameters = { --[[Suffix validator]] --[[Value Validator]]
 -- #################################################################
 
 local function validateParameter(k, v)
+   local debug          = false
+   local trace_failures = true
+   
+   if (debug) then
+      io.write("[LINT] validateParameter [" .. k .. "] ".. type(v) .."\n")
+   end
+
     if (known_parameters[k] == nil) then
         -- Attempt at recursively validate tables
         if (type(v) == "table") then
@@ -2626,15 +2633,21 @@ local function validateParameter(k, v)
                 -- Stop, if any of the table value fails the validation against
                 -- the expected table key
                 if not success then
-                    return success, message, nil
+		   if (trace_failures) then
+		      io.write("[LINT] validateParameter failed for table entry [" .. table_key .. "][".. table_value .."]\n")
+		   end
+
+		   return success, message, nil
                 end
             end
 
             -- Success, all the table keys have been validated successfully
             return true, "OK", v
         else
-            error("[LINT] Validation error: Unknown key '" .. k .. "': missing validation perhaps?\n")
-            return false, nil
+	   if (trace_failures) then
+	      error("[LINT] Validation error: Unknown key '" .. k .. "': missing validation perhaps?\n")
+	   end
+	   return false, nil
         end
     else
         local ret
@@ -2653,7 +2666,11 @@ local function validateParameter(k, v)
         if ret then
             return true, "OK", v
         else
-            -- io.write(debug.traceback())
+	   if (trace_failures) then
+	      io.write("[LINT] validateParameter failed for parameter [" .. k .. "][".. type(f) .."]\n")
+	   end
+
+	   -- io.write(debug.traceback())
             return false, "Validation error", nil
         end
     end
@@ -2710,7 +2727,7 @@ local function lintParams()
     local script_manager = require("script_manager")
     local params_to_validate = {_GET, _POST}
     local id, _, k, v
-
+    
     -- VALIDATION SETTINGS
     local enableValidation = true --[[ To enable validation ]]
     local relaxGetValidation = true --[[ To consider empty fields as valid in _GET parameters ]]
@@ -2723,7 +2740,7 @@ local function lintParams()
     for _, id in pairs(params_to_validate) do
         for k, v in pairs(id) do
             if (debug) then
-                io.write("[LINT] Validating [" .. k .. "][" .. v .. "]\n")
+	       io.write("[LINT] Validating [" .. k .. "]\n")
             end
 
             if enableValidation then
@@ -2739,13 +2756,22 @@ local function lintParams()
                     else
                         if message ~= nil then
                             -- tprint("k: "..k.. " v: "..v.. " success: "..tostring(success).. " message: "..message)
-                            http_lint.validationError(id, k, v, message)
+
+			   if (debug) then
+			      io.write("[LINT] Failure validating parameter '" .. k .. "' (1)\n")
+			   end
+		       
+			   http_lint.validationError(id, k, v, message)
                         else
                             success, message, purified = validateParameter(k, v)
 
                             if success then
                                 id[k] = purified
                             else
+			       if (debug) then
+				  io.write("[LINT] Failure validating parameter '" .. k .. "' (2)\n")
+			       end
+						   
                                 if message ~= nil then
                                     http_lint.validationError(id, k, v, message)
                                 else
