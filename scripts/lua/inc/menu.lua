@@ -600,7 +600,7 @@ end
 -- Pools
 
 page_utils.add_menubar_section({
-    hidden = not is_system_interface,
+    hidden = true, -- Always add the pools menu (moved to the Hosts submenu)
     section = page_utils.menu_sections.pools,
     entries = {{
         entry = page_utils.menu_entries.manage_pools,
@@ -621,8 +621,6 @@ page_utils.add_menubar_section({
     hidden = not is_system_interface or not is_admin,
     url = '/lua/admin/endpoint_notifications_list.lua'
 })
-
-
 
 page_utils.add_menubar_section({
     section = page_utils.menu_sections.admin,

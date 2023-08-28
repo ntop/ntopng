@@ -55,7 +55,7 @@ page_utils.menu_sections = {
    health        = {key = "health", i18n_title = "health", icon = "fas fa-laptop-medical"},
    pollers       = {key = "pollers", i18n_title = "pollers", icon = "fas fa-heartbeat"},
    tools         = {key = "tools", i18n_title = "tools", icon = "fas fa-cogs"},
-   --pools         = {key = "pools", i18n_title = "pools.pools", icon = "fas fa-users"},
+   pools         = {key = "pools", i18n_title = "pools.pools", icon = "fas fa-users"},
    notifications = {key = "notifications", i18n_title = "endpoint_notifications.notifications", icon = "fas fa-bell"},
    checks  = {key = "checks", i18n_title = "about.checks" },
    -- nEdge
