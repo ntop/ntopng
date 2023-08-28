@@ -79,6 +79,7 @@ export const ntopng_utility = function() {
             let t_month = new Date();
             let t_year = new Date();
             return {
+                "min": min,
                 "5_min": min * 5,
                 "30_min": min * 30,
                 hour: min * 60,
@@ -105,7 +106,7 @@ export const ntopng_utility = function() {
 	    return ts - (ts % timeframe);
 	},
 	// method to set default epoch begin to 30_min ago
-	set_default_time_interval: function (time_interval_id) {
+	set_default_time_interval: function (time_interval_id, round_timeframe_id) {
             let epoch = {
 		epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
 		epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
@@ -114,19 +115,23 @@ export const ntopng_utility = function() {
             let seconds_in_interval = this.get_timeframe_from_timeframe_id(time_interval_id);
             epoch.epoch_begin = now_s - seconds_in_interval;
             epoch.epoch_end = now_s;
+            if (round_timeframe_id != null) {
+                epoch.epoch_begin = this.round_time_by_timeframe_id(epoch.epoch_begin, round_timeframe_id);
+                epoch.epoch_end = this.round_time_by_timeframe_id(epoch.epoch_end, round_timeframe_id);
+            }
             ntopng_url_manager.set_key_to_url("epoch_begin", epoch.epoch_begin);
             ntopng_url_manager.set_key_to_url("epoch_end", epoch.epoch_end);
 	    
             return epoch;
 	},
-	//should take a string as parameter that represent time: 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year. ID time_interval_id is null, default must be 30_min
+	//should take a string as parameter that represent time: min, 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year. ID time_interval_id is null, default must be 30_min
 	// return epoch_interval only if epoch url is set
-	check_and_set_default_time_interval: function (time_interval_id="30_min", f_condition, get_epoch=false) {
+	check_and_set_default_time_interval: function (time_interval_id="30_min", f_condition, get_epoch=false, round_timeframe_id) {
             let epoch = this.get_url_epoch_interval();
 
             // if time_interval_id is 30 (default)
             if (epoch.epoch_begin == null || epoch.epoch_end == null || (f_condition != null && f_condition(epoch) == true))  {
-		epoch = this.set_default_time_interval(time_interval_id);
+		epoch = this.set_default_time_interval(time_interval_id, round_timeframe_id);
 		return epoch;
             }
 	    if (get_epoch == true) {

@@ -24,6 +24,8 @@
 
   <DateTimeRangePicker v-if="enable_date_time_range_picker"
                        id="dashboard-date-time-picker"
+                       :round_time="true"
+                       min_time_interval_id="min"
                        @epoch_change="set_components_epoch_interval">
     <template v-slot:extra_buttons>
       <button class="btn btn-link btn-sm"
@@ -159,7 +161,7 @@ const component_interval = computed(() => {
 onBeforeMount(async () => {
     let epoch_interval = null;
     if (props.context.page == "report") {
-        epoch_interval = ntopng_utility.check_and_set_default_time_interval(undefined, undefined, true);
+        epoch_interval = ntopng_utility.check_and_set_default_time_interval(undefined, undefined, true, "min");
         main_epoch_interval.value = epoch_interval;
     }
 

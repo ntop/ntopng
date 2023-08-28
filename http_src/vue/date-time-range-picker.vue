@@ -128,7 +128,7 @@ export default {
             if (elem.value == "custom") {
                 return true;
             }
-            return timeframes_dict[elem.value] >= min_time_interval;
+            return min_time_interval == null || timeframes_dict[elem.value] >= min_time_interval;
         });
     },
     /** This method is the first method called after html template creation. */
