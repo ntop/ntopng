@@ -36,6 +36,10 @@ local notification_types = {
       title = i18n('endpoint_notifications.alerts'),
       icon = 'fas fa-lg fa-exclamation-triangle text-warning'
    },
+   reports = {
+      title = i18n('report.reports'),
+      icon = 'fa-regular fa-newspaper'
+   },
 --   vulnerability_scans = {
 --      title = i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports'),
 --      icon = 'fa-solid fa-clipboard',

@@ -6490,6 +6490,7 @@ local lang = {
     ["please_choose_valid_date_and_time"] = "please choose a valid date and time",
     ["receivers"] = "Receivers",
     ["remote_local"] = "Remote/Local",
+    ["reports"] = "Traffic Reports",
     ["report_for_subject"] = "Report - %{num_min} - for %{subject} starting %{dt}",
     ["report_name"] = "Report Name",
     ["reports_professional_only"] = "Reports are only available in the Professional version",
