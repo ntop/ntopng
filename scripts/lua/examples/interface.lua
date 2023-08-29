@@ -1,5 +1,5 @@
 --
--- (C) 2013 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 -- Ntop lua class example
@@ -10,22 +10,27 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local page_utils = require("page_utils")
 
-function printTable(table,key)
+function printTable(table, key)
+   -- traceError(TRACE_DEBUG,TRACE_CONSOLE, "Extern\n")
+   if (key ~= nil) then print(""..key..":<ul>") end
 
-  -- traceError(TRACE_DEBUG,TRACE_CONSOLE, "Extern\n")
-  if (key ~= nil) then print(""..key..":<ul>") end
-  for k, v in pairs(table) do
-    -- traceError(TRACE_DEBUG,TRACE_CONSOLE, "Intern\n")
-    if (type(v) == "table") then
-     printTable(table[k],k)
+   if (type(table) == "table") then      
+      for k, v in pairs(table) do
+	 -- traceError(TRACE_DEBUG,TRACE_CONSOLE, "Intern\n")
+	 if (type(v) == "table") then
+	    printTable(table[k],k)
+	 else
+	    if (type(v) == "boolean") then
+	       if (v) then v = "true" else v = "false" end
+	    end
+	    print("<li>"..k .." = "..v.."<br>")
+	 end
+      end
+      
+      print("</ul>")
    else
-    if (type(v) == "boolean") then
-      if (v) then v = "true" else v = "false" end
-    end
-    print("<li>"..k .." = "..v.."<br>")
-  end
-end
-print("</ul>")
+      print(table)
+   end
 end
 
 require "lua_utils"
@@ -36,7 +41,6 @@ sendHTTPContentTypeHeader('text/html')
 page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-
 
 interface.select(ifname)
 local debug = true
@@ -78,12 +82,12 @@ print('<p>This class provides to hook to objects that describe flows and hosts a
 print('<hr><h2>Generic information of Network interface</h2>')
 print('<p>By default ntopng set the \"ntop_interface\"  global variable in lua stack, it is the network interface name where ntopng is running.<br>Every time when you want use the interface class, in order to refresh the \"ntop_interface\" global variable , please remember to call the method <b>interface.select(ifname))</b> before to use the interface class.</p>')
 print('<ul>')
-print('<li>Network interface name = ' .. interface.select(ifname))
+print('<li>Network interface name = ' .. ifname)
 print('<li>Network interface id = ' .. interface.name2id(ifname))
 if (interface.isRunning()) then
-  print('<li>'..ifname..' is running')
+   print('<li>'..ifname..' is running')
 else
-  print('<li>'..ifname..' is not running')
+   print('<li>'..ifname..' is not running')
 end
 print('</ul>')
 
@@ -104,19 +108,19 @@ print('</ul></p>')
 print('<p><b>Output:</b><p>')
 print('<ul>')
 if (interfacetype == "show") then
-  print('<pre><code>ifstats = interface.getStats()</code></pre>')
-  ifstats = interface.getStats()
-  for key, value in pairs(ifstats) do
-   if (type(ifstats[key]) == "table") then
-    printTable(ifstats[key],key)
-    elseif (type(ifstats[key]) == "boolean") then
-      if (value) then value = "true" else value = "false" end
-      print("<li>".. key.." = " ..value.."<br>")
-    else
-     print("<li>".. key.." = " ..value.."<br>")
+   print('<pre><code>ifstats = interface.getStats()</code></pre>')
+   ifstats = interface.getStats()
+   for key, value in pairs(ifstats) do
+      if (type(ifstats[key]) == "table") then
+	 printTable(ifstats[key],key)
+      elseif (type(ifstats[key]) == "boolean") then
+	 if (value) then value = "true" else value = "false" end
+	 print("<li>".. key.." = " ..value.."<br>")
+      else
+	 print("<li>".. key.." = " ..value.."<br>")
 
+      end
    end
- end
 end --if
 print('</ul>')
 
@@ -127,58 +131,55 @@ print('<h4>Get hosts information</h4>')
 print('<p>This is an example how to use the interface methods to get storage information. In order to extract all information about an host you can use the method "interface.getHostInfo(host_ip,vlan_id)". Please read the doxygen documentation for more information.</p>')
 
 print('<p>Available examples:<ul>')
-print('<li><a href="?hostinfotype=minimal_one_host#host_information">Minimal information of one host.</a>')
-print('<li><a href="?hostinfotype=minimal_all_host#host_information">Minimal information of all host.</a>')
-print('<li><a href="?hostinfotype=more_one_host#host_information">More information of one host.</a>')
-print('<li><a href="?hostinfotype=more_all_host#host_information">More information of all host.</a>')
+print('<li><a href="?hostinfotype=more_all_host#host_information">More information of all hosts.</a>')
 print('</ul></p>')
 
 print('<p><b>Output:</b><p>')
 print('<ul>')
 
 if (hostinfotype == "minimal_one_host" ) or (hostinfotype == "minimal_all_host") then
-  print('<pre><code>hosts = interface.getHosts()</code></pre>')
-  hosts = interface.getHosts()
+   print('<pre><code>hosts = interface.getHosts()</code></pre>')
+   hosts = interface.getHosts()
 
-  if (hosts == nil) then if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host null\n") end end
+   if (hosts == nil) then if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host null\n") end end
 
-  for key, value in pairs(hosts) do
-    if (hosts[key]["ip"] ~= nil) then
-    host_info = hosts[key]["ip"]
-  else
-    host_info = hosts[key]["mac"]
-  end
-    print("<li> Key: ".. key)
-    print("<ul>")
-    print("<li> Ip: "..host_info)
-    print("<li> Vlan: "..hosts[key]["vlan"])
-    print("<li> Sent Byte + Received Byte: " .. hosts[key]["traffic"])
-    print("</ul>")
-    print("<br>")
+      for key, value in pairs(hosts) do
+	 if (hosts[key]["ip"] ~= nil) then
+	    host_info = hosts[key]["ip"]
+	 else
+	    host_info = hosts[key]["mac"]
+	 end
+	 print("<li> Key: ".. key)
+	 print("<ul>")
+	 print("<li> Ip: "..host_info)
+	 print("<li> Vlan: "..hosts[key]["vlan"])
+	 print("<li> Sent Byte + Received Byte: " .. hosts[key]["traffic"])
+	 print("</ul>")
+	 print("<br>")
 
-    if (hostinfotype == "minimal_one_host" ) then break end
-  end
+	 if (hostinfotype == "minimal_one_host" ) then break end
+      end
 end
 
 if (hostinfotype == "more_one_host" ) or (hostinfotype == "more_all_host") then
 
-  if(hostinfotype == "more_all_host") then
-    print('<pre><code>hosts = interface.getHostsInfo()</code></pre>')
-  end
+   if(hostinfotype == "more_all_host") then
+      print('<pre><code>hosts = interface.getHostsInfo()</code></pre>')
+   end
 
-  hosts = interface.getHostsInfo()
-  if (hosts == nil) then if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host null\n") end end
-  for key, value in pairs(hosts) do
-      random_host = key
-      if (hostinfotype == "more_one_host") then break end
-      print("<li> HostName: ".. key.."<br>")
-      printTable(hosts[key],key)
-  end
-  if (hostinfotype == "more_one_host") then
-    print('<pre><code>hosts = interface.getHostInfo('..random_host..')</code></pre>')
-    print("<li> HostName: ".. random_host.."<br>")
-    printTable(interface.getHostInfo(random_host))
-  end
+   hosts = interface.getHostsInfo()
+   if (hosts == nil) then if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host null\n") end end
+      for key, value in pairs(hosts) do
+	 random_host = key
+	 if (hostinfotype == "more_one_host") then break end
+	 print("<li> HostName: ".. key.."<br>")
+	 printTable(hosts[key], key)
+      end
+      if (hostinfotype == "more_one_host") then
+	 print('<pre><code>hosts = interface.getHostInfo('..random_host..')</code></pre>')
+	 print("<li> HostName: ".. random_host.."<br>")
+	 printTable(interface.getHostInfo(random_host))
+      end
 end
 print('</ul>')
 
@@ -188,25 +189,25 @@ print('<p>This is an example how to use the interface methods to export informat
 print('<a href="?showjson=1#json_format">Show host:</a>')
 
 if(showjson ~= nil) then
-  print('<br><p>Available hosts:<ul>')
-  print('<pre><code>hosts_json = interface.getHosts()</code></pre>')
-  print('<li><a href="/lua/do_export_data.lua" target="_blank"> All hosts</a>')
+   print('<br><p>Available hosts:<ul>')
+   print('<pre><code>hosts_json = interface.getHosts()</code></pre>')
+   print('<li><a href="/lua/do_export_data.lua" target="_blank"> All hosts</a>')
 
-  hosts_json = interface.getHosts()
-  for key, value in pairs(hosts_json) do
-    random_host = key
-    print('<li>'..key)
-    print('<ul>')
-    if (hosts_json[key]["ip"] ~= nil) then
-      host_info = hosts_json[key]["ip"]
-    else
-      host_info = hosts_json[key]["mac"]
-    end
-    print('<li><a href="/lua/rest/v2/get/host/data.lua?host=' .. host_info..'&vlan='..hosts_json[key]["vlan"]..'" target="_blank"> All information</a>')
-    print('<li><a href="/lua/get_host_activitymap.lua?host=' .. key..'" target="_blank"> Only Activity Map </a>')
-    print('</ul>')
-  end
-  print('</ul></p>')
+   hosts_json = interface.getHosts()
+   for key, value in pairs(hosts_json) do
+      random_host = key
+      print('<li>'..key)
+      print('<ul>')
+      if (hosts_json[key]["ip"] ~= nil) then
+	 host_info = hosts_json[key]["ip"]
+      else
+	 host_info = hosts_json[key]["mac"]
+      end
+      print('<li><a href="/lua/rest/v2/get/host/data.lua?host=' .. host_info..'&vlan='..hosts_json[key]["vlan"]..'" target="_blank"> All information</a>')
+      print('<li><a href="/lua/get_host_activitymap.lua?host=' .. key..'" target="_blank"> Only Activity Map </a>')
+      print('</ul>')
+   end
+   print('</ul></p>')
 end
 
 print('<hr><h2 id="flow_information">Flow information</h2>')
@@ -217,7 +218,7 @@ print('<p>This is an example how to use the interface methods to get flows infor
 
 print('<p>Available examples:<ul>')
 print('<li><a href="?flowtype=description#flow_information">Flows description.</a>')
-print('<li><a href="?flowtype=peers#flow_information">Flow peers</a>')
+-- print('<li><a href="?flowtype=peers#flow_information">Flow peers</a>')
 -- print('<li><a href="?flowtype=more_one_host">More information of one host.</a>')
 -- print('<li><a href="?flowtype=more_all_host">More information of all host.</a>')
 print('</ul></p>')
@@ -225,49 +226,17 @@ print('</ul></p>')
 print('<p><b>Output:</b><p>')
 
 if (flowtype == "description" ) then
-  print('<pre><code>flows_stats = interface.getFlowsInfo()\nprintTable(flows_stats)</code></pre>')
-  flows_stats = interface.getFlowsInfo()
-  printTable(flows_stats)
+   print('<pre><code>flows_stats = interface.getFlowsInfo()\nprintTable(flows_stats)</code></pre>')
+   flows_stats = interface.getFlowsInfo()
+   printTable(flows_stats)
 end
 
 if (flowtype == "peers" ) then
-  print('<pre><code>flows_stats = interface.getFlowPeers()\nprintTable(flows_peers,"Peers")</code></pre>')
-  flows_peers = interface.getFlowPeers()
-  printTable(flows_peers,"Peers")
+   print('<pre><code>flows_stats = interface.getFlowPeers()\nprintTable(flows_peers,"Peers")</code></pre>')
+   flows_peers = interface.getFlowPeers()
+   printTable(flows_peers,"Peers")
 end
 
-
-print('<hr><h2 id="aggregated_information">Aggregated Hosts information</h2>')
-
-print('<p>Available protocol:<ul>')
-print('<li><a href="?aggregated=1#aggregated_information">All</a>')
-print('<li><a href="?aggregated=1&protocol=5#aggregated_information">DNS</a>')
-print('<li><a href="?aggregated=1&protocol=7#aggregated_information">HTTP</a>')
-print('<li><a href="?aggregated=1&protocol=254#aggregated_information">Operation System</a>')
-print('<li><a href="?aggregated=1&protocol=38#aggregated_information">EPP</a>')
-print('</ul></p>')
-
-print('<p><b>Output:</b><p>')
-print('<ul>')
-
-if (aggregated ~= nil) then
-  if(protocol == nil) then
-    print('<pre><code>aggregated = interface.getAggregatedHostsInfo()</code></pre>')
-    hosts_stats = interface.getAggregatedHostsInfo()
-  else
-    print('<pre><code>aggregated = interface.getAggregatedHostsInfo('..tonumber(protocol)..')</code></pre>')
-    hosts_stats = interface.getAggregatedHostsInfo(tonumber(protocol))
-  end
-
-  if (table.empty(hosts_stats)) then
-    if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Aggregated null\n") end
-    print('<div class="alert alert-warning">No aggregated hosts found.</div>')
-  end
-
-  for key, value in pairs(hosts_stats) do
-      printTable(hosts_stats[key],key)
-  end
-end
 print('</ul>')
 
 print('<hr><h4>TDB</h4>')
@@ -276,9 +245,6 @@ print('<li>findFlowByKey')
 print('<li>findHost')
 print('<li>getEndpoint')
 print('<li>incrDrops')
-print('<li>getAggregationsForHost')
-print('<li>getAggregationFamilies')
-print('<li>getNumAggregatedHosts')
 print('<li>getNdpiProtoName')
 print('<li>flushHostContacts')
 print('<li>restoreHost')

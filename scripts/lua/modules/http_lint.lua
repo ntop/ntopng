@@ -201,6 +201,32 @@ local function validateSyslogFormat(p)
 end
 http_lint.validateSyslogFormat = validateSyslogFormat
 
+-- ##############################################
+
+local function validateHostInfoType(p)
+   if p == "minimal_one_host" or p == "minimal_all_host" or p == "more_one_host" or p == "more_all_host" then
+        return true
+    end
+
+    return false
+end
+
+local function validateFlowType(p)
+   if p == "peers" or p == "description" then
+        return true
+    end
+
+    return false
+end
+
+local function validateInterfaceType(p)
+   if p == "show" then
+        return true
+    end
+
+    return false
+end
+
 local function validatePort(p)
     if not validateNumber(p) then
         return false
@@ -1821,6 +1847,10 @@ local known_parameters = {
 
     -- OTHER
     ["interface"] = validateSingleWord,
+    ["showjson"] = validateBool,
+    ["hostinfotype"] = validateHostInfoType,
+    ["interfacetype"] = validateHostInfoType,
+    ["flowtype"] = validateFlowType,
     ["all_values"] = validateBool, -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if all the values have to be returned
     ["collapse_stats"] = validateBool, -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if stats need to be collapsed
     ["max_values"] = validateNumber, -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know the max number of stats to be returned
