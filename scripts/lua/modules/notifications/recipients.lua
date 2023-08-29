@@ -913,6 +913,7 @@ end
 -- @param notification_type The notification type
 -- @return boolean
 function recipients.sendMessageByNotificationType(notification, notification_type)
+   notification.notification_type = notification_type
    return recipients.dispatch_notification(notification, nil, notification_type, nil)
 end
 
