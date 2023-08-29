@@ -1919,6 +1919,7 @@ local lang = {
     ["throughput"] = "Thpt",
     ["time_range"] = "Time Range",
     ["top_clients"] = "Top Clients",
+    ["top_clients_contacts"] = "Top Clients Contacts",
     ["top_contacted_servers"] = "Top Contacted Servers",
     ["top_hosts"] = "Top Hosts",
     ["top_info"] = "Top Info",

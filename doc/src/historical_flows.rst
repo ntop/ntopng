@@ -219,7 +219,7 @@ Here is an overview of the currently available flows views:
   - Server Contacts: Displays servers ordered by the number of connections
   - Server Ports: Shows the count of used destination ports
   - Servers: Displays the top hosts as flow servers and their traffic
-  - Top Clients: Shows the clients that contact the highest number of different servers
+  - Top Clients Contacts: Shows the clients that contact the highest number of different servers
   - Top Contacted Servers: Shows the servers contacted by the highest number of different clients
   - Top Local Talkers: Displays the top local hosts with the most traffic
   - Top Receiver AS: Displays the top Autonomous Systems with the most received traffic

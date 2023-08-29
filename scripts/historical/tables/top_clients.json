@@ -1,6 +1,6 @@
 {
-    "name" : "Top Clients",
-    "i18n_name" : "db_search.top_clients",
+    "name" : "Top Clients Contacts",
+    "i18n_name" : "db_search.top_clients_contacts",
     "data_source" : "flows",
     "show_in_page" : "overview",
     "hourly": false,
