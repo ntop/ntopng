@@ -64,7 +64,7 @@ function alert_cidr_rule_threshold_crossed.format(ifid, alert, alert_type_params
    end
 
    
-    if alert_type_params.metric == "subnet:broadcast_traffic" or alert_type_params.metric == "subnet:traffic" then 
+    if alert_type_params.metric == "subnet:broadcast_traffic" or alert_type_params.metric == "subnet:broadcast_traffic-egress"  or alert_type_params.metric == "subnet:broadcast_traffic-ingress" or alert_type_params.metric == "subnet:traffic" or alert_type_params.metric == "subnet:traffic-egress" or alert_type_params.metric == "subnet:traffic-ingress" then 
       if (alert_type_params.metric_type == "volume") then
          alert_type_params.threshold  = format_utils.bytesToSize(alert_type_params.threshold)
          alert_type_params.value      = format_utils.bytesToSize(alert_type_params.value)

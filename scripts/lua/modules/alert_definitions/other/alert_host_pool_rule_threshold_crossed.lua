@@ -63,7 +63,7 @@ function alert_host_pool_rule_threshold_crossed.format(ifid, alert, alert_type_p
       alert_type_params.frequency = i18n("edit_check.hooks_name.day")
    end
 
-   if(alert_type_params.metric == "host_pool:traffic" ) then
+   if(alert_type_params.metric == "host_pool:traffic" or  alert_type_params.metric == "host_pool:traffic-RX" or alert_type_params.metric == "host_pool:traffic-TX") then
       if(alert_type_params.metric_type == "volume") then
          alert_type_params.value = bytesToSize(alert_type_params.value)
          alert_type_params.threshold = bytesToSize(alert_type_params.threshold)

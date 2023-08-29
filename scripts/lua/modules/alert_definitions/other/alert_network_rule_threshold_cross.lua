@@ -64,6 +64,9 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
    end
 
    if(alert_type_params.metric == "iface:traffic" 
+      or alert_type_params.metric == "iface:traffic_rxtx"
+      or alert_type_params.metric == "iface:traffic_rxtx-rx"
+      or alert_type_params.metric == "iface:traffic_rxtx-tx"
       or alert_type_params.metric == "flowdev:traffic"
       or alert_type_params.metric == "flowdev_port:traffic") then
       if(alert_type_params.metric_type == "volume") then
@@ -77,6 +80,8 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
          alert_type_params.threshold = string.format("%s",tostring(alert_type_params.threshold)).. "%"
       end
    end
+
+   tprint("HERE IN ALERT FORMAT")
    
    if( alert_type_params.metric ~= "flowdev:traffic" and alert_type_params.metric ~= "flowdev_port:traffic" )then
       return(i18n("alert_messages.traffic_interface_volume_alert", {
@@ -99,6 +104,7 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
          frequency = alert_type_params.frequency
       }))
   else
+   tprint("HERE")
       return(i18n("alert_messages.traffic_flowdev_port_volume_alert", {
             url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flowdevice_details.lua?ip=" .. alert_type_params.host,
             iface = alert_type_params.ifname,

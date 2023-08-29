@@ -2896,10 +2896,24 @@ function timeseries_info.get_host_rules_schema(rule_type)
         local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
 
         local metric_list = {{
-            title = i18n('traffic'),
+            title = i18n('graphs.traffic_rxtx'),
             group = i18n('generic_data'),
-            label = i18n('traffic'),
+            label = i18n('graphs.traffic_rxtx'),
             id = 'host:traffic' --[[ here the ID is the schema ]] ,
+            show_volume = true
+        },
+        {
+            title = i18n('graphs.traffic_rcvd'),
+            group = i18n('generic_data'),
+            label = i18n('graphs.traffic_rcvd'),
+            id = 'host:traffic-RX' --[[ here the ID is the schema ]] ,
+            show_volume = true
+        },
+        {
+            title = i18n('graphs.traffic_sent'),
+            group = i18n('generic_data'),
+            label = i18n('graphs.traffic_sent'),
+            id = 'host:traffic-TX' --[[ here the ID is the schema ]] ,
             show_volume = true
         }, {
             title = i18n('score'),
@@ -2945,10 +2959,22 @@ function timeseries_info.get_host_rules_schema(rule_type)
         local has_top_categories = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_category"
 
         local metric_list = {{
-            title = i18n('traffic'),
+            title = i18n('graphs.traffic_rxtx'),
             group = i18n('generic_data'),
-            label = i18n('traffic'),
-            id = 'iface:traffic' --[[ here the ID is the schema ]] ,
+            label = i18n('graphs.traffic_rxtx'),
+            id = 'iface:traffic_rxtx' --[[ here the ID is the schema ]] ,
+            show_volume = true
+        },{
+            title = i18n('graphs.traffic_rcvd'),
+            group = i18n('generic_data'),
+            label = i18n('graphs.traffic_rcvd'),
+            id = 'iface:traffic_rxtx-rx' --[[ here the ID is the schema ]] ,
+            show_volume = true
+        },{
+            title = i18n('graphs.traffic_sent'),
+            group = i18n('generic_data'),
+            label = i18n('graphs.traffic_sent'),
+            id = 'iface:traffic_rxtx-tx' --[[ here the ID is the schema ]] ,
             show_volume = true
         }, {
             title = i18n('score'),
@@ -3014,16 +3040,95 @@ function timeseries_info.get_host_rules_schema(rule_type)
             end
         end
 
+        metric_list[#metric_list+1] = {
+            
+            title = i18n('graphs.traffic_rcvd'),
+            --group = i18n('generic_data'),
+            measure_unit = "bps",
+            label = i18n('graphs.traffic_rcvd'),
+            id = 'host_pool:traffic-RX' --[[ here the ID is the schema ]] ,
+            schema = 'host_pool:traffic-RX',
+            show_volume = true
+            
+        }
+
+        metric_list[#metric_list+1] = {
+            
+            title = i18n('graphs.traffic_sent'),
+            --group = i18n('generic_data'),
+            label = i18n('graphs.traffic_sent'),
+            measure_unit = "bps",
+            id = 'host_pool:traffic-TX' --[[ here the ID is the schema ]] ,
+            schema = 'host_pool:traffic-TX',
+            show_volume = true
+            
+        }
+
         return metric_list
     elseif rule_type == "CIDR" then
         local metric_list = {}
         for _,item in ipairs(community_timeseries) do
+            
+            if(item.schema == "subnet:traffic") then
+                item.label = i18n("graphs.traffic_rxtx")
+            end
+            if(item.schema == "subnet:broadcast_traffic") then
+                item.label = i18n("broadcast_traffic_rx_tx")
+            end
             if(item.id == timeseries_id.network) then
                 
                 metric_list[#metric_list+1] = item
             end
         end
 
+        metric_list[#metric_list+1] = {
+            
+            title = i18n('graphs.traffic_rcvd'),
+            --group = i18n('generic_data'),
+            measure_unit = "bps",
+            label = i18n('graphs.traffic_rcvd'),
+            id = 'subnet:traffic-ingress' --[[ here the ID is the schema ]] ,
+            schema = 'subnet:traffic-ingress',
+            show_volume = true
+            
+        }
+
+        metric_list[#metric_list+1] = {
+
+            title = i18n('graphs.traffic_sent'),
+            --group = i18n('generic_data'),
+            label = i18n('graphs.traffic_sent'),
+            measure_unit = "bps",
+            id = 'subnet:traffic-egress' --[[ here the ID is the schema ]] ,
+            schema = 'subnet:traffic-egress',
+            show_volume = true
+                
+        }
+
+
+        metric_list[#metric_list+1] = {
+            
+            title = i18n('broadcast_traffic_rx'),
+            --group = i18n('generic_data'),
+            measure_unit = "bps",
+            label = i18n('broadcast_traffic_rx'),
+            id = 'subnet:broadcast_traffic-ingress' --[[ here the ID is the schema ]] ,
+            schema = 'subnet:broadcast_traffic-ingress',
+            show_volume = true
+            
+        }
+
+        metric_list[#metric_list+1] = {
+
+            title = i18n('broadcast_traffic_tx'),
+            --group = i18n('generic_data'),
+            label = i18n('broadcast_traffic_tx'),
+            measure_unit = "bps",
+            id = 'subnet:broadcast_traffic-egress' --[[ here the ID is the schema ]] ,
+            schema = 'subnet:broadcast_traffic-egress',
+            show_volume = true
+                
+        }
         return metric_list
 
     end

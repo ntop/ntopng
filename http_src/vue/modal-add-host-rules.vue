@@ -471,7 +471,7 @@ const change_metric_type_hp = (set_active_one) => {
     active_metric_type_list.value = tmp_metric_type_list;
 
   }
-  if(set_active_one != null || set_active_one == false) {
+  if(set_active_one == null || set_active_one == false) {
     metric_type.value = active_metric_type_list.value[0];
   }
 
@@ -629,7 +629,7 @@ const set_row_to_edit = (row) => {
       })
 
       host_pool_metric_list.value.forEach((item) => {
-        if (item.label == row.label) {
+        if (item.label == row.metric_label) {
           selected_host_pool_metric.value = item;
         }
       })
