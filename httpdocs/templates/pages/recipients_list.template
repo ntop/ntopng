@@ -334,11 +334,14 @@
                 className: "text-center text-nowrap",
                 width: "5%",
                 render: function (data, type, row) {
-                    if(data && data === "vulnerability_scans") {
-                        return `<i class="fa-solid fa-clipboard" title="${i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports')}"></i>`;
-                    } else {
-                        return `<i class="fas fa-lg fa-exclamation-triangle text-warning" title="${i18n('endpoint_notifications.alerts')}"></i>`
-                    }
+                    let notification_id = '';
+                    {% for id, notification_info in pairs(notifications.notification_types) do %}
+                        notification_id = '{{ id }}';
+                        if(data && data === notification_id) {
+                            return `<i class="{{ notification_info.icon }}" title="{{ notification_info.title }}"></i>`;
+                        }
+                    {% end %}
+                    return '-';
                 }  
             },
             {
@@ -490,6 +493,7 @@
             if ($cloned) {
                 $(`#add-recipient-modal form .recipient-template-container`).empty().append($(`<hr>`), $cloned).show();
             }
+
             $('#add_recipient_alert_select').select2({
                 width: '100%',
                 height: '500px',
@@ -508,13 +512,14 @@
             }   
             $(`#add-recipient-notifications-type`).change((item) => {
                 if(item && item.target) {
-                    if(item.target.value == 'vulnerability_scans') {
-                        $(`#alert_filters`).attr('hidden', 'hidden');
-                    } else {
+                    if(item.target.value == 'alerts') {
                         $(`#alert_filters`).removeAttr('hidden');
+                    } else {
+                        $(`#alert_filters`).attr('hidden', 'hidden');
                     }
                 }
             });
+            $(`#alert_filters`).removeAttr('hidden');
             $(`#generic_tab`).click(() => {
                 $(`#generic_tab`).addClass('active');
                 $(`#per_alerts_tab`).removeClass('active');

@@ -32,8 +32,14 @@ recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY = "ntopng.prefs.endpoint_hints.reci
 local default_builtin_minimum_severity = alert_severities.notice.severity_id -- minimum severity is notice (to avoid flooding) (*****)
 
 local notification_types = {
-   alerts = i18n('endpoint_notifications.alerts'),
-   vulnerability_scans = i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports'),
+   alerts = {
+      title = i18n('endpoint_notifications.alerts'),
+      icon = 'fas fa-lg fa-exclamation-triangle text-warning'
+   },
+--   vulnerability_scans = {
+--      title = i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports'),
+--      icon = 'fa-solid fa-clipboard',
+--   }
 }
 
 -- ##############################################

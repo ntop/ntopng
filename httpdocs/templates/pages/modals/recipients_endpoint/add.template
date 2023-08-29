@@ -51,8 +51,8 @@
                         </label>
                         <div class="col-sm-7">
                             <select required name="recipient_notifications_type" class="form-select" id="add-recipient-notifications-type">
-                                {% for id, title in pairsByValues(notification_types, asc) do %}
-                                    <option {{ternary((id == alerts), 'selected', '')}} value="{{ id }}">{{ title }}</option>
+                                {% for id, notification_info in pairsByField(notification_types, 'title', asc) do %}
+                                    <option {{ternary((id == alerts), 'selected', '')}} value="{{ id }}">{{ notification_info.title }}</option>
                                 {% end %}
                             </select>
                             <small>{{ i18n('endpoint_notifications.notifications_type_notes') }}</small>
