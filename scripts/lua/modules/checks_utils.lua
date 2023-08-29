@@ -19,7 +19,8 @@ function checks_utils.load_configset_titles()
         ["flow"] = i18n("config_scripts.granularities.flow"),
         ["interface"] = i18n("config_scripts.granularities.interface"),
         ["network"] = i18n("report.local_networks"),
-        ["syslog"] = i18n("config_scripts.granularities.syslog")
+        ["syslog"] = i18n("config_scripts.granularities.syslog"),
+        ["active_monitoring"] = i18n("config_scripts.granularities.active_monitoring")
      }
 end
 

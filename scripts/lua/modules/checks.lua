@@ -90,6 +90,7 @@ checks.NETWORK_SUBDIR_NAME = "network"
 checks.SNMP_DEVICE_SUBDIR_NAME = "snmp_device"
 checks.SYSTEM_SUBDIR_NAME = "system"
 checks.SYSLOG_SUBDIR_NAME = "syslog"
+checks.ACTIVE_MONITORING_SUBDIR_NAME = "active_monitoring"
 
 -- NOTE: the subdir id must be unique
 local available_subdirs = {{
@@ -207,6 +208,9 @@ local available_subdirs = {{
     id = checks.SYSTEM_SUBDIR_NAME,
     label = "system"
 }, {
+    id = checks.ACTIVE_MONITORING_SUBDIR_NAME,
+    label = "active_monitoring"
+}, {
     id = checks.SYSLOG_SUBDIR_NAME,
     label = "Syslog"
 }}
@@ -294,6 +298,13 @@ checks.script_types = {
         parent_dir = "system",
         hooks = {"min", "5mins", "hour", "day"},
         subdirs = {"system"},
+        has_per_hook_config = true, -- Each hook has a separate configuration
+        default_config_only = true -- Only the default configset can be used
+    },
+    active_monitoring = {
+        parent_dir = "system",
+        hooks = {"min", "5mins", "hour", "day"},
+        subdirs = {"active_monitoring"},
         has_per_hook_config = true, -- Each hook has a separate configuration
         default_config_only = true -- Only the default configset can be used
     },
@@ -1323,6 +1334,10 @@ local function toggleScriptConfigset(configset, script_key, subdir, enable)
         end
     end
 
+    if (not configset["config"][subdir]) then
+        configset["config"][subdir] = {}
+    end
+
     if (not configset["config"][subdir][script_key]) or (table.len(configset["config"][subdir][script_key]) == 0) then
         configset["config"][subdir][script_key] = {}
         configset["config"][subdir][script_key] = config
@@ -1569,8 +1584,8 @@ local default_config = {
 function checks.getScriptConfig(configset, script, subdir)
     local script_key = script.key
     local config = configset.config[subdir]
-
-    if (config[script_key]) and (table.len(config[script_key]) > 0) then
+    
+    if (config) and (config[script_key]) and (table.len(config[script_key]) > 0) then
         -- A configuration was found
         return (config[script_key])
     end
@@ -2222,6 +2237,32 @@ end
 
 -- #################################################################
 
+-- The function below ia called once (#pragma once)
+local function setupActiveMonitoringChecks(str_granularity, checks_var, do_trace)
+    if not ntop.isEnterpriseL() then
+        return false
+    end
+
+    if do_trace then
+        print("alert.lua:setup(" .. str_granularity .. ") called\n")
+    end
+
+    checks_var.snmp_device_entity = alert_consts.alert_entities.snmp_device.entity_id
+
+    interface.select(getSystemInterfaceId())
+    checks_var.ifid = getSystemInterfaceId()
+
+    -- Load the threshold checking functions
+    checks_var.available_modules = checks.load(ifid, checks.script_types.active_monitoring, "active_monitoring", {
+        do_benchmark = checks_var.do_benchmark
+    })
+    checks_var.configset = checks.getConfigset()
+
+    return true
+end
+
+-- #################################################################
+
 -- This function runs interfaces checks
 local function runInterfaceChecks(granularity, checks_var, do_trace)
     if table.empty(checks_var.available_modules.hooks[granularity]) then
@@ -2387,6 +2428,52 @@ local function runSNMPChecks(granularity, checks_var, do_trace)
 end
 
 -- #################################################################
+
+local function runActiveMonitoringChecks(granularity, checks_var, do_trace)
+    if do_trace then
+        print("active_monitoring.lua:runScripts(" .. granularity .. ") called\n")
+    end
+
+    if table.empty(checks_var.available_modules.hooks[granularity]) then
+        if (do_trace) then
+            print("active_monitoring:runScripts(" .. granularity .. "): no modules, skipping\n")
+        end
+        return
+    end
+
+    -- NOTE: currently no deadline check is explicitly performed here.
+    -- The "process:resident_memory" must always be written as it has the
+    -- is_critical_ts flag set.
+
+    local info = interface.getStats()
+    local when = os.time()
+    local active_monitoring_conf = checks.getConfig(checks_var.configset, "active_monitoring")
+    
+    for mod_key, hook_fn in pairs(checks_var.available_modules.hooks[granularity]) do
+        local check = checks_var.available_modules.modules[mod_key]
+        local conf = checks.getTargetHookConfig(active_monitoring_conf, check, granularity)
+
+        if (conf.enabled) then
+            alerts_api.invokeScriptHook(check, checks_var.configset, hook_fn, {
+                granularity = granularity,
+                alert_entity = alerts_api.interfaceAlertEntity(getSystemInterfaceId()),
+                check_config = conf.script_conf,
+                check = check,
+                when = when,
+                entity_info = info,
+                ts_enabled = checks_var.system_ts_enabled
+            })
+
+            -- Safety check
+            if interface.getId() ~= tonumber(getSystemInterfaceId()) then
+               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Script '%s' changed the interface from '%d' to '%d'. Resetting interface.", mod_key, tonumber(getSystemInterfaceId()), interface.getId()))
+               interface.select(getSystemInterfaceId())
+            end
+        end
+    end
+end
+
+-- #################################################################
 -- @brief Setup, run and shutdown interface, network, system and
 --        SNMP checks
 --        The setup, loads the alerts, needs to be done once per VM
@@ -2426,6 +2513,19 @@ function checks.SNMPChecks(granularity, checks_var, do_trace)
     end
 
     runSNMPChecks(granularity, checks_var, do_trace)
+    teardownChecks(granularity, checks_var, do_trace)
+
+    return true
+end
+
+-- #################################################################
+
+function checks.activeMonitoringChecks(granularity, checks_var, do_trace)
+    if not setupActiveMonitoringChecks(granularity, checks_var, do_trace) then
+        return false
+    end
+
+    runActiveMonitoringChecks(granularity, checks_var, do_trace)
     teardownChecks(granularity, checks_var, do_trace)
 
     return true

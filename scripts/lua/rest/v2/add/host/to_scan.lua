@@ -26,12 +26,12 @@ end
 local result = nil
 
 if isEmptyString(cidr) then
-    result = vs_utils.save_host_to_scan(scan_type, host, nil, nil, nil, 5, scan_ports, scan_frequency, scan_id, true)
+    result = vs_utils.save_host_to_scan(scan_type, host, nil, nil, nil, nil, scan_ports, scan_frequency, scan_id, true)
 else 
     local hosts_to_save = vs_utils.get_active_hosts(host, cidr)
 
     for _,item in ipairs(hosts_to_save) do
-        result = vs_utils.save_host_to_scan(scan_type, item, nil, nil, nil, 5, scan_ports, scan_frequency, nil, nil, nil, scan_id, true )
+        result = vs_utils.save_host_to_scan(scan_type, item, nil, nil, nil, nil, scan_ports, scan_frequency, nil, nil, nil, scan_id, true )
     end
 end
 

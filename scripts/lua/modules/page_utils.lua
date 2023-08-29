@@ -38,7 +38,7 @@ end
 -- #################################
 
 page_utils.menu_sections = {
-   shortcuts     = {key = "shortcuts", i18n_title = "shortcuts", icon = "fas fa-fast-forward"},
+   monitoring     = {key = "monitoring", i18n_title = "monitoring", icon = "fas fa-fast-forward"},
    dashboard     = {key = "dashboard", i18n_title = "index_page.dashboard", icon = "fas fa-tachometer-alt"},
    alerts        = {key = "alerts", i18n_title = "details.alerts", icon = "fas fa-exclamation-triangle"},
    flows         = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
@@ -55,7 +55,7 @@ page_utils.menu_sections = {
    health        = {key = "health", i18n_title = "health", icon = "fas fa-laptop-medical"},
    pollers       = {key = "pollers", i18n_title = "pollers", icon = "fas fa-heartbeat"},
    tools         = {key = "tools", i18n_title = "tools", icon = "fas fa-cogs"},
-   pools         = {key = "pools", i18n_title = "pools.pools", icon = "fas fa-users"},
+   --pools         = {key = "pools", i18n_title = "pools.pools", icon = "fas fa-users"},
    notifications = {key = "notifications", i18n_title = "endpoint_notifications.notifications", icon = "fas fa-bell"},
    checks  = {key = "checks", i18n_title = "about.checks" },
    -- nEdge
@@ -67,9 +67,9 @@ page_utils.menu_sections = {
 -- help_link: this variable contains the contextual link to the documentation
 
 page_utils.menu_entries = {
-   -- Shortcuts
-    active_monitoring     = {key = "active_monitoring", i18n_title = "active_monitoring_stats.active_monitoring", section = "shortcuts" },
-    vulnerability_scan    = {key = "vulnerability_scan", i18n_title = "scan_hosts", section = "shortcuts" },
+   -- Monitoring
+    active_monitoring     = {key = "active_monitoring", i18n_title = "active_monitoring_stats.active_monitoring", section = "monitoring" },
+    vulnerability_scan    = {key = "vulnerability_scan", i18n_title = "scan_hosts", section = "monitoring" },
    -- Dashboard
     traffic_dashboard     = {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard", help_link = "https://www.ntop.org/guides/ntopng/web_gui/dashboard.html"},
     network_discovery     = {key = "network_discovery", i18n_title = "discover.network_discovery",  section = "dashboard"},
@@ -146,6 +146,7 @@ page_utils.menu_entries = {
    scripts_config_flows   = {key = "scripts_config", subkey="flows", i18n_title = alert_entities.flow.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_system  = {key = "scripts_config", subkey="system", i18n_title = alert_entities.system.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_syslog  = {key = "scripts_config", subkey="syslog", i18n_title = "syslog.syslog", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
+   scripts_config_active_monitoring  = {key = "scripts_config", subkey="active_monitoring", i18n_title = "active_monitoring", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    device_exclusions      = {key = "device_exclusions", i18n_title = "edit_check.device_exclusion", section = "device_exclusions"},
    alert_exclusions       = {key = "alert_exclusions", i18n_title = "edit_check.exclusion_list", section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    alert_exclusions_hosts = {key = "alert_exclusions", subkey="hosts", i18n_title = alert_entities.host.i18n_label, section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},

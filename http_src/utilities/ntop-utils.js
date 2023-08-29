@@ -1196,6 +1196,10 @@ export default class NtopUtils {
   static formatHost(obj, row, is_client) {
     let label = "";
 
+    if (!obj) {
+      return label;
+    }
+
     /* Link */
     let host_key = obj.ip;
     if (row.vlan_id && row.vlan_id.value)
@@ -1221,6 +1225,10 @@ export default class NtopUtils {
   /* Format a network from a column object */
   static formatNetwork(obj, row) {
     let label = "";
+
+    if (!obj) {
+      return label;
+    }
 
     /* Link */
     let network_key = obj.value;
@@ -1333,6 +1341,10 @@ export default class NtopUtils {
   /* Format an AS from a column object */
   static formatASN(obj, row) {
     let label = "";
+
+    if (!obj) {
+      return label;
+    }
 
     /* Link */
     let asn_key = obj.value;

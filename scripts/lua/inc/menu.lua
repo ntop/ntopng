@@ -224,12 +224,12 @@ else
     -- ##############################################
     local scan_modules = vs_utils.list_scan_modules()
 
-    -- Shortcuts
-    -- The Shortcuts entry are used to go to the System interface pages
+    -- Monitoring
+    -- The Monitoring entry are used to go to the System interface pages
     -- without using the Interface dropdown. The section is hidden
     -- in system interface.
     page_utils.add_menubar_section({
-        section = page_utils.menu_sections.shortcuts,
+        section = page_utils.menu_sections.monitoring,
         hidden = is_system_interface or not is_admin,
         entries = {{
             entry = page_utils.menu_entries.snmp,
@@ -238,19 +238,6 @@ else
         }, {
             entry = page_utils.menu_entries.active_monitoring,
             url = "/lua/monitor/active_monitoring_monitor.lua"
-        }, {
-            entry = page_utils.menu_entries.divider,
-            hidden = not ntop.isEnterpriseM()
-        }, {
-            entry = page_utils.menu_entries.manage_pools,
-            hidden = not is_admin,
-            url = '/lua/admin/manage_pools.lua'
-        }, {
-            entry = page_utils.menu_entries.divider
-        }, {
-            entry = page_utils.menu_sections.notifications,
-            hidden = not is_admin,
-            url = '/lua/admin/endpoint_notifications_list.lua'
         }, {
             entry = page_utils.menu_entries.vulnerability_scan,
             url = '/lua/vulnerability_scan.lua',
@@ -291,7 +278,13 @@ else
             entry = page_utils.menu_entries.alerts_analysis,
             url = "/lua/pro/enterprise/alerts_analysis.lua",
             hidden = (not ntop.isEnterprise())
-        }}
+        }, {
+            entry = page_utils.menu_entries.divider
+        }, {
+            entry = page_utils.menu_sections.notifications,
+            hidden = not is_admin,
+            url = '/lua/admin/endpoint_notifications_list.lua'
+        },}
     })
 
     -- ##############################################

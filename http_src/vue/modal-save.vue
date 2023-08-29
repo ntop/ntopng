@@ -33,7 +33,7 @@ const order_by = ref("date"); // name / date
 const props = defineProps({
     csrf: String,
     title: String,
-    get_suggested_file_name: String,
+    get_suggested_file_name: Function,
     store_file: Function,
 });
 

@@ -36,7 +36,7 @@
           <b>{{ _i18n("snapshots.order_by") }}</b>
         </label>
         <div class="col-sm-8">
-          <select class="form-select" @click="sort_snapshots_by()" v-model="order_by">
+          <select class="form-select" @change="sort_snapshots_by()" v-model="order_by">
             <option value="name">{{_i18n("snapshots.name")}}</option>
             <option value="date">{{_i18n("snapshots.date")}}</option>
           </select>

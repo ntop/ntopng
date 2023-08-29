@@ -35,7 +35,6 @@ local url = base_url
 local info = ntop.getInfo()
 local measurement_info
 
-tprint("test")
 
 if (not isEmptyString(host) and not isEmptyString(measurement)) then
    host = active_monitoring_utils.getHost(host, measurement)
@@ -85,7 +84,6 @@ page_utils.print_navbar(navbar_title, url, {
 	url = ntop.getHttpPrefix().."/lua/alert_stats.lua?&status=engaged&page=am_host"
     }
 })
-tprint("test2")
 
 -- #######################################################
 
@@ -130,7 +128,6 @@ if (page == "overview") then
             }
         }
     }
-    tprint("test3")
     -- template render
     template.render("active_monitoring_stats.template", context)
 
@@ -139,7 +136,6 @@ elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) 
    graph_utils.drawNewGraphs({ifid = -1, host = host_value})
 
 end
-tprint("test4")
 
 -- #######################################################
 

@@ -37,7 +37,7 @@
   </DateTimeRangePicker>
   
   <div ref="report_box" class="row">
-    <template v-for="c in components">
+    <template v-for="c in components" >
       <Box style="min-width:20rem;"
            :color="c.color"
            :width="c.width" 
@@ -117,6 +117,7 @@ const main_epoch_interval = ref(null);
 const components = ref([]);
 
 let components_info = {};
+let data_from_backup = false;
 
 const enable_date_time_range_picker = computed(() => {
     return props.context.page == "report";
@@ -124,9 +125,19 @@ const enable_date_time_range_picker = computed(() => {
 
 const component_interval = computed(() => {
     return (c) => {
-        const begin = ntopng_utility.from_utc_to_server_date_format(c.epoch_begin * 1000, 'DD/MM/YYYY HH:mm:ss');
-        const end = ntopng_utility.from_utc_to_server_date_format(c.epoch_end * 1000, 'DD/MM/YYYY HH:mm:ss');
-        return  `${begin} - ${end}`;
+        const epoch_begin_msec = c.epoch_begin * 1000;
+        const epoch_end_msec = c.epoch_end * 1000;
+
+        const begin_date = ntopng_utility.from_utc_to_server_date_format(epoch_begin_msec, 'DD/MM/YYYY');
+        const begin_time = ntopng_utility.from_utc_to_server_date_format(epoch_begin_msec, 'HH:mm:ss');
+
+        const end_date = ntopng_utility.from_utc_to_server_date_format(epoch_end_msec, 'DD/MM/YYYY');
+        const end_time = ntopng_utility.from_utc_to_server_date_format(epoch_end_msec, 'HH:mm:ss');
+
+        const begin = `${begin_date} ${begin_time}`;
+        const end = (begin_date == end_date) ? `${end_time}` : `${end_date} ${end_time}`;
+
+        return `${begin} - ${end}`;
     };
 });
 
@@ -166,7 +177,7 @@ function set_components_epoch_interval(epoch_interval) {
     });
 }
 
-async function load_components(epoch_interval) {
+async function load_components(epoch_interval, components_backup) {
     let url_request = `${http_prefix}/lua/pro/rest/v2/get/${props.context.page}/template.lua?template=${props.context.template}`;
     let res = await ntopng_utility.http_request(url_request);
     components.value = res.list.filter((c) => components_dict[c.component] != null)
@@ -219,23 +230,49 @@ const list_reports = async () => {
 }
 
 const open_report = async (file_name) => {
-    //TODO
+    let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/file.lua?ifid=${props.context.ifid}&report_name=${file_name}`;
+    let content = await ntopng_utility.http_request(url);
 
-    /*
-    ntopng_url_manager.replace_url_and_reload(filters);
-    */
+    // console.log(content);
+
+    let tmp_name = content.name;
+    let tmp_epoch_interval = {
+        epoch_begin: content.epoch_begin,
+        epoch_end:   content.epoch_end
+    };
+    let tmp_template = content.template;
+    let tmp_components_data = content.data;
+
+    let tmp_components_info = {};
+    for (let key in tmp_components_data) {
+        let info = {
+            data: tmp_components_data[key],
+        };
+        tmp_components_info[key] = info;
+    }
+
+    /* Disable REST calls */    
+    data_from_backup = true;
+
+    /* Set the cached data from the backup */
+    components_info = tmp_components_info;
+
+    /* Change the components (template) from the backup */
+    components.value = tmp_template;
+
+    /* Change the time interval on components */
+    set_components_epoch_interval(tmp_epoch_interval);
 }
 
 const delete_report = async (file_name) => {
     let success = false;
 
-    //TODO
-
-    /*
     let params = {
-    	file_name: file_name
+        csrf: props.context.csrf,
+        ifid: props.context.ifid,
+    	report_name: file_name
     };
-    params.csrf = props.context.csrf;
+
     let url = `${http_prefix}/lua/pro/rest/v2/delete/report/backup/file.lua`;
     try {
     	let headers = {
@@ -246,7 +283,6 @@ const delete_report = async (file_name) => {
     } catch(err) {
     	console.error(err);
     }
-    */
 
     return success;
 }
@@ -295,20 +331,36 @@ function print_report() {
 /* Callback to request REST data from components */
 function get_component_data_func(component) {
     const get_component_data = async (url, url_params) => {
-        const data_url = `${url}?${url_params}`;
         
-        /* Check if there is already a promise for the same request */
-        /* TODO here is where we can cache and relaod the data to handle report backups*/
         let info = {};
-        if (components_info[component.component_id]) {
-            info = components_info[component.component_id];
-            if (info.data) {
-                await info.data; /* wait in case of previous pending requests */
+
+        if (data_from_backup) {
+            if (!components_info[component.component_id]) { /* Safety check */
+                console.log("No data for " + component.component_id);
+                info.data = {};
+            } else {
+                // console.log("-------------------------");
+                // console.log(_i18n(component.i18n_name));
+                // console.log(component);
+                info = components_info[component.component_id];
+                // console.log(info.data);
+                // console.log("-------------------------");
             }
-        }
-        info.data = ntopng_utility.http_request(`${data_url}`);
+        } else {
+            const data_url = `${url}?${url_params}`;
+
+            /* Check if there is already a promise for the same request */
+            if (components_info[component.component_id]) {
+                info = components_info[component.component_id];
+                if (info.data) {
+                    await info.data; /* wait in case of previous pending requests */
+                }
+            }
+
+            info.data = ntopng_utility.http_request(`${data_url}`);
         
-        components_info[component.component_id] = info;
+            components_info[component.component_id] = info;
+        }
 
         return info.data;
     };
