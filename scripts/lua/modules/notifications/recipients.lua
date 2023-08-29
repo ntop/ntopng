@@ -30,9 +30,10 @@ recipients.MAX_NUM_RECIPIENTS = 64 -- Keep in sync with ntop_defines.h MAX_NUM_R
 recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY = "ntopng.prefs.endpoint_hints.recipient_created"
 
 local default_builtin_minimum_severity = alert_severities.notice.severity_id -- minimum severity is notice (to avoid flooding) (*****)
+
 local notification_types = {
    alerts = i18n('endpoint_notifications.alerts'),
---   vulnerability_scans = i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports'),
+   vulnerability_scans = i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports'),
 }
 
 -- ##############################################
@@ -879,12 +880,52 @@ end
 
 -- ##############################################
 
+-- @brief This function deliver a notification to a specific recipient id
+--        without checking for filters, ecc.
+-- @param notification An notification in table format
+-- @param name The recipient name to which send the notification
+-- @return boolean
+function recipients.sendMessageByRecipientName(notification, name)
+   local recipient = recipients.get_recipient_by_name(name)
+   if recipient and recipient.recipient_id then
+      recipients.dispatch_notification(notification, nil, nil, recipient.recipient_id)
+      return true
+   end
+   traceError(TRACE_NORMAL, TRACE_CONSOLE, "Trying to deliver a notification to a non-existing recipient " .. name)
+   return false
+end
+
+-- ##############################################
+
+-- @brief This function deliver a notification to all recipients with 
+--        the same notification_type configured
+-- @param notification An notification in table format
+-- @param notification_type The notification type
+-- @return boolean
+function recipients.sendMessageByNotificationType(notification, notification_type)
+   return recipients.dispatch_notification(notification, nil, notification_type, nil)
+end
+
+-- #############################################
+
+-- @brief Set default score to the notification and return the default category
+-- @params notification The notification in table format
+-- @return notification The notification in table format with the changed score
+-- @return category The category of the notification 
+local function set_default_notification_params(notification)
+   local checks = require "checks"
+   notification.score = 0
+   return notification, checks.check_categories.other.id
+end
+
+-- ##############################################
+
 -- @brief Dispatches a `notification` to all the interested recipients
 -- Note: this is similar to RecipientQueue::enqueue does in C++)
 -- @param notification An alert notification
 -- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
 -- @return nil
-function recipients.dispatch_notification(notification, current_script, notification_type)
+function recipients.dispatch_notification(notification, current_script, notification_type, recipient_id)
    if not notification then
       -- traceError(TRACE_ERROR, TRACE_CONSOLE, "Internal error. Empty notification")
       -- tprint(debug.traceback())
@@ -905,15 +946,24 @@ function recipients.dispatch_notification(notification, current_script, notifica
       end
 
       for _, recipient in ipairs(recipients) do
-         local recipient_ok = true      
+         local recipient_ok = true
 
-         -- In case notification_type is nil, do not skip the alerts
-         if notification_type and notification_type ~= "alerts" then
+         -- If recipient_id is not nil, it means that notification has to be 
+         -- dispatched only to the specific recipient
+         if recipient_ok and recipient_id then
+            if recipient_id == recipient.recipient_id then
+               notification, notification_category = set_default_notification_params(notification)
+               goto skip_filters
+            end
+            recipient_ok = false
+         end
+
+         -- Checking if a specific notification type is requested
+         -- otherwise go to the alerts filters
+         if recipient_ok and notification_type and notification_type ~= "alerts" then
             if skip_alerts(recipient.notifications_type) then
                if notification_type == recipient.notifications_type then
-                  local checks = require "checks"
-                  notification.score = 0
-                  notification_category = checks.check_categories.other.id
+                  notification, notification_category = set_default_notification_params(notification)
                   goto skip_filters
                end
             end
