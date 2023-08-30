@@ -25,7 +25,7 @@ The explorer is available from the left sidebar, under the Flows section.
 
   Historical Flows Explorer
 
-It is possible, like for the Alerts Page, to navigate throw the flows by filtering the results.
+It is possible, as for the Alerts Page, to navigate throw the flows by filtering the results.
 Multiple filters are available by clicking the various results (e.g. The host `develv5`, to investigate its activities) or by clicking the `+` symbol in the right upper part of the GUI and selecting the wanted filter.
 
 .. figure:: img/add_filters.png
@@ -34,13 +34,13 @@ Multiple filters are available by clicking the various results (e.g. The host `d
 
   Filtering
 
-It is possible to navigate throw the time by adjusting the Date and Time using the Navigation Menù or by dragging the time from the chart.
+It is possible to navigate throw the time by adjusting the Date and Time using the Navigation Menu or by dragging the time from the chart.
 
 .. figure:: img/historical_flow_nav_menu.png
   :align: center
   :alt: Historical Flows Explorer
 
-  Navigation Menù
+  Navigation Menu
 
 Not all the fields are shown by default into the records, to show/hide them click the `eye` below the chart and select the wanted information.
 
@@ -50,15 +50,15 @@ Not all the fields are shown by default into the records, to show/hide them clic
 
   Show/Hide Records Info
 
-Other actions are possible by clicking the Action button (left most side of the records). For example the `Info` action redirects the user to a new page with detailed information regarding the record.
+Other actions are possible by clicking the Action button (left most side of the records). For example the `Info` action redirects the user to a new page with detailed information regarding the flow.
 
 .. figure:: img/flow_record_example.png
   :align: center
   :alt: Historical Flows Explorer
 
-  Record Example
+  Flow Example
 
-Different table views are available from the navigation menù to have a better understanding of the network (e.g. Top Application Contacts, Top Server Ports, ecc.).
+Different table views are available from the navigation menu to have a better understanding of the network (e.g. Top Application Contacts, Top Server Ports, ecc.).
 
 .. figure:: img/historical_flow_explorer_top_l7.png
   :align: center
@@ -70,7 +70,7 @@ Different table views are available from the navigation menù to have a better u
 Historical Flows Explorer Analysis
 ----------------------------------
 
-This page enable the users to create their own charts. To access it, click the `Analysis` entry next to the Home icon in the navigation menù.
+This page enable the users to create their own charts. To access it, click the `Analysis` entry next to the Home icon in the navigation menu.
 
 .. figure:: img/historical_flow_analysis.png
   :align: center
@@ -78,15 +78,15 @@ This page enable the users to create their own charts. To access it, click the `
 
   Historical Flows Explorer Analysis
 
-Like for the Table view, users can switch between graphs by using the navigation menù and filter results.
-The characteristic of this page is that users can write their own charts, by writing a json file. Each JSON is a different entry of the navigation menù.
+As for the Table view, users can switch between graphs by using the navigation menu and filter results.
+The characteristic of this page is that users can write their own charts, by writing a json file. Each JSON is a different entry of the navigation menu.
 These JSON files needs to be added into `/usr/share/ntopng/scripts/historical/analysis/` directory.
-They are formatted in the following way:
+They are formatted as follows:
 
 .. code:: bash
 
    {
-      "name" : "Autonomous Systems",          /* Name of the Navigation Menù Entry */
+      "name" : "Autonomous Systems",          /* Name of the Navigation Menu Entry */
       
       "i18n_name" : "top_asn",                /* Same as above, but this name needs to be added into the localization file */  
       
@@ -129,7 +129,7 @@ They are formatted in the following way:
       }]
    }
 
-There are various charts available to be used (substitute the `chart_type` entry with the required chart):
+There are various charts available to be used (replace the `chart_type` entry with the required chart):
 
 - Donut Chart, use the `donut_apex_chart`;
 - Pie Chart, use the `pie_apex_chart`;
@@ -149,7 +149,7 @@ Regarding the Formatting Optional Feature (`chart_y_formatter`) there are differ
 - `format_value`, used to format generic data (e.g. number of flows);
 - `format_bytes`, used to format bytes data; 
 
-If a user would like to have a particular chart with a customized endpoint then an specific endpoint needs to be used.
+If a user would like to have a particular chart with a customized endpoint then a specific endpoint needs to be used.
 Please contact us in that case and, if possible, we will release the requested chart.
 
 .. toctree::
@@ -340,7 +340,7 @@ Data Retention
 --------------
 
 The retention of the flows dump on disk can be configured from the
-:ref:`Data Retention` setting.
+:ref:`Data Retention` preferences setting.
 
 .. |drilldown_icon| image:: img/drilldown_icon.png
 .. |flow_export_icon| image:: img/flow_export_icon.png
