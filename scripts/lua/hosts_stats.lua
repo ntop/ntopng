@@ -499,6 +499,56 @@ if page == 'active_hosts' then
         print(getPageUrl(base_url, hosts_filter_params))
         print('">' .. i18n("hosts_stats.all_hosts") .. '</a></li>')
 
+
+        hosts_filter_params.mode = "blacklisted"
+        print('<li ')
+        print('"><a class="dropdown-item ' .. ternary(mode == "blacklisted", "active", "") .. '" href="')
+        print(getPageUrl(base_url, hosts_filter_params))
+        print('">' .. i18n("hosts_stats.blacklisted_hosts_only") .. '</a></li>')
+
+        if interface.isPacketInterface() and not interface.isPcapDumpInterface() then
+            
+            hosts_filter_params.mode = "broadcast_domain"
+            print('<li ')
+            print('"><a class="dropdown-item ' .. ternary(mode == "broadcast_domain", "active", "") .. '" href="')
+            print(getPageUrl(base_url, hosts_filter_params))
+            print('">' .. i18n("hosts_stats.broadcast_domain_hosts_only") .. '</a></li>')
+        end
+
+        hosts_filter_params.mode = "broadcast_multicast"
+        print('<li ')
+        print('"><a class="dropdown-item ' .. ternary(mode == "broadcast_multicast", "active", "") .. '" href="')
+        print(getPageUrl(base_url, hosts_filter_params))
+        print('">' .. i18n("hosts_stats.broadcast_and_multicast") .. '</a></li>')
+
+        if interface.isPacketInterface() and not interface.isPcapDumpInterface() then
+            
+            
+            hosts_filter_params.mode = "dhcp"
+            print('<li ')
+            print('"><a class="dropdown-item ' .. ternary(mode == "dhcp", "active", "") .. '" href="')
+            print(getPageUrl(base_url, hosts_filter_params))
+            print('">' .. i18n("mac_stats.dhcp_only") .. '</a></li>')
+
+        end
+
+        -- Host pools
+        if not ifstats.isView then
+            hosts_filter_params.mode = nil
+            hosts_filter_params.pool = nil
+            print('<li role="separator" class="divider"></li>')
+            for _, _pool in ipairs(host_pools_instance:get_all_pools()) do
+                hosts_filter_params.pool = _pool.pool_id
+                print('<li ')
+                print('"><a class="dropdown-item ' .. ternary(pool == _pool.pool_id, "active", "") .. '" href="')
+                print(getPageUrl(base_url, hosts_filter_params) .. '">' ..
+                          i18n(ternary(have_nedge, "hosts_stats.user", "hosts_stats.host_pool"), {
+                        pool_name = string.gsub(_pool.name, "'", "\\'")
+                    }) .. '</li>')
+            end
+        end
+
+
         hosts_filter_params.mode = "local"
         print('<li ')
         print('"><a class="dropdown-item ' .. ternary(mode == "local", "active", "") .. '" href="')
@@ -535,26 +585,7 @@ if page == 'active_hosts' then
         print(getPageUrl(base_url, hosts_filter_params))
         print('">' .. i18n("hosts_stats.remote_no_tcp_tx") .. '</a></li>')
 
-        if interface.isPacketInterface() and not interface.isPcapDumpInterface() then
-            hosts_filter_params.mode = "dhcp"
-            print('<li ')
-            print('"><a class="dropdown-item ' .. ternary(mode == "dhcp", "active", "") .. '" href="')
-            print(getPageUrl(base_url, hosts_filter_params))
-            print('">' .. i18n("mac_stats.dhcp_only") .. '</a></li>')
-
-            hosts_filter_params.mode = "broadcast_domain"
-            print('<li ')
-            print('"><a class="dropdown-item ' .. ternary(mode == "broadcast_domain", "active", "") .. '" href="')
-            print(getPageUrl(base_url, hosts_filter_params))
-            print('">' .. i18n("hosts_stats.broadcast_domain_hosts_only") .. '</a></li>')
-        end
-
-        hosts_filter_params.mode = "blacklisted"
-        print('<li ')
-        print('"><a class="dropdown-item ' .. ternary(mode == "blacklisted", "active", "") .. '" href="')
-        print(getPageUrl(base_url, hosts_filter_params))
-        print('">' .. i18n("hosts_stats.blacklisted_hosts_only") .. '</a></li>')
-
+        
         if isBridgeInterface(ifstats) then
             hosts_filter_params.mode = "filtered"
             print('<li ')
@@ -563,27 +594,8 @@ if page == 'active_hosts' then
             print('">' .. i18n("hosts_stats.filtered_hosts_only") .. '</a></li>')
         end
 
-        hosts_filter_params.mode = "broadcast_multicast"
-        print('<li ')
-        print('"><a class="dropdown-item ' .. ternary(mode == "broadcast_multicast", "active", "") .. '" href="')
-        print(getPageUrl(base_url, hosts_filter_params))
-        print('">' .. i18n("hosts_stats.broadcast_and_multicast") .. '</a></li>')
-
-        -- Host pools
-        if not ifstats.isView then
-            hosts_filter_params.mode = nil
-            hosts_filter_params.pool = nil
-            print('<li role="separator" class="divider"></li>')
-            for _, _pool in ipairs(host_pools_instance:get_all_pools()) do
-                hosts_filter_params.pool = _pool.pool_id
-                print('<li ')
-                print('"><a class="dropdown-item ' .. ternary(pool == _pool.pool_id, "active", "") .. '" href="')
-                print(getPageUrl(base_url, hosts_filter_params) .. '">' ..
-                          i18n(ternary(have_nedge, "hosts_stats.user", "hosts_stats.host_pool"), {
-                        pool_name = string.gsub(_pool.name, "'", "\\'")
-                    }) .. '</li>')
-            end
-        end
+       
+        
 
         print('</ul></div>\'')
 
