@@ -1886,9 +1886,9 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         
         print(
-	   '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-	   i18n("save") .. '</button></th></tr>')
-	
+           '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+           i18n("save") .. '</button></th></tr>')
+        
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />
@@ -1902,18 +1902,17 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.clickhouse") ..
                   '</th></tr></thead>')
 
-    local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
+        local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
 
-    prefsInputFieldPrefs(subpage_active.entries["flow_data_retention"].title,
-    subpage_active.entries["flow_data_retention"].description, "ntopng.prefs.",
-    "flows_and_alerts_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil,
-    {
-        min = 1,
-        max = 365 * 10
-    })
+        prefsInputFieldPrefs(subpage_active.entries["flow_data_retention"].title,
+        subpage_active.entries["flow_data_retention"].description, "ntopng.prefs.",
+        "flows_and_alerts_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil,
+        {
+            min = 1,
+            max = 365 * 10
+        })
 
-
-    prefsInputFieldPrefs(subpage_active.entries["aggregated_flows_data_retention"].title,
+        prefsInputFieldPrefs(subpage_active.entries["aggregated_flows_data_retention"].title,
             subpage_active.entries["aggregated_flows_data_retention"].description, "ntopng.prefs.",
             "aggregated_flows_data_retention_days", data_retention_utils.getAggregatedFlowsDataRetention(), "number",
             showAggregateFlowsPrefs, nil, nil, {
@@ -1921,37 +1920,37 @@ if auth.has_capability(auth.capabilities.preferences) then
                 max = 365 * 10
             })
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_limit"].title,
-			     subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
-			     "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound or 1000,
-			     "number", showAggregateFlowsPrefs,
-			     false, nil, {
-				min = 10000,
-				max = 10000000
-	})
-	
+                             subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
+                             "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound or 1000,
+                             "number", showAggregateFlowsPrefs,
+                             false, nil, {
+                                min = 10000,
+                                max = 10000000
+        })
+        
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_traffic_limit"].title,
-			     subpage_active.entries["toggle_flow_aggregated_traffic_limit"].description, "ntopng.prefs.",
-			     "max_aggregated_flows_traffic_upperbound", prefs.max_aggregated_flows_traffic_upperbound or 5, "number",
-			     showAggregateFlowsPrefs, false, nil, {
-				min = 0,
-				max = 5000
-	})
+                             subpage_active.entries["toggle_flow_aggregated_traffic_limit"].description, "ntopng.prefs.",
+                             "max_aggregated_flows_traffic_upperbound", prefs.max_aggregated_flows_traffic_upperbound or 5, "number",
+                             showAggregateFlowsPrefs, false, nil, {
+                                min = 0,
+                                max = 5000
+        })
 
-    prefsToggleButton(subpage_active, {
-        field = "toggle_flow_aggregated_alerted_flows",
-        default = "0",
-        pref = "include_alerted_flows_in_aggregated_flows",
-        hidden = not showAggregateFlowsPrefs
-    })
+        prefsToggleButton(subpage_active, {
+            field = "toggle_flow_aggregated_alerted_flows",
+            default = "0",
+            pref = "include_alerted_flows_in_aggregated_flows",
+            hidden = not showAggregateFlowsPrefs
+        })
         print(
-	   '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-	   i18n("save") .. '</button></th></tr>')
-	
+           '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+           i18n("save") .. '</button></th></tr>')
+        
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
-        print [[" />
-  </form>
-  </table>]]
+        print [[" />]]
+        print [[  </form>]]
+        print [[  </table>]]
     end
 
     print [[
