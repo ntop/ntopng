@@ -102,8 +102,10 @@ bool ThreadPool::spawn() {
 
       return (true);
     } else {
+#ifndef WIN32
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure spawning thread [%u thread(s)][rc: %d]",
           num_threads, rc);
+#endif
     }
   }
 
