@@ -1188,6 +1188,25 @@ function getHttpUrlPrefix()
     end
 end
 
+-- ###########################################
+
+function getHttpHost()
+    local ntopng_info = ntop.getInfo()
+    local ntopng_host_info = ntop.getHostInformation()
+
+    local ntopng_host_ip = ntopng_host_info.ip or '127.0.0.1'
+
+    local ntopng_protocol = "http://"
+    local ntopng_port = ntopng_info.http_port
+
+    if ntopng_info.https_port and tonumber(ntopng_info.https_port) ~= 0 then
+        ntopng_protocol = "https://"
+        ntopng_port = ntopng_info.https_port
+    end
+
+    return ntopng_protocol .. ntopng_host_ip .. ":" .. ntopng_port
+end
+
 -- ##############################################
 
 function getPoolName(pool_id)
