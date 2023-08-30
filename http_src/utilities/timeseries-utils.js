@@ -285,7 +285,7 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 			series.forEach((ts_info, j) => {
 				const serie = ts_info.data || []; /* Safety check */
 				let time = epoch_begin;
-
+				
 				let ts_id = timeseriesUtils.getSerieId(ts_info);
 				let s_metadata = tsGroupsArray[i].metric.timeseries[ts_id];
 				let extra_timeseries = tsGroupsArray[i].timeseries[j];

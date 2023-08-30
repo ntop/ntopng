@@ -277,9 +277,9 @@ function get_metric_key(source_type, source_array) {
 
 let cache_metrics = {};
 let last_metrics_time_interval = null;
-const get_metrics = async (http_prefix, source_type, source_array) => {
-    let epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
-    let epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
+const get_metrics = async (http_prefix, source_type, source_array, status) => {
+    let epoch_begin = status?.epoch_begin || ntopng_url_manager.get_url_entry("epoch_begin");
+    let epoch_end = status?.epoch_end || ntopng_url_manager.get_url_entry("epoch_end");
     let current_last_metrics_time_interval = `${epoch_begin}_${epoch_end}`;
     if (source_type == null) {
         source_type = get_current_page_source_type();
@@ -316,8 +316,8 @@ const get_current_page_source_type = () => {
     throw `source_type not found for ${pathname}`;
 };
 
-const get_metric_from_schema = async (http_prefix, source_type, source_array, metric_schema, metric_query) => {
-    let metrics = await get_metrics(http_prefix, source_type, source_array);
+const get_metric_from_schema = async (http_prefix, source_type, source_array, metric_schema, metric_query, status) => {
+    let metrics = await get_metrics(http_prefix, source_type, source_array, status);
     return metrics.find((m) => m.schema == metric_schema && m.query == metric_query);
 };
 

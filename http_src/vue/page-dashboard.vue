@@ -105,6 +105,7 @@ import { default as SimpleTable } from "./simple-table.vue";
 import { default as EmptyComponent } from "./empty-component.vue";
 import { default as Badge } from "./badge.vue";
 import { default as Pie } from "./pie.vue";
+import { default as Timeseries } from "./timeseries.vue";
 import { default as Box } from "./box.vue";
 
 const _i18n = (t) => i18n(t);
@@ -118,6 +119,7 @@ const components_dict = {
     "badge": Badge,
     "empty": EmptyComponent,
     "pie": Pie,
+    "chart": Timeseries,
     "simple-table": SimpleTable,
 }
 

@@ -1,6 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-	<div style="width:100% height:380px;" class="text-end m-3">
+	<div style="width:100% height:380px;" class="text-end mb-2">
 		<label class="form-check-label form-control-sm" v-for="(item, i) in  timeseries_list ">
 			<input type="checkbox" class="form-check-input align-middle mt-0" @click="change_visibility(!item.checked, i)"
 				:checked="item.checked" style="border-color: #0d6efd;" :style="{ backgroundColor: item.color }">
@@ -77,11 +77,11 @@ export default {
 		},
 		get_url_request: function (status) {
 			let url_params;
-			if (this.get_params_url_request != null) {
+			if (this.$props.get_params_url_request != null) {
 				if (status == null) {
 					status = ntopng_status_manager.get_status();
 				}
-				url_params = this.get_params_url_request(status);
+				url_params = this.$props.get_params_url_request(status);
 			} else {
 				url_params = ntopng_url_manager.get_url_params();
 			}
@@ -118,10 +118,10 @@ export default {
 		},
 		get_chart_options: async function (url_request) {
 			let chart_options;
-			if (this.get_custom_chart_options == null) {
+			if (this.$props.get_custom_chart_options == null) {
 				chart_options = await ntopng_utility.http_request(url_request);
 			} else {
-				chart_options = await this.get_custom_chart_options(url_request);
+				chart_options = await this.$props.get_custom_chart_options(url_request);
 			}
 			this.$emit('chart_reloaded', chart_options);
 			return chart_options;
