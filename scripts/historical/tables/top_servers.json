@@ -1,6 +1,6 @@
 {
-    "name" : "Top Servers",
-    "i18n_name" : "db_search.top_servers",
+    "name" : "Top Contacted Servers",
+    "i18n_name" : "db_search.top_contacted_servers",
     "data_source" : "flows",
     "show_in_page" : "overview",
     "hourly": false,
