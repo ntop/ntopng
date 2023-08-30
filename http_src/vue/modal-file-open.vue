@@ -2,28 +2,27 @@
 <template>
 <modal @showed="showed()" ref="modal_id">
   <template v-slot:title>
-      {{ title }}
+    {{ title }}
   </template>
   <template v-slot:body>
-      <div class="form-group ms-2 me-2 mt-3 row">
-        <label class="col-form-label col-sm-4" >
-          <b>{{ _i18n("order_by") }}</b>
-        </label>
-        <div class="col-sm-8">
-          <select class="form-select" @change="sort_files_by()" v-model="order_by">
-            <option value="name">{{_i18n("name")}}</option>
-            <option value="date">{{_i18n("date")}}</option>
-          </select>
-        </div>
+    <div class="form-group ms-2 me-2 mt-3 row">
+      <label class="col-form-label col-sm-4" >
+        <b>{{ _i18n("order_by") }}</b>
+      </label>
+      <div class="col-sm-8">
+        <select class="form-select" @change="sort_files_by()" v-model="order_by">
+          <option value="name">{{_i18n("name")}}</option>
+          <option value="date">{{_i18n("date")}}</option>
+        </select>
       </div>
-      <div class="form-group ms-2 me-2 mt-3 row">
-        <label class="col-form-label col-sm-4" >
-          <b>{{ file_title }}</b>
-        </label>
-        <div class="col-sm-8">
-          <select class="form-select" v-model="file_selected">
-            <option v-for="item in files" :value="item">{{ display_name(item) }}</option>
-          </select>
+    </div>
+    <div class="form-group ms-2 me-2 mt-3 row">
+      <label class="col-form-label col-sm-4" >
+        <b>{{ file_title }}</b>
+      </label>
+      <div class="col-sm-8">
+        <SelectSearch v-model:selected_option="file_selected" :options="files">
+        </SelectSearch>        
         </div>
       </div>
   </template><!-- modal-body -->
@@ -39,10 +38,11 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { default as modal } from "./modal.vue";
+import { default as SelectSearch } from "./select-search.vue";
 
 const modal_id = ref(null);
 const showed = () => {};
-const file_selected = ref("");
+const file_selected = ref({});
 const file_name = ref("");
 const files = ref([]);
 const order_by = ref("date"); // name / date
@@ -91,6 +91,7 @@ function sort_files_by() {
 async function init() {
     file_name.value = "";
     files.value = await props.list_files();
+    files.value.forEach((f) => f.label = display_name(f));
     sort_files_by();
     if (files.value.length > 0) {
 	file_selected.value = files.value[0];
