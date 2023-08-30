@@ -3929,8 +3929,6 @@ local lang = {
   ["host_config"] = {
     ["active_monitor_enable"] = "Active Monitoring is currently disabled. It can be enabled <a href=\"%{url}\">here</a>.",
     ["drop_all_host_traffic"] = "Drop All Host Traffic",
-    ["hide_from_top"] = "Hide From Top Talkers",
-    ["hide_host_from_top_descr"] = "Do not account host %{host} in top talkers computation",
     ["host_alias"] = "Host Alias",
     ["host_pool"] = "Host Pool",
     ["host_status"] = "Host Status",
