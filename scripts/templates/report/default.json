@@ -285,6 +285,24 @@
     }
   },
   {
+    "component" : "chart",
+    "id" : "traffic_chart",
+    "i18n_name" : "interface_traffic",
+    "width" : 12,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
+      "url_params" : {
+        "limit" : 180,
+        "ts_schema" : "iface:traffic_rxtx",
+        "version" : 4,
+        "tskey" : "${interface_id}",
+        "ts_query" : "ifid:${interface_id}"
+      },
+      "source_type" : "interface"
+    }
+  },
+  {
     "component" : "pie",
     "id" : "top_alerted_hosts",
     "i18n_name" : "top_alerted_hosts",

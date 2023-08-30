@@ -161,7 +161,7 @@
   {
     "component" : "chart",
     "id" : "traffic_chart",
-    "i18n_name" : "traffic",
+    "i18n_name" : "interface_traffic",
     "width" : 12,
     "height" : 4,
     "params" : {
