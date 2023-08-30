@@ -22,7 +22,7 @@ local num_hosts      = 1 -- gauge
 local num_open_ports = 1 -- gauge
 local num_cve        = 1 -- gauge
 
-ts_utils.append("am_vuln_scan:num_scans",            { ifid = -1, num_hosts = num_scans }, when)
+ts_utils.append("am_vuln_scan:num_scans",            { ifid = -1, num_scans = num_scans }, when)
 ts_utils.append("am_vuln_scan:num_configured_hosts", { ifid = -1, num_hosts = num_hosts }, when)
 ts_utils.append("am_vuln_scan:num_open_ports",       { ifid = -1, num_open_ports = num_open_ports }, when)
 ts_utils.append("am_vuln_scan:num_cve",              { ifid = -1, num_cve = num_cve }, when)
