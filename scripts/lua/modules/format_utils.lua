@@ -487,8 +487,8 @@ local function format_report_email(notification)
 				</p>
 				<p><strong>Check it out!</strong></p>
 				<div width="220" height="45" style="width: 180px; margin: 0; border-radius: 3px; padding: 5px 5px; background-color:#8FBE00">
-					<a href="#" style="font-weight:500; font-size:17px; letter-spacing:0.025em; line-height:26px; color:#FFF; font-family:'Poppins', sans-serif; mso-line-height-rule: exactly; text-decoration:none;">
-						Go to the Report
+					<a href="]] .. notification.link.url .. [[" style="font-weight:500; font-size:17px; letter-spacing:0.025em; line-height:26px; color:#FFF; font-family:'Poppins', sans-serif; mso-line-height-rule: exactly; text-decoration:none;">
+						]] .. notification.link.label .. [[
 					</a>
 				</div>
 			</div>

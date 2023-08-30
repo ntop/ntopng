@@ -6487,6 +6487,7 @@ local lang = {
     ["network_interface"] = "Network Interface",
     ["new_report_available_title"] = "New Report Available",
     ["new_report_available_description"] = "There is a new %{periodicity} report %{name} available in ntopng under the Reports section.",
+    ["new_report_available_link"] = "Go to the Report",
     ["period"] = "Interval",
     ["please_check_format"] = "please check its format",
     ["please_choose_valid"] = "please choose a valid begin/end date and time",
