@@ -626,10 +626,10 @@
 
             $(`#edit-recipient-notifications-type`).change((item) => {
                 if(item && item.target) {
-                    if(item.target.value == 'vulnerability_scans') {
-                        $(`#edit_alert_filters`).attr('hidden', 'hidden');
-                    } else {
+                    if(item.target.value == 'alerts') {
                         $(`#edit_alert_filters`).removeAttr('hidden');
+                    } else {
+                        $(`#edit_alert_filters`).attr('hidden', 'hidden');
                     }
                 }
             });
