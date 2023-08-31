@@ -299,6 +299,8 @@
         "tskey" : "$IFID$",
         "ts_query" : "ifid:$IFID$"
       },
+      "post_params" : {
+      },
       "source_type" : "interface"
     }
   },
