@@ -184,22 +184,24 @@ end
 -- ##############################################
 
 local function isUserAccessAllowed(tags)
+    local user = _SESSION and _SESSION["user"] or ""
+
     if tags.ifid and not ntop.isnEdge() and not ntop.isAllowedInterface(tonumber(tags.ifid)) then
         traceError(TRACE_ERROR, TRACE_CONSOLE,
-            "User: " .. _SESSION["user"] .. " is not allowed to access interface " .. tags.ifid)
+            "User: " .. user .. " is not allowed to access interface " .. tags.ifid)
         return false
     end
 
     -- Note: tags.host can contain a MAC address for local broadcast domain hosts
     local host = tags.host_ip or tags.host
     if host and not ntop.isAllowedNetwork(host) then
-        traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. _SESSION["user"] .. " is not allowed to access host " .. host)
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. user .. " is not allowed to access host " .. host)
         return false
     end
 
     if tags.subnet and not ntop.isAllowedNetwork(tags.subnet) then
         traceError(TRACE_ERROR, TRACE_CONSOLE,
-            "User: " .. _SESSION["user"] .. " is not allowed to access subnet " .. tags.subnet)
+            "User: " .. user .. " is not allowed to access subnet " .. tags.subnet)
         return false
     end
 
