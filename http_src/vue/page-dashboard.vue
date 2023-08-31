@@ -204,7 +204,7 @@ function set_components_epoch_interval(epoch_interval) {
 }
 
 async function load_components(epoch_interval, components_backup) {
-    let url_request = `${http_prefix}/lua/pro/rest/v2/get/${props.context.page}/template.lua?template=${props.context.template}`;
+    let url_request = `${http_prefix}/lua/pro/rest/v2/get/${props.context.page}/template/data.lua?template=${props.context.template}`;
     let res = await ntopng_utility.http_request(url_request);
     components.value = res.list.filter((c) => components_dict[c.component] != null)
         .map((c, index) => {
