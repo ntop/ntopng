@@ -136,24 +136,41 @@ function email.dequeueRecipientAlerts(recipient, budget)
   local more_available = true
   local budget_used = 0
 
+  local settings = recipient2sendMessageSettings(recipient)
+
   -- Dequeue alerts up to budget x MAX_ALERTS_PER_EMAIL
   -- Note: in this case budget is the number of email to send
   while budget_used <= budget and more_available do
     -- Dequeue MAX_ALERTS_PER_EMAIL notifications
 
     local notifications = {}
+
     local i = 0
+    local total_len = 0
     while i < MAX_ALERTS_PER_EMAIL do
       local notification = ntop.recipient_dequeue(recipient.recipient_id)
+
       if notification then 
         if alert_utils.filter_notification(notification, recipient.recipient_id) then
-          notifications[#notifications + 1] = notification.alert
+
+          local notif = json.decode(notification.alert)
+
+          notifications[#notifications + 1] = notif
+
           i = i + 1
+
+          if not notif.score then
+            -- Not an alert (e.g. report), send out
+            goto send_out
+          end
+
         end
       else
         break
       end
     end
+
+    ::send_out::
 
     if not notifications or #notifications == 0 then
       more_available = false
@@ -161,24 +178,23 @@ function email.dequeueRecipientAlerts(recipient, budget)
     end
 
     -- Prepare email
-    local subject = ""
-    local message_body = {}
 
+    -- Subject
+    local subject = ""
     if #notifications > 1 then
       subject = "(" .. i18n("alert_messages.x_alerts", {num=#notifications}) .. ")"
     end
 
-    for _, json_message in ipairs(notifications) do
-      local notif = json.decode(json_message)
-      message_body[#message_body + 1] = format_utils.formatMessage(notif, {show_entity = true, nohtml=false})
+    -- Body
+    local messages = {}
+    for _, notif in ipairs(notifications) do
+      messages[#messages + 1] = format_utils.formatMessage(notif, {show_entity = true, nohtml=false})
     end
+    local message_body = table.concat(messages, "<br>")
 
-    message_body = table.concat(message_body, "<br>")
-
-    local settings = recipient2sendMessageSettings(recipient)
+    if debug_endpoint then tprint(message_body) end
 
     -- Send email
-    if debug_endpoint then tprint(message_body) end
     local rv = email.sendEmail(subject, message_body, settings)
 
     -- Handle retries on failure
