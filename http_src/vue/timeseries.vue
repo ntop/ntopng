@@ -54,17 +54,19 @@ const base_url = computed(() => {
 });
 
 /* This function is used to retrieve ts_key and ts_query from the url_params
- * and correctly format it, by substituting the ${interface_id} with the correct
+ * and correctly format it, by substituting the $IFID$ with the correct
  * interface id.  
  */
 function get_ts_info() {
   let ts_key = props.params.url_params?.tskey;
   let ts_query = props.params.url_params?.ts_query;
-  if(ts_key.contains('${interface_id}')) {
-    ts_key = ts_key.replace('${interface_id}', props.ifid);
+
+  /* Push ifid to the parameters (e.g. "ts_query=ifid:$IFID$" */
+  if(ts_key.contains('$IFID$')) {
+    ts_key = ts_key.replace('$IFID$', props.ifid);
   }
-  if(ts_query.contains('${interface_id}')) {
-    ts_query = ts_query.replace('${interface_id}', props.ifid);
+  if(ts_query.contains('$IFID$')) {
+    ts_query = ts_query.replace('$IFID$', props.ifid);
   }
 
   return {
