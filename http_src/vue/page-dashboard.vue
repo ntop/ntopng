@@ -77,7 +77,8 @@
                      :max_width="c.width"
                      :max_height="c.height"
                      :params="c.params"
-                     :get_component_data="get_component_data_func(c)">
+                     :get_component_data="get_component_data_func(c)"
+                     :csrf="context.csrf">
           </component>
         </template>
         <template v-slot:box_footer>
@@ -390,7 +391,7 @@ function print_report() {
 
 /* Callback to request REST data from components */
 function get_component_data_func(component) {
-    const get_component_data = async (url, url_params) => {
+    const get_component_data = async (url, url_params, post_params) => {
         
         let info = {};
 
@@ -407,7 +408,6 @@ function get_component_data_func(component) {
                 // console.log("-------------------------");
             }
         } else {
-            const data_url = `${url}?${url_params}`;
 
             /* Check if there is already a promise for the same request */
             if (components_info[component.component_id]) {
@@ -417,7 +417,13 @@ function get_component_data_func(component) {
                 }
             }
 
-            info.data = ntopng_utility.http_request(`${data_url}`);
+            const data_url = `${url}?${url_params}`;
+
+            if (post_params) {
+                info.data = ntopng_utility.http_post_request(data_url, post_params);
+            } else {
+                info.data = ntopng_utility.http_request(data_url);
+            }
         
             components_info[component.component_id] = info;
         }
