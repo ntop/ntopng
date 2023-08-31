@@ -483,7 +483,7 @@ local function format_report_email(notification)
 					]] .. notification.title .. [[
 				</span>
 				<p>
-					]] .. notification.message .. [[
+					]] .. notification.message .. " " .. notification.note .. [[
 				</p>
 				<p><strong>Check it out!</strong></p>
 				<div width="220" height="45" style="width: 180px; margin: 0; border-radius: 3px; padding: 5px 5px; background-color:#8FBE00">
