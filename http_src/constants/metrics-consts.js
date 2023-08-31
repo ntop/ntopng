@@ -87,6 +87,19 @@ const sources_types = [
 		}],
 	},
 	{
+		id: "vulnerability_scan", //unique id
+		regex_page_url: "lua\/vulnerability_scan", // regex to match url page
+		label: i18n("page_stats.source_def.vuln_scan"),
+		query: "am_vuln_scan",
+		source_def_array: [{
+			label: i18n("page_stats.source_def.interface"),
+			sources_function: () => { return [{ label: "System", value: -1 }] },
+			value: "ifid",
+			ui_type: ui_types.hide,
+		}]
+		
+	},
+	{
 		id: "host",
 		regex_page_url: "lua\/host_details",
 		label: i18n("page_stats.source_def.host"),

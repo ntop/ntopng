@@ -317,6 +317,7 @@ function graph_utils.drawNewGraphs(source_value_object)
     local ifstats = interface.getStats()
     local ifid = ifstats.id
 
+
     -- Check extraction permissions
     local traffic_extraction_permitted = recording_utils.isActive(ifid) or recording_utils.isExtractionActive(ifid)
 
