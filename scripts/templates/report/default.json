@@ -296,8 +296,8 @@
         "limit" : 180,
         "ts_schema" : "iface:traffic_rxtx",
         "version" : 4,
-        "tskey" : "${interface_id}",
-        "ts_query" : "ifid:${interface_id}"
+        "tskey" : "$IFID$",
+        "ts_query" : "ifid:$IFID$"
       },
       "source_type" : "interface"
     }
