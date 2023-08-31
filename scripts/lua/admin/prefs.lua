@@ -1953,6 +1953,36 @@ if auth.has_capability(auth.capabilities.preferences) then
         print [[  </table>]]
     end
 
+    function printReportsOptions()
+        print('<form method="post">')
+        print('<table class="table">')
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.reports") ..
+                  '</th></tr></thead>')
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_enable_automatic_reports",
+            default = "0",
+            pref = "automatic_reports_enabled",
+            to_switch = {},
+            hidden = false
+        })
+
+        prefsInputFieldPrefs(subpage_active.entries["reports_data_retention_time"].title,
+        subpage_active.entries["reports_data_retention_time"].description, "ntopng.prefs.",
+        "reports_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil,
+        { min = 1, max = 365 * 10 })
+
+        print(
+           '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+           i18n("save") .. '</button></th></tr>')
+        
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />]]
+        print [[  </form>]]
+        print [[  </table>]]
+    end
+
     print [[
        <table class="table">
          <col width="20%">
@@ -1994,8 +2024,8 @@ if auth.has_capability(auth.capabilities.preferences) then
     print [[
         </td><td colspan=2>]]
 
-    if (tab == "report") then
-        printReportVisualization()
+    if (tab == "reports") then
+        printReportsOptions()
     end
 
     if (tab == "in_memory") then

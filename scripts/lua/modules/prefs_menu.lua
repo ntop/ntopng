@@ -536,6 +536,22 @@ local menu_subpages = { {
             description = i18n("traffic_recording.max_extracted_pcap_bytes_description")
         }
     }
+}, {
+    id = "reports",
+    label = i18n("prefs.reports"),
+    advanced = false,
+    pro_only = true,
+    hidden = not ntop.isEnterpriseL(),
+    entries = {
+        toggle_enable_automatic_reports = {
+            title = i18n("prefs.toggle_enable_automatic_reports_title"),
+            description = i18n("prefs.toggle_enable_automatic_reports_descr")
+        },
+        reports_data_retention_time = {
+            title = i18n("prefs.reports_data_retention_time_title"),
+            description = i18n("prefs.reports_data_retention_time_descr")
+        }
+    }
 },   {
     id = "updates",
     label = i18n("prefs.updates"),
