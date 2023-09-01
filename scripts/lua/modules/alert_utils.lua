@@ -513,7 +513,7 @@ function alert_utils.formatAlertNotification(notif, options)
     local when
 
     if (notif.ifid ~= -1) then
-        ifname = string.format(" [%s]", getInterfaceName(notif.ifid))
+        ifname = string.format(" [Interface: %s]", getInterfaceName(notif.ifid))
     else
         ifname = ""
     end
@@ -521,7 +521,7 @@ function alert_utils.formatAlertNotification(notif, options)
     if (options.show_severity == false) then
         severity = ""
     else
-        severity = " [" .. alert_consts.alertSeverityLabel(notif.score, options.nohtml, options.emoji) .. "]"
+        severity = " [Severity: " .. alert_consts.alertSeverityLabel(notif.score, options.nohtml, options.emoji) .. "]"
     end
 
     if (options.nodate == true) then
