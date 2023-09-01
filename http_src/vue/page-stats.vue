@@ -4,7 +4,7 @@
         <AlertInfo></AlertInfo>
         <div class="card h-100 overflow-hidden">
             <DateTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker" :enable_refresh="true"
-                ref="date_time_picker" @epoch_change="epoch_change">
+                ref="date_time_picker" @epoch_change="epoch_change" :min_time_interval_id="min_time_interval_id">
                 <template v-slot:begin>
                 </template>
                 <template v-slot:extra_buttons>
@@ -122,10 +122,9 @@ const props = defineProps({
     is_dark_mode: Boolean,
 });
 
-ntopng_utility.check_and_set_default_time_interval();
+//ntopng_utility.check_and_set_default_time_interval();
 
 const _i18n = (t) => i18n(t);
-
 let id_chart = "chart";
 let id_date_time_picker = "date_time_picker";
 let chart_type = ntopChartApex.typeChart.TS_LINE;
@@ -138,6 +137,7 @@ const modal_timeseries = ref(null);
 const modal_snapshot = ref(null);
 const modal_download_file = ref(null);
 
+const min_time_interval_id = ref(null);
 const metrics = ref([]);
 const selected_metric = ref({});
 const source_type = metricsManager.get_current_page_source_type();
@@ -183,6 +183,12 @@ function set_default_source_object_in_url() {
 }
 
 onBeforeMount(async () => {
+
+    if (props.source_value_object.is_va) {
+        min_time_interval_id.value = "hour";
+        ntopng_utility.check_and_set_default_time_interval("day");
+    }
+        
     set_default_source_object_in_url();
 });
 
@@ -317,6 +323,8 @@ async function load_selected_metric_page_stats_data() {
 }
 
 function epoch_change(new_epoch) {
+
+    console.log(id_date_time_picker);
     let push_custom_metric = selected_metric.value.label == custom_metric.label;
     load_page_stats_data(last_timeseries_groups_loaded, true, false, new_epoch.refresh_data);
     refresh_top_table();
