@@ -185,6 +185,7 @@
     "params" : {
       "url" : "/lua/pro/rest/v2/get/vlan/live_ports.lua",
       "url_params" : {
+        "limit" : 20
       }
     }
   }
