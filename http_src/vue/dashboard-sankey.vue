@@ -214,11 +214,11 @@ function on_node_click(node) {
 }
 
 function update_height() {
-    height.value = $(body_div.value).height() - 100;
+    height.value = $(body_div.value).height();
 }
 
 function update_width() {
-    width.value = $(body_div.value).width() - 10;
+    width.value = $(body_div.value).width();
 }
 </script>
 
