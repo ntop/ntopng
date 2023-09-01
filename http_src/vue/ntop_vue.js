@@ -6,7 +6,6 @@ import * as Vue from "vue";
 // window.Vue = Vue;
 
 // pages
-import { default as PageDashboard } from "./page-dashboard.vue";
 import { default as PageAlertStats } from "./page-alert-stats.vue";
 import { default as PageFlowHistorical } from "./page-flow-historical.vue";
 import { default as PageStats } from "./page-stats.vue";
@@ -62,10 +61,16 @@ import { default as TabList } from "./tab-list.vue";
 import { default as Sankey } from "./sankey.vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as Loading } from "./loading.vue";
-import { default as SimpleTable } from "./simple-table.vue";
-import { default as EmptyComponent } from "./empty-component.vue";
-import { default as Badge } from "./badge.vue";
-import { default as Pie } from "./pie.vue";
+
+// dashboard
+import { default as Dashboard } from "./dashboard.vue";
+import { default as DashboardBox } from "./dashboard-box.vue";
+import { default as DashboardEmpty } from "./dashboard-empty.vue";
+import { default as DashboardTable } from "./dashboard-table.vue";
+import { default as DashboardBadge } from "./dashboard-badge.vue";
+import { default as DashboardPie } from "./dashboard-pie.vue";
+import { default as DashboardTimeseries } from "./dashboard-timeseries.vue";
+import { default as DashboardSankey } from "./dashboard-sankey.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -89,7 +94,6 @@ import { default as ModalUpdatePeriodicityScan } from "./modal-update-periodicit
 
 let ntopVue = {
     // pages
-    PageDashboard: PageDashboard,
     PageAlertStats: PageAlertStats,
     PageFlowHistorical: PageFlowHistorical,
     PageStats: PageStats,
@@ -154,10 +158,16 @@ let ntopVue = {
     Sankey: Sankey,
     NoteList: NoteList,
     Loading: Loading,
-    SimpleTable: SimpleTable,
-    EmptyComponent: EmptyComponent,
-    Badge: Badge,
-    Pie: Pie,
+
+    // dashboard
+    Dashboard: Dashboard,
+    DashboardBox: DashboardBox,
+    DashboardEmpty: DashboardEmpty,
+    DashboardTable: DashboardTable,
+    DashboardBadge: DashboardBadge,
+    DashboardPie: DashboardPie,
+    DashboardTimeseries: DashboardTimeseries,
+    DashboardSankey: DashboardSankey,
 
     // list
     ListTimeseries: ListTimeseries,

@@ -59,7 +59,7 @@
     }
   },
   {
-    "component" : "simple-table",
+    "component" : "table",
     "id" : "top_local_talkers",
     "i18n_name" : "report.top_local_hosts",
     "width" : 6,
@@ -81,7 +81,7 @@
     }
   },
   {
-    "component" : "simple-table",
+    "component" : "table",
     "id" : "top_remote_hosts",
     "i18n_name" : "report.top_remote_hosts",
     "width" : 6,
@@ -103,7 +103,7 @@
     }
   },
   {
-    "component" : "simple-table",
+    "component" : "table",
     "id" : "top_clients",
     "i18n_name" : "db_search.top_clients",
     "width" : 6,
@@ -125,7 +125,7 @@
     }
   },
   {
-    "component" : "simple-table",
+    "component" : "table",
     "id" : "top_servers",
     "i18n_name" : "db_search.top_servers",
     "width" : 6,
@@ -147,7 +147,7 @@
     }
   },
   {
-    "component" : "simple-table",
+    "component" : "table",
     "id" : "top_receiver_networks",
     "i18n_name" : "report.top_receiver_networks",
     "width" : 6,
@@ -170,7 +170,7 @@
     }
   },
   {
-    "component" : "simple-table",
+    "component" : "table",
     "id" : "top_sender_networks",
     "i18n_name" : "report.top_sender_networks",
     "width" : 6,
@@ -193,7 +193,7 @@
     }
   },
   {
-    "component" : "simple-table",
+    "component" : "table",
     "id" : "top_receiver_as",
     "i18n_name" : "report.top_receiver_as",
     "width" : 6,
@@ -216,7 +216,7 @@
     }
   },
   {
-    "component" : "simple-table",
+    "component" : "table",
     "id" : "top_sender_as",
     "i18n_name" : "report.top_sender_as",
     "width" : 6,
@@ -239,7 +239,7 @@
     }
   },
   {
-    "component" : "simple-table",
+    "component" : "table",
     "id" : "top_receiver_countries",
     "i18n_name" : "report.top_receiver_countries",
     "width" : 6,
@@ -262,7 +262,7 @@
     }
   },
   {
-    "component" : "simple-table",
+    "component" : "table",
     "id" : "top_sender_countries",
     "i18n_name" : "report.top_sender_countries",
     "width" : 6,
@@ -285,7 +285,7 @@
     }
   },
   {
-    "component" : "chart",
+    "component" : "timeseries",
     "id" : "traffic_chart",
     "i18n_name" : "interface_traffic",
     "width" : 12,

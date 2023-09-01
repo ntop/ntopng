@@ -102,12 +102,14 @@ import { default as ModalSave } from "./modal-file-save.vue";
 import { default as ModalOpen } from "./modal-file-open.vue";
 import { default as ModalUpload } from "./modal-file-upload.vue";
 
-import { default as SimpleTable } from "./simple-table.vue";
-import { default as EmptyComponent } from "./empty-component.vue";
-import { default as Badge } from "./badge.vue";
-import { default as Pie } from "./pie.vue";
-import { default as Timeseries } from "./timeseries.vue";
-import { default as Box } from "./box.vue";
+import { default as Box } from "./dashboard-box.vue";
+
+import { default as EmptyComponent } from "./dashboard-empty.vue";
+import { default as TableComponent } from "./dashboard-table.vue";
+import { default as BadgeComponent } from "./dashboard-badge.vue";
+import { default as PieComponent } from "./dashboard-pie.vue";
+import { default as TimeseriesComponent } from "./dashboard-timeseries.vue";
+import { default as SankeyComponent } from "./dashboard-sankey.vue";
 
 const _i18n = (t) => i18n(t);
 const timeframes_dict = ntopng_utility.get_timeframes_dict();
@@ -117,11 +119,12 @@ const props = defineProps({
 });
 
 const components_dict = {
-    "badge": Badge,
+    "badge": BadgeComponent,
     "empty": EmptyComponent,
-    "pie": Pie,
-    "chart": Timeseries,
-    "simple-table": SimpleTable,
+    "pie": PieComponent,
+    "timeseries": TimeseriesComponent,
+    "table": TableComponent,
+    "sankey": SankeyComponent,
 }
 
 const page_id = "page-dashboard";
