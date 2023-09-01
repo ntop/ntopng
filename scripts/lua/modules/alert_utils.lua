@@ -657,9 +657,17 @@ function alert_utils.formatAlertNotification(notif, options)
    local ifname
    local severity
    local when
+   local id = ""
 
+   --[[
+   local notif_json = json.decode(notif.json) or nil
+
+   if notif_json then 
+      id = string.format("[ID: %s]", notif_json["ntopng.key"])
+   end
+]]
    if(notif.ifid ~= -1) then
-      ifname = string.format(" [%s]", getInterfaceName(notif.ifid))
+      ifname = string.format(" [Interface: %s]", getInterfaceName(notif.ifid))
    else
       ifname = ""
    end
@@ -667,7 +675,7 @@ function alert_utils.formatAlertNotification(notif, options)
    if(options.show_severity == false) then
       severity = ""
    else
-      severity =  " [" .. alert_consts.alertSeverityLabel(notif.score, options.nohtml, options.emoji) .. "]"
+      severity =  " [Severity: " .. alert_consts.alertSeverityLabel(notif.score, options.nohtml, options.emoji) .. "]"
    end
 
    if(options.nodate == true) then
@@ -686,13 +694,13 @@ function alert_utils.formatAlertNotification(notif, options)
       when = when .. " "
    end
 
-   local msg = string.format("%s%s%s [%s]",
-			     when, ifname, severity,
+   local msg = string.format("%s%s%s%s [%s]",
+			     when, id, ifname, severity,
 			     alert_consts.alertTypeLabel(notif.alert_id, options.nohtml, notif.entity_id))
 
    -- entity can be hidden for example when one is OK with just the message
    if options.show_entity then
-      msg = msg.."["..alert_consts.alertEntityLabel(notif.entity_id).."]"
+      msg = msg.." ["..alert_consts.alertEntityLabel(notif.entity_id).."]"
       local ev
       if notif.entity_id == alert_entities.flow.entity_id then
          ev = noHtml(alert_utils.formatRawFlow(notif))
@@ -703,7 +711,7 @@ function alert_utils.formatAlertNotification(notif, options)
 	    ev = hostinfo2hostkey(hostkey2hostinfo(notif.entity_val))
 	 end
       end
-      msg = msg.."["..(ev or '').."]"
+      msg = msg.." ["..(ev or '').."]"
    end
 
    -- add the label, that is, engaged or released
