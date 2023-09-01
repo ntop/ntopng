@@ -100,7 +100,7 @@ async function draw_sankey() {
 	.attr("fill", (d) => colors(d.index / nodes.length))
 	.attr("class", "sankey-node")
 	.attr("style", "cursor:move;");
-    d3.selectAll("rect").append("title").text((d) => `${d.label}`);
+    d3.selectAll("rect").append("title").text((d) => `${d?.label}`);
     
     // Relative to container/ node rect    
     d3_nodes.data(nodes)
