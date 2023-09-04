@@ -70,6 +70,7 @@
        "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
        "url_params" : {
           "query_preset" : "top_local_talkers",
+          "aggregated" : true,
           "start" : 0,
           "length" : 20
        },
@@ -92,6 +93,7 @@
        "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
        "url_params" : {
           "query_preset" : "top_remote_destinations",
+          "aggregated" : true,
           "start" : 0,
           "length" : 20
        },
@@ -114,6 +116,7 @@
        "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
        "url_params" : {
           "query_preset" : "clients",
+          "aggregated" : true,
           "start" : 0,
           "length" : 20
        },
@@ -136,6 +139,7 @@
        "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
        "url_params" : {
           "query_preset" : "servers",
+          "aggregated" : true,
           "start" : 0,
           "length" : 20
        },
