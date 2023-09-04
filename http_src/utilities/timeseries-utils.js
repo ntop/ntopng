@@ -15,7 +15,7 @@ function getSerieId(serie) {
 	return `${serie.id}`;
 }
 
-function getSerieName(name, id, tsGroup, extendSeriesName) {
+function getSerieName(name, id, tsGroup, useFullName) {
 	if (name == null) {
 		name = id;
 	}
@@ -23,7 +23,7 @@ function getSerieName(name, id, tsGroup, extendSeriesName) {
 	if (name != null) {
 		name_more_space = `${name}`;
 	}
-	if (extendSeriesName == false) {
+	if (useFullName == false) {
 		return name;
 	}
 	let source_index = getMainSourceDefIndex(tsGroup);
@@ -116,6 +116,7 @@ function splitTsArrayStacked(tsOptionsArray, tsGrpupsArray) {
 }
 
 function tsArrayToOptionsArrayRaw(tsOptionsArray, tsGroupsArray, groupsOptionsMode, tsCompare) {
+	let useFullName = false;
 	if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart_x_yaxis"].value) {
 		let tsDict = {};
 		tsGroupsArray.forEach((tsGroup, i) => {
@@ -127,19 +128,21 @@ function tsArrayToOptionsArrayRaw(tsOptionsArray, tsGroupsArray, groupsOptionsMo
 				tsDict[yaxisId].push(tsEl);
 			}
 		});
+		useFullName = tsGroupsArray.length > 1;
 		let DygraphOptionsArray = [];
 		for (let key in tsDict) {
 			let tsArray = tsDict[key];
 			let tsOptionsArray2 = tsArray.map((ts) => ts.tsOptions);
 			let tsGroupsArray2 = tsArray.map((ts) => ts.tsGroup);
-			let DygraphOptions = tsArrayToOptions(tsOptionsArray2, tsGroupsArray2, tsCompare);
+			let DygraphOptions = tsArrayToOptions(tsOptionsArray2, tsGroupsArray2, tsCompare, useFullName);
 			DygraphOptionsArray.push(DygraphOptions);
 		}
 		return DygraphOptionsArray;
 	} else if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart_x_metric"].value) {
+		useFullName = tsOptionsArray.length > 1;
 		let optionsArray = [];
 		tsOptionsArray.forEach((tsOptions, i) => {
-			let options = tsArrayToOptions([tsOptions], [tsGroupsArray[i]], tsCompare);
+			let options = tsArrayToOptions([tsOptions], [tsGroupsArray[i]], tsCompare, useFullName);
 			optionsArray.push(options);
 		});
 		return optionsArray;
@@ -227,7 +230,7 @@ function formatBoundsSerie(series, series_info) {
 }
 
 /* Given an array of timeseries, it compacts them into a single array */
-function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
+function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare, useFullName) {
 	if (tsOptionsArray.length != tsGroupsArray.length) {
 		console.error(`Error in timeseries-utils:tsArrayToOptions: tsOptionsArray ${tsOptionsArray} different length from tsGroupsArray ${tsGroupsArray}`);
 		return;
@@ -240,7 +243,7 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare) {
 	let colors_palette = [];
 	let serie_properties = {};
 	let customBars = false;
-	let use_full_name = true;
+	let use_full_name = (useFullName != null) ? useFullName : false;
 	
 	/* Go throught each serie */
 	tsOptionsArray.forEach((tsOptions, i) => {

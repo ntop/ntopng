@@ -613,7 +613,7 @@ let stats_columns = [
 const stats_rows = ref([]);
 
 function set_stats_rows(ts_charts_options, timeseries_groups, status) {
-    let extend_serie_name = true;
+    const extend_serie_name = ts_charts_options.length > 1;
     enable_stats_table.value = timeseries_groups.map((ts_group) => !ts_group.source_type.disable_stats).reduce((res, el) => res | el, false);
     if (!enable_stats_table.value) { return; }
     const f_get_total_formatter_type = (type) => {
