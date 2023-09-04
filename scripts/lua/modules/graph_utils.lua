@@ -1383,6 +1383,10 @@ end
 
 -- Convert to the format accepted by the vue Chart/Pie component
 -- js_formatter: render function (e.g. 'format_bytes')
+-- Input format (res):
+-- [ { label = 'xxx', count = yyy }, ... ]
+-- Output format:
+-- { labels = [ 'xxx', ...], series = [ yyy, ... ], colors = [ ... ], ... }
 function graph_utils.convert_pie_data(res, new_charts, js_formatter)
    if not new_charts then
       return res
