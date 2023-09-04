@@ -485,6 +485,12 @@ export const ntopng_url_manager = function() {
             this.replace_url(search_params.toString());	    
         },
 
+        delete_key_from_url: function(key) {
+            let search_params = this.get_url_search_params();
+            search_params.delete(key);
+            this.replace_url(search_params.toString());	    
+        },
+
         set_key_to_url: function(key, value) {
             if (value == null) { value = ""; }	  
             let search_params = this.get_url_search_params();

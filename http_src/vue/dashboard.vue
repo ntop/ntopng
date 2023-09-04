@@ -1,7 +1,7 @@
 <!-- (C) 2023 - ntop.org -->
 <template>
 <div class='row'>
-
+  
   <ModalSave ref="modal_store_report"
              :get_suggested_file_name="get_suggested_report_name"
              :store_file="store_report"
@@ -17,16 +17,24 @@
              :file_title="_i18n('report.report_name')">
   </ModalOpen>
   <ModalUpload ref="modal_upload_report"
-             :upload_file="upload_report"
-             :title="_i18n('upload')"
-             :file_title="_i18n('report.file')">
+               :upload_file="upload_report"
+               :title="_i18n('upload')"
+               :file_title="_i18n('report.file')">
   </ModalUpload>
-
+  
   <DateTimeRangePicker v-if="enable_date_time_range_picker"
+                       :disabled_date_picker="disable_date_time_picker"
                        id="dashboard-date-time-picker"
                        :round_time="true"
                        min_time_interval_id="min"
                        @epoch_change="set_components_epoch_interval">
+    <template v-slot:begin>
+      <div class="me-2">
+        <SelectSearch v-model:selected_option="selected_report_template" :options="reports_templates"
+                      @select_option="select_report_remplate">
+        </SelectSearch>
+      </div>
+    </template>
     <template v-slot:extra_buttons>
       <button class="btn btn-link btn-sm"
               @click="show_store_report_modal" :title="_i18n('dashboard.store')">
@@ -110,6 +118,7 @@ import { default as BadgeComponent } from "./dashboard-badge.vue";
 import { default as PieComponent } from "./dashboard-pie.vue";
 import { default as TimeseriesComponent } from "./dashboard-timeseries.vue";
 import { default as SankeyComponent } from "./dashboard-sankey.vue";
+import { default as SelectSearch } from "./select-search.vue";
 
 const _i18n = (t) => i18n(t);
 const timeframes_dict = ntopng_utility.get_timeframes_dict();
@@ -139,11 +148,19 @@ const main_epoch_interval = ref(null);
 
 const components = ref([]);
 
+const reports_templates = ref([]);
+const selected_report_template = ref({});
+
 let components_info = {};
 let data_from_backup = false;
 
 const enable_date_time_range_picker = computed(() => {
     return props.context.page == "report";
+});
+
+const disable_date_time_picker = computed(() => {
+    const disabled = selected_report_template.value.is_open_report == true;
+    return disabled;
 });
 
 const component_interval = computed(() => {
@@ -170,10 +187,11 @@ onBeforeMount(async () => {
         epoch_interval = ntopng_utility.check_and_set_default_time_interval(undefined, undefined, true, "min");
         main_epoch_interval.value = epoch_interval;
     }
-
-    if (props.context.report_name) {
+    await set_templates_list();
+    let report_name = ntopng_url_manager.get_url_entry("report_name");
+    if (report_name != null && report_name != "") {
         /* Report name provided - open a report backup */
-        await open_report(props.context.report_name);
+        await open_report(report_name);
     } else {
         /* Load a template and build a new report */
         await load_components(epoch_interval);
@@ -185,6 +203,26 @@ onMounted(async () => {
         start_dashboard_refresh_loop();
     }
 });
+
+async function set_templates_list() {
+    const url_request = `${http_prefix}/lua/pro/rest/v2/get/${props.context.page}/template/list.lua`;
+    let res = await ntopng_utility.http_request(url_request);
+    if (res?.list == null) { return; }
+    
+    reports_templates.value = res.list.map((t) => {
+        return {
+            value: t.name,
+            label: t.name,
+            disabled: false,
+            is_open_report: false,
+        };
+    });
+    const report_template_value = ntopng_url_manager.get_url_entry("report_template");
+    selected_report_template.value = reports_templates.value.find((t) => t.value == report_template_value);
+    if (selected_report_template.value == null) {
+        selected_report_template.value = reports_templates.value[0];
+    }
+}
 
 let dasboard_loop_interval;
 
@@ -231,6 +269,12 @@ function update_component_epoch_interval(c, epoch_interval) {
     const utc_offset = timeframes_dict[c.time_offset] || 0;
     c.epoch_begin = epoch_interval.epoch_begin - utc_offset;
     c.epoch_end = epoch_interval.epoch_end - utc_offset;
+}
+
+function select_report_remplate() {
+    if (selected_report_template.value.is_open_report == false) {
+        update_templates_list();
+    }
 }
 
 function get_component_id(id, index) {
@@ -301,10 +345,31 @@ const load_report = async (content) => {
 }
 
 const open_report = async (file_name) => {
+    update_templates_list(file_name);
     let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/file.lua?ifid=${props.context.ifid}&report_name=${file_name}`;
     let content = await ntopng_utility.http_request(url);
 
     load_report(content);
+}
+
+function update_templates_list(report_name_to_open) {
+    reports_templates.value = reports_templates.value.filter((t) => t.is_open_report == false);
+    if (report_name_to_open == null) { // in this case is selected a report_template
+        ntopng_url_manager.set_key_to_url("report_template", selected_report_template.value.value);
+        ntopng_url_manager.delete_key_from_url("report_name");
+        return;
+    }
+    
+    let t_entry = {
+        value: report_name_to_open,
+        label: report_name_to_open,
+        disabled: false,
+        is_open_report: true,
+    };
+    reports_templates.value.push(t_entry);
+    selected_report_template.value = t_entry;
+    ntopng_url_manager.set_key_to_url("report_name", selected_report_template.value.value);
+    ntopng_url_manager.delete_key_from_url("report_template");
 }
 
 const delete_report = async (file_name) => {
@@ -387,9 +452,30 @@ async function download_report() {
     document.body.removeChild(element);
 }
 
+// function PrintElem(elem)
+// {
+//     var mywindow = window.open('', 'PRINT', 'height=400,width=600');
+
+//     mywindow.document.write('<html><head><title>' + document.title  + '</title>');
+//     mywindow.document.write('</head><body >');
+//     mywindow.document.write('<h1>' + document.title  + '</h1>');
+//     // mywindow.document.write(document.getElementById(elem).innerHTML);
+//     mywindow.document.write(elem.innerHTML);
+//     mywindow.document.write('</body></html>');
+
+//     mywindow.document.close(); // necessary for IE >= 10
+//     mywindow.focus(); // necessary for IE >= 10*/
+
+//     mywindow.print();
+//     mywindow.close();
+
+//     return true;
+// }
 
 function print_report() {
-    $(report_box.value).print();
+    // PrintElem(report_box.value);
+    $(report_box.value).print({mediaPrint: true, timeout: 10000, title: "Ciao Mondo"}); 
+    // $(report_box.value).print();
 }
 
 /* Callback to request REST data from components */
@@ -464,18 +550,17 @@ function get_component_data_func(component) {
 }
 
 /* Print on A5 (commented out as this is not working on Chrome/Safari) */
-/*
-@media print and (max-width: 148mm){
-    .col-4 {
-        width: 100% !important;
-        flex: 0 0 auto;
-    }
-    .col-6 {
-        width: 100% !important;
-        flex: 0 0 auto;
-    }
-}
-*/
+
+/* @media print and (max-width: 148mm){ */
+/*     .col-4 { */
+/*         width: 100% !important; */
+/*         flex: 0 0 auto; */
+/*     } */
+/*     .col-6 { */
+/*         width: 100% !important; */
+/*         flex: 0 0 auto; */
+/*     } */
+/* } */
 
 .align-center {
 }

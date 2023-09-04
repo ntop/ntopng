@@ -6,7 +6,8 @@
                 <div class="btn-group me-auto btn-group-sm flex-wrap d-flex">
                     <slot name="begin"></slot>
                     <div>
-                        <select-search v-model:selected_option="selected_time_option" :id="'time_preset_range_picker'"
+                      <select-search :disabled="disabled_date_picker"
+                        v-model:selected_option="selected_time_option" :id="'time_preset_range_picker'"
                             :options="time_preset_list_filtered" @select_option="change_select_time(null)">
                         </select-search>
                     </div>
@@ -14,14 +15,14 @@
                         <span class="input-group-text">
                             <i class="fas fa-calendar-alt"></i>
                         </span>
-                        <input class="flatpickr flatpickr-input form-control" type="text" placeholder="Choose a date.."
+                        <input :disabled="disabled_date_picker" class="flatpickr flatpickr-input form-control" type="text" placeholder="Choose a date.."
                             data-id="datetime" ref="begin-date" style="width:10rem;">
                         <!-- <input ref="begin-date" @change="enable_apply=true" @change="change_begin_date" type="date" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
                         <!-- <input ref="begin-time" @change="enable_apply=true" type="time" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
                         <span class="input-group-text">
                             <i class="fas fa-long-arrow-alt-right"></i>
                         </span>
-                        <input class="flatpickr flatpickr-input form-control" type="text" placeholder="Choose a date.."
+                        <input :disabled="disabled_date_picker" class="flatpickr flatpickr-input form-control" type="text" placeholder="Choose a date.."
                             data-id="datetime" ref="end-date" style="width:10rem;">
                         <!-- <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;"> -->
                         <!-- <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input"> -->
@@ -35,27 +36,27 @@
                             i18n('apply') }}</button>
 
                         <div class="btn-group">
-                            <button @click="jump_time_back()" class="btn btn-sm btn-link" ref="btn-jump-time-back"
+                            <button :disabled="disabled_date_picker" @click="jump_time_back()" class="btn btn-sm btn-link" ref="btn-jump-time-back"
                                 :title="i18n('date_time_range_picker.btn_move_left')">
                                 <i class="fas fa-long-arrow-alt-left"></i>
                             </button>
-                            <button @click="jump_time_ahead()" class="btn btn-sm btn-link me-2" ref="btn-jump-time-ahead"
+                            <button :disabled="disabled_date_picker" @click="jump_time_ahead()" class="btn btn-sm btn-link me-2" ref="btn-jump-time-ahead"
                                 :title="i18n('date_time_range_picker.btn_move_right')">
                                 <i class="fas fa-long-arrow-alt-right"></i>
                             </button>
-                            <button @click="zoom(2)" class="btn btn-sm btn-link" ref="btn-zoom-in"
+                            <button :disabled="disabled_date_picker" @click="zoom(2)" class="btn btn-sm btn-link" ref="btn-zoom-in"
                                 :title="i18n('date_time_range_picker.btn_zoom_in')">
                                 <i class="fas fa-search-plus"></i>
                             </button>
-                            <button @click="zoom(0.5)" class="btn btn-sm btn-link" ref="btn-zoom-out"
+                            <button :disabled="disabled_date_picker" @click="zoom(0.5)" class="btn btn-sm btn-link" ref="btn-zoom-out"
                                 :title="i18n('date_time_range_picker.btn_zoom_out')">
                                 <i class="fas fa-search-minus"></i>
                             </button>
-                            <button :disabled="history_last_status == null" @click="apply_status_by_history()"
+                            <button :disabled="history_last_status == null || disabled_date_picker" @click="apply_status_by_history()"
                                 class="btn btn-sm btn-link" :title="i18n('date_time_range_picker.btn_undo')">
                                 <i class="fas fa-undo"></i>
                             </button>
-                            <button :disabled="select_time_value == 'custom'" @click="change_select_time()"
+                            <button :disabled="select_time_value == 'custom' || disabled_date_picker" @click="change_select_time()"
                                 class="btn btn-sm btn-link" :title="i18n('date_time_range_picker.btn_refresh')">
                                 <i class="fas fa-sync"></i>
                             </button>
@@ -79,6 +80,7 @@ export default {
     props: {
         id: String,
         enable_refresh: Boolean,
+        disabled_date_picker: Boolean,
         min_time_interval_id: String,
 	round_time: Boolean, //if min_time_interval_id != null round time by min_time_interval_id
     },

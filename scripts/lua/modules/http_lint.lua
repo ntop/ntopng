@@ -1874,6 +1874,7 @@ local known_parameters = {
     ["user"] = validateSingleWord, -- The user ID
     ["snapshot_name"] = validateSingleWord, -- The user ID
     ["report_name"] = validateSingleWord, -- The report name
+    ["report_template"] = validateSingleWord, -- The report template
     ["pool"] = validateNumber, -- A pool ID
     ["pool_id"] = validateNumber, -- A pool ID
     ["direction"] = validateDirection, -- Sent or Received direction
