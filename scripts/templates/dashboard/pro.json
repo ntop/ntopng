@@ -1,0 +1,162 @@
+{
+  "name" : "Default Dashboard",
+  "components" : [
+  {
+    "component" : "badge",
+    "id" : "critical_alert_count",
+    "i18n_name" : "",
+    "color" : "danger",
+    "width" : 4,
+    "height" : 2,
+    "params" : {
+      "url" : "/lua/rest/v2/get/interface/data.lua",
+      "url_params" : {
+        "type" : "summary"
+      },
+      "icon" : "fas fa-exclamation-triangle",
+      "i18n_name" : "show_alerts.engaged_alerts",
+      "counter_path" : "engaged_alerts"
+    }
+  },
+  {
+    "component" : "badge",
+    "id" : "critical_alert_count",
+    "i18n_name" : "",
+    "color" : "success",
+    "width" : 4,
+    "height" : 2,
+    "params" : {
+      "url" : "/lua/rest/v2/get/interface/data.lua",
+      "url_params" : {
+        "type" : "summary"
+      },
+      "icon" : "fas fa-laptop",
+      "i18n_name" : "graphs.active_hosts",
+      "counter_path" : "num_local_hosts"
+    }
+  },
+  {
+    "component" : "badge",
+    "id" : "critical_alert_count",
+    "i18n_name" : "",
+    "color" : "info",
+    "width" : 4,
+    "height" : 2,
+    "params" : {
+      "url" : "/lua/rest/v2/get/interface/data.lua",
+      "url_params" : {
+        "type" : "summary"
+      },
+      "icon" : "fas fa-stream",
+      "i18n_name" : "live_flows",
+      "counter_path" : "num_flows"
+    }
+  },
+  {
+    "component" : "timeseries",
+    "id" : "traffic_chart",
+    "i18n_name" : "interface_traffic",
+    "width" : 12,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
+      "url_params" : {
+        "limit" : 180,
+        "ts_schema" : "iface:traffic_rxtx",
+        "version" : 4,
+        "tskey" : "$IFID$",
+        "ts_query" : "ifid:$IFID$"
+      },
+      "source_type" : "interface"
+    }
+  },
+  {
+    "component" : "pie",
+    "id" : "top_l7_proto",
+    "i18n_name" : "top_l7_proto",
+    "width" : 6,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/rest/v2/get/interface/l7/stats.lua",
+      "url_params" : {
+        "breed" : "true",
+        "ndpistats_mode" : "count"
+      }
+    }
+  },
+  {
+    "component" : "pie",
+    "id" : "traffic_classification",
+    "i18n_name" : "classification",
+    "width" : 6,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/rest/v2/get/interface/l7/stats.lua",
+      "url_params" : {
+        "breed" : "true",
+        "ndpistats_mode" : "sinceStartup"
+      }
+    }
+  },
+  {
+    "component" : "table",
+    "id" : "top_local_talkers",
+    "i18n_name" : "report.top_local_hosts",
+    "width" : 6,
+    "height" : 4,
+    "time_window" : "",
+    "time_offset" : "",
+    "params" : {
+      "url" : "/lua/pro/rest/v2/get/interface/top/local/talkers.lua",
+       "url_params" : {},
+       "table_type" : "throughput",
+       "columns" : [
+          { "id" : "name", "i18n_name" : "host_details.host" },
+          { "id" : "throughput", "i18n_name" : "dashboard.actual_traffic", "style" : "text-align: right" }
+       ]
+    }
+  },
+  {
+    "component" : "table",
+    "id" : "top_remote_destinations",
+    "i18n_name" : "report.top_remote_hosts",
+    "width" : 6,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/pro/rest/v2/get/interface/top/remote/talkers.lua",
+      "url_params" : {},
+      "table_type" : "throughput",
+      "columns" : [
+        { "id" : "name", "i18n_name" : "host_details.host" },
+        { "id" : "throughput", "i18n_name" : "dashboard.actual_traffic", "style" : "text-align: right" }
+      ]
+    }
+  },
+  {
+    "component" : "sankey",
+    "id" : "top_flow_talkers",
+    "i18n_name" : "index_page.top_flow_talkers",
+    "width" : 12,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/rest/v2/get/flow/graph.lua",
+      "url_params" : {
+      }
+    }
+  },
+  {
+    "component" : "sankey",
+    "id" : "server_port_analysis",
+    "i18n_name" : "server_ports_analysis",
+    "width" : 12,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/pro/rest/v2/get/vlan/live_ports.lua",
+      "url_params" : {
+        "limit" : 20
+      }
+    }
+  }
+  ]
+}
+
