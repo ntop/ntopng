@@ -34,7 +34,8 @@ local templates_list = {}
 
 for name, template in pairs(templates) do
    templates_list[#templates_list+1] = {
-      name = name
+      name = name,
+      label = template.name
    }
 end
 
