@@ -23,7 +23,7 @@
     <template v-slot:begin>
       <div class="me-2">
         <SelectSearch v-model:selected_option="selected_report_template" :options="reports_templates"
-                      @select_option="select_report_remplate">
+                      @select_option="select_report_template">
         </SelectSearch>
       </div>
     </template>
@@ -296,7 +296,7 @@ function update_component_epoch_interval(c, epoch_interval) {
     c.epoch_end = epoch_interval.epoch_end - utc_offset;
 }
 
-function select_report_remplate() {
+function select_report_template() {
     if (selected_report_template.value.is_open_report == true) {
         return;
     }
