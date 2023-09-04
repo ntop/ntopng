@@ -1783,16 +1783,16 @@ elseif(page == "config") then
    -- Automatic Reports
    if isAdministrator() and ntop.isEnterpriseL() then
       package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
-      local dashboard_utils = require "dashboard_utils"
+      local reports_utils = require "reports_utils"
       
       if toboolean(ntop.getPref("ntopng.prefs.automatic_reports_enabled")) then
          local automatic_reports_creation
 
          if _SERVER["REQUEST_METHOD"] == "POST" then
             automatic_reports_creation = toboolean(_POST["automatic_reports_creation"])
-            dashboard_utils.toggle_automatic_reports(ifid, automatic_reports_creation)
+            reports_utils.toggle_automatic_reports(ifid, automatic_reports_creation)
          else
-            automatic_reports_creation = dashboard_utils.automatic_reports_enabled(ifid)
+            automatic_reports_creation = reports_utils.automatic_reports_enabled(ifid)
          end
 
          print [[<tr>
