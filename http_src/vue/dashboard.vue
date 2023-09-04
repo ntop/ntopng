@@ -301,11 +301,13 @@ function select_report_template() {
         return;
     }
     update_templates_list();
+    const global_status = ntopng_status_manager.get_status(true);
+    let epoch_interval = { epoch_begin: global_status.epoch_begin, epoch_end: global_status.epoch_end };
     if (data_from_backup == true) { // last report selected it was a saved report and then we must to restore default timestamp
-        const epoch_interval = ntopng_utility.set_default_time_interval(undefined, "min");
+        epoch_interval = ntopng_utility.set_default_time_interval(undefined, "min");
         ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_interval, props.context.page);
-        load_components(epoch_interval, selected_report_template.value.value);
     }
+    load_components(epoch_interval, selected_report_template.value.value);
 }
 
 function get_component_id(id, index) {
