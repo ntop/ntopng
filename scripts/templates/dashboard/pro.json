@@ -99,6 +99,18 @@
     }
   },
   {
+    "component" : "sankey",
+    "id" : "top_flow_talkers",
+    "i18n_name" : "index_page.top_flow_talkers",
+    "width" : 12,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/rest/v2/get/flow/graph.lua",
+      "url_params" : {
+      }
+    }
+  },
+  {
     "component" : "table",
     "id" : "top_local_talkers",
     "i18n_name" : "report.top_local_hosts",
@@ -130,31 +142,6 @@
         { "id" : "name", "i18n_name" : "host_details.host" },
         { "id" : "throughput", "i18n_name" : "dashboard.actual_traffic", "style" : "text-align: right" }
       ]
-    }
-  },
-  {
-    "component" : "sankey",
-    "id" : "top_flow_talkers",
-    "i18n_name" : "index_page.top_flow_talkers",
-    "width" : 12,
-    "height" : 4,
-    "params" : {
-      "url" : "/lua/rest/v2/get/flow/graph.lua",
-      "url_params" : {
-      }
-    }
-  },
-  {
-    "component" : "sankey",
-    "id" : "server_port_analysis",
-    "i18n_name" : "server_ports_analysis",
-    "width" : 12,
-    "height" : 4,
-    "params" : {
-      "url" : "/lua/pro/rest/v2/get/vlan/live_ports.lua",
-      "url_params" : {
-        "limit" : 20
-      }
     }
   }
   ]
