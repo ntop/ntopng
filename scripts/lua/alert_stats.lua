@@ -885,6 +885,8 @@ if(status == "engaged") then
    table.insert(notes, i18n("show_alerts.engaged_notes"))
 end
 
+local is_va = _GET["is_va"] or false
+
 local context = {
    ifid = ifid,
    opsep = tag_utils.SEPARATOR,
@@ -972,6 +974,7 @@ local context = {
    alert_details_url = alert_details_url,
    navbar = page_utils.get_new_navbar_context(i18n("alerts_dashboard.alerts"), url, pages),
    csrf = ntop.getRandomCSRFValue(),
+   is_va = is_va
 }
 
 local json_context = json.encode(context)

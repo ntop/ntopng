@@ -2018,6 +2018,7 @@ local known_parameters = {
     ["scan_date"] = validateSingleWord,
     ["auto_scan_frequency"] = validateSingleWord,
     ["scan_id"] = validateSingleWord,
+    ["is_va"] = validateBool,
 
     ["snmp_device"] = validateDevice,
     ["snmp_device_port"] = validateSNMPIfidNumber,

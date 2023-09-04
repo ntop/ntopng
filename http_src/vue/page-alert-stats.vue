@@ -199,6 +199,10 @@ const href_download_records = computed(() => {
 });
 
 onBeforeMount(async () => {
+
+    if (props.context.is_va) {
+        ntopng_utility.check_and_set_default_time_interval("day");
+    }
     init_params();
     init_url_params();
     await set_query_presets();
