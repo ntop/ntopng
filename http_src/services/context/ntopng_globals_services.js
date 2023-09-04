@@ -106,7 +106,7 @@ export const ntopng_utility = function() {
 	    return ts - (ts % timeframe);
 	},
 	// method to set default epoch begin to 30_min ago
-	set_default_time_interval: function (time_interval_id, round_timeframe_id) {
+	set_default_time_interval: function (time_interval_id="30_min", round_timeframe_id) {
             let epoch = {
 		epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
 		epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),

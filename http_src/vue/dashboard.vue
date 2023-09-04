@@ -1,26 +1,18 @@
 <!-- (C) 2023 - ntop.org -->
 <template>
 <div class='row'>
-  
-  <ModalSave ref="modal_store_report"
-             :get_suggested_file_name="get_suggested_report_name"
-             :store_file="store_report"
-             :csrf="context.csrf"
-             :title="_i18n('dashboard.store')">
-  </ModalSave>
-  <ModalOpen ref="modal_open_report"
-             :list_files="list_reports"
-             :open_file="open_report"
-             :delete_file="delete_report"
-             :csrf="context.csrf"
-             :title="_i18n('dashboard.open')"
-             :file_title="_i18n('report.report_name')">
-  </ModalOpen>
-  <ModalUpload ref="modal_upload_report"
-               :upload_file="upload_report"
-               :title="_i18n('upload')"
-               :file_title="_i18n('report.file')">
-  </ModalUpload>
+  <!-- <Dropdown v-for="(t, t_index) in top_table_array" -->
+  <!--           :ref="el => { top_table_dropdown_array[t_index] = el }"> -->
+  <!--   <template v-slot:title> -->
+  <!--     <Spinner :show="t.show_spinner" size="1rem" class="me-1"></Spinner> -->
+  <!--     <a class="ntopng-truncate" :title="t.title">{{ t.label }}</a> -->
+  <!--   </template> -->
+  <!--   <template v-slot:menu> -->
+  <!--     <a v-for="opt in t.options" style="cursor:pointer; display: block;" -->
+  <!--        @click="add_top_table_filter(opt, $event)" class="ntopng-truncate tag-filter " -->
+  <!--        :title="opt.value">{{ opt.label }}</a> -->
+  <!--   </template>     -->
+  <!-- </Dropdown> -->
   
   <DateTimeRangePicker v-if="enable_date_time_range_picker"
                        :disabled_date_picker="disable_date_time_picker"
@@ -59,6 +51,7 @@
     </template>
   </DateTimeRangePicker>
   
+  <div v-if="enable_report_title" class="mt-3" style="margin-bottom:-0.5rem;"><h3 style="text-align:center;">Report: {{selected_report_template.value}}</h3></div>
   <div ref="report_box" class="row">
     <template v-for="c in components" >
       <Box style="min-width:20rem;"
@@ -98,6 +91,25 @@
     </template>
   </div>
 </div> <!-- div row -->
+<ModalSave ref="modal_store_report"
+           :get_suggested_file_name="get_suggested_report_name"
+           :store_file="store_report"
+           :csrf="context.csrf"
+           :title="_i18n('dashboard.store')">
+</ModalSave>
+<ModalOpen ref="modal_open_report"
+           :list_files="list_reports"
+           :open_file="open_report"
+           :delete_file="delete_report"
+           :csrf="context.csrf"
+           :title="_i18n('dashboard.open')"
+           :file_title="_i18n('report.report_name')">
+</ModalOpen>
+<ModalUpload ref="modal_upload_report"
+             :upload_file="upload_report"
+             :title="_i18n('upload')"
+             :file_title="_i18n('report.file')">
+</ModalUpload>
 </template>
 
 <script setup>
@@ -119,6 +131,7 @@ import { default as PieComponent } from "./dashboard-pie.vue";
 import { default as TimeseriesComponent } from "./dashboard-timeseries.vue";
 import { default as SankeyComponent } from "./dashboard-sankey.vue";
 import { default as SelectSearch } from "./select-search.vue";
+import { default as Dropdown } from "./dropdown.vue"
 
 const _i18n = (t) => i18n(t);
 const timeframes_dict = ntopng_utility.get_timeframes_dict();
@@ -161,6 +174,11 @@ const enable_date_time_range_picker = computed(() => {
 const disable_date_time_picker = computed(() => {
     const disabled = selected_report_template.value.is_open_report == true;
     return disabled;
+});
+
+const enable_report_title = computed(() => {
+    const enable = selected_report_template.value.is_open_report == true;
+    return enable;
 });
 
 const component_interval = computed(() => {
@@ -212,7 +230,7 @@ async function set_templates_list() {
     reports_templates.value = res.list.map((t) => {
         return {
             value: t.name,
-            label: t.name,
+            label: t.label,
             disabled: false,
             is_open_report: false,
         };
@@ -249,8 +267,11 @@ function set_components_epoch_interval(epoch_interval) {
     });
 }
 
-async function load_components(epoch_interval, components_backup) {
-    let url_request = `${props.context.template_endpoint}?template=${props.context.template}`;
+async function load_components(epoch_interval, template_name) {
+    /* Enable REST calls */    
+    data_from_backup = false;
+    
+    let url_request = `${props.context.template_endpoint}?template=${template_name || props.context.template}`;
     let res = await ntopng_utility.http_request(url_request);
     components.value = res.list.filter((c) => components_dict[c.component] != null)
         .map((c, index) => {
@@ -276,8 +297,14 @@ function update_component_epoch_interval(c, epoch_interval) {
 }
 
 function select_report_remplate() {
-    if (selected_report_template.value.is_open_report == false) {
-        update_templates_list();
+    if (selected_report_template.value.is_open_report == true) {
+        return;
+    }
+    update_templates_list();
+    if (data_from_backup == true) { // last report selected it was a saved report and then we must to restore default timestamp
+        const epoch_interval = ntopng_utility.set_default_time_interval(undefined, "min");
+        ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_interval, props.context.page);
+        load_components(epoch_interval, selected_report_template.value.value);
     }
 }
 
@@ -367,7 +394,7 @@ function update_templates_list(report_name_to_open) {
     
     let t_entry = {
         value: report_name_to_open,
-        label: report_name_to_open,
+        label: _i18n("dashboard.custom"),
         disabled: false,
         is_open_report: true,
     };

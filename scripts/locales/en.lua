@@ -1708,6 +1708,7 @@ local lang = {
   ["dashboard"] = {
     ["actual_traffic"] = "Current Traffic",
     ["community_dashboard"] = "Community Dashboard",
+    ["custom"] = "Custom",
     ["gateways_users"] = "Gateways and Users",
     ["lastday_app_traffic"] = "Top Applications (Last Day)",
     ["lastday_traffic"] = "All Network Interfaces (Last Day)",
