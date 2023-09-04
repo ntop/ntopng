@@ -236,6 +236,10 @@ function start_dashboard_refresh_loop() {
 }
 
 function set_components_epoch_interval(epoch_interval) {
+    // check if time is changed because we have opened a saved report,
+    // in this case we don't need to refresh components
+    if (disable_date_time_picker.value == true) { return; }
+    
     if (epoch_interval) {
         main_epoch_interval.value = epoch_interval;
     }
@@ -348,7 +352,8 @@ const open_report = async (file_name) => {
     update_templates_list(file_name);
     let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/file.lua?ifid=${props.context.ifid}&report_name=${file_name}`;
     let content = await ntopng_utility.http_request(url);
-
+    const epoch_status = { epoch_begin: content.epoch_begin, epoch_end: content.epoch_end };
+    ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_status, props.context.page);
     load_report(content);
 }
 
