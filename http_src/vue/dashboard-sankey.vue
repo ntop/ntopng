@@ -80,7 +80,7 @@ async function get_sankey_data() {
         ifid: props.ifid,
          epoch_begin: props.epoch_begin,
          epoch_end: props.epoch_end,
-         new_charts: true,
+         sankey_version: 3,
          ...props.params.url_params
     }
     let url_params = ntopng_url_manager.obj_to_url_params(query_params);
@@ -96,7 +96,7 @@ async function get_sankey_data() {
         sankey_chart.value.set_no_data_flag(false) : 
         sankey_chart.value.set_no_data_flag(true);
   
-  return sankey_data;
+    return sankey_data;
 }
 
 // remove all links with a not existing node
