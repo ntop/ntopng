@@ -178,18 +178,6 @@
   },
   {
     "component" : "sankey",
-    "id" : "top_flow_talkers",
-    "i18n_name" : "index_page.top_flow_talkers",
-    "width" : 12,
-    "height" : 4,
-    "params" : {
-      "url" : "/lua/rest/v2/get/flow/graph.lua",
-      "url_params" : {
-      }
-    }
-  },
-  {
-    "component" : "sankey",
     "id" : "server_port_analysis",
     "i18n_name" : "server_ports_analysis",
     "width" : 12,
