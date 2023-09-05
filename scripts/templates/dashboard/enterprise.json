@@ -108,12 +108,40 @@
     "height" : 4,
     "params" : {
       "url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
-      "url_params" : {
+      "url_params" : { },
+      "post_params" : {
         "limit" : 180,
-        "ts_schema" : "iface:traffic_rxtx",
         "version" : 4,
-        "tskey" : "$IFID$",
-        "ts_query" : "ifid:$IFID$"
+        "ts_requests": {
+          "$ANY_IFID$" : {
+            "ts_query": "ifid:$IFID$",
+            "ts_schema": "iface:traffic_rxtx",
+            "tskey": "$IFID$"
+          }
+        }
+      },
+      "source_type" : "interface"
+    }
+  },
+  {
+    "component" : "timeseries",
+    "id" : "single_traffic_chart",
+    "i18n_name" : "current_interface_traffic",
+    "width" : 12,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
+      "url_params" : { },
+      "post_params" : {
+        "limit" : 180,
+        "version" : 4,
+        "ts_requests": {
+          "current_interface" : {
+            "ts_query": "ifid:$IFID$",
+            "ts_schema": "iface:traffic_rxtx",
+            "tskey": "$IFID$"
+          }
+        }
       },
       "source_type" : "interface"
     }

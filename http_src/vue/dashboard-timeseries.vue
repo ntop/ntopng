@@ -18,24 +18,21 @@
 
 <script setup>
 import { ref, onMounted, onBeforeMount, watch, computed } from "vue";
-import { ntopng_custom_events, ntopng_events_manager, ntopng_status_manager } from "../services/context/ntopng_globals_services";
-import formatterUtils from "../utilities/formatter-utils";
 import metricsManager from "../utilities/metrics-manager.js";
-import NtopUtils from "../utilities/ntop-utils";
 import { default as TimeseriesChart } from "./timeseries-chart.vue";
 import timeseriesUtils from "../utilities/timeseries-utils.js";
 
+/* *************************************************** */
+
 const height_per_row = 62.5 /* px */
-
-const _i18n = (t) => i18n(t);
-
 const chart_type = ref(ntopChartApex.typeChart.TS_LINE);
 const chart = ref(null);
 const timeseries_groups = ref([]);
 const group_option_mode = ref(null);
-const chart_options = ref(null);
 const height = ref(null);
 const ts_request = ref([]);
+
+/* *************************************************** */
 
 const props = defineProps({
   id: String,          /* Component ID */
@@ -50,10 +47,30 @@ const props = defineProps({
   csrf: String
 });
 
+/* *************************************************** */
+
 /* Return the base url of the REST API */
 const base_url = computed(() => {
   return `${http_prefix}${props.params.url}`;
 });
+
+
+function substitute_ifid(params_to_format, current_ifid) {
+  let new_formatted_params = {};
+  for(const param in (params_to_format)) {
+    if(params_to_format[param].contains('$IFID$')) {
+      /* Contains $IFID$, substitute with the interface id */
+      new_formatted_params[param] = params_to_format[param].replace('$IFID$', current_ifid);
+    } else {
+      /* does NOT Contains $IFID$, add the plain param */
+      new_formatted_params[param] = params_to_format[param];
+    }
+  }
+
+  return new_formatted_params;
+}
+
+/* *************************************************** */
 
 /* This function is used to substitute to the $IFID$ found in the
  * configuration the correct interface id
@@ -63,23 +80,15 @@ async function format_ifids(params_to_format) {
     /* Already populated, return */
     return;
   }
-
   const ifid_url = "lua/rest/v2/get/ntopng/interfaces.lua"
   const ifid_list = await ntopng_utility.http_request(`${http_prefix}/${ifid_url}`) || [];
   ifid_list.forEach((iface) => {
-    let new_formatted_params = {};
-    for(const param in (params_to_format)) {
-      if(params_to_format[param].contains('$IFID$')) {
-        /* Contains $IFID$, substitute with the interface id */
-        new_formatted_params[param] = params_to_format[param].replace('$IFID$', iface.ifid);
-      } else {
-        /* does NOT Contains $IFID$, add the plain param */
-        new_formatted_params[param] = params_to_format[param];
-      }
-    }
+    let new_formatted_params = substitute_ifid(params_to_format, iface.ifid);
     ts_request.value.push(new_formatted_params);
   });
 }
+
+/* *************************************************** */
 
 /* This function is used to transform the $ANY$ params in the 
  * correct value (e.g. $ANY_IFID$ -> list of all ifid)
@@ -93,11 +102,13 @@ async function resolve_any_params() {
         await format_ifids(params[any_param]);
         break;
       default:
-        ts_request.value.push(params[any_param]);
+        ts_request.value.push(substitute_ifid(params[any_param], props.ifid));
         break;
     } 
   }
 }
+
+/* *************************************************** */
 
 /* The source_type can be found on the json and the source_array is automatically generated
  * by using the source_type
@@ -114,6 +125,8 @@ async function get_timeseries_groups_from_metric(metric_schema, key) {
   return ts_group;
 }
 
+/* *************************************************** */
+
 async function retrieve_basic_info() {
   /* Return the timeseries group, info found in the json */
   if(timeseries_groups.value.length == 0) {
@@ -128,6 +141,8 @@ async function retrieve_basic_info() {
     group_option_mode.value = timeseriesUtils.getGroupOptionMode('1_chart_x_yaxis');
   }
 }
+
+/* *************************************************** */
 
 /* This function run the REST API with the data */
 async function get_chart_options() {
@@ -154,23 +169,32 @@ async function get_chart_options() {
   return result?.[0];
 }
 
+/* *************************************************** */
+
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
 watch(() => [props.epoch_begin, props.epoch_end], (cur_value, old_value) => {
   refresh_chart();
 }, { flush: 'pre'});
+
+/* *************************************************** */
 
 /* Run the init here */
 onBeforeMount(async() => {
   await init();
 });
 
-onMounted(async() => {
-});
+/* *************************************************** */
+
+onMounted(async() => {});
+
+/* *************************************************** */
 
 /* Defining the needed info by the get_chart_options function */
 async function init() {
   height.value = (props.height || 4) * height_per_row;
 }
+
+/* *************************************************** */
 
 /* Refresh function */
 async function refresh_chart() {

@@ -308,6 +308,7 @@ local lang = {
   ["interface_status"] = "Operational Status",
   ["interface_status_short"] = "Oper. Status",
   ["interface_traffic"] = "Interface Traffic",
+  ["current_interface_traffic"] = "Current Interface Traffic",
   ["interfaces"] = "Interfaces",
   ["intranet_traffic"] = "Intranet Traffic",
   ["invalid_password"] = "Password is not compliant with the ntop requirements: too short or does not contain valid ISO8859-1 (latin1) letters/numbers",
