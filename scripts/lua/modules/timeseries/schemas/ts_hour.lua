@@ -74,14 +74,14 @@ schema:addMetric("latency")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("am_vuln_scan:num_scans", {
+schema = ts_utils.newSchema("am_vuln_scan:num_scanned_hosts", {
   step = 3600,
-  metrics_type = ts_utils.metrics.counter,
+  metrics_type = ts_utils.metrics.gauge,
   is_system_schema = true,
 })
 
 schema:addTag("ifid")
-schema:addMetric("num_scans")
+schema:addMetric("num_scanned_hosts")
 
 -- ##############################################
 

@@ -60,7 +60,7 @@
 <script setup>
 
 /* Imports */ 
-import { ref, onBeforeMount } from "vue";
+import { ref, onBeforeMount, onMounted, nextTick } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as ModalDeleteScanConfirm } from "./modal-delete-scan-confirm.vue";
@@ -442,11 +442,24 @@ const map_table_def_columns = (columns) => {
 };
 
 /* ******************************************************************** */ 
-
+let get_scan_type_list_v;
 onBeforeMount(async () => {
-  await get_scan_type_list();
-  await check_in_progress_status();
-  modal_add.value.metricsLoaded(scan_type_list, context.ifid, props.context.is_enterprise_l);
+  get_scan_type_list_v = Promise.all([get_scan_type_list(),check_in_progress_status()]);
+  
+})
+
+
+
+onMounted(async () => {
+
+  await get_scan_type_list_v;
+  await modal_add.value.metricsLoaded(scan_type_list, props.context.ifid, props.context.is_enterprise_l);
+
+  
+  if (props.context.host != null) {
+    modal_add.value.show(null, props.context.host);
+  }
+
 })
 
 /* ************************** REST Functions ************************** */

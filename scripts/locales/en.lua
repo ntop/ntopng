@@ -3781,6 +3781,7 @@ local lang = {
     ["rtt"] = "Round Trip Time",
     ["rtt_as_client"] = "RTT as Client",
     ["rtt_as_server"] = "RTT as Server",
+    ["scanned_hosts"] = "Scanned Hosts",
     ["score"] = "Score",
     ["score_anomalies"] = "Anomalies: Score",
     ["score_behavior"] = "Behaviour: Score",

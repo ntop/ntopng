@@ -16,7 +16,7 @@
           <div class="col-sm-2" >
             <SelectSearch v-model:selected_option="selected_cidr"
                 :options="cidr_options_list">
-            </SelectSearch> 
+            </SelectSearch>
           </div>
       </div>
 
@@ -50,7 +50,7 @@
           
           <SelectSearch v-model:selected_option="selected_scan_type"
                 :options="scan_type_list">
-          </SelectSearch> 
+          </SelectSearch>
         </div> 
       </div>
 
@@ -108,7 +108,7 @@
   
 <script setup>
 /* Imports */
-import { ref, onBeforeMount } from "vue";
+import { ref, onBeforeMount, onMounted } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as NoteList } from "./note-list.vue";
@@ -120,7 +120,7 @@ import NtopUtils from "../utilities/ntop-utils";
 
 /* Consts */
 const modal_id = ref(null);
-const selected_scan_type = ref(null);
+const selected_scan_type = ref({});
 const emit = defineEmits(['add','edit']);
 let title = i18n('hosts_stats.page_scan_hosts.add_host');
 const host_placeholder = i18n('hosts_stats.page_scan_hosts.host_placeholder');
@@ -439,14 +439,15 @@ const close = () => {
 };
 
 onBeforeMount(async () => {
-  selected_scan_type.value = {};
+  //selected_scan_type.value = {};
 });  
+
+
 
 const metricsLoaded = async (_scan_type_list, _ifid, _is_enterprise_l ) => {
   scan_type_list.value = _scan_type_list;
   ifid.value = _ifid;
   is_enterprise_l.value = _is_enterprise_l;
-
   let scan_types = scan_type_list.value;
   scan_types.sort((a,b) => a.label.localeCompare(b.label));
   scan_type_list.value = scan_types;
