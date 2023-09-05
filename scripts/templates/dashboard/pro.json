@@ -57,7 +57,7 @@
     "id" : "single_traffic_chart",
     "i18n_name" : "current_interface_traffic",
     "width" : 12,
-    "height" : 4,
+    "height" : 6,
     "params" : {
       "url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
       "url_params" : { },

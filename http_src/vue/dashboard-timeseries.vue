@@ -191,7 +191,7 @@ onMounted(async() => {});
 
 /* Defining the needed info by the get_chart_options function */
 async function init() {
-  height.value = (props.height || 4) * height_per_row;
+  height.value = (props.max_height || 4) * height_per_row;
 }
 
 /* *************************************************** */
