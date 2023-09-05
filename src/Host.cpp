@@ -332,7 +332,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
   ndpi_hll_init(&incoming_hosts_tcp_udp_port_with_no_tx_hll,
                 5 /* StdError: 18.4% */);
 
-  deferredInitialization(); /* TODO To be called asynchronously for improving performance */
+  deferredInitialization(); /* TODO To be called asynchronously for improving
+                               performance */
 }
 
 /* *************************************** */

@@ -75,7 +75,7 @@ class Host : public GenericHashEntry,
   } names;
 
   char *ssdpLocation;
-  
+
   /* END Host data: */
 
   /* Counters used by host alerts */
@@ -999,7 +999,6 @@ class Host : public GenericHashEntry,
     if (tcp_udp_contacted_ports_no_tx)
       ndpi_bitmap_set(tcp_udp_contacted_ports_no_tx, port);
   }
-
 
   void resetHostContacts();
 };
