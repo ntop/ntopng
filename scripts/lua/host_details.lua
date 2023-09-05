@@ -11,6 +11,8 @@ local snmp_location
 local host_sites_update
 local sites_granularities = {}
 local auth = require "auth"
+local ts_utils = require "ts_utils_core"
+
 
 local vs_utils = require "vs_utils"
 
@@ -1639,10 +1641,15 @@ setInterval(update_icmp_table, 5000);
 
 ]]
     elseif ((page == "ndpi")) then
+        local tot_cat_series = ts_utils.listSeries("host:ndpi_categories", {host= host_ip, ifid= ifId}, os.time())
+        local tot_l7_series = ts_utils.listSeries("host:ndpi", {host= host_ip, ifid= ifId}, os.time())
+        
+        local is_l7_series_present = tot_l7_series ~= nil and (not table.empty(tot_l7_series))
+        local is_cat_series_present = tot_cat_series ~= nil and (not table.empty(tot_cat_series))
 
-        local timeseries_l7_enabled = areHostTimeseriesEnabled(ifId) and areHostL7TimeseriesEnabled(ifId) 
-        local timeseries_cat_enabled = areHostTimeseriesEnabled(ifId) and areHostCategoriesTimeseriesEnabled(ifId)
-            
+        local timeseries_l7_enabled = areHostTimeseriesEnabled(ifId) and areHostL7TimeseriesEnabled(ifId) and is_l7_series_present
+        local timeseries_cat_enabled = areHostTimeseriesEnabled(ifId) and areHostCategoriesTimeseriesEnabled(ifId) and is_cat_series_present
+
         template.render("pages/hosts/l7_stats.template", {
             view = "applications",
             host_ip = host_ip,
