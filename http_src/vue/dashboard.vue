@@ -254,10 +254,6 @@ function start_dashboard_refresh_loop() {
 }
 
 function set_components_epoch_interval(epoch_interval) {
-    // check if time is changed because we have opened a saved report,
-    // in this case we don't need to refresh components
-    if (disable_date_time_picker.value == true) { return; }
-    
     if (epoch_interval) {
         main_epoch_interval.value = epoch_interval;
     }
@@ -345,9 +341,6 @@ const list_reports = async () => {
 }
 
 const load_report = async (content) => {
-
-    /* TODO print report name in dashboard header */
-
     let tmp_name = content.name;
     let tmp_epoch_interval = {
         epoch_begin: content.epoch_begin,
