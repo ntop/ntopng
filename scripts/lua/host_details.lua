@@ -1639,12 +1639,18 @@ setInterval(update_icmp_table, 5000);
 
 ]]
     elseif ((page == "ndpi")) then
+
+        local timeseries_l7_enabled = areHostTimeseriesEnabled(ifId) and areHostL7TimeseriesEnabled(ifId) 
+        local timeseries_cat_enabled = areHostTimeseriesEnabled(ifId) and areHostCategoriesTimeseriesEnabled(ifId)
+            
         template.render("pages/hosts/l7_stats.template", {
             view = "applications",
             host_ip = host_ip,
             vlan = host_vlan,
             ifid = ifId,
-            is_locale = ternary(host["localhost"],"1","0")
+            is_locale = ternary(host["localhost"],"1","0"),
+            ts_l7_enabled = timeseries_l7_enabled,
+            ts_cat_enabled = timeseries_cat_enabled
         })
     elseif (page == "assets") then
         if (ntop.isEnterpriseL()) then

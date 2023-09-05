@@ -10,7 +10,9 @@
   :url_params="url_params"
   :is_ch_enabled="is_ch_enabled"
   :view="view"
-  :is_locale="is_locale">  
+  :is_locale="is_locale"
+  :ts_l7_enabled="ts_l7_enabled"
+  :ts_cat_enabled="ts_cat_enabled">  
   </page-host-details-applications>
 </div>
   
@@ -18,6 +20,9 @@
   const pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
   const is_ch_enabled = ("{{ ntop.isClickHouseEnabled() }}" == "true")
   const is_locale = "{{ is_locale }}"
+  const ts_l7_enabled = "{{ ts_l7_enabled }}"
+  const ts_cat_enabled = "{{ ts_cat_enabled }}"
+
   const url_params = {
     view: "{{ view or 'applications' }}",
     host: "{{ host_ip }}",
@@ -43,6 +48,8 @@
           view: url_params.view,
           is_ch_enabled: is_ch_enabled,
           is_locale: is_locale,
+          ts_l7_enabled: ts_l7_enabled,
+          ts_cat_enabled: ts_cat_enabled
         };
       },
       methods: { },
