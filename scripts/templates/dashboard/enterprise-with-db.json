@@ -101,6 +101,66 @@
     }
   },
   {
+    "component" : "table",
+    "id" : "top_local_talkers",
+    "i18n_name" : "report.top_local_hosts",
+    "width" : 4,
+    "height" : 4,
+    "time_window" : "day",
+    "time_offset" : "week",
+    "params" : {
+       "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
+       "url_params" : {
+          "query_preset" : "top_local_talkers",
+          "aggregated" : true,
+          "start" : 0,
+          "length" : 20
+       },
+       "table_type" : "db_search",
+       "columns" : [
+          { "id" : "ip",          "data_type" : "host",  "i18n_name" : "host_details.host" },
+          { "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
+       ]
+    }
+  },
+  {
+    "component" : "table",
+    "id" : "top_remote_hosts",
+    "i18n_name" : "report.top_remote_hosts",
+    "width" : 4,
+    "height" : 4,
+    "time_window" : "day",
+    "time_offset" : "week",
+    "params" : {
+       "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
+       "url_params" : {
+          "query_preset" : "top_remote_destinations",
+          "aggregated" : true,
+          "start" : 0,
+          "length" : 20
+       },
+       "table_type" : "db_search",
+       "columns" : [
+          { "id" : "ip",          "data_type" : "host",  "i18n_name" : "host_details.host" },
+          { "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
+       ]
+    }
+  },
+  {
+    "component" : "pie",
+    "id" : "traffic_classification",
+    "i18n_name" : "classification",
+    "width" : 4,
+    "height" : 4,
+    "params" : {
+      "url" : "/lua/rest/v2/get/interface/l7/stats.lua",
+      "url_params" : {
+        "breed" : "true",
+        "ndpistats_mode" : "sinceStartup"
+      }
+    }
+  },
+  {
     "component" : "timeseries",
     "id" : "traffic_chart",
     "i18n_name" : "interface_traffic",
