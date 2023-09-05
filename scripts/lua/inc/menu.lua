@@ -229,7 +229,7 @@ else
         hidden = is_pcap_dump or is_system_interface,
         entries = {{
             entry = page_utils.menu_entries.traffic_dashboard,
-            url = ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua'
+            url = '/lua/index.lua'
         }, {
             entry = page_utils.menu_entries.divider
         }, {
