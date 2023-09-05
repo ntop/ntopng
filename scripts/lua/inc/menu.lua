@@ -238,8 +238,8 @@ else
             url = "/lua/discover.lua"
         }, {
             entry = page_utils.menu_entries.traffic_report,
-            hidden = not ntop.isPro(),
-            url = "/lua/pro/report.lua"
+            hidden = not ntop.isEnterprise() or not prefs.is_dump_flows_to_clickhouse_enabled, -- ntop.isPro()
+            url = "/lua/pro/reportng.lua"
         }}
     })
 

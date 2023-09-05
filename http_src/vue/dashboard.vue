@@ -223,7 +223,7 @@ onMounted(async () => {
 });
 
 async function set_templates_list() {
-    const url_request = `${http_prefix}/lua/pro/rest/v2/get/${props.context.page}/template/list.lua`;
+    const url_request = props.context.template_list_endpoint;
     let res = await ntopng_utility.http_request(url_request);
     if (res?.list == null) { return; }
     
