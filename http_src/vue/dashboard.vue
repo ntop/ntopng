@@ -235,7 +235,7 @@ async function set_templates_list() {
             is_open_report: false,
         };
     });
-    const report_template_value = ntopng_url_manager.get_url_entry("report_template");
+    const report_template_value = ntopng_url_manager.get_url_entry("report_template") || props.context.template;
     selected_report_template.value = reports_templates.value.find((t) => t.value == report_template_value);
     if (selected_report_template.value == null) {
         selected_report_template.value = reports_templates.value[0];
