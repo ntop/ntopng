@@ -597,7 +597,6 @@ void LocalHost::dumpRareDestToRedis() {
   snprintf(param_ser, sizeof(param_ser), "%d", rareDestTraining.training ? 1 : 0);	
   redis->hashSet(key, buf, param_ser);
 
-  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Rare Dest data dumped for %s", get_hostkey(hostbuf, sizeof(hostbuf))); */
 }
 
 bool LocalHost::loadRareDestFromRedis() {
@@ -662,6 +661,5 @@ bool LocalHost::loadRareDestFromRedis() {
   rare_dest_last = ndpi_bitmap_deserialize((char *)Utils::base64_decode((std::string)value).c_str());
   free(value);
 
-  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "Rare Dest data loaded for %s", get_hostkey(hostbuf, sizeof(hostbuf))); */
   return(true);
 }

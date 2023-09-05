@@ -32,21 +32,18 @@ u_int32_t RareDestination::getDestinationHash(Flow *f) {
   if (f->isLocalToLocal()) {
 
     char buf[64];
-    
+
     if (!dest->isMulticastHost() && dest->isDHCPHost()) {
       char *mac = dest->getMac()->print(buf,sizeof(buf));
       hash = Utils::hashString(mac);
-      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination MAC %u - %s", *hash, mac); */
     }
-
     else if (dest->isIPv6() || dest->isIPv4()) {
       char *ip = dest->get_ip()->print(buf,sizeof(buf));
       hash = Utils::hashString(ip);
-      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Rare local destination IPv6/IPv4 %u - %s", *hash, ip); */
     }
-  }
 
-  else if (f->isLocalToRemote()){
+  }
+  else if (f->isLocalToRemote()) {
     hash = Utils::hashString(f->getFlowServerInfo());
   }
 
@@ -61,18 +58,14 @@ void RareDestination::protocolDetected(Flow *f) {
 
   if(f->getFlowServerInfo() != NULL && f->get_cli_host()->isLocalHost()) {
     
-    LocalHost   *cli_lhost = (LocalHost*)f->get_cli_host();
+    LocalHost *cli_lhost = (LocalHost*)f->get_cli_host();
     
-    /* char hostbuf[64], *host_id;
-    host_id = cli_lhost->get_hostkey(hostbuf, sizeof(hostbuf)); */
-
     time_t t_now = time(NULL);
 
     /* check if training has to start */
     if (!cli_lhost->getStartRareDestTraining()) {
       cli_lhost->startRareDestTraining();
       cli_lhost->setStartRareDestTraining(t_now);
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training On at %ld ~ %s", t_now, host_id );
     }
 
     u_int32_t hash = getDestinationHash(f);
@@ -81,13 +74,11 @@ void RareDestination::protocolDetected(Flow *f) {
     /* if training */
     if (cli_lhost->isTrainingRareDest()) {
       cli_lhost->setRareDestBitmap(hash);
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash %s added ~ %s", f->getFlowServerInfo(), host_id );
 
       /* check if training has to end */
-      if (t_now - cli_lhost->getStartRareDestTraining() >= 300 /* RARE_DEST_DURATION_TRAINING */ ) {
+      if (t_now - cli_lhost->getStartRareDestTraining() >= 3600 /* RARE_DEST_DURATION_TRAINING */ ) {
         cli_lhost->stopRareDestTraining();
         cli_lhost->setLastRareDestTraining(t_now);
-        //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Training Off at %ld ~ %s", t_now, host_id );
       }
       
       return;
@@ -96,19 +87,16 @@ void RareDestination::protocolDetected(Flow *f) {
     /* check if training has to restart */
     time_t elapsedFromLastTraining = t_now - cli_lhost->getLastRareDestTraining();
 
-    if (elapsedFromLastTraining >= 2*600 /* 2*RARE_DEST_LAST_TRAINING_GAP */ ) {
-      cli_lhost->clearBothRareDestBitmaps();
+    if (elapsedFromLastTraining >= 2*RARE_DEST_LAST_TRAINING_GAP ) {
+      cli_lhost->clearRareDestBitmaps();
       cli_lhost->setStartRareDestTraining(0);
 
       return;
     }
 
-    if ( elapsedFromLastTraining >= 600 /* RARE_DEST_LAST_TRAINING_GAP */ )
-    {
-      cli_lhost->updateBothRareDestBitmaps();
+    if ( elapsedFromLastTraining >= RARE_DEST_LAST_TRAINING_GAP ) {
+      cli_lhost->updateRareDestBitmaps();
       cli_lhost->setStartRareDestTraining(0);
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Merged Bitmaps %s", host_id );
-
       return;
     }
 
