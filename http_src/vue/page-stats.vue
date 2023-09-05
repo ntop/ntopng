@@ -184,6 +184,17 @@ function set_default_source_object_in_url() {
 
 onBeforeMount(async () => {
 
+    if (ntopng_url_manager.get_url_entry("page") == "va_historical") {
+        let columns_tmp = [];
+        stats_columns.forEach((item) => {
+            if (item.va) {
+                columns_tmp.push(item);
+            }
+        })
+
+        stats_columns = columns_tmp;
+    }
+
     if (props.source_value_object.is_va) {
         min_time_interval_id.value = "hour";
         ntopng_utility.check_and_set_default_time_interval("day");
@@ -602,12 +613,12 @@ function set_top_table_options(timeseries_groups, status) {
 }
 
 let stats_columns = [
-    { id: "metric", label: _i18n("page_stats.metric") },
-    { id: "avg", label: _i18n("page_stats.average"), class: "text-end" },
-    { id: "perc_95", label: _i18n("page_stats.95_perc"), class: "text-end" },
-    { id: "max", label: _i18n("page_stats.max"), class: "text-end" },
-    { id: "min", label: _i18n("page_stats.min"), class: "text-end" },
-    { id: "total", label: _i18n("page_stats.total"), class: "text-end" },
+    { id: "metric", label: _i18n("page_stats.metric"), va: true},
+    { id: "avg", label: _i18n("page_stats.average"), class: "text-end", va: true },
+    { id: "perc_95", label: _i18n("page_stats.95_perc"), class: "text-end", va: true },
+    { id: "max", label: _i18n("page_stats.max"), class: "text-end", va: true},
+    { id: "min", label: _i18n("page_stats.min"), class: "text-end", va: true },
+    { id: "total", label: _i18n("page_stats.total"), class: "text-end", va: false },
 ];
 
 const stats_rows = ref([]);
