@@ -355,7 +355,13 @@ function start_datatable(DatatableVue) {
       className: 'text-nowrap text-center',
       responsivePriority: 1,
       render: function (rowData, type, script) {
-        return rowData ? `<i class="fas fa-check text-success"></i>` : `<i class="fas fa-times text-danger"></i>`
+        
+        let is_enabled = false;
+        if (rowData == "false") 
+          is_enabled = false;
+        else
+          is_enabled = rowData;
+        return is_enabled ? `<i class="fas fa-check text-success"></i>` : `<i class="fas fa-times text-danger"></i>`
       }
     }, {
       targets: -1,
