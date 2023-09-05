@@ -296,8 +296,7 @@
     "height" : 4,
     "params" : {
       "url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
-      "url_params" : {
-      },
+      "url_params" : { },
       "post_params" : {
         "limit" : 180,
         "version" : 4,

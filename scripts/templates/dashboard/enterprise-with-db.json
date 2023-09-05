@@ -168,12 +168,17 @@
     "height" : 4,
     "params" : {
       "url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
-      "url_params" : {
+      "url_params" : { },
+      "post_params" : {
         "limit" : 180,
-        "ts_schema" : "iface:traffic_rxtx",
         "version" : 4,
-        "tskey" : "$IFID$",
-        "ts_query" : "ifid:$IFID$"
+        "ts_requests": {
+          "$ANY_IFID$": {
+            "ts_query": "ifid:$IFID$",
+            "ts_schema": "iface:traffic_rxtx",
+            "tskey": "$IFID$"
+          }
+        }
       },
       "source_type" : "interface"
     }

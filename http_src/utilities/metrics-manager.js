@@ -175,7 +175,7 @@ const get_source_array_from_value_array = async (http_prefix, source_type, sourc
     }
     let source_array = [];
     let source;
-    for (let i = 0; i < source_value_array.length; i += 1) {
+    for (let i = 0; i < source_value_array.length; i++) {
         let source_value = source_value_array[i];
         let source_def = source_type.source_def_array[i];
         if (source_def.sources_url || source_def.sources_function) {

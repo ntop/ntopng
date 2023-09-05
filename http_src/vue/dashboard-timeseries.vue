@@ -31,10 +31,11 @@ const _i18n = (t) => i18n(t);
 
 const chart_type = ref(ntopChartApex.typeChart.TS_LINE);
 const chart = ref(null);
-const timeseries_group = ref(null);
+const timeseries_groups = ref([]);
 const group_option_mode = ref(null);
 const chart_options = ref(null);
 const height = ref(null);
+const ts_request = ref([]);
 
 const props = defineProps({
   id: String,          /* Component ID */
@@ -54,66 +55,73 @@ const base_url = computed(() => {
   return `${http_prefix}${props.params.url}`;
 });
 
-/* This function is used to retrieve ts_key and ts_query from the url_params
- * and correctly format it, by substituting the $IFID$ with the correct
- * interface id.  
+/* This function is used to substitute to the $IFID$ found in the
+ * configuration the correct interface id
  */
-function get_ts_info() {
-  let ts_key = props.params.url_params?.tskey;
-  let ts_query = props.params.url_params?.ts_query;
-
-  /* Push ifid to the parameters (e.g. "ts_query=ifid:$IFID$" */
-  if(ts_key.contains('$IFID$')) {
-    ts_key = ts_key.replace('$IFID$', props.ifid);
-  }
-  if(ts_query.contains('$IFID$')) {
-    ts_query = ts_query.replace('$IFID$', props.ifid);
+async function format_ifids(params_to_format) {
+  if(ts_request.value.length > 0) {
+    /* Already populated, return */
+    return;
   }
 
-  return {
-    tskey: ts_key,
-    ts_query: ts_query
-  }
+  const ifid_url = "lua/rest/v2/get/ntopng/interfaces.lua"
+  const ifid_list = await ntopng_utility.http_request(`${http_prefix}/${ifid_url}`) || [];
+  ifid_list.forEach((iface) => {
+    let new_formatted_params = {};
+    for(const param in (params_to_format)) {
+      if(params_to_format[param].contains('$IFID$')) {
+        /* Contains $IFID$, substitute with the interface id */
+        new_formatted_params[param] = params_to_format[param].replace('$IFID$', iface.ifid);
+      } else {
+        /* does NOT Contains $IFID$, add the plain param */
+        new_formatted_params[param] = params_to_format[param];
+      }
+    }
+    ts_request.value.push(new_formatted_params);
+  });
 }
 
-/* Format the url_params and return the formatted params */
-const get_url_params = () => {
-  const ts_info = get_ts_info();
-  const url_params = {
-    ifid: props.ifid,
-    epoch_begin: props.epoch_begin,
-    epoch_end: props.epoch_end,
-    ...props.params.url_params,
-    ...ts_info
+/* This function is used to transform the $ANY$ params in the 
+ * correct value (e.g. $ANY_IFID$ -> list of all ifid)
+ */
+async function resolve_any_params() {
+  /* Here possible ANY, can be found in the post_params */
+  const params = props.params.post_params?.ts_requests;
+  for(const any_param in (params || {})) {
+    switch (any_param) {
+      case '$ANY_IFID$': 
+        await format_ifids(params[any_param]);
+        break;
+      default:
+        ts_request.value.push(params[any_param]);
+        break;
+    } 
   }
-  let query_params = ntopng_url_manager.obj_to_url_params(url_params);
-  /* Push ifid to the parameters (e.g. "ts_query=ifid:$IFID$" */
-  query_params = query_params.replaceAll("%24IFID%24" /* $IFID$ */, props.ifid);
-
-  return query_params;
 }
 
 /* The source_type can be found on the json and the source_array is automatically generated
  * by using the source_type
  */
-async function get_timeseries_groups_from_metric(metric_schema) {
+async function get_timeseries_groups_from_metric(metric_schema, key) {
   const status = {
     epoch_begin: props.epoch_begin,
     epoch_end: props.epoch_end,
   };
   const source_type = metricsManager.get_source_type_from_id(props.params?.source_type);
-  const source_array = await metricsManager.get_default_source_array(http_prefix, source_type);
+  const source_array = await metricsManager.get_source_array_from_value_array(http_prefix, source_type, [key]);
   const metric = await metricsManager.get_metric_from_schema(http_prefix, source_type, source_array, metric_schema, null, status);
   const ts_group = metricsManager.get_ts_group(source_type, source_array, metric);
-  const timeseries_groups = [ts_group];
-  return timeseries_groups;
+  return ts_group;
 }
 
 async function retrieve_basic_info() {
   /* Return the timeseries group, info found in the json */
-  if(timeseries_group.value == null) {
-    const metric_schema = props.params.url_params?.ts_schema;
-    timeseries_group.value = await get_timeseries_groups_from_metric(metric_schema);
+  if(timeseries_groups.value.length == 0) {
+    for(const value of ts_request.value) {
+      const metric_schema = value?.ts_schema;
+      const group = await get_timeseries_groups_from_metric(metric_schema, value.tskey);
+      timeseries_groups.value.push(group);
+    }
   }
   /* NOTE: currently only accepted the 1_chart_x_yaxis mode */
   if(group_option_mode.value == null) {
@@ -123,13 +131,23 @@ async function retrieve_basic_info() {
 
 /* This function run the REST API with the data */
 async function get_chart_options() {
+  await resolve_any_params();
   await retrieve_basic_info();
   const url = base_url.value;
-  const url_params = get_url_params();
+  const post_params = {
+    csrf: props.csrf,
+    ifid: props.ifid,
+    epoch_begin: props.epoch_begin,
+    epoch_end: props.epoch_end,
+    ...props.params.post_params,
+    ...{
+      ts_requests: ts_request.value
+    }
+  }
   /* Have to be used this get_component_data, in order to create report too */
-  let result = await props.get_component_data(url, url_params);
+  let result = await props.get_component_data(url, '', post_params);
   /* Format the result in the format needed by Dygraph */
-  result = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_group.value, group_option_mode.value, '');
+  result = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_groups.value, group_option_mode.value, '');
   if(result[0]) {
     result[0].height = height.value;
   }
@@ -146,7 +164,8 @@ onBeforeMount(async() => {
   await init();
 });
 
-onMounted(() => {});
+onMounted(async() => {
+});
 
 /* Defining the needed info by the get_chart_options function */
 async function init() {
