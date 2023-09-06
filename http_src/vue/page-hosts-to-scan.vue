@@ -210,9 +210,23 @@ function columns_sorting(col, r0, r1) {
     } else if(col.id == "duration") {
       r0_col = r0["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r0["last_scan"][col.data.data_field];
       r1_col = r1["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r1["last_scan"][col.data.data_field];
+      if (r1_col != i18n("hosts_stats.page_scan_hosts.not_yet"))
+        r1_col = r1_col.split(" ")[0];
+      
+      if (r0_col != i18n("hosts_stats.page_scan_hosts.not_yet"))
+        r0_col = r0_col.split(" ")[0];
+      
       if (col.sort == 1) {
         return r0_col.localeCompare(r1_col);
       }
+
+      if(r0_col == i18n("hosts_stats.page_scan_hosts.not_yet")){
+        r0_col = "-1";
+
+      }
+      if(r1_col == i18n("hosts_stats.page_scan_hosts.not_yet"))
+        r1_col = "-1";
+
       return r1_col.localeCompare(r0_col);
     } else if(col.id == "last_scan") {
       r0_col = r0["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r0["last_scan"]["time"];
@@ -220,6 +234,12 @@ function columns_sorting(col, r0, r1) {
       if (col.sort == 1) {
         return r0_col.localeCompare(r1_col);
       }
+
+      if(r0_col == i18n("hosts_stats.page_scan_hosts.not_yet")){
+        r0_col = "00000000";
+      }
+      if(r1_col == i18n("hosts_stats.page_scan_hosts.not_yet"))
+        r1_col = "0000000000";
       return r1_col.localeCompare(r0_col);
     } else if (col.id == "is_ok_last_scan") {
       r0_col = get_scan_status_value(r0_col, r0);
