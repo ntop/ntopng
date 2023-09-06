@@ -10,8 +10,6 @@
     :height="height"
     :no_data_message="no_data_message"
     :sankey_data="sankey_data"
-    @update_width="update_width"
-    @update_height="update_height"
     @node_click="on_node_click">
   </Sankey3> 
 </div>
@@ -90,7 +88,7 @@ async function get_sankey_data() {
     graph = make_complete_graph(graph);
 
     const sankey_data = get_sankey_data_from_rest_data(graph);
-
+    
     /* In case no data is returned, show the No Data message */
     (sankey_data.links.length > 0 && sankey_data.nodes.length > 0) ? 
         sankey_chart.value.set_no_data_flag(false) : 

@@ -13,7 +13,7 @@
 </div>
 </template>
 
-<script setup >
+<script setup>
 import { ref, onMounted, onBeforeMount, computed, watch } from "vue";
 import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../services/context/ntopng_globals_services.js";
 
