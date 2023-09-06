@@ -513,6 +513,10 @@ const add_host_rest = async function (params) {
 
   }
 
+  await scan_row_rest(params.host,params.scan_type, params.ports, params.id);
+  refresh_table(false);
+
+
 }
 
 const refresh_feedback_messages = function (in_progress) {
@@ -598,16 +602,20 @@ const update_all_periodicity = function() {
 /* Function to exec the vulnerability scan of a single host */
 const scan_row = async function () {
   const row = row_to_scan.value;
+  await scan_row_rest(row.host,row.scan_type, row.ports, row.id);
+  refresh_table(false);
+}
+
+const scan_row_rest = async function(host, scan_type, ports, id) {
   const url = NtopUtils.buildURL(scan_host_url, {
-    host: row.host,
-    scan_type: row.scan_type,
+    host: host,
+    scan_type: scan_type,
     scan_single_host: true,
-    scan_ports: row.ports,
-    scan_id: row.id
+    scan_ports: ports,
+    scan_id: id
   })
   await ntopng_utility.http_post_request(url, rest_params);
   check_autorefresh();
-  refresh_table(false);
 }
 
 /* Function to exec a vulnerability scan to all hosts set */
