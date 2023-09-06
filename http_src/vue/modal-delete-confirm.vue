@@ -1,9 +1,9 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
     <modal @showed="showed()" ref="modal_id">
-      <template v-slot:title>{{title}}</template>
+      <template v-slot:title>{{title_delete}}</template>
       <template v-slot:body>
-        {{body}}
+        {{body_delete}}
       </template>
       <template v-slot:footer>
         <button type="button" @click="delete_" class="btn btn-danger">{{_i18n('delete')}}</button>
@@ -19,13 +19,17 @@
     const emit = defineEmits(['delete','delete_all']);
     
     const showed = () => {};
-    
+    let body_delete = ref("");
+    let title_delete = ref("");
     const props = defineProps({
         body: String,
         title: String,
     });
-    const show = (type, value) => {
-        modal_id.value.show();
+    const show = (body, title) => {
+
+      body_delete.value = body;
+      title_delete.value = title;
+      modal_id.value.show();
     };
     
     const delete_ = () => {

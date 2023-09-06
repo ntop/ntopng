@@ -46,7 +46,7 @@ import { default as PageInactiveHostDetails } from "./page-inactive-host-details
 import { default as PageFlowDeviceDetails } from "./page-flowdevice-config.vue";
 import { default as PageHostsToScan } from "./page-hosts-to-scan.vue";
 import { default as PageHostVsResult } from "./page-host-vs-result.vue";
-
+import { default as PageDeviceExclusionsV2 } from "./page-device-exclusions-v2.vue";
 // components
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
@@ -119,6 +119,7 @@ let ntopVue = {
     PageInactiveHostDetails: PageInactiveHostDetails,
     PageHostsToScan: PageHostsToScan,
     PageHostVsResult: PageHostVsResult,
+    PageDeviceExclusionsV2: PageDeviceExclusionsV2,
     
     PageEditApplications: PageEditApplications,
 

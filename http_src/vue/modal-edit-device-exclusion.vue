@@ -83,7 +83,7 @@ const edit_ = () => {
     if(edit_all.value == false)
       emit('edit', { mac_alias: input_mac_address_name.value, mac_status: input_device_status.value, trigger_alerts: input_trigger_alerts.value });
     else 
-      emit('edit', { mac_status: input_device_status.value, trigger_alerts: input_trigger_alerts.value });
+      emit('edit', { mac_status: input_device_status.value, trigger_alerts: input_trigger_alerts.value, mac_alias: 'all', });
 
     close();
 };
