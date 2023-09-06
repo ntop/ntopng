@@ -340,6 +340,7 @@ function delete_all_entries() {
 /* Function to edit host to scan */
 async function edit(params) {
   //await delete_row();
+  params.is_edit = true;
   await add_host_rest(params);
 }
 
@@ -533,7 +534,9 @@ const add_host_rest = async function (params) {
 
   }
 
-  await scan_row_rest(params.host,params.scan_type, params.ports, params.id);
+  if (params.is_edit != true)
+    check_autorefresh();
+
   refresh_table(false);
 
 

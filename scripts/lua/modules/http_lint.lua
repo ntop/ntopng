@@ -2020,6 +2020,7 @@ local known_parameters = {
     ["auto_scan_frequency"] = validateSingleWord,
     ["scan_id"] = validateSingleWord,
     ["is_va"] = validateBool,
+    ["is_edit"] = validateBool,
 
     ["snmp_device"] = validateDevice,
     ["snmp_device_port"] = validateSNMPIfidNumber,

@@ -15,6 +15,8 @@ local scan_type = _GET["scan_type"]
 local scan_ports = _GET["scan_ports"]
 local scan_frequency = _GET["auto_scan_frequency"]
 local scan_id = _GET["scan_id"] or nil
+local is_edit = toboolean(_GET["is_edit"])
+
 
 
 local cidr = _GET["cidr"]
@@ -24,14 +26,22 @@ if isEmptyString(host) or isEmptyString(scan_type) then
     return
 end
 local result = nil
+local id = nil
 
 if isEmptyString(cidr) then
-    result = vs_utils.save_host_to_scan(scan_type, host, nil, nil, nil, nil, scan_ports, scan_frequency, scan_id, true)
+    result,id = vs_utils.save_host_to_scan(scan_type, host, nil, nil, nil, nil, scan_ports, scan_frequency, scan_id, true)
+
+    if (not is_edit) then
+        vs_utils.schedule_host_scan(scan_type,host,scan_ports,id,false)
+    end
 else 
     local hosts_to_save = vs_utils.get_active_hosts(host, cidr)
 
     for _,item in ipairs(hosts_to_save) do
-        result = vs_utils.save_host_to_scan(scan_type, item, nil, nil, nil, nil, scan_ports, scan_frequency, nil, nil, nil, scan_id, true )
+        result,id = vs_utils.save_host_to_scan(scan_type, item, nil, nil, nil, nil, scan_ports, scan_frequency, nil, nil, nil, scan_id, true )
+        if (not is_edit) then
+            vs_utils.schedule_host_scan(scan_type,item,scan_ports,id,false)
+        end
     end
 end
 
