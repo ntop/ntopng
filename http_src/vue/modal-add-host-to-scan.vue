@@ -57,9 +57,9 @@
       <template v-if="is_enterprise_l == true">
       <div class="form-group ms-2 me-2 mt-3 row">
           <label class="col-form-label col-sm-2" >
-          <b>{{_i18n("hosts_stats.page_scan_hosts.automatic_scan")}}</b>
+          <b>{{_i18n("hosts_stats.page_scan_hosts.periodicity")}}</b>
           </label>
-        <div class="col-10 mt-2">
+        <div class="col-10 ">
           <SelectSearch v-model:selected_option="selected_automatic_scan_frequency"
                 :options="automatic_scan_frequencies_list">
           </SelectSearch> 

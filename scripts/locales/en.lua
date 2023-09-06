@@ -4236,7 +4236,7 @@ local lang = {
         ["note_1"] = "Host: host IP to scan.",
         ["note_2"] = "Ports: a comma-separated list of ports; if empty, all host ports are going to be considered.",
         ["note_3"] = "Scan Type: select a specific vulnerability scan type.",
-        ["note_4"] = "Frequency: select the automatic scan frequency.",
+        ["note_4"] = "Periodicity: select the automatic scan frequency.",
       },
       ["scan_type_list"] = {
         ["cve"] = "CVE",
