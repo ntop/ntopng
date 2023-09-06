@@ -104,9 +104,17 @@ export default {
         historical_flow(rowData);
       },
     }
+    let live_flow_link = {
+      handlerId: "live_flow_link",
+      onClick: () => {
+        live_flow(rowData);
+      },
+    }
 
     return DataTableUtils.createActionButtons([
       { class: `pointer`, handler: historical_flow_link, icon: 'fas fa-stream', title: i18n('db_explorer.historical_data') },
+      { class: `pointer`, handler: live_flow_link, icon: 'fas fa-stream', title: i18n('live_flows') },
+
     ]);
     
     },
@@ -169,6 +177,24 @@ function historical_flow(row) {
   const url = `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
   ntopng_url_manager.go_to_url(url);
 
+}
+
+function live_flow(row) {
+  const client_ip = row.client.split("host=")[1].split(">")[0];
+  const client = client_ip.substring(0, client_ip.length - 1);
+  const server_ip = row.server.split("host=")[1].split(">")[0];
+  const server = server_ip.substring(0, server_ip.length - 1);
+  const port = row.port;
+
+
+  const params = {
+    server: `${server}`,
+    client: `${client}`,
+    port: `${port}`,
+  }
+  const url_params = ntopng_url_manager.obj_to_url_params(params);
+  const url = `${http_prefix}/lua/flows_stats.lua?${url_params}`;
+  ntopng_url_manager.go_to_url(url);
 }
 
 function start_datatable(DatatableVue) {
