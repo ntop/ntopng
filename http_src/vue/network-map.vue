@@ -65,7 +65,7 @@ async function check_layout(network) {
     }
     
     if(refresh_layout == true) {
-      autolayout();
+      reload();
     }
   } catch(error) {
     console.log(error);
