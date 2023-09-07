@@ -11,6 +11,13 @@ This section describes how to use this functionality to build traffic reports on
 
    ClickHouse support including Historical Flows Explorer and Reports is only available in ntopng Enterprise M or above.
 
+Reports contain charts of monitored interfaces overall traffic, local versus remote traffic, local networks traffic, as well as the traffic grouped by:
+
+- Application Protocols (e.g., HTTPS, Skype)
+- Countries
+- Local Hosts (hosts belonging to local networks) and Remote Hosts
+- Autonomous Systems
+
 The picture below shows an example of report generate by ntopng:
 
 .. figure:: img/report-preview.png
@@ -31,7 +38,9 @@ the report out of those available.
   Report Templates
 
 The report is build using traffic information in a selected time frame. It is possible to select an arbitrary time interval by using the
-dropdown and the range picker at the top of the Reports page.
+dropdown and the range picker at the top of the Reports page. Fixed-width temporal intervals are also available (e.g. for the last one hour,
+day, weeek, etc.) producing a report that spans a time range that starts at the present and that goes backwards in time until the clicked 
+interval is reached.
 
 .. figure:: img/report-time-interval.png
   :align: center
