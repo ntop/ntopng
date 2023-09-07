@@ -81,7 +81,7 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
       end
    end
 
-   tprint("HERE IN ALERT FORMAT")
+   
    
    if( alert_type_params.metric ~= "flowdev:traffic" and alert_type_params.metric ~= "flowdev_port:traffic" )then
       return(i18n("alert_messages.traffic_interface_volume_alert", {
