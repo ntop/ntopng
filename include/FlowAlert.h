@@ -57,6 +57,9 @@ class FlowAlert {
   virtual FlowAlertType getAlertType() const = 0;
   virtual u_int8_t getAlertScore() const { return SCORE_LEVEL_INFO; };
 
+  /* false = alert that requires attention, true = not important (auto ack) */
+  virtual bool autoAck() const { return true; };
+
   inline Flow *getFlow() const { return (flow); }
   inline std::string getCheckName() const { return (check_name); }
 

@@ -1,9 +1,7 @@
 ClickHouse
 ##########
 
-ntopng (Enterprise M/L license is required) integrates with ClickHouse to store historical flows and alerts. ClickHouse is an high-performance SQL database.
-
-
+ntopng (Enterprise M or better license is required) for using ClickHouse to store historical flows and alerts. Enterprise XL instead is required for using aggregated flow and other advanced features.
 
 
 .. toctree::

@@ -68,6 +68,7 @@ class Ntop {
   Redis *redis;         /**< Pointer to the Redis server. */
   Mutex m, users_m, speedtest_m, pools_lock;
   std::map<std::string, bool> cachedCustomLists; /* Cache of lists filenames */
+  u_int32_t current_time; /* Upated by current_time */
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   ZMQPublisher *zmqPublisher;
@@ -620,7 +621,10 @@ class Ntop {
   void recipient_register(u_int16_t recipient_id, AlertLevel minimum_severity,
                           Bitmap128 enabled_categories,
                           Bitmap128 enabled_host_pools,
-                          Bitmap128 enabled_entities);
+                          Bitmap128 enabled_entities,
+                          Bitmap128 enabled_flow_checks,
+                          Bitmap128 enabled_host_checks,
+                          bool skip_alerts);
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return (last_stats_reset); }
@@ -662,12 +666,12 @@ class Ntop {
     return radiusAcc->startSession(username, session_id);
   };
   inline bool radiusAccountingUpdate(const char *username,
-                                     const char *session_id, Mac *mac) {
-    return radiusAcc->updateSession(username, session_id, mac);
+                                     const char *session_id, RadiusTraffic *info) {
+    return radiusAcc->updateSession(username, session_id, info);
   };
   inline bool radiusAccountingStop(const char *username, const char *session_id,
-                                   Mac *mac) {
-    return radiusAcc->stopSession(username, session_id, mac);
+                                   RadiusTraffic *info) {
+    return radiusAcc->stopSession(username, session_id, info);
   };
 #endif
 
@@ -717,6 +721,8 @@ class Ntop {
     return flow_checks_loader ? flow_checks_loader->getUnhandledRisks() : 0;
   };
 #ifndef HAVE_NEDGE
+  bool initPublisher();
+  bool broadcastControlMessage(char *msg);
   bool broadcastIPSMessage(char *msg);
   inline void askToRefreshIPSRules() { refresh_ips_rules = true; }
   inline bool timeToRefreshIPSRules() {
@@ -774,8 +780,8 @@ class Ntop {
 #ifdef NTOPNG_PRO
   inline AssetManagement *get_am() { return (&am); }
 #endif
-  inline Mutex *get_pools_lock() { return (&pools_lock); }
-
+  inline Mutex *get_pools_lock()      { return (&pools_lock); };
+  inline u_int32_t get_current_time() { return(current_time); };
   bool createPcapInterface(const char *path, int *iface_id);
   void incBlacklisHits(std::string listname);
 #if defined(NTOPNG_PRO) && defined(HAVE_KAFKA)
@@ -784,6 +790,7 @@ class Ntop {
     return (kafkaClient.sendMessage(kafka_broker_info, msg, msg_len));
   }
 #endif
+  u_int64_t getNumActiveProbes() const;
 };
 
 extern Ntop *ntop;

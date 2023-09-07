@@ -272,7 +272,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
   data_delete_requested = 0, stats_reset_requested = 0,
   name_reset_requested = 0, prefs_loaded = 0;
   host_services_bitmap = 0, disabled_alerts_tstamp = 0, num_remote_access = 0,
-  num_incomplete_flows = 0;
+  num_incomplete_flows = 0, deferred_init = 0;
 
   num_resolve_attempts = 0, nextResolveAttempt = 0,
   num_active_flows_as_client = 0, num_active_flows_as_server = 0,
@@ -283,8 +283,9 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
 
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be
                                                    changed by deserialize */
-  asn = 0, asname = NULL, obs_point = NULL, os = NULL, os_type = os_unknown;
-  ssdpLocation = NULL, blacklist_name = NULL;
+  as = NULL, asn = 0, asname = NULL, obs_point = NULL, os = NULL, os_type = os_unknown;
+  ssdpLocation = NULL, blacklist_name = NULL, country = NULL;
+  is_blacklisted = false;
 
   memset(&names, 0, sizeof(names));
   memset(view_interface_mac, 0, sizeof(view_interface_mac));
@@ -332,31 +333,13 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
   ndpi_hll_init(&incoming_hosts_tcp_udp_port_with_no_tx_hll,
                 5 /* StdError: 18.4% */);
 
-  deferredInitialization(); /* TODO To be called asynchronously for improving
-                               performance */
-}
-
-/* *************************************** */
-
-void Host::deferredInitialization() {
-  char buf[64];
-
-  inlineSetOS(os_unknown);
-  setEntityValue(get_hostkey(buf, sizeof(buf), true));
-
-  is_in_broadcast_domain =
-      iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
-
-  reloadHostBlacklist();
-  is_blacklisted = ip.isBlacklistedAddress();
-
   if (ip.getVersion() /* IP is set */) {
     char country_name[64];
 
-    /*
-     * IMPORTANT: as and country are defined here, in case the initialization
-     * is postponed, remember to initialize these values to NULL in the init
-     */
+    /* Note: moving this to deferredInitialization led to issues
+     * like "Trying to decrement a score which is 0" warnings as
+     * counters were incremented too late (after dec) */
+
     if ((as = iface->getAS(&ip, true /* Create if missing */,
                            true /* Inline call */)) != NULL) {
       as->incUses();
@@ -375,6 +358,21 @@ void Host::deferredInitialization() {
                                         true /* Inline call */)) != NULL)
       obs_point->incUses();
   }
+}
+
+/* *************************************** */
+
+void Host::deferredInitialization() {
+  char buf[64];
+
+  inlineSetOS(os_unknown);
+  setEntityValue(get_hostkey(buf, sizeof(buf), true));
+
+  is_in_broadcast_domain =
+      iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
+
+  reloadHostBlacklist();
+  is_blacklisted = ip.isBlacklistedAddress();
 
   reloadDhcpHost();
 }
@@ -1278,6 +1276,11 @@ void Host::periodic_stats_update(const struct timeval *tv) {
   Mac *cur_mac = getMac();
   OSType cur_os_type = os_type, cur_os_from_fingerprint = os_unknown;
 
+  if(!deferred_init) {
+    deferred_init = 1;
+    deferredInitialization();
+  }
+
   checkReloadPrefs();
   checkNameReset();
   checkDataReset();
@@ -2147,7 +2150,9 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   /* See AlertableEntity::luaAlert */
   ndpi_serialize_string_string(s, "action", released ? "release" : "engage");
   ndpi_serialize_string_int32(s, "alert_id", alert->getAlertType().id);
+  ndpi_serialize_string_int32(s, "alert_category", alert->getAlertType().category);
   ndpi_serialize_string_int32(s, "score", alert->getAlertScore());
+  ndpi_serialize_string_boolean(s, "acknowledged", alert->autoAck());
   ndpi_serialize_string_string(s, "subtype", "" /* No subtype for hosts */);
   ndpi_serialize_string_int32(s, "ip_version", ip.getVersion());
   ndpi_serialize_string_string(s, "ip", ip.print(ip_buf, sizeof(ip_buf)));
@@ -2211,6 +2216,7 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
     notification->score = alert->getAlertScore();
     notification->alert_severity = Utils::mapScoreToSeverity(notification->score);
     notification->alert_category = alert->getAlertType().category;
+    notification->alert_id = alert->getAlertType().id;
     notification->host.host_pool = get_host_pool();
 
     rv = ntop->recipients_enqueue(notification,
@@ -2219,6 +2225,7 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
     if (!rv)
       delete notification;
 
+    /* Push filters to the Smart Recording service */
     if (iface->isSmartRecordingEnabled() && (instance_name = iface->getSmartRecordingInstance())) {
       char key[256], ip_buf[64];
       int expiration = 30*60; /* 30 min */
@@ -2239,6 +2246,29 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
 
       ntop->getRedis()->set(key, "1", expiration);
     }
+
+    /* Push filters to the "Runtime Manager" in pfring for filtering */
+    if (iface->pushHostFilters()) {
+      char value[64], ip_buf[64], key[64];
+      char *ip_str = get_ip()->print(ip_buf, sizeof(ip_buf));
+
+      snprintf(key, sizeof(key), "pfring.%d.filter.host.queue", iface->get_id());
+
+      if (!alert->isReleased()) {
+        /* Engaged: add host (if not already present) */
+        snprintf(value, sizeof(value), "+%s", ip_str);
+        ntop->getRedis()->rpush(key, value, 1024 /* trim size */);
+
+      } else {
+        /* Released (or Stored) */
+        if (alert->isLastReleased()) {
+          /* No other alerts released: remove host (if any) */
+          snprintf(value, sizeof(value), "-%s", ip_str);
+          ntop->getRedis()->rpush(key, value, 1024 /* trim size */);
+        }
+      }
+    }
+
   }
 
   if (!rv)

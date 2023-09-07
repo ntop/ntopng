@@ -307,7 +307,7 @@ async function get_sankey_data() {
 */
     data = wrap_graph_rsp(rsp);
 
-    debugger;
+    //debugger;
     return data;
 }
 

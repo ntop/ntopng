@@ -17,6 +17,7 @@ local alert_entities = require "alert_entities"
 local am_utils = require "am_utils"
 local alert_consts = require "alert_consts"
 local host_pools = require "host_pools":create()
+local recipients = require "recipients"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -58,7 +59,7 @@ local sub_menu_entries = {
 local active_entry = sub_menu_entries[check_subdir].entry or page_utils.menu_entries.endpoint_notifications
 local navbar_menu = {}
 
-page_utils.set_active_menu_entry(active_entry)
+page_utils.print_header_and_set_active_menu_entry(active_entry)
 
 for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
   navbar_menu[#navbar_menu+1] = {
@@ -126,11 +127,13 @@ local context = {
     endpoint_list = endpoints.get_configs(true),
     can_create_recipient = can_create_recipient,
     check_categories = checks.check_categories,
+    checks = checks.getEnabledChecksList(),
     check_entities = alert_entities,
     alert_severities = alert_consts.get_printable_severities(),
     endpoints = endpoint_list,
     endpoints_info = get_max_configs_available(),
     am_hosts = am_hosts_list,
+    notification_types = recipients.get_notification_types(),
     filters = {
         endpoint_types = endpoint_type_filters
     },

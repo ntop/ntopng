@@ -46,8 +46,12 @@ function snmp_device_alert_store:_entity_val_to_ip_and_port(entity_val)
 
    local ip_port = string.split(entity_val, "_ifidx")
    if ip_port and #ip_port > 1 then
+      -- Device IP and interface
       ip = ip_port[1]
       port = tonumber(ip_port[2])
+   else
+      -- Device IP only
+      ip = entity_val
    end
 
    return ip, port
@@ -76,8 +80,8 @@ function snmp_device_alert_store:insert(alert)
       device_ip, port = self:_entity_val_to_ip_and_port(alert.entity_val)
    end
 
-   local extra_columns = ""
-   local extra_values = ""
+   local extra_columns
+   local extra_values
    if(ntop.isClickHouseEnabled()) then
       extra_columns = "rowid, "
       extra_values = "generateUUIDv4(), "
@@ -87,8 +91,8 @@ function snmp_device_alert_store:insert(alert)
       "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, ip, name, port, port_name, json) "..
       "VALUES (%s%u, %d, %u, %u, %u, %u, '%s', '%s', %u, '%s', '%s'); ",
       self._table_name, 
-      extra_columns,
-      extra_values,
+      extra_columns or "",
+      extra_values or "",
       alert.alert_id,
       self:_convert_ifid(interface.getId()),
       alert.tstamp,
@@ -96,10 +100,11 @@ function snmp_device_alert_store:insert(alert)
       map_score_to_severity(alert.score),
       alert.score,
       self:_escape(device_ip or alert.entity_val),
-      self:_escape(device_name),
-      port or 0,
-      self:_escape(port_name),
-      self:_escape(alert.json))
+      self:_escape(device_name or ""),
+      tonumber(port) or 0,
+      self:_escape(port_name or ""),
+      self:_escape(alert.json)
+   )
 
    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)
 
@@ -114,7 +119,9 @@ function snmp_device_alert_store:_add_additional_request_filters()
    local port = _GET["snmp_interface"]
 
    self:add_filter_condition_list('ip', ip)
-   self:add_filter_condition_list('port', port, 'number')
+
+   --  self:add_filter_condition_list('port', port, 'number')
+   self:add_filter_condition_list('snmp_interface', port)
 end
 
 -- ##############################################
@@ -174,7 +181,7 @@ function snmp_device_alert_store:format_record(value, no_html)
    record[RNAME.IP.name] = value["ip"]
    record[RNAME.NAME.name] = snmp_utils.get_snmp_device_sysname(value["ip"]) or ""
    record[RNAME.PORT.name] = {
-      value = value["port"],
+      value = value["ip"] .. "_" .. value["port"],
       label = value["port_name"] or value["port"]
    }
 

@@ -1,6 +1,6 @@
 {
   "name": "ntopng",
-  "version": "5.5.0",
+  "version": "5.7.0",
   "description": "Network analysis tool, used to report problems, communications and statistics about the network itself. This packages is used to build the Web GUI part (client).",
   "main": "http_src/ntopng.js",
   "directories": {
@@ -77,7 +77,7 @@
     "@googlemaps/markerclusterer": "^1.0.24",
     "@popperjs/core": "^2.11.2",
     "apexcharts": "^3.33.1",
-    "bootstrap": "^5.3.0-alpha3",
+    "bootstrap": "^5.3.0",
     "bootstrap-loader": "^3.0.4",
     "crossfilter2": "^1.5.4",
     "d3": "^3.5.17",
@@ -92,6 +92,7 @@
     "datatables.net-dt": "^1.11.5",
     "datatables.net-responsive-dt": "^2.4.0",
     "dc": "^4.2.7",
+    "dygraphs": "^2.2.1",
     "flatpickr": "^4.6.11",
     "jquery": "^3.6.0",
     "jquery-ui-bundle": "^1.12.1-migrate",

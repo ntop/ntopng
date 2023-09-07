@@ -17,7 +17,7 @@ if not isAdministratorOrPrintErr() then return end
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.license)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.license)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_page_title(i18n("license_page.license"))
 

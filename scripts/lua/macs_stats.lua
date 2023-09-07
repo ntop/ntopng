@@ -12,7 +12,7 @@ local page_utils = require("page_utils")
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.devices)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.devices)
 
 if (group_col == nil) then
    group_col = "mac"

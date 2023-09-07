@@ -51,7 +51,10 @@ class LocalHost : public Host {
   /* END Host data: */
 
   void initialize();
+  void deferredInitialization();
   void freeLocalHostData();
+  void addInactiveData();
+  void removeInactiveData();
   virtual void deleteHostData();
 
   char *getMacBasedSerializationKey(char *redis_key, size_t size,
@@ -187,12 +190,21 @@ class LocalHost : public Host {
 
   void setRouterMac(Mac *gw);
 
-  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto)    { usedPorts.setServerPort(isTCP, port, proto);    };
-  inline void setContactedPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) { usedPorts.setContactedPort(isTCP, port, proto); };
-  virtual inline void luaUsedPorts(lua_State* vm)                                         { usedPorts.lua(vm, iface);                     };
-  virtual inline std::unordered_map<u_int16_t, ndpi_protocol>* getServerPorts(bool isTCP) { return(usedPorts.getServerPorts(isTCP));      };
+  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
+    usedPorts.setServerPort(isTCP, port, proto);
+  };
+  inline void setContactedPort(bool isTCP, u_int16_t port,
+                               ndpi_protocol *proto) {
+    usedPorts.setContactedPort(isTCP, port, proto);
+  };  
+  virtual inline void luaUsedPorts(lua_State *vm) { usedPorts.lua(vm, iface); };
+  virtual inline std::unordered_map<u_int16_t, ndpi_protocol> getUDPServerPorts() { return(usedPorts.getUDPServerPorts()); };
+  virtual inline std::unordered_map<u_int16_t, ndpi_protocol> getTCPServerPorts() { return(usedPorts.getTCPServerPorts()); };
 
-  /* RareDest Extension methods */
+  virtual inline std::unordered_map<u_int16_t, ndpi_protocol> *getServerPorts(
+      bool isTCP) {
+    return (usedPorts.getServerPorts(isTCP));
+  };
 
   inline time_t getStartRareDestTraining() const { return(rareDestTraining.start); }
   inline void setStartRareDestTraining(time_t t) { rareDestTraining.start = t;     }
@@ -213,7 +225,7 @@ class LocalHost : public Host {
   
   void dumpRareDestToRedis();
   bool loadRareDestFromRedis();
-  
+
 };
 
 #endif /* _LOCAL_HOST_H_ */

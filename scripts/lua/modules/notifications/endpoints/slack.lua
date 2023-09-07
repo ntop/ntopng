@@ -6,6 +6,7 @@ require "lua_utils"
 local json = require "dkjson"
 local alert_consts = require("alert_consts")
 local alert_utils = require "alert_utils"
+local format_utils = require "format_utils"
 
 local slack = {
    name = "Slack",
@@ -84,14 +85,19 @@ end
 -- On error, it leaves the queue unchagned to retry on next round.
 function slack.dequeueRecipientAlerts(recipient, budget)
    local notifications = {}
-   for i = 1, budget do
+   local i = 0
+    while i < budget do
       local notification = ntop.recipient_dequeue(recipient.recipient_id)
       if notification then 
-	 notifications[#notifications + 1] = notification.alert
+        if alert_utils.filter_notification(notification, recipient.recipient_id) then
+
+          notifications[#notifications + 1] = notification.alert
+          i = i + 1
+        end
       else
-	 break
+        break
       end
-   end
+    end
 
   if not notifications or #notifications == 0 then
     return {success = true, more_available = false}
@@ -124,7 +130,7 @@ function slack.dequeueRecipientAlerts(recipient, budget)
 
       -- Most recent notifications first
       for _, notif in pairsByValues(notifications, alert_utils.notification_timestamp_rev) do
-        local msg = alert_utils.formatAlertNotification(notif, {nohtml=true, show_severity=false, show_entity=true})
+        local msg = format_utils.formatMessage(notif, {nohtml=true, show_severity=false, show_entity=true})
         table.insert(messages, msg)
 
         if #messages >= MAX_ALERTS_PER_MESSAGE then

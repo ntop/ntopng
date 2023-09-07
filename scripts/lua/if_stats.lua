@@ -202,7 +202,7 @@ if (isAdministrator()) then
    end
 end
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.interface, { ifname=getHumanReadableInterfaceName(if_name) })
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.interface, { ifname=getHumanReadableInterfaceName(if_name) })
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -310,36 +310,36 @@ page_utils.print_navbar(title, url,
                                  active = page == "ARP",
                                  page_name = "ARP",
                                  label = i18n("arp"),
-               },
-               {
-                  hidden = (sites_granularities == nil or table.len(sites_granularities) == 0),
-                  active = page == "sites",
-                  page_name = "sites",
-                  label = i18n("sites_page.sites"),
-               },
-			      {
-				 hidden = not charts_available,
-				 active = page == "historical",
-				 page_name = "historical",
-				 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
-			      },
-			      {
-				 hidden = have_nedge or not ifstats or table.empty(ifstats.profiles),
-				 active = page == "trafficprofiles",
-				 page_name = "trafficprofiles",
-				 label = "<i class=\"fas fa-lg fa-user-md\"></i>",
-			      },
-			      {
-				 hidden = not has_traffic_recording_page,
-				 active = page == "traffic_recording",
-				 page_name = "traffic_recording",
-				 label = "<i class='fas fa-lg fa-hdd' title='"..i18n("traffic_recording.traffic_recording").."'></i>",
-               },
+                              },
+                              {
+                                 hidden = (sites_granularities == nil or table.len(sites_granularities) == 0),
+                                 active = page == "sites",
+                                 page_name = "sites",
+                                 label = i18n("sites_page.sites"),
+                              },
+                              {
+                                 hidden = not charts_available,
+                                 active = page == "historical",
+                                 page_name = "historical",
+                                 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
+                              },
+                              {
+                                 hidden = have_nedge or not ifstats or table.empty(ifstats.profiles),
+                                 active = page == "trafficprofiles",
+                                 page_name = "trafficprofiles",
+                                 label = "<i class=\"fas fa-lg fa-user-md\"></i>",
+                              },
+                              {
+                                 hidden = not has_traffic_recording_page,
+                                 active = page == "traffic_recording",
+                                 page_name = "traffic_recording",
+                                 label = "<i class='fas fa-lg fa-hdd' title='"..i18n("traffic_recording.traffic_recording").."'></i>",
+                              },
                               {
                                  hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
                                  active = page == "alerts",
                                  page_name = "alerts",
-             url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=interface",
+                                 url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=interface",
                                  label = "<i class='fas fa-lg fa-exclamation-triangle' title='"..i18n("alerts_dashboard.alerts").."'></i>",
                               },
                               {
@@ -382,23 +382,21 @@ page_utils.print_navbar(title, url,
                                  active = page == "dhcp",
                                  page_name = "dhcp",
                                  label = "<i class='fas fa-lg fa-bolt' title='"..i18n("dhcp.dhcp").."'></i>",
-               },
-               {
-                  hidden = (not periodicity_map_available),
-                  page_name = "periodicity_map",
-                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=periodicity_map",
-                  label = "<i class=\"fas fa-lg fa-clock\"></i>",
-               },
-               {
-                  hidden = (not service_map_available),
-                  page_name = "service_map",
-                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=service_map",
-                  label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
-               },
-              
+                              },
+                              {
+                                 hidden = (not periodicity_map_available),
+                                 page_name = "periodicity_map",
+                                 url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=periodicity_map",
+                                 label = "<i class=\"fas fa-lg fa-clock\"></i>",
+                              },
+                              {
+                                 hidden = (not service_map_available),
+                                 page_name = "service_map",
+                                 url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=service_map",
+                                 label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
+                              },
                            }
-   )
-
+)
 
 print(
       template.gen("modal_confirm_dialog.html", {
@@ -531,7 +529,7 @@ if((page == "overview") or (page == nil)) then
       print("</li></ol></td>\n")
 
       print("</tr>")
-end
+   end
 
    if cur_num_nprobes > 0 then
       local max_items_per_row = 3
@@ -552,8 +550,11 @@ end
       if ifstats["timeout.lifetime"] > 0 then
          if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 
-         print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_lifetime")..
-                  " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_timeout_lifetime").."'></i></sup></th><td nowrap>")
+         print("<th width='15%'><details><summary><span class='ntop_notes' data-bs-toggle='tooltip' data-placement='right' title='" .. i18n("click_to_expand") .. "'>")
+         print(i18n("if_stats_overview.probe_timeout_lifetime").." <i class='fas fa-question-circle '></i>")
+         print("</span></summary><small><span>" ..i18n("if_stats_overview.note_lifetime_timeout").. "</span></small></details></th>")
+
+         print("<td>")
 
          if((ifstats["timeout.collected_lifetime"] ~= nil) and (ifstats["timeout.collected_lifetime"] > 0)) then
             -- We're in collector mode on the nProbe side
@@ -608,7 +609,9 @@ end
          local span_class = ' '
 
          if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-         print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></th>")
+         print("<th><details><summary><span class='ntop_notes' data-bs-toggle='tooltip' data-placement='right' title='" .. i18n("click_to_expand") .. "'>")
+         print(i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <i class='fas fa-question-circle '></i>")
+         print("</span></summary><small><span>" ..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").. "</span></small></details></th>")
          print("<td nowrap><span "..span_class.." id=if_zmq_drops_flow_collection_drops>"..formatValue(ifstats["zmq.drops.flow_collection_drops"]).."</span> <span id=if_zmq_drops_flow_collection_drops_trend></span></td>")
          cur_i = cur_i + 1
       end
@@ -671,8 +674,63 @@ end
       print("<input type='hidden' id='hiddenKey' value='"..ifstats.encryption.public_key.."'>")
       print("<button id='copy' class='btn btn-light border ms-1'>".."<i class='fas fa-copy'></i>".." </button>")
       print("<br><small><b>"..i18n("if_stats_overview.note").."</b>:<ul><li> ".. i18n("if_stats_overview.zmq_encryption_public_key_note", {key="&lt;key&gt;"}).."")
-      print("<li>nprobe --zmq "..ifstats.name.." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
-      print("</small></ul></td></tr>\n")
+      local zmq_endpoint = ifstats.name
+      local probe_mode = ""
+
+      if endswith(zmq_endpoint, 'c') then
+         zmq_endpoint = string.sub(zmq_endpoint, 1, -2)
+         probe_mode = " --zmq-probe-mode"
+      end
+      
+      if ntop.isCloud() then
+
+         if(prefs.zmq_publish_events_url == nil) then
+            print("<p><b><font color=red>Please restart ntopng with --zmq-publish-events &lt;URL&gt;</font></b>")
+         else
+            local info = ntop.getHostInformation()
+            local elems = string.split(zmq_endpoint, ":")
+            local port = elems[3]
+            
+            zmq_endpoint = "tcp://"..info.ip..":"..port
+            
+            print("<li>nprobe --cloud "..zmq_endpoint.." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
+         end
+      else
+        print("<li>nprobe --zmq "..zmq_endpoint.. probe_mode .." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
+      end
+      
+      print("</small></ul>");
+
+      if(ntop.isCloud() and (prefs.zmq_publish_events_url ~= nil)) then
+        -- Sample configuration file
+        print [[
+        <script type='text/javascript'>
+        function configDownload() {
+          var filename = 'nprobe-example.conf';
+          var content = "";
+          content += "# Set the capture interface name\n";
+          content += "#-i=INTERFACE_NAME\n";
+          content += "\n";
+          content += "# Set the ntopng address properly\n";
+          content += "--cloud=]] print(zmq_endpoint) print [[\n";
+          content += "--zmq-encryption-key=']] print(ifstats.encryption.public_key) print [['\n";
+          content += "\n";
+          content += "# Add more options here...\n";
+          content += "\n";
+          var element = document.createElement('a');
+          element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+          element.setAttribute('download', filename);
+          element.style.display = 'none';
+          document.body.appendChild(element);
+          element.click();
+          document.body.removeChild(element);
+        }
+        </script>
+        <button type="button" class="btn btn-sm btn-secondary" onclick="configDownload();">]] print(i18n("if_stats_overview.zmq_download_conf")) print [[</button>
+        ]]
+      end
+
+      print("</td></tr>\n")
    end
 
    if is_physical_iface and not ifstats.isView then
@@ -1722,6 +1780,36 @@ elseif(page == "config") then
            </td>
         </tr>]]
 
+   -- Automatic Reports
+   if isAdministrator() and ntop.isEnterpriseL() then
+      package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+      local reports_utils = require "reports_utils"
+      
+      if toboolean(ntop.getPref("ntopng.prefs.automatic_reports_enabled")) then
+         local automatic_reports_creation
+
+         if _SERVER["REQUEST_METHOD"] == "POST" then
+            automatic_reports_creation = toboolean(_POST["automatic_reports_creation"])
+            reports_utils.toggle_automatic_reports(ifid, automatic_reports_creation)
+         else
+            automatic_reports_creation = reports_utils.automatic_reports_enabled(ifid)
+         end
+
+         print [[<tr>
+            <th>]] print(i18n("if_stats_config.automatic_reports_creation")) print[[</th>
+            <td>]]
+
+         print(template.gen("on_off_switch.html", {
+            id = "automatic_reports_creation",
+            checked = automatic_reports_creation,
+          }))
+
+         print[[
+               </td>
+         </tr>]]
+      end
+   end
+
    -- per-interface Top-Talkers generation
    local interface_top_talkers_creation = true
 
@@ -2064,6 +2152,40 @@ function toggle_mirrored_traffic_function_off(){
          checked = show_dyn_iface_traffic,
        }))
        print[[
+         </td>
+      </tr>]]
+
+      -- Show Push Host Filters to PF_RING toggle
+      local push_host_filters = false
+      local push_host_filters_pref = string.format("ntopng.prefs.ifid_%d.push_host_filters_to_pfring", interface.getId())
+
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+         if _POST["push_host_filters"] == "1" then
+            push_host_filters = true
+         end
+
+         ntop.setPref(push_host_filters_pref, ternary(push_host_filters == true, '1', '0'))
+         interface.updatePushFiltersSettings()
+      else
+         push_host_filters = ternary(ntop.getPref(push_host_filters_pref) == '1', true, false)
+      end
+
+      print [[<tr>
+    <th>
+    ]] print(i18n("if_stats_config.toggle_push_host_filters")) print[[
+       <i class='fas fa-question-circle ' data-bs-toggle="tooltip" data-placement="top" title=']] print(i18n("if_stats_config.toggle_push_host_filters_note")) print[['></i>
+    </th>
+    <td>]]
+
+      local queue = "pfring."..interface.getId()..".filter.host.queue"
+
+      print(template.gen("on_off_switch.html", {
+         id = "push_host_filters",
+         checked = push_host_filters,
+label="<small>"..i18n("if_stats_config.toggle_push_host_filters_queue")..": <i>"..queue.."</i></small>"
+       }))
+
+      print[[
          </td>
       </tr>]]
 

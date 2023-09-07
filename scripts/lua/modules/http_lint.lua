@@ -117,6 +117,32 @@ http_lint.validateEmptyOr = validateEmptyOr
 
 -- FRONT-END VALIDATORS
 
+local function validateSNMPIfidNumber(p)
+    -- integer SNMP Ifid validation
+
+    if p == "*" then
+        return true
+    end
+
+    local num = tonumber(p)
+
+    if (num == nil) then
+        return false
+    end
+
+    if math.floor(num) == num then
+        return true
+    else
+        -- this is a float number
+        return false
+    end
+end
+http_lint.validateSNMPIfidNumber = validateSNMPIfidNumber
+
+-- #################################################################
+
+-- FRONT-END VALIDATORS
+
 local function validateNumber(p)
     -- integer number validation
     local num = tonumber(p)
@@ -174,6 +200,32 @@ local function validateSyslogFormat(p)
     return false
 end
 http_lint.validateSyslogFormat = validateSyslogFormat
+
+-- ##############################################
+
+local function validateHostInfoType(p)
+   if p == "minimal_one_host" or p == "minimal_all_host" or p == "more_one_host" or p == "more_all_host" then
+        return true
+    end
+
+    return false
+end
+
+local function validateFlowType(p)
+   if p == "peers" or p == "description" then
+        return true
+    end
+
+    return false
+end
+
+local function validateInterfaceType(p)
+   if p == "show" then
+        return true
+    end
+
+    return false
+end
 
 local function validatePort(p)
     if not validateNumber(p) then
@@ -247,7 +299,20 @@ local function validateSingleWord(w)
 end
 http_lint.validateSingleWord = validateSingleWord
 
+-- ##############################################
 
+local function validateEmail(w)
+    local pattern = "^[%w.-]+@[%w.-]+%.%w+$"
+
+    local validated_string = string.match(w, pattern)
+    if validated_string then
+        return true
+    else
+        return false
+    end
+
+end
+http_lint.validateEmail = validateEmail
 -- ##############################################
 
 -- @brief Returns true if inputstr is inside alert, function used to check
@@ -371,7 +436,7 @@ end
 local function validateMode(mode)
     local modes = {"all", "local", "local_no_tx", "local_no_tcp_tx", "remote", "remote_no_tx", "remote_no_tcp_tx",
                    "broadcast_domain", "filtered", "blacklisted", "dhcp", "restore", "client_duration",
-                   "server_duration", "client_frequency", "server_frequency"}
+                   "server_duration", "client_frequency", "server_frequency", "broadcast_multicast"}
 
     return validateChoice(modes, mode)
 end
@@ -618,13 +683,13 @@ local function validateFavouriteType(mode)
 end
 
 local function validateAjaxFormat(mode)
-    local modes = {"d3"}
+    local modes = {"d3","pie"}
 
     return validateChoice(modes, mode)
 end
 
 local function validatePrintFormat(mode)
-    local modes = {"txt", "json"}
+    local modes = {"txt", "json", "csv"}
 
     return validateChoice(modes, mode)
 end
@@ -778,14 +843,14 @@ local function validateServer(v)
 end
 
 local function validateColumnsIds(v)
-   return validateUnchecked(v)
+    return validateUnchecked(v)
     -- An Array is composed by a series of string separated by commas
     -- e.g.     column1,column2,column3
     -- So split by comma and check each single column with validateSingleWord
     -- local columns = string.split(v, ",")
 
     -- if((column == nil) or (type(column) ~= table)) then return false end
-    
+
     -- for _, column_id in pairs(columns) do
     --     if not validateSingleWord(column_id) then
     --         return false
@@ -1564,6 +1629,7 @@ local known_parameters = {
     ["maxhits_clause"] = validateNumber,
     ["ni_query_type"] = validatenIndexQueryType,
     ["ni_query_filter"] = validateListOfTypeInline(validateSingleWord),
+    ["aggregated"] = validateBool,
 
     -- HOST SPECIFICATION
     ["host"] = validateUnquoted, -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
@@ -1571,7 +1637,7 @@ local known_parameters = {
     ["mac"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))), -- a MAC address
     ["cli_mac"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))), -- a MAC address
     ["srv_mac"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))), -- a MAC address
-    ["tskey"] = validateSingleWord, -- host identifier for timeseries
+    ["tskey"] = validateUnquoted, -- timeseries name
     ["peer1"] = validateHost, -- a Peer in a connection
     ["peer2"] = validateHost, -- another Peer in a connection
     ["origin"] = validateHost, -- the source of the alert
@@ -1704,8 +1770,10 @@ local known_parameters = {
     ["all"] = validateBool, -- To remove limit on results
 
     -- NAVIGATION
+    ["gui"] = validateBool, -- Return data in html format (backward compatibility)
     ["page"] = validateSingleWord, -- Currently active subpage tab
     ["tab"] = validateSingleWord, -- Currently active tab, handled by javascript
+    ["template"] = validateSingleWord, -- Currently selected template
     ["system_interface"] = validateBool,
 
     -- CONFIGSETS
@@ -1718,6 +1786,8 @@ local known_parameters = {
     ["mac_list"] = validateUnquoted,
     ["mac_alias"] = validateSingleWord,
     ["mac_status"] = validateStatus,
+    ["devices_status_during_learning"] = validateBool,
+    ["devices_status_post_learning"] = validateBool,
 
     -- UI TOASTS
     ["toast_id"] = validateSingleWord,
@@ -1732,6 +1802,9 @@ local known_parameters = {
     ["recipient_am_hosts"] = validateEmptyOr(validateListOfTypeInline(validateUnquoted)),
     ["recipient_interface_pools"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
     ["recipient_minimum_severity"] = validateNumber,
+    ["recipient_silence_multiple_alerts"] = validateBool,
+    ["recipient_checks"] = validateEmptyOr(validateListOfTypeInline(validateUnquoted)),
+    ["recipient_notifications_type"] = validateEmptyOr(validateSingleWord),
     ["endpoint_conf_name"] = validateUnquoted,
     ["endpoint_id"] = validateNumberOrUnquoted,
     ["endpoint_conf_type"] = validateUnquoted,
@@ -1747,11 +1820,19 @@ local known_parameters = {
 
     ["syslog_alert_format"] = http_lint.validateEmptyOr(http_lint.validateSyslogFormat),
     ["syslog_protocol"] = http_lint.validateEmptyOr(http_lint.validateChoiceInline({"tcp", "udp", ""})),
-    ["syslog_host"] = http_lint.validateEmptyOr(http_lint.validateHost),
+    ["syslog_host"] = http_lint.validateEmptyOr(validateServer),
     ["syslog_port"] = http_lint.validateEmptyOr(http_lint.validatePort),
 
     ["telegram_channel"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
     ["telegram_token"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
+
+    ["thehive_token"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
+    ["thehive_url"] = {http_lint.webhookCleanup, http_lint.validateUnquoted},
+    ["thehive_org_name"] = http_lint.validateSingleWord,
+    ["thehive_obs_mail"] = http_lint.validateSingleWord,
+    ["thehive_obs_url"] = {http_lint.webhookCleanup, http_lint.validateUnquoted},
+
+    ["pagerduty_integration_key"] = http_lint.validateSingleWord,
 
     ["fail2ban_jail"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
 
@@ -1766,6 +1847,10 @@ local known_parameters = {
 
     -- OTHER
     ["interface"] = validateSingleWord,
+    ["showjson"] = validateBool,
+    ["hostinfotype"] = validateHostInfoType,
+    ["interfacetype"] = validateHostInfoType,
+    ["flowtype"] = validateFlowType,
     ["all_values"] = validateBool, -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if all the values have to be returned
     ["collapse_stats"] = validateBool, -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if stats need to be collapsed
     ["max_values"] = validateNumber, -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know the max number of stats to be returned
@@ -1788,6 +1873,8 @@ local known_parameters = {
     ["flow_hash_id"] = validateNumber, -- The ID uniquely identifying the flow in the hash table
     ["user"] = validateSingleWord, -- The user ID
     ["snapshot_name"] = validateSingleWord, -- The user ID
+    ["report_name"] = validateSingleWord, -- The report name
+    ["report_template"] = validateSingleWord, -- The report template
     ["pool"] = validateNumber, -- A pool ID
     ["pool_id"] = validateNumber, -- A pool ID
     ["direction"] = validateDirection, -- Sent or Received direction
@@ -1810,6 +1897,7 @@ local known_parameters = {
     ["delete_profile"] = http_lint.validateTrafficProfile, -- A Traffic Profile to delete
     ["delete_vlan"] = validateSingleWord, -- A Traffic Profile to delete
     ["alert_id"] = validateListOfTypeInline(validateFilters(validateNumber)), -- An alert type enum
+    ["alert_category"] = validateListOfTypeInline(validateFilters(validateNumber)), -- An alert category enum
     ["alert_l7_proto"] = validateNumber, -- An alert l7 protocol
     ["alert_subtype"] = validateSingleWord, -- An alert subtype string
     ["alert_severity"] = validateNumber, -- An alert severity enum
@@ -1820,6 +1908,15 @@ local known_parameters = {
     ["role"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- attacker/victim
     ["role_cli_srv"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
     ["l7_error_id"] = validateListOfTypeInline(validateFilters(validateNumber)), -- client/server
+    ["http_method"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
+    ["http_return"] = validateListOfTypeInline(validateFilters(validateNumber)), -- client/server
+    ["http_url"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
+    ["user_agent"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
+    ["netbios_name"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
+    ["mdns_answer"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
+    ["mdns_name"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
+    ["mdns_name_txt"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
+    ["mdns_ssid"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
     ["confidence"] = validateListOfTypeInline(validateFilters(validateNumber)), -- client/server
     ["acknowledged"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- acknowledged
     ["community_id"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- Community ID
@@ -1912,13 +2009,25 @@ local known_parameters = {
     ["is_ifname"] = validateBool,
     ["metric_label"] = validateUnquoted,
     ["flows_page_type"] = validateSingleWord,
+    ["scan_type"] = validateSingleWord,
+    ["scan_ports"] = validateSingleWord,
+    ["scan_params"] = validateUnquoted,
+    ["scan_single_host"] = validateBool,
+    ["delete_all_scan_hosts"] = validateBool,
+    ["scan_return_result"] = validateBool,
+    ["scan_ports_rsp"] = validateBool,
+    ["scan_date"] = validateSingleWord,
+    ["auto_scan_frequency"] = validateSingleWord,
+    ["scan_id"] = validateSingleWord,
+    ["is_va"] = validateBool,
+    ["is_edit"] = validateBool,
 
     ["snmp_device"] = validateDevice,
-    ["snmp_device_port"] = validateNumber,
+    ["snmp_device_port"] = validateSNMPIfidNumber,
     ["snmp_device_port_label"] = validateUnquoted,
-    ["snmp_device_label"] = validateUnquoted, 
+    ["snmp_device_label"] = validateUnquoted,
     ["snmp_threshold_value"] = validateNumber,
-    ["snmp_threshold_unit"] = validateUnquoted,  
+    ["snmp_threshold_unit"] = validateUnquoted,
     ["snmp_metric_type_label"] = validateUnquoted,
 
     ["bytes"] = validateListOfTypeInline(validateFilters(validateNumber)),
@@ -1974,10 +2083,12 @@ local known_parameters = {
     ["interface_rrd_creation"] = validateBool,
     ["interface_one_way_hosts_rrd_creation"] = validateBool,
     ["interface_top_talkers_creation"] = validateBool,
+    ["automatic_reports_creation"] = validateBool,
     ["interface_flow_dump"] = validateBool,
     ["is_mirrored_traffic"] = validateBool,
     ["discard_probing_traffic"] = validateBool,
     ["show_dyn_iface_traffic"] = validateBool,
+    ["push_host_filters"] = validateBool,
     ["interface_network_discovery"] = validateBool,
     ["dynamic_iface_vlan_creation"] = validateBool,
     ["toggle_mysql_check_open_files_limit"] = validateBool,
@@ -2004,12 +2115,14 @@ local known_parameters = {
     ["toggle_ip_reassignment_alerts"] = validateBool,
     ["toggle_longlived_flows_alerts"] = validateBool,
     ["toggle_data_exfiltration"] = validateBool,
+    ["toggle_enable_automatic_reports"] = validateBool,
     ["toggle_enable_runtime_flows_dump"] = validateBool,
     ["toggle_tiny_flows_dump"] = validateBool,
     ["toggle_alert_syslog"] = validateBool,
     ["toggle_slack_notification"] = validateBool,
     ["toggle_email_notification"] = validateBool,
     ["toggle_top_sites"] = validateBool,
+    ["toggle_http_enable_access_log"] = validateBool,
     ["toggle_captive_portal"] = validateBool,
     ["toggle_mdns_repeater"] = validateBool,
     ["toggle_informative_captive_portal"] = validateBool,
@@ -2049,6 +2162,7 @@ local known_parameters = {
     ["behaviour_analysis_learning_status_during_learning"] = validateNumber,
     ["behaviour_analysis_learning_status_post_learning"] = validateNumber,
     ["iec60870_learning_period"] = validateNumber,
+    ["modbus_learning_period"] = validateNumber,
     ["devices_learning_period"] = validateNumber,
     ["toggle_src_and_dst_using_ports"] = validateBool,
     ["toggle_device_activation_alert"] = validateBool,
@@ -2078,12 +2192,15 @@ local known_parameters = {
     ["toggle_internals_rrds"] = validateBool,
     ["toggle_local_hosts_one_way_ts"] = validateBool,
     ["toggle_dark_theme"] = validateBool,
-    ["toggle_menu_voice_help"] = validateBool,
-    ["toggle_menu_voice_developer"] = validateBool,
+    ["toggle_menu_entry_help"] = validateBool,
+    ["toggle_menu_entry_developer"] = validateBool,
+    ["toggle_flow_aggregated_alerted_flows"] = validateBool,
 
     -- Input fields
     ["companion_interface"] = validateEmptyOr(validateInterface),
     ["flows_and_alerts_data_retention_days"] = validateNumber,
+    ["aggregated_flows_data_retention_days"] = validateNumber,
+    ["reports_data_retention_days"] = validateNumber,
     ["ts_and_stats_data_retention_days"] = validateNumber,
     ["max_entity_alerts"] = validateNumber,
     ["max_num_secs_before_delete_alert"] = validateNumber,
@@ -2093,6 +2210,8 @@ local known_parameters = {
     ["max_num_packets_per_tiny_flow"] = validateNumber,
     ["dump_frequency"] = validateNumber,
     ["max_num_bytes_per_tiny_flow"] = validateNumber,
+    ["max_aggregated_flows_traffic_upperbound"] = validateNumber,
+    ["max_aggregated_flows_upperbound"] = validateNumber,
     ["google_apis_browser_key"] = validateSingleWord,
     ["ldap_server_address"] = validateSingleWord,
     ["radius_server_address"] = validateSingleWord,
@@ -2125,15 +2244,18 @@ local known_parameters = {
     ["secondary_dns"] = validateEmptyOr(validateIPV4),
     ["informative_captive_portal_url"] = validateEmptyOr(validateSingleWord),
     ["redirection_url"] = validateEmptyOr(validateSingleWord),
-    ["email_sender"] = validateSingleWord,
-    ["email_recipient"] = validateSingleWord,
+    ["email_sender"] = validateEmail,
+    ["email_recipient"] = validateEmail,
     ["smtp_server"] = validateServer,
+    ["smtp_port"] = validatePortRange,
     ["smtp_username"] = validateEmptyOr(validateSingleWord),
     ["smtp_password"] = validateEmptyOr(validatePassword),
     ["influx_dbname"] = validateSingleWord,
     ["influx_username"] = validateEmptyOr(validateSingleWord),
     ["influx_password"] = validateEmptyOr(validateSingleWord),
     ["influx_query_timeout"] = validateNumber,
+
+    ["serial_key"] = validateSingleWord,
 
     -- Multiple Choice
     ["disaggregation_criterion"] = validateChoiceInline({"none", "vlan", "probe_ip", "iface_idx", "ingress_iface_idx",
@@ -2186,7 +2308,7 @@ local known_parameters = {
 
     -- LIVE CAPTURE
     ["capture_id"] = validateNumber, -- Live capture id
-    ["duration"] = validateNumber, --
+    ["duration"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))),
     ["bpf_filter"] = validateEmptyOr(validateUnquoted), --
 
     -- TRAFFIC RECORDING
@@ -2243,6 +2365,7 @@ local known_parameters = {
     ["to_delete"] = validateLocalGlobal, -- alert_utils.lua, set if alert configuration should be dropped
     ["SaveAlerts"] = validateEmpty, -- alert_utils.lua, set if alert configuration should change
     ["host_pool_id"] = validateNumber, -- change_user_prefs, new pool id for host
+    ["host_pool_label"] = validateSingleWord,
     ["old_host_pool_id"] = validateNumber, -- change_user_prefs, old pool id for host
     ["del_l7_proto"] = validateShapedElement, -- if_stats.lua, ID of the protocol to delete from rule
     ["target_pool"] = validateNumber, -- if_stats.lua, ID of the pool to perform the action on
@@ -2305,6 +2428,7 @@ local known_parameters = {
     ["old_interface_name"] = validateGatewayName,
     ["delete_gateway"] = validateGatewayName,
     ["ping_address"] = validateIPV4,
+    ["flowdev_ip"] = validateIPV4,
     ["policy_name"] = validateRoutingPolicyName,
     ["old_policy_name"] = validateRoutingPolicyName,
     ["delete_policy"] = validateRoutingPolicyName,
@@ -2402,6 +2526,7 @@ local known_parameters = {
     ["old_syslog_producer_host"] = validateSingleWord,
     ["query_preset"] = validateEmptyOr(validateSingleWord),
     ["new_charts"] = validateBool,
+    ["sankey_version"] = validateNumber,
 
     -- nEdge policy
     ["default_policy"] = validatePolicy, -- users, nedge policies
@@ -2429,6 +2554,7 @@ local known_parameters = {
     ["payload"] = {jsonCleanup, validateJSON},
     ["JSON"] = {jsonCleanup, validateJSON},
     ["host_threshold_rules"] = {jsonCleanup, validateJSON},
+    ["content"] = {jsonCleanup, validateJSON},
 
     -- POST pcap
     ["pcap"] = validatePcap,
@@ -2474,7 +2600,7 @@ local special_parameters = { --[[Suffix validator]] --[[Value Validator]]
 
     -- Protocol to categories match
     ["proto_"] = {validateProtocolIdOrName, validateCategory},
-
+    ["protocol"] = validateNumber,
     --
     ["static_route_address_"] = {validateStaticRouteName, validateIPV4},
     ["static_route_netmask_"] = {validateStaticRouteName, validateIPV4},
@@ -2527,6 +2653,13 @@ local special_parameters = { --[[Suffix validator]] --[[Value Validator]]
 -- #################################################################
 
 local function validateParameter(k, v)
+   local debug          = false
+   local trace_failures = true
+   
+   if (debug) then
+      io.write("[LINT] validateParameter [" .. k .. "] ".. type(v) .."\n")
+   end
+
     if (known_parameters[k] == nil) then
         -- Attempt at recursively validate tables
         if (type(v) == "table") then
@@ -2536,15 +2669,21 @@ local function validateParameter(k, v)
                 -- Stop, if any of the table value fails the validation against
                 -- the expected table key
                 if not success then
-                    return success, message, nil
+		   if (trace_failures) then
+		      io.write("[LINT] validateParameter failed for table entry [" .. table_key .. "][".. table_value .."]\n")
+		   end
+
+		   return success, message, nil
                 end
             end
 
             -- Success, all the table keys have been validated successfully
             return true, "OK", v
         else
-            error("[LINT] Validation error: Unknown key " .. k .. ": missing validation perhaps?\n")
-            return false, nil
+	   if (trace_failures) then
+	      error("[LINT] Validation error: Unknown key '" .. k .. "': missing validation perhaps?\n")
+	   end
+	   return false, nil
         end
     else
         local ret
@@ -2563,7 +2702,11 @@ local function validateParameter(k, v)
         if ret then
             return true, "OK", v
         else
-            -- io.write(debug.traceback())
+	   if (trace_failures) then
+	      io.write("[LINT] validateParameter failed for parameter [" .. k .. "][".. type(f) .."]\n")
+	   end
+
+	   -- io.write(debug.traceback())
             return false, "Validation error", nil
         end
     end
@@ -2620,7 +2763,7 @@ local function lintParams()
     local script_manager = require("script_manager")
     local params_to_validate = {_GET, _POST}
     local id, _, k, v
-
+    
     -- VALIDATION SETTINGS
     local enableValidation = true --[[ To enable validation ]]
     local relaxGetValidation = true --[[ To consider empty fields as valid in _GET parameters ]]
@@ -2633,7 +2776,7 @@ local function lintParams()
     for _, id in pairs(params_to_validate) do
         for k, v in pairs(id) do
             if (debug) then
-                io.write("[LINT] Validating [" .. k .. "][" .. v .. "]\n")
+	       io.write("[LINT] Validating [" .. k .. "]\n")
             end
 
             if enableValidation then
@@ -2649,13 +2792,22 @@ local function lintParams()
                     else
                         if message ~= nil then
                             -- tprint("k: "..k.. " v: "..v.. " success: "..tostring(success).. " message: "..message)
-                            http_lint.validationError(id, k, v, message)
+
+			   if (debug) then
+			      io.write("[LINT] Failure validating parameter '" .. k .. "' (1)\n")
+			   end
+		       
+			   http_lint.validationError(id, k, v, message)
                         else
                             success, message, purified = validateParameter(k, v)
 
                             if success then
                                 id[k] = purified
                             else
+			       if (debug) then
+				  io.write("[LINT] Failure validating parameter '" .. k .. "' (2)\n")
+			       end
+						   
                                 if message ~= nil then
                                     http_lint.validationError(id, k, v, message)
                                 else

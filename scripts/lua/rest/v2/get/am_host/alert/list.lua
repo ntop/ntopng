@@ -38,8 +38,11 @@ for _key, _value in ipairs(alerts or {}) do
 end -- for
 
 if no_html then
+    local extra_headers = {}
+
+    extra_headers["Content-Disposition"] = "attachment;filename=\"am_host_alerts_export_" .. os.time() .. ".csv\""
     res = am_alert_store:to_csv(res)
-    rest_utils.vanilla_payload_response(rc, res, "text/csv")
+    rest_utils.vanilla_payload_response(rc, res, "text/csv", extra_headers)
 else
     local data = {
         records = res,

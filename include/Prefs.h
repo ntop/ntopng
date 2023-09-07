@@ -45,22 +45,27 @@ class Prefs {
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
   bool enable_client_x509_auth, reproduce_at_original_speed;
-  char* zmq_publish_events_url;
+  char* zmq_publish_events_url, *http_log_path;
   const char *clickhouse_client, *clickhouse_cluster_name;
   Ntop* ntop;
   bool enable_dns_resolution, sniff_dns_responses, sniff_name_responses,
-      sniff_local_name_responses, pcap_file_purge_hosts_flows,
-      categorization_enabled, resolve_all_host_ip, change_user, daemonize,
-      enable_auto_logout, enable_auto_logout_at_runtime, use_promiscuous_mode,
-      enable_ixia_timestamps, enable_vss_apcon_timestamps,
-      enable_interface_name_only, enable_users_login, disable_localhost_login,
-      service_license_check, enable_sql_log, enable_access_log, log_to_file,
-      enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
-      enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
-      enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
-      dump_flows_on_clickhouse, use_mac_in_flow_key;
+    sniff_local_name_responses, pcap_file_purge_hosts_flows,
+    categorization_enabled, resolve_all_host_ip, change_user, daemonize,
+    enable_auto_logout, enable_auto_logout_at_runtime, use_promiscuous_mode,
+    enable_ixia_timestamps, enable_vss_apcon_timestamps, 
+    enable_interface_name_only, enable_users_login, disable_localhost_login,
+    service_license_check, enable_sql_log, enable_access_log, log_to_file,
+    enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
+    enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
+    enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
+    dump_flows_on_clickhouse, use_mac_in_flow_key, do_reforge_timestamps;
   u_int32_t behaviour_analysis_learning_period;
-  u_int32_t iec60870_learning_period, devices_learning_period;
+  u_int32_t iec60870_learning_period, modbus_learning_period,
+    devices_learning_period;
+#ifdef NTOPNG_PRO
+  ndpi_bitmap* modbus_allowed_function_codes;
+  u_int modbus_too_many_exceptions;
+#endif
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
       behaviour_analysis_learning_status_post_learning;
   TsDriver timeseries_driver;
@@ -114,6 +119,7 @@ class Prefs {
       dump_json_flows_on_disk, dump_ext_json;
 #ifdef NTOPNG_PRO
   bool dump_flows_direct;
+  u_int32_t max_aggregated_flows_upperbound, max_aggregated_flows_traffic_upperbound;
   bool is_geo_map_score_enabled, is_geo_map_asname_enabled,
       is_geo_map_alerted_flows_enabled, is_geo_map_blacklisted_flows_enabled,
       is_geo_map_host_name_enabled, is_geo_map_rxtx_data_enabled,
@@ -214,6 +220,7 @@ class Prefs {
   bool is_enterprise_m_edition();
   bool is_enterprise_l_edition();
   bool is_enterprise_xl_edition();
+  bool is_cloud_edition();
 
   bool is_nedge_pro_edition();
   bool is_nedge_enterprise_edition();
@@ -537,6 +544,7 @@ class Prefs {
   inline bool is_observation_points_rrd_creation_enabled() {
     return (enable_observation_points_rrd_creation);
   };
+  inline char* get_http_log_path() { return(http_log_path); };
   inline bool is_intranet_traffic_rrd_creation_enabled() {
     return (enable_intranet_traffic_rrd_creation);
   };
@@ -646,12 +654,14 @@ class Prefs {
   inline ServiceAcceptance behaviourAnalysisStatusPostLearning() {
     return behaviour_analysis_learning_status_post_learning;
   };
-  inline u_int64_t* getIEC104AllowedTypeIDs() {
-    return (iec104_allowed_typeids);
-  };
-  inline u_int32_t getIEC60870LearingPeriod() {
-    return (iec60870_learning_period);
-  };
+  inline u_int64_t* getIEC104AllowedTypeIDs() { return (iec104_allowed_typeids);   };
+  inline u_int32_t getIEC60870LearingPeriod() { return (iec60870_learning_period); };
+  inline u_int32_t getModbusLearingPeriod()   { return (modbus_learning_period); };
+#ifdef NTOPNG_PRO
+  inline ndpi_bitmap* getModbusAllowedFunctionCodes() { return (modbus_allowed_function_codes);  };
+  inline void         setModbusTooManyExceptionsThreshold(u_int v) { modbus_too_many_exceptions = v;     }
+  inline u_int        getModbusTooManyExceptionsThreshold()        { return(modbus_too_many_exceptions); }
+#endif
   inline u_int32_t devicesLearingPeriod() { return (devices_learning_period); };
   inline bool are_alerts_disabled() { return (disable_alerts); };
   inline bool dontEmitFlowAlerts() {
@@ -670,15 +680,17 @@ class Prefs {
   };
 #ifdef NTOPNG_PRO
   inline bool isLabelDumpEnabled() { return (create_labels_logfile); };
+  void setModbusAllowedFunctionCodes(const char *function_codes);
 #endif
-  void setIEC104AllowedTypeIDs(const char* protos);
+  void setIEC104AllowedTypeIDs(const char* type_ids);
   void validate();
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
   char* getKakfaBrokersList() { return (kafka_brokers_list); }
   char* getKafkaTopic() { return (kafka_topic); }
   char* getKafkaOptions() { return (kafka_options); }
 #endif
-  inline bool useMacAddressInFlowKey() { return (use_mac_in_flow_key); }
+  inline bool useMacAddressInFlowKey() { return (use_mac_in_flow_key);  }
+  inline bool doReforgeTimestamps()    { return(do_reforge_timestamps); }
 };
 
 #endif /* _PREFS_H_ */

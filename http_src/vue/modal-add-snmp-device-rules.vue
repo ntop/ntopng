@@ -30,7 +30,8 @@
         </SelectSearch>
         </div>
     </div>
-
+    
+    <template v-if="enable_interfaces == true">
      <div class="form-group ms-2 me-2 mt-3 row">
 	    <label class="col-form-label col-sm-2" >
         <b>{{_i18n("if_stats_config.snmp_interface")}}</b>
@@ -42,6 +43,7 @@
         </SelectSearch>
         </div>
     </div>
+  </template>
 
     <div  class="form-group ms-2 me-2 mt-3 row">
 	    <label class="col-form-label col-sm-2" >
@@ -81,28 +83,40 @@
         </div>
         <div class="col-3" :class="[ metric_type.id == 'throughput' ? 'p-0' : '']" >
           <div class="btn-group float-end btn-group-toggle" data-bs-toggle="buttons">
-            <template v-if="metric_type.id == 'throughput'" v-for="measure in throughput_threshold_list" >
+            <template v-if="metric_type.id == 'throughput' && metric_type.id != 'packets'" v-for="measure in throughput_threshold_list" >
               <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_measure" name="threshold_measure">
               <label class="btn " :id="measure.id" @click="set_active_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
             </template>
-            <template v-if="metric_type.id == 'percentage'" v-for="measure in percentage_threshold_list">
+            <template v-if="metric_type.id == 'percentage' && metric_type.id != 'packets'" v-for="measure in percentage_threshold_list">
               <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_measure" name="threshold_measure">
               <label class="btn " :id="measure.id" @click="set_active_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
             </template>
-            <template v-if="metric_type.id == 'volume'" v-for="measure in volume_threshold_list" >
+            <template v-if="metric_type.id == 'volume' && metric_type.id != 'packets'" v-for="measure in volume_threshold_list" >
               <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_measure" name="threshold_measure">
               <label class="btn " :id="measure.id" @click="set_active_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
             </template>
+
           </div>
         </div>
 
 
-        <div class="col-sm-2 btn-group float-end btn-group-toggle" data-bs-toggle="buttons">
+        <template v-if="metric_type.id != 'packets'">
+          <div class="col-sm-2 btn-group float-end btn-group-toggle" data-bs-toggle="buttons">
           <template v-for="measure in sign_threshold_list" >
             <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_sign" name="threshold_sign">
             <label class="btn " :id="measure.id" @click="set_active_sign_radio" v-bind:class="[ measure.active ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
           </template>
-        </div>
+          </div>
+        </template>
+        <template v-else>
+          <div class="col-sm-2 btn-group float-end btn-group-toggle" data-bs-toggle="buttons">
+          <template v-for="measure in sign_absolute_value" >
+            <input :value="measure.value" :id="measure.id" type="radio" class="btn-check" autocomplete="off" ref="threshold_sign" name="threshold_sign">
+            <label class="btn " :id="measure.id" v-bind:class="[ measure.absolute_value ? 'btn-primary active' : 'btn-secondary' ]" :for="measure.id">{{ measure.label }}</label>
+          </template>
+          </div>
+        </template>
+        
         
       </template>
 
@@ -154,6 +168,7 @@ const delete_row = ref(null);
 const snmp_metric_list = ref([])
 const snmp_devices_list = ref([])
 let snmp_interfaces_list = ref([])
+let enable_interfaces = ref(true);
 const snmp_interfaces_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/device/available_interfaces.lua`
 
 const frequency_list = ref([])
@@ -188,7 +203,8 @@ const note_list = [
 const metric_type_list = ref([
   { title: _i18n('volume'), label: _i18n('volume'), id: 'volume', active: true },
   { title: _i18n('throughput'), label: _i18n('throughput'), id: 'throughput', active: false },
-  { title: _i18n('percentage'), label: _i18n('percentage'), id: 'percentage', acrive: false },
+  { title: _i18n('percentage'), label: _i18n('percentage'), id: 'percentage', active: false },
+  { title: _i18n('packets'), label: _i18n('packets'), id: 'packets', active: false }
 ])
 
 const volume_threshold_list = ref([
@@ -204,8 +220,12 @@ const throughput_threshold_list = ref([
 ]);
 
 const sign_threshold_list = ref([
-  { title: "+", label: ">", id: 'plus', value: 1, active: false },
+  { title: "+", label: ">", id: 'plus', value: 1, active: false, absolute_value: true },
   { title: "-", label: "<", id: 'minus', value: -1, active: true, default_active: true },
+]);
+
+const sign_absolute_value = ref([
+  { title: "+", label: ">", id: 'plus', value: 1, active: true, absolute_value: true },
 ]);
 
 const percentage_threshold_list = [
@@ -249,15 +269,15 @@ const reset_modal_form = async function() {
     selected_snmp_device.value = snmp_devices_list.value[0];
     change_interfaces();
 
-    selected_snmp_device_metric.value = snmp_metric_list.value[2];
+    selected_snmp_device_metric.value = snmp_metric_list.value[0];
     change_active_threshold()
     
     selected_frequency.value = frequency_list.value[0];
-    metric_type.value = metric_type_list.value[2];
+    metric_type.value = metric_type_list.value[0];
 
     // reset metric_type_list
     metric_type_list.value.forEach((t) => t.active = false);
-    metric_type_list.value[2].active = true;
+    metric_type_list.value[0].active = true;
     
     reset_radio_selection(volume_threshold_list.value);
     reset_radio_selection(throughput_threshold_list.value);
@@ -266,6 +286,7 @@ const reset_modal_form = async function() {
     rule_type.value = "snmp";
 
     disable_add.value = true;
+    enable_interfaces.value = false;
 
     threshold.value.value = 1;
   }
@@ -350,7 +371,6 @@ const set_row_to_edit = (row) => {
 
     // set rule_type
     rule_type.value = row.rule_type;
-    debugger;
     snmp_devices_list.value.forEach((t) => {
       if(t.label == row.device)
         selected_snmp_device.value = t;
@@ -405,6 +425,8 @@ const set_active_radio = (selected_radio) => {
     percentage_threshold_list.forEach((measure) => {
       (measure.id === id) ? measure.active = true : measure.active = false;
     })
+  } else if (metric_type.value.id == 'packets'){
+    
   } 
   
 }
@@ -424,7 +446,7 @@ async function change_interfaces(interface_id) {
     else
       result_interfaces.push({label: iface.id, id: iface.id,  name: iface.id})
   })
-
+  result_interfaces.push({label: "*", id:"*", name:"*"})
   result_interfaces.sort(function(a,b) {return (a.label.toLowerCase() > b.label.toLowerCase() ? 1 : (a.label.toLowerCase() < b.label.toLowerCase()) ? -1 : 0);});
 
   if (interface_id != null)
@@ -432,25 +454,49 @@ async function change_interfaces(interface_id) {
       if(t.id == interface_id)
         selected_snmp_interface.value = t;
     })
-
   snmp_interfaces_list.value = result_interfaces;
+  // debugger;
+  if(selected_snmp_device.value.label_to_insert == "all")
+    enable_interfaces.value = false;
+  else
+    enable_interfaces.value = true;
+
 }
 
 function change_active_threshold() {
   let list_metrics_active = [];
-  if(selected_snmp_device_metric.value.id == 'packets' || selected_snmp_device_metric.value.id == 'errors' ) {
+  let list_sign_active = []
+  if(selected_snmp_device_metric.value.id == 'packets' ) {
     metric_type_list.value.forEach((t) => {
       if(t.id != 'percentage')
         t.active = false;
       else {
-        list_metrics_active.push(t);
         t.active = true;
+        list_metrics_active.push(t);
         metric_type.value = t;
       }
     })
+  } else if (selected_snmp_device_metric.value.id == 'errors' ) {
+    metric_type_list.value.forEach((t) => {
+      if(t.id != 'packets')
+        t.active = false;
+      else {
+        t.active = true;
+        list_metrics_active.push(t);
+        metric_type.value = t;
+      }
+    })
+
   } else {
-    list_metrics_active = metric_type_list.value;
+    metric_type_list.value.forEach((t) => {
+      if(t.id == 'packets')
+        t.active = false;
+      else {
+        list_metrics_active.push(t);
+      }
+    })
   }
+
 
   metric_type_active_list.value = list_metrics_active;
 }
@@ -468,12 +514,12 @@ const add_ = (is_edit) => {
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_snmp_device_metric.value.id;
   const tmp_metric_label = selected_snmp_device_metric.value.label;
-  debugger;
   const tmp_device = selected_snmp_device.value.label_to_insert;
   const tmp_device_label = selected_snmp_device.value.label;
-  const tmp_device_ifid = selected_snmp_interface.value.id;
-  const tmp_device_ifid_label = selected_snmp_interface.value.label;
-  console.log(threshold)
+  const tmp_device_ifid = selected_snmp_interface.value == null ? "*": selected_snmp_interface.value.id;
+  const tmp_device_ifid_label = selected_snmp_interface.value == null ? "*":selected_snmp_interface.value.label;
+  // debugger;
+  // console.log(threshold)
   let tmp_metric_type = metric_type.value.id;
   let basic_value;
   let measure_unit_label;
@@ -486,7 +532,6 @@ const add_ = (is_edit) => {
     tmp_extra_metric = ''
     tmp_threshold = threshold.value.value;
   }
-  debugger;
   if(tmp_metric_type == 'throughput') {
 
     sign_threshold_list.value.forEach((measure) => { if(measure.active) basic_sign_value = measure.value; })
@@ -506,6 +551,7 @@ const add_ = (is_edit) => {
     measure_unit_label = "%";
   } else {
     tmp_sign_value = 1;
+    tmp_threshold = parseInt(threshold.value.value);
   }
   let emit_name = 'add';
 
@@ -545,13 +591,16 @@ const close = () => {
 const format_snmp_devices_list = function(_snmp_devices_list) {
   let devices_list = [];
   _snmp_devices_list.data.forEach(item => {
-    if(item.column_name != null && item.column_name != "")
+    if(item.column_name != null && item.column_name != "" && item.column_name != "all")
       devices_list.push({label : item.column_name + " ("+item.column_key+")" , label_to_insert: item.column_key});
-    else
-      devices_list.push({label : item.column_key, label_to_insert: item.column_key});
+    else {
+      if (item.column_name == "all")
+        devices_list.push({label : item.column_key, label_to_insert: item.column_name});
+      else
+        devices_list.push({label : item.column_key, label_to_insert: item.column_key});
+    }
 
   })
-  debugger;
   const ip2int = str => str
     .split('.')
     .reduce((acc, byte) => acc + byte.padStart(3, 0), '');

@@ -71,13 +71,17 @@ local sub_menu_entries = {
      order = 6,
      entry = page_utils.menu_entries.scripts_config_system
   },
-  ['syslog'] = {
+  ['active_monitoring'] = {
      order = 7,
+     entry = page_utils.menu_entries.scripts_config_active_monitoring
+  },
+  ['syslog'] = {
+     order = 8,
      entry = page_utils.menu_entries.scripts_config_syslog
   }
 }
 local active_entry = sub_menu_entries[check_subdir].entry or page_utils.menu_entries.scripts_config
-page_utils.set_active_menu_entry(active_entry)
+page_utils.print_header_and_set_active_menu_entry(active_entry)
 --page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[check_subdir], config=confset_name }))
 
 -- append the menu above the page

@@ -69,6 +69,7 @@ export default defineComponent({
 	    show_menu: true,
 	    data_available: 0, // 0 == loading, 1 == available, 2 == no data
 	    i18n: (t) => i18n(t),
+	    epoch_interval: null,
 	    id_modal: `${this.$props.id}_modal`,
 	};
     },
@@ -102,8 +103,8 @@ export default defineComponent({
 	    }
 	    let url_request_obj = {
 		ifid: ntopng_url_manager.get_url_entry("ifid"),
-		epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
-		epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
+		epoch_begin: this.epoch_interval.epoch_begin,
+		epoch_end: this.epoch_interval.epoch_end,
 		bpf_filter: this.bpf_filter,
 	    };
 	    let url_request_params = ntopng_url_manager.obj_to_url_params(url_request_obj);
@@ -132,17 +133,17 @@ export default defineComponent({
 		this.data_available = 0;
 	    }, 1000);
 	},
-	show: async function(bpf_filter) {
-	    let status = ntopng_status_manager.get_status();
-	    if (status.epoch_begin == null || status.epoch_end == null) {
-		console.error("modal-traffic-extraction: epoch_begin and epoch_end undefined in url");
-		return;
-	    }	    
-	    let params = {
-		epoch_begin: status.epoch_begin,
-		epoch_end: status.epoch_end,
-	    };
-	    let url_params = ntopng_url_manager.obj_to_url_params(params);
+	show: async function(bpf_filter, epoch_interval) {	    
+	    if (epoch_interval == null) {
+		let status = ntopng_status_manager.get_status();
+		if (status.epoch_begin == null || status.epoch_end == null) {
+		    console.error("modal-traffic-extraction: epoch_begin and epoch_end undefined in url");
+		    return;
+		}
+		epoch_interval = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
+	    }
+	    this.epoch_interval = epoch_interval;
+	    let url_params = ntopng_url_manager.obj_to_url_params(epoch_interval);
 	    let url_request = `${http_prefix}/lua/check_recording_data.lua?${url_params}`;
 	    let res = await ntopng_utility.http_request(url_request, null, null, true);
 	    if (res.available == false) {
@@ -151,8 +152,6 @@ export default defineComponent({
 		this.$refs["modal"].show();
 		return;
 	    }
-	    let epoch = { epoch_begin: res.epoch_begin, epoch_end: res.epoch_end };
-	    
 	    this.data_available = 1;
 	    let extra_info = "";
 	    if (res.info != null) {
@@ -167,8 +166,8 @@ export default defineComponent({
 		    return;
 		}
 		bpf_filter = res.bpf;
-		this.set_descriptions(epoch.epoch_begin, epoch.epoch_end, extra_info);
 	    }
+	    this.set_descriptions(epoch_interval.epoch_begin, epoch_interval.epoch_end, extra_info);
 	    
 	    // let url_params = ntopng_url_manager.get_url_params();
 	    // let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/bpf.lua?${url_params}`;

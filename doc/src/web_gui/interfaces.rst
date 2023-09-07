@@ -179,12 +179,6 @@ This setting also applies to the timeseries of the host. In a DHCP network,
 the IP address of a host usually changes so the host it's better identified
 by its MAC address in this case.
 
-**Hide from Top Networks**:
-This setting allows to specify a comma-separated list of networks
-containing hosts that have to be hidden from the top statistics. 
-Hosts belonging to the specified networks will not be shown in the top
-statistics.
-
 **Create Interface Timeseries**:
 This setting toggles the generation of timeseries for the selected
 interface. No timeseries will be generated when this setting is

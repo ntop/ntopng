@@ -5,6 +5,8 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/toasts/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+
 
 if ((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then
     package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path
@@ -24,8 +26,9 @@ local is_admin = isAdministrator()
 local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
-local has_help_enabled = (ntop.getPref("ntopng.prefs.menu_voices.help") ~= '0')
-local has_developer_enabled = (ntop.getPref("ntopng.prefs.menu_voices.developer") ~= '0')
+local has_help_enabled = (ntop.getPref("ntopng.prefs.menu_entries.help") ~= '0')
+local has_developer_enabled = (ntop.getPref("ntopng.prefs.menu_entries.developer") ~= '0')
+local vs_utils = require "vs_utils"
 
 local is_system_interface = page_utils.is_system_view()
 local behavior_utils = require("behavior_utils")
@@ -175,9 +178,6 @@ print [[",
    const systemInterfaceEnabled = ]]
 print(ternary(is_system_interface, "true", "false"))
 print [[;
-   const http_prefix = "]]
-print(ntop.getHttpPrefix())
-print [[";
 
    window.unchangable_pool_names = [
       'Jailed Hosts'
@@ -223,12 +223,35 @@ if is_nedge then
 else
     -- ##############################################
 
-    -- Shortcuts
-    -- The Shortcuts entry are used to go to the System interface pages
+    -- Dashboard
+    page_utils.add_menubar_section({
+        section = page_utils.menu_sections.dashboard,
+        hidden = is_pcap_dump or is_system_interface,
+        entries = {{
+            entry = page_utils.menu_entries.traffic_dashboard,
+            url = '/lua/index.lua'
+        }, {
+            entry = page_utils.menu_entries.divider
+        }, {
+            entry = page_utils.menu_entries.network_discovery,
+            hidden = not interface.isDiscoverableInterface() or interface.isLoopback(),
+            url = "/lua/discover.lua"
+        }, {
+            entry = page_utils.menu_entries.traffic_report,
+            hidden = not ntop.isEnterprise() or not prefs.is_dump_flows_to_clickhouse_enabled, -- ntop.isPro()
+            url = "/lua/pro/reportng.lua"
+        }}
+    })
+
+    -- ##############################################
+
+    -- Active Monitoring
+    -- The Monitoring entry are used to go to the System interface pages
     -- without using the Interface dropdown. The section is hidden
     -- in system interface.
+    local scan_modules = vs_utils.list_scan_modules()
     page_utils.add_menubar_section({
-        section = page_utils.menu_sections.shortcuts,
+        section = page_utils.menu_sections.monitoring,
         hidden = is_system_interface or not is_admin,
         entries = {{
             entry = page_utils.menu_entries.snmp,
@@ -238,38 +261,9 @@ else
             entry = page_utils.menu_entries.active_monitoring,
             url = "/lua/monitor/active_monitoring_monitor.lua"
         }, {
-            entry = page_utils.menu_entries.divider,
-            hidden = not ntop.isEnterpriseM()
-        }, {
-            entry = page_utils.menu_entries.manage_pools,
-            hidden = not is_admin,
-            url = '/lua/admin/manage_pools.lua'
-        }, {
-            entry = page_utils.menu_entries.divider
-        }, {
-            entry = page_utils.menu_sections.notifications,
-            hidden = not is_admin,
-            url = '/lua/admin/endpoint_notifications_list.lua'
-        }}
-    })
-
-    -- Dashboard
-    page_utils.add_menubar_section({
-        section = page_utils.menu_sections.dashboard,
-        hidden = is_pcap_dump or is_system_interface,
-        entries = {{
-            entry = page_utils.menu_entries.traffic_dashboard,
-            url = ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua'
-        }, {
-            entry = page_utils.menu_entries.divider
-        }, {
-            entry = page_utils.menu_entries.network_discovery,
-            hidden = not interface.isDiscoverableInterface() or interface.isLoopback(),
-            url = "/lua/discover.lua"
-        }, {
-            entry = page_utils.menu_entries.traffic_report,
-            hidden = not ntop.isPro(),
-            url = "/lua/pro/report.lua"
+            entry = page_utils.menu_entries.vulnerability_scan,
+            url = '/lua/vulnerability_scan.lua',
+            hidden = #scan_modules == 0
         }}
     })
 
@@ -286,7 +280,13 @@ else
             entry = page_utils.menu_entries.alerts_analysis,
             url = "/lua/pro/enterprise/alerts_analysis.lua",
             hidden = (not ntop.isEnterprise())
-        }}
+        }, {
+            entry = page_utils.menu_entries.divider
+        }, {
+            entry = page_utils.menu_sections.notifications,
+            hidden = not is_admin,
+            url = '/lua/admin/endpoint_notifications_list.lua'
+        },}
     })
 
     -- ##############################################
@@ -365,6 +365,14 @@ else
         }, {
             entry = page_utils.menu_entries.http_servers,
             url = '/lua/http_servers_stats.lua'
+        }, {
+            entry = page_utils.menu_entries.server_ports_analysis,
+            url = '/lua/hosts_ports_analysis.lua',
+            hidden = not ntop.isEnterpriseL()
+        }, {
+            entry = page_utils.menu_entries.host_rules,
+            url = '/lua/pro/host_rules.lua',
+            hidden = not ntop.isEnterprise() or not isAdministrator(),
         }}
     })
 
@@ -433,14 +441,6 @@ page_utils.add_menubar_section({
     }, {
         hidden = not ntop.isEnterprise() or not isAdministrator(),
         entry = page_utils.menu_entries.divider
-    }, {
-        hidden = not ntop.isEnterprise() or not isAdministrator(),
-        entry = page_utils.menu_entries.ports_analysis,
-        url = '/lua/pro/enterprise/ports_analysis.lua'
-    }, {
-        hidden = not ntop.isEnterprise() or not isAdministrator(),
-        entry = page_utils.menu_entries.host_rules,
-        url = '/lua/pro/host_rules.lua'
     }}
 })
 
@@ -600,7 +600,7 @@ end
 -- Pools
 
 page_utils.add_menubar_section({
-    hidden = not is_system_interface,
+    hidden = true, -- Always add the pools menu (moved to the Hosts submenu)
     section = page_utils.menu_sections.pools,
     entries = {{
         entry = page_utils.menu_entries.manage_pools,
@@ -621,8 +621,6 @@ page_utils.add_menubar_section({
     hidden = not is_system_interface or not is_admin,
     url = '/lua/admin/endpoint_notifications_list.lua'
 })
-
-
 
 page_utils.add_menubar_section({
     section = page_utils.menu_sections.admin,
@@ -701,7 +699,11 @@ if not info.oem and auth.has_capability(auth.capabilities.developer) then
     if  not ntop.isEnterpriseM() or (has_developer_enabled) then
         page_utils.add_menubar_section({
             section = page_utils.menu_sections.dev,
-            entries = {{
+            entries = {
+	       {
+                entry = page_utils.menu_entries.rest_api,
+                url = '/lua/swagger.lua'
+            }, {
                 entry = page_utils.menu_entries.analyze_pcap,
                 url = '/lua/upload_pcap.lua'
             }, {

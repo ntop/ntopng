@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+//#define DEBUG_STATS_MANAGER 1
+
 /* ******************************************* */
 
 StatsManager::StatsManager(int interface_id, const char *filename)
@@ -201,6 +203,10 @@ static int get_samplings_db(void *data, int argc, char **argv,
 
   if (argc > 1) return -1;
 
+#ifdef DEBUG_STATS_MANAGER
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats Results: %s", argv[0]);
+#endif
+
   retr->rows.push_back(argv[0]);
   retr->num_vals++;
 
@@ -243,6 +249,10 @@ int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
            "AND TSTAMP <= %lu",
            cache_name, static_cast<long int>(key_start),
            static_cast<long int>(key_end));
+
+#ifdef DEBUG_STATS_MANAGER
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats Query: %s", query);
+#endif
 
   m.lock(__FILE__, __LINE__);
 
@@ -349,6 +359,12 @@ int StatsManager::insertSampling(const char *sampling, const char *cache_name,
 
   snprintf(query, sizeof(query), "INSERT INTO %s (TSTAMP, STATS) VALUES(?,?)",
            cache_name);
+
+#ifdef DEBUG_STATS_MANAGER
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats Insert Query: %s", query);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats Insert Data: %s", sampling);
+#endif
+
 
   m.lock(__FILE__, __LINE__);
 

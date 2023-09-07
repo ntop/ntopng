@@ -30,10 +30,11 @@ ScoreStats::ScoreStats() {
 
 /* *************************************** */
 
-u_int64_t ScoreStats::sum(u_int32_t const scores[]) {
+u_int64_t ScoreStats::sum(ScoreCounter scores[]) {
   u_int64_t res = 0;
 
-  for (int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) res += scores[i];
+  for (int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++)
+    res += scores[i].get();
 
   return res;
 };
@@ -45,9 +46,9 @@ u_int64_t ScoreStats::sum(u_int32_t const scores[]) {
   score is increased, according to parameter `as_client`. The actual increment
   performed is returned by the function.
 */
-u_int16_t ScoreStats::incValue(u_int32_t scores[], u_int16_t score,
+u_int16_t ScoreStats::incValue(ScoreCounter scores[], u_int16_t score,
                                ScoreCategory score_category) {
-  scores[score_category] += score;
+  scores[score_category].inc(score);
 
   return score;
 }
@@ -59,9 +60,9 @@ u_int16_t ScoreStats::incValue(u_int32_t scores[], u_int16_t score,
   score is decreased, according to parameter `as_client`. The actual decrement
   performed is returned by the function.
 */
-u_int16_t ScoreStats::decValue(u_int32_t scores[], u_int16_t score,
+u_int16_t ScoreStats::decValue(ScoreCounter scores[], u_int16_t score,
                                ScoreCategory score_category) {
-  scores[score_category] -= score;
+  scores[score_category].dec(score);
 
   return score;
 }

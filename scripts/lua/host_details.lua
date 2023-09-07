@@ -4,12 +4,17 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 local snmp_utils
 local snmp_location
 local host_sites_update
 local sites_granularities = {}
 local auth = require "auth"
+local ts_utils = require "ts_utils_core"
+
+
+local vs_utils = require "vs_utils"
 
 if (ntop.isPro()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -284,7 +289,7 @@ if (host == nil) and (not only_historical) then
     -- We need to check if this is an aggregated host
     sendHTTPContentTypeHeader('text/html')
 
-    page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
+    page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.hosts)
     if restoreInProgress then
         dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
         print('<div class=\"alert alert-info\"> ' .. i18n("host_details.host_restore_in_progress", {
@@ -339,7 +344,7 @@ if (host == nil) and (not only_historical) then
 else
     sendHTTPContentTypeHeader('text/html')
 
-    page_utils.set_active_menu_entry(page_utils.menu_entries.hosts, nil, i18n("host", {
+    page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.hosts, nil, i18n("host", {
         host = host_info["host"]
     }))
 
@@ -528,8 +533,7 @@ else
         page_name = "snmp",
         label = i18n("host_details.snmp")
     }, {
-        hidden = only_historical -- or not host["systemhost"]
-        or not interface.hasEBPF(),
+        hidden = only_historical or not interface.hasEBPF(), -- or not host["systemhost"]
         active = page == "processes",
         page_name = "processes",
         label = i18n("user_info.processes")
@@ -614,7 +618,13 @@ else
                                   snmp_location.host_has_snmp_location(host["mac"]) and isAllowedSystemInterface()
 
     if ((page == "overview") or (page == nil)) then
-        print("<table class=\"table table-bordered table-striped\">\n")
+        print [[
+  <div class="row">
+  <div class="col-md-12 col-lg-12">
+    <div class="mt-4 card card-shadow">
+      <div class="card-body">
+      ]]
+        print("<table class=\"table table-striped table-bordered\">\n")
         if (host["ip"] ~= nil) then
             if (host["mac"] ~= "00:00:00:00:00:00") then
 
@@ -1310,7 +1320,49 @@ else
                     host["ssdp"] .. "'>" .. host["ssdp"] .. "<A></td></tr>\n")
         end
 
+        local hosts_vs_details = vs_utils.retrieve_hosts_to_scan(host["ip"])
+        
+        local host_vs_details = {}
+        for _,value in ipairs(hosts_vs_details) do
+            if value.host == host["ip"] then
+                host_vs_details = value
+                break
+            end
+        end
+
+        if next(host_vs_details) ~= nil and host_vs_details.num_vulnerabilities_found and host_vs_details.num_vulnerabilities_found > 0 then
+            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
+            print("<td colspan=2>")
+            local i = 0
+            for _,vs in ipairs(host_vs_details.cve) do
+                if (i<5) then
+                    print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=show_result&scan_date='..host_vs_details.last_scan.time..'&host='..host_vs_details.host..'&scan_type='..host_vs_details.scan_type..'"><span class="badge bg-secondary" title="'..vs..'">'..vs..'</span></a> ')
+                else
+                    print('...')
+                    break 
+                end
+                i = i + 1
+            end
+
+        elseif (next(host_vs_details) ~= nil and (host_vs_details.num_vulnerabilities_found == nil or host_vs_details.num_vulnerabilities_found == 0)) then
+            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
+            print("<td colspan=2>")
+            print(i18n("hosts_stats.page_scan_hosts.no_cves_detected"))
+            
+        elseif (next(host_vs_details) == nil) then
+            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
+            print("<td colspan=2>")
+            print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=scan_hosts&host='..host["ip"]..'&ifid='..ifId..'">'.. i18n("hosts_stats.page_scan_hosts.add_to_scan_list")..'</a> ')
+        end
+
+        print("<tr><th colspan=4></th></tr>\n")
+
         print("</table>\n")
+        print [[
+        </div>
+        </div>
+      </div>
+    </div>]]
 
     elseif ((page == "packets")) then
         template.render("pages/hosts/packets_stats.template", {
@@ -1589,11 +1641,23 @@ setInterval(update_icmp_table, 5000);
 
 ]]
     elseif ((page == "ndpi")) then
+        local tot_cat_series = ts_utils.listSeries("host:ndpi_categories", {host= host_ip, ifid= ifId}, os.time())
+        local tot_l7_series = ts_utils.listSeries("host:ndpi", {host= host_ip, ifid= ifId}, os.time())
+        
+        local is_l7_series_present = tot_l7_series ~= nil and (not table.empty(tot_l7_series))
+        local is_cat_series_present = tot_cat_series ~= nil and (not table.empty(tot_cat_series))
+
+        local timeseries_l7_enabled = areHostTimeseriesEnabled(ifId) and areHostL7TimeseriesEnabled(ifId) and is_l7_series_present
+        local timeseries_cat_enabled = areHostTimeseriesEnabled(ifId) and areHostCategoriesTimeseriesEnabled(ifId) and is_cat_series_present
+
         template.render("pages/hosts/l7_stats.template", {
             view = "applications",
             host_ip = host_ip,
             vlan = host_vlan,
-            ifid = ifId
+            ifid = ifId,
+            is_locale = ternary(host["localhost"],"1","0"),
+            ts_l7_enabled = timeseries_l7_enabled,
+            ts_cat_enabled = timeseries_cat_enabled
         })
     elseif (page == "assets") then
         if (ntop.isEnterpriseL()) then
@@ -1892,8 +1956,10 @@ setInterval(update_icmp_table, 5000);
         require("flow_utils")
         local flows_page_type = _GET["flows_page_type"] or "live_flows"
 
-        printTabList("host_details.lua?page=flows", {host = hostinfo2hostkey(host)}, flows_page_type)
-        
+        printTabList("host_details.lua?page=flows", {
+            host = hostinfo2hostkey(host)
+        }, flows_page_type)
+
         if flows_page_type == "aggregated_flows" then
             local tmp_vlans = {}
             local vlans = {}
@@ -1945,8 +2011,8 @@ setInterval(update_icmp_table, 5000);
                 http_prefix = ntop.getHttpPrefix(),
                 aggregation_criteria = "application_protocol",
                 draw = 0,
-                sort = "bytes_rcvd",
-                order = "asc",
+                sort = "flows",
+                order = "desc",
                 start = 0,
                 length = 10,
                 csrf = ntop.getRandomCSRFValue()
@@ -1956,78 +2022,79 @@ setInterval(update_icmp_table, 5000);
 
                 </div>]]
         else
-        print [[
+            print [[
       <div id="table-flows"></div>
          <script>
    var url_update = "]]
 
-        local page_params = {
-            application = _GET["application"],
-            category = _GET["category"],
-            alert_type = _GET["alert_type"],
-            alert_type_severity = _GET["alert_type_severity"],
-            tcp_flow_state = _GET["tcp_flow_state"],
-            flowhosts_type = _GET["flowhosts_type"],
-            traffic_type = _GET["traffic_type"],
-            version = _GET["version"],
-            l4proto = _GET["l4proto"],
-            host = hostinfo2hostkey(host),
-            tskey = _GET["tskey"],
-            host_pool_id = _GET["host_pool_id"],
-            talking_with = _GET["talking_with"]
-        }
+            local page_params = {
+                application = _GET["application"],
+                category = _GET["category"],
+                alert_type = _GET["alert_type"],
+                alert_type_severity = _GET["alert_type_severity"],
+                tcp_flow_state = _GET["tcp_flow_state"],
+                flowhosts_type = _GET["flowhosts_type"],
+                traffic_type = _GET["traffic_type"],
+                version = _GET["version"],
+                l4proto = _GET["l4proto"],
+                host = hostinfo2hostkey(host),
+                tskey = _GET["tskey"],
+                host_pool_id = _GET["host_pool_id"],
+                talking_with = _GET["talking_with"]
+            }
 
-        print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_flows_data.lua", page_params))
+            print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_flows_data.lua", page_params))
 
-        print('";')
+            print('";')
 
-        if (ifstats.vlan) then
-            show_vlan = true
-        else
-            show_vlan = false
-        end
-        local active_flows_msg = i18n("flows_page.active_flows", {
-            filter = ""
-        })
-        if not interface.isPacketInterface() then
-            active_flows_msg = i18n("flows_page.recently_active_flows", {
+            if (ifstats.vlan) then
+                show_vlan = true
+            else
+                show_vlan = false
+            end
+            local active_flows_msg = i18n("flows_page.active_flows", {
                 filter = ""
             })
-        elseif interface.isPcapDumpInterface() then
-            active_flows_msg = i18n("flows")
-        end
+            if not interface.isPacketInterface() then
+                active_flows_msg = i18n("flows_page.recently_active_flows", {
+                    filter = ""
+                })
+            elseif interface.isPcapDumpInterface() then
+                active_flows_msg = i18n("flows")
+            end
 
-        local duration_or_last_seen = prefs.flow_table_time
-        local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
+            local duration_or_last_seen = prefs.flow_table_time
+            local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
 
-        local active_flows_msg = getFlowsTableTitle()
+            local active_flows_msg = getFlowsTableTitle()
 
-        print [[
+            print [[
             $("#table-flows").datatable({
             url: url_update,
             buttons: [ ]]
-        printActiveFlowsDropdown("host_details.lua?page=flows", page_params, interface.getStats(),
-            interface.getActiveFlowsStats(hostinfo2hostkey(host_info), nil, nil, page_params["talking_with"] or nil))
-        print [[ ],
+            printActiveFlowsDropdown("host_details.lua?page=flows", page_params, interface.getStats(),
+                interface.getActiveFlowsStats(hostinfo2hostkey(host_info), nil, nil, page_params["talking_with"] or nil))
+            print [[ ],
             tableCallback: function()  {
                ]]
-        initFlowsRefreshRows()
-        print [[
+            initFlowsRefreshRows()
+            print [[
             },
             showPagination: true,
                   ]]
 
-        print('title: "' .. active_flows_msg .. '",')
+            print('title: "' .. active_flows_msg .. '",')
 
-        -- Set the preference table
-        preference = tablePreferences("rows_number", _GET["perPage"])
-        if (preference ~= "") then
-            print('perPage: ' .. preference .. ",\n")
-        end
+            -- Set the preference table
+            preference = tablePreferences("rows_number", _GET["perPage"])
+            if (preference ~= "") then
+                print('perPage: ' .. preference .. ",\n")
+            end
 
-        print('sort: [ ["' .. getDefaultTableSort("flows") .. '","' .. getDefaultTableSortOrder("flows") .. '"] ],\n')
+            print('sort: [ ["' .. getDefaultTableSort("flows") .. '","' .. getDefaultTableSortOrder("flows") ..
+                      '"] ],\n')
 
-        print [[
+            print [[
       columns: [
          {
             title: "",
@@ -2045,8 +2112,8 @@ setInterval(update_icmp_table, 5000);
             }
          }, {
             title: "]]
-        print(i18n("application"))
-        print [[",
+            print(i18n("application"))
+            print [[",
             field: "column_ndpi",
             sortable: true,
             css: {
@@ -2054,8 +2121,8 @@ setInterval(update_icmp_table, 5000);
             }
          }, {
             title: "]]
-        print(i18n("protocol"))
-        print [[",
+            print(i18n("protocol"))
+            print [[",
             field: "column_proto_l4",
             sortable: true,
             css: {
@@ -2064,9 +2131,9 @@ setInterval(update_icmp_table, 5000);
          },
            ]]
 
-        if (show_vlan) then
-            print('{ title: "' .. i18n("vlan") .. '",\n')
-            print [[
+            if (show_vlan) then
+                print('{ title: "' .. i18n("vlan") .. '",\n')
+                print [[
             field: "column_vlan",
             sortable: true,
                     css: {
@@ -2075,28 +2142,28 @@ setInterval(update_icmp_table, 5000);
 
             },
                    ]]
-        end
-        print [[
+            end
+            print [[
          {
             title: "]]
-        print(i18n("client"))
-        print [[",
+            print(i18n("client"))
+            print [[",
             field: "column_client",
             sortable: true,
          }, {
                  title: "]]
-        print(i18n("server"))
-        print [[",
+            print(i18n("server"))
+            print [[",
             field: "column_server",
             sortable: true,
          },
            ]]
-        if begin_epoch_set == true then
-            print [[
+            if begin_epoch_set == true then
+                print [[
                  {
                     title: "]]
-            print(i18n("first_seen"))
-            print [[",
+                print(i18n("first_seen"))
+                print [[",
                     field: "column_first_seen",
                     sortable: true,
                     css: {
@@ -2105,14 +2172,14 @@ setInterval(update_icmp_table, 5000);
                     }
                  },
               ]]
-        end
+            end
 
-        if duration_or_last_seen == false then
-            print [[
+            if duration_or_last_seen == false then
+                print [[
                  {
                     title: "]]
-            print(i18n("duration"))
-            print [[",
+                print(i18n("duration"))
+                print [[",
                     field: "column_duration",
                     sortable: true,
                     css: {
@@ -2121,12 +2188,12 @@ setInterval(update_icmp_table, 5000);
                     }
                  },
               ]]
-        else
-            print [[
+            else
+                print [[
                  {
                     title: "]]
-            print(i18n("last_seen"))
-            print [[",
+                print(i18n("last_seen"))
+                print [[",
                     field: "column_last_seen",
                     sortable: true,
                     css: {
@@ -2135,16 +2202,16 @@ setInterval(update_icmp_table, 5000);
                     }
                  },
               ]]
-        end
+            end
 
-        print [[{
+            print [[{
         title: "]]
-        print(i18n("score"))
-        print [[",
+            print(i18n("score"))
+            print [[",
             field: "column_score",
             hidden: ]]
-        print(ternary(isScoreEnabled(), "false", "true"))
-        print [[,
+            print(ternary(isScoreEnabled(), "false", "true"))
+            print [[,
             sortable: true,
         css: {
            textAlign: 'center'
@@ -2152,8 +2219,8 @@ setInterval(update_icmp_table, 5000);
           },
         {
         title: "]]
-        print(i18n("breakdown"))
-        print [[",
+            print(i18n("breakdown"))
+            print [[",
             field: "column_breakdown",
             sortable: false,
         css: {
@@ -2162,8 +2229,8 @@ setInterval(update_icmp_table, 5000);
           },
         {
         title: "]]
-        print(i18n("flows_page.actual_throughput"))
-        print [[",
+            print(i18n("flows_page.actual_throughput"))
+            print [[",
             field: "column_thpt",
             sortable: true,
         css: {
@@ -2172,8 +2239,8 @@ setInterval(update_icmp_table, 5000);
             },
         {
         title: "]]
-        print(i18n("flows_page.total_bytes"))
-        print [[",
+            print(i18n("flows_page.total_bytes"))
+            print [[",
             field: "column_bytes",
             sortable: true,
         css: {
@@ -2184,8 +2251,8 @@ setInterval(update_icmp_table, 5000);
             }
         ,{
         title: "]]
-        print(i18n("info"))
-        print [[",
+            print(i18n("info"))
+            print [[",
             field: "column_info",
             sortable: true,
         css: {
@@ -2196,11 +2263,11 @@ setInterval(update_icmp_table, 5000);
            });
            ]]
 
-        if (have_nedge) then
-            printBlockFlowJs()
-        end
+            if (have_nedge) then
+                printBlockFlowJs()
+            end
 
-        print [[
+            print [[
             
           </script>
 
@@ -2450,7 +2517,7 @@ setInterval(update_icmp_table, 5000);
   const show_positions = (current_user_position) => {
       // these are two map providers provided by: https://leaflet-extras.github.io/leaflet-providers/preview/
       const layers = {
-          light: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          light: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
           // dark: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
       };
       // select the right layer
@@ -2651,6 +2718,7 @@ setInterval(update_icmp_table, 5000);
 
                 interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
             end
+
         end
 
         -- NOTE: this only configures the alias associated to the IP address, not to the MAC
@@ -2693,9 +2761,6 @@ setInterval(update_icmp_table, 5000);
         if host_pool_id ~= nil then
             graph_utils.printPoolChangeDropdown(ifId, host_pool_id .. "", have_nedge)
         end
-
-        print [[</td>
-      </tr>]]
 
         if (ifstats.inline and (host.localhost or host.systemhost)) then
             -- Traffic policy

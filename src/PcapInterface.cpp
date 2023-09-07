@@ -290,6 +290,9 @@ static void *packetPollLoop(void *ptr) {
       }
 
       if ((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
+	if(ntop->getPrefs()->doReforgeTimestamps())
+	  gettimeofday(&hdr->ts, NULL);
+	
         if (iface->reproducePcapOriginalSpeed()) {
           struct timeval now;
 

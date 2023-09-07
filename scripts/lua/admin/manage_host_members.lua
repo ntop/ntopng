@@ -37,7 +37,7 @@ end
 sendHTTPContentTypeHeader('text/html')
 
 if not isAdministratorOrPrintErr() then return end
-page_utils.set_active_menu_entry(page_utils.menu_entries.host_members)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.host_members)
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

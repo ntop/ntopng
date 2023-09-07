@@ -332,11 +332,6 @@ ul.navbar-nav li.nav-item.active>a.active {
   color: #A2A2A2;
 }
 
-.dropdown-menu {
-  background-color: #0d1117 !important;
-  color: #EEEEEE;
-}
-
 .blog-section a,
 .blog-section h6,
 .blog-section i,
@@ -390,11 +385,13 @@ ul.navbar-nav li.nav-item.active>a.active {
 }
 
 .table thead th {
+  background-color: #212529 !important;
   border-bottom: 2px solid #2C2C2C;
 }
 
 .table td,
 .table th {
+  background-color: #212529 !important;
   border-top: 1px solid #2C2C2C !important;
   border-right-color: #2C2C2C !important;
   border-top-color: #2C2C2C !important;
@@ -404,7 +401,7 @@ ul.navbar-nav li.nav-item.active>a.active {
 
 .table-hover tbody tr:hover {
   color: #E2E2E2 !important;
-  background-color: #303030 !important;
+  background-color: #1f2226 !important;
 }
 
 .table .thead-light th {
@@ -537,11 +534,6 @@ ul.navbar-nav li.nav-item.active>a.active {
 
 .progress {
   background-color: #383838;
-}
-
-table.table svg,
-table.table .pie-chart circle {
-  background-color: #0d1117;
 }
 
 .pie-chart circle {
@@ -829,4 +821,38 @@ table.dataTable thead th.sorting::after {
 #n-sidebar.bg-dark ul>li.nav-item div.collapse,
 #n-sidebar.bg-dark ul>li.nav-item div.collapsing {
   background-color: #212529 !important;
+}
+
+.dygraph-axis-label {
+  color: #e2e2e2;
+}
+
+.dygraph-legend {
+  background: #e2e2e2;
+}
+
+.form-check-label {
+  color: #e2e2e2;
+}
+
+.dropdown-menu {
+  background-color: #565e64;
+  color: #EEEEEE;
+}
+
+.btn-info {
+  background-color: #0dcaf0 !important;
+}
+
+.link-button {
+  color: rgb(255, 255, 255)!important;
+}
+
+.link-disabled {
+  color: rgb(173, 181, 189)!important;
+}
+
+.dropdown-menu .dropdown-item:hover {
+  color: var(--bs-dropdown-link-hover-color)!important;
+  background-color: #79787C!important;
 }

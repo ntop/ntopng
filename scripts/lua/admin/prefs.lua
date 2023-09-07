@@ -41,10 +41,11 @@ local auth_toggles = {
     ["local"] = "toggle_local_auth",
     ["ldap"] = "toggle_ldap_auth",
     ["http"] = "toggle_http_auth",
+    ["authentication_log"] = "toggle_http_auth_log",
     ["radius"] = "toggle_radius_auth",
-    ["menu_voices"] = {
-        ["help"] = "toggle_menu_voice_help",
-        ["developer"] = "toggle_menu_voice_developer"
+    ["menu_entries"] = {
+        ["help"] = "toggle_menu_entry_help",
+        ["developer"] = "toggle_menu_entry_developer"
     }
 }
 
@@ -76,6 +77,15 @@ if auth.has_capability(auth.capabilities.preferences) then
                     message_severity = ms
                 end
             end
+        end
+    end
+
+    if (_POST["flows_and_alerts_data_retention_days"] and _POST["aggregated_flows_data_retention_days"]) then
+        local aggregated = tonumber(_POST["aggregated_flows_data_retention_days"])
+        local raw = tonumber(_POST["flows_and_alerts_data_retention_days"])
+
+        if (aggregated <= raw) then
+            _POST["aggregated_flows_data_retention_days"] = tostring(raw + 1)
         end
     end
 
@@ -146,7 +156,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         ts_utils.setupAgain()
     end
 
-    page_utils.set_active_menu_entry(page_utils.menu_entries.preferences)
+    page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.preferences)
 
     dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -458,39 +468,32 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     -- ================================================================================
 
-    function printDataRetention()
-        print('<form method="post">')
-        print('<table class="table">')
+    -- #####################
 
-        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.data_retention") ..
-                  '</th></tr></thead>')
+    local function printMenuEntriesPrefs()
+        if ntop.isEnterpriseM() then
+            print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.menu_entries") ..
+                      '</th></tr></thead>')
+        end
 
-        prefsInputFieldPrefs(subpage_active.entries["flow_data_retention"].title,
-            subpage_active.entries["flow_data_retention"].description, "ntopng.prefs.",
-            "flows_and_alerts_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil,
-            {
-                min = 1,
-                max = 365 * 10
-            })
+        prefsToggleButton(subpage_active, {
+            field = auth_toggles["menu_entries"]["help"],
+            pref = "menu_entries.help",
+            hidden = not ntop.isEnterpriseM(),
+            default = "1"
+        })
 
-        prefsInputFieldPrefs(subpage_active.entries["ts_data_retention"].title,
-            subpage_active.entries["ts_data_retention"].description, "ntopng.prefs.",
-            "ts_and_stats_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil, {
-                min = 1,
-                max = 365 * 10
-            })
+        prefsToggleButton(subpage_active, {
+            field = auth_toggles["menu_entries"]["developer"],
+            hidden = not ntop.isEnterpriseM(),
 
-        print(
-            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
-        print('</table>')
-        print [[<input name="csrf" type="hidden" value="]]
-        print(ntop.getRandomCSRFValue())
-        print [[" />
-    </form>]]
+            pref = "menu_entries.developer",
+            default = "1"
+        })
+
     end
 
-    -- ================================================================================
+    -- #####################
 
     function printGUI()
         print('<form method="post">')
@@ -554,6 +557,8 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "0",
             pref = "is_interface_name_only"
         })
+
+        printMenuEntriesPrefs()
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
@@ -845,10 +850,8 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- RADIUS GUI authentication
 
         local elementToSwitch = {"row_toggle_radius_accounting", "radius_admin_group",
-                                 "radius_unpriv_capabilties_group", "radius_server_address", "radius_secret",
-                                 "row_radius_auth_proto"}
-
-        local showElements = (ntop.getPref("ntopng.prefs.radius.auth_enabled") == "1")
+                                 "radius_unpriv_capabilties_group", "radius_server_address", "radius_acct_server_address",
+                                 "radius_secret", "row_radius_auth_proto"}
 
         prefsToggleButton(subpage_active, {
             field = auth_toggles.radius,
@@ -858,31 +861,11 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
 
         -- RADIUS traffic accounting
-        local accountingElements = {"radius_acct_server_address"}
-
-        prefsToggleButton(subpage_active, {
-            field = "toggle_radius_accounting",
-            pref = "radius.accounting_enabled",
-            default = "0",
-            to_switch = accountingElements
-        })
-
+        local showElements = (ntop.getPref("ntopng.prefs.radius.auth_enabled") == "1")
         -- RADIUS server settings (used for both RADIUS auth and accountign)
         prefsInputFieldPrefs(subpage_active.entries["radius_server"].title,
             subpage_active.entries["radius_server"].description, "ntopng.prefs.radius", "radius_server_address",
             "127.0.0.1:1812", nil, showElements, true, false, {
-                attributes = {
-                    spellcheck = "false",
-                    maxlength = 255,
-                    required = "required",
-                    pattern = "[0-9.\\-A-Za-z]+:[0-9]+"
-                }
-            })
-
-        -- RADIUS server settings (used for both RADIUS auth and accountign)
-        prefsInputFieldPrefs(subpage_active.entries["radius_accounting_server"].title,
-            subpage_active.entries["radius_accounting_server"].description, "ntopng.prefs.radius",
-            "radius_acct_server_address", "127.0.0.1:1813", nil, showElements, true, false, {
                 attributes = {
                     spellcheck = "false",
                     maxlength = 255,
@@ -928,6 +911,29 @@ if auth.has_capability(auth.capabilities.preferences) then
                     pattern = "[^\\s]+"
                 }
             })
+
+        local accountingElements = {"radius_acct_server_address"}
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_radius_accounting",
+            pref = "radius.accounting_enabled",
+            default = "0",
+            to_switch = accountingElements,
+            hidden = not showElements
+        })
+        local showElementsAccounting = (ntop.getPref("ntopng.prefs.radius.accounting_enabled") == "1")
+
+        -- RADIUS server settings (used for both RADIUS auth and accountign)
+        prefsInputFieldPrefs(subpage_active.entries["radius_accounting_server"].title,
+            subpage_active.entries["radius_accounting_server"].description, "ntopng.prefs.radius",
+            "radius_acct_server_address", "127.0.0.1:1813", nil, showElements and showElementsAccounting, true, false, {
+                attributes = {
+                    spellcheck = "false",
+                    maxlength = 255,
+                    required = "required",
+                    pattern = "[0-9.\\-A-Za-z]+:[0-9]+"
+                }
+            })
     end
 
     -- #####################
@@ -944,11 +950,26 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "0",
             to_switch = elementToSwitch
         })
+        
 
         local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.auth_enabled") == "1")
 
         prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title,
             subpage_active.entries["http_auth_server"].description, "ntopng.prefs.http_authenticator", "http_auth_url",
+            "", nil, showElements, true, true --[[ allowUrls ]] , {
+                attributes = {
+                    spellcheck = "false",
+                    maxlength = 255,
+                    required = "required",
+                    pattern = getURLPattern()
+                }
+            })
+
+
+        local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.log_positive_event_enabled") == "1")
+
+        prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title,
+            subpage_active.entries["http_auth_server"].description, "ntopng.prefs.http_authenticator.log_positive_event_enabled", "http_auth_url",
             "", nil, showElements, true, true --[[ allowUrls ]] , {
                 attributes = {
                     spellcheck = "false",
@@ -974,30 +995,6 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     -- #####################
 
-    local function printMenuVoicesPrefs()
-        if ntop.isEnterpriseM() then
-            print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.menu_voices") ..
-                      '</th></tr></thead>')
-        end
-
-        prefsToggleButton(subpage_active, {
-            field = auth_toggles["menu_voices"]["help"],
-            pref = "menu_voices.help",
-            hidden = not ntop.isEnterpriseM(),
-            default = "0"
-        })
-
-        prefsToggleButton(subpage_active, {
-            field = auth_toggles["menu_voices"]["developer"],
-            hidden = not ntop.isEnterpriseM(),
-
-            pref = "menu_voices.developer",
-            default = "0"
-        })
-
-    end
-    -- #####################
-
     function printAuthentication()
         print('<form method="post">')
         print('<table class="table">')
@@ -1021,14 +1018,13 @@ if auth.has_capability(auth.capabilities.preferences) then
         if not entries.toggle_radius_auth.hidden then
             printRadiusAuth()
         end
+
         if not entries.toggle_http_auth.hidden then
             printHttpAuth()
         end
         if not entries.toggle_local_auth.hidden then
             printLocalAuth()
         end
-
-        printMenuVoicesPrefs()
 
         if not ntop.isnEdge() then
             prefsInformativeField(i18n("notes"), i18n("prefs.auth_methods_order"))
@@ -1161,44 +1157,54 @@ if auth.has_capability(auth.capabilities.preferences) then
             "ntopng.prefs.behaviour_analysis_learning_status_post_learning", false, {}, nil, nil,
             is_behaviour_analysis_enabled --[[show]] )
 
-        prefsInputFieldPrefs(subpage_active["iec60870_learning_period"].title,
-            subpage_active["iec60870_learning_period"].description, "ntopng.prefs.", "iec60870_learning_period",
-            prefs.iec60870_learning_period, "number", nil, nil, nil, {
+        -- By default 1 hour of learning
+        prefsInputFieldPrefs(subpage_active.entries["iec60870_learning_period"].title,
+            subpage_active.entries["iec60870_learning_period"].description, "ntopng.prefs.", "iec60870_learning_period",
+            prefs.iec60870_learning_period or 3600, "number", nil, nil, nil, {
                 min = 21600,
+                tformat = "hd"
+            })
+
+        -- By default 6 hours of learning
+        prefsInputFieldPrefs(subpage_active.entries["modbus_learning_period"].title,
+            subpage_active.entries["modbus_learning_period"].description, "ntopng.prefs.", "modbus_learning_period",
+            prefs.modbus_learning_period or 21600, "number", is_behaviour_analysis_enabled, nil, nil, {
+                min = 3600,
                 tformat = "hd"
             })
 
         -- #####################
 
-        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.devices_behaviour") ..
-                  '</th></tr></thead>')
-        -- Behavior analysis for asn, network and l7proto (iface)
-
-        prefsInputFieldPrefs(subpage_active["devices_learning_period"].title,
-            subpage_active["devices_learning_period"].description, "ntopng.prefs.", "devices_learning_period",
-            prefs.devices_learning_period, "number", nil, nil, nil, {
-                min = 7200,
-                tformat = "hd"
-            })
-
         local is_device_connection_disconnection_analysis_enabled = ntop.isEnterpriseM()
+        
+        if is_device_connection_disconnection_analysis_enabled then
+            print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.devices_behaviour") ..
+            '</th></tr></thead>')
+            -- Behavior analysis for asn, network and l7proto (iface)
 
-        multipleTableButtonPrefs(subpage_active["devices_status_during_learning_period"].title,
-            subpage_active["devices_status_during_learning_period"].description,
-            {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
-            {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
-            "primary", -- [selected color]
-            "devices_status_during_learning", "ntopng.prefs.devices_status_during_learning", -- [redis key]
-            false, -- [disabled]
-            {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]] )
+            prefsInputFieldPrefs(subpage_active.entries["devices_learning_period"].title,
+                subpage_active.entries["devices_learning_period"].description, "ntopng.prefs.", "devices_learning_period",
+                prefs.devices_learning_period, "number", is_device_connection_disconnection_analysis_enabled, nil, nil, {
+                    min = 7200,
+                    tformat = "hd"
+                })
 
-        multipleTableButtonPrefs(subpage_active["devices_status_post_learning_period"].title,
-            subpage_active["devices_status_post_learning_period"].description,
-            {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
-            {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
-            "primary", "devices_status_post_learning", "ntopng.prefs.devices_status_post_learning", false, {}, nil, nil,
-            is_device_connection_disconnection_analysis_enabled --[[show]] )
+            multipleTableButtonPrefs(subpage_active.entries["devices_status_during_learning"].title,
+                subpage_active.entries["devices_status_during_learning"].description,
+                {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
+                {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
+                "primary", -- [selected color]
+                "devices_status_during_learning", "ntopng.prefs.devices_status_during_learning", -- [redis key]
+                false, -- [disabled]
+                {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]] )
 
+            multipleTableButtonPrefs(subpage_active.entries["devices_status_post_learning"].title,
+                subpage_active.entries["devices_status_post_learning"].description,
+                {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
+                {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
+                "primary", "devices_status_post_learning", "ntopng.prefs.devices_status_post_learning", false, {}, nil, nil,
+                is_device_connection_disconnection_analysis_enabled --[[show]] )
+        end
         -- #####################
 
         print(
@@ -1475,7 +1481,15 @@ if auth.has_capability(auth.capabilities.preferences) then
             subpage_active.entries["influxdb_query_timeout"].description, "ntopng.prefs.", "influx_query_timeout", "10",
             "number", influx_active, nil, nil, {
                 min = 1
+            })        
+            
+        prefsInputFieldPrefs(subpage_active.entries["ts_data_retention"].title,
+            subpage_active.entries["ts_data_retention"].description, "ntopng.prefs.",
+            "ts_and_stats_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil, {
+                min = 1,
+                max = 365 * 10
             })
+
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.interfaces_timeseries') ..
                   '</th></tr></thead>')
@@ -1870,15 +1884,103 @@ if auth.has_capability(auth.capabilities.preferences) then
                 max = 2 ^ 32 - 1
             })
 
+        
         print(
-            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
-
+           '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+           i18n("save") .. '</button></th></tr>')
+        
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />
   </form>
   </table>]]
+    end
+
+    function printClickHouseOptions()
+        print('<form method="post">')
+        print('<table class="table">')
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.clickhouse") ..
+                  '</th></tr></thead>')
+
+        local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
+
+        prefsInputFieldPrefs(subpage_active.entries["flow_data_retention"].title,
+        subpage_active.entries["flow_data_retention"].description, "ntopng.prefs.",
+        "flows_and_alerts_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil,
+        {
+            min = 1,
+            max = 365 * 10
+        })
+
+        prefsInputFieldPrefs(subpage_active.entries["aggregated_flows_data_retention"].title,
+            subpage_active.entries["aggregated_flows_data_retention"].description, "ntopng.prefs.",
+            "aggregated_flows_data_retention_days", data_retention_utils.getAggregatedFlowsDataRetention(), "number",
+            showAggregateFlowsPrefs, nil, nil, {
+                min = 2,
+                max = 365 * 10
+            })
+        prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_limit"].title,
+                             subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
+                             "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound or 1000,
+                             "number", showAggregateFlowsPrefs,
+                             false, nil, {
+                                min = 10000,
+                                max = 10000000
+        })
+        
+        prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_traffic_limit"].title,
+                             subpage_active.entries["toggle_flow_aggregated_traffic_limit"].description, "ntopng.prefs.",
+                             "max_aggregated_flows_traffic_upperbound", prefs.max_aggregated_flows_traffic_upperbound or 5, "number",
+                             showAggregateFlowsPrefs, false, nil, {
+                                min = 0,
+                                max = 5000
+        })
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_flow_aggregated_alerted_flows",
+            default = "0",
+            pref = "include_alerted_flows_in_aggregated_flows",
+            hidden = not showAggregateFlowsPrefs
+        })
+        print(
+           '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+           i18n("save") .. '</button></th></tr>')
+        
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />]]
+        print [[  </form>]]
+        print [[  </table>]]
+    end
+
+    function printReportsOptions()
+        print('<form method="post">')
+        print('<table class="table">')
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.reports") ..
+                  '</th></tr></thead>')
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_enable_automatic_reports",
+            default = "0",
+            pref = "automatic_reports_enabled",
+            to_switch = {},
+            hidden = false
+        })
+
+        prefsInputFieldPrefs(subpage_active.entries["reports_data_retention_time"].title,
+        subpage_active.entries["reports_data_retention_time"].description, "ntopng.prefs.",
+        "reports_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil,
+        { min = 1, max = 365 * 10 })
+
+        print(
+           '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+           i18n("save") .. '</button></th></tr>')
+        
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />]]
+        print [[  </form>]]
+        print [[  </table>]]
     end
 
     print [[
@@ -1922,12 +2024,16 @@ if auth.has_capability(auth.capabilities.preferences) then
     print [[
         </td><td colspan=2>]]
 
-    if (tab == "report") then
-        printReportVisualization()
+    if (tab == "reports") then
+        printReportsOptions()
     end
 
     if (tab == "in_memory") then
         printInMemory()
+    end
+
+    if (tab == "clickhouse") then
+        printClickHouseOptions()
     end
 
     if (tab == "dump_settings") then
@@ -1960,10 +2066,6 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     if (tab == "traffic_behaviour") then
         printNetworkBehaviour()
-    end
-
-    if (tab == "retention") then
-        printDataRetention()
     end
 
     if (tab == "misc") then

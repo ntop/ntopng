@@ -58,7 +58,7 @@ u_int16_t Score::decScoreValue(u_int16_t score_decr,
     return score->decValue(score_decr, score_category, as_client);
   } else {
     ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Internal error. Memory for score not allocated");
+        TRACE_WARNING, "Trying to decrement a score which is 0 (never set)");
     return 0;
   }
 }

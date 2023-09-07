@@ -34,6 +34,8 @@ class DNSDataExfiltrationAlert : public FlowAlert {
   DNSDataExfiltrationAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f){};
   ~DNSDataExfiltrationAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

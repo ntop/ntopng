@@ -1,66 +1,47 @@
 {
-	"name" : "Top Servers",
-	"i18n_name" : "top_servers",
-	"data_source" : "flows",
-	"show_in_page" : "overview",
-	"visualization_type" : "table",
-	"select" : {
-		"items" : [
-			{
-				"name" : "VLAN_ID"
-			},
-			{
-				"name" : "IPV4_DST_ADDR"
-			},
-			{
-				"name" : "IPV6_DST_ADDR"
-			},
-			{
-				"name" : "DST_LABEL"
-			},
-			{
-				"name" : "total_bytes",
-				"func" : "SUM",
-				"param" : "TOTAL_BYTES",
-				"value_type" : "bytes"
-			}
-		]
-	},
-	"filters" : {
-		"items" : [
-			{
-				"name": "PROBE_IP"
-			},
-			{
-				"name": "INPUT_SNMP"
-			},
-			{
-				"name": "OUTPUT_SNMP"
-			}
-		]
-	},
-	"groupby" : {
-		"items" : [
-			{
-				"name" : "VLAN_ID"
-			},
-			{
-				"name" : "IPV4_DST_ADDR"
-			},
-			{
-				"name" : "IPV6_DST_ADDR"
-			},
-			{
-				"name" : "DST_LABEL"
-			}
-		]
-	},
-	"sortby" : {
-		"items" : [
-			{
-				"name" : "total_bytes",
-				"order" : "DESC"
-			}
-		]
-	}
+    "name" : "Top Contacted Servers",
+    "i18n_name" : "db_search.top_contacted_servers",
+    "data_source" : "flows",
+    "show_in_page" : "overview",
+    "hourly": false,
+    "visualization_type" : "table",
+    "select" : {
+        "sql": "IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR_FORMATTED, IPv6NumToString(IPV6_DST_ADDR) IPV6_DST_ADDR_FORMATTED, COUNT(DISTINCT(IPV4_SRC_ADDR)) AS count4, COUNT(DISTINCT(IPV6_SRC_ADDR)) AS count6, (count4 + count6) AS client_count, COUNT(DISTINCT(IP_SRC_PORT)) AS port_count",
+        "items" : [
+            { 
+                "name" : "IPV4_DST_ADDR" 
+            },
+            {
+                "name" : "IPV6_DST_ADDR"
+            },
+            {
+                "name" : "client_count",
+                "func" : "",
+                "value_type" : "number"
+            }, 
+            {
+                "name" : "port_count",
+                "func" : "",
+                "value_type" : "number"
+            }
+        ]
+    },
+    "groupby" : {
+        "items" : [
+            {
+                "name" : "IPV4_DST_ADDR"
+            },
+            {
+                "name" : "IPV6_DST_ADDR"
+            }
+        ]
+    },
+    "sortby" : {
+        "items" : [
+            {
+                "name" : "client_count",
+                "order" : "DESC"
+            }
+        ]
+    }
 }

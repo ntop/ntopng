@@ -81,7 +81,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
     /* Deliver eBPF info to companion queues */
     if (zflow->process_info_set || zflow->container_info_set ||
-        zflow->tcp_info_set || zflow->external_alert ||
+        zflow->tcp_info_set || zflow->getExternalAlert() ||
         zflow->getAdditionalFieldsJSON()) {
       deliverFlowToCompanions(zflow);
     }
@@ -305,9 +305,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if (zflow->tcp.out_window)
     flow->setFlowTcpWindow(zflow->tcp.out_window, !src2dst_direction);
 
-  if (zflow->flow_verdict == 2 /* DROP */) flow->setDropVerdict();
+  if (zflow->getFlowVerdict() == 2 /* DROP */) flow->setDropVerdict();
 
-  flow->setRisk(zflow->ndpi_flow_risk_bitmap);
+  flow->setRisk(zflow->getRisk());
   flow->setTOS(zflow->src_tos, true), flow->setTOS(zflow->dst_tos, false);
   flow->setRtt();
 
@@ -413,9 +413,11 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     p.master_protocol = zflow->l7_proto.master_protocol;
     p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
 
-    /* First, there's an attempt to guess the protocol so that custom protocols
-       defined in ntopng will still be applied to the protocols detected by
-       nprobe. */
+    /*
+      First, there's an attempt to guess the protocol so that custom protocols
+      defined in ntopng will still be applied to the protocols detected by
+      nprobe.
+    */
     if(zflow->src_ip.isIPv4())
       guessed_protocol = ndpi_guess_undetected_protocol_v4(get_ndpi_struct(),
 							   flow->get_ndpi_flow(),
@@ -438,36 +440,6 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 							   );
     }
     
-    if (
-        /* If nprobe acts is in collector-passthrough mode L7_PROTO is not
-           present, using the protocol guess on the ntopng side is desirable in
-           this case */
-        ((zflow->l7_proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-	 && (zflow->l7_proto.master_protocol == NDPI_PROTOCOL_UNKNOWN))
-	||
-        /* If the protocol is greater than NDPI_MAX_SUPPORTED_PROTOCOLS, it
-           means it is a custom protocol so the application protocol received
-           from nprobe can be overridden */
-        (guessed_protocol.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS)) {
-      p = guessed_protocol;
-    }
-    
-    if (zflow->hasParsedeBPF()) {
-      /* nProbe Agent does not perform nDPI detection*/
-      p.master_protocol = guessed_protocol.master_protocol;
-      p.app_protocol = guessed_protocol.app_protocol;
-    }
-
-    /* Now, depending on the q and on the zflow, there's an additional check
-       to possibly override the category, according to the rules specified
-       in ntopng */
-    flow->fillZmqFlowCategory(zflow, &p);
-
-    /* Here everything is setup and it is possible to set the actual protocol to
-     * the flow */
-    flow->setDetectedProtocol(p);
-  }
-
 #ifdef NTOPNG_PRO
   if (zflow->device_ip) {
     // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() &&
@@ -498,7 +470,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 #endif
 
-  flow->setFlowVerdict(zflow->flow_verdict);
+  flow->setFlowVerdict(zflow->getFlowVerdict());
   flow->setJSONInfo(zflow->getAdditionalFieldsJSON());
   flow->setTLVInfo(zflow->getAdditionalFieldsTLV());
 
@@ -515,61 +487,45 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     - When nProbe has plugins enabled, plugin data is taken
     - When nProbe has no plugins enabled, then nDPI data is taken
   */
-  if (zflow->l7_info && zflow->l7_info[0]) {
-    if (flow->isDNS() && !zflow->dns_query)
-      zflow->dns_query = zflow->l7_info;
-    else if (flow->isHTTP() && !zflow->http_site) {
-      zflow->http_site = zflow->l7_info;
+  if (zflow->getL7Info() && zflow->getL7Info()[0]) {
+    if (flow->isDNS() && !zflow->getDNSQuery())
+      zflow->setDNSQuery(zflow->getL7Info());
+    else if (flow->isHTTP() && !zflow->getHTTPsite()) {
+      zflow->setHTTPsite(zflow->getL7Info());
       if (flow->get_cli_host())
-        flow->get_cli_host()->incrVisitedWebSite(zflow->http_site);
-    } else if (flow->isTLS() && !zflow->tls_server_name) {
-      zflow->tls_server_name = zflow->l7_info;
+        flow->get_cli_host()->incrVisitedWebSite(zflow->getHTTPsite());
+    } else if (flow->isTLS() && !zflow->getTLSserverName()) {
+      zflow->setTLSserverName(zflow->getL7Info());
       if (flow->get_cli_host())
-        flow->get_cli_host()->incrVisitedWebSite(zflow->tls_server_name);
-    } else
-      free(zflow->l7_info);
-
-    zflow->l7_info = NULL;
-
-#if 0
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s][%s][%s][%s]",
-				 zflow->dns_query ? zflow->dns_query : "",
-				 zflow->http_url ? zflow->http_url : "",
-				 zflow->http_site ? zflow->http_site : "",
-				 zflow->tls_server_name ? zflow->tls_server_name : "");
-#endif
+        flow->get_cli_host()->incrVisitedWebSite(zflow->getTLSserverName());
+    }
   }
 
-  flow->setErrorCode(zflow->l7_error_code);
-  flow->setConfidence(zflow->confidence);
+  flow->setErrorCode(zflow->getL7ErrorCode());
+  flow->setConfidence(zflow->getConfidence());
 
-  if (flow->isDNS()) flow->updateDNS(zflow);
-
+  if (flow->isDNS())  flow->updateDNS(zflow);
   if (flow->isHTTP()) flow->updateHTTP(zflow);
+  if (flow->isTLS())  flow->updateTLS(zflow);
 
-  if (flow->isTLS()) flow->updateTLS(zflow);
+  if (zflow->getBittorrentHash())
+    flow->setBTHash(zflow->getBittorrentHash(true));
 
-  if (zflow->bittorrent_hash) {
-    flow->setBTHash(zflow->bittorrent_hash);
-    zflow->bittorrent_hash = NULL;
-  }
-
-  if (zflow->vrfId) flow->setVRFid(zflow->vrfId);
-
+  if (zflow->vrfId)  flow->setVRFid(zflow->vrfId);
   if (zflow->src_as) flow->setSrcAS(zflow->src_as);
   if (zflow->dst_as) flow->setDstAS(zflow->dst_as);
 
   if (zflow->prev_adjacent_as) flow->setPrevAdjacentAS(zflow->prev_adjacent_as);
   if (zflow->next_adjacent_as) flow->setNextAdjacentAS(zflow->next_adjacent_as);
 
-  if (zflow->ja3c_hash) flow->updateJA3C(zflow->ja3c_hash);
-  if (zflow->ja3s_hash) flow->updateJA3S(zflow->ja3s_hash);
+  if (zflow->getJA3cHash()) flow->updateJA3C(zflow->getJA3cHash());
+  if (zflow->getJA3sHash()) flow->updateJA3S(zflow->getJA3sHash());
 
-  if (zflow->flow_risk_info) {
+  if (zflow->getRiskInfo()) {
     json_object *o, *obj;
     enum json_tokener_error jerr = json_tokener_success;
 
-    flow->setJSONRiskInfo(zflow->flow_risk_info);
+    flow->setJSONRiskInfo(zflow->getRiskInfo());
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]",
     // zflow->flow_risk_info);
@@ -578,16 +534,14 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       We use riskInfo to grab some flow attributes
       to enrich the memory flor representation
     */
-    if ((o = json_tokener_parse_verbose(zflow->flow_risk_info, &jerr)) !=
+    if ((o = json_tokener_parse_verbose(zflow->getRiskInfo(), &jerr)) !=
         NULL) {
       /* NOTE: keep in sync with  FlowRisk::ignoreRisk() */
-      if (json_object_object_get_ex(
-              o, "6" /* NDPI_TLS_SELFSIGNED_CERTIFICATE */, &obj)) {
+      if (json_object_object_get_ex(o, "6" /* NDPI_TLS_SELFSIGNED_CERTIFICATE */, &obj)) {
         const char *issuerDN = json_object_get_string(obj);
 
-        flow->setTLSCertificateIssuerDN((char *)issuerDN);
-      } else if (json_object_object_get_ex(
-                     o, "16" /* NDPI_SUSPICIOUS_DGA_DOMAIN */, &obj)) {
+        if(flow->isTLS()) flow->setTLSCertificateIssuerDN((char *)issuerDN);
+      } else if (json_object_object_get_ex(o, "16" /* NDPI_SUSPICIOUS_DGA_DOMAIN */, &obj)) {
         const char *dgaDomain = json_object_get_string(obj);
 
         flow->setDGADomain((char *)dgaDomain);
@@ -598,26 +552,56 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 
 #ifdef NTOPNG_PRO
-  if (zflow->custom_app.pen) {
-    flow->setCustomApp(zflow->custom_app);
+  if (zflow->getCustomApp().pen) {
+    flow->setCustomApp(zflow->getCustomApp());
 
     if (custom_app_stats ||
         (custom_app_stats = new (std::nothrow) CustomAppStats(this))) {
       custom_app_stats->incStats(
-          zflow->custom_app.remapped_app_id,
+	zflow->getCustomApp().remapped_app_id,
           zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
     }
   }
 #endif
 
-  if (zflow->external_alert) {
+  if (zflow->getExternalAlert()) {
     enum json_tokener_error jerr = json_tokener_success;
-    json_object *o = json_tokener_parse_verbose(zflow->external_alert, &jerr);
+    json_object *o = json_tokener_parse_verbose(zflow->getExternalAlert(), &jerr);
 
     if (o) flow->setExternalAlert(o);
   }
 
   flow->updateSuspiciousDGADomain();
+
+    if (
+        /* If nprobe acts is in collector-passthrough mode L7_PROTO is not
+           present, using the protocol guess on the ntopng side is desirable in
+           this case */
+        ((zflow->l7_proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+	 && (zflow->l7_proto.master_protocol == NDPI_PROTOCOL_UNKNOWN))
+	||
+        /* If the protocol is greater than NDPI_MAX_SUPPORTED_PROTOCOLS, it
+           means it is a custom protocol so the application protocol received
+           from nprobe can be overridden */
+        (guessed_protocol.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS)) {
+      p = guessed_protocol;
+    }
+    
+    if (zflow->hasParsedeBPF()) {
+      /* nProbe Agent does not perform nDPI detection*/
+      p.master_protocol = guessed_protocol.master_protocol;
+      p.app_protocol = guessed_protocol.app_protocol;
+    }
+
+    /* Now, depending on the q and on the zflow, there's an additional check
+       to possibly override the category, according to the rules specified
+       in ntopng */
+    flow->fillZMQFlowCategory(&p);
+
+    /* Here everything is setup and it is possible to set the actual protocol to
+     * the flow */
+    flow->setDetectedProtocol(p);
+  }
 
   /* Do not put incStats before guessing the flow protocol */
   u_int16_t eth_type = srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6;

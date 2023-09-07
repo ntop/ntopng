@@ -22,7 +22,7 @@ end
 local rc = rest_utils.consts.success.ok
 local res = {}
 local rules_list = _GET["custom_rules"] or ""
-local l7_proto_name = (_GET["protocol_alias"] or ''):lower()
+local l7_proto_name = (_GET["protocol_alias"] or '')
 local l7_proto_id = _GET["l7_proto_id"]
 local l7_category = tonumber(_GET["category"] or 0)
 local applications = interface.getnDPIProtocols()

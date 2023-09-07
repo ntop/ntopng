@@ -178,6 +178,8 @@
 #define MAX_ZMQ_SUBSCRIBERS UNLIMITED_MAX_ZMQ_SUBSCRIBERS
 #endif
 
+#define ZMQ_PROBE_EXPIRATION_TIME 10 /* seconds */
+
 #define MAX_INTERFACE_NAME_LEN 512
 #define MAX_USER_NETS_VAL_LEN 255
 #define NUM_HOSTS_RESOLVED_BITS 2 << 19 /* ~1 million */
@@ -343,6 +345,7 @@
 #define NDPI_TRAFFIC_BEHAVIOR_REFRESH 60 /* 1 min */
 #define HOST_SITES_REFRESH 300           /* 5 min */
 #define IFACE_BEHAVIOR_REFRESH 300       /* 5 min */
+#define MIN_IFACE_BEHAVIOR_REFRESH 60    /* 5 min */
 #define ASES_BEHAVIOR_REFRESH 300        /* 5 min */
 #define NETWORK_BEHAVIOR_REFRESH 300     /* 5 min */
 #define HOST_SITES_TOP_NUMBER 10
@@ -607,6 +610,7 @@
 
 #define CONST_DEVICES_LEARNING_TIME 7200 /* 2 hours */
 #define CONST_IEC104_LEARNING_TIME 21600 /* 6 hours */
+#define CONST_MODBUS_LEARNING_TIME 3600  /* 1 hour */
 #define CONST_INFLUXDB_KEY_EXPORTED_POINTS \
   "ntopng.cache.influxdb.num_exported_points"
 #define CONST_INFLUXDB_FLUSH_TIME 10         /* sec */
@@ -625,6 +629,7 @@
 #define CONST_DEFAULT_MIRRORED_TRAFFIC false
 #define CONST_DEFAULT_SMART_RECORDING false
 #define CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC false
+#define CONST_DEFAULT_PUSH_HOST_FILTERS false
 #define CONST_DEFAULT_LBD_SERIALIZE_AS_MAC false
 #define CONST_DEFAULT_DISCARD_PROBING_TRAFFIC false
 #define CONST_DEFAULT_FLOWS_ONLY_INTERFACE false
@@ -644,6 +649,8 @@
   NTOPNG_PREFS_PREFIX ".ifid_%d.smart_traffic_recording.instance"
 #define CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS \
   NTOPNG_PREFS_PREFIX ".ifid_%d.show_dynamic_interface_traffic"
+#define CONST_PUSH_HOST_FILTERS_PREFS \
+  NTOPNG_PREFS_PREFIX ".ifid_%d.push_host_filters_to_pfring"
 #define CONST_DISABLED_FLOW_DUMP_PREFS \
   NTOPNG_PREFS_PREFIX ".ifid_%d.is_flow_dump_disabled"
 #define CONST_LBD_SERIALIZATION_PREFS \
@@ -727,6 +734,8 @@
 
 #define CONST_PREFS_IEC60870_ANALYSIS_LEARNING_PERIOD \
   NTOPNG_PREFS_PREFIX ".iec60870_learning_period"
+#define CONST_PREFS_MODBUS_ANALYSIS_LEARNING_PERIOD \
+  NTOPNG_PREFS_PREFIX ".modbus_learning_period"
 #define CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD \
   NTOPNG_PREFS_PREFIX ".devices_learning_period"
 
@@ -756,6 +765,10 @@
   NTOPNG_PREFS_PREFIX ".is_interface_name_only"
 #define CONST_RUNTIME_IS_GEO_MAP_SCORE_ENABLED \
   NTOPNG_PREFS_PREFIX ".is_geo_map_score_enabled"
+#define CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND \
+  NTOPNG_PREFS_PREFIX ".max_aggregated_flows_upperbound"
+#define CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND \
+  NTOPNG_PREFS_PREFIX ".max_aggregated_flows_traffic_upperbound"
 #define CONST_RUNTIME_IS_GEO_MAP_ASNAME_ENABLED \
   NTOPNG_PREFS_PREFIX ".is_geo_map_asname_enabled"
 #define CONST_RUNTIME_IS_GEO_MAP_ALERTED_FLOWS_ENABLED \
@@ -1171,6 +1184,8 @@
   NTOPNG_PREFS_PREFIX ".http_authenticator.auth_enabled"
 #define PREF_HTTP_AUTHENTICATOR_URL \
   NTOPNG_PREFS_PREFIX ".http_authenticator.http_auth_url"
+#define PREF_NTOP_HTTP_AUTH_LOG \
+  NTOPNG_PREFS_PREFIX ".http_authenticator.log_positive_event_enabled"
 #define MAX_HTTP_AUTHENTICATOR_LEN 256
 #define MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN 4096
 #define PREF_NTOP_LOCAL_AUTH NTOPNG_PREFS_PREFIX ".local.auth_enabled"
@@ -1477,6 +1492,8 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
   "ntopng.checks.iec104_unexpected_type_id_enabled"
 #define CHECKS_IEC_INVALID_TRANSITION \
   "ntopng.checks.iec104_invalid_transition_enabled"
+#define CHECKS_MODBUS_INVALID_TRANSITION \
+  "ntopng.checks.modbus_invalid_transition_enabled"
 
 #define CUSTOM_FLOW_NDPI_SCRIPT \
   "scripts/callbacks/checks/flows/custom_flow_protocol_detected_script.lua"
@@ -1485,6 +1502,7 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
 #define CUSTOM_FLOW_END_SCRIPT \
   "scripts/callbacks/checks/flows/custom_flow_end_script.lua"
 
+#define OFFLINE_LOCAL_HOSTS_KEY "ntopng.hosts.offline.ifid_%d"
 /******************************************************************************/
 
 #define HOST_RARE_DEST_SERIALIZED_KEY "ntopng.localhost_rare_dest_fields.%s"

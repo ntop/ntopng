@@ -47,6 +47,8 @@ class IECInvalidTransitionAlert : public FlowAlert {
   };
   ~IECInvalidTransitionAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

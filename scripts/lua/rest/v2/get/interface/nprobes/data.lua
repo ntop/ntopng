@@ -64,8 +64,6 @@ for k, v in pairs(ifstats.probes or {}) do
       column_nprobe_probe_public_ip = nprobe_probe_public_ip,
    }
 
-
-
    res[#res + 1] = record
 end
 

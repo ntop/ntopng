@@ -43,6 +43,7 @@ class CustomFlowLuaScriptAlert : public FlowAlert {
   void setAlertMessage(std::string m) { msg = m; };
   void setAlertScore(u_int8_t v) { score = v; };
   virtual u_int8_t getAlertScore() const { return (score); };
+  bool autoAck() const { return false; };
 };
 
 #endif /* _CUSTOM_FLOW_LUA_SCRIPT_ALERT_H_ */

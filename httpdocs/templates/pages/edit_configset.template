@@ -2235,7 +2235,7 @@ const $script_table = $("#scripts-config").DataTable({
             const editScriptButtonEnabled = ((!script.input_handler && !isSubdirFlow) || !isScriptEnabled) ? 'disabled' : '';
 
             return DataTableUtils.createActionButtons([
-               { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit', title: i18n_ext.edit_check_title },
+               { class: `${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit', title: i18n_ext.edit_check_title },
             ]);
          },
          createdCell: function (td, cellData, row) {

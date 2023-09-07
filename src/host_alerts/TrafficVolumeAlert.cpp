@@ -27,10 +27,12 @@ TrafficVolumeAlert::TrafficVolumeAlert(HostCheckID check_id, Host* h,
                                        risk_percentage cli_pctg,
                                        std::string _metric,
                                        u_int32_t _frequency_sec,
-                                       u_int32_t _threshold, u_int32_t _value)
+                                       std::string _threshold, std::string _value,
+                                       bool t_sign)
     : HostAlert(check_id, _metric, h, cli_pctg) {
   metric = _metric, frequency_sec = _frequency_sec, threshold = _threshold,
   value = _value;
+  sign = t_sign;
 };
 
 /* ***************************************************** */
@@ -38,10 +40,12 @@ TrafficVolumeAlert::TrafficVolumeAlert(HostCheckID check_id, Host* h,
 ndpi_serializer* TrafficVolumeAlert::getAlertJSON(ndpi_serializer* serializer) {
   if (serializer == NULL) return NULL;
 
-  ndpi_serialize_string_uint64(serializer, "value", value);
-  ndpi_serialize_string_uint64(serializer, "threshold", threshold);
+  ndpi_serialize_string_string(serializer, "value", value.c_str());
+  ndpi_serialize_string_string(serializer, "threshold", threshold.c_str());
   ndpi_serialize_string_uint64(serializer, "frequency", frequency_sec);
   ndpi_serialize_string_string(serializer, "metric", metric.c_str());
+  ndpi_serialize_string_boolean(serializer, "sign", sign);
+
 
   return (serializer);
 }

@@ -14,9 +14,11 @@ if((not isAdministrator()) or (not recording_utils.isAvailable())) then
   return
 end
 
+local record_traffic = false
+local smart_record_traffic = false
+
 -- POST check
 if(_SERVER["REQUEST_METHOD"] == "POST") then
-  local record_traffic = false
   if not isEmptyString(_POST["record_traffic"]) then
     record_traffic = true
     ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.enabled', "1")
@@ -36,22 +38,23 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   end
   ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.disk_space', tostring(disk_space))
 
-  local smart_record_traffic = false
-  if not isEmptyString(_POST["smart_record_traffic"]) then
-    smart_record_traffic = true
-    ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.instance', recording_utils.getN2diskInstanceName(master_ifid))
-    ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled', "1")
-  else
-    ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled')
-    ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.instance')
-  end
-  interface.updateSmartRecording()
+  if ntop.isEnterpriseXL() then
+    if not isEmptyString(_POST["smart_record_traffic"]) then
+      smart_record_traffic = true
+      ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.instance', recording_utils.getN2diskInstanceName(master_ifid))
+      ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled', "1")
+    else
+      ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled')
+      ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.instance')
+    end
+    interface.updateSmartRecording()
 
-  local smart_disk_space = recording_utils.default_disk_space
-  if not isEmptyString(_POST["smart_disk_space"]) then
-    smart_disk_space = tonumber(_POST["smart_disk_space"])*1024
+    local smart_disk_space = recording_utils.default_disk_space
+    if not isEmptyString(_POST["smart_disk_space"]) then
+      smart_disk_space = tonumber(_POST["smart_disk_space"])*1024
+    end
+    ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.disk_space', tostring(smart_disk_space))
   end
-  ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.disk_space', tostring(smart_disk_space))
 
   if recording_utils.isSupportedZMQInterface(master_ifid) then
     local ext_ifname
@@ -73,7 +76,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     local config = {}
     config.max_disk_space = disk_space
     config.bpf_filter = bpf_filter
-    if smart_record_traffic then
+    if ntop.isEnterpriseXL() and smart_record_traffic then
       config.enable_smart_recording = true
       config.max_smart_disk_space = smart_disk_space
     end
@@ -89,34 +92,39 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   end
 end
 
-local record_traffic = false
-local smart_record_traffic = false
 if ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.enabled') == "1" then
   record_traffic = true
-  if ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled') == "1" then
+  if ntop.isEnterpriseXL() and ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled') == "1" then
     smart_record_traffic = true
   end
 end
 
 local bpf_filter = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.bpf_filter')
-
 local disk_space = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.disk_space')
 local smart_disk_space = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.disk_space')
+
 local storage_info = recording_utils.storageInfo(master_ifid)
 local max_space = recording_utils.recommendedSpace(master_ifid, storage_info)
 
 -- Compute suggested max disk space
 max_space = math.floor(max_space/(1024*1024*1024))*1024
-if isEmptyString(disk_space) and isEmptyString(smart_disk_space) then
-  disk_space = max_space/2
-  smart_disk_space = max_space/2
-elseif isEmptyString(disk_space) then
-  disk_space = ternary(max_space > tonumber(smart_disk_space), max_space - tonumber(smart_disk_space), 0)
-elseif isEmptyString(smart_disk_space) then
-  smart_disk_space = ternary(max_space > tonumber(disk_space),  max_space - tonumber(disk_space), 0)
+
+if ntop.isEnterpriseXL() then
+  -- Compute recommended values for storage and smart storage
+  if isEmptyString(disk_space) and isEmptyString(smart_disk_space) then
+    disk_space = max_space/2
+    smart_disk_space = max_space/2
+  elseif isEmptyString(disk_space) then
+    disk_space = ternary(max_space > tonumber(smart_disk_space), max_space - tonumber(smart_disk_space), 0)
+  elseif isEmptyString(smart_disk_space) then
+    smart_disk_space = ternary(max_space > tonumber(disk_space),  max_space - tonumber(disk_space), 0)
+  end
+  smart_disk_space = tostring(math.floor(tonumber(smart_disk_space)/1024))
+else
+  -- Compute recommended values for storage only
+  disk_space = max_space
 end
 disk_space = tostring(math.floor(tonumber(disk_space)/1024))
-smart_disk_space = tostring(math.floor(tonumber(smart_disk_space)/1024))
 
 print("<h2>"..i18n("traffic_recording.traffic_recording_settings").."</h2><br>")
 
@@ -167,7 +175,7 @@ print [[
         </td>
       </tr>
 
-      <tr>
+      <tr id="tr-disk_space">
         <th>]] print(i18n("traffic_recording.disk_space")) print [[</th>
         <td colspan=2>
           <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="]] print(ternary((max_space/1024)>1, (max_space/1024), 1)) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
@@ -175,7 +183,7 @@ print [[
         </td>
       </tr>
 
-      <tr>
+      <tr id="tr-bpf_filter">
         <th>]] print(i18n("traffic_recording.capture_filter_bpf")) print [[</th>
         <td colspan=2>
           <input style="width:300px;display:inline;" class="form-control" name="bpf_filter" placeholder="" class="form-control input-sm" data-bpf="bpf" autocomplete="off" spellcheck="false" value="]] print(bpf_filter) print [["></input><br>
@@ -183,7 +191,7 @@ print [[
         </td>
       </tr>
 
-      <tr>
+      <tr id="tr-storage_dir">
         <th>]] print(i18n("traffic_recording.storage_dir")) print [[</th>
         <td colspan=2>]] print(recording_utils.getPcapPath(master_ifid)) print [[</td>
       </tr>
@@ -192,7 +200,7 @@ print [[
 -- Smart Recording Configuration
 if ntop.isEnterpriseXL() then
 print [[
-      <tr>
+      <tr id="tr-smart_record_traffic">
         <th width=30%>]] print(i18n("traffic_recording.smart_traffic_recording")) print [[</th>
         <td colspan=2>]]
   print(template.gen("on_off_switch.html", {
@@ -205,7 +213,7 @@ print [[
         </td>
       </tr>
 
-      <tr>
+      <tr id="tr-smart_disk_space">
         <th>]] print(i18n("traffic_recording.smart_disk_space")) print [[</th>
         <td colspan=2>
           <input type="number" style="width:127px;display:inline;" class="form-control" name="smart_disk_space" placeholder="" min="1" step="1" max="]] print(ternary((max_space/1024)>1, (max_space/1024), 1)) print [[" value="]] print(smart_disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
@@ -213,7 +221,7 @@ print [[
         </td>
       </tr>
 
-      <tr>
+      <tr id="tr-smart_storage_dir">
         <th>]] print(i18n("traffic_recording.smart_storage_dir")) print [[</th>
         <td colspan=2>]] print(recording_utils.getSmartPcapPath(master_ifid)) print [[</td>
       </tr>
@@ -266,8 +274,86 @@ print[[
     </ul>
   </span>
 
-  <script>
-  $("#traffic_recording_form")
+<script>
+
+$("#record_traffic").change(function(e) {
+  update_record_traffic();
+});
+
+function update_record_traffic() {
+  if ($("#record_traffic").is(":checked")) {
+    toggle_recording_enabled_on();
+]]
+if ntop.isEnterpriseXL() then
+print[[
+    $("#tr-smart_record_traffic").css("display","table-row");
+]]
+end
+print[[
+  } else {
+    toggle_recording_enabled_off();
+]]
+if ntop.isEnterpriseXL() then
+print[[
+    $("#smart_record_traffic").prop('checked', false);
+    update_smart_record_traffic();
+    $("#tr-smart_record_traffic").css("display","none"); 
+]]
+end
+print[[
+  }
+}
+
+function toggle_recording_enabled_on(){
+  $("#tr-disk_space").css("display","table-row");
+  $("#tr-bpf_filter").css("display","table-row");
+  $("#tr-storage_dir").css("display","table-row");
+}
+
+function toggle_recording_enabled_off(){
+  $("#tr-disk_space").css("display","none");
+  $("#tr-bpf_filter").css("display","none");
+  $("#tr-storage_dir").css("display","none");
+}
+]]
+
+if ntop.isEnterpriseXL() then
+print [[
+$("#smart_record_traffic").change(function(e) {
+  update_smart_record_traffic();
+});
+
+function update_smart_record_traffic() {
+  if ($("#smart_record_traffic").is(":checked")) {
+    toggle_smart_recording_enabled_on();
+  } else {
+    toggle_smart_recording_enabled_off();
+  }
+}
+
+function toggle_smart_recording_enabled_on(){
+  $("#tr-smart_disk_space").css("display","table-row");
+  $("#tr-smart_storage_dir").css("display","table-row");
+}
+
+function toggle_smart_recording_enabled_off(){
+  $("#tr-smart_disk_space").css("display","none");
+  $("#tr-smart_storage_dir").css("display","none");
+}
+]]
+end
+
+print[[
+update_record_traffic();
+]]
+if ntop.isEnterpriseXL() then
+print [[
+update_smart_record_traffic();
+]]
+end
+
+print[[
+$("#traffic_recording_form")
     .validator({ custom: { bpf: bpfValidator }, errors: { bpf: 'Invalid filter' } })
     .on('validate.bs.validator', function(e) {
       var submitbtn = $("#traffic_recording_submit");
@@ -278,9 +364,7 @@ print[[
         submitbtn.removeClass("disabled");
       }
     });
-  </script>
 
-  <script>
-    aysHandleForm("#traffic_recording_form");
-  </script>
+aysHandleForm("#traffic_recording_form");
+</script>
 ]]

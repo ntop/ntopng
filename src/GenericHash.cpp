@@ -206,8 +206,9 @@ u_int64_t GenericHash::purgeQueuedIdleEntries() {
   for (vector<GenericHashEntry *>::iterator it = idle_entries_in_use->begin();
        it != idle_entries_in_use->end();) {
     if ((*it)->getUses() == 0) {
-      delete *it;                     /* Free the entry memory */
-      idle_entries_in_use->erase(it); /* Remove the entry from the vector */
+      GenericHashEntry *e = *it;
+      it = idle_entries_in_use->erase(it); /* Remove the entry from the vector */
+      delete e; /* Free the entry memory */
       entry_state_transition_counters.num_purged++;
     } else
       ++it;

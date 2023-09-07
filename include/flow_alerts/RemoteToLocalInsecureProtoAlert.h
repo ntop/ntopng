@@ -37,6 +37,8 @@ class RemoteToLocalInsecureProtoAlert : public FlowAlert {
   RemoteToLocalInsecureProtoAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f){};
   ~RemoteToLocalInsecureProtoAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

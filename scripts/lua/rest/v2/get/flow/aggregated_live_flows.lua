@@ -81,7 +81,9 @@ local criteria_type_id = 1 -- by default application_protocol
 if criteria == "client" then
    criteria_type_id = 2
 elseif criteria == "server" then
-   criteria_type_id = 3
+      criteria_type_id = 3
+elseif criteria == "client_server_srv_port" then
+   criteria_type_id = 7
 elseif ntop.isEnterpriseM() then
    criteria_type_id = get_criteria_type_id(criteria)
 end
@@ -90,7 +92,7 @@ local isView = interface.isView()
 local x = 0
 -- Retrieve the flows
 local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id, filters["page"], filters["sort_column"],
-							filters["sort_order"], filters["start"], filters["length"], ternary(not isEmptyString(filters["map_search"]), filters["map_search"], nil) , ternary(filters["host"]~= "", filters["host"], nil))
+							filters["sort_order"], filters["start"], filters["length"], ternary(not isEmptyString(filters["map_search"]), filters["map_search"], nil) , ternary(filters["host"]~= "", filters["host"], nil), vlan)
 
 -- Formatting the data
 for _, data in pairs(aggregated_info or {}) do
@@ -100,14 +102,15 @@ for _, data in pairs(aggregated_info or {}) do
    local add_app_proto = false
    local add_server = false
    local add_client = false
+   local add_server_port = false
    local client = nil
    local server = nil
    local info = nil
    local application = nil
+   local srv_port = nil
 
    if (vlan) and
-      (tonumber(vlan) ~= tonumber(data.vlan_id) or tonumber(vlan) ~= tonumber(data.cli_vlan_id) or tonumber(vlan) ~=
-       tonumber(data.srv_vlan_id)) then
+      (tonumber(vlan) ~= tonumber(data.vlan_id) ) then
       goto continue
    end
 
@@ -131,6 +134,16 @@ for _, data in pairs(aggregated_info or {}) do
       if(data.server_ip ~= nil) then
 	 add_server = true
       end
+   elseif (criteria_type_id == 7) then
+      if(data.server_ip ~= nil) then
+	 add_server = true
+      end
+      if(data.client_ip ~= nil) then
+   add_client = true
+      end
+      if(data.srv_port ~= nil) then
+   add_server_port = true
+      end
    elseif ntop.isEnterpriseM() then
       response = get_output_flags(criteria_type_id)
    end
@@ -140,6 +153,13 @@ for _, data in pairs(aggregated_info or {}) do
 	 label = data.proto_name,
 	 id = data.proto_id,
 	 label_with_icons = getApplicationLabel(data.proto_name, 256)
+      }
+   end
+
+   if (add_server_port) then
+      srv_port = {
+         label = data.srv_port,
+         id = data.srv_port
       }
    end
 
@@ -180,6 +200,14 @@ for _, data in pairs(aggregated_info or {}) do
       }
    end
 
+   if add_server and (tonumber(vlan) ~=
+   tonumber(data.srv_vlan_id)) then
+      goto continue
+   end
+   if add_client and ( tonumber(vlan) ~= tonumber(data.cli_vlan_id)) then
+         goto continue
+   end
+
    if (table.len(response) > 0 and response.add_info) then
       info = {
 	 label = data.info,
@@ -206,6 +234,7 @@ for _, data in pairs(aggregated_info or {}) do
 	 client = client,
 	 server = server,
 	 info = info,
+    srv_port = srv_port,
 	 application = application,
     vlan_id = {
       id = nil,

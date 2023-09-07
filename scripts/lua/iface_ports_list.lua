@@ -7,9 +7,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local format_utils = require "format_utils"
+local rsp_resp = toboolean(_GET["scan_ports_rsp"]) or false
 
-sendHTTPContentTypeHeader('text/html')
-
+if not rsp_resp then
+   sendHTTPContentTypeHeader('text/html')
+end
 local host_info = url2hostinfo(_GET)
 local host_key = hostinfo2hostkey(host_info)
 
@@ -56,50 +58,101 @@ end
 local threshold_percent = 5
 local threshold = (tot * threshold_percent) / 100
 
-print "[ "
+if rsp_resp then
+   local rest_utils = require("rest_utils")
+   local host = _GET["host"]
 
-local min_num = 4
-local num = 0
-local accumulate = 0
-for key, value in pairsByValues(_ports, rev) do
-
-   if value < threshold then
-      break
+   local res = {}
+   local splitted_host = {}
+   for str in string.gmatch(host,"([^@]+)") do
+      splitted_host[#splitted_host+1] = str
    end
 
-   if(num > 0) then
-      print ",\n"
-   end
+   local host_info = {
+      ip = splitted_host[1],
+      vlan = splitted_host[2]
+   }
+   local host = interface.getHostInfo(host_info["ip"], host_info["vlan"])
+   
+   if host then
 
-   print("\t { \"label\": \"" .. key .."\", \"value\": ".. value ..", \"url\": \""..ntop.getHttpPrefix().."/lua/flows_stats.lua?port="..key)
-   if host_key then
-      print("&host="..host_key)
-   end
+      _ports = host.used_ports.local_server_ports
+      for key, value in pairsByValues(_ports, rev) do
 
-   print("\" }")
+         local port_details = {}
+         for str in string.gmatch(key,"([^:]+)") do
+            port_details[#port_details+1] = str
+         end
 
-   accumulate = accumulate + value
-   num = num + 1
-end
-
--- In case there is some leftover do print it as "Other"
-if accumulate < tot then
-   local other_label = i18n("other")
-   local url = hostinfo2detailsurl(host_info, {page = "flows"})
-
-   if(num > 0) then
-      print (",\n")
-   else
-      if table.len(_ports) > 0 then
-	 other_label = i18n("num_different_ports", {num = format_utils.formatValue(table.len(_ports)), threshold = threshold_percent})
+         local already_set = false
+         for _,item in ipairs(res) do 
+            if item == port_details[2] then
+               already_set = true
+               break
+            end
+         end
+         if not already_set then
+            res[#res+1] = {
+               key = tonumber(port_details[2]),
+               value = tonumber(port_details[2])
+            }
+         end
       end
+   
+
+      rest_utils.answer(rest_utils.consts.success.ok, res)
+   else 
+      rest_utils.answer(rest_utils.consts.err.bad_content)
+
+   end
+else
+
+   print "[ "
+
+   local min_num = 4
+   local num = 0
+   local accumulate = 0
+   for key, value in pairsByValues(_ports, rev) do
+
+      if value < threshold then
+         break
+      end
+
+      if(num > 0) then
+         print ",\n"
+      end
+
+      print("\t { \"label\": \"" .. key .."\", \"value\": ".. value ..", \"url\": \""..ntop.getHttpPrefix().."/lua/flows_stats.lua?port="..key)
+      if host_key then
+         print("&host="..host_key)
+      end
+
+      print("\" }")
+
+      accumulate = accumulate + value
+      num = num + 1
    end
 
-   print("\t { \"label\": \""..other_label.."\", \"value\": ".. (tot - accumulate) ..", \"url\": \""..url.."\"}")
-end
+   -- In case there is some leftover do print it as "Other"
+   if accumulate < tot then
+      local other_label = i18n("other")
+      local url = hostinfo2detailsurl(host_info, {page = "flows"})
 
-if tot == 0 then
-   print("\t { \"label\": \""..i18n("no_ports").."\", \"value\": 0 }")
-end
+      if(num > 0) then
+         print (",\n")
+      else
+         if table.len(_ports) > 0 then
+      other_label = i18n("num_different_ports", {num = format_utils.formatValue(table.len(_ports)), threshold = threshold_percent})
+         end
+      end
+
+      print("\t { \"label\": \""..other_label.."\", \"value\": ".. (tot - accumulate) ..", \"url\": \""..url.."\"}")
+   end
+
+   if tot == 0 then
+      print("\t { \"label\": \""..i18n("no_ports").."\", \"value\": 0 }")
+   end
 
 print "\n]"
+
+end

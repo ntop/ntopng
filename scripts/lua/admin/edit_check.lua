@@ -38,7 +38,7 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.scripts_config)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.scripts_config)
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

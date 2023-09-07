@@ -22,7 +22,7 @@ local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(ternary(have_nedge, page_utils.menu_entries.nedge_flows,
+page_utils.print_header_and_set_active_menu_entry(ternary(have_nedge, page_utils.menu_entries.nedge_flows,
     page_utils.menu_entries.active_flows))
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -62,11 +62,11 @@ local dscp_filter = _GET["dscp"]
 local host_pool = _GET["host_pool_id"]
 local traffic_profile = _GET["traffic_profile"]
 
-local aggregation_criteria = _GET["aggregation_criteria"] or "application_protocol"
+local aggregation_criteria = _GET["aggregation_criteria"] or "client_server_srv_port"
 
 local draw = _GET["draw"] or 0
-local sort = _GET["sort"] or "bytes_rcvd"
-local order = _GET["order"] or "asc"
+local sort = _GET["sort"] or "flows"
+local order = _GET["order"] or "desc"
 local start = _GET["start"] or 0
 local length = _GET["length"] or 10
 
@@ -118,8 +118,7 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {{
 }})
 
 if (page == "flows" or page == nil) then
-    local active_msg = getFlowsTableTitle()
-
+    local active_msg = getFlowsTableTitle(ntop.getHttpPrefix())
     if (category ~= nil) then
         page_params["category"] = category
     end
@@ -322,8 +321,8 @@ if (page == "flows" or page == nil) then
             title: "]]
     print(i18n("serial"))
     print [[",
-            field: "column_key", /* This is the serial numebe but called key for placing the flow button pointing to the flow key */
-            sortable: false,
+            field: "column_key", /* This is the serial number but called key for placing the flow button pointing to the flow key */
+            sortable: true,
             css: {
                textAlign: 'center',
                whiteSpace: 'nowrap'
@@ -551,11 +550,11 @@ if (page == "flows" or page == nil) then
                   request.then((data) => {
                      let throughput_bps_sent = (8 * (data.rsp.totBytesSent - old_totBytesSent)) / refresh_rate;
                      let throughput_bps_rcvd = (8 * (data.rsp.totBytesRcvd - old_totBytesRcvd)) / refresh_rate;
-                     let tot_throughput = (8 * data.rsp.totThpt);
-   
-                     if (tot_throughput < 0)      tot_throughput = 0;
+                     
                      if (throughput_bps_sent < 0) throughput_bps_sent = 0;
                      if (throughput_bps_rcvd < 0) throughput_bps_rcvd = 0;
+                     
+                     let tot_throughput = (throughput_bps_sent + throughput_bps_rcvd) || 0;
    
                      if ((old_totBytesSent > 0) || (old_totBytesRcvd > 0)) {
                        /* Second iteration or later */
@@ -563,13 +562,13 @@ if (page == "flows" or page == nil) then
                        pushNewValue(uploadChart, throughput_bps_sent);
                        $('#download-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_rcvd, 1000));                  
                        $('#upload-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_sent, 1000));
-                     }
+                       $('#filtered-flows-tot-throughput-value').html(NtopUtils.bitsToSize(tot_throughput, 1000));
+                    }
    
                      /* Keep the old value for computing the differnce at the next round */
-                     old_totBytesSent = data.rsp.totBytesSent;
-                     old_totBytesRcvd = data.rsp.totBytesRcvd;
+                     old_totBytesSent = data.rsp.totBytesSent || 0;
+                     old_totBytesRcvd = data.rsp.totBytesRcvd || 0;
                      $('#filtered-flows-tot-bytes-value').html(NtopUtils.bytesToSize(old_totBytesSent + old_totBytesRcvd));
-                     $('#filtered-flows-tot-throughput-value').html(NtopUtils.bitsToSize(tot_throughput, 1000));
                   })
                }
    
@@ -628,17 +627,23 @@ else
         vlans[#vlans + 1] = vlan
     end
 
-    template.render("pages/aggregated_live_flows.template", {
+    local context = {
         ifid = ifId,
         vlans = json.encode(vlans),
         aggregation_criteria = aggregation_criteria,
+        is_ntop_enterprise_m = ntop.isEnterpriseM(),
         draw = draw,
         sort = sort,
         order = order,
         start = start,
         length = length,
-        host = ""
-    })
+        host = "",
+        csrf = ntop.getRandomCSRFValue()
+    }
+
+    local json_context = json.encode(context)
+    template.render("pages/vue_page.template", { vue_page_name = "PageAggregatedLiveFlowsV2", page_context = json_context })
+ 
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

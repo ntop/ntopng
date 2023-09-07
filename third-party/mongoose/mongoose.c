@@ -1031,6 +1031,8 @@ static void send_http_error(struct mg_connection *conn, int status,
 	    "Connection: %s\r\n\r\n", status, reason, len,
 	    suggest_connection_header(conn));
   conn->num_bytes_sent += mg_printf(conn, "%s", buf);
+
+  traceHTTP(conn, (u_int16_t)status);
 }
 
 #if defined(_WIN32) && !defined(__SYMBIAN32__)
@@ -5172,6 +5174,9 @@ static void process_new_connection(struct mg_connection *conn) {
       if (conn->ctx->callbacks.end_request != NULL) {
 	conn->ctx->callbacks.end_request(conn, conn->status_code);
       }
+#if 1 /* NTOP */
+      if(conn->status_code == 200) traceHTTP(conn, conn->status_code);
+#endif
       log_access(conn);
     }
     if (ri->remote_user != NULL) {

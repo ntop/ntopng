@@ -10,7 +10,6 @@ section.
 
     authentication
     icinga2
-    scada
     sflow_collection
     view_interfaces
     dynamic_interfaces_disaggregation
@@ -25,6 +24,7 @@ section.
     flows_dump
     live_pcap_download
     syslog
+    ids_acceleration
     additional_features
     oem
     snapshots

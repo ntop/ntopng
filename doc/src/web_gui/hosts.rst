@@ -20,14 +20,71 @@ Host-related information pages available have the following content
 - Operating Systems page lists all host operating systems that have been detected. Detection is done
   using passive fingerprinting techniques
 - HTTP Servers (Local) page shows monitored HTTP servers, limited to local hosts only
-- Top Hosts Traffic page presents traffic of top hosts in order to typology selected;
+- Top Hosts Traffic page presents traffic of top hosts in order to typology selected
+- Server Ports Analysis page shows Local Hosts filtered by selected protocol and port. 
 
 Hosts
 -----
 
 All hosts that have been seen monitoring network interfaces are show here. Column headers can be
-clicked to sort results in descending (ascending) order of the clicked header. Additional sort options are
-available in the top right corner of the table.
+clicked to sort results in descending (ascending) order of the clicked header (Additional sort options, if available, can be found in the top right corner of the table).
+
+.. figure:: ../img/web_gui_hosts_all.png
+  :align: center
+  :alt: Alls Hosts
+
+  The All Hosts Page
+
+Any host can be clicked to be redirected to its page, which is discussed below.
+
+There are two kinds of Hosts page, Active and Inactive.
+
+Inactive Hosts
+^^^^^^^^^^^^^^
+
+.. figure:: ../img/web_gui_hosts_inactive.png
+  :align: center
+  :alt: Inactive Hosts
+
+  The Inactive Hosts Page
+
+Here instead, only the currently inactive local hosts can be found.
+
+The table shown has several columns, including:
+
+- IP address, clicking here jumps to the inactive host details page
+- MAC address, with the possibility to jump directly to the MAC address if it's active on the network
+- Network, with the possibility to jump to the network info if available
+- First seen, with the amount of time it has lapsed since the first packet sent/received by the host has
+  been observed
+- Last seen, with the amount of time it has lapsed since the last packet sent/received by the host has
+  been observed
+- Name, having the resolved hostname (or a custom name, if set in any Host Details page)
+
+By clicking on the ip address here the user is going to be redirected to a page similare to the Host Details Home page but with just the most important informations.
+
+Inactive Host Details
+^^^^^^^^^^^^^^^^^^^^^
+
+The host details pages provides just the most important information for an host, like the MAC address, IP address, Manufacturer, ecc.
+
+.. figure:: ../img/web_gui_host_details_inactive.png
+  :align: center
+  :alt: Host Details
+
+  The Home View of the Host Details Page
+
+Active Hosts
+^^^^^^^^^^^^
+
+.. figure:: ../img/web_gui_hosts_all.png
+  :align: center
+  :alt: Active Hosts
+
+  The Active Hosts Page
+
+Here all currently active hosts can be found, both local and remote.
+
 The table shown has several columns, including
 
 - IP address, with optional country flag and OS logo (if detected)
@@ -41,14 +98,6 @@ The table shown has several columns, including
 - Breakdown, showing a bar that gives visual insights in the use of both traffic directions
 - Throughput, with the overall actual throughput of the host
 - Traffic, with the total traffic exchanged by the host
-
-.. figure:: ../img/web_gui_hosts_all.png
-  :align: center
-  :alt: Alls Hosts
-
-  The All Hosts Page
-
-Any host can be clicked to be redirected to its page, which is discussed below.
 
 Host Details
 ^^^^^^^^^^^^
@@ -549,3 +598,18 @@ divided in 5-minute bars and goes backwards in time in a right-to-left fashion, 
   :alt: Top Hosts
 
   The Top Hosts Summary Page
+
+Server Ports Analysis
+---------------------
+
+The Server Local Hosts Ports Live Analysis page provides live details of hosts filtered by the selected port and L4 protocol. 
+The page displays host information such as IP, Host Name, MAC Address, number of Total Flows, Total Score, and Total Traffic.
+By clicking on the IP hyperlink, the user can be redirected to the live flows page filtered by the selected server IP and server port.
+By clicking on the Host Name hyperlink, the user can be redirected to the host details page.
+By clicking on the MAC Address hyperlink, the user can be redirected to the MAC details page.
+
+.. figure:: ../img/web_gui_hosts_server_ports_analysis_page.png
+  :align: center
+  :alt: Server Ports Analysis
+
+  Server Ports Analysis Page

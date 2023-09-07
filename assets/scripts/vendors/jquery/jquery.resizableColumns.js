@@ -137,7 +137,10 @@ var ResizableColumns = (function () {
 				var $current = _this.$tableHeaders.eq(i);
 				var $next = _this.$tableHeaders.eq(i + 1);
 
-				if ($next.length === 0 || $current.is(_constants.SELECTOR_UNRESIZABLE) || $next.is(_constants.SELECTOR_UNRESIZABLE)) {
+				// if ($next.length === 0 || $current.is(_constants.SELECTOR_UNRESIZABLE) || $next.is(_constants.SELECTOR_UNRESIZABLE)) {
+				// 	return;
+				// }
+				if ($current.is(_constants.SELECTOR_UNRESIZABLE) || $next.is(_constants.SELECTOR_UNRESIZABLE)) {
 					return;
 				}
 
@@ -175,12 +178,18 @@ var ResizableColumns = (function () {
 
 			$container.width(this.$table.width());
 
-			$container.find('.' + _constants.CLASS_HANDLE).each(function (_, el) {
+		    let $elements = $container.find('.' + _constants.CLASS_HANDLE);
+		    const len = $elements.length;
+
+			$elements.each(function (index, el) {
 				var $el = $(el);
 
 				var height = _this3.options.resizeFromBody ? _this3.$table.height() : _this3.$table.find('thead').height();
 
 				var left = $el.data(_constants.DATA_TH).outerWidth() + ($el.data(_constants.DATA_TH).offset().left - _this3.$handleContainer.offset().left);
+			    if (len - 1 == index) {
+				left -= 4;
+			    }
 
 				$el.css({ left: left, height: height });
 			});
@@ -316,9 +325,9 @@ var ResizableColumns = (function () {
 			if (leftColumn) {
 				this.setWidth(leftColumn, widthLeft);
 			}
-			if (rightColumn) {
-				//this.setWidth(rightColumn, widthRight);
-			}
+		    if (rightColumn) {
+			// this.setWidth(rightColumn, widthRight);
+		    }
 
 			op.newWidths.left = widthLeft;
 			op.newWidths.right = widthRight;

@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+static void traceHTTP(const struct mg_connection *const conn, u_int16_t status_code); /* Forward */
+
 #define USE_LUA
 #include "../third-party/mongoose/mongoose.c"
 #undef USE_LUA
@@ -33,13 +35,58 @@ extern "C" {
 
 static HTTPserver *httpserver;
 
+#if defined(__APPLE__) && defined(__x86_64__)
+/* macOS x64 workaround */
+#undef NO_SSL_DL
+#endif
+
+/* ****************************************** */
+
+static void traceHTTP(const struct mg_connection *const conn, u_int16_t status_code) {
+  if(ntop->getPrefs()->get_http_log_path()) {
+    FILE *httpLogAccesFile = fopen(ntop->getPrefs()->get_http_log_path(), "a");
+
+    /* We open/close the file so logrotate can operate if configured */
+    if(httpLogAccesFile != NULL) {
+      struct mg_request_info *request_info = (struct mg_request_info *)mg_get_request_info((struct mg_connection*)conn);
+      char buf[64], theDate[32];
+      const char *user_agent = NULL, *referer = NULL;
+      time_t theTime = time(NULL);
+      struct tm result;
+
+      for(int i=0; i<request_info->num_headers; i++) {
+	if(strcasecmp(request_info->http_headers[i].name, "User-Agent") == 0) {
+	  user_agent = request_info->http_headers[i].value;
+	} else if(strcasecmp(request_info->http_headers[i].name, "Referer") == 0) {
+	  referer = request_info->http_headers[i].value;
+	}
+
+	if(user_agent && referer)
+	  break;
+      }
+
+      strftime(theDate, 32, "%d/%b/%Y %H:%M:%S", localtime_r(&theTime, &result));
+      fprintf(httpLogAccesFile, "%s - %s [%s] \"%s %s HTTP/%s\" %u \"%s\" \"%s\"\n",
+	      Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
+	      request_info->remote_user ? request_info->remote_user : "-",
+	      theDate,
+	      request_info->request_method,
+	      request_info->uri, request_info->http_version,
+	      status_code,
+	      referer ? referer : "",
+	      user_agent ? user_agent : "");
+
+      fclose(httpLogAccesFile);
+    }
+  }
+}
+
 /* ****************************************** */
 
 /*
  * Send error message back to a client.
  */
-int send_error(struct mg_connection *conn, int status, const char *reason,
-               const char *fmt, ...) {
+int send_error(struct mg_connection *conn, int status, const char *reason, const char *fmt, ...) {
   va_list ap;
 
   conn->status_code = status;
@@ -51,6 +98,8 @@ int send_error(struct mg_connection *conn, int status, const char *reason,
                   "Connection: close\r\n"
                   "\r\n",
                   status, reason, PACKAGE_VERSION, PACKAGE_MACHINE);
+
+  traceHTTP(conn, status);
 
   /* Errors 1xx, 204 and 304 MUST NOT send a body */
   if (status > 199 && status != 204 && status != 304) {
@@ -74,8 +123,7 @@ int send_error(struct mg_connection *conn, int status, const char *reason,
 
 /* ****************************************** */
 
-const char *get_secure_cookie_attributes(
-    const struct mg_request_info *request_info) {
+const char *get_secure_cookie_attributes(const struct mg_request_info *request_info) {
   if (request_info->is_ssl)
     return " HttpOnly; SameSite=lax; Secure";
   else
@@ -106,8 +154,11 @@ static void redirect_to_ssl(struct mg_connection *conn,
                 "Location: https://%s:%u/%s\r\n\r\n",
                 PACKAGE_VERSION, PACKAGE_MACHINE, host,
                 ntop->getPrefs()->get_https_port(), request_info->uri);
+
+    traceHTTP(conn, 302);
   } else {
     mg_printf(conn, "%s", "HTTP/1.1 500 Error\r\n\r\nHost: header is not set");
+    traceHTTP(conn, 500);
   }
 }
 #endif
@@ -146,8 +197,7 @@ void HTTPserver::traceLogin(const char *user, bool authorized) {
   if (ntop->getSystemInterface()
       /* Can be NULL during startup so check is necessary */
       && ntop->getSystemInterface()->getAlertsQueue())
-    ntop->getSystemInterface()->getAlertsQueue()->pushLoginTrace(user,
-                                                                 authorized);
+    ntop->getSystemInterface()->getAlertsQueue()->pushLoginTrace(user, authorized);
 }
 
 /* ****************************************** */
@@ -236,6 +286,8 @@ static void set_session_cookie(const struct mg_connection *const conn,
             get_secure_cookie_attributes(
                 mg_get_request_info((struct mg_connection *)conn)),
             referer ? referer : "/");
+
+  traceHTTP(conn, 302);
 }
 
 /* ****************************************** */
@@ -263,8 +315,7 @@ static int checkCaptive(const struct mg_connection *conn,
 
     ntop->getTrace()->traceEvent(
         TRACE_INFO, "[CAPTIVE] %s @ %s/%08X [Redirecting to %s%s]", username,
-        Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf,
-                       sizeof(buf)),
+        Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
         (unsigned int)conn->request_info.remote_ip,
         mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char *)"",
         request_info->uri);
@@ -334,10 +385,9 @@ static int isWhitelistedURI(const char *uri) {
 /* ****************************************** */
 
 #ifdef NO_SSL_DL /* see configure.seed */
-static bool ssl_client_x509_auth(
-    const struct mg_connection *const conn,
-    const struct mg_request_info *const request_info, char *const username,
-    char *const group, bool *const localuser) {
+static bool ssl_client_x509_auth(const struct mg_connection *const conn,
+				 const struct mg_request_info *const request_info, char *const username,
+				 char *const group, bool *const localuser) {
   bool ret = false;
   X509 *cert = NULL;
   X509_NAME *subj = NULL;
@@ -709,6 +759,7 @@ static void redirect_to_login(struct mg_connection *conn,
   char session_id[NTOP_SESSION_ID_LENGTH], session_key[32];
   char buf[128];
   char *referer_enc = NULL, *reason_enc = NULL;
+
 #ifdef HAVE_NEDGE
   if (isCaptiveConnection(conn)) {
     char wispr_captive_data[1024];
@@ -745,6 +796,7 @@ static void redirect_to_login(struct mg_connection *conn,
               referer ? (char *)"?referer=" : "",
               referer ? (referer_enc = Utils::urlEncode(referer)) : (char *)"",
               wispr_data);
+    traceHTTP(conn, 302);
   } else
 #endif
   {
@@ -783,6 +835,8 @@ static void redirect_to_login(struct mg_connection *conn,
               referer ? (referer_enc = Utils::urlEncode(referer)) : (char *)"",
               (referer && reason) ? "&" : "", reason ? (char *)"reason=" : "",
               reason ? (reason_enc = Utils::urlEncode(reason)) : (char *)"");
+
+    traceHTTP(conn, 302);
   }
 
   if (referer_enc) free(referer_enc);
@@ -828,6 +882,8 @@ int redirect_to_error_page(struct mg_connection *conn,
                            : (char *)"",
       msg ? msg : "", decoded);
 
+  traceHTTP(conn, 302);
+
   if (msg) free(msg);
   if (referer_enc) free(referer_enc);
 
@@ -866,6 +922,7 @@ static void redirect_to_please_wait(
             (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer))
                                  : (char *)"");
 
+  traceHTTP(conn, 302);
   if (referer_enc) free(referer_enc);
 }
 #endif
@@ -897,6 +954,7 @@ static void redirect_to_password_change(
             (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer))
                                  : (char *)"");
 
+  traceHTTP(conn, 302);
   if (referer_enc) free(referer_enc);
 }
 
@@ -1055,8 +1113,7 @@ static void uri_encode(const char *src, char *dst, u_int dst_len) {
 /* ****************************************** */
 
 static int handle_lua_request(struct mg_connection *conn) {
-  struct mg_request_info *request_info =
-      (struct mg_request_info *)mg_get_request_info(conn);
+  struct mg_request_info *request_info = (struct mg_request_info *)mg_get_request_info(conn);
   char *crlf, *original_uri = NULL, tmp_uri[256];
   u_int len;
   char username[NTOP_USERNAME_MAXLEN] = {0};
@@ -1137,6 +1194,7 @@ static int handle_lua_request(struct mg_connection *conn) {
         mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char *)"",
         HOTSPOT_DETECT_LUA_URL, request_info->query_string ? "?" : "",
         request_info->query_string ? request_info->query_string : "");
+    traceHTTP(conn, 302);
     return (1);
   } else if (strncmp(request_info->uri, NTOPNG_DATASOURCE_URL, 13) == 0) {
     char *ds_hash = &request_info->uri[13];
@@ -1245,6 +1303,8 @@ static int handle_lua_request(struct mg_connection *conn) {
 	      ntop->getPrefs()->getCaptivePortalUrl(),
 	      request_info->query_string ? "?" : "",
 	      request_info->query_string ? request_info->query_string : "");
+
+    traceHTTP(conn, 302);
     return(1);
   }
 #endif
@@ -1257,8 +1317,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     if (!strcmp(request_info->request_method, "OPTIONS")) {
       const char *req_method;
 
-      if ((req_method = mg_get_header(conn, "Access-Control-Request-Method")) !=
-          NULL) {
+      if ((req_method = mg_get_header(conn, "Access-Control-Request-Method")) != NULL) {
         const char *req_headers;
 
         if ((strcmp(req_method, "GET") == 0) &&
@@ -1276,6 +1335,8 @@ static int handle_lua_request(struct mg_connection *conn) {
                     "\r\n",
                     PACKAGE_VERSION, PACKAGE_MACHINE, origin ? origin : "*",
                     req_method, req_headers);
+
+	  traceHTTP(conn, 200);
           return (1); /* Handled */
         }
       }
@@ -1292,8 +1353,7 @@ static int handle_lua_request(struct mg_connection *conn) {
       Utils::make_session_key(session_key, sizeof(session_key));
       mg_get_cookie(conn, session_key, session_id, sizeof(session_id));
 
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING,
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
           "[HTTP] user %s cannot login due to non-existent allowed_interface",
           username);
 
@@ -1310,6 +1370,7 @@ static int handle_lua_request(struct mg_connection *conn) {
                 get_secure_cookie_attributes(request_info),
                 ACCESS_DENIED_INTERFACES);
 
+      traceHTTP(conn, 403);
       return (1);
     }
 
@@ -1361,9 +1422,9 @@ static int handle_lua_request(struct mg_connection *conn) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
                                  "[HTTP] The URL %s is invalid/dangerous",
                                  request_info->uri);
-    if (original_uri) request_info->uri = original_uri;
-    return (
-        redirect_to_error_page(conn, request_info, "bad_request", NULL, NULL));
+    if (original_uri)
+      request_info->uri = original_uri;
+    return (redirect_to_error_page(conn, request_info, "bad_request", NULL, NULL));
   }
 
   if ((strncmp(request_info->uri, "/lua/", 5) == 0) ||
@@ -1498,14 +1559,15 @@ static int handle_lua_request(struct mg_connection *conn) {
 
       delete l;
       if (original_uri) request_info->uri = original_uri;
+
+      traceHTTP(conn, 200);
       return (1); /* Handled */
     }
 
     if (original_uri) request_info->uri = original_uri;
     uri_encode(request_info->uri, uri, sizeof(uri) - 1);
 
-    return (
-        redirect_to_error_page(conn, request_info, "not_found", NULL, NULL));
+    return (redirect_to_error_page(conn, request_info, "not_found", NULL, NULL));
   } else {
     /* Prevent short URI or .inc files to be served */
     if ((len < 4) || (strncmp(&request_info->uri[len - 4], ".inc", 4) == 0) ||
@@ -1623,9 +1685,9 @@ void HTTPserver::parseACL(char *const acl, u_int acl_len) {
 
 /* ****************************************** */
 
+#ifdef NO_SSL_DL
 static unsigned char ssl_session_ctx_id[] = PACKAGE_NAME "-" NTOPNG_GIT_RELEASE;
 
-#ifdef NO_SSL_DL
 int handle_ssl_verify(int ok, X509_STORE_CTX *ctx) {
   X509 *cert;
   char buf[256];
@@ -1877,6 +1939,7 @@ HTTPserver::~HTTPserver() {
 #endif
 
   free(docs_dir), free(scripts_dir);
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server terminated");
 };
 

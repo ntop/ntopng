@@ -1,12 +1,12 @@
 <div class="form-group row">
     <label class="col-form-label col-sm-3">
 	<b>{{ i18n("notification_endpoint.fail2ban.jail") }}</b>
+			<a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#fail2ban"><i class="fa-regular fa-circle-question"></i></a>
     </label>
-    <div class="col-sm-5">
+    <div class="col-sm-7">
 	<input
 	data-validation-message="{{ i18n('notification_endpoint.fail2ban.validation.invalid_jail') }}"
 	data-validation-empty-message="{{ i18n('notification_endpoint.fail2ban.validation.empty_jail') }}"
 	data-pattern="singleword" name="fail2ban_jail" type="text" class="form-control" required />
     </div>
 </div>
-<small>{* i18n('notification_endpoint.fail2ban.jail_description') *}</small>

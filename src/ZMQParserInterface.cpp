@@ -190,7 +190,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
 /* **************************************************** */
 
 ZMQParserInterface::~ZMQParserInterface() {
-  map<u_int8_t, ZMQ_RemoteStats *>::iterator it;
+  map<u_int32_t, ZMQ_RemoteStats *>::iterator it;
 
   if (zmq_remote_stats) free(zmq_remote_stats);
   if (zmq_remote_stats_shadow) free(zmq_remote_stats_shadow);
@@ -306,7 +306,7 @@ const char *ZMQParserInterface::getKeyDescription(u_int32_t pen,
 /* **************************************************** */
 
 u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
-                                        u_int8_t source_id, u_int32_t msg_id,
+                                        u_int32_t source_id, u_int32_t msg_id,
                                         void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
@@ -829,21 +829,18 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
       break;
 
     case L7_INFO:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->l7_info) free(flow->l7_info);
-        flow->l7_info = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+	flow->setL7Info(value->string);
       break;
 
     case L7_CONFIDENCE:
-      flow->confidence =
-          (ndpi_confidence_t)((value->int_num < NDPI_CONFIDENCE_MAX)
-                                  ? value->int_num
-                                  : NDPI_CONFIDENCE_UNKNOWN);
+      flow->setConfidence((ndpi_confidence_t)((value->int_num < NDPI_CONFIDENCE_MAX)
+					      ? value->int_num
+					      : NDPI_CONFIDENCE_UNKNOWN));
       break;
 
     case L7_ERROR_CODE:
-      flow->l7_error_code = value->int_num;
+      flow->setL7ErrorCode(value->int_num);
       break;
 
     case OOORDER_IN_PKTS:
@@ -903,109 +900,81 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
       break;
 
     case DNS_QUERY:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->dns_query) free(flow->dns_query);
-        flow->dns_query = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+        flow->setDNSQuery(value->string);
       break;
 
     case DNS_QUERY_TYPE:
-      if (value->string)
-        flow->dns_query_type = atoi(value->string);
-      else
-        flow->dns_query_type = value->int_num;
+      flow->setDNSQueryType(value->string ? atoi(value->string) : value->int_num);
       break;
 
     case DNS_RET_CODE:
-      if (value->string)
-        flow->dns_ret_code = atoi(value->string);
-      else
-        flow->dns_ret_code = value->int_num;
+      flow->setDNSRetCode(value->string ? atoi(value->string) : value->int_num);
       break;
 
     case HTTP_URL:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->http_url) free(flow->http_url);
-        flow->http_url = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+	flow->setHTTPurl(value->string);
       break;
 
     case HTTP_USER_AGENT:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->http_user_agent) free(flow->http_user_agent);
-        flow->http_user_agent = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n') 
+	flow->setHTTPuserAgent(value->string);
       break;
 
     case HTTP_SITE:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->http_site) free(flow->http_site);
-        flow->http_site = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+	flow->setHTTPsite(value->string);
       break;
 
     case HTTP_RET_CODE:
-      if (value->string)
-        flow->http_ret_code = atoi(value->string);
-      else
-        flow->http_ret_code = value->int_num;
+      flow->setHTTPRetCode(value->string ? atoi(value->string) : value->int_num);
       break;
 
     case HTTP_METHOD:
       if (value->string && value->string[0] && value->string[0] != '\n')
-        flow->http_method =
-            ndpi_http_str2method(value->string, strlen(value->string));
+        flow->setHTTPMethod(ndpi_http_str2method(value->string, strlen(value->string)));
       break;
 
     case TLS_SERVER_NAME:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->tls_server_name) free(flow->tls_server_name);
-        flow->tls_server_name = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+	flow->setTLSserverName(value->string);
       break;
 
     case JA3C_HASH:
-      if (value->string && value->string[0]) {
-        if (flow->ja3c_hash) free(flow->ja3c_hash);
-        flow->ja3c_hash = strdup(value->string);
-      }
+      if (value->string && value->string[0])
+	flow->setJA3cHash(value->string);
       break;
 
     case JA3S_HASH:
-      if (value->string && value->string[0]) {
-        if (flow->ja3s_hash) free(flow->ja3s_hash);
-        flow->ja3s_hash = strdup(value->string);
-      }
+      if (value->string && value->string[0])
+	flow->setJA3sHash(value->string);
       break;
 
     case TLS_CIPHER:
-      flow->tls_cipher = value->int_num;
+      flow->setTLSCipher(value->int_num);
       break;
 
     case SSL_UNSAFE_CIPHER:
-      flow->tls_unsafe_cipher = value->int_num;
+      flow->setTLSUnsafeCipher(value->int_num);
       break;
 
     case L7_PROTO_RISK:
-      flow->ndpi_flow_risk_bitmap = (ndpi_risk)value->int_num;
+      flow->setRisk((ndpi_risk)value->int_num);
       break;
 
     case FLOW_VERDICT:
-      flow->flow_verdict = value->int_num;
+      flow->setFlowVerdict(value->int_num);
       break;
 
     case L7_RISK_INFO:
-      if (value->string && value->string[0]) {
-        if (flow->flow_risk_info) free(flow->flow_risk_info);
-        flow->flow_risk_info = strdup(value->string);
-      }
+      if (value->string && value->string[0])
+	flow->setRiskInfo(value->string);
       break;
 
     case BITTORRENT_HASH:
-      if (value->string && value->string[0] && value->string[0] != '\n') {
-        if (flow->bittorrent_hash) free(flow->bittorrent_hash);
-        flow->bittorrent_hash = strdup(value->string);
-      }
+      if (value->string && value->string[0] && value->string[0] != '\n')
+	flow->setBittorrentHash(value->string);
       break;
 
     case NPROBE_IPV4_ADDRESS:
@@ -1358,47 +1327,47 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow *const flow,
         return false;
 
     case L7_INFO:
-      if (value->string && flow->l7_info)
-        return (strcmp(flow->l7_info, value->string) == 0);
+      if (value->string && flow->getL7Info())
+        return (strcmp(flow->getL7Info(), value->string) == 0);
       else
         return false;
 
     case L7_ERROR_CODE:
-      return (flow->l7_error_code == value->int_num);
+      return (flow->getL7ErrorCode() == value->int_num);
 
     case DNS_QUERY:
-      if (value->string && flow->dns_query)
-        return (strcmp(flow->dns_query, value->string) == 0);
+      if (value->string && flow->getDNSQuery())
+        return (strcmp(flow->getDNSQuery(), value->string) == 0);
       else
         return false;
 
     case DNS_QUERY_TYPE:
       if (value->string)
-        return (flow->dns_query_type == atoi(value->string));
+        return (flow->getDNSQueryType() == atoi(value->string));
       else
-        return (flow->dns_query_type == value->int_num);
+        return (flow->getDNSQueryType() == value->int_num);
 
     case HTTP_URL:
-      if (value->string && flow->http_url)
-        return (strcmp(flow->http_url, value->string) == 0);
+      if (value->string && flow->getHTTPurl())
+        return (strcmp(flow->getHTTPurl(), value->string) == 0);
       else
         return false;
 
     case HTTP_USER_AGENT:
-      if (value->string && flow->http_user_agent)
-        return (strcmp(flow->http_user_agent, value->string) == 0);
+      if (value->string && flow->getHTTPuserAgent())
+        return (strcmp(flow->getHTTPuserAgent(), value->string) == 0);
       else
         return false;
 
     case HTTP_SITE:
-      if (value->string && flow->http_site)
-        return (strcmp(flow->http_site, value->string) == 0);
+      if (value->string && flow->getHTTPsite())
+        return (strcmp(flow->getHTTPsite(), value->string) == 0);
       else
         return false;
 
     case TLS_SERVER_NAME:
-      if (value->string && flow->tls_server_name)
-        return (strcmp(flow->tls_server_name, value->string) == 0);
+      if (value->string && flow->getTLSserverName())
+        return (strcmp(flow->getTLSserverName(), value->string) == 0);
       else
         return false;
 
@@ -1697,7 +1666,7 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 /* **************************************************** */
 
 int ZMQParserInterface::parseSingleJSONFlow(json_object *o,
-                                            u_int8_t source_id) {
+                                            u_int32_t source_id) {
   ParsedFlow flow;
   struct json_object_iterator it = json_object_iter_begin(o);
   struct json_object_iterator itEnd = json_object_iter_end(o);
@@ -1835,7 +1804,7 @@ int ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 /* **************************************************** */
 
 int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
-                                           u_int8_t source_id) {
+                                           u_int32_t source_id) {
   ndpi_serialization_type kt, et;
   ParsedFlow flow;
   int ret = 0, rc;
@@ -2027,7 +1996,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 	/* Attempt to parse it as an nProbe mini field */
 	if(parseNProbeAgentField(&flow, key_str, &value)) {
 	  if(!flow.hasParsedeBPF()) {
-	    flow.setParsedeBPF();
+	    flow->setParsedeBPF();
 	    flow.absolute_packet_octet_counters = true;
 	  }
 	  break;
@@ -2084,11 +2053,19 @@ error:
 /* **************************************************** */
 
 u_int8_t ZMQParserInterface::parseJSONFlow(const char *payload,
-                                           int payload_size, u_int8_t source_id,
+                                           int payload_size, u_int32_t source_id,
                                            u_int32_t msg_id) {
   json_object *f = NULL;
   enum json_tokener_error jerr = json_tokener_success;
 
+#ifndef NTOPNG_PRO
+  /*
+    nProbe exports flows in TLV so this code will be removed in the future
+    Leaving here for old nProbes that will be discontinued soon
+  */
+  return(0);
+#endif
+  
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "JSON: '%s' [len=%lu]", payload, strlen(payload));
   printf("\n\n%s\n\n", payload);
@@ -2120,13 +2097,11 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char *payload,
   } else {
     // if o != NULL
     if (!once) {
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING,
-          "Invalid message received: your nProbe sender is outdated, data "
-          "encrypted or invalid JSON?");
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
-          json_tokener_error_desc(jerr), payload_size, payload);
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Invalid message received: your nProbe sender is outdated, data "
+				   "encrypted or invalid JSON?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
+				   json_tokener_error_desc(jerr), payload_size, payload);
     }
 
     once = true;
@@ -2139,7 +2114,7 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char *payload,
 /* **************************************************** */
 
 u_int8_t ZMQParserInterface::parseTLVFlow(const char *payload, int payload_size,
-                                          u_int8_t source_id, u_int32_t msg_id,
+                                          u_int32_t source_id, u_int32_t msg_id,
                                           void *data) {
   ndpi_deserializer deserializer;
   ndpi_serialization_type kt;
@@ -2150,8 +2125,7 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char *payload, int payload_size,
 
   if (rc == -1) return 0;
 
-  if (ndpi_deserialize_get_format(&deserializer) !=
-      ndpi_serialization_format_tlv) {
+  if (ndpi_deserialize_get_format(&deserializer) != ndpi_serialization_format_tlv) {
     if (!once) {
       ntop->getTrace()->traceEvent(
           TRACE_WARNING,
@@ -2161,6 +2135,7 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char *payload, int payload_size,
           "version available");
       once = true;
     }
+    
     return 0;
   }
 
@@ -2513,7 +2488,7 @@ static std::string mandatory_template_fields[] = {
     "OUT_BYTES",           "OUT_PKTS"};
 
 u_int8_t ZMQParserInterface::parseTemplate(const char *payload,
-                                           int payload_size, u_int8_t source_id,
+                                           int payload_size, u_int32_t source_id,
                                            u_int32_t msg_id, void *data) {
   /* The format that is currently defined for templates is a JSON as follows:
 
@@ -2712,7 +2687,7 @@ u_int8_t ZMQParserInterface::parseOptionFieldValueMap(
 
 u_int8_t ZMQParserInterface::parseListeningPorts(const char *payload,
                                                  int payload_size,
-                                                 u_int8_t source_id,
+                                                 u_int32_t source_id,
                                                  u_int32_t msg_id, void *data) {
   enum json_tokener_error jerr = json_tokener_success;
   json_object *o = json_tokener_parse_verbose(payload, &jerr);
@@ -2762,7 +2737,7 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char *payload,
 
 u_int8_t ZMQParserInterface::parseSNMPIntefaces(const char *payload,
                                                 int payload_size,
-                                                u_int8_t source_id,
+                                                u_int32_t source_id,
                                                 u_int32_t msg_id, void *data) {
   enum json_tokener_error jerr = json_tokener_success;
   json_object *f = json_tokener_parse_verbose(payload, &jerr);
@@ -2802,7 +2777,7 @@ u_int8_t ZMQParserInterface::parseSNMPIntefaces(const char *payload,
 /* **************************************************** */
 
 u_int8_t ZMQParserInterface::parseOption(const char *payload, int payload_size,
-                                         u_int8_t source_id, u_int32_t msg_id,
+                                         u_int32_t source_id, u_int32_t msg_id,
                                          void *data) {
   /* The format that is currently defined for options is a JSON as follows:
 
@@ -2863,7 +2838,7 @@ u_int32_t ZMQParserInterface::periodicStatsUpdateFrequency() const {
 
 void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   ZMQ_RemoteStats *last_zrs, *cumulative_zrs;
-  map<u_int8_t, ZMQ_RemoteStats *>::iterator it;
+  map<u_int32_t, ZMQ_RemoteStats *>::iterator it;
   u_int32_t last_time = getTimeLastPktRcvdRemote();
   struct timeval now;
 
@@ -3018,7 +2993,7 @@ bool ZMQParserInterface::getCustomAppDetails(u_int32_t remapped_app_id,
 
 void ZMQParserInterface::lua(lua_State *vm) {
   ZMQ_RemoteStats *zrs = zmq_remote_stats;
-  std::map<u_int8_t, ZMQ_RemoteStats *>::iterator it;
+  std::map<u_int32_t, ZMQ_RemoteStats *>::iterator it;
 
   NetworkInterface::lua(vm);
 

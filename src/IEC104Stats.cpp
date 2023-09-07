@@ -46,7 +46,7 @@ IEC104Stats::IEC104Stats() {
 
 /* *************************************** */
 
-IEC104Stats::~IEC104Stats() { ndpi_free_data_analysis(i_s_apdu, 0); }
+IEC104Stats::~IEC104Stats() { ndpi_free_data_analysis(i_s_apdu, 1); }
 
 /* *************************************** */
 
@@ -177,17 +177,12 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
       memcpy(&last_i_apdu, packet_time, sizeof(struct timeval));
       stats.type_i++;
 
-      if (len >= 6 /* Ignore 4 bytes APDUs */) {
+      if(((offset + 6) < payload_len) && (len >= 6 /* Ignore 4 bytes APDUs */)) {
         u_int16_t rx_value, tx_value;
-        bool initial_run =
-            ((rx_seq_num == 0) && (tx_seq_num == 0)) ? true : false;
+        bool initial_run = ((rx_seq_num == 0) && (tx_seq_num == 0)) ? true : false;
 
-        tx_value =
-            ((((u_int16_t)payload[offset + 2]) << 8) + payload[offset + 1]) >>
-            1;
-        rx_value =
-            ((((u_int16_t)payload[offset + 4]) << 8) + payload[offset + 3]) >>
-            1;
+        tx_value = ((((u_int16_t)payload[offset + 2]) << 8) + payload[offset + 1]) >> 1;
+        rx_value = ((((u_int16_t)payload[offset + 4]) << 8) + payload[offset + 3]) >> 1;
 
         if (!tx_direction) {
           /* Counters are swapped */
@@ -232,7 +227,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
         /* Skip magic(1), len(1), type/TX(2), RX(2) = 6 */
         len -= 6 /* Skip magic and len */,
-            offset += 5 /* magic already skept */;
+	  offset += 5 /* magic already skept */;
 
         if (payload_len >= (offset + len)) {
           u_int8_t type_id = payload[offset];
@@ -245,7 +240,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
           offset += len + 2 /* magic and len */;
 
-          if (len >= 6)
+          if((len >= 6) && ((offset + 6) <= payload_len))
             asdu = /* ntohs */ (*((u_int16_t *)&payload[4 + offset]));
           else
             asdu = 0;
@@ -273,8 +268,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
             it = type_i_transitions.find(transition);
 
             if (it == type_i_transitions.end()) {
-              if (f->get_duration() >
-                  ntop->getPrefs()->getIEC60870LearingPeriod()) {
+              if (f->get_duration() > ntop->getPrefs()->getIEC60870LearingPeriod()) {
                 FlowAlert *alert = NULL;
                 u_int16_t c_score = 50, s_score = 10;
 
@@ -389,8 +383,8 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
         // ntop->getTrace()->traceEvent(TRACE_WARNING, "*** short APDUs");
         break;
       }
-
-      if (payload[offset] == 0x68 /* IEC magic byte */)
+      
+      if((offset < payload_len) && (payload[offset] == 0x68 /* IEC magic byte */))
         offset += 1; /* We skip the initial magic byte */
       else {
 #ifdef DEBUG_IEC60870
@@ -417,8 +411,7 @@ void IEC104Stats::lua(lua_State *vm) {
 
   lua_newtable(vm);
 
-  for (std::unordered_map<u_int16_t, u_int32_t>::iterator it =
-           typeid_uses.begin();
+  for (std::unordered_map<u_int16_t, u_int32_t>::iterator it = typeid_uses.begin();
        it != typeid_uses.end(); ++it) {
     char buf[8];
 

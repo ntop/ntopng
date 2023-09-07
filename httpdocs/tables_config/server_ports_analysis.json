@@ -1,0 +1,93 @@
+{
+	"id": "server_ports_analysis",
+	"data_url": "lua/pro/rest/v2/get/host/hosts_details_by_port.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": true,
+	"display_empty_rows": true,
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "live_flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "flows_page.live_flows",
+					"class": [
+						"btn-info",
+						"link-button"
+					],
+					"event_id": "click_button_flows"
+				}
+			]
+		},
+		{
+			"title_i18n": "prefs.ip_order",
+			"data_field": "ip",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "db_explorer.host_name",
+			"data_field": "name",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "mac_details.mac",
+			"data_field": "mac",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "mac_stats.manufacturer",
+			"data_field": "mac_manufacturer",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "total_score_host_page",
+			"data_field": "score",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "db_explorer.total_flows",
+			"data_field": "flows",
+			"sortable": true,
+			"class": [
+				"text-end",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "total_traffic",
+			"data_field": "tot_traffic",
+			"sortable": true,
+			"class": [
+				"text-end",
+				"text-nowrap"
+			]
+		}
+
+	]
+}

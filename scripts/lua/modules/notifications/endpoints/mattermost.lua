@@ -1,6 +1,7 @@
 require "lua_utils"
 local json = require "dkjson"
 local alert_utils = require "alert_utils"
+local format_utils = require "format_utils"
 
 local endpoint_key = "mattermost"
 
@@ -97,7 +98,7 @@ function mattermost.sendMattermost(message_body,settings)
 end
 
 local function formatMattermostMessage(alert)
-  local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true, emoji=true, show_entity=true})
+  local msg = format_utils.formatMessage(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true, emoji=true, show_entity=true})
   
   return(msg)
 end
@@ -121,10 +122,14 @@ function mattermost.dequeueRecipientAlerts(recipient, budget)
 
     -- Dequeue max_alerts_per_request notifications
     local notifications = {}
-    for i=1, max_alerts_per_request do
+    local i = 0
+    while i < max_alerts_per_request do
       local notification = ntop.recipient_dequeue(recipient.recipient_id)
       if notification then 
-        notifications[#notifications + 1] = notification.alert
+        if alert_utils.filter_notification(notification, recipient.recipient_id) then
+          notifications[#notifications + 1] = notification.alert
+          i = i + 1
+        end
       else
         break
       end

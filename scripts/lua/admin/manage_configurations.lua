@@ -21,7 +21,7 @@ local configuration_items
 local page = _GET["page"]
 local base_url = ntop.getHttpPrefix() .. "/lua/admin/manage_configurations.lua"
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.manage_configurations)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.manage_configurations)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 page_utils.print_navbar(i18n('manage_configurations.manage_configuration'), base_url .. "?", {{
@@ -98,7 +98,7 @@ end
 
 local selected_item = (table.has_key(configuration_items, _GET["item"]) and _GET["item"] or "all")
 
--- page_utils.set_active_menu_entry(page_utils.menu_entries.manage_configurations)
+-- page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.manage_configurations)
 
 -- append the menu above the page
 

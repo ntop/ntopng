@@ -5,6 +5,35 @@ These checks are performed per network interface monitored by ntopng.
 
 ____________________
 
+
+**Alerts Drops**
+~~~~~~~~~~~~~~~~
+
+Checks for dropped alerts.
+
+The alerts could be dropped when too many are queued/generated.
+
+The alert is sent when the system drops the alert.
+
+*Category: Internals*
+
+*Enabled by Default*
+
+
+**DHCP Storm**
+~~~~~~~~~~~~~~
+
+Checks for DHCP flooding.
+
+DHCP storm occurs when DHCP router gets too many packets requests in a minute - by blocking totally the router functioning.
+
+The alert is triggered when DHCP storm is detected.
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
 **Ghost Networks**
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -18,36 +47,39 @@ The alert is sent when the unknown network is discovered.
 
 *Enabled by Default*
 
-**Idle Hash Table Entries Alert**
+**Idle Hash Table Entries**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Checks for Idle Entries.
 
+Trigger an alert when the percentage of idle entries in the hash table over the total number of entries exceeds the threshold.
 
-
-
-
-**Interface Alerts Drops**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Checks for dropped alerts.
-
-The alerts could be dropped when too many are queued/generated.
-
-The alert is sent when the system drops the alert.
-
-*Category: Cybersecurity*
+*Category: Internals*
 
 *Enabled by Default*
 
 
-**No activity on interface**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**No Traffic Activity**
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for activities on the interface.
 
 There could be no traffic because of misconfigurations or because of the mirror network link that has gone down.
 
 The alert is sent when no activity on the interface is noticed.
+
+*Category: Internals*
+
+*Enabled by Default*
+
+**Packet Drops**
+~~~~~~~~~~~~~~~~
+
+Checks for dropped packets.
+
+The packets could be dropped when too many are analyzed.
+
+The alert is sent when the system drops packets.
 
 *Category: Internals*
 
@@ -84,7 +116,7 @@ Alert is sent when periodic activity is taking too long to execute.
 *Enabled by Default*
 
 
-**Throughput Alert**
+**Throughput Exceeded**
 ~~~~~~~~~~~~~~~~~~~~
 
 Checks for throughput rate.
@@ -112,7 +144,6 @@ Alert is sent when unusual app behaviour is detected.
 *Enabled by Default*
 
 
-
 **Unexpected ASN Behaviour**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Checks for ASN Behaviour.
@@ -124,49 +155,6 @@ The alert is sent when unexpected behaviour is seen in ASN.
 *Category: Cybersecurity*
 
 *Not Enabled by Default*
-
-
-**Unexpected Network Behaviour**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Checks for Unexpected Behaviour.
-
-Network behavior anomaly detection is focused on networks for abnormal behavior in order to detect threats or flaws.
- 
-Alert is triggered when unexpected behaviour comes from the specific network.
-
-*Category: Cybersecurity*
-
-*Not Enabled by Default*
-
-
-**DHCP Storm**
-~~~~~~~~~~~~~~
-
-Checks for DHCP flooding.
-
-DHCP storm occurs when DHCP router gets too many packets requests in a minute - by blocking totally the router functioning.
-
-The alert is triggered when DHCP storm is detected.
-
-*Category: Cybersecurity*
-
-*Enabled by Default*
-
-
-**DHCP Starvation**
-~~~~~~~~~~~~~~~~~~~
-
-Checks for DHCP starvation.
-
-
-DHCP starvation attacks and DHCP spoofing. In DHCP starvation attacks, an attacker floods the DHCP server with DHCP requests to use up all the available IP addresses.The “starved” DHCP server will not respond to new DHCP requests until a new address becomes available.
-
-
-Ntopng sends an alert in case DHCP starvation occurs.
-
-*Category: Cybersecurity*
-
-*Enabled by Default*
 
 
 **Unexpected Device Connected/Disconnected**
@@ -182,3 +170,42 @@ By jumping there, users are able to configure denied/allowed MAC addresses (unex
 *License: Pro*
 
 *Disabled by Default*
+
+
+**Unexpected Network Behaviour**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for Unexpected Behaviour.
+
+Network behavior anomaly detection is focused on networks for abnormal behavior in order to detect threats or flaws.
+ 
+Alert is triggered when unexpected behaviour comes from the specific network.
+
+*Category: Cybersecurity*
+
+*Not Enabled by Default*  
+
+
+**Unexpected Score Behaviour**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for Unexpected Behaviour.
+
+Score behavior anomaly detection is focused on score for abnormal behavior in order to detect threats or flaws.
+ 
+Alert is triggered when unexpected behaviour comes from the interface.
+
+*Category: Cybersecurity*
+
+*Not Enabled by Default*  
+
+
+**Unexpected Traffic Behaviour**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for Unexpected Behaviour.
+
+Traffic behavior anomaly detection is focused on the interface for abnormal behavior in order to detect threats or flaws.
+ 
+Alert is triggered when unexpected behaviour comes from the interface.
+
+*Category: Cybersecurity*
+
+*Not Enabled by Default*  

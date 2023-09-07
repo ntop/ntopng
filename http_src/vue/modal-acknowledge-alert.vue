@@ -38,13 +38,14 @@ const emit = defineEmits(["acknowledge"]);
 
 const props = defineProps({
     context: Object,
+    page: String,
 });
 
 onMounted(() => {
 });
 
 async function acknowledge() {
-    const url = `${http_prefix}/lua/rest/v2/acknowledge/flow/alerts.lua`;
+    const url = `${http_prefix}/lua/rest/v2/acknowledge/${props.page}/alerts.lua`;
     const params = {
 	csrf: props.context.csrf,
 	ifid: props.context.ifid,

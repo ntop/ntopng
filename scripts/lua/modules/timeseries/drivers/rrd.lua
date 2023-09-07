@@ -1,7 +1,6 @@
 --
 -- (C) 2020-22 - ntop.org
 --
-
 local driver = {}
 
 local os_utils = require("os_utils")
@@ -11,27 +10,27 @@ local ts_utils = require "ts_utils_core"
 
 require("rrd_paths")
 
-local use_hwpredict        = false
-local use_rrd_queue        = true
+local use_hwpredict = false
+local use_rrd_queue = true
 
 local type_to_rrdtype = {
    [ts_common.metrics.counter] = "DERIVE",
-   [ts_common.metrics.gauge]  = "GAUGE",
+   [ts_common.metrics.gauge] = "GAUGE"
 }
 
 local aggregation_to_consolidation = {
    [ts_common.aggregation.mean] = "AVERAGE",
-   [ts_common.aggregation.max]  = "MAX",
-   [ts_common.aggregation.min]  = "MIN",
-   [ts_common.aggregation.last] = "LAST",
+   [ts_common.aggregation.max] = "MAX",
+   [ts_common.aggregation.min] = "MIN",
+   [ts_common.aggregation.last] = "LAST"
 }
 
 local L4_PROTO_KEYS = {
-  tcp=6,
-  udp=17,
-  icmp=1,
-  eigrp=88,
-  other_ip=-1
+   tcp = 6,
+   udp = 17,
+   icmp = 1,
+   eigrp = 88,
+   other_ip = -1
 }
 
 -- ##############################################
@@ -43,14 +42,14 @@ local function isDebugEnabled()
       debug_enabled = (ntop.getPref("ntopng.prefs.rrd_debug_enabled") == "1")
    end
 
-   return(debug_enabled)
+   return (debug_enabled)
 end
 
 -- ##############################################
 
 function driver:new(options)
    local obj = {
-      base_path = options.base_path,
+      base_path = options.base_path
    }
 
    setmetatable(obj, self)
@@ -75,9 +74,14 @@ local HOST_PREFIX_MAP = {
    flowdev_port = "flow_device:",
    sflowdev_port = "sflow:",
    snmp_if = "snmp:",
-   host_pool = "pool:",
+   host_pool = "pool:"
 }
-local WILDCARD_TAGS = {protocol=1, category=1, l4proto=1, dscp_class=1}
+local WILDCARD_TAGS = {
+   protocol = 1,
+   category = 1,
+   l4proto = 1,
+   dscp_class = 1
+}
 
 local function get_fname_for_schema(schema, tags)
    if schema.options.rrd_fname ~= nil then
@@ -97,7 +101,7 @@ local function get_fname_for_schema(schema, tags)
 end
 
 local function schema_get_path(schema, tags)
-   local parts = {schema.name, }
+   local parts = {schema.name}
    local suffix = ""
    local rrd
 
@@ -106,12 +110,12 @@ local function schema_get_path(schema, tags)
    local host_or_network = nil
    local parts = string.split(schema.name, ":")
 
-   if((string.find(schema.name, "iface:") ~= 1) and  -- interfaces are only identified by the first tag
-      (#schema._tags >= 1)) then                    -- some schema do not have any tag, e.g. "process:*" schemas
+   if ((string.find(schema.name, "iface:") ~= 1) and -- interfaces are only identified by the first tag
+      (#schema._tags >= 1)) then -- some schema do not have any tag, e.g. "process:*" schemas
       local prefix = HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")
       local suffix = tags[schema._tags[2] or schema._tags[1]] or tags[schema._tags[1]]
 
-      if(suffix ~= ifid) then
+      if (suffix ~= ifid) then
 	 host_or_network = prefix .. suffix
       else
 	 -- Avoid repeating the ifid suffix in the path
@@ -138,13 +142,13 @@ local function schema_get_path(schema, tags)
       -- tag1:ifid
       -- tag2:already handled as host_or_network
       -- last tag must be handled separately
-      for i=3, #schema._tags-1 do
+      for i = 3, #schema._tags - 1 do
 	 intermediate_tags[#intermediate_tags + 1] = tags[schema._tags[i]]
       end
 
       local last_tag = schema._tags[#schema._tags]
 
-      if(not WILDCARD_TAGS[last_tag]) then
+      if (not WILDCARD_TAGS[last_tag]) then
 	 intermediate_tags[#intermediate_tags + 1] = tags[last_tag]
       end
 
@@ -163,7 +167,7 @@ end
 function driver.schema_get_full_path(schema, tags)
    local base, rrd = schema_get_path(schema, tags)
 
-   if((not base) or (not rrd)) then
+   if ((not base) or (not rrd)) then
       return nil
    end
 
@@ -185,13 +189,13 @@ end
 local function getConsolidationFunction(schema)
    local fn = schema:getAggregationFunction()
 
-   if(aggregation_to_consolidation[fn] ~= nil) then
-      return(aggregation_to_consolidation[fn])
+   if (aggregation_to_consolidation[fn] ~= nil) then
+      return (aggregation_to_consolidation[fn])
    end
 
    traceError(TRACE_ERROR, TRACE_CONSOLE, "unknown aggregation function: %s", fn)
 
-   return("AVERAGE")
+   return ("AVERAGE")
 end
 
 -- ##############################################
@@ -202,7 +206,7 @@ local function create_rrd(schema, path, timestamp)
    local params = {path, schema.options.insertion_step}
    local cf = getConsolidationFunction(schema)
 
-   if(timestamp ~= nil) then
+   if (timestamp ~= nil) then
       -- RRD start time (--start/-b)
       -- It must be tuned so that the first point of the chart in the subsequent
       -- rrd_update will not be discarded
@@ -224,12 +228,12 @@ local function create_rrd(schema, path, timestamp)
    end
 
    if isDebugEnabled() then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("ntop.rrd_create(%s) schema=%s",
-							    table.concat(params, ", "), schema.name))
+      traceError(TRACE_NORMAL, TRACE_CONSOLE,
+		 string.format("ntop.rrd_create(%s) schema=%s", table.concat(params, ", "), schema.name))
    end
 
    local err = ntop.rrd_create(table.unpack(params))
-   if(err ~= nil) then
+   if (err ~= nil) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, err)
       return false
    end
@@ -246,36 +250,36 @@ local function number_to_rrd_string(what, schema)
    local err_msg = ''
    what = tonumber(what)
 
-   if(what == nil) then
+   if (what == nil) then
       err_msg = "Attempting at converting a nil to number"
-   elseif(type(what) ~= "number") then
+   elseif (type(what) ~= "number") then
       err_msg = "number_to_rrd_string got a non-number argument: " .. type(what)
-   elseif(what ~= what) then
+   elseif (what ~= what) then
       err_msg = "Trying to convert NaN to integer"
-   elseif(what == math.huge) then
+   elseif (what == math.huge) then
       err_msg = "Trying to convert inf to integer"
-   elseif((what >= math.maxinteger) or (what <= math.mininteger)) then
+   elseif ((what >= math.maxinteger) or (what <= math.mininteger)) then
       err_msg = "Number out of integers range: " .. what
    elseif what == math.floor(what) then
       -- If the number has no decimal place, print it as a digit
-      return(string.format("%d", what))
+      return (string.format("%d", what))
    else
       -- If the number has decimal places, print it as a float
       -- (don't touch the precision, let's the rrd do this job if necessary)
-      return(string.format("%f", what))
+      return (string.format("%f", what))
    end
 
    -- Log the error with the schema name
    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s [%s]", err_msg, schema_name))
    traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
 
-   return("0")
+   return ("0")
 end
 
 -- ##############################################
 
 local function update_rrd(schema, rrdfile, timestamp, data)
-   local params = { number_to_rrd_string(timestamp, schema), }
+   local params = {number_to_rrd_string(timestamp, schema)}
 
    -- io.write("update_rrd(".. rrdfile ..")\n")
 
@@ -286,11 +290,10 @@ local function update_rrd(schema, rrdfile, timestamp, data)
    -- Verify last update time
    local last_update = ntop.rrd_lastupdate(rrdfile)
 
-   if((last_update ~= nil) and (timestamp <= last_update)) then
+   if ((last_update ~= nil) and (timestamp <= last_update)) then
       if isDebugEnabled() then
-	 traceError(TRACE_NORMAL, TRACE_CONSOLE,
-		    string.format("Skip RRD update in the past: timestamp=%u but last_update=%u",
-				  timestamp, last_update))
+	 traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format(
+		       "Skip RRD update in the past: timestamp=%u but last_update=%u", timestamp, last_update))
       end
 
       return false
@@ -301,13 +304,13 @@ local function update_rrd(schema, rrdfile, timestamp, data)
    end
 
    if isDebugEnabled() then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("ntop.rrd_update(%s, %s) schema=%s",
-							    rrdfile, table.concat(params, ", "), schema.name))
+      traceError(TRACE_NORMAL, TRACE_CONSOLE,
+		 string.format("ntop.rrd_update(%s, %s) schema=%s", rrdfile, table.concat(params, ", "), schema.name))
    end
 
    local err = ntop.rrd_update(rrdfile, table.unpack(params))
 
-   if(err ~= nil) then
+   if (err ~= nil) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, err)
       return false
    end
@@ -319,7 +322,7 @@ end
 
 function driver:append(schema, timestamp, tags, metrics)
    local base, rrd = schema_get_path(schema, tags)
-   local rrdfile   = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+   local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
    if use_rrd_queue then
       if not schema.options.is_critical_ts then
@@ -352,9 +355,11 @@ local function makeTotalSerie(series, count)
       for i, val in pairs(serie.data) do
 	 local val_is_nan = (val ~= val)
 
-	 if(total[i] == nil) then total[i] = 0 end
+	 if (total[i] == nil) then
+	    total[i] = 0
+	 end
 
-	 if(not val_is_nan) then
+	 if (not val_is_nan) then
 	    total[i] = total[i] + val
 	 end
       end
@@ -365,10 +370,10 @@ end
 
 -- ##############################################
 
-local function sampleSeries(schema, cur_points, step, max_points, series)
+local function sampleSeries(schema, cur_points, step, max_points, series, consolidation)
    local sampled_dp = math.ceil(cur_points / max_points)
    local count = nil
-   local nan = 0/0
+   local nan = 0 / 0
 
    for _, data_serie in pairs(series) do
       local serie = data_serie.data
@@ -376,18 +381,21 @@ local function sampleSeries(schema, cur_points, step, max_points, series)
       local sum = 0
       local all_nan = true
       local end_idx = 1
-
+      local max_val = -1
+      
       for idx, dp in ipairs(serie) do
-	 if(dp ~= dp) then
+	 if (dp ~= dp) then
 	    -- Convert NaN to 0 to calculate the sums
 	    dp = 0
 	 else
 	    all_nan = false
 	 end
-
+	 
 	 sum = sum + dp
 	 num = num + 1
 
+	 if(dp > max_val) then max_val = dp end
+	 
 	 if num == sampled_dp then
 	    -- A data group is ready
 	    if all_nan then
@@ -396,12 +404,18 @@ local function sampleSeries(schema, cur_points, step, max_points, series)
 	       sum = nan
 	    end
 
-	    serie[end_idx] = sum / num
+	    if(consolidation == "MAX") then
+	       serie[end_idx] = max_val
+	    else
+	       serie[end_idx] = sum / num
+	    end
+	    
 	    end_idx = end_idx + 1
 
 	    num = 0
 	    sum = 0
 	    all_nan = true
+	    max_val = 0
 	 end
       end
 
@@ -415,7 +429,7 @@ local function sampleSeries(schema, cur_points, step, max_points, series)
 	 end_idx = end_idx + 1
       end
 
-      count = end_idx-1
+      count = end_idx - 1
 
       -- remove the exceeding points
       for i = end_idx, #serie do
@@ -435,27 +449,120 @@ end
 -- This is also needed to make sure that multiple data series on graphs have the
 -- same number of points, otherwise d3js will generate errors.
 local function touchRRD(rrdname)
-   local now  = os.time()
+   local now = os.time()
    local last, ds_count = ntop.rrd_lastupdate(rrdname)
 
-   if((last ~= nil) and ((now-last) > 3600)) then
+   if ((last ~= nil) and ((now - last) > 3600)) then
       local tdiff = now - 1800 -- This avoids to set the update continuously
 
       if isDebugEnabled() then
-	 traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("touchRRD(%s, %u), last_update was %u",
-							       rrdname, tdiff, last))
+	 traceError(TRACE_NORMAL, TRACE_CONSOLE,
+		    string.format("touchRRD(%s, %u), last_update was %u", rrdname, tdiff, last))
       end
 
-      if(ds_count == 1) then
-	 ntop.rrd_update(rrdname, tdiff.."", "0")
-      elseif(ds_count == 2) then
-	 ntop.rrd_update(rrdname, tdiff.."", "0", "0")
-      elseif(ds_count == 3) then
-	 ntop.rrd_update(rrdname, tdiff.."", "0", "0", "0")
-      elseif(ds_count == 4) then
-	 ntop.rrd_update(rrdname, tdiff.."", "0", "0", "0", "0")
+      if (ds_count == 1) then
+	 ntop.rrd_update(rrdname, tdiff .. "", "0")
+      elseif (ds_count == 2) then
+	 ntop.rrd_update(rrdname, tdiff .. "", "0", "0")
+      elseif (ds_count == 3) then
+	 ntop.rrd_update(rrdname, tdiff .. "", "0", "0", "0")
+      elseif (ds_count == 4) then
+	 ntop.rrd_update(rrdname, tdiff .. "", "0", "0", "0", "0")
       end
    end
+end
+
+-- ##############################################
+
+function driver:timeseries_query(options)
+   local base, rrd = schema_get_path(options.schema_info, options.tags)
+   local rrdfile = options.rrdfile or os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+   local res = nil
+
+   if not ntop.notEmptyFile(rrdfile) then
+      return res
+   end
+
+   touchRRD(rrdfile)
+
+   -- Get last update
+   local last_update = ntop.rrd_lastupdate(rrdfile)
+
+   -- Avoid reporting the last point when the timeseries write has not completed
+   -- yet. Use 2*step as a bound.
+   if ((options.epoch_end > last_update) and
+      ((options.epoch_end - last_update) <= 2 * options.schema_info.options.step)) then
+      options.epoch_end = last_update
+   end
+
+   -- Query rrd to get the data
+   -- tprint("rrdtool fetch ".. rrdfile.. " " .. getConsolidationFunction(schema) .. " -s ".. tstart .. " -e " .. tend)
+   local consolidation = getConsolidationFunction(options.schema_info)
+   local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, consolidation, options.epoch_begin, options.epoch_end)
+
+   if fdata == nil then
+      return res
+   end
+
+   local count = 0
+   local series = {}
+   local sampled_fstep = fstep
+   local serie_idx = 0
+
+   -- Process the series requested, adding statistics if requested (min, max, tot, ...)
+   -- and normalize the data if needed
+   local max_val = ts_common.getMaxPointValue(options.schema_info, name, options.tags)
+   
+   for name, _ in pairs(fdata) do
+      serie_idx = serie_idx + 1 -- the first id is 1
+      local name = options.schema_info._metrics[serie_idx]
+      local fdata_name = names[serie_idx]
+      local serie = fdata[fdata_name]
+      local modified_serie = {}
+      count = 0
+
+      -- Normalize the value
+      for i, v in pairs(serie) do
+	 modified_serie[i] = ts_common.normalizeVal(v, max_val, options)
+	 count = count + 1
+      end
+
+      series[#series + 1] = {
+	 data = modified_serie,
+	 id = name
+      }
+   end
+
+   if count > options.max_num_points then       
+      sampled_fstep, count = sampleSeries(options.schema_info, count, fstep, options.max_num_points, series, consolidation)
+   end
+
+   -- Need to re-iterate all the series, otherwise the stats cannot be 
+   -- calculated on the sampled serie
+   for i, data_serie in pairs(series) do
+      -- Add statistics if requested, by default yes
+      if options.calculate_stats then
+	 local s = ts_common.calculateStatistics(series[i].data, fstep, options.epoch_end - options.epoch_begin,
+						 options.schema_info.options.metrics_type)
+	 local min_max = ts_common.calculateMinMax(data_serie.data)
+	 local statistics = table.merge(s, min_max)
+	 series[i].statistics = statistics
+      end
+   end
+
+   res = {
+      metadata = {
+	 epoch_begin = options.epoch_begin,
+	 epoch_end = options.epoch_end,
+	 epoch_step = sampled_fstep,
+	 num_point = count or 0,
+	 schema = options.schema,
+	 query = options.tags
+      },
+      series = series
+   }
+
+   return res
 end
 
 -- ##############################################
@@ -473,18 +580,20 @@ function driver:query(schema, tstart, tend, tags, options)
    local last_update = ntop.rrd_lastupdate(rrdfile)
 
    if isDebugEnabled() then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("RRD_FETCH schema=%s %s -> (%s): last_update=%u",
-							    schema.name, table.tconcat(tags, "=", ","), rrdfile, last_update))
+      traceError(TRACE_NORMAL, TRACE_CONSOLE,
+		 string.format("RRD_FETCH schema=%s %s -> (%s): last_update=%u", schema.name, table.tconcat(tags, "=", ","),
+			       rrdfile, last_update))
    end
 
    -- Avoid reporting the last point when the timeseries write has not completed
    -- yet. Use 2*step as a bound.
-   if((tend > last_update) and ((tend - last_update) <= 2*schema.options.step)) then
+   if ((tend > last_update) and ((tend - last_update) <= 2 * schema.options.step)) then
       tend = last_update
    end
 
    -- tprint("rrdtool fetch ".. rrdfile.. " " .. getConsolidationFunction(schema) .. " -s ".. tstart .. " -e " .. tend)
-   local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart, tend)
+   local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema),
+									    tstart, tend)
 
    if fdata == nil then
       return nil
@@ -495,8 +604,8 @@ function driver:query(schema, tstart, tend, tags, options)
 
    local serie_idx = 0
 
-   for name,_ in pairs(fdata) do
-      serie_idx = serie_idx + 1  -- the first id is 1
+   for name, _ in pairs(fdata) do
+      serie_idx = serie_idx + 1 -- the first id is 1
       local name = schema._metrics[serie_idx]
       local fdata_name = names[serie_idx]
       serie = fdata[fdata_name]
@@ -506,20 +615,23 @@ function driver:query(schema, tstart, tend, tags, options)
 
       -- unify the format
       for i, v in pairs(serie) do
-         local value = ts_common.normalizeVal(v, max_val, options)
-         if options.keep_nan == true and tostring(v) == '-nan' then
-            value = v
-         end
-         
-         serie[i] = value
-         count = count + 1
+	 local value = ts_common.normalizeVal(v, max_val, options)
+	 if options.keep_nan == true and tostring(v) == '-nan' then
+	    value = v
+	 end
+
+	 serie[i] = value
+	 count = count + 1
       end
 
       -- Remove the last value: RRD seems to give an additional point
       serie[#serie] = nil
       count = count - 1
 
-      series[serie_idx] = {label=name, data=serie}
+      series[serie_idx] = {
+	 label = name,
+	 data = serie
+      }
    end
 
    -- table.clone needed as series can be modified below (sampleSeries works on it in-place)
@@ -533,37 +645,38 @@ function driver:query(schema, tstart, tend, tags, options)
       sampled_fstep = fstep
    end
 
-   --local returned_tend = fstart + fstep * (count-1)
-   --tprint(returned_tend .. " " .. fstart)
+   -- local returned_tend = fstart + fstep * (count-1)
+   -- tprint(returned_tend .. " " .. fstart)
 
    local total_series = nil
    local stats = nil
 
    -- tprint("Step: "..fstep.." / unsampled_fstep: "..unsampled_fstep)
-   --tprint(unsampled_series)
+   -- tprint(unsampled_series)
 
    if options.calculate_stats then
       total_series = makeTotalSerie(series, count)
       -- statistics used in report page
       local total_series = makeTotalSerie(series, count)
       stats = ts_common.calculateStatistics(total_series, sampled_fstep, tend - tstart, schema.options.metrics_type)
-      
+
       stats = stats or {}
       stats.by_serie = {}
 
       -- Also calculate per-series statistics
       for k, v in pairs(series) do
-         local s = ts_common.calculateStatistics(v.data, sampled_fstep, tend - tstart, schema.options.metrics_type)
-         local min_max = ts_common.calculateMinMax(v.data)
-         
-         -- Adding per timeseries min-max stats
-         stats.by_serie[k] = table.merge(s, min_max)
+	 local s = ts_common.calculateStatistics(v.data, sampled_fstep, tend - tstart, schema.options.metrics_type)
+	 local min_max = ts_common.calculateMinMax(v.data)
+
+	 -- Adding per timeseries min-max stats
+	 stats.by_serie[k] = table.merge(s, min_max)
       end
    end
 
    if options.initial_point then
       local serie_idx = 1
-      local _, _, initial_pt, _, _, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart-schema.options.step, tstart-schema.options.step)
+      local _, _, initial_pt, _, _, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema),
+								   tstart - schema.options.step, tstart - schema.options.step)
       initial_pt = initial_pt or {}
 
       for name_key, values in pairs(initial_pt) do
@@ -588,7 +701,7 @@ function driver:query(schema, tstart, tend, tags, options)
    -- tprint(schema.options.metrics_type)
 
    -- tprint("fstep: "..sampled_fstep.." / ".."count: "..count .. " / tot: ".. (sampled_fstep*count))
-   
+
    if options.calculate_stats then
       stats = table.merge(stats, ts_common.calculateMinMax(total_series))
    end
@@ -600,8 +713,8 @@ function driver:query(schema, tstart, tend, tags, options)
       series = series,
       statistics = stats,
       additional_series = {
-	 total = total_series,
-      },
+	 total = total_series
+      }
    }
 end
 
@@ -610,11 +723,17 @@ end
 -- *Limitation*
 -- tags_filter is expected to contain all the tags of the schema except the last
 -- one. For such tag, a list of available values will be returned.
-function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, not_print_error)
    if #wildcard_tags > 1 then
-      tprint(debug.traceback())
-      tprint({schema_name = schema.name, wildcards=wildcard_tags})
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
+      if not not_print_error then
+	 tprint(debug.traceback())
+	 tprint({
+	       schema_name = schema.name,
+	       wildcards = wildcard_tags
+	 })
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
+      end
+
       return nil
    end
 
@@ -632,11 +751,14 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
    end
 
    if wildcard_tag ~= schema._tags[#schema._tags] then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver only support listSeries with wildcard in the last tag, got wildcard on '" .. wildcard_tag .. "'")
+      traceError(TRACE_ERROR, TRACE_CONSOLE,
+		 "RRD driver only support listSeries with wildcard in the last tag, got wildcard on '" .. wildcard_tag .. "'")
       return nil
    end
 
-   local base, rrd = schema_get_path(schema, table.merge(tags_filter, {[wildcard_tag] = ""}))
+   local base, rrd = schema_get_path(schema, table.merge(tags_filter, {
+							    [wildcard_tag] = ""
+   }))
    local files = ntop.readdir(base)
    local res = {}
 
@@ -647,9 +769,8 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
       local v = string.split(f, "%.rrd")
       local fpath = base .. "/" .. f
 
-      if((v ~= nil) and (#v == 1)) then
+      if ((v ~= nil) and (#v == 1)) then
 	 local last_update = ntop.rrd_lastupdate(fpath)
-
 	 if last_update ~= nil and last_update >= start_time then
 	    local value = v[1]
 	    local toadd = false
@@ -682,13 +803,16 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 	       if L4_PROTO_KEYS[value] ~= nil then
 		  toadd = true
 	       end
-	    elseif ((wildcard_tag ~= "protocol") or ((L4_PROTO_KEYS[value] == nil) and (interface.getnDPIProtoId(value) ~= -1))) and
-	       ((wildcard_tag ~= "category") or (interface.getnDPICategoryId(value) ~= -1)) then
+	    elseif ((wildcard_tag ~= "protocol") or
+	       ((L4_PROTO_KEYS[value] == nil) and interface.getnDPIProtoId(value) ~= 0)) 
+	       and ((wildcard_tag ~= "category") or (interface.getnDPICategoryId(value) ~= -1)) then
 	       toadd = true
 	    end
 
 	    if toadd then
-	       res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = value})
+	       res[#res + 1] = table.merge(tags_filter, {
+					      [wildcard_tag] = value
+	       })
 	    end
 	 end
       elseif ntop.isdir(fpath) then
@@ -697,12 +821,147 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 	 local last_update = ntop.rrd_lastupdate(fpath)
 
 	 if last_update ~= nil and last_update >= start_time then
-	    res[#res + 1] = table.merge(tags_filter, {[wildcard_tag] = f})
+	    res[#res + 1] = table.merge(tags_filter, {
+					   [wildcard_tag] = f
+	    })
 	 end
       end
    end
 
    return res
+end
+
+-- ##############################################
+
+function driver:timeseries_top(options, top_tags)
+   if #top_tags > 1 then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support topk on multiple tags")
+      return nil
+   end
+
+   local top_tag = top_tags[1]
+
+   if top_tag ~= options.schema_info._tags[#options.schema_info._tags] then
+      traceError(TRACE_ERROR, TRACE_CONSOLE,
+		 "RRD driver only support topk with topk tag in the last tag, got topk on '" .. (top_tag or "") .. "'")
+      return nil
+   end
+
+   local series = driver:listSeries(options.schema_info, options.tags, top_tags, options.epoch_begin)
+   if not series then
+      return nil
+   end
+
+   local available_items = {}
+   local available_tags = {}
+   local available_series = {}
+   local total_valid = true
+   local step = 0
+   local query_start = options.epoch_begin
+   local cf = getConsolidationFunction(options.schema_info)
+
+   -- Quering all the different schema and unify all the data
+   for _, serie_tags in pairs(series) do
+      local rrdfile = driver.schema_get_full_path(options.schema_info, serie_tags)
+      options.rrdfile = rrdfile
+      local options_merged = options
+      options_merged.tags = serie_tags
+      local stats = driver:timeseries_query(options_merged)
+      local partials = {}
+      local serie_idx = 0
+
+      if stats then
+	 local sum = 0
+	 step = stats.metadata.epoch_step
+	 local aggregated_serie = {}
+	 local statistics = {}
+	 -- For each serie, get the sum and other stats
+	 for _, serie in pairs(stats.series or {}) do
+	    serie_idx = serie_idx + 1 -- the first id is 1
+	    local name = options.schema_info._metrics[serie_idx]
+
+	    if table.len(statistics) == 0 then
+	       statistics = serie.statistics
+	    else
+	       for stat_name, value in pairs(serie.statistics) do
+		  statistics[stat_name] = statistics[stat_name] + value
+	       end
+	    end
+	    partials[name] = 0
+
+	    for i, serie_point in pairs(serie.data) do
+	       if tostring(serie_point) ~= '-nan' then
+		  sum = sum + tonumber(serie_point)
+	       end
+
+	       if not aggregated_serie[i] then
+		  aggregated_serie[i] = 0
+	       end
+
+	       aggregated_serie[i] = aggregated_serie[i] + serie_point
+	       partials[name] = partials[name] + serie_point * step
+	    end
+	 end
+
+	 available_items[serie_tags[top_tag]] = sum * step
+	 available_tags[serie_tags[top_tag]] = {serie_tags, partials}
+	 available_series[serie_tags[top_tag]] = {
+	    data = aggregated_serie,
+	    statistics = statistics
+	 }
+      end
+   end
+
+   local top_series = {}
+   local count = 0
+   local id = "bytes"
+
+   if ends(options.schema, "packets") then
+      id = "packets"
+   end
+
+   for top_item, value in pairsByValues(available_items, rev) do
+      if value > 0 then
+	 local snmp_utils = require "snmp_utils"
+	 local snmp_cached_dev = require "snmp_cached_dev"
+	 local cached_device = snmp_cached_dev:create(options.tags.device)
+	 local ifindex = available_tags[top_item][1].if_index or available_tags[top_item][1].port
+	 local ext_label = nil
+	 if cached_device then
+	    ext_label = snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex])
+	    if isEmptyString(ext_label) then
+	       ext_label = ifindex
+	    end
+	 end
+
+	 count = table.len(available_series[top_item].data)
+	 top_series[#top_series + 1] = {
+	    data = available_series[top_item].data,
+	    id = id,
+	    type = "line",
+	    statistics = available_series[top_item].statistics,
+	    ext_label = ext_label
+	 }
+      end
+
+      if #top_series >= options.top then
+	 break
+      end
+   end
+
+   local stats = nil
+
+   return {
+      metadata = {
+	 epoch_begin = options.epoch_begin,
+	 epoch_end = options.epoch_end,
+	 epoch_step = step,
+	 num_point = count,
+	 schema = options.schema,
+	 query = options.tags
+      },
+      series = top_series
+   }
 end
 
 -- ##############################################
@@ -716,11 +975,12 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
    local top_tag = top_tags[1]
 
    if top_tag ~= schema._tags[#schema._tags] then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver only support topk with topk tag in the last tag, got topk on '" .. (top_tag or "") .. "'")
+      traceError(TRACE_ERROR, TRACE_CONSOLE,
+		 "RRD driver only support topk with topk tag in the last tag, got topk on '" .. (top_tag or "") .. "'")
       return nil
    end
 
-   local series = driver:listSeries(schema, tags, top_tags, tstart)
+   local series = driver:listSeries(schema, tags, top_tags, tstart, tend)
    if not series then
       return nil
    end
@@ -734,15 +994,16 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
    local cf = getConsolidationFunction(schema)
 
    if options.initial_point then
-      query_start =  tstart - schema.options.step
+      query_start = tstart - schema.options.step
    end
 
    for _, serie_tags in pairs(series) do
       local rrdfile = driver.schema_get_full_path(schema, serie_tags)
 
       if isDebugEnabled() then
-	 traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("RRD_FETCH[topk] schema=%s %s[%s] -> (%s): last_update=%u",
-							       schema.name, table.tconcat(tags, "=", ","), table.concat(top_tags, ","), rrdfile, ntop.rrd_lastupdate(rrdfile)))
+	 traceError(TRACE_NORMAL, TRACE_CONSOLE,
+		    string.format("RRD_FETCH[topk] schema=%s %s[%s] -> (%s): last_update=%u", schema.name,
+				  table.tconcat(tags, "=", ","), table.concat(top_tags, ","), rrdfile, ntop.rrd_lastupdate(rrdfile)))
       end
 
       touchRRD(rrdfile)
@@ -759,8 +1020,8 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       local partials = {}
 
       local serie_idx = 0
-      for _,_ in pairs(fdata) do
-	 serie_idx = serie_idx + 1  -- the first id is 1
+      for _, _ in pairs(fdata) do
+	 serie_idx = serie_idx + 1 -- the first id is 1
 	 local name = schema._metrics[serie_idx]
 	 local fdata_name = names[serie_idx]
 	 serie = fdata[fdata_name]
@@ -779,7 +1040,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 	    total_valid = false
 	 end
 
-	 for i=#total_series + 1, #serie do
+	 for i = #total_series + 1, #serie do
 	    -- init
 	    total_series[i] = 0
 	 end
@@ -808,7 +1069,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 	 topk[#topk + 1] = {
 	    tags = tag_2_series[top_item][1],
 	    value = value,
-	    partials = tag_2_series[top_item][2],
+	    partials = tag_2_series[top_item][2]
 	 }
       end
 
@@ -827,7 +1088,9 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       table.remove(total_series, 1)
    end
 
-   local fstep, count = sampleSeries(schema, #augumented_total, step, options.max_num_points, {{data=augumented_total}})
+   local fstep, count = sampleSeries(schema, #augumented_total, step, options.max_num_points, {{
+					   data = augumented_total
+   }})
 
    if options.calculate_stats then
       stats = ts_common.calculateStatistics(total_series, step, tend - tstart, schema.options.metrics_type)
@@ -842,32 +1105,33 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
    return {
       topk = topk,
       additional_series = {
-	 total = augumented_total,
+	 total = augumented_total
       },
-      statistics = stats,
+      statistics = stats
    }
+
 end
 
 -- ##############################################
 
 function driver:queryTotal(schema, tstart, tend, tags, options)
    local rrdfile = driver.schema_get_full_path(schema, tags)
-
-   if not ntop.notEmptyFile(rrdfile) then
+   if not rrdfile or not ntop.notEmptyFile(rrdfile) then
       return nil
    end
 
    touchRRD(rrdfile)
 
-   local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart, tend)
+   local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema),
+									    tstart, tend)
    local totals = {}
 
    local serie_idx = 0
-   for _,_ in pairs(fdata) do
-      serie_idx = serie_idx + 1  -- the first id is 1
+   for _, _ in pairs(fdata or {}) do
+      serie_idx = serie_idx + 1 -- the first id is 1
       local name = schema._metrics[serie_idx]
       local fdata_name = names[serie_idx]
-      serie = fdata[fdata_name]
+      local serie = fdata[fdata_name]
 
       local max_val = ts_common.getMaxPointValue(schema, name, tags)
       local sum = 0
@@ -895,7 +1159,7 @@ local function deleteAllData(ifid)
    local paths = getRRDPaths()
 
    for _, path in pairs(paths) do
-      local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")
+      local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/" .. path .. "/")
       local path_to_del = os_utils.fixPath(ifpath)
 
       if ntop.exists(path_to_del) and not ntop.rmdir(path_to_del) then
@@ -934,7 +1198,7 @@ function driver:delete(schema_prefix, tags)
    local num_valorized_tags = table.len(tags)
    local s_prefix = schema_prefix .. ""
 
-   if(num_valorized_tags < 1) then
+   if (num_valorized_tags < 1) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "At least 1 tags must be specified for the delete operation")
       return false
    end
@@ -949,14 +1213,14 @@ function driver:delete(schema_prefix, tags)
 	 -- Ensure that all the tags are valorized in order to avoid
 	 -- deleting unrelated data
 	 for k in pairs(tags) do
-	    if(s.tags[k] == nil) then
+	    if (s.tags[k] == nil) then
 	       -- Missing tag, this schema is possibly unrelated
 	       unreleted = true
 	       break
 	    end
 	 end
 
-	 if(not unreleted) then
+	 if (not unreleted) then
 	    local check_tags = {}
 
 	    -- Fill the missing tags with empty strings to account them as
@@ -975,7 +1239,7 @@ function driver:delete(schema_prefix, tags)
       end
    end
 
-   if(not found) then
+   if (not found) then
       return false
    end
 
@@ -986,8 +1250,8 @@ function driver:delete(schema_prefix, tags)
    end
 
    if isDebugEnabled() then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("DELETE schema=%s, %s => %s",
-							    schema_prefix, table.tconcat(tags, "=", ","), path_to_del))
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("DELETE schema=%s, %s => %s", schema_prefix,
+							    table.tconcat(tags, "=", ","), path_to_del))
    end
 
    return true
@@ -1001,7 +1265,7 @@ function driver:deleteOldData(ifid)
    local retention_days = data_retention_utils.getTSAndStatsDataRetentionDays()
 
    for _, path in pairs(paths) do
-      local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")
+      local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/" .. path .. "/")
       local deadline = retention_days * 86400
 
       if isDebugEnabled() then
@@ -1055,7 +1319,7 @@ local function line_protocol_to_tags_and_metrics(protocol_line)
    else
       -- measurement is at position 1, tags at positions 2+
       measurement = items[1]
-      for i=2,#items do
+      for i = 2, #items do
 	 local tag_items = items[i]:split("=")
 	 if tag_items and #tag_items == 2 then
 	    tags[tag_items[1]] = tonumber(tag_items[2]) or tag_items[2]
@@ -1070,7 +1334,7 @@ local function line_protocol_to_tags_and_metrics(protocol_line)
       items = {field_set}
    end
 
-   for i=1,#items do
+   for i = 1, #items do
       local field_items = items[i]:split("=")
 
       if field_items and #field_items == 2 then
@@ -1078,7 +1342,12 @@ local function line_protocol_to_tags_and_metrics(protocol_line)
       end
    end
 
-   local res = {schema_name = measurement, tags = tags, metrics = metrics, timestamp = tonumber(timestamp)}
+   local res = {
+      schema_name = measurement,
+      tags = tags,
+      metrics = metrics,
+      timestamp = tonumber(timestamp)
+   }
 
    return res
 end
@@ -1086,7 +1355,7 @@ end
 -- ##############################################
 
 function driver:export()
-   if(not(use_rrd_queue)) then
+   if (not (use_rrd_queue)) then
       return -- Nothing to do
    end
 
@@ -1098,34 +1367,34 @@ function driver:export()
    local rrd_queue_max_dequeues_per_interface = 8192
 
    for cur_ifid, iface in pairs(available_interfaces) do
-      for cur_dequeue=1, rrd_queue_max_dequeues_per_interface do
-         local ts_point = interface.rrd_dequeue(tonumber(cur_ifid))
+      for cur_dequeue = 1, rrd_queue_max_dequeues_per_interface do
+	 local ts_point = interface.rrd_dequeue(tonumber(cur_ifid))
 
-         if not ts_point then
-            break
-         end
+	 if not ts_point then
+	    break
+	 end
 
-         local parsed_ts_point = line_protocol_to_tags_and_metrics(ts_point)
+	 local parsed_ts_point = line_protocol_to_tags_and_metrics(ts_point)
 
-         -- No need to do coherence checks on the schema. This queue is 'private' and should
-         -- only be written with valid data already checked.
-         local schema = ts_utils.getSchema(parsed_ts_point["schema_name"])
-         local timestamp = parsed_ts_point["timestamp"]
-         local tags = parsed_ts_point["tags"]
-         local metrics = parsed_ts_point["metrics"]
-         local base, rrd = schema_get_path(schema, tags)
-         if rrd then
-            local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+	 -- No need to do coherence checks on the schema. This queue is 'private' and should
+	 -- only be written with valid data already checked.
+	 local schema = ts_utils.getSchema(parsed_ts_point["schema_name"])
+	 local timestamp = parsed_ts_point["timestamp"]
+	 local tags = parsed_ts_point["tags"]
+	 local metrics = parsed_ts_point["metrics"]
+	 local base, rrd = schema_get_path(schema, tags)
+	 if rrd then
+	    local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
-            if not ntop.notEmptyFile(rrdfile) then
-               ntop.mkdir(base)
-               if not create_rrd(schema, rrdfile, timestamp) then
-                  return false
-               end
-            end
+	    if not ntop.notEmptyFile(rrdfile) then
+	       ntop.mkdir(base)
+	       if not create_rrd(schema, rrdfile, timestamp) then
+		  return false
+	       end
+	    end
 
-            update_rrd(schema, rrdfile, timestamp, metrics)
-         end
+	    update_rrd(schema, rrdfile, timestamp, metrics)
+	 end
       end
    end
 end

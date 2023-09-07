@@ -7,6 +7,7 @@ import * as Vue from "vue";
 
 // pages
 import { default as PageAlertStats } from "./page-alert-stats.vue";
+import { default as PageFlowHistorical } from "./page-flow-historical.vue";
 import { default as PageStats } from "./page-stats.vue";
 import { default as PageAssetTable } from "./page-asset-table.vue";
 import { default as PagePeriodicityTable } from "./page-periodicity-table.vue";
@@ -36,25 +37,40 @@ import { default as PageEditApplications } from "./page-edit-applications.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
 import { default as PageManageConfigurationBackup2 } from "./page-manage-configurations-backup2.vue";
-import { default as PageSNMPDeviceRules} from "./page-snmp-device-rules.vue";
+import { default as PageSNMPDeviceRules } from "./page-snmp-device-rules.vue";
 import { default as PageSnmpDevicesInterfacesSimilarity } from "./page-snmp-devices-interfaces-similarity.vue";
-
-import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue" 
-
+import { default as PageHostsPortsAnalysis } from "./page-hosts-ports-analysis.vue";
+import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue";
+import { default as PageInactiveHosts } from "./page-inactive-hosts.vue";
+import { default as PageInactiveHostDetails } from "./page-inactive-host-details.vue";
+import { default as PageFlowDeviceDetails } from "./page-flowdevice-config.vue";
+import { default as PageHostsToScan } from "./page-hosts-to-scan.vue";
+import { default as PageHostVsResult } from "./page-host-vs-result.vue";
+import { default as PageDeviceExclusionsV2 } from "./page-device-exclusions-v2.vue";
 // components
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
+import { default as TimeseriesChart } from "./timeseries-chart.vue";
 import { default as Datatable } from "./datatable.vue";
 import { default as NetworkMap } from "./network-map.vue";
-import { default as DateTimeRangePicker } from "./data-time-range-picker.vue";
+import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as PageNavbar } from "./page-navbar.vue";
 import { default as RangePicker } from "./range-picker.vue";
-import { default as SimpleTable } from "./simple-table.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as TabList } from "./tab-list.vue";
 import { default as Sankey } from "./sankey.vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as Loading } from "./loading.vue";
+
+// dashboard
+import { default as Dashboard } from "./dashboard.vue";
+import { default as DashboardBox } from "./dashboard-box.vue";
+import { default as DashboardEmpty } from "./dashboard-empty.vue";
+import { default as DashboardTable } from "./dashboard-table.vue";
+import { default as DashboardBadge } from "./dashboard-badge.vue";
+import { default as DashboardPie } from "./dashboard-pie.vue";
+import { default as DashboardTimeseries } from "./dashboard-timeseries.vue";
+import { default as DashboardSankey } from "./dashboard-sankey.vue";
 
 // list
 import { default as ListTimeseries } from "./list-timeseries.vue";
@@ -62,6 +78,7 @@ import { default as ListTimeseries } from "./list-timeseries.vue";
 // modals
 import { default as Modal } from "./modal.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
+import { default as ModalDeleteScanConfirm } from "./modal-delete-scan-confirm.vue";
 import { default as ModalAddCheckExclusion } from "./modal-add-check-exclusion.vue";
 import { default as ModalAddDeviceExclusion } from "./modal-add-device-exclusion.vue";
 import { default as ModalEditDeviceExclusion } from "./modal-edit-device-exclusion.vue";
@@ -73,10 +90,12 @@ import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAddHostRules } from "./modal-add-host-rules.vue";
 import { default as ModalAddApplication } from "./modal-add-application.vue";
 import { default as ModalDeleteApplication } from "./modal-delete-application.vue";
+import { default as ModalUpdatePeriodicityScan } from "./modal-update-periodicity-scan.vue";
 
 let ntopVue = {
     // pages
     PageAlertStats: PageAlertStats,
+    PageFlowHistorical: PageFlowHistorical,
     PageStats: PageStats,
     PageAssetTable: PageAssetTable,
     PagePeriodicityTable: PagePeriodicityTable,
@@ -95,16 +114,22 @@ let ntopVue = {
     PageManageConfigurationBackup: PageManageConfigurationBackup,
     PageManageConfigurationBackup2: PageManageConfigurationBackup2,
     PageSNMPDeviceRules: PageSNMPDeviceRules,
-
+    PageHostsPortsAnalysis: PageHostsPortsAnalysis,
+    PageInactiveHosts: PageInactiveHosts,
+    PageInactiveHostDetails: PageInactiveHostDetails,
+    PageHostsToScan: PageHostsToScan,
+    PageHostVsResult: PageHostVsResult,
+    PageDeviceExclusionsV2: PageDeviceExclusionsV2,
+    
     PageEditApplications: PageEditApplications,
 
-    PageVLANPortsFlowSankey:PageVLANPortsSankey,
+    PageVLANPortsFlowSankey: PageVLANPortsSankey,
     PageTestTable: PageTestTable,
     PageSnmpDevicesInterfacesSimilarity: PageSnmpDevicesInterfacesSimilarity,
 
     NedgeRulesConfig: NedgeRulesConfig,
     NedgeRepeatersConfig: NedgeRepeatersConfig,
-    
+
 
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,
@@ -116,23 +141,35 @@ let ntopVue = {
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
     PageAggregatedLiveFlowsV2: PageAggregatedLiveFlowsV2,
 
-    PageNetworkDiscovery:PageNetworkDiscovery,
+    PageNetworkDiscovery: PageNetworkDiscovery,
+
+    PageFlowDeviceDetails: PageFlowDeviceDetails,
 
     // components
     AlertInfo: AlertInfo,
     Chart: Chart,
+    TimeseriesChart: TimeseriesChart,
     Datatable: Datatable,
     DateTimeRangePicker: DateTimeRangePicker,
     NetworkMap: NetworkMap,
     RangePicker: RangePicker,
     PageNavbar: PageNavbar,
-    SimpleTable: SimpleTable,
     SelectSearch: SelectSearch,
     TabList: TabList,
     Sankey: Sankey,
     NoteList: NoteList,
     Loading: Loading,
-    
+
+    // dashboard
+    Dashboard: Dashboard,
+    DashboardBox: DashboardBox,
+    DashboardEmpty: DashboardEmpty,
+    DashboardTable: DashboardTable,
+    DashboardBadge: DashboardBadge,
+    DashboardPie: DashboardPie,
+    DashboardTimeseries: DashboardTimeseries,
+    DashboardSankey: DashboardSankey,
+
     // list
     ListTimeseries: ListTimeseries,
 

@@ -85,6 +85,7 @@ end
 -- ##############################################
 
 function syslog.sendMessage(settings, notif, severity)
+   local do_debug = false
    local syslog_severity = alert_consts.alertLevelToSyslogLevel(severity)
    local syslog_format = settings.syslog_alert_format
    local msg
@@ -103,11 +104,11 @@ function syslog.sendMessage(settings, notif, severity)
      end
    else -- syslog_format == "plaintext" or "plaintextrfc"
       -- prepare a plain text message
-      msg = alert_utils.formatAlertNotification(json.decode(notif), {
+      msg = format_utils.formatMessage(json.decode(notif), {
          nohtml = true,
-	 show_severity = true,
-	 show_entity = true,
-	 timezone = true --[[ Epochs adjusted to the server TZ using ISO 8601 date format --]]
+         show_severity = true,
+         show_entity = true,
+         timezone = true --[[ Epochs adjusted to the server TZ using ISO 8601 date format --]]
       })
    end
 
@@ -152,10 +153,17 @@ function syslog.sendMessage(settings, notif, severity)
          msg = "<"..prio..">"..log_time.." "..host.." "..tag.."["..pid.."]: "..msg
       end
 
+      local success = true
       if settings.protocol == 'tcp' then
-         ntop.send_tcp_data(settings.host, settings.port, msg.."\n", 1 --[[ timeout (msec) --]] )
+         success = ntop.send_tcp_data(settings.host, settings.port, msg.."\n", 1 --[[ timeout (msec) --]] )
       else
          ntop.send_udp_data(settings.host, settings.port, msg)
+      end
+
+      if not success then
+         if do_debug then
+            tprint("[syslog] Failure delivering message")
+         end
       end
    end
 
@@ -169,14 +177,18 @@ function syslog.dequeueRecipientAlerts(recipient, budget)
    local settings = readSettings(recipient)
    local notifications = {}
 
-   for i = 1, budget do
+   local i = 0
+    while i < budget do
       local notification = ntop.recipient_dequeue(recipient.recipient_id)
-      if notification then
-         notifications[#notifications + 1] = notification
+      if notification then 
+        if alert_utils.filter_notification(notification, recipient.recipient_id) then
+          notifications[#notifications + 1] = notification.alert
+          i = i + 1
+        end
       else
-         break
+        break
       end
-   end
+    end
 
    if not notifications or #notifications == 0 then
       return {success = true, more_available = false}

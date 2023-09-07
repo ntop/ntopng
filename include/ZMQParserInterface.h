@@ -41,7 +41,7 @@ class ZMQParserInterface : public ParserInterface {
   u_int32_t flow_max_idle, returned_flow_max_idle;
   u_int64_t zmq_initial_bytes, zmq_initial_pkts,
       zmq_remote_initial_exported_flows;
-  std::map<u_int8_t, ZMQ_RemoteStats *> source_id_last_zmq_remote_stats;
+  std::map<u_int32_t, ZMQ_RemoteStats *> source_id_last_zmq_remote_stats;
   ZMQ_RemoteStats *zmq_remote_stats, *zmq_remote_stats_shadow;
   u_int32_t remote_lifetime_timeout, remote_idle_timeout;
   struct timeval last_zmq_remote_stats_update;
@@ -68,8 +68,8 @@ class ZMQParserInterface : public ParserInterface {
   bool parseNProbeAgentField(ParsedFlow *const flow, const char *key,
                              ParsedValue *value,
                              json_object *const jvalue) const;
-  int parseSingleJSONFlow(json_object *o, u_int8_t source_id);
-  int parseSingleTLVFlow(ndpi_deserializer *deserializer, u_int8_t source_id);
+  int parseSingleJSONFlow(json_object *o, u_int32_t source_id);
+  int parseSingleTLVFlow(ndpi_deserializer *deserializer, u_int32_t source_id);
   void setFieldMap(const ZMQ_FieldMap *const field_map) const;
   void setFieldValueMap(const ZMQ_FieldValueMap *const field_value_map) const;
 
@@ -105,22 +105,22 @@ class ZMQParserInterface : public ParserInterface {
   bool getCounterId(char *sym, u_int32_t sym_len, u_int32_t *id) const;
 
   u_int8_t parseJSONFlow(const char *payload, int payload_size,
-                         u_int8_t source_id, u_int32_t msg_id);
+                         u_int32_t source_id, u_int32_t msg_id);
   u_int8_t parseTLVFlow(const char *payload, int payload_size,
-                        u_int8_t source_id, u_int32_t msg_id, void *data);
-  u_int8_t parseEvent(const char *payload, int payload_size, u_int8_t source_id,
+                        u_int32_t source_id, u_int32_t msg_id, void *data);
+  u_int8_t parseEvent(const char *payload, int payload_size, u_int32_t source_id,
                       u_int32_t msg_id, void *data);
   u_int8_t parseTLVCounter(const char *payload, int payload_size);
   u_int8_t parseJSONCounter(const char *payload, int payload_size);
   u_int8_t parseTemplate(const char *payload, int payload_size,
-                         u_int8_t source_id, u_int32_t msg_id, void *data);
+                         u_int32_t source_id, u_int32_t msg_id, void *data);
   u_int8_t parseOption(const char *payload, int payload_size,
-                       u_int8_t source_id, u_int32_t msg_id, void *data);
+                       u_int32_t source_id, u_int32_t msg_id, void *data);
   u_int8_t parseListeningPorts(const char *payload, int payload_size,
-                               u_int8_t source_id, u_int32_t msg_id,
+                               u_int32_t source_id, u_int32_t msg_id,
                                void *data);
   u_int8_t parseSNMPIntefaces(const char *payload, int payload_size,
-                              u_int8_t source_id, u_int32_t msg_id, void *data);
+                              u_int32_t source_id, u_int32_t msg_id, void *data);
 
   u_int32_t periodicStatsUpdateFrequency() const;
   virtual void setRemoteStats(ZMQ_RemoteStats *zrs);

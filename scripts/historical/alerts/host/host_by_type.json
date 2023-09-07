@@ -1,0 +1,63 @@
+{
+	"name" : "Host / Alert Type",
+	"i18n_name" : "host_by_type",
+	"select" : {
+		"items" : [
+			{
+				"name" : "vlan_id"
+			},
+			{
+				"name" : "ip"
+			},
+			{
+				"name" : "name"
+			},
+			{
+				"name" : "alert_id"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "ip"
+			},
+			{
+				"name" : "name"
+			},
+			{
+				"name" : "alert_id"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "vlan_id"
+			},
+			{
+				"name" : "ip"
+			},
+			{
+				"name" : "name"
+			},
+			{
+				"name" : "alert_id"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}

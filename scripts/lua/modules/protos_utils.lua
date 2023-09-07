@@ -219,17 +219,26 @@ end
 
 function protos_utils.overwriteAppRules(app, rules)
     local current_rules, defined_protos = protos_utils.parseProtosTxt()
+    local found = false
 
     if (current_rules == nil) or (type("app") ~= "string") then
         return false
     end
 
-    if (not current_rules[app]) then
-        -- This is a new app, append it to the end
-        defined_protos[#defined_protos + 1] = app
+    -- In case the name has different major or lower cases
+    -- Replace with the new name
+    for app_name, _ in pairs(current_rules) do
+        if app:lower() == app_name:lower() then
+            current_rules[app] = rules
+            found = true
+        end
     end
 
-    current_rules[app] = rules
+    if not found then
+        defined_protos[#defined_protos + 1] = app
+        current_rules[app] = rules
+    end
+
     return protos_utils.generateProtosTxt(current_rules, defined_protos)
 end
 

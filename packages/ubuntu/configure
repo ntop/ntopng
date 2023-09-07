@@ -614,6 +614,7 @@ PACKAGE_URL=''
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+SIGN_CMD
 CUSTOM_NTOPNG_DOT_CONF
 CHOWN
 SUDO
@@ -1805,7 +1806,7 @@ if  test -f /usr/bin/lsb_release ; then
     fi
   fi
 
-  if test "$UBUNTU_RELEASE" = "16.04" || test "$UBUNTU_RELEASE" = "18.04" || test "$UBUNTU_RELEASE" = "20.04"  || test "$UBUNTU_RELEASE" = "22.04" || test "$UBUNTU_RELEASE" = "debian9" || test "$UBUNTU_RELEASE" = "debian10" || test "$UBUNTU_RELEASE" = "11" ; then
+  if test "$UBUNTU_RELEASE" = "16.04" || test "$UBUNTU_RELEASE" = "18.04" || test "$UBUNTU_RELEASE" = "20.04"  || test "$UBUNTU_RELEASE" = "22.04" || test "$UBUNTU_RELEASE" = "debian9" || test "$UBUNTU_RELEASE" = "debian10" || test "$UBUNTU_RELEASE" = "11" || test "$UBUNTU_RELEASE" = "12"; then
     ZMQ_DEP="libzmq5"
   else
     ZMQ_DEP="libzmq3"
@@ -1900,8 +1901,15 @@ if test -d $LICENSEDIR; then
   fi
 fi
 
+if test -f /usr/bin/debsigs; then
+  SIGN_CMD="debsigs"
+else
+  SIGN_CMD="dpkg-sig"
+fi
+
 DATE=`date -R`
 KERNEL=`uname -r`
+
 
 
 

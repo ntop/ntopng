@@ -47,7 +47,7 @@
         </div>
       </div>
       <div class="card-footer">
-        <button type="button" id='btn-delete-all-devices' class="btn btn-danger">
+        <button type="button" id='btn-delete-all-devices' class="btn btn-danger me-1">
           <i class='fas fa-trash'></i> {{ i18n("edit_check.delete_all_device_exclusions") }}
         </button>
         <button type="button" id='btn-edit-all-devices-status'  class="btn btn-secondary">
@@ -85,6 +85,11 @@ export default {
 	start_datatable(this);
     },
     mounted() {
+      const mac = ntopng_url_manager.get_url_entry("mac");
+      if(mac) {
+        const table = this.get_active_table();
+        table.search_value(mac)
+      }
       this.learning_status();
       $("#btn-delete-all-devices").click(() => this.show_delete_all_dialog());
       $("#btn-edit-all-devices-status").click(() => this.show_edit_all_dialog());
@@ -350,7 +355,13 @@ function start_datatable(DatatableVue) {
       className: 'text-nowrap text-center',
       responsivePriority: 1,
       render: function (rowData, type, script) {
-        return rowData ? `<i class="fas fa-check text-success"></i>` : `<i class="fas fa-times text-danger"></i>`
+        
+        let is_enabled = false;
+        if (rowData == "false") 
+          is_enabled = false;
+        else
+          is_enabled = rowData;
+        return is_enabled ? `<i class="fas fa-check text-success"></i>` : `<i class="fas fa-times text-danger"></i>`
       }
     }, {
       targets: -1,

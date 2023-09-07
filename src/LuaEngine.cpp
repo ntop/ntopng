@@ -136,7 +136,6 @@ LuaEngine::~LuaEngine() {
     ctx = getLuaVMContext(L);
 
     if (ctx) {
-#ifndef HAVE_NEDGE
       if (ctx->snmpBatch) delete ctx->snmpBatch;
 
       for (u_int8_t slot_id = 0; slot_id < MAX_NUM_ASYNC_SNMP_ENGINES;
@@ -144,7 +143,6 @@ LuaEngine::~LuaEngine() {
         if (ctx->snmpAsyncEngine[slot_id] != NULL)
           delete ctx->snmpAsyncEngine[slot_id];
       }
-#endif
 
       if (ctx->pkt_capture.end_capture > 0) {
         ctx->pkt_capture.end_capture = 0; /* Force stop */
@@ -337,8 +335,7 @@ int ntop_lua_cli_print(lua_State *vm) {
       break;
 
     default:
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING, "%s(): Lua type %d is not handled", __FUNCTION__, t);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled", __FUNCTION__, t);
       return (CONST_LUA_ERROR);
   }
 
@@ -973,7 +970,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   char key[64], ifname[MAX_INTERFACE_NAME_LEN];
   bool is_interface_allowed;
   AddressTree ptree;
-  int rc, post_data_len;
+  int rc, post_data_len = 0;
   const char *content_type;
   u_int8_t valid_csrf = 1;
   char *post_data = NULL;

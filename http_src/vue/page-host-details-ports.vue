@@ -63,7 +63,7 @@ function print_stats_column(col) {
 }
 
 function print_stats_row(col, row) {
-  debugger;
+  // debugger;
   let label = row.label;
   return label;
 }
@@ -172,7 +172,7 @@ async function start_datatable() {
     }
 
     $.get(NtopUtils.buildURL(table.url, tmp_params), async function(data, status){
-      debugger;
+      // debugger;
       let rows = []
       data.rsp.forEach((data) => {
         const port = data.port_info.port

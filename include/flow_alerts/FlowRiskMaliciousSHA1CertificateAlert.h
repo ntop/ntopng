@@ -43,6 +43,8 @@ class FlowRiskMaliciousSHA1CertificateAlert : public FlowRiskAlert {
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
   u_int8_t getAlertScore() const { return getDefaultScore(); }
+
+  bool autoAck() const { return false; };
 };
 
 #endif /* _FR_MALICIOUS_SHA1_CERTIFICATE_ALERT_H_ */

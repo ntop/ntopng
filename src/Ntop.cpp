@@ -448,6 +448,10 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   }
 
 #ifdef NTOPNG_PRO
+  /* 
+     This check is required when starting ntopng without --version
+     but it's redundant when --version is used
+  */
   pro->init_license();
 
   if (!ntop->getPro()->has_unlimited_enterprise_l_license())
@@ -579,7 +583,7 @@ void Ntop::start() {
 #ifdef __linux__
   inotify_fd = inotify_init();
 
-  if (inotify_fd < 0)
+  if(inotify_fd < 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "inotify_init failed[%d]: %s",
                                  errno, strerror(errno));
   else {
@@ -697,8 +701,7 @@ void Ntop::start() {
   Utils::setThreadName("ntopng-main");
 
   while ((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
-    const u_int32_t nap_usec =
-        ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
+    const u_int32_t nap_usec = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
 
     gettimeofday(&begin, NULL);
 
@@ -1179,10 +1182,14 @@ void Ntop::recipient_register(u_int16_t recipient_id,
                               AlertLevel minimum_severity,
                               Bitmap128 enabled_categories,
                               Bitmap128 enabled_host_pools,
-                              Bitmap128 enabled_entities) {
+                              Bitmap128 enabled_entities,
+                              Bitmap128 enabled_flow_checks,
+                              Bitmap128 enabled_host_checks,
+                              bool skip_alerts) {
   recipients.register_recipient(recipient_id, minimum_severity,
                                 enabled_categories, enabled_host_pools,
-                                enabled_entities);
+                                enabled_entities, enabled_flow_checks,
+                                enabled_host_checks, skip_alerts);
 }
 
 /* ******************************************* */
@@ -3143,9 +3150,12 @@ void Ntop::shutdownAll() {
 /* **************************************************** */
 
 void Ntop::purgeLoopBody() {
-  while (!globals->isShutdown()) {
+  while(!globals->isShutdown()) {
+    current_time = time(NULL);
+    
     for (u_int i = 0; i < get_num_interfaces(); i++) {
       NetworkInterface *cur_iface = getInterface(i);
+      
       if (cur_iface) cur_iface->purgeQueuedIdleEntries();
     }
 
@@ -3648,15 +3658,13 @@ bool Ntop::isDbCreated() {
 
 #ifndef HAVE_NEDGE
 
-bool Ntop::broadcastIPSMessage(char *msg) {
-  bool rc = false;
-
-  if (prefs->getZMQPublishEventsURL() == NULL) return (false);
-
-  /* Jeopardized users_m lock :-) */
-  users_m.lock(__FILE__, __LINE__);
+bool Ntop::initPublisher() {
 
   if (zmqPublisher == NULL) {
+
+    if (prefs->getZMQPublishEventsURL() == NULL)
+      return (false);
+
     try {
       zmqPublisher = new ZMQPublisher(prefs->getZMQPublishEventsURL());
     } catch (...) {
@@ -3664,14 +3672,51 @@ bool Ntop::broadcastIPSMessage(char *msg) {
     }
   }
 
-  if (!zmqPublisher) {
+  if (zmqPublisher == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING,
                                  "Unable to create ZMQ publisher");
+
+  return !!zmqPublisher;
+}
+
+/* ******************************************* */
+
+bool Ntop::broadcastIPSMessage(char *msg) {
+  bool rc = false;
+
+  if (!msg) return (false);
+
+  /* Jeopardized users_m lock :-) */
+  users_m.lock(__FILE__, __LINE__);
+
+  if (!initPublisher()) {
     users_m.unlock(__FILE__, __LINE__);
     return (false);
   }
 
-  if (msg) rc = zmqPublisher->sendIPSMessage(msg);
+  rc = zmqPublisher->sendIPSMessage(msg);
+
+  users_m.unlock(__FILE__, __LINE__);
+
+  return (rc);
+}
+
+/* ******************************************* */
+
+bool Ntop::broadcastControlMessage(char *msg) {
+  bool rc = false;
+
+  if (!msg) return (false);
+
+  /* Jeopardized users_m lock :-) */
+  users_m.lock(__FILE__, __LINE__);
+
+  if (!initPublisher()) {
+    users_m.unlock(__FILE__, __LINE__);
+    return (false);
+  }
+
+  rc = zmqPublisher->sendControlMessage(msg);
 
   users_m.unlock(__FILE__, __LINE__);
 
@@ -3679,6 +3724,17 @@ bool Ntop::broadcastIPSMessage(char *msg) {
 }
 
 #endif
+
+/* ******************************************* */
+
+u_int64_t Ntop::getNumActiveProbes() const {
+  u_int64_t n = 0;
+
+  for (int i = 0; i < num_defined_interfaces; i++)
+    n += iface[i]->getNumActiveProbes();
+
+  return n;
+}
 
 /* ******************************************* */
 
@@ -3845,13 +3901,18 @@ void Ntop::setZoneInfo() {
 
 #else
   zoneinfo = getWindowsTimezone();
-
 #endif /* WIN32 */
 
   if (zoneinfo == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
                                  "Unable to find timezone: using UTC");
-    zoneinfo = strdup("Europe/London"); /* UTC */
+    zoneinfo = strdup("UTC");
+  } else {
+    const char *const_zoneinfo = "zoneinfo/";
+    u_int len = strlen(const_zoneinfo);
+
+    if(strncmp(zoneinfo, const_zoneinfo, len) == 0)
+      zoneinfo = &zoneinfo[len];
   }
 
   if (zoneinfo)
@@ -3970,3 +4031,6 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
 /* ******************************************* */
 
 void Ntop::incBlacklisHits(std::string listname) { blStats.incHits(listname); }
+
+/* ******************************************* */
+

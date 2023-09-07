@@ -52,29 +52,29 @@ const ndpi_analyze_struct* FlowTrafficStats::get_analize_struct(
 
 /* *************************************** */
 
-void FlowTrafficStats::incStats(bool cli2srv_direction, u_int num_pkts,
-                                u_int pkt_len, u_int payload_len) {
-  PartializableFlowTrafficStats::incStats(cli2srv_direction, num_pkts, pkt_len,
-                                          payload_len);
+void FlowTrafficStats::incStats(bool cli2srv_direction, u_int32_t num_pkts,
+                                u_int64_t pkts_bytes, u_int64_t payloads_bytes) {
+  PartializableFlowTrafficStats::incStats(cli2srv_direction, num_pkts, pkts_bytes,
+                                          payloads_bytes);
 
   if (cli2srv_direction)
-    ndpi_data_add_value(&cli2srv_bytes_stats, pkt_len);
+    ndpi_data_add_value(&cli2srv_bytes_stats, pkts_bytes);
   else
-    ndpi_data_add_value(&srv2cli_bytes_stats, pkt_len);
+    ndpi_data_add_value(&srv2cli_bytes_stats, pkts_bytes);
 }
 
 /* *************************************** */
 
-void FlowTrafficStats::setStats(bool cli2srv_direction, u_int num_pkts,
-                                u_int pkt_len, u_int payload_len) {
-  PartializableFlowTrafficStats::setStats(cli2srv_direction, num_pkts, pkt_len,
-                                          payload_len);
+void FlowTrafficStats::setStats(bool cli2srv_direction, u_int32_t num_pkts,
+                                u_int64_t pkts_bytes, u_int64_t payloads_bytes) {
+  PartializableFlowTrafficStats::setStats(cli2srv_direction, num_pkts, pkts_bytes,
+                                          payloads_bytes);
 
   if (cli2srv_direction) {
     ndpi_init_data_analysis(&cli2srv_bytes_stats, 0);
-    ndpi_data_add_value(&cli2srv_bytes_stats, pkt_len);
+    ndpi_data_add_value(&cli2srv_bytes_stats, pkts_bytes);
   } else {
     ndpi_init_data_analysis(&srv2cli_bytes_stats, 0);
-    ndpi_data_add_value(&srv2cli_bytes_stats, pkt_len);
+    ndpi_data_add_value(&srv2cli_bytes_stats, pkts_bytes);
   }
 }

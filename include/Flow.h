@@ -66,7 +66,7 @@ class Flow : public GenericHashEntry {
                                         alert */
   struct {
     u_int8_t is_cli_attacker : 1, is_cli_victim : 1, is_srv_attacker : 1,
-        is_srv_victim : 1;
+        is_srv_victim : 1, auto_acknowledge : 1;
   } predominant_alert_info;
 
   char *json_protocol_info, *riskInfo;
@@ -87,7 +87,7 @@ class Flow : public GenericHashEntry {
       dst2src_tcp_zero_window : 1, non_zero_payload_observed : 1,
       is_periodic_flow : 1;
 
-  enum ndpi_rtp_stream_type rtp_stream_type;
+  ndpi_multimedia_flow_type rtp_stream_type;
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
 #endif
@@ -118,6 +118,9 @@ class Flow : public GenericHashEntry {
   ndpi_confidence_t confidence;
   char *host_server_name, *bt_hash;
   IEC104Stats *iec104;
+#ifdef NTOPNG_PRO
+  ModbusStats *modbus;
+#endif
   char *suspicious_dga_domain; /* Stores the suspicious DGA domain for flows
                                   with NDPI_SUSPICIOUS_DGA_DOMAIN */
   OSType operating_system;
@@ -393,6 +396,9 @@ class Flow : public GenericHashEntry {
   };
 
   void setPredominantAlertInfo(FlowAlert *alert);
+  inline bool isPredominantAlertAutoAck() {
+    return !!predominant_alert_info.auto_acknowledge;
+  };
   inline u_int8_t isClientAttacker() {
     return predominant_alert_info.is_cli_attacker;
   };
@@ -433,9 +439,10 @@ class Flow : public GenericHashEntry {
   inline bool isSSH() const { return (isProto(NDPI_PROTOCOL_SSH)); }
   inline bool isDNS() const { return (isProto(NDPI_PROTOCOL_DNS)); }
   inline bool isZoomRTP() const {
-    return (isProto(NDPI_PROTOCOL_ZOOM) && isProto(NDPI_PROTOCOL_RTP));
+    return (isProto(NDPI_PROTOCOL_ZOOM) && (isProto(NDPI_PROTOCOL_RTP) || isProto(NDPI_PROTOCOL_SRTP)) );
   }
   inline bool isIEC60870() const { return (isProto(NDPI_PROTOCOL_IEC60870)); }
+  inline bool isModbus()   const { return (isProto(NDPI_PROTOCOL_MODBUS));   }
   inline bool isMDNS() const { return (isProto(NDPI_PROTOCOL_MDNS)); }
   inline bool isSSDP() const { return (isProto(NDPI_PROTOCOL_SSDP)); }
   inline bool isNetBIOS() const { return (isProto(NDPI_PROTOCOL_NETBIOS)); }
@@ -446,6 +453,7 @@ class Flow : public GenericHashEntry {
             isProto(NDPI_PROTOCOL_MAIL_SMTPS));
   }
   inline bool isHTTP() const { return (isProto(NDPI_PROTOCOL_HTTP)); }
+  inline bool isHTTP_PROXY() const { return (isProto(NDPI_PROTOCOL_HTTP_PROXY)); }
   inline bool isICMP() const {
     return (isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6));
   }
@@ -598,9 +606,11 @@ class Flow : public GenericHashEntry {
   void processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
                         u_int64_t packet_time);
   void processIEC60870Packet(bool tx_direction, const u_char *payload,
-                             u_int16_t payload_len,
-                             struct timeval *packet_time);
-
+                             u_int16_t payload_len, struct timeval *packet_time);
+#ifdef NTOPNG_PRO
+  void processModbusPacket(bool is_query, const u_char *payload,
+			   u_int16_t payload_len, struct timeval *packet_time);
+#endif
   void endProtocolDissection();
   inline void setCustomApp(custom_app_t ca) {
     memcpy(&custom_app, &ca, sizeof(custom_app));
@@ -910,6 +920,8 @@ class Flow : public GenericHashEntry {
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
   bool dump(time_t t, bool last_dump_before_free);
   bool match(AddressTree *ptree);
+  bool matchFlowIP(IpAddress *ip, u_int16_t vlan_id);
+  bool matchFlowVLAN(u_int16_t vlan_id);
   void dissectHTTP(bool src2dst_direction, char *payload,
                    u_int16_t payload_len);
   void dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_len);
@@ -919,7 +931,7 @@ class Flow : public GenericHashEntry {
   void dissectMDNS(u_int8_t *payload, u_int16_t payload_len);
   void dissectNetBIOS(u_int8_t *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
-  void fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) const;
+  void fillZMQFlowCategory(ndpi_protocol *res);
   inline void setICMP(bool src2dst_direction, u_int8_t icmp_type,
                       u_int8_t icmp_code, u_int8_t *icmpdata) {
     if (isICMP()) {
@@ -980,7 +992,7 @@ class Flow : public GenericHashEntry {
   inline char *getDNSQuery() const {
     return (isDNS() ? protos.dns.last_query : (char *)"");
   }
-  bool setDNSQuery(char *v);
+  bool setDNSQuery(char *v, bool copy_memory);
   inline void setDNSQueryType(u_int16_t t) {
     if (isDNS()) {
       protos.dns.last_query_type = t;
@@ -1002,7 +1014,10 @@ class Flow : public GenericHashEntry {
   }
   inline void setHTTPURL(char *v) {
     if (isHTTP()) {
-      if (!protos.http.last_url) protos.http.last_url = v;
+      if (!protos.http.last_url)
+	protos.http.last_url = v;
+      else
+	free(v);
     } else {
       if (v) free(v);
     }
@@ -1012,7 +1027,10 @@ class Flow : public GenericHashEntry {
   }
   inline void setHTTPUserAgent(char *v) {
     if (isHTTP()) {
-      if (!protos.http.last_user_agent) protos.http.last_user_agent = v;
+      if (!protos.http.last_user_agent)
+	protos.http.last_user_agent = v;
+      else
+	free(v);
     } else {
       if (v) free(v);
     }
@@ -1312,10 +1330,10 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getCustomFlowAlertScore() { return (customFlowAlert.score); }
   inline char *getCustomFlowAlertMessage() { return (customFlowAlert.msg); }
   void triggerCustomFlowAlert(u_int8_t score, char *msg);
-  inline void setRTPStreamType(enum ndpi_rtp_stream_type s) {
+  inline void setRTPStreamType(ndpi_multimedia_flow_type s) {
     rtp_stream_type = s;
   }
-  inline enum ndpi_rtp_stream_type getRTPStreamType() {
+  inline ndpi_multimedia_flow_type getRTPStreamType() {
     return (rtp_stream_type);
   }
   inline void setPeriodicFlow() { is_periodic_flow = 1; }

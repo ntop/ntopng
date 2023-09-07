@@ -130,6 +130,18 @@ extern void lua_push_str_table_entry(lua_State *L, const char *key,
                                      const char *value);
 
 /**
+ * @brief Push string value to table entry specify the key and lenght.
+ *
+ * @param L The lua state.
+ * @param key The key of hash table.
+ * @param value The value of hash table.
+ * @param value_len lenght of the value field
+ */
+extern void lua_push_str_len_table_entry(lua_State *L, const char *key,
+					 const char *value,
+					 unsigned int value_len);
+
+/**
  * @brief Push null value to table entry specify the key.
  *
  * @param L The lua state.

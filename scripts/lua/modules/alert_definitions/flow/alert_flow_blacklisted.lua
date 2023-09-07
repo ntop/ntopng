@@ -47,11 +47,11 @@ function alert_flow_blacklisted.format(ifid, alert, alert_type_params)
   local who = {}
 
   if alert["cli_blacklisted"] and alert["cli_blacklisted"] ~= "0" then
-    who[#who + 1] = i18n("client")
+    who[#who + 1] = {type = i18n("client"), blacklist_name = alert_type_params["custom_cat_file"]}
   end
 
   if alert["srv_blacklisted"] and alert["srv_blacklisted"] ~= "0" then
-    who[#who + 1] = i18n("server")
+    who[#who + 1] = {type = i18n("server"), blacklist_name = alert_type_params["custom_cat_file"]}
   end
 
   -- if either the client or the server is blacklisted
@@ -59,7 +59,7 @@ function alert_flow_blacklisted.format(ifid, alert, alert_type_params)
   -- to check it.
   -- Domain is basically the union of DNS names, SSL CNs and HTTP hosts.
   if alert["cat_blacklisted"] then
-    who[#who + 1] = i18n("domain")
+    who[#who + 1] = {type = i18n("domain")}
   end
 
   if alert_type_params["custom_cat_file"] then
@@ -70,7 +70,24 @@ function alert_flow_blacklisted.format(ifid, alert, alert_type_params)
     return i18n("flow_details.blacklisted_flow")
   end
   
-  local res = i18n("flow_details.blacklisted_flow_detailed", {who = table.concat(who, ", ")})
+  local who_string = ""
+  local black_list_names = ""
+  for _, v in ipairs(who) do
+    if v.type then
+      if who_string ~= "" then
+        who_string = who_string .. ", "
+      end
+      who_string = who_string .. v.type
+    end
+
+    if v.blacklist_name then
+      if black_list_names ~= "" then
+        black_list_names = black_list_names .. ", "
+      end
+      black_list_names = black_list_names .. v.blacklist_name
+    end
+  end
+  local res = i18n("flow_details.blacklisted_flow_detailed", {who = who_string, blacklist = black_list_names})
 
   return res
 end

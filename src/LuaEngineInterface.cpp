@@ -2016,12 +2016,57 @@ static int ntop_get_vlan_flows_stats(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_get_vlan_hosts_ports(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  ntop_interface->getVLANHostsPorts(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_get_hosts_ports(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  ntop_interface->getHostsPorts(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_get_hosts_by_port(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  ntop_interface->getHostsByPort(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 /* Function used to start the accounting of an Host */
 static int ntop_radius_accounting_start(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool res = false;
 
 #ifdef HAVE_RADIUS
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL, *session_id = NULL; 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2047,13 +2092,14 @@ static int ntop_radius_accounting_start(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_radius_accounting_stop(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool res = false;
 
 #ifdef HAVE_RADIUS
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL, *session_id = NULL;
-  Mac *mac_stats = NULL;
-  u_int8_t _mac[6];
+  RadiusTraffic traffic_data;
+
+  memset(&traffic_data, 0, sizeof(traffic_data));
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2066,10 +2112,19 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
   if (lua_type(vm, 2) == LUA_TSTRING)
     session_id = (char *)lua_tostring(vm, 2);
 
-  Utils::parseMac(_mac, mac);
-  mac_stats = ntop_interface->getMac(_mac, false, false);
+  if (lua_type(vm, 3) == LUA_TNUMBER)
+    traffic_data.bytes_sent = (u_int64_t)lua_tonumber(vm, 3);
 
-  res = ntop->radiusAccountingStop(mac, session_id, mac_stats);
+  if (lua_type(vm, 4) == LUA_TNUMBER)
+    traffic_data.bytes_rcvd = (u_int64_t)lua_tonumber(vm, 4);
+
+  if (lua_type(vm, 5) == LUA_TNUMBER)
+    traffic_data.packets_sent = (u_int64_t)lua_tonumber(vm, 5);
+
+  if (lua_type(vm, 6) == LUA_TNUMBER)
+    traffic_data.packets_rcvd = (u_int64_t)lua_tonumber(vm, 6);
+
+  res = ntop->radiusAccountingStop(mac, session_id, &traffic_data);
 
 #endif
 
@@ -2080,15 +2135,31 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_get_hosts_by_service(lua_State *vm) {
+   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  lua_newtable(vm);
+
+  if (!ntop_interface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  ntop_interface->getHostsByService(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_radius_accounting_update(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool res = false;
 
 #ifdef HAVE_RADIUS
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   const char *username = NULL, *session_id = NULL, *password = NULL;
   char *mac = NULL;  
-  Mac *mac_stats = NULL;
-  u_int8_t _mac[6];
+  RadiusTraffic traffic_data;
+
+  memset(&traffic_data, 0, sizeof(traffic_data));
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2108,14 +2179,23 @@ static int ntop_radius_accounting_update(lua_State *vm) {
   if (lua_type(vm, 4) == LUA_TSTRING)
     password = (const char *)lua_tostring(vm, 4);
 
-  Utils::parseMac(_mac, mac);
-  mac_stats = ntop_interface->getMac(_mac, false, false);
+  if (lua_type(vm, 5) == LUA_TNUMBER)
+    traffic_data.bytes_sent = (u_int64_t)lua_tonumber(vm, 5);
+
+  if (lua_type(vm, 6) == LUA_TNUMBER)
+    traffic_data.bytes_rcvd = (u_int64_t)lua_tonumber(vm, 6);
+
+  if (lua_type(vm, 7) == LUA_TNUMBER)
+    traffic_data.packets_sent = (u_int64_t)lua_tonumber(vm, 7);
+
+  if (lua_type(vm, 8) == LUA_TNUMBER)
+    traffic_data.packets_rcvd = (u_int64_t)lua_tonumber(vm, 8);
 
   /* The update is strange, you have to first update 
     * and then authenticate again to be able to check if the user
     * is still able to navigate or not.
     */
-  res = ntop->radiusAccountingUpdate(mac, session_id, mac_stats);
+  res = ntop->radiusAccountingUpdate(mac, session_id, &traffic_data);
   if(res) {
     bool is_admin = false, has_unprivileged_capabilities = false;
     res = ntop->radiusAuthenticate(username, password, &has_unprivileged_capabilities, &is_admin);
@@ -3365,6 +3445,19 @@ static int ntop_update_dynamic_interface_traffic_policy(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_update_push_filters_settings(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_interface) ntop_interface->updatePushFiltersSettings();
+
+  lua_pushnil(vm);
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_update_lbd_identifier(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3777,6 +3870,11 @@ static int ntop_get_interface_remote_hosts_no_tcp_tx_info(lua_State *vm) {
 static int ntop_get_interface_broadcast_domain_hosts_info(lua_State *vm) {
   return (
       ntop_get_interface_hosts_criteria(vm, location_broadcast_domain_only));
+}
+
+static int ntop_get_interface_broadcast_multicast_hosts_info (lua_State *vm) {
+  return (
+      ntop_get_interface_hosts_criteria(vm, location_broadcat_multicast_only));
 }
 
 static int ntop_get_public_hosts_info(lua_State *vm) {
@@ -4451,12 +4549,13 @@ static int ntop_interface_check_context(lua_State *vm) {
 
   if ((c->iface == NULL) ||
       (strcmp(c->iface->getEntityValue().c_str(), entity_val)) != 0) {
-    /* NOTE: settting a context for a differnt interface is currently not
+    /* NOTE: setting a context for a differnt interface is currently not
      * supported */
     ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "Bad context - expected interface %s found %s",
+        TRACE_WARNING, "Bad context - expected interface %s, found %s (%s) in context",
         entity_val,
-        c->iface == NULL ? "NULL" : c->iface->getEntityValue().c_str());
+        c->iface == NULL ? "NULL" : c->iface->getEntityValue().c_str(),
+        c->iface == NULL ? "NULL" : c->iface->get_name());
 
     lua_pushboolean(vm, false);
   } else
@@ -5037,10 +5136,11 @@ static int ntop_interface_is_syslog_interface(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_clickhouse_exec_csv_query(lua_State *vm) {
+#ifdef HAVE_CLICKHOUSE
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   const char *sql;
-  struct mg_connection *conn = getLuaVMUserdata(vm, conn);
   bool use_json = false;
+  struct mg_connection *conn = getLuaVMUserdata(vm, conn);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5051,11 +5151,10 @@ static int ntop_clickhouse_exec_csv_query(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
   sql = lua_tostring(vm, 1);
-
+  
   if (lua_type(vm, 2) == LUA_TBOOLEAN) /* optional */
     use_json = lua_toboolean(vm, 2) ? true : false;
 
-#ifdef HAVE_CLICKHOUSE
   ntop_interface->exec_csv_query(sql, use_json, conn);
 #endif
 
@@ -5090,8 +5189,9 @@ static int ntop_interface_update_ip_reassignment(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_interface_trigger_traffic_alert(lua_State *vm) {
-  u_int32_t frequency_sec, threshold, value;
-  char *metric, *ipaddress, ip_buf[64], *host_ip, *tmp;
+  u_int32_t frequency_sec;
+  bool t_sign = true;
+  char *metric, *ipaddress, ip_buf[64], *host_ip, *tmp, *value, *threshold;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rc = false;
 
@@ -5107,13 +5207,17 @@ static int ntop_interface_trigger_traffic_alert(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   frequency_sec = (u_int32_t)lua_tointeger(vm, 3);
 
-  if (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK)
+  if (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  threshold = (u_int32_t)lua_tointeger(vm, 4);
+  threshold = (char *)lua_tostring(vm, 4);
 
-  if (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK)
+  if (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  value = (u_int32_t)lua_tointeger(vm, 5);
+  value = (char *)lua_tostring(vm, 5);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 6, LUA_TBOOLEAN) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  t_sign = (u_int32_t)lua_toboolean(vm, 6);
 
   snprintf(ip_buf, sizeof(ip_buf), "%s", ipaddress);
   host_ip = strtok_r(ipaddress, "@", &tmp);
@@ -5166,7 +5270,7 @@ static int ntop_interface_trigger_traffic_alert(lua_State *vm) {
         /* Build new alert */
         alert = new TrafficVolumeAlert(
             host_check_traffic_volume, h, CLIENT_FULL_RISK_PERCENTAGE,
-            std::string(metric), frequency_sec, threshold, value);
+            std::string(metric), frequency_sec, threshold, value, t_sign);
         if (alert) {
           /* Specify when the alert will auto-release if not continuously
            * triggered */
@@ -5257,6 +5361,8 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"getRxOnlyHostsList", ntop_get_rxonly_hosts_list},
     {"getBroadcastDomainHostsInfo",
      ntop_get_interface_broadcast_domain_hosts_info},
+    {"getBroadcastMulticastHostsInfo", 
+     ntop_get_interface_broadcast_multicast_hosts_info},
     {"getPublicHostsInfo", ntop_get_public_hosts_info},
     {"getBatchedFlowsInfo", ntop_get_batched_interface_flows_info},
     {"getBatchedHostsInfo", ntop_get_batched_interface_hosts_info},
@@ -5292,6 +5398,8 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"updateSmartRecording", ntop_update_smart_recording},
     {"updateDynIfaceTrafficPolicy",
      ntop_update_dynamic_interface_traffic_policy},
+    {"updatePushFiltersSettings",
+     ntop_update_push_filters_settings},
     {"updateLbdIdentifier", ntop_update_lbd_identifier},
     {"updateHostTrafficPolicy", ntop_update_host_traffic_policy},
     {"updateDiscardProbingTraffic", ntop_update_discard_probing_traffic},
@@ -5334,9 +5442,13 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"getThroughput", ntop_interface_get_throughput},
     {"getProtocolFlowsStats", ntop_get_protocol_flows_stats},
     {"getVLANFlowsStats", ntop_get_vlan_flows_stats},
+    {"getHostsPorts", ntop_get_hosts_ports},
+    {"getVLANHostsPorts", ntop_get_vlan_hosts_ports},
+    {"getHostsByPort", ntop_get_hosts_by_port}, 
     { "radiusAccountingStart", ntop_radius_accounting_start },
     { "radiusAccountingStop", ntop_radius_accounting_stop },
     { "radiusAccountingUpdate", ntop_radius_accounting_update },
+    { "getHostsByService", ntop_get_hosts_by_service }, 
 
     /* Addresses */
     {"getAddressInfo", ntop_get_address_info},

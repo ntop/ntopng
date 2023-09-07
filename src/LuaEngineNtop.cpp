@@ -639,6 +639,22 @@ static int ntop_is_freebsd(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_linux(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm,
+#ifdef __linux__
+                  1
+#else
+                  0
+#endif
+  );
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_initnDPIReload(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -977,18 +993,36 @@ static int ntop_should_resolve_host(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_set_iec104_allowed_typeids(lua_State *vm) {
-  char *protos;
+  char *typeids;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  if ((protos = (char *)lua_tostring(vm, 1)) == NULL)
+  if ((typeids = (char *)lua_tostring(vm, 1)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
-  ntop->getPrefs()->setIEC104AllowedTypeIDs(protos);
+  ntop->getPrefs()->setIEC104AllowedTypeIDs(typeids);
   lua_pushboolean(vm, true);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
+
+/* ****************************************** */
+
+#ifdef NTOPNG_PRO
+static int ntop_set_modbus_allowed_function_codes(lua_State *vm) {
+  char *function_codes;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  if ((function_codes = (char *)lua_tostring(vm, 1)) == NULL)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+  ntop->getPrefs()->setModbusAllowedFunctionCodes(function_codes);
+  lua_pushboolean(vm, true);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+#endif
 
 /* ****************************************** */
 
@@ -2271,7 +2305,7 @@ static bool allowLocalUserManagement(lua_State *vm) {
 
 static int ntop_reset_user_password(lua_State *vm) {
   char *who, *username, *old_password, *new_password;
-  bool is_admin = ntop->isUserAdministrator(vm);
+  bool is_admin = ntop->isUserAdministrator(vm), ret;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2308,8 +2342,9 @@ static int ntop_reset_user_password(lua_State *vm) {
   if ((old_password[0] == '\0') && !is_admin)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
-  lua_pushboolean(
-      vm, ntop->resetUserPassword(username, old_password, new_password));
+  ret = ntop->resetUserPassword(username, old_password, new_password);
+  
+  lua_pushboolean(vm, ret);
   return CONST_LUA_OK;
 }
 
@@ -2832,8 +2867,8 @@ static int ntop_create_user_session(lua_State *vm) {
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
 
-  ntop->get_HTTPserver()->authorize_noconn(
-      username, session_id, sizeof(session_id), session_duration);
+  ntop->get_HTTPserver()->authorize_noconn(username, session_id,
+					   sizeof(session_id), session_duration);
 
   lua_pushstring(vm, session_id);
   return CONST_LUA_OK;
@@ -2932,6 +2967,30 @@ void lua_push_str_table_entry(lua_State *L, const char *key,
   if (L) {
     lua_pushstring(L, key);
     lua_pushstring(L, value);
+    lua_settable(L, -3);
+  }
+}
+
+/* ****************************************** */
+
+void lua_push_str_len_table_entry(lua_State *L, const char *key,
+				  const char *value,
+				  const unsigned int len) {
+  if (L) {
+    char *v = (char*)malloc(len+1);;
+
+    if(v != NULL) {
+      memcpy(v, value, len);
+      v[len] = 0;
+    }
+    
+    lua_pushstring(L, key);
+    if(v != NULL) {
+      lua_pushstring(L, v);
+      free(v);
+    } else
+      lua_pushstring(L, value);
+    
     lua_settable(L, -3);
   }
 }
@@ -3096,6 +3155,14 @@ static int ntop_is_enterprise_l(lua_State *vm) {
 static int ntop_is_enterprise_xl(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_xl_edition());
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_is_cloud(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getPrefs()->is_cloud_edition());
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -3619,6 +3686,8 @@ static int ntop_get_info(lua_State *vm) {
                               ntop->getPrefs()->is_enterprise_l_edition());
     lua_push_bool_table_entry(vm, "version.enterprise_xl_edition",
                               ntop->getPrefs()->is_enterprise_xl_edition());
+    lua_push_bool_table_entry(vm, "version.cloud_edition",
+                              ntop->getPrefs()->is_cloud_edition());
 
     lua_push_bool_table_entry(vm, "version.nedge_edition",
                               ntop->getPrefs()->is_nedge_pro_edition());
@@ -6271,7 +6340,7 @@ static int ntop_update_radius_login_info(lua_State *vm) {
 
   lua_pushnil(vm);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+  ntop->getTrace()->traceEvent(TRACE_INFO,
                                "Radius: updated radius login informations");
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 #else
@@ -6662,7 +6731,10 @@ static int ntop_recipient_enqueue(lua_State *vm) {
     notification->score = score;
     notification->alert_severity = Utils::mapScoreToSeverity(score);
     notification->alert_category = alert_category;
-
+    /* TODO: add the alert_id to the AlertFifoItem instance */
+/*
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enqueing alert: %s", alert);
+*/
     rv = ntop->recipient_enqueue(recipient_id, notification);
   }
 
@@ -6759,8 +6831,19 @@ static int ntop_recipient_delete(lua_State *vm) {
 static int ntop_recipient_register(lua_State *vm) {
   u_int16_t recipient_id;
   AlertLevel minimum_severity = alert_level_none;
-  char *str_categories, *str_host_pools, *str_entities;
-  Bitmap128 enabled_categories, enabled_host_pools, enabled_entities;
+  char *str_categories, *str_host_pools, *str_entities,
+    *str_flow_checks, *str_host_checks;
+  bool skip_alerts = false;
+  Bitmap128 enabled_categories, enabled_host_pools, enabled_entities,
+    enabled_flow_checks, enabled_host_checks;
+    
+  /* All flow checks enabled by default */
+  for (int i = 0; i < MAX_DEFINED_FLOW_ALERT_TYPE; i++)
+    enabled_flow_checks.setBit(i);
+    
+  /* All host checks enabled by default */
+  for (int i = 0; i < NUM_DEFINED_HOST_CHECKS; i++)
+    enabled_host_checks.setBit(i);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -6788,8 +6871,27 @@ static int ntop_recipient_register(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   enabled_entities.setBits(str_entities);
 
+  /* In case it's nil, all alerts are accepted */
+  if ((lua_type(vm, 6) == LUA_TSTRING) &&
+    ((str_flow_checks = (char *)lua_tostring(vm, 6)) != NULL)) {
+      enabled_flow_checks.reset();
+      enabled_flow_checks.setBits(str_flow_checks);
+  }
+
+  /* In case it's nil, all alerts are accepted */
+  if ((lua_type(vm, 7) == LUA_TSTRING) &&
+    ((str_host_checks = (char *)lua_tostring(vm, 7)) != NULL)){
+      enabled_host_checks.reset();
+      enabled_host_checks.setBits(str_host_checks);
+  }
+
+  /* In case it's nil, all alerts are accepted */
+  if (lua_type(vm, 8) == LUA_TBOOLEAN)
+    skip_alerts = (bool)lua_toboolean(vm, 8);
+
   /*
   char bitmap_buf[64];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skip alerts: %s", skip_alerts ? "true" : "false");
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Recipient ID = %u", recipient_id);
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Categories bitmap: %s",
   enabled_categories.toHexString(bitmap_buf, sizeof(bitmap_buf)));
@@ -6797,10 +6899,15 @@ static int ntop_recipient_register(lua_State *vm) {
   enabled_host_pools.toHexString(bitmap_buf, sizeof(bitmap_buf)));
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Entities bitmap: %s",
   enabled_entities.toHexString(bitmap_buf, sizeof(bitmap_buf)));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow checks bitmap: %s",
+  enabled_flow_checks.toHexString(bitmap_buf, sizeof(bitmap_buf)));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host checks bitmap: %s",
+  enabled_host_checks.toHexString(bitmap_buf, sizeof(bitmap_buf)));
   */
 
   ntop->recipient_register(recipient_id, minimum_severity, enabled_categories,
-                           enabled_host_pools, enabled_entities);
+                           enabled_host_pools, enabled_entities, enabled_flow_checks,
+                           enabled_host_checks, skip_alerts);
 
   lua_pushnil(vm);
 
@@ -7206,6 +7313,7 @@ static luaL_Reg _ntop_reg[] = {
     {"isEnterpriseM", ntop_is_enterprise_m},
     {"isEnterpriseL", ntop_is_enterprise_l},
     {"isEnterpriseXL", ntop_is_enterprise_xl},
+    {"isCloud", ntop_is_cloud},
     {"isnEdge", ntop_is_nedge},
     {"isnEdgeEnterprise", ntop_is_nedge_enterprise},
     {"isPackage", ntop_is_package},
@@ -7368,9 +7476,10 @@ static luaL_Reg _ntop_reg[] = {
     {"snmpReadResponses", ntop_snmp_read_responses},
 
     /* Runtime */
-    {"hasGeoIP", ntop_has_geoip},
+    {"hasGeoIP",  ntop_has_geoip},
     {"isWindows", ntop_is_windows},
     {"isFreeBSD", ntop_is_freebsd},
+    {"isLinux",   ntop_is_linux},
     {"elasticsearchConnection", ntop_elasticsearch_connection},
     {"getInstanceName", ntop_get_instance_name},
 
@@ -7410,6 +7519,9 @@ static luaL_Reg _ntop_reg[] = {
     {"getHostCheckInfo", ntop_get_host_check_info},
     {"shouldResolveHost", ntop_should_resolve_host},
     {"setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids},
+#ifdef NTOPNG_PRO
+    {"setModbusAllowedFunctionCodes", ntop_set_modbus_allowed_function_codes},
+#endif
     {"getLocalNetworkAlias", ntop_check_local_network_alias},
     {"getLocalNetworkID", ntop_get_local_network_id},
     {"getRiskStr", ntop_get_risk_str},

@@ -34,6 +34,8 @@ class DataExfiltrationAlert : public FlowAlert {
   DataExfiltrationAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f){};
   ~DataExfiltrationAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

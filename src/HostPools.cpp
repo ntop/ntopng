@@ -27,6 +27,7 @@
 
 HostPools::HostPools(NetworkInterface *_iface) {
   tree = tree_shadow = NULL;
+  stats = stats_shadow = NULL;
 #ifdef NTOPNG_PRO
   children_safe = forge_global_dns = NULL;
   routing_policy_id = NULL;
@@ -56,8 +57,6 @@ HostPools::HostPools(NetworkInterface *_iface) {
            (bool *)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
 #endif
-
-  stats = stats_shadow = NULL;
 
   if ((num_active_hosts_inline =
            (int32_t *)calloc(sizeof(int32_t), MAX_NUM_HOST_POOLS)) == NULL ||
@@ -309,7 +308,16 @@ void HostPools::reloadPools() {
   if (!iface || (iface->get_id() == -1)) return;
 
   new_tree = new (std::nothrow) VLANAddressTree;
+  if(new_tree == NULL) {
+    return;
+  }
+  
   new_stats = new (std::nothrow) HostPoolStats *[MAX_NUM_HOST_POOLS];
+  if(new_stats == NULL) {
+    delete new_tree;
+    return;
+  }
+  
   for (u_int32_t i = 0; i < MAX_NUM_HOST_POOLS; i++) new_stats[i] = NULL;
 
   snprintf(kname, sizeof(kname), HOST_POOL_IDS_KEY);
@@ -324,9 +332,14 @@ void HostPools::reloadPools() {
   if (new_stats[0]) new_stats[0]->updateName(DEFAULT_POOL_NAME);
 
   /* Keys are pool ids */
-  if ((num_pools = redis->smembers(kname, &pools)) == -1)
+  if ((num_pools = redis->smembers(kname, &pools)) == -1) {
+    delete new_tree;
+    if (new_stats[0])
+      delete new_stats[0];
+    delete [] new_stats;
     return; /* Something went wrong with redis? */
-
+  }
+  
   for (int i = 0; i < num_pools; i++) {
     if (!pools[i]) continue;
 
@@ -347,8 +360,7 @@ void HostPools::reloadPools() {
 
     if (_pool_id != 0) {            /* Pool id 0 stats already updated */
       if (stats && stats[_pool_id]) /* Duplicate existing statistics */
-        new_stats[_pool_id] =
-            new (std::nothrow) HostPoolStats(*stats[_pool_id]);
+        new_stats[_pool_id] = new (std::nothrow) HostPoolStats(*stats[_pool_id]);
       else /* Brand new statistics */
         new_stats[_pool_id] = new (std::nothrow) HostPoolStats(iface);
     }

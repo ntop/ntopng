@@ -4,6 +4,7 @@
 
 require "lua_utils"
 local json = require "dkjson"
+local format_utils = require "format_utils"
 local alert_utils = require "alert_utils"
 
 local endpoint_key = "discord"
@@ -81,23 +82,23 @@ function discord.sendMessage(message_body, settings)
 
    while retry_attempts > 0 do
       local message = {
-	 username = username,
-	 content  = message_body,
+         username = username,
+         content  = message_body,
       }
 
       local msg = json.encode(message)
       local post_rc = ntop.httpPost(settings.url, msg)
 
       if post_rc then
-	 if post_rc.RESPONSE_CODE == 204 then
-	    -- Success
-	    rc = true
-	    break
-	 elseif post_rc.RESPONSE_CODE == 429 then
-	    -- Too many requests, don't retry as this would cause the situation to worsen
-	    -- https://httpstatuses.com/429
-	    return false, "Too many requests"
-	 end
+         if post_rc.RESPONSE_CODE == 204 then
+            -- Success
+            rc = true
+            break
+         elseif post_rc.RESPONSE_CODE == 429 then
+            -- Too many requests, don't retry as this would cause the situation to worsen
+            -- https://httpstatuses.com/429
+            return false, "Too many requests"
+         end
       end
 
       retry_attempts = retry_attempts - 1
@@ -109,7 +110,7 @@ end
 -- ##############################################
 
 local function formatDiscordMessage(alert)
-   local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true, emoji=true, show_entity=true})
+   local msg = format_utils.formatAlertNotification(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true, emoji=true, show_entity=true})
    
    return(msg)
 end
@@ -135,13 +136,17 @@ function discord.dequeueRecipientAlerts(recipient, budget)
 
     -- Dequeue max_alerts_per_request notifications
     local notifications = {}
-    for i=1, max_alerts_per_request do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id)
-       if notification then 
-	  notifications[#notifications + 1] = notification.alert
-       else
-	  break
-       end
+    local i = 0
+    while i < max_alerts_per_request do
+      local notification = ntop.recipient_dequeue(recipient.recipient_id)
+      if notification then 
+        if alert_utils.filter_notification(notification, recipient.recipient_id) then
+          notifications[#notifications + 1] = notification.alert
+          i = i + 1
+        end
+      else
+        break
+      end
     end
 
     if not notifications or #notifications == 0 then

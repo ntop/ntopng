@@ -14,10 +14,10 @@
 
 <template>
 <div class="dropdown" ref="dropdown" style="display:inline-block;">
-  <button class="btn dropdown-toggle" :class="button_class_2" type="button" :id="id" ref="dropdown_button"  aria-expanded="false" data-bs-toggle="dropdown">
+  <button class="btn dropdown-toggle" :class="button_class_2" :style="button_style" type="button" :id="id" ref="dropdown_button"  aria-expanded="false" data-bs-toggle="dropdown">
     <slot name="title"></slot>
   </button>
-  <ul class="dropdown-menu" :aria-labelledby="id" style=" max-height: 25rem;overflow:scroll">
+  <ul class="dropdown-menu" :aria-labelledby="id" style=" max-height: 25rem;overflow:auto">
     <!-- <slot name="menu"></slot> -->
 
     <!-- <li class="dropdown-item" v-for="(opt, i) in options" :ref="el => { menu[i] = el }"> -->
@@ -52,6 +52,7 @@ const props = defineProps({
     id: String,
     auto_load: Boolean,
     button_class: String,
+    button_style: String,
     f_on_open: Function,
     f_on_close: Function,
 });

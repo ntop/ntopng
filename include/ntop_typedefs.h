@@ -139,6 +139,7 @@ typedef enum {
   location_private_only, /* Only 192.168.0.0/16 and other private */
   location_public_only,  /* Only non-private */
   location_all,
+  location_broadcat_multicast_only
 } LocationPolicy;
 
 typedef enum {
@@ -254,6 +255,16 @@ struct zmq_msg_hdr_v2 {
   u_int32_t msg_id, source_id;
 };
 
+typedef struct {
+  char *endpoint;
+  void *socket;
+} zmq_subscriber;
+
+typedef struct {
+  u_int32_t last_seen;
+  u_int32_t last_msg_id;
+} zmq_probe;
+
 typedef u_int8_t dump_mac_t[DUMP_MAC_SIZE];
 typedef char macstr_t[MACSTR_SIZE];
 
@@ -349,7 +360,7 @@ typedef struct zmq_remote_stats {
   char remote_probe_version[64], remote_probe_os[64];
   char remote_probe_license[64], remote_probe_edition[64];
   char remote_probe_maintenance[64];
-  u_int8_t source_id, num_exporters;
+  u_int32_t source_id, num_exporters;
   u_int64_t remote_bytes, remote_pkts, num_flow_exports;
   u_int32_t remote_ifspeed, remote_time, local_time, avg_bps, avg_pps;
   u_int32_t remote_lifetime_timeout, remote_idle_timeout,
@@ -505,7 +516,10 @@ typedef enum {
   flow_alert_ndpi_tcp_issues = 90,
   flow_alert_vlan_bidirectional_traffic = 91,
   flow_alert_rare_destination = 92,
-
+  flow_alert_modbus_unexpected_function_code = 93,
+  flow_alert_modbus_too_many_exceptions = 94,
+  flow_alert_modbus_invalid_transition = 95,
+  
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
   MAX_FLOW_ALERT_TYPE =
@@ -653,6 +667,7 @@ typedef enum {
   column_device_ip,
   column_in_index,
   column_out_index,
+  column_key,
   /* Hosts */
   column_ip,
   column_alerts,
@@ -1190,13 +1205,23 @@ typedef struct {
   u_int32_t bytes_rcvd;
 } InOutTraffic;
 
+typedef struct {
+  u_int64_t bytes_sent;
+  u_int64_t bytes_rcvd;
+  u_int64_t packets_sent;
+  u_int64_t packets_rcvd;
+} RadiusTraffic;
+
 typedef enum {
+  unknown_criteria,
   application_criteria = 1,
   client_criteria,
   server_criteria,
   client_server_criteria,
   app_client_server_criteria,
-  info_criteria
+  info_criteria,
+  client_server_srv_port
 } AnalysisCriteria;
+
 
 #endif /* _NTOP_TYPEDEFS_H_ */

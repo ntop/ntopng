@@ -50,6 +50,8 @@ class IECUnexpectedTypeIdAlert : public FlowAlert {
   };
   ~IECUnexpectedTypeIdAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

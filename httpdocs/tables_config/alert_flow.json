@@ -2,9 +2,11 @@
     "id": "alert_flow",
     "data_url": "lua/rest/v2/get/flow/alert/list.lua",
     "use_current_page": false,
-    "enable_search": true,
+    "enable_search": false,
     "paging": true,
     "rsp_records_field": "records",
+    "rsp_query_info_field": "stats",
+	"display_empty_rows": true,
     "columns": [
 	{
 	    "id": "actions",
@@ -34,6 +36,13 @@
 	    "data_field": "score",
 	    "sortable": true,
 	    "render_type": "formatValueLabel",
+	    "class": ["text-center"]
+	},
+	{
+	    "title_i18n": "db_search.alert_category",
+	    "data_field": "alert_category",
+	    "sortable": true,
+	    "render_type": "formatCategory",
 	    "class": ["text-center"]
 	},
 	{
@@ -74,7 +83,6 @@
 	    "title_i18n": "datatable.fields.info",
 	    "data_field": "info",
 	    "sortable": true,
-	    "render_type": "formatMessage",
 	    "class": ["text-nowrap"]
 	},
 	{

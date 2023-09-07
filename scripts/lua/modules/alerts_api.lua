@@ -121,10 +121,10 @@ end
 
 -- ##############################################
 
-function alerts_api.addAlertGenerationInfo(alert_json, current_script)
-  if alert_json and current_script then
+function alerts_api.addAlertGenerationInfo(alert_type_params, current_script)
+  if alert_type_params and current_script then
     -- Add information about the script who generated this alert
-    alert_json.alert_generation = {
+    alert_type_params.alert_generation = {
       script_key = current_script.key,
       subdir = current_script.subdir,
     }
@@ -135,8 +135,8 @@ function alerts_api.addAlertGenerationInfo(alert_json, current_script)
   end
 end
 
-local function addAlertGenerationInfo(alert_json)
-  alerts_api.addAlertGenerationInfo(alert_json, current_script)
+local function addAlertGenerationInfo(alert_type_params)
+  alerts_api.addAlertGenerationInfo(alert_type_params, current_script)
 end
 
 -- ##############################################
@@ -310,6 +310,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   addAlertGenerationInfo(type_info.alert_type_params)
 
   if(cur_alerts and already_triggered(cur_alerts, type_info.alert_type.alert_key, granularity_sec, subtype, true) == true) then
+     --tprint("Already triggered")
      -- Alert does not belong to an exclusion filter and it is already triggered. There's nothing to do, just return.
      return true
   end
@@ -343,10 +344,10 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   end
 
   if(triggered == nil) then
-    --debug_print("Alert not triggered (already triggered?) @ "..granularity_sec.."] ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
+    --tprint("Alert not triggered (already triggered?) @ "..granularity_sec.."] ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
     return(false)
   else
-    --debug_print("Alert triggered @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
+    --tprint("Alert triggered @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
   end
 
   triggered.ifid = ifid
@@ -395,7 +396,8 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   local subtype = type_info.subtype or ""
 
   if(cur_alerts and (not already_triggered(cur_alerts, type_info.alert_type.alert_key, granularity_sec, subtype, true))) then
-     return(true)
+    --tprint("Alert not triggered @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
+    return(true)
   end
 
   when = when or os.time()
@@ -406,29 +408,31 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
  
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
      if(interface.checkContext(entity_info.entity_val) == false) then
-	alertErrorTraceback("Invalid interface entity detected "..entity_info.alert_entity.entity_id)
+	alertErrorTraceback("Invalid interface context detected for entity id "..entity_info.alert_entity.entity_id)
 	tprint(entity_info)
 	return(false)
      else
 	released = interface.releaseTriggeredAlert(table.unpack(params))
      end
+
   elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("network")) then
      if(network.checkContext(entity_info.entity_val) == false) then
-	alertErrorTraceback("Invalid network entity detected "..entity_info.alert_entity.entity_id)
+	alertErrorTraceback("Invalid network context detected for entity id "..entity_info.alert_entity.entity_id)
 	tprint(entity_info)
 	return(false)
      else 
 	released = network.releaseTriggeredAlert(table.unpack(params))
      end
+
   else
     released = interface.releaseExternalAlert(entity_info.alert_entity.entity_id, entity_info.entity_val, table.unpack(params))
   end
 
   if(released == nil) then
-    --debug_print("Alert not released (not triggered?) @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
+    --tprint("Alert not released (not triggered?) @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
     return(false)
   else
-    --debug_print("Alert released @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") 
+    --tprint("Alert released @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") 
   end
 
   released.ifid = ifid
@@ -719,10 +723,6 @@ local function delta_val(reg, metric_name, granularity, curr_val, skip_first)
 end
 
 -- ##############################################
-
-function alerts_api.host_delta_val(metric_name, granularity, curr_val, skip_first)
-  return(delta_val(host --[[ the host Lua reg ]], metric_name, granularity, curr_val, skip_first))
-end
 
 function alerts_api.interface_delta_val(metric_name, granularity, curr_val, skip_first)
   return(delta_val(interface --[[ the interface Lua reg ]], metric_name, granularity, curr_val, skip_first))

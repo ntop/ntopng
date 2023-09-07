@@ -42,6 +42,8 @@ class LongLivedFlowAlert : public FlowAlert {
   };
   ~LongLivedFlowAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

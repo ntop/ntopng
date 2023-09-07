@@ -14,7 +14,7 @@ sendHTTPContentTypeHeader('text/html')
 if(isAdministratorOrPrintErr()) then
    interface.select(ifname)
 
-   page_utils.set_active_menu_entry(page_utils.menu_entries.manage_users)
+   page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.manage_users)
 
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    dofile(dirs.installdir .. "/scripts/lua/inc/users.lua")

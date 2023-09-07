@@ -54,7 +54,7 @@ CustomHostLuaScript::~CustomHostLuaScript() {
 LuaEngine *CustomHostLuaScript::initVM() {
   const char *script_path =
       "scripts/callbacks/checks/hosts/custom_host_lua_script.lua";
-  char where[256];
+  char where[512];
   struct stat s;
 
   snprintf(where, sizeof(where), "%s/%s", ntop->get_install_dir(), script_path);

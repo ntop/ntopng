@@ -40,7 +40,8 @@ else
       top_thpt_display = pktsToSize(flow["top_throughput_pps"])
     end
     print('{ ' .. '"seen.last": "'.. formatEpoch(flow["seen.last"]) .. ' ['.. secondsToTime(diff) .. ' ago]", '
-    .. '"seen.first": "'.. formatEpoch(flow["seen.first"]) .. ' ['.. secondsToTime(diff0) .. ' ago]"'
+	  .. '"seen.first": "'.. formatEpoch(flow["seen.first"]) .. ' ['.. secondsToTime(diff0) .. ' ago]"'
+	  .. ', "seen.duration": "'.. secondsToTime(flow["seen.last"] - flow["seen.first"]) .. '"'
     .. ', "bytes": ' .. flow["bytes"] .. ', "goodput_bytes": ' .. flow["goodput_bytes"] .. ', "cli2srv.packets": ' .. flow["cli2srv.packets"] .. ', "srv2cli.packets": ' .. flow["srv2cli.packets"] .. ', "cli2srv.bytes": ' .. flow["cli2srv.bytes"] .. ', "srv2cli.bytes": ' .. flow["srv2cli.bytes"].. ', "throughput": "' .. thpt_display..'", "top_throughput_display": "'.. top_thpt_display ..'", "throughput_raw": ' .. thpt)
 
     local ifstats = interface.getStats()

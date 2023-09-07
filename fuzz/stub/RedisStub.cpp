@@ -60,10 +60,10 @@ int Redis::info(char *rsp, u_int rsp_len) {
     if (rsp_len == 0) return -1;
 
     stats.num_other++;
-    if (snprintf(rsp, rsp_len, "") < 0) {
-        rsp[0] = 0;
-        return -1;
-    }
+    if(rsp_len == 0)
+      return -1;
+    
+    rsp[0] = 0;
     return 0;
 }
 
@@ -368,8 +368,8 @@ int Redis::lindex(const char *queue_name, int idx, char *buf, u_int buf_len) {
 
     const auto &list = this->listStore[strKey];
 
-    if (idx < 0) idx += list.size();
-    if (idx < 0 || idx >= list.size()) {
+    if (idx < 0) idx += (int)list.size();
+    if (idx < 0 || idx >= (int)list.size()) {
         buf[0] = 0;
         return -1;
     }
@@ -458,7 +458,7 @@ int Redis::lrange(const char *list_name, char ***elements, int start_offset,
     }
 
     *elements = (char **)malloc(retList.size() * sizeof(char *));
-    for (int i = 0; i < retList.size(); ++i)
+    for (int i = 0; i < (int)retList.size(); ++i)
         (*elements)[i] = strdup(retList[i].c_str());
 
     return retList.size();

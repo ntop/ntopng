@@ -21,19 +21,20 @@ if not isAllowedSystemInterface() then return end
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.active_monitor)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.active_monitoring)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local host = _GET["am_host"]
 
-local page = _GET["page"] or ('overview')
+local page = _GET["page"] or 'overview'
 local measurement = _GET["measurement"]
-
-local base_url = script_manager.getMonitorUrl("active_monitoring_monitor.lua") .. "?ifid=" .. getInterfaceId(ifname)
+local ifid = getInterfaceId(ifname)
+local base_url = script_manager.getMonitorUrl("active_monitoring_monitor.lua") .. "?ifid=" .. ifid
 local url = base_url
 local info = ntop.getInfo()
 local measurement_info
+
 
 if (not isEmptyString(host) and not isEmptyString(measurement)) then
    host = active_monitoring_utils.getHost(host, measurement)
@@ -92,6 +93,10 @@ if (page == "overview") then
     -- This information is required in active_monitoring_utils.js in order to properly
     -- render the template
     for key, info in pairs(active_monitoring_utils.getMeasurementsInfo()) do
+        if key == "vulnerability_scan" then
+            goto continue
+        end
+
         measurements_info[key] = {
             label = i18n(info.i18n_label) or info.i18n_label,
             granularities = active_monitoring_utils.getAvailableGranularities(
@@ -102,6 +107,8 @@ if (page == "overview") then
             max_threshold = info.max_threshold,
             default_threshold = info.default_threshold
         }
+
+        ::continue::
     end
 
     local context = {
@@ -127,6 +134,7 @@ if (page == "overview") then
 elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) then
    local host_value = host.host .. ",metric:" .. host.measurement
    graph_utils.drawNewGraphs({ifid = -1, host = host_value})
+
 end
 
 -- #######################################################

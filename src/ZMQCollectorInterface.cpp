@@ -28,8 +28,7 @@
 
 /* **************************************************** */
 
-ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint)
-    : ZMQParserInterface(_endpoint) {
+ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserInterface(_endpoint) {
   char *tmp, *e, *t;
   const char **topics = Utils::getMessagingTopics();
 
@@ -64,41 +63,46 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint)
     if (subscriber[num_subscribers].socket == NULL)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ZMQ socket");
 
-    if (ntop->getPrefs()->is_zmq_encryption_enabled()) {
+    if (ntop->getPrefs()->is_zmq_encryption_enabled()
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+        || ntop->getPro()->enableCloudCollection()
+#endif
+       ) {
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
-      const char *server_secret_key =
-          ntop->getPrefs()->get_zmq_encryption_priv_key();
+      const char *secret_key;
 
-      if (server_secret_key == NULL)
-        server_secret_key = generateEncryptionKeys();
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+      if (ntop->getPro()->enableCloudCollection()) {
+        ntop->getPro()->generateCloudEncryptionKeys();
 
-      if (server_secret_key != NULL) {
-        if (strlen(server_secret_key) != 40)
-          ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                       "Bad ZMQ secret key len (%lu != 40)",
-                                       strlen(server_secret_key));
-        else {
-          int val = 1;
+        secret_key = ntop->getPro()->findCloudEncryptionKeys(server_public_key, server_secret_key,
+          sizeof(server_public_key), sizeof(server_secret_key)); 
 
-          if (zmq_setsockopt(subscriber[num_subscribers].socket,
-                             ZMQ_CURVE_SERVER, &val, sizeof(val)) != 0)
-            ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                         "Unable to set ZMQ_CURVE_SERVER");
-          else {
-            if (zmq_setsockopt(subscriber[num_subscribers].socket,
-                               ZMQ_CURVE_SECRETKEY, server_secret_key, 41) != 0)
-              ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                           "Unable to set ZMQ_CURVE_SECRETKEY");
-            else
-              ntop->getTrace()->traceEvent(TRACE_INFO,
-                                           "ZMQ CURVE encryption enabled");
-          }
+        if (secret_key == NULL || strlen(secret_key) == 0) {
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable ZMQ with encryption");
+          throw("Unable to collect flows");
         }
+      } else
+#endif
+      {
+        if (ntop->getPrefs()->get_zmq_encryption_priv_key() == NULL)
+          ZMQUtils::generateEncryptionKeys();
+
+        secret_key = findInterfaceEncryptionKeys(server_public_key, server_secret_key,
+                                                 sizeof(server_public_key), sizeof(server_secret_key));
+      }
+
+      if (secret_key != NULL) {
+        if (ZMQUtils::setServerEncryptionKeys(subscriber[num_subscribers].socket, secret_key) != 0)
+          throw("Unable set ZMQ encryption");
       }
 #else
-      ntop->getTrace()->traceEvent(
-          TRACE_ERROR,
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
           "Unable to enable ZMQ CURVE encryption, ZMQ >= 4.1 is required");
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+      if (ntop->getPro()->enableCloudCollection())
+        throw("Unable to collect flows");
+#endif
 #endif
     }
 
@@ -109,41 +113,8 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint)
                                    "Unable to enlarge ZMQ buffer size");
 
     if (!strncmp(e, (char *)"tcp://", 6)) {
-      val = DEFAULT_ZMQ_TCP_KEEPALIVE;
-      if (zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE,
-                         &val, sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                     "Unable to set tcp keepalive");
-      else
-        ntop->getTrace()->traceEvent(TRACE_INFO, "TCP keepalive set");
-
-      val = DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE;
-      if (zmq_setsockopt(subscriber[num_subscribers].socket,
-                         ZMQ_TCP_KEEPALIVE_IDLE, &val, sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "Unable to set tcp keepalive idle to %u seconds", val);
-      else
-        ntop->getTrace()->traceEvent(
-            TRACE_INFO, "TCP keepalive idle set to %u seconds", val);
-
-      val = DEFAULT_ZMQ_TCP_KEEPALIVE_CNT;
-      if (zmq_setsockopt(subscriber[num_subscribers].socket,
-                         ZMQ_TCP_KEEPALIVE_CNT, &val, sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "Unable to set tcp keepalive count to %u", val);
-      else
-        ntop->getTrace()->traceEvent(TRACE_INFO,
-                                     "TCP keepalive count set to %u", val);
-
-      val = DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL;
-      if (zmq_setsockopt(subscriber[num_subscribers].socket,
-                         ZMQ_TCP_KEEPALIVE_INTVL, &val, sizeof(val)) != 0)
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "Unable to set tcp keepalive interval to %u seconds",
-            val);
-      else
-        ntop->getTrace()->traceEvent(
-            TRACE_INFO, "TCP keepalive interval set to %u seconds", val);
+      /* TCP socket optimizations */
+      ZMQUtils::setKeepalive(subscriber[num_subscribers].socket);
     }
 
     if (last_char == 'c') is_collector = true, e[l] = '\0';
@@ -198,6 +169,8 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint)
 /* **************************************************** */
 
 ZMQCollectorInterface::~ZMQCollectorInterface() {
+  map<u_int32_t, zmq_probe *>::iterator p;
+  
 #ifdef INTERFACE_PROFILING
   u_int64_t n = recvStats.num_flows;
 
@@ -221,51 +194,37 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
     zmq_close(subscriber[i].socket);
   }
 
+  for (p = active_probes.begin(); p != active_probes.end(); p++) {
+    zmq_probe *probe = p->second;
+    
+    free(probe);
+  }
+  
   zmq_ctx_destroy(context);
 }
 
 /* **************************************************** */
 
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
-char *ZMQCollectorInterface::generateEncryptionKeys() {
+char *ZMQCollectorInterface::findInterfaceEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len) {
   char public_key_path[PATH_MAX], secret_key_path[PATH_MAX];
-  char *public_key = NULL, *secret_key = NULL;
-  int rc = 0;
+  bool rc = false;
 
-  snprintf(public_key_path, sizeof(public_key_path), "%s/%d/key.pub",
-           ntop->get_working_dir(), get_id());
-  snprintf(secret_key_path, sizeof(secret_key_path), "%s/%d/key.priv",
-           ntop->get_working_dir(), get_id());
-  ntop->fixPath(public_key_path);
-  ntop->fixPath(secret_key_path);
-
-  if (Utils::file_read(public_key_path, &public_key) > 0 &&
-      Utils::file_read(secret_key_path, &secret_key) > 0) {
-    strncpy(server_public_key, public_key, sizeof(server_public_key) - 1);
-    strncpy(server_secret_key, secret_key, sizeof(server_secret_key) - 1);
-    server_public_key[sizeof(server_public_key) - 1] = '\0';
-    server_secret_key[sizeof(server_secret_key) - 1] = '\0';
-    rc = 0;
-  } else {
-    rc = zmq_curve_keypair(server_public_key, server_secret_key);
-    if (rc == 0) {
-      Utils::file_write(public_key_path, server_public_key,
-                        strlen(server_public_key));
-      Utils::file_write(secret_key_path, server_secret_key,
-                        strlen(server_secret_key));
-    }
+  /* Keys from interface datadir (backward compatibility) */
+  if (!ntop->getPrefs()->get_zmq_encryption_priv_key()) {
+    snprintf(public_key_path, sizeof(public_key_path), "%s/%d/key.pub",
+             ntop->get_working_dir(), get_id());
+    snprintf(secret_key_path, sizeof(secret_key_path), "%s/%d/key.priv",
+             ntop->get_working_dir(), get_id());
+    rc = ZMQUtils::readEncryptionKeysFromFile(public_key_path, secret_key_path, public_key, secret_key, public_key_len, secret_key_len);
   }
 
-  if (public_key != NULL) free(public_key);
-  if (secret_key != NULL) free(secret_key);
-
-  if (rc != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Unable to generate/read ZMQ encryption keys");
-    return NULL;
+  if (!rc) {
+    /* Keys from option or datadir */
+    return ZMQUtils::findEncryptionKeys(public_key, secret_key, public_key_len, secret_key_len);
   }
 
-  return server_secret_key;
+  return secret_key;
 }
 #endif
 
@@ -286,6 +245,25 @@ void ZMQCollectorInterface::checkPointCounters(bool drops_only) {
   recvStatsCheckpoint.zmq_msg_drops = recvStats.zmq_msg_drops;
 
   NetworkInterface::checkPointCounters(drops_only);
+}
+
+/* **************************************************** */
+
+void ZMQCollectorInterface::checkIdleProbes(time_t now) {
+  map<u_int32_t, zmq_probe *>::iterator p;
+
+  /* Loop through active flows to find idle ones to be removed */
+  for (p = active_probes.begin(); p != active_probes.end();) {
+    zmq_probe *probe = p->second;
+
+    if (now > probe->last_seen + ZMQ_PROBE_EXPIRATION_TIME) {
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Check Idle Probes - expired probe removed");
+      active_probes.erase(p++); /* expired found - remove */
+      decNumActiveProbes();
+      free(probe);
+    } else
+      p++;
+  } 
 }
 
 /* **************************************************** */
@@ -342,19 +320,21 @@ void ZMQCollectorInterface::collect_flows() {
 
       if ((rc == 0) || (now >= next_purge_idle) ||
           (zmq_max_num_polls_before_purge == 0)) {
+        checkIdleProbes(now);
         purgeIdle(now);
         next_purge_idle = now + FLOW_PURGE_FREQUENCY;
         zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
       }
     } while (rc == 0);
 
-    for (int subscriber_id = 0; subscriber_id < num_subscribers;
-         subscriber_id++) {
-      u_int32_t msg_id = 0, last_msg_id;
-      u_int32_t source_id = 0;
-      u_int32_t publisher_version = 0;
+    for (int subscriber_id = 0; subscriber_id < num_subscribers; subscriber_id++) {
 
       if (items[subscriber_id].revents & ZMQ_POLLIN) {
+        u_int32_t msg_id = 0, current_msg_id = 0;
+        u_int32_t source_id = 0;
+        u_int32_t publisher_version = 0;
+        zmq_probe *probe = NULL;
+
         size = zmq_recv(items[subscriber_id].socket, &h0, sizeof(h0), 0);
 
         if (size == sizeof(struct zmq_msg_hdr_v0)) {
@@ -406,43 +386,43 @@ void ZMQCollectorInterface::collect_flows() {
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[topic: %s]", h->url);
 #endif
 
-        /* Read last message ID for the current source ID */
-        if (source_id_last_msg_id.find(source_id) !=
-            source_id_last_msg_id.end()) {
-          last_msg_id = source_id_last_msg_id[source_id];
+        if (active_probes.find(source_id) != active_probes.end()) {
+          /* Found - read last message ID for the current source ID */
+
+          probe = active_probes[source_id];
 
 #if 0
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[subscriber_id: %u][message source: %u]"
 				       "[msg_id: %u][last_msg_id: %u][lost: %i]",
-				       subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
+				       subscriber_id, source_id, msg_id, probe->last_msg_id, msg_id - probe->last_msg_id - 1);
 #endif
 
 #if 0
 	  fprintf(stdout, "."); fflush(stdout);
 #endif
 
-          if (msg_id == (last_msg_id + 1)) {
+          if (msg_id == (probe->last_msg_id + 1)) {
             /* No drop */
           } else {
 #ifdef MSG_ID_DEBUG
             ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                          "DROP [msg_id: %u][last_msg_id: %u]",
-                                         msg_id, last_msg_id);
+                                         msg_id, probe->last_msg_id);
 #endif
 
-            if (msg_id < last_msg_id) {
-              /* Start over (just reset source_id_last_msg_id) */
+            if (msg_id < probe->last_msg_id) {
+              /* Start over (just reset active_probes) */
 #ifdef MSG_ID_DEBUG
               ntop->getTrace()->traceEvent(
                   TRACE_NORMAL,
                   "ROLLBACK [subscriber_id: "
                   "%u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u]",
-                  subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd,
+                  subscriber_id, msg_id, probe->last_msg_id, recvStats.zmq_msg_rcvd,
                   recvStats.zmq_msg_drops);
 #endif
             } else {
               /* Compute delta (this message ID - last message ID) */
-              int32_t diff = msg_id - last_msg_id;
+              int32_t diff = msg_id - probe->last_msg_id;
 
               if (diff > 1) {
                 /* Lost message detected */
@@ -452,7 +432,7 @@ void ZMQCollectorInterface::collect_flows() {
                     TRACE_NORMAL,
                     "DROP [subscriber_id: "
                     "%u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]",
-                    subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd,
+                    subscriber_id, msg_id, probe->last_msg_id, recvStats.zmq_msg_rcvd,
                     recvStats.zmq_msg_drops, diff - 1);
 #endif
               }
@@ -460,8 +440,7 @@ void ZMQCollectorInterface::collect_flows() {
           }
         }
 
-        /* Store last message ID for the current source ID */
-        source_id_last_msg_id[source_id] = msg_id;
+        current_msg_id = msg_id;
 
         if (recvStats.zmq_msg_drops > 0) {
           /*
@@ -547,6 +526,30 @@ void ZMQCollectorInterface::collect_flows() {
                                          uncompressed, msg_id, h->url);
           }
 
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+          if (ntop->getPro()->handleProbeMessage(probe, h, uncompressed, uncompressed_len, source_id, msg_id)) {
+            /* Handled - nothing to do */
+            goto recv_next;
+          }
+#endif
+
+          /* Allocate probe info if it's the first time we see it */
+          if (probe == NULL) {
+            probe = (zmq_probe *) calloc(1, sizeof(zmq_probe));
+
+            if (probe != NULL) {
+              active_probes[source_id] = probe;
+              incNumActiveProbes();
+            }
+          }
+
+          /* Store last message ID for the current source ID */
+          if (probe != NULL) {
+            probe->last_seen = now;
+            probe->last_msg_id = current_msg_id;
+          }
+
+          /* Process the message */ 
           switch (h->url[0]) {
             case 'e': /* event */
               recvStats.num_events++;
@@ -560,9 +563,8 @@ void ZMQCollectorInterface::collect_flows() {
                     parseTLVFlow(uncompressed, uncompressed_len, subscriber_id,
                                  msg_id, this);
               else {
-                uncompressed[uncompressed_len] = '\0';
-                recvStats.num_flows += parseJSONFlow(
-                    uncompressed, uncompressed_len, subscriber_id, msg_id);
+                uncompressed[uncompressed_len] = '\0';		
+                recvStats.num_flows += parseJSONFlow(uncompressed, uncompressed_len, subscriber_id, msg_id);
               }
               break;
 
@@ -606,9 +608,10 @@ void ZMQCollectorInterface::collect_flows() {
               break;
           }
 
-            /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h->url,
-             * uncompressed); */
+          /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h->url,
+           * uncompressed); */
 
+         recv_next:
 #ifdef HAVE_ZLIB
           if (compressed /* only if the traffic was actually compressed */)
             if (uncompressed) free(uncompressed);
@@ -689,15 +692,23 @@ void ZMQCollectorInterface::lua(lua_State *vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  if (ntop->getPrefs()->is_zmq_encryption_enabled() &&
-      strlen(server_public_key) > 0) {
+  if ((ntop->getPrefs()->is_zmq_encryption_enabled() && strlen(server_public_key) > 0)
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+      || ntop->getPro()->enableCloudCollection()
+#endif
+     ) {
+    char *probe_key;
     char hex_key[83];
 
-    Utils::toHex(server_public_key, strlen(server_public_key), hex_key,
-                 sizeof(hex_key));
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+    if (ntop->getPro()->enableCloudCollection())
+      probe_key = ntop->getPro()->getCloudKey();
+    else
+#endif
+      probe_key = Utils::toHex(server_public_key, strlen(server_public_key), hex_key, sizeof(hex_key));
 
     lua_newtable(vm);
-    lua_push_str_table_entry(vm, "public_key", hex_key);
+    lua_push_str_table_entry(vm, "public_key", probe_key ? probe_key : "");
     lua_pushstring(vm, "encryption");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -710,8 +721,7 @@ void ZMQCollectorInterface::purgeIdle(time_t when, bool force_idle,
                                       bool full_scan) {
   NetworkInterface::purgeIdle(when, force_idle, full_scan);
 
-  for (std::map<u_int64_t, NetworkInterface *>::iterator it =
-           flowHashing.begin();
+  for (std::map<u_int64_t, NetworkInterface *>::iterator it = flowHashing.begin();
        it != flowHashing.end(); ++it)
     it->second->purgeIdle(when, force_idle, full_scan);
 }

@@ -4,11 +4,14 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+
 require "lua_utils"
 local discover = require "discover_utils"
 local custom_column_utils = require "custom_column_utils"
 local format_utils = require "format_utils"
 local json = require "dkjson"
+local vs_utils = require "vs_utils"
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/json')
@@ -127,6 +130,8 @@ elseif mode == "remote_no_tcp_tx" then
    hosts_retrv_function = interface.getRemoteHostsInfoNoTXTCP
 elseif mode == "broadcast_domain" then
    hosts_retrv_function = interface.getBroadcastDomainHostsInfo
+elseif mode == "broadcast_multicast" then
+   hosts_retrv_function = interface.getBroadcastMulticastHostsInfo
 elseif mode == "filtered" then
    filtered_hosts = true
 elseif mode == "blacklisted" then
@@ -173,6 +178,16 @@ if(hosts_stats ~= nil) then
 	 goto skip
       end
 
+      local hosts_vs_details = vs_utils.retrieve_hosts_to_scan()
+      local host_vs_details = {}
+      for _,value in ipairs(hosts_vs_details) do
+          if value.host == key then
+              host_vs_details = value
+              break
+          end
+      end
+      
+
       if(sortColumn == "column_") then
 	 vals[key] = key -- hosts_stats[key]["ipkey"]
       elseif(sortColumn == "column_name") then
@@ -210,6 +225,12 @@ if(hosts_stats ~= nil) then
 	 vals[hosts_stats[key]["queries.rcvd"]+postfix] = key
       elseif(sortColumn == "column_ip") then
 	 vals[hosts_stats[key]["iphex"]..postfix] = key
+      elseif(sortColumn == "column_num_vulnerabilities") then
+         if(host_vs_details.num_vulnerabilities_found ~= nil) then
+            vals[host_vs_details.num_vulnerabilities_found..postfix] = key
+         else
+            vals["0"..postfix] = key
+         end
       elseif custom_column_utils.isCustomColumn(sortColumn) then
 	 custom_column_key, custom_column_format = custom_column_utils.label2criteriakey(sortColumn)
 	 local val = custom_column_utils.hostStatsToColumnValue(hosts_stats[key], custom_column_key, false)
@@ -241,6 +262,26 @@ for _key, _value in pairsByKeys(vals, funct) do
    local record = {}
    local key = vals[_key]
    local value = hosts_stats[key]
+
+   
+
+   local hosts_vs_details = vs_utils.retrieve_hosts_to_scan()
+    local host_vs_details = {}
+    for _,value in ipairs(hosts_vs_details) do
+        if value.host == key then
+            host_vs_details = value
+            break
+        end
+    end
+
+    if (host_vs_details and host_vs_details.num_vulnerabilities_found ~= nil and host_vs_details.num_vulnerabilities_found > 0) then
+      
+         
+        record["column_num_vulnerabilities"] = format_high_num_value_for_tables({
+                                             value = host_vs_details.num_vulnerabilities_found
+                                          }, "value")
+    end
+   
 
    local symkey = hostinfo2jqueryid(hosts_stats[key])
    record["key"] = symkey

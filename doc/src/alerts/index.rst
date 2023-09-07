@@ -11,7 +11,8 @@ Contrary to tools based on signatures, ntopng is a behavioural-based tool. Below
 .. toctree::
     :maxdepth: 2
 
-    evaluating_alerts
+    available_alerts
+    alerts_list_per_license
     available_recipients
     risk_and_check_exclusion
     developing_alerts

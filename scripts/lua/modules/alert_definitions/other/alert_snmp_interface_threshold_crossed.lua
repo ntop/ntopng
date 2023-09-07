@@ -66,16 +66,27 @@ end
 -- @return A human-readable string
 function alert_snmp_interface_threshold_crossed.format(ifid, alert, alert_type_params)
   
+  local value = alert_type_params.value
+  
+  if alert_type_params.metric_type == "Volume" then
+    value = bytesToSize(alert_type_params.value)
+  end
+
+  if alert_type_params.metric_type == "Throughput" then
+    value = bitsToSize(alert_type_params.value)
+  end
   
   return(i18n("alerts_dashboard.snmp_device_interface_threshold_crossed_alert_description", {
     device = alert_type_params.device,
     interface_name = alert_type_params.interface_name,
-    value = alert_type_params.value,
+    value = value,
     threshold = alert_type_params.threshold,
     threshold_sign = alert_type_params.threshold_sign,
     metric = alert_type_params.metric,
     measure_unit = alert_type_params.metric_type
   }))
+
+  
 end
 
 -- #######################################################

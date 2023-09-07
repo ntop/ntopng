@@ -1,6 +1,6 @@
 <div class="modal fade" id="add-recipient-modal" tabindex="-1" role="dialog" aria-labelledby="add-endpoint-modal-title"
     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="add-recipient-modal-title">{{ i18n("endpoint_notifications.add_new_recipient") }}</h5>
@@ -21,7 +21,7 @@
                         <label class="col-form-label col-sm-3" for="recipient-name-input">
                             <b>{{ i18n("endpoint_notifications.recipient_name") }}</b>
                         </label>
-                        <div class="col-sm-5">
+                        <div class="col-sm-7">
                             <input minlength="1" required name="recipient_name" type="text" class="form-control" id="recipient-name-input">
                         </div>
                     </div>
@@ -29,14 +29,14 @@
                         <label class="col-form-label col-sm-3" for="recipient-type-select">
                             <b>{{ i18n("endpoint_notifications.recipient_select") }}</b>
                         </label>
-                        <div class="col-sm-5">
+                        <div class="col-sm-7">
                             <select required name="endpoint" class="form-select" id="endpoint-select">
                                 {% for i, endpoint in ipairs(endpoint_list) do %}
-				    {% if not endpoint.endpoint_conf.builtin then %}
+                    {% if not endpoint.endpoint_conf.builtin then %}
                                         <option {{ (i == 1 and "selected" or "") }} data-endpoint-key="{{ endpoint.endpoint_key }}" value="{{ endpoint.endpoint_id }}">
                                             {{ endpoint.endpoint_conf_name }}
                                         </option>
-				    {% end %}
+                    {% end %}
                                 {% end %}
                             </select>
                         </div>
@@ -46,67 +46,130 @@
                     </div>
                     <hr>
                     <div class="mb-3 row">
-                        <label class="col-form-label col-sm-3" for="recipient-severity-select">
-                            <b>{{ i18n("endpoint_notifications.recipient_severity") }}</b>
+                        <label class="col-form-label col-sm-3" for="add-recipient-notifications-type">
+                            <b>{{ i18n("endpoint_notifications.notifications_type") }}</b>
                         </label>
-                        <div class="col-sm-5">
-                            <select required name="recipient_minimum_severity" class="form-select" id="recipient-severity-select">
-                                {% for key, alert in pairsByField(alert_severities, 'severity_id', asc) do %}
-				{% if alert.severity_id ~= 0 then %}
-                                    <option {{ (alert.severity_id == 0 and 'selected' or '') }} value="{{ alert.severity_id }}">{{ i18n("endpoint_notifications.severities."..key) }}</option>
-				{% end %}
+                        <div class="col-sm-7">
+                            <select required name="recipient_notifications_type" class="form-select" id="add-recipient-notifications-type">
+                                {% for id, notification_info in pairsByField(notification_types, 'title', asc) do %}
+                                    <option {{ternary((id == alerts), 'selected', '')}} value="{{ id }}">{{ notification_info.title }}</option>
                                 {% end %}
                             </select>
+                            <small>{{ i18n('endpoint_notifications.notifications_type_notes') }}</small>
                         </div>
                     </div>
-                    <div class="mb-3 row">
-                        <label class="col-form-label col-sm-3" for="add-recipient-categories-select">
-                            <b>{{ i18n("endpoint_notifications.recipient_category") }}</b>
-                        </label>
-                        <div class="col-sm-5">
-                            <select multiple name="recipient_check_categories" class="selectpicker col-sm-12" id="add-recipient-categories-select">
-                                {% for _, category in pairsByKeys(check_categories) do %}
-                                    <option selected value="{{ category.id }}">{{ i18n(category.i18n_title) }}</option>
-                                {% end %}
-                            </select>
+                    <div id="alert_filters">
+                        <hr>
+                        <div class="mb-3 row">
+                            <label class="col-form-label col-sm-3" for="add-recipient-host-pools-select">
+                                <b>{{ i18n("host_pools.host_pools") }}</b>
+                            </label>
+                            <div class="col-sm-7">
+                                <select multiple name="recipient_host_pools" class="selectpicker allow-no-selection col-sm-12" id="add-recipient-host-pools-select">
+                                    {% for _, pool in pairsByField(pools.host_pools, "name", asc) do %}
+                                        <option selected value="{{ pool.pool_id }}">{{ pool.name }}</option>
+                                    {% end %}
+                                </select>
+                                <small>{{ i18n('endpoint_notifications.message_host_pools') }}</small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3 row">
-                        <label class="col-form-label col-sm-3" for="add-recipient-entities-select">
-                            <b>{{ i18n("endpoint_notifications.recipient_entities") }}</b>
-                        </label>
-                        <div class="col-sm-5">
-                            <select multiple name="recipient_check_entities" class="selectpicker col-sm-12" id="add-recipient-entities-select">
-                                {% for _, entity_info in pairsByKeys(check_entities) do %}
-                                    <option value="{{ entity_info.entity_id }}">{{ i18n(entity_info.i18n_label) }}</option>
-                                {% end %}
-                            </select>
+                        <div class="mb-3 row">
+                            <label class="col-form-label col-sm-3" for="add-recipient-am-hosts-select">
+                                <b>{{ i18n("active_monitoring_stats.active_monitoring") }}</b>
+                            </label>
+                            <div class="col-sm-7">
+                                <select multiple name="recipient_am_hosts" class="selectpicker allow-no-selection col-sm-12" id="add-recipient-am-hosts-select">
+                                    {% for _, host in pairsByField(am_hosts, "name", asc) do %}
+                                        <option selected value="{{ host.id }}">{{ host.name }}</option>
+                                    {% end %}
+                                </select>
+                                <small>{{ i18n('endpoint_notifications.message_am_hosts') }}</small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3 row">
-                        <label class="col-form-label col-sm-3" for="add-recipient-host-pools-select">
-                            <b>{{ i18n("host_pools.host_pools") }}</b>
-                        </label>
-                        <div class="col-sm-5">
-                            <select multiple name="recipient_host_pools" class="selectpicker allow-no-selection col-sm-12" id="add-recipient-host-pools-select">
-                                {% for _, pool in pairsByField(pools.host_pools, "name", asc) do %}
-                                    <option selected value="{{ pool.pool_id }}">{{ pool.name }}</option>
-                                {% end %}
-                            </select>
-                            <small class="text-muted">{{ i18n('endpoint_notifications.message_host_pools') }}</small>
+                        <div class="mb-3 row">
+                            <label class="col-form-label col-sm-3" for="add-recipient-silence-alerts">
+                                <b>{{ i18n("endpoint_notifications.silence_multiple_alerts") }}</b>
+                            </label>
+                            <div class="col-sm-7">
+                                <select required name="recipient_silence_alerts" class="form-select" id="add-recipient-silence-alerts">
+                                    <option selected value="true">{{ i18n("yes") }}</option>
+                                    <option value="false">{{ i18n("no") }}</option>
+                                </select>
+                                <small>{{ i18n('endpoint_notifications.silence_multiple_alerts_notes') }}</small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3 row">
-                        <label class="col-form-label col-sm-3" for="add-recipient-am-hosts-select">
-                            <b>{{ i18n("active_monitoring_stats.active_monitoring") }}</b>
-                        </label>
-                        <div class="col-sm-5">
-                            <select multiple name="recipient_am_hosts" class="selectpicker allow-no-selection col-sm-12" id="add-recipient-am-hosts-select">
-                                {% for _, host in pairsByField(am_hosts, "name", asc) do %}
-                                    <option selected value="{{ host.id }}">{{ host.name }}</option>
-                                {% end %}
-                            </select>
-                            <small class="text-muted">{{ i18n('endpoint_notifications.message_am_hosts') }}</small>
+                        <div class="mb-3 d-flex">
+                            <ul class="nav nav-tabs">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="generic_tab">{{ i18n('filter_per_properties') }}</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="per_alerts_tab">{{ i18n('filter_per_alerts') }}</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div id="generic_recipient"  style="min-height: 12rem;">
+                            <div class="mb-3 row">
+                                <label class="col-form-label col-sm-3" for="recipient-severity-select">
+                                    <b>{{ i18n("endpoint_notifications.recipient_severity") }}</b>
+                                </label>
+                                <div class="col-sm-7">
+                                    <select required name="recipient_minimum_severity" class="form-select" id="recipient-severity-select">
+                                        {% for key, alert in pairsByField(alert_severities, 'severity_id', asc) do %}
+                        {% if alert.severity_id ~= 0 then %}
+                                            <option {{ (alert.severity_id == 0 and 'selected' or '') }} value="{{ alert.severity_id }}">{{ i18n("endpoint_notifications.severities."..key) }}</option>
+                        {% end %}
+                                        {% end %}
+                                    </select>
+                            </div>
+                            </div>
+                            <div class="mb-3 row">
+                                <label class="col-form-label col-sm-3" for="add-recipient-categories-select">
+                                    <b>{{ i18n("endpoint_notifications.recipient_category") }}</b>
+                                </label>
+                                <div class="col-sm-7">
+                                    <select multiple name="recipient_check_categories" class="selectpicker col-sm-12" id="add-recipient-categories-select">
+                                        {% for _, category in pairsByKeys(check_categories) do %}
+                                            <option selected value="{{ category.id }}">{{ i18n(category.i18n_title) }}</option>
+                                        {% end %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3 row">
+                                <label class="col-form-label col-sm-3" for="add-recipient-entities-select">
+                                    <b>{{ i18n("endpoint_notifications.recipient_entities") }}</b>
+                                </label>
+                                <div class="col-sm-7">
+                                    <select multiple name="recipient_check_entities" class="selectpicker col-sm-12" id="add-recipient-entities-select">
+                                        {% for _, entity_info in pairsByKeys(check_entities) do %}
+                                            <option value="{{ entity_info.entity_id }}">{{ i18n(entity_info.i18n_label) }}</option>
+                                        {% end %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="per_alerts_recipient" style="min-height: 12rem;" hidden>
+                            <div class="mb-3 row">
+                                <label class="col-form-label col-sm-3" for="add_recipient_alert_select">
+                                    <b>{{ i18n("endpoint_notifications.alerts") }}</b>
+                                </label>
+                                <div class="col-sm-7 d-flex">
+                                    <select multiple name="recipient_alerts" class="select2 form-select" id="add_recipient_alert_select">
+                                        {% for _, entities in pairsByField(checks, "entity_name", asc) do 
+                                            if not table.empty(entities.alert_list) then
+                                        %}
+                                            <optgroup label="{{ entities.entity_name }}">
+                                            {%  for _, alert in pairs(entities.alert_list) do %}
+                                            <option value="{{ alert.key .. '_' .. alert.entity_id }}">{{ alert.title }}</option>
+                                            {% end %}
+                                            </optgroup>
+                                            {%
+                                            end
+                                           end 
+                                        %}
+                                    </select>
+                                </div>
+                            </div>                            
                         </div>
                     </div>
                     <span class="invalid-feedback"></span>

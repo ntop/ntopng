@@ -99,6 +99,7 @@ class Utils {
   static char *stringtolower(char *str);
   static char *sanitizeHostName(char *str);
   static char *urlDecode(const char *src, char *dst, u_int dst_len);
+  static bool isValidUTF8(const u_char *param, size_t length);
   static bool purifyHTTPparam(char *const param, bool strict, bool allowURL,
                               bool allowDots);
   static char *stripHTML(const char *str);
@@ -310,7 +311,7 @@ class Utils {
   static int openSocket(int domain, int type, int protocol, const char *label);
   static void closeSocket(int socket);
   static const char **getMessagingTopics();
-  static bool toHex(char *in, u_int in_len, char *out, u_int out_len);
+  static char *toHex(char *in, u_int in_len, char *out, u_int out_len);
   static bool fromHex(char *in, u_int in_len, char *out, u_int out_len);
 
   static void swap8(u_int8_t *a, u_int8_t *b);
@@ -318,6 +319,7 @@ class Utils {
   static void swap32(u_int32_t *a, u_int32_t *b);
   static void swapfloat(float *a, float *b);
   static char* createRandomString(char *buf, size_t buf_len);
+  static IpAddress* parseHostString(char *host_ip, u_int16_t *vlan_id /* out */);
 };
 
 #endif /* _UTILS_H_ */

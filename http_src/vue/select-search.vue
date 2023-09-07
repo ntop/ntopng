@@ -24,6 +24,7 @@ const options_2 = ref([]);
 const groups_options_2 = ref([]);
 const selected_option_2 = ref({});
 const selected_values = ref([]); // used only if multiple == true
+const refresh_options = ref(0);
 
 const props = defineProps({
     id: String,
@@ -45,23 +46,16 @@ onMounted(() => {
 watch(() => props.selected_option, (cur_value, old_value) => {
     set_selected_option(cur_value);
     let select2Div = select2.value;
-    let value = get_value_from_selected_option(cur_value);
-    if (!props.multiple) {
-	$(select2Div).val(value);
-	$(select2Div).trigger("change");
-    } else {
-	$(select2Div).val(selected_values.value);
-	$(select2Div).trigger("change");
-    }
+    change_select_2_selected_value();
 }, { flush: 'pre'});
 
-watch([options_2, groups_options_2], (cur_value, old_value) => {
+watch([refresh_options], (cur_value, old_value) => {
     render();
 }, { flush: 'post'});
 
 
 watch(() => props.options, (current_value, old_value) => {
-    if (props.disable_change == true || current_value == null) { return; }    
+    if (props.disable_change == true || current_value == null) { return; }
     set_input();
 }, { flush: 'pre'});
 
@@ -78,9 +72,6 @@ function set_options() {
     let groups_dict = {};
     props.options.forEach((option) => {
 	let opt_2 = { ...option };
-	if (opt_2.value == 0 || opt_2.value == "0") {
-	    opt_2.value = null;
-	}
 	if (opt_2.value == null) {
 	    opt_2.value = opt_2.label;
 	}
@@ -93,7 +84,8 @@ function set_options() {
 	    groups_dict[option.group].options.push(opt_2);
 	}
     });
-    groups_options_2.value = ntopng_utility.object_to_array(groups_dict);    
+    groups_options_2.value = ntopng_utility.object_to_array(groups_dict);
+    refresh_options.value += 1;
 }
 
 
@@ -111,7 +103,7 @@ const render = () => {
 	    dropdownAutoWidth : true,
 	});
 	$(select2Div).on('select2:select', function (e) {
-        let data = e.params.data;
+	    let data = e.params.data;
 	    let value = data.element._value;
 	    let option = find_option_from_value(value);
 	    if (value != props.selected_option) {
@@ -141,29 +133,37 @@ const render = () => {
     }
     first_time_render = false;
     // this.$forceUpdate();
-    // $(select2Div).val(props.selected_option);
+    change_select_2_selected_value();
 };
+
+function change_select_2_selected_value() {
+    let select2Div = select2.value;
+    if (!props.multiple) {
+	let value = get_value_from_selected_option(props.selected_option);
+	$(select2Div).val(value);
+	$(select2Div).trigger("change");
+    } else {
+	$(select2Div).val(selected_values.value);
+	$(select2Div).trigger("change");
+    }
+}
 
 function is_item_selected(item) {
     if (!props.multiple) {
-	    return item.value == selected_option_2.value.value;
+	const is_zero_value = selected_option_2.value.value == 0 ||selected_option_2.value.value == "0";
+	return item.value == selected_option_2.value.value || (is_zero_value && item.label == selected_option_2.value.label);
     }
     return selected_values.value.find((v) => v == item.value) != null; 
 }
 
-function set_selected_option(selected_option, push_options) {
+function set_selected_option(selected_option) {
     if (selected_option == null && !props.multiple) {
-	    selected_option = get_props_selected_option();
+	selected_option = get_props_selected_option();
     }
-    
     selected_option_2.value = selected_option;
-    if (selected_option_2.value != null && selected_option_2.value.value == null) {
-        selected_option_2.value.value = selected_option.label;
-    }
-
-    if (props.multiple == true && selected_option_2.value?.value != null) {
-     	selected_values.value.push(selected_option_2.value.value);
-    }
+    // if (props.multiple == true && selected_option_2.value?.value != null) {
+    // 	selected_values.value.push(selected_option_2.value.value);
+    // }
 }
 
 function get_props_selected_option() {
@@ -178,7 +178,7 @@ function get_value_from_selected_option(selected_option) {
 	selected_option = get_props_selected_option();
     }
     let value;
-    if (selected_option.value) {
+    if (selected_option.value != null) {
 	value = selected_option.value;
     } else {
 	value = selected_option.label;
@@ -213,18 +213,8 @@ function find_option_2_from_value(value) {
     }
     return null;
 }
-
-function update_multiple_values(values) {
-    selected_values.value = [];
-    options_2.value = [];
-    values.forEach(function(element) {
-        options_2.value.push(element);
-        if (element.selected == true)
-            set_selected_option(element);
-    })
-}
-
-defineExpose({ render, update_multiple_values });
+    
+defineExpose({ render });
 
 function destroy() {
     try {

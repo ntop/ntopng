@@ -346,6 +346,9 @@ end
 -- ##############################################
 
 function truncate(x)
+   if(x == nil) then
+      tprint(debug.traceback())
+   end
    return x<0 and math.ceil(x) or math.floor(x)
 end
 
@@ -1295,6 +1298,11 @@ end
 -- ##############################################
 
 function tablePreferences(key, value, force_set)
+  if not _SESSION then
+    -- Not in a user session, ignore preferences
+    return
+  end
+
   table_key = getRedisPrefix("ntopng.sort.table")
 
   if((value == nil) or (value == "")) and (force_set ~= true) then
@@ -1873,6 +1881,16 @@ function setObsPointAlias(observation_point_id, alias)
       ntop.setHashCache(getObsPointAliasKey(), observation_point_id, alias)
    else
       ntop.delHashCache(getObsPointAliasKey(), observation_point_id)
+   end
+end
+
+-- ##############################################
+
+function setFlowDevAlias(flowdev_ip, alias)
+   if((flowdev_ip ~= alias) and not isEmptyString(alias)) then
+      ntop.setHashCache(getFlowDevAliasKey(), flowdev_ip, alias)
+   else
+      ntop.delHashCache(getFlowDevAliasKey(), flowdev_ip)
    end
 end
 

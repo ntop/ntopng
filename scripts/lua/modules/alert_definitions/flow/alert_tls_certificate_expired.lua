@@ -56,6 +56,10 @@ function alert_tls_certificate_expired.format(ifid, alert, alert_type_params)
    end
 end
 
+function alert_tls_certificate_expired.alert_retention_policy_key(alert_info)
+   return {"srv_ip","srv_port"}
+end
+
 -- #######################################################
 
 return alert_tls_certificate_expired

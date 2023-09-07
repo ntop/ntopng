@@ -71,7 +71,7 @@ class NetworkInterfacePro;
  *
  */
 class NetworkInterface : public NetworkInterfaceAlertableEntity {
- protected:
+protected:
   char *ifname, *ifDescription;
   u_int8_t ifMac[6];
   bpf_u_int32 ipv4_network_mask, ipv4_network;
@@ -81,22 +81,23 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   std::map<u_int32_t, InterfaceLocation> bridge_interface_id_to_location;
 #endif
   u_int32_t num_alerts_engaged_notice[ALERT_ENTITY_MAX_NUM_ENTITIES],
-      num_alerts_engaged_warning[ALERT_ENTITY_MAX_NUM_ENTITIES],
-      num_alerts_engaged_error[ALERT_ENTITY_MAX_NUM_ENTITIES],
-      num_alerts_engaged_critical[ALERT_ENTITY_MAX_NUM_ENTITIES],
-      num_alerts_engaged_emergency[ALERT_ENTITY_MAX_NUM_ENTITIES], flow_serial;
+    num_alerts_engaged_warning[ALERT_ENTITY_MAX_NUM_ENTITIES],
+    num_alerts_engaged_error[ALERT_ENTITY_MAX_NUM_ENTITIES],
+    num_alerts_engaged_critical[ALERT_ENTITY_MAX_NUM_ENTITIES],
+    num_alerts_engaged_emergency[ALERT_ENTITY_MAX_NUM_ENTITIES], flow_serial;
   /* Counters for active alerts. Changed by multiple concurrent threads */
   std::atomic<u_int64_t>
-      num_active_alerted_flows_notice; /* Counts all flow alerts with severity
-                                          <= notice  */
+  num_active_alerted_flows_notice; /* Counts all flow alerts with severity
+				      <= notice  */
   std::atomic<u_int64_t>
-      num_active_alerted_flows_warning; /* Counts all flow alerts with severity
-                                           == warning */
+  num_active_alerted_flows_warning; /* Counts all flow alerts with severity
+				       == warning */
   std::atomic<u_int64_t>
-      num_active_alerted_flows_error; /* Counts all flow alerts with severity >=
-                                         error   */
+  num_active_alerted_flows_error; /* Counts all flow alerts with severity >=
+				     error   */
+  std::atomic<u_int32_t> num_active_probes; /* Count active ZMQ probes */
   u_int32_t num_host_dropped_alerts, num_flow_dropped_alerts,
-      num_other_dropped_alerts, last_purge_idle;
+    num_other_dropped_alerts, last_purge_idle;
   u_int64_t num_written_alerts, num_alerts_queries, score_as_cli, score_as_srv;
   u_int64_t num_new_flows;
   time_t last_ndpi_reload;
@@ -124,7 +125,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Logic for detecting packet protocol storms */
   u_int32_t dhcp_last_sec_pkts, last_sec_epoch;
 
-  time_t nextMinPeriodicUpdate;
+  time_t nextMinPeriodicUpdate, next5MinPeriodicUpdate;
   /* Behavioural analysis regarding the interface */
   BehaviorAnalysis *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
 #endif
@@ -137,10 +138,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                              been enqueued for dump */
 
   /* CustomScript VMs */
-  LuaEngine *customFlowLuaScript_proto, /* Called when nDPI has detected the
-                                           protocol */
-      *customFlowLuaScript_periodic,    /* Called periodically on flows    */
-      *customFlowLuaScript_end; /* Called when the flow ends                  */
+  LuaEngine *customFlowLuaScript_proto, /* Called when nDPI has detected the protocol */
+    *customFlowLuaScript_periodic, /* Called periodically on flows    */
+    *customFlowLuaScript_end;      /* Called when the flow ends       */
   LuaEngine *customHostLuaScript; /* Called periodically on hosts */
 
   /* Queues for the execution of flow user scripts */
@@ -156,7 +156,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     Flag to indicate whether JSON labels should be used for flow fields inside
     the dumped flow JSON. If this flag is false, flow fields are keyed with
     nProbe integer flow keys.
-   */
+  */
   bool flows_dump_json_use_labels;
 
   /* Queue containing the ip@vlan strings of the hosts to restore. */
@@ -169,14 +169,14 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
    * operation does generate a use-after-free. */
   std::map<std::pair<AlertEntity, std::string>,
            InterfaceMemberAlertableEntity *>
-      external_alerts;
+  external_alerts;
   Mutex external_alerts_lock;
 
   RoundTripStats *download_stats, *upload_stats;
 
   bool is_view; /* Whether this is a view interface */
   ViewInterface
-      *viewed_by; /* Whether this interface is 'viewed' by a ViewInterface */
+  *viewed_by; /* Whether this interface is 'viewed' by a ViewInterface */
   u_int8_t viewed_interface_id; /* When this is a 'viewed' interface, this id
                                    represents a unique interface identifier
                                    inside the view */
@@ -219,10 +219,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool is_dynamic_interface;           /* Whether this is a dynamic interface */
   bool show_dynamic_interface_traffic; /* Show traffic of this dynamic interface
                                         */
+  bool push_host_filters; /* Push alerted hosts to pf_ring via Redis queue */
   u_int64_t dynamic_interface_criteria; /* Criteria identifying this dynamic
                                            interface */
   FlowHashingEnum
-      dynamic_interface_mode; /* Mode (e.g., Probe IP, VLAN ID, etc */
+  dynamic_interface_mode; /* Mode (e.g., Probe IP, VLAN ID, etc */
   NetworkInterface *dynamic_interface_master; /* Main interface */
 
   bool is_traffic_mirrored, is_loopback;
@@ -255,28 +256,28 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   LocalTrafficStats localStats;
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop, flowDumpLoop /* Thread for the database dump of flows */,
-      flowChecksLoop /* Thread for the execution of flow user script hooks */,
-      hostChecksLoop /* Thread for the execution of host user script hooks */
-      ;
+    flowChecksLoop /* Thread for the execution of flow user script hooks */,
+    hostChecksLoop /* Thread for the execution of host user script hooks */
+    ;
   Condvar flow_checks_condvar, host_checks_condvar;
   bool pollLoopCreated, flowDumpLoopCreated, flowAlertsDequeueLoopCreated,
-      hostAlertsDequeueLoopCreated;
+    hostAlertsDequeueLoopCreated;
   bool has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   bool flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices, totalNumHosts,
-      numTotalRxOnlyHosts /* subset of numTotalRxOnlyHosts that have received
-                             but never sent any traffic */
-      ,
-      numLocalHosts,
-      numLocalRxOnlyHosts /* subset of numLocalHosts that have received but
-                             never sent any traffic */
-      ,
-      scalingFactor;
+    numTotalRxOnlyHosts /* subset of numTotalRxOnlyHosts that have received
+			   but never sent any traffic */
+    ,
+    numLocalHosts,
+    numLocalRxOnlyHosts /* subset of numLocalHosts that have received but
+			   never sent any traffic */
+    ,
+    scalingFactor;
   /* Those will hold counters at checkpoints */
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount,
-      checkpointDroppedAlertsCount;
+    checkpointDroppedAlertsCount;
   u_int64_t checkpointDiscardedProbingPktCount,
-      checkpointDiscardedProbingBytesCount;
+    checkpointDiscardedProbingBytesCount;
   u_int16_t ifMTU;
   int cpu_affinity; /**< Index of physical core where the network interface
                        works. */
@@ -295,7 +296,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   struct timeval last_periodic_stats_update;
 
   MacHash
-      *gw_macs; /**< Hash used to identify traffic direction based on gw MAC. */
+  *gw_macs; /**< Hash used to identify traffic direction based on gw MAC. */
   bool gw_macs_reload_requested;
 
   /* Mac */
@@ -303,16 +304,16 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   /* Autonomous Systems */
   AutonomousSystemHash
-      *ases_hash; /**< Hash used to store Autonomous Systems information. */
+  *ases_hash; /**< Hash used to store Autonomous Systems information. */
 
   /* Observation Point */
   u_int16_t last_obs_point_id;
   ObservationPointHash
-      *obs_hash; /**< Hash used to store Observation Point information. */
+  *obs_hash; /**< Hash used to store Observation Point information. */
 
   /* Operating Systems */
   OperatingSystemHash
-      *oses_hash; /**< Hash used to store Operating Systems information. */
+  *oses_hash; /**< Hash used to store Operating Systems information. */
 
   /* Countries */
   CountriesHash *countries_hash;
@@ -328,11 +329,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   AlertStore *alertStore;
   HostPools *host_pools;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses,
-      has_seen_dhcp_addresses;
+    has_seen_dhcp_addresses;
   bool has_seen_pods, has_seen_containers, has_external_alerts;
   time_t last_pkt_rcvd,
-      last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
-      next_idle_flow_purge, next_idle_host_purge, next_idle_other_purge;
+    last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
+    next_idle_flow_purge, next_idle_host_purge, next_idle_other_purge;
   bool running, shutting_down, is_idle;
   NetworkStats **networkStats;
   InterfaceStatsHash *interfaceStats;
@@ -405,7 +406,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /*
     Dequeues alerted flows up to `budget` and executes `flow_lua_check` on each
     of them. The number of flows dequeued is returned.
-   */
+  */
   u_int64_t dequeueFlowAlerts(u_int budget);
 
   u_int64_t dequeueHostAlerts(u_int budget); /* Same as above but for hosts */
@@ -415,24 +416,24 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #ifdef NTOPNG_PRO
   void checkDHCPStorm(time_t when, u_int32_t num_pkts);
 #endif
+  void vlan_ports_lua_response(lua_State *vm, 
+      HostsPorts *count);
+  void sort_ports(lua_State *vm,
+		  HostsPorts *count,
+		  u_int16_t protocol);
+  void sort_hosts_details(lua_State *vm,
+                          HostsPortsAnalysis *count,
+                          u_int16_t protocol,
+                          bool get_port);
   void sort_and_filter_flow_stats(lua_State *vm,
-				  std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count,
-				  std::unordered_map<string, AggregatedFlowsStats *> *count_info,
+				  struct aggregated_stats *stats,
 				  AnalysisCriteria filter_type);
-  
-  bool filters_flows(AggregatedFlowsStats *fs, char *search_filter, AnalysisCriteria filter_type, char *host_ip_filter );
-  bool verify_search_filter(AggregatedFlowsStats* fs, char* filter, AnalysisCriteria filter_type);
-  bool verify_search_filter_on_client(AggregatedFlowsStats* fs, char* filter);
-  bool verify_search_filter_on_server(AggregatedFlowsStats* fs, char* filter);
-
-  bool verify_host_ip_filter(AggregatedFlowsStats *fs, char *filter, string vlan);
-
   void build_lua_rsp(lua_State *vm, AggregatedFlowsStats *fs, u_int filter_type,
                      u_int32_t size, u_int *num, bool set_resp);
   void build_protocol_flow_stats_lua_rsp(lua_State *vm, AggregatedFlowsStats *fs,
                                          u_int32_t size, u_int *num);
 
- public:
+public:
   /**
    * @brief A Constructor
    * @details Creating a new NetworkInterface with all instance variables set to
@@ -548,15 +549,16 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline char *get_ndpi_proto_name(u_int id) {
     return (ndpi_get_proto_name(get_ndpi_struct(), id));
   };
-  inline int get_ndpi_proto_id(char *proto) {
-    return (ndpi_get_protocol_id(get_ndpi_struct(), proto));
+  inline u_int16_t get_ndpi_proto_id(char *proto) {
+    u_int16_t _proto = ndpi_get_protocol_id(get_ndpi_struct(), proto);
+    return ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), _proto);
   };
   inline int get_ndpi_category_id(char *cat) {
     return (ndpi_get_category_id(get_ndpi_struct(), cat));
   };
   inline char *get_ndpi_proto_breed_name(u_int id) {
     return (ndpi_get_proto_breed_name(
-        get_ndpi_struct(), ndpi_get_proto_breed(get_ndpi_struct(), id)));
+				      get_ndpi_struct(), ndpi_get_proto_breed(get_ndpi_struct(), id)));
   };
   inline char *get_ndpi_full_proto_name(ndpi_protocol protocol, char *buf,
                                         u_int buf_len) const {
@@ -595,7 +597,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     Enqueue flows to be processed by the view interfaces.
     Viewed interface enqueue flows using this method so that the view
     can periodicall dequeue them and update its statistics;
-   */
+  */
   bool viewEnqueue(time_t t, Flow *f);
 #ifdef NTOPNG_PRO
   void flushFlowDump();
@@ -686,16 +688,18 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool isRunning() const;
   bool isShuttingDown() const;
   inline bool isTrafficMirrored() const { return is_traffic_mirrored; };
-  inline bool isSmartRecordingEnabled() const { return is_smart_recording_enabled; };
+  bool isSmartRecordingEnabled() const;
   inline const char *getSmartRecordingInstance() const { return smart_recording_instance_name; };
   inline bool showDynamicInterfaceTraffic() const {
     return show_dynamic_interface_traffic;
   };
+  inline bool pushHostFilters() const { return push_host_filters; };
   inline bool discardProbingTraffic() const { return discard_probing_traffic; };
   inline bool flowsOnlyInterface() const { return flows_only_interface; };
   void updateTrafficMirrored();
   void updateSmartRecording();
   void updateDynIfaceTrafficPolicy();
+  void updatePushFiltersSettings();
   void updateFlowDumpDisabled();
   void updateLbdIdentifier();
   void updateDiscardProbingTraffic();
@@ -722,10 +726,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   Host *findHostByMac(u_int8_t *mac);
 
   bool dissectPacket(
-      u_int32_t bridge_iface_idx, bool ingressPacket,
-      u_int8_t *sender_mac, /* Non NULL only for NFQUEUE interfaces */
-      const struct pcap_pkthdr *h, const u_char *packet,
-      u_int16_t *ndpiProtocol, Host **srcHost, Host **dstHost, Flow **flow);
+		     u_int32_t bridge_iface_idx, bool ingressPacket,
+		     u_int8_t *sender_mac, /* Non NULL only for NFQUEUE interfaces */
+		     const struct pcap_pkthdr *h, const u_char *packet,
+		     u_int16_t *ndpiProtocol, Host **srcHost, Host **dstHost, Flow **flow);
   bool processPacket(u_int32_t bridge_iface_idx, bool ingressPacket,
                      const struct bpf_timeval *when, const u_int64_t time,
                      struct ndpi_ethhdr *eth, u_int16_t vlan_id,
@@ -784,15 +788,15 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                         bool skip_critical);
 
   int getActiveHostsList(
-      lua_State *vm, u_int32_t *begin_slot, bool walk_all,
-      u_int8_t bridge_iface_idx, AddressTree *allowed_hosts, bool host_details,
-      LocationPolicy location, char *countryFilter, char *mac_filter,
-      u_int16_t vlan_id, OSType osFilter, u_int32_t asnFilter,
-      int16_t networkFilter, u_int16_t pool_filter, bool filtered_hosts,
-      bool blacklisted_hosts, u_int8_t ipver_filter, int proto_filter,
-      TrafficType traffic_type_filter, u_int32_t device_ip, bool tsLua,
-      bool anomalousOnly, bool dhcpOnly, const AddressTree *const cidr_filter,
-      char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder);
+			 lua_State *vm, u_int32_t *begin_slot, bool walk_all,
+			 u_int8_t bridge_iface_idx, AddressTree *allowed_hosts, bool host_details,
+			 LocationPolicy location, char *countryFilter, char *mac_filter,
+			 u_int16_t vlan_id, OSType osFilter, u_int32_t asnFilter,
+			 int16_t networkFilter, u_int16_t pool_filter, bool filtered_hosts,
+			 bool blacklisted_hosts, u_int8_t ipver_filter, int proto_filter,
+			 TrafficType traffic_type_filter, u_int32_t device_ip, bool tsLua,
+			 bool anomalousOnly, bool dhcpOnly, const AddressTree *const cidr_filter,
+			 char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder);
   int getActiveASList(lua_State *vm, const Paginator *p, bool diff = false);
   int getActiveObsPointsList(lua_State *vm, const Paginator *p);
   int getActiveOSList(lua_State *vm, const Paginator *p);
@@ -869,11 +873,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   }
   inline u_int64_t getNumDiscProbingPktsSinceReset() const {
     return getNumDiscardedProbingPackets() -
-           getCheckPointNumDiscardedProbingPackets();
+      getCheckPointNumDiscardedProbingPackets();
   };
   inline u_int64_t getNumDiscProbingBytesSinceReset() const {
     return getNumDiscardedProbingBytes() -
-           getCheckPointNumDiscardedProbingBytes();
+      getCheckPointNumDiscardedProbingBytes();
   }
 
   virtual void runHousekeepingTasks();
@@ -979,7 +983,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows,
                             bool wait_for_db_created = false) {
     return (db ? db->exec_sql_query(vm, sql, limit_rows, wait_for_db_created)
-               : -1);
+	    : -1);
   };
   int exec_csv_query(const char *sql, bool dump_in_json_format,
                      struct mg_connection *conn);
@@ -1047,6 +1051,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                               u_int16_t host_vlan);
 
   virtual void reloadCompanions(){};
+
   void requestGwMacsReload() { gw_macs_reload_requested = true; };
   void reloadGwMacs();
 
@@ -1067,7 +1072,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     The view passes to this method both its pointer and the viewed interface id,
     that is, a numeric identifier for the viewed interface inside the view
     interface.
-   */
+  */
   inline void setViewed(ViewInterface *view_iface,
                         u_int8_t _viewed_interface_id) {
     viewed_by = view_iface;
@@ -1161,7 +1166,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /*
     Issue a request for user scripts reload. This is called by ntopng when user
     scripts should be reloaded, e.g., after a configuration change.
-   */
+  */
   virtual void updateDirectionStats() { ; }
   void reloadDhcpRanges();
 
@@ -1188,11 +1193,15 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   };
 #endif
 
+  void incNumActiveProbes();
+  void decNumActiveProbes();
+  u_int64_t getNumActiveProbes() const;
+
   void incNumAlertedFlows(Flow *f, AlertLevel severity);
   void decNumAlertedFlows(Flow *f, AlertLevel severity);
   virtual u_int64_t getNumActiveAlertedFlows() const;
   virtual u_int64_t getNumActiveAlertedFlows(
-      AlertLevelGroup alert_level_group) const;
+					     AlertLevelGroup alert_level_group) const;
   void incNumAlertsEngaged(AlertEntity alert_entity, AlertLevel alert_severity);
   void decNumAlertsEngaged(AlertEntity alert_entity, AlertLevel alert_severity);
   void incNumDroppedAlerts(AlertEntity alert_entity);
@@ -1228,7 +1237,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void incNumQueueDroppedFlows(u_int32_t num);
   /*
     Dequeues enqueued flows to dump them to database
-   */
+  */
   u_int64_t dequeueFlowsForDump(u_int idle_flows_budget,
                                 u_int active_flows_budget);
 
@@ -1240,14 +1249,14 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   inline void incHostAnomalies(u_int32_t local, u_int32_t remote) {
     tot_num_anomalies.local_hosts += local,
-        tot_num_anomalies.remote_hosts += remote;
+      tot_num_anomalies.remote_hosts += remote;
   };
 
   /*
     Dequeues enqueued flows to execute user script checks.
     Budgets indicate how many flows should be dequeued (if available) to perform
     protocol detected, active, and idle checks.
-   */
+  */
   u_int64_t dequeueFlowAlertsFromChecks(u_int budget);
   inline FlowChecksExecutor *getFlowCheckExecutor() {
     return (flow_checks_executor);
@@ -1277,7 +1286,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) {
     return (ndpi_get_proto_category(get_ndpi_struct(), proto));
   };
-  ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
+  ndpi_protocol_category_t get_ndpi_proto_category(u_int16_t protoid);
   void setnDPIProtocolCategory(u_int16_t protoId,
                                ndpi_protocol_category_t protoCategory);
   bool nDPILoadIPCategory(char *what, ndpi_protocol_category_t id,
@@ -1330,17 +1339,36 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   };
   void luaUsedPorts(lua_State *vm) { usedPorts.lua(vm, this); };
 
+  void getVLANHostsPorts(lua_State *vm);
+  void getHostsPorts(lua_State *vm);
+  void getHostsByPort(lua_State *vm);
+  void getHostsByService(lua_State *vm);
   void getFilteredLiveFlowsStats(lua_State *vm);
   void getVLANFlowsStats(lua_State *vm);
   void getRxOnlyHostsList(lua_State *vm, bool local_host_rx_only,
                           bool list_host_peers);
 
   static bool compute_protocol_flow_stats(GenericHashEntry *node,
-                                          void *user_data, bool *matched);
+					  void *user_data, bool *matched);
   static bool compute_client_flow_stats(GenericHashEntry *node, void *user_data,
-                                        bool *matched);
+					bool *matched);
   static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data,
-                                        bool *matched);
+					bool *matched);
+  static bool compute_client_server_srv_port_flow_stats(GenericHashEntry *node,
+          void *user_data,
+          bool *matched);
+  static bool get_host_ports(GenericHashEntry *node,
+				 void *user_data,
+				 bool *matched);
+  static bool get_hosts_by_port(GenericHashEntry *node,
+				void *user_data,
+				bool *matched);
+  static bool get_hosts_by_service(GenericHashEntry *node,
+				   void *user_data,
+				   bool *matched);
+  static bool get_vlan_host_ports(GenericHashEntry *node,
+				   void *user_data,
+				   bool *matched);
 
 #ifdef NTOPNG_PRO
   static bool compute_client_server_flow_stats(GenericHashEntry *node,

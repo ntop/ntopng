@@ -96,10 +96,13 @@ for key, value in ipairs(flows_stats) do
         end
     elseif (flows_info["proto.ndpi"] == "SIP") then
         info = getSIPInfo(flows_info)
-    elseif (starts(flows_info["proto.ndpi"], "RTP")) then
-        flows_info["info"] = getRTPInfo(flows_info)
+    elseif (starts(flows_info["proto.ndpi"], "RTP")
+	    or starts(flows_info["proto.ndpi"], "SRTP")
+	    or starts(flows_info["proto.ndpi"], "STUN") -- Teams
+    ) then
+       flows_info["info"] = getRTPInfo(flows_info)
     end
-
+   
     if (flows_info["info"] == nil) then
         if (starts(info, "<i class")) then
             flows_info["info"] = info
@@ -110,7 +113,7 @@ for key, value in ipairs(flows_stats) do
             local alt_info = info
 
             if italic then
-                info = string.format("<i>%s</i>", info)
+	       info = string.format("<i>%s</i>", info)
             end
             info = shortenString(info)
 
@@ -139,12 +142,12 @@ for key, value in ipairs(flows_stats) do
             flows_info["info"] = "<span data-bs-toggle='tooltip' title='" .. alt_info .. "'>" .. info .. "</span>"
         end
     end
-
+    
     if (flows_info["profile"] ~= nil) then
         flows_info["info"] = formatTrafficProfile(flows_info["profile"]) .. flows_info["info"]
     end
 
-    -- tprint(flows_info["info"])
+    --  tprint(flows_info["info"])
 end
 
 local formatted_res = {}
@@ -420,8 +423,14 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
             "%;'>Client</div><div class='progress-bar bg-success' style='width: " .. (100 - cli2srv) ..
             "%;'>Server</div></div>"
 
-    local info = shortenString(value["info"], 32)
+    local info
 
+    if(starts(value["info"],"<")) then
+       info = value.info
+    else
+       info = shortenString(value["info"], 32)
+    end
+    
     if isScoreEnabled() then
         record["column_score"] = format_utils.formatValue(value.score.flow_score)
     end
@@ -443,8 +452,8 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
         end
 
         info = info .. "'><span class='badge bg-warning text-dark'>" .. i18n("periodic_flow") .. "</span></h1></A>"
-    end
-
+    end  
+    
     if (not isEmptyString(value["protos.http.last_method"])) then
         local span_mode
         local color
@@ -468,6 +477,8 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
     end
 
     record["column_info"] = info
+
+    
 
     formatted_res[#formatted_res + 1] = record
 

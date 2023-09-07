@@ -45,13 +45,14 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress,
 
 /* *************************************** */
 
-LocalHost::~LocalHost() {  
-  if(initial_ts_point) delete(initial_ts_point);
+LocalHost::~LocalHost() {
+  addInactiveData();
+  if (initial_ts_point) delete (initial_ts_point);
   
   dumpRareDestToRedis();
   if(rare_dest) ndpi_bitmap_free(rare_dest);
   if(rare_dest_last) ndpi_bitmap_free(rare_dest_last);
-
+  
   freeLocalHostData();
 }
 
@@ -121,8 +122,12 @@ void LocalHost::initialize() {
         (isIPv6() &&
          ((strncmp(strIP, "ff0", 3) == 0) || (strncmp(strIP, "fe80", 4) == 0))))
       ;
-    else
+    else {
       ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true);
+
+      if(rsp[0] != '\0')
+        setResolvedName(rsp);
+    }
   }
 
   INTERFACE_PROFILING_SUB_SECTION_ENTER(
@@ -155,6 +160,83 @@ void LocalHost::initialize() {
     rare_dest_last = ndpi_bitmap_alloc();
   }
 
+}
+
+/* *************************************** */
+
+void LocalHost::deferredInitialization() {
+  removeInactiveData();
+  Host::deferredInitialization();
+}
+
+/* *************************************** */
+
+void LocalHost::addInactiveData() {
+  /* Remove the key from the hash, used to get the offline hosts */
+  /* Exclude the multicast/broadcast addresses */
+  if(!ntop->getRedis() || !isLocalUnicastHost())
+    return;
+
+  /* Exclude local-link fe80::/10, marked as private */
+  if(isIPv6() && isPrivateHost())
+    return;
+
+  char buf[64], *json_str = NULL;
+  ndpi_serializer host_json;
+  u_int32_t json_str_len = 0;
+  Mac *cur_mac = getMac();
+
+  /* In case the MAC is NULL or the MAC is a special */
+  /* address or a broadcast address do not include it */
+  if(!cur_mac || cur_mac->isSpecialMac() || cur_mac->isBroadcast())
+    return;
+
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, 
+    "Adding Host %s to inactive hosts Interace %d, with MAC: %s",
+    ip.print(buf, sizeof(buf)),
+    iface->get_id(),
+    cur_mac->print(buf, sizeof(buf)));
+#endif                               
+ 
+  ndpi_init_serializer(&host_json, ndpi_serialization_format_json);
+  ndpi_serialize_string_string(&host_json, "ip", ip.print(buf, sizeof(buf)));
+
+  ndpi_serialize_string_uint64(&host_json, "first_seen", get_first_seen());
+  ndpi_serialize_string_uint64(&host_json, "last_seen",  get_last_seen());
+
+  if(cur_mac) {
+    ndpi_serialize_string_uint32(&host_json, "device_type", getDeviceType());
+    ndpi_serialize_string_string(&host_json, "mac", cur_mac->print(buf, sizeof(buf)));
+  }
+
+  ndpi_serialize_string_uint32(&host_json, "vlan", (u_int16_t) get_vlan_id());
+  ndpi_serialize_string_uint32(&host_json, "network", (u_int16_t) get_local_network_id());
+  ndpi_serialize_string_string(&host_json, "name", get_name(buf, sizeof(buf), false));
+  
+
+  
+  json_str = ndpi_serializer_get_buffer(&host_json, &json_str_len);
+  if ((json_str != NULL) && (json_str_len > 0)) {
+    char key[128], redis_key[64];
+    snprintf(redis_key, sizeof(redis_key), OFFLINE_LOCAL_HOSTS_KEY, iface->get_id());
+    ntop->getRedis()->hashSet(redis_key, getSerializationKey(key, sizeof(key)), json_str);
+  }
+
+  ndpi_term_serializer(&host_json);
+}
+
+/* *************************************** */
+
+void LocalHost::removeInactiveData() {
+  char key[128], redis_key[64];
+  
+  /* Remove the key from the hash, used to get the offline hosts */
+  if(!ntop->getRedis() || !isLocalUnicastHost())
+    return;
+
+  snprintf(redis_key, sizeof(redis_key), OFFLINE_LOCAL_HOSTS_KEY, iface->get_id());
+  ntop->getRedis()->hashDel(redis_key, getSerializationKey(key, sizeof(key)));
 }
 
 /* *************************************** */
@@ -516,7 +598,7 @@ void LocalHost::setRouterMac(Mac *gw) {
     memcpy(router_mac, gw->get_mac(), 6), router_mac_set = true;
 
 #ifdef NTOPNG_PRO
-    ntop->get_am()->addClientGateway(this, gw);
+    ntop->get_am()->addClientGateway(this, gw, get_first_seen());
 #endif
   }
 }

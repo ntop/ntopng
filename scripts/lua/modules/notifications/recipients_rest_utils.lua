@@ -137,7 +137,7 @@ function recipients_rest_utils.parse_minimum_severity(minimum_severity_id_string
       end
    end
 
-   return nil
+   return alert_severities.notice.severity_id -- No minimum severity
  end
 
 -- ##############################################

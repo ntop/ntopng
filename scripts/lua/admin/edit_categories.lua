@@ -23,7 +23,7 @@ end
 
 local tab = _GET["tab"] or "protocols"
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.categories)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.categories)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

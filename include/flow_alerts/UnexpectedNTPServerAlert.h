@@ -36,6 +36,8 @@ class UnexpectedNTPServerAlert : public UnexpectedServerAlert {
       : UnexpectedServerAlert(c, f){};
   ~UnexpectedNTPServerAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

@@ -117,6 +117,8 @@ class HostAlert {
     return getAlertType().id == type.id;
   }
 
+  virtual bool autoAck() const { return false; };
+
   /* Generates the JSON alert serializer with base information and per-check
    * information gathered with `getAlertJSON`. NOTE: memory must be freed by the
    * caller. */

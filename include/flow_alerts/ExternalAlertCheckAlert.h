@@ -37,6 +37,8 @@ class ExternalAlertCheckAlert : public FlowAlert {
   ExternalAlertCheckAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f){};
   ~ExternalAlertCheckAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 

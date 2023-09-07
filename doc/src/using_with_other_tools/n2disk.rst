@@ -168,12 +168,17 @@ otherwise (only traffic matching network events will be available in the latter 
 External Traffic Recording Providers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-One can manage n2disk services manually using the command line. In
-this case, one can configure ntopng to bind to an external traffic
-recording provider. Traffic recording providers are configured from
-the interface settings page. A dropdown menu with the list of
-available recording providers is shown.
+Recording traffic at high rates (10/40/100 Gbit and above) usually requires ad-hoc/manual
+configurations, as in that case accelerated capture technologies like PF_RING ZC with 
+Intel, Mellanox or FPGA adapters are required, and n2disk needs to be properly configured
+and tuned to take fully advantage of the hardware architecture (CPU affinity, storage, etc).
 
+In order to support custom n2disk configurations, ntopng can also attach to external
+n2disk instances/services which have been configured manually using systemd, as opposite
+to using ntopng for automatically configure and start the recording using the GUI.
+In fact, ntopng can bind to an external traffic recording provider by selecting it from
+the interface settings page. A dropdown menu with the list of available recording providers
+is shown there.
 
 .. figure:: ../img/web_gui_interfaces_recording_external_providers.png
   :align: center
@@ -187,6 +192,41 @@ available recording providers is shown.
    files, ntopng will not show a settings tab nor it will allow any
    configuration change. However, extractions will still be possible
    as described in the following section.
+
+Please also note that ZC and FPGA adapters are based on kernel bypass technologies,
+which provides the best capture acceleration, with the drawback that they do not (usually)
+allow multiple applications to capture the same data stream at the same time (with some
+exceptions like Silicom/Fiberblaze adapters and Mellanox, depending on the configuration).
+This means that ntopng and n2disk cannot capture and process the same traffic at the same
+time. For this reason, in order to overcome this limitation, n2disk is able to export 
+flow metadata to ntopng over ZMQ, similar to what nProbe does (as explained in the 
+Using ntopng with nProbe section). In this configuration n2disk can be configured to 
+capture raw packets, dump PCAP data to disk, and export flow metadata in JSON or TLV 
+format through ZMQ to ntopng for visibility.
+
+In order to process flow metadata through ZMQ in ntopng, the collector interface needs
+to be added in the ntopng configuration file (/etc/ntopng/ntopng.conf):
+
+.. code:: bash
+
+   -i=tcp://*:5556c
+
+The same endpoint needs to be added to the n2disk configuration file (e.g. /etc/n2disk/n2disk-eth0.conf):
+
+.. code:: bash
+
+   [...]
+   --zmq=tcp://127.0.0.1:5556
+   --zmq-probe-mode
+   --zmq-export-flows
+   -u=ntopng
+
+Please note that it is a good practice to run n2disk using the ntopng user (see -u)
+in order to make sure that ntopng is able to access the PCAP data recorded by n2disk
+and run traffic extractions.
+
+Please check the n2disk User’s Guide for a full example of n2disk configuration and
+further information about other options.
 
 Traffic Extraction
 ------------------

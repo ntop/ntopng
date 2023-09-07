@@ -15,6 +15,8 @@ local alert_severities = require "alert_severities"
 local alert_roles = require "alert_roles"
 local tag_utils = require "tag_utils"
 local alert_entities = require "alert_entities"
+local checks = require "checks"
+local os_utils = require("os_utils")
 
 -- ##############################################
 
@@ -164,20 +166,39 @@ end
 
 -- ##############################################
 
+function alert_store:_build_alert_status_condition(status, is_write)
+    local field = 'alert_status'
+
+    field = self:get_column_name(field, is_write)
+
+    if status == "any" then
+        return string.format(" ((%s = %u) OR (%s = %u)) ", 
+            field, alert_consts.alert_status.historical.alert_status_id,
+            field, alert_consts.alert_status.acknowledged.alert_status_id)
+    else
+        return string.format(" %s = %u ",
+            field, alert_consts.alert_status[status].alert_status_id)
+    end
+end
+
+-- ##############################################
+
 -- @brief Add filters on status (engaged, historical, or acknowledged, one of `alert_consts.alert_status`)
 -- @param status A key of `alert_consts.alert_status`
 -- @return True if set is successful, false otherwise
 function alert_store:add_status_filter(status, is_write)
     if not self._status then
+        if not status then
+           status = "historical"
+        end
+
         if alert_consts.alert_status[status] then
             self._status = alert_consts.alert_status[status].alert_status_id
 
-            -- Engaged alerts don't add a database filter as they are in-memory only
-            if status ~= "engaged" then
-                local field = 'alert_status'
-                field = self:get_column_name(field, is_write)
-
-                self:add_filter_condition_raw('alert_status', string.format(" %s = %u ", field, self._status))
+            if status == "engaged" then
+                -- Engaged alerts don't add a database filter as they are in-memory only
+            else
+                self:add_filter_condition_raw('alert_status', self:_build_alert_status_condition(status, is_write))
             end
         end
 
@@ -253,14 +274,14 @@ function alert_store:build_sql_cond(cond, is_write)
 
     elseif cond.field == 'alert_id' and tonumber(cond.value) ~= 0 then
 
-        if ntop.isClickHouseEnabled() then
+        if self._alert_entity == alert_entities.flow and ntop.isClickHouseEnabled() then
             -- filter with the predominant alert_id and also search 
             -- the alert_id in the alerts_map where the other flow alerts are present.
             local alert_id_bit = "bitShiftLeft(toUInt128('1'), " .. cond.value .. ")"
             local and_cond = 'neq'
-            sql_cond = string.format(" (%s %s %u %s (%s %s %s) ) ",
+            sql_cond = string.format(" (%s %s %u %s (bitAnd(%s,reinterpretAsUInt128(reverse(unhex(%s)))) %s %s) ) ",
                 self:get_column_name('alert_id', is_write), sql_op, cond.value, ternary(cond.op == and_cond, 'AND', 'OR'),
-                "bitAnd(" .. alert_id_bit .. ",reinterpretAsUInt128(reverse(unhex(alerts_map))) )", sql_op, alert_id_bit)
+                alert_id_bit, self:get_column_name('alerts_map', is_write), sql_op, alert_id_bit)
         else
             -- TODO implement alerts_map match with sqlite
             sql_cond = string.format(" (%s %s %u) ", self:get_column_name('alert_id', is_write), sql_op, cond.value)
@@ -334,21 +355,32 @@ function alert_store:build_sql_cond(cond, is_write)
             sql_val = snmp_info[2]
         end
 
-        -- Look for input or output
-        if cond.field == 'snmp_interface' then
-            local input_snmp = self:get_column_name('input_snmp', is_write)
-            local output_snmp = self:get_column_name('output_snmp', is_write)
+        if self._alert_entity == alert_entities.snmp_device then -- snmp entity
+            
+            sql_cond = self:get_column_name('port', is_write) .. sql_op .. sql_val
 
-            sql_cond = input_snmp .. sql_op .. sql_val .. " " .. ternary(cond.op == 'neq', 'AND', 'OR') .. " " ..
-                           output_snmp .. sql_op .. sql_val
-        else
-            local k = self:get_column_name(cond.field, is_write)
-            sql_cond = k .. sql_op .. sql_val
-        end
+            if probe_ip then
+                sql_cond = " (" .. sql_cond .. ")" .. ternary(cond.op == 'neq', 'OR', 'AND') .. " " ..
+                    self:get_column_name('ip', is_write) .. sql_op .. string.format("('%s')", probe_ip)
+            end
 
-        if probe_ip then
-            sql_cond = " (" .. sql_cond .. ")" .. ternary(cond.op == 'neq', 'OR', 'AND') .. " " ..
-                           self:get_column_name('probe_ip', is_write) .. sql_op .. string.format("('%s')", probe_ip)
+        else -- flow or other entities
+            -- Look for input or output
+            if cond.field == 'snmp_interface' then
+                local input_snmp = self:get_column_name('input_snmp', is_write)
+                local output_snmp = self:get_column_name('output_snmp', is_write)
+
+                sql_cond = input_snmp .. sql_op .. sql_val .. " " .. ternary(cond.op == 'neq', 'AND', 'OR') .. " " ..
+                               output_snmp .. sql_op .. sql_val
+            else
+                local k = self:get_column_name(cond.field, is_write)
+                sql_cond = k .. sql_op .. sql_val
+            end
+
+            if probe_ip then
+                sql_cond = " (" .. sql_cond .. ")" .. ternary(cond.op == 'neq', 'OR', 'AND') .. " " ..
+                               self:get_column_name('probe_ip', is_write) .. sql_op .. string.format("('%s')", probe_ip)
+            end
         end
 
         sql_cond = " (" .. sql_cond .. ")"
@@ -796,6 +828,15 @@ end
 
 -- ##############################################
 
+function alert_store:set_order_by(sort_column, sort_order)
+    self._order_by = {
+        sort_column = sort_column,
+        sort_order = sort_order
+    }
+end
+
+-- ##############################################
+
 -- @brief Specify the sort criteria of the query
 -- @param sort_column The column to be used for sorting
 -- @param sort_order Order, either `asc` or `desc`
@@ -816,10 +857,7 @@ function alert_store:add_order_by(sort_column, sort_order)
     -- Creating the order by if not defined and valid
     if not self._order_by and sort_column and self:_valid_fields(sort_column) and
         (sort_order == "asc" or sort_order == "desc") then
-        self._order_by = {
-            sort_column = sort_column,
-            sort_order = sort_order
-        }
+        self:set_order_by(sort_column, sort_order)        
         return true
     end
 
@@ -949,7 +987,7 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
     local q
 
     if ntop.isClickHouseEnabled() then
-        if (group_by_clause == "") then
+        if (isEmptyString(group_by_clause)) then
             q = string.format(
                 " SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, toUnixTimestamp(tstamp) as tstamp_epoch, toUnixTimestamp(tstamp_end) as tstamp_end_epoch, %s FROM %s WHERE %s %s %s %s",
                 self._alert_entity.entity_id, fields, table_name, where_clause, order_by_clause, limit_clause,
@@ -959,7 +997,7 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
                 group_by_clause, order_by_clause, limit_clause, offset_clause)
         end
     else
-        if (group_by_clause == "") then
+        if (isEmptyString(group_by_clause)) then
             q = string.format(" SELECT %u entity_id, (tstamp_end - tstamp) duration, %s FROM `%s` WHERE %s %s %s %s",
                 self._alert_entity.entity_id, fields, table_name, where_clause, order_by_clause, limit_clause,
                 offset_clause)
@@ -1115,7 +1153,14 @@ function alert_store:count()
 
     where_clause = self:build_where_clause()
 
-    local q = string.format(" SELECT count(*) as count FROM `%s` WHERE %s", table_name, where_clause)
+    local q
+
+    if isEmptyString(self._group_by) then
+        q = string.format("SELECT count(*) as count FROM `%s` WHERE %s", table_name, where_clause)
+    else
+        q = string.format("SELECT count(*) as count FROM (SELECT 1 FROM `%s` WHERE %s GROUP BY  %s) g", 
+            table_name, where_clause, self._group_by)
+    end
 
     local count_query = interface.alert_store_query(q)
 
@@ -1523,13 +1568,13 @@ function alert_store:top_alert_id_historical_by_count()
     local limit = 10
 
     local q = string.format(
-        "SELECT alert_id, count(*) count FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u", table_name,
+        "SELECT alert_id, sum(score) count FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u", table_name,
         where_clause, limit)
 
     if not self._alert_entity then
         -- For the all view alert_entity is read from the database
         q = string.format(
-            "SELECT entity_id, alert_id, count(*) count FROM %s WHERE %s GROUP BY entity_id, alert_id ORDER BY count DESC LIMIT %u",
+            "SELECT entity_id, alert_id, sum(score) count FROM %s WHERE %s GROUP BY entity_id, alert_id ORDER BY count DESC LIMIT %u",
             table_name, where_clause, limit)
     end
 
@@ -1705,6 +1750,60 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
         return alerts, total_rows, {}
     else -- Historical
 
+        -- Handle Custom Queries (query_preset)
+        local p = _GET["query_preset"] -- Example: &query_preset=contacts
+        if not isEmptyString(p) and ntop.isEnterpriseL() then
+            package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path 
+            local db_query_presets = require "db_query_presets"
+
+            local query_presets = db_query_presets.get_presets(
+                os_utils.fixPath(dirs.installdir .. "/scripts/historical/alerts/" .. self._alert_entity.alert_store_name)
+            )
+
+            if query_presets[p] then
+                local preset = query_presets[p]
+
+                -- Select fields
+                if not isEmptyString(preset.select.sql) then
+                   select_fields = preset.select.sql
+                end
+
+		-- Filters
+		if preset.filters and not isEmptyString(preset.filters.sql) then
+		   filter = preset.filters.sql -- append to where
+		end
+
+                -- Group by fields
+                if not isEmptyString(preset.groupby.sql) then
+                   self:group_by(preset.groupby.sql)
+                end
+
+                -- Sort by field
+
+                local sort_column = _GET["sort"]
+                local sort_order = _GET["order"]
+                self:add_order_by(sort_column, sort_order)
+
+                -- Check if the selected sort column is valid, use the preset default otherwise
+                if #preset.sortby.items > 0 then
+                   if not self._order_by or 
+                      not self._order_by.sort_column or
+                      (not table.contains(preset.groupby.items, 
+                             self._order_by.sort_column, 
+                             (function(n) return n.name == self._order_by.sort_column end))
+                       and not table.contains(preset.select.items, 
+                             self._order_by.sort_column, 
+                             (function(n) return n.func and n.name == self._order_by.sort_column end))) then
+                        -- No order by column or invalid column, using default from preset
+                        self:set_order_by(
+                            preset.sortby.items[1].name,
+                            preset.sortby.items[1].order
+                        )
+                   end
+                end
+            end
+        end
+
         -- Count
         local total_row = self:count()
 
@@ -1746,12 +1845,12 @@ function alert_store:get_earliest_available_epoch(status)
         local q
         if ntop.isClickHouseEnabled() then
             q = string.format(
-                " SELECT toUnixTimestamp(tstamp) earliest_epoch FROM `%s` WHERE interface_id = %d AND alert_status = %d ORDER BY tstamp ASC LIMIT 1",
-                table_name, interface.getId(), self._status)
+                " SELECT toUnixTimestamp(tstamp) earliest_epoch FROM `%s` WHERE interface_id = %d AND %s ORDER BY tstamp ASC LIMIT 1",
+                table_name, interface.getId(), self:_build_alert_status_condition(status))
         else
             q = string.format(
-                " SELECT tstamp earliest_epoch FROM `%s` WHERE interface_id = %d AND alert_status = %d ORDER BY tstamp ASC LIMIT 1",
-                table_name, interface.getId(), self._status)
+                " SELECT tstamp earliest_epoch FROM `%s` WHERE interface_id = %d AND %s ORDER BY tstamp ASC LIMIT 1",
+                table_name, interface.getId(), self:_build_alert_status_condition(status))
         end
 
         local res = interface.alert_store_query(q)
@@ -1789,6 +1888,7 @@ function alert_store:add_request_filters(is_write)
     local epoch_begin = tonumber(_GET["epoch_begin"])
     local epoch_end = tonumber(_GET["epoch_end"])
     local alert_id = _GET["alert_id"] or _GET["alert_type"] --[[ compatibility ]] --
+    local alert_category = _GET["alert_category"]
     local alert_severity = _GET["severity"] or _GET["alert_severity"]
     local score = _GET["score"]
     local rowid = _GET["row_id"]
@@ -1809,6 +1909,7 @@ function alert_store:add_request_filters(is_write)
     self:add_time_filter(epoch_begin, epoch_end, is_write)
 
     self:add_filter_condition_list('alert_id', alert_id, 'number')
+    self:add_filter_condition_list('alert_category', alert_category, 'number')
     self:add_filter_condition_list('severity', alert_severity, 'number')
     self:add_filter_condition_list('score', score, 'number')
     self:add_filter_condition_list('tstamp', tstamp, 'number')
@@ -1840,6 +1941,7 @@ function alert_store:get_available_filters()
 
     local filters = {
         alert_id = tag_utils.defined_tags.alert_id,
+        alert_category = tag_utils.defined_tags.alert_category,
         severity = tag_utils.defined_tags.severity,
         score = tag_utils.defined_tags.score
     }
@@ -1888,6 +1990,14 @@ local BASE_RNAME = {
     },
     ALERT_ID = {
         name = "alert_id",
+        export = true
+    },
+    ALERT_CATEGORY = {
+        name = "alert_category",
+        export = true
+    },
+    ALERT_CATEGORY = {
+        name = "alert_category",
         export = true
     },
     SCORE = {
@@ -1943,6 +2053,13 @@ function alert_store:format_json_record_common(value, entity_id)
         label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), false, entity_id)
     }
 
+    local category = checks.getCategoryById(tonumber(value["alert_category"]))
+    record[BASE_RNAME.ALERT_CATEGORY.name] = {
+        value = value["alert_category"],
+        label = i18n(category.i18n_title),
+        icon = category.icon
+    }
+
     record[BASE_RNAME.SCORE.name] = {
         value = score,
         label = format_utils.formatValue(score),
@@ -1964,11 +2081,21 @@ function alert_store:format_json_record_common(value, entity_id)
 
     record[BASE_RNAME.USER_LABEL.name] = value["user_label"]
 
-    record[BASE_RNAME.DURATION.name] = tonumber(value["duration"]) or
-                                           (tonumber(value["tstamp_end"]) - tonumber(value["tstamp"]))
+    if tonumber(value["duration"]) then
+        record[BASE_RNAME.DURATION.name] = tonumber(value["duration"])
+    elseif tonumber(value["tstamp_end"]) and tonumber(value["tstamp"]) then
+        record[BASE_RNAME.DURATION.name] = (tonumber(value["tstamp_end"]) - tonumber(value["tstamp"]))
+    else
+        record[BASE_RNAME.DURATION.name] = 0 -- unable to compute
+    end
+
     record[BASE_RNAME.COUNT.name] = tonumber(value["count"]) or 1
 
-    local alert_json = json.decode(value["json"]) or {}
+    local alert_json = {}
+    if not isEmptyString(value["json"]) then
+        alert_json = json.decode(value["json"]) or {}
+    end
+
     record[BASE_RNAME.SCRIPT_KEY.name] = alert_json["alert_generation"] and alert_json["alert_generation"]["script_key"]
 
     return record

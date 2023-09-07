@@ -51,8 +51,6 @@ ThreadPool::ThreadPool(char *comma_separated_affinity_mask) {
 #endif
 
   num_threads = 0;
-
-  for (u_int i = 0; i < 5 /* Min number of threads */; i++) spawn();
 }
 
 /* **************************************************** */
@@ -87,7 +85,9 @@ bool ThreadPool::spawn() {
   pthread_t new_thread;
 
   if (num_threads < CONST_MAX_NUM_THREADED_ACTIVITIES) {
-    if (pthread_create(&new_thread, NULL, doRun, (void *)this) == 0) {
+    int rc;
+
+    if ((rc = pthread_create(&new_thread, NULL, doRun, (void *)this)) == 0) {
       threadsState.push_back(new_thread);
 
 #ifdef __linux__
@@ -101,6 +101,11 @@ bool ThreadPool::spawn() {
 #endif
 
       return (true);
+    } else {
+#ifndef WIN32
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure spawning thread [%u thread(s)][rc: %d]",
+          num_threads, rc);
+#endif
     }
   }
 
@@ -200,6 +205,12 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *script_path,
 
   if (isTerminating()) return (false);
 
+  if (num_threads == 0) {
+    /* Spawn an initial set of threads - do not do this in the constructor
+     * as it is too early (creates issues on freebsd when running as service) */
+    for (u_int i = 0; i < 5 /* Min number of threads */; i++) spawn();
+  }
+
   if ((stats = ta->getThreadedActivityStats(iface, script_path, true)) == NULL)
     return (false);
   else
@@ -216,9 +227,9 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *script_path,
     strftime(deadline_buf, sizeof(deadline_buf), "%H:%M:%S",
              localtime_r(&stats_deadline, &deadline_tm));
     ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "Unable to schedule %s [running: %u][deadlline: %s]",
+        TRACE_WARNING, "Unable to schedule %s [running: %u][deadline: %d (%s)][now: %d][param-deadline: %d (%d)]",
         script_path, ta_state == threaded_activity_state_running ? 1 : 0,
-        deadline_buf);
+        stats_deadline, deadline_buf, now, deadline, deadline-now);
 #endif
 
     if (ta_state == threaded_activity_state_queued) {
@@ -242,6 +253,11 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *script_path,
     return (
         false); /* Task still running or already queued, don't re-queue it */
   }
+
+#ifdef THREAD_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Scheduling %s [now: %d][param-deadline: %d (%d)]",
+        script_path, now, deadline, deadline-now);
+#endif
 
   q = new (std::nothrow) QueuedThreadData(ta, script_path, iface, deadline);
 

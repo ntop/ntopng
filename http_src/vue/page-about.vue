@@ -33,7 +33,7 @@ async function get_stats() {
 }
 
 function print_stats_row(col, row) {
-   debugger;
+   // debugger;
    return row;
 }
 

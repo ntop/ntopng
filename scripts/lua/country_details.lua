@@ -21,7 +21,7 @@ local ts_utils = require("ts_utils")
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.countries)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.countries)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

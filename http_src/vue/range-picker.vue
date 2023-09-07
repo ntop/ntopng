@@ -3,35 +3,26 @@
         <div class="mb-1">
             <modal-filters :filters_options="modal_data" @apply="apply_modal" ref="modal_filters" :id="id_modal_filters">
             </modal-filters>
-            <data-time-range-picker :id="id_data_time_range_picker">
+            <date-time-range-picker :id="id_data_time_range_picker" :min_time_interval_id="min_time_interval_id" :round_time="round_time">
                 <template v-slot:begin>
-                    <div v-if="is_alert_stats_url" class="d-flex align-items-center me-2">
+                    <div v-if="is_alert_stats_url" style="margin-right:0.1rem;" class="d-flex align-items-center me-2">
                         <div class="btn-group" id="statusSwitch" role="group">
-                            <a href="#" @click="update_status_view('historical')" class="btn btn-sm"
-                                :class="{ 'active': status_view == 'historical', 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical' }">Past</a>
-                            <a href="#" @click="update_status_view('acknowledged')" class="btn btn-sm"
-                                :class="{ 'active': status_view == 'acknowledged', 'btn-seconday': status_view != 'acknowledged', 'btn-primary': status_view == 'acknowledged' }">Ack</a>
                             <a v-if="page != 'flow'" href="#" @click="update_status_view('engaged')" class="btn btn-sm"
-                                :class="{ 'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged' }">Engaged</a>
+                                :class="{ 'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged' }"><i class="fa-solid fa-hourglass-half" title="Engaged"></i></a>
+                            <a href="#" @click="update_status_view('historical')" class="btn btn-sm"
+                                :class="{ 'active': status_view == 'historical' || (page == 'flow' && status_view == 'engaged'), 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical' || (page == 'flow' && status_view == 'engaged') }"><i class="fa-regular fa-eye" title="Require Attention"></i></a>
+                            <!-- <a href="#" @click="update_status_view('acknowledged')" class="btn btn-sm"
+                                :class="{ 'active': status_view == 'acknowledged', 'btn-seconday': status_view != 'acknowledged', 'btn-primary': status_view == 'acknowledged' }"><i class="fa-solid fa-check-double" title="Acknowledged"></i></a>-->
+                            <a href="#" @click="update_status_view('any')" class="btn btn-sm"
+                                :class="{ 'active': status_view == 'any', 'btn-seconday': status_view != 'any', 'btn-primary': status_view == 'any' }"><i class="fa-solid fa-inbox" title="All"></i></a>
                         </div>
                     </div>
-                    <select v-if="enable_query_presets" class="me-2 form-select" v-model="query_preset"
-                        @change="update_select_query_presets()">
-                        <template v-for="item in query_presets">
-                            <option v-if="item.builtin == true" :value="item">{{ item.name }}</option>
-                        </template>
-                        <optgroup v-if="page != 'analysis'" :label="i18n('queries.queries')">
-                            <template v-for="item in query_presets">
-
-                                <option v-if="!item.builtin" :value="item">{{ item.name }}</option>
-                            </template>
-                        </optgroup>
-                    </select>
+		    <slot name="begin"></slot>
                 </template>
                 <template v-slot:extra_buttons>
                     <slot name="extra_range_buttons"></slot>
                 </template>
-            </data-time-range-picker>
+            </date-time-range-picker>
         </div>
 
         <!-- tagify -->
@@ -55,8 +46,10 @@
 </template>
 
 <script type="text/javascript">
-import { default as DataTimeRangePicker } from "./data-time-range-picker.vue";
+import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as ModalFilters } from "./modal-filters.vue";
+import filtersManager from "../utilities/filters-manager.js";
+
 
 function get_page(alert_stats_page) {
     let page = ntopng_url_manager.get_url_entry("page");
@@ -72,12 +65,13 @@ function get_page(alert_stats_page) {
 
 async function get_filter_const(is_alert_stats_url, page) {
     let url_request;
+    let query_preset = ntopng_url_manager.get_url_entry("query_preset");
+    if (query_preset == null) { query_preset = ""; }
     if (is_alert_stats_url) {
-        url_request = `${http_prefix}/lua/rest/v2/get/alert/filter/consts.lua?page=${page}`;
+        url_request = `${http_prefix}/lua/rest/v2/get/alert/filter/consts.lua?page=${page}&query_preset=${query_preset}`;
     } else {
-        let query_preset = ntopng_url_manager.get_url_entry("query_preset");
-        if (query_preset == null) { query_preset = ""; }
-        url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/consts.lua?page=${page}&query_preset=${query_preset}`;
+        let aggregated = ntopng_url_manager.get_url_entry("aggregated");
+        url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/consts.lua?page=${page}&query_preset=${query_preset}&aggregated=${aggregated}`;
     }
     let filter_consts = await ntopng_utility.http_request(url_request);
     return filter_consts;
@@ -92,27 +86,12 @@ let initialTags;
 //let pageHandle = {};
 let TAGIFY;
 let IS_ALERT_STATS_URL = window.location.toString().match(/alert_stats.lua/) != null;
-let QUERY_PRESET = {
-    value: ntopng_url_manager.get_url_entry("query_preset"),
-    count: ntopng_url_manager.get_url_entry("count"),
-};
-if (QUERY_PRESET.value == null) {
-    QUERY_PRESET.value = "";
-}
 let STATUS_VIEW = ntopng_url_manager.get_url_entry("status");
 if (STATUS_VIEW == null || STATUS_VIEW == "") {
     STATUS_VIEW = "historical";
 }
-const ENABLE_QUERY_PRESETS = !IS_ALERT_STATS_URL;
 
 let PAGE = get_page(IS_ALERT_STATS_URL);
-
-const update_select_query_presets = function () {
-    let value = $(`#select-query-presets`).val();
-    let status = ntopng_status_manager.get_status();
-    status['query_preset'] = value;
-    ntopng_utility.replace_url_and_reload(status);
-}
 
 const create_tag_from_filter = function (filter) {
     let f_const = FILTERS_CONST.find((f) => f.id == filter.id);
@@ -166,7 +145,11 @@ const load_filters_data = async function () {
                 ) {
                     return;
                 }
-                filters.push({ id: filter_def.id, operator: operator, value: value });
+		let value_label = value;
+		if (filter_def.value_type == "array") {
+		    value_label = filter_def?.options?.find((opt) => opt.value == value)?.label;
+		}
+                filters.push({ id: filter_def.id, operator: operator, value: value, label: filter_def.label, value_label });
             });
         }
     }
@@ -174,65 +157,14 @@ const load_filters_data = async function () {
     // "l7proto=XXX;eq"
 }
 
-function get_filters_object(filters) {
-    let filters_groups = {};
-    filters.forEach((f) => {
-        let group = filters_groups[f.id];
-        if (group == null) {
-            group = [];
-            filters_groups[f.id] = group;
-        }
-        group.push(f);
-    });
-    let filters_object = {};
-    for (let f_id in filters_groups) {
-        let group = filters_groups[f_id];
-        let filter_values = group.filter((f) => f.value != null && f.operator != null && f.operator != "").map((f) => `${f.value};${f.operator}`).join(",");
-        filters_object[f_id] = filter_values;
-    }
-    return filters_object;
-}
-
-async function set_query_preset(range_picker_vue) {
-    let page = range_picker_vue.page;
-    let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/preset/consts.lua?page=${page}`;
-    let res = await ntopng_utility.http_request(url_request);
-    let query_presets = res[0].list.map((el) => {
-        return {
-            value: el.id, //== null ? "flow" : el.id,
-            name: el.name,
-            count: el.count,
-            builtin: true,
-        };
-    });
-    if (res.length > 1) {
-        res[1].list.forEach((el) => {
-            let query = {
-                value: el.id,
-                name: el.name,
-                count: el.count,
-            };
-            query_presets.push(query);
-        });
-    }
-    if (range_picker_vue.query_preset == null || range_picker_vue.query_preset.value == "") {
-        range_picker_vue.query_preset = query_presets[0];
-    } else {
-        let q = query_presets.find((i) => i.value == range_picker_vue.query_preset.value);
-        range_picker_vue.query_preset = q || query_presets[0];
-    }
-    ntopng_url_manager.set_key_to_url("query_preset", range_picker_vue.query_preset.value);
-    ntopng_url_manager.set_key_to_url("count", range_picker_vue.query_preset.count);
-    range_picker_vue.query_presets = query_presets;
-    return res;
-}
-
 export default {
     props: {
         id: String,
+        min_time_interval_id: String,
+        round_time: Boolean,
     },
     components: {
-        'data-time-range-picker': DataTimeRangePicker,
+        'date-time-range-picker': DateTimeRangePicker,
         'modal-filters': ModalFilters,
     },
     /**
@@ -245,9 +177,6 @@ export default {
         let modal_filters_mounted = ntopng_sync.on_ready(this.id_modal_filters);
         await dt_range_picker_mounted;
 
-        if (this.enable_query_presets) {
-            await set_query_preset(this);
-        }
         if (this.page != 'all') {
             let filters = await load_filters_data();
 
@@ -264,14 +193,11 @@ export default {
         return {
             i18n: i18n,
             id_modal_filters: `${this.$props.id}_modal_filters`,
-            id_data_time_range_picker: `${this.$props.id}_data-time-range-picker`,
+            id_data_time_range_picker: `${this.$props.id}_date-time-range-picker`,
             show_filters: false,
             edit_tag: null,
             is_alert_stats_url: IS_ALERT_STATS_URL,
-            query_presets: [],
-            query_preset: QUERY_PRESET,
             status_view: STATUS_VIEW,
-            enable_query_presets: ENABLE_QUERY_PRESETS,
             page: PAGE,
             modal_data: [],
             last_filters: [],
@@ -283,12 +209,6 @@ export default {
         },
         update_status_view: function (status) {
             ntopng_url_manager.set_key_to_url("status", status);
-            ntopng_url_manager.reload_url();
-        },
-        update_select_query_presets: function () {
-            let url = ntopng_url_manager.get_url_params();
-            ntopng_url_manager.set_key_to_url("query_preset", this.query_preset.value);
-            ntopng_url_manager.set_key_to_url("count", this.query_preset.count);
             ntopng_url_manager.reload_url();
         },
         show_modal_filters: function () {
@@ -304,7 +224,7 @@ export default {
             // delete all previous filter
             ntopng_url_manager.delete_params(FILTERS_CONST.map((f) => f.id));
             TAGIFY.tagify.removeAllTags();
-            let filters_object = get_filters_object(filters);
+            let filters_object = filtersManager.get_filters_object(filters);
             ntopng_url_manager.add_obj_to_url(filters_object);
             filters.forEach((f) => {
                 let tag = create_tag_from_filter(f);
@@ -341,11 +261,11 @@ function create_tagify(range_picker_vue) {
         templates: {
             tag: function (tagData) {
                 try {
-                    return `<tag title='${tagData.value}' contenteditable='false' spellcheck="false" class='tagify__tag ${tagData.class ? tagData.class : ""}' ${this.getAttributes(tagData)}>
+                    return `<tag title='${tagData.value}' contenteditable='false' spellcheck="false" class='tagify__tag'>
                         <x title='remove tag' class='tagify__tag__removeBtn'></x>
                         <div>
-                            ${tagData.label ? `<b>${tagData.label}</b>&nbsp;` : ``}
-                            ${!VIEW_ONLY_TAGS && tagData.operators ? `<select class='operator'>${tagData.operators.map(op => `<option ${tagData.selectedOperator === op ? 'selected' : ''} value='${op}'>${TAG_OPERATORS[op]}</option>`).join()}</select>` : `<b class='operator'>${tagData.selectedOperator ? TAG_OPERATORS[tagData.selectedOperator] : '='}</b>`}&nbsp;
+                           <b>${tagData.label ? tagData.label : tagData.key}</b>&nbsp;
+                           <b class='operator'>${tagData.selectedOperator ? TAG_OPERATORS[tagData.selectedOperator] : '='}</b>&nbsp;
                             <span class='tagify__tag-text'>${tagData.value}</span>
                         </div>
                     </tag>`

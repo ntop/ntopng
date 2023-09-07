@@ -13,7 +13,7 @@
 </div>
 </template>
 
-<script setup >
+<script setup>
 import { ref, onMounted, onBeforeMount, computed, watch } from "vue";
 import { ntopng_utility, ntopng_url_manager, ntopng_status_manager } from "../services/context/ntopng_globals_services.js";
 
@@ -100,7 +100,7 @@ async function draw_sankey() {
 	.attr("fill", (d) => colors(d.index / nodes.length))
 	.attr("class", "sankey-node")
 	.attr("style", "cursor:move;");
-    d3.selectAll("rect").append("title").text((d) => `${d.label}`);
+    d3.selectAll("rect").append("title").text((d) => `${d?.label}`);
     
     // Relative to container/ node rect    
     d3_nodes.data(nodes)

@@ -1220,11 +1220,63 @@ bool Utils::isPrintableChar(u_char c) {
 
 /* ************************************************************ */
 
+/*
+  The method below does basic UTF-8 validation without chacing
+  for UTF-8 sequences validation
+ */
+bool Utils:: isValidUTF8(const u_char *param, size_t length) {
+  size_t i = 0;
+
+  while(i < length) {
+    uint8_t byte = param[i];
+
+    if(byte < 0x80) {
+      // 1-byte character (ASCII)
+      i++;
+    } else if((byte >> 5) == 0b110) {
+      // 2-byte character
+      if(((i + 1) >= length) || ((param[i + 1] >> 6) != 0b10)) {
+	return(false);  // Invalid continuation byte
+      }
+      i += 2;
+    } else if((byte >> 4) == 0b1110) {
+      // 3-byte character
+      if(i + 2 >= length || (param[i + 1] >> 6) != 0b10 || (param[i + 2] >> 6) != 0b10) {
+	return(false);  // Invalid continuation byte
+      }
+      i += 3;
+    } else if((byte >> 3) == 0b11110) {
+      // 4-byte character
+      if(((i + 3) >= length)
+	 || ((param[i + 1] >> 6) != 0b10)
+	 || ((param[i + 2] >> 6) != 0b10)
+	 || ((param[i + 3] >> 6) != 0b10)) {
+	return(false);  // Invalid continuation byte
+      }
+      i += 4;
+    } else {
+      return(false);  // Invalid UTF-8 sequence start byte
+    }
+  }
+
+  return(true);
+}
+
+/* ************************************************************ */
+
 bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
                             bool allowDots) {
-  if (strict) {
-    for (int i = 0; xssAttempts[i] != NULL; i++) {
-      if (strstr(param, xssAttempts[i])) {
+  if(((u_char)param[0]) >= 0x80) {
+    /* UTF8 string */
+    bool ret = Utils::isValidUTF8((const u_char*)param, strlen(param));
+
+    if(ret)
+      return(true);
+  }
+  
+  if(strict) {
+    for(int i = 0; xssAttempts[i] != NULL; i++) {
+      if(strstr(param, xssAttempts[i])) {
         ntop->getTrace()->traceEvent(TRACE_WARNING,
                                      "Found possible XSS attempt: %s [%s]",
                                      param, xssAttempts[i]);
@@ -1234,10 +1286,10 @@ bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
     }
   }
 
-  for (int i = 0; param[i] != '\0'; i++) {
+  for(int i = 0; param[i] != '\0'; i++) {
     bool is_good;
 
-    if (strict) {
+    if(strict) {
       is_good = ((param[i] >= 'a') && (param[i] <= 'z')) ||
                 ((param[i] >= 'A') && (param[i] <= 'Z')) ||
                 ((param[i] >= '0') && (param[i] <= '9'))
@@ -1253,7 +1305,7 @@ bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
       char c;
       int new_i;
 
-      if ((u_char)param[i] == 0xC3) {
+      if((u_char)param[i] == 0xC3) {
         /* Latin-1 within UTF-8 - Align to ASCII encoding */
         c = param[i + 1] | 0x40;
         new_i = i + 1; /* We are actually validating two bytes */
@@ -1266,15 +1318,15 @@ bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
                 (c != '"'); /* Prevents injections - single quotes are allowed
                                and will be validated in http_lint.lua */
 
-      if (is_good) i = new_i;
+      if(is_good) i = new_i;
     }
 
-    if (is_good)
+    if(is_good)
       ; /* Good: we're on the whitelist */
     else
       param[i] = '_'; /* Invalid char: we discard it */
 
-    if ((i > 0) &&
+    if((i > 0) &&
         (((!allowDots) && (param[i] == '.') && (param[i - 1] == '.')) ||
          ((!allowURL) && ((param[i] == '/') && (param[i - 1] == '/'))) ||
          ((param[i] == '\\') && (param[i - 1] == '\\')))) {
@@ -1283,8 +1335,8 @@ bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
       param[i - 1] = '_', param[i] = '_'; /* Invalidate the path */
     }
   }
-
-  return (false);
+  
+  return(false);
 }
 
 /* ************************************************************ */
@@ -1296,6 +1348,7 @@ bool Utils::sendTCPData(char *host, int port, char *data,
   int sockfd = -1;
   int retval;
   bool rc = false;
+  static time_t last_warn = 0;
 
   server = gethostbyname(host);
   if (server == NULL) return false;
@@ -1340,8 +1393,12 @@ bool Utils::sendTCPData(char *host, int port, char *data,
   if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0 &&
       (errno == ECONNREFUSED || errno == EALREADY || errno == EAGAIN ||
        errno == ENETUNREACH || errno == ETIMEDOUT)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                 "Could not connect to remote party");
+    time_t now = time(NULL);
+    if (now > last_warn) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                   "Could not connect to remote party");
+      last_warn = now;
+    }
     Utils::closeSocket(sockfd);
     return false;
   }
@@ -1352,8 +1409,12 @@ bool Utils::sendTCPData(char *host, int port, char *data,
   rc = true;
   retval = send(sockfd, data, strlen(data), 0);
   if (retval <= 0) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Send failed: %s (%d)",
-                                 strerror(errno), errno);
+    time_t now = time(NULL);
+    if (now > last_warn) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Send failed: %s (%d)",
+                                   strerror(errno), errno);
+      last_warn = now;
+    }
     rc = false;
   }
 
@@ -4813,9 +4874,8 @@ void Utils::deferredExec(const char *command) {
       res >= (int)sizeof(command_buf))
     return;
 
-  printf("%s\n", command_buf);
-  fflush(stdout);
-
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", command_buf);
+  
   if (system(command_buf) == -1)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Failed command %s: %d/%s",
                                  command_buf, errno, strerror(errno));
@@ -5375,7 +5435,7 @@ void Utils::closeSocket(int sock) {
 
 static const char *message_topics[] = {
     "flow",  "event",           "counter",     "template", "option",
-    "hello", "listening-ports", "snmp-ifaces", NULL};
+    "hello", "listening-ports", "snmp-ifaces", "message",  NULL};
 
 const char **Utils::getMessagingTopics() {
   return ((const char **)message_topics);
@@ -5383,11 +5443,11 @@ const char **Utils::getMessagingTopics() {
 
 /* ******************************************* */
 
-bool Utils::toHex(char *in, u_int in_len, char *out, u_int out_len) {
+char *Utils::toHex(char *in, u_int in_len, char *out, u_int out_len) {
   u_int i, j;
   static const char hex_digits[] = "0123456789ABCDEF";
 
-  if (in_len > (2 * out_len)) return (false);
+  if (in_len > (2 * out_len)) return NULL;
 
   for (i = 0, j = 0; i < in_len; i++) {
     u_char c = (u_char)in[i];
@@ -5398,7 +5458,7 @@ bool Utils::toHex(char *in, u_int in_len, char *out, u_int out_len) {
 
   out[j] = '\0';
 
-  return (true);
+  return out;
 }
 
 /* ******************************************* */
@@ -5462,3 +5522,35 @@ char* Utils::createRandomString(char *buf, size_t buf_len) {
   return(buf);
 }
 
+/* ******************************************* */
+
+/* IMPORTANT: the returned IpAddress* must be freed by the caller */
+IpAddress* Utils::parseHostString(char *host_ip, u_int16_t *vlan_id /* out */) {
+  IpAddress *ip_addr = NULL;
+  char *ip = NULL, *vlan = NULL;
+  
+  if (host_ip != NULL && host_ip[0] != 0) {
+    char *token = strtok(host_ip, "@");
+    int h = 0;
+
+    while (token != NULL)  {
+      if(h == 0)
+	ip = token;
+      else if (h == 1)
+	vlan = token;
+
+      token = strtok(NULL, "@");
+      h++;
+    }
+  }
+
+  if(ip != NULL) {
+    ip_addr = new IpAddress();
+    if(ip_addr) ip_addr->set(ip);    
+  } else
+    ip_addr = NULL;
+  
+  *vlan_id = vlan ? stoi(vlan) : 0;
+
+  return(ip_addr);
+}

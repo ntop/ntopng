@@ -16,7 +16,7 @@ sendHTTPContentTypeHeader('text/html')
 local title = string.gsub(i18n("script_browser", {script_name = _GET["script_path"]}), "/lua/", "")
 local referal_script_page = _GET["referal_url"]
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.script_browser, {script_name = _GET["script_path"]})
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.script_browser, {script_name = _GET["script_path"]})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

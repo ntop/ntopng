@@ -8,6 +8,22 @@ local json = require "dkjson"
 
 -- ##############################################
 
+function file_utils.write_file(file_path, content)
+   local file = io.open(file_path, "w")
+
+   if not file then
+      return false
+   end
+   
+   file:write(content)
+
+   file:close()
+   return true
+end
+
+
+-- ##############################################
+
 function file_utils.read_file(file_path)
    local content = nil
 

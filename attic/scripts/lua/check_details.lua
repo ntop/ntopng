@@ -24,7 +24,7 @@ local schema_prefix = ternary(subdir == "flow", "flow_check", "elem_check")
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.scripts_config)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.scripts_config)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

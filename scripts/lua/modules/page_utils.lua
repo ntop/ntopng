@@ -38,7 +38,7 @@ end
 -- #################################
 
 page_utils.menu_sections = {
-   shortcuts     = {key = "shortcut", i18n_title = "shortcuts", icon = "fas fa-fast-forward"},
+   monitoring     = {key = "monitoring", i18n_title = "monitoring", icon = "fas fa-fast-forward"},
    dashboard     = {key = "dashboard", i18n_title = "index_page.dashboard", icon = "fas fa-tachometer-alt"},
    alerts        = {key = "alerts", i18n_title = "details.alerts", icon = "fas fa-exclamation-triangle"},
    flows         = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
@@ -67,9 +67,9 @@ page_utils.menu_sections = {
 -- help_link: this variable contains the contextual link to the documentation
 
 page_utils.menu_entries = {
-   -- Shortcuts
-   active_monitoring = {key = "active_monitor", i18n_title = "active_monitoring_stats.active_monitoring"},
-
+   -- Monitoring
+    active_monitoring     = {key = "active_monitoring", i18n_title = "active_monitoring_stats.active_monitoring", section = "monitoring" },
+    vulnerability_scan    = {key = "vulnerability_scan", i18n_title = "scan_hosts", section = "monitoring" },
    -- Dashboard
     traffic_dashboard     = {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard", help_link = "https://www.ntop.org/guides/ntopng/web_gui/dashboard.html"},
     network_discovery     = {key = "network_discovery", i18n_title = "discover.network_discovery",  section = "dashboard"},
@@ -99,15 +99,16 @@ page_utils.menu_entries = {
     countries             = {key = "countries", i18n_title = "countries", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#countries"},
     operating_systems     = {key = "operating_systems", i18n_title = "operating_systems", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#operating-systems"},
     http_servers          = {key = "http_servers", i18n_title = "http_servers_stats.local_http_servers", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#http-servers-local"},
+    server_ports_analysis = {key = "server_ports_analysis", i18n_title = "server_ports_analysis", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#http-servers-local"},
     top_hosts             = {key = "top_hosts", i18n_title = "processes_stats.top_hosts", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#top-hosts-local"},
     hosts_treemap         = {key = "hosts_treemap", i18n_title = "tree_map.hosts_treemap", section = "hosts"},
     containers            = {key = "containers", i18n_title = "containers_stats.containers", section = "hosts"},
     pods                  = {key = "pods", i18n_title = "containers_stats.pods", section = "hosts"},
-    
+    host_rules            = {key = "host_rules", i18n_title = "if_stats_config.traffic_rules", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/host_rules.html"},
+
     -- Interface
     interface             = {key = "interface", i18n_title = "interface_details", section = "if_stats"},
     ports_analysis        = {key = "ports_analysis", i18n_title = "ports_analysis.server_ports", section = "if_stats"},
-    host_rules            = {key = "host_rules", i18n_title = "if_stats_config.traffic_rules", section = "if_stats", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/host_rules.html"},
 
     -- Pollers
     snmp                  = {key = "snmp", i18n_title = "prefs.snmp", section = "pollers"},
@@ -145,6 +146,7 @@ page_utils.menu_entries = {
    scripts_config_flows   = {key = "scripts_config", subkey="flows", i18n_title = alert_entities.flow.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_system  = {key = "scripts_config", subkey="system", i18n_title = alert_entities.system.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_syslog  = {key = "scripts_config", subkey="syslog", i18n_title = "syslog.syslog", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
+   scripts_config_active_monitoring  = {key = "scripts_config", subkey="active_monitoring", i18n_title = "active_monitoring", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    device_exclusions      = {key = "device_exclusions", i18n_title = "edit_check.device_exclusion", section = "device_exclusions"},
    alert_exclusions       = {key = "alert_exclusions", i18n_title = "edit_check.exclusion_list", section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    alert_exclusions_hosts = {key = "alert_exclusions", subkey="hosts", i18n_title = alert_entities.host.i18n_label, section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
@@ -180,6 +182,7 @@ page_utils.menu_entries = {
    analyze_pcap           = {key = "analyze_pcap", i18n_title = "about.analyze_pcap", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/index.html"},
    alert_definitions      = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/scripts/alert_definitions.html"},
    api                    = {key = "api", i18n_title = "lua_c_api", section = "dev"},
+   rest_api               = {key = "rest_api", i18n_title = "swagger_api", section = "dev"},
    
    -- Help
    about                  = {key = "about", i18n_title = "about.about", section = "about", help_link = "https://www.ntop.org/guides/ntopng/web_gui/help_menu.html?#about"},
@@ -217,7 +220,7 @@ end
 
 -- #################################
 
--- NOTE: this function must be called after page_utils.set_active_menu_entry
+-- NOTE: this function must be called after page_utils.print_header_and_set_active_menu_entry
 function page_utils.print_page_title(title, mini_title)
    local help_link = page_utils.menu_entries[active_entry].help_link or ""
    print("<header class='mb-3 d-flex align-items-center'>")
@@ -237,7 +240,7 @@ end
 
 -- NOTE: this function is called by the web pages in order to
 -- set the active entry and section and highlight it into the menu
-function page_utils.set_active_menu_entry(entry, i18n_params, alt_title)
+function page_utils.print_header_and_set_active_menu_entry(entry, i18n_params, alt_title)
    entry = entry or page_utils.menu_entries.traffic_dashboard
 
    active_section = entry.section
@@ -373,7 +376,10 @@ function page_utils.print_header(title, addLoginJS)
     <script type="application/javascript" src="]] print(http_prefix) print("/lua/locale.lua?"..locale_when .. "&user_language=" ..language); print[["> </script>
     <script type="application/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
     <script type="application/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js?]] print(static_file_epoch) print[["></script>
-    <script> var ntop_zoneinfo = ]] print(zoneinfo) print[[;</script>
+    <script>
+    const ntop_zoneinfo = ]] print(zoneinfo) print[[;
+    const http_prefix = "]] print(ntop.getHttpPrefix()) print [[";
+    </script>
     </head>]]
   print([[
      <body class="body ]].. (dark_mode and "dark" or "") ..[[">

@@ -1904,6 +1904,7 @@ local lang = {
     ["probes_ipv4_address"] = "IPv4 Address dell'ultimo Probe",
     ["rcvd"] = "Rcvt",
     ["retransmissions"] = "Ritrasmissioni",
+    ["ripestat_lookup"] = "Ricerca RIPEstat",
     ["router_access_point_mac_address"] = "Indirizzo MAC (Router/AccessPoint)",
     ["sent_vs_received_traffic_breakdown"] = "Breakdown Traffico Inviato vs Ricevuto",
     ["server_contacts"] = "Server Contattati",
@@ -1917,7 +1918,6 @@ local lang = {
     ["unidirectional_tcp_flows"] = "Totale dei Flussi TCP Unidirezionali",
     ["vlan_id"] = "VLAN ID",
     ["whois_lookup"] = "Ricerca Whois",
-    ["ripestat_lookup"] = "Ricerca RIPEstat",
   },
   ["developer_section"] = {
     ["datasources_list"] = "Sorgenti",
@@ -3641,8 +3641,6 @@ local lang = {
   ["host_config"] = {
     ["active_monitor_enable"] = "Il Monitoraggio Attivo permette di monitorare lo stato e la latenza degli host. Può essere abilitato <a href=\"%{url}\">qui</a>.",
     ["drop_all_host_traffic"] = "Scarta Tutto il Traffico dell'Host",
-    ["hide_from_top"] = "Nascondi da Top Talker",
-    ["hide_host_from_top_descr"] = "Ignora l'host %{host} nel calcolo dei top talker",
     ["host_alias"] = "Alias Host",
     ["host_pool"] = "Host Pool",
     ["host_status"] = "Stato dell'Host",

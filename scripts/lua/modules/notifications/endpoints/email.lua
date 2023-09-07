@@ -7,6 +7,7 @@ local email = {
    endpoint_params = {
       { param_name = "smtp_server" },
       { param_name = "email_sender"},
+      { param_name = "smtp_port", optional = true },
       { param_name = "smtp_username", optional = true },
       { param_name = "smtp_password", optional = true },
    },
@@ -26,6 +27,7 @@ local email = {
 
 local json = require("dkjson")
 local alert_utils = require "alert_utils"
+local format_utils = require "format_utils"
 local debug_endpoint = false
 
 email.EXPORT_FREQUENCY = 60
@@ -47,6 +49,7 @@ end
 local function recipient2sendMessageSettings(recipient)
   local settings = {
     smtp_server = recipient.endpoint_conf.smtp_server,
+    smtp_port = recipient.endpoint_conf.smtp_port,
     from_addr = recipient.endpoint_conf.email_sender,
     to_addr = recipient.recipient_params.email_recipient,
     cc_addr = recipient.recipient_params.cc,
@@ -89,6 +92,7 @@ end
 
 function email.sendEmail(subject, message_body, settings)
   local smtp_server = settings.smtp_server
+  local smtp_port = settings.smtp_port
   local from = settings.from_addr:gsub(".*<(.*)>", "%1")
   local to = settings.to_addr:gsub(".*<(.*)>", "%1")
   local cc = settings.cc_addr:gsub(".*<(.*)>", "%1")
@@ -99,6 +103,11 @@ function email.sendEmail(subject, message_body, settings)
 
   if not string.find(smtp_server, "://") then
     smtp_server = "smtp://" .. smtp_server
+  end
+
+  smtp_port = tonumber(smtp_port)
+  if smtp_port and smtp_port > 0 then
+    smtp_server = smtp_server .. ":"..smtp_port
   end
 
   local parts = string.split(to, "@")
@@ -127,20 +136,41 @@ function email.dequeueRecipientAlerts(recipient, budget)
   local more_available = true
   local budget_used = 0
 
+  local settings = recipient2sendMessageSettings(recipient)
+
   -- Dequeue alerts up to budget x MAX_ALERTS_PER_EMAIL
   -- Note: in this case budget is the number of email to send
   while budget_used <= budget and more_available do
     -- Dequeue MAX_ALERTS_PER_EMAIL notifications
 
     local notifications = {}
-    for i = 1, MAX_ALERTS_PER_EMAIL do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id)
-       if notification then 
-	  notifications[#notifications + 1] = notification.alert
-       else
-	  break
-       end
+
+    local i = 0
+    local total_len = 0
+    while i < MAX_ALERTS_PER_EMAIL do
+      local notification = ntop.recipient_dequeue(recipient.recipient_id)
+
+      if notification then 
+        if alert_utils.filter_notification(notification, recipient.recipient_id) then
+
+          local notif = json.decode(notification.alert)
+
+          notifications[#notifications + 1] = notif
+
+          i = i + 1
+
+          if not notif.score then
+            -- Not an alert (e.g. report), send out
+            goto send_out
+          end
+
+        end
+      else
+        break
+      end
     end
+
+    ::send_out::
 
     if not notifications or #notifications == 0 then
       more_available = false
@@ -148,24 +178,23 @@ function email.dequeueRecipientAlerts(recipient, budget)
     end
 
     -- Prepare email
-    local subject = ""
-    local message_body = {}
 
+    -- Subject
+    local subject = ""
     if #notifications > 1 then
       subject = "(" .. i18n("alert_messages.x_alerts", {num=#notifications}) .. ")"
     end
 
-    for _, json_message in ipairs(notifications) do
-      local notif = json.decode(json_message)
-      message_body[#message_body + 1] = alert_utils.formatAlertNotification(notif, {show_entity = true, nohtml=true})
+    -- Body
+    local messages = {}
+    for _, notif in ipairs(notifications) do
+      messages[#messages + 1] = format_utils.formatMessage(notif, {show_entity = true, nohtml=false})
     end
+    local message_body = table.concat(messages, "<br>")
 
-    message_body = table.concat(message_body, "<br>")
-
-    local settings = recipient2sendMessageSettings(recipient)
+    if debug_endpoint then tprint(message_body) end
 
     -- Send email
-    if debug_endpoint then tprint(message_body) end
     local rv = email.sendEmail(subject, message_body, settings)
 
     -- Handle retries on failure

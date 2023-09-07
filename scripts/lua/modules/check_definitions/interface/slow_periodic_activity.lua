@@ -9,7 +9,6 @@ local checks = require("checks")
 local script = {
    -- Script category
    category = checks.check_categories.internals,
-
    severity = alert_consts.get_printable_severities().error,
 
    hooks = {},

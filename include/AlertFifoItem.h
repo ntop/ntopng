@@ -29,6 +29,7 @@ class AlertFifoItem {
   AlertLevel alert_severity;
   AlertCategory alert_category;
   u_int32_t score;
+  u_int16_t alert_id;
   std::string alert; /* json */
 
   struct {
@@ -45,6 +46,7 @@ class AlertFifoItem {
     alert_category = alert_category_other;
     score = 0;
     host.host_pool = 0;
+    alert_id = 0;
     flow.cli_host_pool = flow.srv_host_pool = 0;
   }
 
@@ -53,6 +55,7 @@ class AlertFifoItem {
     alert_category = i->alert_category;
     score = i->score;
     alert = i->alert;
+    alert_id = i->alert_id;
     host.host_pool = i->host.host_pool;
     flow.cli_host_pool = i->flow.cli_host_pool;
     flow.srv_host_pool = i->flow.srv_host_pool;

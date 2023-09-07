@@ -16,7 +16,7 @@
 		"dataPointSelection" : "db_analyze"
 	    },
 	    "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
-	    "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED, any(SRC_LABEL) SRC_LABEL_FORMATTED,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY tot_score DESC LIMIT 1000",
+	    "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED, any(SRC_LABEL) SRC_LABEL_FORMATTED,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE$) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY tot_score DESC LIMIT 1000",
 	    "chart_type" : "donut_apex_chart",
 	    "chart_record_value" : "tot_score",
 	    "chart_record_label" : "IPV4_SRC_ADDR",
@@ -36,7 +36,7 @@
 		"dataPointSelection" : "db_analyze"
 	    },
 	    "chart_gui_filter" : "srv_ip", // Filter displayed in the GUI
-	    "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED, any(DST_LABEL) DST_LABEL_FORMATTED, SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED ORDER BY tot_score DESC LIMIT 1000",
+	    "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED, any(DST_LABEL) DST_LABEL_FORMATTED, SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE$) GROUP BY IPV4_DST_ADDR_FORMATTED ORDER BY tot_score DESC LIMIT 1000",
 	    "chart_type" : "donut_apex_chart",
 	    "chart_record_value" : "tot_score",
 	    "chart_record_label" : "IPV4_DST_ADDR",
@@ -56,7 +56,7 @@
 		"dataPointSelection" : "db_analyze"
             },
             "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
-            "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED,any(SRC_LABEL) SRC_LABEL_FORMATTED,avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY avg_score DESC LIMIT 15",
+            "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED,any(SRC_LABEL) SRC_LABEL_FORMATTED,avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE$) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY avg_score DESC LIMIT 15",
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",
             "chart_record_label" : "IPV4_SRC_ADDR",
@@ -74,7 +74,7 @@
 		"dataPointSelection" : "db_analyze"
             },
             "chart_gui_filter" : "srv_ip", // Filter displayed in the GUI
-            "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED,any(DST_LABEL) DST_LABEL_FORMATTED,avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED ORDER BY avg_score DESC LIMIT 15",
+            "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED,any(DST_LABEL) DST_LABEL_FORMATTED,avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE$) GROUP BY IPV4_DST_ADDR_FORMATTED ORDER BY avg_score DESC LIMIT 15",
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",
             "chart_record_label" : "IPV4_DST_ADDR",
@@ -92,7 +92,7 @@
 		"dataPointSelection" : "db_analyze"
             },
             "chart_gui_filter" : "l7proto", // Filter displayed in the GUI
-            "chart_sql_query" : "SELECT L7_PROTO, avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE) GROUP BY L7_PROTO ORDER BY avg_score DESC LIMIT 15",
+            "chart_sql_query" : "SELECT L7_PROTO, avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE$) GROUP BY L7_PROTO ORDER BY avg_score DESC LIMIT 15",
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",
             "chart_record_label" : "L7_PROTO",
@@ -110,7 +110,7 @@
 		"dataPointSelection" : "db_analyze"
             },
             "chart_gui_filter" : "l4proto", // Filter displayed in the GUI
-            "chart_sql_query" : "SELECT PROTOCOL, avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE) GROUP BY PROTOCOL ORDER BY avg_score DESC LIMIT 15",
+            "chart_sql_query" : "SELECT PROTOCOL, avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE$) GROUP BY PROTOCOL ORDER BY avg_score DESC LIMIT 15",
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",
             "chart_record_label" : "PROTOCOL",
@@ -128,7 +128,7 @@
 		"dataPointSelection" : "db_analyze"
 	    },
 	    "chart_gui_filter" : "score", // Filter displayed in the GUI
-	    "chart_sql_query" : "SELECT histogram(10)(SCORE) FROM (SELECT SCORE FROM flows WHERE $WHERE)",
+	    "chart_sql_query" : "SELECT histogram(10)(SCORE) FROM (SELECT SCORE FROM flows WHERE $WHERE$)",
 	    "chart_type" : "bar_apex_chart",
 	    "chart_first_value" : 0,
 	    "chart_last_value" : 500,

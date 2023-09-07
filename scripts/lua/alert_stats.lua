@@ -7,12 +7,14 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. p
 
 require "lua_utils"
 local page_utils = require "page_utils"
+local os_utils = require "os_utils"
 local ui_utils = require "ui_utils"
 local alert_consts = require "alert_consts"
 local json = require "dkjson"
 local template_utils = require "template_utils"
 local widget_gui_utils = require "widget_gui_utils"
 local tag_utils = require "tag_utils"
+local datatable_utils = require "datatable_utils"
 local alert_entities = require "alert_entities"
 local Datasource = widget_gui_utils.datasource
 local alert_store_utils = require "alert_store_utils"
@@ -53,8 +55,13 @@ local ALERT_SORTING_COLUMN = "ntopng.cache.alert." .. ifid .. "." .. user .. ".s
 local CHART_NAME = "alert-timeseries"
 
 -- select the default page
-local page = _GET["page"] or 'all'
+local page = _GET["page"]
 local status = _GET["status"]
+
+-- Safety check
+if not page or not alert_entities[page] then
+   page = 'all'
+end
 
 local interface_stats = interface.getStats()
 
@@ -157,6 +164,11 @@ local traffic_direction = _GET["traffic_direction"]
 local subtype = _GET["subtype"]
 local vlan_id = _GET["vlan_id"]
 local alert_domain = _GET["alert_domain"]
+
+--------------------------------------------------------------
+
+local dt_columns_def
+local defined_tags
 
 --------------------------------------------------------------
 
@@ -327,7 +339,7 @@ local prefs = ntop.getPrefs()
 local download_endpoint_list = endpoint_list
 local download_file_name = 'alerts-' .. os.time()
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.detected_alerts)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.detected_alerts)
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -362,6 +374,99 @@ local url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?"
 --       subtype = subtype,
 --    })
 -- })
+
+-- ######################################
+
+-- Query Presets (Custom Queries)
+
+local query_preset = _GET["query_preset"] -- Example: &query_preset=contacts
+
+if ntop.isEnterpriseL() then
+   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path 
+   local db_query_presets = require "db_query_presets"
+
+   local query_presets = db_query_presets.get_presets(
+      os_utils.fixPath(dirs.installdir .. "/scripts/historical/alerts/" .. page)
+   )
+
+   if isEmptyString(query_preset) or not query_presets[query_preset] then
+      query_preset = ""
+   else
+      local preset = query_presets[query_preset]
+
+      -- Table columns
+      if preset.select and #preset.select.items > 0 then
+
+         -- New columns definition (used to build a JSON definition)
+         dt_columns_def = {}
+
+         for _, item in ipairs(preset.select.items) do
+            local i18n_label = item.name
+            local column_def = nil
+
+            -- Hide columns which are already rendered in other columns (e.g. cli_name -> cli_ip)
+            if item.name == 'name' or
+               item.name == 'cli_name' or
+               item.name == 'srv_name' then
+               goto continue
+            end
+
+            if item.tag then
+               column_def = datatable_utils.get_datatable_column_def_by_tag(item.tag)
+               i18n_label = column_def.title_i18n
+            else
+
+               local def_builder = nil
+               if item.value_type then
+                  def_builder = datatable_utils.datatable_column_def_builder_by_type[item.value_type]
+               end
+               if not def_builder then
+                  def_builder = datatable_utils.datatable_column_def_builder_by_type['default']
+               end
+
+               if i18n(item.name) then
+                  i18n_label = item.name
+               elseif i18n("db_search." .. item.name) then
+                  i18n_label = "db_search." .. item.name
+               elseif i18n("db_search.tags." .. item.name) then
+                  i18n_label = "db_search.tags." .. item.name
+               end
+
+               -- if the localized title is not available, set title to the label from the preset
+               local title
+               if i18n_label and isEmptyString(i18n(i18n_label)) then
+                  title = i18n_label
+                  i18n_label = nil
+               end
+
+               column_def = def_builder(item.name, i18n_label)
+
+               if title then
+                  column_def.title = title
+               end
+            end
+
+            dt_columns_def[#dt_columns_def + 1] = column_def
+
+            ::continue::
+         end
+      end
+
+      -- Allow filters defined by the query only
+      defined_tags = {}
+      if preset.filters and preset.filters.items and #preset.filters.items > 0 then
+         for _, item in ipairs(preset.filters.items) do
+            if not item.input or item.input ~= "fixed" then
+               local tag_key = item.name -- db_columns_to_tags[item.name]
+               if tag_key then
+                  defined_tags[tag_key] = tag_utils.defined_tags[tag_key]
+               end
+            end
+         end
+      end
+
+   end
+end
 
 -- ######################################
 
@@ -529,7 +634,7 @@ local operators_by_filter = {
    hostname = {'eq','neq', 'in', 'nin'},
 }
 
-local defined_tags = {
+local defined_tags_by_page = {
    ["host"] = {
       alert_id = operators_by_filter.alert_id,
       severity = operators_by_filter.severity,
@@ -613,7 +718,10 @@ if page ~= "all" then
    tag_utils.formatters.alert_id = function(alert_id) return (alert_consts.alertTypeLabel(tonumber(alert_id), true, alert_entities[page].entity_id) or alert_id) end
 end
 
-for tag_key, operators in pairs(defined_tags[page] or {}) do
+if not defined_tags then
+   defined_tags = defined_tags_by_page[page] or {}
+end
+for tag_key, operators in pairs(defined_tags) do
    tag_utils.add_tag_if_valid(initial_tags, tag_key, operators, 'db_search.tags')
 end
 
@@ -777,11 +885,14 @@ if(status == "engaged") then
    table.insert(notes, i18n("show_alerts.engaged_notes"))
 end
 
-local context_2 = {
+local is_va = _GET["is_va"] or false
+
+local context = {
    ifid = ifid,
    opsep = tag_utils.SEPARATOR,
    isPro = ntop.isPro(),
    is_ntop_enterprise_m = ntop.isEnterpriseM(),
+   is_ntop_enterprise_l = ntop.isEnterpriseL(),
    notes = notes,
    show_chart = true,
    show_cards = (status ~= "engaged") and ntop.isPro(),
@@ -792,6 +903,12 @@ local context_2 = {
    show_acknowledge_all =  (page ~= 'all') and (status == "historical"),
    show_delete_all = (page ~= 'all') and (status ~= "engaged"),
    show_actions = (page ~= 'all'),
+
+   columns_def = dt_columns_def,
+
+   download ={
+      endpoint = download_endpoint_list,
+   },
    actions = {
        show_settings = (page ~= 'system') and isAdministrator(),
        show_flows = (page == 'host'),
@@ -820,7 +937,7 @@ local context_2 = {
            enabled = (page ~= 'all'),
            tag_operators = tag_utils.tag_operators,
            view_only = true,
-           defined_tags = defined_tags[page],
+           defined_tags = defined_tags,
            values = initial_tags,
            i18n = {
                auto_refresh_descr = i18n("auto_refresh_descr"),
@@ -848,125 +965,20 @@ local context_2 = {
                traffic_direction = i18n("db_search.tags.traffic_direction"),
           }
        },
-       presets = {
-           five_mins = false,
-           month = false,
-           year = false
-       },
        extra_range_buttons = extra_range_buttons,
        extra_tags_buttons = extra_tags_buttons,
    },
    chart = {
        name = CHART_NAME
    },
+   alert_details_url = alert_details_url,
    navbar = page_utils.get_new_navbar_context(i18n("alerts_dashboard.alerts"), url, pages),
    csrf = ntop.getRandomCSRFValue(),
+   is_va = is_va
 }
 
-local context = {
-   ifid = ifid,
-   ui_utils = ui_utils,
-   template_utils = template_utils,
-   widget_gui_utils = widget_gui_utils,
-   json = json,
-   opsep = tag_utils.SEPARATOR,
-   isPro = ntop.isPro(),
-   notes = notes,
-   show_chart = true,
-   show_cards = (status ~= "engaged") and ntop.isPro(),
-   endpoint_cards = endpoint_cards,
+local json_context = json.encode(context)
+template_utils.render("pages/vue_page.template", { vue_page_name = "PageAlertStats", page_context = json_context })
 
-   -- buttons
-   show_permalink = (page ~= 'all'),
-   show_download = (page ~= 'all'),
-   show_acknowledge_all =  (page ~= 'all') and (status == "historical"),
-   show_delete_all = (page ~= 'all') and (status ~= "engaged"),
-   show_actions = (page ~= 'all'),
-   actions = {
-       show_settings = (page ~= 'system') and isAdministrator(),
-       show_flows = (page == 'host'),
-       show_historical = ((page == 'host') or (page == 'flow')) and ntop.isEnterpriseM() and hasClickHouseSupport(),
-       show_pcap_download = traffic_extraction_available and page == 'flow',
-       show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator() and ntop.isEnterpriseM(),
-       show_acknowledge = (page ~= 'all') and (status == "historical") and isAdministrator(),
-       show_delete = (page ~= 'all') and (status ~= "engaged") and isAdministrator(),
-       show_info = (page == 'flow'),
-       show_snmp_info = (page == 'snmp_device')
-   },
-
-   show_tot_records = true,
-
-   range_picker = {
-       ifid = ifid,
-       default = status ~= "engaged" and "30min" or "1week",
-       earliest_available_epoch = earliest_available_epoch,
-       epoch_begin = epoch_begin,
-       epoch_end = epoch_end,
-       datasource_params = datasource.params,
-       refresh_enabled = checkbox_checked,
-       opsep = tag_utils.SEPARATOR,
-       dont_refresh_full_page = true,
-       show_auto_refresh = (page ~= 'all'),
-       tags = {
-           enabled = (page ~= 'all'),
-           tag_operators = tag_utils.tag_operators,
-           view_only = true,
-           defined_tags = defined_tags[page],
-           values = initial_tags,
-           i18n = {
-               auto_refresh_descr = i18n("auto_refresh_descr"),
-               enable_auto_refresh = auto_refresh_text,
-               alert_id = i18n("db_search.tags.alert_id"),
-               severity = i18n("db_search.tags.severity"),
-               score = i18n("db_search.tags.score"),
-               l7_proto = i18n("db_search.tags.l7proto"),
-               cli_ip = i18n("db_search.tags.cli_ip"),
-               srv_ip = i18n("db_search.tags.srv_ip"),
-               cli_name = i18n("db_search.tags.cli_name"),
-               srv_name = i18n("db_search.tags.srv_name"),
-               cli_port = i18n("db_search.tags.cli_port"),
-               srv_port = i18n("db_search.tags.srv_port"),
-               ip_version = i18n("db_search.tags.ip_version"),
-               ip = i18n("db_search.tags.ip"),
-               name = i18n("db_search.tags.name"),
-               network_name = i18n("db_search.tags.network_name"),
-               subtype = i18n("alerts_dashboard.element"),
-               role = i18n("db_search.tags.role"),
-               role_cli_srv = i18n("db_search.tags.role_cli_srv"),
-               l7_error_id = i18n("db_search.tags.error_code"),
-               community_id = i18n("db_search.tags.community_id"),
-               confidence = i18n("db_search.tags.confidence"),
-               traffic_direction = i18n("db_search.tags.traffic_direction"),
-          }
-       },
-       presets = {
-           five_mins = false,
-           month = false,
-           year = false
-       },
-       extra_range_buttons = extra_range_buttons,
-       extra_tags_buttons = extra_tags_buttons,
-   },
-   chart = {
-       name = CHART_NAME
-   },
-   datatable = datatable,
-   navbar = json.encode(page_utils.get_new_navbar_context(i18n("alerts_dashboard.alerts"), url, pages)),
-   extra_js = "pages/alerts/datatable.js.template",
-   extra_js_context = {
-       ifid = ifid,
-       entity = page,
-       alert_status = status,
-       datatable = datatable,
-       alert_details_url = alert_details_url,
-   }
-}
-
-if page == "flow" then
-   local json_context = json.encode(context_2)
-   template_utils.render("pages/vue_page.template", { vue_page_name = "PageAlertStats", page_context = json_context })
-else
-   template_utils.render("pages/components/datatable.template", context)
-end
 -- append the menu down below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

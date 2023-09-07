@@ -68,17 +68,83 @@ export const ntopng_utility = function() {
 	    }
 	    return array;
 	},
-	check_and_set_default_interval_time: function(set_status) {
-	    if (ntopng_url_manager.get_url_entry("epoch_begin") == null
-      		|| ntopng_url_manager.get_url_entry("epoch_end") == null) {
-		let default_epoch_begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
-		let default_epoch_end = Number.parseInt(Date.now() / 1000);
-		ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
-		ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
+	get_utc_seconds: function(utc_ms) {
+	    if (utc_ms == null) { utc_ms = Date.now(); }
+            return Number.parseInt(utc_ms / 1000);
+	},
+	get_timeframes_dict: function() {
+            const min = 60;
+            let t_day = new Date();
+            let t_week = new Date();
+            let t_month = new Date();
+            let t_year = new Date();
+            return {
+                "min": min,
+                "5_min": min * 5,
+                "30_min": min * 30,
+                hour: min * 60,
+                "2_hours": 2 * min * 60,
+                "6_hours": 6 * min * 60,
+                "12_hours": 12 * min * 60,
+                day: this.get_utc_seconds(Date.now() - t_day.setDate(t_day.getDate() - 1)),
+                week: this.get_utc_seconds(Date.now() - t_week.setDate(t_week.getDate() - 7)),
+                month: this.get_utc_seconds(Date.now() - t_month.setMonth(t_month.getMonth() - 1)),
+                year: this.get_utc_seconds(Date.now() - t_year.setMonth(t_year.getMonth() - 12)),
+            };
+	},
+	// given valid interval string get time in seconds
+	get_timeframe_from_timeframe_id: function (timeframe_id) {
+            let timeframes_dict = this.get_timeframes_dict();            
+            // timeframes_dict[interval_string] == null => key is not present
+            if (timeframes_dict[timeframe_id] == null) {
+		throw `Wrong timeframe_id passed ${timeframe_id}, valid intervals are: ${Object.keys(timeframes_dict).join(", ")}`;
+            }
+	    return timeframes_dict[timeframe_id];
+	},
+	round_time_by_timeframe_id: function(ts, timeframe_id) {
+	    const timeframe = this.get_timeframe_from_timeframe_id(timeframe_id);
+	    return ts - (ts % timeframe);
+	},
+	// method to set default epoch begin to 30_min ago
+	set_default_time_interval: function (time_interval_id="30_min", round_timeframe_id) {
+            let epoch = {
+		epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
+		epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
+            };
+	    const now_s = this.get_utc_seconds(Date.now());
+            let seconds_in_interval = this.get_timeframe_from_timeframe_id(time_interval_id);
+            epoch.epoch_begin = now_s - seconds_in_interval;
+            epoch.epoch_end = now_s;
+            if (round_timeframe_id != null) {
+                epoch.epoch_begin = this.round_time_by_timeframe_id(epoch.epoch_begin, round_timeframe_id);
+                epoch.epoch_end = this.round_time_by_timeframe_id(epoch.epoch_end, round_timeframe_id);
+            }
+            ntopng_url_manager.set_key_to_url("epoch_begin", epoch.epoch_begin);
+            ntopng_url_manager.set_key_to_url("epoch_end", epoch.epoch_end);
+	    
+            return epoch;
+	},
+	//should take a string as parameter that represent time: min, 5_min, 30_min, hour, 2_hours, 6_hours, 12_hours, day, week, month, year. ID time_interval_id is null, default must be 30_min
+	// return epoch_interval only if epoch url is set
+	check_and_set_default_time_interval: function (time_interval_id="30_min", f_condition, get_epoch=false, round_timeframe_id) {
+            let epoch = this.get_url_epoch_interval();
+
+            // if time_interval_id is 30 (default)
+            if (epoch.epoch_begin == null || epoch.epoch_end == null || (f_condition != null && f_condition(epoch) == true))  {
+		epoch = this.set_default_time_interval(time_interval_id, round_timeframe_id);
+		return epoch;
+            }
+	    if (get_epoch == true) {
+		return epoch;
 	    }
-	    if (set_status == true) {
-		
-	    }
+	    return null;
+	},
+	get_url_epoch_interval: function() {
+            let epoch = {
+		epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
+		epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
+            };
+	    return epoch;
 	},
 	from_utc_s_to_server_date: function(utc_seconds) {
 	    let utc = utc_seconds * 1000;
@@ -92,9 +158,9 @@ export const ntopng_utility = function() {
 	},
 	from_utc_to_server_date_format: function(utc_ms, format) {
 	    if (format == null) { format = "DD/MMM/YYYY HH:mm"; }
+
+            /* This looks like an hack, please avoid it as creates issues
 	    let status = ntopng_status_manager.get_status();
-	    // let epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
-	    // let epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
 	    let epoch_begin = status.epoch_begin;
 	    let epoch_end = status.epoch_end;
 	    if (epoch_begin != null && epoch_end != null && format != null) {
@@ -104,7 +170,8 @@ export const ntopng_utility = function() {
 		    format = "DD/MMM/YYYY HH:mm:ss";
 		}
 	    }
-	    
+	    */
+
 	    let m = moment.tz(utc_ms, ntop_zoneinfo);
 	    let tz_server = m.format(format);
 	    return tz_server;
@@ -115,8 +182,8 @@ export const ntopng_utility = function() {
 	    }
 	    for (let key in source_obj) {
 	    	if (source_obj[key] == null) { continue; }
-            /* Security check for Prototype pollution vulnerability */
-            if (key === "__proto__" || key === "constructor") { continue; }
+		/* Security check for Prototype pollution vulnerability */
+		if (key === "__proto__" || key === "constructor") { continue; }
 	    	if (recursive_object == true && this.is_object(source_obj[key]) && this.is_object(dest_obj[key])) {
 	    	    this.copy_object_keys(source_obj[key], dest_obj[key], recursive_object);
 	    	} else {
@@ -161,6 +228,7 @@ export const ntopng_utility = function() {
 		return json_res.rsp;
 	    } catch (err) {
 		console.error(err);
+		console.error("URL: " + url);
 		if (throw_exception == true) { throw err; }
 		return null;
 	    }
@@ -417,6 +485,12 @@ export const ntopng_url_manager = function() {
             this.replace_url(search_params.toString());	    
         },
 
+        delete_key_from_url: function(key) {
+            let search_params = this.get_url_search_params();
+            search_params.delete(key);
+            this.replace_url(search_params.toString());	    
+        },
+
         set_key_to_url: function(key, value) {
             if (value == null) { value = ""; }	  
             let search_params = this.get_url_search_params();
@@ -481,6 +555,7 @@ export const ntopng_custom_events = {
   CHANGE_PAGE_TITLE: "change_page_title", 
     DATATABLE_LOADED: "datatable_loaded",
     GET_INTERFACE_FATA: "get_interface_data", // object returned by /lua/rest/v2/get/interface/data.lua
+    COMPONENT_EPOCH_INTERVAL_CHANGE: "component_epoch_interval_change", // { epoch_begin: number, epoch_end: number }
 };
 
 
@@ -527,32 +602,42 @@ for (let event_name in ntopng_events) {
       status = new_status;
   };
 
+    const get_event_for_single_dest = (event, dest_id) => {
+	return `${event}_${dest_id}`;
+    };
+
   ntopng_status_manager.on_status_change(events_manager_id, on_status_change, true);
 
-  const emit = function(event, params, skip_id) {
-let subscribers = events_subscribers[event];
-if (subscribers == null) { return; }
-notify_subscribers(subscribers, params, skip_id);
-  };
+    const emit = function(event, params, skip_id, dest_id) {
+	if (dest_id != null) {
+	    event = get_event_for_single_dest(event, dest_id);
+	}
+	let subscribers = events_subscribers[event];
+	if (subscribers == null) { return; }
+	notify_subscribers(subscribers, params, skip_id);
+    };
 
-  const on_event = function(id, event, f_on_event, get_init_notify) {
-      if (events_subscribers[event] == null) {
-          events_subscribers[event] = {};        
-      }
-      if (get_init_notify == true) {
-          let status = ntopng_status_manager.get_status();        
-          f_on_event(clone(status));
-      }
-      events_subscribers[event][id] = f_on_event;
-  };
+    const on_event = function(id, event, f_on_event, get_init_notify, is_single_dest_event) {
+	if (is_single_dest_event == true) {
+	    event = get_event_for_single_dest(event, id);
+	}
+	if (events_subscribers[event] == null) {
+            events_subscribers[event] = {};        
+	}
+	if (get_init_notify == true) {
+            let status = ntopng_status_manager.get_status();        
+            f_on_event(clone(status));
+	}
+	events_subscribers[event][id] = f_on_event;
+    };
 
   return {
-emit_custom_event: function(event, params) {
-    emit(event, params);
-},
-on_custom_event: function(id, event, f_on_event) {
-    on_event(id, event, f_on_event);
-},
+      emit_custom_event: function(event, params, dest_id) {
+	  emit(event, params, null, dest_id);
+      },
+      on_custom_event: function(id, event, f_on_event, is_single_dest_event) {
+	  on_event(id, event, f_on_event, null, is_single_dest_event);
+      },
       /**
        * Changes the application status and emits the new status to all subcribers registered to the event. 
        * @param {string} event event name.

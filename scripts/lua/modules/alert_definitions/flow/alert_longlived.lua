@@ -56,9 +56,11 @@ function alert_longlived.format(ifid, alert, alert_type_params)
       end
    end
 
-   local alert_json = json.decode(alert["json"])
-   if alert_json and not isEmptyString(alert_json["info"]) then
-      res = string.format("%s [%s]", res, alert_json["info"])
+   if not isEmptyString(alert["json"]) then
+      local alert_json = json.decode(alert["json"]) or {}
+      if not isEmptyString(alert_json["info"]) then
+         res = string.format("%s [%s]", res, alert_json["info"])
+      end
    end
 
    return res

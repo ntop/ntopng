@@ -4,6 +4,8 @@
 
 require "lua_utils"
 local json = require "dkjson"
+local alert_utils = require "alert_utils"
+
 
 local webhook = {
    name = "Webhook",
@@ -102,13 +104,17 @@ function webhook.dequeueRecipientAlerts(recipient, budget)
 
     -- Dequeue MAX_ALERTS_PER_REQUEST notifications
     local notifications = {}
-    for i = 1, MAX_ALERTS_PER_REQUEST do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id)
-       if notification then 
-	  notifications[#notifications + 1] = notification.alert
-       else
-	  break
-       end
+    local i = 0
+    while i < MAX_ALERTS_PER_REQUEST do
+      local notification = ntop.recipient_dequeue(recipient.recipient_id)
+      if notification then 
+        if alert_utils.filter_notification(notification, recipient.recipient_id) then
+          notifications[#notifications + 1] = notification.alert
+          i = i + 1
+        end
+      else
+        break
+      end
     end
 
     if not notifications or #notifications == 0 then

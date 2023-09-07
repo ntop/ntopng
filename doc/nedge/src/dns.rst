@@ -1,29 +1,31 @@
 DNS
 ===
 
-nEdge can enforce a specific DNS server to be used by the LAN devices.
-nEdge ships with some preset of secure DNS servers, which provide an
+nEdge can enforce specific DNS servers to be used by LAN devices and
+provides some presets with secure DNS servers, which provide an
 additional security against malware sites.
 
 Global DNS
 ----------
 
-The `Global DNS` is the DNS server used in the following cases:
+The DNS servers configured in the `Global DNS` section of the `DNS Configuration`
+tab are used in the following cases:
 
-  - When the DHCP server is enabled in routing mode, it will configure the
-    non child-safe clients to use these DNS servers
+  - When the DHCP server is enabled (routing mode), clients (which are non 
+    child-safe) are configured to use those DNS servers
   - By the nEdge device for interfaces configured in static address mode
+
+If the `Enforce Global DNS` option is enabled, nEdge will enforce the use of the
+specified DNS servers even if the clients configure their DNS servers manually.
+
+The presets provide a list of Secure DNS servers that can be chosen, otherwise
+it is possible to specify 'Custom' DNS servers manually.
 
 .. figure:: img/global_dns.png
   :align: center
   :alt: Global DNS
 
   Global DNS configuration
-
-If the `Enforce Global DNS` option is set, nEdge will enforce the use of the
-specified `Global DNS` even if the clients manually change their DNS servers.
-
-Secure DNS servers can be chosen from the provided presets or be specified manually.
 
 Child Safe
 ----------

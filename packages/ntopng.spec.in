@@ -186,7 +186,8 @@ echo 'Setting up redis auto startup'
 /bin/chmod gou+s /usr/bin/ntopng-config
 /bin/chown -R ntopng:ntopng /etc/ntopng
 
-if [ ! -f /.dockerenv ]; then
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline) 
+if [ -z "${CMDLINE##*system*}" ] || [ -z "${CMDLINE##*init*}" ]; then # init/systemd (not a container)
 %if 0%{?centos_ver} != 6
 /bin/systemctl daemon-reload
 %systemd_post ntopng.service
@@ -223,7 +224,9 @@ case "$1" in
 esac
 
 %preun
-if [ ! -f /.dockerenv ]; then
+
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline) 
+if [ -z "${CMDLINE##*system*}" ] || [ -z "${CMDLINE##*init*}" ]; then # init/systemd (not a container)
 %if 0%{?centos_ver} == 6
 case "$1" in
   0)
@@ -244,7 +247,8 @@ esac
 fi
 
 %postun
-if [ ! -f /.dockerenv ]; then
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline) 
+if [ -z "${CMDLINE##*system*}" ] || [ -z "${CMDLINE##*init*}" ]; then # init/systemd (not a container)
 %if 0%{?centos_ver} != 6
   %systemd_postun_with_restart ntopng.service
 %endif

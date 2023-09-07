@@ -3,6 +3,7 @@
 */
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
 import NtopUtils from "../utilities/ntop-utils";
+import FormatterUtils from "../utilities/formatter-utils.js";
 
 const ntopChartApex = function () {
   // define default chartOptions for all chart type.
@@ -216,7 +217,7 @@ const ntopChartApex = function () {
       chart: {
         stacked: true,
         type: "donut",
-        height: 400
+        height: 300
       },
       yaxis: {
         show: true,
@@ -243,7 +244,7 @@ const ntopChartApex = function () {
       },
       tooltip: {
         y: {
-          formatter: NtopUtils.bytesToSize
+            formatter: FormatterUtils.getFormatter("number"),
         },
       },
       noData: {
@@ -254,6 +255,98 @@ const ntopChartApex = function () {
           fontFamily: undefined
         }
       }
+    };
+    ntopng_utility.copy_object_keys(TS_STACKED_ChartOptions, chartOptions, true);
+    return chartOptions;
+  }();
+
+  // define default chartOptions for area chart type.
+  const _default_TS_RADIALBAR_ChartOptions = function () {
+    let chartOptions = ntopng_utility.clone(_default_BASE_ChartOptions);
+    let TS_STACKED_ChartOptions = {
+      chart: {
+        stacked: true,
+        type: "radialBar",
+        height: 300
+      },
+      yaxis: {
+        show: true,
+      },
+      dataLabels: {
+        enabled: true,
+        formatter: function (val, opts) {
+          return val
+        },
+      },
+      stroke: {
+        show: false,
+        curve: "smooth"
+      },
+      fill: {
+        type: "solid"
+      },
+      tooltip: {
+        y: {
+          formatter: NtopUtils.bytesToSize
+        },
+      },
+      noData: {
+        text: 'No Data',
+        style: {
+          color: undefined,
+          fontSize: '24px',
+          fontFamily: undefined
+        }
+      },
+      plotOptions: {
+        radialBar: {
+          offsetY: 0,
+          startAngle: 0,
+          endAngle: 270,
+          hollow: {
+            margin: 5,
+            size: '30%',
+            background: 'transparent',
+            image: undefined,
+          },
+          dataLabels: {
+            name: {
+              show: false,
+            },
+            value: {
+              show: false,
+            }
+          }
+        }
+      },
+      legend: {
+        show: true,
+        floating: true,
+        fontSize: '16px',
+        position: 'left',
+        offsetX: 160,
+        offsetY: 15,
+        labels: {
+          useSeriesColors: true,
+        },
+        markers: {
+          size: 0
+        },
+        formatter: function(seriesName, opts) {
+          return seriesName + ":  " + opts.w.globals.series[opts.seriesIndex]
+        },
+        itemMargin: {
+          vertical: 3
+        }
+      },
+      responsive: [{
+        breakpoint: 480,
+        options: {
+          legend: {
+              show: false
+          }
+        }
+      }]
     };
     ntopng_utility.copy_object_keys(TS_STACKED_ChartOptions, chartOptions, true);
     return chartOptions;
@@ -434,6 +527,7 @@ const ntopChartApex = function () {
       TS_COLUMN: "TS_COLUMN",
       PIE: "PIE",
       DONUT: "DONUT",
+      RADIALBAR: "RADIALBAR",
       RADAR: "RADAR",
       BUBBLE: "BUBBLE",
       BASE: "BASE",
@@ -456,6 +550,8 @@ const ntopChartApex = function () {
         _chartOptions = ntopng_utility.clone(_default_TS_PIE_ChartOptions);
       } else if (type == this.typeChart.DONUT) {
         _chartOptions = ntopng_utility.clone(_default_TS_DONUT_ChartOptions);
+      } else if (type == this.typeChart.RADIALBAR) {
+        _chartOptions = ntopng_utility.clone(_default_TS_RADIALBAR_ChartOptions);
       } else if (type == this.typeChart.POLAR) {
         _chartOptions = ntopng_utility.clone(_default_TS_POLAR_ChartOptions);
       } else if (type == this.typeChart.BUBBLE) {
@@ -465,19 +561,26 @@ const ntopChartApex = function () {
       } else {
         throw `ntopChartApex::newChart: chart type = ${type} unsupported`;
       }
-
+        const setYaxisFormatter = (chartOptions) => {
+            if (chartOptions.yaxis && chartOptions.yaxis.labels && chartOptions.yaxis.labels.formatter) {
+              const formatter = chartOptions.yaxis.labels.formatter;
+              let chartFormatter = FormatterUtils.getFormatter(formatter);
+              if (chartFormatter != null) {
+                  chartOptions.yaxis.labels.formatter = chartFormatter;
+              } else {
+                  if (formatter == "formatValue") {
+                      chartOptions.yaxis.labels.formatter = FormatterUtils.getFormatter("number");
+                  }
+                  else if (formatter == "bytesToSize") {
+                      chartOptions.yaxis.labels.formatter = FormatterUtils.getFormatter("bytes");
+                  }
+              }
+          }          
+        };
       return {
-        drawChart: function (htmlElement, chartOptions) {
+          drawChart: function (htmlElement, chartOptions) {
           // add/replace chartOptions fields in _chartOptions
-          if (chartOptions.yaxis && chartOptions.yaxis.labels && chartOptions.yaxis.labels.formatter) {
-            const formatter = chartOptions.yaxis.labels.formatter
-            if (formatter == "formatValue") {
-              chartOptions.yaxis.labels.formatter = NtopUtils.formatValue
-            }
-            else if (formatter == "bytesToSize") {
-              chartOptions.yaxis.labels.formatter = NtopUtils.bytesToSize
-            }
-          }
+              setYaxisFormatter(chartOptions);
           ntopng_utility.copy_object_keys(chartOptions, _chartOptions, true);
           _chart = new ApexCharts(htmlElement, _chartOptions);
           _chartHtmlElement = htmlElement;
@@ -494,6 +597,7 @@ const ntopChartApex = function () {
         },
         updateChart: function (chartOptions) {
           if (_chart == null) { return; }
+            setYaxisFormatter(chartOptions);
           _chart.updateOptions(chartOptions, false, false, false);
         },
         updateSeries: function (series) {

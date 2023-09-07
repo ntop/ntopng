@@ -1,95 +1,117 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-    <slot name="custom_header2"></slot>
+<slot name="custom_header2"></slot>
 <div ref="table_container" :id="id">
   <Loading v-if="loading"></Loading>
-<div class="button-group mb-2"> <!-- TableHeader -->
-  <div style="float:left;margin-top:0.5rem;">
-    <label>
-      Show
-      <select v-model="per_page" @change="change_per_page">
-	<option v-for="pp in per_page_options" :value="pp">{{pp}}</option>
-      </select>
-      Entries
-    </label>
-  </div>
-  <div style="text-align:right;" class="form-group ">
-  </div>
-  
-  <div style="text-align:right;" class="form-group ">
-    <slot name="custom_header"></slot>
-
-    <div v-if="enable_search" class="d-inline">
-      <label>{{ _i18n('search') }}:
-	<input type="search" v-model="map_search" @input="on_change_map_search" class="" >
+  <div class="button-group mb-2"> <!-- TableHeader -->
+    <div style="float:left;margin-top:0.5rem;">
+      <label>
+	Show
+	<select v-model="per_page" @change="change_per_page">
+	  <option v-for="pp in per_page_options" :value="pp">{{pp}}</option>
+	</select>
+	Entries
       </label>
     </div>
-    <button class="btn btn-link me-1" type="button" @click="reset_column_size">
-      <i class="fas fa-columns"></i>
-    </button>
-    <button class="btn btn-link me-1" type="button" @click="refresh_table">
-      <i class="fas fa-refresh"></i>
-    </button>
+    <div style="text-align:right;" class="form-group ">
+    </div>
     
-    <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
-      <template v-slot:title>
-	<i class="fas fa-eye"></i>
-      </template>
-      <template v-slot:menu>
-	<div v-for="col in columns_wrap" class="form-check form-switch ms-1">
-	  <input class="form-check-input" style="cursor:pointer;" v-model="col.visible" @click="change_columns_visibility(col)"  checked="" type="checkbox" id="toggle-Begin">
-          <label class="form-check-label" for="toggle-Begin" v-html="print_column_name(col.data)">
-          </label>
-	</div>
-      </template>
-    </Dropdown> <!-- Dropdown columns -->
-  </div>
-</div> <!-- TableHeader -->
-
-<div :key="table_key" class="" style="overflow:auto;width:100%;"> <!-- Table -->
+    <div style="text-align:right;" class="form-group ">
+      <slot name="custom_header"></slot>
+      
+      <div v-if="enable_search" class="d-inline">
+	<label>{{ _i18n('search') }}:
+	  <input type="search" v-model="map_search" @input="on_change_map_search" class="" >
+	</label>
+      </div>
+      
+      <button class="btn btn-link me-1" type="button" @click="reset_column_size">
+	<i class="fas fa-columns"></i>
+      </button>
+      <button class="btn btn-link me-1" type="button" @click="refresh_table()">
+	<i class="fas fa-refresh"></i>
+      </button>
+      <div v-if="show_autorefresh > 0" class="d-inline-block">
+	<Switch v-model:value="enable_autorefresh"
+		class="me-2 mt-1" :title="autorefresh_title" style=""
+		@change_value="update_autorefresh">
+	</Switch>
+      </div>
+      
+      <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
+	<template v-slot:title>
+	  <i class="fas fa-eye"></i>
+	</template>
+	<template v-slot:menu>
+	  <div v-for="col in columns_wrap" class="form-check form-switch ms-1">
+	    <input class="form-check-input" style="cursor:pointer;" :checked="col.visible == true" @click="change_columns_visibility(col)" type="checkbox" id="toggle-Begin">
+            <label class="form-check-label" for="toggle-Begin" v-html="print_column_name(col.data)">
+            </label>
+	  </div>
+	</template>
+      </Dropdown> <!-- Dropdown columns -->
+    </div>
+  </div> <!-- TableHeader -->
   
-  <table ref="table" class="table table-striped table-bordered ml-0 mr-0 mb-0 " style="table-layout: auto; white-space: nowrap;" data-resizable="true" :data-resizable-columns-id="id"> <!-- Table -->
-    <thead>
-      <tr>
-	<template v-for="(col, col_index) in columns_wrap">
-	  <th v-if="col.visible" scope="col" :class="{'pointer': col.sortable, 'unset': !col.sortable, }" style="white-space: nowrap;" @click="change_column_sort(col, col_index)" :data-resizable-column-id="get_column_id(col.data)">
-	    <div style="display:flex;">
-	      <span v-html="print_column_name(col.data)" class="wrap-column"></span>
-	      <!-- <i v-show="col.sort == 0" class="fa fa-fw fa-sort"></i> -->
-	      
-	      <i v-show="col.sort == 1 && col.sortable" class="fa fa-fw fa-sort-up"></i>
-	      <i v-show="col.sort == 2 && col.sortable" class="fa fa-fw fa-sort-down"></i>
-	    </div>
-	  </th>
-	</template>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="row in active_rows">
-	<template v-for="(col, col_index) in columns_wrap">
-	  <td v-if="col.visible" scope="col" >
-	    <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" v-html="print_html_row(col.data, row)">
-	    </div>
-	    <div :class="col.classes" class="wrap-column">
-	      <VueNode v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
-	    </div>
-	  </td>
-	</template>
-      </tr>
-    </tbody>
-  </table> <!-- Table -->
-</div> <!-- Table div-->
-
-<div>
-  <SelectTablePage
-    ref="select_table_page"
-    :key="select_pages_key"
-    :total_rows="total_rows"
-    :per_page="per_page"
-    @change_active_page="change_active_page">
-  </SelectTablePage>
-</div>
-
+  <div :key="table_key" class="" style="overflow:auto;width:100%;"> <!-- Table -->
+    
+    <table ref="table" class="table table-striped table-bordered ml-0 mr-0 mb-0 " style="table-layout: auto; white-space: nowrap;" data-resizable="true" :data-resizable-columns-id="id"> <!-- Table -->
+      <thead>
+	<tr>
+	  <template v-for="(col, col_index) in columns_wrap">
+	    <th v-if="col.visible" scope="col" :class="{'pointer': col.sortable, 'unset': !col.sortable, }" style="white-space: nowrap;" @click="change_column_sort(col, col_index)" :data-resizable-column-id="get_column_id(col.data)">
+	      <div style="display:flex;">
+		<span v-html="print_column_name(col.data)" class="wrap-column"></span>
+		<!-- <i v-show="col.sort == 0" class="fa fa-fw fa-sort"></i> -->
+		
+		<i v-show="col.sort == 1 && col.sortable" class="fa fa-fw fa-sort-up"></i>
+		<i v-show="col.sort == 2 && col.sortable" class="fa fa-fw fa-sort-down"></i>
+	      </div>
+	    </th>
+	  </template>
+	</tr>
+      </thead>
+      <tbody>
+	<tr v-if="!changing_column_visibility && !changing_rows" v-for="row in active_rows">
+	  <template v-for="(col, col_index) in columns_wrap">
+	    <td v-if="col.visible" scope="col" class="">
+	      <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null" :class="col.classes" class="wrap-column" :style="col.style" v-html="print_html_row(col.data, row)">
+	      </div>
+	      <div :style="col.style" style="" class="wrap-column margin-sm" :class="col.classes" >
+		<VueNode :key="row" v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null" :content="print_vue_node_row(col.data, row, vue_obj)" ></VueNode>
+	      </div>
+	    </td>
+	  </template>
+	</tr>
+	<tr v-if="display_empty_rows && active_rows.length < per_page" v-for="index in (per_page - active_rows.length)">
+	  <template v-for="(col, col_index) in columns_wrap">
+	    <td style="" class="" v-if="col.visible" scope="col" >
+	      <div class="wrap-column"></div>
+	    </td>
+	  </template>
+	</tr>
+      </tbody>
+    </table> <!-- Table -->
+  </div> <!-- Table div-->
+  
+  <div>
+    <SelectTablePage
+      ref="select_table_page"
+      :key="select_pages_key"
+      :total_rows="total_rows"
+      :per_page="per_page"
+      @change_active_page="change_active_page">
+    </SelectTablePage>
+  </div>
+  
+  <div v-if="query_info != null" class="mt-2">
+    <div class="text-end">
+      <small style="" class="query text-end"><span class="records">{{ query_info.num_records_processed }}</span>.</small>
+    </div>
+    <div class="text-start">
+      <small id="historical_flows_table-query-time" style="" class="query">Query performed in <span class="seconds">{{ (query_info.query_duration_msec / 1000).toFixed(3) }}</span> seconds. <span id="historical_flows_table-query" style="cursor: pointer;" class="badge bg-secondary" :title=query_info.query @click="copy_query_into_clipboard" ref="query_info_sql_button" >SQL</span></small>
+    </div>
+  </div>
 </div>
 </template>
 
@@ -102,8 +124,9 @@ import { default as Dropdown } from "./dropdown.vue";
 import { default as SelectTablePage } from "./select_table_page.vue";
 import { default as VueNode } from "./vue_node.vue";
 import { default as Loading } from "./loading.vue";
+import { default as Switch } from "./switch.vue";
 
-const emit = defineEmits(['custom_event', 'loaded'])
+const emit = defineEmits(['custom_event', 'loaded']);
 const vue_obj = {
     emit,
     h,
@@ -113,7 +136,7 @@ const vue_obj = {
 const props = defineProps({
     id: String,
     columns: Array,
-    get_rows: Function, // async (active_page: number, per_page: number, columns_wrap: any[], search_map: string, first_get_rows: boolean) => { total_rows: number, rows: any[] }
+    get_rows: Function, // async (active_page: number, per_page: number, columns_wrap: any[], search_map: string, first_get_rows: boolean) => { total_rows: number, rows: any[], query_info: { query_duration_msec: number, num_records_processed: string, query: string } }
     get_column_id: Function,
     print_column_name: Function,
     print_html_row: Function,
@@ -121,7 +144,11 @@ const props = defineProps({
     f_is_column_sortable: Function,
     f_sort_rows: Function,
     f_get_column_classes: Function,
+    f_get_column_style: Function,
     enable_search: Boolean,
+    display_empty_rows: Boolean,
+    show_autorefresh: Number, // autorefresh seconds, if null or 0 autorefresh switch will not showed
+    default_sort: Object, // { column_id: string, sort: number (0, 1, 2) }
     csrf: String,
     paging: Boolean,
 });
@@ -145,6 +172,11 @@ const map_search = ref("");
 
 const select_table_page = ref(null);
 const loading = ref(false);
+const query_info = ref(null);
+const query_info_sql_button = ref(null);
+const changing_column_visibility = ref(false);
+const changing_rows = ref(false);
+const enable_autorefresh = ref(false);
 
 onMounted(async () => {
     if (props.columns != null) {
@@ -152,7 +184,15 @@ onMounted(async () => {
     }
 });
 
-watch(() => props.columns, (cur_value, old_value) => {
+const autorefresh_title = computed(() => {
+    if (props.show_autorefresh == null || props.show_autorefresh <= 0) {
+	return "";
+    }
+    let text = _i18n("table.autorefresh");
+    return text.replace("%time", props.show_autorefresh);
+});
+
+watch(() => [props.id, props.columns], (cur_value, old_value) => {
     load_table();
 }, { flush: 'pre'});
 
@@ -165,7 +205,20 @@ async function load_table() {
     emit("loaded");
 }
 
+let autorefresh_interval;
+function update_autorefresh() {
+    if (enable_autorefresh.value == false) {
+	clearInterval(autorefresh_interval);
+	return;
+    }
+    autorefresh_interval = setInterval(() => {
+	change_active_page();
+    }, props.show_autorefresh * 1000);
+}
+
 async function change_columns_visibility(col) {
+    changing_column_visibility.value = true;
+    col.visible = !col.visible;
     if (props.paging) {
 	await set_rows();
     }
@@ -173,6 +226,7 @@ async function change_columns_visibility(col) {
     await redraw_table_resizable();
     await set_columns_visibility();
     // set_columns_resizable();
+    changing_column_visibility.value = false;
 }
 
 async function redraw_table_resizable() {
@@ -229,20 +283,37 @@ async function set_columns_visibility() {
 
 async function set_columns_wrap() {
     let cols_visibility_dict = await get_columns_visibility_dict();
+    let is_table_not_sorted = true;
+    for (let id in cols_visibility_dict) {
+	is_table_not_sorted &= (cols_visibility_dict[id]?.sort);
+    }
     columns_wrap.value = props.columns.map((c, i) => {
 	let classes = [];
+	let style = "";
 	if (props.f_get_column_classes != null) {
 	    classes = props.f_get_column_classes(c);
 	}
+	if (props.f_get_column_style != null) {
+	    style = props.f_get_column_style(c);
+	}
 	let id = props.get_column_id(c);
 	let col_opt = cols_visibility_dict[id];
+	let sort = col_opt?.sort; 
+	if (is_table_not_sorted == false && sort == null && props.default_sort != null && id == props.default_sort.column_id) {
+	    sort = props.default_sort.sort;
+	} else if (col_opt?.sort) {
+	    sort = col_opt?.sort;
+	} else {
+	    sort = 0;
+	}
 	return {
 	    id,
 	    visible: col_opt?.visible == null || col_opt?.visible == true,
-	    sort: col_opt?.sort || 0,
+	    sort: sort,
 	    sortable: is_column_sortable(c),
 	    order: col_opt?.order || i,
 	    classes,
+	    style,
 	    data: c,
 	};
     });
@@ -267,17 +338,28 @@ function redraw_select_pages() {
     select_pages_key.value += 1;
 }
 
+const table_content_id = ref(0);
+function refresh_table_content() {
+    table_content_id.value += 1;
+}
+
 async function change_active_page(new_active_page) {
-    active_page = new_active_page;
-    if (props.paging == true) {
+    if (new_active_page != null) {
+	active_page = new_active_page;
+    }
+    if (active_page == null) {
+	active_page = 0;
+    }
+    if (props.paging == true || force_refresh) {
 	await set_rows();
     } else {
 	set_active_rows();
     }
+    refresh_table_content();
 }
 
 async function change_column_sort(col, col_index) {
-    if (col.sortable == false) {
+    if (!col.sortable) {
 	return;
     }
     col.sort = (col.sort + 1) % 3;
@@ -286,10 +368,6 @@ async function change_column_sort(col, col_index) {
     if (props.paging) {
 	await set_rows();
     } else {
-	let f_sort = get_sort_function();
-	rows = rows.sort((r0, r1) => {
-	    return f_sort(col, r0, r1);
-	});
 	set_active_rows();
     }
     await set_columns_visibility();
@@ -309,14 +387,26 @@ function get_sort_function() {
     };
 }
 
-function refresh_table() {
+let force_refresh = false;
+let force_disable_loading = false;
+async function refresh_table(disable_loading) {
+    force_refresh = true;
+    force_disable_loading = disable_loading || false;
     select_table_page.value.change_active_page(0, 0);
+    await nextTick();
+    force_refresh = false;
+    force_disable_loading = false;
 }
 
 let first_get_rows = true;
 async function set_rows() {
-    loading.value = true;
+    // changing_rows.value = true;
+    loading.value = true && !force_disable_loading;
     let res = await props.get_rows(active_page, per_page.value, columns_wrap.value, map_search.value, first_get_rows);
+    query_info.value = null;
+    if (res.query_info != null) {
+	query_info.value = res.query_info;
+    }
     first_get_rows = false;
     total_rows.value = res.rows.length;
     if (props.paging == true) {
@@ -325,6 +415,7 @@ async function set_rows() {
     rows = res.rows;
     set_active_rows();    
     loading.value = false;
+    // changing_rows.value = false;
 }
 
 function is_column_sortable(col) {
@@ -339,7 +430,19 @@ function set_active_rows() {
     if (props.paging == false) {
 	start_row_index = active_page * per_page.value;
     }
+    if (props.paging == false) {
+	let f_sort = get_sort_function();
+	let col_to_sort = get_column_to_sort();
+	rows = rows.sort((r0, r1) => {
+	    return f_sort(col_to_sort, r0, r1);
+	});
+    }
     active_rows.value = rows.slice(start_row_index, start_row_index + per_page.value);
+}
+
+function get_column_to_sort() {
+    let col_to_sort = columns_wrap.value.find((c) => c.sort != 0);
+    return col_to_sort;
 }
 
 let map_search_change_timeout;
@@ -357,7 +460,15 @@ async function on_change_map_search() {
     
 }
 
-defineExpose({ load_table, refresh_table });
+function copy_query_into_clipboard($event) {
+    NtopUtils.copyToClipboard(query_info.value.query, query_info_sql_button.value);
+}
+
+function get_columns_defs() {
+    return columns_wrap.value;
+}
+
+defineExpose({ load_table, refresh_table, get_columns_defs });
 
 </script>
 
@@ -386,6 +497,13 @@ defineExpose({ load_table, refresh_table });
 .link-disabled {
     pointer-events: none;
     color: #ccc;
+}
+td {
+    height: 2.5rem;
+}
+.margin-sm {
+    margin-bottom: -0.25rem;
+    margin-top: -0.25rem;
 }
 /*table {
     table-layout:fixed;

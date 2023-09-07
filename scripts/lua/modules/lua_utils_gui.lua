@@ -1314,15 +1314,11 @@ end
 function format_dns_query_info(dns_info)
    if dns_info.last_query_type then
       dns_info.last_query_type = string.format('<span class="badge bg-info">%s</span>', dns_utils.getQueryType(dns_info.last_query_type))
-   else
-      dns_info["last_query_type"] = i18n('empty_info')
    end
 
    if dns_info.last_return_code then
       local badge = get_badge(dns_info.last_return_code)
       dns_info.last_return_code = string.format('<span class="badge bg-%s">%s</span>', badge, dns_utils.getResponseStatusCode(dns_info.last_return_code))
-   else
-      dns_info["last_return_code"] = i18n('empty_info')
    end
 
    if dns_info.last_query then
@@ -1331,8 +1327,6 @@ function format_dns_query_info(dns_info)
       if not string.find(url, '*') then
          dns_info.last_query = i18n("external_link_url", { proto = 'https', url = url, url_name = dns_info["last_query"] })
       end
-   else
-      dns_info["last_query"] = i18n('empty_info')
    end
 
    return dns_info
@@ -1353,14 +1347,10 @@ function format_tls_info(tls_info)
       tls_info["tls_certificate_validity"] = string.format("%s - %s", tls_info.notBefore, tls_info.notAfter)
       tls_info.notBefore = nil
       tls_info.notAfter = nil
-   else
-      tls_info["tls_certificate_validity"] = i18n('empty_info')
    end
 
    if (tls_info.tls_version) and (tls_info.tls_version > 0) then
       tls_info["tls_version"] = ntop.getTLSVersionName(tls_info.tls_version)
-   else
-      tls_info["tls_version"] = i18n('empty_info')
    end
 
    if tls_info.client_requested_server_name then
@@ -1369,8 +1359,6 @@ function format_tls_info(tls_info)
       if not string.find(url, '*') then
          tls_info["client_requested_server_name"] = i18n("external_link_url", { proto = 'https', url = url, url_name = url})
       end
-   else
-      tls_info["client_requested_server_name"] = i18n('empty_info')
    end
 
    if tls_info["ja3.server_cipher"] then
@@ -1384,20 +1372,14 @@ function format_tls_info(tls_info)
 
    if tls_info["ja3.server_hash"] then
       tls_info["ja3.server_hash"] = i18n("copy_button", { full_name = tls_info["ja3.server_hash"], name = tls_info["ja3.server_hash"] })
-   else
-      tls_info["ja3.server_hash"] = i18n('empty_info')
    end
 
    if tls_info["ja3.client_hash"] then
       tls_info["ja3.client_hash"] = i18n("copy_button", { full_name = tls_info["ja3.client_hash"], name = tls_info["ja3.client_hash"] })
-   else
-      tls_info["ja3.client_hash"] = i18n('empty_info')
    end
 
    if tls_info["server_names"] then
       tls_info["server_names"] = i18n("copy_button", { full_name = tls_info["server_names"], name = shortenString(tls_info["server_names"],128) })
-   else
-      tls_info["server_names"] = i18n('empty_info')
    end
 
    return tls_info
@@ -1427,17 +1409,11 @@ function format_http_info(http_info)
          local badge = get_badge(http_info.last_return_code < 400)
          
          http_info["last_return_code"] = string.format('<span class="badge bg-%s">%s</span>', badge, http_utils.getResponseStatusCode(http_info["last_return_code"]))        
-      else
-         http_info["last_return_code"] = i18n('empty_info')
       end
-   else
-      http_info["last_return_code"] = i18n('empty_info')
    end
 
    if http_info["last_method"] then
       http_info["last_method"] = string.format('<span class="badge bg-info">%s</span>', http_info["last_method"])
-   else
-      http_info["last_method"] = i18n('empty_info')
    end
 
    if http_info["last_url"] then
@@ -1450,18 +1426,10 @@ function format_http_info(http_info)
       if not string.find(url, '*') then
          http_info["last_url"] = i18n("external_link_url", { proto = 'http', url = url, url_name = url})
       end
-   else
-      http_info["last_url"] = i18n('empty_info')
    end
 
    if http_info["server_name"] then
       http_info["server_name"] = i18n("copy_button", { full_name = http_info["server_name"], name = shortenString(http_info["server_name"], 32)})
-   else
-      http_info["server_name"] = i18n('empty_info')
-   end
-
-   if not http_info["last_user_agent"] then
-      http_info["last_user_agent"] = i18n('empty_info')
    end
 
   return http_info
@@ -1551,18 +1519,24 @@ end
 --                  false otherwise
 -- @return A string containing the info field formatted
 function format_external_link(url, name, no_html, proto, i18n_key)
-   local external_field = url
-   proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
+   if(string.contains(url, " ")) then
+      -- the string contains spaces, so it's not an URL
+      -- Let's return it as it
+      return(url)
+   else
+      local external_field = url
+      proto = ternary(((proto) and (proto == 'http' or proto == 'HTTP')), 'http', 'https')
+      
+      if no_html == false then
+	 if not isEmptyString(url) and not string.find(url, '*') then
+	    if(i18n_key == nil) then i18n_key = "external_link_url" end
+	    url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
+	    external_field = i18n(i18n_key, { proto = proto, url = url, url_name = name})
+	 end
+      end
 
-   if no_html == false then
-      if not isEmptyString(url) and not string.find(url, '*') then
-	 if(i18n_key == nil) then i18n_key = "external_link_url" end
-	 url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
-	external_field = i18n(i18n_key, { proto = proto, url = url, url_name = name})
-     end
+      return external_field
    end
-
-   return external_field
 end
 
 -- ##############################################

@@ -112,17 +112,18 @@ function blog_utils.fetchLatestPosts()
    local debug = false
    
    if(debug) then traceError(TRACE_NORMAL, TRACE_CONSOLE, "blog_utils.fetchLatestPosts()") end
-   
+  
    if((next_fetch ~= nil) and (next_fetch ~= "")) then
       next_fetch = tonumber(next_fetch)
 
       if(next_fetch > now) then
-	 if(debug) then tprint("Not yet time to refresh blog [".. (now-next_fetch) .." src]") end
+	 if(debug) then tprint("Not yet time to refresh blog [".. (now-next_fetch) .." sec]") end
 	 return
       end
    end
 
-   if(debug) then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Refreshing ntop blog feed...") end
+   traceError(TRACE_NORMAL, TRACE_CONSOLE, "Fetching latest ntop blog posts...")
+
    response = ntop.httpGet(JSON_FEED)
 
    if(debug) then tprint(response["CONTENT"]) end

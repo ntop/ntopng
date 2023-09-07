@@ -1,12 +1,12 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
-	<b>{{ i18n("notification_endpoint.discord.url") }}</b>
+		<b>{{ i18n("notification_endpoint.discord.url") }}</b>
+		<a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#discord"><i class="fa-regular fa-circle-question"></i></a>
     </label>
-    <div class="col-sm-5">
+    <div class="col-sm-7">
 	<input
 	data-validation-message="{{ i18n('notification_endpoint.discord.validation.invalid_url') }}"
 	data-validation-empty-message="{{ i18n('notification_endpoint.discord.validation.empty_url') }}"
 	data-pattern="https" name="discord_url" type="text" class="form-control" required />
     </div>
 </div>
-<small>{* i18n('notification_endpoint.discord.webhook_description') *}</small>
