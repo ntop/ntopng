@@ -15,6 +15,7 @@
           </div>
           <div class="col-sm-2" >
             <SelectSearch v-model:selected_option="selected_cidr"
+                @select_option="load_ports"
                 :options="cidr_options_list">
             </SelectSearch>
           </div>
@@ -290,10 +291,11 @@ const check_empty_host = async () => {
 const check_ports = () => {
   let comma_separted_port_regex = /^(\d{1,5})(,\s*\d{1,5})*$/;
 
-  if ( !comma_separted_port_regex.test(ports.value)) {
+  if (ports.value != "" && !comma_separted_port_regex.test(ports.value)) {
 
     disable_add.value = true; 
   } else {
+    ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
     disable_add.value = false;
   }
 

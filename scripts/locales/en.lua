@@ -4208,6 +4208,8 @@ local lang = {
       ["not_scanned"] = "Not Scanned",
       ["not_yet"] = "Not Scanned",
       ["num_open_ports"] = "Open Ports",
+      ["num_open_ports_tcp"] = "Open TCP Ports",
+      ["num_open_ports_udp"] = "Open UDP Ports",
       ["num_vulnerabilities_found"] = "CVEs",
       ["periodicity"] = "Periodicity",
       ["periodicity_scan_1_day_ended"] = "Daily Vulnerability Scan ended.",
@@ -4233,6 +4235,7 @@ local lang = {
       ["vulnerability_scan_reports"] = "Vulnerability Scan Reports",
       ["weekly"] = "Weekly",
       ["notes"] = {
+        ["generic_notes_1"] = "If a notification endpoint and the related recipient with the ‘Notification Type’ set to ‘Vulnerability Scan Reports’ are enabled, a notification is sent when the periodic vulnerability scan begins and ends.",
         ["note_1"] = "Host: host IP to scan.",
         ["note_2"] = "Ports: a comma-separated list of ports; if empty, all host ports are going to be considered.",
         ["note_3"] = "Scan Type: select a specific vulnerability scan type.",
@@ -4242,6 +4245,7 @@ local lang = {
         ["cve"] = "CVE",
         ["openvas"] = "OpenVAS",
         ["vulners"] = "Vulners",
+        ["openports"] = "OpenPorts"
       },
     },
   },

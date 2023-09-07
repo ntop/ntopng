@@ -50,6 +50,12 @@
             </template>
             </div>
 
+        <div class="card-footer">
+        <NoteList
+        :note_list="note_list">
+        </NoteList>
+      </div>
+
       </div>
     </div>
   </div>
@@ -61,6 +67,7 @@
 
 /* Imports */ 
 import { ref, onBeforeMount, onMounted, nextTick } from "vue";
+import { default as NoteList } from "./note-list.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as ModalDeleteScanConfirm } from "./modal-delete-scan-confirm.vue";
@@ -77,6 +84,9 @@ let autorefresh = ref(false);
 let insert_with_success = ref(false);
 let already_inserted = ref(false);
 
+const note_list = [
+  _i18n('hosts_stats.page_scan_hosts.notes.generic_notes_1')
+]
 
 let insert_text = ref(_i18n('scan_host_inserted'));
 let already_insert_text = ref(_i18n('scan_host_already_inserted'));
@@ -200,14 +210,22 @@ function columns_sorting(col, r0, r1) {
         return r0_col - r1_col;
       }
       return r1_col - r0_col; 
-    } else if(col.id == "num_open_ports") {
+    } else if(col.id == "num_open_ports" ) {
       r0_col = format_num_for_sort(r0_col);
       r1_col = format_num_for_sort(r1_col);
       if (col.sort == 1) {
         return r0_col - r1_col;
       }
       return r1_col - r0_col; 
-    } else if(col.id == "duration") {
+    } else if ( col.id == "tcp_ports" || col.id == "udp_ports") {
+      r0_col = format_num_ports_for_sort(r0_col);
+      r1_col = format_num_ports_for_sort(r1_col);
+      if (col.sort == 1) {
+        return r0_col - r1_col;
+      }
+      return r1_col - r0_col; 
+    } 
+    else if(col.id == "duration") {
       r0_col = r0["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r0["last_scan"][col.data.data_field];
       r1_col = r1["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r1["last_scan"][col.data.data_field];
       if (r1_col != i18n("hosts_stats.page_scan_hosts.not_yet"))
@@ -296,6 +314,14 @@ function format_num_for_sort(num) {
     num = parseInt(num);
   }
 
+  return num;
+}
+
+function format_num_ports_for_sort(num) {
+  if (num === "" || num === null || num === NaN || num === undefined) 
+    num = 0;
+
+  num = parseInt(num);;
   return num;
 }
 
@@ -438,7 +464,25 @@ const map_table_def_columns = (columns) => {
         return `<span class="badge bg-danger" title="${label}">${label}</span>`;
       } 
       
-    }
+    },
+    "tcp_ports": (tcp_ports) => {
+      let label = "";
+
+      if (tcp_ports <= 0) {
+        return label;
+      }
+
+      return tcp_ports;
+    },
+    "udp_ports": (udp_ports) => {
+      let label = "";
+
+      if (udp_ports <= 0) {
+        return label;
+      }
+
+      return udp_ports;
+    },
   };
 
   columns.forEach((c) => {

@@ -110,6 +110,28 @@
 				"text-end"
 			]
 		},
+
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.num_open_ports_udp",
+			"data_field": "udp_ports",
+			"sortable": true,
+			
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.num_open_ports_tcp",
+			"data_field": "tcp_ports",
+			"sortable": true,
+			
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
 		{
 			"title_i18n": "hosts_stats.page_scan_hosts.scan_duration",
 			"data_field": "duration",
