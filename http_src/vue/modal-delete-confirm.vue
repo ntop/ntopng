@@ -27,8 +27,15 @@
     });
     const show = (body, title) => {
 
-      body_delete.value = body;
-      title_delete.value = title;
+      if (body != null && title != null) {
+
+        body_delete.value = body;
+        title_delete.value = title;
+      } else {
+
+        body_delete.value = props.body;
+        title_delete.value = props.title;
+      }
       modal_id.value.show();
     };
     
