@@ -65,7 +65,7 @@
         "limit" : 180,
         "version" : 4,
         "ts_requests": {
-          "current" : {
+          "$IFID$" : {
             "ts_query" : "ifid:$IFID$",
             "ts_schema" : "iface:traffic_rxtx",
             "tskey" : "$IFID$"
