@@ -1,5 +1,3 @@
-.. _ClickHouse:
-
 Connect to ClickHouse
 --------------------
 

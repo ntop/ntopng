@@ -18,9 +18,10 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    interfaces/index
    alerts/index
    using_with_other_tools/index
-   historical_flows
-   containers   
    clickhouse/index
+   historical_flows
+   reports
+   containers   
    scada/index
    kafka/index
    advanced_features/index
