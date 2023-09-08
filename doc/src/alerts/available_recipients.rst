@@ -249,10 +249,16 @@ First of all, create a PagerDuty account. For information about the PagerDuty ac
 After that, you will be able to see the PagerDuty Endpoint.
 
 .. figure:: ../img/pagerduty_endpoint.png
-It is necessary to specify the `Integration Key` known also as `routing_key <https://developer.pagerduty.com/docs/ZG9jOjExMDI5NTgx-send-an-alert-event>`_.
-To obtain the Integration Key, it is necessary to create a new App and, within it, a new Service under the new PagerDuty account.
 
-Once you have created the endpoint, proceed to create a new recipient to associate with the newly created endpoint.
+It is necessary to specify the `Integration Key` known also as `routing_key <https://developer.pagerduty.com/docs/ZG9jOjExMDI5NTgx-send-an-alert-event>`_.
+
+To obtain the Integration Key, after logging into PagerDuty, it is necessary to create a new Integration under the Automation panel.
+
+.. figure:: ../img/pagerduty_integration_key.png
+
+Once the new integration is created, the user will have the integration key required for the ntopng endpoint.
+
+After creating the endpoint, proceed to create a new recipient to associate with the newly created endpoint.
 
 .. note::
 
