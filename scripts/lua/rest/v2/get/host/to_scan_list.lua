@@ -18,6 +18,11 @@ local function format_result(result)
                 rsp[#rsp+1] = value
                 rsp[#rsp].num_vulnerabilities_found = format_high_num_value_for_tables(value, "num_vulnerabilities_found")
                 rsp[#rsp].num_open_ports = format_high_num_value_for_tables(value, "num_open_ports")
+                rsp[#rsp].tcp_ports = format_high_num_value_for_tables(value, "tcp_ports")
+                rsp[#rsp].udp_ports = format_high_num_value_for_tables(value, "udp_ports")
+                if (rsp[#rsp].tcp_ports == 0 and rsp[#rsp].udp_ports == 0) then
+                    rsp[#rsp].tcp_ports = rsp[#rsp].num_open_ports
+                end
             else 
                 if (value.host == search_map or string.find(value.host,search_map)) then
                     rsp[#rsp+1] = value

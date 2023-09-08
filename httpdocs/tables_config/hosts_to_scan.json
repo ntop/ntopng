@@ -100,16 +100,7 @@
 			]
 		},
 
-		{
-			"title_i18n": "hosts_stats.page_scan_hosts.num_open_ports",
-			"data_field": "num_open_ports",
-			"sortable": true,
-			
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
+		
 
 		{
 			"title_i18n": "hosts_stats.page_scan_hosts.num_open_ports_udp",

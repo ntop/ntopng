@@ -83,9 +83,10 @@ const _i18n = (t) => i18n(t);
 let autorefresh = ref(false);
 let insert_with_success = ref(false);
 let already_inserted = ref(false);
+let note = _i18n('hosts_stats.page_scan_hosts.notes.generic_notes_1').replaceAll("${http_prefix}",`${http_prefix}`);
 
 const note_list = [
-  _i18n('hosts_stats.page_scan_hosts.notes.generic_notes_1')
+  note
 ]
 
 let insert_text = ref(_i18n('scan_host_inserted'));
@@ -204,13 +205,6 @@ function columns_sorting(col, r0, r1) {
     }
     else if(col.id == "num_vulnerabilities_found") {
       /* It's an array */
-      r0_col = format_num_for_sort(r0_col);
-      r1_col = format_num_for_sort(r1_col);
-      if (col.sort == 1) {
-        return r0_col - r1_col;
-      }
-      return r1_col - r0_col; 
-    } else if(col.id == "num_open_ports" ) {
       r0_col = format_num_for_sort(r0_col);
       r1_col = format_num_for_sort(r1_col);
       if (col.sort == 1) {
@@ -465,7 +459,11 @@ const map_table_def_columns = (columns) => {
       } 
       
     },
-    "tcp_ports": (tcp_ports) => {
+    "tcp_ports": (tcp_ports, row) => {
+
+      if (tcp_ports == 0 && row.udp_ports == 0) {
+        tcp_ports = row.num_open_ports;
+      }
       let label = "";
 
       if (tcp_ports <= 0) {
@@ -494,7 +492,8 @@ const map_table_def_columns = (columns) => {
           
         b.f_map_class = (current_class, row) => { 
           current_class = current_class.filter((class_item) => class_item != "link-disabled");
-          if((row.is_ok_last_scan == 4 || row.is_ok_last_scan == null || row.num_open_ports < 1) && visible_dict[b.id]) {
+          // FIX ME with UDP ports check
+          if((row.is_ok_last_scan == 4 || row.is_ok_last_scan == null || row.tcp_ports < 1) && visible_dict[b.id]) {
             current_class.push("link-disabled"); 
           }
           return current_class;
