@@ -5,8 +5,10 @@
 <template>
 <div class="d-flex align-items-center justify-content-between">
     <div>
-        <h4 class="fw-normal text-white">{{ counter }}</h4>
-        <p class="subtitle text-white text-sm text mb-0 h5">{{ name }}</p>
+        <a :href="link_url">
+            <h4 class="fw-normal text-white">{{ counter }}</h4>
+            <p class="subtitle text-white text-sm text mb-0 h5">{{ name }}</p>
+        </a>
     </div>
     <div class="flex-shrink-0 ms-3">
         <i class="text-white" :class="icon"></i>
@@ -27,6 +29,7 @@ const component_id = ref('empty_component');
 const counter = ref('')
 const name = ref('')
 const icon = ref('')
+const link_url = ref('#')
 
 const props = defineProps({
     id: String,          /* Component ID */
@@ -90,6 +93,18 @@ async function refresh_component() {
 
     let formatCounter = formatterUtils.getFormatter(counter_formatter);
     counter.value = formatCounter(counter_value)
+
+    if (props.params.link) {
+      const link_url_params = {
+        ifid: props.ifid,
+        epoch_begin: props.epoch_begin,
+        epoch_end: props.epoch_end,
+        ...props.params.link.url_params
+      }
+
+      const link_query_params = ntopng_url_manager.obj_to_url_params(link_url_params);
+      link_url.value = `${http_prefix}${props.params.link.url}?${link_query_params}`;
+    }
   }
 }
 </script>
