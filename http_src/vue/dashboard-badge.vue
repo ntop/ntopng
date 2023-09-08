@@ -83,7 +83,12 @@ async function refresh_component() {
     /* TODO handle dot-separated path for non-flat json */
     let counter_value = data[props.params.counter_path];
 
-    let formatCounter = formatterUtils.getFormatter("number");
+    let counter_formatter = data[props.params.counter_formatter];
+    if (!counter_formatter) {
+      counter_formatter = "number";
+    }
+
+    let formatCounter = formatterUtils.getFormatter(counter_formatter);
     counter.value = formatCounter(counter_value)
   }
 }
