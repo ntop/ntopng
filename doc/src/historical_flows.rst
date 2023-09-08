@@ -9,7 +9,7 @@ Historical Flow Explorer
   ClickHouse support is not available on Windows and embedded architectures.
 
 When ClickHouse is enabled, an historical flows explorer becomes available in the ntopng web GUI.
-This page is used to navigate throw the flows seen and stored by ntopng.
+This page is used to navigate through the flows seen and stored by ntopng.
 
 .. note::
 
@@ -23,7 +23,7 @@ The explorer is available from the left sidebar, under the Flows section.
 
   Historical Flows Explorer
 
-It is possible, as for the Alerts Page, to navigate throw the flows by filtering the results.
+It is possible, as for the Alerts Page, to navigate through the flows by filtering the results.
 Multiple filters are available by clicking the various results (e.g. The host `develv5`, to investigate its activities) or by clicking the `+` symbol in the right upper part of the GUI and selecting the wanted filter.
 
 .. figure:: img/add_filters.png
@@ -32,7 +32,7 @@ Multiple filters are available by clicking the various results (e.g. The host `d
 
   Filtering
 
-It is possible to navigate throw the time by adjusting the Date and Time using the Navigation Menu or by dragging the time from the chart.
+It is possible to navigate through the time by adjusting the Date and Time using the Navigation Menu or by dragging the time from the chart.
 
 .. figure:: img/historical_flow_nav_menu.png
   :align: center
@@ -72,12 +72,7 @@ recorded flows data in the past. Check out the `Flows Dump documentation`_ for m
 how to setup the connection and the historical views available for this mode.
 
 In order to dump flows to disk ntopng requires the `-F clickhouse` option to be
-specified as described in the `Flows Dump documentation`_. After this is enabled,
-new "Flows" entries will appear into the historical charts `tabular view`_ dropdown:
-
-.. figure:: img/historical_flows_dropdown.png
-  :align: center
-  :alt: Historical Charts dropdown with flows
+specified as described in the `Flows Dump documentation`_.
 
 Custom Queries
 --------------
@@ -86,19 +81,18 @@ In order to analyze historical flows dumped by ntopng on ClickHouse, it is possi
 to use the use additional flows views, with custom queries that can aggregate the 
 data according to some criteria, or manipulate the data in any way allowed by SQL.
 
-The default the flows view in the Historical Flows Explorer is "Flows," 
+The default flows view in the Historical Flows Explorer is "Flows", 
 which shows the full list of raw flows.
 
 .. figure:: img/historical_flows_query_presets.png
   :align: center
   :alt: Historical Flows Query Presets
 
-Historical flows data can be accessed from the `Historical Charts`_ .
+Historical flows data can be also accessed from the `Historical Charts`_ .
 
 .. figure:: img/historical_flows_top_l7_contacts.png
   :align: center
   :alt: Historical Flows Top L7 Contacts
-
 
 By clicking on the |drilldown_icon| icon, it's possible to explode a particular communication
 or host and analyze the raw flows.
@@ -110,8 +104,9 @@ or host and analyze the raw flows.
 The picture above, for example, shows the raw flows between `PC local` and
 `17.248.146.148` having the `AppleiCloud` protocol.
 
-
-Here is an overview of the currently available flows views:
+In addition to the raw "Flows", additional built-in views are available, which are
+built on top of the Custom Queries engine. Here is an overview of the currently 
+available flows views:
 
   - Flows (Bytes Chart): Displays the flows view with a bytes chart
   - Flows (Score Chart): Displays the flows view with a score chart
@@ -136,9 +131,10 @@ Here is an overview of the currently available flows views:
   - Top Sender Networks: Displays the top networks with the most sent traffic
   - Visited Sites: Shows the most visited domains
 
-
-The corresponding definitions of the flow views are available on the filesystem as JSON files under /usr/share/ntopng/scripts/historical/tables/*.json.
-
+The above built-in Custom Queries can be extended by the user by creating
+simple JSON files containing the query description. The query definitions corresponding
+to the above built-in queries are available on the filesystem as JSON files under 
+/usr/share/ntopng/scripts/historical/tables/*.json.
 Adding a new flow view is as simple as placing one more JSON file within the same folder.
 
 Here is an example JSON file for the Clients flow view.
@@ -220,7 +216,9 @@ Here is an example JSON file for the Clients flow view.
   }
 
 
-The JSON format is self-explanatory. It is possible to define the columns to be shown under the select tree, the columns on which the group-by is applied under the groupby tree, and the default column on which sorting is applied under the sortby tree. Aggregation functions can also be defined, such as the 'sum' item in the example. 
+The JSON format is self-explanatory. It is possible to define the columns to be shown under the select tree, 
+the columns on which the group-by is applied under the groupby tree, and the default column on which sorting is 
+applied under the sortby tree. Aggregation functions can also be defined, such as the 'sum' item in the example. 
 For more complicated examples, it is recommended to take a look at the built-in query definitions available in the same folders.
 
 The complete list of columns is available in the database schema located at /usr/share/ntopng/httpdocs/misc/db_schema_clickhouse.sql
