@@ -81,7 +81,10 @@ async function refresh_component() {
     let data = await props.get_component_data(`${http_prefix}${props.params.url}`, query_params);
 
     /* TODO handle dot-separated path for non-flat json */
-    counter.value = data[props.params.counter_path];
+    let counter_value = data[props.params.counter_path];
+
+    let formatCounter = formatterUtils.getFormatter("number");
+    counter.value = formatCounter(counter_value)
   }
 }
 </script>
