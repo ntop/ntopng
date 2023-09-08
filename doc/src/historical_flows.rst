@@ -56,13 +56,22 @@ Other actions are possible by clicking the Action button (left most side of the 
 
   Flow Example
 
-Different table views are available from the navigation menu to have a better understanding of the network (e.g. Top Application Contacts, Top Server Ports, ecc.).
+Historical flows data can be also accessed from the `Historical Charts`_ .
 
-.. figure:: img/historical_flow_explorer_top_l7.png
+.. figure:: img/historical_flows_top_l7_contacts.png
   :align: center
-  :alt: Historical Flows Explorer
+  :alt: Historical Flows Top L7 Contacts
 
-  Top L7 Contacts Table
+By clicking on the |drilldown_icon| icon, it's possible to explode a particular communication
+or host and analyze the raw flows.
+
+.. figure:: img/historical_flows_raw_flows.png
+  :align: center
+  :alt: Raw Flows
+
+The picture above, for example, shows the raw flows between `PC local` and
+`17.248.146.148` having the `AppleiCloud` protocol.
+
 
 Enabling Flow Dump
 ------------------
@@ -87,22 +96,6 @@ which shows the full list of raw flows.
 .. figure:: img/historical_flows_query_presets.png
   :align: center
   :alt: Historical Flows Query Presets
-
-Historical flows data can be also accessed from the `Historical Charts`_ .
-
-.. figure:: img/historical_flows_top_l7_contacts.png
-  :align: center
-  :alt: Historical Flows Top L7 Contacts
-
-By clicking on the |drilldown_icon| icon, it's possible to explode a particular communication
-or host and analyze the raw flows.
-
-.. figure:: img/historical_flows_raw_flows.png
-  :align: center
-  :alt: Raw Flows
-
-The picture above, for example, shows the raw flows between `PC local` and
-`17.248.146.148` having the `AppleiCloud` protocol.
 
 In addition to the raw "Flows", additional built-in views are available, which are
 built on top of the Custom Queries engine. Here is an overview of the currently 
@@ -130,6 +123,12 @@ available flows views:
   - Top Sender Countries: Displays the top countries with the most sent traffic
   - Top Sender Networks: Displays the top networks with the most sent traffic
   - Visited Sites: Shows the most visited domains
+
+.. figure:: img/historical_flow_explorer_top_l7.png
+  :align: center
+  :alt: Historical Flows Explorer
+
+  Top L7 Contacts Table
 
 The above built-in Custom Queries can be extended by the user by creating
 simple JSON files containing the query description. The query definitions corresponding
