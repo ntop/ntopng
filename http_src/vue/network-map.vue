@@ -65,7 +65,7 @@ async function check_layout(network) {
     }
     
     if(refresh_layout == true) {
-      reload();
+      await reload();
     }
   } catch(error) {
     console.log(error);
@@ -79,7 +79,7 @@ onMounted(async () => {
   
   // if an host has been defined inside the URL query then add it to the request
   const url = NtopUtils.buildURL(props.url, url_params); 
-  await $.get(url, dataRequest, function(response) {
+  await $.get(url, dataRequest, async function(response) {
     const {nodes, edges, max_entry_reached} = response.rsp;
     max_entries = max_entry_reached;
     nodes_dataset = new vis.DataSet(nodes);
@@ -87,7 +87,7 @@ onMounted(async () => {
     const datasets = {nodes: nodes_dataset, edges: edges_dataset};
     empty_network(datasets);
     network = new vis.Network(container, datasets, ntopng_map_manager.get_default_options());
-    check_layout(network);
+    await check_layout(network);
     save_topology_view();
     set_event_listener();
 	});
@@ -98,15 +98,15 @@ onBeforeUnmount(() => {
   destroy();
 });
 
-const jump_to_host = (params) => {
+const jump_to_host = async (params) => {
   const tmpHost = params.id.split('@')
   url_params['host'] = tmpHost[0]
   url_params['vlan_id'] = tmpHost[1]
   ntopng_url_manager.set_key_to_url('host', url_params['host']);
   ntopng_url_manager.set_key_to_url('vlan_id', url_params['vlan_id']);
   ntopng_events_manager.emit_custom_event(ntopng_custom_events.CHANGE_PAGE_TITLE, params)
-  reload();
-  check_layout();
+  await reload();
+  await check_layout();
 }
 
 const empty_network = (datasets) => {

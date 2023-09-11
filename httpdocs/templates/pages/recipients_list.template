@@ -98,7 +98,7 @@
             endpoint_id: $(`${formSelector} [name='endpoint']`).val(),
             recipient_host_pools: $(`${formSelector} [name='recipient_host_pools']`).val().join(","),
             recipient_am_hosts: $(`${formSelector} [name='recipient_am_hosts']`).val().join(","),
-            recipient_silence_multiple_alerts: $(`${formSelector} [name='recipient_silence_alerts']`).val(),
+            recipient_silence_multiple_alerts: $(`${formSelector} [name='recipient_silence_alerts']`).is(':checked'),
             recipient_notifications_type: $(`${formSelector} [name='recipient_notifications_type']`).val()
         };
 
@@ -510,6 +510,33 @@
             if ($cloned) {
                 $(`#add-recipient-modal form .recipient-template-container`).empty().append($(`<hr>`), $cloned).show();
             }   
+            
+            $(`#add-recipient-modal form [name='show_advanced_prefs']`).on('change', function() {
+                const value = $(this).is(':checked')
+                $('.advanced-pref').each(function(i, obj) {
+                    if(!value) {
+                        obj.setAttribute('hidden', 'hidden');
+                    } else {
+                        obj.removeAttribute('hidden');
+                    }
+                });
+                if(value) {
+                    $('#simple-view').removeClass('active');
+                    $('#simple-view').removeClass('btn-primary');
+                    $('#simple-view').addClass('btn-secondary');
+                    $('#expert-view').addClass('active');
+                    $('#expert-view').removeClass('btn-secondary');
+                    $('#expert-view').addClass('btn-primary');
+                } else {
+                    $('#expert-view').removeClass('active');
+                    $('#expert-view').removeClass('btn-primary');
+                    $('#expert-view').addClass('btn-secondary');
+                    $('#simple-view').addClass('active');
+                    $('#simple-view').removeClass('btn-secondary');
+                    $('#simple-view').addClass('btn-primary');
+                }
+            });
+
             $(`#add-recipient-notifications-type`).change((item) => {
                 if(item && item.target) {
                     if(item.target.value == 'alerts') {
@@ -522,13 +549,21 @@
             $(`#alert_filters`).removeAttr('hidden');
             $(`#generic_tab`).click(() => {
                 $(`#generic_tab`).addClass('active');
+                $(`#generic_tab`).addClass('btn-primary');
+                $(`#generic_tab`).removeClass('btn-secondary');
                 $(`#per_alerts_tab`).removeClass('active');
+                $(`#per_alerts_tab`).addClass('btn-secondary');
+                $(`#per_alerts_tab`).removeClass('btn-primary');
                 $(`#per_alerts_recipient`).attr('hidden', 'hidden');
                 $(`#generic_recipient`).removeAttr('hidden');
             })
             $(`#per_alerts_tab`).click(() => {
                 $(`#per_alerts_tab`).addClass('active');
+                $(`#per_alerts_tab`).addClass('btn-primary');
+                $(`#per_alerts_tab`).removeClass('btn-secondary');
                 $(`#generic_tab`).removeClass('active');
+                $(`#generic_tab`).addClass('btn-secondary');
+                $(`#generic_tab`).removeClass('btn-primary');
                 $(`#generic_recipient`).attr('hidden', 'hidden');
                 $(`#per_alerts_recipient`).removeAttr('hidden');
             })
@@ -634,18 +669,6 @@
                 }
             });
 
-            $(`#edit_generic_tab`).click(() => {
-                $(`#edit_generic_tab`).addClass('active');
-                $(`#edit_per_alerts_tab`).removeClass('active');
-                $(`#edit_per_alerts_recipient`).attr('hidden', 'hidden');
-                $(`#edit_generic_recipient`).removeAttr('hidden');
-            })
-            $(`#edit_per_alerts_tab`).click(() => {
-                $(`#edit_per_alerts_tab`).addClass('active');
-                $(`#edit_generic_tab`).removeClass('active');
-                $(`#edit_generic_recipient`).attr('hidden', 'hidden');
-                $(`#edit_per_alerts_recipient`).removeAttr('hidden');
-            })
             /* bind testing button */
             $(`#edit-test-recipient`).off('click').click(async function (e) {
                 e.preventDefault();
@@ -660,6 +683,26 @@
         },
         onModalShow: function () {
             $(`#edit-recipient-modal .test-feedback`).hide();
+            $(`#edit_generic_tab`).click(() => {
+                $(`#edit_generic_tab`).addClass('active');
+                $(`#edit_generic_tab`).addClass('btn-primary');
+                $(`#edit_generic_tab`).removeClass('btn-secondary');
+                $(`#edit_per_alerts_tab`).removeClass('active');
+                $(`#edit_per_alerts_tab`).addClass('btn-secondary');
+                $(`#edit_per_alerts_tab`).removeClass('btn-primary');
+                $(`#edit_per_alerts_recipient`).attr('hidden', 'hidden');
+                $(`#edit_generic_recipient`).removeAttr('hidden');
+            })
+            $(`#edit_per_alerts_tab`).click(() => {
+                $(`#edit_per_alerts_tab`).addClass('active');
+                $(`#edit_per_alerts_tab`).addClass('btn-primary');
+                $(`#edit_per_alerts_tab`).removeClass('btn-secondary');
+                $(`#edit_generic_tab`).removeClass('active');
+                $(`#edit_generic_tab`).addClass('btn-secondary');
+                $(`#edit_generic_tab`).removeClass('btn-primary');
+                $(`#edit_generic_recipient`).attr('hidden', 'hidden');
+                $(`#edit_per_alerts_recipient`).removeAttr('hidden');
+            })
         },
         onSubmitSuccess: function (response) {
             if (response.result.status == "OK") {
