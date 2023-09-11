@@ -37,7 +37,7 @@
  * the live flow information, without contributing to the score for instance)
  */
 
-static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK]{
+static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
     /* NDPI_NO_RISK */
     {{flow_alert_normal, alert_category_other}, "ndpi_no_risk"},
 
@@ -238,6 +238,12 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK]{
 
     /* NDPI_TCP_ISSUES */
     {{flow_alert_ndpi_tcp_issues, alert_category_network}, "ndpi_tcp_issues"},
+
+    /* NDPI_FULLY_ENCRYPTED */
+    {{flow_alert_ndpi_fully_encrypted, alert_category_network}, "ndpi_fully_encrypted"},
+
+    /* NDPI_TLS_ALPN_SNI_MISMATCH */
+    {{flow_alert_ndpi_tls_alpn_sni_mismatch, alert_category_security}, "ndpi_tls_alpn_sni_mismatch"},
 };
 
 /* **************************************************** */
