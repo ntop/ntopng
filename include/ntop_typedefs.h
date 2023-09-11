@@ -520,7 +520,7 @@ typedef enum {
   flow_alert_modbus_too_many_exceptions = 94,
   flow_alert_modbus_invalid_transition = 95,
   flow_alert_ndpi_fully_encrypted = 96,
-  flow_alert_ndpi_tls_alpn_sni_mismatch = 96,
+  flow_alert_ndpi_tls_alpn_sni_mismatch = 97,
 
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
