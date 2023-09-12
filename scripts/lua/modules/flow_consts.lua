@@ -161,7 +161,6 @@ flow_consts.flow_fields_description = {
    ["SSL_SERVER_NAME"] = i18n("flow_fields_description.tls_server_name"),
    ["BITTORRENT_HASH"] = i18n("flow_fields_description.bittorrent_hash"),
    ["FLOW_USER_NAME"] = i18n("flow_fields_description.flow_user_name"),
-   ["FLOW_SERVER_NAME"] = i18n("flow_fields_description.flow_server_name"),
    ["PLUGIN_NAME"] = i18n("flow_fields_description.script_name"),
    ["UNTUNNELED_IPV6_SRC_ADDR"] = i18n("flow_fields_description.untunneled_ipv6_src_addr"),
    ["UNTUNNELED_IPV6_DST_ADDR"] = i18n("flow_fields_description.untunneled_ipv6_dst_addr"),
@@ -516,6 +515,7 @@ flow_consts.flow_fields_description = {
    ["FLOW_VERDICT"]  = i18n("flow_fields_description.flow_verdict"),
    ["L7_RISK_SCORE"] = i18n("flow_fields_description.l7_risk_score"),
    ["L7_INFO"]       = i18n("flow_fields_description.l7_info"),
+   ["NPROBE_INSTANCE_NAME"] = i18n("flow_fields_description.nprobe_instance_name"),
    
    -- Numeric fields not handled by nProbe
    ["25"]  =  i18n("flow_fields_description.ip_lenght_minimum"),

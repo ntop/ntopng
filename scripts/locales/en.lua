@@ -3271,6 +3271,7 @@ local lang = {
     ["netbios_query_type"] = "NETBIOS Query Type",
     ["netbios_response"] = "NETBIOS Query Response",
     ["nprobe_ipv4_address"] = "IPv4 address of the host were nProbe runs",
+    ["nprobe_instance_name"] = "nProbe Instance Name",
     ["num_pkts_1024_to_1514_bytes"] = "# packets whose IP size > 1024 and <= 1514",
     ["num_pkts_128_to_256_bytes"] = "# packets whose IP size > 128 and <= 256",
     ["num_pkts_256_to_512_bytes"] = "# packets whose IP size > 256 and < 512",
