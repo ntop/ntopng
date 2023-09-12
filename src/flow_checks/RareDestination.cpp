@@ -32,14 +32,15 @@ u_int32_t RareDestination::getDestinationHash(Flow *f) {
   if (f->isLocalToLocal()) {
 
     char buf[64];
+    LocalHost *ldest = (LocalHost*)dest;
 
-    if (!dest->isMulticastHost() && dest->isDHCPHost()) {
-      char *mac = dest->getMac()->print(buf,sizeof(buf));
-      hash = Utils::hashString(mac);
+    if (!ldest->isLocalUnicastHost() && dest->isDHCPHost()) {
+      u_int8_t *mac = dest->getMac()->get_mac();
+      hash = Utils::macHash(mac);
     }
     else if (dest->isIPv6() || dest->isIPv4()) {
-      char *ip = dest->get_ip()->print(buf,sizeof(buf));
-      hash = Utils::hashString(ip);
+      IpAddress *ip = dest->get_ip();
+      hash = ip->key();
     }
 
   }
