@@ -848,16 +848,24 @@ local function is_data_in_window(stats, epoch_begin, epoch_end)
    local first_epoch = tonumber(stats['FirstDumpedEpoch'])
    local last_epoch = tonumber(stats['LastDumpedEpoch'])
 
+   if not first_epoch or not last_epoch then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "Unable to read FirstDumpedEpoch / LastDumpedEpoch from n2disk stats")
+      return info
+   end
+
    if first_epoch > 0 and last_epoch > 0 and 
       epoch_end > first_epoch and epoch_begin < last_epoch then
+
       info.epoch_begin = epoch_begin
       info.epoch_end = epoch_end
+
       if first_epoch > epoch_begin then
          info.epoch_begin = first_epoch
       end
       if last_epoch < epoch_end then
          info.epoch_end = last_epoch
       end
+
       info.available = true
    end
 
