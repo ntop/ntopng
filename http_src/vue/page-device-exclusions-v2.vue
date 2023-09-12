@@ -232,7 +232,6 @@ const edit_row = async function(params) {
     params.mac = row.mac_address.mac;
   
 
-  console.log(params);
   const url = NtopUtils.buildURL(edit_url, {
     ...params
   })
@@ -296,9 +295,6 @@ function columns_sorting(col, r0, r1) {
     } else if (col.id == "trigger_alert") {
       r0_col = format_bool(r0_col);
       r1_col = format_bool(r1_col);
-      console.log(r0_col);
-
-      console.log(r1_col);
 
       if (col.sort == 1) {
         return r0_col.localeCompare(r1_col);
