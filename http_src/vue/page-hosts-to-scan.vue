@@ -312,7 +312,7 @@ function format_num_for_sort(num) {
 }
 
 function format_num_ports_for_sort(num) {
-  if (num === "" || num === null || num === NaN || num === undefined) 
+  if (num == "" || num == null || num == NaN || num == undefined) 
     num = 0;
 
   num = parseInt(num);;
