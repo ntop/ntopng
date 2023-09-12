@@ -4,7 +4,7 @@
 
 
 const defaultOptions = { 
-  autoResize: true, 
+  autoResize: true, /* By default already true */
   nodes: { 
       shape: "dot", 
       scaling: {
@@ -25,23 +25,23 @@ const defaultOptions = {
           roundness: 0
       },
   },
+  layout: {
+    clusterThreshold: 5,
+    improvedLayout: true,
+    hierarchical: {
+      enabled: true,
+      levelSeparation: 100,
+      treeSpacing: 150,
+    }
+  },
   interaction: {
-      hideEdgesOnDrag: true,
-      hideEdgesOnZoom: true,
-      hover: true,
-      tooltipDelay: 0,
+    hideEdgesOnDrag: true,
+    hideEdgesOnZoom: true,
+    hover: true,
+    tooltipDelay: 0,
   },
   physics: {
-    barnesHut: {
-        springConstant: 0,
-        avoidOverlap: 0.3,
-        gravitationalConstant: -1000,
-        damping: 0.65,
-        centralGravity: 0
-    },
-    stabilization: {
-        onlyDynamicEdges: false
-    }
+    enabled: false
   },
   groups: {
       unknown: {

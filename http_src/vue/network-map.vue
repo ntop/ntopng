@@ -39,6 +39,7 @@ let url_params = {};
 let is_destroyed = false;
 
 async function check_layout(network) {
+  /*
   if(!network) return;
   // get all nodes position
   const positions = network.getPositions(network.body.data.nodes.map(x => x.id));
@@ -49,7 +50,7 @@ async function check_layout(network) {
       for (const [node2, position2] of Object.entries(positions)) {
         /* The x and y of the node1 is +-2 the x and y of the node2 */
         /* In order to not have too close nodes */
-        if((node1 != node2)
+/*        if((node1 != node2)
           && ((position2.x - 2) <= position1.x && position1.x <= (position2.x + 2))
           && ((position2.y - 2) <= position1.y && position1.y <= (position2.y + 2))) {
           console.log(position1);
@@ -70,6 +71,7 @@ async function check_layout(network) {
   } catch(error) {
     console.log(error);
   }
+  */
 }
 
 onMounted(async () => {
@@ -80,13 +82,15 @@ onMounted(async () => {
   // if an host has been defined inside the URL query then add it to the request
   const url = NtopUtils.buildURL(props.url, url_params); 
   await $.get(url, dataRequest, async function(response) {
-    const {nodes, edges, max_entry_reached} = response.rsp;
+    const {nodes, edges, max_entry_reached, layout} = response.rsp;
     max_entries = max_entry_reached;
     nodes_dataset = new vis.DataSet(nodes);
     edges_dataset = new vis.DataSet(edges);
     const datasets = {nodes: nodes_dataset, edges: edges_dataset};
     empty_network(datasets);
-    network = new vis.Network(container, datasets, ntopng_map_manager.get_default_options());
+    let options = ntopng_map_manager.get_default_options();
+    options.layout.randomSeed = layout.seed;
+    network = new vis.Network(container, datasets, options);
     await check_layout(network);
     save_topology_view();
     set_event_listener();
@@ -140,19 +144,19 @@ const load_scale = () => {
 const set_event_listener = () => {
   /* Default event listeners */
   network.on('hoverEdge', function() {
-    $(`.vis-tooltip`).css('position', 'absolute')
+    $(`.vis-tooltip`).css('position', 'absolute');
   });
   
   network.on("doubleClick", function (params) {
-    jump_to_host(nodes_dataset.get(params.nodes[0]))
+    jump_to_host(nodes_dataset.get(params.nodes[0]));
   });
 
   network.on('zoom', function(e) {
-    update_view_state_id = zoom_in_and_save_topology()
+    update_view_state_id = save_topology();
   });
 
   network.on("dragEnd", function(e) {
-    drag()
+    update_view_state_id = save_topology();
   });
 
   network.on("afterDrawing", function(e) {
@@ -166,16 +170,13 @@ const set_event_listener = () => {
 }
 
 const save_topology_view = () => {
-  if(!network) return;
-  // get all nodes position
-  const positions = network.getPositions(network.body.data.nodes.map(x => x.id));
+  if(!network) 
+    return;
+
   // save the nodes position, the network scale and the network view position
   const info = {
-    positions: positions,
-    network: {
-      scale: network.getScale(),
-      position: network.getViewPosition()
-    }
+    seed: network.getSeed(),
+    position: network.getPositions(network.body.data.nodes.map(x => x.id))
   };
 
   $.post(props.url, {
@@ -188,19 +189,9 @@ const save_topology_view = () => {
   });
 }
 
-const zoom_in_and_save_topology = () => {
-  if (network.getScale() <= MIN_SCALE) {
-    network.moveTo({
-      scale: MIN_SCALE + 0.25,
-      position: { x: 0, y: 0 },
-      animation: { duration: 1000, easingFunction: 'easeInOutCubic' }
-    });
-  }
-
+const save_topology = () => {
   clearTimeout(update_view_state_id);
-
-
-  return setTimeout(save_topology_view);
+  return setTimeout(save_topology_view, 1000);
 }
 
 const autolayout = () => {
@@ -216,14 +207,6 @@ const autolayout = () => {
 
   network.stabilize();
   setTimeout(() => { save_topology_view() }, 1000);
-}
-
-const drag = () => {
-  if (update_view_state_id) {
-    clearTimeout(update_view_state_id);
-  }
-
-  save_topology_view();
 }
 
 const destroy = () => {
