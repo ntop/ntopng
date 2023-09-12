@@ -1267,8 +1267,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot, bool walk_all,
 
 /* **************************************************** */
 
-Flow *NetworkInterface::getFlow(
-				Mac *src_mac, Mac *dst_mac, u_int16_t vlan_id,
+Flow *NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac, u_int16_t vlan_id,
 				u_int16_t observation_domain_id, u_int32_t private_flow_id,
 				u_int32_t deviceIP, u_int32_t inIndex, u_int32_t outIndex,
 				const ICMPinfo *const icmp_info, IpAddress *src_ip, IpAddress *dst_ip,
@@ -1290,14 +1289,17 @@ Flow *NetworkInterface::getFlow(
       setSeenMacAddresses();
   }
 
-  INTERFACE_PROFILING_SECTION_ENTER(
-				    "NetworkInterface::getFlow: flows_hash->find", 1);
+  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 1);
   ret = flows_hash->find(src_mac, dst_mac, src_ip, dst_ip, src_port, dst_port,
                          vlan_id, observation_domain_id, private_flow_id,
                          l4_proto, icmp_info, src2dst_direction,
                          true /* Inline call */, &unswapped_flow);
   INTERFACE_PROFILING_SECTION_EXIT(1);
 
+  if(ntop->getPrefs()->is_cloud_edition()) {
+    /* TODO: check that deviceIP matches ret */
+  }
+  
   if ((ret == NULL) && (unswapped_flow != NULL)) {
     /*
       We have found this flow but with the wrong direction

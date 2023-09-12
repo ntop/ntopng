@@ -681,9 +681,8 @@ if((page == "overview") or (page == nil)) then
          zmq_endpoint = string.sub(zmq_endpoint, 1, -2)
          probe_mode = " --zmq-probe-mode"
       end
-      
-      if ntop.isCloud() then
 
+      if ntop.isCloud() then
          if(prefs.zmq_publish_events_url == nil) then
             print("<p><b><font color=red>Please restart ntopng with --zmq-publish-events &lt;URL&gt;</font></b>")
          else
@@ -713,6 +712,7 @@ if((page == "overview") or (page == nil)) then
           content += "\n";
           content += "# Set the ntopng address properly\n";
           content += "--cloud=]] print(zmq_endpoint) print [[\n";
+          content += "--instance-name=SET_YOUR_NPROBE_INSTANCE_NAME\n";
           content += "--zmq-encryption-key=']] print(ifstats.encryption.public_key) print [['\n";
           content += "\n";
           content += "# Add more options here...\n";

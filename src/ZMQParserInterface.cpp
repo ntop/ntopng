@@ -85,6 +85,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("EXPORTER_IPV6_ADDRESS", EXPORTER_IPV6_ADDRESS);
   addMapping("TOTAL_FLOWS_EXP", TOTAL_FLOWS_EXP);
   addMapping("NPROBE_IPV4_ADDRESS", NPROBE_IPV4_ADDRESS, NTOP_PEN);
+  addMapping("NPROBE_INSTANCE_NAME", NPROBE_INSTANCE_NAME, NTOP_PEN);
   addMapping("TCP_FLAGS", TCP_FLAGS);
   addMapping("INITIATOR_PKTS", INITIATOR_PKTS);
   addMapping("INITIATOR_OCTETS", INITIATOR_OCTETS);
@@ -800,22 +801,22 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
   if (field < NTOP_BASE_ID) field += NTOP_BASE_ID;
 
   switch (field) {
-    case L7_PROTO:
-      if (value->string) {
-        if (!strchr(value->string, '.')) {
-          /* Old behaviour, only the app protocol */
-          flow->l7_proto.app_protocol = atoi(value->string);
-        } else {
-          char *proto_dot;
-
-          flow->l7_proto.master_protocol =
-              (u_int16_t)strtoll(value->string, &proto_dot, 10);
-          flow->l7_proto.app_protocol =
-              (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
-        }
+  case L7_PROTO:
+    if (value->string) {
+      if (!strchr(value->string, '.')) {
+	/* Old behaviour, only the app protocol */
+	flow->l7_proto.app_protocol = atoi(value->string);
       } else {
-        flow->l7_proto.app_protocol = value->int_num;
+	char *proto_dot;
+
+	flow->l7_proto.master_protocol =
+	  (u_int16_t)strtoll(value->string, &proto_dot, 10);
+	flow->l7_proto.app_protocol =
+	  (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
       }
+    } else {
+      flow->l7_proto.app_protocol = value->int_num;
+    }
 
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[value: %s][master: %u][app: %u]",
@@ -823,305 +824,313 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
 				 flow->l7_proto.master_protocol,
 				 flow->l7_proto.app_protocol);
 #endif
-      break;
+    break;
 
-    case L7_PROTO_NAME:
-      break;
+#if 0
+  case NPROBE_INSTANCE_NAME:
+    if(ntop->getPrefs()->is_cloud_edition()) {
+      /* TODO: add dummy VLAN tag and mp it to the instance name*/
+    }
+    break;
+#endif
+    
+  case L7_PROTO_NAME:
+    break;
 
-    case L7_INFO:
-      if (value->string && value->string[0] && value->string[0] != '\n')
-	flow->setL7Info(value->string);
-      break;
+  case L7_INFO:
+    if (value->string && value->string[0] && value->string[0] != '\n')
+      flow->setL7Info(value->string);
+    break;
 
-    case L7_CONFIDENCE:
-      flow->setConfidence((ndpi_confidence_t)((value->int_num < NDPI_CONFIDENCE_MAX)
-					      ? value->int_num
-					      : NDPI_CONFIDENCE_UNKNOWN));
-      break;
+  case L7_CONFIDENCE:
+    flow->setConfidence((ndpi_confidence_t)((value->int_num < NDPI_CONFIDENCE_MAX)
+					    ? value->int_num
+					    : NDPI_CONFIDENCE_UNKNOWN));
+    break;
 
-    case L7_ERROR_CODE:
-      flow->setL7ErrorCode(value->int_num);
-      break;
+  case L7_ERROR_CODE:
+    flow->setL7ErrorCode(value->int_num);
+    break;
 
-    case OOORDER_IN_PKTS:
-      flow->tcp.ooo_in_pkts = value->int_num;
-      break;
+  case OOORDER_IN_PKTS:
+    flow->tcp.ooo_in_pkts = value->int_num;
+    break;
 
-    case OOORDER_OUT_PKTS:
-      flow->tcp.ooo_out_pkts = value->int_num;
-      break;
+  case OOORDER_OUT_PKTS:
+    flow->tcp.ooo_out_pkts = value->int_num;
+    break;
 
-    case RETRANSMITTED_IN_PKTS:
-      flow->tcp.retr_in_pkts = value->int_num;
-      break;
+  case RETRANSMITTED_IN_PKTS:
+    flow->tcp.retr_in_pkts = value->int_num;
+    break;
 
-    case RETRANSMITTED_OUT_PKTS:
-      flow->tcp.retr_out_pkts = value->int_num;
-      break;
+  case RETRANSMITTED_OUT_PKTS:
+    flow->tcp.retr_out_pkts = value->int_num;
+    break;
 
-      /* TODO add lost in/out to nProbe and here */
-    case CLIENT_NW_LATENCY_MS: {
-      float client_nw_latency;
-      client_nw_latency = value->double_num;
-      flow->tcp.clientNwLatency.tv_sec = client_nw_latency / 1e3;
-      flow->tcp.clientNwLatency.tv_usec =
-          1e3 * (client_nw_latency - flow->tcp.clientNwLatency.tv_sec * 1e3);
-    } break;
+    /* TODO add lost in/out to nProbe and here */
+  case CLIENT_NW_LATENCY_MS: {
+    float client_nw_latency;
+    client_nw_latency = value->double_num;
+    flow->tcp.clientNwLatency.tv_sec = client_nw_latency / 1e3;
+    flow->tcp.clientNwLatency.tv_usec =
+      1e3 * (client_nw_latency - flow->tcp.clientNwLatency.tv_sec * 1e3);
+  } break;
 
-    case SERVER_NW_LATENCY_MS: {
-      float server_nw_latency;
+  case SERVER_NW_LATENCY_MS: {
+    float server_nw_latency;
 
-      server_nw_latency = value->double_num;
-      flow->tcp.serverNwLatency.tv_sec = server_nw_latency / 1e3;
-      flow->tcp.serverNwLatency.tv_usec =
-          1e3 * (server_nw_latency - flow->tcp.serverNwLatency.tv_sec * 1e3);
-    } break;
+    server_nw_latency = value->double_num;
+    flow->tcp.serverNwLatency.tv_sec = server_nw_latency / 1e3;
+    flow->tcp.serverNwLatency.tv_usec =
+      1e3 * (server_nw_latency - flow->tcp.serverNwLatency.tv_sec * 1e3);
+  } break;
 
-    case CLIENT_TCP_FLAGS:
-      flow->tcp.client_tcp_flags = value->int_num;
-      flow->tcp.tcp_flags |= flow->tcp.client_tcp_flags;
-      break;
+  case CLIENT_TCP_FLAGS:
+    flow->tcp.client_tcp_flags = value->int_num;
+    flow->tcp.tcp_flags |= flow->tcp.client_tcp_flags;
+    break;
 
-    case SERVER_TCP_FLAGS:
-      flow->tcp.server_tcp_flags = value->int_num;
-      flow->tcp.tcp_flags |= flow->tcp.server_tcp_flags;
-      break;
+  case SERVER_TCP_FLAGS:
+    flow->tcp.server_tcp_flags = value->int_num;
+    flow->tcp.tcp_flags |= flow->tcp.server_tcp_flags;
+    break;
 
-    case APPL_LATENCY_MS:
-      flow->tcp.applLatencyMsec = value->double_num;
-      break;
+  case APPL_LATENCY_MS:
+    flow->tcp.applLatencyMsec = value->double_num;
+    break;
 
-    case TCP_WIN_MAX_IN:
-      flow->tcp.in_window = value->int_num;
-      break;
+  case TCP_WIN_MAX_IN:
+    flow->tcp.in_window = value->int_num;
+    break;
 
-    case TCP_WIN_MAX_OUT:
-      flow->tcp.out_window = value->int_num;
-      break;
+  case TCP_WIN_MAX_OUT:
+    flow->tcp.out_window = value->int_num;
+    break;
 
-    case DNS_QUERY:
-      if (value->string && value->string[0] && value->string[0] != '\n')
-        flow->setDNSQuery(value->string);
-      break;
+  case DNS_QUERY:
+    if (value->string && value->string[0] && value->string[0] != '\n')
+      flow->setDNSQuery(value->string);
+    break;
 
-    case DNS_QUERY_TYPE:
-      flow->setDNSQueryType(value->string ? atoi(value->string) : value->int_num);
-      break;
+  case DNS_QUERY_TYPE:
+    flow->setDNSQueryType(value->string ? atoi(value->string) : value->int_num);
+    break;
 
-    case DNS_RET_CODE:
-      flow->setDNSRetCode(value->string ? atoi(value->string) : value->int_num);
-      break;
+  case DNS_RET_CODE:
+    flow->setDNSRetCode(value->string ? atoi(value->string) : value->int_num);
+    break;
 
-    case HTTP_URL:
-      if (value->string && value->string[0] && value->string[0] != '\n')
-	flow->setHTTPurl(value->string);
-      break;
+  case HTTP_URL:
+    if (value->string && value->string[0] && value->string[0] != '\n')
+      flow->setHTTPurl(value->string);
+    break;
 
-    case HTTP_USER_AGENT:
-      if (value->string && value->string[0] && value->string[0] != '\n') 
-	flow->setHTTPuserAgent(value->string);
-      break;
+  case HTTP_USER_AGENT:
+    if (value->string && value->string[0] && value->string[0] != '\n') 
+      flow->setHTTPuserAgent(value->string);
+    break;
 
-    case HTTP_SITE:
-      if (value->string && value->string[0] && value->string[0] != '\n')
-	flow->setHTTPsite(value->string);
-      break;
+  case HTTP_SITE:
+    if (value->string && value->string[0] && value->string[0] != '\n')
+      flow->setHTTPsite(value->string);
+    break;
 
-    case HTTP_RET_CODE:
-      flow->setHTTPRetCode(value->string ? atoi(value->string) : value->int_num);
-      break;
+  case HTTP_RET_CODE:
+    flow->setHTTPRetCode(value->string ? atoi(value->string) : value->int_num);
+    break;
 
-    case HTTP_METHOD:
-      if (value->string && value->string[0] && value->string[0] != '\n')
-        flow->setHTTPMethod(ndpi_http_str2method(value->string, strlen(value->string)));
-      break;
+  case HTTP_METHOD:
+    if (value->string && value->string[0] && value->string[0] != '\n')
+      flow->setHTTPMethod(ndpi_http_str2method(value->string, strlen(value->string)));
+    break;
 
-    case TLS_SERVER_NAME:
-      if (value->string && value->string[0] && value->string[0] != '\n')
-	flow->setTLSserverName(value->string);
-      break;
+  case TLS_SERVER_NAME:
+    if (value->string && value->string[0] && value->string[0] != '\n')
+      flow->setTLSserverName(value->string);
+    break;
 
-    case JA3C_HASH:
-      if (value->string && value->string[0])
-	flow->setJA3cHash(value->string);
-      break;
+  case JA3C_HASH:
+    if (value->string && value->string[0])
+      flow->setJA3cHash(value->string);
+    break;
 
-    case JA3S_HASH:
-      if (value->string && value->string[0])
-	flow->setJA3sHash(value->string);
-      break;
+  case JA3S_HASH:
+    if (value->string && value->string[0])
+      flow->setJA3sHash(value->string);
+    break;
 
-    case TLS_CIPHER:
-      flow->setTLSCipher(value->int_num);
-      break;
+  case TLS_CIPHER:
+    flow->setTLSCipher(value->int_num);
+    break;
 
-    case SSL_UNSAFE_CIPHER:
-      flow->setTLSUnsafeCipher(value->int_num);
-      break;
+  case SSL_UNSAFE_CIPHER:
+    flow->setTLSUnsafeCipher(value->int_num);
+    break;
 
-    case L7_PROTO_RISK:
-      flow->setRisk((ndpi_risk)value->int_num);
-      break;
+  case L7_PROTO_RISK:
+    flow->setRisk((ndpi_risk)value->int_num);
+    break;
 
-    case FLOW_VERDICT:
-      flow->setFlowVerdict(value->int_num);
-      break;
+  case FLOW_VERDICT:
+    flow->setFlowVerdict(value->int_num);
+    break;
 
-    case L7_RISK_INFO:
-      if (value->string && value->string[0])
-	flow->setRiskInfo(value->string);
-      break;
+  case L7_RISK_INFO:
+    if (value->string && value->string[0])
+      flow->setRiskInfo(value->string);
+    break;
 
-    case BITTORRENT_HASH:
-      if (value->string && value->string[0] && value->string[0] != '\n')
-	flow->setBittorrentHash(value->string);
-      break;
+  case BITTORRENT_HASH:
+    if (value->string && value->string[0] && value->string[0] != '\n')
+      flow->setBittorrentHash(value->string);
+    break;
 
-    case NPROBE_IPV4_ADDRESS:
-      /* Do not override EXPORTER_IPV4_ADDRESS */
-      if (value->string && flow->device_ip == 0 &&
-          (flow->device_ip = ntohl(inet_addr(value->string))))
-        return false;
-      break;
-
-    case SRC_FRAGMENTS:
-      flow->in_fragments = value->int_num;
-      break;
-
-    case DST_FRAGMENTS:
-      flow->out_fragments = value->int_num;
-      break;
-
-    case SRC_PROC_PID:
-      flow->src_process_info.pid = value->int_num;
-      break;
-
-    case SRC_FATHER_PROC_PID:
-      flow->src_process_info.father_pid = value->int_num;
-      break;
-
-    case SRC_PROC_NAME:
-      if (value->string && value->string[0]) {
-        flow->setParsedProcessInfo();
-        flow->src_process_info.process_name = strdup(value->string);
-        /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SRC] %s (%u)",
-         * flow->src_process_info.process_name, ntohs(flow->src_port)); */
-      }
-      break;
-
-    case SRC_FATHER_PROC_NAME:
-      if (value->string && value->string[0]) {
-        flow->setParsedProcessInfo();
-        flow->src_process_info.father_process_name = strdup(value->string);
-      }
-      break;
-
-    case SRC_PROC_PKG_NAME:
-      if (value->string && value->string[0])
-        flow->src_process_info.pkg_name = strdup(value->string);
-      break;
-
-    case SRC_FATHER_PROC_PKG_NAME:
-      if (value->string && value->string[0])
-        flow->src_process_info.father_pkg_name = strdup(value->string);
-      break;
-
-    case SRC_PROC_CMDLINE:
-      if (value->string && value->string[0])
-        flow->src_process_info.cmd_line = strdup(value->string);
-      break;
-
-    case SRC_PROC_UID:
-      flow->src_process_info.uid = value->int_num;
-      break;
-
-    case SRC_FATHER_PROC_UID:
-      flow->src_process_info.father_uid = value->int_num;
-      break;
-
-    case SRC_PROC_USER_NAME:
-      if (value->string && value->string[0])
-        flow->src_process_info.uid_name = strdup(value->string);
-      break;
-
-    case SRC_FATHER_PROC_USER_NAME:
-      if (value->string && value->string[0])
-        flow->src_process_info.father_uid_name = strdup(value->string);
-      break;
-
-    case SRC_PROC_CONTAINER_ID:
-      if (value->string && value->string[0]) {
-        flow->setParsedContainerInfo();
-        flow->src_container_info.id = strdup(value->string);
-      }
-      break;
-
-    case DST_PROC_PID:
-      flow->dst_process_info.pid = value->int_num;
-      break;
-
-    case DST_FATHER_PROC_PID:
-      flow->dst_process_info.father_pid = value->int_num;
-      break;
-
-    case DST_PROC_NAME:
-      if (value->string && value->string[0]) {
-        flow->setParsedProcessInfo();
-        flow->dst_process_info.process_name = strdup(value->string);
-        /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DST] %s (%u)",
-         * flow->dst_process_info.process_name, ntohs(flow->dst_port)); */
-      }
-      break;
-
-    case DST_FATHER_PROC_NAME:
-      if (value->string && value->string[0]) {
-        flow->setParsedProcessInfo();
-        flow->dst_process_info.father_process_name = strdup(value->string);
-      }
-      break;
-
-    case DST_PROC_PKG_NAME:
-      if (value->string && value->string[0])
-        flow->dst_process_info.pkg_name = strdup(value->string);
-      break;
-
-    case DST_FATHER_PROC_PKG_NAME:
-      if (value->string && value->string[0])
-        flow->dst_process_info.father_pkg_name = strdup(value->string);
-      break;
-
-    case DST_PROC_CMDLINE:
-      if (value->string && value->string[0])
-        flow->dst_process_info.cmd_line = strdup(value->string);
-      break;
-
-    case DST_PROC_UID:
-      flow->dst_process_info.uid = value->int_num;
-      break;
-
-    case DST_FATHER_PROC_UID:
-      flow->dst_process_info.father_uid = value->int_num;
-      break;
-
-    case DST_PROC_USER_NAME:
-      if (value->string && value->string[0])
-        flow->dst_process_info.uid_name = strdup(value->string);
-      break;
-
-    case DST_FATHER_PROC_USER_NAME:
-      if (value->string && value->string[0])
-        flow->dst_process_info.father_uid_name = strdup(value->string);
-      break;
-
-    case DST_PROC_CONTAINER_ID:
-      if (value->string && value->string[0]) {
-        flow->setParsedContainerInfo();
-        flow->dst_container_info.id = strdup(value->string);
-      }
-      break;
-
-    default:
+  case NPROBE_IPV4_ADDRESS:
+    /* Do not override EXPORTER_IPV4_ADDRESS */
+    if (value->string && flow->device_ip == 0 &&
+	(flow->device_ip = ntohl(inet_addr(value->string))))
       return false;
+    break;
+
+  case SRC_FRAGMENTS:
+    flow->in_fragments = value->int_num;
+    break;
+
+  case DST_FRAGMENTS:
+    flow->out_fragments = value->int_num;
+    break;
+
+  case SRC_PROC_PID:
+    flow->src_process_info.pid = value->int_num;
+    break;
+
+  case SRC_FATHER_PROC_PID:
+    flow->src_process_info.father_pid = value->int_num;
+    break;
+
+  case SRC_PROC_NAME:
+    if (value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->src_process_info.process_name = strdup(value->string);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SRC] %s (%u)",
+       * flow->src_process_info.process_name, ntohs(flow->src_port)); */
+    }
+    break;
+
+  case SRC_FATHER_PROC_NAME:
+    if (value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->src_process_info.father_process_name = strdup(value->string);
+    }
+    break;
+
+  case SRC_PROC_PKG_NAME:
+    if (value->string && value->string[0])
+      flow->src_process_info.pkg_name = strdup(value->string);
+    break;
+
+  case SRC_FATHER_PROC_PKG_NAME:
+    if (value->string && value->string[0])
+      flow->src_process_info.father_pkg_name = strdup(value->string);
+    break;
+
+  case SRC_PROC_CMDLINE:
+    if (value->string && value->string[0])
+      flow->src_process_info.cmd_line = strdup(value->string);
+    break;
+
+  case SRC_PROC_UID:
+    flow->src_process_info.uid = value->int_num;
+    break;
+
+  case SRC_FATHER_PROC_UID:
+    flow->src_process_info.father_uid = value->int_num;
+    break;
+
+  case SRC_PROC_USER_NAME:
+    if (value->string && value->string[0])
+      flow->src_process_info.uid_name = strdup(value->string);
+    break;
+
+  case SRC_FATHER_PROC_USER_NAME:
+    if (value->string && value->string[0])
+      flow->src_process_info.father_uid_name = strdup(value->string);
+    break;
+
+  case SRC_PROC_CONTAINER_ID:
+    if (value->string && value->string[0]) {
+      flow->setParsedContainerInfo();
+      flow->src_container_info.id = strdup(value->string);
+    }
+    break;
+
+  case DST_PROC_PID:
+    flow->dst_process_info.pid = value->int_num;
+    break;
+
+  case DST_FATHER_PROC_PID:
+    flow->dst_process_info.father_pid = value->int_num;
+    break;
+
+  case DST_PROC_NAME:
+    if (value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->dst_process_info.process_name = strdup(value->string);
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DST] %s (%u)",
+       * flow->dst_process_info.process_name, ntohs(flow->dst_port)); */
+    }
+    break;
+
+  case DST_FATHER_PROC_NAME:
+    if (value->string && value->string[0]) {
+      flow->setParsedProcessInfo();
+      flow->dst_process_info.father_process_name = strdup(value->string);
+    }
+    break;
+
+  case DST_PROC_PKG_NAME:
+    if (value->string && value->string[0])
+      flow->dst_process_info.pkg_name = strdup(value->string);
+    break;
+
+  case DST_FATHER_PROC_PKG_NAME:
+    if (value->string && value->string[0])
+      flow->dst_process_info.father_pkg_name = strdup(value->string);
+    break;
+
+  case DST_PROC_CMDLINE:
+    if (value->string && value->string[0])
+      flow->dst_process_info.cmd_line = strdup(value->string);
+    break;
+
+  case DST_PROC_UID:
+    flow->dst_process_info.uid = value->int_num;
+    break;
+
+  case DST_FATHER_PROC_UID:
+    flow->dst_process_info.father_uid = value->int_num;
+    break;
+
+  case DST_PROC_USER_NAME:
+    if (value->string && value->string[0])
+      flow->dst_process_info.uid_name = strdup(value->string);
+    break;
+
+  case DST_FATHER_PROC_USER_NAME:
+    if (value->string && value->string[0])
+      flow->dst_process_info.father_uid_name = strdup(value->string);
+    break;
+
+  case DST_PROC_CONTAINER_ID:
+    if (value->string && value->string[0]) {
+      flow->setParsedContainerInfo();
+      flow->dst_container_info.id = strdup(value->string);
+    }
+    break;
+
+  default:
+    return false;
   }
 
   return true;
