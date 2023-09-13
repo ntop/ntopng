@@ -831,12 +831,18 @@ void ParserInterface::deliverFlowToCompanions(ParsedFlow *const flow) {
 
       if (!cur_companion) continue;
 
-      if (cur_companion->isTrafficMirrored())
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL,
+      //        "Trying to enqueue flow to companion interface [from: %s][to: %s]",
+      //        get_name(), cur_companion->get_name());
+
+      if (cur_companion->isTrafficMirrored() ||
+          !cur_companion->isPacketInterface()) {
         cur_companion->enqueueFlowToCompanion(flow,
                                               true /* Skip loopback traffic */);
-      else if (cur_companion == flow_interface)
+      } else if (cur_companion == flow_interface) {
         cur_companion->enqueueFlowToCompanion(
             flow, false /* do NOT skip loopback traffic */);
+      }
     }
   }
 }
