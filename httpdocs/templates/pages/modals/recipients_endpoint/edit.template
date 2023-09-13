@@ -68,9 +68,12 @@
                                 <b>{{ i18n("filter_alerts_by") }}</b>
                             </label>
                             <div class="col-sm-7">
-                                <div class=" btn-group btn-toggle">
-                                    <button class="btn btn-sm btn-primary active"  id="edit_generic_tab">{{ i18n('filter_per_properties') }}</button>
-                                    <button class="btn btn-sm btn-secondary" id="edit_per_alerts_tab">{{ i18n('filter_per_alerts') }}</button>
+                                <div class=" btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="options" id="edit_generic_tab" autocomplete="off" checked />
+                                    <label class="btn btn-primary" for="edit_generic_tab">{{ i18n('filter_per_properties') }}</label>
+
+                                    <input type="radio" class="btn-check" name="options" id="edit_per_alerts_tab" autocomplete="off" />
+                                    <label class="btn btn-secondary" for="edit_per_alerts_tab">{{ i18n('filter_per_alerts') }}</label>
                                 </div>
                                 <div><small>{{ i18n('endpoint_notifications.alerts_filter_type') }}</small></div>
                             </div>

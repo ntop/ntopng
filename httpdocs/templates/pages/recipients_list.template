@@ -503,6 +503,24 @@
                 maximumSelectionLength: 10,
                 placeholder: "{{ i18n('endpoint_notifications.select_alert') }}" 
             });
+
+            $(`#generic_tab`).click(() => {
+                $(`#add-recipient-modal form [for='generic_tab']`).addClass('btn-primary');
+                $(`#add-recipient-modal form [for='generic_tab']`).removeClass('btn-secondary');
+                $(`#add-recipient-modal form [for='per_alerts_tab']`).removeClass('btn-primary');
+                $(`#add-recipient-modal form [for='per_alerts_tab']`).addClass('btn-secondary');
+                $(`#per_alerts_recipient`).attr('hidden', 'hidden');
+                $(`#generic_recipient`).removeAttr('hidden');
+            })
+
+            $(`#per_alerts_tab`).click(() => {
+                $(`#add-recipient-modal form [for='per_alerts_tab']`).addClass('btn-primary');
+                $(`#add-recipient-modal form [for='per_alerts_tab']`).removeClass('btn-secondary');
+                $(`#add-recipient-modal form [for='generic_tab']`).removeClass('btn-primary');
+                $(`#add-recipient-modal form [for='generic_tab']`).addClass('btn-secondary');
+                $(`#generic_recipient`).attr('hidden', 'hidden');
+                $(`#per_alerts_recipient`).removeAttr('hidden');
+            })
         },
         onModalShow: () => {
             // load the template of the selected endpoint
@@ -547,26 +565,6 @@
                 }
             });
             $(`#alert_filters`).removeAttr('hidden');
-            $(`#generic_tab`).click(() => {
-                $(`#generic_tab`).addClass('active');
-                $(`#generic_tab`).addClass('btn-primary');
-                $(`#generic_tab`).removeClass('btn-secondary');
-                $(`#per_alerts_tab`).removeClass('active');
-                $(`#per_alerts_tab`).addClass('btn-secondary');
-                $(`#per_alerts_tab`).removeClass('btn-primary');
-                $(`#per_alerts_recipient`).attr('hidden', 'hidden');
-                $(`#generic_recipient`).removeAttr('hidden');
-            })
-            $(`#per_alerts_tab`).click(() => {
-                $(`#per_alerts_tab`).addClass('active');
-                $(`#per_alerts_tab`).addClass('btn-primary');
-                $(`#per_alerts_tab`).removeClass('btn-secondary');
-                $(`#generic_tab`).removeClass('active');
-                $(`#generic_tab`).addClass('btn-secondary');
-                $(`#generic_tab`).removeClass('btn-primary');
-                $(`#generic_recipient`).attr('hidden', 'hidden');
-                $(`#per_alerts_recipient`).removeAttr('hidden');
-            })
         },
         onSubmitSuccess: function (response) {
 
@@ -680,29 +678,25 @@
                     $self.removeAttr("disabled");
                 });
             });
-        },
-        onModalShow: function () {
-            $(`#edit-recipient-modal .test-feedback`).hide();
-            $(`#edit_generic_tab`).click(() => {
-                $(`#edit_generic_tab`).addClass('active');
-                $(`#edit_generic_tab`).addClass('btn-primary');
-                $(`#edit_generic_tab`).removeClass('btn-secondary');
-                $(`#edit_per_alerts_tab`).removeClass('active');
-                $(`#edit_per_alerts_tab`).addClass('btn-secondary');
-                $(`#edit_per_alerts_tab`).removeClass('btn-primary');
-                $(`#edit_per_alerts_recipient`).attr('hidden', 'hidden');
-                $(`#edit_generic_recipient`).removeAttr('hidden');
-            })
             $(`#edit_per_alerts_tab`).click(() => {
-                $(`#edit_per_alerts_tab`).addClass('active');
-                $(`#edit_per_alerts_tab`).addClass('btn-primary');
-                $(`#edit_per_alerts_tab`).removeClass('btn-secondary');
-                $(`#edit_generic_tab`).removeClass('active');
-                $(`#edit_generic_tab`).addClass('btn-secondary');
-                $(`#edit_generic_tab`).removeClass('btn-primary');
+                $(`#edit-recipient-modal form [for='edit_per_alerts_tab']`).addClass('btn-primary');
+                $(`#edit-recipient-modal form [for='edit_per_alerts_tab']`).removeClass('btn-secondary');
+                $(`#edit-recipient-modal form [for='edit_generic_tab']`).removeClass('btn-primary');
+                $(`#edit-recipient-modal form [for='edit_generic_tab']`).addClass('btn-secondary');
                 $(`#edit_generic_recipient`).attr('hidden', 'hidden');
                 $(`#edit_per_alerts_recipient`).removeAttr('hidden');
             })
+            $(`#edit_generic_tab`).click(() => {
+                $(`#edit-recipient-modal form [for='edit_generic_tab']`).addClass('btn-primary');
+                $(`#edit-recipient-modal form [for='edit_generic_tab']`).removeClass('btn-secondary');
+                $(`#edit-recipient-modal form [for='edit_per_alerts_tab']`).removeClass('btn-primary');
+                $(`#edit-recipient-modal form [for='edit_per_alerts_tab']`).addClass('btn-secondary');
+                $(`#edit_per_alerts_recipient`).attr('hidden', 'hidden');
+                $(`#edit_generic_recipient`).removeAttr('hidden');
+            })
+        },
+        onModalShow: function () {
+            $(`#edit-recipient-modal .test-feedback`).hide();
         },
         onSubmitSuccess: function (response) {
             if (response.result.status == "OK") {
