@@ -49,7 +49,7 @@ const defaultOptions = {
     enabled: true,
     solver: "forceAtlas2Based",
     stabilization: {
-      iterations: 2000,
+      iterations: 400,
       enabled: true // This is here just to see what's going on from the very beginning.
     },
     forceAtlas2Based: {
